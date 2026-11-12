@@ -189,40 +189,8 @@ def test_standing_boundaries_skip_shore_cuts():
     assert "C" not in S.standing_boundaries(g)
 
 
-def _stage(tmp_path, monkeypatch, extra=(F_CREEK,), sea=SEA):
-    from pipeline.atlas import build as B
-    g, geoms, idx, fids = _built(extra)
-    monkeypatch.setattr(S, "read_tidal_polygon", lambda gpkg, bbox=None: sea)
-    b = SimpleNamespace(args=SimpleNamespace(gpkg="unused.gpkg", out=str(tmp_path)), graph=g, geoms=geoms,
-                        fid_index=idx, applied_splits=[], fids=fids, chains=build_blk_chains(fids, {}), bbox=None,
-                        tidal_limits=[], tidal_ids={}, tick=lambda label: None)
-    B.cut_shores(b)
-    return b
-
-
-def test_the_atlas_stage_cuts_records_and_lists_the_inside_lines(tmp_path, monkeypatch):
-    """`build.cut_shores` end to end on real `BlkChain`s: F is cut at its exit, E listed tidal whole, C (into fresh X:
-    no tidal limit here) not cut; the record names the rule, and the reach reads the sidecar back."""
-    b = _stage(tmp_path, monkeypatch)
-    assert [p.split_id for p in b.applied_splits] == ["shore:F:100"]
-    assert {nid for nid in b.graph.nodes if nid.startswith("F:")} == {"F:0", "F:100"}
-    rec = json.loads((tmp_path / S.RECORD).read_text())
-    assert rec["rule"] == S.RULE and rec["cuts"] == 1
-    assert {r["blk"]: r.get("not_cut") for r in rec["runs"]} == {"C": S.FRESH_RECEIVER, "F": None, "X": S.FRESH_RECEIVER}
-    assert S.read_inside(tmp_path) == ("E",)
-
-
-def test_atlas_to_reach_the_inside_line_and_the_piece_below_the_cut_are_tidal(tmp_path, monkeypatch):
-    from pipeline.atlas.reach import outside as O
-    b = _stage(tmp_path, monkeypatch)
-    own = O.tidal_inside_owner(b.graph, S.read_inside(tmp_path))
-    assert own == {"E:0": "inside:E"} and O.is_cut_owner("inside:E")
-    crossing = O.tidal_crossing_owner(b.graph, set(own))
-    assert set(crossing) == {"F:0"}                        # the piece below F's polygon exit, never F:100
-    got = O.tidal_water([], {}, b.graph, inside_lines=S.read_inside(tmp_path))
-    assert got == {"E:0": "inside:E", "F:0": "crossing:F:0"}
-    monkeypatch.setattr(O, "A_LINE_THE_ATLAS_LISTS_INSIDE_IS_TIDAL", False)
-    assert O.tidal_water([], {}, b.graph, inside_lines=S.read_inside(tmp_path)) == {}
+# T678: the atlas stage no longer runs the polygon rule (`build.cut_shores` is the coast cut, `test_coast_cut.py`);
+# the rule's functions above stay pinned for the review tools that still read a pre-T678 atlas.
 
 
 def test_read_inside_refuses_a_polygon_atlas_without_its_sidecar(tmp_path):

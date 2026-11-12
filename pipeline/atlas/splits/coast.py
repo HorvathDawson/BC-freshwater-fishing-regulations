@@ -74,6 +74,7 @@ LAKE_BELOW = "a lake on the line below the crossing (lakes are never cut)"
 OWNER_DISAGREE = "the 1450 crossing and the geometric crossing disagree by more than 50 m"
 OWNER_NO_GEOMETRY = "the geometric method finds no tidal water at the line's end"
 OWNER_SLOUGH = "a slough on the Fraser's code joining the tidal Fraser (sloughs are not channels: the owner's, one by one)"
+OWNER_ESTUARY = "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree"
 OWNER_UNNAMED_FRASER = "an unnamed line on the Fraser's code joining the tidal Fraser (unclear: the owner's, one by one)"
 
 
@@ -370,3 +371,186 @@ def missing_held(owner_rows, held) -> list[dict]:
     """The owner's lines the held file does not hold: the build refuses them (today's result must be written down
     before the build can keep it: `python -m pipeline.atlas.splits.coast_held`)."""
     return [r for r in owner_rows if r["blk"] not in held]
+
+
+class CoastGeometry:
+    """THE FWA COAST the geometric crossing reads (`fetch_data.py` fwa_rivers / fwa_land into `fwa_coast.gpkg`): the
+    land mass (the assessment watersheds tile the land; what lies outside them is the sea) and the river polygons by
+    blue line. A missing file or layer is refused (AGENTS 37): a coast with no land would read every line as sea."""
+
+    def __init__(self, gpkg, bbox=None):
+        import pyogrio
+        import shapely
+        from pathlib import Path
+        if not Path(gpkg).exists():
+            raise SystemExit(f"coast: {gpkg} is missing — `PYTHONPATH=. python data/fetch_data.py --layers fwa_rivers "
+                             "fwa_land` writes it")
+        land = pyogrio.read_dataframe(gpkg, layer="land", bbox=bbox, columns=[])
+        riv = pyogrio.read_dataframe(gpkg, layer="rivers", bbox=bbox, columns=["BLUE_LINE_KEY"])
+        if bbox is None and (land.empty or riv.empty):
+            raise SystemExit(f"coast: {gpkg} holds no land or no river polygon")
+        self.land = [g for g in land.geometry if g is not None and not g.is_empty]
+        self.land_tree = shapely.STRtree(self.land)
+        self.rivers = [g for g in riv.geometry]
+        self.river_blk = [str(int(k)) if k == k and k is not None else "" for k in riv.BLUE_LINE_KEY]
+        self.river_tree = shapely.STRtree(self.rivers)
+
+    def in_sea(self, points, reach: float = REACH_M) -> list[bool]:
+        """For each point: does it lie in the sea or within `reach` of it (FWA ends a coastal line ON the coastline,
+        the land's edge)? A point properly inside a land polygon is not; one on an edge is checked exactly against
+        the sea around it (internal watershed edges are not the coast)."""
+        import numpy as np
+        import shapely
+        from shapely.geometry import box
+        pts = np.asarray(points, dtype=object)
+        inner = np.zeros(len(pts), dtype=bool)
+        if len(pts):
+            idx = self.land_tree.query(pts, predicate="within")
+            inner[np.unique(idx[0])] = True
+        out = []
+        for p, inside in zip(pts, inner):
+            if inside and not any(shapely.distance(self.land[i].boundary, p) <= reach
+                                  for i in self.land_tree.query(p, predicate="intersects")):
+                out.append(False)
+                continue
+            bb = (p.x - 2 * reach, p.y - 2 * reach, p.x + 2 * reach, p.y + 2 * reach)
+            B = box(*bb)
+            land = [shapely.clip_by_rect(self.land[i], *bb) for i in self.land_tree.query(B)]
+            sea = B.difference(shapely.union_all([g for g in land if not g.is_empty])) if land else B
+            out.append(not sea.is_empty and shapely.distance(sea, p) <= reach)
+        return out
+
+    def touches_river(self, geometry) -> bool:
+        """Does the line meet an FWA river polygon (an estuary or river drawn double-line)?"""
+        return bool(len(self.river_tree.query(geometry, predicate="intersects")))
+
+    def target(self, geometry, tidal_blks, own_blk: str = "", pad: float = 500.0):
+        """The receiving tidal water around one line: the sea (the box less the land) and the river polygons of the
+        tidal rivers (`tidal_blks`), never the line's own river polygon."""
+        import shapely
+        from shapely.geometry import box
+        x0, y0, x1, y1 = geometry.bounds
+        bb = (x0 - pad, y0 - pad, x1 + pad, y1 + pad)
+        B = box(*bb)
+        land = [shapely.clip_by_rect(self.land[i], *bb) for i in self.land_tree.query(B)]
+        sea = B.difference(shapely.union_all([g for g in land if not g.is_empty])) if land else B
+        recv = [shapely.clip_by_rect(self.rivers[i], *bb) for i in self.river_tree.query(B)
+                if self.river_blk[i] in tidal_blks and self.river_blk[i] != own_blk]
+        return shapely.make_valid(shapely.union_all([sea] + [g for g in recv if not g.is_empty]))
+
+
+# ------------------------------------------------------------------------------------------------ the records
+#: the atlas sidecar listing the owner's lines (today's result kept) and the curated splits not yet classified
+OWNER_RECORD = "coast_owner.json"
+OWNER_ABOUT = ("T678: the lines the coast cut leaves to the owner, each kept as `waters/shore_held.json` says (today's "
+               "result until the owner decides), with where it is and what each method says; and the curated tidal "
+               "splits not yet classified as DFO-written or not (they govern as today until they are). Written by the "
+               "atlas build; read by people and the held-rivers page.")
+RECORD_ABOUT = ("T678: every blue line the coast cut looked at — it enters the sea or tidal water, or the owner holds it: "
+                "cut at its coast crossing (`cut_m`, `below_cut_tidal`), or why not (`not_cut`); `edge1450_m` / "
+                "`geometric_m` are the two crossings. Written by the atlas build (`atlas.splits.coast`); read by people.")
+#: THE ONE TIDAL RECORD: every tidal section of this atlas with its owner. The reach, the tiles, the store and the
+#: review app read it; none recomputes it (owner 2026-11-11, T678 plan 1)
+TIDAL_RECORD = "tidal_sections.json"
+TIDAL_ABOUT = ("T678: THE tidal sections of this atlas, one row per section with its owner: `split:<id>` (below a "
+               "DFO-written tidal boundary), `water:<item>` (a whole tidal water the owner named), `inside:<blk>` (a "
+               "line tidal for its length: coast, stub, Fraser channel, held), `crossing:<section>` (a piece below a "
+               "line's coast cut). Lines stay in the graph, marked tidal (owner B). Written by the atlas build only; "
+               "read by the reach run (which adds only the rows the book marks tidal), the tiles and the review app.")
+
+
+def rank1(limits) -> list:
+    """The tidal-limit rows that govern a cut (rank 1): a DFO-written split, an unclassified one (as today, listed),
+    every `whole` row, and the `cut` rows (curated points, DFO-written by construction of the review)."""
+    return [r for r in limits if getattr(r, "limit", None) in ("split", "cut", "whole") and authority(r) != "none"]
+
+
+def unclassified(limits) -> list[dict]:
+    """The split rows with no DFO-written classification yet: they govern as today and are listed for the owner."""
+    return [{"blk": r.blk, "name": r.name, "split": r.split} for r in limits
+            if getattr(r, "limit", None) == "split" and authority(r) == "unclassified"]
+
+
+def coverage(graph, ids) -> dict:
+    """The WATER a set of sections covers, independent of how it is cut: `{blk: [(lo, hi)]}` (merged route-measure
+    intervals) for stream pieces, `{"lake:<wbk>": True}` for lakes. Two sets of sections over the same water, cut
+    differently (the length cap runs after the coast cut), have equal coverage."""
+    by: dict = {}
+    for s in ids:
+        n = graph.nodes.get(s)
+        if n is None:
+            by.setdefault("?missing", []).append(s)
+        elif n.blk:
+            by.setdefault(n.blk, []).append((round(n.down_m, 2), round(n.up_m, 2)))
+        else:
+            by[s] = True
+    out = {}
+    for k, v in by.items():
+        if v is True or k == "?missing":
+            out[k] = v
+            continue
+        merged: list = []
+        for lo, hi in sorted(v):
+            if merged and lo <= merged[-1][1] + 0.01:
+                merged[-1][1] = max(merged[-1][1], hi)
+            else:
+                merged.append([lo, hi])
+        out[k] = [tuple(x) for x in merged]
+    return out
+
+
+def tidal_owners(graph, registry, limits, id_of, whole: Mapping[str, str], ok_cuts: Mapping[str, float], *,
+                 strict: bool = True) -> dict[str, str]:
+    """`{section: owner}`: THE TIDAL SECTIONS of a finished atlas (the record's rows). Rank 1 on the written registry
+    (the reach's resolvers, the same calls as before), then every piece of a line tidal for its length, then every
+    piece of a coast-cut line at or below its cut. A section claimed twice keeps the first owner."""
+    from pipeline.atlas.reach import outside as _outside
+    lim = rank1(limits)
+    cut_ids = sorted({str(r.split) for r in lim if r.limit == "split"} | {str(id_of[r.blk]) for r in lim if r.limit == "cut"})
+    items = sorted({str(r.item) for r in lim if r.limit == "whole"})
+    out: dict[str, str] = {}
+    for s, o in _outside.tidal_cut_owner(registry, graph, cut_ids, strict=strict).items():
+        out.setdefault(s, o)
+    for s, o in _outside.tidal_whole_owner(registry, items, strict=strict).items():
+        out.setdefault(s, o)
+    for nid in sorted(graph.nodes):
+        n = graph.nodes[nid]
+        if not n.blk:
+            continue
+        if n.blk in whole:
+            out.setdefault(nid, f"inside:{n.blk}")
+        elif n.blk in ok_cuts and n.up_m <= ok_cuts[n.blk] + _EPS:
+            out.setdefault(nid, f"crossing:{nid}")
+    return out
+
+
+def write_record(out_dir, owners: Mapping[str, str], whole: Mapping[str, str]) -> None:
+    import json
+    from pathlib import Path
+    rows = [{"section": s, "owner": owners[s]} for s in sorted(owners)]
+    Path(out_dir, TIDAL_RECORD).write_text(json.dumps({"_about": TIDAL_ABOUT, "rule": RULE, "sections": rows,
+                                                       "lines_whole": [{"blk": b, "why": whole[b]} for b in sorted(whole)]},
+                                                      indent=0) + "\n", encoding="utf-8")
+
+
+def read_record(build_dir) -> dict[str, str]:
+    """`{section: owner}` from an atlas's tidal record. Missing is refused (AGENTS 37): an atlas without it was built
+    before T678 and is not "nothing is tidal"."""
+    import json
+    from pathlib import Path
+    p = Path(build_dir) / TIDAL_RECORD
+    if not p.exists():
+        raise SystemExit(f"coast: {p} is missing — only the atlas build writes it (T678); rebuild the atlas")
+    return {r["section"]: r["owner"] for r in json.loads(p.read_text(encoding="utf-8"))["sections"]}
+
+
+def built_by_coast_rule(build_dir) -> bool:
+    """Was this atlas cut by the coast rule (its shore record names `RULE`)? Then it must carry `TIDAL_RECORD`
+    (`read_record` refuses one without it). An atlas cut before T678 says so by its record."""
+    import json
+    from pathlib import Path
+    from pipeline.atlas.splits.shore import RECORD
+    p = Path(build_dir) / RECORD
+    if not p.exists():
+        return False                     # an atlas cut before T660 had no shore record: not cut by this rule
+    return json.loads(p.read_text(encoding="utf-8")).get("rule") == RULE

@@ -38,6 +38,10 @@ def tidal_pieces(build_dir: Path, graph=None, registry=None, whole=None) -> froz
     """The section (node) ids below this atlas's tidal splits, plus every section of a whole tidal water
     (T212; both from the atlas's tidal sidecar, T326), plus every water crossing ending in them (T660,
     `tidal_crossing_owner`) — the reach run's own set. Empty when there is neither."""
+    from pipeline.atlas.splits import coast as _coast
+    if _coast.built_by_coast_rule(build_dir):
+        # T678: THE atlas's tidal record, read; the tiles recompute nothing
+        return frozenset(_coast.read_record(build_dir))
     from pipeline.atlas.reach.outside import (inside_lines, tidal_inside_owner, tidal_crossing_owner, tidal_cut_owner,
                                               tidal_splits, tidal_waters, tidal_whole_owner)
     ids = tidal_splits(build_dir)

@@ -63,7 +63,7 @@ class ReachResult:
 
 def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "",
                   covered_fn=None, steelhead_list=(), tidal_splits=(), tidal_waters=(),
-                  inside_lines=()) -> ReachResult:
+                  inside_lines=(), tidal_record=None) -> ReachResult:
     """Resolve every rule in `entries` against one build.
 
     `entries` is an iterable of ``(region, entry_dict)`` — the shape
@@ -132,7 +132,7 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
     # the piece below every tidal boundary (T166, `tidal_cut_owner`) out of every row — both after
     # the walk. Written with the run as `tidal.jsonl`; `tidal` maps each section to its owner.
     tidal_of = tidal_water(ents, registry, graph, tidal_splits, report=report.tidal_cuts,
-                           whole_waters=tidal_waters, inside_lines=inside_lines)
+                           whole_waters=tidal_waters, inside_lines=inside_lines, record=tidal_record)
     tidal = tidal_of
     parks = national_park_sections(registry)
     presence = _SteelheadPresence(registry, graph)

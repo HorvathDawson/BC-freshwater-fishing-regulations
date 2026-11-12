@@ -202,64 +202,6 @@ def write_splits_sidecar(build: Path, out: Path, *, log=print) -> Path:
     return dest
 
 
-def write_tidal_sidecar(build: Path, out: Path | None = None, *, log=print) -> Path:
-    """`--tidal-only` (T326): `tidal.resolved.json` rewritten from `waters/tidal_limits.json` for an atlas already built —
-    a `split` or `whole` change needs no cut, so it reaches the reach run without an atlas build. A `mouth` row keeps
-    where the atlas put its alias (the sidecar already there; a mouth new since the build says `pending`, and its
-    alias lands with the next atlas build). A `cut` row this atlas did not cut is refused: it needs the atlas."""
-    from pipeline.atlas.splits import tidal as T
-    from pipeline.atlas.splits.splits import load_split_defs
-    build = Path(build).resolve()
-    dest = Path(out).resolve() if out else build
-    if dest != build:
-        dest.mkdir(parents=True, exist_ok=True)
-        for p in sorted(build.iterdir()):
-            if p.name == T.RESOLVED:
-                continue
-            link = dest / p.name
-            if not (link.is_symlink() or link.exists()):
-                os.symlink(p, link)
-    limits = T.load()
-    have = {d.id for d in load_split_defs(str(CURATED.waters.cuts))}
-    id_of = T.ids(limits, have)
-    resolved = {str(r["split_id"]) for r in json.loads((build / "splits.resolved.json").read_text(encoding="utf-8"))}
-    missing = [f"{r.blk}: {id_of[r.blk]}" for r in limits if r.limit == "cut" and id_of[r.blk] not in resolved]
-    if missing:
-        raise SystemExit("sidecars: tidal cut(s) this atlas did not cut — they need an atlas build: " + "; ".join(missing))
-    stale = [f"{r.blk}: {r.split}" for r in limits if r.limit == "split" and r.split not in have]
-    if stale:
-        raise SystemExit("sidecars: waters/tidal_limits.json names split(s) splits.json does not have: " + "; ".join(stale))
-    old = {}
-    if (build / T.RESOLVED).exists():
-        old = {r["blk"]: r for r in T.read_resolved(build) if r["limit"] == "mouth" and r.get("alias")}
-    placed = {}
-    for r in limits:
-        if r.limit != "mouth":
-            continue
-        o = old.get(r.blk)
-        placed[r.blk] = ({k: o[k] for k in ("on", "measure", "items", "absent") if k in o}
-                         if o and o.get("alias") == id_of[r.blk] else {"absent": "pending: the next atlas build"})
-    # T665: this atlas's SHORE CUTS and `inside_tidal.json` were decided on the tidal water of the limits it was built
-    # with (`shore.reach_tidal`); only the build makes them. A `split` / `whole` / `cut` row that changed since moves
-    # that water, so the cuts wait for the next atlas build: said here, loudly, and `pipeline release` refuses an
-    # atlas behind its tidal limits (T547).
-    from pipeline.atlas.splits import shore as _shore
-    rec = build / _shore.RECORD
-    if (build / T.RESOLVED).exists() and rec.exists() \
-            and json.loads(rec.read_text(encoding="utf-8")).get("rule") == _shore.RULE:
-        def _water(rows):
-            return {(r["blk"], r["limit"], r.get("split_id") or r.get("item")) for r in rows if r["limit"] != "mouth"}
-        was, now = _water(T.read_resolved(build)), _water(T.resolved_rows(limits, id_of, placed))
-        if was != now:
-            log(f"  WARNING: {len(was ^ now)} split / whole / cut limit row(s) changed since this atlas was built "
-                f"({sorted(b for b, *_ in was ^ now)[:8]}): its shore cuts and {_shore.INSIDE} were decided on the old "
-                "tidal water and stay as built until the next atlas build")
-    p = T.write_resolved(dest, T.resolved_rows(limits, id_of, placed))
-    n = {k: sum(1 for r in limits if r.limit == k) for k in T.LIMITS}
-    log(f"  {p}: {n}; {sum(1 for v in placed.values() if 'pending' in str(v.get('absent', '')))} mouth(s) pending")
-    return dest
-
-
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(prog="pipeline.atlas.sidecars",
                                  description=__doc__.split("\n\n")[0])
@@ -271,14 +213,8 @@ def main(argv=None) -> int:
     ap.add_argument("--splits-only", action="store_true",
                     help="with --out: link everything, write only splits.resolved.json (a curated "
                          "split label or offset edit)")
-    ap.add_argument("--tidal-only", action="store_true",
-                    help="write only tidal.resolved.json from waters/tidal_limits.json (T326; in place adds/replaces that "
-                         "one file, also on a promoted atlas)")
     a = ap.parse_args(argv)
     build = a.build or GENERATED.require_build()
-    if a.tidal_only:
-        write_tidal_sidecar(build, a.out)
-        return 0
     if a.splits_only:
         if a.out is None:
             raise SystemExit("sidecars: --splits-only needs --out")

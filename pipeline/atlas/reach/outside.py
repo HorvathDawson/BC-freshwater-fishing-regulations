@@ -332,7 +332,7 @@ def tidal_whole_owner(registry, item_ids, *, strict: bool = True,
 
 
 def tidal_water(entries, registry, graph=None, split_ids=(), *, strict: bool = True,
-                report: list | None = None, whole_waters=(), inside_lines=()) -> dict[str, str]:
+                report: list | None = None, whole_waters=(), inside_lines=(), record=None) -> dict[str, str]:
     """`{section: owner}` — ALL THE TIDAL WATER the reach run takes out of every binding: the waters
     of the rows marked `tidal` (owner: the row's entry id, `tidal_owner`), then the piece below every
     tidal split (owner `split:<id>`, `tidal_cut_owner`), then every whole tidal water (owner
@@ -341,6 +341,24 @@ def tidal_water(entries, registry, graph=None, split_ids=(), *, strict: bool = T
     `tidal_inside_owner`, T665) before the crossings. A row's claim stands where both hold. The
     run writes it as `tidal.jsonl`; the bundle's `tidal` table is read from that file."""
     out = dict(tidal_owner(entries, registry, strict=strict))
+    if record is not None:
+        # T678: THE ATLAS'S ONE TIDAL RECORD (`atlas.splits.coast.TIDAL_RECORD`): read, never recomputed. Only the rows
+        # the book marks tidal (above) are the reach's own fact. A row's claim stands where both hold.
+        if split_ids or whole_waters or inside_lines:
+            raise SystemExit("tidal: the atlas's tidal record and the old tidal inputs were both given — read the record")
+        for s, o in sorted(record.items()):
+            if registry is not None and graph is not None and strict and s not in graph.nodes:
+                raise SystemExit(f"tidal: the atlas's tidal record names {s!r}, which its graph does not hold")
+            out.setdefault(s, o)
+        if report is not None:
+            kinds: dict[str, int] = {}
+            for o in record.values():
+                k = o.split(":", 1)[0]
+                kinds[k] = kinds.get(k, 0) + 1
+            for k in sorted(kinds):
+                report.append({"split": f"{k}: (the atlas's tidal record)", "items": [], "sections": kinds[k],
+                               "unplaced": [], "ambiguous_cut": []})
+        return out
     if split_ids:
         for s, o in tidal_cut_owner(registry, graph, split_ids, strict=strict,
                                     report=report).items():

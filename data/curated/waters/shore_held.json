@@ -1,0 +1,2653 @@
+{
+ "_about": "T678: the lines the coast cut (`pipeline.atlas.splits.coast`) leaves to the owner, each kept as TODAY'S atlas has it (`keep`: cut at `cut_m` / whole / fresh) until the owner decides: the two crossings disagree, the geometric crossing finds no tidal water, a slough or unnamed line on the Fraser's code, or held by name (Kitimat, item C). `at` is the line's mouth (lon, lat); `methods` what each crossing says (route measures). Written by `python -m pipeline.atlas.splits.coast_held` from a built atlas; a row with `decided` is the owner's ruling and is kept on a rerun. Read by the atlas build (`build.cut_shores`), which refuses an owner line missing here.",
+ "lines": [
+  {
+   "blk": "-2000000122",
+   "name": "Boundary Creek",
+   "keep": "cut",
+   "cut_m": 199.59,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -123.024002,
+    49.199573
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 180.0
+   }
+  },
+  {
+   "blk": "-2000000218",
+   "name": "Fraser River Trib. 1",
+   "keep": "cut",
+   "cut_m": 152.71,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -123.01089,
+    49.195674
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 140.0
+   }
+  },
+  {
+   "blk": "-2000000239",
+   "name": "Jr 1-1",
+   "keep": "cut",
+   "cut_m": 134.26,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -122.95507,
+    49.192404
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 110.0
+   }
+  },
+  {
+   "blk": "-2000000292",
+   "name": "Salmon Slough",
+   "keep": "cut",
+   "cut_m": 106.56,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -122.985499,
+    49.181952
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 90.0
+   }
+  },
+  {
+   "blk": "-2000000295",
+   "name": "Salmon Slough",
+   "keep": "cut",
+   "cut_m": 110.8,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -122.980019,
+    49.180267
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 90.0
+   }
+  },
+  {
+   "blk": "-2000000296",
+   "name": "Salmon Slough",
+   "keep": "cut",
+   "cut_m": 107.52,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -122.984269,
+    49.181458
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 90.0
+   }
+  },
+  {
+   "blk": "-2000000299",
+   "name": "Salmon Slough",
+   "keep": "cut",
+   "cut_m": 106.87,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -122.982222,
+    49.180788
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 90.0
+   }
+  },
+  {
+   "blk": "-2000000302",
+   "name": "Sanctuary Slough",
+   "keep": "cut",
+   "cut_m": 111.72,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -122.986903,
+    49.182609
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 90.0
+   }
+  },
+  {
+   "blk": "-2000000373",
+   "name": "Swing Bridge Slough",
+   "keep": "cut",
+   "cut_m": 110.68,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -122.98818,
+    49.183206
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 100.0
+   }
+  },
+  {
+   "blk": "-2200000388",
+   "name": "Suter Brook Creek",
+   "keep": "fresh",
+   "why": "the 1450 crossing and the geometric crossing disagree by more than 50 m",
+   "at": [
+    -122.837113,
+    49.282058
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 130.0
+   }
+  },
+  {
+   "blk": "354087618",
+   "name": "Tzouhalem Creek",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -123.628938,
+    48.765104
+   ],
+   "methods": {
+    "edge1450_m": 17.9054656884888,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "354087619",
+   "name": "Tzouhalem Creek",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -123.627767,
+    48.765059
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "354087620",
+   "name": "Tzouhalem Creek",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -123.629154,
+    48.763701
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "354087621",
+   "name": "Cowichan River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -123.635967,
+    48.7559
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "354087702",
+   "name": "San Juan River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -124.401238,
+    48.581572
+   ],
+   "methods": {
+    "edge1450_m": 33.923543641732095,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "354087703",
+   "name": "San Juan River",
+   "keep": "cut",
+   "cut_m": 37.03,
+   "why": "San Juan River: item C (a build-27 cut, nothing tidal below)",
+   "at": [
+    -124.403802,
+    48.581701
+   ],
+   "methods": {
+    "edge1450_m": 37.0329937742508,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "354087755",
+   "name": "Cayeghle Creek",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -127.439285,
+    50.338557
+   ],
+   "methods": {
+    "edge1450_m": 22.391297568472798,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "354087806",
+   "name": "Zeballos River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -126.851265,
+    49.984051
+   ],
+   "methods": {
+    "edge1450_m": 68.3117339623402,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "354087920",
+   "name": "Kokish River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -126.868836,
+    50.531554
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "354087928",
+   "name": "Bulson Creek",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -125.726382,
+    49.262974
+   ],
+   "methods": {
+    "edge1450_m": 40.715652963621295,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "354088011",
+   "name": "Sarita River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -125.009395,
+    48.902814
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "354088012",
+   "name": "Sarita River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -125.012568,
+    48.901028
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "354088013",
+   "name": "Sarita River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -125.011238,
+    48.900767
+   ],
+   "methods": {
+    "edge1450_m": 19.9120689834261,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "354088014",
+   "name": "Sarita River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -125.013494,
+    48.89986
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "354088015",
+   "name": "Sarita River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -125.010191,
+    48.902433
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "354088030",
+   "name": "Bonsall Creek",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -123.667592,
+    48.886576
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "354088058",
+   "name": "Koksilah River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -123.643749,
+    48.746666
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "354088092",
+   "name": "Gold River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -126.115964,
+    49.684189
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "354088093",
+   "name": "Franklin River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -124.815177,
+    49.103146
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "354088094",
+   "name": "Franklin River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -124.814791,
+    49.103727
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "354088196",
+   "name": "Tranquil Creek",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -125.671788,
+    49.21051
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "354088197",
+   "name": "Tranquil Creek",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -125.669571,
+    49.211211
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "354088384",
+   "name": "",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -123.670233,
+    48.889251
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "354088412",
+   "name": "Nimpkish River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -127.003845,
+    50.55787
+   ],
+   "methods": {
+    "edge1450_m": 39.8022989527323,
+    "geometric_m": 40.0
+   }
+  },
+  {
+   "blk": "354088492",
+   "name": "Tzouhalem Creek",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -123.630623,
+    48.761678
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "354088493",
+   "name": "Tzouhalem Creek",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -123.630957,
+    48.761846
+   ],
+   "methods": {
+    "edge1450_m": 17.7836457455303,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "354088549",
+   "name": "Cowichan River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -123.636939,
+    48.756604
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "354088556",
+   "name": "Sarita River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -125.015639,
+    48.899149
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "354088630",
+   "name": "Adam River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -126.282136,
+    50.464657
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "354088647",
+   "name": "Tzouhalem Creek",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -123.632399,
+    48.761708
+   ],
+   "methods": {
+    "edge1450_m": 56.4570656923541,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "354088760",
+   "name": "Cayeghle Creek",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -127.434978,
+    50.342136
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "354088761",
+   "name": "Cayeghle Creek",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -127.439296,
+    50.339422
+   ],
+   "methods": {
+    "edge1450_m": 34.8693012497256,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "354088814",
+   "name": "Moyeha River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -125.915917,
+    49.417334
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "354088951",
+   "name": "Tsowwin River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -126.637309,
+    49.777981
+   ],
+   "methods": {
+    "edge1450_m": 25.5118855477707,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "354088977",
+   "name": "Caycuse River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -124.667081,
+    48.802325
+   ],
+   "methods": {
+    "edge1450_m": 21.296475549015003,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "354091340",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 98.94,
+   "why": "the geometric method finds no tidal water at the line's end",
+   "at": [
+    -123.643147,
+    48.775904
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "354101341",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 290.21,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -124.397781,
+    48.58043
+   ],
+   "methods": {
+    "edge1450_m": 7.0350162081907195,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "354127315",
+   "name": "",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -123.632494,
+    48.761622
+   ],
+   "methods": {
+    "edge1450_m": 83.6678189566246,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "354130563",
+   "name": "McCoy Creek",
+   "keep": "cut",
+   "cut_m": 318.05,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: cut at 42.4)",
+   "at": [
+    -124.852801,
+    49.267951
+   ],
+   "methods": {
+    "edge1450_m": 42.3645779925526,
+    "geometric_m": 40.0
+   }
+  },
+  {
+   "blk": "354133310",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 34.65,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -125.005779,
+    48.902887
+   ],
+   "methods": {
+    "edge1450_m": 24.189329651721003,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "354135384",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 251.86,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: cut at 32.8)",
+   "at": [
+    -123.908559,
+    49.132936
+   ],
+   "methods": {
+    "edge1450_m": 32.8485942824425,
+    "geometric_m": 30.0
+   }
+  },
+  {
+   "blk": "354137987",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 37.59,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -125.725697,
+    49.262914
+   ],
+   "methods": {
+    "edge1450_m": 15.573247626889698,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "354140796",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 58.39,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -125.725997,
+    49.264263
+   ],
+   "methods": {
+    "edge1450_m": 15.513659515693899,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "354144154",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 45.19,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -127.004207,
+    50.555472
+   ],
+   "methods": {
+    "edge1450_m": 21.9775527128977,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "354147179",
+   "name": "",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: cut at 134.2)",
+   "at": [
+    -124.818149,
+    49.247383
+   ],
+   "methods": {
+    "edge1450_m": 134.195898448434,
+    "geometric_m": 130.0
+   }
+  },
+  {
+   "blk": "354149178",
+   "name": "",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -128.146786,
+    50.838693
+   ],
+   "methods": {
+    "edge1450_m": 43.9732737680879,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "354150730",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 355.03,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -123.666994,
+    48.889792
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "354153794",
+   "name": "Tzouhalem Creek",
+   "keep": "cut",
+   "cut_m": 2265.79,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -123.63262,
+    48.761397
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "354154029",
+   "name": "Colonial Creek",
+   "keep": "cut",
+   "cut_m": 25.46,
+   "why": "Colonial Creek: item C (a build-27 cut, nothing tidal below)",
+   "at": [
+    -127.433682,
+    50.331209
+   ],
+   "methods": {
+    "edge1450_m": 25.4602836371018,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "356013125",
+   "name": "Nelson Creek",
+   "keep": "cut",
+   "cut_m": 38.21,
+   "why": "the geometric method finds no tidal water at the line's end",
+   "at": [
+    -122.877015,
+    49.229572
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "356035877",
+   "name": "",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: cut at 210.2)",
+   "at": [
+    -123.119069,
+    49.088276
+   ],
+   "methods": {
+    "edge1450_m": 210.24777253391602,
+    "geometric_m": 210.0
+   }
+  },
+  {
+   "blk": "356045296",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 34.15,
+   "why": "the geometric method finds no tidal water at the line's end",
+   "at": [
+    -122.880932,
+    49.234478
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "356070273",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 5.95,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: cut at 586.2)",
+   "at": [
+    -123.087265,
+    49.107291
+   ],
+   "methods": {
+    "edge1450_m": 586.211093809009,
+    "geometric_m": 580.0
+   }
+  },
+  {
+   "blk": "356085631",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 324.1,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: cut at 266.9)",
+   "at": [
+    -122.741154,
+    49.214159
+   ],
+   "methods": {
+    "edge1450_m": 266.93861922853,
+    "geometric_m": 260.0
+   }
+  },
+  {
+   "blk": "356133616",
+   "name": "",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: cut at 132.7)",
+   "at": [
+    -123.199594,
+    49.220958
+   ],
+   "methods": {
+    "edge1450_m": 132.705161243561,
+    "geometric_m": 130.0
+   }
+  },
+  {
+   "blk": "356165637",
+   "name": "",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: cut at 235.0)",
+   "at": [
+    -123.117538,
+    49.097952
+   ],
+   "methods": {
+    "edge1450_m": 234.976973773324,
+    "geometric_m": 230.0
+   }
+  },
+  {
+   "blk": "356189396",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 347.06,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: cut at 249.1)",
+   "at": [
+    -122.894272,
+    49.208107
+   ],
+   "methods": {
+    "edge1450_m": 249.10035410039401,
+    "geometric_m": 250.0
+   }
+  },
+  {
+   "blk": "356193418",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 271.22,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -123.099192,
+    49.033512
+   ],
+   "methods": {
+    "edge1450_m": 7.916767563249019,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "356210636",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 294.56,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: cut at 216.8)",
+   "at": [
+    -122.770005,
+    49.213564
+   ],
+   "methods": {
+    "edge1450_m": 216.79649981998202,
+    "geometric_m": 210.0
+   }
+  },
+  {
+   "blk": "356214484",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 569.11,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: cut at 517.1)",
+   "at": [
+    -123.124442,
+    49.107388
+   ],
+   "methods": {
+    "edge1450_m": 517.0731558669071,
+    "geometric_m": 510.0
+   }
+  },
+  {
+   "blk": "356230481",
+   "name": "Palmateer Creek",
+   "keep": "cut",
+   "cut_m": 590.49,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: cut at 523.4)",
+   "at": [
+    -122.525232,
+    49.167583
+   ],
+   "methods": {
+    "edge1450_m": 523.406168520941,
+    "geometric_m": 520.0
+   }
+  },
+  {
+   "blk": "356232808",
+   "name": "",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: cut at 293.7)",
+   "at": [
+    -122.577317,
+    49.185256
+   ],
+   "methods": {
+    "edge1450_m": 293.730952542166,
+    "geometric_m": 290.0
+   }
+  },
+  {
+   "blk": "356258738",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 380.25,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: cut at 294.2)",
+   "at": [
+    -122.732998,
+    49.211594
+   ],
+   "methods": {
+    "edge1450_m": 294.229623039373,
+    "geometric_m": 290.0
+   }
+  },
+  {
+   "blk": "356265269",
+   "name": "",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -123.100117,
+    49.033395
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "356274648",
+   "name": "Barker Creek",
+   "keep": "cut",
+   "cut_m": 278.41,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: cut at 209.2)",
+   "at": [
+    -122.853697,
+    49.218429
+   ],
+   "methods": {
+    "edge1450_m": 209.200598307827,
+    "geometric_m": 210.0
+   }
+  },
+  {
+   "blk": "356304006",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 138.63,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: cut at 83.4)",
+   "at": [
+    -123.094722,
+    49.107539
+   ],
+   "methods": {
+    "edge1450_m": 83.4494432310757,
+    "geometric_m": 80.0
+   }
+  },
+  {
+   "blk": "356341234",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 193.23,
+   "why": "unnamed: item C (a build-27 cut, nothing tidal below)",
+   "at": [
+    -123.136154,
+    49.073641
+   ],
+   "methods": {
+    "edge1450_m": 193.23053610635202,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "356349946",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 194.8,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -123.131526,
+    49.076683
+   ],
+   "methods": {
+    "edge1450_m": 168.066768339009,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360214183",
+   "name": "Kingcome River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -126.186796,
+    50.933333
+   ],
+   "methods": {
+    "edge1450_m": 81.2744347539318,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360214188",
+   "name": "Kingcome River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -126.186167,
+    50.934332
+   ],
+   "methods": {
+    "edge1450_m": 37.9845217515011,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360218212",
+   "name": "Wathl Creek",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -128.651422,
+    53.978817
+   ],
+   "methods": {
+    "edge1450_m": 28.9118696553325,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "360218494",
+   "name": "Bella Coola River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -126.78078,
+    52.380658
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "360218495",
+   "name": "Bella Coola River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -126.781866,
+    52.378196
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "360218496",
+   "name": "Bella Coola River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -126.781599,
+    52.374447
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "360218497",
+   "name": "Bella Coola River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -126.776228,
+    52.380549
+   ],
+   "methods": {
+    "edge1450_m": 14.4707808787466,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360218498",
+   "name": "Bella Coola River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -126.780009,
+    52.378719
+   ],
+   "methods": {
+    "edge1450_m": 23.5712093591187,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360218499",
+   "name": "Bella Coola River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -126.78025,
+    52.381673
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "360219048",
+   "name": "Kainet Creek",
+   "keep": "cut",
+   "cut_m": 232.93,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -127.878436,
+    52.757133
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "360219120",
+   "name": "Bear River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -129.975728,
+    55.955095
+   ],
+   "methods": {
+    "edge1450_m": 175.484893075364,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360221088",
+   "name": "Bella Coola River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -126.77519,
+    52.385903
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "360221089",
+   "name": "Bella Coola River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -126.777619,
+    52.385194
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "360222049",
+   "name": "Kemano River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -128.124672,
+    53.484012
+   ],
+   "methods": {
+    "edge1450_m": 334.561101409144,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "360222159",
+   "name": "Kitkiata Creek",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -129.270159,
+    53.641037
+   ],
+   "methods": {
+    "edge1450_m": 20.386458436140497,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360222774",
+   "name": "Mamin River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -132.308771,
+    53.628329
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "360222776",
+   "name": "Mamin River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -132.307429,
+    53.622886
+   ],
+   "methods": {
+    "edge1450_m": 15.7597477961773,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360223100",
+   "name": "Lockhart Gordon Creek",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -127.250597,
+    51.407814
+   ],
+   "methods": {
+    "edge1450_m": 23.6976817452552,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360223581",
+   "name": "Kowesas River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -128.117754,
+    53.336745
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "360223582",
+   "name": "Kowesas River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -128.114279,
+    53.334881
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "360224636",
+   "name": "Tom Browne Creek",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -125.728528,
+    50.661312
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "360225521",
+   "name": "Kimsquit River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -127.078547,
+    52.88375
+   ],
+   "methods": {
+    "edge1450_m": 138.755351246024,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360225715",
+   "name": "Kshwan River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -129.81023,
+    55.634319
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "360226459",
+   "name": "Kwatna River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -127.3843,
+    52.102844
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "360227034",
+   "name": "Kitlope River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -127.870112,
+    53.232817
+   ],
+   "methods": {
+    "edge1450_m": 198.764052988662,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360227345",
+   "name": "Brittain River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -124.010492,
+    49.996994
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "360227387",
+   "name": "Tom Browne Creek",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -125.730273,
+    50.660391
+   ],
+   "methods": {
+    "edge1450_m": 34.330744055049294,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360227389",
+   "name": "Tom Browne Creek",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -125.731417,
+    50.662251
+   ],
+   "methods": {
+    "edge1450_m": 31.398063346756295,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360227727",
+   "name": "Kainet Creek",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -127.877097,
+    52.756437
+   ],
+   "methods": {
+    "edge1450_m": 78.948257774189,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "360227990",
+   "name": "Kitkiata Creek",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -129.272122,
+    53.645912
+   ],
+   "methods": {
+    "edge1450_m": 21.1148466501215,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360227991",
+   "name": "Kitkiata Creek",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -129.27078,
+    53.642947
+   ],
+   "methods": {
+    "edge1450_m": 14.769887145442299,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360227992",
+   "name": "Kitkiata Creek",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -129.271702,
+    53.644178
+   ],
+   "methods": {
+    "edge1450_m": 10.93359697676,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360229557",
+   "name": "",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -126.53184,
+    51.035498
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "360229558",
+   "name": "",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -126.531797,
+    51.036056
+   ],
+   "methods": {
+    "edge1450_m": 24.5216970751877,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360229891",
+   "name": "Apple River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -125.40747,
+    50.716151
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "360230804",
+   "name": "Brem River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -124.664312,
+    50.436224
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "360231479",
+   "name": "Bella Coola River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -126.77825,
+    52.388452
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "360231832",
+   "name": "Apple River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -125.415084,
+    50.716525
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "360232663",
+   "name": "Pa-aat River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -130.011034,
+    53.801424
+   ],
+   "methods": {
+    "edge1450_m": 125.690166896394,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360233191",
+   "name": "Quaal River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -129.320225,
+    53.646276
+   ],
+   "methods": {
+    "edge1450_m": 43.3136924294546,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360233582",
+   "name": "Khutze River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -128.414108,
+    53.081705
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "360233884",
+   "name": "",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -126.529367,
+    51.037554
+   ],
+   "methods": {
+    "edge1450_m": 30.658017192416096,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360233886",
+   "name": "",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -126.529429,
+    51.036728
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "360233887",
+   "name": "",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -126.524564,
+    51.038835
+   ],
+   "methods": {
+    "edge1450_m": 22.8846320661428,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360233888",
+   "name": "",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -126.529713,
+    51.038779
+   ],
+   "methods": {
+    "edge1450_m": 16.2162290862739,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360235038",
+   "name": "Stagoo Creek",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -129.744373,
+    55.285797
+   ],
+   "methods": {
+    "edge1450_m": 19.1709732529127,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "360238061",
+   "name": "Oona River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -130.261227,
+    53.951649
+   ],
+   "methods": {
+    "edge1450_m": 51.709093114244595,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360238946",
+   "name": "Bear River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -129.972541,
+    55.951538
+   ],
+   "methods": {
+    "edge1450_m": 8.57542450199937,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360240195",
+   "name": "Ksi Gingolx",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -129.957803,
+    54.997224
+   ],
+   "methods": {
+    "edge1450_m": 56.4944988912318,
+    "geometric_m": 50.0
+   }
+  },
+  {
+   "blk": "360240745",
+   "name": "",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -129.093394,
+    53.834419
+   ],
+   "methods": {
+    "edge1450_m": 31.149950436070004,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360241570",
+   "name": "Mussel River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -128.029443,
+    52.919917
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "360241995",
+   "name": "Tom Browne Creek",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -125.728942,
+    50.661373
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "360242728",
+   "name": "Toba River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -124.357634,
+    50.489819
+   ],
+   "methods": {
+    "edge1450_m": 189.601936323101,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360242778",
+   "name": "Quaal River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -129.304354,
+    53.647891
+   ],
+   "methods": {
+    "edge1450_m": 98.3198532896875,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360243518",
+   "name": "Kitimat River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -128.654258,
+    54.013312
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "360243665",
+   "name": "Ksi X'anmas",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -130.140866,
+    54.774389
+   ],
+   "methods": {
+    "edge1450_m": 219.165332982457,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360243798",
+   "name": "Khutze River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -128.410679,
+    53.08475
+   ],
+   "methods": {
+    "edge1450_m": 57.9240185783234,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360243809",
+   "name": "Marmot River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -130.016116,
+    55.875645
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "360335466",
+   "name": "",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -126.202167,
+    50.943638
+   ],
+   "methods": {
+    "edge1450_m": 23.686561984825797,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360387161",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 334.22,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -128.123213,
+    53.49154
+   ],
+   "methods": {
+    "edge1450_m": 133.540666996047,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360445710",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 16.6,
+   "why": "unnamed: item C (a build-27 cut, nothing tidal below)",
+   "at": [
+    -126.768808,
+    52.375338
+   ],
+   "methods": {
+    "edge1450_m": 16.6025031034152,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360458979",
+   "name": "",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -123.172274,
+    49.692346
+   ],
+   "methods": {
+    "edge1450_m": 184.901746592696,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360465739",
+   "name": "",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -126.775295,
+    52.381155
+   ],
+   "methods": {
+    "edge1450_m": 13.105184574030499,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360532676",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 43.59,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -129.322866,
+    53.648301
+   ],
+   "methods": {
+    "edge1450_m": 39.620764085517,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360556340",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 62.09,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -127.078314,
+    52.886334
+   ],
+   "methods": {
+    "edge1450_m": 32.3233854856828,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360557652",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 388.66,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -124.360348,
+    50.489349
+   ],
+   "methods": {
+    "edge1450_m": 335.88106932302003,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360562880",
+   "name": "",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -132.423074,
+    53.732948
+   ],
+   "methods": {
+    "edge1450_m": 73.40328701861549,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "360567741",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 2075.64,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: cut at 2140.6)",
+   "at": [
+    -130.039696,
+    54.158445
+   ],
+   "methods": {
+    "edge1450_m": 2140.59177311573,
+    "geometric_m": 2140.0
+   }
+  },
+  {
+   "blk": "360570734",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 124.67,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -128.127451,
+    53.487172
+   ],
+   "methods": {
+    "edge1450_m": 107.574579349457,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360586479",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 21.98,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -128.410149,
+    53.085342
+   ],
+   "methods": {
+    "edge1450_m": 21.9787294285151,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360590016",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 445.89,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -124.365464,
+    50.488712
+   ],
+   "methods": {
+    "edge1450_m": 415.46576272053704,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "360592791",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 107.88,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -128.123546,
+    53.491461
+   ],
+   "methods": {
+    "edge1450_m": 95.28559377038279,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360609299",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 62.72,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -129.094347,
+    53.835221
+   ],
+   "methods": {
+    "edge1450_m": 17.3333087923458,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360625597",
+   "name": "",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -126.777707,
+    52.379674
+   ],
+   "methods": {
+    "edge1450_m": 14.9328054848343,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360626810",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 53.88,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -126.176878,
+    50.941666
+   ],
+   "methods": {
+    "edge1450_m": 21.883439321132002,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360643052",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 76.39,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -128.124535,
+    53.491017
+   ],
+   "methods": {
+    "edge1450_m": 48.477108385800804,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360661248",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 317.66,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -127.37925,
+    52.10266
+   ],
+   "methods": {
+    "edge1450_m": 336.892948851316,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360665787",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 298.12,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -127.379333,
+    52.102616
+   ],
+   "methods": {
+    "edge1450_m": 298.11859735134107,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360668677",
+   "name": "",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -126.772858,
+    52.38677
+   ],
+   "methods": {
+    "edge1450_m": 131.486745899263,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360675720",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 223.24,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -128.655766,
+    54.014925
+   ],
+   "methods": {
+    "edge1450_m": 223.240657555566,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360692196",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 401.15,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -126.781367,
+    52.374437
+   ],
+   "methods": {
+    "edge1450_m": 95.5808554143894,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "360703319",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 33.41,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -130.008704,
+    53.800774
+   ],
+   "methods": {
+    "edge1450_m": 28.367812107475498,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360703983",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 425.11,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -124.361985,
+    50.489184
+   ],
+   "methods": {
+    "edge1450_m": 394.70090674716306,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360722750",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 154.65,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -127.381451,
+    52.102403
+   ],
+   "methods": {
+    "edge1450_m": 129.29758080153502,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360746420",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 67.2,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -124.354489,
+    50.489125
+   ],
+   "methods": {
+    "edge1450_m": 16.5063767464657,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360752446",
+   "name": "",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -123.172671,
+    49.691421
+   ],
+   "methods": {
+    "edge1450_m": 172.406974901853,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360755813",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 194.0,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -127.383509,
+    52.102586
+   ],
+   "methods": {
+    "edge1450_m": 159.72475524128,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360778020",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 564.19,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -126.774599,
+    52.376664
+   ],
+   "methods": {
+    "edge1450_m": 57.508738130772294,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360786731",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 2018.59,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: cut at 2077.6)",
+   "at": [
+    -130.041827,
+    54.158308
+   ],
+   "methods": {
+    "edge1450_m": 2077.57863280141,
+    "geometric_m": 2070.0
+   }
+  },
+  {
+   "blk": "360812872",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 37.33,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -126.773594,
+    52.376721
+   ],
+   "methods": {
+    "edge1450_m": 37.326930338529294,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360814236",
+   "name": "",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -126.775709,
+    52.379923
+   ],
+   "methods": {
+    "edge1450_m": 25.0012083470088,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360828673",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 168.62,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -127.864616,
+    53.231794
+   ],
+   "methods": {
+    "edge1450_m": 66.30928906156359,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360829432",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 74.24,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -124.354347,
+    50.489447
+   ],
+   "methods": {
+    "edge1450_m": 24.949185305348003,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360837032",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 289.11,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -126.17825,
+    50.943065
+   ],
+   "methods": {
+    "edge1450_m": 19.566477850138497,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360848528",
+   "name": "",
+   "keep": "fresh",
+   "why": "the 1450 crossing and the geometric crossing disagree by more than 50 m",
+   "at": [
+    -135.291509,
+    59.198278
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 36210.0
+   }
+  },
+  {
+   "blk": "360854599",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 73.44,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -127.08089,
+    52.887504
+   ],
+   "methods": {
+    "edge1450_m": 11.8734746262903,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360857233",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 80.88,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -129.269159,
+    53.642331
+   ],
+   "methods": {
+    "edge1450_m": 14.5879707026011,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360861076",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 15.68,
+   "why": "unnamed: item C (a build-27 cut, nothing tidal below)",
+   "at": [
+    -127.872771,
+    52.756963
+   ],
+   "methods": {
+    "edge1450_m": 15.6845316882484,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360862188",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 32.42,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -128.648614,
+    53.978488
+   ],
+   "methods": {
+    "edge1450_m": 16.236572152133398,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360868992",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 48.47,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -129.808135,
+    55.634678
+   ],
+   "methods": {
+    "edge1450_m": 38.470163949020005,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360882432",
+   "name": "",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -125.410364,
+    50.71926
+   ],
+   "methods": {
+    "edge1450_m": 43.06132037235619,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360883346",
+   "name": "Toba River",
+   "keep": "cut",
+   "cut_m": 2753.38,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -124.36585,
+    50.48861
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "360884541",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 46.13,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -129.744113,
+    55.285202
+   ],
+   "methods": {
+    "edge1450_m": 25.4399646955155,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360885824",
+   "name": "Kitimat River",
+   "keep": "fresh",
+   "why": "Kitimat River: where tidal water ends upstream is not written anywhere found (owner item)",
+   "at": [
+    -128.662273,
+    54.010889
+   ],
+   "methods": {
+    "edge1450_m": null,
+    "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "360887120",
+   "name": "Wahoo Creek",
+   "keep": "cut",
+   "cut_m": 40.44,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -128.119191,
+    53.491836
+   ],
+   "methods": {
+    "edge1450_m": 26.897342908879498,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360887656",
+   "name": "Moyeha River",
+   "keep": "whole",
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -125.908452,
+    49.419212
+   ],
+   "methods": {
+    "edge1450_m": 108.40770097752801,
+    "geometric_m": 0.0
+   }
+  }
+ ]
+}

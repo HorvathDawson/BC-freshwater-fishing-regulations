@@ -125,11 +125,12 @@ def test_a_limit_no_item_carries_is_refused():
         S.reach_tidal(build_registry(g), g, [Limit(blk="X", limit="split", split="x_tidal")], {})
 
 
-def _stage(tmp_path, monkeypatch, extra, limits):
+def _stage(tmp_path, monkeypatch, extra, limits, held=None):
     from pipeline.atlas import build as B
     from pipeline.atlas.graph.blk_chains import build_blk_chains
     g, geoms, idx, fids = _cut_x(extra)
-    monkeypatch.setattr(S, "read_tidal_polygon", lambda gpkg, bbox=None: SEA)
+    from pipeline.tests.test_coast_cut import patch_stage
+    patch_stage(monkeypatch, SEA, held)           # T678: the stage is the coast cut; its coast is the polygon here
     b = SimpleNamespace(args=SimpleNamespace(gpkg="unused.gpkg", out=str(tmp_path)), graph=g, geoms=geoms,
                         fid_index=idx, applied_splits=[], fids=fids, chains=build_blk_chains(fids, {}), bbox=None,
                         tidal_limits=limits, tidal_ids={}, tick=lambda label: None, splits=[], lake_names={},
@@ -140,19 +141,23 @@ def _stage(tmp_path, monkeypatch, extra, limits):
 
 def test_the_build_cuts_by_the_registrys_tidal_water(tmp_path, monkeypatch):
     """The atlas stage with a limit: the tidal set it cuts by is the reach's on the registry made before the cuts
-    (`build.water_registry`), it is kept for the gate, and the record counts it. Mutation: the switch off -> the
-    graph's reading (`atlas_tidal`) is used instead."""
+    (`build.water_registry`), it is kept for the gate (as water: `coast.coverage`), and the record counts it.
+    Mutation: no tidal water -> C's receiver is fresh and C is not cut. (T678: the coast cut; D's two crossings
+    disagree, so D is the owner's and held.)"""
+    from pipeline.atlas.splits import coast as C
     limits = [Limit(blk="X", limit="split", split="x_tidal")]
-    b = _stage(tmp_path, monkeypatch, (), limits)
+    held = {"D": {"keep": "fresh"}}
+    b = _stage(tmp_path, monkeypatch, (), limits, held)
     reg = build_registry(b.graph)
     assert b.shore_tidal == S.reach_tidal(reg, b.graph, limits, {})
     assert "X:0" in b.shore_tidal and all(not s.startswith("C:") for s in b.shore_tidal)
+    assert b.shore_tidal_cover == C.coverage(b.graph, b.shore_tidal)
     rec = json.loads((tmp_path / S.RECORD).read_text())
-    assert rec["tidal_sections"] == len(b.shore_tidal) and rec["rule"] == S.RULE
+    assert rec["tidal_sections"] == len(b.shore_tidal) and rec["rule"] == C.RULE
     assert "shore:C:300" in [p.split_id for p in b.applied_splits]
-    monkeypatch.setattr(S, "THE_ATLAS_CUTS_BY_THE_REACHS_TIDAL_SET", False)
-    b2 = _stage(tmp_path, monkeypatch, (), limits)
-    assert b2.shore_tidal == S.atlas_tidal(b2.graph, limits, {})
+    monkeypatch.setattr(S, "reach_tidal", lambda *a, **k: frozenset())
+    b2 = _stage(tmp_path, monkeypatch, (), limits, held)
+    assert "shore:C:300" not in [p.split_id for p in b2.applied_splits]
 
 
 def test_the_registry_before_the_cuts_asks_for_no_area_item(tmp_path, monkeypatch):
@@ -175,19 +180,14 @@ def test_the_registry_before_the_cuts_asks_for_no_area_item(tmp_path, monkeypatc
 def test_a_side_channel_of_a_whole_tidal_river_is_tidal_water_not_a_creek_to_cut(tmp_path, monkeypatch):
     """The dry run's gap in one case (its "3 cuts only with the atlas set", Williamson Slough): X River is tidal whole;
     its unnamed side channel S is X River in the registry, so the reach takes S as tidal and the build leaves it
-    alone. Read off the graph alone S is a creek into tidal water, cut where it leaves the polygon (and the braid
-    sweep stops the build on that cut)."""
+    alone: S is governed by X's rank-1 row (`shore.owner_limited`), never cut, and not in the coast record."""
     limits = [Limit(blk="X", limit="whole", item="gnis:8")]
-    b = _stage(tmp_path, monkeypatch, (SIDE,), limits)
+    b = _stage(tmp_path, monkeypatch, (SIDE,), limits, {"D": {"keep": "fresh"}})
     assert "S:0" in b.shore_tidal and "S:0" not in S.atlas_tidal(b.graph, limits, {})
     assert [p.split_id for p in b.applied_splits if p.blk == "S"] == []
     assert {n for n in b.graph.nodes if n.startswith("S:")} == {"S:0"}
-    monkeypatch.setattr(S, "THE_ATLAS_CUTS_BY_THE_REACHS_TIDAL_SET", False)
-    # read off the graph, S is cut at its polygon exit, across X River's own braid: the build stops on it
-    with pytest.raises(SystemExit, match="meet a braid"):
-        _stage(tmp_path, monkeypatch, (SIDE,), limits)
     rows = json.loads((tmp_path / S.RECORD).read_text())["runs"]
-    assert [r["blk"] for r in rows if "cut_m" in r and r["blk"] == "S"] == ["S"]
+    assert "S" not in [r["blk"] for r in rows]
 
 
 # ---------------------------------------------------------------------------------------------- outlets on an uncut line

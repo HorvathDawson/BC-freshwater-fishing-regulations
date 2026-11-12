@@ -109,6 +109,10 @@ class Waters(BaseModel):
     #: `pipeline.tools.tidal_limits` (review write-through); read by the ATLAS only (`atlas.splits.tidal.load`), which
     #: writes `tidal.resolved.json`.
     tidal: FilePath
+    #: T678 (owner 2026-11-11): the lines the coast cut leaves to the owner, each kept as today's atlas has it (cut at
+    #: a measure / whole / fresh) until the owner decides. Written by `python -m pipeline.atlas.splits.coast_held`
+    #: (a decided row is kept on a rerun); read by the ATLAS only (`build.cut_shores`).
+    shore_held: FilePath
     #: T322 (owner 2026-10-30): the owner-CONFIRMED slough / canal polygons, applied from the slough marks by
     #: `pipeline.tools.slough_calls`; the registry folds each into the one stream through it, else ignores it
     #: (`registry.flowing.fold_confirmed_sloughs`).

@@ -72,14 +72,20 @@ def main() -> int:
     # THE TIDAL BOUNDARIES THIS ATLAS CUT (T166, `outside.tidal_splits`): the piece below each is
     # tidal water, out of every binding after the walk.
     from pipeline.atlas.reach.outside import inside_lines, tidal_splits, tidal_waters
-    tidal_ids = tidal_splits(build)
-    # T212 (owner 2026-10-29): whole waters that are tidal (the sidecar's `whole` rows, T326)
-    tidal_whole = tidal_waters(build)
-    result = build_reaches(entries, registry, graph, build=build.name,
-                           handles=digest_for(build), steelhead_list=load_list(),
-                           tidal_splits=tidal_ids, tidal_waters=tidal_whole,
-                           # T665: the lines wholly in tidal water the atlas lists (`inside_tidal.json`)
-                           inside_lines=inside_lines(build))
+    from pipeline.atlas.splits import coast as _coast
+    if _coast.built_by_coast_rule(build):
+        # T678: an atlas cut by the coast rule writes THE tidal record; the reach reads it and recomputes nothing
+        rec = _coast.read_record(build)
+        print(f"  tidal: the atlas's tidal record ({_coast.TIDAL_RECORD}, {len(rec):,} section(s))")
+        result = build_reaches(entries, registry, graph, build=build.name,
+                               handles=digest_for(build), steelhead_list=load_list(), tidal_record=rec)
+    else:
+        # an atlas cut before T678 (no record): its tidal inputs, as it was built to be read
+        print(f"  tidal: {build.name} was cut before T678 (no {_coast.TIDAL_RECORD}): reading its tidal sidecars")
+        result = build_reaches(entries, registry, graph, build=build.name,
+                               handles=digest_for(build), steelhead_list=load_list(),
+                               tidal_splits=tidal_splits(build), tidal_waters=tidal_waters(build),
+                               inside_lines=inside_lines(build))
     r = result.report
     # T546 item 7: the curated override ids this registry lacks — the matcher's `unresolved_ids` had no reader,
     # so a partly resolved override bound the ids that resolved and dropped the rest unseen

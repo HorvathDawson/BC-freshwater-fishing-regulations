@@ -241,6 +241,10 @@ UP_ADJ_READERS = {
     ("pipeline/atlas/reach/extent.py", "_line_length"): "a line's confluence measures",
     ("pipeline/atlas/reach/extent.py", "_watershed_part"): "connected groups of the river's own code",
     ("pipeline/atlas/reach/extent.py", "river_widenings"): "T153: the unnamed lake widenings a river's main flow runs through",
+    ("pipeline/atlas/splits/coast.py", "coast_rule"):
+        "T678: the lines flowing into rank-1 tidal water, one level, as the coast cut's first worklist — binds nothing",
+    ("pipeline/atlas/splits/coast.py", "coast_rule.upstream_blks"):
+        "T678: the lines flowing into a line that just went tidal, one level (the coast cut's worklist) — binds nothing",
     ("pipeline/atlas/splits/shore.py", "atlas_tidal"):
         "T665: the SAME water's pieces connected below a tidal limit, never past its line above the limit (the graph-only "
         "reading kept as a mutation pin; the build cuts by `reach_tidal`) — binds nothing",

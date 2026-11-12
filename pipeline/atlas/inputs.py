@@ -57,16 +57,23 @@ ATLAS_INPUTS: dict[str, str] = {
     "curated:waters.slough_calls": "build_registry (`registry.flowing.fold_confirmed_sloughs`)",
     "source:fwa_gpkg": "every FWA layer (`--gpkg`)",
 }
+#: T678 inputs of the coast cut, recorded once a coast-cut atlas is promoted (`ATLAS_INPUTS` gains them then, with
+#: `--backfill`): added before, every shipped atlas would read as behind and stop every release preflight.
+T678_INPUTS_AT_PROMOTION: dict[str, str] = {
+    "curated:waters.shore_held": "cut_shores (`splits.coast_held.load`: the owner's lines, today's result kept)",
+    "source:fwa_coast": "cut_shores (`splits.coast.CoastGeometry`: FWA river polygons + land mass)",
+}
 
 #: curated keys named in the atlas build's modules that are NOT recorded, and why
 NOT_ATLAS_INPUTS: dict[str, str] = {
     "curated:gauges.matches": "guarded by its own record, `gauge_matches.json` (cut-set digest, T159): a row that is "
                               "no cut does not change the graph (`gauges.matches.check_record`)",
     "curated:gauges.match_calls": "read only for the printed trust mix of the gauge cuts; shapes nothing",
+    "curated:waters.shore_held": "T678: recorded from the promotion of the first coast-cut atlas "
+                                 "(`T678_INPUTS_AT_PROMOTION`); the build writes it whole into `coast_owner.json`",
 }
 
-#: what catches a stale input up. Every input needs a rebuild: `sidecars --tidal-only` rewrites tidal.resolved.json
-#: but leaves a new tidal `cut` uncut and a new mouth alias "pending: the next atlas build", so it is no catch-up.
+#: what catches a stale input up. Every input needs a rebuild (T678: there is no post-build tidal rewrite).
 REBUILD = "python -m pipeline build --atlas --promote"
 META = "graph.pkl.meta.json"
 
@@ -83,13 +90,16 @@ def default_path(key: str) -> Path:
     if key == "source:fwa_gpkg":
         from project_config import get_config
         return Path(get_config().fwa_data_gpkg)
+    if key == "source:fwa_coast":
+        from project_config import get_config
+        return Path(get_config().fwa_coast_gpkg)
     return curated_path(key)
 
 
 def digest(key: str, path: Path) -> str:
     """One input's digest (module docstring, VALUES). A missing file raises (AGENTS 37)."""
     path = Path(path)
-    if key == "source:fwa_gpkg":
+    if key in ("source:fwa_gpkg", "source:fwa_coast"):
         st = path.stat()
         return f"stamp:{st.st_size}:{int(st.st_mtime)}"
     data = path.read_bytes()
@@ -256,7 +266,7 @@ def backfill(build_dir: Path, *, log=print) -> tuple[dict[str, str], list[str]]:
     got, proof, unproven = {}, {}, []
     for key in ATLAS_INPUTS:
         path = default_path(key)
-        if key == "source:fwa_gpkg":
+        if key in ("source:fwa_gpkg", "source:fwa_coast"):
             why = f"mtime {time.strftime('%Y-%m-%d %H:%M', time.localtime(path.stat().st_mtime))} before the build" \
                 if path.stat().st_mtime <= ts else None
         else:

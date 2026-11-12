@@ -181,3 +181,114 @@ def test_authority_of_a_split_row():
 def test_geometric_crossing_fails_when_the_line_ends_away_from_tidal_water():
     m, gap = C.geometric_crossing(LineString([(0, 1000), (0, 2000)]), 0.0, 1000.0, SEA)
     assert m is None and gap == pytest.approx(700.0)
+
+
+# ------------------------------------------------------------------------------------------------ the one record
+def _graph():
+    fids = _fids()
+    return build_stream_graph(build_blk_chains(fids, {}), fids)
+
+
+def test_coverage_is_the_water_not_the_cut():
+    """the coast cut is decided before the length cap: the same water cut differently covers the same, other water not"""
+    from pipeline.atlas.splits.sectionizer import place_points, split_graph_at
+    from pipeline.common.models import AnchorType, SplitPoint
+    g = _graph()
+    before = C.coverage(g, {"X:0"})
+    fids = _fids()
+    g2 = build_stream_graph(build_blk_chains(fids, {}), fids)
+    geoms = {nid: linemerge([f.geometry for f in fids if f.fid in n.member_fids]) for nid, n in g2.nodes.items()}
+    idx = {f.fid: (f.down_m, f.up_m, f.stream_order, f.stream_magnitude) for f in fids}
+    pts = place_points(g2, [SplitPoint(split_id="len:X:900", blk="X", route_measure=900.0, fid="", label="l",
+                                       anchor_type=AnchorType.point, source="length")])
+    split_graph_at(g2, geoms, pts, idx)
+    xs = {nid for nid, n in g2.nodes.items() if n.blk == "X"}
+    assert len(xs) == 2 and C.coverage(g2, xs) == before
+    assert C.coverage(g2, {min(xs)}) != before                       # half the water is not the water
+
+
+def test_the_record_round_trips_and_a_missing_one_is_refused(tmp_path):
+    C.write_record(tmp_path, {"K:0": "crossing:K:0", "X:0": "split:x"}, {"356242813": "stub"})
+    assert C.read_record(tmp_path) == {"K:0": "crossing:K:0", "X:0": "split:x"}
+    with pytest.raises(SystemExit):
+        C.read_record(tmp_path / "nope")
+
+
+def test_the_reach_reads_the_record_and_adds_only_the_books_tidal_rows():
+    from pipeline.atlas.reach import outside as O
+    reg = {"wbk:1": SimpleNamespace(section_ids=("L:0",))}
+    rec = {"K:0": "crossing:K:0", "X:0": "split:x"}
+    got = O.tidal_water([{"entry_id": "e1", "tidal": True, "matched": ["wbk:1"]}], reg, None, record=rec)
+    assert got == {"L:0": "e1", "K:0": "crossing:K:0", "X:0": "split:x"}
+    with pytest.raises(SystemExit):                                     # never both: the record or the old inputs
+        O.tidal_water([], reg, None, ("x",), record=rec)
+
+
+def test_the_held_file_refuses_a_cut_without_a_measure(tmp_path):
+    import json
+    from pipeline.atlas.splits import coast_held as H
+    p = tmp_path / "held.json"
+    p.write_text(json.dumps({"lines": [{"blk": "K", "keep": "cut"}]}))
+    with pytest.raises(SystemExit):
+        H.load(p)
+    p.write_text(json.dumps({"lines": [{"blk": "K", "keep": "cut", "cut_m": 250.0}, {"blk": "T", "keep": "whole"}]}))
+    assert sorted(H.load(p)) == ["K", "T"]
+    with pytest.raises(SystemExit):
+        H.load(tmp_path / "missing.json")
+
+
+class FakeCoast:
+    """`coast.CoastGeometry` over one polygon of sea (no file): what a stage test hands `build.cut_shores`."""
+
+    def __init__(self, sea):
+        self.sea = sea
+
+    def in_sea(self, points, reach=C.REACH_M):
+        return [self.sea.distance(p) <= reach for p in points]
+
+    def target(self, geometry, tidal_blks, own_blk="", pad=500.0):
+        return self.sea
+
+    def touches_river(self, geometry):
+        return False
+
+
+def patch_stage(monkeypatch, sea, held=None):
+    """`build.cut_shores` on a synthetic graph: the coast is `sea`, the held file `held` (default: none)."""
+    from pipeline.atlas.splits import coast_held as H
+    monkeypatch.setattr(C, "CoastGeometry", lambda gpkg, bbox=None: FakeCoast(sea))
+    monkeypatch.setattr(H, "load", lambda path: dict(held or {}))
+
+
+def test_the_atlas_stage_cuts_and_records_by_the_coast_rule(tmp_path, monkeypatch):
+    """`build.cut_shores` end to end: X ends in the sea, crossing (edge 1450) to 100 m: cut there, the piece below
+    tidal; the record names the coast rule and the owner record is written."""
+    import json
+    from pipeline.atlas import build as B
+    fids = [f for f in _fids() if f.fid != "X1"] + [_fid("X0", "X", "50", [(0, 0), (100, 0)], 0, 100, et=CROSS),
+                                                     _fid("X1", "X", "50", [(100, 0), (500, 0)], 100, 500, name="X River", gnis="8")]
+    g = build_stream_graph(build_blk_chains(fids, {}), fids)
+    by_fid = {f.fid: f.geometry for f in fids}
+    geoms = {nid: linemerge([by_fid[f] for f in n.member_fids]) for nid, n in g.nodes.items()}
+    idx = {f.fid: (f.down_m, f.up_m, f.stream_order, f.stream_magnitude) for f in fids}
+    patch_stage(monkeypatch, box(-500, -500, 100, 500))
+    b = SimpleNamespace(args=SimpleNamespace(gpkg="unused.gpkg", out=str(tmp_path)), graph=g, geoms=geoms,
+                        fid_index=idx, applied_splits=[], fids=fids, chains=build_blk_chains(fids, {}), bbox=None,
+                        tidal_limits=[], tidal_ids={}, tick=lambda label: None)
+    B.cut_shores(b)
+    assert [p.split_id for p in b.applied_splits] == ["shore:X:100"] and b.coast_ok_cuts == {"X": 100.0}
+    rec = json.loads((tmp_path / "shore_cuts.json").read_text())
+    assert rec["rule"] == C.RULE and rec["cuts"] == 1
+    assert json.loads((tmp_path / C.OWNER_RECORD).read_text())["lines"] == []
+    assert C.built_by_coast_rule(tmp_path)
+
+
+def test_the_tiles_read_the_record_of_a_coast_cut_atlas(tmp_path):
+    import json
+    from pipeline.deliver.tiles.tidal import tidal_pieces
+    (tmp_path / "shore_cuts.json").write_text(json.dumps({"rule": C.RULE, "runs": []}))
+    C.write_record(tmp_path, {"K:0": "crossing:K:0", "X:0": "split:x"}, {})
+    assert tidal_pieces(tmp_path) == frozenset({"K:0", "X:0"})
+    (tmp_path / C.TIDAL_RECORD).unlink()
+    with pytest.raises(SystemExit):                       # a coast-cut atlas without its record is refused
+        tidal_pieces(tmp_path)

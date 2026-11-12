@@ -109,7 +109,8 @@ STAGE_GRAPH: tuple[Stage, ...] = (
     # P18: GEOMETRY ONLY. The tile code and the area cutter; names and registry changes are a data release, and the
     # tile labels catch up with `--labels` (MINIMAL-PACKAGING §6.1).
     Stage("tiles", (), (), ("pipeline/deliver/tiles", "pipeline/atlas/splits",
-                            # T166: the tidal pieces the tiles leave off are the reach's own set (`tiles/tidal.py`)
+                            # T166: the tidal pieces the tiles leave off (`tiles/tidal.py`): T678, the atlas's
+                            # record; an atlas cut before it, the reach's resolvers
                             "pipeline/atlas/reach/outside.py", "pipeline/atlas/reach/extent.py"),
           "atlas.pmtiles + layers/ + the released tile folder"),
     Stage("deliver", ("reach", "tiles"), ("clim",), ("pipeline",),
@@ -294,7 +295,6 @@ def keys(build_dir: Path, missing_ok: bool = False) -> dict[str, dict]:
     from pipeline.atlas.registry import load_registry
     from pipeline.atlas.reach.steelhead import fingerprint, load_list
     from pipeline.atlas.reach.dfo_salmon import entries_digest as dfo_entries_digest
-    from pipeline.atlas.reach.outside import tidal_splits, tidal_waters
     from pipeline.common.section_handles import digest_for, registry_digest_for
     from pipeline.regs.parsing.io import corpus_digest, read_all_entries
 
@@ -306,14 +306,10 @@ def keys(build_dir: Path, missing_ok: bool = False) -> dict[str, dict]:
         "reach": dict(atlas, corpus=corpus, steelhead=fingerprint(load_list()),
                       # (T211) the DFO salmon locations the run places: a curator placing one reruns the reach step
                       dfo=dfo_entries_digest(),
-                      # (T166/T326) the tidal limits the run takes the tidal pieces out at, from the atlas's
-                      # tidal sidecar (`waters/tidal_limits.json` reaches it through the atlas or `atlas.sidecars`)
-                      tidal=_sha(tidal_splits(build_dir)),
-                      # (T212) the whole waters the owner calls tidal
-                      tidal_waters=_sha(tidal_waters(build_dir)),
-                      # (T665) the lines wholly in tidal water the atlas lists (absent on an older atlas, so its
-                      # key is unchanged and nothing reruns for it)
-                      **_inside_key(build_dir),
+                      # the tidal water the run takes out: T678, the atlas's one tidal record; before it, the
+                      # atlas's tidal sidecars (T166/T326 limits, T212 whole waters, T665 inside lines), so an older
+                      # atlas's stage keys stay what they were
+                      **_tidal_key(build_dir),
                       # (T632) the run refuses a dead override id and an unplaced piece the owner did not accept:
                       # editing either file must rerun it, or a build would pass on the old answer
                       overrides=hashlib.sha256(Path(CURATED.regulations.book_name_links).read_bytes()).hexdigest()[:16],
@@ -324,6 +320,17 @@ def keys(build_dir: Path, missing_ok: bool = False) -> dict[str, dict]:
                         code=stage_code("deliver", m)),
         "tiles": tiles_key(build_dir),
     }
+
+
+def _tidal_key(build_dir: Path) -> dict:
+    """The reach stage's tidal inputs: `{"tidal_record": digest}` of an atlas cut by the coast rule (T678), else the
+    pre-T678 sidecar keys exactly as they were."""
+    from pipeline.atlas.reach.outside import tidal_splits, tidal_waters
+    from pipeline.atlas.splits import coast as _coast
+    if _coast.built_by_coast_rule(build_dir):
+        return {"tidal_record": _sha(sorted(_coast.read_record(build_dir).items()))}
+    return {"tidal": _sha(tidal_splits(build_dir)), "tidal_waters": _sha(tidal_waters(build_dir)),
+            **_inside_key(build_dir)}
 
 
 def _inside_key(build_dir: Path) -> dict:

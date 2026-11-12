@@ -278,6 +278,6 @@ def read_resolved(build_dir) -> list[dict]:
     """The atlas's tidal sidecar. Missing is refused: an atlas without it is not "nothing is tidal"."""
     p = Path(build_dir) / RESOLVED
     if not p.exists():
-        raise SystemExit(f"tidal: {p} is missing — the atlas writes it (T326); rebuild the atlas or write it "
-                         f"beside the build: python -m pipeline.atlas.sidecars --tidal-only")
+        raise SystemExit(f"tidal: {p} is missing — the atlas writes it (T326); rebuild the atlas "
+                         f"(T678: only the atlas build writes it; there is no post-build tidal rewrite)")
     return json.loads(p.read_text(encoding="utf-8"))

@@ -301,10 +301,11 @@ def _tidal() -> dict[str, str]:
     (T166 phase 1), so a rule reviewed here kept water below a tidal cut that ships without it."""
     from pipeline.atlas.reach.outside import tidal_owner
     out = dict(tidal_owner([e for _, e in _all_entries()], _registry(), strict=False))
+    from pipeline.atlas.splits.coast import TIDAL_RECORD
     from pipeline.atlas.splits.shore import INSIDE, RECORD
     from pipeline.atlas.splits.tidal import RESOLVED
     for s, o in _tidal_pieces_for(_stamp((Path(_BUILD) / RESOLVED, Path(_BUILD) / RECORD,
-                                          Path(_BUILD) / INSIDE))).items():
+                                          Path(_BUILD) / INSIDE, Path(_BUILD) / TIDAL_RECORD))).items():
         out.setdefault(s, o)
     return out
 
@@ -313,7 +314,11 @@ def _tidal() -> dict[str, str]:
 def _tidal_pieces_for(_key: tuple) -> dict[str, str]:
     """The atlas's tidal pieces (below each tidal split) and its whole tidal waters — keyed on the atlas's tidal
     sidecar (T326), so a rewritten sidecar is read on the next request. Not strict:
-    a piece the run would refuse is left freshwater here, as the review app reads a corpus mid-edit."""
+    a piece the run would refuse is left freshwater here, as the review app reads a corpus mid-edit. T678: an atlas cut
+    by the coast rule carries THE tidal record, read as it is (the review app recomputes nothing)."""
+    from pipeline.atlas.splits import coast as _coast
+    if _coast.built_by_coast_rule(_BUILD):
+        return dict(_coast.read_record(_BUILD))
     from pipeline.atlas.reach.outside import tidal_cut_owner, tidal_splits, tidal_waters, tidal_whole_owner
     out = dict(tidal_cut_owner(_registry(), _graph(), tidal_splits(_BUILD), strict=False))
     for s, o in tidal_whole_owner(_registry(), tidal_waters(_BUILD), strict=False).items():
