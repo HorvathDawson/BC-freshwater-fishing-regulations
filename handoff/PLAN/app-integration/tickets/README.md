@@ -683,25 +683,8 @@ use that as the sole source of future work."
 
 ## Order for open tickets
 
-Owner 2026-10-22 (back): features and correctness BEFORE the cleanup waves, so the cleanup is done once over finished
-code. Heavy jobs run one at a time through scripts/heavy.sh (≤ 4 workers). ★ = needs the owner.
-
-1. **Finishing now:** the batch-3 rebuild (T59, T76, T78, T80, T89, T90 + T96's Shuswap text: reach → binding diff →
-   deliver), T52 (Expected change).
-2. **Features and correctness (before cleanup):** T54 (no-access streams, built with Q1–Q3 defaults), T51, T68, T82
-   (O3/O5; ★ the reader-gate run), T41 / T47 leftovers, T126 (forecast reading bugs), T127, T128 (sub-cap names its total), T130 (heat map zoom + Change chip), T131 (spot pins), T92, T99, T100 ★ (rides a reach rerun), T102 (rides a reach rerun), T94.
-   Unification audit 2026-10-22 (wrong answers today): T103, T104, T106, T109 step 1, T116 first (cheap, no binding
-   diff); then T105, T107, T108, T110, T120, T114; T113 rides the tiles window (band 5); T111 + T115 ride the reach
-   rerun with T102, each with its own reviewed binding diff.
-3. **Waiting on the owner:** T101 (Q44), T55 (candidate marks), T67 (braid Q1/Q2/Q4), T97 (curation plan), T93.
-4. **Cleanup, once features settle:** T60 (consistency auditors) → T70 leftover → T61 → T62 → T63; T72 and T73 in
-   this band (T73 alone, not concurrent with T61's normaliser).
-   Unification tickets (latent or plausible): T117 (after T102 part B), T118 (with T108), T112 → T119, T121, T122,
-   T123, T124, T125.
-5. **Tiles window (one tile build):** T64 + T85, then T75; T129 (web request budget) alongside.
-6. **Native and shipping:** T50 (alone, heavy) → T74 → T77 ★ → T86 ★ → T88 ★. T65 (determinism, heavy) in a quiet gap.
-7. **Last:** T95 ★, T87 ★ (sign-off walk, then delete app/design). T98 is folded into T212/T166.
-8. **Last band (owner 2026-10-27: start with T202 tile sizes + the parked basemap z13):** T199 run timing, T200 stocked lakes, T201 bathymetry / depth maps (then T218 digitised lakes, T219 scan tracing), T202 tile size optimizations.
+The order lives on the newest restart page named in `handoff/PLAN/START-HERE.md`, not here (T540: the 2026-10-22 list
+named 73 closed tickets out of 80; git has it, `git log -p -- handoff/PLAN/app-integration/tickets/README.md`).
 
 ## Owner questions
 
@@ -710,44 +693,49 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 
 | # | ticket | question | default (built with) | kind |
 |---|---|---|---|---|
-| Q2 | T54 | Conditions map: keep the flow colour in no-access areas, or mark them there too? | keep flow colour; Tier A gets only the banner on Conditions | owner |
 | Q4 | T55 | Which finder candidates are sloughs/canals to reclassify? 7 grey polygons (Nation, West Road, Honna)? | nothing reclassified without owner review (dry-run + confirm); the 7 stay grey | owner |
 | Q9 | T77 | When to do phone testing D1a / D1b | D1a when the phone is at hand; D1b after the R2 bucket | owner |
 | Q10 | T79 | Imagery go/no-go; SPEC §12 (10 m pack, buffer, sources, licence, server, caps) | no offline imagery before the first native release; skip 10 m; 250 m buffer; online-only on web; pools a study | owner |
 | Q26 | T86 | R2 bucket, contact address (domain decided: canifishthis.ca, .com redirects; name "Can I Fish This?") (no ArcGIS key: owner 2026-10-21) | keep the name; staging bucket first; publisher every 30 min | owner (credentials) |
-| Q27 | T87 | Sign-off: the app looks right; delete app/design | hold until the owner walks it | owner |
 | Q31 | T93 | Gauge representativeness policy — ANSWERED 2026-10-28: "drainage, plus tributary gauges across a continuation link" when a large share (Q44 LARGE_SHARE) (`drainage_continued`, decisions.md) | — | owner |
-| Q42 | T98 | Lift the tidal-spec hold? | ANSWERED 2026-10-28: tidal pieces are removed from the freshwater map with the T212/T166 cuts (decisions.md) | owner |
-| Q47 | T78 | Tidal sentence: closed "Notes and sources" fold, or open under the Level headline? | in the fold | owner |
-| Q79 | T116 | Regs page says "river" for a stream ("this river's rule", "Whole river") while search rows say "Stream" — switch the page to "stream"? | keep "river" on the page | owner |
-| Q91 | T105 | The 54,386 matched-only sections now say "No gauge on this water is close enough in size" — wording ok? | as built | owner |
-| Q103 | T117 | The gauge shed climbs the way the walk does: the Theodosia (08GC005) and Quinsam (08HD034) diversion gauges no longer speak for water above their canal (the river's own gauge takes over on 174 + 107 sections); 24 sections lose every gauge; a gauge ON a canal reads only its own piece? | as built | owner |
-| Q113 | T122 | Gauge cuts follow the roster's realtime snapshot, sheds follow ECCC Active: 38 active-but-silent stations have a shed and no cut. Make cuts follow Active (atlas rebuild, moves section ids)? | unchanged | owner |
-| Q123 | T151 | How the water Map view marks the selected part without bold lines? | dim the other parts; one line width | owner |
-| Q124 | T153 | Does a river row's rule apply to an UNNAMED lake polygon its main flow runs through (book "river" includes its widenings unless it names the lake)? | yes for unnamed polygons covered on both sides; a named lake never takes the river's row | owner |
-| Q126 | T143 | Were you on Level when +1/+3/+5/+10 said "no forecast"? (Flow answered at every horizon on today's feed) | yes, assumed | owner |
-| Q130 | T144 | Under a combined Change, also draw each model's own line (quieter)? | yes | owner |
-| Q132 | T144 | The +1/+3/+5/+10 chips keep the old model order (CLEVER then ELF) — or follow the Change source too? | keep | owner |
-| Q139 | T147 | The no-access block also leads Conditions for a tapped no-access section at full size? | keep | owner |
-| Q146 | T150 | Opening the parts list shortens the map but does not re-centre it (the Fraser's long lower part gets cut off on a phone) — re-centre on open? | no (keeps the reader's pan) | owner |
-| Q147 | T153 | A pond a steelhead row now takes also gets the zone's lake wording of the steelhead rule (zp:steelhead r1b/r2b/r4b +68 polygons each, z5 r6b +44)? | accept | owner |
-| Q148 | T154 | Promote "dammed widening = lake" (R2 with the dams layer: 26 candidates → LAKE; catches Quinsam and South Nanaimo, not Bonaparte) into the slough candidates, or keep dams as evidence only? | evidence only | owner |
-| Q149 | T154 | Bonaparte (329055141) has no dam in the provincial data — mark it lake by hand on the slough page? | yours on the page | owner |
-| Q151 | T166 | Unnamed streams: assume their tidal limit is at the mouth (no crossing work)? | yes | owner |
-| Q152 | T153 | A pond a steelhead river takes as its widening is ANADROMOUS (a rainbow over 50 cm in it is a steelhead, p.80) — 68 ponds; found by the card gate on the Kitimat's pond? | yes (built; one flag) | owner |
-| Q153 | T174 | A river's own side piece is adopted onto the LARGEST same-code section — use the nearest ANSWERED one instead (84 Flow gaps)? | measured: largest ANSWERED in reach, +148 side pieces, 0 changed — SHIPPED (`ADOPT_ANSWERED`) | owner (revert = one switch) |
-| Q154 | T174 | Walk a river's own unowned double-line polygon as the river (as T101 does for stream items' polygons)? | measured: they are small FWA LAKES, not river polygons; ON moves 96,590 sections (+95k Flow) — kept OFF (`RIVER_WIDENINGS`). 2026-10-28 owner "lakes stay lakes unless a pool labelled a lake": all 136,080 unnamed, 75% < 1 ha (mostly beaver/muskeg ponds); proposed cut < 1 ha AND avg width ≤ 2× the river's → 10,650 polygons, 11,423 sections — curation-review/q154-examples.md; owner 10-28 wants to SEE them: review app Sloughs tab → "Small ponds (Q154)" (20 md examples + 60 stratified sample, satellite + outline + river, pool / real lake / unsure marks of scope q154, tally vs the cut) | owner |
-| Q155 | T174 | Gravel Slough's 1425 connector lines take the answer of the polygons around them? | yes — built as `water_line_gaps` (any stream water; Gravel 2 of 3, the 3rd has two answers) | owner |
-| Q158 | T168 | A renamed continuation's gauge counts as "on this water" (the Vedder lists the Chilliwack's 08MH001 as its own)? | yes | owner |
-| Q159 | T168 | "Reporting, not ranked" gauges fold with the silent ones ("not reporting or not ranked")? | yes | owner |
-| Q160 | T243 | Bottom tab labels follow the OS text size only to 1.3× (a quarter of a phone holds no more; the platforms' own tab bars do the same) | 1.3× cap | owner |
-| Q161 | T259 | Which map regions a first install keeps offline | all (~460 MB map; regs always all-B.C.) | owner |
 | Q171 | T404 | Production's problem-report + crash endpoint | `https://feeds.canifishthis.ca/report` (custom domain on the prod feeds worker, workers.dev off) | owner 2026-11-08 |
 | Q172 | T404 | Production's backup bucket (you create it, staging's lifecycle rules) | `bc-fishing-regulations-backup` | owner |
 | Q173 | T404 | After the switch, every Play build (internal, closed) reads production; staging stays on the sideload APK page? | yes | owner 2026-11-08: yes |
 | Q174 | T404 | The prod data worker replaces v1's `bc-fishing-r2` in place (deploy/prod/data.wrangler.toml; it serves the v1 keys only until switch day)? | yes — check its name + route first; v1 keys deleted the same day (PRODUCTION.md step 11) | owner 2026-11-08 |
 | Q175 | T404 | Share links and the privacy page are `canifishthis.ca` in every environment (the staging site is noindex)? | yes | owner 2026-11-08: yes |
 | Q177 | T540 | Move AGENTS.md "Reading the regulations" (53 % of the file) into a file read only for regulation work? | no — AGENTS.md unchanged | owner |
+
+### Shipped on default (reverse any)
+
+The ticket is closed and the owner never answered; the build stands on the default. Say so to reverse one (T540).
+
+- Q2 (T54) Conditions map: keep the flow colour in no-access areas, or mark them there too? Built with: keep flow colour; Tier A gets only the banner on Conditions
+- Q47 (T78) Tidal sentence: closed "Notes and sources" fold, or open under the Level headline? Built with: in the fold
+- Q79 (T116) Regs page says "river" for a stream ("this river's rule", "Whole river") while search rows say "Stream" — switch the page to "stream"? Built with: keep "river" on the page
+- Q91 (T105) The 54,386 matched-only sections now say "No gauge on this water is close enough in size" — wording ok? Built with: as built
+- Q103 (T117) The gauge shed climbs the way the walk does: the Theodosia (08GC005) and Quinsam (08HD034) diversion gauges no longer speak for water above their canal (the river's own gauge takes over on 174 + 107 sections); 24 sections lose every gauge; a gauge ON a canal reads only its own piece? Built with: as built
+- Q113 (T122) Gauge cuts follow the roster's realtime snapshot, sheds follow ECCC Active: 38 active-but-silent stations have a shed and no cut. Make cuts follow Active (atlas rebuild, moves section ids)? Built with: unchanged
+- Q123 (T151) How the water Map view marks the selected part without bold lines? Built with: dim the other parts; one line width
+- Q124 (T153) Does a river row's rule apply to an UNNAMED lake polygon its main flow runs through (book "river" includes its widenings unless it names the lake)? Built with: yes for unnamed polygons covered on both sides; a named lake never takes the river's row
+- Q126 (T143) Were you on Level when +1/+3/+5/+10 said "no forecast"? (Flow answered at every horizon on today's feed) Built with: yes, assumed
+- Q130 (T144) Under a combined Change, also draw each model's own line (quieter)? Built with: yes
+- Q132 (T144) The +1/+3/+5/+10 chips keep the old model order (CLEVER then ELF) — or follow the Change source too? Built with: keep
+- Q139 (T147) The no-access block also leads Conditions for a tapped no-access section at full size? Built with: keep
+- Q146 (T150) Opening the parts list shortens the map but does not re-centre it (the Fraser's long lower part gets cut off on a phone) — re-centre on open? Built with: no (keeps the reader's pan)
+- Q147 (T153) A pond a steelhead row now takes also gets the zone's lake wording of the steelhead rule (zp:steelhead r1b/r2b/r4b +68 polygons each, z5 r6b +44)? Built with: accept
+- Q148 (T154) Promote "dammed widening = lake" (R2 with the dams layer: 26 candidates → LAKE; catches Quinsam and South Nanaimo, not Bonaparte) into the slough candidates, or keep dams as evidence only? Built with: evidence only
+- Q149 (T154) Bonaparte (329055141) has no dam in the provincial data — mark it lake by hand on the slough page? Built with: yours on the page
+- Q151 (T166) Unnamed streams: assume their tidal limit is at the mouth (no crossing work)? Built with: yes
+- Q152 (T153) A pond a steelhead river takes as its widening is ANADROMOUS (a rainbow over 50 cm in it is a steelhead, p.80) — 68 ponds; found by the card gate on the Kitimat's pond? Built with: yes (built; one flag)
+- Q153 (T174) A river's own side piece is adopted onto the LARGEST same-code section — use the nearest ANSWERED one instead (84 Flow gaps)? Built with: measured: largest ANSWERED in reach, +148 side pieces, 0 changed — SHIPPED (`ADOPT_ANSWERED`)
+- Q154 (T174) Walk a river's own unowned double-line polygon as the river (as T101 does for stream items' polygons)? Built with: measured: they are small FWA LAKES, not river polygons; ON moves 96,590 sections (+95k Flow) — kept OFF (`RIVER_WIDENINGS`). 2026-10-28 owner "lakes stay lakes unless a pool labelled a lake": all 136,080 unnamed, 75% < 1 ha (mostly beaver/muskeg ponds); proposed cut < 1 ha AND avg width ≤ 2× the river's → 10,650 polygons, 11,423 sections — curation-review/q154-examples.md; owner 10-28 wants to SEE them: review app Sloughs tab → "Small ponds (Q154)" (20 md examples + 60 stratified sample, satellite + outline + river, pool / real lake / unsure marks of scope q154, tally vs the cut)
+- Q155 (T174) Gravel Slough's 1425 connector lines take the answer of the polygons around them? Built with: yes — built as `water_line_gaps` (any stream water; Gravel 2 of 3, the 3rd has two answers)
+- Q158 (T168) A renamed continuation's gauge counts as "on this water" (the Vedder lists the Chilliwack's 08MH001 as its own)? Built with: yes
+- Q159 (T168) "Reporting, not ranked" gauges fold with the silent ones ("not reporting or not ranked")? Built with: yes
+- Q160 (T243) Bottom tab labels follow the OS text size only to 1.3× (a quarter of a phone holds no more; the platforms' own tab bars do the same) Built with: 1.3× cap
+
+- Retired with their DROPPED tickets (T540): Q27 (T87 sign-off, merged into T240), Q42 (T98, folded into T212/T166), Q161 (T259, owner 2026-11-05: not necessary).
+- Q31 (T93) was answered 2026-10-28 (above, in its row's own words): drainage plus tributary gauges across a continuation link.
 
 ### Answered (recently, for the record)
 - Q176 (map line casing, T470) — owner 2026-11-09 (owner checks page): no casing, as built.
