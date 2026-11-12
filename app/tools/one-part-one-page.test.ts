@@ -33,7 +33,9 @@ const ADULT_RESIDENT = { age: "adult", residency: "resident" } as const;
 const SAMPLE = 25;
 /** `T387_EVERY=1`: build the page from EVERY section of EVERY multi-section part (~51,000 pages, ~4 min). */
 const EVERY = !!process.env.T387_EVERY && process.env.T387_EVERY !== "0";
-/** Nicomen Slough (one part, 9 sections; a reserve and private land on 4 of them): the ticket's case. */
+/** Nicomen Slough (a reserve and private land on 4 of its sections): the ticket's case. One part of 9 sections until
+ * r-483b295de57c; the two DFO cuts there (Hwy 7 bridge at Dewdney, Siddle Creek) make it 3 parts, so the access line
+ * of its first multi-section part (8 sections) speaks of "this part of the water". */
 const NICOMEN = "gnis:21105";
 
 it(`T387 one part, one page on the live release${at.dir ? "" : ` — SKIPPED: ${at.reason}`}`, () => {
@@ -133,7 +135,7 @@ describe.skipIf(!at.dir)("(T387) every tap on a part gives the same page", () =>
     // each with its share once the release ships section lengths (`part_section.m`, the 0.5.0 rebuild); none before
     const share = "(?:all|under 1%|about \\d+%) of it";
     expect(access[0]).toMatch(new RegExp(
-      `^This water crosses an Indian reserve \\(Skumalasph 16(?:, ${share})?\\) and private land(?: \\(${share}\\))?\\.$`));
+      `^This part of the water crosses an Indian reserve \\(Skumalasph 16(?:, ${share})?\\) and private land(?: \\(${share}\\))?\\.$`));
     console.log(`T387 Nicomen Slough: ${access[0]}`);
   }, 120_000);
 });
