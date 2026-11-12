@@ -16,6 +16,9 @@ The main ones below; every scenario (perf, pan, gesture and pane probes too) is 
 | `big-update` | a release over the metered line (basemap id moved, ~270 MB) waits for Wi-Fi on mobile data (sync button, More, the bell), downloads on Wi-Fi with progress, is applied at the next pause ("Updated to …"); `minAppVersion 99` → "Update the app"; a corrupt release → `sha-mismatch`, the set in use kept |
 | `offline` | cold start in airplane mode on the installed set (map, search, a water's regulations, Conditions); the banner; offline mid-session; satellite says it is online-only; Check now offline is `offline`; a slow line; reconnect clears the banner and checks at once |
 | `spots` | a spot made offline (At my location) with a photo is saved, survives a cold start offline, says what it is missing; back online it fills in its weather/gauge context by itself; an edit made offline is kept |
+| `saved-spots` | (T603) a spot saved through the UI on a gauged river (the Fraser at Hope, online, the day before) shows everything a saved spot holds: the Spots row and its lines, the visit chip and rating stars, the week-before strip (weather columns, the gauge's daily means with their short "N in 10 days higher" place, the trend line); then the alert editor on a gauge card (its chips, the five level-for-the-day presets and Custom, the one line saying what will happen), one alert saved, read whole in More → Notifications and removed. Fails on a label that is missing, off the screen, past its chip or squeezed (`SAVED_AT`, `ALERT_Q` / `ALERT_ROW`) |
+| `two-days` | (T603, T582) the regulations day set on the map's day strip to today, tomorrow and 11 days on: Conditions says nothing / "Regulations day: <day>, marked on the chart." / "<day> is past the forecast." (the whole sentence, B.C.'s day), and the chart carries the regulations-day mark only inside the window |
+| `route-scroll` | (T603) the Conditions route map after ten flings down the pane and back: photographed the moment it returns and again at rest; fails if it is one flat colour at rest (the blank map seen once on build 25), a finding if only the first frame was (`ROUTE_ROUNDS`) |
 | `report` | Report a problem offline → "saved on this device"; survives a restart; flushed on reconnect; the staging feeds worker holds it (`GET /reports`, read only) |
 | `near-cold` | (T264) ten cold starts (offline/online alternating), a town tapped FIRST: its waters are listed every time and no failed near read is logged (`NEAR_COLD_RUNS=n`) |
 | `part-steps` | (T411) Coquitlam → Map → ▼ to Part 1 → ▲ once: no section of the water drawn by the water copy AND the atlas at once (`[copydraw]`); each kept section's `copy_until` in `T411-copy-log.txt` (`STEPS_VIA=tap` for the map-tap way in) |
@@ -91,6 +94,11 @@ inspector (inside a session).
 - `lib/device.mjs` — adb: `net('wifi' | 'cellular' | 'offline')` (Wi-Fi + data / data only = METERED / airplane mode
   with both radios off — Android keeps Wi-Fi up in airplane mode once it was turned on during one),
   `link(speed, delay)` (emulator console), launch/stop/background, screenshots, `addPhoto`, `geo`.
+- `lib/screen.mjs` (T603) — the screen as nodes (uiautomator): where an element is, whether it is drawn, whether a label
+  fits its chip or is squeezed (`labelProblem`, `chipProblem`), `scrollTo` an id (dragging in the page's gutter: a drag
+  that starts on a map pans the map), `blankShare` (is a map's box one flat colour), `bcDay`. A selector is written
+  `resource-id="<testID>"` so `app/tools/testbed-static.test.ts` checks the id against the app source; an id the app
+  builds from a variable is its fixed part plus `{ ends }`. Unit tests: `node --test app/tools/testbed/lib/*.test.mjs`.
 - `lib/maestro.mjs` (each flow's Maestro log under `out/<run>/maestro/<scenario>/`), `lib/report.mjs`, `flows/*.yaml`, `scenarios/*.mjs`, `media/` (the test photo).
 - `deploy/staging/test-updates.mjs big` (added here): the large release.
 

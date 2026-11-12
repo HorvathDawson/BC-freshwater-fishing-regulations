@@ -91,3 +91,16 @@ export async function closeWaters(ctx) {
     ctx.flow('tap-id', { ID: 'water-close' }); await ctx.device.sleep(1500);
   }
 }
+
+/**
+ * (T603) A water opened from search on one of its views: the Map tab, the query, its result row, "Open <water>", then the
+ * view's tab (`water-view-regs` | `water-view-conditions` | `water-view-map`). Returns when the view strip is up.
+ */
+export async function openWater(ctx, { q, row, view = 'regs' }) {
+  await closeWaters(ctx);
+  await toMap(ctx);
+  ctx.flow('search', { Q: q });
+  ctx.flow('open-result', { LINE: row });
+  await ctx.until(() => ctx.hasId('water-view-regs'), { ms: 20_000, what: `the water screen of ${q} (water-view-regs)` });
+  if (view !== 'regs') ctx.flow('tap-id', { ID: `water-view-${view}` });
+}

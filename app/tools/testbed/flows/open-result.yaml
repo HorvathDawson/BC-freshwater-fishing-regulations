@@ -3,4 +3,5 @@ appId: ca.canifishthis.app
 ---
 - tapOn: { text: "${LINE}", index: 0 }
 - waitForAnimationToEnd: { timeout: 4000 }
-- tapOn: { text: "Open .*", index: 0 }
+# (T603) "Open <water>", never the map's own "Open spot <title>" (a saved spot's pin says that, and came first)
+- tapOn: { text: "Open ([^s]|s[^p]|sp[^o]|spo[^t]|spot[^ ]).*", index: 0 }

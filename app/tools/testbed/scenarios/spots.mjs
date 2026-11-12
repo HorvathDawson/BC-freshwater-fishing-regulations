@@ -30,6 +30,8 @@ export async function capture(ctx) {
       // (T307/T323) the ONE step that reads (cap.capture: gauge, weather, the day's flow) is the "When were you there?"
       // Next → the draft with "Save spot"; offline it must not wait on the network. (T323: this was timed from the
       // pick-the-water Next, which lands on THIS screen, not on Save spot — so it always ran to its 15 s cap.)
+      // (T603) `ctx.captureDay`: the day chip to pick first ("Yesterday": a day whose record is whole); today otherwise
+      if (ctx.captureDay) ctx.flow('tap-text', { TEXT: ctx.captureDay });
       ctx.flow('tap-text', { TEXT: 'Next' });
       const t0 = Date.now();
       while (Date.now() - t0 < 15_000 && !d.screenText().some((w) => /^(Save spot|Save)$/.test(w))) await d.sleep(200);
