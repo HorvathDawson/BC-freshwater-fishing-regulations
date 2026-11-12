@@ -1,6 +1,6 @@
 # T665 — Tidal: cut every creek where it leaves the tidal polygon; remove lines wholly inside it
 
-Status: PARTIAL — f1f928029, 227c53b08, a3518f5d2, 2a21460e0, 76f067600, 56b18e8bb; left (Claude): promote the side build (`handoff/PLAN/app-integration/next-rebuild.md` steps 7 to 9) after the owner's go on `next-rebuild-results.md`; the shore rule into RULINGS.md and MAP.md
+Status: PARTIAL — f5831c1ac, be87eb86e, 001e23697, 30aa93f43, f1f928029, 227c53b08, a3518f5d2, 2a21460e0, 76f067600, 56b18e8bb; left (Claude): the staging release of candidate r-483b295de57c (`release --staging --accept-diff …`) once HEAD is pushed (agents do not push) and the fresh-copy `test_stepcache` red is fixed; the shore rule into RULINGS.md and MAP.md
 
 Source: owner 2026-11-11, on the T660 follow-up (A–J): "every item in the 103 can be removed. And the plan in general
 looks solid just need to figure out a clean way to implement it." Next atlas rebuild (with T664 and the nine waiting DFO
@@ -89,3 +89,15 @@ Built twice; the second build is the candidate (`data/generated/side/next-rebuil
 - `T665-orphans.json` is rewritten from the side build: 82 items change their tidal sections, Brae Slough alone becomes
   wholly tidal, no id moves.
 - No `sidecars.py` writer for `inside_tidal.json`: the file is the build's alone (messages corrected).
+
+## Promoted 2026-11-11 (f5831c1ac; the nine DFO marks e4bf44afb … 29fe9d5b4, be87eb86e)
+- `atlas.promote --accept-boundary-loss`: dry run identical to the side lane's `parity.txt` (lost: shore 77, length 2,
+  lake 1; no dead or absorbed id). Three patches applied, `diff -r` against the side copy empty.
+- Build (`pipeline build --hold-latest`): reach, tiles, deliver ok; candidate `r-483b295de57c`, LATEST unmoved. Reach
+  run vs the side reach run: 0 rules differ; 10 DFO places bound (the nine + the Thompson duplicate locator).
+- Bundle: ONE item "Okanagan River Oxbows" (88 sections, 2 parts); the reader lifts `z8:spring_stream_closure` by
+  `okanagan_river_oxbows.r1` on all 88 (May 15, RB); tiles carry one name, all 40 polygons `water: stream`.
+  In-season `is-bb5426c61ff3` re-resolved: 1 extent (001e23697).
+- Held lines: sections and cuts as build 27, but 4 `HELD_UP_THE_CHANNEL` lines with a kept cut have the piece below
+  it tidal now (360586479 21 m, 360665787 298 m, 360675720 223 m, 360812872 37 m; in the side lane's
+  `measure_tidal_pieces.json`): owner item.

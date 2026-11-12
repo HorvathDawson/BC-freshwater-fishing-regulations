@@ -1,6 +1,6 @@
 # T664 — Okanagan River Oxbows: one water, not 31 items
 
-Status: PARTIAL — 25471b393, a3518f5d2, 56b18e8bb; left (Claude): promote the side build (`handoff/PLAN/app-integration/next-rebuild.md` steps 7 to 9) after the owner's go on `next-rebuild-results.md`
+Status: PARTIAL — f5831c1ac, be87eb86e, 001e23697, 30aa93f43, 25471b393, a3518f5d2, 56b18e8bb; left (Claude): the staging release of candidate r-483b295de57c (`release --staging --accept-diff …`) once HEAD is pushed (agents do not push) and the fresh-copy `test_stepcache` red is fixed
 
 Source: owner 2026-11-11: "the oxbows should be combined as one item. Right now a shit load come up in the search etc..
 when they are the same with same rules".
@@ -51,3 +51,15 @@ Notes for whoever takes it:
   remade from the side build; `resync_notice.py` makes the notice half). `atlas.promote` now refuses while a curated
   file names an absorbed id.
 - Not verified: search, card and label in the app (no tiles / bundle built on the side atlas).
+
+## Promoted 2026-11-11 (f5831c1ac; the nine DFO marks e4bf44afb … 29fe9d5b4, be87eb86e)
+- `atlas.promote --accept-boundary-loss`: dry run identical to the side lane's `parity.txt` (lost: shore 77, length 2,
+  lake 1; no dead or absorbed id). Three patches applied, `diff -r` against the side copy empty.
+- Build (`pipeline build --hold-latest`): reach, tiles, deliver ok; candidate `r-483b295de57c`, LATEST unmoved. Reach
+  run vs the side reach run: 0 rules differ; 10 DFO places bound (the nine + the Thompson duplicate locator).
+- Bundle: ONE item "Okanagan River Oxbows" (88 sections, 2 parts); the reader lifts `z8:spring_stream_closure` by
+  `okanagan_river_oxbows.r1` on all 88 (May 15, RB); tiles carry one name, all 40 polygons `water: stream`.
+  In-season `is-bb5426c61ff3` re-resolved: 1 extent (001e23697).
+- Held lines: sections and cuts as build 27, but 4 `HELD_UP_THE_CHANNEL` lines with a kept cut have the piece below
+  it tidal now (360586479 21 m, 360665787 298 m, 360675720 223 m, 360812872 37 m; in the side lane's
+  `measure_tidal_pieces.json`): owner item.
