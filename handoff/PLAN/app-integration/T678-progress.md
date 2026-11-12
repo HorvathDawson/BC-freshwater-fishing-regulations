@@ -86,3 +86,40 @@ d5_dfo_diff, d3_nearer_diff, gauge_moves, owner_list (.json + .md, lat/lon per l
 - D4 guard: 69 accepted reads, 0 lost, 0 new on this run.
 - Owner list (owner_list.md): 187 lines still open — 177 estuaries, 3 crossings disagree, 3 no geometry, 4 item C. No
   Fraser slough / unnamed Fraser line reaches the method on this atlas (none is held).
+
+## Restart 2026-11-12
+Done (pushed):
+- a5fe40636: `full_t678b` promoted, with `--accept-boundary-loss` (16,119 D1 pond boundaries + 23 moved shore ids; no
+  curated rule names any of them). The T678 inputs moved into `ATLAS_INPUTS`; `--backfill` now adds only the keys a
+  record is missing.
+- Staging feeds worker deployed (447 tests; gauges, dfo and inseason jobs all 200).
+- a14abad36, fd4a2c54b: CI was red. Seven guards fixed at the cause, plus T681's MapLegend corner radius. New
+  fast-fail item: the source-scanning tools/ gates now run when ui-native changes. CI was green on fd4a2c54b.
+- f7f4fcf (T679 D1 fix): not-fishing water is never a widening (`graph.widenings`), and the fold raises if a water item
+  holds one. The release's bundle stopped on Little Sheep Creek because the fold had taken 4 sewage/tailings ponds.
+  The atlas was rebuilt and promoted again; it differs from t678b only in those 4 creeks.
+  - The pre-T678 atlas is kept at `data/generated/atlas/full.pre_t678`. The promote refuses to delete a `.prev` the
+    old bundle was cut from.
+  - The atlas is current with its 13 inputs.
+- 9a2580e: app 0.7.7. Version bump, a draft changelog entry, and an app_reads row.
+
+Half-done: the release stops in deliver at `card_check` (12 problems, all on one key):
+- The water is Qualcho Creek (gnis:27799). Its pond `lake:329283082`, folded by D1, straddles the Region 5/6 line, so it
+  takes both zone tables (T183).
+- The card's bucket "Up to 2 a day between them — all streams in Regions 5 and 6" lists RB 2 and EB/GB/CT/LT 2.
+  Region 6's `trout_char_quota.r4` "1 trout from streams July 1-Oct 31" makes the true answer 1 (the engine is right).
+- The fault is in `pipeline/deliver/answers/rows/groups.py`. The straddler bucket and kind numbers take Region 5's
+  "2 from streams" and ignore the peer table's stricter dated stream cap. `_peer_totals` brings in only the
+  replaced totals.
+- Intended fix: the bucket and kind rows take the stricter of the two tables' stream caps in force on that day.
+  Add a test on this case. No code has been written yet.
+- Reproduce in 0 s:
+  `python -m pipeline.deliver.answers.card_check --bundle <dir>/bundle.sqlite --export-dir <dir> --items gnis:27799`
+  with `<dir>` holding the deliver-cache bundle/out, verdicts/out and export/out files.
+
+Next commands:
+1. Fix groups.py, run the card_check above, then run fast-fail. Commit and push.
+2. `.venv/bin/python -m pipeline release --staging` (it resumes; reach and tiles are already built for this atlas).
+3. After the release: spot-checks (D3 trib_nearer pairs, the 10 gauge moves, Pend d'Oreille, San Juan, Tatshenshini,
+   Dewdney search, the three lake twins), then `pnpm -C app check`, then
+   `deploy/staging/build-apk.sh --play` (T681 is included at d84c664e1), then the emulator smoke and the CI check.
