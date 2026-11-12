@@ -26,6 +26,13 @@ reports its rule unresolved.
 removes it when it starts, so a build that died, or an older run's files in a reused `_next`, is refused
 (`--no-marker REASON` for a candidate made another way, e.g. a `sidecars --out` farm). A NET BOUNDARY LOSS in the
 parity report refuses too (`--accept-boundary-loss` after reading it). If the second rename fails the first is undone.
+
+(T631 item 3, the id dry run) Refuses, too, a candidate that would ORPHAN A CURATED REFERENCE: an item id a curated
+file names (any string in any curated `*.json` outside `review/` that is an item of the current atlas) which the
+candidate no longer has (`dead`), or has only as an absorbed alias (`absorbed`: the curated files name survivors only,
+AGENTS 55). `--dry-run` lists them by file; resync the files first (`regs.parsing.backfill_matched`, the reference
+patches of the rebuild's runbook), or `--accept-dead-ids` after reading the list. The lost boundaries are listed by
+family (`lost_boundaries`), so an expected loss (a replaced shore rule) reads apart from a curated cut that vanished.
 """
 from __future__ import annotations
 
@@ -82,10 +89,83 @@ def moved_boundaries(target: Path, candidate: Path, named: set[str]) -> tuple[li
     return moved, gone
 
 
+def _registry_ids(build: Path) -> tuple[set[str], dict[str, str]]:
+    """(item ids, {absorbed alias -> its survivor}) of an atlas's registry.json."""
+    import json
+    ids: set[str] = set()
+    alias: dict[str, str] = {}
+    for it in json.loads((Path(build) / "registry.json").read_text(encoding="utf-8")).get("items", []):
+        ids.add(it["id"])
+        for a in it.get("aliases") or ():
+            alias[str(a)] = it["id"]
+    return ids, alias
+
+
+#: curated folders the id dry run does not read: the review log and its queues (a mark names what was looked at then)
+ORPHAN_SCAN_SKIPS = ("review",)
+
+
+def curated_item_refs(known: set[str], root: Path | None = None) -> dict[str, dict[str, int]]:
+    """{item id: {curated file (relative): times named}} — every string (key or value) in every curated `*.json`
+    outside `ORPHAN_SCAN_SKIPS` that is one of `known` (the current atlas's item ids). Read-only."""
+    import json
+    if root is None:
+        from pipeline.common import curated as _c
+        root = Path(_c.load().base)
+    root = Path(root)
+    out: dict[str, dict[str, int]] = {}
+
+    def walk(v, f):
+        if isinstance(v, dict):
+            for k, x in v.items():
+                if k in known:
+                    out.setdefault(k, {})[f] = out.get(k, {}).get(f, 0) + 1
+                walk(x, f)
+        elif isinstance(v, list):
+            for x in v:
+                walk(x, f)
+        elif isinstance(v, str) and v in known:
+            out.setdefault(v, {})[f] = out.get(v, {}).get(f, 0) + 1
+    for p in sorted(root.rglob("*.json")):
+        rel = p.relative_to(root)
+        if rel.parts[0] in ORPHAN_SCAN_SKIPS:
+            continue
+        walk(json.loads(p.read_text(encoding="utf-8")), str(rel))
+    return out
+
+
+def orphaned_ids(target: Path, candidate: Path, root: Path | None = None) -> tuple[list[str], list[str]]:
+    """(dead, absorbed): the item ids curated files name that are items of `target` and that `candidate` no longer has
+    at all, or has only as an alias of another item — each one readable line: id, the survivor, the files."""
+    old, _ = _registry_ids(target)
+    new, alias = _registry_ids(candidate)
+    refs = curated_item_refs(old - new, root)
+
+    def line(i):
+        files = ", ".join(f"{f} x{n}" for f, n in sorted(refs[i].items()))
+        return f"{i}" + (f" -> {alias[i]}" if i in alias else "") + f": {files}"
+    dead = [line(i) for i in sorted(refs) if i not in alias]
+    absorbed = [line(i) for i in sorted(refs) if i in alias]
+    return dead, absorbed
+
+
+def lost_boundaries(target: Path, candidate: Path) -> dict[str, list[str]]:
+    """{family: boundary ids} the candidate's registry no longer has, by the id's family (`shore`, `length`, `area`,
+    `border`, `lake` for a lake edge, else `curated`). A family is the id's prefix before its first `:`."""
+    old, new = _boundary_refs(target), _boundary_refs(candidate)
+    out: dict[str, list[str]] = {}
+    for i in sorted(old.keys() - new.keys()):
+        head = i.split(":", 1)[0] if ":" in i else ""
+        fam = head if head in ("shore", "length", "area", "border", "gauge") else \
+            ("lake" if any(str(r).startswith("lake:") for r in old[i]) else "curated")
+        out.setdefault(fam, []).append(i)
+    return out
+
+
 def promote(candidate: Path, name: str | None = None, *, dry_run: bool = False,
             log=print, target: Path | None = None, tiles: Path | None = None,
             bundle: Path | None = None, accept_moved: bool = False, accept_loss: bool = False,
-            no_marker: str | None = None) -> dict:
+            no_marker: str | None = None, accept_dead_ids: bool = False) -> dict:
     """Make `candidate` the build called `name` (default: the configured default build) — or the
     build directory `target` (T136: a scratch atlas a review rehearsal serves). `tiles` / `bundle`
     are the shipped artifacts whose atlas the `.prev` may still be (default: the live ones). Returns
@@ -123,9 +203,30 @@ def promote(candidate: Path, name: str | None = None, *, dry_run: bool = False,
         if moved:
             log(f"promote: {len(moved)} boundary id(s) a curated rule names now mean ANOTHER place (T547 §3):\n  "
                 + "\n  ".join(moved))
+    dead: list[str] = []
+    absorbed: list[str] = []
+    if target.is_dir() and (target / "registry.json").exists():
+        lostb = lost_boundaries(target, candidate)
+        if lostb:
+            log("promote: boundary ids the candidate no longer has, by family: "
+                + ", ".join(f"{k} {len(v)}" for k, v in sorted(lostb.items())))
+            for k, v in sorted(lostb.items()):
+                if k != "shore":
+                    log(f"  {k}: " + ", ".join(v[:40]) + (f" … {len(v) - 40} more" if len(v) > 40 else ""))
+        dead, absorbed = orphaned_ids(target, candidate)
+        if dead:
+            log(f"promote: {len(dead)} item id(s) curated files name are GONE from the candidate (T631):\n  "
+                + "\n  ".join(dead))
+        if absorbed:
+            log(f"promote: {len(absorbed)} item id(s) curated files name were ABSORBED into another item (name the "
+                f"survivor; AGENTS 55):\n  " + "\n  ".join(absorbed))
     if dry_run:
         return {"from": str(candidate), "to": str(target), "prev": str(prev), "parity": parity,
-                "moved": moved, "dry_run": True}
+                "moved": moved, "dead": dead, "absorbed": absorbed, "dry_run": True}
+    if (dead or absorbed) and not accept_dead_ids:
+        raise SystemExit(f"promote: refused — {len(dead)} curated item id(s) are gone and {len(absorbed)} absorbed in the "
+                         "candidate (listed above). Resync the curated files first (regs.parsing.backfill_matched, the "
+                         "rebuild's reference patches), or promote with --accept-dead-ids after reading the list")
     lost = boundary_loss(parity)
     if lost and not accept_loss:
         raise SystemExit(f"promote: refused — the candidate has {lost:,} fewer boundaries than {target.name} (the parity "
@@ -198,13 +299,16 @@ def main(argv=None) -> int:
                     help="(T547) promote although a boundary id a curated rule names now means another place")
     ap.add_argument("--accept-boundary-loss", action="store_true",
                     help="(T547) promote although the candidate has fewer boundaries than the current atlas")
+    ap.add_argument("--accept-dead-ids", action="store_true",
+                    help="(T631) promote although curated files name item ids the candidate lost or absorbed")
     ap.add_argument("--no-marker", default=None, metavar="REASON",
                     help="(T547) promote a candidate with no COMPLETE.json (not made by the atlas build); printed")
     a = ap.parse_args(argv)
     if a.no_marker is not None and not a.no_marker.strip():
         ap.error("--no-marker needs a reason, which is printed")
     promote(a.candidate, a.to, dry_run=a.dry_run, target=a.target, tiles=a.tiles, bundle=a.bundle,
-            accept_moved=a.accept_moved_boundaries, accept_loss=a.accept_boundary_loss, no_marker=a.no_marker)
+            accept_moved=a.accept_moved_boundaries, accept_loss=a.accept_boundary_loss, no_marker=a.no_marker,
+            accept_dead_ids=a.accept_dead_ids)
     return 0
 
 

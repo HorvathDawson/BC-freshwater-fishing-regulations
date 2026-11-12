@@ -50,7 +50,7 @@ RECORD_ABOUT = ("T665: every blue line the DFO tidal polygon reaches whose mouth
                 "`not_cut` says why not. Written by the atlas build (`atlas.splits.shore`); read by people.")
 INSIDE_ABOUT = ("T665: the blue lines that are tidal water along their whole length: wholly inside the DFO tidal polygon "
                 "(`why: inside`), or a creek whose polygon exit is its top (`why: exit_at_top`). Written by the atlas build "
-                "and `atlas.sidecars`; read by the reach run (`reach.outside.tidal_inside_owner`) and the tiles.")
+                "only (`atlas.sidecars` never changes a section, so it leaves this file as built); read by the reach run (`reach.outside.tidal_inside_owner`) and the tiles.")
 
 #: POLICY (ticket ruling 2): every line wholly inside the polygon is tidal water. False is the mutation pin
 A_LINE_WHOLLY_INSIDE_THE_POLYGON_IS_TIDAL = True
@@ -136,6 +136,40 @@ HELD_UP_THE_CHANNEL: dict[str, str] = {
     "360871265": "Pa-aat River (460 m up the channel)",
     "360880247": "unnamed (105 m up the channel)",
 }
+#: A HELD LINE STAYS EXACTLY AS BUILD 27 HAS IT (next-rebuild 2b, 2026-11-11). "Held" means no change until the owner
+#: ticks; 26 of the 61 held lines carry a T660 shore cut in the live atlas (19 with a tidal piece below it), and the
+#: polygon rule alone would have dropped those cuts and turned the 19 pieces back into freshwater. So each keeps its
+#: cut where build 27 made it (the measure on the live graph's bound, same id `shore:<blk>:<int>`); the reach decides
+#: tidal for the piece below as before. The other 35 held lines have no cut in build 27 and get none. A line leaves this
+#: list with its tick (when it leaves the held lists). By blue line -> route measure.
+HELD_KEEPS_ITS_CUT: dict[str, float] = {
+    "354100939": 588.329692937512,
+    "354145435": 174.134994065693,
+    "354148021": 26.559677430487998,
+    "354149928": 221.586454569785,
+    "354154029": 25.4602836371018,
+    "354154568": 62.8087872440429,
+    "356152742": 124.86376793447201,
+    "356165068": 678.448731074214,
+    "356195562": 155.426769954466,
+    "356227245": 227.945563434588,
+    "356232974": 213.651559241231,
+    "356237969": 228.875985561824,
+    "356249719": 429.25548505503804,
+    "356286798": 220.538577358928,
+    "356310903": 320.30438,
+    "356321196": 427.59326988837,
+    "356330529": 362.06649872493205,
+    "356339436": 295.53272215029506,
+    "356346058": 574.990923530852,
+    "360445710": 16.6025031034152,
+    "360586479": 21.9787294285151,
+    "360665787": 298.11859735134107,
+    "360675720": 223.240657555566,
+    "360764607": 3202.05711923718,
+    "360812872": 37.326930338529294,
+    "360861076": 15.6845316882484,
+}
 #: owner D3: an outside run of at most this many metres between two inside stretches does not end the creek's tidal
 #: stretch (the first REAL exit); a longer one does, and what lies inside higher up stays freshwater
 BRIDGE_M = 25.0
@@ -147,6 +181,8 @@ FRESH_RECEIVER = "joins fresh water (D1: no shore cut)"
 FRESH_BELOW = "the piece below the cut would stay freshwater (owner 2026-11-11: not cut)"
 OWNER_LIMIT = "the owner's split/whole limit for this water governs it"
 HELD = "held for the owner's tick (HELD_FOR_OWNER / HELD_UP_THE_CHANNEL)"
+#: on a row that is cut all the same: a held line keeps the cut build 27 made (`HELD_KEEPS_ITS_CUT`)
+HELD_KEPT = "held for the owner's tick: keeps its build 27 cut (HELD_KEEPS_ITS_CUT)"
 _EPS = _JOIN_M
 
 
@@ -300,8 +336,9 @@ def atlas_tidal(graph: StreamGraph, limits, id_of: Mapping[str, str]) -> frozens
     stream pieces of its line below the cut, and every piece of the SAME WATER (same gnis; the line alone when it has
     none) connected to them, up or down, without passing the line above its limit (side channels, distributaries); for each
     `whole` row every piece of the item (`gnis:` / a lake `wbk:`). The reach's own set (`reach.outside.tidal_cut_owner`,
-    `tidal_whole_owner`) is resolved on the registry and is the answer; this one only decides which creeks the polygon
-    rule cuts (the dry run compares the two). A split the graph does not carry is refused."""
+    `tidal_whole_owner`) is resolved on the registry and is the answer, and the build cuts by it (`reach_tidal`,
+    `THE_ATLAS_CUTS_BY_THE_REACHS_TIDAL_SET`); this graph-only reading is kept as the mutation pin and for a caller with
+    no registry. A split the graph does not carry is refused."""
     by_blk: dict[str, list] = {}
     by_gnis: dict[str, list] = {}
     for nid in sorted(graph.nodes):
@@ -347,6 +384,28 @@ def atlas_tidal(graph: StreamGraph, limits, id_of: Mapping[str, str]) -> frozens
     return frozenset(out)
 
 
+#: THE ATLAS CUTS BY THE REACH'S OWN TIDAL SET (next-rebuild 2a, 2026-11-11). `atlas_tidal` reads the limits off the graph
+#: and misses the side channels with no gnis that the registry folds into their river (70 sections against the reach
+#: run's 124 on build 27: 3 creeks cut for nothing, 7 not cut). The build makes the registry's waters once before the
+#: shore cuts (`build.water_registry`) and asks the reach's own functions (`reach_tidal`); after the final registry it
+#: asks again and stops if the two differ (`build.build_registry`). False is the mutation pin (the graph's own reading).
+THE_ATLAS_CUTS_BY_THE_REACHS_TIDAL_SET = True
+
+
+def reach_tidal(registry, graph: StreamGraph, limits, id_of: Mapping[str, str], *, strict: bool = True) -> frozenset[str]:
+    """THE TIDAL WATER OFF THE MAP AS THE REACH RUN WILL SEE IT: the piece below every `split` / `cut` limit
+    (`reach.outside.tidal_cut_owner`, the resolver a rule's extent uses) and every section of each `whole` water
+    (`tidal_whole_owner`), on `registry`. The same two functions the reach run calls, so there is no second reading.
+    `strict` (a full build): a limit no item carries, or a whole water with no section, is refused."""
+    from pipeline.atlas.reach import outside as _outside
+    # the ids as the tidal sidecar names them (`tidal.resolved_rows`), which is what the reach run reads
+    cut_ids = sorted({str(r.split) for r in limits if r.limit == "split"} | {str(id_of[r.blk]) for r in limits if r.limit == "cut"})
+    whole = sorted({str(r.item) for r in limits if r.limit == "whole"})
+    out = set(_outside.tidal_cut_owner(registry, graph, cut_ids, strict=strict))
+    out |= set(_outside.tidal_whole_owner(registry, whole, strict=strict))
+    return frozenset(out)
+
+
 def owner_limited(graph: StreamGraph, tidal, limit_rows) -> frozenset:
     """The blks `polygon_rule` never cuts because the owner's own limit governs them: every line of a WATER (same gnis)
     one of whose lines carries a `split` or `whole` row (`limit_rows`: `blk`, `limit`, as dicts or `tidal.Limit`) or
@@ -370,18 +429,28 @@ def owner_limited(graph: StreamGraph, tidal, limit_rows) -> frozenset:
 
 
 def polygon_rule(graph: StreamGraph, inside: Mapping[str, list], tidal, existing: Mapping[str, list] | None = None,
-                 limited=frozenset(), held: Mapping[str, str] | None = None
+                 limited=frozenset(), held: Mapping[str, str] | None = None,
+                 kept: Mapping[str, float] | None = None
                  ) -> tuple[list[SplitPoint], list[dict], list[dict]]:
     """THE T665 RULE over `inside` (`polygon_inside`). `tidal`: the section ids of tidal water OFF THE MAP under the
     curated limits (`atlas_tidal`). `existing`: `standing_boundaries`. `limited`: `owner_limited`. `held`: the blks held
-    for the owner (default `HELD_FOR_OWNER` and `HELD_UP_THE_CHANNEL`).
+    for the owner (default `HELD_FOR_OWNER` and `HELD_UP_THE_CHANNEL`). `kept`: the held blks that keep a cut, and where
+    (default: the `HELD_KEEPS_ITS_CUT` rows still held, when `held` is the default; else none); a kept blk given here
+    that is not held is refused.
 
     Returns (cut points, whole lines, rows). Whole lines are rule A (`why: inside`) and the creeks whose exit is their
     top that end in tidal water (`why: exit_at_top`). Rows: one per line whose mouth is inside the polygon, or that meets
     it and joins tidal water — cut (`cut_m`) or why not (`not_cut`). All sorted by blk."""
     from pipeline.atlas.splits import clean_cut as _cc
     existing = existing or {}
+    default_kept = kept is None and held is None
     held = {**HELD_FOR_OWNER, **HELD_UP_THE_CHANNEL} if held is None else held
+    if default_kept:
+        kept = {b: m for b, m in HELD_KEEPS_ITS_CUT.items() if b in held}     # a ticked line left the held lists
+    kept = kept or {}
+    loose = sorted(set(kept) - set(held))
+    if loose:
+        raise SystemExit(f"shore: {loose} keep a cut but are not held")
     tidal = frozenset(tidal)
     lines: dict[str, list] = {}
     for nid in sorted(graph.nodes):
@@ -440,11 +509,27 @@ def polygon_rule(graph: StreamGraph, inside: Mapping[str, list], tidal, existing
 
     rows: dict[str, dict] = {}
     cand: dict[str, float] = {}            # blk -> cut measure (inf: the whole line, its exit is its top)
+    kept_here = {b: float(m) for b, m in kept.items() if b in lines}
+    for blk, at in sorted(kept_here.items()):
+        ns = lines[blk]
+        on_line = ns[0].down_m + _EPS < at < ns[-1].up_m - _EPS and any(n.down_m - _EPS <= at <= n.up_m + _EPS for n in ns)
+        if blk in rule_a or not on_line:
+            raise SystemExit(f"shore: held line {blk} cannot keep its cut at {at}: the line is wholly inside the polygon, "
+                             "or the measure is not inside the line (HELD_KEEPS_ITS_CUT is build 27's; re-read it)")
     for blk in sorted(lines):
-        if blk in rule_a or blk not in inside:
-            continue
         ns = lines[blk]
         mouth = ns[0]
+        if blk in kept_here:
+            # a held line as build 27 has it: its cut where it was, whatever the polygon says of the line
+            st = stretch.get(blk)
+            rows[blk] = {"blk": blk, "name": name_of(ns), "section": mouth.node_id, "mouth_m": round(mouth.down_m, 2),
+                         "top_m": round(ns[-1].up_m, 2), "outlets": outlets(mouth),
+                         "joins": reaches_tidal(outlets(mouth)) if outlets(mouth) else None,
+                         **({"exit_m": round(min(st[0], ns[-1].up_m), 2)} if st else {}), "held": HELD_KEPT}
+            cand[blk] = kept_here[blk]
+            continue
+        if blk in rule_a or blk not in inside:
+            continue
         outs = outlets(mouth)
         st = stretch.get(blk)
         via = reaches_tidal(outs) if outs else None
@@ -508,7 +593,7 @@ def polygon_rule(graph: StreamGraph, inside: Mapping[str, list], tidal, existing
     for blk in sorted(cand):
         r = rows[blk]
         r["below_cut_tidal"] = blk in ok
-        if blk not in ok and A_CUT_THAT_MAKES_NOTHING_TIDAL_IS_NOT_MADE:
+        if blk not in ok and A_CUT_THAT_MAKES_NOTHING_TIDAL_IS_NOT_MADE and blk not in kept_here:
             r["not_cut"] = FRESH_BELOW
             continue
         if cand[blk] == float("inf"):
@@ -547,6 +632,6 @@ def read_inside(build_dir) -> tuple[str, ...]:
             raise SystemExit(f"shore: {p} exists but {rec} was not written by the polygon rule ({RULE})")
         return ()
     if not p.exists():
-        raise SystemExit(f"shore: {d} was cut by the polygon rule but has no {INSIDE} — rebuild the atlas or run "
-                         "`python -m pipeline.atlas.sidecars`")
+        raise SystemExit(f"shore: {d} was cut by the polygon rule but has no {INSIDE} — rebuild the atlas (only the "
+                         "build writes it, with the cuts it belongs to; `pipeline.atlas.sidecars` does not)")
     return tuple(sorted(str(r["blk"]) for r in json.loads(p.read_text(encoding="utf-8"))["lines"]))

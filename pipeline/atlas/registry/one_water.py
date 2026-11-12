@@ -13,8 +13,13 @@ boundaries, and each absorbed id goes into its `aliases` (rule 55's three read p
 it; curated files name the survivor only — restamp `matched`).
 
 What it never does:
-- change a KIND. A same-named LAKE or WETLAND item is left as it is and listed (`kept_apart`): folding it into a stream
-  would move zone rules (lake rules off, stream rules on) — the owner's call (`ONE_WATER_TAKES_STILL_WATER`).
+- change a KIND on its own. A same-named LAKE or WETLAND item is left as it is and listed (`kept_apart`): folding it
+  into a stream moves zone rules (lake rules off, stream rules on), which is the owner's call, item by item. The
+  owner makes it by listing the item on the name record: `"one_water_takes": ["wbk:…"]` (owner 2026-11-11, the eight
+  oxbow polygons FWA classes lake / wetland: "They aren't lakes, they are considered streams"). A listed item joins
+  the one water as a stream polygon, as a confirmed slough polygon joins its stream (`flowing.fold_confirmed_sloughs`:
+  the slough calls come from review marks, and these polygons were never in that queue). A listed id that is not an
+  item holding the name is refused. `ONE_WATER_TAKES_STILL_WATER` is the blanket form, off.
 - touch a section: membership only, so the graph, the handles and every cut are as before.
 - drop a boundary that carries a cut alias. A lake boundary onto a polygon the item now holds is not "another water"
   (F6, as `flowing` does) and goes, unless a cut is aliased onto it: then the pass REFUSES.
@@ -47,6 +52,23 @@ def one_water_names(name_variants: list[dict]) -> list[str]:
     return out
 
 
+def one_water_takes(name_variants: list[dict]) -> dict[str, tuple[str, ...]]:
+    """{name key: the still-water item ids the owner listed for it} (`one_water_takes` on a `one_water` name record)."""
+    out: dict[str, tuple[str, ...]] = {}
+    for e in name_variants or ():
+        for n in (e or {}).get("names") or ():
+            if not isinstance(n, dict) or not n.get("one_water_takes"):
+                continue
+            nm = str(n.get("name") or "").strip()
+            if not n.get("one_water") or not nm:
+                raise ValueError(f"name_variants: `one_water_takes` on {nm!r} needs `one_water: true` on the same record")
+            ids = tuple(str(i) for i in n["one_water_takes"])
+            if len(set(ids)) != len(ids) or not all(i.startswith("wbk:") for i in ids):
+                raise ValueError(f"name_variants: `one_water_takes` on {nm!r} lists each polygon item once, as wbk:<key>")
+            out[key(nm)] = tuple(sorted(set(out.get(key(nm), ())) | set(ids)))
+    return out
+
+
 def _survivor(ids: list[str]) -> str:
     return min(ids, key=lambda i: (_RANK.get(i.split(":", 1)[0], 9), i))
 
@@ -55,10 +77,12 @@ def _region(it: RegistryItem) -> set[str]:
     return {m.split("-", 1)[0] for m in it.mus or () if "-" in m}
 
 
-def merge_one_waters(registry: dict[str, RegistryItem], names: list[str], report: dict | None = None
-                     ) -> dict[str, RegistryItem]:
-    """`registry` with every stream item answering to each flagged name made one item. Returns a NEW dict
-    (`registry` itself when no name is flagged). `report` gets {name: {survivor, absorbed, kept_apart, sections}}."""
+def merge_one_waters(registry: dict[str, RegistryItem], names: list[str], report: dict | None = None,
+                     takes: dict[str, tuple[str, ...]] | None = None) -> dict[str, RegistryItem]:
+    """`registry` with every stream item answering to each flagged name made one item, and with them the lake /
+    wetland items the owner listed for the name (`takes`, `one_water_takes`). Returns a NEW dict (`registry` itself
+    when no name is flagged). `report` gets {name: {survivor, absorbed, kept_apart, sections, and took_still_water when any}}.
+    Idempotent: a listed id already absorbed (an alias of a holder) is done."""
     rep = report if report is not None else {}
     if not names:
         return registry
@@ -69,7 +93,14 @@ def merge_one_waters(registry: dict[str, RegistryItem], names: list[str], report
         holders = sorted(i for i, it in out.items()
                          if it.kind in ("stream", "lake", "wetland")
                          and k in {key(x) for x in (it.name, *it.variants) if x})
-        members = [i for i in holders if out[i].kind in still]
+        listed = set((takes or {}).get(k, ()))
+        done = {a for i in holders for a in out[i].aliases}
+        stray = sorted(i for i in listed - done if i not in holders or out[i].kind not in ("lake", "wetland", "stream"))
+        if stray and holders:
+            raise ValueError(f"one_water {nm!r}: `one_water_takes` lists {stray}, not item(s) holding that name here — "
+                             f"the list went stale; fix it in name_variants.json")
+        members = [i for i in holders if out[i].kind in still or i in listed]
+        took = sorted(i for i in members if out[i].kind != "stream")
         apart = [i for i in holders if i not in members]
         regions = set().union(*(_region(out[i]) for i in members)) if members else set()
         if len(regions) > 1:
@@ -79,7 +110,9 @@ def merge_one_waters(registry: dict[str, RegistryItem], names: list[str], report
             rep[nm] = {"survivor": members[0] if members else "", "absorbed": [], "kept_apart": apart,
                        "sections": len(out[members[0]].section_ids) if members else 0}
             continue
-        sid = _survivor(members)
+        if all(out[i].kind != "stream" for i in members):
+            raise ValueError(f"one_water {nm!r}: no stream item holds the name, only the listed still water {members}")
+        sid = _survivor([i for i in members if out[i].kind == "stream"])
         parts = [out[sid]] + [out[i] for i in members if i != sid]
         absorbed = [p.id for p in parts[1:]]
         secs = tuple(dict.fromkeys(s for p in parts for s in p.section_ids))
@@ -104,5 +137,6 @@ def merge_one_waters(registry: dict[str, RegistryItem], names: list[str], report
         )
         for i in absorbed:
             out.pop(i)
-        rep[nm] = {"survivor": sid, "absorbed": absorbed, "kept_apart": apart, "sections": len(secs)}
+        rep[nm] = {"survivor": sid, "absorbed": absorbed, "kept_apart": apart, "sections": len(secs),
+                   **({"took_still_water": took} if took else {})}
     return out

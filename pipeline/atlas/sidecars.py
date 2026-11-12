@@ -140,9 +140,10 @@ def write_sidecars(build: Path, out: Path | None = None, *, log=print) -> Path:
     registry = outside_area_items(registry, load_area_split_defs())
     # T664: one water across codes — the same pass the atlas build runs (after its MUs, which this registry has)
     from pipeline.atlas.graph.names import load_name_variants
-    from pipeline.atlas.registry.one_water import merge_one_waters, one_water_names
+    from pipeline.atlas.registry.one_water import merge_one_waters, one_water_names, one_water_takes
     owrep: dict = {}
-    registry = merge_one_waters(registry, one_water_names(load_name_variants(CURATED.waters.name_variants)), owrep)
+    _nv = load_name_variants(CURATED.waters.name_variants)
+    registry = merge_one_waters(registry, one_water_names(_nv), owrep, one_water_takes(_nv))
     (dest / "one_water_report.json").write_text(json.dumps(owrep, indent=1) + "\n", encoding="utf-8")
     write_registry(registry, dest / "registry.json")
     log(f"  registry.json: {n_parts} lake part(s) carry part_of; their lakes own no section")
@@ -238,6 +239,21 @@ def write_tidal_sidecar(build: Path, out: Path | None = None, *, log=print) -> P
         o = old.get(r.blk)
         placed[r.blk] = ({k: o[k] for k in ("on", "measure", "items", "absent") if k in o}
                          if o and o.get("alias") == id_of[r.blk] else {"absent": "pending: the next atlas build"})
+    # T665: this atlas's SHORE CUTS and `inside_tidal.json` were decided on the tidal water of the limits it was built
+    # with (`shore.reach_tidal`); only the build makes them. A `split` / `whole` / `cut` row that changed since moves
+    # that water, so the cuts wait for the next atlas build: said here, loudly, and `pipeline release` refuses an
+    # atlas behind its tidal limits (T547).
+    from pipeline.atlas.splits import shore as _shore
+    rec = build / _shore.RECORD
+    if (build / T.RESOLVED).exists() and rec.exists() \
+            and json.loads(rec.read_text(encoding="utf-8")).get("rule") == _shore.RULE:
+        def _water(rows):
+            return {(r["blk"], r["limit"], r.get("split_id") or r.get("item")) for r in rows if r["limit"] != "mouth"}
+        was, now = _water(T.read_resolved(build)), _water(T.resolved_rows(limits, id_of, placed))
+        if was != now:
+            log(f"  WARNING: {len(was ^ now)} split / whole / cut limit row(s) changed since this atlas was built "
+                f"({sorted(b for b, *_ in was ^ now)[:8]}): its shore cuts and {_shore.INSIDE} were decided on the old "
+                "tidal water and stay as built until the next atlas build")
     p = T.write_resolved(dest, T.resolved_rows(limits, id_of, placed))
     n = {k: sum(1 for r in limits if r.limit == k) for k in T.LIMITS}
     log(f"  {p}: {n}; {sum(1 for v in placed.values() if 'pending' in str(v.get('absent', '')))} mouth(s) pending")

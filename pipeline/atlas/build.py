@@ -1290,7 +1290,19 @@ def cut_shores(b: _Build) -> None:
     pts, whole, rows = [], [], []
     if poly is not None:
         inside = _shore.polygon_inside(b.chains, poly)
-        tidal = _shore.atlas_tidal(graph, limits, getattr(b, "tidal_ids", None) or {})
+        # THE TIDAL WATER OFF THE MAP, AS THE REACH RUN WILL SEE IT (next-rebuild 2a): the registry's waters made once
+        # here, before the shore cuts (they change no item's membership and never cut a tidal section), and the
+        # reach's own two functions asked. `build_registry` asks again on the registry it writes and stops on a difference.
+        _ids = getattr(b, "tidal_ids", None) or {}
+        if not limits:
+            tidal = frozenset()            # no curated limit: no tidal water off the map, by either reading
+        elif _shore.THE_ATLAS_CUTS_BY_THE_REACHS_TIDAL_SET:
+            _reg0, _ = water_registry(b, graph)
+            tidal = _shore.reach_tidal(_reg0, graph, limits, _ids, strict=getattr(b, "bbox", None) is None)
+            del _reg0
+        else:
+            tidal = _shore.atlas_tidal(graph, limits, _ids)
+        b.shore_tidal = tidal
         pts, whole, rows = _shore.polygon_rule(graph, inside, tidal, _shore.standing_boundaries(graph),
                                                _shore.owner_limited(graph, tidal, limits))
     pts = place_points(graph, pts)
@@ -1300,7 +1312,8 @@ def cut_shores(b: _Build) -> None:
 
     def _write(moved=(), resid=()):
         (out / _shore.RECORD).write_text(json.dumps(
-            {"_about": _shore.RECORD_ABOUT, "rule": _shore.RULE, "cuts": len(pts), "runs": rows}, indent=1) + "\n",
+            {"_about": _shore.RECORD_ABOUT, "rule": _shore.RULE, "cuts": len(pts),
+             "tidal_sections": len(getattr(b, "shore_tidal", None) or ()), "runs": rows}, indent=1) + "\n",
             encoding="utf-8")
         _shore.write_inside(out, whole)
         _bs.write_record(out / "braid_sweep_shore.json", sweep, list(moved), list(resid), stage="shore")
@@ -1435,6 +1448,71 @@ def write_graph(b: _Build) -> None:
     b.out = out
 
 
+def water_registry(b: _Build, graph) -> tuple[dict, dict]:
+    """THE REGISTRY'S WATERS from `graph`: the items and every grouping pass (boundary confidence, named waterbodies,
+    curated-only wbks, the flowing-polygon fold, the confirmed sloughs, mined names, lake parts, outside-area items).
+    Pure: prints and writes nothing; returns (registry, {counts and the passes' reports}). Called twice by a build:
+    before the shore cuts, so they are decided on the tidal water the reach run will see (`cut_shores`,
+    `shore.reach_tidal`), and for the registry that is written (`build_registry`), which adds the MUs, one-water, the
+    region units and the tidal mouths on top.
+
+    Reads: splits, lake_names, wetland_names, _nv_all, wb_polys, _mined, added_lake_parts, area_defs."""
+    from pipeline.atlas.registry import (add_boundary_confidence, add_curated_wbk_items, add_lake_parts,
+                                         add_waterbody_items, build_registry as _items, outside_area_items)
+    info: dict = {}
+    # `build_registry` reads overrides.json itself for the waterbody keys a curator pinned by
+    # hand, so an FWA-unnamed water a regulation names still becomes an item. See
+    # `pipeline.atlas.registry.build.pinned_by_override`.
+    registry = _items(graph)
+    info["named"] = len(registry)
+    # T207: each curated boundary carries its split's authored confidence (display only)
+    registry = add_boundary_confidence(registry, b.splits)
+    # Named waterbodies the graph alone misses: isolated named lakes/reservoirs with no through-stream
+    # (never noded, e.g. Frazer Lake) and wetlands (never noded). Add them from the FWA layers so a reg
+    # can target them by name or a curated wbk/gnis pin.
+    n0 = len(registry)
+    registry = add_waterbody_items(registry, b.lake_names, "lake")
+    info["lakes"] = len(registry) - n0
+    registry = add_waterbody_items(registry, b.wetland_names, "wetland")
+    info["wetlands"] = len(registry) - n0 - info["lakes"]
+    # Waterbodies named ONLY by curation (name_variants wbk target on an isolated FWA-unnamed lake) —
+    # add them so the curated name is matchable (e.g. Redstart Lake's 2nd polygon).
+    n1 = len(registry)
+    registry = add_curated_wbk_items(registry, b._nv_all)
+    info["curated_wbk"] = len(registry) - n1
+    # ONE FLOWING WATER, LINES AND POLYGONS (user rulings 2026-10-03): a river's or slough's
+    # polygons join its line's item; a slough drawn only as polygons is one stream item; EVERY
+    # flowing polygon leaves as kind `stream`, so `item.kind` is the water kind and nothing
+    # downstream recomputes it. `pipeline.atlas.sidecars` applies the same pass to a finished build.
+    from pipeline.atlas.registry.flowing import merge_flowing_polygons
+    _mrep: dict = {}
+    registry = merge_flowing_polygons(
+        registry, graph, {f"lake:{w}": pl for w, pl in (b.wb_polys or {}).items()}, _mrep)
+    info["merge_report"] = _mrep
+    # T322: the owner-CONFIRMED slough polygons join the one stream through them; no stream through -> ignored
+    # (`flowing.fold_confirmed_sloughs`, read from the applied file `waters/slough_calls.json`). Behind FOLD_CONFIRMED.
+    from pipeline.atlas.registry import flowing as _flowing
+    if _flowing.FOLD_CONFIRMED:
+        from pipeline.tools.slough_calls import load as _load_slough_calls
+        _srep: dict = {}
+        registry = _flowing.fold_confirmed_sloughs(registry, graph, _load_slough_calls(), _srep)
+        info["slough_report"] = _srep
+    # T224 mined names: labels on the item that already owns the feature, after every grouping pass
+    from pipeline.atlas.registry.mined import add_mined_names
+    _mined_rep: dict = {}
+    registry = add_mined_names(registry, graph, getattr(b, "_mined", []) or [], _mined_rep)
+    info["mined_report"] = _mined_rep
+    # Which curated lake PART belongs to which lake (`item.part_of` in the bundle): written here,
+    # once, from the polygons the ingest read; refused when they and this build disagree. A lake
+    # with parts owns no section of its own (`add_lake_parts`).
+    registry = add_lake_parts(registry, b.added_lake_parts)
+    # A water the book's geography puts OUTSIDE an area its polygon touches (Kennedy Lake and
+    # Pacific Rim, user ruling 2026-10-03): stated once on the area definition, applied to the
+    # registry's area item, so every reader of that item agrees (`registry.outside_area_items`).
+    registry = outside_area_items(registry, b.area_defs)
+    return registry, info
+
+
 def build_registry(b: _Build) -> None:
     """REGISTRY (parser truth) from the finished graph, plus the waterbody, curated, flowing-polygon,
     lake-part, outside-area, MU and region-unit passes; written with the section handle table.
@@ -1445,69 +1523,29 @@ def build_registry(b: _Build) -> None:
     _tick = b.tick
     # Registry (parser truth) — build from the finalized graph + persist, so the parser tools
     # (matcher / batch_exporter / ingest) never need to rebuild the graph from the ~10GB FWA data.
-    from pipeline.atlas.registry import add_curated_wbk_items, add_mu_sets, add_waterbody_items, build_registry
-    from pipeline.atlas.registry import write_registry
+    from pipeline.atlas.registry import add_mu_sets, write_registry
     # `build_registry` reads overrides.json itself for the waterbody keys a curator pinned by
     # hand, so an FWA-unnamed water a regulation names still becomes an item. See
     # `pipeline.atlas.registry.build.pinned_by_override`.
-    registry = build_registry(graph)
-    print(f"  registry: {len(registry)} named items")
-    # T207: each curated boundary carries its split's authored confidence (display only)
-    from pipeline.atlas.registry import add_boundary_confidence
-    registry = add_boundary_confidence(registry, splits)
-    # Named waterbodies the graph alone misses: isolated named lakes/reservoirs with no through-stream
-    # (never noded, e.g. Frazer Lake) and wetlands (never noded). Add them from the FWA layers so a reg
-    # can target them by name or a curated wbk/gnis pin.
-    n0 = len(registry)
-    registry = add_waterbody_items(registry, lake_names, "lake")
-    n_lakes = len(registry) - n0
-    registry = add_waterbody_items(registry, wetland_names, "wetland")
-    print(f"  + {n_lakes} isolated named lake item(s) + {len(registry) - n0 - n_lakes} named wetland item(s)")
-    # Waterbodies named ONLY by curation (name_variants wbk target on an isolated FWA-unnamed lake) —
-    # add them so the curated name is matchable (e.g. Redstart Lake's 2nd polygon).
-    n1 = len(registry)
-    registry = add_curated_wbk_items(registry, _nv_all)
-    print(f"  + {len(registry) - n1} curated-only wbk item(s) (named via name_variants)")
-    # ONE FLOWING WATER, LINES AND POLYGONS (user rulings 2026-10-03): a river's or slough's
-    # polygons join its line's item; a slough drawn only as polygons is one stream item; EVERY
-    # flowing polygon leaves as kind `stream`, so `item.kind` is the water kind and nothing
-    # downstream recomputes it. `pipeline.atlas.sidecars` applies the same pass to a finished build.
-    from pipeline.atlas.registry.flowing import merge_flowing_polygons
-    _mrep: dict = {}
-    registry = merge_flowing_polygons(
-        registry, graph, {f"lake:{w}": pl for w, pl in (wb_polys or {}).items()}, _mrep)
+    registry, _info = water_registry(b, graph)
+    print(f"  registry: {_info['named']} named items")
+    print(f"  + {_info['lakes']} isolated named lake item(s) + {_info['wetlands']} named wetland item(s)")
+    print(f"  + {_info['curated_wbk']} curated-only wbk item(s) (named via name_variants)")
+    _mrep = _info["merge_report"]
     print(f"  flowing polygons: {_mrep['absorbed']} item(s) folded into {len(_mrep['merged'])} "
           f"stream(s) + {len(_mrep['own_items'])} stream(s) of their own; "
           f"{sum(len(x['polygons']) for x in _mrep['unnamed_polygons'])} unnamed polygon(s) "
           f"taken by a slough")
     (out / "merge_report.json").write_text(json.dumps(_mrep, indent=1) + "\n", encoding="utf-8")
-    # T322: the owner-CONFIRMED slough polygons join the one stream through them; no stream through -> ignored
-    # (`flowing.fold_confirmed_sloughs`, read from the applied file `waters/slough_calls.json`). Behind FOLD_CONFIRMED.
-    from pipeline.atlas.registry import flowing as _flowing
-    if _flowing.FOLD_CONFIRMED:
-        from pipeline.tools.slough_calls import load as _load_slough_calls
-        _srep: dict = {}
-        registry = _flowing.fold_confirmed_sloughs(registry, graph, _load_slough_calls(), _srep)
+    if "slough_report" in _info:
+        _srep = _info["slough_report"]
         print(f"  confirmed sloughs (T322): {_srep['counts']}")
         (out / "slough_fold_report.json").write_text(json.dumps(_srep, indent=1) + "\n", encoding="utf-8")
-    # T224 mined names: labels on the item that already owns the feature, after every grouping pass
-    from pipeline.atlas.registry.mined import add_mined_names
-    _mined_rep: dict = {}
-    registry = add_mined_names(registry, graph, getattr(b, "_mined", []) or [], _mined_rep)
+    _mined_rep = _info["mined_report"]
     print(f"  mined names: {_mined_rep['labelled']} on an existing item, {_mined_rep['own_items']} item(s) of "
           f"their own, {_mined_rep['absent']} on a feature not in the atlas (pruned or absent)")
-    # Which curated lake PART belongs to which lake (`item.part_of` in the bundle): written here,
-    # once, from the polygons the ingest read; refused when they and this build disagree. A lake
-    # with parts owns no section of its own (`add_lake_parts`).
-    from pipeline.atlas.registry import add_lake_parts
-    registry = add_lake_parts(registry, added_lake_parts)
     if added_lake_parts:
         print(f"  {len(added_lake_parts)} curated lake part(s) name their lake (part_of)")
-    # A water the book's geography puts OUTSIDE an area its polygon touches (Kennedy Lake and
-    # Pacific Rim, user ruling 2026-10-03): stated once on the area definition, applied to the
-    # registry's area item, so every reader of that item agrees (`registry.outside_area_items`).
-    from pipeline.atlas.registry import outside_area_items
-    registry = outside_area_items(registry, area_defs)
     _tick("build_registry")
     # Isolated/overlaid waterbodies have a node but NO sidecar geometry (the client draws them from the
     # FWA polygon layer), so load their own wbk polygon for add_mu_sets. Select on missing GEOMETRY,
@@ -1526,12 +1564,13 @@ def build_registry(b: _Build) -> None:
     registry = add_mu_sets(registry, geoms, _mu_all, wbk_polys)
     # T664: a water the curator named across several codes (`name_variants` record `one_water: true`, the Okanagan
     # River Oxbows) is ONE item; absorbed ids go to the survivor's `aliases`. After the MUs (each member's own count).
-    from pipeline.atlas.registry.one_water import merge_one_waters, one_water_names
+    from pipeline.atlas.registry.one_water import merge_one_waters, one_water_names, one_water_takes
     _owrep: dict = {}
-    registry = merge_one_waters(registry, one_water_names(_nv_all), _owrep)
+    registry = merge_one_waters(registry, one_water_names(_nv_all), _owrep, one_water_takes(_nv_all))
     for _nm, _r in _owrep.items():
         print(f"  one water (T664) {_nm}: {len(_r['absorbed'])} item(s) into {_r['survivor']}, "
-              f"{_r['sections']} section(s); kept apart (still water): {len(_r['kept_apart'])}")
+              f"{_r['sections']} section(s); listed still water taken as stream: {len(_r.get('took_still_water', ()))}; "
+              f"kept apart (still water): {len(_r['kept_apart'])}")
     (out / "one_water_report.json").write_text(json.dumps(_owrep, indent=1) + "\n", encoding="utf-8")
     # Each region item carries the MUs lying in it, so a Region 7 row's MUs name its ZONE
     # (`reach.outside.entry_regions`): `@7-30+7-37+7-38` is 7A, `@7-31+7-36` is 7B.
@@ -1549,6 +1588,22 @@ def build_registry(b: _Build) -> None:
     if b.tidal_placed:
         from pipeline.atlas.splits import tidal as _tidal
         registry = _tidal.add_mouth_boundaries(registry, b.tidal_placed)
+    # next-rebuild 2a: THE SHORE CUTS WERE DECIDED ON THE TIDAL WATER THE REACH RUN WILL SEE, or the build stops. The
+    # same question, asked of the registry about to be written; a difference means a pass after `water_registry`
+    # (reach-qualified names, MUs, one-water) moved a tidal section, and the cuts would be half right.
+    from pipeline.atlas.splits import shore as _shore
+    if getattr(b, "shore_tidal", None) is not None and _shore.THE_ATLAS_CUTS_BY_THE_REACHS_TIDAL_SET \
+            and getattr(b, "tidal_limits", None):
+        _final = _shore.reach_tidal(registry, graph, list(b.tidal_limits), b.tidal_ids, strict=bbox is None)
+        if _final != b.shore_tidal:
+            _only0, _only1 = sorted(b.shore_tidal - _final), sorted(_final - b.shore_tidal)
+            (out / "shore_tidal_mismatch.json").write_text(json.dumps(
+                {"only_before_the_shore_cuts": _only0, "only_in_the_registry_written": _only1}, indent=1) + "\n",
+                encoding="utf-8")
+            raise SystemExit(f"shore: the tidal water the shore cuts were decided on is not the registry's: "
+                             f"{len(_only0)} section(s) only before the cuts {_only0[:5]}, {len(_only1)} only in the "
+                             f"written registry {_only1[:5]} — see shore_tidal_mismatch.json (no registry written)")
+        print(f"  shore cuts were decided on the registry's tidal water: {len(_final)} section(s), the same set")
     write_registry(registry, out / "registry.json")
     print(f"  registry -> {out / 'registry.json'}")
     # THE SECTION HANDLE TABLE, written here because this is where the set of sections is

@@ -1,0 +1,22 @@
+--- a/data/curated/waters/name_variants.json
++++ b/data/curated/waters/name_variants.json
+@@ -72923,7 +72923,18 @@
+     "note": "T637 (owner 2026-11-11, option A): the owner's hand-matched side channels of the Okanagan River in MU 8-1 (the OKANAGAN RIVER OXBOWS override in book_name_links.json, first matched 2026-02-08). FWA leaves these lines unnamed, so without this name the registry made no item and the override's watershed codes named no water. Exact-wsc scope (child codes only where listed). kind=stream so the name cannot land on the lakes and wetlands these channels thread. Park Rill (300-432687-516449) is not one. Three lines are named only up to their accepted hillside cut, by the blk + reach entries that follow (500162, 466472, 461418-565942, 461418, 459615).",
+     "display": true,
+     "one_water": true,
+-    "one_water_note": "T664 (owner 2026-11-11: \"the oxbows should be combined as one item\"): every STREAM item named Okanagan River Oxbows is ONE registry item (registry.one_water); lake/wetland oxbow items stay apart."
++    "one_water_note": "T664 (owner 2026-11-11: \"the oxbows should be combined as one item\"): every STREAM item named Okanagan River Oxbows is ONE registry item (registry.one_water); lake/wetland oxbow items stay apart unless listed in one_water_takes.",
++    "one_water_takes": [
++     "wbk:328944522",
++     "wbk:328948249",
++     "wbk:328957729",
++     "wbk:328985789",
++     "wbk:329459157",
++     "wbk:329459219",
++     "wbk:329459234",
++     "wbk:329460279"
++    ],
++    "one_water_takes_note": "Owner 2026-11-11: the eight oxbow polygons FWA classes lake (328985789, 329460279) or wetland (the other six) are NOT lakes: \"They should have been converted to stream polygons like Nicomen Slough so it all becomes one. They aren't lakes, they are considered streams.\" Each joins the one Oxbows water as a stream polygon: lake rules come off, stream zone rules go on. lake:329461947 is not listed (FWA does not name it an oxbow; the river-widening step binds it)."
+    }
+   ]
+  },
