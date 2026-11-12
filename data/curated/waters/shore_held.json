@@ -1069,6 +1069,18 @@
    }
   },
   {
+   "blk": "356268746",
+   "name": "Power House Creek",
+   "keep": "cut",
+   "cut_m": 165.04,
+   "why": "the 1450 crossing and the geometric crossing disagree by more than 50 m (found by the first candidate build, 2026-11-12: the build's geometric crossing 110.7 m, the dry run's 170.0 m)",
+   "at": null,
+   "methods": {
+    "edge1450_m": 174.86,
+    "geometric_m": 110.7
+   }
+  },
+  {
    "blk": "356274648",
    "name": "Barker Creek",
    "keep": "cut",
