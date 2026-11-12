@@ -49,8 +49,8 @@ def _tiny() -> dict:
                       key=lambda p: (SI.runs_of(p), p))
     ix = {p: i for i, p in enumerate(profiles)}
     return {
-        "handles": "147b20dce7d8576c",
-        "reach_digest": "ad6279cad5f3fc76",
+        "handles": "0123456789abcdef",          # invented, as counting runs (T667: no build's digest in a test)
+        "reach_digest": "fedcba9876543210",
         "profiles": profiles,
         "sections": {3: ix[tuple(wrap)], 4: ix[tuple(wrap)], 5: ix[(SI.OWN,) * 366],
                      900: ix[tuple(leap)], 1_958_036: ix[(SI.OUTSIDE,) * 366]},

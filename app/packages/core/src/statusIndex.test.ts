@@ -31,7 +31,7 @@ function disagreements(ix: StatusIndex): unknown[] {
 describe("the status index decoder", () => {
   it("reads the pipeline's bytes exactly as the pipeline does", () => {
     const ix = decodeStatusIndex(BYTES, fixture.handles, fixture.reach_digest);
-    expect(ix.handles).toBe("147b20dce7d8576c");
+    expect(ix.handles).toBe(fixture.handles);
     expect(ix.reachDigest).toBe(fixture.reach_digest);
     expect(() => decodeStatusIndex(BYTES, fixture.handles, "0000000000000000"))
       .toThrow(/cut from rule bindings/);
