@@ -657,7 +657,7 @@ use that as the sole source of future work."
 | T624 | Runs keeps its own day and names it; a shared water link is the water's own page (right preview) | IN REVIEW | a938841a0 | owner 2026-11-10 on T620's G10 and G17 |
 | T625 | A shared link opens the installed app (Android App Links: assetlinks.json + intent filter) | PARTIAL | — | owner 2026-11-10; needs the app signing fingerprint from Play Console; site file + intent filter + link reader built; left (Claude): emulator `pm get-app-links` verified + phone check after the next site deploy and APK |
 | T626 | Deferred: one view of "open to fish" and "fish in the stream" together | POSTPONED | — | owner 2026-11-10: not a now item |
-| T627 | Digest email: an easy-to-read summary of reports and errors (words kept, trimmed) | OPEN | — | owner 2026-11-10 on T609 |
+| T627 | Digest email: an easy-to-read summary of reports and errors (words kept, trimmed) | IN REVIEW — built, not deployed; owner: OWNER-TODO "T627 digest email: pick the look" | efe94f572 | owner 2026-11-10 on T609; samples rendered 11-11 (quiet day, bad day) |
 | T628 | Base rules pinned to print: fee table reader, replace refuses marked entries, entry_digest ledger, runbook path guard | DONE — fees equal print in every column (16 rows); ledger re-seed stays with the annual run; item 5 (reopened 11-11): a plain re-parse no longer replaces an unedited marked entry, `write()` requires the marks store | dd59a9f58, b185130de, d0c00bc9f | T553 follow-ups |
 | T629 | Owner: four places where our text differs from the printed book (no value changes) | OPEN | — | T553 report; owner answers |
 | T630 | One hydrograph presenter for the app and the public gauge page | OPEN | — | T564 leftover |

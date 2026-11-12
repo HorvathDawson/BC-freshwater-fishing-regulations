@@ -124,6 +124,8 @@ Still open:
 - Store screenshots (sent 2026-11-11): pick the order and titles (`app/tools/store-shots.json`).
 
 ## Reviews
+- **T627 digest email: pick the look (2026-11-11).** Two sample digests (a quiet day, a bad day) are rendered from the
+  new layout; say keep / change, then the feeds worker is deployed to staging with it. Not deployed yet.
 - **Tidal follow-ups (T359, 2026-11-03):** review app → Tidal → Follow-ups (8). Decide: does a DEM point you
   confirmed become a cut (Caycuse 1,925 m, Dempster 550 m)? Re-mark Annacis/Cannery/Morey/Parsons "whole water";
   look at Skagit (US border) and Bear River (bridge).
