@@ -3,11 +3,11 @@
   "generator": "app/tools/regs-recut/taps.py",
   "store": {
    "format": "regs-store/5",
-   "section_handles": "105218b34c4adf1b",
-   "reach_digest": "920ff3101263a04d",
+   "section_handles": "b5cb0aa4345a6af0",
+   "reach_digest": "7b47ccdae19dba19",
    "rule_ids_sha256": "ddafd3cfc412bdae",
-   "answers_sha256": "5607e975e6f94a5b776da8279244169cd7ad17e1c678df9e762e0b7202d87669",
-   "store_digest": "ae9c5c30f386336f",
+   "answers_sha256": "352725889ba23a36612ad596103a9901dcf54ffea1fb2dbe4436dec5d5342438",
+   "store_digest": "feb9e8cf8f6a02c7",
    "layout": "{\"top\":[\"about\",\"spec\",\"schemas\",\"fish\",\"keys\",\"segments\",\"moments\",\"segment_moments\",\"parts\",\"places\",\"unnamed\",\"glossary\",\"sections\"],\"sections\":{\"ladder\":[\"version\",\"at\",\"reasons\",\"reason_state\",\"verdicts\",\"frames\"],\"rows\":[\"version\",\"at\",\"decided\",\"rows\",\"strips\",\"frames\"],\"gear\":[\"version\",\"at\",\"frames\",\"province_methods\",\"parent\",\"methods\",\"count_nouns\",\"moments\",\"conduct_means\"],\"licence\":[\"version\",\"at\",\"holds\",\"answers\",\"documents\",\"under_16\",\"frames\",\"profiles\",\"profile_dims\",\"residency_labels\",\"profile_labels\"],\"display\":[\"version\",\"at\",\"frames\",\"rules\",\"waters\",\"strip\",\"reasons\",\"ends\",\"licensing\"]},\"versions\":{\"ladder\":1,\"rows\":33,\"gear\":12,\"licence\":7,\"display\":20}}"
   },
   "golden": "d7b1ed353",
@@ -2030,7 +2030,7 @@
    "weekday": "Saturday",
    "recounted": {
     "reason": "T185 (owner marks 2026-10-27): the new Sandy Pool white-triangle sign cut (DFO 'from 66 Mile Trestle downstream to the sign') lies inside this stretch: 10 -> 11 sections",
-    "sections": 10
+    "sections": 7
    },
    "item_ord": 965,
    "akey": 235,
@@ -6793,7 +6793,7 @@
    "goldenPartIx": 0,
    "recounted": {
     "reason": "T220 (owner 2026-10-28, FIX \"complete\"): no channel line ends where the water goes on: braid pieces that close a kept side channel were restored: 44 -> 47 sections",
-    "sections": 47
+    "sections": 35
    },
    "item_ord": 734,
    "akey": 197,
@@ -7603,7 +7603,7 @@
    "goldenPartIx": 0,
    "recounted": {
     "reason": "T220 (owner 2026-10-28, FIX \"complete\"): no channel line ends where the water goes on: braid pieces that close a kept side channel were restored: 44 -> 47 sections",
-    "sections": 47
+    "sections": 35
    },
    "item_ord": 734,
    "akey": 197,
@@ -11570,8 +11570,8 @@
    "md": 1010,
    "date": "2026-10-10",
    "weekday": "Saturday",
-   "item_ord": 16792,
-   "akey": 1804,
+   "item_ord": 16786,
+   "akey": 1800,
    "seg": 0,
    "mom": null,
    "nseg": 1,
@@ -11581,8 +11581,8 @@
    "moments": null,
    "s": 0,
    "cell": {
-    "ladder": 4614,
-    "rows": 3671,
+    "ladder": 4611,
+    "rows": 3668,
     "gear": 839,
     "licence": 2,
     "display": 32
@@ -11962,8 +11962,8 @@
    "md": 1010,
    "date": "2026-10-10",
    "weekday": "Saturday",
-   "item_ord": 11834,
-   "akey": 1277,
+   "item_ord": 11830,
+   "akey": 1275,
    "seg": 0,
    "mom": null,
    "nseg": 1,
@@ -11973,8 +11973,8 @@
    "moments": null,
    "s": 0,
    "cell": {
-    "ladder": 3618,
-    "rows": 2992,
+    "ladder": 3616,
+    "rows": 2990,
     "gear": 442,
     "licence": 2,
     "display": 88
@@ -12354,8 +12354,8 @@
    "md": 1010,
    "date": "2026-10-10",
    "weekday": "Saturday",
-   "item_ord": 17662,
-   "akey": 1932,
+   "item_ord": 17640,
+   "akey": 1927,
    "seg": 222,
    "mom": null,
    "nseg": 6,
@@ -12370,8 +12370,8 @@
    "moments": null,
    "s": 4,
    "cell": {
-    "ladder": 4834,
-    "rows": 3815,
+    "ladder": 4832,
+    "rows": 3813,
     "gear": 929,
     "licence": 169,
     "display": 139
@@ -17913,8 +17913,8 @@
    "md": 1010,
    "date": "2026-10-10",
    "weekday": "Saturday",
-   "item_ord": 11839,
-   "akey": 1280,
+   "item_ord": 11835,
+   "akey": 1278,
    "seg": 0,
    "mom": null,
    "nseg": 1,
@@ -17924,8 +17924,8 @@
    "moments": null,
    "s": 0,
    "cell": {
-    "ladder": 3622,
-    "rows": 2996,
+    "ladder": 3620,
+    "rows": 2994,
     "gear": 442,
     "licence": 164,
     "display": 88
@@ -39344,7 +39344,7 @@
    "goldenPartIx": 2,
    "recounted": {
     "reason": "T67 (owner 2026-10-24, decisions.md \"braids accepted\"; RULINGS E17, AGENTS 12): the Thompson's side channel 355995300 is cut at the boundary signs (187 m): 7 -> 8 sections",
-    "sections": 8
+    "sections": 1
    },
    "item_ord": 9919,
    "akey": 1084,
@@ -39741,7 +39741,7 @@
   },
   "x20p3_1010": {
    "item": "gnis:39492",
-   "partIx": 2,
+   "partIx": 4,
    "md": 1010,
    "date": "2026-10-10",
    "weekday": "Saturday",
@@ -40142,7 +40142,7 @@
   },
   "x20p0_1010": {
    "item": "gnis:39492",
-   "partIx": 1,
+   "partIx": 3,
    "md": 1010,
    "date": "2026-10-10",
    "weekday": "Saturday",
@@ -40542,7 +40542,7 @@
   },
   "x20p1_1010": {
    "item": "gnis:39492",
-   "partIx": 4,
+   "partIx": 6,
    "md": 1010,
    "date": "2026-10-10",
    "weekday": "Saturday",
@@ -44540,8 +44540,8 @@
    "md": 1010,
    "date": "2026-10-10",
    "weekday": "Saturday",
-   "item_ord": 14622,
-   "akey": 1585,
+   "item_ord": 14616,
+   "akey": 1581,
    "seg": 0,
    "mom": null,
    "nseg": 1,
@@ -44551,8 +44551,8 @@
    "moments": null,
    "s": 0,
    "cell": {
-    "ladder": 4148,
-    "rows": 3354,
+    "ladder": 4145,
+    "rows": 3351,
     "gear": 682,
     "licence": 166,
     "display": 32
@@ -44932,8 +44932,8 @@
    "md": 1010,
    "date": "2026-10-10",
    "weekday": "Saturday",
-   "item_ord": 12535,
-   "akey": 1382,
+   "item_ord": 12529,
+   "akey": 1378,
    "seg": 191,
    "mom": null,
    "nseg": 5,
@@ -44947,8 +44947,8 @@
    "moments": null,
    "s": 3,
    "cell": {
-    "ladder": 3639,
-    "rows": 3121,
+    "ladder": 3637,
+    "rows": 3118,
     "gear": 458,
     "licence": 2,
     "display": 202
@@ -46128,8 +46128,8 @@
    "md": 1010,
    "date": "2026-10-10",
    "weekday": "Saturday",
-   "item_ord": 11822,
-   "akey": 1272,
+   "item_ord": 11818,
+   "akey": 1270,
    "seg": 0,
    "mom": null,
    "nseg": 1,
@@ -46139,8 +46139,8 @@
    "moments": null,
    "s": 0,
    "cell": {
-    "ladder": 3608,
-    "rows": 2982,
+    "ladder": 3606,
+    "rows": 2980,
     "gear": 442,
     "licence": 161,
     "display": 88
@@ -46520,8 +46520,8 @@
    "md": 1010,
    "date": "2026-10-10",
    "weekday": "Saturday",
-   "item_ord": 17493,
-   "akey": 1918,
+   "item_ord": 17471,
+   "akey": 1913,
    "seg": 0,
    "mom": null,
    "nseg": 1,
@@ -46531,8 +46531,8 @@
    "moments": null,
    "s": 0,
    "cell": {
-    "ladder": 4811,
-    "rows": 3802,
+    "ladder": 4809,
+    "rows": 3800,
     "gear": 917,
     "licence": 168,
     "display": 979
@@ -47810,8 +47810,8 @@
    "md": 1010,
    "date": "2026-10-10",
    "weekday": "Saturday",
-   "item_ord": 14461,
-   "akey": 1567,
+   "item_ord": 14455,
+   "akey": 1563,
    "seg": 0,
    "mom": null,
    "nseg": 1,
@@ -47821,8 +47821,8 @@
    "moments": null,
    "s": 0,
    "cell": {
-    "ladder": 4117,
-    "rows": 3331,
+    "ladder": 4114,
+    "rows": 3328,
     "gear": 447,
     "licence": 8,
     "display": 20
@@ -48202,8 +48202,8 @@
    "md": 1010,
    "date": "2026-10-10",
    "weekday": "Saturday",
-   "item_ord": 11842,
-   "akey": 1281,
+   "item_ord": 11838,
+   "akey": 1279,
    "seg": 0,
    "mom": null,
    "nseg": 1,
@@ -48213,8 +48213,8 @@
    "moments": null,
    "s": 0,
    "cell": {
-    "ladder": 3623,
-    "rows": 2997,
+    "ladder": 3621,
+    "rows": 2995,
     "gear": 442,
     "licence": 165,
     "display": 88
@@ -49385,122 +49385,122 @@
  },
  "unnamed": [
   {
-   "handle": 578,
-   "akey": 2125,
+   "handle": 586,
+   "akey": 2122,
    "place": 0,
    "name": "Unnamed stream \u00b7 Region 1"
   },
   {
-   "handle": 30359,
-   "akey": 2133,
+   "handle": 30345,
+   "akey": 2130,
    "place": 0,
    "name": "Unnamed stream \u00b7 Region 1"
   },
   {
-   "handle": 66955,
-   "akey": 2166,
+   "handle": 66868,
+   "akey": 2163,
    "place": 19,
    "name": "Unnamed stream \u00b7 Region 7A"
   },
   {
-   "handle": 349755,
-   "akey": 2190,
+   "handle": 349658,
+   "akey": 2187,
    "place": 9,
    "name": "Unnamed stream \u00b7 Region 4"
   },
   {
-   "handle": 776499,
-   "akey": 2207,
+   "handle": 776397,
+   "akey": 2204,
    "place": 16,
    "name": "Unnamed stream \u00b7 Region 6"
   },
   {
-   "handle": 847150,
-   "akey": 2216,
+   "handle": 847041,
+   "akey": 2213,
    "place": 0,
    "name": "Unnamed stream \u00b7 Region 1"
   },
   {
-   "handle": 921862,
-   "akey": 2216,
+   "handle": 921730,
+   "akey": 2213,
    "place": 0,
    "name": "Unnamed stream \u00b7 Region 1"
   },
   {
-   "handle": 1000028,
-   "akey": 2124,
+   "handle": 999866,
+   "akey": 2121,
    "place": 0,
    "name": "Unnamed stream \u00b7 Region 1"
   },
   {
-   "handle": 1071214,
-   "akey": 2212,
+   "handle": 1071085,
+   "akey": 2121,
+   "place": 0,
+   "name": "Unnamed stream \u00b7 Region 1"
+  },
+  {
+   "handle": 1138959,
+   "akey": 2210,
    "place": 12,
    "name": "Unnamed stream \u00b7 Region 5"
   },
   {
-   "handle": 1138866,
-   "akey": 2220,
-   "place": 12,
-   "name": "Unnamed stream \u00b7 Region 5"
-  },
-  {
-   "handle": 1237879,
-   "akey": 2247,
-   "place": 9,
-   "name": "Unnamed wetland \u00b7 Region 4"
-  },
-  {
-   "handle": 1277707,
-   "akey": 2240,
+   "handle": 1237616,
+   "akey": 2237,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1310122,
-   "akey": 2240,
+   "handle": 1277416,
+   "akey": 2237,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1387531,
-   "akey": 2240,
+   "handle": 1309832,
+   "akey": 2237,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1472800,
-   "akey": 2240,
+   "handle": 1387240,
+   "akey": 2237,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1567142,
-   "akey": 2240,
+   "handle": 1472537,
+   "akey": 2237,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1663227,
-   "akey": 2240,
+   "handle": 1566850,
+   "akey": 2237,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1697967,
-   "akey": 2240,
+   "handle": 1662941,
+   "akey": 2237,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1837013,
-   "akey": 2240,
+   "handle": 1697678,
+   "akey": 2237,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1909114,
-   "akey": 2240,
+   "handle": 1836739,
+   "akey": 2237,
+   "place": 16,
+   "name": "Unnamed wetland \u00b7 Region 6"
+  },
+  {
+   "handle": 1908824,
+   "akey": 2237,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   }
