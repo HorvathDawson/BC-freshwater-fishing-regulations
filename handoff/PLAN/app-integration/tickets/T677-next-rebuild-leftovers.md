@@ -28,3 +28,8 @@ Source: the rebuild lane, 2026-11-11 (`handoff/PLAN/app-integration/next-rebuild
 - Each item done, or closed with the owner's answer.
 
 Depends: T664, T665. Size: M.
+
+## Note (2026-11-11): Fraser delta lines with no section
+29 Fraser delta lines that touch the tidal polygon have no section, because the braid-loop prune dropped them (16 at
+least 95% inside the polygon). Line 356337576 is still to look at. The Ewen Slough and 356242813 stubs are settled by
+the 25 m rule in T678.

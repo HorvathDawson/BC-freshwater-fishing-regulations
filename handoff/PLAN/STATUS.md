@@ -8,6 +8,20 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-11 night — release r-483b295de57c on staging; tidal rulings; T678-T680 filed
+
+- **Out:** release r-483b295de57c is live on staging (site, data and feeds worker). It stopped four times on the way,
+  all in tests with old values typed in; that is T680.
+- **Filed:** T678 tidal decided once in the build; T679 every other stage decides its own thing (18 findings);
+  T680 find fixture-pinned test failures before the push.
+- **Owner rulings today:** a fresh stub under 25 m is tidal; lines wholly in tidal water are kept and marked; an
+  unnamed widening pond is the river; the Fraser's own channels below its tidal boundary are tidal, sloughs are
+  decided one by one; San Juan's boundary is the San Juan Bridge; digest email approved.
+- **Tidal cut order:** DFO written boundary, then coast crossing (mouth line), polygon for shading only.
+- **Next free ticket: T681.**
+- **Next:** classify the 33 curated splits as DFO-written or not; the mouth-line cut in the atlas build with T678;
+  the cheapest T679 fixes; the DFO tidal pages re-scrape.
+
 ## 2026-11-11 evening — build 27 is out: staging and Play internal (chat 11, last entry)
 
 - **Out:** release r-303b4007a70a on staging (smoke 19 pass); staging site redeployed; app 0.7.5 (code 27, patched
