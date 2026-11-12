@@ -34,10 +34,12 @@ def _layers(tmp: Path, *, handles="abcd") -> Path:
     (tiles / "atlas.meta.json").write_text(json.dumps({"section_handles": handles, "build": "full"}))
     rows = {
         "no_access": [
+            # the tiles carry the ONE cleaned name (`place_names.area_display`, T679 #4) beside the id that keeps
+            # its OpenStreetMap suffix
             _feat("Polygon", SQ, {"area_id": "Coquitlam Watershed [13480215]",
-                                  "name": "Coquitlam Watershed [13480215]", "kind": "closed"}, "no_access"),
+                                  "name": "Coquitlam Watershed", "kind": "closed"}, "no_access"),
             _feat("Polygon", FAR, {"area_id": "UBC Malcolm Knapp Research Forest [1166294466]",
-                                   "name": "UBC Malcolm Knapp Research Forest [1166294466]", "kind": "permit"},
+                                   "name": "UBC Malcolm Knapp Research Forest", "kind": "permit"},
                   "no_access"),
         ],
         "indigenous_land": [
@@ -74,10 +76,20 @@ def _layers(tmp: Path, *, handles="abcd") -> Path:
     return tiles
 
 
-def test_display_names_drop_the_osm_id_suffix():
-    assert [A.display_name(n) for n in ("Coquitlam Watershed [13480215]", "Capilano 5", "  Seymour Watershed [678689186] ",
-                                        "Restricted-access land [2110072]", "")] == \
-        ["Coquitlam Watershed", "Capilano 5", "Seymour Watershed", "Restricted-access land", ""]
+def test_the_access_rows_read_the_tiles_name_and_refuse_an_uncleaned_one(tmp_path):
+    """T679 #4: the area's name is cleaned once, for the tiles (`place_names.area_display`); the access rows read the
+    tile's `name` as is. Mutation: a tile name still carrying its OpenStreetMap id (tiles older than the one cleaner)
+    is refused, naming the area, never cleaned a second time here; so is an area with an id and no name."""
+    assert not hasattr(A, "display_name")
+    tiles = _layers(tmp_path)
+    lay = tiles / "layers" / "no_access.geojsonl"
+    good = lay.read_text()
+    lay.write_text(good.replace('"name": "Coquitlam Watershed"', '"name": "Coquitlam Watershed [13480215]"'))
+    with pytest.raises(ValueError, match="Coquitlam Watershed \\[13480215\\].*area_display"):
+        A.compute(tiles / "layers")
+    lay.write_text(good.replace('"name": "Coquitlam Watershed", ', ""))
+    with pytest.raises(ValueError, match="no name"):
+        A.compute(tiles / "layers")
 
 
 def test_the_tiers_are_read_from_the_layer_and_its_kind():
@@ -158,7 +170,8 @@ def _nested(tmp: Path, *, x0: float = -129.9, x1: float = -129.6) -> Path:
     with (lay / "no_access.geojsonl").open("a") as fh:
         for aid, ring in (("Slesse RTA [2]", [[[-130.0, 55.0], [-129.0, 55.0], [-129.0, 56.0], [-130.0, 56.0],
                                                  [-130.0, 55.0]]]), ("Inner [1]", sq(x0, x1))):
-            fh.write(json.dumps(_feat("Polygon", ring, {"area_id": aid, "name": aid, "kind": "closed"}, "no_access"))
+            fh.write(json.dumps(_feat("Polygon", ring, {"area_id": aid, "name": aid.split(" [")[0], "kind": "closed"},
+                                     "no_access"))
                      + "\n")
     with (lay / "stream.geojsonl").open("a") as fh:
         for sid, (a, b) in ((8, (-129.85, -129.65)), (9, (-129.5, -128.5))):

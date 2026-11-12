@@ -21,7 +21,7 @@ from pathlib import Path
 
 from pipeline.deliver.tiles import ladder
 from pipeline.deliver.tiles.layers import BY_NAME, LAKE_LINK, LayerSpec
-from pipeline.deliver.bundle.place_names import is_shouting
+from pipeline.deliver.bundle.place_names import area_display, area_name_uncleaned, is_shouting
 from pipeline.deliver.tiles.names import display
 from pipeline.common.fishing_water import not_fishing_kind
 
@@ -40,6 +40,7 @@ def _writer(out_dir: Path, spec: LayerSpec, file: str | None = None):
     allowed = set(spec.attrs)
     n = 0
     shouting: list[str] = []
+    uncleaned: list[str] = []
 
     def write(geom: dict, props: dict, minzoom: int, maxzoom: int | None = None) -> None:
         nonlocal n
@@ -50,6 +51,10 @@ def _writer(out_dir: Path, spec: LayerSpec, file: str | None = None):
         # this is what fails the build the day a name reaches a tile some other way.
         if isinstance(clean.get("name"), str) and is_shouting(clean["name"]):
             shouting.append(clean["name"])
+        # AN AREA'S LABEL IS ITS ONE DISPLAY NAME (T679 #4): an admin feature (it has `area_id`) carries
+        # `place_names.area_display` of it — never the OpenStreetMap id or the source's cut-off word.
+        if "area_id" in clean and isinstance(clean.get("name"), str) and area_name_uncleaned(clean["name"]):
+            uncleaned.append(clean["name"])
         fh.write(json.dumps({
             "type": "Feature", "geometry": geom, "properties": clean,
             "tippecanoe": {"layer": spec.name,
@@ -64,6 +69,10 @@ def _writer(out_dir: Path, spec: LayerSpec, file: str | None = None):
             raise SystemExit(f"{spec.name}: {len(shouting)} tile name(s) still in capitals, e.g. "
                              f"{sorted(set(shouting))[:5]} — every shown name goes through "
                              "`tiles.names.display` (T113)")
+        if uncleaned:
+            raise SystemExit(f"{spec.name}: {len(uncleaned)} area name(s) not cleaned, e.g. "
+                             f"{sorted(set(uncleaned))[:5]} — an area's label is `place_names.area_display` "
+                             "of it (T679 #4)")
         return n
 
     return write, close
@@ -798,7 +807,7 @@ def export_admin(gpkg: str, out_dir: Path) -> dict:
             # ALL. setFeatureState then addresses nothing: a park closure could never be
             # coloured, and nothing anywhere errored. Exactly the failure the tile
             # contract was created to stop, one seam further along.
-            props = {"area_id": name, "name": display(name), "kind": ad.get("tile_kind")}
+            props = {"area_id": name, "name": area_display(name), "kind": ad.get("tile_kind")}
             if lname == "region":
                 # P18: the region layer is keyed by `region_id` (the style's feature id and label). These nine came
                 # from areas.json with a name only; give them the id the dissolved units carry ("7A", not "7a").

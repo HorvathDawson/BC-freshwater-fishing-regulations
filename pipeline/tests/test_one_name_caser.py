@@ -76,3 +76,47 @@ def test_ordinals_lower_and_digit_inside_a_word_kept():
     assert display_case("BLACK CREEK 2ND") == "Black Creek 2nd"
     assert display_case("JAJI7EM") == "JAJI7EM"
     assert display_case("LOT #14A") == "Lot #14A"
+
+
+# ── T679 #4: ONE AREA DISPLAY NAME ──────────────────────────────────────────────────────────────────────────────────
+# An area's name is cleaned once, by `place_names.area_display`; the admin tile layers carry that name, and the bundle's
+# access rows read it off the tiles (never cleaning again), so the map label and the card are one value.
+
+@pytest.mark.parametrize("raw, shown", [
+    ("CFB Comox [12332677]", "CFB Comox"),
+    ("HMCS Quadra - Cadet Summer Training Centre [1673575]", "HMCS Quadra - Cadet Summer Training Centre"),
+    ("VLADIMIR J. KRAJINA (PORT CHANAL) ECOLOGICAL RESER", "Vladimir J. Krajina (Port Chanal) Ecological Reserve"),
+    ("SHUSWAP LAKE MARINE PARK -  BUGHOUSE BAY SITE", "Shuswap Lake Marine Park - Bughouse Bay Site"),
+    ("Capilano 5", "Capilano 5"),
+])
+def test_an_area_name_is_cleaned_by_one_function(raw, shown):
+    from pipeline.deliver.bundle.place_names import area_display
+    assert area_display(raw) == shown
+    assert area_display(area_display(raw)) == shown          # cleaning a clean name changes nothing
+
+
+@pytest.mark.parametrize("name", ["CFB Comox [12332677]", "Vladimir J. Krajina (Port Chanal) Ecological Reser"])
+def test_an_uncleaned_area_tile_name_fails_the_export(tmp_path, name):
+    """Mutation: an admin feature whose `name` did not go through `area_display` (its OpenStreetMap id still on, or the
+    source's cut-off word) stops the tile export; the cleaned name passes."""
+    from pipeline.deliver.bundle.place_names import area_display
+    from pipeline.deliver.tiles import export
+    from pipeline.deliver.tiles.layers import BY_NAME
+
+    spec = BY_NAME["no_access"]
+    write, close = export._writer(tmp_path, spec)
+    write({"type": "Point", "coordinates": [0, 0]}, {"area_id": name, "name": name, "kind": "closed"}, 4)
+    with pytest.raises(SystemExit, match="area_display"):
+        close()
+    write, close = export._writer(tmp_path, spec)
+    write({"type": "Point", "coordinates": [0, 0]}, {"area_id": name, "name": area_display(name), "kind": "closed"}, 4)
+    assert close() == 1
+
+
+def test_no_second_area_name_cleaner():
+    """The pin: the OpenStreetMap-id pattern is spelled in `pipeline/deliver` only inside `place_names` (the bundle's
+    access rows had their own copy, `access.display_name`, which also missed the cut-off word)."""
+    pat = re.compile(r"\\\[\\d\+\\\]")
+    offenders = [f"{p.relative_to(DELIVER)}:{n}" for p in sorted(DELIVER.rglob("*.py")) if p != CASER
+                 for n, line in enumerate(p.read_text(encoding="utf-8").splitlines(), 1) if pat.search(line)]
+    assert not offenders, f"a second area-name cleaner: {offenders} — use place_names.area_display"

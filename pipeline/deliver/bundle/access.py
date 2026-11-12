@@ -50,7 +50,6 @@ Deterministic: areas sorted (tier, name, area_id), rows sorted (sid, area); no c
 from __future__ import annotations
 
 import json
-import re
 import sqlite3
 from dataclasses import dataclass
 from pathlib import Path
@@ -82,13 +81,20 @@ METRES_PER_DEGREE = 111_320.0
 AREA_LAYERS = ("no_access", "indigenous_land", "parcel")
 SECTION_LAYERS = ("stream", "lake", "wetland")
 
-_OSM_SUFFIX = re.compile(r"\s*\[\d+\]\s*$")
-
-
-def display_name(name: str | None) -> str:
-    """A polygon's name for a reader: the OSM id suffix dropped ("Coquitlam Watershed [13480215]" → "Coquitlam
-    Watershed"), trimmed. A nameless polygon is ""."""
-    return _OSM_SUFFIX.sub("", (name or "").strip()).strip()
+def tile_area_name(layer: str, p: dict) -> str:
+    """An access polygon's name as the TILES carry it (T679 #4): the one cleaned name
+    (`place_names.area_display`, applied by the tile export), read as is — never cleaned again here. A
+    reserve polygon with no id and no name is nameless (""). An area with an id and no name, or a name
+    still carrying its OpenStreetMap id or a cut-off word (tiles older than the one cleaner), is refused."""
+    from pipeline.deliver.bundle.place_names import area_name_uncleaned
+    name, aid = p.get("name") or "", p.get("area_id") or ""
+    if aid and not name:
+        raise ValueError(f"access: {layer} area {aid!r} has no name on the tile — the tile export writes "
+                         "`place_names.area_display` of every area (rebuild the tiles)")
+    if area_name_uncleaned(name):
+        raise ValueError(f"access: {layer} area {aid!r} carries the uncleaned name {name!r} — the tiles must "
+                         "carry `place_names.area_display` of it (T679 #4: rebuild the tiles)")
+    return name
 
 
 def tier_of(layer: str, kind: str | None) -> str:
@@ -162,7 +168,7 @@ def load_areas(layers: Path):
             tier = tier_of(layer, p.get("kind"))
             # the dissolved private polygon has no attributes: it is one area, "parcel"
             aid = "parcel" if layer == "parcel" else str(p.get("area_id") or "")
-            a = Area(tier, aid, "" if layer == "parcel" else display_name(p.get("name") or p.get("area_id")))
+            a = Area(tier, aid, "" if layer == "parcel" else tile_area_name(layer, p))
             found.setdefault(a, []).append(shape(f["geometry"]))
     areas = sorted(found, key=lambda a: (TIERS.index(a.tier), a.name, a.area_id))
     parts: list = []

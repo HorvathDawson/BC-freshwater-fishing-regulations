@@ -72,14 +72,26 @@ _CUT_OFF = {"RESER": "RESERVE", "Reser": "Reserve"}
 _OSM_ID = re.compile(r"\s*\[\d+\]\s*$")
 
 
+_SPACES = re.compile(r"\s+")
+
+
 def area_display(name: str) -> str:
-    """An area's name as a reader sees it: no OpenStreetMap id, no word cut off by the source
-    layer's 50-character limit ("… ECOLOGICAL RESER"), then `display_case`."""
-    name = _OSM_ID.sub("", name or "")
+    """An area's name as a reader sees it — THE ONE AREA DISPLAY NAME (T679 #4): the admin tile
+    layers carry it as `name` (the map label), the bundle's access rows read that tile name and the
+    boundary labels call this, so the map and the card cannot differ. No OpenStreetMap id, no word
+    cut off by the source layer's 50-character limit ("… ECOLOGICAL RESER"), whitespace runs as one
+    space (as `tiles.names.display`), then `display_case`. Idempotent."""
+    name = _SPACES.sub(" ", _OSM_ID.sub("", name or "")).strip()
     head, _, last = name.rpartition(" ")
     if head and last in _CUT_OFF:
         name = f"{head} {_CUT_OFF[last]}"
     return display_case(name)
+
+
+def area_name_uncleaned(name: str) -> bool:
+    """Whether a shown area name skipped `area_display`: its OpenStreetMap id still on, or the
+    source's cut-off last word not restored. The tile export and the access rows refuse one."""
+    return bool(_OSM_ID.search(name or "")) or (name or "").rpartition(" ")[2] in _CUT_OFF
 
 
 def display_case(name: str) -> str:
