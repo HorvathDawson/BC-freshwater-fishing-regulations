@@ -1,0 +1,15 @@
+{
+  "_about": "T561: the day each fetched layer's SOURCE is from (not the day it was written into the GeoPackage). Written by data/fetch_data.py per layer as it fetches; read by pipeline.deliver.release.manifest sources_block; copied into data/source/pins.json by pipeline.tools.source_pins pin.",
+  "layers": {
+    "land": {
+      "date": "2024-03-26",
+      "basis": "FWA publication: https://nrs.objectstore.gov.bc.ca/itqlyp/FWA_Public/FWA_BC.zip x-amz-meta-s3b-last-modified",
+      "rows": 19479
+    },
+    "rivers": {
+      "date": "2024-03-26",
+      "basis": "FWA publication: https://nrs.objectstore.gov.bc.ca/itqlyp/FWA_Public/FWA_BC.zip x-amz-meta-s3b-last-modified",
+      "rows": 37083
+    }
+  }
+}

@@ -206,6 +206,9 @@ def record_layer_day(cfg: dict, name: str, gpkg_out: Path, osm_day: "str | None"
             f"ParcelMap BC bulk download {cfg['url']} {_PARCEL_DAY_HEADER}")
     elif t in ("FWA_GDB", "FWA_STREAMS"):
         rec(gpkg_out, name, _http_day(cfg["ftp"], _FWA_DAY_HEADER), f"FWA publication: {cfg['ftp']} {_FWA_DAY_HEADER}")
+    elif t == "FWA_GDB_FILE":
+        rec(gpkg_out.parent / cfg["dest"], cfg["as"], _http_day(cfg["ftp"], _FWA_DAY_HEADER),
+            f"FWA publication: {cfg['ftp']} {_FWA_DAY_HEADER}")
     elif t.startswith("OVERPASS_"):
         rec(gpkg_out, name, osm_day, "OpenStreetMap via Overpass, osm3s.timestamp_osm_base")
 
@@ -1694,6 +1697,9 @@ def _layer_already_fetched(name: str, cfg: dict, gpkg_out: Path, existing_layers
     if t == "WFS_FILE":
         dest = gpkg_out.parent / cfg["dest"]
         return dest.exists() and cfg["layer"] in set(fiona.listlayers(dest))
+    if t == "FWA_GDB_FILE":
+        dest = gpkg_out.parent / cfg["dest"]
+        return dest.exists() and cfg["as"] in set(fiona.listlayers(dest))
     if t == "PDF_BULK":
         dest_dir = gpkg_out.parent / cfg["dest_dir"]
         return dest_dir.exists() and any(dest_dir.iterdir())
@@ -1821,6 +1827,14 @@ def main():
         "watershed_groups": {"type": "FWA_GDB", "ftp": FTP_FWA,
                              "layer": "FWA_WATERSHED_GROUPS_POLY"},
         "streams": {"type": "FWA_STREAMS", "ftp": FTP_STR},
+        # T678 THE COAST, for the atlas's coast-crossing tidal cut (`pipeline.atlas.splits.coast`): the FWA river
+        # polygons (the double-line rivers a creek crosses into) and the FWA land mass (the assessment watersheds tile
+        # the land; outside them is the sea). In their OWN GeoPackage, `fwa_coast.gpkg` (config `atlas.coast_gpkg`),
+        # so adding them never moves the main gpkg's stamp, which every shipped atlas records as an input.
+        "fwa_rivers": {"type": "FWA_GDB_FILE", "ftp": FTP_FWA, "layer": "FWA_RIVERS_POLY",
+                       "dest": "fwa_coast.gpkg", "as": "rivers"},
+        "fwa_land": {"type": "FWA_GDB_FILE", "ftp": FTP_FWA, "layer": "FWA_ASSESSMENT_WATERSHEDS_POLY",
+                     "dest": "fwa_coast.gpkg", "as": "land"},
         "tidal_boundary": {
             "type": "R2_GPKG",
             "url": "https://build.canifishthis.ca/DFO_TIDAL_BOUNDARY.gpkg",
@@ -1992,6 +2006,8 @@ def main():
                 fetch_parcel_fabric(name, cfg["url"], cfg["layer"], gpkg_out, temp_dir)
             elif cfg["type"] == "FWA_GDB":
                 extract_gdb_layer(name, cfg["ftp"], cfg["layer"], gpkg_out, temp_dir)
+            elif cfg["type"] == "FWA_GDB_FILE":
+                extract_gdb_layer(cfg["as"], cfg["ftp"], cfg["layer"], gpkg_out.parent / cfg["dest"], temp_dir)
             elif cfg["type"] == "FWA_STREAMS":
                 combine_streams(name, cfg["ftp"], gpkg_out, temp_dir)
             elif cfg["type"] == "R2_GPKG":

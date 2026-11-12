@@ -119,6 +119,11 @@ class ProjectConfig:
         """Get path to unified FWA GeoPackage for FWADataAccessor."""
         return self.get_path("data_accessor", "gpkg_path")
 
+    @property
+    def fwa_coast_gpkg(self) -> Path:
+        """T678: the FWA river polygons (`rivers`) and land mass (`land`) for the coast-crossing tidal cut."""
+        return self.get_path("data_accessor", "coast_gpkg_path")
+
     # ========================================================================
     # Data Fetch
     # ========================================================================
