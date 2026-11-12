@@ -70,7 +70,10 @@ A WATER'S ROLLUP, per day, over its parts (`item_section`): closed when every pa
 tidal / outside when every part is; own when any part carries a row's rule (its FLOOR is own,
 whether or not that part is closed that day); base otherwise — a water with no row of its own,
 part of it under a zone closure, is "base regulations only", which is true: a zone closure is
-the base. Outside parts are ignored when any part is in B.C.
+the base. Outside parts are ignored when any part is in B.C. TIDAL PARTS ARE IGNORED when any part is fresh water
+(T672, T462 audit W2): the piece below a tidal boundary is not on the freshwater map (the tiles leave it out; it is
+the tidal area), so a water whose every freshwater part is closed is closed — what the map draws and the water's page
+say. Before, the tidal piece kept such a water "own" in the search row (14 waters, 1,850 water-days).
 
 Deterministic: sorted iteration, no clocks. Section handles are the tiles' feature ids — the
 same integers, under the same digest — so the map colours from this file with no bundle query.
@@ -209,8 +212,10 @@ def rollup(parts: Sequence[Tuple[Tuple[int, ...], int]]) -> Tuple[int, ...]:
     row closes reads CLOSED on those days, and the water still has its own regulations then."""
     out = []
     for day in range(DAYS):
-        here = [(p[day], f) for p, f in parts if p[day] != OUTSIDE] or \
-            [(p[day], f) for p, f in parts]
+        every = [(p[day], f) for p, f in parts]
+        in_bc = [x for x in every if x[0] != OUTSIDE]
+        # fresh water speaks for the water; only a water with none is tidal, and only one with nothing in B.C. outside
+        here = [x for x in in_bc if x[0] != TIDAL] or in_bc or every
         codes = [c for c, _ in here]
         if all(c == CLOSED for c in codes):
             out.append(CLOSED)

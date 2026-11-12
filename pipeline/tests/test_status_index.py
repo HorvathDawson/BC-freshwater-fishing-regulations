@@ -121,6 +121,24 @@ def test_the_rollup_reads_the_floor_not_the_days_code():
     assert set(SI.rollup([((SI.OUTSIDE,) * 366, SI.BASE)])) == {SI.OUTSIDE}
 
 
+def test_a_tidal_part_does_not_speak_for_a_water_that_has_fresh_water():
+    """T672 (T462 audit W2): the tidal piece of a river is not on the freshwater map, so the water's roll-up is its
+    freshwater parts' — closed when every one of them is. A water that is tidal throughout is still tidal."""
+    closed, own, base = (SI.CLOSED,) * 366, (SI.OWN,) * 366, (SI.BASE,) * 366
+    tidal, outside = (SI.TIDAL,) * 366, (SI.OUTSIDE,) * 366
+    assert set(SI.rollup([(closed, SI.OWN), (tidal, SI.BASE)])) == {SI.CLOSED}
+    assert set(SI.rollup([(closed, SI.BASE), (closed, SI.OWN), (tidal, SI.BASE), (outside, SI.BASE)])) == {SI.CLOSED}
+    assert set(SI.rollup([(own, SI.OWN), (tidal, SI.BASE)])) == {SI.OWN}
+    assert set(SI.rollup([(base, SI.BASE), (tidal, SI.BASE)])) == {SI.BASE}
+    # one freshwater part open: not closed, whatever the tidal piece
+    assert set(SI.rollup([(closed, SI.OWN), (base, SI.BASE), (tidal, SI.BASE)])) == {SI.OWN}
+    assert set(SI.rollup([(tidal, SI.BASE)])) == {SI.TIDAL}
+    assert set(SI.rollup([(tidal, SI.BASE), (outside, SI.BASE)])) == {SI.TIDAL}
+    # day by day: closed only on the days the fresh water is
+    half = (SI.CLOSED,) * 100 + (SI.OWN,) * 266
+    assert SI.rollup([(half, SI.OWN), (tidal, SI.BASE)]) == half
+
+
 def test_a_closure_must_be_unconditional_and_speak():
     shut = {"take": 0, "may_target": 0, "state": "speaks"}
     assert SI.closes([shut])
@@ -231,6 +249,34 @@ def test_every_rule_key_tidal_and_outside_section_agrees_with_effective_rules(bu
     bad = _mismatches(built, pairs)
     assert not bad, f"{len(bad)} of {len(pairs)} disagree, e.g. {bad[:5]}"
     assert all(built.code(s, dt.date(2025, 7, 14)) == SI.TIDAL for s in tidal)
+
+
+@pytest.mark.needs_bundle
+@pytest.mark.slow
+def test_a_water_is_closed_exactly_when_all_its_fresh_water_is(built):
+    """T672 (T462 audit W2), over every water of the bundle under test and every day: the water's roll-up (the search
+    row's dot) is closed exactly when every section of it the map draws as fresh water (not tidal, not outside B.C.) is
+    closed. The sections are the index's own answers, held to the reader by the parity tests above."""
+    db = sqlite3.connect(f"file:{BUNDLE}?mode=ro", uri=True)
+    try:
+        secs: dict = {}
+        for item, sid in db.execute("SELECT i.item_id, s.sid FROM item i JOIN item_section s ON s.ord = i.ord"):
+            secs.setdefault(item, []).append(sid)
+    finally:
+        db.close()
+    days = [dt.date(2024, 1, 1) + dt.timedelta(days=d) for d in range(366)]
+    bad, with_tidal = [], 0
+    for item, sids in sorted(secs.items()):
+        codes = [[built.code(s, d) for d in days] for s in sids]
+        if not any(SI.TIDAL in c for c in codes):
+            continue                      # no tidal piece: the roll-up the tests above already pin
+        with_tidal += 1
+        for i, d in enumerate(days):
+            fresh = [c[i] for c in codes if c[i] not in (SI.TIDAL, SI.OUTSIDE)]
+            if fresh and (built.item_code(item, d) == SI.CLOSED) != all(c == SI.CLOSED for c in fresh):
+                bad.append((item, d.isoformat()))
+    assert with_tidal, "the bundle has waters with a tidal piece"
+    assert not bad, f"{len({i for i, _ in bad})} water(s), {len(bad)} water-days, e.g. {bad[:5]}"
 
 
 @pytest.mark.needs_bundle
