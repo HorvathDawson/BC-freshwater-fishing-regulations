@@ -68,7 +68,7 @@ The design prototype (`app/design/`) was deleted in T87 (2026-10-28); git keeps 
 
 `pnpm check` = `check:fast` (every gate below but vitest, ~21 s; `scripts/fast-fail.sh` runs it, T535) then `test`.
 
-tickets → changelog (app.json's version has the newest changelog entry, `scripts/check-changelog.mjs`, T538) → boundaries → platform (pairs complete; no inline `Platform.OS` / `typeof window` outside `INLINE_ALLOWED`, README "Web and native code") → style → colours → spinner → splash → gauge-policy / calendar / fish / answers / pack
+tickets → changelog (app.json's version has the newest changelog entry, `scripts/check-changelog.mjs`, T538) → boundaries → platform (pairs complete; no inline `Platform.OS` / `typeof window` outside `INLINE_ALLOWED`, README "Web and native code") → style → colours → spinner → splash → gauge-policy / calendar / fish / answers / pack / app-reads (T555: app.json's version has its row in `pipeline/deliver/release/app_reads.json` and it is what the code reads; a format moved needs a version bump, then `python -m pipeline.tools.emit.app_reads`)
 (generated files current) → deps → **knip** (no unused file, export or dependency; allowances with reasons in
 `knip.jsonc`) → typecheck (`tsc -b`, `noUnusedLocals`) → typecheck:seo → promises → test (vitest: packages, conformance, `tools/*.test.ts`).
 `REGS_STORE_REQUIRED=1` makes the live-release suites fail instead of skip when no release is on disk, or when the release

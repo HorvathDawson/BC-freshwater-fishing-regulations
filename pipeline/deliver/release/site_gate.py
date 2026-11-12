@@ -22,7 +22,7 @@ import sys
 import urllib.request
 from pathlib import Path
 
-from pipeline.deliver.release.app_gate import PAINT_NEEDS, SALMON_NEEDS, ver
+from pipeline.deliver.release.app_gate import oldest_reader, ver
 
 STAGING_SITE = "https://staging.canifishthis.ca"
 BUNDLE_RE = re.compile(r'/_expo/static/js/web/index-[0-9a-f]+\.js')
@@ -61,15 +61,16 @@ def site_version(site: str = STAGING_SITE, fetch=fetch_text) -> tuple[str | None
     return v.group(1), f"{site} serves app {v.group(1)} (build {v.group(2)}, {m.group(0).rsplit('/', 1)[-1]})"
 
 
-def required(manifest: dict | None, min_app: str | None) -> str | None:
-    """The oldest app the release may be applied by: the stamp, raised to what its formats need."""
+def required(manifest: dict | None, min_app: str | None, apps: dict | None = None) -> str | None:
+    """The oldest app the release may be applied by: the stamp, raised to what its formats need (`app_gate`'s table:
+    every file of the contract, T555 item 4). A format no recorded app reads is `app_gate.problems`' refusal, not this
+    gate's: it asks nothing more of the site here."""
     have = min_app or (manifest or {}).get("minAppVersion")
     needs = [have] if have else []
-    for key, table in (("paint", PAINT_NEEDS), ("salmon", SALMON_NEEDS)):
-        f = ((manifest or {}).get("files") or {}).get(key)
-        if f:
-            fmt = int(f["format"].split("/")[1])
-            needs += [v for k, v in table.items() if fmt >= k]
+    if manifest and manifest.get("files"):
+        need = oldest_reader(manifest, apps)
+        if need:
+            needs.append(need)
     return max(needs, key=ver) if needs else None
 
 

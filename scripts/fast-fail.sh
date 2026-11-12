@@ -122,6 +122,11 @@ step "start-workflow.sh shell test (start-workflow.sh changed)" start_workflow_t
 # notes ("No notes were published"); 0.1 s (also in pnpm check:fast)
 step "app version has its changelog entry (newest)" node scripts/check-changelog.mjs
 
+# caught (T555 item 4, 2026-11-11): the release's app-version gate knew paint and salmon only; water/3 and geo/2 shipped
+# on a minAppVersion set by hand. The gate is now derived from what each app version reads (app_reads.json): a format
+# moved with no app version bump, or a version with no row, fails here; 0.2 s (also in pnpm check:fast)
+step "app version recorded in the app-reads table (the release gate's source)" "$PY" -m pipeline.tools.emit.app_reads --check
+
 # (T535) CI's cheap steps, each read from .github/workflows/pipeline-ci.yml by its name and run as written there, so
 # the list has one home (< 1 s each, measured 2026-11-10). caught: these failed only on CI after the push.
 ci_step() {   # ci_step <step name>: run that pipeline-ci.yml step's `run` in a per-run temp file (`python` = the venv's)

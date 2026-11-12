@@ -32,6 +32,12 @@ def _reach(d: Path, digest: str) -> None:
     (d / "rule_section.jsonl.gz").write_bytes(digest.encode())
 
 
+#: (T555 item 4) the app-reads table these tests judge by: 0.3.0 was the first to read paint/5, 0.5.0 salmon/4
+APPS = {"0.2.0": {"water": ["water/1"], "paint": ["paint/4"], "salmon": ["salmon/2"]},
+        "0.3.0": {"water": ["water/1"], "paint": ["paint/5", "paint/4"], "salmon": ["salmon/2"]},
+        "0.5.0": {"water": ["water/1"], "paint": ["paint/5", "paint/4"], "salmon": ["salmon/4"]}}
+
+
 @pytest.fixture
 def world(tmp_path: Path, monkeypatch):
     root, reaches = tmp_path / "release", tmp_path / "reaches" / "full"
@@ -106,6 +112,10 @@ def world(tmp_path: Path, monkeypatch):
     w["atlas_behind"] = []
     monkeypatch.setattr(R, "atlas_behind", lambda: list(w["atlas_behind"]))
     monkeypatch.setattr(R, "binding_diff", diff)
+    # (T555 item 4) what each app version reads: a small table in place of the committed one (pinned in test_app_reads.py),
+    # so these releases' made-up formats are judged the same whatever the real apps read today
+    from pipeline.deliver.release import app_gate as AG
+    monkeypatch.setattr(AG, "table", lambda: APPS)
     # (T555 item 5) the ids gone with no alias: reads both releases' core files (pinned in test_release_gone_ids.py)
     w["gone"] = []
 
@@ -965,9 +975,10 @@ def test_prune_keeps_the_candidate(tmp_path):
 def test_the_app_gate_is_the_uploads_rule():
     from pipeline.deliver.release.app_gate import problems
     m = {"files": {"salmon": {"format": "salmon/4"}, "paint": {"format": "paint/5"}}}
-    assert problems(m, "0.5.0") == []
-    assert len(problems(m, "0.4.0")) == 1 and "salmon/4 needs app >= 0.5.0" in problems(m, "0.4.0")[0]
-    assert len(problems(m)) == 2                              # no stamp, no MIN_APP_VERSION: refused
+    assert problems(m, "0.5.0", APPS) == []
+    assert problems(m, "0.4.0", APPS) == ["salmon/4 needs app >= 0.5.0 but the oldest app allowed is 0.4.0; "
+                                          "rerun with MIN_APP_VERSION=0.5.0 (or newer)"]
+    assert len(problems(m, None, APPS)) == 2                  # no stamp, no MIN_APP_VERSION: refused
     assert "app_gate" in (Path(R.REPO_ROOT) / "deploy/staging/upload.sh").read_text()
 
 
