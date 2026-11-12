@@ -1,7 +1,12 @@
-// T671 D2 (the Worker half of pipeline/tests/test_t671_salmon_rows.py — the same rows, the same answers): a DFO row
-// nobody could type keeps the species its cell names. "Chum | To be determined" reads `check` for chum only; "Sockeye |
-// Apr 1 to Mar 31 | To be determined" reads `check` for sockeye on its days (it answered for no fish); a cell naming no
-// salmon the table knows reads for every salmon, never none. Both modes: the Python's byte-for-byte one and robust.
+// T671 D2 (the Worker half of pipeline/tests/test_t671_salmon_rows.py): a DFO row nobody could type keeps the species
+// its cell names. "Chum | To be determined" reads `check` for chum only; "Sockeye | Apr 1 to Mar 31 | To be determined"
+// reads `check` for sockeye on its days (it answered for no fish); a cell naming no salmon the table knows reads for
+// every salmon, never none. Both modes: the Python's byte-for-byte one and robust.
+//
+// (T556) THE ROWS AND THE ANSWERS ARE ONE SHARED FILE, `fixtures/dfo/dfo-rows.json`, which the Python test reads too: each
+// side held its own copy of "the same rows", which is how two copies of one rule drift. A missing file fails (a read).
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { DAYS, Interner, locationCalendar, type Verdict } from "../src/dfo/salmon";
 import { GEAR_PERMISSION, TBD, toRules, type TypedRule } from "../src/dfo/typed";
@@ -9,6 +14,16 @@ import { REG } from "./wording.fixture";
 
 const SPECIES = ["CH", "CO", "SK", "PK", "CM"];
 type Row = [species: string, dates: string, limits: string];
+interface Case {
+  name: string;
+  rows: Row[];
+  /** per row, what is asserted of its first rule (a key left out is not asserted; species null = the rule carries none) */
+  typed?: { type?: string; species?: string[] | null; reason?: "tbd" | "gear_permission" }[];
+  /** [species, MMDD, the place's own status that day — null where the place says nothing] */
+  own?: [string, number, string | null][];
+}
+const CASES: Case[] = JSON.parse(readFileSync(join(__dirname, "fixtures/dfo/dfo-rows.json"), "utf-8")).cases;
+const REASONS = { tbd: TBD, gear_permission: GEAR_PERMISSION };
 
 const rulesOf = (rows: Row[], robust: boolean): TypedRule[] =>
   rows.flatMap(([species, dates, limits_gear], i) => toRules({ species, dates, limits_gear }, "t671", i, robust, REG));
@@ -24,56 +39,22 @@ function status(rows: Row[], robust: boolean, sp: string, md: number): string | 
   return v >= 0 ? (verdicts.items[v] as Verdict).s : null;
 }
 
+it("the shared file was read", () => {
+  expect(CASES.length).toBeGreaterThanOrEqual(13);
+  expect(CASES.reduce((n, c) => n + (c.own?.length ?? 0), 0)).toBeGreaterThanOrEqual(40);
+  expect(CASES.reduce((n, c) => n + (c.typed?.length ?? 0), 0)).toBeGreaterThanOrEqual(6);
+});
+
 for (const robust of [false, true])
   describe(`(T671 D2) a row nobody could type keeps its species — ${robust ? "robust" : "pythonParity"}`, () => {
-    it("a to-be-determined row is typed with the species its cell names", () => {
-      const [chum] = rulesOf([["Chum", "To be determined", "To be determined"]], robust);
-      expect(chum!.type).toBe("advisory");
-      expect(chum!.species).toEqual(["CM"]);
-      expect(chum!.review_reason!.startsWith(TBD)).toBe(true);
-      expect(rulesOf([["Sockeye, pink and chum", "Apr 1 to Mar 31", "To be determined"]], robust)[0]!.species).toEqual(["SK", "PK", "CM"]);
-      expect(rulesOf([["All", "To be determined", "To be determined"]], robust)[0]!.species).toEqual(["SA"]);
-      expect(rulesOf([["Steelhead", "To be determined", "To be determined"]], robust)[0]!.species).toBeUndefined();
-    });
-
-    it("Courtenay: chum reads check, chinook and coho keep their openings, the species it does not name are not spoken for", () => {
-      const rows: Row[] = [["Chinook", "Sep 1 to Dec 31", "2 per day"], ["Coho", "Sept 1 to Dec 31", "4 hatchery-marked per day"],
-                           ["Chum", "To be determined", "To be determined"]];
-      expect(status(rows, robust, "CM", 601)).toBe("check");
-      expect(status(rows, robust, "CM", 1001)).toBe("check");
-      expect(status(rows, robust, "CH", 1001)).toBe("open");
-      expect(status(rows, robust, "CO", 1001)).toBe("open");
-      expect(["CH", "CO", "SK", "PK"].map((sp) => status(rows, robust, sp, 601))).toEqual([null, null, null, null]);
-    });
-
-    it("Campbell: a place printing only an undetermined chinook says nothing for coho or pink (the wider place answers)", () => {
-      const rows: Row[] = [["Chinook", "To be determined", "To be determined"]];
-      expect(status(rows, robust, "CH", 1001)).toBe("check");
-      expect(["CO", "SK", "PK", "CM"].map((sp) => status(rows, robust, sp, 1001))).toEqual([null, null, null, null]);
-    });
-
-    it("Kamloops Lake: to be determined with readable dates reads check on those days, never nothing", () => {
-      const rows: Row[] = [["Chinook", "Aug 28 to Sep 22", "4 per day, only 2 over 50cm"], ["Pink", "Apr 1 to Mar 31", "No fishing for pink"],
-                           ["Coho", "Apr 1 to Mar 31", "No fishing for coho"], ["Sockeye", "Apr 1 to Mar 31", "To be determined"]];
-      expect(status(rows, robust, "SK", 715)).toBe("check");
-      expect(status(rows, robust, "PK", 715)).toBe("closed");
-      expect(status(rows, robust, "CO", 715)).toBe("closed");
-      expect(status(rows, robust, "CH", 901)).toBe("open");
-      expect(status(rows, robust, "CH", 715)).toBe(null);
-      expect(status(rows, robust, "CM", 715)).toBe(null);
-    });
-
-    it("an undetermined row speaks only inside its own dates", () => {
-      const rows: Row[] = [["Sockeye", "Aug 1 to Aug 31", "To be determined"]];
-      expect(status(rows, robust, "SK", 815)).toBe("check");
-      expect(status(rows, robust, "SK", 915)).toBe(null);
-    });
-
-    it("a species cell the table does not know reads check for every salmon; another fish and a gear permission do not", () => {
-      expect(SPECIES.map((sp) => status([["Kokanee salmon", "Apr 1 to Mar 31", "2 per day"]], robust, sp, 601))).toEqual(Array(5).fill("check"));
-      expect(SPECIES.map((sp) => status([["All", "Apr 1 to Mar 31", "No fishing for eulachon"]], robust, sp, 601))).toEqual(Array(5).fill(null));
-      const bait = rulesOf([["Coho", "Apr 1 to Mar 31", "Natural bait allowed"]], robust);
-      expect(bait[0]!.review_reason!.startsWith(GEAR_PERMISSION)).toBe(true);
-      expect(status([["Coho", "Apr 1 to Mar 31", "Natural bait allowed"]], robust, "CO", 601)).toBe(null);
+    it.each(CASES.map((c) => [c.name, c] as const))("%s: typed and answered as the shared file says", (_name, c) => {
+      (c.typed ?? []).forEach((want, i) => {
+        const [species, dates, limits_gear] = c.rows[i]!;
+        const rule = toRules({ species, dates, limits_gear }, "t671", i, robust, REG)[0]!;
+        if ("type" in want) expect(rule.type).toBe(want.type);
+        if ("species" in want) expect(rule.species ?? null).toEqual(want.species);
+        if (want.reason) expect(rule.review_reason!.startsWith(REASONS[want.reason])).toBe(true);
+      });
+      expect((c.own ?? []).map(([sp, md]) => [sp, md, status(c.rows, robust, sp, md)])).toEqual(c.own ?? []);
     });
   });

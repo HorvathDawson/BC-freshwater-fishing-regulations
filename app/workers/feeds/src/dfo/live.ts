@@ -19,6 +19,7 @@
 // (or a calendar that throws) keeps that location's last answers (a `check` verdict when it has none), listed in the
 // region's `holds` with the reason, and the rest of the region publishes. A page that does not parse / verify, and a
 // STRUCTURAL reconcile, still hold the region (those are page-level).
+import { FEED_FORMATS } from "../../../../packages/core/src/feedFormats.generated";
 import { contentHash, loadManifest, rev, skipSameStore, type Fetch, type Meter, type Store } from "../io";
 import { sendDue } from "../notify";
 import { byFingerprint, loadEntryFile, reconcile, type EntryFile, type Report } from "./entries";
@@ -39,7 +40,8 @@ import { feedMap, readBaseline, rowChanges, rowsNotice, ROWS_KEY, type RowChange
 
 // T332 (/2): a verdict's quota is `tree` (a game-fish TreeTier), a bucket `{tree, …}`; T356 (/3, live.py): a header
 // closure's verdict carries `c`, a region its `shared` + `sizes`, a header note's length is `lengths`
-export const FORMAT = "dfo-feed/3";
+// (T556) the string is generated from the Python table (pipeline/common/feed_formats.py), the app's reader with it
+export const FORMAT = FEED_FORMATS.dfoFeed;
 const SPECIES_N = [...SPECIES];
 export const FAIL_NOTIFY = 2;
 /** (T549 item 9) `live queue` reads the MAC's unplaced.json, never the worker's on R2: the Mac reads DFO's page first

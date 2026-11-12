@@ -15,7 +15,7 @@
  * be read (`salmonFeedLine`), never an empty list passed off as none.
  */
 import type { Region } from "../pack.generated";
-import { reportFailure, parseDfoUnplaced, parseSalmonFeed, pickSalmon, type SalmonFacts, type SalmonFeed } from "@app/core";
+import { reportFailure, parseDfoUnplaced, parseSalmonFeed, pickSalmon, SALMON_FEED_FORMAT, type SalmonFacts, type SalmonFeed } from "@app/core";
 
 export interface SalmonFeedStore { read(): string | null; write(text: string): void }
 export interface SalmonFeedSource {
@@ -64,8 +64,11 @@ export function httpSalmonFeed(base: string, store?: SalmonFeedStore, fetchImpl:
       const r = await fetchImpl(`${root}/index.json`, { cache: "no-store" });
       if (r.ok) {
         const f = parseSalmonFeed(JSON.parse(await r.text()));
+        // (T556) a body that came back but is not a feed this app reads (another format: a bump this build predates) is
+        // REPORTED, as in-season's is (T548); the capture — else the release's salmon file — answers meanwhile
+        if (!f) throw new Error(`dfo index.json: not a readable ${SALMON_FEED_FORMAT} feed — refused`);
         const was = captured();
-        if (f && (!was || f.at >= was.at)) return await complete(f);
+        if (!was || f.at >= was.at) return await complete(f);
       }
     } catch (e) { reportFailure(e); /* offline, or not a feed: the capture answers, its age said; (T368) not offline: reported */ }
     return captured();

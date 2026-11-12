@@ -63,6 +63,7 @@ from pathlib import Path
 from typing import Callable, Dict, List, Mapping, Optional, Sequence, Tuple
 
 from pipeline.common.curated import GENERATED
+from pipeline.common.feed_formats import FEED_FORMATS
 from pipeline.deliver import salmon as S
 from pipeline.regs.dfo_salmon import fetch as F
 
@@ -70,7 +71,7 @@ logger = logging.getLogger(__name__)
 
 #: T332 (/2): a verdict's quota is `tree` (a game-fish TreeTier), a bucket `{tree, …}`. T356 (/3): a header closure's
 #: verdict carries `c`, a region `shared` + `sizes` (`deliver.salmon.header_answers`), a note's length is `lengths`
-FORMAT = "dfo-feed/3"
+FORMAT = FEED_FORMATS["dfo_feed"]          # (T556) typed once, in pipeline/common/feed_formats.py
 OUT_DIR = Path(GENERATED.regs.dfo_salmon) / "feed"
 #: two failed fetches in a row tell the owner (one is a blip)
 FAIL_NOTIFY = 2

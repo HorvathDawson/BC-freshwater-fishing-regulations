@@ -1,9 +1,9 @@
 // T321: the DFO wording registry in the Worker (src/dfo/wording.ts) — the same file and the same reading as the Python
 // (pipeline/regs/dfo_salmon/wording.py), and the URGENT owner email for a clause DFO never printed before.
 import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { compose } from "../src/events";
 import { type RenderCtx } from "../src/email";
 import { dfoEvents } from "../src/index";
@@ -11,10 +11,10 @@ import { runDfo } from "../src/dfo";
 import { clauses, rowWords, template, unknown } from "../src/dfo/wording";
 import { toRules } from "../src/dfo/typed";
 import { repoData } from "../../../conformance/src/repoData";
+import { needPython, PY } from "../parity/gauges/node";
 import { MemStore, privStore, REPO } from "./dfo.scenario";
 import { REG as REGISTRY } from "./wording.fixture";
 
-const PY = join(REPO, ".venv/bin/python");
 const FIX = join(REPO, "app/workers/feeds/test/fixtures/dfo");
 const page = (slug: string) => readFileSync(join(FIX, `pages/region${slug}-eng.html`), "utf-8");
 const NEW = "fish from shore on Sundays";
@@ -28,7 +28,8 @@ const MUTANTS = [
   "",
 ];
 
-describe.skipIf(!existsSync(PY))("the wording registry: TS == Python", () => {
+describe("the wording registry: TS == Python", () => {
+  beforeAll(() => void needPython());   // (T556) no venv is a failure, never a skip
   it("every saved cell (tracked fixtures) and the mutants: clauses, templates, unknown, the card's row", () => {
     const script = `
 import json, sys

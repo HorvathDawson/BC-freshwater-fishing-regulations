@@ -86,9 +86,6 @@ const ALLOW: Record<string, { n: number; why: string }> = {
   "tools/testbed/scenarios/spots.mjs": { n: 1, why: TESTBED },
   "tools/testbed/scenarios/retire-swap.mjs": { n: 1, why: `${TESTBED} (T360: needs the stub APK, session.sh --crash-stub)` },
   "tools/testbed/sync/account.mjs": { n: 1, why: `${TESTBED} (accounts are not in the app yet, T223)` },
-  "workers/feeds/test/dfo.wording.test.ts": { n: 1, why: PY },
-  "workers/feeds/test/gauges.parity.test.ts": { n: 1, why: PY },
-  "workers/feeds/test/gauges.skill.test.ts": { n: 1, why: PY },
 };
 
 const SELF = "tools/no-silent-skips.test.ts";

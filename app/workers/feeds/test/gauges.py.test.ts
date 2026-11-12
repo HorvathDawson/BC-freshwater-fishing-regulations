@@ -4,8 +4,23 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { coded } from "../src/gauges/change";
 import { csvRows, pyFloat, pyFloatRepr, pyRound, pySum, urlencode } from "../src/gauges/py";
+import { needPython, PY } from "../parity/gauges/node";
 
 const V = JSON.parse(readFileSync(new URL("./fixtures/gauges-py-vectors.json", import.meta.url), "utf-8"));
+
+describe("(T556) a parity suite without the repo's Python fails, it never skips", () => {
+  it("needPython names the missing venv and how to make it; with one it answers its path", () => {
+    expect(() => needPython("/no/such/venv/bin/python")).toThrow(/\/no\/such\/venv\/bin\/python is missing: this suite compares the worker with the Python reference and never skips\. Make it at the repo root: python3 -m venv \.venv/);
+    expect(needPython()).toBe(PY);
+  });
+  it("the three Python-backed suites ask for it before they run, and none carries a skip", () => {
+    for (const f of ["gauges.parity.test.ts", "gauges.skill.test.ts", "dfo.wording.test.ts"]) {
+      const src = readFileSync(new URL(`./${f}`, import.meta.url), "utf-8");
+      expect(src, f).toMatch(/beforeAll\(\(\) => void needPython\(\)\)/);
+      expect(src, f).not.toMatch(/skipIf|\.skip\b|runIf/);
+    }
+  });
+});
 
 describe("python semantics", () => {
   it("round(x, n) is Python's (ties to even on the exact double)", () => {

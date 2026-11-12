@@ -35,13 +35,15 @@ from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Set, Tuple
 
 from pipeline.common import calendar_spec as SPEC
+from pipeline.common.feed_formats import FEED_FORMATS
 from pipeline.runtiming.feed import base as BASE
 from pipeline.runtiming.feed.bind import PASSAGE, RELATIONS, SIMPLIFY, atlas_of, bind, km_to_sea
 from pipeline.runtiming.timing import CREDIT, PENTADS, SLOTS, TimedRun, read_timing
 
-INDEX_FORMAT = "runtiming-index/1"
-RUNS_FORMAT = "runtiming-runs/1"
-PAINT_FORMAT = "runtiming-paint/1"
+# (T556) the three the app reads are typed once, in pipeline/common/feed_formats.py
+INDEX_FORMAT = FEED_FORMATS["runtiming_index"]
+RUNS_FORMAT = FEED_FORMATS["runtiming_runs"]
+PAINT_FORMAT = FEED_FORMATS["runtiming_paint"]
 WATERS_FORMAT = "runtiming-waters/1"
 #: Q144 (owner 2026-10-28): the species the mode opens on
 DEFAULT_SLOT = "Steelhead"

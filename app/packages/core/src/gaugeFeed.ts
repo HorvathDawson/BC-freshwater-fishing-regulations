@@ -13,7 +13,9 @@
  * (its data domain answers 404) and its first deploy is this code. A phone's kept copy from before the tag still answers
  * offline (`history`, never re-read through this check).
  */
-export const GAUGE_FEED_FORMAT = "gauge-feed/1";
+import { FEED_FORMATS } from "./feedFormats.generated";
+
+export const GAUGE_FEED_FORMAT = FEED_FORMATS.gaugeFeed;   // (T556) generated: pipeline/common/feed_formats.py
 
 export type GaugeFeedFile = "index" | "station" | "obs";
 

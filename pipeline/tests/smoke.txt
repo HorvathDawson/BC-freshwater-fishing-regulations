@@ -414,3 +414,5 @@ pipeline/tests/test_review_closed_areas.py::test_a_confirm_carries_its_placement
 pipeline/tests/test_test_anchors.py::test_one_planted_offender_of_each_kind_is_found
 pipeline/tests/test_under_test.py::test_a_moved_section_fails_by_name
 pipeline/tests/test_workflow_pins.py::test_no_workflow_has_a_schedule
+pipeline/tests/test_dfo_vectors.py::test_the_file_holds_every_saved_page_and_every_shared_row
+pipeline/tests/test_feed_formats.py::test_every_python_writer_reads_the_table

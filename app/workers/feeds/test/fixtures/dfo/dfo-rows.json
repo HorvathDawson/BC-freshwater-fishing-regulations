@@ -1,0 +1,442 @@
+{
+ "_about": "THE SHARED DFO ROWS (T556; T671's rows). Hand-written: rows as DFO prints them (species | dates | limits and gear) with what the place itself answers. Read by BOTH pipeline/tests/test_t671_salmon_rows.py (typed.to_rules, deliver.salmon.verdict_on) and app/workers/feeds/test/dfo.t671.test.ts (the worker's toRules, locationCalendar), so the two languages cannot each hold a copy that drifts. `typed`: one entry per row, holding only what is asserted of that row's first rule — type, species (null: the rule carries none), reason (tbd | gear_permission: the review_reason starts with that constant). `own`: [species, MMDD, status] — the place's own answer that day, null where it says nothing (a wider place answers). The Python's exact typed rules and year calendar for every case are in python-vectors.generated.json `rows` (generated: python -m pipeline.tools.emit.dfo_vectors), which the worker must reproduce.",
+ "cases": [
+  {
+   "name": "chum to be determined",
+   "rows": [
+    [
+     "Chum",
+     "To be determined",
+     "To be determined"
+    ]
+   ],
+   "typed": [
+    {
+     "type": "advisory",
+     "species": [
+      "CM"
+     ],
+     "reason": "tbd"
+    }
+   ]
+  },
+  {
+   "name": "three species to be determined",
+   "rows": [
+    [
+     "Sockeye, pink and chum",
+     "Apr 1 to Mar 31",
+     "To be determined"
+    ]
+   ],
+   "typed": [
+    {
+     "type": "advisory",
+     "species": [
+      "SK",
+      "PK",
+      "CM"
+     ],
+     "reason": "tbd"
+    }
+   ]
+  },
+  {
+   "name": "all to be determined",
+   "rows": [
+    [
+     "All",
+     "To be determined",
+     "To be determined"
+    ]
+   ],
+   "typed": [
+    {
+     "type": "advisory",
+     "species": [
+      "SA"
+     ],
+     "reason": "tbd"
+    }
+   ]
+  },
+  {
+   "name": "steelhead to be determined",
+   "rows": [
+    [
+     "Steelhead",
+     "To be determined",
+     "To be determined"
+    ]
+   ],
+   "typed": [
+    {
+     "type": "advisory",
+     "species": null,
+     "reason": "tbd"
+    }
+   ]
+  },
+  {
+   "name": "Courtenay",
+   "about": "chinook and coho open Sep 1-Dec 31, chum to be determined: chum reads check, the openings stand, the species it does not name are not spoken for",
+   "rows": [
+    [
+     "Chinook",
+     "Sep 1 to Dec 31",
+     "2 per day"
+    ],
+    [
+     "Coho",
+     "Sept 1 to Dec 31",
+     "4 hatchery-marked per day"
+    ],
+    [
+     "Chum",
+     "To be determined",
+     "To be determined"
+    ]
+   ],
+   "own": [
+    [
+     "CM",
+     601,
+     "check"
+    ],
+    [
+     "CM",
+     1001,
+     "check"
+    ],
+    [
+     "CH",
+     1001,
+     "open"
+    ],
+    [
+     "CO",
+     1001,
+     "open"
+    ],
+    [
+     "CH",
+     601,
+     null
+    ],
+    [
+     "CO",
+     601,
+     null
+    ],
+    [
+     "SK",
+     601,
+     null
+    ],
+    [
+     "PK",
+     601,
+     null
+    ]
+   ]
+  },
+  {
+   "name": "Campbell, the narrower place",
+   "about": "a place printing only an undetermined chinook says nothing for the other salmon (the wider place answers)",
+   "rows": [
+    [
+     "Chinook",
+     "To be determined",
+     "To be determined"
+    ]
+   ],
+   "own": [
+    [
+     "CH",
+     1001,
+     "check"
+    ],
+    [
+     "CO",
+     1001,
+     null
+    ],
+    [
+     "SK",
+     1001,
+     null
+    ],
+    [
+     "PK",
+     1001,
+     null
+    ],
+    [
+     "CM",
+     1001,
+     null
+    ]
+   ]
+  },
+  {
+   "name": "Campbell, the wider place",
+   "rows": [
+    [
+     "Coho",
+     "Sept 1 to Dec 31",
+     "4 hatchery-marked per day"
+    ],
+    [
+     "Pink",
+     "Jul 15 to Oct 15",
+     "4 per day"
+    ]
+   ],
+   "own": [
+    [
+     "CO",
+     1001,
+     "open"
+    ],
+    [
+     "PK",
+     801,
+     "open"
+    ],
+    [
+     "PK",
+     1101,
+     null
+    ],
+    [
+     "CH",
+     1001,
+     null
+    ]
+   ]
+  },
+  {
+   "name": "Kamloops Lake",
+   "about": "to be determined with readable dates reads check on those days, never nothing",
+   "rows": [
+    [
+     "Chinook",
+     "Aug 28 to Sep 22",
+     "4 per day, only 2 over 50cm"
+    ],
+    [
+     "Pink",
+     "Apr 1 to Mar 31",
+     "No fishing for pink"
+    ],
+    [
+     "Coho",
+     "Apr 1 to Mar 31",
+     "No fishing for coho"
+    ],
+    [
+     "Sockeye",
+     "Apr 1 to Mar 31",
+     "To be determined"
+    ]
+   ],
+   "own": [
+    [
+     "SK",
+     715,
+     "check"
+    ],
+    [
+     "PK",
+     715,
+     "closed"
+    ],
+    [
+     "CO",
+     715,
+     "closed"
+    ],
+    [
+     "CH",
+     901,
+     "open"
+    ],
+    [
+     "CH",
+     715,
+     null
+    ],
+    [
+     "CM",
+     715,
+     null
+    ]
+   ]
+  },
+  {
+   "name": "sockeye in August",
+   "about": "an undetermined row speaks only inside its own dates",
+   "rows": [
+    [
+     "Sockeye",
+     "Aug 1 to Aug 31",
+     "To be determined"
+    ]
+   ],
+   "own": [
+    [
+     "SK",
+     815,
+     "check"
+    ],
+    [
+     "SK",
+     915,
+     null
+    ]
+   ]
+  },
+  {
+   "name": "kokanee salmon",
+   "about": "a species cell the table does not know reads check for every salmon, never none",
+   "rows": [
+    [
+     "Kokanee salmon",
+     "Apr 1 to Mar 31",
+     "2 per day"
+    ]
+   ],
+   "typed": [
+    {
+     "type": "advisory",
+     "species": null
+    }
+   ],
+   "own": [
+    [
+     "CH",
+     601,
+     "check"
+    ],
+    [
+     "CO",
+     601,
+     "check"
+    ],
+    [
+     "SK",
+     601,
+     "check"
+    ],
+    [
+     "PK",
+     601,
+     "check"
+    ],
+    [
+     "CM",
+     601,
+     "check"
+    ]
+   ]
+  },
+  {
+   "name": "eulachon",
+   "about": "a row about another fish is not an unread row",
+   "rows": [
+    [
+     "All",
+     "Apr 1 to Mar 31",
+     "No fishing for eulachon"
+    ]
+   ],
+   "own": [
+    [
+     "CH",
+     601,
+     null
+    ],
+    [
+     "CO",
+     601,
+     null
+    ],
+    [
+     "SK",
+     601,
+     null
+    ],
+    [
+     "PK",
+     601,
+     null
+    ],
+    [
+     "CM",
+     601,
+     null
+    ]
+   ]
+  },
+  {
+   "name": "natural bait allowed",
+   "about": "a gear permission is not an unread row",
+   "rows": [
+    [
+     "Coho",
+     "Apr 1 to Mar 31",
+     "Natural bait allowed"
+    ]
+   ],
+   "typed": [
+    {
+     "reason": "gear_permission"
+    }
+   ],
+   "own": [
+    [
+     "CO",
+     601,
+     null
+    ]
+   ]
+  },
+  {
+   "name": "a region closed to salmon",
+   "rows": [
+    [
+     "All",
+     "",
+     "No fishing for salmon"
+    ]
+   ],
+   "own": [
+    [
+     "CH",
+     601,
+     "closed"
+    ],
+    [
+     "CO",
+     601,
+     "closed"
+    ],
+    [
+     "SK",
+     601,
+     "closed"
+    ],
+    [
+     "PK",
+     601,
+     "closed"
+    ],
+    [
+     "CM",
+     601,
+     "closed"
+    ]
+   ]
+  }
+ ]
+}

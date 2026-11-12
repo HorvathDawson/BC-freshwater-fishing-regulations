@@ -2,18 +2,18 @@
 // the committed recording (test/fixtures/gauges: 22 stations — level-only, temperature, CLEVER/COFFEE/ELF, a first run,
 // an archive refill, a 404 archive, a silent listed station, a hydat + roster notice sent through notify), same seed,
 // same frozen clock. Every output file must parse to the same JSON; the bytes differ only in number spelling (Python
-// writes 5.0, JS 5) and notified.json's separators. Skipped where the repo venv is absent.
+// writes 5.0, JS 5) and notified.json's separators. (T556) FAILS where the repo venv is absent: never skipped.
 // INTENDED DIFFERENCES (T225 follow-up, owner 2026-10-28) are folded back and checked by `normalizeIntended`
 // (parity/gauges/parity.ts): temp_history.json private, the append-only runs archive (forecastIssuedAt is the same since T557).
-import { existsSync } from "node:fs";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
-import { PY } from "../parity/gauges/node";
+import { beforeAll, describe, expect, it } from "vitest";
+import { needPython } from "../parity/gauges/node";
 import { parity } from "../parity/gauges/parity";
 
 const FIX = join(__dirname, "fixtures/gauges");
 
-describe.skipIf(!existsSync(PY))("gauge feed parity (python vs ts)", () => {
+describe("gauge feed parity (python vs ts)", () => {
+  beforeAll(() => void needPython());
   it("every output file is the same JSON", async () => {
     const r = await parity(FIX, "https://ntfy.sh/parity-test");
     console.log("intended differences:", r.intended);

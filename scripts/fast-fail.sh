@@ -194,6 +194,13 @@ step "changed Python compiles" py_compiles
 # only on the deployed worker; every Python-written format the app / worker reads must have ONE value on both sides
 step "format pairs (Python writer = app / worker reader)" "$PY" scripts/check-format-pairs.py
 
+# caught (T556, 2026-11-11): the live feeds' formats were hand-copied per side (the 2026-11-09 failure above), and no
+# test held the worker's DFO parser / fingerprint / row typing to the Python's since T431. The formats are generated
+# from one table, and the Python's reading of the saved DFO pages is a committed vector file the worker's test must
+# reproduce: a stale generated file or vector file fails here; 0.2 s + 1.5 s (also in `python -m pipeline.tools.emit --check`)
+step "feed formats generated from the one table" "$PY" -m pipeline.tools.emit.feed_formats --check
+step "DFO parity vectors are what the Python reads (the worker's test reproduces them)" "$PY" -m pipeline.tools.emit.dfo_vectors --check
+
 # caught (2026-11-09): after LATEST moved, `pnpm check` failed in conformance until regs-recut/sync.mjs re-cut the goldens;
 # taps.json meta.store must be the store of LATEST's water file, or this names the sync command
 step "goldens cut from LATEST" "$PY" scripts/check-goldens-paired.py

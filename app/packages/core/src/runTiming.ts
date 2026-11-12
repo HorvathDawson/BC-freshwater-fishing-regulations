@@ -19,10 +19,12 @@
  * species and a day and words them. PSF dates are RIVER ENTRY and are said to be.
  */
 import { MONTH_LAST_DAY } from "./calendar.generated";
+import { FEED_FORMATS } from "./feedFormats.generated";
 import { monthAbbr, PENTADS } from "./flow";
 
-export const RUNTIMING_FORMAT = { index: "runtiming-index/1", runs: "runtiming-runs/1",
-                                  paint: "runtiming-paint/1" } as const;
+// (T556) generated from the Python writer's table (pipeline/common/feed_formats.py): never a literal here
+export const RUNTIMING_FORMAT = { index: FEED_FORMATS.runtimingIndex, runs: FEED_FORMATS.runtimingRuns,
+                                  paint: FEED_FORMATS.runtimingPaint } as const;
 
 export interface RunTimingFile { readonly url: string; readonly bytes: number; readonly sha256: string }
 export interface RunTimingIndex {

@@ -4,10 +4,10 @@ from __future__ import annotations
 import sys
 
 from pipeline.deliver.answers import model as answers_model
-from pipeline.tools.emit import calendar, gauge_policy, pack
+from pipeline.tools.emit import calendar, dfo_vectors, feed_formats, gauge_policy, pack
 
 GENERATORS = (("gauge policy", gauge_policy), ("calendar", calendar), ("pack", pack),
-              ("answers model", answers_model))
+              ("answers model", answers_model), ("feed formats", feed_formats), ("DFO parity vectors", dfo_vectors))
 
 
 def main(argv=None) -> int:

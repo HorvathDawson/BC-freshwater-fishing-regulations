@@ -17,6 +17,7 @@
 import { MONTHS } from "./calendar.generated";
 import { BC_TIME_LABEL } from "./clock";
 import { bcFields } from "./day";
+import { FEED_FORMATS } from "./feedFormats.generated";
 import { dfoRow, salmonCard, type SalmonUnplacedPlace, type SalmonCardVM, type SalmonFacts, type SalmonGearInput, type SalmonMapStatus, type SalmonNote, type SalmonBucket, type SalmonHours, type SalmonShared, type SalmonSizes, type SalmonWords } from "./salmon";
 
 type Payload = SalmonFacts["payload"];
@@ -26,7 +27,7 @@ type Verdict = Payload["verdicts"][number];
 /** (T332) a verdict's quota is `tree`, a node of the game-fish quota tree; (T356) dfo-feed/3: a header closure's verdict
  *  carries `c`, a region with notes its `shared` and `sizes`. An older capture is never read — the release's salmon/4
  *  answers until a dfo-feed/3 is fetched */
-export const SALMON_FEED_FORMAT = "dfo-feed/3";
+export const SALMON_FEED_FORMAT = FEED_FORMATS.dfoFeed;   // (T556) generated: pipeline/common/feed_formats.py
 
 export interface SalmonFeedRegion {
   readonly name: string; readonly url: string; readonly asof: string | null;

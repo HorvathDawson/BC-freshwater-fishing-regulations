@@ -37,9 +37,10 @@ import shutil
 import sys
 from pathlib import Path
 
+from pipeline.common.feed_formats import FEED_FORMATS
 from pipeline.regs.inseason import matches as M
 
-FORMAT = "inseason-links/3"
+FORMAT = FEED_FORMATS["inseason_links"]    # (T556) typed once, in pipeline/common/feed_formats.py
 #: a water's own ends: core says them by the sentence's shape ("Upstream of …"), never by words
 NATURAL = frozenset({"mouth", "source"})
 

@@ -296,6 +296,13 @@ A6. **Commit only your own paths: `git commit -- <paths>`.** Several agents shar
     pipeline's, one in `@app/core`, one in `build-fixture.mjs` with a band the pipeline has
     never written — and a test pinning the *constants* passed the whole time, because they
     agreed on the thresholds and disagreed on the rule.
+    **T556 (2026-11-11):** a live feed's format string is typed once, in `pipeline/common/feed_formats.py` (TypeScript:
+    `FEED_FORMATS`, `python -m pipeline.tools.emit.feed_formats`; `scripts/check-format-pairs.py` refuses the literal
+    anywhere else). WHERE A RULE MUST EXIST IN BOTH LANGUAGES (the feeds worker types DFO rows live), ONE SHARED COMMITTED
+    FIXTURE IS THE PIN: `python -m pipeline.tools.emit.dfo_vectors` writes what the Python reads on the saved DFO pages
+    (fingerprints, typed rows, calendars, name keys), the worker's `dfo.vectors.test.ts` must reproduce it, and hand rows
+    both sides test live in one file (`app/workers/feeds/test/fixtures/dfo/dfo-rows.json`) — never a copy per side. A
+    Python-backed worker suite FAILS without `.venv` (`needPython`), it never skips.
 
 41. **There is no `output/`. Generated paths come from `pipeline.common.curated.GENERATED`.**
     `from pipeline.common.curated import GENERATED` then `GENERATED.build()`,

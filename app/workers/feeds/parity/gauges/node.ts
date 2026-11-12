@@ -9,6 +9,15 @@ import type { Fetch, Store } from "../../src/io";
 export const FEEDS = resolve(dirname(new URL(import.meta.url).pathname), "../..");
 export const REPO = resolve(FEEDS, "../../..");
 export const PY = join(REPO, ".venv/bin/python");
+/** (T556) The repo's Python, or a FAILURE that says how to get it. A parity suite compares the worker with the Python
+ *  reference; without the venv it proved nothing and read as green (three suites skipped, and deploy/staging/feeds.sh
+ *  deployed on that). Call it in the suite's `beforeAll`. */
+export function needPython(py: string = PY): string {
+  if (!existsSync(py))
+    throw new Error(`${py} is missing: this suite compares the worker with the Python reference and never skips. `
+      + "Make it at the repo root: python3 -m venv .venv && .venv/bin/pip install -r requirements.txt -c constraints.txt");
+  return py;
+}
 export const HARNESS = join(FEEDS, "parity/gauges/harness.py");
 
 /** A Store over a directory (keys may hold "/"). `delete` too, like R2. */

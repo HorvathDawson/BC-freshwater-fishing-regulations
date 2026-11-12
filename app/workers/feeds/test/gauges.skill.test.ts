@@ -3,11 +3,11 @@
 // worker's archive layout (a month file, day files, parts listed in runs/state.json, a torn line, other months that
 // must not be read). Same table and verdict, numbers to 1e-12 (libm). Skipped where the repo venv is absent.
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import { afterAll, describe, expect, it } from "vitest";
-import { dirStore, firstDiff, PY, REPO, FEEDS } from "../parity/gauges/node";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { dirStore, firstDiff, needPython, PY, REPO, FEEDS } from "../parity/gauges/node";
 import { band, prevMonth, runSkill, skillText, verdict } from "../src/gauges/score";
 
 const HARNESS = join(FEEDS, "parity/gauges/skill_harness.py");
@@ -123,7 +123,8 @@ const tmp = () => {
   return d;
 };
 
-describe.skipIf(!existsSync(PY))("model score parity (python vs ts)", () => {
+describe("model score parity (python vs ts)", () => {
+  beforeAll(() => void needPython());   // (T556) no venv is a failure, never a skip
   it.each([
     ["a month with enough cases (verdicts move)", 14, 22],
     ["a thin month (too few)", 4, 3],

@@ -9,17 +9,28 @@ typed with no species:
 Now the row is unread for the species it names, on the days it holds, and for nothing else. A cell naming no salmon the
 table knows keeps no species and reads for every salmon: never for none.
 
-Every test stands on rows it types itself (the scrape's shape: species / dates / limits_gear).
+THE ROWS AND THE PLACE'S OWN ANSWERS ARE SHARED (T556): `app/workers/feeds/test/fixtures/dfo/dfo-rows.json`, read here and
+by the worker's twin `app/workers/feeds/test/dfo.t671.test.ts`, so the two languages cannot each hold a copy that drifts.
+What only the Python resolves (the chain: a wider place, the region default) is asserted here on those same rows.
 """
 from __future__ import annotations
 
+import json
+
+import pytest
+
 from pipeline.deliver import salmon as S
 from pipeline.regs.dfo_salmon import typed as T
+from pipeline.tools.emit import dfo_vectors as E
+
+CASES = {c["name"]: c for c in json.loads(E.ROWS.read_text(encoding="utf-8"))["cases"]}
+REASONS = {"tbd": T.TBD, "gear_permission": T.GEAR_PERMISSION}
 
 
-def _rules(*rows):
+def _rules(name):
+    """The shared case's rows, typed (the scrape's shape: species / dates / limits_gear)."""
     out = []
-    for i, (species, dates, limits) in enumerate(rows):
+    for i, (species, dates, limits) in enumerate(CASES[name]["rows"]):
         out += [r.model_dump(mode="json", exclude_defaults=True, by_alias=True)
                 for r in T.to_rules({"species": species, "dates": dates, "limits_gear": limits}, "t671", i)]
     return out
@@ -30,44 +41,44 @@ def _status(chain, sp, md):
     return v and v["s"]
 
 
-REGION_SHUT = _rules(("All", "", "No fishing for salmon"))
+REGION_SHUT = _rules("a region closed to salmon")
 
 
-def test_a_to_be_determined_row_is_typed_with_the_species_its_cell_names():
-    (rule,) = _rules(("Chum", "To be determined", "To be determined"))
-    assert rule["type"] == "advisory" and rule["species"] == ["CM"]
-    assert rule["review_reason"].startswith(T.TBD)
-    (rule,) = _rules(("Sockeye, pink and chum", "Apr 1 to Mar 31", "To be determined"))
-    assert rule["species"] == ["SK", "PK", "CM"]
-    (rule,) = _rules(("All", "To be determined", "To be determined"))
-    assert rule["species"] == ["SA"]
+def test_the_shared_file_was_read():
+    assert len(CASES) >= 13 and sum(len(c.get("own", [])) for c in CASES.values()) >= 40
+    assert sum(len(c.get("typed", [])) for c in CASES.values()) >= 6
 
 
-def test_a_row_naming_no_salmon_the_table_knows_keeps_no_species():
-    (rule,) = _rules(("Steelhead", "To be determined", "To be determined"))
-    assert "species" not in rule
+@pytest.mark.parametrize("name", sorted(CASES))
+def test_every_shared_case_types_and_answers_as_the_file_says(name):
+    """The worker's twin asserts the same file: each named row's first rule, and the place's OWN answer per day."""
+    case = CASES[name]
+    for i, want in enumerate(case.get("typed", [])):
+        species, dates, limits = case["rows"][i]
+        rule = T.to_rules({"species": species, "dates": dates, "limits_gear": limits}, "t671", i)[0].model_dump(
+            mode="json", exclude_defaults=True, by_alias=True)
+        if "type" in want:
+            assert rule["type"] == want["type"]
+        if "species" in want:
+            assert rule.get("species") == want["species"]
+        if "reason" in want:
+            assert rule["review_reason"].startswith(REASONS[want["reason"]])
+    place = _rules(name)
+    assert [[sp, md, _status([place], sp, md)] for sp, md, _ in case.get("own", [])] == case.get("own", [])
 
 
 def test_chum_to_be_determined_reads_check_for_chum_only_and_the_other_rows_stand():
-    """Courtenay River: chinook and coho open Sep 1-Dec 31, chum to be determined."""
-    place = _rules(("Chinook", "Sep 1 to Dec 31", "2 per day"),
-                   ("Coho", "Sept 1 to Dec 31", "4 hatchery-marked per day"),
-                   ("Chum", "To be determined", "To be determined"))
-    chain = [place, REGION_SHUT]
-    assert _status(chain, "CM", 601) == "check"
-    assert _status(chain, "CM", 1001) == "check"
-    assert _status(chain, "CH", 1001) == "open"
-    assert _status(chain, "CO", 1001) == "open"
-    # the species the row does not name fall to the wider place, as if the row were not there
+    """Courtenay River under its region: the species the row does not name fall to the wider place."""
+    chain = [_rules("Courtenay"), REGION_SHUT]
+    assert _status(chain, "CM", 601) == "check" and _status(chain, "CM", 1001) == "check"
+    assert _status(chain, "CH", 1001) == "open" and _status(chain, "CO", 1001) == "open"
     assert [_status(chain, sp, 601) for sp in ("CH", "CO", "SK", "PK")] == ["closed"] * 4
     assert S.verdict_on(chain, "CM", 601)["t"] == "To be determined (as printed: To be determined)"
 
 
 def test_a_narrower_places_undetermined_chinook_no_longer_hides_the_wider_places_openings():
     """Campbell River: the narrower place prints only "Chinook | To be determined"; the wider one opens coho and pink."""
-    narrow = _rules(("Chinook", "To be determined", "To be determined"))
-    wide = _rules(("Coho", "Sept 1 to Dec 31", "4 hatchery-marked per day"), ("Pink", "Jul 15 to Oct 15", "4 per day"))
-    chain = [narrow, wide, REGION_SHUT]
+    chain = [_rules("Campbell, the narrower place"), _rules("Campbell, the wider place"), REGION_SHUT]
     assert _status(chain, "CH", 1001) == "check"
     assert _status(chain, "CO", 1001) == "open"
     assert _status(chain, "PK", 801) == "open"
@@ -76,11 +87,7 @@ def test_a_narrower_places_undetermined_chinook_no_longer_hides_the_wider_places
 
 def test_to_be_determined_with_readable_dates_reads_check_on_those_days_never_the_wider_closure():
     """Kamloops Lake: "Sockeye | Apr 1 to Mar 31 | To be determined" beside closures of pink and coho."""
-    lake = _rules(("Chinook", "Aug 28 to Sep 22", "4 per day, only 2 over 50cm"),
-                  ("Pink", "Apr 1 to Mar 31", "No fishing for pink"),
-                  ("Coho", "Apr 1 to Mar 31", "No fishing for coho"),
-                  ("Sockeye", "Apr 1 to Mar 31", "To be determined"))
-    chain = [lake, REGION_SHUT]
+    chain = [_rules("Kamloops Lake"), REGION_SHUT]
     assert _status(chain, "SK", 715) == "check"
     assert S.verdict_on(chain, "SK", 715)["t"] == "To be determined (Apr 1–Mar 31)"
     assert _status(chain, "PK", 715) == "closed" and _status(chain, "CO", 715) == "closed"
@@ -89,24 +96,20 @@ def test_to_be_determined_with_readable_dates_reads_check_on_those_days_never_th
 
 
 def test_an_undetermined_row_speaks_only_inside_its_own_dates():
-    place = _rules(("Sockeye", "Aug 1 to Aug 31", "To be determined"))
-    chain = [place, REGION_SHUT]
+    chain = [_rules("sockeye in August"), REGION_SHUT]
     assert _status(chain, "SK", 815) == "check"
     assert _status(chain, "SK", 915) == "closed"
 
 
 def test_a_species_cell_the_table_does_not_know_reads_check_for_every_salmon_never_none():
-    place = _rules(("Kokanee salmon", "Apr 1 to Mar 31", "2 per day"))
+    place = _rules("kokanee salmon")
     assert place[0]["type"] == "advisory" and "species" not in place[0]
-    chain = [place, REGION_SHUT]
-    assert [_status(chain, sp, 601) for sp in S.SPECIES] == ["check"] * 5
+    assert [_status([place, REGION_SHUT], sp, 601) for sp in S.SPECIES] == ["check"] * 5
 
 
 def test_a_row_about_another_fish_and_a_gear_permission_are_not_unread_rows():
-    eulachon = _rules(("All", "Apr 1 to Mar 31", "No fishing for eulachon"))
-    bait = _rules(("Coho", "Apr 1 to Mar 31", "Natural bait allowed"))
+    eulachon, bait = _rules("eulachon"), _rules("natural bait allowed")
     assert not S.unread_row(eulachon[0]) and not S.unread_row(bait[0])
-    assert bait[0]["review_reason"].startswith(T.GEAR_PERMISSION)
     assert [_status([eulachon, REGION_SHUT], sp, 601) for sp in S.SPECIES] == ["closed"] * 5
     assert _status([bait, REGION_SHUT], "CO", 601) == "closed"
 
@@ -115,8 +118,7 @@ def test_the_live_feed_composes_the_same_answer():
     """`live.location_calendar` + `live.compose` (what the worker publishes and the app composes) == the release's
     `chain_calendar` for the Courtenay shape."""
     from pipeline.regs.dfo_salmon import live as L
-    place = _rules(("Coho", "Sept 1 to Dec 31", "4 hatchery-marked per day"),
-                   ("Chum", "To be determined", "To be determined"))
+    place = _rules("Courtenay")
     v, g = S._Interner(), S._Interner()
     v(S.NOT_LISTED)
     want = S.chain_calendar([place, REGION_SHUT], v, g)

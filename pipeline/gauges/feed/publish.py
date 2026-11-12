@@ -53,6 +53,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from pipeline.common.curated import CURATED, SOURCE
+from pipeline.common.feed_formats import FEED_FORMATS
 from pipeline.gauges.feed.climatology import PCTILES
 from pipeline.gauges.feed.change import combine_day as _combine_day, forecast_days, gauge_scale as _gauge_scale
 from pipeline.gauges.feed.change import model_name as _model_name
@@ -318,8 +319,9 @@ def percentile_of(value: float | None, band: list[float | None] | None) -> float
 HORIZONS = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
 
 # (T557) THE FEED'S FORMAT, first in index.json and every station file (the worker writes obs.json too). The app refuses
-# another (core `GAUGE_FEED_FORMAT`, `gaugeFeedRefusal`); scripts/check-format-pairs.py holds the two to one value.
-FEED_FORMAT = "gauge-feed/1"
+# another (core `GAUGE_FEED_FORMAT`, `gaugeFeedRefusal`). (T556) Typed once, in pipeline/common/feed_formats.py, which
+# the app's and the worker's value is generated from.
+FEED_FORMAT = FEED_FORMATS["gauge_feed"]
 
 # (T550) A READING OLDER THAN THIS, when the feed is written, IS NOT TODAY'S and is never ranked: its `percentile` is null
 # and its per-quantity ranks are dropped, so no reader counts, weighs or colours it (`age_gate`). Its `observedAt` stays,

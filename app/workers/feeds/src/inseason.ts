@@ -15,7 +15,7 @@ import type { Fetch, Meter, Store } from "./io";
 import { contentHash, readStored } from "./io";
 import type { FeedEvent } from "./events";
 import { parseHtml, Str, Tag } from "./dfo/html";
-import { INSEASON_LINKS_FORMAT } from "../../../packages/core/src/inseason";
+import { INSEASON_FEED_FORMAT, INSEASON_LINKS_FORMAT } from "../../../packages/core/src/inseason";
 
 export const SOURCE_URL = "https://www2.gov.bc.ca/gov/content/sports-culture/recreation/fishing-hunting/fishing/fishing-regulations";
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
@@ -300,7 +300,7 @@ async function publishFeed(
 // Unmatched rows publish (flagged by `matched: false`); the app decides how to show a row with no water.
 import { readDates } from "./dfo/dates";
 
-export const FEED_FORMAT = "inseason-feed/1";
+export const FEED_FORMAT = INSEASON_FEED_FORMAT;   // (T556) the app's reader constant, generated (feedFormats.generated.ts)
 const REMOVED_KEEP_MS = 30 * 86_400_000;
 const MONTHS = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"];
 

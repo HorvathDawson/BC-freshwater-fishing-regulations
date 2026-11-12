@@ -18,11 +18,13 @@
  * Every sentence is composed here, whole (AGENTS 33).
  */
 import { MONTHS } from "./calendar.generated";
+import { FEED_FORMATS } from "./feedFormats.generated";
 import { MENU_WORDS } from "./menu/words";
 import { endWords, type EndsTable } from "./ends";
 
-export const INSEASON_FEED_FORMAT = "inseason-feed/1";
-export const INSEASON_LINKS_FORMAT = "inseason-links/3";
+// (T556) generated from the Python writers' one table (pipeline/common/feed_formats.py): never a literal here
+export const INSEASON_FEED_FORMAT = FEED_FORMATS.inseasonFeed;
+export const INSEASON_LINKS_FORMAT = FEED_FORMATS.inseasonLinks;
 
 export interface InSeasonRow {
   readonly id: string;
