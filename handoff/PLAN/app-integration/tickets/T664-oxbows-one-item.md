@@ -1,6 +1,6 @@
 # T664 — Okanagan River Oxbows: one water, not 31 items
 
-Status: PARTIAL — 25471b393; left (Claude): the one side build per `handoff/PLAN/app-integration/next-rebuild.md` (with T665 + the nine DFO cuts): matched restamp, the in-season reference patch, reach + binding diff (oxbow rule 89 = 89), promote
+Status: PARTIAL — 25471b393, a3518f5d2, 56b18e8bb; left (Claude): promote the side build (`handoff/PLAN/app-integration/next-rebuild.md` steps 7 to 9) after the owner's go on `next-rebuild-results.md`
 
 Source: owner 2026-11-11: "the oxbows should be combined as one item. Right now a shit load come up in the search etc..
 when they are the same with same rules".
@@ -35,3 +35,19 @@ Notes for whoever takes it:
 - Owner calls (defaults taken): (1) the 8 LAKE/WETLAND oxbow items stay apart (search: 1 + 8). Folding them in makes
   them streams and moves zone rules (`ONE_WATER_TAKES_STILL_WATER`). (2) The survivor id is the first line item.
 - Not verified: the build itself, search and card in the app, tile labels.
+
+## Side build 2026-11-11 (the rebuild lane; `app-integration/next-rebuild-results.md` §3)
+- Owner ruling 2026-11-11: the 8 lake / wetland oxbow polygons are streams ("They should have been converted to stream
+  polygons like Nicomen Slough so it all becomes one. They aren't lakes, they are considered streams."). Built as a
+  list by id on the name record (`one_water_takes`, `registry.one_water`; proposal patch
+  `T664-pending/oxbow-still-water.name_variants.patch`, applied on the side copy only). The blanket switch stays off.
+- Measured on the side atlas: ONE item `wsc:300-432687-459615`, kind stream, 88 sections (52 items absorbed).
+  `okanagan_river_oxbows.r1` 89 → 89, the same sections. On the 8 polygons the lake rules come off the two lakes
+  (`zp:bait` r5, `zp:barbless_single_hook_streams` r2) and the stream rules go on all eight, the Region 8 spring stream
+  closure among them, with the oxbow row's exemption bound there as on the rest of the water (7 of 8 carry exactly a
+  line section's rule set; the eighth keeps one area closure it already had).
+- `lake:329461947` (unnamed polygon on an oxbow channel) is left a lake: owner item in the results file.
+- References: `matched` 53 → 1 and in-season `is-bb5426c61ff3` 53 → 1 extent (`T664-pending/t664-references.patch`,
+  remade from the side build; `resync_notice.py` makes the notice half). `atlas.promote` now refuses while a curated
+  file names an absorbed id.
+- Not verified: search, card and label in the app (no tiles / bundle built on the side atlas).

@@ -33,3 +33,8 @@ Side release r-7445e205856e against live r-a178299f6005 (built 2026-11-09 17:56)
 - Note: the reach step logged "NOT keyed — pipeline/atlas/reach/build.py changed while it ran" (T546 was editing it);
   the reach digest still equals live.
 Conclusion: T547's change does not alter what is built. Item 1 done; items 2–4 stay open.
+
+## Note 2026-11-11 (the rebuild lane)
+Item 2 did NOT ride the T664 + T665 side build (`app-integration/next-rebuild-results.md`): that build carries no
+change to lake clash suffixes or lake names. It still waits for an atlas rebuild of its own, or for the next one.
+The promote guard it leans on is unchanged; promote also lists lost boundary ids by family now.

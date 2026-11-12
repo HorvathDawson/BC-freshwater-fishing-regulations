@@ -1,19 +1,17 @@
-diff --git a/data/curated/regulations/synopsis/region-8.json b/data/curated/regulations/synopsis/region-8.json
-index efdba9e91..832aea2bc 100644
 --- a/data/curated/regulations/synopsis/region-8.json
 +++ b/data/curated/regulations/synopsis/region-8.json
-@@ -3857,58 +3857,14 @@
+@@ -3856,59 +3856,7 @@
+     70
     ],
     "matched": [
-     "wbk:328948249",
+-    "wbk:328948249",
 -    "wbk:328947490",
-+    "wsc:300-432687-459615",
-     "wbk:328944522",
-     "wbk:328957729",
-     "wbk:329459219",
-     "wbk:329459234",
-     "wbk:329460279",
-     "wbk:329459157",
+-    "wbk:328944522",
+-    "wbk:328957729",
+-    "wbk:329459219",
+-    "wbk:329459234",
+-    "wbk:329460279",
+-    "wbk:329459157",
 -    "wsc:300-432687-518583",
 -    "wsc:300-432687-517221",
 -    "wbk:329462410",
@@ -59,27 +57,56 @@ index efdba9e91..832aea2bc 100644
 -    "wsc:300-432687-461418-565942",
 -    "wsc:300-432687-466472-328926",
 -    "wsc:300-432687-476281-770576"
-+    "wbk:328985789"
++    "wsc:300-432687-459615"
     ],
     "extents": [
      {
-diff --git a/data/curated/inseason/notice_waters.json b/data/curated/inseason/notice_waters.json
-index ea76e097c..10f2d9991 100644
 --- a/data/curated/inseason/notice_waters.json
 +++ b/data/curated/inseason/notice_waters.json
-@@ -2595,7 +2595,7 @@
-         },
-         {
-           "op": "whole",
+@@ -2588,275 +2588,15 @@
+       "region": "8",
+       "water": "Okanagan River Oxbows",
+       "extents": [
+-        {
+-          "op": "whole",
+-          "item_id": "wbk:328948249",
+-          "splits": []
+-        },
+-        {
+-          "op": "whole",
 -          "item_id": "wbk:328947490",
-+          "item_id": "wsc:300-432687-459615",
-           "splits": []
-         },
-         {
-@@ -2628,235 +2628,15 @@
-           "item_id": "wbk:329459157",
-           "splits": []
-         },
+-          "splits": []
+-        },
+-        {
+-          "op": "whole",
+-          "item_id": "wbk:328944522",
+-          "splits": []
+-        },
+-        {
+-          "op": "whole",
+-          "item_id": "wbk:328957729",
+-          "splits": []
+-        },
+-        {
+-          "op": "whole",
+-          "item_id": "wbk:329459219",
+-          "splits": []
+-        },
+-        {
+-          "op": "whole",
+-          "item_id": "wbk:329459234",
+-          "splits": []
+-        },
+-        {
+-          "op": "whole",
+-          "item_id": "wbk:329460279",
+-          "splits": []
+-        },
+-        {
+-          "op": "whole",
+-          "item_id": "wbk:329459157",
+-          "splits": []
+-        },
 -        {
 -          "op": "whole",
 -          "item_id": "wsc:300-432687-518583",
@@ -150,8 +177,8 @@ index ea76e097c..10f2d9991 100644
 -          "item_id": "wsc:300-432687-500162",
 -          "splits": []
 -        },
--        {
--          "op": "whole",
+         {
+           "op": "whole",
 -          "item_id": "wbk:329460457",
 -          "splits": []
 -        },
@@ -175,14 +202,14 @@ index ea76e097c..10f2d9991 100644
 -          "item_id": "wsc:300-432687-463105",
 -          "splits": []
 -        },
-         {
-           "op": "whole",
-           "item_id": "wbk:328985789",
-           "splits": []
+-        {
+-          "op": "whole",
+-          "item_id": "wbk:328985789",
+-          "splits": []
 -        },
 -        {
 -          "op": "whole",
--          "item_id": "wsc:300-432687-459615",
+           "item_id": "wsc:300-432687-459615",
 -          "splits": []
 -        },
 -        {
@@ -263,7 +290,7 @@ index ea76e097c..10f2d9991 100644
 -        {
 -          "op": "whole",
 -          "item_id": "wsc:300-432687-555555",
--          "splits": []
+           "splits": []
 -        },
 -        {
 -          "op": "whole",
@@ -307,36 +334,47 @@ index ea76e097c..10f2d9991 100644
          }
        ],
 -      "note": "Claude 2026-11-11 (T637 follow-through): same waters as the book entry r8:okanagan_river_oxbows@8-1 `matched` (53 items, all whole) — 18 oxbow polygons became part of the named channel items, Park Rill is out (owner 2026-11-11). Was: Claude 2026-10-29 at owner's request — check: the curated override names the oxbows: 41 waters, all whole",
-+      "note": "Claude 2026-11-11 (T664): the Oxbows are one item (wsc:300-432687-459615, its aliases hold the 44 absorbed ids); the 8 lake/wetland oxbow items stay their own. Waters + stamp re-resolve on the release built from the T664 atlas.",
++      "note": "Claude 2026-11-11 (id resync, next-rebuild step 4): 52 extent(s) named item(s) the rebuilt atlas folds into wsc:300-432687-459615; renamed to the survivor (53 -> 1 extent(s)). Waters + stamp re-resolve on the release built from that atlas.",
        "by": "claude",
 -      "at": "2026-11-11T21:30:00Z",
 +      "at": "2026-11-11T23:59:00Z",
        "source": "claude",
        "evidence": {
          "water": "Okanagan River Oxbows",
-@@ -2869,18 +2649,12 @@
-         "wbk:328944522": {
-           "all": true
-         },
+@@ -2866,164 +2606,8 @@
+       },
+       "confidence": "high",
+       "waters": {
+-        "wbk:328944522": {
+-          "all": true
+-        },
 -        "wbk:328947490": {
 -          "all": true
 -        },
-         "wbk:328948249": {
-           "all": true
-         },
-         "wbk:328957729": {
-           "all": true
-         },
+-        "wbk:328948249": {
+-          "all": true
+-        },
+-        "wbk:328957729": {
+-          "all": true
+-        },
 -        "wbk:328985785": {
 -          "all": true
 -        },
-         "wbk:328985789": {
-           "all": true
-         },
-@@ -2896,134 +2670,8 @@
-         "wbk:329460279": {
-           "all": true
-         },
+-        "wbk:328985789": {
+-          "all": true
+-        },
+-        "wbk:329459157": {
+-          "all": true
+-        },
+-        "wbk:329459219": {
+-          "all": true
+-        },
+-        "wbk:329459234": {
+-          "all": true
+-        },
+-        "wbk:329460279": {
+-          "all": true
+-        },
 -        "wbk:329460316": {
 -          "all": true
 -        },
@@ -468,64 +506,24 @@ index ea76e097c..10f2d9991 100644
          }
        },
        "stamp": "942f651375108c88"
-@@ -4577,6 +4225,60 @@
+@@ -4575,6 +4159,20 @@
+           "item_id": "gnis:18775",
+           "splits": [],
            "tributaries": "only"
-         }
-       ]
++        }
++      ]
 +    },
 +    {
 +      "at": "2026-11-11T23:59:00Z",
 +      "id": "is-bb5426c61ff3",
 +      "action": "set",
 +      "by": "claude",
-+      "note": "Claude 2026-11-11 (T664): the Oxbows are one item (wsc:300-432687-459615, its aliases hold the 44 absorbed ids); the 8 lake/wetland oxbow items stay their own. Waters + stamp re-resolve on the release built from the T664 atlas.",
++      "note": "Claude 2026-11-11 (id resync, next-rebuild step 4): 52 extent(s) named item(s) the rebuilt atlas folds into wsc:300-432687-459615; renamed to the survivor (53 -> 1 extent(s)). Waters + stamp re-resolve on the release built from that atlas.",
 +      "extents": [
-+        {
-+          "op": "whole",
-+          "item_id": "wbk:328948249",
-+          "splits": []
-+        },
 +        {
 +          "op": "whole",
 +          "item_id": "wsc:300-432687-459615",
 +          "splits": []
-+        },
-+        {
-+          "op": "whole",
-+          "item_id": "wbk:328944522",
-+          "splits": []
-+        },
-+        {
-+          "op": "whole",
-+          "item_id": "wbk:328957729",
-+          "splits": []
-+        },
-+        {
-+          "op": "whole",
-+          "item_id": "wbk:329459219",
-+          "splits": []
-+        },
-+        {
-+          "op": "whole",
-+          "item_id": "wbk:329459234",
-+          "splits": []
-+        },
-+        {
-+          "op": "whole",
-+          "item_id": "wbk:329460279",
-+          "splits": []
-+        },
-+        {
-+          "op": "whole",
-+          "item_id": "wbk:329459157",
-+          "splits": []
-+        },
-+        {
-+          "op": "whole",
-+          "item_id": "wbk:328985789",
-+          "splits": []
-+        }
-+      ]
+         }
+       ]
      }
-   ]
- }

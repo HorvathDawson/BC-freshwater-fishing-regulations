@@ -1,6 +1,6 @@
 # T665 — Tidal: cut every creek where it leaves the tidal polygon; remove lines wholly inside it
 
-Status: OPEN
+Status: PARTIAL — f1f928029, 227c53b08, a3518f5d2, 2a21460e0, 76f067600, 56b18e8bb; left (Claude): promote the side build (`handoff/PLAN/app-integration/next-rebuild.md` steps 7 to 9) after the owner's go on `next-rebuild-results.md`; the shore rule into RULINGS.md and MAP.md
 
 Source: owner 2026-11-11, on the T660 follow-up (A–J): "every item in the 103 can be removed. And the plan in general
 looks solid just need to figure out a clean way to implement it." Next atlas rebuild (with T664 and the nine waiting DFO
@@ -63,3 +63,29 @@ Depends: T660. Size: L.
   Management Area maps. The owner worries the polygon over-cuts where it runs up an estuary (the Pitt case): every cut
   whose polygon exit lies more than 100 m up a narrow channel is HELD too (second group on the main-rivers page), no
   change to the rule yet.
+
+## Side build 2026-11-11 (the rebuild lane; `app-integration/next-rebuild-results.md`)
+Built twice; the second build is the candidate (`data/generated/side/next-rebuild/atlas/full_next`), not promoted.
+- **226 shore cuts** (build 27: 532), **215 lines tidal whole (67.7 km)**, 20.4 km of creek tidal below 184 cuts; 15
+  strips (0.3 km) that were tidal are fresh (the cut moved down to the polygon exit). Parity, the reach run and the
+  per-rule binding diff by place have no unexplained difference; one explained gain (Ucona River, 33 m, into the
+  Strathcona Park waters rule).
+- Fixed on the way, each with a test (`pipeline/tests/test_next_rebuild.py`):
+  1. The atlas now cuts by the reach's own tidal set (`shore.reach_tidal`, `build.water_registry`), and the build stops
+     if the registry it writes disagrees. The graph's reading had 70 sections against 124.
+  2. A held line keeps the cut build 27 made (`HELD_KEEPS_ITS_CUT`, 30 lines): the polygon rule alone dropped 26 cuts
+     on the 61 held lines, 19 of them with a tidal piece below.
+  3. The rule judged the outlets of "the piece below the cut" on the line's lowest section; on a line not cut yet that
+     is the whole lower river. The first build missed 6 cuts (5 tidal crossings of build 27 would have gone fresh) and
+     made 10 for nothing. Now by where each edge leaves the line and joins the next (`outlet_edges`).
+  4. The braid sweep would have stopped the build on Kainet Creek (held).
+- **93 lines held** (61 + 32): 2 more up the channel (Cohilukthan, Deas), Kainet Creek (braid), and 29 rivers and
+  creeks the precise rule makes tidal that the dry-run pages showed as "not cut" (Kitimat, Bella Coola, Kemano,
+  Kwatna, Quaal, Khutze …). All 93 are exactly as build 27 has them (measured).
+- Against the owner's dry-run map: 4 creeks into Fraser side channels are newly cut; the Brem River group (5 lines) and
+  Kainet Creek are not cut. Listed as owner items in the results file.
+- `--accept-boundary-loss` is needed for a net loss of 31 registry boundaries (77 `shore:` ids, 2 `length:`, 1 lake
+  edge), not 363.
+- `T665-orphans.json` is rewritten from the side build: 82 items change their tidal sections, Brae Slough alone becomes
+  wholly tidal, no id moves.
+- No `sidecars.py` writer for `inside_tidal.json`: the file is the build's alone (messages corrected).
