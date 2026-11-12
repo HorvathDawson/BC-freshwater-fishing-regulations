@@ -1,6 +1,6 @@
 # T540 — Cut what a new chat reads: closed ledger rows, old STATUS entries, the dead order list
 
-Status: PARTIAL — a7df2f98b, 666683208 (items 2-4 done 2026-11-11); left (Claude): item 1 waits for a guard change (below); item 5 is the owner's, default unchanged (Q177).
+Status: PARTIAL — a7df2f98b, 666683208, ea0d3d488 (items 1-4 done 2026-11-11); left (Claude): cap the ledger's last cell (~200 characters), the STATUS size guard in fast-fail; item 5 is the owner's, default unchanged (Q177).
 
 Source: workflow review 2026-11-09 (verified against the files). Rank 8.
 
@@ -39,7 +39,7 @@ Depends: T539 (same guard file). Size: M. Owner: yes (item 5 only). Default: AGE
 - Item 2: `STATUS.md` keeps 2026-11-04 onward; 19 entries (2026-10-30 to 11-03) moved unchanged to `STATUS-archive.md`
   (666683208). 155 KB to 127 KB. Left: the rule "move older entries when a restart page is written" and the size guard in fast-fail.
 
-## Not done: item 1 (closed rows to DONE.md) needs a guard change
+## Item 1 as it stood before ea0d3d488 (kept for the record; built as written below)
 `app/tools/check-tickets.mjs` (T84) reads only `README.md` under `## Ledger` (`ledgerRows`), and fails with "ticket file has no
 ledger row in README.md" for every `T*.md` whose row is elsewhere. Moving 400+ closed rows to `tickets/DONE.md` therefore
 fails `pnpm check` until the guard changes (a code change, not made here). What it needs:
@@ -54,3 +54,16 @@ Then move rows that were DONE/DROPPED before 2026-11-11, never the rows of ticke
 T554, T555, T585, T597, T603, T606, T628, T631, T633, T661, T664-T672), and cap the last cell at about 200 characters.
 Acceptance measure (not taken yet): start-of-chat reading is README 132 KB + AGENTS 73 KB + OWNER-TODO + restart page; the
 split is what brings it under 120 KB.
+
+## Done 2026-11-11, item 1 (ea0d3d488)
+- `app/tools/check-tickets.mjs` reads `tickets/DONE.md` beside `README.md` (`readRepo` → `doneLedger`; the same `## Ledger`
+  table): rows unioned, a row in both fails, DONE.md may hold only DONE / DROPPED rows, the file-vs-row status match and
+  the DONE hash rule run on both, a missing DONE.md is an error. `check-tickets.test.ts` "T540 closed rows live in
+  DONE.md": only in DONE.md passes; OPEN / IN PROGRESS / POSTPONED there fails; in both fails; in neither fails.
+- Moved 502 rows: DONE or DROPPED, the row AND the ticket file unchanged since the last commit of 2026-11-10 (5ba659394).
+  Stayed in README: 141 rows (every open one, and the closed rows touched 2026-11-11: T462, T507, T549, T554, T557, T628,
+  T662, T663, T675). They move once their lanes are done with them.
+- Measured: README 167.7 KB → 60.6 KB. Instructed start reading now: README 60.6 + AGENTS 79.1 + OWNER-TODO 47.9 +
+  restart page 4.8 + START-HERE 0.9 = 193 KB. NOT under the 120 KB acceptance: AGENTS (item 5, owner) and OWNER-TODO
+  (grew from 33 KB) are what is left; the ledger alone cannot bring it there.
+- Not done: the last-cell cap (about 200 characters); the STATUS size guard and its move rule (item 2's leftovers).
