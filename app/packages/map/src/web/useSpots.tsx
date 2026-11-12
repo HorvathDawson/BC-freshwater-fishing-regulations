@@ -5,7 +5,7 @@
  * the mark's (`spotUnder` → `pressSpot`), and the map's other click handlers skip it (`hitSpot`): no water opens under
  * it. Returns the marks' buttons for the keyboard and a screen reader (1 px, out of the way; never moved with the map).
  */
-import { spotMarkers, spotUnder, type SpotMarker } from "@app/core";
+import { spotMarkers, spotsInView, spotUnder, type SpotMarker } from "@app/core";
 import { useEffect, useRef, useState } from "react";
 import type * as maplibregl from "maplibre-gl";
 import type { MapProps } from "../map-props";
@@ -37,9 +37,9 @@ export function useSpots({ map, renderer }: WebMapRefs, spots: MapProps["spots"]
     const m = map.current;
     if (!m) return;
     let alive = true;
-    // `sig`: the marks last handed to React (the first regroup always renders once, as it always did: the web map's
-    // later hooks first see the map on a render after it is made); `drawn`: the marks last written to the source (an
-    // empty set is no change — a map with no spots writes nothing)
+    // `sig`: the marks last handed to React — (T674) the ones on the map, for their buttons (the first regroup always
+    // renders once, as it always did: the web map's later hooks first see the map on a render after it is made);
+    // `drawn`: the marks last written to the source (an empty set is no change — a map with no spots writes nothing)
     let sig = "";
     let drawn = "[]";
     const regroup = () => {
@@ -49,7 +49,11 @@ export function useSpots({ map, renderer }: WebMapRefs, spots: MapProps["spots"]
       const marks = s ? spotMarkers(s.points, zoom, s.selected) : [];
       placed.set(m, { marks, zoom });
       const next = JSON.stringify(marks);
-      if (next !== sig) { sig = next; setSpotMarks(marks); }
+      // (T674) the buttons a screen reader is given: the marks on the map now (`spotsInView`), never a spot off it
+      const c = m.getCenter(), box = m.getContainer();
+      const said = spotsInView(marks, { lat: c.lat, lon: c.lng, zoom, width: box.clientWidth, height: box.clientHeight });
+      const saidSig = JSON.stringify(said);
+      if (saidSig !== sig) { sig = saidSig; setSpotMarks(said); }
       if (next === drawn) return;
       drawn = next;
       const src = m.getSource(SPOT_SOURCE) as { setData?: (d: unknown) => void } | undefined;
@@ -75,6 +79,9 @@ export function useSpots({ map, renderer }: WebMapRefs, spots: MapProps["spots"]
       regroup();
     });
     m.on("zoomend", regroup);
+    // (T674) a pan or a resize changes which marks are on the map (never which marks there are: `drawn` is unchanged)
+    m.on("moveend", regroup);
+    m.on("resize", regroup);
     const onClick = (e: maplibregl.MapMouseEvent) => {
       const s = spotsNow.current;
       const hit = s ? hitSpot(m, e.lngLat.lat, e.lngLat.lng) : null;
@@ -85,6 +92,8 @@ export function useSpots({ map, renderer }: WebMapRefs, spots: MapProps["spots"]
       alive = false;
       undo();
       m.off("zoomend", regroup);
+      m.off("moveend", regroup);
+      m.off("resize", regroup);
       m.off("click", onClick);
       placed.delete(m);
       if (drawn !== "[]") (m.getSource(SPOT_SOURCE) as { setData?: (d: unknown) => void } | undefined)?.setData?.(EMPTY);

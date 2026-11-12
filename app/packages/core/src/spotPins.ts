@@ -11,6 +11,7 @@
  *   spotFace        the size a mark is drawn at — from its kind and selection ONLY, never the zoom (the cap)
  *   spotMarkers     the marks at a zoom: a spot alone (its name from `labelZoom` in, unless it would cross another
  *                   name or mark), or several close spots as ONE group, with the zoom that parts it
+ *   spotsInView     the marks the camera holds: the only ones a screen reader is given a button for (T674)
  *   spotUnder       the mark a tap at a place lands on, if any (a native map hears the tap under its annotations too)
  *   spotPress       a tap: a spot opens; a group zooms in to where it parts; a group no zoom parts (spots on one point)
  *                   opens the Spots list
@@ -188,6 +189,23 @@ export function spotUnder(marks: readonly SpotMarker[], lat: number, lon: number
     if (d < bestD) { best = m; bestD = d; }
   }
   return best;
+}
+
+/** What a map shows: where its camera is and how big its own box is, px. */
+export interface SpotView { lat: number; lon: number; zoom: number; width: number; height: number }
+
+/**
+ * (T674) THE MARKS ON THE MAP NOW: those whose face reaches into the camera's box (north up, no tilt: the one camera
+ * both maps have). A map gives a screen reader a button for these only — a spot off the map is not on the screen, so
+ * it is not in the accessibility tree either. A map that does not know its size yet holds none.
+ */
+export function spotsInView(marks: readonly SpotMarker[], view: SpotView): SpotMarker[] {
+  if (!(view.width > 0 && view.height > 0)) return [];
+  const [cx, cy] = px(view, view.zoom);
+  return marks.filter((m) => {
+    const [x, y] = px(m, view.zoom), half = spotFace(m).extent / 2;
+    return Math.abs(x - cx) <= view.width / 2 + half && Math.abs(y - cy) <= view.height / 2 + half;
+  });
 }
 
 /** What a tap on a mark does. */

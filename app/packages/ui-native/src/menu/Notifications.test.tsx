@@ -7,13 +7,14 @@
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { MENU_WORDS, NOTIFY_WORDS, type Band, type DataInput, type GaugeAlertRule } from "@app/core";
+import { MENU_WORDS, NOTIFY_WORDS, setFailureSink, type Band, type DataInput, type GaugeAlertRule } from "@app/core";
 import { createNotifySettings, NOTIFY_DEFAULT, type NotifyState, type WaterSource } from "@app/data";
 import { LayoutWidthContext, NotifyRoot, useNotifications, type NotifyControls, type NotifyPermission } from "@app/ui";
 import { LIGHT } from "../theme";
 import { MoreScreen } from "./MoreScreen";
 import { NotificationsPage } from "./NotificationsPage";
 import { AlertMe, type AlertTarget } from "../AlertMe";
+import { CoachScrollContext, type CoachScroller } from "../coachScroll";
 
 afterEach(cleanup);
 const NOW = Date.now();
@@ -348,6 +349,66 @@ describe("Alert me on a gauge's card, and the editor (T527)", () => {
                                      threshold: { kind: "value", value: 1.25 }, on: true, water: { item: "w1", name: "Chilliwack River" } }]);
     expect(screen.getByTestId("alert-me-saved").textContent).toBe(NOTIFY_WORDS.alertMe.saved);
     expect(screen.getByTestId("alert-me-count").textContent).toBe("1 alert on this gauge");
+  });
+
+  /**
+   * (T674) THE CONFIRMATION STAYS ON SCREEN. Saving collapses the editor, so with Save low on the screen the page was left
+   * showing what is under the card and "Saved. …" / "1 alert on this gauge" sat above the fold (emulator, T603). The
+   * card's page (`CoachScrollContext`, the Conditions pane's own scroll view) is moved so the whole block is in its view.
+   */
+  const boxes = (at: (testId: string | null) => { top: number; height: number } | null) =>
+    vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function (this: HTMLElement) {
+      const b = at(this.getAttribute("data-testid")) ?? { top: 0, height: 0 };
+      return { x: 0, y: b.top, left: 0, top: b.top, width: b.height ? 360 : 0, height: b.height, right: 360,
+               bottom: b.top + b.height, toJSON: () => ({}) } as DOMRect;
+    });
+  const saveOn = async (page: CoachScroller) => {
+    const { c } = controls();
+    const { source } = fakeSource();
+    render(<NotifyRoot controls={c}><CoachScrollContext.Provider value={page}>
+      <AlertMe palette={LIGHT} target={target} source={source} /></CoachScrollContext.Provider></NotifyRoot>);
+    fireEvent.click(screen.getByTestId("alert-me-open"));
+    await flush();
+    await act(async () => { fireEvent.click(screen.getByTestId("alert-form-save")); });
+    await flush();
+    await act(async () => { await new Promise((r) => setTimeout(r, 400)); });
+    expect(screen.getByTestId("alert-me-saved").textContent).toBe("Saved. Manage alerts in More → Notifications.");
+  };
+  const VIEW = { x: 0, y: 120, w: 360, h: 600 };
+
+  it("(T674) after Save the confirmation left above the fold is scrolled back into the page's view", async () => {
+    // the block (button, count, "Saved. …") ends up 300 px above the top of the page's view
+    const spy = boxes((id) => (id === "alert-me" ? { top: -180, height: 60 } : null));
+    const by = vi.fn();
+    await saveOn({ by, view: async () => VIEW });
+    spy.mockRestore();
+    // up by the 300 px, and the page's 12 px margin above the block
+    expect(by.mock.calls).toEqual([[-312]]);
+  });
+
+  it("(T674) below the fold it is scrolled up into view; already in view the page is left alone", async () => {
+    let spy = boxes((id) => (id === "alert-me" ? { top: 700, height: 60 } : null));
+    const by = vi.fn();
+    await saveOn({ by, view: async () => VIEW });
+    spy.mockRestore();
+    expect(by.mock.calls).toEqual([[52]]);        // its foot at 760, the view's at 720, less the 12 px margin
+    cleanup();
+    spy = boxes((id) => (id === "alert-me" ? { top: 300, height: 60 } : null));
+    const still = vi.fn();
+    await saveOn({ by: still, view: async () => VIEW });
+    spy.mockRestore();
+    expect(still).not.toHaveBeenCalled();
+  });
+
+  it("(T674) a confirmation that cannot be measured is reported, never passed over", async () => {
+    const seen: unknown[] = [];
+    const undo = setFailureSink((e) => seen.push(e));
+    const spy = boxes(() => null);                // nothing laid out: every box is empty
+    const by = vi.fn();
+    await saveOn({ by, view: async () => VIEW });
+    spy.mockRestore(); undo();
+    expect([by.mock.calls.length, seen.map((e) => (e as Error).message)])
+      .toEqual([0, ["alert saved: the confirmation could not be measured, so it was not brought into view"]]);
   });
 
   it("refuses a value that is not a number, and says a refused permission after saving", async () => {

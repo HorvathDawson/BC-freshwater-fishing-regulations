@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { CAMERA_MAX_ZOOM } from "./ladder";
-import { SPOT_PIN, SPOT_PIN_WORDS, spotBack, spotFace, spotMarkers, spotPress, spotUnder, type SpotMarker,
+import { SPOT_PIN, SPOT_PIN_WORDS, spotBack, spotFace, spotMarkers, spotPress, spotsInView, spotUnder, type SpotMarker,
          type SpotPoint } from "./spotPins";
 
 const TAMIHI: SpotPoint = { id: "s1", lat: 49.0974, lon: -121.9675, title: "Tamihi run" };
@@ -165,5 +165,27 @@ describe("(T310) a spot's parking mark", () => {
     expect(marks.map((m) => [m.key, m.count, !!m.parking])).toEqual([["spot:a", 1, false], ["parking:a", 1, true]]);
     expect(spotPress(marks[1]!)).toEqual({ kind: "open", id: "a" });
     expect(marks[1]!.a11y).toContain("Parking");
+  });
+});
+
+describe("spotsInView (T674)", () => {
+  // zoom 12: a degree of longitude is 5,825 px, so the Vedder mark is 189 px west of Tamihi run and 16 px north
+  const marks = spotMarkers([TAMIHI, VEDDER, THOMPSON], 12, null);
+  const at = (width: number, height: number) => ({ lat: TAMIHI.lat, lon: TAMIHI.lon, zoom: 12, width, height });
+  const keys = (v: Parameters<typeof spotsInView>[1]) => spotsInView(marks, v).map((m) => m.key);
+
+  it("holds the marks whose face reaches into the camera's box, and no other", () => {
+    expect([keys(at(400, 800)), keys(at(360, 800)), keys(at(40, 40))])
+      .toEqual([["spot:s1", "spot:s2"], ["spot:s1"], ["spot:s1"]]);
+  });
+
+  it("a face cut by the map's edge is still on the map (half a 12 px face past it); one px further it is off", () => {
+    const dx = (VEDDER.lon - TAMIHI.lon) / 360 * 512 * 2 ** 12;      // the Vedder mark, px west of the middle
+    const edge = 2 * (Math.abs(dx) - 6);                              // the width whose west edge touches its face
+    expect([keys(at(edge + 0.5, 800)), keys(at(edge - 2, 800))]).toEqual([["spot:s1", "spot:s2"], ["spot:s1"]]);
+  });
+
+  it("a map that has not been sized holds none", () => {
+    expect([keys(at(0, 0)), keys(at(400, 0))]).toEqual([[], []]);
   });
 });

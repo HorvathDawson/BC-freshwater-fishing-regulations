@@ -13,17 +13,18 @@
  * Draws nothing where the app has no notifications (the web, a test). Every word is core's (`NOTIFY_WORDS`); the state
  * and actions are `@app/ui` `useNotifications`.
  */
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { TextInput, View } from "react-native";
 import {
   ALERT_DIRECTIONS, alertContextLine, alertSummary, CONDITIONS_WORDS, figure, NOTIFY_WORDS, now, parseAlertValue, percentileByDay,
-  percentileOk, PERCENTILE_PRESETS, type AlertDirection, type AlertQuantity, type AlertThreshold, type GaugeAlertRule,
+  percentileOk, PERCENTILE_PRESETS, reportOnce, type AlertDirection, type AlertQuantity, type AlertThreshold, type GaugeAlertRule,
 } from "@app/core";
 import type { WaterSource } from "@app/data";
 import { alertNow, useAlertContext, useAlertRecord, useNotifications, type AlertRecord, type NotificationsVM } from "@app/ui";
 import { Text } from "./Text";
 import { Button } from "./Button";
 import { Chip } from "./Chip";
+import { bringIntoView, CoachScrollContext, type Measurable } from "./coachScroll";
 import { TYPE } from "./type";
 import { SPACE, type Palette } from "./theme";
 
@@ -42,6 +43,9 @@ export interface AlertTarget {
   water: { item: string | null; name: string } | null;
 }
 
+/** (T674) A block not laid out when first measured after a save is measured once more after this long. */
+const SAVED_LOOK_AGAIN_MS = 250;
+
 /** A new alert from the editor's draft: its id, time and switch. */
 export const newAlert = (station: string, d: AlertDraft): GaugeAlertRule =>
   ({ ...d, id: `${station}-${now().toString(36)}`, createdAt: now(), on: true });
@@ -50,10 +54,31 @@ export function AlertMe({ palette, target, source }: { palette: Palette; target:
   const n = useNotifications();
   const [open, setOpen] = useState(false);
   const [saved, setSaved] = useState(false);
+  // (T674) SAVING COLLAPSES THE EDITOR, and with Save low on the screen the page was left showing what is under the card:
+  // "Saved. …" and the count sat above the fold. After each save the whole block is brought into its page's view (the
+  // Conditions pane's scroll view; a parent with no scrolling page has nothing to move). The block is looked at once
+  // it is laid out again; one that cannot be measured is reported, never passed over.
+  const page = useContext(CoachScrollContext);
+  const block = useRef<Measurable | null>(null);
+  const [saves, setSaves] = useState(0);
+  useEffect(() => {
+    if (!saves || !page) return;
+    let gone = false, t: ReturnType<typeof setTimeout> | undefined;
+    void bringIntoView(block.current, page).then((first) => {
+      if (gone || first !== "unmeasured") return;
+      t = setTimeout(() => {
+        void bringIntoView(block.current, page).then((again) => {
+          if (!gone && again === "unmeasured")
+            reportOnce("alert-saved-unmeasured", new Error("alert saved: the confirmation could not be measured, so it was not brought into view"));
+        });
+      }, SAVED_LOOK_AGAIN_MS);
+    });
+    return () => { gone = true; if (t) clearTimeout(t); };
+  }, [saves, page]);
   if (!n) return null;
   const mine = n.state.rules.filter((r) => r.station === target.station);
   return (
-    <View testID="alert-me" style={{ gap: SPACE.s2 }}>
+    <View testID="alert-me" ref={block as never} style={{ gap: SPACE.s2 }}>
       {!open && (
         <View style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s3, flexWrap: "wrap" }}>
           <Button palette={palette} kind="small" icon="bell" label={W.button} a11yLabel={`${W.button}: ${target.stationName}`}
@@ -70,6 +95,7 @@ export function AlertMe({ palette, target, source }: { palette: Palette; target:
                        await n.putRule(newAlert(target.station, d));
                        setOpen(false);
                        setSaved(true);
+                       setSaves((k) => k + 1);
                      }} />
       )}
       {saved && <AlertStatus n={n} palette={palette} />}

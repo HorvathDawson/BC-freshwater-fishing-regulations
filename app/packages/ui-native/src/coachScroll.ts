@@ -37,6 +37,32 @@ export function useCoachScroller(): {
   }), []);
 }
 
+/** (T674) The room kept between a revealed block and its page's edge, px. */
+const REVEAL_MARGIN = 12;
+
+/**
+ * (T674) HOW FAR A PAGE SCROLLS (down: positive) so `r` sits wholly inside the page's `view` with `REVEAL_MARGIN` to
+ * spare; 0 when it already does. A block taller than the view shows its top. Both boxes are in the window.
+ */
+function revealDy(r: Rect, view: Rect): number {
+  const top = view.y + REVEAL_MARGIN, bottom = view.y + view.h - REVEAL_MARGIN;
+  if (r.y < top || r.h > bottom - top) return r.y - top;
+  if (r.y + r.h > bottom) return r.y + r.h - bottom;
+  return 0;
+}
+
+/**
+ * (T674) BRING A BLOCK INTO ITS PAGE'S VIEW (react-native has no scrollIntoView): measured in the window against the
+ * page, the page scrolled by what is missing. Answers what happened; "unmeasured" is the block or the page not laid out.
+ */
+export async function bringIntoView(node: Measurable | null, page: CoachScroller): Promise<"moved" | "in-view" | "unmeasured"> {
+  const [r, v] = await Promise.all([measure(node), page.view()]);
+  if (!r || !v) return "unmeasured";
+  const dy = revealDy(r, v);
+  if (Math.abs(dy) < 1) return "in-view";
+  page.by(dy);
+  return "moved";
+}
 
 export function measure(node: Measurable | null): Promise<Rect | null> {
   return new Promise((res) => {

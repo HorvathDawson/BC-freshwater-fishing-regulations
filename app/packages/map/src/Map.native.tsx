@@ -43,7 +43,7 @@ import {
   type CameraRef, type GeoJSONSourceRef, type MapRef, type VectorSourceRef,
 } from "@maplibre/maplibre-react-native";
 import { CAMERA_BOUNDS, CAMERA_MAX_ZOOM, MIN_ZOOM, fitAtMost, fitZoomLimit, fitZoomOf, padBbox, refineFit, spotMarkers,
-         spotUnder, profileLabel, type Bbox, type SpotMarker, type SectionKey, now as clockNow } from "@app/core";
+         spotsInView, spotUnder, profileLabel, type Bbox, type SpotMarker, type SectionKey, now as clockNow } from "@app/core";
 import { pressSpot, spotsKey } from "./spots";
 import { SPOT_SOURCE, spotBoxImage, spotBoxName, spotImages, spotsData, spotsLayers } from "./spot-marks";
 import { baseAdapter } from "./adapters/contract";
@@ -283,6 +283,8 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   const camera0 = useRef({ center: [initial.lon, initial.lat] as [number, number], zoom: initial.zoom });
   /** Where the camera is, for the scale bar: the latitude and zoom it last settled at. */
   const [scaleAt, setScaleAt] = useState({ lat: initial.lat, zoom: initial.zoom });
+  /** (T674) What the map shows, for the spot marks' buttons: where the camera settled and the map's own size. */
+  const [seenAt, setSeenAt] = useState({ lon: initial.lon, lat: initial.lat, zoom: initial.zoom, width: 0, height: 0 });
   /** (T145) The spot marks drawn, and the zoom they were placed at: what a tap is checked against (`spotUnder`). */
   const spotsAt = useRef<{ marks: readonly SpotMarker[]; zoom: number }>({ marks: [], zoom: initial.zoom });
   const spotsNow = useRef(spots);
@@ -758,6 +760,8 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
       }
       const next = { lat: ne.center[1], zoom: ne.zoom };
       setScaleAt((was) => (was.lat === next.lat && was.zoom === next.zoom ? was : next));
+      const lon = ne.center[0];
+      setSeenAt((was) => (was.lon === lon && was.lat === next.lat && was.zoom === next.zoom ? was : { ...was, lon, ...next }));
     }
     void shiftMarks();
     // the next full render reports what is on screen (and measures a fit): the tiles for here may not be in yet
@@ -792,6 +796,8 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   const onLayout = useCallback((e: LayoutChangeEvent) => {
     const was = size.current;
     size.current = { width: e.nativeEvent.layout.width, height: e.nativeEvent.layout.height };
+    const { width, height } = size.current;
+    setSeenAt((s) => (s.width === width && s.height === height ? s : { ...s, width, height }));
     // (T443) a fit framed in the old size is framed again in this one
     if (was.width !== size.current.width || was.height !== size.current.height) refit.current?.();
     if ((globalThis as { __openProbe?: boolean }).__openProbe) {
@@ -806,6 +812,8 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [spotKey, scaleAt.zoom]);
   spotsAt.current = { marks: spotMarks, zoom: scaleAt.zoom };
+  // (T674) the marks a screen reader is given a button for: the ones on the map now, never a spot the camera has left
+  const spotsSaid = useMemo(() => spotsInView(spotMarks, seenAt), [spotMarks, seenAt]);
   const spotJson = useMemo(() => (spotColours ? spotsData(spotMarks, spotColours) : EMPTY_FC_OBJ),
     [spotMarks, spotColourKey]);  // eslint-disable-line react-hooks/exhaustive-deps
   const spotLook = useMemo(() => (spotColours ? spotsLayers(spotColours) : []), [spotColourKey]);  // eslint-disable-line react-hooks/exhaustive-deps
@@ -891,10 +899,11 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
           {markLook.map((l) => <Layer key={l.id} {...(l as unknown as LayerSpec)} />)}
         </GeoJSONSource>
       </MLMap>
-      {/* (T316) the spot marks' buttons, for a screen reader only, as the boundary marks' below */}
-      {spots && spotMarks.length ? (
+      {/* (T316) the spot marks' buttons, for a screen reader only, as the boundary marks' below; (T674) only for the
+          marks on the map now (`spotsInView`): a spot the camera has left is neither announced nor reachable */}
+      {spots && spotsSaid.length ? (
         <View style={{ position: "absolute", left: 0, top: 0, width: 1, height: 1, overflow: "hidden" }}>
-          {spotMarks.map((mk) => (
+          {spotsSaid.map((mk) => (
             <Pressable key={mk.key} testID={`spot-mark:${mk.key}`} accessibilityRole="button" aria-label={mk.a11y}
                        onPress={() => pressSpot(mk, spots, (c, o) => renderer.easeTo(c, o))}>
               <Text>{mk.label ?? ""}</Text>

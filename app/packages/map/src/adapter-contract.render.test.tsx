@@ -35,6 +35,8 @@ const web: { map: FakeGl | null; opts: Record<string, unknown> | null; rotationO
              /** (T317) what each runtime GeoJSON source was last given (`addSource` or `setData`) */
              data: Record<string, unknown> } =
   { map: null, opts: null, rotationOff: false, keyboardRotationOff: false, tilesIn: true, fitOpts: [], canvasH: 800, data: {} };
+/** (T674) where the fake web camera is: a test moves it, then fires `moveend`. */
+const webCam = { lng: -122, lat: 49 };
 class FakeGl {
   private on_ = new Map<string, Set<Handler>>();
   private style: { layers: { id: string; source?: string }[]; sources: Record<string, unknown> };
@@ -69,7 +71,7 @@ class FakeGl {
   /** The canvas as last sized: a test sets `web.canvasH` to leave it stale (its box changed, the observer not yet run). */
   getCanvas() { return { style: { width: "400px", height: `${web.canvasH}px` } }; }
   resize() { if (web.canvasH !== 800) log.push(`resize ${web.canvasH}->800`); web.canvasH = 800; }
-  getCenter() { return { lng: -122, lat: 49 }; }
+  getCenter() { return { ...webCam }; }
   /** Screen x: a degree of longitude east of -122.2 is 1000 px (so -121.83788 sits at 362 of the 400 px map). */
   project(l: { lng: number; lat: number }) { return { x: Math.round((l.lng + 122.2) * 1000), y: 400 }; }
   /** Its inverse, and a degree of latitude north of 49 is 1000 px up from y 400. */
@@ -192,7 +194,7 @@ afterEach(() => {
   log.length = 0;
   answer = () => [];
   web.map = null; web.opts = null; web.rotationOff = false; web.keyboardRotationOff = false; web.tilesIn = true;
-  web.fitOpts = []; web.canvasH = 800; web.data = {};
+  web.fitOpts = []; web.canvasH = 800; web.data = {}; webCam.lng = -122; webCam.lat = 49;
   native.props = null; native.camera = null; native.geojson = {}; native.holdRender = false; native.layers = {}; native.fitOpts = [];
 });
 
@@ -1010,5 +1012,39 @@ it("no listener, no long press: the binding is handed no handler (its long press
     await act(async () => {});
     expect({ same: native.props!.mapStyle === style1, data: native.geojson.gauges })
       .toEqual({ same: true, data: JSON.parse(g2) });
+  });
+});
+
+/**
+ * (T674) A SPOT OFF THE MAP IS NOT IN THE ACCESSIBILITY TREE. Each mark has a 1 px button for a screen reader (T316); it
+ * was there for EVERY saved spot wherever the camera was, so with the map on Coquitlam a reader still reached "Open spot
+ * <a spot at Hope>" at the map's corner (emulator, T603: `spot-mark:spot:…` bounds [0,136][3,139]). Only the marks the
+ * camera holds have one, on both maps, and it follows the camera.
+ */
+describe.each(["web", "native"] as const)("T674 a spot's button only while its mark is on the map: %s", (name) => {
+  const HERE = { id: "s1", lat: 49, lon: -122, title: "Tamihi run" };
+  /** 0.56 degrees east at zoom 9: about 408 px from the middle of a 400 px map. */
+  const HOPE = { id: "s2", lat: 49, lon: -121.44, title: "Hope bar" };
+  const spots = { points: [HERE, HOPE], selected: null, onOpen: () => {}, onList: () => {},
+                  colours: { mark: colour("light", "color.ui.spot"), ground: colour("light", "color.ui.spot-ground") } };
+  const said = () => screen.queryAllByRole("button").map((b) => b.getAttribute("aria-label")).filter((l) => l?.includes("spot"));
+  const moveTo = (lon: number, lat: number) => {
+    if (name === "web") { webCam.lng = lon; webCam.lat = lat; act(() => web.map!.fire("moveend")); return; }
+    act(() => { (native.props!.onRegionDidChange as (e: unknown) => void)(
+      { nativeEvent: { center: [lon, lat], zoom: 9, bearing: 0, pitch: 0, animated: false, userInteraction: true } }); });
+  };
+
+  it("the mark the camera holds is said; the one off the map is not, until the camera goes there", async () => {
+    const M = PLATFORMS[name].Map;
+    render(<M {...base({ data: undefined, highlight: undefined, spots })} />);
+    if (name === "native") {
+      await waitFor(() => expect(native.props).toBeTruthy());
+      // before the map knows its own size nothing is said to be on it
+      expect(said()).toEqual([]);
+      act(() => { (native.props!.onLayout as (e: unknown) => void)({ nativeEvent: { layout: { width: 400, height: 800 } } }); });
+    }
+    await waitFor(() => expect(said()).toEqual(["Open spot Tamihi run"]));
+    moveTo(HOPE.lon, HOPE.lat);
+    await waitFor(() => expect(said()).toEqual(["Open spot Hope bar"]));
   });
 });
