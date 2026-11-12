@@ -195,6 +195,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T682 | Move two gauges to the new river line (08NK016, 08MH028); the other nine and the 17 lake-outlet gauges keep today's placement | OPEN | — | owner 2026-11-12 (T678 row `gauges-11-other-line`); promote reviewed rows surgically in matches.json, never regenerate |
 | T683 | Nakina River: half-width DFO rule binds the whole channel between the signs, card carries DFO's centre-line-to-north-bank words | OPEN | — | owner 2026-11-12 (row `nakina-half-width`); RULINGS E19 |
 | T684 | Drop the build-27 cuts on five held lines with nothing tidal below (354087703, 354154029, 356341234, 360445710, 360861076) | OPEN | — | owner 2026-11-12 (T678 C, row `held-five-build27-cut`); RULINGS E20 |
+| T685 | Build the coast rule from the owner's 2026-11-12 answers (single rule; five whole-tidal sloughs; fix the automatic reading; polygon-edge cut placement). Next free ticket T686 | OPEN | — | owner 2026-11-12 (T678 answers); RULINGS E21–E24 |
 
 ## Order for open tickets
 

@@ -1,5 +1,13 @@
 # T678 — Tidal Coast Proposal (DRAFT, not published, not shown to the owner yet)
 
+**Status 2026-11-12: ANSWERED** (owner, in chat). Build is ticket T685; rulings RULINGS E21–E24.
+
+## Owner answers 2026-11-12
+The owner asked twice for a single rule and a consistent definition.
+1. **The rule, no DFO written boundary on the water.** (a) A water that reaches the sea is fresh to the shoreline; DFO's polygon never cuts. G1 (59) fresh; G2 (17) cuts dropped; G6 all ten estuaries E1–E10 (63) fresh to the shoreline (E1–E4 answered one by one, then "apply the single rule to all"); X2 Suter Brook Creek fresh to the shoreline (130 m drawn over the inlet is sea); X3 stays fresh; X4 loses its cut. (b) A creek entering a tidal part of a river is cut at the river's edge (polygon edge); only the piece inside the river's water is tidal; a creek entering a fresh part is untouched. G3 (18) cut at the river's edge; G4 (10) and G5 (3) keep today's cuts (they do enter tidal water and today's cut is already at the river's edge; the automatic "all fresh" reading is a flaw: it ignores the piece drawn across the river); X1, X5, X6 cut at the river's edge; X7 cut at the river's edge (168 m tidal, 53 m fresh).
+2. **Cut placement question** (river polygon or FWA waterbody key): answered polygon edge; the build must confirm in code (T685).
+3. **Fraser sloughs.** Same rule (b): S1, S2, S4, S5, S7, S11–S20 cut at the river's edge, slough fresh. Whole-water tidal by owner: Deas S3, Woodward S10, McDonald S8, Tamboline S9, London S6, recorded as owner `whole` rows in `data/curated/waters/tidal_limits.json` beside Gilmour, Tilbury, Williamson, Ewen.
+
 **Status 2026-11-12: published** at https://claude.ai/artifact/2VRJAsyeeyMNmCiZpJewVA . 53 pictures are supporting files. The page carries proposals only; nothing is applied and every line stays held at today's result until the owner answers. Owner To-Do row `tidal-coast-proposal` added; the old tidal rows are marked replaced.
 
 ## What is left to do
