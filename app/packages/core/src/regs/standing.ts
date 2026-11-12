@@ -71,29 +71,45 @@ export function whereNotOf(settled: Settled): WhereNotVM | null {
   };
 }
 
-/**
- * Every rule the stored rows answers of the card's segment give the role "possession" (page v36 possessionHtml: over the
- * card's fish in frame order, hatchery then wild, each answer's roles in stored order; once per rule), led by the one
- * naming no fish (else the most days), then the others whose number of days differs.
- */
-export function possessionRules(card: CardModel, inp: RegsInputs): readonly RuleView[] {
+/** Every rule the stored rows answers of the card's segment give `role` (page v36 possessionHtml's walk: the card's fish in
+ *  frame order, hatchery then wild, each answer's roles in stored order; once per rule). */
+function rulesOfRole(card: CardModel, inp: RegsInputs, role: string): RuleView[] {
   const f = card.ctx.s >= 0 ? inp.year?.rowsBySeg[card.ctx.s] ?? null : null;
   if (!f) return [];
   const seen = new Set<string>(), p: RuleView[] = [];
   for (const S of Object.keys(card.R)) {
     const a = f.fish[S];
     if (!a) continue;
-    for (const d of [a.hatchery, a.wild]) for (const [rix, role] of d?.roles ?? []) {
-      if (role !== "possession") continue;
+    for (const d of [a.hatchery, a.wild]) for (const [rix, r0] of d?.roles ?? []) {
+      if (r0 !== role) continue;
       const r = inp.rules.get(rix);
       if (!seen.has(r.key)) { seen.add(r.key); p.push(r); }
     }
   }
+  return p;
+}
+
+/**
+ * Every rule the stored rows answers of the card's segment give the role "possession" (page v36 possessionHtml: over the
+ * card's fish in frame order, hatchery then wild, each answer's roles in stored order; once per rule), led by the one
+ * naming no fish (else the most days), then the others whose number of days differs.
+ */
+export function possessionRules(card: CardModel, inp: RegsInputs): readonly RuleView[] {
+  const p = rulesOfRole(card, inp, "possession");
   if (!p.length) return [];
   const perDaily = (r: RuleView) => r.f.per_daily as number | undefined;
   const species = (r: RuleView) => (r.f.species as readonly string[] | null | undefined) ?? [];
   const main = p.find((r) => !species(r).length) ?? [...p].sort((a, b) => (perDaily(b) ?? NaN) - (perDaily(a) ?? NaN))[0]!;
   return [main, ...p.filter((r) => r !== main && perDaily(r) !== perDaily(main))];
+}
+
+/**
+ * (T670 K1) A WATER'S OWN POSSESSION LIMIT: every rule the stored rows answers give the role "possession_cap" (Charlie
+ * Lake's "Walleye daily and possession quotas = 3", p.65: no more than 3 walleye in possession, where the region's rule
+ * would allow 2 days' quota). The role is the store's; this only collects the rules, once each, in the stored order.
+ */
+export function possessionCaps(card: CardModel, inp: RegsInputs): readonly RuleView[] {
+  return rulesOfRole(card, inp, "possession_cap");
 }
 
 /** The value words of the possession sentence: the prototype's two foot patterns, kept verbatim but over the data's
@@ -106,18 +122,23 @@ export function possessionValue(says: string): string | null {
 /**
  * The card-level Possession row (prototype .posrow from page v36's possession foot): label, the value words of the data's
  * sentence, the whole sentence and the leading rule for its sheet. Only on a drawn card: a keyed, non-tidal day that is
- * not closed. null when no rule has the role, when one has no sentence (page v36 prints "missing" there), or when the
+ * not closed. null when no rule has either role, when one has no sentence (page v36 prints "missing" there), or when the
  * sentence does not read as the prototype's patterns expect.
+ *
+ * (T670 K1) `also`: every sentence after the lead — the fish whose possession differs from the general rule, then the
+ * water's own possession limits (`possessionCaps`) — drawn UNDER the row, so "2 days' quota" is never read alone for a
+ * fish it does not hold for. `says` is all of them. A water whose only possession rules are its own limits has no
+ * value word: the lines say it.
  */
 export function possessionOf(card: CardModel, inp: RegsInputs, settled: Settled): PossessionVM | null {
   const st = settled.status?.status;
   if (!st || st === "closed" || st === "tidal") return null;
-  const p = possessionRules(card, inp);
-  if (!p.length) return null;
-  const said = p.map((r) => r.facts?.plain ?? "");
+  const p = possessionRules(card, inp), caps = possessionCaps(card, inp);
+  if (!p.length && !caps.length) return null;
+  const said = [...p, ...caps].map((r) => r.facts?.plain ?? "");
   if (said.some((t) => !t)) return null;
   const says = said.join(" ");
-  const value = possessionValue(says);
+  const value = p.length ? possessionValue(says) : "";
   if (value === null) return null;
-  return { label: WORDS.POSSESSION, value, says, rule: p[0]!.key, term: "possession_quota", open: "pos:pos" };
+  return { label: WORDS.POSSESSION, value, says, also: said.slice(p.length ? 1 : 0), rule: (p[0] ?? caps[0]!).key, term: "possession_quota", open: "pos:pos" };
 }

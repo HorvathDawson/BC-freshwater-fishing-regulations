@@ -44,7 +44,7 @@ const OWN: GroupPossession[] = [
   { per_daily: 2, of: 15, n: 30, by: 3079, example: "With 15 whitefish a day you may have 30: 2 days’ fish.", doubles: null },
 ];
 const POS: PossessionVM = { label: "Possession", value: "2 days’ quota", says: "Possession: 2 days’ quota. Fish at home don’t count.",
-  rule: "z2:possession_quota::possession_quota.r1", term: "possession_quota", open: "pos:pos" };
+  rule: "z2:possession_quota::possession_quota.r1", also: [], term: "possession_quota", open: "pos:pos" };
 
 /** T30's source line for the hook item (the keys it names feed the srcs: sheet; who/pages are the line's own) */
 const HOOK_SRC: SourceLineVM = { who: "This water’s · B.C. ›", aria: "", open: "srcs:gl|hook", pages: [],

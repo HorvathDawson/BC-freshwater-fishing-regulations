@@ -17,7 +17,7 @@ export function BoatsLine({ boats, palette, onSheet }: { boats: RegsPage["boats"
   return (
     <View testID="regs-boats">
       {boats.map((b) => (
-        <RegsPress key={b.kind} testID={`boat:${b.kind}`} accessibilityRole="button" onPress={() => onSheet(`rule:${b.rule}`)}
+        <RegsPress key={`${b.kind}:${b.rule}`} testID={`boat:${b.kind}`} accessibilityRole="button" onPress={() => onSheet(`rule:${b.rule}`)}
                    box={{ w: 44, h: 40 }}
                    style={{ minHeight: 40, flexDirection: "row", alignItems: "center", gap: 6, paddingVertical: 8,
                             borderBottomWidth: 1, borderBottomColor: palette.line2 }}>

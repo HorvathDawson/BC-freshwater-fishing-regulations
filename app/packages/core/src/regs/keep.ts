@@ -127,9 +127,8 @@ export function keepOf(inp: RegsInputs, env: KeepEnv): KeepVM {
       const row = card.rows[i]!;
       if (row.raw.group?.headline) { rows.push({ group: groups.length }); groups.push(groupOf(i, inp, env, drawn, seams)); }
       else if (isPlainRow(row)) { rows.push({ plain: plainRows.length }); plainRows.push(plainRowOf(i, { inp, card, settled, seams })); }
-      // else: a pooled row with no stored headline — page v36's legacy card path, not ported. Since T80 (D19 (a)) the
-      // pipeline ships a group for an own one-kind trout/char pool (klmb_1010's rainbow row is now a group); what is left
-      // here is T80's two open shapes (Region 8's "20 brook trout from streams", a one-kind row inside another total)
+      // else: a pooled row with no stored headline — page v36's legacy card path, not ported. (T670 K4/K5) It is a line of
+      // the compact list (others.ts `looseRows`): Region 8's "20 brook trout from streams", a water's one-kind quota
     }
   }
   const otherFish = open ? otherFishOf(card, inp, env.fish) : null;

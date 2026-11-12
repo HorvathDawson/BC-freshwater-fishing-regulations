@@ -405,6 +405,7 @@
   ],
   "otherFish": [
    {
+    "back": [],
     "name": "Kokanee",
     "open": "other:o0",
     "sizeHint": null,
@@ -415,6 +416,7 @@
     "week": "Weekends: keep 5 · Weekdays: release"
    },
    {
+    "back": [],
     "name": "Whitefish",
     "open": "other:o1",
     "sizeHint": null,
@@ -425,6 +427,7 @@
     "week": null
    },
    {
+    "back": [],
     "name": "Bass",
     "open": "other:o2",
     "sizeHint": null,
@@ -435,6 +438,7 @@
     "week": null
    },
    {
+    "back": [],
     "name": "Yellow perch",
     "open": "other:o3",
     "sizeHint": null,
@@ -445,6 +449,7 @@
     "week": null
    },
    {
+    "back": [],
     "name": "Burbot",
     "open": "other:o4",
     "sizeHint": null,
@@ -455,6 +460,7 @@
     "week": null
    },
    {
+    "back": [],
     "name": "Northern pike and walleye",
     "open": "other:o5",
     "sizeHint": null,
@@ -465,6 +471,7 @@
     "week": null
    },
    {
+    "back": [],
     "name": "White sturgeon",
     "open": "other:o6",
     "sizeHint": null,
@@ -475,6 +482,7 @@
     "week": null
    },
    {
+    "back": [],
     "name": "Crayfish",
     "open": "other:o7",
     "sizeHint": null,
@@ -485,6 +493,7 @@
     "week": null
    },
    {
+    "back": [],
     "name": "Protected species",
     "open": "other:o8",
     "sizeHint": null,
@@ -510,6 +519,7 @@
   "outside": null,
   "plainRows": [],
   "possession": {
+   "also": [],
    "label": "Possession",
    "open": "pos:pos",
    "rule": "z4:possession_quota::possession_quota.r1",

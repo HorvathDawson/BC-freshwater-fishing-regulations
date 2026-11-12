@@ -715,6 +715,7 @@
   ],
   "otherFish": [
    {
+    "back": [],
     "name": "Kokanee",
     "open": "other:o0",
     "sizeHint": null,
@@ -725,6 +726,7 @@
     "week": null
    },
    {
+    "back": [],
     "name": "Whitefish",
     "open": "other:o1",
     "sizeHint": null,
@@ -735,6 +737,7 @@
     "week": null
    },
    {
+    "back": [],
     "name": "Bass",
     "open": "other:o2",
     "sizeHint": null,
@@ -745,6 +748,7 @@
     "week": null
    },
    {
+    "back": [],
     "name": "Black crappie",
     "open": "other:o3",
     "sizeHint": null,
@@ -755,6 +759,7 @@
     "week": null
    },
    {
+    "back": [],
     "name": "White sturgeon",
     "open": "other:o4",
     "sizeHint": null,
@@ -783,6 +788,7 @@
     "week": null
    },
    {
+    "back": [],
     "name": "Crayfish",
     "open": "other:o5",
     "sizeHint": null,
@@ -793,6 +799,7 @@
     "week": null
    },
    {
+    "back": [],
     "name": "Protected species",
     "open": "other:o6",
     "sizeHint": null,
@@ -818,6 +825,7 @@
   "outside": null,
   "plainRows": [],
   "possession": {
+   "also": [],
    "label": "Possession",
    "open": "pos:pos",
    "rule": "z2:possession_quota::possession_quota.r1",

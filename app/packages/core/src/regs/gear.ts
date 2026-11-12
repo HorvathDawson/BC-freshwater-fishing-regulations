@@ -19,7 +19,7 @@ import type { BookBox } from "../answers.generated";
 import type { GearAnswer, GearValue, RegsInputs, RuleIndex, RuleView } from "./inputs";
 import type { BannerVM, ChangeVM, Day, GearLineVM, GearVM, SourceLineVM, Weekday } from "./model";
 import { ruleSub } from "./level";
-import { cap } from "./names";
+import { cap, clean } from "./names";
 import type { SheetKey } from "./sheetKey";
 import { BOOK_DAYS, bookIndex, displayOnBookDay, fmtDay } from "./strip";
 import { GEAR, GEAR_LINES, RANK_LEVEL, WD3, WORDS } from "./words";
@@ -190,6 +190,20 @@ export function gearLines(g: GearAnswer, ctx: GearCtx): { mode: GearVM["mode"]; 
     if (!ps.length) continue;
     ps.forEach((p) => p.terms.forEach((t) => used.add(t)));
     blocks.push({ k, label, values: ps.map((p) => val(p.says, label)), terms: ps.map((p) => tip(p.terms)), cites: ps.flatMap((p) => p.cites) });
+  }
+  // (T670 G4) a hook-size limit the frame decided (`counts.hook_gap_mm`: the Qualicum's "no hooks greater than 15 mm from
+  // point to shank", p.18) that the summary sentence does not word: the Hooks line says it in the deciding rule's stored
+  // label (the frame's own `says` when it carries one), with that rule among the line's sources
+  const gap = g.counts.hook_gap_mm;
+  if (gap && !blocks.some((b) => b.values.some((v) => /\bmm\b/.test(v)))) {
+    const words = gap.says ?? clean(ctx.rules.get(gap.by[0]).export.label);
+    let hook = blocks.find((b) => b.k === "hook");
+    if (!hook) {
+      hook = { k: "hook", label: GEAR_LINES.find(([k]) => k === "hook")![1], values: [], terms: [], cites: [] };
+      const after = blocks.findIndex((b) => b.k === "weight");
+      blocks.splice(after < 0 ? blocks.length : after, 0, hook);
+    }
+    hook.values.push(words); hook.terms.push([]); hook.cites = [...hook.cites, ...gap.cites];
   }
   const drawn = blocks.map((b) => b.k);
   const rowOf = (says: string): Block["k"] => mode ? "mode" : /\bfly\b|\bflies\b|hook|lure/i.test(says) ? "hook"

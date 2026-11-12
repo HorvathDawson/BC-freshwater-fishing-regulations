@@ -120,12 +120,28 @@ function inPartItem(r: RuleView, inp: RegsInputs): CaveatItemVM {
   return area ? { ...item(words, where, r), area } : item(words, where, r);
 }
 
-/** page v36 inPartHtml for the trout card: the stored undrawn-part rules (`settled.inpart`) of `fams` as entries. (T623 F4)
+/**
+ * (T670 G3) THE GEAR AND BOAT RULES OF AN UNDRAWN PART: the day's gear frame lists them (`GearAnswer.in_part`: in force on
+ * the day, held on a part of the water no map draws — Mahood Lake's "Bait ban, Jul 1-Dec 31" within the signs at its
+ * western tip, Cowichan Lake's 10 km/h within 60 m of shore, p.15). No screen read the list. Each is an entry of the same
+ * in-part block as the keeping rules, in the same words (`inPartItem`: the rule's stored label, dates and part).
+ */
+export function gearInPart(inp: RegsInputs): readonly InPartEntry[] {
+  const g = inp.frames?.gear;
+  if (!g || "tidal" in g) return [];
+  return [...new Set(g.in_part)].map((ix) => inp.rules.get(ix)).filter((r) => !r.missing)
+    .map((r) => ({ item: inPartItem(r, inp), now: true, boat: family(r) === "vessel" }));
+}
+
+/** page v36 inPartHtml for the trout card: the stored undrawn-part rules (`settled.inpart`) of `fams` as entries, then
+ *  (T670 G3) the day's gear and boat rules of an undrawn part (`gearInPart`), each rule once. (T623 F4)
  *  A CLOSURE of an undrawn part is the part-closed warning's (`partClosedOf`), never said twice. */
 export function inPartOf(s: Settled, inp: RegsInputs, fams: readonly string[]): CaveatVM | null {
   const boat = (r: RuleView) => family(r) === "vessel";
-  return inPartBlock(s.inpart.filter((x) => fams.includes(family(x.rule)) && !closedGate(x.rule))
-    .map((x) => ({ item: inPartItem(x.rule, inp), now: x.now, boat: boat(x.rule) })), pageWaterNoun(inp));
+  const kept = s.inpart.filter((x) => fams.includes(family(x.rule)) && !closedGate(x.rule))
+    .map((x): InPartEntry => ({ item: inPartItem(x.rule, inp), now: x.now, boat: boat(x.rule) }));
+  const said = new Set(kept.map((x) => x.item.rule));
+  return inPartBlock([...kept, ...gearInPart(inp).filter((x) => !said.has(x.item.rule))], pageWaterNoun(inp));
 }
 
 /**

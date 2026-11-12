@@ -11,12 +11,13 @@
  * Ports (inventory names @ 7fb6809f): page v36 rowsHtml (TROUTISH, rowsHtml.short), renderCard's rows condition;
  * prototype buildKeep Other fish (owk, the v33 size hint), thumb.
  */
-import type { CardModel, CardStatus } from "./card";
+import type { CardModel, CardStatus, HydRow } from "./card";
 import type { FishManifest } from "./fish.generated";
-import { rowTitle } from "./grouphead";
+import { parentRow, rowTitle } from "./grouphead";
 import { stampLine } from "./tree";
 import type { RegsInputs } from "./inputs";
 import type { OtherFishKeyVM, OtherFishRowVM } from "./model";
+import { clean } from "./names";
 import { WORDS } from "./words";
 
 /** page v36 TROUTISH: trout and char first, in full; every other fish folds into one short list. */
@@ -37,6 +38,27 @@ export function splitRows(card: CardModel): { main: readonly number[]; rest: rea
   return !main.length || rest.length < 2 ? { main: all, rest: null } : { main, rest };
 }
 
+/**
+ * (T670 K4/K5) THE FULL ROWS NOTHING DRAWS: a row of `main` that is no parent's child (grouphead.ts `parentRow`), has no
+ * stored group headline (so no card) and holds a pool (so no plain row) — page v36's legacy pooled card, never ported.
+ * It was dropped from the tab whole: Region 8's "20 brook trout from streams" (p.68) on every open stream of the region,
+ * the Duncan River's "bull trout daily quota = 2" (p.36) on its tributaries. Such a row is drawn as a line of the compact
+ * list, its stored answer in one word and its full article one tap down (`other:oN`), like every row of `rest`.
+ */
+export function looseRows(card: CardModel): readonly number[] {
+  return splitRows(card).main.filter((i) => {
+    const r = card.rows[i]!;
+    return !parentRow(card, r) && !r.raw.group?.headline && !!r.pool;
+  });
+}
+
+/** The rows of the compact list, in the order drawn: the loose full rows (trout and char first), then `rest`. Null: no list.
+ *  `other:oN` is the N-th of these (sheets/other.ts reads the same list). */
+export function listRows(card: CardModel): readonly number[] | null {
+  const loose = looseRows(card), { rest } = splitRows(card);
+  return loose.length || rest ? [...loose, ...(rest ?? [])] : null;
+}
+
 /** page v36 rowsHtml.short: the row's stored answer in one word. */
 export function shortValue(kind: CardStatus, daily: number | null): string {
   return kind === "keep" ? `${daily}${WORDS.A_DAY}` : kind === "nolimit" ? WORDS.NO_LIMIT : kind === "closed" ? WORDS.CLOSED_LC : WORDS.RELEASE_LC;
@@ -44,13 +66,33 @@ export function shortValue(kind: CardStatus, daily: number | null): string {
 
 const SIZE_IN_GROUP = /"size_rule":"[^"]|"detail":"[^"]*\d+ cm/;
 
-/** prototype Other fish: one compact row per `rest` row, opening its full row as a sheet; null when there is no list. */
+/** (T670 K4/K5) a row with no stored group says its size limit through its stored items: a band that does not run from 0
+ *  with no upper end, or a stored size condition. */
+const sizeInItems = (r: HydRow): boolean =>
+  (r.items ?? []).some((it) => (it.bands ?? []).some(([from, to]) => from > 0 || to != null))
+  || (r.conds ?? []).some((c) => c.c === "size");
+
+/**
+ * (T670 K2) THE FISH OF A ROW THAT MUST GO BACK: a row's stored conditions of kind "back" — members the row's number does
+ * not hold for, each released or closed by its own rule (the Peace River's whitefish row keeps 15 lake whitefish while
+ * "Mountain whitefish catch and release", p.66). Each is said in the rule's stored sentence ("Release every mountain
+ * whitefish."), else the rule's label; the row's one word ("15 a day") is never the whole answer for them.
+ */
+export function backOf(r: HydRow): OtherFishRowVM["back"] {
+  return (r.conds ?? []).flatMap((c) => {
+    const st = c.status;
+    if (c.c !== "back" || !c.r || (st !== "release" && st !== "closed")) return [];
+    return [{ status: st, says: c.r.facts?.plain ?? clean(c.r.export.label), rule: c.r.key }];
+  });
+}
+
+/** prototype Other fish: one compact row per list row (`listRows`), opening its full row as a sheet; null when there is no list. */
 export function otherFishOf(card: CardModel, inp: RegsInputs, fish: FishManifest): readonly OtherFishRowVM[] | null {
-  const { rest } = splitRows(card);
-  if (!rest) return null;
-  return rest.map((ix, i): OtherFishRowVM => {
+  const list = listRows(card);
+  if (!list) return null;
+  return list.map((ix, i): OtherFishRowVM => {
     const r = card.rows[ix]!, g = r.raw.group;
-    const hasSize = !!g && SIZE_IN_GROUP.test(JSON.stringify(g.tree ?? g.kinds ?? []));
+    const hasSize = g ? SIZE_IN_GROUP.test(JSON.stringify(g.tree ?? g.kinds ?? [])) : sizeInItems(r);
     return {
       thumb: r.members.find((c) => (fish[c]?.length ?? 0) > 0) ?? null,
       name: rowTitle(r, inp), value: shortValue(r.kind, r.daily), tone: r.kind,
@@ -58,6 +100,7 @@ export function otherFishOf(card: CardModel, inp: RegsInputs, fish: FishManifest
       sizeHint: hasSize && r.kind === "keep" ? WORDS.SIZE_HINT : null,
       open: `other:o${i}`,
       stamps: (r.raw.stamps ?? []).map(stampLine),
+      back: backOf(r),
     };
   });
 }
@@ -71,7 +114,8 @@ export const OTHER_FISH_KEY_TERMS: readonly (readonly ["release" | "closed", str
 export function otherFishKeyOf(rows: readonly OtherFishRowVM[] | null, inp: RegsInputs): readonly OtherFishKeyVM[] {
   if (!rows) return [];
   return OTHER_FISH_KEY_TERMS.flatMap(([status, term]) => {
-    const says = rows.some((r) => r.tone === status) ? inp.statics.glossary.terms.find((t) => t.id === term)?.says.trim() : "";
+    const says = rows.some((r) => r.tone === status || r.back.some((b) => b.status === status))
+      ? inp.statics.glossary.terms.find((t) => t.id === term)?.says.trim() : "";
     return says ? [{ status, says, term }] : [];
   });
 }

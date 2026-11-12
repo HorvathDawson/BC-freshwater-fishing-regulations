@@ -207,8 +207,16 @@ export function PossessionRow({ possession, palette, actions }: { possession: Po
   return (
     <RegsPress testID="keep-possession" accessibilityRole="button" onPress={() => actions.onSheet(possession.open)} box={ROW}
                style={{ marginTop: 8, marginHorizontal: GUTTER, paddingVertical: 9, minHeight: 44, flexDirection: "row", alignItems: "center", borderTopWidth: 1.5, borderTopColor: palette.ink }}>
-      <Text style={[TYPE.regsBody, { color: palette.ink, flex: 1 }]}>{possession.label}</Text>
-      <Text style={[TYPE.regsBodyBold, { color: palette.ink }]}>{possession.value}</Text>
+      <View style={{ flex: 1 }}>
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <Text style={[TYPE.regsBody, { color: palette.ink, flex: 1 }]}>{possession.label}</Text>
+          {!!possession.value && <Text style={[TYPE.regsBodyBold, { color: palette.ink }]}>{possession.value}</Text>}
+        </View>
+        {/* (T670 K1) the fish the value does not hold for, and the water's own possession limits: never only in the sheet */}
+        {possession.also.map((t, i) => (
+          <Text key={i} testID="keep-possession-also" style={[TYPE.meta, { color: palette.ink, marginTop: 3 }]}>{t}</Text>
+        ))}
+      </View>
       <Text style={[TYPE.regsBody, { color: palette.sub, marginLeft: 8 }]}>›</Text>
     </RegsPress>
   );
@@ -308,6 +316,10 @@ export function SpeciesRows({ rows, keys, palette, actions, images, folds = [] }
           <View style={{ flex: 1 }}>
             <Text style={[TYPE.regsBody, { color: palette.ink }]}>{o.name}</Text>
             {o.week && <Text style={[TYPE.metaSemi, { color: palette.sub, marginTop: 2 }]}>{o.week}</Text>}
+            {/* (T670 K2) the row's fish its number does not hold for: said on the row, in the status colour, never only in the sheet */}
+            {o.back.map((b, i) => (
+              <Text key={i} testID={`otherfish-back:${b.status}`} style={[TYPE.metaSemi, { color: tone(b.status), marginTop: 2 }]}>{b.says}</Text>
+            ))}
           </View>
           <Text testID={`st:${o.tone}`} style={[TYPE.regsBodyBold, { color: tone(o.tone) }]}>
             {o.value}{o.sizeHint ? <Text style={[TYPE.metaSemi, { color: palette.sub }]}>{` ${o.sizeHint}`}</Text> : null}

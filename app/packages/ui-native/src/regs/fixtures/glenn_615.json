@@ -580,6 +580,7 @@
   ],
   "otherFish": [
    {
+    "back": [],
     "name": "Kokanee",
     "open": "other:o0",
     "sizeHint": null,
@@ -590,6 +591,7 @@
     "week": null
    },
    {
+    "back": [],
     "name": "Whitefish",
     "open": "other:o1",
     "sizeHint": null,
@@ -600,6 +602,7 @@
     "week": null
    },
    {
+    "back": [],
     "name": "Burbot",
     "open": "other:o2",
     "sizeHint": null,
@@ -610,6 +613,7 @@
     "week": null
    },
    {
+    "back": [],
     "name": "Largemouth bass, northern pike, smallmouth bass, walleye and yellow perch",
     "open": "other:o3",
     "sizeHint": null,
@@ -620,6 +624,7 @@
     "week": null
    },
    {
+    "back": [],
     "name": "White sturgeon",
     "open": "other:o4",
     "sizeHint": null,
@@ -630,6 +635,7 @@
     "week": null
    },
    {
+    "back": [],
     "name": "Crayfish",
     "open": "other:o5",
     "sizeHint": null,
@@ -640,6 +646,7 @@
     "week": null
    },
    {
+    "back": [],
     "name": "Protected species",
     "open": "other:o6",
     "sizeHint": null,
@@ -665,6 +672,7 @@
   "outside": null,
   "plainRows": [],
   "possession": {
+   "also": [],
    "label": "Possession",
    "open": "pos:pos",
    "rule": "z4:possession_quota::possession_quota.r1",

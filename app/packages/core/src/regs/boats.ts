@@ -9,13 +9,14 @@
 import type { GearAnswer, RegsInputs, RuleView } from "./inputs";
 import type { BoatChipVM, BoatKind } from "./model";
 import { gearAnswer } from "./gear";
+import { clean } from "./names";
 import { winTxt } from "./time";
 import { BOATS } from "./words";
 
-const KINDS: readonly BoatKind[] = ["none", "unpowered", "electric_only", "power_capped", "speed", "towing"];
+const KINDS: readonly Exclude<BoatKind, "in_boat">[] = ["none", "unpowered", "electric_only", "power_capped", "speed", "towing"];
 
 /** The kind a vessel rule belongs to, from its facts alone; null: not a vessel rule or an aspect this line does not know. */
-export function boatKind(r: RuleView): BoatKind | null {
+export function boatKind(r: RuleView): Exclude<BoatKind, "in_boat"> | null {
   if (r.export.type !== "vessel_rule") return null;
   const aspect = r.f.aspect;
   if (aspect === "speed") return "speed";
@@ -28,7 +29,7 @@ export function boatKind(r: RuleView): BoatKind | null {
 const num = (v: unknown): number | null => (typeof v === "number" && Number.isFinite(v) ? v : null);
 const g = (n: number): string => String(+n.toFixed(2));
 
-function words(kind: BoatKind, rs: readonly RuleView[]): string {
+function words(kind: Exclude<BoatKind, "in_boat">, rs: readonly RuleView[]): string {
   switch (kind) {
     case "none": return BOATS.NONE;
     case "unpowered": return BOATS.UNPOWERED;
@@ -49,12 +50,13 @@ function words(kind: BoatKind, rs: readonly RuleView[]): string {
 
 /** The chips of a gear answer's vessel rules (in force, then timed), one per kind in the fixed order. */
 export function boatChips(ga: GearAnswer, inp: Pick<RegsInputs, "rules">): readonly BoatChipVM[] {
-  const by = new Map<BoatKind, RuleView[]>();
+  const by = new Map<Exclude<BoatKind, "in_boat">, RuleView[]>();
   for (const ix of [...ga.vessel.active, ...ga.vessel.timed]) {
     const r = inp.rules.get(ix), k = boatKind(r);
     if (k) by.set(k, [...(by.get(k) ?? []), r]);
   }
-  return KINDS.filter((k) => by.has(k)).map((k): BoatChipVM => {
+  return [...inBoatRules(ga, inp).map((r): BoatChipVM => ({ kind: "in_boat", text: clean(r.export.label), rule: r.key })),
+          ...KINDS.filter((k) => by.has(k)).map((k): BoatChipVM => {
     const rs = by.get(k)!;
     const t = words(k, rs);
     const cond = (r: RuleView) => [r.tcond, winTxt(r.wins).slice(2)].filter(Boolean).join(", ");
@@ -65,7 +67,23 @@ export function boatChips(ga: GearAnswer, inp: Pick<RegsInputs, "rules">): reado
     const on = !part && !t.endsWith(BOATS.ON_PARTS) && rs.every((r) => !!r.export.parts?.on_parts)
       ? ` ${rs[0]!.export.parts!.on_parts}` : "";
     return { kind: k, text: t + (part ? BOATS.IN_PART : on) + (when ? ` · ${when}` : ""), rule: rs[0]!.key };
-  });
+  })];
+}
+
+/**
+ * (T670 G1) THE RULES THAT HOLD FOR AN ANGLER IN A BOAT: the gear frame's `circumstantial` clauses the pipeline holds
+ * "while in_boat" — the Kispiox's "No angling from boats" (p.51), the Thompson's (p.32), Kootenay Lake's rods from a
+ * boat. The frame carried them and no screen read them. Each rule once, in the stored order; its words are its stored
+ * label ("No angling (from a boat), Aug 15-Dec 31"), the same words its rule sheet shows. Selects; decides nothing.
+ */
+export function inBoatRules(ga: GearAnswer, inp: Pick<RegsInputs, "rules">): readonly RuleView[] {
+  const seen = new Set<number>(), out: RuleView[] = [];
+  for (const c of ga.circumstantial) {
+    const ix = c.clause[0];
+    if (!(c.while ?? []).includes("in_boat") || seen.has(ix)) continue;
+    seen.add(ix); out.push(inp.rules.get(ix));
+  }
+  return out;
 }
 
 /** The page's boats line: empty for a water with no vessel rule (or no gear frame: tidal, outside B.C.). */

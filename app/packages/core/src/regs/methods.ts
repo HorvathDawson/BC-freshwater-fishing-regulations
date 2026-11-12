@@ -12,6 +12,7 @@
  * boats / reference cells, WAYS. The "!" limited-way glyph of page v36 is not drawn: every ✓ row is "✓" and the warning
  * is the name's suffix (as the prototype).
  */
+import { inBoatRules } from "./boats";
 import { closedFoot, gearAnswer, sourceLine, type GearCtx } from "./gear";
 import type { GearAnswer, RegsInputs, RuleView } from "./inputs";
 import type { MethodsVM } from "./model";
@@ -97,7 +98,8 @@ export function waysVM(chips: readonly WayChip[], ctx: GearCtx): MethodsVM["ways
 
 /** page v36 gearParts boats: the water's boat rules (in force, then timed), each its label; null when it has none. */
 export function boatsVM(g: GearAnswer, ctx: GearCtx): MethodsVM["boats"] {
-  const rixs = [...g.vessel.active, ...g.vessel.timed];
+  // (T670 G1) first the rules that hold for an angler in a boat ("No angling (from a boat)"), then the vessel rules
+  const rixs = [...inBoatRules(g, ctx).map((r) => r.rix), ...g.vessel.active, ...g.vessel.timed];
   if (!rixs.length) return null;
   return { label: METHODS.BOATS, items: rixs.map((ix) => clean(ctx.rules.get(ix).export.label)), src: sourceLine("srcs:boats", rixs, ctx) };
 }

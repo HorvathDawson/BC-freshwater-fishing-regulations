@@ -3,10 +3,11 @@
  * app/conformance/src/regs/others.parity.test.ts (retired, T439).
  */
 import { describe, expect, it } from "vitest";
+import type { HydRow } from "./card";
 import type { FishManifest } from "./fish.generated";
 import { drawnRows } from "./grouphead";
 import { plain } from "./line";
-import { groupRows, otherFishOf, shortValue, splitRows, TROUTISH } from "./others";
+import { backOf, groupRows, listRows, looseRows, otherFishOf, shortValue, splitRows, TROUTISH } from "./others";
 import { cardOf, GROUP, INP, kind, rowOf, TROUT_ROW } from "./testing/keepFixtures";
 
 const FISH: FishManifest = {
@@ -41,10 +42,10 @@ describe("splitRows (page v36 rowsHtml)", () => {
 describe("otherFishOf", () => {
   it("each row's title and one-word answer; the weekday split under its name; the first pictured fish; the size hint", () => {
     expect(otherFishOf(cardOf([TROUT_ROW, KO, BASS, GR, PROT]), INP(), FISH)).toEqual([
-      { thumb: "KO", name: "Kokanee", value: "5 a day", tone: "keep", week: "Weekends: keep 5 · Weekdays: release", sizeHint: null, open: "other:o0", stamps: [] },
-      { thumb: null, name: "Bass", value: "no limit", tone: "nolimit", week: null, sizeHint: null, open: "other:o1", stamps: [] },
-      { thumb: null, name: "GR", value: "4 a day", tone: "keep", week: null, sizeHint: "· size limit", open: "other:o2", stamps: [] },
-      { thumb: null, name: "Protected species", value: "closed", tone: "closed", week: null, sizeHint: null, open: "other:o3", stamps: [] }]);
+      { thumb: "KO", name: "Kokanee", value: "5 a day", tone: "keep", week: "Weekends: keep 5 · Weekdays: release", sizeHint: null, open: "other:o0", stamps: [], back: [] },
+      { thumb: null, name: "Bass", value: "no limit", tone: "nolimit", week: null, sizeHint: null, open: "other:o1", stamps: [], back: [] },
+      { thumb: null, name: "GR", value: "4 a day", tone: "keep", week: null, sizeHint: "· size limit", open: "other:o2", stamps: [], back: [] },
+      { thumb: null, name: "Protected species", value: "closed", tone: "closed", week: null, sizeHint: null, open: "other:o3", stamps: [], back: [] }]);
   });
   it("(rows 32) a row's stored stamps, each worded as a stamp line under it — the store's words, never chosen here", () => {
     const WSG = rowOf({ kind: "release", win: 3, members: ["WSG"], all_members: ["WSG"], stamps: [{ doc: "white_sturgeon_licence",
@@ -63,5 +64,39 @@ describe("otherFishOf", () => {
   it("shortValue: the stored kind in one word", () => {
     expect([shortValue("keep", 15), shortValue("nolimit", Infinity), shortValue("closed", null), shortValue("release", null)])
       .toEqual(["15 a day", "no limit", "closed", "release"]);
+  });
+});
+
+describe("(T670 K4/K5) a full row nothing draws is a line of the list", () => {
+  // Region 8's "20 brook trout from streams" (p.68): a pooled trout row with no stored group headline, no parent
+  const EB = rowOf({ kind: "keep", pool: 3, daily: 20, members: ["EB"], all_members: ["EB"], items: [{ members: ["EB"], bands: [[0, null, 20]], back: false, xref: false, sub: null, conds: [] }] });
+  it("loose rows lead the list; `other:oN` counts them first; with no other row they are the list", () => {
+    const card = cardOf([TROUT_ROW, EB, KO, BASS]);
+    expect([looseRows(card), listRows(card)]).toEqual([[1], [1, 0 + 2, 3]]);
+    expect(otherFishOf(card, INP(), FISH)!.map((o) => [o.name, o.value, o.tone, o.sizeHint, o.open])).toEqual([
+      ["Brook trout", "20 a day", "keep", null, "other:o0"], ["Kokanee", "5 a day", "keep", null, "other:o1"], ["Bass", "no limit", "nolimit", null, "other:o2"]]);
+    expect(listRows(cardOf([TROUT_ROW, EB]))).toEqual([1]);                      // rest null: still listed
+    expect(listRows(cardOf([TROUT_ROW, KO]))).toEqual([1]);                      // any pooled row with no headline, not only trout
+    expect(listRows(cardOf([TROUT_ROW]))).toBeNull();
+  });
+  it("a child row (drawn inside its parent's card) and a row with a headline are not loose; a closed day lists nothing", () => {
+    expect(looseRows(cardOf([TROUT_ROW, { ...EB, parent: 0 }]))).toEqual([]);
+    expect(looseRows(cardOf([TROUT_ROW, EB], { status: "closed" }))).toEqual([]);
+  });
+  it("a loose row's size limit is hinted from its stored bands (never read as any size)", () => {
+    const DV = rowOf({ kind: "keep", pool: 3, daily: 1, members: ["DV"], all_members: ["DV"], items: [{ members: ["DV"], bands: [[60, null, 1]], back: false, xref: false, sub: null, conds: [] }] });
+    expect(otherFishOf(cardOf([TROUT_ROW, DV]), INP(), FISH)![0]!.sizeHint).toBe("· size limit");
+  });
+});
+
+describe("(T670 K2) the fish of a row that must go back", () => {
+  it("each stored `back` condition is said in its rule's stored sentence (else its label), with its status; other conditions are not", () => {
+    const row = { conds: [{ c: "size", a: 0, b: 30, r: { key: "e::s" } },
+      { c: "back", who: ["MW"], status: "release", r: { key: "e::r", facts: { plain: "Release every mountain whitefish." }, export: { label: "L" } } },
+      { c: "back", who: ["X"], status: "closed", r: { key: "e::c", facts: null, export: { label: "**No fishing** for X" } } },
+      { c: "back", who: ["Y"], status: "release", r: null }] } as unknown as HydRow;
+    expect(backOf(row)).toEqual([{ status: "release", says: "Release every mountain whitefish.", rule: "e::r" },
+      { status: "closed", says: "No fishing for X", rule: "e::c" }]);
+    expect(backOf({ conds: null } as unknown as HydRow)).toEqual([]);
   });
 });

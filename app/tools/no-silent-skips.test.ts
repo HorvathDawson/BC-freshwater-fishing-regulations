@@ -59,6 +59,7 @@ const ALLOW: Record<string, { n: number; why: string }> = {
   "conformance/src/regs/regsConformance.ts": { n: 1, why: "the shared conformance runner: skips with the reason in its title when its store is absent" },
   "conformance/src/regs/slices.release.test.ts": { n: 1, why: `${LIVE} (a sliced one)` },
   "conformance/src/regs/store.release.test.ts": { n: 1, why: LIVE },
+  "conformance/src/regs/t670.release.test.ts": { n: 1, why: LIVE },
   "conformance/src/regs/tap.parity.test.ts": { n: 1, why: PARITY },
   "conformance/src/regs/unnamed.release.test.ts": { n: 1, why: LIVE },
   "conformance/src/regs/unnamed.sample.release.test.ts": { n: 1, why: `${LIVE} (and its bundle)` },

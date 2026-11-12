@@ -43,7 +43,8 @@ export interface RegsPage {
 
 /** The whole page for one tap: `buildRegsPage` in page.ts (T21). */
 
-export type BoatKind = "none" | "unpowered" | "electric_only" | "power_capped" | "speed" | "towing";
+/** `in_boat` (T670 G1): a gear or method rule that holds for an angler in a boat ("No angling (from a boat)") */
+export type BoatKind = "none" | "unpowered" | "electric_only" | "power_capped" | "speed" | "towing" | "in_boat";
 /** (T209) one chip of the boats line; `rule` is the first rule of the kind (its sheet opens from the chip). */
 export interface BoatChipVM { readonly kind: BoatKind; readonly text: string; readonly rule: RuleKey }
 
@@ -78,7 +79,10 @@ export interface KeepVM {
 }
 export type KeepBlock = "strip" | "inherited" | "banner" | { caveat: number } | { group: number } | { plain: number } | "otherFish" | "possession" | "whereNot"
   | "outside";
-export interface PossessionVM { readonly label: string; readonly value: string; readonly says: string; readonly rule: RuleKey; readonly term: "possession_quota"; readonly open: SheetKey }
+/** `also` (T670 K1): the sentences after the lead — fish whose possession differs, then the water's own possession limits —
+ *  drawn under the row; `value` is "" when the water's own limits are the only possession rules. */
+export interface PossessionVM { readonly label: string; readonly value: string; readonly says: string; readonly also: readonly string[];
+  readonly rule: RuleKey; readonly term: "possession_quota"; readonly open: SheetKey }
 
 /** page v36 waterStrip0 + prototype flagBar / flagLegend / snap runsOf */
 export interface StripVM {
@@ -247,7 +251,10 @@ export interface OtherFishRowVM{ readonly thumb: string | null; readonly name: s
   readonly tone: "keep" | "release" | "closed" | "nolimit";   // decided in core, never the component
   readonly week: string | null; readonly sizeHint: string | null; readonly open: SheetKey;   // open = `other:o${i}`
   /** (rows 32) the row's stored `stamps`, each a tree.ts stampLine ("You need <document ›> <when>"), drawn under the row */
-  readonly stamps: readonly Line[] }
+  readonly stamps: readonly Line[];
+  /** (T670 K2) the row's fish its number does not hold for — released or closed by their own rule (the store's "back"
+   *  conditions), each in the rule's stored sentence; drawn under the row, in the status colour. [] for none */
+  readonly back: readonly { readonly status: "release" | "closed"; readonly says: string; readonly rule: RuleKey }[] }
 export interface WhereNotVM { readonly heading: string; readonly scope: string | null; readonly items: readonly { text: Line; rule: RuleKey }[] }
 
 // ── 2.3 Gear tab (prototype buildGear; page v36 gearParts) ─────────────────────────────────────────────────────────

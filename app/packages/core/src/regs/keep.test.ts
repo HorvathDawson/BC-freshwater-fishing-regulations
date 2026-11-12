@@ -58,12 +58,17 @@ describe("otherFishKeyOf: prototype okey", () => {
   const inp = { statics: { glossary: { terms: [
     { id: "catch_and_release", says: "You may fish for it, but every one you catch must go back. " },
     { id: "no_fishing_for", says: "You may not fish for it at all." }] } } } as unknown as RegsInputs;
-  const row = (tone: OtherFishRowVM["tone"]): OtherFishRowVM => ({ thumb: null, name: "X", value: "v", tone, week: null, sizeHint: null, open: "other:o0", stamps: [] });
+  const row = (tone: OtherFishRowVM["tone"]): OtherFishRowVM => ({ thumb: null, name: "X", value: "v", tone, week: null, sizeHint: null, open: "other:o0", stamps: [], back: [] });
 
   it("one line per status word a row shows, release first, the glossary's words trimmed", () => {
     expect(otherFishKeyOf([row("closed"), row("keep"), row("release")], inp)).toEqual([
       { status: "release", says: "You may fish for it, but every one you catch must go back.", term: "catch_and_release" },
       { status: "closed", says: "You may not fish for it at all.", term: "no_fishing_for" }]);
+  });
+
+  it("(T670 K2) a keep row with a fish that must go back shows the release word's line too", () => {
+    expect(otherFishKeyOf([{ ...row("keep"), back: [{ status: "release", says: "Release every mountain whitefish.", rule: "e::r" }] }], inp)).toEqual([
+      { status: "release", says: "You may fish for it, but every one you catch must go back.", term: "catch_and_release" }]);
   });
 
   it("no list, no release/closed row, or a term the glossary lacks: no line", () => {
