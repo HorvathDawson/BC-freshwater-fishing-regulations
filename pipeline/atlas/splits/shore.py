@@ -144,6 +144,44 @@ HELD_UP_THE_CHANNEL_SINCE: dict[str, str] = {
     "356285962": "Cohilukthan Slough (880 m up the channel)",
     "356358883": "Deas Slough (225 m up the channel)",
 }
+#: HELD FOR THE OWNER, rivers and creeks the rule makes tidal that the owner's dry-run pages showed as "not cut: would
+#: stay freshwater" (next-rebuild, 2026-11-11). The dry runs read each line's outlets off its lowest SECTION; on a line
+#: not cut at its polygon exit that section is the whole lower river and carries every side channel leaving it, so one
+#: fresh braid kept the river "fresh". Read by where each edge leaves the line (`outlet_edges`), these go tidal below
+#: their polygon exit: the same case as the eight main rivers of `HELD_FOR_OWNER` (no limit of their own; 19 carry
+#: the owner's `mouth` row), and 31 creeks into them follow. None has a cut in build 27 except the last two listed in
+#: `HELD_KEEPS_ITS_CUT` (San Juan River, 356341234). Held as build 27 has them until the owner ticks. By blue line.
+HELD_NOT_ON_THE_OWNERS_MAP: dict[str, str] = {
+    "354087703": "San Juan River (would go tidal 695 m up)",
+    "354087805": "Zeballos River (would go tidal 195 m up)",
+    "354087807": "Zeballos River (would go tidal 474 m up)",
+    "354088055": "Koksilah River (would go tidal 542 m up)",
+    "354113387": "unnamed (would go tidal 12 m up)",
+    "354133599": "Bonsall Creek (would go tidal 461 m up)",
+    "354150843": "unnamed (would go tidal 127 m up)",
+    "354154217": "Moyeha River (would go tidal 959 m up)",
+    "356341234": "unnamed (would go tidal 264 m up)",
+    "360215254": "Necleetsconnay River (would go tidal 1073 m up)",
+    "360221844": "Mussel River (would go tidal 142 m up)",
+    "360233262": "unnamed (would go tidal 172 m up)",
+    "360242457": "Ksi X'anmas (would go tidal 310 m up)",
+    "360856269": "Theodosia River (would go tidal 441 m up)",
+    "360858825": "Kwatna River (would go tidal 3125 m up)",
+    "360869552": "Nieumiamus Creek (would go tidal 120 m up)",
+    "360870027": "Tom Browne Creek (would go tidal 855 m up)",
+    "360875560": "Wathl Creek (would go tidal 928 m up)",
+    "360877620": "Stagoo Creek (would go tidal 399 m up)",
+    "360878779": "Khutze River (would go tidal 1068 m up)",
+    "360882263": "Ksi X'anmas (would go tidal 1641 m up)",
+    "360882453": "Brittain River (would go tidal 279 m up)",
+    "360883402": "unnamed (would go tidal 1681 m up)",
+    "360884170": "Mussel River (would go tidal 635 m up)",
+    "360884575": "Necleetsconnay River (would go tidal 617 m up)",
+    "360885253": "Bella Coola River (would go tidal 1320 m up)",
+    "360885559": "Kemano River (would go tidal 813 m up)",
+    "360885824": "Kitimat River (would go tidal 1251 m up)",
+    "360886968": "Quaal River (would go tidal 2357 m up)",
+}
 #: HELD FOR THE OWNER, third group (next-rebuild 2c, 2026-11-11): the polygon exit falls where a side channel of the
 #: creek's own water joins it on both sides, and the braid sweep cannot cut that channel on the cut's line ("line
 #: misses"), so the build would stop (`build.cut_shores`: "a creek's own braid across its polygon exit is the owner's
@@ -153,8 +191,8 @@ HELD_A_BRAID_SPANS_THE_EXIT: dict[str, str] = {
 }
 #: A HELD LINE STAYS EXACTLY AS BUILD 27 HAS IT (next-rebuild 2b, 2026-11-11). "Held" means no change until the owner
 #: ticks; 26 of the 61 held lines carry a T660 shore cut in the live atlas (19 with a tidal piece below it), and the
-#: polygon rule alone would have dropped those cuts and turned the 19 pieces back into freshwater (28 of 64 with the two
-#: creeks next-rebuild 2a added to the second group). So each keeps its
+#: polygon rule alone would have dropped those cuts and turned the 19 pieces back into freshwater (30 of 93 with the lines
+#: next-rebuild added to the held groups). So each keeps its
 #: cut where build 27 made it (the measure on the live graph's bound, same id `shore:<blk>:<int>`); the reach decides
 #: tidal for the piece below as before. The other 35 held lines have no cut in build 27 and get none. A line leaves this
 #: list with its tick (when it leaves the held lists). By blue line -> route measure.
@@ -187,6 +225,8 @@ HELD_KEEPS_ITS_CUT: dict[str, float] = {
     "360861076": 15.6845316882484,
     "356285962": 27.4830560951735,
     "356358883": 2907.4250267973803,
+    "354087703": 37.0329937742508,
+    "356341234": 193.23053610635202,
 }
 #: owner D3: an outside run of at most this many metres between two inside stretches does not end the creek's tidal
 #: stretch (the first REAL exit); a longer one does, and what lies inside higher up stays freshwater
@@ -198,7 +238,7 @@ MOUTH_OUTSIDE = "mouth outside the polygon (D6)"
 FRESH_RECEIVER = "joins fresh water (D1: no shore cut)"
 FRESH_BELOW = "the piece below the cut would stay freshwater (owner 2026-11-11: not cut)"
 OWNER_LIMIT = "the owner's split/whole limit for this water governs it"
-HELD = "held for the owner's tick (HELD_FOR_OWNER / HELD_UP_THE_CHANNEL / HELD_A_BRAID_SPANS_THE_EXIT)"
+HELD = "held for the owner's tick (shore.held_lines: HELD_FOR_OWNER and the other HELD_ lists)"
 #: on a row that is cut all the same: a held line keeps the cut build 27 made (`HELD_KEEPS_ITS_CUT`)
 HELD_KEPT = "held for the owner's tick: keeps its build 27 cut (HELD_KEEPS_ITS_CUT)"
 _EPS = _JOIN_M
@@ -206,7 +246,8 @@ _EPS = _JOIN_M
 
 def held_lines() -> dict[str, str]:
     """Every blue line held for the owner, all the groups together: {blk: why}."""
-    return {**HELD_FOR_OWNER, **HELD_UP_THE_CHANNEL, **HELD_UP_THE_CHANNEL_SINCE, **HELD_A_BRAID_SPANS_THE_EXIT}
+    return {**HELD_FOR_OWNER, **HELD_UP_THE_CHANNEL, **HELD_UP_THE_CHANNEL_SINCE, **HELD_A_BRAID_SPANS_THE_EXIT,
+            **HELD_NOT_ON_THE_OWNERS_MAP}
 
 
 def read_tidal_polygon(gpkg: str, bbox=None):
@@ -453,13 +494,14 @@ def owner_limited(graph: StreamGraph, tidal, limit_rows) -> frozenset:
 
 def polygon_rule(graph: StreamGraph, inside: Mapping[str, list], tidal, existing: Mapping[str, list] | None = None,
                  limited=frozenset(), held: Mapping[str, str] | None = None,
-                 kept: Mapping[str, float] | None = None
+                 kept: Mapping[str, float] | None = None, leaves_at=None
                  ) -> tuple[list[SplitPoint], list[dict], list[dict]]:
     """THE T665 RULE over `inside` (`polygon_inside`). `tidal`: the section ids of tidal water OFF THE MAP under the
     curated limits (`atlas_tidal`). `existing`: `standing_boundaries`. `limited`: `owner_limited`. `held`: the blks held
     for the owner (default `held_lines()`: every held group). `kept`: the held blks that keep a cut, and where
     (default: the `HELD_KEEPS_ITS_CUT` rows still held, when `held` is the default; else none); a kept blk given here
-    that is not held is refused.
+    that is not held is refused. `leaves_at`: `edge_leave_measures` (the build passes it): where on its own line each
+    edge leaves, so the outlets of the piece below a cut are judged on a line that is not cut yet (`outlet_edges`).
 
     Returns (cut points, whole lines, rows). Whole lines are rule A (`why: inside`) and the creeks whose exit is their
     top that end in tidal water (`why: exit_at_top`). Rows: one per line whose mouth is inside the polygon, or that meets
@@ -530,6 +572,29 @@ def polygon_rule(graph: StreamGraph, inside: Mapping[str, list], tidal, existing
     def outlets(n):
         return sorted(graph.edges[i].to_node for i in graph.down_adj.get(n.node_id, ()))
 
+    def outlet_edges(blk, at) -> list[int]:
+        """THE OUTLETS OF THE PIECE BELOW A CUT AT `at`, on a line that is NOT CUT YET (the build): the edges that
+        leave the line below `at`. Before the cut the whole line may be one section carrying every edge that leaves
+        it anywhere (a distributary 2 km up, the line's own loop), and reading that section's edges as the mouth's
+        refused the cut ("would stay freshwater": McDonald Slough, Wahoo Creek, 6 lines of the first side build).
+        With no geometry (`leaves_at` None) it is the lowest section's edges, as on a graph already cut."""
+        ns = lines[blk]
+        if leaves_at is None:
+            return sorted(graph.down_adj.get(ns[0].node_id, ()))
+        out = []
+        for n in ns:
+            if n.down_m >= at - _EPS:
+                break
+            for i in sorted(graph.down_adj.get(n.node_id, ())):
+                t = graph.nodes.get(graph.edges[i].to_node)
+                if t is not None and t.blk == blk:
+                    continue                                   # the line's own next piece, or its own loop
+                m = leaves_at(i)
+                if m is not None and m >= at - _EPS:
+                    continue                                   # leaves the line above the cut
+                out.append(i)
+        return out
+
     rows: dict[str, dict] = {}
     cand: dict[str, float] = {}            # blk -> cut measure (inf: the whole line, its exit is its top)
     kept_here = {b: float(m) for b, m in kept.items() if b in lines}
@@ -593,21 +658,34 @@ def polygon_rule(graph: StreamGraph, inside: Mapping[str, list], tidal, existing
     # fresh. The reach answers the same question (`tidal_crossing_owner`) on the pieces the cuts make.
     ok: set[str] = set()
 
-    def tidal_like(d) -> bool:
+    def tidal_like(i) -> bool:
+        """Does edge `i` end in tidal water off the map? Curated tidal water, a rule-A line, or the piece BELOW
+        another candidate's cut: judged by where the edge joins that line (`at_measure`, on the receiver's blue
+        line), since before the cuts the receiver's lowest section is still its whole line (a creek joining Gundersen
+        Slough 1 km above its cut was read as entering its tidal piece: 10 cuts of the first side build)."""
+        e = graph.edges[i]
+        d = e.to_node
         if d in tidal:
             return True
         n = graph.nodes.get(d)
         if n is None or not n.blk:
             return False
-        return n.blk in rule_a or (n.blk in ok and n.down_m < cand[n.blk] - _EPS)
+        if n.blk in rule_a:
+            return True
+        if n.blk not in ok:
+            return False
+        m = getattr(e, "at_measure", None)
+        if m is None or m != m:
+            m = n.down_m
+        return max(m, n.down_m) < cand[n.blk] - _EPS
     grew = True
     while grew:
         grew = False
         for blk in sorted(cand):
             if blk in ok:
                 continue
-            o = outlets(lines[blk][0])
-            if o and all(tidal_like(x) for x in o):
+            o = outlet_edges(blk, cand[blk])
+            if o and all(tidal_like(i) for i in o):
                 ok.add(blk)
                 grew = True
 
@@ -630,6 +708,23 @@ def polygon_rule(graph: StreamGraph, inside: Mapping[str, list], tidal, existing
         pts.append(SplitPoint(split_id=f"{SOURCE}:{blk}:{int(at)}", blk=blk, route_measure=at, fid="", label=LABEL,
                               anchor_type=AnchorType.point, source=SOURCE))
     return pts, [whole[b] for b in sorted(whole)], [rows[b] for b in sorted(rows)]
+
+
+def edge_leave_measures(graph: StreamGraph, geoms, view=None):
+    """`leaves_at` for `polygon_rule`: a function edge index -> the route measure, on the edge's FROM line, where it
+    leaves that line (`braid_sweep.touch_measure`: the receiving line's point at the confluence, projected onto the
+    from line), or None when it cannot be placed. `view`: a `braid_sweep.View` of this graph to reuse."""
+    from pipeline.atlas.splits import braid_sweep as _bs
+    view = view or _bs.View(graph, geoms)
+
+    def leaves_at(i: int):
+        e = graph.edges[i]
+        f = graph.nodes.get(e.from_node)
+        if f is None or f.kind != NodeKind.stream or not f.blk or e.to_node not in graph.nodes:
+            return None
+        m = _bs.touch_measure(view, e.to_node, i, e.from_node, f.blk)
+        return None if m is None or m != m else float(m)
+    return leaves_at
 
 
 def write_inside(out_dir, whole: list[dict]) -> None:

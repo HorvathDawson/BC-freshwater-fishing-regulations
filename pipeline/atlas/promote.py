@@ -103,11 +103,15 @@ def _registry_ids(build: Path) -> tuple[set[str], dict[str, str]]:
 
 #: curated folders the id dry run does not read: the review log and its queues (a mark names what was looked at then)
 ORPHAN_SCAN_SKIPS = ("review",)
+#: keys whose values are not live references: an append-only `history` (what a match named when it was set), and
+#: `one_water_takes` (the instruction that folds the listed items into one water: naming them is its job)
+ORPHAN_SKIP_KEYS = frozenset({"history", "one_water_takes"})
 
 
 def curated_item_refs(known: set[str], root: Path | None = None) -> dict[str, dict[str, int]]:
     """{item id: {curated file (relative): times named}} — every string (key or value) in every curated `*.json`
-    outside `ORPHAN_SCAN_SKIPS` that is one of `known` (the current atlas's item ids). Read-only."""
+    outside `ORPHAN_SCAN_SKIPS`, and not under an `ORPHAN_SKIP_KEYS` key, that is one of `known` (the current atlas's item
+    ids). Read-only."""
     import json
     if root is None:
         from pipeline.common import curated as _c
@@ -118,6 +122,8 @@ def curated_item_refs(known: set[str], root: Path | None = None) -> dict[str, di
     def walk(v, f):
         if isinstance(v, dict):
             for k, x in v.items():
+                if k in ORPHAN_SKIP_KEYS:
+                    continue
                 if k in known:
                     out.setdefault(k, {})[f] = out.get(k, {}).get(f, 0) + 1
                 walk(x, f)

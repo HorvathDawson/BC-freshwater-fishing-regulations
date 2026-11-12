@@ -60,13 +60,15 @@ def test_a_kept_cut_needs_a_held_line_and_a_place_on_it():
 
 
 def test_the_kept_cuts_are_held_lines_of_the_second_group():
-    """28 of the 64 held lines carry a build 27 cut; none is one of the eight main rivers (they have no cut today),
-    nor the creek held for its braid (not cut in build 27)."""
+    """30 of the 93 held lines carry a build 27 cut; none is one of the eight main rivers (they have no cut today),
+    nor the creek held for its braid (not cut in build 27). The groups do not overlap."""
     held = S.held_lines()
-    assert len(held) == 64 and len(S.HELD_KEEPS_ITS_CUT) == 28
-    assert (len(S.HELD_FOR_OWNER), len(S.HELD_UP_THE_CHANNEL), len(S.HELD_UP_THE_CHANNEL_SINCE),
-            len(S.HELD_A_BRAID_SPANS_THE_EXIT)) == (8, 53, 2, 1)
-    assert set(S.HELD_KEEPS_ITS_CUT) <= set(S.HELD_UP_THE_CHANNEL) | set(S.HELD_UP_THE_CHANNEL_SINCE)
+    groups = (S.HELD_FOR_OWNER, S.HELD_UP_THE_CHANNEL, S.HELD_UP_THE_CHANNEL_SINCE, S.HELD_A_BRAID_SPANS_THE_EXIT,
+              S.HELD_NOT_ON_THE_OWNERS_MAP)
+    assert len(held) == 93 == sum(map(len, groups)) and len(S.HELD_KEEPS_ITS_CUT) == 30
+    assert tuple(map(len, groups)) == (8, 53, 2, 1, 29)
+    assert set(S.HELD_KEEPS_ITS_CUT) <= (set(S.HELD_UP_THE_CHANNEL) | set(S.HELD_UP_THE_CHANNEL_SINCE)
+                                         | set(S.HELD_NOT_ON_THE_OWNERS_MAP))
     assert all(m > 5.0 for m in S.HELD_KEEPS_ITS_CUT.values())
 
 
@@ -78,6 +80,7 @@ def test_a_ticked_line_leaves_the_kept_cuts_with_the_held_list(monkeypatch):
     monkeypatch.setattr(S, "HELD_UP_THE_CHANNEL", {})
     monkeypatch.setattr(S, "HELD_A_BRAID_SPANS_THE_EXIT", {})
     monkeypatch.setattr(S, "HELD_UP_THE_CHANNEL_SINCE", {})
+    monkeypatch.setattr(S, "HELD_NOT_ON_THE_OWNERS_MAP", {})
     monkeypatch.setattr(S, "HELD_KEEPS_ITS_CUT", {"C": 150.0})
     pts, _, _ = S.polygon_rule(g, inside, {"X:0"})
     assert [p.split_id for p in pts] == ["shore:C:300"]
@@ -179,6 +182,84 @@ def test_a_side_channel_of_a_whole_tidal_river_is_tidal_water_not_a_creek_to_cut
     assert [r["blk"] for r in rows if "cut_m" in r and r["blk"] == "S"] == ["S"]
 
 
+# ---------------------------------------------------------------------------------------------- outlets on an uncut line
+def _c_with_a_distributary(leaves_m: float):
+    """Creek C (x = 500, up from X at y = 0) with a second way out, V, leaving it `leaves_m` up and running to X at
+    x = 1500, above X's tidal limit (fresh). Before any shore cut C is ONE section carrying both edges."""
+    base = [f for f in _built()[3] if not f.fid.startswith("C")]
+    cs, last = [], 0
+    for m in sorted({150, 300, int(leaves_m), 1000}):
+        cs.append(_fid(f"C{m}", "C", "50-100-1", [(500, last), (500, m)], last, m, name="C Creek", gnis="9"))
+        last = m
+    v = _fid("V1", "V", "50-100-1", [(1500, 0), (500, leaves_m)], 0, 1000)        # C's own code: a side channel
+    from pipeline.atlas.graph.blk_chains import build_blk_chains
+    from pipeline.atlas.graph.graph import build_stream_graph
+    from shapely.ops import linemerge
+    fids = base + cs + [v]
+    g = build_stream_graph(build_blk_chains(fids, {}), fids)
+    by_fid = {f.fid: f.geometry for f in fids}
+    geoms = {nid: linemerge([by_fid[f] for f in n.member_fids]) for nid, n in g.nodes.items()}
+    idx = {f.fid: (f.down_m, f.up_m, f.stream_order, f.stream_magnitude) for f in fids}
+    sp = SplitPoint(split_id="x_tidal", blk="X", route_measure=1000.0, fid="", label="tidal boundary",
+                    anchor_type=AnchorType.point, source="curated")
+    split_graph_at(g, geoms, place_points(g, [sp]), idx)
+    return g, geoms
+
+
+def test_an_edge_leaving_the_line_above_the_cut_is_not_an_outlet_of_the_piece_below():
+    """C leaves the polygon 300 m up; its distributary V leaves C 600 m up, into fresh water. The piece below the cut
+    has one outlet, tidal X: cut. Read without geometry, C's one uncut section carries V's edge too and the cut was
+    refused ("would stay freshwater") — the first side build's 6 missing cuts. Mutation: `leaves_at=None`."""
+    g, geoms = _c_with_a_distributary(600)
+    assert {n for n in g.nodes if n.startswith("C:")} == {"C:0"}            # not cut yet: one section, both edges
+    inside = S.polygon_inside(S.graph_lines(g, geoms), SEA)
+    pts, _, rows = S.polygon_rule(g, inside, {"X:0"}, held={}, leaves_at=S.edge_leave_measures(g, geoms))
+    assert [p.split_id for p in pts if p.blk == "C"] == ["shore:C:300"]
+    pts, _, rows = S.polygon_rule(g, inside, {"X:0"}, held={})
+    assert [p for p in pts if p.blk == "C"] == [] and {r["blk"]: r for r in rows}["C"]["not_cut"] == S.FRESH_BELOW
+
+
+def test_an_edge_leaving_the_line_below_the_cut_into_fresh_water_keeps_the_piece_fresh():
+    g, geoms = _c_with_a_distributary(200)
+    inside = S.polygon_inside(S.graph_lines(g, geoms), SEA)
+    pts, _, rows = S.polygon_rule(g, inside, {"X:0"}, held={}, leaves_at=S.edge_leave_measures(g, geoms))
+    assert [p for p in pts if p.blk == "C"] == [] and {r["blk"]: r for r in rows}["C"]["not_cut"] == S.FRESH_BELOW
+
+
+#: a creek into C 200 m up C, in the sea for its first 300 m, then north over land
+T_CREEK = [_fid("T1", "T", "50-100-1-2", [(500, 200), (300, 200), (300, 300)], 0, 300),
+           _fid("T2", "T", "50-100-1-2", [(300, 300), (300, 900)], 300, 900, name="T Creek", gnis="13")]
+
+
+def _c_and_t():
+    base = [f for f in _built()[3] if not f.fid.startswith("C")]
+    cs = [_fid("Ca", "C", "50-100-1", [(500, 0), (500, 200)], 0, 200, name="C Creek", gnis="9"),
+          _fid("Cb", "C", "50-100-1", [(500, 200), (500, 1000)], 200, 1000, name="C Creek", gnis="9")]
+    from pipeline.atlas.graph.blk_chains import build_blk_chains
+    from pipeline.atlas.graph.graph import build_stream_graph
+    from shapely.ops import linemerge
+    fids = base + cs + T_CREEK
+    g = build_stream_graph(build_blk_chains(fids, {}), fids)
+    by_fid = {f.fid: f.geometry for f in fids}
+    return g, {nid: linemerge([by_fid[f] for f in n.member_fids]) for nid, n in g.nodes.items()}
+
+
+def test_a_creek_joining_above_the_receivers_cut_does_not_enter_its_tidal_piece():
+    """T joins C 200 m up C. C is held and keeps its cut: at 250 m T enters C's tidal piece and is cut where it leaves
+    the polygon; at 150 m T joins C's fresh part and is not cut. Before the cuts C is one section from its mouth, and
+    reading the section instead of the junction cut T both times — 10 cuts of the first side build that made nothing
+    tidal. Mutation: judge by `n.down_m` alone."""
+    g, geoms = _c_and_t()
+    assert {n for n in g.nodes if n.startswith("C:")} == {"C:0"}
+    inside = S.polygon_inside(S.graph_lines(g, geoms), SEA)
+    la = S.edge_leave_measures(g, geoms)
+    pts, _, _ = S.polygon_rule(g, inside, {"X:0"}, held={"C": "C Creek"}, kept={"C": 250.0}, leaves_at=la)
+    assert sorted(p.split_id for p in pts) == ["shore:C:250", "shore:T:300"]
+    pts, _, rows = S.polygon_rule(g, inside, {"X:0"}, held={"C": "C Creek"}, kept={"C": 150.0}, leaves_at=la)
+    assert sorted(p.split_id for p in pts) == ["shore:C:150"]
+    assert {r["blk"]: r for r in rows}["T"]["not_cut"] == S.FRESH_BELOW
+
+
 # ---------------------------------------------------------------------------------------------- the oxbow polygons
 def _it(iid, name, kind, secs, mus=("8-1",)):
     return RegistryItem(id=iid, name=name, kind=kind, variants=(name,), mus=tuple(mus), section_ids=tuple(secs),
@@ -255,7 +336,10 @@ def test_promote_names_every_curated_id_the_candidate_lost_or_absorbed(tmp_path)
     (root / "inseason").mkdir()
     (root / "review").mkdir()
     (root / "regulations" / "r8.json").write_text(json.dumps([{"entry_id": "r8:x", "matched": ["wsc:1", "wsc:2", "gnis:4"]}]))
-    (root / "inseason" / "notice.json").write_text(json.dumps({"m": {"extents": [{"item_ids": ["wbk:3", "wbk:3"]}]}}))
+    (root / "inseason" / "notice.json").write_text(json.dumps({
+        "m": {"extents": [{"item_ids": ["wbk:3", "wbk:3"]}]},
+        "history": [{"extents": [{"item_id": "wsc:2"}]}],            # what a match named once: a log, not a reference
+        "names": [{"one_water_takes": ["wsc:2"]}]}))                 # the instruction that absorbs it
     (root / "review" / "log.json").write_text(json.dumps(["gnis:5"]))          # the review log is not read
     dead, absorbed = PR.orphaned_ids(old, new, root)
     assert dead == ["wbk:3: inseason/notice.json x2"]

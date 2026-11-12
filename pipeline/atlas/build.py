@@ -1303,8 +1303,12 @@ def cut_shores(b: _Build) -> None:
         else:
             tidal = _shore.atlas_tidal(graph, limits, _ids)
         b.shore_tidal = tidal
+        # the line is not cut yet: the outlets of the piece below each cut are read by where each edge leaves the
+        # line and where it joins the next (`shore.outlet_edges`, `edge_leave_measures`)
+        _view = _bs.View(graph, geoms)
         pts, whole, rows = _shore.polygon_rule(graph, inside, tidal, _shore.standing_boundaries(graph),
-                                               _shore.owner_limited(graph, tidal, limits))
+                                               _shore.owner_limited(graph, tidal, limits),
+                                               leaves_at=_shore.edge_leave_measures(graph, geoms, _view))
     pts = place_points(graph, pts)
     # THE SWEEP RUNS ON THE SHORE CUTS TOO (every split kind, one gate) and must find nothing to cut
     sweep = _bs.sweep(graph, geoms, pts, view=_bs.View(graph, geoms))
