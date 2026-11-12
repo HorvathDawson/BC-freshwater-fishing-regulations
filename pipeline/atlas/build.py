@@ -1297,7 +1297,7 @@ def cut_shores(b: _Build) -> None:
         if not limits:
             tidal = frozenset()            # no curated limit: no tidal water off the map, by either reading
         elif _shore.THE_ATLAS_CUTS_BY_THE_REACHS_TIDAL_SET:
-            _reg0, _ = water_registry(b, graph)
+            _reg0, _ = water_registry(b, graph, areas=False)
             tidal = _shore.reach_tidal(_reg0, graph, limits, _ids, strict=getattr(b, "bbox", None) is None)
             del _reg0
         else:
@@ -1448,13 +1448,15 @@ def write_graph(b: _Build) -> None:
     b.out = out
 
 
-def water_registry(b: _Build, graph) -> tuple[dict, dict]:
+def water_registry(b: _Build, graph, *, areas: bool = True) -> tuple[dict, dict]:
     """THE REGISTRY'S WATERS from `graph`: the items and every grouping pass (boundary confidence, named waterbodies,
     curated-only wbks, the flowing-polygon fold, the confirmed sloughs, mined names, lake parts, outside-area items).
     Pure: prints and writes nothing; returns (registry, {counts and the passes' reports}). Called twice by a build:
     before the shore cuts, so they are decided on the tidal water the reach run will see (`cut_shores`,
     `shore.reach_tidal`), and for the registry that is written (`build_registry`), which adds the MUs, one-water, the
-    region units and the tidal mouths on top.
+    region units and the tidal mouths on top. `areas=False` (the call before the shore cuts): the area flags are
+    stamped after every cut (`mark_membership`), so no closure area is an item yet and `outside_area_items`, which
+    refuses a missing area, is left out; no tidal answer reads an area item.
 
     Reads: splits, lake_names, wetland_names, _nv_all, wb_polys, _mined, added_lake_parts, area_defs."""
     from pipeline.atlas.registry import (add_boundary_confidence, add_curated_wbk_items, add_lake_parts,
@@ -1509,7 +1511,8 @@ def water_registry(b: _Build, graph) -> tuple[dict, dict]:
     # A water the book's geography puts OUTSIDE an area its polygon touches (Kennedy Lake and
     # Pacific Rim, user ruling 2026-10-03): stated once on the area definition, applied to the
     # registry's area item, so every reader of that item agrees (`registry.outside_area_items`).
-    registry = outside_area_items(registry, b.area_defs)
+    if areas:
+        registry = outside_area_items(registry, b.area_defs)
     return registry, info
 
 

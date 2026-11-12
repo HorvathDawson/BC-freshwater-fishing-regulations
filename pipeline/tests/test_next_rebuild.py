@@ -144,6 +144,23 @@ def test_the_build_cuts_by_the_registrys_tidal_water(tmp_path, monkeypatch):
     assert b2.shore_tidal == S.atlas_tidal(b2.graph, limits, {})
 
 
+def test_the_registry_before_the_cuts_asks_for_no_area_item(tmp_path, monkeypatch):
+    """Before the shore cuts no section carries an area flag, so no closure area is an item; `outside_area_items`
+    refuses a missing area and would stop every full build there. Mutation: `areas=True` in `cut_shores` -> SystemExit."""
+    from pipeline.atlas import build as B
+    limits = [Limit(blk="X", limit="split", split="x_tidal")]
+    area_defs = [{"id": "parks_nat", "outside_items": {"some_park": ["gnis:8"]}}]
+    orig = _stage.__globals__["SimpleNamespace"]
+
+    def with_areas(**kw):
+        return orig(**{**kw, "area_defs": area_defs})
+    monkeypatch.setitem(_stage.__globals__, "SimpleNamespace", with_areas)
+    b = _stage(tmp_path, monkeypatch, (), limits)
+    assert "X:0" in b.shore_tidal
+    with pytest.raises(SystemExit, match="is not an area of this build"):
+        B.water_registry(b, b.graph)                              # the full pass, as `build_registry` runs it
+
+
 def test_a_side_channel_of_a_whole_tidal_river_is_tidal_water_not_a_creek_to_cut(tmp_path, monkeypatch):
     """The dry run's gap in one case (its "3 cuts only with the atlas set", Williamson Slough): X River is tidal whole;
     its unnamed side channel S is X River in the registry, so the reach takes S as tidal and the build leaves it
