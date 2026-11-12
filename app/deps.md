@@ -16,6 +16,8 @@ v1's webapp reached `chart.js` + `pdf-lib` + `pdfjs-dist` + `fuse.js` + `suncalc
   `knip.jsonc`. Dev-only; pinned exactly.
 - `pngjs` — (T244) `tools/build-play-graphics.mjs` writes the Play store graphics (icon, feature graphic) as PNGs
   without a browser or a native image library. Dev-only, pure JS, no install script; never in an app bundle.
+- `@types/pngjs` — types only, for `pngjs` (pngjs 3 ships none): the feeds worker's `test/cards.test.ts` decodes
+  the share cards with it, and the worker's `tsc --noEmit` needs its declarations. Pinned to the 3.x line, exactly.
 
 - `jsdom` — a DOM for tests, so components are actually MOUNTED rather than inspected as
   source. Ninety-four tests passed while nothing in the workspace had ever rendered; a
