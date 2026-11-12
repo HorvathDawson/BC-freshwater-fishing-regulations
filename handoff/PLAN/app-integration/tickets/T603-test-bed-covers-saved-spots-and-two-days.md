@@ -1,6 +1,6 @@
 # T603 — The emulator test bed covers saved spots and the two-days line
 
-Status: OPEN
+Status: PARTIAL — items 1–4 built (1df1ed1af) and run on the emulator on the kept APK (commit 104e6513c): saved-spots, two-days, route-scroll all pass; left (Claude): items 5–8 (the emulator `test` tag, the SecurityException kind, the T621 device checks) and a rerun of the three on the next APK
 
 Source: owner 2026-11-10, on build 25's emulator run leaving saved-spot chips unchecked: "Emulator should test the
 saved spots too, we could mock it?"
@@ -60,3 +60,46 @@ changed since build 25. Shots: `handoff/PLAN/app-integration/T603-shots/` (files
 - **Other:** `scripts/fast-fail.sh` failed on `test_review_gate.py::test_the_live_tree_prints_...` (passes alone, 29/29;
   fails only inside the smoke run, it sees `/nonexistent/ci-no-build` from another test), so the build used
   `--no-fast-fail` with that reason.
+
+## Built 2026-11-11 (items 1–4; code 1df1ed1af)
+Three scenarios in `app/tools/testbed/scenarios/`, in the standing order after `spots` (`scenarios/index.mjs`), each in the
+README table:
+- **`saved-spots`** (item 1): a spot saved through the app's own UI, online, "At my location" on the Fraser at Hope, the
+  day before. **No seeding helper was needed**: the capture reads the week before by itself (weather and the gauge's
+  daily means), so the UI path fills everything. Checked: the Spots row and its lines, the visit chip, Add a visit, the
+  five rating stars, the week-before strip (weather day columns; 7 daily means of 08MF005 each with its short place,
+  e.g. "9+ in 10 days higher"; the trend line), no "percentile" anywhere (T598). Then the alert editor on a gauge card
+  (Coquitlam River at Port Coquitlam): title, Crosses above / below, A value / A level for the day, the five presets
+  ("9 in 10 days higher | 8 in 10 days higher | Median | 8 in 10 days lower | 9 in 10 days lower") and Custom, the
+  summary line for a value and for a level; one alert saved ("1 alert on this gauge"), its line read whole in More →
+  Notifications, removed; the spot deleted.
+- **`two-days`** (item 2): the map's day strip set to today, tomorrow, 11 days on; a gauged water's Conditions each
+  time. Today: no line, the chart marks Today only. Tomorrow: the whole sentence "Regulations day: Thu 12 Nov, marked on
+  the chart." and the chart's regulations-day mark inside the plot. 11 days on: "Sun 22 Nov is past the forecast." and
+  no mark. Conditions' own day stays "Conditions: today" throughout.
+- **`route-scroll`** (item 3): ten rounds of a slow drag, three flings down, four back up; the route map's box measured
+  while the pane moves, the moment it is back and at rest (share of the box that is one flat colour; drawn ≈ 40–45 %,
+  blank ≥ 98.5 %). One flat colour at rest fails; flat only while moving is a finding with its shot.
+- `lib/screen.mjs` (+ `screen.test.mjs`, 9 tests): the screen as uiautomator nodes. "Missing or cut off" means: not in
+  the tree, not drawn, no words, off the screen's side, a chip's label past its chip, or a one-line label squeezed
+  under 8 px a character. **Limit:** a label the phone ellipsizes inside a box wide enough for it (e.g. the donor row's
+  "Coquitlam River at Port Coq…") cannot be seen from uiautomator, which reports the whole string; the step shots are
+  the check for that.
+- Test-bed bug fixed on the way: the `open-result` flow's "Open .*" tapped a saved spot's map pin ("Open spot <title>")
+  instead of the search result as soon as one spot existed.
+
+Shots (kept APK, this run): `../T603-shots/t603-*.jpg` (week-before strip, alert presets, the two chart states, the
+route map after the scrolls, the alert confirmation left off screen).
+
+### Seen on the way (app, not fixed here: other lanes own the app)
+- **The blank route map did not reproduce**: 10 of 10 rounds drew (moving ≈ 40 %, rest 45 % one colour) on the kept
+  APK, Coquitlam River. No ticket filed.
+- **After "Save alert" the confirmation can be off screen** (seen once by hand, `../T603-shots/t603-alert-saved-off-screen.jpg`):
+  with the editor scrolled so Save sits low on the screen, saving collapses the editor and the pane is left showing the
+  gauge list; "Saved. Manage alerts in More → Notifications." and "1 alert on this gauge" are above the fold. Not seen
+  when Save is higher on the screen (the scenario's run). The scenario reports it as a finding when it happens.
+- **A saved spot's pin is in the accessibility tree while off the map**: with the spot at Hope and the map on Coquitlam,
+  the main map still holds a button "Open spot <title>" 3 px square at the map's top-left corner (uiautomator
+  `spot-mark:spot:…` bounds [0,136][3,139]); a screen reader can reach it and a tap-by-label opens the spot.
+- `gauge-offline`'s way in is stale (not run here): "Vedder River" now lists as "see Chilliwack / Vedder Rivers", and
+  its `tap-text Conditions` lands on the Conditions TAB once the water did not open. It needs `openWater` (common.mjs).
