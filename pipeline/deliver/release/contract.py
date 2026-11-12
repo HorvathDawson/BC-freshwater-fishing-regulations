@@ -202,8 +202,13 @@ UNITS = {
              "(0 never); days since 1900-01-01 (pipeline/deliver/lake_facts.py)",
     "salmon": "salmon/4: 'BCSA', u8 4, 8 bytes section_handles, u32le JSON length + UTF-8 JSON (credit, default, "
               "regions (+ the header notes, the bucket's quota tree, T356 shared + sizes), verdicts (+ T332 an open day's "
-              "quota tree, T356 c a header closure), gears, chains (+ T356 c), unmapped, scopes, shards) "
-              "(pipeline/deliver/salmon.py)",
+              "quota tree, T356 c a header closure; u 1: both regions' words, no number), gears, chains (r, w, l the "
+              "places narrowest first, sp, g, m, + T356 c; u the places on its water not drawn yet; T668 s on a section "
+              "in two DFO regions: each region's places as indices into l, the most strict answer per fish speaks, and "
+              "h the region slugs whose fishing-hours line shows; a per species day runs of the index into l of the "
+              "place that answers), unmapped, scopes, x, shards; T549 off: every curated place no chain names, id -> "
+              "{why, k, r, w, items}, shown as a text row on its water's page; p: each chain place's {r, water, sec}, "
+              "what a row is named by) (pipeline/deliver/salmon.py, salmon_who.py)",
     **{SALMON.shard_name(r): "salmon-shard/1: 'BCSR', u8 1, 8 bytes section_handles, u8 region length + region, LEB128 "
                              "run count, then per run LEB128 sid gap, count, chain (pipeline/deliver/salmon.py)"
        for r in (*SH.REGIONS, SALMON.NO_REGION)},

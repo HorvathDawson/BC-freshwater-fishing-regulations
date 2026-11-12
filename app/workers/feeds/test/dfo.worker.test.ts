@@ -342,3 +342,26 @@ describe("a curated place that leaves DFO's page (T549 item 4)", () => {
     expect(got.notices.filter((n) => n.key.startsWith("dfo-gone:"))).toEqual([]);
   });
 });
+
+// T668 follow-up, THE KNOWN DIFFERENCE (pinned, not fixed): on a section in two DFO regions the RELEASE keeps the stricter
+// of two readable openings by the freshwater Z4 / Z4a ladder (pipeline `deliver.salmon.stricter_opening`: `ladder.stricter`
+// + `rules.statement`), while under a LIVE feed the app shows both regions' words with no number (never looser; core
+// salmonFeed.ts, salmonStraddle.test.ts "under the feed"). Closing it means the feed carrying the composed straddler
+// answer. The worker cannot make it without a TypeScript copy of that ladder (owner 2026-11-02: the cascade is resolved
+// in Python; the worker and the app only read results), and it does not know the release's chains (which places share a
+// section is the release's `chains[].s`). So the feed stays what this test says: one answer per DFO PLACE, nothing
+// composed across places. When Python composes the straddlers for the feed, this test changes with it.
+describe("(T668) the feed answers per place; it composes nothing across places or regions", () => {
+  it("index.json is places and their own answers: no chains, no region groups", async () => {
+    const feed = new MemStore();
+    const slugs = ["6", "7"];                                              // the straddler pair of the release (Skeena / Fraser side)
+    await runDfo({ fetch: async () => new Response(""), feed, priv: privStore(), now: "2026-10-28T12:00:00Z", regions: slugs,
+                   entries: async (s) => readFileSync(join(FIX, `entries/region-${s}.json`), "utf-8"), fetcher: async (s) => [page(s), null] });
+    const ix = JSON.parse(feed.m.get("index.json")!);
+    expect(Object.keys(ix).sort()).toEqual(["at", "format", "gears", "locs", "regions", "unplaced", "verdicts"]);
+    const locKeys = new Set(Object.values<Record<string, unknown>>(ix.locs).flatMap((l) => Object.keys(l)));
+    expect([...locKeys].sort().filter((k) => !["g", "r", "sp", "x"].includes(k))).toEqual([]);
+    // every place is ONE region's
+    expect(new Set(Object.values<{ r: string }>(ix.locs).map((l) => l.r))).toEqual(new Set(slugs));
+  });
+});
