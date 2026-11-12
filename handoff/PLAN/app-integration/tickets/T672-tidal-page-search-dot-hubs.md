@@ -46,6 +46,13 @@ Release measured: the live one at the time (the audit's). Throwaway measuring sc
 6. **K9, "Up to 4 brown, cutthroat or lake trout of the 5 from streams" — reproduced (1,051 parts, Region 8).
    HELD:** a rewording.
 
+7. **The site's text model after T670 — FIXED (e1345fae2).** The visible water page is the app's own pane, prerendered, so it
+   already draws T670's lines (asked in the test: Charlie Lake, Kispiox, Mahood). The site's text model (hubs,
+   content hash, /changes) selected presenter strings by hand and missed a row's fish that must go back ("Release
+   every mountain whitefish."), the species key, the boats line and a caveat item's detail lines: now carried, same
+   strings. Test `tools/seo/t670.web.release.test.ts`: each pinned line of T670's waters, and a guard that every
+   string the view model carries in those fields is in the model.
+
 ## Not done
 - No deploy (staging site or production). The site change shows after the next staging site build.
 - No device or browser was driven: the pages are the view models, the hubs the built HTML.
