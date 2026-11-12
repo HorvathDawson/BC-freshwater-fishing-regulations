@@ -1,6 +1,8 @@
 """T212 pass 2: DFO area descriptions -> tidal-boundary evidence (pipeline/tools/audit/tidal_pass2.py) and
 its additive merge into the review's tidal candidates (pipeline/regs/review/tidal.py merge_pass2)."""
 import copy
+import json
+from pathlib import Path
 
 import pytest
 
@@ -246,3 +248,129 @@ def test_relative_mentions_are_not_boundary_words():
     r = _cand(id="tidal:360873432", sources=[{"kind": "synopsis_row", "source": "row", "words": "third bridge ~10 km upstream of the tidal boundary"}])
     out = T.apply_default({"tidal:360873432": r}, None)["tidal:360873432"]
     assert out["dfo_default"] == "high" and out["words_status"] is None
+
+
+# --------------------------------------------------------------------------- T678: the re-scrape, the missed texts,
+# and a decided water staying decided
+
+#: DFO Area 29's own list, verbatim from data/source/dfo_tidal_areas/2026-10-28 (and 2026-11-11) a-s29-eng.html
+A29_LIST = """<details><summary>Area map</summary><h2 id="map">Area map</h2>
+<h3 class="h4">Tidal water boundaries in streams and rivers</h3>
+<p>In streams and rivers, tidal waters and non-tidal waters meet. In Area 29 these boundaries are marked by bridges and rail lines. On the side closest to the ocean, the waters are considered tidal. On the side farthest from the ocean, the waters are considered non-tidal.</p>
+<ul class="lst-spcd">
+<li>Brunette River: Burlington Northern Railway Bridge</li>
+<li>Kanaka Creek: CPR Bridge</li>
+<li>Nathan Creek: CNR Bridge</li>
+<li>Pitt River: CPR Bridge</li>
+<li>Stave River: CPR Bridge</li>
+<li>West Creek: CN Railway Bridge</li>
+<li>York Creek: CP Rail line</li>
+</ul></details>"""
+#: DFO Area 17's new area description (live page 2026-11-11), verbatim
+A17_CEDAR = """<h3 id="s-adesc">Area descriptions</h3><table><thead><tr><th>Area</th><th>Map</th>
+<th>Area description</th></tr></thead><tbody><tr id="_8821">
+<td>Cedar Bridge</td>
+<td></td>
+<td>In Subarea 17-14, that portion of the Nanaimo River from the Cedar Bridge to the white square boundary signs approximately 400 m downstream of the Cedar Bridge.</td>
+</tr></tbody></table>"""
+
+
+def _cache(root, date, pages):
+    d = root / date
+    man = {}
+    for path, body in pages.items():
+        f = d / path.lstrip("/")
+        f.parent.mkdir(parents=True, exist_ok=True)
+        f.write_text(f"<html><head><title>BC tidal area</title></head><body>{body}</body></html>")
+        man[path] = {"status": 200, "snapshot": None, "archive_url": None, "fetched": date}
+    (d / "manifest.json").write_text(json.dumps(man))
+    return d
+
+
+def test_the_area_29_list_items_are_boundaries(tmp_path):
+    """The 5 short items ("Kanaka Creek: CPR Bridge") were dropped by the length floor and the rest read as context;
+    West Creek lost its name to the direction filter. Each item now names its stream's tidal boundary ("is")."""
+    ents = {e["primary"]: e for e in P.extract_pages(_cache(tmp_path, "2026-10-28",
+                                                            {"/fm-gp/rec/tidal-maree/a-s29-eng.html": A29_LIST}))}
+    for nm in ("Brunette River", "Kanaka Creek", "Nathan Creek", "Pitt River", "Stave River", "West Creek", "York Creek"):
+        assert ents[nm]["implies"] == "is" and ents[nm]["boundary_list"].endswith("Tidal water boundaries in streams and rivers"), nm
+    # the paragraph above the list is not an item
+    assert all(not e.get("boundary_list") for e in ents.values() if e["text"].startswith("In streams and rivers"))
+
+
+def test_rail_landmarks_of_the_list():
+    assert P.landmark_of("Kanaka Creek: CPR Bridge")["kind"] == "rail"
+    assert P.landmark_of("York Creek: CP Rail line")["kind"] == "rail"
+    cn = P.landmark_of("West Creek: CN Railway Bridge")
+    assert (cn["kind"], cn["match"]) == ("rail", None)          # a rail bridge, not a road named "CN Railway"
+    bn = P.landmark_of("Brunette River: Burlington Northern Railway Bridge")
+    assert (bn["kind"], bn["match"]) == ("rail", "BNSF")         # OSM names the BN line BNSF, or it is not located
+    assert P.landmark_of("Coquitlam River: Mary Hill Bypass Bridge")["kind"] == "road"
+
+
+def test_cedar_bridge_is_a_lower_bound_located_by_its_bridge(tmp_path):
+    """Nanaimo: the stretch "from the Cedar Bridge ... downstream" is in tidal Subarea 17-14, so tidal water reaches the
+    bridge — at_or_above, placed by the bridge (was filed as context)."""
+    (e,) = P.extract_pages(_cache(tmp_path, "2026-11-11", {"/fm-gp/rec/tidal-maree/a-s17-eng.html": A17_CEDAR}))
+    assert (e["primary"], e["implies"], e.get("reach_landmark")) == ("Nanaimo River", "at_or_above", True)
+    assert P.landmark_of(e["text"])["match"] == "Cedar"
+
+
+def test_wording_history_dates_new_and_gone_words(tmp_path):
+    old = {"/fm-gp/rec/tidal-maree/a-s29-eng.html": A29_LIST}
+    new = {"/fm-gp/rec/tidal-maree/a-s29-eng.html": A29_LIST.replace("<li>Stave River: CPR Bridge</li>", ""),
+           "/fm-gp/rec/tidal-maree/a-s17-eng.html": A17_CEDAR}
+    _cache(tmp_path, "2026-10-28", old)
+    doc = P.extract(_cache(tmp_path, "2026-11-11", new))
+    by = {e["primary"]: e for e in doc["entries"]}
+    assert by["Kanaka Creek"]["first_seen"] == "2026-10-28"     # the extractor fix is not new wording
+    assert by["Nanaimo River"]["first_seen"] == "2026-11-11"
+    assert [(g["primary"], g["gone"]) for g in doc["gone"]] == [("Stave River", "2026-11-11")]
+    # the oldest copy has no history of its own
+    first = P.extract(tmp_path / "2026-10-28")
+    assert {e["first_seen"] for e in first["entries"]} == {"2026-10-28"} and first["gone"] == []
+
+
+def test_bears_on_tidal():
+    assert P.bears_on_tidal("is", "Area map / Tidal water boundaries in streams and rivers")
+    assert not P.bears_on_tidal("context", "Salmon / Restrictions")
+    assert not P.bears_on_tidal("confirms_mouth", "Bivalve shellfish and snails / Bivalve shellfish contamination closures")
+
+
+def test_a_decided_water_is_not_reopened_by_a_move():
+    """T678: once the owner has marked a water, pass 2 moving the proposal does not put it back in the queue; words
+    newer than the mark do (`mark_conflict`), and the wording rides on the row for "DFO wording changed"."""
+    c = _cand()
+    pr = {"measure": 1500.0, "above_mouth_m": 1500.0, "coord": [-125.01, 50.01], "located_by": "line",
+          "implies": "is", "confidence": "high", "source_text": "t", "url": "https://x"}
+    w = [{"entry": "dfo2:new", "change": "new", "date": "2026-11-11", "implies": "is", "label": "L", "text": "t", "url": "u"}]
+    doc2 = {"proposals": [{"id": c["id"], "water": "Test River", "blk": "1", "status": "moves", "mark_conflict": False,
+                           "owner_mark": {"measure": 500.0, "date": "2026-10-28"}, "proposed": pr, "evidence": [_ev()],
+                           "items": ["gnis:1"], "wording": w}]}
+    r = T.merge_pass2({c["id"]: c}, [c["id"]], doc2)[0][c["id"]]
+    assert r["triage"]["class"] == "no claim" and r["pass2"]["wording"] == w
+    assert T.wording_changed(r, "2026-10-28") == w               # marked before the words: reopened
+    assert T.wording_changed(r, "2026-11-11") == []              # marked on or after them: still decided
+    assert T.wording_changed(r, None) == []
+
+
+def test_the_review_reopens_a_mark_older_than_its_words(monkeypatch):
+    """The Tidal tab's status: "DFO wording changed" only when the water's own words are newer than the decision —
+    the mark's date, or the owner's own later row in tidal_limits.json (San Juan, 2026-11-11)."""
+    import sys
+    from types import SimpleNamespace
+    from pipeline.regs.review import marks as M
+    backend = str(Path(__file__).resolve().parents[2] / "curation-review" / "backend")
+    monkeypatch.syspath_prepend(backend)
+    sys.modules.pop("tidal", None)
+    import tidal as B
+    monkeypatch.setattr(M, "status", lambda m, now: {"status": "verified", "verdict": "verified", "reasons": []})
+    monkeypatch.setattr(B.T, "prints", lambda row: {"text": None, "records": []})
+    row = {"blk": "1", "pass2": {"wording": [{"date": "2026-11-11", "change": "new", "entry": "e"}]}}
+    monkeypatch.setattr(B, "_owner_calls", lambda: {})
+    v = B._verify(SimpleNamespace(date="2026-10-28"), row)
+    assert (v["status"], v["reasons"]) == ("stale", [T.WORDING_CHANGED])
+    assert B._verify(SimpleNamespace(date="2026-11-12"), row)["status"] == "verified"
+    monkeypatch.setattr(B, "_owner_calls", lambda: {"1": "2026-11-11"})
+    assert B._verify(SimpleNamespace(date="2026-10-28"), row)["status"] == "verified"
+    sys.modules.pop("tidal", None)

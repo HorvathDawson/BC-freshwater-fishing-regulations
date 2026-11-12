@@ -72,9 +72,11 @@ def _alt(pr: dict, mouth_m: float) -> dict:
 def merge_pass2(by_id: dict, order: list, doc2: dict) -> tuple[dict, list]:
     """THE PASS-2 EVIDENCE MERGED IN, additively: on a listed candidate (a copy) its evidence joins
     `triage.web`, its located point joins `alternates`, `pass2` says how it bears on the proposal, and a
-    candidate pass 2 MOVES or whose mark it contradicts is put back in the "missed" triage (the review
-    queue). `proposed`, `polygon` and `sources` are never touched, so no mark goes stale. A stream with
-    no candidate becomes one (`pass2_new`), its proposal the pass-2 point."""
+    candidate pass 2 MOVES (no owner mark yet) or whose mark it contradicts is put back in the "missed" triage (the
+    review queue). A DECIDED water stays decided (T678, owner 2026-11-11): a move is not a reopen once the owner
+    has marked it; only words newer than the mark do that (`mark_conflict`, and `pass2.wording` -> "DFO wording
+    changed", `wording_changed`). `proposed`, `polygon` and `sources` are never touched, so no mark goes stale. A
+    stream with no candidate becomes one (`pass2_new`), its proposal the pass-2 point."""
     import copy
     by_id, order = dict(by_id), list(order)
     for p in doc2.get("proposals") or []:
@@ -84,7 +86,7 @@ def merge_pass2(by_id: dict, order: list, doc2: dict) -> tuple[dict, list]:
         pr = p.get("proposed")
         dm = p.get("dfo_mouth")
         info = {"status": p["status"], "mark_conflict": p.get("mark_conflict"), "proposed": pr,
-                "n_entries": len(evs), "dfo_mouth": dm}
+                "n_entries": len(evs), "dfo_mouth": dm, "wording": list(p.get("wording") or [])}
         r0 = by_id.get(p["id"])
         if r0 is not None:
             r = copy.deepcopy(r0)
@@ -100,7 +102,7 @@ def merge_pass2(by_id: dict, order: list, doc2: dict) -> tuple[dict, list]:
                     r["confidence_before_pass2"] = r.get("confidence")
                     r["confidence"] = "high"
                     r["why"] = f"DFO confirms the mouth; {r.get('why') or ''}".strip("; ")
-            if p["status"] == "moves" or p.get("mark_conflict"):
+            if (p["status"] == "moves" and not p.get("owner_mark")) or p.get("mark_conflict"):
                 t["class_before_pass2"] = t.get("class")
                 t["class"] = "missed"
                 t["why"] = (f"DFO pass 2 {'contradicts the mark' if p.get('mark_conflict') else 'moves the proposal'}: "
@@ -409,6 +411,19 @@ def load(p: Path | None = None) -> dict:
     except OSError:
         p2, mt2 = None, None
     return _load(str(p), mt, str(p2) if p2 else None, mt2)
+
+
+#: the stale reason a decided water reopens with when DFO's own words on it changed after the mark (T678)
+WORDING_CHANGED = "DFO wording changed"
+
+
+def wording_changed(row: dict, mark_date: str | None) -> list[dict]:
+    """DFO'S WORDS ON THIS WATER THAT CHANGED AFTER THE OWNER DECIDED IT (T678, owner 2026-11-11: decided waters stay
+    decided unless their own DFO text changed): the pass-2 `wording` rows (new, reworded or gone words that say
+    something about tidal water) dated after `mark_date`. [] when there is no mark date or nothing changed since."""
+    if not mark_date:
+        return []
+    return [w for w in ((row.get("pass2") or {}).get("wording") or []) if str(w.get("date") or "") > str(mark_date)]
 
 
 def candidate(cid: str, p: Path | None = None) -> Optional[dict]:

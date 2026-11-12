@@ -100,11 +100,33 @@ def _states() -> dict:
     return {m.target: m for m in M.latest(M.load(reuse.MARKS_PATH)).values() if m.scope == "tidal"}
 
 
+_OWNER_CALLS: dict = {"key": None, "by_blk": {}}
+
+
+def _owner_calls() -> dict[str, str]:
+    """{blk: decided} of the owner's own rows in waters/tidal_limits.json (no mark), cached on the file's mtime. A
+    file that does not parse RAISES (never read as "no owner calls")."""
+    from pipeline.atlas.splits import tidal as TL
+    from pipeline.common.curated import CURATED
+    key = _mtimes([Path(CURATED.waters.tidal)])
+    if _OWNER_CALLS["key"] != key:
+        _OWNER_CALLS.update(key=key, by_blk={r.blk: r.decided for r in TL.load() if r.mark is None})
+    return _OWNER_CALLS["by_blk"]
+
+
 def _verify(m, row) -> dict:
+    """The mark's status on the row. T678 (owner 2026-11-11): a decided water stays decided unless ITS OWN DFO words
+    changed after the mark (`T.wording_changed`) — then it is stale, "DFO wording changed", back in the to-do."""
     from pipeline.regs.review import marks as M
     if m is None:
         return {"status": "unmarked", "verdict": None, "reasons": []}
-    return M.status(m, M.Prints.model_validate(T.prints(row)))
+    v = M.status(m, M.Prints.model_validate(T.prints(row)))
+    # the owner's own later call on the water (a tidal_limits.json row with no mark, e.g. San Juan 2026-11-11) is a
+    # decision too: words older than it were decided over
+    decided = max(str(m.date), _owner_calls().get(str(row.get("blk")), ""))
+    if T.wording_changed(row, decided):
+        v = {**v, "status": "stale", "reasons": [*v["reasons"], T.WORDING_CHANGED]}
+    return v
 
 
 def _row(r: dict, m, why: str | None = None) -> dict:

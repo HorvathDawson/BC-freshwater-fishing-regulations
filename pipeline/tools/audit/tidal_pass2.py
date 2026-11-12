@@ -5,9 +5,12 @@ freshwater / tidal boundary on the FWA stream. READ ONLY; proposals only (the ow
     # 1. the page cache (raw HTML, read-only source) — fetched through web.archive.org because
     #    pac.dfo-mpo.gc.ca does not resolve from here; manifest.json carries each snapshot + date:
     #    data/source/dfo_tidal_areas/<date>/{fm-gp/..., laws-lois/SOR-2007-77-FullText.html, manifest.json}
+    #    (2026-11-11, T678: the 31 tidal-area / definitions / index pages re-fetched live from pac.dfo-mpo.gc.ca,
+    #    the rest carried from the 2026-10-28 copy; each page's own `fetched` date is in the manifest)
     # 2. the entries (seconds): every description naming a river/creek/estuary/mouth, a tidal
-    #    boundary, a fishing boundary sign, or carrying a lat/lon line
-    .venv/bin/python -m pipeline.tools.audit.tidal_pass2 extract --cache data/source/dfo_tidal_areas/2026-10-28
+    #    boundary, a fishing boundary sign, or carrying a lat/lon line; each with `first_seen` (the earliest
+    #    dated copy holding the same words), and `gone`: the words the previous copy had that this one lost
+    .venv/bin/python -m pipeline.tools.audit.tidal_pass2 extract --cache data/source/dfo_tidal_areas/2026-11-11
     # 3. the proposals (~1-2 min, the build gpkg's streams + the basemap's roads): each entry located on
     #    the FWA line(s) it names or crosses, read for what it implies, and held against the T212
     #    candidate and the owner's tidal marks (never overriding a mark)
@@ -44,7 +47,7 @@ from pipeline.common.curated import CURATED, GENERATED, SOURCE
 
 ROOT = Path(__file__).resolve().parents[3]
 OUT = GENERATED.review / "tidal/pass2"
-CACHE = SOURCE / "dfo_tidal_areas/2026-10-28"
+CACHE = SOURCE / "dfo_tidal_areas/2026-11-11"
 HOST = "https://www.pac.dfo-mpo.gc.ca"
 PFMA_URL = "https://laws-lois.justice.gc.ca/eng/regulations/SOR-2007-77/FullText.html"
 #: within this (m) a located point agrees with the T212 proposal / an owner mark
@@ -74,6 +77,8 @@ NAME_RE = re.compile(r"\b((?:Mc|Mac)?[A-Z][a-z'’]+(?:[ -](?:(?:Mc|Mac)?[A-Z][a
 NOT_NAMES = {"Rivers", "The", "This", "That", "Tidal", "North", "South", "East", "West", "Upper", "Lower",
              "Fishing", "All", "Any", "Those", "Waters", "Portion", "A", "An", "Of", "From", "To", "And",
              "Its", "Of The", "At", "In", "On"}
+#: a direction that IS the name when it opens the text ("West Creek: ...")
+COMPASS = {"North", "South", "East", "West", "Upper", "Lower"}
 BOUNDARY_RE = re.compile(r"(?<![a-z])tidal[ -](?:water[s]? )?(?:fishing )?boundar|"
                          r"(?<![a-z])tidal waters? of (?:the )?[A-Z][^.]{0,60}?(?:River|Creek)\b[^.]{0,120}?"
                          r"(?:downstream of|below|seaward of|from\b[^.]{0,80}?downstream)", re.I)
@@ -83,6 +88,16 @@ MOUTH_CLOSURE_RE = re.compile(r"\bmouth of (?:the )?[A-Z][\w'’()-]*(?: [A-Z(][
                               r"\b(?:River|Creek)\s+(?:[Ee]stuary|[Mm]outh)\b|\bestuar(?:y|ies)\b|"
                               r"\bmouth of (?:the )?(?:river|creek)\b")
 FRESH_RE = re.compile(r"non-?tidal|fresh ?water", re.I)
+#: DFO'S OWN LIST OF STREAM BOUNDARIES (T678; Area 29: "Tidal water boundaries in streams and rivers ... On the side
+#: closest to the ocean, the waters are considered tidal"): each item "<Stream>: <landmark>" names that stream's tidal
+#: boundary, however short ("Kanaka Creek: CPR Bridge" was dropped by the length floor; the rest read as context)
+BOUNDARY_LIST_RE = re.compile(r"tidal[ -]water boundar", re.I)
+LIST_ITEM_RE = re.compile(r"^((?:Mc|Mac)?[A-Z][\w'’]+(?: [A-Z][\w'’]+)* (?:River|Creek|Slough|Brook)):\s*(\S.*)$")
+#: A TIDAL-AREA DESCRIPTION OF A STRETCH OF THE RIVER FROM A LANDMARK (T678, Nanaimo: "that portion of the Nanaimo
+#: River from the Cedar Bridge to the white square boundary signs approximately 400 m downstream"): the stretch is in
+#: tidal water, so tidal water reaches the landmark — a lower bound, located by the landmark (`reach_landmark`)
+REACH_FROM_RE = re.compile(r"\bportion of (?:the )?(?:Mc|Mac)?[A-Z][\w'’]+(?: [A-Z][\w'’]+)* (?:River|Creek) "
+                           r"(?:from|downstream of|below) (?:the |a )?[^.]{0,60}?\b[Bb]ridge\b")
 
 # --------------------------------------------------------------------------- coordinates
 
@@ -297,6 +312,8 @@ def names_in(text: str) -> list[str]:
         words = nm.split()
         while words and words[0] in NOT_NAMES:
             words = words[1:]
+        if not words and m.start() == 0 and nm in COMPASS:
+            words = [nm]                # "West Creek: CN Railway Bridge": the item's own name, not a direction
         if not words:
             continue
         full = f"{' '.join(words)} {m.group(2)}"
@@ -339,6 +356,8 @@ def implies_of(text: str, ptype: str, geo: dict) -> str:
         return "is"
     if ptype == "freshwater" and (FRESH_RE.search(text) or "tidal" not in text.lower()):
         return "at_or_below"
+    if ptype == "tidal_area" and REACH_FROM_RE.search(text):
+        return "at_or_above"
     if ptype != "freshwater" and MOUTH_CLOSURE_RE.search(text) and names_in(text):
         return "confirms_mouth"
     if geo["lines"] or geo["parallels"]:
@@ -346,17 +365,25 @@ def implies_of(text: str, ptype: str, geo: dict) -> str:
     return "context"
 
 
-def _entry(eid: str, text: str, ptype: str, src: dict, label: str | None, section: str) -> dict:
+def _entry(eid: str, text: str, ptype: str, src: dict, label: str | None, section: str,
+           boundary_list: bool = False) -> dict:
+    """`boundary_list`: an item of DFO's own stream-boundary list (`BOUNDARY_LIST_RE`): it names the boundary ("is")."""
     geo = geometry_of(text)
-    return {"id": eid, "page_type": ptype, "area": src.get("area") or [], "label": label, "section": section,
-            "text": text, "names": names_in(f"{label or ''} {text}"),
-            "primary": (names_in(label or "") or names_in(text) or [None])[0], "tags": tags_of(text),
-            "mouth_names": (mn := mouth_names(label, text)),
-            "implies": ("confirms_mouth" if ptype != "freshwater" and mn
-                        and implies_of(text, ptype, geo) in ("context", "at_or_above", "confirms_mouth")
-                        else implies_of(text, ptype, geo)), "geometry": geo,
-            "region": src.get("region"),
-            "sources": [{k: v for k, v in src.items() if k not in ("area", "region")}]}
+    e = {"id": eid, "page_type": ptype, "area": src.get("area") or [], "label": label, "section": section,
+         "text": text, "names": names_in(f"{label or ''} {text}"),
+         "primary": (names_in(label or "") or names_in(text) or [None])[0], "tags": tags_of(text),
+         "mouth_names": (mn := mouth_names(label, text)),
+         "implies": ("is" if boundary_list else
+                     "confirms_mouth" if ptype != "freshwater" and mn
+                     and implies_of(text, ptype, geo) in ("context", "at_or_above", "confirms_mouth")
+                     else implies_of(text, ptype, geo)), "geometry": geo,
+         "region": src.get("region"),
+         "sources": [{k: v for k, v in src.items() if k not in ("area", "region")}]}
+    if boundary_list:
+        e["boundary_list"] = section
+    if e["implies"] == "at_or_above" and ptype == "tidal_area" and REACH_FROM_RE.search(text):
+        e["reach_landmark"] = True
+    return e
 
 
 def extract_pages(cache: Path) -> list[dict]:
@@ -385,11 +412,13 @@ def extract_pages(cache: Path) -> list[dict]:
                 desc = max(cells, key=len)
                 label = cells[0] if len(cells) > 1 and cells[0] != desc else None
                 text = desc
-            if not (KEYWORDS.search(f"{label or ''} {text}") or coords_in(text)):
-                continue
-            if len(text) < 25 and not coords_in(text):
-                continue
             section = " / ".join(x for x in (b["summary"], b["heading"]) if x)
+            blist = (b["kind"] == "prose" and bool(BOUNDARY_LIST_RE.search(section))
+                     and bool(LIST_ITEM_RE.match(text)))
+            if not (blist or KEYWORDS.search(f"{label or ''} {text}") or coords_in(text)):
+                continue
+            if len(text) < 25 and not coords_in(text) and not blist:
+                continue
             key = re.sub(r"\s+", " ", f"{label or ''}|{text}".lower())
             src = {"url": HOST + path + (f"#{b['row_id']}" if b.get("row_id") else ""),
                    "archive_url": meta.get("archive_url"), "snapshot": meta.get("snapshot"),
@@ -409,7 +438,7 @@ def extract_pages(cache: Path) -> list[dict]:
                 rm = re.search(r"region(\d)", path)
                 src["region"] = rm.group(1) if rm else None
             by_text[key] = _entry(f"dfo2:{hashlib.sha1(key.encode()).hexdigest()[:10]}", text, ptype, src,
-                                  label, section)
+                                  label, section, boundary_list=blist)
     return list(by_text.values())
 
 
@@ -507,13 +536,54 @@ NAME_ALIASES = {"gingolx river": "Ksi Gingolx", "kincolith river": "Ksi Gingolx"
 RAY_M = 3000.0
 
 
-def extract(cache: Path) -> dict:
+#: a dated copy of the pages: data/source/dfo_tidal_areas/<YYYY-MM-DD>/
+DATED_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
+
+
+def _wording(e: dict) -> str:
+    """What the words ARE (label + text, spacing folded): the same words in two copies are the same wording."""
+    return re.sub(r"\s+", " ", f"{e.get('label') or ''}|{e['text']}").strip().casefold()
+
+
+def _resolved(cache: Path) -> list[dict]:
     ents = extract_pages(cache) + extract_pfma(cache)
     gz = gazetteer(ents)
     for e in ents:
         resolve_landmarks(e, gz)
         if e["geometry"].get("landmarks") and e["implies"] == "context":
             e["implies"] = "at_or_above"
+    return ents
+
+
+def wording_history(cache: Path, ents: list[dict]) -> list[dict]:
+    """WHEN DFO'S WORDS CHANGED (T678, owner 2026-11-11: a decided water stays decided unless its own DFO text
+    changed). Every other dated copy beside `cache` that is OLDER is read with this same extractor (so a fix to the
+    extractor is never read as new wording): each entry gets `first_seen`, the date of the oldest copy holding the
+    same words (`_wording`; `cache`'s own date when no older copy has them). Returns the GONE entries: words the
+    newest older copy had that `cache` does not, each with `gone` (= `cache`'s date) and its own `first_seen`."""
+    here = cache.name if DATED_RE.fullmatch(cache.name) else None
+    older = sorted(d for d in cache.parent.iterdir()
+                   if here and d.is_dir() and DATED_RE.fullmatch(d.name) and d.name < here) if here else []
+    seen: dict[str, str] = {}
+    last: list[dict] = []
+    for d in older:
+        last = _resolved(d)
+        for e in last:
+            seen.setdefault(_wording(e), d.name)
+    for e in ents:
+        e["first_seen"] = seen.get(_wording(e), here)
+    now = {_wording(e) for e in ents}
+    gone = []
+    for e in last:
+        if _wording(e) not in now:
+            gone.append({**e, "first_seen": seen[_wording(e)], "gone": here})
+    return gone
+
+
+def extract(cache: Path) -> dict:
+    ents = _resolved(cache)
+    gone = wording_history(cache, ents)
+    gz = gazetteer(ents)
     man = json.loads((cache / "manifest.json").read_text()) if (cache / "manifest.json").exists() else {}
     pages = {p: {"status": m.get("status"), "snapshot": m.get("snapshot"), "type": page_type(p)}
              for p, m in man.items()}
@@ -527,9 +597,11 @@ def extract(cache: Path) -> dict:
                       "by_type": dict(Counter(v["type"] for v in pages.values() if v["status"] == 200))},
             "counts": {"entries": len(ents), "by_page_type": dict(Counter(e["page_type"] for e in ents)),
                        "by_implies": dict(Counter(e["implies"] for e in ents)),
-                       "with_lines": sum(1 for e in ents if e["geometry"]["lines"] or e["geometry"]["parallels"])},
+                       "with_lines": sum(1 for e in ents if e["geometry"]["lines"] or e["geometry"]["parallels"]),
+                       "first_seen": dict(Counter(e["first_seen"] for e in ents)), "gone": len(gone)},
             "gazetteer": {"n": len(gz), "about": "named landmarks with coordinates found in the texts (PFMA brackets)"},
-            "entries": ents}
+            "entries": ents,
+            "gone": gone}
 
 
 # --------------------------------------------------------------------------- locating
@@ -592,22 +664,32 @@ GENERIC_ROAD_WORDS = {"Street", "Road", "Highway", "River", "Creek", "Avenue", "
 LANDMARK_RE = re.compile(  # noqa: the named group is case-SENSITIVE (scoped flag)
     r"(?:(?P<dist>\d+(?:\.\d+)?)\s*(?P<unit>km|m|metres|meters|kilometres)\s+(?P<dir>upstream|downstream|above|below|from)\s+"
     r"(?:of\s+)?)?(?:the\s+|a\s+)?(?P<what>(?:Highway|Hwy\.?|Hwy #|Highway #)\s*#?\s*(?P<ref>\d+[A-Z]?)\s*bridge|"
-    r"(?P<rail>CNR|CPR|CN|CP|railway|rail(?:road)?)\s+bridge|(?P<street>\d+)(?:st|nd|rd|th)?\s+(?:Street|Avenue|Ave\.?)\s+bridge|(?P<named>(?-i:[A-Z][\w'’]+(?:\s+[A-Z][\w'’]+)*))\s+(?:Road\s+)?[Bb]ridge|"
+    r"(?P<rail>CNR|CPR|CN|CP|railway|rail(?:road)?)\s+(?:bridge|rail(?:way)?\s+line)|(?P<street>\d+)(?:st|nd|rd|th)?\s+(?:Street|Avenue|Ave\.?)\s+bridge|(?P<named>(?-i:[A-Z][\w'’]+(?:\s+[A-Z][\w'’]+)*))\s+(?:Road\s+)?[Bb]ridge|"
     r"(?:first\s+)?bridge)", re.I)
+
+
+RAIL_WORD_RE = re.compile(r"\b(?:Railway|Rail|CNR|CPR|CN|CP)\b")
 
 
 def landmark_of(text: str) -> dict | None:
     """The first bridge-like landmark the words name, with its offset: {kind road|rail, match, offset_m,
     pick, words}."""
     for m in LANDMARK_RE.finditer(text):
-        kind = "rail" if m.group("rail") else "road"
+        # "Burlington Northern Railway Bridge", "CN Railway Bridge": a named RAIL bridge (OSM names rail lines by
+        # subdivision, so the name is not matched)
+        rail_named = bool(m.group("named") and RAIL_WORD_RE.search(m.group("named")))
+        kind = "rail" if m.group("rail") or rail_named else "road"
         generic = not (m.group("rail") or m.group("ref") or m.group("named") or m.group("street"))
         if generic and not re.search(r"(?:near|at) (?:the )?mouth", text[m.end():m.end() + 60], re.I):
             continue          # "the bridge" / "6 mile Bridge": which one is not said
         if m.group("named") and m.group("named").split()[0] in GENERIC_ROAD_WORDS:
             continue
-        match = m.group("street") or m.group("ref") or (m.group("named") if m.group("named") and m.group("named").lower() not in
-                                   ("the", "a", "first", "highway") else None)
+        if rail_named and re.search(r"Burlington Northern", m.group("named")):
+            # the BN line is BNSF in OSM ("BNSF New Westminster Subdivision"): matched by that, or not located
+            return {"kind": "rail", "match": "BNSF", "offset_m": 0.0, "pick": "near", "words": m.group(0)}
+        match = m.group("street") or m.group("ref") or (m.group("named") if m.group("named") and not rail_named
+                                                          and m.group("named").lower() not in
+                                                          ("the", "a", "first", "highway") else None)
         off = 0.0
         if m.group("dist"):
             off = float(m.group("dist")) * (1000 if m.group("unit").lower().startswith("k") else 1)
@@ -718,7 +800,8 @@ def locate(e: dict, blk: str, st: Streams, basemap, named: bool = False, primary
         kind = "parallel" if e["geometry"]["parallels"] and not e["geometry"]["lines"] else "line"
         return out(max(hits) if e["implies"] == "at_or_above" else min(hits), kind,
                    f"the DFO {'parallel' if kind == 'parallel' else 'line'} crosses the FWA line ({len(hits)}x)")
-    lm = landmark_of(e["text"]) if primary and e["implies"] in ("is", "at_or_below") else None
+    lm = (landmark_of(e["text"]) if primary and (e["implies"] in ("is", "at_or_below") or e.get("reach_landmark"))
+          else None)
     if lm and e["page_type"] == "freshwater":
         lm["pick"] = "lowest"      # a freshwater limit named by a bridge: the first one up from the sea
     if lm and basemap is not None:
@@ -757,7 +840,7 @@ def _marks() -> dict:
         d = json.loads(m.model_dump_json())
         ns = (d.get("new_splits") or [{}])[0]
         out[m.target] = {"verdict": d.get("verdict"), "answers": d.get("answers"), "measure": ns.get("measure"),
-                         "coord": ns.get("coord"), "blk": ns.get("blk"), "note": d.get("note")}
+                         "coord": ns.get("coord"), "blk": ns.get("blk"), "note": d.get("note"), "date": d.get("date")}
     return out
 
 
@@ -905,6 +988,17 @@ def mouth_verdict(c: dict | None, m0: float, t212: float | None, mark_m: float |
             "mark_upstream": mark_m is not None and mark_m - m0 > MOUTH_TOL_M}
 
 
+#: a shellfish table (sanitary / biotoxin closures, the subarea index of them): lines drawn for shellfish, not for
+#: where tidal water ends — a change there is no change to a water's tidal words
+SHELLFISH_RE = re.compile(r"shellfish|biotoxin|contamination|sanitary", re.I)
+
+
+def bears_on_tidal(implies: str, section: str | None) -> bool:
+    """Do these words say something about where tidal water is on a water (T678 `wording`)? Not a bare naming
+    (`context`), not a shellfish table."""
+    return implies != "context" and not SHELLFISH_RE.search(section or "")
+
+
 def propose(entries_doc: dict, gpkg: Path, basemap_path: Path | None) -> dict:
     from pipeline.tools.audit import tidal_candidates as TC
     cands = json.loads((GENERATED.review / "tidal/tidal-candidates.json").read_text())["candidates"]
@@ -918,6 +1012,17 @@ def propose(entries_doc: dict, gpkg: Path, basemap_path: Path | None) -> dict:
     st = Streams(gpkg)
     ll = _lonlat()
     per_stream: dict[str, list] = defaultdict(list)
+    # WORDS GONE SINCE THE PREVIOUS COPY (T678): found on the streams they named, never evidence for a point — only
+    # "DFO wording changed" on the water (`wording`)
+    gone_on: dict[str, list] = defaultdict(list)
+    for g in entries_doc.get("gone") or []:
+        if not bears_on_tidal(g["implies"], g.get("section")):
+            continue
+        for blk, _why in streams_for(g, st, by_blk, by_name):
+            gone_on[blk].append(g)
+    first_seen = {e["id"]: e.get("first_seen") for e in entries_doc["entries"]}
+    section_of = {e["id"]: e.get("section") or "" for e in entries_doc["entries"]}
+    oldest = min((d for d in first_seen.values() if d), default=None)
     for e in entries_doc["entries"]:
         if e["implies"] == "context" and not e["names"]:
             continue
@@ -932,14 +1037,25 @@ def propose(entries_doc: dict, gpkg: Path, basemap_path: Path | None) -> dict:
                                     "text": e["text"][:1500], "url": e["sources"][0]["url"],
                                     "archive_url": e["sources"][0].get("archive_url"),
                                     "n_pages": len(e["sources"]), "located": loc,
-                                    "confidence": _conf(e, loc)})
+                                    "confidence": _conf(e, loc), "first_seen": e.get("first_seen")})
     props = []
-    for blk, evs in per_stream.items():
+    for blk in [*per_stream, *(b for b in gone_on if b not in per_stream and b in by_blk)]:
+        evs = per_stream.get(blk, [])
         c = by_blk.get(blk)
         segs, _g = st.line(blk)
         name = c["water"] if c else next((s["name"] for s in segs if s["name"]), None)
         if not name:
             continue
+        # WHAT CHANGED IN DFO'S OWN WORDS on this water since the oldest copy (T678): words that say something about
+        # tidal water (not a bare naming), new or reworded (`first_seen`) or gone. The review app holds a decided
+        # water's mark against these dates: a change after the mark reopens it as "DFO wording changed"
+        wording = ([{"entry": ev["entry"], "change": "new", "date": ev.get("first_seen"), "implies": ev["implies"],
+                     "label": ev["label"], "text": ev["text"][:400], "url": ev["url"]}
+                    for ev in evs if bears_on_tidal(ev["implies"], section_of.get(ev["entry"]))
+                    and oldest and (ev.get("first_seen") or "") > oldest]
+                   + [{"entry": g["id"], "change": "gone", "date": g["gone"], "implies": g["implies"],
+                       "label": g["label"], "text": g["text"][:400], "url": g["sources"][0]["url"]}
+                      for g in gone_on.get(blk, [])])
         # a stream with no T212 candidate is new only where a DFO line in tidal water crosses it (a
         # freshwater row or a bare name inland is not a tidal stream)
         if c is None and not any(ev["located"].get("how") in ("line", "parallel") and ev["page_type"] != "freshwater"
@@ -987,6 +1103,11 @@ def propose(entries_doc: dict, gpkg: Path, basemap_path: Path | None) -> dict:
         if mouth_evs:
             mouth = mouth_verdict(c, m0, t212, mk_m, located, mouth_evs)
             conflicts += [ev["entry"] for ev in mouth_evs if mouth["mark_upstream"]]
+        if mk and mk.get("date"):
+            # A DECIDED WATER STAYS DECIDED (T678, owner 2026-11-11): only words that appeared after the owner's
+            # mark can contradict it — words already there when the owner decided were decided over
+            conflicts = [x for x in conflicts if (first_seen.get(x) or "") > mk["date"]]
+        if mouth_evs:
             if pick is None:
                 pick, basis = mouth_evs[0], "DFO confirms the mouth: a tidal-water area at the mouth; DFO's default rule puts the boundary there"
         if c is None and pick is None:
@@ -1028,7 +1149,7 @@ def propose(entries_doc: dict, gpkg: Path, basemap_path: Path | None) -> dict:
             "items": (c or {}).get("items") or items.get(blk, []),
             "wsc": (c or {}).get("wsc") or next((s["wsc"] for s in segs if s["wsc"]), None),
             "gnis_id": (c or {}).get("gnis_id") or next((s["gnis"] for s in segs if s["gnis"]), None),
-            "evidence": evs})
+            "wording": wording, "evidence": evs})
     order = {"moves": 0, "mouth_conflict": 1, "new": 2, "agrees": 3, "consistent": 4, "context": 5}
     props.sort(key=lambda p: (not p["mark_conflict"], order.get(p["status"], 9), p["water"]))
     # a new stream nobody names is only interesting when DFO words put tidal water on it
@@ -1041,10 +1162,14 @@ def propose(entries_doc: dict, gpkg: Path, basemap_path: Path | None) -> dict:
                       "vs the T212 candidate: agrees (within 300 m) | consistent (a bound the T212 cut satisfies) | "
                       "moves (the T212 cut breaks it: `proposed` is where it should go, or at least go) | new (no T212 "
                       "candidate) | context (named, not located). `mark_conflict`: a located entry the owner's tidal "
-                      "mark breaks — listed, never overridden. `evidence` keeps every entry with its location and "
-                      "`implies` (is / at_or_above / at_or_below / context).",
+                      "mark breaks (only words first seen after the mark: a decided water stays decided) — listed, "
+                      "never overridden. `evidence` keeps every entry with its location and `implies` (is / "
+                      "at_or_above / at_or_below / context). `wording`: DFO's words on this water that are new, "
+                      "reworded or gone since the oldest copy, each dated — the review app reopens a mark older "
+                      "than one of them as \"DFO wording changed\".",
             "counts": {"streams": len(props), "by_status": dict(Counter(p["status"] for p in props)),
                        "mark_conflicts": sum(1 for p in props if p["mark_conflict"]),
+                       "with_wording_changes": sum(1 for p in props if p["wording"]),
                        "by_confidence": dict(Counter((p["proposed"] or {}).get("confidence") for p in props)),
                        "entries_by_area": {a: dict(v) for a, v in sorted(by_area.items(), key=lambda kv: (not kv[0].isdigit(), int(kv[0]) if kv[0].isdigit() else 0))}},
             "proposals": props}
