@@ -1,0 +1,367 @@
+{
+ "_about": "T678 (owner 2026-11-11): IS EACH CURATED TIDAL SPLIT DFO-WRITTEN? One row per `split` row of waters/tidal_limits.json (33): `dfo_written` true = DFO's own words name the boundary there (a sign, a bridge, a written line), quoted from the cached DFO copies under data/source/dfo_tidal_areas; false = not shown to be DFO's (kept, listed for the owner; the split is NOT dropped). Owner ruling: only DFO-written splits have authority over the tidal cut (rank 1); the rest fall to the coast crossing. `kind`: dfo_list (Area 29's \"Tidal water boundaries in streams and rivers\"), dfo_area_text (a DFO tidal-area description naming the boundary), dfo_subarea_bridge (a DFO tidal subarea bounded at a named bridge), dfo_freshwater (a DFO freshwater page naming the tidal boundary sign), dfo_guide (DFO's B.C. Sport Fishing Guide, Tidal Water Boundaries). A sidecar, not fields on tidal_limits.json: that file is rewritten from the marks and keeps only its own fields. Classified by Claude 2026-11-11; the owner may correct any row. No reader yet: the atlas build's tidal cut (T678 step 10) reads it.",
+ "format": "tidal_split_authority/1",
+ "classified": "2026-11-11",
+ "counts": {
+  "splits": 33,
+  "dfo_written": 23,
+  "not_shown": 10
+ },
+ "splits": [
+  {
+   "blk": "354135941",
+   "name": "Somass River",
+   "split": "somass_river__tidal_boundary_at_papermill_dam",
+   "dfo_written": true,
+   "kind": "dfo_area_text",
+   "quote": "Tidal Portion of Somass River and Portion of Alberni Harbour: \"That portion of Subarea 23-1 from the tidal boundary signs at the top of the rapids at Paper Mill Dam on the Somass River downstream ...\"",
+   "url": "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/tidal-maree/a-s23-eng.html",
+   "cached": "data/source/dfo_tidal_areas/2026-10-28 and 2026-11-11: fm-gp/rec/tidal-maree/a-s23-eng.html",
+   "agrees": "the split is the owner's point at the Paper Mill Dam signs (DFO words not located by the extractor: no road/rail landmark)"
+  },
+  {
+   "blk": "354152785",
+   "name": "Qualicum River",
+   "split": "qualicum_river__hwy_19a_bridge",
+   "dfo_written": false,
+   "quote": "DFO Region 1 freshwater page, Qualicum River: \"waters below the QFN boundary fence, downstream to the Hwy 19A bridge\" (a freshwater closure reaching the bridge: the boundary is at or below it; no DFO words name the tidal boundary)",
+   "url": "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region1-eng.html",
+   "cached": "data/source/dfo_tidal_areas/2026-10-28 and 2026-11-11: fm-gp/rec/fresh-douce/region1-eng.html",
+   "agrees": "the freshwater words end at 108.0 m; the split is at 108.3 m",
+   "owner": "not shown to be DFO's: kept, no authority over the cut until the owner says (T678)"
+  },
+  {
+   "blk": "354152994",
+   "name": "Salmon River",
+   "split": "salmon_river__tidal_boundary",
+   "dfo_written": true,
+   "kind": "dfo_subarea_bridge",
+   "quote": "DFO Area 13, Salmon Bay: \"Subarea 13-34 [The waters of Salmon Bay, bounded ... on the south by the downstream side of the first bridge upstream on the Salmon River]\"; SOR/2007-77 Subarea 13-34: \"northerly of the parallel passing through 50°21.679′N near the first bridge upstream on the Salmon River\"",
+   "url": "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/tidal-maree/a-s13-eng.html",
+   "cached": "data/source/dfo_tidal_areas/2026-10-28 and 2026-11-11: fm-gp/rec/tidal-maree/a-s13-eng.html; data/source/dfo_tidal_areas/2026-10-28 and 2026-11-11: laws-lois/SOR-2007-77-FullText.html",
+   "agrees": "the PFMA parallel crosses at 1739.0 m; the split is at 1755.0 m (16 m)"
+  },
+  {
+   "blk": "354153024",
+   "name": "Toquaht River",
+   "split": "toquart_river__tidal_boundary_dfo_subarea_23_10",
+   "dfo_written": false,
+   "quote": "DFO Area 23, Toquart River Flats: \"That portion of Toquart Bay in Subarea 23-10 bounded on the east by a straight line that starts at 49°02.363' N, 125°20.836' W ...\" (a shellfish-flats line in tidal water: tidal water reaches it; no words name the river's tidal boundary)",
+   "url": "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/tidal-maree/a-s23-eng.html",
+   "cached": "data/source/dfo_tidal_areas/2026-10-28 and 2026-11-11: fm-gp/rec/tidal-maree/a-s23-eng.html",
+   "agrees": "the line crosses at 159.9 m, where the split is",
+   "owner": "not shown to be DFO's: kept, no authority over the cut until the owner says (T678)"
+  },
+  {
+   "blk": "354153927",
+   "name": "Sooke River",
+   "split": "sooke_river__tidal_boundary",
+   "dfo_written": false,
+   "note": "no DFO words in either copy; the only source is a non-DFO web page (\"Sooke River Bridge (designated tidal boundary)\", bpbpd.wpengine.com)",
+   "owner": "not shown to be DFO's: kept, no authority over the cut until the owner says (T678)"
+  },
+  {
+   "blk": "354154440",
+   "name": "Chemainus River",
+   "split": "chemainus_river__tidal_boundary",
+   "dfo_written": false,
+   "quote": "DFO Area 17 names \"the tidal waters of the Chemainus River\" without a place",
+   "note": "the T212 web research cites DFO PDFs (fm-gp/rec/tidal-maree/chq-co/17-co-eng.pdf, waves-vagues 350317.pdf) for a boundary sign near the Bald Eagle Campground; neither is in the cached copies",
+   "owner": "not shown to be DFO's: kept, no authority over the cut until the owner says (T678)"
+  },
+  {
+   "blk": "354154635",
+   "name": "Campbell River",
+   "split": "campbell_river__cement_block_boundary_sign",
+   "dfo_written": false,
+   "quote": "DFO Region 1 freshwater page: \"Campbell River from a fishing boundary sign at the end of Maple Street downstream to the fishing boundary sign at the cement block\" (a freshwater closure ending at the cement-block sign; it does not say tidal). SOR/2007-77 Subarea 13-5 \"includes the tidal portion of the Campbell River\" without a place",
+   "url": "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region1-eng.html",
+   "cached": "data/source/dfo_tidal_areas/2026-10-28 and 2026-11-11: fm-gp/rec/fresh-douce/region1-eng.html",
+   "note": "the split's own note: LOW CONFIDENCE pin",
+   "owner": "not shown to be DFO's: kept, no authority over the cut until the owner says (T678)"
+  },
+  {
+   "blk": "354154936",
+   "name": "Nimpkish River",
+   "split": "nimpkish_river__tidal_boundary",
+   "dfo_written": true,
+   "kind": "dfo_area_text",
+   "quote": "DFO Area 12, Nimpkish River: \"Subarea 12-19, the mouth of Nimpkish River inside a line ... then to the tidal water boundary signs approximately 100 m upstream of the Highway 19 bridge.\"",
+   "url": "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/tidal-maree/a-s12-eng.html",
+   "cached": "data/source/dfo_tidal_areas/2026-10-28 and 2026-11-11: fm-gp/rec/tidal-maree/a-s12-eng.html",
+   "agrees": "located 1244.8 m (OSM Island Highway 19 @ 1145 m + 100 m); the split is at 1244.9 m"
+  },
+  {
+   "blk": "354154938",
+   "name": "Nanaimo River",
+   "split": "nanaimo_river__cedar_road_bridge",
+   "dfo_written": true,
+   "kind": "dfo_subarea_bridge",
+   "quote": "SOR/2007-77 Subarea 17-14: \"northerly of the parallel passing through 49°06.952′N at the Cedar Road Bridge on the Nanaimo River\"; DFO Region 1 freshwater page: \"No fishing from the upstream side of the Cedar Road Bridge ...\"; new 2026-11-11 Area 17 text: \"In Subarea 17-14, that portion of the Nanaimo River from the Cedar Bridge to the white square boundary signs approximately 400 m downstream of the Cedar Bridge.\"",
+   "url": "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/tidal-maree/a-s17-eng.html",
+   "cached": "data/source/dfo_tidal_areas/2026-10-28 and 2026-11-11: laws-lois/SOR-2007-77-FullText.html; data/source/dfo_tidal_areas/2026-10-28 and 2026-11-11: fm-gp/rec/fresh-douce/region1-eng.html; data/source/dfo_tidal_areas/2026-11-11: fm-gp/rec/tidal-maree/a-s17-eng.html",
+   "agrees": "located 2979.6 m (OSM Cedar Road); the split is at 2979.5 m"
+  },
+  {
+   "blk": "354155007",
+   "name": "Nitinat River",
+   "split": "nitinat_river__head_of_nitinat_lake_tidal_bound",
+   "dfo_written": false,
+   "quote": "SOR/2007-77 Area 22: \"Comprising those waters of Nitinat Lake lying northerly of a line that begins at 48°40.132′N 124°51.349′W [Tsuquanah Point] then to ... [Whyac Point]\" (the whole lake is a tidal management Area, which supports the lake head; no DFO words name the boundary there)",
+   "url": "https://laws-lois.justice.gc.ca/eng/regulations/SOR-2007-77/FullText.html",
+   "cached": "data/source/dfo_tidal_areas/2026-10-28 and 2026-11-11: laws-lois/SOR-2007-77-FullText.html",
+   "note": "owner-stated 2026-10-28: Nitinat Lake and below are tidal",
+   "owner": "not shown to be DFO's: kept, no authority over the cut until the owner says (T678)"
+  },
+  {
+   "blk": "356083018",
+   "name": "York Creek",
+   "split": "york_creek__cp_rail_line_tidal_boundary",
+   "dfo_written": true,
+   "kind": "dfo_list",
+   "quote": "DFO Area 29, \"Tidal water boundaries in streams and rivers\" (\"On the side closest to the ocean, the waters are considered tidal\"): \"York Creek: CP Rail line\"",
+   "url": "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/tidal-maree/a-s29-eng.html",
+   "cached": "data/source/dfo_tidal_areas/2026-10-28 and 2026-11-11: fm-gp/rec/tidal-maree/a-s29-eng.html",
+   "agrees": "located 402.6 m (OSM Cascade Subdivision); the split is at 402.6 m"
+  },
+  {
+   "blk": "356250271",
+   "name": "Whonnock Creek",
+   "split": "whonnock_creek__cp_rail_line_tidal_boundary",
+   "dfo_written": true,
+   "kind": "dfo_list",
+   "quote": "DFO Area 29, \"Tidal water boundaries in streams and rivers\" (\"On the side closest to the ocean, the waters are considered tidal\"): \"Whonnock Creek: CP Rail line\"",
+   "url": "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/tidal-maree/a-s29-eng.html",
+   "cached": "data/source/dfo_tidal_areas/2026-10-28 and 2026-11-11: fm-gp/rec/tidal-maree/a-s29-eng.html",
+   "agrees": "located 310.0 m; the split is at 310.2 m"
+  },
+  {
+   "blk": "356250588",
+   "name": "Yorkson Creek",
+   "split": "yorkson_creek__tidal_boundary",
+   "dfo_written": false,
+   "quote": "DFO Area 29 shellfish closure 29.9 Northwest Langley: \"... inside a line drawn from the mouth of Yorkson Creek at 49°11.75' north latitude and 122°39.26' west longitude ...\" (a shellfish line; Yorkson Creek is not in DFO's Area 29 list of stream boundaries)",
+   "url": "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/tidal-maree/a-s29-eng.html",
+   "cached": "data/source/dfo_tidal_areas/2026-10-28 and 2026-11-11: fm-gp/rec/tidal-maree/a-s29-eng.html",
+   "agrees": "the line crosses at 354.4 m, where the split is",
+   "owner": "not shown to be DFO's: kept, no authority over the cut until the owner says (T678)"
+  },
+  {
+   "blk": "356294262",
+   "name": "West Creek",
+   "split": "west_creek__cn_railway_bridge_tidal_boundary",
+   "dfo_written": true,
+   "kind": "dfo_list",
+   "quote": "DFO Area 29, \"Tidal water boundaries in streams and rivers\" (\"On the side closest to the ocean, the waters are considered tidal\"): \"West Creek: CN Railway Bridge\"",
+   "url": "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/tidal-maree/a-s29-eng.html",
+   "cached": "data/source/dfo_tidal_areas/2026-10-28 and 2026-11-11: fm-gp/rec/tidal-maree/a-s29-eng.html",
+   "agrees": "located 620.2 m (OSM CN Yale Subdivision); the split is at 620.3 m"
+  },
+  {
+   "blk": "356294414",
+   "name": "Brunette River",
+   "split": "brunette_river__burlington_northern_railway_brid",
+   "dfo_written": true,
+   "kind": "dfo_list",
+   "quote": "DFO Area 29, \"Tidal water boundaries in streams and rivers\" (\"On the side closest to the ocean, the waters are considered tidal\"): \"Brunette River: Burlington Northern Railway Bridge\"",
+   "url": "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/tidal-maree/a-s29-eng.html",
+   "cached": "data/source/dfo_tidal_areas/2026-10-28 and 2026-11-11: fm-gp/rec/tidal-maree/a-s29-eng.html",
+   "agrees": "not located by the extractor (OSM tags no BNSF line on the Brunette); the split is the owner's point at the Sapperton main-line bridge pair, 2859.1 m"
+  },
+  {
+   "blk": "356331018",
+   "name": "Campbell River",
+   "split": "campbell_river__burlington_northern_railway_brid",
+   "dfo_written": true,
+   "kind": "dfo_list",
+   "quote": "DFO Area 29, \"Tidal water boundaries in streams and rivers\" (\"On the side closest to the ocean, the waters are considered tidal\"): \"Campbell River: Burlington Northern Railway Bridge\"",
+   "url": "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/tidal-maree/a-s29-eng.html",
+   "cached": "data/source/dfo_tidal_areas/2026-10-28 and 2026-11-11: fm-gp/rec/tidal-maree/a-s29-eng.html",
+   "agrees": "located 15.9 m (OSM BNSF New Westminster Subdivision); the split is at 15.9 m"
+  },
+  {
+   "blk": "356350005",
+   "name": "Nathan Creek",
+   "split": "nathan__cn_railway_bridge_tidal_boundary",
+   "dfo_written": true,
+   "kind": "dfo_list",
+   "quote": "DFO Area 29, \"Tidal water boundaries in streams and rivers\" (\"On the side closest to the ocean, the waters are considered tidal\"): \"Nathan Creek: CNR Bridge\"",
+   "url": "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/tidal-maree/a-s29-eng.html",
+   "cached": "data/source/dfo_tidal_areas/2026-10-28 and 2026-11-11: fm-gp/rec/tidal-maree/a-s29-eng.html",
+   "agrees": "located 332.6 m (OSM CN Yale Subdivision); the split is at 332.5 m"
+  },
+  {
+   "blk": "356352191",
+   "name": "Kanaka Creek",
+   "split": "kanaka_creek__cpr_bridge_tidal_boundary",
+   "dfo_written": true,
+   "kind": "dfo_list",
+   "quote": "DFO Area 29, \"Tidal water boundaries in streams and rivers\" (\"On the side closest to the ocean, the waters are considered tidal\"): \"Kanaka Creek: CPR Bridge\"",
+   "url": "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/tidal-maree/a-s29-eng.html",
+   "cached": "data/source/dfo_tidal_areas/2026-10-28 and 2026-11-11: fm-gp/rec/tidal-maree/a-s29-eng.html",
+   "agrees": "located 1522.7 m (OSM Cascade Subdivision); the split is at 1522.6 m"
+  },
+  {
+   "blk": "356353722",
+   "name": "Nicomekl River",
+   "split": "nicomekl_river__burlington_northern_railway_brid",
+   "dfo_written": true,
+   "kind": "dfo_list",
+   "quote": "DFO Area 29, \"Tidal water boundaries in streams and rivers\" (\"On the side closest to the ocean, the waters are considered tidal\"): \"Nicomekl River: Burlington Northern Railway Bridge\"",
+   "url": "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/tidal-maree/a-s29-eng.html",
+   "cached": "data/source/dfo_tidal_areas/2026-10-28 and 2026-11-11: fm-gp/rec/tidal-maree/a-s29-eng.html",
+   "agrees": "located 46.3 m (OSM BNSF New Westminster Subdivision); the split is at 46.1 m"
+  },
+  {
+   "blk": "356360869",
+   "name": "Pitt River",
+   "split": "pitt_river__cpr_bridge",
+   "dfo_written": true,
+   "kind": "dfo_list",
+   "quote": "DFO Area 29, \"Tidal water boundaries in streams and rivers\" (\"On the side closest to the ocean, the waters are considered tidal\"): \"Pitt River: CPR Bridge\"",
+   "url": "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/tidal-maree/a-s29-eng.html",
+   "cached": "data/source/dfo_tidal_areas/2026-10-28 and 2026-11-11: fm-gp/rec/tidal-maree/a-s29-eng.html",
+   "agrees": "located 3337.9 m (OSM Cascade Subdivision); the split is at 3342.3 m"
+  },
+  {
+   "blk": "356362384",
+   "name": "Stave River",
+   "split": "stave_river__cpr_bridge_tidal_boundary",
+   "dfo_written": true,
+   "kind": "dfo_list",
+   "quote": "DFO Area 29, \"Tidal water boundaries in streams and rivers\" (\"On the side closest to the ocean, the waters are considered tidal\"): \"Stave River: CPR Bridge\"",
+   "url": "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/tidal-maree/a-s29-eng.html",
+   "cached": "data/source/dfo_tidal_areas/2026-10-28 and 2026-11-11: fm-gp/rec/tidal-maree/a-s29-eng.html",
+   "agrees": "located 384.8 m (OSM Cascade Subdivision); the split is at 384.7 m"
+  },
+  {
+   "blk": "356364114",
+   "name": "Fraser River",
+   "split": "fraser_river__the_cpr_bridge_at_mission",
+   "dfo_written": true,
+   "kind": "dfo_list",
+   "quote": "DFO Area 29, \"Tidal water boundaries in streams and rivers\" (\"On the side closest to the ocean, the waters are considered tidal\"): \"Fraser River: CPR Bridge at Mission\"",
+   "url": "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/tidal-maree/a-s29-eng.html",
+   "cached": "data/source/dfo_tidal_areas/2026-10-28 and 2026-11-11: fm-gp/rec/tidal-maree/a-s29-eng.html",
+   "agrees": "not located by the extractor (76 km up, past its search reach); the split is at the CPR bridge at Mission"
+  },
+  {
+   "blk": "356364584",
+   "name": "Coquitlam River",
+   "split": "coquitlam_river__mary_hill_bypass_bridge",
+   "dfo_written": true,
+   "kind": "dfo_list",
+   "quote": "DFO Area 29, \"Tidal water boundaries in streams and rivers\" (\"On the side closest to the ocean, the waters are considered tidal\"): \"Coquitlam River: Mary Hill Bypass Bridge\"",
+   "url": "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/tidal-maree/a-s29-eng.html",
+   "cached": "data/source/dfo_tidal_areas/2026-10-28 and 2026-11-11: fm-gp/rec/tidal-maree/a-s29-eng.html",
+   "agrees": "located 303.1 m (OSM Mary Hill Bypass); the split is at 312.3 m"
+  },
+  {
+   "blk": "360857589",
+   "name": "Chapman Creek",
+   "split": "chapman_creek__tidal_boundary",
+   "dfo_written": true,
+   "kind": "dfo_list",
+   "quote": "DFO Area 29, \"Tidal water boundaries in streams and rivers\" (\"On the side closest to the ocean, the waters are considered tidal\"): \"Chapman Creek: Highway 101 Bridge\"",
+   "url": "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/tidal-maree/a-s29-eng.html",
+   "cached": "data/source/dfo_tidal_areas/2026-10-28 and 2026-11-11: fm-gp/rec/tidal-maree/a-s29-eng.html",
+   "agrees": "located 180.4 m (OSM Sunshine Coast Highway 101); the split is at 180.5 m; DFO's salmon notice also: \"upstream of tidal water fishing boundary signs located below the Hwy 101 Bridge\""
+  },
+  {
+   "blk": "360872960",
+   "name": "Tlell River",
+   "split": "tlell_river__tidal_sign_1_5_km_above_hwy_16_bridge",
+   "dfo_written": true,
+   "kind": "dfo_freshwater",
+   "quote": "DFO Region 6 freshwater page, Tlell River: \"tidal water regulations apply to waters below tidal boundary sign located approx. 1.5km above Hwy. 16 Bridge\". DFO Area 2 says instead: \"Tidal waters of the Tlell River downstream of a white triangular fishing boundary sign located approximately 1 km upstream of the Highway #16 bridge\" (500 m lower)",
+   "url": "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region6-eng.html",
+   "cached": "data/source/dfo_tidal_areas/2026-10-28 and 2026-11-11: fm-gp/rec/fresh-douce/region6-eng.html; data/source/dfo_tidal_areas/2026-10-28 and 2026-11-11: fm-gp/rec/tidal-maree/a-s2-eng.html",
+   "agrees": "the 1.5 km sign is located at 5750.1 m, the split at 5750.3 m; DFO's two pages disagree by 500 m"
+  },
+  {
+   "blk": "360875983",
+   "name": "Capilano River",
+   "split": "capilano_river__cn_railway_bridge_tidal_boundary",
+   "dfo_written": true,
+   "kind": "dfo_guide",
+   "quote": "DFO B.C. Sport Fishing Guide, Rivers in Tidal Water Areas 28 & 29: \"Capilano River: BCR Bridge\" (the ex-BC Rail, now CN, bridge)",
+   "url": "https://waves-vagues.dfo-mpo.gc.ca/Library/359784.pdf",
+   "cached": "data/source/dfo_tidal_areas/2026-10-28 and 2026-11-11: waves-vagues/Library/359784.pdf (DFO B.C. Sport Fishing Guide, \"Tidal Water Boundaries (continued)\")",
+   "agrees": "the split is at the BCR/CN railway bridge, 36.9 m"
+  },
+  {
+   "blk": "360877679",
+   "name": "Ksi Gingolx",
+   "split": "ksi_gingolx__kincolith_river_bridge",
+   "dfo_written": true,
+   "kind": "dfo_area_text",
+   "quote": "DFO Area 3: \"The tidal waters of Gingolx (Kincolith) River from the Gingolx Highway Bridge downstream to the white triangle boundary signs at the mouth\"; DFO Region 6 freshwater page: \"Kincolith River upstream of white triangular fishing boundary signs located at the Kincolith River Bridge\"",
+   "url": "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/tidal-maree/a-s3-eng.html",
+   "cached": "data/source/dfo_tidal_areas/2026-10-28 and 2026-11-11: fm-gp/rec/tidal-maree/a-s3-eng.html; data/source/dfo_tidal_areas/2026-10-28 and 2026-11-11: fm-gp/rec/fresh-douce/region6-eng.html",
+   "agrees": "the split is the lower Ksi Gingolx's only road crossing, 1566.6 m"
+  },
+  {
+   "blk": "360880075",
+   "name": "Chambers Creek",
+   "split": "chambers_creek__tidal_boundary_dfo_subarea_3_18",
+   "dfo_written": false,
+   "quote": "SOR/2007-77 Subarea 3-18: \"Those waters of Iceberg Bay and adjacent waters lying westerly of a line that begins at 54°57.732′N 129°57.043′W [Mylor Peninsula] ...\" (a subarea line in tidal water: tidal water reaches it; no words name the creek's tidal boundary)",
+   "url": "https://laws-lois.justice.gc.ca/eng/regulations/SOR-2007-77/FullText.html",
+   "cached": "data/source/dfo_tidal_areas/2026-10-28 and 2026-11-11: laws-lois/SOR-2007-77-FullText.html",
+   "agrees": "the line crosses at 2598.2 m, where the split is",
+   "owner": "not shown to be DFO's: kept, no authority over the cut until the owner says (T678)"
+  },
+  {
+   "blk": "360880849",
+   "name": "Noons Creek",
+   "split": "noons_creek__railway_bridge",
+   "dfo_written": false,
+   "note": "the owner's own words 2026-10-29 (the railway bridge); no DFO words in either copy",
+   "owner": "not shown to be DFO's: kept, no authority over the cut until the owner says (T678)"
+  },
+  {
+   "blk": "360885942",
+   "name": "Nass River",
+   "split": "nass_river__tidal_boundary_dfo_subarea_3_12",
+   "dfo_written": false,
+   "quote": "SOR/2007-77 Subarea 3-12: \"Those waters of Portland Inlet and adjacent waters inside a line that begins at 55°05.595′N 129°59.477′W ...\" (a subarea line in tidal water: tidal water reaches it; no words name the Nass's tidal boundary)",
+   "url": "https://laws-lois.justice.gc.ca/eng/regulations/SOR-2007-77/FullText.html",
+   "cached": "data/source/dfo_tidal_areas/2026-10-28 and 2026-11-11: laws-lois/SOR-2007-77-FullText.html",
+   "agrees": "the line crosses at 1805.3 m; the split is at 1805.2 m",
+   "owner": "not shown to be DFO's: kept, no authority over the cut until the owner says (T678)"
+  },
+  {
+   "blk": "360886339",
+   "name": "Seymour River",
+   "split": "seymour_river__cn_railway_bridge_tidal_boundary",
+   "dfo_written": true,
+   "kind": "dfo_guide",
+   "quote": "DFO B.C. Sport Fishing Guide, Rivers in Tidal Water Areas 28 & 29: \"Seymour River: CNR Bridge\"",
+   "url": "https://waves-vagues.dfo-mpo.gc.ca/Library/359784.pdf",
+   "cached": "data/source/dfo_tidal_areas/2026-10-28 and 2026-11-11: waves-vagues/Library/359784.pdf (DFO B.C. Sport Fishing Guide, \"Tidal Water Boundaries (continued)\")",
+   "agrees": "the split is at the CN railway bridge, 211.9 m"
+  },
+  {
+   "blk": "360886594",
+   "name": "Squamish River",
+   "split": "squamish_river__tidal_boundary",
+   "dfo_written": true,
+   "kind": "dfo_guide",
+   "quote": "DFO B.C. Sport Fishing Guide: \"Squamish River – Area 28: Defined by a line due west from the end of the Squamish Spit. The Squamish estuary and the Mamquam blind channel are considered tidal waters.\"",
+   "url": "https://waves-vagues.dfo-mpo.gc.ca/Library/359784.pdf",
+   "cached": "data/source/dfo_tidal_areas/2026-10-28 and 2026-11-11: waves-vagues/Library/359784.pdf (DFO B.C. Sport Fishing Guide, \"Tidal Water Boundaries (continued)\")",
+   "agrees": "not measured here (no coordinates in the words); the split is the cut the owner accepted as these words"
+  },
+  {
+   "blk": "360887278",
+   "name": "Skeena River",
+   "split": "skeena_river__tidal_boundary",
+   "dfo_written": true,
+   "kind": "dfo_guide",
+   "quote": "DFO B.C. Sport Fishing Guide: \"Skeena River: a line drawn from Mowitch Point to Veitch Point.\" (the same line as SOR/2007-77 Subarea 4-15)",
+   "url": "https://waves-vagues.dfo-mpo.gc.ca/Library/359784.pdf",
+   "cached": "data/source/dfo_tidal_areas/2026-10-28 and 2026-11-11: waves-vagues/Library/359784.pdf (DFO B.C. Sport Fishing Guide, \"Tidal Water Boundaries (continued)\"); data/source/dfo_tidal_areas/2026-10-28 and 2026-11-11: laws-lois/SOR-2007-77-FullText.html",
+   "agrees": "the Subarea 4-15 line crosses at 6404.9 m, where the split is"
+  }
+ ]
+}

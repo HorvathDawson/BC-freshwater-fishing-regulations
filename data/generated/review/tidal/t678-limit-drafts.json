@@ -1,0 +1,81 @@
+{
+ "_about": "T678 DRAFTS, NOT CURATED DATA: the changed tidal limit the new DFO wording (live pages 2026-11-11, data/source/dfo_tidal_areas/2026-11-11) points to, for the owner to accept or not in the Tidal tab. Each `draft` is a waters/tidal_limits.json row as it would be written; nothing here is applied. Both waters are reopened in the Tidal tab as \"DFO wording changed\".",
+ "drafted": "2026-11-11",
+ "drafts": [
+  {
+   "blk": "354155031",
+   "water": "Marble River",
+   "candidate": "tidal:354155031",
+   "status": "proposal",
+   "now": {
+    "limit": "mouth",
+    "decided": "2026-10-28",
+    "mark": "the Tidal-tab mark (DFO default: the mouth)"
+   },
+   "draft": {
+    "blk": "354155031",
+    "name": "Marble River",
+    "limit": "cut",
+    "at": {
+     "coord": [
+      -127.503208,
+      50.532731
+     ],
+     "measure": 535.2,
+     "label": "Marble River tidal boundary (DFO Area 27)"
+    }
+   },
+   "wording": "That portion of Subarea 27-10 from the Marble River tidal boundary downstream to the fishing boundary signs at the entrance of Varney Bay.",
+   "url": "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/tidal-maree/a-s27-eng.html",
+   "cached": "data/source/dfo_tidal_areas/2026-11-11/fm-gp/rec/tidal-maree/a-s27-eng.html",
+   "point": "DFO names a tidal boundary ON the Marble River, above Varney Bay, but gives no landmark. The draft point is the upper edge of DFO's own Subarea 27-10 polygon on the line (535.2 m above the FWA mouth), the uppermost of its three crossings (176.8, 335.1, 535.2 m).",
+   "other_points": [
+    {
+     "measure": 225.0,
+     "coord": [
+      -127.506999,
+      50.53262
+     ],
+     "what": "DEM: streambed above 4 m"
+    },
+    {
+     "measure": 800.0,
+     "coord": null,
+     "what": "habitat survey: \"The lower 800 m of Reach 1 is under tidal influence\" (not DFO, not located)"
+    },
+    {
+     "measure": 0.0,
+     "coord": [
+      -127.509534,
+      50.53374
+     ],
+     "what": "the FWA mouth (today's limit)"
+    }
+   ],
+   "confidence": "low"
+  },
+  {
+   "blk": "354154936",
+   "water": "Nimpkish River",
+   "candidate": "tidal:354154936",
+   "status": "proposal",
+   "now": {
+    "limit": "split",
+    "split": "nimpkish_river__tidal_boundary",
+    "measure": 1244.9,
+    "decided": "2026-10-28"
+   },
+   "draft": {
+    "blk": "354154936",
+    "name": "Nimpkish River",
+    "limit": "split",
+    "split": "nimpkish_river__tidal_boundary"
+   },
+   "wording": "Subarea 12-19, the mouth of Nimpkish River inside a line from a fishing boundary sign at a point on the shore of Vancouver Island approximately 1.5 km east of Broad Point, then to a navigational aid in the middle of Haddington Passage, then to a fishing boundary sign at a point approximately 1 km east of Willow Creek, then to the tidal water boundary signs approximately 100 m upstream of the Highway 19 bridge.",
+   "url": "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/tidal-maree/a-s12-eng.html",
+   "cached": "data/source/dfo_tidal_areas/2026-11-11/fm-gp/rec/tidal-maree/a-s12-eng.html",
+   "point": "DFO's words located on the line: OSM Island Highway 19 crosses at 1145 m, + 100 m = 1244.8 m [-126.998708, 50.565419]. The curated split is at 1244.9 m: NO CHANGE is drafted; the owner re-ticks it.",
+   "confidence": "medium"
+  }
+ ]
+}

@@ -134,6 +134,7 @@ curated:
     areas: "data/curated/waters/area_closures.json"                # authored — blanket area closures (cut every stream crossing the polygon)
     continuations: "data/curated/waters/continuations.json"        # authored (owner-reviewed / refused water_continue links)
     tidal: "data/curated/waters/tidal_limits.json"                 # T326: THE tidal limit of every ocean water (mouth | split | cut | whole); written by pipeline.tools.tidal_limits, read by the atlas only
+    tidal_split_authority: "data/curated/waters/tidal_split_authority.json"  # T678: is each curated tidal split DFO-written (cited)? only those carry authority over the cut; classified by Claude 2026-11-11, the owner may correct
     shore_held: "data/curated/waters/shore_held.json"              # T678: the owner's lines the coast cut keeps as today (cut/whole/fresh); written by pipeline.atlas.splits.coast_held, read by the atlas only
     slough_calls: "data/curated/waters/slough_calls.json"          # applied (T322: owner-confirmed slough calls, from the slough marks)
     # the retired slough review page's verdicts + free-text notes (2026-10-28), read by `pipeline.regs.review.slough`

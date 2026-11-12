@@ -113,6 +113,10 @@ class Waters(BaseModel):
     #: a measure / whole / fresh) until the owner decides. Written by `python -m pipeline.atlas.splits.coast_held`
     #: (a decided row is kept on a rerun); read by the ATLAS only (`build.cut_shores`).
     shore_held: FilePath
+    #: T678 (owner 2026-11-11): one row per `split` row of `tidal`: is the boundary DFO-written (quoted from the cached
+    #: DFO copies)? Only DFO-written splits have authority over the tidal cut; the rest are listed for the owner, never
+    #: dropped. A sidecar because `tidal` is rewritten from the marks with its own fields only. No reader yet.
+    tidal_split_authority: FilePath
     #: T322 (owner 2026-10-30): the owner-CONFIRMED slough / canal polygons, applied from the slough marks by
     #: `pipeline.tools.slough_calls`; the registry folds each into the one stream through it, else ignores it
     #: (`registry.flowing.fold_confirmed_sloughs`).
