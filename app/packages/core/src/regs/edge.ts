@@ -5,6 +5,10 @@
  *   renderCard's one foot line, nothing else; Gear / Methods are not drawn and the Licence is null (page.ts).
  * - "tidal": the key is tidal (`akey.tidal`) or the day's stored display frame says "tidal" — page v36 tidalHtml: the
  *   "Tidal water" banner in the stored frame's own note, nothing else (no strip, groups, Other fish, possession, where-not).
+ *   (T672, audit W1) ALSO a key-less part the store marks tidal (`inp.tidalPart`: the piece below a tidal boundary, the
+ *   Fraser below Mission): the same banner, in the same words — `TIDAL_SHEET_WORDS`, the app's copy of the stored note
+ *   the map's tidal sheet already says (conformance pins the two equal on the release). It has no frames, so, like
+ *   outside B.C., no Gear / Methods / Licence. It read "outside B.C.: no B.C. rules apply" before.
  * - "unnamed": a map tap on water with no registry item (`target.kind === "section"`) — built like a named water; only
  *   the header differs (the store's `place.names[kind]`, no part label, no Map / Parts action: header.ts, D11 a).
  * - "normal": everything else.
@@ -19,13 +23,15 @@ import { bannerOf } from "./banner";
 import type { RegsInputs } from "./inputs";
 import type { KeepVM } from "./model";
 import type { Settled } from "./settle";
+import { TIDAL_SHEET_WORDS } from "../tidal";
 import { WORDS } from "./words";
 
 export type Edge = "normal" | "unnamed" | "tidal" | "outside";
 
-/** Which shape the page takes: no key → outside; a tidal key or a tidal display frame → tidal; a section tap → unnamed. */
+/** Which shape the page takes: no key → the store's tidal piece (T672) is tidal, any other outside; a tidal key or a
+ *  tidal display frame → tidal; a section tap → unnamed. */
 export function edgeKind(inp: RegsInputs): Edge {
-  if (inp.key == null) return "outside";
+  if (inp.key == null) return inp.tidalPart ? "tidal" : "outside";
   if (inp.key.tidal || inp.frames?.display.status === "tidal") return "tidal";
   return inp.target.kind === "section" ? "unnamed" : "normal";
 }
@@ -45,8 +51,14 @@ export function outsideKeep(): KeepVM {
  * Tidal water: page v36 tidalHtml — the "Tidal water" banner in the stored tidal frame's note, alone (golden x31p_1010
  * `["div.banner"]`). `settled` is the day as T07 read it (its display frame is the one the banner words); a key whose
  * frame is missing draws nothing (page v36 `missing(…)`; the store always carries it).
+ *
+ * (T672) A key-less tidal piece has no frame to read the note from: the same banner in `TIDAL_SHEET_WORDS` (the tidal
+ * sheet's paragraphs, one after the other: the stored note, word for word).
  */
 export function tidalKeep(inp: RegsInputs, settled: Settled): KeepVM {
+  if (inp.key == null)
+    return { ...NONE, order: ["banner"],
+             banner: { kind: "tidal", big: [WORDS.TIDAL_WATER], paras: [TIDAL_SHEET_WORDS.body.join(" ")], chain: [], reopen: null, merged: null } };
   const banner = bannerOf(inp, settled, null);
   return { ...NONE, order: banner ? ["banner"] : [], banner };
 }

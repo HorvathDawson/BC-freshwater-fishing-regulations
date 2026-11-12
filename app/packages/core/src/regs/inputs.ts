@@ -50,6 +50,10 @@ export interface RegsInputs {
   readonly partIx: number;
   readonly place: { readonly label: string; readonly name: string } | null;   // an unnamed section: place label + names[kind]
   readonly key: AkeyRow | null;                             // null = outside B.C. (or an item with no rule set on this part)
+  /** (T672) the tapped part has no key because it is the release's TIDAL piece (the store's `part.tidal`: its `xpart`
+   *  `province_except` holds "tidal") — tidal water, in B.C. A stored fact, set by `loadRegsInputs`; a key-less place
+   *  without it is outside B.C. An unnamed section has no such fact in the store (T672 item 1b). */
+  readonly tidalPart?: boolean;
   readonly s: number | null; readonly cell: CellIds | null;
   readonly frames: { readonly ladder: LadderFrameWire; readonly rows: RowsValue; readonly gear: GearValue;
                      readonly licence: LicenceValue; readonly display: DisplayFrame } | null;

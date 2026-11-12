@@ -23,13 +23,13 @@ const cell = (ladder: number, display: number): CellIds => ({ ladder, rows: 1, g
 /** One water (gnis:1, ord 3) of three parts — part 0 on key 2 (no moments, closed Jun 1–30), part 1 on key 5 (a weekday
  *  split), part 2 outside B.C. — a picker grouping parts 0 and 1 as closed, and two sections (4097 named → part 1; 4098
  *  unlisted, on key 5). `asked` logs every read. */
-function fake(o: { openGroup?: boolean } = {}) {
+function fake(o: { openGroup?: boolean; tidalPiece?: boolean } = {}) {
   const asked: string[] = [];
   const log = <T>(what: string, v: T): Promise<T> => { asked.push(what); return Promise.resolve(v); };
   const parts: PartRow[] = [
     { itemOrd: 3, partIx: 0, akey: 2, facts: facts("Mouth to bridge"), sections: 4, grp: 0, run: 0, tidal: false },
     { itemOrd: 3, partIx: 1, akey: 5, facts: facts("Above the bridge"), sections: 2, grp: 1, run: 0, tidal: false },
-    { itemOrd: 3, partIx: 2, akey: null, facts: null, sections: 1, grp: 2, run: 0, tidal: false }];
+    { itemOrd: 3, partIx: 2, akey: null, facts: null, sections: 1, grp: 2, run: 0, tidal: !!o.tidalPiece }];
   const picker: Picker = { headed: true, choices: [
     { parts: [0, 1], closed: !o.openGroup, sections: 6, heading: "h", text: "t" }, { parts: [2], closed: false, sections: 1, heading: "h", text: "t" }] };
   const keys = {
@@ -162,6 +162,16 @@ describe("loadRegsInputs: a part", () => {
     // its own key is never read; the only key read is the other choice's, for the Parts sheet's status on the day
     expect(asked.filter((a) => a.startsWith("akey"))).toEqual(["akey 2"]);
     expect(inp.choicesOnDay).toEqual([{ partIx: 0, status: "closed" }, { partIx: 2, status: null }]);
+  });
+
+  it("(T672) a key-less part says whether it is the store's tidal piece: `tidalPart` is the part row's `tidal`, read, not decided", async () => {
+    const out = fake();
+    expect((await loadRegsInputs(out.store, { kind: "part", item: "gnis:1", partIx: 2 }, JUN15, "Monday", 2026)).tidalPart).toBe(false);
+    const tide = fake({ tidalPiece: true });
+    const inp = await loadRegsInputs(tide.store, { kind: "part", item: "gnis:1", partIx: 2 }, JUN15, "Monday", 2026);
+    expect([inp.key, inp.frames, inp.tidalPart]).toEqual([null, null, true]);
+    // a keyed part carries no such fact
+    expect("tidalPart" in await loadRegsInputs(tide.store, { kind: "part", item: "gnis:1", partIx: 0 }, JUN15, "Monday", 2026)).toBe(false);
   });
 
   it("refuses a water the store does not hold, and a part the water does not have", async () => {

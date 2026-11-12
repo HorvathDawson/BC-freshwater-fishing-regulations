@@ -120,9 +120,10 @@ export function headerOf(inp: RegsInputs, o: { today: Day; status: "open" | "clo
     date, dateAria: WORDS.DATE_ARIA(dayWord, date),
     dot: o.status === "closed" ? "closed" : o.status === "open" ? "open" : "faint",
     place: lbl ? { full: lab!.full || lbl, short: lbl } : null,
-    // (T42) outside B.C. the page has no Gear, Methods or Licence section (no key): only the Keep tab is listed;
+    // (T42) outside B.C. the page has no Gear, Methods or Licence section (no key): only the Keep tab is listed — as on
+    // a key-less tidal piece (T672: `inp.tidalPart`, no frames either);
     // (owner 2026-11-04) on a closed day no Licence section (`buildLicence`), so no Licence tab
-    tabs: (o.status === "outside" ? tabs.slice(0, 1) : o.status === "closed" ? tabs.filter(([t]) => t !== "licence") : tabs)
+    tabs: (o.status === "outside" || inp.tidalPart ? tabs.slice(0, 1) : o.status === "closed" ? tabs.filter(([t]) => t !== "licence") : tabs)
       .map(([tab, label]) => ({ tab, label })),
   };
 }

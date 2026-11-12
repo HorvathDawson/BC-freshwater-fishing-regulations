@@ -66,6 +66,30 @@ describe("1. outside B.C. (key null): the one foot line; no Gear, Methods or Lic
   });
 });
 
+describe("(T672, audit W1) a key-less TIDAL piece (the store's `part.tidal`): tidal water, never \"outside B.C.\"", () => {
+  const NOTE = "Tidal water: a different regulation system. The B.C. freshwater fishing regulations do not apply here: no provincial rule, "
+    + "quota, closure, gear rule, licence or stamp. See the federal (DFO) tidal waters sport fishing regulations or the Fishing BC app; "
+    + "a federal Tidal Waters Sport Fishing Licence is required.";
+  const tidalPiece = (): RegsInputs => ({ ...outsideInputs(), target: { kind: "part", item: "gnis:1", partIx: 0 },
+    item: { id: "gnis:1", ord: 1, name: "Fraser River", kind: "stream", sections: 3, parts: [null], partSections: [3], picker: null, steelhead: null },
+    tidalPart: true }) as unknown as RegsInputs;
+  const page = buildRegsPage(tidalPiece(), { today: OCT10, who: { age: "adult", residency: "resident" } });
+  it("the page is tidal: the 'Tidal water' banner in the agreed note, whole, and nothing else on the Keep tab", () => {
+    expect([edgeKind(tidalPiece()), page.status]).toEqual(["tidal", "tidal"]);
+    expect(page.keep).toEqual({ order: ["banner"], outside: null, strip: null, inherited: null, groups: [], plainRows: [], otherFish: null,
+      otherFishKey: [], caveats: [], possession: null, whereNot: null,
+      banner: { kind: "tidal", big: ["Tidal water"], paras: [NOTE], chain: [], reopen: null, merged: null } });
+  });
+  it("it has no frames: no Gear, Methods or Licence, and only the Keep tab is listed", () => {
+    expect([page.gear, page.methods, page.licence]).toEqual([null, null, null]);
+    expect([page.header.name, page.header.dot, page.header.tabs]).toEqual(["Fraser River", "faint", [{ tab: "keep", label: "What you can keep" }]]);
+  });
+  it("a key-less part the store does not mark tidal is still outside B.C. (the flag decides, not the missing key)", () => {
+    const out = buildRegsPage({ ...tidalPiece(), tidalPart: false } as RegsInputs, { today: OCT10, who: { age: "adult", residency: "resident" } });
+    expect([out.status, out.keep.outside, out.keep.banner]).toEqual(["outside", OUTSIDE_LINE, null]);
+  });
+});
+
 describe("tidalKeep: the stored tidal frame's banner alone", () => {
   it("a tidal key whose day frame is tidal: the 'Tidal water' banner in the frame's note; nothing else", () => {
     const inp = { key: key({ tidal: true }), target: { kind: "part", item: "x", partIx: 0 }, frames: { display: TIDAL } } as unknown as RegsInputs;

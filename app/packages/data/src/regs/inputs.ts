@@ -98,7 +98,8 @@ export async function loadRegsInputs(store: InputsStore, target: RegsTarget, day
                  parts: parts.map((p) => p.facts), partSections: parts.map((p) => p.sections), picker, steelhead: it.steelhead };
   const part = parts[partIx]!;
   if (part.akey === null)
-    return { ...base, item, partIx, place: null, ...outside(ruleIndex(stored, new Map(), sp)),
+    // (T672) a key-less part is outside B.C., or the release's tidal piece: the store says which (`part.tidal`)
+    return { ...base, item, partIx, place: null, ...outside(ruleIndex(stored, new Map(), sp)), tidalPart: part.tidal,
              choicesOnDay: await choicesOnDay(store, parts, picker, null, day, weekday, calendarYear) };
 
   const key = await store.akey(part.akey);

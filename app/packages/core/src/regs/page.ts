@@ -49,8 +49,8 @@ export function buildRegsPage(inp: RegsInputs, opts: RegsPageOpts): RegsPage {
   // (T42) the edge decides the status word: outside / tidal from the stored key and frame, else the strip's reading
   const edge = edgeKind(inp);
   const status: RegsPage["status"] = edge === "outside" || edge === "tidal" ? edge : keep.strip ? keep.strip.status : "unknown";
-  // (T30–T32) the Gear and Methods tabs: none outside B.C. (no key: the tabs are not drawn)
-  const gctx = edge === "outside" ? null : gearCtxOf(inp, { today: opts.today, banner: keep.banner });
+  // (T30–T32) the Gear and Methods tabs: none where there is no key (outside B.C.; T672 a key-less tidal piece): no frame
+  const gctx = inp.key == null ? null : gearCtxOf(inp, { today: opts.today, banner: keep.banner });
   const gear = gctx && { ...buildGearTop(inp, gctx), bait: buildBait(inp, gctx) };
   const methods = gctx && buildMethods(inp, gctx);
   const page: Omit<RegsPage, "sheet"> = {

@@ -123,10 +123,13 @@ function answerBlocks(inp: RegsInputs, F: LicenceValue & { holds: Holds }, who: 
   const stampDates = des.filter((d) => d.fields.steelhead_stamp_during).map((d) => datesOf(d.fields.steelhead_stamp_during.when))[0] || "";
   for (const d of des) {
     const f = d.fields;
-    out.push({ cls: "classbox", head: d.period?.says ?? LIC.CLASS_HEAD(String(f.classified)), terms: gi(LIC.CLASS_TERM),
+    const box = { cls: "classbox" as const, head: d.period?.says ?? LIC.CLASS_HEAD(String(f.classified)), terms: gi(LIC.CLASS_TERM),
       body: LIC.UNIT(String(f.unit_name || f.unit))
         + (f.steelhead_stamp_during ? LIC.STAMP_DURING(datesOf(f.steelhead_stamp_during.when)) + (H.stamp_period ? LIC.IN_FORCE : "") + LIC.STAMP_OTHER_TIME : "")
-        + (d.stamp_waiver ? LIC.STOP + " " + d.stamp_waiver.says.replace(/\.$/, "") : f.steelhead_stamp_waived ? LIC.STAMP_WAIVED : "") + LIC.STOP });
+        + (d.stamp_waiver ? LIC.STOP + " " + d.stamp_waiver.says.replace(/\.$/, "") : f.steelhead_stamp_waived ? LIC.STAMP_WAIVED : "") + LIC.STOP };
+    // (T672, T462 audit G11) two designation records that say the same box, word for word (one licence unit printed on two
+    // rows: the Elk's tributaries, the Stellako), are said once; a box that differs in any word is still drawn
+    if (!out.some((o) => o.cls === "classbox" && o.head === box.head && o.body === box.body)) out.push(box);
   }
   if (H.contested) out.push({ cls: "flag", text: LIC.CONTESTED });
   // page v36's unresolved-licensing flags ("Check: … couldn't be placed on the map") need the store's item.unresolved, which
