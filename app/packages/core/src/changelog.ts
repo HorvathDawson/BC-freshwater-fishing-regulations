@@ -25,7 +25,7 @@ export const CHANGELOG: readonly ChangelogEntry[] = [
       "The Keep and Gear tabs show what the current data release holds for a water",
       "A tidal part of a water says it is tidal water, never outside B.C.",
       "The salmon card draws the period limits of each bucket",
-      "A gauge card names which reading was ranked and when, and the data release it comes from",
+      "A gauge card names which reading was ranked and when, and names the data release behind it",
       "Every day shown is re-read at once when you come back to the app",
     ],
   },
