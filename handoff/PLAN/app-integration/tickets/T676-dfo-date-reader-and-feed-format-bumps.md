@@ -1,6 +1,6 @@
 # T676 — The release and the live feed read a DFO date cell the same way; a feed format bump does not strand an older app
 
-Status: PARTIAL (2026-11-11, 4f591c31a) — items 3 and 4 done; item 1's reader ported and pinned, its use in the release waits on the owner's nod; item 2 waits on the owner's choice and T673; owner: OWNER-TODO "T676 reading to rule on"; left (Claude): wire read_dates into the release after the nod, item 2 with T673. Split from T556 (2026-11-11): what its findings 1 and 3 proposed and T556 did not build.
+Status: PARTIAL (2026-11-12, 4bc03ac14) — items 1, 3 and 4 done: the release reads every DFO date cell with the live feed's reader on the owner's answer of 2026-11-12; item 2 waits on the owner's choice, decided with T673; left (Claude): item 2 with T673. Split from T556 (2026-11-11): what its findings 1 and 3 proposed and T556 did not build.
 
 Source: T556 (data pipeline review 2026-11-09, findings 1 and 3). T556 pinned the two languages with shared fixtures and
 generated the format strings; these two are changes of behaviour, not pins.
@@ -62,12 +62,29 @@ Depends: T556 (done), T673 (item 2). Size: M. Owner: item 1's reading; item 2's 
   recorded cell (`date-cells.json`), the named shapes and a seeded fuzz (seed 676) — and the worker must read each the
   same: no exception, no difference.
 
+## Done (2026-11-12, 4bc03ac14) — item 1, on the owner's answer
+Owner 2026-11-12: "it is from that day to no end. If the thing is for a closure then it closes etc" (RULINGS D5).
+- `typed.to_rules` reads the date cell with `dates.read_dates` (`typed.FORMAT` 3; the release refuses rows typed by
+  older code). "<day> until further notice" is `When.open_ended` on the range from that day: it holds from its start to
+  Dec 31 and runs on past the year end; before its start it speaks only where no dated row of its place does
+  (`deliver.salmon.holds_kind` / `_held`, the worker's `holdsKind`). A cell the reader cannot read keeps the row's limits
+  with `when.unparsed` and `CatalogueRule.check` ("dates unparsed — check DFO"): the species reads "check" every day, a
+  gear line shows every day flagged. T358's "non-retention until further notice reads closed" stands.
+- Words: `answers.common.when_words` says the last range "from <day> until further notice" ("until further notice" from
+  Jan 1), as the worker does. `When.open_ended` and `CatalogueRule.check` are new model fields (DFO only; the export
+  guide's `WHEN_TEXT` names `open_ended`).
+- The worker reads a cell one way in both its modes (typed.ts lost the Python-parity date path; `toRules` /
+  `locationCalendar` lost their `robust` argument). The vectors' named difference is gone: both modes equal the
+  vectors with no exception; the six open-ended locators are counted and must say "until further notice".
+- Effect on release `r-483b295de57c`, every chain recomputed in memory: NO open/closed status moves (the same days were
+  closed before, all year); 6 undrawn places change their words (Nanaimo, the Fraser above the CPR bridge, Osoyoos Lake,
+  the lower and middle Shuswap: "… (from <day> until further notice)"). The three other cells the reader now reads
+  ("Aug 2 To Aug 31", "July 1 until Aug 8", "June 1 until Aug 8") are in the recorded archive only, on no page today.
+- The scraped rows were typed again (`python -m pipeline.regs.dfo_salmon.feed`, 2026-11-12). Not changed: the scrape's
+  health report (`validate.py`) still warns with the old `interpret_dates` (warnings only, read by no answer).
+- Tests: shared rows "until further notice, a closure / an opening" and "date cells the old reader refused" in
+  `dfo-rows.json` (both languages); `test_t671_salmon_readings.py` `test_t676_*`; `test_dfo_salmon.py`'s unreadable
+  season test now pins the kept limit + `check`; `dfo.dates.test.ts`, `dfo.vectors.test.ts`.
+
 ## Held
-- **Item 1, wiring** (`typed.to_rules` reading with `read_dates`, so the named "until further notice" difference in
-  `dfo.vectors.test.ts` goes). Changes what an angler is shown; the owner's nod is in OWNER-TODO.md. Measured on the
-  281 recorded cells: 15 "until further notice" cells (the release types them all year with no window; the feed keeps
-  the start day and says "from <day> until further notice"), and 3 the release keeps as an unparsed window that the
-  robust reader reads ("Aug 2 To Aug 31", "July 1 until Aug 8", "June 1 until Aug 8"). Wiring also brings robust mode's
-  `check` for an unreadable cell (limits kept, flagged) and `open_ended` on `When`, which the release model and the app's
-  release reader do not carry yet — size M with the bundle side.
 - **Item 2** — owner's choice (versioned key vs per-feed `minAppVersion`), decided with T673. Not started.

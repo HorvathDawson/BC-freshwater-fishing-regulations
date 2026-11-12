@@ -1,6 +1,6 @@
 # T671 — The T462 audit's salmon findings (D1–D5)
 
-Status: PARTIAL — D2 and D3 fixed (6b02feb06, 188392691); D1, D4 and D5 turn on how DFO's words are read and are held for the owner with the evidence below, nothing built for them; staging feeds worker deployed 2026-11-11 (version cfd5d140); left (Claude): type the scraped rows again before the next release (`python -m pipeline.regs.dfo_salmon.feed`; the release stops and names it until then), the card's render test once T670's Keep work is in; owner: OWNER-TODO "T671 salmon readings to rule on"
+Status: IN PROGRESS — every finding settled: D2 and D3 fixed (6b02feb06, 188392691); D1, D4 and D5 built on the owner's answers of 2026-11-12 (4bc03ac14; D1 6,254 sections toward closed, D4 no change, D5 wording); the scraped rows typed again 2026-11-12 (`typed_format` 3); left (Claude): the D3 tiers render test in `SalmonCard.test.tsx` (the file passes today)
 
 Source: `handoff/PLAN/app-integration/T462-audit.md` (85ba2e821), findings D1–D5. Owner instruction 2026-11-11 (through
 the coordinator): a finding that needs a choice between two faithful readings is the owner's call. Fix only what the
@@ -48,7 +48,49 @@ without this ticket equals T668's numbers (449 chains, 1,949,842 sections).
   Keep change (`KeepBlocks.tsx` `o.back`), so the new line is not render-tested yet.
 - Shows: with the next app build; no release needed.
 
-## Held for the owner (nothing built)
+## Ruled by the owner 2026-11-12, built (4bc03ac14)
+
+Measured on release `r-483b295de57c` (LATEST): every chain's 366 days recomputed in memory by the code before and after
+(the curated places, the scraped rows typed by each side's code, the release's chains and section counts; no release run).
+
+### D1 — "Yes to option 1 but add to gotcha list". BUILT
+- On ONE place, an "All" closure wins over a species row unless the species row is dated inside the All row's dates
+  (`deliver.salmon._all_closure_wins`, called by `verdict_on`; the worker's `salmon.ts` `allClosureWins`). An All row that
+  is no closure never displaces a species row; a wider place of the chain is not the same place. RULINGS L24; gotcha in
+  `pipeline/docs/GOTCHAS.md` ("An "All" closure against a species row on the same DFO place").
+- Every place on today's pages with an All closure and a species row that is not a closure: only two are "not inside" —
+  the Tatshenshini below the border and the Koksilah. No species row on any page has dates EQUAL to an All closure's, so
+  no case needed a choice beyond the ruling.
+- Effect: 2 chains, 6,254 sections (Tatshenshini below the border) — coho open → closed Jul 24–Aug 14, 137,588
+  section-days, all TOWARD CLOSED; the Koksilah's own (undrawn) chain the same (coho open only Jun 1–30, Oct 1–Nov 30).
+  Nothing moves toward open. Words only: on 34 more chains (68,089 sections: Region 6 B(i) and its waters, the
+  Tatshenshini above the border, the Kloiya) a closed species' line on the All closure's days now quotes it ("No fishing
+  for salmon (Jan 1–Jun 15)") instead of the species' own closure — closed either way. Cowichan 66 Mile unchanged (its All row is catch and release).
+- Tests: shared rows (Tatshenshini both sides of the border, Koksilah, Cowichan, an opening dated inside an All
+  closure) in `dfo-rows.json`, read by `test_t671_salmon_rows.py` and `dfo.t671.test.ts`; `test_t671_salmon_readings.py`
+  `test_d1_*` (the closure's words, an undated row, a mutation pin, a wider place).
+
+### D4 — "The daily limit for all species of Pacific salmon from tidal and fresh waters combined is 4. Individual species limits also apply. Species limit is seperate." SETTLED, no change
+- The combined 4 is Region 6's bucket — the header's daily note, already a total tier on the card ("Up to 4 salmon a day
+  in total, fresh and tidal waters combined"), a note that never decides open/closed. Each species' limit is its own line
+  ("4 a day · only 1 over 65 cm"), not a pool across Region 6: `quota.pool_of` gives `6:a:region` no pool. That is how the
+  release and the feed already read, so nothing is built and no section changes (quota trees identical on every chain).
+  RULINGS Q28. Pinned: `test_t671_salmon_readings.py` `test_d4_*`.
+- Region 5B's per-species pool over MUs 5-6 to 5-11 (T349, the same DFO phrase) is untouched; the owner's D4 words read
+  that phrase the other way for Region 6. Raised in the report, not changed.
+
+### D5 — "Closed today · open in part". BUILT
+- Core `salmonCard`: where the page reads closed today and a DFO place on its water not drawn yet is OPEN today (the
+  pipeline's verdicts for that place, looked up), the headline and the in-part caveat's title read "Closed today · open
+  in part", the caveat's line "DFO opens salmon in a part of this water the map can’t draw yet: check DFO for where.
+  Everywhere else, follow this page." The page's status, bar and map stay the page's. RULINGS P47; `salmon.test.ts`
+  "(T671 D5 …)".
+- Effect: 87,419 section-days on 717 sections (Nass section C, Kitsumkalum, Skeena B(i), Region 8, Kitimat …). Where the
+  undrawn place is only catch-and-release or "check" (11,888 section-days) the caveat keeps its ordinary words — the
+  ruling names an OPEN place.
+- Shows with the next app build.
+
+## As held for the owner (2026-11-11, kept for the record)
 
 ### 3. D1 — an "All" closure window against a species' own opening. HELD
 Today: within one DFO place, a species' own row speaks before an "All" row (`deliver/salmon.py` `verdict_on`). The
