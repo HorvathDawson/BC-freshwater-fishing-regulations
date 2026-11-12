@@ -21,6 +21,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: "0.7.7", date: "2026-11-12", draft: true, notes: [
+      "The key for gauges that report only flow or only level sits on the Conditions map, out of the bottom bar",
+      "A river's tidal part ends at DFO's written boundary or where the river meets the shore",
+      "A small unnamed pond a river runs through follows that river's rules",
+      "Searching \"Dewdney\" finds Nicomen Slough",
+    ],
+  },
+  {
     version: "0.7.6", date: "2026-11-12", draft: true, notes: [
       "The Keep and Gear tabs show what the current data release holds for a water",
       "A tidal part of a water says it is tidal water, never outside B.C.",
