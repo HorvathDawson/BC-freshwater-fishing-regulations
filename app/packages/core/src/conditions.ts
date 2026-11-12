@@ -11,7 +11,7 @@
  */
 import { catchmentLabel, confidenceWord, 
          seasonPhrase, standing } from "./flow";
-import { figure, inTen, daysNear, daysRange, standingHeadline, standingReads } from "./standing";
+import { figure, inTen, daysNear, daysRange, standingHeadline, standingLong, standingReads, type Standing } from "./standing";
 import { interval, type Estimate, type NoEstimate } from "./trust";
 import { isIsoDay, localStamp, shortDay, shortStamp } from "./day";
 import { monthAbbr, weekdayAbbr } from "./flow";
@@ -164,6 +164,31 @@ export function forecastDayMark(dayName: string): string {
  */
 export function standingRankedIn(standing: string, declared: "discharge" | "level"): string {
   return `${standing} (ranked on ${declared === "level" ? "water level" : "flow"})`;
+}
+
+/**
+ * (T585 F8, F14) THE GAUGE CARD'S STANDING LINE, whichever reading it holds. The rank the rows, the dots and the map
+ * show is the INDEX's, and it belongs to one reading. When the card's figure is that reading, the line is its standing
+ * (`standingLong`). When it is ANOTHER reading — the station file is a publisher run ahead of or behind the index, or
+ * offline a newer kept row is the reading now — the figure has no rank of its own (`percentile` null, `rankedAt` given):
+ * the line says which reading was ranked and which this is, never "no record to compare it against" (the record exists;
+ * it ranked the other reading). `rankedAt` undefined: the reading IS the ranked one, so a null percentile really is a
+ * station with no record. Times are said the screen's one way (`localStamp`); one that is missing or malformed is left out.
+ */
+export const UNRANKED_WORDS = {
+  both: (ranked: string, reading: string) => `Ranked at ${ranked}; this reading ${reading}.`,
+  rankedOnly: (ranked: string) => `Ranked at ${ranked}; this reading is a different one.`,
+  none: "This reading has not been ranked yet.",
+} as const;
+export function readingStanding(r: { percentile: number | null; standing?: Standing | null; rankedAt?: string | null;
+                                     observedAt?: string | null }, zone?: string): string {
+  if (r.percentile !== null || r.rankedAt === undefined) return standingLong(r.percentile, r.standing ?? null);
+  const stamp = (iso: string | null | undefined) => {
+    const t = iso ? Date.parse(iso) : NaN;
+    return Number.isFinite(t) ? localStamp(t, zone) : null;
+  };
+  const ranked = stamp(r.rankedAt), reading = stamp(r.observedAt);
+  return ranked === null ? UNRANKED_WORDS.none : reading === null ? UNRANKED_WORDS.rankedOnly(ranked) : UNRANKED_WORDS.both(ranked, reading);
 }
 
 /**

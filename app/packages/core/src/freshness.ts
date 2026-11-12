@@ -95,6 +95,9 @@ export function readingAgeParts(f: Freshness, observed: string | null): string[]
   return parts;
 }
 
+/** (T585 F14) The line's lead when the reading is the phone's KEPT copy (offline) — the chart's "Offline — … saved on this phone", for the figure. */
+const READING_LEAD_KEPT = "Offline — reading saved on this phone";
+
 /** The whole line from a stamp already said: "This gauge's own reading · observed … · checked 7h ago". */
 export function readingAgeWords(f: Freshness, observed: string | null): string {
   return [READING_LEAD, ...readingAgeParts(f, observed)].join(" · ");
@@ -104,8 +107,11 @@ export function readingAgeWords(f: Freshness, observed: string | null): string {
  * The line under a gauge reading (P02): when it was observed, and how old our copy is. An unknown age says so; it
  * is never shown as live. `observedAt` is the reading's own ISO time, left out when missing or malformed.
  */
-export function readingAgeLine(f: Freshness, observedAt: string | null, zone?: string): string {
+export function readingAgeLine(f: Freshness, observedAt: string | null, zone?: string, kept = false): string {
   const t = observedAt ? Date.parse(observedAt) : NaN;
   // LOCAL AND LABELLED (P16): the reader's clock, with its zone named — see `localStamp`.
-  return readingAgeWords(f, Number.isFinite(t) ? localStamp(t, zone) : null);
+  const observed = Number.isFinite(t) ? localStamp(t, zone) : null;
+  // (T585 F14) the phone's kept copy, offline: said as that (the public page's script takes `readingAgeWords`, which a
+  // page never answers from a kept copy, so the kept lead lives here)
+  return kept ? [READING_LEAD_KEPT, ...readingAgeParts(f, observed)].join(" · ") : readingAgeWords(f, observed);
 }

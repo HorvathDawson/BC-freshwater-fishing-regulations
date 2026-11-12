@@ -12,7 +12,7 @@ import {
   donorKeyLabel, donorPinTitle, donorReads, donorReason, donorRowLabel, donorShare,
   donorWeightLine, estimateHeadline, estimateRange, estimateSentence, forecastChartLabel,
   forecastModelOption, forecastRunLine, HORIZON_LABELS, HORIZONS, horizonChipLabel,
-  noChartSentence, noGaugeSentence, readingHeading, regulatedNote,
+  noChartSentence, noGaugeSentence, readingHeading, readingStanding, regulatedNote,
   shortRecordNote, sizeApart, stageLine, TIDAL_NOTE, tidalNote, BACKWATER_NOTE, backwaterNote, unplacedNote, type DonorFacts,
 } from "./conditions";
 import { figure as chartFigure, standingLong } from "./standing";
@@ -294,6 +294,25 @@ describe("the gauge reading under the estimate", () => {
       .toBe("Much below normal · lower than almost every day on record for the date");
     expect(standingLong(null, "below"))
       .toBe("There is a reading here, but no record to compare it against.");
+  });
+
+  it("(T585 F8, F14) a figure the index did not rank says which reading was ranked and which this is, never 'no record'", () => {
+    const VAN = "America/Vancouver";
+    // the reading IS the ranked one (no rankedAt): its standing, or the true admission that the station has no record
+    expect(readingStanding({ percentile: 0.15, standing: "below" })).toBe("Below normal · lower than 9 days in 10 for the date");
+    expect(readingStanding({ percentile: null, observedAt: "2026-09-01T11:30:00Z" }))
+      .toBe("There is a reading here, but no record to compare it against.");
+    // another publisher run's reading (or, offline, a newer kept row): both times
+    expect(readingStanding({ percentile: null, rankedAt: "2026-09-01T10:30:00Z", observedAt: "2026-09-01T11:30:00Z" }, VAN))
+      .toBe("Ranked at 2026-09-01 at 03:30 PDT; this reading 2026-09-01 at 04:30 PDT.");
+    // this reading's own time unknown; the index naming no time at all
+    expect(readingStanding({ percentile: null, rankedAt: "2026-09-01T10:30:00Z", observedAt: null }, VAN))
+      .toBe("Ranked at 2026-09-01 at 03:30 PDT; this reading is a different one.");
+    expect(readingStanding({ percentile: null, rankedAt: null, observedAt: "2026-09-01T11:30:00Z" }, VAN))
+      .toBe("This reading has not been ranked yet.");
+    // a rank always wins: rankedAt beside a percentile cannot happen, and would still say the standing
+    expect(readingStanding({ percentile: 0.15, standing: "below", rankedAt: "2026-09-01T10:30:00Z" }))
+      .toBe("Below normal · lower than 9 days in 10 for the date");
   });
 
   it("gives the stage beside the flow", () => {

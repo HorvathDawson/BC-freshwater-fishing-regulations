@@ -7,7 +7,7 @@ import { speaks, leadOver, throughLakeStations, type DonorRow, type Horizon, typ
          type WaterSource, type SectionId, type StationId } from "@app/data";
 import { aheadDays, CONDITIONS_WORDS, donorLastReport, FORECAST_DAY_WORDS, forecastDayMark, forecastDayName,
          forecastFigureLine, donorReads, donorSilent, donorState, leadGapLine, LEVEL_ONLY_LEAD, freshness, gaugeCountLine, noGaugeSentence,
-         readingAgeLine, readingHeading, readingIn, standingLong, shownParameter, stageLine, stateAt,
+         readingAgeLine, readingHeading, readingIn, readingStanding, shownParameter, stageLine, stateAt,
          type GaugeTrace, type SectionKey, type Standing, bcMidnight, shiftDay, wallIso, now } from "@app/core";
 import { useGaugeTrace, useStationReading } from "../hooks";
 import { useBcToday } from "../today";
@@ -223,9 +223,11 @@ export function useConditionsView(
       forecast: dayName && leadRow
         ? (quantity === "level" && donorState(leadRow, ask).kind === "flow-only" ? leadGapLine(dayName)
            : forecastFigureLine(dayName, donorReads(leadRow, ask))) : null,
-      standing: standingLong(c.percentile, c.standing as Standing | null),
+      // (T585 F8/F14) a figure the index did not rank says which reading was ranked and which this is; a kept one says so
+      standing: readingStanding({ percentile: c.percentile, standing: c.standing as Standing | null,
+                                  ...(c.rankedAt !== undefined ? { rankedAt: c.rankedAt } : {}), observedAt: c.observedAt }),
       percentile: c.percentile ?? null,
-      age: readingAgeLine(freshness(c.fetchedAt, now()), c.observedAt),
+      age: readingAgeLine(freshness(c.fetchedAt, now()), c.observedAt, undefined, !!c.kept),
     };
   }
 

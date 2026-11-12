@@ -29,6 +29,13 @@ export interface Conditions {
   observedAt: string | null;
   /** The reaches between here and the station that measures it. */
   trace: readonly SectionId[];
+  /**
+   * (T585 F8) Present only when this reading is NOT the one the index ranked (`Reading.rankedAt`): that reading's time
+   * (null: the index names none). `percentile` is then null and the card says both times (`readingStanding`).
+   */
+  rankedAt?: string | null;
+  /** (T585 F14) Answered from the phone's kept copy (offline): the card's age line says so. */
+  kept?: true;
 }
 
 // NO `useConditions` (T105): it read the station `section_gauge` matched to a reach for the sheet's reading, a second
@@ -90,6 +97,8 @@ export async function stationReading(source: WaterSource, station: StationId | n
     discharge: now.value.discharge, level: now.value.level, parameter: now.value.parameter,
     percentile: now.value.percentile, standing: now.value.standing,
     fetchedAt: now.fetchedAt, observedAt: now.value.at || null,
+    ...(now.value.rankedAt !== undefined ? { rankedAt: now.value.rankedAt } : {}),
+    ...(now.kept ? { kept: true as const } : {}),
   };
 }
 

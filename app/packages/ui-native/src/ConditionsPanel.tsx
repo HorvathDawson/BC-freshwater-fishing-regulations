@@ -252,7 +252,7 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
                                                   backgroundColor: rampAt(flowRampStops(theme), reading.percentile) }} />
             ) : null}
             <Text style={{ ...TYPE.bodyStrong, color: palette.ink, flexShrink: 1 }}>
-              {reading.quantity === shown ? reading.standing : standingRankedIn(reading.standing, reading.quantity)}
+              {reading.quantity === shown || reading.percentile == null ? reading.standing : standingRankedIn(reading.standing, reading.quantity)}
             </Text>
           </View>
           {reading.forecast && <Text testID="reading-forecast" style={{ ...TYPE.bodyStrong, color: palette.ink }}>{reading.forecast}</Text>}

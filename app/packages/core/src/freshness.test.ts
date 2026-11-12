@@ -43,4 +43,9 @@ describe("readingAgeLine (P02): the finished sentence, whole (AGENTS 33)", () =>
     expect(readingAgeLine(freshness(NOW - 3 * 24 * 60 * MIN, NOW), null))
       .toBe("This gauge's own reading · last checked 3d ago, may be out of date");
   });
+  it("(T585 F14) the phone's kept copy, offline, is said as that — never as this gauge's live reading", () => {
+    expect(readingAgeLine(freshness(NOW - 180 * MIN, NOW), at, VAN, true))
+      .toBe("Offline — reading saved on this phone · observed 2026-09-01 at 04:30 PDT · last checked 3h ago, may be out of date");
+    expect(readingAgeLine(freshness(null, NOW), null, VAN, true)).toBe("Offline — reading saved on this phone · age unknown");
+  });
 });
