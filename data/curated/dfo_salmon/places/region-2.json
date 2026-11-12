@@ -1957,7 +1957,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "harrison_river__hwy_7_bridge_over_the_harrison"
+            ],
+            "item_id": "gnis:15333"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
