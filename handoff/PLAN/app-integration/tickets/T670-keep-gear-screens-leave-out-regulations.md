@@ -1,6 +1,6 @@
 # T670 — Keep and Gear tabs: show the regulations the release holds and the screens left out (T462 audit K1–K5, G1–G5, G7)
 
-Status: IN PROGRESS — eight findings fixed in the presenters and shown now (738f6608f, no release needed); left (Claude): put the three held findings (G2, G5, G7) to the owner with the evidence below, then build what the owner picks; the web pages' copy (`app/tools/seo/model.ts`, T672's lane) still has to draw the two new fields.
+Status: IN PROGRESS — eight findings fixed in the presenters and shown now (738f6608f, no release needed); G2, G5 answered and built; G7 answered 2026-11-12 (below), to build; the web pages' copy (`app/tools/seo/model.ts`, T672's lane) still has to draw the two new fields.
 
 Source: `handoff/PLAN/app-integration/T462-audit.md` (85ba2e821), owner 2026-11-11. Rule for this ticket (owner, same
 day): a finding is FIXED here only when the screen dropped what the release plainly holds and the book plainly says,
@@ -25,7 +25,7 @@ waters) on six days (Jan 15, Mar 15, May 1, Jul 15, Sep 1, Nov 11) = 124,578 pag
 | 8 | **G4** a hook-size limit (`counts.hook_gap_mm`) was not worded | FIXED, shows now (wording: the rule's stored label; a shorter wording is the owner's, below) | `core/src/regs/gear.ts` `gearLines` | 3 rules on 3 waters (6 parts, 27 pages) → 0 |
 | 9 | **G2** the bait heading on a day game fish are closed and the gear tab is drawn for salmon | HELD FOR OWNER | — | 5,156 of 7,932 such pages say "not today" above an all-✕ list (2,705 waters) |
 | 10 | **G5** no Licence tab on a day game fish are closed and the gear tab is drawn for salmon | HELD FOR OWNER | — | 20,306 closed pages with a gear answer (8,259 waters); how many have salmon open was not counted |
-| 11 | **G7** classified-water licence terms (draw, booking, 8-day cap, one licence a year) are on no tab | HELD FOR OWNER | — | 10 terms; in the release's licensing table, in no licence frame |
+| 11 | **G7** classified-water licence terms (draw, booking, 8-day cap, one licence a year) are on no tab | ANSWERED 2026-11-12, TO BUILD | — | 10 terms; in the release's licensing table, in no licence frame |
 
 G6 (Pend d'Oreille) is not in this ticket: the owner's reading.
 
@@ -128,3 +128,6 @@ possession quotas = 4 …; northern pike daily and possession quotas = 4"), the 
 ## Owner 2026-11-12
 G2 bait heading: "Why does it matter the river is closed? It shouldn't show any method or gear or quotas in the regulation card. If salmon are open or something at same time so that river is half closed then it should say in force." A fully closed water shows no gear, method or quota; where something is open the rule reads "in force today". G5 Licence tab: shown when salmon is open. K1-K5, G1, G3, G4 wordings: accept as built. G7 (which classified-water licence terms the Licence tab carries) is still the owner's.
 - DONE in the app (Claude, 2026-11-12). G2: gear showed on the closed day because SALMON was open (`gearTabsFor` draws the open day's gear for salmon); the bait heading read the strip's bait mark, which exists only on game-fish-open days, so an all-year ban said "not today". Now `banHeading(…, fished)`: on that salmon-only day a dated ban the day's frame holds reads "in force today" (`bait.ts`). A page closed for game fish AND salmon already draws no Gear/Methods tab (and no quota). G5: `licenceTabFor` / `licenceIfFished` (`regs/page.ts`, `WaterScreen.tsx`): the Licence tab shows when salmon is open, hidden only on a fully closed page. Tests: `bait.test.ts`, `licenceTab.test.ts`. Held: a closed page whose salmon status is "check DFO"/unknown counts as salmon open (as the Gear tab already does).
+
+
+G7 decision (owner 2026-11-12, "Show on each water"): each classified water's Licence tab lists the p.7 terms that apply to it, in the book's words. No longer held. RULINGS Li13.
