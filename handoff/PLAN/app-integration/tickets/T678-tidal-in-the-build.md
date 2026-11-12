@@ -49,15 +49,15 @@ quoted: "In that portion of Subarea 20-2 at the mouth of the San Juan River nort
 the large alder tree, located at 48°33.514' N and 124°24.272' W and south of the Pacheedaht Campground and a boundary
 marker located at 48°33.599' N and 124°24.233' W, at the well-established stump in the sand, shoreward in a easterly
 direction of this boundary and downstream of the San Juan Bridge". Source:
-https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/tidal-maree/a-s20-eng.html. This is a rank-1 DFO written boundary.
+https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/tidal-maree/a-s20-eng.html. This is a rank-1 DFO written boundary. **ACCEPTED by the owner on 2026-11-11** ("No just accept that bridge please"): the curated split goes in as accepted, the owner's explicit decision with DFO's wording as the source. No review step.
 
 **Kitimat:** reading still open. DFO's line Eurocan dock - MK Bay kiosk is only the seaward edge; where tidal water
 ends upstream is not written anywhere found. Owner picks: keep polygon exit / boundary at DFO line / ask the Kitimat
 DFO office.
 
 ## To do from the answers
-- [ ] San Juan: add a curated split on the San Juan main stem at the San Juan Bridge, tidal below, as a proposal for
-  the owner's review (never pre-accepted). The held San Juan line is a side line about 2.5 km from the markers: work
+- [ ] San Juan: add a curated split on the San Juan main stem at the San Juan Bridge, tidal below, ACCEPTED (owner
+  2026-11-11; no review step). The held San Juan line is a side line about 2.5 km from the markers: work
   out whether it joins below the bridge (then tidal) or above.
 - [ ] Classify the 33 curated splits as DFO-written or not, from their provenance and the DFO pages. Unknowns go to
   the owner.
