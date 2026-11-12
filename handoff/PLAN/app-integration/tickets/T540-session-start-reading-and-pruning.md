@@ -1,6 +1,6 @@
 # T540 — Cut what a new chat reads: closed ledger rows, old STATUS entries, the dead order list
 
-Status: OPEN.
+Status: PARTIAL — a7df2f98b, 666683208 (items 2-4 done 2026-11-11); left (Claude): item 1 waits for a guard change (below); item 5 is the owner's, default unchanged (Q177).
 
 Source: workflow review 2026-11-09 (verified against the files). Rank 8.
 
@@ -31,3 +31,26 @@ Source: workflow review 2026-11-09 (verified against the files). Rank 8.
 - Instructed start reading ≤ 120 KB, measured and written here. `pnpm run tickets` passes on the split ledger.
 
 Depends: T539 (same guard file). Size: M. Owner: yes (item 5 only). Default: AGENTS.md unchanged.
+
+## Done 2026-11-11
+- Item 3: the order section is a two-line pointer to the restart page (a7df2f98b).
+- Item 4: 24 questions on closed tickets moved to "Shipped on default (reverse any)", one line each; Q27, Q42, Q161
+  retired with their DROPPED tickets (a7df2f98b). Q31 (answered) stays in its row.
+- Item 2: `STATUS.md` keeps 2026-11-04 onward; 19 entries (2026-10-30 to 11-03) moved unchanged to `STATUS-archive.md`
+  (666683208). 155 KB to 127 KB. Left: the rule "move older entries when a restart page is written" and the size guard in fast-fail.
+
+## Not done: item 1 (closed rows to DONE.md) needs a guard change
+`app/tools/check-tickets.mjs` (T84) reads only `README.md` under `## Ledger` (`ledgerRows`), and fails with "ticket file has no
+ledger row in README.md" for every `T*.md` whose row is elsewhere. Moving 400+ closed rows to `tickets/DONE.md` therefore
+fails `pnpm check` until the guard changes (a code change, not made here). What it needs:
+1. `readRepo` also reads `tickets/DONE.md` and passes it as `doneLedger`; `checkLedger` runs `ledgerRows` over README and
+   DONE.md and unions the rows (a row in both is the existing "appears more than once" problem).
+2. A rule that DONE.md holds only DONE/DROPPED rows (a row whose status is anything else in DONE.md fails, so an open
+   ticket cannot hide there), and the file-vs-row status match (rule 5) runs on both.
+3. `ledgerRows` takes the heading as a parameter, or DONE.md uses the same `## Ledger` heading.
+4. `app/tools/check-tickets.test.ts`: a case for a ticket whose row is only in DONE.md (passes), an OPEN ticket in DONE.md
+   (fails), a row in both (fails).
+Then move rows that were DONE/DROPPED before 2026-11-11, never the rows of tickets other lanes are editing today (T462, T549,
+T554, T555, T585, T597, T603, T606, T628, T631, T633, T661, T664-T672), and cap the last cell at about 200 characters.
+Acceptance measure (not taken yet): start-of-chat reading is README 132 KB + AGENTS 73 KB + OWNER-TODO + restart page; the
+split is what brings it under 120 KB.
