@@ -1,6 +1,6 @@
 # T555 — Update service: a refused release never reads "Updated"; one byte count; every format bump is gated; saved ids follow aliases
 
-Status: OPEN (partly done 2026-11-10: items 1 and 3 done, 5 reader half done (9312354, ed637de, ab6c897); items 2 and 4 are pipeline-side, 5 callers and the release check remain).
+Status: IN PROGRESS — items 1, 3, 4, 5 built (9312354, ed637de, ab6c897, 138f1a5e0, 5018a81d8, d707dcdfb); item 2 is its own ticket, T673; left (Claude): the emulator check under "Not device-tested" below.
 
 Source: data pipeline review 2026-11-09 (owner-led; 14 areas + a gap check, every finding re-read against the code and release data by a second reviewer). Rank 11 of 17; highest severity 3 of 5.
 
@@ -49,3 +49,38 @@ Fix the items above in severity order, one commit per item where they are separa
 A refused set shows a failure state, not "ready/Updated" (test with a bad sha). One install-size function, used by the mobile-data gate. The app-version gate is generated from every format constant. Saved ids resolve through core.item_alias (test with an absorbed id).
 
 Depends: —. Size: M. Owner: no.
+
+## Done 2026-11-11 (items 4 and 5; item 2 split out)
+- Item 5, callers (138f1a5e0, 5018a81d8). Every by-id read in `@app/data` follows `core.item_alias`: `water` and `regulationKeys`
+  (ab6c897), now also `locate`, `waterBox`, `waterPoint` and the regulations' `itemOrd` (the alias is asked only for an id the
+  release does not hold, so a current id costs no extra read) — so an alert tap, a spot's water
+  link, a start link or an app link with an absorbed id opens the water it became. `WaterSource.currentItem` is the one
+  resolver. A KEPT id is rewritten once per release opened (`followSavedItems`, `packages/data/src/savedIds.ts`, called
+  from App.tsx for a cold start and an applied update alike): a spot's `item`, a gauge alert's `water.item`. Recent
+  searches hold the text typed, never an id: nothing to follow there (the ticket's list was wrong on that one). An id
+  gone with no alias is left as it is. Tests: `release/alias.test.ts`, `regs/reads.test.ts`.
+- Item 5, the release check (138f1a5e0). `pipeline/deliver/release/gone_ids.py`: the live release's item ids the
+  candidate neither holds nor aliases, listed by name in the checks stage (`checks/<r>/gone_ids.txt|json`, the count in
+  the ledger). It lists and never stops. Read on the two releases on disk (r-a178299f6005 → r-303b4007a70a): 19,788 of
+  19,806 kept, 18 absorbed and followed by an alias, 0 gone — so absorbed ids HAVE now shipped (the second opinion's
+  "hypothetical until a future build" is no longer true), and the app half above is what keeps them opening.
+- Item 4 (d707dcdfb). `pipeline/deliver/release/app_reads.json`: per app version, the formats it reads for every file
+  of the release contract (the contract's own + the app's `ALSO_READS`). Written by `python -m
+  pipeline.tools.emit.app_reads`; its `--check` is in `pnpm check` (`app-reads`) and `scripts/fast-fail.sh`: the current
+  app.json version must have its row and the row must be what the code reads, so a format moved with no version bump
+  fails (bump the version and record; `--replace "<why>"` only when no build of that version left the machine).
+  `app_gate.problems` derives the oldest app that reads ALL of a manifest's formats and refuses a stamp below it;
+  `site_gate.required` asks the same. `PAINT_NEEDS` / `SALMON_NEEDS` are gone. Backfilled from git (the contract at
+  each version's bump commit): paint/5 → 0.3.0, salmon/4 → 0.5.0, water/3 and geo/2 → 0.7.0, the same answers the hand
+  tables and stamps gave; the live release derives 0.7.0, its stamp. The table is Python-side because the contract's
+  source is (`contract.py`), not `pack.generated.ts`. NEW STOP for every lane: a version bump in app.json needs
+  `python -m pipeline.tools.emit.app_reads` (one line, like the changelog entry). Tests: `test_app_reads.py`.
+- Item 2 → T673 (feeds keyed by release and atlas): one change across the publisher, the deploy format gate, the feeds
+  worker, the app and the run-timing workflow, with decisions listed there; not built here.
+- Item 1, the rest (e4add6e9a, with T585 F12): a re-boot onto the set already in use is never "Updated to" (`bootSaid`).
+
+## Not device-tested (the emulator run should check)
+- A spot and a gauge alert saved on an absorbed id (e.g. one of the 18 above, saved on build 22's release) open their
+  water after the update, and the spot's water link and "this water's spots" list hold the new id.
+- The app starts and updates as before with the new `release/opened` record (T585 F12) on a phone that already holds a set.
+
