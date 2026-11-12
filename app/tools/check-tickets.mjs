@@ -8,8 +8,10 @@
  *
  *   1. a `tickets/T*.md` file has no `Status:` line in its first lines, or one whose value is not a
  *      status the README defines;
- *   2. a ticket file is missing from the README ledger table, or a ledger row has no ticket file, or two files share an id
- *      (or a row is repeated);
+ *   2. a ticket file is missing from the ledger, or a ledger row has no ticket file, or two files share an id (or a row
+ *      is repeated). (T540) THE LEDGER IS TWO FILES: README.md holds the rows still in work and those closed lately,
+ *      DONE.md (same `## Ledger` table) the closed ones, so a new chat reads only the first. Their rows are unioned; a
+ *      row in both is a repeated row; DONE.md may hold ONLY DONE or DROPPED rows (an open ticket cannot hide there);
  *   3. a T-number named in a commit subject (since the tickets folder began) is not in the ledger;
  *   4. a ticket is DONE — in its file or in its ledger row — with no commit hash;
  *   5. (T437) a ticket file's leading status keyword differs from its ledger row's. Twelve had drifted (OPEN in the
@@ -28,6 +30,11 @@
 import { execFileSync, spawnSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
+
+/** (T540) The closed rows' file, beside README.md in the tickets folder. */
+export const DONE_LEDGER = "DONE.md";
+/** (T540) The only statuses a row in DONE.md may carry. */
+export const CLOSED = ["DONE", "DROPPED"];
 
 /** The repo-relative tickets folder. */
 export const TICKETS_DIR = "handoff/PLAN/app-integration/tickets";
@@ -104,11 +111,13 @@ export function ledgerRows(readme) {
 /**
  * Every way the ledger is not whole, as one sorted list of plain messages (empty = whole).
  *
- * @param {{ tickets: { name: string, text: string }[], readme: string, subjects: string[] }} input
- *   tickets — every `T*.md` in the folder (name + contents); readme — README.md; subjects — commit
- *   subjects since the tickets folder began; ownerTodo — handoff/PLAN/OWNER-TODO.md (the texts a status may cite).
+ * @param {{ tickets: { name: string, text: string }[], readme: string, doneLedger: string, subjects: string[] }} input
+ *   tickets — every `T*.md` in the folder (name + contents); readme — README.md; doneLedger — DONE.md (T540: the
+ *   closed rows; both must be given); subjects — commit subjects since the tickets folder began; ownerTodo —
+ *   handoff/PLAN/OWNER-TODO.md (the texts a status may cite).
  */
-export function checkLedger({ tickets, readme, subjects, ownerTodo }) {
+export function checkLedger({ tickets, readme, doneLedger, subjects, ownerTodo }) {
+  if (typeof doneLedger !== "string") throw new Error(`checkLedger needs doneLedger (the text of ${TICKETS_DIR}/${DONE_LEDGER})`);
   const problems = [];
   for (const { name, text } of tickets) {
     const id = idOfFile(name);
@@ -138,12 +147,17 @@ export function checkLedger({ tickets, readme, subjects, ownerTodo }) {
     if (kw && idOfFile(name)) fileKw.set(idOfFile(name), kw);
   }
 
-  const rows = ledgerRows(readme);
-  const seen = new Set();
+  const rows = [...ledgerRows(readme).map((r) => ({ ...r, file: "README.md" })),
+                ...ledgerRows(doneLedger).map((r) => ({ ...r, file: DONE_LEDGER }))];
+  const seen = new Map();
   for (const row of rows) {
-    if (seen.has(row.id)) problems.push(`${row.id}: ledger row appears more than once`);
-    seen.add(row.id);
+    if (seen.has(row.id))
+      problems.push(seen.get(row.id) === row.file ? `${row.id}: ledger row appears more than once`
+        : `${row.id}: ledger row appears more than once (in README.md and in ${DONE_LEDGER}: keep one)`);
+    seen.set(row.id, row.file);
     const kw = statusKeyword(row.status);
+    if (row.file === DONE_LEDGER && kw && !CLOSED.includes(kw))
+      problems.push(`${row.id}: ${DONE_LEDGER} holds only ${CLOSED.join(" or ")} rows, this one is ${kw} (move it back to README.md)`);
     if (!kw) problems.push(`${row.id}: ledger status "${row.status}" is not one of ${STATUSES.join(", ")}`);
     if (kw === "DONE" && !HASH.test(row.commits)) problems.push(`${row.id}: ledger row is DONE with no commit hash`);
     const fk = fileKw.get(row.id);
@@ -159,8 +173,8 @@ export function checkLedger({ tickets, readme, subjects, ownerTodo }) {
     if (names.length > 1) problems.push(`${id}: more than one ticket file (${[...names].sort().join(", ")})`);
 
   const files = new Set(namesById.keys());
-  for (const id of files) if (!seen.has(id)) problems.push(`${id}: ticket file has no ledger row in README.md`);
-  for (const id of seen) if (!files.has(id)) problems.push(`${id}: ledger row has no ticket file`);
+  for (const id of files) if (!seen.has(id)) problems.push(`${id}: ticket file has no ledger row in README.md or ${DONE_LEDGER}`);
+  for (const id of seen.keys()) if (!files.has(id)) problems.push(`${id}: ledger row has no ticket file`);
 
   const named = new Set(subjects.flatMap((s) => s.match(T_IN_SUBJECT) ?? []));
   for (const id of named) if (!seen.has(id)) problems.push(`${id}: named in a commit subject but missing from the ledger`);
@@ -252,7 +266,7 @@ export function checkDocs({ status, startHere, restartName, restart, ownerTodo, 
   return [...new Set(problems)].sort();
 }
 
-/** The repo's real inputs: the tickets folder, its README, and commit subjects since the folder began. */
+/** The repo's real inputs: the tickets folder, its README and DONE.md, and commit subjects since the folder began. */
 export function readRepo(repoRoot) {
   const dir = join(repoRoot, TICKETS_DIR);
   const tickets = readdirSync(dir)
@@ -260,6 +274,7 @@ export function readRepo(repoRoot) {
     .sort()
     .map((name) => ({ name, text: readFileSync(join(dir, name), "utf8") }));
   const readme = readFileSync(join(dir, "README.md"), "utf8");
+  const doneLedger = readFileSync(join(dir, DONE_LEDGER), "utf8");   // (T540) a missing DONE.md is an error, never "no closed rows"
   const git = (...args) => execFileSync("git", ["-C", repoRoot, ...args], { encoding: "utf8" });
   // Subjects before the tickets folder used T-numbers of an older plan (e.g. "T3a"); they are not tickets.
   const firsts = git("log", "--diff-filter=A", "--format=%H", "--", TICKETS_DIR).trim().split("\n").filter(Boolean);
@@ -268,7 +283,7 @@ export function readRepo(repoRoot) {
   const subjects = git("log", "--format=%s", "HEAD", "--not", `${first}^@`).split("\n").filter(Boolean);
   const plan = join(repoRoot, "handoff/PLAN");
   const ownerTodo = readFileSync(join(plan, "OWNER-TODO.md"), "utf8");
-  return { tickets, readme, subjects, ownerTodo };
+  return { tickets, readme, doneLedger, subjects, ownerTodo };
 }
 
 /** The docs checkLedger's sibling reads: real files, real existence, real git-ignore. */
@@ -300,7 +315,7 @@ if (isMain) {
   const problems = checkLedger(readRepo(repoRoot));
   const docProblems = checkDocs(readDocs(repoRoot));
   if (problems.length) {
-    console.error(`✗ the ticket ledger is not whole (${TICKETS_DIR}/README.md):\n  ` + problems.join("\n  ") +
+    console.error(`✗ the ticket ledger is not whole (${TICKETS_DIR}/README.md + ${DONE_LEDGER}):\n  ` + problems.join("\n  ") +
       "\n\n  Every ticket file needs a Status line and a ledger row; DONE needs its commit hashes; IN REVIEW / PARTIAL name their step.");
   }
   if (docProblems.length) console.error(`✗ the handoff docs are wrong (T539):\n  ` + docProblems.join("\n  "));

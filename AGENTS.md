@@ -356,7 +356,8 @@ W46. **The guards the 2026-11 audits put in (T429–T442) stay in. A change that
       --write`); a route added or removed regenerates it in the same commit. No "splits" domain (lake splits are
       deferred).
     - **Ticket ledger** (T539): `node app/tools/check-tickets.mjs` must pass (in `pnpm check` and fast-fail). It checks that
-      every ticket file has a Status line and a ledger row whose leading keyword agrees; DONE names its commit hashes
+      every ticket file has a Status line and a ledger row whose leading keyword agrees (T540: the ledger is `tickets/README.md`
+      plus `tickets/DONE.md`, which holds only DONE / DROPPED rows; a row sits in exactly one); DONE names its commit hashes
       (commit the code first, then the ledger); IN REVIEW / PARTIAL name their step as `owner: OWNER-TODO "<text that
       exists in OWNER-TODO.md>"` or `left (Claude): …` (a ticket whose only step is Claude's is IN PROGRESS). The same
       script is the docs guard: STATUS.md starts with its title, every repo path cited in START-HERE / the restart page /

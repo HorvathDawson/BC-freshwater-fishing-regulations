@@ -9,11 +9,25 @@
 import { describe, expect, it } from "vitest";
 import { repoData } from "../conformance/src/repoData";
 // A plain .mjs gate (it runs under node as `pnpm tickets`), imported for its functions.
-import { NO_STEP_YET, RUNBOOK_MAKES, checkDocs, checkLedger, citedPaths, idOfFile, ledgerRows, readDocs, readRepo, ruleIds, runbookPaths, statusKeyword } from "./check-tickets.mjs";
+import { CLOSED, DONE_LEDGER, NO_STEP_YET, RUNBOOK_MAKES, checkDocs, checkLedger, citedPaths, idOfFile, ledgerRows, readDocs, readRepo, ruleIds, runbookPaths, statusKeyword } from "./check-tickets.mjs";
 
-type Input = { tickets: { name: string; text: string }[]; readme: string; subjects: string[]; ownerTodo: string };
+type Input = { tickets: { name: string; text: string }[]; readme: string; doneLedger: string; subjects: string[]; ownerTodo: string };
 const repoRoot = new URL("../..", import.meta.url).pathname;
-const real = readRepo(repoRoot) as Input;
+/** the repo as it is: README.md (rows in work) + DONE.md (closed rows, T540) */
+const repo = readRepo(repoRoot) as Input;
+const rowIn = (text: string, id: string) => text.split("\n").find((l) => l.startsWith(`| ${id} |`));
+/** `input` with the row of `id` in README.md, wherever it sits today (a closed row lives in DONE.md): the mutations
+ *  below edit a README row, and must not depend on which rows have been moved */
+const rowInReadme = (input: Input, id: string): Input => {
+  const row = rowIn(input.doneLedger, id);
+  if (!row) return input;
+  const lines = input.readme.split("\n");
+  const start = lines.findIndex((l) => /^##\s+Ledger\b/.test(l));
+  const last = lines.findLastIndex((l, i) => i > start && i < lines.findIndex((x, j) => j > start && /^##\s/.test(x)) && l.startsWith("| T"));
+  lines.splice(last + 1, 0, row);
+  return { ...input, readme: lines.join("\n"), doneLedger: input.doneLedger.replace(row + "\n", "") };
+};
+const real = rowInReadme(rowInReadme(repo, "T84"), "T02");
 
 const withTicket = (input: Input, id: string, edit: (text: string) => string): Input => ({
   ...input,
@@ -31,13 +45,18 @@ const noGit: Input = { ...real, subjects: [] };
 
 describe("the real ledger", () => {
   it("is whole", () => {
+    expect(checkLedger(repo)).toEqual([]);
     expect(checkLedger(real)).toEqual([]);
   });
 
-  it("was actually read: every ticket file has a row, and commit subjects were scanned", () => {
-    const fileIds = real.tickets.map((t) => idOfFile(t.name)).sort();
-    const rowIds = (ledgerRows(real.readme) as { id: string }[]).map((r) => r.id).sort();
-    expect(rowIds).toEqual(fileIds);
+  it("was actually read: every ticket file has a row in README.md or DONE.md, and commit subjects were scanned", () => {
+    const fileIds = repo.tickets.map((t) => idOfFile(t.name)).sort();
+    const open = ledgerRows(repo.readme) as { id: string; status: string }[], closed = ledgerRows(repo.doneLedger) as { id: string; status: string }[];
+    expect([...open, ...closed].map((r) => r.id).sort()).toEqual(fileIds);
+    // (T540) the split is real: DONE.md holds rows, every one closed, and README.md still holds the rows in work
+    expect(closed.length).toBeGreaterThan(100);
+    expect(closed.filter((r) => !CLOSED.includes(statusKeyword(r.status)))).toEqual([]);
+    expect(open.some((r) => !CLOSED.includes(statusKeyword(r.status)))).toBe(true);
     expect(fileIds.length).toBeGreaterThan(100);
     expect(real.subjects.some((s) => /\bT84\b|\bT56\b/.test(s))).toBe(true);
     // Scoped to the tickets era: "T3a" (an older plan, before the tickets folder) is not scanned.
@@ -48,14 +67,14 @@ describe("the real ledger", () => {
 describe("the guard fires (mutation)", () => {
   it("on a removed ledger row", () => {
     const readme = real.readme.replace(rowOf(real.readme, "T84") + "\n", "");
-    expect(checkLedger({ ...noGit, readme })).toEqual(["T84: ticket file has no ledger row in README.md"]);
+    expect(checkLedger({ ...noGit, readme })).toEqual(["T84: ticket file has no ledger row in README.md or DONE.md"]);
   });
 
   it("on a removed ledger row of a ticket commits name (both rules fire)", () => {
     const readme = real.readme.replace(rowOf(real.readme, "T84") + "\n", "");
     expect(checkLedger({ ...noGit, readme, subjects: ["T84: ticket-ledger guard"] })).toEqual([
       "T84: named in a commit subject but missing from the ledger",
-      "T84: ticket file has no ledger row in README.md",
+      "T84: ticket file has no ledger row in README.md or DONE.md",
     ]);
   });
 
@@ -135,6 +154,45 @@ describe("statusKeyword", () => {
       ["OPEN", "IN PROGRESS", "PARTIAL", "BLOCKED", "POSTPONED", "DONE", "DROPPED", "DONE", null]);
   });
 });
+// ---- T540: the ledger is two files, README.md (in work) and DONE.md (closed) ----
+describe("T540 closed rows live in DONE.md", () => {
+  const row = rowIn(real.readme, "T84")!;
+  /** T84's row moved from README.md to DONE.md */
+  const moved: Input = { ...noGit, readme: noGit.readme.replace(row + "\n", ""), doneLedger: `${noGit.doneLedger.trimEnd()}\n${row}\n` };
+  it("the file is named, and a missing one is an error, never 'no closed rows'", () => {
+    expect(DONE_LEDGER).toBe("DONE.md");
+    const { doneLedger: _gone, ...without } = noGit;
+    expect(() => checkLedger(without)).toThrow(/needs doneLedger/);
+  });
+  it("a ticket whose row is only in DONE.md passes", () => {
+    expect(rowIn(moved.readme, "T84")).toBeUndefined();
+    expect(checkLedger(moved)).toEqual([]);
+  });
+  it("a row in neither file fails", () => {
+    expect(checkLedger({ ...moved, doneLedger: noGit.doneLedger })).toEqual(["T84: ticket file has no ledger row in README.md or DONE.md"]);
+  });
+  it("an OPEN ticket in DONE.md fails, as does every status but DONE and DROPPED", () => {
+    const hidden = (kw: string, status: string): Input => withTicket({ ...moved, doneLedger: moved.doneLedger.replace(row, withStatus(row, kw)) },
+      "T84", (t) => t.replace(/^Status:.*$/m, `Status: ${status}`));
+    expect(checkLedger(hidden("OPEN", "OPEN."))).toEqual(["T84: DONE.md holds only DONE or DROPPED rows, this one is OPEN (move it back to README.md)"]);
+    expect(checkLedger(hidden("IN PROGRESS", "IN PROGRESS — left (Claude): x"))).toEqual(["T84: DONE.md holds only DONE or DROPPED rows, this one is IN PROGRESS (move it back to README.md)"]);
+    expect(checkLedger(hidden("POSTPONED", "POSTPONED."))).toHaveLength(1);
+    expect(checkLedger(hidden("DROPPED", "DROPPED — not needed."))).toEqual([]);
+  });
+  it("a row in both files fails", () => {
+    expect(checkLedger({ ...noGit, doneLedger: moved.doneLedger })).toEqual(["T84: ledger row appears more than once (in README.md and in DONE.md: keep one)"]);
+  });
+  it("the file-vs-row status match and the DONE hash rule run on DONE.md rows too", () => {
+    const open = withTicket(moved, "T84", (t) => t.replace(/^Status:.*$/m, "Status: OPEN."));
+    expect(checkLedger(open)).toEqual(["T84: the ticket file says OPEN, its ledger row DONE (close both together)"]);
+    const cells = row.split("|"); cells[4] = " — ";
+    expect(checkLedger({ ...moved, doneLedger: moved.doneLedger.replace(row, cells.join("|")) })).toEqual(["T84: ledger row is DONE with no commit hash"]);
+  });
+  it("a DONE.md row with no ticket file fails; a commit subject naming a DONE.md ticket is in the ledger", () => {
+    expect(checkLedger({ ...moved, tickets: moved.tickets.filter((t) => idOfFile(t.name) !== "T84") })).toEqual(["T84: ledger row has no ticket file"]);
+    expect(checkLedger({ ...moved, subjects: ["T84: ticket-ledger guard"] })).toEqual([]);
+  });
+});
 
 // ---- T539: a status names a step that can close; the docs guard ----
 const T84_ROW = (input: Input) => rowOf(input.readme, "T84");
@@ -144,7 +202,9 @@ const withT84 = (status: string): Input => {
   const readme = noGit.readme.replace(T84_ROW(noGit), withStatus(T84_ROW(noGit), kw));
   return withTicket({ ...noGit, readme }, "T84", (t) => t.replace(/^Status:.*$/m, `Status: ${status}`));
 };
-const OWNER_TEXT = (real.ownerTodo.match(/\*\*([^*]{8,40})\*\*/) ?? [])[1];
+/** a text OWNER-TODO holds that no ticket's Status cites today (removing it must name T84 alone) */
+const OWNER_TEXT = [...real.ownerTodo.matchAll(/\*\*([^*]{8,40})\*\*/g)].map((m) => m[1]!)
+  .find((text) => !real.tickets.some((t) => t.text.split("\n").slice(0, 6).join("\n").includes(text)))!;
 
 describe("T539 a status names its step", () => {
   it("the real ledger passes, and the grandfather list is what is left unnamed", () => {
