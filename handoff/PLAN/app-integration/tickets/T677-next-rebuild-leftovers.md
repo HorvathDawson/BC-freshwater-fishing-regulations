@@ -14,7 +14,7 @@ Source: the rebuild lane, 2026-11-11 (`handoff/PLAN/app-integration/next-rebuild
    results file; if the answer is "keep it out", the fix is a cut or clean membership for that park, not the shore rule.
 3. **The binding diff is by id.** `reach.binding_diff` cannot see a rule that kept `B:0` while `B:0` grew from a
    crossing piece to the whole creek. The by-place diff used for the side build
-   (`data/generated/side/next-rebuild/tools/measure_geo.py`: what each rule covers on each changed blue line, in
+   (`measure_geo.py` in `data/generated/side/next-rebuild/tools.tar`: what each rule covers on each changed blue line, in
    metres) belongs in `binding_diff` (and in the release check).
 4. **The 32 new held lines are not on a map page.** `T665-main-rivers-map.html` shows 61; add Cohilukthan and Deas
    sloughs, Kainet Creek and the 29 of `shore.HELD_NOT_ON_THE_OWNERS_MAP`, each with what a tick brings (31 creeks

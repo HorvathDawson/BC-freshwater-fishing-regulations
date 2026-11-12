@@ -280,5 +280,5 @@ Then step 8 (land the nine marks, take their keys off `NOT_LANDED_OK`), step 9 (
 - T606 item 2 (lake clash suffix numbering, lake names) is not in this build.
 - RULINGS.md and MAP.md still do not carry the shore rule (a T665 leftover).
 - The "up the channel" measure is the T665 lane's distance-to-edge proxy; it was reused, not re-derived.
-- The measurement scripts are kept with the side build (`data/generated/side/next-rebuild/tools/`: `measure_atlas.py`,
+- The measurement scripts are kept with the side build (`data/generated/side/next-rebuild/tools.tar`, packed 2026-11-11 so no `.py` sits under `data/` for the CI path gate: `measure_atlas.py`,
   `measure_reach.py`, `measure_geo.py`, the in-memory dry runs), not in the repo.

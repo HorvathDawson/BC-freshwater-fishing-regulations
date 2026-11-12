@@ -132,7 +132,7 @@ anything differs; here it must differ. Expected, and every other difference is e
 - T665: rules lose the sections that became tidal (the pieces below the polygon cuts, the 215 whole lines) and gain
   back 15 short strips that were tidal in build 27 (0.3 km). A dropped T660 cut into fresh water changes ids only,
   with one known exception: the Ucona River's first 33 m join `strathcona_park_waters.r1`. Read the diff BY PLACE
-  (`tools/measure_geo.py` in the side build): an id diff cannot see a rule that kept `B:0` while `B:0` grew.
+  (`measure_geo.py` in the side build's `tools.tar`): an id diff cannot see a rule that kept `B:0` while `B:0` grew.
   Counts per rule and water: the results file.
 - Standing: unplaced pieces are only the accepted ones (`unplaced_piece_calls.json`); no dead override.
 
