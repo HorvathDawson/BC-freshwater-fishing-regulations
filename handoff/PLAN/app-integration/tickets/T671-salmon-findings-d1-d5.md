@@ -1,6 +1,6 @@
 # T671 — The T462 audit's salmon findings (D1–D5)
 
-Status: IN PROGRESS — every finding settled: D2 and D3 fixed (6b02feb06, 188392691); D1, D4 and D5 built on the owner's answers of 2026-11-12 (4bc03ac14; D1 6,254 sections toward closed, D4 no change, D5 wording); the scraped rows typed again 2026-11-12 (`typed_format` 3); left (Claude): the D3 tiers render test in `SalmonCard.test.tsx` (the file passes today)
+Status: IN PROGRESS — every finding settled: D2 and D3 fixed (6b02feb06, 188392691); D1, D4 and D5 built on the owner's answers of 2026-11-12 (4bc03ac14; D1 6,254 sections toward closed, D4 no change, D5 wording); the scraped rows typed again 2026-11-12 (`typed_format` 3); the owner's two follow-ups of 2026-11-12 built (b7749b726; 5B aggregate: the worker's live join now pools as T349 does, RULINGS Q29; D5 extension: catch-and-release / check part-headlines, P47); left (Claude): the D3 tiers render test in `SalmonCard.test.tsx` (the file passes today)
 
 Source: `handoff/PLAN/app-integration/T462-audit.md` (85ba2e821), findings D1–D5. Owner instruction 2026-11-11 (through
 the coordinator): a finding that needs a choice between two faithful readings is the owner's call. Fix only what the
@@ -89,6 +89,49 @@ Measured on release `r-483b295de57c` (LATEST): every chain's 366 days recomputed
   undrawn place is only catch-and-release or "check" (11,888 section-days) the caveat keeps its ordinary words — the
   ruling names an OPEN place.
 - Shows with the next app build.
+
+## The owner's follow-ups of 2026-11-12, built (b7749b726)
+
+Measured on release `r-483b295de57c` (LATEST) with `measure.py` / `compare.py` (every chain's 366 days recomputed in memory
+by the tree's code, before and after): the release's verdicts, quota trees and words are identical (0 chains differ) —
+both changes are in the live feed and the app.
+
+### 5B "in the aggregate" — RULINGS Q29. The release already matched; the worker's live join did not
+- Owner: "5b says this on the ALL row (All lakes or streams or part thereof in the aggregate (combined total), in
+  Management Units 5-6 to 5-11 in Region 5B, unless otherwise stated below (i.e. Region 5 not including the Fraser River
+  watershed).)... So any water body not in the table will be with the total in aggregate (shared total) .. so basically
+  items not in the table in mu 5-6 to 5-11 are shared but other row listed items have their own quota. Also the 4 salmon a
+  day limit in total of all species is still a thing here too".
+- What T349 built: `quota.pool_of` pools a place whose words say "in the aggregate" / "combined total" across its own
+  `within` areas — only `5b:region:section` (`area:mu_group:management_units_5_6_to_5_11`) on today's pages; `mark_shared`
+  marks its chinook and coho 4-a-day rows (`deliver.salmon.build`, the Python `live.join`); the verdict's tree is the
+  `total` tier "Up to 4 chinook a day in total, all waters of Management Units 5-6 to 5-11 combined". Listed waters
+  (Atnarko, Bella Coola, Chuckwalla, Kilbella, Docee, Wannock, Dean, Long Lake) have no pool. The 5B bucket is "Up to 4
+  salmon a day in total, fresh and tidal waters combined" (+ the annual 10 chinook over 50 cm). Same as the owner's reading.
+- What differed: the feeds worker's live join (`live.ts` `join`) never called a pool, and its `quota.ts` had no pooled
+  tier: the live feed read 5B's ALL row as "4 a day" per water. Ported `poolOf` / `poolWords` / `markShared` and the
+  `total` tier; `join` marks the rules as the Python does.
+- Effect: release none. Live feed (with the owner's worker deploy): the pooled words on 5B's ALL-row answers (92,835
+  sections in one-region chains; straddlers show no number, Z4a). No status moves.
+- Checked for a row the words leave ambiguous — a listed water whose row is silent on a species on some day would fall to
+  the pooled ALL row: on no drawn chain on any day (every 5B chain with a listed place answers all five species itself or
+  through the region's "limit is zero" sentence). Nothing held. Noted for the labelling: the Dean River (41 sections) and
+  Long Lake (1) have their own rows, but those places are not drawn, so their sections show the pooled ALL row with the
+  in-part caveat.
+- Tests: shared cases in `dfo-rows.json` (`place`, `quota`: an unlisted 5B water pooled, the Bella Coola's own row, Region
+  6 A not pooled) read by `test_t671_salmon_rows.py` and `dfo.t671.test.ts`; a chain test and a mutation pin (no pool →
+  "4 a day") in the Python file.
+
+### D5 extension — RULINGS P47
+- Core `salmonCard`: a page closed today whose undrawn place is only catch and release reads "Closed today · catch and
+  release in part"; one reading "check" reads "Closed today · check DFO for part"; each with its own caveat line pointing to
+  DFO (`SALMON_WORDS.closedReleaseInPart` / `releaseInPartCalm`, `closedCheckInPart` / `checkInPartCalm`). Several kinds on
+  one page-day: open, then catch and release, then check. Status, bar and map stay the page's.
+- Effect on LATEST (a section's page, its chain's named undrawn places): check 11,888 section-days on 33 sections (3
+  chains: the Fraser and South Thompson in Region 3, undrawn places printing sockeye "To be determined"); catch and
+  release 0; open unchanged (93,447 section-days, 764 sections, by this count). Nothing moves toward open.
+- Tests: `salmon.test.ts` "(T671 D5 extension) …" (check; precedence across two undrawn places); the T372 and
+  all-closed tests now read the release headline on Sep 15 (the fixture's undrawn Cowichan place).
 
 ## As held for the owner (2026-11-11, kept for the record)
 
