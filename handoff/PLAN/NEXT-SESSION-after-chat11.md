@@ -1,5 +1,12 @@
 # Next session: after chat 11 (written 2026-11-11)
 
+> **Restart 2026-11-12 (computer restart mid-run).** Read first: "Restart 2026-11-12" in
+> `app-integration/T678-progress.md` (release stopped at the Qualcho Creek card defect) and
+> `app-integration/T678-coast-proposal.md` (tidal proposal DRAFT, page not published). Working copies outside the
+> repo: `/Users/dawson.horvath/bcfish-session-backup-2026-11-12/STATE-at-restart.md` (order of work). Owner answers
+> to-do items in chat by question dialog; page ticks do not work. Next free ticket T685.
+
+
 ## Where things are
 - **The latest build is out** on staging and Play internal; the STATUS top entry names the release and the app
   version. The owner's phone check is pending.
