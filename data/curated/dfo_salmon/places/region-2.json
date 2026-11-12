@@ -4310,7 +4310,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "serpentine_river__dyke_gates",
+              "serpentine_river__23_m_below_the_serpentine_flood_dam_d23m"
+            ],
+            "item_id": "gnis:24978"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
