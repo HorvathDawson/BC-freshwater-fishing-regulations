@@ -304,6 +304,9 @@ describe("the conditions panel in a water's views", () => {
         </WaterViewsContext.Provider>
       </GestureHandlerRootView>);
     await waitFor(() => expect(screen.getByText(noGaugeSentence())).toBeTruthy());
+    // the detector registers in a passive effect, and `waitFor` runs outside act: it can resolve on the commit that drew
+    // the text before that effect has run (CI, 2026-11-12: "Handler with id ... cannot be found"). Wait for the handler.
+    await waitFor(() => getByGestureTestId("view-swipe-conditions"));
     act(() => {
       fireGestureHandler(getByGestureTestId("view-swipe-conditions"), [
         { absoluteX: 200, translationX: 0, translationY: 0 },

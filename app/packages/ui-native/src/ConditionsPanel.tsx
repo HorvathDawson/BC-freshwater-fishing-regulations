@@ -16,7 +16,7 @@ import { ScrollView, View, type LayoutChangeEvent } from "react-native";
 import { Text } from "./Text";
 import { Pressable } from "./Pressable";
 import { CHANGE_LEGEND, CHANGE_LOW_WATER, chartLabel, figure as figureText, CONDITIONS_WORDS, forecastChartLabel, forecastModelOption,
-         forecastRunLine, noChartSentence, OTHER_QUANTITY_WORDS, standingRankedIn, waterReportWhere, dayLabel, regsDayLink, DAY_LABELS, bcNow, type ChartSpan } from "@app/core";
+         forecastRunLine, noChartSentence, OTHER_QUANTITY_WORDS, readingRanked, standingRankedIn, waterReportWhere, dayLabel, regsDayLink, DAY_LABELS, bcNow, type ChartSpan } from "@app/core";
 import type { Parameter, WaterSource, SectionId, StationId } from "@app/data";
 import type { TileEndpoints } from "@app/map";
 import { cardQuantity, changeChartModel, changeView, chartParameter, currentFigure, forecastDash, forecastDrawn, pickModel, realtimeOnly,
@@ -255,7 +255,7 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
                                                   backgroundColor: rampAt(flowRampStops(theme), reading.percentile) }} />
             ) : null}
             <Text style={{ ...TYPE.bodyStrong, color: palette.ink, flexShrink: 1 }}>
-              {reading.quantity === shown || reading.percentile == null ? reading.standing : standingRankedIn(reading.standing, reading.quantity)}
+              {reading.quantity === shown || !readingRanked(reading) ? reading.standing : standingRankedIn(reading.standing, reading.quantity)}
             </Text>
           </View>
           {reading.forecast && <Text testID="reading-forecast" style={{ ...TYPE.bodyStrong, color: palette.ink }}>{reading.forecast}</Text>}

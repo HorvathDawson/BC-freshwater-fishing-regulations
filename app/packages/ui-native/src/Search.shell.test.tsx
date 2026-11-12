@@ -114,7 +114,13 @@ describe("the top bar (T48): the search field alone, always open, the sync icon 
     const feed = { index: async () => { if (!up) throw new Error("offline"); return { fetchedAt: new Date().toISOString(), stations: {} }; },
                    refresh: () => forgot.push("cache") } as never;
     mount(HOME, feed);
-    await waitFor(() => expect(syncSaid()).toBe("Refresh data: river flows could not be reached"));
+    // WAITED FOR INSIDE act, not `waitFor`: the button's press handler takes its new `disabled` (false once the first
+    // check is done) in a passive effect (react-native-web `usePressEvents`), and `waitFor` runs outside act, so it can
+    // resolve on the commit that drew the label before that effect runs; the tap then lands on a button still disabled
+    // and does nothing (CI, 2026-11-12: the label stayed "could not be reached"). act flushes effects before it returns.
+    for (const end = Date.now() + 2000; syncSaid() !== "Refresh data: river flows could not be reached" && Date.now() < end;)
+      await act(async () => { await new Promise((r) => setTimeout(r, 10)); });
+    expect(syncSaid()).toBe("Refresh data: river flows could not be reached");
     const dot = screen.getByTestId("sync-dot").firstElementChild as HTMLElement;
     const dotColour = getComputedStyle(dot).backgroundColor;
     up = true;

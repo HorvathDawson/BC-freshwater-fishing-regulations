@@ -182,7 +182,7 @@ export const UNRANKED_WORDS = {
 } as const;
 export function readingStanding(r: { percentile: number | null; standing?: Standing | null; rankedAt?: string | null;
                                      observedAt?: string | null }, zone?: string): string {
-  if (r.percentile !== null || r.rankedAt === undefined) return standingLong(r.percentile, r.standing ?? null);
+  if (readingRanked(r) || r.rankedAt === undefined) return standingLong(r.percentile, r.standing ?? null);
   const stamp = (iso: string | null | undefined) => {
     const t = iso ? Date.parse(iso) : NaN;
     return Number.isFinite(t) ? localStamp(t, zone) : null;
@@ -455,6 +455,15 @@ export function donorState(r: DonorReading, o: DonorAsk = {}): DonorState {
   const t = r.observedAt ? Date.parse(r.observedAt) : NaN;
   if (o.ref !== undefined && Number.isFinite(t) && Math.abs(o.ref - t) <= READING_MAX_AGE_MS) return { kind: "unranked" };
   return { kind: "quiet" };
+}
+
+/**
+ * (T585) HAS THIS READING BEEN RANKED? — `donorState`'s own first rule, asked of any reading that carries a percentile
+ * (the gauge card's figure, `readingStanding`). Not a second test of `percentile`: it asks `donorState` with nothing
+ * but the percentile, so "ranked" here is exactly "reads" there (`tools/one-donor-state.test.ts`).
+ */
+export function readingRanked(r: { percentile?: number | null }): boolean {
+  return donorState({ percentile: r.percentile ?? null }).kind === "reads";
 }
 
 /** (T567) A member that reports the other quantity only, said three ways: its row, its dot, a screen reader. */
