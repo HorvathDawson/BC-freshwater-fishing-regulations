@@ -24,7 +24,10 @@ while (( $# )); do
   esac
 done
 [[ -x $ROOT/.venv/bin/python ]] || { echo "fresh-copy: no $ROOT/.venv/bin/python — scripts/bootstrap.sh makes it" >&2; exit 1; }
-T=$(mktemp -d "${TMPDIR:-/tmp}/fresh-copy.XXXXXX")
+# NOT under the temp dir: pipeline/_trace.py skips every path under it (tempfile.gettempdir(), /private/var/folders,
+# /tmp), so a clone there records no read and test_stepcache fails only here (caught 2026-11-11, release r-483b295de57c)
+FC=${XDG_CACHE_HOME:-$HOME/.cache}/bcfr-fresh-copy; mkdir -p "$FC"
+T=$(cd "$(mktemp -d "$FC/fresh-copy.XXXXXX")" && pwd -P)
 trap 'rm -rf "$T"' EXIT
 HEAD=$(git -C "$ROOT" rev-parse HEAD)
 t0=$SECONDS
