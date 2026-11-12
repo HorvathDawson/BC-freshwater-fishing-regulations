@@ -93,20 +93,28 @@ def _steelhead(pond=UNNAMED, reg=REG, steelhead=True) -> dict:
 def test_a_steelhead_rivers_pond_is_anadromous():
     """The pond is the river: known by the river's own row, steelhead rules apply, and a big rainbow in it is a
     steelhead — exactly as on the river's two pieces."""
+    # T679 #5 (owner D1, 2026-11-11): the pond's water kind is the river's, `stream` (`extent._kind_of`)
     assert _steelhead() == {"M:0": ("known", "stream", True, True),
                             "M:1200": ("known", "stream", True, True),
-                            "lake:u": ("known", "lake", True, True)}
+                            "lake:u": ("known", "stream", True, True)}
 
 
 def test_the_flag_off_leaves_the_pond_a_lake(monkeypatch):
+    """With the pond a stream (D1) it is anadromous as a stream; only with BOTH switches off is it a lake whose big
+    rainbow is a rainbow."""
+    from pipeline.atlas.reach import extent
+    monkeypatch.setattr(extent, "A_RIVERS_WIDENING_IS_A_STREAM", False)
+    assert _steelhead()["lake:u"] == ("known", "lake", True, True)          # the steelhead widening rule alone
     monkeypatch.setattr(SH, "A_STEELHEAD_RIVERS_WIDENING_IS_ANADROMOUS", False)
     assert _steelhead()["lake:u"] == ("known", "lake", True, False)
 
 
 def test_a_pond_on_a_river_with_no_steelhead_row_is_absent():
-    """No steelhead row: the river's pieces are only "possible" (the base binds streams) and the pond nothing."""
+    """No steelhead row: the river's pieces are only "possible" (the base binds streams) — and since D1 (T679 #5) the
+    pond too: it is the river, so the base's "streams of the region" reach it."""
     assert _steelhead(steelhead=False) == {"M:0": ("possible", "stream", True, False),
-                                           "M:1200": ("possible", "stream", True, False)}
+                                           "M:1200": ("possible", "stream", True, False),
+                                           "lake:u": ("possible", "stream", True, False)}
 
 
 def test_a_named_lake_on_the_line_stays_a_lake():
@@ -126,4 +134,6 @@ def test_one_function_decides_it():
 
 def test_the_report_counts_the_pond():
     got = build_reaches([_province(), _river_row(True)], REG, _graph(UNNAMED))
-    assert (got.report.steelhead["anadromous"], got.report.steelhead["known_lakes"]) == (3, 1)
+    # D1: the pond is counted as a stream, not a lake
+    assert (got.report.steelhead["anadromous"], got.report.steelhead["known_lakes"],
+            got.report.steelhead["known_streams"]) == (3, 0, 3)

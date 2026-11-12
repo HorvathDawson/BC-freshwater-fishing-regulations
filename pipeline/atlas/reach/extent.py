@@ -877,6 +877,39 @@ def river_widenings(g, reg, selected: set[str]) -> set[str]:
     return out
 
 
+#: POLICY (T679 #5, owner D1 / Q154 answered 2026-11-11): A RIVER'S UNNAMED WIDENING IS A STREAM — the pond is the
+#: river for "in streams" rules as for whole-river ones. A pond `river_widenings` takes for a stream item's WHOLE
+#: course is that river, so its water kind (`_kind_of`, read by every `feature_types` filter, the walk and the
+#: confluence step) is `stream`: a `feature_types: [stream]` rule no longer takes it back out of the river's reach,
+#: and a zone's "in streams" rule reaches it as it reaches the river. Judged on the item's whole course, so a rule
+#: on part of the river still widens only between pieces it selected (`_out`). The registry folding the pond into
+#: its river (T679 #5's home) needs an atlas rebuild; until then this is the one place it is decided.
+#: False = the pond is a lake to every kind filter (the mutation pin).
+A_RIVERS_WIDENING_IS_A_STREAM = True
+
+#: {(id(graph), id(registry)): (graph, registry, frozenset of widening ponds)} — checked by identity.
+_WIDENINGS: dict[tuple[int, int], tuple[object, object, frozenset]] = {}
+
+
+def river_widening_ponds(g, reg) -> frozenset:
+    """Every unnamed polygon some stream item's own course runs through (`river_widenings` over the item's whole
+    sections). Cached per (graph, registry) pair."""
+    if g is None or reg is None or not hasattr(g, "up_adj") or not hasattr(reg, "values"):
+        return frozenset()
+    key = (id(g), id(reg))
+    hit = _WIDENINGS.get(key)
+    if hit is not None and hit[0] is g and hit[1] is reg:
+        return hit[2]
+    out: set[str] = set()
+    for it in reg.values():
+        k = getattr(it, "kind", "")
+        if str(getattr(k, "value", k) or "").lower() == "stream" and getattr(it, "section_ids", None):
+            out |= river_widenings(g, reg, set(it.section_ids))
+    got = frozenset(out)
+    _WIDENINGS[key] = (g, reg, got)
+    return got
+
+
 def whole_water_sections(reg, g, item_id: str) -> set[str]:
     """Every section a water's id stands for when a rule names the WHOLE of it: its own, and — for
     a lake cut into parts, which owns none (user ruling 2026-10-03, `registry.add_lake_parts`) —
@@ -904,7 +937,11 @@ def _kind_of(g, section_id: str, reg=None) -> str:
     stores text, and the two only have to agree here.
     """
     from pipeline.atlas.reach.water_kind import kind_of
-    return kind_of(g, reg, section_id)
+    k = kind_of(g, reg, section_id)
+    if (k == "lake" and A_RIVERS_WIDENING_IS_A_STREAM and reg is not None
+            and section_id in river_widening_ponds(g, reg)):
+        return "stream"          # the river's widening is the river (T679 #5, D1)
+    return k
 
 
 def _waters(g, section_ids) -> list[str]:
