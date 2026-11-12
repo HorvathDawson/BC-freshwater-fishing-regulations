@@ -628,12 +628,17 @@ export function createUpdateService(o: UpdateOptions): UpdateService {
       const t = now();
       emit({ source: "release", kind: "applied", before: info?.from ?? null, after: r, ...(info?.ms != null ? { ms: info.ms } : {}) });
       if (pending?.data_release === r) pending = null;
-      release = { ...release, phase: "current", target: null, targetDate: null, progress: null, updatedAt: t };
+      // (T585 F12) a COLD START can apply a set staged earlier while this session is already on to a LATER release
+      // (waiting for Wi-Fi, downloading, asking for a newer app): that state is about the later one and stays; only
+      // "when was the data in use last updated" moves
+      const later = release.target !== null && release.target !== r;
+      release = later ? { ...release, updatedAt: t }
+        : { ...release, phase: "current", target: null, targetDate: null, progress: null, updatedAt: t };
       kept.at.release = { checkedAt: release.checkedAt, updatedAt: t };
       save();
       publish();
       // what is in use moved: the manifest is read again whole at the next check, against the new set
-      relSeen = null;
+      if (!later) relSeen = null;
     },
     notApplied(refused, why) {
       if (!release) return;

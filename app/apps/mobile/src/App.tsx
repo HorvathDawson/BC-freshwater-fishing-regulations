@@ -23,17 +23,17 @@ import {
 } from "@expo-google-fonts/archivo";
 import { JetBrainsMono_500Medium } from "@expo-google-fonts/jetbrains-mono";
 import { DOWNLOAD_NOTE_WORDS, downloadFraction, INSTALL_WORDS, MAP_CREDITS, MOBILE_DATA_WORDS, mobileDataDecision, installLine, SETUP_WORDS, setupFraction, setupLine, netBanner, progressWords, rolledBackLine, splashLineFor, startStage, updatedToast, UPDATE_LOG_WORDS, UPDATE_WORDS, versionHeaders,
-         versionLine, now as clockNow } from "@app/core";
+         versionLine, dataProvenanceLine, now as clockNow } from "@app/core";
 import { createNet, shareFetch, createReportOutbox, createUpdateLog, createUpdateService, phoneNetwork, versionedFetch, httpFeed, gaugeHistory, httpInSeason, httpRunTiming, httpSalmonFeed, manifestDate, noteHeld, followSavedItems, openRunTimingStore,
-         type UpdateService, type WaterSource } from "@app/data";
-import type { MobileDataGate, ReleaseLoader } from "@app/data/release";
+         type Held, type UpdateService, type WaterSource } from "@app/data";
+import { bootSaid, type MobileDataGate, type ReleaseLoader } from "@app/data/release";
 import * as platform from "@app/data/release/platform";
 import { fillDayFlow, onVisit, visitIdOf, storedHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openGaugeHistoryStore, openInSeasonStore, openInSeasonSeenStore, openFirstRunStore, openDataModeStore, openWalkthroughStore, openLocationAskStore, openAppUpdateStore, openRecentSearchStore, openRunSpeciesStore, openUpdateStore, openUpdateLogStore, openReportOutboxStore, openCrashSettingStore, openCrashPendingStore, openCrashExitStore, openInstallIdStore, openMeteo, openPhotos, openSpots, needsRefresh, refreshSpot,
          type DayFlowAnswer, type Spot } from "@app/data/spots";
 import { Button, connectivity, ErrorState, LoadingState, SayingLine, setSynopsisNet, setSynopsisSource, Shell, StageBar, THEMES, UpdateToast, type ThemeName,
          platformLine, type ShellProps, type UpdatesLogControls } from "@app/ui-native";
 import { LayoutWidthContext, liveFetch, NetRoot, useNet, useNetActivity, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, createCrashReporter, createCrashSetting, CrashSettingRoot, NotifyRoot, AlertLinesRefresh, installCrashHandlers, installId, reportPastExits, crashWhere, useRefreshOnReconnect, useReleaseBoot, useSpots, type MapTiles,
-         loadRegsStore, reportFailure, startNeedsRelease, startNoticeLine,
+         DataProvenanceContext, loadRegsStore, reportFailure, startNeedsRelease, startNoticeLine,
          type AddressState, type PairingInput, type Route, type SpotPhotos, type StartLink, type StatusSource,
          useAppUpdate } from "@app/ui";
 import { onAppLink } from "./appLink";
@@ -51,7 +51,7 @@ import { releaseSplash } from "./splash";
 // (T234) the phone's local notifications (gauge alerts, new data ready) and their background check; none on the web
 import { notifications, onTap } from "./notify";
 
-import { APP_ENV, APP_VERSION, ENDPOINTS, IMAGERY_TILES, MENU_INFO, CRASH_URL, TEST_REPORTS, pickChannel, storedChannel, REPORT_URL, UPDATE_CHANNEL, UPDATES_LOG } from "./config";
+import { APP_ENV, APP_VERSION, BUILT_CHANNEL, ENDPOINTS, IMAGERY_TILES, MENU_INFO, CRASH_URL, TEST_REPORTS, pickChannel, storedChannel, REPORT_URL, UPDATE_CHANNEL, UPDATES_LOG } from "./config";
 
 /*
  * THE RECENT ERROR LOG (menu: Report a problem): every console.error the app already logs is also kept in a small
@@ -377,10 +377,10 @@ export default function App() {
   }, [booted, updates]);
   useEffect(() => () => updates.stop(), [updates]);
   /** Apply a staged update: boot onto it, the set in use on screen until the new one is ready. */
-  const applying = useRef<{ from: string | null; at: number } | null>(null);
+  const applying = useRef<{ before: Held | null; at: number } | null>(null);
   const apply = useCallback(() => {
     if (updates.snapshot().release?.phase !== "ready") return;
-    applying.current = { from: bootedRef.current?.held.release ?? null, at: clockNow() };
+    applying.current = { before: bootedRef.current?.held ?? null, at: clockNow() };
     if ((globalThis as { __openProbe?: boolean }).__openProbe) console.log("[swap] apply");
     setGeneration((g) => g + 1);
   }, [updates]);
@@ -390,29 +390,33 @@ export default function App() {
     const sub = AppState.addEventListener("change", (st) => { if (st === "active" && was !== "active") apply(); was = st; });
     return () => sub.remove();
   }, [apply]);
-  // the boot that applied it: told to the service, and said ("Updated to …")
+  // THE BOOT THAT APPLIED A SET: told to the service, and said ("Updated to …") — one rule (`bootSaid`) for every boot.
+  // (T585 F12) A COLD START that opens a set staged earlier applies it too (a phone killed before the safe moment came
+  // moved to the newer release without a word, and the Updates row kept the old "updated" time).
   const [toast, setToast] = useState<string | null>(null);
-  const appliedGen = useRef(0);
+  const saidGen = useRef(-1);
   useEffect(() => {
-    if (boot.state !== "ready" || boot.generation === 0 || appliedGen.current === boot.generation) return;
-    appliedGen.current = boot.generation;
-    if (boot.applyError) return;
+    if (boot.state !== "ready" || saidGen.current === boot.generation) return;
+    saidGen.current = boot.generation;
     const a = applying.current;
     applying.current = null;
+    const said = bootSaid({ generation: boot.generation, applyError: boot.applyError, booted: boot.booted, before: a?.before ?? null });
     // (T555) the boot went back to the set it had (the release was refused or is being retried): nothing was applied —
     // the banner (`rolledBackLine`) says so; the service names the refused release and never toasts "Updated to …"
-    const back = boot.booted.rolledBack;
-    if (back) {
-      updates.notApplied(back.refused ?? "unknown", back.reason);
-      return;
-    }
+    if (said.kind === "not-applied") { updates.notApplied(said.refused, said.reason); return; }
+    if (said.kind !== "applied") return;
     // (T287) the test bed's stall log reads the swap off this line
-    if ((globalThis as { __openProbe?: boolean }).__openProbe)
-      console.log(`[swap] the new set committed, ${a ? clockNow() - a.at : "?"} ms after apply`);
-    updates.applied(boot.booted.manifest.data_release, a ? { from: a.from, ms: clockNow() - a.at } : undefined);
+    if (a && (globalThis as { __openProbe?: boolean }).__openProbe)
+      console.log(`[swap] the new set committed, ${clockNow() - a.at} ms after apply`);
+    updates.applied(said.release, { from: said.from, ...(a ? { ms: clockNow() - a.at } : {}) });
     setToast(updatedToast(manifestDate(boot.booted.manifest)));
   }, [boot, updates]);
   const clearToast = useCallback(() => setToast(null), []);
+  // (T585 F12, F13) a development or staging build says which data release it answers from on the Conditions card (and
+  // the data source / channel when they are not this build's own); null in a production build
+  const provenance = useMemo(() => dataProvenanceLine({
+    release: heldRelease, env: APP_ENV.env, built: APP_ENV.built, switchable: APP_ENV.switchable,
+    channel: UPDATE_CHANNEL, builtChannel: BUILT_CHANNEL }), [heldRelease]);
 
   // (T251, T476) the Updates log's levers (development and staging builds): the Developer card (map credits long press) draws them
   const releaseNow = boot.state === "ready" ? boot.booted.manifest.data_release : null;
@@ -594,6 +598,7 @@ export default function App() {
     <NetRoot net={NET} connectivity={connectivity} store={dataModeStore}>
     <CrashSettingRoot setting={CRASH_URL ? crashSetting : null}>
     <NotifyRoot controls={notifications}>
+    <DataProvenanceContext.Provider value={provenance}>
     <SafeAreaView style={{ flex: 1, backgroundColor: palette.card }}>
       <StatusBar barStyle={name === "dark" ? "light-content" : "dark-content"} />
       {failed ? (
@@ -738,6 +743,7 @@ export default function App() {
         </BootScreen>
       )}
     </SafeAreaView>
+    </DataProvenanceContext.Provider>
     </NotifyRoot>
     </CrashSettingRoot>
     </NetRoot>

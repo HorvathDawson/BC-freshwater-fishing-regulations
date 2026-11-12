@@ -146,6 +146,15 @@ export interface Booted {
   /** Native: the new set would not open, so this launch went back to the one it replaced (null: it did not). */
   rolledBack: RolledBack | null;
   /**
+   * (T585 F12) Native: THIS BOOT IS THE FIRST TO OPEN THIS SET, which replaced the set `from` — a set staged earlier
+   * (this session, or one that ended before it was applied) is APPLIED by the boot that opens it, a cold start as much
+   * as the app's in-session apply. Null: the set opened is the one last opened (nothing was applied), a first install,
+   * or a rollback. The app tells the update service and the reader the same way whichever boot it was
+   * (`bootSaid`): a cold start that moved the phone to a newer release no longer does it without a word. Null on the web
+   * (it holds no set between visits; its in-session apply is known by the app, which held the set before).
+   */
+  applied: { from: string | null } | null;
+  /**
    * (T231) Fetch what a newer manifest needs BESIDE the set in use, verified, and never under it: on a phone the whole
    * set is installed and the pointer swapped (`install`; the set in use stays on disk and open until the next boot, which
    * opens the new one and prunes the old); on the web the changed files this session has opened are fetched into the
@@ -174,6 +183,8 @@ export class BootError extends Error {
 const PREVIOUS = "release/previous";
 /** A set that would not open and was rolled back: not installed again until the manifest names another. */
 const REFUSED = "release/refused";
+/** (T585 F12) The set the last successful boot opened: a boot that opens another one is the boot that APPLIED it. */
+const OPENED = "release/opened";
 
 /** (T254) The manifest through `fetchResilient` (timeouts, retries, waiting out an offline spell); an HTTP refusal stays a
  *  `ManifestError`. */
@@ -264,8 +275,8 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
       return { kind: "staged", held: pointerFor(next) };
     };
     return { manifest: m, held, loader, paint, source: makeReleaseSource(loader, { feed: o.feed }),
-             locate: (path) => `${o.releaseBase}${path}`, update: Promise.resolve(null), rolledBack: null, stage,
-             latest: m };
+             locate: (path) => `${o.releaseBase}${path}`, update: Promise.resolve(null), rolledBack: null, applied: null,
+             stage, latest: m };
   }
 
   // THE PHONE: the held set first; the network only to install it once and to look for a newer one
@@ -412,6 +423,11 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
   }
 
   const now = held;
+  // (T585 F12) is this the boot that APPLIES the set (the first to open it)? The record is this device's own small file;
+  // unreadable or unwritable, it is reported and the boot goes on (worst case a later launch says "Updated to" again)
+  const openedBefore = await readHeld(dev.fs, OPENED).catch((e: unknown) => { reportFailure(e); return null; });
+  const applied = openedBefore && !sameSet(openedBefore, now) ? { from: openedBefore.release ?? null } : null;
+  if (!openedBefore || applied) await writeHeld(dev.fs, OPENED, now).catch((e: unknown) => { reportFailure(e); });
   const refused = await readHeld(dev.fs, REFUSED);
   /** (T231) The set installed for the next boot by this session (one at a time: a newer one waits for that boot). */
   let staged: Held | null = null;
@@ -452,7 +468,38 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
   const loader = withLiveSalmon(set.loader, o.salmonFeed);
   return { manifest: set.m, held: now, loader, paint: set.paint,
            source: makeReleaseSource(loader, { feed: o.feed }),
-           locate: (path) => dev.fileUri(`release/${path}`), update, rolledBack, stage, latest };
+           locate: (path) => dev.fileUri(`release/${path}`), update, rolledBack, applied, stage, latest };
+}
+
+/**
+ * (T555 item 1, T585 F12) WHAT A FINISHED BOOT MEANS FOR THE UPDATE SERVICE AND THE READER — one rule for every boot, the
+ * cold start (generation 0) and the app's in-session apply (generation > 0) alike:
+ *   applied       a set that replaced another was opened for the first time: the service is told (`applied`) and the
+ *                 reader is ("Updated to …"). Native: the boot's own word (`Booted.applied`). The web holds no set
+ *                 between visits, so only an in-session apply counts there, known by the set held `before` it.
+ *   not-applied   an in-session apply went back to the set it had (`rolledBack`): the service names the refused release.
+ *   nothing       an ordinary start; an apply that failed (said by `applyError`); a cold start's rollback (the banner and
+ *                 the service's own check say it); a re-boot onto the set already in use — never "Updated to".
+ */
+export type BootSaid =
+  | { kind: "applied"; release: string; from: string | null }
+  | { kind: "not-applied"; refused: string; reason: string }
+  | { kind: "nothing" };
+export function bootSaid(i: { generation: number; applyError?: unknown;
+                              booted: Pick<Booted, "manifest" | "held" | "rolledBack" | "applied">;
+                              /** the set in use when the in-session apply was asked (null: a cold start) */
+                              before: Held | null }): BootSaid {
+  if (i.applyError) return { kind: "nothing" };
+  const b = i.booted;
+  if (b.rolledBack) {
+    return i.generation > 0 ? { kind: "not-applied", refused: b.rolledBack.refused ?? "unknown", reason: b.rolledBack.reason }
+      : { kind: "nothing" };
+  }
+  if (b.applied) return { kind: "applied", release: b.manifest.data_release, from: b.applied.from };
+  // the web's in-session apply: the set it boots onto is not the one it held (the install's own `sameSet`)
+  if (i.generation > 0 && i.before !== null && !sameSet(i.before, b.held))
+    return { kind: "applied", release: b.manifest.data_release, from: i.before.release ?? null };
+  return { kind: "nothing" };
 }
 
 /**

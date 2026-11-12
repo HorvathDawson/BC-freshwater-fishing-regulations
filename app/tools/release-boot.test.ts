@@ -27,7 +27,7 @@ import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { gunzipSync } from "node:zlib";
 import { fetchVerified, sha256Hex, type ItemId, type Manifest } from "@app/data";
-import { assetsDigest, bootRelease, heldPath, POINTER, releaseTiles, type ReleaseFs, type ReleasePlatform }
+import { assetsDigest, bootRelease, bootSaid, heldPath, POINTER, releaseTiles, type ReleaseFs, type ReleasePlatform }
   from "@app/data/release";
 import { releaseCache } from "../packages/data/src/release/drivers/cache.web";
 import { releaseSource } from "../packages/data/src/release/drivers/source.web";
@@ -247,6 +247,10 @@ function phone(fs: ReturnType<typeof memFs>, disk: ReleaseFs = fs,
 const offline = (async () => { throw new TypeError("Network request failed"); }) as unknown as typeof fetch;
 
 describe("native: always offline, updated by diff, swapped at the next launch", () => {
+  /** A fixture release's data_release id, as its manifest states it. */
+  const idOf = async (r: FixtureRelease): Promise<string> =>
+    (JSON.parse(await (await releaseFetch(BASE, r.dir, [])(`${BASE}manifest.json`)).text()) as Manifest).data_release;
+
   it("installs on first run, opens offline, downloads only what changed, and prunes the old set after", async () => {
     const r1 = fixtureRelease("plain");
     // a second release: one lake station more, which changes core (item.gauged) and conditions, not paint
@@ -290,6 +294,72 @@ describe("native: always offline, updated by diff, swapped at the next launch", 
     expect(fourth.held.release).toBe(m2.data_release);
     expect([...fs.files.keys()].some((k) => k.startsWith(`release/${first.held.release}/`))).toBe(false);
     expect(fourth.locate("tiles/x/atlas-x.pmtiles")).toBe("file:///doc/release/tiles/x/atlas-x.pmtiles");
+  });
+
+  it("(T585 F12) a set staged earlier is APPLIED by the cold start that opens it — said once — and web and phone end on one data_release",
+    async () => {
+      const r1 = fixtureRelease("plain"), r2 = fixtureRelease("lakeGauged");
+      const id1 = await idOf(r1), id2 = await idOf(r2);
+      expect(id2).not.toBe(id1);
+      const fs = memFs();
+      // as the app boots: the update is the update service's (`deferUpdate`), staged through `Booted.stage`
+      const boot = (f: typeof fetch, keepReplaced?: boolean) => bootRelease({
+        manifestUrl: `${BASE}manifest.json`, releaseBase: BASE, wasmBase: "", platform: phone(fs), fetch: f,
+        manifestTimeoutMs: 1000, deferUpdate: true, ...(keepReplaced ? { keepReplaced } : {}) });
+      const said = (b: Awaited<ReturnType<typeof boot>>, generation = 0, before: typeof b.held | null = null) =>
+        bootSaid({ generation, booted: b, before });
+
+      // a first install is not an update
+      const first = await boot(releaseFetch(BASE, r1.dir, []));
+      expect([first.applied, said(first)]).toEqual([null, { kind: "nothing" }]);
+      // nor is opening the same set again
+      expect((await boot(offline)).applied).toBeNull();
+
+      // the server names r2: the session stays on r1 and stages r2 beside it; the app is then closed before any safe moment
+      const session = await boot(releaseFetch(BASE, r2.dir, []));
+      expect(session.manifest.data_release).toBe(id1);
+      expect(await session.stage(session.latest!)).toMatchObject({ kind: "staged", held: { release: id2 } });
+
+      // THE COLD START opens r2: it is the boot that applied it, and says so (the service is told, the reader toasted)
+      const cold = await boot(offline);
+      expect(cold.manifest.data_release).toBe(id2);
+      expect(cold.applied).toEqual({ from: id1 });
+      expect(said(cold)).toEqual({ kind: "applied", release: id2, from: id1 });
+      // … once: the next launch on the same set says nothing
+      const again = await boot(offline);
+      expect([again.manifest.data_release, again.applied, said(again)]).toEqual([id2, null, { kind: "nothing" }]);
+
+      // THE WEB, asked the same manifest, is on the same release: once staging is done the two platforms agree
+      const onWeb = await bootRelease({ manifestUrl: `${BASE}manifest.json`, releaseBase: BASE, wasmBase: "",
+                                        platform: web, fetch: releaseFetch(BASE, r2.dir, []) });
+      expect([onWeb.manifest.data_release, cold.manifest.data_release]).toEqual([id2, id2]);
+      expect(onWeb.applied).toBeNull();
+      // the web's in-session apply is known by the set it held before (it keeps none between visits)
+      const before = { ...onWeb.held, release: id1 };
+      expect(bootSaid({ generation: 1, booted: onWeb, before })).toEqual({ kind: "applied", release: id2, from: id1 });
+      expect(bootSaid({ generation: 1, booted: onWeb, before: onWeb.held })).toEqual({ kind: "nothing" });
+    });
+
+  it("(T585 F12) an IN-SESSION apply is said by the boot that made it, and not again by the next cold start", async () => {
+    const r1 = fixtureRelease("plain"), r2 = fixtureRelease("lakeGauged");
+    const id1 = await idOf(r1), id2 = await idOf(r2);
+    const fs = memFs();
+    const boot = (f: typeof fetch, keepReplaced?: boolean) => bootRelease({
+      manifestUrl: `${BASE}manifest.json`, releaseBase: BASE, wasmBase: "", platform: phone(fs), fetch: f,
+      manifestTimeoutMs: 1000, deferUpdate: true, ...(keepReplaced ? { keepReplaced } : {}) });
+    await boot(releaseFetch(BASE, r1.dir, []));
+    const session = await boot(releaseFetch(BASE, r2.dir, []));
+    await session.stage(session.latest!);
+    // the app's apply (generation 1, the replaced set kept for the map on screen)
+    const applied = await boot(releaseFetch(BASE, r2.dir, []), true);
+    expect(bootSaid({ generation: 1, booted: applied, before: session.held }))
+      .toEqual({ kind: "applied", release: id2, from: id1 });
+    // a re-boot onto the set already in use (an apply asked with nothing new) is never "Updated to"
+    const same = await boot(releaseFetch(BASE, r2.dir, []), true);
+    expect(bootSaid({ generation: 2, booted: same, before: applied.held })).toEqual({ kind: "nothing" });
+    // and the next cold start, which prunes what the apply kept, says nothing either
+    const cold = await boot(offline);
+    expect([cold.manifest.data_release, cold.applied]).toEqual([id2, null]);
   });
 
   it("a TILE-ONLY release (same data_release) is installed, drawn at the next launch, and the old tiles pruned after",
@@ -510,6 +580,12 @@ describe("native: always offline, updated by diff, swapped at the next launch", 
       expect(JSON.parse(new TextDecoder().decode(fs.files.get(POINTER)!)).release).toBe(first.held.release);
       expect([...fs.files.keys()].some((k) => k.startsWith(`release/${m2.data_release}/`))).toBe(false);
       expect(fs.files.has("release/previous")).toBe(false);
+      // (T555 item 1, T585 F12) a rollback applied NOTHING: never "Updated to"; an in-session apply names the refused release
+      expect(back.applied).toBeNull();
+      expect(bootSaid({ generation: 0, booted: back, before: null })).toEqual({ kind: "nothing" });
+      expect(bootSaid({ generation: 1, booted: back, before: first.held }))
+        .toEqual({ kind: "not-applied", refused: m2.data_release, reason: back.rolledBack!.reason });
+      expect(bootSaid({ generation: 1, booted: back, before: first.held, applyError: new Error("x") })).toEqual({ kind: "nothing" });
 
       // the next launch opens the old set as its own (nothing more to say), and the refused set is not fetched again
       const log: string[] = [];

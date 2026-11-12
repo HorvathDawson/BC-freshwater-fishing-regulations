@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from "vitest";
 import {
-  aboutEnvVM, aboutVM, contactVM, diagnosticRows, regsLapsed, regsLapsedNote, sourceFreshness, glossaryRows, glossarySections, markedRuns, editDistance, isoDayWords,
+  aboutEnvVM, aboutVM, dataProvenanceLine, contactVM, diagnosticRows, regsLapsed, regsLapsedNote, sourceFreshness, glossaryRows, glossarySections, markedRuns, editDistance, isoDayWords,
   mailtoUrl, regsReportWhere, waterReportWhere, reportMessage, reportPayload, emailProblem, REPORT_REASONS, sourcesVM, whereLines, type Diagnostics, type SourceDateKey, type SourcesInput,
 } from "./menu";
 import { FISH_CREDITS } from "./regs/fish.generated";
@@ -142,6 +142,24 @@ describe("about", () => {
     expect([aboutEnvVM(prod), aboutEnvVM(null), aboutVM({ appBuild: null, release: null, tiles: null, edition: null,
       dataEnv: prod }, "u").env]).toEqual([null, null, null]);
     expect(aboutEnvVM({ ...prod, switchable: true })?.badge).toBe("PRODUCTION");
+  });
+  // (T585 F12, F13) which data the Conditions card answers from, in a development or staging build
+  it("the Conditions card names the data release in a staging build, and nothing in a production one", () => {
+    const P = { release: "r-303b4007a70a", env: "staging", built: "staging", switchable: false, channel: "live", builtChannel: "live" } as const;
+    expect(dataProvenanceLine(P)).toBe("Data release r-303b4007a70a");
+    expect(dataProvenanceLine({ ...P, release: null })).toBe("Data release Not stated");
+    expect(dataProvenanceLine({ ...P, env: "production", built: "production" })).toBeNull();
+  });
+  it("an overridden data source or channel is named beside the release; the build's own are not", () => {
+    const P = { release: "r-303b4007a70a", env: "staging", built: "staging", switchable: true, channel: "live", builtChannel: "live" } as const;
+    expect(dataProvenanceLine({ ...P, env: "production" })).toBe("Data release r-303b4007a70a · Data source Production");
+    expect(dataProvenanceLine({ ...P, channel: "test" })).toBe("Data release r-303b4007a70a · Channel test");
+    expect(dataProvenanceLine({ ...P, env: "local", channel: "test" }))
+      .toBe("Data release r-303b4007a70a · Data source Local · Channel test");
+    // a build MADE for the test channel reads it by design: not an override
+    expect(dataProvenanceLine({ ...P, channel: "test", builtChannel: "test" })).toBe("Data release r-303b4007a70a");
+    // a production build with a switch says its release (it can be switched away)
+    expect(dataProvenanceLine({ ...P, env: "production", built: "production" })).toBe("Data release r-303b4007a70a");
   });
   it("a development build's switch marks the pending choice and says when it applies, whole", () => {
     const vm = aboutEnvVM({ ...ENV, switchable: true, pending: "local" });

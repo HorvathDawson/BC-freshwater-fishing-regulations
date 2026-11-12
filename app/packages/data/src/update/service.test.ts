@@ -284,6 +284,29 @@ describe("the release", () => {
     expect(s.snapshot().release).toMatchObject({ phase: "waiting-wifi", target: "r2", progress: { bytes: 0, of: 21_722_042 } });
   });
 
+  it("(T585 F12) a COLD START's applied (a set staged earlier, opened by this launch) moves only the updated time while a LATER release waits", async () => {
+    // the launch opened r2 (staged before the app was last closed); the server already names r3, too big for mobile data
+    const m2 = manifest("r2"), m3 = { ...manifest("r3", { files: { core: [30_000_000, "c3"], paint: [10, "p1"] } }) } as Manifest;
+    const o = origin({ [M]: JSON.stringify(m3) });
+    const ev: UpdateEvent[] = [];
+    const s = createUpdateService({ feeds: [], fetch: o.fetch, onEvent: (e) => ev.push(e),
+      network: { online: () => true, metered: () => true },
+      release: { manifestUrl: M, held: () => heldOf(m2), stage: async () => OK } });
+    await s.check(); await flush();
+    expect(s.snapshot().release).toMatchObject({ phase: "waiting-wifi", target: "r3", updatedAt: null });
+    s.applied("r2", { from: "r1" });
+    expect(s.snapshot().release).toMatchObject({ phase: "waiting-wifi", target: "r3", progress: { bytes: 0, of: 30_000_000 } });
+    expect(s.snapshot().release!.updatedAt).not.toBeNull();
+    expect(ev.at(-1)).toMatchObject({ source: "release", kind: "applied", before: "r1", after: "r2" });
+    // and with nothing later pending it is the plain applied: current, no target
+    const s2 = createUpdateService({ feeds: [], fetch: origin({ [M]: JSON.stringify(m2) }).fetch,
+      release: { manifestUrl: M, held: () => heldOf(m2), stage: async () => OK } });
+    await s2.check(); await flush();
+    s2.applied("r2", { from: "r1" });
+    expect(s2.snapshot().release).toMatchObject({ phase: "current", target: null });
+    expect(s2.snapshot().release!.updatedAt).not.toBeNull();
+  });
+
   it("a newer release is STAGED beside the set in use, then ready; applied puts it in use", async () => {
     const m1 = manifest("r1"), m2 = manifest("r2", { files: { core: [100, "c2"], paint: [10, "p1"] }, date: "2026-10-27" });
     const o = origin({ [M]: JSON.stringify(m1) });

@@ -1,5 +1,5 @@
 /** The About page: what the app is, the authority disclaimer, the official synopsis, the versions, the data source. */
-import { MENU_WORDS } from "./words";
+import { DEV_WORDS, MENU_WORDS } from "./words";
 import { SITE_ORIGIN } from "../share";
 
 /**
@@ -65,6 +65,32 @@ export interface AboutVM {
   readonly versions: readonly { readonly label: string; readonly value: string }[];
   /** (T232) null in a production build reading production data: the reader is never told about environments */
   readonly env: AboutEnvVM | null;
+}
+
+/**
+ * (T585 F12, F13) WHICH DATA THIS SCREEN ANSWERS FROM, on the Conditions gauge card's foot in a development or staging
+ * build: a phone can run an older release than the web for hours (it applies a staged set at a safe moment), and a
+ * switchable build can keep another environment or channel — two devices showing different donors for one water were
+ * each right about their own release, and nothing on the screen said which. So the release is named, and the data
+ * source and the update channel when they are not what this build was made for. Null in a production build reading
+ * production data (`aboutEnvVM`'s rule): the reader is never told about releases or environments.
+ */
+export interface DataProvenanceInput {
+  readonly release: string | null;
+  readonly env: AppEnv;
+  readonly built: AppEnv;
+  readonly switchable: boolean;
+  /** the update channel in use, and the one this build names ("live" unless built for another) */
+  readonly channel: string;
+  readonly builtChannel: string;
+}
+export function dataProvenanceLine(i: DataProvenanceInput): string | null {
+  if (i.env === "production" && i.built === "production" && !i.switchable) return null;
+  const a = MENU_WORDS.about, d = DEV_WORDS.build;
+  const parts = [`${a.release} ${i.release ?? a.notStated}`];
+  if (i.env !== i.built) parts.push(`${a.env.label} ${a.env.names[i.env]}`);
+  if (i.channel !== i.builtChannel) parts.push(`${d.channel} ${i.channel}`);
+  return parts.join(" · ");
 }
 
 /** (T232) The data-source block, or null when there is nothing to say (production, built for production, no switch). */

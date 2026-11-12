@@ -22,7 +22,7 @@ import type { TileEndpoints } from "@app/map";
 import { cardQuantity, changeChartModel, changeView, chartParameter, currentFigure, forecastDash, forecastDrawn, pickModel, realtimeOnly,
          useChartPrefs, useChartView, useConditionsView, useForecastAttribution, useGaugeParameters,
          useGaugeShare, usePrefetchGauges, useSeries, type ChangeVM, type ShareControl, type GaugeChoiceVM, type GaugeGroupVM, type Horizon,
-         type PanelFeed } from "@app/ui";
+         type PanelFeed, DataProvenanceContext } from "@app/ui";
 import { GaugeGroups } from "./GaugeGroups";
 import { WaterReportLink } from "./menu/ReportLink";
 
@@ -118,6 +118,9 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
   // reading take it; the maps and the chart are shielded (`MiniMap`, `Hydrograph`), their drags are theirs. The
   // detector sits INSIDE the ScrollView — a browser reads `touch-action` only up to the nearest scroll container.
   const bodySwipe = useContext(WaterViewsContext)?.bodySwipe ?? null;
+  // (T585 F12, F13) a development or staging build names the data release (and an overridden source / channel) in the
+  // gauge card's foot; null in a production build
+  const provenance = useContext(DataProvenanceContext);
 
   // WHICH QUANTITIES THIS STATION CAN ANSWER IN, asked of the bundle rather than assumed:
   // 237 BC stations measure stage and never discharge.
@@ -356,10 +359,11 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
         </About>
       )}
       {/* THE CARD'S FOOT: when the reading was taken (and how fresh), then the offline note */}
-      {(foot || view?.asOf) && (
+      {(foot || view?.asOf || provenance) && (
         <View testID="gauge-card-foot" style={{ borderTopWidth: 1, borderTopColor: palette.line, paddingTop: SPACE.s2, gap: 2 }}>
           {foot && <Text style={{ ...TYPE.meta, color: palette.sub }}>{foot}</Text>}
           {view?.asOf && <Text testID="chart-kept-as-of" style={{ ...TYPE.meta, color: palette.sub }}>{view.asOf}</Text>}
+          {provenance && <Text testID="gauge-card-data-release" style={{ ...TYPE.meta, color: palette.sub }}>{provenance}</Text>}
         </View>
       )}
       {/* (T234) ALERT ME: a line on this gauge's quantity, told by the phone's background check (none on the web) */}

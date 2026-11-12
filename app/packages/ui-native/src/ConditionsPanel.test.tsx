@@ -11,7 +11,7 @@ import { fireGestureHandler, getByGestureTestId } from "react-native-gesture-han
 import { CHANGE_LOW_WATER, changeSourceLine, CONDITIONS_WORDS, noGaugeSentence, readingHeading, standingLong,
          stageLine, TIDAL_NOTE, BACKWATER_NOTE } from "@app/core";
 import type { Panel, WaterSource, SectionId } from "@app/data";
-import { clearPanelCache } from "@app/ui";
+import { clearPanelCache, DataProvenanceContext } from "@app/ui";
 import type { MenuControls } from "@app/ui";
 import { ConditionsPanel } from "./ConditionsPanel";
 import { MenuContext } from "./menu/MenuContext";
@@ -79,6 +79,35 @@ describe("the conditions panel", () => {
     // The donor panel above it is drawn for the CHOSEN day.
     expect(screen.getByText("Lower than 7 to 9 days in 10 for early September · this spot drains "
                             + "50 km²")).toBeTruthy();
+  });
+
+  it("(T585 F8, F14) a figure the index did not rank says both times, a kept one says it is the phone's copy — never 'no record'", async () => {
+    // the station file is a run ahead of the index (or, offline, a newer kept row): no rank of its own, `rankedAt` names the ranked one
+    const base = sourceWith(null, PANEL);
+    const source = { ...base, gaugeNow: async () => ({ fetchedAt: Date.now() - 5 * 60_000, kept: true as const, value: {
+      discharge: 12.5, level: 1.2, percentile: null, standing: null, at: "2026-09-04T06:00:00Z", parameter: "discharge",
+      rankedAt: "2026-09-04T05:00:00Z" } }) } as unknown as WaterSource;
+    render(<ConditionsPanel source={source} section={SEC} palette={LIGHT} feed={feed} scroll={false} day={new Date(2026, 8, 4, 12)} />);
+    await waitFor(() => expect(screen.getByTestId("reading-figure")).toBeTruthy());
+    expect(screen.getByText("Ranked at 2026-09-03 at 22:00 PT; this reading 2026-09-03 at 23:00 PT.")).toBeTruthy();
+    expect(screen.queryByText(standingLong(null))).toBeNull();
+    expect(screen.queryByTestId("reading-dot")).toBeNull();              // no rank, no standing dot
+    expect(screen.getByTestId("gauge-card-foot").textContent)
+      .toBe("Offline — reading saved on this phone · observed 2026-09-03 at 23:00 PT · checked 5 min ago");
+  });
+
+  it("(T585 F12, F13) a development or staging build names its data release in the card's foot; a production build draws nothing", async () => {
+    const now = { discharge: 12.5, level: 1.2, percentile: 0.15, standing: "below", at: "2026-09-04T06:00:00Z" };
+    render(<DataProvenanceContext.Provider value="Data release r-303b4007a70a · Channel test">
+             <ConditionsPanel source={sourceWith(now, PANEL)} section={SEC} palette={LIGHT} feed={feed} scroll={false} day={new Date(2026, 8, 4, 12)} />
+           </DataProvenanceContext.Provider>);
+    await waitFor(() => expect(screen.getByTestId("reading-figure")).toBeTruthy());
+    expect(screen.getByTestId("gauge-card-data-release").textContent).toBe("Data release r-303b4007a70a · Channel test");
+    cleanup();
+    clearPanelCache();
+    render(<ConditionsPanel source={sourceWith(now, PANEL)} section={SEC} palette={LIGHT} feed={feed} scroll={false} day={new Date(2026, 8, 4, 12)} />);
+    await waitFor(() => expect(screen.getByTestId("reading-figure")).toBeTruthy());
+    expect(screen.queryByTestId("gauge-card-data-release")).toBeNull();
   });
 
   it("never puts one quantity's figure under the other's chart (T567)", async () => {

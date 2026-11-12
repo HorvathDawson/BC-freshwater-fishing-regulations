@@ -58,6 +58,9 @@ export const UPDATE_CHANNEL = resolveChannel({
   override: SWITCHABLE ? channelStore.read() : null,
 });
 
+/** (T585 F13) The channel this build names, whatever a tester's switch keeps: the Conditions card says when the two differ. */
+export const BUILT_CHANNEL = resolveChannel({ named: process.env.EXPO_PUBLIC_UPDATE_CHANNEL, switchable: false });
+
 /**
  * (T251) THE UPDATES LOG is a development and staging tool: kept and shown in a switchable build, or any build reading
  * anything but production (an internal staging APK). A production build reading production data keeps none.
