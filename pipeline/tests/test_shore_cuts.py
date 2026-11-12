@@ -158,6 +158,17 @@ def test_owner_limited_follows_the_water_not_the_line():
         {"A", "B", "E"}
 
 
+def test_owner_limited_takes_an_added_line_of_the_governed_water():
+    """T685: an added line (no gnis) the registry puts in the governed water (Turner Creek in Noons Creek) is governed;
+    one in another water is not, and without `waters` it is not (the near-miss the build hit)"""
+    from pipeline.common.models import NodeKind
+    n = lambda blk, g: SimpleNamespace(kind=NodeKind.stream, blk=blk, gnis_id=g)  # noqa: E731
+    graph = SimpleNamespace(nodes={"A:0": n("A", "1"), "T:0": n("T", ""), "U:0": n("U", ""), "C:0": n("C", "2")})
+    rows = [{"blk": "A", "limit": "split"}]
+    assert S.owner_limited(graph, set(), rows) == {"A"}
+    assert S.owner_limited(graph, set(), rows, [frozenset({"A", "T"}), frozenset({"C", "U"})]) == {"A", "T"}
+
+
 def test_atlas_tidal_is_the_water_below_the_limit():
     from pipeline.atlas.splits.tidal import Limit
     g, geoms, idx, _ = _built()

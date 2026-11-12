@@ -1,29 +1,33 @@
-"""T678 THE COAST CUT: where a stream's tidal water ends, decided ONCE, in the atlas's cut sequence (owner 2026-11-11).
+"""T678 / T685 THE COAST CUT: where a stream's tidal water ends, decided ONCE, in the atlas's cut sequence.
 
-Owner, verbatim: "all the tidal logic and stream removal happens in the build of the graph", "the cuts used for tidal
-should happen where cuts happen". The order of sources (the owner's edits do not outrank the default):
+Owner 2026-11-11, verbatim: "all the tidal logic and stream removal happens in the build of the graph", "the cuts used
+for tidal should happen where cuts happen". Owner 2026-11-12 (RULINGS E21-E24): "we want a single rule / a consistent
+definition". The order of sources (the owner's edits do not outrank the default):
 
   1. A DFO WRITTEN BOUNDARY (a sign, a bridge, a written line): a curated `split` row of `waters/tidal_limits.json`
-     classified as DFO-written (`authority`), a split the owner made his own decision (authority `owner`, 2026-11-12:
-     the ten not traced to DFO, "Keep all as my decisions"), and the owner's `whole` rows. Its water is cut by that
-     row, never here.
-  2. OTHERWISE THE COAST CROSSING: where the blue line enters the sea, or a river that is itself tidal. FWA draws it:
-     the top of the line's lowest run of edge 1450 ("construction line", `fwa_edge_types.WATER_CROSSING`), which is
-     FWA's own vertex. It overshoots on some lines (across the Nass), so it is CROSS-CHECKED with the geometric
-     crossing (`geometric_crossing`: the top of the line's last run inside the receiving water, the sea being what lies
-     outside the FWA land mass, plus the river polygons of the tidal rivers). Within `AGREE_M` the 1450 vertex is the
-     cut; otherwise the line is the owner's (`OWNER_*`): it keeps today's result from the curated held file
-     (`waters/shore_held.json`), and the build lists it. Nothing is guessed.
-  3. The DFO subarea polygon is MAP SHADING ONLY. Polygon hand edits and non-DFO splits carry no authority over a cut.
+     classified as DFO-written (`authority`), a split the owner made his own decision (authority `owner`), a `cut`
+     row, and the owner's `whole` rows (his list of whole tidal waters: the Fraser's channels, nine sloughs). Its
+     water is cut by that row, never here.
+  2. OTHERWISE THE ONE COAST RULE (E21), cut at THE EDGE OF THE RECEIVING WATER, read off the map's own polygons:
+     (a) a water that reaches the SEA is fresh to the shoreline (the mouth line): only a stretch the line is drawn
+         over the sea itself (outside the FWA land mass) is tidal. Nearly every line ends on the coastline: no cut.
+     (b) a creek that enters a TIDAL part of a river is cut at THE RIVER'S EDGE: where its line crosses out of the
+         river polygon its mouth sits in (`CoastGeometry.river_at`: chosen by where the mouth IS, never by an FWA
+         key). Only the piece drawn inside the river's water is tidal. A river drawn as a single line there has no
+         water area: nothing on the creek is tidal. A creek entering a FRESH part is never looked at.
+     FWA's own vertex for the same place (the top of the line's lowest edge-1450 run, `edge1450_tops`) is recorded
+     beside it and taken as the cut when it is the same place (`SAME_PLACE_M`); it never decides.
+  3. The DFO subarea polygon is MAP SHADING ONLY. It never makes a cut.
 
 Also decided here, in the same pass:
   * A FRESH STUB under `STUB_M` at a line's top counts as tidal: the whole line is tidal (owner A).
   * A line wholly in tidal water STAYS IN THE GRAPH, marked tidal (owner B): `whole` rows, never deleted.
   * THE FRASER'S OWN CHANNELS AND ARMS below its tidal boundary are tidal for their length (owner, verbatim: "We still
     want all channels and stuff of Fraser below it's tidal boundary as tidal"): a named line on the Fraser's own
-    watershed code (`FRASER_WSC`) whose outlets are all tidal. SLOUGHS ARE NOT CHANNELS ("Sloughs aren't channels.
-    Sloughs could be really non tidal?"), and an unnamed Fraser line is unclear: both are the owner's, one by one.
+    watershed code (`FRASER_WSC`) whose outlets are all tidal. SLOUGHS ARE NOT CHANNELS: a slough, and an unnamed
+    line on the Fraser's code, follows rule (b) like any creek (E24) unless the owner listed it whole (rank 1).
   * A cut is made only where the piece below it goes tidal (every outlet below the cut tidal water), a least fixpoint.
+  * THE OWNER'S EXPLICIT RULINGS on single lines (`waters/shore_held.json`, every row `decided`) are kept as written.
 
 The cut keeps the shore family's id, `shore:<blk>:<int measure>` (`SOURCE`), so every reader of a shore boundary
 reads it unchanged. Pure functions of the graph and plain inputs; the build feeds them (`build.cut_shores`).
@@ -37,18 +41,26 @@ from pipeline.common.models import AnchorType, NodeKind, SplitPoint, StreamGraph
 #: the cut family (`SplitPoint.source`, `sectionizer.AUTO_SOURCES`) and id prefix: the shore's, kept (T665 readers)
 SOURCE = "shore"
 LABEL = "shore"
-#: the rule the record carries
-RULE = "coast/1"
+#: the rule the record carries (coast/1, T678: the edge-1450 vertex cross-checked against polygons chosen by FWA key)
+RULE = "coast/2"
+#: every rule whose atlas carries the one tidal record (`built_by_coast_rule`)
+RULES = ("coast/1", RULE)
 #: owner A (2026-11-11): a fresh run under this many metres at a line's top counts as tidal (the in-line gap bridge too)
 STUB_M = 25.0
-#: the two crossings (edge 1450 and geometric) agree when within this many metres
-AGREE_M = 50.0
-#: the geometric scan's station spacing
-STEP_M = 10.0
-#: a line END this close to the receiving water reaches it (FWA ends a coastal line on the coastline)
+#: the station spacing of the scan along a line for the water's edge (`water_edge`); = `clean_cut.DIP_M`: a dip out of
+#: the water shorter than this between two stations is positional error and is not an edge
+STEP_M = 5.0
+#: the edge is found to this many metres (bisection), and a point this close to the water is in it
+EDGE_TOL_M = 0.01
+#: a line END this close to the sea reaches it (FWA ends a coastal line on the coastline)
 REACH_M = 50.0
-#: a coast crossing this close to the line's mouth is the mouth: the line enters tidal water there, nothing on it is
+#: how close a line's mouth must be to a water polygon to sit in it
 REACH_MOUTH_M = 1.0
+#: an edge this close to the line's mouth IS the mouth (`tolerances.SLIVER_M`, the same end rule as `tidal.END_M`: a
+#: cut there would make a piece the sliver gate refuses): the line enters tidal water at its end, nothing on it is tidal
+END_M = 5.0
+#: FWA's edge-1450 vertex within this many metres of the water's edge is the same place: the cut takes FWA's vertex
+SAME_PLACE_M = 1.0
 #: THE FRASER'S OWN WATERSHED CODE, as the graph carries it (`FidRow.wsc`, trimmed): owner 2026-10-29 "all items with
 #: same wsc as the fraser below mission should be dropped as tidal", restated 2026-11-11 for channels and arms
 FRASER_WSC = "100-000000"
@@ -56,6 +68,10 @@ _EPS = 0.01
 
 #: POLICY (owner 2026-11-11): the coast crossing is the cut where no DFO-written boundary governs. False is the pin
 A_LINE_ENTERING_TIDAL_WATER_IS_CUT_AT_ITS_COAST_CROSSING = True
+#: POLICY (owner 2026-11-12, RULINGS E21/E22, T685): the cut is the EDGE of the receiving water's polygon (the sea, or
+#: the river polygon the mouth sits in), never FWA's edge-1450 vertex where the two differ. False is the pin: the
+#: vertex decides wherever FWA drew one
+THE_CUT_IS_THE_RECEIVING_WATERS_EDGE = True
 #: POLICY (owner A, 2026-11-11): a fresh stub under STUB_M at the top is tidal. False is the pin
 A_FRESH_STUB_AT_THE_TOP_IS_TIDAL = True
 #: POLICY (owner 2026-11-11): the Fraser's own named channels and arms below its boundary are tidal for their length
@@ -70,14 +86,12 @@ STUB = "the coast crossing is within 25 m of the line's top: the whole line is t
 FRASER = "a channel or arm of the Fraser below its tidal boundary: tidal for its length"
 FRESH_BELOW = "the piece below the crossing would stay freshwater: not cut"
 GOVERNED = "a DFO-written boundary governs this water (rank 1)"
-HELD = "the owner's: keeps today's result (waters/shore_held.json)"
+HELD = "the owner's ruling on this line (waters/shore_held.json)"
 LAKE_BELOW = "a lake on the line below the crossing (lakes are never cut)"
-#: why a line is the owner's (the build lists it, `owner_rows`; the held file keeps today's result)
-OWNER_DISAGREE = "the 1450 crossing and the geometric crossing disagree by more than 50 m"
-OWNER_NO_GEOMETRY = "the geometric method finds no tidal water at the line's end"
-OWNER_SLOUGH = "a slough on the Fraser's code joining the tidal Fraser (sloughs are not channels: the owner's, one by one)"
-OWNER_ESTUARY = "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree"
-OWNER_UNNAMED_FRASER = "an unnamed line on the Fraser's code joining the tidal Fraser (unclear: the owner's, one by one)"
+# the receiving water a row names (`water`)
+SEA = "sea"
+RIVER = "river polygon"
+NO_WATER_AREA = "the tidal water it joins is drawn as a single line there (no water area)"
 
 
 #: a split row's `authority` in `waters/tidal_split_authority.json`: DFO's words name the boundary (`dfo`), the owner
@@ -148,50 +162,63 @@ def edge1450_tops(rows) -> dict[str, float]:
     return out
 
 
-def geometric_crossing(geometry, mouth_m: float, top_m: float, target, step: float = STEP_M):
-    """THE GEOMETRIC COAST CROSSING of one blue line (`geometry` mouth first, route measures `mouth_m`..`top_m`):
-    the top of the line's last run of stations inside `target` (the receiving tidal water) that reaches its mouth.
-    Returns `(measure, end_gap)`; measure None when the mouth is more than `REACH_M` from `target` (the line does not
-    reach tidal water: the method fails, never guesses)."""
+def water_edge(geometry, mouth_m: float, top_m: float, water, step: float = STEP_M) -> float:
+    """THE EDGE OF THE RECEIVING WATER on one blue line (`geometry` mouth first, route measures `mouth_m`..`top_m`): the
+    route measure where the line, followed up from its mouth, first leaves `water` (a polygon: the sea around it, or
+    the river polygon its mouth sits in). Stations every `step` find the first one outside; the edge between it and
+    the last one inside is bisected to `EDGE_TOL_M`. `mouth_m` when there is no water or the mouth is not in it (within
+    `REACH_MOUTH_M`); `top_m` when the whole line lies in it."""
     import numpy as np
     import shapely
     L = float(geometry.length)
-    if L <= 0 or target is None or target.is_empty:
-        return None, float("inf")
-    gap = float(shapely.distance(target, shapely.get_point(geometry, 0)))
-    if gap > REACH_M:
-        return None, gap
-    span = float(top_m - mouth_m)
-    ds = np.arange(0.0, L, step)
-    if not len(ds) or ds[-1] < L:
-        ds = np.append(ds, L)
-    pts = shapely.line_interpolate_point(geometry, ds)
-    shapely.prepare(target)
-    inside = shapely.contains(target, pts) | (shapely.distance(target, pts) <= 1.0)
-    inside[0] = True
-    i = 0
-    while i + 1 < len(inside) and inside[i + 1]:
-        i += 1
-    return float(mouth_m + ds[i] * (span / L)), gap
+    if L <= 0 or water is None or water.is_empty:
+        return float(mouth_m)
+    if float(shapely.distance(water, shapely.get_point(geometry, 0))) > REACH_MOUTH_M:
+        return float(mouth_m)
+    shapely.prepare(water)
+
+    def inside(ds):
+        return shapely.dwithin(water, shapely.line_interpolate_point(geometry, np.asarray(ds, dtype=float)), EDGE_TOL_M)
+    scale = float(top_m - mouth_m) / L
+    lo, at = 0.0, step
+    while lo < L:
+        ds = np.minimum(np.arange(at, at + 256 * step, step), L)
+        out = np.flatnonzero(~inside(ds))
+        if not len(out):
+            lo = float(ds[-1])
+            at = lo + step
+            continue
+        i = int(out[0])
+        lo, hi = (float(ds[i - 1]) if i else lo), float(ds[i])
+        while hi - lo > EDGE_TOL_M:
+            mid = (lo + hi) / 2.0
+            if bool(inside([mid])[0]):
+                lo = mid
+            else:
+                hi = mid
+        return float(mouth_m + lo * scale)
+    return float(top_m)
 
 
 def is_slough(name: str) -> bool:
     return "slough" in str(name or "").lower()
 
 
-def coast_rule(graph: StreamGraph, *, tidal, e1450: Mapping[str, float], geo: Callable, sea_mouth=frozenset(),
+def coast_rule(graph: StreamGraph, *, tidal, e1450: Mapping[str, float], edge: Callable, sea_mouth=frozenset(),
                governed=frozenset(), held: Mapping[str, Mapping] | None = None, existing: Mapping[str, list] | None = None,
                leaves_at=None, fraser_wsc: str = FRASER_WSC):
-    """THE T678 RULE. `tidal`: section ids tidal off the map under rank 1 (a DFO-written split's piece, the owner's
-    whole waters). `e1450`: `edge1450_tops`. `geo(blk) -> (measure | None, gap)`: the geometric crossing. `sea_mouth`:
-    the blks whose mouth lies in the sea with no outlet. `governed`: blks of a water a rank-1 row governs (never cut
-    here). `held`: `{blk: {keep: cut|whole|fresh, cut_m?}}` the owner's lines (today's result, kept). `existing`:
-    `shore.standing_boundaries` (a crossing within `clean_cut.DIP_M` of one is that boundary). `leaves_at`:
-    `shore.edge_leave_measures` (outlets judged where each edge leaves the line).
+    """THE COAST RULE (T678, E21 as built by T685). `tidal`: section ids tidal off the map under rank 1 (a DFO-written
+    split's piece, the owner's whole waters). `edge(blk, via) -> (measure, water)`: where the line leaves the water it
+    enters (`water_edge`), `via` being `SEA` (a line ending in the sea: the sea around it) or `RIVER` (a line entering
+    tidal water: the river polygon its mouth sits in), and what that water is (`SEA`, `RIVER`, or `NO_WATER_AREA`,
+    the measure then being the mouth). `e1450`: `edge1450_tops`, FWA's own vertex for the same place (recorded; the
+    cut when within `SAME_PLACE_M`). `sea_mouth`: the blks whose mouth lies in the sea with no outlet. `governed`: blks
+    of a water a rank-1 row governs (never cut here). `held`: `{blk: {keep: cut|whole|fresh, cut_m?}}` the owner's
+    rulings on single lines. `existing`: `shore.standing_boundaries` (a crossing within `clean_cut.DIP_M` of one is
+    that boundary). `leaves_at`: `shore.edge_leave_measures` (outlets judged where each edge leaves the line).
 
-    Returns `(cut points, whole lines, rows, owner)`. Whole: `{blk, name, why}` (`coast`, `stub`, `fraser`, `held`).
-    Rows: one per line that enters tidal water (or is held), cut (`cut_m`) or why not (`not_cut`). Owner: one row per
-    line the method cannot decide and the held file does not hold (the build refuses those: `missing_held`)."""
+    Returns `(cut points, whole lines, rows)`. Whole: `{blk, name, why}` (`coast`, `stub`, `fraser`, `held`). Rows:
+    one per line that enters tidal water or the sea (or is held), cut (`cut_m`) or why not (`not_cut`)."""
     from pipeline.atlas.splits import clean_cut as _cc
     held = dict(held or {})
     existing = existing or {}
@@ -264,8 +291,7 @@ def coast_rule(graph: StreamGraph, *, tidal, e1450: Mapping[str, float], geo: Ca
         return max(m, n.down_m) < cand[n.blk] - _EPS
 
     rows: dict[str, dict] = {}
-    owner: dict[str, dict] = {}
-    # HELD LINES FIRST: today's result, whatever the method says
+    # THE OWNER'S RULINGS FIRST: as written, whatever the rule says
     for blk in sorted(held):
         if blk not in lines:
             raise SystemExit(f"coast: held line {blk} ({held[blk].get('name')}) has no piece in the graph")
@@ -307,7 +333,6 @@ def coast_rule(graph: StreamGraph, *, tidal, e1450: Mapping[str, float], geo: Ca
             f = graph.nodes.get(graph.edges[i].from_node)
             if f is not None and f.blk:
                 work.add(f.blk)
-    seen_owner: set[str] = set()
     while work:
         changed: set[str] = set()
         for blk in sorted(work):
@@ -323,35 +348,30 @@ def coast_rule(graph: StreamGraph, *, tidal, e1450: Mapping[str, float], geo: Ca
                 via = "sea"
             else:
                 continue
-            owner.pop(blk, None)
             mouth, top = ns[0].down_m, ns[-1].up_m
             name = name_of(ns)
             row = {"blk": blk, "name": name, "mouth_m": round(mouth, 2), "top_m": round(top, 2), "joins": via}
             wsc = next((n.wsc for n in ns if n.wsc), "")
-            if THE_FRASERS_CHANNELS_BELOW_ITS_BOUNDARY_ARE_TIDAL and via == "tidal water" and wsc == fraser_wsc:
-                if is_slough(name):
-                    owner[blk] = {**row, "why": OWNER_SLOUGH}
-                elif not name:
-                    owner[blk] = {**row, "why": OWNER_UNNAMED_FRASER}
-                else:
-                    whole[blk] = {"blk": blk, "name": name, "why": "fraser"}
-                    rows[blk] = {**row, "not_cut": FRASER}
-                    changed.add(blk)
+            if (THE_FRASERS_CHANNELS_BELOW_ITS_BOUNDARY_ARE_TIDAL and via == "tidal water" and wsc == fraser_wsc
+                    and name and not is_slough(name)):
+                whole[blk] = {"blk": blk, "name": name, "why": "fraser"}
+                rows[blk] = {**row, "not_cut": FRASER}
+                changed.add(blk)
                 continue
             if not A_LINE_ENTERING_TIDAL_WATER_IS_CUT_AT_ITS_COAST_CROSSING:
                 continue
-            ce = float(e1450.get(blk, mouth))
-            cg, gap = geo(blk)
-            row.update(edge1450_m=round(ce, 2), geometric_m=None if cg is None else round(cg, 2),
-                       end_gap_m=round(gap, 1) if gap == gap and gap != float("inf") else None)
-            if cg is None:
-                owner[blk] = {**row, "why": OWNER_NO_GEOMETRY}
-                continue
-            if abs(ce - cg) > AGREE_M:
-                owner[blk] = {**row, "why": OWNER_DISAGREE}
-                continue
-            c = min(ce, top)
-            if c - mouth <= REACH_MOUTH_M:
+            cw, water = edge(blk, SEA if via == "sea" else RIVER)
+            cw = float(cw)
+            ce = e1450.get(blk)
+            row.update(water=water, edge_m=round(cw, 2), edge1450_m=None if ce is None else round(float(ce), 2))
+            if not THE_CUT_IS_THE_RECEIVING_WATERS_EDGE:
+                c = float(mouth if ce is None else ce)
+            elif ce is not None and abs(float(ce) - cw) <= SAME_PLACE_M:
+                c = float(ce)                                         # the same place: FWA's own vertex on that edge
+            else:
+                c = cw
+            c = min(c, top)
+            if c - mouth <= END_M:
                 rows[blk] = {**row, "not_cut": AT_MOUTH}
                 continue
             if top - c < (STUB_M if A_FRESH_STUB_AT_THE_TOP_IS_TIDAL else _EPS):
@@ -380,8 +400,6 @@ def coast_rule(graph: StreamGraph, *, tidal, e1450: Mapping[str, float], geo: Ca
         work = set()
         for blk in sorted(changed):
             work |= upstream_blks(blk)
-        work |= {b for b in owner if b not in seen_owner}            # an owner line may resolve once its receiver does
-        seen_owner |= set(owner)
 
     pts: list[SplitPoint] = []
     for blk in sorted(cand):
@@ -394,17 +412,11 @@ def coast_rule(graph: StreamGraph, *, tidal, e1450: Mapping[str, float], geo: Ca
         r["cut_m"] = round(at, 2)
         pts.append(SplitPoint(split_id=f"{SOURCE}:{blk}:{int(at)}", blk=blk, route_measure=at, fid="", label=LABEL,
                               anchor_type=AnchorType.point, source=SOURCE))
-    return pts, [whole[b] for b in sorted(whole)], [rows[b] for b in sorted(rows)], [owner[b] for b in sorted(owner)]
-
-
-def missing_held(owner_rows, held) -> list[dict]:
-    """The owner's lines the held file does not hold: the build refuses them (today's result must be written down
-    before the build can keep it: `python -m pipeline.atlas.splits.coast_held`)."""
-    return [r for r in owner_rows if r["blk"] not in held]
+    return pts, [whole[b] for b in sorted(whole)], [rows[b] for b in sorted(rows)]
 
 
 class CoastGeometry:
-    """THE FWA COAST the geometric crossing reads (`fetch_data.py` fwa_rivers / fwa_land into `fwa_coast.gpkg`): the
+    """THE FWA COAST the coast cut reads (`fetch_data.py` fwa_rivers / fwa_land into `fwa_coast.gpkg`): the
     land mass (the assessment watersheds tile the land; what lies outside them is the sea) and the river polygons by
     blue line. A missing file or layer is refused (AGENTS 37): a coast with no land would read every line as sea."""
 
@@ -450,13 +462,8 @@ class CoastGeometry:
             out.append(not sea.is_empty and shapely.distance(sea, p) <= reach)
         return out
 
-    def touches_river(self, geometry) -> bool:
-        """Does the line meet an FWA river polygon (an estuary or river drawn double-line)?"""
-        return bool(len(self.river_tree.query(geometry, predicate="intersects")))
-
-    def target(self, geometry, tidal_blks, own_blk: str = "", pad: float = 500.0):
-        """The receiving tidal water around one line: the sea (the box less the land) and the river polygons of the
-        tidal rivers (`tidal_blks`), never the line's own river polygon."""
+    def sea_around(self, geometry, pad: float = 500.0):
+        """The sea around one line: its padded box less the FWA land mass."""
         import shapely
         from shapely.geometry import box
         x0, y0, x1, y1 = geometry.bounds
@@ -464,21 +471,43 @@ class CoastGeometry:
         B = box(*bb)
         land = [shapely.clip_by_rect(self.land[i], *bb) for i in self.land_tree.query(B)]
         sea = B.difference(shapely.union_all([g for g in land if not g.is_empty])) if land else B
-        recv = [shapely.clip_by_rect(self.rivers[i], *bb) for i in self.river_tree.query(B)
-                if self.river_blk[i] in tidal_blks and self.river_blk[i] != own_blk]
-        return shapely.make_valid(shapely.union_all([sea] + [g for g in recv if not g.is_empty]))
+        return shapely.make_valid(sea)
+
+    def river_at(self, point, reach: float = REACH_MOUTH_M, own: str = ""):
+        """THE RIVER'S DRAWN WATER AREA AT A POINT: the FWA river polygon(s) the point sits in (within `reach`: a mouth
+        on the seam of two polygons of one river takes both). Chosen by where the point IS, never by the receiving
+        river's key (T685: choosing by BLUE_LINE_KEY missed the piece a creek is drawn across the Nass, the Campbell,
+        the Nitinat). The one polygon never taken is the creek's OWN drawn water (`own`: its blue line; a double-line
+        creek's polygon reaches its mouth where it meets a single-line river, and is the creek, not the water it
+        enters). None where the map draws no water area there (a single-line river)."""
+        import shapely
+        hit = [self.rivers[i] for i in sorted(self.river_tree.query(point, predicate="dwithin", distance=reach))
+               if not own or self.river_blk[i] != own]
+        return shapely.make_valid(shapely.union_all(hit)) if hit else None
+
+    def edge(self, geometry, mouth_m: float, top_m: float, via: str, own: str = "") -> tuple[float, str]:
+        """`coast_rule`'s `edge` for one line (`geometry` mouth first; `own` its blue line): where it leaves the water it
+        enters, and what that water is."""
+        import shapely
+        if via == SEA:
+            return water_edge(geometry, mouth_m, top_m, self.sea_around(geometry)), SEA
+        water = self.river_at(shapely.get_point(geometry, 0), own=own)
+        if water is None:
+            return float(mouth_m), NO_WATER_AREA
+        return water_edge(geometry, mouth_m, top_m, water), RIVER
 
 
 # ------------------------------------------------------------------------------------------------ the records
 #: the atlas sidecar listing the owner's lines (today's result kept) and the curated splits not yet classified
 OWNER_RECORD = "coast_owner.json"
-OWNER_ABOUT = ("T678: the lines the coast cut leaves to the owner, each kept as `waters/shore_held.json` says (today's "
-               "result until the owner decides), with where it is and what each method says; and the curated tidal "
-               "splits not yet classified as DFO-written or not (they govern as today until they are). Written by the "
-               "atlas build; read by people and the held-rivers page.")
-RECORD_ABOUT = ("T678: every blue line the coast cut looked at — it enters the sea or tidal water, or the owner holds it: "
-                "cut at its coast crossing (`cut_m`, `below_cut_tidal`), or why not (`not_cut`); `edge1450_m` / "
-                "`geometric_m` are the two crossings. Written by the atlas build (`atlas.splits.coast`); read by people.")
+OWNER_ABOUT = ("T678/T685: the owner's rulings on single lines the coast cut kept as written (`waters/shore_held.json`), "
+               "the ones a DFO-written boundary governs now, and the curated tidal splits not classified as "
+               "DFO-written or the owner's. Written by the atlas build; read by people.")
+RECORD_ABOUT = ("T678/T685: every blue line the coast cut looked at — it enters the sea or tidal water, or the owner ruled "
+                "on it: cut at the edge of the water it enters (`cut_m`, `below_cut_tidal`), or why not (`not_cut`). "
+                "`water` is that water (sea / river polygon / none drawn), `edge_m` its edge on the line, `edge1450_m` "
+                "FWA's own vertex there (a check; the cut when within 1 m). Written by the atlas build "
+                "(`atlas.splits.coast`); read by people.")
 #: THE ONE TIDAL RECORD: every tidal section of this atlas with its owner. The reach, the tiles, the store and the
 #: review app read it; none recomputes it (owner 2026-11-11, T678 plan 1)
 TIDAL_RECORD = "tidal_sections.json"
@@ -576,7 +605,7 @@ def read_record(build_dir) -> dict[str, str]:
 
 
 def built_by_coast_rule(build_dir) -> bool:
-    """Was this atlas cut by the coast rule (its shore record names `RULE`)? Then it must carry `TIDAL_RECORD`
+    """Was this atlas cut by the coast rule (its shore record names one of `RULES`)? Then it must carry `TIDAL_RECORD`
     (`read_record` refuses one without it). An atlas cut before T678 says so by its record."""
     import json
     from pathlib import Path
@@ -584,4 +613,4 @@ def built_by_coast_rule(build_dir) -> bool:
     p = Path(build_dir) / RECORD
     if not p.exists():
         return False                     # an atlas cut before T660 had no shore record: not cut by this rule
-    return json.loads(p.read_text(encoding="utf-8")).get("rule") == RULE
+    return json.loads(p.read_text(encoding="utf-8")).get("rule") in RULES

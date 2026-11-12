@@ -16,7 +16,7 @@ the map only after the next atlas build (`pipeline build --atlas --promote`).
 | `continuations.json` | authored | hand | bundle (`water_continue` gate) |
 | `tidal_limits.json` | applied | `pipeline.tools.tidal_limits` / write-through (Tidal marks) | atlas (`tidal.resolved.json`) |
 | `tidal_split_authority.json` | classified (Claude, cited; owner may correct) | hand, T678 2026-11-11 | the atlas tidal cut (T678 step 10, not wired yet) |
-| `shore_held.json` | owner's lines (today's result kept) | `pipeline.atlas.splits.coast_held` (a `decided` row is kept) | atlas (`build.cut_shores`, `coast_owner.json`) |
+| `shore_held.json` | the owner's rulings on single lines for the coast cut (every row `decided`) | by hand, from a recorded owner answer | atlas (`build.cut_shores`, `coast_owner.json`) |
 | `slough_calls.json` | applied | `pipeline.tools.slough_calls` / write-through (slough marks) | atlas registry |
 | `slough_page_calls.json` | frozen | the retired slough page (2026-10-28) | review app (old notes) |
 | `steelhead_waters.json` | accepted | `python -m pipeline.regs.steelhead.accept --write` | reach run |

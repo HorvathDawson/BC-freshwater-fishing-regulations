@@ -1273,16 +1273,17 @@ def cut_length(b: _Build) -> None:
 
 
 def cut_shores(b: _Build) -> None:
-    """T678 THE COAST CUT, in the cut sequence BEFORE THE LENGTH CAP (owner 2026-11-11: "the cuts used for tidal should
-    happen where cuts happen"; `splits.coast`): a DFO-written boundary governs its water (rank 1, the curated tidal
-    limits); otherwise a line entering the sea or a tidal river is cut at its coast crossing (FWA's edge-1450 vertex,
-    cross-checked with the geometric crossing on the FWA land mass and river polygons), a fresh stub under 25 m at its
-    top makes it tidal whole, and the Fraser's named channels below its boundary are tidal whole. A line the methods
-    cannot decide is the owner's and keeps today's result (`waters/shore_held.json`); one missing there stops the
-    build. The DFO polygon is not read: map shading only. Placed and swept like every cut (one gate) and recorded in
-    `shore_cuts.json` (every line looked at, cut or why not) and `coast_owner.json` (the owner's lines).
+    """T678 / T685 THE COAST CUT, in the cut sequence BEFORE THE LENGTH CAP (owner 2026-11-11: "the cuts used for tidal
+    should happen where cuts happen"; `splits.coast`): a DFO-written boundary governs its water (rank 1, the curated
+    tidal limits); otherwise ONE rule (RULINGS E21): a line entering a tidal river is cut at the river's edge — where
+    it leaves the FWA river polygon its mouth sits in — and a line reaching the sea is fresh to the shoreline (only a
+    stretch drawn over the sea is tidal). A fresh stub under 25 m at a line's top makes it tidal whole, and the
+    Fraser's named channels below its boundary are tidal whole. The owner's rulings on single lines
+    (`waters/shore_held.json`) are applied as written. The DFO polygon is not read: map shading only. Placed and swept
+    like every cut (one gate) and recorded in `shore_cuts.json` (every line looked at, cut or why not) and
+    `coast_owner.json` (the owner's rulings applied).
 
-    Reads: args, bbox, graph, geoms, chains, fids, fid_index, applied_splits, tidal_limits, tidal_ids. Writes:
+    Reads: args, bbox, graph, geoms, fids, fid_index, applied_splits, tidal_limits, tidal_ids. Writes:
     shore_tidal, coast_whole, coast_ok_cuts (graph, applied_splits in place)."""
     args, graph, geoms, fid_index, applied_splits = b.args, b.graph, b.geoms, b.fid_index, b.applied_splits
     import shapely
@@ -1301,18 +1302,31 @@ def cut_shores(b: _Build) -> None:
     # functions read it on the registry's waters made here once; `build_registry` proves the written registry
     # covers the same water (`coast.water_cover`) and stops on a difference.
     _ids = getattr(b, "tidal_ids", None) or {}
+    waters: list = []
     if not limits:
         tidal = frozenset()
     else:
         _reg0, _ = water_registry(b, graph, areas=False)
         tidal = _shore.reach_tidal(_reg0, graph, limits, _ids, strict=bbox is None)
+        # each stream water's lines, so a governed water's added lines (no gnis of their own) are governed too
+        for _it in _reg0.values():
+            if _it.kind == "stream":
+                _bs_ = {graph.nodes[s].blk for s in _it.section_ids if s in graph.nodes and graph.nodes[s].blk}
+                if len(_bs_) > 1:
+                    waters.append(frozenset(_bs_))
         del _reg0
     b.shore_tidal = tidal
     b.shore_tidal_cover = _coast.water_cover(graph, tidal)
-    governed = _shore.owner_limited(graph, tidal, limits)
-    tidal_blks = {graph.nodes[s].blk for s in tidal if s in graph.nodes and graph.nodes[s].blk}
+    governed = _shore.owner_limited(graph, tidal, limits, waters)
     cg = _coast.CoastGeometry(CURATED_COAST_GPKG(), bbox)
-    chains = {c.blk: c for c in b.chains if c.geometry is not None and not c.geometry.is_empty}
+    # THE LINE THE EDGE IS READ ON: the graph's own lowest run of sections of each blue line, mouth first (as the dry
+    # run and `shore.graph_lines` read it). Never `b.chains`: a blue line that carries added-stream pieces (Burnaby's
+    # Power House Creek, with two tributary branches folded onto its key) has a merged chain geometry that is not one
+    # mouth-to-top line, and the edge read on it landed 61 m below the river's edge (T685 build, 2026-11-12)
+    chains: dict = {}
+    for c in _shore.graph_lines(graph, geoms):
+        if not c.geometry.is_empty and (c.blk not in chains or c.mouth_measure < chains[c.blk].mouth_measure):
+            chains[c.blk] = c
     mouth_node: dict[str, object] = {}
     for nid in sorted(graph.nodes):
         n = graph.nodes[nid]
@@ -1323,40 +1337,34 @@ def cut_shores(b: _Build) -> None:
     e1450 = _coast.edge1450_tops(b.fids)
     cache: dict = {}
 
-    def geo(blk):
-        if blk not in cache:
+    def edge(blk, via):
+        if (blk, via) not in cache:
             ch = chains.get(blk)
-            cache[blk] = (None, float("inf")) if ch is None else _coast.geometric_crossing(
-                ch.geometry, ch.mouth_measure, ch.mouth_measure + ch.length_m, cg.target(ch.geometry, tidal_blks, blk))
-        return cache[blk]
+            if ch is None:
+                raise SystemExit(f"coast: line {blk} enters tidal water but has no geometry to find the water's edge on")
+            cache[blk, via] = cg.edge(ch.geometry, ch.mouth_measure, ch.mouth_measure + ch.geometry.length, via, own=blk)
+        return cache[blk, via]
     held = _held.load(CURATED.waters.shore_held)
     if bbox is not None:
         held = {k: v for k, v in held.items() if k in mouth_node}
-    # a held line a DFO-written boundary now governs (a split classified or added since it was held) is rank 1's:
-    # listed in the owner record, never cut twice
+    # a line the owner ruled on that a DFO-written boundary now governs (a split classified or added since) is rank
+    # 1's: listed in the owner record, never cut twice
     now_governed = sorted(k for k in held if k in governed)
     if now_governed:
-        print(f"  coast: {len(now_governed)} held line(s) are governed by a DFO-written boundary now: {now_governed[:5]}")
+        print(f"  coast: {len(now_governed)} owner-ruled line(s) are governed by a DFO-written boundary now: {now_governed[:5]}")
         held = {k: v for k, v in held.items() if k not in governed}
     _view = _bs.View(graph, geoms)
-    pts, whole, rows, owner = _coast.coast_rule(graph, tidal=tidal, e1450=e1450, geo=geo, sea_mouth=sea_mouth,
-                                                governed=governed, held=held,
-                                                existing=_shore.standing_boundaries(graph),
-                                                leaves_at=_shore.edge_leave_measures(graph, geoms, _view))
+    pts, whole, rows = _coast.coast_rule(graph, tidal=tidal, e1450=e1450, edge=edge, sea_mouth=sea_mouth,
+                                         governed=governed, held=held,
+                                         existing=_shore.standing_boundaries(graph),
+                                         leaves_at=_shore.edge_leave_measures(graph, geoms, _view))
     out = Path(args.out)
-    # THE OWNER'S LINES: every held line, with where it is and what each method says (the held-rivers page reads it)
+    # THE OWNER'S RULINGS APPLIED: every row of the held file, as written
     owner_rows = [{**{k: v for k, v in held[bk].items()}, "blk": bk} for bk in sorted(held)]
     (out / _coast.OWNER_RECORD).write_text(json.dumps({"_about": _coast.OWNER_ABOUT, "lines": owner_rows,
                                                        "splits_without_authority": _coast.unclassified(b.tidal_limits, b.split_authority),
                                                        "held_now_governed": now_governed},
                                                       indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
-    missing = _coast.missing_held(owner, held)
-    if missing:
-        (out / "coast_owner_missing.json").write_text(json.dumps(missing, indent=1) + "\n", encoding="utf-8")
-        raise SystemExit(f"coast: {len(missing)} line(s) the coast cut cannot decide are not in waters/shore_held.json "
-                         f"({[r['blk'] for r in missing[:5]]}): see coast_owner_missing.json; write today's result for "
-                         "them with `python -m pipeline.atlas.splits.coast_held --atlas <live atlas> --out "
-                         "data/curated/waters/shore_held.json`")
     pts = place_points(graph, pts)
     sweep = _bs.sweep(graph, geoms, pts, view=_bs.View(graph, geoms))
 
@@ -1371,7 +1379,7 @@ def cut_shores(b: _Build) -> None:
         _write()
         raise SystemExit(f"coast: {len(bad)} coast cut(s) meet a braid ({sweep.counts()}): see braid_sweep_shore.json "
                          "and shore_cuts.json — a line's own braid across its coast crossing is the owner's call "
-                         "(hold it in waters/shore_held.json)")
+                         "(his ruling goes in waters/shore_held.json)")
     before = len(graph.nodes)
     moved, resid = [], []
     if pts:
@@ -1389,7 +1397,7 @@ def cut_shores(b: _Build) -> None:
     b.coast_ok_cuts = {r["blk"]: float(r["cut_m"]) for r in rows if r.get("cut_m") is not None and r.get("below_cut_tidal")}
     print(f"  coast cuts: {len(pts)} line(s) cut at the coast crossing -> {len(graph.nodes) - before} new section(s); "
           f"{len(whole)} line(s) tidal whole; {sum(1 for r in rows if r.get('not_cut'))} line(s) not cut "
-          f"({_shore.RECORD}); {len(held)} held for the owner ({_coast.OWNER_RECORD}); sweep cases {sweep.counts()}, "
+          f"({_shore.RECORD}); {len(held)} by the owner's ruling ({_coast.OWNER_RECORD}); sweep cases {sweep.counts()}, "
           f"{len(moved)} edge(s) re-homed, 0 network(s) straddle")
     b.tick("coast cuts")
 

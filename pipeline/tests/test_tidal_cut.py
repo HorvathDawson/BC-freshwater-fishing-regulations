@@ -308,13 +308,19 @@ def test_a_rule_on_a_whole_tidal_water_is_unresolved_and_listed(estuary):
     assert res.report.tidal_emptied == [{"entry_id": "r1:one@1-1", "rule_id": "c", "splits": ["water:gnis:2"]}]
 
 
-def test_the_curated_whole_tidal_waters_are_the_owners_ten_fraser_delta_waters():
+def test_the_curated_whole_tidal_waters_are_the_owners_sixteen_fraser_delta_waters():
     """The 4 channels the owner marked (2026-10-29) + the 6 Fraser-code items below Mission he confirmed the same day
-    (T326: `whole` rows of waters/tidal_limits.json, the owner's own calls)."""
+    (T326: `whole` rows of waters/tidal_limits.json, the owner's own calls) + the owner's whole-water slough list of
+    2026-11-12 (RULINGS E24, T685: Deas, Woodward, McDonald, Tamboline, London) and Ewen Slough (owner A, 2026-11-11).
+    Every other slough is cut at the river's edge by the coast rule."""
     from pipeline.atlas.splits import tidal as T
-    assert sorted(r.item for r in T.load() if r.limit == "whole") == [
-        "gnis:10494", "gnis:11566", "gnis:14010", "gnis:14905", "gnis:17368", "gnis:17805", "gnis:21224",
-        "gnis:22631", "gnis:25152", "gnis:8341"]
+    whole = {r.item: r.name for r in T.load() if r.limit == "whole"}
+    assert sorted(whole) == [
+        "gnis:10494", "gnis:11566", "gnis:14010", "gnis:14905", "gnis:16081", "gnis:17368", "gnis:17805", "gnis:18526",
+        "gnis:21224", "gnis:22631", "gnis:22880", "gnis:23895", "gnis:25152", "gnis:29381", "gnis:5325", "gnis:8341"]
+    assert sorted(n for n in whole.values() if "Slough" in n) == [
+        "Deas Slough", "Ewen Slough", "Gilmour Slough", "London Slough", "McDonald Slough", "Tamboline Slough",
+        "Tilbury Slough", "Williamson Slough", "Woodward Slough"]
 
 
 def test_a_row_marked_tidal_keeps_its_own_water_when_a_cut_exists_elsewhere(estuary):
