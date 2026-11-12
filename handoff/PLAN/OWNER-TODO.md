@@ -118,7 +118,7 @@ Still open:
   - Ucona River: the Strathcona Park rule now covers its first 33 m (the old shore cut there is dropped under your D1, and park membership is by whole piece). Say if that is wrong.
   - `lake:329461947`, an unnamed polygon on an Okanagan oxbow channel, stayed a lake (83 rules, unchanged). Fold it into the Oxbows or leave?
   - Dewdney Slough CONFIRMED the same water as Nicomen Slough (FWA has no Dewdney Slough; DFO prints "Dewdney Slough - See Nicomen Slough"). A search-name proposal ("Dewdney Slough" finds Nicomen Slough) is ready, not applied: say yes to apply.
-  - Human run after promote: `bash pipeline/regs/parsing/run_parse.sh parse-missing` (nothing is expected to parse).
+  - parse-missing: NOT needed, closed. Checked without parsing (5b5caecd3 lane): 1,393 entries, 0 missing, no reference to a lost water id; entry ids come from the synopsis row, not the water.
 - Nicomen marks and Dewdney Slough: owner thinks Dewdney Slough is Nicomen Slough (one water); Claude confirms from the source data in the build prep and reports.
 - Tidal map pages (same links as the tidal line above): held rivers, one card each https://claude.ai/artifact/3v6g4Ggx8WJZg4Jvxras9q ; every cut on the map https://claude.ai/artifact/3Jbd8SjT64Tj9HXvPgPBDc
 - Phone check of the latest Play internal build (0.7.5), the same rows as the Owner To-Do page (written 2026-11-11):
