@@ -22,7 +22,7 @@ polygon (`polygon_inside`). Two rules read them (`polygon_rule`):
      below a shore cut (`reach.outside.tidal_crossing_owner`), by the same outlet test.
 
 Never cut: a water that has its own `split`/`whole` limit (`owner_limited`: the owner's limit governs it), and the
-rivers the owner has not ticked yet (`HELD_FOR_OWNER`). The owner's `mouth` rows no longer stop a cut (D4 withdrawn,
+rivers and creeks the owner has not ticked yet (`held_lines`). The owner's `mouth` rows no longer stop a cut (D4 withdrawn,
 2026-11-11: "just do the 33 cuts and then remove tidal part"). `shore_cuts.json` lists every line the polygon reaches
 whose mouth is inside or that joins tidal water: cut, or why not. The cut's id is `shore:<blk>:<int measure>`, its source
 `shore`, its label `LABEL`.
@@ -136,9 +136,25 @@ HELD_UP_THE_CHANNEL: dict[str, str] = {
     "360871265": "Pa-aat River (460 m up the channel)",
     "360880247": "unnamed (105 m up the channel)",
 }
+#: HELD FOR THE OWNER, up the channel, found after the dry run (next-rebuild 2a, 2026-11-11): cut only once the atlas
+#: reads the reach's tidal set (the Fraser's side channels are tidal), and then more than 100 m up the channel by the
+#: same measure. Two of the 33 mouth-tick creeks; the owner's dry-run tables showed both as "not cut". Held as build 27
+#: has them (each keeps its T660 cut). Not yet on the owner's map page. By blue line.
+HELD_UP_THE_CHANNEL_SINCE: dict[str, str] = {
+    "356285962": "Cohilukthan Slough (880 m up the channel)",
+    "356358883": "Deas Slough (225 m up the channel)",
+}
+#: HELD FOR THE OWNER, third group (next-rebuild 2c, 2026-11-11): the polygon exit falls where a side channel of the
+#: creek's own water joins it on both sides, and the braid sweep cannot cut that channel on the cut's line ("line
+#: misses"), so the build would stop (`build.cut_shores`: "a creek's own braid across its polygon exit is the owner's
+#: call"). Not cut, as in build 27 (T660 skipped it: "a braid of its own water spans the shore"). By blue line.
+HELD_A_BRAID_SPANS_THE_EXIT: dict[str, str] = {
+    "360871314": "Kainet Creek (exit 16 m up; its side channel 360227727, itself wholly inside the polygon, joins on both sides)",
+}
 #: A HELD LINE STAYS EXACTLY AS BUILD 27 HAS IT (next-rebuild 2b, 2026-11-11). "Held" means no change until the owner
 #: ticks; 26 of the 61 held lines carry a T660 shore cut in the live atlas (19 with a tidal piece below it), and the
-#: polygon rule alone would have dropped those cuts and turned the 19 pieces back into freshwater. So each keeps its
+#: polygon rule alone would have dropped those cuts and turned the 19 pieces back into freshwater (28 of 64 with the two
+#: creeks next-rebuild 2a added to the second group). So each keeps its
 #: cut where build 27 made it (the measure on the live graph's bound, same id `shore:<blk>:<int>`); the reach decides
 #: tidal for the piece below as before. The other 35 held lines have no cut in build 27 and get none. A line leaves this
 #: list with its tick (when it leaves the held lists). By blue line -> route measure.
@@ -169,6 +185,8 @@ HELD_KEEPS_ITS_CUT: dict[str, float] = {
     "360764607": 3202.05711923718,
     "360812872": 37.326930338529294,
     "360861076": 15.6845316882484,
+    "356285962": 27.4830560951735,
+    "356358883": 2907.4250267973803,
 }
 #: owner D3: an outside run of at most this many metres between two inside stretches does not end the creek's tidal
 #: stretch (the first REAL exit); a longer one does, and what lies inside higher up stays freshwater
@@ -180,10 +198,15 @@ MOUTH_OUTSIDE = "mouth outside the polygon (D6)"
 FRESH_RECEIVER = "joins fresh water (D1: no shore cut)"
 FRESH_BELOW = "the piece below the cut would stay freshwater (owner 2026-11-11: not cut)"
 OWNER_LIMIT = "the owner's split/whole limit for this water governs it"
-HELD = "held for the owner's tick (HELD_FOR_OWNER / HELD_UP_THE_CHANNEL)"
+HELD = "held for the owner's tick (HELD_FOR_OWNER / HELD_UP_THE_CHANNEL / HELD_A_BRAID_SPANS_THE_EXIT)"
 #: on a row that is cut all the same: a held line keeps the cut build 27 made (`HELD_KEEPS_ITS_CUT`)
 HELD_KEPT = "held for the owner's tick: keeps its build 27 cut (HELD_KEEPS_ITS_CUT)"
 _EPS = _JOIN_M
+
+
+def held_lines() -> dict[str, str]:
+    """Every blue line held for the owner, all the groups together: {blk: why}."""
+    return {**HELD_FOR_OWNER, **HELD_UP_THE_CHANNEL, **HELD_UP_THE_CHANNEL_SINCE, **HELD_A_BRAID_SPANS_THE_EXIT}
 
 
 def read_tidal_polygon(gpkg: str, bbox=None):
@@ -434,7 +457,7 @@ def polygon_rule(graph: StreamGraph, inside: Mapping[str, list], tidal, existing
                  ) -> tuple[list[SplitPoint], list[dict], list[dict]]:
     """THE T665 RULE over `inside` (`polygon_inside`). `tidal`: the section ids of tidal water OFF THE MAP under the
     curated limits (`atlas_tidal`). `existing`: `standing_boundaries`. `limited`: `owner_limited`. `held`: the blks held
-    for the owner (default `HELD_FOR_OWNER` and `HELD_UP_THE_CHANNEL`). `kept`: the held blks that keep a cut, and where
+    for the owner (default `held_lines()`: every held group). `kept`: the held blks that keep a cut, and where
     (default: the `HELD_KEEPS_ITS_CUT` rows still held, when `held` is the default; else none); a kept blk given here
     that is not held is refused.
 
@@ -444,7 +467,7 @@ def polygon_rule(graph: StreamGraph, inside: Mapping[str, list], tidal, existing
     from pipeline.atlas.splits import clean_cut as _cc
     existing = existing or {}
     default_kept = kept is None and held is None
-    held = {**HELD_FOR_OWNER, **HELD_UP_THE_CHANNEL} if held is None else held
+    held = held_lines() if held is None else held
     if default_kept:
         kept = {b: m for b, m in HELD_KEEPS_ITS_CUT.items() if b in held}     # a ticked line left the held lists
     kept = kept or {}

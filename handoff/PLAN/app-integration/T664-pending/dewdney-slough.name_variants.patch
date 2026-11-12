@@ -1,0 +1,23 @@
+--- a/data/curated/waters/name_variants.json
++++ b/data/curated/waters/name_variants.json
+@@ -73021,5 +73021,20 @@
+    "from_m": 0,
+    "to_m": 1967
+   }
++ },
++ {
++  "target": {
++   "gnis_ids": [
++    "21105"
++   ]
++  },
++  "names": [
++   {
++    "name": "Dewdney Slough",
++    "source": "dfo",
++    "display": false,
++    "note": "PROPOSED 2026-11-11 (owner: \"Dewdney Slough IS Nicomen Slough\"; evidence in next-rebuild-results.md): DFO Region 2 prints \"Dewdney Slough - See Nicomen Slough\" and \"Nicomen (including Dewdney) Slough\"; FWA has no feature named Dewdney Slough (only Dewdney Creek, gnis 23609, MU 2-17, another water); the Highway 7 bridge at Dewdney crosses Nicomen Slough (gnis 21105, blk 355991886 at 3,369 m). A search name only: display false, so the gazetted name stands."
++   }
++  ]
+  }
+ ]

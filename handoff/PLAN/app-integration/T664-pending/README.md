@@ -7,7 +7,9 @@ tree as of this commit (`git apply --check` passed). The order to apply them is 
 |---|---|---|
 | `nine-cuts.cuts.json.patch` | the 9 new cuts for the 9 DFO marks on `NOT_LANDED_OK` (`cuts.json`, +202 lines) | before the side atlas build |
 | `nine-cuts.dfo-places.patch` | the 9 marks' extents on their DFO places (`dfo_salmon/places/region-2/3/6.json`) | after promote, by `apply_proposals` (this patch is what it will write) |
-| `t664-references.patch` | `r8:okanagan_river_oxbows@8-1` `matched` 53 → 9 ids; in-season notice `is-bb5426c61ff3` 53 → 9 extents (+ a history row) | after the side atlas build, before the reach run |
+| `oxbow-still-water.name_variants.patch` | owner ruling 2026-11-11: the 8 lake / wetland oxbow polygons are streams. Lists them (`one_water_takes`) on the Oxbows name record in `name_variants.json` | before the side atlas build |
+| `t664-references.patch` | `r8:okanagan_river_oxbows@8-1` `matched` 53 → 1 id; in-season notice `is-bb5426c61ff3` 53 → 1 extent (+ a history row). Remade 2026-11-11 from the side build (was 53 → 9 before the ruling) | after the side atlas build, before the reach run |
+| `dewdney-slough.name_variants.patch` | PROPOSAL, not part of the build: "Dewdney Slough" as a search name on Nicomen Slough `gnis:21105` (evidence in `../next-rebuild-results.md`) | when the owner accepts it; needs an atlas build to show |
 
 Both cut patches come from the review tool itself (`python -m pipeline.regs.review.proposals side <the 9 mark proposals>`),
 built from the owner's saved marks in memory. No mark was edited or added.
@@ -53,15 +55,22 @@ harrison_lake and the bridge` and `downstream_of the bridge`; Nicomen `downstrea
 - Nakina: DFO says "from the centre line to the northern bank". A cut cannot take half the width, so the binding is the
   whole channel between the two signs. The mark says between the cuts; the half-width is lost.
 - Nicomekl and Serpentine: the 23 m pieces are short but above the 5 m sliver limit. The places are `dormant`.
-- Nicomen "(including Dewdney) Slough": both marks bind `gnis:21105` only. Whether Dewdney Slough is a separate water
-  that should also be named was not checked.
+- Nicomen "(including Dewdney) Slough": both marks bind `gnis:21105` only. Checked 2026-11-11: FWA has no water named
+  Dewdney Slough (streams, lakes, wetlands; the only Dewdney water is Dewdney Creek `gnis:23609`, MU 2-17, elsewhere),
+  the registry and `name_variants.json` have none, and DFO's own table prints "Dewdney Slough - See Nicomen Slough".
+  One water, two names: the marks are complete. A search name is proposed (`dewdney-slough.name_variants.patch`).
 - Thompson Skihist: DFO gives 50°15'23.0"N 121°30'55.0"W; the mark's point is about 38 m north of that. The cut
   snaps onto the line at 7,143 m either way.
 - The two Thompson marks share one cut at the Goldpan signs, and the two Harrison marks share one at the bridge. That
   is how the DFO wording reads.
 
-## Owner calls (defaults taken, listed)
-1. The 8 still-water oxbow polygons stay separate items, so search shows 1 + 8 hits, not 1. Folding them in
-   (`one_water.ONE_WATER_TAKES_STILL_WATER = True`) makes them streams. That moves zone rules: lake rules come off and
-   stream rules go on, including the spring stream closure the oxbow row exempts.
-2. The survivor id is `wsc:300-432687-459615`: the first line item by id.
+## Owner calls
+1. RULED 2026-11-11: the 8 still-water oxbow polygons are streams ("They should have been converted to stream polygons
+   like Nicomen Slough so it all becomes one. They aren't lakes, they are considered streams."). They join the one
+   Oxbows item as stream polygons, listed by id on the name record (`one_water_takes`; `registry.one_water`). Not the
+   slough mechanism itself: Nicomen's four unnamed polygons were taken by the flowing fold (a "slough" head noun), and
+   the other 14 oxbow polygons by the owner's slough marks (`slough_calls.json`, written from marks only); these 8
+   were never in that review queue, so they are listed where the Oxbows are named. `ONE_WATER_TAKES_STILL_WATER` (the
+   blanket switch) stays off. Consequence, accepted: lake rules come off those 8 and stream zone rules go on (results
+   in `../next-rebuild-results.md`). `lake:329461947` is not one of the 8 and is left as it is.
+2. The survivor id is `wsc:300-432687-459615`: the first line item by id (default, not ruled).

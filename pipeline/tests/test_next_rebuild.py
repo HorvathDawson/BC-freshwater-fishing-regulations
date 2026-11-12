@@ -60,10 +60,13 @@ def test_a_kept_cut_needs_a_held_line_and_a_place_on_it():
 
 
 def test_the_kept_cuts_are_held_lines_of_the_second_group():
-    """26 of the 61 held lines carry a build 27 cut; none is one of the eight main rivers (they have no cut today)."""
-    held = {**S.HELD_FOR_OWNER, **S.HELD_UP_THE_CHANNEL}
-    assert len(held) == 61 and len(S.HELD_KEEPS_ITS_CUT) == 26
-    assert set(S.HELD_KEEPS_ITS_CUT) <= set(S.HELD_UP_THE_CHANNEL)
+    """28 of the 64 held lines carry a build 27 cut; none is one of the eight main rivers (they have no cut today),
+    nor the creek held for its braid (not cut in build 27)."""
+    held = S.held_lines()
+    assert len(held) == 64 and len(S.HELD_KEEPS_ITS_CUT) == 28
+    assert (len(S.HELD_FOR_OWNER), len(S.HELD_UP_THE_CHANNEL), len(S.HELD_UP_THE_CHANNEL_SINCE),
+            len(S.HELD_A_BRAID_SPANS_THE_EXIT)) == (8, 53, 2, 1)
+    assert set(S.HELD_KEEPS_ITS_CUT) <= set(S.HELD_UP_THE_CHANNEL) | set(S.HELD_UP_THE_CHANNEL_SINCE)
     assert all(m > 5.0 for m in S.HELD_KEEPS_ITS_CUT.values())
 
 
@@ -73,6 +76,8 @@ def test_a_ticked_line_leaves_the_kept_cuts_with_the_held_list(monkeypatch):
     inside = S.polygon_inside(S.graph_lines(g, geoms), SEA)
     monkeypatch.setattr(S, "HELD_FOR_OWNER", {})
     monkeypatch.setattr(S, "HELD_UP_THE_CHANNEL", {})
+    monkeypatch.setattr(S, "HELD_A_BRAID_SPANS_THE_EXIT", {})
+    monkeypatch.setattr(S, "HELD_UP_THE_CHANNEL_SINCE", {})
     monkeypatch.setattr(S, "HELD_KEEPS_ITS_CUT", {"C": 150.0})
     pts, _, _ = S.polygon_rule(g, inside, {"X:0"})
     assert [p.split_id for p in pts] == ["shore:C:300"]
