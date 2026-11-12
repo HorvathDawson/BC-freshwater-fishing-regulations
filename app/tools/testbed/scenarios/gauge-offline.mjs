@@ -1,17 +1,19 @@
-// (T315) A GAUGE VIEWED ONLINE STILL DRAWS ITS MEASURED LINE OFFLINE: Vedder River's Conditions opened on Wi-Fi (the
+// (T315) A GAUGE VIEWED ONLINE STILL DRAWS ITS MEASURED LINE OFFLINE: a gauged water's Conditions opened on Wi-Fi (the
 // station file is kept on the phone, `gaugeHistory`), then airplane mode and a COLD START (no session copy left): the
 // same Conditions draws its chart from the phone's kept week, saying "Offline — measured line as of …".
-import { coldStart, toMap } from './common.mjs';
+//
+// (T603) THE WAY IN IS `openWater` (common.mjs), as the other Conditions scenarios': the result row by its line, then the
+// view's own tab by id. The old way searched "Vedder River" (which now lists as "see Chilliwack / Vedder Rivers", so no
+// water opened) and tapped the text "Conditions", which then landed on the Conditions TAB. The default water is the one
+// the recorded T603 run opens (Coquitlam River, 08MH002); `GAUGE_WATER` + `GAUGE_ROW` name another.
+import { coldStart, openWater } from './common.mjs';
 
-const WATER = process.env.GAUGE_WATER ?? 'Vedder River';
+const WATER = process.env.GAUGE_WATER ?? 'Coquitlam River';
+const ROW = process.env.GAUGE_ROW ?? '.* · Region 2 · MU 2-8.*';
 const AS_OF = /^Offline — measured line (as of .*|saved on this phone.*)/;
 
 async function conditions(ctx) {
-  await toMap(ctx);
-  ctx.flow('search', { Q: WATER });
-  ctx.flow('open-result', { LINE: WATER });
-  await ctx.waitText(/Regulations/, 30_000);
-  ctx.flow('tap-text', { TEXT: 'Conditions' });
+  await openWater(ctx, { q: WATER, row: ROW, view: 'conditions' });
   await ctx.device.sleep(10_000);                     // the reading, the chart and its envelope
   return ctx.device.screenText();
 }

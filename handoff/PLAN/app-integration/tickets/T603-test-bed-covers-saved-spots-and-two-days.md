@@ -109,3 +109,13 @@ route map after the scrolls, the alert confirmation left off screen).
   `spot-mark:spot:…` bounds [0,136][3,139]); a screen reader can reach it and a tap-by-label opens the spot.
 - `gauge-offline`'s way in is stale (not run here): "Vedder River" now lists as "see Chilliwack / Vedder Rivers", and
   its `tap-text Conditions` lands on the Conditions TAB once the water did not open. It needs `openWater` (common.mjs).
+
+## 2026-11-11, later
+- The two app bugs above (the alert confirmation off screen, the off-map spot pin in the accessibility tree) are T674:
+  fixed and pinned in component tests (04572e8d3), not yet seen on the emulator. The next run of `saved-spots` should
+  save an alert with Save at the foot of the screen and read the confirmation at rest, and check the uiautomator dump
+  holds no `spot-mark:` node while the spot is off the map.
+- `gauge-offline`'s way in is `openWater` now (Coquitlam River by default; `GAUGE_WATER` + `GAUGE_ROW` name another).
+  The file loads (`node --check`, the scenario index imports); it was NOT run on the emulator (a side atlas build held
+  heavy lane 1; no emulator was started for it).
+
