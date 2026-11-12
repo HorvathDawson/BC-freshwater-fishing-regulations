@@ -294,6 +294,13 @@ vitest_changed() {
   done <<<"$CHANGED"
   # (T542) the scenarios name ids and labels in the app's screens: a changed screen re-checks them
   grep -qE '^app/(apps|packages/ui-native)/' <<<"$CHANGED" && tests+=("tools/testbed-static.test.ts")
+  # caught (2026-11-12, T681): a literal `borderRadius: 0` in shell/MapLegend.tsx failed tools/one-button.test.ts only in
+  # CI — the tools/ gates that SCAN ui-native's source off disk import nothing of it, so no sibling rule finds them. A
+  # changed ui-native file re-runs every such gate (22 files, ~6 s).
+  if grep -qE '^app/packages/ui-native/src/' <<<"$CHANGED"; then
+    while IFS= read -r t; do tests+=("$t"); done < <(cd app && grep -l "packages/ui-native/src" tools/*.test.ts \
+      | xargs grep -l "readFileSync\|readdirSync")
+  fi
   (( ${#tests[@]} )) || { echo "   (no changed app file has a test)"; return 0; }
   tests=($(printf '%s\n' "${tests[@]}" | sort -u))
   echo "   vitest: ${#tests[@]} test file(s): ${tests[*]}"

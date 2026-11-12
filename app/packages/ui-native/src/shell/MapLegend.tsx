@@ -216,7 +216,7 @@ export function GaugeOnlyKey({ col, palette, theme, bottom }: { col: MapColourin
   const ring = gaugeOnlyColours(theme);
   return (
     <View testID="gauge-only-key" style={{ pointerEvents: "none", position: "absolute", left: 8, bottom: bottom + SCALE_CLEAR,
-                                           paddingVertical: 6, paddingHorizontal: 9, borderRadius: 0, borderWidth: 1,
+                                           paddingVertical: 6, paddingHorizontal: 9, borderRadius: palette.r.box, borderWidth: 1,
                                            borderColor: palette.line, backgroundColor: palette.card, opacity: 0.96 }}>
       <LegendCount palette={palette} colour={ring.fill} ring={ring.ring}
                    label={OTHER_QUANTITY_WORDS[flowParam === "level" ? "discharge" : "level"].key} />
