@@ -189,7 +189,7 @@ def type_page(html: str, slug: str):
         scraped["notes"], scraped["header_format"] = parse_header(html, slug), FORMAT
     except Exception:                                          # noqa: BLE001 — told by `_read_header`; no notes key
         pass
-    return FD.build(scraped), locs, structure
+    return FD.build(scraped, robust=False), locs, structure
 
 
 def _water_known(ef, water: str) -> bool:

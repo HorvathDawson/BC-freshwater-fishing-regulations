@@ -5,6 +5,7 @@ import { isVersioned, readStored, type Fetch, type Meter, type Store } from "./i
 import { body as notifyBody } from "./notify";
 import { fmtErrors, foldHealth, summarize, type FeedHealth, type RunHealth, type SourceRun } from "./health";
 import { FORMAT as WORDING_FORMAT } from "./dfo/wording";
+import { FEED_FORMATS } from "../../../packages/core/src/feedFormats.generated";
 import { INSEASON_LINKS_FORMAT } from "../../../packages/core/src/inseason";
 
 export type Job = "gauges" | "dfo" | "inseason";
@@ -65,6 +66,7 @@ export interface Status {
  */
 export const INPUT_FORMATS: Readonly<Record<string, readonly string[]>> = {
   "private/feeds/dfo/wording.json": [WORDING_FORMAT],
+  "private/feeds/dfo/pairs.json": [FEED_FORMATS.dfoPairs],
   "feeds/inseason/matches.json": [INSEASON_LINKS_FORMAT],
 };
 

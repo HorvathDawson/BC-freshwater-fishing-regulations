@@ -381,6 +381,22 @@ export const SALMON_STRADDLE_GOLDEN = {
    },
    {
     "s": "open",
+    "t": "4 coho per day (Jul 1\u2013Aug 31)",
+    "tree": {
+     "node": "tier",
+     "id": "t1",
+     "tier": "count",
+     "n": 4,
+     "says": "4 a day",
+     "by": 0,
+     "species": [
+      "CO"
+     ],
+     "children": []
+    }
+   },
+   {
+    "s": "open",
     "t": "2 coho per day (Jul 1\u2013Aug 31)",
     "tree": {
      "node": "tier",
@@ -419,6 +435,10 @@ export const SALMON_STRADDLE_GOLDEN = {
      ],
      [
       0,
+      -1,
+      182,
+      2,
+      244,
       -1
      ],
      [
@@ -444,7 +464,7 @@ export const SALMON_STRADDLE_GOLDEN = {
     "sp": [
      [
       0,
-      3,
+      4,
       100,
       1
      ],
@@ -452,7 +472,7 @@ export const SALMON_STRADDLE_GOLDEN = {
       0,
       -1,
       182,
-      2,
+      3,
       244,
       -1
      ],
@@ -553,6 +573,62 @@ export const SALMON_STRADDLE_GOLDEN = {
     "held": null,
     "failures": 0
    }
+  },
+  "pairs": {
+   "format": "dfo-pairs/1",
+   "release": "golden",
+   "pairs": [
+    [
+     {
+      "s": "open",
+      "t": "4 coho per day (Jul 1\u2013Aug 31)",
+      "tree": {
+       "node": "tier",
+       "id": "t1",
+       "tier": "count",
+       "n": 4,
+       "says": "4 a day",
+       "by": 0,
+       "species": [
+        "CO"
+       ],
+       "children": []
+      }
+     },
+     {
+      "s": "open",
+      "t": "2 coho per day (Jul 1\u2013Aug 31)",
+      "tree": {
+       "node": "tier",
+       "id": "t1",
+       "tier": "count",
+       "n": 2,
+       "says": "2 a day",
+       "by": 0,
+       "species": [
+        "CO"
+       ],
+       "children": []
+      }
+     },
+     {
+      "s": "open",
+      "t": "2 coho per day (Jul 1\u2013Aug 31)",
+      "tree": {
+       "node": "tier",
+       "id": "t1",
+       "tier": "count",
+       "n": 2,
+       "says": "2 a day",
+       "by": 0,
+       "species": [
+        "CO"
+       ],
+       "children": []
+      }
+     }
+    ]
+   ]
   }
  },
  "expect": [
@@ -596,6 +672,10 @@ export const SALMON_STRADDLE_GOLDEN = {
     ],
     [
      0,
+     0,
+     182,
+     2,
+     244,
      0
     ],
     [
@@ -626,6 +706,10 @@ export const SALMON_STRADDLE_GOLDEN = {
     ],
     [
      0,
+     -1,
+     182,
+     0,
+     244,
      -1
     ],
     [
@@ -646,12 +730,16 @@ export const SALMON_STRADDLE_GOLDEN = {
    "sp": [
     [
      0,
-     4,
+     5,
      100,
      1
     ],
     [
      0,
+     0,
+     182,
+     3,
+     244,
      0
     ],
     [
@@ -684,6 +772,10 @@ export const SALMON_STRADDLE_GOLDEN = {
     ],
     [
      0,
+     0,
+     182,
+     1,
+     244,
      0
     ],
     [
@@ -710,7 +802,7 @@ export const SALMON_STRADDLE_GOLDEN = {
      0,
      0,
      182,
-     2,
+     3,
      244,
      0
     ],
@@ -781,6 +873,22 @@ export const SALMON_STRADDLE_GOLDEN = {
     "by": 0,
     "species": [
      "CH"
+    ],
+    "children": []
+   }
+  },
+  {
+   "s": "open",
+   "t": "4 coho per day (Jul 1\u2013Aug 31)",
+   "tree": {
+    "node": "tier",
+    "id": "t1",
+    "tier": "count",
+    "n": 4,
+    "says": "4 a day",
+    "by": 0,
+    "species": [
+     "CO"
     ],
     "children": []
    }

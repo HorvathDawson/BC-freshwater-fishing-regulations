@@ -146,6 +146,19 @@ def test_a_water_with_an_undrawn_place_carries_it_but_paints_its_drawn_answer():
     assert p2["chains"][dict(s2)[11]]["u"] == ["6:resort"] and p2["chains"][dict(s2)[11]]["m"] != check
 
 
+def test_t679_d2_the_map_and_the_bar_give_the_species_verdict_on_a_partial_water():
+    """(T679 D2, owner 2026-11-12) partial coverage: the map and the bar BOTH give the species verdict. ONE source: every
+    chain's map runs `m` are `map_status` of its five species verdicts on every day (the app's bar reads `m`, core
+    `salmonDayStatus`), undrawn places or not."""
+    from pipeline.regs.dfo_salmon.live import _at
+    payload, _ = S.build(*_fixture(), {"gnis:4674": [11, 14]}, section_regions=None)
+    assert any(c.get("u") for c in payload["chains"])
+    for c in payload["chains"]:
+        for d in range(len(S.DAYS)):
+            vs = [payload["verdicts"][_at(r, d)] for r in c["sp"]]
+            assert S.MAP_CODES[_at(c["m"], d)] == S.map_status(vs), (c["w"], d)
+
+
 CLOSED_6 = {"id": "6:closed:abc", "k": "closed", "t": "There is no fishing for salmon in Region 6 until further notice."}
 
 

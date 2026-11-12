@@ -1,5 +1,5 @@
 {
- "_about": "THE SHARED DFO ROWS (T556; T671's rows). Hand-written: rows as DFO prints them (species | dates | limits and gear) with what the place itself answers. Read by BOTH pipeline/tests/test_t671_salmon_rows.py (typed.to_rules, deliver.salmon.verdict_on) and app/workers/feeds/test/dfo.t671.test.ts (the worker's toRules, locationCalendar), so the two languages cannot each hold a copy that drifts. `typed`: one entry per row, holding only what is asserted of that row's first rule — type, species (null: the rule carries none), reason (tbd | gear_permission: the review_reason starts with that constant). `own`: [species, MMDD, status] — the place's own answer that day, null where it says nothing (a wider place answers). The Python's exact typed rules and year calendar for every case are in python-vectors.generated.json `rows` (generated: python -m pipeline.tools.emit.dfo_vectors), which the worker must reproduce. `place` (T671 5B): the curated place's words and `within` areas, for quota.pool_of / mark_shared (the Python's live.join and the release, the worker's live.ts join); `quota`: [species, MMDD, the quota line (quota.words of the day's tree), null where nothing opens].",
+ "_about": "THE SHARED DFO ROWS (T556; T671's rows). Hand-written: rows as DFO prints them (species | dates | limits and gear) with what the place itself answers. Read by BOTH pipeline/tests/test_t671_salmon_rows.py (typed.to_rules, deliver.salmon.verdict_on) and app/workers/feeds/test/dfo.t671.test.ts (the worker's toRules, locationCalendar), so the two languages cannot each hold a copy that drifts. `typed`: one entry per row, holding only what is asserted of that row's first rule — type, species (null: the rule carries none), reason (tbd | gear_permission: the review_reason starts with that constant). `own`: [species, MMDD, status] — the place's own answer that day, null where it says nothing (a wider place answers). The Python's exact typed rules and year calendar for every case are in python-vectors.generated.json `rows` (generated: python -m pipeline.tools.emit.dfo_vectors), which the worker must reproduce. `place` (T671 5B): the curated place's words and `within` areas, for quota.pool_of / mark_shared (the Python's live.join and the release, the worker's live.ts join); `quota`: [species, MMDD, the quota line (quota.words of the day's tree), null where nothing opens]. `robust` (T679 D6, owner 2026-11-12): rows that do NOT type — `error` the error's type name both readers give, `own` [species, MMDD, status] the place reads in robust mode (the Python's typed feed `feed.type_rows`: its `unread_rule`; the worker's live.ts hold with no last answers: `ROW_HELD_VERDICT`): 'check', reported, never a refused page or a dropped row.",
  "cases": [
   {
    "name": "chum to be determined",
@@ -1032,6 +1032,52 @@
      "4 a day · only 1 over 65 cm"
     ]
    ]
+  },
+  {
+   "name": "a row that does not type",
+   "about": "T679 D6: the hours '25:00' are no clock, so the coho row is refused; the place (both its rows) reads check for every salmon on every day, in both languages",
+   "rows": [
+    [
+     "Coho",
+     "Sep 1 to Oct 31",
+     "2 per day, fishing from 25:00 to 06:00"
+    ],
+    [
+     "Chinook",
+     "Sep 1 to Oct 31",
+     "2 per day"
+    ]
+   ],
+   "robust": {
+    "error": "ValidationError",
+    "own": [
+     [
+      "CH",
+      915,
+      "check"
+     ],
+     [
+      "CO",
+      915,
+      "check"
+     ],
+     [
+      "SK",
+      915,
+      "check"
+     ],
+     [
+      "PK",
+      601,
+      "check"
+     ],
+     [
+      "CM",
+      101,
+      "check"
+     ]
+    ]
+   }
   }
  ]
 }

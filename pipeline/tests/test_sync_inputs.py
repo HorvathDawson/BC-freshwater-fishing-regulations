@@ -54,7 +54,10 @@ def test_one_refused_input_does_not_hold_back_the_others(tmp_path, monkeypatch, 
     wording and roster are still in the manifest."""
     def refuse(out):
         raise SystemExit("inseason.publish: refused — is-a: unresolved")
-    monkeypatch.setattr(S, "INPUTS", tuple(S.Input(i.name, refuse if i.name == "inseason-matches" else i.stage, i.cache)
+    def pairs(out):                     # (T668) the pair table reads the live release: stood in for here
+        return []
+    monkeypatch.setattr(S, "INPUTS", tuple(S.Input(i.name, refuse if i.name == "inseason-matches" else
+                                                   pairs if i.name == "dfo-pairs" else i.stage, i.cache)
                                            for i in S.INPUTS))
     assert S.main(["--out", str(tmp_path)]) == 1
     got = capsys.readouterr()

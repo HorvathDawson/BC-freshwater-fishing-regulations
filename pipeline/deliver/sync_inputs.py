@@ -13,6 +13,9 @@ THE LIST (`INPUTS`), every source read through `CURATED` / `SOURCE`:
     dfo-entries       dfo_salmon/places/region-*.json               -> private/feeds/dfo/entries/region-*.json
     wording           dfo_salmon/wording.json                       -> private/feeds/dfo/wording.json (T321; the
                                                                        worker's ONLY copy, T324)
+    dfo-pairs         `pipeline.deliver.salmon_pairs` (the live release's two-region chains over the current typed
+                      DFO feed: the Python's answer for two regions' openings, T668)
+                                                                    -> private/feeds/dfo/pairs.json
     roster            source bc_hydrometric_stations.json, slim [{station, realtime}] -> private/feeds/gauges/roster.json
     inseason-matches  `pipeline.regs.inseason.publish` (inseason/notice_waters.json, already resolved to FWA ranges
                       where the atlas is — T520: no atlas here)     -> feeds/inseason/matches.json (PUBLIC)
@@ -56,6 +59,18 @@ def _wording(out: Path) -> list[str]:
     return [key]
 
 
+def _dfo_pairs(out: Path) -> list[str]:
+    """(T668 option 2, owner 2026-11-12) the straddler pair table for the live release (`salmon_pairs.table`); a
+    release, a typed feed or a curated place missing STOPS this input (said, the others still stage)."""
+    from pipeline.deliver import salmon_pairs
+    from pipeline.regs.inseason.resolve import release_dir
+    key = "private/feeds/dfo/pairs.json"
+    t = salmon_pairs.table(release_dir())
+    _put(out, key).write_text(json.dumps(t, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n",
+                              encoding="utf-8")
+    return [key]
+
+
 def _roster(out: Path) -> list[str]:
     """The station roster cut to what the Worker reads — the bytes `jq -c '[.[] | {station, realtime}]'` wrote."""
     rows = json.loads((SOURCE / "bc_hydrometric_stations.json").read_text(encoding="utf-8"))
@@ -93,6 +108,7 @@ class Input:
 INPUTS = (
     Input("dfo-entries", _dfo_entries),
     Input("wording", _wording),
+    Input("dfo-pairs", _dfo_pairs),
     Input("roster", _roster),
     Input("inseason-matches", _inseason, INSEASON_CACHE),
 )

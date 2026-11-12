@@ -33,6 +33,9 @@ COHO_SUMMER = [{"rule_id": "co", "type": "retention_limit", "verbatim": "2 coho 
                 "when": {"dates": [{"from_month": 7, "from_day": 1, "to_month": 8, "to_day": 31}]}, "take": 2}]
 GEAR = [{"rule_id": "g", "type": "gear_restriction", "verbatim": "Barbless hooks only", "when": ALL_YEAR}]
 NO_BAIT = [{"rule_id": "nb", "type": "gear_restriction", "verbatim": "No bait", "when": ALL_YEAR}]
+#: (T668 option 2) the feed's Region 6 opens coho in summer at 4 a day beside Region 7's 2: two READABLE openings
+COHO_SUMMER_4 = [{"rule_id": "co4", "type": "retention_limit", "verbatim": "4 coho per day", "species": ["CO"],
+                  "when": {"dates": [{"from_month": 7, "from_day": 1, "to_month": 8, "to_day": 31}]}, "take": 4}]
 
 
 def _place(loc, kind, section, water=None, area=None):
@@ -145,26 +148,51 @@ def golden() -> dict:
     """The feed: Region 7's default opens chinook too — from Apr 10 as E does (both open alike: the first region, 6,
     answers), before that in words no number reads (`u`: both regions' words together, a merged verdict, `a` = -2) —
     and adds a gear line (both regions' lines on the straddler); it carries `6:late`, which the release states it does
-    not show. NOT HERE: two readable openings of different limits — `live.compose` ranks them by the Z4 ladder, which
-    the app does not port (T668: the app merges any two differing openings into both regions' words)."""
+    not show. (T668 option 2, owner 2026-11-12) TWO READABLE OPENINGS OF DIFFERENT LIMITS: Region 6 E opens coho at 4 a
+    day in summer beside Region 7's 2 — `live.compose` ranks them by the Z4 ladder (Region 7's 2), and the feed carries
+    the pair table (`deliver.salmon_pairs.pairs`) the app looks that answer up in."""
+    from pipeline.deliver import salmon_pairs
     import copy
     locs, rules, placed, reg, waters = _world()
     payload, secs = _build(locs, rules, placed, reg, None, waters)
-    fl, fv, fg = _feed_cals({"6:e": OPEN + GEAR, "7:default": OPEN + COHO_SUMMER + NO_BAIT, "6:sustut": OPEN,
-                             "6:late": OPEN})
+    feed_rules = {"6:e": OPEN + GEAR + COHO_SUMMER_4, "7:default": OPEN + COHO_SUMMER + NO_BAIT, "6:sustut": OPEN,
+                  "6:late": OPEN}
+    fl, fv, fg = _feed_cals(feed_rules)
+    pairs, missing = salmon_pairs.pairs(payload["chains"], feed_rules)
+    assert not missing and any(not r.get("u") for _, _, r in pairs), "the fixture must exercise a one-region answer"
     fv.append({"s": "open", "t": "2 chinook per day, see the notice", "u": 1})
     ch = fl["7:default"]["sp"][S.SPECIES.index("CH")]
     fl["7:default"]["sp"][S.SPECIES.index("CH")] = [0, len(fv) - 1, 100, ch[1]]
     region = lambda slug: {"name": f"Region {slug}", "url": S.PAGE_URL.format(slug=slug), "asof": "2026-10-20",  # noqa
                            "checked": AT, "stale": False, "held": None, "failures": 0}
     feed = {"format": L.FORMAT, "at": AT, "verdicts": fv, "gears": fg, "locs": fl, "unplaced": 0,
-            "regions": {"6": region("6"), "7": region("7")}}
+            "regions": {"6": region("6"), "7": region("7")},
+            "pairs": {"format": salmon_pairs.FORMAT, "release": "golden", "pairs": pairs}}
     feed = copy.deepcopy(feed)
     verdicts, gears = copy.deepcopy(fv), copy.deepcopy(fg)
     expect = _expect(payload, fl, verdicts, gears)
     assert len(verdicts) > len(fv) and len(gears) > len(fg), "the fixture must exercise a merged verdict and gear list"
     return {"release": payload, "sections": secs, "feed": feed, "expect": expect, "verdicts": verdicts,
             "gears": gears}
+
+
+def test_t668_option2_the_pair_table_is_the_pythons_answer_for_every_differing_opening():
+    """(T668 option 2, owner 2026-11-12) `salmon_pairs.pairs`: on a two-region chain, every two OPENINGS that differ ->
+    `stricter_opening` in fold order — one region's when its caps bind alone (Region 7's 2 coho under Region 6's 4,
+    never the looser), both regions' words otherwise; a one-region chain holds no pair; a place no curated file holds is
+    named, never skipped."""
+    from pipeline.deliver import salmon_pairs
+    locs, rules, placed, reg, waters = _world()
+    payload, _ = _build(locs, rules, placed, reg, None, waters)
+    feed_rules = {"6:e": OPEN + GEAR + COHO_SUMMER_4, "7:default": OPEN + COHO_SUMMER + NO_BAIT, "6:sustut": OPEN,
+                  "6:late": OPEN}
+    pairs, missing = salmon_pairs.pairs(payload["chains"], feed_rules)
+    assert missing == []
+    assert [(a["t"], b["t"], r["t"], r.get("u")) for a, b, r in pairs] == [
+        ("4 coho per day (Jul 1–Aug 31)", "2 coho per day (Jul 1–Aug 31)", "2 coho per day (Jul 1–Aug 31)", None)]
+    assert all(r == S.stricter_opening(a, b) for a, b, r in pairs)
+    _, gone = salmon_pairs.pairs(payload["chains"], {k: v for k, v in feed_rules.items() if k != "7:default"})
+    assert gone == ["7:default"]
 
 
 def golden_text() -> str:

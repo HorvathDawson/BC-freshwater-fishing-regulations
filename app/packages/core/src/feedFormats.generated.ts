@@ -7,6 +7,8 @@
 export const FEED_FORMATS = {
   /** feeds/dfo/index.json: the feeds worker (dfo/live.ts) and regs/dfo_salmon/live.py write, the app reads (core salmonFeed.ts) */
   dfoFeed: "dfo-feed/3",
+  /** R2 private/feeds/dfo/pairs.json (T668): deliver/salmon_pairs.py writes through sync_inputs, the feeds worker reads it and carries it into feeds/dfo/index.json `pairs`, the app reads it there (core salmonFeed.ts) */
+  dfoPairs: "dfo-pairs/1",
   /** feeds/inseason/index.json: the feeds worker writes (inseason.ts), the app reads (core inseason.ts) */
   inseasonFeed: "inseason-feed/1",
   /** feeds/inseason/matches.json: regs/inseason/publish.py writes, the feeds worker and the app read (core inseason.ts) */

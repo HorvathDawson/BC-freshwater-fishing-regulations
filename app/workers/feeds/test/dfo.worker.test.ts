@@ -6,6 +6,8 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { runDfo } from "../src/dfo";
 import { fetchRegion } from "../src/dfo/fetch";
+import { readPairs } from "../src/dfo/live";
+import { FEED_FORMATS } from "../../../packages/core/src/feedFormats.generated";
 import { MemStore, privStore, REPO } from "./dfo.scenario";
 
 const FIX = join(REPO, "app/workers/feeds/test/fixtures/dfo");
@@ -343,25 +345,45 @@ describe("a curated place that leaves DFO's page (T549 item 4)", () => {
   });
 });
 
-// T668 follow-up, THE KNOWN DIFFERENCE (pinned, not fixed): on a section in two DFO regions the RELEASE keeps the stricter
-// of two readable openings by the freshwater Z4 / Z4a ladder (pipeline `deliver.salmon.stricter_opening`: `ladder.stricter`
-// + `rules.statement`), while under a LIVE feed the app shows both regions' words with no number (never looser; core
-// salmonFeed.ts, salmonStraddle.test.ts "under the feed"). Closing it means the feed carrying the composed straddler
-// answer. The worker cannot make it without a TypeScript copy of that ladder (owner 2026-11-02: the cascade is resolved
-// in Python; the worker and the app only read results), and it does not know the release's chains (which places share a
-// section is the release's `chains[].s`). So the feed stays what this test says: one answer per DFO PLACE, nothing
-// composed across places. When Python composes the straddlers for the feed, this test changes with it.
-describe("(T668) the feed answers per place; it composes nothing across places or regions", () => {
-  it("index.json is places and their own answers: no chains, no region groups", async () => {
+// T668 option 2 (owner 2026-11-12: "If python pair table is safe that sounds good we want these to always resolve on their
+// own"): on a section in two DFO regions the release keeps the stricter of two readable openings by the freshwater Z4 / Z4a
+// ladder (pipeline `deliver.salmon.stricter_opening`). The worker still composes nothing across places (no TypeScript copy
+// of that ladder: the cascade is resolved in Python; it does not know the release's chains) — it CARRIES the Python's pair
+// table (priv pairs.json, `pipeline.deliver.salmon_pairs` via sync_inputs) into the feed as `pairs`, and the app looks the
+// answer up there (core salmonFeed.ts `strictestIx`). A pair the table does not hold stays both regions' words.
+describe("(T668) the feed answers per place and carries the Python's straddler pair table; it composes nothing", () => {
+  const run = async (priv: ReturnType<typeof privStore>, logs: string[] = []) => {
     const feed = new MemStore();
     const slugs = ["6", "7"];                                              // the straddler pair of the release (Skeena / Fraser side)
-    await runDfo({ fetch: async () => new Response(""), feed, priv: privStore(), now: "2026-10-28T12:00:00Z", regions: slugs,
+    await runDfo({ fetch: async () => new Response(""), feed, priv, now: "2026-10-28T12:00:00Z", regions: slugs, log: (x) => logs.push(x),
                    entries: async (s) => readFileSync(join(FIX, `entries/region-${s}.json`), "utf-8"), fetcher: async (s) => [page(s), null] });
-    const ix = JSON.parse(feed.m.get("index.json")!);
+    return JSON.parse(feed.m.get("index.json")!);
+  };
+  const TABLE = { format: FEED_FORMATS.dfoPairs, release: "r-x",
+                  pairs: [[{ s: "open", t: "4 per day" }, { s: "open", t: "2 per day" }, { s: "open", t: "2 per day" }]] };
+
+  it("index.json is places and their own answers: no chains, no region groups; no pairs.json, no pairs (said in the log)", async () => {
+    const logs: string[] = [];
+    const ix = await run(privStore(), logs);
     expect(Object.keys(ix).sort()).toEqual(["at", "format", "gears", "locs", "regions", "unplaced", "verdicts"]);
+    expect(logs.some((l) => l.startsWith("dfo: no pairs.json"))).toBe(true);
     const locKeys = new Set(Object.values<Record<string, unknown>>(ix.locs).flatMap((l) => Object.keys(l)));
     expect([...locKeys].sort().filter((k) => !["g", "r", "sp", "x"].includes(k))).toEqual([]);
     // every place is ONE region's
-    expect(new Set(Object.values<{ r: string }>(ix.locs).map((l) => l.r))).toEqual(new Set(slugs));
+    expect(new Set(Object.values<{ r: string }>(ix.locs).map((l) => l.r))).toEqual(new Set(["6", "7"]));
+  });
+
+  it("the pair table rides into the feed as it is", async () => {
+    const priv = privStore();
+    await priv.put("pairs.json", JSON.stringify(TABLE));
+    expect((await run(priv)).pairs).toEqual(TABLE);
+  });
+
+  it("a pairs.json that is not a dfo-pairs table stops the run (the last good feed stands)", async () => {
+    const priv = privStore();
+    await priv.put("pairs.json", JSON.stringify({ ...TABLE, format: "dfo-pairs/0" }));
+    await expect(run(priv)).rejects.toThrow(`pairs.json is not a ${FEED_FORMATS.dfoPairs} table`);
+    expect(() => readPairs(JSON.stringify({ ...TABLE, pairs: [[{ s: "closed", t: "x" }, TABLE.pairs[0]![1], TABLE.pairs[0]![2]]] }), () => {}))
+      .toThrow("pairs.json is not");
   });
 });

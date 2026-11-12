@@ -62,6 +62,7 @@ from __future__ import annotations
 import json
 import re
 import struct
+import sys
 from collections import defaultdict
 from pathlib import Path
 from typing import Callable, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
@@ -247,8 +248,10 @@ def verdict_on(chain: Sequence[Sequence[dict]], sp: str, md: int) -> Optional[di
                 subs[r["within"]].append(r)
         checks = [r for r in rules if r.get("check") and not r.get("within") and not _is_gear(r) and _reads_for(r, sp)]
         if checks:
-            from pipeline.regs.dfo_salmon.typed import DATES_UNPARSED
-            out = {"s": "check", "t": f"{DATES_UNPARSED[0].upper()}{DATES_UNPARSED[1:]}: {_text(checks, subs)}"}
+            # each rule's own `check` leads its words: a date cell that did not read (T676 `DATES_UNPARSED`) or a row
+            # that did not type (T679 D6 `feed.ROW_UNREAD`)
+            why = "; ".join(dict.fromkeys(r["check"] for r in checks))
+            out = {"s": "check", "t": f"{why[0].upper()}{why[1:]}: {_text(checks, subs)}"}
             n = _notice(checks)
             if n:
                 out["n"] = n
@@ -648,6 +651,15 @@ def header_answers(notes: Sequence[dict]) -> dict:
             "sizes": sizes}
 
 
+def location_rules(loc, by_fp: Mapping[str, Sequence[dict]], closure: Sequence[dict]) -> List[dict]:
+    """A curated place's rules from the typed feed (`by_fp`: fingerprint -> rules), as the release reads them: T349 /
+    T358 a quota pooled across areas (`quota.mark_shared`); T320 the region header's closure (`quota.header_closure`)
+    wins over the table's rows. `build` and the straddler pair table (`salmon_pairs`) read places so."""
+    from pipeline.regs.dfo_salmon import quota as Q
+    rules = Q.mark_shared([r for fp in loc.fingerprints for r in by_fp.get(fp, [])], Q.pool_of(loc))
+    return list(closure) if closure and rules else rules
+
+
 def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: Iterable[dict],
           sid_of: Mapping[str, int], item_sections: Optional[Mapping[str, Iterable[int]]] = None,
           headers: Optional[Mapping[str, Sequence[dict]]] = None,
@@ -667,9 +679,10 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
 
     PARTIAL COVERAGE (owner 2026-10-28): `item_sections` (item id → its sids). Every section of a water that has a DFO
     place not drawn yet (`unmapped`) carries those places in its chain (`u`); while one of them has rules (the release:
-    on today's page; the feed: listed) the map paints the section `check` and the card says parts of the water are not
-    mapped — we cannot tell which stretch the place's rules cover, so the whole water (Kitimat 2026-10-28: the area-6
-    coho non-retention answered for a river whose own coho opening sits on an undrawn stretch)."""
+    on today's page; the feed: listed) the card says parts of the water are not mapped — we cannot tell which stretch
+    the place's rules cover, so the whole water (Kitimat 2026-10-28). (T372, owner 2026-11-04) the map paints the DRAWN
+    answer, never `check` for the undrawn place; (T679 D2, owner 2026-11-12) the map and the card's bar both give that
+    species verdict — `m` is the one source (core `salmonDayStatus` reads it)."""
     # THE REGION HEADER: `headers` slug -> the page's notes (`header.parse_header`), resolved to items here
     from pipeline.regs.dfo_salmon import header as H
     from pipeline.regs.dfo_salmon import quota as Q
@@ -692,14 +705,17 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
         if sc:
             scopes[slug] = sc
         closure = Q.header_closure(notes, slug)
+        # (T679 D6) the locators whose rows did not type: each reads "check" (`feed.unread_rule`) — said here, by place
+        errs = {l["fingerprint"]: l["error"] for l in feed.get("locators") or [] if l.get("error")}
         for loc in ef.locations:
+            for fp in loc.fingerprints:
+                if fp in errs:
+                    print(f"salmon: DFO Region {slug}: {loc.location_id} reads 'check DFO' — its row did not type "
+                          f"({errs[fp]})", file=sys.stderr)
             # EVERY location, ruled today or not (T211 part 2): a dormant one says nothing today (no rules, so it never
             # answers in its chain), but it is IN its chains, so the live feed (`regs.dfo_salmon.live`) can paint it
             # the day DFO lists it again — without a rebuild.
-            rules_of[loc.location_id] = Q.mark_shared([r for fp in loc.fingerprints for r in by_fp.get(fp, [])],
-                                                      Q.pool_of(loc))     # T349 / T358: a quota pooled across areas
-            if closure and rules_of[loc.location_id]:
-                rules_of[loc.location_id] = closure         # T320: the header's closure wins over the table's rows
+            rules_of[loc.location_id] = location_rules(loc, by_fp, closure)
             # T321: the rows the card shows in DFO's words (new wording, an unread number, a note) — not under a closure
             ws = [] if closure else [{k: w[k] for k in ("k", "sp", "d", "t")}
                                      for fp in loc.fingerprints for w in words_fp.get(fp, [])]

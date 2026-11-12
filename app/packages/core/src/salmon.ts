@@ -883,7 +883,7 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
   // (D5 extension, owner 2026-11-12) only catch and release there: "catch and release in part"; "check" there: "check
   // DFO for part". More than one kind on the page-day: open, then catch and release, then check.
   const partKind = headlineStatus !== "closed" ? null
-    : (["open", "release", "check"] as const).find((k) => undrawn.some((c) => salmonStatusFromSpecies(f, c, day) === k)) ?? null;
+    : (["open", "release", "check"] as const).find((k) => undrawn.some((c) => salmonDayStatus(f, c, day) === k)) ?? null;
   const part = partKind === "open" ? { headline: SALMON_WORDS.closedOpenInPart, calm: SALMON_WORDS.openInPartCalm }
     : partKind === "release" ? { headline: SALMON_WORDS.closedReleaseInPart, calm: SALMON_WORDS.releaseInPartCalm }
       : partKind === "check" ? { headline: SALMON_WORDS.closedCheckInPart, calm: SALMON_WORDS.checkInPartCalm } : null;
@@ -926,7 +926,7 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
     year: regionClosed ? { bars: [] } : salmonYear(f, chains, day),
     // one closed-all-year statement: the region's closure, or every place of the page closed every day, nothing undrawn
     closedOnly: regionClosed || (!undrawn.some((c) => speaks(f, c))
-      && chains.every((c) => runsOf((i) => salmonStatusFromSpecies(f, c, i)).every((r) => r.status === "closed"))),
+      && chains.every((c) => runsOf((i) => salmonDayStatus(f, c, i)).every((r) => r.status === "closed"))),
   };
 }
 
@@ -935,18 +935,17 @@ const fileDay = (i: number) => (i < 59 ? i : i + 1);
 const BOOK_YEAR_DAYS = 365;
 
 /**
- * What a chain's day paints, from its five species' verdicts — the pipeline's `deliver.salmon.map_status` (open if any
- * may be kept, else release if any may be fished, else check, else closed). Read from the species, not the chain's map
- * runs: those say "check" every day on a water with a DFO place not drawn (partial coverage), and a bar names its place.
- * Pinned to the pipeline's map runs on every chain without partial coverage (`salmon.test.ts`).
+ * What a chain's day is, for the card's bar, headline and in-part caveat: THE MAP'S STATUS (`salmonChainStatus`, the
+ * chain's `m` runs — the pipeline's `deliver.salmon.map_status` over the day's five species verdicts, or the live
+ * feed's `composeChain`). (T679 D2, owner 2026-11-12) on a water with a DFO place not drawn yet (partial coverage) the
+ * map and the bar BOTH give the species verdict: one source, read here, never re-derived from the species.
+ * A chain whose map has no answer that day is an error (every chain has five species; the unlisted water is closed).
  */
-export function salmonStatusFromSpecies(f: SalmonFacts, chain: number, day: number): SalmonMapStatus {
-  const P = f.payload, c = P.chains[chain];
+export function salmonDayStatus(f: SalmonFacts, chain: number, day: number): SalmonMapStatus {
   // (T549 item 11) one answer for a missing chain, as `salmonTimelineKey`: said, never a quiet "closed"
-  if (!c) throw new SalmonError(`salmon: chain ${chain} is not in the salmon file`);
-  const ss = c.sp.map((runs) => P.verdicts[at(runs, day)]!.s);
-  for (const st of ["open", "release", "check"] as const) if (ss.includes(st)) return st;
-  return "closed";
+  const s = salmonChainStatus(f, chain, day);
+  if (!s) throw new SalmonError(`salmon: chain ${chain} has no map status on day ${day}`);
+  return s;
 }
 
 /** A chain DFO actually speaks for: some species, some day, has a verdict other than "not opened by DFO". */
@@ -977,7 +976,7 @@ function salmonYear(f: SalmonFacts, chains: readonly number[], day: number): Sal
   if (!chains.some((c) => speaks(f, c))) return { bars: [] };
   // the page's own places: one status a day, `varies` where its sections differ
   const own = (i: number): SalmonBarStatus => {
-    const ss = new Set(chains.map((c) => salmonStatusFromSpecies(f, c, i)));
+    const ss = new Set(chains.map((c) => salmonDayStatus(f, c, i)));
     return ss.size === 1 ? [...ss][0]! : "varies";
   };
   const st = own(day);

@@ -37,7 +37,7 @@ import logging
 import sys
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 from pipeline.common.curated import GENERATED
 from pipeline.regs.dfo_salmon.fetch import ALL_SLUGS, PAGES, normalize_slug
@@ -50,23 +50,67 @@ RULES_DIR = Path(GENERATED.regs.dfo_salmon) / "rules"
 FEED_DIR = Path(GENERATED.regs.dfo_salmon) / "typed"
 
 
-def build(scraped: dict) -> dict:
-    """One region's scraped rows -> the typed feed, grouped by the locator fingerprint."""
+#: (T679 D6, owner 2026-11-12) the `check` a place reads when its rows did not type (`unread_rule`); the worker's
+#: `ROW_HELD_VERDICT` says the same of a place it holds with no last answers
+ROW_UNREAD = "DFO's row for this place could not be read — check DFO"
+
+
+def unread_rule(fp: str, recs: List[dict], why: str) -> dict:
+    """(T679 D6) THE ONE RULE OF A LOCATOR WHOSE ROWS DID NOT TYPE: an advisory naming no species (it reads for every
+    salmon) carrying `check` (`ROW_UNREAD`), so every species reads "check DFO" on every day at the place
+    (`deliver.salmon.verdict_on`) — never a dropped row, and never a wider place's answer standing in for it. Its words
+    are the rows' limits; its season is unread, so `when.unparsed` holds the date cells as printed (the model's rule
+    for a `check`); `review_reason` keeps why it did not type."""
+    from pipeline.regs.parsing.catalogue import CatalogueRule, RuleType
+    from pipeline.regs.parsing.catalogue_parts.dates import When
+    limits = [str(r.get("limits_gear") or r.get("species") or "").strip() for r in recs]
+    dates = [str(r.get("dates") or "").strip() for r in recs]
+    rule = CatalogueRule(rule_id=f"{fp[:8]}.r0", type=RuleType.advisory,
+                         verbatim=" / ".join(x for x in limits if x) or "row",
+                         when=When(unparsed=[d for d in dates if d] or ["(no dates printed)"]),
+                         check=ROW_UNREAD, review_reason=f"{ROW_UNREAD}: {why}")
+    return rule.model_dump(mode="json", exclude_defaults=True, by_alias=True)
+
+
+def type_rows(fp: str, recs: List[dict], robust: bool = True) -> Tuple[List[dict], Optional[str]]:
+    """One locator's scraped rows -> (its typed rules, why they did not type or None).
+
+    (T679 D6, owner 2026-11-12: "Python reads DFO rows tolerantly too") ROBUST, as the feeds worker (`feed.ts` `build`):
+    a row the catalogue refuses (or any error typing it) no longer raises out of the page and stops the release. The
+    locator carries `error` ("<Type>: <first 200 characters>") and the one `unread_rule`, so the place reads "check" and
+    the rest of the region stands; `build` logs it and `deliver.salmon` names it. `robust=False` raises, as before: the
+    Mac's live run (`live.type_page`) keeps holding the region, the parity spec of the worker's `pythonParity` mode."""
+    rows = [row_text(r) for r in recs]
+    try:
+        rules = [r for i, rec in enumerate(recs) for r in to_rules(rec, fp[:8], i)]
+        return [r.model_dump(mode="json", exclude_defaults=True, by_alias=True) for r in rules], None
+    except Exception as e:                              # noqa: BLE001 — said: `error` on the locator, the place reads check
+        if not robust:
+            raise
+        why = f"{type(e).__name__}: {str(e)[:200]}"
+        return [unread_rule(fp, recs, why)], why
+
+
+def build(scraped: dict, robust: bool = True) -> dict:
+    """One region's scraped rows -> the typed feed, grouped by the locator fingerprint. `robust` (default): a locator
+    whose rows do not type reads "check" (`type_rows`) instead of stopping the page."""
     by_fp: Dict[str, List[dict]] = defaultdict(list)
     for rec in scraped.get("rules", []):
         by_fp[rec["fingerprint"]].append(rec)
 
     locators = []
     for fp, recs in by_fp.items():
-        rules = []
-        for i, rec in enumerate(recs):
-            rules.extend(to_rules(rec, fp[:8], i))
+        rules, error = type_rows(fp, recs, robust)
+        if error:
+            logger.warning("DFO region %s: the rows of %s did not type (%s): the place reads 'check DFO'",
+                           scraped.get("region"), fp, error)
         locators.append({
             "fingerprint": fp,
             # The rows this locator published, verbatim. A rule's `verbatim` is a span of one of
             # these, so whoever joins the feed can check the quote without the page.
             "rows": [row_text(r) for r in recs],
-            "rules": [r.model_dump(mode="json", exclude_defaults=True, by_alias=True) for r in rules],
+            "rules": rules,
+            **({"error": error} if error else {}),
             # T321: the rows the card shows in DFO's words — new wording (unparsed), an unread number, or a note
             **({"words": words} if (words := [w for w in map(row_words, recs) if w]) else {}),
         })

@@ -8,6 +8,8 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { build } from "../src/dfo/feed";
+import { ROW_HELD_VERDICT } from "../src/dfo/live";
 import { markShared, poolOf, words, type QuotaTier } from "../src/dfo/quota";
 import { DAYS, Interner, locationCalendar, type Verdict } from "../src/dfo/salmon";
 import { GEAR_PERMISSION, TBD, toRules, type TypedRule } from "../src/dfo/typed";
@@ -26,6 +28,8 @@ interface Case {
   place?: { specific_area: string; within: string[] };
   /** (T671 5B) [species, MMDD, the day's quota line — null where nothing opens] */
   quota?: [string, number, string | null][];
+  /** (T679 D6) rows that do not type: the error's type name and what the place reads in robust mode */
+  robust?: { error: string; own: [string, number, string | null][] };
 }
 const CASES: Case[] = JSON.parse(readFileSync(join(__dirname, "fixtures/dfo/dfo-rows.json"), "utf-8")).cases;
 const REASONS = { tbd: TBD, gear_permission: GEAR_PERMISSION };
@@ -53,6 +57,17 @@ it("the shared file was read", () => {
 
 describe("(T671 D2, D1; T676) the shared hand rows: typed and answered as the file says", () => {
     it.each(CASES.map((c) => [c.name, c] as const))("%s: typed and answered as the shared file says", (_name, c) => {
+      if (c.robust) {
+        // (T679 D6) the robust reader: the locator carries `error` and no rules (never a refused page), and live.ts
+        // holds the place — with no last answers it reads ROW_HELD_VERDICT, "check", every species, every day
+        const recs = c.rows.map(([species, dates, limits_gear], order) =>
+          ({ fingerprint: "f".repeat(16), species, dates, limits_gear, fishery_notices: [], source: "", order }));
+        const [loc] = build({ region: "2", date_modified: null, preamble: [], rules: recs }, true, REG).locators;
+        expect([loc!.rules, loc!.error?.split(":")[0]]).toEqual([[], c.robust.error]);
+        expect(c.robust.own.map(([sp, md]) => [sp, md, ROW_HELD_VERDICT.s])).toEqual(c.robust.own);
+        expect(() => build({ region: "2", date_modified: null, preamble: [], rules: recs }, false, REG)).toThrow();
+        return;
+      }
       (c.typed ?? []).forEach((want, i) => {
         const [species, dates, limits_gear] = c.rows[i]!;
         const rule = toRules({ species, dates, limits_gear }, "t671", i, REG)[0]!;

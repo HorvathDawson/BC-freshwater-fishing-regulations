@@ -63,7 +63,13 @@ export interface SalmonFeed {
   readonly unplaced?: number;
   /** (T521) those places, read from `unplaced.json` beside the index (`parseDfoUnplaced`); absent: not read */
   readonly unplacedRows?: readonly SalmonUnplacedPlace[];
+  /** (T668 option 2, owner 2026-11-12) THE STRADDLER PAIR TABLE (`pipeline/deliver/salmon_pairs.py`, carried by the
+   *  worker): for two regions' differing openings on a two-region chain, [a, b, the Python's answer] in fold order.
+   *  Absent: no table (a pair not held keeps both regions' words). */
+  readonly pairs?: { readonly format: typeof SALMON_PAIRS_FORMAT; readonly release: string;
+                     readonly pairs: readonly (readonly [Verdict, Verdict, Verdict])[] };
 }
+export const SALMON_PAIRS_FORMAT = FEED_FORMATS.dfoPairs;   // (T556) generated: pipeline/common/feed_formats.py
 
 /**
  * (T521) The feed's `unplaced.json` as the app reads it: every row with its region, its water's app items (`items`, the
@@ -95,6 +101,13 @@ export function parseSalmonFeed(x: unknown): SalmonFeed | null {
   for (const r of Object.values(f.regions))
     if (r.holds !== undefined && (!Array.isArray(r.holds)
         || !r.holds.every((h) => h && typeof h.location_id === "string" && (h.kept === "carried" || h.kept === "check")))) return null;
+  // (T668 option 2) the pair table, when it carries one, is whole: a dfo-pairs table of [opening, opening, answer] verdicts
+  if (f.pairs !== undefined) {
+    const p = f.pairs as Partial<NonNullable<SalmonFeed["pairs"]>> | null;
+    const verdict = (v: unknown) => !!v && typeof v === "object" && typeof (v as Verdict).s === "string" && typeof (v as Verdict).t === "string";
+    if (!p || p.format !== SALMON_PAIRS_FORMAT || typeof p.release !== "string" || !Array.isArray(p.pairs)
+        || !p.pairs.every((x) => Array.isArray(x) && x.length === 3 && x.every(verdict) && x[0]!.s === "open" && x[1]!.s === "open")) return null;
+  }
   for (const l of Object.values(f.locs)) {
     if (!l || !Array.isArray(l.sp) || l.sp.length !== 5 || !Array.isArray(l.g)) return null;
     for (const runs of [...l.sp, l.g]) for (let k = 1; k < runs.length; k += 2) {
@@ -131,7 +144,14 @@ function mapStatus(ss: readonly string[]): SalmonMapStatus {
 
 /** (T668) the verdict and gear tables a two-region chain's composition may add to (a merged verdict, both regions'
  *  gear lines): the feed's, copied per `withSalmonFeed` call. `live.compose`'s `intern` / `gear_intern`. */
-export interface SalmonFeedTables { readonly verdicts: Verdict[]; readonly gears: string[][] }
+export interface SalmonFeedTables {
+  readonly verdicts: Verdict[]; readonly gears: string[][];
+  /** (T668 option 2) the feed's pair table by `pairKey(a, b)`: the Python's answer for two differing openings */
+  readonly pairs?: ReadonlyMap<string, Verdict>;
+}
+
+/** (T668 option 2) a pair of openings as the table keys it: both verdicts' whole content, in fold order */
+const pairKey = (a: Verdict, b: Verdict): string => `${stable(a)}\n${stable(b)}`;
 
 /** (T668 D2/D3, RULINGS Z4a) how strict a verdict is, most strict first — the pipeline's `deliver.salmon.STRICT` */
 const STRICT = ["closed", "release", "check", "open"] as const;
@@ -150,11 +170,11 @@ function intern<T>(items: T[], x: T): number {
 
 /**
  * (T668) The answers of a two-region chain's groups for one species and day, as one: the most strict status speaks
- * (closed > release > check > open, the first region on a tie). TWO DIFFERENT OPENINGS: both regions' words, no number
- * (`u`) — the pipeline's `stricter_opening` shape. The pipeline ranks two READABLE openings by the freshwater Z4 ladder
- * first and keeps one; the app does not port that ladder (the cascade is resolved in Python), so under a live feed such
- * a day shows both regions' words where the release shows the stricter one — never looser. The live feed's own
- * composition of straddlers (the worker) is the T668 follow-up that removes the difference.
+ * (closed > release > check > open, the first region on a tie). TWO DIFFERENT OPENINGS: the Python's answer from the
+ * feed's pair table (T668 option 2, owner 2026-11-12: `deliver.salmon.stricter_opening` — one region's opening by the
+ * freshwater Z4 ladder, or both regions' words), looked up by the two verdicts' whole content; a pair the table does not
+ * hold (a limit changed since the last sync, or no table) shows both regions' words, no number (`u`) — never looser.
+ * The app holds no copy of the ladder (the cascade is resolved in Python).
  */
 function strictestIx(ixs: readonly number[], t: SalmonFeedTables | undefined, V: readonly Verdict[]): number {
   let best = ixs[0]!;
@@ -163,6 +183,8 @@ function strictestIx(ixs: readonly number[], t: SalmonFeedTables | undefined, V:
     if (STRICT.indexOf(b.s) < STRICT.indexOf(a.s)) best = j;
     else if (a.s === "open" && b.s === "open" && stable(a) !== stable(b)) {
       if (!t) throw new Error("salmon feed: two regions' openings need a merged verdict and no tables were given");
+      const said = t.pairs?.get(pairKey(a, b));
+      if (said) { best = intern(t.verdicts, said); continue; }
       const n = [...new Set([a, b].flatMap((v) => (v.n ? v.n.split(", ") : [])).filter(Boolean))].sort();
       best = intern(t.verdicts, { s: "open", t: [...new Set([a.t, b.t].filter(Boolean))].join("; "), u: 1, ...(n.length ? { n: n.join(", ") } : {}) } as Verdict);
     }
@@ -280,7 +302,8 @@ export function withSalmonFeed(f: SalmonFacts, feed: SalmonFeed): SalmonFacts {
     return [slug, { ...rest, asof: fr.asof ?? r.asof, ...head }];
   }));
   // (T668) a two-region chain may add a merged verdict or gear list: to copies of the feed's tables, never the feed's
-  const tables: SalmonFeedTables = { verdicts: [...feed.verdicts], gears: feed.gears.map((g) => [...g]) };
+  const tables: SalmonFeedTables = { verdicts: [...feed.verdicts], gears: feed.gears.map((g) => [...g]),
+    ...(feed.pairs ? { pairs: new Map(feed.pairs.pairs.map(([a, b, r]) => [pairKey(a, b), r] as const)) } : {}) };
   // the release's own closure (`c`) never outlives its verdicts: the feed's composition says whether one holds;
   // (T668 fix 4) `a` re-read from the feed where the release names places (absent before fix 4: none, as it was)
   const chains = P.chains.map(({ c: _c, n, a, ...c }) =>

@@ -3,7 +3,7 @@
 import { dumps } from "./pyjson";
 import { speciesTree, type QuotaTier } from "./quota";
 import type { TypedRule } from "./typed";
-import { DATES_UNPARSED, GEAR_PERMISSION, MONTHS, monthDay, OTHER_FISH, YEAR } from "./typed";
+import { GEAR_PERMISSION, MONTHS, monthDay, OTHER_FISH, YEAR } from "./typed";
 
 export const SPECIES = ["CH", "CO", "SK", "PK", "CM"] as const;
 const ALL_SALMON = "SA";
@@ -193,7 +193,9 @@ function verdictOn(chain: Loc[], k: number, md: number): Verdict | null {
       const key = "unparsed:" + why.map((r) => loc.rules.indexOf(r)).join(",");
       let out = loc.verdicts.get(key);
       if (!out) {
-        out = { s: "check", t: `${DATES_UNPARSED[0]!.toUpperCase()}${DATES_UNPARSED.slice(1)}: ${loc.text(why)}` };
+        // each rule's own `check` leads its words (salmon.verdict_on): T676 `DATES_UNPARSED`, or (T679 D6) a row that did not type
+        const said = [...new Set(why.map((r) => r.check as string))].join("; ");
+        out = { s: "check", t: `${said[0]!.toUpperCase()}${said.slice(1)}: ${loc.text(why)}` };
         const n = notice(why);
         if (n) out.n = n;
         loc.verdicts.set(key, out);

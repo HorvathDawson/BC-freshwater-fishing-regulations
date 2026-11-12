@@ -59382,6 +59382,59 @@
     }
    ]
   },
+  "a row that does not type": {
+   "calendar": {
+    "g": [
+     0,
+     -1
+    ],
+    "gears": [],
+    "sp": [
+     [
+      0,
+      0
+     ],
+     [
+      0,
+      0
+     ],
+     [
+      0,
+      0
+     ],
+     [
+      0,
+      0
+     ],
+     [
+      0,
+      0
+     ]
+    ],
+    "verdicts": [
+     {
+      "s": "check",
+      "t": "DFO's row for this place could not be read — check DFO: 2 per day, fishing from 25:00 to 06:00 / 2 per day (as printed: Sep 1 to Oct 31; Sep 1 to Oct 31)"
+     }
+    ]
+   },
+   "error": "ValidationError",
+   "rules": [
+    {
+     "check": "DFO's row for this place could not be read — check DFO",
+     "review_reason": "DFO's row for this place could not be read — check DFO: ValidationError: 1 validation error for Clock\nat\n  String should match pattern '^([01]\\d|2[0-3]):[0-5]\\d$' [type=string_pattern_mismatch, input_value='25:00', input_type=str]\n    For further information visit https://",
+     "rule_id": "rowsrows.r0",
+     "type": "advisory",
+     "verbatim": "2 per day, fishing from 25:00 to 06:00 / 2 per day",
+     "when": {
+      "unparsed": [
+       "Sep 1 to Oct 31",
+       "Sep 1 to Oct 31"
+      ]
+     }
+    }
+   ]
+  },
   "all to be determined": {
    "calendar": {
     "g": [

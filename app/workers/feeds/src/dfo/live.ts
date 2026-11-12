@@ -332,6 +332,25 @@ async function readJson(store: Store, k: string, dflt: Json): Promise<Json> {
 
 const nowStamp = () => isoSeconds(new Date(), true);
 
+/** (T668 option 2) The pair table as the feed carries it: `{format, release, pairs: [[a, b, answer]]}`. */
+export interface PairTable { format: typeof PAIRS_FORMAT; release: string; pairs: [Json, Json, Json][] }
+export const PAIRS_FORMAT = FEED_FORMATS.dfoPairs;
+
+/** (T668 option 2) priv `pairs.json` read whole: null (logged) when there is none; anything but a pairs table (`PAIRS_FORMAT`) of
+ *  [opening, opening, answer] verdicts THROWS (the job fails and is reported, the last good feed stands). */
+export function readPairs(text: string | null, log: (s: string) => void): PairTable | null {
+  if (text === null) {
+    log("dfo: no pairs.json (python -m pipeline.deliver.sync_inputs stages it): the feed carries no straddler pairs; the app shows both regions' words for two openings");
+    return null;
+  }
+  const t = JSON.parse(text) as Partial<PairTable> | null;
+  const verdict = (v: Json) => !!v && typeof v === "object" && typeof v.s === "string" && typeof v.t === "string";
+  if (!t || t.format !== PAIRS_FORMAT || typeof t.release !== "string" || !Array.isArray(t.pairs)
+      || !t.pairs.every((p) => Array.isArray(p) && p.length === 3 && p[0]?.s === "open" && p[1]?.s === "open" && p.every(verdict)))
+    throw new Error(`dfo: pairs.json is not a ${PAIRS_FORMAT} table of [opening, opening, answer] verdicts`);
+  return { format: t.format, release: t.release, pairs: t.pairs };
+}
+
 /** One feed run (live.run). Writes feed index.json + unplaced.json, sends the due notices. */
 export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
   const log = deps.log ?? (() => {});
@@ -346,6 +365,11 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
   const wordingText = await deps.priv.get("wording.json");
   const wordingReg = readRegistry(wordingText);
   const wordingHash = contentHash(wordingText ?? "");
+  // (T668 option 2, owner 2026-11-12) THE STRADDLER PAIR TABLE (priv `pairs.json`, `pipeline.deliver.salmon_pairs` via
+  // sync_inputs): the Python's answer for two regions' differing openings on a two-region chain, carried into the feed
+  // as is (`pairs`) for the app to look up. Robust mode only (the Python's live run publishes none). Missing: logged, the
+  // feed carries none and the app keeps both regions' words (a pair not held); invalid THROWS, as the wording registry.
+  const pairs = robust ? readPairs(await deps.priv.get("pairs.json"), log) : null;
   let inputs: { rev?: string; wording?: string; regions?: Record<string, { page: string; entries: string }> } = {};
   if (aware)
     try {
@@ -588,7 +612,8 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
   // robust: number verdicts / gears canonically (first use over the sorted locations; NOT_LISTED stays 0) so a carried
   // region and a re-typed one publish the same bytes — what lets an unchanged feed skip its write
   const [vItems, gItems] = robust ? canonical(sortedLocs, verdicts.items, gears.items) : [verdicts.items, gears.items];
-  const index = { format: FORMAT, at, regions, verdicts: vItems, gears: gItems, locs: sortedLocs, unplaced: unplaced.length };
+  const index = { format: FORMAT, at, regions, verdicts: vItems, gears: gItems, locs: sortedLocs, unplaced: unplaced.length,
+                  ...(pairs ? { pairs } : {}) };
   const unplacedSorted = unplaced
     .map((u, i) => ({ u, i }))
     .sort((a, b) => cmpTuple([a.u.region, a.u.fingerprint], [b.u.region, b.u.fingerprint]) || a.i - b.i)

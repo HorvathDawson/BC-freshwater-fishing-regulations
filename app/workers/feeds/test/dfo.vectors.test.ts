@@ -15,7 +15,8 @@ import { describe, expect, it } from "vitest";
 import { readDates } from "../src/dfo/dates";
 import { byFingerprint, loadEntryFile, reconcile } from "../src/dfo/entries";
 import { digest, parseHeader, resolve } from "../src/dfo/header";
-import { typePage } from "../src/dfo/live";
+import { build } from "../src/dfo/feed";
+import { ROW_HELD_VERDICT, typePage } from "../src/dfo/live";
 import { fingerprint, landmarks, normalize } from "../src/dfo/locations";
 import { key } from "../src/dfo/names";
 import { dumps } from "../src/dfo/pyjson";
@@ -32,7 +33,7 @@ interface Vectors {
   species: string[];
   text: { section: string | null; water: string; specific_area: string; fingerprint: string; normalize: [string, string]; landmarks: string[] }[];
   names: [string, string][];
-  rows: Record<string, { rules: Record<string, unknown>[]; calendar: Calendar }>;
+  rows: Record<string, { rules: Record<string, unknown>[]; calendar: Calendar; error?: string }>;
   pages: Record<string, { structure: unknown; locations: Record<string, unknown>[]; locators: PyLocator[]; entries: Join; header: Header }>;
   joins: Record<string, Join & { slug: string; entries: unknown }>;
   dates: [string, unknown][];
@@ -42,7 +43,7 @@ interface Join { by_fingerprint: Record<string, string>; reconcile: unknown }
 /** T676: the region header (header.parse_header / digest / resolve, deliver.salmon.header_answers, quota.header_closure) */
 interface Header { notes: unknown[]; digest: string; scopes: Record<string, string[]>; unresolved: unknown[]; answers: unknown; closure: unknown }
 const V: Vectors = JSON.parse(readFileSync(join(FIX, "python-vectors.generated.json"), "utf-8"));
-const ROWS: { cases: { name: string; rows: [string, string, string][] }[] } = JSON.parse(readFileSync(join(FIX, "dfo-rows.json"), "utf-8"));
+const ROWS: { cases: { name: string; rows: [string, string, string][]; robust?: unknown }[] } = JSON.parse(readFileSync(join(FIX, "dfo-rows.json"), "utf-8"));
 const page = (slug: string) => readFileSync(join(FIX, `pages/region${slug}-eng.html`), "utf-8");
 const entryText = (slug: string): string | null => {
   try {
@@ -186,6 +187,16 @@ describe("(T676) the open-ended rows are in the vectors, read the same on both s
 
 describe("the shared hand rows (dfo-rows.json): typed rules and calendar == Python", () => {
   it.each(ROWS.cases.map((c) => [c.name, c] as const))("%s", (name, c) => {
+      if (c.robust) {
+        // (T679 D6) rows that do not type: both readers refuse them with the same error type; robust, neither stops the
+        // page (the worker's locator carries `error` and no rules — live.ts holds the place; the Python's reads check)
+        const recs = c.rows.map(([species, dates, limits_gear], order) =>
+          ({ fingerprint: "rows".repeat(4), species, dates, limits_gear, fishery_notices: [], source: "", order }));
+        const [loc] = build({ region: "2", date_modified: null, preamble: [], rules: recs }, true, REG).locators;
+        expect([loc!.rules, loc!.error?.split(":")[0]]).toEqual([[], V.rows[name]!.error]);
+        expect([V.rows[name]!.calendar.verdicts.map((v) => v.s), ROW_HELD_VERDICT.s]).toEqual([["check"], "check"]);
+        return;
+      }
       const rules = c.rows.flatMap(([species, dates, limits_gear], i) => toRules({ species, dates, limits_gear }, "rows", i, REG));
       expect(plain(rules)).toEqual(V.rows[name]!.rules);
       expect(calendarOf(rules)).toEqual(V.rows[name]!.calendar);

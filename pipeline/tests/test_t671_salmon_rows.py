@@ -36,6 +36,13 @@ def _rules(name):
     return out
 
 
+def _robust(name):
+    """(T679 D6) the shared case's rows through the robust reader (`feed.type_rows`): (rules, why they did not type)."""
+    from pipeline.regs.dfo_salmon import feed as F
+    recs = [{"fingerprint": "f" * 16, "species": sp, "dates": d, "limits_gear": lg} for sp, d, lg in CASES[name]["rows"]]
+    return F.type_rows("f" * 16, recs)
+
+
 def _status(chain, sp, md):
     v = S.verdict_on(chain, sp, md)
     return v and v["s"]
@@ -53,6 +60,12 @@ def test_the_shared_file_was_read():
 def test_every_shared_case_types_and_answers_as_the_file_says(name):
     """The worker's twin asserts the same file: each named row's first rule, and the place's OWN answer per day."""
     case = CASES[name]
+    if "robust" in case:
+        # (T679 D6) rows that do not type: the robust reader's place, read as the file says
+        rules, why = _robust(name)
+        assert why.split(":")[0] == case["robust"]["error"]
+        assert [[sp, md, _status([rules], sp, md)] for sp, md, _ in case["robust"]["own"]] == case["robust"]["own"]
+        return
     for i, want in enumerate(case.get("typed", [])):
         species, dates, limits = case["rows"][i]
         rule = T.to_rules({"species": species, "dates": dates, "limits_gear": limits}, "t671", i)[0].model_dump(
@@ -197,3 +210,35 @@ def test_5b_mutation_no_pool_reads_the_aggregate_row_as_per_water(monkeypatch):
     monkeypatch.setattr(Q, "pool_of", lambda loc: [])
     rules = Q.mark_shared(_rules(name), Q.pool_of(_place(name)))
     assert Q.words(S.verdict_on([rules], "CH", 715)["tree"]) == "4 a day"
+
+
+def test_t679_d6_a_row_that_does_not_type_reads_check_and_is_reported_never_stops_the_page(capsys):
+    """(T679 D6, owner 2026-11-12: "Python reads DFO rows tolerantly too") the feeds worker's robust mode, in Python: a
+    locator whose rows the catalogue refuses carries `error` and reads "check DFO" for every salmon on every day; the
+    rest of the region stands; the release's salmon build names the place. `robust=False` (the Mac's live run, the
+    worker's `pythonParity` spec) still raises."""
+    from pipeline.regs.dfo_salmon import feed as F
+    bad = [{"fingerprint": "a" * 16, "species": sp, "dates": d, "limits_gear": lg}
+           for sp, d, lg in CASES["a row that does not type"]["rows"]]
+    good = [{"fingerprint": "b" * 16, "species": "Chinook", "dates": "Sep 1 to Oct 31", "limits_gear": "2 per day"}]
+    feed = F.build({"region": "2", "rules": bad + good})
+    (a,) = [l for l in feed["locators"] if l["fingerprint"] == "a" * 16]
+    (b,) = [l for l in feed["locators"] if l["fingerprint"] == "b" * 16]
+    assert a["error"].startswith("ValidationError") and "error" not in b
+    assert [r["check"] for r in a["rules"]] == [F.ROW_UNREAD]
+    v = S.verdict_on([a["rules"]], "CH", 915)
+    assert v["s"] == "check" and v["t"].startswith("DFO's row for this place could not be read — check DFO: ")
+    assert [_status([a["rules"]], sp, 915) for sp in S.SPECIES] == ["check"] * 5
+    assert _status([b["rules"]], "CH", 915) == "open"                     # the rest of the region stands
+    with pytest.raises(Exception, match="Clock"):
+        F.build({"region": "2", "rules": bad}, robust=False)
+    # the release's salmon build reads the place "check" every day and names it
+    from types import SimpleNamespace
+    loc = SimpleNamespace(location_id="2:bad", precedence=3, fingerprints=["a" * 16], water="X River", water_id=None,
+                          source_text={"specific_area": ""}, tidal_water=False, region_number=2)
+    ef = SimpleNamespace(region_name="Lower Fraser", locations=[loc], water=lambda wid: None)
+    payload, sections = S.build({"2": ef}, {"2": feed}, [{"location_id": "2:bad", "mapped": True, "sections": ["s1"]}],
+                                {"s1": 1}, section_regions=None)
+    c = payload["chains"][dict(sections)[1]]
+    assert c["m"] == [0, S.MAP_CODES.index("check")]
+    assert "2:bad reads 'check DFO' — its row did not type (ValidationError" in capsys.readouterr().err

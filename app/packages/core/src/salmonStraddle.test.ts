@@ -14,7 +14,7 @@
 import { describe, expect, it } from "vitest";
 import { SALMON_STRADDLE_GOLDEN } from "./salmonStraddle.golden";
 import { SALMON_FEED_GOLDEN } from "./salmonFeed.golden";
-import { salmonCard, salmonChainStatus, salmonFacts, salmonStatusFromSpecies, salmonTable, SalmonError, type SalmonFacts, type SalmonShard } from "./salmon";
+import { salmonCard, salmonChainStatus, salmonFacts, salmonDayStatus, salmonTable, SalmonError, type SalmonFacts, type SalmonShard } from "./salmon";
 import { composeChain, parseSalmonFeed, withSalmonFeed } from "./salmonFeed";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- the goldens are the pipeline's JSON, read as data
@@ -39,6 +39,23 @@ describe("(T668) a two-region chain under the live feed: `live.compose`, pinned"
     expect([live.payload.verdicts, live.payload.gears]).toEqual([G.verdicts, G.gears]);
     // the feed's own tables are never written
     expect([feed().verdicts.length, feed().gears.length]).toEqual([G.feed.verdicts.length, G.feed.gears.length]);
+  });
+
+  it("(T668 option 2) two READABLE openings resolve on their own from the feed's pair table; a pair not held keeps both words", () => {
+    // sid 67, Jul 19: Region 6 E opens coho at 4 a day, Region 7 at 2 — the Python's answer is Region 7's 2 (Z4 ladder)
+    const coho = (f: SalmonFacts) => {
+      const c = f.payload.chains[f.chainOf(67)]!, runs = c.sp[1]!, day = 199;
+      let v = runs[1]!;
+      for (let k = 0; k < runs.length; k += 2) if (runs[k]! <= day) v = runs[k + 1]!;
+      return f.payload.verdicts[v]!;
+    };
+    expect(coho(withSalmonFeed(release(), feed()))).toEqual(G.feed.pairs.pairs.find((p: unknown[]) => !(p[2] as { u?: number }).u)[2]);
+    expect(coho(withSalmonFeed(release(), feed())).t).toBe("2 coho per day (Jul 1–Aug 31)");
+    // MUTATION: the same feed without its table — both regions' words, no number (never looser, never a guess)
+    const bare = parseSalmonFeed({ ...G.feed, pairs: undefined })!;
+    expect(coho(withSalmonFeed(release(), bare))).toMatchObject({ s: "open", u: 1, t: "4 coho per day (Jul 1–Aug 31); 2 coho per day (Jul 1–Aug 31)" });
+    // a table that is not whole is no feed at all (never a half-read feed)
+    expect(parseSalmonFeed({ ...G.feed, pairs: { ...G.feed.pairs, format: "dfo-pairs/0" } })).toBeNull();
   });
 
   it("a merge with no tables to add it to stops, never a guess", () => {
@@ -140,7 +157,7 @@ describe("(T549) places the release does not show, feed places it does not hold,
 describe("(T549 item 11) a missing chain has one answer: SalmonError", () => {
   it("the status readers and a slice naming a chain the head lacks", () => {
     const f = release();
-    expect(() => salmonStatusFromSpecies(f, 99, 0)).toThrow(SalmonError);
+    expect(() => salmonDayStatus(f, 99, 0)).toThrow(SalmonError);
     expect(() => salmonChainStatus(f, 99, 0)).toThrow(SalmonError);
     const shard: SalmonShard = { region: "6", starts: Uint32Array.of(60), lens: Uint16Array.of(1), chain: Uint16Array.of(99) };
     expect(() => salmonFacts(G.release, "x", [shard])).toThrow("slice 6 run 0 names chain 99, the head holds 4");

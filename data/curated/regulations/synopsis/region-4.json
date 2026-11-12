@@ -10853,6 +10853,16 @@
      "exempts": [
       {
        "default_id": "single_barbless_hook"
+      },
+      {
+       "target": "barbless_single_hook_streams.r1",
+       "entry_id": "zp:barbless_single_hook_streams",
+       "note": "T462 G6, owner 2026-11-12: the printed exemption lifts the provincial stream rule too (barbed hooks allowed)"
+      },
+      {
+       "target": "barbless_single_hook_streams.r3",
+       "entry_id": "zp:barbless_single_hook_streams",
+       "note": "T462 G6, owner 2026-11-12: the printed exemption lifts the provincial stream rule too (treble hooks allowed)"
       }
      ]
     },

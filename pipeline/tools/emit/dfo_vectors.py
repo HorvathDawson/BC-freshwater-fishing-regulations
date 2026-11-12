@@ -42,6 +42,7 @@ from pipeline.common.curated import REPO_ROOT
 from pipeline.deliver import salmon as S
 from pipeline.regs.dfo_salmon import dates as D
 from pipeline.regs.dfo_salmon import entries as ENT
+from pipeline.regs.dfo_salmon import feed as FD
 from pipeline.regs.dfo_salmon import header as H
 from pipeline.regs.dfo_salmon import live as L
 from pipeline.regs.dfo_salmon import locations as LOC
@@ -229,6 +230,12 @@ def build() -> dict:
     cases = json.loads(ROWS.read_text(encoding="utf-8"))["cases"]
     rows = {}
     for case in cases:
+        if "robust" in case:
+            # (T679 D6) rows that do not type: the robust reader's place (`feed.type_rows`) and the error's type name
+            recs = [{"fingerprint": "rows" * 4, "species": sp, "dates": d, "limits_gear": lg} for sp, d, lg in case["rows"]]
+            rules, why = FD.type_rows("rows" * 4, recs)
+            rows[case["name"]] = {"error": why.split(":")[0], "rules": rules, "calendar": _calendar(rules)}
+            continue
         rules = [r for i, (species, dates, limits) in enumerate(case["rows"])
                  for r in _dump(T.to_rules({"species": species, "dates": dates, "limits_gear": limits}, "rows", i))]
         rows[case["name"]] = {"rules": rules, "calendar": _calendar(rules)}

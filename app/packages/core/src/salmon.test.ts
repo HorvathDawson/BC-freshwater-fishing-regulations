@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { decodeSalmon, decodeSalmonHead, decodeSalmonShard, salmonCard, salmonChainStatus, salmonDayIndex, salmonDayProfiles, salmonLabel,
-         SALMON_WORDS, SalmonError, salmonTable, salmonTableTexts, salmonRowTexts, salmonStatusFromSpecies, gearTabsFor, salmonStripOf, salmonTimelineKey, quotaLine } from "./salmon";
+         SALMON_WORDS, SalmonError, salmonTable, salmonTableTexts, salmonRowTexts, salmonDayStatus, gearTabsFor, salmonStripOf, salmonTimelineKey, quotaLine } from "./salmon";
 import { tierWords } from "./regs/tree";
 import { text } from "./regs/line";
 import { salmonGlance } from "./glance";
@@ -246,8 +246,21 @@ describe("the Salmon card", () => {
 describe("(T227) the salmon year at the top of the Keep tab", () => {
   it("the bar's day is the pipeline's map status, read from the species — every chain, every day", () => {
     const f = facts();
+    const fromSpecies = (c: number, day: number) => {
+      const ss = PAYLOAD.chains[c]!.sp.map((runs) => PAYLOAD.verdicts[[...runs].reduce((v, x, k, a) => (k % 2 === 0 && x <= day ? a[k + 1]! : v), runs[1]!)]!.s);
+      return (["open", "release", "check"] as const).find((s) => ss.includes(s)) ?? "closed";
+    };
     for (let c = 0; c < f.chains; c++)
-      for (let day = 0; day < 366; day++) expect([c, day, salmonStatusFromSpecies(f, c, day)]).toEqual([c, day, salmonChainStatus(f, c, day)]);
+      for (let day = 0; day < 366; day++)
+        expect([c, day, salmonDayStatus(f, c, day), salmonChainStatus(f, c, day)]).toEqual([c, day, fromSpecies(c, day), fromSpecies(c, day)]);
+  });
+
+  it("(T679 D2) ONE source: the bar reads the map's runs, so a map run the species do not give shows on both alike", () => {
+    // mutation: the Kispiox's map says "check" all year while its species verdicts do not: the bar follows the map
+    const mutated = { ...PAYLOAD, chains: [PAYLOAD.chains[0]!, { ...PAYLOAD.chains[1]!, m: [0, 4] }, PAYLOAD.chains[2]!] };
+    const f = decodeSalmon(encode(mutated), HANDLES, SHARDS);
+    expect([salmonChainStatus(f, 1, d(JUL20)), salmonDayStatus(f, 1, d(JUL20))]).toEqual(["check", "check"]);
+    expect(salmonCard(f, { sids: [101], item: null }, JUL20).year.bars[0]!.today).toBe("check");
   });
 
   it("every place mapped: ONE bar for the page, no label; a day no rule opens is closed", () => {
