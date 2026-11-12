@@ -1,6 +1,6 @@
 # T676 — The release and the live feed read a DFO date cell the same way; a feed format bump does not strand an older app
 
-Status: OPEN — split from T556 (2026-11-11): what its findings 1 and 3 proposed and T556 did not build.
+Status: PARTIAL (2026-11-11, 4f591c31a) — items 3 and 4 done; item 1's reader ported and pinned, its use in the release waits on the owner's nod; item 2 waits on the owner's choice and T673; owner: OWNER-TODO "T676 reading to rule on"; left (Claude): wire read_dates into the release after the nod, item 2 with T673. Split from T556 (2026-11-11): what its findings 1 and 3 proposed and T556 did not build.
 
 Source: T556 (data pipeline review 2026-11-09, findings 1 and 3). T556 pinned the two languages with shared fixtures and
 generated the format strings; these two are changes of behaviour, not pins.
@@ -41,3 +41,33 @@ A date cell reads the same in the release file and the live feed (one vector fil
 bump on staging leaves the previous app version showing its last capture AND an update prompt, by test.
 
 Depends: T556 (done), T673 (item 2). Size: M. Owner: item 1's reading; item 2's choice.
+
+## Done (2026-11-11, 4f591c31a)
+- **Item 4.** The DFO vectors (`python -m pipeline.tools.emit.dfo_vectors`) now hold, per saved page: the fixture entry
+  file joined to it (`entries.by_fingerprint` → location_id, `entries.reconcile`), and the region header
+  (`header.parse_header`, `digest`, `resolve`, `deliver.salmon.header_answers` — bucket / shared / sizes / hours / folds —
+  and `quota.header_closure`); plus `joins.page_default` (a curated page default added to region 8's file — the input is
+  in the vectors, the worker loads the same). `dfo.vectors.test.ts` reproduces every value; `test_dfo_vectors.py` pins
+  that a reconcile / header / date-reader change on the Python side alone fails `--check`. The fixture's `scopes` are
+  left out of the join (the worker reads none; region 6's fixture predates the residual rule `entries.load` enforces).
+- **Drift found and fixed:** the worker's `reconcile` called every curated page default `dormant` ("absent from the
+  page") — Python's T349 guard was never ported. Six of the nine curated region files hold one. No feed output moved:
+  the worker never publishes a page-default place (`page:*` fingerprints are no table row), so it never reached `gone`
+  or `reworded`.
+- **Item 3.** `httpSalmonFeed` reports an index HTTP refusal (`dfo index.json: HTTP <n>`), offline still not. Dedupe
+  confirmed in `ui/crashReport.ts`: one error is sent once a run (its id folds digits, so every status is one report),
+  at most `maxPerRun` (5) a run. Production serving no DFO feed yet means one report per app start there until it does.
+- **Item 1, the reader.** `pipeline/regs/dfo_salmon/dates.py` `read_dates` is `dates.ts` `readDates` ported line for
+  line (JS `\s`, ASCII `\b`, first-match `replace` kept). The vectors' `dates` hold its reading of 1,822 cells — every
+  recorded cell (`date-cells.json`), the named shapes and a seeded fuzz (seed 676) — and the worker must read each the
+  same: no exception, no difference.
+
+## Held
+- **Item 1, wiring** (`typed.to_rules` reading with `read_dates`, so the named "until further notice" difference in
+  `dfo.vectors.test.ts` goes). Changes what an angler is shown; the owner's nod is in OWNER-TODO.md. Measured on the
+  281 recorded cells: 15 "until further notice" cells (the release types them all year with no window; the feed keeps
+  the start day and says "from <day> until further notice"), and 3 the release keeps as an unparsed window that the
+  robust reader reads ("Aug 2 To Aug 31", "July 1 until Aug 8", "June 1 until Aug 8"). Wiring also brings robust mode's
+  `check` for an unreadable cell (limits kept, flagged) and `open_ended` on `When`, which the release model and the app's
+  release reader do not carry yet — size M with the bundle side.
+- **Item 2** — owner's choice (versioned key vs per-feed `minAppVersion`), decided with T673. Not started.
