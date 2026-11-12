@@ -191,7 +191,6 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T677 | Next rebuild leftovers: item names follow piece count, a park rule gained 33 m, binding diff by place, the 32 new held lines on a map page, lines ending at the sea | OPEN | — | the rebuild lane 2026-11-11 (`next-rebuild-results.md`) |
 | T678 | Tidal in the build: one decision, made once, read everywhere (cut rule: DFO written boundary, then coast crossing, polygon for shading only) | IN PROGRESS | — | owner 2026-11-11; audit + owner rulings in the ticket; classify the 33 curated splits, mouth-line cut with the next atlas build, DFO tidal pages re-scrape, San Juan Bridge split |
 | T679 | Each decision in its own stage (everything but tidal): 18 findings, owner D2–D6 open | OPEN | — | owner 2026-11-11 "look for other things like that too"; D1 answered (unnamed widening pond is the river for both kinds of rule) |
-| T680 | Release: find fixture-pinned test failures before the push | OPEN | — | release r-483b295de57c stopped four times on 2026-11-11 |
 
 ## Order for open tickets
 
