@@ -406,16 +406,6 @@ def run(domains: Optional[list[str]] = None, *, marks: Optional[Path] = None,
 NOT_LANDED_OK: dict[str, dict] = {
     "tidal|tidal:354151091|": {"date": "2026-11-09", "why": "T359: does a confirmed DEM point become a cut? (owner)"},
     "tidal|tidal:360848786|": {"date": "2026-11-09", "why": "T359: does a confirmed DEM point become a cut? (owner)"},
-    # owner 2026-11-11 (chat 11): build 27 ships without these nine; each waits on a new cut and the next atlas rebuild
-    "dfo|2:harrison-river:from-the-highway-7-bridge-downstre|": {"date": "2026-11-11", "why": "needs a new cut: lands with the next atlas rebuild (owner 2026-11-11: release build 27 without these)"},
-    "dfo|2:harrison-river:from-the-outlet-of-harrison-lake-d|": {"date": "2026-11-11", "why": "needs a new cut: lands with the next atlas rebuild (owner 2026-11-11: release build 27 without these)"},
-    "dfo|2:nicomekl-river:within-23-m-downstream-of-the-floo|": {"date": "2026-11-11", "why": "needs a new cut: lands with the next atlas rebuild (owner 2026-11-11: release build 27 without these)"},
-    "dfo|2:nicomen-including-dewdney-slough:from-the-confluence-of-siddle-bell|": {"date": "2026-11-11", "why": "needs a new cut: lands with the next atlas rebuild (owner 2026-11-11: release build 27 without these)"},
-    "dfo|2:nicomen-including-dewdney-slough:from-the-highway-7-bridge-at-dewdn|": {"date": "2026-11-11", "why": "needs a new cut: lands with the next atlas rebuild (owner 2026-11-11: release build 27 without these)"},
-    "dfo|2:serpentine-river:within-23-m-downstream-of-the-floo|": {"date": "2026-11-11", "why": "needs a new cut: lands with the next atlas rebuild (owner 2026-11-11: release build 27 without these)"},
-    "dfo|3:thompson-river:from-kamloops-lake-outlet-downstre~2|": {"date": "2026-11-11", "why": "needs a new cut: lands with the next atlas rebuild (owner 2026-11-11: release build 27 without these)"},
-    "dfo|3:thompson-river:from-the-white-triangle-fishing-bo|": {"date": "2026-11-11", "why": "needs a new cut: lands with the next atlas rebuild (owner 2026-11-11: release build 27 without these)"},
-    "dfo|6:nakina-river:that-portion-of-the-nakina-river-f|": {"date": "2026-11-11", "why": "needs a new cut: lands with the next atlas rebuild (owner 2026-11-11: release build 27 without these)"},
 }
 
 
