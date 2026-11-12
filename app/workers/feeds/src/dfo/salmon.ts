@@ -3,7 +3,7 @@
 import { dumps } from "./pyjson";
 import { speciesTree, type QuotaTier } from "./quota";
 import type { TypedRule } from "./typed";
-import { DATES_UNPARSED, MONTHS, monthDay, OTHER_FISH, YEAR } from "./typed";
+import { DATES_UNPARSED, GEAR_PERMISSION, MONTHS, monthDay, OTHER_FISH, YEAR } from "./typed";
 
 export const SPECIES = ["CH", "CO", "SK", "PK", "CM"] as const;
 const ALL_SALMON = "SA";
@@ -50,6 +50,11 @@ const covers = (r: R, sp: string): boolean => {
 const isGear = (r: R): boolean => !!(r.gear && r.gear.length) || GEAR_TYPES.has(r.type);
 /** T229: a row about another fish (eulachon) — never a salmon verdict, one of the gear lines (salmon.py `_other_fish`) */
 const otherFish = (r: R): boolean => r.type === "advisory" && String(r.review_reason ?? "").startsWith(OTHER_FISH);
+
+/** (T671 D2, salmon.py `unread_row`) a row nobody could type: an advisory that is not about another fish and not a gear
+ * permission. Never dropped: on the days it holds it reads "check DFO" for the species its cell names. */
+const unreadRow = (r: R): boolean =>
+  r.type === "advisory" && !r.within && !otherFish(r) && !String(r.review_reason ?? "").startsWith(GEAR_PERMISSION);
 
 const fmtMd = (md: number) => `${MONTHS[Math.floor(md / 100) - 1]} ${md % 100}`;
 function rangeTxt(a: number, b: number): string {
@@ -206,7 +211,8 @@ function verdictOn(chain: Loc[], k: number, md: number, robust = false): Verdict
       }
       return out;
     }
-    const unread = loc.unreadable.filter((r) => holdsOn(r, md) === null && (!speciesOf(r).length || covers(r, sp)));
+    // (T671 D2) a season that does not parse (any row), or a row nobody could type on a day it holds
+    const unread = loc.unreadable.filter((r) => (!speciesOf(r).length || covers(r, sp)) && (holdsOn(r, md) === null || (unreadRow(r) && (robust ? !!holdsKind(r, md) : holdsOn(r, md) === true))));
     if (unread.length) {
       const key = "check:" + unread.map((r) => loc.rules.indexOf(r)).join(",");
       let out = loc.verdicts.get(key);

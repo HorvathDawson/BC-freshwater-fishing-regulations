@@ -120,6 +120,15 @@ _RE_FLY = re.compile(r"fly[- ]fishing\s+only", re.I)
 _RE_FN = re.compile(r"\bFN\s*(\d{3,4})\b", re.I)
 #: A row DFO has not decided yet. 11 of them; they are a real state, not a parse failure.
 _RE_TBD = re.compile(r"to\s+be\s+determined", re.I)
+#: HOW THIS MODULE TYPES A ROW, as a number the typed feed carries (`feed.build` `typed_format`). Bump it when a row
+#: types differently: the release refuses typed files of another number (`deliver.salmon.load_inputs`), so rows typed by
+#: older code never ship. 2 (T671 D2): a row nobody could type keeps the species its cell names.
+FORMAT = 2
+#: (T671 D2) the advisory's `review_reason` prefixes the bundle reads: a row DFO has not set, and a row that is a gear
+#: PERMISSION (it opens and closes no fish). Every other advisory that is not about another fish is a row nobody could
+#: type: `deliver.salmon.unread_row` shows it as "check DFO" for the species its cell names, on the days it holds.
+TBD = "DFO has not set this row yet"
+GEAR_PERMISSION = "a gear permission"
 
 # --------------------------------------------------------------------------------------- #
 # The decode — limits text -> what it says
@@ -380,10 +389,15 @@ def to_rules(rec: dict, rule_base: str, order: int) -> List[CatalogueRule]:
     # --- a row DFO has not settled ----------------------------------------
     # "To be determined" is a published state, not a gap in the scrape, so it is stored as an
     # advisory that names itself for review rather than being dropped or guessed at.
+    # (T671 D2) THE ROW'S SPECIES STAYS ON IT (`own_sp`): "Chum | To be determined" is unread for chum only — typed with
+    # no species it read "check DFO" for all five (Courtenay / Puntledge), and with readable dates it answered for none
+    # (Kamloops Lake's "Sockeye | Apr 1 to Mar 31 | To be determined" read closed). A cell naming no fish the table
+    # knows keeps no species: the bundle then reads the row for every salmon, never for none.
+    own_sp = {"species": codes} if codes and set(codes) <= SALMON_CODES else {}
     if _RE_TBD.search(gear):
         return [CatalogueRule(rule_id=rid, type=RuleType.advisory,
-                              review_reason="DFO has not set this row yet ('to be determined')",
-                              **base())]
+                              review_reason=f"{TBD} ('to be determined')",
+                              **base(**own_sp))]
 
     # A season nobody can read must not publish as though it had none — an unparsed window and an
     # absent one are opposite facts, and `CatalogueRule` does not tell them apart on its own.
@@ -391,7 +405,7 @@ def to_rules(rec: dict, rule_base: str, order: int) -> List[CatalogueRule]:
         return [CatalogueRule(rule_id=rid, type=RuleType.advisory,
                               review_reason=f"dates do not parse to a calendar window: "
                                             f"{raw_dates!r}",
-                              **base())]
+                              **base(**own_sp))]
 
     # A row about ANOTHER FISH ("All | No fishing for eulachon"): not a salmon rule. An advisory the bundle shows as its
     # own line (`deliver.salmon._other_fish`; EU is not on the book's species list, so it cannot be a species code).
@@ -517,10 +531,10 @@ def to_rules(rec: dict, rule_base: str, order: int) -> List[CatalogueRule]:
     if not out:
         out.append(CatalogueRule(
             rule_id=rid, type=RuleType.advisory,
-            review_reason=_unread(gear) or new_wording or ("a gear permission (natural bait allowed): no rule type states it"
+            review_reason=_unread(gear) or new_wording or (f"{GEAR_PERMISSION} (natural bait allowed): no rule type states it"
                                              if _RE_BAIT_ALLOWED.search(gear) else
                                              "row states no limit, closure or gear rule the scrape could type"),
-            **base()))
+            **base(**own_sp)))
     return out
 
 

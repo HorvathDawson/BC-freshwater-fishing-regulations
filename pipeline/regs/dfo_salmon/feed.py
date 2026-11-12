@@ -41,7 +41,7 @@ from typing import Dict, List, Optional
 
 from pipeline.common.curated import GENERATED
 from pipeline.regs.dfo_salmon.fetch import ALL_SLUGS, PAGES, normalize_slug
-from pipeline.regs.dfo_salmon.typed import row_text, to_rules
+from pipeline.regs.dfo_salmon.typed import FORMAT as TYPED_FORMAT, row_text, to_rules
 from pipeline.regs.dfo_salmon.wording import row_words
 
 logger = logging.getLogger(__name__)
@@ -79,6 +79,8 @@ def build(scraped: dict) -> dict:
     return {
         "region": scraped.get("region"),
         "date_modified": scraped.get("date_modified"),
+        # (T671) how these rows were typed (`typed.FORMAT`): the release refuses rows typed by older code
+        "typed_format": TYPED_FORMAT,
         # T366 ONE VINTAGE: the page these rows came from ({sha256, date_modified}) and its header notes, so a reader
         # can tell typed rows older than the raw page, and the release ships the header of the rows' own page
         **({"page": scraped["page"]} if scraped.get("page") else {}),

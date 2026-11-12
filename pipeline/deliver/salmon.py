@@ -174,8 +174,28 @@ def says_catch_and_release(rule: dict) -> bool:
     return bool(_RE_CATCH_AND_RELEASE.search(rule.get("verbatim") or ""))
 
 
+def _opens(rule: dict) -> bool:
+    return (rule.get("take") or 0) > 0
+
+
+def unread_row(rule: dict) -> bool:
+    """(T671 D2) A ROW NOBODY COULD TYPE: an advisory that is not about another fish (`_other_fish`) and not a gear
+    permission — "to be determined", a season that does not parse, a species cell or wording the table does not know.
+    It is never dropped: on the days it holds it reads "check DFO" for the species its cell names (`_reads_for`)."""
+    from pipeline.regs.dfo_salmon.typed import GEAR_PERMISSION
+    return (rule.get("type") == "advisory" and not rule.get("within") and not _other_fish(rule)
+            and not str(rule.get("review_reason") or "").startswith(GEAR_PERMISSION))
+
+
+def _reads_for(rule: dict, sp: str) -> bool:
+    """A row speaks for the species its cell names; "All" for every salmon; a cell naming no fish the table knows for
+    every salmon too (nothing says which — never for none)."""
+    return not _species_of(rule) or _covers(rule, sp)
+
+
 def verdict_on(chain: Sequence[Sequence[dict]], sp: str, md: int) -> Optional[dict]:
-    """The species' answer on day `md`: the narrowest location of the chain with a limit rule for it that day.
+    """The species' answer on day `md`: the narrowest location of the chain with a limit rule for it that day, or a
+    row for it nobody could type (`unread_row`: "check").
     `{s, t, n?}` — s one of open / release / closed / check; None when no location says anything that day."""
     for rules in chain:
         subs: Dict[str, List[dict]] = defaultdict(list)
@@ -185,9 +205,13 @@ def verdict_on(chain: Sequence[Sequence[dict]], sp: str, md: int) -> Optional[di
         limits = [r for r in rules if not r.get("within") and not _is_gear(r) and _covers(r, sp)
                   and ("take" in r or "may_target" in r)]
         held = [r for r in limits if holds_on(r, md)]
+        # (T671 D2) the rows for this species nobody can read today: a season that does not parse (any row), or a row
+        # nobody could type on a day it holds — for the species its cell names, never dropped
+        unread = [r for r in rules if not r.get("within") and _reads_for(r, sp)
+                  and (holds_on(r, md) is None or (unread_row(r) and holds_on(r, md)))]
         if held:
             own = [r for r in held if sp in _species_of(r)] or held     # the species' own row beats an all-salmon row
-            opens = [r for r in own if (r.get("take") or 0) > 0]
+            opens = [r for r in own if _opens(r)]
             release = [r for r in own if r.get("may_target") is True and says_catch_and_release(r)]
             if opens:
                 s, why = "open", opens
@@ -211,8 +235,6 @@ def verdict_on(chain: Sequence[Sequence[dict]], sp: str, md: int) -> Optional[di
                 # the header" from the verdict, never from a location id
                 out["c"] = hc[0]
             return out
-        unread = [r for r in rules if not r.get("within") and holds_on(r, md) is None
-                  and (not _species_of(r) or _covers(r, sp))]
         if unread:
             return {"s": "check", "t": _text(unread, subs)}
     return None
@@ -891,6 +913,7 @@ def load_inputs(run_dir: Path, registry=None, *, entries_dir: Optional[Path] = N
     from pipeline.common.curated import GENERATED
     from pipeline.regs.dfo_salmon import entries as E
     from pipeline.regs.dfo_salmon.fetch import ALL_SLUGS, PAGES
+    from pipeline.regs.dfo_salmon.typed import FORMAT as TYPED_FORMAT
     feed_dir = Path(feed_dir or Path(GENERATED.regs.dfo_salmon) / "typed")
     slugs = [s for s in ALL_SLUGS if not PAGES[s].is_stub]
     files = {s: E.load(s, entries_dir or E.ENTRIES_DIR, registry=registry) for s in slugs}
@@ -900,6 +923,11 @@ def load_inputs(run_dir: Path, registry=None, *, entries_dir: Optional[Path] = N
         if not p.exists():
             raise SalmonError(f"salmon: no typed DFO feed {p} — write it:\n    python -m pipeline.regs.dfo_salmon.feed")
         feeds[s] = json.loads(p.read_text(encoding="utf-8"))
+        if feeds[s].get("typed_format") != TYPED_FORMAT:
+            # (T671) rows typed by older code would ship the old reading with nothing saying so
+            raise SalmonError(f"salmon: {p} was typed by older code (typed_format {feeds[s].get('typed_format')!r}, "
+                              f"today's is {TYPED_FORMAT}) — type its scraped rows again (no network, no credits):\n"
+                              "    python -m pipeline.regs.dfo_salmon.feed")
     return files, feeds, list(placed_io.read(run_dir))
 
 
