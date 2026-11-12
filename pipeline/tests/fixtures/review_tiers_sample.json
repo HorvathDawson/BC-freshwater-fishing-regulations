@@ -1,0 +1,5295 @@
+{
+ "_about": "A FROZEN SAMPLE of the curated corpus for pipeline/tests/test_review_screen.py (T507): the shortest entries (two; six for the two tiers with no risk) of every tier x risk-factor combination the corpus held on 2026-11-11, each with the tier and risks PLAN section 3 gives it, and two cut points for every (auto-proposal grade, note asks to verify, note says human-reviewed) combination of waters/cuts.json. Copied whole from data/curated on that day; never updated from the live corpus (a curation change must not move a test). `corpus` is what the whole corpus counted that day, for the record only: nothing asserts it.",
+ "frozen": "2026-11-11",
+ "corpus": {
+  "entries": 1515,
+  "tiers": {
+   "P1": 221,
+   "Z": 122,
+   "P2": 266,
+   "P3": 99,
+   "P4": 747,
+   "sweep": 60
+  },
+  "cut_points": 458
+ },
+ "entries": [
+  {
+   "tier": "P1",
+   "risks": [
+    "cut"
+   ],
+   "entry": {
+    "entry_id": "r4:snow_creek@4-15",
+    "name": "SNOW CREEK",
+    "display_name": "Snow Creek",
+    "region": "4",
+    "regs_verbatim": "**No Fishing** downstream of Hail Creek",
+    "source_pages": [
+     39
+    ],
+    "matched": [
+     "gnis:27411"
+    ],
+    "extents": [
+     {
+      "op": "whole"
+     }
+    ],
+    "rules": [
+     {
+      "rule_id": "snow_creek.r1",
+      "type": "retention_limit",
+      "verbatim": "No Fishing downstream of Hail Creek",
+      "species": [
+       "ALL_GAME_FISH"
+      ],
+      "take": 0,
+      "may_target": false,
+      "extents": [
+       {
+        "op": "downstream_of",
+        "splits": [
+         "snow_creek__hail_creek_into_snow_creek"
+        ]
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "tier": "P1",
+   "risks": [
+    "cut"
+   ],
+   "entry": {
+    "entry_id": "r3:pennask_creek@3-12",
+    "name": "PENNASK CREEK",
+    "display_name": "Pennask Creek",
+    "region": "3",
+    "regs_verbatim": "**No Fishing** upstream of Pennask Lake",
+    "source_pages": [
+     31
+    ],
+    "matched": [
+     "gnis:14707"
+    ],
+    "rules": [
+     {
+      "rule_id": "pennask_creek.r1",
+      "type": "retention_limit",
+      "verbatim": "No Fishing upstream of Pennask Lake",
+      "species": [
+       "ALL_GAME_FISH"
+      ],
+      "take": 0,
+      "may_target": false,
+      "extents": [
+       {
+        "op": "upstream_of",
+        "splits": [
+         "pennask_creek__pennask_lake"
+        ]
+       }
+      ],
+      "extent_text": "upstream of Pennask Lake"
+     }
+    ]
+   }
+  },
+  {
+   "tier": "P1",
+   "risks": [
+    "cut",
+    "flag"
+   ],
+   "entry": {
+    "entry_id": "r4:burton_creek@4-15",
+    "name": "BURTON CREEK",
+    "display_name": "Burton (Trout) Creek",
+    "region": "4",
+    "regs_verbatim": "**No Fishing** from Woden Creek to Hwy 6 bridge, June 15-Oct 31",
+    "source_pages": [
+     35
+    ],
+    "matched": [
+     "gnis:37939"
+    ],
+    "rules": [
+     {
+      "rule_id": "burton_creek.r1",
+      "type": "retention_limit",
+      "verbatim": "No Fishing from Woden Creek to Hwy 6 bridge, June 15-Oct 31",
+      "species": [
+       "ALL_GAME_FISH"
+      ],
+      "when": {
+       "dates": [
+        {
+         "from_month": 6,
+         "from_day": 15,
+         "to_month": 10,
+         "to_day": 31
+        }
+       ]
+      },
+      "take": 0,
+      "may_target": false,
+      "extents": [
+       {
+        "op": "between",
+        "splits": [
+         "burton_creek__woden_creek_into_burton_trout_creek",
+         "burton_creek__hwy_6_bridge"
+        ]
+       },
+       {
+        "op": "whole",
+        "item_id": "wbk:329262655"
+       }
+      ],
+      "extent_text": "from Woden Creek to Hwy 6 bridge",
+      "review_reason": "The Hwy 6 bridge cut sits at the creek's mouth (m 0), below the registry item's first piece (m 378): downstream of Woden Creek is the whole reach."
+     }
+    ]
+   }
+  },
+  {
+   "tier": "P1",
+   "risks": [
+    "cut",
+    "flag"
+   ],
+   "entry": {
+    "entry_id": "r2:coquitlam_river@2-8",
+    "name": "COQUITLAM RIVER",
+    "display_name": "Coquitlam River",
+    "region": "2",
+    "regs_verbatim": "**No Fishing** upstream of Mary Hill Bypass Bridge, May 1-June 30; No powered boats on parts\nHatchery trout daily quota = 2 (20-30 cm only), from Lougheed Highway Bridge to Mary Hill Bypass Bridge, July 1-Oct 15",
+    "source_pages": [
+     23
+    ],
+    "matched": [
+     "gnis:19986"
+    ],
+    "extents": [
+     {
+      "op": "whole"
+     }
+    ],
+    "rules": [
+     {
+      "rule_id": "coquitlam_river.r1",
+      "type": "retention_limit",
+      "verbatim": "No Fishing upstream of Mary Hill Bypass Bridge, May 1-June 30",
+      "species": [
+       "ALL_GAME_FISH"
+      ],
+      "when": {
+       "dates": [
+        {
+         "from_month": 5,
+         "from_day": 1,
+         "to_month": 6,
+         "to_day": 30
+        }
+       ]
+      },
+      "take": 0,
+      "may_target": false,
+      "extents": [
+       {
+        "op": "upstream_of",
+        "splits": [
+         "coquitlam_river__mary_hill_bypass_bridge"
+        ]
+       }
+      ]
+     },
+     {
+      "rule_id": "coquitlam_river.r2",
+      "type": "vessel_rule",
+      "verbatim": "No powered boats on parts",
+      "aspect": "propulsion",
+      "level": "unpowered",
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ]
+     },
+     {
+      "rule_id": "coquitlam_river.r3",
+      "type": "retention_limit",
+      "verbatim": "Hatchery trout daily quota = 2 (20-30 cm only), from Lougheed Highway Bridge to Mary Hill Bypass Bridge, July 1-Oct 15",
+      "species": [
+       "TROUT_CHAR"
+      ],
+      "when": {
+       "dates": [
+        {
+         "from_month": 7,
+         "from_day": 1,
+         "to_month": 10,
+         "to_day": 15
+        }
+       ]
+      },
+      "take": 2,
+      "lengths": [
+       {
+        "min_cm": 20,
+        "max_cm": 30
+       },
+       {
+        "max_cm": 20,
+        "take": 0
+       },
+       {
+        "min_cm": 30,
+        "take": 0
+       }
+      ],
+      "origin": "hatchery",
+      "extents": [
+       {
+        "op": "between",
+        "splits": [
+         "coquitlam_river__lougheed_highway_bridge",
+         "coquitlam_river__mary_hill_bypass_bridge"
+        ]
+       }
+      ],
+      "exempts": [
+       {
+        "target": "trout_char_quota.r8",
+        "entry_id": "z2:daily_quotas",
+        "note": "20-30 cm only"
+       }
+      ],
+      "review_reason": "The sentence is a WINDOW, not a band: 'none under X or over Y' prohibits the two ends, so what may be kept is the middle. Flagged `band` it meant the opposite — keep nothing between X and Y — which permits exactly the fish the rule protects."
+     }
+    ]
+   }
+  },
+  {
+   "tier": "P1",
+   "risks": [
+    "cut",
+    "several waters"
+   ],
+   "entry": {
+    "entry_id": "r2:bear_mahood_creek@2-4",
+    "name": "BEAR (Mahood) CREEK",
+    "display_name": "Mahood Creek",
+    "region": "2",
+    "regs_verbatim": "**No Fishing** upstream of 152nd Street (Johnson Road)",
+    "source_pages": [
+     22
+    ],
+    "symbols": [
+     "Incl. Tribs"
+    ],
+    "matched": [
+     "gnis:12117",
+     "gnis:12114"
+    ],
+    "extents": [
+     {
+      "op": "whole"
+     }
+    ],
+    "includes_tributaries": true,
+    "rules": [
+     {
+      "rule_id": "bear_mahood_creek.r1",
+      "type": "retention_limit",
+      "verbatim": "No Fishing upstream of 152nd Street (Johnson Road)",
+      "species": [
+       "ALL_GAME_FISH"
+      ],
+      "take": 0,
+      "may_target": false,
+      "extents": [
+       {
+        "op": "upstream_of",
+        "splits": [
+         "bear__152nd_street"
+        ],
+        "item_id": "gnis:12114"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "tier": "P1",
+   "risks": [
+    "cut",
+    "several waters"
+   ],
+   "entry": {
+    "entry_id": "r2:weaver_lake_and_weaver_creek@2-19",
+    "name": "WEAVER LAKE and WEAVER CREEK",
+    "display_name": "Weaver Lake",
+    "region": "2",
+    "regs_verbatim": "**No Fishing** from fishing boundary signs at log booms on Weaver Lake downstream to where Sakwi Creek enters Weaver Creek\nEngine power restriction on Weaver Lake - 7.5 kW (10 hp)",
+    "source_pages": [
+     26
+    ],
+    "symbols": [
+     "Incl. Tribs",
+     "Stocked"
+    ],
+    "matched": [
+     "wbk:329177889",
+     "gnis:25951"
+    ],
+    "extents": [
+     {
+      "op": "whole"
+     }
+    ],
+    "includes_tributaries": true,
+    "rules": [
+     {
+      "rule_id": "weaver_lake_and_weaver_creek.r1",
+      "type": "retention_limit",
+      "verbatim": "No Fishing from fishing boundary signs at log booms on Weaver Lake downstream to where Sakwi Creek enters Weaver Creek",
+      "species": [
+       "ALL_GAME_FISH"
+      ],
+      "take": 0,
+      "may_target": false,
+      "extents": [
+       {
+        "op": "between",
+        "splits": [
+         "weaver_creek__weaver_lake",
+         "weaver_lake_and_weaver_creek__sakwi_creek_into_weaver_creek"
+        ],
+        "item_id": "gnis:25951"
+       }
+      ]
+     },
+     {
+      "rule_id": "weaver_lake_and_weaver_creek.r2",
+      "type": "vessel_rule",
+      "verbatim": "Engine power restriction on Weaver Lake - 7.5 kW (10 hp)",
+      "aspect": "propulsion",
+      "level": "power_capped",
+      "max_power_kw": 7.5,
+      "extents": [
+       {
+        "op": "whole",
+        "item_id": "wbk:329177889"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "tier": "P1",
+   "risks": [
+    "cut",
+    "several waters",
+    "flag"
+   ],
+   "entry": {
+    "entry_id": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8",
+    "name": "ATNARKO/BELLA COOLA RIVERS [Includes Tributaries] EXCEPT: Burnt Bridge Creek upstream of Sitkatapa Creek, Hunlen Creek upstream of Hunlen Falls, and Young Creek upstream of Hwy 20 (see separate entries for these three waters)",
+    "display_name": "Bella Coola River",
+    "region": "5",
+    "scope_note": "EXCEPT: Burnt Bridge Creek upstream of Sitkatapa Creek, Hunlen Creek upstream of Hunlen Falls, and Young Creek upstream of Hwy 20 — covered by separate entries",
+    "regs_verbatim": "**No Fishing** upstream of Tweedsmuir Provincial Park plus Tenas Lake, Apr 1-June 30\n**No Fishing** from Tenas Lake to fishing boundary signs near Atnarko Park campsite\nTrout/char daily quota = 1 (none under 25 cm and all cutthroat trout catch and release) EXCEPT: on Bella Coola R. MAINSTEM ONLY, trout/\nchar daily quota = 2, of which only one may be a trout (cutthroat or rainbow) and none may be under 25 cm, no cutthroat may be over 33\ncm, and no rainbow may be over 50 cm), Apr 1-May 31 ONLY, EXCEPT: char catch and release (on TRIBUTARIES ONLY), Sept 1-May 31\nBait ban downstream of eastern boundary of Tweedsmuir Provincial Park, Sept 1- May 15\nNo angling from powered boats on mainstems of Atnarko River and Bella Coola River\nNo powered boats on Atnarko River, from Goat Creek to the confluence with Talchako River\n**No Fishing** for steelhead\n**Class II water downstream of Young Creek, Mar 1-May 31. NOTE: Classified Waters Licence or Steelhead Stamp not required until\nreopened to steelhead fishing**",
+    "source_pages": [
+     43
+    ],
+    "symbols": [
+     "Classified",
+     "Incl. Tribs"
+    ],
+    "matched": [
+     "gnis:11611",
+     "gnis:17209",
+     "gnis:29411"
+    ],
+    "includes_tributaries": true,
+    "rules": [
+     {
+      "rule_id": "atnarko_bella_coola_rivers.r1",
+      "type": "retention_limit",
+      "verbatim": "No Fishing upstream of Tweedsmuir Provincial Park plus Tenas Lake, Apr 1-June 30",
+      "species": [
+       "ALL_GAME_FISH"
+      ],
+      "when": {
+       "dates": [
+        {
+         "from_month": 4,
+         "from_day": 1,
+         "to_month": 6,
+         "to_day": 30
+        }
+       ]
+      },
+      "take": 0,
+      "may_target": false,
+      "extents": [
+       {
+        "op": "upstream_of",
+        "splits": [
+         "atnarko_bella_coola_rivers_includes_tributaries_exce__tweedsmuir_park_eastern_boundary"
+        ]
+       },
+       {
+        "op": "whole",
+        "item_id": "wbk:329021804"
+       }
+      ],
+      "tributary_excludes": [
+       {
+        "op": "upstream_of",
+        "item_id": "gnis:2100",
+        "splits": [
+         "burnt_bridge_creek__sitkatapa_confluence"
+        ]
+       },
+       {
+        "op": "upstream_of",
+        "item_id": "gnis:22290",
+        "splits": [
+         "hunlen_creek__hunlen_falls"
+        ]
+       },
+       {
+        "op": "upstream_of",
+        "item_id": "gnis:1914",
+        "splits": [
+         "young_creek__young_hwy20"
+        ]
+       }
+      ],
+      "extent_text": "upstream of Tweedsmuir Provincial Park plus Tenas Lake"
+     },
+     {
+      "rule_id": "atnarko_bella_coola_rivers.r2",
+      "type": "retention_limit",
+      "verbatim": "No Fishing from Tenas Lake to fishing boundary signs near Atnarko Park campsite",
+      "species": [
+       "ALL_GAME_FISH"
+      ],
+      "take": 0,
+      "may_target": false,
+      "extents": [
+       {
+        "op": "between",
+        "splits": [
+         "atnarko_bella_coola_rivers_includes_tributaries_exce__atnarko_park_campsite_boundary_signs",
+         "atnarko_bella_coola_rivers_includes_tributaries_exce__south_atnarko_river_into_atnarko_river"
+        ],
+        "item_id": "gnis:17209"
+       },
+       {
+        "op": "between",
+        "splits": [
+         "atnarko_bella_coola_rivers_includes_tributaries_exce__south_atnarko_river_into_atnarko_river",
+         "south_atnarko_river__tenas_lake"
+        ],
+        "item_ids": [
+         "gnis:17209",
+         "gnis:29411"
+        ]
+       }
+      ],
+      "tributary_excludes": [
+       {
+        "op": "upstream_of",
+        "splits": [
+         "atnarko_bella_coola_rivers_includes_tributaries_exce__south_atnarko_river_into_atnarko_river"
+        ],
+        "item_id": "gnis:17209"
+       },
+       {
+        "op": "upstream_of",
+        "item_id": "gnis:2100",
+        "splits": [
+         "burnt_bridge_creek__sitkatapa_confluence"
+        ]
+       },
+       {
+        "op": "upstream_of",
+        "item_id": "gnis:22290",
+        "splits": [
+         "hunlen_creek__hunlen_falls"
+        ]
+       },
+       {
+        "op": "upstream_of",
+        "item_id": "gnis:1914",
+        "splits": [
+         "young_creek__young_hwy20"
+        ]
+       }
+      ]
+     },
+     {
+      "rule_id": "atnarko_bella_coola_rivers.r3",
+      "type": "retention_limit",
+      "verbatim": "Trout/char daily quota = 1 (none under 25 cm and all cutthroat trout catch and release)",
+      "species": [
+       "TROUT_CHAR"
+      ],
+      "take": 1,
+      "lengths": [
+       {
+        "min_cm": 25
+       },
+       {
+        "max_cm": 25,
+        "take": 0
+       }
+      ],
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ],
+      "tributary_excludes": [
+       {
+        "op": "upstream_of",
+        "item_id": "gnis:2100",
+        "splits": [
+         "burnt_bridge_creek__sitkatapa_confluence"
+        ]
+       },
+       {
+        "op": "upstream_of",
+        "item_id": "gnis:22290",
+        "splits": [
+         "hunlen_creek__hunlen_falls"
+        ]
+       },
+       {
+        "op": "upstream_of",
+        "item_id": "gnis:1914",
+        "splits": [
+         "young_creek__young_hwy20"
+        ]
+       }
+      ]
+     },
+     {
+      "rule_id": "atnarko_bella_coola_rivers.r4",
+      "type": "retention_limit",
+      "verbatim": "all cutthroat trout catch and release",
+      "species": [
+       "CT"
+      ],
+      "take": 0,
+      "may_target": true,
+      "within": "atnarko_bella_coola_rivers.r3",
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ],
+      "tributary_excludes": [
+       {
+        "op": "upstream_of",
+        "item_id": "gnis:2100",
+        "splits": [
+         "burnt_bridge_creek__sitkatapa_confluence"
+        ]
+       },
+       {
+        "op": "upstream_of",
+        "item_id": "gnis:22290",
+        "splits": [
+         "hunlen_creek__hunlen_falls"
+        ]
+       },
+       {
+        "op": "upstream_of",
+        "item_id": "gnis:1914",
+        "splits": [
+         "young_creek__young_hwy20"
+        ]
+       }
+      ]
+     },
+     {
+      "rule_id": "atnarko_bella_coola_rivers.r5",
+      "type": "retention_limit",
+      "verbatim": "on Bella Coola R. MAINSTEM ONLY, trout/\nchar daily quota = 2, of which only one may be a trout (cutthroat or rainbow) and none may be under 25 cm",
+      "species": [
+       "TROUT_CHAR"
+      ],
+      "when": {
+       "dates": [
+        {
+         "from_month": 4,
+         "from_day": 1,
+         "to_month": 5,
+         "to_day": 31
+        }
+       ]
+      },
+      "take": 2,
+      "lengths": [
+       {
+        "min_cm": 25
+       },
+       {
+        "max_cm": 25,
+        "take": 0
+       }
+      ],
+      "includes_tributaries": false,
+      "extents": [
+       {
+        "op": "whole",
+        "item_id": "gnis:11611"
+       }
+      ],
+      "exempts": [
+       {
+        "target": "atnarko_bella_coola_rivers.r3",
+        "note": "EXCEPT: on Bella Coola R. MAINSTEM ONLY, trout/char daily quota = 2 … Apr 1-May 31 ONLY — replaces the row's 'Trout/char daily quota = 1 (none under 25 cm and all cutthroat trout catch and release)' there"
+       },
+       {
+        "target": "atnarko_bella_coola_rivers.r4",
+        "note": "EXCEPT: on Bella Coola R. MAINSTEM ONLY, trout/char daily quota = 2 … Apr 1-May 31 ONLY — replaces the row's 'Trout/char daily quota = 1 (none under 25 cm and all cutthroat trout catch and release)' there"
+       }
+      ]
+     },
+     {
+      "rule_id": "atnarko_bella_coola_rivers.r6",
+      "type": "retention_limit",
+      "verbatim": "of which only one may be a trout (cutthroat or rainbow) and none may be under 25 cm",
+      "species": [
+       "CT",
+       "RB"
+      ],
+      "when": {
+       "dates": [
+        {
+         "from_month": 4,
+         "from_day": 1,
+         "to_month": 5,
+         "to_day": 31
+        }
+       ]
+      },
+      "take": 1,
+      "within": "atnarko_bella_coola_rivers.r5",
+      "includes_tributaries": false,
+      "extents": [
+       {
+        "op": "whole",
+        "item_id": "gnis:11611"
+       }
+      ]
+     },
+     {
+      "rule_id": "atnarko_bella_coola_rivers.r7",
+      "type": "retention_limit",
+      "verbatim": "no cutthroat may be over 33\ncm",
+      "species": [
+       "CT"
+      ],
+      "when": {
+       "dates": [
+        {
+         "from_month": 4,
+         "from_day": 1,
+         "to_month": 5,
+         "to_day": 31
+        }
+       ]
+      },
+      "within": "atnarko_bella_coola_rivers.r6",
+      "lengths": [
+       {
+        "min_cm": 33,
+        "take": 0
+       }
+      ],
+      "includes_tributaries": false,
+      "extents": [
+       {
+        "op": "whole",
+        "item_id": "gnis:11611"
+       }
+      ]
+     },
+     {
+      "rule_id": "atnarko_bella_coola_rivers.r8",
+      "type": "retention_limit",
+      "verbatim": "no rainbow may be over 50 cm",
+      "species": [
+       "RB"
+      ],
+      "when": {
+       "dates": [
+        {
+         "from_month": 4,
+         "from_day": 1,
+         "to_month": 5,
+         "to_day": 31
+        }
+       ]
+      },
+      "within": "atnarko_bella_coola_rivers.r6",
+      "lengths": [
+       {
+        "min_cm": 50,
+        "take": 0
+       }
+      ],
+      "includes_tributaries": false,
+      "extents": [
+       {
+        "op": "whole",
+        "item_id": "gnis:11611"
+       }
+      ]
+     },
+     {
+      "rule_id": "atnarko_bella_coola_rivers.r9",
+      "type": "retention_limit",
+      "verbatim": "char catch and release (on TRIBUTARIES ONLY), Sept 1-May 31",
+      "species": [
+       "CHAR"
+      ],
+      "when": {
+       "dates": [
+        {
+         "from_month": 9,
+         "from_day": 1,
+         "to_month": 5,
+         "to_day": 31
+        }
+       ]
+      },
+      "take": 0,
+      "may_target": true,
+      "tributaries_only": true,
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ],
+      "tributary_excludes": [
+       {
+        "op": "upstream_of",
+        "item_id": "gnis:2100",
+        "splits": [
+         "burnt_bridge_creek__sitkatapa_confluence"
+        ]
+       },
+       {
+        "op": "upstream_of",
+        "item_id": "gnis:22290",
+        "splits": [
+         "hunlen_creek__hunlen_falls"
+        ]
+       },
+       {
+        "op": "upstream_of",
+        "item_id": "gnis:1914",
+        "splits": [
+         "young_creek__young_hwy20"
+        ]
+       }
+      ]
+     },
+     {
+      "rule_id": "atnarko_bella_coola_rivers.r10",
+      "type": "bait_restriction",
+      "verbatim": "Bait ban downstream of eastern boundary of Tweedsmuir Provincial Park, Sept 1- May 15",
+      "gear": [
+       {
+        "slot": "bait",
+        "ban": [
+         "any_bait"
+        ]
+       }
+      ],
+      "when": {
+       "dates": [
+        {
+         "from_month": 9,
+         "from_day": 1,
+         "to_month": 5,
+         "to_day": 15
+        }
+       ]
+      },
+      "extents": [
+       {
+        "op": "downstream_of",
+        "splits": [
+         "atnarko_bella_coola_rivers_includes_tributaries_exce__tweedsmuir_park_eastern_boundary"
+        ]
+       }
+      ],
+      "tributary_excludes": [
+       {
+        "op": "upstream_of",
+        "item_id": "gnis:2100",
+        "splits": [
+         "burnt_bridge_creek__sitkatapa_confluence"
+        ]
+       },
+       {
+        "op": "upstream_of",
+        "item_id": "gnis:22290",
+        "splits": [
+         "hunlen_creek__hunlen_falls"
+        ]
+       },
+       {
+        "op": "upstream_of",
+        "item_id": "gnis:1914",
+        "splits": [
+         "young_creek__young_hwy20"
+        ]
+       }
+      ]
+     },
+     {
+      "rule_id": "atnarko_bella_coola_rivers.r11",
+      "type": "method_rule",
+      "verbatim": "No angling from powered boats on mainstems of Atnarko River and Bella Coola River",
+      "gear": [
+       {
+        "slot": "method",
+        "ban": [
+         "angling"
+        ],
+        "when": {
+         "angler": "in_powered_boat"
+        }
+       }
+      ],
+      "includes_tributaries": false,
+      "extents": [
+       {
+        "op": "whole",
+        "item_ids": [
+         "gnis:17209",
+         "gnis:11611"
+        ]
+       }
+      ]
+     },
+     {
+      "rule_id": "atnarko_bella_coola_rivers.r12",
+      "type": "vessel_rule",
+      "verbatim": "No powered boats on Atnarko River, from Goat Creek to the confluence with Talchako River",
+      "aspect": "propulsion",
+      "level": "unpowered",
+      "extents": [
+       {
+        "op": "between",
+        "splits": [
+         "atnarko_bella_coola_rivers_includes_tributaries_exce__goat_creek_into_atnarko_river",
+         "atnarko_bella_coola_rivers_includes_tributaries_exce__talchako_river_into_bella_coola_river"
+        ],
+        "item_ids": [
+         "gnis:17209",
+         "gnis:11611"
+        ]
+       }
+      ],
+      "tributary_excludes": [
+       {
+        "op": "upstream_of",
+        "item_id": "gnis:2100",
+        "splits": [
+         "burnt_bridge_creek__sitkatapa_confluence"
+        ]
+       },
+       {
+        "op": "upstream_of",
+        "item_id": "gnis:22290",
+        "splits": [
+         "hunlen_creek__hunlen_falls"
+        ]
+       },
+       {
+        "op": "upstream_of",
+        "item_id": "gnis:1914",
+        "splits": [
+         "young_creek__young_hwy20"
+        ]
+       }
+      ]
+     },
+     {
+      "rule_id": "atnarko_bella_coola_rivers.r13",
+      "type": "retention_limit",
+      "verbatim": "No Fishing for steelhead",
+      "species": [
+       "ST"
+      ],
+      "take": 0,
+      "may_target": false,
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ],
+      "tributary_excludes": [
+       {
+        "op": "upstream_of",
+        "item_id": "gnis:2100",
+        "splits": [
+         "burnt_bridge_creek__sitkatapa_confluence"
+        ]
+       },
+       {
+        "op": "upstream_of",
+        "item_id": "gnis:22290",
+        "splits": [
+         "hunlen_creek__hunlen_falls"
+        ]
+       },
+       {
+        "op": "upstream_of",
+        "item_id": "gnis:1914",
+        "splits": [
+         "young_creek__young_hwy20"
+        ]
+       }
+      ]
+     }
+    ],
+    "licensing": [
+     {
+      "id": "atnarko_bella_coola_rivers",
+      "classified": "II",
+      "unit": "atnarko_bella_coola_rivers",
+      "unit_name": "Atnarko/Bella Coola Rivers",
+      "when": {
+       "dates": [
+        {
+         "from_month": 3,
+         "from_day": 1,
+         "to_month": 5,
+         "to_day": 31
+        }
+       ]
+      },
+      "extents": [
+       {
+        "op": "downstream_of",
+        "splits": [
+         "atnarko_bella_coola_rivers_includes_tributaries_exce__young_creek_into_atnarko_river"
+        ]
+       }
+      ],
+      "tributary_excludes": [
+       {
+        "op": "upstream_of",
+        "item_id": "gnis:2100",
+        "splits": [
+         "burnt_bridge_creek__sitkatapa_confluence"
+        ]
+       },
+       {
+        "op": "upstream_of",
+        "item_id": "gnis:22290",
+        "splits": [
+         "hunlen_creek__hunlen_falls"
+        ]
+       },
+       {
+        "op": "upstream_of",
+        "item_id": "gnis:1914",
+        "splits": [
+         "young_creek__young_hwy20"
+        ]
+       }
+      ],
+      "steelhead_stamp_during": {
+       "when": {
+        "unparsed": [
+         "from reopening to steelhead fishing; the period is not printed"
+        ]
+       },
+       "verbatim": "NOTE: Classified Waters Licence or Steelhead Stamp not required until\nreopened to steelhead fishing"
+      },
+      "suspended_while": [
+       {
+        "rule_id": "atnarko_bella_coola_rivers.r13",
+        "verbatim": "NOTE: Classified Waters Licence or Steelhead Stamp not required until\nreopened to steelhead fishing"
+       }
+      ],
+      "verbatim": "Class II water downstream of Young Creek, Mar 1-May 31",
+      "review_reason": "the classified-water stamp period on reopening is implied by the note, not printed — unknown until an in-season notice states it",
+      "kind": "designation"
+     }
+    ],
+    "anadromous_rainbow": true
+   }
+  },
+  {
+   "tier": "P1",
+   "risks": [
+    "flag"
+   ],
+   "entry": {
+    "entry_id": "r4:whitetail_lake_s_inlet_outlet_streams@4-26",
+    "name": "WHITETAIL LAKE'S INLET & OUTLET STREAMS",
+    "region": "4",
+    "regs_verbatim": "**No Fishing**",
+    "source_pages": [
+     40
+    ],
+    "matched": [
+     "gnis:27659"
+    ],
+    "rules": [
+     {
+      "rule_id": "whitetail_lakes_inlet_outlet_streams.r1",
+      "type": "retention_limit",
+      "verbatim": "No Fishing",
+      "species": [
+       "ALL_GAME_FISH"
+      ],
+      "take": 0,
+      "may_target": false,
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ],
+      "review_reason": "placed on Whitetail Creek only (the one named stream at Whitetail Lake); unnamed inlet and outlet streams have no registry item and are not placed"
+     }
+    ]
+   }
+  },
+  {
+   "tier": "P1",
+   "risks": [
+    "flag"
+   ],
+   "entry": {
+    "entry_id": "r2:squamish_river_s_tributaries@2-6",
+    "name": "SQUAMISH RIVER'S TRIBUTARIES",
+    "display_name": "Squamish River",
+    "region": "2",
+    "regs_verbatim": "**No Fishing** tributaries EXCEPT: Ashlu Creek, Cheakamus, Elaho and Mamquam Rivers, and the Squamish Powerhouse Channel",
+    "source_pages": [
+     26
+    ],
+    "matched": [
+     "gnis:25671"
+    ],
+    "extents": [
+     {
+      "op": "whole"
+     }
+    ],
+    "rules": [
+     {
+      "rule_id": "squamish_river_tributaries.r1",
+      "type": "retention_limit",
+      "verbatim": "No Fishing tributaries EXCEPT: Ashlu Creek, Cheakamus, Elaho and Mamquam Rivers, and the Squamish Powerhouse Channel",
+      "species": [
+       "ALL_GAME_FISH"
+      ],
+      "take": 0,
+      "may_target": false,
+      "tributaries_only": true,
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ],
+      "tributary_excludes": [
+       {
+        "op": "whole",
+        "item_id": "gnis:17155",
+        "walk_past": true
+       },
+       {
+        "op": "whole",
+        "item_id": "gnis:12999",
+        "walk_past": true
+       },
+       {
+        "op": "whole",
+        "item_id": "gnis:10716",
+        "walk_past": true
+       },
+       {
+        "op": "whole",
+        "item_id": "gnis:12746",
+        "walk_past": true
+       },
+       {
+        "op": "whole",
+        "item_id": "blk:360219234",
+        "walk_past": true
+       },
+       {
+        "op": "whole",
+        "item_id": "wsc:900-105574-416908",
+        "walk_past": true
+       }
+      ],
+      "review_reason": "tributaries_only, with the five printed exceptions as tributary_excludes (Ashlu Creek gnis:17155, Cheakamus River gnis:12999, Elaho River gnis:10716, Mamquam River gnis:12746, the Squamish Powerhouse Channel blk:360219234 / wsc:900-105574-416908). Bound as `whole` of the Squamish River it closed the MAINSTEM, which the row does not name."
+     }
+    ]
+   }
+  },
+  {
+   "tier": "P1",
+   "risks": [
+    "several waters"
+   ],
+   "entry": {
+    "entry_id": "r5:tanya_lake_s_tributaries@5-10",
+    "name": "TANYA LAKE'S TRIBUTARIES",
+    "display_name": "Tanya Lakes",
+    "region": "5",
+    "regs_verbatim": "**No Fishing**",
+    "source_pages": [
+     47
+    ],
+    "matched": [
+     "wbk:329283053",
+     "wbk:329283058"
+    ],
+    "rules": [
+     {
+      "rule_id": "tanya_lakes_tributaries.r1",
+      "type": "retention_limit",
+      "verbatim": "No Fishing",
+      "species": [
+       "ALL_GAME_FISH"
+      ],
+      "take": 0,
+      "may_target": false,
+      "tributaries_only": true,
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "tier": "P1",
+   "risks": [
+    "several waters"
+   ],
+   "entry": {
+    "entry_id": "r2:twin_lakes@2-8",
+    "name": "TWIN LAKES",
+    "display_name": "Twin Lakes",
+    "region": "2",
+    "regs_verbatim": "**No Fishing**",
+    "source_pages": [
+     26
+    ],
+    "symbols": [
+     "Incl. Tribs"
+    ],
+    "matched": [
+     "wbk:329291951",
+     "wbk:329291976"
+    ],
+    "extents": [
+     {
+      "op": "whole"
+     }
+    ],
+    "includes_tributaries": true,
+    "rules": [
+     {
+      "rule_id": "twin_lakes.r1",
+      "type": "retention_limit",
+      "verbatim": "No Fishing",
+      "species": [
+       "ALL_GAME_FISH"
+      ],
+      "take": 0,
+      "may_target": false,
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "tier": "P1",
+   "risks": [
+    "undrawn part",
+    "cut",
+    "flag"
+   ],
+   "entry": {
+    "entry_id": "r2:harrison_river_from_the_fraser_river_upstream_to_harrison_la@2-18",
+    "name": "HARRISON RIVER (from the Fraser River upstream to Harrison Lake)",
+    "display_name": "Harrison River",
+    "region": "2",
+    "regs_verbatim": "**No Fishing** from one hour after sunset to one hour before sunrise, tributaries not included\nDead fin fish may be used for bait only when fishing for sturgeon (see page 8 in the Provincial Regulations)\nSpeed restriction or no powered boats in small bays along the river as signed",
+    "source_pages": [
+     23
+    ],
+    "matched": [
+     "gnis:15333"
+    ],
+    "extents": [
+     {
+      "op": "downstream_of",
+      "splits": [
+       "harrison_river__harrison_lake"
+      ],
+      "item_id": "gnis:15333"
+     }
+    ],
+    "rules": [
+     {
+      "rule_id": "harrison_river.r1",
+      "type": "retention_limit",
+      "verbatim": "No Fishing from one hour after sunset to one hour before sunrise, tributaries not included",
+      "species": [
+       "ALL_GAME_FISH"
+      ],
+      "when": {
+       "hours": {
+        "start": {
+         "solar": "sunset",
+         "offset_min": 60
+        },
+        "end": {
+         "solar": "sunrise",
+         "offset_min": -60
+        }
+       }
+      },
+      "take": 0,
+      "may_target": false,
+      "extents": [
+       {
+        "op": "downstream_of",
+        "splits": [
+         "harrison_river__harrison_lake"
+        ],
+        "item_id": "gnis:15333"
+       }
+      ]
+     },
+     {
+      "rule_id": "harrison_river.r2",
+      "type": "bait_restriction",
+      "verbatim": "Dead fin fish may be used for bait only when fishing for sturgeon",
+      "gear": [
+       {
+        "slot": "bait",
+        "allow": [
+         "dead_fin_fish"
+        ]
+       }
+      ],
+      "when_targeting": [
+       "WSG"
+      ],
+      "extents": [
+       {
+        "op": "downstream_of",
+        "splits": [
+         "harrison_river__harrison_lake"
+        ],
+        "item_id": "gnis:15333"
+       }
+      ]
+     },
+     {
+      "rule_id": "harrison_river.r3",
+      "type": "vessel_rule",
+      "verbatim": "Speed restriction or no powered boats in small bays along the river as signed",
+      "aspect": "speed",
+      "extents": [
+       {
+        "op": "downstream_of",
+        "splits": [
+         "harrison_river__harrison_lake"
+        ],
+        "item_id": "gnis:15333"
+       }
+      ],
+      "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): no km/h value is given, the rule alternates between a speed restriction and a full powered-boat ban depending on local signage, and 'small bays along the river' has no bindable location",
+      "undrawn_part": "in small bays along the river as signed"
+     }
+    ]
+   }
+  },
+  {
+   "tier": "P1",
+   "risks": [
+    "undrawn part",
+    "cut",
+    "several waters",
+    "flag"
+   ],
+   "entry": {
+    "entry_id": "r4:columbia_river@4-15+4-26+4-34+4-38+4-8",
+    "name": "COLUMBIA RIVER",
+    "display_name": "Columbia River",
+    "region": "4",
+    "regs_verbatim": "**No Fishing** from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke\n**No Fishing** from a line between the old Robson Ferry landing and a sign on the south river bank, downstream approximately 950 m to the\nCPR Bridge, Mar 1-June 30\nWhere angling is permitted: EXEMPT from the regional Nov 1-Mar 31 trout/char catch and release and the regional Apr 1-June 14 closure\nBass daily quota = unlimited\nKokanee daily quota = 15 from Keenleyside Dam to a line between the old Robson Ferry landing and a sign on the south river bank\nWalleye daily quota = 16 from Keenleyside Dam to the Washington state border\nFrom Keenleyside Dam downstream to the Washington state border and connected reaches: the Kootenay River (Columbia River\nconfluence to Brilliant Dam) and the Pend d'Oreille River (Columbia River confluence to Waneta Dam): Northern pike daily quota =\nunlimited and bass daily quota = unlimited\nBurbot catch and release\nSpeed restriction (10 km/h) from Mud Lake to Columbia Lake, no power boats in wetlands, no towing and engine power restriction -\n15 kW (20 hp), in main channel from Fairmont to Donald\nSee Upper Arrow Lake for the portion of the Columbia River which may be found downstream of the Hwy 1 bridge in Revelstoke\n(depending on reservoir level)",
+    "source_pages": [
+     35
+    ],
+    "matched": [
+     "gnis:37414",
+     "gnis:17696",
+     "gnis:7958",
+     "gnis:8203"
+    ],
+    "extents": [
+     {
+      "op": "whole"
+     }
+    ],
+    "rules": [
+     {
+      "rule_id": "columbia_river.r1",
+      "type": "retention_limit",
+      "verbatim": "No Fishing from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke",
+      "species": [
+       "ALL_GAME_FISH"
+      ],
+      "take": 0,
+      "may_target": false,
+      "extents": [
+       {
+        "op": "between",
+        "splits": [
+         "columbia_river__revelstoke_dam",
+         "columbia_river__hwy_1_bridge_in_revelstoke"
+        ]
+       }
+      ]
+     },
+     {
+      "rule_id": "columbia_river.r2",
+      "type": "retention_limit",
+      "verbatim": "No Fishing from a line between the old Robson Ferry landing and a sign on the south river bank, downstream approximately 950 m to the\nCPR Bridge, Mar 1-June 30",
+      "species": [
+       "ALL_GAME_FISH"
+      ],
+      "when": {
+       "dates": [
+        {
+         "from_month": 3,
+         "from_day": 1,
+         "to_month": 6,
+         "to_day": 30
+        }
+       ]
+      },
+      "take": 0,
+      "may_target": false,
+      "extents": [
+       {
+        "op": "between",
+        "splits": [
+         "columbia_river__old_robson_ferry_landing_south_bank_sign",
+         "columbia_river__cpr_bridge_robson"
+        ]
+       }
+      ],
+      "extent_text": "from a line between the old Robson Ferry landing and a sign on the south river bank, downstream approximately 950 m to the CPR Bridge"
+     },
+     {
+      "rule_id": "columbia_river.r3",
+      "type": "retention_limit",
+      "verbatim": "Where angling is permitted: EXEMPT from the regional Nov 1-Mar 31 trout/char catch and release",
+      "species": [
+       "TROUT_CHAR"
+      ],
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ],
+      "exempts": [
+       {
+        "default_id": "trout_char_winter_release"
+       }
+      ]
+     },
+     {
+      "rule_id": "columbia_river.r4",
+      "type": "retention_limit",
+      "verbatim": "Where angling is permitted: EXEMPT from the regional Nov 1-Mar 31 trout/char catch and release and the regional Apr 1-June 14 closure",
+      "species": [
+       "ALL_GAME_FISH"
+      ],
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ],
+      "exempts": [
+       {
+        "default_id": "spring_stream_closure"
+       }
+      ]
+     },
+     {
+      "rule_id": "columbia_river.r5",
+      "type": "retention_limit",
+      "verbatim": "Bass daily quota = unlimited",
+      "species": [
+       "BASS"
+      ],
+      "unlimited": true,
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ],
+      "exempts": [
+       {
+        "target": "species_quotas.r1",
+        "entry_id": "z4:daily_quotas",
+        "note": "reopened on this water"
+       },
+       {
+        "target": "invasive_species_notice.r1",
+        "entry_id": "z4:invasive_species_notice",
+        "note": "one of the waters listed in the tables"
+       }
+      ]
+     },
+     {
+      "rule_id": "columbia_river.r6",
+      "type": "retention_limit",
+      "verbatim": "Kokanee daily quota = 15 from Keenleyside Dam to a line between the old Robson Ferry landing and a sign on the south river bank",
+      "species": [
+       "KO"
+      ],
+      "take": 15,
+      "extents": [
+       {
+        "op": "between",
+        "splits": [
+         "columbia_river__keenleyside_dam",
+         "columbia_river__old_robson_ferry_landing_south_bank_sign"
+        ]
+       }
+      ],
+      "exempts": [
+       {
+        "target": "species_quotas.r5",
+        "entry_id": "z4:daily_quotas",
+        "note": "kokanee may be kept on this reach of the river"
+       }
+      ],
+      "extent_text": "from Keenleyside Dam to a line between the old Robson Ferry landing and a sign on the south river bank"
+     },
+     {
+      "rule_id": "columbia_river.r7",
+      "type": "retention_limit",
+      "verbatim": "Walleye daily quota = 16 from Keenleyside Dam to the Washington state border",
+      "species": [
+       "WP"
+      ],
+      "take": 16,
+      "extents": [
+       {
+        "op": "between",
+        "splits": [
+         "columbia_river__keenleyside_dam",
+         "columbia_river__washington_state_border"
+        ]
+       }
+      ],
+      "exempts": [
+       {
+        "target": "species_quotas.r8",
+        "entry_id": "z4:daily_quotas",
+        "note": "reopened on this water"
+       },
+       {
+        "target": "invasive_species_notice.r1",
+        "entry_id": "z4:invasive_species_notice",
+        "note": "one of the waters listed in the tables"
+       }
+      ]
+     },
+     {
+      "rule_id": "columbia_river.r8",
+      "type": "retention_limit",
+      "verbatim": "Northern pike daily quota =\nunlimited",
+      "species": [
+       "NP"
+      ],
+      "unlimited": true,
+      "extents": [
+       {
+        "op": "between",
+        "splits": [
+         "columbia_river__keenleyside_dam",
+         "columbia_river__washington_state_border"
+        ]
+       }
+      ],
+      "exempts": [
+       {
+        "target": "species_quotas.r7",
+        "entry_id": "z4:daily_quotas",
+        "note": "reopened on this water"
+       },
+       {
+        "target": "invasive_species_notice.r1",
+        "entry_id": "z4:invasive_species_notice",
+        "note": "one of the waters listed in the tables"
+       }
+      ],
+      "extent_text": "From Keenleyside Dam downstream to the Washington state border and connected reaches: the Kootenay River (Columbia River confluence to Brilliant Dam) and the Pend d'Oreille River (Columbia River confluence to Waneta Dam)",
+      "review_reason": "the connected reaches on the Kootenay River and Pend d'Oreille River are named but neither water is among this entry's matched registry items — only the Columbia River segment (Keenleyside Dam to Washington border) could be bound"
+     },
+     {
+      "rule_id": "columbia_river.r9",
+      "type": "retention_limit",
+      "verbatim": "bass daily quota = unlimited",
+      "species": [
+       "BASS"
+      ],
+      "unlimited": true,
+      "extents": [
+       {
+        "op": "between",
+        "splits": [
+         "columbia_river__keenleyside_dam",
+         "columbia_river__washington_state_border"
+        ]
+       }
+      ],
+      "exempts": [
+       {
+        "target": "species_quotas.r1",
+        "entry_id": "z4:daily_quotas",
+        "note": "reopened on this water"
+       },
+       {
+        "target": "invasive_species_notice.r1",
+        "entry_id": "z4:invasive_species_notice",
+        "note": "one of the waters listed in the tables"
+       }
+      ],
+      "extent_text": "From Keenleyside Dam downstream to the Washington state border and connected reaches: the Kootenay River (Columbia River confluence to Brilliant Dam) and the Pend d'Oreille River (Columbia River confluence to Waneta Dam)",
+      "review_reason": "the connected reaches on the Kootenay River and Pend d'Oreille River are named but neither water is among this entry's matched registry items — only the Columbia River segment (Keenleyside Dam to Washington border) could be bound"
+     },
+     {
+      "rule_id": "columbia_river.r10",
+      "type": "retention_limit",
+      "verbatim": "Burbot catch and release",
+      "species": [
+       "BB"
+      ],
+      "take": 0,
+      "may_target": true,
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ]
+     },
+     {
+      "rule_id": "columbia_river.r11",
+      "type": "vessel_rule",
+      "verbatim": "Speed restriction (10 km/h) from Mud Lake to Columbia Lake",
+      "aspect": "speed",
+      "max_kmh": 10.0,
+      "extents": [
+       {
+        "op": "between",
+        "splits": [
+         "columbia_river__fairmont",
+         "columbia_river__columbia_lake"
+        ]
+       }
+      ]
+     },
+     {
+      "rule_id": "columbia_river.r12",
+      "type": "vessel_rule",
+      "verbatim": "no power boats in wetlands",
+      "aspect": "propulsion",
+      "level": "unpowered",
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ],
+      "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): 'wetlands' is not a bindable area id in this item's boundary menu",
+      "undrawn_part": "in wetlands"
+     },
+     {
+      "rule_id": "columbia_river.r13",
+      "type": "vessel_rule",
+      "verbatim": "no towing",
+      "aspect": "towing",
+      "extents": [
+       {
+        "op": "between",
+        "splits": [
+         "columbia_river__fairmont",
+         "gauge__08NB005"
+        ]
+       }
+      ]
+     },
+     {
+      "rule_id": "columbia_river.r14",
+      "type": "vessel_rule",
+      "verbatim": "engine power restriction -\n15 kW (20 hp), in main channel from Fairmont to Donald",
+      "aspect": "propulsion",
+      "level": "power_capped",
+      "max_power_kw": 15.0,
+      "extents": [
+       {
+        "op": "between",
+        "splits": [
+         "columbia_river__fairmont",
+         "gauge__08NB005"
+        ]
+       }
+      ]
+     }
+    ],
+    "see": [
+     {
+      "verbatim": "See Upper Arrow Lake for the portion of the Columbia River which may be found downstream of the Hwy 1 bridge in Revelstoke\n(depending on reservoir level)",
+      "entry_ids": [
+       "r4:upper_arrow_lake_drawdown_area@4-31+4-32"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "tier": "P1",
+   "risks": [
+    "undrawn part",
+    "flag"
+   ],
+   "entry": {
+    "entry_id": "r6:silverthorne_erickson_lake@6-9",
+    "name": "SILVERTHORNE (Erickson) LAKE",
+    "display_name": "Silverthorne Lake",
+    "region": "6",
+    "regs_verbatim": "**No Fishing** within 50 m of the outlet, May 1-June 30",
+    "source_pages": [
+     53
+    ],
+    "matched": [
+     "wbk:329385453"
+    ],
+    "rules": [
+     {
+      "rule_id": "silverthorne_lake.r1",
+      "type": "retention_limit",
+      "verbatim": "No Fishing within 50 m of the outlet, May 1-June 30",
+      "species": [
+       "ALL_GAME_FISH"
+      ],
+      "when": {
+       "dates": [
+        {
+         "from_month": 5,
+         "from_day": 1,
+         "to_month": 6,
+         "to_day": 30
+        }
+       ]
+      },
+      "take": 0,
+      "may_target": false,
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ],
+      "unresolved_locators": [
+       "within 50 m of the outlet"
+      ],
+      "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): no cut-point available for 'within 50 m of the outlet' — item has no bindable boundaries beyond op:whole",
+      "undrawn_part": "within 50 m of the outlet"
+     }
+    ]
+   }
+  },
+  {
+   "tier": "P1",
+   "risks": [
+    "undrawn part",
+    "flag"
+   ],
+   "entry": {
+    "entry_id": "r4:kinbasket_mcnaughton_lake@4-36",
+    "name": "KINBASKET (McNaughton) LAKE",
+    "display_name": "Kinbasket Lake",
+    "region": "4",
+    "regs_verbatim": "**No Fishing** within 200 m of Bush-Sullivan Road Bridge in Bush Arm",
+    "source_pages": [
+     37
+    ],
+    "matched": [
+     "wbk:328961767"
+    ],
+    "extents": [
+     {
+      "op": "whole"
+     }
+    ],
+    "rules": [
+     {
+      "rule_id": "kinbasket_lake.r1",
+      "type": "retention_limit",
+      "verbatim": "No Fishing within 200 m of Bush-Sullivan Road Bridge in Bush Arm",
+      "species": [
+       "ALL_GAME_FISH"
+      ],
+      "take": 0,
+      "may_target": false,
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ],
+      "unresolved_locators": [
+       "within 200 m of Bush-Sullivan Road Bridge in Bush Arm"
+      ],
+      "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): no cut-point for Bush-Sullivan Road Bridge in Bush Arm; this item has no bindable boundaries besides op:whole",
+      "undrawn_part": "within 200 m of Bush-Sullivan Road Bridge in Bush Arm"
+     }
+    ]
+   }
+  },
+  {
+   "tier": "P1",
+   "risks": [
+    "undrawn part",
+    "several waters",
+    "flag"
+   ],
+   "entry": {
+    "entry_id": "r7:rainbow_lakes@7-52",
+    "name": "RAINBOW LAKES",
+    "display_name": "Rainbow Lakes",
+    "region": "7",
+    "regs_verbatim": "**No Fishing** within 100 m of fishing boundary sign at outlet, May 15-July 31\nRainbow trout daily and possession quotas = 2 (none over 50 cm); bait ban, single hook",
+    "source_pages": [
+     66
+    ],
+    "matched": [
+     "wbk:329576619",
+     "wbk:329576620"
+    ],
+    "extents": [
+     {
+      "op": "whole"
+     }
+    ],
+    "rules": [
+     {
+      "rule_id": "rainbow_lakes.r1",
+      "type": "retention_limit",
+      "verbatim": "No Fishing within 100 m of fishing boundary sign at outlet, May 15-July 31",
+      "species": [
+       "ALL_GAME_FISH"
+      ],
+      "when": {
+       "dates": [
+        {
+         "from_month": 5,
+         "from_day": 15,
+         "to_month": 7,
+         "to_day": 31
+        }
+       ]
+      },
+      "take": 0,
+      "may_target": false,
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ],
+      "unresolved_locators": [
+       "within 100 m of fishing boundary sign at outlet"
+      ],
+      "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): no cut-point on this lake can bind a 100 m zone around the outlet boundary sign; item has no bindable boundaries",
+      "undrawn_part": "within 100 m of fishing boundary sign at outlet"
+     },
+     {
+      "rule_id": "rainbow_lakes.r2",
+      "type": "retention_limit",
+      "verbatim": "Rainbow trout daily and possession quotas = 2 (none over 50 cm)",
+      "species": [
+       "RB"
+      ],
+      "take": 2,
+      "lengths": [
+       {
+        "max_cm": 50
+       },
+       {
+        "min_cm": 50,
+        "take": 0
+       }
+      ],
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ]
+     },
+     {
+      "rule_id": "rainbow_lakes.r2p",
+      "type": "retention_limit",
+      "verbatim": "Rainbow trout daily and possession quotas = 2 (none over 50 cm)",
+      "species": [
+       "RB"
+      ],
+      "take": 2,
+      "period": "possession",
+      "lengths": [
+       {
+        "max_cm": 50
+       },
+       {
+        "min_cm": 50,
+        "take": 0
+       }
+      ],
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ]
+     },
+     {
+      "rule_id": "rainbow_lakes.r3",
+      "type": "bait_restriction",
+      "verbatim": "bait ban",
+      "gear": [
+       {
+        "slot": "bait",
+        "ban": [
+         "any_bait"
+        ]
+       }
+      ],
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ]
+     },
+     {
+      "rule_id": "rainbow_lakes.r4",
+      "type": "tackle_restriction",
+      "verbatim": "single hook",
+      "gear": [
+       {
+        "slot": "points_per_hook",
+        "max": 1.0
+       }
+      ],
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "tier": "P1",
+   "risks": [
+    "undrawn part",
+    "several waters",
+    "flag"
+   ],
+   "entry": {
+    "entry_id": "r3:shuswap_lake_see_maps_on_page_28_includes_little_shuswap_lak@3-26",
+    "name": "SHUSWAP LAKE (see maps on page 28) (includes Little Shuswap Lake, that part of South Thompson River between Shuswap Lake and Little Shuswap Lake, Seymour, Anstey and Salmon arms and Mara Lake unless stated otherwise)",
+    "display_name": "Shuswap Lake",
+    "region": "3",
+    "scope_note": "Includes Little Shuswap Lake, that part of South Thompson River between Shuswap Lake and Little Shuswap Lake, Seymour, Anstey and Salmon arms and Mara Lake unless stated otherwise. See maps on page 28.",
+    "regs_verbatim": "**No Fishing** Mar 15-May 14, and **rainbow trout and char catch and release**, May 15-Mar 14, in the waters lying west of a line between\nsigns at Henstridge Road and Wharf Road to a line between signs on the south and north shores of Little Shuswap Lake (see map A on\npage 28)\n**No Fishing** in the entire area north of Albas, Mar 15-May 14 (see map B on page 28)\n**No Fishing** east of a line between fishing boundary signs on Murdock and Semaphore points, to Hwy 1 bridge, Mar 15-May 14 (see map C\non page 28)\n**No fishing** in Salmon Arm Bay, west of line between Engineer's Point and Sunnybrae Point (see map on page 28), for the conservation\nof chinook and coho salmon stocks, Sept 1-Dec 31 (anglers fishing from the community pier in the city of Salmon Arm are exempt from\nthe closure)\n**No Ice Fishing**\nRainbow trout daily quota = 1 (none under 50 cm), annual quota = 5\nChar daily quota = 1 (none under 60 cm), annual quota = 5\nBait ban, single barbless hook (anglers fishing from the community pier in the city of Salmon Arm are exempt from the bait ban)\nConservation Surcharge Stamp required to catch and keep rainbow trout over 50 cm or char over 60 cm",
+    "source_pages": [
+     32
+    ],
+    "matched": [
+     "wbk:329518145",
+     "wbk:329534136",
+     "wbk:329518146",
+     "gnis:33426"
+    ],
+    "extents": [
+     {
+      "op": "whole"
+     }
+    ],
+    "rules": [
+     {
+      "rule_id": "shuswap_lake.r1",
+      "type": "retention_limit",
+      "verbatim": "No Fishing Mar 15-May 14",
+      "species": [
+       "ALL_GAME_FISH"
+      ],
+      "when": {
+       "dates": [
+        {
+         "from_month": 3,
+         "from_day": 15,
+         "to_month": 5,
+         "to_day": 14
+        }
+       ]
+      },
+      "take": 0,
+      "may_target": false,
+      "extents": [
+       {
+        "op": "whole",
+        "item_id": "wbk:329518145"
+       },
+       {
+        "op": "whole",
+        "item_id": "wbk:329534136"
+       },
+       {
+        "op": "whole",
+        "item_id": "gnis:33426"
+       }
+      ],
+      "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): map A (p28) — west of the Henstridge Road/Wharf Road sign line to the Little Shuswap Lake sign line — is not a polygon in the atlas. Needs a curated part (added_lakes.geojson + sub_lake_areas.json) drawn from the book's map.",
+      "undrawn_part": "waters lying west of a line between signs at Henstridge Road and Wharf Road to a line between signs on the south and north shores of Little Shuswap Lake (map A)"
+     },
+     {
+      "rule_id": "shuswap_lake.r2",
+      "type": "retention_limit",
+      "verbatim": "rainbow trout and char catch and release, May 15-Mar 14",
+      "species": [
+       "RB",
+       "CHAR"
+      ],
+      "when": {
+       "dates": [
+        {
+         "from_month": 5,
+         "from_day": 15,
+         "to_month": 3,
+         "to_day": 14
+        }
+       ]
+      },
+      "take": 0,
+      "may_target": true,
+      "extents": [
+       {
+        "op": "whole",
+        "item_id": "wbk:329518145"
+       },
+       {
+        "op": "whole",
+        "item_id": "wbk:329534136"
+       },
+       {
+        "op": "whole",
+        "item_id": "gnis:33426"
+       }
+      ],
+      "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): map A (p28) — west of the Henstridge Road/Wharf Road sign line to the Little Shuswap Lake sign line — is not a polygon in the atlas. Needs a curated part (added_lakes.geojson + sub_lake_areas.json) drawn from the book's map.",
+      "undrawn_part": "waters lying west of a line between signs at Henstridge Road and Wharf Road to a line between signs on the south and north shores of Little Shuswap Lake (map A)"
+     },
+     {
+      "rule_id": "shuswap_lake.r3",
+      "type": "retention_limit",
+      "verbatim": "No Fishing in the entire area north of Albas, Mar 15-May 14",
+      "species": [
+       "ALL_GAME_FISH"
+      ],
+      "when": {
+       "dates": [
+        {
+         "from_month": 3,
+         "from_day": 15,
+         "to_month": 5,
+         "to_day": 14
+        }
+       ]
+      },
+      "take": 0,
+      "may_target": false,
+      "extents": [
+       {
+        "op": "whole",
+        "item_id": "wbk:329518145"
+       }
+      ],
+      "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): map B (p28), the area north of Albas, is not a polygon in the atlas. Needs a curated part drawn from the book's map.",
+      "undrawn_part": "entire area north of Albas (map B)"
+     },
+     {
+      "rule_id": "shuswap_lake.r4",
+      "type": "retention_limit",
+      "verbatim": "No Fishing east of a line between fishing boundary signs on Murdock and Semaphore points, to Hwy 1 bridge, Mar 15-May 14",
+      "species": [
+       "ALL_GAME_FISH"
+      ],
+      "when": {
+       "dates": [
+        {
+         "from_month": 3,
+         "from_day": 15,
+         "to_month": 5,
+         "to_day": 14
+        }
+       ]
+      },
+      "take": 0,
+      "may_target": false,
+      "extents": [
+       {
+        "op": "whole",
+        "item_id": "wbk:329518145"
+       }
+      ],
+      "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): map C (p28), east of the Murdock/Semaphore Points sign line to the Hwy 1 bridge, is not a polygon in the atlas. Needs a curated part drawn from the book's map.",
+      "undrawn_part": "east of a line between fishing boundary signs on Murdock and Semaphore points, to Hwy 1 bridge (map C)"
+     },
+     {
+      "rule_id": "shuswap_lake.r5",
+      "type": "retention_limit",
+      "verbatim": "No fishing in Salmon Arm Bay, west of line between Engineer's Point and Sunnybrae Point (see map on page 28), for the conservation of chinook and coho salmon stocks, Sept 1-Dec 31",
+      "species": [
+       "ALL_GAME_FISH"
+      ],
+      "when": {
+       "dates": [
+        {
+         "from_month": 9,
+         "from_day": 1,
+         "to_month": 12,
+         "to_day": 31
+        }
+       ]
+      },
+      "take": 0,
+      "may_target": false,
+      "extents": [
+       {
+        "op": "whole",
+        "item_id": "wbk:329518145"
+       }
+      ],
+      "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): Salmon Arm Bay west of the Engineer's Point/Sunnybrae Point line (map, p28) is not a polygon in the atlas — needs a curated part. The community-pier exemption is shuswap_lake.r5x (a lift held as a note until the pier is drawn).",
+      "undrawn_part": "Salmon Arm Bay, west of line between Engineer's Point and Sunnybrae Point"
+     },
+     {
+      "rule_id": "shuswap_lake.r5x",
+      "type": "retention_limit",
+      "verbatim": "anglers fishing from the community pier in the city of Salmon Arm are exempt from the closure",
+      "species": [
+       "ALL_GAME_FISH"
+      ],
+      "when": {
+       "dates": [
+        {
+         "from_month": 9,
+         "from_day": 1,
+         "to_month": 12,
+         "to_day": 31
+        }
+       ]
+      },
+      "extents": [
+       {
+        "op": "whole",
+        "item_id": "wbk:329518145"
+       }
+      ],
+      "exempts": [
+       {
+        "target": "shuswap_lake.r5",
+        "note": "anglers fishing from the community pier in Salmon Arm"
+       }
+      ],
+      "review_reason": "A lift held as a note: the community pier is not drawn, so (undrawn_part) it lifts nothing yet and the Salmon Arm Bay closure stands on every reach. Draw the pier and bind this rule to it; the lift then applies there only.",
+      "undrawn_part": "from the community pier in the city of Salmon Arm"
+     },
+     {
+      "rule_id": "shuswap_lake.r6",
+      "type": "method_rule",
+      "verbatim": "No Ice Fishing",
+      "gear": [
+       {
+        "slot": "method",
+        "ban": [
+         "ice_fishing"
+        ]
+       }
+      ],
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ]
+     },
+     {
+      "rule_id": "shuswap_lake.r7",
+      "type": "retention_limit",
+      "verbatim": "Rainbow trout daily quota = 1 (none under 50 cm)",
+      "species": [
+       "RB"
+      ],
+      "take": 1,
+      "lengths": [
+       {
+        "min_cm": 50
+       },
+       {
+        "max_cm": 50,
+        "take": 0
+       }
+      ],
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ]
+     },
+     {
+      "rule_id": "shuswap_lake.r8",
+      "type": "retention_limit",
+      "verbatim": "Rainbow trout daily quota = 1 (none under 50 cm), annual quota = 5",
+      "species": [
+       "RB"
+      ],
+      "take": 5,
+      "period": "annual",
+      "lengths": [
+       {
+        "min_cm": 50
+       }
+      ],
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ],
+      "review_reason": "ONE LIMIT, READ TWICE (UI consumer's report, 2026-10-03): Region 3 (p.28) prints the same annual quota for Shuswap Lake — 'Rainbow trout: 5 over 50 cm' — and the stamp (p.7) names Shuswap char as 'Lake trout and Bull trout'. Read as every rainbow trout at any size, this row's 'annual quota = 5' was a different statement from the zone's and both spoke; it now says exactly what the zone says, so the water's number replaces the zone's (same statement, read.effective_rules) — one limit on the page. The size is the row's own daily 'none under 50 cm', so the rule quotes the whole printed line (p.32): 'Rainbow trout daily quota = 1 (none under 50 cm), annual quota = 5' (T96 — the bare 'annual quota = 5' left min_cm 50 outside its own verbatim and the ingest gate refused the entry)."
+     },
+     {
+      "rule_id": "shuswap_lake.r9",
+      "type": "retention_limit",
+      "verbatim": "Char daily quota = 1 (none under 60 cm)",
+      "species": [
+       "CHAR"
+      ],
+      "take": 1,
+      "lengths": [
+       {
+        "min_cm": 60
+       },
+       {
+        "max_cm": 60,
+        "take": 0
+       }
+      ],
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ]
+     },
+     {
+      "rule_id": "shuswap_lake.r10",
+      "type": "retention_limit",
+      "verbatim": "Char daily quota = 1 (none under 60 cm), annual quota = 5",
+      "species": [
+       "LT",
+       "DV"
+      ],
+      "take": 5,
+      "period": "annual",
+      "lengths": [
+       {
+        "min_cm": 60
+       }
+      ],
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ],
+      "review_reason": "ONE LIMIT, READ TWICE (UI consumer's report, 2026-10-03): Region 3 (p.28) prints the same annual quota for Shuswap Lake — 'Char-Lake trout and Bull trout (Dolly Varden): 5 over 60 cm' — and the stamp (p.7) names Shuswap char as 'Lake trout and Bull trout'. Read as every char (brook trout too) at any size, this row's 'annual quota = 5' was a different statement from the zone's and both spoke; it now says exactly what the zone says, so the water's number replaces the zone's (same statement, read.effective_rules) — one limit on the page. The size is the row's own daily 'none under 60 cm', so the rule quotes the whole printed line (p.32): 'Char daily quota = 1 (none under 60 cm), annual quota = 5' (T96 — the bare 'annual quota = 5' left min_cm 60 outside its own verbatim and the ingest gate refused the entry)."
+     },
+     {
+      "rule_id": "shuswap_lake.r11",
+      "type": "bait_restriction",
+      "verbatim": "Bait ban",
+      "gear": [
+       {
+        "slot": "bait",
+        "ban": [
+         "any_bait"
+        ]
+       }
+      ],
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ]
+     },
+     {
+      "rule_id": "shuswap_lake.r11x",
+      "type": "bait_restriction",
+      "verbatim": "anglers fishing from the community pier in the city of Salmon Arm are exempt from the bait ban",
+      "extents": [
+       {
+        "op": "whole",
+        "item_id": "wbk:329518145"
+       }
+      ],
+      "exempts": [
+       {
+        "target": "shuswap_lake.r11",
+        "note": "anglers fishing from the community pier in Salmon Arm"
+       }
+      ],
+      "review_reason": "A lift held as a note: the community pier is not drawn, so (undrawn_part) it lifts nothing yet and the bait ban stands lake-wide. Draw the pier and bind this rule to it.",
+      "undrawn_part": "from the community pier in the city of Salmon Arm"
+     },
+     {
+      "rule_id": "shuswap_lake.r12",
+      "type": "tackle_restriction",
+      "verbatim": "single barbless hook",
+      "gear": [
+       {
+        "slot": "barb",
+        "only": [
+         "barbless"
+        ]
+       },
+       {
+        "slot": "points_per_hook",
+        "max": 1.0
+       }
+      ],
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ]
+     }
+    ],
+    "licensing": [
+     {
+      "id": "shuswap_rainbow_stamp",
+      "satisfied_by": [
+       {
+        "hold": [
+         "shuswap_rainbow_stamp"
+        ]
+       }
+      ],
+      "who": {
+       "age": [
+        "16_plus"
+       ]
+      },
+      "doing": {
+       "act": "retaining",
+       "species": [
+        "RB"
+       ],
+       "lengths": [
+        {
+         "min_cm": 50
+        }
+       ]
+      },
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ],
+      "restates": {
+       "entry_id": "zp:shuswap_rainbow_stamp",
+       "id": "shuswap_rainbow_stamp"
+      },
+      "verbatim": "Conservation Surcharge Stamp required to catch and keep rainbow trout over 50 cm",
+      "review_reason": "Binds the row's matched items, gnis:33426 (the atlas's Little River — the book's 'South Thompson River between Shuswap Lake and Little Shuswap Lake') included.",
+      "kind": "requirement"
+     },
+     {
+      "id": "shuswap_char_stamp",
+      "satisfied_by": [
+       {
+        "hold": [
+         "shuswap_char_stamp"
+        ]
+       }
+      ],
+      "who": {
+       "age": [
+        "16_plus"
+       ]
+      },
+      "doing": {
+       "act": "retaining",
+       "species": [
+        "LT",
+        "DV"
+       ],
+       "lengths": [
+        {
+         "min_cm": 60
+        }
+       ]
+      },
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ],
+      "restates": {
+       "entry_id": "zp:shuswap_char_stamp",
+       "id": "shuswap_char_stamp"
+      },
+      "verbatim": "char over 60 cm",
+      "review_reason": "Binds the row's matched items, gnis:33426 (the atlas's Little River — the book's 'South Thompson River between Shuswap Lake and Little Shuswap Lake') included.",
+      "kind": "requirement"
+     }
+    ]
+   }
+  },
+  {
+   "tier": "Z",
+   "risks": [],
+   "entry": {
+    "entry_id": "z4:kootenay_annual",
+    "name": "Kootenay Lake annual quota",
+    "display_name": "Main body of Kootenay Lake",
+    "region": "4",
+    "regs_verbatim": "Rainbow trout over 50 cm from the main body of Kootenay Lake: 20 per licence year.",
+    "source_pages": [
+     34
+    ],
+    "see": [
+     {
+      "verbatim": "Rainbow trout over 50 cm from the main body of Kootenay Lake: 20 per licence year.",
+      "entry_ids": [
+       "r4:kootenay_lake_main_body_for_location_see_map_on_page_34@4-19"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "tier": "Z",
+   "risks": [],
+   "entry": {
+    "entry_id": "z7b:set_lining",
+    "name": "Set lining",
+    "display_name": "Zone B",
+    "region": "7b",
+    "regs_verbatim": "Set lining: is not permitted in Zone B.",
+    "source_pages": [
+     64
+    ],
+    "extents": [
+     {
+      "op": "within",
+      "area_id": "area:region:7b"
+     }
+    ],
+    "rules": [
+     {
+      "rule_id": "set_lining.r1",
+      "type": "method_rule",
+      "verbatim": "Set lining: is not permitted in Zone B.",
+      "gear": [
+       {
+        "slot": "method",
+        "ban": [
+         "set_lining"
+        ]
+       }
+      ],
+      "extents": [
+       {
+        "op": "within",
+        "area_id": "area:region:7b"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "tier": "Z",
+   "risks": [
+    "cut"
+   ],
+   "entry": {
+    "entry_id": "z2:stave_river_marking",
+    "name": "Stave River Steelhead Marking",
+    "display_name": "Stave River",
+    "region": "2",
+    "regs_verbatim": "Stave River Steelhead Marking. Maxillary (jaw) clipping is being used to assess hatchery release strategies. Refer to page 76 for instructions on what to do if you catch a maxillary clipped fish.",
+    "source_pages": [
+     21
+    ],
+    "rules": [
+     {
+      "rule_id": "stave_river_marking.r1",
+      "type": "advisory",
+      "verbatim": "Maxillary (jaw) clipping is being used to assess hatchery release strategies. Refer to page 76 for instructions on what to do if you catch a maxillary clipped fish.",
+      "obligation": "should",
+      "extents": [
+       {
+        "op": "downstream_of",
+        "splits": [
+         "stave_river__hayward_lake"
+        ],
+        "item_id": "gnis:14589"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "tier": "Z",
+   "risks": [
+    "cut"
+   ],
+   "entry": {
+    "entry_id": "z6:iskut_fraser_closure",
+    "name": "Iskut and Fraser watershed closures",
+    "display_name": "Iskut and Fraser watersheds in Region 6",
+    "region": "6",
+    "regs_verbatim": "No fishing: in any stream in the Iskut River watershed (upstream of Forest Kerr Canyon), Apr 1-June 30; and in the Fraser River watershed in Region 6, Apr 1-June 30.",
+    "source_pages": [
+     49
+    ],
+    "rules": [
+     {
+      "rule_id": "iskut_fraser_closure.r1",
+      "type": "retention_limit",
+      "verbatim": "No fishing: in any stream in the Iskut River watershed (upstream of Forest Kerr Canyon), Apr 1-June 30",
+      "species": [
+       "ALL_GAME_FISH"
+      ],
+      "when": {
+       "dates": [
+        {
+         "from_month": 4,
+         "from_day": 1,
+         "to_month": 6,
+         "to_day": 30
+        }
+       ]
+      },
+      "take": 0,
+      "may_target": false,
+      "water": "stream",
+      "closure_kind": "spring",
+      "extents": [
+       {
+        "op": "upstream_of",
+        "splits": [
+         "iskut_river__downstream_end_of_forrest_kerr_canyon"
+        ],
+        "item_id": "gnis:10765",
+        "feature_types": [
+         "stream"
+        ],
+        "within_area": "area:region:6",
+        "watershed": true
+       }
+      ],
+      "extent_text": "Iskut watershed above Forest Kerr Canyon"
+     },
+     {
+      "rule_id": "iskut_fraser_closure.r2",
+      "type": "retention_limit",
+      "verbatim": "and in the Fraser River watershed in Region 6, Apr 1-June 30",
+      "species": [
+       "ALL_GAME_FISH"
+      ],
+      "when": {
+       "dates": [
+        {
+         "from_month": 4,
+         "from_day": 1,
+         "to_month": 6,
+         "to_day": 30
+        }
+       ]
+      },
+      "take": 0,
+      "may_target": false,
+      "water": "stream",
+      "closure_kind": "spring",
+      "extents": [
+       {
+        "op": "within",
+        "area_id": "area:basin:100-",
+        "within_area": "area:region:6",
+        "feature_types": [
+         "stream"
+        ]
+       }
+      ],
+      "extent_text": "Fraser watershed within Region 6"
+     }
+    ]
+   }
+  },
+  {
+   "tier": "Z",
+   "risks": [
+    "cut",
+    "flag"
+   ],
+   "entry": {
+    "entry_id": "z5:white_sturgeon",
+    "name": "White sturgeon",
+    "display_name": "Fraser watershed",
+    "region": "5",
+    "regs_verbatim": "White Sturgeon: CLOSED TO ALL FISHING in the Fraser River Watershed upstream of Williams Lake River. CATCH AND RELEASE in the Fraser River Watershed downstream of and including Williams Lake River. CLOSED TO ALL FISHING in the Fraser River downstream of and including Williams Lake River Sept 15-July 15.",
+    "source_pages": [
+     42
+    ],
+    "rules": [
+     {
+      "rule_id": "white_sturgeon.r1",
+      "type": "retention_limit",
+      "verbatim": "CLOSED TO ALL FISHING in the Fraser River Watershed upstream of Williams Lake River",
+      "species": [
+       "WSG"
+      ],
+      "take": 0,
+      "may_target": false,
+      "extents": [
+       {
+        "op": "upstream_of",
+        "splits": [
+         "fraser_river__williams_lake_river_into_fraser_river"
+        ],
+        "item_id": "gnis:39325",
+        "within_area": "area:region:5",
+        "watershed": true
+       }
+      ],
+      "tributary_excludes": [
+       {
+        "op": "whole",
+        "item_id": "gnis:27764"
+       }
+      ],
+      "extent_text": "Fraser watershed upstream of Williams Lake River"
+     },
+     {
+      "rule_id": "white_sturgeon.r2",
+      "type": "retention_limit",
+      "verbatim": "CATCH AND RELEASE in the Fraser River Watershed downstream of and including Williams Lake River",
+      "species": [
+       "WSG"
+      ],
+      "take": 0,
+      "may_target": true,
+      "extents": [
+       {
+        "op": "downstream_of",
+        "splits": [
+         "fraser_river__williams_lake_river_into_fraser_river"
+        ],
+        "item_id": "gnis:39325",
+        "within_area": "area:region:5",
+        "watershed": true
+       },
+       {
+        "op": "within",
+        "area_id": "area:basin:100-382626-",
+        "within_area": "area:region:5"
+       }
+      ],
+      "extent_text": "Fraser watershed downstream of and including Williams Lake River"
+     },
+     {
+      "rule_id": "white_sturgeon.r3",
+      "type": "retention_limit",
+      "verbatim": "CLOSED TO ALL FISHING in the Fraser River downstream of and including Williams Lake River Sept 15-July 15.",
+      "species": [
+       "WSG"
+      ],
+      "when": {
+       "dates": [
+        {
+         "from_month": 9,
+         "from_day": 15,
+         "to_month": 7,
+         "to_day": 15
+        }
+       ]
+      },
+      "take": 0,
+      "may_target": false,
+      "extents": [
+       {
+        "op": "downstream_of",
+        "splits": [
+         "fraser_river__williams_lake_river_into_fraser_river"
+        ],
+        "item_id": "gnis:39325",
+        "within_area": "area:region:5"
+       },
+       {
+        "op": "whole",
+        "item_id": "gnis:27764",
+        "within_area": "area:region:5"
+       }
+      ],
+      "extent_text": "Fraser River downstream of and including Williams Lake River",
+      "review_reason": "Mainstem only (\"the Fraser River\", not its watershed) plus the Williams Lake River the sentence names; seasonal, and it closes what r2 opens for Sept 15 - July 15."
+     }
+    ]
+   }
+  },
+  {
+   "tier": "Z",
+   "risks": [
+    "cut",
+    "flag"
+   ],
+   "entry": {
+    "entry_id": "zp:white_sturgeon_licence",
+    "name": "White Sturgeon Conservation Licence",
+    "display_name": "Fraser watershed, Mission to Williams Lake River",
+    "regs_verbatim": "You must purchase a White Sturgeon Conservation Licence, in addition to your basic licence, if you fish for white sturgeon in the Fraser River Watershed (including tributaries) from the CPR Bridge at Mission to and including Williams Lake River in the Cariboo. This is a catch-and-release only fishery. This is the only white sturgeon fishery in the province's non-tidal waters.",
+    "source_pages": [
+     7
+    ],
+    "extents": [
+     {
+      "op": "within",
+      "area_kind": "region"
+     }
+    ],
+    "rules": [
+     {
+      "rule_id": "white_sturgeon_licence.r2",
+      "type": "retention_limit",
+      "verbatim": "This is a catch-and-release only fishery.",
+      "species": [
+       "WSG"
+      ],
+      "take": 0,
+      "may_target": true,
+      "extents": [
+       {
+        "op": "between",
+        "splits": [
+         "fraser_river__the_cpr_bridge_at_mission",
+         "fraser_river__williams_lake_river_into_fraser_river"
+        ],
+        "item_id": "gnis:39325",
+        "watershed": true
+       },
+       {
+        "op": "within",
+        "area_id": "area:basin:100-382626-"
+       }
+      ]
+     },
+     {
+      "rule_id": "white_sturgeon_licence.r3",
+      "type": "advisory",
+      "verbatim": "This is the only white sturgeon fishery in the province's non-tidal waters.",
+      "extents": [
+       {
+        "op": "within",
+        "area_kind": "region"
+       }
+      ],
+      "review_reason": "A COMPLETENESS CLAIM, not a rule about a water: 'this is the only white sturgeon fishery in the province's non-tidal waters' asserts that every other sturgeon water in B.C. is closed. Nothing in the catalogue states things about the rest of the corpus, so it shows province-wide as an advisory and is the one sentence that would let a reader notice a missing closure."
+     },
+     {
+      "rule_id": "white_sturgeon_licence.r4",
+      "type": "retention_limit",
+      "verbatim": "This is the only white sturgeon fishery in the province's non-tidal waters.",
+      "species": [
+       "WSG"
+      ],
+      "derived_from": "white_sturgeon_licence.r3",
+      "take": 0,
+      "may_target": false,
+      "extents": [
+       {
+        "op": "within",
+        "area_kind": "region"
+       }
+      ],
+      "extent_text": "every non-tidal water of the province; lifted on the licensed Fraser watershed (r4x)",
+      "review_reason": "THE 'ONLY' OF r3 (user ruling 2026-10-07): white sturgeon may be fished, catch and release, ONLY in the Fraser River watershed (including tributaries) from the CPR Bridge at Mission to and including Williams Lake River; closed everywhere else — a region's 'catch and release only' / 'release all sturgeon' is that closure, not a fishery."
+     },
+     {
+      "rule_id": "white_sturgeon_licence.r4x",
+      "type": "retention_limit",
+      "verbatim": "This is the only white sturgeon fishery in the province's non-tidal waters.",
+      "species": [
+       "WSG"
+      ],
+      "derived_from": "white_sturgeon_licence.r3",
+      "extents": [
+       {
+        "op": "between",
+        "splits": [
+         "fraser_river__the_cpr_bridge_at_mission",
+         "fraser_river__williams_lake_river_into_fraser_river"
+        ],
+        "item_id": "gnis:39325",
+        "watershed": true
+       },
+       {
+        "op": "within",
+        "area_id": "area:basin:100-382626-"
+       }
+      ],
+      "exempts": [
+       {
+        "target": "white_sturgeon_licence.r4",
+        "note": "the licensed fishery: the Fraser River Watershed (including tributaries) from the CPR Bridge at Mission to and including Williams Lake River (p.7)"
+       }
+      ]
+     }
+    ],
+    "licensing": [
+     {
+      "id": "white_sturgeon_licence",
+      "satisfied_by": [
+       {
+        "hold": [
+         "white_sturgeon_licence"
+        ]
+       }
+      ],
+      "who": {
+       "age": [
+        "16_plus"
+       ]
+      },
+      "doing": {
+       "act": "targeting",
+       "species": [
+        "WSG"
+       ]
+      },
+      "extents": [
+       {
+        "op": "between",
+        "splits": [
+         "fraser_river__the_cpr_bridge_at_mission",
+         "fraser_river__williams_lake_river_into_fraser_river"
+        ],
+        "item_id": "gnis:39325",
+        "watershed": true
+       },
+       {
+        "op": "within",
+        "area_id": "area:basin:100-382626-"
+       }
+      ],
+      "verbatim": "You must purchase a White Sturgeon Conservation Licence, in addition to your basic licence, if you fish for white sturgeon in the Fraser River Watershed (including tributaries) from the CPR Bridge at Mission to and including Williams Lake River in the Cariboo.",
+      "kind": "requirement"
+     }
+    ]
+   }
+  },
+  {
+   "tier": "Z",
+   "risks": [
+    "flag"
+   ],
+   "entry": {
+    "entry_id": "z8:garnet_lake",
+    "name": "Garnet Lake closure",
+    "display_name": "Garnet Lake",
+    "region": "8",
+    "regs_verbatim": "GARNET LAKE ANGLING CLOSURE Due to the illegal introduction of largemouth bass, Garnet Lake has been closed to all angling.",
+    "source_pages": [
+     68
+    ],
+    "rules": [
+     {
+      "rule_id": "garnet_lake.r1",
+      "type": "retention_limit",
+      "verbatim": "Due to the illegal introduction of largemouth bass, Garnet Lake has been closed to all angling.",
+      "species": [
+       "ALL_GAME_FISH"
+      ],
+      "take": 0,
+      "may_target": false,
+      "extents": [
+       {
+        "op": "whole",
+        "item_id": "wbk:329459155"
+       }
+      ],
+      "review_reason": "BOUND — named water. Water-scoped. The closure exists at water level; what is RECOVERED here is the reason, which no rule carried."
+     }
+    ]
+   }
+  },
+  {
+   "tier": "Z",
+   "risks": [
+    "flag"
+   ],
+   "entry": {
+    "entry_id": "z2:rubble_creek",
+    "name": "Rubble Creek Landslide Hazard Area",
+    "display_name": "Rubble Creek",
+    "region": "2",
+    "regs_verbatim": "NOTICE TO ANGLERS The area known as the Rubble Creek Landslide Hazard Area is a high risk slide area. People who fish in this area do so at THEIR OWN RISK.",
+    "source_pages": [
+     21
+    ],
+    "rules": [
+     {
+      "rule_id": "rubble_creek.r1",
+      "type": "hazard",
+      "verbatim": "NOTICE TO ANGLERS The area known as the Rubble Creek Landslide Hazard Area is a high risk slide area. People who fish in this area do so at THEIR OWN RISK.",
+      "extents": [
+       {
+        "op": "whole",
+        "item_id": "gnis:27547"
+       }
+      ],
+      "extent_text": "Rubble Creek Landslide Hazard Area",
+      "review_reason": "Placed on Rubble Creek: the Landslide Hazard Area has no polygon in the atlas. A notice, so it decides nothing about the water."
+     }
+    ]
+   }
+  },
+  {
+   "tier": "Z",
+   "risks": [
+    "undrawn part",
+    "flag"
+   ],
+   "entry": {
+    "entry_id": "z7b:peace_river_navigation",
+    "name": "Peace River navigation",
+    "display_name": "Peace River",
+    "region": "7b",
+    "regs_verbatim": "PEACE RIVER The Peace River is no longer navigable past the Site C construction site. Avoid boat travel between 2 km upstream of the dam site (warning signs are on shore) and the downstream construction bridge. See https://www.sitecproject.com/boating for details.",
+    "source_pages": [
+     64
+    ],
+    "rules": [
+     {
+      "rule_id": "peace_river_navigation.r1",
+      "type": "hazard",
+      "verbatim": "PEACE RIVER The Peace River is no longer navigable past the Site C construction site. Avoid boat travel between 2 km upstream of the dam site (warning signs are on shore) and the downstream construction bridge.",
+      "extents": [
+       {
+        "op": "whole",
+        "item_id": "gnis:14619"
+       }
+      ],
+      "review_reason": "Shown on the Peace River as a note, never colouring it: the reach it names (2 km upstream of the Site C dam site to the downstream construction bridge) has no cut-point at either end — only `peace_river__site_c_dam` exists.",
+      "undrawn_part": "between 2 km upstream of the Site C dam site and the downstream construction bridge"
+     }
+    ]
+   }
+  },
+  {
+   "tier": "P2",
+   "risks": [],
+   "entry": {
+    "entry_id": "r4:mackenzie_creek@4-21",
+    "name": "MACKENZIE CREEK",
+    "region": "4",
+    "regs_verbatim": "**No Fishing**",
+    "source_pages": [
+     38
+    ],
+    "rules": [
+     {
+      "rule_id": "mackenzie_creek.r1",
+      "type": "retention_limit",
+      "verbatim": "No Fishing",
+      "species": [
+       "ALL_GAME_FISH"
+      ],
+      "take": 0,
+      "may_target": false,
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ]
+     }
+    ],
+    "matched": [
+     "gnis:12042"
+    ]
+   }
+  },
+  {
+   "tier": "P2",
+   "risks": [],
+   "entry": {
+    "entry_id": "r2:cheam_lake@2-3",
+    "name": "CHEAM LAKE",
+    "display_name": "Cheam Lake",
+    "region": "2",
+    "regs_verbatim": "**No Fishing**",
+    "source_pages": [
+     22
+    ],
+    "matched": [
+     "wbk:-4"
+    ],
+    "extents": [
+     {
+      "op": "whole"
+     }
+    ],
+    "rules": [
+     {
+      "rule_id": "cheam_lake.r1",
+      "type": "retention_limit",
+      "verbatim": "No Fishing",
+      "species": [
+       "ALL_GAME_FISH"
+      ],
+      "take": 0,
+      "may_target": false,
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "tier": "P2",
+   "risks": [],
+   "entry": {
+    "entry_id": "r2:marsh_pond@2-4",
+    "name": "MARSH POND",
+    "display_name": "Marsh Pond",
+    "region": "2",
+    "regs_verbatim": "**No Fishing**",
+    "source_pages": [
+     24
+    ],
+    "matched": [
+     "wbk:-2"
+    ],
+    "extents": [
+     {
+      "op": "whole"
+     }
+    ],
+    "rules": [
+     {
+      "rule_id": "marsh_pond.r1",
+      "type": "retention_limit",
+      "verbatim": "No Fishing",
+      "species": [
+       "ALL_GAME_FISH"
+      ],
+      "take": 0,
+      "may_target": false,
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "tier": "P2",
+   "risks": [],
+   "entry": {
+    "entry_id": "r1:nola_lake@1-9",
+    "name": "NOLA LAKE",
+    "display_name": "Nola Lake",
+    "region": "1",
+    "regs_verbatim": "**No Fishing**",
+    "source_pages": [
+     17
+    ],
+    "matched": [
+     "wbk:328988105"
+    ],
+    "extents": [
+     {
+      "op": "whole"
+     }
+    ],
+    "rules": [
+     {
+      "rule_id": "nola_lake.r1",
+      "type": "retention_limit",
+      "verbatim": "No Fishing",
+      "species": [
+       "ALL_GAME_FISH"
+      ],
+      "take": 0,
+      "may_target": false,
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "tier": "P2",
+   "risks": [],
+   "entry": {
+    "entry_id": "r1:myra_lake@1-10",
+    "name": "MYRA LAKE",
+    "display_name": "Myra Lake",
+    "region": "1",
+    "regs_verbatim": "**No Fishing**",
+    "source_pages": [
+     17
+    ],
+    "matched": [
+     "wbk:329500368"
+    ],
+    "extents": [
+     {
+      "op": "whole"
+     }
+    ],
+    "rules": [
+     {
+      "rule_id": "myra_lake.r1",
+      "type": "retention_limit",
+      "verbatim": "No Fishing",
+      "species": [
+       "ALL_GAME_FISH"
+      ],
+      "take": 0,
+      "may_target": false,
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "tier": "P2",
+   "risks": [],
+   "entry": {
+    "entry_id": "r2:hyde_creek@2-8",
+    "name": "HYDE CREEK",
+    "display_name": "Hyde Creek",
+    "region": "2",
+    "regs_verbatim": "**No Fishing**",
+    "source_pages": [
+     23
+    ],
+    "matched": [
+     "gnis:22345"
+    ],
+    "extents": [
+     {
+      "op": "whole"
+     }
+    ],
+    "rules": [
+     {
+      "rule_id": "hyde_creek.r1",
+      "type": "retention_limit",
+      "verbatim": "No Fishing",
+      "species": [
+       "ALL_GAME_FISH"
+      ],
+      "take": 0,
+      "may_target": false,
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "tier": "P3",
+   "risks": [
+    "cut"
+   ],
+   "entry": {
+    "entry_id": "r3:deadman_river@3-29",
+    "name": "DEADMAN RIVER",
+    "display_name": "Deadman River",
+    "region": "3",
+    "regs_verbatim": "No trout under 25 cm downstream of Mowich Lake",
+    "source_pages": [
+     29
+    ],
+    "matched": [
+     "gnis:30592"
+    ],
+    "extents": [
+     {
+      "op": "whole"
+     }
+    ],
+    "rules": [
+     {
+      "rule_id": "deadman_river.r1",
+      "type": "retention_limit",
+      "verbatim": "No trout under 25 cm downstream of Mowich Lake",
+      "species": [
+       "TROUT_CHAR"
+      ],
+      "lengths": [
+       {
+        "max_cm": 25,
+        "take": 0
+       }
+      ],
+      "extents": [
+       {
+        "op": "downstream_of",
+        "splits": [
+         "deadman_river__mowich_lake"
+        ]
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "tier": "P3",
+   "risks": [
+    "cut"
+   ],
+   "entry": {
+    "entry_id": "r5:chimney_creek@5-2",
+    "name": "CHIMNEY CREEK",
+    "display_name": "Chimney Creek",
+    "region": "5",
+    "regs_verbatim": "Open all year downstream of Brunson Lake",
+    "source_pages": [
+     44
+    ],
+    "matched": [
+     "gnis:39269"
+    ],
+    "extents": [
+     {
+      "op": "whole"
+     }
+    ],
+    "rules": [
+     {
+      "rule_id": "chimney_creek.r1",
+      "type": "retention_limit",
+      "verbatim": "Open all year downstream of Brunson Lake",
+      "species": [
+       "ALL_GAME_FISH"
+      ],
+      "extents": [
+       {
+        "op": "downstream_of",
+        "splits": [
+         "chimney_creek__brunson_lake"
+        ]
+       }
+      ],
+      "exempts": [
+       {
+        "default_id": "spring_stream_closure",
+        "note": "open all year"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "tier": "P3",
+   "risks": [
+    "cut",
+    "flag"
+   ],
+   "entry": {
+    "entry_id": "r6:nilkitkwa_lake@6-8",
+    "name": "NILKITKWA LAKE",
+    "display_name": "Nilkitkwa Lake",
+    "region": "6",
+    "regs_verbatim": "Fly fishing only, bait ban (EXCEPT dead fin fish may be used as bait when set lining; see page 8 in the Provincial Regulations)\nThat section of flowing water between Babine and Nilkitkwa Lakes known as \"Rainbow Alley\" is open for fishing all year (see also Babine\nRiver) (See map 2 page 51)",
+    "source_pages": [
+     53
+    ],
+    "matched": [
+     "wbk:329026685"
+    ],
+    "extents": [
+     {
+      "op": "whole",
+      "item_id": "wbk:329026685"
+     },
+     {
+      "op": "between",
+      "item_id": "gnis:17687",
+      "splits": [
+       "babine_river__babine_lake",
+       "babine_river__nilkitkwa_lake"
+      ]
+     }
+    ],
+    "rules": [
+     {
+      "rule_id": "nilkitkwa_lake.r1",
+      "type": "tackle_restriction",
+      "verbatim": "Fly fishing only",
+      "gear": [
+       {
+        "slot": "method",
+        "only": [
+         "fly_fishing"
+        ],
+        "unless": [
+         {
+          "method": "set_lining"
+         }
+        ]
+       }
+      ],
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ]
+     },
+     {
+      "rule_id": "nilkitkwa_lake.r2",
+      "type": "bait_restriction",
+      "verbatim": "bait ban",
+      "gear": [
+       {
+        "slot": "bait",
+        "ban": [
+         "any_bait"
+        ]
+       }
+      ],
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ]
+     },
+     {
+      "rule_id": "nilkitkwa_lake.r3",
+      "type": "bait_restriction",
+      "verbatim": "dead fin fish may be used as bait when set lining",
+      "gear": [
+       {
+        "slot": "bait",
+        "allow": [
+         "dead_fin_fish"
+        ]
+       }
+      ],
+      "while": [
+       "set_lining"
+      ],
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ]
+     },
+     {
+      "rule_id": "nilkitkwa_lake.r4",
+      "type": "advisory",
+      "verbatim": "That section of flowing water between Babine and Nilkitkwa Lakes known as \"Rainbow Alley\" is open for fishing all year",
+      "extents": [
+       {
+        "op": "between",
+        "item_id": "gnis:17687",
+        "splits": [
+         "babine_river__babine_lake",
+         "babine_river__nilkitkwa_lake"
+        ]
+       }
+      ],
+      "review_reason": "T89 2026-10-22: Rainbow Alley is the Babine River (gnis:17687) between Babine and Nilkitkwa lakes — the same stretch babine_river.r3 binds"
+     }
+    ]
+   }
+  },
+  {
+   "tier": "P3",
+   "risks": [
+    "cut",
+    "flag"
+   ],
+   "entry": {
+    "entry_id": "r6:skeena_river_mainstem_only@6-10",
+    "name": "SKEENA RIVER (mainstem only)",
+    "display_name": "Skeena River",
+    "region": "6",
+    "regs_verbatim": "**There are two separate Class II waters on the Skeena River** (non-residents and non-resident aliens require separate licences describing\nwhich section they are fishing): **(a)** from Exchamsiks River to 1.5 km upstream of Kitsumkalum River (known as \"Skeena River 2\"), July 1-Sept 30; and **(b)** 1.5 km upstream of Zymoetz River (known as \"Skeena River Section 4\"), July 1-Dec 31; **Steelhead Stamp** not mandatory for\nSkeena River 2 unless fishing for steelhead. **Steelhead Stamp** is mandatory in Skeena River Section 4 during the Classified Waters period\nfrom July 1-Dec 31\n**Angling prohibited for non-guided non-resident aliens** in Skeena River Section 4 on Saturdays and Sundays in two zones: **(a)** Shegunia\nRiver confluence to Sedan Creek confluence July 1-Dec 31 (See map page 54), and **(b)** Chimdemash Creek confluence to 1.5 km upstream of\nZymoetz River confluence, July 1 - Dec 31, (See map page 55)",
+    "source_pages": [
+     53
+    ],
+    "symbols": [
+     "Classified"
+    ],
+    "matched": [
+     "gnis:2936"
+    ],
+    "rules": [
+     {
+      "rule_id": "skeena_river.r5",
+      "type": "angler_closure",
+      "verbatim": "Angling prohibited for non-guided non-resident aliens in Skeena River Section 4 on Saturdays and Sundays in two zones: (a) Shegunia River confluence to Sedan Creek confluence July 1-Dec 31 (See map page 54)",
+      "closed_to": {
+       "residency": [
+        "non_resident_alien"
+       ],
+       "guidance": [
+        "non_guided"
+       ]
+      },
+      "when": {
+       "dates": [
+        {
+         "from_month": 7,
+         "from_day": 1,
+         "to_month": 12,
+         "to_day": 31
+        }
+       ],
+       "weekdays": [
+        "Saturday",
+        "Sunday"
+       ]
+      },
+      "extents": [
+       {
+        "op": "between",
+        "splits": [
+         "skeena_river__shegunia_river_into_skeena_river",
+         "skeena_river__sedan_creek_into_skeena_river"
+        ]
+       }
+      ]
+     },
+     {
+      "rule_id": "skeena_river.r6",
+      "type": "angler_closure",
+      "verbatim": "Chimdemash Creek confluence to 1.5 km upstream of Zymoetz River confluence, July 1 - Dec 31, (See map page 55)",
+      "closed_to": {
+       "residency": [
+        "non_resident_alien"
+       ],
+       "guidance": [
+        "non_guided"
+       ]
+      },
+      "when": {
+       "dates": [
+        {
+         "from_month": 7,
+         "from_day": 1,
+         "to_month": 12,
+         "to_day": 31
+        }
+       ],
+       "weekdays": [
+        "Saturday",
+        "Sunday"
+       ]
+      },
+      "extents": [
+       {
+        "op": "between",
+        "splits": [
+         "skeena_river__chimdemash_creek_into_skeena_river",
+         "skeena_river__zymoetz_river_into_skeena_river_u1500m"
+        ]
+       }
+      ]
+     }
+    ],
+    "licensing": [
+     {
+      "id": "skeena_river_2",
+      "classified": "II",
+      "unit": "skeena_river_2",
+      "unit_name": "Skeena River 2",
+      "when": {
+       "dates": [
+        {
+         "from_month": 7,
+         "from_day": 1,
+         "to_month": 9,
+         "to_day": 30
+        }
+       ]
+      },
+      "extents": [
+       {
+        "op": "between",
+        "splits": [
+         "skeena_river__exchamsiks_river_into_skeena_river",
+         "skeena_river__kitsumkalum_river_into_skeena_river_u1500m"
+        ]
+       }
+      ],
+      "steelhead_stamp_waived": {
+       "verbatim": "Steelhead Stamp not mandatory for Skeena River 2 unless fishing for steelhead."
+      },
+      "verbatim": "There are two separate Class II waters on the Skeena River (non-residents and non-resident aliens require separate licences describing which section they are fishing): (a) from Exchamsiks River to 1.5 km upstream of Kitsumkalum River (known as \"Skeena River 2\"), July 1-Sept 30",
+      "review_reason": "From the Exchamsiks confluence cut (owner 2026-10-24, book p.53: from Exchamsiks River to 1.5 km upstream of Kitsumkalum River). T67 put that cut on the mainstem (360887278 at 67,917 m); before it the cut lay only on side channel 360216952 and the reach stood in at the Skeena River Ecological Reserve's lower mainstem crossing (m 63,480, LS-1), over-requiring the licence below the Exchamsiks.",
+      "kind": "designation"
+     },
+     {
+      "id": "skeena_river_section_4",
+      "classified": "II",
+      "unit": "skeena_river_section_4",
+      "unit_name": "Skeena River Section 4",
+      "when": {
+       "dates": [
+        {
+         "from_month": 7,
+         "from_day": 1,
+         "to_month": 12,
+         "to_day": 31
+        }
+       ]
+      },
+      "extents": [
+       {
+        "op": "upstream_of",
+        "splits": [
+         "skeena_river__zymoetz_river_into_skeena_river_u1500m"
+        ]
+       }
+      ],
+      "steelhead_stamp_during": {
+       "when": {
+        "dates": [
+         {
+          "from_month": 7,
+          "from_day": 1,
+          "to_month": 12,
+          "to_day": 31
+         }
+        ]
+       },
+       "verbatim": "Steelhead Stamp is mandatory in Skeena River Section 4 during the Classified Waters period from July 1-Dec 31"
+      },
+      "verbatim": "1.5 km upstream of Zymoetz River (known as \"Skeena River Section 4\"), July 1-Dec 31",
+      "review_reason": "Skeena River Section 4 prints only its lower end (1.5 km upstream of Zymoetz River); bound upstream_of that point with no upper end, which runs to the headwaters — a curator must draw the upper bound from the page 54/55 maps",
+      "kind": "designation"
+     }
+    ],
+    "anadromous_rainbow": true
+   }
+  },
+  {
+   "tier": "P3",
+   "risks": [
+    "flag"
+   ],
+   "entry": {
+    "entry_id": "r7:gwillim_lake@7-21",
+    "name": "GWILLIM LAKE",
+    "display_name": "Gwillim Lake",
+    "region": "7",
+    "regs_verbatim": "Lake trout daily quota = 2 (none under 40 cm or over 60 cm); bait ban, single barbless hook",
+    "source_pages": [
+     65
+    ],
+    "matched": [
+     "wbk:329397725"
+    ],
+    "extents": [
+     {
+      "op": "whole"
+     }
+    ],
+    "rules": [
+     {
+      "rule_id": "gwillim_lake.r1",
+      "type": "retention_limit",
+      "verbatim": "Lake trout daily quota = 2 (none under 40 cm or over 60 cm)",
+      "species": [
+       "LT"
+      ],
+      "take": 2,
+      "lengths": [
+       {
+        "min_cm": 40,
+        "max_cm": 60
+       },
+       {
+        "max_cm": 40,
+        "take": 0
+       },
+       {
+        "min_cm": 60,
+        "take": 0
+       }
+      ],
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ],
+      "exempts": [
+       {
+        "target": "trout_char_quota.r2",
+        "entry_id": "z7b:daily_quotas",
+        "note": "the lake's own lake trout sizes replace '1 over 50 cm': it keeps more than one lake trout over 50 cm"
+       }
+      ],
+      "review_reason": "The sentence is a WINDOW, not a band: 'none under X or over Y' prohibits the two ends, so what may be kept is the middle. Flagged `band` it meant the opposite — keep nothing between X and Y — which permits exactly the fish the rule protects."
+     },
+     {
+      "rule_id": "gwillim_lake.r2",
+      "type": "bait_restriction",
+      "verbatim": "bait ban",
+      "gear": [
+       {
+        "slot": "bait",
+        "ban": [
+         "any_bait"
+        ]
+       }
+      ],
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ]
+     },
+     {
+      "rule_id": "gwillim_lake.r3",
+      "type": "tackle_restriction",
+      "verbatim": "single barbless hook",
+      "gear": [
+       {
+        "slot": "barb",
+        "only": [
+         "barbless"
+        ]
+       },
+       {
+        "slot": "points_per_hook",
+        "max": 1.0
+       }
+      ],
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "tier": "P3",
+   "risks": [
+    "flag"
+   ],
+   "entry": {
+    "entry_id": "r8:skaha_lake@8-9",
+    "name": "SKAHA LAKE",
+    "display_name": "Skaha Lake",
+    "region": "8",
+    "regs_verbatim": "Kokanee daily quota = 5 (none over 35 cm from July 10-Oct 31)\nBass daily quota = 8, yellow perch daily quota = 20\nSpeed restrictions or no vessels (as buoyed and signed), various locations",
+    "source_pages": [
+     71
+    ],
+    "matched": [
+     "wbk:329459118"
+    ],
+    "extents": [
+     {
+      "op": "whole"
+     }
+    ],
+    "rules": [
+     {
+      "rule_id": "skaha_lake.r1",
+      "type": "retention_limit",
+      "verbatim": "Kokanee daily quota = 5",
+      "species": [
+       "KO"
+      ],
+      "take": 5,
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ]
+     },
+     {
+      "rule_id": "skaha_lake.r2",
+      "type": "retention_limit",
+      "verbatim": "none over 35 cm from July 10-Oct 31",
+      "species": [
+       "KO"
+      ],
+      "when": {
+       "dates": [
+        {
+         "from_month": 7,
+         "from_day": 10,
+         "to_month": 10,
+         "to_day": 31
+        }
+       ]
+      },
+      "may_target": true,
+      "within": "skaha_lake.r1",
+      "lengths": [
+       {
+        "min_cm": 35,
+        "take": 0
+       }
+      ],
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ]
+     },
+     {
+      "rule_id": "skaha_lake.r3",
+      "type": "retention_limit",
+      "verbatim": "Bass daily quota = 8",
+      "species": [
+       "BASS"
+      ],
+      "take": 8,
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ]
+     },
+     {
+      "rule_id": "skaha_lake.r4",
+      "type": "retention_limit",
+      "verbatim": "yellow perch daily quota = 20",
+      "species": [
+       "YP"
+      ],
+      "take": 20,
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ]
+     },
+     {
+      "rule_id": "skaha_lake.r5",
+      "type": "vessel_rule",
+      "verbatim": "Speed restrictions or no vessels (as buoyed and signed), various locations",
+      "aspect": "speed",
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ],
+      "unresolved_locators": [
+       "various locations (as buoyed and signed)"
+      ],
+      "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): the buoyed and signed locations are not polygons in the atlas, and the book gives no speed value. Needs them drawn.",
+      "undrawn_part": "various locations (as buoyed and signed)"
+     },
+     {
+      "rule_id": "skaha_lake.r6",
+      "type": "vessel_rule",
+      "verbatim": "Speed restrictions or no vessels (as buoyed and signed), various locations",
+      "aspect": "propulsion",
+      "level": "none",
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ],
+      "unresolved_locators": [
+       "various locations (as buoyed and signed)"
+      ],
+      "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): the buoyed and signed no-vessel locations are not polygons in the atlas. Needs them drawn.",
+      "undrawn_part": "various locations (as buoyed and signed)"
+     }
+    ]
+   }
+  },
+  {
+   "tier": "P3",
+   "risks": [
+    "no match",
+    "flag"
+   ],
+   "entry": {
+    "entry_id": "r5:square_lake@5-6",
+    "name": "SQUARE LAKE",
+    "region": "5",
+    "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
+    "source_pages": [
+     47
+    ],
+    "rules": [
+     {
+      "rule_id": "square_lake.r1",
+      "type": "retention_limit",
+      "verbatim": "Trout daily quota = 2",
+      "species": [
+       "TROUT_CHAR"
+      ],
+      "take": 2,
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ],
+      "review_reason": "no registry match — attach an item and bind extents"
+     },
+     {
+      "rule_id": "square_lake.r2",
+      "type": "bait_restriction",
+      "verbatim": "bait ban",
+      "gear": [
+       {
+        "slot": "bait",
+        "ban": [
+         "any_bait"
+        ]
+       }
+      ],
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ],
+      "review_reason": "no registry match — attach an item and bind extents"
+     },
+     {
+      "rule_id": "square_lake.r3",
+      "type": "tackle_restriction",
+      "verbatim": "single barbless hook",
+      "gear": [
+       {
+        "slot": "barb",
+        "only": [
+         "barbless"
+        ]
+       },
+       {
+        "slot": "points_per_hook",
+        "max": 1.0
+       }
+      ],
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ],
+      "review_reason": "no registry match — attach an item and bind extents"
+     }
+    ]
+   }
+  },
+  {
+   "tier": "P3",
+   "risks": [
+    "no match",
+    "flag"
+   ],
+   "entry": {
+    "entry_id": "r5:redfern_lake@5-15",
+    "name": "REDFERN LAKE",
+    "region": "5",
+    "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
+    "source_pages": [
+     46
+    ],
+    "rules": [
+     {
+      "rule_id": "redfern_lake.r1",
+      "type": "retention_limit",
+      "verbatim": "Trout daily quota = 2",
+      "species": [
+       "TROUT_CHAR"
+      ],
+      "take": 2,
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ],
+      "review_reason": "no registry match — attach an item and bind extents"
+     },
+     {
+      "rule_id": "redfern_lake.r2",
+      "type": "bait_restriction",
+      "verbatim": "bait ban",
+      "gear": [
+       {
+        "slot": "bait",
+        "ban": [
+         "any_bait"
+        ]
+       }
+      ],
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ],
+      "review_reason": "no registry match — attach an item and bind extents"
+     },
+     {
+      "rule_id": "redfern_lake.r3",
+      "type": "tackle_restriction",
+      "verbatim": "single barbless hook",
+      "gear": [
+       {
+        "slot": "barb",
+        "only": [
+         "barbless"
+        ]
+       },
+       {
+        "slot": "points_per_hook",
+        "max": 1.0
+       }
+      ],
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ],
+      "review_reason": "no registry match — attach an item and bind extents"
+     }
+    ]
+   }
+  },
+  {
+   "tier": "P3",
+   "risks": [
+    "several waters"
+   ],
+   "entry": {
+    "entry_id": "r5:wentworth_lakes@5-13",
+    "name": "WENTWORTH LAKES",
+    "display_name": "WENTWORTH LAKES",
+    "region": "5",
+    "regs_verbatim": "Trout daily quota = 2",
+    "source_pages": [
+     47
+    ],
+    "matched": [
+     "wbk:329430971",
+     "wbk:329430952"
+    ],
+    "extents": [
+     {
+      "op": "whole"
+     }
+    ],
+    "rules": [
+     {
+      "rule_id": "wentworth_lakes.r1",
+      "type": "retention_limit",
+      "verbatim": "Trout daily quota = 2",
+      "species": [
+       "TROUT_CHAR"
+      ],
+      "take": 2,
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "tier": "P3",
+   "risks": [
+    "several waters"
+   ],
+   "entry": {
+    "entry_id": "r7:tatlatui_lake@7-39",
+    "name": "TATLATUI LAKE",
+    "display_name": "Tatlatui Lake",
+    "region": "7",
+    "regs_verbatim": "Rainbow trout daily quota = 2",
+    "source_pages": [
+     61
+    ],
+    "matched": [
+     "wbk:329135993",
+     "wbk:329136015"
+    ],
+    "extents": [
+     {
+      "op": "whole"
+     }
+    ],
+    "rules": [
+     {
+      "rule_id": "tatlatui_lake.r1",
+      "type": "retention_limit",
+      "verbatim": "Rainbow trout daily quota = 2",
+      "species": [
+       "RB"
+      ],
+      "take": 2,
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "tier": "P3",
+   "risks": [
+    "undrawn part",
+    "cut"
+   ],
+   "entry": {
+    "entry_id": "r4:upper_arrow_lake_drawdown_area@4-31+4-32",
+    "name": "UPPER ARROW LAKE (drawdown area)",
+    "display_name": "Upper Arrow Lake",
+    "region": "4",
+    "regs_verbatim": "\"The drawdown area\", that water known as either Upper Arrow Lake or Columbia River (depending on the reservoir's level), located\nbetween Hwy 1 bridge in Revelstoke and the power line crossing at Akolkolex Narrows (approximately 1.5 km downstream of the\nAkolkolex River confluence): trout/char daily quota = 2 (no bull trout under 60 cm and only 1 bull trout over 60 cm); single barbless hook\nEXEMPT from the regional kokanee \"none from streams\" daily quota (the combined daily quota for kokanee in Lower Arrow Lake, Upper\nArrow Lake and the drawdown area is the regional daily quota on page 34)\nEXEMPT from the regional Nov 1-Mar 31 trout/char catch and release from streams\nEXEMPT from the regional Apr 1-June 14 stream closure",
+    "source_pages": [
+     40
+    ],
+    "matched": [
+     "wbk:328961689"
+    ],
+    "extents": [
+     {
+      "op": "whole",
+      "item_id": "wbk:328961689"
+     },
+     {
+      "op": "between",
+      "item_id": "gnis:37414",
+      "splits": [
+       "columbia_river__hwy_1_bridge_in_revelstoke",
+       "columbia_river__upper_arrow_lake"
+      ]
+     }
+    ],
+    "rules": [
+     {
+      "rule_id": "upper_arrow_lake_drawdown_area.r1",
+      "type": "retention_limit",
+      "verbatim": "trout/char daily quota = 2",
+      "species": [
+       "TROUT_CHAR"
+      ],
+      "take": 2,
+      "extents": [
+       {
+        "op": "between",
+        "item_id": "gnis:37414",
+        "splits": [
+         "columbia_river__hwy_1_bridge_in_revelstoke",
+         "columbia_river__upper_arrow_lake"
+        ]
+       }
+      ]
+     },
+     {
+      "rule_id": "upper_arrow_lake_drawdown_area.r1b",
+      "type": "retention_limit",
+      "verbatim": "trout/char daily quota = 2",
+      "species": [
+       "TROUT_CHAR"
+      ],
+      "take": 2,
+      "includes_tributaries": false,
+      "extents": [
+       {
+        "op": "whole",
+        "item_id": "wbk:328961689"
+       }
+      ],
+      "undrawn_part": "the drawdown area at the north end of the lake, down to the power line crossing at Akolkolex Narrows (approximately 1.5 km downstream of the Akolkolex River confluence)"
+     },
+     {
+      "rule_id": "upper_arrow_lake_drawdown_area.r2",
+      "type": "retention_limit",
+      "verbatim": "no bull trout under 60 cm and only 1 bull trout over 60 cm",
+      "species": [
+       "DV"
+      ],
+      "take": 1,
+      "within": "upper_arrow_lake_drawdown_area.r1",
+      "lengths": [
+       {
+        "min_cm": 60
+       },
+       {
+        "max_cm": 60,
+        "take": 0
+       }
+      ],
+      "extents": [
+       {
+        "op": "between",
+        "item_id": "gnis:37414",
+        "splits": [
+         "columbia_river__hwy_1_bridge_in_revelstoke",
+         "columbia_river__upper_arrow_lake"
+        ]
+       }
+      ]
+     },
+     {
+      "rule_id": "upper_arrow_lake_drawdown_area.r2b",
+      "type": "retention_limit",
+      "verbatim": "no bull trout under 60 cm and only 1 bull trout over 60 cm",
+      "species": [
+       "DV"
+      ],
+      "take": 1,
+      "within": "upper_arrow_lake_drawdown_area.r1b",
+      "lengths": [
+       {
+        "min_cm": 60
+       },
+       {
+        "max_cm": 60,
+        "take": 0
+       }
+      ],
+      "includes_tributaries": false,
+      "extents": [
+       {
+        "op": "whole",
+        "item_id": "wbk:328961689"
+       }
+      ],
+      "undrawn_part": "the drawdown area at the north end of the lake, down to the power line crossing at Akolkolex Narrows (approximately 1.5 km downstream of the Akolkolex River confluence)"
+     },
+     {
+      "rule_id": "upper_arrow_lake_drawdown_area.r3",
+      "type": "tackle_restriction",
+      "verbatim": "single barbless hook",
+      "gear": [
+       {
+        "slot": "barb",
+        "only": [
+         "barbless"
+        ]
+       },
+       {
+        "slot": "points_per_hook",
+        "max": 1.0
+       }
+      ],
+      "extents": [
+       {
+        "op": "between",
+        "item_id": "gnis:37414",
+        "splits": [
+         "columbia_river__hwy_1_bridge_in_revelstoke",
+         "columbia_river__upper_arrow_lake"
+        ]
+       }
+      ]
+     },
+     {
+      "rule_id": "upper_arrow_lake_drawdown_area.r3b",
+      "type": "tackle_restriction",
+      "verbatim": "single barbless hook",
+      "gear": [
+       {
+        "slot": "barb",
+        "only": [
+         "barbless"
+        ]
+       },
+       {
+        "slot": "points_per_hook",
+        "max": 1.0
+       }
+      ],
+      "includes_tributaries": false,
+      "extents": [
+       {
+        "op": "whole",
+        "item_id": "wbk:328961689"
+       }
+      ],
+      "undrawn_part": "the drawdown area at the north end of the lake, down to the power line crossing at Akolkolex Narrows (approximately 1.5 km downstream of the Akolkolex River confluence)"
+     },
+     {
+      "rule_id": "upper_arrow_lake_drawdown_area.r4",
+      "type": "retention_limit",
+      "verbatim": "EXEMPT from the regional kokanee \"none from streams\" daily quota",
+      "species": [
+       "KO"
+      ],
+      "extents": [
+       {
+        "op": "between",
+        "item_id": "gnis:37414",
+        "splits": [
+         "columbia_river__hwy_1_bridge_in_revelstoke",
+         "columbia_river__upper_arrow_lake"
+        ]
+       }
+      ],
+      "exempts": [
+       {
+        "target": "species_quotas.r5",
+        "entry_id": "z4:daily_quotas"
+       }
+      ]
+     },
+     {
+      "rule_id": "upper_arrow_lake_drawdown_area.r5",
+      "type": "retention_limit",
+      "verbatim": "EXEMPT from the regional Nov 1-Mar 31 trout/char catch and release from streams",
+      "species": [
+       "TROUT_CHAR"
+      ],
+      "extents": [
+       {
+        "op": "between",
+        "item_id": "gnis:37414",
+        "splits": [
+         "columbia_river__hwy_1_bridge_in_revelstoke",
+         "columbia_river__upper_arrow_lake"
+        ]
+       }
+      ],
+      "exempts": [
+       {
+        "default_id": "trout_char_winter_release"
+       }
+      ]
+     },
+     {
+      "rule_id": "upper_arrow_lake_drawdown_area.r6",
+      "type": "retention_limit",
+      "verbatim": "EXEMPT from the regional Apr 1-June 14 stream closure",
+      "species": [
+       "ALL_GAME_FISH"
+      ],
+      "extents": [
+       {
+        "op": "between",
+        "item_id": "gnis:37414",
+        "splits": [
+         "columbia_river__hwy_1_bridge_in_revelstoke",
+         "columbia_river__upper_arrow_lake"
+        ]
+       }
+      ],
+      "exempts": [
+       {
+        "default_id": "spring_stream_closure"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "tier": "P3",
+   "risks": [
+    "undrawn part",
+    "flag"
+   ],
+   "entry": {
+    "entry_id": "r8:rosemond_lake@8-26",
+    "name": "ROSEMOND LAKE",
+    "display_name": "Rosemond Lake",
+    "region": "8",
+    "regs_verbatim": "No powered boats south of the CPR Bridge",
+    "source_pages": [
+     70
+    ],
+    "matched": [
+     "wbk:329518151"
+    ],
+    "extents": [
+     {
+      "op": "whole"
+     }
+    ],
+    "rules": [
+     {
+      "rule_id": "rosemond_lake.r1",
+      "type": "vessel_rule",
+      "verbatim": "No powered boats south of the CPR Bridge",
+      "aspect": "propulsion",
+      "level": "unpowered",
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ],
+      "unresolved_locators": [
+       "south of the CPR Bridge"
+      ],
+      "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): Rosemond Lake has no cut-point at the CPR Bridge (a lake has no boundaries besides its whole). Needs a curated split or part.",
+      "undrawn_part": "south of the CPR Bridge"
+     }
+    ]
+   }
+  },
+  {
+   "tier": "P3",
+   "risks": [
+    "undrawn part",
+    "flag"
+   ],
+   "entry": {
+    "entry_id": "r8:mara_lake@8-26",
+    "name": "MARA LAKE",
+    "display_name": "Mara Lake",
+    "region": "8",
+    "regs_verbatim": "See Shuswap Lake in Region 3\nNo powered boats south of the CPR bridge",
+    "source_pages": [
+     70
+    ],
+    "matched": [
+     "wbk:329518146"
+    ],
+    "extents": [
+     {
+      "op": "whole"
+     }
+    ],
+    "rules": [
+     {
+      "rule_id": "mara_lake.r2",
+      "type": "vessel_rule",
+      "verbatim": "No powered boats south of the CPR bridge",
+      "aspect": "propulsion",
+      "level": "unpowered",
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ],
+      "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): this lake has no bindable cut-points in the registry, so 'south of the CPR bridge' cannot be bound to a reach",
+      "undrawn_part": "south of the CPR bridge"
+     }
+    ],
+    "see": [
+     {
+      "verbatim": "See Shuswap Lake in Region 3",
+      "entry_ids": [
+       "r3:shuswap_lake_see_maps_on_page_28_includes_little_shuswap_lak@3-26"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "tier": "P3",
+   "risks": [
+    "undrawn part",
+    "several waters",
+    "flag"
+   ],
+   "entry": {
+    "entry_id": "r1:cowichan_lake_including_bear_lake@1-4",
+    "name": "COWICHAN LAKE (including Bear Lake)",
+    "display_name": "Cowichan Lake",
+    "region": "1",
+    "regs_verbatim": "Cutthroat trout daily quota = 2 (none over 50 cm); bait ban and single barbless hook, Nov 15-Apr 15\nSpeed restriction on parts (8 km/h), plus overall 10 km/h speed restriction within 60 m of shore",
+    "source_pages": [
+     15
+    ],
+    "matched": [
+     "wbk:329101302",
+     "wbk:329101330"
+    ],
+    "extents": [
+     {
+      "op": "whole"
+     }
+    ],
+    "rules": [
+     {
+      "rule_id": "cowichan_lake.r1",
+      "type": "retention_limit",
+      "verbatim": "Cutthroat trout daily quota = 2 (none over 50 cm)",
+      "species": [
+       "CT"
+      ],
+      "take": 2,
+      "lengths": [
+       {
+        "max_cm": 50
+       },
+       {
+        "min_cm": 50,
+        "take": 0
+       }
+      ],
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ]
+     },
+     {
+      "rule_id": "cowichan_lake.r2",
+      "type": "bait_restriction",
+      "verbatim": "bait ban",
+      "gear": [
+       {
+        "slot": "bait",
+        "ban": [
+         "any_bait"
+        ]
+       }
+      ],
+      "when": {
+       "dates": [
+        {
+         "from_month": 11,
+         "from_day": 15,
+         "to_month": 4,
+         "to_day": 15
+        }
+       ]
+      },
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ]
+     },
+     {
+      "rule_id": "cowichan_lake.r3",
+      "type": "tackle_restriction",
+      "verbatim": "single barbless hook",
+      "gear": [
+       {
+        "slot": "barb",
+        "only": [
+         "barbless"
+        ]
+       },
+       {
+        "slot": "points_per_hook",
+        "max": 1.0
+       }
+      ],
+      "when": {
+       "dates": [
+        {
+         "from_month": 11,
+         "from_day": 15,
+         "to_month": 4,
+         "to_day": 15
+        }
+       ]
+      },
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ]
+     },
+     {
+      "rule_id": "cowichan_lake.r4",
+      "type": "vessel_rule",
+      "verbatim": "Speed restriction on parts (8 km/h)",
+      "aspect": "speed",
+      "max_kmh": 8.0,
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ]
+     },
+     {
+      "rule_id": "cowichan_lake.r5",
+      "type": "vessel_rule",
+      "verbatim": "overall 10 km/h speed restriction within 60 m of shore",
+      "aspect": "speed",
+      "max_kmh": 10.0,
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ],
+      "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): a shoreline proximity band is not expressible as a split or area; this item has no bindable boundaries besides op:whole",
+      "undrawn_part": "within 60 m of shore"
+     }
+    ]
+   }
+  },
+  {
+   "tier": "P4",
+   "risks": [],
+   "entry": {
+    "entry_id": "r4:bridal_lake@4-7",
+    "name": "BRIDAL LAKE",
+    "display_name": "Bridal Lake",
+    "region": "4",
+    "regs_verbatim": "No powered boats",
+    "source_pages": [
+     35
+    ],
+    "matched": [
+     "wbk:329262703"
+    ],
+    "rules": [
+     {
+      "rule_id": "bridal_lake.r1",
+      "type": "vessel_rule",
+      "verbatim": "No powered boats",
+      "aspect": "propulsion",
+      "level": "unpowered",
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "tier": "P4",
+   "risks": [],
+   "entry": {
+    "entry_id": "r8:hidden_lake@8-25",
+    "name": "HIDDEN LAKE",
+    "display_name": "Hidden Lake",
+    "region": "8",
+    "regs_verbatim": "No towing",
+    "source_pages": [
+     69
+    ],
+    "symbols": [
+     "Stocked"
+    ],
+    "matched": [
+     "wbk:329663960"
+    ],
+    "extents": [
+     {
+      "op": "whole"
+     }
+    ],
+    "rules": [
+     {
+      "rule_id": "hidden_lake.r1",
+      "type": "vessel_rule",
+      "verbatim": "No towing",
+      "aspect": "towing",
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "tier": "P4",
+   "risks": [],
+   "entry": {
+    "entry_id": "r3:walloper_lake@3-19",
+    "name": "WALLOPER LAKE",
+    "display_name": "Walloper Lake",
+    "region": "3",
+    "regs_verbatim": "**WARNING! Dangerous thin ice due to aeration!**",
+    "source_pages": [
+     32
+    ],
+    "matched": [
+     "wbk:329176284"
+    ],
+    "rules": [
+     {
+      "rule_id": "walloper_lake.r1",
+      "type": "hazard",
+      "verbatim": "WARNING! Dangerous thin ice due to aeration!",
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "tier": "P4",
+   "risks": [],
+   "entry": {
+    "entry_id": "r5:fly_lake@5-2",
+    "name": "FLY LAKE",
+    "display_name": "Fly Lake",
+    "region": "5",
+    "regs_verbatim": "No powered boats",
+    "source_pages": [
+     45
+    ],
+    "matched": [
+     "wbk:329494927"
+    ],
+    "extents": [
+     {
+      "op": "whole"
+     }
+    ],
+    "rules": [
+     {
+      "rule_id": "fly_lake.r1",
+      "type": "vessel_rule",
+      "verbatim": "No powered boats",
+      "aspect": "propulsion",
+      "level": "unpowered",
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "tier": "P4",
+   "risks": [],
+   "entry": {
+    "entry_id": "r2:ashlu_creek@2-6",
+    "name": "ASHLU CREEK",
+    "display_name": "Ashlu Creek",
+    "region": "2",
+    "regs_verbatim": "Bait ban",
+    "source_pages": [
+     22
+    ],
+    "matched": [
+     "gnis:17155"
+    ],
+    "extents": [
+     {
+      "op": "whole"
+     }
+    ],
+    "rules": [
+     {
+      "rule_id": "ashlu_creek.r1",
+      "type": "bait_restriction",
+      "verbatim": "Bait ban",
+      "gear": [
+       {
+        "slot": "bait",
+        "ban": [
+         "any_bait"
+        ]
+       }
+      ],
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "tier": "P4",
+   "risks": [],
+   "entry": {
+    "entry_id": "r2:elaho_river@2-6",
+    "name": "ELAHO RIVER",
+    "display_name": "Elaho River",
+    "region": "2",
+    "regs_verbatim": "Bait ban",
+    "source_pages": [
+     23
+    ],
+    "matched": [
+     "gnis:10716"
+    ],
+    "extents": [
+     {
+      "op": "whole"
+     }
+    ],
+    "rules": [
+     {
+      "rule_id": "elaho_river.r1",
+      "type": "bait_restriction",
+      "verbatim": "Bait ban",
+      "gear": [
+       {
+        "slot": "bait",
+        "ban": [
+         "any_bait"
+        ]
+       }
+      ],
+      "extents": [
+       {
+        "op": "whole"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "tier": "sweep",
+   "risks": [],
+   "entry": {
+    "entry_id": "r5:brown_lake@5-13",
+    "name": "\"BROWN\" LAKE",
+    "display_name": "Bishop Lake",
+    "region": "5",
+    "regs_verbatim": "See Bishop Lake",
+    "source_pages": [
+     43
+    ],
+    "matched": [
+     "wbk:329430941"
+    ],
+    "see": [
+     {
+      "verbatim": "See Bishop Lake",
+      "entry_ids": [
+       "r5:bishop_brown_lake@5-13"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "tier": "sweep",
+   "risks": [],
+   "entry": {
+    "entry_id": "r2:paq_lake@2-5",
+    "name": "\"PAQ\" LAKE",
+    "display_name": "Lily Lake",
+    "region": "2",
+    "regs_verbatim": "See Lily Lake",
+    "source_pages": [
+     25
+    ],
+    "matched": [
+     "wbk:329197172"
+    ],
+    "extents": [
+     {
+      "op": "whole"
+     }
+    ],
+    "see": [
+     {
+      "verbatim": "See Lily Lake",
+      "entry_ids": [
+       "r2:lily_paq_lake@2-5"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "tier": "sweep",
+   "risks": [
+    "no match"
+   ],
+   "entry": {
+    "entry_id": "r7:endako_river@7-12",
+    "name": "ENDAKO RIVER",
+    "region": "7",
+    "regs_verbatim": "**No Fishing** Nov 15-June 30",
+    "source_pages": [
+     59
+    ],
+    "see": [
+     {
+      "verbatim": "No Fishing Nov 15-June 30",
+      "entry_ids": [
+       "r6:endako_river@6-4"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "tier": "sweep",
+   "risks": [
+    "no match"
+   ],
+   "entry": {
+    "entry_id": "r4:arrow_lakes@4-15+4-32",
+    "name": "ARROW LAKES",
+    "region": "4",
+    "regs_verbatim": "See Upper Arrow Lake",
+    "source_pages": [
+     35
+    ],
+    "see": [
+     {
+      "verbatim": "See Upper Arrow Lake",
+      "entry_ids": [
+       "r4:upper_arrow_lake_drawdown_area@4-31+4-32"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "tier": "sweep",
+   "risks": [
+    "several waters"
+   ],
+   "entry": {
+    "entry_id": "r4:garbutt_lake@4-22",
+    "name": "GARBUTT LAKE",
+    "display_name": "Norbury Lakes",
+    "region": "4",
+    "regs_verbatim": "See Norbury Lake",
+    "source_pages": [
+     36
+    ],
+    "matched": [
+     "wbk:329524023",
+     "wbk:329524047"
+    ],
+    "extents": [
+     {
+      "op": "whole"
+     }
+    ],
+    "see": [
+     {
+      "verbatim": "See Norbury Lake",
+      "entry_ids": [
+       "r4:norbury_garbutt_lake@4-22"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "tier": "sweep",
+   "risks": [
+    "several waters"
+   ],
+   "entry": {
+    "entry_id": "r7:cameron_lakes@7-31",
+    "name": "CAMERON LAKES",
+    "display_name": "Cameron Lakes",
+    "region": "7",
+    "regs_verbatim": "See North and South Cameron lakes",
+    "source_pages": [
+     65
+    ],
+    "matched": [
+     "wbk:329657328",
+     "wbk:329657333",
+     "wbk:329657984"
+    ],
+    "extents": [
+     {
+      "op": "whole"
+     }
+    ],
+    "see": [
+     {
+      "verbatim": "See North and South Cameron lakes",
+      "entry_ids": [
+       "r7:north_cameron_lake@7-31",
+       "r7:south_cameron_lake@7-31"
+      ]
+     }
+    ]
+   }
+  }
+ ],
+ "splits": [
+  {
+   "grade": "H",
+   "split": {
+    "id": "duncan_river__duncan_dam",
+    "label": "Duncan Dam",
+    "kind": "point",
+    "anchor": {
+     "type": "point",
+     "coord": [
+      -116.94624,
+      50.25099
+     ],
+     "is_lonlat": true
+    },
+    "note": "",
+    "_note": "[auto-proposal H] Duncan Dam (Duncan Lake outlet) on Duncan River (Duncan Dam -> Lardeau R confluence). Candidate coord [-116.94343, 50.2491]. OSM: https://www.openstreetmap.org/?mlat=50.24910&mlon=-116.94343#map=15/50.24910/-116.94343. Verify: Confirm cut at Duncan Dam (south end of Duncan Lake); downstream end = Duncan-Lardeau confluence.. Duncan Dam impounds Duncan Lake (Kootenay, MU 4-19); coord = FWA Duncan River exit from the large Duncan Lake polygon (wbk 329120714), matching the known dam. Reach runs to the Lardeau River confluence. [structural-split 2026-08-05 from \"downstream of Duncan Dam to the confluence of the Duncan Riv\"] boundary=downstream of Duncan Dam [curated 2026-08-09 verify-batch] [OSM dam 220188876]",
+    "_coord": [
+     -116.94624,
+     50.25099
+    ]
+   }
+  },
+  {
+   "grade": "H",
+   "split": {
+    "id": "columbia_river__washington_state_border",
+    "label": "Washington state border",
+    "kind": "point",
+    "anchor": {
+     "type": "point",
+     "coord": [
+      -117.63219,
+      49.0004
+     ],
+     "is_lonlat": true
+    },
+    "note": "",
+    "_note": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Confirm cut at Keenleyside Dam (Lower Arrow Lake outlet); downstream end = Washington state border (auto border split).. Hugh Keenleyside Dam impounds the Arrow Lakes; coord = FWA Columbia exit from the Lower Arrow Lake polygon, matching the known dam near Castlegar. Reach runs to the US border. [structural-split 2026-08-05 from \"from Keenleyside Dam to the Washington state border\"] boundary=Washington state border [curated 2026-08-07 manual-review batch=fraser/columbia]",
+    "_coord": [
+     -117.63219,
+     49.0004
+    ]
+   }
+  },
+  {
+   "grade": "H",
+   "split": {
+    "id": "brunette_river__cariboo_dam",
+    "label": "Cariboo Dam",
+    "kind": "point",
+    "anchor": {
+     "type": "point",
+     "coord": [
+      -122.91698,
+      49.24793
+     ],
+     "is_lonlat": true
+    },
+    "note": "",
+    "_note": "[auto-proposal H] Cariboo Dam (Burnaby Lake outlet) on Brunette River (Cariboo Dam). Candidate coord [-122.935, 49.24134]. OSM: https://www.openstreetmap.org/?mlat=49.24134&mlon=-122.93500#map=15/49.24134/-122.93500. Verify: Confirm Cariboo Dam sits at the Burnaby Lake outlet; downstream bound = Salamander Creek (not found in FWA by that name).. Cariboo Dam controls the Brunette River at the outlet of Burnaby Lake. Coord = FWA Brunette River exit from the Burnaby Lake polygon. Note 'Salamander Creek' (reach terminus) is not in FWA under that name - human should locate it. [human-review 2026-08-06 OSM dam] Cariboo Dam.",
+    "_coord": [
+     -122.91698,
+     49.24793
+    ]
+   }
+  },
+  {
+   "grade": "H",
+   "split": {
+    "id": "columbia_river__keenleyside_dam",
+    "label": "Keenleyside Dam",
+    "kind": "point",
+    "anchor": {
+     "type": "point",
+     "coord": [
+      -117.77353,
+      49.34196
+     ],
+     "is_lonlat": true
+    },
+    "note": "",
+    "_note": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border, + Kootenay reach). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Same dam as columbia-river-f4c5a3; entry also bundles a connected Kootenay River reach - handle separately.. Duplicate Keenleyside Dam structure; this entry additionally names a connected Kootenay River reach (see the Kootenay dam items 21-23). Coord = Keenleyside Dam at Lower Arrow Lake outlet. [structural-split 2026-08-05 from \"From Keenleyside Dam downstream to the Washington state bord\"] boundary=Keenleyside Dam [human-review 2026-08-06 OSM dam] Keenleyside Dam.",
+    "_coord": [
+     -117.77353,
+     49.34196
+    ],
+    "proximity_m": 80.0,
+    "at_edge": true
+   }
+  },
+  {
+   "grade": "L",
+   "split": {
+    "id": "cowichan_river__cnr_trestle",
+    "label": "CNR Mile 66 Trestle",
+    "kind": "point",
+    "anchor": {
+     "type": "point",
+     "coord": [
+      -123.92833,
+      48.77634
+     ],
+     "is_lonlat": true
+    },
+    "note": "",
+    "_note": "[auto-proposal L] CNR Trestle (Mile 66) over Cowichan River on Cowichan River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the CNR Mile 66 trestle on the Cowichan River (see reg map); railway trestle, map-only.. Reg explicitly says 'see map below'. Railway trestle landmark; not in FWA. Map/OSM-confirmable. [curated 2026-08-07 manual-review batch=cowichan]",
+    "_coord": [
+     -123.92833,
+     48.77634
+    ]
+   }
+  },
+  {
+   "grade": "L",
+   "split": {
+    "id": "fraser_river__the_cpr_bridge_at_mission",
+    "label": "the CPR Bridge at Mission",
+    "kind": "point",
+    "anchor": {
+     "type": "point",
+     "coord": [
+      -122.30047,
+      49.12606
+     ],
+     "is_lonlat": true
+    },
+    "note": "",
+    "_note": "[auto-proposal L] CPR Bridge at Mission on Fraser River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the CPR (Mission railway) bridge over the Fraser at Mission; well-known -> review.. Public/railway bridge at Mission (the tidal-boundary landmark on the lower Fraser). Map/OSM-confirmable. [curated 2026-08-07 manual-review batch=fraser-mission] [Mission Railway Bridge]",
+    "_coord": [
+     -122.30047,
+     49.12606
+    ]
+   }
+  },
+  {
+   "grade": "L",
+   "split": {
+    "id": "nanaimo_river__hwy_1_bridge",
+    "label": "Hwy 1 bridge",
+    "kind": "point",
+    "anchor": {
+     "type": "point",
+     "coord": [
+      -123.8806,
+      49.07089
+     ],
+     "is_lonlat": true
+    },
+    "note": "",
+    "_note": "[auto-proposal L] Hwy 1 bridge over Nanaimo River on Nanaimo River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 1 (Trans-Canada) bridge over the Nanaimo River, S of Nanaimo; single crossing -> review.. Public highway bridge -> map/OSM-confirmable; not in FWA. [human-review 2026-08-05 OSM-confirmed] [-123.8806, 49.07089].",
+    "_coord": [
+     -123.8806,
+     49.07089
+    ]
+   }
+  },
+  {
+   "grade": "L",
+   "split": {
+    "id": "noons_creek__railway_bridge",
+    "label": "railway bridge",
+    "kind": "point",
+    "anchor": {
+     "type": "point",
+     "coord": [
+      -122.83407,
+      49.28408
+     ],
+     "is_lonlat": true
+    },
+    "note": "",
+    "_note": "[auto-proposal L] railway bridge over Noons Creek, Port Moody on Noons Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the railway bridge over Noons Creek at Port Moody; railway bridge, map-only.. Small urban creek at Port Moody; landmark is a railway bridge near the mouth. FSR hits are upstream (Cypress Lake). Map/OSM-confirmable. [human-review 2026-08-05 OSM-confirmed] [-122.83407, 49.28408].",
+    "_coord": [
+     -122.83407,
+     49.28408
+    ]
+   }
+  },
+  {
+   "grade": "M",
+   "split": {
+    "id": "chowade_river__horseshoe_road_bridge",
+    "label": "Horseshoe Road Bridge",
+    "kind": "point",
+    "anchor": {
+     "type": "point",
+     "coord": [
+      -122.77994,
+      56.70694
+     ],
+     "is_lonlat": true
+    },
+    "note": "",
+    "_note": "[auto-proposal M] Horseshoe Road Bridge over Chowade River on Chowade River. Candidate coord [-122.7821, 56.70291]. OSM: https://www.openstreetmap.org/?mlat=56.70291&mlon=-122.78210#map=15/56.70291/-122.78210. Verify: One road crossing found (R01833 A) on the Chowade at ~21.6 km; confirm it is the Horseshoe Road Bridge.. Reg = 'upstream of the Horseshoe Road Bridge'. Exactly one FSR/road crossing intersects the Chowade in FWA (linear-feature R01833 A). Likely the Horseshoe Road Bridge; verify the road name on a map. [curated 2026-08-11 needs-pin batch5] [user pin 56.70694,-122.77994; ~0.5km from the FSR-derived candidate]",
+    "_coord": [
+     -122.77994,
+     56.70694
+    ]
+   }
+  },
+  {
+   "grade": "M",
+   "split": {
+    "id": "artlish_river__la1000_fsr_bridge",
+    "label": "LA1000 FSR bridge",
+    "kind": "point",
+    "anchor": {
+     "type": "point",
+     "coord": [
+      -126.94515,
+      50.12006
+     ],
+     "is_lonlat": true
+    },
+    "note": "",
+    "_note": "[auto-proposal M] signed bridge ~10 km from mouth (Artlish mainline area) on Artlish River. Candidate coord [-126.94515, 50.12006]. OSM: https://www.openstreetmap.org/?mlat=50.12006&mlon=-126.94515#map=15/50.12006/-126.94515. Verify: LA1000 FSR crosses Artlish R at ~11.5 km (also AR-15 at ~8.8 km); confirm which is the signed bridge ~10 km from the mouth.. Reg = 'boundary signs at the bridge crossing ~10 km from the mouth'. FWA FSR intersections bracket 10 km: AR-15 at 8.8 km and LA1000 at 11.5 km. Candidate is LA1000 (closest to 10 km); verify against the signed bridge on a map. [curated 2026-08-10 needs-pin batch1] [user pick: LA1000 @11.5km over the 9217 @8.8km]",
+    "_coord": [
+     -126.94515,
+     50.12006
+    ]
+   }
+  },
+  {
+   "grade": "M",
+   "split": {
+    "id": "elk_river__elko_dam",
+    "label": "Elko Dam",
+    "kind": "point",
+    "anchor": {
+     "type": "point",
+     "coord": [
+      -115.10453,
+      49.29006
+     ],
+     "is_lonlat": true
+    },
+    "note": "",
+    "_note": "[auto-proposal M] Elko Dam (run-of-river, Elk River) on Elk River (upstream of Elko Dam). Candidate coord [-115.10633, 49.29954]. OSM: https://www.openstreetmap.org/?mlat=49.29954&mlon=-115.10633#map=15/49.29954/-115.10633. Verify: Same Elko Dam point as the downstream entry; confirm on map.. Same Elko Dam structure as elk-river-downstream-of-elko-dam; this is the upstream side (MU 4-2/4-23). One cut at the dam yields both the up- and downstream reaches. [osm-candidate 2026-08-05] [-115.10453, 49.29006] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [human-review 2026-08-05 OSM-confirmed]",
+    "_coord": [
+     -115.10453,
+     49.29006
+    ]
+   }
+  },
+  {
+   "grade": "M",
+   "split": {
+    "id": "cluxewe_river__west_mainline_logging_road_bridge",
+    "label": "West Mainline logging road bridge",
+    "kind": "point",
+    "anchor": {
+     "type": "point",
+     "coord": [
+      -127.14544,
+      50.55067
+     ],
+     "is_lonlat": true
+    },
+    "note": "",
+    "_note": "[auto-proposal M] West Main logging road bridge (~7.5 km above Hwy 19 bridge) on Cluxewe River. Candidate coord [-127.14618, 50.55097]. OSM: https://www.openstreetmap.org/?mlat=50.55097&mlon=-127.14618#map=15/50.55097/-127.14618. Verify: WM6 ('West Main') FSR crosses at ~9.8 km; reg says ~7.5 km above the Hwy 19 bridge (near the mouth). Confirm West Main bridge.. Reg = 'West Main logging road bridge ~7.5 km upstream of the Hwy 19 bridge'. FWA has a 'WM6' (West Main branch 6) crossing at ~9.8 km and other Cluxewe mainline crossings; WM6 is the best name match. Verify chainage/bridge on map. [human-review 2026-08-05] West Mainline x Cluxewe River (OSM road name \"West Mainline\", user-located) = [-127.14544, 50.55067].",
+    "_coord": [
+     -127.14544,
+     50.55067
+    ]
+   }
+  },
+  {
+   "grade": null,
+   "split": {
+    "id": "adams_river__adams_lake",
+    "label": "Adams Lake",
+    "kind": "lake",
+    "anchor": {
+     "type": "lake",
+     "wbk": "329014384"
+    },
+    "note": "",
+    "_note": "Split authored in splits.json: 'adams_lake' (lake). — authored split: adams_lake"
+   }
+  },
+  {
+   "grade": null,
+   "split": {
+    "id": "fraser_river__hell_s_gate",
+    "label": "Hell's Gate",
+    "kind": "point",
+    "anchor": {
+     "type": "point",
+     "coord": [
+      -121.44959,
+      49.77999
+     ],
+     "is_lonlat": true
+    },
+    "note": "",
+    "_note": "[curated 2026-08-07 manual-review batch=fraser/columbia]",
+    "_coord": [
+     -121.44959,
+     49.77999
+    ]
+   }
+  },
+  {
+   "grade": null,
+   "split": {
+    "id": "wap_creek__frog_falls",
+    "label": "Frog Falls",
+    "kind": "point",
+    "anchor": {
+     "type": "point",
+     "coord": [
+      -118.47947,
+      50.89504
+     ],
+     "is_lonlat": true
+    },
+    "note": "",
+    "_note": " [human-review 2026-08-06 FWA-waterfall].",
+    "_coord": [
+     -118.47947,
+     50.89504
+    ]
+   }
+  },
+  {
+   "grade": null,
+   "split": {
+    "id": "crazy_creek__the_falls",
+    "label": "the falls",
+    "kind": "point",
+    "anchor": {
+     "type": "point",
+     "coord": [
+      -118.64242,
+      50.99688
+     ],
+     "is_lonlat": true
+    },
+    "note": "",
+    "_note": " [human-review 2026-08-05 FWA-waterfall] the falls.",
+    "_coord": [
+     -118.64242,
+     50.99688
+    ]
+   }
+  },
+  {
+   "grade": null,
+   "split": {
+    "id": "norns__norns_creek_falls",
+    "label": "Norns Creek falls",
+    "kind": "point",
+    "anchor": {
+     "type": "point",
+     "coord": [
+      -117.66594,
+      49.34873
+     ],
+     "is_lonlat": true
+    },
+    "note": "",
+    "_note": "[curated 2026-08-09 verify-batch] [falls = FISS obstacle 21211, WSC 300-639200; user pin]",
+    "_coord": [
+     -117.66594,
+     49.34873
+    ]
+   }
+  },
+  {
+   "grade": null,
+   "split": {
+    "id": "somass_river__tidal_boundary_at_papermill_dam",
+    "label": "tidal boundary at Papermill Dam",
+    "kind": "point",
+    "anchor": {
+     "type": "point",
+     "coord": [
+      -124.8538,
+      49.27476
+     ],
+     "is_lonlat": true
+    },
+    "note": "",
+    "_note": "[curated 2026-08-09 verify-batch] [Paper Mill Dam Park OSM rel 8247580; tidal/downstream end of reach]",
+    "_coord": [
+     -124.8538,
+     49.27476
+    ]
+   }
+  },
+  {
+   "grade": null,
+   "split": {
+    "id": "mission_creek__falls_at_gallagher_canyon",
+    "label": "falls at Gallagher Canyon",
+    "kind": "point",
+    "anchor": {
+     "type": "point",
+     "coord": [
+      -119.30599,
+      49.85287
+     ],
+     "is_lonlat": true
+    },
+    "note": "",
+    "_note": "[structural-split 2026-08-05 from \"from falls at Gallagher Canyon to Okanagan Lake\"] boundary=falls at Gallagher Canyon [review] OSM falls candidate a bit upstream of Gallagher Canyon resort - low confidence, verify. [human-review 2026-08-06 LOW-CONF] OSM falls a bit upstream of Gallagher Canyon resort; verify exact falls if precision matters.",
+    "_coord": [
+     -119.30599,
+     49.85287
+    ]
+   }
+  }
+ ]
+}

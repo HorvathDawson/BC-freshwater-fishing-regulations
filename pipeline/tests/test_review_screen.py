@@ -148,32 +148,70 @@ def test_a_split_to_verify_is_only_a_verify_flag_or_a_stale_mark():
         == ["M", None]
 
 
-def test_the_corpus_tiers_match_plan_section_3():
-    """PLAN §3 counted P1 227, Z 132, P2 261, P3 116, P4 730, sweep 59 and S0 165 (120 L) on
-    2026-10-22. Measured here from the corpus alone (no match = an empty `matched`; the served
-    build decides it in the tool): within the day's drift. The old S0 tier (T184: gone; its splits
-    are checked by proxy on their entries' maps) is now empty (owner 2026-10-26: a note never asks for a check) — a
-    rule binding through one carries the `split_to_verify` pre-check."""
-    from collections import Counter
-    got = Counter(T.entry_tier(e, binds=bool(e.get("matched"))) for e in _corpus())
-    # Z 132 -> 122, total 1525 -> 1515: the zone daily-quota merge (6335f73d) into zN:daily_quotas
-    assert got["Z"] == 122
-    assert sum(got.values()) == 1515
-    # T207: an unidentified "on parts" is no risk — 3 closures P1 -> P2, 13 entries P3 -> P4
-    # owner 2026-10-27 ("needs a split" list): 6 undrawn parts bound or held whole — P3 103 -> 99, P4 743 -> 747
-    # P1 224 -> 220, P2 264 -> 267: the 5 closures whose undrawn parts are now drawn (Chapman, Deena, Mamin 2026-10-27;
-    # Stave r1/r2 T222 2026-10-28) no longer carry the undrawn-closure risk
-    for tier, plan in {"P1": 220, "P2": 267, "P3": 99, "P4": 747, "sweep": 59}.items():
-        assert abs(got[tier] - plan) <= 3, (tier, got[tier], plan)
-    splits = [s for wb in json.loads(under_test.curated().waters.cuts.read_text())["waterbodies"]
-              for s in wb["splits"]]
-    held = [s for s in splits if T.split_needs_verify(s)]
-    # (T179 close pairs, 53f3819e) the Moyie U.S. border became a `border` anchor: one held split left grade L
-    # 445 -> 452: 7 DFO owner-mark splits applied (T185 apply 9567f95b6..9a3f0e91b, 2026-11-06): Little Qualicum
-    # Falls park boundary, Quatse hatchery weir +-100 m (2), Stamp lagoon inlet + outlet, Stamp powerline, Sheldens spur 19
-    # 452 -> 453: Sumas River Barrow Town Pump Station (owner's Chilliwack/Vedder marks, T185 apply 9aaa6251c, 2026-11-09)
-    # 453 -> 458: the five Okanagan River Oxbows hillside cuts (T637, owner 2026-11-11 "Cut both" + "i accept your cut")
-    assert (len(splits), len(held), Counter(T.split_grade(s) for s in held)["L"]) == (458, 0, 0)  # 422 -> 445: the 23 tidal boundary splits applied (T185/T212 2026-10-28); 420 -> 422: Quinsam confluence on the Campbell (high) + Sandy Pool sign on the Cowichan (medium) (T185 owner marks 2026-10-27); 416 -> 420: Chapman 2, Deena 1, Mamin 1 (owner 2026-10-27, low); 410 -> 416: T207 White River 2, Fulton 2, Cranberry 2 (owner 2026-10-26); was 150 / 118 L before the owner decision, 2026-10-26
+#: A FROZEN SAMPLE of the corpus (T507): every tier x risk combination it held when frozen, and every kind of cut note.
+#: Its `_about` says how it was cut. Never refreshed from the live corpus.
+SAMPLE = Path(__file__).resolve().parent / "fixtures" / "review_tiers_sample.json"
+#: the risks only a reach run can show (`tiers.risks(run=)`); the corpus alone never claims them
+RUN_ONLY_RISKS = {"unresolved", "ambiguous cut"}
+
+
+def _sample() -> dict:
+    return json.loads(SAMPLE.read_text(encoding="utf-8"))
+
+
+def _tiered(rows) -> list[tuple]:
+    """(entry id, tier, risks) of each sample row as the tiers module answers now, from the corpus alone (no match =
+    an empty `matched`; the served build decides it in the tool)."""
+    return [(r["entry"]["entry_id"], T.entry_tier(r["entry"], binds=bool(r["entry"].get("matched"))),
+             T.risks(r["entry"], binds=bool(r["entry"].get("matched")))) for r in rows]
+
+
+def test_the_corpus_tiers_match_plan_section_3(monkeypatch):
+    """PLAN §3's tiers (P1 Z P2 P3 P4 sweep) on real entries, from a FROZEN sample (T507). This test counted the live
+    corpus (Z 122 of 1515, P1 220, P2 267 … and 458 cut points) and so failed on every curation change that moved a
+    count, as T491's did; the counts of the day are in the fixture for the record. What it pins now cannot drift: each
+    sampled entry takes exactly its tier and its risks, the sample holds every tier and every risk the corpus can
+    show, and no cut note asks for a check (owner 2026-10-26: a note is history; only `verify: true` holds a cut)."""
+    doc = _sample()
+    rows = doc["entries"]
+    assert _tiered(rows) == [(r["entry"]["entry_id"], r["tier"], r["risks"]) for r in rows]
+    # the sample is what it says: whole in tiers and risks, real combinations, entries the tiers can tell apart
+    assert {r["tier"] for r in rows} == set(T.TIERS)
+    assert {x for r in rows for x in r["risks"]} == set(T.RISKS) - RUN_ONLY_RISKS
+    assert len({r["entry"]["entry_id"] for r in rows}) == len(rows)
+    for r in rows:
+        e, tier = r["entry"], r["tier"]
+        assert (tier == "Z") == e["entry_id"].startswith("z"), e["entry_id"]
+        assert (tier == "sweep") == (not e["entry_id"].startswith("z") and not e.get("rules")), e["entry_id"]
+        if tier in ("P1", "P3"):
+            assert r["risks"], e["entry_id"]
+        if tier in ("P2", "P4"):
+            assert not r["risks"], e["entry_id"]
+    # the cut notes: the grade is the tag the note OPENS with; "Verify: …" in a note holds nothing, the flag does
+    splits = doc["splits"]
+    assert [T.split_grade(x["split"]) for x in splits] == [x["grade"] for x in splits]
+    assert {x["grade"] for x in splits} == {None, "L", "M", "H"}
+    assert any("Verify" in str(x["split"].get("_note")) for x in splits)
+    assert [T.split_needs_verify(x["split"]) for x in splits] == [False] * len(splits)
+    assert all(T.split_needs_verify(dict(x["split"], verify=True)) for x in splits)
+    # MUTATION PIN: a tiers module that stops reading the flag moves exactly the sample's flag-only closures and
+    # quotas down a tier (P1 -> P2, P3 -> P4), and this test's first assertion is the one that sees it
+    was = _tiered(rows)
+    monkeypatch.setattr(T, "flagged", lambda entry: False)
+    moved = {(a[0], a[1], b[1]) for a, b in zip(was, _tiered(rows)) if a[1] != b[1]}
+    flag_only = {(r["entry"]["entry_id"], r["tier"], {"P1": "P2", "P3": "P4"}[r["tier"]])
+                 for r in rows if r["risks"] == ["flag"] and r["tier"] in ("P1", "P3")}
+    assert moved == flag_only and len(flag_only) >= 2
+
+
+def test_every_live_entry_takes_a_tier_and_every_tier_is_in_use():
+    """THE LIVE CORPUS, with no count in it (T507): every entry as curated today is given a tier — a new shape that
+    breaks the tiers fails here — and the review queue still has all six."""
+    got = {T.entry_tier(e, binds=bool(e.get("matched"))) for e in _corpus()}
+    assert got == set(T.TIERS)
+    cuts = json.loads(under_test.curated().waters.cuts.read_text(encoding="utf-8"))["waterbodies"]
+    grades = {T.split_grade(s) for wb in cuts for s in wb["splits"]}
+    assert grades <= {None, "L", "M", "H"} and None in grades
 
 
 def _py_sources():
