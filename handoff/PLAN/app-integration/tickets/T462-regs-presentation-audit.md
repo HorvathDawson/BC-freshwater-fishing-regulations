@@ -34,3 +34,6 @@ It can start while other lanes work, since it reads the release, which is fixed,
 are not changing. If it starts before 0.6.8, re-check its findings against HEAD before filing tickets.
 
 Related: T463 (code review), T369, T333, T387. Size: L (workflow). Owner: decides which findings become work.
+
+## Owner 2026-11-12
+G6 Pend d'Oreille River: the printed exemption lifts both rules; barbed and treble allowed (option 1, no longer the stricter default).

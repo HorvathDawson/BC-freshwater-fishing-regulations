@@ -47,3 +47,6 @@ calls would have to be inlined there too. Better done with the pick below, in on
 3. Does the page gain the median line and the third band, or stay at two bands?
 After the pick: move the presenter to `core`, add the mode, have `chartSvg` draw the presenter's paths, and replace
 `gaugePage.parity.test.ts`'s chart case with a model comparison (same gauge, same day: ticks, marks, band rows, line).
+
+## Owner 2026-11-12
+Leave both charts as they are (accepted as built).

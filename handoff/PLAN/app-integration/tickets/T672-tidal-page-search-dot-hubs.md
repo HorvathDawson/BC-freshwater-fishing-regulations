@@ -56,3 +56,6 @@ Release measured: the live one at the time (the audit's). Throwaway measuring sc
 ## Not done
 - No deploy (staging site or production). The site change shows after the next staging site build.
 - No device or browser was driven: the pages are the view models, the hubs the built HTML.
+
+## Owner 2026-11-12
+W4 web description: name every region. W1-W3, G11: accept as built. K9: leave.

@@ -56,3 +56,6 @@ Done first: T354's rule-book open (no pdf-lib or outside-app fallback; viewer fa
   Intl fallback only changes the zone label. A BC-day "today" would be a behaviour change — not done here.
 - Not merged into the one face (kept, on purpose): the sync sheet (`SyncErrorSheet`, its own Retry list), the Updates
   log's event rows, `WaterMapView`'s status line (T369's file).
+
+## Owner 2026-11-12
+Q6 "today": switch to B.C. time (America/Vancouver) - the behaviour change noted above is wanted.

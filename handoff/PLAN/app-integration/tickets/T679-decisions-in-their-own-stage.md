@@ -121,3 +121,6 @@ Touches tidal (for T678, not planned here):
   justify running it on the device (maint at most).
 
 Depends: T678 (share its atlas build). Size: L (split per plan step when started). Owner: D2–D6.
+
+## Owner 2026-11-12
+D1 ponds: built then reverted (the bundle refused it: 161 rule keys mixed lake and stream); goes into the next atlas build instead (16,152 ponds change; 97 rules gain, 32 lose). D2 partial salmon coverage: map and bar both give the species verdict. D3 nearer row wins: ignore the loops (receivers with flow-back removed), next build, diff shown. D4 words read at build time: leave, add a guard that stops the build and names the row when a row that matched before stops matching. D5 DFO confluence cuts: same as provincial, the joining water stays out unless DFO's words add tributaries; diff before it ships. D6: Python reads DFO rows tolerantly too (an unreadable row reads "check", is reported, and no longer stops a release). Gauge placement (#4, held): "One rule, accept the moves" - atlas placement wins; 29 of 458 shown gauges move at the next build; list reported.

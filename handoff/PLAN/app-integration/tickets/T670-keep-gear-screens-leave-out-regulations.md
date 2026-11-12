@@ -124,3 +124,6 @@ possession quotas = 4 …; northern pike daily and possession quotas = 4"), the 
 - G1 on the "Ways to fish" list: "Angling ✓" is unchanged; the ban from a boat is on the boats line and the Methods
   boats list only.
 - No device or emulator was driven; the new lines were read as view models and by the render tests.
+
+## Owner 2026-11-12
+G2 bait heading: "Why does it matter the river is closed? It shouldn't show any method or gear or quotas in the regulation card. If salmon are open or something at same time so that river is half closed then it should say in force." A fully closed water shows no gear, method or quota; where something is open the rule reads "in force today". G5 Licence tab: shown when salmon is open. K1-K5, G1, G3, G4 wordings: accept as built. G7 (which classified-water licence terms the Licence tab carries) is still the owner's.

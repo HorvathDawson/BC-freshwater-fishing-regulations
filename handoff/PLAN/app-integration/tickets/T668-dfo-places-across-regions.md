@@ -62,3 +62,6 @@ is resolved in Python) and the release's chains (`chains[].s`), which it does no
    runner, but it is only as new as the last sync from the Mac, so a limit DFO changes in season falls back to both words.
 3. Leave it: both regions' words under a live feed. Never looser than the release, and the next release is exact again.
 Default taken: 3, until the owner picks.
+
+## Owner 2026-11-12
+Live straddler: "If python pair table is safe that sounds good we want these to always resolve on their own" - option 2, the Python pair table, provided it measures safe (no longer default 3). Card wording: accept as built.

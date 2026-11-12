@@ -69,3 +69,6 @@ Still open:
   water's `mid`, so a region's box can be built there) and the gauge page. The gauge key needs a ruling first: the app
   has no gauge-only screen; the gauge page's "Open on the website" link already opens its first water's Conditions,
   where Flow picks the lead gauge.
+
+## Owner 2026-11-12
+Gauge link: leave, not built (accepted as built).

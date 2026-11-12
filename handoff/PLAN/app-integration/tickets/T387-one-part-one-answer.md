@@ -81,3 +81,6 @@ failed face, in both layouts; the glance-failed case fails on the old code).
 
 ## Owner 2026-11-04: the point-bound list
 Agreed: the sun line (at the tapped point) and the scroll memory (per tapped reach) stay per-spot. Nothing else is.
+
+## Owner 2026-11-12
+Point-bound facts (the sun line and scroll memory): leave per tapped spot, accepted.
