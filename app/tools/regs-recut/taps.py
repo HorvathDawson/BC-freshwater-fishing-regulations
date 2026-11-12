@@ -148,9 +148,11 @@ def _t517_at(ix, group):
 
 
 PART_GROWN = {
-    "x13p4_1010": (7, "T322 (owner 2026-10-29 slough calls, folded 2026-11-03): a lake on this water is a slough of its stream now, so the part runs through one lake fewer (35 -> 42 sections; same rows)"
+    "x15p0_1010": (19, f"{T183}: a Fraser piece at the Region 5 / 7A line carries both regions' rules and joined part 16 (109 -> 108 sections); then T678 D1 (owner 2026-11-11, r-0a9930fb8826): two ponds on the upper Fraser are the river now (3 -> 1 lakes, 108 -> 112 sections; same rows), and river order numbers it part 19"),
+    "x14p0_1010": (3, f"{T220}: braid pieces that close a kept side channel were restored (26 -> 27 sections); then T678 D1 (owner 2026-11-11, r-0a9930fb8826): the Kitimat's pond lake:329233923 is the river now (27 -> 28 sections, no lake; same rows), and river order numbers it part 3"),
+    "x13p4_1010": (7, "T322 (owner 2026-10-29 slough calls, folded 2026-11-03): a lake on this water is a slough of its stream now, so the part runs through one lake fewer (35 -> 42 sections; same rows); then T678 D1 (owner 2026-11-11, r-0a9930fb8826): 21 ponds on the Dean are the river now (24 -> 3 lakes, 17 -> 27 sections; same rows)"
                    + _t517_at(7, "parts 7, 8 and 9")),
-    "x5p0_1010": (1, "T322 (owner 2026-10-29 slough calls, folded 2026-11-03): a lake on this water is a slough of its stream now, so the part runs through one lake fewer (9 -> 10 sections; same rows)"
+    "x5p0_1010": (1, "T322 (owner 2026-10-29 slough calls, folded 2026-11-03): a lake on this water is a slough of its stream now, so the part runs through one lake fewer (9 -> 10 sections; same rows); then T678 D1 (owner 2026-11-11, r-0a9930fb8826): its last pond lake:329123781 is the river now (10 -> 11 sections, no lake; same rows)"
                    + _t517_at(1, "part 1")),
     "x27p0_1010": (2, f"{T183}: the West Road's pieces on the Region 5 / 6 / 7A lines are parts of their own; part 0 is 79 sections"
                    + _t517_at(2, "parts 2 and 5")),
@@ -171,13 +173,15 @@ PART_GROWN = {
 #: (2026-11-09) the store part each PART_GROWN state must land on: (label, section count) as `parts` reads it. Without
 #: it, any part whose label differed from the golden's passed.
 PART_GROWN_IS: dict = {
+    'x15p0_1010': ('In Region 7 · From Region 5 boundary up to the top of the river (through 1 lake)', 112),
+    'x14p0_1010': ('From the Hwy 37 bridge up to the top of the river', 28),
     'x27p0_1010': ('Two stretches: from Region 7A boundary up to Region 6 boundary (through 4 lakes), and from Region 6 boundary up to the top of the river (through 1 lake)', 72),
     'x27p2_1010': ('From the mouth up to Region 5 boundary', 3),
     'x19p1_1010': ('From the Exchamsiks River confluence up to 1.5 km upstream of the Kitsumkalum River confluence', 59),
-    'x13p4_1010': ('From Anahim Lake up to the top of the river (through 24 lakes)', 17),
+    'x13p4_1010': ('From Anahim Lake up to the top of the river (through 3 lakes)', 27),
     'x9p1_1010': ('Upstream of Koocanusa Reservoir · From the Koocanusa Reservoir upstream end up to the White River confluence', 56),
     'x9p0_1010': ('From the B.C. border up to the Lake Koocanusa outlet', 1),
-    'x5p0_1010': ('Upstream of Josephine Falls / See exceptions · From the Josephine Falls up to the top of the river (through 1 lake)', 10),
+    'x5p0_1010': ('Upstream of Josephine Falls / See exceptions · From the Josephine Falls up to the top of the river', 11),
 }
 PART_GONE = {
     "x37p0_1010": (0, T228),
@@ -221,7 +225,6 @@ PART_RECOUNTED = {
                       "Dam cut and now joins it (gauge an alias), so the piece between is gone: 3 -> 2 sections"),
     "x17p1_1010": (1, "T179 (owner 2026-10-24, one cut-placement pass): gauge 08EC001 stood 88 m from the curated Fort "
                       "Babine Bridge cut and now joins it (gauge an alias), so the sliver between is gone: 2 -> 1 sections"),
-    "x15p0_1010": (0, f"{T183}: a Fraser piece at the Region 5 / 7A line carries both regions' rules and joined part 16: 109 -> 108 sections"),
     "x13p3_1010": (2, f"{T67}: the Dean's side channel 360227736 is cut at the 0.5 km sign (421 m): 2 -> 3 sections; "
                       f"then {T220}: restored braid pieces, 4 sections, renumbered 3 -> 2 (part order follows rule-set ids)"),
     "bc1_501": (1, f"{T220}: braid pieces that close a kept side channel were restored: 6 -> 7 sections"),
@@ -229,7 +232,6 @@ PART_RECOUNTED = {
     "bc1_1010": (1, f"{T220}: braid pieces that close a kept side channel were restored: 6 -> 7 sections"),
     "bc0_1010": (0, f"{T220}: braid pieces that close a kept side channel were restored: 44 -> 47 sections"),
     "x13p1_1010": (1, f"{T220}: braid pieces that close a kept side channel were restored: 14 -> 15 sections"),
-    "x14p0_1010": (0, f"{T220}: braid pieces that close a kept side channel were restored: 26 -> 27 sections"),
     "x15p1_1010": (1, f"{T220}: braid pieces that close a kept side channel were restored: 35 -> 36 sections"),
     "x21p1_1010": (1, f"{T220}: braid pieces that close a kept side channel were restored: 36 -> 37 sections"),
     "chw1_1010": (1, f"{T220}: a braid piece that closes a kept side channel was restored to the Vedder: 9 -> 10 sections"),
