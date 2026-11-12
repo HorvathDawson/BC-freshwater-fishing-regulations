@@ -241,6 +241,9 @@ UP_ADJ_READERS = {
     ("pipeline/atlas/reach/extent.py", "_line_length"): "a line's confluence measures",
     ("pipeline/atlas/reach/extent.py", "_watershed_part"): "connected groups of the river's own code",
     ("pipeline/atlas/reach/extent.py", "river_widenings"): "T153: the unnamed lake widenings a river's main flow runs through",
+    ("pipeline/atlas/splits/shore.py", "atlas_tidal"):
+        "T665: the SAME water's pieces connected below a tidal limit, never past its line above the limit (the graph-only "
+        "reading kept as a mutation pin; the build cuts by `reach_tidal`) — binds nothing",
     # exports and the review app's anabranch test: one level, no set collected
     ("pipeline/common/io/export_gpkg.py", "export_graph_gpkg"): "inlet counts",
     ("pipeline/common/io/export_gpkg.py", "export_lake_io"): "a lake's inlets, one level",

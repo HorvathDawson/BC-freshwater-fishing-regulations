@@ -94,6 +94,8 @@ ALLOWED = {
     ("pipeline/build.py", "hexdigest()[:16]"),
     ("pipeline/deliver/answers/glossary.py", "pages[:2]"),
     ("pipeline/deliver/bundle/rules/presence.py", "loose[:3]"),
+    # a git commit hash in the release preflight's message ("code + data/curated committed (HEAD …)")
+    ("pipeline/release.py", "git_head()[:12]"),
 }
 
 
