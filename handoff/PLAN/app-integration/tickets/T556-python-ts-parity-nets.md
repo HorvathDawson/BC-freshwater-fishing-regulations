@@ -1,6 +1,6 @@
 # T556 — Python and TypeScript copies of one rule are pinned by shared fixtures: DFO parser + fingerprint, feed formats; parity tests never skip silently
 
-Status: OPEN.
+Status: DONE — 81f03ed26 (all four findings; the acceptance holds). What the findings proposed beyond a pin — one date reader for both languages, a format bump that does not strand older apps — is T676.
 
 Source: data pipeline review 2026-11-09 (owner-led; 14 areas + a gap check, every finding re-read against the code and release data by a second reviewer). Rank 12 of 17; highest severity 3 of 5.
 
@@ -42,3 +42,30 @@ Fix the items above in severity order, one commit per item where they are separa
 One fixture set (saved DFO pages) is run through both parsers in CI and must give the same typed rows and fingerprints. Feed format constants are generated from one file for Python and TS. A parity suite with no .venv fails, it does not skip.
 
 Depends: —. Size: M. Owner: no.
+
+## Done 2026-11-11 (81f03ed26)
+- **Findings 1 + 2 — one shared vector file.** `python -m pipeline.tools.emit.dfo_vectors` writes
+  `app/workers/feeds/test/fixtures/dfo/python-vectors.generated.json`: for the nine saved DFO pages, every location's
+  fingerprint (with the texts it is made from and its landmarks), every table locator's rows, typed rules and year
+  calendar (`live.type_page`, `live.location_calendar`); 14 fingerprint / normalize cases (each synonym, the typography
+  folded, what must stay apart); `names.key` on 170 names; the typed hand rows. `app/workers/feeds/test/dfo.vectors.test.ts`
+  reproduces all of it in Python-parity mode, and in robust mode (production) everything but ONE named difference: a
+  row dated "<day> until further notice" (six locators on the saved pages; same days, the worker's words say since
+  when). `--check`: `pipeline/tests/test_dfo_vectors.py`, `python -m pipeline.tools.emit --check` (pipeline-ci),
+  `scripts/fast-fail.sh`. Measured: NOTHING had drifted between the two languages.
+- **T671's twin tests read one file.** `fixtures/dfo/dfo-rows.json` (13 cases: rows, what is asserted of each typed row,
+  the place's own answer per species and day) is read by `pipeline/tests/test_t671_salmon_rows.py` and
+  `app/workers/feeds/test/dfo.t671.test.ts`; neither holds a copy of the rows.
+- **Finding 3 — formats typed once.** `pipeline/common/feed_formats.py` (7 feed formats) → every Python writer reads it;
+  `python -m pipeline.tools.emit.feed_formats` writes core `feedFormats.generated.ts`, which core's reader constants and
+  the worker read. `scripts/check-format-pairs.py` holds each constant to the table and refuses one of the strings typed
+  as a literal in product code (`pnpm run feed-formats` in `pnpm check:fast`, fast-fail). The app REPORTS a DFO index of
+  another format (it kept its capture silently). Not built: a versioned key / minAppVersion on feeds (T676).
+- **Finding 4 — no skip.** `needPython()` (`app/workers/feeds/parity/gauges/node.ts`) fails the gauge parity, score
+  parity and wording parity suites when `.venv` is missing, saying how to make it; their three allowances are gone from
+  `app/tools/no-silent-skips.test.ts`. No env switch: there is no mode in which they skip.
+- Mutation checks: Python side — a synonym, a typed constant, a missing file fail `--check`; worker side — a synonym, a
+  stopword, the apostrophe set of the name key, a typed constant each fail `dfo.vectors.test.ts`; a format literal typed
+  beside a reader or a writer fails `check-format-pairs.py`.
+- The vector file depends on the curated wording registry (a clause's reading): a registry edit that changes how a
+  SAVED page types makes `--check` fail until the emit is re-run.
