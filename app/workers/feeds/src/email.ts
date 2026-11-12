@@ -2,7 +2,7 @@
 // HYDAT, roster drift, the daily digest — is one `Section` (a heading, blocks of items, ONE "What to do" list, why it
 // was sent) rendered by one layout into multipart HTML + plain text (wrapped at 78 columns). Each item's text appears
 // ONCE, in full; commands appear once per email and are never wrapped.
-import { dispatchSteps } from "./dispatch";
+import { dispatchSteps, unfinished } from "./dispatch";
 import { BUTTON as RUNTIMING_BUTTON } from "./runtiming";
 import type { FeedEvent } from "./events";
 import type { RowChange } from "./dfo/rows";
@@ -240,9 +240,11 @@ export function healthSection(events: FeedEvent[], statusUrl: string | null, wor
 
 export function hydatSection(events: FeedEvent[]): Section {
   const d = events[events.length - 1]!.data ?? {};
+  // (T554 item 5) a run the worker started that did not put the new envelope on R2: said in the subject, not only the steps
+  const stuck = unfinished(d.dispatch);
   return {
-    heading: `New HYDAT ${d.latest} is out`,
-    subject: `New HYDAT ${d.latest} — run the HYDAT action`,
+    heading: stuck ? `HYDAT ${d.latest}: the workflow did not update clim.json` : `New HYDAT ${d.latest} is out`,
+    subject: stuck ? `HYDAT ${d.latest} — the workflow did not finish (clim.json still on ${d.current})` : `New HYDAT ${d.latest} — run the HYDAT action`,
     blocks: [{ items: [{ name: `HYDAT ${d.latest}`, text: `The gauge envelope (clim.json) is on ${d.current}.`, note: d.since ? `noticed ${d.since}` : undefined }] }],
     steps: [
       ...dispatchSteps(d.dispatch, 'GitHub → Actions → "feeds — HYDAT → climatology → R2", with upload: true (the feeds worker\'s clim.json).'),

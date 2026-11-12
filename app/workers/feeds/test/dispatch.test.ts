@@ -1,7 +1,8 @@
 // T413: a new HYDAT starts the HYDAT workflow once (with the owner's token); without it, today's button email.
 import { describe, expect, it } from "vitest";
-import { dispatchOnce, dispatchSteps, RETRY_MS } from "../src/dispatch";
+import { dispatchOnce, dispatchSteps, MAX_STARTS, OVERDUE_MS, RETRY_MS, unfinished } from "../src/dispatch";
 import { hydatSection } from "../src/email";
+import { gaugeEvents, hydatUnfinished } from "../src/index";
 
 const mem = () => {
   const m = new Map<string, string>();
@@ -54,6 +55,85 @@ describe("dispatchOnce", () => {
     expect(g.calls).toHaveLength(1);
     await dispatchOnce(env, g.f, s, "feeds-hydat.yml", "20261019", {}, new Date(T0.getTime() + RETRY_MS + 1));
     expect(g.calls).toHaveLength(2);
+  });
+});
+
+// T554 item 5: GitHub's 204 is "accepted", not "the run succeeded". The record said `started` for that HYDAT forever, so a
+// run that failed was never started again and the owner (told once, key hydat:<latest>:<current>) never heard more.
+describe("(T554 item 5) a started run that did not do its work", () => {
+  const env = { GITHUB_DISPATCH_TOKEN: "t" };
+  const H = 3600_000;
+  const at = (h: number) => new Date(T0.getTime() + h * H);
+  const go = (g: ReturnType<typeof gh>, s: ReturnType<typeof mem>, h: number) =>
+    dispatchOnce(env, g.f, s, "feeds-hydat.yml", "20261019", { upload: "true" }, at(h), { redoAfterMs: OVERDUE_MS });
+
+  it("still asked for after OVERDUE_MS: started ONE more time, then never again (overdue)", async () => {
+    const g = gh(204), s = mem();
+    expect(await go(g, s, 0)).toEqual({ state: "started", at: at(0).toISOString(), workflow: "feeds-hydat.yml", ref: "redesign/stream-sections" });
+    expect(unfinished(await go(g, s, 5.9))).toBe(false);                 // inside the window: the run may still be going
+    expect(g.calls).toHaveLength(1);
+    const again = await go(g, s, 6);
+    expect(again).toEqual({ state: "started", at: at(6).toISOString(), workflow: "feeds-hydat.yml", ref: "redesign/stream-sections", starts: 2, first: at(0).toISOString() });
+    expect(g.calls).toHaveLength(2);
+    expect(unfinished(again)).toBe(true);
+    expect(await go(g, s, 8)).toEqual({ ...again, version: "20261019" });   // the second run's own window: the record
+    const stuck = await go(g, s, 12);
+    expect(stuck).toEqual({ ...again, version: "20261019", overdue: true });
+    for (const h of [13, 30, 100]) expect(await go(g, s, h)).toMatchObject({ overdue: true, starts: MAX_STARTS });
+    expect(g.calls).toHaveLength(2);                                     // never a third start
+    // a newer version is a new matter
+    expect(await dispatchOnce(env, g.f, s, "feeds-hydat.yml", "20270115", {}, at(101), { redoAfterMs: OVERDUE_MS })).toMatchObject({ state: "started" });
+    expect(g.calls).toHaveLength(3);
+  });
+
+  it("a caller that does not ask for it (run timing) keeps one start per version", async () => {
+    const g = gh(204), s = mem();
+    await dispatchOnce(env, g.f, s, "feeds-runtiming.yml", "20270101", {}, at(0));
+    expect(await dispatchOnce(env, g.f, s, "feeds-runtiming.yml", "20270101", {}, at(500))).toMatchObject({ state: "started", at: at(0).toISOString() });
+    expect(g.calls).toHaveLength(1);
+  });
+
+  it("the second start refused: said (unfinished), retried after RETRY_MS, and it still counts as the second", async () => {
+    const s = mem();
+    await go(gh(204), s, 0);
+    const no = gh(403);
+    const failed = await go(no, s, 6);
+    expect(failed).toMatchObject({ state: "failed", starts: 1, first: at(0).toISOString(), error: expect.stringContaining("403") });
+    expect(unfinished(failed)).toBe(true);
+    await go(no, s, 7);
+    expect(no.calls).toHaveLength(1);                                    // inside RETRY_MS
+    const ok = gh(204);
+    expect(await go(ok, s, 12.1)).toMatchObject({ state: "started", starts: 2, first: at(0).toISOString() });
+    expect(await go(ok, s, 19)).toMatchObject({ overdue: true });
+    expect(ok.calls).toHaveLength(1);
+  });
+
+  it("the owner is told again, once a day, with what happened (the key carries the day)", async () => {
+    const hy = (iso: string) => gaugeEvents([{ kind: "hydat", since: "2026-11-05T11:00:00Z", current: "20260717", latest: "20261019", action: "x" }], iso)[0]!;
+    const first = hy("2026-11-05T12:00:00.000Z");
+    hydatUnfinished(first, { state: "started", at: "2026-11-05T12:00:00.000Z", workflow: "feeds-hydat.yml", ref: "r" }, first.at);
+    expect(first.key).toBe("hydat:20261019:20260717");                   // the first start: the one notice, as before
+    const redo = hy("2026-11-05T18:05:00.000Z");
+    hydatUnfinished(redo, { state: "started", at: "2026-11-05T18:05:00.000Z", workflow: "feeds-hydat.yml", ref: "r", starts: 2, first: "2026-11-05T12:00:00.000Z" }, redo.at);
+    expect(redo.key).toBe("hydat:20261019:20260717:unfinished:2026-11-05");
+    expect(redo.title).toBe("HYDAT 20261019: the first workflow run did not update clim.json — started again");
+    const stuck = hy("2026-11-07T09:05:00.000Z");
+    const dis = { state: "started" as const, at: "2026-11-05T18:05:00.000Z", workflow: "feeds-hydat.yml", ref: "r", starts: 2, first: "2026-11-05T12:00:00.000Z", overdue: true };
+    stuck.data = { ...(stuck.data as object), dispatch: dis };
+    hydatUnfinished(stuck, dis, stuck.at);
+    expect(stuck.key).toBe("hydat:20261019:20260717:unfinished:2026-11-07");
+    expect(stuck.text).toBe(
+      "HYDAT 20261019: the workflow was started 2 times and clim.json is still on 20260717.\n\n" +
+      "HYDAT 20261019 is out; the gauge envelope (clim.json) is still on 20260717. The worker started the HYDAT workflow at " +
+      "2026-11-05T12:00:00.000Z and again at 2026-11-05T18:05:00.000Z; it does not start it a third time. Look at the failed " +
+      "runs in GitHub → Actions, then start it by hand.\n\nNoticed 2026-11-05T11:00:00Z.");
+    const sec = hydatSection([stuck]);
+    expect(sec.subject).toBe("HYDAT 20261019 — the workflow did not finish (clim.json still on 20260717)");
+    expect(sec.steps.map((x) => x.text)).toEqual([
+      'The worker started "feeds-hydat.yml" on r 2 times (first 2026-11-05T12:00:00.000Z, last 2026-11-05T18:05:00.000Z) and its work is still not done. It does not start it again: look at the failed runs in GitHub → Actions, fix the cause, then start it by hand:',
+      'GitHub → Actions → "feeds — HYDAT → climatology → R2", with upload: true (the feeds worker\'s clim.json).',
+      "Then, on the Mac, the bundle and release:",
+    ]);
   });
 });
 
