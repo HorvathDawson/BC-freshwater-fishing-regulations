@@ -402,6 +402,11 @@ class CatalogueRule(BaseModel):
     #: an explanation ("located in an Ecological Reserve") on three book rules, and a hidden
     #: condition on three more. A citation says where a rule came from, never why or when.
     notice: Optional[str] = Field(default=None, pattern=r"^FN\d{4}$")
+    #: (T676, DFO only) WHY THIS RULE CANNOT BE READ ON A DAY: its row's date cell did not read
+    #: ("dates unparsed — check DFO", `typed.DATES_UNPARSED`). The row's limits are kept, never
+    #: dropped to an advisory, and the season is in `when.unparsed`; the salmon reader shows the
+    #: species as "check" on every day (`deliver.salmon.verdict_on`, the live feed's the same).
+    check: str = ""
     #: THIS RULE IS DORMANT WHILE THAT ONE BINDS — a rule id in the same entry. "Classified Waters
     #: Licence or Steelhead Stamp not required until reopened to steelhead fishing": the licence
     #: requirement sleeps while the steelhead closure stands. It sat in `reason` as prose, so every
@@ -624,6 +629,9 @@ class CatalogueRule(BaseModel):
     def _check(self) -> "CatalogueRule":
         e: List[str] = []
         t = self.type
+
+        if self.check and not (self.when and self.when.unparsed):
+            e.append("check says the rule's season did not read: it needs when.unparsed (the season as printed)")
 
         # species=[] is an ERROR, not "all" — 115 rules store it while naming a species in
         # their own text, and the blanket default states a trout limit on bass and burbot.

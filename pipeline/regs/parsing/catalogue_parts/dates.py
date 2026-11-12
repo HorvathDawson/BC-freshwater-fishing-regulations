@@ -252,6 +252,17 @@ class When(_Terse):
     #: says "To be determined" is open all year to a reader. The DFO feed scrapes rows whose date
     #: cell is prose, and refusing them would have meant dropping the rule or inventing a window.
     unparsed: List[str] = Field(default_factory=list)
+    #: (T676, owner 2026-11-12) A DFO ROW DATED "<day> UNTIL FURTHER NOTICE": its LAST range starts that day and runs
+    #: on with no end. It holds on its dated days (start to Dec 31), and on the days before its start only where no
+    #: dated row of its place speaks (`deliver.salmon.holds_kind`; the live feed's `salmon.ts` `holdsKind` the same).
+    #: The synopsis never sets it.
+    open_ended: bool = False
+
+    @model_validator(mode="after")
+    def _open_ended_has_a_start(self) -> "When":
+        if self.open_ended and not self.dates:
+            raise ValueError("when: open_ended needs the range it runs on from (dates)")
+        return self
 
     def is_empty(self) -> bool:
         return not (self.dates or self.hours or self.weekdays or self.unparsed)

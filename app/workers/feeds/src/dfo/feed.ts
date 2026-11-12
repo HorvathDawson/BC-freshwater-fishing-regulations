@@ -1,7 +1,6 @@
 // T225 port of pipeline/regs/dfo_salmon/feed.py `build`: one region's scraped rows → the typed feed, by fingerprint.
 //
-// `robust` (the Worker's default; false = the Python, for the parity tests): the date cell is read by dates.ts, and
-// a row whose rules the catalogue refuses (a ValidationError) no longer raises out of the page — Python's one bad row
+// `robust` (the Worker's default; false = the Python, for the parity tests): a row whose rules the catalogue refuses (a ValidationError) no longer raises out of the page — Python's one bad row
 // held the WHOLE region. Its locator carries `error` and no rules; live.ts holds only the location it binds to (its
 // last good answers carried forward, flagged in the region's `holds`) and publishes the rest of the region.
 import type { RuleRecord } from "./locations";
@@ -43,12 +42,12 @@ export function build(
     const words = recs.map((r) => rowWords(r, reg)).filter((w): w is RowWords => w !== null);
     const w = words.length ? { words } : {};
     if (!robust) {
-      recs.forEach((rec, i) => rules.push(...toRules(rec, fp.slice(0, 8), i, false, reg)));
+      recs.forEach((rec, i) => rules.push(...toRules(rec, fp.slice(0, 8), i, reg)));
       locators.push({ fingerprint: fp, rows, rules, ...w });
       continue;
     }
     try {
-      recs.forEach((rec, i) => rules.push(...toRules(rec, fp.slice(0, 8), i, true, reg)));
+      recs.forEach((rec, i) => rules.push(...toRules(rec, fp.slice(0, 8), i, reg)));
       locators.push({ fingerprint: fp, rows, rules, ...w });
     } catch (e) {
       locators.push({ fingerprint: fp, rows, rules: [], ...w, error: `${pyTypeName(e)}: ${[...pyStrOf(e)].slice(0, 200).join("")}` });

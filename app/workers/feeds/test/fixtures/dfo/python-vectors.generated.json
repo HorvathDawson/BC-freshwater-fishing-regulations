@@ -24259,7 +24259,15 @@
        ],
        [
         0,
-        1
+        0,
+        152,
+        1,
+        182,
+        2,
+        274,
+        1,
+        335,
+        0
        ],
        [
         0,
@@ -24970,7 +24978,7 @@
        {
         "n": "FN0952",
         "s": "closed",
-        "t": "Non-retention — FN0952"
+        "t": "Non-retention — FN0952 (from Oct 15 until further notice)"
        }
       ]
      },
@@ -24988,7 +24996,18 @@
        ],
        "take": 0,
        "type": "retention_limit",
-       "verbatim": "Non-retention — FN0952"
+       "verbatim": "Non-retention — FN0952",
+       "when": {
+        "dates": [
+         {
+          "from_day": 15,
+          "from_month": 10,
+          "to_day": 31,
+          "to_month": 12
+         }
+        ],
+        "open_ended": true
+       }
       }
      ]
     },
@@ -32464,7 +32483,7 @@
       "verdicts": [
        {
         "s": "closed",
-        "t": "No fishing for salmon"
+        "t": "No fishing for salmon (from Apr 1 until further notice)"
        }
       ]
      },
@@ -32481,7 +32500,18 @@
        ],
        "take": 0,
        "type": "retention_limit",
-       "verbatim": "No fishing for salmon"
+       "verbatim": "No fishing for salmon",
+       "when": {
+        "dates": [
+         {
+          "from_day": 1,
+          "from_month": 4,
+          "to_day": 31,
+          "to_month": 12
+         }
+        ],
+        "open_ended": true
+       }
       }
      ]
     },
@@ -36191,7 +36221,7 @@
       "verdicts": [
        {
         "s": "closed",
-        "t": "Non-retention"
+        "t": "Non-retention (from Apr 1 until further notice)"
        }
       ]
      },
@@ -36208,7 +36238,18 @@
        ],
        "take": 0,
        "type": "retention_limit",
-       "verbatim": "Non-retention"
+       "verbatim": "Non-retention",
+       "when": {
+        "dates": [
+         {
+          "from_day": 1,
+          "from_month": 4,
+          "to_day": 31,
+          "to_month": 12
+         }
+        ],
+        "open_ended": true
+       }
       }
      ]
     }
@@ -42734,28 +42775,40 @@
       "sp": [
        [
         0,
-        0
-       ],
-       [
         0,
+        167,
         1
        ],
        [
         0,
+        0,
+        167,
         2
        ],
        [
         0,
-        3,
+        0,
+        167,
+        3
+       ],
+       [
+        0,
+        0,
         167,
         -1
        ],
        [
         0,
+        0,
+        167,
         4
        ]
       ],
       "verdicts": [
+       {
+        "s": "closed",
+        "t": "No fishing for salmon (Jan 1–Jun 15)"
+       },
        {
         "s": "closed",
         "t": "No fishing for chinook (Apr 1–Mar 31)"
@@ -42767,10 +42820,6 @@
        {
         "s": "closed",
         "t": "No fishing for sockeye (Apr 1–Mar 31)"
-       },
-       {
-        "s": "closed",
-        "t": "No fishing for salmon (Jan 1–Jun 15)"
        },
        {
         "s": "closed",
@@ -46624,29 +46673,31 @@
       "sp": [
        [
         0,
-        0
+        0,
+        152,
+        1
        ],
        [
         0,
-        1,
+        0,
         152,
         -1
        ],
        [
         0,
-        1,
+        0,
         152,
         -1
        ],
        [
         0,
-        1,
+        0,
         152,
         -1
        ],
        [
         0,
-        1,
+        0,
         152,
         -1
        ]
@@ -46654,11 +46705,11 @@
       "verdicts": [
        {
         "s": "closed",
-        "t": "No fishing for chinook (Apr 1–Mar 31)"
+        "t": "No fishing for salmon (Jan 1–May 31)"
        },
        {
         "s": "closed",
-        "t": "No fishing for salmon (Jan 1–May 31)"
+        "t": "No fishing for chinook (Apr 1–Mar 31)"
        }
       ]
      },
@@ -54557,6 +54608,10 @@
       "sp": [
        [
         0,
+        0,
+        213,
+        1,
+        305,
         0
        ],
        [
@@ -55665,14 +55720,26 @@
       "sp": [
        [
         0,
+        0,
+        205,
+        3,
+        227,
         0
        ],
        [
         0,
+        1,
+        205,
+        3,
+        227,
         1
        ],
        [
         0,
+        2,
+        205,
+        3,
+        227,
         2
        ],
        [
@@ -55822,6 +55889,10 @@
       "sp": [
        [
         0,
+        0,
+        205,
+        3,
+        227,
         0
        ],
        [
@@ -55834,6 +55905,10 @@
        ],
        [
         0,
+        2,
+        205,
+        3,
+        227,
         2
        ],
        [
@@ -56046,6 +56121,10 @@
       "sp": [
        [
         0,
+        0,
+        205,
+        3,
+        227,
         0
        ],
        [
@@ -56058,6 +56137,10 @@
        ],
        [
         0,
+        2,
+        205,
+        3,
+        227,
         2
        ],
        [
@@ -57369,7 +57452,7 @@
       "verdicts": [
        {
         "s": "closed",
-        "t": "No fishing for sockeye"
+        "t": "No fishing for sockeye (from Apr 1 until further notice)"
        }
       ]
      },
@@ -57386,7 +57469,18 @@
        ],
        "take": 0,
        "type": "retention_limit",
-       "verbatim": "No fishing for sockeye"
+       "verbatim": "No fishing for sockeye",
+       "when": {
+        "dates": [
+         {
+          "from_day": 1,
+          "from_month": 4,
+          "to_day": 31,
+          "to_month": 12
+         }
+        ],
+        "open_ended": true
+       }
       }
      ]
     },
@@ -57422,7 +57516,7 @@
       "verdicts": [
        {
         "s": "closed",
-        "t": "No fishing for chinook"
+        "t": "No fishing for chinook (from Apr 1 until further notice)"
        }
       ]
      },
@@ -57439,7 +57533,18 @@
        ],
        "take": 0,
        "type": "retention_limit",
-       "verbatim": "No fishing for chinook"
+       "verbatim": "No fishing for chinook",
+       "when": {
+        "dates": [
+         {
+          "from_day": 1,
+          "from_month": 4,
+          "to_day": 31,
+          "to_month": 12
+         }
+        ],
+        "open_ended": true
+       }
       }
      ]
     },
@@ -57589,7 +57694,7 @@
       "verdicts": [
        {
         "s": "closed",
-        "t": "No fishing for chinook"
+        "t": "No fishing for chinook (from Apr 1 until further notice)"
        }
       ]
      },
@@ -57606,7 +57711,18 @@
        ],
        "take": 0,
        "type": "retention_limit",
-       "verbatim": "No fishing for chinook"
+       "verbatim": "No fishing for chinook",
+       "when": {
+        "dates": [
+         {
+          "from_day": 1,
+          "from_month": 4,
+          "to_day": 31,
+          "to_month": 12
+         }
+        ],
+        "open_ended": true
+       }
       }
      ]
     }
@@ -57972,6 +58088,161 @@
     }
    ]
   },
+  "Cowichan, 66 Mile Trestle to the Sandy Pool (T671 D1)": {
+   "calendar": {
+    "g": [
+     0,
+     -1
+    ],
+    "gears": [],
+    "sp": [
+     [
+      0,
+      0,
+      196,
+      -1,
+      244,
+      0
+     ],
+     [
+      0,
+      0,
+      196,
+      -1,
+      244,
+      0,
+      305,
+      1
+     ],
+     [
+      0,
+      0,
+      196,
+      -1,
+      244,
+      0
+     ],
+     [
+      0,
+      0,
+      196,
+      -1,
+      244,
+      0
+     ],
+     [
+      0,
+      0,
+      196,
+      -1,
+      244,
+      0,
+      308,
+      2
+     ]
+    ],
+    "verdicts": [
+     {
+      "s": "release",
+      "t": "Open for salmon catch and release (Sep 1–Jul 14)"
+     },
+     {
+      "s": "open",
+      "t": "1 per day (Nov 1–Dec 31)",
+      "tree": {
+       "by": 0,
+       "children": [],
+       "id": "t1",
+       "n": 1,
+       "node": "tier",
+       "says": "1 a day",
+       "species": [
+        "CO"
+       ],
+       "tier": "count"
+      }
+     },
+     {
+      "n": "FN1196",
+      "s": "open",
+      "t": "2 per day (Nov 4–Dec 31)",
+      "tree": {
+       "by": 0,
+       "children": [],
+       "id": "t1",
+       "n": 2,
+       "node": "tier",
+       "says": "2 a day",
+       "species": [
+        "CM"
+       ],
+       "tier": "count"
+      }
+     }
+    ]
+   },
+   "rules": [
+    {
+     "may_target": true,
+     "rule_id": "rows.r0",
+     "species": [
+      "SA"
+     ],
+     "take": 0,
+     "type": "retention_limit",
+     "verbatim": "Open for salmon catch and release",
+     "when": {
+      "dates": [
+       {
+        "from_day": 1,
+        "from_month": 9,
+        "to_day": 14,
+        "to_month": 7
+       }
+      ]
+     }
+    },
+    {
+     "rule_id": "rows.r1",
+     "species": [
+      "CO"
+     ],
+     "take": 1,
+     "type": "retention_limit",
+     "verbatim": "1 per day",
+     "when": {
+      "dates": [
+       {
+        "from_day": 1,
+        "from_month": 11,
+        "to_day": 31,
+        "to_month": 12
+       }
+      ]
+     }
+    },
+    {
+     "notice": "FN1196",
+     "rule_id": "rows.r2",
+     "species": [
+      "CM"
+     ],
+     "take": 2,
+     "type": "retention_limit",
+     "verbatim": "2 per day",
+     "when": {
+      "dates": [
+       {
+        "from_day": 4,
+        "from_month": 11,
+        "to_day": 31,
+        "to_month": 12
+       }
+      ]
+     }
+    }
+   ]
+  },
   "Kamloops Lake": {
    "calendar": {
     "g": [
@@ -58153,6 +58424,505 @@
     }
    ]
   },
+  "Koksilah (T671 D1)": {
+   "calendar": {
+    "g": [
+     0,
+     -1
+    ],
+    "gears": [],
+    "sp": [
+     [
+      0,
+      0,
+      152,
+      -1,
+      182,
+      2,
+      274,
+      -1,
+      335,
+      0
+     ],
+     [
+      0,
+      0,
+      152,
+      1,
+      182,
+      2,
+      274,
+      1,
+      335,
+      0
+     ],
+     [
+      0,
+      0,
+      152,
+      -1,
+      182,
+      2,
+      274,
+      -1,
+      335,
+      0
+     ],
+     [
+      0,
+      0,
+      152,
+      -1,
+      182,
+      2,
+      274,
+      -1,
+      335,
+      0
+     ],
+     [
+      0,
+      0,
+      152,
+      -1,
+      182,
+      2,
+      274,
+      -1,
+      335,
+      0
+     ]
+    ],
+    "verdicts": [
+     {
+      "s": "closed",
+      "t": "No fishing (Dec 1–May 31)"
+     },
+     {
+      "s": "open",
+      "t": "1 per day, maximum size 35 cm (Apr 1–Mar 31)",
+      "tree": {
+       "by": 0,
+       "children": [
+        {
+         "also_counts": [],
+         "detail": "",
+         "duties": [],
+         "folded": true,
+         "n": 1,
+         "name": "coho",
+         "node": "kind",
+         "says": "1 a day",
+         "sentence": "1 a day",
+         "sizes": {
+          "cm": [
+           [
+            0,
+            35
+           ]
+          ],
+          "in": [
+           [
+            0,
+            14
+           ]
+          ]
+         },
+         "species": [
+          "CO"
+         ]
+        },
+        {
+         "by": 0,
+         "children": [],
+         "id": "t2",
+         "n": 0,
+         "node": "tier",
+         "over_cm": 35,
+         "says": "none over 35 cm",
+         "tier": "size"
+        }
+       ],
+       "id": "t1",
+       "n": 1,
+       "node": "tier",
+       "says": "1 a day",
+       "species": [
+        "CO"
+       ],
+       "tier": "count"
+      }
+     },
+     {
+      "s": "closed",
+      "t": "No fishing (Jul 1–Sep 30)"
+     }
+    ]
+   },
+   "rules": [
+    {
+     "rule_id": "rows.r0",
+     "species": [
+      "CO"
+     ],
+     "take": 1,
+     "type": "retention_limit",
+     "verbatim": "1 per day",
+     "when": {
+      "dates": [
+       {
+        "from_day": 1,
+        "from_month": 4,
+        "to_day": 31,
+        "to_month": 3
+       }
+      ]
+     }
+    },
+    {
+     "lengths": [
+      {
+       "min_cm": 35,
+       "take": 0
+      }
+     ],
+     "may_target": true,
+     "rule_id": "rows.r0b",
+     "species": [
+      "CO"
+     ],
+     "type": "retention_limit",
+     "verbatim": "maximum size 35 cm",
+     "when": {
+      "dates": [
+       {
+        "from_day": 1,
+        "from_month": 4,
+        "to_day": 31,
+        "to_month": 3
+       }
+      ]
+     },
+     "within": "rows.r0"
+    },
+    {
+     "may_target": false,
+     "rule_id": "rows.r1",
+     "species": [
+      "SA"
+     ],
+     "take": 0,
+     "type": "retention_limit",
+     "verbatim": "No fishing",
+     "when": {
+      "dates": [
+       {
+        "from_day": 1,
+        "from_month": 7,
+        "to_day": 30,
+        "to_month": 9
+       }
+      ]
+     }
+    },
+    {
+     "may_target": false,
+     "rule_id": "rows.r2",
+     "species": [
+      "SA"
+     ],
+     "take": 0,
+     "type": "retention_limit",
+     "verbatim": "No fishing",
+     "when": {
+      "dates": [
+       {
+        "from_day": 1,
+        "from_month": 12,
+        "to_day": 31,
+        "to_month": 5
+       }
+      ]
+     }
+    }
+   ]
+  },
+  "Tatshenshini above the border (T671 D1)": {
+   "calendar": {
+    "g": [
+     0,
+     -1
+    ],
+    "gears": [],
+    "sp": [
+     [
+      0,
+      -1,
+      205,
+      1,
+      227,
+      -1
+     ],
+     [
+      0,
+      0,
+      205,
+      1,
+      227,
+      0
+     ],
+     [
+      0,
+      -1,
+      205,
+      1,
+      227,
+      -1
+     ],
+     [
+      0,
+      -1,
+      205,
+      1,
+      227,
+      -1
+     ],
+     [
+      0,
+      -1,
+      205,
+      1,
+      227,
+      -1
+     ]
+    ],
+    "verdicts": [
+     {
+      "s": "open",
+      "t": "2 per day (Aug 15–Jul 23)",
+      "tree": {
+       "by": 0,
+       "children": [],
+       "id": "t1",
+       "n": 2,
+       "node": "tier",
+       "says": "2 a day",
+       "species": [
+        "CO"
+       ],
+       "tier": "count"
+      }
+     },
+     {
+      "s": "closed",
+      "t": "No fishing for salmon (Jul 24–Aug 14)"
+     }
+    ]
+   },
+   "rules": [
+    {
+     "may_target": false,
+     "rule_id": "rows.r0",
+     "species": [
+      "SA"
+     ],
+     "take": 0,
+     "type": "retention_limit",
+     "verbatim": "No fishing for salmon",
+     "when": {
+      "dates": [
+       {
+        "from_day": 24,
+        "from_month": 7,
+        "to_day": 14,
+        "to_month": 8
+       }
+      ]
+     }
+    },
+    {
+     "rule_id": "rows.r1",
+     "species": [
+      "CO"
+     ],
+     "take": 2,
+     "type": "retention_limit",
+     "verbatim": "2 per day",
+     "when": {
+      "dates": [
+       {
+        "from_day": 15,
+        "from_month": 8,
+        "to_day": 23,
+        "to_month": 7
+       }
+      ]
+     }
+    }
+   ]
+  },
+  "Tatshenshini below the border (T671 D1)": {
+   "calendar": {
+    "g": [
+     0,
+     -1
+    ],
+    "gears": [],
+    "sp": [
+     [
+      0,
+      0,
+      205,
+      3,
+      227,
+      0
+     ],
+     [
+      0,
+      1,
+      205,
+      3,
+      227,
+      1
+     ],
+     [
+      0,
+      2,
+      205,
+      3,
+      227,
+      2
+     ],
+     [
+      0,
+      -1,
+      205,
+      3,
+      227,
+      -1
+     ],
+     [
+      0,
+      -1,
+      205,
+      3,
+      227,
+      -1
+     ]
+    ],
+    "verdicts": [
+     {
+      "s": "closed",
+      "t": "No fishing for chinook (Apr 1–Mar 31)"
+     },
+     {
+      "s": "open",
+      "t": "2 per day (Apr 1–Mar 31)",
+      "tree": {
+       "by": 0,
+       "children": [],
+       "id": "t1",
+       "n": 2,
+       "node": "tier",
+       "says": "2 a day",
+       "species": [
+        "CO"
+       ],
+       "tier": "count"
+      }
+     },
+     {
+      "s": "closed",
+      "t": "No fishing for sockeye (Apr 1–Mar 31)"
+     },
+     {
+      "s": "closed",
+      "t": "No fishing for salmon (Jul 24–Aug 14)"
+     }
+    ]
+   },
+   "rules": [
+    {
+     "may_target": false,
+     "rule_id": "rows.r0",
+     "species": [
+      "SA"
+     ],
+     "take": 0,
+     "type": "retention_limit",
+     "verbatim": "No fishing for salmon",
+     "when": {
+      "dates": [
+       {
+        "from_day": 24,
+        "from_month": 7,
+        "to_day": 14,
+        "to_month": 8
+       }
+      ]
+     }
+    },
+    {
+     "may_target": false,
+     "rule_id": "rows.r1",
+     "species": [
+      "CH"
+     ],
+     "take": 0,
+     "type": "retention_limit",
+     "verbatim": "No fishing for chinook",
+     "when": {
+      "dates": [
+       {
+        "from_day": 1,
+        "from_month": 4,
+        "to_day": 31,
+        "to_month": 3
+       }
+      ]
+     }
+    },
+    {
+     "rule_id": "rows.r2",
+     "species": [
+      "CO"
+     ],
+     "take": 2,
+     "type": "retention_limit",
+     "verbatim": "2 per day",
+     "when": {
+      "dates": [
+       {
+        "from_day": 1,
+        "from_month": 4,
+        "to_day": 31,
+        "to_month": 3
+       }
+      ]
+     }
+    },
+    {
+     "may_target": false,
+     "rule_id": "rows.r3",
+     "species": [
+      "SK"
+     ],
+     "take": 0,
+     "type": "retention_limit",
+     "verbatim": "No fishing for sockeye",
+     "when": {
+      "dates": [
+       {
+        "from_day": 1,
+        "from_month": 4,
+        "to_day": 31,
+        "to_month": 3
+       }
+      ]
+     }
+    }
+   ]
+  },
   "a region closed to salmon": {
    "calendar": {
     "g": [
@@ -58255,6 +59025,104 @@
     }
    ]
   },
+  "an opening dated inside an All closure (T671 D1)": {
+   "calendar": {
+    "g": [
+     0,
+     -1
+    ],
+    "gears": [],
+    "sp": [
+     [
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      244,
+      1,
+      305,
+      0
+     ],
+     [
+      0,
+      0
+     ],
+     [
+      0,
+      0
+     ],
+     [
+      0,
+      0
+     ]
+    ],
+    "verdicts": [
+     {
+      "s": "closed",
+      "t": "No fishing for salmon (Jan 1–Dec 31)"
+     },
+     {
+      "s": "open",
+      "t": "2 per day (Sep 1–Oct 31)",
+      "tree": {
+       "by": 0,
+       "children": [],
+       "id": "t1",
+       "n": 2,
+       "node": "tier",
+       "says": "2 a day",
+       "species": [
+        "CO"
+       ],
+       "tier": "count"
+      }
+     }
+    ]
+   },
+   "rules": [
+    {
+     "may_target": false,
+     "rule_id": "rows.r0",
+     "species": [
+      "SA"
+     ],
+     "take": 0,
+     "type": "retention_limit",
+     "verbatim": "No fishing for salmon",
+     "when": {
+      "dates": [
+       {
+        "from_day": 1,
+        "from_month": 1,
+        "to_day": 31,
+        "to_month": 12
+       }
+      ]
+     }
+    },
+    {
+     "rule_id": "rows.r1",
+     "species": [
+      "CO"
+     ],
+     "take": 2,
+     "type": "retention_limit",
+     "verbatim": "2 per day",
+     "when": {
+      "dates": [
+       {
+        "from_day": 1,
+        "from_month": 9,
+        "to_day": 31,
+        "to_month": 10
+       }
+      ]
+     }
+    }
+   ]
+  },
   "chum to be determined": {
    "calendar": {
     "g": [
@@ -58303,6 +59171,108 @@
      "when": {
       "unparsed": [
        "To be determined"
+      ]
+     }
+    }
+   ]
+  },
+  "date cells the old reader refused (T676)": {
+   "calendar": {
+    "g": [
+     0,
+     -1
+    ],
+    "gears": [],
+    "sp": [
+     [
+      0,
+      -1
+     ],
+     [
+      0,
+      -1
+     ],
+     [
+      0,
+      -1,
+      182,
+      0,
+      221,
+      -1
+     ],
+     [
+      0,
+      -1,
+      214,
+      1,
+      244,
+      -1
+     ],
+     [
+      0,
+      -1
+     ]
+    ],
+    "verdicts": [
+     {
+      "s": "closed",
+      "t": "No fishing for sockeye (Jul 1–Aug 8)"
+     },
+     {
+      "s": "open",
+      "t": "2 per day (Aug 2–31)",
+      "tree": {
+       "by": 0,
+       "children": [],
+       "id": "t1",
+       "n": 2,
+       "node": "tier",
+       "says": "2 a day",
+       "species": [
+        "PK"
+       ],
+       "tier": "count"
+      }
+     }
+    ]
+   },
+   "rules": [
+    {
+     "rule_id": "rows.r0",
+     "species": [
+      "PK"
+     ],
+     "take": 2,
+     "type": "retention_limit",
+     "verbatim": "2 per day",
+     "when": {
+      "dates": [
+       {
+        "from_day": 2,
+        "from_month": 8,
+        "to_day": 31,
+        "to_month": 8
+       }
+      ]
+     }
+    },
+    {
+     "may_target": false,
+     "rule_id": "rows.r1",
+     "species": [
+      "SK"
+     ],
+     "take": 0,
+     "type": "retention_limit",
+     "verbatim": "No fishing for sockeye",
+     "when": {
+      "dates": [
+       {
+        "from_day": 1,
+        "from_month": 7,
+        "to_day": 8,
+        "to_month": 8
+       }
       ]
      }
     }
@@ -58641,6 +59611,176 @@
      }
     }
    ]
+  },
+  "until further notice, a closure (T676)": {
+   "calendar": {
+    "g": [
+     0,
+     -1
+    ],
+    "gears": [],
+    "sp": [
+     [
+      0,
+      0,
+      152,
+      1,
+      244,
+      0
+     ],
+     [
+      0,
+      -1
+     ],
+     [
+      0,
+      -1
+     ],
+     [
+      0,
+      -1
+     ],
+     [
+      0,
+      -1
+     ]
+    ],
+    "verdicts": [
+     {
+      "s": "closed",
+      "t": "No fishing for chinook (from Sep 15 until further notice)"
+     },
+     {
+      "s": "open",
+      "t": "1 per day (Jun 1–Aug 31)",
+      "tree": {
+       "by": 0,
+       "children": [],
+       "id": "t1",
+       "n": 1,
+       "node": "tier",
+       "says": "1 a day",
+       "species": [
+        "CH"
+       ],
+       "tier": "count"
+      }
+     }
+    ]
+   },
+   "rules": [
+    {
+     "rule_id": "rows.r0",
+     "species": [
+      "CH"
+     ],
+     "take": 1,
+     "type": "retention_limit",
+     "verbatim": "1 per day",
+     "when": {
+      "dates": [
+       {
+        "from_day": 1,
+        "from_month": 6,
+        "to_day": 31,
+        "to_month": 8
+       }
+      ]
+     }
+    },
+    {
+     "may_target": false,
+     "rule_id": "rows.r1",
+     "species": [
+      "CH"
+     ],
+     "take": 0,
+     "type": "retention_limit",
+     "verbatim": "No fishing for chinook",
+     "when": {
+      "dates": [
+       {
+        "from_day": 15,
+        "from_month": 9,
+        "to_day": 31,
+        "to_month": 12
+       }
+      ],
+      "open_ended": true
+     }
+    }
+   ]
+  },
+  "until further notice, an opening (T676)": {
+   "calendar": {
+    "g": [
+     0,
+     -1
+    ],
+    "gears": [],
+    "sp": [
+     [
+      0,
+      -1
+     ],
+     [
+      0,
+      0
+     ],
+     [
+      0,
+      -1
+     ],
+     [
+      0,
+      -1
+     ],
+     [
+      0,
+      -1
+     ]
+    ],
+    "verdicts": [
+     {
+      "s": "open",
+      "t": "2 per day (from Oct 15 until further notice)",
+      "tree": {
+       "by": 0,
+       "children": [],
+       "id": "t1",
+       "n": 2,
+       "node": "tier",
+       "says": "2 a day",
+       "species": [
+        "CO"
+       ],
+       "tier": "count"
+      }
+     }
+    ]
+   },
+   "rules": [
+    {
+     "rule_id": "rows.r0",
+     "species": [
+      "CO"
+     ],
+     "take": 2,
+     "type": "retention_limit",
+     "verbatim": "2 per day",
+     "when": {
+      "dates": [
+       {
+        "from_day": 15,
+        "from_month": 10,
+        "to_day": 31,
+        "to_month": 12
+       }
+      ],
+      "open_ended": true
+     }
+    }
+   ]
   }
  },
  "species": [
@@ -58855,5 +59995,5 @@
    "water": "R.V. Creek"
   }
  ],
- "typed_format": 2
+ "typed_format": 3
 }

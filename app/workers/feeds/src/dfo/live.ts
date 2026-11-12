@@ -14,8 +14,9 @@
 // file.
 //
 // ROBUST MODE (the Worker's default since the T225 follow-up; `pythonParity: true` = the Python byte for byte, kept for
-// the parity tests): (a) the date cell is read by dates.ts and an unreadable one is a `check` verdict ("dates
-// unparsed — check DFO"), never a dropped limit; (b) ONE BAD ROW HOLDS ONLY ITS LOCATION: a row the catalogue refuses
+// the parity tests): (a) [T676, 2026-11-12: no longer a difference — the Python reads the date cell with the same
+// reader, `dates.read_dates`, in both modes: an unreadable one is a `check` verdict ("dates unparsed — check DFO"),
+// never a dropped limit]; (b) ONE BAD ROW HOLDS ONLY ITS LOCATION: a row the catalogue refuses
 // (or a calendar that throws) keeps that location's last answers (a `check` verdict when it has none), listed in the
 // region's `holds` with the reason, and the rest of the region publishes. A page that does not parse / verify, and a
 // STRUCTURAL reconcile, still hold the region (those are page-level).
@@ -510,7 +511,7 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
         continue;
       }
       try {
-        locs[lid] = { r: slug, ...locationCalendar(closure && rules.get(lid)!.length ? closure : rules.get(lid)!, verdicts, gears, true), ...xOf(lid) };
+        locs[lid] = { r: slug, ...locationCalendar(closure && rules.get(lid)!.length ? closure : rules.get(lid)!, verdicts, gears), ...xOf(lid) };
       } catch (e) {
         const fp = typed.locators.find((l) => byFingerprint(ef).get(l.fingerprint)?.location_id === lid)?.fingerprint ?? "";
         rowHolds.set(lid, { fingerprint: fp, why: `${pyTypeName(e)}: ${[...pyStrOf(e)].slice(0, 200).join("")}` });

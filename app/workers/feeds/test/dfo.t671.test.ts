@@ -25,13 +25,13 @@ interface Case {
 const CASES: Case[] = JSON.parse(readFileSync(join(__dirname, "fixtures/dfo/dfo-rows.json"), "utf-8")).cases;
 const REASONS = { tbd: TBD, gear_permission: GEAR_PERMISSION };
 
-const rulesOf = (rows: Row[], robust: boolean): TypedRule[] =>
-  rows.flatMap(([species, dates, limits_gear], i) => toRules({ species, dates, limits_gear }, "t671", i, robust, REG));
+const rulesOf = (rows: Row[]): TypedRule[] =>
+  rows.flatMap(([species, dates, limits_gear], i) => toRules({ species, dates, limits_gear }, "t671", i, REG));
 
 /** the place's own answer for a species on MMDD: its status, or null where the place says nothing that day */
-function status(rows: Row[], robust: boolean, sp: string, md: number): string | null {
+function status(rows: Row[], sp: string, md: number): string | null {
   const verdicts = new Interner<unknown>();
-  const cal = locationCalendar(rulesOf(rows, robust) as never[], verdicts, new Interner<unknown>(), robust);
+  const cal = locationCalendar(rulesOf(rows) as never[], verdicts, new Interner<unknown>());
   const runs = cal.sp[SPECIES.indexOf(sp)]!;
   const day = DAYS.indexOf(md);
   let v = -1;
@@ -45,16 +45,15 @@ it("the shared file was read", () => {
   expect(CASES.reduce((n, c) => n + (c.typed?.length ?? 0), 0)).toBeGreaterThanOrEqual(6);
 });
 
-for (const robust of [false, true])
-  describe(`(T671 D2) a row nobody could type keeps its species — ${robust ? "robust" : "pythonParity"}`, () => {
+describe("(T671 D2, D1; T676) the shared hand rows: typed and answered as the file says", () => {
     it.each(CASES.map((c) => [c.name, c] as const))("%s: typed and answered as the shared file says", (_name, c) => {
       (c.typed ?? []).forEach((want, i) => {
         const [species, dates, limits_gear] = c.rows[i]!;
-        const rule = toRules({ species, dates, limits_gear }, "t671", i, robust, REG)[0]!;
+        const rule = toRules({ species, dates, limits_gear }, "t671", i, REG)[0]!;
         if ("type" in want) expect(rule.type).toBe(want.type);
         if ("species" in want) expect(rule.species ?? null).toEqual(want.species);
         if (want.reason) expect(rule.review_reason!.startsWith(REASONS[want.reason])).toBe(true);
       });
-      expect((c.own ?? []).map(([sp, md]) => [sp, md, status(c.rows, robust, sp, md)])).toEqual(c.own ?? []);
+      expect((c.own ?? []).map(([sp, md]) => [sp, md, status(c.rows, sp, md)])).toEqual(c.own ?? []);
     });
   });

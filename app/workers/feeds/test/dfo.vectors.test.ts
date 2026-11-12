@@ -2,9 +2,9 @@
 // reads on the saved DFO pages (generated: `python -m pipeline.tools.emit.dfo_vectors`; its `--check` runs in pytest,
 // `python -m pipeline.tools.emit --check` and fast-fail): every location's fingerprint, every table locator's rows, typed
 // rules and year calendar, the name key, and the shared hand rows of dfo-rows.json. The worker must reproduce all of it:
-//   * in its Python-parity mode, everything;
-//   * in ROBUST mode (what production runs), everything except the differences NAMED below — a difference not named
-//     here fails, and a named one that no longer shows fails too (the list cannot go stale).
+//   * in both its Python-parity mode and ROBUST mode (what production runs), everything — (T676, owner 2026-11-12) the
+//     one named difference ("<day> until further notice") is gone: the Python reads a date cell with the worker's
+//     reader (`dates.read_dates`), so an open-ended row is the same rules and the same words on both sides.
 // (T676) Also: the join to the curated entries (entries.ts byFingerprint / reconcile, on the fixture entry files and a
 // page-default case), the region header (header.ts parseHeader / digest / resolve, quota.ts headerAnswers /
 // headerClosure), and ONE reading of a date cell (dates.ts readDates == dates.read_dates on every cell, no exception).
@@ -57,14 +57,12 @@ const joinOf = (ef: ReturnType<typeof loadEntryFile>, locs: Parameters<typeof re
 });
 /** the worker's value as the JSON it would write (PyFloat → number, undefined dropped) */
 const plain = <T>(x: T): T => (x === undefined ? x : JSON.parse(dumps(x)));
-const calendarOf = (rules: TypedRule[], robust: boolean): Calendar => {
+const calendarOf = (rules: TypedRule[]): Calendar => {
   const verdicts = new Interner<unknown>(), gears = new Interner<unknown>();
-  return plain({ ...locationCalendar(rules as never[], verdicts, gears, robust), verdicts: verdicts.items, gears: gears.items }) as Calendar;
+  return plain({ ...locationCalendar(rules as never[], verdicts, gears), verdicts: verdicts.items, gears: gears.items }) as Calendar;
 };
 
-/** ROBUST MODE'S NAMED DIFFERENCE (dates.ts; live.ts "ROBUST MODE"): a row dated "<day> until further notice". The Python
- *  reader refuses the cell and types the row with no dates; the worker keeps the start day, marks it open-ended and says
- *  so in the answer's words. The DAYS the answer holds are the same (all year). */
+/** (T676) a row dated "<day> until further notice" — once robust mode's named difference, now read the same both sides */
 const OPEN_ENDED = / \| [A-Z][a-z]+ \d{1,2} until further notice \| /;
 const openEnded = (l: PyLocator): boolean => l.rows.some((r) => OPEN_ENDED.test(r));
 
@@ -114,21 +112,8 @@ describe.each(Object.keys(V.pages))("region %s: the saved page", (slug) => {
         expect((got as { error?: string }).error, at).toBeUndefined();
         expect(got.rows, at).toEqual(py.rows);
         expect(plain((got as { words?: unknown }).words), at).toEqual(py.words);
-        const rules = plain(got.rules) as unknown as Record<string, unknown>[];
-        const cal = calendarOf(got.rules, robust);
-        if (!robust || !openEnded(py)) {
-          expect(rules, at).toEqual(py.rules);
-          expect(cal, at).toEqual(py.calendar);
-          return;
-        }
-        // the named difference, and nothing else: the same rules but for the open-ended dates; the same days, the
-        // answer's words saying since when
-        expect(rules.some((r) => (r.when as { open_ended?: boolean } | undefined)?.open_ended), at).toBe(true);
-        expect(rules.map((r) => ((r.when as { open_ended?: boolean } | undefined)?.open_ended ? (({ when: _w, ...rest }) => rest)(r) : r)), at).toEqual(py.rules);
-        expect({ sp: cal.sp, g: cal.g, gears: cal.gears, status: cal.verdicts.map((v) => v.s) }, at)
-          .toEqual({ sp: py.calendar.sp, g: py.calendar.g, gears: py.calendar.gears, status: py.calendar.verdicts.map((v) => v.s) });
-        expect(cal.verdicts.map((v) => v.t.replace(/ \(from [A-Z][a-z]+ \d{1,2} until further notice\)$/, "")), at).toEqual(py.calendar.verdicts.map((v) => v.t));
-        expect(cal.verdicts.map((v) => v.t), at).not.toEqual(py.calendar.verdicts.map((v) => v.t));
+        expect(plain(got.rules), at).toEqual(py.rules);
+        expect(calendarOf(got.rules), at).toEqual(py.calendar);
       });
     });
   // T676: the join to the curated entries and the region header — one reading, whatever the date mode
@@ -189,18 +174,20 @@ const eq = (a: unknown, b: unknown): boolean => {
   }
 };
 
-describe("robust mode's named difference is real and counted", () => {
-  it("six locators on the saved pages are dated 'until further notice' (regions 1, 2, 4, 8)", () => {
+describe("(T676) the open-ended rows are in the vectors, read the same on both sides", () => {
+  it("six locators on the saved pages are dated 'until further notice' (regions 1, 2, 4, 8), each typed open-ended", () => {
     const hit = Object.entries(V.pages).flatMap(([slug, p]) => p.locators.filter(openEnded).map((l) => `${slug}:${l.fingerprint.slice(0, 8)}`));
     expect(hit).toEqual(["1:7eab1584", "2:d367a8ea", "4:1d1c79cf", "8:afc9f631", "8:833f8748", "8:b70729bd"]);
+    const typed = Object.values(V.pages).flatMap((p) => p.locators.filter(openEnded));
+    expect(typed.every((l) => l.rules.some((r) => (r.when as { open_ended?: boolean } | undefined)?.open_ended))).toBe(true);
+    expect(typed.every((l) => l.calendar.verdicts.some((v) => / until further notice\)/.test(v.t)))).toBe(true);
   });
 });
 
 describe("the shared hand rows (dfo-rows.json): typed rules and calendar == Python", () => {
-  for (const robust of [false, true])
-    it.each(ROWS.cases.map((c) => [c.name, c] as const))(`${robust ? "robust" : "Python-parity"}: %s`, (name, c) => {
-      const rules = c.rows.flatMap(([species, dates, limits_gear], i) => toRules({ species, dates, limits_gear }, "rows", i, robust, REG));
+  it.each(ROWS.cases.map((c) => [c.name, c] as const))("%s", (name, c) => {
+      const rules = c.rows.flatMap(([species, dates, limits_gear], i) => toRules({ species, dates, limits_gear }, "rows", i, REG));
       expect(plain(rules)).toEqual(V.rows[name]!.rules);
-      expect(calendarOf(rules, robust)).toEqual(V.rows[name]!.calendar);
+      expect(calendarOf(rules)).toEqual(V.rows[name]!.calendar);
     });
 });

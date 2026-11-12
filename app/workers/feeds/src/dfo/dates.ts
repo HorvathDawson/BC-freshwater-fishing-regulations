@@ -1,5 +1,5 @@
-// T225 follow-up (owner 2026-10-28): THE DFO DATE CELL, read robustly. The Python reader (dates.parse_date_window +
-// catalogue.parse_date_range, ported as-is in typed.ts for the parity mode) misses whole families the pages print:
+// T225 follow-up (owner 2026-10-28): THE DFO DATE CELL, read robustly. The old Python reader (dates.parse_date_window +
+// catalogue.parse_date_range) missed whole families the pages print:
 // "Apr 1 until further notice" (145 rows in the recorded corpus), "Aug 2 To Aug 31", "July 1 until Aug 8",
 // "May 8 2018 until further notice", "October 1 to …" ('to' inside "October" split the cell), "1 Oct to 31 Dec",
 // "Oct 1st to Dec 31st", "Sept. 15 through Oct 30", year suffixes, typos ("Aprl", "futher").
@@ -16,7 +16,8 @@
 // (T676) ONE READING IN BOTH LANGUAGES: `pipeline/regs/dfo_salmon/dates.py` `read_dates` is this function ported line
 // for line; the DFO vectors (`python -m pipeline.tools.emit.dfo_vectors`, `dates`) hold its reading of every recorded
 // cell, the named shapes and a seeded fuzz, and test/dfo.vectors.test.ts fails on any cell this reads differently. A
-// change here is a change there in the same commit. (The release does not type its rows with it yet: owner's nod.)
+// change here is a change there in the same commit. Since 2026-11-12 (owner, T676) the release types its rows with it
+// too (`typed.to_rules`), and typed.ts reads a cell only this way, in both of the worker's modes.
 import { getCloseMatches } from "./difflib";
 import { LAST_DAY, type DateRange } from "./typed";
 

@@ -433,6 +433,10 @@ export const SALMON_WORDS = {
   allClosed: "Salmon — closed",
   gear: "Gear",
   varies: "Differs along this water. Tap a stretch on the map for its own answer.",
+  /** (T671 D5, owner 2026-11-12) the page reads closed while a DFO place on this water not drawn yet is open today: the
+   *  page's answer stays, the headline and the in-part caveat say the part is open and point to DFO for where */
+  closedOpenInPart: "Closed today · open in part",
+  openInPartCalm: "DFO opens salmon in a part of this water the map can’t draw yet: check DFO for where. Everywhere else, follow this page.",
   /** (T372) the caveat's water noun (only a boat rule's calm line says it; salmon has none) */
   waterNoun: "water",
   agency: "Fisheries and Oceans Canada",
@@ -868,6 +872,10 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
   const headlineStatus: SalmonVerdictStatus | "varies" =
     sts.includes("open") ? "open" : sts.includes("release") ? "release" : sts.includes("varies") ? "varies"
       : sts.includes("check") ? "check" : "closed";
+  // (T671 D5, owner 2026-11-12) the page reads closed and a place on this water not drawn yet is OPEN today (the
+  // pipeline's verdicts for that place, looked up): the page's answer stays, the headline and caveat say "open in part"
+  const openInPart = headlineStatus === "closed" && undrawn.some((c) => salmonStatusFromSpecies(f, c, day) === "open");
+  const inPart = inPartBlock(undrawnEntries(f, undrawn, unmapped, day), SALMON_WORDS.waterNoun);
   return {
     ...block, rows, regionRules, gearProvincial,
     hours: block.allClosed ? null
@@ -893,9 +901,9 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
                  ...regionsUsed.filter((r) => P.feedOnly?.[r]).map((r) => SALMON_WORDS.feedOnly(P.feedOnly![r]!, r)),
                  ...(chains.some((c) => P.chains[c]!.l.some((l) => P.held?.includes(l))) ? [SALMON_WORDS.heldRow] : [])],
     title: SALMON_WORDS.title, badge: SALMON_WORDS.badge,
-    headline: SALMON_WORDS.headline[headlineStatus], headlineStatus,
+    headline: openInPart ? SALMON_WORDS.closedOpenInPart : SALMON_WORDS.headline[headlineStatus], headlineStatus,
     notListed: listed || unmapped.length || unplaced.length || offs.length ? null : SALMON_WORDS.notListedLine,
-    caveat: inPartBlock(undrawnEntries(f, undrawn, unmapped, day), SALMON_WORDS.waterNoun),
+    caveat: openInPart && inPart ? { ...inPart, title: SALMON_WORDS.closedOpenInPart, calm: SALMON_WORDS.openInPartCalm } : inPart,
     dfoWords: regionClosed ? null : wordsOf(P, [...chains.flatMap((c) => [...P.chains[c]!.l, ...(P.chains[c]!.u ?? [])]),
                                                   ...unmapped.filter((u) => !u.d).flatMap((u) => P.chains[u.chain]?.l ?? [])]),
     source: [SALMON_WORDS.agency,

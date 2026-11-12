@@ -6,6 +6,25 @@ code now handles belong in the code's comments, not here.
 
 ---
 
+## An "All" closure against a species row on the same DFO place (the Tatshenshini, the Cowichan)
+
+**2026-11-12 · owner ruling T671 D1 · DFO salmon · `pipeline/deliver/salmon.py` `_all_closure_wins`, RULINGS L24**
+
+DFO's table puts an `All` row and a species row on one place with no words saying which wins, and the two shapes
+look alike but read opposite ways:
+
+- Tatshenshini below the border: `All | Jul 24 to Aug 14 | No fishing for salmon` beside `Coho | Apr 1 to Mar 31 |
+  2 per day`. The coho row is NOT the exception — it is DFO's all-year default written loosely (above the border the
+  same closure sits beside `Coho | Aug 15 to Jul 23`, dated around it). The closure wins: coho closed Jul 24-Aug 14.
+- Cowichan, 66 Mile Trestle to the Sandy Pool: `All | Sep 1 to July 14 | Open for salmon catch and release` beside
+  `Coho | Nov 1 to Dec 31 | 1 per day`. The coho row IS the exception: dated inside the All row, it speaks.
+
+The rule (owner): the All CLOSURE wins unless the species row is dated inside the All row's dates. Do not "fix" the
+Tatshenshini's coho back to open because its own row says all year, and do not let an All row that is no closure
+swallow a short species opening. On the pages of 2026-11 only the Tatshenshini below the border and the Koksilah
+(undrawn) are changed by it; the Region 6 B(i) places now quote the All closure on Jan 1-Jun 15 instead of the
+species' own closure (closed either way).
+
 ## Kept city-layer names that are not real names (and labels that look wrong)
 
 **2026-10-29 · owner review · city layers (Burnaby, Port Moody, Squamish) · `handoff/PLAN/audit/c1029-owner-review.md`**

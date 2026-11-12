@@ -104,9 +104,10 @@ def parse_date_window(text: str) -> "DateWindow | None":
 # a date cell exists in both languages: `pipeline.tools.emit.dfo_vectors` writes what this returns for every recorded
 # cell (plus the named shapes and a seeded fuzz) and the worker's `dfo.vectors.test.ts` must reproduce each one.
 #
-# NOT YET WIRED into `typed.to_rules`: the release still types its rows with `parse_date_window`. Reading "until
-# further notice" (and the other shapes) the robust way in the RELEASE changes what an angler is shown and waits on the
-# owner's nod (T676 item 1); until then this function is the pinned port, not a second reading in use.
+# WIRED (T676, owner 2026-11-12): `typed.to_rules` reads every DFO date cell with this, so the release and the live feed
+# type one cell one way. "<day> until further notice" runs from that day with no end (`When.open_ended`); a cell this
+# cannot read keeps its row's limits, flagged `check`. `parse_date_window` stays for `typed.interpret_dates`, which only
+# the scrape's health report (`validate.py`, warnings) reads.
 #
 # JavaScript regex semantics, kept: `\s` is JS's whitespace class (`_JS_WS`, not Python's `str.isspace`), `\b` / `\w` /
 # `\d` are ASCII (`re.ASCII`), a non-global JS `replace` replaces the first match only (`count=1`), `$` is the end of the

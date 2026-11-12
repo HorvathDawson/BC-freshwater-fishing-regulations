@@ -659,10 +659,15 @@ def when_words(when: Optional[dict], style: str) -> str:
     bits = []
     if dates:
         if style == "label":
-            bits.append(" and ".join(f"{MON[d['from_month'] - 1]} {d['from_day']}-{MON[d['to_month'] - 1]} "
-                                     f"{d['to_day']}" for d in dates))
+            said = [f"{MON[d['from_month'] - 1]} {d['from_day']}-{MON[d['to_month'] - 1]} {d['to_day']}" for d in dates]
         else:
-            bits.append(", ".join(range_txt(a, b) for a, b in when_dates(w)))
+            said = [range_txt(a, b) for a, b in when_dates(w)]
+        if w.get("open_ended"):
+            # (T676) a DFO row dated "<day> until further notice": its last range runs on from its start, no end — the
+            # live feed says it the same (`salmon.ts` `whenWords`)
+            a = when_dates(w)[-1][0]
+            said[-1] = "until further notice" if a == 101 else f"from {fmt_md(a)} until further notice"
+        bits.append((" and " if style == "label" else ", ").join(said))
     if days:
         bits.append(_weekday_words(days, style))
     if hours:

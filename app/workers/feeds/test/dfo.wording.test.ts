@@ -56,9 +56,9 @@ print(json.dumps(out))`;
 
 describe("new wording in the Worker", () => {
   it("an unseen clause flags the row: review_reason, no number", () => {
-    const rules = toRules({ species: "Coho", dates: "Sep 1 to Oct 31", limits_gear: `4 per day, only 2 over 50 cm, ${NEW}` }, "x", 0, true, REGISTRY);
+    const rules = toRules({ species: "Coho", dates: "Sep 1 to Oct 31", limits_gear: `4 per day, only 2 over 50 cm, ${NEW}` }, "x", 0, REGISTRY);
     expect(rules[0]!.review_reason).toBe(`new wording: '${NEW}'`);
-    const solar = toRules({ species: "Pink", dates: "Aug 22 to Sep 30", limits_gear: MUTANTS[1]! }, "x", 0, true, REGISTRY);
+    const solar = toRules({ species: "Pink", dates: "Aug 22 to Sep 30", limits_gear: MUTANTS[1]! }, "x", 0, REGISTRY);
     expect(solar[0]!.when?.hours).toEqual({ start: { solar: "sunrise", offset_min: -60 }, end: { solar: "sunset", offset_min: 60 } });
     expect(solar[0]!.review_reason).toBeUndefined();
   });
@@ -123,7 +123,7 @@ describe("the registry as a runtime input (priv wording.json) — T324: the ONLY
     expect(unknown(cell, as("proposed"))).toEqual([NEW]);
     expect(unknown(cell, as("rejected"))).toEqual([NEW]);
     expect(rowWords({ species: "Coho", dates: "", limits_gear: cell }, as("proposed"))).toMatchObject({ k: "new", new: [NEW] });
-    expect(toRules({ species: "Coho", dates: "Sep 1 to Oct 31", limits_gear: cell }, "x", 0, true, as("proposed"))[0]!.review_reason).toBe(`new wording: '${NEW}'`);
+    expect(toRules({ species: "Coho", dates: "Sep 1 to Oct 31", limits_gear: cell }, "x", 0, as("proposed"))[0]!.review_reason).toBe(`new wording: '${NEW}'`);
     const priv = new MemStore();
     const d = curated();
     d.entries.push({ template: t, kind: "structure", reads: ["test"], status: "proposed" });

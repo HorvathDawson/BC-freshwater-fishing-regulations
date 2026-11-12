@@ -912,6 +912,9 @@ WHEN_TEXT = {
     "weekdays": "the days of the week it holds on; empty = every day",
     "unparsed": "a printed season nobody could read, verbatim. The rule is UNCERTAIN in time — "
                 "never read it as all year",
+    "open_ended": "DFO salmon only (never the synopsis): the row said '<day> until further notice' — its last range "
+                  "starts that day and runs on with no end; before its start it holds only where no dated rule of its "
+                  "place does",
 }
 
 #: One resolved lift, as the bundle ships it (`pipeline.deliver.bundle.rules.LIFT_KEYS`).

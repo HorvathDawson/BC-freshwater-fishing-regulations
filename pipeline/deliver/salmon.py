@@ -121,6 +121,46 @@ def holds_on(rule: dict, md: int) -> Optional[bool]:
     return False
 
 
+def holds_kind(rule: dict, md: int):
+    """(T676) How the rule holds on day `md`: "dated" (a printed range holds, or no dates: all year), "open" (an "until
+    further notice" rule on a day before its start — it runs on with no end, but any dated rule of its place outranks it
+    that day), False, or None (its season did not read). The live feed's `salmon.ts` `holdsKind` the same."""
+    h = holds_on(rule, md)
+    if h is None:
+        return None
+    if h:
+        return "dated"
+    w = rule.get("when") or {}
+    return "open" if w.get("open_ended") and w.get("dates") else False
+
+
+def _held(rules: Sequence[dict], md: int) -> List[dict]:
+    """(T676) The rules that hold on `md`: those dated that day; only where none is, the open-ended ones running on."""
+    kinds = [(r, holds_kind(r, md)) for r in rules]
+    return [r for r, h in kinds if h == "dated"] or [r for r, h in kinds if h == "open"]
+
+
+def _days_of(rule: dict) -> frozenset:
+    return frozenset(md for md in DAYS if holds_on(rule, md))
+
+
+def _all_closure_wins(own: Sequence[dict], alls: Sequence[dict], releasing: Sequence[dict]) -> List[dict]:
+    """(T671 D1, owner 2026-11-12: "Yes to option 1") AN "ALL" CLOSURE AGAINST A SPECIES' OWN ROW, ON ONE PLACE: the
+    All closure wins UNLESS the species row is dated inside the All row's dates. Tatshenshini below the border: `All |
+    Jul 24 to Aug 14 | No fishing for salmon` closes coho through `Coho | Apr 1 to Mar 31 | 2 per day` (22 days); the
+    Cowichan shape keeps speaking (`All | Sep 1 to July 14 | …catch and release` with `Coho | Nov 1 to Dec 31 | 1 per
+    day` inside it: the All row there is no closure, and coho's dates sit inside it anyway). Returns the All closures
+    that override `own` today ([] where the species rows still speak). On the saved pages only the Tatshenshini below
+    the border and the Koksilah (undrawn) meet it (`pipeline/docs/GOTCHAS.md`).
+    Returns the rows that speak: the species rows dated inside every All closure held today, else the closures.
+    `releasing`: the rows the verdict reads as catch and release (`verdict_on` is the one reader of `may_target`)."""
+    closures = [a for a in alls if not _opens(a) and not any(a is x for x in releasing)]
+    if not own or not closures:
+        return list(own)
+    inside = [r for r in own if all(_days_of(r) <= _days_of(a) for a in closures)]
+    return inside or closures
+
+
 def _species_of(rule: dict) -> Sequence[str]:
     return rule.get("species") or rule.get("when_targeting") or ()
 
@@ -196,23 +236,38 @@ def _reads_for(rule: dict, sp: str) -> bool:
 def verdict_on(chain: Sequence[Sequence[dict]], sp: str, md: int) -> Optional[dict]:
     """The species' answer on day `md`: the narrowest location of the chain with a limit rule for it that day, or a
     row for it nobody could type (`unread_row`: "check").
-    `{s, t, n?}` — s one of open / release / closed / check; None when no location says anything that day."""
+    `{s, t, n?}` — s one of open / release / closed / check; None when no location says anything that day.
+    (T676) A rule whose date cell did not read (`check`) makes the species "check" on EVERY day at its place (it may
+    open or close any of them — never a silently missing limit), and an "until further notice" rule speaks on a day
+    only where no dated rule of its place does (`_held`). The live feed's `salmon.ts` `verdictOn` reads the same."""
     for rules in chain:
         subs: Dict[str, List[dict]] = defaultdict(list)
         for r in rules:
             if r.get("within"):
                 subs[r["within"]].append(r)
+        checks = [r for r in rules if r.get("check") and not r.get("within") and not _is_gear(r) and _reads_for(r, sp)]
+        if checks:
+            from pipeline.regs.dfo_salmon.typed import DATES_UNPARSED
+            out = {"s": "check", "t": f"{DATES_UNPARSED[0].upper()}{DATES_UNPARSED[1:]}: {_text(checks, subs)}"}
+            n = _notice(checks)
+            if n:
+                out["n"] = n
+            return out
         limits = [r for r in rules if not r.get("within") and not _is_gear(r) and _covers(r, sp)
                   and ("take" in r or "may_target" in r)]
-        held = [r for r in limits if holds_on(r, md)]
+        held = _held(limits, md)
         # (T671 D2) the rows for this species nobody can read today: a season that does not parse (any row), or a row
         # nobody could type on a day it holds — for the species its cell names, never dropped
         unread = [r for r in rules if not r.get("within") and _reads_for(r, sp)
-                  and (holds_on(r, md) is None or (unread_row(r) and holds_on(r, md)))]
+                  and (holds_on(r, md) is None or (unread_row(r) and holds_kind(r, md)))]
         if held:
-            own = [r for r in held if sp in _species_of(r)] or held     # the species' own row beats an all-salmon row
+            # the species' own row beats an all-salmon row — (T671 D1) unless an All closure that day is not one it is
+            # dated inside
+            releasing = [r for r in held if r.get("may_target") is True and says_catch_and_release(r)]
+            own = [r for r in held if sp in _species_of(r)]
+            own = _all_closure_wins(own, [r for r in held if sp not in _species_of(r)], releasing) if own else held
             opens = [r for r in own if _opens(r)]
-            release = [r for r in own if r.get("may_target") is True and says_catch_and_release(r)]
+            release = [r for r in own if any(r is x for x in releasing)]
             if opens:
                 s, why = "open", opens
             elif release:
@@ -242,12 +297,14 @@ def verdict_on(chain: Sequence[Sequence[dict]], sp: str, md: int) -> Optional[di
 
 def gear_on(chain: Sequence[Sequence[dict]], md: int) -> Tuple[str, ...]:
     """The gear lines that hold on day `md`: the narrowest location with any that day. A row about another fish
-    ("No fishing for eulachon") is one of its lines (`_other_fish`)."""
+    ("No fishing for eulachon") is one of its lines (`_other_fish`). (T676) Dated lines first, open-ended ones only
+    where none is (`_held`); a line whose date cell did not read is shown every day, prefixed with its `check`."""
     for rules in chain:
-        held = [r for r in rules if holds_on(r, md) and (
-                (_is_gear(r) and (not _species_of(r) or any(_covers(r, sp) for sp in SPECIES))) or _other_fish(r))]
+        gear = [r for r in rules
+                if (_is_gear(r) and (not _species_of(r) or any(_covers(r, sp) for sp in SPECIES))) or _other_fish(r)]
+        held = _held(gear, md) + [r for r in gear if r.get("check")]
         if held:
-            return tuple(dict.fromkeys(_text([r], {}) for r in held))
+            return tuple(dict.fromkeys((f"{r['check']}: " if r.get("check") else "") + _text([r], {}) for r in held))
     return ()
 
 

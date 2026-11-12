@@ -183,7 +183,25 @@ describe("the Salmon card", () => {
     expect([jul.hot, jul.title, jul.calm, jul.items.length]).toEqual([false, "Some spots have their own rules",
       "Not in force today. The map can’t draw these places yet, so check where you are.", 1]);
     // (T668 fix 1) a section whose chain names no undrawn place: no block, though its water (item) has one elsewhere
+    expect(salmonCard(facts(), { sids: [101], item: "gnis:4674" }, SEP15).headline).toBe("Closed today");
     expect(salmonCard(facts(), { sids: [5], item: "gnis:4674" }, SEP15).caveat).toBeNull();
+  });
+
+  it("(T671 D5, owner 2026-11-12) the page reads closed and a place not drawn yet is OPEN: 'Closed today · open in part', DFO for where", () => {
+    // the undrawn Cowichan place opens coho Sep 1–Oct 31 (instead of release only); the drawn Kispiox is closed Sep 15
+    const open = { ...PAYLOAD, verdicts: [...PAYLOAD.verdicts, { s: "open", t: "2 per day (Sep 1–Oct 31)" }],
+                   chains: PAYLOAD.chains.map((c, i) => (i === 2 ? { ...c, sp: [[0, 0], [0, 0, 244, 7, 305, 0], [0, 0], [0, 0], [0, 0]],
+                                                                    m: [0, 3, 244, 1, 305, 3] } : c)) };
+    const f = decodeSalmon(encode(open), HANDLES, SHARDS);
+    const c = salmonCard(f, { sids: [101], item: "gnis:4674" }, SEP15);
+    expect([c.headline, c.headlineStatus, c.rows.every((r) => r.status === "closed")]).toEqual(["Closed today · open in part", "closed", true]);
+    expect([c.caveat!.hot, c.caveat!.title, c.caveat!.calm]).toEqual([true, "Closed today · open in part",
+      "DFO opens salmon in a part of this water the map can’t draw yet: check DFO for where. Everywhere else, follow this page."]);
+    // the page's own answer is kept: its bar still reads closed today
+    expect(c.year.bars[0]!.today).toBe("closed");
+    // a day the page itself is open: the headline is the page's, the caveat its ordinary words
+    const jul = salmonCard(f, { sids: [101], item: "gnis:4674" }, JUL20);
+    expect([jul.headline, jul.caveat!.title]).toEqual(["Open today", "Some spots have their own rules"]);
   });
 });
 

@@ -7,9 +7,8 @@
 // pydantic message is reproduced (its first 120 characters are what the feed keeps).
 import { readDates } from "./dates";
 import { reason as wordingReason, type Registry } from "./wording";
-import { getCloseMatches } from "./difflib";
 import { PyFloat } from "./pyjson";
-import { capitalize, findall, floatRepr, fullmatch, PyError, pyInt, pyRe, repr, rstrip, search, split, splitWs, strip, sub, translate } from "./py";
+import { findall, floatRepr, fullmatch, PyError, pyInt, pyRe, repr, rstrip, search, split, splitWs, strip, sub, translate } from "./py";
 
 // ── the calendar (pipeline.common.calendar_spec) ─────────────────────────────────────────────────────────────────────
 export const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -162,39 +161,6 @@ export function parseDateRange(text: string): DateRange | null {
   return dateRange(lo[0], lo[1], hi[0], hi[1]);
 }
 
-// ── dates.py: parse_date_window ──────────────────────────────────────────────────────────────────────────────────────
-const DW_MONTHS: Record<string, number> = {
-  jan: 1, january: 1, feb: 2, february: 2, mar: 3, march: 3, apr: 4, april: 4, may: 5, jun: 6, june: 6, jul: 7,
-  july: 7, aug: 8, august: 8, sep: 9, sept: 9, september: 9, oct: 10, october: 10, nov: 11, november: 11, dec: 12,
-  december: 12,
-};
-const RE_SEP = pyRe("\\s*(?:-|–|—|to|through|thru|until)\\s*", "i");
-const RE_DATE = pyRe("^([A-Za-z]+)\\.?\\s+(\\d{1,2})$");
-const RE_BARE_DAY = pyRe("^(\\d{1,2})$");
-function dwOne(token: string): [number, number] | null {
-  const m = search(RE_DATE, strip(token));
-  if (!m) return null;
-  const mon = DW_MONTHS[m[1]!.toLowerCase()];
-  const day = pyInt(m[2]!);
-  if (mon === undefined || !(day >= 1 && day <= LAST_DAY[mon - 1]!)) return null;
-  return [mon, day];
-}
-function parseDateWindow(text: string): boolean {
-  if (!text || !strip(text)) return false;
-  text = strip(text.replace(/\*/g, ""));
-  const parts = split(RE_SEP, text, 1);
-  if (parts.length === 1) return dwOne(parts[0]!) !== null;
-  const a = dwOne(parts[0]!);
-  if (!a) return false;
-  if (dwOne(parts[1]!)) return true;
-  const m = search(RE_BARE_DAY, strip(parts[1]!));
-  if (m) {
-    const day = pyInt(m[1]!);
-    return day >= 1 && day <= LAST_DAY[a[0] - 1]!;
-  }
-  return false;
-}
-
 // ── typed.py ─────────────────────────────────────────────────────────────────────────────────────────────────────────
 const SPECIES: Record<string, string[]> = {
   all: ["SA"],
@@ -251,7 +217,6 @@ const RE_BAIT_BAN = pyRe("\\bbait\\s+ban\\b|\\bno\\s+natural\\s+bait\\b|\\bnatur
 /** (T320) "Natural bait allowed — FN1038": a permission no rule type states */
 const RE_BAIT_ALLOWED = pyRe("\\bnatural\\s+bait\\s+allowed\\b", "i");
 const RE_BARBLESS = pyRe("\\bsingle,?\\s+barbless\\s+hook\\b", "i");
-const RE_OPEN_ENDED = pyRe("\\buntil\\s+fu\\w*\\s+notice\\b", "i");
 const RE_QUOTA_SPAN = pyRe("\\b\\d+\\s+(?:hatchery[- ]marked\\s+)?per\\s+day", "i");
 const RE_BAIT_SPAN = pyRe("no\\s+natural\\s+bait[\\w\\s]*|bait\\s+ban|natural\\s+bait\\s+not\\s+allowed", "i");
 const RE_HOOK_SPAN = pyRe("single,?\\s+barbless\\s+hook[\\w\\s,.]*", "i");
@@ -282,44 +247,6 @@ export function decode(limits: string): Says {
     single_barbless_hook: !!search(RE_BARBLESS, text),
     daily_limit: daily,
   };
-}
-
-const firstPassParses = (raw: string): boolean => !!search(RE_OPEN_ENDED, raw) || parseDateWindow(raw);
-
-const DATE_MONTHS = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"];
-const RE_STRAY_SEP = pyRe("(\\d)\\s*[-–—]\\s+(?=to\\b)", "i");
-const RE_TRAIL_YEAR = pyRe("\\s+(?:19|20)\\d{2}\\s*$");
-const RE_WORD = pyRe("\\b[A-Za-z]{3,9}(?=\\.?\\s+\\d)");
-function repairDates(raw: string): string {
-  let out = sub(RE_STRAY_SEP, "\\1 ", raw);
-  out = sub(RE_TRAIL_YEAR, "", out);
-  out = sub(
-    RE_WORD,
-    (m) => {
-      const w = m[0];
-      const lw = w.toLowerCase();
-      if (DATE_MONTHS.some((mo) => lw === mo || mo.startsWith(lw))) return w;
-      const near = getCloseMatches(lw, DATE_MONTHS, 2, 0.8);
-      return near.length === 1 ? capitalize(near[0]!.slice(0, 3)) : w;
-    },
-    out,
-  );
-  return out;
-}
-
-/** interpret_dates, as far as to_rules reads it: {parsed, repaired_from, open_ended} */
-function interpretDates(text: string): { parsed: boolean; repaired: boolean; openEnded?: boolean } {
-  let raw = strip(text || "");
-  if (!raw) return { parsed: false, repaired: false };
-  let repaired = false;
-  if (!firstPassParses(raw)) {
-    const fixed = repairDates(raw);
-    if (fixed !== raw && firstPassParses(fixed)) {
-      repaired = true;
-      raw = fixed;
-    }
-  }
-  return { parsed: firstPassParses(raw), repaired, ...(search(RE_OPEN_ENDED, raw) ? { openEnded: true } : {}) };
 }
 
 const RE_SPECIES_SEP = pyRe("\\s*(?:,|&|\\band\\b)\\s*");
@@ -506,7 +433,7 @@ function validate(r: TypedRule): void {
 // ── the rule, as dumped ──────────────────────────────────────────────────────────────────────────────────────────────
 export interface When {
   dates?: DateRange[];
-  /** robust mode: the cell said "until further notice" — the last range's start runs on (salmon.ts) */
+  /** (T676) the cell said "until further notice" — the last range's start runs on with no end (salmon.ts) */
   open_ended?: boolean;
   hours?: { start: unknown; end: unknown };
   unparsed?: string[];
@@ -532,35 +459,12 @@ export interface TypedRule {
   within?: string;
   gear?: Record<string, unknown>[];
   when_targeting?: string[];
-  /** robust mode: why this rule cannot be read on a day — "dates unparsed — check DFO" (salmon.ts: a `check` verdict) */
+  /** (T676) why this rule cannot be read on a day — "dates unparsed — check DFO" (salmon.ts: a `check` verdict) */
   check?: string;
 }
 
 /** The DFO date cell's unparsed state, as the rule and the verdict carry it. */
 export const DATES_UNPARSED = "dates unparsed — check DFO";
-
-function whenOf(windows: string[], times: RegExpExecArray | null): When | null {
-  const dates: DateRange[] = [];
-  const unparsed: string[] = [];
-  for (const w of windows) {
-    const got = parseDateRange(w);
-    if (got) dates.push(got);
-    else unparsed.push(w);
-  }
-  let hours: When["hours"] | null = null;
-  if (times) {
-    const a = parseClock(times[1]!);
-    const b = parseClock(times[2]!);
-    if (!a || !b) throw new PyError("ValueError", `times ${repr(times[0])} do not parse`);
-    hours = { start: a, end: b };
-  }
-  if (!dates.length && !unparsed.length && !hours) return null;
-  const w: When = {};
-  if (dates.length) w.dates = dates;
-  if (hours) w.hours = hours;
-  if (unparsed.length) w.unparsed = unparsed;
-  return w;
-}
 
 export interface ScrapedRule {
   species: string;
@@ -570,28 +474,25 @@ export interface ScrapedRule {
 
 /** typed.to_rules: one scraped row → the rules it states (dumped).
  *
- * `robust` (the Worker's default; false = the Python, byte for byte, for the parity tests): the date cell is read by
- * dates.readDates — "until further notice", "To", "until", day-month order, ordinals, years, typos — and a cell it
- * still cannot read KEEPS the row's typed rules (never the advisory that dropped the limit), each carrying
- * `when.unparsed` and `check: DATES_UNPARSED`, which the calendar shows as a `check` verdict on every day. */
-export function toRules(rec: ScrapedRule, ruleBase: string, order: number, robust: boolean, reg: Registry): TypedRule[] {
+ * (T676, owner 2026-11-12) The date cell is read by dates.readDates — "until further notice", "To", "until", day-month
+ * order, ordinals, years, typos — the ONE reading the Python's `typed.to_rules` uses too (`dates.read_dates`, pinned by
+ * the vectors). "<day> until further notice" runs from that day with no end (`when.open_ended`). A cell it still cannot
+ * read KEEPS the row's typed rules (never the advisory that dropped the limit), each carrying `when.unparsed` and
+ * `check: DATES_UNPARSED`, which the calendar shows as a `check` verdict on every day. */
+export function toRules(rec: ScrapedRule, ruleBase: string, order: number, reg: Registry): TypedRule[] {
   const gear = strip(rec.limits_gear || "");
   const says = decode(gear);
   const codes = speciesFor(rec.species || "");
   const rawDates = strip(rec.dates || "");
-  const cell = robust ? readDates(rawDates) : null;
-  const when = robust ? { parsed: true, repaired: false } : interpretDates(rawDates);
-  // (T358, owner 2026-11-03) "until further notice" holds ALL YEAR (typed.to_rules): no window
-  const openEnded = robust ? cell?.kind === "ok" && cell.openEnded : !!(when as { openEnded?: boolean }).openEnded;
-  const windows = robust || !rawDates || openEnded ? [] : when.repaired ? [repairDates(rawDates)] : [rawDates];
-  const unreadable = !robust && !!rawDates && !when.parsed;
-  const robustWhen: When | null =
-    cell === null || cell.kind === "empty"
+  const cell = readDates(rawDates);
+  const openEnded = cell.kind === "ok" && cell.openEnded;
+  const baseWhen: When | null =
+    cell.kind === "empty"
       ? null
       : cell.kind === "ok"
         ? { dates: cell.ranges, ...(cell.openEnded ? { open_ended: true } : {}) }
         : { unparsed: [rawDates] };
-  const unparsedDates = cell?.kind === "unparsed";
+  const unparsedDates = cell.kind === "unparsed";
   const fn = search(RE_FN, gear);
   const notice = fn ? `FN${String(pyInt(fn[1]!)).padStart(4, "0")}` : null;
   const rid = `${ruleBase}.r${order}`;
@@ -603,7 +504,7 @@ export function toRules(rec: ScrapedRule, ruleBase: string, order: number, robus
     // base(): verbatim / notice / when, then the kwargs (kwargs win)
     const base: Partial<TypedRule> = { verbatim: gear || rec.species || "row" };
     if (notice) base.notice = notice;
-    const w = robust ? robustWhenOf(robustWhen, times) : whenOf(windows, times);
+    const w = whenOf(baseWhen, times);
     if (w) base.when = w;
     const merged: TypedRule = { ...(base as TypedRule), ...stripDefaults(fields) };
     if (unparsedDates) merged.check = DATES_UNPARSED;
@@ -614,10 +515,8 @@ export function toRules(rec: ScrapedRule, ruleBase: string, order: number, robus
   // (T671 D2, typed.to_rules `own_sp`) THE ROW'S SPECIES STAYS ON IT: "Chum | To be determined" is unread for chum only.
   // A cell naming no salmon the table knows keeps no species (salmon.ts then reads the row for every salmon, never none).
   const ownSp: { species?: string[] } = codes.length && codes.every((c) => SALMON_CODES.has(c)) ? { species: codes } : {};
-  if (search(RE_TBD, gear) || cell?.kind === "tbd")
+  if (search(RE_TBD, gear) || cell.kind === "tbd")
     return [make({ rule_id: rid, type: "advisory", ...ownSp, review_reason: `${TBD} ('to be determined')` })];
-  if (unreadable)
-    return [make({ rule_id: rid, type: "advisory", ...ownSp, review_reason: `dates do not parse to a calendar window: ${repr(rawDates)}` })];
   const nf = search(RE_NO_FISHING_FOR, gear);
   const named = nf ? SPECIES[nf[1]!.toLowerCase()] : undefined;
   if (nf && named && !named.some((c) => SALMON_CODES.has(c)))
@@ -728,8 +627,8 @@ export function toRules(rec: ScrapedRule, ruleBase: string, order: number, robus
   return out;
 }
 
-/** robust mode's `when`: the read date cell plus the row's hours */
-function robustWhenOf(base: When | null, times: RegExpExecArray | null): When | null {
+/** the row's `when`: the read date cell plus the row's hours (typed.py `_when`) */
+function whenOf(base: When | null, times: RegExpExecArray | null): When | null {
   let hours: When["hours"] | null = null;
   if (times) {
     const a = parseClock(times[1]!);

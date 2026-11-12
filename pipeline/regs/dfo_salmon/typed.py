@@ -41,6 +41,7 @@ from typing import List, Optional
 
 from pipeline.regs.parsing.catalogue import (
     CatalogueRule,
+    DateRange,
     Hours,
     LengthBand,
     Origin,
@@ -48,8 +49,8 @@ from pipeline.regs.parsing.catalogue import (
     RuleType,
     When,
     parse_clock,
-    parse_date_range,
 )
+from pipeline.regs.dfo_salmon.dates import read_dates
 
 #: DFO's species column, verbatim -> catalogue codes. Eight distinct values across 438 rules and
 #: nine regions. Written out rather than resolved by phrase because the bare words DFO uses
@@ -122,13 +123,16 @@ _RE_FN = re.compile(r"\bFN\s*(\d{3,4})\b", re.I)
 _RE_TBD = re.compile(r"to\s+be\s+determined", re.I)
 #: HOW THIS MODULE TYPES A ROW, as a number the typed feed carries (`feed.build` `typed_format`). Bump it when a row
 #: types differently: the release refuses typed files of another number (`deliver.salmon.load_inputs`), so rows typed by
-#: older code never ship. 2 (T671 D2): a row nobody could type keeps the species its cell names.
-FORMAT = 2
+#: older code never ship. 2 (T671 D2): a row nobody could type keeps the species its cell names. 3 (T676): the date
+#: cell is read by `dates.read_dates` (open-ended rows, `check` on an unreadable cell).
+FORMAT = 3
 #: (T671 D2) the advisory's `review_reason` prefixes the bundle reads: a row DFO has not set, and a row that is a gear
 #: PERMISSION (it opens and closes no fish). Every other advisory that is not about another fish is a row nobody could
 #: type: `deliver.salmon.unread_row` shows it as "check DFO" for the species its cell names, on the days it holds.
 TBD = "DFO has not set this row yet"
 GEAR_PERMISSION = "a gear permission"
+#: (T676) a rule whose row's date cell did not read carries this as its `check` (the worker's `DATES_UNPARSED`)
+DATES_UNPARSED = "dates unparsed — check DFO"
 
 # --------------------------------------------------------------------------------------- #
 # The decode — limits text -> what it says
@@ -328,13 +332,17 @@ def _first(*values):
 
 
 
-def _when(windows: List[str], times) -> Optional[When]:
-    """The row's season and hours as one `when`. A window that does not parse is kept VERBATIM in
-    `unparsed` rather than dropped: an unreadable season and no season are opposite facts."""
-    dates, unparsed = [], []
-    for w in windows:
-        got = parse_date_range(w)
-        (dates if got is not None else unparsed).append(got if got is not None else w)
+def _when(cell, raw_dates: str, times) -> Optional[When]:
+    """The row's season and hours as one `when` — the date cell as `dates.read_dates` read it (T676): its ranges, and
+    `open_ended` where it said "until further notice"; a cell it cannot read is kept VERBATIM in `unparsed` rather than
+    dropped (an unreadable season and no season are opposite facts); a blank cell says nothing (all year). The feeds
+    worker builds the same (`typed.ts` `robustWhenOf`)."""
+    dates, unparsed, open_ended = [], [], False
+    if cell.kind == "ok":
+        dates = [DateRange(from_month=a, from_day=b, to_month=c, to_day=d) for a, b, c, d in cell.ranges]
+        open_ended = cell.open_ended
+    elif cell.kind != "empty":
+        unparsed = [raw_dates]                       # unparsed, or "to be determined" in the date cell
     hours = None
     if times is not None:
         a, b = parse_clock(times.group(1)), parse_clock(times.group(2))
@@ -343,7 +351,7 @@ def _when(windows: List[str], times) -> Optional[When]:
         hours = Hours(start=a, end=b)
     if not dates and not unparsed and hours is None:
         return None
-    return When(dates=dates, hours=hours, unparsed=unparsed)
+    return When(dates=dates, hours=hours, unparsed=unparsed, open_ended=open_ended)
 
 def to_rules(rec: dict, rule_base: str, order: int) -> List[CatalogueRule]:
     """One scraped row -> the rules it states. `rule_base` is the entry's id stem.
@@ -359,17 +367,17 @@ def to_rules(rec: dict, rule_base: str, order: int) -> List[CatalogueRule]:
     # YEAR" — so only a cell that says something unreadable is a problem. `windows` carries the
     # REPAIRED string when an unambiguous source typo had to be fixed to read it ("Aprl 1 to
     # Jun 15"), because a window nobody can parse is worth less than one we can say we corrected.
+    # (T676, owner 2026-11-12) THE DATE CELL IS READ BY `dates.read_dates` — the feeds worker's reader, ported, so the
+    # release and the live feed read one cell one way: "Aug 2 To Aug 31", "July 1 until Aug 8", day-month order,
+    # ordinals, years, typos, lists. "<day> until further notice" RUNS FROM THAT DAY WITH NO END and does whatever the
+    # row says (a closure closes, an opening opens): `when.open_ended` on the range from that day (`deliver.salmon`
+    # `holds_kind`: before its start it speaks only where no dated row of its place does). A cell it still cannot read
+    # KEEPS the row's typed rules, each with the season in `when.unparsed` and `check` (`DATES_UNPARSED`): the species
+    # reads "check" every day — never an advisory that dropped the limit.
     raw_dates = (rec.get("dates") or "").strip()
-    when = interpret_dates(raw_dates)
-    if not raw_dates or when.get("open_ended"):
-        # (T358, owner 2026-11-03) "Apr 1 until further notice" holds ALL YEAR: a change comes as a new row, never as
-        # this one running out (a dated row that opens the fish still wins on its days, `deliver.salmon.verdict_on`)
-        windows = []
-    elif when["repaired_from"]:
-        windows = [_repair_dates(raw_dates)]
-    else:
-        windows = [raw_dates]
-    unreadable = bool(raw_dates) and not when["parsed"]
+    cell = read_dates(raw_dates)
+    open_ended = cell.kind == "ok" and cell.open_ended
+    unparsed_dates = cell.kind == "unparsed"
     fn = _RE_FN.search(gear)
     notice = f"FN{int(fn.group(1)):04d}" if fn else None     # "FN 679" and "FN0679" are one notice
     rid = f"{rule_base}.r{order}"
@@ -380,10 +388,12 @@ def to_rules(rec: dict, rule_base: str, order: int) -> List[CatalogueRule]:
 
     def base(times=None, **kw) -> dict:
         d = dict(verbatim=gear or (rec.get("species") or "row"), notice=notice)
-        w = _when(windows, times)
+        w = _when(cell, raw_dates, times)
         if w is not None:
             d["when"] = w
         d.update(kw)
+        if unparsed_dates:
+            d["check"] = DATES_UNPARSED
         return d
 
     # --- a row DFO has not settled ----------------------------------------
@@ -394,17 +404,9 @@ def to_rules(rec: dict, rule_base: str, order: int) -> List[CatalogueRule]:
     # (Kamloops Lake's "Sockeye | Apr 1 to Mar 31 | To be determined" read closed). A cell naming no fish the table
     # knows keeps no species: the bundle then reads the row for every salmon, never for none.
     own_sp = {"species": codes} if codes and set(codes) <= SALMON_CODES else {}
-    if _RE_TBD.search(gear):
+    if _RE_TBD.search(gear) or cell.kind == "tbd":
         return [CatalogueRule(rule_id=rid, type=RuleType.advisory,
                               review_reason=f"{TBD} ('to be determined')",
-                              **base(**own_sp))]
-
-    # A season nobody can read must not publish as though it had none — an unparsed window and an
-    # absent one are opposite facts, and `CatalogueRule` does not tell them apart on its own.
-    if unreadable:
-        return [CatalogueRule(rule_id=rid, type=RuleType.advisory,
-                              review_reason=f"dates do not parse to a calendar window: "
-                                            f"{raw_dates!r}",
                               **base(**own_sp))]
 
     # A row about ANOTHER FISH ("All | No fishing for eulachon"): not a salmon rule. An advisory the bundle shows as its
@@ -425,7 +427,7 @@ def to_rules(rec: dict, rule_base: str, order: int) -> List[CatalogueRule]:
     zero_quota = False
     if says["no_fishing"]:
         take, may_target = 0, False          # may not fish for it
-    elif says["non_retention"] and when.get("open_ended"):
+    elif says["non_retention"] and open_ended:
         # (T358, owner 2026-11-03) "Non-retention … until further notice" reads CLOSED: an open-ended row holds all
         # year, and the owner's rule for it is closed, not release-only (a change comes as a new row)
         take, may_target = 0, False
@@ -531,9 +533,10 @@ def to_rules(rec: dict, rule_base: str, order: int) -> List[CatalogueRule]:
     if not out:
         out.append(CatalogueRule(
             rule_id=rid, type=RuleType.advisory,
-            review_reason=_unread(gear) or new_wording or (f"{GEAR_PERMISSION} (natural bait allowed): no rule type states it"
+            review_reason=(f"dates do not parse to a calendar window: {raw_dates!r}" if unparsed_dates else
+                           _unread(gear) or new_wording or (f"{GEAR_PERMISSION} (natural bait allowed): no rule type states it"
                                              if _RE_BAIT_ALLOWED.search(gear) else
-                                             "row states no limit, closure or gear rule the scrape could type"),
+                                             "row states no limit, closure or gear rule the scrape could type")),
             **base(**own_sp)))
     return out
 

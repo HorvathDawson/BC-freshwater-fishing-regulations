@@ -163,11 +163,11 @@ describe("readDates: seeded fuzz", () => {
 
 describe("downstream: an unreadable cell is `check`, never a dropped limit", () => {
   const cal = (rows: { species: string; dates: string; limits_gear: string }[]) => {
-    const rules = rows.flatMap((r, i) => toRules(r, "fp000000", i, true, REG));
+    const rules = rows.flatMap((r, i) => toRules(r, "fp000000", i, REG));
     const verdicts = new Interner<unknown>();
     verdicts.add(NOT_LISTED);
     const gears = new Interner<unknown>();
-    const c = locationCalendar(rules as never, verdicts, gears, true);
+    const c = locationCalendar(rules as never, verdicts, gears);
     const on = (k: number, md: number) => {
       // md → day index (0-based, leap year)
       const m = Math.floor(md / 100);
@@ -181,10 +181,10 @@ describe("downstream: an unreadable cell is `check`, never a dropped limit", () 
     return { rules, on, gears: gears.items };
   };
 
-  it("the Python made an unreadable row an advisory with no limit; robust keeps the limit, flagged check", () => {
-    const py = toRules({ species: "Coho", dates: "1 Oct to 31 Dec", limits_gear: "2 per day" }, "fp", 0, false, REG);
-    expect(py.map((r) => r.type)).toEqual(["advisory"]); // the limit was gone
-    const ours = toRules({ species: "Coho", dates: "Oct 1 to Dec 31 (subject to review)", limits_gear: "2 per day" }, "fp", 0, true, REG);
+  it("(T676) a cell the old Python reader refused reads; an unreadable row keeps the limit, flagged check", () => {
+    const read = toRules({ species: "Coho", dates: "1 Oct to 31 Dec", limits_gear: "2 per day" }, "fp", 0, REG);
+    expect(read).toMatchObject([{ type: "retention_limit", take: 2, when: { dates: [{ from_month: 10, from_day: 1, to_month: 12, to_day: 31 }] } }]);
+    const ours = toRules({ species: "Coho", dates: "Oct 1 to Dec 31 (subject to review)", limits_gear: "2 per day" }, "fp", 0, REG);
     expect(ours).toMatchObject([{ type: "retention_limit", take: 2, species: ["CO"], check: DATES_UNPARSED, when: { unparsed: ["Oct 1 to Dec 31 (subject to review)"] } }]);
   });
 

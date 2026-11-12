@@ -437,6 +437,439 @@
      "closed"
     ]
    ]
+  },
+  {
+   "name": "Tatshenshini below the border (T671 D1)",
+   "about": "(owner 2026-11-12, D1 option 1) an All closure beats a species row NOT dated inside it: coho closes Jul 24-Aug 14 and is open the rest",
+   "rows": [
+    [
+     "All",
+     "Jul 24 to Aug 14",
+     "No fishing for salmon"
+    ],
+    [
+     "Chinook",
+     "Apr 1 to Mar 31",
+     "No fishing for chinook"
+    ],
+    [
+     "Coho",
+     "Apr 1 to Mar 31",
+     "2 per day"
+    ],
+    [
+     "Sockeye",
+     "Apr 1 to Mar 31",
+     "No fishing for sockeye"
+    ]
+   ],
+   "own": [
+    [
+     "CO",
+     723,
+     "open"
+    ],
+    [
+     "CO",
+     724,
+     "closed"
+    ],
+    [
+     "CO",
+     801,
+     "closed"
+    ],
+    [
+     "CO",
+     814,
+     "closed"
+    ],
+    [
+     "CO",
+     815,
+     "open"
+    ],
+    [
+     "CH",
+     801,
+     "closed"
+    ],
+    [
+     "SK",
+     801,
+     "closed"
+    ],
+    [
+     "PK",
+     801,
+     "closed"
+    ],
+    [
+     "PK",
+     815,
+     null
+    ]
+   ]
+  },
+  {
+   "name": "Tatshenshini above the border (T671 D1)",
+   "about": "the same closure with coho dated around it: unchanged by the ruling",
+   "rows": [
+    [
+     "All",
+     "Jul 24 to Aug 14",
+     "No fishing for salmon"
+    ],
+    [
+     "Coho",
+     "Aug 15 to Jul 23",
+     "2 per day"
+    ]
+   ],
+   "own": [
+    [
+     "CO",
+     723,
+     "open"
+    ],
+    [
+     "CO",
+     724,
+     "closed"
+    ],
+    [
+     "CO",
+     815,
+     "open"
+    ]
+   ]
+  },
+  {
+   "name": "Koksilah (T671 D1)",
+   "about": "two All closures around an all-year coho row: coho is open only Jun 1-30 and Oct 1-Nov 30",
+   "rows": [
+    [
+     "Coho",
+     "Apr 1 to Mar 31",
+     "1 per day, maximum size 35 cm"
+    ],
+    [
+     "All",
+     "July 1 to Sept 30",
+     "No fishing"
+    ],
+    [
+     "All",
+     "Dec 1 to May 31",
+     "No fishing"
+    ]
+   ],
+   "own": [
+    [
+     "CO",
+     531,
+     "closed"
+    ],
+    [
+     "CO",
+     601,
+     "open"
+    ],
+    [
+     "CO",
+     630,
+     "open"
+    ],
+    [
+     "CO",
+     701,
+     "closed"
+    ],
+    [
+     "CO",
+     930,
+     "closed"
+    ],
+    [
+     "CO",
+     1001,
+     "open"
+    ],
+    [
+     "CO",
+     1130,
+     "open"
+    ],
+    [
+     "CO",
+     1201,
+     "closed"
+    ],
+    [
+     "CO",
+     215,
+     "closed"
+    ]
+   ]
+  },
+  {
+   "name": "Cowichan, 66 Mile Trestle to the Sandy Pool (T671 D1)",
+   "about": "an All row that is no closure (catch and release) with species openings inside it: the openings keep speaking",
+   "rows": [
+    [
+     "All",
+     "Sep 1 to July 14",
+     "Open for salmon catch and release"
+    ],
+    [
+     "Coho",
+     "Nov 1 to Dec 31",
+     "1 per day"
+    ],
+    [
+     "Chum",
+     "Nov 4 to Dec 31",
+     "2 per day — FN1196"
+    ]
+   ],
+   "own": [
+    [
+     "CO",
+     1001,
+     "release"
+    ],
+    [
+     "CO",
+     1101,
+     "open"
+    ],
+    [
+     "CM",
+     1103,
+     "release"
+    ],
+    [
+     "CM",
+     1104,
+     "open"
+    ],
+    [
+     "CH",
+     1101,
+     "release"
+    ],
+    [
+     "CO",
+     801,
+     null
+    ]
+   ]
+  },
+  {
+   "name": "an opening dated inside an All closure (T671 D1)",
+   "about": "the exception the ruling keeps: a species row dated inside the All closure's dates speaks on its days",
+   "rows": [
+    [
+     "All",
+     "Jan 1 to Dec 31",
+     "No fishing for salmon"
+    ],
+    [
+     "Coho",
+     "Sep 1 to Oct 31",
+     "2 per day"
+    ]
+   ],
+   "own": [
+    [
+     "CO",
+     831,
+     "closed"
+    ],
+    [
+     "CO",
+     901,
+     "open"
+    ],
+    [
+     "CO",
+     1031,
+     "open"
+    ],
+    [
+     "CO",
+     1101,
+     "closed"
+    ],
+    [
+     "CH",
+     915,
+     "closed"
+    ]
+   ]
+  },
+  {
+   "name": "until further notice, a closure (T676)",
+   "about": "(owner 2026-11-12) '<day> until further notice' runs from that day with no end and does what the row says; a dated row outranks it on its own days",
+   "rows": [
+    [
+     "Chinook",
+     "Jun 1 to Aug 31",
+     "1 per day"
+    ],
+    [
+     "Chinook",
+     "Sep 15 until further notice",
+     "No fishing for chinook"
+    ]
+   ],
+   "typed": [
+    {
+     "type": "retention_limit"
+    },
+    {
+     "type": "retention_limit",
+     "species": [
+      "CH"
+     ]
+    }
+   ],
+   "own": [
+    [
+     "CH",
+     601,
+     "open"
+    ],
+    [
+     "CH",
+     831,
+     "open"
+    ],
+    [
+     "CH",
+     901,
+     "closed"
+    ],
+    [
+     "CH",
+     915,
+     "closed"
+    ],
+    [
+     "CH",
+     1231,
+     "closed"
+    ],
+    [
+     "CH",
+     115,
+     "closed"
+    ],
+    [
+     "CO",
+     915,
+     null
+    ]
+   ]
+  },
+  {
+   "name": "until further notice, an opening (T676)",
+   "about": "an open-ended opening opens from its day on, and runs on past the year end",
+   "rows": [
+    [
+     "Coho",
+     "Oct 15 until further notice",
+     "2 per day"
+    ]
+   ],
+   "own": [
+    [
+     "CO",
+     1015,
+     "open"
+    ],
+    [
+     "CO",
+     1231,
+     "open"
+    ],
+    [
+     "CO",
+     115,
+     "open"
+    ],
+    [
+     "CH",
+     1015,
+     null
+    ]
+   ]
+  },
+  {
+   "name": "date cells the old reader refused (T676)",
+   "about": "'Aug 2 To Aug 31' and 'July 1 until Aug 8' were unread windows in the release; the shared reader reads them",
+   "rows": [
+    [
+     "Pink",
+     "Aug 2 To Aug 31",
+     "2 per day"
+    ],
+    [
+     "Sockeye",
+     "July 1 until Aug 8",
+     "No fishing for sockeye"
+    ]
+   ],
+   "typed": [
+    {
+     "type": "retention_limit"
+    },
+    {
+     "type": "retention_limit"
+    }
+   ],
+   "own": [
+    [
+     "PK",
+     801,
+     null
+    ],
+    [
+     "PK",
+     802,
+     "open"
+    ],
+    [
+     "PK",
+     831,
+     "open"
+    ],
+    [
+     "PK",
+     901,
+     null
+    ],
+    [
+     "SK",
+     630,
+     null
+    ],
+    [
+     "SK",
+     701,
+     "closed"
+    ],
+    [
+     "SK",
+     808,
+     "closed"
+    ],
+    [
+     "SK",
+     809,
+     null
+    ]
+   ]
   }
  ]
 }

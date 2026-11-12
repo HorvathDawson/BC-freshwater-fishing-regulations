@@ -32,8 +32,9 @@ export function holdsOn(rule: R, md: number): boolean | null {
   return false;
 }
 
-/** robust mode: how a rule holds on a day — "dated" (a printed range, or no dates: all year), "open" (an "until further
- * notice" rule on a day before its start: it runs on, but any dated rule outranks it), false, or null (unreadable). */
+/** (T676, salmon.py `holds_kind`) how a rule holds on a day — "dated" (a printed range, or no dates: all year), "open" (an
+ * "until further notice" rule on a day before its start: it runs on, but any dated rule outranks it), false, or null
+ * (unreadable). */
 export function holdsKind(rule: R, md: number): "dated" | "open" | false | null {
   const w = (rule.when ?? {}) as { dates?: { from_month: number; from_day: number; to_month: number; to_day: number }[]; unparsed?: string[]; open_ended?: boolean };
   const h = holdsOn(rule, md);
@@ -47,6 +48,12 @@ const covers = (r: R, sp: string): boolean => {
   const s = speciesOf(r);
   return s.includes(sp) || s.includes(ALL_SALMON);
 };
+/** (T676, salmon.py `_held`) the rules that hold on a day: those dated that day; only where none is, the open-ended ones */
+function heldOn(rules: R[], md: number): R[] {
+  const kinds = rules.map((r) => [r, holdsKind(r, md)] as const);
+  const dated = kinds.filter(([, h]) => h === "dated").map(([r]) => r);
+  return dated.length ? dated : kinds.filter(([, h]) => h === "open").map(([r]) => r);
+}
 const isGear = (r: R): boolean => !!(r.gear && r.gear.length) || GEAR_TYPES.has(r.type);
 /** T229: a row about another fish (eulachon) — never a salmon verdict, one of the gear lines (salmon.py `_other_fish`) */
 const otherFish = (r: R): boolean => r.type === "advisory" && String(r.review_reason ?? "").startsWith(OTHER_FISH);
@@ -115,6 +122,20 @@ function notice(rules: R[]): string | null {
 const RE_CATCH_AND_RELEASE = /\bcatch[- ]and[- ]release\b/i;
 const releases = (r: R): boolean => r.may_target === true && RE_CATCH_AND_RELEASE.test(r.verbatim || "");
 
+/** the days of the year a rule's dates hold (MMDD) — (T671 D1) "dated inside" compares these */
+const daysOf = (r: R): Set<number> => new Set(DAYS.filter((md) => holdsOn(r, md)));
+const within = (a: Set<number>, b: Set<number>): boolean => [...a].every((d) => b.has(d));
+
+/** (T671 D1, salmon.py `_all_closure_wins`, owner 2026-11-12) AN "ALL" CLOSURE AGAINST A SPECIES' OWN ROW, ON ONE PLACE:
+ * the All closure wins UNLESS the species row is dated inside the All row's dates. The rows that speak: the species rows
+ * dated inside every All closure held today, else those closures. */
+function allClosureWins(own: R[], alls: R[]): R[] {
+  const closures = alls.filter((a) => !(((a.take as number | undefined) || 0) > 0) && !releases(a));
+  if (!own.length || !closures.length) return own;
+  const inside = own.filter((r) => closures.every((a) => within(daysOf(r), daysOf(a))));
+  return inside.length ? inside : closures;
+}
+
 export interface Verdict {
   s: string;
   t: string;
@@ -133,7 +154,7 @@ class Loc {
   limits: R[][]; // per species
   unreadable: R[];
   gear: R[];
-  checks: R[][]; // robust: per species, the rules whose dates did not read (`check`)
+  checks: R[][]; // (T676) per species, the rules whose dates did not read (`check`)
   gearChecks: R[];
   memo = new Map<string, string>();
   verdicts = new Map<string, Verdict>();
@@ -161,13 +182,13 @@ class Loc {
   }
 }
 
-/** salmon.verdict_on over a chain of read locations. `robust`: a rule whose dates did not read makes the species'
- * verdict `check` on EVERY day (it may close or open any of them — never a silently missing limit), and an "until
- * further notice" rule fills only the days no dated rule speaks for. */
-function verdictOn(chain: Loc[], k: number, md: number, robust = false): Verdict | null {
+/** salmon.verdict_on over a chain of read locations. (T676) A rule whose dates did not read makes the species' verdict
+ * `check` on EVERY day (it may close or open any of them — never a silently missing limit), and an "until further
+ * notice" rule fills only the days no dated rule speaks for. */
+function verdictOn(chain: Loc[], k: number, md: number): Verdict | null {
   const sp = SPECIES[k]!;
   for (const loc of chain) {
-    if (robust && loc.checks[k]!.length) {
+    if (loc.checks[k]!.length) {
       const why = loc.checks[k]!;
       const key = "unparsed:" + why.map((r) => loc.rules.indexOf(r)).join(",");
       let out = loc.verdicts.get(key);
@@ -179,15 +200,12 @@ function verdictOn(chain: Loc[], k: number, md: number, robust = false): Verdict
       }
       return out;
     }
-    let held: R[];
-    if (robust) {
-      const kinds = loc.limits[k]!.map((r) => [r, holdsKind(r, md)] as const);
-      held = kinds.filter(([, h]) => h === "dated").map(([r]) => r);
-      if (!held.length) held = kinds.filter(([, h]) => h === "open").map(([r]) => r);
-    } else held = loc.limits[k]!.filter((r) => holdsOn(r, md));
+    const held = heldOn(loc.limits[k]!, md);
     if (held.length) {
+      // the species' own row beats an all-salmon row — (T671 D1) unless an All closure that day is not one it is dated
+      // inside
       const ownSp = held.filter((r) => speciesOf(r).includes(sp));
-      const own = ownSp.length ? ownSp : held;
+      const own = ownSp.length ? allClosureWins(ownSp, held.filter((r) => !speciesOf(r).includes(sp))) : held;
       const opens = own.filter((r) => ((r.take as number | undefined) || 0) > 0);
       let s: string;
       let why: R[];
@@ -212,7 +230,7 @@ function verdictOn(chain: Loc[], k: number, md: number, robust = false): Verdict
       return out;
     }
     // (T671 D2) a season that does not parse (any row), or a row nobody could type on a day it holds
-    const unread = loc.unreadable.filter((r) => (!speciesOf(r).length || covers(r, sp)) && (holdsOn(r, md) === null || (unreadRow(r) && (robust ? !!holdsKind(r, md) : holdsOn(r, md) === true))));
+    const unread = loc.unreadable.filter((r) => (!speciesOf(r).length || covers(r, sp)) && (holdsOn(r, md) === null || (unreadRow(r) && !!holdsKind(r, md))));
     if (unread.length) {
       const key = "check:" + unread.map((r) => loc.rules.indexOf(r)).join(",");
       let out = loc.verdicts.get(key);
@@ -223,15 +241,10 @@ function verdictOn(chain: Loc[], k: number, md: number, robust = false): Verdict
   return null;
 }
 
-function gearOn(chain: Loc[], md: number, robust = false): string[] {
+function gearOn(chain: Loc[], md: number): string[] {
   for (const loc of chain) {
-    let held: R[];
-    if (robust) {
-      const kinds = loc.gear.map((r) => [r, holdsKind(r, md)] as const);
-      held = kinds.filter(([, h]) => h === "dated").map(([r]) => r);
-      if (!held.length) held = kinds.filter(([, h]) => h === "open").map(([r]) => r);
-      held.push(...loc.gearChecks); // its dates did not read: shown on every day, flagged by its text
-    } else held = loc.gear.filter((r) => holdsOn(r, md));
+    // dated lines, else open-ended ones; a line whose dates did not read shows on every day, flagged by its text
+    const held = [...heldOn(loc.gear, md), ...loc.gearChecks];
     if (held.length) {
       const key = held.map((r) => loc.rules.indexOf(r)).join(",");
       let out = loc.gears.get(key);
@@ -290,16 +303,16 @@ export class Interner<T> {
 }
 
 /** live.location_calendar: one location's year */
-export function locationCalendar(rules: R[], verdicts: Interner<unknown>, gears: Interner<unknown>, robust = false): { sp: number[][]; g: number[] } {
+export function locationCalendar(rules: R[], verdicts: Interner<unknown>, gears: Interner<unknown>): { sp: number[][]; g: number[] } {
   const chain = [new Loc(rules)];
   const perSp: number[][] = SPECIES.map(() => []);
   const gear: number[] = [];
   for (const md of DAYS) {
     for (let k = 0; k < SPECIES.length; k++) {
-      const v = verdictOn(chain, k, md, robust);
+      const v = verdictOn(chain, k, md);
       perSp[k]!.push(v ? verdicts.add(v) : -1);
     }
-    const g = gearOn(chain, md, robust);
+    const g = gearOn(chain, md);
     gear.push(g.length ? gears.add(g) : -1);
   }
   return { sp: perSp.map(runsOf), g: runsOf(gear) };

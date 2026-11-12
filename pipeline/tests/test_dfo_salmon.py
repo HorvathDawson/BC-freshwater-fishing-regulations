@@ -2369,9 +2369,12 @@ def test_an_unreadable_season_goes_to_review_rather_than_publishing_as_none():
     assert accepted.when.unparsed == ["Smarch 40 to Bluneteen 99"]
     assert not accepted.when.dates, "nonsense must not resolve to a calendar window"
 
+    # (T676, owner 2026-11-12) the row KEEPS its limit, flagged `check` with the season as printed: the salmon reader
+    # shows the species "check" every day (never all year, never a dropped limit); the live feed types it the same
+    from pipeline.regs.dfo_salmon.typed import DATES_UNPARSED
     rules = _typed(dates="Smarch 40 to Bluneteen 99", limits_gear="2 per day")
-    assert all(r.review_reason for r in rules)
-    assert "do not parse" in rules[0].review_reason
+    assert [(r.type.value, r.take, r.check, r.when.unparsed, r.when.dates) for r in rules] == [
+        ("retention_limit", 2, DATES_UNPARSED, ["Smarch 40 to Bluneteen 99"], [])]
 
     # An EMPTY cell is a fact, not a failure: the regulation applies all year.
     assert not any(r.review_reason for r in _typed(dates="", limits_gear="2 per day"))
