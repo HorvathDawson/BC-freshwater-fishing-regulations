@@ -299,6 +299,59 @@ describe("the published in-season feed (feeds/inseason/index.json, inseason-feed
     expect(c.rows[0]).toMatchObject({ status: "changed", previous: { change: "No fishing" } });
     expect(c.removed.map((r) => r.id)).toEqual([a.rows[0]!.id]);
   });
+  it("(T675) a re-key is not a change and not a removal: the row keeps its firstSeen and status, `removed` gains nothing", () => {
+    const page = readFileSync(join(__dirname, "fixtures/inseason/page-2026-10-28.html"), "utf-8");
+    const rows = parseInSeason(page);
+    // the feed as an older id scheme published it: the same notices under other ids, first seen in October
+    const now = buildFeed(rows, null, "2026-10-28T00:00:00Z", "h", true);
+    const old: InSeasonFeed = { ...now, rows: now.rows.map((r, i) => ({ ...r, id: `is-old-scheme-${i}`, status: i === 0 ? "new" as const : r.status })) };
+    // the page did not move; only the ids did (production's first run with the content ids)
+    const a = buildFeed(rows, old, "2026-11-12T00:00:00Z", "h", false);
+    expect(a.rows.map((r) => r.id)).toEqual(now.rows.map((r) => r.id));
+    expect(a.removed).toEqual([]);
+    expect(a.rows.map((r) => [r.status, r.previous, r.firstSeen, r.changedAt]))
+      .toEqual(old.rows.map((r) => [r.status, undefined, "2026-10-28T00:00:00Z", "2026-10-28T00:00:00Z"]));
+    expect(a.rows[0]!.status).toBe("new");
+    // a re-key in the same reading as real edits: one row amended, one gone — only those two are said
+    const gone = rows.find((r) => /Peace Canyon Dam/.test(r.change))!;
+    // … and a new notice on a water whose other notice was only re-keyed: new, never "changed from" that one
+    const edited = [...rows.filter((r) => r !== gone).map((r, i) => (i === 0 ? { ...r, change: `${r.change} (amended)` } : r)),
+                    { ...rows[1]!, change: "Bait ban (a new notice)" }];
+    const b = buildFeed(edited, old, "2026-11-12T00:00:00Z", "h2", true);
+    expect([b.rows.at(-1)!.status, b.rows.at(-1)!.previous]).toEqual(["new", undefined]);
+    expect(b.rows.filter((r) => r.status === "changed")).toHaveLength(1);
+    expect(b.rows[0]).toMatchObject({ status: "changed", previous: { change: rows[0]!.change, effective: rows[0]!.effective } });
+    expect(b.rows.filter((r) => r.status === "unchanged")).toHaveLength(30);
+    expect(b.rows.slice(1, -1).every((r) => r.firstSeen === "2026-10-28T00:00:00Z")).toBe(true);
+    expect(b.removed.map((r) => r.change)).toEqual([rows[0]!.change, gone.change]);
+    // a sibling notice leaves, so the date drops out of the survivor's id: the same notice still
+    const H = (eff: string) => ({ section: "Region 1 - Vancouver Island", water: "Heber Creek", change: "No fishing", effective: eff });
+    const two = buildFeed([H("July 1, 2025"), H("Aug 1, 2025")], null, "2026-11-01T00:00:00Z", "h", true);
+    const one = buildFeed([H("July 1, 2025")], two, "2026-11-05T00:00:00Z", "h2", true);
+    expect(one.rows[0]!.id).not.toBe(two.rows[0]!.id);
+    expect(one.rows[0]).toMatchObject({ status: "unchanged", firstSeen: "2026-11-01T00:00:00Z" });
+    expect(one.rows[0]!.previous).toBeUndefined();
+    expect(one.removed.map((r) => r.effective)).toEqual(["Aug 1, 2025"]);
+  });
+  it("(T675) the staging feed the old rule wrote is put right by the next run: no false change, no live notice in `removed`", () => {
+    // staging's feeds/inseason/index.json as read 2026-11-11, after the T520 re-key of 2026-11-08: every live row
+    // "changed" from its own text, and `removed` holding the same notices under their old ids
+    const staging: InSeasonFeed = JSON.parse(readFileSync(join(__dirname, "fixtures/inseason/feed-staging-rekeyed-2026-11-11.json"), "utf-8"));
+    const text = (r: { region: string; water: string; change: string; effective: string }) => `${r.region}|${r.water}|${r.change}|${r.effective}`;
+    const liveText = new Set(staging.rows.map(text));
+    expect([staging.rows.length, staging.rows.filter((r) => r.status === "changed" && r.previous && text({ ...r, ...r.previous }) === text(r)).length,
+            staging.removed.length, staging.removed.filter((r) => liveText.has(text(r))).length]).toEqual([32, 32, 38, 38]);
+    const rows = staging.rows.map((r) => ({ section: r.section, water: r.water, change: r.change, effective: r.effective }));
+    const next = buildFeed(rows, staging, "2026-11-12T06:00:00Z", staging.pageHash, false);
+    expect(next.rows.map((r) => r.id)).toEqual(staging.rows.map((r) => r.id));
+    expect(next.rows.map((r) => [r.status, r.previous])).toEqual(staging.rows.map(() => ["unchanged", undefined]));
+    expect(next.removed).toEqual([]);
+    // what the old rule lost stays lost: the reset firstSeen is what the feed holds (nothing recorded the earlier one)
+    expect(next.rows.map((r) => r.firstSeen)).toEqual(staging.rows.map((r) => r.firstSeen));
+    // a notice that really left before the re-key stays in `removed`
+    const real = { id: "is-000000000000", region: "3", water: "Gone Creek", change: "No fishing", effective: "", removedAt: "2026-11-01T00:00:00Z" };
+    expect(buildFeed(rows, { ...staging, removed: [...staging.removed, real] }, "2026-11-12T06:00:00Z", staging.pageHash, false).removed).toEqual([real]);
+  });
   it("(T520) matched / unmatched are the curated links' true counts; links of another format fail the run", async () => {
     const page = readFileSync(join(__dirname, "fixtures/inseason/page-2026-10-28.html"), "utf-8");
     const first = buildFeed(parseInSeason(page), null, "2026-10-28T00:00:00Z", "h", true);

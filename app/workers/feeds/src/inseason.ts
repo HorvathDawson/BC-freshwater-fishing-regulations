@@ -295,6 +295,8 @@ async function publishFeed(
 //     } ],
 //     removed: [ { id, region, water, change, effective, removedAt } ]   — rows gone from the page, kept 30 days
 //   }
+// (T675) A row whose ID moved while its content stayed (a re-key) is the same notice: not "changed", not in `removed`,
+// its firstSeen kept.
 // Unmatched rows publish (flagged by `matched: false`); the app decides how to show a row with no water.
 import { readDates } from "./dfo/dates";
 
@@ -457,15 +459,27 @@ export function buildFeed(rows: Row[], prev: InSeasonFeed | null, now: string, p
         + "in how they are printed, so they would share an id — nothing written", "inseason-page");
   const ids = rows.map((r) => rowId(regionOf(r.section), r.water, r.change,
                                     same.get(keyOf(r))!.length > 1 ? r.effective : null));
-  // an amended notice: a new id where a row of the same region + water left the page in this reading
   const idSet = new Set(ids);
+  // (T675) A RE-KEY IS NOT A CHANGE AND NOT A REMOVAL: a row gone under one id whose content (region, water, change,
+  // effective — as the id reads them) is a live row under another id is the same notice (the id scheme moved, as at
+  // T520, or a sibling row left and the date dropped out of the id). It carries its firstSeen, changedAt and status
+  // to the new id and adds nothing to `removed`.
+  const content = (region: string, water: string, change: string, effective: string) =>
+    `${region}\u0000${changeKey(water)}\u0000${changeKey(change)}\u0000${changeKey(effective)}`;
+  const gone = new Map<string, FeedRow[]>();
+  for (const p of prev?.rows ?? [])
+    if (!idSet.has(p.id)) gone.set(content(p.region, p.water, p.change, p.effective), [...(gone.get(content(p.region, p.water, p.change, p.effective)) ?? []), p]);
+  const rekeyed = rows.map((r, i) => prevById.has(ids[i]!) ? undefined : gone.get(content(regionOf(r.section), r.water, r.change, r.effective))?.shift());
+  const rekeyedIds = new Set(rekeyed.flatMap((p) => (p ? [p.id] : [])));
+  const live = new Set(rows.map((r) => content(regionOf(r.section), r.water, r.change, r.effective)));
+  // an amended notice: a new id where a row of the same region + water left the page in this reading
   const replaced = new Map<string, FeedRow[]>();
   for (const p of prev?.rows ?? [])
-    if (!idSet.has(p.id)) replaced.set(`${p.region}\u0000${p.water.toLowerCase()}`, [...(replaced.get(`${p.region}\u0000${p.water.toLowerCase()}`) ?? []), p]);
+    if (!idSet.has(p.id) && !rekeyedIds.has(p.id)) replaced.set(`${p.region}\u0000${p.water.toLowerCase()}`, [...(replaced.get(`${p.region}\u0000${p.water.toLowerCase()}`) ?? []), p]);
   const out: FeedRow[] = rows.map((r, i) => {
     const region = regionOf(r.section);
     const id = ids[i]!;
-    const was = prevById.get(id);
+    const was = prevById.get(id) ?? rekeyed[i];
     const same = was && was.change === r.change && was.effective === r.effective;
     const amended = !was ? replaced.get(`${region}\u0000${r.water.toLowerCase()}`)?.shift() : undefined;
     const { from, to } = effectiveDates(r.effective);
@@ -483,6 +497,11 @@ export function buildFeed(rows: Row[], prev: InSeasonFeed | null, now: string, p
     else {
       status = was.status; // the page did not move: the last change's statuses stand
       previous = was.previous;
+      // (T675) a feed written before the re-key rule holds "changed" rows whose `previous` IS their text: no change
+      if (previous && content(region, r.water, previous.change, previous.effective) === content(region, r.water, r.change, r.effective)) {
+        status = "unchanged";
+        previous = undefined;
+      }
     }
     return {
       id, region, section: r.section, water: r.water, waters: [...(matched?.get(id) ?? [])], matched: !!matched?.get(id)?.length,
@@ -491,8 +510,10 @@ export function buildFeed(rows: Row[], prev: InSeasonFeed | null, now: string, p
     };
   });
   const removed = [
-    ...(prev?.removed ?? []).filter((r) => !idSet.has(r.id) && Date.parse(now) - Date.parse(r.removedAt) < REMOVED_KEEP_MS),
-    ...(prev?.rows ?? []).filter((r) => !idSet.has(r.id)).map((r) => ({ id: r.id, region: r.region, water: r.water, change: r.change, effective: r.effective, removedAt: now })),
+    // (T675) an entry whose content is live was a re-key recorded as a removal: the notice never left the page
+    ...(prev?.removed ?? []).filter((r) => !idSet.has(r.id) && !live.has(content(r.region, r.water, r.change, r.effective))
+      && Date.parse(now) - Date.parse(r.removedAt) < REMOVED_KEEP_MS),
+    ...(prev?.rows ?? []).filter((r) => !idSet.has(r.id) && !rekeyedIds.has(r.id)).map((r) => ({ id: r.id, region: r.region, water: r.water, change: r.change, effective: r.effective, removedAt: now })),
   ];
   const matchedN = out.filter((r) => r.matched).length;
   return {
