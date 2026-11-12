@@ -3,7 +3,7 @@ import type { PartModel, WaterModel } from "./model";
 import { regionYear, rowWords, yearCardHtml } from "./regionYear";
 
 const part = (year: PartModel["year"]): PartModel =>
-  ({ year, partIx: 0, label: "x", status: "open", today: "", sections: [] });
+  ({ year, marks: [], partIx: 0, label: "x", status: "open", today: "", sections: [] });
 const water = (id: string, kind: string, ...parts: PartModel[]): WaterModel =>
   ({ ord: 0, id, name: id, kind, regions: [2], region: 2, focus: "2", status: "open", answer: "", parts, neighbours: [], mid: null, book: [] });
 

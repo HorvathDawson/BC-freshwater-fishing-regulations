@@ -23,6 +23,10 @@ export interface PartModel {
   /** (T406 part 2) the strip's book year as closed/open runs (null: a day with no frame, or tidal), or null: no strip.
    *  Read by the region hubs' year bar; not in the water's content hash. */
   readonly year: readonly { readonly closed: boolean | null; readonly days: number }[] | null;
+  /** (T672) the states the part's strip holds on SOME day of the book year, as the presenter's own legend lists them
+   *  (`keep.strip.legend`: the strip bit and the release's label — "fly fishing only", "bait ban"); empty: no strip.
+   *  Read by the topic hubs (topics.ts), so a hub lists a water by its year, not by the build day's sentences. */
+  readonly marks: readonly { readonly bit: number; readonly label: string }[];
   readonly partIx: number; readonly label: string;
   readonly status: Status;
   /** the presenter's strip words ("Open today", "Closed", ...) or its banner's headline */
@@ -178,6 +182,7 @@ export function partModel(page: RegsPage): PartModel {
     partIx: page.target.kind === "part" ? page.target.partIx : 0, label: page.header.place?.full ?? page.header.name,
     status: page.status, today: banner?.big[0] ?? banner?.paras[0] ?? (strip || TODAY_WORDS[page.status]),
     sections: sectionsOf(bare), year: yearOf(page),
+    marks: (page.keep.strip?.legend ?? []).map((l) => ({ bit: l.bit, label: l.label })),
   };
 }
 
