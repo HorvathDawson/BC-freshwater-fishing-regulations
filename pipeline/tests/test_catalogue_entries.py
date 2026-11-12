@@ -308,18 +308,71 @@ def test_every_entry_names_a_row_the_synopsis_actually_prints():
                          + "\n  ".join(sorted(phantom)))
 
 
-#: Water rows whose stored text is a hand fix of an extraction defect (annual runbook step 2d), each pinned by THE FIX
-#: ITSELF: (what the squashed extraction prints, exactly once; what the stored text says there; why). The stored text
-#: must be the extraction with that one replacement and nothing else, so either side moving alone fails, naming the row.
+#: Water rows whose stored text is a hand fix of an extraction defect (annual runbook step 2d), each pinned TWICE:
+#: by THE FIX ITSELF — (what the squashed extraction prints, exactly once; what the stored text says there; why) — and
+#: by THE WHOLE squashed extraction text, typed out. The stored text must be that text with the one replacement and
+#: nothing else, so ANY change to either full text fails and is a deliberate re-pin here, even one made to both sides
+#: alike outside the fixed phrase (T667: the whole texts were two 12-hex hashes until P4 dropped them; printed text is
+#: pinned as text, where a failure shows the words that moved).
 HAND_FIXED_ROWS = {
     "r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4": (
         "and hatch- ery cutthroat catch and release", "and hatchery cutthroat catch and release",
-        "the extraction keeps a line-end hyphen: 'hatch- ery'; stored 'hatchery'"),
+        "the extraction keeps a line-end hyphen: 'hatch- ery'; stored 'hatchery'",
+        'no fishing upstream from a line between two fishing boundary signs on either side of the chilliwack '
+        'river 100 m downstream of the confluence of the chilliwack river and slesse creek no fishing '
+        'downstream of a line between two fishing boundary signs on either side of the chilliwack river 100m '
+        'downstream of the confluence of the chilliwack river and slesse creek to tamihi rapids bridge, apr '
+        '1-june 30 no fishing downstream of tamihi rapids bridge to vedder crossing bridge, may 1-june 30 '
+        'downstream of vedder crossing bridge: (a) fly fishing only, bait ban, hatchery rainbow trout catch '
+        'and release (50 cm or less), and hatch- ery cutthroat catch and release, may 1-31; (b) no fishing '
+        'june 1-30; (c) hatchery rainbow trout of any length 50 cm or less: daily quota = 4, july 1-apr 30'),
     "r2:coquihalla_river@2-17": (
         "downstream of the southern entrance to the lower most railway tunnel, nov",
         "downstream of the southern entrance to the lower most railway tunnel, nov 1-mar 31",
-        "the extraction loses the last words: 'Nov'; stored 'Nov 1-Mar 31'"),
+        "the extraction loses the last words: 'Nov'; stored 'Nov 1-Mar 31'",
+        'no fishing upstream of the northern entrance to the upper most railway tunnel, nov 1-june 30 (see '
+        'map on page 24) fly fishing only; bait ban upstream of the northern entrance to the upper most '
+        'railway tunnel, jul 1-oct 31 no fishing downstream of the southern entrance to the lower most '
+        'railway tunnel, apr 1-oct 31 no fishing at othello tunnels from the northern entrance to the upper '
+        'most railway tunnel to the southern entrance of the lower most tunnel; approximately 700 m length '
+        'trout/char (including steelhead) catch and release, bait ban, downstream of the southern entrance '
+        'to the lower most railway tunnel, nov'),
 }
+
+
+def _hand_fix_moved(fix: tuple[str, str, str, str], got: str, raw: str) -> str | None:
+    """Why a hand-fixed row (`HAND_FIXED_ROWS`) no longer holds, given its squashed stored text `got` and squashed
+    extraction text `raw`; None while both are exactly what is pinned."""
+    printed, stored, why, extracted = fix
+    if raw != extracted:
+        return f"the extraction's text moved from the pinned one ({why})\n      pinned:    {extracted!r}\n      extracted: {raw!r}"
+    if raw.count(printed) != 1 or stored == printed:
+        return f"the pinned fix {printed!r} -> {stored!r} is not one change of the extraction ({why})"
+    if got != raw.replace(printed, stored):
+        return (f"the stored text is no longer the extraction with {printed!r} -> {stored!r} ({why})\n"
+                f"      stored:    {got!r}\n      extracted: {raw!r}")
+    return None
+
+
+def test_a_hand_fixed_row_fails_when_either_whole_text_moves():
+    """MUTATION (no source needed): the pinned pair passes; one character changed OUTSIDE the fixed phrase fails —
+    in the stored text alone, in the extraction alone, and in BOTH ALIKE (the case the fix-only check let through:
+    the stored text is still the extraction with the one replacement). So does undoing the fix."""
+    for entry, fix in HAND_FIXED_ROWS.items():
+        printed, stored, _why, raw = fix
+        got = raw.replace(printed, stored)
+        assert raw.count(printed) == 1 and got != raw, entry
+        assert _hand_fix_moved(fix, got, raw) is None, entry
+        at = 0 if raw.index(printed) > 10 else len(raw) - 1            # a place outside the fixed phrase
+        assert not (raw.index(printed) <= at < raw.index(printed) + len(printed)), entry
+
+        def bump(t: str) -> str:
+            return t[:at] + ("x" if t[at] != "x" else "y") + t[at + 1:]
+        assert bump(raw).replace(printed, stored) == bump(got)          # the fix-only check would pass this pair
+        assert "extraction's text moved" in _hand_fix_moved(fix, bump(got), bump(raw)), entry
+        assert "extraction's text moved" in _hand_fix_moved(fix, got, bump(raw)), entry
+        assert "stored text is no longer" in _hand_fix_moved(fix, bump(got), raw), entry
+        assert "stored text is no longer" in _hand_fix_moved(fix, raw, raw), entry
 
 
 @pytest.mark.needs_source
@@ -328,7 +381,7 @@ def test_every_stored_row_text_is_the_extractions():
     extraction are independent, and every quote and number check compares against the STORED text — so a later hand or
     app edit that changes a printed number, together with its rule, passed every gate. Here every water row's stored
     text equals (squashed) its extraction row's `raw_regs`, and its `source_pages` that row's printed page; the two
-    known hand fixes are pinned by the fix itself (`HAND_FIXED_ROWS`)."""
+    known hand fixes are pinned by the fix itself and by their whole text (`HAND_FIXED_ROWS`)."""
     from pipeline.regs.parsing.batch_exporter import _row_entry_id
     from pipeline.regs.parsing.catalogue import squash
     from pipeline.regs.parsing.rows import load_synopsis_rows
@@ -352,11 +405,9 @@ def test_every_stored_row_text_is_the_extractions():
             bad.append(f"{e.entry_id}: source_pages {e.source_pages} but the row is printed on p.{r.get('page')}")
         fix = HAND_FIXED_ROWS.get(e.entry_id)
         if fix:
-            printed, stored, why = fix
-            got, raw = squash(e.regs_verbatim), squash(r["raw_regs"])
-            if raw.count(printed) != 1 or raw.replace(printed, stored) != got or got == raw:
-                bad.append(f"{e.entry_id}: a hand-fixed row moved — the stored text is no longer the extraction with "
-                           f"{printed!r} -> {stored!r} ({why})\n      stored:    {got!r}\n      extracted: {raw!r}")
+            moved = _hand_fix_moved(fix, squash(e.regs_verbatim), squash(r["raw_regs"]))
+            if moved:
+                bad.append(f"{e.entry_id}: a hand-fixed row moved — {moved}")
         elif squash(e.regs_verbatim) != squash(r["raw_regs"]):
             bad.append(f"{e.entry_id}: stored text is not the extraction's\n      stored:    "
                        f"{e.regs_verbatim[:90]!r}\n      extracted: {r['raw_regs'][:90]!r}")
