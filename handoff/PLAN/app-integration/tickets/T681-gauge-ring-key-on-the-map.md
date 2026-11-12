@@ -1,6 +1,6 @@
 # T681 — The gauge-reporting key on the map, not in the bottom bar
 
-Status: IN PROGRESS — left (Claude): record the commit hash, then DONE
+Status: DONE (d84c664e1)
 
 Source: owner 2026-11-12, verbatim: "the condition gauge reporting legend should be on the map insatead of at the bottom bar".
 
