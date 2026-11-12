@@ -14,7 +14,7 @@
  */
 import { describe, expect, it } from "vitest";
 // A plain .mjs gate (it runs under node as `pnpm colours`), imported for its functions.
-import { ALLOW, findColours, scan } from "./check-colours.mjs";
+import { ALLOW, NOT_SOURCE, findColours, isSource, scan } from "./check-colours.mjs";
 
 type Hit = { line: number; text: string };
 /**
@@ -43,6 +43,15 @@ describe("one palette", () => {
       "packages/map/style/themes/light.json",
       "packages/map/style/tokens.json",
     ]);
+  });
+});
+
+describe("what a tool wrote is not source", () => {
+  it("skips the test bed's git-ignored run output, and only that (a report quotes the colours it measured)", () => {
+    expect(NOT_SOURCE).toEqual(["tools/testbed/out"]);
+    expect(["tools/testbed/out/runs/2026-11-12T01-10-46/report.json", "tools/testbed/scenarios/route-scroll.mjs",
+            "tools/testbed/outline.mjs", "tools/testbed/lib/out/x.mjs", "packages/ui/src/out/x.ts"].map(isSource))
+      .toEqual([false, true, true, true, true]);
   });
 });
 

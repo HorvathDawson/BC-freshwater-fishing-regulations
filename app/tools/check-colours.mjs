@@ -47,6 +47,15 @@ export const ALLOW = new Set([
 const ROOTS = ["packages", "apps", "tools", "conformance"];
 const SKIP_DIR = new Set(["node_modules", "dist", ".expo", "android", "ios", "web-build"]);
 const EXT = /\.(tsx?|mjs|cjs|js|css|json)$/;
+/**
+ * NOT SOURCE: what a tool WROTE, git-ignored, never shipped. The test bed's run output (`tools/testbed/out/`, ignored by
+ * `tools/testbed/.gitignore`) holds each run's report, and a report quotes what it measured: `route-scroll` (T603) says a
+ * map's "commonest colour (rgb(…))", which failed this gate on any machine that had run it (caught 2026-11-11, by
+ * `pnpm check:fast` after the T603 emulator run). A colour a tool measured on a screen is not a colour the app draws.
+ */
+export const NOT_SOURCE = ["tools/testbed/out"];
+/** Is this file (app-relative) source the gate reads? Everything but what sits under a `NOT_SOURCE` folder. */
+export const isSource = (rel) => !NOT_SOURCE.some((d) => rel.startsWith(`${d}/`));
 
 /** CSS named colours. `transparent` and `currentColor` say "no colour of our own" and are fine. */
 const NAMED = new Set(("aliceblue antiquewhite aqua aquamarine azure beige bisque black " +
@@ -148,7 +157,7 @@ export function scan() {
   for (const r of ROOTS)
     for (const p of walk(join(root, r))) {
       const rel = relative(root, p);
-      if (ALLOW.has(rel)) continue;
+      if (ALLOW.has(rel) || !isSource(rel)) continue;
       for (const h of findColours(readFileSync(p, "utf8"), rel)) out.push({ file: rel, ...h });
     }
   return out;
