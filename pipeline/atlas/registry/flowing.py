@@ -757,6 +757,13 @@ def fold_widening_ponds(registry: dict[str, RegistryItem], graph, report: dict |
         folded.append({"id": iid, "name": it.name, "ponds": sorted(take)})
     rep.update(folded=folded, held=left,
                counts={"ponds": sum(len(f["ponds"]) for f in folded), "items": len(folded), "held": len(left)})
+    # NOT FISHING WATER IS IN NO WATER (T152): the build stops here, naming each, rather than the bundle's part check
+    # 30 minutes into a release (2026-11-12: four sewage basins / tailing ponds folded into creeks)
+    bad = sorted((iid, s) for iid, it in out.items() if it.kind in _WATER for s in it.section_ids
+                 if getattr(nodes.get(s), "not_fishing", ""))
+    if bad:
+        raise ValueError(f"fold_widening_ponds: {len(bad)} not-fishing polygon(s) held by a water item "
+                         f"(T152: none is an item): {bad[:10]}")
     return out
 
 

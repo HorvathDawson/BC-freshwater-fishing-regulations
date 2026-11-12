@@ -7,6 +7,7 @@ MUTATION PINS:
   * fold a pond whose lake boundary holds a cut    -> test_a_pond_with_a_cut_on_its_edge_is_left_and_listed
   * pick one of two streams                        -> test_a_pond_two_streams_run_through_is_left_and_listed
   * fold a named lake                              -> test_a_named_lake_is_never_folded
+  * `NOT_FISHING_WATER_IS_NEVER_A_WIDENING = False` -> test_not_fishing_water_is_never_folded_nor_widened
 No data: a few nodes, so this runs in the no-data CI tier.
 """
 from __future__ import annotations
@@ -87,3 +88,13 @@ def test_a_named_lake_is_never_folded():
     g = _river(StreamNode(node_id="lake:u", kind=L, wbk="u", wsc="100", gnis_id="77", display_name="Bar Lake"))
     out = F.fold_widening_ponds({"gnis:1": _item("gnis:1", ["M:0", "M:1200"])}, g, {})
     assert "lake:u" not in out["gnis:1"].section_ids
+
+
+def test_not_fishing_water_is_never_folded_nor_widened():
+    """A sewage basin on a creek (Little Sheep Creek's, T152) is no widening: not folded into the item, not taken by
+    the reach's per-rule widening, and it breaks a chain of ponds."""
+    g = _river(StreamNode(node_id="lake:u", kind=L, wbk="u", wsc="100", not_fishing="EA26700110"))
+    rep: dict = {}
+    out = F.fold_widening_ponds({"gnis:1": _item("gnis:1", ["M:0", "M:1200"])}, g, rep)
+    assert "lake:u" not in out["gnis:1"].section_ids and rep["counts"]["ponds"] == 0
+    assert X.river_widenings(g, out, {"M:0", "M:1200"}) == set()

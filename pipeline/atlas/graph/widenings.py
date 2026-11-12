@@ -25,10 +25,23 @@ from pipeline.common.fwa_edge_types import is_main_flow
 #: graph.
 WIDENING_CHAIN_MAX = 8
 
+#: (2026-11-12, found by the bundle's part check on the first coast-cut release) the D1 fold took four NOT FISHING
+#: polygons into river items (Little Sheep and Ryan creeks' sewage basins, MacDonald and Firehall creeks' tailing
+#: ponds): a part of a named water with no rule set. False = the mutation pin.
+NOT_FISHING_WATER_IS_NEVER_A_WIDENING = True
+
 
 def widenings(g, selected: set[str], is_open: Callable[[str], bool]) -> set[str]:
     """The polygons the main flow of `selected` runs through (module docstring). `is_open(nid)` says whether a polygon
-    may be taken (unnamed, held by no water, not selected)."""
+    may be taken (unnamed, held by no water, not selected). NOT FISHING WATER (T152: a sewage basin, a tailing pond, a
+    dump) is never a widening, whatever `is_open` says, and breaks a chain: it is in no item and binds no rule
+    (`NOT_FISHING_WATER_IS_NEVER_A_WIDENING`)."""
+    if NOT_FISHING_WATER_IS_NEVER_A_WIDENING:
+        given = is_open
+
+        def is_open(nid: str) -> bool:   # noqa: F811 - the caller's test, narrowed
+            n = g.nodes.get(nid)
+            return given(nid) and not (n is not None and getattr(n, "not_fishing", ""))
     out: set[str] = set()
     for pid in sorted(selected):
         p = g.nodes.get(pid)
