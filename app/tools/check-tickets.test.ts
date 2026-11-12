@@ -7,6 +7,7 @@
  *   2. each rule fires on a mutated copy of the real ledger (row removed, Status removed, hash removed, …).
  */
 import { describe, expect, it } from "vitest";
+import { repoData } from "../conformance/src/repoData";
 // A plain .mjs gate (it runs under node as `pnpm tickets`), imported for its functions.
 import { NO_STEP_YET, RUNBOOK_MAKES, checkDocs, checkLedger, citedPaths, idOfFile, ledgerRows, readDocs, readRepo, ruleIds, runbookPaths, statusKeyword } from "./check-tickets.mjs";
 
@@ -225,8 +226,9 @@ describe("T628 the docs guard covers the runbooks", () => {
   const withAnnual = (text: string) => ({ ...docs, runbooks: docs.runbooks.map((r: { name: string }) => (r.name === "annual-synopsis.md" ? { ...r, text } : r)) });
   it("the real runbooks were read, command blocks included", () => {
     expect(docs.runbooks.map((r: { name: string }) => r.name)).toContain("release.md");
-    expect(runbookPaths(annual().text)).toContain("data/curated/regulations/synopsis");   // only ever inside a ```bash block
-    expect(citedPaths(annual().text)).not.toContain("data/curated/regulations/synopsis");
+    const synopsis = repoData("curated/regulations/synopsis");                             // the committed folder, by name (T667)
+    expect(runbookPaths(annual().text)).toContain(synopsis);                               // only ever inside a ```bash block
+    expect(citedPaths(annual().text)).not.toContain(synopsis);
   });
   it("fails on a dead path in a command block (the T553 case: a renamed curated folder) and in backticks", () => {
     const block = checkDocs(withAnnual(`${annual().text}\n\`\`\`bash\nOLD=data/curated/regulations/entries/catalogue\ncp $W/book/region-*.json $OLD/\n\`\`\`\n`));
