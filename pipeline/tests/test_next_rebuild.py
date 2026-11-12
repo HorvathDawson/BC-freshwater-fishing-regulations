@@ -27,6 +27,14 @@ from pipeline.tests.test_shore_cuts import SEA, _built, _fid
 NAME = "Okanagan River Oxbows"
 
 
+@pytest.fixture(autouse=True)
+def _no_pfma_layer_needed(monkeypatch):
+    """A synthetic graph has no PFMA drainage: the province's basins are not read (the build refuses to skip them),
+    as in `test_registry.py` — without it `build_registry` opens the source gpkg and the file fails on a no-data clone."""
+    from pipeline.atlas.splits import pfma_drainage
+    monkeypatch.setattr(pfma_drainage, "basin_areas", lambda *a, **kw: {})
+
+
 # ---------------------------------------------------------------------------------------------- b. held lines
 def test_a_held_line_keeps_the_cut_it_has_and_no_other():
     """C is held. Without a kept cut it is not cut at all; with one it is cut there, not at its polygon exit (300).
