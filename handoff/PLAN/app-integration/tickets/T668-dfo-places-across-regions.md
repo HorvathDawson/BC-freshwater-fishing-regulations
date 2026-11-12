@@ -1,6 +1,6 @@
 # T668 — Audit: a DFO place that covers one river stretch in more than one region (Fraser, Regions 2 and 3)
 
-Status: PARTIAL — audit done; fixes 1–3 built in 20afd21e6; RULINGS Z4a (owner 2026-11-11: "straddles should always take the most strict rules from both regions") built in dfb4ea7c1 with the freshwater comparison primitives, the rest of unification is T669 on D1 + the owner's straddler answer to D2/D3 (2026-11-11: "some streams genuinely have 2 regions" — a straddler keeps both regions' places, strictest per fish); measured in T668-audit.md "Fixes 1–3 as built" (432 of 493 sections change, 197 straddlers keep both, 84 status flips toward closed); shows after the next deliver; left (Claude): the app half (salmonCard caveat from chains' `u`, withSalmonFeed honours `s`), fix 4 needs an answering-place field, fix 5 hygiene; owner: OWNER-TODO "T668 salmon places from two regions on one stretch"
+Status: PARTIAL — audit done; fixes 1–3 built in 20afd21e6; RULINGS Z4a (owner 2026-11-11: "straddles should always take the most strict rules from both regions") built in dfb4ea7c1 with the freshwater comparison primitives, the rest of unification is T669 on D1 + the owner's straddler answer to D2/D3 (2026-11-11: "some streams genuinely have 2 regions" — a straddler keeps both regions' places, strictest per fish); measured in T668-audit.md "Fixes 1–3 as built" (432 of 493 sections change, 197 straddlers keep both, 84 status flips toward closed); app half + fix 4 built in d199f0d4d (D1 and D4 confirmed by the owner 2026-11-11, "Yes and yes", with the Skeena addition: a row names DFO's lettered section as printed, "Region 6 · Skeena River · B(ii)"; see "App half" below); shows after the next deliver; left (Claude): the feeds worker composing straddlers (the app merges two differing live openings into both regions' words where the release ranks readable ones by the Z4 ladder — never looser), fix 5 hygiene; owner: OWNER-TODO "T668 salmon places from two regions on one stretch"
 
 Source: owner 2026-11-11: "look into how DFO places that match to multiple regions, same river section, like Fraser
 2/3, is handled. To audit it."
@@ -25,3 +25,23 @@ and Region 3; likely also other boundary rivers), what does each step do with it
 - The owner can read, for every such place, what the app says today and why; each defect has a ticket.
 
 Depends: T164, T549. Size: M. For the next chat.
+
+## App half (2026-11-11, d199f0d4d)
+- Fix 1 on the card: the "in part / not yet mapped" caveat lists only the undrawn places the page's chains name (`u`),
+  so Prince George no longer lists Mission (`core/salmon.ts salmonCard`). A release before 20afd21e6 named every
+  region's undrawn places in `u`, so it reads as it did.
+- `withSalmonFeed` composes a chain's `s` groups as `live.compose` does: the most strict status per fish, both regions'
+  gear lines, a merged both-words verdict added to a copy of the feed's tables. Parity is pinned by
+  `core/src/salmonStraddle.golden.ts`, cut by `python -m pipeline.tests.test_t668_salmon_who --write` (`--check`, and
+  its pytest, fail when stale). Known difference, not ported on purpose (the cascade is resolved in Python): two
+  READABLE live openings of different limits — the release keeps the stricter (Z4 ladder), the app under a live feed
+  shows both regions' words, no number. Removing it needs the worker to publish composed straddler chains.
+- Fix 4 (D4 + owner's Skeena addition): every chain carries `a` (per species, the place that answers: an index into
+  `l`, -1 none, -2 both regions together; `pipeline/deliver/salmon_who.py`, read off the composed answer, never
+  re-decided) and the payload `p` (each place's region, water and DFO section exactly as scraped). Each species row
+  says "Region 6 · A", "Region 6 · Skeena River · B(ii)", "Region 7", "Region 6 and Region 7 together". Region 6 is the
+  only page with lettered sections in the scrape (137 active places carry one; elsewhere 2 places in R4/5B do, the
+  rest show region and water only). A release without `a`/`p` (r-303b4007a70a) names nothing — the card as it was.
+- Chain `h` (dfb4ea7c1): the card's hours line comes from `h` where a chain has it.
+- Not done here: the stretch join key (`salmonTimelineKey`) still ignores which place answers, so two stretches with
+  the same words from different regions join and their rows list both places.
