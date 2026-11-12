@@ -181,6 +181,9 @@ _NOTE_PATTERNS = [
     # it — Babine Lake's list of excluded creeks follows a colon.
     (re.compile(r"within\s+a?\s*\d+\s*m\w*\s+radius[^.:]*", re.I), "radius closure", True),
     (re.compile(r"(?:also\s+)?closed\s+(?:east|west|north|south)\w*\s+of\s+a\s+line[^.]*", re.I), "closure line", True),
+    # (T683, owner 2026-11-12, RULINGS E19) HALF A RIVER'S WIDTH: a cut cannot take it, so the place binds the whole
+    # channel (stricter than DFO on the other half) and DFO's own words say which half the rule is for (the Nakina)
+    (re.compile(r"from\s+the\s+cent(?:re|er)\s+line\s+to\s+the\s+\w+\s+bank", re.I), "half width", True),
     (re.compile(r"Note:\s*[^.]*\.", re.I), "source note", False),
 ]
 

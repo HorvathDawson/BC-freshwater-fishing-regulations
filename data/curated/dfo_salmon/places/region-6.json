@@ -10131,8 +10131,10 @@
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
-        "notes": [],
-        "spatial_caveat": false
+        "notes": [
+          "from the centre line to the northern bank"
+        ],
+        "spatial_caveat": true
       }
     },
     {

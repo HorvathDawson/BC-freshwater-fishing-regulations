@@ -2743,3 +2743,15 @@ def test_a_stretch_closure_in_a_limits_cell_does_not_close_the_water():
     assert rule.review_reason.startswith("a closure of part of the water inside the limits cell")
     plain = decode("No fishing for chinook.")
     assert (plain["no_fishing"], plain["daily_limit"], plain["part_closure"]) == (True, 0, None)
+
+
+def test_t683_half_a_rivers_width_is_a_note_that_narrows_the_extent():
+    """T683 (owner 2026-11-12, RULINGS E19): DFO's "from the centre line to the northern bank" cannot be cut (a cut
+    takes the whole width), so the place binds the whole channel between its signs and carries DFO's words as a note
+    that NARROWS it — the card must say which half. A place with no such words carries none."""
+    from pipeline.regs.dfo_salmon.locations import _notes_for
+    nakina = ("That portion of the Nakina River from the centre line to the northern bank, starting from a boundary "
+              "sign located approximately 300 metres upstream of the Nakina and Sloko rivers confluence to a boundary "
+              "sign located approximately 1300 metres upstream of the Nakina and Sloko rivers confluence")
+    assert _notes_for(nakina) == (["from the centre line to the northern bank"], True)
+    assert _notes_for("from the bridge to the mouth") == ([], False)
