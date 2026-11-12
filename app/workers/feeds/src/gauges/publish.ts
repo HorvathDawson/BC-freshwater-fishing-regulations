@@ -35,6 +35,9 @@ export const FORECAST_TOLERANCE_H = 18.0;
 export const TEMP_SAMPLES_PER_PENTAD = 400;
 export const ARCHIVE_DAYS = 29;
 const DAILY = (st: string) => `${BASE}/daily/BC_${st}_daily_hydrometric.csv`;
+/** (T633 item 8) the UTC hour before which ECCC's /today/ daily files are not asked for: the day's first one is written
+ *  at about 02:18 UTC (Last-Modified, 2026-11-11) and every request before it answers 404 */
+export const DAILY_NOT_BEFORE_UTC_H = 3;
 const HYDAT_DIR = "https://collaboration.cmc.ec.gc.ca/cmc/hydrometrics/www/";
 const HYDAT_UA = "BC-FishRegs-DataFetch/1.0";
 
@@ -461,7 +464,8 @@ export interface GaugeSummary {
   withPercentile: number;
   /** (T550) index entries whose reading is older than `READING_MAX_AGE_MS`: written unranked (`ageGate`) */
   oldReadings: number;
-  archive: { asked: number; filled: number };
+  /** `deferred` (T633 item 8): records with a gap whose refill was not asked (before DAILY_NOT_BEFORE_UTC_H) */
+  archive: { asked: number; filled: number; deferred?: number };
   runArchive: Record<string, any>;
   gapsBeyondWindow: Record<string, string[][]>;
   listSource: "eccc" | "roster";
@@ -866,8 +870,21 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
     if (!cache || cache.rev !== rev(GAUGE_REV)) cache = { rev: rev(GAUGE_REV), st: {} };
   }
   const nextCache: StationCache = { rev: rev(GAUGE_REV), st: {} };
+  // (T633 item 7) the key names the station's envelope, rating and recent years BY CONTENT, not clim's `release`: a
+  // clim.json rebuilt on the same HYDAT (the datum-shift cut, 2026-11-11) was not re-ranked for a station whose CSV
+  // answered 304 until the UTC day turned
+  const climSigs = new Map<string, string>();
+  const climSig = (st: string): string => {
+    let h = climSigs.get(st);
+    if (h === undefined) {
+      const c = clim || {};
+      h = contentHash(JSON.stringify([envelope[st] ?? null, c.ratings?.[st] ?? null, c.ratingPadM ?? null, c.recentYears?.[st] ?? null]));
+      climSigs.set(st, h);
+    }
+    return h;
+  };
   const ctxOf = (st: string) =>
-    contentHash(JSON.stringify([nowDay, pent, release, (envelope[st] ? "e" : ""), Object.keys(forecast[st] || {}).length ? (a.reuse ? fsigOf(forecast[st]) : now) : null]));
+    contentHash(JSON.stringify([nowDay, pent, release, climSig(st), Object.keys(forecast[st] || {}).length ? (a.reuse ? fsigOf(forecast[st]) : now) : null]));
   const unchanged = new Set<string>();
   const validators = new Map<string, { etag: string | null; lm: string | null }>();
   const got = (
@@ -914,7 +931,13 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
     });
   const backfill = new Map<string, Means>();
   let filled = 0;
-  if (gappy.length) {
+  // (T633 item 8) ECCC writes the day's first daily CSV into /today/ at about 02:18 UTC; until then every daily file
+  // answers 404 (8 or 9 a run, every night since 2026-11-04: the "degraded" on /status). Before DAILY_NOT_BEFORE_UTC_H
+  // the refill is NOT ASKED: said in the run log and counted (`archive.deferred`); the gap is still in the station's
+  // record, so the first run after the window asks for it. Worker only: publish.py (the local dev feed) asks any hour.
+  const deferred = gappy.length > 0 && new Date(now).getUTCHours() < DAILY_NOT_BEFORE_UTC_H ? gappy.length : 0;
+  if (deferred) log(`  daily    ${deferred} station record(s) with a gap NOT refilled this run: ECCC's daily files are absent until about 02:30 UTC; asked again from ${String(DAILY_NOT_BEFORE_UTC_H).padStart(2, "0")}:00 UTC`);
+  else if (gappy.length) {
     const res = await pool([...gappy].sort(), ARCHIVE_WORKERS, async (st) => {
       const text = await get(fetch, DAILY(st));
       return [st, text ? dailyMeans(text) : new Map()] as const;
@@ -1160,7 +1183,7 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
     asked: a.ids.length, answered: got.length, release, stale: staleRelease, latest: a.latest, maintenance,
     withPercentile: Object.values(index).filter((v) => v.percentile !== null).length,
     oldReadings: Object.values(index).filter((v) => !readingCurrent(v.observedAt, now)).length,
-    archive: { asked: gappy.length, filled },
+    archive: { asked: deferred ? 0 : gappy.length, filled, ...(deferred ? { deferred } : {}) },
     runArchive: archived,
     gapsBeyondWindow: beyondWindow,
     ...(a.aware ? { failed, carried, indexKept } : {}),

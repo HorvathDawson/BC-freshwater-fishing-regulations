@@ -3,7 +3,7 @@
 //   (d) the runs archive is append-only (per-run parts, day + month compaction), never a whole-month rewrite
 //   (e) temp_history.json is private state (a legacy public copy is migrated, then removed)
 //   change-aware: a station whose CSV answers 304 keeps its last answers (no parse / merge / station-file write)
-import { cpSync, mkdtempSync, readFileSync } from "node:fs";
+import { cpSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -112,23 +112,25 @@ describe("(d) the runs archive is append-only", () => {
   });
 });
 
+/** the recording with validators: ETag = content hash; If-None-Match on the same body → 304 */
+function etagFetch(): { fetch: Fetch; conditional: () => number } {
+  const base = fixtureFetch(loadRecording(FIX)).fetch;
+  let cond = 0;
+  const fetch: Fetch = async (url, init) => {
+    const r = await base(url, init);
+    if (!url.includes("_hourly_hydrometric.csv")) return r;
+    const body = await r.text();
+    const etag = `"${contentHash(body)}"`;
+    const inm = new Headers(init?.headers).get("If-None-Match");
+    if (inm) cond++;
+    if (inm === etag) return new Response(null, { status: 304, headers: { ETag: etag } });
+    return new Response(body, { status: r.status, headers: { ETag: etag } });
+  };
+  return { fetch, conditional: () => cond };
+}
+
 describe("change-aware gauge runs", () => {
-  /** the recording with validators: ETag = content hash; If-None-Match on the same body → 304 */
-  function withEtags(): { fetch: Fetch; conditional: () => number } {
-    const base = fixtureFetch(loadRecording(FIX)).fetch;
-    let cond = 0;
-    const fetch: Fetch = async (url, init) => {
-      const r = await base(url, init);
-      if (!url.includes("_hourly_hydrometric.csv")) return r;
-      const body = await r.text();
-      const etag = `"${contentHash(body)}"`;
-      const inm = new Headers(init?.headers).get("If-None-Match");
-      if (inm) cond++;
-      if (inm === etag) return new Response(null, { status: 304, headers: { ETag: etag } });
-      return new Response(body, { status: r.status, headers: { ETag: etag } });
-    };
-    return { fetch, conditional: () => cond };
-  }
+  const withEtags = etagFetch;
 
   it("a second run on the same CSVs keeps every answer, writes no station file for a 304 station", async () => {
     const dir = seeded();
@@ -163,6 +165,77 @@ describe("change-aware gauge runs", () => {
     expect(withRuns.length).toBeGreaterThan(0);
     for (const st of withRuns) expect(second.puts).toContain(`${st}.json`);
     expect(m.sourcesUnchanged).toBe(Object.keys(idx1.stations).length - second.puts.filter((k) => /^\w+\.json$/.test(k) && k !== "index.json" && k !== OBS_FILE).length);
+  });
+});
+
+// T633 item 7: the reuse key named clim.json by its `release`, so a clim rebuilt on the SAME HYDAT (the datum-shift cut of
+// 2026-11-11) was not re-ranked for a station whose CSV answered 304 until the UTC day turned
+describe("(T633 item 7) a station's reuse key names its envelope and rating by content", () => {
+  it("clim.json rebuilt on the same release: the changed station is recomputed on a 304, the others still skipped", async () => {
+    const dir = seeded();
+    const f = etagFetch();
+    const first = await runOn(dir, f.fetch);
+    const idx1 = JSON.parse((await first.feed.get("index.json"))!);
+    const climPath = join(dir, "feed/clim.json");
+    const clim = JSON.parse(readFileSync(climPath, "utf-8"));
+    const noRuns = Object.keys(idx1.stations).filter((x) => !idx1.stations[x].forecast);
+    const st = noRuns.find((x) => clim.stations[x] && idx1.stations[x].percentile !== null)!;
+    expect(st).toBeTruthy();
+    // the same HYDAT release, another envelope for ONE station: every number of its bands doubled
+    const twice = (v: unknown): unknown => (typeof v === "number" ? v * 2 : Array.isArray(v) ? v.map(twice) : v && typeof v === "object" ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, twice(x)])) : v);
+    const next = { ...clim, stations: { ...clim.stations, [st]: twice(clim.stations[st]) } };
+    expect(next.release).toBe(clim.release);
+    writeFileSync(climPath, JSON.stringify(next));
+    const m = newMeter();
+    const second = await runOn(dir, f.fetch, { meter: m });
+    const idx2 = JSON.parse((await second.feed.get("index.json"))!);
+    const rewritten = Object.keys(idx2.stations).filter((x) => second.puts.includes(`${x}.json`));
+    expect(rewritten).toEqual([st]);                                       // asked without validators, recomputed
+    expect(m.sourcesUnchanged).toBe(Object.keys(idx2.stations).length - 1);
+    expect(idx2.stations[st].percentile).not.toBe(idx1.stations[st].percentile);
+    for (const x of Object.keys(idx2.stations)) if (x !== st) expect(idx2.stations[x]).toEqual(idx1.stations[x]);
+    // and it is what a full recompute on the new clim gives
+    const fullDir = seeded();
+    writeFileSync(join(fullDir, "feed/clim.json"), JSON.stringify(next));
+    const full = await runOn(fullDir, fixtureFetch(loadRecording(FIX)).fetch, { changeAware: false });
+    expect(JSON.parse((await full.feed.get("index.json"))!).stations[st]).toEqual(idx2.stations[st]);
+  });
+});
+
+// T633 item 8: ECCC writes the day's first daily CSV at about 02:18 UTC; before it every daily file answers 404 and was
+// counted as a failed source (8 or 9 a run, every night: "degraded" on /status)
+describe("(T633 item 8) the daily refill is not asked before ECCC's daily files exist", () => {
+  const at = (iso: string) => {
+    const rec = loadRecording(FIX);
+    const base = fixtureFetch(rec).fetch;
+    const daily: string[] = [];
+    const fetch: Fetch = async (url, init) => { if (url.includes("/daily/")) daily.push(url); return base(url, init); };
+    return { fetch, daily, now: new Date(iso) };
+  };
+  it("the recording's hour (22:47 UTC) asks for the stations with a gap", async () => {
+    const t = at(loadRecording(FIX).now);
+    const { s } = await runOn(seeded(), t.fetch, { now: t.now });
+    expect(t.daily.length).toBeGreaterThan(0);
+    expect(s.archive).toEqual({ asked: t.daily.length, filled: expect.any(Number) });
+  });
+  it("01:30 UTC: no daily file is asked for; the gaps are counted as deferred and said in the log", async () => {
+    const t = at("2026-10-29T01:30:00Z");
+    const logs: string[] = [];
+    const { s } = await runOn(seeded(), t.fetch, { now: t.now, log: (x) => logs.push(x) });
+    expect(t.daily).toEqual([]);
+    expect(s.archive.asked).toBe(0);
+    expect(s.archive.deferred).toBeGreaterThan(0);
+    expect(logs.filter((l) => l.includes("NOT refilled"))).toEqual([
+      `  daily    ${s.archive.deferred} station record(s) with a gap NOT refilled this run: ECCC's daily files are absent until about 02:30 UTC; asked again from 03:00 UTC`]);
+  });
+  it("03:05 UTC: asked again (the gap was kept, not forgotten)", async () => {
+    const dir = seeded();
+    const early = at("2026-10-29T01:30:00Z");
+    const first = await runOn(dir, early.fetch, { now: early.now, changeAware: false });
+    const t = at("2026-10-29T03:05:00Z");
+    const { s } = await runOn(dir, t.fetch, { now: t.now, changeAware: false });
+    expect(t.daily.length).toBe(first.s.archive.deferred);
+    expect(s.archive.deferred).toBeUndefined();
   });
 });
 
