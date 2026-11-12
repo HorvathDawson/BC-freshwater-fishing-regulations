@@ -88,7 +88,13 @@ README table:
 - Test-bed bug fixed on the way: the `open-result` flow's "Open .*" tapped a saved spot's map pin ("Open spot <title>")
   instead of the search result as soon as one spot existed.
 
-Shots (kept APK, this run): `../T603-shots/t603-*.jpg` (week-before strip, alert presets, the two chart states, the
+**Recorded run** `app/tools/testbed/out/runs/2026-11-12T01-10-46/` (kept APK, commit 104e6513c, `--allow-stale`,
+`--no-r2`, emulator n1_pixel, release r-303b4007a70a): install 4/4 (a fresh install first), saved-spots 12/12,
+two-days 5/5, route-scroll 3/3. In route-scroll the first frame back was "still gliding" in all 10 rounds, so only the
+moving and resting frames were judged. An earlier pass of the same three on an app that already held data:
+`out/runs/2026-11-12T00-17-43-T603-dev/`.
+
+Shots (kept APK, the earlier pass): `../T603-shots/t603-*.jpg` (week-before strip, alert presets, the two chart states, the
 route map after the scrolls, the alert confirmation left off screen).
 
 ### Seen on the way (app, not fixed here: other lanes own the app)
