@@ -650,7 +650,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "thompson_river__kamloops_lake",
+              "thompson_river__signs_just_below_goldpan_provincial_park"
+            ],
+            "item_id": "gnis:39492"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
