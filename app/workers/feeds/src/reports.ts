@@ -485,6 +485,14 @@ export function reportEvent(r: StoredReport, at: string): FeedEvent {
       `Received ${r.received} · id ${r.id}${c.install ? ` · install ${c.install}` : ""}\n` +
       `Review: the review app's Reports tab (Sync).`,
     at,
+    // (T627) what the digest's short block is made of; the text above stays the whole record (never the email address)
+    data: { id: r.id, received: r.received, reason: REASON_WORDS[r.reason] ?? r.reason, where, words: r.text,
+            day: c.day ?? null, mode: c.mode ?? null, app: c.app ?? null, env: c.env ?? null, platform: c.platform ?? null, release: c.release ?? null,
+            reply: r.contact && r.email ? "allowed" : r.email ? "not allowed" : "no email",
+            // what else the full report holds, by name, so the block can say what it left out
+            also: [c.station ? "gauge" : null,
+                   c.layer || c.zoom !== undefined || c.horizon !== undefined ? "map position" : null,
+                   c.install ? "install id" : null].filter(Boolean) },
   };
 }
 

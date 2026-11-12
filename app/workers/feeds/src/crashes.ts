@@ -303,9 +303,18 @@ export async function crashEvents(bucket: R2BucketLike, known: (key: string) => 
   const recent = new Set([0, 1].map((i) => new Date(now.getTime() - i * 86_400_000).toISOString().slice(0, 10)));
   const events: FeedEvent[] = [];
   const others: Record<string, number> = {};
+  // (T627) REPEATS, AS A COUNT: the defect kinds already told that were seen again YESTERDAY (a whole UTC day, so the
+  // count does not depend on which run takes it). Counted once per day (keyed by that day): only until it is told do the
+  // runs read the kinds already told.
+  const yesterday = new Date(now.getTime() - 86_400_000).toISOString().slice(0, 10);
+  const repeatsKey = `crash-repeats:${yesterday}`;
+  const countRepeats = !known(repeatsKey);
+  let repeats = 0;
   for (const k of await kindKeys(bucket, 500)) {
     const hash = /\/([0-9a-f]{16})\.json$/.exec(k)?.[1];
-    if (!hash || known(`crash:${hash}`)) continue;
+    if (!hash) continue;
+    const told = known(`crash:${hash}`);
+    if (told && !countRepeats) continue;
     const o = await bucket.get(k);
     if (!o) continue;
     let c: CrashKind;
@@ -313,6 +322,10 @@ export async function crashEvents(bucket: R2BucketLike, known: (key: string) => 
     if (c.background) continue;                             // (T352) a background OS kill is not a crash: never told
     // (T595) only a defect is a line of its own; the others are counted in ONE line below, never dropped
     const cls = classifyCrash(c.sample);
+    if (told) {
+      if (cls === "defect" && c.last.slice(0, 10) === yesterday && c.first.slice(0, 10) < yesterday) repeats++;
+      continue;
+    }
     if (cls === "defect") events.push(crashEvent(c, at));
     else if (recent.has(c.first.slice(0, 10))) others[cls] = (others[cls] ?? 0) + 1;
   }
@@ -324,6 +337,13 @@ export async function crashEvents(bucket: R2BucketLike, known: (key: string) => 
                   text: `${n} error kind${n === 1 ? "" : "s"} first seen today or yesterday are not defects: ${parts}. ` +
                         `List them: GET /crashes?class=network,expected on the feeds worker (Bearer RUN_TOKEN).`, at });
   }
+  // (T627) `fine`: a repeat alone is never the reason for a digest (a known kind is not told again); it rides in one
+  if (repeats > 0)
+    events.push({ key: repeatsKey, kind: "crash", fine: true, at,
+                  title: `${repeats} known error kind${repeats === 1 ? " was" : "s were"} seen again on ${yesterday}`,
+                  text: `${repeats} error kind${repeats === 1 ? "" : "s"} already told ${repeats === 1 ? "was" : "were"} reported again on ${yesterday} (UTC). ` +
+                        `List them, newest first: GET /crashes on the feeds worker (Bearer RUN_TOKEN).`,
+                  data: { repeats, day: yesterday } });
   return events;
 }
 
@@ -347,6 +367,10 @@ export function crashEvent(c: CrashKind, at: string): FeedEvent {
       `${c.installs ? ` · installs: ${c.installs.length}` : ""}\n` +
       `First seen ${c.first} · ${c.count} so far. Read them all: GET /crashes on the feeds worker (Bearer RUN_TOKEN).`,
     at,
+    // (T627) what the digest's one line per error kind is made of; the text above stays the whole record
+    data: { hash: c.hash, name: s.name, message: s.message, route: s.route, platform: s.platform, app: s.app, env: s.env,
+            release: s.release, versions: Object.keys(c.versions), count: c.count, first: c.first, fatal: !!s.fatal,
+            native: s.kind === "native", installs: c.installs?.length ?? null, pane },
   };
 }
 

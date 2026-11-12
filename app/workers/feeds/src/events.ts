@@ -20,6 +20,7 @@
 import { body as webhookBody } from "./notify";
 import { isVersioned, readStored, writeMerged, type Fetch, type Store } from "./io";
 import { apkSection, render, sectionFor, type ApkInfo, type RenderCtx } from "./email";
+import { renderDigest } from "./digest";
 
 export type EventKind = "hydat" | "roster" | "inseason" | "dfo" | "health" | "report" | "crash" | "skill" | "runtiming" | "card";
 export interface FeedEvent {
@@ -119,18 +120,17 @@ export function mergeState(base: NotifyState, orig: NotifyState, mine: NotifySta
   return out;
 }
 
-const ORDER: EventKind[] = ["dfo", "inseason", "health", "report", "crash", "hydat", "runtiming", "roster", "skill"];
+// (T627) "card" was missing: a gauge-card event was in no email, and a digest recorded it as told all the same
+const ORDER: EventKind[] = ["dfo", "inseason", "health", "report", "crash", "hydat", "runtiming", "roster", "skill", "card"];
 const DEFAULT_CTX: RenderCtx = { env: "staging", statusUrl: null };
 
 /** Events → messages through the one template (src/email.ts): one email per kind per run (all DFO places, all in-season
  *  rows, all health changes together), or — digest — one email with a section per kind. */
 export function compose(events: FeedEvent[], digest = false, ctx: RenderCtx = DEFAULT_CTX): Message[] {
   if (!events.length) return [];
+  // (T627) the digest has its own order and layout (src/digest.ts): a summary, then short blocks; every event is in it
+  if (digest) return [{ ...renderDigest(events, ctx), keys: events.map((e) => e.key) }];
   const kinds = ORDER.filter((k) => events.some((e) => e.kind === k));
-  if (digest) {
-    const r = render(kinds.map((k) => sectionFor(k, events.filter((e) => e.kind === k), ctx)), ctx, true);
-    return [{ ...r, keys: events.map((e) => e.key) }];
-  }
   return kinds.map((k) => {
     const es = events.filter((e) => e.kind === k);
     return { ...render([sectionFor(k, es, ctx)], ctx), keys: es.map((e) => e.key) };

@@ -315,3 +315,38 @@ describe("bodies and names (T609 W11)", () => {
     expect(Object.entries(JSON.parse(k[1]).versions)).toEqual([["constructor", 1], ["__proto__", 1]]);
   });
 });
+
+describe("(T627) repeats, as a count", () => {
+  it("known kinds seen again yesterday are one count, told once for that day, and never the reason for a digest", async () => {
+    const BUCKET = new MemBucket();
+    const env = { BUCKET, REPORT_SALT: SALT };
+    const put = (over: Record<string, unknown>, when: string, ip: string) => handleCrash(post(crash(over), ip), env, at(when));
+    // A: first two days ago, again yesterday. B: first yesterday, again yesterday. C: first two days ago, again only today.
+    await put({ name: "A" }, "2026-11-08T20:00:00Z", "203.0.113.1");
+    await put({ name: "A" }, "2026-11-09T21:00:00Z", "203.0.113.2");
+    await put({ name: "B" }, "2026-11-09T08:00:00Z", "203.0.113.3");
+    await put({ name: "B" }, "2026-11-09T22:00:00Z", "203.0.113.4");
+    await put({ name: "C" }, "2026-11-08T20:10:00Z", "203.0.113.5");
+    await put({ name: "C" }, "2026-11-10T01:00:00Z", "203.0.113.6");
+    const now = at("2026-11-10T15:00:00Z");
+    const fresh = await crashEvents(BUCKET, () => false, now, "x");
+    expect(fresh.map((e) => e.title.split(":")[0]).sort()).toEqual(["A", "B", "C"]);     // none told yet: three new kinds, no repeat
+    const told = new Set(fresh.map((e) => e.key));
+    const again = await crashEvents(BUCKET, (k) => told.has(k), now, "2026-11-10T15:00:00.000Z");
+    expect(again).toEqual([{
+      key: "crash-repeats:2026-11-09", kind: "crash", fine: true, at: "2026-11-10T15:00:00.000Z",
+      title: "1 known error kind was seen again on 2026-11-09",
+      text: "1 error kind already told was reported again on 2026-11-09 (UTC). List them, newest first: GET /crashes on the feeds worker (Bearer RUN_TOKEN).",
+      data: { repeats: 1, day: "2026-11-09" },
+    }]);
+    // told for that day: not counted again, and the kinds already told are not read again
+    told.add("crash-repeats:2026-11-09");
+    let reads = 0;
+    const counting = { ...BUCKET, m: BUCKET.m, get: async (k: string) => { reads++; return BUCKET.get(k); }, put: BUCKET.put.bind(BUCKET),
+                       delete: BUCKET.delete.bind(BUCKET), list: BUCKET.list.bind(BUCKET) };
+    expect(await crashEvents(counting as unknown as MemBucket, (k) => told.has(k), now, "x")).toEqual([]);
+    expect(reads).toBe(0);
+    // the new kind's digest line carries the fields the digest's one entry is made of
+    expect(fresh.find((e) => e.title.startsWith("A"))!.data).toMatchObject({ name: "A", route: "water", platform: "android 35", count: 2, versions: ["0.1.0+12"], fatal: true });
+  });
+});

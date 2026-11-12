@@ -17,6 +17,8 @@ export interface Item {
   was?: string;
   /** what it affects / when, muted */
   note?: string;
+  /** (T627) the end of the block, small: what was left out and where it is, then ids — never before the words */
+  tail?: string;
 }
 export interface Block {
   title?: string;
@@ -196,7 +198,7 @@ export function inSeasonSection(events: FeedEvent[], source: string): Section {
   };
 }
 
-const JOB_NAME: Record<string, string> = { gauges: "Gauge feed", dfo: "DFO salmon feed", inseason: "In-season check" };
+export const JOB_NAME: Record<string, string> = { gauges: "Gauge feed", dfo: "DFO salmon feed", inseason: "In-season check" };
 /** an event without `data`: its title as the name (before any " — " snippet), its text once */
 const generic = (e: FeedEvent): Item => ({ name: e.title.split(" — ")[0], text: e.text });
 /** (T609 W1) at most this many report / error lines in one message; the rest are counted ("and N more"), never dropped
@@ -402,11 +404,12 @@ export function parseApk(b: any): ApkInfo | null {
 // ── the layout ────────────────────────────────────────────────────────────────────────────────────────────────────────
 const tag = (ctx: RenderCtx) => `[${ctx.env.toLowerCase()}] `;
 
-export function render(sections: Section[], ctx: RenderCtx, digest = false): Rendered {
+/** `summary` (T627, the digest): the few plain lines the email opens with, each "Label: words", above every section. */
+export function render(sections: Section[], ctx: RenderCtx, digest = false, summary: string[] = []): Rendered {
   const subject = tag(ctx) + (digest ? `Daily digest: ${sections.map((s) => s.subject).join("; ")}` : sections[0]!.subject);
   const heading = digest ? `Daily digest — ${plural(sections.length, "item")}` : sections[0]!.heading;
   const why = digest ? "Everything that is not urgent (HYDAT, roster drift, feed health) comes once a day, and only on a day with something to do." : sections[0]!.why;
-  return { subject, text: renderText(heading, sections, ctx, why, digest), html: renderHtml(heading, sections, ctx, why, digest) };
+  return { subject, text: renderText(heading, sections, ctx, why, digest, summary), html: renderHtml(heading, sections, ctx, why, digest, summary) };
 }
 
 /** wrap at `width`, every line after the first indented by `indent` */
@@ -425,9 +428,13 @@ export function wrap(s: string, width: number, first: string, indent: string): s
   return out;
 }
 
-function renderText(heading: string, sections: Section[], ctx: RenderCtx, why: string, digest: boolean): string {
+function renderText(heading: string, sections: Section[], ctx: RenderCtx, why: string, digest: boolean, summary: string[]): string {
   const W = 78;
   const L: string[] = [...wrap(heading, W, "", ""), "=".repeat(Math.min(W, heading.length)), ""];
+  if (summary.length) {
+    for (const s of summary) L.push(...wrap(s, W, "", "  "));
+    L.push("");
+  }
   for (const s of sections) {
     if (digest) L.push(...wrap(s.heading, W, "", ""), "-".repeat(Math.min(W, s.heading.length)), "");
     for (const b of s.blocks) {
@@ -437,6 +444,7 @@ function renderText(heading: string, sections: Section[], ctx: RenderCtx, why: s
         if (it.name && it.text) for (const para of it.text.split(/\n+/)) L.push(...wrap(para, W, "    ", "    "));
         if (it.was) L.push(...wrap(it.was, W, "    was: ", "         "));
         if (it.note) L.push(...wrap(it.note, W, "    → ", "      "));
+        if (it.tail) L.push(...wrap(it.tail, W, "    ", "    "));
       }
       L.push("");
     }
@@ -457,10 +465,19 @@ function renderText(heading: string, sections: Section[], ctx: RenderCtx, why: s
 }
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
-function renderHtml(heading: string, sections: Section[], ctx: RenderCtx, why: string, digest: boolean): string {
+function renderHtml(heading: string, sections: Section[], ctx: RenderCtx, why: string, digest: boolean, summary: string[]): string {
   const muted = "color:#6b7280;font-size:13px";
   const parts: string[] = [];
   parts.push(`<h2 style="margin:0 0 12px;font-size:18px">${esc(heading)}</h2>`);
+  if (summary.length)
+    parts.push(
+      `<table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;width:100%;margin:0 0 4px;background:#f3f4f6;border-radius:6px">` +
+        summary.map((s) => {
+          const cut = s.indexOf(": ");
+          return `<tr><td style="padding:6px 12px;font-size:15px">${cut > 0 ? `<b>${esc(s.slice(0, cut))}</b>${esc(s.slice(cut))}` : esc(s)}</td></tr>`;
+        }).join("") +
+        `</table>`,
+    );
   for (const s of sections) {
     if (digest) parts.push(`<h3 style="margin:20px 0 6px;font-size:15px">${esc(s.heading)}</h3>`);
     for (const b of s.blocks) {
@@ -473,6 +490,7 @@ function renderHtml(heading: string, sections: Section[], ctx: RenderCtx, why: s
             (it.text ? `${it.name ? "<br>" : ""}${esc(it.text).replace(/\n+/g, "<br>")}` : "") +
             (it.was ? `<br><span style="${muted}">was: <s>${esc(it.was)}</s></span>` : "") +
             (it.note ? `<br><span style="${muted}">${esc(it.note)}</span>` : "") +
+            (it.tail ? `<br><span style="color:#6b7280;font-size:12px">${esc(it.tail)}</span>` : "") +
             `</td></tr>`,
         );
       parts.push(`</table>`);
