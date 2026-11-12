@@ -4,7 +4,7 @@
  * Mutations: `fallback` answering `good` alone fails "a new launch, offline"; dropping `noteObs` fails "never opened".
  */
 import { describe, expect, it } from "vitest";
-import { GAUGE_FEED_FORMAT } from "@app/core";
+import { GAUGE_FEED_FORMAT, setFailureSink } from "@app/core";
 import { FILES, KEEP_MS, gaugeHistory, withDays } from "./history";
 import { httpFeed, type StationFile } from "./http";
 import { seriesOf } from "../sql/shared";
@@ -12,6 +12,8 @@ import type { StationId } from "../index";
 
 const NOW = Date.parse("2026-10-30T21:00:00Z");
 const mem = () => { let t: string | null = null; return { read: () => t, write: (x: string) => { t = x; }, get text() { return t; } }; };
+/** A store read at once that already holds `text`. */
+const mem2 = (text: string) => { let t: string | null = text; return { read: () => t, write: (x: string) => { t = x; } }; };
 const rowsFrom = (fromIso: string, n: number, q0 = 20) =>
   Array.from({ length: n }, (_, i) => [new Date(Date.parse(fromIso) + i * 1_800_000).toISOString().replace(".000Z", "Z"),
                                        1 + i / 100, q0 + i] as [string, number, number]);
@@ -140,5 +142,82 @@ describe("(T585 F14) the kept reading's rank", () => {
                   stations: { "08MH001": { percentile: 0.62, observedAt: "2026-10-30T20:00:00Z" } } });
     const r = (await httpFeed("http://x/g", dead, { history: h, online: () => false }).now("08MH001" as StationId))!;
     expect([r.value.percentile, r.value.rankedAt, r.value.at]).toEqual([null, "2026-10-30T20:00:00Z", at]);
+  });
+});
+
+/**
+ * (T633 item 6, T585 F14 the web half) THE WEEK KEPT WHERE IT IS READ LATER (the browser's IndexedDB): the same week as
+ * a phone's file. Mutations: answering before the kept week is in fails "opened offline"; a write before it is in fails
+ * "writes nothing until"; the kept rows going over the session's fails "the session's read wins".
+ */
+describe("(T633 item 6) a store that is read later (the web)", () => {
+  /** Text kept behind a promise: `load` answers when `release` is called (a slow IndexedDB), or at once. */
+  const slow = (kept: string | null, o: { held?: boolean; fail?: Error } = {}) => {
+    let text = kept, release!: () => void;
+    const gate = o.held ? new Promise<void>((r) => { release = r; }) : Promise.resolve();
+    const writes: string[] = [];
+    return { store: { read: () => null, write: (t: string) => { text = t; writes.push(t); },
+                      load: async () => { await gate; if (o.fail) throw o.fail; return text; } },
+             writes, release: () => release(), get text() { return text; } };
+  };
+  /** What an earlier visit kept: 08MH001's file and 2.5 h of rows. */
+  const earlier = () => {
+    const m = mem();
+    const h = gaugeHistory(m, { now: () => NOW });
+    h.noteFile("08MH001", FILE("2026-10-30T12:00:00Z", rowsFrom("2026-10-30T09:30:00Z", 5)));
+    h.noteIndex({ fetchedAt: "2026-10-30T12:00:00Z", stations: { "08MH001": { percentile: 0.4 } } });
+    h.flush();
+    return m.text!;
+  };
+
+  it("a page opened offline answers from the week an earlier visit kept — once it is in, never 'nothing kept' before", async () => {
+    const s = slow(earlier(), { held: true });
+    const feed = httpFeed("https://x/feeds/live", dead, { history: gaugeHistory(s.store, { now: () => NOW }), online: () => false });
+    const asked = feed.observations("08MH001" as StationId);
+    let answered = false;
+    void asked.then(() => { answered = true; });
+    await new Promise((r) => setTimeout(r, 5));
+    expect(answered).toBe(false);                       // still waiting for the kept week, not answered "nothing"
+    s.release();
+    const got = await asked;
+    expect([got?.kept, got?.discharge.length, (await feed.index())?.fetchedAt]).toEqual([true, 5, "2026-10-30T12:00:00Z"]);
+  });
+
+  it("writes nothing until the kept week is in; then one week holds both, and the session's read wins a shared minute", async () => {
+    const s = slow(earlier(), { held: true });
+    const h = gaugeHistory(s.store, { now: () => NOW });
+    // this session reads the station again before IndexedDB has answered: the last kept row again (another figure) + 2 new
+    h.noteFile("08MH001", FILE("2026-10-30T13:00:00Z", rowsFrom("2026-10-30T11:30:00Z", 3, 99)));
+    h.noteFile("08NM050", { ...FILE("2026-10-30T13:00:00Z", rowsFrom("2026-10-30T12:00:00Z", 2)), station: "08NM050" });
+    h.flush();
+    expect(s.writes).toEqual([]);
+    s.release();
+    await h.ready();
+    expect(s.writes.length).toBe(1);
+    const again = gaugeHistory(mem2(s.text!), { now: () => NOW });
+    const f = again.file("08MH001")!;
+    expect({ rows: f.recent!.map((r) => r[2]), fetchedAt: f.fetchedAt, other: again.file("08NM050")!.recent!.length,
+             index: again.index() })
+      .toEqual({ rows: [20, 21, 22, 23, 99, 100, 101], fetchedAt: "2026-10-30T13:00:00.000Z", other: 2,
+                 index: { fetchedAt: "2026-10-30T12:00:00Z", stations: { "08MH001": { percentile: 0.4 } } } });
+  });
+
+  it("a week that cannot be read is reported; the session keeps its own and writes it", async () => {
+    const seen: unknown[] = [];
+    const undo = setFailureSink((e) => seen.push(e));
+    const s = slow(null, { fail: new Error("IndexedDB refused the request") });
+    const h = gaugeHistory(s.store, { now: () => NOW });
+    h.noteFile("08MH001", FILE("2026-10-30T13:00:00Z", rowsFrom("2026-10-30T12:00:00Z", 2)));
+    await h.ready();
+    h.flush();
+    undo();
+    expect([seen.map((e) => (e as Error).message), s.writes.length, h.file("08MH001")!.recent!.length])
+      .toEqual([["IndexedDB refused the request"], 1, 2]);
+  });
+
+  it("a store read at once (a phone's file) is ready at once, as before", async () => {
+    const h = gaugeHistory(mem2(earlier()), { now: () => NOW });
+    expect(h.file("08MH001")!.recent!.length).toBe(5);
+    await h.ready();
   });
 });

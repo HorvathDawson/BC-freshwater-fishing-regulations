@@ -7,6 +7,7 @@
  * one platform only.
  */
 import type { SpotsStore } from "./core";
+import type { HistoryText } from "../feed/history";
 
 export declare function openSpots(): SpotsStore;
 
@@ -18,7 +19,11 @@ export declare function openLikeStore(): { read(): string | null; write(text: st
 
 /** (T211) The last captured DFO salmon feed, as whole text under one name (`../feed/salmon` `SalmonFeedStore`). */
 export declare function openSalmonFeedStore(): { read(): string | null; write(text: string): void };
-export declare function openGaugeHistoryStore(): { read(): string | null; write(text: string): void } | null;
+/**
+ * (T315, T633 item 6) The gauges' kept week (`../feed/history` `gaugeHistory`), as whole text: a file on a phone (read
+ * at once), IndexedDB in a browser (read later: `HistoryText.load`). Both keep it across a launch.
+ */
+export declare function openGaugeHistoryStore(): HistoryText;
 
 /** (T230) The last captured in-season feed + links (`../feed/inseason`), as whole text under one name. */
 export declare function openInSeasonStore(): { read(): string | null; write(text: string): void };

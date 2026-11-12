@@ -9,7 +9,8 @@
  *
  * The phone writes a real file (`store.native.ts`). Nothing above this line can tell.
  */
-import { now } from "@app/core";
+import { environmentError, now, reportOnce } from "@app/core";
+import type { HistoryText } from "../feed/history";
 import { openSpotsWith, type SpotsFs, type SpotsStore } from "./core";
 import { openPhotos } from "./photoStore.web";
 
@@ -55,9 +56,40 @@ export function openSalmonFeedStore(): { read(): string | null; write(text: stri
   return keyStore("canifishthis.dfoFeed.v1");
 }
 
-/** (T315) The gauges' kept week is a phone's: a few MB would crowd browser storage, so the web keeps it per session. */
-export function openGaugeHistoryStore(): { read(): string | null; write(text: string): void } | null {
-  return null;
+/**
+ * (T315, T633 item 6 / T585 F14) THE GAUGES' KEPT WEEK IN A BROWSER: IndexedDB, as the photos are (a few MB of text
+ * would crowd localStorage, which is why the web once kept the week for the session only and a page opened offline had
+ * nothing where the phone had its week). One record of whole text, the same text a phone's file holds.
+ *
+ * IndexedDB is read later than a file, so the store has `load` (the kept text, asked once by `gaugeHistory`) and its
+ * `read` answers nothing. A write goes out behind the call; one that fails is reported once (a cache: the next write
+ * is the next one's to make). A browser with no IndexedDB at all (storage switched off) keeps the week for the session,
+ * as before: the environment's, said by `load` and not reported.
+ */
+export function openGaugeHistoryStore(idb: IDBFactory | undefined = globalThis.indexedDB): HistoryText {
+  const DB = "canifishthis.gaugeHistory", STORE = "kept", KEY = "week";
+  const done = <T>(r: IDBRequest<T>): Promise<T> => new Promise((res, rej) => {
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => rej(r.error ?? new Error("IndexedDB refused the request"));
+  });
+  let db: Promise<IDBDatabase> | null = null;
+  const open = (): Promise<IDBDatabase> => (db ??= (() => {
+    if (!idb) return Promise.reject(environmentError(new Error("This browser is not letting the app keep the gauges' week.")));
+    const r = idb.open(DB, 1);
+    r.onupgradeneeded = () => { if (!r.result.objectStoreNames.contains(STORE)) r.result.createObjectStore(STORE); };
+    return done(r);
+  })().catch((e) => { db = null; throw e; }));
+  return {
+    read: () => null,
+    load: async () => {
+      const text = await done((await open()).transaction(STORE, "readonly").objectStore(STORE).get(KEY) as IDBRequest<unknown>);
+      return typeof text === "string" ? text : null;
+    },
+    write: (text) => {
+      void open().then((d) => done(d.transaction(STORE, "readwrite").objectStore(STORE).put(text, KEY)))
+        .catch((e: unknown) => reportOnce("gauge-history-write", e));
+    },
+  };
 }
 
 /** (T230) The last captured in-season feed + links, and the in-season ids this device has been shown. */

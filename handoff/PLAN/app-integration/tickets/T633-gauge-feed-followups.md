@@ -1,6 +1,6 @@
 # T633 — Gauge feed: follow-ups from T550, T557 and T585
 
-Status: PARTIAL — items 1, 2, 3, 5, 7, 8 built (a6bf038be, 2ebfe0787, 52878ceb6, 9995fcf13, 07dbf3791, 78b6846e2); left (Claude): item 4 (card `rankedAt` / kept words, "as of" line: the ui-native + T555 boot lane), item 6 (web offline week), item 9 (next bundle build)
+Status: PARTIAL — items 1–8 built (a6bf038be, 2ebfe0787, 52878ceb6, 9995fcf13, 07dbf3791, 78b6846e2; item 4 by T585: 04316bd91, c58640b86, e4add6e9a; item 6 this pass); left (Claude): item 9 (next bundle build)
 
 Source: gauges lane report 2026-11-11.
 
@@ -79,3 +79,28 @@ Depends: T550, T557, T585. Size: M.
 - 8: before 03:00 UTC the daily archive is not asked (`DAILY_NOT_BEFORE_UTC_H`); said in the run log, counted on /status
   as `dailyRefillDeferred`. Staging 2026-11-12 00:09 UTC: 9 deferred, no failed source, feed ok. The other proposal
   (yesterday's dated folder) was not taken: skipping needs no new URL and the gap is asked again after the window.
+
+## Done 2026-11-11, later (items 4 and 6)
+- **4: already built, in T585's lane** (read and its tests run here, nothing added). The card says which reading was
+  ranked and which this is (`readingStanding`, 04316bd91, c58640b86) and leads a kept figure's age line with the kept
+  words; the gauge card's foot names the release, and the data source / channel when not the build's own, in staging
+  and development builds (`dataProvenanceLine`, e4add6e9a); a cold start that opens a staged set says so once
+  (`bootSaid`, e4add6e9a). The words and the device checks are listed in T585's ticket (owner's yes still owed there).
+  Not built there or here, by T585's stated choice: installing a newer set BEFORE the map on a cold start.
+- **6: the web keeps the week like the phone.** `openGaugeHistoryStore()` in a browser is IndexedDB (one record of the
+  same text a phone's file holds; localStorage would be crowded by 2–3 MB). IndexedDB is read later than a file, so
+  `HistoryText` has `load` and `gaugeHistory` has `ready()`: the history starts with what the session notes, takes the
+  kept week in under it (a minute both hold is the session's), writes nothing before that, and the feed's fallback waits
+  for it, so a page opened offline never reads "nothing kept" a moment early. A week that cannot be read is reported; a
+  refused write is reported once; a browser with no IndexedDB keeps the week for the session as before (the
+  environment's, not reported). The phone's store is unchanged (ready at once).
+  Tests: `data/src/feed/history.test.ts` "(T633 item 6)" (4), `data/src/spots/store.web.test.ts` (3, a fake IndexedDB).
+- **What this does and does not give the web.** The web app has no service worker, so a tab cannot be OPENED with no
+  connection at all; the kept week answers when the page loads but the feed cannot be read (the feed down or refused,
+  a line that drops after the page is in), and it now survives a reload. A fully offline web start needs a service
+  worker (not in this ticket).
+- **Wording, for the owner:** no new string. The kept lines read "… saved on this phone" (`conditions.ts`,
+  `freshness.ts`); the web already printed them inside a session and now prints them after a reload too. On a laptop
+  "this phone" is wrong; "this device" would fit both. Not changed (agreed strings).
+- Not seen in a real browser: the IndexedDB path is tested over a fake. Check on staging: open a gauged water, reload
+  with the feed blocked (DevTools: block `feeds/live/*`), the chart draws its measured line with the kept words.

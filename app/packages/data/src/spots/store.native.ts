@@ -13,6 +13,7 @@
  */
 import { Directory, File, Paths } from "expo-file-system";
 import { now, reportFailure } from "@app/core";
+import type { HistoryText } from "../feed/history";
 import { openSpotsWith, type SpotsFs, type SpotsStore } from "./core";
 import { openPhotos } from "./photoStore.native";
 
@@ -56,7 +57,7 @@ export function openSalmonFeedStore(): { read(): string | null; write(text: stri
 }
 
 /** (T315) The gauges' last week, kept for offline (`@app/data` `gaugeHistory`) — a cache file of its own. */
-export function openGaugeHistoryStore(): { read(): string | null; write(text: string): void } | null {
+export function openGaugeHistoryStore(): HistoryText {
   return fileStore("gauge-history.json");
 }
 

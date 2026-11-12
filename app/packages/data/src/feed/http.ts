@@ -303,10 +303,12 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch,
   const stationOf = (path: string): string | null =>
     path === "index.json" || path === "obs.json" || !path.endsWith(".json") ? null : path.slice(0, -5);
   /** (T315) the session's last good copy, else (a station file) the phone's kept week */
-  const fallback = <T>(path: string, url: string): T | null => {
+  const fallback = async <T>(path: string, url: string): Promise<T | null> => {
     const g = good.get(url) as T | undefined;
     if (g !== undefined) return g;
     if (!opts.history) return null;
+    // (T633 item 6) a week kept where it is read later (the web's) is waited for: never "nothing kept" a moment early
+    await opts.history.ready();
     // (T315) the index too: the panels' standings offline, as of the kept index's own `fetchedAt`
     if (path === "index.json") return (opts.history.index() as T | null) ?? null;
     const st = stationOf(path);

@@ -1,5 +1,6 @@
 /**
- * (T315) THE GAUGES' LAST WEEK, KEPT ON THE PHONE.
+ * (T315) THE GAUGES' LAST WEEK, KEPT ON THE PHONE — (T633 item 6, T585 F14) and in the browser: the same week, the same
+ * rules, in IndexedDB there (`spots/store.web.ts`; it is read later than a file, see `HistoryText.load`).
  *
  * owner 2026-10-31: "in offline mode we didn't get the gauge feed data … the phone didn't store the gauge data for the
  * last week … had no measured line". The feed (`./http.ts`) kept its last good copy of a file for the SESSION only; a
@@ -17,6 +18,7 @@
  * Bounded: 438 stations × 8 days × 48 rows ≈ 170k rows, stored as minutes + numbers (≈ 2–3 MB of text at most), plus
  * the kept files (≈ 40 kB each).
  */
+import { reportFailure } from "@app/core";
 import type { StationFile } from "./http";
 
 export type ObsRow = readonly [string, number | null, number | null];
@@ -24,7 +26,12 @@ export type ObsRow = readonly [string, number | null, number | null];
 /** What the publisher writes beside the index each run (`obs.json`): every station's newest rows. */
 export interface ObsFile { fetchedAt: string; stations: Record<string, readonly ObsRow[]> }
 
-export interface HistoryText { read(): string | null; write(text: string): void }
+/**
+ * Where the week is kept, as whole text. A phone's file is read at once (`read`). (T633 item 6) A store that can only be
+ * read later (the web's IndexedDB) has `load` instead: what it holds, asked ONCE; the history starts empty, takes the
+ * kept week in when it arrives (`GaugeHistory.ready`) and writes nothing before then.
+ */
+export interface HistoryText { read(): string | null; write(text: string): void; load?(): Promise<string | null> }
 
 /** How long a row is kept: a week, and a day of slack so "the last 7 days" is always whole. */
 export const KEEP_MS = 8 * 86_400_000;
@@ -62,6 +69,12 @@ export interface GaugeHistory {
   index(): unknown;
   /** Write anything waiting now (tests; the app writes a moment after the last change). */
   flush(): void;
+  /**
+   * (T633 item 6) The kept week is in: at once over a store read at once (a phone's file), after its one `load` over a
+   * store read later (the web's). Whoever answers FROM the kept week waits for this, so a page opened offline never
+   * reads "nothing kept" a moment before the week arrives.
+   */
+  ready(): Promise<void>;
 }
 
 const zoneOf = (iso: string): string => /([+-]\d\d:\d\d|Z)$/.exec(iso)?.[1] ?? "Z";
@@ -91,11 +104,16 @@ function parse(text: string | null): Disk {
 export function gaugeHistory(store: HistoryText | null, o: { now?: () => number; writeAfterMs?: number } = {}): GaugeHistory {
   const now = o.now ?? Date.now;
   let disk: Disk | null = null;
-  const d = (): Disk => (disk ??= parse(safeRead(store)));
+  const load = store?.load ? () => store.load!() : null;
+  const d = (): Disk => (disk ??= load ? empty() : parse(safeRead(store)));
   let timer: ReturnType<typeof setTimeout> | null = null;
+  // (T633 item 6) a store read later: nothing is written until its week is in (a write before would replace the kept
+  // week with this session's first minutes), then whatever waited is
+  let held = load !== null, waiting = false;
   const save = () => {
     if (timer) { clearTimeout(timer); timer = null; }
     if (!store || !disk) return;
+    if (held) { waiting = true; return; }
     try { store.write(JSON.stringify(disk)); } catch { /* a cache: a failed write is the next one's to make */ }
   };
   const later = () => {
@@ -131,17 +149,42 @@ export function gaugeHistory(store: HistoryText | null, o: { now?: () => number;
     return r.m.flatMap((m, i): [string, number | null, number | null][] => (m >= cut ? [[isoIn(m, r.z), r.l[i] ?? null, r.q[i] ?? null]] : []));
   }
 
+  /** Only the `FILES` most recently used whole files stay. */
+  function trimFiles(): void {
+    const files = d().files;
+    const keys = Object.keys(files);
+    if (keys.length <= FILES) return;
+    keys.sort((a, b) => files[a]!.used - files[b]!.used);
+    for (const k of keys.slice(0, keys.length - FILES)) delete files[k];
+  }
+
+  /**
+   * (T633 item 6) THE KEPT WEEK ARRIVES under what this session has already noted: the kept rows are the base and the
+   * session's rows go over them (a minute both hold is the session's, the newer read), its whole files and its index
+   * replace the kept ones, each station's newest `fetchedAt` stands.
+   */
+  function absorb(kept: Disk): void {
+    const session = d();
+    disk = kept;
+    for (const [station, r] of Object.entries(session.rows))
+      merge(station, r.m.map((m, i): ObsRow => [isoIn(m, r.z), r.l[i] ?? null, r.q[i] ?? null]), session.at[station] ?? NaN);
+    for (const [station, at] of Object.entries(session.at)) kept.at[station] = Math.max(kept.at[station] ?? 0, at);
+    Object.assign(kept.files, session.files);
+    trimFiles();
+    if (session.index !== undefined) kept.index = session.index;
+  }
+  // a week that cannot be read is REPORTED (the session then keeps its own, as a browser with no storage does)
+  const ready: Promise<void> = load
+    ? load().then((text) => absorb(parse(text)), reportFailure).then(() => { held = false; if (waiting) { waiting = false; save(); } })
+    : Promise.resolve();
+
   return {
+    ready: () => ready,
     noteFile(station, file) {
       const at = Date.parse(file.fetchedAt);
       merge(station, file.recent, at);
-      const files = d().files;
-      files[station] = { used: now(), file: { ...file, recent: [] } };      // its rows are kept once, above
-      const keys = Object.keys(files);
-      if (keys.length > FILES) {
-        keys.sort((a, b) => files[a]!.used - files[b]!.used);
-        for (const k of keys.slice(0, keys.length - FILES)) delete files[k];
-      }
+      d().files[station] = { used: now(), file: { ...file, recent: [] } };      // its rows are kept once, above
+      trimFiles();
       later();
     },
     noteObs(obs) {
