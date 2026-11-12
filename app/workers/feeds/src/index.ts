@@ -33,7 +33,7 @@ import { runSkill, skillText, type SkillReport } from "./gauges/score";
 import { FLOOD_WEIGHTS } from "./gauges/change";
 import { STATION_LIST } from "./gauges/liveness";
 import { READING_MAX_AGE_HOURS } from "../../../packages/core/src/gauge-policy.generated";
-import { checkToken, dispatchOnce, type DispatchEnv } from "./dispatch";
+import { checkToken, dispatchOnce, OVERDUE_MS, unfinished, type Dispatch, type DispatchEnv } from "./dispatch";
 import { checkRunTiming } from "./runtiming";
 import { capEvents, CORS as REPORT_CORS, handleReport, listReportsCounted, purgeLimits, purgeReports, purgeTestReports, reportEvents, RETENTION_DAYS, RETENTION_STATUS_KEY, type ReportEnv } from "./reports";
 
@@ -115,6 +115,26 @@ export function gaugeEvents(maintenance: any[], at: string): FeedEvent[] {
           data: { latest: n.latest, current: n.current, action: n.action },
         },
   );
+}
+
+/**
+ * (T554 item 5) A HYDAT workflow the worker started that did not put the new envelope on R2 (started again, or overdue):
+ * the event becomes "did not finish", keyed by the day, so the owner is told once a day while it lasts.
+ */
+export function hydatUnfinished(e: FeedEvent, dis: Dispatch, at: string): void {
+  if (!unfinished(dis) || dis.state === "no-token") return;
+  const d = e.data as Record<string, unknown>;
+  const n = dis.starts ?? 1;
+  e.key = `${e.key}:unfinished:${at.slice(0, 10)}`;
+  e.title = dis.state === "failed" ? `HYDAT ${d.latest}: the workflow did not update clim.json, and starting it again failed`
+    : dis.overdue ? `HYDAT ${d.latest}: the workflow was started ${n} times and clim.json is still on ${d.current}`
+    : `HYDAT ${d.latest}: the first workflow run did not update clim.json — started again`;
+  e.text = `${e.title}.\n\nHYDAT ${d.latest} is out; the gauge envelope (clim.json) is still on ${d.current}. ` +
+    `The worker started the HYDAT workflow at ${dis.first ?? dis.at}` +
+    (dis.state === "failed" ? `; ${OVERDUE_MS / 3600_000} h later clim.json was unchanged, and a second start failed (${dis.error}). It is tried again; or start it by hand in GitHub → Actions.`
+      : (n > 1 ? ` and again at ${dis.at}` : "") +
+        (dis.overdue ? "; it does not start it a third time. Look at the failed runs in GitHub → Actions, then start it by hand." : ". Check both runs in GitHub → Actions.")) +
+    `\n\nNoticed ${d.since}.`;
 }
 
 /** DFO notices (unplaced / held / moved / header names / fetch failures) → events naming the review-app tab to open
@@ -273,13 +293,20 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
       });
       summary = { asked: s.asked, answered: s.answered, withPercentile: s.withPercentile, maintenance: s.maintenance, runArchive: s.runArchive, forecastReused: s.forecastReused };
       counts = { stations: s.answered, asked: s.asked, withPercentile: s.withPercentile, oldReadings: s.oldReadings, forecastRuns: s.forecastRuns, unchanged: m.sourcesUnchanged, forecastReused: s.forecastReused ? 1 : 0 };
+      // (T633 item 8) daily records with a gap whose refill waits for ECCC's daily files (before 03:00 UTC): shown on /status
+      if (s.archive.deferred) counts.dailyRefillDeferred = s.archive.deferred;
       const gev = gaugeEvents(s.maintenance as any[], at);
       // (T413) a new HYDAT starts the HYDAT workflow itself when the owner's token is set; the email says what happened
       for (const e of gev) {
         if (e.kind !== "hydat" || opts.dryNotify) continue;
         const d = e.data as Record<string, unknown>;
-        d.dispatch = await dispatchOnce(env, (u, i) => fetch(u, i), r2Store(env.BUCKET, "private/feeds/dispatch/"),
-          "feeds-hydat.yml", String(d.latest), { upload: "true" }, started);
+        // (T554 item 5) this loop runs only while clim.json is behind `latest`: a start older than OVERDUE_MS did not
+        // put the new envelope on R2. It is started once more, then never; either way the owner is TOLD AGAIN (the key
+        // carries the day), where the first notice (`hydat:<latest>:<current>`, told once) used to be the last word
+        const dis = await dispatchOnce(env, (u, i) => fetch(u, i), r2Store(env.BUCKET, "private/feeds/dispatch/"),
+          "feeds-hydat.yml", String(d.latest), { upload: "true" }, started, { redoAfterMs: OVERDUE_MS });
+        d.dispatch = dis;
+        hydatUnfinished(e, dis, at);
       }
       events.push(...gev);
       // owner 2026-10-28: a station ECCC lists but has 404'd for NODATA_DAYS is "listed, no data" — not a failure
