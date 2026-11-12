@@ -83,12 +83,16 @@ export function allYearBan(bits365: readonly (number | null)[], items: readonly 
  * (T515) the one line over the list — what is banned and when, the status once, the ⓘ: "No natural bait — all year",
  * "No natural bait May 1–31 · in force today", "Bait ban Jan 1–May 15, Sep 1–Dec 31 · not today". "No natural bait" only
  * when every bait item is ✕; any ✓ item (an exception) makes it "Bait ban". No line when nothing is banned by season.
+ * (T670 G2, owner 2026-11-12) `fished`: the tab is drawn on a day game fish are closed but salmon may be fished, and
+ * the bait rules hold for salmon; the strip's bait mark exists only on game-fish-open days, so "not today" would be
+ * wrong beside a day's frame that bans bait: the ban is in force today.
  */
-export function banHeading(banToday: boolean, items: readonly BaitItem[], allYear: ChangeVM | null, dated: readonly ChangeVM[], term: boolean): Line[] {
+export function banHeading(banToday: boolean, items: readonly BaitItem[], allYear: ChangeVM | null, dated: readonly ChangeVM[], term: boolean,
+                          fished = false): Line[] {
   if (!allYear && !dated.length && !banToday) return [];
   const head = items.some((x) => x.ok) ? BAIT.BAN_SOME : BAIT.BAN_ALL;
   const when: Run[] = allYear ? [text(BAIT.WHEN_ALL_YEAR)] : dated.length ? [text(" "), text(dated.map((c) => c.when).join(BAIT.WHEN_JOIN))] : [];
-  const status: Run[] = allYear || !dated.length ? [] : [text(dated.some((c) => c.inForce) ? BAIT.ON_TODAY : BAIT.OFF_TODAY)];
+  const status: Run[] = allYear || !dated.length ? [] : [text(dated.some((c) => c.inForce) || (fished && banToday) ? BAIT.ON_TODAY : BAIT.OFF_TODAY)];
   return [[text(head), ...when, ...status, ...(term ? [text(" "), { t: "term", ids: ["bait_ban"] } as const] : [])]];
 }
 
@@ -100,7 +104,7 @@ export function buildBait(inp: RegsInputs, ctx: GearCtx, anyway = false): BaitVM
   moveAllowances(items);
   const bits = bookBits(inp), dated = datedBans(bits, bookIndex(inp.day), inp.statics.strip);
   const all = dated.length ? null : allYearBan(bits, items);
-  const notes: Line[] = banHeading(g.bait_ban, items, all, dated, ctx.glossary.has("bait_ban"));
+  const notes: Line[] = banHeading(g.bait_ban, items, all, dated, ctx.glossary.has("bait_ban"), anyway);
   return {
     label: BAIT.LABEL, notes,
     list: yesNo(items.filter((x) => x.ok).map((x) => [x.name, note2(x.s)] as const), items.filter((x) => !x.ok).map((x) => [x.name, note2(x.s)] as const)),

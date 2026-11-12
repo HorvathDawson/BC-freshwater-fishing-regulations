@@ -59,3 +59,4 @@ Release measured: the live one at the time (the audit's). Throwaway measuring sc
 
 ## Owner 2026-11-12
 W4 web description: name every region. W1-W3, G11: accept as built. K9: leave.
+- DONE W4 (Claude, 2026-11-12): `waterRegions` in `tools/seo/html.ts` names every hub region of a multi-region water in the description ("Regions 2, 3, 5, 7"); one-region waters keep their code ("Region 7A"). Test `tools/seo/description.test.ts`; full SEO build not run. Qualifiers elsewhere still use the one region.

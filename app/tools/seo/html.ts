@@ -23,6 +23,15 @@ export const regionLabel = (n: number): string => `Region ${n}`;
 /** (T622 G23) a WATER's region as the app names it: its own code, "Region 7A", not the hub's "Region 7" */
 export const waterRegion = (m: Pick<WaterModel, "focus" | "region">): string => (m.focus ? regionWords(m.focus) : regionLabel(m.region));
 
+/**
+ * (T672 W4, owner 2026-11-12) EVERY region a water runs through, for its description: "Regions 2, 3, 5, 7" for a multi-region
+ * water, else `waterRegion`'s one ("Region 7A"). Hub numbers, ascending, once each.
+ */
+export const waterRegions = (m: Pick<WaterModel, "focus" | "region" | "regions">): string => {
+  const all = [...new Set(m.regions)].sort((a, b) => a - b);
+  return all.length > 1 ? `Regions ${all.join(", ")}` : waterRegion(m);
+};
+
 /** Every colour the pages use is a token of the app's one palette (packages/map/style), read from the generated themes. */
 const T = (theme: "light" | "dark", token: string): string => {
   const v = (meta.themes as Record<string, Record<string, unknown>>)[theme]?.[token];
@@ -96,7 +105,7 @@ export function clip(s: string, max = 155): string {
  * today" was the build day's answer for weeks. The page itself, and the app, say open or closed for the day the reader is on.
  */
 export function descriptionOf(m: WaterModel, label: string = m.name, town: string | null = null): string {
-  const where = town ? `near ${town}, ${waterRegion(m)}` : waterRegion(m);
+  const where = town ? `near ${town}, ${waterRegions(m)}` : waterRegions(m);
   return clip(`${label} fishing regulations, B.C. (${where}): the season, what you can keep, gear and limits, in plain words.`);
 }
 

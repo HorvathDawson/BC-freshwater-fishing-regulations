@@ -33,3 +33,23 @@ describe("the B.C. day of an instant, on a device in another zone", () => {
     expect(localDate(wall.getTime())).toBe("2026-11-04");
   });
 });
+
+/**
+ * (T368 Q6, owner 2026-11-12) "today" is B.C.'s day: one helper (`bcToday`/`localDate`, clock.ts), whatever zone the phone
+ * keeps. 2026-11-12 07:30 UTC is 00:30 on the 12th in B.C. (UTC−7, permanent): a phone in Mountain (Edmonton, UTC−7 until the
+ * 8th, same wall clock here) or in UTC must both call it the 12th, and 06:30 UTC (23:30 on the 11th in B.C.) the 11th.
+ */
+describe("B.C.'s today from a phone in Mountain or UTC, around B.C. midnight", () => {
+  const day = (ms: number) => { const b = bcNow(ms); return wallIso(b); };
+  for (const zone of ["America/Edmonton", "UTC"]) {
+    it(zone, () => {
+      const was = process.env.TZ; process.env.TZ = zone;
+      try {
+        const after = Date.UTC(2026, 10, 12, 7, 30), before = Date.UTC(2026, 10, 12, 6, 30);
+        expect([day(before), day(after)]).toEqual(["2026-11-11", "2026-11-12"]);
+        expect([localDate(before), localDate(after)]).toEqual(["2026-11-11", "2026-11-12"]);
+        expect(bcMidnight("2026-11-12")).toBe(Date.UTC(2026, 10, 12, 7));
+      } finally { if (was === undefined) delete process.env.TZ; else process.env.TZ = was; }
+    });
+  }
+});

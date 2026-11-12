@@ -25,7 +25,7 @@
 import { ErrorState } from "./ErrorState";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { ScrollView } from "react-native";
-import { NET_WORDS, asOfLine, dayRange, gearIfFished, gearTabsFor, regsLapsedNote, waterBookOf, salmonGlance, salmonStripOf, WATER_BACK, WATER_SCREEN_WORDS, WORDS, type RegsTarget, bcNow, now as clockNow } from "@app/core";
+import { NET_WORDS, asOfLine, dayRange, gearIfFished, gearTabsFor, licenceIfFished, licenceTabFor, regsLapsedNote, waterBookOf, salmonGlance, salmonStripOf, WATER_BACK, WATER_SCREEN_WORDS, WORDS, type RegsTarget, bcNow, now as clockNow } from "@app/core";
 import { openProbe, type ItemId, type WaterSource, type SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { InSeasonContext, mapDayOf, regsDay, useAccessNotices, useInSeasonBanners, useReleaseLines, useAnglerProfile, useDownstreamWater, useLayoutClass, useRegsPage, useRegsStore,
@@ -163,6 +163,10 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
   const gearAnyway = useMemo(() => (inputs.value ? gearIfFished(inputs.value, d.today) : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- the inputs and the day
     [inputs.value, d.today.month, d.today.day]);
+  // (T670 G5) the open day's Licence tab, for a day game fish are closed and salmon is not (core `licenceTabFor`)
+  const licenceAnyway = useMemo(() => (inputs.value ? licenceIfFished(inputs.value, who) : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the inputs, the day and the angler
+    [inputs.value, d.today.month, d.today.day, who]);
   // (T45) how much room the window gives (the app shell's width; never read here): the page arranges itself for it
   const layout = useLayoutClass();
   // the sideways swipe between the water's views, anywhere on this one (see WaterViews: inside the ScrollView)
@@ -242,6 +246,7 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
     const salmonStrip = salmon.value ? salmonStripOf(salmon.value, regs.keep.strip) : null;
     // (T227, owner 2026-10-28) Gear / Methods state no closure: shown only where game fish or salmon may be fished
     const tabs = gearTabsFor(regs, gearAnyway, salmonStrip, salmon.value ?? null);
+    const licence = licenceTabFor(regs, licenceAnyway, salmonStrip);
     return (
       <>
       {frame(null, (
@@ -275,7 +280,7 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
                   // none and the Keep tab's foot line is the page)
                   gear={tabs.gear ? (a) => <GearTab vm={tabs.gear!} palette={palette} actions={a} salmonGear={tabs.salmonGear} /> : undefined}
                   methods={tabs.methods ? (a) => <MethodsTab vm={tabs.methods!} palette={palette} actions={a} boats={regs.boats} /> : undefined}
-                  licence={regs.licence ? (a) => <LicenceTab vm={regs.licence!} who={regs.who} palette={palette} actions={a} onWho={setWho} />
+                  licence={licence ? (a) => <LicenceTab vm={licence} who={regs.who} palette={palette} actions={a} onWho={setWho} />
                     : undefined} />
       ))}
       {daySheet}

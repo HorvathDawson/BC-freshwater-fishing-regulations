@@ -18,6 +18,7 @@ import { headerOf, type PartNames } from "./header";
 import type { RegsInputs } from "./inputs";
 import { keepOf } from "./keep";
 import { buildLicence } from "./licence";
+import type { SalmonStripVM } from "../salmon";
 import type { Day, RegsPage, Who } from "./model";
 import { makePlace } from "./place";
 import { settle } from "./settle";
@@ -79,4 +80,23 @@ export function gearIfFished(inp: RegsInputs, today: Day): { readonly gear: Regs
   if (edge === "outside" || edge === "tidal" || !gearAnswer(inp)) return null;
   const gctx = gearCtxOf(inp, { today, banner: null });
   return { gear: { ...buildGearTop(inp, gctx, true), bait: buildBait(inp, gctx, true) }, methods: buildMethods(inp, gctx, true) };
+}
+
+/**
+ * (T670 G5, owner 2026-11-12) THE LICENCE TAB ON A DAY THE GAME-FISH RULES CLOSE BUT SALMON IS OPEN: you need the licence
+ * to fish salmon, so the tab is the open day's. Null outside B.C. (no key). `licenceTabFor` decides whether it is shown.
+ */
+export function licenceIfFished(inp: RegsInputs, who: Who): RegsPage["licence"] {
+  return buildLicence(inp, who, { closed: false, glossary: new Set(inp.statics.glossary.terms.map((t) => t.id)) });
+}
+
+/**
+ * The Licence tab the screen draws: the page's own (open day), else the as-open one where salmon may be fished (the
+ * salmon strip is not closed: open, release only or "check DFO"), else none: the tab is hidden only on a page fully
+ * closed (owner 2026-11-04) — game fish and salmon.
+ */
+export function licenceTabFor(page: { readonly licence: RegsPage["licence"] }, anyway: RegsPage["licence"],
+                              strip: Pick<SalmonStripVM, "status"> | null): RegsPage["licence"] {
+  if (page.licence) return page.licence;
+  return !!strip && strip.status !== "closed" ? anyway : null;
 }

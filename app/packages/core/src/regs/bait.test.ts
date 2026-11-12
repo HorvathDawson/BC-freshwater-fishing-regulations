@@ -96,5 +96,10 @@ describe("banHeading (T515): one line — what, when, status, ⓘ", () => {
     expect(line(banHeading(true, none, null, [now, next], false))).toEqual(["No natural bait May 1–31, Sep 1–Dec 31 · in force today"]));
   it("partial (an exception stays ✓): 'Bait ban', never 'No natural bait'", () =>
     expect(line(banHeading(true, some, all, [], true))).toEqual(["Bait ban — all year ⓘ"]));
+  it("(T670 G2) salmon-only day: the day's frame bans bait, so a dated ban reads in force today", () => {
+    expect(line(banHeading(true, none, null, [next], true, true))).toEqual(["No natural bait Sep 1–Dec 31 · in force today ⓘ"]);
+    expect(line(banHeading(false, none, null, [next], true, true))).toEqual(["No natural bait Sep 1–Dec 31 · not today ⓘ"]);
+    expect(line(banHeading(true, none, null, [next], true))).toEqual(["No natural bait Sep 1–Dec 31 · not today ⓘ"]);
+  });
   it("only some baits banned, no season: no heading line at all", () => expect(banHeading(false, some, null, [], true)).toEqual([]));
 });
