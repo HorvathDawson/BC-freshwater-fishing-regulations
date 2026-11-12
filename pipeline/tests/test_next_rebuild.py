@@ -141,7 +141,7 @@ def _stage(tmp_path, monkeypatch, extra, limits, held=None):
 
 def test_the_build_cuts_by_the_registrys_tidal_water(tmp_path, monkeypatch):
     """The atlas stage with a limit: the tidal set it cuts by is the reach's on the registry made before the cuts
-    (`build.water_registry`), it is kept for the gate (as water: `coast.coverage`), and the record counts it.
+    (`build.water_registry`), it is kept for the gate (as water: `coast.water_cover`), and the record counts it.
     Mutation: no tidal water -> C's receiver is fresh and C is not cut. (T678: the coast cut; D's two crossings
     disagree, so D is the owner's and held.)"""
     from pipeline.atlas.splits import coast as C
@@ -151,7 +151,7 @@ def test_the_build_cuts_by_the_registrys_tidal_water(tmp_path, monkeypatch):
     reg = build_registry(b.graph)
     assert b.shore_tidal == S.reach_tidal(reg, b.graph, limits, {})
     assert "X:0" in b.shore_tidal and all(not s.startswith("C:") for s in b.shore_tidal)
-    assert b.shore_tidal_cover == C.coverage(b.graph, b.shore_tidal)
+    assert b.shore_tidal_cover == C.water_cover(b.graph, b.shore_tidal)
     rec = json.loads((tmp_path / S.RECORD).read_text())
     assert rec["tidal_sections"] == len(b.shore_tidal) and rec["rule"] == C.RULE
     assert "shore:C:300" in [p.split_id for p in b.applied_splits]

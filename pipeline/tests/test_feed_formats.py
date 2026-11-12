@@ -10,6 +10,7 @@ from pipeline.tools.emit import feed_formats as E
 
 
 def test_every_python_writer_reads_the_table():
+    from pipeline.deliver import salmon_pairs
     from pipeline.gauges.feed import publish as gauges
     from pipeline.regs.dfo_salmon import live as dfo
     from pipeline.regs.inseason import publish as inseason
@@ -17,7 +18,7 @@ def test_every_python_writer_reads_the_table():
     assert {
         "dfo_feed": dfo.FORMAT, "inseason_links": inseason.FORMAT, "gauge_feed": gauges.FEED_FORMAT,
         "runtiming_index": runtiming.INDEX_FORMAT, "runtiming_runs": runtiming.RUNS_FORMAT,
-        "runtiming_paint": runtiming.PAINT_FORMAT,
+        "runtiming_paint": runtiming.PAINT_FORMAT, "dfo_pairs": salmon_pairs.FORMAT,
         # written and read in TypeScript only (the feeds worker writes, the app reads): one table all the same
         "inseason_feed": FF.FEED_FORMATS["inseason_feed"],
     } == FF.FEED_FORMATS

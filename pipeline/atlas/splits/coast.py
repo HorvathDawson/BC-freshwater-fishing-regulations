@@ -502,7 +502,7 @@ def unclassified(limits, table: Mapping[str, str]) -> list[dict]:
             if getattr(r, "limit", None) == "split" and authority(r, table) not in GOVERNING]
 
 
-def coverage(graph, ids) -> dict:
+def water_cover(graph, ids) -> dict:
     """The WATER a set of sections covers, independent of how it is cut: `{blk: [(lo, hi)]}` (merged route-measure
     intervals) for stream pieces, `{"lake:<wbk>": True}` for lakes. Two sets of sections over the same water, cut
     differently (the length cap runs after the coast cut), have equal coverage."""

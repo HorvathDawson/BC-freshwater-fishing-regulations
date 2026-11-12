@@ -147,11 +147,12 @@ def nodes_at_cuts(resolved_rows, graph, *, report: dict | None = None) -> dict[s
     """`{station: node_id}` from the atlas's own gauge cuts: `resolved_rows` is the atlas's `splits.resolved.json`
     (rows with `split_id` `gauge__<station>`, `blk`, `route_measure`); the node is the stream section on that blue line
     whose lower end is the cut. `report` collects `held` rows (a cut where no section begins) with why."""
-    from pipeline.common.models import NodeKind
     rep = report if report is not None else {}
     starts: dict[str, list] = {}
+    # a section ON a blue line is one carrying its key (polygon nodes carry none: 2026-11-12 on the T678 atlas, every
+    # node with a `blk` is a line piece); no node kind is read here (T121)
     for nid, n in graph.nodes.items():
-        if n.kind == NodeKind.stream and n.blk:
+        if n.blk:
             starts.setdefault(n.blk, []).append((float(n.down_m), nid))
     out: dict[str, str] = {}
     held: list = []

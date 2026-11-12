@@ -240,7 +240,9 @@ UP_ADJ_READERS = {
     ("pipeline/atlas/reach/extent.py", "_flow_reach"): "a detached piece's flow path to its own water",
     ("pipeline/atlas/reach/extent.py", "_line_length"): "a line's confluence measures",
     ("pipeline/atlas/reach/extent.py", "_watershed_part"): "connected groups of the river's own code",
-    ("pipeline/atlas/reach/extent.py", "river_widenings"): "T153: the unnamed lake widenings a river's main flow runs through",
+    ("pipeline/atlas/graph/widenings.py", "widenings"):
+        "T153 / T679 D1: the unnamed lake widenings a river's main flow runs through (one test, read by the registry's "
+        "fold and `reach.extent.river_widenings`)",
     ("pipeline/atlas/splits/coast.py", "coast_rule"):
         "T678: the lines flowing into rank-1 tidal water, one level, as the coast cut's first worklist — binds nothing",
     ("pipeline/atlas/splits/coast.py", "coast_rule.upstream_blks"):

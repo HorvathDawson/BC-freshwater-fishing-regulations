@@ -211,10 +211,11 @@ def edge1450_from_gpkg(gpkg, mouths) -> dict[str, float]:
     import pyogrio
 
     from pipeline.atlas.splits import coast as C
+    from pipeline.common.fwa_edge_types import WATER_CROSSING
     df = pyogrio.read_dataframe(gpkg, layer="streams", read_geometry=False,
                                 columns=["BLUE_LINE_KEY", "DOWNSTREAM_ROUTE_MEASURE", "UPSTREAM_ROUTE_MEASURE", "EDGE_TYPE"],
-                                where="EDGE_TYPE = 1450")
-    rows = [SimpleNamespace(blk=str(int(b)), edge_type="1450", down_m=float(d), up_m=float(u))
+                                where=f"EDGE_TYPE = {int(WATER_CROSSING)}")
+    rows = [SimpleNamespace(blk=str(int(b)), edge_type=WATER_CROSSING, down_m=float(d), up_m=float(u))
             for b, d, u in zip(df.BLUE_LINE_KEY, df.DOWNSTREAM_ROUTE_MEASURE, df.UPSTREAM_ROUTE_MEASURE)]
     first: dict[str, float] = {}
     for r in rows:

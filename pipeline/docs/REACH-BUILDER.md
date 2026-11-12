@@ -33,6 +33,7 @@ pipeline/atlas/reach/
   water_kind.py    the water kind every filter reads                     (the registry's, AGENTS 55)
   position.py      each piece's nearest placed pieces on its line       (geometry the placement reads)
   io.py            read entries · write the run's tables + report.json
+  word_reads.py    the printed words the reach reads, and the guard on them (T679 D4: a lost read stops the run)
   diff.py          two runs -> rules whose sections changed
   binding_diff.py  two runs -> binding differences, ranked
   cache.py         POLICY_VERSION and its changelog (no cache: see below)

@@ -525,8 +525,9 @@ def test_spans_a_braid_is_the_gate():
 def test_cut_braids_is_the_phase_between_the_curated_cuts_and_the_areas(monkeypatch):
     from pipeline.atlas import build as AB
     order = []
-    # T660 (owner 2026-11-11): the shore cuts are the last cut, after the length cap, before the tidal mouths' aliases
-    phases = ("cut_border", "cut_curated", "cut_braids", "cut_areas", "cut_length", "cut_shores", "mark_membership")
+    # T678 (owner 2026-11-11, "the cuts used for tidal should happen where cuts happen"): the coast cut comes before the
+    # length cap, so the length cap is the last cut (it was after it under T660)
+    phases = ("cut_border", "cut_curated", "cut_braids", "cut_areas", "cut_shores", "cut_length", "mark_membership")
     for ph in phases:
         monkeypatch.setattr(AB, ph, lambda b, ph=ph: order.append(ph))
     monkeypatch.setattr("pipeline.atlas.splits.sliver_gate.short_pieces", lambda g: set())

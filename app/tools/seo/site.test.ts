@@ -276,11 +276,16 @@ describe("T195 hubs and dated pages", () => {
     const later = await buildAll({ loader: openRegsFixture(), on: buildDayOf(new Date(2026, 6, 15, 12)) });
     const was = new Map(waters().map((p) => [p.path, p.description]));
     expect(later.build.pages.filter((p) => p.kind === "water").every((p) => was.get(p.path) === p.description)).toBe(true);
-    // (T622 G23) the region in it is the water's own code, as the app names it ("Region 7A")
+    // (T622 G23) the region in it is the water's own code, as the app names it ("Region 7A"); (T672 W4, owner
+    // 2026-11-12) a water in several regions names every hub number instead ("Regions 5, 6, 7": the West Road)
+    let several = 0;
     for (const m of built.build.models.filter((x) => x.focus && /[ab]$/.test(x.focus))) {
       const p = waters().find((w) => w.path === `/water/${built.build.slugMap.waters[m.id]!.slug}`)!;
-      expect(p.description, m.id).toContain(`Region ${m.focus!.toUpperCase()}`);
+      const hubs = [...new Set(m.regions)].sort((a, b) => a - b);
+      if (hubs.length > 1) several += 1;
+      expect(p.description, m.id).toContain(hubs.length > 1 ? `B.C. (Regions ${hubs.join(", ")}):` : `B.C. (Region ${m.focus!.toUpperCase()}):`);
     }
+    expect(several, "the fixture holds a lettered-region water in several regions (the case T672 W4 decided)").toBeGreaterThan(0);
   }, 120_000);
 
   it("the changes page appears only against a previous release, and lists changed (rules), new and removed waters", async () => {

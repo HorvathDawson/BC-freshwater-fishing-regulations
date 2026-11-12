@@ -212,7 +212,7 @@ def test_coverage_is_the_water_not_the_cut():
     from pipeline.atlas.splits.sectionizer import place_points, split_graph_at
     from pipeline.common.models import AnchorType, SplitPoint
     g = _graph()
-    before = C.coverage(g, {"X:0"})
+    before = C.water_cover(g, {"X:0"})
     fids = _fids()
     g2 = build_stream_graph(build_blk_chains(fids, {}), fids)
     geoms = {nid: linemerge([f.geometry for f in fids if f.fid in n.member_fids]) for nid, n in g2.nodes.items()}
@@ -221,8 +221,8 @@ def test_coverage_is_the_water_not_the_cut():
                                        anchor_type=AnchorType.point, source="length")])
     split_graph_at(g2, geoms, pts, idx)
     xs = {nid for nid, n in g2.nodes.items() if n.blk == "X"}
-    assert len(xs) == 2 and C.coverage(g2, xs) == before
-    assert C.coverage(g2, {min(xs)}) != before                       # half the water is not the water
+    assert len(xs) == 2 and C.water_cover(g2, xs) == before
+    assert C.water_cover(g2, {min(xs)}) != before                       # half the water is not the water
 
 
 def test_the_record_round_trips_and_a_missing_one_is_refused(tmp_path):

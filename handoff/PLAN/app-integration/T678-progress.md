@@ -14,7 +14,7 @@ Ticket: `T678-tidal-in-the-build.md` (owner answers at its top are binding). Not
 - step 2: the build. `build.cut_shores` = the coast cut, now BEFORE `cut_length`. `waters/shore_held.json` (184 lines,
   today's result) written by `python -m pipeline.atlas.splits.coast_held --atlas data/generated/atlas/full --out
   data/curated/waters/shore_held.json` (a `decided` row survives a rerun). `build_registry` writes
-  `tidal_sections.json` (THE record) and proves rank 1 covers the same water (`coast.coverage`). Reach CLI, tiles,
+  `tidal_sections.json` (THE record) and proves rank 1 covers the same water (`coast.water_cover`). Reach CLI, tiles,
   reach stage key and review app read the record on a coast-cut atlas (`coast.built_by_coast_rule`); an older atlas
   is read the old way, printed. `sidecars --tidal-only` removed.
 
