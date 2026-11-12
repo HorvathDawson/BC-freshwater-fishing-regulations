@@ -283,6 +283,15 @@ def keep_range(P: "Part", model: dict, members: Sequence[str]) -> Optional[Tuple
     return (lo, hi) if anyk else None
 
 
+#: T678 (2026-11-12, RULINGS Z4: on a straddler EVERY cap, the seasonal stream caps included, is the stricter of the two
+#: regions'): A KIND'S BANDS NEVER SAY MORE THAN THE READER KEEPS OF THAT FISH ALONE (its decided daily). The pond on
+#: Qualcho Creek (gnis:27799) lies in Regions 5 and 6; Region 5's table wins the total, so Region 6's "1 trout from
+#: streams July 1-Oct 31" is outside the winner's chain and folds into each trout's own daily (1) with no fact line.
+#: The bands were built from the row's 2 and the row's facts alone, so the card's rainbow row said 2 where 1 may be kept
+#: (the card gate's 12 problems). False = the mutation pin (`test_t183_two_regions_card.py`).
+A_KIND_NEVER_SAYS_MORE_THAN_ITS_OWN_ANSWER = True
+
+
 def fish_bands(P: "Part", model: dict, S: str, facts: List[dict], sub: Optional[dict],
                row: dict, rc: dict) -> Optional[List[dict]]:
     """One fish's keep range split into bands with their own number (the page's `quotaLines`,
@@ -310,12 +319,14 @@ def fish_bands(P: "Part", model: dict, S: str, facts: List[dict], sub: Optional[
                 and (l["t"] != "orphan" or (l["r"].f.get("water") in (None, P.kind)
                                             and P.in_dates(l["r"]))):
             base = min(base, l["r"].f["take"])
+    m = main_res(R[S]["H"], R[S]["W"])
+    if A_KIND_NEVER_SAYS_MORE_THAN_ITS_OWN_ANSWER and m["daily"] is not None:
+        base = min(base, m["daily"])
     capt = ("cap", "outersize")
     own = [l for l in facts if l["t"] in capt and l.get("take") is not None]
     gen = [l for l in row["everyone"] if l["t"] in capt and l.get("take") is not None
            and not any(o["a"] == l["a"] and o["b"] == l["b"] for o in own)]
     caps = own + gen
-    m = main_res(R[S]["H"], R[S]["W"])
     slots = [(l["a"], l["b"]) for l in m["lines"] if l["t"] == "rel" and l["a"] > 0 and l["b"] < INF]
     pts = {r[0], r[1]}
     for a, b in [(c["a"], c["b"]) for c in caps] + slots:

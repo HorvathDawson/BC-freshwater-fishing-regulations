@@ -41,7 +41,7 @@ JUL15, JAN15 = (7, 15), (1, 15)
 #: shape -> (steelhead water, steelhead presence) as the side bundle keyed the piece
 FLAGS = {"fraser_3_5": (True, "known"), "big_bend_6_7a": (False, "possible"),
          "contact_6_7b": (False, "possible"), "west_road_5_6": (True, "known"),
-         "copper_2_8": (False, "possible")}
+         "copper_2_8": (False, "possible"), "qualcho_5_6": (True, "known")}
 
 
 class _B:
@@ -49,20 +49,26 @@ class _B:
         self.rules, self.sets = rules, sets
 
 
-def _load():
-    blob = json.loads(FIXTURE.read_text(encoding="utf-8"))
-    got = read._RULES_BY_PATH.get(PATH)
+#: T678 (2026-11-12): a shape cut later, from a later bundle, sits in its own file (its rule records are of that vintage)
+QUALCHO = Path(__file__).parent / "fixtures" / "t678_qualcho_5_6.json"
+FILES = {"qualcho_5_6": (QUALCHO, "fixture:t678_qualcho_5_6")}
+
+
+def _load(shape=None):
+    fixture, path = FILES.get(shape, (FIXTURE, PATH))
+    blob = json.loads(fixture.read_text(encoding="utf-8"))
+    got = read._RULES_BY_PATH.get(path)
     if got is None:
         got = {(x["entry"], x["rule"]): dict(x) for x in blob["rules"]}
         for x in got.values():
             x["_rank"] = read.source_of(x).rank
-        read._RULES_BY_PATH[PATH] = got
+        read._RULES_BY_PATH[path] = got
     sets = {name: [tuple(r) for r in s["set"]] for name, s in blob["sets"].items()}
-    return _B(got, sets)
+    return _B(got, sets), path
 
 
 def _part(shape, md):
-    B = _load()
+    B, PATH = _load(shape)
     sw, pres = FLAGS[shape]
     bound = B.sets[shape]
     lad = {f: {o: A.ladder_verdict(read.effective_rules_bound(
@@ -150,6 +156,32 @@ def test_copper_creek_in_regions_2_and_8_keeps_1_over_50_cm():
     assert CC.check_card(P, out) == []
 
 
+def test_qualcho_pond_in_regions_5_and_6_keeps_1_trout_from_streams_in_summer():
+    """T678: the pond on Qualcho Creek (Regions 5 and 6). Region 5's table wins the total, so Region 6's "1 trout from
+    streams July 1-Oct 31" (char excepted) folds into each trout's own answer with no fact line of its own. Every kind
+    row says what that fish alone may be kept (`conds.A_KIND_NEVER_SAYS_MORE_THAN_ITS_OWN_ANSWER`): brook and lake trout
+    2, brown, cutthroat and rainbow trout 1 between them, inside the 2 from streams. In January Region 6's cap is out of
+    season (the trout go back there then; brook and lake trout keep Region 5's 2)."""
+    out, P = _card("qualcho_5_6")
+    row, g = _trout(out)
+    assert g["headline"]["n"] == 2
+    bands = {S: max(b[2] for b in it["bands"]) for it in row["items"] if it["bands"] for S in it["members"]}
+    assert bands == {"EB": 2, "LT": 2, "GB": 1, "CT": 1, "RB": 1}
+    (share,) = [b for b in g["buckets"] if b["why"] == "share"]
+    trout = [x for x in share["groups"] if x["by"] == "z6:daily_quotas::trout_char_quota.r4"]
+    assert [x["says"] for x in trout] == ["Brown trout, cutthroat trout or rainbow trout: 1 between them"]
+    assert {S for k in trout[0]["kinds"] for S in k["species"]} == {"GB", "CT", "RB"}
+    assert all(k["n"] == 1 for k in trout[0]["kinds"])
+    assert row["scope"]["both"] == "Regions 5 and 6"
+    assert CC.check_card(P, out) == []
+    out, P = _card("qualcho_5_6", JAN15)
+    row, _g = _trout(out)
+    bands = {S: max(b[2] for b in it["bands"]) for it in row["items"] if it["bands"] for S in it["members"]}
+    assert bands == {"EB": 2, "LT": 2}
+    assert {S for it in row["items"] if it["back"] for S in it["members"]} >= {"GB", "CT", "RB"}
+    assert CC.check_card(P, out) == []
+
+
 # ------------------------------------------------------------------------------------------- mutation pins
 
 def test_mutation_one_tables_caps_says_5_where_2_may_be_kept(monkeypatch):
@@ -179,6 +211,13 @@ def test_mutation_each_size_cap_alone_offers_a_second_steelhead(monkeypatch):
     monkeypatch.setattr(facts, "A_SIZE_FREE_RAINBOW_RULE_SPEAKS_FOR_STEELHEAD", False)
     out, P = _card("copper_2_8")
     assert any("hatchery steelhead" in p or "do not count" in p for p in CC.check_card(P, out))
+
+
+def test_mutation_the_kind_rows_from_the_rows_number_say_2_rainbow_where_1_may_be_kept(monkeypatch):
+    from pipeline.deliver.answers.rows import conds
+    monkeypatch.setattr(conds, "A_KIND_NEVER_SAYS_MORE_THAN_ITS_OWN_ANSWER", False)
+    out, P = _card("qualcho_5_6")
+    assert any("kind ['RB'] says 2" in p for p in CC.check_card(P, out))
 
 
 @pytest.mark.parametrize("shape", sorted(FLAGS))

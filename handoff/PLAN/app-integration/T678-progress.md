@@ -123,3 +123,19 @@ Next commands:
 3. After the release: spot-checks (D3 trib_nearer pairs, the 10 gauge moves, Pend d'Oreille, San Juan, Tatshenshini,
    Dewdney search, the three lake twins), then `pnpm -C app check`, then
    `deploy/staging/build-apk.sh --play` (T681 is included at d84c664e1), then the emulator smoke and the CI check.
+
+## Card gate fixed 2026-11-12 (step 1 done)
+- The root cause was not in groups.py. The group already held Region 6's r4 "1 trout from streams Jul 1-Oct 31" as a
+  sub-cap, and the bucket's "Up to 2 between them" is right (brook and lake trout are char: Region 6's cap does not
+  hold them). What was wrong was each kind's own number. Region 5's table wins the total, so r4 sits outside the
+  winner's chain. `rows/evaluate.py` folds it into each trout's own daily (1, correct) and leaves no fact line.
+  `rows/conds.fish_bands` built the bands from the row's 2 and the row's facts only, so RB, GB and CT said 2.
+- Fix (mechanical under RULINGS Z4, "every cap … seasonal stream caps … the stricter"):
+  `conds.A_KIND_NEVER_SAYS_MORE_THAN_ITS_OWN_ANSWER`. A kind's bands never exceed the reader's decided daily for that
+  fish. The card now says: up to 2 a day between them from streams in Regions 5 and 6. Brook and lake trout 2. "Brown
+  trout, cutthroat trout or rainbow trout: 1 between them" (Jul-Oct).
+- Test: `test_t183_two_regions_card.py` has the shape `qualcho_5_6` (real rule set in `fixtures/t678_qualcho_5_6.json`)
+  and a mutation pin (flag off → the gate's "kind ['RB'] says 2").
+- Measured on the whole candidate (every named and unnamed part, flag on vs off, per fish): 9 changes, all in rule set
+  1695 = Qualcho Creek only (RB/GB/CT 2 → 1 on the Jul 1, Aug 1 and Oct 1 segments). No other card moves.
+- card_check `--items gnis:27799`: 0 problems. Fast-fail passed.
