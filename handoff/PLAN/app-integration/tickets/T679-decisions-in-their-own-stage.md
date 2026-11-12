@@ -1,6 +1,6 @@
 # T679 — Each decision in its own stage (everything but tidal)
 
-Status: OPEN (audit and plan; no code changed)
+Status: IN PROGRESS — D2 and D6 built in c9488453c (owner 2026-11-12); left (Claude): D1 ponds, D3 nearer row and D5 DFO confluence cuts at the next atlas build (diffs shown), the D4 guard, gauge placement #4 at the next build, then the plan below
 
 Source: owner 2026-11-11, about tidal: "we want to avoid it being a weird post processing step", "the cuts used for
 tidal should happen where cuts happen etc.", then: "Look for other things like that too". Tidal itself is T678; this
@@ -124,3 +124,20 @@ Depends: T678 (share its atlas build). Size: L (split per plan step when started
 
 ## Owner 2026-11-12
 D1 ponds: built then reverted (the bundle refused it: 161 rule keys mixed lake and stream); goes into the next atlas build instead (16,152 ponds change; 97 rules gain, 32 lose). D2 partial salmon coverage: map and bar both give the species verdict. D3 nearer row wins: ignore the loops (receivers with flow-back removed), next build, diff shown. D4 words read at build time: leave, add a guard that stops the build and names the row when a row that matched before stops matching. D5 DFO confluence cuts: same as provincial, the joining water stays out unless DFO's words add tributaries; diff before it ships. D6: Python reads DFO rows tolerantly too (an unreadable row reads "check", is reported, and no longer stops a release). Gauge placement (#4, held): "One rule, accept the moves" - atlas placement wins; 29 of 458 shown gauges move at the next build; list reported.
+
+## Built 2026-11-12 (c9488453c)
+- **D2 (#7):** one source. The card's salmon bar, its "in part" headline and the closed-all-year line read the chain's
+  map runs `m` (core `salmonDayStatus` -> `salmonChainStatus`), which the pipeline builds as `map_status` of the day's
+  five species verdicts (T372 already took the undrawn place off the map). The species-side re-derivation is gone.
+  Measured on r-483b295de57c: 0 chain-days differed (127 chains carry an undrawn place), so nothing on screen moves;
+  pinned: `salmon.test.ts` "(T679 D2) ONE source" (mutation: a map run the species do not give shows on the bar too),
+  `test_salmon_file.py::test_t679_d2_*` (every chain's `m` = `map_status` of its species, partial water included).
+  RULINGS P48.
+- **D6:** Python reads DFO rows tolerantly, as the worker's robust mode (`feed.type_rows`): a locator whose rows do not
+  type carries `error` and one unread rule (`check` = "DFO's row for this place could not be read — check DFO"); the
+  place reads "check DFO" for every salmon every day, the feed logs it, the salmon build names it, the rest of the
+  region stands, and the release is not stopped. `live.type_page` (the Mac's live run) stays strict: it is the parity
+  spec of the worker's `pythonParity` mode. Builds on T676 (4bc03ac14, b7749b726): a check verdict now leads with each
+  rule's own `check` in both languages (same words for the date cell). Shared row "a row that does not type"
+  (`dfo-rows.json`, both test suites + the vectors). Measured: 0 of 261 locators fail on today's rows; the typed feed
+  is unchanged. RULINGS D6.

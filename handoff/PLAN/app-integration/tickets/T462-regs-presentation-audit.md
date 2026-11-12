@@ -37,3 +37,9 @@ Related: T463 (code review), T369, T333, T387. Size: L (workflow). Owner: decide
 
 ## Owner 2026-11-12
 G6 Pend d'Oreille River: the printed exemption lifts both rules; barbed and treble allowed (option 1, no longer the stricter default).
+
+Built 2026-11-12 (c9488453c): `pend_doreille_river.r1` also lifts `zp:barbless_single_hook_streams` r1 (barbless) and r3
+(one point); with the zone rule it already lifted, barbed and treble hooks are allowed on the water. region-4.json backed up
+first, the diff is the two `exempts` only; both resolve outright (`rules._exempts`). Effect: 10 of the water's 11 bundle
+sections (the stream ones) lose the two provincial hook rules — gear loosened by the owner's reading, no status change.
+Shows with the next deliver. RULINGS G9.
