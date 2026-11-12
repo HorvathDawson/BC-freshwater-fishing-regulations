@@ -151,11 +151,18 @@ def write(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_item
         _cut_rep: dict = {}
         _rows = json.loads((Path(build_dir) / "splits.resolved.json").read_text(encoding="utf-8"))
         _at_cut = nodes_at_cuts(_rows, graph, report=_cut_rep)
+        # HELD (T678b candidate, 2026-11-12): a cut on ANOTHER blue line than the projection (the Fraser at Albion and
+        # Steveston, the Thompson at Kamloops, the Peace near Taylor …) is a move the owner has not seen — the 29 he
+        # accepted were all along the gauge's own line. It keeps the projection, printed, until he looks.
+        _other = sorted(st for st, n in _at_cut.items() if st in placed and
+                        graph.nodes[n].blk != getattr(graph.nodes.get(placed[st]), "blk", None))
+        _at_cut = {st: n for st, n in _at_cut.items() if st not in _other}
         _moved = sorted(st for st, n in _at_cut.items() if st in placed and placed[st] != n)
         placed.update({st: n for st, n in _at_cut.items() if st in placed})
         print(f"     gauge placement: {len(_at_cut):,} station(s) at their atlas cut, {len(_moved)} moved off the "
               f"projection ({', '.join(_moved[:12])}{' …' if len(_moved) > 12 else ''}); "
-              f"{len(_cut_rep['held'])} cut(s) where no section begins keep the projection")
+              f"{len(_cut_rep['held'])} cut(s) where no section begins and {len(_other)} cut(s) on another blue line "
+              f"keep the projection ({', '.join(_other)})")
     prov = {m.station: m for m in matches}
     # MATCHED BUT NOT USED (`liveness.dormant`, T226 item 2, owner 2026-10-28): a discontinued station that does not
     # transmit stays matched (matches.json, `gauge.matched_by` / `.match_m`) but is attached to NO water — no

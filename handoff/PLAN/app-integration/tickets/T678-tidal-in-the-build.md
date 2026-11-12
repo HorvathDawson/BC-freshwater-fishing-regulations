@@ -1,6 +1,6 @@
 # T678 — Tidal in the build: one decision, made once, read everywhere
 
-Status: IN PROGRESS (coast cut in the build + one tidal record: commits addbfd819, 26873ad75; candidate atlas built, not promoted; progress and what is left: `handoff/PLAN/app-integration/T678-progress.md`)
+Status: IN PROGRESS (coast cut in the build + one tidal record: addbfd819, 26873ad75; the owner's 2026-11-12 answers built in 9b0d6f4ae; second candidate atlas `full_t678b` built, not promoted; results and what is left: `handoff/PLAN/app-integration/T678-progress.md`)
 
 Source: owner 2026-11-11: "We need to make sure all the tidal logic and stream removal happens in the build of the
 graph etc if possible. Or where other tidal logic is we want to avoid it being a weird post processing step." And:
@@ -197,3 +197,9 @@ Depends: T665, T677. Size: L.
 
 ## Owner 2026-11-12
 San Juan: the main-stem bridge is at the river's mouth, so the boundary stays at the mouth; the side channel is tidal below the Deering Road bridge (681 m up it). The 10 curated splits not traced to DFO (Qualicum, Toquaht, Sooke, Chemainus, Campbell River Area 13, Nitinat, Yorkson, Chambers, Noons, Nass): "Keep all as my decisions"; they stay, recorded as owner boundaries (the owner explicitly accepting them overrides "non-DFO splits carry no authority" for these ten). Kitimat: automatic mouth line. Marble: "Mouth for marble river (signs near varney bay) could add it has signs to cut.. for tell say 1.5km upstream bridge option" - Marble at the mouth with a note that signs stand near Varney Bay; Tlell at the bridge 1.5 km upstream (the DFO option naming it; Claude's reading, told to the owner). The four held creek pieces (360586479, 360665787, 360675720, 360812872): the mouth line decides; shown in the T678 diff. Ucona's first 33 m under the Strathcona Park rule: fine. lake:329461947 folds into the Okanagan River Oxbows: yes. "Dewdney Slough" search name finds Nicomen Slough: yes, apply. Still open for the owner: Fraser sloughs and 7 unnamed lines; the 46 estuaries; the five held build-27 cuts.
+
+Built 2026-11-12 (9b0d6f4ae, candidate `full_t678b`, not promoted): the ten splits are `authority: owner` and govern
+(Nass, Chemainus, Campbell, Sooke, Qualicum back to live's reading); San Juan side channel tidal below the Deering Road
+bridge (a `cut` row); Kitimat by the mouth line; the four creek pieces decided at FWA's edge-1450 crossing; Tlell
+unchanged (the 1.5 km DFO split already governs); Marble at the mouth (note in the drafts file). Diffs and the
+regenerated owner list (187 lines) in the progress note. Left: owner reads the diffs; promote on his word.

@@ -9,7 +9,7 @@ tree as of this commit (`git apply --check` passed). The order to apply them is 
 | `nine-cuts.dfo-places.patch` | the 9 marks' extents on their DFO places (`dfo_salmon/places/region-2/3/6.json`) | after promote, by `apply_proposals` (this patch is what it will write) |
 | `oxbow-still-water.name_variants.patch` | owner ruling 2026-11-11: the 8 lake / wetland oxbow polygons are streams. Lists them (`one_water_takes`) on the Oxbows name record in `name_variants.json` | before the side atlas build |
 | `t664-references.patch` | `r8:okanagan_river_oxbows@8-1` `matched` 53 → 1 id; in-season notice `is-bb5426c61ff3` 53 → 1 extent (+ a history row). Remade 2026-11-11 from the side build (was 53 → 9 before the ruling) | after the side atlas build, before the reach run |
-| `dewdney-slough.name_variants.patch` | PROPOSAL, not part of the build: "Dewdney Slough" as a search name on Nicomen Slough `gnis:21105` (evidence in `../next-rebuild-results.md`) | when the owner accepts it; needs an atlas build to show |
+| `dewdney-slough.name_variants.patch` | APPLIED 2026-11-12 (owner: "yes, apply"; commit 9b0d6f4ae, source `dfo`, display false): "Dewdney Slough" as a search name on Nicomen Slough `gnis:21105` | in `name_variants.json`; shows with the next atlas build |
 
 Both cut patches come from the review tool itself (`python -m pipeline.regs.review.proposals side <the 9 mark proposals>`),
 built from the owner's saved marks in memory. No mark was edited or added.

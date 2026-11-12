@@ -50,3 +50,39 @@ change bound length by over 1 m, 197 gain (171 province/zone rules +43.9 km each
 Chemainus +8.7 km, Campbell r6 +2.4 km, ...), 4 lose (Tlell r1/r2/r5 -67 m, Salmon r3 -15 m). Owner list:
 `coast_owner.json` in the candidate, 194 lines (182 estuaries drawn as river polygons, 3 crossings disagree, 3 no
 geometry, Kitimat, five item-C lines) + 10 splits without DFO authority.
+
+## Second pass (2026-11-12, owner answers of the day) — candidate `data/generated/atlas/full_t678b`, not promoted
+Code + data: 9b0d6f4ae (the gauge hold below: the commit after it). Build: atlas 1,789 s + reach 693 s, rc 0, curated
+snapshot at 9b0d6f4ae (`CURATED_ROOT`; script and logs in the session scratchpad `t678b/`). Diffs (`t678b/diff/`,
+script `t678b/diffs2.py`): cut_diff, tidal_diff, rule_length_diff (vs live and vs the first candidate), pond_fold_diff,
+d5_dfo_diff, d3_nearer_diff, gauge_moves, owner_list (.json + .md, lat/lon per line).
+- The 10 owner splits govern again (`tidal_split_authority.json` format 2, `authority: owner`): vs the first candidate
+  Nass -9.6 km, Chemainus -8.7 km, Campbell r6 -2.4 km, Sooke -361 m, Qualicum -108 m (back to live's reading).
+- San Juan side channel 354087703 tidal below the Deering Road bridge (681 m, a `cut` row); san_juan_river.r2 binds
+  681 m less (the one closure that shrinks vs live — the owner's decision). Main stem stays at its mouth. 354087702 (the
+  447 m estuary piece) is now governed by rank 1 (`held_now_governed`), tidal as before.
+- Kitimat 360885824 decided by the mouth line (not cut); the four creek pieces kept at FWA's edge-1450 crossing
+  (`decided` rows). Tlell: already the DFO 1.5 km sign split (rank 1), unchanged. Marble: mouth, Varney Bay note.
+- Shore cuts: live 226 -> 217 (99 same, 116 moved all < 50 m, 2 added, 11 removed); vs first candidate 0 moved, 2 removed
+  (354087703, now a rank-1 cut; Yorkson 356250588, owner split). Tidal water 456.3 km live -> 437.2 km (first candidate
+  412.4).
+- Rules over 1 m vs live: 194 (187 gain, 7 lose); 22 water rules named in rule_length_diff.json. Dropped bindings: the
+  three lake twins z1 trout_quota.r5b, z5 trout_char_quota.r6b, z6 trout_char_quota.r9b — every lake they bound was a
+  steelhead river's widening pond, now the river (D1); unresolved with a typed reason (no_sections).
+- D1: 16,119 ponds folded into 4,258 stream items; 7 left and listed (one two-streams pond, six with a cut on the edge:
+  five gauges + Gagnon Creek signs). lake:329461947 joined the Okanagan River Oxbows. 397 rules change pond count (365
+  gain, 32 lose: the lake-only zone rules).
+- Dewdney Slough: a variant of gnis:21105 in the registry. SIDE EFFECT, for the owner: the gnis-targeted name kept four
+  Fraser-code lines (355991890/895/899/902, 1.6 km) the leaf prune used to drop; they are now Nicomen Slough and
+  nicomen_slough.r1 binds +1,626 m. Narrowing the variant to the slough's own lines would undo it (next build).
+- D5: 7 DFO places keep the joining water out now (Ash River at the Stamp, Lamprey Creek at the Morice x4, Boulder Creek
+  at the Nanaimo x2): Stamp ~709 km and Morice ~289 km less walked water.
+- D3: 2,866 receivers removed by the flow-back rule; trib_nearer 95 -> 98 pairs (3 newly ordered: John Hart Lake's and
+  Lower Campbell Lake's tributaries under the Campbell, Tanya Lake's under the Takia); none lost. Lands with the bundle.
+- Gauges (bundle, lands with the next deliver): 10 of the owner's 29 move to the section beginning at their cut; 17
+  (cut on a lake outlet / another boundary) keep the projection; 11 cuts on ANOTHER blue line than the projection (Peace
+  near Taylor, Seymour above Lakehead, Klinaklini East Channel, Eve below Kunnum, Bowron, Quesnel near Quesnel, Thompson
+  at Kamloops, Seton, Fraser at Steveston, Fraser at Albion, Elk near Natal) are HELD on the projection: not in the 29.
+- D4 guard: 69 accepted reads, 0 lost, 0 new on this run.
+- Owner list (owner_list.md): 187 lines still open — 177 estuaries, 3 crossings disagree, 3 no geometry, 4 item C. No
+  Fraser slough / unnamed Fraser line reaches the method on this atlas (none is held).

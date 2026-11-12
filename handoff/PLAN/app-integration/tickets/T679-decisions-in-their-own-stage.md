@@ -141,3 +141,12 @@ D1 ponds: built then reverted (the bundle refused it: 161 rule keys mixed lake a
   rule's own `check` in both languages (same words for the date cell). Shared row "a row that does not type"
   (`dfo-rows.json`, both test suites + the vectors). Measured: 0 of 261 locators fail on today's rows; the typed feed
   is unchanged. RULINGS D6.
+
+Built 2026-11-12 (9b0d6f4ae + the gauge hold after it; candidate atlas `full_t678b`, not promoted, diffs in
+`T678-progress.md`): D1 ponds folded at the registry (`flowing.fold_widening_ponds`, one test `graph.widenings`;
+16,119 ponds, 7 left and listed; lake:329461947 in the Oxbows); D3 `item_exit_down` + `nearer.NEARER_IGNORES_LOOPS`
+(bundle; 3 pairs newly ordered, none lost); D4 `reach.word_reads` + `regulations/word_reads.json` (69 reads; a lost read
+stops the run); D5 `build.DFO_JOINING_WATER_STAYS_OUT` (7 DFO places keep the joining water out); gauges
+`place.nodes_at_cuts` (bundle): 10 of the owner's 29 move, 17 lake-outlet cuts and 11 cuts on another blue line keep the
+projection, listed. Left (Claude): D1/D3/gauges show at the next deliver after promote; the 11 other-line gauge cuts and
+the Dewdney side effect go to the owner.
