@@ -64,10 +64,14 @@ describe("saved ids follow item_alias", () => {
     expect(await s.currentItem!("gnis:17795" as ItemId)).toBe("gnis:17795");
     expect(await s.currentItem!("wbk:0" as ItemId)).toBeNull();
   });
-  it("locate follows it: the absorbed id's sections are asked under the id in use, never the old one", async () => {
+  it("locate follows it: the absorbed id holds no sections, so the water it became is asked", async () => {
     sectionsAskedFor.length = 0;
     await source().locate("wbk:328965685" as ItemId);
-    expect(sectionsAskedFor).toEqual(["gnis:17795"]);
+    expect(sectionsAskedFor).toEqual(["wbk:328965685", "gnis:17795"]);
+    // a core cut before item_alias: the old id only, as it always was
+    sectionsAskedFor.length = 0;
+    await source(false).locate("wbk:328965685" as ItemId);
+    expect(sectionsAskedFor).toEqual(["wbk:328965685"]);
   });
 });
 

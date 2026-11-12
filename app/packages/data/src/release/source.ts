@@ -86,6 +86,13 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {
   };
   const hasItemNear = has(CROSS.HAS_ITEM_NEAR), hasLakeSection = has(CROSS.HAS_LAKE_SECTION);
   const hasItemAlias = has(CROSS.HAS_ITEM_ALIAS);
+  /** (T555) What `item_alias` says an id became (null: no alias, or a core cut before the table). Asked only for an id
+   *  the release does not hold, so a current id costs no extra read. */
+  const aliasOf = async (id: string): Promise<ItemId | null> => {
+    if (!(await hasItemAlias())) return null;
+    const a = await get(CROSS.ITEM_CURRENT, id);
+    return a ? (str(a.item_id) as ItemId) : null;
+  };
   /**
    * (T555) THE ONE RESOLVER of a saved item id: the id itself when core holds it, else what `item_alias` says it became
    * (an id a later build absorbed), else null. Every by-id entry point goes through here, so a saved spot, alert or recent
@@ -94,15 +101,21 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {
   const currentItem = async (id: string, held: (id: string) => Promise<Row | undefined | null>): Promise<[string, Row] | null> => {
     const own = await held(id);
     if (own) return [id, own];
-    if (!(await hasItemAlias())) return null;
-    const a = await get(CROSS.ITEM_CURRENT, id);
-    const now = a ? str(a.item_id) : null;
+    const now = await aliasOf(id);
     const row = now === null ? null : await held(now);
     return now !== null && row ? [now, row] : null;
   };
   /** (T555) The id `id` names in this release (itself, or what absorbed it), or null: `currentItem` over the item's ord. */
   const nowId = async (id: ItemId): Promise<ItemId | null> =>
     ((await currentItem(id, (i) => get(CROSS.ITEM_ORD, i)))?.[0] as ItemId | undefined) ?? null;
+  /** core: the ords a water's geometry is read by (`GEO_ORDS`) — (T555) an id the release no longer holds follows item_alias. */
+  const geoOrds = async (item: ItemId): Promise<number[]> => {
+    const of = async (id: string) => (await all(CROSS.GEO_ORDS, id)).map((r) => Number(r.ord));
+    const own = await of(item);
+    if (own.length) return own;
+    const now = await aliasOf(item);
+    return now ? of(now) : [];
+  };
   const hasNameSource = has(CROSS.HAS_NAME_SOURCE), hasItemArea = has(CROSS.HAS_ITEM_AREA);
   /** (T224) the `name_source` rows of these waters; none from a core cut before the table. */
   const nameSourcesOf = async (items: readonly string[]): Promise<Row[]> =>
@@ -414,8 +427,12 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {
 
     async locate(item): Promise<WaterFix> {
       const pt = (r: Row) => ({ lat: Number(r.lat), lon: Number(r.lon) });
-      item = (await nowId(item)) ?? item;      // (T555) a saved id follows item_alias, as `water` does
-      const sections = await sectionsOf(item);
+      let sections = await sectionsOf(item);
+      // (T555) a saved id the release no longer holds follows item_alias, as `water` does
+      if (!sections.length) {
+        const now = await aliasOf(item);
+        if (now) { item = now; sections = await sectionsOf(item); }
+      }
       const [gauges, rings] = await Promise.all([
         chunked(sections, (c) => all(CROSS.GAUGES_AT(c.length), ...c)),
         ringsFor([item], 12),
@@ -427,16 +444,14 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {
     async waterBox(item) {
       // no geometry file (a release cut without regulations, like the fixture's): no box, and `locate` places it
       if (!loader.manifest.files[at(CROSS.PART_GEO_FOR_ORDS(1))]) return null;
-      item = (await nowId(item)) ?? item;      // (T555)
-      const ords = (await all(CROSS.GEO_ORDS, item)).map((r) => Number(r.ord));
+      const ords = await geoOrds(item);
       if (!ords.length) return null;
       return boxOfGeoRows(await chunked(ords, (c) => all(CROSS.PART_GEO_FOR_ORDS(c.length), ...c)), 1_000_000);
     },
 
     async waterPoint(item) {
       if (!loader.manifest.files[at(CROSS.PART_GEO_FOR_ORDS(1))]) return null;
-      item = (await nowId(item)) ?? item;      // (T555)
-      const ords = (await all(CROSS.GEO_ORDS, item)).map((r) => Number(r.ord));
+      const ords = await geoOrds(item);
       if (!ords.length) return null;
       return pointOfGeoRows(await chunked(ords, (c) => all(CROSS.PART_GEO_FOR_ORDS(c.length), ...c)), 1_000_000) as { lat: number; lon: number; sid?: SectionId } | null;
     },

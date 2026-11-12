@@ -83,6 +83,9 @@ const openGeo = async (name: DbName): Promise<Db> => {
   const all = async (sql: string, ...p: unknown[]): Promise<Row[]> => {
     if (sql.startsWith("SELECT k, v FROM meta")) return [{ k: "format", v: fmt(name) }, { k: "section_handles", v: H }];
     if (name === "core" && sql === CROSS.GEO_ORDS.sql) return (ORDS[String(p[0])] ?? []).map((ord) => ({ ord }));
+    // (T555) item_alias: `wbk:1` was absorbed into Kooryet Lake; asked only for an id core does not hold
+    if (name === "core" && sql === CROSS.HAS_ITEM_ALIAS.sql) return [{ x: 1 }];
+    if (name === "core" && sql === CROSS.ITEM_CURRENT.sql) return p[0] === "wbk:1" ? [{ item_id: "wbk:328972518" }] : [];
     if ((name === "water" || name === "geo") && sql === CROSS.PART_GEO_FOR_ORDS(p.length).sql)
       return p.flatMap((o) => GEO[Number(o)] ?? []);
     throw new Error(`unexpected ${name}: ${sql}`);
@@ -155,6 +158,12 @@ describe("makeReleaseSource.waterBox: every water placed by its own geometry", (
     const loader = releaseLoader(manifest(["core", "water"]), bytes, openGeo);
     expect(await makeReleaseSource(loader).waterBox("wbk:328974235" as ItemId))
       .toEqual([-117.468881, 49.246325, -116.479453, 50.180355]);
+  });
+  it("(T555) a saved id a later build absorbed is placed by the water it became (item_alias): box and point", async () => {
+    const src = makeReleaseSource(releaseLoader(manifest(["core", "water"]), bytes, openGeo));
+    expect(await src.waterBox("wbk:1" as ItemId)).toEqual(await src.waterBox("wbk:328972518" as ItemId));
+    expect(await src.waterBox("wbk:1" as ItemId)).not.toBeNull();
+    expect(await src.waterPoint!("wbk:1" as ItemId)).toEqual(await src.waterPoint!("wbk:328972518" as ItemId));
   });
   it("a water core does not know is no box, and opens nothing past core", async () => {
     const loader = releaseLoader(manifest(["core", "water"]), bytes, openGeo);
