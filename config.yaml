@@ -89,6 +89,9 @@ data:
 # Unified Data Accessor
 data_accessor:
   gpkg_path: "data/source/bc_fisheries_data.gpkg"
+  # T678: the FWA river polygons + land mass for the atlas's coast-crossing tidal cut (`fetch_data.py` fwa_rivers,
+  # fwa_land). Its own file so the main gpkg's stamp (an input of every shipped atlas) never moves for it.
+  coast_gpkg_path: "data/source/fwa_coast.gpkg"
 
 # ============================================================================
 # Data — three kinds, and the difference is what it costs to lose
@@ -158,6 +161,9 @@ curated:
     wording: "data/curated/dfo_salmon/wording.json"
     # AUTHORED (T632, owner 2026-11-11): the DFO places that keep their tidal water, each with a stated reason
     tidal_calls: "data/curated/dfo_salmon/tidal_calls.json"
+    # AUTHORED (T679 #2): the places DFO's page defaults and cascade scopes bind (was code in
+    # `pipeline.regs.dfo_salmon.entries`); read there and by the atlas promote guards (`curated_boundary_ids`)
+    scope_places: "data/curated/dfo_salmon/scope_places.json"
 
   # --- regulations: the synopsis corpus and the book ---------------------------------
   regulations:

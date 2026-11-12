@@ -195,7 +195,7 @@ def _size(seq: List[int], n: int, over_cm: int, says: str, period: Optional[str]
 #   R5B   "All lakes or streams or part thereof in the aggregate (combined total), in Management Units 5-6 to 5-11 …"
 #         — the region row's limits are one count over every water of MUs 5-6 to 5-11 together. The page's second
 #         definition, "(i.e. Region 5 not including the Fraser River watershed)", is SETTLED to the MU list (owner:
-#         one scope): it is the operative text and what `entries.SCOPE_EXTENTS[("5b", "region")]` binds.
+#         one scope): it is the operative text and what `scope_places.json` `scope_extents` ("5b", "region") binds.
 #   R2    "Squamish watershed: the aggregate daily limit of hatchery-marked coho in the entire Squamish non-tidal
 #         systems combined is one (1)." — a header note naming a watershed: the region's `shared` tier on those waters.
 #

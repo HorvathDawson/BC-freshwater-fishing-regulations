@@ -151,6 +151,9 @@ class DfoSalmon(BaseModel):
     #: AUTHORED (T632, owner 2026-11-11): the DFO places that KEEP their tidal water, each with its stated reason;
     #: every other place has the run's tidal sections subtracted (`pipeline.atlas.reach.dfo_salmon.load_tidal_calls`).
     tidal_calls: FilePath
+    #: AUTHORED (T679 #2): the places the page defaults and cascade scopes bind (`entries.load_scope_places`), read
+    #: by the atlas promote guards too (`promote.curated_boundary_ids`: a moved cut it names stops the promote).
+    scope_places: FilePath
 
     _abs = field_validator("*", mode="before")(_absolute)
 

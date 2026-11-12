@@ -56,11 +56,18 @@ def _boundary_refs(build: Path) -> dict[str, set[str]]:
     return out
 
 
-def curated_boundary_ids() -> set[str]:
-    """Every boundary id a curated rule names: each string in an extent's `splits`, in the synopsis corpus and the DFO
-    places (read-only)."""
-    import json
+def curated_boundary_files() -> list[Path]:
+    """The curated files whose extents name boundary ids: the synopsis corpus, the DFO places and the DFO scope
+    places (T679 #2: the page defaults and cascade scopes, once code in `regs.dfo_salmon.entries`)."""
     from pipeline.common.curated import CURATED
+    files = [f for d in (CURATED.regulations.synopsis, CURATED.dfo_salmon.places)
+             for f in sorted(Path(d).glob("*.json"))]
+    return files + [Path(CURATED.dfo_salmon.scope_places)]
+
+
+def split_ids_in(files) -> set[str]:
+    """Every string in an extent's `splits`, anywhere in these JSON files (read-only)."""
+    import json
     out: set[str] = set()
 
     def walk(v):
@@ -73,10 +80,14 @@ def curated_boundary_ids() -> set[str]:
         elif isinstance(v, list):
             for x in v:
                 walk(x)
-    for d in (CURATED.regulations.synopsis, CURATED.dfo_salmon.places):
-        for f in sorted(Path(d).glob("*.json")):
-            walk(json.loads(f.read_text(encoding="utf-8")))
+    for f in files:
+        walk(json.loads(Path(f).read_text(encoding="utf-8")))
     return out
+
+
+def curated_boundary_ids() -> set[str]:
+    """Every boundary id a curated rule names: each string in an extent's `splits`, in `curated_boundary_files`."""
+    return split_ids_in(curated_boundary_files())
 
 
 def moved_boundaries(target: Path, candidate: Path, named: set[str]) -> tuple[list[str], list[str]]:

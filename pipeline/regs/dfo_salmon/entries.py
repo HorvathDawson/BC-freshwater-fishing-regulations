@@ -36,7 +36,7 @@ import re
 import sys
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, NamedTuple, Optional
 
 from pipeline.regs.dfo_salmon.fetch import ALL_SLUGS, PAGES, normalize_slug
 from pipeline.regs.dfo_salmon.cascade import Scope, build_scopes, resolution_chain
@@ -330,109 +330,38 @@ def bind_whole(ef: EntryFile) -> tuple[list, list]:
     return wrote, held
 
 
-#: How each cascade default's scope becomes an extent. Keyed by `(region slug, section)`.
-#:
-#: TWO THINGS THIS TABLE ENCODES, both measured rather than assumed:
-#:
-#: 1. **A WATERSHED IS ITS BASIN, NOT A WALK.** "All waters in the Skeena River Watershed" is every
-#:    lake and stream whose FWA code lies under the Skeena's (`area:basin:400-`, lakes FWA leaves
-#:    uncoded placed by their named watershed, `basin_wsc`). It was once bound as a walk from the
-#:    mainstem; the walk now collects streams only (the book's "tributaries", 2026-09-24) and cannot
-#:    see an unconnected pond, so section B lost every lake to section A. A PART of a watershed
-#:    (B(i)/B(ii), above and below a bridge) is `Extent.watershed`: the same basin, cut by code
-#:    position.
-#: 2. **DFO REGION 6 IS NOT PROVINCIAL REGION 6.** DFO puts Haida Gwaii in Region 6 section D;
-#:    the province puts it in Region 1, and `area:region:6` contains none of it (measured: the
-#:    islands are 100% inside `area:region:1`). Neither authority is wrong and neither region may
-#:    be changed — the provincial corpus subtracts Haida Gwaii from its Region 1 table for the
-#:    same reason (`z1:hg_quota`, and the case `Extent.outside_area` was written for). So section
-#:    A is the UNION of the two, which `extents` already expresses because a rule's extents union.
-#:    Section A = 586,828 + 25,772 = 612,600 sections, exactly additive.
-#: Haida Gwaii. DFO puts it in Region 6 section D; the province puts it in Region 1, and
-#: `area:region:6` contains none of it — so section A must name both.
-HAIDA_GWAII = "area:mu_group:management_units_6_12_and_6_13"
-
-#: The B(i)/B(ii) divide, authored in `splits.json` and verified 14.9 m off the Skeena mainstem at
-#: route measure ~131,894 m — between the Zymoetz confluence and the Usk gauge, i.e. at Terrace.
-CNR_BRIDGE = "skeena_river__cnr_railway_bridge_terrace"
-
-SCOPE_EXTENTS: Dict[tuple, List[dict]] = {
-    ("6", "A"): [{"op": "within", "area_id": "area:region:6"},
-                 {"op": "within", "area_id": HAIDA_GWAII}],
-    # A WATERSHED IS A PREFIX OF THE FWA CODE, and "All waters in the Skeena River Watershed" is
-    # every lake and stream of it — so it binds the BASIN (`area:basin:400-`, minted by
-    # `pipeline.atlas.registry.build`), not a walk. The walk collects streams only (the book's
-    # "tributaries", user ruling 2026-09-24) and stops where it cannot climb, so a walk-bound
-    # section B left every lake of the Skeena to section A: the cascade tiled 96.34% of Region 6.
-    ("6", "B"): [{"op": "within", "area_id": "area:basin:400-"}],     # Skeena watershed
-    ("6", "C"): [{"op": "within", "area_id": "area:basin:500-"}],     # Nass watershed
-    ("6", "D"): [{"op": "within", "area_id": HAIDA_GWAII}],
-    # B(i)/B(ii) — ONE CUT, TWO SCOPES. The bridge divides the Skeena WATERSHED, not just the
-    # mainstem: `watershed` cuts the basin at the bridge by FWA code position (the river by route
-    # measure, everything else by where its code joins the Skeena), lakes and streams, so the two
-    # halves are complementary by construction. Never walked (`Extent.watershed`).
-    ("6", "B(i)"): [{"op": "upstream_of", "splits": [CNR_BRIDGE], "item_id": "gnis:2936",
-                     "watershed": True}],
-    ("6", "B(ii)"): [{"op": "downstream_of", "splits": [CNR_BRIDGE], "item_id": "gnis:2936",
-                      "watershed": True}],
-    # F is "the portions of the FRASER watershed IN REGION 6" — a watershed meeting an
-    # administrative area, which no op expresses because every op only ever ADDS water.
-    # `within_area` is exactly that intersection.
-    # F is "the portions of the Fraser watershed IN REGION 6" — a watershed meeting an
-    # administrative area, which no op expresses because every op only ever ADDS water.
-    # MEASURED: bound as the bare Fraser walk this reached 325,598 sections of which 300,569 were
-    # OUTSIDE Region 6 — a Region 6 closure shutting salmon across the Fraser in regions 2, 3, 5,
-    # 7 and 8. `within_area` is the intersection, and it works here (and not on a walk) because
-    # both sides are area lookups: `within_area` is applied inside `resolve_extent`, BEFORE the
-    # tributary walk, so on a walk-based extent it clips the seed and the walk re-escapes.
-    ("6", "F"): [{"op": "within", "area_id": "area:basin:100-",
-                  "within_area": "area:region:6"}],
-    # E IS A RESIDUAL: "Other Mainland Watersheds" — the region minus its siblings. A rule's
-    # extents UNION, so this cannot be written as more extents; `outside_areas` is the subtraction,
-    # and it is COMPUTED on every load from B, C, D and F's own defaults (`residual_minus`): the
-    # list here is only the seed, overwritten before anything reads it.
-    ("6", "E"): [{"op": "within", "area_id": "area:region:6", "outside_areas": []}],
-    ("4", "region"): [{"op": "within", "area_id": "area:region:4"}],
-    # 5b is the Cariboo's COASTAL half (5a is the Fraser half). Bound by the MU list the page
-    # prints, not by the watershed its title names: "region 5 minus the Fraser basin" tiles region
-    # 5 exactly but is only 54% MUs 5-6 to 5-11 — it also pulls in 5-12, 5-2 and 5-13, because MU
-    # boundaries do not follow the Fraser divide. Measured before this was written.
-    # The area itself is `mu_group_cariboo_coastal` in areas.json; it exists after the next build.
-    ("5b", "region"): [{"op": "within",
-                        "area_id": "area:mu_group:management_units_5_6_to_5_11"}],
-}
-
-#: Scopes deliberately NOT in the table, and why. Held rather than guessed.
-SCOPE_HELD = {
-    ("5b", "region_PLACEHOLDER"): "scoped to Management Units 5-6 to 5-11, which has no area yet. Two "
-                      "readings agree on the water and either would do: the MU list the page "
-                      "prints (an `areas.json` mu_group row, like Haida Gwaii's), or the "
-                      "watershed the page's own title names — 5b is the COASTAL half of region "
-                      "5 and 5a the Fraser half, so 5b is region 5 minus the Fraser walk, which "
-                      "needs the same `minus` as section E. The MU list is the operative text, "
-                      "so prefer it and use the watershed as the cross-check. NOTE its "
-                      "'in the aggregate (combined total)' is a RULE-side quota shared across "
-                      "waters, not a geography — and an OPEN GAP: `combined` and "
-                      "`aggregation_domain`, which once carried it, are retired, and the "
-                      "catalogue has no field for a quota shared across waters yet.",
-}
-
-#: A tidal-area scope is keyed by the AREAS it names, not by its section letter — three of them
-#: sit under E and would otherwise collect E's own reason.
-_TIDAL_HELD = ("'all streams flowing into tidal water Area N' is a drainage relation, not "
-               "containment: the streams are freshwater ABOVE the marine area, so no polygon "
-               "contains them. Needs the PFMA subarea layer re-fetched — the local copy has been "
-               "dissolved to a single row — then a drainage membership pass at atlas build.")
+#: THE SCOPE PLACES ARE CURATED DATA (T679 #2, owner 2026-11-11: a decision lives in the stage that owns it):
+#: `data/curated/dfo_salmon/scope_places.json` (`CURATED.dfo_salmon.scope_places`) holds how each cascade default's
+#: scope becomes an extent (`scope_extents`, keyed by `(region slug, section)`; `scope_held` the scopes deliberately
+#: not bound, with why), the tidal-area scopes (`tidal_extents`, keyed by the Areas a scope names — three sit under E)
+#: and the page defaults (`page_defaults`, T349 below). The atlas promote guards read the same file
+#: (`promote.curated_boundary_ids`: the CNR bridge cut B(i)/B(ii) name; `orphaned_ids`: the Skeena item), so a rebuild
+#: that moves either no longer passes promote unseen. The measurements that chose each extent (a watershed is its
+#: basin, not a walk; DFO Region 6 holds Haida Gwaii, provincial Region 6 none of it; F is the Fraser basin WITHIN
+#: Region 6; E is a residual computed by `residual_minus`) are the rows' `note`s there.
 
 
-#: The tidal scopes, keyed by the Area numbers the page names. `feature_types` is load-bearing:
-#: Area 5 and Area 6 say "streams", Areas 3-4-5-6 says "streams AND LAKES", and that is the only
-#: field that carries the difference.
-TIDAL_EXTENTS: Dict[tuple, List[dict]] = {
-    (5,): [{"op": "within", "area_id": "area:drains_to:pfma_5", "feature_types": ["stream"]}],
-    (6,): [{"op": "within", "area_id": "area:drains_to:pfma_6", "feature_types": ["stream"]}],
-    (3, 4, 5, 6): [{"op": "within", "area_id": f"area:drains_to:pfma_{n}"} for n in (3, 4, 5, 6)],
-}
+class ScopePlaces(NamedTuple):
+    scope_extents: Dict[tuple, List[dict]]
+    scope_held: Dict[tuple, str]
+    tidal_extents: Dict[tuple, List[dict]]
+    #: (slug, scope) -> (label, extents, sentence printed?), in the file's order (the order defaults are seeded in)
+    page_defaults: Dict[tuple, tuple]
+
+
+def load_scope_places(path: Optional[Path] = None) -> ScopePlaces:
+    """Read the scope places file. A missing file or key raises (AGENTS 37), never an empty table."""
+    p = Path(path) if path is not None else Path(CURATED.dfo_salmon.scope_places)
+    doc = json.loads(p.read_text(encoding="utf-8"))
+    for key in ("scope_extents", "scope_held", "tidal_extents", "page_defaults"):
+        if key not in doc:
+            raise KeyError(f"{p}: no {key!r} (T679 #2: the DFO scope places)")
+    return ScopePlaces(
+        scope_extents={(r["region"], r["section"]): r["extents"] for r in doc["scope_extents"]},
+        scope_held={(r["region"], r["section"]): r["reason"] for r in doc["scope_held"]},
+        tidal_extents={tuple(r["areas"]): r["extents"] for r in doc["tidal_extents"]},
+        page_defaults={(r["region"], r["scope"]): (r["label"], r["extents"], r["printed"])
+                       for r in doc["page_defaults"]})
 
 
 # ---------------------------------------------------------------------------
@@ -458,35 +387,9 @@ TIDAL_EXTENTS: Dict[tuple, List[dict]] = {
 
 PAGE_DEFAULT = "page_default"
 PAGE_DEFAULT_PRECEDENCE = -1
-_R2_AREAS = (13, 15, 16, 28, 29)
 
 
-def _drains(areas, within: str) -> List[dict]:
-    return [{"op": "within", "area_id": f"area:drains_to:pfma_{n}", "within_area": within} for n in areas]
-
-
-#: (slug, scope) -> (label, extents, sentence printed?). `scope` is `cascade.page_scope`: "region" or "areas-28-29".
-PAGE_DEFAULTS: Dict[tuple, tuple] = {
-    # Haida Gwaii is DFO Region 6 (section D) though the province files it under Region 1 (see HAIDA_GWAII)
-    ("1", "region"): ("All Region 1 waters (DFO: Haida Gwaii is Region 6)",
-                      [{"op": "within", "area_id": "area:region:1", "outside_areas": [HAIDA_GWAII]}], True),
-    ("2", "areas-28-29"): ("Region 2 waters flowing into Areas 28 and 29", _drains((28, 29), "area:region:2"), True),
-    ("2", "areas-13-15-16"): ("Region 2 waters flowing into Areas 13, 15 and 16",
-                              _drains((13, 15, 16), "area:region:2"), True),
-    ("3", "region"): ("All Region 3 waters", [{"op": "within", "area_id": "area:region:3"}], True),
-    ("4", "region"): ("All Region 4 waters", [{"op": "within", "area_id": "area:region:4"}], True),       # on 4:region:section
-    # 5A is Region 5 less 5B; 5B is Management Units 5-6 to 5-11 (T349: the one scope — see SCOPE_EXTENTS 5b)
-    ("5a", "region"): ("All Region 5A waters (Region 5 less Management Units 5-6 to 5-11)",
-                       [{"op": "within", "area_id": "area:region:5",
-                         "outside_areas": ["area:mu_group:management_units_5_6_to_5_11"]}], True),
-    ("5b", "region"): ("All Region 5B waters (Management Units 5-6 to 5-11)",
-                       [{"op": "within", "area_id": "area:mu_group:management_units_5_6_to_5_11"}], True),
-    ("6", "region"): ("All Region 6 waters (with Haida Gwaii)", SCOPE_EXTENTS[("6", "A")], True),
-    ("7", "region"): ("All Region 7 waters (7A and 7B)",
-                      [{"op": "within", "area_id": "area:region:7a"}, {"op": "within", "area_id": "area:region:7b"}],
-                      True),
-    ("8", "region"): ("All Region 8 waters", [{"op": "within", "area_id": "area:region:8"}], True),
-}
+#: The page defaults themselves are `scope_places.json` `page_defaults` (T679 #2).
 
 
 #: ONE MODEL FOR A SCOPE DEFAULT (owner 2026-11-02): where the page's table already prints a row for the same scope
@@ -502,14 +405,14 @@ def page_default_id(slug: str, scope: str) -> str:
 
 
 def seed_page_defaults(ef: EntryFile, statements: Optional[List[dict]] = None) -> List[str]:
-    """Add this region's page-default locations (`PAGE_DEFAULTS`) where missing; returns the ids added. Never edits an
+    """Add this region's page-default locations (`scope_places.json` `page_defaults`) where missing; returns the ids added. Never edits an
     existing one (a curator's binding stands). `statements` (`cascade.statements` of the page) supply the sentence each
     default quotes; a sentence the page no longer prints keeps the location — it then answers nothing, i.e. closed."""
     from pipeline.regs.dfo_salmon.cascade import UNLISTED, page_fingerprint
     said = {tuple(st["areas"]): st for st in statements or []}
     have = {l.location_id for l in ef.locations}
     added = []
-    for (slug, scope), (label, exts, printed) in PAGE_DEFAULTS.items():
+    for (slug, scope), (label, exts, printed) in load_scope_places().page_defaults.items():
         if slug != ef.region:
             continue
         lid = page_default_id(slug, scope)
@@ -540,19 +443,20 @@ def seed_page_defaults(ef: EntryFile, statements: Optional[List[dict]] = None) -
 
 
 def bind_scopes(ef: EntryFile) -> tuple[list, list]:
-    """Write the cascade defaults' extents from `SCOPE_EXTENTS`. Returns (wrote, held).
+    """Write the cascade defaults' extents from `scope_places.json` `scope_extents`. Returns (wrote, held).
 
     Never overwrites an existing binding, exactly like `bind_whole`. A scope with no table entry
-    is HELD with the reason from `SCOPE_HELD`, so an unbound default is always explained rather
+    is HELD with the reason from `scope_held`, so an unbound default is always explained rather
     than silently empty.
     """
     wrote, held = [], []
+    places = load_scope_places()
     for loc in ef.locations:
         if loc.water_id or loc.binding.extents:
             continue                      # a named water, or already bound
         areas_named = tuple((loc.source_text or {}).get("areas") or ())
         if areas_named:
-            exts = TIDAL_EXTENTS.get(areas_named)
+            exts = places.tidal_extents.get(areas_named)
             if not exts:
                 held.append((loc.location_id, f"no tidal extent defined for Areas {list(areas_named)}"))
                 continue
@@ -562,9 +466,9 @@ def bind_scopes(ef: EntryFile) -> tuple[list, list]:
             wrote.append(loc.location_id)
             continue
         key = (ef.region, loc.section or "")
-        exts = SCOPE_EXTENTS.get(key)
+        exts = places.scope_extents.get(key)
         if not exts:
-            held.append((loc.location_id, SCOPE_HELD.get(key, f"no extent defined for {key}")))
+            held.append((loc.location_id, places.scope_held.get(key, f"no extent defined for {key}")))
             continue
         loc.binding.extents = [Extent(**e) for e in exts]
         if loc.binding.tributaries is None:

@@ -15,7 +15,7 @@ basin -> Area table is also cached at `data/generated/review/pfma_basin_areas.js
 --basins`, ~40 s, under scripts/heavy.sh) for the map's fallback before a reach run places the defaults.
 
 T349 (owner 2026-11-02): every region's "not specified" answer is a first-class ENTRY — a `page_default` location
-(`entries.PAGE_DEFAULTS`, precedence -1: after every table row) quoting the page's sentence. Each is drawn here on the
+(`scope_places.json` `page_defaults`, precedence -1: after every table row) quoting the page's sentence. Each is drawn here on the
 node it answers for; Region 2's map colours each water by the default that answers it (28/29, 13/15/16, other / US).
 """
 from __future__ import annotations
@@ -192,7 +192,7 @@ def _region(slug: str, locs: dict) -> dict:
 
     # ── comparisons the page's own words decide ──
     # (owner 2026-11-02, T349) "daily limit 0" is CLOSED like "no fishing": no wording proposal; the page defaults
-    # answer it as entries (`entries.PAGE_DEFAULTS`)
+    # answer it as entries (`scope_places.json` `page_defaults`)
     if slug == "4":
         tbl = next((d for d in defaults if d["rows"]), None)
         if tbl:

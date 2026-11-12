@@ -134,3 +134,45 @@ def test_squamish_hatchery_coho_is_an_aggregate_tier_over_the_watershed():
     t = sh["tree"]
     assert (t["tier"], t["n"], t["species"], t["origin"]) == ("total", 1, ["CO"], "hatchery")
     assert t["whose"] == "the Squamish River watershed"
+
+
+# ── T679 #2: the scope places are curated data, read by the promote guards ───────────────────────────────────────────
+
+CNR_BRIDGE = "skeena_river__cnr_railway_bridge_terrace"
+
+
+def test_the_scope_places_come_from_the_curated_file(tmp_path):
+    """The page defaults and cascade scopes are read from `dfo_salmon/scope_places.json`, never from code. Mutation: a
+    copy whose section D extent names another area makes `bind_scopes` write that area on Region 6's D default."""
+    import json
+    from pipeline.tests import under_test
+    src = under_test.curated().dfo_salmon.scope_places
+    doc = json.loads(src.read_text(encoding="utf-8"))
+    places = E.load_scope_places(src)
+    assert places.scope_extents[("6", "B(i)")][0]["splits"] == [CNR_BRIDGE]
+    assert places.scope_extents[("6", "B(i)")][0]["item_id"] == "gnis:2936"
+    assert [k for k in places.page_defaults] == [(r["region"], r["scope"]) for r in doc["page_defaults"]]
+    for row in doc["scope_extents"]:
+        if (row["region"], row["section"]) == ("6", "D"):
+            row["extents"] = [{"op": "within", "area_id": "area:region:1"}]
+    moved = tmp_path / "scope_places.json"
+    moved.write_text(json.dumps(doc), encoding="utf-8")
+    assert E.load_scope_places(moved).scope_extents[("6", "D")] == [{"op": "within", "area_id": "area:region:1"}]
+    with pytest.raises(FileNotFoundError):
+        E.load_scope_places(tmp_path / "absent.json")
+    bad = dict(doc)
+    bad.pop("page_defaults")
+    moved.write_text(json.dumps(bad), encoding="utf-8")
+    with pytest.raises(KeyError, match="page_defaults"):
+        E.load_scope_places(moved)
+
+
+def test_the_promote_guard_reads_the_scope_places():
+    """`promote.curated_boundary_ids` scans the scope places file (the CNR bridge split B(i)/B(ii) name) — a rebuild that
+    moves that cut no longer passes promote. Mutation: the file is in the guard's list and alone yields the bridge."""
+    from pipeline.atlas import promote
+    from pipeline.tests import under_test
+    f = under_test.curated().dfo_salmon.scope_places
+    assert f in promote.curated_boundary_files()
+    assert CNR_BRIDGE in promote.split_ids_in([f])
+    assert CNR_BRIDGE in promote.curated_boundary_ids()

@@ -222,7 +222,7 @@ def needs_new_machinery(scopes: List[Scope]) -> List[Scope]:
 #                    Areas 13, 15, and 16 is zero (0)."
 #
 # `header.parse_header` deliberately STOPS at these sentences (they are not header notes). T349 reads them as the PAGE'S
-# DEFAULTS: each sentence is one first-class entry location (`entries.PAGE_DEFAULTS`, kind `page_default`) whose one rule
+# DEFAULTS: each sentence is one first-class entry location (`scope_places.json` `page_defaults`, kind `page_default`) whose one rule
 # the typed feed carries under the fingerprint `page_fingerprint(slug, areas)` — so an unlisted water falls to its
 # region / scope default through the normal cascade, never to a hard-coded fallback.
 #

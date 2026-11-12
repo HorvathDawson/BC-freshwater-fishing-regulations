@@ -1,0 +1,346 @@
+{
+  "_about": "T679 #2 (owner 2026-11-11: decisions in the stage that owns them): the places DFO's page defaults and cascade scopes bind, moved out of pipeline/regs/dfo_salmon/entries.py so the atlas promote guards read them (pipeline.atlas.promote.curated_boundary_ids: the `splits` ids; orphaned_ids: the item ids). AUTHORED: edited by hand, never generated. Read by pipeline.regs.dfo_salmon.entries (load_scope_places): `bind-scopes` writes scope_extents onto a region's unbound cascade defaults (a scope with no row is held with its scope_held reason), tidal_extents onto a tidal-area default (keyed by the Areas it names), and `page-defaults` seeds page_defaults (T349, owner 2026-11-02) as entry locations. Every extent is an Extent as written into places/region-*.json; order is kept (page_defaults are appended in this order). A missing file or key raises.",
+  "scope_extents": [
+    {
+      "region": "6",
+      "section": "A",
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:6"
+        },
+        {
+          "op": "within",
+          "area_id": "area:mu_group:management_units_6_12_and_6_13"
+        }
+      ],
+      "note": "DFO Region 6 is not provincial Region 6: DFO puts Haida Gwaii (area:mu_group:management_units_6_12_and_6_13) in Region 6 section D, the province in Region 1, and area:region:6 holds none of it, so section A is the UNION of the two (586,828 + 25,772 = 612,600 sections, exactly additive)."
+    },
+    {
+      "region": "6",
+      "section": "B",
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:basin:400-"
+        }
+      ],
+      "note": "Skeena watershed. A WATERSHED IS ITS BASIN, NOT A WALK: every lake and stream whose FWA code lies under the Skeena's (area:basin:400-, minted by pipeline.atlas.registry.build). A walk collects streams only (the book's 'tributaries', user ruling 2026-09-24) and cannot see an unconnected pond: a walk-bound B left every Skeena lake to A (the cascade tiled 96.34% of Region 6)."
+    },
+    {
+      "region": "6",
+      "section": "C",
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:basin:500-"
+        }
+      ],
+      "note": "Nass watershed (its basin)."
+    },
+    {
+      "region": "6",
+      "section": "D",
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:mu_group:management_units_6_12_and_6_13"
+        }
+      ],
+      "note": "Haida Gwaii."
+    },
+    {
+      "region": "6",
+      "section": "B(i)",
+      "extents": [
+        {
+          "op": "upstream_of",
+          "splits": [
+            "skeena_river__cnr_railway_bridge_terrace"
+          ],
+          "item_id": "gnis:2936",
+          "watershed": true
+        }
+      ],
+      "note": "B(i)/B(ii): ONE CUT, TWO SCOPES. The CNR railway bridge at Terrace (authored in cuts, verified 14.9 m off the Skeena mainstem gnis:2936 at route measure ~131,894 m, between the Zymoetz confluence and the Usk gauge) divides the Skeena WATERSHED: `watershed` cuts the basin at the bridge by FWA code position (the river by route measure, everything else by where its code joins the Skeena), lakes and streams, so the halves are complementary by construction. Never walked (Extent.watershed)."
+    },
+    {
+      "region": "6",
+      "section": "B(ii)",
+      "extents": [
+        {
+          "op": "downstream_of",
+          "splits": [
+            "skeena_river__cnr_railway_bridge_terrace"
+          ],
+          "item_id": "gnis:2936",
+          "watershed": true
+        }
+      ],
+      "note": "The other half of B(i)'s cut."
+    },
+    {
+      "region": "6",
+      "section": "F",
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:basin:100-",
+          "within_area": "area:region:6"
+        }
+      ],
+      "note": "'The portions of the Fraser watershed IN REGION 6': a watershed meeting an area; `within_area` is the intersection. MEASURED: as the bare Fraser walk it reached 325,598 sections, 300,569 OUTSIDE Region 6. It works here (not on a walk) because both sides are area lookups: within_area applies inside resolve_extent, BEFORE the tributary walk."
+    },
+    {
+      "region": "6",
+      "section": "E",
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:6",
+          "outside_areas": []
+        }
+      ],
+      "note": "E IS A RESIDUAL ('Other Mainland Watersheds'): the region minus its siblings. outside_areas is COMPUTED on every save from B, C, D and F's own defaults (entries.residual_minus); the list here is only the seed."
+    },
+    {
+      "region": "4",
+      "section": "region",
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:4"
+        }
+      ]
+    },
+    {
+      "region": "5b",
+      "section": "region",
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:mu_group:management_units_5_6_to_5_11"
+        }
+      ],
+      "note": "5b is the Cariboo's COASTAL half (5a the Fraser half), bound by the MU list the page prints, not by the watershed its title names: 'region 5 minus the Fraser basin' tiles region 5 but is only 54% MUs 5-6 to 5-11 (it pulls in 5-12, 5-2, 5-13, since MU boundaries do not follow the Fraser divide). Measured."
+    }
+  ],
+  "scope_held": [
+    {
+      "region": "5b",
+      "section": "region_PLACEHOLDER",
+      "reason": "scoped to Management Units 5-6 to 5-11, which has no area yet. Two readings agree on the water and either would do: the MU list the page prints (an `areas.json` mu_group row, like Haida Gwaii's), or the watershed the page's own title names — 5b is the COASTAL half of region 5 and 5a the Fraser half, so 5b is region 5 minus the Fraser walk, which needs the same `minus` as section E. The MU list is the operative text, so prefer it and use the watershed as the cross-check. NOTE its 'in the aggregate (combined total)' is a RULE-side quota shared across waters, not a geography — and an OPEN GAP: `combined` and `aggregation_domain`, which once carried it, are retired, and the catalogue has no field for a quota shared across waters yet."
+    }
+  ],
+  "tidal_extents": [
+    {
+      "areas": [
+        5
+      ],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:drains_to:pfma_5",
+          "feature_types": [
+            "stream"
+          ]
+        }
+      ]
+    },
+    {
+      "areas": [
+        6
+      ],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:drains_to:pfma_6",
+          "feature_types": [
+            "stream"
+          ]
+        }
+      ]
+    },
+    {
+      "areas": [
+        3,
+        4,
+        5,
+        6
+      ],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:drains_to:pfma_3"
+        },
+        {
+          "op": "within",
+          "area_id": "area:drains_to:pfma_4"
+        },
+        {
+          "op": "within",
+          "area_id": "area:drains_to:pfma_5"
+        },
+        {
+          "op": "within",
+          "area_id": "area:drains_to:pfma_6"
+        }
+      ]
+    }
+  ],
+  "_tidal_extents_note": "Keyed by the Area numbers the page names, not by section letter (three sit under E). feature_types is load-bearing: Areas 5 and 6 say 'streams', Areas 3-4-5-6 says 'streams AND LAKES'. Areas not listed are held: 'all streams flowing into tidal water Area N' is a drainage relation, not containment (the PFMA subarea layer, re-fetched, and a drainage membership pass at atlas build).",
+  "page_defaults": [
+    {
+      "region": "1",
+      "scope": "region",
+      "label": "All Region 1 waters (DFO: Haida Gwaii is Region 6)",
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:1",
+          "outside_areas": [
+            "area:mu_group:management_units_6_12_and_6_13"
+          ]
+        }
+      ],
+      "printed": true
+    },
+    {
+      "region": "2",
+      "scope": "areas-28-29",
+      "label": "Region 2 waters flowing into Areas 28 and 29",
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:drains_to:pfma_28",
+          "within_area": "area:region:2"
+        },
+        {
+          "op": "within",
+          "area_id": "area:drains_to:pfma_29",
+          "within_area": "area:region:2"
+        }
+      ],
+      "printed": true
+    },
+    {
+      "region": "2",
+      "scope": "areas-13-15-16",
+      "label": "Region 2 waters flowing into Areas 13, 15 and 16",
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:drains_to:pfma_13",
+          "within_area": "area:region:2"
+        },
+        {
+          "op": "within",
+          "area_id": "area:drains_to:pfma_15",
+          "within_area": "area:region:2"
+        },
+        {
+          "op": "within",
+          "area_id": "area:drains_to:pfma_16",
+          "within_area": "area:region:2"
+        }
+      ],
+      "printed": true
+    },
+    {
+      "region": "3",
+      "scope": "region",
+      "label": "All Region 3 waters",
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:3"
+        }
+      ],
+      "printed": true
+    },
+    {
+      "region": "4",
+      "scope": "region",
+      "label": "All Region 4 waters",
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:4"
+        }
+      ],
+      "printed": true
+    },
+    {
+      "region": "5a",
+      "scope": "region",
+      "label": "All Region 5A waters (Region 5 less Management Units 5-6 to 5-11)",
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:5",
+          "outside_areas": [
+            "area:mu_group:management_units_5_6_to_5_11"
+          ]
+        }
+      ],
+      "printed": true
+    },
+    {
+      "region": "5b",
+      "scope": "region",
+      "label": "All Region 5B waters (Management Units 5-6 to 5-11)",
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:mu_group:management_units_5_6_to_5_11"
+        }
+      ],
+      "printed": true
+    },
+    {
+      "region": "6",
+      "scope": "region",
+      "label": "All Region 6 waters (with Haida Gwaii)",
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:6"
+        },
+        {
+          "op": "within",
+          "area_id": "area:mu_group:management_units_6_12_and_6_13"
+        }
+      ],
+      "printed": true
+    },
+    {
+      "region": "7",
+      "scope": "region",
+      "label": "All Region 7 waters (7A and 7B)",
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:7a"
+        },
+        {
+          "op": "within",
+          "area_id": "area:region:7b"
+        }
+      ],
+      "printed": true
+    },
+    {
+      "region": "8",
+      "scope": "region",
+      "label": "All Region 8 waters",
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:8"
+        }
+      ],
+      "printed": true
+    }
+  ],
+  "_page_defaults_note": "(region slug, scope = cascade.page_scope: 'region' or 'areas-N-M') -> label, extents, whether DFO prints the sentence. Haida Gwaii is DFO Region 6 though the province files it under Region 1; 5A is Region 5 less 5B (MUs 5-6 to 5-11); Region 6's default is section A's extents."
+}
