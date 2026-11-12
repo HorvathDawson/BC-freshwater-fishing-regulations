@@ -65,16 +65,6 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
                  striped={r.status === "closed" ? closedCueColour(theme) : undefined}
                  label={MAP_KEY.salmon[r.status]} {...tap(r.status)} />
   ));
-  /*
-   * (T636, owner 2026-11-11) THE RING, NAMED ONCE: a gauge reporting only the other quantity today is a grey dot with a
-   * ring on the map (no words beside it); this line says what the ring means, for the quantity shown. Only while the
-   * gauge dots are drawn.
-   */
-  const ring = gaugeOnlyColours(theme);
-  const onlyRing = conditions && layers.effective.layers.gauges === true && flowParam !== "temperature" ? (
-    <LegendCount palette={palette} colour={ring.fill} ring={ring.ring}
-                 label={OTHER_QUANTITY_WORDS[flowParam === "level" ? "discharge" : "level"].key} />
-  ) : null;
   const strip = (
     <LegendStrip palette={palette} full={onConditions} wrap={!onConditions}>
       {/* NO QUANTITY SWITCH HERE (owner 2026-10-22): Flow · Level · Temperature is the Layers sheet's Show, one
@@ -112,7 +102,6 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
                         band={CHANGE_LEGEND.steady} markWords={changeMarkWords}
                         describe={CHANGE_LEGEND.describe}
                         stops={changeRampStops(theme)} marks={visibleMarks} />
-            {onlyRing}
           </>
         ) : (
           <>
@@ -120,7 +109,6 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
                         title={FLOW_LEGEND.title[flowParam === "level" ? "level" : "discharge"]}
                         low={FLOW_LEGEND.low} mid={FLOW_LEGEND.mid} high={FLOW_LEGEND.high}
                         stops={flowRampStops(theme)} marks={visibleMarks} />
-            {onlyRing}
           </>
         )
       ) : layers.water.drawn !== "regulations" ? (
@@ -208,6 +196,30 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
         {button}
       </View>
       {folded ? <View style={{ height: 9 }} /> : strip}
+    </View>
+  );
+}
+
+/**
+ * (T636, T681) THE RING, NAMED ONCE — ON THE MAP, not in the bottom bar (owner 2026-11-12: "the condition gauge reporting
+ * legend should be on the map instead of at the bottom bar"). A gauge reporting only the other quantity today is a grey dot
+ * with a ring on the map (no words beside it); this card says what the ring means, for the quantity shown. Only while the
+ * gauge dots are drawn, never under Temperature. A card over the map's bottom-left corner, above the foot block and the map's scale bar (`bottom` =
+ * the foot's height), square corners, never in the way of a tap. The other legends (ramp, status key) stay in the bar (T367).
+ */
+/** (T681) the map's own scale bar sits at its bottom-left corner (≈ 28 px with its margin): the card starts above it */
+const SCALE_CLEAR = 36;
+
+export function GaugeOnlyKey({ col, palette, theme, bottom }: { col: MapColouring; palette: Palette; theme: string; bottom: number }) {
+  const { flowParam, layers } = col;
+  if (!(layers.effective.layers.gauges === true && flowParam !== "temperature")) return null;
+  const ring = gaugeOnlyColours(theme);
+  return (
+    <View testID="gauge-only-key" style={{ pointerEvents: "none", position: "absolute", left: 8, bottom: bottom + SCALE_CLEAR,
+                                           paddingVertical: 6, paddingHorizontal: 9, borderRadius: 0, borderWidth: 1,
+                                           borderColor: palette.line, backgroundColor: palette.card, opacity: 0.96 }}>
+      <LegendCount palette={palette} colour={ring.fill} ring={ring.ring}
+                   label={OTHER_QUANTITY_WORDS[flowParam === "level" ? "discharge" : "level"].key} />
     </View>
   );
 }

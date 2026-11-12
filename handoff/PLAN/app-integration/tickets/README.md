@@ -191,6 +191,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T677 | Next rebuild leftovers: item names follow piece count, a park rule gained 33 m, binding diff by place, the 32 new held lines on a map page, lines ending at the sea | OPEN | — | the rebuild lane 2026-11-11 (`next-rebuild-results.md`) |
 | T678 | Tidal in the build: one decision, made once, read everywhere (cut rule: DFO written boundary, then coast crossing, polygon for shading only) | IN PROGRESS | — | owner 2026-11-11; audit + owner rulings in the ticket; 2026-11-12 answers built in 9b0d6f4ae, second candidate `full_t678b` (not promoted); left (Claude): owner reads the diffs (`T678-progress.md`), promote on his word |
 | T679 | Each decision in its own stage (everything but tidal): 18 findings, owner D2–D6 answered 2026-11-12 | IN PROGRESS | c9488453c | owner 2026-11-11 "look for other things like that too"; D2 (map and bar one source, 0 days moved) and D6 (Python reads DFO rows tolerantly, 0 rows fail today) built in c9488453c; D1/D3/D4/D5 + gauge placement built in 9b0d6f4ae (candidate `full_t678b`); left (Claude): lands with the promote + next deliver; 11 other-line gauge cuts held for the owner |
+| T681 | The gauge-reporting key (T636 ring line) on the map, not in the bottom bar | IN PROGRESS | | left (Claude): record the commit hash, then DONE; owner 2026-11-12; overrides T367 for this line only; other legends stay in the bar |
 
 ## Order for open tickets
 

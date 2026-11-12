@@ -47,7 +47,7 @@ import { WaterViewsContext } from "./ViewSwipe";
 import { SharePortContext } from "./SharePortContext";
 import { MenuContext } from "./menu/MenuContext";
 import { BrowseHost } from "./shell/BrowseHost";
-import { MapLegend, PairBanner, RunsKey, RunsLegend } from "./shell/MapLegend";
+import { GaugeOnlyKey, MapLegend, PairBanner, RunsKey, RunsLegend } from "./shell/MapLegend";
 import { HeldKey } from "./shell/HeldKey";
 import { NetBanner } from "./NetBanner";
 import { ShellSheets } from "./shell/ShellSheets";
@@ -643,6 +643,8 @@ export function Shell(p: ShellProps) {
           {showLegendFor(keyTab, keyCol) && (
             <MapLegend col={keyCol} conditions={keyTab === "conditions"} palette={palette} theme={theme} mapDay={mapDay} />
           )}
+          {/* (T681) the ring's key is a card on the map, above the foot, not a line in the bar */}
+          {showLegendFor(keyTab, keyCol) && keyTab === "conditions" && <GaugeOnlyKey col={keyCol} palette={palette} theme={theme} bottom={footH} />}
           {/* (T261) the Runs tab's foot: the date slider, the key, the run-size scale and the credit */}
           {/* (T566) held like the key above: leaving Runs, the run key stays until the map has drawn the Map tab's colours */}
           {route.mode === "browse" && mapTabShown && keyTab === "runs" && !searching && <RunsKey theme={theme} palette={palette} bottom={footH} />}

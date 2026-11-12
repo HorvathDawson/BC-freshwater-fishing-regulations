@@ -9,7 +9,7 @@ vi.mock("@app/map", async (orig) => ({ ...(await orig<Record<string, unknown>>()
 import { cleanup, render, screen } from "@testing-library/react";
 import { OTHER_QUANTITY_WORDS } from "@app/core";
 import { gaugeOnlyColours } from "@app/map/colours";
-import { MapLegend } from "./shell/MapLegend";
+import { GaugeOnlyKey, MapLegend } from "./shell/MapLegend";
 import { LIGHT } from "./theme";
 
 afterEach(cleanup);
@@ -19,9 +19,17 @@ const col = (flowParam: string, gauges: boolean) => ({
   layers: { water: { drawn: "regulations" }, effective: { groups: {}, layers: { gauges } } },
 }) as never;
 const legend = (flowParam: string, gauges: boolean) => render(
-  <MapLegend col={col(flowParam, gauges)} conditions palette={LIGHT} theme="light" mapDay={null} />);
+  <GaugeOnlyKey col={col(flowParam, gauges)} palette={LIGHT} theme="light" bottom={40} />);
 
-describe("the Conditions key names the ring once (T636)", () => {
+describe("the Conditions key names the ring once (T636), on the map (T681)", () => {
+  it("is a square-cornered card over the map above the foot, and no longer a line in the bottom bar", () => {
+    legend("discharge", true);
+    const card = getComputedStyle(screen.getByTestId("gauge-only-key"));
+    expect([card.position, card.bottom, card.borderTopLeftRadius]).toEqual(["absolute", "76px", "0px"]);
+    cleanup();
+    render(<MapLegend col={col("discharge", true)} conditions palette={LIGHT} theme="light" mapDay={null} />);
+    expect(screen.queryByTestId("legend-ring")).toBeNull();
+  });
   it("under Flow: 'Gauge reports level only', the swatch a grey dot in the ring's colour", () => {
     legend("discharge", true);
     const ring = screen.getByTestId("legend-ring");
