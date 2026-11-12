@@ -259,6 +259,9 @@ def steelhead_presence_problems(doc: dict) -> list[str]:
     steelhead row binds a part (with those rows in `steelhead_rows`); the water's roll-up is its
     parts' best."""
     R = doc["rules"]
+    from pipeline.atlas.reach.steelhead import PROVINCE_STEELHEAD as _PS, require_province_set
+    require_province_set([str(i).partition("::")[2] for i in R
+                          if str(i).partition("::")[0] == _PS], "the export's rules")
     srows = steelhead_rows(doc)
     out = []
     for item, w in sorted(doc["waters"].items()):

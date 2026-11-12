@@ -850,8 +850,54 @@ def test_the_presence_pass_knows_what_steelhead_rows_bind_and_the_list_names():
     assert rep["by_entry"] == {"r2:khartoum": {"sections": 1}, "r5:atnarko": {"sections": 1},
                                "r5:waiver": {"sections": 1}}
     assert rep["known_list_only"] == 2 and rep["known_regulations"] == 3
-    # a section missing ONE member of the set is not where steelhead rules apply
-    assert "l1" not in SH.Presence.rules_apply(binds[:-4])
+    # a section missing ONE member of the set is not where steelhead rules apply (r4 base and twin
+    # still bind, just not l1)
+    cut = [NS(entry_id=b.entry_id, rule_id=b.rule_id,
+              sections=tuple(s for s in b.sections if s != "l1"))
+           if b.entry_id == SH.PROVINCE_STEELHEAD and b.rule_id in ("steelhead.r4", "steelhead.r4b")
+           else b for b in binds]
+    assert "l1" not in SH.Presence.rules_apply(cut)
+    assert "l1" in SH.Presence.rules_apply(binds)
+
+
+@pytest.mark.parametrize("gone", ["steelhead.r1", "steelhead.r2", "steelhead.r4"])
+def test_a_missing_provincial_steelhead_rule_id_is_refused(gone):
+    """T679 #9: the provincial set is named by rule id. A re-parse that renames one (no binding of
+    `zp:steelhead` carries it, base or twin) would empty "steelhead rules apply" and every
+    `anadromous` with it, silently. The reach refuses instead, naming the missing id. Mutation: each
+    member renamed in turn."""
+    from types import SimpleNamespace as NS
+    from pipeline.atlas.reach import steelhead as SH
+    _, binds, _ = _presence_fixture(SH, NS)
+    renamed = [NS(entry_id=b.entry_id, rule_id=b.rule_id.replace(gone, gone + "x"),
+                  sections=b.sections) if b.entry_id == SH.PROVINCE_STEELHEAD else b
+               for b in binds]
+    with pytest.raises(ValueError, match=f"zp:steelhead.*{gone.replace('.', '[.]')}"):
+        SH.Presence.rules_apply(renamed)
+    # the twin alone still names the member (a run where the base binds nothing is not a rename)
+    twin_only = [b for b in binds if not (b.entry_id == SH.PROVINCE_STEELHEAD and b.rule_id == gone)]
+    SH.Presence.rules_apply(twin_only)
+    # a run of part of the corpus holds no `zp:steelhead` row at all: nothing applies, no refusal
+    # (the export, which reads the whole rule table, refuses that case — the test below)
+    assert SH.Presence.rules_apply(
+        [b for b in binds if b.entry_id != SH.PROVINCE_STEELHEAD]) == frozenset()
+
+
+@pytest.mark.needs_bundle
+@pytest.mark.parametrize("gone", ["steelhead.r1", "steelhead.r2", "steelhead.r4"])
+def test_the_export_refuses_a_missing_provincial_steelhead_rule_id(doc, gone):
+    """T679 #9, the export side: `steelhead_rules_apply` reads the same rule ids off the shipped rule
+    sets; a doc whose rules lack one member (base and twin) is refused, never read as "no steelhead
+    rules apply anywhere". The live doc carries all three (the other tests run the check on it)."""
+    rules = {k: v for k, v in doc["rules"].items()
+             if k not in (f"zp:steelhead::{gone}", f"zp:steelhead::{gone}b")}
+    assert len(rules) < len(doc["rules"])
+    with pytest.raises(ValueError, match=gone.replace(".", "[.]")):
+        export_steelhead.steelhead_presence_problems({**doc, "rules": rules})
+    # the whole `zp:steelhead` row gone (renamed entry): refused too
+    none = {k: v for k, v in doc["rules"].items() if not k.startswith("zp:steelhead::")}
+    with pytest.raises(ValueError, match="have \\[\\]"):
+        export_steelhead.steelhead_presence_problems({**doc, "rules": none})
 
 
 def test_mutation_a_lake_another_line_binds_was_book_known(monkeypatch):

@@ -97,6 +97,20 @@ STEELHEAD_WATERS = "steelhead_waters"
 #: STEELHEAD RULES APPLY (the stamp, a licensing record, goes with them: the export checks it).
 PROVINCE_SET_RULES = ("steelhead.r1", "steelhead.r2", "steelhead.r4")
 
+
+def require_province_set(rule_ids, where: str) -> None:
+    """REFUSE A MISSING PROVINCIAL SET RULE ID (T679 #9). `rule_ids` are the `zp:steelhead` rule ids
+    a run (or the export) holds; each member of `PROVINCE_SET_RULES` must be among them, by its base
+    or its `b` twin. A re-parse that renamed one would otherwise empty "steelhead rules apply" (and
+    every `anadromous`) with no word said."""
+    have = {r[:-1] if r.endswith("b") else r for r in rule_ids} | set(rule_ids)
+    missing = [r for r in PROVINCE_SET_RULES if r not in have]
+    if missing:
+        raise ValueError(
+            f"{where}: the provincial steelhead set names {PROVINCE_STEELHEAD} rule ids "
+            f"{missing} that no rule carries (have {sorted(set(rule_ids))}); a re-parse renamed "
+            f"them? Fix `steelhead.PROVINCE_SET_RULES` or the corpus, never read it as empty")
+
 #: A LAKE IS STEELHEAD WATER ONLY BY ITS OWN ROW (user ruling 2026-10-06, FIX D13): steelhead rules,
 #: the stamp and the zone's steelhead release reach a LAKE (any water that is not a stream: lake,
 #: wetland) only where that lake's OWN row prints steelhead — the lake is the steelhead row's own
@@ -417,6 +431,12 @@ class Presence:
         """WHERE STEELHEAD RULES APPLY: the sections bound by every member of the provincial set
         (`PROVINCE_SET_RULES`, by its base or its twin)."""
         per: dict[str, set] = {r: set() for r in PROVINCE_SET_RULES}
+        # a run of part of the corpus (a test's rows, one entry) holds no `zp:steelhead` row at all;
+        # one that holds the row holds every member of its set. A whole corpus missing the row is
+        # refused by the export (`steelhead_presence_problems`), which reads the full rule table.
+        ps = [b.rule_id for b in bindings if b.entry_id == PROVINCE_STEELHEAD]
+        if ps:
+            require_province_set(ps, "the reach's steelhead presence")
         for b in bindings:
             if b.entry_id == PROVINCE_STEELHEAD:
                 r = b.rule_id[:-1] if b.rule_id.endswith("b") else b.rule_id
