@@ -1,6 +1,6 @@
 # T627 — Digest email: an easy-to-read summary of reports and errors
 
-Status: IN REVIEW — efe94f572; look approved; DEPLOYED to staging 2026-11-11; owner: OWNER-TODO "T627 read one staging digest on the phone"
+Status: DONE — efe94f572; look approved; DEPLOYED to staging 2026-11-11; owner read the staging digest 2026-11-12: "looks good"
 
 Source: owner 2026-11-10 ("we want a nice easy to read summary"), answering T609's question whether a report's words
 belong in the digest email or only a count.
