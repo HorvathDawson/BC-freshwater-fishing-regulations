@@ -33,6 +33,13 @@ And one guard, because a re-parse replaces an entry wholesale and there is no `l
   AN ENTRY THAT CARRIES AN OWNER MARK IS NEVER REPLACED THIS WAY (T628): either flag refuses it, naming the mark
   (`owner_marks`: the marks in force on the entry or one of its rules, any verdict). There is no flag past it — a
   reviewed entry changes by a reviewed edit to the curated file.
+  NOR BY A PLAIN RE-PARSE (T628 item 5): an entry nobody edited since ingest wrote it (or since the seed) is replaced
+  by a repass — unless it carries an owner mark and the re-parse SAYS SOMETHING ELSE than the copy on disk. Then it is
+  left as it is, `REFUSED re-parse of <id>` names the mark and the run exits 1. Before this the entry was replaced
+  with only "wrote 1 entries" printed, and the owner learned of it from the review app alone (the mark reads stale,
+  "rule changed"). A re-parse equal to the copy on disk changes nothing and is not refused. The way to change a
+  marked entry stays the same: a reviewed edit to the curated file, or the owner clears the mark in the review app
+  (a cleared mark is not in force).
 
   THE LEDGER IS SEEDED, NOT GROWN FROM NOTHING. With no `ingested.json` every entry is one "the
   ledger never saw", so the first repass would keep all of them. `--seed-ledger` records every
@@ -332,10 +339,9 @@ def carry_curation(on_disk: dict, new: CatalogueEntry) -> tuple[CatalogueEntry, 
 
 
 def write(accepted: dict[str, CatalogueEntry], out_dir: Path, dry_run: bool = False, *,
-          ledger: Path, replace_edited: bool = False, replace_ids: frozenset = frozenset(),
+          ledger: Path, marks_path: Path, replace_edited: bool = False, replace_ids: frozenset = frozenset(),
           carry: bool = True, report: list | None = None,
-          marked: dict[str, list[str]] | None = None,
-          refused: list | None = None) -> tuple[dict[str, int], list[str]]:
+          refused: list | None = None, unedited: list | None = None) -> tuple[dict[str, int], list[str]]:
     """Merge into region files by the entry's own `region`, replacing an entry of the same id —
     unless the copy on disk is not the one ingest last wrote (see the module docstring).
 
@@ -343,35 +349,58 @@ def write(accepted: dict[str, CatalogueEntry], out_dir: Path, dry_run: bool = Fa
     with its curation carried (`carry_curation`) unless `carry` is False. `report` collects one
     line per such replace (what was carried, what could not be).
 
-    `marked` is `owner_marks` of the accepted entries: an edited entry in it is never replaced — it is left as it
-    is on disk, listed as kept, and one line naming its marks goes to `refused` (T628). THE CALLER READS THE STORE:
-    `run`, the one caller that replaces on the checked-in corpus, always passes it; `None` is a caller stating its
-    entries have no marks store (a test's own tree), never a default for the live one.
+    `marks_path` is THE MARKS STORE OF THE TREE BEING WRITTEN, and it is required (T628 item 5: it was the caller's
+    to pass or leave out). No entry that carries an owner mark in force (`owner_marks`) gets other content: not an
+    edited one under a replace flag (T628), and not an unedited one whose re-parse differs from the copy on disk
+    (item 5). Such an entry is left as it is, listed as kept, and one line naming its marks goes to `refused`; the
+    id of one refused on the plain path also goes to `unedited`. The store is read ONCE, BEFORE ANYTHING IS WRITTEN,
+    and only when this run would put other content over an entry on disk — so a first parse, or a run that only
+    keeps, opens no store, and a missing store (`marks.load` raises) stops the run with every file as it was.
 
-    Returns ({file name: entries written}, [entry ids KEPT because they were edited])."""
+    Returns ({file name: entries written}, [entry ids KEPT: edited, or refused for their mark])."""
     record = _read_ledger(ledger)
     by_region: dict[str, list[CatalogueEntry]] = defaultdict(list)
     for e in accepted.values():
         by_region[e.region or "unknown"].append(e)
 
-    written: dict[str, int] = {}
-    kept: list[str] = []
+    # THE PLAN, before any write: every entry on disk this run would put OTHER content over.
+    files: dict[str, tuple[Path, dict[str, object]]] = {}
+    over: list[str] = []
     for region, entries in sorted(by_region.items()):
         path = out_dir / f"region-{region}.json"
         merged: dict[str, object] = dict(io.read_entryfile(path, missing_ok=True))   # file order; may create it
+        files[region] = (path, merged)
+        for e in entries:
+            on_disk = merged.get(e.entry_id)
+            if on_disk is None:
+                continue
+            if record.get(e.entry_id) != digest(on_disk):                 # edited: replaced only when asked
+                if replace_edited or e.entry_id in replace_ids:
+                    over.append(e.entry_id)
+            elif digest(dump_entry(e)) != record[e.entry_id]:             # unedited, and the re-parse differs
+                over.append(e.entry_id)
+    marked = owner_marks(over, marks_path) if over else {}
+
+    written: dict[str, int] = {}
+    kept: list[str] = []
+    for region, entries in sorted(by_region.items()):
+        path, merged = files[region]
         n = 0
         for i, e in enumerate(entries):
             on_disk = merged.get(e.entry_id)
-            if on_disk is not None and record.get(e.entry_id) != digest(on_disk):
-                if not (replace_edited or e.entry_id in replace_ids):
-                    kept.append(e.entry_id)
-                    continue
-                if marked and marked.get(e.entry_id):
-                    if refused is not None:
-                        refused.append(f"{e.entry_id}: carries an owner mark ("
-                                       + "; ".join(marked[e.entry_id]) + ")")
-                    kept.append(e.entry_id)
-                    continue
+            edited = on_disk is not None and record.get(e.entry_id) != digest(on_disk)
+            if edited and not (replace_edited or e.entry_id in replace_ids):
+                kept.append(e.entry_id)
+                continue
+            if marked.get(e.entry_id):
+                if refused is not None:
+                    refused.append(f"{e.entry_id}: carries an owner mark ("
+                                   + "; ".join(marked[e.entry_id]) + ")")
+                if not edited and unedited is not None:
+                    unedited.append(e.entry_id)
+                kept.append(e.entry_id)
+                continue
+            if edited:
                 if carry:
                     e, notes = carry_curation(on_disk, e)
                     entries[i] = e
@@ -429,17 +458,23 @@ def run(batch_paths: list[str], response_paths: list[str], out_dir: str,
         print(f"NOTE {ledger} was written before the ledger's digest became {LEDGER_DIGEST} (T628): none of its "
               f"records can be compared, so every entry already on disk is KEPT. The re-seed belongs to the annual "
               f"run (handoff/PLAN/runbooks/annual-synopsis.md step 9), not before.")
-    replacing = replace_edited or bool(replace_ids)
-    marked = owner_marks(accepted, marks_path) if replacing else None      # the store is read only for a replace
+    if marks_path is None:
+        from pipeline.common.curated import CURATED
+        marks_path = CURATED.review.marks
+    unedited: list[str] = []
     written, kept = write(accepted, Path(out_dir), dry_run=dry_run,
-                          ledger=ledger, replace_edited=replace_edited,
+                          ledger=ledger, marks_path=Path(marks_path), replace_edited=replace_edited,
                           replace_ids=frozenset(replace_ids), carry=carry, report=report,
-                          marked=marked, refused=refused)
+                          refused=refused, unedited=unedited)
     for line in report:
         print(line)
     for line in refused:
-        print(f"REFUSED {'--replace-entry' if line.split(': ')[0] in replace_ids else '--replace-edited'} {line} — "
+        eid = line.split(": ")[0]
+        how = ("--replace-entry" if eid in replace_ids else "re-parse of" if eid in unedited else "--replace-edited")
+        print(f"REFUSED {how} {line} — "
               f"not replaced; a reviewed entry changes by a reviewed edit, never by a re-parse")
+    kept_marked = [k for k in kept if k in unedited]
+    kept = [k for k in kept if k not in unedited]
     rejected = len(candidates) - len(accepted)
     print(f"\n{len(accepted)}/{len(candidates)} entries accepted"
           + (f", {rejected} rejected" if rejected else "")
@@ -455,7 +490,12 @@ def run(batch_paths: list[str], response_paths: list[str], out_dir: str,
             print(f"  {eid}")
         print("  Compare each with its response; re-run with --replace-entry <id> (one entry; its placement is "
               "carried) or --replace-edited (all of them). An entry that carries an owner mark is refused by both.")
-    return 1 if (rejected or kept or missing or dupes or unknown) else 0
+    if kept_marked:
+        print(f"\nNOT REPLACED {len(kept_marked)} unedited entr(y/ies) that carry an owner mark and whose re-parse "
+              f"differs from the reviewed copy (REFUSED above): " + ", ".join(kept_marked))
+        print("  No flag replaces them. Compare each with its response; a real change goes in as a reviewed edit to "
+              "the curated file, or the owner clears the mark in the review app first.")
+    return 1 if (rejected or kept or kept_marked or missing or dupes or unknown) else 0
 
 
 def main() -> None:

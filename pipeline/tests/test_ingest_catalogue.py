@@ -12,11 +12,27 @@ import json
 
 import pytest
 
-from pipeline.regs.parsing.ingest_catalogue import ingest, load_batch, write
+from pipeline.regs.parsing import ingest_catalogue
+from pipeline.regs.parsing.ingest_catalogue import ingest, load_batch
 
 SRC = "TRANQUILLE LAKE 3-29 Rainbow trout daily quota = 8. Bait ban."
 BATCH = {"r3:tranquille@3-29": {"entry_id": "r3:tranquille@3-29", "raw_regs": SRC,
                                 "name": "TRANQUILLE LAKE", "region": "3"}}
+
+
+def no_marks(tree):
+    """The marks store of a test's own tree, beside it, holding no mark (made empty when the test has not written
+    one): `write` requires a store (T628 item 5), and an empty one is a store that says "nothing here is marked"."""
+    store = tree.parent / "review" / "marks.jsonl"
+    if not store.exists():
+        store.parent.mkdir(exist_ok=True)
+        store.write_text("", encoding="utf-8")
+    return store
+
+
+def write(accepted, out, **kw):
+    """`ingest_catalogue.write` into `out` with the store beside it (`no_marks`)."""
+    return ingest_catalogue.write(accepted, out, marks_path=no_marks(out), **kw)
 
 
 def _cand(**over):

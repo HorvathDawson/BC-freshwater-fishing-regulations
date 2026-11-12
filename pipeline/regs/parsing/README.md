@@ -73,6 +73,12 @@ fields of every rule or licensing record whose quote is unchanged), and each rec
 listed; `--no-carry` replaces whole. **An entry that carries an owner mark is never replaced by either flag** (T628):
 the run prints `REFUSED`, naming each mark in force on the entry or one of its rules, leaves the entry as it is and
 exits 1. There is no flag past it; a reviewed entry changes by a reviewed edit to the curated file.
+**Nor by a plain repass** (T628 item 5): an entry nobody edited is still replaced by a re-parse, unless it carries an
+owner mark and the re-parse says something else than the copy on disk — then `REFUSED re-parse of <entry_id>` names the
+mark, the entry stays as reviewed and the run exits 1 (a dry run says the same). A re-parse equal to the reviewed copy
+is no change and is not refused. To change a marked entry: a reviewed edit to the curated file, or the owner clears the
+mark in the review app first. Ingest reads the marks store (`CURATED.review.marks`) before it writes anything, and only
+when it would put other content over an entry on disk.
 
 **The ledger is seeded, not grown from nothing.** Without `ingested.json` every entry is one the
 ledger never saw, so a repass would keep all of them. `run_parse.sh seed-ledger`
