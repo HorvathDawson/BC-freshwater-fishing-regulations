@@ -1,6 +1,6 @@
 # T685 — Build the coast rule from the owner's 2026-11-12 answers
 
-Status: OPEN
+Status: IN PROGRESS
 
 Source: owner 2026-11-12, T678 Tidal Coast Proposal answers (`handoff/PLAN/app-integration/T678-coast-proposal.md`, line ids there). RULINGS E21–E24.
 
@@ -17,3 +17,21 @@ Source: owner 2026-11-12, T678 Tidal Coast Proposal answers (`handoff/PLAN/app-i
 6. Diff the binding before and after; only the lines above change.
 
 Depends: one atlas rebuild; bundle with T682, T683, T684. Size: M.
+
+## Built 2026-11-12 (434f16264; candidate `data/generated/atlas/full_next`, NOT promoted)
+Per-group tidal km, live -> candidate: G1 21.1 -> 0.0; G2 1.65 -> 0.0; G3 11.82 -> 8.25; G4 6.65 -> 6.65 (owner rows,
+E22); G5 0.49 -> 0.49 (owner rows); G6 36.07 -> 0.0; G7 0.53 -> 0.47 (X1 174.9 m, X2 130.3, X7 168.1; X3 X4 X5 X6
+fresh); sloughs 8.6 -> 26.9 (five whole). Binding diff (reach on live vs candidate, same code/corpus): 199 rules change,
+every changed section on a line this ticket or T684 names; unresolved 28 -> 28.
+**Cut placement (owner's question):** the cut is the river POLYGON's edge. `coast.CoastGeometry.river_at` picks the FWA
+river polygon(s) the creek's mouth sits in by location (only the creek's own polygon is excluded, by its key);
+`coast.water_edge` walks up the line to where it leaves that polygon; FWA's edge-1450 vertex is used only when it is the
+same place within 1 m. No FWA section or waterbody key chooses the receiving water.
+**Did not come out as answered:** G4/G5: the polygon edge falls 0-283 m below today's cut on 10 of 13 lines (354101341:
+7 m vs 290 m), so "keep today's cut" is kept as 13 owner rows in `shore_held.json`, each recording the rule's edge. X5,
+X6: the Brunette is drawn single-line there (no polygon within 1 m of either mouth), so the river's edge is the mouth:
+fresh. Turner/Noons (-2200000392): accepted 21.3 m tidal (E25) but not built: it is in the Noons water the owner's
+railway-bridge split governs, and the cut left a piece the reach's unplaced gate refused.
+Left (Claude): promote `full_next` (`python -m pipeline.atlas.promote data/generated/atlas/full_next
+--accept-boundary-loss`: 18 lost cut points, all listed in `T685-progress.md`; the permission system refused it in this
+lane); owner: the Turner/Noons conflict.

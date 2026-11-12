@@ -58,6 +58,16 @@ X5/X6 (Nelson Creek, 356045296): fresh because the Brunette River there is drawn
 within 1 m of either mouth; the nearest polygon is the Fraser's, 980 m away), so the river's edge is the creek's mouth
 and nothing is tidal. Not a miss: the rule has no drawn water to cut at. Today's 38 m / 34 m were the DFO polygon exit.
 
+## State (end of lane, 2026-11-12)
+- Committed: 434f16264 (T685+T684), 10c1833f7 (T682), 62afe1d38 (T683); tickets + ledger after them.
+- Build 2 = `data/generated/atlas/full_next` (COMPLETE, parity printed): matches the dry run. Reach runs:
+  `data/generated/reaches/t685_base` (live atlas, this tree) and `t685_next` (candidate); binding diff: 199 rules,
+  every changed section on a ticket line; unresolved 28 -> 28; the two unplaced pieces are the accepted ones.
+- NOT PROMOTED: `python -m pipeline.atlas.promote data/generated/atlas/full_next --accept-boundary-loss` was refused by
+  the permission system. The 18 lost cut points: six slough mouths (now whole, E24), Ewen (whole), Kainet, Toba, Wahoo,
+  Tzouhalem (G6 fresh), Colonial (T684), Nelson (X5 fresh); no curated file names any of them.
+  Until promoted, release preflight stops on the atlas being behind tidal_limits.json / shore_held.json.
+
 ## Next
-1. fast-fail; ONE atlas build `python -m pipeline build --atlas` via heavy.sh; parity; reach run; binding diff.
-2. Promote atlas file by file; ticket files + README ledger; check-tickets; commit own paths; push; CI.
+1. Promote `full_next` (above), then the staging release.
+2. Owner: Turner/Noons conflict (E25 vs the Noons railway-bridge boundary).

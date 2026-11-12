@@ -511,3 +511,6 @@ any row here that is not DONE or DROPPED. A reopened ticket's row moves back to 
 | T599 | Study: one structure for the pipeline's outputs, side files and intermediates (Zarr or other) | DONE | a9587aabc | owner accepted 2026-11-10: no format switch; four-class split + one curated writer; steps → T547, T600, T601, T602 |
 | T639 | Review proposals: `build()` rebuilds a cut the owner's mark withdrew (Alouette / Allco) | DONE | 275cbd2f5 | owner let chat 11 fix it in chat 10's lane; guard in group_for + pinning test |
 | T680 | Release: find fixture-pinned test failures before the push | DONE | d14e2565b | whole app check after the re-cut, every failure in one stop; --dry-run --rehearse-follows; in-text anchor rule; worker tsc in check:fast |
+| T682 | Move two gauges to the new river line (08NK016, 08MH028); the other nine and the 17 lake-outlet gauges keep today's placement | DONE | 10c1833f7 | — (check the release's "gauge placement: 2 station(s)" line) |
+| T683 | Nakina River: half-width DFO rule binds the whole channel between the signs, card carries DFO's centre-line-to-north-bank words | DONE | 62afe1d38 | — |
+| T684 | Drop the build-27 cuts on five held lines with nothing tidal below (354087703, 354154029, 356341234, 360445710, 360861076) | DONE | 434f16264 | — (live with T685's promoted atlas) |
