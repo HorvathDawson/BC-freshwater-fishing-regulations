@@ -1,7 +1,9 @@
 """T667 work item 4: the test-anchor scanner (`pipeline/tests/anchors.py`, the rule is its header) finds one planted
-offender of each kind, leaves a test on its own data alone, and has two modes: the report (exit 0, now) and the failing
-one (`--strict` / TEST_ANCHORS_STRICT=1, switched on when the offender list is empty — owner D4: no baseline)."""
+offender of each kind, leaves a test on its own data alone, and FAILS on every offender (owner D4: no baseline, no list
+of excused files; switched on 2026-11-11 when the offender list reached zero). `--report` only counts."""
 from __future__ import annotations
+
+import ast
 
 from pipeline.tests import anchors as A
 
@@ -80,7 +82,79 @@ def test_the_helper_is_the_allowed_way():
     assert A.scan_source(ok) == []
 
 
-def test_report_mode_passes_and_strict_mode_fails_on_the_same_tree(tmp_path, capsys, monkeypatch):
+def test_an_emitters_committed_contract_file_is_no_live_constant():
+    """`E.OUT` of a `pipeline.tools.emit` module is the committed generated file under app/ (anchors header)."""
+    ok = ("from pipeline.tools.emit import gauge_policy as E\n"
+          "def test_a():\n"
+          "    from pipeline.tools.emit import pack as emit_pack\n"
+          "    assert E.OUT.read_text() == E.render() and emit_pack.OUT.exists()\n")
+    assert A.scan_source(ok) == []
+    assert A.scan_source("import pipeline.tools.emit.pack as P\nfrom pipeline.tools.emit.pack import OUT\nx = P.OUT\n") == []
+    # NEAR MISSES, each still a live-const: another module's OUT (the review file dfo-suggestions.json, the export),
+    # an emitter's name also bound to something else, BUNDLE on an emitter, a look-alike package, the dotted spelling
+    for src in (
+        "from pipeline.regs.dfo_salmon import edge_gaps as E\nx = E.OUT\n",
+        "from pipeline.deliver.export import contract as E\nx = E.OUT\n",
+        "from pipeline.tools.emit import pack as E\nfrom pipeline.deliver.export import contract as E\nx = E.OUT\n",
+        "from pipeline.tools.emit import pack as E\nE = object()\nx = E.OUT\n",
+        "from pipeline.tools.emit import pack as E\ndef test_a(E):\n    return E.OUT\n",
+        "from pipeline.tools.emit import pack as E\nx = E.BUNDLE\n",
+        "from pipeline.tools.emit.pack import BUNDLE\n",
+        "from pipeline.tools.emitters import pack as E\nx = E.OUT\n",
+        "from pipeline.tools.audit import tidal_triage as E\nx = E.OUT\n",
+        "import pipeline.deliver.export.contract\nx = pipeline.deliver.export.contract.OUT\n",
+        "from pipeline.tools import emit as E\nx = E.OUT\n",
+    ):
+        assert kinds(src) == ["live-const"], src
+
+
+def test_every_emitters_out_is_a_committed_file_under_app():
+    """THE PREMISE of the exemption above, held on the real package, read as the scanner reads (the source, not the
+    running module): every emitter's `OUT = <repo root> / "app" / … / "<name>.generated.<ext>"`, a file that exists. An
+    emitter whose OUT pointed into data/ would make `E.OUT` a live-data read the scanner lets through: it fails here."""
+    outs = {}
+    for f in sorted((A.ROOT / A.EMITTERS.replace(".", "/")).glob("*.py")):
+        for n in ast.parse(f.read_text(encoding="utf-8")).body:
+            if isinstance(n, ast.Assign) and any(isinstance(t, ast.Name) and t.id == "OUT" for t in n.targets):
+                parts, e = [], n.value
+                while isinstance(e, ast.BinOp) and isinstance(e.op, ast.Div):
+                    assert isinstance(e.right, ast.Constant) and isinstance(e.right.value, str), (f.name, ast.unparse(n))
+                    parts.insert(0, e.right.value)
+                    e = e.left
+                assert isinstance(e, ast.Name) and e.id in A.REPO_NAMES, (f.name, ast.unparse(n))
+                outs[f.stem] = "/".join(parts)
+    assert {"gauge_policy", "pack"} <= set(outs)
+    for name, out in outs.items():
+        assert out.startswith("app/") and ".generated." in out and (A.ROOT / out).is_file(), (name, out)
+
+
+def test_the_books_own_sha_is_no_build_digest():
+    sha = "08f58537261ffe51c513193013ba165754285719dec8d0332beaef1cbab8ecfa"
+    assert kinds(LIVE + f"def test_a(m):\n    assert m['pdf_sha256'] == '{sha}'\n") == []
+    assert kinds(LIVE + f"def test_a(m):\n    assert '{sha}' == m['pdf_sha256']\n") == []
+    # NEAR MISSES, each still a digest: another key, a build's 16 digits under the book's key, the sha assigned,
+    # passed, or tested with anything but ==
+    for src in (
+        f"def test_a(m):\n    assert m['sha256'] == '{sha}'\n",
+        f"def test_a(m):\n    assert m['raw_data_sha256'] == '{sha}'\n",
+        "def test_a(m):\n    assert m['pdf_sha256'] == 'd5242c0c9f1e77aa'\n",
+        f"PDF_SHA256 = '{sha}'\n",
+        f"def test_a(f):\n    f(pdf_sha256='{sha}')\n",
+        f"def test_a(m):\n    assert m['pdf_sha256'] != '{sha}'\n",
+        f"def test_a(m):\n    assert m['handles'] == m['pdf_sha256'] == '{sha}'\n",
+    ):
+        assert kinds(LIVE + src) == ["digest"], src
+
+
+def test_an_invented_tiles_id_is_two_counting_runs():
+    assert not A.is_digest("0123456789abcdef.0123456789ab") and not A.is_digest("fedcba9876543210.0123456789ab")
+    assert kinds(LIVE + "T = '0123456789abcdef.0123456789ab'\n") == []
+    # one real half is a real id; so is any other tiles id
+    assert A.is_digest("d768d6e135e62b99.0123456789ab") and A.is_digest("0123456789abcdef.c9f9604f12bf")
+    assert A.is_digest("d768d6e135e62b99.c9f9604f12bf")
+
+
+def test_the_guard_fails_on_an_offender_and_says_what_to_write_instead(tmp_path, capsys):
     (tmp_path / "pytest.ini").write_text("[pytest]\ntestpaths = t\n")
     (tmp_path / "t").mkdir()
     (tmp_path / "t" / "test_bad.py").write_text("from pipeline.common.curated import GENERATED\nB = GENERATED.bundle\n")
@@ -88,21 +162,21 @@ def test_report_mode_passes_and_strict_mode_fails_on_the_same_tree(tmp_path, cap
     found = A.scan(tmp_path)
     assert list(found) == ["t/test_bad.py"] and A.totals(found)["generated"] == (1, 1)
     assert "1 of 2 test files offend" in A.report(found, 2)
-    assert not A.strict({}, []) and not A.strict({A.STRICT_ENV: "0"}, [])
-    assert A.strict({A.STRICT_ENV: "1"}, []) and A.strict({}, ["--strict"])
-    monkeypatch.delenv(A.STRICT_ENV, raising=False)
-    assert A.main([], tmp_path) == 0
-    assert A.main(["--strict"], tmp_path) == 1
-    assert "t/test_bad.py:2  generated: GENERATED" in capsys.readouterr().out
+    assert A.strict([]) and A.strict(["--strict"]) and A.strict(["--json"]) and not A.strict(["--report"])
+    assert A.main(["--report"], tmp_path) == 0                       # reading only
+    capsys.readouterr()
+    assert A.main([], tmp_path) == 1 and A.main(["--strict"], tmp_path) == 1 and A.main(["--json"], tmp_path) == 1
+    err = capsys.readouterr().err
+    assert "t/test_bad.py:2  generated: GENERATED" in err
+    assert f"  generated: {A.INSTEAD['generated']}" in err and "under_test.bundle(request)" in err
+    assert "no list of excused files" in err and "  curated:" not in err      # advice for the kinds hit, only
+    assert set(A.INSTEAD) == set(A.KINDS)
     (tmp_path / "t" / "test_bad.py").write_text("def test_b():\n    assert 1\n")
-    assert A.main(["--strict"], tmp_path) == 0
+    assert A.main([], tmp_path) == 0
 
 
-def test_the_live_tree_report(capsys):
-    """REPORT MODE on this repo: prints the counts and passes. With TEST_ANCHORS_STRICT=1 (flipped on when the list is
-    empty, T667 D4) it fails naming every offending file."""
-    files = A.test_files()
-    found = A.scan(files=files)
-    print(A.report(found, len(files)))
-    if A.strict():
-        assert not found, "test files off their anchor (pipeline/tests/anchors.py header): " + ", ".join(sorted(found))
+def test_the_live_tree_has_no_offender():
+    """THE GUARD, in the suite: one test file of this repo off its anchor fails here, with every hit and what to write
+    instead. No baseline and no list of excused files (T667 D4)."""
+    found = A.scan()
+    assert not found, "\n" + A.failure(found)

@@ -14,9 +14,16 @@ READS, in any test file — the live tree reached without the helper:
               `make_root(` / `CURATED_ROOT`): the live curated tree read in place.  -> `under_test.curated()`
   env         a read of an override the helper owns: os.environ[...] / .get(...) / getenv(...) of `ENV_OWNED`
               (setting one with monkeypatch is not a read).                         -> the helper reads it
-  live-const  a product module's live path constant: `<module>.BUNDLE` / `<module>.OUT`, or `BUNDLE` / `OUT`
-              imported from a `pipeline.` module (the bundle's and the export's default paths).
-                                                                                    -> `under_test.bundle()/export_dir()`
+  live-const  a product module's live path constant: `<module>.BUNDLE` / `<module>.OUT` (however long the dotted
+              name), or `BUNDLE` / `OUT` imported from a `pipeline.` module (the bundle's and the export's default
+              paths, a review tool's output file).                                   -> `under_test.bundle()/export_dir()`
+              NOT one: the `OUT` of an EMITTER, a module of the package `pipeline.tools.emit` — the committed
+              generated contract file under `app/` that the emitter writes and its `--check` compares (rule 40), named
+              `E.OUT` after `from pipeline.tools.emit import gauge_policy as E` (or `import pipeline.tools.emit.pack as
+              E`, or `OUT` imported from the emitter). It is in git and follows no build. The name must be bound by
+              that import ONLY: one also bound by another import or assigned in the file is judged as any other.
+              `test_test_anchors.py` holds every emitter's `OUT` to a path under `app/`, so the class cannot grow a
+              live-data path.
   path        a string naming `data/generated|release|curated|source/...` that is anchored on the repo: the left end
               of a `/` chain that starts at a repo-root name (`REPO`, `REPO_ROOT`, `ROOT`) or at `__file__`, or a bare
               "data/..." handed straight to a call. A chain that starts anywhere else (`tmp_path / "data/curated"`,
@@ -31,7 +38,12 @@ a file that builds its own data names that data (a `sid = 99_999` in a synthetic
               `r-000000000001`, `r-aaaaaaaaaaaa` are invented).
   digest      a string that IS a build digest: 12-64 hex digits with 6 or more different ones and both letters and
               digits, or a tiles id `<16 hex>.<12 hex>`. A counting run (`0123456789abcdef`, `fedcba9876543210`) is
-              invented and fine.
+              invented and fine, and so is a tiles id whose two halves are both counting runs
+              (`0123456789abcdef.0123456789ab`).
+              NOT one: THE BOOK'S OWN SHA — a full SHA-256 (64 hex digits) that is one side of an `==` whose other
+              side is read by a source-document key (`SOURCE_SHA_KEYS`: `m["pdf_sha256"]`). It names the published
+              document a committed baseline was cut from; no build moves it. The same string anywhere else (assigned,
+              passed, compared with another key such as `sha256` or `raw_data_sha256`) is a digest.
   raw-section a section HANDLE typed as a number: an int of 3 or more digits compared with, assigned to, passed as,
               or keyed by a name that says section (`sid`, `sids`, `handle`, `handles`, `section_id`, `dense_id`),
               or written into SQL text (`sid = 316756`, `sid IN (1, 2)`).            -> `under_test.sections().stream(blk, m)`
@@ -39,22 +51,43 @@ A section named by its id STRING (`"356075101:0"`, `"lake:-1174"`) is a name, no
 
 Not scanned here (later T667 slices): literal counts on live data (D3), entry ids, format versions.
 
-REPORT MODE (now): `python -m pipeline.tests.anchors` prints the counts and exits 0; `--json` prints every hit.
-FAILING MODE: `--strict` or `TEST_ANCHORS_STRICT=1` exits 1 while one offender is left (D4: all of them, no baseline).
-`test_test_anchors.py` plants one offender of each kind and runs the same two modes.
+THE GUARD IS ON (2026-11-11, owner D4: every offender fails, no baseline, no list of excused files).
+`python -m pipeline.tests.anchors` exits 1 while one offender is left, naming each hit and what to write instead
+(`--json` prints every hit; `--strict` is accepted and means the same). `--report` only counts and exits 0: it is for
+reading, no check may use it. `scripts/fast-fail.sh` runs the failing form, and
+`test_test_anchors.py::test_the_live_tree_has_no_offender` fails the suite on the same hits. That file also plants one
+offender of each kind. A rule that is wrong for a case is changed HERE, with a test for the accepted case and for the
+near-miss that must still fail; a hit is never reworded past the scanner.
 """
 from __future__ import annotations
 
 import ast
 import configparser
 import json
-import os
 import re
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-STRICT_ENV = "TEST_ANCHORS_STRICT"
+
+#: what to write instead, per kind (printed with a failure)
+INSTEAD = {
+    "generated": "read the build through the helper: under_test.bundle(request) / .atlas(request) / .reach_run(request) "
+                 "/ .tiles(request) / .generated()",
+    "curated": "under_test.curated().<field> (a test that WRITES sandboxes the tree first: curated_root(monkeypatch, "
+               "tmp_path))",
+    "env": "the helper reads the override: under_test.bundle(request) / .export_dir(request) / .atlas(request) / "
+           ".release(request), or under_test.path(\"<name>\") at module level",
+    "live-const": "under_test.bundle(request) / .export_dir(request) (module level: under_test.path(\"bundle\")); a "
+                  "tool's own output file: under_test.generated().<…>",
+    "path": "under_test.curated().<field> / under_test.generated().<…> / under_test.release(request); a tree the test "
+            "builds starts at tmp_path",
+    "pointer": "under_test.release(request): the release under test (the candidate during a release, else LATEST)",
+    "release-id": "read the id from the data: under_test.release(request).name; an invented one is r-000000000001",
+    "digest": "read it from the data under test (the bundle's meta, the sidecar, the manifest); an invented one is a "
+              "counting run: \"0123456789abcdef\"",
+    "raw-section": "name the section: under_test.sections(request).stream(<blue line>, <metre>) / .lake(<wbk>)",
+}
 
 READ_KINDS = ("generated", "curated", "env", "live-const", "path", "pointer")
 PIN_KINDS = ("release-id", "digest", "raw-section")
@@ -64,6 +97,10 @@ KINDS = READ_KINDS + PIN_KINDS
 ENV_OWNED = frozenset({"UI_EXPORT_BUNDLE", "UI_EXPORT_VERDICTS", "STATUS_INDEX", "ANSWERS_EXPORT_DIR", "UI_EXPORT_DIR",
                        "ATLAS_BUILD", "UI_EXPORT_REACHES", "UI_EXPORT_TILES", "RELEASE_DIR"})
 LIVE_CONSTS = frozenset({"BUNDLE", "OUT"})
+#: the emitters: each module's OUT is a committed generated contract file under app/ (header, live-const)
+EMITTERS = "pipeline.tools.emit"
+#: keys that hold the sha of a published source document (header, digest)
+SOURCE_SHA_KEYS = frozenset({"pdf_sha256"})
 REPO_NAMES = frozenset({"REPO", "REPO_ROOT", "ROOT"})
 SANDBOXES = frozenset({"curated_root", "sandbox_tree", "make_root"})
 SECTION_NAMES = frozenset({"sid", "sids", "handle", "handles", "section_id", "section_ids", "dense_id"})
@@ -72,6 +109,7 @@ _DATA = re.compile(r"(^|/)data/(generated|release|curated|source)(/|$)")
 _RID = re.compile(r"\br-([0-9a-f]{12})\b")
 _HEX = re.compile(r"^[0-9a-f]{12,64}$")
 _TILES = re.compile(r"^[0-9a-f]{16}\.[0-9a-f]{12}$")
+_SHA256 = re.compile(r"^[0-9a-f]{64}$")
 _SQL_SID = re.compile(r"\bsid\s*(?:=|IN\s*\()\s*\d{3,}", re.I)
 
 
@@ -83,10 +121,14 @@ def real_release_id(text: str) -> bool:
 _RUN = "0123456789abcdef" * 5
 
 
+def _counting_run(text: str) -> bool:
+    return text in _RUN or text[::-1] in _RUN
+
+
 def is_digest(text: str) -> bool:
     if _TILES.match(text):
-        return True
-    if text in _RUN or text[::-1] in _RUN:
+        return not all(_counting_run(half) for half in text.split("."))
+    if _counting_run(text):
         return False
     return bool(_HEX.match(text)) and len(set(text)) >= 6 and any(c.isdigit() for c in text) \
         and any(c.isalpha() for c in text)
@@ -121,6 +163,37 @@ def _says_section(node: ast.AST) -> bool:
     return False
 
 
+def _emitter_names(tree: ast.AST) -> set[str]:
+    """The names this file binds to an emitter module (`pipeline.tools.emit.<module>`) and to nothing else."""
+    emitters: set[str] = set()
+    others: set[str] = set()
+    for n in ast.walk(tree):
+        if isinstance(n, ast.ImportFrom):
+            for a in n.names:
+                (emitters if (n.module or "") == EMITTERS and not n.level else others).add(a.asname or a.name)
+        elif isinstance(n, ast.Import):
+            for a in n.names:
+                if a.asname:
+                    (emitters if a.name.startswith(EMITTERS + ".") else others).add(a.asname)
+                else:
+                    others.add(a.name.split(".")[0])
+        elif isinstance(n, ast.Name) and not isinstance(n.ctx, ast.Load):
+            others.add(n.id)
+        elif isinstance(n, (ast.arg, ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            others.add(n.arg if isinstance(n, ast.arg) else n.name)
+    return emitters - others
+
+
+def _source_sha(s: ast.Constant, up: ast.AST | None) -> bool:
+    """Is the string `s` a full SHA-256 compared (`==`) with a value read by a source-document key?"""
+    if not _SHA256.match(s.value) or not isinstance(up, ast.Compare) or len(up.ops) != 1 \
+            or not isinstance(up.ops[0], ast.Eq):
+        return False
+    other = up.comparators[0] if up.left is s else up.left
+    return isinstance(other, ast.Subscript) and isinstance(other.slice, ast.Constant) \
+        and other.slice.value in SOURCE_SHA_KEYS
+
+
 def _handle_ints(node: ast.AST) -> bool:
     """An int of 3+ digits, or a list / tuple / set holding one."""
     if isinstance(node, ast.Constant):
@@ -146,6 +219,7 @@ def scan_source(source: str) -> list[tuple[int, str, str]]:
              for a in n.names}
     strings = [n for n in ast.walk(tree) if isinstance(n, ast.Constant) and isinstance(n.value, str) and id(n) not in doc]
     sandboxed = bool(names & SANDBOXES) or any(n.value == "CURATED_ROOT" for n in strings) or "ROOT_ENV" in names
+    emitters = _emitter_names(tree)
     live = bool(names & {"need", "under_test"}) or any(a.startswith("needs_") for a in names)
 
     for n in ast.walk(tree):
@@ -159,11 +233,13 @@ def scan_source(source: str) -> list[tuple[int, str, str]]:
         elif isinstance(n, ast.ImportFrom):
             mod = n.module or ""
             for a in n.names:
-                if a.name in LIVE_CONSTS and mod.startswith("pipeline."):
+                if a.name in LIVE_CONSTS and mod.startswith("pipeline.") \
+                        and not (a.name == "OUT" and mod.startswith(EMITTERS + ".") and not n.level):
                     reads.append((n.lineno, "live-const", f"{mod}.{a.name}"))
         elif isinstance(n, ast.Attribute) and isinstance(n.ctx, ast.Load) and n.attr in LIVE_CONSTS \
-                and isinstance(n.value, ast.Name):
-            reads.append((n.lineno, "live-const", f"{n.value.id}.{n.attr}"))
+                and isinstance(n.value, (ast.Name, ast.Attribute)):
+            if not (n.attr == "OUT" and isinstance(n.value, ast.Name) and n.value.id in emitters):
+                reads.append((n.lineno, "live-const", ast.unparse(n)[:60]))
         elif isinstance(n, ast.Call):
             f = n.func
             env_get = isinstance(f, ast.Attribute) and (
@@ -206,7 +282,7 @@ def scan_source(source: str) -> list[tuple[int, str, str]]:
                 reads.append((s.lineno, "path", text[:60]))
         if real_release_id(text):
             pins.append((s.lineno, "release-id", _RID.search(text).group(0)))
-        elif is_digest(text):
+        elif is_digest(text) and not _source_sha(s, parent.get(id(s))):
             pins.append((s.lineno, "digest", text[:16]))
         if _SQL_SID.search(text):
             pins.append((s.lineno, "raw-section", _SQL_SID.search(text).group(0)[:40]))
@@ -245,8 +321,21 @@ def report(found: dict[str, list[tuple[int, str, str]]], n_files: int) -> str:
     return "\n".join(lines)
 
 
-def strict(env=os.environ, argv=()) -> bool:
-    return "--strict" in argv or env.get(STRICT_ENV, "0") not in ("", "0")
+def strict(argv=()) -> bool:
+    """The guard is on: every run fails on an offender. `--report` (counts only, exit 0) is for reading."""
+    return "--report" not in argv
+
+
+def failure(found: dict[str, list[tuple[int, str, str]]]) -> str:
+    """Every hit, then what to write instead for each kind hit."""
+    lines = [f"{f}:{line}  {kind}: {what}" for f, hits in found.items() for line, kind, what in hits]
+    hit = [k for k in KINDS if any(x[1] == k for h in found.values() for x in h)]
+    lines += [f"test anchors: {len(found)} test file(s) off their anchor (T667, AGENTS W46). A test stands on data it "
+              "builds, a frozen fixture, or the data under test through pipeline/tests/under_test.py. Instead:"]
+    lines += [f"  {k}: {INSTEAD[k]}" for k in hit]
+    lines += ["  the whole rule: the header of pipeline/tests/anchors.py. If the rule is wrong for your case, change it "
+              "there with a test; never reword the hit past the scanner, and there is no list of excused files."]
+    return "\n".join(lines)
 
 
 def main(argv: list[str], root: Path | None = None) -> int:
@@ -257,13 +346,8 @@ def main(argv: list[str], root: Path | None = None) -> int:
         print(json.dumps({f: [list(h) for h in hits] for f, hits in found.items()}, indent=1))
     else:
         print(report(found, len(files)))
-    if strict(argv=argv) and found:
-        if "--json" not in argv:
-            for f, hits in found.items():
-                for line, kind, what in hits:
-                    print(f"{f}:{line}  {kind}: {what}")
-        print(f"test anchors: {len(found)} offending files — read through pipeline/tests/under_test.py "
-              "(the rule is this module's header)", file=sys.stderr)
+    if strict(argv) and found:
+        print(failure(found), file=sys.stderr)
         return 1
     return 0
 

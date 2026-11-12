@@ -44,21 +44,28 @@
  *   raw-part    a part typed as a number: `<n>` as the value of `partIx` / `part_ix`, the number after a water id
  *               (`f("gnis:2936", 2)`), or `.lake(item, <n>)`. Part 0 is a water's first part in river order (its mouth
  *               end, or its only part) and names that end; any other number counts the cuts below it, which move.
+ *               NOT one: the stream key in the helper's own call `<names>.partAt("<water id>", <stream key>, <metre>)`
+ *               — a METHOD call of exactly three arguments with the water id FIRST. The number after the water id
+ *               there is a blue line, a name. `@app/core`'s function `partAt(g, "<water id>", <part>)` (the water id
+ *               second, no receiver) does take a part number and is still one.
  *   release-id  a string holding a real-looking release id `r-<12 hex>` (5+ different hex digits). In ANY file: the id
  *               of a committed fixture release typed out, where `FIXTURE_RELEASES` / `regsFixtureDir()` names it.
  *   digest      a string that IS a build digest: 12-64 hex digits (6+ different, letters and digits both), or a tiles
- *               id `<16 hex>.<12 hex>`. A counting run (`0123456789abcdef`) is invented and fine.
+ *               id `<16 hex>.<12 hex>`. A counting run (`0123456789abcdef`) is invented and fine, and so is a tiles id
+ *               whose two halves are both counting runs (`0123456789abcdef.0123456789ab`).
  *
  * Not scanned here (later T667 slices): literal counts on live data (D3), golden file reads past `taps()`.
  *
  * `sectionNames.part` / `.partAt` name a part; `regsFixtureLines().unnamed` is the fixture's unnamed reach, read from its own file.
  *
- *   node tools/check-test-anchors.mjs            REPORT MODE (now): the counts, exit 0
- *   node tools/check-test-anchors.mjs --list     + every hit
- *   node tools/check-test-anchors.mjs --json     every hit as JSON
- *   node tools/check-test-anchors.mjs --strict   FAILING MODE (also TEST_ANCHORS_STRICT=1): exit 1 while one offender is
- *                                                left — owner D4: all of them, no baseline; switched on in `pnpm check`
- *                                                when the list is empty
+ * THE GUARD IS ON (2026-11-11, owner D4: every offender fails, no baseline, no list of excused files). `pnpm anchors`
+ * (in `pnpm check` / `check:fast`) and `scripts/fast-fail.sh` run it.
+ *   node tools/check-test-anchors.mjs            exit 1 while one offender is left: every hit and what to write instead
+ *                                                (`--strict` is accepted and means the same; `--json`: the hits as JSON)
+ *   node tools/check-test-anchors.mjs --report   the counts only, exit 0 (`--list`: + every hit). For reading: no check
+ *                                                may use it.
+ * A rule that is wrong for a case is changed HERE, with a test for the accepted case and for the near-miss that must
+ * still fail; a hit is never reworded past the scanner.
  */
 import { execFileSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
@@ -92,14 +99,27 @@ const HEX = /^[0-9a-f]{12,64}$/;
 const TILES = /^[0-9a-f]{16}\.[0-9a-f]{12}$/;
 const RUN = "0123456789abcdef".repeat(5);
 
+/** what to write instead, per kind (printed with a failure) */
+export const INSTEAD = {
+  path: `the release under test: liveRelease() / namedRelease() (conformance/src/fixtureRelease.ts); a committed data file: repoData("curated/…") (conformance/src/repoData.ts); the regs fixture: openRegsFixture()`,
+  pointer: `liveRelease() answers which release is under test (the candidate during a release, else LATEST)`,
+  env: `namedRelease() (the release the run named) or liveRelease(): the helper reads RELEASE_DIR`,
+  "raw-section": `name the section: await sectionNames(loader).stream(<stream key>, <start metre>) (a lake: .lake(item, part))`,
+  "raw-part": `name the part: await sectionNames(loader).part(item, <lo end>, <hi end>), or .partAt(item, <stream key>, <metre>)`,
+  "release-id": `regsFixtureDir() / FIXTURE_RELEASES name a committed release; the live one is liveRelease().id; an invented id is r-000000000001`,
+  digest: `read it from the release (its manifest / store meta); an invented one is a counting run: "0123456789abcdef"`,
+};
+
 /** The release ids in `text` that look real (5+ different hex digits). */
 export function realReleaseIds(text) {
   return [...text.matchAll(RID)].filter((m) => new Set(m[1]).size >= 5).map((m) => m[0]);
 }
 
+const countingRun = (text) => RUN.includes(text) || RUN.includes([...text].reverse().join(""));
+
 export function isDigest(text) {
-  if (TILES.test(text)) return new Set(text).size >= 6;
-  if (!HEX.test(text) || RUN.includes(text) || RUN.includes([...text].reverse().join(""))) return false;
+  if (TILES.test(text)) return new Set(text).size >= 6 && !text.split(".").every(countingRun);
+  if (!HEX.test(text) || countingRun(text)) return false;
   return new Set(text).size >= 6 && /[0-9]/.test(text) && /[a-f]/.test(text);
 }
 
@@ -208,7 +228,10 @@ export function scanSource(source, name = "x.test.tsx", committed = []) {
       const f = callee(n), a = n.arguments;
       if (f === "sectionLine" && a[0] && named(a[0])) cur.pins.push([line(n), "raw-section", `sectionLine(${a[0].getText(sf)})`]);
       if (f === "lake" && a[1] && named(a[1])) cur.pins.push([line(n), "raw-part", `lake(…, ${a[1].getText(sf)})`]);
-      else if (f !== "lake") a.forEach((x, i) => {
+      // `<names>.partAt("<water id>", <stream key>, <metre>)`: the helper's call, the number is a blue line (header)
+      const byPlace = f === "partAt" && ts.isPropertyAccessExpression(n.expression) && a.length === 3 &&
+        ts.isStringLiteralLike(a[0]) && WATER_ID.test(a[0].text);
+      if (f !== "lake" && !byPlace) a.forEach((x, i) => {
         if (i > 0 && named(x) && ts.isStringLiteralLike(a[i - 1]) && WATER_ID.test(a[i - 1].text))
           cur.pins.push([line(x), "raw-part", `"${a[i - 1].text}", ${x.getText(sf)}`]);
       });
@@ -270,18 +293,28 @@ export function report(found, nFiles) {
     ...Object.entries(totals(found)).map(([k, [f, h]]) => `  ${k.padEnd(12)} ${String(f).padStart(4)} files ${String(h).padStart(5)} hits`)].join("\n");
 }
 
-export const strict = (env = process.env, argv = []) =>
-  argv.includes("--strict") || !["", "0", undefined].includes(env.TEST_ANCHORS_STRICT);
+/** The guard is on: every run fails on an offender. `--report` (counts only, exit 0) is for reading. */
+export const strict = (argv = []) => !argv.includes("--report");
 
-export function main(argv, app = APP, env = process.env, log = console.log) {
-  const files = testFiles(app), found = scan(app, files), fail = strict(env, argv) && Object.keys(found).length > 0;
+/** What a failing run says after the hits: what to write instead for each kind hit. */
+export function advice(found) {
+  const hit = KINDS.filter((k) => Object.values(found).some((h) => h.some((x) => x[1] === k)));
+  return [`test anchors: ${Object.keys(found).length} test file(s) off their anchor (T667, AGENTS W46). A test stands on data it builds, ` +
+    `a frozen fixture, or the release under test through the helpers. Instead:`,
+    ...hit.map((k) => `  ${k}: ${INSTEAD[k]}`),
+    `  the whole rule: the header of app/tools/check-test-anchors.mjs. If the rule is wrong for your case, change it there ` +
+    `with a test; never reword the hit past the scanner, and there is no list of excused files.`].join("\n");
+}
+
+export function main(argv, app = APP, log = console.log) {
+  const files = testFiles(app), found = scan(app, files), fail = strict(argv) && Object.keys(found).length > 0;
   if (argv.includes("--json")) log(JSON.stringify(found, null, 1));
   else {
     log(report(found, files.length));
     if (argv.includes("--list") || fail)
       for (const [f, hits] of Object.entries(found)) for (const [l, k, w] of hits) log(`${f}:${l}  ${k}: ${w}`);
   }
-  if (fail) log(`test anchors: ${Object.keys(found).length} offending files — the rule and the helpers are this tool's header`);
+  if (fail) log(advice(found));
   return fail ? 1 : 0;
 }
 

@@ -22,7 +22,7 @@
     "deps": "node tools/check-deps.mjs",
     "knip": "knip --no-progress",
     "tickets": "node tools/check-tickets.mjs",
-    "anchors": "node tools/check-test-anchors.mjs",
+    "anchors": "node tools/check-test-anchors.mjs --strict",
     "changelog": "node ../scripts/check-changelog.mjs",
     "platform": "node tools/check-platform.mjs",
     "spinner": "node tools/build-spinner.mjs && git diff --exit-code packages/ui-native/src/fish-sprite.generated.ts tools/fish-sprite/fish-sprite.png tools/fish-sprite/fish-sprite.html",

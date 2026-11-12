@@ -1,7 +1,7 @@
 /**
  * (T667 work item 4) The test-anchor scanner (`check-test-anchors.mjs`, the rule is its header) finds one planted
- * offender of each kind, leaves a test on its own data alone, and has two modes: the report (exit 0, now) and the failing
- * one (`--strict` / TEST_ANCHORS_STRICT=1, switched on when the list is empty — owner D4: no baseline).
+ * offender of each kind, leaves a test on its own data alone, and FAILS on every offender (owner D4: no baseline, no
+ * list of excused files; switched on 2026-11-11 when the offender list reached zero). `--report` only counts.
  */
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
@@ -9,7 +9,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 // @ts-expect-error a .mjs tool, no types
-import { KINDS, isDigest, main, realReleaseIds, report, scan, scanSource, strict, totals } from "./check-test-anchors.mjs";
+import { INSTEAD, KINDS, isDigest, main, realReleaseIds, report, scan, scanSource, strict, totals } from "./check-test-anchors.mjs";
 
 type Hit = [number, string, string];
 const hits = (src: string, committed: string[] = []): Hit[] => scanSource(src, "planted.test.tsx", committed);
@@ -95,9 +95,33 @@ describe("the fixture, through the store", () => { it("b", () => { read(store, V
     expect(realReleaseIds("r-303b4007a70a r-000000000001")).toEqual(["r-303b4007a70a"]);
     expect([isDigest("d5242c0c9f1e77aa"), isDigest("fedcba9876543210"), isDigest("aaaaaaaaaaaaaaaa")]).toEqual([true, false, false]);
   });
+
+  it("an invented tiles id is two counting runs; one real half is a real id", () => {
+    expect(hits(inFixture(`const t = "0123456789abcdef.0123456789ab", u = "fedcba9876543210.0123456789ab";`))).toEqual([]);
+    expect(["d768d6e135e62b99.0123456789ab", "0123456789abcdef.c9f9604f12bf", "d768d6e135e62b99.c9f9604f12bf"].map(isDigest))
+      .toEqual([true, true, true]);
+    expect(kinds(inFixture(`expect(m.tiles).toBe("0123456789abcdef.c9f9604f12bf");`))).toEqual(["digest"]);
+  });
+
+  it("the stream key in the helper's partAt(item, key, metre) is a name; every other number after a water id is a part", () => {
+    expect(hits(inFixture(`const names = sectionNames(l);\nconst p = await names.partAt("gnis:2936", 360216952, 1017);`))).toEqual([]);
+    // NEAR MISSES, each still a raw part: @app/core's partAt(g, item, PART) (no receiver, the water id second), a
+    // method of that shape, the helper's name with another arity, any other call, and .lake(item, n)
+    const still: [string, string][] = [
+      [`const i = partAt(g, "gnis:3137", 3);`, `"gnis:3137", 3`],
+      [`const i = nav.partAt(g, "gnis:3137", 3);`, `"gnis:3137", 3`],
+      [`const i = partAt("gnis:3137", 3, 1017);`, `"gnis:3137", 3`],
+      [`const i = names.partAt("gnis:3137", 3);`, `"gnis:3137", 3`],
+      [`const i = names.partAt("gnis:3137", 3, 1017, 4);`, `"gnis:3137", 3`],
+      [`const i = names.part("gnis:3137", 3, 1017);`, `"gnis:3137", 3`],
+      [`const i = names.partAt(x, "gnis:3137", 3);`, `"gnis:3137", 3`],
+      [`const i = await names.lake("gnis:3137", 3);`, `lake(…, 3)`],
+    ];
+    for (const [src, what] of still) expect(hits(inFixture(`const names = sectionNames(l);\n${src}`)), src).toEqual([[4, "raw-part", what]]);
+  });
 });
 
-describe("T667 test anchors: report mode and failing mode", () => {
+describe("T667 test anchors: the guard", () => {
   /** a git tree of two test files, one offending */
   function tree(): string {
     const app = mkdtempSync(join(tmpdir(), "anchors-"));
@@ -108,22 +132,28 @@ describe("T667 test anchors: report mode and failing mode", () => {
     return app;
   }
 
-  it("the same tree passes the report and fails strict, naming the hit; clean, strict passes", () => {
+  it("the guard fails on an offender, naming the hit and what to write instead; --report only counts; clean, it passes", () => {
     const app = tree(), found = scan(app);
     expect(Object.keys(found)).toEqual(["t/bad.test.ts"]);
     expect(totals(found).path).toEqual([1, 1]);
     expect(report(found, 2)).toContain("test anchors (app): 1 of 2 test files offend");
     const out: string[] = [], log = (s: string) => { out.push(s); };
-    expect(main([], app, {}, log)).toBe(0);
-    expect(main(["--strict"], app, {}, log)).toBe(1);
-    expect(main([], app, { TEST_ANCHORS_STRICT: "1" }, log)).toBe(1);
-    expect(out.join("\n")).toContain("t/bad.test.ts:2  path: data/release");
+    expect(main(["--report"], app, log)).toBe(0);
+    expect(out.join("\n")).not.toContain("Instead:");
+    expect([main([], app, log), main(["--strict"], app, log), main(["--json"], app, log)]).toEqual([1, 1, 1]);
+    const said = out.join("\n");
+    expect(said).toContain("t/bad.test.ts:2  path: data/release");
+    expect(said).toContain(`  path: ${INSTEAD.path}`);
+    expect(said).toContain("liveRelease()");
+    expect(said).toContain("no list of excused files");
+    expect(said).not.toContain("  raw-section:");                    // advice for the kinds hit, only
+    expect(Object.keys(INSTEAD).sort()).toEqual([...KINDS].sort());
     writeFileSync(join(app, "t/bad.test.ts"), `it("b", () => { expect(2).toBe(2); });\n`);
-    expect(main(["--strict"], app, {}, log)).toBe(0);
+    expect(main([], app, log)).toBe(0);
   });
 
-  it("strict is off unless asked", () => {
-    expect([strict({}, []), strict({ TEST_ANCHORS_STRICT: "0" }, []), strict({ TEST_ANCHORS_STRICT: "1" }, []), strict({}, ["--strict"])])
-      .toEqual([false, false, true, true]);
+  it("the guard is on unless a run only reports", () => {
+    expect([strict([]), strict(["--strict"]), strict(["--json"]), strict(["--list"]), strict(["--report"])])
+      .toEqual([true, true, true, true, false]);
   });
 });
