@@ -167,3 +167,13 @@ Next commands:
   `first_search` 1,500,000 → 1,650,000 (`release/contract.py`, `pack.generated.ts` re-emitted). Nothing else moved.
 - T686 opened: shrink shipped data across the board (survey of the live release's 52 files by table in the ticket).
 - OWNER-TODO row ANSWERED. Next: release resume (dry-run rehearsal, then the real run), spot-checks, APK 0.7.7.
+- Commit ef9232881 (pushed; pipeline CI green). Fresh-copy tests at that HEAD: rc 0.
+- RELEASE NOT RESUMED (2026-11-12): the rehearsal (`--dry-run --rehearse-follows`) would stop twice, both on the T685
+  lane's UNCOMMITTED, in-progress work in the shared checkout: (1) preflight: `pipeline/atlas/splits/coast.py`
+  uncommitted (also dirty: `pipeline/atlas/build.py`, `inputs.py`, `coast_held.py`, `common/curated.py`, `config.yaml`,
+  `data/curated/waters/tidal_limits.json`, `shore_held.json`, two tests); (2) fast-fail: `test_next_rebuild.py` (3) and
+  `test_tidal_cut.py` (1) fail on that dirty tree. The build plan would also RUN reach and tiles (code changed) and
+  warns the atlas is behind tidal_limits.json / shore_held.json — i.e. it would ship T685's half-built work, not the
+  existing atlas. Resume only once the T685 lane has committed (and its atlas promoted) or its tree is clean:
+  `.venv/bin/python -m pipeline release --staging --dry-run --rehearse-follows`, then without `--dry-run`. APK 0.7.7
+  stays held behind this release (its changelog describes this data).
