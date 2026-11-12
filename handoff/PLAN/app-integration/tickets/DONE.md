@@ -514,3 +514,4 @@ any row here that is not DONE or DROPPED. A reopened ticket's row moves back to 
 | T682 | Move two gauges to the new river line (08NK016, 08MH028); the other nine and the 17 lake-outlet gauges keep today's placement | DONE | 10c1833f7 | — (check the release's "gauge placement: 2 station(s)" line) |
 | T683 | Nakina River: half-width DFO rule binds the whole channel between the signs, card carries DFO's centre-line-to-north-bank words | DONE | 62afe1d38 | — |
 | T684 | Drop the build-27 cuts on five held lines with nothing tidal below (354087703, 354154029, 356341234, 360445710, 360861076) | DONE | 434f16264 | — (live with T685's promoted atlas) |
+| T685 | Build the coast rule from the owner's 2026-11-12 answers (single rule; five whole-tidal sloughs; fix the automatic reading; polygon-edge cut placement) | DONE | 434f16264 | — (atlas promoted 2026-11-12; Turner/Noons stays fresh, owner E25 note) |

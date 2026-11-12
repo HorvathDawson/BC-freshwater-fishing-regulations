@@ -1,6 +1,6 @@
 # T685 — Build the coast rule from the owner's 2026-11-12 answers
 
-Status: IN PROGRESS
+Status: DONE (434f16264)
 
 Source: owner 2026-11-12, T678 Tidal Coast Proposal answers (`handoff/PLAN/app-integration/T678-coast-proposal.md`, line ids there). RULINGS E21–E24.
 
@@ -35,3 +35,7 @@ railway-bridge split governs, and the cut left a piece the reach's unplaced gate
 Left (Claude): promote `full_next` (`python -m pipeline.atlas.promote data/generated/atlas/full_next
 --accept-boundary-loss`: 18 lost cut points, all listed in `T685-progress.md`; the permission system refused it in this
 lane); owner: the Turner/Noons conflict.
+
+## Closed 2026-11-12
+`full_next` promoted to `data/generated/atlas/full` with `--accept-boundary-loss` (owner-approved; old atlas at `full.prev`).
+Turner/Noons: owner answer 2026-11-12, leave it fresh; the railway-bridge boundary governs (RULINGS E25 note). Ships in the next staging release.
