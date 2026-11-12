@@ -35,6 +35,14 @@ def gpkg(tmp_path):
     return p
 
 
+#: the two source stamps (no FWA file in a test: the stand-in file is stamped for both)
+SOURCES = ("source:fwa_gpkg", "source:fwa_coast")
+
+
+def _src(gpkg) -> dict:
+    return {k: gpkg for k in SOURCES}
+
+
 def _atlas(tmp_path: Path, hashes: dict) -> Path:
     d = tmp_path / "atlas"
     d.mkdir(exist_ok=True)
@@ -43,17 +51,17 @@ def _atlas(tmp_path: Path, hashes: dict) -> Path:
 
 
 def test_every_input_digests_and_a_current_atlas_is_not_behind(tmp_path, gpkg):
-    now = I.digests({"source:fwa_gpkg": gpkg})
+    now = I.digests(_src(gpkg))
     assert list(now) == list(I.ATLAS_INPUTS)
     assert now["curated:waters.cuts"].startswith("anchors:")
-    assert now["source:fwa_gpkg"].startswith("stamp:")
-    assert all(v.startswith("sha256:") for k, v in now.items() if k not in ("curated:waters.cuts", "source:fwa_gpkg"))
+    assert all(now[k].startswith("stamp:") for k in SOURCES)
+    assert all(v.startswith("sha256:") for k, v in now.items() if k != "curated:waters.cuts" and k not in SOURCES)
     assert I.behind(_atlas(tmp_path, now), now) == []
 
 
 @pytest.mark.parametrize("key", [k for k in I.ATLAS_INPUTS if k.startswith("curated:")])
 def test_a_changed_input_is_named(tmp_path, gpkg, key):
-    now = I.digests({"source:fwa_gpkg": gpkg})
+    now = I.digests(_src(gpkg))
     old = dict(now, **{key: now[key][:-4] + "0000"})
     got = I.behind(_atlas(tmp_path, old), now)
     assert len(got) == 1
@@ -62,12 +70,12 @@ def test_a_changed_input_is_named(tmp_path, gpkg, key):
 
 
 def test_an_empty_record_is_refused_with_the_backfill_command(tmp_path, gpkg):
-    got = I.behind(_atlas(tmp_path, {}), I.digests({"source:fwa_gpkg": gpkg}))
+    got = I.behind(_atlas(tmp_path, {}), I.digests(_src(gpkg)))
     assert len(got) == 1 and "records no inputs" in got[0] and "--backfill" in got[0]
 
 
 def test_a_skipped_or_unrecorded_input_is_behind(tmp_path, gpkg):
-    now = I.digests({"source:fwa_gpkg": gpkg})
+    now = I.digests(_src(gpkg))
     rec = dict(now, **{"curated:waters.cuts": I.not_read("--no-splits")})
     del rec["curated:waters.slough_calls"]
     got = I.behind(_atlas(tmp_path, rec), now)
@@ -108,7 +116,7 @@ def test_a_cut_label_is_not_a_cut_but_its_anchor_is(tmp_path):
 
 def test_backfill_writes_only_what_it_proved(tmp_path, gpkg, monkeypatch):
     d = _atlas(tmp_path, {})
-    monkeypatch.setattr(I, "default_path", lambda key: gpkg if key == "source:fwa_gpkg" else I.curated_path(key))
+    monkeypatch.setattr(I, "default_path", lambda key: gpkg if key in SOURCES else I.curated_path(key))
     # the cuts are proven by git AND by split_anchors.json equal to the anchors now
     from pipeline.atlas.splits.splits import anchor_digests
     (d / "split_anchors.json").write_text(json.dumps(anchor_digests(json.loads(
@@ -123,14 +131,38 @@ def test_backfill_writes_only_what_it_proved(tmp_path, gpkg, monkeypatch):
     assert meta["input_hashes"] == got and set(meta["input_hashes_backfilled"]["proof"]) == set(got)
     left = I.behind(d, I.digests())
     assert len(left) == 1 and f"({unproven_key}): the atlas records no digest" in left[0]
+    # a second run proves only what is still missing, and keeps every recorded digest as it was
+    monkeypatch.setattr(I, "git_proof", lambda p, ts: "git: test")
+    again, unproven = I.backfill(d, log=lambda *_: None)
+    assert set(again) == {unproven_key} and unproven == []
+    assert I.read_meta(d)["input_hashes"] == {k: {**got, **again}[k] for k in I.ATLAS_INPUTS}
     with pytest.raises(SystemExit, match="already records"):
         I.backfill(d, log=lambda *_: None)
+
+
+def test_backfill_adds_only_the_inputs_a_record_lacks(tmp_path, gpkg, monkeypatch):
+    """T678: the first coast-cut atlas records the older inputs as built; its coast inputs are added by proof and
+    a recorded digest is never rewritten, even one the tree has moved past (the release must still see it behind)."""
+    monkeypatch.setattr(I, "default_path", lambda key: gpkg if key in SOURCES else I.curated_path(key))
+    monkeypatch.setattr(I, "git_proof", lambda p, ts: "git: test")
+    os.utime(gpkg, (0, 0))
+    now = I.digests()
+    added = ("curated:waters.tidal_split_authority", "curated:waters.shore_held", "source:fwa_coast")
+    rec = {k: v for k, v in now.items() if k not in added}
+    rec["curated:waters.tidal"] = "sha256:" + "0" * 64          # an input the tree moved past
+    d = _atlas(tmp_path, rec)
+    got, unproven = I.backfill(d, log=lambda *_: None)
+    assert set(got) == set(added) and unproven == []
+    meta = I.read_meta(d)
+    assert meta["input_hashes"]["curated:waters.tidal"] == "sha256:" + "0" * 64
+    assert list(meta["input_hashes"]) == list(I.ATLAS_INPUTS)
+    assert [b.split(" (")[1].split(")")[0] for b in I.behind(d, now)] == ["curated:waters.tidal"]
 
 
 def test_backfill_refuses_cuts_whose_anchor_record_differs(tmp_path, gpkg, monkeypatch):
     d = _atlas(tmp_path, {})
     (d / "split_anchors.json").write_text(json.dumps({"some_cut": "0" * 16}))
-    monkeypatch.setattr(I, "default_path", lambda key: gpkg if key == "source:fwa_gpkg" else I.curated_path(key))
+    monkeypatch.setattr(I, "default_path", lambda key: gpkg if key in SOURCES else I.curated_path(key))
     monkeypatch.setattr(I, "git_proof", lambda p, ts: "git: test")
     _got, unproven = I.backfill(d, log=lambda *_: None)
     assert unproven == [f"{I.curated_path('curated:waters.cuts').name} (curated:waters.cuts)"]

@@ -30,6 +30,8 @@ BACKFILL (an atlas built before this record existed): a digest is written only f
 build — tracked by git, clean, and last committed before the atlas's `build_ts`; the cuts also by `split_anchors.json`
 equal to the anchors now; the gpkg by an mtime before the build. A file that cannot be proven is left out and named, so
 the release refuses it until the atlas is rebuilt. Writes the meta file atomically; never touches anything else.
+An atlas whose record predates an input added to `ATLAS_INPUTS` (T678's coast inputs, 2026-11-12) is backfilled for
+the MISSING keys only, by the same proof; every digest it already records stays as built.
 """
 from __future__ import annotations
 
@@ -56,10 +58,7 @@ ATLAS_INPUTS: dict[str, str] = {
     "curated:waters.added_areas": "cut_areas (the polygons an `areas.json` def names by `file`)",
     "curated:waters.slough_calls": "build_registry (`registry.flowing.fold_confirmed_sloughs`)",
     "source:fwa_gpkg": "every FWA layer (`--gpkg`)",
-}
-#: T678 inputs of the coast cut, recorded once a coast-cut atlas is promoted (`ATLAS_INPUTS` gains them then, with
-#: `--backfill`): added before, every shipped atlas would read as behind and stop every release preflight.
-T678_INPUTS_AT_PROMOTION: dict[str, str] = {
+    # T678 (recorded from the promotion of the first coast-cut atlas, full_t678b, 2026-11-12, by `--backfill`)
     "curated:waters.tidal_split_authority": "cut_shores (`splits.coast.load_authority`: which splits are DFO-written)",
     "curated:waters.shore_held": "cut_shores (`splits.coast_held.load`: the owner's lines, today's result kept)",
     "source:fwa_coast": "cut_shores (`splits.coast.CoastGeometry`: FWA river polygons + land mass)",
@@ -70,11 +69,6 @@ NOT_ATLAS_INPUTS: dict[str, str] = {
     "curated:gauges.matches": "guarded by its own record, `gauge_matches.json` (cut-set digest, T159): a row that is "
                               "no cut does not change the graph (`gauges.matches.check_record`)",
     "curated:gauges.match_calls": "read only for the printed trust mix of the gauge cuts; shapes nothing",
-    "curated:waters.tidal_split_authority": "T678: recorded from the promotion of the first coast-cut atlas "
-                                            "(`T678_INPUTS_AT_PROMOTION`); the build lists its non-DFO splits in "
-                                            "`coast_owner.json`",
-    "curated:waters.shore_held": "T678: recorded from the promotion of the first coast-cut atlas "
-                                 "(`T678_INPUTS_AT_PROMOTION`); the build writes it whole into `coast_owner.json`",
 }
 
 #: what catches a stale input up. Every input needs a rebuild (T678: there is no post-build tidal rewrite).
@@ -260,7 +254,9 @@ def backfill(build_dir: Path, *, log=print) -> tuple[dict[str, str], list[str]]:
     """Record the digests an old atlas can be PROVEN to have read (module docstring). Returns (written, unproven)."""
     build_dir = Path(build_dir)
     meta = read_meta(build_dir)
-    if meta.get("input_hashes"):
+    have = dict(meta.get("input_hashes") or {})
+    missing = [k for k in ATLAS_INPUTS if k not in have]
+    if not missing:
         raise SystemExit(f"inputs: {build_dir / META} already records its inputs — nothing to backfill")
     if os.environ.get("CURATED_ROOT"):
         raise SystemExit("inputs: --backfill proves files by git: run it on the live tree (unset CURATED_ROOT)")
@@ -268,7 +264,9 @@ def backfill(build_dir: Path, *, log=print) -> tuple[dict[str, str], list[str]]:
     from pipeline.atlas.splits.splits import read_anchor_record, anchor_digests
     now = digests()
     got, proof, unproven = {}, {}, []
-    for key in ATLAS_INPUTS:
+    # a record that exists keeps every digest it holds: only an input added to ATLAS_INPUTS after the build (T678's
+    # coast inputs on the first coast-cut atlas) is proven and added
+    for key in missing:
         path = default_path(key)
         if key in ("source:fwa_gpkg", "source:fwa_coast"):
             why = f"mtime {time.strftime('%Y-%m-%d %H:%M', time.localtime(path.stat().st_mtime))} before the build" \
@@ -287,8 +285,9 @@ def backfill(build_dir: Path, *, log=print) -> tuple[dict[str, str], list[str]]:
         log(f"  {key}: {why}")
     for u in unproven:
         log(f"  NOT PROVEN (left out; the release refuses the atlas until it is rebuilt): {u}")
-    meta["input_hashes"] = got
-    meta["input_hashes_backfilled"] = {"at": time.strftime("%Y-%m-%dT%H:%M:%S"), "proof": proof}
+    meta["input_hashes"] = {k: (have.get(k) or got[k]) for k in ATLAS_INPUTS if k in have or k in got}
+    prior = (meta.get("input_hashes_backfilled") or {}).get("proof") or {}
+    meta["input_hashes_backfilled"] = {"at": time.strftime("%Y-%m-%dT%H:%M:%S"), "proof": {**prior, **proof}}
     write_meta(build_dir, meta)
     log(f"inputs: wrote {len(got)} digest(s) into {build_dir / META}")
     return got, unproven
