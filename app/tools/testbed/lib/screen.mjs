@@ -8,6 +8,7 @@
 // it ('resource-id="visit-"'); `{ ends }` adds the variable tail of a built id.
 //
 // The pure parts (parse, find, shown, inside, squeezed, blankShare, bcDay) are tested in screen.test.mjs.
+import { readFileSync } from 'node:fs';
 import { readPng } from './png.mjs';
 
 const unxml = (s) => s.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>')
@@ -179,7 +180,8 @@ export const blankShareOf = (file, box) => blankShare(readPng(file), box);
 
 // ---------- B.C.'s day ----------
 const WD = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const MO = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+// the month names come from the one calendar spec (generated, test_dataflow_gates gate 4), never typed again here
+const MO = JSON.parse(readFileSync(new URL('../../../packages/core/src/calendar.generated.json', import.meta.url), 'utf8')).months;
 /**
  * "Thu 12 Nov": the day `offset` days from B.C.'s today, as the app names a day (core `dayWords`). B.C. is on daylight
  * time all year (UTC−7, settled), whatever zone the emulator's own clock shows.
