@@ -84,6 +84,8 @@ export interface Report {
 }
 
 const STRUCTURAL_UNBOUND = 0.25;
+/** entries.PAGE_DEFAULT: a curated location that is the page's own sentence (`cascade.statement_locators`) */
+const PAGE_DEFAULT = "page_default";
 const STRUCTURAL_COUNT = 0.2;
 
 function candidates(loc: Location, ef: EntryFile, limit = 3): Candidate[] {
@@ -167,8 +169,10 @@ export function reconcile(ef: EntryFile, locations: Location[], structure: Struc
       candidates: cands,
     });
   }
+  // T349 (entries.reconcile): a page default is the page's sentence, not a table row — never "absent from the page".
+  // T676: the worker had dropped this guard; the shared vectors' page-default case caught it.
   for (const cand of ef.locations)
-    if (!matched.has(cand.location_id) && cand.status === "active")
+    if (!matched.has(cand.location_id) && cand.status === "active" && cand.kind !== PAGE_DEFAULT)
       rep.outcomes.push({
         status: "dormant",
         fingerprint: cand.fingerprints.length ? cand.fingerprints[cand.fingerprints.length - 1]! : "",

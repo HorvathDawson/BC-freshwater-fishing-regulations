@@ -55,6 +55,21 @@ describe("httpSalmonFeed", () => {
       expect(got).toEqual([]);
     } finally { undo(); }
   });
+  it("(T676) an HTTP refusal of the index is reported (offline is not); the capture answers", async () => {
+    const got: unknown[] = [];
+    const undo = setFailureSink((e) => got.push(e));
+    try {
+      const refused = (status: number) => (async () => new Response("no", { status })) as unknown as typeof fetch;
+      const store = mem(JSON.stringify(FEED));
+      expect((await httpSalmonFeed("http://x", store, refused(404)).latest())?.at).toBe(FEED.at);
+      expect(await httpSalmonFeed("http://x", mem(), refused(503)).latest()).toBeNull();
+      expect(got.map((e) => (e as Error).message)).toEqual(["dfo index.json: HTTP 404", "dfo index.json: HTTP 503"]);
+      got.length = 0;
+      const noLine = (async () => { throw new TypeError("Network request failed"); }) as unknown as typeof fetch;
+      await httpSalmonFeed("http://x", store, noLine).latest();
+      expect(got).toEqual([]);
+    } finally { undo(); }
+  });
 });
 
 describe("withLiveSalmon", () => {

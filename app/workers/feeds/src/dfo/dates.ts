@@ -12,6 +12,11 @@
 //   unparsed   anything else — NEVER guessed: the row's rules carry it as "dates unparsed — check DFO"
 //
 // Pure, never throws: the fuzz test (test/dfo.dates.test.ts) feeds it garbage.
+//
+// (T676) ONE READING IN BOTH LANGUAGES: `pipeline/regs/dfo_salmon/dates.py` `read_dates` is this function ported line
+// for line; the DFO vectors (`python -m pipeline.tools.emit.dfo_vectors`, `dates`) hold its reading of every recorded
+// cell, the named shapes and a seeded fuzz, and test/dfo.vectors.test.ts fails on any cell this reads differently. A
+// change here is a change there in the same commit. (The release does not type its rows with it yet: owner's nod.)
 import { getCloseMatches } from "./difflib";
 import { LAST_DAY, type DateRange } from "./typed";
 

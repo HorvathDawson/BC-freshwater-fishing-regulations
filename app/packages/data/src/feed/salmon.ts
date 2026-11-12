@@ -62,14 +62,16 @@ export function httpSalmonFeed(base: string, store?: SalmonFeedStore, fetchImpl:
   const get = async (): Promise<SalmonFeed | null> => {
     try {
       const r = await fetchImpl(`${root}/index.json`, { cache: "no-store" });
-      if (r.ok) {
-        const f = parseSalmonFeed(JSON.parse(await r.text()));
-        // (T556) a body that came back but is not a feed this app reads (another format: a bump this build predates) is
-        // REPORTED, as in-season's is (T548); the capture — else the release's salmon file — answers meanwhile
-        if (!f) throw new Error(`dfo index.json: not a readable ${SALMON_FEED_FORMAT} feed — refused`);
-        const was = captured();
-        if (!was || f.at >= was.at) return await complete(f);
-      }
+      // (T676) an HTTP refusal (a 404, a 500) is REPORTED, as in-season's is (T368); the capture answers meanwhile. The
+      // hourly re-ask does not flood: the crash reporter sends one error once a run (digits folded, so every status is
+      // one report) and at most `maxPerRun` a run (ui/crashReport.ts)
+      if (!r.ok) throw new Error(`dfo index.json: HTTP ${r.status}`);
+      const f = parseSalmonFeed(JSON.parse(await r.text()));
+      // (T556) a body that came back but is not a feed this app reads (another format: a bump this build predates) is
+      // REPORTED, as in-season's is (T548); the capture — else the release's salmon file — answers meanwhile
+      if (!f) throw new Error(`dfo index.json: not a readable ${SALMON_FEED_FORMAT} feed — refused`);
+      const was = captured();
+      if (!was || f.at >= was.at) return await complete(f);
     } catch (e) { reportFailure(e); /* offline, or not a feed: the capture answers, its age said; (T368) not offline: reported */ }
     return captured();
   };

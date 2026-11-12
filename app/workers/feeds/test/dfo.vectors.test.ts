@@ -5,14 +5,21 @@
 //   * in its Python-parity mode, everything;
 //   * in ROBUST mode (what production runs), everything except the differences NAMED below — a difference not named
 //     here fails, and a named one that no longer shows fails too (the list cannot go stale).
+// (T676) Also: the join to the curated entries (entries.ts byFingerprint / reconcile, on the fixture entry files and a
+// page-default case), the region header (header.ts parseHeader / digest / resolve, quota.ts headerAnswers /
+// headerClosure), and ONE reading of a date cell (dates.ts readDates == dates.read_dates on every cell, no exception).
 // Numbers compare by value (the worker carries a Python float as PyFloat; `dumps` spells it). A missing file fails.
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { readDates } from "../src/dfo/dates";
+import { byFingerprint, loadEntryFile, reconcile } from "../src/dfo/entries";
+import { digest, parseHeader, resolve } from "../src/dfo/header";
 import { typePage } from "../src/dfo/live";
 import { fingerprint, landmarks, normalize } from "../src/dfo/locations";
 import { key } from "../src/dfo/names";
 import { dumps } from "../src/dfo/pyjson";
+import { headerAnswers, headerClosure } from "../src/dfo/quota";
 import { Interner, locationCalendar, SPECIES } from "../src/dfo/salmon";
 import { toRules, type TypedRule } from "../src/dfo/typed";
 import { REG } from "./wording.fixture";
@@ -26,11 +33,28 @@ interface Vectors {
   text: { section: string | null; water: string; specific_area: string; fingerprint: string; normalize: [string, string]; landmarks: string[] }[];
   names: [string, string][];
   rows: Record<string, { rules: Record<string, unknown>[]; calendar: Calendar }>;
-  pages: Record<string, { structure: unknown; locations: Record<string, unknown>[]; locators: PyLocator[] }>;
+  pages: Record<string, { structure: unknown; locations: Record<string, unknown>[]; locators: PyLocator[]; entries: Join; header: Header }>;
+  joins: Record<string, Join & { slug: string; entries: unknown }>;
+  dates: [string, unknown][];
 }
+/** T676: the curated entry file joined to a page (entries.by_fingerprint → location_id, entries.reconcile) */
+interface Join { by_fingerprint: Record<string, string>; reconcile: unknown }
+/** T676: the region header (header.parse_header / digest / resolve, deliver.salmon.header_answers, quota.header_closure) */
+interface Header { notes: unknown[]; digest: string; scopes: Record<string, string[]>; unresolved: unknown[]; answers: unknown; closure: unknown }
 const V: Vectors = JSON.parse(readFileSync(join(FIX, "python-vectors.generated.json"), "utf-8"));
 const ROWS: { cases: { name: string; rows: [string, string, string][] }[] } = JSON.parse(readFileSync(join(FIX, "dfo-rows.json"), "utf-8"));
 const page = (slug: string) => readFileSync(join(FIX, `pages/region${slug}-eng.html`), "utf-8");
+const entryText = (slug: string): string | null => {
+  try {
+    return readFileSync(join(FIX, `entries/region-${slug}.json`), "utf-8");
+  } catch {
+    return null; // no curated file: the empty entry file, as entries.load makes (the Python side reads the same absence)
+  }
+};
+const joinOf = (ef: ReturnType<typeof loadEntryFile>, locs: Parameters<typeof reconcile>[1], structure: Parameters<typeof reconcile>[2]) => ({
+  by_fingerprint: Object.fromEntries([...byFingerprint(ef)].map(([fp, l]) => [fp, l.location_id]).sort(([a], [b]) => (a! < b! ? -1 : a! > b! ? 1 : 0))),
+  reconcile: plain(reconcile(ef, locs, structure)),
+});
 /** the worker's value as the JSON it would write (PyFloat → number, undefined dropped) */
 const plain = <T>(x: T): T => (x === undefined ? x : JSON.parse(dumps(x)));
 const calendarOf = (rules: TypedRule[], robust: boolean): Calendar => {
@@ -107,7 +131,63 @@ describe.each(Object.keys(V.pages))("region %s: the saved page", (slug) => {
         expect(cal.verdicts.map((v) => v.t), at).not.toEqual(py.calendar.verdicts.map((v) => v.t));
       });
     });
+  // T676: the join to the curated entries and the region header — one reading, whatever the date mode
+  it("the curated entries joined to the page (by_fingerprint, reconcile) and the region header (notes, digest, names, answers, closure)", () => {
+    const html = page(slug);
+    const [, locs, structure] = typePage(html, slug, true, REG);
+    const ef = loadEntryFile(slug, entryText(slug));
+    expect(joinOf(ef, locs, structure)).toEqual(want.entries);
+    const notes = parseHeader(html, slug);
+    expect(plain(notes)).toEqual(want.header.notes);
+    expect(digest(notes)).toBe(want.header.digest);
+    const [scopes, unresolved] = resolve(notes, ef);
+    expect({ scopes, unresolved }).toEqual({ scopes: want.header.scopes, unresolved: want.header.unresolved });
+    expect(plain(headerAnswers(notes))).toEqual(want.header.answers);
+    expect(plain(headerClosure(notes, slug))).toEqual(want.header.closure);
+  });
 });
+
+describe("T676: the join's hand cases and the pages' coverage", () => {
+  it("a curated page default (the page's sentence, never a table row) is never called dormant", () => {
+    const c = V.joins.page_default!;
+    const [, locs, structure] = typePage(page(c.slug), c.slug, true, REG);
+    const ef = loadEntryFile(c.slug, JSON.stringify(c.entries));
+    expect(joinOf(ef, locs, structure)).toEqual({ by_fingerprint: c.by_fingerprint, reconcile: c.reconcile });
+    const outcomes = (c.reconcile as { outcomes: { location_id: string | null; status: string }[] }).outcomes;
+    expect(outcomes.filter((o) => o.location_id === "8:page-default")).toEqual([]);
+  });
+  it("the join and header rows are not empty: places bound, header notes read, header names bound to items", () => {
+    const statuses = new Set(Object.values(V.pages).flatMap((p) => (p.entries.reconcile as { outcomes: { status: string }[] }).outcomes.map((o) => o.status)));
+    expect(statuses.has("ok")).toBe(true);
+    expect(Object.values(V.pages).every((p) => Object.keys(p.entries.by_fingerprint).length > 0)).toBe(true);
+    expect(Object.values(V.pages).some((p) => p.header.notes.length > 0)).toBe(true);
+    expect(Object.values(V.pages).some((p) => Object.keys(p.header.scopes).length > 0)).toBe(true);
+  });
+});
+
+describe("T676: ONE reading of a DFO date cell — the release's reader (dates.read_dates) == the worker's (readDates)", () => {
+  it(`every recorded cell, every named shape, and a seeded fuzz (${V.dates.length} cells)`, () => {
+    expect(V.dates.length).toBeGreaterThan(1500);
+    const differ = V.dates.filter(([cell, want]) => !eq(readDates(cell), want));
+    expect(differ.map(([cell, want]) => ({ cell, python: want, worker: readDates(cell) }))).toEqual([]);
+  });
+  it("the cases mean something: some read, some open-ended, some lists, some refused", () => {
+    const kinds = V.dates.map(([, w]) => w as { kind: string; openEnded?: boolean; ranges?: unknown[] });
+    expect(kinds.filter((w) => w.kind === "ok").length).toBeGreaterThan(500);
+    expect(kinds.filter((w) => w.kind === "unparsed").length).toBeGreaterThan(300);
+    expect(kinds.some((w) => w.openEnded)).toBe(true);
+    expect(kinds.some((w) => (w.ranges?.length ?? 0) > 1)).toBe(true);
+    expect(kinds.some((w) => w.kind === "tbd") && kinds.some((w) => w.kind === "empty")).toBe(true);
+  });
+});
+const eq = (a: unknown, b: unknown): boolean => {
+  try {
+    expect(a).toEqual(b);
+    return true;
+  } catch {
+    return false;
+  }
+};
 
 describe("robust mode's named difference is real and counted", () => {
   it("six locators on the saved pages are dated 'until further notice' (regions 1, 2, 4, 8)", () => {

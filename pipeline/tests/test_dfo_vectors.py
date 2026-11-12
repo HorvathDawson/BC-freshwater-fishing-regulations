@@ -54,3 +54,32 @@ def test_a_row_typed_differently_fails_the_check(monkeypatch):
 def test_a_missing_file_is_stale_never_passed(monkeypatch, tmp_path):
     monkeypatch.setattr(E, "OUT", tmp_path / "absent.json")
     assert E.main(["--check"]) == 1
+
+
+def test_t676_the_join_header_and_date_rows_are_in_the_file():
+    doc = _committed()
+    for slug, page in doc["pages"].items():
+        assert page["entries"]["by_fingerprint"], slug          # every saved page has its curated fixture bound
+        assert {"notes", "digest", "scopes", "unresolved", "answers", "closure"} <= set(page["header"]), slug
+    pd = doc["joins"]["page_default"]
+    assert not [o for o in pd["reconcile"]["outcomes"] if o["location_id"] == "8:page-default"]
+    assert len(doc["dates"]) > 1500
+    assert {w["kind"] for _, w in doc["dates"]} == {"ok", "unparsed", "tbd", "empty"}
+
+
+def test_t676_a_reconcile_change_on_the_python_side_only_fails_the_check(monkeypatch):
+    from pipeline.regs.dfo_salmon import entries as ENT
+    monkeypatch.setattr(ENT, "PAGE_DEFAULT", "no-such-kind")   # the T349 guard dropped: the page default goes dormant
+    assert E.main(["--check"]) == 1
+
+
+def test_t676_a_header_change_on_the_python_side_only_fails_the_check(monkeypatch):
+    from pipeline.regs.dfo_salmon import header as H
+    monkeypatch.setattr(H, "digest", lambda notes: "0" * 64)
+    assert E.main(["--check"]) == 1
+
+
+def test_t676_a_date_reader_change_on_the_python_side_only_fails_the_check(monkeypatch):
+    from pipeline.regs.dfo_salmon import dates as D
+    monkeypatch.setattr(D, "_FULL", [*D._FULL[:8], "sept", *D._FULL[9:]])   # "September" spelled only as "sept"
+    assert E.main(["--check"]) == 1
