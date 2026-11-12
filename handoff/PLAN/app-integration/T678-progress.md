@@ -39,3 +39,14 @@ Snapshot of `data/curated` at the step-2 commit (`CURATED_ROOT`), script in the 
 `python -m pipeline.atlas.reach.cli --build data/generated/atlas/full_t678 --out <scratch>/reaches`, via
 `scripts/heavy.sh t678-atlas 50 -- …`. Diffs: scratchpad `t678/diffs.py LIVE CAND LIVE_REACH CAND_REACH OUT`
 (cut_diff.json, tidal_diff.json, rule_length_diff.json).
+
+## Candidate build result (2026-11-12, `data/generated/atlas/full_t678`, not promoted)
+Third run (run 1 stopped on an undecidable line missing from the held file, Power House Creek, now held; run 2 on the
+new `tidal_split_authority.json` curated key missing from the snapshot). Atlas 1,840 s, reach 715 s, rc 0; the
+rank-1 coverage proof held (59 lines/lakes). Diffs (scratchpad `t678/diff/`): coast/shore cuts 226 live -> 219
+(100 same, 116 moved, all under 50 m, median 22 m; 3 added, 10 removed); lines tidal whole 215 -> 109; tidal water
+456.3 km -> 412.4 km (split pieces 195.8 -> 177.6 km: the 10 non-DFO splits fall to the coast crossing); 201 rules
+change bound length by over 1 m, 197 gain (171 province/zone rules +43.9 km each; water rules: Nass +9.6 km,
+Chemainus +8.7 km, Campbell r6 +2.4 km, ...), 4 lose (Tlell r1/r2/r5 -67 m, Salmon r3 -15 m). Owner list:
+`coast_owner.json` in the candidate, 194 lines (182 estuaries drawn as river polygons, 3 crossings disagree, 3 no
+geometry, Kitimat, five item-C lines) + 10 splits without DFO authority.
