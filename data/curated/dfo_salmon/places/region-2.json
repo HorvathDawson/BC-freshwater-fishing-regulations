@@ -4219,7 +4219,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "nicomekl_river__dyke_gates",
+              "nicomekl_river__23_m_below_the_nicomekl_flood_dam_d23m"
+            ],
+            "item_id": "gnis:21100"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
