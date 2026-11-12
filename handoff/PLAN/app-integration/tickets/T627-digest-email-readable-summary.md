@@ -1,6 +1,6 @@
 # T627 — Digest email: an easy-to-read summary of reports and errors
 
-Status: IN REVIEW — efe94f572; owner: OWNER-TODO "T627 digest email: pick the look"
+Status: IN REVIEW — efe94f572; look approved; DEPLOYED to staging 2026-11-11; owner reads the next digest
 
 Source: owner 2026-11-10 ("we want a nice easy to read summary"), answering T609's question whether a report's words
 belong in the digest email or only a count.
@@ -55,3 +55,11 @@ Fixtures (`test/digest.fixture.ts`) are built by the worker's own event builders
 
 Left: the owner's look; then deploy to staging (`deploy/staging/feeds.sh`) and one real digest read on the phone
 (the acceptance). Not checked: how the HTML renders in the owner's mail app at phone width.
+
+## Deployed (2026-11-11)
+Owner approved the look. `deploy/staging/feeds.sh` (worker suite 30 files / 429 green, unfiltered) deployed staging worker version
+912dfcf6-3a7a-45f2-943b-f7e0e2720a45 and ran gauges / dfo / inseason (all HTTP 200). Verified: /status.json answers with the fresh runs;
+`POST /notify/preview` composes the new opening ("In this digest: no problem reports · 1 new error kind" + "Feeds: ..." lines,
+HTML counts table). The one pending crash event was queued before the deploy (no `data`), so it shows in the old-event form, as designed.
+No test email sent: the next daily digest (NOTIFY_DIGEST=daily) is the acceptance read. Production not touched.
+Left: the owner reads one real staging digest on his phone; the mail-app rendering at phone width is still unchecked.
