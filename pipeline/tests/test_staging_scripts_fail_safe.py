@@ -51,6 +51,8 @@ printf 'dfo/a.json\\t-\\nfeeds/inseason/matches.json\\tno-cache\\n'
 def sync_tree(tmp_path):
     (tmp_path / "deploy/staging").mkdir(parents=True)
     shutil.copy(ROOT / "deploy/staging/sync-inputs.sh", tmp_path / "deploy/staging/sync-inputs.sh")
+    (tmp_path / "deploy/lib").mkdir()
+    shutil.copy(ROOT / "deploy/lib/input-formats.sh", tmp_path / "deploy/lib/input-formats.sh")   # the shared format check
     _exe(tmp_path / ".venv/bin/python", PY_STUB)
     # (T520) the in-season matches already resolved on LATEST: no resolve step
     (tmp_path / "data/release").mkdir(parents=True)
@@ -233,3 +235,131 @@ def test_sync_inputs_refuses_a_format_when_the_worker_cannot_be_asked(sync_tree)
         assert "does not say which input formats the worker reads" in r.stderr
         assert "matches.json" not in (sync_tree / "rclone.log").read_text()
         (sync_tree / "rclone.log").unlink()
+
+
+# ── T597: the PRODUCTION twin of the format check (run against stubs in a temp tree: nothing here reaches a bucket) ────
+
+PROD_URL = "https://feeds.canifishthis.ca"
+PLACEHOLDER = "feeds (production) is not live yet"
+
+
+@pytest.fixture
+def prod_tree(tmp_path):
+    for rel in ("deploy/prod/sync-inputs.sh", "deploy/lib/input-formats.sh"):
+        (tmp_path / rel).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(ROOT / rel, tmp_path / rel)
+    return tmp_path
+
+
+def _prod(tree: Path, fmt: str | None, served: str | None, *args: str, **env: str) -> subprocess.CompletedProcess:
+    """deploy/prod/sync-inputs.sh on stubs: the staged matches name `fmt` (None: no format); the worker's /status.json
+    answers `served` (None: no HTTP answer). The curl stub logs the URL it was asked; rclone logs every copy."""
+    old = """'{"notices": {"a": 1, "b": 2}}'"""
+    assert old in PY_STUB
+    _exe(tree / ".venv/bin/python", PY_STUB if fmt is None else
+         PY_STUB.replace(old, f"""'{{"format": "{fmt}", "notices": {{"a": 1}}}}'"""))
+    _exe(tree / "bin/curl", f'#!/usr/bin/env bash\nfor a in "$@"; do case $a in http*) echo "$a" >> "{tree}/curl.log";; esac; done\n'
+         + ("exit 7\n" if served is None else f"echo '{served}'\n"))
+    _exe(tree / "bin/rclone", f'#!/usr/bin/env bash\necho "$*" >> "{tree}/rclone.log"\necho "INFO  : x: Copied (new)" >&2\n')
+    for f in ("rclone.log", "curl.log"):
+        (tree / f).unlink(missing_ok=True)
+    full = {k: v for k, v in os.environ.items() if k not in ("CONFIRM_PROD", "FEEDS_URL", "FEEDS_WORKER_NOT_LIVE")}
+    full.update(PATH=f"{tree / 'bin'}:{os.environ['PATH']}", **env)
+    return subprocess.run(["bash", str(tree / "deploy/prod/sync-inputs.sh"), *args], env=full, capture_output=True, text=True)
+
+
+def _log(tree: Path, name: str) -> list[str]:
+    p = tree / name
+    return p.read_text().splitlines() if p.exists() else []
+
+
+LISTS_2 = '{"inputs": {"feeds/inseason/matches.json": ["inseason-links/2"]}}'
+LISTS_3 = '{"inputs": {"feeds/inseason/matches.json": ["inseason-links/3"]}}'
+
+
+def test_prod_sync_refuses_a_format_the_production_worker_does_not_read(prod_tree):
+    """The staging failure of 2026-11-09, on production: refused with a plain message, not put; the input with no format
+    still goes up; exit 1. The PRODUCTION worker is the one asked, whatever FEEDS_URL the shell carries."""
+    r = _prod(prod_tree, "inseason-links/3", LISTS_2, CONFIRM_PROD="canifishthis.ca",
+              FEEDS_URL="https://bc-fishing-feeds-staging.horvath-dawson.workers.dev")
+    assert r.returncode == 1 and "inputs in sync" not in r.stdout
+    assert ("FAILED feeds/inseason/matches.json: inseason-links/3, but the deployed worker reads inseason-links/2: not put. "
+            "Deploy the worker that reads inseason-links/3 first (CONFIRM_PROD=bc-fishing-feeds deploy/prod/feeds.sh), "
+            "then sync again") in r.stderr
+    assert "sync-inputs (prod): 1 object(s) put; these inputs were NOT:" in r.stderr
+    assert _log(prod_tree, "curl.log") == [f"{PROD_URL}/status.json"]
+    log = _log(prod_tree, "rclone.log")
+    assert len(log) == 1 and "r2:bc-fishing-regulations/dfo/a.json" in log[0]
+
+
+def test_prod_sync_puts_a_format_the_production_worker_reads(prod_tree):
+    r = _prod(prod_tree, "inseason-links/3", LISTS_3, CONFIRM_PROD="canifishthis.ca")
+    assert r.returncode == 0, r.stderr
+    assert "inputs in sync: r2:bc-fishing-regulations (2 objects, in-season matches 1)" in r.stdout
+    assert len(_log(prod_tree, "rclone.log")) == 2
+
+
+def test_prod_sync_refuses_a_format_when_the_worker_cannot_be_asked(prod_tree):
+    """No answer, the placeholder, or a worker from before the list: every formatted input is refused — and the claim
+    FEEDS_WORKER_NOT_LIVE is what it takes to seed before the first deploy (next test), never the default."""
+    for served in (None, PLACEHOLDER, '{"feeds": {}}'):
+        r = _prod(prod_tree, "inseason-links/3", served, CONFIRM_PROD="canifishthis.ca")
+        assert r.returncode == 1, served
+        assert "does not say which input formats the worker reads" in r.stderr
+        assert not any("matches.json" in ln for ln in _log(prod_tree, "rclone.log"))
+
+
+def test_prod_first_seed_before_any_worker_is_an_explicit_claim_that_a_live_worker_overrules(prod_tree):
+    # no answer / the placeholder + the claim: put, and said
+    for served, how in ((None, "no answer"), (PLACEHOLDER, "the placeholder")):
+        r = _prod(prod_tree, "inseason-links/3", served, CONFIRM_PROD="canifishthis.ca", FEEDS_WORKER_NOT_LIVE="1")
+        assert r.returncode == 0, r.stderr
+        assert f"input formats: NOT CHECKED — no feeds worker reads this bucket yet ({PROD_URL}: {how})" in r.stderr
+        assert len(_log(prod_tree, "rclone.log")) == 2
+    # a real worker answers: its list decides, the claim does nothing
+    r = _prod(prod_tree, "inseason-links/3", LISTS_2, CONFIRM_PROD="canifishthis.ca", FEEDS_WORKER_NOT_LIVE="1")
+    assert r.returncode == 1 and "but the deployed worker reads inseason-links/2" in r.stderr
+    # a worker from before the list answers (not the placeholder): refused, and the claim is said to be wrong
+    r = _prod(prod_tree, "inseason-links/3", '{"feeds": {}}', CONFIRM_PROD="canifishthis.ca", FEEDS_WORKER_NOT_LIVE="1")
+    assert r.returncode == 1 and "a worker is deployed there, so its list decides" in r.stderr
+    assert not any("matches.json" in ln for ln in _log(prod_tree, "rclone.log"))
+
+
+def test_the_placeholder_line_the_check_knows_is_the_placeholder_workers(prod_tree):
+    assert PLACEHOLDER in (ROOT / "deploy/prod/feeds-placeholder/worker.js").read_text()
+    assert f'PLACEHOLDER_SAYS="{PLACEHOLDER}"' in (ROOT / "deploy/lib/input-formats.sh").read_text()
+
+
+def test_prod_sync_still_needs_its_confirmation_and_asks_nothing_without_it(prod_tree):
+    r = _prod(prod_tree, "inseason-links/3", LISTS_3)
+    assert r.returncode == 2 and "set CONFIRM_PROD=canifishthis.ca" in r.stderr
+    assert _log(prod_tree, "curl.log") == [] and _log(prod_tree, "rclone.log") == []
+
+
+def test_prod_rehearsal_asks_the_worker_it_names_and_refuses_formats_when_it_names_none(prod_tree):
+    r = _prod(prod_tree, "inseason-links/3", LISTS_3, "--bucket", "scratch", "--dry-run")
+    assert r.returncode == 1
+    assert "FAILED feeds/inseason/matches.json: no feeds worker was named for this bucket" in r.stderr
+    assert _log(prod_tree, "curl.log") == []
+    log = _log(prod_tree, "rclone.log")
+    assert len(log) == 1 and "r2:scratch/dfo/a.json" in log[0] and "--dry-run" in log[0]
+    r = _prod(prod_tree, "inseason-links/3", LISTS_3, "--bucket", "scratch", "--dry-run", FEEDS_URL="https://w.example")
+    assert r.returncode == 0, r.stderr
+    assert _log(prod_tree, "curl.log") == ["https://w.example/status.json"]
+    assert "inputs in sync (dry run): r2:scratch (2 objects" in r.stdout
+
+
+def test_prod_sync_does_not_ask_the_worker_when_no_input_names_a_format(prod_tree):
+    r = _prod(prod_tree, None, None, CONFIRM_PROD="canifishthis.ca")
+    assert r.returncode == 0, r.stderr
+    assert _log(prod_tree, "curl.log") == [] and len(_log(prod_tree, "rclone.log")) == 2
+
+
+def test_both_uploaders_run_the_one_format_check():
+    """One copy (deploy/lib/input-formats.sh), sourced by both: the twins cannot drift."""
+    for rel in ("deploy/staging/sync-inputs.sh", "deploy/prod/sync-inputs.sh"):
+        body = "\n".join(ln for ln in (ROOT / rel).read_text().splitlines() if not ln.lstrip().startswith("#"))
+        assert "source deploy/lib/input-formats.sh" in body and 'input_formats_filter "$T/manifest.tsv" "$T/out" "$T/put.tsv"' in body, rel
+        assert "status.json" not in body, rel                       # no second copy of the question
+    staging = (ROOT / "deploy/staging/sync-inputs.sh").read_text()
+    assert "FEEDS_WORKER_NOT_LIVE" not in staging and "\nNO_WORKER_YET=\n" in staging   # staging never claims it

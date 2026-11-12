@@ -51,31 +51,15 @@ fi
 rc=0
 "$PY" -m pipeline.deliver.sync_inputs --out "$T/out" > "$T/manifest.tsv" 2> "$T/stage.err" || rc=$?
 cat "$T/stage.err" >&2
-# (T597 item 2) an input in a format the DEPLOYED worker does not list is refused, never put: the worker serves the
-# formats it reads on /status.json `inputs` (src/status.ts INPUT_FORMATS). A worker that cannot be asked (unreachable,
-# or one from before the list) refuses every input that names a format; an input with no format is not checked.
+# (T597 item 2) an input in a format the DEPLOYED worker does not list is refused, never put: deploy/lib/input-formats.sh
+# (the one copy, shared with deploy/prod/sync-inputs.sh). Staging never claims "no worker yet".
 FEEDS_URL=${FEEDS_URL:-https://bc-fishing-feeds-staging.horvath-dawson.workers.dev}
-ACCEPT=; asked=0
+DEPLOY_HINT=deploy/staging/feeds.sh
+NO_WORKER_YET=
 refuse() { echo "FAILED $1" | tee -a "$T/stage.err" >&2; rc=1; }
-: > "$T/put.tsv"
-while IFS=$'\t' read -r key cache; do
-  fmt=$(jq -r 'if type == "object" then (.format // "") else "" end' "$T/out/$key" 2>/dev/null || true)
-  if [[ -n "$fmt" ]]; then
-    if [[ $asked == 0 ]]; then
-      asked=1
-      ACCEPT=$(curl -sS --max-time 20 "$FEEDS_URL/status.json" 2>/dev/null | jq -c '.inputs // empty' 2>/dev/null || true)
-    fi
-    if [[ -z "$ACCEPT" ]]; then
-      refuse "$key: $FEEDS_URL/status.json does not say which input formats the worker reads (unreachable, or deployed before T597): $fmt not put. Deploy the worker (deploy/staging/feeds.sh), then sync again"
-      continue
-    fi
-    if ! jq -e --arg k "$key" --arg f "$fmt" '(.[$k] // []) | index($f) != null' <<<"$ACCEPT" >/dev/null; then
-      refuse "$key: $fmt, but the deployed worker reads $(jq -r --arg k "$key" '(.[$k] // ["no file at this key"]) | join(", ")' <<<"$ACCEPT"): not put. Deploy the worker that reads $fmt first (deploy/staging/feeds.sh), then sync again"
-      continue
-    fi
-  fi
-  printf '%s\t%s\n' "$key" "$cache" >> "$T/put.tsv"
-done < "$T/manifest.tsv"
+# shellcheck source=deploy/lib/input-formats.sh
+source deploy/lib/input-formats.sh
+input_formats_filter "$T/manifest.tsv" "$T/out" "$T/put.tsv"
 JSON=(--s3-no-check-bucket --checksum --header-upload "Content-Type: application/json" ${DRY[@]+"${DRY[@]}"})
 n=0
 while IFS=$'\t' read -r key cache; do
