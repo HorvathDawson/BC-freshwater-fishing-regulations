@@ -1,6 +1,6 @@
 # T667 — Tests that grow with the app: fewer hand updates per release and per feature
 
-Status: OPEN
+Status: IN PROGRESS — slices 1–2 done (the guard is on, both scanners at 0); left (Claude): slices 3–8 of `app-integration/T667-audit.md` §4, listed under "What is left" below.
 
 Source: owner 2026-11-11: "we need to also make the tests more expandable; right now they get progressively more
 unwieldy ... a Fable task to improve the tests generally, to naturally grow with the app without too many hand
@@ -50,3 +50,33 @@ Depends: T666. Size: L. Fable for audit and design (owner). Part of the closed-t
   (the candidate) else LATEST in both suites (`liveRelease` / `namedRelease`, `under_test.release`).
 - The list and the batches: `app-integration/T667-offenders.md` (158 files in 7 disjoint batches, a recipe and a worked
   example each).
+
+## Done 2026-11-11: slices 1–2, the guard is ON (2e78ea1cc, 30c9138e4, 249be20d8, 9bdc5ea2e, 5e8d817d9)
+- Migration: batches A1, A2, P1–P5 (`git log --grep T667`), 158 files; then the four leftovers and one new app hit.
+  Final counts: pipeline 0 of 432 test files, app 0 of 642.
+- The guard fails on every offender, no baseline and no list of excused files (D4): `pnpm anchors` (`--strict`, in
+  `pnpm check` and `check:fast`), `python -m pipeline.tests.anchors` (a step of `scripts/fast-fail.sh`, which also
+  runs `check:fast`), and `test_test_anchors.py::test_the_live_tree_has_no_offender` (the pytest suite, CI included).
+  Each failure names the hit and what to write instead. `--report` only counts. Proved with one scratch offender per
+  suite: all four checks failed, and passed again once it was removed.
+- Scanner rules settled, each with an accepted case and near-misses that still fail (the headers hold the rules):
+  an emitter's `OUT` (`pipeline.tools.emit`, the committed generated file under `app/`) is no live constant; the
+  book's own SHA-256 compared with `m["pdf_sha256"]` is no build digest; a tiles id of two counting runs is invented;
+  the stream key in `<names>.partAt("<water id>", key, metre)` is a name. Tightened: a dotted `a.b.OUT` is a hit.
+- Migrated, not excused: `test_status_index.py` `_tiny()` (invented digests; app fixture re-cut by its generator),
+  `app/tools/check-tickets.test.ts` (`repoData`).
+- `test_catalogue_entries.py` `HAND_FIXED_ROWS`: P4 (1a427b0c4) had replaced the two whole-text hashes by a fix-only
+  check, which passed when both texts moved alike. The whole squashed extraction text is pinned again, as text (no
+  scanner rule could tell a 12-hex text hash from a build digest), beside the fix-specific check; a mutation test
+  moves one character in both texts and fails. The rest of P4's diff is reads through the helper, assertions unchanged.
+
+## What is left (slices of `app-integration/T667-audit.md` §4)
+- 3 Re-cut against the candidate (with T666 items 1–2): partly in place (`RELEASE_DIR` is the release under test in
+  both suites); `sync.mjs` / `taps.py` taking a release dir and the release command's `REGS_STORE_REQUIRED=1` are T666's.
+- 4 No number typed twice, no hand lists: version pins as relations, `smoke.txt` derived by rule (D6), skip allowlists
+  keyed by helper.
+- 5 One rulings table, then the page v36 inventory and retirement (D1).
+- 6 Pipeline live tests: counts to invariants (D3: live counts printed in the release diff), ruling pins to generated
+  expectations. The scanners do not look at literal counts, entry ids or format versions yet.
+- 7 Environment contract and tiers (one env script, no-build default, chunk footprint).
+- 8 The small frozen synthetic release (D2), then UI logic tests off the regs fixture release.

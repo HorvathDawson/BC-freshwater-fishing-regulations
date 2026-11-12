@@ -1,17 +1,25 @@
 # T667 — the offender list: every test file off its anchor, in batches
 
+**EMPTY since 2026-11-11: all seven batches are done and the guard is ON.** Final counts: pipeline 0 of 432 test
+files, app 0 of 642 (`.venv/bin/python -m pipeline.tests.anchors --report`, `node app/tools/check-test-anchors.mjs
+--report`). Batches: A1 ac70fc8fa, A2 94ac5fc20, P1 0b6e2c30a, P2 cc74ecccc + 07f859bde + af9cf26e6 + fc167831f,
+P3 1ecd2aa07, P4 1a427b0c4, P5 0817d9aa4; the leftovers 2e78ea1cc (status index digests), 249be20d8 (docs-guard test),
+30c9138e4 (the hand-fixed rows' whole-text pins, restored), the rules and the switch 9bdc5ea2e, fast-fail 5e8d817d9.
+Both scanners now fail on every offender (no baseline, no list of excused files): `pnpm anchors` in `pnpm check` /
+`check:fast`, `python -m pipeline.tests.anchors` in `scripts/fast-fail.sh`, and
+`test_test_anchors.py::test_the_live_tree_has_no_offender` in the pytest suite. What follows is the record of the
+migration as it was cut (the 158 files, the recipes); the scanners are the truth.
+
 Work item 3 of `tickets/T667-tests-that-grow.md` (migrate), under owner decision D4: the guard fails on ALL offenders, so
-this list goes to zero before the guard is switched on. Cut 2026-11-11 from the two scanners; it is a snapshot — the
-scanners are the truth, re-run them.
+this list went to zero before the guard was switched on. Cut 2026-11-11 from the two scanners.
 
 ## The tools
 | | app | pipeline |
 |---|---|---|
 | scanner (the rule is its header) | `app/tools/check-test-anchors.mjs` | `pipeline/tests/anchors.py` |
-| report (exit 0; in `pnpm check:fast` / the smoke set) | `pnpm -C app anchors` | `.venv/bin/python -m pipeline.tests.anchors` |
-| every hit | `node app/tools/check-test-anchors.mjs --list` (`--json`) | `… -m pipeline.tests.anchors --json` |
-| failing mode (NOT wired yet) | `--strict` or `TEST_ANCHORS_STRICT=1` | `--strict` or `TEST_ANCHORS_STRICT=1` (also fails `test_test_anchors.py::test_the_live_tree_report`) |
-| the allowed helpers | `liveRelease()` / `liveReleaseAt()` / `namedRelease()` (`app/conformance/src/fixtureRelease.ts`), `openRegsFixture*`, `sectionNames(loader)` `.stream` `.streams` `.lake` `.part` `.partAt` (`@app/data/release/node`) | `pipeline/tests/under_test.py`: `bundle` `verdicts` `status_index` `export_dir` `export` `answers` `atlas` `reach_run` `tiles` `tile_layers` `release` (each takes `request`), `path(name)` for a module-level constant, `curated()`, `generated()`, `sections(request).stream(blk, metre)` / `.lake(wbk)` |
+| the guard (exit 1 on an offender, with what to write instead) | `pnpm -C app anchors` (in `check` / `check:fast`) | `.venv/bin/python -m pipeline.tests.anchors` (in `scripts/fast-fail.sh`); `test_test_anchors.py::test_the_live_tree_has_no_offender` |
+| counts only, exit 0 (for reading) | `node app/tools/check-test-anchors.mjs --report` (`--list`, `--json`) | `… -m pipeline.tests.anchors --report` (`--json`) |
+| the allowed helpers | `liveRelease()` / `liveReleaseAt()` / `namedRelease()` (`app/conformance/src/fixtureRelease.ts`), `repoData()`, `openRegsFixture*`, `sectionNames(loader)` `.stream` `.streams` `.lake` `.part` `.partAt` (`@app/data/release/node`) | `pipeline/tests/under_test.py`: `bundle` `verdicts` `status_index` `export_dir` `export` `answers` `atlas` `reach_run` `tiles` `tile_layers` `release` (each takes `request`), `path(name)` for a module-level constant, `curated()`, `generated()`, `sections(request).stream(blk, metre)` / `.lake(wbk)` |
 | the env contract | `RELEASE_DIR` = the release under test (the release command's candidate), else LATEST | the same `RELEASE_DIR`, plus the side-build overrides the helper owns (`UI_EXPORT_BUNDLE`, `ANSWERS_EXPORT_DIR`, `ATLAS_BUILD`, …: its header) |
 
 ## How to work a batch
@@ -24,15 +32,16 @@ scanners are the truth, re-run them.
    `app/tools/vintage-pins.test.ts` asks for, and each test's own mutation. Do not turn a failure into a skip.
 4. Never "fix" a hit by rewording it past the scanner (a number built by arithmetic, a path split in two strings). If
    the rule is wrong for a case, change the rule in the scanner header + its test, in a commit of its own.
-5. When both reports say 0: add `--strict` to `app/package.json` `anchors`, set the pipeline default to strict
-   (`anchors.strict`), and add both to `scripts/fast-fail.sh` with a "caught:" line.
+5. DONE 2026-11-11 (9bdc5ea2e, 5e8d817d9): both reports said 0; `app/package.json` `anchors` runs `--strict`, both
+   scanners fail by default (`strict`; `--report` only counts), `scripts/fast-fail.sh` runs the pipeline one with a
+   "caught:" line and the app one through `check:fast`.
 
 Kinds: `generated` `curated` `env` `live-const` `path` `pointer` are READS of the live tree past the helper;
 `raw-section` `raw-part` `release-id` `digest` are PINS (a position of one build typed into a test that follows a
 release). Not scanned, later slices: literal counts on live data (D3), entry ids, format versions typed twice.
 
 
-## Totals
+## Totals (as cut, before the migration; now 0)
 
 158 offending test files: 140 pipeline (of 425), 18 app (of 638).
 
