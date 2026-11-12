@@ -685,6 +685,15 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
     # chain 0: THE UNLISTED WATER — no DFO location, every species closed every day (owner 2026-10-27)
     chains: List[dict] = [{"r": [], "w": "", "l": [], **chain_calendar([], verdicts, gears)}]
     chain_ix: Dict[tuple, int] = {((), (), ()): UNLISTED_CHAIN}
+    # (T668 fix 4) each place's own year, for `a` (a table of its own: the release's verdicts stay as they were)
+    from pipeline.deliver.salmon_who import answering_places, places_named
+    from pipeline.regs.dfo_salmon import live as _live
+    who_v, who_g, who_sp = _Interner(), _Interner(), {}
+
+    def own_sp(lid: str):
+        if lid not in who_sp:
+            who_sp[lid] = _live.location_calendar(rules_of[lid], who_v, who_g)["sp"]
+        return who_sp[lid]
 
     def chain_for(lids: Sequence[str], u: Iterable[str] = (), speaks: bool = False, at=order,
                   grouped: bool = False) -> int:
@@ -697,12 +706,18 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
         if (key, uk, groups) not in chain_ix:
             chain_ix[(key, uk, groups)] = len(chains)
             first = locs[(key or uk)[0]][1]
-            chains.append({"r": sorted({locs[l][0] for l in key + uk}), "w": _label(first) if key else first.water,
+            rs = sorted({locs[l][0] for l in key + uk})
+            cal = chain_calendar([rules_of[l] for l in key], verdicts, gears,
+                                 undrawn_closed=all(all(r.get("header_note") for r in rules_of[l]) for l in uk),
+                                 speaks=speaks, groups=groups or None)
+            # (T668 fix 4, owner 2026-11-11) `a`: per species the place that answers (an index into `l`), so the card
+            # names its region and its level of DFO's cascade (`salmon_who`; the places are payload `p`)
+            who = {"a": answering_places(cal["sp"], [own_sp(l) for l in key], groups or None,
+                                         lambda c, o: verdicts.items[c] == (who_v.items[o] if o >= 0 else NOT_LISTED))
+                   } if key else {}
+            chains.append({"r": rs, "w": _label(first) if key else first.water,
                            "l": list(key), **({"u": list(uk)} if uk else {}),
-                           **({"s": [list(g) for g in groups]} if groups else {}),
-                           **chain_calendar([rules_of[l] for l in key], verdicts, gears,
-                                            undrawn_closed=all(all(r.get("header_note") for r in rules_of[l])
-                                                               for l in uk), speaks=speaks, groups=groups or None)})
+                           **({"s": [list(g) for g in groups]} if groups else {}), **cal, **who})
         return chain_ix[(key, uk, groups)]
 
     # the DFO places not drawn yet, by the items of their water, onto those items' sections — (T668 D1) the sections in
@@ -749,11 +764,12 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
             c["h"] = tighter_hours({sl: (regions.get(sl) or {}).get("hours")
                                     for sl in sorted({locs[c["l"][g[0]]][0] for g in c["s"]})})
     off = places_off(locs, placed, chains)
-    for lid, why in off.items():
-        print(f"     salmon: {lid} is in no chain — {why}")
+    for lid, o in off.items():
+        print(f"     salmon: {lid} is in no chain — {o['why']}")
     payload = {"format": FORMAT, "credit": CREDIT, "default": UNLISTED_CHAIN, "regions": regions, "verdicts": verdicts.items,
                "gears": gears.items, "chains": chains, "unmapped": unmapped, "scopes": scopes,
-               **({"x": dict(sorted(words_of.items()))} if words_of else {}), **({"off": off} if off else {})}
+               **({"x": dict(sorted(words_of.items()))} if words_of else {}), **({"off": off} if off else {}),
+               "p": places_named(locs, (l for c in chains for l in c["l"]))}
     return payload, sections
 
 
@@ -763,18 +779,28 @@ OFF_UNPLACED = "not placed by the reach run (a place curated after it: re-run th
 OFF_NO_SECTION = "binds no section of its region (T668)"
 
 
-def places_off(locs: Mapping[str, tuple], placed: Sequence[dict], chains: Sequence[dict]) -> Dict[str, str]:
+#: (T549 app half) the reason's code beside its words, for the card's text row (core `SALMON_WORDS.offPlace`)
+OFF_KIND = {OFF_TIDAL: "tidal", OFF_UNPLACED: "unplaced", OFF_NO_SECTION: "no_section"}
+
+
+def places_off(locs: Mapping[str, tuple], placed: Sequence[dict], chains: Sequence[dict]) -> Dict[str, dict]:
     """(T549) every curated place no chain names (`l` or `u`), with why — so the release states its whole location set
-    and the feed can be checked against it (`feed_vs_release`)."""
+    and the feed can be checked against it (`feed_vs_release`). Each is `{why, k, r, w, items}`: the reason (words and
+    `OFF_KIND` code), its region slug, its label and its water's app items — the card shows it as a text row on that
+    water's page (core `salmonCard`), never painted."""
     shown = {l for c in chains for l in (*c["l"], *(c.get("u") or ()))}
     rows = {r["location_id"]: r for r in placed}
-    out: Dict[str, str] = {}
+    out: Dict[str, dict] = {}
     for lid in sorted(locs):
         if lid in shown:
             continue
+        slug, loc, ef = locs[lid]
         row = rows.get(lid)
-        out[lid] = OFF_UNPLACED if row is None else OFF_TIDAL if locs[lid][1].tidal_water and not row.get("mapped") \
+        why = OFF_UNPLACED if row is None else OFF_TIDAL if loc.tidal_water and not row.get("mapped") \
             else OFF_NO_SECTION
+        water = ef.water(loc.water_id) if getattr(loc, "water_id", None) else None
+        out[lid] = {"why": why, "k": OFF_KIND[why], "r": slug, "w": _label(loc),
+                    "items": sorted(water.item_ids) if water else []}
     return out
 
 

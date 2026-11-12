@@ -4,7 +4,7 @@
  * words — whole strings (AGENTS 33).
  */
 import { describe, expect, it } from "vitest";
-import { decodeSalmon, decodeSalmonHead, salmonCard, salmonChainStatus, salmonDayIndex, salmonDayProfiles, salmonLabel,
+import { decodeSalmon, decodeSalmonHead, decodeSalmonShard, salmonCard, salmonChainStatus, salmonDayIndex, salmonDayProfiles, salmonLabel,
          SALMON_WORDS, SalmonError, salmonTable, salmonTableTexts, salmonRowTexts, salmonStatusFromSpecies, gearTabsFor, salmonStripOf, salmonTimelineKey, quotaLine } from "./salmon";
 import { tierWords } from "./regs/tree";
 import { text } from "./regs/line";
@@ -35,7 +35,8 @@ const PAYLOAD = {
     // 0: the UNLISTED water — closed every day, every species
     { r: [], w: "", l: [], sp: [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0]], g: [0, -1], m: [0, 3] },
     // 1: the Kispiox — coho open Jul 15 (196) to Aug 23, then closed
-    { r: ["6"], w: "Kispiox River", l: ["6:kispiox-river:whole", "6:b(i):section", "6:a:region"],
+    // (T668 fix 1) its sections name the water's undrawn place (`u`), as the pipeline builds every section of its water
+    { r: ["6"], w: "Kispiox River", l: ["6:kispiox-river:whole", "6:b(i):section", "6:a:region"], u: ["1:cowichan"],
       sp: [[0, 1], [0, 3, 196, 2, 236, 3], [0, 4], [0, 4], [0, 5]], g: [0, 0], m: [0, 3, 196, 1, 236, 3] },
     // 2: a water whose coho are release-only in the fall, the rest not opened
     { r: ["1"], w: "Cowichan River", l: ["1:cowichan"], sp: [[0, 0], [0, 0, 244, 6, 305, 0], [0, 0], [0, 0], [0, 0]],
@@ -80,8 +81,10 @@ describe("salmon/4", () => {
 
   it("(T360) holds a slice at 8 bytes a run, and refuses a run or chain over 16 bits rather than wrap it", () => {
     const big = shard("6", [[4_000_000_000, 65_535, 65_535]]);
-    const f = decodeSalmon(FILE, HANDLES, [big]);
-    expect([f.chainOf(4_000_000_000 + 65_534), f.chainOf(4_000_000_000 + 65_535)]).toEqual([65_535, 0]);
+    const s = decodeSalmonShard(big, HANDLES);
+    expect([s.starts[0], s.lens[0], s.chain[0]]).toEqual([4_000_000_000, 65_535, 65_535]);
+    // (T549 item 11) a slice naming a chain the head does not hold is refused when the two are put together
+    expect(() => decodeSalmon(FILE, HANDLES, [big])).toThrow("salmon: slice 6 run 0 names chain 65535, the head holds 3");
     expect(() => decodeSalmon(FILE, HANDLES, [shard("6", [[100, 65_536, 1]])])).toThrow(/over 32\/16 bits/);
     expect(() => decodeSalmon(FILE, HANDLES, [shard("6", [[100, 1, 65_536]])])).toThrow(/over 32\/16 bits/);
   });
@@ -179,8 +182,8 @@ describe("the Salmon card", () => {
     const jul = salmonCard(facts(), { sids: [101], item: "gnis:4674" }, JUL20).caveat!;
     expect([jul.hot, jul.title, jul.calm, jul.items.length]).toEqual([false, "Some spots have their own rules",
       "Not in force today. The map can’t draw these places yet, so check where you are.", 1]);
-    // a water with no undrawn place: no block
-    expect(salmonCard(facts(), { sids: [101], item: null }, SEP15).caveat).toBeNull();
+    // (T668 fix 1) a section whose chain names no undrawn place: no block, though its water (item) has one elsewhere
+    expect(salmonCard(facts(), { sids: [5], item: "gnis:4674" }, SEP15).caveat).toBeNull();
   });
 });
 

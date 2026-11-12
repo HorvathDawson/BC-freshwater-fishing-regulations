@@ -32,8 +32,9 @@ const FACTS: SalmonFacts = {
     gears: [["No natural bait allowed (Jan 1–Dec 31)"]],
     chains: [
       { r: [], w: "", l: [], sp: all(0), g: [0, -1], m: [0, 3] },
-      { r: ["6"], w: "Kispiox River", l: [], sp: [[0, 1], [0, 1, 196, 2, 236, 1], [0, 1], [0, 1], [0, 0]], g: [0, 0], m: [0, 3] },
-      { r: ["6"], w: "Kispiox River — at the resort", l: [], sp: all(1), g: [0, -1], m: [0, 3], n: [0, 1] },
+      // (T668 fix 1) the section names the water's undrawn place (`u`), as the pipeline builds it; the place's own chain is it
+      { r: ["6"], w: "Kispiox River", l: [], u: ["6:resort"], sp: [[0, 1], [0, 1, 196, 2, 236, 1], [0, 1], [0, 1], [0, 0]], g: [0, 0], m: [0, 3] },
+      { r: ["6"], w: "Kispiox River — at the resort", l: ["6:resort"], sp: all(1), g: [0, -1], m: [0, 3], n: [0, 1] },
     ],
     unmapped: [{ items: ["gnis:4674"], r: "6", w: "Kispiox River — at the resort", chain: 2 }],
   },

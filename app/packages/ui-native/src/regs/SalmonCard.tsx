@@ -62,6 +62,8 @@ function SpeciesRow({ r, palette, actions, images, pictures }: {
         {r.window && <Text selectable testID="salmon-window" style={{ ...TYPE.meta, color: palette.sub }}>{r.window}</Text>}
         {r.quotaUnread && <Text testID="salmon-quota-unread" style={{ ...TYPE.meta, color: palette.sub }}>{SALMON_WORDS.quotaUnread}</Text>}
         {r.limit && <Text selectable testID="salmon-limit" style={{ ...TYPE.meta, color: palette.sub }}>{r.limit}</Text>}
+        {/* (T668 fix 4) where today's answer comes from: "Region 6 · Skeena River · B(ii)" (core `placeFrom`) */}
+        {r.from && <Text selectable testID="salmon-from" style={{ ...TYPE.meta, color: palette.sub }}>{r.from}</Text>}
       </View>
     </View>
   );

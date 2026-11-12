@@ -244,7 +244,10 @@ def test_a_place_the_release_does_not_show_is_said_and_the_feed_is_checked_again
                              _loc("6:late", 3, ["fl"])]
     placed = placed + [{"location_id": "6:tidal", "mapped": False, "sections": []}]
     payload, _ = S.build(files, feeds, placed, sid_of, {"gnis:4674": [11]}, section_regions=None)
-    assert payload["off"] == {"6:late": S.OFF_UNPLACED, "6:tidal": S.OFF_TIDAL}
+    assert payload["off"] == {
+        "6:late": {"why": S.OFF_UNPLACED, "k": "unplaced", "r": "6", "w": "6:late", "items": []},
+        # (T549 app half) its water's items, so the card shows it as a text row on that water's page
+        "6:tidal": {"why": S.OFF_TIDAL, "k": "tidal", "r": "6", "w": "Kispiox River", "items": ["gnis:4674"]}}
     feed = {"locs": {"6:a": {}, "6:kispiox": {}, "6:tidal": {}, "6:late": {}, "6:new": {}}}
     got = S.feed_vs_release(payload, feed)
     assert got["feed_only"] == ["6:new"] and got["said"] == ["6:late", "6:tidal"]

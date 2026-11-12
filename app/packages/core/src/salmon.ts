@@ -97,7 +97,27 @@ interface Chain {
   /** (T372) on an undrawn place's own chain: runs [start, 1|0] — the days DFO speaks for it (the pipeline's
    *  `speaks_runs`), the caveat's "in force today" */
   readonly n?: readonly number[];
+  /** (T668 D2/D3) on a section in TWO regions: each region's places (indices into `l`). Each group cascades on its own
+   *  and the most strict answer per fish speaks — resolved in Python; the app composes it only under a live feed
+   *  (`composeChain`, held to `live.compose` by `salmonStraddle.golden.ts`) */
+  readonly s?: readonly (readonly number[])[];
+  /** (T668 fix 4) per species, runs [start, who, …] of the place that answers: an index into `l`, -1 none (not listed),
+   *  -2 both regions' words together (`pipeline/deliver/salmon_who.py`). ABSENT in a release before fix 4 (e.g.
+   *  r-303b4007a70a): the card then names no place on its rows — the card as it was, by design, not a fallback */
+  readonly a?: readonly (readonly number[])[];
+  /** (T668 Z4a) on a two-region chain: the region slugs whose salmon hours line holds (the tighter one, or both when
+   *  they cannot be compared) — resolved in Python. Absent: every region of the chain, as before */
+  readonly h?: readonly string[];
 }
+/** (T668 fix 4, owner 2026-11-11) a DFO place a row can come from, as the scrape holds it: its region slug, its water's
+ *  name (absent on a region / section / area default) and its DFO section as the page prints it ("B(ii)"; absent where
+ *  the page has no lettered sections) */
+export interface SalmonPlace { readonly r: string; readonly water?: string; readonly sec?: string }
+/** (T549) why the release does not show a curated DFO place (`deliver.salmon.OFF_KIND`) */
+export const SALMON_OFF_KINDS = ["tidal", "unplaced", "no_section"] as const;
+export type SalmonOffKind = typeof SALMON_OFF_KINDS[number];
+/** (T549) a curated DFO place in no chain of the release: why (words + `k`), its region, label and its water's items */
+export interface SalmonOffPlace { readonly why: string; readonly k: SalmonOffKind; readonly r: string; readonly w: string; readonly items: readonly string[] }
 /** One header note (`pipeline/regs/dfo_salmon/header.py`): kind, DFO's words, the values derived from them. */
 export interface SalmonNote {
   readonly id: string; readonly k: string; readonly t: string;
@@ -132,6 +152,16 @@ interface Payload {
   /** (T521) the live feed's places no curated location knows (`feeds/dfo/unplaced.json`), each with the app items of
    *  the water it names: shown on that water's page, never painted. Absent in a release's own file. */
   readonly feedUnplaced?: readonly SalmonUnplacedPlace[];
+  /** (T668 fix 4) every place of a chain, by location id: what a row is named by. Absent before fix 4. */
+  readonly p?: Readonly<Record<string, SalmonPlace>>;
+  /** (T549) the curated places the release does not show, with why. Absent: none, or a release before T549. */
+  readonly off?: Readonly<Record<string, SalmonOffPlace>>;
+  /** (T549, the live feed's, `withSalmonFeed`) an `off` place's year composed from the feed, by location id */
+  readonly offFeed?: Readonly<Record<string, Pick<Chain, "sp" | "g" | "m">>>;
+  /** (T549, the live feed's) per region slug, how many feed places this release neither shows nor states (`off`) */
+  readonly feedOnly?: Readonly<Record<string, number>>;
+  /** (T549 item 5, the live feed's) places whose row the feed could not read this run: their last answers stand */
+  readonly held?: readonly string[];
 }
 /** (T521) One DFO place the live feed lists that no curated location knows: its water's app items, the place and its
  *  rows in DFO's own words (`rows`: the page's cells, " | " between them). */
@@ -192,8 +222,24 @@ function checkPayload(P: Payload): Payload {
     runs(c.m, MAP_CODES.length, `chain ${i} map`, false);
     for (const id of c.c ?? []) if (!closureNote(P, c, id)) bad(`chain ${i}: closure ${id} is no note of its regions`);
     if (c.n !== undefined) runs(c.n, 2, `chain ${i} speaks`, false);
+    // (T668) `s` groups and `a` places index `l`; every place `a` can name is in `p`
+    if (c.s !== undefined && (!Array.isArray(c.s) || c.s.flat().some((x) => !Number.isInteger(x) || x < 0 || x >= c.l.length)))
+      bad(`chain ${i}: groups ${JSON.stringify(c.s)}`);
+    if (c.h !== undefined && (!Array.isArray(c.h) || c.h.some((r) => !c.r.includes(r)))) bad(`chain ${i}: hours regions ${JSON.stringify(c.h)}`);
+    if (c.a !== undefined) {
+      if (c.a.length !== 5) bad(`chain ${i}: ${c.a.length} species of answering places`);
+      c.a.forEach((r, k) => {
+        if (!Array.isArray(r) || !r.length || r.length % 2) bad(`chain ${i} answering ${k}: runs ${JSON.stringify(r)}`);
+        for (let j = 1; j < r.length; j += 2)
+          if (!Number.isInteger(r[j]) || r[j]! < -2 || r[j]! >= c.l.length) bad(`chain ${i} answering ${k}: place ${r[j]} of ${c.l.length}`);
+      });
+      for (const l of c.l) if (!P.p?.[l]) bad(`chain ${i}: place ${l} is not in p`);
+    }
   });
   for (const u of P.unmapped) if (!P.chains[u.chain]) bad(`unmapped ${u.w}: chain ${u.chain}`);
+  for (const [lid, o] of Object.entries(P.off ?? {}))
+    if (!o || !SALMON_OFF_KINDS.includes(o.k) || typeof o.w !== "string" || typeof o.r !== "string" || !Array.isArray(o.items))
+      bad(`off ${lid}: not {why, k, r, w, items}`);
   return P;
 }
 
@@ -256,6 +302,10 @@ export function* salmonShardSteps(b: Uint8Array, handles: string): Steps<SalmonS
 /** The head with the slices read: a section's chain is the first slice holding it, else chain 0 (closed). */
 export function salmonFacts(payload: Payload, handles: string, shards: readonly SalmonShard[]): SalmonFacts {
   const dflt = payload.default;
+  // (T549 item 11) a slice naming a chain the head does not hold is refused here, once — never read as closed later
+  for (const s of shards) for (let r = 0; r < s.chain.length; r++)
+    if (s.chain[r]! >= payload.chains.length)
+      throw new SalmonError(`salmon: slice ${s.region} run ${r} names chain ${s.chain[r]}, the head holds ${payload.chains.length}`);
   return {
     handles, chains: payload.chains.length, payload, loaded: shards.map((s) => s.region),
     chainOf(sid) {
@@ -300,7 +350,8 @@ function at(runs: readonly number[], day: number): number {
 /** What the Salmon colouring paints a chain on a day. */
 export function salmonChainStatus(f: SalmonFacts, chain: number, day: number): SalmonMapStatus | null {
   const c = f.payload.chains[chain];
-  if (!c) return null;
+  // (T549 item 11) a missing chain is said (SalmonError), as everywhere else; `null` is only a chain with no verdict
+  if (!c) throw new SalmonError(`salmon: chain ${chain} is not in the salmon file`);
   const s = MAP_CODES[at(c.m, day)];
   return s && s !== "none" ? s : null;
 }
@@ -388,6 +439,25 @@ export const SALMON_WORDS = {
   notListedLine: "DFO does not list this water for salmon. It is closed to salmon fishing.",
   /** (T521) a rule the live feed lists at a DFO place no curated location knows: DFO's own row words after the colon */
   unplacedRule: (dfoWords: string) => `Location not yet on the map: ${dfoWords}`,
+  /** (T668 fix 4, owner 2026-11-11) where a row's answer comes from, as DFO's page names the place: "Region 6 · Skeena
+   *  River · B(ii)" — the region, the water (none on a region or section default), the page's lettered section as
+   *  printed (none where the page has no sections) */
+  placeFrom: (region: string, water: string | undefined, sec: string | undefined) =>
+    [`Region ${region.toUpperCase()}`, water, sec].filter(Boolean).join(" · "),
+  /** (T668) a straddler's answer that is both regions' words together */
+  bothRegions: (regions: readonly string[]) => `${regions.map((r) => `Region ${r.toUpperCase()}`).join(" and ")} together`,
+  /** between two places on one row */
+  fromSep: "; ",
+  /** (T549) a curated DFO place on this water the release does not show (`off`), with the feed's answer today if any */
+  offPlace: (k: SalmonOffKind, w: string, today: string | null) =>
+    `DFO also lists ${w} (${({ tidal: "in tidal water, not on this map", unplaced: "not on the map yet",
+                                no_section: "not placed on this map" } satisfies Record<SalmonOffKind, string>)[k]})`
+    + `${today ? `: ${today}` : ""}. Check DFO's page.`,
+  /** (T549) feed places of a region this release neither shows nor states */
+  feedOnly: (n: number, region: string) =>
+    `DFO lists ${n} place${n === 1 ? "" : "s"} in Region ${region.toUpperCase()} that this app's data does not hold yet. Check DFO's page.`,
+  /** (T549 item 5) a place whose DFO row the feed could not read: its last answer stands */
+  heldRow: "DFO changed a row here that the app could not read, so its earlier answer is shown. Check DFO's page.",
   noteTwoAuthorities: "Salmon are set by DFO, not the provincial regulations above. Both apply.",
   /** (T482, owner 2026-11-07: "the source of the regs should be collapsible") the source block's fold, closed by default */
   sourceFold: "Source (DFO)",
@@ -491,6 +561,11 @@ export interface SalmonRowVM {
   readonly repeats?: readonly string[];
   /** (T502) the dates a repeated verdict's words end in ("Sep 1–Dec 31"), kept on the species' quota line */
   readonly window?: string | null;
+  /** (T668 fix 4) where the row's answer comes from that day ("Region 6 · Skeena River · B(ii)"; places joined by
+   *  `fromSep`), null when no place answers it — or the release names no places (before fix 4: the card as it was) */
+  readonly from?: string | null;
+  /** (T668 fix 4) the same, each species on its own (the table's rows) */
+  readonly fromBy?: Readonly<Partial<Record<SalmonSpecies, string>>>;
 }
 
 /** (T309) One region rule as a row: its kind chip, the species it is about (chips), one line, and DFO's whole wording
@@ -674,7 +749,14 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
   const P = f.payload, day = salmonDayIndex(on);
   const chains = [...new Set(page.sids.map((s) => f.chainOf(s)))].sort((a, b) => a - b);
   if (!chains.length) chains.push(P.default);
-  const unmapped = page.item === null ? [] : P.unmapped.filter((u) => u.items.includes(page.item!));
+  // (T668 fix 1) the water's undrawn places that the page's chains name (`u`): the pipeline keeps an undrawn place to
+  // its own region's sections, so Prince George no longer lists Mission. (A release before T668 named every region's
+  // undrawn places in `u`, so it reads as it did.)
+  const undrawnNamed = new Set(chains.flatMap((c) => P.chains[c]!.u ?? []));
+  const unmapped = page.item === null ? []
+    : P.unmapped.filter((u) => u.items.includes(page.item!) && (P.chains[u.chain]?.l ?? []).some((l) => undrawnNamed.has(l)));
+  // (T549) the curated places on this water the release does not show: a text row each, never painted
+  const offs = page.item === null ? [] : Object.entries(P.off ?? {}).filter(([, o]) => o.items.includes(page.item!));
   // (T521) the feed's DFO places on this water that no curated location knows: in the in-part caveat, never painted
   const unplaced = page.item === null ? [] : (P.feedUnplaced ?? []).filter((u) => u.items.includes(page.item!));
   const def = P.default;
@@ -722,8 +804,28 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
     })) as Partial<Record<SalmonSpecies, string>>;
     return Object.keys(by).length ? { sizesBy: by } : {};
   };
+  // (T668 fix 4) where each row comes from: the place that answers each of its species on the page's chains
+  const fromOf = (species: readonly SalmonSpecies[]): string | null => {
+    const parts = new Set<string>();
+    for (const c of chains) {
+      const ch = P.chains[c]!;
+      if (!ch.l.length) continue;                          // no place: nothing answers (not listed)
+      if (!ch.a) return null;                              // a release before fix 4 names no place: the card as it was
+      for (const sp of species) {
+        const v = at(ch.a[SALMON_SPECIES.indexOf(sp)]!, day);
+        if (v === -2) parts.add(SALMON_WORDS.bothRegions([...new Set(ch.l.map((l) => P.p![l]!.r))].sort()));
+        else if (v >= 0) { const p = P.p![ch.l[v]!]!; parts.add(SALMON_WORDS.placeFrom(p.r, p.water, p.sec)); }
+      }
+    }
+    return parts.size ? [...parts].join(SALMON_WORDS.fromSep) : null;
+  };
   const rows = block.rows.map((row) => {
-    const r = { ...row, ...sizesByOf(row) };
+    const from = regionClosed ? null : fromOf(row.species);
+    const fromBy = Object.fromEntries(regionClosed ? [] : row.species.flatMap((sp) => {
+      const x = fromOf([sp]);
+      return x ? [[sp, x]] : [];
+    })) as Partial<Record<SalmonSpecies, string>>;
+    const r = { ...row, ...sizesByOf(row), ...(from ? { from, fromBy } : {}) };
     // (T482, owner 2026-11-07: "combine it into the individual salmon species") every species closed: its sizes still
     // sit on its row (the "Salmon — closed" row's, per species), so no size note is left loose in the region block
     if (block.allClosed) return r;
@@ -768,7 +870,9 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
   return {
     ...block, rows, regionRules, gearProvincial,
     hours: block.allClosed ? null
-      : [...new Set(regionsUsed.map((r) => P.regions[r]?.hours?.says).filter((x): x is string => !!x))].join(" · ") || null,
+      // (T668 Z4a) a two-region chain's `h`: the regions whose hours line holds there (the tighter, or both)
+      : [...new Set([...new Set([...chains.flatMap((c) => P.chains[c]!.h ?? P.chains[c]!.r), ...unmapped.map((u) => u.r)])].sort()
+          .map((r) => P.regions[r]?.hours?.says).filter((x): x is string => !!x))].join(" · ") || null,
     bucket: buckets.length === 1 ? buckets[0]! : null,
     waterBuckets: hn.water.filter((n) => n.k === "aggregate" && typeof n.n === "number"
         && rows.some((r) => r.status === "open" && !!n.sp?.some((x) => r.species.includes(x as SalmonSpecies))))
@@ -782,10 +886,14 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
     // (T521, owner 2026-11-09) with the water's other DFO rules: the feed's rules at a place on this water no curated
     // location knows, marked "location not yet on the map"
     waterRules: [...hn.water.filter((n) => !placed.has(n.id) && asWords(n, sizesShown)).map((n) => n.t),
-                 ...unplacedLines(unplaced)],
+                 ...unplacedLines(unplaced),
+                 // (T549) places the release does not show; feed places it neither shows nor states; held rows
+                 ...offs.map(([lid, o]) => SALMON_WORDS.offPlace(o.k, o.w, P.offFeed?.[lid] ? offToday(f, lid, o, P.offFeed[lid]!, day) : null)),
+                 ...regionsUsed.filter((r) => P.feedOnly?.[r]).map((r) => SALMON_WORDS.feedOnly(P.feedOnly![r]!, r)),
+                 ...(chains.some((c) => P.chains[c]!.l.some((l) => P.held?.includes(l))) ? [SALMON_WORDS.heldRow] : [])],
     title: SALMON_WORDS.title, badge: SALMON_WORDS.badge,
     headline: SALMON_WORDS.headline[headlineStatus], headlineStatus,
-    notListed: listed || unmapped.length || unplaced.length ? null : SALMON_WORDS.notListedLine,
+    notListed: listed || unmapped.length || unplaced.length || offs.length ? null : SALMON_WORDS.notListedLine,
     caveat: inPartBlock(undrawnEntries(f, undrawn, unmapped, day), SALMON_WORDS.waterNoun),
     dfoWords: regionClosed ? null : wordsOf(P, [...chains.flatMap((c) => [...P.chains[c]!.l, ...(P.chains[c]!.u ?? [])]),
                                                   ...unmapped.filter((u) => !u.d).flatMap((u) => P.chains[u.chain]?.l ?? [])]),
@@ -813,7 +921,8 @@ const BOOK_YEAR_DAYS = 365;
  */
 export function salmonStatusFromSpecies(f: SalmonFacts, chain: number, day: number): SalmonMapStatus {
   const P = f.payload, c = P.chains[chain];
-  if (!c) return "closed";
+  // (T549 item 11) one answer for a missing chain, as `salmonTimelineKey`: said, never a quiet "closed"
+  if (!c) throw new SalmonError(`salmon: chain ${chain} is not in the salmon file`);
   const ss = c.sp.map((runs) => P.verdicts[at(runs, day)]!.s);
   for (const st of ["open", "release", "check"] as const) if (ss.includes(st)) return st;
   return "closed";
@@ -878,13 +987,24 @@ function undrawnEntries(f: SalmonFacts, undrawn: readonly number[], unmapped: re
     seen.add(label);
     if (!ch.n) throw new SalmonError(`salmon: the undrawn place ${label} has no in-force days (n)`);
     const b = salmonBlock(f, [c], day);
-    const what = b.allClosed ? SALMON_WORDS.placeClosed : b.rows.map((r) => `${r.label} ${r.statusLabel.toLowerCase()}`).join(" · ");
+    const what = blockWhat(b);
     const detail = [...tableRows(b.rows).flatMap((r) => [...(r.quota ? [`${r.name}: ${r.quota}`] : []), ...(r.limit ? [r.limit] : [])]),
                     ...tableSays(b.rows, b.allClosed).flatMap((x) => x.lines.map((l) => (x.label ? `${x.label}: ${l}` : l))), ...b.gear];
     const item: CaveatItemVM = { what: [text(what)], where: WORDS.WHERE(label), rule: null, fish: null, book: [],
                                  ...(detail.length ? { detail } : {}) };
     return [{ item, now: at(ch.n, day) === 1 }];
   });
+}
+
+/** A place's day in one line, as the folded place line says it: "Chinook open · coho · sockeye · pink · chum closed". */
+const blockWhat = (b: SalmonBlockVM): string =>
+  b.allClosed ? SALMON_WORDS.placeClosed : b.rows.map((r) => `${r.label} ${r.statusLabel.toLowerCase()}`).join(" · ");
+
+/** (T549) an `off` place's day from the live feed's composition of it (`withSalmonFeed` `offFeed`) */
+function offToday(f: SalmonFacts, lid: string, o: SalmonOffPlace, cal: Pick<Chain, "sp" | "g" | "m">, day: number): string {
+  const one: SalmonFacts = { handles: f.handles, chains: 1, chainOf: () => 0,
+                             payload: { ...f.payload, chains: [{ r: [o.r], w: o.w, l: [lid], ...cal }] } };
+  return blockWhat(salmonBlock(one, [0], day));
 }
 
 /**
@@ -1055,6 +1175,9 @@ export interface SalmonTableRowVM {
   readonly quotaUnread?: boolean;
   /** (T502) the dates of the verdict the quota line reads ("Sep 1–Dec 31"), under it */
   readonly window?: string;
+  /** (T668 fix 4, owner 2026-11-11) where today's answer comes from, as DFO's page names the place: "Region 6 · Skeena
+   *  River · B(ii)" (absent: no place answers, or the release names none) */
+  readonly from?: string;
 }
 /** (T320) The bucket line over the species rows: "Up to 4 salmon a day in total · 8 in possession", DFO's words;
  *  (T332) `runs` the line as the trout presenter draws the bucket's total tier. */
@@ -1102,7 +1225,8 @@ const tableRows = (rows: readonly SalmonRowVM[]): SalmonTableRowVM[] =>
               limit: r.sizesBy?.[code] ?? (r.species.length === 1 ? r.sizes ?? null : null),
               quota: runs ? lineText(runs) : null, quotaRuns: runs, ...(q?.u ? { quotaUnread: true } : {}),
               // (T502) the dates DFO's repeated words gave, now that those words are not said under the table
-              ...(runs && r.window ? { window: r.window } : {}) }];
+              ...(runs && r.window ? { window: r.window } : {}),
+              ...(r.fromBy?.[code] ? { from: r.fromBy[code] } : {}) }];
   });
 /** (T320) the bucket line, when a species of the table may be kept today: its total tier by the trout presenter */
 const bucketOf = (b: SalmonBucket | null | undefined, rows: readonly SalmonRowVM[]): SalmonBucketVM | null => {
