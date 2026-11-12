@@ -11,10 +11,10 @@
  */
 import { catchmentLabel, confidenceWord, 
          seasonPhrase, standing } from "./flow";
-import { figure, inTen, daysNear, daysRange, standingHeadline, standingLong, standingReads, type Standing } from "./standing";
+import { figure, inTen, daysNear, daysRange, standingHeadline, standingLong, standingReads } from "./standing";
 import { interval, type Estimate, type NoEstimate } from "./trust";
 import { isIsoDay, localStamp, shortDay, shortStamp } from "./day";
-import { monthAbbr, weekdayAbbr } from "./flow";
+import { monthAbbr, weekdayAbbr, type Standing } from "./flow";
 import { FORECAST_DAYS } from "./gauge-policy.generated";
 import { byWeekdays } from "./staleness";
 import { READING_MAX_AGE_MS } from "./freshness";
