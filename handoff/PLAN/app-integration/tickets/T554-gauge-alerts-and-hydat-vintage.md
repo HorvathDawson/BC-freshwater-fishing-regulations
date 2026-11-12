@@ -1,6 +1,6 @@
 # T554 — Gauge alerts say when their gauge is silent; alert rules stored safely; one writer for the HYDAT envelope
 
-Status: PARTIAL — items 1, 2, 4 built (975be7b2e, c6f79171f, 408f20d94, ebbe8d9b7, 2f09829fe); item 3 is T563 (3b3e6a1c2: lines re-derived from the record held); left (Claude): item 5 (re-dispatch / re-tell a HYDAT workflow that failed after its 204)
+Status: DONE — items 1, 2, 4 (975be7b2e, c6f79171f, 408f20d94, ebbe8d9b7, 2f09829fe); item 3 is T563 (3b3e6a1c2); item 5 in 40beda2f7 + 78b6846e2
 
 Source: data pipeline review 2026-11-09 (owner-led; 14 areas + a gap check, every finding re-read against the code and release data by a second reviewer). Rank 10 of 17; highest severity 3 of 5.
 
@@ -61,3 +61,11 @@ Depends: —. Size: M. Owner: no.
   deploy/prod/upload.sh: put (none on R2, or older/same HYDAT), skip and say (R2 newer, or a release that is no HYDAT day),
   stop (cannot compare). The worker's hydat event key is `hydat:<latest>:<current>`, so a regression is told again.
   Left: an older clim.json on the SAME HYDAT can still replace a newer rebuild (no build stamp in clim.json).
+
+## Done 2026-11-11 (item 5, 40beda2f7 + 78b6846e2)
+- The gauge run asks for the HYDAT workflow only while clim.json is behind. A start older than 6 h (`OVERDUE_MS`; the
+  workflow's limit is 60 min) is started ONE more time (`MAX_STARTS` 2), then never. From the second start on the owner
+  event is keyed by the day (`hydat:<latest>:<current>:unfinished:<day>`): told once a day, with what happened in the
+  subject, text and steps. A refused second start is said and retried on the 6 h rule. Run timing is unchanged.
+- Not built: the workflow calling back on failure (the other proposal). The first start FAILING outright is still told
+  once (key `hydat:<latest>:<current>`), retried every 6 h.

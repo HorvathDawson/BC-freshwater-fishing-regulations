@@ -1,6 +1,6 @@
 # T549 — DFO salmon: feed and release agree on the location set; a place the app cannot show is said, never dropped
 
-Status: PARTIAL — pipeline halves built in 8a0c44572: items 1–3 the release states every curated place it does not show (`salmon` payload `off`) and `python -m pipeline.regs.dfo_salmon.live check-release` diffs the feed's `locs` against the release (exit 1 on a feed place the release neither shows nor states; today's release: the 2 tidal Nanaimo places, `said` after the next deliver); item 9 `live queue` with nothing unplaced here exits 1 naming the file. App half built in d199f0d4d: `off` carries {why, k, r, w, items} and an off place is a text row on its water's Salmon card (with the live feed's answer today when it carries one); a feed place the release neither shows nor states is counted on its region's cards; the feed's `holds` (kept "carried") say "earlier answer shown" on the card (5); a missing chain is one SalmonError in every reader and a slice naming a chain the head lacks is refused (11). left (Claude): worker — dormant-place notice (4), `proposed` wording unknown in both readers (6, Python + TS together), heartbeat / stale margin (7, 10), readJson T357 port (8), the email's `live run && live queue` (9), publishing composed straddler chains (T668); the contract text in pack.generated.ts names neither `off`, `s`, `a` nor `p`
+Status: DONE — pipeline halves 8a0c44572, app half d199f0d4d, worker items 4, 6, 7, 8, 9, 10 in 6a56c583e, contract text 55cfffde4; staging feeds worker deployed 2026-11-12 00:08 UTC (version 88587c7d). The composed straddler answer under a live feed is T668's left item, not this ticket's.
 
 Source: data pipeline review 2026-11-09 (owner-led; 14 areas + a gap check, every finding re-read against the code and release data by a second reviewer). Rank 5 of 17; highest severity 4 of 5.
 
@@ -98,3 +98,19 @@ exclusion list, with its ids `<location id>#closed`. It is read only by the revi
 `data/generated/review/dfo_closure_entries.json`); it has NO call site in `entries.py`, `typed.py` or `feed.py` and
 touches no file of this ticket. When entry B is accepted into the location set, the feed and the release must take it
 from the same place (this ticket's one location set): see T573 "NOT built".
+
+## Done 2026-11-11 (worker lane, 6a56c583e, 55cfffde4)
+- 4: a curated place no row matches any more. Reworded (the top candidate of a `drift` row): it stays in `locs` as a
+  `check` verdict ("DFO reworded this place and the new wording is not confirmed yet") and in the region's `holds`
+  (kept `check`), so the wider rule never answers for it. Gone (no row explains it): listed in the region's new `gone`
+  ({location_id, water, place, page}) and one urgent notice `dfo-gone:<region>:<place>:<page sha12>`, re-offered every
+  run while it lasts; a place the last feed never published says nothing. Not built: holding a page with more than one
+  rules table (no page seen doing it). A small region still trips the structural hold first (Region 8: one row of three).
+- 6: only an `accepted` wording entry is known, in both readers. The one `proposed` entry (Fort Babine bridge) is unknown
+  now; it is printed on old saved pages only (staging run: 0 notices). `sync_inputs` does not refuse a registry with
+  proposed entries: read as unknown they are harmless, and refusing would freeze the file.
+- 7, 10: DFO `index.json` and the in-season index are written by every run, so the stamp is the check time. The app's
+  stale line for both is 30 h (a daily check plus 6 h; core `staleness.ts`), was exactly 24 h.
+- 8: built by T558 (`readJson` throws); tests added for a torn `index.json` / `unplaced.json`.
+- 9: the owner's command is `live run --regions N && live queue --regions N`, regions space-separated.
+- Contract text: the salmon line of `contract.py` / `pack.generated.ts` names `u`, `s`, `h`, `a`, `off`, `p`, `x`.

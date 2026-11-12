@@ -1,6 +1,6 @@
 # T597 — Two feeds worker run failures on 2026-11-09/10 are explained and guarded
 
-Status: PARTIAL — items 1-3 built (5c7b9719d, ecd2de06a, 7834e740e); left (Claude): deploy the staging feeds worker BEFORE the next deploy/staging/sync-inputs.sh (until then it refuses the wording and in-season matches: the live worker lists no formats), then a week of /status for item 1; the prod sync-inputs.sh twin when the prod worker is live
+Status: PARTIAL — items 1-3 built (5c7b9719d, ecd2de06a, 7834e740e), the prod sync-inputs twin in 5325db02f, staging worker deployed 2026-11-12; left (Claude): read a week of /status for item 1 (no whole-run gauge failure at the day turn)
 
 Source: staging `/status.json` read 2026-11-10 19:37 UTC. All three feeds are OK now; these are their last errors.
 
@@ -42,3 +42,11 @@ Depends: T550, T558 (overlap). Size: S–M. Owner: no.
    formatted input when the worker cannot say (unreachable / deployed before this), with a plain `FAILED <key>: …` line;
    the other inputs still go up and the script exits 1. DFO entry files and the roster carry no format and are not checked.
    deploy/prod/sync-inputs.sh is unchanged (the prod worker is not live; it would refuse every formatted input).
+
+## Done 2026-11-11 (the prod twin, 5325db02f)
+- The format check is one copy, `deploy/lib/input-formats.sh`, sourced by both uploaders. `deploy/prod/sync-inputs.sh`
+  asks `https://feeds.canifishthis.ca/status.json` and refuses an input format it does not list. The first seed before
+  the production worker exists is an explicit claim, `FEEDS_WORKER_NOT_LIVE=1`, honoured only while the address gives no
+  answer or the 503 placeholder answers. Tested on stubs in a temp tree; nothing was run against production.
+- The staging worker with `inputs` is deployed (2026-11-12 00:08 UTC), so `deploy/staging/sync-inputs.sh` puts formatted
+  inputs again.

@@ -1,6 +1,6 @@
 # T633 — Gauge feed: follow-ups from T550, T557 and T585
 
-Status: PARTIAL — items 1, 2, 3, 5 built (a6bf038be, 2ebfe0787, 52878ceb6, 9995fcf13); left (Claude): item 4 (card `rankedAt` / kept words, "as of" line: the ui-native + T555 boot lane), item 6 (web offline week), items 7-8 (worker reuse key, eccc-daily window), item 9 (next bundle build)
+Status: PARTIAL — items 1, 2, 3, 5, 7, 8 built (a6bf038be, 2ebfe0787, 52878ceb6, 9995fcf13, 07dbf3791, 78b6846e2); left (Claude): item 4 (card `rankedAt` / kept words, "as of" line: the ui-native + T555 boot lane), item 6 (web offline week), item 9 (next bundle build)
 
 Source: gauges lane report 2026-11-11.
 
@@ -72,3 +72,10 @@ Depends: T550, T557, T585. Size: M.
   Data sources page / More reads "Gauge ranks use another HYDAT" (stale). An index naming none keeps the old rule.
   Wording is a default (owner may reword; no answer needed to ship).
 - Owner questions: both already answered 2026-11-11 (6 h stays; HYDAT workflow run on staging).
+
+## Done 2026-11-11 (items 7, 8: 07dbf3791, 78b6846e2)
+- 7: `ctxOf` hashes the station's envelope, rating, rating pad and recent years; a clim.json rebuilt on the same HYDAT
+  re-ranks the station on its next run.
+- 8: before 03:00 UTC the daily archive is not asked (`DAILY_NOT_BEFORE_UTC_H`); said in the run log, counted on /status
+  as `dailyRefillDeferred`. Staging 2026-11-12 00:09 UTC: 9 deferred, no failed source, feed ok. The other proposal
+  (yesterday's dated folder) was not taken: skipping needs no new URL and the gap is asked again after the window.

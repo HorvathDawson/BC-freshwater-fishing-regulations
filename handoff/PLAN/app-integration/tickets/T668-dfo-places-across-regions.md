@@ -45,3 +45,20 @@ Depends: T164, T549. Size: M. For the next chat.
 - Chain `h` (dfb4ea7c1): the card's hours line comes from `h` where a chain has it.
 - Not done here: the stretch join key (`salmonTimelineKey`) still ignores which place answers, so two stretches with
   the same words from different regions join and their rows list both places.
+
+## Worker lane 2026-11-11: the live two-openings difference is NOT closed (pinned in 55cfffde4)
+The release keeps the stricter of two readable openings on a straddler (`deliver.salmon.stricter_opening`: the freshwater
+`ladder.stricter` + `rules.statement`); under a live feed the app shows both regions' words, no number (never looser).
+The worker cannot publish the composed answer today: it would need a TypeScript copy of that ladder (refused: the cascade
+is resolved in Python) and the release's chains (`chains[].s`), which it does not hold. Pinned:
+`app/workers/feeds/test/dfo.worker.test.ts` "(T668) the feed answers per place". Options, none built:
+1. Python composes at feed time: the worker starts a GitHub workflow (as it does for HYDAT) when the feed's verdicts on
+   straddler places change; the workflow runs `live.compose` over the published feed and the live release's chains and
+   writes `feeds/dfo/straddlers.json` (chain places -> the composed answer, stamped with the feed's `at`); the app reads
+   it when its stamp matches the feed and keeps today's both-words answer otherwise. Needs the branch on GitHub, the
+   dispatch token, and an app reader. Exact, Python only.
+2. Python ships a pair table with the inputs (`sync_inputs`): the stricter of every pair of readable openings in the
+   curated places' current rows. The worker carries it into the feed; a pair it does not hold stays both words. No new
+   runner, but it is only as new as the last sync from the Mac, so a limit DFO changes in season falls back to both words.
+3. Leave it: both regions' words under a live feed. Never looser than the release, and the next release is exact again.
+Default taken: 3, until the owner picks.
