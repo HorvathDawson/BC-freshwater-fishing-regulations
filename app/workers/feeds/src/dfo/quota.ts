@@ -17,6 +17,8 @@ export interface QuotaKind {
 export interface QuotaTier {
   node: "tier"; id: string; tier: "total" | "count" | "size"; n: number; says: string; by: 0;
   children: (QuotaTier | QuotaKind)[]; over_cm?: number; species?: string[]; period?: string;
+  /** (T349) a `total` tier's scope: the set of areas the count is pooled across ("Management Units 5-6 to 5-11") */
+  whose?: string;
 }
 export interface Quota { tree?: QuotaTier; u?: 1 }
 
@@ -81,8 +83,55 @@ function one(rule: R, subs: R[]): Quota {
   for (const [cm, n] of over.sort(byPair)) kids.push(size(seq, n!, cm!, `only ${n} over ${cm} cm`));
   if (mx !== null) kids.push(size(seq, 0, mx, `none over ${mx} cm`));
   for (const [cm, n] of monthly.sort(byPair)) kids.push(size(seq, n!, cm!, `${n} over ${cm} cm a month`, "monthly"));
-  const tree: QuotaTier = { node: "tier", id: "t1", tier: "count", n: d, says, by: 0, species, children: kids };
+  let tree: QuotaTier = { node: "tier", id: "t1", tier: "count", n: d, says, by: 0, species, children: kids };
+  const pooled = rule.pooled_across as string[] | undefined;
+  if (pooled && pooled.length) {
+    // T349 / T358 (quota._one): the aggregate tier — one count over a set of areas
+    const whose = poolWords(pooled);
+    tree = { ...tree, tier: "total", whose, says: saysShared(d, names, hatchery, whose) };
+  }
   return unread ? { tree, u: 1 } : { tree };
+}
+
+// ── T349 / T358 SHARED QUOTAS (quota.pool_of / pool_words / mark_shared; owner 2026-11-02, re-read 2026-11-12) ──────────
+// Region 5B's "All lakes or streams or part thereof in the aggregate (combined total), in Management Units 5-6 to 5-11 …
+// unless otherwise stated below": the region row's limits are ONE count over every water of MUs 5-6 to 5-11 not listed as
+// its own row; a water with its own row has its own (unpooled) quota; the region's 4-a-day all-species bucket stands
+// beside both. The live join marks the location's rules (`join` in live.ts), as the Python's `live.join` does.
+const RE_AGGREGATE = /\bin the aggregate\b|\bcombined total\b/i;
+const RE_MU_GROUP = /^area:mu_group:management_units_(\d+)_(\d+)_to_(\d+)_(\d+)$/;
+
+const saysShared = (d: number, names: string, hatchery: boolean, scope: string) =>
+  `Up to ${d} ${hatchery ? "hatchery-marked " : ""}${names} a day in total, all waters of ${scope} combined`;
+
+/** quota.pool_of: the AREAS a location's quota is pooled across — its own `within` extents, where its words say "in the
+ *  aggregate" / "combined total"; [] where they do not. A pooled location with no `within` area is an error. */
+export function poolOf(loc: { location_id: string; source_text?: { specific_area?: string } | null;
+                              binding?: { extents?: { op?: string | null; area_id?: string | null }[] } | null }): string[] {
+  const t = String(loc.source_text?.specific_area ?? "");
+  if (!RE_AGGREGATE.test(t)) return [];
+  const areas = [...new Set((loc.binding?.extents ?? []).filter((e) => e.op === "within" && e.area_id).map((e) => e.area_id!))]
+    .sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+  if (!areas.length) throw new Error(`${loc.location_id}: its quota is pooled (${JSON.stringify(t.slice(0, 60))}…) but it is bound to no \`within\` area`);
+  return areas;
+}
+
+/** quota.pool_words: "Management Units 5-6 to 5-11"; an area with no words here is an error */
+export function poolWords(areas: string[]): string {
+  return areas.map((a) => {
+    const m = RE_MU_GROUP.exec(a);
+    if (!m) throw new Error(`pool_words: no words for the pooled area ${JSON.stringify(a)} — add its kind here`);
+    return `Management Units ${m[1]}-${m[2]} to ${m[3]}-${m[4]}`;
+  }).join(" and ");
+}
+
+/** quota.mark_shared: each top-level count (a retention limit above zero, no `within`) `pooled_across` the areas */
+export function markShared<T extends object>(rules: readonly T[], areas: string[]): T[] {
+  if (!areas.length) return [...rules];
+  return rules.map((r) => {
+    const x = r as Record<string, unknown>;
+    return x.type === "retention_limit" && !x.within && ((x.take as number | undefined) || 0) > 0 ? { ...r, pooled_across: [...areas] } : r;
+  });
 }
 
 /** quota.species_tree: the rules that opened the species that day → `{tree}`, or `{u: 1}` (not one reading) */

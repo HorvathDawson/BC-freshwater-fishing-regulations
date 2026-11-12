@@ -148,7 +148,8 @@ describe("the Salmon card", () => {
   it("EVERY species closed collapses to the one 'Salmon — closed' row (Sep 15 on the Kispiox)", () => {
     const c = salmonCard(facts(), { sids: [101], item: null }, SEP15);
     expect([c.allClosed, c.headline, c.rows.length, c.rows[0]!.label, c.rows[0]!.status]).toEqual(
-      [true, "Closed today", 1, "Salmon", "closed"]);
+      // (T671 D5 extension) its chain names the undrawn Cowichan place, catch and release on Sep 15
+      [true, "Closed today · catch and release in part", 1, "Salmon", "closed"]);
     expect(c.rows[0]!.notes).toContain("No fishing for coho — FN0897 (Aug 24–Mar 31)");
   });
 
@@ -171,9 +172,11 @@ describe("the Salmon card", () => {
 
   it("(T372, the trout way) a DFO place on this water not drawn yet is the trout card's in-part caveat, its day and DFO's words", () => {
     const c = salmonCard(facts(), { sids: [101], item: "gnis:4674" }, SEP15);
-    // DFO speaks for the place today (its `n`): the hot block, the place in force first
-    expect(c.caveat).toEqual({ kind: "inpart", hot: true, title: "Fishing is different in some spots today",
-      calm: "Everywhere else, follow this page.", later: null, items: [{
+    // DFO speaks for the place today (its `n`): the hot block, the place in force first. (T671 D5 extension) The page is
+    // closed and the place is catch and release today: the title and calm line say so
+    expect(c.caveat).toEqual({ kind: "inpart", hot: true, title: "Closed today · catch and release in part",
+      calm: "DFO allows catch and release of salmon in a part of this water the map can’t draw yet: check DFO for where. Everywhere else, follow this page.",
+      later: null, items: [{
         what: [{ t: "text", s: "Chinook · sockeye · pink · chum closed · Coho release only" }],
         where: "Where: Kispiox River — above the resort signs", rule: null, fish: null, book: [],
         detail: [   // (T502) the closed species: the "what" line says it, not repeated here
@@ -183,8 +186,9 @@ describe("the Salmon card", () => {
     expect([jul.hot, jul.title, jul.calm, jul.items.length]).toEqual([false, "Some spots have their own rules",
       "Not in force today. The map can’t draw these places yet, so check where you are.", 1]);
     // (T668 fix 1) a section whose chain names no undrawn place: no block, though its water (item) has one elsewhere
-    expect(salmonCard(facts(), { sids: [101], item: "gnis:4674" }, SEP15).headline).toBe("Closed today");
+    expect(salmonCard(facts(), { sids: [101], item: "gnis:4674" }, SEP15).headline).toBe("Closed today · catch and release in part");
     expect(salmonCard(facts(), { sids: [5], item: "gnis:4674" }, SEP15).caveat).toBeNull();
+    expect(salmonCard(facts(), { sids: [5], item: "gnis:4674" }, SEP15).headline).toBe("Closed today");
   });
 
   it("(T671 D5, owner 2026-11-12) the page reads closed and a place not drawn yet is OPEN: 'Closed today · open in part', DFO for where", () => {
@@ -202,6 +206,39 @@ describe("the Salmon card", () => {
     // a day the page itself is open: the headline is the page's, the caveat its ordinary words
     const jul = salmonCard(f, { sids: [101], item: "gnis:4674" }, JUL20);
     expect([jul.headline, jul.caveat!.title]).toEqual(["Open today", "Some spots have their own rules"]);
+  });
+
+  // (T671 D5 extension, owner 2026-11-12) the undrawn place only catch and release, or "check": the same shape, its own
+  // words; two undrawn places of different kinds on one page-day: open, then catch and release, then check
+  const CHECK = 7, OPEN = 8;
+  /** the Kispiox page (closed Sep 15) with two undrawn places: chain 2 (the Cowichan) and chain 3, each with coho reading
+   *  the verdict given Sep 1–Oct 31 */
+  const twoPlaces = (a: number, b: number) => {
+    const map = (v: number) => (v === CHECK ? 4 : v === OPEN ? 1 : 2);
+    const place = (v: number) => ({ sp: [[0, 0], [0, 0, 244, v, 305, 0], [0, 0], [0, 0], [0, 0]], m: [0, 3, 244, map(v), 305, 3] });
+    const p = { ...PAYLOAD,
+      verdicts: [...PAYLOAD.verdicts, { s: "check", t: "To be determined (Sep 1–Oct 31)" }, { s: "open", t: "2 per day (Sep 1–Oct 31)" }],
+      chains: [PAYLOAD.chains[0]!, { ...PAYLOAD.chains[1]!, u: ["1:cowichan", "1:other"] }, { ...PAYLOAD.chains[2]!, ...place(a) },
+               { r: ["1"], w: "Other River", l: ["1:other"], g: [0, -1], n: [0, 0, 244, 1, 305, 0], ...place(b) }],
+      unmapped: [...PAYLOAD.unmapped, { items: ["gnis:4674"], r: "1", w: "Kispiox River — at the other signs", chain: 3 }] };
+    return salmonCard(decodeSalmon(encode(p), HANDLES, SHARDS), { sids: [101], item: "gnis:4674" }, SEP15);
+  };
+  it("(T671 D5 extension) the page reads closed and the place not drawn yet reads 'check': 'Closed today · check DFO for part'", () => {
+    const c = twoPlaces(CHECK, CHECK);
+    expect([c.headline, c.headlineStatus, c.rows.every((r) => r.status === "closed")]).toEqual(["Closed today · check DFO for part", "closed", true]);
+    expect([c.caveat!.title, c.caveat!.calm]).toEqual(["Closed today · check DFO for part",
+      "DFO’s salmon rules for a part of this water the map can’t draw yet could not be read here: check DFO for where and what. Everywhere else, follow this page."]);
+    expect(c.year.bars[0]!.today).toBe("closed");
+  });
+  it("(T671 D5 extension) two kinds on one page-day: open wins, then catch and release, then check", () => {
+    const RELEASE = 6;
+    expect([twoPlaces(CHECK, RELEASE).headline, twoPlaces(RELEASE, CHECK).headline])
+      .toEqual(["Closed today · catch and release in part", "Closed today · catch and release in part"]);
+    expect([twoPlaces(RELEASE, OPEN).headline, twoPlaces(OPEN, CHECK).headline])
+      .toEqual(["Closed today · open in part", "Closed today · open in part"]);
+    expect(twoPlaces(CHECK, OPEN).caveat!.title).toBe("Closed today · open in part");
+    // a day the page itself is open: the page's headline, whatever the places read
+    expect(salmonCard(facts(), { sids: [101], item: "gnis:4674" }, JUL20).headline).toBe("Open today");
   });
 });
 

@@ -146,3 +146,54 @@ def test_the_release_refuses_rows_typed_by_older_code(tmp_path):
     with pytest.raises(S.SalmonError) as e:
         S.load_inputs(run, feed_dir=tmp_path)
     assert "typed by older code" in str(e.value) and "python -m pipeline.regs.dfo_salmon.feed" in str(e.value)
+
+
+# ── (T671 5B, owner 2026-11-12) "in the aggregate": the shared cases' `place` and `quota` ───────────────────────────────
+
+def _place(name):
+    """The shared case's curated place as `quota.pool_of` reads it: its words and its `within` areas."""
+    from types import SimpleNamespace as NS
+    p = CASES[name]["place"]
+    return NS(location_id=name, source_text={"specific_area": p["specific_area"]},
+              binding=NS(extents=[NS(op=NS(value="within"), area_id=a) for a in p["within"]]))
+
+
+POOLED = sorted(n for n, c in CASES.items() if "quota" in c)
+
+
+def test_the_pooled_cases_were_read():
+    assert len(POOLED) >= 3
+
+
+@pytest.mark.parametrize("name", POOLED)
+def test_every_shared_place_pools_or_not_and_says_its_quota_as_the_file_says(name):
+    """The place's rules marked as the release and the live join mark them (`mark_shared(rules, pool_of(loc))`), then the
+    day's quota line. The worker's twin (`dfo.t671.test.ts`) asserts the same file."""
+    from pipeline.regs.dfo_salmon import quota as Q
+    rules = Q.mark_shared(_rules(name), Q.pool_of(_place(name)))
+    got = []
+    for sp, md, _ in CASES[name]["quota"]:
+        v = S.verdict_on([rules], sp, md)
+        got.append([sp, md, Q.words(v.get("tree")) if v and v["s"] == "open" else None])
+    assert got == CASES[name]["quota"]
+
+
+def test_5b_a_water_with_its_own_row_is_not_pooled_and_its_own_row_speaks_first():
+    """Bella Coola under the region row: its own chinook row answers (4 a day, its own); the region's pooled row is the
+    wider place and never reaches a species the water's row speaks for."""
+    from pipeline.regs.dfo_salmon import quota as Q
+    region = Q.mark_shared(_rules("Region 5B, waters of MUs 5-6 to 5-11 not in the table (T671 5B)"),
+                           Q.pool_of(_place("Region 5B, waters of MUs 5-6 to 5-11 not in the table (T671 5B)")))
+    own = Q.mark_shared(_rules("Region 5B, a water with its own row: the Bella Coola (T671 5B)"),
+                        Q.pool_of(_place("Region 5B, a water with its own row: the Bella Coola (T671 5B)")))
+    assert Q.words(S.verdict_on([own, region], "CH", 715)["tree"]) == "4 a day"
+    assert Q.words(S.verdict_on([region], "CH", 715)["tree"]).startswith("Up to 4 chinook a day in total")
+
+
+def test_5b_mutation_no_pool_reads_the_aggregate_row_as_per_water(monkeypatch):
+    """The pooled case fails if `pool_of` saw no pool (the worker's live join before 2026-11-12)."""
+    from pipeline.regs.dfo_salmon import quota as Q
+    name = "Region 5B, waters of MUs 5-6 to 5-11 not in the table (T671 5B)"
+    monkeypatch.setattr(Q, "pool_of", lambda loc: [])
+    rules = Q.mark_shared(_rules(name), Q.pool_of(_place(name)))
+    assert Q.words(S.verdict_on([rules], "CH", 715)["tree"]) == "4 a day"

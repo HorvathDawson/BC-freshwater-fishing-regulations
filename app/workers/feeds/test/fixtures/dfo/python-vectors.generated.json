@@ -58647,6 +58647,416 @@
     }
    ]
   },
+  "Region 5B, a water with its own row: the Bella Coola (T671 5B)": {
+   "calendar": {
+    "g": [
+     0,
+     -1
+    ],
+    "gears": [],
+    "sp": [
+     [
+      0,
+      0
+     ],
+     [
+      0,
+      1
+     ],
+     [
+      0,
+      2
+     ],
+     [
+      0,
+      3
+     ],
+     [
+      0,
+      4
+     ]
+    ],
+    "verdicts": [
+     {
+      "s": "open",
+      "t": "4 per day (Apr 1–Mar 31)",
+      "tree": {
+       "by": 0,
+       "children": [],
+       "id": "t1",
+       "n": 4,
+       "node": "tier",
+       "says": "4 a day",
+       "species": [
+        "CH"
+       ],
+       "tier": "count"
+      }
+     },
+     {
+      "s": "open",
+      "t": "4 per day (Apr 1–Mar 31)",
+      "tree": {
+       "by": 0,
+       "children": [],
+       "id": "t1",
+       "n": 4,
+       "node": "tier",
+       "says": "4 a day",
+       "species": [
+        "CO"
+       ],
+       "tier": "count"
+      }
+     },
+     {
+      "s": "closed",
+      "t": "No fishing for sockeye. (Apr 1–Mar 31)"
+     },
+     {
+      "s": "open",
+      "t": "2 per day (Apr 1–Mar 31)",
+      "tree": {
+       "by": 0,
+       "children": [],
+       "id": "t1",
+       "n": 2,
+       "node": "tier",
+       "says": "2 a day",
+       "species": [
+        "PK"
+       ],
+       "tier": "count"
+      }
+     },
+     {
+      "s": "open",
+      "t": "1 per day (Apr 1–Mar 31)",
+      "tree": {
+       "by": 0,
+       "children": [],
+       "id": "t1",
+       "n": 1,
+       "node": "tier",
+       "says": "1 a day",
+       "species": [
+        "CM"
+       ],
+       "tier": "count"
+      }
+     }
+    ]
+   },
+   "rules": [
+    {
+     "rule_id": "rows.r0",
+     "species": [
+      "CH"
+     ],
+     "take": 4,
+     "type": "retention_limit",
+     "verbatim": "4 per day",
+     "when": {
+      "dates": [
+       {
+        "from_day": 1,
+        "from_month": 4,
+        "to_day": 31,
+        "to_month": 3
+       }
+      ]
+     }
+    },
+    {
+     "rule_id": "rows.r1",
+     "species": [
+      "CO"
+     ],
+     "take": 4,
+     "type": "retention_limit",
+     "verbatim": "4 per day",
+     "when": {
+      "dates": [
+       {
+        "from_day": 1,
+        "from_month": 4,
+        "to_day": 31,
+        "to_month": 3
+       }
+      ]
+     }
+    },
+    {
+     "rule_id": "rows.r2",
+     "species": [
+      "PK"
+     ],
+     "take": 2,
+     "type": "retention_limit",
+     "verbatim": "2 per day",
+     "when": {
+      "dates": [
+       {
+        "from_day": 1,
+        "from_month": 4,
+        "to_day": 31,
+        "to_month": 3
+       }
+      ]
+     }
+    },
+    {
+     "rule_id": "rows.r3",
+     "species": [
+      "CM"
+     ],
+     "take": 1,
+     "type": "retention_limit",
+     "verbatim": "1 per day",
+     "when": {
+      "dates": [
+       {
+        "from_day": 1,
+        "from_month": 4,
+        "to_day": 31,
+        "to_month": 3
+       }
+      ]
+     }
+    },
+    {
+     "may_target": false,
+     "rule_id": "rows.r4",
+     "species": [
+      "SK"
+     ],
+     "take": 0,
+     "type": "retention_limit",
+     "verbatim": "No fishing for sockeye.",
+     "when": {
+      "dates": [
+       {
+        "from_day": 1,
+        "from_month": 4,
+        "to_day": 31,
+        "to_month": 3
+       }
+      ]
+     }
+    }
+   ]
+  },
+  "Region 5B, waters of MUs 5-6 to 5-11 not in the table (T671 5B)": {
+   "calendar": {
+    "g": [
+     0,
+     -1
+    ],
+    "gears": [],
+    "sp": [
+     [
+      0,
+      0
+     ],
+     [
+      0,
+      1
+     ],
+     [
+      0,
+      -1
+     ],
+     [
+      0,
+      -1
+     ],
+     [
+      0,
+      -1
+     ]
+    ],
+    "verdicts": [
+     {
+      "s": "open",
+      "t": "4 per day (Apr 1–Mar 31)",
+      "tree": {
+       "by": 0,
+       "children": [],
+       "id": "t1",
+       "n": 4,
+       "node": "tier",
+       "says": "4 a day",
+       "species": [
+        "CH"
+       ],
+       "tier": "count"
+      }
+     },
+     {
+      "s": "open",
+      "t": "4 per day (Apr 1–Mar 31)",
+      "tree": {
+       "by": 0,
+       "children": [],
+       "id": "t1",
+       "n": 4,
+       "node": "tier",
+       "says": "4 a day",
+       "species": [
+        "CO"
+       ],
+       "tier": "count"
+      }
+     }
+    ]
+   },
+   "rules": [
+    {
+     "rule_id": "rows.r0",
+     "species": [
+      "CH"
+     ],
+     "take": 4,
+     "type": "retention_limit",
+     "verbatim": "4 per day",
+     "when": {
+      "dates": [
+       {
+        "from_day": 1,
+        "from_month": 4,
+        "to_day": 31,
+        "to_month": 3
+       }
+      ]
+     }
+    },
+    {
+     "rule_id": "rows.r1",
+     "species": [
+      "CO"
+     ],
+     "take": 4,
+     "type": "retention_limit",
+     "verbatim": "4 per day",
+     "when": {
+      "dates": [
+       {
+        "from_day": 1,
+        "from_month": 4,
+        "to_day": 31,
+        "to_month": 3
+       }
+      ]
+     }
+    }
+   ]
+  },
+  "Region 6 A, all Region 6 waters (T671 D4)": {
+   "calendar": {
+    "g": [
+     0,
+     -1
+    ],
+    "gears": [],
+    "sp": [
+     [
+      0,
+      0
+     ],
+     [
+      0,
+      -1
+     ],
+     [
+      0,
+      -1
+     ],
+     [
+      0,
+      -1
+     ],
+     [
+      0,
+      -1
+     ]
+    ],
+    "verdicts": [
+     {
+      "s": "open",
+      "t": "4 per day, only 1 over 65 cm (Apr 1–Mar 31)",
+      "tree": {
+       "by": 0,
+       "children": [
+        {
+         "by": 0,
+         "children": [],
+         "id": "t2",
+         "n": 1,
+         "node": "tier",
+         "over_cm": 65,
+         "says": "only 1 over 65 cm",
+         "tier": "size"
+        }
+       ],
+       "id": "t1",
+       "n": 4,
+       "node": "tier",
+       "says": "4 a day",
+       "species": [
+        "CH"
+       ],
+       "tier": "count"
+      }
+     }
+    ]
+   },
+   "rules": [
+    {
+     "rule_id": "rows.r0",
+     "species": [
+      "CH"
+     ],
+     "take": 4,
+     "type": "retention_limit",
+     "verbatim": "4 per day",
+     "when": {
+      "dates": [
+       {
+        "from_day": 1,
+        "from_month": 4,
+        "to_day": 31,
+        "to_month": 3
+       }
+      ]
+     }
+    },
+    {
+     "lengths": [
+      {
+       "min_cm": 65
+      }
+     ],
+     "rule_id": "rows.r0b",
+     "species": [
+      "CH"
+     ],
+     "take": 1,
+     "type": "retention_limit",
+     "verbatim": "only 1 over 65 cm",
+     "when": {
+      "dates": [
+       {
+        "from_day": 1,
+        "from_month": 4,
+        "to_day": 31,
+        "to_month": 3
+       }
+      ]
+     },
+     "within": "rows.r0"
+    }
+   ]
+  },
   "Tatshenshini above the border (T671 D1)": {
    "calendar": {
     "g": [

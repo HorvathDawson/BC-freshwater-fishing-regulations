@@ -24,6 +24,8 @@ export interface EntryLocation {
   fingerprints: string[];
   source_text: { specific_area?: string; landmarks?: string[] } & Record<string, unknown>;
   status: string;
+  /** the curated binding (only its `within` areas are read here: quota.poolOf) */
+  binding?: { extents?: { op?: string | null; area_id?: string | null }[] } & Record<string, unknown>;
 }
 export interface EntryFile {
   region: string;

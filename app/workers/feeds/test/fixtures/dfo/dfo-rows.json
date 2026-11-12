@@ -1,5 +1,5 @@
 {
- "_about": "THE SHARED DFO ROWS (T556; T671's rows). Hand-written: rows as DFO prints them (species | dates | limits and gear) with what the place itself answers. Read by BOTH pipeline/tests/test_t671_salmon_rows.py (typed.to_rules, deliver.salmon.verdict_on) and app/workers/feeds/test/dfo.t671.test.ts (the worker's toRules, locationCalendar), so the two languages cannot each hold a copy that drifts. `typed`: one entry per row, holding only what is asserted of that row's first rule — type, species (null: the rule carries none), reason (tbd | gear_permission: the review_reason starts with that constant). `own`: [species, MMDD, status] — the place's own answer that day, null where it says nothing (a wider place answers). The Python's exact typed rules and year calendar for every case are in python-vectors.generated.json `rows` (generated: python -m pipeline.tools.emit.dfo_vectors), which the worker must reproduce.",
+ "_about": "THE SHARED DFO ROWS (T556; T671's rows). Hand-written: rows as DFO prints them (species | dates | limits and gear) with what the place itself answers. Read by BOTH pipeline/tests/test_t671_salmon_rows.py (typed.to_rules, deliver.salmon.verdict_on) and app/workers/feeds/test/dfo.t671.test.ts (the worker's toRules, locationCalendar), so the two languages cannot each hold a copy that drifts. `typed`: one entry per row, holding only what is asserted of that row's first rule — type, species (null: the rule carries none), reason (tbd | gear_permission: the review_reason starts with that constant). `own`: [species, MMDD, status] — the place's own answer that day, null where it says nothing (a wider place answers). The Python's exact typed rules and year calendar for every case are in python-vectors.generated.json `rows` (generated: python -m pipeline.tools.emit.dfo_vectors), which the worker must reproduce. `place` (T671 5B): the curated place's words and `within` areas, for quota.pool_of / mark_shared (the Python's live.join and the release, the worker's live.ts join); `quota`: [species, MMDD, the quota line (quota.words of the day's tree), null where nothing opens].",
  "cases": [
   {
    "name": "chum to be determined",
@@ -868,6 +868,168 @@
      "SK",
      809,
      null
+    ]
+   ]
+  },
+  {
+   "name": "Region 5B, waters of MUs 5-6 to 5-11 not in the table (T671 5B)",
+   "about": "owner 2026-11-12: a water not in the table shares the ALL row's limits, one total across those waters",
+   "place": {
+    "specific_area": "All lakes or streams or part thereof in the aggregate (combined total), in Management Units 5-6 to 5-11 in Region 5B, unless otherwise stated below (i.e. Region 5 not including the Fraser River watershed).",
+    "within": [
+     "area:mu_group:management_units_5_6_to_5_11"
+    ]
+   },
+   "rows": [
+    [
+     "Chinook",
+     "Apr 1 to Mar 31",
+     "4 per day"
+    ],
+    [
+     "Coho",
+     "Apr 1 to Mar 31",
+     "4 per day"
+    ]
+   ],
+   "own": [
+    [
+     "CH",
+     715,
+     "open"
+    ],
+    [
+     "CO",
+     1001,
+     "open"
+    ],
+    [
+     "SK",
+     715,
+     null
+    ]
+   ],
+   "quota": [
+    [
+     "CH",
+     715,
+     "Up to 4 chinook a day in total, all waters of Management Units 5-6 to 5-11 combined"
+    ],
+    [
+     "CO",
+     1001,
+     "Up to 4 coho a day in total, all waters of Management Units 5-6 to 5-11 combined"
+    ],
+    [
+     "SK",
+     715,
+     null
+    ]
+   ]
+  },
+  {
+   "name": "Region 5B, a water with its own row: the Bella Coola (T671 5B)",
+   "about": "owner 2026-11-12: a water listed as its own row has its own quota, not the pooled one",
+   "place": {
+    "specific_area": "",
+    "within": []
+   },
+   "rows": [
+    [
+     "Chinook",
+     "Apr 1 to Mar 31",
+     "4 per day"
+    ],
+    [
+     "Coho",
+     "Apr 1 to Mar 31",
+     "4 per day"
+    ],
+    [
+     "Pink",
+     "Apr 1 to Mar 31",
+     "2 per day"
+    ],
+    [
+     "Chum",
+     "Apr 1 to Mar 31",
+     "1 per day"
+    ],
+    [
+     "Sockeye",
+     "Apr 1 to Mar 31",
+     "No fishing for sockeye."
+    ]
+   ],
+   "own": [
+    [
+     "CH",
+     715,
+     "open"
+    ],
+    [
+     "SK",
+     715,
+     "closed"
+    ]
+   ],
+   "quota": [
+    [
+     "CH",
+     715,
+     "4 a day"
+    ],
+    [
+     "CO",
+     1001,
+     "4 a day"
+    ],
+    [
+     "PK",
+     815,
+     "2 a day"
+    ],
+    [
+     "CM",
+     1001,
+     "1 a day"
+    ],
+    [
+     "SK",
+     715,
+     null
+    ]
+   ]
+  },
+  {
+   "name": "Region 6 A, all Region 6 waters (T671 D4)",
+   "about": "owner 2026-11-12 (Q28): the place's words are the section title; each species' limit is its own, no pool",
+   "place": {
+    "specific_area": "All Region 6 waters",
+    "within": [
+     "area:region:6",
+     "area:mu_group:management_units_6_12_and_6_13"
+    ]
+   },
+   "rows": [
+    [
+     "Chinook",
+     "Apr 1 to Mar 31",
+     "4 per day, only 1 over 65 cm."
+    ]
+   ],
+   "own": [
+    [
+     "CH",
+     801,
+     "open"
+    ]
+   ],
+   "quota": [
+    [
+     "CH",
+     801,
+     "4 a day · only 1 over 65 cm"
     ]
    ]
   }

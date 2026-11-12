@@ -437,6 +437,12 @@ export const SALMON_WORDS = {
    *  page's answer stays, the headline and the in-part caveat say the part is open and point to DFO for where */
   closedOpenInPart: "Closed today · open in part",
   openInPartCalm: "DFO opens salmon in a part of this water the map can’t draw yet: check DFO for where. Everywhere else, follow this page.",
+  /** (T671 D5 extension, owner 2026-11-12) the same where the undrawn place is only catch and release today, or reads
+   *  "check" (a row nobody could read); more than one kind on one page-day: open, then catch and release, then check */
+  closedReleaseInPart: "Closed today · catch and release in part",
+  releaseInPartCalm: "DFO allows catch and release of salmon in a part of this water the map can’t draw yet: check DFO for where. Everywhere else, follow this page.",
+  closedCheckInPart: "Closed today · check DFO for part",
+  checkInPartCalm: "DFO’s salmon rules for a part of this water the map can’t draw yet could not be read here: check DFO for where and what. Everywhere else, follow this page.",
   /** (T372) the caveat's water noun (only a boat rule's calm line says it; salmon has none) */
   waterNoun: "water",
   agency: "Fisheries and Oceans Canada",
@@ -873,8 +879,14 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
     sts.includes("open") ? "open" : sts.includes("release") ? "release" : sts.includes("varies") ? "varies"
       : sts.includes("check") ? "check" : "closed";
   // (T671 D5, owner 2026-11-12) the page reads closed and a place on this water not drawn yet is OPEN today (the
-  // pipeline's verdicts for that place, looked up): the page's answer stays, the headline and caveat say "open in part"
-  const openInPart = headlineStatus === "closed" && undrawn.some((c) => salmonStatusFromSpecies(f, c, day) === "open");
+  // pipeline's verdicts for that place, looked up): the page's answer stays, the headline and caveat say "open in part".
+  // (D5 extension, owner 2026-11-12) only catch and release there: "catch and release in part"; "check" there: "check
+  // DFO for part". More than one kind on the page-day: open, then catch and release, then check.
+  const partKind = headlineStatus !== "closed" ? null
+    : (["open", "release", "check"] as const).find((k) => undrawn.some((c) => salmonStatusFromSpecies(f, c, day) === k)) ?? null;
+  const part = partKind === "open" ? { headline: SALMON_WORDS.closedOpenInPart, calm: SALMON_WORDS.openInPartCalm }
+    : partKind === "release" ? { headline: SALMON_WORDS.closedReleaseInPart, calm: SALMON_WORDS.releaseInPartCalm }
+      : partKind === "check" ? { headline: SALMON_WORDS.closedCheckInPart, calm: SALMON_WORDS.checkInPartCalm } : null;
   const inPart = inPartBlock(undrawnEntries(f, undrawn, unmapped, day), SALMON_WORDS.waterNoun);
   return {
     ...block, rows, regionRules, gearProvincial,
@@ -901,9 +913,9 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
                  ...regionsUsed.filter((r) => P.feedOnly?.[r]).map((r) => SALMON_WORDS.feedOnly(P.feedOnly![r]!, r)),
                  ...(chains.some((c) => P.chains[c]!.l.some((l) => P.held?.includes(l))) ? [SALMON_WORDS.heldRow] : [])],
     title: SALMON_WORDS.title, badge: SALMON_WORDS.badge,
-    headline: openInPart ? SALMON_WORDS.closedOpenInPart : SALMON_WORDS.headline[headlineStatus], headlineStatus,
+    headline: part ? part.headline : SALMON_WORDS.headline[headlineStatus], headlineStatus,
     notListed: listed || unmapped.length || unplaced.length || offs.length ? null : SALMON_WORDS.notListedLine,
-    caveat: openInPart && inPart ? { ...inPart, title: SALMON_WORDS.closedOpenInPart, calm: SALMON_WORDS.openInPartCalm } : inPart,
+    caveat: part && inPart ? { ...inPart, title: part.headline, calm: part.calm } : inPart,
     dfoWords: regionClosed ? null : wordsOf(P, [...chains.flatMap((c) => [...P.chains[c]!.l, ...(P.chains[c]!.u ?? [])]),
                                                   ...unmapped.filter((u) => !u.d).flatMap((u) => P.chains[u.chain]?.l ?? [])]),
     source: [SALMON_WORDS.agency,

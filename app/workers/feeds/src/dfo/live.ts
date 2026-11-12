@@ -33,7 +33,7 @@ import { key } from "./names";
 import { parseRegion } from "./parse";
 import { cmpStr, cmpTuple, formatFixed, pyRe, pyStrOf, pyTypeName, repr, search } from "./py";
 import { feedText, loads, PyFloat } from "./pyjson";
-import { headerAnswers, headerClosure } from "./quota";
+import { headerAnswers, headerClosure, markShared, poolOf } from "./quota";
 import { Interner, locationCalendar, NOT_LISTED, SPECIES } from "./salmon";
 import { untangle, verify } from "./untangle";
 import { readRegistry, REGISTRY_PATH, template, type Registry } from "./wording";
@@ -206,9 +206,11 @@ function join(
       continue;
     }
     if (hit) {
+      // T349 / T358 (live.join): a quota pooled across areas — Region 5B's "in the aggregate" row (quota.markShared)
+      const marked = markShared(loc.rules, poolOf(hit));
       const l = rules.get(hit.location_id);
-      if (l) l.push(...loc.rules);
-      else rules.set(hit.location_id, [...loc.rules]);
+      if (l) l.push(...marked);
+      else rules.set(hit.location_id, [...marked]);
       continue;
     }
     const src = byFp.get(fp);

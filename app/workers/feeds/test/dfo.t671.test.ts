@@ -8,6 +8,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { markShared, poolOf, words, type QuotaTier } from "../src/dfo/quota";
 import { DAYS, Interner, locationCalendar, type Verdict } from "../src/dfo/salmon";
 import { GEAR_PERMISSION, TBD, toRules, type TypedRule } from "../src/dfo/typed";
 import { REG } from "./wording.fixture";
@@ -21,6 +22,10 @@ interface Case {
   typed?: { type?: string; species?: string[] | null; reason?: "tbd" | "gear_permission" }[];
   /** [species, MMDD, the place's own status that day — null where the place says nothing] */
   own?: [string, number, string | null][];
+  /** (T671 5B) the curated place's words and `within` areas (quota.poolOf) */
+  place?: { specific_area: string; within: string[] };
+  /** (T671 5B) [species, MMDD, the day's quota line — null where nothing opens] */
+  quota?: [string, number, string | null][];
 }
 const CASES: Case[] = JSON.parse(readFileSync(join(__dirname, "fixtures/dfo/dfo-rows.json"), "utf-8")).cases;
 const REASONS = { tbd: TBD, gear_permission: GEAR_PERMISSION };
@@ -28,16 +33,17 @@ const REASONS = { tbd: TBD, gear_permission: GEAR_PERMISSION };
 const rulesOf = (rows: Row[]): TypedRule[] =>
   rows.flatMap(([species, dates, limits_gear], i) => toRules({ species, dates, limits_gear }, "t671", i, REG));
 
-/** the place's own answer for a species on MMDD: its status, or null where the place says nothing that day */
-function status(rows: Row[], sp: string, md: number): string | null {
+/** the place's own verdict for a species on MMDD, or null where the place says nothing that day */
+function verdict(rules: TypedRule[], sp: string, md: number): (Verdict & { tree?: QuotaTier }) | null {
   const verdicts = new Interner<unknown>();
-  const cal = locationCalendar(rulesOf(rows) as never[], verdicts, new Interner<unknown>());
+  const cal = locationCalendar(rules as never[], verdicts, new Interner<unknown>());
   const runs = cal.sp[SPECIES.indexOf(sp)]!;
   const day = DAYS.indexOf(md);
   let v = -1;
   for (let k = 0; k < runs.length; k += 2) if (runs[k]! <= day) v = runs[k + 1]!;
-  return v >= 0 ? (verdicts.items[v] as Verdict).s : null;
+  return v >= 0 ? (verdicts.items[v] as Verdict & { tree?: QuotaTier }) : null;
 }
+const status = (rows: Row[], sp: string, md: number): string | null => verdict(rulesOf(rows), sp, md)?.s ?? null;
 
 it("the shared file was read", () => {
   expect(CASES.length).toBeGreaterThanOrEqual(13);
@@ -57,3 +63,25 @@ describe("(T671 D2, D1; T676) the shared hand rows: typed and answered as the fi
       expect((c.own ?? []).map(([sp, md]) => [sp, md, status(c.rows, sp, md)])).toEqual(c.own ?? []);
     });
   });
+
+// (T671 5B, owner 2026-11-12) "in the aggregate": a water of MUs 5-6 to 5-11 not in the table shares the ALL row's limits
+// (one total across those waters); a water with its own row has its own quota; Region 6 A's words pool nothing (Q28).
+// The live join marks the place's rules (live.ts `join`: markShared(rules, poolOf(place))), as the Python's live.join and
+// the release do. The same shared cases as pipeline/tests/test_t671_salmon_rows.py.
+const POOLED = CASES.filter((c) => c.quota);
+it("the pooled cases were read", () => expect(POOLED.length).toBeGreaterThanOrEqual(3));
+describe("(T671 5B) the shared places pool or not, and say their quota as the file says", () => {
+  it.each(POOLED.map((c) => [c.name, c] as const))("%s", (name, c) => {
+    const place = { location_id: name, source_text: { specific_area: c.place!.specific_area },
+                    binding: { extents: c.place!.within.map((a) => ({ op: "within", area_id: a })) } };
+    const rules = markShared(rulesOf(c.rows), poolOf(place));
+    expect(c.quota!.map(([sp, md]) => {
+      const v = verdict(rules, sp, md);
+      return [sp, md, v && v.s === "open" ? words(v.tree) : null];
+    })).toEqual(c.quota);
+  });
+  it("a pooled place bound to no `within` area is an error, never words with nothing to bind", () => {
+    expect(() => poolOf({ location_id: "x", source_text: { specific_area: "in the aggregate (combined total)" }, binding: { extents: [] } }))
+      .toThrow(/bound to no `within` area/);
+  });
+});
