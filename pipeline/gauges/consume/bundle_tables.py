@@ -150,7 +150,17 @@ def write(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_item
     if ATLAS_CUT_PLACES_THE_GAUGE:
         _cut_rep: dict = {}
         _rows = json.loads((Path(build_dir) / "splits.resolved.json").read_text(encoding="utf-8"))
-        _at_cut = nodes_at_cuts(_rows, graph, report=_cut_rep)
+        _by_line: dict = {}
+        _at_cut = nodes_at_cuts(_rows, graph, report=_cut_rep, by_line=_by_line)
+        # T682 (owner 2026-11-12, RULINGS P49): the two stations the owner moved to the other channel (the match row
+        # names that line and the atlas cut it at the gauge) are placed at THAT cut, before the hold below
+        from pipeline.gauges.consume.place import owner_line
+        _owner = owner_line(matches, _by_line, placed, graph)
+        if _owner:
+            print(f"     gauge placement: {len(_owner)} station(s) on the line the owner named, another channel than "
+                  f"the projection ({', '.join(f'{st} -> {n}' for st, n in sorted(_owner.items()))})")
+            placed.update(_owner)
+            _at_cut.update(_owner)
         # HELD (T678b candidate, 2026-11-12): a cut on ANOTHER blue line than the projection (the Fraser at Albion and
         # Steveston, the Thompson at Kamloops, the Peace near Taylor …) is a move the owner has not seen — the 29 he
         # accepted were all along the gauge's own line. It keeps the projection, printed, until he looks.

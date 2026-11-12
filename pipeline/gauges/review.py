@@ -84,6 +84,11 @@ class Decision(BaseModel):
     #:   none        unused.
     wsc: tuple[str, ...] = ()
     wbk: tuple[str, ...] = ()
+    #: (T682, owner 2026-11-12) THE CHANNEL the owner placed the station on, a blue line key, where its water has
+    #: several channels at the gauge and the coordinate lands on the wrong one (the Fraser at Steveston on the Cannery
+    #: Channel stub; the Elk near Natal on a 1.2 km side line). `promote` writes it as the row's `blk`, and the bundle
+    #: places the station at the atlas's gauge cut on that line (`consume.place.owner_line`). Empty: the projection.
+    line: str = ""
     note: str = ""
     reviewed: str = ""
 

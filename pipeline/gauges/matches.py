@@ -60,7 +60,10 @@ class StationMatch:
     #: a node displayed "Lower Arrow Lake" also answers to "Arrow Reservoir", which is what
     #: ECCC calls it. Empty when the display name matched. promote's name check reads it (T159).
     matched_name: str = ""
-    blk: str = ""                # the blue line it matched. Diagnostic; see the note above.
+    #: the blue line it matched. Diagnostic (see the note above), with ONE reader (T682, owner 2026-11-12): where the
+    #: atlas cut several channels at the gauge, the bundle places the station at the cut on THIS line
+    #: (`consume.place.owner_line`) — how the owner moves a gauge off a side channel onto the river beside it.
+    blk: str = ""
     node_id: str | None = None   # the node it matched IN THAT BUILD. Diagnostic only.
     #: Additional FWA keys a curated `bind` named, beyond the one in `wsc`/`wbk`. A lake
     #: outlet describes both the lake and the stream leaving it. RECORDED, NOT YET CONSUMED

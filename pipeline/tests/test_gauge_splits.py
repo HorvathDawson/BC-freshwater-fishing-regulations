@@ -98,3 +98,38 @@ def test_t679_the_atlas_cut_is_the_gauges_placement():
     rep: dict = {}
     assert nodes_at_cuts(rows, g, report=rep) == {"08XX001": "R:4451"}
     assert [h["station"] for h in rep["held"]] == ["08XX002"]
+
+
+def test_t682_the_owners_line_places_a_gauge_the_atlas_cut_on_several_channels(monkeypatch):
+    """T682 (owner 2026-11-12, RULINGS P49): the Fraser at Steveston's coordinate lands on the Cannery Channel stub (C);
+    the atlas cuts the stub AND, by the braid sweep, the Fraser beside it (F). A row whose `blk` names F is placed at
+    F's cut; a row whose `blk` is the projection's own line, or names a line with no cut of this gauge, is not moved
+    (the nine the owner left on today's line). Mutation pin: the policy off moves none."""
+    from types import SimpleNamespace
+    from pipeline.common.models import NodeKind, StreamGraph, StreamNode
+    from pipeline.gauges.consume import place as P
+    g = StreamGraph()
+    for nid, blk, lo, hi in (("C:0", "C", 0, 656.5), ("C:656", "C", 656.5, 3886), ("F:0", "F", 0, 545.4),
+                             ("F:545", "F", 545.4, 9069)):
+        g.nodes[nid] = StreamNode(node_id=nid, kind=NodeKind.stream, blk=blk, down_m=lo, up_m=hi, length_m=hi - lo)
+    rows = [{"split_id": "gauge__08MH028", "blk": "C", "route_measure": 656.48},
+            {"split_id": "gauge__08MH028", "blk": "F", "route_measure": 545.44},
+            {"split_id": "gauge__08XX009", "blk": "C", "route_measure": 656.48},
+            {"split_id": "gauge__08XX009", "blk": "F", "route_measure": 545.44}]
+    by_line: dict = {}
+    assert P.nodes_at_cuts(rows, g, by_line=by_line) == {"08MH028": "F:545", "08XX009": "F:545"}     # the last row, as before
+    assert by_line == {"08MH028": {"C": "C:656", "F": "F:545"}, "08XX009": {"C": "C:656", "F": "F:545"}}
+    projected = {"08MH028": "C:656", "08XX009": "C:656", "08XX010": "C:656"}
+    ms = [SimpleNamespace(station="08MH028", blk="F"),           # the owner named the Fraser
+          SimpleNamespace(station="08XX009", blk="C"),           # today's line: not moved
+          SimpleNamespace(station="08XX010", blk="F")]           # names a line the atlas did not cut at this gauge
+    assert P.owner_line(ms, by_line, projected, g) == {"08MH028": "F:545"}
+    monkeypatch.setattr(P, "THE_OWNERS_LINE_PLACES_A_GAUGE_CUT_ON_SEVERAL_LINES", False)
+    assert P.owner_line(ms, by_line, projected, g) == {}
+
+
+def test_t682_the_owners_line_is_a_field_of_his_call_and_promote_writes_it():
+    """the call's `line` (a blue line key) survives the model; a call without one has none"""
+    from pipeline.gauges.review import Decision
+    d = Decision(verdict="confirmed", matched="Cannery Channel", wsc="100", line="356364114")
+    assert d.line == "356364114" and Decision(verdict="confirmed").line == ""

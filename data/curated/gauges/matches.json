@@ -34489,7 +34489,7 @@
    ],
    "also": [],
    "name": "Cannery Channel",
-   "blk": "355994324",
+   "blk": "356364114",
    "evidence": {
     "name_agrees": false,
     "name_is_exact": false,
@@ -34501,8 +34501,8 @@
     "kind_agrees": true
    },
    "trust": "reviewed",
-   "note": "reviewed against the map and the Water Office page",
-   "reviewed": "2026-09-03"
+   "note": "reviewed against the map and the Water Office page; owner 2026-11-12 (T682, RULINGS P49): moved from the Cannery Channel stub 355994324 to the Fraser River main line 356364114",
+   "reviewed": "2026-11-12"
   },
   "08MH029": {
    "station": "08MH029",
@@ -49972,7 +49972,7 @@
    ],
    "also": [],
    "name": "Elk River",
-   "blk": "356366042",
+   "blk": "356570562",
    "evidence": {
     "name_agrees": true,
     "name_is_exact": true,
@@ -49984,8 +49984,8 @@
     "kind_agrees": true
    },
    "trust": "reviewed",
-   "note": "reviewed against the map and the Water Office page",
-   "reviewed": "2026-09-03"
+   "note": "reviewed against the map and the Water Office page; owner 2026-11-12 (T682, RULINGS P49): moved from the 1.2 km side line 356366042 to the Elk River main line 356570562, 40 m away",
+   "reviewed": "2026-11-12"
   },
   "08NK017": {
    "station": "08NK017",

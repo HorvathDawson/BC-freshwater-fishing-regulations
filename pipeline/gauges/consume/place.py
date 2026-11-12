@@ -143,10 +143,12 @@ ATLAS_CUT_PLACES_THE_GAUGE = True
 CUT_STARTS_M = 1.0
 
 
-def nodes_at_cuts(resolved_rows, graph, *, report: dict | None = None) -> dict[str, str]:
+def nodes_at_cuts(resolved_rows, graph, *, report: dict | None = None, by_line: dict | None = None) -> dict[str, str]:
     """`{station: node_id}` from the atlas's own gauge cuts: `resolved_rows` is the atlas's `splits.resolved.json`
     (rows with `split_id` `gauge__<station>`, `blk`, `route_measure`); the node is the stream section on that blue line
-    whose lower end is the cut. `report` collects `held` rows (a cut where no section begins) with why."""
+    whose lower end is the cut. `report` collects `held` rows (a cut where no section begins) with why. A gauge on a
+    braided reach has one cut per channel (the host's and the braid sweep's): `by_line`, when given, collects every
+    one, `{station: {blk: node_id}}` (`owner_line`)."""
     rep = report if report is not None else {}
     starts: dict[str, list] = {}
     # a section ON a blue line is one carrying its key (polygon nodes carry none: 2026-11-12 on the T678 atlas, every
@@ -164,11 +166,38 @@ def nodes_at_cuts(resolved_rows, graph, *, report: dict | None = None) -> dict[s
         got = sorted((abs(d - m), nid) for d, nid in starts.get(blk, ()) if abs(d - m) <= CUT_STARTS_M)
         if got:
             out[st] = got[0][1]
+            if by_line is not None:
+                by_line.setdefault(st, {})[blk] = got[0][1]
         else:
             held.append({"station": st, "blk": blk, "measure": m,
                          "why": "no stream section begins at the cut (it stands on another boundary: a lake outlet "
                                 "or the line's end)"})
     rep["held"] = held
+    return out
+
+
+#: POLICY (T682, owner 2026-11-12, RULINGS P49): a station whose atlas cut lands on ANOTHER blue line than its
+#: projection keeps the projection (the owner has not seen that move) — EXCEPT where the frozen match itself names the
+#: line (`StationMatch.blk`, set by the owner's answer: the Elk near Natal, the Fraser at Steveston) and the atlas cut
+#: that line at the gauge: the station then speaks for the section beginning at THAT cut. False = every such station
+#: keeps the projection (the mutation pin).
+THE_OWNERS_LINE_PLACES_A_GAUGE_CUT_ON_SEVERAL_LINES = True
+
+
+def owner_line(matches, by_line: dict, projected: dict, graph) -> dict[str, str]:
+    """`{station: node_id}` for the stations the owner moved to another channel of their water (T682): the match row's
+    `blk` is a line the atlas cut at this gauge (`by_line`, from `nodes_at_cuts`) and is NOT the line the coordinate
+    projects onto (`projected`, `nodes_for`). A row whose `blk` is its projection's line, or names a line the atlas
+    did not cut at the gauge, is not one."""
+    if not THE_OWNERS_LINE_PLACES_A_GAUGE_CUT_ON_SEVERAL_LINES:
+        return {}
+    out = {}
+    for m in matches:
+        n = (by_line.get(m.station) or {}).get(m.blk or "")
+        if n is None or m.station not in projected:
+            continue
+        if getattr(graph.nodes.get(projected[m.station]), "blk", None) != m.blk:
+            out[m.station] = n
     return out
 
 

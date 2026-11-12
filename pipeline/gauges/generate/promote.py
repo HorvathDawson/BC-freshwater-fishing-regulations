@@ -144,6 +144,8 @@ def build(matches, stations, types, mags, rev=None) -> tuple[list[dict], list[di
             row |= {"trust": "bound", "status": TRUST_STATUS["bound"], "wbk": list(d.wbk), "wsc": list(d.wsc), "note": d.note}
         elif d is not None and d.verdict == "confirmed":
             row |= {"trust": "reviewed", "status": TRUST_STATUS["reviewed"], "note": d.note, "reviewed": d.reviewed}
+            if d.line:                       # T682: the channel the owner placed it on (`review.Decision.line`)
+                row["blk"] = d.line
         elif d is not None and d.verdict == "wrong":
             # (T550 item 6) the stored status agrees with the decision (`matches.TRUST_STATUS`)
             row |= {"trust": "wrong", "status": TRUST_STATUS["wrong"], "wbk": [], "wsc": [], "note": d.note}
