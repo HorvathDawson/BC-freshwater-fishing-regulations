@@ -14,10 +14,14 @@ describe("the regulations' as-of line (T236)", () => {
       .toBe("Regulations as of Oct 27, 2026 · salmon feed 3h ago · in-season 1h ago");
   });
   it("(T548) an in-season feed not rewritten for more than a day says it is likely out of date", () => {
+    // (T549 item 7, 6a56c583e) the line is the daily feeds' 30 h (`STALE_AFTER.inseason`): a day's check plus margin for a
+    // late run; at exactly a day it flickered "likely out of date" at every daily write
+    expect(asOfLine({ release: { published: "2026-10-27" }, inSeasonAt: "2026-10-27T11:00:00Z", now: NOW }))
+      .toBe("Regulations as of Oct 27, 2026 · in-season 31h ago, likely out of date");
+    expect(asOfLine({ release: { published: "2026-10-27" }, inSeasonAt: "2026-10-27T12:00:00Z", now: NOW }))
+      .toBe("Regulations as of Oct 27, 2026 · in-season 30h ago");
     expect(asOfLine({ release: { published: "2026-10-27" }, inSeasonAt: "2026-10-27T17:00:00Z", now: NOW }))
-      .toBe("Regulations as of Oct 27, 2026 · in-season 25h ago, likely out of date");
-    expect(asOfLine({ release: { published: "2026-10-27" }, inSeasonAt: "2026-10-27T18:00:00Z", now: NOW }))
-      .toBe("Regulations as of Oct 27, 2026 · in-season 24h ago");
+      .toBe("Regulations as of Oct 27, 2026 · in-season 25h ago");
   });
   it("leaves the salmon part out on a page with no salmon, and says the release's own salmon file", () => {
     expect(asOfLine({ release: null, inSeasonAt: null, now: NOW }))
