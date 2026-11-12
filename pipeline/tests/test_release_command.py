@@ -106,6 +106,13 @@ def world(tmp_path: Path, monkeypatch):
     w["atlas_behind"] = []
     monkeypatch.setattr(R, "atlas_behind", lambda: list(w["atlas_behind"]))
     monkeypatch.setattr(R, "binding_diff", diff)
+    # (T555 item 5) the ids gone with no alias: reads both releases' core files (pinned in test_release_gone_ids.py)
+    w["gone"] = []
+
+    def gone(before, after):
+        rep = {"before": 3, "kept": 3 - len(w["gone"]), "aliased": [], "gone": list(w["gone"])}
+        return rep, f"item ids, {before} -> {after}: {len(w['gone'])} gone with no alias"
+    monkeypatch.setattr(R, "gone_ids", gone)
     monkeypatch.setattr(R, "diff_summary", lambda rep: f"{rep['rules_changed']} rule(s) bind different sections")
     # the manifest check's real body reads the size gate and publish.plan over real release files: pinned elsewhere
     monkeypatch.setattr(R, "manifest_problems", lambda rid: list(w.get("manifest_problems", [])))
@@ -184,6 +191,16 @@ def test_the_stages_run_in_order_and_ship_the_candidate(world, capsys):
     assert _latest(world) == NEW and not (world["root"] / "CANDIDATE").exists()
     rec = json.loads(R.LEDGER.read_text())["releases"][NEW]
     assert rec["checks"]["binding_diff"] == "same" and rec["staged_at"] and rec["commit"] == "abc123"
+
+
+def test_ids_gone_with_no_alias_are_listed_and_kept_and_never_stop_the_release(world, capsys):
+    world["gone"] = [{"id": "wbk:3", "name": "Lost Pond"}]
+    assert _staging() == 0
+    out = capsys.readouterr().out
+    assert f"item ids, {LIVE} -> {NEW}: 1 gone with no alias" in out and "1 item id(s) gone with no alias" in out
+    assert json.loads(R.LEDGER.read_text())["releases"][NEW]["checks"]["gone_ids"] == 1
+    kept = json.loads((R.HOME / "checks" / NEW / "gone_ids.json").read_text())
+    assert kept["gone"] == [{"id": "wbk:3", "name": "Lost Pond"}]
 
 
 def test_uncommitted_code_stops_before_anything_runs(world, capsys):

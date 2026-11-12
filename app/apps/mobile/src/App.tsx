@@ -24,7 +24,7 @@ import {
 import { JetBrainsMono_500Medium } from "@expo-google-fonts/jetbrains-mono";
 import { DOWNLOAD_NOTE_WORDS, downloadFraction, INSTALL_WORDS, MAP_CREDITS, MOBILE_DATA_WORDS, mobileDataDecision, installLine, SETUP_WORDS, setupFraction, setupLine, netBanner, progressWords, rolledBackLine, splashLineFor, startStage, updatedToast, UPDATE_LOG_WORDS, UPDATE_WORDS, versionHeaders,
          versionLine, now as clockNow } from "@app/core";
-import { createNet, shareFetch, createReportOutbox, createUpdateLog, createUpdateService, phoneNetwork, versionedFetch, httpFeed, gaugeHistory, httpInSeason, httpRunTiming, httpSalmonFeed, manifestDate, noteHeld, openRunTimingStore,
+import { createNet, shareFetch, createReportOutbox, createUpdateLog, createUpdateService, phoneNetwork, versionedFetch, httpFeed, gaugeHistory, httpInSeason, httpRunTiming, httpSalmonFeed, manifestDate, noteHeld, followSavedItems, openRunTimingStore,
          type UpdateService, type WaterSource } from "@app/data";
 import type { MobileDataGate, ReleaseLoader } from "@app/data/release";
 import * as platform from "@app/data/release/platform";
@@ -507,6 +507,17 @@ export default function App() {
   }, [dataSource, spotsHook, weather, feed, hydat]);
   // (T255) back online (or opened online) with a spot made offline: its weather and gauge context fill in by themselves
   useRefreshOnReconnect(dataSource ? SPOT_NET : null, spots.some(needsRefresh), refreshSpots);
+  // (T555 item 5) ONCE PER RELEASE OPENED (a cold start and an applied update, the one path): a spot's or an alert's
+  // water id that this release absorbed into another water is rewritten to the id in use (`core.item_alias`)
+  const spotsRef = useRef(spotsHook);
+  spotsRef.current = spotsHook;
+  useEffect(() => {
+    if (!dataSource) return;
+    followSavedItems(dataSource, {
+      spots: { list: () => spotStore.list(), rewrite: (fill) => spotsRef.current.refresh(fill) },
+      alerts: notifications ? notifications.settings : null,
+    }).catch(reportFailure);
+  }, [dataSource, spotStore]);
 
   // (T262) what a failed start says: the reader's words (an app too old to read this release says so); the exception
   // and the dev server hint only in a local build

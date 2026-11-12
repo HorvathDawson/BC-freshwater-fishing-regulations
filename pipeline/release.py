@@ -582,6 +582,13 @@ def binding_diff(before: Path, after: Path) -> dict:
     return diff_runs(before, after)
 
 
+def gone_ids(before_rid: str, after_rid: str) -> tuple[dict, str]:
+    """(T555 item 5) The item ids of the live release that the candidate neither holds nor aliases, and the list as text."""
+    from pipeline.deliver.release.gone_ids import compare, summary
+    rep = compare(release_root() / before_rid, release_root() / after_rid)
+    return rep, summary(rep, before_rid, after_rid)
+
+
 def diff_summary(rep: dict) -> str:
     from pipeline.atlas.reach.binding_diff import summary
     return summary(rep)
@@ -951,11 +958,22 @@ def stage_checks(ctx: Ctx) -> str:
             raise Stop("checks", f"the rule bindings differ from the live release {ctx.live}{why}",
                        f"read {done['summary']} (full: {done['json']}); if every change is intended, rerun with\n"
                        f"    --accept-diff {done['json']}\n  otherwise fix the cause, commit, and rerun")
+    # (T555 item 5) ids a reader may have kept (a spot's water, an alert's, a link) that this release neither holds nor
+    # aliases: LISTED, never a stop (ids do go between builds; whether one needed an alias is read off the list)
+    n_gone = 0
+    if rid != ctx.live and ctx.live:
+        rep, txt = gone_ids(ctx.live, rid)
+        n_gone = len(rep["gone"])
+        out_dir.mkdir(parents=True, exist_ok=True)
+        (out_dir / "gone_ids.json").write_text(json.dumps(rep, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+        (out_dir / "gone_ids.txt").write_text(txt + "\n", encoding="utf-8")
+        print(txt if n_gone <= 40 else "\n".join(txt.splitlines()[:41]) + f"\n  … {n_gone - 40} more: {out_dir / 'gone_ids.txt'}")
     r["checks"] = {"manifest": "ok", "app_gate": "ok", "min_app_version": ctx.min_app,
-                   "binding_diff": done["status"], "at": now()}
+                   "binding_diff": done["status"], "gone_ids": n_gone, "at": now()}
     r["fingerprint"] = fingerprint(rid)
     save_ledger(ctx.led)
-    return f"manifest ok, app gate ok (min app {ctx.min_app or 'manifest stamp'}), bindings {done['status']}"
+    return (f"manifest ok, app gate ok (min app {ctx.min_app or 'manifest stamp'}), bindings {done['status']}, "
+            f"{n_gone} item id(s) gone with no alias")
 
 
 def stage_inseason(ctx: Ctx, rid: str, r: dict) -> str:

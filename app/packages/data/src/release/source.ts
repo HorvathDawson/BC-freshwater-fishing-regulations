@@ -100,6 +100,9 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {
     const row = now === null ? null : await held(now);
     return now !== null && row ? [now, row] : null;
   };
+  /** (T555) The id `id` names in this release (itself, or what absorbed it), or null: `currentItem` over the item's ord. */
+  const nowId = async (id: ItemId): Promise<ItemId | null> =>
+    ((await currentItem(id, (i) => get(CROSS.ITEM_ORD, i)))?.[0] as ItemId | undefined) ?? null;
   const hasNameSource = has(CROSS.HAS_NAME_SOURCE), hasItemArea = has(CROSS.HAS_ITEM_AREA);
   /** (T224) the `name_source` rows of these waters; none from a core cut before the table. */
   const nameSourcesOf = async (items: readonly string[]): Promise<Row[]> =>
@@ -407,8 +410,11 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {
         .map((x) => x.hit);
     },
 
+    currentItem: nowId,
+
     async locate(item): Promise<WaterFix> {
       const pt = (r: Row) => ({ lat: Number(r.lat), lon: Number(r.lon) });
+      item = (await nowId(item)) ?? item;      // (T555) a saved id follows item_alias, as `water` does
       const sections = await sectionsOf(item);
       const [gauges, rings] = await Promise.all([
         chunked(sections, (c) => all(CROSS.GAUGES_AT(c.length), ...c)),
@@ -421,6 +427,7 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {
     async waterBox(item) {
       // no geometry file (a release cut without regulations, like the fixture's): no box, and `locate` places it
       if (!loader.manifest.files[at(CROSS.PART_GEO_FOR_ORDS(1))]) return null;
+      item = (await nowId(item)) ?? item;      // (T555)
       const ords = (await all(CROSS.GEO_ORDS, item)).map((r) => Number(r.ord));
       if (!ords.length) return null;
       return boxOfGeoRows(await chunked(ords, (c) => all(CROSS.PART_GEO_FOR_ORDS(c.length), ...c)), 1_000_000);
@@ -428,6 +435,7 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {
 
     async waterPoint(item) {
       if (!loader.manifest.files[at(CROSS.PART_GEO_FOR_ORDS(1))]) return null;
+      item = (await nowId(item)) ?? item;      // (T555)
       const ords = (await all(CROSS.GEO_ORDS, item)).map((r) => Number(r.ord));
       if (!ords.length) return null;
       return pointOfGeoRows(await chunked(ords, (c) => all(CROSS.PART_GEO_FOR_ORDS(c.length), ...c)), 1_000_000) as { lat: number; lon: number; sid?: SectionId } | null;

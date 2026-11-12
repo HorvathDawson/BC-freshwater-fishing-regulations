@@ -28,6 +28,7 @@ import type {
 } from "@app/core";
 import { isConfidence } from "@app/core";
 import type { Cell, Db, Row } from "../sql/db";
+import { CROSS } from "../release/queries";
 import { RegsStoreError } from "./errors";
 
 export interface ItemRow {
@@ -328,8 +329,15 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
 
   const reads: RegsReads = {
     itemOrd: (itemId) => once("itemOrd", itemId, async () => {
-      const r = await (await base.core()).get("SELECT ord FROM item WHERE item_id = ?", itemId);
-      return r ? n(r.ord) : null;
+      const core = await base.core();
+      const r = await core.get("SELECT ord FROM item WHERE item_id = ?", itemId);
+      if (r) return n(r.ord);
+      // (T555) a saved id a later build absorbed opens the water it became (`core.item_alias`, the release source's
+      // `currentItem` rule); a core cut before the table has no aliases
+      if (!(await core.get(CROSS.HAS_ITEM_ALIAS.sql))) return null;
+      const now = await core.get(CROSS.ITEM_CURRENT.sql, itemId);
+      const a = now ? await core.get("SELECT ord FROM item WHERE item_id = ?", String(now.item_id)) : null;
+      return a ? n(a.ord) : null;
     }),
 
     item: (ord) => once("item", ord, async () => {

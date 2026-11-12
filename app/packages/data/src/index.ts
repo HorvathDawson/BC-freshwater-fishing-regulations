@@ -51,5 +51,7 @@ export * from "./update";
 export * from "./net";
 // (T286) the open probe: a map tap to its drawn regulations, timed (test bed only; a no-op elsewhere)
 export { openProbe } from "./openProbe";
+// (T555) what the reader keeps by item id (a spot's water, an alert's water) follows core.item_alias, rewritten once
+export { followSavedItems } from "./savedIds";
 // (T234) phone-only notifications: gauge alerts and new data ready, the settings kept on the phone, the background check
 export * from "./notify";

@@ -36,7 +36,7 @@ const DICT = Buffer.from(JSON.stringify(RULE));
 /** Two regions; akey 1 → region 1, akey 2 → region 2. Frame id 5 exists in BOTH region files with DIFFERENT content,
  *  so a read routed to the wrong file is seen. regs-sid: handle 4097 (block 1, slot 1) → akey 2, place 0. */
 function seed(o: { badCells?: boolean; ruleGap?: boolean; noDict?: boolean; badStrip?: boolean; tidalPart?: boolean; lengths?: boolean;
-                   partLine?: boolean } = {}) {
+                   partLine?: boolean; alias?: boolean } = {}) {
   const asked: string[] = [];
   const spy = (name: string, d: Db): Db => ({
     all: (q, ...p) => { asked.push(`${name}: ${q.split(" FROM ")[1]?.split(" ")[0]}`); return d.all(q, ...p); },
@@ -128,7 +128,8 @@ function seed(o: { badCells?: boolean; ruleGap?: boolean; noDict?: boolean; badS
     CREATE TABLE section_akey (block INTEGER PRIMARY KEY, b BLOB); CREATE TABLE section_place (block INTEGER PRIMARY KEY, b BLOB);
     INSERT INTO section_akey VALUES (1, X'${akeyBlock.toString("hex")}');
     INSERT INTO section_place VALUES (1, X'${placeBlock.toString("hex")}');`);
-  const core = openInMemory("", "CREATE TABLE item (ord INTEGER PRIMARY KEY, item_id TEXT UNIQUE); INSERT INTO item VALUES (3, 'gnis:1');");
+  const core = openInMemory("", "CREATE TABLE item (ord INTEGER PRIMARY KEY, item_id TEXT UNIQUE); INSERT INTO item VALUES (3, 'gnis:1');"
+    + (o.alias ? "CREATE TABLE item_alias (alias TEXT PRIMARY KEY, item_id TEXT NOT NULL); INSERT INTO item_alias VALUES ('wbk:9', 'gnis:1');" : ""));
   const dbs: Record<string, Db> = { water: spy("water", water), "regs-1": spy("regs-1", regs1), "regs-2": spy("regs-2", regs2),
                                     "regs-sid": spy("regs-sid", sid), core: spy("core", core) };
   const regionOf: Record<number, string> = { 1: "1", 2: "2" };
@@ -209,7 +210,16 @@ describe("reads over water", () => {
     asked.length = 0;
     expect(await st.itemOrd("gnis:1")).toBe(3);
     expect(await st.itemOrd("nope")).toBeNull();
-    expect(asked).toEqual(["core: item", "core: item"]);
+    // (T555) an id core does not hold asks once more: does this core carry item_alias (this one, cut before it, does not)
+    expect(asked).toEqual(["core: item", "core: item", "core: sqlite_master"]);
+  });
+
+  it("(T555) itemOrd follows core.item_alias: an absorbed id is the ord of the water it became; a gone id is still null", async () => {
+    const { loader } = seed({ alias: true });
+    const st = await openRegsStore(loader);
+    expect(await st.itemOrd("wbk:9")).toBe(3);
+    expect(await st.itemOrd("gnis:1")).toBe(3);
+    expect(await st.itemOrd("nope")).toBeNull();
   });
 
   it("sectionPart: water part_section (ord = the item_ord, sid) → part_ix; null for a section not the item's", async () => {

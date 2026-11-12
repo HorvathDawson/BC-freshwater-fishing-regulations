@@ -75,6 +75,13 @@ export interface WaterSource {
    * source that has none. (T466) `sid`: the section that point is on, where the release says (`part_geo.mid_sid`).
    */
   waterPoint?(item: ItemId): Promise<{ lat: number; lon: number; sid?: SectionId } | null>;
+  /**
+   * (T555) THE ID A SAVED ITEM ID NAMES IN THIS RELEASE: itself when the release holds it, else the water that absorbed
+   * it (`core.item_alias`), else null (gone, with no alias). Every by-id read here follows it already (`water`, `locate`,
+   * `waterBox`, `waterPoint`, the regulations); this is for what KEEPS an id (a spot, a gauge alert), so the kept id is
+   * rewritten once (`savedIds.ts`). Absent on a source with no aliases (a fixture).
+   */
+  currentItem?(item: ItemId): Promise<ItemId | null>;
 
   // ---- conditions -----------------------------------------------------
   gaugeForSection(id: SectionId): Promise<GaugeLink | null>;
