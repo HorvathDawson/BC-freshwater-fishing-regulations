@@ -130,8 +130,5 @@ from __future__ import annotations
 #:     IS_TIDAL`, owner `inside:<blk>`, from `inside_tidal.json`): 215 lines wholly inside the DFO tidal polygon leave
 #:     every binding after the walk; the shore cut moves to the polygon exit (`atlas.splits.shore`), so the crossings
 #:     below it change. No classify.py outcome changed; the bump marks the binding diff.
-#: 38: (T679 #5, owner D1 / Q154 answered 2026-11-11) A RIVER'S UNNAMED WIDENING IS A STREAM (`extent.A_RIVERS_
-#:     WIDENING_IS_A_STREAM`): a pond `river_widenings` takes for a stream item's whole course has water kind `stream`
-#:     (`extent._kind_of`), so whole-river AND "in streams" rules both hold on it.
-POLICY_VERSION = "38"
+POLICY_VERSION = "37"
 
