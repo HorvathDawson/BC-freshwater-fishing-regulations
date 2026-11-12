@@ -51,10 +51,15 @@ def world(tmp_path: Path, monkeypatch):
         name = "inseason" if "pipeline.regs.inseason.resolve" in cmd else \
             "recut" if any("regs-recut/sync.mjs" in c for c in cmd) else \
             "taps" if any("regs-recut/taps.py" in c for c in cmd) else \
-            "follow-py" if "pytest" in cmd else "follow-app" if "vitest" in cmd else "build" if "build" in cmd else \
+            "follow-py" if "pytest" in cmd else "follow-worker" if "workers/feeds" in cmd else \
+            "follow-app" if "vitest" in cmd else "app-gate" if cmd[:4] == ["pnpm", "-C", "app", "run"] else \
+            "build" if "build" in cmd else \
             "upload" if any("upload.sh" in c for c in cmd) else "smoke" if any("smoke-staging" in c for c in cmd) else \
             "publish" if any("publish" in c for c in cmd) else " ".join(cmd)
         w["calls"].append((name, env))
+        for c in cmd:                       # (T680) a check's report, as the real tool would write it
+            if name in w.get("reports", {}) and c.startswith(("--outputFile.json=", "--junitxml=")):
+                Path(c.split("=", 1)[1]).write_text(w["reports"][name])
         if name in w["rc"]:
             return w["rc"][name]
         if name in w["fail"]:
@@ -156,6 +161,7 @@ def world(tmp_path: Path, monkeypatch):
         return "f1xture" + "0" * 33
     monkeypatch.setattr(R, "commit_recut", commit_recut)
     monkeypatch.setattr(R, "follow_tests", lambda: (["pipeline/tests/test_x.py"], ["tools/x.release.test.ts"]))
+    monkeypatch.setattr(R, "app_check_steps", lambda: ["typecheck"])      # (T680) one gate stands for check:fast's
     monkeypatch.setattr(R, "git_unpushed", lambda: list(w["unpushed"]))
 
     def push():
@@ -183,7 +189,7 @@ def _latest(w) -> str:
     return (w["root"] / "LATEST").read_text().strip()
 
 
-ALL = ["build", "inseason", "recut", "follow-py", "follow-app", "upload", "smoke"]
+ALL = ["build", "inseason", "recut", "follow-py", "follow-app", "follow-worker", "app-gate", "upload", "smoke"]
 
 
 def _env_of(w, name) -> dict:
@@ -617,18 +623,106 @@ def test_the_tests_that_ask_for_the_release_run_on_the_candidate_before_the_prom
     world["rc"] = {"follow-py": 1, "follow-app": 1}
     assert _staging() == 1
     err = capsys.readouterr().err
-    assert "STOPPED at follows" in err and "pipeline (rc=1), app (rc=1)" in err and "LATEST was not moved" in err
+    assert "STOPPED at follows" in err and "pipeline: rc=1" in err and "app: rc=1" in err and "LATEST was not moved" in err
+    assert "2 failure(s) on the candidate" in err and "(no failed test in its report" in err   # no report: the rc stands
     assert _latest(world) == LIVE and "upload" not in [c for c, _ in world["calls"]]
-    for name in ("follow-py", "follow-app"):                                 # both suites ran: one stop, both named
+    for name in ("follow-py", "follow-app", "follow-worker", "app-gate"):    # every check ran: one stop, all named
         env = _env_of(world, name)
         assert env["RELEASE_DIR"] == str(world["root"] / NEW) and env["REGS_STORE_REQUIRED"] == "1"
-    assert "pipeline/tests/test_x.py" in [c for c in R.follow_tests_cmds(*R.follow_tests())[0][1]]
+    assert "pipeline/tests/test_x.py" in [c for c in R.follow_tests_cmds(R.follow_tests()[0], R.HOME)[0][1]]
     with pytest.raises(SystemExit):
         _staging(no_follow_tests=" ")
     world["calls"].clear()
     assert _staging(no_follow_tests="perf suite on a loaded machine, T999") == 0
     assert "tests on the candidate SKIPPED (--no-follow-tests): perf suite on a loaded machine, T999" in capsys.readouterr().out
     assert "follow-py" not in [c for c, _ in world["calls"]]
+
+
+def test_every_failure_on_the_candidate_is_listed_by_name_in_one_stop(world, capsys):
+    """T680 (r-483b295de57c: the re-cut moved section 578 to 586 and changed a golden page's words; WaterMode.test.tsx
+    and one-part-one-page.test.ts failed in CI one round at a time, after the push): after the re-cut the WHOLE app
+    check runs on the candidate — the app suite, the worker suite, each check:fast gate — and the one stop names every
+    failing test, from every suite, before anything is pushed."""
+    app_json = json.dumps({"testResults": [
+        {"name": str(R.REPO_ROOT / "app/packages/ui-native/src/WaterMode.test.tsx"), "status": "failed",
+         "assertionResults": [{"status": "failed", "fullName": "one water screen > (T53) an unnamed reach"},
+                              {"status": "passed", "fullName": "fine"}]},
+        {"name": str(R.REPO_ROOT / "app/tools/one-part-one-page.test.ts"), "status": "failed",
+         "assertionResults": [{"status": "failed", "fullName": "(T387) every tap on a part gives the same page"}]},
+        {"name": str(R.REPO_ROOT / "app/tools/broken.test.ts"), "status": "failed", "message": "SyntaxError: x\nmore",
+         "assertionResults": []}]})
+    junit = ('<testsuites><testsuite><testcase classname="pipeline.tests.test_x" name="test_a"><failure/></testcase>'
+             '<testcase classname="pipeline.tests.test_x" name="test_ok"/></testsuite></testsuites>')
+    world["reports"] = {"follow-app": app_json, "follow-py": junit}
+    world["rc"] = {"follow-py": 1, "follow-app": 1, "app-gate": 2}
+    world["recut_changed"] = ["app/packages/data/dev/section-lines.json"]
+    assert R.main(["--staging", "--push"]) == 1
+    err = capsys.readouterr().err
+    assert "5 failure(s) on the candidate" in err and "ALL of them" in err
+    for line in ("pipeline: pipeline.tests.test_x::test_a",
+                 "app: app/packages/ui-native/src/WaterMode.test.tsx › one water screen > (T53) an unnamed reach",
+                 "app: app/tools/one-part-one-page.test.ts › (T387) every tap on a part gives the same page",
+                 "app: app/tools/broken.test.ts: SyntaxError: x", "app gate typecheck: rc=2"):
+        assert line in err
+    assert "test_ok" not in err and "fine" not in err
+    assert world["pushes"] == 0 and _latest(world) == LIVE                  # stopped before the push gate
+    names = [c for c, _ in world["calls"]]
+    assert names.index("recut") < names.index("follow-py") < names.index("follow-app") < names.index("follow-worker") \
+        < names.index("app-gate")
+    assert "tests" not in json.loads(R.LEDGER.read_text())["releases"][NEW]["follows"]   # not recorded as passed
+
+
+def test_the_app_gates_are_read_from_check_fast_one_by_one():
+    """T680: each check:fast gate runs on its own (the && chain stops at the first failure), read from its one home;
+    the worker typecheck is one of them (it was in no check)."""
+    from pipeline import release_follows as RF
+    steps = RF.app_check_steps()
+    assert steps[:2] == ["tickets", "anchors"] and "typecheck" in steps and "typecheck:worker" in steps
+    assert RF.app_check_cmd("anchors") == ["pnpm", "-C", "app", "run", "-s", "anchors"]
+
+
+def test_the_rehearsal_recuts_runs_everything_and_puts_the_fixtures_back(world, capsys, tmp_path, monkeypatch):
+    """T680: `--dry-run --rehearse-follows` on a built candidate re-cuts in place, runs every check, lists every
+    failure and the golden pages with the token the real run would take — and leaves the fixtures byte for byte."""
+    repo = tmp_path / "repo"
+    (repo / "app/fixtures/golden").mkdir(parents=True)
+    (repo / "app/fixtures/golden/taps.json").write_text("before")
+    pages = repo / "app/packages/ui-native/src/regs/fixtures"
+    pages.mkdir(parents=True)
+    (pages / "glenn_501.json").write_text("old words")
+    monkeypatch.setattr(R, "REPO_ROOT", repo)
+    real = R.run_cmd
+
+    def run_cmd(cmd, env=None):
+        rc = real(cmd, env)
+        if any("regs-recut/sync.mjs" in c for c in cmd):               # the re-cut writes in place
+            (repo / "app/fixtures/golden/taps.json").write_text("after")
+            (pages / "glenn_501.json").write_text("new words")
+            (pages / "new_1.json").write_text("+")
+        return rc
+    monkeypatch.setattr(R, "run_cmd", run_cmd)
+    # what differs from "HEAD", read from the disk (so the put-back is seen)
+    monkeypatch.setattr(R, "recut_changed", lambda: [p for p, head in (
+        ("app/fixtures/golden/taps.json", "before"), ("app/packages/ui-native/src/regs/fixtures/glenn_501.json",
+                                                     "old words")) if (repo / p).read_text() != head])
+    assert R.main(["--staging"]) == 1 and "STOPPED at follows" in capsys.readouterr().err   # built: a CANDIDATE
+    world["calls"].clear()
+    (repo / "app/fixtures/golden/taps.json").write_text("before")      # the stopped real run's re-cut, undone
+    (pages / "glenn_501.json").write_text("old words")
+    (pages / "new_1.json").unlink()
+    world["rc"] = {"follow-worker": 1}
+    with pytest.raises(SystemExit):
+        R.main(["--staging", "--rehearse-follows"])                   # a rehearsal only
+    assert R.main(["--staging", "--dry-run", "--rehearse-follows"]) == 0
+    out = capsys.readouterr().out
+    assert "the re-cut would change 2 path(s)" in out and "1 golden page(s) change" in out and "--accept-fixtures tok-2" in out
+    assert "1 failure(s) on the candidate" in out and "worker: rc=1" in out
+    names = [c for c, _ in world["calls"]]
+    assert names.count("recut") == 1 and {"follow-py", "follow-app", "follow-worker", "app-gate"} <= set(names)
+    assert (repo / "app/fixtures/golden/taps.json").read_text() == "before"            # put back, byte for byte
+    assert (pages / "glenn_501.json").read_text() == "old words" and not (pages / "new_1.json").exists()
+    assert world["recuts_committed"] == [] and world["pushes"] == 0 and _latest(world) == LIVE
+    assert "WARNING" not in out
 
 
 def test_fast_fail_reads_the_candidate_once_the_fixtures_are_cut_for_it(world):
@@ -910,7 +1004,7 @@ def test_a_rewritten_inseason_file_is_committed_alone_and_the_run_stops_once_for
     assert world["recuts_committed"] == [(NEW, "renumber only")]
     assert "STOPPED at follows" in io.err and "2 commit(s) are not on origin/redesign/stream-sections: 2 the release made" in io.err
     assert "next: git push origin HEAD:redesign/stream-sections, then rerun" in io.err and "--push" in io.err
-    assert _latest(world) == LIVE and [c for c, _ in world["calls"]] == ALL[:5]
+    assert _latest(world) == LIVE and [c for c, _ in world["calls"]] == ALL[:7]
     world["inseason_dirty"], world["pushed"], world["unpushed"] = False, True, []      # the human pushed
     assert _staging() == 0                                     # resolved, re-cut and tested for NEW: none run again
     names = [c for c, _ in world["calls"]]

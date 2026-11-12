@@ -242,7 +242,13 @@ describe("the water's Map view and the rest of the water screen agree (P15 follo
   const where = () => `${screen.getByTestId("water-map-where").textContent} | ${screen.getByTestId("water-map-name").textContent}`;
 
   it("ONE WATER SCREEN: ▲ twice on the map, then Regulations — the page is on the STEPPED part, and so is the map again", async () => {
-    await onMap(CHILLIWACK, 1);
+    // (T680) the parts by their ends, never by number: a cut below them renumbers both
+    const names = sectionNames(openRegsFixtureWithLines());
+    const start = await names.part(CHILLIWACK, "chilliwack_vedder_rivers__vedder_crossing_bridge_200_m_upstream",
+      "chilliwack_vedder_rivers__tamihi_rapids_bridge");
+    const twoUp = await names.part(CHILLIWACK, "chilliwack_vedder_rivers__boundary_signs_below_slesse_creek",
+      "area:CHILLIWACK RIVER ECOLOGICAL RESERVE");
+    await onMap(CHILLIWACK, start);
     fireEvent.click(screen.getByRole("button", { name: "Upstream" }));
     fireEvent.click(screen.getByRole("button", { name: "Upstream" }));
     const stepped = where();
@@ -253,8 +259,8 @@ describe("the water's Map view and the rest of the water screen agree (P15 follo
     await waitFor(() => expect(screen.getByTestId("water-map-where")).toBeTruthy(), { timeout: 20_000 });
     expect([stepped, regs, where()]).toEqual([
       "Part 4 of 5 · Chilliwack River | 100 m below the Slesse Creek confluence → Chilliwack River Ecological Reserve boundary",
-      // (T517) part_ix is river order, mouth first: two up from part 1 is part 3
-      "regs on gnis:8634 part 3",
+      // (T517) part_ix is river order, mouth first: two up from the Vedder Crossing part is the Slesse Creek one
+      `regs on gnis:8634 part ${twoUp}`,
       "Part 4 of 5 · Chilliwack River | 100 m below the Slesse Creek confluence → Chilliwack River Ecological Reserve boundary"]);
   }, 40_000);
 

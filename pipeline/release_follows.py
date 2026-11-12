@@ -13,10 +13,16 @@ through the one helper — `under_test.release` / `release_at` in the pipeline s
 `*.release.test.ts` name) in the app suite. `RELEASE_DIR` names that release in both (the env contract:
 `pipeline/tests/under_test.py`); the release command sets it to its candidate, so nothing compares with LATEST before
 the promote.
+
+(T680) AND THEN EVERYTHING ELSE: a re-cut also changes fixtures that tests read with no rule above (the regs fixture, a
+golden page's words), so after the re-cut the release runs the whole app check too — every `check:fast` gate one by one,
+the whole app suite, the feeds worker's suite — and lists every failure together (`app_check_steps`, `app_suite_cmd`,
+`worker_suite_cmd`, `report_failures`).
 """
 from __future__ import annotations
 
 import hashlib
+import json
 import re
 import subprocess
 import sys
@@ -159,12 +165,79 @@ def test_env(release_dir: Path) -> dict:
     return {RELEASE_ENV: str(release_dir), "REGS_STORE_REQUIRED": "1"}
 
 
-def pipeline_tests_cmd(files: list[str]) -> list[str]:
-    return [sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider", *files]
+def pipeline_tests_cmd(files: list[str], junit: Path | None = None) -> list[str]:
+    return [sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider",
+            *([f"--junitxml={junit}"] if junit else []), *files]
 
 
 def app_tests_cmd(files: list[str]) -> list[str]:
     return ["pnpm", "-C", "app", "exec", "vitest", "run", *files]
+
+
+# ------------------------------------------------------------------------- (T680) the whole app check, after the re-cut
+# r-483b295de57c: the re-cut changed fixtures that tests found by NO rule above (a WaterMode test on the regs fixture,
+# a wording pinned on the live release) — each failed in CI, after the push, one round at a time. After the re-cut the
+# release runs EVERYTHING `pnpm check` and the app CI run (`.github/workflows/app-ci.yml`) run, each gate on its own, and
+# lists every failure together, before anything is pushed.
+
+def app_check_steps(root: Path | None = None) -> list[str]:
+    """The `pnpm check:fast` gates in order, from their one home (`app/package.json` `check:fast`). Run one by one, so
+    every failing gate is named — the `&&` chain stops at the first. A step that is not `pnpm run <gate>` raises: a
+    gate this cannot run is never left out."""
+    pkg = json.loads((Path(root or REPO_ROOT) / "app" / "package.json").read_text(encoding="utf-8"))
+    out = []
+    for part in pkg["scripts"]["check:fast"].split("&&"):
+        m = re.fullmatch(r"\s*pnpm run (\S+)\s*", part)
+        if not m:
+            raise ValueError(f"release_follows: app/package.json check:fast step {part.strip()!r} is not "
+                             "`pnpm run <gate>` — teach app_check_steps to run it")
+        out.append(m.group(1))
+    return out
+
+
+def app_check_cmd(step: str) -> list[str]:
+    return ["pnpm", "-C", "app", "run", "-s", step]
+
+
+def app_suite_cmd(report: Path) -> list[str]:
+    """The WHOLE app vitest suite (`pnpm check`'s `test`), its results also written as JSON to `report`."""
+    return ["pnpm", "-C", "app", "exec", "vitest", "run", "--reporter=default", "--reporter=json",
+            f"--outputFile.json={report}"]
+
+
+def worker_suite_cmd(report: Path) -> list[str]:
+    """The feeds worker's suite (app-ci's "Feeds worker tests": not in the pnpm workspace, so `pnpm check` skips it)."""
+    return ["pnpm", "-C", "app", "exec", "vitest", "run", "--root", "workers/feeds", "--reporter=default",
+            "--reporter=json", f"--outputFile.json={report}"]
+
+
+def vitest_failures(report: Path) -> list[str]:
+    """Every failed test in a vitest JSON report, `<file> › <test>` (a file that failed with no test: its error)."""
+    data = json.loads(Path(report).read_text(encoding="utf-8"))
+    root = Path(REPO_ROOT).resolve()
+    out = []
+    for f in data.get("testResults", []):
+        name = Path(f.get("name", "?"))
+        name = str(name.relative_to(root)) if name.is_absolute() and name.is_relative_to(root) else str(name)
+        bad = [a for a in f.get("assertionResults", []) if a.get("status") == "failed"]
+        out += [f"{name} › {a.get('fullName') or a.get('title')}" for a in bad]
+        if not bad and f.get("status") == "failed":
+            out.append(f"{name}: {(f.get('message') or 'failed').strip().splitlines()[0][:200]}")
+    return out
+
+
+def junit_failures(report: Path) -> list[str]:
+    """Every failed / erroring test in a pytest junit XML report, `<class>::<test>`."""
+    import xml.etree.ElementTree as ET
+    out = []
+    for case in ET.parse(report).getroot().iter("testcase"):
+        if case.find("failure") is not None or case.find("error") is not None:
+            out.append(f"{case.get('classname', '?')}::{case.get('name', '?')}")
+    return out
+
+
+def report_failures(report: Path) -> list[str]:
+    return junit_failures(report) if report.suffix == ".xml" else vitest_failures(report)
 
 
 def main() -> int:
@@ -177,6 +250,8 @@ def main() -> int:
     print(f"\ntests that ask for the release under test ({RELEASE_ENV}; found by rule):")
     print(f"  pipeline ({len(py)}):" + "".join(f"\n    {p}" for p in py))
     print(f"  app ({len(app)}):" + "".join(f"\n    app/{p}" for p in app))
+    print("\n(T680) then the whole app check on the candidate, every failure listed together:\n  the app suite, the "
+          "feeds worker suite, and each check:fast gate: " + ", ".join(app_check_steps()))
     return 0
 
 

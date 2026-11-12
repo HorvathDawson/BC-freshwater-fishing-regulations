@@ -2,6 +2,7 @@
 
     python -m pipeline release --staging                      # build -> checks -> follows -> promote LATEST -> upload staging
     python -m pipeline release --staging --dry-run            # the REHEARSAL: every stage's checks, nothing built / committed / sent
+python -m pipeline release --staging --dry-run --rehearse-follows   # + (T680) re-cut + every test on the candidate, put back
     python -m pipeline release --staging --accept-diff FILE   # go on past a binding diff you have read (FILE = its json)
     python -m pipeline release --staging --push               # the release pushes the commits IT made (matches, fixtures)
     python -m pipeline release --prod <r-id>                  # HUMAN-ONLY: re-upload THAT checked release to production
@@ -60,8 +61,12 @@ already done for this release):
                renumbers (ids, handles, the fixture release) is committed with the release id; a changed GOLDEN PAGE —
                what an angler is told — STOPS, nothing committed, until `--accept-fixtures <token>` (T667 D5). (c) the
                TESTS THAT ASK FOR THE RELEASE UNDER TEST (found by rule, both suites) run with RELEASE_DIR = the
-               candidate, so nothing compares with LATEST before the promote (`--no-follow-tests REASON` skips them,
-               printed). (d) THE PUSH GATE: the commits the release made must be on GitHub before the upload — it
+               candidate, so nothing compares with LATEST before the promote, and (T680) THE WHOLE APP CHECK with
+               them — the app suite, the feeds worker suite and each `check:fast` gate on its own — every one runs
+               whatever the one before did, and the stop lists EVERY failing test by name, together (r-483b295de57c:
+               two tests pinned on the old fixtures failed in CI one round at a time, after the push)
+               (`--no-follow-tests REASON` skips them, printed; `--dry-run --rehearse-follows` rehearses the re-cut and
+               all of them on a built candidate and puts the fixtures back). (d) THE PUSH GATE: the commits the release made must be on GitHub before the upload — it
                stops ONCE with the one push command, or pushes them itself with `--push` (only when every unpushed
                commit is its own). The upload's sync-inputs.sh only verifies the matches.
   6 promote    LATEST := the candidate (CANDIDATE removed). Only here does the live release pointer move, so a failed
@@ -345,11 +350,44 @@ def follow_tests() -> tuple[list[str], list[str]]:
     return RF.pipeline_tests(), RF.app_tests()
 
 
-def follow_tests_cmds(py: list[str], app: list[str]) -> list[tuple[str, list[str]]]:
-    """(label, command) for each suite that has such tests, each through heavy.sh (they read the whole release)."""
+def app_check_steps() -> list[str]:
+    """(T680) the `pnpm check:fast` gates, one by one (`RF.app_check_steps`)."""
+    return RF.app_check_steps()
+
+
+def follow_tests_cmds(py: list[str], out: Path) -> list[tuple[str, list[str], Path | None]]:
+    """(label, command, its report file or None) for every check run on the candidate after the re-cut: the pipeline
+    tests found by rule, then (T680) the WHOLE app check — the app suite and the worker suite (through heavy.sh: they
+    read the whole release) and each `check:fast` gate on its own — so every failure is found in one pass."""
     heavy = ["bash", "scripts/heavy.sh", "release-follow-tests", "30", "--"]
-    return ([("pipeline", heavy + RF.pipeline_tests_cmd(py))] if py else []) \
-        + ([("app", heavy + RF.app_tests_cmd(app))] if app else [])
+    return ([("pipeline", heavy + RF.pipeline_tests_cmd(py, out / "pipeline.xml"), out / "pipeline.xml")] if py else []) \
+        + [("app", heavy + RF.app_suite_cmd(out / "app.json"), out / "app.json"),
+           ("worker", heavy + RF.worker_suite_cmd(out / "worker.json"), out / "worker.json")] \
+        + [(f"app gate {s}", RF.app_check_cmd(s), None) for s in app_check_steps()]
+
+
+def candidate_failures(rid: str, env: dict) -> list[str]:
+    """(T680) run every check of `follow_tests_cmds` on the candidate `rid` — each one, whatever the one before did —
+    and return EVERY failure, one line each (a test by name where its report says so; else the check and its rc: a
+    failure is never dropped for want of a report)."""
+    out = HOME / "checks" / rid / "tests"
+    shutil.rmtree(out, ignore_errors=True)       # last run's reports must not speak for this one
+    out.mkdir(parents=True, exist_ok=True)
+    py, _app = follow_tests()
+    fails: list[str] = []
+    for label, cmd, report in follow_tests_cmds(py, out):
+        rc = run_cmd(cmd, env=env)
+        if not rc:
+            continue
+        named: list[str] = []
+        if report is not None and report.is_file():
+            try:
+                named = RF.report_failures(report)
+            except (ValueError, OSError, SyntaxError) as e:     # json / xml unreadable: said, and the rc line stands
+                print(f"    could not read {rel(report)}: {type(e).__name__}: {e}", flush=True)
+        fails += [f"{label}: {x}" for x in named] or [
+            f"{label}: rc={rc}" + ("" if report is None else " (no failed test in its report: read its output above)")]
+    return fails
 
 
 def recut_changed() -> list[str]:
@@ -609,6 +647,7 @@ class Ctx:
     accept_fixtures: str | None = None   # (T666) the token of the re-cut whose changed golden pages were read
     push: bool = False                   # (T666) the release pushes the commits it made itself
     no_follow_tests: str | None = None   # (T666) why the tests on the candidate are skipped (printed); None runs them
+    rehearse_follows: bool = False       # (T680) --dry-run: re-cut + the whole check on the candidate, put back after
     no_fresh_copy: str | None = None     # (T666) why the fresh-copy test run is skipped (printed); None runs it
     forget: bool = False                 # (T666) drop the remembered flags of the release in flight
     heavy_env: dict = field(default_factory=dict)   # (T535) tells heavy.sh fast-fail ran: FAST_FAIL_DONE / HEAVY_NO_FAST_FAIL
@@ -1052,22 +1091,74 @@ def stage_follow_tests(ctx: Ctx, rid: str, r: dict) -> str:
         return "tests on the candidate skipped (--no-follow-tests)"
     if (f.get("tests") or {}).get("release") == rid:
         return f"tests passed on {rid} ({f['tests'].get('at')})"
-    py, app = follow_tests()
-    env = {**ctx.heavy_env, **RF.test_env(release_root() / rid)}
-    bad = []
-    for label, cmd in follow_tests_cmds(py, app):          # both suites run: every failure in one stop
-        rc = run_cmd(cmd, env=env)
-        if rc:
-            bad.append(f"{label} (rc={rc})")
+    py, _app = follow_tests()
+    bad = candidate_failures(rid, {**ctx.heavy_env, **RF.test_env(release_root() / rid)})
     if bad:
-        raise Stop("follows", f"tests that ask for the release under test fail on the candidate {rid}: "
-                   + ", ".join(bad) + "; LATEST was not moved",
-                   f"read the failures above; rerun one suite with {RF.RELEASE_ENV}={rel(release_root() / rid)} "
-                   "REGS_STORE_REQUIRED=1 in front of its command; fix, commit, rerun (--no-follow-tests REASON skips "
-                   "them and prints the reason)")
-    f["tests"] = {"release": rid, "at": now(), "pipeline": len(py), "app": len(app)}
+        raise Stop("follows", failures_said(rid, bad) + "; LATEST was not moved, nothing was pushed",
+                   f"fix them together, commit, rerun; one check alone: {RF.RELEASE_ENV}={rel(release_root() / rid)} "
+                   "REGS_STORE_REQUIRED=1 in front of its command (above). --no-follow-tests REASON skips them and "
+                   "prints the reason")
+    f["tests"] = {"release": rid, "at": now(), "pipeline": len(py), "app": "all", "gates": len(app_check_steps())}
     save_ledger(ctx.led)
-    return f"{len(py)} pipeline + {len(app)} app test file(s) passed on {rid}"
+    return f"{len(py)} pipeline test file(s) + the whole app check passed on {rid}"
+
+
+def failures_said(rid: str, bad: list[str], cap: int = 80) -> str:
+    """(T680) every failure on the candidate, in one block."""
+    return (f"{len(bad)} failure(s) on the candidate {rid} after the fixture re-cut — ALL of them:"
+            + "".join(f"\n    {x}" for x in bad[:cap])
+            + (f"\n    … and {len(bad) - cap} more (every one: the reports in {rel(HOME / 'checks' / rid / 'tests')})"
+               if len(bad) > cap else ""))
+
+
+def snapshot(roots: tuple[str, ...], into: Path) -> list[tuple[Path, Path | None]]:
+    """(T680) a byte-for-byte copy of each repo path in `roots` (file or folder; None: it was not there)."""
+    kept = []
+    for i, r in enumerate(roots):
+        src, dst = Path(REPO_ROOT) / r, into / str(i)
+        if src.is_dir():
+            shutil.copytree(src, dst, symlinks=True)
+        elif src.exists():
+            shutil.copy2(src, dst)
+        kept.append((src, dst if src.exists() else None))
+    return kept
+
+
+def restore(kept: list[tuple[Path, Path | None]]) -> None:
+    """Put each snapshotted path back exactly as it was (what the rehearsal's re-cut wrote is removed)."""
+    for src, dst in kept:
+        if src.is_dir() and not src.is_symlink():
+            shutil.rmtree(src)
+        elif src.exists() or src.is_symlink():
+            src.unlink()
+        if dst is not None:
+            (shutil.copytree(dst, src, symlinks=True) if dst.is_dir() else shutil.copy2(dst, src))
+
+
+def rehearse_follows(ctx: Ctx, cand: str) -> dict:
+    """(T680) THE RE-CUT AND THE WHOLE CHECK, REHEARSED on a built candidate (`--dry-run --rehearse-follows`): the
+    fixtures are re-cut IN PLACE on the candidate, every check of the follows stage runs on them, then every re-cut path
+    is put back byte for byte — nothing committed, nothing kept. Says what the real run would: the changed paths, the
+    golden pages and the token `--accept-fixtures` would take, and every failing test, all at once."""
+    import tempfile
+    before = recut_changed()
+    with tempfile.TemporaryDirectory(prefix="release-rehearse-") as td:
+        kept = snapshot(RF.paths_of(RF.RECUT), Path(td))
+        try:
+            rc = run_cmd(recut_cmd(cand), env=ctx.heavy_env or None)
+            if rc:
+                return {"recut_rc": rc}
+            changed = recut_changed()
+            got = {"recut_rc": 0, "changed": changed, "pages": RF.answer_paths(changed),
+                   "token": recut_token(changed) if changed else None}
+            got["failures"] = candidate_failures(cand, {**ctx.heavy_env, **RF.test_env(release_root() / cand)})
+            return got
+        finally:
+            restore(kept)
+            after = recut_changed()
+            if after != before:                 # said, never passed over: the tree is not what it was
+                print(f"    WARNING: the re-cut paths differ from before the rehearsal: {before} -> {after}; read "
+                      f"`git status -- {' '.join(RF.paths_of(RF.RECUT))}`", flush=True)
 
 
 def push_gate(ctx: Ctx, r: dict) -> str:
@@ -1386,6 +1477,7 @@ def dry_run(ctx: Ctx) -> int:
     py, app = follow_tests()
     print(f"[5/{n}] follows    refresh what follows the release on the candidate (python -m pipeline.release_follows "
           f"lists it){later}")
+    rehearsed = None
     if built:
         if (r.get("inseason") or {}).get("release") == cand:
             print(f"{P}in-season matches: resolved on {cand} ({r['inseason'].get('at')})")
@@ -1399,6 +1491,23 @@ def dry_run(ctx: Ctx) -> int:
                 if how == "unresolved" else stop(f"the in-season resolve could not be rehearsed on {cand}: {line}")))
         if (f.get("recut") or {}).get("release") == cand:
             print(f"{P}fixtures: re-cut on {cand} ({f['recut'].get('kind')})")
+        elif ctx.rehearse_follows:
+            print(f"{P}fixtures + tests REHEARSED (--rehearse-follows): the re-cut runs in place on {cand}, every check "
+                  "after it runs, then the fixtures are put back byte for byte", flush=True)
+            rehearsed = rehearse_follows(ctx, cand)
+            if rehearsed["recut_rc"]:
+                print(f"{P}fixtures: " + stop(f"the re-cut fails on {cand} (rc={rehearsed['recut_rc']}, above)"))
+            else:
+                ch, pages = rehearsed["changed"], rehearsed["pages"]
+                print(f"{P}fixtures: the re-cut would change {len(ch)} path(s)" + (
+                    "" if not pages else "; " + stop(
+                        f"{len(pages)} golden page(s) change — what an angler is told:" + "".join(
+                            f"\n{P}    {x}" for x in pages) + f"\n{P}  the real run stops on them with their diff; "
+                        f"if every change is intended it takes --accept-fixtures {rehearsed['token']} (a token is "
+                        "the re-cut's content: the same re-cut gives the same one)")))
+                bad = rehearsed["failures"]
+                print(f"{P}tests on the candidate: " + (stop(failures_said(cand, bad).replace("\n", "\n" + P))
+                      if bad else "every check passed on the re-cut fixtures (the real run runs them again)"))
         else:
             paired, _said = goldens_paired(release_root() / cand)
             if paired:
@@ -1411,11 +1520,12 @@ def dry_run(ctx: Ctx) -> int:
                 print(f"{P}fixtures: " + (stop(f"the re-cut's first step (taps.py) fails on {cand} (rc={rc}, above)")
                       if rc else f"would be re-cut on {cand} and committed (taps.py rehearsed into a temp file: ok; a "
                       "changed golden page stops for --accept-fixtures — known only after the full re-cut)"))
-        print(f"{P}tests on the candidate: " + (f"passed on {cand} ({f['tests'].get('at')})"
-              if (f.get("tests") or {}).get("release") == cand else
-              f"SKIPPED (--no-follow-tests): {ctx.no_follow_tests}" if ctx.no_follow_tests is not None else
-              f"{len(py)} pipeline + {len(app)} app test file(s) run after the re-cut — NOT rehearsed (they compare "
-              "with the re-cut fixtures, which a rehearsal does not write)"))
+        if rehearsed is None:
+            print(f"{P}tests on the candidate: " + (f"passed on {cand} ({f['tests'].get('at')})"
+                  if (f.get("tests") or {}).get("release") == cand else
+                  f"SKIPPED (--no-follow-tests): {ctx.no_follow_tests}" if ctx.no_follow_tests is not None else
+                  f"{len(py)} pipeline test file(s) + the whole app check run after the re-cut — NOT rehearsed: "
+                  "add --rehearse-follows to re-cut in place, run them all and put the fixtures back (minutes)"))
     else:
         print(f"{P}{len(py)} pipeline + {len(app)} app test file(s) ask for the release under test")
     print(f"{P}push gate: the commits the release makes (matches, fixtures) must be pushed before the promote: "
@@ -1443,8 +1553,9 @@ def dry_run(ctx: Ctx) -> int:
               + ":" + "".join(f"\n  {k}. {x}" for k, x in enumerate(stops, 1)))
     else:
         print("\nrehearsal: no stop found" + ("" if built else " before the build (the later stages are rehearsed once "
-              "it has made a candidate)") + ". Not rehearsed: the build itself, a changed golden page, the tests on "
-              "the candidate, the upload and its smoke test.")
+              "it has made a candidate)") + ". Not rehearsed: the build itself, "
+              + ("" if rehearsed is not None else "a changed golden page, the tests on the candidate "
+                 "(--rehearse-follows), ") + "the upload and its smoke test.")
     print("\nproduction (human-only, after staging): CONFIRM_PROD=<r-id> python -m pipeline release --prod <r-id>")
     return 0
 
@@ -1523,6 +1634,9 @@ def main(argv: list[str] | None = None) -> int:
     g.add_argument("--prod", metavar="R-ID", help="HUMAN-ONLY: re-upload this checked, staged release to production")
     ap.add_argument("--dry-run", action="store_true",
                     help="the rehearsal: every stage's checks; nothing is built, committed, promoted or uploaded")
+    ap.add_argument("--rehearse-follows", action="store_true",
+                    help="(T680) with --dry-run, once a CANDIDATE is built: re-cut the fixtures in place on it, run "
+                         "every check the follows stage runs, list every failure, then put the fixtures back")
     ap.add_argument("--accept-fixtures", default=None, metavar="TOKEN",
                     help="(T666) the token of the fixture re-cut whose changed golden pages you read: commit exactly it")
     ap.add_argument("--push", action="store_true",
@@ -1571,7 +1685,9 @@ def main(argv: list[str] | None = None) -> int:
         ap.error('--no-follow-tests needs a reason, which is printed: --no-follow-tests "<why they are skipped>"')
     if a.no_fresh_copy is not None and not a.no_fresh_copy.strip():
         ap.error('--no-fresh-copy needs a reason, which is printed: --no-fresh-copy "<why it is skipped>"')
-    ctx = Ctx(accept_diff=a.accept_diff, baseline=a.baseline, min_app=a.min_app_version, jobs=a.jobs,
+    if a.rehearse_follows and not a.dry_run:
+        ap.error("--rehearse-follows is a rehearsal: give it with --dry-run (the real run re-cuts and checks anyway)")
+    ctx = Ctx(rehearse_follows=a.rehearse_follows, accept_diff=a.accept_diff, baseline=a.baseline, min_app=a.min_app_version, jobs=a.jobs,
               reupload=a.reupload, no_fast_fail=a.no_fast_fail, stale_atlas=a.ship_stale_atlas,
               no_ci_check=a.no_ci_check, accept_fixtures=a.accept_fixtures, push=a.push,
               no_follow_tests=a.no_follow_tests, forget=a.forget_flags, no_fresh_copy=a.no_fresh_copy)

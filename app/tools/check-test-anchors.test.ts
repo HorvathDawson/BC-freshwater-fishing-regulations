@@ -47,6 +47,17 @@ describe("T667 test anchors: what is found", () => {
     expect(kinds(inFixture(`expect(m.tiles).toBe("d768d6e135e62b99.c9f9604f12bf");`))).toEqual(["digest"]);
   });
 
+  it("(T680) a section or part number typed into an expected string, where the file's own template puts one", () => {
+    // r-483b295de57c: the re-cut moved 578 to 586 and this failed only in CI, after the push
+    const mock = `vi.mock("x", () => ({ Panel: ({ section }) => \`panel for \${section} at \${lat}\`,\n` +
+      `  Regs: (p) => \`regs on \${p.item} part \${p.part}\` }));\n`;
+    expect(hits(mock + inFixture(`expect(t).toEqual(["Unnamed · R1", "panel for 578 at 49.1"]);\nexpect(r).toBe("regs on gnis:8634 part 3");`)))
+      .toEqual([[5, "raw-section",'"panel for 578 at " typed where `panel for ${section} at ${lat}` puts it'],
+                [6, "raw-part", '" part 3" typed where `regs on ${p.item} part ${p.part}` puts it']]);
+    // inside a longer expected string, and in a template's literal text too
+    expect(kinds(mock + inFixture("expect(x).toBe(`Map | panel for 586 at ${lat} | no bar`);"))).toEqual(["raw-section"]);
+  });
+
   it("a committed fixture release's id typed out is found in any file", () => {
     const src = `const dir = join(root, "r-1a2b3c4d5e6f");`;
     expect(kinds(src)).toEqual([]);
@@ -94,6 +105,16 @@ describe("the fixture, through the store", () => { it("b", () => { read(store, V
     expect(kinds(`expect(text).toContain("data/curated/waters/cuts.json");`)).toEqual(["path"]);
     expect(realReleaseIds("r-303b4007a70a r-000000000001")).toEqual(["r-303b4007a70a"]);
     expect([isDigest("d5242c0c9f1e77aa"), isDigest("fedcba9876543210"), isDigest("aaaaaaaaaaaaaaaa")]).toEqual([true, false, false]);
+  });
+
+  it("(T680 near misses) the name through the helper, a label that only reads like the slot, 0, a block on its own data", () => {
+    const mock = `vi.mock("x", () => ({ Panel: ({ section }) => \`panel for \${section} at \${lat}\`,\n` +
+      `  Regs: (p) => \`regs on \${p.item} part \${p.part}\`, Row: ({ n }) => \`row \${n} at x\` }));\n`;
+    expect(hits(mock + inFixture(
+      "expect(t).toBe(`panel for ${unnamed} at 49.1`); expect(r).toBe(`regs on gnis:8634 part ${twoUp}`);\n" +
+      `expect(l).toEqual(["Vedder → Slesse, part 1 of 5 · Chilliwack River", "panel for 0 at 49.1", "row 7 at x"]);`))).toEqual([]);
+    // the same strings in a block on its own data name that data
+    expect(hits(mock + `describe("own", () => { expect(t).toBe("panel for 578 at 49.1"); });`)).toEqual([]);
   });
 
   it("an invented tiles id is two counting runs; one real half is a real id", () => {

@@ -48,6 +48,15 @@
  *               — a METHOD call of exactly three arguments with the water id FIRST. The number after the water id
  *               there is a blue line, a name. `@app/core`'s function `partAt(g, "<water id>", <part>)` (the water id
  *               second, no receiver) does take a part number and is still one.
+ *   in-text     (T680, r-483b295de57c: "panel for 578 at 49.1" failed only in CI, after the push) a section or part
+ *               number TYPED INTO AN EXPECTED STRING where the file's own template puts one: a template
+ *               `…panel for ${section} at …` (the slot's expression ends in `section` / `sectionId` / `sid` / `tapSid`
+ *               / `handle`, or `…Sid`: a section; `part` / `partIx` / `part_ix`: a part) makes the string
+ *               "panel for 578 at" a raw-section (a raw-part for a part slot). The text before the slot must hold a
+ *               letter and 3+ characters, and the number is the whole run of digits there; a slot that ENDS the template
+ *               must end the string ("regs on gnis:8634 part 3" is one; a label "…, part 1 of 5 · …" is not); 0 names
+ *               nothing. Write the
+ *               expected string from the name instead: `panel for ${await names.stream(key, metre)} at …`.
  *   release-id  a string holding a real-looking release id `r-<12 hex>` (5+ different hex digits). In ANY file: the id
  *               of a committed fixture release typed out, where `FIXTURE_RELEASES` / `regsFixtureDir()` names it.
  *   digest      a string that IS a build digest: 12-64 hex digits (6+ different, letters and digits both), or a tiles
@@ -175,6 +184,37 @@ function boundNames(st) {
   return out;
 }
 
+const SECTION_SLOT = /^(?:section|sectionId|sid|tapSid|handle)$|Sid$/;
+const PART_SLOT = /^(?:part|partIx|part_ix)$/;
+const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/**
+ * (T680 in-text) What the file's own templates put a section or part number into: `[RegExp, kind, template text]` per
+ * slot. The regex finds the number typed where the slot goes, in any string (`(\d+)` is the number).
+ */
+export function slotPatterns(sf) {
+  const out = [];
+  const visit = (n) => {
+    if (ts.isTemplateExpression(n)) {
+      let before = n.head.text;
+      for (const span of n.templateSpans) {
+        const last = span.expression.getText(sf).split(/[.?!\s()]+/).filter(Boolean).pop() ?? "";
+        const kind = SECTION_SLOT.test(last) ? "raw-section" : PART_SLOT.test(last) ? "raw-part" : null;
+        if (kind && /[A-Za-z]/.test(before) && before.trim().length >= 3) {
+          const after = span.literal.text;
+          // a slot that ends the template ends the string it makes: "… part 3" is one, "part 1 of 5 · …" (a label) is not
+          out.push([new RegExp(`${escapeRe(before)}(\\d[\\d_]*)${after ? escapeRe(after) : "$"}`), kind,
+            n.getText(sf).replace(/\s+/g, " ").slice(0, 60)]);
+        }
+        before = span.literal.text;
+      }
+    }
+    ts.forEachChild(n, visit);
+  };
+  visit(sf);
+  return out;
+}
+
 /**
  * Every offender of one test file: `[line, kind, what]`, in line order. `committed`: the committed fixture releases' ids
  * (an id typed out is an offender in any file).
@@ -184,7 +224,8 @@ export function scanSource(source, name = "x.test.tsx", committed = []) {
     /\.tsx$/.test(name) ? ts.ScriptKind.TSX : /\.mjs$/.test(name) ? ts.ScriptKind.JS : ts.ScriptKind.TS);
   const reads = [], anywhere = [], pointers = [];
   const taint = new Set(FOLLOWS);
-  const line = (n) => sf.getLineAndCharacterOfPosition(n.getStart(sf)).line + 1;
+  const slots = slotPatterns(sf);
+  const line =(n) => sf.getLineAndCharacterOfPosition(n.getStart(sf)).line + 1;
   /** per top-level statement: the identifiers it uses outside types, whether it reads the release by text, its pins */
   const stmts = sf.statements.map((st) => ({ st, ids: new Set(), reads: false, pins: [], block: isBlock(st) }));
   let cur = null;
@@ -216,6 +257,10 @@ export function scanSource(source, name = "x.test.tsx", committed = []) {
         const rids = realReleaseIds(s);
         for (const r of rids) (committed.includes(r) ? anywhere : cur.pins).push([line(n), "release-id", r]);
         if (!rids.length && isDigest(s)) cur.pins.push([line(n), "digest", s.slice(0, 16)]);
+        for (const [re, kind, tpl] of slots) {
+          const m = re.exec(s);
+          if (m && Number(m[1].replace(/_/g, "")) !== 0) cur.pins.push([line(n), kind, `"${m[0]}" typed where ${tpl} puts it`]);
+        }
       }
     }
     if ((ts.isPropertyAccessExpression(n) && n.name.text === "RELEASE_DIR") ||
