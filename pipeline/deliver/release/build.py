@@ -73,11 +73,16 @@ FORMATS = {name: spec["format"] for name, spec in C.FILES.items()}
 #: (107,731 → 141,324 rows; the added are mostly lakes) and each reach's length (`len`, 100 m): 624,913 → 1,122,957 gz,
 #: measured on the 2026-10-28 bundle's atlas (full.prev, handles db853e9556df81a6). The first unnamed tap pays it
 #: (`contract.WEB_BUDGET["first_tap_unnamed"]`).
-SIZE_GATES = {"paint": 1_000_000, "access": 300_000, "core": 1_450_000, "lakes": 100_000, "salmon": 60_000,
+#: (T678, owner 2026-11-12, RULINGS O5: "raise now, shrink later"; shrinking is T686) `core` 1,450,000 → 1,650,000 and
+#: `conditions` 950,000 → 1,060,000: the D1 pond fold (16,119 ponds into their rivers' items) measured on the T678
+#: candidate (atlas b5cb0aa4345a6af0) against r-483b295de57c — core 1,388,309 → 1,508,127 gz (`item_section` 65,237 →
+#: 81,357 rows), conditions 916,049 → 963,726 gz (`section_gauge` 108,075 → 114,140 rows: a folded pond takes its river's
+#: gauge). Each gate ~10 % over the measurement, as T182 set them.
+SIZE_GATES = {"paint": 1_000_000, "access": 300_000, "core": 1_650_000, "lakes": 100_000, "salmon": 60_000,
               **{f"salmon-{r}": 320_000 for r in (*SH.REGIONS, "x")}, "method": 600_000,
               # (T388) water + `part_line` (79,253 B gz measured alone on the 2026-11-04 bundle; water was 2,409,579 in
               # r-b86b60ca533b → ~2.49 MB, too close to 2.5 MB) → 2,650,000
-              "water": 2_650_000, "near": 2_250_000, "climate": 1_650_000, "regs-sid": 1_400_000, "conditions": 950_000,
+              "water": 2_650_000, "near": 2_250_000, "climate": 1_650_000, "regs-sid": 1_400_000, "conditions": 1_060_000,
               "down": 1_250_000, "geo": 700_000, "flow-area": 220_000,
               # (T369) `lines`: ~0.99-1.08 MB gz estimated 2026-11-03 on the atlas's handles (ends proxied from the FWA
               # stream extents; the build measures the real one); (T386) phone-held too since 2026-11-04 (in the offline

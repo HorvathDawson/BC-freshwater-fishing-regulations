@@ -251,7 +251,9 @@ WEB_BUDGET = {
     # 1,217,684)
     # (T247) + `item_area` (each water's regions and management units: search by "2-8" / "Region 2"): core 1,271,866 →
     # ~1,381,000 on r-0fa7927b16e5's tables, so 1,400,000 → 1,500,000
-    "first_search": {"files": ["core"], "gate": 1_500_000},
+    # (T678, owner 2026-11-12, RULINGS O5: "raise now, shrink later"; T686) the D1 pond fold: core 1,388,309 → 1,508,127
+    # gz on the T678 candidate (`item_section` +16,120 rows), so 1,500,000 → 1,650,000 (the first search ~120 kB more)
+    "first_search": {"files": ["core"], "gate": 1_650_000},
     # the first tap on a NAMED water on the map, largest region: sid -> water (core), the page (water + the region
     # file), the water map's boxes (geo, read with the page's access note) and the tapped section's access note
     # (4,501,206 → 4,627,390, regs-6: core + 126 kB for item_near; part_geo moved, not added)

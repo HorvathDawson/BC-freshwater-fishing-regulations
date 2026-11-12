@@ -161,3 +161,9 @@ Next commands:
   Dewdney search), so it waits for the release.
 - Resume after the decision: `.venv/bin/python -m pipeline release --staging` (clim/reach/tiles are up to date; deliver
   reruns, ~4 min).
+
+## Size decision applied 2026-11-12 (owner: "Raise now, shrink later …")
+- RULINGS O5: `core` 1,450,000 → 1,650,000, `conditions` 950,000 → 1,060,000 (`release/build.py` SIZE_GATES), web
+  `first_search` 1,500,000 → 1,650,000 (`release/contract.py`, `pack.generated.ts` re-emitted). Nothing else moved.
+- T686 opened: shrink shipped data across the board (survey of the live release's 52 files by table in the ticket).
+- OWNER-TODO row ANSWERED. Next: release resume (dry-run rehearsal, then the real run), spot-checks, APK 0.7.7.
