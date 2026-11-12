@@ -1,6 +1,6 @@
 # T678 — Tidal in the build: one decision, made once, read everywhere
 
-Status: OPEN (audit and plan; no code changed)
+Status: IN PROGRESS (coast cut in the build + one tidal record: commits addbfd819, 26873ad75; candidate atlas built, not promoted; progress and what is left: `handoff/PLAN/app-integration/T678-progress.md`)
 
 Source: owner 2026-11-11: "We need to make sure all the tidal logic and stream removal happens in the build of the
 graph etc if possible. Or where other tidal logic is we want to avoid it being a weird post processing step." And:
