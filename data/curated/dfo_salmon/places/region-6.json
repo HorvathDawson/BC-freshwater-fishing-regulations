@@ -10117,7 +10117,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "nakina_river__sloko_river_u300m",
+              "nakina_river__sloko_river_u1300m"
+            ],
+            "item_id": "gnis:16492"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
