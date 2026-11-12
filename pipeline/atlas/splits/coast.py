@@ -4,7 +4,9 @@ Owner, verbatim: "all the tidal logic and stream removal happens in the build of
 should happen where cuts happen". The order of sources (the owner's edits do not outrank the default):
 
   1. A DFO WRITTEN BOUNDARY (a sign, a bridge, a written line): a curated `split` row of `waters/tidal_limits.json`
-     classified as DFO-written (`authority`), and the owner's `whole` rows. Its water is cut by that row, never here.
+     classified as DFO-written (`authority`), a split the owner made his own decision (authority `owner`, 2026-11-12:
+     the ten not traced to DFO, "Keep all as my decisions"), and the owner's `whole` rows. Its water is cut by that
+     row, never here.
   2. OTHERWISE THE COAST CROSSING: where the blue line enters the sea, or a river that is itself tidal. FWA draws it:
      the top of the line's lowest run of edge 1450 ("construction line", `fwa_edge_types.WATER_CROSSING`), which is
      FWA's own vertex. It overshoots on some lines (across the Nass), so it is CROSS-CHECKED with the geometric
@@ -78,9 +80,18 @@ OWNER_ESTUARY = "an estuary drawn as an FWA river polygon: the polygon reading a
 OWNER_UNNAMED_FRASER = "an unnamed line on the Fraser's code joining the tidal Fraser (unclear: the owner's, one by one)"
 
 
-def load_authority(path=None) -> dict[str, bool]:
-    """`{split id: dfo_written}` from `waters/tidal_split_authority.json` (one row per curated tidal split: is it a
-    DFO-written boundary?). Missing is refused (AGENTS 37)."""
+#: a split row's `authority` in `waters/tidal_split_authority.json`: DFO's words name the boundary (`dfo`), the owner
+#: decided it (`owner`, 2026-11-12: "Keep all as my decisions" for the ten splits not traced to DFO), or nothing does
+#: (`none`: the coast crossing decides its water)
+AUTHORITIES = ("dfo", "owner", "none")
+#: the authorities that GOVERN a water (rank 1): a DFO-written boundary, or one the owner made his own decision
+GOVERNING = ("dfo", "owner")
+
+
+def load_authority(path=None) -> dict[str, str]:
+    """`{split id: authority}` (`AUTHORITIES`) from `waters/tidal_split_authority.json` (one row per curated tidal split:
+    who stands behind it). Missing is refused (AGENTS 37); a row without a known `authority` is refused, never read as
+    "none"."""
     import json
     from pathlib import Path
     if path is None:
@@ -89,22 +100,29 @@ def load_authority(path=None) -> dict[str, bool]:
     p = Path(path)
     if not p.exists():
         raise SystemExit(f"coast: {p} is missing — the tidal split classification (T678)")
-    return {str(r["split"]): bool(r["dfo_written"]) for r in json.loads(p.read_text(encoding="utf-8"))["splits"]}
+    out = {}
+    for r in json.loads(p.read_text(encoding="utf-8"))["splits"]:
+        a = r.get("authority")
+        if a not in AUTHORITIES:
+            raise SystemExit(f"coast: {p}: split {r.get('split')!r} has authority {a!r}, not one of {AUTHORITIES}")
+        out[str(r["split"])] = a
+    return out
 
 
-def authority(limit, table: Mapping[str, bool]) -> str:
-    """A tidal-limit row's authority over the cut (T678 rank 1): `dfo` (a DFO-written boundary: the cut), `none` (not
-    shown to be DFO's: no authority, the coast crossing decides; the split stays a cut for any rule naming it),
-    `unclassified` (a split the classification does not list yet: it governs as today and is listed for the owner).
-    `table`: `load_authority`. `whole` rows are the owner's whole-water calls (rank 1); `cut` rows are curated points
-    (rank 1, as today); `mouth` rows carry nothing (auto-generated, 2026-10-28)."""
+def authority(limit, table: Mapping[str, str]) -> str:
+    """A tidal-limit row's authority over the cut (T678 rank 1): `dfo` (a DFO-written boundary: the cut), `owner` (the
+    owner's own decision, 2026-11-12: governs exactly like a DFO-written one), `none` (not shown to be DFO's and not the
+    owner's: no authority, the coast crossing decides; the split stays a cut for any rule naming it), `unclassified`
+    (a split the classification does not list yet: it governs as today and is listed for the owner). `table`:
+    `load_authority`. `whole` rows are the owner's whole-water calls (rank 1); `cut` rows are curated points (rank 1,
+    as today); `mouth` rows carry nothing (auto-generated, 2026-10-28)."""
     lim = getattr(limit, "limit", None)
     if lim in ("whole", "cut"):
         return "dfo"
     if lim != "split":
         return "none"
     got = table.get(str(getattr(limit, "split", "")))
-    return "unclassified" if got is None else ("dfo" if got else "none")
+    return "unclassified" if got is None else got
 
 
 def edge1450_tops(rows) -> dict[str, float]:
@@ -471,17 +489,17 @@ TIDAL_ABOUT = ("T678: THE tidal sections of this atlas, one row per section with
                "read by the reach run (which adds only the rows the book marks tidal), the tiles and the review app.")
 
 
-def rank1(limits, table: Mapping[str, bool]) -> list:
-    """The tidal-limit rows that govern a cut (rank 1): a DFO-written split, an unclassified one (as today, listed),
-    every `whole` row, and the `cut` rows (curated points, DFO-written by construction of the review)."""
+def rank1(limits, table: Mapping[str, str]) -> list:
+    """The tidal-limit rows that govern a cut (rank 1): a DFO-written split, an owner's split (2026-11-12), an
+    unclassified one (as today, listed), every `whole` row, and the `cut` rows (curated points)."""
     return [r for r in limits if getattr(r, "limit", None) in ("split", "cut", "whole") and authority(r, table) != "none"]
 
 
-def unclassified(limits, table: Mapping[str, bool]) -> list[dict]:
-    """The split rows by authority, for the owner record: `not_dfo` (no authority: the coast crossing decides their
-    water) and `unclassified` (govern as today)."""
+def unclassified(limits, table: Mapping[str, str]) -> list[dict]:
+    """The split rows that are neither DFO-written nor the owner's, for the owner record: `none` (no authority: the
+    coast crossing decides their water) and `unclassified` (govern as today)."""
     return [{"blk": r.blk, "name": r.name, "split": r.split, "authority": authority(r, table)} for r in limits
-            if getattr(r, "limit", None) == "split" and authority(r, table) != "dfo"]
+            if getattr(r, "limit", None) == "split" and authority(r, table) not in GOVERNING]
 
 
 def coverage(graph, ids) -> dict:
@@ -513,7 +531,7 @@ def coverage(graph, ids) -> dict:
 
 
 def tidal_owners(graph, registry, limits, id_of, whole: Mapping[str, str], ok_cuts: Mapping[str, float], *,
-                 table: Mapping[str, bool], strict: bool = True) -> dict[str, str]:
+                 table: Mapping[str, str], strict: bool = True) -> dict[str, str]:
     """`{section: owner}`: THE TIDAL SECTIONS of a finished atlas (the record's rows). Rank 1 on the written registry
     (the reach's resolvers, the same calls as before), then every piece of a line tidal for its length, then every
     piece of a coast-cut line at or below its cut. A section claimed twice keeps the first owner."""

@@ -172,6 +172,7 @@ curated:
     synopsis: "data/curated/regulations/synopsis"     # the parsed synopsis rows, one file per region
     book_name_links: "data/curated/regulations/book_name_links.json"   # authored — a book water name -> the FWA water(s)
     reference: "data/curated/regulations/reference"   # the book's text, verbatim (definitions, legend, licensing)
+    word_reads: "data/curated/regulations/word_reads.json"   # accepted — the printed-word reads that matched (T679 D4)
 
   # --- review: the review app's state ----------------------------------------------
   review:

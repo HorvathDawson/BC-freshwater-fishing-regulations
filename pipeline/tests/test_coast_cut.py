@@ -172,12 +172,28 @@ def test_a_creek_into_a_creek_cut_below_its_crossing_follows():
 def test_authority_of_a_split_row():
     def lim(limit, split=""):
         return SimpleNamespace(limit=limit, split=split)
-    table = {"a": True, "b": False}
+    table = {"a": "dfo", "b": "none", "o": "owner"}
     assert C.authority(lim("split", "a"), table) == "dfo"
     assert C.authority(lim("split", "b"), table) == "none"
     assert C.authority(lim("split", "c"), table) == "unclassified"
+    assert C.authority(lim("split", "o"), table) == "owner"
     assert C.authority(lim("whole"), table) == "dfo" and C.authority(lim("mouth"), table) == "none"
-    assert [r.split for r in C.rank1([lim("split", "a"), lim("split", "b"), lim("split", "c")], table)] == ["a", "c"]
+    rows = [lim("split", "a"), lim("split", "b"), lim("split", "c"), lim("split", "o")]
+    # owner 2026-11-12: a split the owner made his own decision governs its water like a DFO-written one
+    assert [r.split for r in C.rank1(rows, table)] == ["a", "c", "o"]
+    for r in rows:
+        r.blk, r.name = "1", ""
+    assert [r["split"] for r in C.unclassified(rows, table)] == ["b", "c"]
+
+
+def test_the_authority_file_names_every_splits_authority(tmp_path):
+    """a row with no known authority is refused, never read as no authority"""
+    p = tmp_path / "a.json"
+    p.write_text('{"splits": [{"split": "x", "authority": "owner"}, {"split": "y", "authority": "dfo"}]}')
+    assert C.load_authority(p) == {"x": "owner", "y": "dfo"}
+    p.write_text('{"splits": [{"split": "x", "dfo_written": true}]}')
+    with pytest.raises(SystemExit, match="authority"):
+        C.load_authority(p)
 
 
 def test_geometric_crossing_fails_when_the_line_ends_away_from_tidal_water():

@@ -314,6 +314,8 @@ def keys(build_dir: Path, missing_ok: bool = False) -> dict[str, dict]:
                       # editing either file must rerun it, or a build would pass on the old answer
                       overrides=hashlib.sha256(Path(CURATED.regulations.book_name_links).read_bytes()).hexdigest()[:16],
                       unplaced=hashlib.sha256(Path(CURATED.waters.unplaced_piece_calls).read_bytes()).hexdigest()[:16],
+                      # (T679 D4) the accepted printed-word reads the run is guarded by: accepting a list reruns it
+                      word_reads=hashlib.sha256(Path(CURATED.regulations.word_reads).read_bytes()).hexdigest()[:16],
                       code=stage_code("reach", m)),
         "deliver": dict(atlas, corpus=corpus, curated=curated_digest(),
                         sources=deliver_sources(missing_ok),

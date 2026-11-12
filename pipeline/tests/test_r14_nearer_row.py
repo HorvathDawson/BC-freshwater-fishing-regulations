@@ -121,3 +121,27 @@ def test_reader_the_ruling_is_named_and_has_words():
     assert read.NEARER_ROW_BEATS_FARTHER is True
     assert read.LOSS_REASONS["nearer_row"] == "displaced"
     assert "nearer_row" in display.reasons_table()
+
+
+def test_d3_nearer_ignores_the_loops(monkeypatch):
+    """T679 D3 (owner 2026-11-12, "ignore the loops"): on a braid the raw `item_down` nests two waters both ways and the
+    pair was unordered; nearer is read from where each water EXITS (`item_exit_down`, flow-back removed). Mutation pin:
+    `NEARER_IGNORES_LOOPS = False` leaves the pair unordered."""
+    import sqlite3
+    db = sqlite3.connect(":memory:")
+    db.executescript("""
+        CREATE TABLE item (ord INTEGER PRIMARY KEY, item_id TEXT);
+        CREATE TABLE item_down (ord INTEGER, down_ord INTEGER);
+        CREATE TABLE item_exit_down (ord INTEGER, down_ord INTEGER);
+        CREATE TABLE ruleset (set_id INTEGER, entry_id TEXT, rule_id TEXT, via TEXT);
+        CREATE TABLE entry (entry_id TEXT, matched TEXT);""")
+    db.executemany("INSERT INTO item VALUES (?,?)", [(1, "gnis:side"), (2, "gnis:main")])
+    db.executemany("INSERT INTO item_down VALUES (?,?)", [(1, 2), (2, 1)])          # the braid: each reaches the other
+    db.executemany("INSERT INTO item_exit_down VALUES (?,?)", [(1, 2)])             # the side channel exits into main
+    db.executemany("INSERT INTO ruleset VALUES (?,?,?,?)", [(7, "r9:side@9-1", "a", "trib"),
+                                                            (7, "r9:main@9-1", "b", "trib")])
+    db.executemany("INSERT INTO entry VALUES (?,?)", [("r9:side@9-1", '["gnis:side"]'),
+                                                      ("r9:main@9-1", '["gnis:main"]')])
+    assert N.compute_trib_nearer(db) == {("r9:side@9-1", "r9:main@9-1")}
+    monkeypatch.setattr(N, "NEARER_IGNORES_LOOPS", False)
+    assert N.compute_trib_nearer(db) == set()

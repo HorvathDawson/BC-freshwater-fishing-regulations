@@ -132,6 +132,45 @@ def nodes_for(matches: list[StationMatch], graph, geoms: dict,
 
 
 
+#: POLICY (T679 #3, owner 2026-11-12: "One rule, accept the moves"): THE ATLAS'S GAUGE CUT IS THE PLACEMENT. Where the
+#: atlas cut a river at a station (`split:gauge__<station>`, `gauges.consume.cuts`), the station speaks for the section
+#: that BEGINS at that cut and runs upstream — the bundle no longer re-projects it onto another section. A station with
+#: no cut (not transmitting when the atlas was built, a lake station), or whose cut stands on another boundary where no
+#: stream section begins (a lake outlet: the boundary is the lake's edge), keeps `nodes_for`'s placement, and is listed
+#: (`report`). False = `nodes_for` alone (the mutation pin).
+ATLAS_CUT_PLACES_THE_GAUGE = True
+#: a section begins at the cut when its lower end is this close to the cut's route measure
+CUT_STARTS_M = 1.0
+
+
+def nodes_at_cuts(resolved_rows, graph, *, report: dict | None = None) -> dict[str, str]:
+    """`{station: node_id}` from the atlas's own gauge cuts: `resolved_rows` is the atlas's `splits.resolved.json`
+    (rows with `split_id` `gauge__<station>`, `blk`, `route_measure`); the node is the stream section on that blue line
+    whose lower end is the cut. `report` collects `held` rows (a cut where no section begins) with why."""
+    from pipeline.common.models import NodeKind
+    rep = report if report is not None else {}
+    starts: dict[str, list] = {}
+    for nid, n in graph.nodes.items():
+        if n.kind == NodeKind.stream and n.blk:
+            starts.setdefault(n.blk, []).append((float(n.down_m), nid))
+    out: dict[str, str] = {}
+    held: list = []
+    for r in sorted(resolved_rows, key=lambda r: str(r.get("split_id"))):
+        sid = str(r.get("split_id") or "")
+        if not sid.startswith("gauge__"):
+            continue
+        st, blk, m = sid[len("gauge__"):], str(r.get("blk") or ""), float(r.get("route_measure") or 0.0)
+        got = sorted((abs(d - m), nid) for d, nid in starts.get(blk, ()) if abs(d - m) <= CUT_STARTS_M)
+        if got:
+            out[st] = got[0][1]
+        else:
+            held.append({"station": st, "blk": blk, "measure": m,
+                         "why": "no stream section begins at the cut (it stands on another boundary: a lake outlet "
+                                "or the line's end)"})
+    rep["held"] = held
+    return out
+
+
 def summarise(matches: list[StationMatch], live: set[str] | None = None) -> str:
     """One line per outcome. Printed by the build so a regression is visible immediately."""
     import collections

@@ -20,11 +20,10 @@ import json
 import time
 from pathlib import Path
 
-#: OWNER-HELD BY NAME (T678, owner 2026-11-11): Kitimat's upstream limit is open (keep the polygon exit / boundary at
-#: DFO's line / ask the Kitimat DFO office); item C: five lines with a build-27 cut and nothing tidal below
+#: OWNER-HELD BY NAME (T678, owner 2026-11-11): item C: lines with a build-27 cut and nothing tidal below. Answered
+#: 2026-11-12 and no longer held: Kitimat 360885824 ("automatic mouth line": the coast cut decides it) and the San Juan
+#: side channel 354087703 (tidal below the Deering Road bridge: a `cut` row of waters/tidal_limits.json, rank 1)
 HELD_BY_NAME = {
-    "360885824": "Kitimat River: where tidal water ends upstream is not written anywhere found (owner item)",
-    "354087703": "San Juan River: item C (a build-27 cut, nothing tidal below)",
     "354154029": "Colonial Creek: item C (a build-27 cut, nothing tidal below)",
     "356341234": "unnamed: item C (a build-27 cut, nothing tidal below)",
     "360445710": "unnamed: item C (a build-27 cut, nothing tidal below)",
@@ -38,7 +37,7 @@ DECIDED_WHOLE = {
 ABOUT = ("T678: the lines the coast cut (`pipeline.atlas.splits.coast`) leaves to the owner, each kept as TODAY'S atlas "
          "has it (`keep`: cut at `cut_m` / whole / fresh) until the owner decides: the two crossings disagree, the "
          "geometric crossing finds no tidal water, a slough or unnamed line on the Fraser's code, or held by name "
-         "(Kitimat, item C). `at` is the line's mouth (lon, lat); `methods` what each crossing says (route measures). "
+         "(item C). `at` is the line's mouth (lon, lat); `methods` what each crossing says (route measures). "
          "Written by `python -m pipeline.atlas.splits.coast_held` from a built atlas; a row with `decided` is the "
          "owner's ruling and is kept on a rerun. Read by the atlas build (`build.cut_shores`), which refuses an "
          "owner line missing here.")

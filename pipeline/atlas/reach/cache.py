@@ -130,5 +130,10 @@ from __future__ import annotations
 #:     IS_TIDAL`, owner `inside:<blk>`, from `inside_tidal.json`): 215 lines wholly inside the DFO tidal polygon leave
 #:     every binding after the walk; the shore cut moves to the polygon exit (`atlas.splits.shore`), so the crossings
 #:     below it change. No classify.py outcome changed; the bump marks the binding diff.
-POLICY_VERSION = "37"
+#: 38: (T679, owner 2026-11-12) D5: AT A DFO PLACE'S CONFLUENCE CUT THE JOINING WATER STAYS OUT unless DFO's words add it
+#:     (`build.DFO_JOINING_WATER_STAYS_OUT`; every joining water used to go with the cut, a DFO place having no rows).
+#:     D4: a word read that matched before and no longer matches stops the run (`build.A_WORD_READ_THAT_STOPS_MATCHING_
+#:     STOPS_THE_RUN`, `reach.word_reads`). D1 (the river's widening pond is the river) is decided in the atlas registry
+#:     (`registry.flowing.fold_widening_ponds`), so no classify.py outcome changed for it; the bump marks the diff.
+POLICY_VERSION = "38"
 

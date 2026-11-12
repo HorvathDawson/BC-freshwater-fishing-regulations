@@ -679,6 +679,87 @@ def fold_confirmed_sloughs(registry: dict[str, RegistryItem], graph, wbks, repor
     return out
 
 
+# --------------------------------------------------------------------------- T679 #5: a river's widening ponds
+#: POLICY (T679 #5, owner D1 / Q154, answered 2026-11-11, built at the atlas 2026-11-12): A RIVER'S UNNAMED WIDENING
+#: POND IS THE RIVER, for every rule ("in streams" rules too). The pond is folded into the stream item whose main flow
+#: runs through it (`graph.widenings`, over the item's whole course), so `item.kind` (stream) is its water kind
+#: everywhere — the reach's kind filters, the bundle's rule keys, the tiles. The reach-only version (085b352ca) was
+#: reverted (09da1b3a7): the bundle still read the pond as a lake and 161 rule keys mixed the two kinds. False = the pond
+#: stays a lake (the reach's per-rule widening still takes it for whole/cut extents: T153).
+WIDENING_PONDS_ARE_THE_RIVER = True
+
+
+def fold_widening_ponds(registry: dict[str, RegistryItem], graph, report: dict | None = None
+                         ) -> dict[str, RegistryItem]:
+    """Fold every unnamed widening pond into the ONE stream item whose main flow runs through it (`graph.widenings`
+    over the item's whole course). Runs after the flowing and confirmed-slough folds; returns a NEW dict.
+
+    The pond becomes a section of the item (its `wbk:` joins `ref_ids`), and the item's own `lake` boundary onto the
+    pond is dropped (F6: "the river stops here, another water begins" is false of its own widening). LEFT AS IT WAS,
+    and listed with why (never picked, never silent):
+        two streams    the main flow of two stream items runs through it
+        cut on its edge  a cut (a gauge, a sign) is aliased onto the item's lake boundary onto the pond: folding would
+                       drop the boundary the cut stands on (the reach's per-rule widening still takes the pond, T153)
+    No other water's boundary can point at such a pond (it is unnamed and held by none), so nothing is relabelled."""
+    from pipeline.atlas.graph import widenings as _widen
+    rep = report if report is not None else {}
+    if not WIDENING_PONDS_ARE_THE_RIVER:
+        rep.update(folded=[], held=[], counts={"ponds": 0, "items": 0, "held": 0})
+        return dict(registry)
+    nodes = graph.nodes
+    held: set[str] = set()
+    for it in registry.values():
+        if it.kind in _WATER:
+            held.update(it.section_ids)
+
+    def is_open(nid: str) -> bool:
+        return _widen.unnamed(graph, nid) and nid not in held
+
+    takers: dict[str, list[str]] = defaultdict(list)
+    for iid, it in sorted(registry.items()):
+        if it.kind != "stream" or not it.section_ids:
+            continue
+        mine = set(it.section_ids)
+        for p in sorted(_widen.widenings(graph, mine, lambda n, m=mine: is_open(n) and n not in m)):
+            takers[p].append(iid)
+    out = dict(registry)
+    left: list[dict] = []
+    by_item: dict[str, list[str]] = defaultdict(list)
+    for p, iids in sorted(takers.items()):
+        if len(iids) > 1:
+            left.append({"pond": p, "why": "two streams", "items": iids})
+            continue
+        by_item[iids[0]].append(p)
+    folded = []
+    for iid, ponds in sorted(by_item.items()):
+        it = out[iid]
+        wbks = {nodes[p].wbk: p for p in ponds if nodes[p].wbk}
+        keep_bounds, take = [], []
+        aliased = {b.wbk for b in it.boundaries if b.kind == "lake" and b.wbk in wbks and b.aliases}
+        for p in ponds:
+            w = nodes[p].wbk
+            if w and w in aliased:
+                left.append({"pond": p, "why": "cut on its edge", "items": [iid],
+                             "aliases": sorted(a for b in it.boundaries if b.kind == "lake" and b.wbk == w
+                                               for a in b.aliases)})
+            else:
+                take.append(p)
+        if not take:
+            continue
+        taken_wbks = {nodes[p].wbk for p in take if nodes[p].wbk}
+        for b in it.boundaries:
+            if b.kind == "lake" and b.wbk in taken_wbks:
+                continue
+            keep_bounds.append(b)
+        out[iid] = replace(it, section_ids=it.section_ids + tuple(sorted(take)),
+                           ref_ids=tuple(sorted(set(it.ref_ids) | {f"wbk:{w}" for w in taken_wbks})),
+                           boundaries=tuple(keep_bounds))
+        folded.append({"id": iid, "name": it.name, "ponds": sorted(take)})
+    rep.update(folded=folded, held=left,
+               counts={"ponds": sum(len(f["ponds"]) for f in folded), "items": len(folded), "held": len(left)})
+    return out
+
+
 # --------------------------------------------------------------------------- absorbed ids
 _ALIAS: dict[int, tuple[object, dict]] = {}
 

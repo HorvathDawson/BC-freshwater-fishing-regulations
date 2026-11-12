@@ -894,6 +894,10 @@ def apply_seed(ef: EntryFile, locations: List[Location], structure: dict, *,
 # Hand-off to the reach builder
 # ---------------------------------------------------------------------------
 
+#: the rule key that keeps a confluence cut's joining water out of a DFO place unless its words add it (T679 D5); the
+#: same string as `pipeline.atlas.reach.build.JOINING_WATER_STAYS_OUT_KEY` (a test pins the two)
+_JOINERS_STAY_OUT = "_joining_water_stays_out"
+
 
 def to_reach_input(loc: EntryLocation, rules: List[dict],
                    water: Optional[WaterBinding] = None,
@@ -936,6 +940,9 @@ def to_reach_input(loc: EntryLocation, rules: List[dict],
         "includes_tributaries": loc.binding.tributaries,
         "tributaries_only": loc.binding.tributaries_only,
         "tributary_excludes": list(excludes),
+        # T679 D5 (owner 2026-11-12): at a confluence cut the joining water stays out unless DFO's words add it
+        # (`reach.build.DFO_JOINING_WATER_STAYS_OUT`): every caller (reach run, review app) shapes it here
+        _JOINERS_STAY_OUT: True,
     } for i, _ in enumerate(rules)]
     # A "rest" (owner 2026-11-02: "Except in those areas and times listed below") is the water minus
     # the places it names — other LOCATIONS on the water. The builder resolves a rest against the

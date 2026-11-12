@@ -858,12 +858,28 @@ def confluence_excludes(entry: dict, rule: dict, registry, graph, covered,
             # hung on a side channel at the cut is at the cut too. A row names the place it was found.
             for i, (blk, m) in enumerate(cut_places(cut)):
                 rows += _joiners_at(graph, registry, owned, entry, words, sid, kind, label, blk, m,
-                                    done, principal=(i == 0))
+                                    done, principal=(i == 0),
+                                    stays_out=bool(rule.get(JOINING_WATER_STAYS_OUT_KEY)))
     return rows
 
 
+#: POLICY (T679 D5, owner 2026-11-12): AT A DFO PLACE'S CONFLUENCE CUT THE JOINING WATER STAYS OUT unless DFO's words
+#: add it ("same as provincial, the joining water stays out unless DFO's words add tributaries"). A DFO place has no
+#: table of rows to say which joining water is a water of its own (`owned`), so rule 4 of `confluence_excludes` (a water
+#: with no row goes with the cut) would take EVERY joining water in; a DFO place's rule carries
+#: `JOINING_WATER_STAYS_OUT_KEY` (`reach.dfo_salmon`), and only its words (rule 1, "including …") or its signs (rule 2)
+#: take the joining water in. False = every joining water goes with the cut, as before (the mutation pin).
+DFO_JOINING_WATER_STAYS_OUT = True
+#: POLICY (T679 D4, owner 2026-11-12): the printed-word reads stay regexes over `verbatim`, and A READ THAT MATCHED BEFORE
+#: AND NO LONGER MATCHES STOPS THE RUN, naming the row (`reach.word_reads`, the accepted list
+#: `regulations/word_reads.json`). False = the run reports the lost reads and goes on (the mutation pin).
+A_WORD_READ_THAT_STOPS_MATCHING_STOPS_THE_RUN = True
+#: the rule key a DFO place's rule carries (set by `reach.dfo_salmon`, never by the corpus)
+JOINING_WATER_STAYS_OUT_KEY = "_joining_water_stays_out"
+
+
 def _joiners_at(graph, registry, owned, entry, words, sid, kind, label, blk, m, done, *,
-                principal: bool = True) -> list[dict]:
+                principal: bool = True, stays_out: bool = False) -> list[dict]:
     """`confluence_excludes`' rows for the water joining at ONE place `(blk, m)` of cut `sid`. On a
     side channel (`principal=False`) only a joiner the label NAMES is taken: the unnamed fallback of
     a curated confluence cut is its principal line's alone."""
@@ -891,6 +907,7 @@ def _joiners_at(graph, registry, owned, entry, words, sid, kind, label, blk, m, 
         own = own_rows(registry, owned, mouths, entry.get("entry_id"))
         with_cut = bool(
             not included and not negated and not own
+            and not (stays_out and DFO_JOINING_WATER_STAYS_OUT)
             and _tribs.CONFLUENCE_WATER_WITHOUT_A_ROW_GOES_WITH_THE_CUT)
         subtree = sorted(_tribs.subtree(graph, mouths))
         rows.append({"split": sid, "water": water or "(unnamed)",

@@ -199,6 +199,9 @@ class Regulations(BaseModel):
     #: THE BOOK'S TEXT, transcribed verbatim (`definitions.md` p.80, `water-specific-tables.md`
     #: p.4, `licensing.md` pp.6-7, `region-*.md`): source text, read by the answers glossary.
     reference: DirectoryPath
+    #: ACCEPTED (T679 D4): every printed-word read the reach made that matched on the accepted run; a listed read that
+    #: stops matching stops the reach run (`pipeline.atlas.reach.word_reads`).
+    word_reads: FilePath
 
     _abs = field_validator("*", mode="before")(_absolute)
 

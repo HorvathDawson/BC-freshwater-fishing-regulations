@@ -672,6 +672,12 @@ CREATE TABLE ruleset (set_id INTEGER NOT NULL, entry_id TEXT NOT NULL, rule_id T
 -- Kootenay Lake's tributaries' release. Rows whose waters do not nest are absent (not ordered).
 CREATE TABLE item_down (ord INTEGER NOT NULL, down_ord INTEGER NOT NULL,
                         PRIMARY KEY (ord, down_ord)) WITHOUT ROWID;
+-- (T679 D3, owner 2026-11-12: "ignore the loops") `item_exit_down`: `item_down` less every receiver that itself flows
+-- back into the water (`topology.exit_receivers`: a braid's other channel, a lake the creek runs out of) — where each
+-- water may EXIT. `trib_nearer` is computed from it, so two waters that nest both ways through a loop are ordered by
+-- where each really goes.
+CREATE TABLE item_exit_down (ord INTEGER NOT NULL, down_ord INTEGER NOT NULL,
+                             PRIMARY KEY (ord, down_ord)) WITHOUT ROWID;
 -- WHICH STREAM GOES ON AS ANOTHER (owner 2026-10-21: "navigate up if one stream comes directly from another, like
 -- vedder from chilliwack"): water `ord` CONTINUES AS `next_ord` — the same watercourse under another name; `part` is
 -- the part of `ord` at its mouth, `next_part` the part of `next_ord` at its top. The rule is

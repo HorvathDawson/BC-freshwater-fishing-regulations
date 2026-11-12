@@ -9,6 +9,7 @@ which rules now cover different water than they did — confirmed entries first.
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
@@ -194,6 +195,21 @@ def main() -> int:
             failed.append(f"{type(e).__name__}: {e}")
 
     ask(straddle_gate, result.diagnostics)
+    # T679 D4 (owner 2026-11-12): a printed-word read that matched on the accepted run and no longer matches stops the run
+    from pipeline.atlas.reach import word_reads as _wr
+    from pipeline.atlas.reach.build import A_WORD_READ_THAT_STOPS_MATCHING_STOPS_THE_RUN
+    _now = _wr.reads(entries, result.diagnostics)
+    _diff = _wr.compare(_now, _wr.load(), _wr.present(entries))
+    if args.out:
+        Path(args.out, _wr.FILE).write_text(json.dumps({"reads": _now, **{k: v for k, v in _diff.items()}}, indent=0)
+                                            + "\n", encoding="utf-8")
+    print(f"  word reads   {len(_now):,} matching; {len(_diff['lost'])} lost, {len(_diff['gone'])} gone with their row, "
+          f"{len(_diff['new'])} new (T679 D4, {_wr.FILE})")
+    if _diff["lost"]:
+        if A_WORD_READ_THAT_STOPS_MATCHING_STOPS_THE_RUN:
+            failed.append(_wr.lost_message(_diff))
+        else:
+            print(_wr.lost_message(_diff))
     # T546 item 2: and on a row with rules whose scope does not resolve (its rules are held unresolved)
     ask(scope_gate, result.bindings)
     # T632 (owner 2026-11-11): EVERY unplaced piece — any reason, a rule's or a DFO place's — stops the run unless the

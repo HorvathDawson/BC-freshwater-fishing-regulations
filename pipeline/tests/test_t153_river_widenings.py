@@ -221,6 +221,11 @@ def test_one_function_decides_it():
     assert callers == ["atlas/reach/extent.py", "gauges/consume/panels.py"]
     from pipeline.gauges.consume.panels import RIVER_WIDENINGS
     assert RIVER_WIDENINGS is False, "Q154 switched on: make the gauge walk read extent.river_widenings, not its own"
+    # T679 #5 (owner D1): the TEST is one function, `graph.widenings.widenings`, read by the reach (per rule) and the
+    # registry fold (a stream item's whole course) — no third copy
+    cores = sorted(str(p.relative_to(root)) for p in root.rglob("*.py")
+                   if "tests" not in p.parts and "_widen.widenings(" in p.read_text(encoding="utf-8"))
+    assert cores == ["atlas/reach/extent.py", "atlas/registry/flowing.py"]
 
 
 @pytest.mark.parametrize("ex", [{"op": "downstream_of", "splits": ["cut"]}, WHOLE])

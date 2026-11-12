@@ -1,5 +1,5 @@
 {
- "_about": "T678: the lines the coast cut (`pipeline.atlas.splits.coast`) leaves to the owner, each kept as TODAY'S atlas has it (`keep`: cut at `cut_m` / whole / fresh) until the owner decides: the two crossings disagree, the geometric crossing finds no tidal water, a slough or unnamed line on the Fraser's code, or held by name (Kitimat, item C). `at` is the line's mouth (lon, lat); `methods` what each crossing says (route measures). Written by `python -m pipeline.atlas.splits.coast_held` from a built atlas; a row with `decided` is the owner's ruling and is kept on a rerun. Read by the atlas build (`build.cut_shores`), which refuses an owner line missing here.",
+ "_about": "T678: the lines the coast cut (`pipeline.atlas.splits.coast`) leaves to the owner, each kept as TODAY'S atlas has it (`keep`: cut at `cut_m` / whole / fresh) until the owner decides: the two crossings disagree, the geometric crossing finds no tidal water, a slough or unnamed line on the Fraser's code, or held by name (item C). `at` is the line's mouth (lon, lat); `methods` what each crossing says (route measures). Written by `python -m pipeline.atlas.splits.coast_held` from a built atlas; a row with `decided` is the owner's ruling and is kept on a rerun. Read by the atlas build (`build.cut_shores`), which refuses an owner line missing here.",
  "lines": [
   {
    "blk": "-2000000122",
@@ -217,21 +217,6 @@
    ],
    "methods": {
     "edge1450_m": 33.923543641732095,
-    "geometric_m": null
-   }
-  },
-  {
-   "blk": "354087703",
-   "name": "San Juan River",
-   "keep": "cut",
-   "cut_m": 37.03,
-   "why": "San Juan River: item C (a build-27 cut, nothing tidal below)",
-   "at": [
-    -124.403802,
-    48.581701
-   ],
-   "methods": {
-    "edge1450_m": 37.0329937742508,
     "geometric_m": null
    }
   },
@@ -2209,7 +2194,7 @@
    "name": "",
    "keep": "cut",
    "cut_m": 21.98,
-   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "why": "owner 2026-11-12: the mouth line decides — cut at FWA's edge-1450 crossing (21.98 m), the piece below tidal (the creek enters its river's tidal estuary there; the geometric crossing finds no polygon to check it against)",
    "at": [
     -128.410149,
     53.085342
@@ -2217,7 +2202,8 @@
    "methods": {
     "edge1450_m": 21.9787294285151,
     "geometric_m": null
-   }
+   },
+   "decided": "2026-11-12"
   },
   {
    "blk": "360590016",
@@ -2343,7 +2329,7 @@
    "name": "",
    "keep": "cut",
    "cut_m": 298.12,
-   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "why": "owner 2026-11-12: the mouth line decides — cut at FWA's edge-1450 crossing (298.12 m), the piece below tidal (the creek enters its river's tidal estuary there; the geometric crossing finds no polygon to check it against)",
    "at": [
     -127.379333,
     52.102616
@@ -2351,7 +2337,8 @@
    "methods": {
     "edge1450_m": 298.11859735134107,
     "geometric_m": null
-   }
+   },
+   "decided": "2026-11-12"
   },
   {
    "blk": "360668677",
@@ -2372,7 +2359,7 @@
    "name": "",
    "keep": "cut",
    "cut_m": 223.24,
-   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "why": "owner 2026-11-12: the mouth line decides — cut at FWA's edge-1450 crossing (223.24 m), the piece below tidal (the creek enters its river's tidal estuary there; the geometric crossing finds no polygon to check it against)",
    "at": [
     -128.655766,
     54.014925
@@ -2380,7 +2367,8 @@
    "methods": {
     "edge1450_m": 223.240657555566,
     "geometric_m": null
-   }
+   },
+   "decided": "2026-11-12"
   },
   {
    "blk": "360683185",
@@ -2551,7 +2539,7 @@
    "name": "",
    "keep": "cut",
    "cut_m": 37.33,
-   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "why": "owner 2026-11-12: the mouth line decides — cut at FWA's edge-1450 crossing (37.33 m), the piece below tidal (the creek enters its river's tidal estuary there; the geometric crossing finds no polygon to check it against)",
    "at": [
     -126.773594,
     52.376721
@@ -2559,7 +2547,8 @@
    "methods": {
     "edge1450_m": 37.326930338529294,
     "geometric_m": null
-   }
+   },
+   "decided": "2026-11-12"
   },
   {
    "blk": "360814236",
@@ -2751,20 +2740,6 @@
    "methods": {
     "edge1450_m": 25.4399646955155,
     "geometric_m": null
-   }
-  },
-  {
-   "blk": "360885824",
-   "name": "Kitimat River",
-   "keep": "fresh",
-   "why": "Kitimat River: where tidal water ends upstream is not written anywhere found (owner item)",
-   "at": [
-    -128.662273,
-    54.010889
-   ],
-   "methods": {
-    "edge1450_m": null,
-    "geometric_m": 0.0
    }
   },
   {

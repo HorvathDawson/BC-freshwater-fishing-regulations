@@ -436,3 +436,21 @@ def test_a_joining_water_with_no_row_still_goes_with_the_cut_whole(lake_world):
                        owned={"gnis:3": ("r9:t_creek@9-1",)})
     assert {"X", "X_up", "X_trib", "X_high", "X_high_trib"} <= got
     assert "bounded_at_lake" not in diags[0].payload
+
+
+# ------------------------------------------------------------ T679 D5: a DFO place (owner 2026-11-12)
+
+def test_at_a_dfo_place_the_joining_water_stays_out_unless_its_words_add_it(world, monkeypatch):
+    """A DFO place has no table of rows: "same as provincial, the joining water stays out unless DFO's words add
+    tributaries". Mutation pin: `DFO_JOINING_WATER_STAYS_OUT = False` takes X Creek in with the cut."""
+    from pipeline.atlas.reach import build as B
+    from pipeline.regs.dfo_salmon import entries as E
+    assert E._JOINERS_STAY_OUT == B.JOINING_WATER_STAYS_OUT_KEY
+    dfo = {B.JOINING_WATER_STAYS_OUT_KEY: True}
+    got, d = _bind(world, "Chinook non retention upstream of X Creek", UP, owned={}, **dfo)
+    assert not got & X_WATER and d[0].payload["with_cut"] is False
+    got, _ = _bind(world, "Chinook non retention upstream of and including X Creek", UP, owned={}, **dfo)
+    assert X_WATER <= got                                     # DFO's words add it
+    monkeypatch.setattr(B, "DFO_JOINING_WATER_STAYS_OUT", False)
+    got, _ = _bind(world, "Chinook non retention upstream of X Creek", UP, owned={}, **dfo)
+    assert X_WATER <= got

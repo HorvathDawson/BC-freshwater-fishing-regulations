@@ -1559,6 +1559,11 @@ def water_registry(b: _Build, graph, *, areas: bool = True) -> tuple[dict, dict]
         _srep: dict = {}
         registry = _flowing.fold_confirmed_sloughs(registry, graph, _load_slough_calls(), _srep)
         info["slough_report"] = _srep
+    # T679 #5 (owner D1): a river's unnamed widening pond IS the river — folded into the stream item whose main flow runs
+    # through it, so its water kind is the river's everywhere (`flowing.fold_widening_ponds`)
+    _wrep: dict = {}
+    registry = _flowing.fold_widening_ponds(registry, graph, _wrep)
+    info["widening_report"] = _wrep
     # T224 mined names: labels on the item that already owns the feature, after every grouping pass
     from pipeline.atlas.registry.mined import add_mined_names
     _mined_rep: dict = {}
@@ -1604,6 +1609,9 @@ def build_registry(b: _Build) -> None:
         _srep = _info["slough_report"]
         print(f"  confirmed sloughs (T322): {_srep['counts']}")
         (out / "slough_fold_report.json").write_text(json.dumps(_srep, indent=1) + "\n", encoding="utf-8")
+    _wrep = _info["widening_report"]
+    print(f"  widening ponds (T679 #5): {_wrep['counts']} (held: two streams / a cut on its edge)")
+    (out / "widening_fold_report.json").write_text(json.dumps(_wrep, indent=1) + "\n", encoding="utf-8")
     _mined_rep = _info["mined_report"]
     print(f"  mined names: {_mined_rep['labelled']} on an existing item, {_mined_rep['own_items']} item(s) of "
           f"their own, {_mined_rep['absent']} on a feature not in the atlas (pruned or absent)")

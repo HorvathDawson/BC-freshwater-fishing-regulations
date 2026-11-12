@@ -144,6 +144,18 @@ def write(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_item
     place_lost: list[str] = []
     shed_lost: list[str] = []
     placed = nodes_for(matches, graph, geoms, report=place_lost)
+    # T679 #3 (owner 2026-11-12, "One rule, accept the moves"): THE ATLAS'S GAUGE CUT IS THE PLACEMENT where it made one
+    # (`place.ATLAS_CUT_PLACES_THE_GAUGE`); every move and every station left on the projection is printed
+    from pipeline.gauges.consume.place import ATLAS_CUT_PLACES_THE_GAUGE, nodes_at_cuts
+    if ATLAS_CUT_PLACES_THE_GAUGE:
+        _cut_rep: dict = {}
+        _rows = json.loads((Path(build_dir) / "splits.resolved.json").read_text(encoding="utf-8"))
+        _at_cut = nodes_at_cuts(_rows, graph, report=_cut_rep)
+        _moved = sorted(st for st, n in _at_cut.items() if st in placed and placed[st] != n)
+        placed.update({st: n for st, n in _at_cut.items() if st in placed})
+        print(f"     gauge placement: {len(_at_cut):,} station(s) at their atlas cut, {len(_moved)} moved off the "
+              f"projection ({', '.join(_moved[:12])}{' …' if len(_moved) > 12 else ''}); "
+              f"{len(_cut_rep['held'])} cut(s) where no section begins keep the projection")
     prov = {m.station: m for m in matches}
     # MATCHED BUT NOT USED (`liveness.dormant`, T226 item 2, owner 2026-10-28): a discontinued station that does not
     # transmit stays matched (matches.json, `gauge.matched_by` / `.match_m`) but is attached to NO water — no

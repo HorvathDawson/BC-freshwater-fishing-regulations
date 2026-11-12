@@ -27,6 +27,7 @@ its own.
 
 from __future__ import annotations
 
+from pipeline.atlas.graph import widenings as _widen
 from pipeline.atlas.graph.windows import polygon_window
 from pipeline.atlas.registry import regions as _regions
 from pipeline.atlas.registry.basins import basin_code, basin_members
@@ -801,10 +802,8 @@ def _bracket(g, comp: set[str], inside: set[str], outside: set[str], universe: s
 #: a `within` of a named water) calls it. False = the reach stops at the polygon (the mutation pin).
 UNNAMED_LAKES_ON_THE_RIVER_ARE_THE_RIVER = True
 
-#: How many unnamed polygons back to back one widening may chain through (a pond draining straight
-#: into another pond on the same line). Measured: the longest chain under a regulated row is short;
-#: the cap only bounds a pathological graph.
-WIDENING_CHAIN_MAX = 8
+#: How many unnamed polygons back to back one widening may chain through: `graph.widenings` (one test, two readers)
+WIDENING_CHAIN_MAX = _widen.WIDENING_CHAIN_MAX
 
 #: {id(registry): (registry, frozenset of sections a registry WATER holds)} — checked by identity.
 _HELD: dict[int, tuple[object, frozenset]] = {}
@@ -844,37 +843,7 @@ def river_widenings(g, reg, selected: set[str]) -> set[str]:
     if not UNNAMED_LAKES_ON_THE_RIVER_ARE_THE_RIVER or g is None or not hasattr(g, "nodes"):
         return set()
     held = _held_by_a_water(reg)
-
-    def _open(nid: str) -> bool:
-        n = g.nodes.get(nid)
-        return (n is not None and not n.blk and not (n.gnis_id or n.display_name)
-                and nid not in held and nid not in selected)
-
-    out: set[str] = set()
-    for pid in sorted(selected):
-        p = g.nodes.get(pid)
-        if p is None or not p.blk or not is_main_flow(p):
-            continue
-        for ei in sorted(g.up_adj.get(pid, ())):
-            e = g.edges[ei]
-            if e.kind != "lake_out" or not _open(e.from_node):
-                continue
-            stack = [(e.from_node, (e.from_node,))]
-            while stack:
-                cur, path = stack.pop()
-                for ej in sorted(g.up_adj.get(cur, ())):
-                    f = g.edges[ej]
-                    src = f.from_node
-                    s = g.nodes.get(src)
-                    if s is None:
-                        continue
-                    if s.blk:
-                        if (f.kind == "lake_in" and src in selected and s.blk == p.blk
-                                and s.down_m >= p.up_m - 1.0 and is_main_flow(s)):
-                            out.update(path)
-                    elif src not in path and len(path) < WIDENING_CHAIN_MAX and _open(src):
-                        stack.append((src, path + (src,)))
-    return out
+    return _widen.widenings(g, selected, lambda nid: _widen.unnamed(g, nid) and nid not in held and nid not in selected)
 
 
 def whole_water_sections(reg, g, item_id: str) -> set[str]:

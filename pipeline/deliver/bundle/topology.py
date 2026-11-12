@@ -586,9 +586,12 @@ def write(db: sqlite3.Connection, geo: Dict[int, Geometry], cov,
     downs: Dict[int, List[int]] = defaultdict(list)
     for a, b in db.execute("SELECT ord, down_ord FROM item_down ORDER BY ord, down_ord"):
         downs[a].append(b)
+    exit_down: List[Tuple[int, int]] = []
     for o, cands in sorted(downs.items()):
         if mouths is not None:
             cands = exit_receivers(o, cands, mouths, downs, size_of, codes, streams, tops)
+        # (T679 D3) every receiver left once the flow-back is removed: the nearer ✱ row reads these, not `item_down`
+        exit_down += [(o, d) for d in sorted(set(cands))]
         if o not in mouth or not cands:
             continue
         here = shapes[(o, mouth[o])]
@@ -608,6 +611,8 @@ def write(db: sqlite3.Connection, geo: Dict[int, Geometry], cov,
     db.executemany("INSERT INTO part_mark (ord, mark_ix, lon, lat, label, down_part, up_parts, confidence, alt, token) "
                    "VALUES (?,?,?,?,?,?,?,?,?,?)", mark_rows)
     db.executemany("INSERT INTO water_exit (ord, down_ord, down_part, label) VALUES (?,?,?,?)", exits)
+    db.executemany("INSERT INTO item_exit_down (ord, down_ord) VALUES (?,?)", exit_down)
+    cov.filled("item_exit_down", len(exit_down))
     # T228 DIAGNOSTIC: a salmon difference where no named split stands — a DFO place's edge not yet placed as a split.
     # Not cut, not named: the pieces stay one (the salmon bar shows its "see Salmon below" days) until the edge is placed
     # (`pipeline.regs.dfo_salmon.edge_gaps` puts each on the review's DFO queue).

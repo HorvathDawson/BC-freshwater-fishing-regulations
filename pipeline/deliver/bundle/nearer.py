@@ -134,13 +134,21 @@ def write_item_down(db: sqlite3.Connection, graph, registry_items, cov) -> None:
     cov.filled("item_down", len(rows))
 
 
+#: POLICY (T679 D3, owner 2026-11-12: "ignore the loops"): NEARER IS READ FROM WHERE EACH WATER EXITS — `item_down` less
+#: every receiver that flows back into the water (`item_exit_down`, written by `topology.write` with
+#: `topology.exit_receivers`, the one answer the water's exit already uses). On a braid the raw `item_down` nests two
+#: waters both ways and leaves the pair unordered. False = the raw `item_down` (the mutation pin).
+NEARER_IGNORES_LOOPS = True
+
+
 def compute_trib_nearer(db: sqlite3.Connection) -> Set[Tuple[str, str]]:
-    """The (near, far) pairs from the bundle's own rows: `item_down`, `entry.matched` and the rule
-    sets' `trib` members (water rows only: `r…` entries)."""
+    """The (near, far) pairs from the bundle's own rows: `item_exit_down` (`NEARER_IGNORES_LOOPS`), `entry.matched`
+    and the rule sets' `trib` members (water rows only: `r…` entries)."""
     import json
     item_of = dict(db.execute("SELECT ord, item_id FROM item"))
     down: Dict[str, Set[str]] = {}
-    for a, b in db.execute("SELECT ord, down_ord FROM item_down"):
+    table = "item_exit_down" if NEARER_IGNORES_LOOPS else "item_down"
+    for a, b in db.execute(f"SELECT ord, down_ord FROM {table}"):
         down.setdefault(item_of[a], set()).add(item_of[b])
     sets: Dict[int, Set[str]] = {}
     for set_id, e in db.execute("SELECT DISTINCT set_id, entry_id FROM ruleset "

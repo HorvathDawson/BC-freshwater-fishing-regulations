@@ -81,3 +81,20 @@ class TestDeterminism:
         second = split_defs(list(reversed(ms)), list(reversed(st)))
         assert first == second
         assert [r["id"] for r in first] == ["gauge__08AA001", "gauge__08ZZ009"]
+
+
+def test_t679_the_atlas_cut_is_the_gauges_placement():
+    """T679 #3 (owner 2026-11-12, "One rule, accept the moves"): a station the atlas cut a river at speaks for the
+    section BEGINNING at its cut; a cut where no section begins (a lake outlet) is held, and listed. Mutation pin:
+    `place.CUT_STARTS_M = -1` places nothing."""
+    from pipeline.common.models import NodeKind, StreamGraph, StreamNode
+    from pipeline.gauges.consume.place import nodes_at_cuts
+    g = StreamGraph()
+    for nid, lo, hi in (("R:0", 0, 4451.9), ("R:4451", 4451.9, 9000)):
+        g.nodes[nid] = StreamNode(node_id=nid, kind=NodeKind.stream, blk="R", down_m=lo, up_m=hi, length_m=hi - lo)
+    rows = [{"split_id": "gauge__08XX001", "blk": "R", "route_measure": 4451.91},
+            {"split_id": "gauge__08XX002", "blk": "R", "route_measure": 9000.0},
+            {"split_id": "puntledge__signs", "blk": "R", "route_measure": 4451.91}]
+    rep: dict = {}
+    assert nodes_at_cuts(rows, g, report=rep) == {"08XX001": "R:4451"}
+    assert [h["station"] for h in rep["held"]] == ["08XX002"]

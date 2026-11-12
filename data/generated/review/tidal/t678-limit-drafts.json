@@ -6,7 +6,7 @@
    "blk": "354155031",
    "water": "Marble River",
    "candidate": "tidal:354155031",
-   "status": "proposal",
+   "status": "declined",
    "now": {
     "limit": "mouth",
     "decided": "2026-10-28",
@@ -52,7 +52,8 @@
      "what": "the FWA mouth (today's limit)"
     }
    ],
-   "confidence": "low"
+   "confidence": "low",
+   "owner": "2026-11-12, verbatim: \"Mouth for marble river (signs near varney bay) could add it has signs to cut..\": the limit stays at the mouth (the Tidal-tab row is unchanged); the note to carry is that DFO's boundary signs stand near the entrance of Varney Bay."
   },
   {
    "blk": "354154936",

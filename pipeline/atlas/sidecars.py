@@ -131,6 +131,10 @@ def write_sidecars(build: Path, out: Path | None = None, *, log=print) -> Path:
         registry = _flowing.fold_confirmed_sloughs(registry, graph, load_slough_calls(), srep)
         (dest / "slough_fold_report.json").write_text(json.dumps(srep, indent=1) + "\n", encoding="utf-8")
         log(f"  confirmed sloughs (T322): {srep['counts']} -> slough_fold_report.json")
+    wrep: dict = {}                                  # T679 #5: the same pass the atlas build runs
+    registry = _flowing.fold_widening_ponds(registry, graph, wrep)
+    (dest / "widening_fold_report.json").write_text(json.dumps(wrep, indent=1) + "\n", encoding="utf-8")
+    log(f"  widening ponds (T679 #5): {wrep['counts']} -> widening_fold_report.json")
     registry = add_lake_parts(registry, lake_parts(load_added_lakes()))
     n_parts = sum(1 for it in registry.values() if it.part_of)
     # A water outside an area its polygon touches (`areas.json` `outside_items`): the same pass
