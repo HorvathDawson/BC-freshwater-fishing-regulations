@@ -8,7 +8,7 @@ import sys
 
 USAGE = ("usage: python -m pipeline build [--dry-run] [--atlas [--promote]] [--force STAGE ...] [--no-tiles] [--labels]\n"
          "  (a side atlas alone: python -m pipeline build --atlas, or python -m pipeline.atlas.build)\n"
-         "       python -m pipeline release --staging [--dry-run] [--accept-diff FILE] | --prod <r-id>")
+         "       python -m pipeline release --staging [--dry-run] [--accept-diff FILE] [--push] | --prod <r-id>")
 
 if __name__ == "__main__":
     if sys.argv[1:2] == ["build"]:

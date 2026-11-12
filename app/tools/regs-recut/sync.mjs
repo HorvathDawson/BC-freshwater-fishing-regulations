@@ -1,5 +1,9 @@
-// (T441) RE-CUT EVERY RELEASE-BACKED TEST FIXTURE after a release, in one step, in order:
-//   node app/tools/regs-recut/sync.mjs
+// (T441) RE-CUT EVERY RELEASE-BACKED TEST FIXTURE for a release, in one step, in order:
+//   node app/tools/regs-recut/sync.mjs [--release data/release/r-…]
+// WHICH RELEASE (T666 item 2): `--release <dir>`, else $RELEASE_DIR (the release under test, the variable both test
+// suites read), else the one data/release/LATEST names. `python -m pipeline release --staging` runs this against its
+// CANDIDATE before the promote and commits the result (`pipeline/release_follows.py`), so no hand re-cut follows a
+// release. A release NAMED and not there is an error, never passed over for LATEST.
 //   1. taps.py      app/fixtures/golden/taps.json from app/fixtures/golden/states.json (the tap QUESTIONS: water, part,
 //                   date; no answers), on the release's regs store (data/release/LATEST; P20: no regs.sqlite is kept)
 //   2. hydrate.mjs  app/fixtures/golden/hydrate.json (reads taps.json's states and its meta.golden/version)
@@ -15,15 +19,28 @@ import { latest as latestRelease } from '../../conformance/src/latestRelease.mjs
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, '../../..');
 const APP = path.join(REPO, 'app');
-const run = (cmd, a, env = {}) =>
-  execFileSync(cmd, a, { cwd: REPO, stdio: ['ignore', 'inherit', 'inherit'], env: { ...process.env, ...env } });
 const py = path.join(REPO, '.venv/bin/python');
-const release = latestRelease(path.join(REPO, 'data/release'));   // (T601) the one latest(): LATEST names it, never an mtime
-if (!fs.existsSync(py) || release === null) {
-  console.error('regs-recut: needs .venv and data/release/LATEST'); process.exit(1);
+const argv = process.argv.slice(2), ri = argv.indexOf('--release');
+if (ri >= 0 && !argv[ri + 1]) { console.error('regs-recut: --release needs a release folder'); process.exit(1); }
+const named = ri >= 0 ? argv[ri + 1] : process.env.RELEASE_DIR || null;
+let release;
+if (named) {
+  release = path.resolve(REPO, named);
+  if (!fs.existsSync(path.join(release, 'manifest.json'))) {
+    console.error(`regs-recut: no release at ${release} (${ri >= 0 ? '--release' : 'RELEASE_DIR'}): no manifest.json there`);
+    process.exit(1);
+  }
+} else {
+  release = latestRelease(path.join(REPO, 'data/release'));   // (T601) the one latest(): LATEST names it, never an mtime
 }
+if (!fs.existsSync(py) || release === null) {
+  console.error('regs-recut: needs .venv and a release (--release <dir>, RELEASE_DIR, or data/release/LATEST)'); process.exit(1);
+}
+// every step reads THIS release: the Python steps by --release, the vitest step by the suites' own variable
+const run = (cmd, a, env = {}) =>
+  execFileSync(cmd, a, { cwd: REPO, stdio: ['ignore', 'inherit', 'inherit'], env: { ...process.env, RELEASE_DIR: release, ...env } });
 const step = (n, what) => console.log(`\nregs-recut ${n}/4: ${what} (${path.basename(release)})`);
-step(1, 'taps.json'); run(py, [path.join(HERE, 'taps.py')]);
+step(1, 'taps.json'); run(py, [path.join(HERE, 'taps.py'), '--release', release]);
 step(2, 'hydrate.json'); run('node', [path.join(HERE, 'hydrate.mjs')]);
 step(3, 'the fixture release + section-lines.json');
 run(py, ['-m', 'pipeline.deliver.release.regs_fixture', '--release', release]);

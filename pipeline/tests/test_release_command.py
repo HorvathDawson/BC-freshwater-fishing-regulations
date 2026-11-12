@@ -1,5 +1,7 @@
 """`python -m pipeline release` (T295/T297, T408): the orchestration, with every heavy step mocked — the order, stop on
-the first failure, resume, the binding-diff gate, and production refusing anything but a human."""
+a failure, resume, the binding-diff gate, and production refusing anything but a human. T666 (one release path):
+preflight lists every failure, fast-fail is keyed on the tree's content, the follows stage refreshes what follows the
+release on the candidate, the flags are remembered, the rehearsal walks every stage's checks."""
 from __future__ import annotations
 
 import json
@@ -37,13 +39,18 @@ def world(tmp_path: Path, monkeypatch):
     (root / "LATEST").write_text(LIVE + "\n")
     _reach(reaches, "reach-live")
     w = {"calls": [], "fail": set(), "dirty": [], "diffs": 0, "differs": False, "root": root, "reaches": reaches,
-         "pushed": True, "fast_fail_rc": 0, "fast_fails": 0, "new_stamp": "0.5.0"}
+         "pushed": True, "fast_fail_rc": 0, "fast_fails": 0, "new_stamp": "0.5.0", "tree": "t1", "rc": {}}
 
     def run_cmd(cmd, env=None):
-        name = "inseason" if "pipeline.regs.inseason.resolve" in cmd else "build" if "build" in cmd else \
+        name = "inseason" if "pipeline.regs.inseason.resolve" in cmd else \
+            "recut" if any("regs-recut/sync.mjs" in c for c in cmd) else \
+            "taps" if any("regs-recut/taps.py" in c for c in cmd) else \
+            "follow-py" if "pytest" in cmd else "follow-app" if "vitest" in cmd else "build" if "build" in cmd else \
             "upload" if any("upload.sh" in c for c in cmd) else "smoke" if any("smoke-staging" in c for c in cmd) else \
             "publish" if any("publish" in c for c in cmd) else " ".join(cmd)
         w["calls"].append((name, env))
+        if name in w["rc"]:
+            return w["rc"][name]
         if name in w["fail"]:
             return 3
         if name == "build" and not (root / NEW).exists():       # the build writes the release and CANDIDATE
@@ -65,12 +72,26 @@ def world(tmp_path: Path, monkeypatch):
     monkeypatch.setattr(R, "git_head", lambda: "abc123")
     monkeypatch.setattr(R, "run_cmd", run_cmd)
 
-    def fast_fail(base=None):
+    def fast_fail(base=None, env=None):
         w["fast_fails"] += 1
-        w["fast_fail_base"] = base
-        return w["fast_fail_rc"]
+        w["fast_fail_base"], w["fast_fail_env"] = base, env
+        return w["fast_fail_rc"], list(w.get("fast_fail_failed", ["a step that failed"] if w["fast_fail_rc"] else []))
 
     monkeypatch.setattr(R, "run_fast_fail", fast_fail)
+    # (T666 item 5) the tree by content, what was uncommitted at a pass, and what differs from a commit
+    monkeypatch.setattr(R, "tree_key", lambda: "key-" + w["tree"])
+    w["dirt"], w["changed_since"] = [], set()
+    monkeypatch.setattr(R, "dirty_paths", lambda: list(w["dirt"]))
+    monkeypatch.setattr(R, "changed_since", lambda rev: set(w["changed_since"]))
+    # (T666) the fresh-copy test run: a clean clone of HEAD, the no-data tier (heavy: stood in for)
+    w["fresh_copies"], w["fresh_copy_rc"], w["committed_since"] = 0, 0, set()
+
+    def fresh_copy():
+        w["fresh_copies"] += 1
+        return w["fresh_copy_rc"]
+    monkeypatch.setattr(R, "run_fresh_copy", fresh_copy)
+    monkeypatch.setattr(R, "head_tree", lambda: "committed-" + w["tree"])
+    monkeypatch.setattr(R, "committed_since", lambda rev: set(w["committed_since"]))
     w["ci"] = (0, "ci-status: ok    app-ci.yml: green on abc123")
     w["ci_skips"] = []
 
@@ -99,7 +120,38 @@ def world(tmp_path: Path, monkeypatch):
     w["inseason_dirty"] = False
     monkeypatch.setattr(R, "inseason_dirty", lambda: w["inseason_dirty"])
     w["commits_made"] = []
-    monkeypatch.setattr(R, "commit_inseason", lambda rid: w["commits_made"].append(rid) or "c0mmit" + "0" * 34)
+
+    def commit_inseason(rid):
+        w["commits_made"].append(rid)
+        w["pushed"], w["tree"] = False, w["tree"] + "+matches"       # a new HEAD, not on GitHub yet
+        w["unpushed"].append("c0mmit" + "0" * 34)
+        return "c0mmit" + "0" * 34
+    monkeypatch.setattr(R, "commit_inseason", commit_inseason)
+    # (T666 items 1-2) the follows stage: the re-cut's changed paths, its commit, the tests found by rule, the push
+    w["recut_changed"], w["recuts_committed"], w["unpushed"], w["pushes"] = [], [], [], 0
+    monkeypatch.setattr(R, "recut_changed", lambda: list(w["recut_changed"]))
+    monkeypatch.setattr(R, "recut_token", lambda paths: "tok-" + str(len(paths)))
+
+    def commit_recut(rid, kind):
+        w["recuts_committed"].append((rid, kind))
+        w["recut_changed"], w["pushed"], w["tree"] = [], False, w["tree"] + "+fixtures"
+        w["unpushed"].append("f1xture" + "0" * 33)
+        return "f1xture" + "0" * 33
+    monkeypatch.setattr(R, "commit_recut", commit_recut)
+    monkeypatch.setattr(R, "follow_tests", lambda: (["pipeline/tests/test_x.py"], ["tools/x.release.test.ts"]))
+    monkeypatch.setattr(R, "git_unpushed", lambda: list(w["unpushed"]))
+
+    def push():
+        w["pushes"] += 1
+        w["pushed"], w["unpushed"] = True, []
+        return 0
+    monkeypatch.setattr(R, "git_push", push)
+    w["staging_prechecks"] = []
+    monkeypatch.setattr(R, "staging_prechecks", lambda rid: list(w["staging_prechecks"]))
+    w["inseason_check"] = ("same", "in-season matches on r-x: unchanged")
+    monkeypatch.setattr(R, "inseason_check", lambda rid: w["inseason_check"])
+    w["goldens_paired"] = True
+    monkeypatch.setattr(R, "goldens_paired", lambda d: (w["goldens_paired"], "said"))
     w["staging_serves"] = NEW
     monkeypatch.setattr(R, "staging_release", lambda: w["staging_serves"])
     monkeypatch.setattr(R, "after_chores", lambda rid: f"after the release: chores for {rid}")
@@ -114,13 +166,21 @@ def _latest(w) -> str:
     return (w["root"] / "LATEST").read_text().strip()
 
 
+ALL = ["build", "inseason", "recut", "follow-py", "follow-app", "upload", "smoke"]
+
+
+def _env_of(w, name) -> dict:
+    return [env for c, env in w["calls"] if c == name][0]
+
+
 def test_the_stages_run_in_order_and_ship_the_candidate(world, capsys):
     assert _staging() == 0
     out = capsys.readouterr().out
-    marks = [out.index(f"[{i}/6] {s} ok") for i, s in enumerate(R.STAGES, 1)]
+    assert R.STAGES == ("preflight", "baseline", "build", "checks", "follows", "promote", "staging")
+    marks = [out.index(f"[{i}/7] {s} ok") for i, s in enumerate(R.STAGES, 1)]
     assert marks == sorted(marks)
-    assert [c for c, _ in world["calls"]] == ["build", "inseason", "upload", "smoke"]
-    assert world["calls"][2][1] == {"MIN_APP_VERSION": "0.5.0", "FAST_FAIL_DONE": "abc123", "SMOKE": "0"}   # live stamp
+    assert [c for c, _ in world["calls"]] == ALL
+    assert _env_of(world, "upload") == {"MIN_APP_VERSION": "0.5.0", "FAST_FAIL_DONE": "abc123", "SMOKE": "0"}   # live stamp
     assert _latest(world) == NEW and not (world["root"] / "CANDIDATE").exists()
     rec = json.loads(R.LEDGER.read_text())["releases"][NEW]
     assert rec["checks"]["binding_diff"] == "same" and rec["staged_at"] and rec["commit"] == "abc123"
@@ -179,7 +239,9 @@ def test_the_app_gate_refuses_a_format_the_oldest_app_cannot_read(world, capsys)
     err = capsys.readouterr().err
     assert "STOPPED at checks" in err and "salmon/4 needs app >= 0.5.0" in err
     assert _latest(world) == LIVE and [c for c, _ in world["calls"]] == ["build"]
-    assert _staging() == 0                                  # the live stamp (0.5.0) reads it
+    # (T666 item 4) the flag is remembered: a bare rerun asks the same thing again; a new value replaces it
+    assert _staging() == 1 and "salmon/4 needs app >= 0.5.0" in capsys.readouterr().err
+    assert _staging(min_app_version="0.5.0") == 0
 
 
 def test_the_diff_gate_stops_and_only_its_own_json_lets_it_pass(world, tmp_path, capsys):
@@ -207,7 +269,7 @@ def test_a_rerun_resumes_where_it_stopped(world, capsys):
     assert _latest(world) == NEW                              # checks passed and promoted before the upload failed
     world["fail"] = set()
     assert _staging() == 0
-    assert [c for c, _ in world["calls"]] == ["build", "inseason", "upload", "build", "upload", "smoke"]
+    assert [c for c, _ in world["calls"]] == ALL[:-1] + ["build", "upload", "smoke"]
     assert world["diffs"] == 1                                # checked once; the rerun read the ledger
     assert _staging() == 0                                    # done: the upload is not repeated
     assert [c for c, _ in world["calls"]][-1] == "build"
@@ -246,31 +308,84 @@ def test_fast_fail_runs_first_and_stops_the_release(world, capsys):
     assert world["calls"] == [] and _latest(world) == LIVE and world["fast_fails"] == 1
 
 
-def test_fast_fail_runs_after_the_instant_checks(world, capsys):
-    """T535: a dirty tree, an unpushed HEAD or an old site stop in a second, before the minute-or-two fast-fail."""
-    for k, v in (("dirty", ["pipeline/build.py"]), ("pushed", False), ("site_problems", ["site 0.6.9 < 0.7.0"])):
-        old = world[k] if k in world else []
-        world[k] = v
-        assert _staging() == 1
-        world[k] = old
-    assert world["fast_fails"] == 0 and world["calls"] == []
+def test_preflight_runs_every_check_and_lists_every_failure_together(world, capsys):
+    """T666 item 3 (build 27: six runs, each stopped by the next single failure). An instant failure is said in its
+    first second (T535) and the rest still run — fast-fail too — so one stop carries the whole list."""
+    world["dirty"], world["pushed"] = ["pipeline/build.py"], False
+    world["site_problems"] = ["site 0.6.9 < 0.7.0"]
+    world["landed"] = (False, "review marks: 1 NOT LANDED in the curated files:\n  would dfo dfo|2:some-river:x|: y")
+    world["atlas_behind"] = ["cuts.json (curated:waters.cuts): changed since the atlas was built"]
+    world["ci"] = (1, "ci-status: STOP  pipeline-ci.yml: RED on abc123 (failure): https://github.com/x/runs/7")
+    world["fast_fail_rc"], world["fast_fail_failed"] = 1, ["app gates (pnpm check:fast)", "format pairs"]
+    world["fresh_copy_rc"] = 1
+    assert _staging() == 1
+    io = capsys.readouterr()
+    assert "[1/7] preflight FAILED: 8 problems — ALL of them" in io.err and "STOPPED at preflight" in io.err
+    for said in ("pipeline/build.py", "cuts.json (curated:waters.cuts)", "dfo|2:some-river:x|", "not on origin/",
+                 "CI is red", "site 0.6.9 < 0.7.0", "- app gates (pnpm check:fast)", "- format pairs",
+                 "the fresh-copy test run failed"):
+        assert said in io.err, said
+    assert [f"  {k}. " in io.err for k in range(1, 9)] == [True] * 8 and io.err.count("     next: ") == 8
+    assert "6 check(s) failed already" in io.out and world["fast_fails"] == 1      # it ran to complete the list
+    assert world["fresh_copies"] == 1
+    assert io.out.index("STOP: 1 uncommitted path(s)") < io.out.index("6 check(s) failed already")   # said at once
+    assert world["calls"] == [] and _latest(world) == LIVE
+    assert "fast_fail" not in json.loads(R.LEDGER.read_text())                      # a failed run records no pass
 
 
-def test_a_rerun_skips_fast_fail_passed_for_this_head_and_tells_heavy(world, capsys):
-    """T535: fast-fail ran again on every resume; now the ledger records the HEAD it passed for, and the build's
-    heavy.sh is told (FAST_FAIL_DONE) so it does not run it a second time."""
+def test_one_failure_reads_as_it_always_did(world, capsys):
+    world["pushed"] = False
+    assert _staging() == 1
+    err = capsys.readouterr().err
+    assert "[1/7] preflight FAILED: HEAD abc123 is not on origin/redesign/stream-sections" in err
+    assert "problems" not in err and "  next: git push origin HEAD:redesign/stream-sections" in err
+
+
+def test_a_rerun_skips_fast_fail_on_the_same_tree_content_and_tells_heavy(world, capsys):
+    """T535: fast-fail ran again on every resume. T666 item 5: the pass is keyed on the tree's CONTENT, not on HEAD —
+    a commit that changes no content (or the same tree under a new HEAD) does not rerun it; any edit does."""
     world["fail"] = {"upload"}
     assert _staging() == 1 and world["fast_fails"] == 1
     assert world["calls"][0] == ("build", {"FAST_FAIL_DONE": "abc123"})
     world["fail"] = set()
-    assert _staging() == 0
-    assert world["fast_fails"] == 1 and "fast-fail passed for abc123" in capsys.readouterr().out
-    assert json.loads(R.LEDGER.read_text())["fast_fail"]["head"] == "abc123"
-    R.git_head = lambda: "def456"                             # a new commit: it runs again
+    R.git_head = lambda: "def456"                             # a new HEAD over the same content: not rerun
     try:
+        assert _staging() == 0
+        assert world["fast_fails"] == 1 and "fast-fail passed for this tree's content (key-t1" in capsys.readouterr().out
+        done = json.loads(R.LEDGER.read_text())["fast_fail"]
+        assert (done["head"], done["key"]) == ("abc123", "key-t1")
+        world["tree"] = "t2"                                  # an edit, committed or not: it runs again
         assert _staging() == 0 and world["fast_fails"] == 2
+        assert json.loads(R.LEDGER.read_text())["fast_fail"]["key"] == "key-t2"
     finally:
         R.git_head = lambda: "abc123"
+
+
+def test_after_a_pass_only_what_changed_since_is_checked(world, capsys):
+    """T666 item 5 (build 27: the fixtures re-cut was a new commit and fast-fail ran its whole 8 minutes again): the
+    base is the commit it last passed on, so a fixtures or docs commit reruns no test tier."""
+    world["commits"] = {"abc123", "c0ffee"}
+    R.save_ledger({"releases": {LIVE: {"commit": "c0ffee"}}})
+    assert _staging() == 0 and world["fast_fail_base"] == "c0ffee"            # first pass: everything since the ship
+    world["tree"], world["changed_since"] = "t2", {"app/fixtures/golden/taps.json"}
+    capsys.readouterr()
+    assert _staging() == 0 and world["fast_fail_base"] == "abc123"
+    assert "fast-fail base: abc123, the commit it last passed on" in capsys.readouterr().out
+    # a file that was uncommitted at that pass and is back at the commit's content was never checked there: ship base
+    led = json.loads(R.LEDGER.read_text())
+    led["fast_fail"]["dirty"] = ["app/x.ts"]
+    R.LEDGER.write_text(json.dumps(led))
+    world["tree"] = "t3"
+    assert _staging() == 0 and world["fast_fail_base"] == "abc123"            # NEW is live now: the commit it was built from
+    out = capsys.readouterr().out
+    assert "1 file(s) uncommitted at its last pass are back at abc123's content (app/x.ts)" in out
+    assert f"fast-fail base: abc123, the commit {NEW} was built from" in out
+    world["tree"], world["changed_since"] = "t4", {"app/x.ts", "docs.md"}     # still different from that commit: usable
+    led = json.loads(R.LEDGER.read_text())
+    led["fast_fail"]["dirty"] = ["app/x.ts"]
+    R.LEDGER.write_text(json.dumps(led))
+    assert _staging() == 0 and world["fast_fail_base"] == "abc123"
+    assert "the commit it last passed on" in capsys.readouterr().out
 
 
 def test_red_ci_stops_at_preflight_and_the_escape_prints_its_reason(world, capsys):
@@ -279,7 +394,7 @@ def test_red_ci_stops_at_preflight_and_the_escape_prints_its_reason(world, capsy
     assert _staging() == 1
     io = capsys.readouterr()
     assert "STOPPED at preflight" in io.err and "CI is red" in io.err and "runs/7" in io.out
-    assert world["calls"] == [] and world["fast_fails"] == 0
+    assert world["calls"] == [] and world["fast_fails"] == 1      # (T666 item 3) the rest still ran
     world["ci"] = (2, "ci-status: STOP  app-ci.yml: CANNOT TELL — gh: not logged in")
     assert _staging() == 1 and "could not read CI" in capsys.readouterr().err
     world["ci"] = (0, "ci-status: SKIPPED (not asked): CI down for T999")
@@ -287,7 +402,7 @@ def test_red_ci_stops_at_preflight_and_the_escape_prints_its_reason(world, capsy
         _staging(no_ci_check=" ")
     assert _staging(no_ci_check="CI down for T999") == 0
     assert world["ci_skips"][-1] == "CI down for T999"
-    assert [env for c, env in world["calls"] if c == "upload"][0]["CI_CHECK_SKIP"] == "release --no-ci-check: CI down for T999"
+    assert _env_of(world, "upload")["CI_CHECK_SKIP"] == "release --no-ci-check: CI down for T999"
 
 
 def test_fast_fail_checks_everything_since_the_commit_latest_was_built_from(world, capsys):
@@ -397,7 +512,11 @@ def test_an_old_staging_site_stops_at_preflight_not_after_the_upload(world, caps
     assert world["calls"] == [] and _latest(world) == LIVE
     assert world["site_min_apps"] == ["0.7.0"]
     world["site_problems"] = []
-    assert _staging() == 0 and world["site_min_apps"][-1] == "0.5.0"     # the live stamp when none is given
+    assert _staging() == 0 and world["site_min_apps"][-1] == "0.7.0"     # (T666 item 4) remembered from the first run
+
+
+def test_the_live_stamp_is_the_min_app_when_none_was_ever_given(world):
+    assert _staging() == 0 and world["site_min_apps"][-1] == "0.5.0"
 
 
 def test_keep_baseline_copies_once_and_says_when_the_run_is_gone(world):
@@ -417,6 +536,261 @@ def test_no_baseline_and_a_moved_reach_run_stops_with_a_plain_message(world, cap
     assert _staging() == 1
     err = capsys.readouterr().err
     assert "STOPPED at baseline" in err and "--baseline" in err and world["calls"] == []
+
+
+# ------------------------------------------------------------------------------- T666: what follows the release
+
+def test_a_renumber_only_recut_is_committed_with_the_release_id_and_pushed_when_asked(world, capsys):
+    """T666 item 2 / T667 D5 (build 27: the goldens could only be re-cut AFTER the promote, by hand, as a new commit):
+    the release re-cuts on the CANDIDATE and commits it; with --push it pushes its own commits and goes on."""
+    world["recut_changed"] = ["app/fixtures/golden/taps.json", "app/packages/data/dev/regs-release/r-x/manifest.json",
+                              "app/packages/data/dev/section-lines.json"]
+    assert R.main(["--staging", "--push"]) == 0
+    out = capsys.readouterr().out
+    assert world["recuts_committed"] == [(NEW, "renumber only")] and world["pushes"] == 1
+    assert "the re-cut changed 3 path(s): goldens 1, regs-fixture 2" in out
+    assert "pushed the 1 commit(s) the release made (--push)" in out and _latest(world) == NEW
+    names = [c for c, _ in world["calls"]]
+    assert names.index("recut") < names.index("follow-py") < names.index("upload")   # before the promote and the upload
+    rec = json.loads(R.LEDGER.read_text())["releases"][NEW]["follows"]
+    assert rec["recut"]["kind"] == "renumber only" and rec["cut_for"] == NEW and rec["commits"] == ["f1xture" + "0" * 33]
+    assert R.recut_cmd(NEW)[:3] == ["node", "app/tools/regs-recut/sync.mjs", "--release"]
+    assert R.recut_cmd(NEW)[3] == str(world["root"] / NEW)                             # the candidate, never LATEST
+
+
+def test_a_changed_golden_page_stops_uncommitted_until_its_own_token_is_accepted(world, capsys):
+    """T667 D5: the release stops only when an ANSWER changed (a golden page's words)."""
+    world["recut_changed"] = ["app/fixtures/golden/taps.json", "app/packages/ui-native/src/regs/fixtures/glenn_501.json"]
+    assert _staging() == 1
+    err = capsys.readouterr().err
+    assert "STOPPED at follows" in err and "changed 1 golden page(s)" in err and "glenn_501.json" in err
+    assert "nothing was committed" in err and "--accept-fixtures tok-2" in err
+    assert world["recuts_committed"] == [] and _latest(world) == LIVE
+    assert "follow-py" not in [c for c, _ in world["calls"]]                # no test ran on an unaccepted re-cut
+    assert _staging(accept_fixtures="tok-9") == 1                           # another re-cut's token is not this one
+    assert "--accept-fixtures tok-9 is not this re-cut" in capsys.readouterr().err and world["recuts_committed"] == []
+    assert _staging(accept_fixtures="tok-2") == 1                           # accepted and committed: the push gate
+    assert world["recuts_committed"] == [(NEW, "golden pages accepted")]
+    assert "1 the release made" in capsys.readouterr().err
+    world["pushed"], world["unpushed"] = True, []
+    assert _staging() == 0 and _latest(world) == NEW
+
+
+def test_push_never_pushes_a_commit_the_release_did_not_make(world, capsys):
+    world["recut_changed"] = ["app/fixtures/golden/taps.json"]
+    world["unpushed"] = ["0ther" + "0" * 35]                                 # another lane committed during the build
+    assert R.main(["--staging", "--push"]) == 1
+    err = capsys.readouterr().err
+    assert world["pushes"] == 0 and "1 made by someone else since preflight (0ther0000000)" in err
+    assert "--push pushes only the release's own commits" in err and _latest(world) == LIVE
+
+
+def test_the_tests_that_ask_for_the_release_run_on_the_candidate_before_the_promote(world, capsys):
+    """T666 item 2 (build 27: 13 tests compared with LATEST and were red from the build to the promote)."""
+    world["rc"] = {"follow-py": 1, "follow-app": 1}
+    assert _staging() == 1
+    err = capsys.readouterr().err
+    assert "STOPPED at follows" in err and "pipeline (rc=1), app (rc=1)" in err and "LATEST was not moved" in err
+    assert _latest(world) == LIVE and "upload" not in [c for c, _ in world["calls"]]
+    for name in ("follow-py", "follow-app"):                                 # both suites ran: one stop, both named
+        env = _env_of(world, name)
+        assert env["RELEASE_DIR"] == str(world["root"] / NEW) and env["REGS_STORE_REQUIRED"] == "1"
+    assert "pipeline/tests/test_x.py" in [c for c in R.follow_tests_cmds(*R.follow_tests())[0][1]]
+    with pytest.raises(SystemExit):
+        _staging(no_follow_tests=" ")
+    world["calls"].clear()
+    assert _staging(no_follow_tests="perf suite on a loaded machine, T999") == 0
+    assert "tests on the candidate SKIPPED (--no-follow-tests): perf suite on a loaded machine, T999" in capsys.readouterr().out
+    assert "follow-py" not in [c for c, _ in world["calls"]]
+
+
+def test_fast_fail_reads_the_candidate_once_the_fixtures_are_cut_for_it(world):
+    """Between the re-cut and the promote the goldens pair with the CANDIDATE: a rerun's fast-fail is told so
+    (RELEASE_DIR), and not before the re-cut (they still pair with LATEST then)."""
+    world["rc"] = {"inseason": 3}
+    assert _staging() == 1 and world["fast_fail_env"] == {}                  # no candidate yet
+    world["tree"] = "t2"
+    assert _staging() == 1 and world["fast_fail_env"] == {}                  # a candidate, fixtures not re-cut on it
+    world["rc"], world["recut_changed"], world["tree"] = {}, ["app/fixtures/golden/taps.json"], "t3"
+    assert _staging() == 1                                                   # re-cut + committed: the push gate
+    world["pushed"], world["unpushed"] = True, []
+    assert _staging() == 0
+    assert world["fast_fail_env"] == {"RELEASE_DIR": str(world["root"] / NEW)}
+    assert json.loads(R.LEDGER.read_text())["fast_fail"]["release_dir"] == str(world["root"] / NEW)
+
+
+def test_the_command_remembers_its_flags_and_a_rerun_needs_none(world, tmp_path, capsys):
+    """T666 item 4 (build 27: `--baseline` / `--accept-diff` had to be retyped, and were wrong after the promote)."""
+    kept = tmp_path / "full_prev"
+    _reach(kept, "reach-live")
+    _reach(world["reaches"], "reach-other")                  # the live run was overwritten before this release began
+    world["differs"] = True
+    assert _staging(baseline=kept) == 1                      # the diff stops it
+    assert json.loads((R.HOME / "baseline" / LIVE / "report.json").read_text())["digest"] == "reach-live"   # kept
+    js = R.HOME / "checks" / NEW / "binding_diff.json"
+    world["fail"] = {"upload"}
+    assert _staging(accept_diff=js, min_app_version="0.6.0") == 1 and _latest(world) == NEW
+    run = json.loads(R.LEDGER.read_text())["run"]
+    assert run["promoted"] == NEW and run["flags"] == {"min_app": "0.6.0"}     # the promote spent the other two
+    world["fail"] = set()
+    capsys.readouterr()
+    assert _staging() == 0                                   # the bare command
+    out = capsys.readouterr().out
+    assert "remembered from an earlier run of this release" in out and "--min-app-version 0.6.0" in out
+    assert _env_of(world, "smoke") is None and [u["MIN_APP_VERSION"] for c, u in world["calls"] if c == "upload"] == ["0.6.0"] * 2
+    assert "run" not in json.loads(R.LEDGER.read_text())     # on staging: the next release starts clean
+
+
+def test_a_baseline_flag_left_over_from_before_the_promote_is_ignored_out_loud(world, tmp_path, capsys):
+    kept = tmp_path / "full_prev"
+    _reach(kept, "reach-live")
+    world["fail"] = {"upload"}
+    assert _staging(baseline=kept) == 1 and _latest(world) == NEW
+    world["fail"] = set()
+    capsys.readouterr()
+    assert _staging(baseline=kept) == 0                      # the first run's command line, typed again
+    assert "left over from before the promote, IGNORED" in capsys.readouterr().out
+    world2 = tmp_path / "wrong"
+    _reach(world2, "reach-wrong")
+    R.save_ledger({"releases": {}})
+    (world["root"] / "LATEST").write_text(LIVE + "\n")       # a first run with a wrong baseline is still refused
+    _reach(world["reaches"], "reach-live")
+    assert _staging(baseline=world2) == 1 and "STOPPED at baseline" in capsys.readouterr().err
+
+
+def test_forget_flags_drops_what_was_remembered(world, capsys):
+    world["extra"] = {"salmon": {"url": "x", "format": "salmon/4"}}
+    assert _staging(min_app_version="0.4.0") == 1
+    capsys.readouterr()
+    assert R.main(["--staging", "--forget-flags"]) == 0      # back to the live stamp (0.5.0)
+    assert "--forget-flags: dropped --min-app-version" in capsys.readouterr().out
+
+
+def test_an_escape_is_never_remembered(world, capsys):
+    world["fast_fail_rc"] = 1
+    world["fail"] = {"upload"}
+    assert _staging(no_fast_fail="tsc is down for the T999 refactor") == 1 and world["fast_fails"] == 0
+    assert json.loads(R.LEDGER.read_text())["run"]["flags"] == {}
+    assert _staging() == 1 and world["fast_fails"] == 1      # the bare rerun runs the guard again
+    assert "STOPPED at preflight" in capsys.readouterr().err
+
+
+def test_a_workflow_that_would_not_start_stops_saying_only_the_upload_is_left(world, capsys):
+    """T666 item 6 (build 27: GitHub refused the start and the only retry was the whole command)."""
+    world["rc"] = {"upload": R.RC_WORKFLOW_NOT_STARTED}
+    assert _staging() == 1
+    err = capsys.readouterr().err
+    assert "STOPPED at staging" in err and "did not start the run-timing workflow" in err and "only the upload runs" in err
+    assert _latest(world) == NEW and "uploaded_at" not in json.loads(R.LEDGER.read_text())["releases"][NEW]
+    world["rc"] = {}
+    world["calls"].clear()
+    assert _staging() == 0
+    assert [c for c, _ in world["calls"]] == ["build", "upload", "smoke"] and world["fast_fails"] == 1
+    up = (Path(R.REPO_ROOT) / "deploy/staging/upload.sh").read_text()
+    assert "scripts/start-workflow.sh" in up and "gh workflow run" not in up       # the one start, with its retry
+    assert 'exit "$rc"' in up                                                      # its 75 reaches the release
+
+
+def test_the_uploads_first_refusals_are_asked_before_it_starts(world, capsys):
+    world["staging_prechecks"] = ["`gh auth status` failed (rc=1)", "the rclone remote `r2:` is not configured"]
+    assert _staging() == 1
+    err = capsys.readouterr().err
+    assert "[7/7] staging FAILED: 2 problems" in err and "gh auth status" in err and "rclone remote" in err
+    assert "upload" not in [c for c, _ in world["calls"]] and _latest(world) == NEW
+
+
+def test_the_rehearsal_walks_every_stages_checks_and_lists_the_stops(world, capsys):
+    """T666 item 6: `--dry-run` predicts the stops. It reads the SAME preflight table as the real run."""
+    assert R.main(["--staging", "--dry-run"]) == 0           # before the build: preflight, baseline, the build's plan
+    out = capsys.readouterr().out
+    assert "REHEARSAL" in out and "rehearsal: no stop found before the build" in out
+    assert world["fast_fails"] == 1 and "ok: fast-fail passed" in out          # fast-fail is a check: it ran
+    assert json.loads(R.LEDGER.read_text())["fast_fail"]["key"] == "key-t1"     # … and the real run will skip it
+    assert [c for c, _ in world["calls"]] == ["build"] and _latest(world) == LIVE   # the build's own --dry-run only
+    assert "run" not in json.loads(R.LEDGER.read_text())                        # a rehearsal remembers no flag
+    # the mock's build dry run left a CANDIDATE: now every later stage is rehearsed on it
+    world["dirty"], world["pushed"] = ["pipeline/build.py"], False
+    world["manifest_problems"] = ["files.water: missing"]
+    world["inseason_check"] = ("unresolved", "in-season matches on r-new: WOULD CHANGE, 1 unresolved")
+    world["goldens_paired"], world["rc"] = False, {"taps": 1}
+    world["staging_prechecks"] = ["the rclone remote `r2:` is not configured"]
+    world["calls"].clear()
+    assert R.main(["--staging", "--dry-run"]) == 0
+    out = capsys.readouterr().out
+    assert world["fast_fails"] == 1                                             # same tree: not rerun
+    for said in ("WOULD STOP: 1 uncommitted path(s) the build reads: pipeline/build.py",
+                 "WOULD STOP: HEAD abc123 is not on origin/redesign/stream-sections",
+                 f"manifest sanity on {NEW}: WOULD STOP: files.water: missing",
+                 "WOULD STOP: reach run on disk is reach-new and no copy is kept (--baseline DIR)",
+                 "binding diff: not rehearsed: no baseline copy is kept",
+                 f"in-season matches: WOULD STOP: a match does not resolve on {NEW}",
+                 f"fixtures: WOULD STOP: the re-cut's first step (taps.py) fails on {NEW}",
+                 f"the upload's first refusals, on {NEW}: WOULD STOP: the rclone remote",
+                 "rehearsal: the real run would STOP 7 time(s) as things are:"):
+        assert said in out, said
+    assert [c for c, _ in world["calls"]] == ["build", "taps"]                  # nothing re-cut, committed or sent
+    assert _env_of(world, "taps") is None and _latest(world) == LIVE and world["recuts_committed"] == []
+    assert "follows" not in json.loads(R.LEDGER.read_text()).get("releases", {}).get(NEW, {})
+
+
+def test_the_rehearsal_and_the_run_read_one_preflight_table(world, capsys):
+    """By construction: a check added to PREFLIGHT is in both. Every check's failure shows in the rehearsal with the
+    words the real run stops with."""
+    assert [n for n, _ in R.PREFLIGHT] == ["committed", "atlas", "marks", "pushed", "ci", "live", "site", "fast-fail",
+                                           "fresh-copy"]
+    world["pushed"], world["site_problems"], world["fast_fail_rc"] = False, ["site 0.6.9 < 0.7.0"], 1
+    assert _staging() == 1
+    real = capsys.readouterr()
+    assert R.main(["--staging", "--dry-run"]) == 0
+    rehearsed = capsys.readouterr().out
+    for line in [ln.strip()[len("STOP: "):] for ln in real.out.splitlines() if ln.strip().startswith("STOP: ")]:
+        assert "WOULD STOP: " + line in rehearsed, line
+    assert real.out.count("    STOP: ") == 3 and "rehearsal: the real run would STOP 3 time(s)" in rehearsed
+
+
+def test_the_fresh_copy_test_run_happens_once_in_the_release_pre_check(world, capsys):
+    """T666, owner 2026-11-11: the clean-checkout run is the release pre-check's, once — not every quick check's. It
+    is not repeated on a resume, nor after the release's own fixtures / matches commits; another commit runs it again."""
+    world["fail"] = {"upload"}
+    assert _staging() == 1 and world["fresh_copies"] == 1
+    assert "ok: fresh-copy test run passed on a clean clone of HEAD abc123" in capsys.readouterr().out
+    assert json.loads(R.LEDGER.read_text())["fresh_copy"] == {
+        "tree": "committed-t1", "head": "abc123", "at": json.loads(R.LEDGER.read_text())["fresh_copy"]["at"]}
+    assert _staging() == 1 and world["fresh_copies"] == 1                      # a resume: same tree
+    world["commits"] = {"abc123"}
+    world["tree"] = "t2"                                                       # the release's own re-cut commit
+    world["committed_since"] = {"app/fixtures/golden/taps.json", "app/packages/ui-native/src/regs/fixtures/a.json",
+                                "data/curated/inseason/notice_waters.json"}
+    capsys.readouterr()
+    assert _staging() == 1 and world["fresh_copies"] == 1
+    assert "the commits since touch only what the release refreshes (fixtures, matches): not rerun" in capsys.readouterr().out
+    world["committed_since"] |= {"pipeline/deliver/x.py"}                      # a code commit: it runs again
+    assert _staging() == 1 and world["fresh_copies"] == 2
+    assert "1 path(s) committed since its pass at abc123 (pipeline/deliver/x.py): it runs again" in capsys.readouterr().out
+
+
+def test_a_failed_fresh_copy_stops_before_the_build_and_the_escape_prints_its_reason(world, capsys):
+    world["fresh_copy_rc"] = 1
+    assert _staging() == 1
+    err = capsys.readouterr().err
+    assert "STOPPED at preflight" in err and "on a clean clone of HEAD abc123" in err and "--no-fresh-copy REASON" in err
+    assert world["calls"] == [] and "fresh_copy" not in json.loads(R.LEDGER.read_text())
+    with pytest.raises(SystemExit):
+        _staging(no_fresh_copy=" ")
+    assert _staging(no_fresh_copy="GitHub CI ran the same tier green on this commit") == 0
+    assert "fresh-copy test run SKIPPED (--no-fresh-copy): GitHub CI ran the same tier green" in capsys.readouterr().out
+    assert world["fresh_copies"] == 1
+    assert R.run_fresh_copy.__name__ == "fresh_copy"
+
+
+def test_the_fresh_copy_runs_ci_s_tier_on_a_clone_through_heavy(monkeypatch):
+    seen = []
+    monkeypatch.setattr(R, "run_cmd", lambda cmd, env=None: seen.append(cmd) or 0)
+    assert R.run_fresh_copy() == 0
+    assert seen == [["bash", "scripts/heavy.sh", "release-fresh-copy", "30", "--", "bash", "scripts/fresh-copy-tests.sh"]]
+    sh = (Path(R.REPO_ROOT) / "scripts/fresh-copy-tests.sh").read_text()
+    assert "git clone -q --shared --no-checkout" in sh and "scripts/pytest-chunked.sh" in sh
+    assert 'pipeline-ci.yml' in sh and "ci_no_build" not in sh                 # CI's own markers; no build to hide
 
 
 # ------------------------------------------------------------------------------------------------------------- prod
@@ -494,19 +868,27 @@ def test_a_failed_inseason_resolve_stops_before_the_promote(world, capsys):
     world["fail"] = {"inseason"}
     assert _staging() == 1
     err = capsys.readouterr().err
-    assert "STOPPED at checks" in err and "do not all resolve" in err and "LATEST was not moved" in err
+    assert "STOPPED at follows" in err and "do not all resolve" in err and "LATEST was not moved" in err
     assert _latest(world) == LIVE and "upload" not in [c for c, _ in world["calls"]]
 
 
-def test_a_rewritten_inseason_file_is_committed_alone_and_the_run_stops_for_the_push(world, capsys):
+def test_a_rewritten_inseason_file_is_committed_alone_and_the_run_stops_once_for_the_push(world, capsys):
+    """T537, and T666: the stop comes at the END of the follows stage (after the re-cut and the tests), so the matches
+    commit and the fixtures commit are one push, not two stops."""
     world["inseason_dirty"] = True
+    world["recut_changed"] = ["app/fixtures/golden/taps.json"]
     assert _staging() == 1
-    err = capsys.readouterr().err
-    assert world["commits_made"] == [NEW] and "committed (c0mmit" in err and "git push origin" in err
-    assert _latest(world) == LIVE
-    world["inseason_dirty"] = False
-    assert _staging() == 0                                     # resolved for NEW: not run again
-    assert [c for c, _ in world["calls"]].count("inseason") == 1
+    io = capsys.readouterr()
+    assert world["commits_made"] == [NEW] and "committed c0mmit" in io.out
+    assert world["recuts_committed"] == [(NEW, "renumber only")]
+    assert "STOPPED at follows" in io.err and "2 commit(s) are not on origin/redesign/stream-sections: 2 the release made" in io.err
+    assert "next: git push origin HEAD:redesign/stream-sections, then rerun" in io.err and "--push" in io.err
+    assert _latest(world) == LIVE and [c for c, _ in world["calls"]] == ALL[:5]
+    world["inseason_dirty"], world["pushed"], world["unpushed"] = False, True, []      # the human pushed
+    assert _staging() == 0                                     # resolved, re-cut and tested for NEW: none run again
+    names = [c for c, _ in world["calls"]]
+    assert (names.count("inseason"), names.count("recut"), names.count("follow-py"), names.count("follow-app")) == (1, 1, 1, 1)
+    assert world["pushes"] == 0 and _latest(world) == NEW
 
 
 def test_a_smoke_failure_reruns_only_the_smoke_and_the_chores_are_named(world, capsys):

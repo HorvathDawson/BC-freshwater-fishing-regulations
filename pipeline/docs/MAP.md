@@ -23,7 +23,9 @@ one atlas and one registry. Heavy: one at a time through `scripts/heavy.sh`.
 `python -m pipeline release --staging` (`pipeline/release.py`, T408) wraps it: preflight (committed code + curated) →
 a copy of the live release's reach run → `pipeline build --hold-latest` via heavy.sh (the release waits in
 `data/release/CANDIDATE`) → checks (manifest sanity, `deliver/release/app_gate.py`, `atlas/reach/binding_diff.py`
-against the live release) → LATEST → `deploy/staging/upload.sh`. Its ledger is `data/generated/release/ledger.json`;
+against the live release) → follows (T666, `pipeline/release_follows.py`: the in-season matches, the app's fixtures
+re-cut and the tests that read the release, all on the candidate) → LATEST → `deploy/staging/upload.sh`. Preflight
+lists every failure at once; `--dry-run` rehearses every stage's checks. Its ledger is `data/generated/release/ledger.json`;
 `--prod <r-id>` (human-only) re-uploads that same release through `deliver/release/publish.py`.
 
 ## Stages and where they live

@@ -4,6 +4,10 @@
 #
 #   ./scripts/fast-fail.sh            run every item; exits non-zero on the FIRST failure (its output is shown whole)
 #   FAST_FAIL_ONLY=<regex> …          only the steps whose name matches (rerun one failed step); says PARTIAL, not a pass
+#   FAST_FAIL_ALL=1 …                 (T666 item 3) go on past a failed step and end with the list of EVERY step that
+#                                     failed (exit 1); `pipeline release` preflight runs it so, and reads the list from
+#                                     FAST_FAIL_REPORT=<file> (one failed step name per line). caught (build 27,
+#                                     2026-11-11): six release runs, each stopped by the next single failure.
 #
 # Run it before any long job (build, release, APK, emulator, full suite) and while a build waits. (T535) scripts/heavy.sh
 # runs it before every heavy job, during the lock wait (FAST_FAIL_DONE=<HEAD sha> when the caller already ran it;
@@ -35,11 +39,46 @@ DEV=redesign/stream-sections
 PYTHONPYCACHEPREFIX=$(mktemp -d "${TMPDIR:-/tmp}/pycache.XXXXXX"); export PYTHONPYCACHEPREFIX
 trap 'rm -rf "$PYTHONPYCACHEPREFIX"' EXIT
 t0=$SECONDS
-ran=0; not_run=0
+ran=0; not_run=0; failed=()
 step() {
   if [[ -n ${FAST_FAIL_ONLY:-} && ! $1 =~ $FAST_FAIL_ONLY ]]; then not_run=$((not_run + 1)); return 0; fi
-  local s=$SECONDS; ran=$((ran + 1)); echo "── $1"; shift; "$@"; echo "   ok ($((SECONDS - s)) s)"
+  local s=$SECONDS name=$1 rc; ran=$((ran + 1)); echo "── $1"; shift
+  if [[ -n ${FAST_FAIL_ALL:-} ]]; then
+    # a subshell OUTSIDE any `if` / `||`, so `set -e` still stops the step at its own first failing command
+    set +e; ( set -e; "$@" ); rc=$?; set -e
+    if (( rc )); then
+      failed+=("$name"); echo "   FAILED (rc=$rc, $((SECONDS - s)) s) — going on (FAST_FAIL_ALL): the list is at the end"
+      return 0
+    fi
+  else
+    "$@"
+  fi
+  echo "   ok ($((SECONDS - s)) s)"
 }
+finish() {
+  local f
+  [[ -n ${FAST_FAIL_REPORT:-} ]] && printf '%s\n' ${failed[@]+"${failed[@]}"} > "$FAST_FAIL_REPORT"
+  if (( ${#failed[@]} )); then
+    echo "fast-fail: ${#failed[@]} step(s) FAILED of $ran run ($((SECONDS - t0)) s) — each one's output is above:" >&2
+    for f in "${failed[@]}"; do echo "  - $f" >&2; done
+    echo "  rerun one: FAST_FAIL_ONLY='<part of its name>' ./scripts/fast-fail.sh" >&2
+    exit 1
+  fi
+  if [[ -n ${FAST_FAIL_ONLY:-} ]]; then
+    echo "fast-fail: PARTIAL (FAST_FAIL_ONLY=$FAST_FAIL_ONLY): $ran step(s) passed, $not_run not run — not a full pass, $((SECONDS - t0)) s"
+    exit 0
+  fi
+  echo "fast-fail: all passed in $((SECONDS - t0)) s"
+}
+# (T666) the runner's own test (pipeline/tests/test_release_follows.py): two stand-in steps instead of the list, so
+# "stops at the first" and "lists every failure" are proved without running a real check
+if [[ -n ${FAST_FAIL_SELFTEST:-} ]]; then
+  selftest_fails() { echo "   selftest: before"; false; echo "   selftest: NOT REACHED"; }
+  step "selftest: a step that fails" selftest_fails
+  step "selftest: a step that passes" true
+  step "selftest: a second step that fails" false
+  finish; exit 0
+fi
 
 if [[ -n ${FAST_FAIL_BASE:-} ]]; then
   BASE=$(git rev-parse --verify "$FAST_FAIL_BASE^{commit}")
@@ -70,6 +109,14 @@ heavy_test() {
   bash scripts/tests/heavy.test.sh
 }
 step "heavy.sh shell test (heavy.sh changed)" heavy_test
+
+# (T666 item 6) the bounded workflow-start retry the staging upload uses: its shell test (a stand-in gh, ~2 s) runs when
+# the script or its test changes
+start_workflow_test() {
+  grep -qE '^scripts/(start-workflow\.sh|tests/start-workflow\.test\.sh)$' <<<"$CHANGED" || { echo "   (start-workflow.sh unchanged)"; return 0; }
+  bash scripts/tests/start-workflow.test.sh
+}
+step "start-workflow.sh shell test (start-workflow.sh changed)" start_workflow_test
 
 # caught (T538, 2026-11-10): build-apk.sh only warned on an app version with no changelog entry and published empty
 # notes ("No notes were published"); 0.1 s (also in pnpm check:fast)
@@ -242,8 +289,4 @@ vitest_changed() {
 }
 step "vitest on changed app files" vitest_changed
 
-if [[ -n ${FAST_FAIL_ONLY:-} ]]; then
-  echo "fast-fail: PARTIAL (FAST_FAIL_ONLY=$FAST_FAIL_ONLY): $ran step(s) passed, $not_run not run — not a full pass, $((SECONDS - t0)) s"
-  exit 0
-fi
-echo "fast-fail: all passed in $((SECONDS - t0)) s"
+finish

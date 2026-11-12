@@ -54,14 +54,11 @@ if [[ -n "$RT_SAME" ]]; then
 else
 rclone copyto "$RT/$RT_BASE" "$D/$RT_KEY" --s3-no-check-bucket --checksum
 git merge-base --is-ancestor HEAD "origin/$GH_REF" || { echo "upload: push $GH_REF first (the run-timing workflow runs GitHub's copy)"; exit 1; }
-RT_T0=$(date -u -v-60S +%Y-%m-%dT%H:%M:%SZ)     # a minute back: the Mac and GitHub clocks differ a little
-gh workflow run feeds-runtiming.yml -R "$GH_REPO" --ref "$GH_REF" -f upload=true -f tiles="$TILES" >/dev/null
-for _ in $(seq 1 30); do
-  RT_RUN=$(gh run list -R "$GH_REPO" --branch "$GH_REF" --event workflow_dispatch --limit 10 --json databaseId,createdAt,workflowName \
-    --jq "[.[] | select(.workflowName | startswith(\"feeds — run timing\")) | select(.createdAt >= \"$RT_T0\")][0].databaseId // empty")
-  [[ -n "$RT_RUN" ]] && break; sleep 4
-done
-[[ -n "$RT_RUN" ]] || { echo "upload: the run-timing workflow did not start (gh workflow run)"; exit 1; }
+# (T666 item 6) the START is retried on its own, bounded and said out loud (scripts/start-workflow.sh: WF_START_TRIES,
+# default 3, WF_START_WAIT s apart; build 27: GitHub refused the start and the only retry was the whole release
+# command). Exit 75 = nothing was started; nothing that moves the pointer has been sent yet.
+RT_RUN=$(scripts/start-workflow.sh "$GH_REPO" "$GH_REF" feeds-runtiming.yml "feeds — run timing" -f upload=true -f tiles="$TILES") \
+  || { rc=$?; echo "upload: the run-timing workflow did not start (above); the release pointer was NOT written"; exit "$rc"; }
 echo "run timing: workflow run $RT_RUN started for $TILES"
 fi
 rclone copy "$R/tiles/$TILES" "$D/release/tiles/$TILES" --s3-no-check-bucket --transfers 16 --header-upload "$IMM" \
