@@ -1,6 +1,6 @@
 # T678 — Tidal Coast Proposal (DRAFT, not published, not shown to the owner yet)
 
-**Status 2026-11-12: DRAFT.** Stopped for a computer restart. The grouping, all 53 pictures and the page draft are done; the page is NOT published and the owner has not seen it. Nothing is applied; every line stays held at today's result.
+**Status 2026-11-12: published** at https://claude.ai/artifact/2VRJAsyeeyMNmCiZpJewVA . 53 pictures are supporting files. The page carries proposals only; nothing is applied and every line stays held at today's result until the owner answers. Owner To-Do row `tidal-coast-proposal` added; the old tidal rows are marked replaced.
 
 ## What is left to do
 1. Publish `index.html` as an Artifact titled "Tidal Coast Proposal" (static, icon "map"; images as supporting files `img/*.jpg`, 6.8 MB in all; load the artifact-design skill first). Put the URL where this file says PAGE_URL.

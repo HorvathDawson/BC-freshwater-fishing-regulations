@@ -118,10 +118,8 @@ Answered 2026-11-12 (recorded in the tickets; Owner To-Do rows ticked with the a
 Staging: release r-483b295de57c is live on https://staging.canifishthis.ca (site, data, feeds worker). Yours: look at the four new creek cuts (FWA lines 354135384, 356070273, Crescent Slough 356326465, 356349946), and Brem and Ucona, on the staging map.
 
 Open, your call (tidal, T678 / T679):
-- Held-rivers page https://claude.ai/artifact/3v6g4Ggx8WJZg4Jvxras9q : wait, do not label yet. It will be rebuilt around the lines the new mouth method leaves open.
-- 46 estuaries are drawn as river where the mouth methods disagree: look and pick per estuary (T678).
+- Tidal coast proposal: 183 lines in seven groups + 20 Fraser sloughs (T678, replaces the old held-rivers, 46-estuaries, 61+32 held, four-new-cuts/Brem/Ucona and Fraser-slough rows; Owner To-Do row `tidal-coast-proposal`): https://claude.ai/artifact/2VRJAsyeeyMNmCiZpJewVA . Proposals only, nothing applied: G1 59 fresh to the shoreline; G2 17 drop the cut; G3 18 cut where the creek meets the river; G4 10 and G5 3 keep today's cut; G6 63 (E1 to E10) and G7 7 (X1 to X7) one answer per card; S1 to S20 Fraser sloughs, nothing filled in. Answer in chat.
 - ANSWERED 2026-11-12 (T678 C, Owner To-Do row `held-five-build27-cut`): five held lines with a build-27 cut and nothing tidal below (354087703, 354154029, 356341234, 360445710, 360861076): "Drop the cuts". Ticket T684. RULINGS E20.
-- Fraser sloughs and 7 unnamed lines: decide one by one; the Fraser channels rule does not cover sloughs (T678).
 
 Still open:
 - ANSWERED 2026-11-12 and BUILT (4bc03ac14; ticket T676): "until further notice" — "it is from that day to no end. If the thing is for a closure then it closes etc". The release now reads every DFO date cell with the live feed's reader, so both say "from <day> until further notice" (RULINGS D5). No open/closed status moves on today's pages; 6 places not drawn yet change their words. Shows with the next release (the feed already reads it so).
@@ -132,9 +130,6 @@ Still open:
 - ANSWERED 2026-11-12 (T670 G7, Owner To-Do row `t670-g7-classified-terms`): the 26 classified-water licence terms of p.7: "Show on each water": each classified water's Licence tab lists the p.7 terms that apply to it, in the book's words. Ticket T670. RULINGS Li13.
 - CLOSED 2026-11-12 (owner: "Close it"; row `t628-marked-entry-guard`): T628 item 5, a plain re-parse can no longer replace an entry carrying your review mark.
 - Next rebuild side build, measured (results: `handoff/PLAN/app-integration/next-rebuild-results.md`; no unexplained difference). Items for you, all left at today's behaviour unless said:
-  - Tidal held lines are now 93, not 61: 32 new. Cohilukthan Slough (880 m) and Deas Slough (225 m) are over 100 m up the channel; Kainet Creek has a braid across its exit; 29 more the precise rule would make tidal that the dry-run pages showed "not cut" (Kwatna 3,125 m, Quaal 2,357, Bella Coola 1,320, Kitimat 1,251, Khutze 1,068, Kemano 813, San Juan 695 and others). All 93 keep build 27's sections and cuts. Ticking the 29 brings 31 more creek cuts and 24 braid cases. Map cards for all 93, the 32 new first: https://claude.ai/artifact/3v6g4Ggx8WJZg4Jvxras9q
-  - Four creeks are newly cut at the tide line (built): FWA lines 354135384, 356070273 (a 6 m piece), Crescent Slough 356326465, 356349946. Look when the staging map is up.
-  - Brem River group (5 lines) showed as cut on the dry-run map and is NOT cut: the Brem ends at the sea with nothing mapped below it.
   - parse-missing: NOT needed, closed. Checked without parsing (5b5caecd3 lane): 1,393 entries, 0 missing, no reference to a lost water id; entry ids come from the synopsis row, not the water.
 - Tidal map pages (same links as the tidal line above): held rivers, one card each https://claude.ai/artifact/3v6g4Ggx8WJZg4Jvxras9q ; every cut on the map https://claude.ai/artifact/3Jbd8SjT64Tj9HXvPgPBDc
 - Phone check of the next build: Claude brings one fresh list (folds in the 0.7.5 checks: cold start, gauge ring, key switch, oxbows, page opens whole, part warning, three rule readings, satellite edges, tidal shore, Stellako steelhead line, plus T681 legend card and the T625 shared link). Owner 2026-11-12: "One fresh list for the new build", gone through in chat with pictures.
