@@ -1905,7 +1905,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "harrison_river__harrison_lake",
+              "harrison_river__hwy_7_bridge_over_the_harrison"
+            ],
+            "item_id": "gnis:15333"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
