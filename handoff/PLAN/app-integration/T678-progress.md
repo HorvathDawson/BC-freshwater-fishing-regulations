@@ -139,3 +139,25 @@ Next commands:
 - Measured on the whole candidate (every named and unnamed part, flag on vs off, per fish): 9 changes, all in rule set
   1695 = Qualcho Creek only (RB/GB/CT 2 → 1 on the Jul 1, Aug 1 and Oct 1 segments). No other card moves.
 - card_check `--items gnis:27799`: 0 problems. Fast-fail passed.
+
+## Release stopped at the size gate 2026-11-12 (owner decision needed)
+- Rehearsal (`--dry-run --rehearse-follows`) was clean through the build: preflight, fresh-clone tests at fad6ebab7.
+  There was no candidate yet, so the follows were not rehearsed. CI green on fad6ebab7.
+- The real `release --staging` ran deliver (3m52s). The card gate passed on every card (16,081 groups on 7,198
+  distinct cards, 0 problems). `deliver release` then refused the package (log
+  `data/generated/build-logs/2026-11-12T125409/deliver.log`):
+  `SIZE GATE: conditions: 963,726 B gzip > 950,000` · `core: 1,508,127 > 1,450,000` · `web first_search: 1,508,127 >
+  1,500,000 (core)`.
+- Cause, measured (bundle live vs candidate): D1. The 16,119 folded ponds' sections now belong to named rivers.
+  `item_section` 65,237 → 81,357 rows (+16,120); core gz +119,818 (+8.6 %). `section_gauge` 108,075 → 114,140 rows
+  (+6,065: a folded pond now takes its river's gauge); conditions gz +47,677 (+5 %). Other files move a little and stay
+  under their gates (water 2,580,783 / 2,650,000, down 1,166,509 / 1,250,000).
+- Not touched: the gates (`release/build.py` `SIZE_GATES`, `release/contract.py` `WEB_BUDGET["first_search"]`). Raising
+  a budget is the owner's call. Options: (a) raise core to about 1.65 MB, conditions to about 1.06 MB and first_search
+  to about 1.65 MB, each with this measurement as its reason (as T252/T388 did); the first search on the web
+  downloads ~120 KB more. (b) A ticket to ship the folded ponds' sections more compactly (not designed). (c) Undo D1
+  (not recommended: it is the owner's ruling).
+- Held: APK 0.7.7. Three of its four changelog notes describe this data release (tidal ends, ponds follow the river,
+  Dewdney search), so it waits for the release.
+- Resume after the decision: `.venv/bin/python -m pipeline release --staging` (clim/reach/tiles are up to date; deliver
+  reruns, ~4 min).
