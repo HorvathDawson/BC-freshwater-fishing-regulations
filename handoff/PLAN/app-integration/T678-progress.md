@@ -669,3 +669,29 @@ Owner's phone report (build 29, the More tab). Done in code, not yet in a build:
   deliver; no binding change). Needs a declaration in taps.py (a relabelled golden part) — per the coordinator's limit
   (any other changed golden: stop) NOT made. LATEST still r-0a9930fb8826; CANDIDATE r-adc4e248a163; nothing deployed
   beyond the feeds worker + /4 above.
+- Owner 2026-11-13 "Accept same-piece changes". DECLARATIONS ADDED (68ba6efb3, app/tools/regs-recut/taps.py), for review:
+  1. `x17p7_1010` (Babine part 5) PART_GROWN (5, …) + PART_GROWN_IS label '… up to the Nilkitkwa Lake outlet' -> '… up to
+     the juvenile counting weir', 1 section. Cause: 040b79d16 `bundle.spans.end_token` (RULINGS P55 follow-up, owner
+     2026-11-12 "Yes, read the real boundary"; its message names "Babine juvenile weir"): the hi end token went
+     `lake_outlet:wbk:329026685` -> `babine_river__juvenile_counting_weir` (curated cut on Nilkitkwa Lake's outlet edge).
+     Proof: same 99.05 km mark, 1 section, open, lo end unchanged; akey tuple equal but for renumbered ids; every
+     section on the Babine entries' lines has the same rule set in both reach runs (only the 14 D1 Comox pond sections
+     differ in that sweep); no Babine rule/licensing/DFO entry in the binding diff.
+  2. `x19p1_1010` (Skeena Exchamsiks -> Zymagotitz) PART_GROWN index 3 -> 4, PART_GROWN_IS 59 -> 60 sections. Cause: the
+     junction fix's re-placed automatic length cuts on 360887278 (44465 -> 45193, new 77497 inside this stretch): present
+     in reach `nextatlas_junctions3`/`full`, absent in `nextatlas_final` (the run before the junction fix). Proof: same
+     ends (Exchamsiks cut -> Zymagotitz cut), 115.77 km mark, same rule-set group (ruleset/licensing/seg equal, ids
+     renumbered). Index shift: group 0's old part 2 (46 sections) is now two runs either side of the Reserve, parts 1
+     (44) and 3 (2), same key; the Reserve moved 1 -> 2.
+  Observed, not declared (no stop): `x15p2_1010` (PART_RECOUNTED, Fraser CPR Bridge -> Landstrom Bar) 27 -> 34 sections,
+  same ends and km; its declared text (40 -> 36) is now stale.
+- Rerun: follows STOPPED at "2 golden pages changed" (token c9c415db01f9, NOT accepted):
+  (a) `x19p0_1010` Skeena page goes own -> CLOSED (superior_closures.r3 wins every fish). Cause found: its PART_TIDAL
+      declaration taps the freshwater remainder at FIXED index 2 ("the group's lowest part"); after the run split, index 2
+      is the closed Ecological Reserve and the group's lowest part is 1 (44 sections, same key 871 as before). So the
+      fixture now taps the wrong part — very likely an artifact, but it is an open/closed change and the split's cause
+      (why the 46-section run no longer joins across the Reserve) is not traced in code; per the owner's rule, stopped.
+      Proposed fix for the owner/main session: PART_TIDAL `x19p0_1010` index 2 -> 1 (reason: T678 junctions, run split), then
+      rerun; expected: the page back to `own` with the same rows (unverified).
+  (b) `edge_unnamed.json`: one handle renumber 917240 -> 917242 (renumber only).
+  The re-cut files are left uncommitted in the working tree (page-oracle.json, taps.json, edge_unnamed.json) for reading.
