@@ -1,6 +1,6 @@
 # T670 — Keep and Gear tabs: show the regulations the release holds and the screens left out (T462 audit K1–K5, G1–G5, G7)
 
-Status: IN PROGRESS — eight findings fixed in the presenters and shown now (738f6608f, no release needed); G2, G5 answered and built; G7 answered 2026-11-12 (below), to build; the web pages' copy (`app/tools/seo/model.ts`, T672's lane) still has to draw the two new fields.
+Status: IN PROGRESS — eight findings fixed in the presenters and shown now (738f6608f, no release needed); G2, G5 answered and built; G7 built 2026-11-12 (fab4c0f6f, app only: the release already carries the terms; shows with the next app build); the web pages' copy (`app/tools/seo/model.ts`, T672's lane) still has to draw the two new fields.
 
 Source: `handoff/PLAN/app-integration/T462-audit.md` (85ba2e821), owner 2026-11-11. Rule for this ticket (owner, same
 day): a finding is FIXED here only when the screen dropped what the release plainly holds and the book plainly says,
@@ -25,7 +25,7 @@ waters) on six days (Jan 15, Mar 15, May 1, Jul 15, Sep 1, Nov 11) = 124,578 pag
 | 8 | **G4** a hook-size limit (`counts.hook_gap_mm`) was not worded | FIXED, shows now (wording: the rule's stored label; a shorter wording is the owner's, below) | `core/src/regs/gear.ts` `gearLines` | 3 rules on 3 waters (6 parts, 27 pages) → 0 |
 | 9 | **G2** the bait heading on a day game fish are closed and the gear tab is drawn for salmon | HELD FOR OWNER | — | 5,156 of 7,932 such pages say "not today" above an all-✕ list (2,705 waters) |
 | 10 | **G5** no Licence tab on a day game fish are closed and the gear tab is drawn for salmon | HELD FOR OWNER | — | 20,306 closed pages with a gear answer (8,259 waters); how many have salmon open was not counted |
-| 11 | **G7** classified-water licence terms (draw, booking, 8-day cap, one licence a year) are on no tab | ANSWERED 2026-11-12, TO BUILD | — | 10 terms; in the release's licensing table, in no licence frame |
+| 11 | **G7** classified-water licence terms (draw, booking, 8-day cap, one licence a year) are on no tab | BUILT 2026-11-12 (RULINGS Li13), shows with the next app build | `core/src/regs/licence.ts` `bookTerms` (`NeedItemVM.book`); `ui-native` `LicenceAnswer` | the 8 Classified Waters Licence terms ride in the answers already; drawn now under the licence item |
 
 G6 (Pend d'Oreille) is not in this ticket: the owner's reading.
 
@@ -131,3 +131,27 @@ G2 bait heading: "Why does it matter the river is closed? It shouldn't show any 
 
 
 G7 decision (owner 2026-11-12, "Show on each water"): each classified water's Licence tab lists the p.7 terms that apply to it, in the book's words. No longer held. RULINGS Li13.
+
+
+## G7 built (Claude, 2026-11-12, fab4c0f6f)
+- Measured first: the terms ARE in the licence frames already. `licence.documents` hangs every `licence_terms` record
+  without a fee whose `who` matches the angler and whose class / units match a designation in force on the requirement
+  that needs the document (`requirements[].terms`). On r-0a9930fb8826 the 273 shipped profile answers carry them:
+  cwl_resident 27, cwl_non_resident 27, cwl_non_resident_guided 24, dean_canadian_no_day_limit 10, dean_nra_limits 5,
+  dean_nra_one_licence 5, cwl_booking 2, dean_class_i_main_draw 1 (and the basic licence's basic_one_per_year 261,
+  basic_disabled_fee 39). Nothing in the app drew them. So no pipeline change and NO RELEASE is needed: the current
+  release shows them as soon as an app (APK / web) is built from fab4c0f6f or later.
+- App: `bookTerms` reads the Classified Waters Licence's terms of the angler's answer into the "You need" item's `book`
+  (the record's `verbatim`, once, answer order; a term the answer names that the release lacks throws); `LicenceAnswer`
+  draws them under "From the rule book:". The golden line (`needLine`) includes them.
+- Wigwam River, non-resident: "Classified Waters Licence … $22.86 a day", then "From the rule book:" + the Kootenay booking
+  sentence + the non-guided per-day / 8-day sentence. A resident: the annual-licence sentence, no booking. The Elk (Class
+  II, not booked): the per-day sentence only.
+- Tests: pipeline `test_answers_licence.py::test_li13_*` (who / class / unit, mutations); core `licence.test.ts` (whole
+  line, mutation, missing record); `methods-licence.render.test.tsx` (the Elk per angler; no term on the Vedder);
+  `conformance/src/regs/t670.release.test.ts` G7 (Wigwam, the Elk). Ten regs goldens re-cut: `book: []` everywhere, the
+  Elk's licence fixture gains its two sentences.
+- HELD FOR THE OWNER: the basic licence's two administrative terms ("You are only permitted one annual angling licence per
+  year." on every water's basic licence; the disabled-resident $1.14 fee) are in the answers too but are not p.7's
+  classified-water terms, so they are not drawn. Default: leave them off (Li13 names classified waters).
+- Not done: the web water pages (`app/tools/seo/model.ts`, T672's lane) do not draw `book` yet.
