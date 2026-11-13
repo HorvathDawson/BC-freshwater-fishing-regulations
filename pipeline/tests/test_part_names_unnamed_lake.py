@@ -181,12 +181,15 @@ def test_province_wide_every_source_top_has_a_source_header(request):
 def test_signs_that_are_the_place_read_as_the_signs():
     """T708 Gagnon (RULINGS P57: mouth → signs → Source): a sign cut whose words after "signs" name no place — a bare
     placement note, or "its mouth" — reads as the signs; a sign cut AT a named place still loses the sign-post words."""
-    sp = {"g__signs": {"name": "fishing boundary signs (200 m upstream of the lake on the creek)", "km": 3.9,
+    sp = {"g__signs": {"name": "fishing boundary signs near its mouth (200 m upstream of the lake on the creek)", "km": 3.9,
                        "water_id": "gnis:1"},
           "g__old": {"name": "fishing boundary signs near its mouth", "km": 3.9, "water_id": "gnis:1"},
           "p__pool": {"name": "signs at the tail of the canyon pool (300 m downstream)", "km": 5.0, "water_id": "gnis:1"}}
     W = _water([[_run("g__signs", "mouth", 3.9, 0.0)], [_run("source", "g__signs", 9.0, 3.9)]], splits=sp)
-    assert _said(W) == ["Mouth → Fishing boundary signs (200 m upstream of the lake on the creek)",
-                        "Fishing boundary signs (200 m upstream of the lake on the creek) → Source"]
+    end = "Fishing boundary signs near its mouth (200 m upstream of the lake on the creek)"
+    assert _said(W) == [f"Mouth → {end}", f"{end} → Source"]
     assert end_words(W.doc, "g__old", "to") == "Fishing boundary signs near its mouth"
+    # a bare placement note keeps the sign words too
+    sp["g__note"] = {"name": "fishing boundary signs (200 m upstream)", "km": 3.9, "water_id": "gnis:1"}
+    assert end_words(W.doc, "g__note", "to") == "Fishing boundary signs (200 m upstream)"
     assert end_words(W.doc, "p__pool", "to") == "The tail of the canyon pool (300 m downstream)"
