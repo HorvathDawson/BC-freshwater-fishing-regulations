@@ -722,6 +722,7 @@ Owner's phone report (build 29, the More tab). Done in code, not yet in a build:
   Skeena part "Tidal boundary → Exchamsiks River confluence" is now "Skeena River Ecological Reserve boundary near the
   Exchamsiks River confluence → Exchamsiks River confluence"; the back/chooser walk follows). All look like pins of the
   old part names; they need test edits, which this lane may not make.
-  The release's re-cut fixtures are uncommitted in the tree ON PURPOSE: the ledger records the re-cut on the candidate, so
-  preflight now pairs the goldens with r-adc4e248a163, and reverting them fails preflight (seen once: "goldens cut from
-  LATEST"). The release commits them itself when follows passes.
+  After this stop the release put the re-cut fixtures back itself: the tree is clean (only the other lane's
+  dfo-suggestions.json). The ledger still records the re-cut on the candidate, so a rerun's preflight may pair the
+  goldens with r-adc4e248a163 and stop ('goldens cut from LATEST', seen once); then re-cut in place first
+  (`node app/tools/regs-recut/sync.mjs --release data/release/r-adc4e248a163`) and rerun.
