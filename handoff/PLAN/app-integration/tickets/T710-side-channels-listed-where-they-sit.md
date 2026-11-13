@@ -1,6 +1,6 @@
 # T710 — Parts list: a side channel is listed next to the main-stem part it runs beside
 
-Status: OPEN.
+Status: IN PROGRESS — left (Claude): ships with the next release (candidate r-c874b18502c9); taps.py Skeena indices at the re-cut.
 
 Source: owner 2026-11-13, boundary-name review (pack: ~/bcfish-session-backup-2026-11-12/boundary-names/PACK.md, Skeena Reserve). Split accepted; owner chose "List it where it sits". Today side channels are numbered after all main-stem parts (the closed Reserve side channel is part 18).
 ## Work
@@ -34,3 +34,26 @@ Where the order is decided (once): `pipeline/deliver/bundle/derived.py::part_row
 `part_geo` stops the build if it disagrees ("part_ix is not river order"); `pipeline/tools/audit/water_map_export.py`
 uses `order_parts` too. Method (read-only): scratch script over `codec.expand` of the export, `parts[].runs` /
 `touches`.
+
+## Built (023c61c9d, 2026-11-13; owner decided "List it where it sits")
+`topology.order_parts` is the one ranking (bundle `part_rows`, the `part_geo` check, the answers picker, `water_map_export`):
+a side-channel part with no km goes right after the main-stem part it runs beside (`side_host`: most shared end names,
+else the first part it touches; a tie to the part nearer the mouth; several beside one host keep part order; none: last).
+Tests: `test_part_geo.py` (Skeena shape, tie, touch fallback, no host, a side part with a km keeps its place).
+
+**Measured: 8 waters, 33 part numbers** (the count's 9th, Old Kootenay River Channel's "swap", was the count script
+inserting each side part directly after its host, which reversed two side parts beside one host; built, they keep part
+order). Before → after (old part number at each new position), same on the live bundle and the candidate r-c874b18502c9:
+- Skeena (gnis:2936): Reserve side channel 18 → 4 (after part 3); old 4–17 → 5–18.
+- San Juan (gnis:21201): side 4 → 1 (Deering Road bridge side channel, after the estuary part 0); old 1–3 → 2–4.
+- Forsyth Creek (gnis:11815): side 3 → 1; old 1–2 → 2–3.
+- Kitsumkalum (gnis:3942): side 3 → 1; old 1–2 → 2–3.
+- Mahood Creek (12114), Sustut River (25386), Snehumption Creek (27390), Wood River (8372): side 2 → 1, old 1 → 2.
+No binding change (part order is bundle-only).
+
+Part numbers stored elsewhere (checked): marks.jsonl has no part field (no rename); links carry a FWA place, never a part
+(T369; `ix=` is the browser tools' key, re-cut per release); app tests name Skeena parts by their ends (`sectionNames`).
+Follows at the release: the goldens re-cut, and the Skeena declarations in `app/tools/regs-recut/taps.py` that name a
+store part index >= 4 move +1 (x19p1 4→5, x19p5 5→6, x19p6 7→8, x19p7 8→9) — left for the release's re-cut step (it
+stops and names them; not editable before the candidate is LATEST).
+Not done: the side channel's name wording (Work 3, owner, undecided).
