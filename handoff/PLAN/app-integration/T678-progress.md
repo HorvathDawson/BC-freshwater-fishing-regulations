@@ -301,3 +301,28 @@ Next commands:
   0.6 over the basemap's cyan water mixes to khaki (computed (176,163,91), on screen (174,166,97)); the "Not fishable" row is a
   fixed key row. Same colour on the 11-04 / 11-06 shots. Whether an own-rules lake may look this close to the "Not fishable"
   swatch is a look question for the owner (not decided).
+
+## Next-atlas small items (2026-11-12 evening, agent) — candidate `data/generated/atlas/full_next`, NOT promoted
+- Code (0b23c1403, pushed): T606 item 2 (lake-edge clash suffixes numbered by place; a lake drops a flowing name any
+  stream item owns), T560 item 3 (`wsc.code_owner`, one owner of a shared code), T560 item 5 (`tolerances.meets_at`,
+  one area slug). Tests `test_next_atlas_items.py`, mutation-pinned.
+- Build: `scripts/heavy.sh next-atlas 50 -- python -m pipeline build --atlas` (32 min, rc 0). Parity: items 21,279,
+  sections 4,612,466, boundaries 11,361, all unchanged; 6 items changed: Teslin River (gnis:2670) — its two "Hutsigola
+  Lake" edge ids swap (`teslin_river__hutsigola_lake` now lake:329560236, `_2` lake:329560232; named by nothing
+  curated); Kluskoil, Tsacha, Tundra and both Euchiniko Lakes lose the search names 'West Road River' and
+  'BLACKWATER RIVER'. section_handles, tidal_sections, splits.resolved, region_home, item_points, shore/coast records,
+  split_anchors and braid records byte-identical.
+- Reach on it (`reach.cli --build …/full_next --out data/generated/reaches/nextatlas_cand`, 10 min, rc 0) and the
+  binding diff against the live release's baseline (`binding_diff data/generated/release/baseline/r-0a9930fb8826
+  data/generated/reaches/nextatlas_cand`): NO BINDING CHANGED (rules, licensing, DFO places, tidal, outside). Standing
+  (as live): 2 withheld pieces, Chipmunk/Toms Lake scope unresolved, the 3 accepted Skeena channels.
+- Angler-visible: searching "West Road River" / "Blackwater River" finds only the river, not five lakes as well.
+  Nothing else moves.
+- Release dry run: `pipeline release` builds from the served atlas and has no option for a side atlas; it can only
+  rehearse this after the promote.
+- Held / left: T631 item 5 (owner's 11-11 ruling keeps the Skeena channels out; default close); T678 plan 2, 5, 6
+  (medium) and the legacy-reader retirement (after the next promote) — reasons in T678's ticket; item 8 settled by T685.
+- Promote + release (main session, after the owner sees this): `.venv/bin/python -m pipeline.atlas.promote
+  data/generated/atlas/full_next --dry-run`, then without `--dry-run` (no accept flag expected: no boundary lost, no
+  curated id moved); then `.venv/bin/python -m pipeline release --staging --dry-run --rehearse-follows`, then
+  `.venv/bin/python -m pipeline release --staging --push`.

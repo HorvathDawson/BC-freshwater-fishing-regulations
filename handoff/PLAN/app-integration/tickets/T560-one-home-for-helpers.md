@@ -1,6 +1,6 @@
 # T560 — One home for shared helpers: id slug, name key, live release reader, atomic write, cut tolerances
 
-Status: PARTIAL — items 2 and 6 (Python) done (cc50a2379, 63a3e6173); left (Claude): items 1, 3, 4, 5, 7, 8 (item 6's JS half is done: ff787ac34, confirmed 2026-11-12)
+Status: PARTIAL — items 2 and 6 (Python) done (cc50a2379, 63a3e6173); items 3 and 5 done (0b23c1403, built in `full_next` 2026-11-12); left (Claude): items 1, 4, 7, 8 (item 6's JS half is done: ff787ac34, confirmed 2026-11-12)
 
 Source: data pipeline review 2026-11-09 (owner-led; 14 areas + a gap check, every finding re-read against the code and release data by a second reviewer). Rank 16 of 17; highest severity 2 of 5.
 
@@ -84,3 +84,13 @@ Depends: —. Size: M. Owner: no.
 
 ## 2026-11-12 (app wave)
 Item 6's JS half is done and was already in the tree (ff787ac34, see T601 item 2): `serve-tiles.mjs`, `regs-recut/sync.mjs` and `label-shots.mjs` read `LATEST` through `conformance/src/latestRelease.mjs` (no modified-time fallback; a pointer to a folder without a manifest throws). Left: items 1, 3, 4, 5, 7, 8 (Python / pipeline).
+
+## Items 3 and 5 done 2026-11-12 (next-atlas lane, 0b23c1403)
+- Item 3: `common.utils.wsc.code_owner` (highest (magnitude, order), lowest blk on a tie) is the one answer; the graph's
+  side-channel naming (`graph.names.resolve_names`) and the registry's last-resort grouping (`registry.build._wsc_gnis_map`)
+  ask it. Measured on the live graph: first-met == owner on every one of 11,580 codes (9 multi-gnis), no top tie.
+- Item 5: `common.tolerances.meets_at` (`SAME_PLACE_M`) replaces the reach's two 0.001 m tests (`extent._severed`,
+  `_across_the_cut`) and the braid sweep's 1e-6 m one. Measured: every pair of adjacent pieces on one line meets at
+  exactly 0 m. The area slug is one function, `common.split_ids.readable_slug` (area_catalog, registry, review split_use).
+- Atlas `full_next` built with both: no section, boundary or sidecar change from them (see T606 item 2 for the only
+  differences). Tests: `pipeline/tests/test_next_atlas_items.py`.

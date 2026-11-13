@@ -39,4 +39,13 @@ for `--accept-diff`. Tests: `test_release_command.py::test_a_dfo_only_change_is_
 (mutation: hashing nothing makes it fail) and `test_the_same_run_by_digest_and_files_is_not_diffed`. A ledger row written
 with the old key re-runs the diff once on resume (harmless: same content, same accept).
 
+## Item 5 held for the owner 2026-11-12 (next-atlas lane)
+Not built. The three Skeena side channels (360220078, 360220098, 360220099) at the DFO place "mainstem waters near the
+Kitsumkalum River mouth" are ACCEPTED in `waters/unplaced_piece_calls.json` with the owner's ruling of 2026-11-11 (map
+A3): "out of the place". "Refused: line misses" is the sweep's designed answer (`braid_sweep.py` header: a straddle the
+cut's perpendicular misses is reported, never guessed). Making the sweep cut them would put their lower halves INSIDE
+the DFO place: that changes where the place binds, against the standing ruling, and needs a new sweep rule (medium).
+Recommended default: close item 5 as answered by the owner's ruling (the channels stay out). Ask only if the owner
+wants them cut.
+
 

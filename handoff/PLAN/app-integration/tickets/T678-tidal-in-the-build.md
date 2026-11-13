@@ -1,6 +1,6 @@
 # T678 — Tidal in the build: one decision, made once, read everywhere
 
-Status: IN PROGRESS (coast cut in the build + one tidal record: addbfd819, 26873ad75; the owner's 2026-11-12 answers built in 9b0d6f4ae; second candidate atlas `full_t678b` built, not promoted; results and what is left: `handoff/PLAN/app-integration/T678-progress.md`)
+Status: IN PROGRESS (coast cut in the build + one tidal record: addbfd819, 26873ad75; built, promoted and released in r-0a9930fb8826 with T685; left (Claude): plan 2, 5, 6 and the retirement, each medium, reasons in `T678-progress.md` 2026-11-12 next-atlas section)
 
 Source: owner 2026-11-11: "We need to make sure all the tidal logic and stream removal happens in the build of the
 graph etc if possible. Or where other tidal logic is we want to avoid it being a weird post processing step." And:
@@ -203,3 +203,18 @@ Built 2026-11-12 (9b0d6f4ae, candidate `full_t678b`, not promoted): the ten spli
 bridge (a `cut` row); Kitimat by the mouth line; the four creek pieces decided at FWA's edge-1450 crossing; Tlell
 unchanged (the 1.5 km DFO split already governs); Marble at the mouth (note in the drafts file). Diffs and the
 regenerated owner list (187 lines) in the progress note. Left: owner reads the diffs; promote on his word.
+
+## 2026-11-12 next-atlas lane: what is left, and why it did not ride this atlas
+- Plan 5 (`tidal` on the graph node): graph.pkl is written before the registry the record needs; it needs the build
+  reordered or a second graph write plus every reader (reach, tiles) moved to the node. Medium.
+- Plan 2 (rank-1 resolvers into the atlas, no mid-build registry): the rank-1 limits are resolved against water items,
+  which only exist after the cuts; dropping `water_registry(areas=False)` needs those resolvers rewritten on the graph.
+  Medium; no output change, so it need not ride an atlas.
+- Plan 6 (record of polygon lines the prune took): the coast rule (coast/2) never reads the DFO polygon, so
+  `shore.py:535`'s skip is no longer on the build's path; a record needs a new definition (which polygon: sea / tidal
+  river) and the prune's reasons by blue line, which the prune does not keep. Medium; needs a one-line owner nod on the
+  definition (default: lines whose geometry lies in the sea or a tidal river polygon, pre-prune, with no graph piece).
+- Retirement of `shore.polygon_rule`, `HELD_*`, `atlas_tidal`, `inside_tidal.json` readers: safe only once the served
+  atlas's `.prev` is post-T678, i.e. after the next promote; code-only, no build output. Do it after that promote.
+- "Not done" item 8 (split classification field): settled by T685 — `tidal_split_authority.json` holds the authority,
+  `coast_held` no longer generates, `coast_owner.json` `held_now_governed` is empty and no split is unclassified.

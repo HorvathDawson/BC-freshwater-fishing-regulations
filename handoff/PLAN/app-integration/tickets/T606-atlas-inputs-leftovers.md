@@ -1,6 +1,6 @@
 # T606 — Atlas inputs: what T547 left
 
-Status: PARTIAL — items 1 and 4 done; left (Claude): item 2 (rides the next atlas rebuild), item 3 (held, reason below)
+Status: PARTIAL — items 1, 2 and 4 done (item 2: 0b23c1403, built in `full_next` 2026-11-12, not promoted); left (Claude): item 3 (held, reason below)
 
 Source: T547's report 2026-11-10 (commits 9c701a58b … 4acd5d0f1). T547's ticket file numbers the sections.
 
@@ -47,3 +47,13 @@ The promote guard it leans on is unchanged; promote also lists lost boundary ids
   atlas-only would leave deliver stale with nothing said. It needs deliver's real read set first (the bundle's is pinned
   by `test_one_data_flow.py`; answers / export / salmon / status index are not). Not worth that risk before closed testing.
 - Item 2 rides the next atlas rebuild (unchanged).
+
+## Item 2 done 2026-11-12 (next-atlas lane, 0b23c1403)
+- §3: `registry.build.item_boundaries` numbers a lake edge's clash suffix by the boundary's lowest (blue line, measure),
+  curated splits first (`CLASH_SUFFIX_BY_PLACE`). Measured before building: 140 of 141 clash groups keep their numbers.
+- §5: a lake drops a flowing name ANY stream item owns, not only a primary (`LAKE_CHECKS_EVERY_STREAM_NAME`).
+- Built in `data/generated/atlas/full_next` (32 min, rc 0; not promoted). Parity: 0 items/sections/boundaries
+  added or lost; 6 items changed, exactly the predicted ones: Teslin River's two "Hutsigola Lake" edge ids swap (named
+  by no curated file, rule or DFO place), and Kluskoil, Tsacha, Tundra and both Euchiniko Lakes polygons lose the
+  variants 'West Road River' and 'BLACKWATER RIVER'. Every sidecar (handles, tidal, splits, regions, shore) byte-identical.
+- Tests: `pipeline/tests/test_next_atlas_items.py` (mutation-pinned by both flags).
