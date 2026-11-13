@@ -6,8 +6,13 @@
  * each quota group as a folded row (`@app/core` `salmonGlance` / `groupGlance`), drawn where the first group or the list
  * would be; each opens its full card in place. Absent: every card in full, as before.
  *
- * (T227, owner 2026-10-28) `salmonStrip`: DFO's salmon year drawn right under the provincial year bar (the two named),
- * at the top of the tab. A tab with no rows for the table (a closed water) draws the table after the leading blocks.
+ * (T227, owner 2026-10-28) `salmonStrip`: DFO's salmon year at the top of the tab, beside the provincial year bar (the
+ * two named). A tab with no rows for the table (a closed water) draws the table after the leading blocks.
+ *
+ * (owner 2026-11-12, "Why is salmon under trout table now? Instead of on top when salmon rules exist") The Salmon (DFO)
+ * block — its bar or bare status, and its rows — is drawn FIRST, where the game-fish calendar would start, whenever it is
+ * drawn; the game-fish calendar and its rows follow. This is the order of the T531 mockup the owner approved 2026-11-09
+ * (the owner's own sketch); cb1e01549 had kept game fish first, which put salmon under the trout table.
  *
  * (T531, owner 2026-11-09) With the glance table, each calendar owns its species: heading, status, year bar and legend, then
  * ITS rows — Game fish (B.C. rules) the quota groups and Other fish, Salmon (DFO) the Salmon row. Which block a row sits
@@ -74,7 +79,7 @@ export function KeepTab({ keep, dateLabel, palette, actions, images, glance = nu
   const bareStatus = glance?.salmon ? dfoBlockStatus(glance.salmon.row) : null;
   const salmonBar = (salmonStrip || salmonHome) && (
     <View key="salmon-block" testID="salmon-block"
-          style={keep.strip && glance ? { marginTop: 14, paddingTop: 4, borderTopWidth: 1.5, borderTopColor: palette.ink } : undefined}>
+          style={keep.strip && glance ? { paddingBottom: 14, marginBottom: 4, borderBottomWidth: 1.5, borderBottomColor: palette.ink } : undefined}>
       {salmonStrip ? (
         <SalmonYearStrip strip={salmonStrip} todayAt={keep.strip?.todayAt ?? 0} months={keep.strip?.months ?? []}
                          dateLabel={dateLabel} palette={palette} />
@@ -95,8 +100,8 @@ export function KeepTab({ keep, dateLabel, palette, actions, images, glance = nu
         const before = glance && !home && at < 0 && split.rest.length > 0 && i === tableAt ? table(-1) : null;
         const block = ((): ReactNode => {
         if (glance && (b === "otherFish" || (typeof b === "object" && "group" in b))) return i === at && !home ? table(i) : null;
-        if (b === "strip") return [<YearStrip key={i} strip={keep.strip!} dateLabel={dateLabel} palette={palette} title={salmonStrip ? salmonStrip.generalTitle : glance ? SALMON_WORDS.barGeneral : null} hours={hours} />,
-          timed && <TimedLines key="timed" caveat={timed} palette={palette} actions={actions} hoursSaid={!!hours} />, gameRows, salmonBar];
+        if (b === "strip") return [salmonBar, <YearStrip key={i} strip={keep.strip!} dateLabel={dateLabel} palette={palette} title={salmonStrip ? salmonStrip.generalTitle : glance ? SALMON_WORDS.barGeneral : null} hours={hours} />,
+          timed && <TimedLines key="timed" caveat={timed} palette={palette} actions={actions} hoursSaid={!!hours} />, gameRows];
         if (b === "inherited") return <InheritedLine key={i} inherited={keep.inherited!} palette={palette} actions={actions} />;
         if (b === "banner") return <ClosedBanner key={i} banner={keep.banner!} palette={palette} actions={actions} />;
         if (b === "otherFish") return <OtherFish key={i} rows={keep.otherFish!} keys={keep.otherFishKey} palette={palette} actions={actions} images={images} />;

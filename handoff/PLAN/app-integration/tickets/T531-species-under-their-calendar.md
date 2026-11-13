@@ -39,4 +39,9 @@ Species go under a block by the source of the rule that governs them (DFO rule -
   words); `salmon.test.ts` legend words and the glance row's `source` updated. No assertion removed.
 - Shots (web, 390 px, light + dark): `shots/T531-built-vedder-{light,dark}.png`, `shots/T531-built-single-{light,dark}.png`.
 - Owner: phone look on 0.7.2.
+- Follow-up (owner 2026-11-12, staging r-0a9930fb8826 Vedder: "Why is salmon under trout table now? Instead of on top when
+  salmon rules exist"): the "Block order" call above was the builder's, against the owner's sketch and the approved mockup
+  (DFO first). Fixed: whenever the Salmon (DFO) block is drawn it comes first, above the game-fish calendar and its rows
+  (`KeepTab`; separator rule moved under the salmon block). Tests: `KeepTab.test.tsx` order pins + a strict whole-block-above
+  check across the fixture waters. Store shot 2 (T319, game fish stacked over salmon) no longer matches the app.
 - Follow-up (main, 11-09): a DFO row with no DFO calendar (Glenn Creek) now sits under its own "Salmon (DFO)" heading and status ("Closed"), no bar or legend, after the B.C. block; the grouping test is strict across fixture waters. Versions 0.7.2, changelog entry added.

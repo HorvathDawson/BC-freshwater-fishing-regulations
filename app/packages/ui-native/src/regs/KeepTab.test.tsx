@@ -91,12 +91,12 @@ describe("(T227, owner 2026-10-28) the salmon bar at the top, and the glance row
     runs: [{ drawn: "release", days: 300 }, { drawn: "closed", days: 65 }] } as const;
   const actions: KeepActions = { onSheet() {}, onDay() {}, onTab() {}, onBook() {} };
 
-  it("drawn right under the provincial bar, the two named; none without salmon (the bar unnamed)", () => {
+  it("drawn on top, right above the provincial bar (owner 2026-11-12), the two named; none without salmon (the bar unnamed)", () => {
     const keep = keepOf(vedder1010);
     const r = render(<KeepTab keep={keep} dateLabel="Oct 10" palette={LIGHT} actions={actions} salmonStrip={STRIP as never} />);
     const ids = [...r.container.querySelectorAll("[data-testid='keep-strip'],[data-testid='salmon-strip'],[data-testid='keep-group']")]
       .map((e) => e.getAttribute("data-testid"));
-    expect(ids).toEqual(["keep-strip", "salmon-strip", "keep-group"]);
+    expect(ids).toEqual(["salmon-strip", "keep-strip", "keep-group"]);
     expect([screen.getByTestId("keep-strip-title").textContent, screen.getByTestId("salmon-strip-title").textContent])
       .toEqual(["Game fish (B.C. rules)", "Salmon (DFO)"]);
     expect(screen.getByTestId("salmon-strip-st:release").textContent).toBe("✓ Release only");
@@ -139,12 +139,12 @@ describe("(T531, owner 2026-11-09) each calendar owns its species", () => {
   const salmon = { row: { source: "dfo", thumb: "CO", name: SALMON_WORDS.title, value: null, tone: "keep" }, card: () => <span>salmon card</span> } as const;
   const group = (r: ReturnType<typeof render>) => r.container.querySelector("[data-testid='keep-tab']") as HTMLElement;
 
-  it("Vedder: game fish (strip, its group and Other fish rows), then Salmon (bar, its Salmon row); no 'Species and limits' list", () => {
+  it("Vedder: Salmon (bar, its Salmon row) on top, then game fish (strip, its group and Other fish rows); no 'Species and limits' list", () => {
     const keep = keepOf(vedder1010);
     const r = render(<KeepTab keep={keep} dateLabel="Oct 10" palette={LIGHT} actions={actions} salmonStrip={STRIP as never} glance={{ salmon }} />);
     const ids = [...group(r).querySelectorAll("[data-testid='keep-strip'],[data-testid='glance:group:0'],[data-testid='keep-species'],[data-testid='species-rows'],[data-testid='salmon-block'],[data-testid='salmon-strip'],[data-testid='glance:salmon']")]
       .map((e) => e.getAttribute("data-testid"));
-    expect(ids).toEqual(["keep-strip", "species-rows", "glance:group:0", "salmon-block", "salmon-strip", "species-rows", "glance:salmon"]);
+    expect(ids).toEqual(["salmon-block", "salmon-strip", "species-rows", "glance:salmon", "keep-strip", "species-rows", "glance:group:0"]);
     expect(screen.queryByTestId("keep-otherfish")).toBeNull();
     expect(screen.queryByText("Species and limits")).toBeNull();
   });
@@ -199,13 +199,35 @@ describe("(T531, owner 2026-11-09) each calendar owns its species", () => {
     }
   });
 
-  it("no DFO calendar: the Salmon (DFO) block says its status ('Closed') under its heading, after the B.C. block", () => {
+  it("no DFO calendar: the Salmon (DFO) block says its status ('Closed') under its heading, still above the B.C. block", () => {
     const closed = { source: "dfo", thumb: "CO", name: SALMON_WORDS.title, value: "closed", tone: "closed", fold: false } as const;
     const r = render(<KeepTab keep={keepOf(glenn501)} dateLabel="Oct 10" palette={LIGHT} actions={actions}
                               glance={{ salmon: { row: closed, card: () => <span>x</span> } }} />);
     expect(screen.getByTestId("salmon-bare-st:closed").textContent).toBe("Closed");
     const ids = [...group(r).querySelectorAll("[data-testid='keep-strip'],[data-testid='salmon-block']")].map((e) => e.getAttribute("data-testid"));
-    expect(ids).toEqual(["keep-strip", "salmon-block"]);
+    expect(ids).toEqual(["salmon-block", "keep-strip"]);
+  });
+
+  it("(owner 2026-11-12 \"salmon … on top when salmon rules exist\") STRICT: across the fixture waters, the WHOLE Salmon (DFO) block — bar, status, its row — is drawn above the game-fish calendar and its rows", () => {
+    const closed = { source: "dfo", thumb: "CO", name: SALMON_WORDS.title, value: "closed", tone: "closed", fold: false } as const;
+    let checked = 0;
+    for (const [fx, strip] of [[vedder1010, STRIP], [vedder1010, null], [vedder615, STRIP], [glenn501, null], [glenn501, STRIP], [klwa1010, null], [bc1501, null], [x35p1010, null]] as const) {
+      for (const sal of [salmon, { row: closed, card: () => <span>x</span> }] as const) {
+        const r = render(<KeepTab keep={keepOf(fx)} dateLabel="Oct 10" palette={LIGHT} actions={actions} salmonStrip={strip as never} glance={{ salmon: sal as never }} />);
+        const block = within(group(r)).getByTestId("salmon-block");
+        const bc = group(r).querySelector("[data-testid='keep-strip']");
+        if (bc) {
+          // the salmon block ends before the game-fish calendar starts (not merely starts before it)
+          expect(block.contains(bc)).toBe(false);
+          expect(block.compareDocumentPosition(bc) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+          for (const row of [...group(r).querySelectorAll("[data-testid^='glance:group'],[data-testid='keep-possession']")])
+            expect(block.compareDocumentPosition(row) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+          checked++;
+        }
+        cleanup();
+      }
+    }
+    expect(checked).toBeGreaterThan(4);
   });
 
   it("the legend is plain ink words with the first letter capital: '✓ Open', 'Fly fishing only'", () => {

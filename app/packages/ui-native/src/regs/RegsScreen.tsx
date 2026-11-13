@@ -86,7 +86,7 @@ export interface RegsScreenProps {
    * card drawn when it is opened, not above the Keep tab. Absent: the page as it was (the cards in full).
    */
   glance?: { salmon: GlanceRowVM | null } | null;
-  /** (T227) DFO's salmon year, drawn under the provincial year bar at the top of the Keep tab (`@app/core` `salmonStripOf`) */
+  /** (T227) DFO's salmon year, drawn at the top of the Keep tab, above the provincial year bar (owner 2026-11-12) (`@app/core` `salmonStripOf`) */
   salmonStrip?: SalmonStripVM | null;
   /**
    * (T45) how much room there is (@app/ui `useLayoutClass`, handed down by the water screen; this screen never reads the
