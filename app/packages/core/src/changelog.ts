@@ -23,9 +23,10 @@ export const CHANGELOG: readonly ChangelogEntry[] = [
   {
     version: "0.7.7", date: "2026-11-12", draft: true, notes: [
       "The key for gauges that report only flow or only level sits on the Conditions map, out of the bottom bar",
-      "A river's tidal part ends at DFO's written boundary or where the river meets the shore",
+      "Tidal water ends at DFO's written boundary; where there is none, a river is fresh to the shore and a creek is tidal only inside a tidal river. Deas, Woodward, McDonald, Tamboline and London sloughs are tidal",
       "A small unnamed pond a river runs through follows that river's rules",
       "Searching \"Dewdney\" finds Nicomen Slough",
+      "Nakina River: the salmon card says DFO's rule covers the river from the centre line to the northern bank",
     ],
   },
   {

@@ -177,3 +177,26 @@ Next commands:
   existing atlas. Resume only once the T685 lane has committed (and its atlas promoted) or its tree is clean:
   `.venv/bin/python -m pipeline release --staging --dry-run --rehearse-follows`, then without `--dry-run`. APK 0.7.7
   stays held behind this release (its changelog describes this data).
+
+## Release + APK 0.7.7 lane (2026-11-12, after T685 promote)
+- 05cec1dfa: T685 DONE (atlas promoted), RULINGS E25 note (Turner/Noons stays fresh, owner). CI green (pipeline on
+  05cec1dfa, app on 12f567f55).
+- Rehearsal (`--dry-run --rehearse-follows`): no stop; fresh-copy tests passed at 05cec1dfa; plan reach/tiles/deliver RUN.
+- Real `release --staging --push` started.
+- Build ok (1,668 s): release r-0a9930fb8826. Log: "gauge placement: 2 station(s) on the line the owner named
+  (08MH028 -> 356364114:545, 08NK016 -> 356570562:108141)"; 10 moved (the owner's list). Size gate passed.
+- Binding diff (546 rules, 52 licensing, 51 DFO, 290 tidal, 3 unresolved = the lake twins) classified section by
+  section (scratch `rel/classify.py`, `recut.py`): rules = folded ponds (D1) or one of 419 re-cut lines; those lines =
+  shore cuts moved/added/removed (coast rule), San Juan's Deering Road cut, 209 lines whose tidal status changed (T685),
+  and 4 Dewdney/Nicomen lines (documented side effect); DFO "other" = exactly D5's 7 places; licensing = ponds + re-cut.
+  Nothing unexplained -> `--accept-diff` given.
+- Follows stopped twice, both D1, fixed at the cause: (1) taps.py declarations for the golden parts the fold grew
+  (Fording, Dean, Kitimat, upper Fraser; afb4a72cd); (2) waterMap T345 Coquitlam test names its folded pond (8282c93aa).
+  Two golden pages changed (a handle renumber; upper Fraser "3 lakes" -> "1 lake"): accepted. Walkthrough/seo
+  timeouts seen once under load, passed alone and on the rerun.
+- RELEASED: r-0a9930fb8826 = LATEST, on staging (smoke 18/18 + 1 WARN: the staging SITE still serves r-483b295de57c;
+  the site deploy is separate). One smoke flake (rule-book PDF timed out at the 11.7 MB download prompt; passed on rerun).
+- Spot-checks (agent, read-only): all PASS. Notes: the 10 owner gauges already sat at their cuts in r-483b (only
+  08MH028/08NK016 moved in this release); Nakina's note is not in the release files, it travels in
+  private/feeds/dfo/entries/region-6.json on staging R2 (verified identical to curated, note + spatial_caveat).
+- Next: APK 0.7.7 (changelog revised to this data: tidal rule, Nakina).
