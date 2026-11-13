@@ -207,12 +207,17 @@ describe("<LicenceTab>", () => {
       cleanup();
       return got;
     };
+    // Li13b: the basic licence item carries the p.5 reduced-fee sentence for a B.C. resident adult; the classified item its p.7 term
     expect(termsOf("adult|resident")).toEqual([["From the rule book:",
+      "If you are a resident of B.C. and disabled: You may qualify for a basic freshwater angling licence at the reduced fee of $1.14."], ["From the rule book:",
       "If you are a B.C. resident: Your Classified Waters Licence is valid for the licencing year. This means you can fish on any Class I or Class II water in the province during the year."]]);
     expect(termsOf("adult|non_resident")).toEqual([["From the rule book:",
       "If you are a NON-GUIDED “Non-Resident” or NON-GUIDED “Non-Resident Alien”: Your Classified Waters Licence for Class I or Class II waters is sold on a per day basis and is date and water-specific. Although anglers may purchase as many Classified Waters Licences as they wish, each licence may not exceed 8 consecutive days."]]);
-    // a water that is not classified (the Vedder) carries no term
-    expect(Object.entries(LIC).flatMap(([k, vm]) => vm.blocks.flatMap((b) => b.cls === "needs" ? b.items.filter((i) => i.book.length).map(() => k) : []))).toEqual([]);
+    // a water that is not classified (the Vedder) carries no Classified term: the only book text on any other fixture is the Li13b fee line, resident adult only
+    const FEE = "If you are a resident of B.C. and disabled: You may qualify for a basic freshwater angling licence at the reduced fee of $1.14.";
+    const bookOf = (vm: typeof LIC[string]) => vm.blocks.flatMap((b) => b.cls === "needs" ? b.items.flatMap((i) => i.book) : []);
+    expect(Object.values(LIC).flatMap(bookOf).filter((t) => t !== FEE)).toEqual([]);
+    expect(Object.entries(LIC).filter(([, vm]) => bookOf(vm).length).map(([k]) => k)).toEqual(["adult|resident"]);
   });
 
   it("klmb_1010: the not-yet-mapped box — its label, what the part says, the note", () => {
