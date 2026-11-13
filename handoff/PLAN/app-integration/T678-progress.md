@@ -288,3 +288,16 @@ Next commands:
   B.C. clock (`bcNow`, T551) and now says "Today, Nov 12". No defect found; no ticket.
 - Owner to-do: 8 rows added to the Owner To-Do page (`todos`, group "Look and pick", orders 6-13) and OWNER-TODO.md;
   the build 29 row now says Vedder is T687.
+
+## T689 lane 2026-11-12 (night): regs-open lake step
+- Cause: the test bed's tap-target probe, not the app. Since T478 (2026-11-07) `findTarget` skipped every point with any still
+  water under it, and a lake is all still water; the logcat shows `[target] {"none":true}` (the scenario's "no [target] line"
+  was the wrong words). Last pass of the step: 2026-11-06, before T478. Four hand taps on Cultus Lake on build 29 each opened
+  its regulations (44–58 ms): no user is affected.
+- Fixed in 606037505: `isTapTarget` (sections.ts) keeps T478 for another water's still water and accepts the lit lake's own;
+  test fails before. `pnpm -C app check` (lane 2, unfiltered) passed: 622 files, 7,546 tests. The 10/10 rerun needs the next
+  test-bed APK (none built here). Evidence run: regs-open 9/10 again on build 29, `{"none":true}` logged.
+- "Not fishable": wrong reading of the screen. Cultus Lake is "Own rules" in r-0a9930fb8826 (no closure); own-rules orange at
+  0.6 over the basemap's cyan water mixes to khaki (computed (176,163,91), on screen (174,166,97)); the "Not fishable" row is a
+  fixed key row. Same colour on the 11-04 / 11-06 shots. Whether an own-rules lake may look this close to the "Not fishable"
+  swatch is a look question for the owner (not decided).
