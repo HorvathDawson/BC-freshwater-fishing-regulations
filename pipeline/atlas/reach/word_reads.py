@@ -159,7 +159,8 @@ def main(argv=None) -> None:
         print(f"  + {k}")
     for k in sorted(old - set(keys)):
         print(f"  - {k}")
-    Path(a.out).write_text(document(keys), encoding="utf-8")
+    from pipeline.common.curated_write import write_any       # T600: the accepted list is backed up and logged
+    write_any(Path(a.out), document(keys), tool="pipeline.atlas.reach.word_reads", source=f"reach run {run.name}")
     print(f"wrote {a.out}: {len(set(keys)):,} read(s) ({len(set(keys) - old)} added, {len(old - set(keys))} dropped)")
 
 

@@ -61,10 +61,11 @@ def scopes(p: Optional[Path] = None) -> dict[str, str]:
 
 
 def write(got: dict[str, dict], p: Optional[Path] = None) -> Path:
-    from pipeline.regs.parsing.io import atomic_write
+    from pipeline.common.curated_write import write_any       # T600: backed up and logged
     p = Path(p) if p is not None else path()
     rows = [got[d] for d in sorted(got)]
     head = json.dumps({"_about": ABOUT, "format": FORMAT}, ensure_ascii=False, sort_keys=True)[:-1]
     body = ",\n".join(json.dumps(r, ensure_ascii=False, sort_keys=True) for r in rows)
-    atomic_write(p, f"{head}, \"closed\": [\n{body}\n]}}\n" if rows else f"{head}, \"closed\": []}}\n")
+    write_any(p, f"{head}, \"closed\": [\n{body}\n]}}\n" if rows else f"{head}, \"closed\": []}}\n",
+              tool="pipeline.regs.review.closed")
     return p

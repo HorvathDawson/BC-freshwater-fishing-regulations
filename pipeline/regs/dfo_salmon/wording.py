@@ -248,7 +248,8 @@ def write(doc: dict, path: Path = REGISTRY) -> None:
     head = {k: v for k, v in doc.items() if k != "entries"}
     lines = [json.dumps(e, ensure_ascii=False) for e in doc["entries"]]       # one entry a line: reviewable diffs
     body = json.dumps(head, indent=1, ensure_ascii=False)[:-2] + ',\n "entries": [\n  ' + ",\n  ".join(lines) + "\n ]\n}"
-    path.write_text(body + "\n", encoding="utf-8")
+    from pipeline.common.curated_write import write_any       # T600: atomic, backed up and logged
+    write_any(path, body + "\n", tool="pipeline.regs.dfo_salmon.wording", source="wording build")
     _load.cache_clear()
 
 

@@ -335,7 +335,9 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     a.candidates.write_text(dump(CANDIDATES_ABOUT, new_c), "utf-8")
-    a.out.write_text(dump(MATCHES_ABOUT, new_p), "utf-8")
+    from pipeline.common.curated_write import write_any       # T600: the curated matches: backed up and logged
+    write_any(a.out, dump(MATCHES_ABOUT, new_p), tool="pipeline.gauges.generate.promote",
+              source=f"{len(changed)} row(s) changed" + (f", only {' '.join(a.only)}" if a.only else ""))
     print(f"\nwrote {a.out}")
     print(f"      {a.candidates}")
     return 0

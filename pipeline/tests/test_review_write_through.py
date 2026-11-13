@@ -509,7 +509,7 @@ def test_curated_writes_are_atomic(wt, monkeypatch):
     assert c.post("/api/marks", json={**SLOUGH, "target": "1", "call": "stream"}).json()["write_through"]["state"] == "done"
     before = (tmp / "slough_calls.json").read_bytes()
     import os
-    from pipeline.regs.parsing import io as IO
+    from pipeline.common import curated_write as IO     # T600: the one temp+replace (parsing.io delegates to it)
 
     real = os.replace
 

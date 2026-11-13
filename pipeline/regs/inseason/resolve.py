@@ -524,9 +524,8 @@ def main(argv: list[str] | None = None) -> int:
               f"{f', {len(bad)} unresolved' if bad else ''}")
         return 0 if same and not bad else 1
     if out != text:
-        tmp = src.with_suffix(".json.tmp")
-        tmp.write_text(out, encoding="utf-8")
-        tmp.replace(src)
+        from pipeline.common.curated_write import write_any   # T600: atomic, backed up and logged
+        write_any(src, out, tool="pipeline.regs.inseason.resolve", source=f"re-resolved on {rel.name}")
         print(f"in-season matches re-resolved on {rel.name}: {src} rewritten (commit it)", file=sys.stderr)
     else:
         print(f"in-season matches on {rel.name}: unchanged", file=sys.stderr)

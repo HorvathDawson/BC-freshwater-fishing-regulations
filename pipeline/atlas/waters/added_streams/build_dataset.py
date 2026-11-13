@@ -1463,15 +1463,16 @@ ADDED_STREAMS_ODBL = ("the `streams[]` and `name_variants[]` entries whose `sour
 
 def write(streams, candidates, report, out_dir: Path, name: str = "added_streams") -> Path:
     from pipeline.common.licence import odbl as _odbl
+    from pipeline.common.curated_write import write_any       # T600: the promoted file is backed up and logged
     out = Path(out_dir) / f"{name}.json"
-    out.write_text(json.dumps({
+    write_any(out, json.dumps({
         "_about": "Minted additional-streams dataset (see added_streams). Consumer: remove FWA blue lines "
                   "whose trimmed wsc starts with any `fwa_exclude` prefix, ingest `streams` (blk/wsc/geometry/"
                   "segments), and apply `name_variants` (municipal names -> the FWA/added blk they alias).",
         "_licence": _odbl(ADDED_STREAMS_ODBL),
         "fwa_exclude": report.get("fwa_exclude", []),
         "name_variants": report.get("name_variants", []),
-        "streams": streams}, indent=1), encoding="utf-8")
+        "streams": streams}, indent=1), tool="pipeline.atlas.waters.added_streams.build_dataset")
     outputs = GENERATED.added_streams
     outputs.mkdir(parents=True, exist_ok=True)
     (outputs / "added_name_variant_candidates.json").write_text(

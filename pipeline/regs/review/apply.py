@@ -207,7 +207,7 @@ def not_committable(path: Path) -> Optional[str]:
 def _commit(domain: str, path: Path, old: Optional[str], gone: list[str]) -> str:
     """Commit ONE written file by its path (`git commit -- <path>`, as `apply_proposals` does); its short sha. A commit
     that fails puts the file back and RAISES."""
-    from pipeline.regs.parsing.io import atomic_write
+    from pipeline.common.curated_write import write_any
     from pipeline.regs.review import proposals as P
     new_file = _git("ls-files", "--error-unmatch", "--", str(path)).returncode != 0
     name = Path(path).resolve().relative_to(Path(P.REPO).resolve()).as_posix()      # in the repository: `not_committable`
@@ -223,7 +223,7 @@ def _commit(domain: str, path: Path, old: Optional[str], gone: list[str]) -> str
             _git("reset", "-q", "--", str(path))
             Path(path).unlink(missing_ok=True)
         else:
-            atomic_write(path, old)
+            write_any(path, old, tool="pipeline.regs.review.apply", source=f"{domain}: put back, git commit failed")
         raise ValueError(f"{_rel(path)}: git commit failed, the file is put back — "
                          f"{(got.stderr or got.stdout).strip()[:300]}")
     return _git("rev-parse", "--short", "HEAD").stdout.strip()
@@ -288,9 +288,9 @@ def write_files(domain: str, decided: E.Decided, *, dry_run: bool, accept_shrink
             print(f"== {domain}: would write {_rel(path)}")
             sys.stdout.write(_diff(path, text)[:20000])
         else:
-            from pipeline.regs.parsing.io import atomic_write
+            from pipeline.common.curated_write import write_any     # T600: validated, backed up, logged
             old = path.read_text(encoding="utf-8") if path.exists() else None
-            atomic_write(path, text)
+            write_any(path, text, tool="pipeline.regs.review.apply", source=f"{domain} from the review marks")
             if not commit:
                 print(f"{domain}: wrote {_rel(path)} — commit it: git commit -- {_rel(path)}")
             elif loose_file:

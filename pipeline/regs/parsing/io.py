@@ -18,8 +18,6 @@ Groups:
 from __future__ import annotations
 
 import json
-import os
-import tempfile
 from pathlib import Path
 from typing import Iterable
 
@@ -365,17 +363,11 @@ def load_existing_entry_ids(dir_: Path | None = None) -> set[str]:
 
 
 def atomic_write(path: Path, text: str) -> None:
-    """Write via a temp file + os.replace so a crash never leaves a half-written (corrupt) file."""
-    path = Path(path)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    fd, tmp = tempfile.mkstemp(dir=str(path.parent), suffix=".tmp")
-    try:
-        with os.fdopen(fd, "w", encoding="utf-8") as f:
-            f.write(text)
-        os.replace(tmp, path)
-    finally:
-        if os.path.exists(tmp):
-            os.unlink(tmp)
+    """Write via a temp file + os.replace so a crash never leaves a half-written (corrupt) file. The one
+    implementation is `pipeline.common.curated_write.atomic_write` (T600); a CURATED file goes through
+    `curated_write.write` instead (validate, back up, log)."""
+    from pipeline.common.curated_write import atomic_write as _atomic
+    _atomic(Path(path), text)
 
 
 def dump_entry(entry) -> dict:
@@ -441,4 +433,5 @@ def write_entryfile(path: Path, region: str, entries: Iterable) -> None:
         rows.sort(key=lambda e: e.get("entry_id", ""))
     doc = {"region": region, "entries": rows}
     CatalogueFile.model_validate(json.loads(json.dumps(doc)))
-    atomic_write(path, json.dumps(doc, indent=_indent_of(path), ensure_ascii=False) + "\n")
+    from pipeline.common.curated_write import write_any       # T600: a curated region file is backed up and logged
+    write_any(path, json.dumps(doc, indent=_indent_of(path), ensure_ascii=False) + "\n", source=f"region {region}")

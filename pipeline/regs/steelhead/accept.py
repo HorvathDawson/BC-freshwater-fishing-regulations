@@ -100,8 +100,9 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     doc = accepted(curated, generated)
     SteelheadList.model_validate(doc)          # the reach run's own model refuses a bad document before it lands
-    from pipeline.regs.parsing.io import atomic_write
-    atomic_write(cur_path, json.dumps(doc, indent=1, ensure_ascii=False) + "\n")
+    from pipeline.common.curated_write import write_any       # T600: backed up and logged
+    write_any(cur_path, json.dumps(doc, indent=1, ensure_ascii=False) + "\n", tool="pipeline.regs.steelhead.accept",
+              source=f"generated list {doc['generated']['fingerprint']}")
     print(f"wrote {cur_path} ({len(doc['waters'])} waters, fingerprint {doc['generated']['fingerprint']})")
     return 0
 

@@ -634,13 +634,13 @@ def residual_minus(ef: EntryFile) -> EntryFile:
 def save(ef: EntryFile, entries_dir: Path = ENTRIES_DIR) -> Path:
     """(T435) VALIDATED, THEN ATOMIC: the file must read back as itself (`load`'s parse of `to_dict`) before it is
     written, and it lands by temp + replace — a crash or a bad entry never leaves a half or unreadable region file."""
-    from pipeline.regs.parsing.io import atomic_write
+    from pipeline.common.curated_write import write_any       # T600: backed up and logged
     d = residual_minus(ef).to_dict()
     if _from_dict(json.loads(json.dumps(d))).to_dict() != d:
         raise ValueError(f"dfo entries region {ef.region}: does not read back as itself; nothing written")
     p = path_for(ef.region, entries_dir)
     p.parent.mkdir(parents=True, exist_ok=True)
-    atomic_write(p, json.dumps(d, indent=2, ensure_ascii=False) + "\n")
+    write_any(p, json.dumps(d, indent=2, ensure_ascii=False) + "\n", source=f"dfo places region {ef.region}")
     return p
 
 

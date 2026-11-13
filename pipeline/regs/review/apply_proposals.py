@@ -127,7 +127,7 @@ def run(argv: list[str] | None = None) -> tuple[int, list[dict]]:
     """`main`, returning (rc, events): one event per proposal it landed, refused or left waiting —
     {id, status: applied | refused | waiting | would, why, sha, marks: [{scope, target, rule_id}]} — so the review
     app's write-through (T325) can say on each marked item what became of its mark."""
-    from pipeline.regs.parsing.io import atomic_write
+    from pipeline.common.curated_write import write_any       # T600: validated, backed up, logged
     from pipeline.regs.review import export as E
     ap = argparse.ArgumentParser(prog="python -m pipeline.regs.review.apply_proposals",
                                  description="apply the owner's marks (T185 proposals), one commit "
@@ -207,11 +207,12 @@ def run(argv: list[str] | None = None) -> tuple[int, list[dict]]:
             continue
         before = {path: src.text(path) for path in paths}
         for path in paths:
-            atomic_write(path, texts[path])
+            write_any(path, texts[path], tool="pipeline.regs.review.apply_proposals", source=f"proposal {p['id']}")
         got = _git("commit", "-m", message(p), "--", *[str(x) for x in paths])
         if got.returncode != 0:
             for path in paths:
-                atomic_write(path, before[path])
+                write_any(path, before[path], tool="pipeline.regs.review.apply_proposals",
+                          source=f"proposal {p['id']}: put back, git commit failed")
             print(f"!! {p['id']}: git commit failed, files put back:\n{got.stderr or got.stdout}")
             events.append({"id": p["id"], "status": "refused", "marks": _who(p),
                            "why": f"git commit failed, files put back: {(got.stderr or got.stdout).strip()[:300]}"})

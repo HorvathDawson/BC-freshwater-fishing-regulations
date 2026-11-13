@@ -184,6 +184,7 @@ def save(review: Review, path: Path | None = None) -> Path:
             for s, d in sorted(review.stations.items())
         },
     }
-    path.write_text(json.dumps(body, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+    from pipeline.common.curated_write import write_any       # T600: atomic, backed up and logged
+    write_any(path, json.dumps(body, indent=1, ensure_ascii=False) + "\n", tool="pipeline.gauges.review")
     load.cache_clear()
     return path

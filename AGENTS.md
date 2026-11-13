@@ -267,6 +267,15 @@ A6. **Commit only your own paths: `git commit -- <paths>`.** Several agents shar
     `data/generated/`, never curated. Hand-edited waters files: `python -m pipeline.tools.audit.check_curated --waters`
     (seconds; the build's first step). Build stage keys hash curated files by CONTENT, so a move or rename reruns nothing.
 
+36b. **One writer for curated data (T600, 2026-11-13).** A program that changes a curated file calls
+    `pipeline.common.curated_write.write` (or `write_any` when its `--out` may be scratch): it refuses a path outside the
+    tree, validates (JSON parses, `_about` kept, a waters file passes `check_curated --waters`, the caller's schema),
+    backs up the old file (last 20, `data/generated/curated_writes/backups/`), writes atomically and logs one line
+    (`curated_writes/log.jsonl`: file, tool, who — `CURATED_WRITE_BY` or the login — when, source, old/new sha). It is
+    the one temp+replace for these files (`parsing.io.atomic_write` delegates). `test_curated_writer.py` fails on a
+    module that reads the curated tree and writes files unless it is classified there; the review app's own path
+    (`curation-review/backend/writes.py`, `marks.append`) is listed, not moved. Hand edits still follow A2.
+
 37. **A loader for a curated file must RAISE on a missing file, never return `[]`.**
     Absent curated data is a bug, never an empty set. This is the same failure as ㉟ one
     layer down, and the grep gate in `pipeline/docs/HANDOFF-curated-layout.md` §3.3 is what

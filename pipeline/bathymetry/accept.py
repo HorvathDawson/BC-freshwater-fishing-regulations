@@ -20,7 +20,6 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import json
-import os
 from pathlib import Path
 from typing import Dict, List, Optional, Sequence
 
@@ -118,10 +117,9 @@ def main(argv=None) -> int:
     for line in accept(frozen, props, ids, by=a.by, today=dt.date.today().isoformat(), refuse=a.refuse,
                        wbk=a.wbk, replace=a.replace):
         print(line)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_suffix(".tmp")
-    tmp.write_text(json.dumps(frozen, indent=1, ensure_ascii=False) + "\n")
-    os.replace(tmp, path)
+    from pipeline.common.curated_write import write_any       # T600: atomic, backed up and logged
+    write_any(path, json.dumps(frozen, indent=1, ensure_ascii=False) + "\n", tool="pipeline.bathymetry.accept",
+              by=a.by, source=f"{a.set}: {len(ids)} id(s)")
     print(f"wrote {path} ({len(frozen['matches'])} rows)")
     return 0
 
