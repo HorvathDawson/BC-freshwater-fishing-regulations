@@ -27,7 +27,8 @@ Pictures (Esri imagery, scratch): `deena_cut.jpg`, `mamin_cut.jpg`, `mcrae_cut.j
      channel, the whole unnamed lake and that ~200 m of creek (Work 3).
    - **Unmatched lakes**: the owner goes through Hidden, Secret, Square (→ Whitton) and Frog with evidence pictures
      (`~/bcfish-session-backup-2026-11-12/audit-cuts/`: `hidden_lake.jpg`, `secret_lake.jpg`,
-     `square_whitton_lake.jpg`, `frog_lake_leads.jpg`); not yet accepted.
+     `square_whitton_lake.jpg`, `frog_lake_leads.jpg`). Then: "add the 3 high confidence lakes. frog seems unsure
+     still … will look harder for frog and redfern later": Hidden, Secret, Square → Whitton DECIDED (Work 8).
 6. Open owner questions: Haida Gwaii tidal boundary at the mouth (Copper/Deena/Mamin, audit Q1); Stave River Ruskin
    channel (Q6); McArthur Island Slough (class a item 2).
 
@@ -109,28 +110,62 @@ Pictures (Esri imagery, scratch): `deena_cut.jpg`, `mamin_cut.jpg`, `mcrae_cut.j
 8. **Unmatched waters** (all regions, lakes and streams): exactly 6 entries match no water and hold rules
    (21 rules, `no_sections_for_items`): Frog, Hidden, Secret, Square (5-6, p.45–47), Redfern (5-15, p.46), Squirrel
    (R6 6-1, p.53; the R5 copy is a `see`). Every other entry with no water is an area row, a pointer or a
-   cross-listed duplicate. Proposals (owner accepts; fix path: a `name_variants.json` record per lake, rebuild the
-   registry, shrink `AWAITING_WATER_ROWS`):
+   cross-listed duplicate. Evidence pictures (Esri imagery, MU line labelled):
+   `~/bcfish-session-backup-2026-11-12/audit-cuts/hidden_lake.jpg`, `secret_lake.jpg`, `square_whitton_lake.jpg`,
+   `frog_lake_leads.jpg`.
 
-   | entry | proposal | evidence | confidence |
-   |---|---|---|---|
-   | r5:hidden_lake@5-6 | unnamed lake wbk 329021830 (24.1 ha, 52.1132,-125.6079) | FISS/EcoCat "Un-named (Hidden) Lake" 01338ATNA = its 50K key | high |
-   | r5:secret_lake@5-6 | unnamed lake wbk 329021850 (17.5 ha, 52.1005,-125.6163) | FISS "Unnamed (Secret) Lake" 01370ATNA; EcoCat 49174 charts "Secret Lake" | high |
-   | r5:square_lake@5-6 | Whitton Lake wbk 329021786 (registry item, 237.7 ha) | FISS "Whitton (Square) Lake" 01503ATNA; no Whitton row in the book | high |
-   | r5:frog_lake@5-6 | not found | weak: wbk 328962870 / 329021897 / 329021982 (Stewart Lake drainage, unnamed) | — |
-   | r5:redfern_lake@5-15 | not found | only Ruth Redfern Creek (5-15); its head lake wbk 329354762 is "Goat Lake" in FISS | — |
-   | r6:squirrel_lake@6-1 | not found | BC's one Squirrel Lake (wbk 329354753) is in 5-1 and already Paddy Lake's row | — |
+   **DECIDED (owner 2026-11-13: "add the 3 high confidence lakes")** — one `data/curated/waters/name_variants.json`
+   record each, in the file's existing form (as Cruise Lake / "Fish" Lake, the same 1997 survey series):
+   ```json
+   {"target": {"wbks": ["329021830"]}, "names": [{"name": "HIDDEN LAKE", "source": "regulation", "note": "Unnamed lake in MU 5-6, 3.2 km SW of Stewart Lake. BC Lakes Database: WBID 01338ATNA (FISS 1993-03-12 'Limnology data for Hidden Lake'; AIM 1997 'Reconnaissance Survey of Un-named (Hidden) Lake', EcoCat 32595, 32579). Owner accepted 2026-11-13 (T708).; REGION 5 - Cariboo; MU 5-6"}]}
+   {"target": {"wbks": ["329021850"]}, "names": [{"name": "SECRET LAKE", "source": "regulation", "note": "Unnamed lake in MU 5-6, 0.7 km south of Hidden Lake on the same creek. BC Lakes Database: WBID 01370ATNA (AIM 1997 'Reconnaissance Survey of Unnamed (Secret) Lake'; EcoCat 49174, charts titled 'Secret Lake'). Owner accepted 2026-11-13 (T708).; REGION 5 - Cariboo; MU 5-6"}]}
+   {"target": {"wbks": ["329021786"]}, "names": [{"name": "SQUARE LAKE", "source": "regulation", "note": "Local name of Whitton Lake (gnis 39187) in MU 5-6, above Cohen Lake. BC Lakes Database: WBID 01503ATNA (AIM 1997 'Reconnaissance Survey of Whitton (Square) Lake'; EcoCat 33962). The book has no Whitton row. Owner accepted 2026-11-13 (T708).; REGION 5 - Cariboo; MU 5-6"}], "_gnis": ["39187"]}
+   ```
+   Evidence per lake: Hidden — unnamed, 24.1 ha, 52.1132,-125.6079; Secret — unnamed, 17.5 ha, 52.1005,-125.6163;
+   Square — Whitton Lake, 237.7 ha, 52.0318,-125.5638. Each survey's 50K code equals the FWA lake's own
+   `WATERBODY_KEY_50K` + group code (an exact join, not nearest). No other FWA lake in MU 5-6 carries these names.
+   Follow-on (the lane that applies them):
+   - `data/curated/regulations/book_name_links.json`: the three `not_found: true` rows for HIDDEN / SECRET / SQUARE
+     LAKE (Region 5, MU 5-6) say "do not bind"; remove them (or the variants never reach the entries).
+   - Registry rebuild (atlas build, `--atlas` side build + parity, then promote); re-match the entries (`matched`).
+   - The reach run's unresolved rules drop by 11 (Hidden 4, Secret 4, Square 3): 29 → 18 (→ 17 with Gagnon r1, Work 3).
+   - `pipeline/tests/test_t89_rules_that_bind_no_water.py`: take the three rows out of `AWAITING_WATER_ROWS`;
+     `test_the_allow_list_is_exact` pins `len(AWAITING_WATER) == 21` → 10 and `len(ALLOWED_UNRESOLVED) == 29` → 18
+     (17 with Gagnon; `BY_DESIGN` 8 → 7). The docstring's "seven rows" text follows. No other test names these entries
+     (`fixtures/review_tiers_sample.json` is a frozen fixture). The binding diff vs the live release lists 11 rules
+     newly bound on 3 lakes.
 
-   Full evidence: `handoff/PLAN/curation-review/unmatched-lakes-research.md` (2026-10-28), re-checked 2026-11-13 on the
-   current FWA (wbks, MUs and areas unchanged); new searches (FISS lake surveys, EcoCat titles incl. "(Frog)" /
-   "(Squirrel)" / "(Redfern)" aliases, FWA names province-wide) found nothing more.
-   More (2026-11-13): FISS also holds a 1993-03-12 Region 5 winter-limnology record "Limnology data for Hidden Lake"
-   on 01338ATNA. The Cariboo region's 2008 harmonization table (env.gov.bc.ca RegChanges-Update05dec08.pdf) put
-   Frog, Hidden and Secret together in suite R3 (quota 1 + the ice closure) and Square, Squirrel, Stewart in R2; the
-   2008-09 Region 5 synopsis prints the same rows with no locating words. The repo's stocking records (FIDQ, 64,991
-   releases) hold none of these lakes. No other FWA lake in MU 5-6 carries any of the four names. Frog would be
-   settled by the Williams Lake office's lake file (the 1993/1994 survey forms on 01256/01267/01272 ATNA are not
-   online as text) or the scanned EcoCat reports; none of the 1997 AIM survey titles is Frog.
+   **Still unmatched** (stay in `AWAITING_WATER_ROWS`; Frog and Redfern: owner will look harder later):
+   - **Frog Lake** (p.45, MU 5-6; "No Ice Fishing; trout daily quota = 1; bait ban, single barbless hook"; no locating
+     words, the same in the 2008-09 synopsis). The Cariboo 2008 harmonization table (gov.bc.ca
+     `RegChanges-Update05dec08.pdf`) put Frog, Hidden and Secret together in suite R3 (quota 1 was already theirs;
+     2008 added the ice closure), so Frog is most likely another lake of the Hidden/Secret group near Stewart Lake.
+     Leads (unnamed, each with only a 1994 Region 5 "LAKE SURVEY DATA" record; picture `frog_lake_leads.jpg`):
+     A wbk 328962870, 10.9 ha, 01256ATNA, 52.1769,-125.4629 (1.8 km W of Charlotte Lake); B wbk 329021897, 8.6 ha,
+     01267ATNA, 52.1670,-125.4710; C wbk 329021982, 4.4 ha, 01272ATNA, 52.1622,-125.4823 (A and C on the Stewart Lake
+     creek, B on a side creek). Other unnamed lakes with 1994 records nearby: 01504ATNA (wbk 329021836, 22.1 ha;
+     wbk 329021863, 14.1 ha), 01538ATNA (wbk 329022115, 2.7 ha), 01542ATNA (wbk 329022199, 2.2 ha), all east of
+     Whitton Lake; 01479ATNA (no FWA lake ≥ 2 ha found). Tried, nothing: FWA names province-wide (BC's Frog lakes
+     are in 1-10, 3-28/29, 7-30, 7-52), BCGNIS, FISS lake surveys + fish observations + EcoCat titles (incl.
+     "(Frog)"), every FISS/EcoCat record in the Charlotte–Stewart block, the repo's stocking records (FIDQ, 64,991
+     releases: none), the 2008 table and the 2008-09 synopsis. None of the 1997 AIM survey titles is Frog. Would
+     settle it: the 1994 survey forms for those codes or the Williams Lake fisheries office's lake file, the scanned
+     EcoCat 49174 report, or an older synopsis with a locating note.
+   - **Redfern Lake** (p.46, MU 5-15; "Trout daily quota = 2; bait ban, single barbless hook"; no locating words, same
+     row in 2008-09). BC's only Redfern Lake (gnis 28852, 498.6 ha) is in MU 7-42 (Redfern-Keily Park). In the
+     Cariboo only Ruth Redfern Creek (MU 5-15, blk 356363780) carries the name; it runs through Deception Lake (its
+     own 5-15 row, same rules) and rises at unnamed lake wbk 329354762 (32.8 ha, 00034MAHD, 52.1514,-120.5416), which
+     FISS (survey 5484) and EcoCat 51923 call "Unnamed Lake (Goat Lake)" — against Redfern. Tried: FISS/EcoCat by
+     name, every survey in the Canim/Deception/McNeil block, BCGNIS. Would settle it: the regional office, or a
+     book or gazetteer record tying "Redfern" to a lake on Ruth Redfern Creek.
+   - **Squirrel Lake** (R6 p.53 + R5 p.47 copy, MU 6-1; "Trout daily quota = 2; bait ban, single barbless hook";
+     2008 suite R2 with the other 6-1 lakes). BC's one Squirrel Lake (gnis 38786, wbk 329354753, 43.1 ha, 01446MAHD)
+     is in MU 5-1 and is already bound by the Paddy Lake 5-1 row. The other 6-1 rows (Toms, Basalt, Gatcho, Naglico,
+     Pettry, Chipmunk) came from the 1993 Region 5 winter-limnology series in EUCL, which also has unnamed "Lake
+     #19–#25"; no record names Squirrel. Tried: FISS lake records 52.88–53.2 N / 124.9–125.9 W, EcoCat EUCL /
+     Kluskus / Euchiniko titles, BCGNIS, web. Would settle it: the same office file for the 1993 series.
+
+   Full earlier evidence: `handoff/PLAN/curation-review/unmatched-lakes-research.md` (2026-10-28).
 
 ## Acceptance
 
@@ -139,5 +174,5 @@ part; Deena/Mamin the moved cuts; Tlell r5 0 tributary sections); the T89 allow-
 now bind; labels read "… at Grant Narrows", the Kootenay end in the book's words, the Lakelse mouth with "signs".
 
 Depends: atlas rebuild for new/moved cuts (Deena, Mamin, Gagnon, Kootenay, Lakelse); reach + deliver for the rest.
-Size: M. Owner: yes — accept the Deena/Mamin bridges, the Gagnon option, the three lake matches, and the open
+Size: M. Owner: yes — Frog and Redfern (owner looks harder later), and the open
 questions in Owner decisions 5. Default: nothing changes until accepted.
