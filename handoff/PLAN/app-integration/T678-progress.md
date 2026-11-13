@@ -224,3 +224,19 @@ Next commands:
 - T670 G7 (RULINGS Li13): the licence answers already carry the classified-water terms (requirements[].terms); the app
   now draws them under the licence item, "From the rule book:" + the book's words (fab4c0f6f). No release needed; shows
   with the next app build. Held for the owner: the basic licence's two administrative terms (not drawn).
+
+## Pipeline-side small tickets (2026-11-12, agent; no release, atlas or APK)
+- Done: T631 item 1 (197686263: the release check diffs a DFO-only change; keyed by run files, not the rules digest
+  alone), T560 item 2 (cc50a2379: paint sync uses the status index's decoder and the build's no-access threshold),
+  T560 item 6 / T601 item 2 Python half (63a3e6173: `manifest.live`, 8 hand readers of LATEST moved, guard test),
+  T629 items 3-4 (4734dbdca: WILD paragraph sourced and out of the transcription; our notes moved out; T629 DONE),
+  T540 item 2 (116872b43: `scripts/status_archive.py`, STATUS 125 -> 119 KB, fast-fail size guard).
+- Closed as already done: T601 items 1, 3, 4 (T547/T557/T554), T606 item 4 (T547), T677 items 4-7 (T678/T685).
+- Rides the next release: nothing new ships from these (T629's files are not bundle inputs; the rest is tooling). Rides
+  the next atlas: T606 item 2, T560 items 3/5, T631 item 5.
+- "Not done" list above: items 1-2 done (promoted); 3, 4, 5, 7 need an atlas rebuild (rides the next atlas); 6 (store
+  fact for key-0 tidal sections, = T672 1b) needs no pipeline change: the release already lists every tidal section in
+  `undrawn.json` `tidal`, so it is an app read (next app wave); 8 waits on the other lane's split-classification field
+  (`coast.authority` reads `source`/`authority`) and a `coast_held` rerun with the next atlas.
+- Held: T606 item 3 (needs deliver's read set), T593 (owner's scrape; new stored field re-keys DFO entries / marks),
+  T661 gate install (another lane in app/; mid-run commit question), T540 ledger-cell cap, T677 items 1/3.

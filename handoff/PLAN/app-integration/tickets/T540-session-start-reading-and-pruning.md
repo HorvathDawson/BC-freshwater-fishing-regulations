@@ -1,6 +1,6 @@
 # T540 — Cut what a new chat reads: closed ledger rows, old STATUS entries, the dead order list
 
-Status: PARTIAL — a7df2f98b, 666683208, ea0d3d488 (items 1-4 done 2026-11-11); left (Claude): cap the ledger's last cell (~200 characters), the STATUS size guard in fast-fail; item 5 is the owner's, default unchanged (Q177).
+Status: PARTIAL — a7df2f98b, 666683208, ea0d3d488, 116872b43 (items 1-4 done; item 2's rule + guard 2026-11-12); left (Claude): cap the ledger's last cell (~200 characters, 27 rows over it); item 5 is the owner's, default unchanged (Q177)
 
 Source: workflow review 2026-11-09 (verified against the files). Rank 8.
 
@@ -67,3 +67,10 @@ split is what brings it under 120 KB.
   restart page 4.8 + START-HERE 0.9 = 193 KB. NOT under the 120 KB acceptance: AGENTS (item 5, owner) and OWNER-TODO
   (grew from 33 KB) are what is left; the ledger alone cannot bring it there.
 - Not done: the last-cell cap (about 200 characters); the STATUS size guard and its move rule (item 2's leftovers).
+
+## Done 2026-11-12 (116872b43)
+- Item 2's leftovers: `scripts/status_archive.py --move` moves STATUS entries dated more than 7 days back (B.C. date) to
+  the top of `STATUS-archive.md`, unchanged (it refuses to write unless both files hold the same entries after);
+  `--check` is the fast-fail step "STATUS.md under its size limit" (128,000 B). Ran once: 5 entries of 2026-11-04 moved,
+  STATUS.md 125 KB -> 119 KB.
+- Left: the ledger's last-cell cap (27 rows over 200 characters today; the detail must be in each ticket file first).

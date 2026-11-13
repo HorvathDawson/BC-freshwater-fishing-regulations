@@ -1,6 +1,6 @@
 # T560 — One home for shared helpers: id slug, name key, live release reader, atomic write, cut tolerances
 
-Status: OPEN.
+Status: PARTIAL — items 2 and 6 (Python) done (cc50a2379, 63a3e6173); left (Claude): items 1, 3, 4, 5, 7, 8 and item 6's JS half (app/tools/serve-tiles.mjs, regs-recut/sync.mjs: the app wave)
 
 Source: data pipeline review 2026-11-09 (owner-led; 14 areas + a gap check, every finding re-read against the code and release data by a second reviewer). Rank 16 of 17; highest severity 2 of 5.
 
@@ -68,3 +68,16 @@ Fix the items above in severity order, one commit per item where they are separa
 One slug function in pipeline/common used by all ten sites (accent folding decided once; existing ids such as fran_ois_lake kept by an explicit map, no id changes). One release reader with the manifest check. One atomic-write helper. Tolerances read from tolerances.py; a guard test fails on a new private copy.
 
 Depends: —. Size: M. Owner: no.
+
+## Done 2026-11-12 (pipeline lane)
+- Item 2 (cc50a2379): `paint_sync` takes `access.MOSTLY_INSIDE_PERMILLE` and reads the status half with
+  `status_index.Index` (the encoder's twin); its test builds the bytes with `status_index.encode` and refuses another
+  version and trailing bytes. A test pins the threshold to the build's.
+- Item 6, Python half (63a3e6173): `pipeline.deliver.release.manifest.live(root)` — LATEST required, it must name a folder
+  with a manifest, no modified-time fallback. Eight hand readers moved onto it (inseason resolve + publish, name_check,
+  runtiming base + release, dfo_salmon live, bathymetry propose + contours); `test_release_latest.py` refuses a new hand
+  read of the pointer anywhere under `pipeline/`. `pipeline release`'s own `read_pointer` is unchanged (it handles a
+  missing pointer as a stop). JS half (serve-tiles.mjs mtime fallback, regs-recut/sync.mjs) left for the app wave.
+- Not done, by size: item 1 (slug + accent fold: stored ids, needs a migration map), item 3 (one wsc owner: changes the
+  atlas, measure on the next rebuild), items 4, 5, 7, 8 (severity 1 tidiness; item 5's tolerance unification can move a
+  cut decision, so it goes with an atlas rebuild).

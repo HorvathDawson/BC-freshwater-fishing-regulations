@@ -1,6 +1,6 @@
 # T631 — Reach run: follow-ups from T546
 
-Status: OPEN
+Status: PARTIAL — items 1 and 3 done (197686263, a3518f5d2); left (Claude): item 2 (bundle flag + its app half, rides the next release), items 4–8 (traces; item 5 needs an atlas rebuild)
 
 Source: T546 report 2026-11-11.
 
@@ -30,3 +30,13 @@ refuses while it holds one (`--accept-dead-ids` after reading it). It also print
 by family. Tests: `pipeline/tests/test_next_rebuild.py` (`test_promote_names_every_curated_id…`,
 `test_lost_boundaries_are_listed_by_family`). First use: `handoff/PLAN/app-integration/next-rebuild-results.md`.
 Items 1, 2, 4 to 8 stay open.
+
+## Item 1 done 2026-11-12
+`pipeline/release.py` `stage_checks` (and the `--dry-run` rehearsal) key the binding diff by the run files' CONTENT
+(`run_content`: every `BASELINE_FILES` file the diff reads, DFO places, tidal, outside, diagnostics) beside the rules
+digest (`run_diff_key`). "Same reach run" now means same digest AND same files; a DFO-only change is diffed and stops
+for `--accept-diff`. Tests: `test_release_command.py::test_a_dfo_only_change_is_diffed_though_the_rules_digest_is_unchanged`
+(mutation: hashing nothing makes it fail) and `test_the_same_run_by_digest_and_files_is_not_diffed`. A ledger row written
+with the old key re-runs the diff once on resume (harmless: same content, same accept).
+
+

@@ -1,6 +1,6 @@
 # T661 — Two tests red after the hardening lanes
 
-Status: PARTIAL — d12bb0108; left (Claude): install the parked heavy.sh gate (T535) once scripts/fast-fail.sh is green
+Status: PARTIAL — d12bb0108; left (Claude): install the parked heavy.sh gate (T535) once scripts/fast-fail.sh is green on a quiet tree and the mid-run commit question below is answered
 
 Source: scripts-hardening hand-back 2026-11-11. Both fail on the branch and stop fast-fail's changed-test step.
 
@@ -32,3 +32,10 @@ plus the gate (diffed), so the install is still `cp` both and commit. Its shell 
 Likely cause, not proven: the test hands heavy.sh `FAST_FAIL_DONE=<HEAD at its start>` and a commit mid-run makes the
 gate run a fast-fail the scratch tree does not have. Check that before the install: in a shared checkout the gate
 itself re-runs fast-fail whenever a neighbour commits between the caller's fast-fail and the lock.
+
+## 2026-11-12 (pipeline lane): still not installed
+Another lane is editing `app/` (water Map view, test-bed tools) right now, so fast-fail's app steps run on its in-flight
+files; installing a gate that runs fast-fail before every heavy job would stop that lane's emulator runs. The open point
+from 2026-11-11 also stands: in a shared checkout the gate re-runs fast-fail whenever a neighbour commits between the
+caller's fast-fail and the lock. Install when the tree is quiet, after deciding whether the gate keys on the tree's
+content (as the release's fast-fail does since T666) rather than HEAD.

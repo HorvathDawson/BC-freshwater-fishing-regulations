@@ -1,6 +1,6 @@
 # T629 — Owner: four places where our text differs from the printed book (no value changes)
 
-Status: OPEN
+Status: DONE — 4734dbdca (items 3, 4); items 1, 2 kept as they are on the owner's answer
 
 Source: T553 report 2026-11-11. None of these changes a rule value. Each needs the owner's reading.
 
@@ -24,3 +24,13 @@ Items 1 and 2 wait: the owner needs the book's words beside ours (with the T623 
 2. p.9 bullets: leave as is. We keep only the 23 m and 100 m bullets because the other three are on the map and shown.
    Owner: "unless you can find a way to get all the fishways and government fish facility locations: I couldn't find them
    but that would be sick". See T635.
+
+## Done 2026-11-12
+- Item 3: the WILD/FWID paragraph moved out of the transcription, after "What this settles", under "Not from the book".
+  Source: the exact words were not found online; the facts are in the Province's news release 2026WLRS0004-000093
+  (February 2026, https://news.gov.bc.ca/releases/2026WLRS0004-000093), which the note names. Note for the owner: the
+  "Proof of Identity" paragraph also says "state your FWID"; the print check does not flag it (no figure), so it was left.
+- Item 4: the Haida Gwaii commentary and the Region 3 "kept here as a test case" line moved to a "What this settles —
+  our notes" section at the end of `provincial-regulations.md`.
+- The four `DISAGREE` lines they caused (licensing 2026/27, provincial 26/772) are removed; the print and quote tests
+  pass (`test_base_rules_in_print.py`, `test_catalogue_entries.py`). The bundle reads neither file; nothing ships.

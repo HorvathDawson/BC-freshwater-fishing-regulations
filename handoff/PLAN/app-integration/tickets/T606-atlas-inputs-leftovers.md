@@ -1,6 +1,6 @@
 # T606 — Atlas inputs: what T547 left
 
-Status: OPEN
+Status: PARTIAL — items 1 and 4 done; left (Claude): item 2 (rides the next atlas rebuild), item 3 (held, reason below)
 
 Source: T547's report 2026-11-10 (commits 9c701a58b … 4acd5d0f1). T547's ticket file numbers the sections.
 
@@ -38,3 +38,12 @@ Conclusion: T547's change does not alter what is built. Item 1 done; items 2–4
 Item 2 did NOT ride the T664 + T665 side build (`app-integration/next-rebuild-results.md`): that build carries no
 change to lake clash suffixes or lake names. It still waits for an atlas rebuild of its own, or for the next one.
 The promote guard it leans on is unchanged; promote also lists lost boundary ids by family now.
+
+## 2026-11-12 (pipeline lane)
+- Item 4: already decided in T547 (9c701a58b): `pipeline/atlas/inputs.py` keys the cuts by their ANCHORS — a label,
+  note or confidence edit moves no cut and reaches the bundle through `splits.resolved.json` / the sidecars, so it is no
+  reason to refuse an atlas (the module docstring says so). Closed.
+- Item 3 held: dropping atlas-only curated files from the deliver key only saves reruns, and a file wrongly called
+  atlas-only would leave deliver stale with nothing said. It needs deliver's real read set first (the bundle's is pinned
+  by `test_one_data_flow.py`; answers / export / salmon / status index are not). Not worth that risk before closed testing.
+- Item 2 rides the next atlas rebuild (unchanged).

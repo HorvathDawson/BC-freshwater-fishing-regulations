@@ -1,6 +1,6 @@
 # T677 — Next rebuild: what the side build left
 
-Status: OPEN
+Status: PARTIAL — items 4–7 closed (below); left (Claude): item 1 (measure the name rule), item 3 (by-place binding diff); owner: item 2
 
 Source: the rebuild lane, 2026-11-11 (`handoff/PLAN/app-integration/next-rebuild-results.md`).
 
@@ -33,3 +33,13 @@ Depends: T664, T665. Size: M.
 29 Fraser delta lines that touch the tidal polygon have no section, because the braid-loop prune dropped them (16 at
 least 95% inside the polygon). Line 356337576 is still to look at. The Ewen Slough and 356242813 stubs are settled by
 the 25 m rule in T678.
+
+## 2026-11-12 (pipeline lane)
+- Item 6 done by T678/T685: the one tidal rule is RULINGS E21 (+ E20–E25) and `pipeline/docs/MAP.md`'s atlas row.
+- Item 7 done by T678 (second pass): lake:329461947 joined the Okanagan River Oxbows.
+- Item 5 settled by RULINGS E21 ("a water reaching the sea is fresh to the shoreline"): no question left to ask.
+- Item 4 superseded: the T665 held-lines map was replaced by the T678 coast rule and its owner list
+  (`coast_owner.json`, `shore_held.json` decided rows).
+- Item 3 is M, not small: a by-place diff needs both atlases' section spans in the release check (the live atlas's
+  pre-promote copy is not always kept). Left for its own lane.
+- Item 2 (Ucona 33 m in Strathcona Park) is the owner's: keep it in, or a park-membership cut. Default: as built.
