@@ -7932,7 +7932,8 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "undrawn_part": "at Grant Narrows"
     },
     {
      "rule_id": "pitt_river.r3",
@@ -8451,9 +8452,10 @@
      "may_target": false,
      "extents": [
       {
-       "op": "upstream_of",
+       "op": "between",
        "splits": [
-        "ruby_creek__signs_100_m_below_ruby_lake"
+        "ruby_creek__signs_100_m_below_ruby_lake",
+        "ruby_creek__ruby_lake"
        ]
       }
      ]

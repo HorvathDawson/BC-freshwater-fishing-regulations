@@ -73073,5 +73073,50 @@
     "note": "The owner's decision 2026-11-12 (\"Dewdney Slough\" search name finds Nicomen Slough: \"yes, apply\"): Dewdney Slough is a NAME VARIANT of Nicomen Slough (gnis 21105). DFO Region 2 prints \"Dewdney Slough - See Nicomen Slough\" and \"Nicomen (including Dewdney) Slough\"; FWA has no feature named Dewdney Slough (only Dewdney Creek, gnis 23609, MU 2-17, another water); the Highway 7 bridge at Dewdney crosses Nicomen Slough (blk 355991886 at 3,369 m). A search name only: display false, so the gazetted name stands. Flows atlas -> bundle -> search (T678 second pass)."
    }
   ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329021830"
+   ]
+  },
+  "names": [
+   {
+    "name": "HIDDEN LAKE",
+    "source": "regulation",
+    "note": "Unnamed lake in MU 5-6, 3.2 km SW of Stewart Lake. BC Lakes Database: WBID 01338ATNA (FISS 1993-03-12 'Limnology data for Hidden Lake'; AIM 1997 'Reconnaissance Survey of Un-named (Hidden) Lake', EcoCat 32595, 32579). Owner accepted 2026-11-13 (T708).; REGION 5 - Cariboo; MU 5-6"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329021850"
+   ]
+  },
+  "names": [
+   {
+    "name": "SECRET LAKE",
+    "source": "regulation",
+    "note": "Unnamed lake in MU 5-6, 0.7 km south of Hidden Lake on the same creek. BC Lakes Database: WBID 01370ATNA (AIM 1997 'Reconnaissance Survey of Unnamed (Secret) Lake'; EcoCat 49174, charts titled 'Secret Lake'). Owner accepted 2026-11-13 (T708).; REGION 5 - Cariboo; MU 5-6"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329021786"
+   ]
+  },
+  "names": [
+   {
+    "name": "SQUARE LAKE",
+    "source": "regulation",
+    "note": "Local name of Whitton Lake (gnis 39187) in MU 5-6, above Cohen Lake. BC Lakes Database: WBID 01503ATNA (AIM 1997 'Reconnaissance Survey of Whitton (Square) Lake'; EcoCat 33962). The book has no Whitton row. Owner accepted 2026-11-13 (T708).; REGION 5 - Cariboo; MU 5-6"
+   }
+  ],
+  "_gnis": [
+   "39187"
+  ]
  }
 ]

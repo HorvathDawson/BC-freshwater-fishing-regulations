@@ -5585,7 +5585,7 @@
     },
     {
      "id": "kootenay_river__cpr",
-     "label": "CPR",
+     "label": "CPR Bridge near Creston",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -5604,11 +5604,15 @@
     },
     {
      "id": "kootenay_river__navigation_dolphin_2000_m_downstream",
-     "label": "navigation dolphin (2000 m downstream)",
+     "label": "navigation dolphin (2 km below CPR Bridge)",
      "kind": "lake",
-     "anchor": {"type": "lake", "wbk": "328974235"},
+     "anchor": {
+      "type": "lake",
+      "wbk": "-20",
+      "edge": "inlet"
+     },
      "note": "",
-     "_note": "[owner 2026-10-26] bound to Kootenay Lake itself (the edge follows the extent's direction); the dolphin point stays as history: coord [-116.68511, 49.25176], 2000 m downstream. [auto-proposal L] CPR Bridge near Creston (to navigation dolphin ~2 km downstream) on Kootenay River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the CPR bridge over the Kootenay near Creston; distinct from the authored Idaho-border split.. Reach = 'CPR Bridge near Creston downstream 2 km to navigation dolphin'. This is a railway bridge near Creston, NOT the 49th-parallel crossing (which is the separate authored split kootenay_idaho_border). Map/OSM-confirmable. [structural-split 2026-08-05 from “from CPR Bridge near Creston downstream 2 km to navigation dolphin”] boundary=navigation dolphin [curated 2026-08-08 manual-review batch=kootenay-4-7-8] [navigation dolphin = in-water piling structure, not in OSM; =2km d/s of CPR bridge -> 49.26919,-116.68844. NOTE: dolphin may lie in Kootenay Lake (Creston flats) -> at split-time it could get cut by auto-lake-split; consider a closure POLYGON (Fraser-style) or take the lake up to the dolphin line. revisit for polygon treatment]",
+     "_note": "[T708 Work 7, 2026-11-13] Re-anchored from the retired whole-lake wbk 328974235 (it resolved nowhere) onto Kootenay Lake — Main Body (wbk -20), the edge where the river enters the lake, with the book's words ('CPR Bridge near Creston downstream 2 km to navigation dolphin'); kootenay_river_lower.r1 names it. The dolphin itself (~2 km below the bridge) lies in the lake, which is never cut, so the cut is the lake edge (~0.67 km below the bridge), as before. [owner 2026-10-26] bound to Kootenay Lake itself (the edge follows the extent's direction); the dolphin point stays as history: coord [-116.68511, 49.25176], 2000 m downstream. [auto-proposal L] CPR Bridge near Creston (to navigation dolphin ~2 km downstream) on Kootenay River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the CPR bridge over the Kootenay near Creston; distinct from the authored Idaho-border split.. Reach = 'CPR Bridge near Creston downstream 2 km to navigation dolphin'. This is a railway bridge near Creston, NOT the 49th-parallel crossing (which is the separate authored split kootenay_idaho_border). Map/OSM-confirmable. [structural-split 2026-08-05 from “from CPR Bridge near Creston downstream 2 km to navigation dolphin”] boundary=navigation dolphin [curated 2026-08-08 manual-review batch=kootenay-4-7-8] [navigation dolphin = in-water piling structure, not in OSM; =2km d/s of CPR bridge -> 49.26919,-116.68844. NOTE: dolphin may lie in Kootenay Lake (Creston flats) -> at split-time it could get cut by auto-lake-split; consider a closure POLYGON (Fraser-style) or take the lake up to the dolphin line. revisit for polygon treatment]",
      "_coord": [
       -116.68511,
       49.25176
@@ -8797,16 +8801,17 @@
    },
    "splits": [
     {
-     "id": "gagnon_creek__fishing_boundary_signs_at_the_mouth",
-     "label": "fishing boundary signs near the mouth (at Williston Lake)",
+     "id": "gagnon_creek__signs_200_m_above_the_unnamed_lake",
+     "label": "fishing boundary signs near its mouth (placed 200 m above the unnamed lake)",
      "kind": "lake",
      "anchor": {
       "type": "lake",
-      "wbk": "-18",
-      "edge": "inlet"
+      "wbk": "329465442",
+      "offset_m": 200,
+      "offset_dir": "upstream"
      },
      "note": "",
-     "_note": "[owner 2026-11-13, Gagnon Creek: \"Mouth is still Williston\"; earlier \"Let's just assume the mouth is the signs and add it as a variant name\", \"Where it enters Williston so it captures the whole stream\"] THE SIGNS ARE THE MOUTH: this cut is the creek's mouth on Williston Lake — Zone A (-18), the lake's inlet edge on the creek's line, no offset; the old cut 400 m above it (`gagnon_creek__signs_400_m_above_williston_lake`) is removed — it landed inside the 58 ha unnamed lake (wbk 329465442) and was aliased onto that lake's outlet edge. The unnamed lake stays a lake of its own (waters/pond_calls.json). The rule 'exempt from spring closure downstream of the signs' therefore covers no water of the creek: the whole creek (the 74 m channel and the creek above the lake) keeps the spring closure. History of the removed cut: [curated 2026-08-10 signs/other batch] [base=mouth +400m u/s -> 55.27125,-123.15816; closure d/s to mouth] [datum-fix 2026-08-29] Was a point anchor on the curated 'mouth' coord + 400 m upstream. That coord sits at the FWA line's measure-0 end, which for a Williston Lake tributary is inside the LAKE — the line runs on through the lake, and the creek only leaves the shoreline thousands of metres up. The cut therefore landed in open water with no stream piece to cut, was dropped, and no item ever carried the boundary; the rule's locator stayed unresolved. Re-anchored to the Williston Lake polygon boundary + 400 m upstream, which is what 'signs near its mouth' means. Old coord kept in _coord as provenance. [2026-09-11] Re-anchored from Williston Lake's original waterbody (328961697) to 'Williston Lake — Zone A' (-18). The lake is now cut into its four named waters, so the polygon this creek's mouth meets is Zone A's — the original key bounds nothing on this creek any more and the split stopped resolving. The creek's mouth is inside Zone A and 23-32 km from the next nearest part, so there is nothing ambiguous about which. [split-name audit 2026-10-26] renamed from `gagnon_creek__fishing_boundary_signs_near_its_mouth_400_m_upstream` / \"fishing boundary signs near its mouth (400 m upstream)\": the old name was a phrase fragment that named no place, so the parser could not match it.",
+     "_note": "[owner 2026-11-13, T708 Work 3: \"should cover a little bit above the unnamed lake too. so make it 200m above the unnamed lake or so\"] The book's 'fishing boundary signs near its mouth' (no record of where the signs stand) placed 200 m above the inlet of the 58 ha unnamed lake wbk 329465442 (inlet at ~3,659 m on blk 359565112, cut ~3,859 m, in the creek's own double-line stretch). `downstream_of` this cut takes the ~200 m of creek, the creek's line through the unnamed lake and the 74 m channel to Williston Lake — Zone A; the creek's mouth stays Williston (RULINGS P57) and the unnamed lake stays its own lake (waters/pond_calls.json). Replaces `gagnon_creek__fishing_boundary_signs_at_the_mouth` (the Williston inlet edge, which covered no creek water). Earlier history of that cut: [owner 2026-11-13, Gagnon Creek: \"Mouth is still Williston\"; earlier \"Let's just assume the mouth is the signs and add it as a variant name\", \"Where it enters Williston so it captures the whole stream\"] THE SIGNS ARE THE MOUTH: this cut is the creek's mouth on Williston Lake — Zone A (-18), the lake's inlet edge on the creek's line, no offset; the old cut 400 m above it (`gagnon_creek__signs_400_m_above_williston_lake`) is removed — it landed inside the 58 ha unnamed lake (wbk 329465442) and was aliased onto that lake's outlet edge. The unnamed lake stays a lake of its own (waters/pond_calls.json). The rule 'exempt from spring closure downstream of the signs' therefore covers no water of the creek: the whole creek (the 74 m channel and the creek above the lake) keeps the spring closure. History of the removed cut: [curated 2026-08-10 signs/other batch] [base=mouth +400m u/s -> 55.27125,-123.15816; closure d/s to mouth] [datum-fix 2026-08-29] Was a point anchor on the curated 'mouth' coord + 400 m upstream. That coord sits at the FWA line's measure-0 end, which for a Williston Lake tributary is inside the LAKE — the line runs on through the lake, and the creek only leaves the shoreline thousands of metres up. The cut therefore landed in open water with no stream piece to cut, was dropped, and no item ever carried the boundary; the rule's locator stayed unresolved. Re-anchored to the Williston Lake polygon boundary + 400 m upstream, which is what 'signs near its mouth' means. Old coord kept in _coord as provenance. [2026-09-11] Re-anchored from Williston Lake's original waterbody (328961697) to 'Williston Lake — Zone A' (-18). The lake is now cut into its four named waters, so the polygon this creek's mouth meets is Zone A's — the original key bounds nothing on this creek any more and the split stopped resolving. The creek's mouth is inside Zone A and 23-32 km from the next nearest part, so there is nothing ambiguous about which. [split-name audit 2026-10-26] renamed from `gagnon_creek__fishing_boundary_signs_near_its_mouth_400_m_upstream` / \"fishing boundary signs near its mouth (400 m upstream)\": the old name was a phrase fragment that named no place, so the parser could not match it.",
      "_coord": [
       -123.16404,
       55.26994
@@ -10284,17 +10289,17 @@
      "anchor": {
       "type": "point",
       "coord": [
-       -132.16401,
-       53.1211
+       -132.20619,
+       53.11879
       ],
       "is_lonlat": true
      },
      "confidence": "low",
      "note": "",
-     "_note": "[owner 2026-10-27 decisions.md 'needs a split' list] Deena Creek r1 'upstream of fishing boundary signs at second bridge approximately 5 km upstream of the tidal boundary'. GUESSED, LOW confidence: no second bridge is mapped. The FWA tidal boundary crosses Deena Creek (blk 360863736) at route measure ~311 m; OSM has one bridge at ~1522 m (way 207719610, 53.1406,-132.1452 - the first bridge) and the FTEN road layer only a crossing at ~14 km (R13249 '121E-100 TO FORK05'). This point is the creek line 5.0 km above the tidal boundary (measure ~5311 m), the book's own distance, standing in for the unmapped second bridge.",
+     "_note": "[owner 2026-11-13, T708 Work 4: \"deena proposed is good\"; stays LOW confidence] Moved to road crossing 2 (loose resource road, BC Digital Road Atlas, 53.11879,-132.20619): 8.83 km on blk 360863736, 8.5 km above the FWA tidal crossing by stream, 5.3 km as the bird flies — counting bridges and reading the book's km as the bird flies, as Copper Creek's accepted cut does. Unconfirmed: no source says which crossings are bridges or culverts; an unmapped crossing would change the count. Before: [-132.16401, 53.1211] (a point at the book's 5 km along the line, no road). [owner 2026-10-27 decisions.md 'needs a split' list] Deena Creek r1 'upstream of fishing boundary signs at second bridge approximately 5 km upstream of the tidal boundary'. GUESSED, LOW confidence: no second bridge is mapped. The FWA tidal boundary crosses Deena Creek (blk 360863736) at route measure ~311 m; OSM has one bridge at ~1522 m (way 207719610, 53.1406,-132.1452 - the first bridge) and the FTEN road layer only a crossing at ~14 km (R13249 '121E-100 TO FORK05'). This point is the creek line 5.0 km above the tidal boundary (measure ~5311 m), the book's own distance, standing in for the unmapped second bridge.",
      "_coord": [
-      -132.16401,
-      53.1211
+      -132.20619,
+      53.11879
      ]
     }
    ]
@@ -10307,22 +10312,22 @@
    "splits": [
     {
      "id": "mamin_river__third_bridge_mamin_main",
-     "label": "third bridge signs (Mamin Main, ~10 km above the tidal boundary)",
+     "label": "third bridge signs (~10 km above the tidal boundary)",
      "kind": "point",
      "anchor": {
       "type": "point",
       "coord": [
-       -132.32625,
-       53.56814
+       -132.32589,
+       53.53846
       ],
       "is_lonlat": true
      },
      "confidence": "low",
      "note": "",
-     "_note": "[owner 2026-10-27 decisions.md 'needs a split' list] Mamin River r3 'upstream of fishing boundary signs on third bridge approximately 10 km upstream of the tidal boundary'. GUESSED, LOW confidence: the FTEN road layer (bc_fisheries_data.gpkg forest_service_roads) crosses the Mamin (blk 360873432) at Datlamen Main (R13350 s355, measure ~4576 m) and Mamin Main (R13350 s270, measure ~11162 m, 53.56814,-132.32625); the tidal boundary is at measure ~2076 m, so Mamin Main is ~9.1 km above it - the only mapped crossing near the book's 10 km. The book counts three bridges; only two are mapped below 28 km, so which bridge is 'third' is unconfirmed.",
+     "_note": "[owner 2026-11-13, T708 Work 4: \"same with mamin crossing\"; stays LOW confidence] Moved to road crossing 3 (BC Digital Road Atlas 'unsigned' loose road, 53.53846,-132.32589): 16.71 km on blk 360873432, 14.6 km above the FWA tidal crossing by stream, 9.0 km as the bird flies. Crossings 1 (Datlamen Main, 4.58 km) and 2 (Mamin Main, 11.16 km, the cut before) lie below it. The id keeps its old name (`mamin_main`) so no reference moves; the label no longer names Mamin Main. Unconfirmed: bridges vs culverts not in any source. Before: [owner 2026-10-27 decisions.md 'needs a split' list] Mamin River r3 'upstream of fishing boundary signs on third bridge approximately 10 km upstream of the tidal boundary'. GUESSED, LOW confidence: the FTEN road layer (bc_fisheries_data.gpkg forest_service_roads) crosses the Mamin (blk 360873432) at Datlamen Main (R13350 s355, measure ~4576 m) and Mamin Main (R13350 s270, measure ~11162 m, 53.56814,-132.32625); the tidal boundary is at measure ~2076 m, so Mamin Main is ~9.1 km above it - the only mapped crossing near the book's 10 km. The book counts three bridges; only two are mapped below 28 km, so which bridge is 'third' is unconfirmed.",
      "_coord": [
-      -132.32625,
-      53.56814
+      -132.32589,
+      53.53846
      ]
     }
    ]

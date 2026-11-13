@@ -259,3 +259,40 @@ now bind; labels read "… at Grant Narrows", the Kootenay end in the book's wor
 Depends: atlas rebuild for new/moved cuts (Deena, Mamin, Gagnon, Kootenay, Lakelse); reach + deliver for the rest.
 Size: M. Owner: yes — Frog and Redfern (owner looks harder later), and the open
 questions in Owner decisions 5. Default: nothing changes until accepted.
+
+## Progress (2026-11-13, pipeline lane)
+
+Curated inputs changed (all through `curated_write`; backups under `data/generated/curated_writes/backups/`). Nothing
+built: every effect below needs the next atlas rebuild + reach + deliver (main schedules it).
+
+- **Pitt r2** — `undrawn_part: "at Grant Narrows"` beside `whole` (as Harrison/Powell/Mara): label "Speed restriction
+  (10 km/h) — in part: at Grant Narrows" (checked with `labels.label`). Reach + deliver only.
+- **Ruby r1** — `between` [`ruby_creek__signs_100_m_below_ruby_lake`, `ruby_creek__ruby_lake`]. Reach + deliver;
+  binding diff should show only the 100 m piece kept (Ambrose-side sections + 6 tributary sections leave).
+- **Gagnon r1** — new cut `gagnon_creek__signs_200_m_above_the_unnamed_lake` (lake anchor wbk 329465442, `offset_m` 200
+  upstream: one mechanism, no hand coordinate) replaces `…_fishing_boundary_signs_at_the_mouth`; r1 is `downstream_of`
+  it; RULINGS P57 rewritten. The unnamed lake is not given the exemption: the spring closure is a STREAM closure, so the
+  lake is not under it. Atlas rebuild.
+- **Deena / Mamin** — same ids (no reference moves), coords moved to crossing 2 (53.11879,-132.20619) and crossing 3
+  (53.53846,-132.32589); Mamin label drops "Mamin Main"; both stay `low`. Atlas rebuild; diff the two rules.
+- **Kootenay r1** — `kootenay_river__navigation_dolphin_2000_m_downstream` re-anchored on wbk -20 (Main Body) inlet,
+  label "navigation dolphin (2 km below CPR Bridge)"; `kootenay_river__cpr` label "CPR Bridge near Creston"; r1 now
+  `between` [cpr, dolphin]. The dolphin cut lands on the lake edge, so `sectionizer._coincident` makes it an ALIAS of
+  the standing lake boundary: the rule label names the dolphin (namer, by id), but the PART end name stays "Kootenay
+  Lake — Main Body". Changing which name wins is a sectionizer policy change, not done. Atlas rebuild.
+- **3 lakes** — `name_variants.json` records for Hidden, Secret, Square (→ Whitton) as decided; the three `not_found`
+  rows dropped from `book_name_links.json`. `check_curated --waters`: 0 errors (warns Hidden/Secret not in the current
+  registry, expected until the rebuild). Registry rebuild, then re-match (`matched`).
+- **Test pins to move WITH the rebuild** (left as they are: they read the live release, which still has the old
+  bindings): `test_t89_rules_that_bind_no_water.py` — gagnon r1 out of `BY_DESIGN` (8 → 7), Hidden/Secret/Square out of
+  `AWAITING_WATER_ROWS` (21 → 10), `ALLOWED_UNRESOLVED` 29 → 17, docstring "seven rows" → four.
+
+Not done (waiting):
+- **McArthur Island Slough** — owner's call: `CatalogueEntry` refuses `extent_text` beside a bare `whole` ("a part
+  nothing can draw is written as `undrawn_part` … or keeps its words with no extents … or is bound to the part"). The
+  only allowed form that keeps the words on a whole-slough rule is `undrawn_part`, which reads "in part: from westerly
+  entrance to 12th Street entrance to Park" (a note on the slough). The guard is not loosened. Owner: accept the
+  "in part" reading, or keep today's bare label (the book's sentence still shows underneath)?
+- **Lakelse mouth "signs"** — no mechanical form: a cut needs the designated mouth's place (signs 1.7 km below the
+  logging-road bridge; not located), and a per-water mouth name is a new field in `display/part.py`. Not done.
+- **Tlell r5** — Work 6 is a proposal; no owner answer recorded. Not done.

@@ -4700,18 +4700,6 @@
  {
   "type": "override",
   "criteria": {
-   "name_verbatim": "SECRET LAKE",
-   "region": "REGION 5 - Cariboo",
-   "mus": [
-    "5-6"
-   ]
-  },
-  "note": "Searched but only found in Region 8 (MU 8-7, GNIS 37609, waterbody_key 329220075) and Region 3 (MU 3-30, GNIS 38166, waterbody_key 331154867), not Region 5 (regulation MU 5-6). May be typo in regulations or require duplicate feature creation. Reference: BC Freshwater Fishing Regulations Synopsis 2024-2026, Region 5, MU 5-6.  No correct registry item for this name in this MU yet — placeholder. [was skip:not_found]",
-  "not_found": true
- },
- {
-  "type": "override",
-  "criteria": {
    "name_verbatim": "FROG LAKE",
    "region": "REGION 5 - Cariboo",
    "mus": [
@@ -4719,30 +4707,6 @@
    ]
   },
   "note": "Searched but only found in Region 3 (MU 3-29, GNIS 12556, waterbody_key 330954838), Region 1 (MU 1-10, GNIS 12554, waterbody_key 329173098), and Region 7 (MU 7-30, GNIS 56145, waterbody_key 329383393), not Region 5 (regulation MU 5-6). May be typo in regulations or require duplicate feature creation. Reference: BC Freshwater Fishing Regulations Synopsis 2024-2026, Region 5, MU 5-6.  No correct registry item for this name in this MU yet — placeholder. [was skip:not_found]",
-  "not_found": true
- },
- {
-  "type": "override",
-  "criteria": {
-   "name_verbatim": "HIDDEN LAKE",
-   "region": "REGION 5 - Cariboo",
-   "mus": [
-    "5-6"
-   ]
-  },
-  "note": "Searched but only found in Region 5 MU 5-15 (GNIS 21382, waterbody_key 329635892), not in regulation MU 5-6. May be MU boundary issue or typo in regulations. Reference: BC Freshwater Fishing Regulations Synopsis 2024-2026, Region 5, MU 5-6.  No correct registry item for this name in this MU yet — placeholder. [was skip:not_found]",
-  "not_found": true
- },
- {
-  "type": "override",
-  "criteria": {
-   "name_verbatim": "SQUARE LAKE",
-   "region": "REGION 5 - Cariboo",
-   "mus": [
-    "5-6"
-   ]
-  },
-  "note": "Searched but only found in Region 5 MU 5-3 (GNIS 29739, waterbody_key 329677163), not in regulation MU 5-6. May be MU boundary issue or typo in regulations. Reference: BC Freshwater Fishing Regulations Synopsis 2024-2026, Region 5, MU 5-6.  No correct registry item for this name in this MU yet — placeholder. [was skip:not_found]",
   "not_found": true
  },
  {
