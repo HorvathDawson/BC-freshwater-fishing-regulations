@@ -273,12 +273,12 @@ describe("freshness: each source against its own cadence (owner 2026-10-22)", ()
       at(k, { sources: { [k]: { date: new Date(midnight - days * D).toISOString().slice(0, 10) } } }, midnight);
     // the owner's phone, 2026-11-13: an atlas of Mar 26, 2024 was 2.6 years old and read "Likely out of date"
     expect([day("fwa", 0), day("fwa", 731), day("fwa", 3650), day("basemap", 366), day("basemap", 2000)]).toEqual([
-      "fwa Changes rarely", "fwa Changes rarely", "fwa Changes rarely", "basemap Changes rarely", "basemap Changes rarely"]);
+      "fwa Date only", "fwa Date only", "fwa Date only", "basemap Date only", "basemap Date only"]);
     // no date recorded, or not a day: unknown — still never a verdict from age
     expect([at("fwa", {}, midnight), at("fwa", { sources: { fwa: { date: "July" } } }, midnight)])
       .toEqual(["fwa Unknown", "fwa Unknown"]);
     // a newer DATA RELEASE does not make the atlas stale either (no signal says a newer atlas exists)
-    expect(at("fwa", { newRelease: "r-9", sources: { fwa: { date: "2024-03-26" } } }, midnight)).toBe("fwa Changes rarely");
+    expect(at("fwa", { newRelease: "r-9", sources: { fwa: { date: "2024-03-26" } } }, midnight)).toBe("fwa Date only");
     expect(sourceFreshness("fwa", { sources: { fwa: { date: "2024-03-26" } }, validUntil: null, tiles: null, feedFetchedAt: null, now: midnight }).kind)
       .toBe("dated");
     expect([day("hydat", 548), day("hydat", 549)]).toEqual(["hydat Up to date", "hydat Likely out of date"]);

@@ -30,8 +30,9 @@ export const FRESHNESS_WORDS = {
   stale: "Likely out of date",
   unknown: "Unknown",
   live: "Live",
-  /** (T700) the Freshwater Atlas, the basemap: a date and no verdict, since age alone does not date base geography */
-  dated: "Changes rarely",
+  /** (T703, owner 2026-11-13: "okay just listing date") the Freshwater Atlas, the basemap: the date alone, no verdict. The
+   *  Help page's name for the dot; a row never says it */
+  dated: "Date only",
   /** the regulations past their last day: not "likely" — the edition has lapsed (`regsLapsed`) */
   lapsed: "Out of date",
   /**

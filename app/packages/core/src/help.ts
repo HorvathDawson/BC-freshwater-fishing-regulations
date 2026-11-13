@@ -441,7 +441,7 @@ export const HELP_WORDS = {
     stale: "Older than expected. Refresh, or check the source before you rely on it.",
     unknown: "No date recorded for this source.",
     live: "Fetched when needed, so it has no age.",
-    dated: "Base map data that changes rarely. Its date is shown; its age does not make it out of date.",
+    dated: "Base map data (the Freshwater Atlas, the basemap). Only its date is shown; its age does not make it out of date.",
   } satisfies Record<SourceFreshness, string>,
   bell: {
     name: MENU_WORDS.sources.names.inseason,

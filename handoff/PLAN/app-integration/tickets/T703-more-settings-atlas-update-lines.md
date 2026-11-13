@@ -6,6 +6,12 @@ Owner 2026-11-13, phone (0.7.7 build 29), the More tab, verbatim: "Fresh water a
 the toggles for settings like crash reports or download source etc should be in a setting smenu in here. Also all the
 update info at top is redundant since it is in the table formatted nicer below it?"
 
+## Owner follow-up, 2026-11-13 (verbatim)
+"Please fix clipping. Fwa doesn't need to be changed ever in theory... Only if I want to see if new names are in it. So it
+is okay just listing date". Done: the Freshwater Atlas and Basemap rows list the DATE ONLY (no "Changes rarely", no state
+aloud); the Help page's dated-dot row says the same. The palette tiles show the mark over the word, the word whole (it wraps,
+never "Colour-b…"), pinned by a render test that fails with a one-line clamp.
+
 ## 1. Staleness, per source (`core/src/staleness.ts`, THE ONE TABLE)
 Before: Freshwater Atlas `age` 730 d (the owner's Mar 26, 2024 atlas was 2.6 years old: "Likely out of date"); Basemap
 `age` 365 d; HYDAT `notice` (the feed's word) with 548 d as the fallback; Synopsis `release` (in force through

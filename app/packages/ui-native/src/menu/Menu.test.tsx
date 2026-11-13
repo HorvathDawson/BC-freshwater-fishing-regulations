@@ -130,7 +130,7 @@ describe("the More tab (T48; owner 2026-10-22 refinement; T167)", () => {
         "DFO salmon: Not checked yet. Unknown.",
         "Freshwater Atlas: No date recorded. Unknown.",
         "Map tiles: Matches the data. Up to date.",
-        "Basemap: Mar 5, 2026. Changes rarely.",
+        "Basemap: Mar 5, 2026.",
         "HYDAT: No date recorded. Unknown.",
         "Live gauge readings: 27h ago. Likely out of date.",
         "River forecasts: Issued 9h ago. Up to date.",
@@ -233,6 +233,18 @@ describe("Settings (T703)", () => {
     expect(screen.getByRole("radiogroup").getAttribute("aria-label")).toBe("Colours");
     act(() => { fireEvent.click(screen.getByRole("radio", { name: "Colour-blind" })); });
     expect(picked).toEqual(["cvd"]);
+  });
+
+  it("(T703) every palette tile shows its word in full: no one-line clamp, no ellipsis (\"Colour-b…\" at phone width)", () => {
+    render(<App out={{}} width={360} />);
+    pick("menu-item-settings");
+    for (const k of ["light", "dark", "cvd"]) {
+      const word = MENU_WORDS.display.options.find((o) => o.k === k)!.t;
+      const label = Array.from(screen.getByTestId(`theme-${k}`).querySelectorAll("*")).find((e) => e.children.length === 0 && e.textContent === word)!;
+      const cs = getComputedStyle(label);
+      expect([k, label.textContent, cs.textOverflow === "ellipsis", (cs.webkitLineClamp ?? "") !== "" && cs.webkitLineClamp !== "none"])
+        .toEqual([k, word, false, false]);
+    }
   });
 
   it("with the phone's mobile-data choice and a reporter: Data, Privacy and Display, in that order, the controls where they were", () => {

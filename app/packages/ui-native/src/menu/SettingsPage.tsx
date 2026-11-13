@@ -193,14 +193,16 @@ function DisplayTiles({ palette, theme, onTheme }: { palette: Palette; theme: Th
                   ))}
                 </View>
               </View>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 8, paddingVertical: 7,
+              {/* (T703, owner 2026-11-13: "fix clipping") the mark over its word, the word whole: never one line cut short
+                  ("Colour-b…") at 360 dp or a larger font — it wraps instead */}
+              <View style={{ alignItems: "center", gap: 4, paddingHorizontal: 4, paddingVertical: 7,
                              borderTopWidth: 1, borderTopColor: palette.line }}>
                 <View style={{ width: 14, height: 14, borderRadius: round(14), borderWidth: 1.5,
                                borderColor: on ? palette.accent : palette.faint, alignItems: "center",
                                justifyContent: "center" }}>
                   {on && <View style={{ width: 6, height: 6, borderRadius: round(6), backgroundColor: palette.accent }} />}
                 </View>
-                <Text numberOfLines={1} style={{ ...TYPE.metaBold, flexShrink: 1, color: on ? palette.ink : palette.sub }}>
+                <Text style={{ ...TYPE.metaBold, textAlign: "center", color: on ? palette.ink : palette.sub }}>
                   {o.t}
                 </Text>
               </View>

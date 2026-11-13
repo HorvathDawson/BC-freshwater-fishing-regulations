@@ -142,7 +142,8 @@ function dataRow(k: SourceDateKey, s: SourcesInput): DataRowVM {
   const when = rowWhen(k, s);
   const badge = sourceFreshness(k, s);
   return { k, name, when, badge, shown: badge.kind === "stale" ? W.shown(when, badge.label) : when,
-           label: W.aloud(name, when, badge.label) };
+           // (T703) a dated row says its date and nothing more
+           label: badge.kind === "dated" ? `${name}: ${when}.` : W.aloud(name, when, badge.label) };
 }
 
 export function dataVM(s: DataInput): DataBlockVM {
