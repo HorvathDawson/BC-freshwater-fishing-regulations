@@ -62,13 +62,15 @@ Not shown: anything not on the fact sheet or only in a later build; no promise o
   capture, a report.json, exit 1 on failure.
 - The emulator is 1080 x 1920-class; Play needs no exact size, so step 1 can keep the native 9:16 frame.
 
-## Open choices for the owner
-1. Captions on the video, or none.
-2. Silent, or music (a licence to find; Apple wants stereo audio either way).
-3. One video, or up to three (Apple allows 3); Play takes one.
-4. Portrait only (proposed), or also landscape.
-5. Poster frame: the map opening (proposed) or the regulations page.
-6. Whether the website / share page also gets the clip.
+## Choices (owner 2026-11-13: "do the best standard for it what ever would bring most clicks" — picked by Claude on that brief)
+1. **Captions: yes.** Both stores autoplay muted, so the video must read with no sound. Short, large captions, one per scene, kept clear of the top and bottom edges the stores overlay.
+2. **Sound: a silent stereo track, no music.** Nothing to license, and nearly every view is muted. Music can be added later without re-recording.
+3. **One video.** Play takes one; the first preview is the only one most people see. Spend the effort on its first 3 seconds.
+4. **Portrait only.** Matches how the phone app is used and fills the store page on a phone.
+5. **Poster frame: the coloured map**, set explicitly (not Apple's default 5 s frame).
+6. **Website / share page: yes, the same clip**, self-hosted, muted, no autoplay on mobile data.
+7. **Opening:** the first 3 seconds are the coloured map with a tap landing on a river and the answer appearing — the app's question answered on screen before any caption about features. No logo or title card at the start; name and icon come last.
+8. **Pace:** 6–7 scenes, each one action, real taps at real speed, no speed-ups that make the app look faster than it is.
 
 ## Acceptance
 - One command writes the files at the stores' exact specs: step 1 a portrait H.264 MP4 at 30 fps, 25-30 s, silent
