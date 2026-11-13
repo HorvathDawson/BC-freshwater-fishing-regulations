@@ -220,6 +220,31 @@ Pictures (Esri imagery, scratch): `deena_cut.jpg`, `mamin_cut.jpg`, `mcrae_cut.j
    - "Frog" appears nowhere in the Squirrel material: no FISS lake survey in the EUCL/UEUT/KLIN/ATNA/UDEN groups, no
      EcoCat title in MU 6-1, and none of the 11 1993 limnology sheets read carries it. No sole or two-way candidate,
      so no pictures.
+   **Third round (2026-11-13, "even deeper … old map books"): no hit.** Searched, so nobody repeats it:
+   - Provincial stocking records, all 250 watershed groups (FIDQ, 64,991 releases, local-name `aliases` field):
+     "SQUIRREL LAKE" is only an alias of 01446MAHD (the 5-1 lake, aliases "PADDY, SQUIRREL LAKE", stocked 1987–2025);
+     "REDFERN LAKE" only the 7B lake (00436UPRO, one release 1984); no Frog in the Cariboo. None of the 14 Frog /
+     Squirrel candidates, Goat or Deception was ever stocked (EUCL/UEUT groups have no stocking at all).
+   - OpenStreetMap (Overpass, names / alt_name / old_name): around the 6-1 lakes only Wolf, Naglico, Pettry, Tsetzi,
+     Blue, Neyasri, Cluchuta, Tsilbekuz, Eliguk are named; around Ruth Redfern Creek only Deception and McNeil;
+     around the Frog candidates only Stewart, Crazy Bear (Ginny), Davidson, Little Charlotte, Charlotte, Kappan, Miner,
+     Agnus and "Old Ecks Lake" (51.8572,-125.0427): none of the 21 candidate lakes carries a name in OSM.
+   - Federal CGNDB (incl. previously official): Frog Lake(s) only at 7-30 / Thompson / Vancouver Island / Frog River;
+     Redfern Lake only 7-42; Squirrel Lake only 5-1. BCGNIS: same. GeoNames not queried (needs an account).
+   - NRCan CanMatrix 1:50,000 sheets 093C/03, 093C/05, 093F/03, 093A/02, 092N/14–15 (last printed editions,
+     scans): none of the candidates carries a name (that edition does not even label Deception or Hidden 5-15);
+     #2, #3 and #25 sit in sheet margins (adjacent sheets not read). Older editions are not in that archive.
+   - Archived synopses 2004 / 2005-07 / 2007-08 / 2008-09 / 2009-11 and the 2008 Cariboo harmonization documents (both
+     versions): same three rows, no locator. Web searches (lodges, BC Adventure lake index, Backroad Mapbooks blog,
+     Fishbrain, forums) with local qualifiers: nothing. archive.org: no scanned synopsis or stocking report found.
+     Not reached: printed Backroad Mapbooks indexes, UBC/UVic map-library scans, HathiTrust annual reports.
+   - Redfern, reading the whole MU (owner: "might exist elsewhere"): in every edition read (2004 → 2025) the only
+     5-15 row printing exactly Redfern's rules is DECEPTION LAKE (the others are trout/char rows), the lake ON Ruth
+     Redfern Creek; Region 7B has never printed a Redfern Lake row (2004, 2025; Redfern-Keily's lake follows the 7B
+     zone table) and the 7B lake was stocked once in 1984. My reading: the evidence favours a small lake managed with
+     Deception in the Ruth Redfern Creek / Deception area of 5-15 (Goat excluded: it had its own row until 2009), not
+     the 7B lake; a misprinted MU would also need a misprinted region. Not proven.
+
    Would settle any of them: the Williams Lake (Region 5) office's lake files for the 1993 limnology runs, or an
    edition before 2004 (not online in any archive found).
 
