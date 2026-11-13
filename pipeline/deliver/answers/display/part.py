@@ -179,6 +179,16 @@ def begins_at(doc: dict, y: str) -> Optional[str]:
     return top if top in (doc.get("splits") or {}) else None
 
 
+#: (T697) the end tokens of a lake that is not a named water (`bundle.spans`: the suffix dropped)
+UNNAMED_LAKE = ("lake_inlet", "lake_outlet")
+
+
+def _crossing_words(doc: dict, base: str, side: str) -> str:
+    """A crossing said at its place: its own words — but an unnamed lake, either edge, is "unnamed lake" (owner
+    2026-11-12: "unnamed lakes should be unnamed lake near x")."""
+    return "unnamed lake" if base in UNNAMED_LAKE else end_name(doc, base, side)
+
+
 def end_name(doc: dict, e: Optional[str], side: str = "") -> str:
     """`endName` — a run end in words."""
     if not e:
@@ -188,11 +198,11 @@ def end_name(doc: dict, e: Optional[str], side: str = "") -> str:
         # boundary, an unnamed lake, a river polygon), said near what stands there (`topology.crossing_near`)
         base, at = str(e).split(NEAR, 1)
         there = end_name(doc, at, side)
-        return f"near {there}" if base == "polygon" else f"{end_name(doc, base, side)} near {there}"
+        return f"near {there}" if base == "polygon" else f"{_crossing_words(doc, base, side)} near {there}"
     if PLACE in str(e):
         # …or, with nothing named within reach, at its km from the mouth
         base, km = str(e).rsplit(PLACE, 1)
-        return f"km {km}" if base == "polygon" else f"{end_name(doc, base, side)} (km {km})"
+        return f"km {km}" if base == "polygon" else f"{_crossing_words(doc, base, side)} (km {km})"
     if str(e).startswith("lake:") and str(e).count(":") == 2:
         # (T520 derived) where the main line enters / leaves a lake: `lake:<wbk>:inlet|outlet`
         _, wbk, which = str(e).split(":")

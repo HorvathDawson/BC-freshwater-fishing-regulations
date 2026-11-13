@@ -206,6 +206,18 @@ def _crossings(path: str) -> Dict[tuple, list]:
         db.close()
 
 
+def _water_ends_km(w: dict) -> Tuple[Optional[float], Optional[float]]:
+    """(T697) The km of a water's own lower and upper end: the lowest `km_to` and the highest `km_from` of the main-stem
+    runs of ALL its parts (outside B.C. too) — where its stem begins and ends, cut or not. (None, None): no measured
+    main-stem run."""
+    from pipeline.deliver.answers.display.part import _js
+    main = [r for p in w.get("parts") or [] for r in p.get("runs") or []
+            if not r.get("branch") and not _js(r.get("polygon"))]
+    los = [float(r["km_to"]) for r in main if r.get("km_to") is not None]
+    his = [float(r["km_from"]) for r in main if r.get("km_from") is not None]
+    return (min(los) if los else None, max(his) if his else None)
+
+
 def _names(W: "Water", crossings: Dict[tuple, List[Tuple[float, str]]]) -> List[dict]:
     """T517 (owner 2026-11-09) every part's name facts: its two END TOKENS (`lo`, `hi`; the app composes "<lower> →
     <upper>" from `display.ends`, `spanName`). A part with NO MAIN STEM (a lake, side channels only) ships none: the
@@ -268,10 +280,20 @@ def _names(W: "Water", crossings: Dict[tuple, List[Tuple[float, str]]]) -> List[
             for s2, k2 in ((0, t[2]), (1, t[3])):
                 if base(ends[j][s2]) == b and k2 is not None and abs(k2 - km) <= 0.05:
                     ends[j][s2] = new
+    # (T697, owner 2026-11-12: "it is mouth to cut the cut to head") an UNNAMED LAKE at the water's own top or bottom is
+    # no cut: the water's own end, said as every water's is ("Source", "Mouth"). Anywhere else it is a place two parts
+    # meet with no name of its own: always said near what stands there ("Unnamed lake near X"), else at its km.
+    lo_w, hi_w = _water_ends_km(W.w)
+    for i, t in enumerate(toks):
+        if t and ends[i]:
+            if ends[i][1] == "lake_outlet" and hi_w is not None and t[3] is not None and abs(t[3] - hi_w) <= 0.05:
+                ends[i][1] = "source"
+            if ends[i][0] == "lake_inlet" and lo_w is not None and t[2] is not None and abs(t[2] - lo_w) <= 0.05:
+                ends[i][0] = "mouth"
     for i, t in enumerate(toks):                      # a river polygon has no name of its own: always said near
         if t:
             for side, km in ((0, t[2]), (1, t[3])):
-                if ends[i][side] == "polygon":
+                if ends[i][side] in ("polygon", "lake_inlet", "lake_outlet"):
                     requalify(i, side, km)
     for _ in range(3):
         said = [name(i) for i in range(len(W.parts))]
