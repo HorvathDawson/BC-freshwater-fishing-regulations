@@ -2,6 +2,14 @@
 // after it is recorded (read from the screen's nodes, never guessed), how the recorded clips become one timeline, and the
 // finished file's specs. Nothing here touches a device or a file; `drive.mjs` and `run.mjs` call it, `checks.test.mjs` pins it.
 
+// THE COLOURS are the app's (tools/check-colours.mjs: the palette lives in the token files and nowhere else), read from
+// the generated light theme as tools/build-spinner.mjs does: the caption pill is `color.ui.ink` with `color.ui.card`
+// text; the end card is `color.ui.card` with the name in `color.ui.ink` and the line in `color.ui.sub`.
+import { readFileSync } from 'node:fs';
+const UI = JSON.parse(readFileSync(new URL('../../packages/map/style/style.meta.json', import.meta.url), 'utf8')).themes.light;
+const INK = UI['color.ui.ink'], CARD = UI['color.ui.card'], SUB = UI['color.ui.sub'];
+for (const [k, v] of Object.entries({ INK, CARD, SUB })) if (!v) throw new Error(`store-video: the light theme has no ${k} colour`);
+
 // ---------- the storyboard (T709 "Proposed 30 s storyboard", as built) ----------
 // Captions say only what the fact sheet (handoff/PLAN/play/listing.md) backs; the line each one rests on is beside it.
 // `capY`: the caption's centre as a share of the frame's height, kept inside the stores' safe band (CAPTION_BAND) and off
@@ -157,8 +165,8 @@ export function captionSvg(caption, capY, { w = SPEC.w, h = SPEC.h } = {}) {
   if (y < h * CAPTION_BAND[0] || y + ph > h * CAPTION_BAND[1]) throw new Error(`caption "${caption}" at ${capY} leaves the safe band ${CAPTION_BAND.join('-')}`);
   const ty = y + size * 0.45 + lh * 0.8;
   return { box: { x, y, w: pw, h: ph }, svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
-<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${pw.toFixed(1)}" height="${ph.toFixed(1)}" rx="${(size * 0.45).toFixed(1)}" fill="#14121f" fill-opacity="0.95"/>
-${lines.map((l, i) => `<text x="${w / 2}" y="${(ty + i * lh).toFixed(1)}" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-weight="700" font-size="${size}" fill="#ffffff">${esc(l)}</text>`).join('\n')}
+<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${pw.toFixed(1)}" height="${ph.toFixed(1)}" rx="${(size * 0.45).toFixed(1)}" fill="${INK}" fill-opacity="0.95"/>
+${lines.map((l, i) => `<text x="${w / 2}" y="${(ty + i * lh).toFixed(1)}" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-weight="700" font-size="${size}" fill="${CARD}">${esc(l)}</text>`).join('\n')}
 </svg>` };
 }
 
@@ -167,10 +175,10 @@ export function endCardSvg(iconDataUri, { w = SPEC.w, h = SPEC.h } = {}) {
   const icon = Math.round(w * 0.36), iy = Math.round(h * 0.33);
   return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
 <defs><clipPath id="r"><rect x="${(w - icon) / 2}" y="${iy}" width="${icon}" height="${icon}" rx="${Math.round(icon * 0.22)}"/></clipPath></defs>
-<rect width="${w}" height="${h}" fill="#ffffff"/>
+<rect width="${w}" height="${h}" fill="${CARD}"/>
 <image x="${(w - icon) / 2}" y="${iy}" width="${icon}" height="${icon}" clip-path="url(#r)" xlink:href="${iconDataUri}" href="${iconDataUri}"/>
-<text x="${w / 2}" y="${iy + icon + Math.round(w * 0.14)}" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-weight="700" font-size="${Math.round(w * 0.088)}" fill="#14121f">${esc(END_CARD.name)}</text>
-<text x="${w / 2}" y="${iy + icon + Math.round(w * 0.215)}" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="${Math.round(w * 0.04)}" fill="#55536a">${esc(END_CARD.line)}</text>
+<text x="${w / 2}" y="${iy + icon + Math.round(w * 0.14)}" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-weight="700" font-size="${Math.round(w * 0.088)}" fill="${INK}">${esc(END_CARD.name)}</text>
+<text x="${w / 2}" y="${iy + icon + Math.round(w * 0.215)}" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="${Math.round(w * 0.04)}" fill="${SUB}">${esc(END_CARD.line)}</text>
 </svg>`;
 }
 
