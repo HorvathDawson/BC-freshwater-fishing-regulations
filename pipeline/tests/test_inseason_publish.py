@@ -90,12 +90,18 @@ def test_a_release_off_latest_or_not_on_disk_is_refused(tmp_path, monkeypatch):
     rel.mkdir()
     gen = type("G", (), {"release": rel, "inseason": tmp_path / "gen"})()
     monkeypatch.setattr(C, "GENERATED", gen)
+    (rel / "r-2").mkdir()
+    (rel / "r-2" / "manifest.json").write_text("{}")
     (rel / "LATEST").write_text("r-2\n")
     with pytest.raises(PUB.Refused, match="LATEST is r-2"):
         PUB.main(["--matches", str(src), "--out", str(tmp_path / "out")])
+    # (T560 item 6) LATEST naming a folder with no manifest is refused by the one live-release reader
     (rel / "LATEST").write_text("r-1\n")
-    with pytest.raises(PUB.Refused, match="not on disk"):
+    with pytest.raises(SystemExit, match="names r-1, which has no manifest"):
         PUB.main(["--matches", str(src), "--out", str(tmp_path / "out")])
+    # a side release not on disk is still refused by name
+    with pytest.raises(PUB.Refused, match="not on disk"):
+        PUB.main(["--matches", str(src), "--out", str(tmp_path / "out"), "--side-release", str(tmp_path / "nowhere")])
     assert not (tmp_path / "out" / "matches.json").exists()
 
 

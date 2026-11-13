@@ -102,6 +102,21 @@ def latest(release_root) -> Optional[Path]:
     return dirs[0] if dirs else None
 
 
+def live(release_root) -> Path:
+    """THE LIVE RELEASE, strictly (T560 item 6 / T601 item 2): the folder `release_root/LATEST` names, which must hold a
+    manifest. No modified-time fallback — a reader that needs the live release raises, naming the cause, when there is
+    no pointer or it names a pruned or half-copied folder (`latest` keeps its fallback for roots no release wrote)."""
+    root = Path(release_root)
+    pointer = root / LATEST
+    if not pointer.is_file():
+        raise SystemExit(f"release: no {pointer} — no release is live here (`python -m pipeline release --staging` "
+                         "promotes one)")
+    named = root / pointer.read_text(encoding="utf-8").strip()
+    if not (named / "manifest.json").is_file():
+        raise SystemExit(f"release: {pointer} names {named.name}, which has no manifest — re-run the release step")
+    return named
+
+
 def releases(release_root) -> List[Path]:
     """Every `r-*` folder under `release_root` holding a manifest, newest manifest first (the prune's order too)."""
     root = Path(release_root)

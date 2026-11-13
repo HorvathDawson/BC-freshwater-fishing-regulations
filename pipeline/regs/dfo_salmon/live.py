@@ -626,7 +626,8 @@ def check_release(out: Path, release: Optional[Path] = None) -> int:
     """(T549) the feed and the release agree on the location set: every place the feed (`<out>/index.json`) has rules
     for is one the release shows, or one it states it does not (`off`). 1 when a feed place is neither — its rules reach
     no angler (a place curated after the release: the next deliver carries it)."""
-    rel = Path(release) if release else Path(GENERATED.release) / (Path(GENERATED.release) / "LATEST").read_text().strip()
+    from pipeline.deliver.release.manifest import live
+    rel = Path(release) if release else live(GENERATED.release)
     ix = Path(out) / "index.json"
     if not ix.exists():
         raise SystemExit(f"live check-release: no feed {ix} — write it: python -m pipeline.regs.dfo_salmon.live run")

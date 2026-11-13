@@ -226,8 +226,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         rel = Path(a.release)
     else:
         from pipeline.common.curated import GENERATED
-        root = Path(GENERATED.release)
-        rel = root / (root / "LATEST").read_text().strip()
+        from pipeline.deliver.release.manifest import live
+        rel = live(GENERATED.release)
     waters, ends = release_waters(rel)
     bad = (problems(waters, ends, limit=10_000) + run_problems(*_release_runs(rel), limit=10_000)
            + slice_problems(rel, limit=10_000))

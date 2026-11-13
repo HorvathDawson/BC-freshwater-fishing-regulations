@@ -396,7 +396,8 @@ def main(argv=None) -> int:
     ap.add_argument("--release", type=Path, help="a release directory (default: the one data/release/LATEST names)")
     a = ap.parse_args(argv)
     gpkg = Path(get_config().get_path("data", "fetch", "output_gpkg"))
-    rel = a.release or (GENERATED.release / (GENERATED.release / "LATEST").read_text().strip())
+    from pipeline.deliver.release.manifest import live
+    rel = a.release or live(GENERATED.release)
     cores = sorted(p for p in Path(rel).glob("core-*.sqlite.gz") if p.name.count("-") == 1)
     if len(cores) != 1:
         raise SystemExit(f"{rel}: want one core-<hash>.sqlite.gz, found {[p.name for p in cores]}")

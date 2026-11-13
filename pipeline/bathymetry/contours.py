@@ -171,7 +171,8 @@ def _app(release: Optional[Path], read_app) -> Dict[str, dict]:
     import shutil
     import tempfile
     from pipeline.common.curated import GENERATED
-    rel = release or (GENERATED.release / (GENERATED.release / "LATEST").read_text().strip())
+    from pipeline.deliver.release.manifest import live
+    rel = release or live(GENERATED.release)
     cores = sorted(p for p in Path(rel).glob("core-*.sqlite.gz") if p.name.count("-") == 1)
     if len(cores) != 1:
         raise SystemExit(f"{rel}: want one core-<hash>.sqlite.gz, found {[p.name for p in cores]}")

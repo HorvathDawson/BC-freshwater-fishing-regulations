@@ -87,7 +87,8 @@ def main(argv=None) -> int:
     a = ap.parse_args(argv)
     tiles = a.tiles or GENERATED.tiles
     if a.local:
-        rel = a.release or (GENERATED.release / (GENERATED.release / "LATEST").read_text().strip())
+        from pipeline.deliver.release.manifest import live
+        rel = a.release or live(GENERATED.release)
         bind(rel, tiles, a.out or GENERATED.runtiming / "feed" / "out", a.build)
         return 0
     if not a.release or not a.out:

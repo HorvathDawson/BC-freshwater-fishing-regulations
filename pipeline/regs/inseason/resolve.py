@@ -67,8 +67,8 @@ def release_dir(arg: Path | str | None = None) -> Path:
     from pipeline.common.curated import GENERATED
     if arg:
         return Path(arg)
-    root = Path(GENERATED.release)
-    return root / (root / "LATEST").read_text(encoding="utf-8").strip()
+    from pipeline.deliver.release.manifest import live
+    return live(GENERATED.release)
 
 
 def release_name(rel: Path) -> str:

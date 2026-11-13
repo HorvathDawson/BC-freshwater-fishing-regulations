@@ -311,7 +311,8 @@ def main(argv=None) -> int:
         if a.upload:
             upload(p, base["section_handles"], a.yes)
         return 0
-    release = a.release or GENERATED.release / (GENERATED.release / "LATEST").read_text().strip()
+    from pipeline.deliver.release.manifest import live
+    release = a.release or live(GENERATED.release)
     base, report = build(a.build or GENERATED.require_build(), a.tiles or GENERATED.tiles, release)
     p = write(base, a.out or GENERATED.runtiming / "feed")
     print(f"base: {json.dumps(report, sort_keys=True)} -> {p} ({p.stat().st_size:,} B)")

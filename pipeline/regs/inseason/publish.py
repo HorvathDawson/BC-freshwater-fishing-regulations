@@ -128,7 +128,8 @@ def main(argv: list[str] | None = None) -> int:
     links = compile_links(doc, hashlib.sha256(text.encode("utf-8")).hexdigest()[:16])
     root = Path(GENERATED.release)
     if a.side_release is None:
-        now = (root / "LATEST").read_text(encoding="utf-8").strip()      # a missing LATEST raises: no release here
+        from pipeline.deliver.release.manifest import live
+        now = live(root).name      # (T560 item 6) no LATEST, or one naming a folder with no manifest, raises
         if now != links["release"]:
             raise Refused(f"inseason.publish: refused — the matches are resolved on {links['release']}, LATEST is "
                           f"{now}: re-resolve in the review app (Re-resolve), then commit")
