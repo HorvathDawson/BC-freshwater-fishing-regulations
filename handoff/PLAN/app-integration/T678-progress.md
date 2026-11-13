@@ -266,3 +266,25 @@ Next commands:
   (headless Chrome), not the APK, so they show whatever release the staging site serves (still r-483b295de57c until the
   site deploy). Copied to bcfish-session-backup-2026-11-12/store-077/ (the repo's store/ and raw/ dirs are gitignored).
 - Owner to-do: row "Phone check of build 29 (app 0.7.7)" in handoff/PLAN/OWNER-TODO.md (not yet added to the Owner To-Do page).
+
+## App wave 2026-11-12 (night): ledger tickets, smoke rerun, store shots, owner to-do
+- Done: T603 items 5-6 (46afd5ad1: an emulator run on a non-production build reports as `test`; the `/data/local/tmp`
+  SecurityException is `expected`; worker not deployed), T671 D3 render test (f21981ea2; mutation checked), T670 G7 web pages
+  (353429f7a: `seo/model.ts` carries the "You need" book terms; test fails before), T560 item 6 / T601 item 2 JS half
+  (444c65675: it was already in the tree since ff787ac34; T601 now DONE; stale "newest" comments fixed).
+- Default recorded: T467 (f5f1d61ed): colour-blind check stays on all themes; ticket stays OPEN for the shoreline look
+  (Work 1 is not built, so it was not "only waiting on the default").
+- Held / left: T672 1b (8085d13cd): NOT an app read. `undrawn.json` is a build-side file and is not shipped in the release
+  (the earlier note above was wrong); the app cannot tell an unnamed tidal section from one outside B.C.; needs a pipeline
+  fact (e.g. a bit per section in `regs-sid`). T631 item 2 app half: no bundle flag exists yet (pipeline first). T465 (a
+  label-collision rule to pick, shots) and T504 (prototype, owner picks) are design work, left. T603 items 7-8: new emulator
+  scenarios / device work on the next APK.
+- Emulator rerun (build 29 APK, lane 2, `--no-r2`): water-nav 7/7 PASS (the step-7 driver start-up was a flake).
+  regs-open 9/10 again, same step (lake "Cultus": no `[target]` line): repeatable, not a flake; cause undecided (probe or lake
+  colour); ticket T689.
+- Store shots re-shot from the staging site now on r-0a9930fb8826 (play-phone, play-tablet7, play-tablet10, 21 images) into
+  `bcfish-session-backup-2026-11-12/store-077/`. The `appstore-*` folders there are the OLD set (not re-shot). "Nov 11" on the
+  Vedder shot: the old shots were taken from the site built on Nov 11 (the site still served r-483b); the site build uses the
+  B.C. clock (`bcNow`, T551) and now says "Today, Nov 12". No defect found; no ticket.
+- Owner to-do: 8 rows added to the Owner To-Do page (`todos`, group "Look and pick", orders 6-13) and OWNER-TODO.md;
+  the build 29 row now says Vedder is T687.
