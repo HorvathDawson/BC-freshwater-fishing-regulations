@@ -1,0 +1,14 @@
+{
+ "_about": "The owner's calls on single UNNAMED polygons the registry's widening fold (T679 #5, owner D1: an unnamed pond a river's main flow runs through IS the river) would otherwise take into their river: each row here stays a LAKE of its own. Hand-written from a recorded owner answer only. Read by the atlas registry (`registry.flowing.load_pond_calls` -> `fold_widening_ponds(kept_lakes=)`); an atlas input (`atlas.inputs.ATLAS_INPUTS`).",
+ "format": "pond_calls/1",
+ "ponds": [
+  {
+   "wbk": "329465442",
+   "call": "lake",
+   "water": "Gagnon Creek (gnis:7733), the 58 ha unnamed lake at km 1.8-3.7, behind the rail/road embankment, joined to Williston Lake by the creek's 74 m channel",
+   "owner": "Mouth is still Williston (2026-11-13, answering that FWA has the unnamed lake as its own lake, not Williston); earlier: \"Let's just assume the mouth is the signs and add it as a variant name\", \"Where it enters Williston so it captures the whole stream\"",
+   "date": "2026-11-13",
+   "ticket": "T697"
+  }
+ ]
+}

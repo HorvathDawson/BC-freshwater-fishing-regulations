@@ -8,6 +8,7 @@ MUTATION PINS:
   * pick one of two streams                        -> test_a_pond_two_streams_run_through_is_left_and_listed
   * fold a named lake                              -> test_a_named_lake_is_never_folded
   * `NOT_FISHING_WATER_IS_NEVER_A_WIDENING = False` -> test_not_fishing_water_is_never_folded_nor_widened
+  * ignore `kept_lakes`                             -> test_a_pond_the_owner_kept_as_a_lake_is_left_and_listed
 No data: a few nodes, so this runs in the no-data CI tier.
 """
 from __future__ import annotations
@@ -47,6 +48,7 @@ def _item(iid, secs, bounds=(), name="River"):
                         boundaries=tuple(bounds))
 
 
+NONE: frozenset[str] = frozenset()      # no owner pond call
 POND_EDGE = RegistryBoundary(id="river__lake_u", label="lake u", kind="lake", ref="lake:u", wbk="u")
 
 
@@ -54,7 +56,7 @@ def test_the_pond_joins_the_river_item_as_a_stream_section():
     g = _river(StreamNode(node_id="lake:u", kind=L, wbk="u", wsc="100"))
     reg = {"gnis:1": _item("gnis:1", ["M:0", "M:1200"], [POND_EDGE])}
     rep: dict = {}
-    out = F.fold_widening_ponds(reg, g, rep)
+    out = F.fold_widening_ponds(reg, g, rep, kept_lakes=NONE)
     it = out["gnis:1"]
     assert "lake:u" in it.section_ids and "wbk:u" in it.ref_ids
     assert all(b.id != "river__lake_u" for b in it.boundaries)          # F6: the river does not stop at its pond
@@ -69,7 +71,7 @@ def test_a_pond_with_a_cut_on_its_edge_is_left_and_listed():
     edge = RegistryBoundary(id="river__lake_u", label="lake u", kind="lake", ref="lake:u", wbk="u",
                             aliases=("split:gauge__08XX001",))
     rep: dict = {}
-    out = F.fold_widening_ponds({"gnis:1": _item("gnis:1", ["M:0", "M:1200"], [edge])}, g, rep)
+    out = F.fold_widening_ponds({"gnis:1": _item("gnis:1", ["M:0", "M:1200"], [edge])}, g, rep, kept_lakes=NONE)
     assert "lake:u" not in out["gnis:1"].section_ids and out["gnis:1"].boundaries == (edge,)
     assert rep["held"] == [{"pond": "lake:u", "why": "cut on its edge", "items": ["gnis:1"],
                             "aliases": ["split:gauge__08XX001"]}]
@@ -79,14 +81,14 @@ def test_a_pond_two_streams_run_through_is_left_and_listed():
     g = _river(StreamNode(node_id="lake:u", kind=L, wbk="u", wsc="100"))
     reg = {"gnis:1": _item("gnis:1", ["M:0", "M:1200"]), "gnis:2": _item("gnis:2", ["M:0", "M:1200"], name="Other")}
     rep: dict = {}
-    out = F.fold_widening_ponds(reg, g, rep)
+    out = F.fold_widening_ponds(reg, g, rep, kept_lakes=NONE)
     assert all("lake:u" not in it.section_ids for it in out.values())
     assert rep["held"][0]["why"] == "two streams" and rep["held"][0]["items"] == ["gnis:1", "gnis:2"]
 
 
 def test_a_named_lake_is_never_folded():
     g = _river(StreamNode(node_id="lake:u", kind=L, wbk="u", wsc="100", gnis_id="77", display_name="Bar Lake"))
-    out = F.fold_widening_ponds({"gnis:1": _item("gnis:1", ["M:0", "M:1200"])}, g, {})
+    out = F.fold_widening_ponds({"gnis:1": _item("gnis:1", ["M:0", "M:1200"])}, g, {}, kept_lakes=NONE)
     assert "lake:u" not in out["gnis:1"].section_ids
 
 
@@ -95,6 +97,27 @@ def test_not_fishing_water_is_never_folded_nor_widened():
     the reach's per-rule widening, and it breaks a chain of ponds."""
     g = _river(StreamNode(node_id="lake:u", kind=L, wbk="u", wsc="100", not_fishing="EA26700110"))
     rep: dict = {}
-    out = F.fold_widening_ponds({"gnis:1": _item("gnis:1", ["M:0", "M:1200"])}, g, rep)
+    out = F.fold_widening_ponds({"gnis:1": _item("gnis:1", ["M:0", "M:1200"])}, g, rep, kept_lakes=NONE)
     assert "lake:u" not in out["gnis:1"].section_ids and rep["counts"]["ponds"] == 0
     assert X.river_widenings(g, out, {"M:0", "M:1200"}) == set()
+
+
+def test_a_pond_the_owner_kept_as_a_lake_is_left_and_listed(tmp_path):
+    """Owner 2026-11-13 (Gagnon Creek, "Mouth is still Williston"): a pond call keeps the unnamed lake a lake — not
+    folded, its lake boundary kept, listed with why. The loader refuses a row without the owner's words."""
+    import json
+    import pytest
+    g = _river(StreamNode(node_id="lake:u", kind=L, wbk="u", wsc="100"))
+    rep: dict = {}
+    out = F.fold_widening_ponds({"gnis:1": _item("gnis:1", ["M:0", "M:1200"], [POND_EDGE])}, g, rep,
+                                kept_lakes=frozenset({"lake:u"}))
+    assert "lake:u" not in out["gnis:1"].section_ids and out["gnis:1"].boundaries == (POND_EDGE,)
+    assert rep["held"] == [{"pond": "lake:u", "why": "owner: its own lake", "items": ["gnis:1"]}]
+    p = tmp_path / "pond_calls.json"
+    p.write_text(json.dumps({"format": F.POND_CALLS_FORMAT, "ponds": [{"wbk": "12", "call": "lake", "owner": "w"}]}))
+    assert F.load_pond_calls(p) == frozenset({"lake:12"})
+    p.write_text(json.dumps({"format": F.POND_CALLS_FORMAT, "ponds": [{"wbk": "12", "call": "lake"}]}))
+    with pytest.raises(ValueError, match="owner"):
+        F.load_pond_calls(p)
+    with pytest.raises(FileNotFoundError):
+        F.load_pond_calls(tmp_path / "absent.json")

@@ -299,22 +299,45 @@ def test_the_river_flowing_through_its_own_lake_is_not_a_foreign_water():
     assert loop_nodes(g) == {"C:0"}, "no tributary here — just the river past its own lake"
 
 
+def _two_braids_carrying_a_creek():
+    """Mainstem 1 with TWO braids, 9 and 8, each leaving 1:1000 and rejoining 1:0 (at 1500 m and 3000 m), and creek 5
+    flowing into both. Neither braid is load-bearing on its own, the creek never touches the mainstem itself, so
+    removing them RE-HOMES the creek onto the mainstem (where a channel met it)."""
+    g = _braid_with_tributary()
+    g.nodes["8:0"] = StreamNode(node_id="8:0", kind=NodeKind.stream, blk="8", wsc="100",
+                                display_name="Fraser River", length_m=800.0)
+    g.edges += [FlowEdge(from_node="1:1000", to_node="8:0", at_measure=0.0),
+                FlowEdge(from_node="8:0", to_node="1:0", at_measure=3000.0),
+                FlowEdge(from_node="5:0", to_node="8:0", at_measure=0.0)]
+    for i, e in enumerate(g.edges):
+        if e.from_node == "9:0":
+            g.edges[i] = replace(e, at_measure=1500.0)
+        if e.from_node == "5:0":
+            g.edges[i] = replace(e, x=1500.0, y=50.0)       # the creek's mouth, where it met the braid
+    g.up_adj, g.down_adj = {}, {}
+    for i, e in enumerate(g.edges):
+        g.up_adj.setdefault(e.to_node, []).append(i)
+        g.down_adj.setdefault(e.from_node, []).append(i)
+    return g
+
+
 def test_a_channel_is_kept_when_re_homing_would_move_a_mouth_too_far():
     """The exchange -- a channel removed, a confluence relocated -- is only worth making for a small
     anabranch. The distance that matters is from the water being moved to the confluence it is GIVEN;
     comparing the old target with the new one reads ~0 whenever a side channel touches the river it
-    feeds, which is true of every braid, so that version never fired where it mattered."""
+    feeds, which is true of every braid, so that version never fired where it mattered.
+    (2026-11-13: on two braids — with the creek ALSO joining the mainstem itself nothing is re-homed at all.)"""
     from shapely.geometry import LineString
-    g = _braid_with_creek_with_two_mouths()
+    g = _two_braids_carrying_a_creek()
     g.nodes["1:0"] = replace(g.nodes["1:0"], down_m=0.0, up_m=40000.0)
     geoms = {"1:1000": LineString([(0, 40000), (0, 45000)]),
              "1:0": LineString([(0, 0), (0, 40000)]),
-             "9:0": LineString([(0, 39000), (0, 40000)]),
+             "9:0": LineString([(0, 39000), (0, 40000)]), "8:0": LineString([(0, 38000), (0, 39000)]),
              "5:0": LineString([(40000, 0), (41000, 0)])}     # creek sits 40 km off the mainstem
     _g, n, _fids = prune_mainstem_loops(g, geoms, reconnect_tributaries=True, max_shift_m=5000.0)
-    assert n == 0 and "9:0" in g.nodes, "40 km is not a braid: keep it rather than guess"
+    assert n == 0 and {"9:0", "8:0"} <= set(g.nodes), "40 km is not a braid: keep it rather than guess"
     _g, n, _fids = prune_mainstem_loops(g, geoms, reconnect_tributaries=True, max_shift_m=50_000.0)
-    assert n == 1, "raise the cap and the same channel becomes removable"
+    assert n == 2, "raise the cap and the same channels become removable"
 
 
 def test_a_re_homed_confluence_lands_where_the_braid_met_the_river():
@@ -325,22 +348,39 @@ def test_a_re_homed_confluence_lands_where_the_braid_met_the_river():
     below where it actually joins.
 
     The measure to use is where the CHANNEL met the river: the creek's water ran creek -> braid ->
-    river and entered the river at a real place, so that place is the confluence it inherits."""
+    river and entered the river at a real place, so that place is the confluence it inherits. AND ITS MAP POINT
+    MOVES WITH IT (2026-11-13): the edge's x/y is that place on the river, never the removed channel's end (MUTATION:
+    replace without x/y -> the point stays (1500, 50)). ONE junction per water and river: the creek left by two
+    channels, it gets the one nearest its mouth (MUTATION: drop the dedupe -> a second junction at 3000)."""
+    from shapely.geometry import LineString
+    g = _two_braids_carrying_a_creek()
+    g.nodes["1:0"] = replace(g.nodes["1:0"], down_m=0.0, up_m=5000.0)
+    geoms = {"1:1000": LineString([(5000, 0), (9000, 0)]), "1:0": LineString([(0, 0), (5000, 0)]),
+             "9:0": LineString([(1400, 20), (1600, 20)]), "8:0": LineString([(2900, 20), (3100, 20)]),
+             "5:0": LineString([(1500, 50), (1500, 900)])}
+    _g, n, _fids = prune_mainstem_loops(g, geoms, reconnect_tributaries=True)
+    assert n == 2 and not {"9:0", "8:0"} & set(g.nodes)
+    got = [(e.to_node, e.at_measure, e.x, e.y) for e in g.edges if e.from_node == "5:0"]
+    assert got == [("1:0", 1500.0, 1500.0, 0.0)], "must inherit where the braid met the river, its point there, once"
+
+
+def test_a_water_that_joins_the_river_at_its_own_mouth_gets_no_second_junction():
+    """The mis-measured junctions (2026-11-13), Ash River into the Stamp: a creek with its OWN mouth on the mainstem
+    and a second way out through a braid keeps its own junction when the braid goes; the braid's exit is not re-homed
+    onto it as a second confluence (MUTATION: drop `_joins_already` -> a second 5:0 -> 1:0 edge at 1500)."""
     from shapely.geometry import LineString
     g = _braid_with_creek_with_two_mouths()
     g.nodes["1:0"] = replace(g.nodes["1:0"], down_m=0.0, up_m=5000.0)
-    for i, e in enumerate(g.edges):                     # the braid meets the mainstem at 1500
+    for i, e in enumerate(g.edges):
         if e.from_node == "9:0" and e.to_node == "1:0":
             g.edges[i] = replace(e, at_measure=1500.0)
-        if e.from_node == "5:0" and e.to_node == "9:0":
-            g.edges[i] = replace(e, at_measure=30.0)    # stale: a measure on the BRAID's line
+        if e.from_node == "5:0" and e.to_node == "1:0":
+            g.edges[i] = replace(e, at_measure=2500.0, x=2500.0, y=0.0)    # its own mouth
     geoms = {"1:1000": LineString([(5000, 0), (9000, 0)]), "1:0": LineString([(0, 0), (5000, 0)]),
-             "9:0": LineString([(1400, 20), (1600, 20)]), "5:0": LineString([(1500, 0), (1500, 900)])}
+             "9:0": LineString([(1400, 20), (1600, 20)]), "5:0": LineString([(2500, 0), (2500, 900)])}
     _g, n, _fids = prune_mainstem_loops(g, geoms, reconnect_tributaries=True)
     assert n == 1 and "9:0" not in g.nodes
-    e = next(e for e in g.edges if e.from_node == "5:0" and e.to_node == "1:0"
-             and abs(e.at_measure - 1500.0) < 1.0)
-    assert e is not None, "must inherit where the braid met the river"
+    assert [(e.to_node, e.at_measure, e.x, e.y) for e in g.edges if e.from_node == "5:0"] == [("1:0", 2500.0, 2500.0, 0.0)]
 
 
 def test_the_measure_falls_back_to_projection_when_the_braid_left_none():

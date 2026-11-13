@@ -57,6 +57,8 @@ ATLAS_INPUTS: dict[str, str] = {
     "curated:waters.areas": "cut_areas (`splits.area_splits.load_area_split_defs`) + outside_items",
     "curated:waters.added_areas": "cut_areas (the polygons an `areas.json` def names by `file`)",
     "curated:waters.slough_calls": "build_registry (`registry.flowing.fold_confirmed_sloughs`)",
+    # owner 2026-11-13 (Gagnon Creek): ponds the owner keeps as lakes, left out of the widening fold
+    "curated:waters.pond_calls": "build_registry (`registry.flowing.fold_widening_ponds` kept_lakes)",
     "source:fwa_gpkg": "every FWA layer (`--gpkg`)",
     # T678 (recorded from the promotion of the first coast-cut atlas, full_t678b, 2026-11-12, by `--backfill`)
     "curated:waters.tidal_split_authority": "cut_shores (`splits.coast.load_authority`: which splits are DFO-written)",

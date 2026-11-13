@@ -137,6 +137,7 @@ curated:
     tidal_split_authority: "data/curated/waters/tidal_split_authority.json"  # T678: is each curated tidal split DFO-written (cited)? only those carry authority over the cut; classified by Claude 2026-11-11, the owner may correct
     shore_held: "data/curated/waters/shore_held.json"              # T678/T685: the owner's rulings on single lines for the coast cut (cut/whole/fresh, each decided); hand-written, read by the atlas only
     slough_calls: "data/curated/waters/slough_calls.json"          # applied (T322: owner-confirmed slough calls, from the slough marks)
+    pond_calls: "data/curated/waters/pond_calls.json"              # authored (owner 2026-11-13: unnamed ponds kept as lakes, not folded into their river)
     # the retired slough review page's verdicts + free-text notes (2026-10-28), read by `pipeline.regs.review.slough`
     slough_page_calls: "data/curated/waters/slough_page_calls.json"
     steelhead_waters: "data/curated/waters/steelhead_waters.json"  # authored — the known-steelhead list (accepted with pipeline.regs.steelhead.accept)

@@ -1570,7 +1570,7 @@ def water_registry(b: _Build, graph, *, areas: bool = True) -> tuple[dict, dict]
     # T679 #5 (owner D1): a river's unnamed widening pond IS the river — folded into the stream item whose main flow runs
     # through it, so its water kind is the river's everywhere (`flowing.fold_widening_ponds`)
     _wrep: dict = {}
-    registry = _flowing.fold_widening_ponds(registry, graph, _wrep)
+    registry = _flowing.fold_widening_ponds(registry, graph, _wrep, kept_lakes=_flowing.load_pond_calls())
     info["widening_report"] = _wrep
     # T224 mined names: labels on the item that already owns the feature, after every grouping pass
     from pipeline.atlas.registry.mined import add_mined_names

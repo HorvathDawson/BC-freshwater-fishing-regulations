@@ -273,6 +273,37 @@ def _measure_on(geoms, graph: StreamGraph, from_node: str, exit_node: str, old: 
     return min(max(m, node.down_m), node.up_m if node.up_m is not None else m)
 
 
+def _joins_already(graph: StreamGraph, source: str, exit_node: str, drop: set[str], skip: int) -> bool:
+    """Does `source` already flow, by an edge other than `skip`, into a surviving piece of `exit_node`'s water — the
+    exit itself, or another piece of its blue line?"""
+    ex = graph.nodes.get(exit_node)
+    for j in graph.down_adj.get(source, ()):
+        if j == skip:
+            continue
+        t = graph.edges[j].to_node
+        if t in drop:
+            continue
+        if t == exit_node:
+            return True
+        n = graph.nodes.get(t)
+        if ex is not None and n is not None and ex.kind == NodeKind.stream and n.kind == NodeKind.stream \
+                and ex.blk and n.blk == ex.blk:
+            return True
+    return False
+
+
+def _moved_point(geoms, graph: StreamGraph, edge, exit_node: str, measure: float) -> tuple[float, float]:
+    """Where a re-homed junction now is: the point at `measure` on the exit's line, or (a lake exit) the point of the
+    lake nearest the old junction. No geometry for the exit: the old point (nothing to place it on)."""
+    pt = _confluence_point(geoms, graph, exit_node, measure)
+    if pt is None:
+        g = (geoms or {}).get(exit_node)
+        if g is None or g.is_empty:
+            return edge.x, edge.y
+        pt = nearest_points(g.boundary if g.geom_type in ("Polygon", "MultiPolygon") else g, Point(edge.x, edge.y))[0]
+    return float(pt.x), float(pt.y)
+
+
 def _nearest_exit(geoms, graph: StreamGraph, live: list, old_target: str) -> str:
     """The exit to re-home onto: whichever surviving one lies closest to the confluence being moved.
 
@@ -494,6 +525,12 @@ def prune_mainstem_loops(graph: StreamGraph, geoms: dict | None = None,
             drop.discard(e.to_node)             # nothing survives to carry it: keep the channel
             continue
         exit_node = _nearest_exit(geoms, graph, live, e.to_node)
+        # ONE JUNCTION PER WATER AND RIVER (2026-11-13, the mis-measured junctions): a source that already flows into
+        # this river at its OWN mouth keeps that junction; re-homing its second way out (through the removed channel)
+        # would add another junction where the channel left — Ash River into the Stamp at 14,264 m as well as at its
+        # own mouth (14,509 m), parking it in the piece below. The edge goes with the channel instead.
+        if _joins_already(graph, e.from_node, exit_node, drop, i):
+            continue
         # the confluence the water actually used: where the removed channel met this target
         out_of = [j for j in graph.down_adj.get(e.to_node, [])]
         m = _measure_on(geoms, graph, e.from_node, exit_node, e.at_measure, out_of)
@@ -502,6 +539,19 @@ def prune_mainstem_loops(graph: StreamGraph, geoms: dict | None = None,
             continue
         rehomed[i] = (exit_node, m)
     rehomed = {i: v for i, v in rehomed.items() if graph.edges[i].to_node in drop}
+    # ...and among the re-homes themselves: a source whose water left by two removed channels gets ONE junction on
+    # the river, the one nearest its own mouth (the rest go with their channels)
+    best: dict[tuple[str, str], tuple[float, float, int]] = {}
+    for i, (exit_node, m) in sorted(rehomed.items()):
+        e = graph.edges[i]
+        ex = graph.nodes.get(exit_node)
+        water = ex.blk if ex is not None and ex.kind == NodeKind.stream and ex.blk else exit_node
+        key = (e.from_node, water)
+        cand = (_gap(geoms, graph, e.from_node, exit_node, m), m, i)
+        if key not in best or cand < best[key]:
+            best[key] = cand
+    keep = {i for _, _, i in best.values()}
+    rehomed = {i: v for i, v in rehomed.items() if i in keep}
     if closed is not None:
         closed["dangling_after"] = len(dangling_ends(graph, geoms, drop)) if geoms else 0
     if not drop:
@@ -513,7 +563,10 @@ def prune_mainstem_loops(graph: StreamGraph, geoms: dict | None = None,
             moved.append((e.from_node, e.to_node, exit_node,
                           round(_gap(geoms, graph, e.from_node, exit_node, m), 1)))
     for i, (exit_node, m) in rehomed.items():
-        graph.edges[i] = replace(graph.edges[i], to_node=exit_node, at_measure=m)
+        # the junction's map point MOVES WITH IT (2026-11-13): it was the removed channel's end, so a reader of x/y
+        # (the review's map, the gpkg export, anything locating the confluence) put the water where it no longer joins
+        x, y = _moved_point(geoms, graph, graph.edges[i], exit_node, m)
+        graph.edges[i] = replace(graph.edges[i], to_node=exit_node, at_measure=m, x=x, y=y)
 
     fids = {f for nid in drop for f in graph.nodes[nid].member_fids}
     for nid in drop:

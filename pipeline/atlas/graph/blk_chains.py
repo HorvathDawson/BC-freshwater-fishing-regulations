@@ -26,6 +26,22 @@ _STREAM_COLUMNS = [
 ]
 _SENTINEL_WSC = "999-999999"
 
+#: FWA's UPSTREAM_ROUTE_MEASURE is WRONG on 1,317 stream features (371 blue lines, mostly the Comox / Courtenay codes
+#: 905- and 920-; measured 2026-11-13): it reads as if DOWNSTREAM_ROUTE_MEASURE were counted twice (Black Creek
+#: 354154247, feature 2: DRM 1,686.6 + LENGTH 1,214.3 but URM 4,587.5), while the DRM chain and LENGTH_METRE agree with
+#: the geometry (each feature's DRM = the one below's DRM + its LENGTH, 1 gap in 1,826). A junction measure read from
+#: that URM put a tributary's confluence kilometres up its receiver, and the section ids cut there carried the inflated
+#: number. So the upstream measure is DRM + LENGTH_METRE wherever FWA's URM differs from it by more than this (the
+#: other 4.9 M features agree to under 1 m: rounding).
+URM_TOLERANCE_M = 1.0
+
+
+def upstream_measure(down_m: float, up_m: float, length_m: float) -> float:
+    """A feature's upstream route measure: FWA's URM, unless it disagrees with DRM + LENGTH_METRE by more than
+    `URM_TOLERANCE_M` (the inflated-URM features above) — then DRM + LENGTH_METRE."""
+    want = down_m + length_m
+    return up_m if abs(up_m - want) <= URM_TOLERANCE_M else want
+
 
 @dataclass(slots=True)
 class FidRow:
@@ -68,7 +84,7 @@ def load_stream_fids(gpkg_path: str, bbox: Optional[tuple] = None,
             if down_node is None or up_node is None:
                 continue
             down_m = float(r.DOWNSTREAM_ROUTE_MEASURE)
-            up_m = float(r.UPSTREAM_ROUTE_MEASURE)
+            up_m = upstream_measure(down_m, float(r.UPSTREAM_ROUTE_MEASURE), float(r.LENGTH_METRE))
             rows.append(FidRow(
                 fid=r.LINEAR_FEATURE_ID, blk=r.BLUE_LINE_KEY, wsc=trim_wsc(wsc_raw),
                 edge_type=r.EDGE_TYPE or "", wbk=r.WATERBODY_KEY or "",

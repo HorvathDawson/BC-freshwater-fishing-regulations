@@ -18,6 +18,7 @@ the map only after the next atlas build (`pipeline build --atlas --promote`).
 | `tidal_split_authority.json` | classified (Claude, cited; owner may correct) | hand, T678 2026-11-11 | the atlas tidal cut (T678 step 10, not wired yet) |
 | `shore_held.json` | the owner's rulings on single lines for the coast cut (every row `decided`) | by hand, from a recorded owner answer | atlas (`build.cut_shores`, `coast_owner.json`) |
 | `slough_calls.json` | applied | `pipeline.tools.slough_calls` / write-through (slough marks) | atlas registry |
+| `pond_calls.json` | authored (owner calls: unnamed ponds kept as lakes, owner 2026-11-13 Gagnon) | hand, from a recorded owner answer | atlas registry (`registry.flowing.load_pond_calls`: the D1 widening fold leaves them) |
 | `slough_page_calls.json` | frozen | the retired slough page (2026-10-28) | review app (old notes) |
 | `steelhead_waters.json` | accepted | `python -m pipeline.regs.steelhead.accept --write` | reach run |
 | `unmapped_waters.json` | authored | hand (worklist for added lakes) | `check_curated --waters` only |

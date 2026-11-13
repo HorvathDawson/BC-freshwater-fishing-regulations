@@ -120,6 +120,9 @@ class Waters(BaseModel):
     #: `pipeline.tools.slough_calls`; the registry folds each into the one stream through it, else ignores it
     #: (`registry.flowing.fold_confirmed_sloughs`).
     slough_calls: FilePath
+    #: (owner 2026-11-13, Gagnon Creek) unnamed polygons the owner keeps as LAKES of their own: the registry's widening
+    #: fold leaves them (`registry.flowing.load_pond_calls`). Hand-written only.
+    pond_calls: FilePath
     #: T322: the retired slough review page's database — the owner's verdicts and free-text notes
     #: (`pipeline.regs.review.slough.page_note`). Was `sloughs/page-marks-2026-10-28.json`.
     slough_page_calls: FilePath

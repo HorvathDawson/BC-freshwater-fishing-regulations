@@ -8797,22 +8797,20 @@
    },
    "splits": [
     {
-     "id": "gagnon_creek__signs_400_m_above_williston_lake",
-     "label": "fishing boundary signs near the mouth (400 m above Williston Lake)",
+     "id": "gagnon_creek__fishing_boundary_signs_at_the_mouth",
+     "label": "fishing boundary signs near the mouth (the mouth, at Williston Lake)",
      "kind": "lake",
      "anchor": {
       "type": "lake",
       "wbk": "-18",
-      "offset_m": 400,
-      "offset_dir": "upstream"
+      "edge": "inlet"
      },
      "note": "",
-     "_note": "[curated 2026-08-10 signs/other batch] [base=mouth +400m u/s -> 55.27125,-123.15816; closure d/s to mouth] [datum-fix 2026-08-29] Was a point anchor on the curated 'mouth' coord + 400 m upstream. That coord sits at the FWA line's measure-0 end, which for a Williston Lake tributary is inside the LAKE — the line runs on through the lake, and the creek only leaves the shoreline thousands of metres up. The cut therefore landed in open water with no stream piece to cut, was dropped, and no item ever carried the boundary; the rule's locator stayed unresolved. Re-anchored to the Williston Lake polygon boundary + 400 m upstream, which is what 'signs near its mouth' means. Old coord kept in _coord as provenance. [2026-09-11] Re-anchored from Williston Lake's original waterbody (328961697) to 'Williston Lake — Zone A' (-18). The lake is now cut into its four named waters, so the polygon this creek's mouth meets is Zone A's — the original key bounds nothing on this creek any more and the split stopped resolving. The creek's mouth is inside Zone A and 23-32 km from the next nearest part, so there is nothing ambiguous about which. [split-name audit 2026-10-26] renamed from `gagnon_creek__fishing_boundary_signs_near_its_mouth_400_m_upstream` / \"fishing boundary signs near its mouth (400 m upstream)\": the old name was a phrase fragment that named no place, so the parser could not match it.",
+     "_note": "[owner 2026-11-13, Gagnon Creek: \"Mouth is still Williston\"; earlier \"Let's just assume the mouth is the signs and add it as a variant name\", \"Where it enters Williston so it captures the whole stream\"] THE SIGNS ARE THE MOUTH: this cut is the creek's mouth on Williston Lake — Zone A (-18), the lake's inlet edge on the creek's line, no offset; the old cut 400 m above it (`gagnon_creek__signs_400_m_above_williston_lake`) is removed — it landed inside the 58 ha unnamed lake (wbk 329465442) and was aliased onto that lake's outlet edge. The unnamed lake stays a lake of its own (waters/pond_calls.json). The rule 'exempt from spring closure downstream of the signs' therefore covers no water of the creek: the whole creek (the 74 m channel and the creek above the lake) keeps the spring closure. History of the removed cut: [curated 2026-08-10 signs/other batch] [base=mouth +400m u/s -> 55.27125,-123.15816; closure d/s to mouth] [datum-fix 2026-08-29] Was a point anchor on the curated 'mouth' coord + 400 m upstream. That coord sits at the FWA line's measure-0 end, which for a Williston Lake tributary is inside the LAKE — the line runs on through the lake, and the creek only leaves the shoreline thousands of metres up. The cut therefore landed in open water with no stream piece to cut, was dropped, and no item ever carried the boundary; the rule's locator stayed unresolved. Re-anchored to the Williston Lake polygon boundary + 400 m upstream, which is what 'signs near its mouth' means. Old coord kept in _coord as provenance. [2026-09-11] Re-anchored from Williston Lake's original waterbody (328961697) to 'Williston Lake — Zone A' (-18). The lake is now cut into its four named waters, so the polygon this creek's mouth meets is Zone A's — the original key bounds nothing on this creek any more and the split stopped resolving. The creek's mouth is inside Zone A and 23-32 km from the next nearest part, so there is nothing ambiguous about which. [split-name audit 2026-10-26] renamed from `gagnon_creek__fishing_boundary_signs_near_its_mouth_400_m_upstream` / \"fishing boundary signs near its mouth (400 m upstream)\": the old name was a phrase fragment that named no place, so the parser could not match it.",
      "_coord": [
       -123.16404,
       55.26994
-     ],
-     "_offset_m": 400
+     ]
     }
    ]
   },

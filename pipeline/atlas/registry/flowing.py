@@ -689,8 +689,32 @@ def fold_confirmed_sloughs(registry: dict[str, RegistryItem], graph, wbks, repor
 WIDENING_PONDS_ARE_THE_RIVER = True
 
 
-def fold_widening_ponds(registry: dict[str, RegistryItem], graph, report: dict | None = None
-                         ) -> dict[str, RegistryItem]:
+#: (owner 2026-11-13, Gagnon Creek: "Mouth is still Williston"; the 58 ha unnamed lake behind the embankment stays a
+#: lake of its own) THE OWNER'S POND CALLS: `waters/pond_calls.json` names unnamed polygons the owner keeps as lakes, so
+#: the widening fold leaves them (listed, "owner: its own lake"). Hand-written only.
+POND_CALLS_FORMAT = "pond_calls/1"
+
+
+def load_pond_calls(path=None) -> frozenset[str]:
+    """{`lake:<wbk>`} of every pond the owner kept as a lake of its own. A missing or malformed file RAISES."""
+    import json
+    from pathlib import Path
+    from pipeline.common.curated import CURATED
+    p = Path(path) if path is not None else Path(CURATED.waters.pond_calls)
+    doc = json.loads(p.read_text(encoding="utf-8"))
+    if not isinstance(doc, dict) or doc.get("format") != POND_CALLS_FORMAT or not isinstance(doc.get("ponds"), list):
+        raise ValueError(f"{p}: not a {POND_CALLS_FORMAT} file (a dict with `format` and a `ponds` list)")
+    out = set()
+    for i, r in enumerate(doc["ponds"]):
+        w = str((r or {}).get("wbk") or "")
+        if not w.isdigit() or (r or {}).get("call") != "lake" or not (r or {}).get("owner"):
+            raise ValueError(f"{p}: ponds[{i}] needs a numeric `wbk`, `call: \"lake\"` and the owner's words (`owner`)")
+        out.add(f"lake:{w}")
+    return frozenset(out)
+
+
+def fold_widening_ponds(registry: dict[str, RegistryItem], graph, report: dict | None = None, *,
+                        kept_lakes: frozenset[str]) -> dict[str, RegistryItem]:
     """Fold every unnamed widening pond into the ONE stream item whose main flow runs through it (`graph.widenings`
     over the item's whole course). Runs after the flowing and confirmed-slough folds; returns a NEW dict.
 
@@ -700,6 +724,7 @@ def fold_widening_ponds(registry: dict[str, RegistryItem], graph, report: dict |
         two streams    the main flow of two stream items runs through it
         cut on its edge  a cut (a gauge, a sign) is aliased onto the item's lake boundary onto the pond: folding would
                        drop the boundary the cut stands on (the reach's per-rule widening still takes the pond, T153)
+        owner: its own lake  the owner's pond call (`kept_lakes`, `load_pond_calls`): the pond stays a lake
     No other water's boundary can point at such a pond (it is unnamed and held by none), so nothing is relabelled."""
     from pipeline.atlas.graph import widenings as _widen
     rep = report if report is not None else {}
@@ -738,7 +763,9 @@ def fold_widening_ponds(registry: dict[str, RegistryItem], graph, report: dict |
         aliased = {b.wbk for b in it.boundaries if b.kind == "lake" and b.wbk in wbks and b.aliases}
         for p in ponds:
             w = nodes[p].wbk
-            if w and w in aliased:
+            if p in kept_lakes:
+                left.append({"pond": p, "why": "owner: its own lake", "items": [iid]})
+            elif w and w in aliased:
                 left.append({"pond": p, "why": "cut on its edge", "items": [iid],
                              "aliases": sorted(a for b in it.boundaries if b.kind == "lake" and b.wbk == w
                                                for a in b.aliases)})
