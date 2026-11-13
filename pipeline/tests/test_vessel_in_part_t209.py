@@ -65,8 +65,9 @@ def test_the_gear_answer_lists_an_undrawn_vessel_rule_in_part_never_in_vessel():
 def test_the_harrison_holds_both_alternatives_of_its_printed_line():
     """T209 follow-up (owner 2026-11-12, "Yes, book's full words"): printed p.23 "Speed restriction or no powered boats in
     small bays along the river as signed" — the catalogue held only the speed restriction. Both alternatives now, one
-    rule per kind, the same line and locator (the app draws them as one chip: "Speed restriction or no powered boats —
-    in small bays along the river as signed")."""
+    rule per kind, the same line and locator. The app lists them as TWO entries, each with the locator (owner 2026-11-12,
+    "Keep them as two entries"): "No powered boats — in small bays along the river as signed" and "Speed restriction —
+    in small bays along the river as signed"."""
     got = _vessel_in_part()
     eid = "r2:harrison_river_from_the_fraser_river_upstream_to_harrison_la@2-18"
     pair = [got[(eid, "harrison_river.r3")], got[(eid, "harrison_river.r4")]]
@@ -76,9 +77,10 @@ def test_the_harrison_holds_both_alternatives_of_its_printed_line():
 
 
 def test_every_line_held_as_several_vessel_kinds_on_one_part_prints_or():
-    """THE APP'S CONTRACT (`boats.ts`: one chip "X or Y — <locator>"): vessel rules of one row sharing their printed line
-    and locator are ALTERNATIVES. A line of two that both hold ("No towing, speed restriction") is transcribed as two
-    verbatims; were one ever held as one line, this fails before the app words it "or"."""
+    """Vessel rules of one row sharing their printed line and locator are ALTERNATIVES of an "or" line (the app lists each
+    as its own entry with the locator, owner 2026-11-12 "Keep them as two entries", `boats.test.ts`). A line of two that
+    both hold ("No towing, speed restriction") is transcribed as two verbatims; this pins which four rows print such a
+    line, so a new one is seen (and checked against the book) before it ships."""
     lines: dict = {}
     for (eid, _rid), r in _vessel_in_part().items():
         lines.setdefault((eid, r["verbatim"], r["undrawn_part"]), set()).add((r.get("aspect"), r.get("level")))

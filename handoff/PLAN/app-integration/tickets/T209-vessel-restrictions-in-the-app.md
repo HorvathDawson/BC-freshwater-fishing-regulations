@@ -90,3 +90,9 @@ Owner, verbatim: "It should be in the vessel restriction section but it should s
   `pipeline/tests/test_vessel_in_part_t209.py` (the ten carry their locator and are `not_yet_mapped`; every undrawn vessel
   rule has a kind the app words; the gear frame lists one in `in_part`, never `vessel`).
 
+- Follow-up 2026-11-12 (81598325e): harrison_river.r4 (no powered boats) added beside r3 (owner "Yes, book's full words");
+  the app first joined such "or" lines into one chip.
+- Second follow-up 2026-11-12 (owner, dialog option verbatim: "Keep them as two entries"): the join is undone. Every "or"
+  vessel line held as one rule per kind (Harrison; Okanagan, Kalamalka, Skaha) is two entries, each with the locator:
+  Harrison "No powered boats — in small bays along the river as signed" and "Speed restriction — in small bays along the
+  river as signed" (Claude's reading: the Harrison too). r4 stays. RULINGS P51; `boats.test.ts` pins two entries.

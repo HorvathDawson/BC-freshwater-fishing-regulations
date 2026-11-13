@@ -103,7 +103,7 @@ describe("boats line", () => {
     const rs = [at(0, { aspect: "towing" }, various), gear];
     expect(inPartVessels({ in_part: [0, 2] } as unknown as GearAnswer, { rules: index(rs) }).map((r) => r.rix)).toEqual([0]);
   });
-  it("(T209 follow-up, owner 2026-11-12: \"Yes, book's full words\") one printed line of alternatives is one chip, in the book's order", () => {
+  it("(T209, owner 2026-11-12: \"Keep them as two entries\") a printed line of alternatives is two entries, each with the locator", () => {
     // one rule per kind, both from one row and one printed line, as the catalogue holds them (harrison_river.r3 / r4)
     const line = (rix: number, entry: string, verbatim: string, fields: Record<string, unknown>, part: string) =>
       ruleView(rix, { entry_id: entry, rule_id: `r${rix}`, type: "vessel_rule", family: "vessel", label: "L", verbatim,
@@ -114,16 +114,16 @@ describe("boats line", () => {
     expect(chips([line(0, "r2:harrison", harrison, { aspect: "speed" }, bays),
                   line(1, "r2:harrison", harrison, { aspect: "propulsion", level: "unpowered" }, bays)], [], [0, 1])
       .map((c) => [c.text, c.kind, c.rule]))
-      .toEqual([["Speed restriction or no powered boats — in small bays along the river as signed", "speed", "r2:harrison::r0"]]);
+      .toEqual([["No powered boats — in small bays along the river as signed", "unpowered", "r2:harrison::r1"],
+                ["Speed restriction — in small bays along the river as signed", "speed", "r2:harrison::r0"]]);
     const okanagan = "Speed restrictions or no vessels (as buoyed and signed), various locations";
     const various = "various locations (as buoyed and signed)";
     expect(chips([line(4, "r8:okanagan", okanagan, { aspect: "speed" }, various),
                   line(5, "r8:okanagan", okanagan, { aspect: "propulsion", level: "none" }, various)], [], [4, 5]).map((c) => c.text))
-      .toEqual(["Speed restriction or no vessels — various locations (as buoyed and signed)"]);
-    // two lines of one row on one part (Premier Lake's "No towing, speed restriction (15 km/h), south half only"): two chips
-    expect(chips([line(0, "r4:premier", "No towing", { aspect: "towing" }, "south half"),
-                  line(1, "r4:premier", "speed restriction (15 km/h)", { aspect: "speed", max_kmh: 15 }, "south half")], [], [0, 1])
-      .map((c) => c.text))
-      .toEqual(["Speed limit 15 km/h — south half", "No towing — south half"]);
+      .toEqual(["No vessels — various locations (as buoyed and signed)", "Speed restriction — various locations (as buoyed and signed)"]);
+    // never joined by "or" into one entry
+    expect(chips([line(0, "r2:harrison", harrison, { aspect: "speed" }, bays),
+                  line(1, "r2:harrison", harrison, { aspect: "propulsion", level: "unpowered" }, bays)], [], [0, 1])
+      .some((c) => c.text.includes(" or "))).toBe(false);
   });
 });

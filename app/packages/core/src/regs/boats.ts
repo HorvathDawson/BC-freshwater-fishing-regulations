@@ -13,9 +13,6 @@ import { clean } from "./names";
 import { winTxt } from "./time";
 import { BOATS } from "./words";
 
-/** The word between the kinds of one printed line of alternatives (T209 follow-up). */
-const BOATS_OR = " or ";
-
 const KINDS: readonly Exclude<BoatKind, "in_boat">[] = ["none", "unpowered", "electric_only", "power_capped", "speed", "towing"];
 
 /** The kind a vessel rule belongs to, from its facts alone; null: not a vessel rule or an aspect this line does not know. */
@@ -72,45 +69,17 @@ export function boatChips(ga: GearAnswer, inp: Pick<RegsInputs, "rules">): reado
     const r = inp.rules.get(ix), k = boatKind(r);
     if (k) by.set(k, [...(by.get(k) ?? []), r]);
   }
-  const inPart = inPartVessels(ga, inp);
-  const whenOf = (rs: readonly RuleView[]): string =>
-    rs.every((r) => r.wins.length) ? [...new Set(rs.map((r) => winTxt(r.wins).slice(2)))].join("; ") : "";
-  // (T209 follow-up, owner 2026-11-12: "Yes, book's full words") ONE PRINTED LINE OF ALTERNATIVES — the catalogue holds
-  // "Speed restriction or no powered boats in small bays along the river as signed" as one rule per kind, both carrying
-  // that line and its locator (the Harrison; Okanagan, Kalamalka and Skaha's "Speed restrictions or no vessels"). Such a
-  // pair is one chip in the book's order: "Speed restriction or no powered boats — in small bays along the river as
-  // signed", never two chips that read as both holding. The pipeline pins that every such pair prints "or"
-  // (test_vessel_in_part_t209.py); this joins the kinds' words and decides nothing.
-  const lines = new Map<string, RuleView[]>();
-  for (const r of inPart) {
-    const key = `${r.part!.trim()}\u0000${r.export.entry_id}\u0000${r.export.verbatim}`;
-    lines.set(key, [...(lines.get(key) ?? []), r]);
-  }
-  const alternatives = [...lines.values()].filter((rs) => new Set(rs.map((r) => boatKind(r))).size > 1);
-  const joined = new Set(alternatives.flat());
   const parts = new Map<Exclude<BoatKind, "in_boat">, Map<string, RuleView[]>>();
-  for (const r of inPart) {
-    if (joined.has(r)) continue;
+  for (const r of inPartVessels(ga, inp)) {
     const k = boatKind(r)!, at = parts.get(k) ?? new Map<string, RuleView[]>(), p = r.part!.trim();
     at.set(p, [...(at.get(p) ?? []), r]);
     parts.set(k, at);
   }
-  const altChip = (rs: readonly RuleView[]): BoatChipVM => {
-    const kinds = [...new Set(rs.map((r) => boatKind(r)!))];
-    const said = kinds.map((k, i) => {
-      const w = words(k, rs.filter((r) => boatKind(r) === k));
-      return i ? w.charAt(0).toLowerCase() + w.slice(1) : w;
-    }).join(BOATS_OR);
-    const when = whenOf(rs);
-    return { kind: kinds[0]!, text: said + BOATS.AT_PART(rs[0]!.part!.trim()) + (when ? ` · ${when}` : ""), rule: rs[0]!.key };
-  };
-  const partChips = (k: Exclude<BoatKind, "in_boat">): BoatChipVM[] => [
-    ...[...(parts.get(k) ?? new Map<string, RuleView[]>()).entries()].map(([p, rs]): BoatChipVM => {
-      const when = whenOf(rs);
+  const partChips = (k: Exclude<BoatKind, "in_boat">): BoatChipVM[] =>
+    [...(parts.get(k) ?? new Map<string, RuleView[]>()).entries()].map(([p, rs]): BoatChipVM => {
+      const when = rs.every((r) => r.wins.length) ? [...new Set(rs.map((r) => winTxt(r.wins).slice(2)))].join("; ") : "";
       return { kind: k, text: words(k, rs) + BOATS.AT_PART(p) + (when ? ` · ${when}` : ""), rule: rs[0]!.key };
-    }),
-    // a line of alternatives sits where the first of its kinds (in the line's fixed order) would
-    ...alternatives.filter((rs) => KINDS.find((x) => rs.some((r) => boatKind(r) === x)) === k).map(altChip)];
+    });
   const wholeChip = (k: Exclude<BoatKind, "in_boat">, rs: readonly RuleView[]): BoatChipVM => {
     const t = words(k, rs);
     const cond = (r: RuleView) => [r.tcond, winTxt(r.wins).slice(2)].filter(Boolean).join(", ");
