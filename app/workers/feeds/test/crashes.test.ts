@@ -243,6 +243,9 @@ describe("(T595) a class on each kind: defect / network / expected", () => {
     const c = (name: string, message: string) => classifyCrash({ name, message });
     expect(c("Error", "Failed to check for updates: Failed to bind to the service")).toBe("expected");
     expect(c("Error", "release r-d14bdb180f55 is not one this app reads")).toBe("expected");
+    expect(c("Error", "SecurityException: Unsupported path /data/local/tmp/x.apk")).toBe("expected");
+    expect(c("SecurityException", "Unsupported path /data/local/tmp/x.apk")).toBe("expected");
+    expect(c("SecurityException", "Unsupported path /data/user/0/app/x")).toBe("defect");
     expect(c("BootError", "first run: the manifest could not be read (HTTP 504)")).toBe("network");
     expect(c("Error", "update: fetch failed: UnknownHostException")).toBe("network");
     expect(c("TypeError", "Failed to fetch")).toBe("network");

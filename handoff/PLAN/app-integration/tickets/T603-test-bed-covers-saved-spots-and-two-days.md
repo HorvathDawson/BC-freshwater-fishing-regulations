@@ -1,6 +1,6 @@
 # T603 — The emulator test bed covers saved spots and the two-days line
 
-Status: PARTIAL — items 1–4 built (1df1ed1af) and run on the emulator on the kept APK (commit 104e6513c): saved-spots, two-days, route-scroll all pass; left (Claude): items 5–8 (the emulator `test` tag, the SecurityException kind, the T621 device checks) and a rerun of the three on the next APK
+Status: PARTIAL — items 1–4 built (1df1ed1af) and run on the emulator on the kept APK (commit 104e6513c): saved-spots, two-days, route-scroll all pass; items 5 and 6 built 2026-11-12; left (Claude): items 7–8 (the T621 device checks) and a rerun of the three on the next APK
 
 Source: owner 2026-11-10, on build 25's emulator run leaving saved-spot chips unchecked: "Emulator should test the
 saved spots too, we could mock it?"
@@ -119,3 +119,18 @@ route map after the scrolls, the alert confirmation left off screen).
   The file loads (`node --check`, the scenario index imports); it was NOT run on the emulator (a side atlas build held
   heavy lane 1; no emulator was started for it).
 
+
+## Items 5 and 6 built 2026-11-12 (app wave)
+- **5. An emulator reports as `test`.** `apps/mobile/src/emulator.{d.ts,native.ts,web.ts}` (a web/native pair, rule 34a):
+  Android's `Platform.constants` fingerprint / model carry the emulator image markers ("generic", "sdk_gphone",
+  "Android SDK built for", "emulator"); a real phone carries none; the web and iOS answer false (the simulator build tags
+  itself). `config.ts` `TEST_REPORTS` is now also true for a build that is not production and runs on an emulator, so an
+  owner's staging APK installed on an emulator files `test` reports and crashes. Test `emulator.native.test.ts` (fails
+  before: no module). Shows with the next APK.
+- **6. The `/data/local/tmp` SecurityException is `expected`.** `workers/feeds/src/crashes.ts` `EXPECTED` takes
+  "SecurityException: Unsupported path /data/local/tmp/…" (only that path; a SecurityException elsewhere stays a defect).
+  Test `test/crashes.test.ts` (fails before). The class is read on the way out, so old stored kinds reclassify. The worker
+  is NOT deployed (owner 11-03: with the app release, never ahead of it).
+- **Left, and why:** item 7 (G15 zoom buttons, G19 titled-pin card, G4 nearest of overlapping waters) is three new
+  emulator scenarios on the next APK (device interaction, needs the build that carries those changes); item 8 (G5, G21)
+  needs a device and a native tile reader (a change in the native map, not a small one).

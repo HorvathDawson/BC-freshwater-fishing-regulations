@@ -17,6 +17,7 @@ import { APP_ENVS, resolveAppVersion, versionLine, type AppEnv } from "@app/core
 import { imageryTiles } from "@app/map/colours";
 import { crashUrlFor, endpointsFor, reportUrlFor, resolveChannel, resolveEnv, UPDATE_CHANNELS, type UpdateChannel } from "./env";
 import { channelStore, envStore, restart } from "./envStore";
+import { onEmulator } from "./emulator";
 
 const SWITCHABLE = __DEV__ || process.env.EXPO_PUBLIC_ENV_SWITCH === "1";
 
@@ -104,8 +105,11 @@ export const ENDPOINTS = endpointsFor(APP_ENV.origin, UPDATE_CHANNEL);
 
 /** (T237) Where "Send report" posts (null: email / share only). */
 export const REPORT_URL = reportUrlFor(APP_ENV.env, process.env.EXPO_PUBLIC_REPORT_URL);
-/** (T291) a TOOL's build (the test bed: EXPO_PUBLIC_TEST_REPORTS=1) or a local dev build (env "local"): its reports and crash reports are tagged `test`. Never a store or production build. */
-export const TEST_REPORTS = process.env.EXPO_PUBLIC_TEST_REPORTS === "1" || APP_ENV.env === "local";
+/** (T291) a TOOL's build (the test bed: EXPO_PUBLIC_TEST_REPORTS=1) or a local dev build (env "local"): its reports and crash reports are tagged `test`. Never a store or production build.
+ *  (T603 item 5) A build that is not production and runs on an Android EMULATOR is a tool's run too: an owner's staging APK
+ *  installed on an emulator files its reports as `test`, not as real error kinds. */
+export const TEST_REPORTS = process.env.EXPO_PUBLIC_TEST_REPORTS === "1" || APP_ENV.env === "local"
+  || (APP_ENV.env !== "production" && onEmulator());
 /** (T242) where an app error is sent (the same worker); null: none */
 export const CRASH_URL = crashUrlFor(REPORT_URL, process.env.EXPO_PUBLIC_CRASH_URL);
 

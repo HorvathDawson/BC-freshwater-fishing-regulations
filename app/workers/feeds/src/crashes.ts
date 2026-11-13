@@ -169,6 +169,7 @@ const EXPECTED = [
   /Failed to bind to the service/i,                // no Play service to answer the own-version check (T390)
   /release r-[\w-]+ is not one this app reads/i,    // an old app refusing a newer release, and prompting for the update
   /is not one this app reads/i,
+  /SecurityException: Unsupported path \/data\/local\/tmp\//i,   // an emulator-only path the OS refuses (T603 item 6, T595)
 ];
 const NETWORK = [
   /UnknownHostException|Unable to resolve host|SocketTimeout|ConnectException|SSLException|ECONNRESET|ETIMEDOUT/i,
