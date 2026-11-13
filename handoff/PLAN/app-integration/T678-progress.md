@@ -608,8 +608,7 @@ Owner's phone report (build 29, the More tab). Done in code, not yet in a build:
 
 ## 2026-11-13 (agent, continued) — junction candidate DONE: `full_next` + reach `nextatlas_junctions3`, NOT promoted
 - Candidate = previous content (T606 item 2, T560 3/5, T690, T691) + junction fix + Gagnon P57. Commits: c24844fab
-  (both causes, Gagnon, pond_calls), 8f… → see `git log --grep "T678 junctions"`: gap-order fix + pin (650e45bc5 and the
-  commit before), stale Skeena acceptances + Gagnon allow-list (2dc9e179c), Gagnon label + OPEN pin (cf229aad5).
+  (both causes, Gagnon, pond_calls), b059769b9 (gap-order fix) + 650e45bc5 (its pin), stale Skeena acceptances + Gagnon allow-list (2dc9e179c), Gagnon label + OPEN pin (cf229aad5).
 - Build 1 removed 222 live pieces (the one-junction check ran before the gap rule) — caught by the id map, fixed, rebuilt.
 - Promote dry run (rebuild 3): rc 0, no accept flag; items 21,279 -> 21,291, sections +74, boundaries +5; gone: lake 14
   (ponds on Comox creeks now folded by D1 — their widening test only passes on true measures), length 70 (length cuts
