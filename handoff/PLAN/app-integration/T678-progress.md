@@ -766,7 +766,7 @@ Owner's phone report (build 29, the More tab). Done in code, not yet in a build:
      1,179,617 and the bundle digests; the other 10 fields equal (unexplained/by_rule unchanged). Fix is the documented
      regenerate: `scripts/heavy.sh sweep 40 -- .venv/bin/python -m pipeline.tools.audit.unnamed_trib_sweep --write-result`,
      then commit with the -3 explained (likely the junction fix's 3 leaf-pruned unnamed stubs; not verified one by one).
-- Owner 2026-11-13 dialog on the 4 suite failures. Done (6c1d…, see git log "three stale pins"): Harrison 3 -> 4 (Paul
+- Owner 2026-11-13 dialog on the 4 suite failures. Done (4ecbe1738): Harrison 3 -> 4 (Paul
   stays 3), review_queue unresolved 25 -> 29, export_codec lake edges also allowed as a run's end (mutation-checked outside
   the suite: an unnamed lake edge fails; the two weirs with their run ends removed fail). Those three pass unfiltered.
 - STOPPED on (c), the sweep: regenerated with the documented command (rc 0; only the bundle digests and unnamed_streams
