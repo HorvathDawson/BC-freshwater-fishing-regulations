@@ -52,12 +52,16 @@
     "cls": "needs",
     "items": [
      {
+      "book": [],
       "name": "Basic angling licence",
       "price": "$62.87 a year · $22.86 a day · $41.15 for 8 days",
       "terms": [],
       "when": "Needed to fish at all"
      },
      {
+      "book": [
+       "If you are a NON-GUIDED “Non-Resident” or NON-GUIDED “Non-Resident Alien”: Your Classified Waters Licence for Class I or Class II waters is sold on a per day basis and is date and water-specific. Although anglers may purchase as many Classified Waters Licences as they wish, each licence may not exceed 8 consecutive days."
+      ],
       "name": "Classified Waters Licence",
       "price": "$22.86 a day",
       "terms": [
@@ -70,6 +74,7 @@
     "onlyIf": {
      "items": [
       {
+       "book": [],
        "name": "Conservation Surcharge Stamp for salmon",
        "price": "$34.29 a year",
        "terms": [
@@ -162,12 +167,16 @@
     "cls": "needs",
     "items": [
      {
+      "book": [],
       "name": "Basic angling licence",
       "price": "$91.44 a year · $22.86 a day · $57.14 for 8 days",
       "terms": [],
       "when": "Needed to fish at all"
      },
      {
+      "book": [
+       "If you are a NON-GUIDED “Non-Resident” or NON-GUIDED “Non-Resident Alien”: Your Classified Waters Licence for Class I or Class II waters is sold on a per day basis and is date and water-specific. Although anglers may purchase as many Classified Waters Licences as they wish, each licence may not exceed 8 consecutive days."
+      ],
       "name": "Classified Waters Licence",
       "price": "$22.86 a day",
       "terms": [
@@ -180,6 +189,7 @@
     "onlyIf": {
      "items": [
       {
+       "book": [],
        "name": "Conservation Surcharge Stamp for salmon",
        "price": "$34.29 a year",
        "terms": [
@@ -272,12 +282,16 @@
     "cls": "needs",
     "items": [
      {
+      "book": [],
       "name": "Basic angling licence",
       "price": "$41.15 a year · $11.43 a day · $22.86 for 8 days",
       "terms": [],
       "when": "Needed to fish at all"
      },
      {
+      "book": [
+       "If you are a B.C. resident: Your Classified Waters Licence is valid for the licencing year. This means you can fish on any Class I or Class II water in the province during the year."
+      ],
       "name": "Classified Waters Licence",
       "price": "$17.15 a year",
       "terms": [
@@ -290,6 +304,7 @@
     "onlyIf": {
      "items": [
       {
+       "book": [],
        "name": "Conservation Surcharge Stamp for salmon",
        "price": "$17.14 a year",
        "terms": [
@@ -390,12 +405,14 @@
     "cls": "needs",
     "items": [
      {
+      "book": [],
       "name": "Nothing, if you fish with a licensed adult (16 or older)",
       "price": null,
       "terms": [],
       "when": "What you keep counts toward their limit"
      },
      {
+      "book": [],
       "name": "Basic angling licence + Classified Waters Licence",
       "price": "$62.87 a year · $22.86 a day · $41.15 for 8 days",
       "terms": [],
@@ -488,12 +505,14 @@
     "cls": "needs",
     "items": [
      {
+      "book": [],
       "name": "Nothing, if you fish with a licensed adult (16 or older)",
       "price": null,
       "terms": [],
       "when": "What you keep counts toward their limit"
      },
      {
+      "book": [],
       "name": "Basic angling licence + Classified Waters Licence",
       "price": "$91.44 a year · $22.86 a day · $57.14 for 8 days",
       "terms": [],
@@ -578,6 +597,7 @@
     "cls": "needs",
     "items": [
      {
+      "book": [],
       "name": "No licence needed to fish here",
       "price": null,
       "terms": [],

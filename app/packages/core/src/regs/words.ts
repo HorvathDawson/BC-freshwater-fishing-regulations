@@ -466,6 +466,8 @@ export const LIC = Object.freeze({
   // the needs list (prototype render: the "Also, only if…" split; the kokanee words)
   YOU_NEED: "You need", ONLY_IF_HEAD: "Also, only if…",
   PRICE_NOTE: "Prices as printed for 2025–2027, before tax. Today’s prices: gov.bc.ca/fish-licence",
+  /** (T670 G7, RULINGS Li13) the heading over a document's p.7 terms, drawn in the book's own words */
+  BOOK_TERMS: "From the rule book:",
   NOT_KOKANEE: "(not kokanee)",
   // the paper licence
   PAPER_LEAD: (a: string, fish: string) => `Keep ${a} ${fish}? `, A: "a", AN: "an", PAPER_STRONG: "Carry your paper licence",

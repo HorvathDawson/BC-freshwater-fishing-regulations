@@ -301,7 +301,10 @@ export interface LicenceVM {
   readonly label: string;                   // static licence.profile_labels[profileIx]
   readonly blocks: readonly LicenceBlockVM[];          // draw order (no source line: owner 2026-11-04)
 }
-export interface NeedItemVM { readonly name: string; readonly terms: readonly string[]; readonly when: string; readonly price: string | null }
+export interface NeedItemVM { readonly name: string; readonly terms: readonly string[]; readonly when: string; readonly price: string | null;
+  /** (T670 G7, RULINGS Li13) how the book sells this document here, for this angler: each p.7 classified-water licence
+   *  term the stored answer carries, in the book's words (`verbatim`); [] for none */
+  readonly book: readonly string[] }
 export type LicenceBlockVM =
   | { cls: "classbox"; head: string; terms: readonly string[]; body: string }
   | { cls: "classbox youth"; head: string; terms: readonly string[]; body: string }

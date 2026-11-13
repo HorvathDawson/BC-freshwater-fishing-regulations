@@ -123,7 +123,7 @@ describe("the angler", () => {
 });
 
 describe("patchNeeds", () => {
-  const it_ = (name: string, when: string): NeedItemVM => ({ name, terms: [], when, price: null });
+  const it_ = (name: string, when: string): NeedItemVM => ({ name, terms: [], when, price: null, book: [] });
   const BASIC_I = it_("Basic angling licence", "Needed to fish at all"), ST_I = it_("Steelhead Conservation Surcharge Stamp", "Only if you fish for steelhead, even to release them"),
     SA_I = it_("Conservation Surcharge Stamp for salmon", "Only if you keep salmon");
   it("moves the 'Only if' items under 'Also, only if…' and keeps every item (never drops a document)", () => {
@@ -202,5 +202,44 @@ describe("buildLicence", () => {
     expect(buildLicence(INP({ key: null }), WHO.adult!, { closed: false, glossary: GLOSS })).toBeNull();
     const tidal = { holds: { tidal: { tidal: true, note: "n", see: [], licence: "federal Tidal Waters Sport Fishing Licence" } }, profiles: [] } as unknown as LicenceValue;
     expect(lines(buildLicence(INP({ licence: tidal }), WHO.adult!, { closed: false, glossary: GLOSS }))).toEqual([["classbox", "Tidal water federal Tidal Waters Sport Fishing Licence"]]);
+  });
+});
+
+describe("T670 G7 / RULINGS Li13: a classified water's Licence tab lists its p.7 terms, in the book's words", () => {
+  const BOOKING = "A first-come-first-serve booking system is in place for these Kootenay Class II waters: Michel Creek, Skookumchuck Creek, and the Wigwam River.";
+  const PER_DAY = "If you are a NON-GUIDED “Non-Resident” or NON-GUIDED “Non-Resident Alien”: Your Classified Waters Licence for Class I or Class II waters is sold on a per day basis and is date and water-specific.";
+  const LICS_CW = new Map<number, unknown>([...LICS,
+    [10, { entry_id: "zp:classified_waters_licence", record_id: "cwl", kind: "requirement", label: "Classified Waters Licence while classified.", placement: "on_designation", fields: {}, prov: {} }],
+    [11, { entry_id: "zp:classified_waters_licence", record_id: "cwl_booking", kind: "licence_terms", label: "booking", verbatim: BOOKING, fields: { document: "classified_waters_licence" }, prov: {} }],
+    [12, { entry_id: "zp:classified_waters_licence", record_id: "cwl_non_resident", kind: "licence_terms", label: "per day", verbatim: PER_DAY, fields: { document: "classified_waters_licence" }, prov: {} }],
+    [13, { entry_id: "zp:licence_administration", record_id: "basic_one_per_year", kind: "licence_terms", label: "one a year", verbatim: "You are only permitted one annual angling licence per year.", fields: { document: "basic_licence" }, prov: {} }],
+  ]);
+  const VISITOR: ProfileAnswer = {
+    documents: [{ ...BASIC, prices: { year: 62.87 } }, { doc: "classified_waters_licence", when: { act: "fishing", on: "classified_period" }, base: true, prices: { day: [22.86] } }],
+    none_needed: false,
+    requirements: [{ req: 1, when: { act: "fishing" }, paths: [{ need: ["basic_licence"] }], terms: [13] },
+      // the stored answer hangs the booking twice (two requirements): drawn once
+      { req: 10, when: { act: "fishing", on: "classified_period" }, paths: [{ need: ["classified_waters_licence"] }], terms: [11, 12] },
+      { req: 10, when: { act: "fishing", on: "classified_period" }, paths: [{ need: ["classified_waters_licence"] }], terms: [11] }] };
+  const cwlItem = (answer: ProfileAnswer, lics = LICS_CW) => {
+    const vm = buildLicence(INP({ licence: frame({ adult_non: answer }), lics, paper: [] }), WHO.adult_non!, { closed: false, glossary: GLOSS })!;
+    const needs = vm.blocks.find((b) => b.cls === "needs");
+    if (needs?.cls !== "needs") throw new Error("no 'You need' list");
+    return { needs, cw: needs.items.find((x) => /classified/i.test(x.name))! };
+  };
+  it("the Classified Waters Licence item carries each term the answer names for it, once, in the book's words; the whole line pinned", () => {
+    const { needs, cw } = cwlItem(VISITOR);
+    expect(cw.book).toEqual([BOOKING, PER_DAY]);
+    expect(needLine(cw)).toBe(`Classified waters licence ⓘ Needed to fish at all $22.86 a day From the rule book: ${BOOKING} ${PER_DAY}`);
+    // the basic licence's administrative term is not a p.7 classified-water term (held for the owner): not drawn
+    expect(needs.items.find((x) => /basic/i.test(x.name))!.book).toEqual([]);
+  });
+  it("mutation: an answer that names no term draws none", () => {
+    const bare: ProfileAnswer = { ...VISITOR, requirements: VISITOR.requirements.map(({ terms: _t, ...r }) => r) };
+    expect(cwlItem(bare).cw.book).toEqual([]);
+  });
+  it("a term the answer names that the release does not hold is an error, never a silent gap", () => {
+    const lics = new Map(LICS_CW); lics.delete(12);
+    expect(() => cwlItem(VISITOR, lics)).toThrow(/licensing record 12/);
   });
 });

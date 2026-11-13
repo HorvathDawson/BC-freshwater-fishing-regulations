@@ -998,12 +998,16 @@
     "cls": "needs",
     "items": [
      {
+      "book": [],
       "name": "Basic angling licence",
       "price": "$41.15 a year · $11.43 a day · $22.86 for 8 days",
       "terms": [],
       "when": "Needed to fish at all"
      },
      {
+      "book": [
+       "If you are a B.C. resident: Your Classified Waters Licence is valid for the licencing year. This means you can fish on any Class I or Class II water in the province during the year."
+      ],
       "name": "Classified Waters Licence",
       "price": "$17.15 a year",
       "terms": [
@@ -1016,6 +1020,7 @@
     "onlyIf": {
      "items": [
       {
+       "book": [],
        "name": "Steelhead Conservation Surcharge Stamp",
        "price": "$28.57 a year",
        "terms": [
@@ -1024,6 +1029,7 @@
        "when": "Only if you fish for steelhead, even to release them"
       },
       {
+       "book": [],
        "name": "Conservation Surcharge Stamp for salmon",
        "price": "$17.14 a year",
        "terms": [

@@ -12,6 +12,7 @@
  *   G1  a rule held for an angler in a boat       Kispiox River, p.51
  *   G3  gear and boat rules of an undrawn part    Mahood Lake, p.32
  *   G4  a hook-size limit                         Qualicum River, p.18
+ *   G7  the classified-water licence terms        Wigwam River (Kootenay booking), Dean River (the draw), p.7 (Li13)
  */
 import { beforeAll, describe, expect, it } from "vitest";
 import { buildRegsPage, plain, type RegsInputs, type RegsPage } from "@app/core";
@@ -98,5 +99,23 @@ describe.skipIf(!at.dir)(`T670: what the release holds is on the screen (${at.di
     expect(hook.values).toEqual(["One hook, lure or fly", "Single barbless hook, no trebles",
       "Single barbless hook; no hook more than 15 mm from point to shank"]);
     expect(hook.src!.pages.map((x) => x.printed)).toContain(18);
+  });
+  it("G7 (RULINGS Li13) the Licence tab lists the p.7 classified-water terms that apply, in the book's words, per angler", async () => {
+    const BOOKING = "A first-come-first-serve booking system is in place for these Kootenay Class II waters: Michel Creek, Skookumchuck Creek, and the Wigwam River.";
+    const bookOf = async (item: string, partIx: number, who: Parameters<typeof buildRegsPage>[1]["who"]) => {
+      const inp = await loadRegsInputs(st, { kind: "part", item, partIx }, { month: 7, day: 15 }, "Wednesday", 2026);
+      return (buildRegsPage(inp, { today: { month: 7, day: 15 }, who }).licence?.blocks ?? [])
+        .flatMap((b) => b.cls === "needs" ? [...b.items, ...(b.onlyIf?.items ?? [])] : []).flatMap((i) => i.book);
+    };
+    const wigwam = await names.part("gnis:27703", "mouth", "wigwam_river__wigwam_km42_ram_fsr");
+    const visitor = await bookOf("gnis:27703", wigwam, { age: "adult", residency: "non_resident" });
+    expect(visitor).toContain(BOOKING);
+    expect(visitor.some((t) => t.startsWith("If you are a NON-GUIDED “Non-Resident”"))).toBe(true);
+    const resident = await bookOf("gnis:27703", wigwam, { age: "adult", residency: "resident" });
+    expect(resident.some((t) => t.startsWith("If you are a B.C. resident: Your Classified Waters Licence is valid"))).toBe(true);
+    expect(resident).not.toContain(BOOKING);
+    // the Elk is Class II too, but not one of the three booked waters
+    const elk = await bookOf("gnis:16880", 0, { age: "adult", residency: "non_resident" });
+    expect([elk.some((t) => t.startsWith("If you are a NON-GUIDED “Non-Resident”")), elk.includes(BOOKING)]).toEqual([true, false]);
   });
 });

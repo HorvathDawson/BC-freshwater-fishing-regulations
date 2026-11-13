@@ -814,6 +814,7 @@
     "cls": "needs",
     "items": [
      {
+      "book": [],
       "name": "Basic angling licence",
       "price": "$41.15 a year · $11.43 a day · $22.86 for 8 days",
       "terms": [],
@@ -824,6 +825,7 @@
     "onlyIf": {
      "items": [
       {
+       "book": [],
        "name": "Conservation Surcharge Stamp for salmon",
        "price": "$17.14 a year",
        "terms": [

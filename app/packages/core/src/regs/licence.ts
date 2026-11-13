@@ -101,6 +101,32 @@ function pathTxt(inp: RegsInputs, p: Path_): string {
   return bits.join(" ") + (p.alt != null ? LIC.PATH_ALT : "");
 }
 
+const CLASSIFIED_DOC = "classified_waters_licence";
+
+/**
+ * (T670 G7, RULINGS Li13, owner 2026-11-12 "Show on each water") THE p.7 TERMS OF A CLASSIFIED WATERS LICENCE, in the
+ * book's words: the `licence_terms` records the stored answer hangs on the requirements this document meets (licence
+ * `requirements[].terms` — the pipeline chose them for this angler and this water's designations: the Kootenay booking
+ * on the Wigwam, the Dean draw on its Class I - Main Section), each record's `verbatim`, once, in answer order. Only the
+ * Classified Waters Licence's: the basic licence's administrative terms (one annual licence a year, the disabled fee)
+ * are not p.7's classified-water terms and are not drawn (held for the owner, T670).
+ */
+function bookTerms(inp: RegsInputs, P: ProfileAnswer, doc: string): readonly string[] {
+  if (doc !== CLASSIFIED_DOC) return [];
+  const out: string[] = [];
+  for (const x of P.requirements) {
+    if (!x.paths.some((p) => p.need?.includes(doc))) continue;
+    for (const t of x.terms ?? []) {
+      const l = lx(inp, t);
+      if (l.kind === "?") throw new Error(`licence: the answer names licensing record ${t}, which the release does not hold`);
+      if (l.kind !== "licence_terms" || l.fields.document !== doc) continue;
+      if (!l.verbatim) throw new Error(`licence: the term ${l.key} the answer names has no words (verbatim)`);
+      if (!out.includes(l.verbatim)) out.push(l.verbatim);
+    }
+  }
+  return out;
+}
+
 // ── the answer ──────────────────────────────────────────────────────────────────────────────────────────────────────
 
 type Item = NeedItemVM & { readonly docs: readonly string[] };
@@ -161,7 +187,7 @@ function answerBlocks(inp: RegsInputs, F: LicenceValue & { holds: Holds }, who: 
     const alts = altsOf(b);
     return { name: cap([DOC(b.doc), ...alts].join(` ${LIC.OR} `)), docs: [b.doc], terms: docGi(b.doc),
       when: [whenTxt(b.when), ...(b.also_when ?? []).map(alsoTxt)].join(LIC.ALSO_SEP) + (alts.length ? LIC.EITHER : ""),
-      price: priceTxt(b.prices ?? {}) || null };
+      price: priceTxt(b.prices ?? {}) || null, book: bookTerms(inp, P, b.doc) };
   });
 
   // under 16: the stored under_16 entry for this residency (pipeline licence.under_16_summary: with_adult, buy, own_limit).
@@ -176,9 +202,9 @@ function answerBlocks(inp: RegsInputs, F: LicenceValue & { holds: Holds }, who: 
     out.push({ cls: "classbox youth", head: LIC.YOUTH_HEAD, terms: gi(LIC.YOUTH_TERM),
       body: (LIC.YOUTH_WITH(W.who) + (names.length ? LIC.YOUTH_DOCS(names.join(LIC.SEP)) : "") + LIC.STOP + (W.counts ? LIC.YOUTH_COUNTS_S : "")
         + (byBuying ? LIC.YOUTH_BUY(names.length ? LIC.YOUTH_THE(names.join(LIC.PLUS)) : LIC.YOUTH_ADULT_NEEDS) : "")).trim() });
-    buy.push({ name: LIC.YOUTH_NOTHING, docs: [], terms: [], when: W.counts ? LIC.YOUTH_COUNTS : LIC.YOUTH_HOLD, price: null });
+    buy.push({ name: LIC.YOUTH_NOTHING, docs: [], terms: [], when: W.counts ? LIC.YOUTH_COUNTS : LIC.YOUTH_HOLD, price: null, book: [] });
     if (byBuying && names.length) buy.push({ name: names.join(LIC.PLUS), docs: [], terms: [], when: LIC.YOUTH_OWN,
-      price: priceTxt(U.buy[0]!.prices) || null });
+      price: priceTxt(U.buy[0]!.prices) || null, book: [] });
   }
   if (buy.length) out.push({ cls: "needs", label: LIC.YOU_NEED, items: buy, onlyIf: null, priceNote: buy.some((b) => b.price) ? LIC.PRICE_NOTE : null });
 
@@ -217,7 +243,7 @@ function asNeeds(blocks: LicenceBlockVM[], adult: readonly LicenceBlockVM[] | nu
   if (!own.length) return blocks;
   const at = blocks.indexOf(own[0]!);
   const needs: LicenceBlockVM = { cls: "needs", label: LIC.YOU_NEED, onlyIf: null, priceNote: null,
-    items: own.map((b): Item => ({ name: b.head, terms: b.terms, when: b.body, price: null, docs: [] })) };
+    items: own.map((b): Item => ({ name: b.head, terms: b.terms, when: b.body, price: null, docs: [], book: [] })) };
   return [...blocks.slice(0, at), needs, ...blocks.slice(at).filter((b) => !own.includes(b as never))];
 }
 
@@ -273,7 +299,7 @@ export function buildLicence(inp: RegsInputs, who: Who, ctx: { readonly closed: 
   // (b) the "(not kokanee)" words: a stored requirement of this answer that the document meets says them in its label
   const saysNotKokanee = (doc: string): boolean => P.requirements.some((x) => x.paths.some((p) => p.need?.includes(doc))
     && lx(inp, x.req).label.includes(LIC.NOT_KOKANEE));
-  const bare = (it: NeedItemVM): NeedItemVM => ({ name: it.name, terms: it.terms, when: it.when, price: it.price });
+  const bare = (it: NeedItemVM): NeedItemVM => ({ name: it.name, terms: it.terms, when: it.when, price: it.price, book: it.book });
   const blocks = asNeeds(answerBlocks(inp, FH, who, P, ctx.glossary), adult).map((b): LicenceBlockVM => {
     if (b.cls !== "needs") return b;
     const p = patchNeeds(b.items as readonly Item[], (it) => (it.docs ?? []).some(saysNotKokanee));
@@ -286,7 +312,7 @@ export function buildLicence(inp: RegsInputs, who: Who, ctx: { readonly closed: 
 
 const marks = (terms: readonly string[]): string[] => terms.map(() => WORDS.TERM_ONE);
 /** One need as the golden's li text: name, ⓘ per term, when, price. */
-export const needLine = (it: NeedItemVM): string => [it.name, ...marks(it.terms), it.when, it.price].filter(Boolean).join(" ");
+export const needLine = (it: NeedItemVM): string => [it.name, ...marks(it.terms), it.when, it.price, ...(it.book.length ? [LIC.BOOK_TERMS, ...it.book] : [])].filter(Boolean).join(" ");
 
 /** A block's plain lines, one per drawn element — the golden's `blocks[].lines`. */
 export function licenceBlockLines(b: LicenceBlockVM): readonly string[] {

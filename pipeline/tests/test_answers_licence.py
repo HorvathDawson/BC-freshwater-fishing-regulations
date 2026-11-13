@@ -99,6 +99,43 @@ def test_superior_authority_displaces_and_sells_nothing():
     assert {d["doc"] for d in both["documents"]} == {"basic_licence", "national_park_permit"}
 
 
+def test_li13_a_classified_waters_term_rides_on_the_water_and_angler_it_concerns():
+    """RULINGS Li13 (owner 2026-11-12, T670 G7): each classified water's Licence tab lists the p.7 terms that apply to
+    it. The answer carries them as the Classified Waters Licence requirement's `terms` (export licensing indexes): a
+    term rides only for the angler its `who` names, and only where a designation in force has its class and unit —
+    the Kootenay booking on the Wigwam, never on another Class II water; the Dean draw on Class I - Main only. A term
+    carrying a fee is the price list's (p.5), never a term row."""
+    cwl = {"doing": {"act": "fishing"}, "who": {"age": ["16_plus"]}, "on": "classified_period",
+           "satisfied_by": [{"hold": ["classified_waters_licence"]}]}
+    T = {"kind": "licence_terms", "document": "classified_waters_licence"}
+    nr = {"guidance": ["non_guided"], "residency": ["non_resident", "non_resident_alien"]}
+    C = corpus(**{"zp:c#cwl": cwl,
+                  "zp:c#booking": dict(T, classified="II", units=["wigwam_river"], allocation="booking", who=nr),
+                  "zp:c#per_day": dict(T, sold="per_day", max_consecutive_days=8, who=nr),
+                  "zp:c#resident": dict(T, covers="every_unit", who={"residency": ["resident"]}),
+                  "z5:d#draw": dict(T, classified="I", units=["dean_main"], allocation="draw",
+                                    who={"guidance": ["non_guided"], "residency": ["non_resident_alien"]}),
+                  "zp:f#day_fee": dict(T, classified="II", sold="per_day",
+                                       fees_cad={"non_resident": 22.86, "non_resident_alien": 22.86})})
+    ref = C.index.__getitem__
+    wigwam = [{"classified": "II", "unit": "wigwam_river"}]
+    elk = [{"classified": "II", "unit": "elk_river"}]
+    dean_main, dean_upper = [{"classified": "I", "unit": "dean_main"}], [{"classified": "II", "unit": "dean_upper"}]
+
+    def terms(desig, **who):
+        got = L.documents(C, h("zp:c#cwl", desig=desig), [], dict(P, **who), ref)
+        return sorted(k for k in C.index if ref(k) in (got["requirements"][0].get("terms") or []))
+
+    visitor = {"residency": "non_resident"}
+    assert terms(wigwam, **visitor) == ["zp:c#booking", "zp:c#per_day"]
+    assert terms(wigwam) == ["zp:c#resident"]                                   # a resident: the annual licence only
+    assert terms(wigwam, guidance="guided", **visitor) == []                    # who: non-guided only
+    assert terms(elk, **visitor) == ["zp:c#per_day"]                            # mutation: another Class II unit
+    alien = {"residency": "non_resident_alien"}
+    assert terms(dean_main, **alien) == ["z5:d#draw", "zp:c#per_day"]
+    assert terms(dean_upper, **alien) == ["zp:c#per_day"]                       # mutation: the draw is Class I - Main
+
+
 def test_an_alternative_is_another_path():
     C = corpus(**{"zp:b#basic": BASIC,
                   "r6:m#yukon": {"kind": "alternative",

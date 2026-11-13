@@ -200,6 +200,21 @@ describe("<LicenceTab>", () => {
     expect(within(screen.getByTestId("licence-answer")).queryByRole("button", { name: "Source" })).toBeNull();
   });
 
+  it("(T670 G7, RULINGS Li13) x5p1_1010 (the Elk, Class II): the licence item draws its p.7 term in the book's words, per angler", () => {
+    const termsOf = (k: string) => {
+      mountLicence(LIC_X5P1[k]!, whoOf(k));
+      const got = within(screen.getByTestId("licence-needs")).queryAllByTestId("need-book").map((b) => domLines(b));
+      cleanup();
+      return got;
+    };
+    expect(termsOf("adult|resident")).toEqual([["From the rule book:",
+      "If you are a B.C. resident: Your Classified Waters Licence is valid for the licencing year. This means you can fish on any Class I or Class II water in the province during the year."]]);
+    expect(termsOf("adult|non_resident")).toEqual([["From the rule book:",
+      "If you are a NON-GUIDED “Non-Resident” or NON-GUIDED “Non-Resident Alien”: Your Classified Waters Licence for Class I or Class II waters is sold on a per day basis and is date and water-specific. Although anglers may purchase as many Classified Waters Licences as they wish, each licence may not exceed 8 consecutive days."]]);
+    // a water that is not classified (the Vedder) carries no term
+    expect(Object.entries(LIC).flatMap(([k, vm]) => vm.blocks.flatMap((b) => b.cls === "needs" ? b.items.filter((i) => i.book.length).map(() => k) : []))).toEqual([]);
+  });
+
   it("klmb_1010: the not-yet-mapped box — its label, what the part says, the note", () => {
     mountLicence(LIC_KLMB["adult|resident"]!);
     const lines = domLines(screen.getByTestId("licence-answer"));

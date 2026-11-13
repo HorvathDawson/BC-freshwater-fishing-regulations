@@ -32,6 +32,13 @@ function NeedItem({ it, palette, actions }: { it: NeedItemVM; palette: Palette; 
         {it.when !== "" && <Text testID="need-when" style={[TYPE.meta, { color: palette.sub }]}>{"\n"}{it.when}</Text>}
         {it.price !== null && <Text testID="need-price" style={[TYPE.metaSemi, { color: palette.ink, fontVariant: ["tabular-nums"] }]}>{"\n"}{it.price}</Text>}
       </Text>
+      {/* (T670 G7, RULINGS Li13) the p.7 terms that apply here, in the book's words, under their heading */}
+      {it.book.length > 0 && (
+        <View testID="need-book" style={{ marginTop: SPACE.s1 }}>
+          <Text style={[TYPE.metaBold, { color: palette.sub }]}>{LIC.BOOK_TERMS}</Text>
+          {it.book.map((t, i) => <Text key={i} testID="need-book-term" style={[TYPE.meta, { color: palette.ink, marginTop: 2 }]}>{t}</Text>)}
+        </View>
+      )}
     </View>
   );
 }
