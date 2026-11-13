@@ -97,9 +97,25 @@ describe("(T517) a part is said as the water's map names the entry holding it (o
     expect(headerOf(inputs({ parts: pieces, choices: [], partIx: 1 }), { today, status: "open" }).place)
       .toEqual({ full: "Cable car crossing → Bridge", short: "Cable car crossing → Bridge" });
   });
-  it("one choice holding both pieces: its first part's entry name", () => {
+  it("one choice holding both pieces, joined on the map: the joined entry's name", () => {
     expect(partLabels(inputs({ parts: pieces, choices: [choice([0, 1], "Lower river", 8)], partIx: 1 }), joined))
       .toEqual({ full: "Mouth → Bridge", short: "Mouth → Bridge" });
+  });
+  // (T700, owner phone 2026-11-13, Capilano River part 3 of 3) one picker choice holds two parts the map lists apart —
+  // closed all year below AND above Capilano Lake: the header named the CHOICE'S FIRST part ("Cable Pool Bridge
+  // footbridge → Capilano Lake outlet") on the page of the part above the lake ("Capilano Lake → Source")
+  it("(T700) one choice of two parts the map lists apart: each part's page says ITS OWN entry's name, never the first's", () => {
+    const capilano = [part("From the Cable Pool Bridge footbridge up to the Capilano Lake outlet", "cable", "lake"),
+                      part("From Capilano Lake up to the top of the river", "lake", "source")];
+    const closed = [choice([0, 1], "Closed all year · 2 stretches", 10, true)];
+    const map = new Map([[0, "Cable car crossing → lake outlet"], [1, "lake → Source"]]);
+    for (const [partIx, own] of [[0, "Cable car crossing → lake outlet"], [1, "lake → Source"]] as const) {
+      expect(headerOf(inputs({ parts: capilano, choices: closed, partIx }), { today, status: "closed", names: map }).place)
+        .toEqual({ full: own, short: own });
+      // before the map's group is read: the part's own ends, never the choice's first part's
+      expect(partLabels(inputs({ parts: capilano, choices: closed, partIx }))!.short)
+        .toBe(partIx === 0 ? "Cable car crossing → lake" : "lake → Source");
+    }
   });
 });
 

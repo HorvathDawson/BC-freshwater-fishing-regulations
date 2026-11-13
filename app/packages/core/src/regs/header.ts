@@ -66,16 +66,20 @@ export function subtitleOf(inp: RegsInputs): string {
 
 /**
  * prototype hereLabel (`full`) and shortLabel (`short`). With a part picker: the choice's text is the long label; the full
- * label is the long one when the subtitle says it, else the name of the choice's first part; the short label is that
- * name. Without a picker both are the part's name (`partNameOf`, the one name — T517: no stored label stands in;
- * `headerOf` empties the slot when it is the water's own name). Null for an unnamed section.
+ * label is the long one when the subtitle says it, else the part's name; the short label is the part's name. Without a
+ * picker both are the part's name (`partNameOf`, the one name — T517: no stored label stands in; `headerOf` empties the
+ * slot when it is the water's own name). Null for an unnamed section.
+ *
+ * (T700) THE NAME IS ALWAYS THE PAGE'S OWN PART'S (`inp.partIx`), never the choice's first part: a choice groups parts by
+ * rule set, and two parts the map lists apart can share one (Capilano River: closed all year below AND above Capilano
+ * Lake, one choice) — the header said the lower part's name on the upper part's page.
  */
 export function partLabels(inp: RegsInputs, names?: PartNames | null): { full: string; short: string } | null {
   const it = inp.item;
   if (!it) return null;
   const g = nParts(inp) > 1 ? choiceOf(inp) : null;
   if (g) {
-    const long = g.text, short = partNameOf(inp, g.parts[0]!, names);
+    const long = g.text, short = partNameOf(inp, inp.partIx, names);
     return { full: subtitleOf(inp).includes(long) ? long : short, short };
   }
   const s = partNameOf(inp, inp.partIx, names);

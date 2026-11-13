@@ -8,8 +8,8 @@
  * the header, the parts list and the screen reader all say `partName`).
  */
 import { describe, expect, it } from "vitest";
-import { partName, spanName, type WaterGroup } from "@app/core";
-import { loadWaterGroup, openRegsStore, type RegsStore } from "@app/data/regs";
+import { entryNames, headerOf, partName, spanName, type WaterGroup } from "@app/core";
+import { loadRegsInputs, loadWaterGroup, openRegsStore, targetFor, type RegsStore } from "@app/data/regs";
 import { liveReleaseAt, openReleaseDir } from "../conformance/src/fixtureRelease";
 
 const at = liveReleaseAt();
@@ -83,6 +83,61 @@ describe.skipIf(!at.dir)("(T517) every part is one connected run, named by its o
     }
     // r-0a9930fb8826: 562 waters of several entries
     expect(waters).toBeGreaterThan(500);
+    expect(bad).toEqual([]);
+  }, 600_000);
+
+  // (T700, owner phone 2026-11-13: "This section got a different location text in regulation panel?") Capilano River
+  // part 3 of 3 — the map said "Capilano Lake → Source", its Regulations header "Cable Pool Bridge footbridge → Capilano
+  // Lake outlet": the header named the first part of the part's picker choice (parts 2 and 3, both closed all year).
+  // EVERY part of EVERY water of several, by EVERY way in: a Map pick, a step, "Show regulations for this part" and a
+  // tab switch all open the frame's part (`{kind: "part"}`); a tap opens the part holding the tapped section
+  // (`targetFor` with a section); a search opens `targetFor` with none. Each page's header names the part the map
+  // names (`entryNames`), and before the group is read (no names) the part's own ends; its rules are its own part's key.
+  it("(T700) province-wide: the Regulations header names the part the map names, by every way in", async () => {
+    const st = await open();
+    const ords = (await (await st.water()).all("SELECT item_ord FROM item WHERE shown = 1")).map((r) => Number(r.item_ord));
+    const today = { month: 11, day: 13 };
+    const bad: string[] = [];
+    let checked = 0;
+    for (const ord of ords) {
+      const parts = await st.parts(ord);
+      if (parts.filter((p) => p.facts && !p.tidal).length < 2) continue;
+      const it = await st.item(ord);
+      const g = await loadWaterGroup(st, it.id);
+      const names = entryNames(g, it.id);
+      const said = async (partIx: number, nm: typeof names | null) => {
+        const inp = await loadRegsInputs(st, { kind: "part", item: it.id, partIx }, today, "Friday", 2026);
+        const h = headerOf(inp, { today, status: "closed", names: nm });
+        return { inp, short: h.place?.short ?? it.name, full: h.place?.full ?? it.name };
+      };
+      for (const p of g.parts) {
+        if (p.item !== it.id) continue;
+        for (const partIx of p.pieces) {
+          checked += 1;
+          const want = names.get(partIx)!;
+          const own = parts[partIx]!.facts ? spanName(g.ends, it.name, p) : it.name;
+          const viaPart = await said(partIx, names), early = await said(partIx, null);
+          if (viaPart.short !== want) bad.push(`${it.id} part ${partIx}: map "${want}", header "${viaPart.short}"`);
+          if (viaPart.full !== want && !(viaPart.inp.item?.picker?.choices.some((c) => c.parts.includes(partIx) && c.text === viaPart.full)))
+            bad.push(`${it.id} part ${partIx}: header's long label "${viaPart.full}" is neither the map's name nor this part's choice`);
+          if (p.pieces.length === 1 && early.short !== own) bad.push(`${it.id} part ${partIx}: before the group, "${early.short}" not "${own}"`);
+          if (parts[partIx]!.akey !== null && viaPart.inp.key?.akey !== parts[partIx]!.akey)
+            bad.push(`${it.id} part ${partIx}: the page read another part's key`);
+          // a tap on any of this part's sections opens this entry
+          for (const sid of [p.sids[0], p.sids[p.sids.length - 1]]) {
+            if (sid === undefined) continue;
+            const t = await targetFor(st, it.id, sid);
+            if (t.kind !== "part" || !p.pieces.includes(t.partIx)) bad.push(`${it.id} part ${partIx}: a tap on ${sid} opens ${JSON.stringify(t)}`);
+          }
+        }
+      }
+      // a search opens the lowest keyed part, said as the map says it
+      const s = await targetFor(st, it.id, null);
+      if (s.kind === "part" && names.has(s.partIx) && (await said(s.partIx, names)).short !== names.get(s.partIx))
+        bad.push(`${it.id}: the searched part ${s.partIx} is said otherwise`);
+    }
+    // r-0a9930fb8826: 1,589 parts of 562 waters (304 of them, on 206 waters, said another part's name before T700)
+    expect(checked).toBeGreaterThan(1000);
     expect(bad).toEqual([]);
   }, 600_000);
 
