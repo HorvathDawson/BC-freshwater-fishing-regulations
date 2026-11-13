@@ -178,6 +178,35 @@ Pictures (Esri imagery, scratch): `deena_cut.jpg`, `mamin_cut.jpg`, `mcrae_cut.j
      #19–#25"; no record names Squirrel. Tried: FISS lake records 52.88–53.2 N / 124.9–125.9 W, EcoCat EUCL /
      Kluskus / Euchiniko titles, BCGNIS, web. Would settle it: the same office file for the 1993 series.
 
+   **Deeper search (2026-11-13, owner "look harder")** — still no lake named; nothing to accept. Sources read:
+   archived Region 5/6 synopsis tables 2004 (wlapwww.gov.bc.ca `fw/fish/pdf/region_5.pdf`, `region_6.pdf`, Wayback
+   20040405), 2005-07, 2007-08, 2008-09, 2009-11; the 2003 regulation HTML pages and Cariboo/Skeena stocking lists
+   (Wayback 2003, no lake tables / none of the names); BCGNIS all statuses (no Frog/Redfern/Squirrel lake in these
+   MUs, none rescinded); every FISS lake survey + EcoCat report inside MUs 5-6, 5-15, 6-1; the scanned report covers
+   and summary sheets of the unaliased surveys below; archive.org search (no scanned synopsis). All three rows are
+   already in the 2004 edition with the same names and no locating words (earliest table found).
+   - Frog: the 1993-03-12 Region 5 winter-limnology trip that recorded "Lake Name: HIDDEN" (EcoCat 32595 sheet) also
+     sampled "UNNAMED (#2)" 00945KLIN = wbk 329238264 (9.3 ha, 51.8784,-124.9956) and "UNNAMED (#3)" 00949KLIN = wbk
+     329238354 (4.8 ha, 51.8761,-125.0023), both just west of Agnus/Miner lakes. AIM's 1997 batch (which aliased
+     Hidden, Secret, Square, Fish, No Name, Banana, Maydoe) left two lakes unaliased: "#30" 00907ATNA = wbk 329021857
+     (16.3 ha, 52.3613,-125.5859) and "#31" 00876ATNA = wbk 329021820 (32.3 ha, 52.3754,-125.5779); their report
+     covers and summary sheets carry no alias. With leads A–C these are seven possible lakes; none is named Frog
+     anywhere. Confidence: none.
+   - Redfern: "Goat" Lake (00034MAHD, wbk 329354762) had its own 5-15 row beside Redfern in 2004–2008-09, so
+     Redfern is not Goat. The only other lakes in the Ruth Redfern Creek watershed are Deception (own row) and ponds
+     ≤ 5 ha (largest wbk 329355014, 5.1 ha, 52.1614,-120.6007, 00011MAHD; no survey). AIM's 1998 unaliased 5-15 lake
+     00681MAHD (wbk 329354774) reads "Local name: UNNAMED (#6327)" and drains to Hendrix Creek: not it. Not found.
+   - Squirrel: NOT a misfile of the 5-1 lake — in 2004 Paddy Lake (5-1, FWA "Squirrel Lake") printed only "Trout daily
+     quota = 2" while Squirrel (6-1) printed the 6-1 group's "quota = 4; bait ban, single barbless hook" (Toms,
+     Chipmunk, Naglico), in both the Region 5 and Region 6 tables. The 6-1 group comes from the Region 5 limnology run
+     of 1993-03-03 (sheets "Lake Name: TOMS", "CHIPMUNK", "#19"–"#25", MU "5-12 (6-01)"); Squirrel is likely one of
+     the numbered ones: #19 00863EUCL wbk 329126790 (26.5 ha), #20 00725EUCL wbk 329126734 (53.8 ha), #21 00888EUCL
+     wbk 328967975 (34.1 ha), #22 00913EUCL wbk 329126782 (28.9 ha), #23 00908EUCL wbk 329126768 (33.0 ha), #24
+     00898EUCL wbk 329126717 (77.1 ha), #25 01094EUCL wbk 329126741 (48.1 ha), all 52.99–53.03 N, 125.0–125.4 W. No
+     sheet names Squirrel. Not found.
+   Would settle any of them: the Williams Lake (Region 5) office's lake files for the 1993 limnology runs, or an
+   edition before 2004 (not online in any archive found).
+
    Full earlier evidence: `handoff/PLAN/curation-review/unmatched-lakes-research.md` (2026-10-28).
 
 ## Acceptance
