@@ -1,19 +1,36 @@
-# T694 — An amended matched in-season notice carries no "new" mark
+# T694 — A new or amended in-season notice carries a "New" / "Updated" mark until this device has seen it
 
-Status: POSTPONED (owner 2026-11-12: gap 2 is not built now; after closed testing).
+Status: DONE — 10ad08512, 8205a5c8a (built with T706; left (Claude): nothing — owner look is the T706 post-release check).
 
-Source: the read-only in-season lane of 2026-11-12 (inferred from code), and the owner's dialog answer "Fix gap 1 only"
-(T693 built gap 1). In-season notices are BC Fish and Wildlife's, not DFO's.
+Source: owner 2026-11-13, un-postponing it: "Yes add it in." In-season notices are BC Fish and Wildlife's, not DFO's.
+Was POSTPONED 2026-11-12 (gap 2 of the in-season lane; T693 built gap 1).
 
-## Gap
-A notice already matched to a water whose text is amended (the feed row's status `changed`, `previous` set) is the same
-notice id: it is not in the bell (matched) and nothing on its page says it changed since the reader last looked
-(`inSeasonUnseen` reads only the unmatched list). A reader who saw the old text is not told.
+## The gap
+A notice matched to a water whose text is amended came in as a new id the reader was never told about: it was not in
+the bell (matched) and nothing on its page said it changed since they last looked.
 
-## Work (after closed testing)
-1. Decide with the owner what "new" means for a matched notice (a mark on the page banner, on the bell, or both; how it is
-   cleared: seen once per device by id + text, as the unmatched rows are).
-2. Build it in core (`inseason.ts`) and the banner/bell UI with a test for the amended-row case.
-3. Measure first: how often `changed` rows happen in the feed (staging 2026-11-11: none; T675 removed the false ones).
+## Built (with T706, one change set)
+- Every matched notice that is NEW or AMENDED since this device last saw it is unread in the bell's inbox (T706) and
+  carries a mark on its water's Regulations page until seen: the collapsed line says "Updated · In-season change (…) ·
+  see ›" (several: "3 in-season changes (1 new, 1 updated) · see ›", core `inSeasonSummary`) and the open card says
+  "New" / "Updated" (core `inSeasonBanner(…, mark)`).
+- **"Updated" ONLY when the feed links it**: the feed row's `status` is "changed" with `previous` set (the feeds worker's
+  `buildFeed` links an amended row to the row of the same region + water that left the page in that reading). The app
+  never guesses a link: a new id the feed does not link is "New", and the notice it may have replaced shows "Ended".
+  The linked predecessor leaves the history (the updated one takes its place).
+- SEEN = read, per device, stored locally (`canifishthis.inseasonInbox.v1` on web, `inseason-inbox.json` native —
+  the established `keyStore` / `fileStore` pair). Seeing the mark on the page marks it read at once; the page keeps the
+  mark for that visit (taken once per notice per water) so it does not vanish under the reader. Opening the row in the
+  inbox marks it read and opens the page with the mark shown and the notices open.
+- Code: `app/packages/core/src/inseasonInbox.ts` (`inboxMerge`, `inboxMark`), `core/src/inseason.ts` (marks words,
+  summary), `@app/ui` `useInSeasonBanners` + `InSeasonInboxContext`, `ui-native/src/regs/InSeasonBanner.tsx`.
+- Tests: `core/src/inseasonInbox.test.ts` ("UPDATED only when the feed links it …" — linked → updated, unlinked new
+  id → new and the old one ends, a date amended in place → updated), `core/src/inseason.test.ts` (the marked line and
+  summary, whole strings), `ui/src/inseason.render.test.tsx` ("the feed's link makes it Updated; a new id it does not
+  link is New"), `ui-native/src/InSeason.test.tsx` (the mark on line and card).
 
-Depends: T693 built; T673 parked. Size: S. Owner: yes (the wording and the mark). Default: nothing built.
+## Measured
+Staging feed 2026-11-13: 32 rows, all `unchanged`, no `previous` — the "Updated" path is pinned by tests and shown in
+the T706 screenshots from a fixture, never yet seen live.
+
+Depends: T693 (built), T706 (built with it). Size: S.

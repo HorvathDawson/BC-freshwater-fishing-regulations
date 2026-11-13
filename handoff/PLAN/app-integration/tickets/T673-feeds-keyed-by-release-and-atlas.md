@@ -1,48 +1,78 @@
-# T673 — Release-bound and atlas-bound feeds are keyed by what they are bound to
+# T673 — One in-season matches file for every release (FWA line + metres, not section ids)
 
-Status: POSTPONED (owner 2026-11-12: parked until after closed testing; the notice-on-an-absent-water gap is fixed in T693) — was: OPEN — split from T555 item 2 (2026-11-11); nothing built. Needs the worker, the deploy scripts and the app together, and a staging publish to prove it.
+Status: DONE (785fc9914) — built 2026-11-13 for this release. Takes effect when the main session publishes the /4 file
+(feeds worker deploy, then `deploy/staging/sync-inputs.sh`) with the final build. Run timing (the old item 5) is not part
+of it: still bound to one atlas's `section_handles` (see "Not in this ticket").
 
-Source: T555 item 2 (data pipeline review 2026-11-09, severity 3, "partly": a documented design choice, not an oversight).
+Source: T555 item 2 (data pipeline review 2026-11-09). In-season notices are BC Fish and Wildlife in-season regulation
+changes, not DFO.
 
-## 2026-11-12
-Owner: parked until after closed testing. The part of it that left a notice nowhere (a notice matched to a water this
-phone's release does not hold) is fixed without this ticket: T693 (it goes to the bell and is reported). The per-section
-placement and run timing stay as described below.
+## The owner's decision (2026-11-12/13)
+The old proposal here was a second, per-release copy of `matches.json`. The owner rejected it:
+- "I still don't know why we need 2 in season for that?"
+- "Why not just have a single file that does both?"
+Then, to the proposal of ONE file that places each notice by the river's permanent map line and distances along it (FWA
+blue line key + from/to measure in metres), so any phone on any release can work out which of its own sections fall in
+the range: "Okay yes that sounds good please add that to this release".
 
-## Today
-- `feeds/inseason/matches.json` names ONE release (`pipeline/regs/inseason/publish.py`; staged by
-  `pipeline/deliver/sync_inputs.py`). The app reads `runs` / `lakes` only when `links.release` is its own release
-  (`app/packages/core/src/inseason.ts`); on another release it says so (a failure line) and places nothing.
-- `runtiming/index.json` is bound to one `section_handles`; on another atlas the mode is "stale".
-- Both are overwritten in place, so a phone still on the previous release (not updated yet, or held back by
-  `minAppVersion`) loses the per-section placement of partial-water in-season notices until it updates. Whole-water
-  (`all`) notices, the banner and the notice text are unaffected.
+## What was wrong
+`feeds/inseason/matches.json` (`inseason-links/3`) named ONE release. The app used its partial-water placement only when
+that release was its own; a phone on any other release showed the notice on the whole water and reported "off-release".
+Every release that went out stranded the phones not yet updated.
 
-## Why it was not built in T555
-It is one change across five places that must move together, and none of it can be proved without a staging publish:
-1. `publish.py` + `sync_inputs.py`: also write `feeds/inseason/matches-<release>.json`.
-2. `deploy/lib/input-formats.sh` and the feeds worker's `/status.json` `inputs` list are keyed by the exact path
-   (`feeds/inseason/matches.json`): a new key is refused as "no worker reads it" until both know the pattern.
-3. The feeds worker reads `matches.json` to count matched notices: unchanged, but it must be redeployed with 2.
-4. The app's in-season source is made before the release is open: it needs the release in use (as run timing takes
-   `handles`), asks for its own key, and says what it does when that key is not there.
-5. Run timing: `runtiming/<handles16>/index.json`, written by the run-timing workflow, read by the app by its handles.
-Plus the publish check: the key for the published release and for the one before it both exist.
+## As built (`inseason-links/4`)
+```json
+{"format": "inseason-links/4", "digest": "…",
+ "notices": {"is-00172e79bde1": {"waters": {"gnis:9343": {"runs": [[356566667, 0, 4681]],
+                                                          "ends": [["mouth", "alexander_creek__easternmost_hwy_3"]]}}}}}
+```
+- Keyed by the water's durable item id (AGENTS 5). A whole-water match is `{"all": true}`. A part is `runs`: FWA blue
+  line key + from/to metres. No release, no section id, no part index. `ends` are tokens the reading release's
+  `display.ends` says (unchanged since T517).
+- **The rule on the phone** (`@app/core` `inSeasonTouches` / `inSeasonCover`; Python `resolve.section_touched` /
+  `touched`; one fixture `inseason-cover.parity.json` holds both): a section is covered when its line `[from, to)` on the
+  range's stream OVERLAPS the range — wholly or partly inside. The app reads each section's line from the release it
+  already ships (`lines`, `LineReads.sectionLine`: blk, from, to); no new shipped table, no size gate moved.
+- **A section only partly inside** (the stretch's end is not on a section boundary in an older or newer release): the
+  notice is shown on every section the range touches, with its "Where: From A to B" words. Never dropped. A range that
+  touches nothing the phone holds shows on the whole water and is reported. A notice whose every water this release does
+  not hold goes to the bell (T693, unchanged).
+- **Lakes on a river** (a lake piece has no line in any release): `lakes: true` = every lake piece of that river. The
+  resolver refuses a match covering only some of them (none today: 5 waters, all full). On another release the flag
+  covers whatever lake pieces that release has.
+- **Unknown format**: the app refuses the whole file. It reports "in-season matches.json: <format seen>, but this app
+  reads inseason-links/4 — refused …". The last links it read answer meanwhile; with none, every notice goes to the bell.
+  The feeds worker refuses another format in its run (shown on /status) and lists /4 as its input format.
+- **Publisher guards** (`pipeline/regs/inseason/publish.py`): an unresolved match and a stale stamp are still refused.
+  The old "resolved on a release that is not LATEST" refusal is replaced by: every water is held on LATEST; every range
+  touches its water there; on the release the file was resolved on, every range starts and ends on its sections'
+  boundaries (a measure shifted by a metre is refused, the mutation test); every end token has words in LATEST's
+  `display.ends`.
+- `notice_waters.json` was re-resolved on r-0a9930fb8826 with the new resolver. Only `lakes` lists became `true` and one
+  stamp moved; no match changed. The runs read back identically under the touch rule (the resolver proves it).
+- The feeds worker's count of matched notices reads the waters' keys. It works unchanged on /4 (tested).
 
-## Decisions needed before building (owner or lead)
-- An app whose keyed file is missing (a bucket not republished yet, production today): read the unversioned file and
-  check its `release` as now (a stated second read), or say "not placed for this release" at once?
-- How many previous releases' files are kept, and who removes older ones (the staging upload clears old releases only
-  after the pointer flips).
-- Whether the unversioned keys stay for apps already installed (they read nothing else) and for how long.
+## Old installed apps (build 29, `inseason-links/3` only)
+After the /4 file is published, build 29 refuses it and reports it once per poll. It keeps the last /3 links it captured:
+notices it already had stay placed as before while its release is the one they named. New or re-matched notices, and a
+fresh install of build 29 (no capture), go to the bell ("not on the map yet"). Nothing breaks and no notice is hidden.
+**No old-format file is published alongside.** Build 29 is on Play internal only (the owner's phone), it updates with
+this release, and a second file is the copy the owner rejected. If a /3 reader ever had to be kept alive, it would be a
+compatibility shim needing the owner's approval and a removal date. None is built.
 
-## Work
-Build 1–5 in one change set with tests (publish writes both keys with the same bytes; the format gate takes the
-pattern; the app asks for its own release and handles; a held-back phone keeps its placement after a newer publish),
-deploy the staging worker, sync, and check a phone on the previous release.
+## Deploy order (main session, with the final build)
+1. Deploy the feeds worker (it lists `inseason-links/4` on /status.json `inputs`; until step 2 its in-season run fails
+   on the /3 file, shown on /status).
+2. `deploy/staging/sync-inputs.sh` right after (it runs `pipeline.regs.inseason.publish`; the format gate refuses /4
+   until step 1 is live).
+3. The app build (reads /4). Before step 2, a new app sees /3, reports it, and sends every notice to the bell.
 
-## Acceptance
-A phone on release N-1 still places a partial-water in-season notice after N is published; run timing on the previous
-atlas is not "stale"; the publish check lists both keys.
+## Tests
+`pipeline/tests/test_inseason_publish.py` (32: ranges resolve on the release under test; a shifted measure is refused; an
+off-water range is refused; publish from an older release), core `inseason.test.ts` (one file on two releases' section
+sets with moved boundaries; partial overlap on both touched sections; the /3 file refused with its sentence), data
+`feed/inseason.test.ts` (a fresh device meeting /3), ui `inseason.render.test.tsx`, worker `events.test.ts` (count on /4).
 
-Depends: T555 (done parts), T601. Size: M. Owner: decisions above.
+## Not in this ticket
+Run timing (`runtiming/index.json`, bound to one `section_handles`; "stale" on another atlas) is unchanged. It needs a
+decision of its own.

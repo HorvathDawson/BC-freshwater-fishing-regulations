@@ -543,6 +543,7 @@ Owner's phone report (build 29, the More tab). Done in code, not yet in a build:
   test_watershed_parts Skeena lakes — not checked one by one. Today's lanes: test_gear_omission (kept gap harrison r3
   'powered_boats' closed by r4, T209 81598325e), test_t117_walks (diversion.py reads up_adj unclassified, T696 8436b380e).
 
+
 ## 2026-11-13 (night) — T704: store pictures from ONE command
 
 - **Already scripted** (T319, 2c1d9f04a, 72db95bd9, 2503910a8, 7da218e7c): `app/tools/play-shots.mjs` (headless Chrome scenes on the STAGING web site) and `app/tools/store-shots.mjs` (framing at the store's pixels, stacked "compose" shots). **Done by hand**: running them, the choice of crops, copying into the backup folder; nothing pinned the clock, and nothing checked that a pane held its content (a blank or stale pane would have been framed).
@@ -552,3 +553,22 @@ Owner's phone report (build 29, the More tab). Done in code, not yet in a build:
 - **Shot 2 order** now salmon on top (`store-shots.json`).
 - **Run 2026-11-13 against staging**: 01, 04, 05, 09, 11, 12, 13, 14, 15, 18 pass; **19 (salmon block) FAILS by design: the staging site still serves salmon BELOW the game-fish table (predates 0cba57a73)**. So shot 2 cannot come out salmon-on-top until the site is redeployed (not done: no deploy). No framed set was produced for that reason; the passing raw captures are in `~/bcfish-session-backup-2026-11-12/store-auto/work/raw/`, `report.json` there. Shot 2's crop fractions (0.41..) were tuned for the old layout and need one look after the first run on the new site. Content of the other 7 shots equals the approved set's (same scenes, same URLs); the chart shot's "forecast on it" is checked as the CLEVER toggle on (not a pixel or series-length check).
 - Listed as a standalone step in `handoff/PLAN/release/PRODUCTION.md` "Every later release"; no build depends on it (owner: "just an easy to run command").
+
+
+## 2026-11-13 — T673 one in-season file for every release; T694 + T706 the notification inbox
+
+- 785fc9914 (T673): `feeds/inseason/matches.json` is `inseason-links/4`, with no release in it. A part of a water is FWA blue
+  line key + from/to metres; a phone covers every section of its own release whose line `[from, to)` the range touches
+  (one parity fixture for core and Python). A river's lake pieces are all or none. The publisher's off-LATEST refusal is
+  replaced by "every range touches its water on LATEST, and is exact on the release it was resolved on" (shifted-measure
+  mutation refused). `notice_waters.json` re-resolved on r-0a9930fb8826: only `lakes` lists → `true`, one stamp; no match
+  changed. Build 29 (reads /3 only) keeps its last links, else the bell; no old-format copy is published.
+- Main session at the final build: deploy the feeds worker, then `deploy/staging/sync-inputs.sh` (publishes /4), then
+  the app. Until the sync, staging still serves /3 and a new app sends every notice to the bell (reported).
+- 10ad08512, 8205a5c8a (T694 + T706; the commit subjects say "T700", a number another lane took meanwhile): the bell
+  opens an inbox of in-season notices (New / Earlier, Mark all as read, unread-only badge, kept to end + 30 days, 200 max);
+  "Updated" only when the feed links an amended row (`changed` + `previous`). Shots from a fixture feed on staging waters
+  (staging has no new/amended rows and still serves /3): `/Users/dawson.horvath/bcfish-session-backup-2026-11-12/notifications/`.
+- Tests unfiltered: pipeline `test_inseason_publish.py` 32 passed (+ review/feed-format/sync/follows 68 total); app core /
+  data / ui / ui-native in-season 95 passed; feeds worker 447 passed. Full `pnpm -C app check`: see the final report.
+
