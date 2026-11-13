@@ -1,6 +1,6 @@
 # T209 — vessel restrictions in the app
 
-Status: DONE (ffe7e7e2)
+Status: DONE (ffe7e7e2, c63427bbd)
 
 Source: owner 2026-10-26. The catalogue holds `vessel_rule` rules (speed limits, no powered boats, electric motors
 only …). The app should show them on the water page and the map sheet.
@@ -67,3 +67,26 @@ only" or "8 km/h", and the 25 named-part rules are in the in-part caveat (`cavea
 - Tests: `pipeline/tests/test_electric_kw.py` (words → number, only empty electric_only rules, every catalogue rule
   holds the number its words print). Picked up by the next deliver rebuild.
 - Still OPEN (owner): the 10 close-wording undrawn parts ("various locations", "swimming areas") in on-parts.md.
+
+## The ten close-wording parts — ANSWERED 2026-11-12, built (c63427bbd)
+Owner, verbatim: "It should be in the vessel restriction section but it should say the locator text there". RULINGS P51.
+- Where they flowed: the bundle holds the rule with its `undrawn_part`; the reader states it `not_yet_mapped`; the answers'
+  gear frame lists it in `in_part` (never `vessel`); the app drew it only in the in-part caveat ("Parts of this water the map
+  can't draw yet"). Cascade untouched: the pipeline already resolves the list; the app now draws the vessel ones in the
+  Vessel restrictions section (`boats.inPartVessels`: boats line chips and the Boats list) and the caveat leaves them out
+  (`caveats.gearInPart`). No release rebuild, no format change: shows with the current release on the next app build.
+- What an angler reads (chip = the kind's words + " — " + the book's locator):
+  Alouette Lake "No vessels — in swimming areas, as buoyed and signed"; Harrison River "Speed restriction — in small bays
+  along the river as signed"; Columbia River "No powered boats — in wetlands"; Kalamalka, Okanagan and Skaha lakes "No
+  vessels — various locations (as buoyed and signed)" and "Speed restriction — various locations (as buoyed and signed)";
+  Osoyoos Lake "No vessels — in 5 signed swimming areas". The Boats list shows each rule's own label beside the others.
+- Claude's reading (labelled in P51): the same applies to every vessel rule of an undrawn part, 22 today (the ten plus
+  e.g. Cultus Lake "Speed limit 5 km/h — at north end, as buoyed and signed", Premier Lake "No towing — south half").
+- Note: the Harrison's book line is "Speed restriction or no powered boats in small bays…" but the catalogue holds only the
+  speed rule, so its chip does not say "or no powered boats" (the Okanagan lakes carry both rules). A catalogue question
+  for the owner, not changed here.
+- Tests: `boats.test.ts` (each of the ten wordings, beside a whole-water rule of the same kind, gear rules not taken),
+  `caveats.test.ts` (the caveat leaves vessel rules to the section), `methods.test.ts` (the Boats list),
+  `pipeline/tests/test_vessel_in_part_t209.py` (the ten carry their locator and are `not_yet_mapped`; every undrawn vessel
+  rule has a kind the app words; the gear frame lists one in `in_part`, never `vessel`).
+

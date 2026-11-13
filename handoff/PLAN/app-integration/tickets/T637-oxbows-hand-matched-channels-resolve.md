@@ -1,6 +1,6 @@
 # T637 — Okanagan River Oxbows: the owner's hand-matched side channels must bind again
 
-Status: IN REVIEW — f4069759f, 216a7e60a, 070230ff5, 298e77cb4; owner: OWNER-TODO "T637: Whiteswan inlet named so its closure stays; say if the name or the piece is wrong"; left (Claude): restamp matched (oxbows), one rebuild with T623/T660, reach + binding diff, promote
+Status: IN PROGRESS — f4069759f, 216a7e60a, 070230ff5, 298e77cb4; owner ANSWERED 2026-11-12 (Whiteswan: every inlet closed, T690); left (Claude): restamp matched (oxbows), one rebuild with T623/T660, reach + binding diff, promote
 
 Source: owner 2026-11-11, on T632 item 3: "what you mean they never had an item if they are unnamed side channels? i hand matched them?"
 
@@ -352,3 +352,10 @@ Coordinator: a closure must not lose water as a side effect of (a).
 - Fix (a)'s side effects: exactly the predicted pieces left their items (Quinsam Diversion 2, Rainbow Creek 1,
   Aliceville Creek 1; the Whiteswan inlet stayed, named). The 138 rules binding those pieces or the inlet bind them
   identically before and after.
+
+## Owner answer on the Whiteswan inlet (2026-11-12) — ANSWERED
+Verbatim: "It is this (no Fishing EXCEPT the outlet stream downstream of the falls 2.4 km downstream of Whiteswan Lake, No
+Fishing Aug 1-Mar 31, rainbow ) so not the inlet. The outlet is below the falls. Inlet is all no fishing (every inlet)
+trout daily quota = 5 (catch and release all other species) when open)". The name and the piece were right (an inlet, so
+closed); the closure now covers EVERY inlet of the lake, not only this one: ticket T690 (c41d54742), RULINGS E26.
+

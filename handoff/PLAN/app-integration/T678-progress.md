@@ -343,3 +343,20 @@ Next commands:
   OWNER-TODO 11/13 and the To-Do page.
 - Final release must rebuild: deliver (store → regs-sid gains `section_tidal`; status index for T672 item 2) — the
   release command does this; the app build reads it. Nothing here needs an atlas or reach rerun.
+
+## 2026-11-12 (owner answers: Whiteswan T690, vessel parts T209, silent gauges T691, diversion gauges T696)
+- T690 (c41d54742, RULINGS E26): Whiteswan Lake's inlet & outlet streams. Printed p.40 checked against the coordinator's
+  reading: no difference. r1 (No Fishing) now names all 15 inlets (Cave Creek, Inlet Creek, 356560775 above the lake and
+  12 unnamed lines named "Whiteswan Lake inlet stream" in name_variants); r2-r4 only below the existing falls cut (599.2 m,
+  2,424 m below the lake). No new cut. Rides the final atlas build (the 12 become items): r1 2 → 16 sections; on the live
+  atlas it binds 4 (Cave and Inlet creeks join now). The T637 inlet name stays.
+- T209 (c63427bbd, RULINGS P51): undrawn-part vessel rules drawn in the Vessel restrictions section with the book's locator
+  ("No vessels — in swimming areas, as buoyed and signed"); the caveat no longer repeats them. App only (core), no release
+  rebuild; shows on the next app build. 22 rules (the ten + 12 named-place ones, Claude's reading).
+- T691 (1935c1dc9, RULINGS P53): gauge cuts follow `may_speak`; 32 new cuts ride the final atlas build. Until then a
+  deliver on an older atlas (live `full`, current `full_next`) stops at the gauge record check — expected. Five stations
+  need an owner match call (OWNER-TODO). Watch 08PA004 (1,015 m off its line: likely no cut).
+- T696 (RULINGS P54, nothing built): "Canal gauge also serves river" fills nothing — of the 28 gaugeless sections none is a
+  diversion gauge's (measured on `full`, shed climb guard on vs off). Two questions with the owner.
+- Checks: affected pipeline tests 291 passed (unfiltered); `pnpm -C app check` stops at typecheck on
+  `app/packages/map/src/web/useInput.ts:166` (committed by the T692 lane, c4f101908), not on these files.
