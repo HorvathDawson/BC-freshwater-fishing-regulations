@@ -200,3 +200,12 @@ Next commands:
   08MH028/08NK016 moved in this release); Nakina's note is not in the release files, it travels in
   private/feeds/dfo/entries/region-6.json on staging R2 (verified identical to curated, note + spatial_caveat).
 - Next: APK 0.7.7 (changelog revised to this data: tidal rule, Nakina).
+- APK 0.7.7 build 29 (87d2eeac0, built from b4dd0fac1; patched MapLibre 7bf3dc29…): Play INTERNAL, completed; owner
+  emailed. Checks: `pnpm -C app check` (7,529 tests), fast-fail, app CI green on b4dd0fac1 and 87d2eeac0; no skip flags.
+- Emulator smoke NOT run: Maestro cannot see the emulator ("emulator-5580 is not connected") because the owner's VS Code
+  listens on 127.0.0.1:5555 (adb lists it as an offline emulator-5554). Not touched. Every Maestro flow fails until that
+  port is free; the `install` scenario reached the notification prompt, then failed on the tap.
+- Screenshots driven by adb + uiautomator instead (scratch shots-adb.mjs): /Users/dawson.horvath/bcfish-session-backup-2026-11-12/apk-077/.
+  Findings: (1) Deas Slough Map view keeps the previous camera (Okanagan) and says "The parts of this water are not
+  available" — a wholly tidal water has no parts; needs a ticket. (2) Search "Vedder River" -> Open lands on Chilliwack
+  River part 1 (Vedder Crossing -> Tamihi). (3) Part warning not captured (Elk Lake / Chilko show no warning in view).
