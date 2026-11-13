@@ -1,6 +1,6 @@
 # T709 — Store preview video from one command
 
-Status: OPEN (before closed testing; needs the final build on Play internal and a free emulator)
+Status: IN PROGRESS (step 1, Android, built 2026-11-13: `node app/tools/store-video/run.mjs`; the owner sees the clip before any upload; step 2, iOS, benched)
 
 Source: owner 2026-11-13: "we want to generate a nice App preview". Neighbours: T704 (store pictures, one command), T319,
 T244. Nothing is uploaded by this ticket; the owner uploads.
@@ -83,3 +83,21 @@ Not shown: anything not on the fact sheet or only in a later build; no promise o
 
 ## Dependencies
 The final build on Play internal; the emulator free of the release lane; T704 done (it is); iOS step waits for the bench to lift.
+
+## Step 1 as built (2026-11-13)
+`node app/tools/store-video/run.mjs [--out DIR] [--at ISO]` (`run.mjs` + `drive.mjs` + `checks.mjs`, unit tests
+`node --test app/tools/store-video/checks.test.mjs`). It runs the test bed through `scripts/heavy.sh` (set
+`HEAVY_LOCK=~/.claude/heavy-job-2.lock` when the first lane is busy) on the kept test-bed APK (refused if app code moved
+since its stamp, beyond the store version numbers), checks `data/release/LATEST` = staging's release, records five
+scenes on the Vedder (map tap → its rules; the day picker to June 10, the river turns closed; Salmon mode; Conditions and
+the gauge chart against other years; the saved spot "Vedder Crossing pool" and its note), each checked on screen before
+and after (and the June closure by its colour), then cuts 864x1920 / 30 fps / H.264 High 4.0 / silent stereo AAC,
+25-30 s, captions burned in, end card, poster = the coloured map before the first tap. Output `app/dist/store-video/`
+(`preview.mp4`, `poster.png`, `report.json`, `work/frames/` one frame per scene), copied to
+`~/bcfish-session-backup-2026-11-12/store-video/`.
+- This ffmpeg has no `drawtext` (no libfreetype/libass): captions are SVG drawn to PNG by `rsvg-convert` and overlaid.
+- Not pinned: live gauge readings and the DFO feed (checked instead). The status-bar clock and the phone's clock are
+  pinned to `--at` (default: now). Timing: holds shrink together to fit 30 s; a scene slower than its slot fails the run.
+- 864x1920, not 1080x1920/2400: the emulator is 1080x2400 (9:20) and H.264 Level 4.0 cannot hold 1080x2400; 864x1920 is
+  the same frame scaled, no bars. Step 2 still needs Apple's 886x1920 / 1200x1600.
+

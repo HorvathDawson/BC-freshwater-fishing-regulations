@@ -1,0 +1,13 @@
+# (T709) On a spot's edit form: NOTES typed into the notes field, the keyboard put away, then "Save changes".
+appId: ca.canifishthis.app
+---
+- scrollUntilVisible:
+    element: { text: "What happened, what you used, what the water looked like" }
+    timeout: 15000
+- tapOn: { text: "What happened, what you used, what the water looked like" }
+- inputText: "${NOTES}"
+- hideKeyboard
+- scrollUntilVisible:
+    element: { text: "Save changes" }
+    timeout: 15000
+- tapOn: { text: "Save changes" }
