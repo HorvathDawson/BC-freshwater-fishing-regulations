@@ -605,3 +605,35 @@ Owner's phone report (build 29, the More tab). Done in code, not yet in a build:
   the moved junction's x/y and one junction per water+river. First candidate build showed 222 live pieces REMOVED
   (braid channels ending in a lake, kept before by the gap rule): the duplicate check ran before the gap check. Fixed
   (dedupe only after the gap check); atlas rebuild 2 running (heavy lane), then reach, diffs, id map, dry run, suite.
+
+## 2026-11-13 (agent, continued) — junction candidate DONE: `full_next` + reach `nextatlas_junctions3`, NOT promoted
+- Candidate = previous content (T606 item 2, T560 3/5, T690, T691) + junction fix + Gagnon P57. Commits: c24844fab
+  (both causes, Gagnon, pond_calls), 8f… → see `git log --grep "T678 junctions"`: gap-order fix + pin (650e45bc5 and the
+  commit before), stale Skeena acceptances + Gagnon allow-list (2dc9e179c), Gagnon label + OPEN pin (cf229aad5).
+- Build 1 removed 222 live pieces (the one-junction check ran before the gap rule) — caught by the id map, fixed, rebuilt.
+- Promote dry run (rebuild 3): rc 0, no accept flag; items 21,279 -> 21,291, sections +74, boundaries +5; gone: lake 14
+  (ponds on Comox creeks now folded by D1 — their widening test only passes on true measures), length 70 (length cuts
+  re-placed on corrected junctions; no curated rule names one).
+- Binding diff vs the previous candidate run (`nextatlas_final`): 317 rules, 9 licensing, 19 DFO, 1 unresolved. By geometry
+  (`geo_attr.py`): 164 rules + 12 DFO + 9 licensing the SAME water (re-split / renumbered); the rest, every one attributed:
+  91 rules lose a leaf-pruned stub (3 unnamed 905/920 headwater stubs whose TRUE length is under the 500 m tidal-code leaf
+  rule — kept only by the inflated measure); 91 rules gain 5 pieces the old run flagged OUTSIDE B.C. by the inflated
+  measure (now inside; they had no rules); 57 rules + 6 DFO re-cut on the Fraser, 360884603, 360884856 (same ends,
+  contiguous: same water); 6 rules on the 14 folded ponds (lake rules off, stream rules on, D1); Black Creek r1 gains its
+  unnamed tributary 920-599397-406278 (654 m; the walk now reaches it through the true junction); Trent r1 the same
+  shape; Gagnon r1 -> unresolved `no_sections` (P57: the exemption covers no water). Nothing unexplained. Vs the release
+  baseline: 385 rules = these 317 + 68 already attributed in the previous section.
+- Kitsumkalum: 360220099's second "mouth" at Skeena m 119,499 was a re-homed duplicate (FWA: its mouth projects to
+  125,471, 0 m off); with one junction per water the three side channels lie above the cut — out of the place as the owner
+  ruled, place binds the same 4 sections; their 3 acceptances removed (stale).
+- Id map (`~/bcfish-session-backup-2026-11-12/junctions/candidate-2026-11-13/idmap.json`): 277 live ids gone; 0 renamed
+  same-geometry, 27 merged into one new piece, 28 split into new pieces (both proven by geometry), 38 unproven (27 on
+  inflated-URM lines: pieces cut at wrong measures, plus the leaf-pruned stubs). NO owner mark keys a section id (marks
+  key entries, blks, wbks; the 18 tidal marks on these lines are at measure 0), so no marks.jsonl rename is needed.
+- Deliver-pending tests checked on a SIDE run of the candidate (`pipeline build --side`, reach/tiles/deliver, vintage
+  agrees): test_stream_polygon_panels, test_t100_area_caveat, test_release (contract), test_t89 PASS there;
+  test_part_names_unnamed_lake passes with OPEN emptied (Gagnon is one part, "The mouth (at Williston Lake) → Source").
+- Fast-fail (FAST_FAIL_ALL=1): all passed. Full chunked suite, unfiltered, on the LIVE tree: fast 7,431 passed / 6 failed
+  / 273 deselected; slow 274 passed / 0 failed / 1 skipped. The 6 all read the live atlas/bundle and clear at promote +
+  deliver: the 5 above (pass on the side set) + test_one_acceptance_gate (the new Gagnon cut is not in the live registry;
+  the candidate registry gates it clean).
