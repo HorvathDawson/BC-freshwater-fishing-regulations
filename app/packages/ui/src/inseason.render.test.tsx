@@ -5,12 +5,12 @@ import type React from "react";
  */
 import { afterEach, describe, expect, it } from "vitest";
 import { act, cleanup, render, waitFor } from "@testing-library/react";
-import { INSEASON_FAILURES, setFailureSink, type InSeasonChange } from "@app/core";
+import { INSEASON_FAILURES, INSEASON_LINKS_FORMAT, setFailureSink, type InSeasonChange } from "@app/core";
 import { InSeasonContext, useInSeason, useInSeasonCovers, useInSeasonNotice, type InSeasonNoticeState, type InSeasonNow, type InSeasonOnPage } from "./inseason";
 
 afterEach(cleanup);
 const ch = (id: string): InSeasonChange =>
-  ({ id, region: "4", water: "Kaslo River", text: "No fishing", from: null, to: null, source: "s", waters: null, onRelease: true, linksRelease: null });
+  ({ id, region: "4", water: "Kaslo River", text: "No fishing", from: null, to: null, source: "s", waters: null });
 const mem = () => { let t: string | null = null; return { read: () => t, write: (x: string) => { t = x; } }; };
 
 function Probe({ rows, store, out }: { rows: InSeasonChange[]; store: ReturnType<typeof mem>; out: { s?: InSeasonNoticeState } }) {
@@ -54,7 +54,8 @@ describe("useInSeasonCovers (T520): one load path for the banner and the water m
   const lines = { hasLines: async () => true, sectionLine: async (h: number) => ({ blk: 7, from: (h - 1) * 100, to: h * 100 }) };
   const feed = { format: "inseason-feed/1" as const, fetchedAt: "x", source: "s", removed: [],
                  rows: [{ id: "is-a", region: "2", water: "W", effective: "", from: null, to: null, change: "No fishing" }] };
-  const links = (release: string) => ({ format: "inseason-links/3" as const, release,
+  // (T673) one file for every release: the device's release is not compared with anything
+  const links = (_release: string) => ({ format: INSEASON_LINKS_FORMAT,
     notices: { "is-a": { waters: { "gnis:1": { runs: [[7, 100, 300]] as const, ends: [["a", "b"]] as const } } } } });
   function Covers({ pieces, out, st = store, ln = links }: { pieces: readonly number[] | null; out: { v?: readonly InSeasonOnPage[] };
                                                              st?: never; ln?: typeof links }) {
@@ -112,7 +113,7 @@ describe("useInSeasonCovers (T520): one load path for the banner and the water m
     const slow = new Promise<void>((r) => { release6 = r; });
     const store2 = { navRows: async (ord: number) => (ord === 5 ? nav
       : (await slow, { sections: [{ sid: 11, partIx: 0 }, { sid: 12, partIx: 0 }] })), statics } as never;
-    const both = { format: "inseason-links/3" as const, release: "r-1", notices: {
+    const both = { format: INSEASON_LINKS_FORMAT, notices: {
       "is-a": { waters: { "gnis:1": { runs: [[7, 100, 300]] as const, ends: [["a", "b"]] as const },
                           "gnis:2": { runs: [[7, 1000, 1100]] as const, ends: [["a", "b"]] as const } } } } };
     const lines2 = { hasLines: async () => true,
@@ -132,14 +133,14 @@ describe("useInSeasonCovers (T520): one load path for the banner and the water m
     release6();
     await waitFor(() => expect(out.v![0]!.cover.sections).toEqual([11]));
   });
-  it("off-release: the whole water with its ends, and reported", async () => {
+  it("(T673) a device on another release places the same file by its own lines, nothing reported", async () => {
     const seen: unknown[] = [];
     const undo = setFailureSink((e) => seen.push(e));
     try {
-      const off = at("r-1", "r-2", 0);
-      await waitFor(() => expect(off.v).toHaveLength(1));
-      expect(off.v![0]!.cover).toEqual({ sections: null, where: "From A to B", failure: INSEASON_FAILURES.offRelease, whereFailure: null });
-      await waitFor(() => expect(String(seen[0])).toContain("another data release"));
+      const other = at("r-1", "r-2", 0);
+      await waitFor(() => expect(other.v).toHaveLength(1));
+      expect(other.v![0]!.cover).toEqual({ sections: [2], where: "From A to B", failure: null, whereFailure: null });
+      expect(seen).toEqual([]);
     } finally { undo(); }
   });
 });
@@ -149,7 +150,7 @@ describe("useInSeason (T693): a notice matched to a water this release does not 
                  rows: [{ id: "is-a", region: "2", water: "Gone Creek", effective: "", from: null, to: null, change: "No fishing" },
                         { id: "is-b", region: "2", water: "Here Creek", effective: "", from: null, to: null, change: "No bait" },
                         { id: "is-c", region: "2", water: "Both", effective: "", from: null, to: null, change: "Closed" }] };
-  const links = { format: "inseason-links/3" as const, release: "r-1", notices: {
+  const links = { format: INSEASON_LINKS_FORMAT, notices: {
     "is-a": { waters: { "gnis:gone": { all: true as const } } },
     "is-b": { waters: { "gnis:here": { all: true as const } } },
     "is-c": { waters: { "gnis:here": { all: true as const }, "gnis:gone": { all: true as const } } } } };

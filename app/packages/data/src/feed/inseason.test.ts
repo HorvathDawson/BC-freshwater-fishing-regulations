@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { setFailureSink } from "@app/core";
+import { INSEASON_LINKS_FORMAT, setFailureSink } from "@app/core";
 import { httpInSeason } from "./inseason";
 
 const FEED = { format: "inseason-feed/1", fetchedAt: "2026-10-28T12:00:00Z", source: "s", removed: [],
                rows: [{ id: "is-a", region: "4", water: "W", effective: "", from: null, to: null, change: "No fishing" }] };
-const LINKS = { format: "inseason-links/3", release: "r-1", notices: { "is-a": { waters: { "gnis:1": { all: true } } } } };
+const LINKS = { format: INSEASON_LINKS_FORMAT, notices: { "is-a": { waters: { "gnis:1": { all: true } } } } };
 const mem = () => { let t: string | null = null; return { read: () => t, write: (x: string) => { t = x; } }; };
 const serve = (files: Record<string, unknown>): typeof fetch => (async (u: string) => {
   const name = String(u).split("/").pop()!;
@@ -34,7 +34,17 @@ describe("httpInSeason", () => {
       const old = { format: "inseason-links/1", matches: {} };
       const got = await httpInSeason("http://x", store, serve({ "index.json": FEED, "matches.json": old })).latest();
       expect(got?.links?.notices["is-a"]).toBeTruthy();
-      expect(String(seen[0])).toContain("not readable inseason-links/3");
+      expect(String(seen[0])).toBe(`Error: in-season matches.json: inseason-links/1, but this app reads ${INSEASON_LINKS_FORMAT} — refused (matched notices fall back to the last links read, else to the list of changes not on the map)`);
+    } finally { undo(); }
+  });
+  it("(T673) a FRESH device meeting a links format it does not read: says so, and holds no links (every change goes to the bell, none is dropped)", async () => {
+    const seen: unknown[] = [];
+    const undo = setFailureSink((e) => seen.push(e));
+    try {
+      const old = { format: "inseason-links/3", release: "r-1", notices: { "is-a": { waters: { "gnis:1": { all: true } } } } };
+      const got = await httpInSeason("http://x", mem(), serve({ "index.json": FEED, "matches.json": old })).latest();
+      expect([got?.feed.rows.length, got?.links]).toEqual([1, null]);
+      expect(seen.map(String)).toEqual([`Error: in-season matches.json: inseason-links/3, but this app reads ${INSEASON_LINKS_FORMAT} — refused (matched notices fall back to the last links read, else to the list of changes not on the map)`]);
     } finally { undo(); }
   });
   it("(T548) an index that came back unreadable (a format bump): reported, the capture answers", async () => {

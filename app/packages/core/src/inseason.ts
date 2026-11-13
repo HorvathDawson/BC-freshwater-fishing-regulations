@@ -1,7 +1,7 @@
 /**
  * (T230, owner 2026-10-28) THE PROVINCIAL IN-SEASON CHANGES: the T225 feed (`feeds/inseason/index.json`,
  * `inseason-feed/1`, `app/workers/feeds/src/inseason.ts`) joined to the curated links (`feeds/inseason/matches.json`,
- * `inseason-links/3`, `pipeline.regs.inseason.publish` from `data/curated/inseason/notice_waters.json`).
+ * `inseason-links/4`, `pipeline.regs.inseason.publish` from `data/curated/inseason/notice_waters.json`).
  *
  * INFORMATIONAL ONLY. A change is shown as a banner on every water (and part) it is matched to while it is in effect;
  * it never changes a computed answer or a status. (A future option, not built: a full closure could set "Check".)
@@ -12,8 +12,10 @@
  * date range (`parsed.window`) that OPENS on its `from` day (a one-off, T548) — that range's end. A row with only a
  * `from` (a yearly window included) stays in effect until the page drops it.
  *
- * WHERE (T520, links/2): per water, `all` or FWA RANGES resolved on one release where the atlas is (never a part index
- * or a section id); `inSeasonCover` reads them over the water's section lines — the one core every view of it reads.
+ * WHERE (T520; T673, owner 2026-11-13: ONE file for every release — "Why not just have a single file that does both?"):
+ * per water (its durable item id), `all` or FWA RANGES — stream key + metres along it, never a release, part index or
+ * section id. `inSeasonCover` places them over THIS device's release's section lines (`lines`: each section's stream key
+ * and [from, to)) — the one core every view of it reads — so a phone on any release reads the same file.
  *
  * Every sentence is composed here, whole (AGENTS 33).
  */
@@ -47,25 +49,24 @@ export interface InSeasonFeed {
   readonly rows: readonly InSeasonRow[];
   readonly removed: readonly { readonly id: string }[];
 }
-/** (T520) one FWA range: stream key, start, end (metres) — the sections whose START lies in [m0, m1) on that stream */
+/** (T520, T673) one FWA range: stream key, start, end (metres) — every section whose line [from, to) on that stream
+ *  overlaps [m0, m1) (`inSeasonCover`) */
 export type InSeasonRun = readonly [number, number, number];
 /** (T520) one covered stretch of a water's main line: its two end TOKENS, mouth upward (a split id, a pick-point id,
  *  `mouth`, `source`) — said in words only here (`inSeasonWhere`) */
 export type InSeasonEnds = readonly [string, string];
-/** (T520) where one notice lands on one water: the whole of it, or its ranges (+ a river's covered lake pieces, by
- *  their place among the water's lake pieces in handle order) and its covered stretches' end tokens */
+/** (T520) where one notice lands on one water: the whole of it, or its ranges (+ `lakes`, T673: EVERY lake piece of
+ *  the river — a lake piece has no line in any release, so no range names one) and its covered stretches' end tokens */
 export interface InSeasonWater {
   readonly all?: true;
   readonly runs?: readonly InSeasonRun[];
-  readonly lakes?: readonly number[];
+  readonly lakes?: true;
   readonly ends?: readonly InSeasonEnds[];
 }
 export interface InSeasonLinks {
   readonly format: typeof INSEASON_LINKS_FORMAT;
-  /** the data release the ranges are resolved on (`pipeline.regs.inseason.resolve`); read only there (AGENTS 6) */
-  readonly release: string;
-  // (T517, inseason-links/3) no words ride in the links: every end token is said through the release's `display.ends`
-  // (`ends.ts`), which holds every curated notice's ends (publish refuses one the release lacks)
+  // (T673, inseason-links/4) no release: the ranges are read on whatever release this device holds (`inSeasonCover`).
+  // (T517) no words ride in the links: every end token is said through the release's `display.ends` (`ends.ts`)
   readonly notices: Readonly<Record<string, { readonly from?: string; readonly to?: string;
                                               readonly waters: Readonly<Record<string, InSeasonWater>> }>>;
 }
@@ -87,17 +88,19 @@ function isWater(w: unknown): w is InSeasonWater {
   const x = w as InSeasonWater | null;
   if (!x || typeof x !== "object") return false;
   if (x.all === true) return x.runs === undefined && x.lakes === undefined && x.ends === undefined;
-  const runs = x.runs ?? [], lakes = x.lakes ?? [], ends = x.ends ?? [];
-  return Array.isArray(runs) && Array.isArray(lakes) && Array.isArray(ends) && runs.length + lakes.length > 0
-    && runs.every(isRun) && lakes.every(isNat)
+  const runs = x.runs ?? [], ends = x.ends ?? [];
+  if (x.lakes !== undefined && x.lakes !== true) return false;
+  return Array.isArray(runs) && Array.isArray(ends) && (runs.length > 0 || x.lakes === true)
+    && runs.every(isRun)
     && ends.every((p) => Array.isArray(p) && p.length === 2 && p.every((t) => typeof t === "string" && t.length > 0));
 }
 
 /** The links as the app reads them, or null: ANY notice it cannot read refuses the whole file (the caller reports it,
- *  T520) — never a narrower or wider reading of it. */
+ *  T520, in `INSEASON_FAILURES.unreadableLinks`) — never a narrower or wider reading of it. Another format (an older
+ *  file, or a newer one this app was built before) is refused whole. */
 export function parseInSeasonLinks(x: unknown): InSeasonLinks | null {
   const l = x as Partial<InSeasonLinks> | null;
-  if (!l || typeof l !== "object" || l.format !== INSEASON_LINKS_FORMAT || typeof l.release !== "string"
+  if (!l || typeof l !== "object" || l.format !== INSEASON_LINKS_FORMAT
       || !l.notices || typeof l.notices !== "object") return null;
   for (const n of Object.values(l.notices)) {
     if (!n || typeof n !== "object" || !n.waters || typeof n.waters !== "object") return null;
@@ -105,7 +108,7 @@ export function parseInSeasonLinks(x: unknown): InSeasonLinks | null {
     if (!ws.length || !ws.every(isWater)) return null;
     if ((n.from !== undefined && typeof n.from !== "string") || (n.to !== undefined && typeof n.to !== "string")) return null;
   }
-  return { format: INSEASON_LINKS_FORMAT, release: l.release, notices: l.notices };
+  return { format: INSEASON_LINKS_FORMAT, notices: l.notices };
 }
 
 /** "2026-07-30" for a local date. */
@@ -148,10 +151,6 @@ export interface InSeasonChange {
   readonly source: string;
   /** where it lands, per water (`InSeasonWater`); null = not matched yet */
   readonly waters: Readonly<Record<string, InSeasonWater>> | null;
-  /** the links' release is this device's: only then are `runs` / `lakes` read (an `all` water holds anywhere) */
-  readonly onRelease: boolean;
-  /** the links' release (null: no links) — an off-release failure names it once */
-  readonly linksRelease: string | null;
 }
 
 
@@ -159,17 +158,16 @@ export interface InSeasonChange {
  * Every row of the feed in effect on `day` ("YYYY-MM-DD"), split into matched and not. Removed rows are never in.
  *
  * (T693, owner 2026-11-12 "Fix gap 1 only") `absent`: the water ids the links name that THIS device's release does not
- * hold (the links may be newer than the release, T673). A notice whose every water is absent has no page on this phone, so
+ * hold (the one links file may be newer than the release, T673). A notice whose every water is absent has no page on this phone, so
  * it is NOT matched here: it falls into the bell as "not on the map yet", like an unmatched one (`waters` null). One with
  * some water this release holds stays matched (its pages show it); `inSeasonAbsentWaters` names the rest for the report.
  */
 export function joinInSeason(feed: InSeasonFeed | null, links: InSeasonLinks | null, day: string,
-                             release: string | null = null, absent: ReadonlySet<string> | null = null):
+                             absent: ReadonlySet<string> | null = null):
   { matched: InSeasonChange[]; unmatched: InSeasonChange[] } {
   const matched: InSeasonChange[] = [], unmatched: InSeasonChange[] = [];
   if (!feed) return { matched, unmatched };
   const gone = new Set(feed.removed.map((r) => r.id));
-  const onRelease = !!links && links.release === release;
   for (const r of feed.rows) {
     if (gone.has(r.id)) continue;
     const link = links?.notices[r.id];
@@ -178,8 +176,7 @@ export function joinInSeason(feed: InSeasonFeed | null, links: InSeasonLinks | n
     const here = link?.waters ?? null;
     const held = here !== null && !(absent && Object.keys(here).length > 0 && Object.keys(here).every((i) => absent.has(i)));
     const c: InSeasonChange = { id: r.id, region: r.region, water: r.water, text: r.change, ...span,
-                                source: feed.source, waters: held ? here : null, onRelease,
-                                linksRelease: links?.release ?? null };
+                                source: feed.source, waters: held ? here : null };
     (c.waters ? matched : unmatched).push(c);
   }
   return { matched, unmatched };
@@ -206,8 +203,20 @@ export function inSeasonWhere(ends: readonly InSeasonEnds[], table: EndsTable): 
   return parts.length ? parts.join("; ") : null;
 }
 
-/** One section of a water as `inSeasonCover` reads it: its handle and its line (null: a lake piece, no line). */
-export interface InSeasonSection { readonly sid: number; readonly line: { readonly blk: number; readonly from: number } | null }
+/** One section of a water as `inSeasonCover` reads it: its handle and its line — stream key and [from, to) metres, `to`
+ *  `LINE_OPEN` (`@app/data`, 0xFFFFFFFF) for a stream's one section (the release's `lines`) — or null: a lake piece, no line. */
+export interface InSeasonSection {
+  readonly sid: number;
+  readonly line: { readonly blk: number; readonly from: number; readonly to: number } | null;
+}
+
+/** (T673) THE RULE, one section: its line [from, to) overlaps the range [m0, m1) on the range's stream — wholly or
+ *  partly inside. A section of no length counts by its start; an open end runs to the stream's end. One fixture pins
+ *  it here and in `pipeline.regs.inseason.resolve.section_touched` (`inseason-cover.parity.json`). */
+export function inSeasonTouches(line: { readonly blk: number; readonly from: number; readonly to: number },
+                                [blk, m0, m1]: InSeasonRun): boolean {
+  return line.blk === blk && line.from < m1 && m0 < Math.max(line.to, line.from + 1);
+}
 
 /** Where one change lands on one page. */
 export interface InSeasonCover {
@@ -225,9 +234,11 @@ export interface InSeasonCover {
 }
 
 export const INSEASON_FAILURES = {
-  offRelease: "in-season: the ranges are resolved on another data release than this device's",
   noLines: "in-season: this release's section lines could not be read",
-  nothing: (id: string, item: string) => `in-season: ${id}'s ranges land on no section of ${item} in this release`,
+  nothing: (id: string, item: string) => `in-season: ${id}'s ranges touch no section of ${item} in this release`,
+  /** (T673) `matches.json` came back in a format this app does not read (an older file, or a newer one) */
+  unreadableLinks: (seen: unknown) =>
+    `in-season matches.json: ${typeof seen === "string" ? seen : "no format"}, but this app reads ${INSEASON_LINKS_FORMAT} — refused (matched notices fall back to the last links read, else to the list of changes not on the map)`,
   /** (T517) an end the links name that this release's `display.ends` does not (publish refuses such links) */
   noWords: (id: string, e: string) => `in-season: ${id}: ${e}`,
   /** (T693) the links match a notice to waters this device's release does not hold: it is in the bell, not on a page */
@@ -245,9 +256,11 @@ export const INSEASON_FAILURES = {
  * Null: the change is not on this page. The banner, the KeepTab line, the water map's highlight and the screen reader
  * all read this.
  *
- * `all`: every section, no ends. Ranges: a section is covered when its start lies in [m0, m1) on its stream (a lake
- * piece: its place among the water's lake pieces is in `lakes`) — read ONLY on the release the links name. Off that
- * release, with no lines, or landing on nothing, the change is on the whole water with its ends and a `failure`.
+ * `all`: every section, no ends. Ranges (T673, on ANY release): a section is covered when its line TOUCHES a range on
+ * its stream (`inSeasonTouches`: wholly or partly inside — a notice's stretch end need not sit on a section boundary of
+ * this release, and a section it reaches into shows it, never drops it); a lake piece (no line) when `lakes`. A
+ * covered stretch that is not the whole page keeps its "Where: from A to B" words. With no lines, or touching nothing,
+ * the change is on the whole water with its ends and a `failure`.
  */
 export function inSeasonCover(c: InSeasonChange, item: string, water: readonly InSeasonSection[] | null,
                               page: ReadonlySet<number> | null, table: EndsTable | null): InSeasonCover | null {
@@ -262,14 +275,10 @@ export function inSeasonCover(c: InSeasonChange, item: string, water: readonly I
     try { where = inSeasonWhere(w.ends ?? [], table); }
     catch (e) { whereFailure = INSEASON_FAILURES.noWords(c.id, e instanceof Error ? e.message : String(e)); }
   }
-  if (!c.onRelease) return { sections: null, where, failure: INSEASON_FAILURES.offRelease, whereFailure };
   if (!water) return { sections: null, where, failure: INSEASON_FAILURES.noLines, whereFailure };
   const runs = w.runs ?? [];
-  const lakes = water.filter((s) => !s.line).map((s) => s.sid).sort((a, b) => a - b);
-  const lakeHit = new Set((w.lakes ?? []).map((i) => lakes[i]).filter((s): s is number => s !== undefined));
-  const hit = water.filter((s) => (s.line
-    ? runs.some(([b, m0, m1]) => b === s.line!.blk && m0 <= s.line!.from && s.line!.from < m1)
-    : lakeHit.has(s.sid))).map((s) => s.sid).sort((a, b) => a - b);
+  const hit = water.filter((s) => (s.line ? runs.some((r) => inSeasonTouches(s.line!, r)) : w.lakes === true))
+    .map((s) => s.sid).sort((a, b) => a - b);
   if (!hit.length) return { sections: null, where, failure: INSEASON_FAILURES.nothing(c.id, item), whereFailure };
   const mine = page ? hit.filter((s) => page.has(s)) : hit;
   if (!mine.length) return null;

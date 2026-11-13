@@ -1,6 +1,6 @@
 /**
  * (T557 items 3-4, T601 item 3) THE GAUGE FEED'S FORMAT — the one boundary that had none. Every release file, the DFO feed
- * (`dfo-feed/3`), in-season (`inseason-feed/1`, `inseason-links/3`) and run timing carry a format their reader refuses
+ * (`dfo-feed/3`), in-season (`inseason-feed/1`, `inseason-links/4`) and run timing carry a format their reader refuses
  * on; the gauge feed's index, station files and obs.json were taken as anything JSON with a `stations` object.
  *
  * The feeds worker (the one publisher) writes `format` first in every file and imports this constant; the Python spec

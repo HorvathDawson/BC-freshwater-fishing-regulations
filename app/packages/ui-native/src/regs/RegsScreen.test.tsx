@@ -49,7 +49,7 @@ describe("<RegsScreen>", () => {
 
   it("(T565) an in-season notice is the first thing on the page: above the salmon card and every calendar and species block, below only a lapsed edition's line", () => {
     const change = { id: "is-a", region: "8", water: "Fraser River", from: "2026-10-15", to: "2026-11-30",
-                     text: "No fishing for sturgeon.", source: "https://www2.gov.bc.ca/x", waters: null, onRelease: true, linksRelease: null, words: {} };
+                     text: "No fishing for sturgeon.", source: "https://www2.gov.bc.ca/x", waters: null, words: {} };
     const order = () => [...screen.getByTestId("regs-content").children].map((e) => e.getAttribute("data-testid"));
     mount({ inSeason: [inSeasonBanner(change, { where: null })], salmon: <Text testID="salmon-card">salmon card</Text>, lapsed: "Out of date." });
     expect(order().slice(0, 4)).toEqual(["regs-lapsed", "inseason-banners", "salmon-card", "keep-tab"]);

@@ -23,7 +23,7 @@ FEEDS = {
                                  "`pairs`, the app reads it there (core salmonFeed.ts)"),
     "inseason_feed": ("inseason-feed/1", "feeds/inseason/index.json: the feeds worker writes (inseason.ts), the app "
                                          "reads (core inseason.ts)"),
-    "inseason_links": ("inseason-links/3", "feeds/inseason/matches.json: regs/inseason/publish.py writes, the feeds "
+    "inseason_links": ("inseason-links/4", "feeds/inseason/matches.json: regs/inseason/publish.py writes, the feeds "
                                            "worker and the app read (core inseason.ts)"),
     "gauge_feed": ("gauge-feed/1", "feeds/live/: the feeds worker and gauges/feed/publish.py write index.json, the "
                                    "station files and obs.json; the app reads (core gaugeFeed.ts)"),

@@ -12,7 +12,7 @@ export const FEED_FORMATS = {
   /** feeds/inseason/index.json: the feeds worker writes (inseason.ts), the app reads (core inseason.ts) */
   inseasonFeed: "inseason-feed/1",
   /** feeds/inseason/matches.json: regs/inseason/publish.py writes, the feeds worker and the app read (core inseason.ts) */
-  inseasonLinks: "inseason-links/3",
+  inseasonLinks: "inseason-links/4",
   /** feeds/live/: the feeds worker and gauges/feed/publish.py write index.json, the station files and obs.json; the app reads (core gaugeFeed.ts) */
   gaugeFeed: "gauge-feed/1",
   /** runtiming/index.json: runtiming/feed/build.py writes, the app reads (core runTiming.ts) */

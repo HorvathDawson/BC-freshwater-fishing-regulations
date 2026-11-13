@@ -1,7 +1,8 @@
-"""T520: the in-season links/2 — publish only FORMATS the resolved matches, and refuses (non-zero, nothing written)
-an unresolved match, a stale stamp (a hand edit), an end with no words, a release off LATEST or not on disk, and a range
-not landing on the release it names. The ranges' rule is the device's (`@app/core` `inSeasonCover`: a section whose
-start lies in [m0, m1) on its stream) — one fixture holds both readers to it."""
+"""T520 / T673: the in-season links (/4: ONE release-independent file) — publish only FORMATS the resolved matches, and
+refuses (non-zero, nothing written) an unresolved match, a stale stamp (a hand edit), an end with no words, a release
+not on disk, a range touching no section of its water on LATEST, and — on the release it was resolved on — a range off
+its sections' boundaries (a shifted measure). The ranges' rule is the device's (`@app/core` `inSeasonCover`: a section
+whose line [from, to) overlaps [m0, m1) on its stream) — one fixture holds both readers to it."""
 from __future__ import annotations
 
 import json
@@ -28,24 +29,26 @@ def _m(**kw) -> dict:
 
 
 def _rel(**kw) -> R.Release:
-    # water gnis:1 (ord 1): stream handles 1..3 on blk 7 at 0, 100, 200; lake pieces 10, 11
+    # water gnis:1 (ord 1): stream handles 1..3 on blk 7 at [0, 100), [100, 200), [200, 300); lake pieces 10, 11
     base = dict(name="r-1", handles="h", ord_of={"gnis:1": 1, "wbk:9": 2}, kind_of={"gnis:1": "stream", "wbk:9": "lake"},
                 members={1: frozenset({1, 2, 3, 10, 11}), 2: frozenset({12})},
-                starts={1: (7, 0), 2: (7, 100), 3: (7, 200)},
+                lines={1: (7, 0, 100), 2: (7, 100, 200), 3: (7, 200, 300)},
                 regions={h: frozenset({"1"}) for h in (1, 2, 3, 10, 11, 12)})
     return R.Release(**{**base, **kw})
 
 
 def test_publish_formats_a_resolved_file():
-    doc = _doc({"is-aaaaaaaaaaaa": _m(waters={"gnis:1": {"runs": [[7, 100, 300]], "lakes": [1], "ends": [["x", "source"]]},
+    doc = _doc({"is-aaaaaaaaaaaa": _m(waters={"gnis:1": {"runs": [[7, 100, 300]], "lakes": True, "ends": [["x", "source"]]},
                                               "wbk:9": {"all": True}},
                                       effective={"to": "2026-12-31"})}, words={"x": "X", "unused": "U"})
     links = PUB.compile_links(doc, "d")
-    assert links == {"format": "inseason-links/3", "release": "r-1", "digest": "d",
+    # (T673) no release in the file: keyed by item id, stretches by stream key + metres
+    assert links == {"format": "inseason-links/4", "digest": "d",
                      "notices": {"is-aaaaaaaaaaaa": {
-        "to": "2026-12-31", "waters": {"gnis:1": {"runs": [[7, 100, 300]], "lakes": [1], "ends": [["x", "source"]]},
+        "to": "2026-12-31", "waters": {"gnis:1": {"runs": [[7, 100, 300]], "lakes": True, "ends": [["x", "source"]]},
                                        "wbk:9": {"all": True}}}}}
-    assert PUB.check_on_release(links, _rel()) == []
+    assert PUB.check_on_release(links, _rel()) == [] == PUB.exact_problems(links, _rel())
+    assert PUB.check_on_release(links, _rel(name="r-9")) == []          # any release reads it
 
 
 @pytest.mark.parametrize("doc,words", [
@@ -80,12 +83,20 @@ def test_a_hand_edit_not_re_resolved_is_refused():
             PUB.compile_links(doc.model_copy(update={"matches": {"is-aaaaaaaaaaaa": bad}}), "d")
 
 
-def test_a_release_off_latest_or_not_on_disk_is_refused(tmp_path, monkeypatch):
+def test_a_file_resolved_on_an_older_release_publishes_and_a_release_not_on_disk_is_refused(tmp_path, monkeypatch,
+                                                                                            capsys):
+    """(T673) The file is not bound to a release: one resolved on r-1 publishes against LATEST r-2 when every range
+    touches its water there (said on stderr; the boundary check is for the release it was resolved on only). A LATEST
+    with no manifest, or a side release not on disk, is still refused."""
     from pipeline.common import curated as C
-    doc = _doc({"is-aaaaaaaaaaaa": _m(waters={"wbk:9": {"all": True}})})
+    from pipeline.deliver.answers.display import name_check
+    doc = _doc({"is-aaaaaaaaaaaa": _m(waters={"wbk:9": {"all": True},
+                                              "gnis:1": {"runs": [[7, 150, 250]], "ends": [["x", "source"]]}})})
     src = tmp_path / "m.json"
     src.write_text(M.dumps(doc))
     monkeypatch.setattr(M, "problems", lambda *a, **k: [])
+    monkeypatch.setattr(R, "read_release", lambda d: _rel(name=d.name))
+    monkeypatch.setattr(name_check, "release_waters", lambda d: ({}, {"x": ["X"]}))
     rel = tmp_path / "release"
     rel.mkdir()
     gen = type("G", (), {"release": rel, "inseason": tmp_path / "gen"})()
@@ -93,7 +104,13 @@ def test_a_release_off_latest_or_not_on_disk_is_refused(tmp_path, monkeypatch):
     (rel / "r-2").mkdir()
     (rel / "r-2" / "manifest.json").write_text("{}")
     (rel / "LATEST").write_text("r-2\n")
-    with pytest.raises(PUB.Refused, match="LATEST is r-2"):
+    assert PUB.main(["--matches", str(src), "--out", str(tmp_path / "ok")]) == 0
+    assert "resolved on r-1, this release is r-2" in capsys.readouterr().err
+    out = json.loads((tmp_path / "ok" / "matches.json").read_text())
+    assert out["format"] == "inseason-links/4" and "release" not in out
+    # the same file read as if r-2 were the release it was resolved on: 150 / 250 are no section boundaries there
+    monkeypatch.setattr(R, "read_release", lambda d: _rel(name="r-1"))
+    with pytest.raises(PUB.Refused, match="does not start and end on its sections' boundaries"):
         PUB.main(["--matches", str(src), "--out", str(tmp_path / "out")])
     # (T560 item 6) LATEST naming a folder with no manifest is refused by the one live-release reader
     (rel / "LATEST").write_text("r-1\n")
@@ -110,12 +127,12 @@ def test_one_fixture_two_readers():
     sections, as core's `inSeasonCover` does on the same file."""
     from pipeline.common.curated import REPO_ROOT
     fx = json.loads((REPO_ROOT / "app/packages/core/src/inseason-cover.parity.json").read_text(encoding="utf-8"))
-    starts = {w["sid"]: (w["line"]["blk"], w["line"]["from"]) for w in fx["water"] if w["line"]}
+    lines = {w["sid"]: (w["line"]["blk"], w["line"]["from"], w["line"]["to"]) for w in fx["water"] if w["line"]}
     members = frozenset(w["sid"] for w in fx["water"])
-    rel = R.Release(name="r", handles="h", ord_of={"i": 1}, kind_of={"i": "stream"}, members={1: members}, starts=starts,
+    rel = R.Release(name="r", handles="h", ord_of={"i": 1}, kind_of={"i": "stream"}, members={1: members}, lines=lines,
                     regions={})
     for c in fx["cases"]:
-        got = R.covered_by_runs(c["runs"], members, starts) | {rel.lake_pieces("i")[i] for i in c["lakes"]}
+        got = R.touched(c["runs"], members, lines) | (set(rel.lake_pieces("i")) if c["lakes"] else set())
         assert sorted(got) == c["expect"], c["name"]
 
 
@@ -127,22 +144,37 @@ def test_a_water_covering_nothing_cannot_be_written():
 
 
 def test_publish_refuses_a_range_off_the_release():
-    links = {"release": "r-1", "notices": {"is-a": {"waters": {
-        "gnis:1": {"runs": [[7, 400, 500]], "lakes": [5], "ends": "x"},     # past its last section; 2 lake pieces
-        "gnis:2": {"all": True}}}}}                                           # not a water of r-1
+    links = {"notices": {"is-a": {"waters": {
+        "gnis:1": {"runs": [[7, 400, 500]], "ends": "x"},     # past its last section
+        "gnis:2": {"all": True}}}}}                            # not a water of r-1
     bad = PUB.check_on_release(links, _rel())
-    assert any("lands on no section" in b for b in bad)
-    assert any("lake place 5" in b for b in bad)
+    assert any("gnis:1 range [7, 400, 500] touches no section" in b for b in bad)
     assert any("gnis:2 is not a water of r-1" in b for b in bad)
-    assert PUB.check_on_release({**links, "release": "r-2"}, _rel()) == ["the release here is r-1, not r-2"]
+    lakeless = _rel(members={1: frozenset({1, 2, 3}), 2: frozenset({12})})          # gnis:1 with no lake piece
+    lakes = {"notices": {"is-a": {"waters": {"gnis:1": {"runs": [[7, 0, 100]], "lakes": True}}}}}
+    assert PUB.check_on_release(lakes, lakeless) == [
+        "is-a: gnis:1 says its lake pieces are covered, but it has none in r-1"]
+
+
+def test_a_shifted_measure_is_refused_on_the_release_it_was_resolved_on():
+    """(T673) MUTATION: the ranges are their sections' own spans on the release they were resolved on; a measure moved
+    by a metre either way (a hand edit, or a range read on another release's boundaries) is refused there."""
+    good = {"notices": {"is-a": {"waters": {"gnis:1": {"runs": [[7, 100, 300]]}}}}}
+    assert PUB.exact_problems(good, _rel()) == []
+    for run in ([7, 101, 300], [7, 99, 300], [7, 100, 299], [7, 100, 301]):
+        bad = PUB.exact_problems({"notices": {"is-a": {"waters": {"gnis:1": {"runs": [run]}}}}}, _rel())
+        assert len(bad) == 1 and "a shifted measure" in bad[0], run
+    # an open-ended section (a stream's one section) ends wherever the atlas measured it
+    open_ = _rel(lines={1: (7, 0, 100), 2: (7, 100, 200), 3: (8, 0, 0xFFFFFFFF)}, members={1: frozenset({1, 2, 3})})
+    assert PUB.exact_problems({"notices": {"is-a": {"waters": {"gnis:1": {"runs": [[8, 0, 4321]]}}}}}, open_) == []
 
 
 def test_ranges_read_back_exactly_by_the_devices_rule():
     span = {1: (7, 0, 100), 2: (7, 100, 200), 4: (7, 300, 400), 5: (8, 0, 50)}
     runs = R.make_runs(span, span)
     assert runs == [[7, 0, 200], [7, 300, 400], [8, 0, 50]]        # 3 is not covered: two ranges on blk 7
-    starts = {h: (b, lo) for h, (b, lo, _) in span.items()} | {3: (7, 200)}
-    assert R.covered_by_runs(runs, {1, 2, 3, 4, 5}, starts) == {1, 2, 4, 5}
+    lines = dict(span) | {3: (7, 200, 300)}
+    assert R.touched(runs, {1, 2, 3, 4, 5}, lines) == {1, 2, 4, 5}       # 3 sits between two ranges, touching neither
     # a zero-length last piece still has a range its start lies in
     assert R.make_runs({1: (7, 10, 10)}, {1: (7, 10, 10)}) == [[7, 10, 11]]
 
@@ -175,9 +207,33 @@ def test_the_curated_file_publishes():
     """The committed notice_waters.json is resolved, stamped, and formats with no atlas."""
     doc = M.load()
     links = PUB.compile_links(doc, "d")
-    assert links["release"] and links["notices"]
+    assert links["notices"] and "release" not in links
     assert all(n["waters"] for n in links["notices"].values())
     json.dumps(links)
+
+
+@pytest.mark.needs_bundle
+def test_the_curated_ranges_resolve_on_the_release_under_test(request):
+    """(T673) THE GUARD, on the data: every water of the committed file is one the release under test (LATEST, or the
+    release command's candidate) holds and every range touches it there; on the release the file was resolved on, every
+    range is exact. MUTATION: a range moved off its water is refused on any release, and a measure shifted by a metre
+    on the release it was resolved on."""
+    from pipeline.tests import under_test
+    rel = R.read_release(under_test.release(request))
+    doc = M.load(under_test.curated().inseason.notice_waters)
+    links = PUB.compile_links(doc, "d")
+    assert PUB.check_on_release(links, rel) == []
+    exact = rel.name == doc.release
+    if exact:
+        assert PUB.exact_problems(links, rel) == []
+    rid, item, w = next((rid, item, w) for rid, n in sorted(links["notices"].items())
+                        for item, w in sorted(n["waters"].items()) if w.get("runs"))
+    blk, m0, m1 = w["runs"][0]
+    gone = {"notices": {rid: {"waters": {item: {**w, "runs": [[blk, m1 + 10_000_000, m1 + 10_000_100]]}}}}}
+    assert any("touches no section" in b for b in PUB.check_on_release(gone, rel))
+    if exact:
+        shifted = {"notices": {rid: {"waters": {item: {**w, "runs": [[blk, m0 + 1, m1]]}}}}}
+        assert any("a shifted measure" in b for b in PUB.exact_problems(shifted, rel))
 
 
 # --------------------------------------------------------------------------- T623 F7, F20: own region, fresh water only
@@ -208,7 +264,7 @@ def _fraser(monkeypatch, named: set[int]):
                     handle={n.node_id: h for h, n in zip(FRASER, nodes)}, ids=tuple(n.node_id for n in nodes),
                     digest="h")
     rel = R.Release(name="r-1", handles="h", ord_of={"gnis:39325": 1}, kind_of={"gnis:39325": "stream"},
-                    members={1: frozenset(FRASER)}, starts={h: (7, 100 * (h - 1)) for h in FRASER},
+                    members={1: frozenset(FRASER)}, lines={h: (7, 100 * (h - 1), 100 * h) for h in FRASER},
                     regions={h: frozenset(r) for h, r in FRASER.items() if r})
     return atlas, rel
 
@@ -227,7 +283,7 @@ def test_f7_a_region_3_notice_stops_at_the_region_3_boundary(monkeypatch):
     atlas, rel = _fraser(monkeypatch, named={3, 4, 5})                 # "upstream of Hells Gate": to the source
     waters, words = R.resolve_match(atlas, rel, _match("3", "upstream_of", ["hells_gate"]), {})
     w = waters["gnis:39325"]
-    assert R.covered_by_runs(w.runs, rel.item_sections("gnis:39325"), rel.starts) == {3, 4}
+    assert R.touched(w.runs, rel.item_sections("gnis:39325"), rel.lines) == {3, 4}
     assert w.ends == [("spuzzum", "region_line:3")]
     assert words["region_line:3"] == "Region 3 boundary"
 
@@ -241,7 +297,7 @@ def test_f20_a_freshwater_notice_starts_at_mission_not_on_the_tidal_stretch(monk
     waters, _ = R.resolve_match(atlas, rel, _match("2", "downstream_of", ["spuzzum"]), {})
     w = waters["gnis:39325"]
     assert w.runs == [(7, 100, 200)]
-    assert R.covered_by_runs(w.runs, rel.item_sections("gnis:39325"), rel.starts) == {2}
+    assert R.touched(w.runs, rel.item_sections("gnis:39325"), rel.lines) == {2}
     assert w.ends == [("mission", "spuzzum")]
 
 

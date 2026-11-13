@@ -1,5 +1,6 @@
 // T558 (W8, item 5): a step that fails inside a run is printed and kept in the result, never only in a log a cron drops;
 // the status is written whatever the outbox does; the in-season snapshot moves on only once its diff is in the outbox.
+import { INSEASON_LINKS_FORMAT } from "../../../packages/core/src/inseason";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -44,7 +45,7 @@ describe("a run's steps (T558 W8)", () => {
     expect(b.m.has("private/feeds/inseason/latest.json")).toBe(false);       // the diff is computed again next run
     // the outbox back: the snapshot moves on, nothing to say
     b.failGet.clear();
-    b.m.set("feeds/inseason/matches.json", JSON.stringify({ format: "inseason-links/3", release: "r-1", notices: {} }));   // (T609 W14)
+    b.m.set("feeds/inseason/matches.json", JSON.stringify({ format: INSEASON_LINKS_FORMAT, notices: {} }));   // (T609 W14)
     const again = await runInseason(b);
     expect(again.stepErrors).toEqual([]);
     expect(b.m.has("private/feeds/inseason/latest.json")).toBe(true);

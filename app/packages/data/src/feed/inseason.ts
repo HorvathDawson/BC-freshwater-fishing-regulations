@@ -1,6 +1,6 @@
 /**
  * (T230) THE PROVINCIAL IN-SEASON CHANGES, over HTTP: `{base}/index.json` (the T225 worker's `inseason-feed/1`) and
- * `{base}/matches.json` (`inseason-links/3`, `pipeline.regs.inseason.publish`) — the local tile server's
+ * `{base}/matches.json` (`inseason-links/4`, ONE file for every release, T673; `pipeline.regs.inseason.publish`) — the local tile server's
  * `/feeds/inseason/` in dev, R2's `feeds/inseason/` in production, the same bytes.
  *
  * THE LAST CAPTURE IS KEPT, as for the DFO feed: every whole pair this device reads is written to `store`; offline, or
@@ -8,7 +8,8 @@
  * kept with the captured links, never with none: an outage of one file must not turn matched changes into the
  * "not on the map yet" notice. Asked once per `ttlMs`; every answer resolves, never rejects.
  */
-import { INSEASON_FEED_FORMAT, parseInSeasonFeed, reported, parseInSeasonLinks, type InSeasonFeed, type InSeasonLinks } from "@app/core";
+import { INSEASON_FAILURES, INSEASON_FEED_FORMAT, parseInSeasonFeed, reported, parseInSeasonLinks, type InSeasonFeed,
+         type InSeasonLinks } from "@app/core";
 
 export interface InSeasonStore { read(): string | null; write(text: string): void }
 export interface InSeasonData { readonly feed: InSeasonFeed; readonly links: InSeasonLinks | null }
@@ -58,10 +59,11 @@ export function httpInSeason(base: string, store?: InSeasonStore, fetchImpl: typ
     if (f !== null && !feed) reported(null)(new Error(`in-season index.json: not a readable ${INSEASON_FEED_FORMAT} feed — refused`));
     const was = captured();
     if (!feed || (was && feed.fetchedAt < was.feed.fetchedAt)) return was;
-    // (T520) links that came back but will not read (another format, a notice it cannot place) are REPORTED; the
-    // captured links answer meanwhile, so matched changes do not turn into the "not on the map yet" notice
+    // (T520) links that came back but will not read (another format, a notice it cannot place) are REPORTED, naming the
+    // format seen (T673: an app older or newer than the file); the captured links answer meanwhile, so matched changes
+    // do not turn into the "not on the map yet" notice — with none captured, every change is in that notice (the bell)
     const read = parseInSeasonLinks(l);
-    if (l !== null && !read) reported(null)(new Error("in-season matches.json: not readable inseason-links/3 — refused"));
+    if (l !== null && !read) reported(null)(new Error(INSEASON_FAILURES.unreadableLinks((l as { format?: unknown } | null)?.format)));
     const links = read ?? was?.links ?? null;
     try { store?.write(JSON.stringify({ feed: f, links: links })); } catch { /* a cache: costs only the next offline open */ }
     return { feed, links };

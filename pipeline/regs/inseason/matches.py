@@ -17,9 +17,11 @@ with its time, who and the note.
 
 (T520) `waters` is the match RESOLVED on the release the file names (`release`), by `pipeline.regs.inseason.resolve`
 where the atlas is (the review app on save; the release promote, `upload.sh`, re-resolves every match): per water it
-touches, `{"all": true}` (every section of it) or `{"runs": [[blk, m0, m1], …], "ends": "From A to B"}` — FWA stream
-key + metre ranges, the sections whose start lies in [m0, m1) (never a section id or a part index, AGENTS 5). Lakes and
-wetlands are whole-item only. `unresolved` says why a re-resolve could not place the match (publish refuses it).
+touches, `{"all": true}` (every section of it) or `{"runs": [[blk, m0, m1], …], "lakes"?: true, "ends": [[lo, hi], …]}`
+— FWA stream key + metre ranges (never a section id or a part index, AGENTS 5). (T673) They are RELEASE-INDEPENDENT:
+a release places a range on every section of the water whose line [from, to) it touches (`resolve.touched`), so any
+release, older or newer, reads the same file; `lakes: true` = every lake piece of the river (no line to range).
+`release` stays as where it was resolved and proved (the stamp). Lakes and wetlands are whole-item only. `unresolved` says why a re-resolve could not place the match (publish refuses it).
 `publish` only formats this — no atlas.
 
 INFORMATIONAL ONLY. A match puts a banner on the water in the app; it never changes a computed answer or a status.
@@ -98,10 +100,10 @@ class Water(BaseModel):
 
     all: Optional[Literal[True]] = None
     runs: List[Tuple[int, int, int]] = Field(default_factory=list)
-    #: a partly covered STREAM water's covered lake pieces (a lake the river flows through: no line, so no range):
-    #: their places among the water's lake pieces in the release's handle order (= FWA waterbody key order) —
-    #: read only on the release the file names, like the ranges
-    lakes: List[int] = Field(default_factory=list)
+    #: (T673) a partly covered STREAM water's lake pieces (a lake the river flows through: no line in any release, so
+    #: no range can name one): true = EVERY lake piece of the water, on whatever release reads it. A match covering
+    #: some but not all of them is unresolved (`resolve.resolve_match`), never widened or narrowed
+    lakes: bool = False
     #: each covered stretch of the water's MAIN LINE as (low, high) end TOKENS, mouth upward — a split id, a
     #: pick-point id (`points`), `mouth` or `source`; words are the file's `words` (core composes the sentence)
     ends: List[Tuple[str, str]] = Field(default_factory=list)
@@ -285,7 +287,7 @@ def place_id_shape(pid: str) -> bool:
 def _dump_match(m: Match) -> dict:
     d = m.model_dump(by_alias=True, exclude_none=True, exclude_defaults=False)
     d["waters"] = {k: {kk: (list(map(list, vv)) if kk in ("runs", "ends") else vv) for kk, vv in w.items()
-                       if vv not in ([], "", None)}
+                       if vv not in ([], "", None, False)}
                    for k, w in sorted(d["waters"].items())}
     return d
 

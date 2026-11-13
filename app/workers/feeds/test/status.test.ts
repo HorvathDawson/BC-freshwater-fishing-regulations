@@ -1,5 +1,6 @@
 // T225 follow-up: the feeds' status (private/feeds/status.json, GET /status + /status.json) and the alert hook —
 // told once per state change, never once per run.
+import { INSEASON_LINKS_FORMAT } from "../../../packages/core/src/inseason";
 import { describe, expect, it } from "vitest";
 import worker, { dfoHeld } from "../src/index";
 import { newMeter } from "../src/io";
@@ -113,7 +114,7 @@ describe("the Worker's /status routes", () => {
 
   it("(T597 item 2) serves the input formats it reads, the upload's check — on a 503 too", async () => {
     const want = { "private/feeds/dfo/wording.json": ["dfo-wording/2"], "private/feeds/dfo/pairs.json": ["dfo-pairs/1"],
-                   "feeds/inseason/matches.json": ["inseason-links/3"] };
+                   "feeds/inseason/matches.json": [INSEASON_LINKS_FORMAT] };
     const b = bucket();
     b.m.set("private/feeds/status.json", JSON.stringify({ format: "feeds-status/1", updated: "", feeds: {} }));
     expect((await (await worker.fetch(new Request("https://w/status.json"), { BUCKET: b, RUN_TOKEN: "t" })).json()).inputs)

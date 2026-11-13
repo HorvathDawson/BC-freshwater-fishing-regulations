@@ -30,7 +30,7 @@ export interface InSeasonNow {
   readonly unmatched: readonly InSeasonChange[];
   /** the feed + links read (null: none yet, or none captured) — the day's join is per page (`useInSeasonBanners`) */
   readonly data: InSeasonData | null;
-  /** this device's data release: `places` are read only on the release they name */
+  /** this device's data release (T693: which matched waters it holds is asked per release) */
   readonly release: string | null;
 }
 
@@ -52,7 +52,8 @@ export function useInSeason(source: InSeasonSource | null | undefined, epoch = 0
                             release: string | null = null, holds: HoldsWater | null = null): InSeasonNow {
   const tick = usePoll(INSEASON_POLL_MS, !!source);
   const [data, setData] = useState<InSeasonData | null>(null);
-  // (T520) the device's release changed (a data update applied): the links are asked again, never read across it
+  // (T520) the device's release changed (a data update applied): the links are asked again (T673: the same file is
+  // read on any release, but which waters it holds and their section lines are the new release's)
   const heldRelease = useRef(release);
   useEffect(() => {
     let live = true;
@@ -64,7 +65,7 @@ export function useInSeason(source: InSeasonSource | null | undefined, epoch = 0
     // (T231) `epoch`: bumped when the update service sees the feed move (the source was told to forget it)
   }, [source, tick, epoch, release]);
   const today = isoDayOf(bcNow());
-  const base = useMemo(() => (data ? joinInSeason(data.feed, data.links, today, release) : null), [data, today, release]);
+  const base = useMemo(() => (data ? joinInSeason(data.feed, data.links, today) : null), [data, today]);
   const waters = useMemo(() => [...new Set((base?.matched ?? []).flatMap((c) => Object.keys(c.waters ?? {})))].sort(), [base]);
   const key = `inseason-holds:${release ?? ""}:${waters.join(",")}`;
   const asked = useAsync(async () => {
@@ -76,7 +77,7 @@ export function useInSeason(source: InSeasonSource | null | undefined, epoch = 0
   }, key, !!holds && waters.length > 0);
   const absent = asked.state === "ready" && asked.value.size ? asked.value : null;
   const out = useMemo(() => (data && base
-    ? { ...(absent ? joinInSeason(data.feed, data.links, today, release, absent) : base), data, release } : NONE),
+    ? { ...(absent ? joinInSeason(data.feed, data.links, today, absent) : base), data, release } : NONE),
     [data, base, absent, today, release]);
   useEffect(() => {
     if (!absent) return;
@@ -121,32 +122,31 @@ export interface InSeasonOnPage { readonly change: InSeasonChange; readonly cove
 type WaterLines = { readonly ord: number; readonly water: readonly InSeasonSection[];
                     readonly partOf: ReadonlyMap<number, number> };
 
-/** (no silent fallbacks) what was reported, once per app run: a change shown whole because it could not be placed.
- *  Off-release is ONE report per pair of releases, not one per view. */
+/** (no silent fallbacks) what was reported, once per app run: a change shown whole because it could not be placed. */
 const TOLD = new Set<string>();
 
 /**
  * (T520) THE CHANGES ON ONE PAGE AND WHERE, for its day (null: today) — the one load path every view of them reads.
  * The water's section lines (`navRows` + the release's `lines`) are read only when a change on it covers part of it on
- * this release. A failure (lines unreadable, off-release, ranges on nothing) shows the change on the whole water with
- * its ends, and is REPORTED (once per change, water and reason).
+ * this release (T673: any release — the ranges are stream key + metres, placed on THIS release's lines). A failure (lines
+ * unreadable, ranges touching nothing) shows the change on the whole water with its ends, and is REPORTED (once per
+ * change, water and reason).
  */
 export function useInSeasonCovers(store: Pick<RegsStore, "navRows" | "statics"> | null,
                                   lines: Pick<LineReads, "hasLines" | "sectionLine"> | null,
                                   page: InSeasonPage | null, day: Date | null): readonly InSeasonOnPage[] {
-  const { data, release } = useContext(InSeasonContext);
+  const { data } = useContext(InSeasonContext);
   const iso = isoDayOf(day ?? bcNow());
-  const matched = useMemo(() => (data ? joinInSeason(data.feed, data.links, iso, release).matched : []),
-    [data, iso, release]);
+  const matched = useMemo(() => (data ? joinInSeason(data.feed, data.links, iso).matched : []), [data, iso]);
   const here = useMemo(() => (page ? matched.filter((c) => c.waters?.[page.item]) : []), [matched, page?.item]);
-  const needs = !!page && here.some((c) => c.onRelease && !c.waters![page.item]!.all);
+  const needs = !!page && here.some((c) => !c.waters![page.item]!.all);
   const read = useAsync<WaterLines>(
     async () => {
       if (!(await lines!.hasLines())) throw new Error("in-season: this release has no lines file");
       const nav = await store!.navRows(page!.ord);
       const water = await Promise.all(nav.sections.map(async (s) => {
         const l = await lines!.sectionLine(s.sid);
-        return { sid: s.sid, line: l ? { blk: l.blk, from: l.from } : null };
+        return { sid: s.sid, line: l ? { blk: l.blk, from: l.from, to: l.to } : null };
       }));
       return { ord: page!.ord, water, partOf: new Map(nav.sections.map((s) => [s.sid, s.partIx] as const)) };
     },
@@ -181,12 +181,10 @@ export function useInSeasonCovers(store: Pick<RegsStore, "navRows" | "statics"> 
       }
       const f = p.cover.failure;
       if (!f) continue;
-      const k = f === INSEASON_FAILURES.offRelease ? `off|${p.change.linksRelease}|${release}`
-        : `${f}|${p.change.id}|${page?.item}`;
+      const k = `${f}|${p.change.id}|${page?.item}`;
       if (TOLD.has(k)) continue;
       TOLD.add(k);
-      reportFailure(new Error(f === INSEASON_FAILURES.offRelease
-        ? `${f} (links ${p.change.linksRelease}, device ${release})` : f));
+      reportFailure(new Error(f));
     }
   }, [out]);
   return out;

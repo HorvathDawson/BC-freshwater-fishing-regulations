@@ -8,15 +8,20 @@ on the release the file then names (`release`, default `data/release/LATEST`; re
 `section_handles` digest is the atlas's):
 
     {item: {"all": true}}                           every section of the water (in that release's `part_section`)
-    {item: {"runs": [[blk, m0, m1], …], "lakes"?: [i, …], "ends": [[low, high], …]}}
-                                                    the covered stream sections as FWA ranges: the sections of the
-                                                    release whose START lies in [m0, m1) on stream `blk`; `lakes` the
-                                                    covered LAKE pieces of a river (no line: their places among the
-                                                    water's lake pieces, handle order); `ends` each covered stretch of
-                                                    the water's main line as two end TOKENS, mouth upward (a split id,
-                                                    a pick-point id, `mouth`, `source`) — never words: core says them
-                                                    (`inSeasonWhere`) with the file's `words` (INTERIM: T517's release
-                                                    token table replaces it)
+    {item: {"runs": [[blk, m0, m1], …], "lakes"?: true, "ends": [[low, high], …]}}
+                                                    the covered stream sections as FWA ranges on stream `blk`, metres;
+                                                    `lakes` (T673): EVERY lake piece of the river is covered (a lake
+                                                    piece has no line in any release, so no range can name it; a match
+                                                    covering some of them only is unresolved); `ends` each covered
+                                                    stretch of the water's main line as two end TOKENS, mouth upward (a
+                                                    split id, a pick-point id, `mouth`, `source`) — never words: the
+                                                    release's `display.ends` says them (`inSeasonWhere`)
+
+(T673, owner 2026-11-13) THE RANGES ARE RELEASE-INDEPENDENT: a release places a range on every section of the water whose
+line [from, to) it TOUCHES (`touched`, the device's rule, `@app/core` `inSeasonCover`), so the one published file is read
+by every release — the one it was resolved on reads back exactly the resolved sections (proved below), an older or newer
+one whose section boundaries moved shows the notice on every section the stretch touches (with its "Where" words),
+never fewer.
 
 and each match is STAMPED (`matches.stamp`: a hash of its extents, the release and its waters) so publish refuses a
 hand edit that was not re-resolved.
@@ -98,7 +103,8 @@ class Release:
     ord_of: dict[str, int]                         # item_id -> ord
     kind_of: dict[str, str]                        # item_id -> kind
     members: dict[int, frozenset[int]]             # ord -> its sections (part_section; part_ix never read)
-    starts: dict[int, tuple[int, int]]             # stream handle -> (blk, from_m), the release's `lines`
+    lines: dict[int, tuple[int, int, int]]         # stream handle -> (blk, from_m, to_m), the release's `lines`
+                                                   # (to_m `lines.OPEN`: the stream's one section, to its end)
     #: (T623) handle -> the regions the release places it in (lower case, the store's `section_place`); a handle
     #: absent is in NO region: tidal water, outside B.C., or a key the book calls tidal (`read_release`)
     regions: dict[int, frozenset[str]]
@@ -110,7 +116,7 @@ class Release:
     def lake_pieces(self, item: str) -> list[int]:
         """The water's sections with no line (its lake pieces), in handle order — `lakes` indexes these, as the
         device does (`@app/core` `inSeasonCover`: a page section with no line)."""
-        return sorted(h for h in self.item_sections(item) if h not in self.starts)
+        return sorted(h for h in self.item_sections(item) if h not in self.lines)
 
 
 def read_release(rel: Path) -> Release:
@@ -126,16 +132,16 @@ def read_release(rel: Path) -> Release:
         mem: dict[int, set[int]] = {}
         for o, sid in water.execute("SELECT ord, sid FROM part_section"):
             mem.setdefault(int(o), set()).add(int(sid))
-        starts: dict[int, tuple[int, int]] = {}
+        lines: dict[int, tuple[int, int, int]] = {}
         for block, n, b in ln.execute("SELECT block, n, b FROM section_line ORDER BY block"):
-            for i, (blk, lo, _hi) in enumerate(L.decode_block(bytes(b), int(n))):
+            for i, (blk, lo, hi) in enumerate(L.decode_block(bytes(b), int(n))):
                 h = (int(block) << L.BLOCK_BITS) | i
                 if h:                                  # handle 0: the filler
-                    starts[h] = (blk, lo)
+                    lines[h] = (blk, lo, hi)
         for c in (core, water, ln):
             c.close()
     handles = str(meta.get("section_handles") or "")
-    return Release(release_name(rel), handles, ord_of, kind_of, {o: frozenset(s) for o, s in mem.items()}, starts,
+    return Release(release_name(rel), handles, ord_of, kind_of, {o: frozenset(s) for o, s in mem.items()}, lines,
                    fresh_regions(rel, handles))
 
 
@@ -177,16 +183,26 @@ def fresh_in_region(secs: Iterable[int], region: str, regions: Mapping[int, froz
     return {h for h in secs if r in regions.get(h, ())}
 
 
-def covered_by_runs(runs: Iterable[Iterable[int]], sections: Iterable[int], starts: Mapping[int, tuple[int, int]]
-                    ) -> set[int]:
-    """THE DEVICE'S RULE (`@app/core` `inSeasonCover`): the sections whose start lies in a run [m0, m1) on its stream."""
+def section_touched(line: tuple[int, int, int], m0: int, m1: int) -> bool:
+    """(T673) THE DEVICE'S RULE for one section (`@app/core` `inSeasonCover`, one fixture pins both): a section whose
+    line [from, to) on the run's stream OVERLAPS the run [m0, m1) is touched — wholly or partly inside. A section of no
+    length is touched when its start lies in the run; an open end (`lines.OPEN`) runs to the stream's end."""
+    _blk, lo, hi = line
+    return lo < m1 and m0 < max(hi, lo + 1)
+
+
+def touched(runs: Iterable[Iterable[int]], sections: Iterable[int], lines: Mapping[int, tuple[int, int, int]]
+            ) -> set[int]:
+    """(T673) THE DEVICE'S RULE: the sections of `sections` a run touches on its stream (`section_touched`). On the
+    release a range set was resolved on it reads back exactly the resolved sections (the runs are their own spans);
+    on another release a section only partly inside is touched too — the notice is shown on it, never dropped."""
     by_blk: dict[int, list[tuple[int, int]]] = {}
     for blk, m0, m1 in runs:
         by_blk.setdefault(int(blk), []).append((int(m0), int(m1)))
     out = set()
     for h in sections:
-        at = starts.get(h)
-        if at and any(m0 <= at[1] < m1 for m0, m1 in by_blk.get(at[0], ())):
+        at = lines.get(h)
+        if at and any(section_touched(at, m0, m1) for m0, m1 in by_blk.get(at[0], ())):
             out.add(h)
     return out
 
@@ -427,7 +443,7 @@ def resolve_match(atlas: Atlas, rel: Release, m: M.Match, splits: dict[str, str]
             raise Unresolved(f"{item} is a {rel.kind_of[item]}: covered in part ({len(hit)} of {len(members)} "
                              "sections), but a lake is whole or not at all")
         span_of = {}
-        for h in sorted(hit & rel.starts.keys()):
+        for h in sorted(hit & rel.lines.keys()):
             got = span(atlas.ids[h - 1], atlas.g.nodes.get(atlas.ids[h - 1]))
             if got is None:
                 raise Unresolved(f"{item}: covered section {atlas.ids[h - 1]} has a line in {rel.name} but is not a "
@@ -435,8 +451,13 @@ def resolve_match(atlas: Atlas, rel: Release, m: M.Match, splits: dict[str, str]
             span_of[h] = got
         runs = make_runs(span_of, span_of)
         lake_pieces = rel.lake_pieces(item)
-        lakes = [i for i, h in enumerate(lake_pieces) if h in hit]
-        back = covered_by_runs(runs, members, rel.starts) | {lake_pieces[i] for i in lakes}
+        lakes_hit = [h for h in lake_pieces if h in hit]
+        if lakes_hit and len(lakes_hit) != len(lake_pieces):
+            # (T673) a lake piece has no line in any release, so the file names a river's lake pieces all or none
+            raise Unresolved(f"{item}: covers {len(lakes_hit)} of its {len(lake_pieces)} lake pieces in {rel.name}; "
+                             "a lake piece has no line a release-independent range can name (all or none)")
+        lakes = bool(lakes_hit)
+        back = touched(runs, members, rel.lines) | (set(lake_pieces) if lakes else set())
         if back != hit:
             raise Unresolved(f"{item}: its ranges read back {len(back)} sections on {rel.name}, not the {len(hit)} "
                              "resolved")

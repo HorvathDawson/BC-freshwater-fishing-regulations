@@ -6,24 +6,32 @@ writes `<out>/matches.json` (default `GENERATED.inseason / "feed"`, which the lo
 `/feeds/inseason/`; staging / production: R2 `feeds/inseason/matches.json` through `pipeline.deliver.sync_inputs`).
 `--feed` copies a captured feed `index.json` there too (dev).
 
-FORMAT `inseason-links/3` (T520; /3, T517 review finding 1: no `words` — the release's `display.ends` says every end). Where a notice applies was resolved where the atlas is (`pipeline.regs.inseason.resolve`:
-the review app on save, its Re-resolve after a promote) and committed in `notice_waters.json`; this only copies it out:
+FORMAT `inseason-links/4` (T673, owner 2026-11-13: ONE file, release-independent — "Why not just have a single file
+that does both?"; /3 named the one release its ranges were read on). Where a notice applies was resolved where the
+atlas is (`pipeline.regs.inseason.resolve`: the review app on save, its Re-resolve after a promote) and committed in
+`notice_waters.json`; this only copies it out:
 
-    {"format": "inseason-links/3", "release": "r-…", "digest": <sha of the curated file>,
+    {"format": "inseason-links/4", "digest": <sha of the curated file>,
      "notices": {"is-…": {"from"?: "YYYY-MM-DD", "to"?: "YYYY-MM-DD",
                           "waters": {"gnis:…": {"all": true}
-                                     | {"runs": [[blk, m0, m1], …], "lakes"?: [i, …], "ends": [[low, high], …]}}}}}
+                                     | {"runs": [[blk, m0, m1], …], "lakes"?: true, "ends": [[low, high], …]}}}}}
 
-No part index, extent or section id (AGENTS 5); `ends` are TOKENS, the sentence is core's (`inSeasonWhere`). The app
-(`@app/core` `inSeasonCover`) reads `runs` / `lakes` only on the release named; `all` holds on any release.
+Keyed by the water's durable item id (AGENTS 5); a stretch is the FWA stream key + metres along it — no release, part
+index, extent or section id. ANY release places it (`@app/core` `inSeasonCover`, `resolve.touched`): every section of
+the water whose line the range touches, every lake piece of the river when `lakes`; `all` is every section. `ends` are
+TOKENS, said by the reading release's `display.ends` (core's `inSeasonWhere`).
 
 THE CHECKS LIVE HERE, ONCE (the feed has its own): a non-zero exit, nothing written, on
     - an unresolved match (`unresolved`, or no `waters`) — re-match it in the review app
-    - a match whose `stamp` no longer fits its extents, the release and its waters (a hand edit not re-resolved)
-    - an end token the release's `display.ends` holds no words for (the release build puts every curated notice's
-      ends in it, `matches.end_tokens`: a token missing here is a notice changed since that release — rebuild it)
-    - the file resolved on another release than `data/release/LATEST` (re-resolve in the review app, then commit)
-    - that release not on disk, or a range not landing on its water there
+    - a match whose `stamp` no longer fits its extents, the release it was resolved on and its waters (a hand edit
+      not re-resolved)
+    - on `data/release/LATEST` (what every new install reads): a water it does not hold, a range touching no section
+      of its water, and — when the file was resolved on LATEST — a range whose ends are not its water's section
+      boundaries there (a shifted measure; `exact_problems`)
+    - an end token LATEST's `display.ends` holds no words for (the release build puts every curated notice's ends in
+      it, `matches.end_tokens`: a token missing here is a notice changed since that release — rebuild it)
+(T673: the old "resolved on another release than LATEST" refusal is gone — the file is not bound to a release; an
+older release on a phone reads it by the same rule.)
 `--side-release DIR` checks against a SIDE build instead of LATEST (a release not promoted yet) — never by default.
 
 Deterministic: no clock in the output.
@@ -70,7 +78,7 @@ def compile_links(doc: M.Matches, digest: str) -> dict:
             if w.all:
                 waters[item] = {"all": True}
                 continue
-            waters[item] = {"runs": [list(r) for r in w.runs], **({"lakes": list(w.lakes)} if w.lakes else {}),
+            waters[item] = {"runs": [list(r) for r in w.runs], **({"lakes": True} if w.lakes else {}),
                             "ends": [list(p) for p in w.ends]}
         row: dict = {}
         if m.effective and m.effective.from_:
@@ -81,7 +89,7 @@ def compile_links(doc: M.Matches, digest: str) -> dict:
         notices[rid] = row
     if bad:
         raise Refused("inseason.publish: refused —\n  " + "\n  ".join(bad))
-    return {"format": FORMAT, "release": doc.release, "digest": digest, "notices": notices}
+    return {"format": FORMAT, "digest": digest, "notices": notices}
 
 
 def ends_problems(links: dict, ends: dict, release: str) -> list[str]:
@@ -91,12 +99,10 @@ def ends_problems(links: dict, ends: dict, release: str) -> list[str]:
 
 
 def check_on_release(links: dict, rel) -> list[str]:
-    """Every range lands on its water in the release it names (`resolve.Release`); every lake place exists.
-    -> [problem]."""
+    """(T673) Every water is one `rel` holds and every range TOUCHES a section of its water there (`resolve.touched`,
+    the device's rule); a water saying `lakes` has a lake piece there. -> [problem]. Any release: the file names none."""
     from pipeline.regs.inseason import resolve as R
     bad: list[str] = []
-    if rel.name != links["release"]:
-        return [f"the release here is {rel.name}, not {links['release']}"]
     for rid, n in links["notices"].items():
         for item, w in n["waters"].items():
             members = rel.item_sections(item)
@@ -104,12 +110,30 @@ def check_on_release(links: dict, rel) -> list[str]:
                 bad.append(f"{rid}: {item} is not a water of {rel.name}")
                 continue
             for run in w.get("runs", ()):
-                if not R.covered_by_runs([run], members, rel.starts):
-                    bad.append(f"{rid}: {item} range {run} lands on no section of it in {rel.name}")
-            n_lakes = len(rel.lake_pieces(item))
-            for i in w.get("lakes", ()):
-                if not 0 <= i < n_lakes:
-                    bad.append(f"{rid}: {item} lake place {i} — it has {n_lakes} lake piece(s) in {rel.name}")
+                if not R.touched([run], members, rel.lines):
+                    bad.append(f"{rid}: {item} range {run} touches no section of it in {rel.name}")
+            if w.get("lakes") and not rel.lake_pieces(item):
+                bad.append(f"{rid}: {item} says its lake pieces are covered, but it has none in {rel.name}")
+    return bad
+
+
+def exact_problems(links: dict, rel) -> list[str]:
+    """(T673) ON THE RELEASE THE FILE WAS RESOLVED ON, every range is EXACT: it starts where a section of its water
+    starts and ends where one ends (its spans are the resolved sections', `resolve.make_runs`) — a measure shifted by
+    hand, or a range read on another release's boundaries, is refused. An open-ended section (`lines.OPEN`: a stream's
+    one section) ends wherever the atlas measured it; a section of no length ends one metre past its start."""
+    from pipeline.deliver.release.lines import OPEN
+    bad: list[str] = []
+    for rid, n in links["notices"].items():
+        for item, w in n["waters"].items():
+            mine = [rel.lines[h] for h in rel.item_sections(item) if h in rel.lines]
+            for blk, m0, m1 in w.get("runs", ()):
+                on = [(lo, hi) for b, lo, hi in mine if b == blk]
+                if not any(lo == m0 for lo, _ in on) or not any(
+                        hi == m1 or (hi == OPEN and m1 > lo) or (hi == lo and m1 == lo + 1) for lo, hi in on):
+                    bad.append(f"{rid}: {item} range {[blk, m0, m1]} does not start and end on its sections' "
+                               f"boundaries in {rel.name}, the release it was resolved on (a shifted measure?) — "
+                               "re-resolve it")
     return bad
 
 
@@ -129,18 +153,21 @@ def main(argv: list[str] | None = None) -> int:
     root = Path(GENERATED.release)
     if a.side_release is None:
         from pipeline.deliver.release.manifest import live
-        now = live(root).name      # (T560 item 6) no LATEST, or one naming a folder with no manifest, raises
-        if now != links["release"]:
-            raise Refused(f"inseason.publish: refused — the matches are resolved on {links['release']}, LATEST is "
-                          f"{now}: re-resolve in the review app (Re-resolve), then commit")
-        rel_dir = root / now
+        rel_dir = live(root)       # (T560 item 6) no LATEST, or one naming a folder with no manifest, raises
     else:
         rel_dir = a.side_release
     if not (rel_dir / "manifest.json").exists():
-        raise Refused(f"inseason.publish: refused — release {links['release']} is not on disk at {rel_dir}: its "
-                      "ranges cannot be checked")
+        raise Refused(f"inseason.publish: refused — release {rel_dir.name} is not on disk at {rel_dir}: the ranges "
+                      "cannot be checked")
     from pipeline.regs.inseason import resolve as R
-    bad = check_on_release(links, R.read_release(rel_dir))
+    rel = R.read_release(rel_dir)
+    bad = check_on_release(links, rel)
+    if rel.name == doc.release:
+        bad += exact_problems(links, rel)
+    else:
+        print(f"inseason.publish: the matches were resolved on {doc.release}, this release is {rel.name}: the ranges "
+              "are checked to touch their waters here (any release reads them), not to sit on its boundaries",
+              file=sys.stderr)
     # (T517 review finding 1) THE GUARD: every end the links name has words in that release's `display.ends`
     from pipeline.deliver.answers.display.name_check import release_waters
     bad += ends_problems(links, release_waters(rel_dir)[1], rel_dir.name)
@@ -152,8 +179,8 @@ def main(argv: list[str] | None = None) -> int:
                                       encoding="utf-8")
     if a.feed:
         shutil.copyfile(a.feed, out / "index.json")
-    print(f"in-season links: {len(links['notices'])} notice(s) on {links['release']} -> {out / 'matches.json'}",
-          file=sys.stderr)
+    print(f"in-season links ({FORMAT}): {len(links['notices'])} notice(s), checked on {rel.name} -> "
+          f"{out / 'matches.json'}", file=sys.stderr)
     return 0
 
 

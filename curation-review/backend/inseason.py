@@ -124,7 +124,7 @@ def _row_view(rid: str, row: dict | None, m: M.Match | None, history: list[dict]
             "source": m.source, "confidence": m.confidence, "evidence": m.evidence,
             # (T520) where it lands on the file's release: per water, whole or its ends; or why it does not
             "waters": {k: ({"all": True} if w.all else {"ends": [list(p) for p in w.ends], "runs": len(w.runs),
-                                                          "lakes": len(w.lakes)})
+                                                          "lakes": w.lakes})
                        for k, w in sorted(m.waters.items())},
             "words": {t: doc_words.get(t, t) for w in m.waters.values() for p in w.ends for t in p},
             "unresolved": m.unresolved},
