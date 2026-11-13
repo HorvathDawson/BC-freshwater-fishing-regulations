@@ -68,6 +68,8 @@ from pipeline.deliver.bundle.place_names import area_boundary_name, cut_name, di
 NATURAL_ENDS = ("mouth", "source", "bc_border", "lake_inlet", "lake_outlet", "polygon")
 #: The water's own polygon begins or ends here — not a cut (`end_token`).
 POLYGON = "polygon"
+#: The end tokens of a lake that is not a named water (the suffix dropped).
+UNNAMED_LAKE_ENDS = ("lake_inlet", "lake_outlet")
 #: Prefixed natural ends: the suffix is an item_id (or, for a region line, a region code).
 PREFIXED_ENDS = ("lake_inlet:", "lake_outlet:", "confluence:", "region_line:", "continues:")
 #: The atlas names a region's polygon `area:<region>`; every other `area:` is a park, a reserve
@@ -113,6 +115,12 @@ def end_token(bound, side: str, *, lake_item, tributary=None, own: str | None = 
                 authored = _authored(bound.aliases)
                 return authored[0] if authored else POLYGON
             return f"confluence:{item}"
+        # (T697, owner 2026-11-12 "Yes, read the real boundary") a cut aliased onto ANOTHER water's lake edge
+        # (`sectionizer._alias_to_lake_edge`: the nearer edge only) is the real boundary standing there: the end
+        # reads the cut's own name, never the lake (Gagnon Creek's fishing boundary signs on an unnamed lake)
+        authored = _authored(bound.aliases)
+        if authored:
+            return authored[0]
         head = "lake_outlet" if side == "up" else "lake_inlet"
         return f"{head}:{item}" if item else head
     if kind == "border":
@@ -136,7 +144,8 @@ def end_token(bound, side: str, *, lake_item, tributary=None, own: str | None = 
 
 def compute(nodes: dict, edges, handles: dict[str, int], items: list[tuple[int, str, str, list[int]]],
             lake_items: dict[str, tuple[str, str]], stems: dict[str, str] | None = None,
-            graph=None, ends: dict[int, str] | None = None) -> list[tuple]:
+            graph=None, ends: dict[int, str] | None = None,
+            lake_edges: dict | None = None) -> list[tuple]:
     """Every (sid, lo_m, hi_m, lo, hi, off_stem, shape) row for the STREAM waters in `items`
     ((ord, item_id, kind, [sid])). `nodes` is the graph's node dict, `edges` its FlowEdges,
     `handles` node id -> sid, `lake_items` wbk -> (item_id, kind) of the water owning that polygon.
@@ -144,7 +153,9 @@ def compute(nodes: dict, edges, handles: dict[str, int], items: list[tuple[int, 
     `lines.main_line_of` decides it (the bundle's one main line, T118). `graph` (the StreamGraph the nodes and edges came from) places a stream's own
     POLYGONS by their measure window (`graph.windows.polygon_window`); without it they are off-stem.
     `ends` is {sid: the word for that section's natural lower end} (`continuation.lower_ends`, from
-    `continuation.goes_on`): a section whose lower end is a plain `mouth` reads it instead."""
+    `continuation.goes_on`): a section whose lower end is a plain `mouth` reads it instead.
+    `lake_edges`, when given, is filled with {(item_id, lake boundary id): ([sids ending below it — their `hi` an
+    unnamed lake's outlet], [sids beginning above it — their `lo` its inlet])} (T697, `lines_at_lake_edges`)."""
     ends = ends or {}
     node_of = {s: n for n, s in handles.items()}
     items_of: dict[str, set[str]] = defaultdict(set)
@@ -245,6 +256,13 @@ def compute(nodes: dict, edges, handles: dict[str, int], items: list[tuple[int, 
                            own=item_id)
             hi = end_token(n.upper_bound, "up", lake_item=lake_items.get, tributary=tributary,
                            own=item_id)
+            if lake_edges is not None:
+                # (T697) an end at an UNNAMED lake's edge, by the lake's boundary: the pieces of this water on its
+                # other side are read against it once the regions and the outside-B.C. facts exist (`lines_at_lake_edges`)
+                if lo in UNNAMED_LAKE_ENDS:
+                    lake_edges.setdefault((item_id, str(n.lower_bound.boundary_id)), ([], []))[1].append(s)
+                if hi in UNNAMED_LAKE_ENDS:
+                    lake_edges.setdefault((item_id, str(n.upper_bound.boundary_id)), ([], []))[0].append(s)
             if lo == "mouth":
                 lo = ends.get(s, lo)
             if n.blk == stem:
@@ -521,6 +539,9 @@ def split_rows(resolved: list[dict], stems: dict[str, list[tuple[str, int]]],
         # the HOST row first: a braid sweep's extra row ("braid cut across …") never speaks for the cut — it has
         # no confidence of its own and stands on the side channel (Cranberry canyon bottom, owner 2026-10-29)
         first = sorted(rs, key=lambda r: (_is_braid_row(r), str(r["blk"]), r["route_measure"]))[0]
+        # (T697) a cut's OWN resolved row, when a lake edge's row also carries it as an alias (`lake_edge_rows`)
+        own_row = next((r for r in sorted(rs, key=lambda r: (_is_braid_row(r), str(r["blk"]), r["route_measure"]))
+                        if "lake" not in r), None)
         blk, m = str(first["blk"]), float(first["route_measure"])
         kind = first["anchor_type"]
         label = first.get("label") or sid
@@ -554,6 +575,10 @@ def split_rows(resolved: list[dict], stems: dict[str, list[tuple[str, int]]],
             got = lake_items.get(str(first.get("lake") or "").split(":", 1)[-1])
             lake_id = got[0] if got else None
             name = display_case(label) if not label.startswith("lake ") else label
+            if own_row is not None:
+                # (T697) a cut aliased onto a lake's edge keeps its OWN name ("fishing boundary signs near the mouth
+                # …", "Duncan Dam"), never the lake's label: it is what the part end standing there reads (`end_token`)
+                name = cut_name(own_row.get("label") or sid)
         rows[sid] = {"base": name, "name": name, "kind": "area" if kind == "area_boundary"
                      else kind, "at": at, "official": official, "same": None,
                      "pos": (blk, m, own), "lake_id": lake_id,
@@ -653,8 +678,9 @@ def write(db: sqlite3.Connection, graph, build_dir: Path, cov, *, ends: dict[int
             if nid.startswith("lake:"):
                 lake_items[nid.split(":", 1)[1]] = (item_id, kind)
     stem_of: dict[str, str] = {}
+    lake_edges: dict = {}
     rows = compute(graph.nodes, graph.edges, handles, items, lake_items, stems=stem_of, graph=graph,
-                   ends=ends)
+                   ends=ends, lake_edges=lake_edges)
     eid = {t: i + 1 for i, t in enumerate(sorted({r[3] for r in rows} | {r[4] for r in rows}))}
     db.executemany("INSERT INTO span_end (eid, token) VALUES (?,?)",
                    sorted((i, t) for t, i in eid.items()))
@@ -683,6 +709,87 @@ def write(db: sqlite3.Connection, graph, build_dir: Path, cov, *, ends: dict[int
     db.executemany("INSERT INTO split (split_id, name, kind, at, official_name, same_place_as, "
                    "lake_id, confidence) VALUES (?,?,?,?,?,?,?,?)", srows)
     cov.filled("split", len(srows))
+    return lake_edges
+
+
+# --------------------------------------------------------------------------------------------
+# A line standing on an unnamed lake's edge (T697)
+# --------------------------------------------------------------------------------------------
+#
+# Owner 2026-11-12, on the part ends that read "Unnamed lake (km N)": "Yes, read the real boundary" — a part end
+# ALWAYS reads the real boundary that stands there ("Region 8 boundary", "B.C. border", the cut's own name), never the
+# lake. The atlas cuts a line at a lake's edge ONCE, as the lake: where a region line runs along a pond's outlet (Slack
+# Creek, Regions 3 / 8) or the border crosses a lake straddling 60°N (Jones Creek) no second cut is made, and the
+# section's bound names only the lake. Which line stands there is a fact the bundle already holds: the pieces of the
+# water either side of the lake are in different regions (the one membership, `registry.regions.section_regions`, as
+# `_water_places` read it) or one is outside B.C. (the reach run's `outside_bc`). Read here, never recomputed.
+
+
+def line_at_lake_edge(below: list[tuple[bool, tuple]], above: list[tuple[bool, tuple]]) -> str | None:
+    """The line standing at an unnamed lake's edge between `below` (the water's pieces ending at the lake's outlet)
+    and `above` (those beginning at its inlet), each piece (outside B.C., its regions): `bc_border` where one side is
+    outside B.C. and the other inside; `region_line:<r>` where both are inside and their regions differ — the region
+    the water enters going upstream, else the one it leaves (Slack Creek, Region 3 below, Region 8 above: "Region 8").
+    None: no line stands there (both sides alike, or a water's own end with nothing beyond the lake). One answer per
+    lake, the same at both its edges."""
+    if not below or not above:
+        return None
+    outs = {o for o, _ in below}, {o for o, _ in above}
+    if len(outs[0]) != 1 or len(outs[1]) != 1:
+        return None
+    if outs[0] != outs[1]:
+        return "bc_border"
+    if True in outs[0]:
+        return None
+    lo = {frozenset(r) for _, r in below}
+    hi = {frozenset(r) for _, r in above}
+    if len(lo) != 1 or len(hi) != 1:
+        return None
+    lo_r, hi_r = next(iter(lo)), next(iter(hi))
+    if not lo_r or not hi_r or lo_r == hi_r:
+        return None
+    code = sorted(hi_r - lo_r or lo_r - hi_r)[0].upper()
+    if not REGION_AREA.match(f"area:{code}"):
+        raise SystemExit(f"section_span: region {code!r} at a lake edge is not one of the nine regions")
+    return f"region_line:{code}"
+
+
+def lines_at_lake_edges(db: sqlite3.Connection, lake_edges: dict, regions_of: dict[int, tuple]) -> list:
+    """Rewrite every unnamed lake's edge token (`lake_outlet` / `lake_inlet`) a line stands at (`line_at_lake_edge`)
+    in `section_span`. `lake_edges` is what `write` returned; `regions_of` {sid: regions} (`_water_places`); the
+    `outside_bc` table is already written (`rules.write`). Returns [(sid, end, old, new)], sorted."""
+    outside = {s for (s,) in db.execute("SELECT sid FROM outside_bc")}
+    tok = dict(db.execute("SELECT eid, token FROM span_end"))
+    eid = {t: e for e, t in tok.items()}
+    changes = []
+    for key in sorted(lake_edges):
+        below, above = lake_edges[key]
+
+        def facts(sids, _key=key):
+            got = []
+            for s in sids:
+                if s not in outside and not regions_of.get(s):
+                    # no silent fallback: a section in B.C. with no region is refused (`derived.write` would stop too)
+                    raise SystemExit(f"section_span: section {s} at {_key[1]} on {_key[0]} is in B.C. and in no region")
+                got.append((s in outside, tuple(regions_of.get(s, ()))))
+            return got
+        line = line_at_lake_edge(facts(below), facts(above))
+        if line is None:
+            continue
+        if line not in eid:
+            eid[line] = max(eid.values(), default=0) + 1
+            db.execute("INSERT INTO span_end (eid, token) VALUES (?,?)", (eid[line], line))
+        for sids, col, old in ((below, "hi", "lake_outlet"), (above, "lo", "lake_inlet")):
+            for s in sids:
+                cur = db.execute(f"SELECT {col} FROM section_span WHERE sid = ?", (s,)).fetchone()
+                if cur is None or tok.get(cur[0]) != old:
+                    raise SystemExit(f"section_span: section {s}'s {col} is not {old!r} as `compute` wrote it")
+                db.execute(f"UPDATE section_span SET {col} = ? WHERE sid = ?", (eid[line], s))
+                changes.append((s, col, old, line))
+    used = {e for (e,) in db.execute("SELECT lo FROM section_span UNION SELECT hi FROM section_span")}
+    db.executemany("DELETE FROM span_end WHERE eid = ?", [(e,) for e in sorted(set(tok) - used)])
+    print(f"     section_span: {len(changes)} unnamed-lake ends read the line standing there (T697)")
+    return sorted(changes)
 
 
 # --------------------------------------------------------------------------------------------

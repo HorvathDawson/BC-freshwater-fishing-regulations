@@ -283,6 +283,10 @@ def _names(W: "Water", crossings: Dict[tuple, List[Tuple[float, str]]]) -> List[
     # (T697, owner 2026-11-12: "it is mouth to cut the cut to head") an UNNAMED LAKE at the water's own top or bottom is
     # no cut: the water's own end, said as every water's is ("Source", "Mouth"). Anywhere else it is a place two parts
     # meet with no name of its own: always said near what stands there ("Unnamed lake near X"), else at its km.
+    # GUARDED LAST RESORT (owner 2026-11-12 "Yes, read the real boundary", RULINGS P55 follow-up): the bundle already names the
+    # real boundary at a lake edge — the cut aliased there, the region line, the B.C. border (`bundle.spans.end_token`,
+    # `lines_at_lake_edges`) — so on the export no part end says "Unnamed lake …"; `test_part_names_unnamed_lake.py`
+    # proves zero province-wide. This only keeps a future bare lake end said at its place, never "a lake".
     lo_w, hi_w = _water_ends_km(W.w)
     for i, t in enumerate(toks):
         if t and ends[i]:

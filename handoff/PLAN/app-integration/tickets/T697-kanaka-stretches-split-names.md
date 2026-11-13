@@ -66,3 +66,16 @@ now that the Parts sheet is gone (T698), and the 1,333 single-part waters, which
 
 **For the owner.** The 5 mid-water ends read "Unnamed lake (km 2.3)" (T517's km fallback: nothing named within 2 km). Say if
 those should name something farther away instead.
+
+## Follow-up 2026-11-12: "Yes, read the real boundary" (RULINGS P55 follow-up; supersedes the km answer above)
+Owner, dialog option verbatim: "Yes, read the real boundary" — a part end always reads the real boundary standing there,
+never the lake. Cause: the atlas cuts a line at a lake edge once, as the lake. Built in the bundle (`bundle.spans`): a cut
+aliased onto another water's lake edge keeps its name (`end_token`, and its `split` row names the cut); where the pieces
+either side of an unnamed lake differ in region or in/out of B.C., both edges read that line (`lines_at_lake_edges`, from
+`_water_places` and `outside_bc`). Side bundle (live atlas `full`, reach run `full`, corpus c9488453c): 10 span ends
+change, 6 multi-part waters' names: Slack "Mouth → Region 8 boundary" / "Region 8 boundary → Source"; Jones "B.C. border
+→ Source"; Gagnon's outlet end the signs cut ("Mouth → The mouth (400 m above Williston Lake)" — the display's sign-word
+trim); Duncan "… → Duncan Dam", Mitchell "… → 100 m above the Mitchell Lake outlet weir", Babine "… → Juvenile counting
+weir" (cuts aliased onto a named lake). Still open: Gagnon's part above the lake (inlet km 3.66) has no line or cut —
+"Unnamed lake near the fishing boundary signs …" (owner's Williston question); pinned as the one last-resort end in
+`test_part_names_unnamed_lake.py`. Rides the next bundle; that test fails on the current live export until then.

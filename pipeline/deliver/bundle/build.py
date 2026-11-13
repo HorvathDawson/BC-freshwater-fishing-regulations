@@ -586,7 +586,7 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
     # made (T108: `continuation.goes_on` decides it once; the span end and the ▲ button cannot disagree). Before the
     # geometries load: `spans.write` parses registry.json again.
     from pipeline.deliver.bundle import spans as _spans
-    _spans.write(db, graph, build_dir, cov, ends=_continuation.lower_ends(
+    _lake_edges = _spans.write(db, graph, build_dir, cov, ends=_continuation.lower_ends(
         _continues, _settled, dict(db.execute("SELECT ord, item_id FROM item")),
         _continuation.ranks(graph, _handle_ids, {h for r in _continues for h in (r[1], r[3])})))
     places =_places(db, data_dir / "bc_places.json",
@@ -739,6 +739,10 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
             _place_words = {_loc.location_id: _salmon._label(_loc) for _ef in _files.values() for _loc in _ef.locations}
             _chain_places = [list(_c.get("l") or []) for _c in _payload["chains"]]
             del _files, _feeds, _placed, _payload, _salmon_secs
+        # (T697) an unnamed lake's edge a region line or the border stands on reads that line, from the facts now
+        # written: each section's regions (`places`) and `outside_bc` (`rules.write`) — before anything reads the spans
+        _spans.lines_at_lake_edges(db, _lake_edges, {s: p[1] for s, p in places.items()})
+        del _lake_edges
         _derived.write(db, cov, places=places)
         _continuation.write(db, _continues, cov, built_with=_settled)
         _topology.write(db, named_geo, cov, mouths=_mouths, codes=_codes,

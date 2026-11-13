@@ -65,10 +65,13 @@ def test_a_named_lake_keeps_its_name():
 
 
 @pytest.mark.needs_bundle
-def test_province_wide_no_part_ends_at_a_bare_lake_or_a_count(request):
-    """Every water of several parts on the built export: no name says "A lake" / "a lake outlet" (an unnamed lake is
-    the water's own end, or "Unnamed lake near X" / "(km N)"), none counts stretches or parts, none repeats. 2026-11-12
-    export: 562 waters; 62 tops now "Source" (Kanaka Creek's among them), 5 mid-water ends "Unnamed lake (km N)"."""
+def test_province_wide_no_part_ends_at_a_lake_or_a_count(request):
+    """Every water of several parts on the built export: no name says "A lake" / "a lake outlet", none counts stretches
+    or parts, none repeats — and (owner 2026-11-12, "Yes, read the real boundary", RULINGS P55 follow-up) NO part end
+    says "Unnamed lake …": the "near X" / "(km N)" words are a guarded last resort used by ZERO ends; a lake edge reads
+    the real boundary standing there (the cut aliased onto it, the region line, the B.C. border — `bundle.spans`).
+    2026-11-12 side bundle: Slack Creek reads "Region 8 boundary", Jones Creek "B.C. border", Gagnon Creek's outlet end
+    the signs cut. ONE end stands where no line and no cut is (`OPEN`), pinned so it cannot grow or linger."""
     import re
     from pipeline.deliver.answers import common as C
     from pipeline.deliver.answers.display.builders import _crossings
@@ -78,7 +81,7 @@ def test_province_wide_no_part_ends_at_a_bare_lake_or_a_count(request):
     data, guide = C.load_export(d)
     doc = expand(data, guide)
     cr = _crossings(str(under_test.bundle(request)))
-    bad, waters = [], 0
+    bad, waters, last_resort = [], 0, {}
     for iid, w in sorted(doc["waters"].items()):
         W = Water(iid, w, doc)
         if len(W.parts) < 2:
@@ -86,9 +89,22 @@ def test_province_wide_no_part_ends_at_a_bare_lake_or_a_count(request):
         waters += 1
         said = [f"{end_words(doc, n['lo'], 'to')} → {end_words(doc, n['hi'], 'from')}"
                 for n in _names(W, cr) if n["lo"] is not None]
-        bad += [f"{iid} {s}" for s in said if re.search(r"\b[Aa] lake\b|\b(stretch|part) \d+ of\b|\d+ stretches", s)]
+        lake = [s for s in said if re.search(r"[Uu]nnamed lake", s)]
+        if lake:
+            last_resort[iid] = lake
+        bad += [f"{iid} {s}" for s in said
+                if re.search(r"\b[Aa] lake\b|\b(stretch|part) \d+ of\b|\d+ stretches", s)]
         bad += [f"{iid} said twice: {s}" for i, s in enumerate(said) if s in said[:i]]
         if iid == "gnis:11318":
             assert "Cliff Park Falls → Source" in said, said
     assert waters > 500
     assert bad == []
+    # the last resort: used by NO end but the open one, which must still be there (resolve it, then empty `OPEN`)
+    assert {i: len(v) for i, v in last_resort.items()} == {i: 1 for i in OPEN}, last_resort
+
+
+#: Part ends with no real boundary to read, each tied to its open owner question. Gagnon Creek (gnis:7733): part 1
+#: begins at the INLET (km 3.66) of a 57.8 ha unnamed lake (wbk 329465442); its fishing boundary signs are aliased onto
+#: the lake's OUTLET edge (km 1.84, the nearer edge, `sectionizer._alias_to_lake_edge`), and no region line, border or
+#: cut stands at the inlet. Open owner question (T697): is that lake part of Williston Lake?
+OPEN = ("gnis:7733",)
