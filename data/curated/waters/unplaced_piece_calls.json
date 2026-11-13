@@ -24,42 +24,6 @@
       "proposed_on": "2026-11-10",
       "accepted_by": "owner",
       "accepted_on": "2026-11-11"
-    },
-    {
-      "entry_id": "6:skeena-river:mainstem-waters-near-the-kitsumkal",
-      "rule_id": "",
-      "piece": "360220078:0",
-      "reason": "straddles_the_cut",
-      "kind": "dfo",
-      "note": "Skeena River side channel (1,488 m) at the DFO place 'mainstem waters near the Kitsumkalum River mouth, Zymagotitz confluence to the top of Hell's Gate'. The atlas's braid sweep REFUSED this cut (skeena_river__kitsumkalum_river_into_skeena_river_u1500m, 'refused: line misses' in braid_sweep.json): its perpendicular at the cut crosses none of the braid's channels, so the channels that join the Skeena both above and below the cut were never cut (residual_straddles lists 360220098 and 360220099). The real fix is in the atlas (the sweep, or the cut's place), not an acceptance; accepting keeps these 7.5 km of side channel out of the place until then. Owner 2026-11-11 from map A3: out of the place.",
-      "proposed_by": "Claude (T632)",
-      "proposed_on": "2026-11-10",
-      "accepted_by": "owner",
-      "accepted_on": "2026-11-11"
-    },
-    {
-      "entry_id": "6:skeena-river:mainstem-waters-near-the-kitsumkal",
-      "rule_id": "",
-      "piece": "360220098:0",
-      "reason": "straddles_the_cut",
-      "kind": "dfo",
-      "note": "Skeena River side channel (3,262 m) joining the Skeena on both sides of the Kitsumkalum +1500 m cut; same cause as 360220078 (braid sweep 'refused: line misses'). Owner 2026-11-11 from map A3: out of the place.",
-      "proposed_by": "Claude (T632)",
-      "proposed_on": "2026-11-10",
-      "accepted_by": "owner",
-      "accepted_on": "2026-11-11"
-    },
-    {
-      "entry_id": "6:skeena-river:mainstem-waters-near-the-kitsumkal",
-      "rule_id": "",
-      "piece": "360220099:0",
-      "reason": "straddles_the_cut",
-      "kind": "dfo",
-      "note": "Skeena River side channel (2,699 m) joining the Skeena at m 119,499 (below the cut at m 123,961) and m 125,470-127,295 (above it); same cause as 360220078. Owner 2026-11-11 from map A3: out of the place.",
-      "proposed_by": "Claude (T632)",
-      "proposed_on": "2026-11-10",
-      "accepted_by": "owner",
-      "accepted_on": "2026-11-11"
     }
   ],
   "proposed": []

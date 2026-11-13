@@ -52,6 +52,9 @@ BY_DESIGN = frozenset({
     ("z1:daily_quotas", "trout_quota.r5b"),
     ("z5:daily_quotas", "trout_char_quota.r6b"),
     ("z6:daily_quotas", "trout_char_quota.r9b"),
+    # owner 2026-11-13 (RULINGS P57, "Mouth is still Williston"): Gagnon Creek's signs ARE its mouth, so "exempt from
+    # spring closure downstream of the signs" covers no water of the creek
+    ("r7:gagnon_creek@7-30", "gagnon_creek.r1"),
     # working exclusions: the Columbia / Kootenay tributary rows carry no tributary rule of their own
     ("r4:kinbasket_mcnaughton_lake_s_tributaries@4-36", "kinbasket_lake_tributaries.r2"),
     ("r4:kootenay_lake_s_tributaries@4-19+4-7", "kootenay_lake_tributaries.r2"),
@@ -76,7 +79,7 @@ AWAITING_WATER_ROWS = {
 }
 AWAITING_WATER = frozenset((e, r) for e, (_, _, rids) in AWAITING_WATER_ROWS.items() for r in rids)
 
-#: Every rule allowed to end unresolved: 7 by design (3 steelhead twins back with T678 D1) + 21 awaiting a water.
+#: Every rule allowed to end unresolved: 8 by design (3 steelhead twins back with T678 D1, Gagnon P57) + 21 awaiting a water.
 ALLOWED_UNRESOLVED = BY_DESIGN | AWAITING_WATER
 
 
@@ -111,7 +114,7 @@ def _place(rule: dict) -> dict:
 # The allow-list itself (no data): exact, both ways — the key rule, mutation-pinned
 # ---------------------------------------------------------------------------------------------
 def test_the_allow_list_is_exact():
-    assert len(BY_DESIGN) == 7 and len(AWAITING_WATER) == 21 and len(ALLOWED_UNRESOLVED) == 28
+    assert len(BY_DESIGN) == 8 and len(AWAITING_WATER) == 21 and len(ALLOWED_UNRESOLVED) == 29
     assert unresolved_problems(set(ALLOWED_UNRESOLVED)) == []
 
 
