@@ -547,6 +547,27 @@ def file_sha(p: Path) -> str:
     return hashlib.sha256(Path(p).read_bytes()).hexdigest()[:16]
 
 
+def run_content(run_dir: Path) -> str:
+    """A reach run by the CONTENT of the files the binding diff reads (T631 item 1). The run's `digest` covers the rules
+    only: 21 DFO places moved (Morice lost 11 sections) with the digest unchanged, and the check called that "same reach
+    run" without diffing. A file the run does not hold counts as absent, never as empty."""
+    h = hashlib.sha256()
+    for n in BASELINE_FILES:
+        if n == "report.json":
+            continue
+        p = Path(run_dir) / n
+        h.update(n.encode() + b"\0")
+        h.update(p.read_bytes() if p.is_file() else b"\0absent\0")
+    return h.hexdigest()[:16]
+
+
+def run_diff_key(base: Path, run: Path, before_digest: str | None, after_digest: str | None) -> tuple[str, bool]:
+    """(the binding diff's ledger key, whether the two runs are the same run) — by digest AND files (T631 item 1)."""
+    before_c, after_c = run_content(base), run_content(run)
+    return (f"{before_digest}:{before_c}->{after_digest}:{after_c}",
+            before_digest == after_digest and before_c == after_c)
+
+
 #: the binding diff's own words for WHERE it compared, not WHAT differs: left out of its content key
 DIFF_PATH_KEYS = ("before", "after")
 
@@ -963,11 +984,15 @@ def stage_checks(ctx: Ctx) -> str:
     after_digest = (manifest_of(rid).get("bundle") or {}).get("reach_digest")
     before_digest = reach_digest_of(base) if rid != ctx.live else after_digest
     out_dir = HOME / "checks" / rid
-    diff_key = f"{before_digest}->{after_digest}"
+    # (T631 item 1) keyed by the run files' content too: a DFO-only change leaves the rules digest as it was
+    if rid == ctx.live:
+        diff_key, same_run = f"{before_digest}->{after_digest}", True
+    else:
+        diff_key, same_run = run_diff_key(base, reach_dir(), before_digest, after_digest)
     done = r.get("binding_diff") or {}
     if done.get("key") != diff_key:
-        if before_digest == after_digest:
-            done = {"key": diff_key, "status": "same", "note": "same reach run"}
+        if same_run:
+            done = {"key": diff_key, "status": "same", "note": "same reach run (digest and files)"}
         else:
             rep = binding_diff(base, reach_dir())
             out_dir.mkdir(parents=True, exist_ok=True)
@@ -1453,13 +1478,15 @@ def dry_run(ctx: Ctx) -> int:
     if built:
         after_digest = (manifest_of(cand).get("bundle") or {}).get("reach_digest")
         done = r.get("binding_diff") or {}
-        if done.get("key") == f"{live_digest}->{after_digest}":
+        key, same_run = (run_diff_key(baseline_dir(live), reach_dir(), live_digest, after_digest) if kept
+                         else (None, False))
+        if key is not None and done.get("key") == key:
             said = done["status"] if done["status"] != "differs" else stop(
                 f"the rule bindings differ from {live}: read {done.get('summary')}, then --accept-diff {done.get('json')}")
-        elif live_digest == after_digest:
-            said = "same reach run"
         elif not kept:
             said = "not rehearsed: no baseline copy is kept (the baseline stage's stop, above)"
+        elif same_run:
+            said = "same reach run (digest and files)"
         elif on_disk != after_digest:
             said = stop(f"the reach run on disk ({on_disk}) is not the candidate's ({after_digest}): the manifest "
                         "check stops on it (the reach run was rerun after the build)")

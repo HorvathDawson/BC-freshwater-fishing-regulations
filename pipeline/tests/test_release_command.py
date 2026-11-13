@@ -65,8 +65,11 @@ def world(tmp_path: Path, monkeypatch):
         if name in w["fail"]:
             return 3
         if name == "build" and not (root / NEW).exists():       # the build writes the release and CANDIDATE
-            _reach(reaches, "reach-new")
-            _release(root, NEW, "reach-new", extra=w.get("extra"), stamp=w["new_stamp"])
+            digest = w.get("new_digest", "reach-new")
+            _reach(reaches, digest)
+            if "new_dfo" in w:                                     # (T631) DFO places, outside the rules digest
+                (reaches / "dfo_salmon.jsonl.gz").write_bytes(w["new_dfo"])
+            _release(root, NEW, digest, extra=w.get("extra"), stamp=w["new_stamp"])
             (root / "CANDIDATE").write_text(NEW + "\n")
         return 0
 
@@ -293,6 +296,23 @@ def test_the_diff_gate_stops_and_only_its_own_json_lets_it_pass(world, tmp_path,
     assert _latest(world) == NEW
     assert world["diffs"] == 1                                # the diff ran once; reruns read the ledger
     assert json.loads(R.LEDGER.read_text())["releases"][NEW]["checks"]["binding_diff"] == "accepted"
+
+
+def test_a_dfo_only_change_is_diffed_though_the_rules_digest_is_unchanged(world, capsys):
+    """T631 item 1: the reach digest covers the rules only. A run whose DFO places moved (21 places on 2026-11-11, the
+    Morice lost 11 sections) with the same digest was called "same reach run" and never diffed."""
+    world["new_digest"], world["new_dfo"], world["differs"] = "reach-live", b"21 places moved", True
+    assert _staging() == 1
+    assert world["diffs"] == 1 and "STOPPED at checks" in capsys.readouterr().err
+    assert _latest(world) == LIVE
+
+
+def test_the_same_run_by_digest_and_files_is_not_diffed(world):
+    world["new_digest"] = "reach-live"
+    assert _staging() == 0
+    assert world["diffs"] == 0
+    assert json.loads(R.LEDGER.read_text())["releases"][NEW]["binding_diff"]["note"] == \
+        "same reach run (digest and files)"
 
 
 def test_a_rerun_resumes_where_it_stopped(world, capsys):
