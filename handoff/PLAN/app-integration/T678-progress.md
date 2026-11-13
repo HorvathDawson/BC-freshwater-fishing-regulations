@@ -326,3 +326,20 @@ Next commands:
   data/generated/atlas/full_next --dry-run`, then without `--dry-run` (no accept flag expected: no boundary lost, no
   curated id moved); then `.venv/bin/python -m pipeline release --staging --dry-run --rehearse-follows`, then
   `.venv/bin/python -m pipeline release --staging --push`.
+
+## Night lane 2026-11-12 (agent): T672 1b, T669 item 1, Skeena channels, plan 6 count — no atlas, release or APK
+- T672 1b DONE in code (83b1477ba; T678 "not done" item 6): the store writes `section_tidal` (the bundle's `tidal` sids,
+  one byte per section), shipped in `regs-sid` (ADDITIVE, still regs-sid/1; `water` untouched); the app reads it on a
+  key-less section and draws the existing tidal banner. regs-sid +2,934 B gz measured on r-0a9930fb8826's data. A
+  release built from the live bundle (test_release.py) passes contract + size gates. Shows with the next release.
+- T669 item 1 DONE (91398f801): one shared case table both strictest readers run; test only.
+- T631 item 2 HELD (not small: bundle table + release file + new page words). T600, T602 not started (each M, needs a
+  full-build proof); T667 slices not started.
+- T631 item 5 (Skeena channels): NOT tidal (tidal boundary m 6,405; cut m 123,961). By geometry and FWA codes the three
+  channels lie wholly above the cut; the "straddle" is graph edge 778568 (x/y at …099's mouth, measure m 119,499, 3.35 km
+  off). Options A–D + pictures in the ticket and `bcfish-session-backup-2026-11-12/skeena-channels/`. Nothing changed.
+- Plan 6 count (owner leans to a manual list): 1,204 unnamed lines with no graph piece in tidal water (1,133 FWA 1450
+  construction lines inside tidal river polygons, 71 in the sea). Recommendation: no list (no output can change);
+  OWNER-TODO 11/13 and the To-Do page.
+- Final release must rebuild: deliver (store → regs-sid gains `section_tidal`; status index for T672 item 2) — the
+  release command does this; the app build reads it. Nothing here needs an atlas or reach rerun.

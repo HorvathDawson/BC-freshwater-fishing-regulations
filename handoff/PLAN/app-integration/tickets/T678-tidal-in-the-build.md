@@ -218,3 +218,11 @@ regenerated owner list (187 lines) in the progress note. Left: owner reads the d
   atlas's `.prev` is post-T678, i.e. after the next promote; code-only, no build output. Do it after that promote.
 - "Not done" item 8 (split classification field): settled by T685 — `tidal_split_authority.json` holds the authority,
   `coast_held` no longer generates, `coast_owner.json` `held_now_governed` is empty and no split is unclassified.
+
+## 2026-11-12 night: plan 6 counted, plan 8 done
+- Plan 8 (store fact for key-0 tidal sections) = T672 1b, done in 83b1477ba; shows with the next release.
+- Plan 6: owner leans to "just add them to the manual list". Count on the live atlas (FWA `streams` lines with no graph
+  piece, midpoint in the sea or in the river polygon of a blue line the atlas holds tidal): 1,204 lines / 1,827 edges,
+  none named; 1,133 inside tidal river polygons (edge type 1450, the river's own construction lines: Fraser 385, Skeena
+  290, Nass 158 …), 71 in the sea. A list changes no output (no piece to mark). Recommendation: no list; if wanted, the
+  71 sea lines in a new file beside `waters/shore_held.json`. Owner rows OWNER-TODO 11 and 13.

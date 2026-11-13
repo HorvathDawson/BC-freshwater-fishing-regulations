@@ -1,6 +1,6 @@
 # T672 — T462 audit, the W findings and the cosmetics: tidal page, search dot, topic hubs
 
-Status: IN PROGRESS — the mechanical fixes are in (items 1a, 2, 3, 5); left (Claude): hand the held items (1b, 4, 6) to the owner with their options, then the staging site deploy and, for item 2, the next release (it rebuilds the status index).
+Status: IN PROGRESS — the mechanical fixes are in (items 1a, 1b, 2, 3, 4, 5); left (Claude): item 6 (K9) held, the staging site deploy, and the next release for items 1b and 2 (deliver rebuilds the store and the status index).
 
 Source: `handoff/PLAN/app-integration/T462-audit.md` (85ba2e821), findings W1, W2, W3 and the cosmetic K9, G11, W4.
 Owner 2026-11-11: fix what is mechanical; anything that is a choice, and any new wording, is held and proposed.
@@ -70,3 +70,16 @@ pmtiles, `bc_outside.geojson` and the map assets only; `regs-sid` carries `secti
 "outside B.C." for the 121 (reached only by a link to an unnamed reach, never a map tap). Needs a pipeline change: ship the
 fact, for example one bit per section in `regs-sid` (a `section_tidal` block) or the sid ranges in the water store; then the
 app reads it where `loadRegsInputs` sees `a === 0` and sets `tidalPart`. Held, pipeline lane. Default if never done: unchanged.
+
+## Item 1b done 2026-11-12 night (83b1477ba) — shows with the next release
+The store writes `section_tidal` (one byte per section, 1 = tidal; the bundle's `tidal` sids as they are; a section both
+tidal and outside B.C. is refused) and the release ships it in `regs-sid` (ADDITIVE, still regs-sid/1, the way core's
+`name_source` was added). The `water` file is untouched (it is at 99.7 % of its gate, T686). Measured on
+r-0a9930fb8826's data: regs-sid +2,934 B gz (282 tidal sections in 104 blocks; ~1.25 MB of the 1.40 MB gate).
+`province_store` drops the additive table for a release cut before it, so r-0a9930fb8826 still reassembles to its digest.
+App: `RegsReads.sectionTidal` (null for a release cut before the table: read as outside, as before); `loadRegsInputs`
+sets `tidalPart` on a key-less section, so the page draws the tidal-water banner already used for a key-less tidal part
+(`TIDAL_SHEET_WORDS`, no new copy). Tests: `test_regs_store.py` (synthetic + mutation, the live store equals the
+bundle's tidal set, the release under test reassembles; mutation: without the drop it fails), `inputs.test.ts` (fails
+before), `reads.test.ts`, `edge.test.ts`. A built release from the live bundle passes the contract and size gates
+(`test_release.py`, 59 passed with the store tests).

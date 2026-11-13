@@ -1,6 +1,6 @@
 # T669 — One "strictest of both regions" for salmon and freshwater straddlers
 
-Status: OPEN — left (Claude): the remainder below; the shared comparison landed in T668 (dfb4ea7c1)
+Status: IN PROGRESS — item 1 done (91398f801); left (Claude): items 2 and 3 (feed format change: worker + app + live.compose together); the shared comparison landed in T668 (dfb4ea7c1)
 
 Source: owner 2026-11-11 (T668): "The strictest of the rules is the same logic the fresh water regulations use I
 believe; we should double check that and if possible unify that logic." The side-by-side is in
@@ -32,3 +32,10 @@ The feed composes chains from verdict indices in the app (`withSalmonFeed`), wit
 needs its inputs in the feed format (worker + app + `live.compose` together).
 
 Depends: T668. Size: M. Owner: no.
+
+## Item 1 done 2026-11-12 (91398f801)
+`pipeline/tests/test_strictest_cases.py`: eleven cases, each outcome stated once; the freshwater step-6 reading
+(`ladder.stricter`, two regions' identical statements once) and `salmon.strictest` / `both_gear` / `tighter_hours` must
+both reach it. Three differ on purpose, each with its reason in the table: a pooled count (salmon shows both words,
+item 3), hours (only the salmon header compares them), a region with nothing to say (DFO: closed, `NOT_LISTED`).
+Mutation: a freshwater reader that never displaces fails four cases. Test only: no output can move.
