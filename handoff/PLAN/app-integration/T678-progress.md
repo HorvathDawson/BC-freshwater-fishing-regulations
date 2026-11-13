@@ -841,3 +841,16 @@ Owner's phone report (build 29, the More tab). Done in code, not yet in a build:
 - Tree restored clean: the corpus edits (T708 patch + the 3 `matched`) and pins (c) are ONE patch,
   `tickets/T708-files/apply-with-promote.patch` (supersedes apply-with-rebuild.patch); apply it at the promote.
 - Fast-fail note: `pnpm check:fast` fails on 5 colour literals in app/tools/store-video/checks.mjs (T709 lane's file).
+- Coordinator follow-up (same day). Gagnon label (49c9cb8 + the label commit after it): the end reads as the signs —
+  cuts.json label "fishing boundary signs near its mouth (200 m upstream of the lake on the creek)" (the book's words
+  outside the brackets: `splits.label_problem` refused "fishing boundary signs (200 m …)", which stopped atlas build 2
+  after 9 min — now a fast-fail item, 3d8d478); `display._sign_less` keeps the sign words when the rest names no place;
+  test mutation-checked. Part ends: "Mouth → Fishing boundary signs near its mouth (200 m upstream of the lake on the
+  creek)" → "… → Source" (unit test; the shipped export not yet built). store-video colours from the light theme tokens
+  (346704d); `pnpm check:fast` rc 0.
+- Atlas rebuilt (full_next, sliver gate clean, parity identical to the first candidate). Promote patch applied, reach
+  `data/generated/side/rc3/reaches/full_next`: binding diff vs live IDENTICAL to the attributed first candidate (145 rules,
+  12 unresolved, 3 licensing, 6 DFO, 1 diagnostic; section ids -3/+6, same ids). `side/rc3/checks/`.
+- STOPPED: `python -m pipeline.atlas.promote data/generated/atlas/full_next` was DENIED by the permission system. Not
+  worked around. Tree put back clean (the patch stays in tickets/T708-files/apply-with-promote.patch). Nothing promoted,
+  released or deployed; LATEST r-adc4e248a163.
