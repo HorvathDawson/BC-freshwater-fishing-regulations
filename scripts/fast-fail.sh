@@ -197,6 +197,10 @@ step "changed Python compiles" py_compiles
 # caught (2026-11-09): T517 bumped `inseason-links/3` in Python and core but the feeds worker still required /2, found
 # only on the deployed worker; every Python-written format the app / worker reads must have ONE value on both sides
 step "format pairs (Python writer = app / worker reader)" "$PY" scripts/check-format-pairs.py
+# caught (2026-11-13, T708): a cuts.json label naming no place outside its brackets stopped the atlas build after 9 min
+# (`splits.label_problem`); the corpus test runs in a second
+step "every curated cut label names a place" "$PY" -m pytest -q -p no:cacheprovider \
+  pipeline/tests/test_splits.py::test_every_curated_label_names_a_place
 
 # caught (T556, 2026-11-11): the live feeds' formats were hand-copied per side (the 2026-11-09 failure above), and no
 # test held the worker's DFO parser / fingerprint / row typing to the Python's since T431. The formats are generated
