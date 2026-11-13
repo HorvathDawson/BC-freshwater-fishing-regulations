@@ -695,3 +695,33 @@ Owner's phone report (build 29, the More tab). Done in code, not yet in a build:
       rerun; expected: the page back to `own` with the same rows (unverified).
   (b) `edge_unnamed.json`: one handle renumber 917240 -> 917242 (renumber only).
   The re-cut files are left uncommitted in the working tree (page-oracle.json, taps.json, edge_unnamed.json) for reading.
+- Main session: retarget x19p0 only once the split is traced. TRACED (746c205ed):
+  Reserve: superior_closures.r3 binds the same 3,792 sections in both runs (ids equal; not in the binding diff).
+  Split: old atlas graph (full.prev) had an edge from EVERY piece of side channel 360216962 (0, 96, 1752, 3840) to
+  mainstem section 360887278:44465; the new graph keeps only the mouth (360216962:0 -> 360887278:45193) — c24844fab
+  cause A, one junction per water and river. The spurious 360216962:3840 -> 360887278:44465 edge (3840 lies ABOVE the
+  Reserve) made the pieces either side of the Reserve one run. Order on 360887278 (m), before -> after:
+    before: [0 tidal]…6405 | part 2 (46, key 871): 6405-63480 + (via the false edge) 66554-67917 & 360216962:3840-4386 |
+            part 1 Reserve 63480-66554 (closed) | part 3 67917-115773 (59) …
+    after:  part 1 (44, key 871) 6405-63480 + side lines | part 2 Reserve 63480-66554 (closed, same sections) |
+            part 3 (2, key 871) 66554-67917 + 360216962:3840-4386 | part 4 67917-115773 (60) …
+  Same rows: parts 1 and 3 carry key 871, the old part 2's key. DECLARATIONS (owner review list, all in taps.py):
+  3. `x19p0_1010` PART_TIDAL freshwater part 2 -> 1 (cause/proof above). Re-cut: page-oracle.json UNCHANGED — the Skeena
+     page is open with exactly the committed rows.
+  4. `x15p2_1010` PART_RECOUNTED reason updated: 27 -> 34 sections, same ends (CPR Bridge -> Landstrom Bar). Cause: T691
+     (owner 2026-11-12 "silent doesn't mean retired"): gauge cuts at 94,833 / 107,496 / 111,136 / 122,095 / 132,550 /
+     141,142 / 148,096 m replace length cuts 93,821 / 116,370 / 135,998, and 3 braid lines cut beside them
+     (355992048:3190, 355992485:996, 355997500:1169), present since reach `nextatlas_final`. Proof: the group's 99-rule set
+     is identical; old group 33 sections -> 40 (parts 1 + 3).
+  Remaining fixture diff = declared counts/labels, Skeena part indices +1, id renumbers, edge_unnamed handle
+  917240 -> 917242: accepted with `--accept-fixtures 1bc035bd444b`.
+- Follows then STOPPED on 7 test failures on the candidate (tests not touched; LATEST not moved, nothing pushed by it):
+  stretch-names (Kanaka "Cliff Park Falls → A lake outlet" now "→ Source": T697/P55, which names exactly this),
+  t670.release + seo t670.web.release x2 (Mat Creek gnis:14254 part "mouth to lake_outlet" no longer exists: T697 part ends
+  renamed its top), waterMap.test (Skeena "tidal_boundary to exchamsiks" part: the traced split), WaterMapView x2 (the
+  Skeena part "Tidal boundary → Exchamsiks River confluence" is now "Skeena River Ecological Reserve boundary near the
+  Exchamsiks River confluence → Exchamsiks River confluence"; the back/chooser walk follows). All look like pins of the
+  old part names; they need test edits, which this lane may not make.
+  The release's re-cut fixtures are uncommitted in the tree ON PURPOSE: the ledger records the re-cut on the candidate, so
+  preflight now pairs the goldens with r-adc4e248a163, and reverting them fails preflight (seen once: "goldens cut from
+  LATEST"). The release commits them itself when follows passes.
