@@ -53,7 +53,7 @@ import { zoomStep } from "./zoom-step";
 import { nativeMapGestures } from "./gestures";
 import { areaLayer, nativeStyle } from "./native-style";
 import { NativeLookTracker } from "./look-drawn";
-import { litKey, spreadSections, TAP_GROUPS, tapBox, VISIBLE_LAYERS, visibleSections } from "./sections";
+import { isTapTarget, litKey, spreadSections, TAP_GROUPS, tapBox, VISIBLE_LAYERS, visibleSections } from "./sections";
 import { withoutEngineKeys } from "./colouring";
 import { nativeImages } from "./images";
 import { useNativeColouring, type AtlasSource } from "./native/useColouring";
@@ -629,9 +629,10 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
    * points on a 24 dp grid (nearest the middle first, clear of the top bar and the bottom chrome) are hit-tested as a tap
    * would be (`renderer.press`) until one answers with a highlighted section; logged as `[target] {x, y, win}` (dp, in
    * the map view and the map's rect in the window). A scenario taps there: never a colour hunted on screen, which the
-   * "has its own regulations" lines share with the highlight. (T478) Never a point with still water under the box as
-   * well: the search fires while the water is open and lit, and a lit river answered at a lake's tip; the scenario taps
-   * after Back, unlit, and the same point opened the lake. A tap there opening the lake is right; the target was not.
+   * "has its own regulations" lines share with the highlight. (T478) Never a point with ANOTHER water's still water under
+   * the box as well: the search fires while the water is open and lit, and a lit river answered at a lake's tip; the
+   * scenario taps after Back, unlit, and the same point opened the lake. (T689) The lit water's own still water is no
+   * reason to skip: a lake is all still water (`isTapTarget`).
    */
   findTarget.current = async () => {
     const STILL_WATER = TAP_GROUPS.find((g) => g.as === "lake")!.layers;
@@ -643,7 +644,10 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     pts.sort((a, b) => Math.hypot(a[0] - w / 2, a[1] - h / 2) - Math.hypot(b[0] - w / 2, b[1] - h / 2));
     for (const [x, y] of pts.slice(0, 400)) {
       const hit = await renderer.press(x, y).catch(() => null);
-      if (hit && ids.has(Number(hit.id)) && !(await mapRef.current?.queryRenderedFeatures(tapBox(x, y), { layers: [...STILL_WATER] }).catch((e: unknown) => { report(e); return [null]; }) ?? [null]).length) {
+      if (!hit || !ids.has(Number(hit.id))) continue;
+      const still = await mapRef.current?.queryRenderedFeatures(tapBox(x, y), { layers: [...STILL_WATER] })
+        .catch((e: unknown) => { report(e); return null; }) ?? null;
+      if (isTapTarget(hit, ids, still)) {
         console.log(`[target] ${JSON.stringify({ x, y, id: hit.id, win: winRect.current })}`);
         return;
       }

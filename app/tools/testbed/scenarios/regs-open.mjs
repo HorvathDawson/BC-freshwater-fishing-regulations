@@ -100,7 +100,10 @@ export const regsOpen = {
         ctx.device.sh('input keyevent 4'); await ctx.device.sleep(3000);
         // the camera at rest: the app's own word on where the water answers a tap
         at = await settledTarget(ctx);
-        if (!at) throw new Error('the app named no tap target for the water (no [target] line)');
+        // (T689) two different failures: the probe never ran (nothing lit, no map size) or it searched and found no point
+        if (!at) throw new Error(targets(ctx).length
+          ? 'the app searched and found no tap target for the water ([target] {"none":true})'
+          : 'the app named no tap target for the water (no [target] line: nothing lit, or the map not drawn)');
         return `target at ${at.x},${at.y} px`;
       });
       if (!at) continue;

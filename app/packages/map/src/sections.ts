@@ -131,6 +131,20 @@ export function firstSection(features: readonly { id?: unknown }[]): number | nu
   return null;
 }
 
+/**
+ * (test bed only, Map.native `findTarget`) A POINT IS THE LIT WATER'S TAP TARGET when the tap there answers a lit section
+ * and every still-water feature under the box is the lit water too. (T478) A lit river answered at a lake's tip, and
+ * after Back (unlit) the same point opened the lake: another water's still water under the box skips the point.
+ * (T689) The lit water's OWN still water does not: a lake is all still water, and skipping it left a lake with no target
+ * (build 29, regs-open "Cultus"). A still-water feature with no section id is not known to be lit, so it skips; a failed
+ * query (`null`, reported by the caller) is no target.
+ */
+export function isTapTarget(hit: { id: number } | null, lit: ReadonlySet<number>,
+                            stillUnder: readonly { id?: unknown }[] | null): boolean {
+  if (!hit || !lit.has(Number(hit.id)) || stillUnder === null) return false;
+  return stillUnder.every((f) => { const id = sectionIdOf(f.id); return id !== null && lit.has(id); });
+}
+
 /** Every section named, once, in the order first seen. */
 export function visibleSections(features: readonly { id?: unknown }[]): number[] {
   const seen = new Set<number>();
