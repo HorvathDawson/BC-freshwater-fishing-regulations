@@ -72,7 +72,7 @@ describe("(T298) the first download: mobile data, the notification, the fish say
 
   it("the prompt names the size, and the saved line says where to change it", () => {
     expect(MOBILE_DATA_WORDS.prompt(498_812_345)).toBe("Download about 498.8 MB using mobile data?");
-    expect(MOBILE_DATA_WORDS.saved).toBe("Saved. Change this any time in More → Data.");
+    expect(MOBILE_DATA_WORDS.saved).toBe("Saved. Change this any time in More → Settings.");
     expect(Object.values(MOBILE_DATA_WORDS.choices)).toEqual(["Always", "Ask", "Wi-Fi only"]);
     expect(DOWNLOAD_NOTE_WORDS.text(DOWNLOAD_NOTE_WORDS.files.basemap, 274_500_000)).toBe("Base map · 274.5 MB");
   });

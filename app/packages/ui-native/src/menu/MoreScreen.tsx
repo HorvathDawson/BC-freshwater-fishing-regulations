@@ -1,35 +1,39 @@
 /**
  * THE MORE TAB (T48; owner 2026-10-22 refinement pass; T167 2026-10-23: "details … simplified … references to a
  * separate thing … this stuff formatted into the main tab without adding much bulk … desktop feels a little lacking").
- * Top to bottom:
+ * (T703, owner 2026-11-13) A short list: every control moved into the Settings screen, and the update lines above the
+ * table that repeated it are gone. Top to bottom:
  *
  *   back <tab>  back to the tab More was opened from (the route's `prev`; the system back does the same)
- *   DATA        ALWAYS SHOWN, compact, under ONE summary badge: the in-season changes' warning (not read by this app)
- *               with the Province's link, then one row per source — a freshness dot, its name, its date or age, and
- *               the state in words only where it asks the reader to look ("4h ago · Likely out of date")
- *   DISPLAY     the app's colours as three preview tiles (a radiogroup): each tile is a miniature of that palette — its
- *               ground, a card and the three water status lines — so the choice is seen, not read
- *   rows        Glossary, Sources and credits, About, Report a problem: each opens a page over the tab (`MenuHost`)
+ *   DATA        ALWAYS SHOWN, compact, under ONE summary badge: the refresh button (its state in words only when it asks
+ *               something), what is NOT in the table below (a newer release, a release this app cannot use, a source that
+ *               failed), the in-season changes' warning (not read by this app) with the Province's link, then ONE ROW PER
+ *               SOURCE — a freshness dot, its name, its date or age, and the state in words only where it asks the reader
+ *               to look ("4h ago · Likely out of date"). The table is the one place a source's age is said.
+ *   rows        Settings (opens `SettingsPage`: Data, Privacy, Display), then Glossary, Sources and credits, About,
+ *               Report a problem: each opens a page over the tab (`MenuHost`)
  *   CONTACT     inline at the bottom, never a nested page
  *
  * On a wide screen (tablet, desktop) the data stands in its own column beside the rest (`MORE_WIDE`), each block a boxed
  * card on the wash; a phone draws one edge-to-edge column. Draws `menuVM()` (core/more.ts) and decides nothing. MOVED,
  * not copied: there is one list of these pages in the app (tools/one-menu.test.ts).
  */
-import { createContext, useContext } from "react";
-import { Platform, ScrollView, View } from "react-native";
+import { createContext, useContext, useState } from "react";
+import { ScrollView, View } from "react-native";
 import { Text } from "../Text";
 import { Pressable } from "../Pressable";
-import { useCrashSetting, useLayoutClass, useNet, useNetBps, useNotifications } from "@app/ui";
-import { CRASH_WORDS, dataModeLine, menuVM, MOBILE_DATA_WORDS, NET_WORDS, WATER_STATUS_LINE, WATER_STATUSES, WORDS, type DataInput, type MenuPageKey, type MobileDataSetting, type MoreVM, type SyncVM } from "@app/core";
+import { useLayoutClass, useNotifications } from "@app/ui";
+import { menuVM, syncRowWords, WORDS, type DataInput, type MenuPageKey, type MoreVM, type SyncVM } from "@app/core";
 import { SyncButton, TOP_BAR } from "../TopBar";
 import { TYPE } from "../type";
-import { GUTTER, MORE_WIDE, SPACE, THEMES, type Palette, type ThemeName, round } from "../theme";
+import { GUTTER, MORE_WIDE, SPACE, type Palette, type ThemeName } from "../theme";
 import { FreshDot, FreshBadge } from "./Fresh";
-import { DottedSwatch } from "../Chrome";
 import { Icon } from "../icons";
 import { hitProps } from "../regs/hit";
 import { linkTo } from "../openLink";
+import { SettingsPage, type MobileDataControl } from "./SettingsPage";
+
+export type { MobileDataControl };
 
 export interface MoreScreenProps {
   palette: Palette;
@@ -55,9 +59,6 @@ export interface MoreScreenProps {
   metered?: MobileDataControl | null;
 }
 
-/** (T298) The mobile-data setting as More shows it: the choice, and how to change it. */
-export interface MobileDataControl { value: MobileDataSetting; set: (s: MobileDataSetting) => void }
-
 /** A wide screen: the blocks are boxed cards in columns, not edge-to-edge bands. */
 const Wide = createContext(false);
 
@@ -65,11 +66,12 @@ export function MoreScreen({ palette, data, back, onBack, contact, theme, onThem
   // (T234) a phone that can notify lists More → Notifications
   const vm = menuVM({ data, back, contact, notifications: useNotifications() !== null });
   const wide = useLayoutClass() !== "phone";
-  const dataBlock = <DataBlock vm={vm.data} palette={palette} metered={metered} sync={sync} onSync={onSync} />;
+  // (T703) the Settings screen: opened here (it holds no state the Shell needs); a back layer while open (MenuPage)
+  const [settings, setSettings] = useState(false);
+  const dataBlock = <DataBlock vm={vm.data} palette={palette} sync={sync} onSync={onSync} />;
   const rest = (
     <>
-      <DisplayTiles vm={vm.display} palette={palette} theme={theme} onTheme={onTheme} />
-      <Pages vm={vm} palette={palette} onPick={onPick} />
+      <Pages vm={vm} palette={palette} onPick={onPick} onSettings={() => setSettings(true)} />
       <ContactBlock vm={vm.contact} palette={palette} />
     </>
   );
@@ -89,6 +91,8 @@ export function MoreScreen({ palette, data, back, onBack, contact, theme, onThem
             )
             : <>{dataBlock}{rest}</>}
         </ScrollView>
+        <SettingsPage open={settings} onBack={() => setSettings(false)} palette={palette} theme={theme} onTheme={onTheme}
+                      metered={metered} />
       </View>
     </Wide.Provider>
   );
@@ -148,8 +152,7 @@ function Chevron({ palette }: { palette: Palette }) {
  * its date or age, with the state in words after it when stale (drawn in ink so the eye finds it). Each row says its
  * state aloud in full ("Live gauge readings: 4h ago. Likely out of date.").
  */
-function DataBlock({ vm, palette, metered, sync, onSync }: { vm: MoreVM["data"]; palette: Palette;
-                                              metered: MobileDataControl | null | undefined;
+function DataBlock({ vm, palette, sync, onSync }: { vm: MoreVM["data"]; palette: Palette;
                                               sync: SyncVM | null; onSync?: () => void }) {
   // a wide row is long from name to date: a hairline between rows carries the eye across (a phone's rows are short)
   const ruled = useContext(Wide);
@@ -161,17 +164,20 @@ function DataBlock({ vm, palette, metered, sync, onSync }: { vm: MoreVM["data"];
         {vm.title}
       </Kicker>
       <Group palette={palette} testID="more-data">
-        {/* (T300) THE MAP'S SYNC BUTTON, the same component in the same states, beside the list of what it keeps fresh;
-            its words (`sync.label`) say the state, and a tap checks now (or opens what failed) */}
+        {/* (T300) THE MAP'S SYNC BUTTON, the same component in the same states; a tap checks now (or opens what failed).
+            (T703) beside it its NAME while all is well — the table below says every age — and its state in words only when
+            it asks something (checking, downloading, a failure, a newer release) */}
         {sync && (
           <View style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s2, paddingLeft: GUTTER, paddingTop: SPACE.s2 }}>
             <SyncButton palette={palette} sync={sync} onPress={onSync} bare />
-            <Text testID="more-sync-label" numberOfLines={2} style={{ ...TYPE.small, color: palette.sub, flex: 1 }}>{sync.label}</Text>
+            <Text testID="more-sync-label" numberOfLines={2} style={{ ...TYPE.small, color: palette.sub, flex: 1 }}>{syncRowWords(sync)}</Text>
           </View>
         )}
-        {/* (T428) ONE control: what the button checked sits right under it, as plain lines (nothing there looks tappable) */}
-        {vm.updates && <UpdateLines vm={vm.updates} palette={palette} indent={sync ? TOP_BAR.slot + 4 + SPACE.s2 : 0} />}
-        {vm.newRelease !== null && (
+        {/* (T703) only what the table does not say: a release this app cannot use, a download (when there is no sync button
+            to say it), and a source that failed */}
+        {vm.updates && <UpdateLines vm={vm.updates} palette={palette} showRelease={!sync} indent={sync ? TOP_BAR.slot + 4 + SPACE.s2 : 0} />}
+        {/* a newer release: the sync button's words say it, and where there is none, this does */}
+        {vm.newRelease !== null && !sync && (
           <View testID="data-new-release"
                 style={{ marginHorizontal: GUTTER, marginTop: SPACE.s3, paddingVertical: SPACE.s2, paddingHorizontal: SPACE.s3,
                          borderLeftWidth: 3, borderLeftColor: palette.attention, backgroundColor: palette.tint }}>
@@ -209,11 +215,6 @@ function DataBlock({ vm, palette, metered, sync, onSync }: { vm: MoreVM["data"];
             );
           })}
         </View>
-        {metered && <MeteredSetting palette={palette} metered={metered} />}
-        {/* (T254) low-bandwidth mode: Automatic / On / Off, and what it is doing now */}
-        <LowDataRow palette={palette} />
-        {/* (T242) crash reports: one switch, on by default */}
-        <CrashRow palette={palette} />
         {/* (T253) the web's background prefetch, quietly: which regions an unnamed-stream tap reads from the device */}
         {vm.offline && (
           <Text testID="data-offline" style={{ ...TYPE.small, color: palette.faint, paddingHorizontal: GUTTER,
@@ -227,122 +228,41 @@ function DataBlock({ vm, palette, metered, sync, onSync }: { vm: MoreVM["data"];
 }
 
 /**
- * (T231, T428) WHAT THE SYNC BUTTON CHECKED: under it, plain small lines — the newest check (or a download, or how many
- * failed), then each source's own "checked · updated" and its failure in words. NOT a control: the one tap is the
- * button above (the map's own sync button), which checks every feed now.
+ * (T231, T428, T703) WHAT THE TABLE DOES NOT SAY about the update service, as plain small lines (nothing there looks
+ * tappable; the one tap is the sync button): a release this app cannot use (`notice`), a download under way, waiting or
+ * ready (`release`, only without the sync button, whose words say it) and each source that FAILED, in words. Nothing
+ * when none holds: "Checked 3 min ago" and each source's check time repeated the table's ages. A failure is never hidden.
  */
-function UpdateLines({ vm, palette, indent }: { vm: NonNullable<MoreVM["data"]["updates"]>; palette: Palette; indent: number }) {
+function UpdateLines({ vm, palette, indent, showRelease }: { vm: NonNullable<MoreVM["data"]["updates"]>; palette: Palette; indent: number;
+                                                           showRelease: boolean }) {
+  const lines = [
+    ...(vm.notice ? [{ k: "notice", text: vm.notice, problem: true }] : []),
+    ...(showRelease && vm.release ? [{ k: "release", text: `${vm.title}: ${vm.release}`, problem: false }] : []),
+    ...vm.sources.filter((s) => s.problem).map((s) => ({ k: s.k, text: s.shown, problem: true })),
+  ];
+  if (lines.length === 0) return null;
   return (
-    <View testID="data-updates" accessible role="group" accessibilityLabel={`${vm.label} ${vm.sources.map((s) => s.shown).join(" ")}`}
+    <View testID="data-updates" accessible role="group" accessibilityLabel={lines.map((l) => l.text).join(" ")}
           style={{ paddingLeft: GUTTER + indent, paddingRight: GUTTER, paddingTop: SPACE.s1, paddingBottom: SPACE.s2, gap: 2 }}>
-      <Text testID="data-updates-line" style={{ ...TYPE.small, color: palette.sub }}>{`${vm.title}: ${vm.line}`}</Text>
-      {vm.sources.map((s) => (
-        <Text key={s.k} testID={`data-updates-${s.k}`} style={{ ...TYPE.small, color: s.problem ? palette.ink : palette.faint }}>
-          {s.shown}
-        </Text>
+      {lines.map((l) => (
+        <Text key={l.k} testID={`data-updates-${l.k}`} style={{ ...TYPE.small, color: l.problem ? palette.ink : palette.sub }}>{l.text}</Text>
       ))}
     </View>
   );
 }
 
-/** (T298, owner 2026-10-29) the mobile-data setting: Always / Ask / Wi-Fi only (the first download's answer lands here). */
-function MeteredSetting({ palette, metered }: { palette: Palette; metered: MobileDataControl }) {
-  const C = MOBILE_DATA_WORDS;
-  return (
-    <View testID="data-updates-metered" style={{ paddingHorizontal: GUTTER, paddingTop: SPACE.s2, paddingBottom: SPACE.s3,
-                                                  borderTopWidth: 1, borderTopColor: palette.line, gap: SPACE.s1 }}>
-      <Text style={{ ...TYPE.small, color: palette.ink }}>{C.label}</Text>
-      <View accessibilityRole="radiogroup" accessibilityLabel={C.label}
-            style={{ flexDirection: "row", gap: SPACE.s2, flexWrap: "wrap" }}>
-        {(["always", "ask", "wifi"] as const).map((k) => {
-          const on = metered.value === k;
-          return (
-            <Pressable {...hitProps({ w: 64, h: 40 })} key={k} testID={`data-mobile-${k}`} onPress={() => metered.set(k)}
-                       accessibilityRole="radio" aria-checked={on} accessibilityLabel={`${C.label}: ${C.choices[k]}`}
-                       accessibilityHint={C.hint}
-                       style={({ pressed }) => ({ minHeight: 40, minWidth: 64, paddingHorizontal: SPACE.s3,
-                                                  justifyContent: "center", alignItems: "center", borderWidth: 1.5,
-                                                  borderColor: on ? palette.accent : palette.line,
-                                                  backgroundColor: on || pressed ? palette.tint : palette.card })}>
-              <Text style={{ ...(on ? TYPE.metaBold : TYPE.meta), color: on ? palette.accent : palette.ink }}>{C.choices[k]}</Text>
-            </Pressable>
-          );
-        })}
-      </View>
-    </View>
-  );
-}
-
-/**
- * (T254) THE LOW-BANDWIDTH SETTING: Automatic (the app decides from the link it measures), On, Off — a three-way
- * choice, and under it what the mode is doing now and why ("On now — slow connection (0.4 Mbit/s)"). Kept on the device.
- * Not drawn where the app has no `Net` (a screen mounted alone in a test).
- */
-function LowDataRow({ palette }: { palette: Palette }) {
-  const { net, mode, setting, setSetting } = useNet();
-  const bps = useNetBps(net);
-  // (T298, owner 2026-10-30) a website setting: on a phone every regulation is on the device, and large downloads are
-  // the "Download over mobile data" setting's
-  if (!net || Platform.OS !== "web") return null;
-  const W = NET_WORDS.setting;
-  return (
-    <View testID="data-low" style={{ paddingHorizontal: GUTTER, paddingTop: SPACE.s2, paddingBottom: SPACE.s3, gap: SPACE.s1,
-                                     borderTopWidth: 1, borderTopColor: palette.line }}>
-      <Text style={{ ...TYPE.bodyStrong, fontSize: 14, color: palette.ink }}>{W.label}</Text>
-      <Text style={{ ...TYPE.small, color: palette.sub }}>{W.hint}</Text>
-      <View accessibilityRole="radiogroup" accessibilityLabel={W.label}
-            style={{ flexDirection: "row", gap: SPACE.s2, marginTop: SPACE.s1, flexWrap: "wrap" }}>
-        {(["auto", "on", "off"] as const).map((k) => {
-          const on = setting === k;
-          return (
-            <Pressable {...hitProps({ w: 64, h: 40 })} key={k} testID={`data-low-${k}`} onPress={() => setSetting(k)} accessibilityRole="radio"
-                       aria-checked={on} accessibilityLabel={`${W.label}: ${W.choices[k]}`}
-                       style={({ pressed }) => ({ minHeight: 40, minWidth: 64, paddingHorizontal: SPACE.s3, justifyContent: "center",
-                                                  alignItems: "center", borderWidth: 1.5,
-                                                  borderColor: on ? palette.accent : palette.line,
-                                                  backgroundColor: on ? palette.tint : pressed ? palette.tint : palette.card })}>
-              <Text style={{ ...(on ? TYPE.metaBold : TYPE.meta), color: on ? palette.accent : palette.ink }}>{W.choices[k]}</Text>
-            </Pressable>
-          );
-        })}
-      </View>
-      <Text testID="data-low-now" style={{ ...TYPE.small, color: mode.low ? palette.ink : palette.faint }}>
-        {dataModeLine(mode, bps)}
-      </Text>
-    </View>
-  );
-}
-
-/**
- * (T242) THE CRASH-REPORT SWITCH: on by default; off sends nothing (and forgets an error kept for the next start). Not
- * drawn where the app has no reporter (a screen mounted alone in a test, a build with no report address).
- */
-function CrashRow({ palette }: { palette: Palette }) {
-  const crash = useCrashSetting();
-  if (!crash) return null;
-  const W = CRASH_WORDS;
-  return (
-    <View testID="data-crash" style={{ paddingHorizontal: GUTTER, paddingTop: SPACE.s2, paddingBottom: SPACE.s3, gap: SPACE.s1,
-                                       borderTopWidth: 1, borderTopColor: palette.line }}>
-      <Pressable {...hitProps({ w: 200, h: 40 })} testID="data-crash-switch" onPress={() => crash.set(!crash.on)}
-                 accessibilityRole="switch" aria-checked={crash.on} accessibilityLabel={W.label} accessibilityHint={W.hint}
-                 style={{ flexDirection: "row", alignItems: "center", minHeight: 40 }}>
-        <Text style={{ ...TYPE.bodyStrong, fontSize: 14, color: palette.ink, flex: 1 }}>{W.label}</Text>
-        <Text style={{ ...TYPE.metaBold, color: crash.on ? palette.accent : palette.sub }}>{crash.on ? W.on : W.off}</Text>
-      </Pressable>
-      <Text style={{ ...TYPE.small, color: palette.sub }}>{W.hint}</Text>
-    </View>
-  );
-}
-
 /** The pages that open over the tab, as rows: a label and its one-line hint. */
-function Pages({ vm, palette, onPick }: { vm: MoreVM; palette: Palette; onPick: (k: MenuPageKey) => void }) {
+function Pages({ vm, palette, onPick, onSettings }: { vm: MoreVM; palette: Palette; onPick: (k: MenuPageKey) => void;
+                 onSettings: () => void }) {
+  // (T703) Settings first: not a `MenuPageKey` (More opens it itself), drawn as the same row
+  const rows = [{ k: "settings" as const, label: vm.settings.label, hint: vm.settings.hint, open: onSettings },
+                ...vm.rows.map((r) => ({ ...r, open: () => onPick(r.k) }))];
   return (
     <>
       <View style={{ height: SPACE.s4 + SPACE.s2 }} />
       <Group palette={palette}>
-        {vm.rows.map((it, i) => (
-          <Pressable {...hitProps({ w: 300, h: 56 })} key={it.k} testID={`menu-item-${it.k}`} onPress={() => onPick(it.k)}
+        {rows.map((it, i) => (
+          <Pressable {...hitProps({ w: 300, h: 56 })} key={it.k} testID={`menu-item-${it.k}`} onPress={it.open}
                      accessibilityRole="button" accessibilityLabel={it.label} accessibilityHint={it.hint}
                      style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: SPACE.s3,
                                                 paddingVertical: SPACE.s3, paddingHorizontal: GUTTER, minHeight: 56,
@@ -355,62 +275,6 @@ function Pages({ vm, palette, onPick }: { vm: MoreVM; palette: Palette; onPick: 
             <Chevron palette={palette} />
           </Pressable>
         ))}
-      </Group>
-    </>
-  );
-}
-
-/**
- * DISPLAY: the three palettes as preview tiles — each drawn in ITS OWN palette's tokens (its ground, its card, its ink
- * and its three water status colours), so the reader sees what they pick. A radiogroup: each tile a radio named by
- * its word; the one in use ringed in the CURRENT palette's accent with a filled mark.
- */
-function DisplayTiles({ vm, palette, theme, onTheme }: {
-  vm: MoreVM["display"]; palette: Palette; theme: ThemeName; onTheme: (t: ThemeName) => void;
-}) {
-  return (
-    <>
-      <Kicker palette={palette}>{vm.title}</Kicker>
-      <Group palette={palette} testID="display-palette">
-        <View style={{ paddingHorizontal: GUTTER, paddingTop: SPACE.s3, paddingBottom: SPACE.s3, gap: SPACE.s3 }}>
-          <View accessibilityRole="radiogroup" accessibilityLabel={vm.palette}
-                style={{ flexDirection: "row", gap: SPACE.s2 }}>
-            {vm.options.map((o) => {
-              const on = o.k === theme;
-              const p = THEMES[o.k];
-              return (
-                <Pressable {...hitProps({ w: 90, h: 60 })} key={o.k} testID={`theme-${o.k}`} onPress={() => onTheme(o.k)} accessibilityRole="radio"
-                           aria-checked={on} accessibilityLabel={o.t}
-                           style={{ flex: 1, minWidth: 0, borderWidth: on ? 2 : 1, borderColor: on ? palette.accent : palette.line,
-                                    padding: on ? 0 : 1, backgroundColor: palette.card }}>
-                  {/* the miniature: that palette's ground, a card on it, a title stroke and the three status lines */}
-                  <View style={{ height: 58, backgroundColor: p.wash, padding: 8, justifyContent: "flex-end" }}>
-                    <View style={{ backgroundColor: p.card, borderWidth: 1, borderColor: p.line, padding: 6, gap: 4 }}>
-                      <View style={{ width: "55%", height: 4, backgroundColor: p.ink }} />
-                      {WATER_STATUSES.map((s, i) => (
-                        WATER_STATUS_LINE[s] === "dotted"
-                          ? <DottedSwatch key={s} colour={p.waterStatus[s]} width={36} />
-                          : <View key={s} style={{ width: `${88 - i * 18}%`, height: 3, backgroundColor: p.waterStatus[s] }} />
-                      ))}
-                    </View>
-                  </View>
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 8, paddingVertical: 7,
-                                 borderTopWidth: 1, borderTopColor: palette.line }}>
-                    <View style={{ width: 14, height: 14, borderRadius: round(14), borderWidth: 1.5,
-                                   borderColor: on ? palette.accent : palette.faint, alignItems: "center",
-                                   justifyContent: "center" }}>
-                      {on && <View style={{ width: 6, height: 6, borderRadius: round(6), backgroundColor: palette.accent }} />}
-                    </View>
-                    <Text numberOfLines={1} style={{ ...TYPE.metaBold, flexShrink: 1, color: on ? palette.ink : palette.sub }}>
-                      {o.t}
-                    </Text>
-                  </View>
-                </Pressable>
-              );
-            })}
-          </View>
-          <Text style={{ ...TYPE.small, color: palette.sub }}>{vm.note}</Text>
-        </View>
       </Group>
     </>
   );

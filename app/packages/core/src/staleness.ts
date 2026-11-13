@@ -14,6 +14,9 @@
  *   by "notice"   the gauge feed's publisher SAYS whether a newer upstream release is out (its index's `maintenance`
  *                 notice, owner 2026-10-22 late): due, stale; checked and none due, fresh — never by age; only when
  *                 no word reaches the app (an index from before notices, a run that could not check) does `ms` decide
+ *   by "dated"   (T700) base geography and maps, which change rarely and carry no signal that a newer edition exists:
+ *                 the row says its date and NOTHING about age — age alone is never "likely out of date" for it. Only a real
+ *                 signal may ever mark one stale (none exists today: the feed's notices cover HYDAT only)
  *   by "weekdays" (T347) issued on working days only: current until the next working day's issue plus a grace
  *                 (`forecastDueBy`), so Friday's run holds the weekend and a holiday Monday
  *   by "live"     fetched on demand: it has no age to hold
@@ -25,6 +28,7 @@ export type StaleRule =
   | { readonly by: "notice"; readonly ms: number }
   | { readonly by: "weekdays" }
   | { readonly by: "release" }
+  | { readonly by: "dated" }
   | { readonly by: "live" };
 
 const MIN = 60_000;
@@ -71,10 +75,13 @@ export const STALE_AFTER = {
    * Not checked for longer: likely out of date. No checked time: unknown, and reported.
    */
   dfo: { by: "age", ms: DAILY_FEED_STALE_MS },
-  /** The Freshwater Atlas changes slowly; a copy two years old has likely missed a revision. */
-  fwa: { by: "age", ms: 730 * DAY },
-  /** The basemap's roads and towns (OpenStreetMap via Protomaps), rebuilt yearly. */
-  basemap: { by: "age", ms: 365 * DAY },
+  /**
+   * (T700, owner 2026-11-13: "Fresh water atlas rarely changes it isn't stale") The Freshwater Atlas is base geography
+   * that rarely changes; its age says nothing about whether it is right. Its row gives its date, never a verdict.
+   */
+  fwa: { by: "dated" },
+  /** (T700) The basemap's roads and towns (OpenStreetMap via Protomaps), rebuilt by us: its date, never a verdict by age. */
+  basemap: { by: "dated" },
   /**
    * HYDAT: the feed checks HYDAT's listing every run and says a newer release is out (`hydatNotice`). The age line is
    * the fallback only: HYDAT is published quarterly and a release takes it yearly, so 18 months is a missed year.

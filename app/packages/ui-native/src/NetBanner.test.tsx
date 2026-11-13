@@ -51,6 +51,7 @@ describe("More → Data: the low-bandwidth setting", () => {
     render(<NetContext.Provider value={state(createNet(), SLOW, { setting: "auto", setSetting: set })}>
       <MoreScreen palette={LIGHT} data={DATA} back="Map" onBack={() => {}} contact={null} theme="light" onTheme={() => {}} onPick={() => {}} />
     </NetContext.Provider>);
+    fireEvent.click(screen.getByTestId("menu-item-settings"));  // (T703) the controls live in Settings
     const checked = ["auto", "on", "off"].map((k) => screen.getByTestId(`data-low-${k}`).getAttribute("aria-checked"));
     expect(checked).toEqual(["true", "false", "false"]);
     expect(screen.getByTestId("data-low-now").textContent).toMatch(/^On now — slow connection/);
@@ -59,6 +60,7 @@ describe("More → Data: the low-bandwidth setting", () => {
   });
   it("no Net (a screen alone): no row", () => {
     render(<MoreScreen palette={LIGHT} data={DATA} back="Map" onBack={() => {}} contact={null} theme="light" onTheme={() => {}} onPick={() => {}} />);
+    fireEvent.click(screen.getByTestId("menu-item-settings"));  // (T703) the controls live in Settings
     expect(screen.queryByTestId("data-low")).toBeNull();
   });
 });

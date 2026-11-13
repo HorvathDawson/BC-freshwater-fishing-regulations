@@ -165,8 +165,8 @@ async function main() {
     await sleep(400);
     await b.evaluate(`${tid('menu-page-about')}?.querySelector('[aria-label="Back"]')?.click()`);
     await sleep(600);
-    const line = await b.evaluate(`${tid('data-updates-line')}?.innerText ?? ''`);
-    ok(/Update the app to get new regulations/.test(line), `More's Updates line: "${line}"`);
+    const line = await b.evaluate(`${tid('data-updates-notice')}?.innerText ?? ''`);
+    ok(/Update the app to get new regulations/.test(line), `More's update notice: "${line}"`);
     await click(b, 'menu-item-about');
     await until(b, `!!${tid('menu-page-about')}`, 10000, 'About');
     const ver = await b.evaluate(`[...document.querySelectorAll('[data-testid^="about-version-"]')][0]?.innerText ?? ''`);

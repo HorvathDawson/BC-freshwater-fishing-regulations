@@ -59,6 +59,20 @@ describe("the sources' words", () => {
       .toBe("A new data release could not be used on this device; the app keeps the data it has");
   });
 
+  it("(T703) what More keeps of the lines: a release the app cannot use, a download, a failed source — a healthy check, nothing", () => {
+    const vm = (release: Parameters<typeof updateSourcesVM>[0]["release"], sources = [src("gauges")]) =>
+      updateSourcesVM({ sources, release, now: NOW });
+    const kept = (v: ReturnType<typeof vm>) => [v.notice, v.release, v.sources.filter((s) => s.problem).length];
+    expect(kept(vm({ phase: "current", progress: null }))).toEqual([null, null, 0]);
+    expect(kept(vm(null))).toEqual([null, null, 0]);
+    expect(kept(vm({ phase: "app-too-old", progress: null }))).toEqual(["Update the app to get new regulations", null, 0]);
+    expect(kept(vm({ phase: "current", progress: null, refused: "r-2" })))
+      .toEqual(["A new data release could not be used on this device; the app keeps the data it has", null, 0]);
+    expect(kept(vm({ phase: "waiting-wifi", progress: null }))).toEqual([null, "An update is waiting for Wi-Fi", 0]);
+    expect(kept(vm({ phase: "ready", progress: null }))).toEqual([null, "An update is ready; it is used at the next pause", 0]);
+    expect(kept(vm(null, [src("gauges", { error: "HTTP 500" })]))).toEqual([null, null, 1]);
+  });
+
   it("the failure sheet: what failed, when it last succeeded, Retry", () => {
     const vm = syncErrorVM([src("dfo", { error: "HTTP 500" }), src("release", { error: "sha256 x", checkedAt: null })], NOW);
     expect(vm.title).toBe("Could not update");

@@ -1,5 +1,5 @@
 /**
- * (T254) BAD CONNECTIONS, IN WORDS: the More → Data setting, the banner a slow or missing line puts over the app, what a
+ * (T254) BAD CONNECTIONS, IN WORDS: the More → Settings setting, the banner a slow or missing line puts over the app, what a
  * page says while it waits ("still loading" is never "not there"), and the rule book's size before it is fetched on a
  * slow line. The policy that decides the mode is `@app/data` net (`netMode`); these are only its words.
  */
@@ -77,7 +77,7 @@ export function rateWords(bps: number): string {
 }
 
 /**
- * The line under the setting in More → Data: "On now — slow connection (0.4 Mbit/s)", "Off now — connection is good
+ * The line under the setting in More → Settings: "On now — slow connection (0.4 Mbit/s)", "Off now — connection is good
  * (8.2 Mbit/s)", "Off now — connection not measured yet".
  */
 export function dataModeLine(m: { low: boolean; why: LowWhy | null }, bps: number | null): string {

@@ -5,6 +5,7 @@
  *   fresh    a filled dot in `live` (the app's live-data teal)
  *   stale    a filled dot in `attention` — the one state that asks the reader to look; never a water-status hue, since
  *            the badge's twin (the sync dot) sits over a map drawn in those
+ *   dated    (T700) a filled dot in `faint`: a date is recorded, and no verdict is given (base geography, never stale by age)
  *   unknown  an empty ring in `faint`: nothing to say, said quietly
  *   live     an empty ring in `live`: fetched when needed, so it has no age
  *
@@ -19,13 +20,13 @@ import { round, type Palette } from "../theme";
 export const FRESH_DOT = 8;
 
 export function freshColour(p: Palette, k: SourceFreshness): string {
-  return k === "fresh" || k === "live" ? p.live : k === "stale" ? p.attention : p.faint;
+  return k === "fresh" || k === "live" ? p.live : k === "stale" ? p.attention : p.faint;  // dated and unknown both `faint`
 }
 
 /** The dot alone (a line's lead): filled for an age (fresh, stale), a ring for none (unknown, live). */
 export function FreshDot({ palette, kind, size = FRESH_DOT }: { palette: Palette; kind: SourceFreshness; size?: number }) {
   const c = freshColour(palette, kind);
-  const filled = kind === "fresh" || kind === "stale";
+  const filled = kind === "fresh" || kind === "stale" || kind === "dated";
   return (
     <View testID={`fresh-${kind}`} importantForAccessibility="no-hide-descendants" aria-hidden
           style={{ width: size, height: size, borderRadius: round(size), borderWidth: filled ? 0 : 1.5, borderColor: c,

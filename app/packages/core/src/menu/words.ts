@@ -52,6 +52,15 @@ export const MENU_WORDS = {
     changelog: { label: "What's new", hint: "Every version of the app, newest first" },
   } satisfies Record<MenuPageKey, { label: string; hint: string }>,
   /**
+   * (T703, owner 2026-11-13: "all the toggles ... should be in a settings menu in here") THE SETTINGS SCREEN, opened from
+   * the first row of the More tab: every control the app has, under three headings. Not a `MenuPageKey`: More opens it
+   * itself (it holds no state the Shell needs).
+   */
+  settings: {
+    label: "Settings", hint: "Downloads, crash reports and display",
+    sections: { data: "Data", privacy: "Privacy", display: "Display" },
+  },
+  /**
    * THE APP'S COLOURS (owner 2026-10-21 late: the palette left the Layers menu for the hamburger) — a whole-app setting,
    * not a map layer: it repaints every screen and every map.
    */

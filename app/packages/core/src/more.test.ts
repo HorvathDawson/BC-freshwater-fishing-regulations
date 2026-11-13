@@ -4,7 +4,7 @@
  * sections, and the sync icon's three states as said aloud.
  */
 import { describe, expect, it } from "vitest";
-import { DATA_ROWS, dataVM, menuVM, syncVM, type DataInput } from "./more";
+import { DATA_ROWS, dataVM, menuVM, SYNC_WORDS, syncRowWords, syncVM, type DataInput } from "./more";
 import { SOURCE_ORDER } from "./menu";
 import { STALE_AFTER } from "./staleness";
 
@@ -51,9 +51,9 @@ describe("the Data block: always on More, compact — every source, one row each
       "Synopsis: 2025–2027 edition. Unknown.",
       "In-season changes: 2h ago. Up to date.",
       "DFO salmon: 5h ago. Up to date.",
-      "Freshwater Atlas: Jul 15, 2026. Up to date.",
+      "Freshwater Atlas: Jul 15, 2026. Changes rarely.",
       "Map tiles: Matches the data. Up to date.",
-      "Basemap: Mar 5, 2026. Up to date.",
+      "Basemap: Mar 5, 2026. Changes rarely.",
       "HYDAT: Jul 17, 2026. Up to date.",
       "Live gauge readings: 27h ago. Likely out of date.",
       "River forecasts: Issued 9h ago. Up to date.",
@@ -320,5 +320,22 @@ describe("the sync icon: fresh, needs a refresh, checking — said aloud", () =>
       "fresh | Refresh data: up to date",
       "stale | Refresh data: last checked on this device 2h ago",
     ]);
+  });
+});
+
+describe("(T703) the sync row's words on More: its name while all is well, its state when it asks something", () => {
+  const base = { feed: true, feedFetchedAt: new Date(Date.parse("2026-11-13T12:00:00Z") - 600_000).toISOString(),
+                 checkedAt: Date.parse("2026-11-13T12:00:00Z") - 60_000, checking: false, newRelease: null as string | null,
+                 now: Date.parse("2026-11-13T12:00:00Z") };
+  it("fresh and just-checked say the name; a newer release, a feed not reached, checking say their words", () => {
+    expect(syncRowWords(syncVM(base))).toBe(SYNC_WORDS.name);
+    expect(syncRowWords(syncVM({ ...base, newRelease: "r-9" }))).toBe("Refresh data: a newer data release is available; reopen the app to use it");
+    expect(syncRowWords(syncVM({ ...base, checkedAt: null }))).toBe("Refresh data: river flows could not be reached");
+    expect(syncRowWords(syncVM({ ...base, checking: true }))).toBe("Refresh data: checking now");
+  });
+  it("Settings is a row of its own, first, with the headings of its screen", () => {
+    const vm = menuVM({ data: { sources: null, validUntil: null, tiles: null, feedFetchedAt: null, now: 0, newRelease: null }, back: "Map", contact: null });
+    expect([vm.settings.label, vm.settings.hint, vm.settings.sections]).toEqual(
+      ["Settings", "Downloads, crash reports and display", { data: "Data", privacy: "Privacy", display: "Display" }]);
   });
 });

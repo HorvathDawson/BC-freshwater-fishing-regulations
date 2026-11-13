@@ -19,9 +19,10 @@ export function isoDayWords(day: string | null | undefined): string | null {
  *   fresh    inside its expected cadence
  *   stale    older than its expected cadence: LIKELY out of date (a cadence is an expectation, not a promise)
  *   unknown  no date recorded — never guessed fresh
+ *   dated    (T700) base geography with a recorded date and no signal that it is out of date: the date, no verdict
  *   live     fetched on demand (weather with a spot, imagery while online): it has no age to hold
  */
-export type SourceFreshness = "fresh" | "stale" | "unknown" | "live";
+export type SourceFreshness = "fresh" | "stale" | "unknown" | "live" | "dated";
 export interface FreshnessVM { readonly kind: SourceFreshness; readonly label: string }
 
 export const FRESHNESS_WORDS = {
@@ -29,6 +30,8 @@ export const FRESHNESS_WORDS = {
   stale: "Likely out of date",
   unknown: "Unknown",
   live: "Live",
+  /** (T700) the Freshwater Atlas, the basemap: a date and no verdict, since age alone does not date base geography */
+  dated: "Changes rarely",
   /** the regulations past their last day: not "likely" — the edition has lapsed (`regsLapsed`) */
   lapsed: "Out of date",
   /**
@@ -86,7 +89,7 @@ function ageMs(k: AgeKey, s: SourcesInput): number | null {
     const t = typeof s.inseasonFetchedAt === "string" ? Date.parse(s.inseasonFetchedAt) : NaN;
     return Number.isFinite(t) ? s.now - t : null;
   }
-  if (k === "fwa" || k === "basemap" || k === "hydat") return dayAgeMs(s.sources?.[k]?.date, s.now);
+  if (k === "hydat") return dayAgeMs(s.sources?.[k]?.date, s.now);
   return null;
 }
 
@@ -109,7 +112,8 @@ function byRelease(k: SourceDateKey, s: SourcesInput): FreshnessVM {
  * ONE SOURCE'S FRESHNESS, by its rule in THE ONE TABLE (`STALE_AFTER`, staleness.ts):
  *   age       the feed (its index's own `fetchedAt`), the forecasts (the index's newest run, `forecastIssuedAt`; none
  *             running: the feed's own freshness), dfo (when the feeds worker last checked DFO, T526), the in-season
- *             changes (the feed's `fetchedAt`, T548) and fwa / basemap / hydat (the release's date for each)
+ *             changes (the feed's `fetchedAt`, T548) and hydat's fallback (the release's date)
+ *   dated     (T700) fwa / basemap: their date, never stale by age (no signal says a newer edition exists)
  *             against the table's line; never checked or not recorded, unknown
  *   notice    hydat: the feed's notice — due "Newer release out"; clear, up to date whatever the age ONLY when the
  *             release's `sources.hydat.date` is the feed's newest HYDAT, "Newer release out" when the release is
@@ -143,6 +147,8 @@ export function sourceFreshness(k: SourceDateKey, s: SourcesInput): FreshnessVM 
       }
       return badge(byCadence(k as AgeKey, ageMs(k as AgeKey, s)));
     }
+    // (T700) a date says what it is; with none recorded, unknown — never a verdict from age
+    case "dated": return isoDayWords(s.sources?.[k as "fwa" | "basemap"]?.date) === null ? badge("unknown") : badge("dated");
     case "release": return byRelease(k, s);
     case "live": return badge("live");
   }

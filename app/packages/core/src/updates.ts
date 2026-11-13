@@ -74,7 +74,7 @@ export const UPDATE_WORDS = {
       title: "Data update",
       waiting: (mb: number) => `New regulations ready to download — waiting for Wi-Fi (${mb} MB).`,
       download: "Download now",
-      confirm: (mb: number) => `Download ${mb} MB over mobile data? This sets "${UPDATE_WORDS_CELLULAR_LABEL}" to ${MOBILE_DATA_WORDS.choices.always} in More.`,
+      confirm: (mb: number) => `Download ${mb} MB over mobile data? This sets "${UPDATE_WORDS_CELLULAR_LABEL}" to ${MOBILE_DATA_WORDS.choices.always} in More → Settings.`,
       confirmYes: "Download",
       confirmNo: "Not now",
       downloading: (pct: number) => `Downloading new regulations… ${pct}%`,
@@ -152,6 +152,15 @@ export interface UpdatesVM {
   readonly line: string;
   readonly label: string;
   readonly sources: readonly UpdateSourceRowVM[];
+  /**
+   * (T703) What the More tab keeps of the update lines: the table of sources already says each one's age, so a line is
+   * drawn only for what the table does not say. `notice`: a release this app cannot use (too old an app, a refused
+   * release) — the sync button's words never say it. `release`: a download under way, waiting for Wi-Fi or ready — the
+   * sync button's words say these too, so More draws it only when it has no sync button. A source's failure is its row's
+   * `problem`.
+   */
+  readonly notice: string | null;
+  readonly release: string | null;
 }
 
 export function updateSourcesVM(i: { sources: readonly UpdateSourceInput[]; release: UpdateReleaseInput | null;
@@ -175,7 +184,9 @@ export function updateSourcesVM(i: { sources: readonly UpdateSourceInput[]; rele
     : r?.refused ? R.refused
     : failed > 0 ? R.failed(failed)
     : checked.length ? R.checked(ago(Math.max(...checked), i.now)) : R.notChecked;
-  return { title: R.title, line, label: `${R.title}: ${line}.`, sources };
+  const notice = r?.phase === "app-too-old" ? R.appTooOld : r?.refused ? R.refused : null;
+  const release = r?.phase === "downloading" || r?.phase === "waiting-wifi" || r?.phase === "ready" ? line : null;
+  return { title: R.title, line, label: `${R.title}: ${line}.`, sources, notice, release };
 }
 
 export interface SyncErrorVM {

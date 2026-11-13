@@ -1,7 +1,7 @@
 /**
  * (T254) THE LINE IS POOR, SAID ONCE: a slim bar over the app while the device is offline ("Offline — showing what's
  * saved on this device") or while low-bandwidth mode is on because the app found the line slow ("Slow connection —
- * showing what we have"). The reader's own "On" in More → Data is not announced (they chose it). Pressing it opens
+ * showing what we have"). The reader's own "On" in More → Settings is not announced (they chose it). Pressing it opens
  * More, where the Data setting is. The words are core's (`netBanner`); the app's tokens only.
  */
 import { Platform, View } from "react-native";

@@ -236,7 +236,7 @@ describe("freshness: each source against its own cadence (owner 2026-10-22)", ()
     expect(STALE_AFTER).toEqual({
       feed: { by: "age", ms: 2 * H }, feedCheck: { by: "age", ms: 30 * 60_000 }, forecast: { by: "weekdays" },
       // (T549 items 7, 10) checked once a day off season: the day's cadence plus 6 h (at exactly a day it flickered daily)
-      dfo: { by: "age", ms: 30 * H }, fwa: { by: "age", ms: 730 * D }, basemap: { by: "age", ms: 365 * D },
+      dfo: { by: "age", ms: 30 * H }, fwa: { by: "dated" }, basemap: { by: "dated" },
       hydat: { by: "notice", ms: 548 * D },
       synopsis: { by: "release" }, tiles: { by: "release" },
       inseason: { by: "age", ms: 30 * H }, reading: { by: "age", ms: 6 * H }, weather: { by: "live" }, imagery: { by: "live" },
@@ -265,15 +265,23 @@ describe("freshness: each source against its own cadence (owner 2026-10-22)", ()
       "Issued 5h ago", "None running now", "No date recorded", "Not checked yet"]);
   });
 
-  it("each release-dated source at its edge: the day inside, the day past", () => {
+  it("(T703) the Freshwater Atlas and the basemap give their date and no verdict: age alone never makes them out of date; HYDAT, " +
+     "which the feed's notices cover, keeps its age line (548 days) as the fallback", () => {
     // at midnight UTC, so a date N days back is exactly N days old
     const midnight = Date.parse("2026-10-22T00:00:00Z");
     const day = (k: "fwa" | "basemap" | "hydat", days: number) =>
       at(k, { sources: { [k]: { date: new Date(midnight - days * D).toISOString().slice(0, 10) } } }, midnight);
-    expect([day("fwa", 730), day("fwa", 731), day("basemap", 365),
-            day("basemap", 366), day("hydat", 548), day("hydat", 549)]).toEqual([
-      "fwa Up to date", "fwa Likely out of date",
-      "basemap Up to date", "basemap Likely out of date", "hydat Up to date", "hydat Likely out of date"]);
+    // the owner's phone, 2026-11-13: an atlas of Mar 26, 2024 was 2.6 years old and read "Likely out of date"
+    expect([day("fwa", 0), day("fwa", 731), day("fwa", 3650), day("basemap", 366), day("basemap", 2000)]).toEqual([
+      "fwa Changes rarely", "fwa Changes rarely", "fwa Changes rarely", "basemap Changes rarely", "basemap Changes rarely"]);
+    // no date recorded, or not a day: unknown — still never a verdict from age
+    expect([at("fwa", {}, midnight), at("fwa", { sources: { fwa: { date: "July" } } }, midnight)])
+      .toEqual(["fwa Unknown", "fwa Unknown"]);
+    // a newer DATA RELEASE does not make the atlas stale either (no signal says a newer atlas exists)
+    expect(at("fwa", { newRelease: "r-9", sources: { fwa: { date: "2024-03-26" } } }, midnight)).toBe("fwa Changes rarely");
+    expect(sourceFreshness("fwa", { sources: { fwa: { date: "2024-03-26" } }, validUntil: null, tiles: null, feedFetchedAt: null, now: midnight }).kind)
+      .toBe("dated");
+    expect([day("hydat", 548), day("hydat", 549)]).toEqual(["hydat Up to date", "hydat Likely out of date"]);
   });
 
   it("(T526, T549) DFO salmon: stale when not CHECKED for more than a day and 6 h (a daily check with margin) — by the " +

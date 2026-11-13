@@ -441,6 +441,7 @@ export const HELP_WORDS = {
     stale: "Older than expected. Refresh, or check the source before you rely on it.",
     unknown: "No date recorded for this source.",
     live: "Fetched when needed, so it has no age.",
+    dated: "Base map data that changes rarely. Its date is shown; its age does not make it out of date.",
   } satisfies Record<SourceFreshness, string>,
   bell: {
     name: MENU_WORDS.sources.names.inseason,
@@ -478,7 +479,7 @@ const SYNC_NAME: Readonly<Record<SyncKind, string>> = {
   error: "Could not update",
 };
 
-const FRESH_KINDS: readonly SourceFreshness[] = ["fresh", "stale", "unknown", "live"];
+const FRESH_KINDS: readonly SourceFreshness[] = ["fresh", "stale", "unknown", "live", "dated"];
 
 /**
  * THE HELP PAGE, whole: sections in reading order, each row a swatch token, the legend's word for it and one sentence.

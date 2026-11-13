@@ -1,5 +1,5 @@
 /**
- * (T254) LOW-BANDWIDTH MODE, AS HOOKS: the reader's Data setting (More → Data: Automatic / On / Off, kept on the
+ * (T254) LOW-BANDWIDTH MODE, AS HOOKS: the reader's Data setting (More → Settings: Automatic / On / Off, kept on the
  * device), the platform's word on the link (`Connectivity.hints`: the browser's `navigator.connection`, a phone's
  * NetInfo) and the app's own meter, made into ONE mode by `@app/data` `netMode` — and handed to the data layer
  * (`Net.setMode`: the gate lets the answer through first) and to every screen (`NetContext`: the banner, the waiting
@@ -113,7 +113,7 @@ export function useNetState(net: Net | null, o: { connectivity?: Connectivity | 
   return useMemo(() => ({ net, mode, setting, setSetting }), [net, mode, setting, setSetting]);
 }
 
-/** The measured rate for a screen that shows it (More → Data), in 5 kB/s steps, re-read while anything downloads. */
+/** The measured rate for a screen that shows it (More → Settings), in 5 kB/s steps, re-read while anything downloads. */
 export function useNetBps(net: Net | null): number | null {
   const [bps, setBps] = useState<number | null>(() => net?.meter.bps() ?? null);
   useEffect(() => {

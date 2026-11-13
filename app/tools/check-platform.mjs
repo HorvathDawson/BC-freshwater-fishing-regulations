@@ -204,7 +204,7 @@ const INLINE_ALLOWED = {
   "packages/ui-native/src/Walkthrough.tsx": [1, "a word: which guide (web / app) the steps are written for"],
   "packages/ui-native/src/WebSpotsNotice.tsx": [1, "a flag: the web shows the notice in place of spots"],
   "packages/ui-native/src/menu/HelpPage.tsx": [1, "a word: which help (web / app) is shown"],
-  "packages/ui-native/src/menu/MoreScreen.tsx": [1, "a flag: the low-bandwidth row is a website setting"],
+  "packages/ui-native/src/menu/SettingsPage.tsx": [1, "a flag: the low-bandwidth row is a website setting (moved from MoreScreen, T703)"],
   "packages/ui-native/src/motion.ts": [1, "a flag: the native animation driver (none on the web)"],
   "packages/ui-native/src/regs/RegsScreen.tsx": [1, "a flag: the dev-only debug hook (`RegsDebug`) is web-only"],
   "packages/ui-native/src/regs/openBook.ts": [1, "a value: the os handed to core's `bookUrl` (a parameter's default, tests pass it)"],

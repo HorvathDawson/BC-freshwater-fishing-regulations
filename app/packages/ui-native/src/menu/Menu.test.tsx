@@ -13,12 +13,12 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-libra
 import { Linking, Share, Text } from "react-native";
 import { FISH_CREDITS, MENU_WORDS, regsReportWhere, waterReportWhere, type DataInput, type GlossaryTerm, type RegsPage } from "@app/core";
 import type { RegsLoader } from "@app/data/regs";
-import { BackLayerContext, ERROR_LOG, LayoutWidthContext, routeWhere, useBack, useMenu, useRoute, type Back, type BackLayers,
+import { BackLayerContext, CrashSettingRoot, createCrashSetting, ERROR_LOG, LayoutWidthContext, routeWhere, useBack, useMenu, useRoute, type Back, type BackLayers,
          type MenuControls } from "@app/ui";
 import { LIGHT, type ThemeName } from "../theme";
 import { GlossaryPage } from "./GlossaryPage";
 import { MenuContext } from "./MenuContext";
-import { MoreScreen } from "./MoreScreen";
+import { MoreScreen, type MobileDataControl } from "./MoreScreen";
 import { MenuHost, type MenuInfo } from "./MenuHost";
 import { ReportLink, WaterReportLink } from "./ReportLink";
 import { RegsScreen } from "../regs/RegsScreen";
@@ -39,7 +39,8 @@ const DATA: DataInput = {
 };
 
 /** The Shell's wiring, and nothing else: the one back, the menu, the More tab and the host — at a window width. */
-function App({ info = INFO, loader = null, out, data = DATA, theme = "light", onTheme = () => {}, width = null }: {
+function App({ info = INFO, loader = null, out, data = DATA, theme = "light", onTheme = () => {}, width = null, metered = null }: {
+  metered?: MobileDataControl | null;
   info?: MenuInfo; loader?: RegsLoader | null; out: { back?: Back }; data?: DataInput;
   theme?: ThemeName; onTheme?: (t: ThemeName) => void; width?: number | null;
 }) {
@@ -52,7 +53,7 @@ function App({ info = INFO, loader = null, out, data = DATA, theme = "light", on
       <BackLayerContext.Provider value={b.layers}>
         <MenuContext.Provider value={menu}>
           <MoreScreen palette={LIGHT} data={data} back="Map" onBack={b.back} contact={info.contact}
-                      theme={theme} onTheme={onTheme}
+                      theme={theme} onTheme={onTheme} metered={metered}
                       onPick={(k) => (k === "report" ? menu.report(routeWhere(route, null)) : menu.show(k))} />
           <MenuHost menu={menu} palette={LIGHT} loader={loader} info={info} tiles="d768d6e135e62b99.c9f9604f12bf"
                     route={route} day={null} />
@@ -76,7 +77,7 @@ const text = (id: string) => screen.getByTestId(id).textContent;
 const said = (id: string) => screen.getByTestId(id).getAttribute("aria-label");
 
 describe("the More tab (T48; owner 2026-10-22 refinement; T167)", () => {
-  it("top to bottom: back to the previous tab, the title, Data, Display, the pages as rows, Contact — the only list", () => {
+  it("top to bottom: back to the previous tab, the title, Data, Settings and the pages as rows, Contact — the only list", () => {
     render(<App out={{}} />);
     expect({
       back: [text("more-back"), said("more-back")],
@@ -84,8 +85,9 @@ describe("the More tab (T48; owner 2026-10-22 refinement; T167)", () => {
       rows: screen.getAllByTestId(/^menu-item-/).map((e) => e.textContent),
     }).toEqual({
       back: ["Map", "Back to Map"],
-      headings: ["More", "Data", "Display", "Contact"],
+      headings: ["More", "Data", "Contact"],
       rows: [
+        "SettingsDownloads, crash reports and display",
         "Offline mapsWhat is kept on this device, region by region",
         "HelpWhat the colours, lines and symbols mean",
         "GlossaryWhat the regulations' words mean",
@@ -128,7 +130,7 @@ describe("the More tab (T48; owner 2026-10-22 refinement; T167)", () => {
         "DFO salmon: Not checked yet. Unknown.",
         "Freshwater Atlas: No date recorded. Unknown.",
         "Map tiles: Matches the data. Up to date.",
-        "Basemap: Mar 5, 2026. Up to date.",
+        "Basemap: Mar 5, 2026. Changes rarely.",
         "HYDAT: No date recorded. Unknown.",
         "Live gauge readings: 27h ago. Likely out of date.",
         "River forecasts: Issued 9h ago. Up to date.",
@@ -136,9 +138,9 @@ describe("the More tab (T48; owner 2026-10-22 refinement; T167)", () => {
         "Satellite imagery: Online only. Live.",
       ],
     });
-    // each row's dot is its state's shape: filled for an age, a ring for none
+    // each row's dot is its state's shape: filled for an age (or a date with no verdict), a ring for none
     expect(screen.getAllByTestId(/^data-row-/).map((e) => e.querySelector("[data-testid^=fresh-]")!.getAttribute("data-testid")))
-      .toEqual(["fresh-unknown", "fresh-unknown", "fresh-unknown", "fresh-unknown", "fresh-fresh", "fresh-fresh", "fresh-unknown",
+      .toEqual(["fresh-unknown", "fresh-unknown", "fresh-unknown", "fresh-unknown", "fresh-fresh", "fresh-dated", "fresh-unknown",
                 "fresh-stale", "fresh-fresh", "fresh-live", "fresh-live"]);
     // the map tiles say their state, never their hash, on the tab
     expect(text("more-data")).not.toContain("d768d6e1");
@@ -165,7 +167,7 @@ describe("the More tab (T48; owner 2026-10-22 refinement; T167)", () => {
       return el.closest("[data-testid=more-column-data]") ? "data"
         : el.closest("[data-testid=more-column-rest]") ? "rest" : "single";
     };
-    const ids = ["more-data", "display-palette", "menu-item-sources", "more-contact"];
+    const ids = ["more-data", "menu-item-settings", "menu-item-sources", "more-contact"];
     const layouts: Record<string, string[]> = {};
     for (const width of [390, 1000, 1280, 1600]) {
       render(<App out={{}} width={width} />);
@@ -199,16 +201,11 @@ describe("the More tab (T48; owner 2026-10-22 refinement; T167)", () => {
     expect([screen.queryByLabelText("Open menu"), screen.queryByTestId("menu-drawer"), r]).toEqual([null, null, false]);
   });
 
-  it("Display: the three palettes as preview tiles, the one in use chosen, a press picks — no page to open", () => {
-    const picked: string[] = [];
-    render(<App out={{}} theme="dark" onTheme={(t) => picked.push(t)} />);
-    expect(text("display-palette")).toBe(
-      "LightDarkColour-blindThe colour-blind palette changes the hues and nothing else. It has a light ground only.");
-    expect(screen.getAllByRole("radio").map((r) => `${r.textContent}${r.getAttribute("aria-checked") === "true" ? " *" : ""}`))
-      .toEqual(["Light", "Dark *", "Colour-blind"]);
-    expect(screen.getByRole("radiogroup").getAttribute("aria-label")).toBe("Colours");
-    act(() => { fireEvent.click(screen.getByRole("radio", { name: "Colour-blind" })); });
-    expect(picked).toEqual(["cvd"]);
+  it("(T703) the controls are not on More: no palette tiles, no mobile-data choice, no crash switch, no low-bandwidth row", () => {
+    render(<App out={{}} theme="dark" />);
+    expect([screen.queryAllByRole("radio").length, screen.queryAllByRole("switch").length, screen.queryByTestId("display-palette"),
+            screen.queryByTestId("data-updates-metered"), screen.queryByTestId("data-crash"), screen.queryByTestId("data-low")])
+      .toEqual([0, 0, null, null, null, null]);
   });
 
   it("Contact, inline at the bottom: a placeholder until the owner supplies the one value; then that address", () => {
@@ -218,6 +215,51 @@ describe("the More tab (T48; owner 2026-10-22 refinement; T167)", () => {
     cleanup();
     render(<App out={{}} info={{ appBuild: null, contact: "hello@example.org" }} />);
     expect(screen.getByLabelText("Email: hello@example.org")).toBeTruthy();
+  });
+});
+
+describe("Settings (T703)", () => {
+  it("the first row of More opens it: Data / Privacy / Display headings over square cards, the Display tiles as before", () => {
+    const picked: string[] = [];
+    render(<App out={{}} theme="dark" onTheme={(t) => picked.push(t)} />);
+    pick("menu-item-settings");
+    const page = screen.getByTestId("menu-page-settings");
+    // no phone-only / website-only / reporter control exists in this harness: Data and Privacy draw nothing, never an empty heading
+    expect(Array.from(page.querySelectorAll("[role=heading]")).map((e) => e.textContent)).toEqual(["Settings", "Display"]);
+    expect(text("display-palette")).toBe(
+      "LightDarkColour-blindThe colour-blind palette changes the hues and nothing else. It has a light ground only.");
+    expect(screen.getAllByRole("radio").map((r) => `${r.textContent}${r.getAttribute("aria-checked") === "true" ? " *" : ""}`))
+      .toEqual(["Light", "Dark *", "Colour-blind"]);
+    expect(screen.getByRole("radiogroup").getAttribute("aria-label")).toBe("Colours");
+    act(() => { fireEvent.click(screen.getByRole("radio", { name: "Colour-blind" })); });
+    expect(picked).toEqual(["cvd"]);
+  });
+
+  it("with the phone's mobile-data choice and a reporter: Data, Privacy and Display, in that order, the controls where they were", () => {
+    const set: string[] = [];
+    const mem = { v: null as string | null };
+    const crash = createCrashSetting({ read: () => mem.v, write: (t) => { mem.v = t; } });
+    render(<CrashSettingRoot setting={crash}><App out={{}} metered={{ value: "ask", set: (x) => set.push(x) }} /></CrashSettingRoot>);
+    pick("menu-item-settings");
+    const page = screen.getByTestId("menu-page-settings");
+    expect(Array.from(page.querySelectorAll("[role=heading]")).map((e) => e.textContent)).toEqual(["Settings", "Data", "Privacy", "Display"]);
+    expect(screen.getByTestId("settings-data").contains(screen.getByTestId("data-mobile-wifi"))).toBe(true);
+    expect(screen.getByTestId("settings-privacy").contains(screen.getByTestId("data-crash-switch"))).toBe(true);
+    expect(screen.getByTestId("display-palette").contains(screen.getByTestId("theme-light"))).toBe(true);
+    act(() => { fireEvent.click(screen.getByTestId("data-mobile-wifi")); });
+    expect(set).toEqual(["wifi"]);
+  });
+
+  it("back closes it to the More tab: the ‹ and the system back, the same layer", () => {
+    const out: { back?: Back } = {};
+    render(<App out={out} />);
+    pick("menu-item-settings");
+    expect(screen.getByTestId("menu-page-settings")).toBeTruthy();
+    let r = false;
+    act(() => { r = out.back!.back(); });
+    settle();
+    expect([r, screen.queryByTestId("menu-page-settings")]).toEqual([true, null]);
+    expect(screen.getByTestId("more-screen")).toBeTruthy();
   });
 });
 
@@ -259,7 +301,7 @@ describe("a page", () => {
     let r = false;
     act(() => { r = out.back!.back(); });
     settle();
-    expect([r, screen.queryByTestId("menu-page-about"), screen.getAllByTestId(/^menu-item-/).length]).toEqual([true, null, 6]);
+    expect([r, screen.queryByTestId("menu-page-about"), screen.getAllByTestId(/^menu-item-/).length]).toEqual([true, null, 7]);
     act(() => { r = out.back!.back(); });
     expect(r).toBe(false);
   });

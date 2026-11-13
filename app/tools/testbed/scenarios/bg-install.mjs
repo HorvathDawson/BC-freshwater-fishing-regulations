@@ -1,7 +1,7 @@
 // (T298) THE FIRST INSTALL IN THE BACKGROUND: a clean app on mobile data asks before ~500 MB ("Wait for Wi-Fi" is kept
 // as the setting and said), waits, starts by itself on Wi-Fi, the fish sayings take turns; then the app is CLOSED
 // mid-download (its process killed) and the system's DownloadManager goes on with its notification; a tap on the
-// notification (or a launch) opens the app, which picks the files up, verifies them and opens the map; More → Data
+// notification (or a launch) opens the app, which picks the files up, verifies them and opens the map; More → Settings
 // shows the saved choice. Clears the app's data (like `install`): run it on its own or before the others.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -49,7 +49,7 @@ export const bgInstall = {
     await ctx.step('"Wait for Wi-Fi": waiting, the choice saved and said, the sayings take turns', async () => {
       ctx.flow('tap-text', { TEXT: 'Wait for Wi-Fi' });
       await ctx.waitText(/^Waiting for Wi-Fi —/, 20_000);
-      await ctx.waitText(/^Saved\. Change this any time in More → Data\.$/, 5_000);
+      await ctx.waitText(/^Saved\. Change this any time in More → Settings\.$/, 5_000);
       const a = words().find((x) => SAYING.test(x));
       shot('2-waiting-wifi');
       await d.sleep(4500);
@@ -122,8 +122,9 @@ export const bgInstall = {
       } catch { /* no log */ }
       return `opened by ${opened}; map up ${Math.round((Date.now() - t0) / 1000)} s later${after}`;
     }, { stop: true });
-    await ctx.step('More → Data: "Download over mobile data" shows the saved Wi-Fi only', async () => {
+    await ctx.step('More → Settings: "Download over mobile data" shows the saved Wi-Fi only', async () => {
       ctx.flow('tab', { TAB: 'More' });
+      ctx.flow('tap-text', { TEXT: 'Settings' });   // (T703) the controls live in the Settings screen
       try { ctx.flow('scroll-to', { TEXT: 'Wi-Fi only' }); } catch { /* already in view */ }
       await ctx.waitText(/^Download over mobile data$/, 10_000);
       shot('7-more-setting');

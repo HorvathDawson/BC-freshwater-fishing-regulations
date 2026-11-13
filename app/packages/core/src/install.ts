@@ -118,7 +118,7 @@ export const MOBILE_DATA_WORDS = {
   now: "Download now",
   wait: "Wait for Wi-Fi",
   /** said once the answer is kept */
-  saved: "Saved. Change this any time in More → Data.",
+  saved: "Saved. Change this any time in More → Settings.",
   /** the first install, held for Wi-Fi */
   waiting: "Waiting for Wi-Fi — the download starts by itself when you connect.",
   closeOk: "You can close the app: the download carries on.",

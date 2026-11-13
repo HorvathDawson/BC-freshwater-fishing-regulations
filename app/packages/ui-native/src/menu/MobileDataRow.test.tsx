@@ -1,4 +1,4 @@
-/** (T298, owner 2026-10-29) More → Data: "Download over mobile data" — Always / Ask / Wi-Fi only, the choice shown and changed. */
+/** (T298, owner 2026-10-29) More → Settings → Data: "Download over mobile data" — Always / Ask / Wi-Fi only, the choice shown and changed. */
 import { afterEach, describe, expect, it } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { MOBILE_DATA_WORDS, type DataInput, type MobileDataSetting } from "@app/core";
@@ -23,6 +23,7 @@ describe("Download over mobile data (T298)", () => {
         <MoreScreen palette={LIGHT} data={DATA} back="Map" onBack={() => {}} contact={null} theme="light" onTheme={() => {}}
                     onPick={() => {}} metered={{ value: "ask", set: (s) => picked.push(s) }} />
       </LayoutWidthContext.Provider>);
+    fireEvent.click(screen.getByTestId("menu-item-settings"));  // (T703) the controls live in Settings
     expect(screen.getByTestId("data-updates-metered").textContent).toContain(MOBILE_DATA_WORDS.label);
     const radios = screen.getAllByRole("radio").filter((r) => r.getAttribute("aria-label")?.startsWith(MOBILE_DATA_WORDS.label));
     expect(radios.map((r) => r.textContent)).toEqual(["Always", "Ask", "Wi-Fi only"]);

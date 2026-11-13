@@ -174,6 +174,15 @@ export function dataVM(s: DataInput): DataBlockVM {
 /** The pages listed as rows on the More tab, in order — Sources and credits among them, linked once. */
 export const MORE_ROWS: readonly MenuPageKey[] = ["offline", "notifications", "help", "glossary", "sources", "about", "report"];
 
+/**
+ * (T703) THE SYNC ROW'S WORDS on the More tab: the button's name while all is well (the table below says every age),
+ * its full state only when it asks something — checking, downloading, a failure, a newer release, a check this device
+ * has not made.
+ */
+export function syncRowWords(sync: { readonly kind: string; readonly label: string }): string {
+  return sync.kind === "fresh" || sync.kind === "done" ? SYNC_WORDS.name : sync.label;
+}
+
 export interface MenuItemVM { readonly k: MenuPageKey; readonly label: string; readonly hint: string }
 
 export interface MoreVM {
@@ -181,6 +190,8 @@ export interface MoreVM {
   /** the back control at the top: the tab it returns to, and what it says aloud */
   readonly back: { readonly to: string; readonly label: string };
   readonly data: DataBlockVM;
+  /** (T703) the Settings row, first in the list: its label, hint and the headings of the screen it opens */
+  readonly settings: { readonly label: string; readonly hint: string; readonly sections: { readonly data: string; readonly privacy: string; readonly display: string } };
   readonly display: { readonly title: string; readonly palette: string; readonly note: string;
                       readonly options: readonly { readonly k: "light" | "dark" | "cvd"; readonly t: string }[] };
   readonly rows: readonly MenuItemVM[];
@@ -199,6 +210,7 @@ export function menuVM(i: { data: DataInput; back: string; contact: string | nul
     title: MENU_WORDS.title,
     back: { to: i.back, label: MORE_WORDS.back(i.back) },
     data: dataVM(i.data),
+    settings: MENU_WORDS.settings,
     display: { title: d.title, palette: d.palette, note: d.cvd, options: d.options },
     rows: MORE_ROWS.filter((k) => k !== "notifications" || i.notifications).map((k) => ({ k, ...MENU_WORDS.items[k] })),
     contact: { title: MENU_WORDS.contact.title, vm: contactVM(i.contact) },

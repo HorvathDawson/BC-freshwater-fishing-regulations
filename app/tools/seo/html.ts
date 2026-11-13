@@ -168,7 +168,7 @@ export function privacyBody(site: Site, asOf: string): string {
     `Reports are deleted automatically 180 days after they are received, including any email in them. ` +
     `To have your report or email deleted sooner, write to ${mail}.</p>` +
     `<h2>App errors (crash reports)</h2><p>When the app hits an error it did not expect, it sends one short report to our own server on Cloudflare. ` +
-    `We use no third-party crash-reporting service. This is on by default and you can turn it off at any time in More → Data → “Send crash reports”; ` +
+    `We use no third-party crash-reporting service. This is on by default and you can turn it off at any time in More → Settings → “Send crash reports”; ` +
     `when it is off nothing is sent. An error report holds only:</p><ul>` +
     `<li>the app version, whether it is a test or live build, your phone’s system name and version (or “web”), and the data release the app was using;</li>` +
     `<li>the kind of screen you were on — map, conditions, runs, spots, menu or a water page — and, when a water was open, that water’s id number in our data ` +
