@@ -176,3 +176,17 @@ def test_province_wide_every_source_top_has_a_source_header(request):
             old += "a lake outlet" in runs_label(doc, p)        # the bug, for the mutation count
     assert bad == []
     assert p55 >= 50 and old == p55, (p55, old)             # P55 counted 62 tops on 2026-11-12 (62 on r-adc4e248a163)
+
+
+def test_signs_that_are_the_place_read_as_the_signs():
+    """T708 Gagnon (RULINGS P57: mouth → signs → Source): a sign cut whose words after "signs" name no place — a bare
+    placement note, or "its mouth" — reads as the signs; a sign cut AT a named place still loses the sign-post words."""
+    sp = {"g__signs": {"name": "fishing boundary signs (200 m upstream of the lake on the creek)", "km": 3.9,
+                       "water_id": "gnis:1"},
+          "g__old": {"name": "fishing boundary signs near its mouth", "km": 3.9, "water_id": "gnis:1"},
+          "p__pool": {"name": "signs at the tail of the canyon pool (300 m downstream)", "km": 5.0, "water_id": "gnis:1"}}
+    W = _water([[_run("g__signs", "mouth", 3.9, 0.0)], [_run("source", "g__signs", 9.0, 3.9)]], splits=sp)
+    assert _said(W) == ["Mouth → Fishing boundary signs (200 m upstream of the lake on the creek)",
+                        "Fishing boundary signs (200 m upstream of the lake on the creek) → Source"]
+    assert end_words(W.doc, "g__old", "to") == "Fishing boundary signs near its mouth"
+    assert end_words(W.doc, "p__pool", "to") == "The tail of the canyon pool (300 m downstream)"

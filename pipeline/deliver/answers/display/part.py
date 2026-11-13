@@ -380,6 +380,15 @@ def runs_label(doc: dict, part: dict, w_km: Tuple[Optional[float], Optional[floa
 #: RULINGS P40: no label cuts a name mid-way ("Sikanni Chief River…" was scary) —
 #: an end is said whole however long, and a part with no run shows its full label.
 _SIGN_WORDS = re.compile(r"^(?:the )?(?:fishing )?(?:boundary )?signs? (?:at |near )?", re.I)
+#: what is left after the sign words must name a place: nothing, a bare note "(200 m …)" or "its mouth" does not
+_NO_PLACE = re.compile(r"^(?:$|\(|(?:its|their) )", re.I)
+
+
+def _sign_less(t: str) -> str:
+    """The end without its sign-post words — unless the signs ARE the place (T708 Gagnon: "fishing boundary signs
+    (200 m upstream of the lake on the creek)" reads as the signs, never "(200 m …)" or "Its mouth")."""
+    rest = _SIGN_WORDS.sub("", t)
+    return t if _NO_PLACE.match(rest) else rest
 
 
 #: T517: a regulation's cut named after the gauge beside it ("above Babine River (WSC gauge 08EB005)"): the gauge
@@ -396,7 +405,7 @@ def _end_short(doc: dict, e: Optional[str], side: str) -> str:
         return cap(f"{nm} begins")
     t = end_name(doc, e, side)
     t = re.sub(r"^the ", "", t)
-    t = _SIGN_WORDS.sub("", t) or t
+    t = _sign_less(t)
     t = re.sub(r" of Canada\b", "", t) or t
     t = _GAUGE_REF.sub("", t) or t
     return t if t.startswith("km ") else cap(t)       # a unit stays lower case ("km 121.9")
