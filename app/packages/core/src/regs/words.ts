@@ -371,6 +371,8 @@ export const BOATS = Object.freeze({
   SPEED: (kmh: string) => `Speed limit ${kmh} km/h`, SPEED_NO_NUMBER: "Speed restriction",
   SPEEDS_ON_PARTS: (lo: string, hi: string) => `Speed limits ${lo}–${hi} km/h on parts`,
   ON_PARTS: " on parts", IN_PART: " (in part)",
+  /** (T209) a vessel rule of a part no map draws, with the book's locator words: "No vessels — in swimming areas, as buoyed and signed" */
+  AT_PART: (part: string) => ` — ${part}`,
 });
 
 export const METHODS = Object.freeze({

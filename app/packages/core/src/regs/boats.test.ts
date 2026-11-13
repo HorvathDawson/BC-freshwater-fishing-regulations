@@ -3,7 +3,7 @@
  * and a water with no vessel rule (no line).
  */
 import { describe, expect, it } from "vitest";
-import { boatChips, boatKind, inBoatRules } from "./boats";
+import { boatChips, boatKind, inBoatRules, inPartVessels } from "./boats";
 import type { ExportRule, GearAnswer, RuleFacts, RuleIndex, RuleView } from "./inputs";
 import { ruleView } from "./rules";
 import { BOOK } from "./testing/speciesBook";
@@ -12,8 +12,9 @@ const vessel = (rix: number, fields: Record<string, unknown>, type = "vessel_rul
   ruleView(rix, { entry_id: `w:r${rix}`, rule_id: "r1", type, family: "vessel", label: "L", verbatim: "", fields, prov: { rank: 4 } } as ExportRule,
     { kind: "vessel", title: "", book: [], applies: "" } as RuleFacts, BOOK, "reach");
 const index = (rs: RuleView[]): RuleIndex => ({ get: (ix) => rs.find((r) => r.rix === ix)!, has: (ix) => rs.some((r) => r.rix === ix), size: rs.length });
-const chips = (rs: RuleView[], timed: number[] = []) =>
-  boatChips({ circumstantial: [], vessel: { active: rs.map((r) => r.rix).filter((i) => !timed.includes(i)), timed } } as unknown as GearAnswer, { rules: index(rs) });
+const chips = (rs: RuleView[], timed: number[] = [], inPart: number[] = []) =>
+  boatChips({ circumstantial: [], in_part: inPart,
+    vessel: { active: rs.map((r) => r.rix).filter((i) => !timed.includes(i) && !inPart.includes(i)), timed } } as unknown as GearAnswer, { rules: index(rs) });
 const texts = (rs: RuleView[]) => chips(rs).map((c) => c.text);
 
 describe("boats line", () => {
@@ -69,12 +70,37 @@ describe("boats line", () => {
         { kind: "gear", title: "", book: [], applies: "" } as RuleFacts, BOOK, "reach");
     const rs = [rule(7, "No angling (from a boat), Aug 15-Dec 31"), rule(8, "No spear fishing"), vessel(9, { aspect: "propulsion", level: "unpowered" })];
     const ga = { circumstantial: [{ clause: [7, 0], while: ["in_boat"] }, { clause: [7, 1], while: ["in_boat"] }, { clause: [8, 0], targeting: ["BB"] },
-      { clause: [8, 1], while: ["ice_fishing"] }], vessel: { active: [9], timed: [] } } as unknown as GearAnswer;
+      { clause: [8, 1], while: ["ice_fishing"] }], vessel: { active: [9], timed: [] }, in_part: [] } as unknown as GearAnswer;
     expect(boatChips(ga, { rules: index(rs) })).toEqual([
       { kind: "in_boat", text: "No angling (from a boat), Aug 15-Dec 31", rule: "w:r7::r1" },
       { kind: "unpowered", text: "No powered boats", rule: "w:r9::r1" }]);
     expect(inBoatRules(ga, { rules: index(rs) }).map((r) => r.rix)).toEqual([7]);
     // mutation: the circumstance dropped from the frame, the chip is gone (the presenter reads the frame, never the rule)
     expect(boatChips({ ...ga, circumstantial: [] } as GearAnswer, { rules: index(rs) }).map((c) => c.kind)).toEqual(["unpowered"]);
+  });
+  it("(T209, owner 2026-11-12) a vessel rule of a part no map draws is in the vessel section with the book's locator words", () => {
+    // the ten 'close wording' rules (on-parts.md): the gear frame lists them in `in_part`, never in `vessel`
+    const at = (rix: number, fields: Record<string, unknown>, part: string) => vessel(rix, { ...fields, undrawn_part: part });
+    const various = "various locations (as buoyed and signed)";
+    // Okanagan / Kalamalka / Skaha: "Speed restrictions or no vessels (as buoyed and signed), various locations"
+    expect(chips([at(0, { aspect: "speed" }, various), at(1, { aspect: "propulsion", level: "none" }, various)], [], [0, 1]).map((c) => c.text))
+      .toEqual(["No vessels — various locations (as buoyed and signed)", "Speed restriction — various locations (as buoyed and signed)"]);
+    // Alouette, Osoyoos, the Columbia's wetlands, the Harrison's bays
+    expect(chips([at(0, { aspect: "propulsion", level: "none" }, "in swimming areas, as buoyed and signed")], [], [0]).map((c) => c.text))
+      .toEqual(["No vessels — in swimming areas, as buoyed and signed"]);
+    expect(chips([at(0, { aspect: "propulsion", level: "none" }, "in 5 signed swimming areas")], [], [0]).map((c) => c.text))
+      .toEqual(["No vessels — in 5 signed swimming areas"]);
+    expect(chips([at(0, { aspect: "propulsion", level: "unpowered" }, "in wetlands")], [], [0]).map((c) => c.text))
+      .toEqual(["No powered boats — in wetlands"]);
+    expect(chips([at(0, { aspect: "speed" }, "in small bays along the river as signed")], [], [0]).map((c) => c.text))
+      .toEqual(["Speed restriction — in small bays along the river as signed"]);
+    // beside a whole-water rule of the same kind: both, the whole water first, never merged into one
+    expect(chips([vessel(0, { aspect: "speed", max_kmh: 10 }), at(1, { aspect: "speed" }, various)], [], [1]).map((c) => [c.text, c.rule]))
+      .toEqual([["Speed limit 10 km/h", "w:r0::r1"], ["Speed restriction — various locations (as buoyed and signed)", "w:r1::r1"]]);
+    // only vessel rules with a part: an in-part gear rule stays the caveat's
+    const gear = ruleView(2, { entry_id: "w:r2", rule_id: "r1", type: "gear_restriction", family: "gear_and_method", label: "Bait ban", verbatim: "",
+      fields: { undrawn_part: "within signs" }, prov: { rank: 4 } } as ExportRule, { kind: "gear", title: "", book: [], applies: "" } as RuleFacts, BOOK, "reach");
+    const rs = [at(0, { aspect: "towing" }, various), gear];
+    expect(inPartVessels({ in_part: [0, 2] } as unknown as GearAnswer, { rules: index(rs) }).map((r) => r.rix)).toEqual([0]);
   });
 });

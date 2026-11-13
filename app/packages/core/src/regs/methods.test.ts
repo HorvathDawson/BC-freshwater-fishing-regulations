@@ -108,6 +108,15 @@ describe("boatsVM, referenceVM", () => {
     expect(boatsVM(ga({ vessel: { active: [4], timed: [5] } }), ctx)).toEqual({ label: "Boats", items: ["No powered boats", "Speed 8 km/h"],
       src: { who: "This water’s ›", aria: "Sources: This water’s", open: "srcs:boats", keys: ["w:r4::r1", "w:r5::r1"], pages: [{ printed: 43, pdf: 49 }] } });
   });
+  it("(T209) the Boats list ends with the vessel rules of an undrawn part, each label naming its part", () => {
+    const part = ruleView(8, { entry_id: "w:r8", rule_id: "r1", type: "vessel_rule", family: "vessel",
+      label: "No vessels — in part: various locations (as buoyed and signed)", verbatim: "",
+      fields: { aspect: "propulsion", level: "none", undrawn_part: "various locations (as buoyed and signed)" }, prov: { rank: 0 } } as ExportRule,
+      { kind: "vessel", title: "", book: [[67, 73]], applies: "" } as RuleFacts, BOOK, "reach");
+    const c = ctxOf(index([rule(4, { label: "No powered *boats*", rank: 0, book: [[43, 49]] }), part]));
+    expect(boatsVM(ga({ vessel: { active: [4], timed: [] }, in_part: [8] }), c)!.items)
+      .toEqual(["No powered boats", "No vessels — in part: various locations (as buoyed and signed)"]);
+  });
   it("reference: the snagged-fish duty first, then each moment in the frame's order, the phrase from the static moments", () => {
     const statics = { gearMoments: [["release", [["gently", "Gently, back in the water", "long"]]]], conductMeans: { waste: "Don’t waste it" },
       exportConduct: { sell: "Sell your catch" } } as unknown as RegsInputs["statics"];

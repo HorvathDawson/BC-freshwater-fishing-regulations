@@ -7,7 +7,7 @@ import { describe, expect, it } from "vitest";
 import type { Moment } from "../answers.generated";
 import type { HydRes } from "./card";
 import {
-  anglerOf, answerTxt, caveatsOf, daysTxt, inPartOf, KEEP_FAMS, momentTxt, partClosedOf, sideOf, timedOf,
+  anglerOf, answerTxt, caveatsOf, daysTxt, gearInPart, inPartOf, KEEP_FAMS, momentTxt, partClosedOf, sideOf, timedOf,
 } from "./caveats";
 import type { DisplayFrame, ExportRule, RegsInputs, RuleFacts, RuleIndex, RuleView, RowsValue } from "./inputs";
 import type { CaveatVM } from "./model";
@@ -158,6 +158,14 @@ describe("inPartOf: rules of parts the map can't draw", () => {
   });
   it("another family's rules are not this block's; none → null", () => {
     expect(inPartOf(settled({ inpart: [{ rule: boat, now: true }] }), inp, KEEP_FAMS)).toBeNull();
+  });
+  it("(T209, owner 2026-11-12) the day's in-part VESSEL rules are the vessel section's, never this block's; gear stays", () => {
+    const okanagan = view(7, 78, { family: "vessel", type: "vessel_rule" }, { aspect: "propulsion", level: "none", undrawn_part: "various locations (as buoyed and signed)" }, { book: [] });
+    const bait = view(8, 3351, { label: "Bait ban" }, { undrawn_part: "within signs at the western tip" }, { book: [] });
+    const withGear = { item: { kind: "lake" }, rules: indexOf([okanagan, bait]),
+      frames: { gear: { in_part: [7, 8], vessel: { active: [], timed: [] } } } } as unknown as RegsInputs;
+    expect(gearInPart(withGear).map((x) => x.item.rule)).toEqual([bait.key]);
+    expect(inPartOf(settled({}), withGear, KEEP_FAMS)!.items.map((i) => i.rule)).toEqual([bait.key]);
   });
 });
 

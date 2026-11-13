@@ -18,6 +18,7 @@
  */
 import type { Moment } from "../answers.generated";
 import { WEEKDAYS } from "../calendar.generated";
+import { inPartVessels } from "./boats";
 import { mainRes, rowsAt, type HydRes } from "./card";
 import { closedGate, describe } from "./describe";
 import type { RegsInputs, RuleView } from "./inputs";
@@ -129,7 +130,10 @@ function inPartItem(r: RuleView, inp: RegsInputs): CaveatItemVM {
 export function gearInPart(inp: RegsInputs): readonly InPartEntry[] {
   const g = inp.frames?.gear;
   if (!g || "tidal" in g) return [];
-  return [...new Set(g.in_part)].map((ix) => inp.rules.get(ix)).filter((r) => !r.missing)
+  // (T209, owner 2026-11-12) a vessel rule of an undrawn part is drawn in the Vessel restrictions section with its
+  // locator words (`boats.inPartVessels`), never here as a loose note
+  const vessels = new Set(inPartVessels(g, inp).map((r) => r.rix));
+  return [...new Set(g.in_part)].filter((ix) => !vessels.has(ix)).map((ix) => inp.rules.get(ix)).filter((r) => !r.missing)
     .map((r) => ({ item: inPartItem(r, inp), now: true, boat: family(r) === "vessel" }));
 }
 
