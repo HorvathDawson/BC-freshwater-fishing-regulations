@@ -18,6 +18,7 @@
  * Every sentence is composed here, whole (AGENTS 33).
  */
 import { MONTHS } from "./calendar.generated";
+import { isIsoDay } from "./day";
 import { INSEASON_WORDS, inSeasonDates, regionWords, type InSeasonChange, type InSeasonFeed } from "./inseason";
 
 /** (T700) a notice stays in the history this many days after it ended (left the page, or its `to` passed) */
@@ -54,7 +55,7 @@ export interface InboxItem {
 
 export interface InboxState { readonly format: typeof INBOX_FORMAT; readonly items: readonly InboxItem[] }
 
-const isDay = (x: unknown): x is string => typeof x === "string" && /^\d{4}-\d{2}-\d{2}$/.test(x);
+const isDay = isIsoDay;
 const isStr = (x: unknown): x is string => typeof x === "string";
 const dayOrNull = (x: unknown) => x === null || isDay(x);
 
