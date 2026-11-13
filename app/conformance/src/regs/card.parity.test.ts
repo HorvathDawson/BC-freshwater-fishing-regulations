@@ -13,11 +13,10 @@
  * a hand amendment here (v36-rulings.json: Lois Lake's folded row, the Peace kokanee, the Kitimat's Nov 1-June 30
  * release, the rename's order flips). The release carries every ruling: there is nothing to amend.
  */
-import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { buildModel, makePlace, settle, type CardModel, type HydRes } from "@app/core";
 import { inputsOf, releasePairing, paritySkip, taps } from "./golden";
-import { HYDRATE, KITIMAT_RULED, LOIS_FOLD, oracleRixOf, PEACE_KOKANEE, pageOracle, type PageOracleState } from "./oracles";
+import { pageOracle, type PageOracleState } from "./oracles";
 
 const O = pageOracle();
 const ids = Object.keys(taps().states);
@@ -59,32 +58,5 @@ describe.skipIf(pairing.skip)(`T08 card model on the live release (${at.path ?? 
     const m = await model(id);
     expect(m.rows.map((r) => r.year)).toEqual(O.states[id]!.dayStatus);
     for (const r of m.rows) expect(r.year.reduce((a, [, n]) => a + n, 0)).toBe(365);
-  });
-});
-
-/**
- * (until the Python year-strip test retires, T667 5b) v36-rulings.json's row indexes are page v36's own: that test still
- * reads the FROZEN page (hydrate.json) with them.
- */
-type HModel = { rows: { kind: string; pool: number | null; win: number | null; members: string[] }[] };
-const H = JSON.parse(readFileSync(HYDRATE, "utf8")) as { states: Record<string, { model: HModel; dayStatus: [string, number][][] }> };
-const LOIS = { retired: oracleRixOf(LOIS_FOLD.retired) };
-const PK = { out: oracleRixOf(PEACE_KOKANEE.out) };
-const PEACE_ITEM = taps().states as Readonly<Record<string, { readonly item: string } | undefined>>;
-const loisRow = (id: string, o: HModel) => (id === LOIS_FOLD.id ? o.rows.findIndex((r) => r.pool === LOIS.retired) : -1);
-const peaceRow = (id: string, o: HModel) =>
-  (PEACE_ITEM[id]?.item === PEACE_KOKANEE.item ? o.rows.findIndex((r) => r.kind === "release" && r.win === PK.out) : -1);
-
-describe("v36-rulings.json's row indexes are page v36's own (the Python year-strip test reads them, T667 slice 5)", () => {
-  it("Lois: the folded row is the page's row of the retired rule", () => {
-    expect(loisRow(LOIS_FOLD.id, H.states[LOIS_FOLD.id]!.model)).toBe(LOIS_FOLD.row);
-  });
-  it("Peace: the kept rows are exactly the page's kokanee stream-release rows on the Peace", () => {
-    const got = Object.fromEntries(Object.keys(H.states).map((id) => [id, peaceRow(id, H.states[id]!.model)] as const)
-      .filter(([, at]) => at >= 0));
-    expect(got).toEqual(PEACE_KOKANEE.kept_rows);
-  });
-  it("Kitimat: each ruled row is a row of its state on the page", () => {
-    for (const [id, row] of Object.entries(KITIMAT_RULED)) expect(H.states[id]!.dayStatus.length, id).toBeGreaterThan(row);
   });
 });

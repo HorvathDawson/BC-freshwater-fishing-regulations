@@ -48,7 +48,7 @@ def test_the_table_is_the_source_the_release_and_the_tools_agree_with():
 
 def test_only_a_golden_page_is_an_answer_change():
     """T667 D5: renumber-only changes are committed; a golden page's words, or the page oracle, stop the release."""
-    renumber = ["app/fixtures/golden/taps.json", "app/fixtures/golden/hydrate.json",
+    renumber = ["app/fixtures/golden/taps.json",
                 "app/packages/data/dev/regs-release/r-1/water-aa.sqlite.gz", "app/packages/data/dev/section-lines.json"]
     assert RF.answer_paths(renumber) == []
     page = "app/packages/ui-native/src/regs/fixtures/glenn_501.json"

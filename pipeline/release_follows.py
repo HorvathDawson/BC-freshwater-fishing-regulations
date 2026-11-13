@@ -58,8 +58,8 @@ RECUT = "recut"
 INSEASON = "inseason"
 
 FOLLOWS: tuple[Follow, ...] = (
-    Follow("goldens", "the tap and hydrate oracles: every golden state's answer keys on the release's own store",
-           ("app/fixtures/golden/taps.json", "app/fixtures/golden/hydrate.json"), RECUT),
+    Follow("goldens", "the tap oracle: every golden state's answer keys on the release's own store",
+           ("app/fixtures/golden/taps.json",), RECUT),
     Follow("page-oracle", "page v36's own code over the release: every golden state's settle, card and year strip, rules "
            "by durable key (T667 5b: replaces the frozen page's hand-amended rulings)",
            ("app/fixtures/golden/page-oracle.json",), RECUT, answers=True),

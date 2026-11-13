@@ -2,7 +2,7 @@
  * The decoded rule inputs T06's parity runs on, from two places:
  *
  * - `pageSource()` — ALWAYS present: page_v36.html's own `#data` (export slice: rules, rid, species, waters) and
- *   `#answers` (`sections.display.rules`), i.e. exactly what regs-recut/hydrate.mjs fed page v36 when it wrote the oracle
+ *   `#answers` (`sections.display.rules`), the page's own frozen inputs
  *   (the data blocks are unchanged since the oracle's ref; only page code changed). 726 rules; a part's via is its
  *   `rules [[ix, via]]` list.
  * - `storeSource()` — the live RELEASE when this machine has one (data/release/r-*, every rule), read through
@@ -10,8 +10,8 @@
  *   regs.sqlite with node:sqlite): `rules()`, `statics().exportSpecies`, and a state's via from its `akey`'s ruleset.
  *   Absent: null, and the store-backed tests report themselves skipped.
  *
- * And one oracle for inputs hydrate.json does not cover: `pageDecode(src)` runs page v36's OWN decode layer
- * (page_v36.js up to `function segBar`, as regs-recut/hydrate.mjs does) over a source's rules, so a store-backed case is
+ * And the oracle: `pageDecode(src)` runs page v36's OWN decode layer
+ * (page_v36.js up to `function segBar`, as regs-recut/page-oracle.mjs does) over a source's rules, so a store-backed case is
  * checked against the page's code, not against a re-reading of it.
  */
 import { readFileSync } from "node:fs";
@@ -38,7 +38,7 @@ interface PageData {
 }
 
 /** page_v36.html's own inputs, read with the zone daily-quota entry renames applied (oracles.ts `pageHtml`): the oracle
- *  (hydrate.json) names the renamed entries, so the page's decode must too. */
+ *  (core's testing fixtures) names the renamed entries, so the page's decode must too. */
 export function pageSource(): RuleSource {
   const html = pageHtml();
   const block = (id: string): unknown => {
@@ -119,7 +119,7 @@ export function pageDecode(src: RuleSource): { readonly rules: ReadonlyMap<numbe
   };
   const js = readFileSync(`${REF}page_v36.js`, "utf8").split("\n");
   const end = js.findIndex((l) => /^function segBar\(/.test(l));
-  if (end < 0) throw new Error("page_v36.js: no `function segBar` — the decode layer moved; update pageDecode (and regs-recut/hydrate.mjs)");
+  if (end < 0) throw new Error("page_v36.js: no `function segBar` — the decode layer moved; update pageDecode (and regs-recut/page-oracle.mjs)");
   const body = `${readFileSync(`${REF}calendar.generated.js`, "utf8")}\n${js.slice(0, end).join("\n")}\nreturn { RULES, describe };`;
   const P = new Function("document", body)({ getElementById: (id: string) => ({ textContent: JSON.stringify(blocks[id]) }) }) as
     { RULES: Record<string, PageRule>; describe(r: PageRule): string };

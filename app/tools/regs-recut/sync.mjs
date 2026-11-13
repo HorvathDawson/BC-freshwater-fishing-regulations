@@ -6,9 +6,9 @@
 // release. A release NAMED and not there is an error, never passed over for LATEST.
 //   1. taps.py      app/fixtures/golden/taps.json from app/fixtures/golden/states.json (the tap QUESTIONS: water, part,
 //                   date; no answers), on the release's regs store (data/release/LATEST; P20: no regs.sqlite is kept)
-//   2. hydrate.mjs  app/fixtures/golden/hydrate.json (reads taps.json's states and its meta.golden/version)
-//   2b. page-oracle.mjs app/fixtures/golden/page-oracle.json: page v36's CODE over this release (page_blocks.py reads it
-//                   through the Python reference decoder), every tapped golden state, rules by durable key (T667 5b)
+//   2. page-oracle.mjs app/fixtures/golden/page-oracle.json: page v36's CODE over this release (page_blocks.py reads it
+//                   through the Python reference decoder), every tapped golden state, rules by durable key (T667 5b;
+//                   it replaced hydrate.mjs / hydrate.json, page v36's frozen data amended per ruling)
 //   3. regs-fixture the committed fixture release app/packages/data/dev/regs-release/ (the waters taps.json names) AND
 //                   app/packages/data/dev/section-lines.json, cut from the same release's own `lines` file
 //   4. VM fixtures  app/packages/ui-native/src/regs/fixtures/*.json (UPDATE_REGS_FIXTURES=1, the conformance harness)
@@ -43,8 +43,7 @@ const run = (cmd, a, env = {}) =>
   execFileSync(cmd, a, { cwd: REPO, stdio: ['ignore', 'inherit', 'inherit'], env: { ...process.env, RELEASE_DIR: release, ...env } });
 const step = (n, what) => console.log(`\nregs-recut ${n}/4: ${what} (${path.basename(release)})`);
 step(1, 'taps.json'); run(py, [path.join(HERE, 'taps.py'), '--release', release]);
-step(2, 'hydrate.json'); run('node', [path.join(HERE, 'hydrate.mjs')]);
-step('2b', 'page-oracle.json'); run('node', [path.join(HERE, 'page-oracle.mjs'), '--release', release]);
+step(2, 'page-oracle.json'); run('node', [path.join(HERE, 'page-oracle.mjs'), '--release', release]);
 step(3, 'the fixture release + section-lines.json');
 run(py, ['-m', 'pipeline.deliver.release.regs_fixture', '--release', release]);
 step(4, 'the regs VM fixtures');

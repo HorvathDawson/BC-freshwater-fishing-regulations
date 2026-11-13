@@ -1,7 +1,12 @@
-"""THE YEAR STRIP (rows 30) on the REAL waters, against the GOLDEN ORACLE: the answers build (this code, the bundle on
-this machine) for the 42 waters the 134 golden states name, and every drawn row's stored `year` equals page v36's own
-dayStatus runs for that state (app/fixtures/golden/hydrate.json, the prototype's output — never this code's).
-The no-data twin is `test_answers_year_strip.py`.
+"""THE YEAR STRIP (rows 30) on the REAL waters: the answers build (this code, the bundle on this machine) for the waters
+the golden states name, and every drawn row's stored `year` equals page v36's own dayStatus runs for that state, as page
+v36's CODE reads the release under test (app/fixtures/golden/page-oracle.json, `app/tools/regs-recut/page-oracle.mjs` —
+the page's strip over the release's rows frames, never this code's). The no-data twin is `test_answers_year_strip.py`.
+
+(T667 slice 5b) Until 2026-11-13 the oracle was page v36's FROZEN output (hydrate.json), amended per approved ruling
+(v36-rulings.json: the Kitimat's Nov 1-June 30 release, Lois Lake's folded row, the Peace kokanee). The release under
+test carries every ruling, so nothing is amended: this test now asks whether this code rebuilds the strips the release
+ships, by the page's rule.
 
 `UI_EXPORT_BUNDLE` / `ANSWERS_EXPORT_DIR` point the suite at a side bundle and its export pair.
 """
@@ -20,14 +25,9 @@ from pipeline.tests import under_test
 BUNDLE = under_test.path("bundle")
 EXPORT_DIR = under_test.path("export_dir")
 GOLDEN = Path(__file__).resolve().parents[2] / "app" / "fixtures" / "golden"
-HYDRATE = json.loads((GOLDEN / "hydrate.json").read_text())
+ORACLE = json.loads((GOLDEN / "page-oracle.json").read_text())
 TAPS = json.loads((GOLDEN / "taps.json").read_text())
-#: (T667 slice 5) the rulings page v36 predates, recorded once for both languages (app/conformance/src/regs/oracles.ts
-#: reads the same file; its card parity holds these row indexes to the page's own rows)
-RULINGS = json.loads((GOLDEN.parent / "reference" / "v36-rulings.json").read_text())
-#: (T115) the hydrated states the store taps: not the 4 whose part the release merged away (taps.json `gone`), nor
-#: (T278) the 2 whose golden part is tidal water now (taps.json `tidal`: x15p3, x37p1)
-IDS = sorted(i for i in HYDRATE["states"] if i not in TAPS["gone"] and i not in TAPS.get("tidal", {}))
+IDS = sorted(ORACLE["states"])
 
 
 @pytest.fixture(scope="module")
@@ -39,50 +39,28 @@ def built(request):
     return A.build(BUNDLE, EXPORT_DIR, workers=1, items=items, export=(data, guide), log=lambda *_: None)
 
 
-@pytest.mark.needs_bundle
-def test_the_oracle_is_page_v38_over_134_states():
-    # the frozen oracle's own facts are pinned; how many states the store taps follows the re-cut (taps.json `gone` /
-    # `tidal`, T667 slice 6, owner D3), so it is held as a relation: exactly those are left out, and they are the oracle's
-    assert (HYDRATE["meta"]["version"], HYDRATE["meta"]["year"], len(HYDRATE["states"])) == ("v38", 2026, 134)
-    left_out = sorted([*TAPS["gone"], *TAPS.get("tidal", {})])
-    assert set(left_out) <= set(HYDRATE["states"]) and len(set(left_out)) == len(left_out)
-    assert sorted(set(HYDRATE["states"]) - set(IDS)) == left_out and IDS
+def test_the_oracle_is_page_v38_over_every_tapped_state():
+    assert (ORACLE["meta"]["page"], ORACLE["meta"]["version"], ORACLE["meta"]["year"]) == ("page_v36.js", "v38", 2026)
+    assert ORACLE["meta"]["golden"] == TAPS["meta"]["golden"], "page-oracle.json and taps.json are from one sync"
+    assert IDS == sorted(TAPS["states"]) and IDS
 
 
 @pytest.mark.needs_bundle
 @pytest.mark.parametrize("sid", IDS)
 def test_every_rows_stored_year_is_page_v36s_day_status(built, sid):
-    tap, oracle = TAPS["states"][sid], HYDRATE["states"][sid]
+    tap, oracle = TAPS["states"][sid], ORACLE["states"][sid]
     k = built.parts[tap["item"]][tap["partIx"]]
     assert built.segments[k] == tap["starts"]                   # the same key year as the oracle's tap
     frame = built.sections["rows"][k][oracle["s"]]
-    want = oracle["dayStatus"]
-    if sid in KITIMAT_RULED:
-        want = [_nov_jun_released(runs) if i == KITIMAT_RULED[sid] else runs for i, runs in enumerate(want)]
-    if sid in OVERLAP_RETIRED:
-        want = [runs for i, runs in enumerate(want) if i != OVERLAP_RETIRED[sid]]
-    if sid in PEACE_KOKANEE_KEPT:
-        i = PEACE_KOKANEE_KEPT[sid]
-        assert want[i] == [["release", 365]] and oracle["model"]["rows"][i]["members"] == ["KO"]
-        want = [[["keep", 365]] if j == i else runs for j, runs in enumerate(want)]
-    assert [r["year"] for r in frame["rows"]] == want
+    assert [r["year"] for r in frame["rows"]] == oracle["dayStatus"]
 
 
-#: OWNER RULING 2026-10-21 (a) (v36-rulings.json `kitimat_nov_jun`): on the Kitimat, r5's hatchery-steelhead quota does
-#: NOT lift Region 6's Nov 1-June 30 stream release, where page v36 lifted it. The ONE row per state (index) the ruling
-#: changes; every other row of these states, and every other state, must equal the page.
-KITIMAT_RULED = RULINGS["kitimat_nov_jun"]["rows"]
-#: OWNER 2026-10-26 (`overlap_retired.lois_fold`): Lois Lake's retired r3 row folds into r4's aggregate row; every other
-#: row must still equal the page.
-OVERLAP_RETIRED = {RULINGS["overlap_retired"]["lois_fold"]["id"]: RULINGS["overlap_retired"]["lois_fold"]["row"]}
-#: T623 F6 (`peace_kokanee.kept_rows`): Zone B's stream release no longer binds the Peace, so the Peace part with no row
-#: of its own keeps 10 kokanee all year where page v38 released them. The ONE row that differs (the kokanee row).
-PEACE_KOKANEE_KEPT = RULINGS["peace_kokanee"]["kept_rows"]
+#: (T667 5b) KEPT ONLY because pipeline/tests/smoke.txt (another lane's file) names this node id; delete the helper and
+#: this test with that line when the smoke set is derived (T667 D6). Nothing reads `_nov_jun_released` any more.
 NOV1, JUN30 = 305, 181          # book day-of-year (365-day year; Feb 29 is not a book day)
 
 
 def _nov_jun_released(runs):
-    """The page's strip with the ruling applied: a 'keep' day on Nov 1-June 30 becomes 'release'; nothing else moves."""
     days = [st for st, n in runs for _ in range(n)]
     days = ["release" if st == "keep" and (d >= NOV1 or d <= JUN30) else st for d, st in enumerate(days, 1)]
     out = []

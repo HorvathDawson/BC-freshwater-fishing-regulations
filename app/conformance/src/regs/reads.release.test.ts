@@ -102,7 +102,7 @@ describe.skipIf(!LIVE)(`T04 reads on the live release (${LIVE ?? "absent"})`, ()
       .toEqual({ status: "keep", daily: 20, win: rix("z2:daily_quotas::species_quotas.r1") });
     expect({ h: r.fish.RB!.hatchery!.win, w: r.fish.RB!.wild!.win })
       .toEqual({ h: rix(`${VEDDER}.r6`), w: rix("z2:daily_quotas::trout_char_quota.r6") });
-    // rows 30: each row's stored year strip — page v36's own dayStatus for vedder_515 (hydrate.json), read, not derived
+    // rows 30: each row's stored year strip — read, not derived (page v36's dayStatus rule; card.parity holds every golden state's to page-oracle.json)
     expect(r.rows.map((x) => x.year)).toEqual([
       [["keep", 151], ["closed", 30], ["keep", 184]], [["release", 151], ["closed", 30], ["release", 184]],
       [["keep", 151], ["closed", 30], ["keep", 184]], [["keep", 151], ["closed", 30], ["keep", 184]],

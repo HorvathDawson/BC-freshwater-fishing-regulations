@@ -29,7 +29,7 @@ CORE = ROOT / "app" / "packages" / "core" / "src"
 OUT_TS = CORE / "calendar.generated.ts"
 #: The same spec as JSON, for node tools that cannot import a workspace TypeScript package.
 OUT_JSON = CORE / "calendar.generated.json"
-#: The reference page's copy (app/fixtures/reference/): the conformance `pageDecode` and regs-recut/hydrate.mjs
+#: The reference page's copy (app/fixtures/reference/): the conformance `pageDecode` and regs-recut/page-oracle.mjs
 #: evaluate it ahead of `page_v36.js` (the page's own inlined copy is frozen with its blocks).
 OUT_PAGE_JS = ROOT / "app" / "fixtures" / "reference" / "calendar.generated.js"
 

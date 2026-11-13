@@ -1,7 +1,6 @@
 /**
  * THE ORACLE FILES (app/fixtures/golden/) — the one module every regs parity suite reads them through:
- * taps.json (`taps()`), page-oracle.json (`pageOracle()`), their paths and REPO. (hydrate.json is read only by card.parity's
- * row-index check, until the Python year-strip test that needs it goes, T667 5b.) (golden.json, pins.json, tokens.json and
+ * taps.json (`taps()`), page-oracle.json (`pageOracle()`), their paths and REPO; and the frozen page's inputs (`pageHtml`). (golden.json, pins.json, tokens.json and
  * inventory.json, the retired prototype extracts, are gone: T439.) golden.ts re-exports these.
  */
 import { readFileSync } from "node:fs";
@@ -11,31 +10,31 @@ import type { TapsFile } from "@app/core/regs/testing";
 export const REPO = fileURLToPath(new URL("../../../../", import.meta.url));
 export const GOLDEN_DIR = `${REPO}app/fixtures/golden/`;
 export const TAPS = `${GOLDEN_DIR}taps.json`;
-export const HYDRATE = `${GOLDEN_DIR}hydrate.json`;
 
 /**
- * THE RULINGS PAGE v36 PREDATES (T667 slice 5): `app/fixtures/reference/v36-rulings.json`, one entry per ruling, read here
- * and by `pipeline/tests/test_answers_year_strip_live.py` — a new ruling is one entry there, never a table per test. Each
- * export below is that file's entry under the name the parities have always read; its `why` is the ruling and its source.
+ * page_v36.html's FROZEN inputs are read with the 2026-10-26 zone daily-quota entry merge applied (owner,
+ * handoff/PLAN/curation-review/zone-entry-merges.md: each region's trout/char quota and "Other daily quotas" became one
+ * entry, zN:daily_quotas; every rule_id kept), because core's store-free fixtures (packages/core/src/regs/testing/
+ * ruleRows.ts) were copied in the renamed form and app/tools/regs-fixtures.test.ts holds them to the page. FROZEN: it
+ * never grows — a later ruling moves the release, which the parities read through page-oracle.json and pageDecode, never
+ * the frozen page (T667 slice 5b retired the per-ruling table, v36-rulings.json). Throws if the page names none of them.
  */
-const RULINGS_FILE = `${REPO}app/fixtures/reference/v36-rulings.json`;
-interface Rulings {
-  readonly zone_daily_quota_merge: { readonly renamed: Readonly<Record<string, string>> };
-  readonly overlap_retired: {
-    readonly lois_fold: { readonly id: string; readonly retired: string; readonly into: string; readonly row: number } };
-  readonly peace_kokanee: { readonly item: string; readonly out: string; readonly base: string; readonly daily: number;
-    readonly kept_rows: Readonly<Record<string, number>> };
-  readonly kitimat_nov_jun: { readonly rows: Readonly<Record<string, number>> };
-}
-const RULINGS = JSON.parse(readFileSync(RULINGS_FILE, "utf8")) as Rulings;
-
-/** (zone_daily_quota_merge) page v36's entry ids renamed ONCE at load; an entry the oracle no longer names throws. */
-export const ORACLE_ENTRY_RENAMED: Readonly<Record<string, string>> = RULINGS.zone_daily_quota_merge.renamed;
-const RENAMED_RE = new RegExp(`\\b(${Object.keys(ORACLE_ENTRY_RENAMED).join("|")})(?![a-z_])`, "g");
+const RENAMED: Readonly<Record<string, string>> = {
+  "z1:trout_quota": "z1:daily_quotas", "z1:species_quotas": "z1:daily_quotas",
+  "z2:trout_char_quota": "z2:daily_quotas", "z2:species_quotas": "z2:daily_quotas",
+  "z3:trout_char_quota": "z3:daily_quotas", "z3:species_quotas": "z3:daily_quotas",
+  "z4:trout_char_quota": "z4:daily_quotas", "z4:species_quotas": "z4:daily_quotas",
+  "z5:trout_char_quota": "z5:daily_quotas", "z5:species_quotas": "z5:daily_quotas",
+  "z6:trout_char_quota": "z6:daily_quotas", "z6:species_quotas": "z6:daily_quotas",
+  "z7a:trout_char_quota": "z7a:daily_quotas", "z7a:species_quotas": "z7a:daily_quotas",
+  "z7b:trout_char_quota": "z7b:daily_quotas", "z7b:arctic_grayling": "z7b:daily_quotas", "z7b:species_quotas": "z7b:daily_quotas",
+  "z8:trout_char_quota": "z8:daily_quotas", "z8:species_quotas": "z8:daily_quotas",
+};
+const RENAMED_RE = new RegExp(`\\b(${Object.keys(RENAMED).join("|")})(?![a-z_])`, "g");
 function entryRenamed(file: string, text: string): string {
   let n = 0;
-  const out = text.replace(RENAMED_RE, (m) => { n++; return ORACLE_ENTRY_RENAMED[m]!; });
-  if (n === 0) throw new Error(`${file}: names none of ORACLE_ENTRY_RENAMED — the oracle was re-cut; drop the map`);
+  const out = text.replace(RENAMED_RE, (m) => { n++; return RENAMED[m]!; });
+  if (n === 0) throw new Error(`${file}: names none of the renamed zone entries — the page was re-cut; drop the rename`);
   return out;
 }
 
@@ -84,37 +83,9 @@ export function pageOracle(): PageOracle {
   return (PO ??= JSON.parse(readFileSync(PAGE_ORACLE, "utf8")) as PageOracle);
 }
 
-/** page v36's rule number for a key (after the renames); throws when the page lacks it. */
-export function oracleRixOf(key: string): number {
-  for (const [o, k] of pageRid()) if (k === key) return o;
-  throw new Error(`page_v36.html has no rule ${key}`);
-}
-/** (overlap_retired.lois_fold) The one golden state where a retired rule drew a ROW of its own (Lois Lake): its row folds
- *  into `into`'s; parities that compare the card's rows amend page v36's by this. `row` is the folded row's index. */
-export const LOIS_FOLD = RULINGS.overlap_retired.lois_fold;
-
-/**
- * (peace_kokanee) Zone B's kokanee stream release (`out`) binds no Peace River section; page v36 predates that. On a Peace
- * state the oracle is amended (settle.parity, card.parity), and each amendment throws once the oracle no longer names `out`
- * on that state (a re-cut): where a Peace row's own quota lifted it the `lifted` pair is gone; where nothing lifted it
- * (`kept_rows`) the table's "Kokanee: 10" (`base`) answers, keep `daily` a day all year.
- */
-export const PEACE_KOKANEE = RULINGS.peace_kokanee;
-/** (kitimat_nov_jun) the one row per Kitimat state whose Nov 1-June 30 'keep' days the ruling makes 'release'. */
-export const KITIMAT_RULED = RULINGS.kitimat_nov_jun.rows;
-
 let HTML: string | undefined;
 /** page_v36.html with the zone daily-quota renames applied (`entryRenamed`), read once: its #data.rid here, and
  *  ruleSources' page source (whose rules carry the entry ids). */
 export function pageHtml(): string {
   return (HTML ??= entryRenamed("page_v36.html", readFileSync(`${REPO}app/fixtures/reference/page_v36.html`, "utf8")));
-}
-let RID: Map<number, string> | undefined;
-/** page_v36.html's `#data.rid` (oracle rule number → "entry::rule"), read once. */
-function pageRid(): Map<number, string> {
-  if (RID) return RID;
-  const html = pageHtml();
-  const m = html.match(/<script[^>]*id="data"[^>]*>([\s\S]*?)<\/script>/);
-  if (!m) throw new Error("page_v36.html has no #data");
-  return (RID = new Map(Object.entries((JSON.parse(m[1]!) as { rid: Record<string, string> }).rid).map(([k, v]) => [Number(k), v])));
 }

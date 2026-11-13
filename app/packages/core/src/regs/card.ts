@@ -14,7 +14,7 @@
  * THE YEAR STRIP IS THE STORE'S (rows 30): page v36's `dayStatus` / `strip` / `RANKSTAT` (the most permissive of the
  * members' answers over the day's weekday moments) is NOT ported — it is a per-day decision, and the pipeline makes it
  * (`pipeline/deliver/answers/year.py`, the page's rule). Each decoded row carries `year`, run-length [[status, days]] over
- * the 365 book days (the shape hydrate.json `dayStatus` carries); `hydRow` hands it on as it is (`HydRow.year`) and T13
+ * the 365 book days (the shape page-oracle.json `dayStatus` carries); `hydRow` hands it on as it is (`HydRow.year`) and T13
  * draws it. Nothing here ranks, merges or recomputes a day. (The store holds each distinct strip once — static
  * `rows.strips`, the rows frame naming each row's — and the data layer's `reads.rows` puts it back on the row.)
  *

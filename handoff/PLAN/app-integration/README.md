@@ -87,13 +87,15 @@ ranges. The spec never copies prototype strings by hand; it points at generated 
 re-running one command:
 
 ```sh
-node app/tools/regs-recut/sync.mjs   # after a release: taps.py + verify_map.py + hydrate.mjs; needs .venv, data/release/LATEST
+node app/tools/regs-recut/sync.mjs   # the release runs it on its candidate (T666): taps.py, page-oracle.mjs, the fixture release, the VM fixtures
 ```
 
 **T87 (2026-10-28): the prototype is deleted** (git keeps it). `golden.json`, `pins.json`, `tokens.json` and
 `inventory.json` are frozen fixtures; their generators (golden, pins, tokens, inventory, pinreplay, quotes, stage) went
 with it. Only `taps.py`, `verify_map.py` and `hydrate.mjs` remain, in `app/tools/regs-recut/`. The table below and the
-re-sync procedure are the history of how the oracles were cut.
+re-sync procedure are the history of how the oracles were cut. **T667 slice 5b (2026-11-13):** `hydrate.mjs` / `hydrate.json`
+(page v36's code over its FROZEN data, amended per ruling in `v36-rulings.json`) are gone: `page-oracle.mjs` runs the same
+code over the release under test (`page_blocks.py`, the Python reader) and writes `page-oracle.json`, rules by durable key.
 
 | generator | output (`app/fixtures/golden/`) | what the port uses it for |
 |---|---|---|
