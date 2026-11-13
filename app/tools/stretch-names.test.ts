@@ -55,6 +55,37 @@ describe.skipIf(!at.dir)("(T517) every part is one connected run, named by its o
     }
   }, 60_000);
 
+  // (T697, owner 2026-11-12: "No it has to use split names like we said before") EVERY water of the province, not only
+  // the seven above: no entry is named by a count ("stretch 1 of 2", "2 stretches", "Part 1 of 2"); a water of several
+  // entries names each by its two ends (the split names, `spanName`), so no two of its entries share a name.
+  it("province-wide: every entry of a water of several is named by its ends, never by a count", async () => {
+    const st = await open();
+    const ords = (await (await st.water()).all("SELECT item_ord FROM item WHERE shown = 1")).map((r) => Number(r.item_ord));
+    const COUNT = /\b(stretch|part) \d+ of \d+\b|\b(\d+|two|three) stretches\b/i;
+    const bad: string[] = [];
+    let waters = 0;
+    for (const ord of ords) {
+      const parts = await st.parts(ord);
+      if (parts.filter((p) => p.facts && !p.tidal).length < 2) continue;
+      const it = await st.item(ord);
+      const g = await loadWaterGroup(st, it.id);
+      if (g.parts.length < 2) continue;
+      waters += 1;
+      const n = names(g);
+      n.forEach((x, i) => {
+        const p = g.parts[i]!;
+        if (COUNT.test(x)) bad.push(`${it.id} ${x}: a count`);
+        // a water of several entries: each by its own two ends (a lake or whole water keeps its water's name)
+        if (p.lo !== null && x !== spanName(g.ends, p.itemName, p)) bad.push(`${it.id} ${x}: not its ends`);
+      });
+      const dup = n.filter((x, i) => n.indexOf(x) !== i && g.parts[i]!.lo !== null);
+      if (dup.length) bad.push(`${it.id} two entries named ${dup[0]}`);
+    }
+    // r-0a9930fb8826: 562 waters of several entries
+    expect(waters).toBeGreaterThan(500);
+    expect(bad).toEqual([]);
+  }, 600_000);
+
   it("a salmon-cut run's pieces: each by its own two ends; read alike, the run joins and says the run's name", async () => {
     const st = await open();
     const raw = await loadWaterGroup(st, "gnis:16075");
