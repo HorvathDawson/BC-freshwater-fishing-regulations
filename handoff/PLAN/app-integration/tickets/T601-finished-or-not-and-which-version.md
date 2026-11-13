@@ -1,6 +1,6 @@
 # T601 — Every reader knows a build is finished and which version it reads
 
-Status: PARTIAL — items 1, 3, 4 done in their own tickets, item 2's Python half done (63a3e6173); left (Claude): item 2's JS half (T560 item 6, the app wave)
+Status: DONE — items 1, 3, 4 in their own tickets (1db9d5d8a, 31ee818a0, 2f09829fe), item 2 Python half 63a3e6173, JS half ff787ac34 (confirmed 2026-11-12)
 
 Source: T599 findings step 3 (§1 "where a reader guesses a path or a vintage", §5); owner accepted 2026-11-10.
 
@@ -36,3 +36,11 @@ the change is listed in the ticket and in AGENTS.md. A step that cannot show thi
 - Item 3: T557 (31ee818a0).
 - Item 4: T554 item 4 (2f09829fe) kept the two writers on purpose and put a guard on the upload (`clim_guard`: never an
   older HYDAT over a newer one); that is this item's answer, closed here.
+
+## 2026-11-12 (app wave): item 2's JS half confirmed done
+`app/conformance/src/latestRelease.mjs` (ff787ac34) is the JS readers' one `latest()`: `<root>/LATEST` names the release, no
+pointer is `null` (the caller says "run the release step"), a pointer naming a folder with no manifest throws. The three
+node tools use it: `serve-tiles.mjs` (`RELEASE=<id>` if asked, else LATEST; no pointer is a 404), `regs-recut/sync.mjs`
+(no pointer: "needs a release", exit 1), `label-shots.mjs`; the conformance suites' `fixtureRelease.ts` too. Pinned by
+`tools/latest-release.test.ts` (mutation: LATEST wins over a newer folder). This lane fixed the two comments that still
+said "newest" (`serve-tiles.mjs`). Same rule as the Python `manifest.live`.

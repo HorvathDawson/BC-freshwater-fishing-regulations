@@ -1,6 +1,6 @@
 # T560 — One home for shared helpers: id slug, name key, live release reader, atomic write, cut tolerances
 
-Status: PARTIAL — items 2 and 6 (Python) done (cc50a2379, 63a3e6173); left (Claude): items 1, 3, 4, 5, 7, 8 and item 6's JS half (app/tools/serve-tiles.mjs, regs-recut/sync.mjs: the app wave)
+Status: PARTIAL — items 2 and 6 (Python) done (cc50a2379, 63a3e6173); left (Claude): items 1, 3, 4, 5, 7, 8 (item 6's JS half is done: ff787ac34, confirmed 2026-11-12)
 
 Source: data pipeline review 2026-11-09 (owner-led; 14 areas + a gap check, every finding re-read against the code and release data by a second reviewer). Rank 16 of 17; highest severity 2 of 5.
 
@@ -81,3 +81,6 @@ Depends: —. Size: M. Owner: no.
 - Not done, by size: item 1 (slug + accent fold: stored ids, needs a migration map), item 3 (one wsc owner: changes the
   atlas, measure on the next rebuild), items 4, 5, 7, 8 (severity 1 tidiness; item 5's tolerance unification can move a
   cut decision, so it goes with an atlas rebuild).
+
+## 2026-11-12 (app wave)
+Item 6's JS half is done and was already in the tree (ff787ac34, see T601 item 2): `serve-tiles.mjs`, `regs-recut/sync.mjs` and `label-shots.mjs` read `LATEST` through `conformance/src/latestRelease.mjs` (no modified-time fallback; a pointer to a folder without a manifest throws). Left: items 1, 3, 4, 5, 7, 8 (Python / pipeline).

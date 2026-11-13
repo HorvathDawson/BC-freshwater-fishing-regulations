@@ -56,13 +56,13 @@ for (const [route, file] of Object.entries(ARCHIVES)) {
 }
 
 /**
- * THE RELEASE (P10), laid out as R2 will hold it: `/release/manifest.json` is the newest `data/release/r-*` (or
- * `RELEASE=<id>`), and every url in it — `<release>/<file>.gz`, `tiles/<version>/…` — resolves under `data/release/`.
+ * THE RELEASE (P10), laid out as R2 will hold it: `/release/manifest.json` is the release `data/release/LATEST` names (or
+ * `RELEASE=<id>`; no pointer, no manifest: a 404, never the newest folder by modified time — T560 item 6), and every url in it — `<release>/<file>.gz`, `tiles/<version>/…` — resolves under `data/release/`.
  * No path may climb out of it.
  */
 const RELEASE_ROOT = process.env.RELEASE_ROOT ? `${process.env.RELEASE_ROOT.replace(/\/$/, "")}/` : `${repo}data/release/`;
 /**
- * (T270) THE MAP'S FONTS AND SPRITES at a fixed path, `/map-assets/v1/{fonts,sprites}/…` — the folder the newest release
+ * (T270) THE MAP'S FONTS AND SPRITES at a fixed path, `/map-assets/v1/{fonts,sprites}/…` — the folder the live release (LATEST)
  * names (`tiles.assets.url`), so the map never reaches for a third-party host. Staging holds the same files at the same
  * path (deploy/staging/upload.sh). A release names its own folder too; this is the fallback a build without one reads.
  */
