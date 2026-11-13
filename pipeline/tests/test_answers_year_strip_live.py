@@ -41,8 +41,12 @@ def built(request):
 
 @pytest.mark.needs_bundle
 def test_the_oracle_is_page_v38_over_134_states():
-    assert (HYDRATE["meta"]["version"], HYDRATE["meta"]["year"], len(HYDRATE["states"]), len(IDS)) == ("v38", 2026, 134, 121)  # T183: 127 ids, not 128 (straddlers carry both regions); 2026-10-27: 126 (Columbia x18p3 split); r-0fa7927b16e5: 123 (taps.json gone 11: T220 Dean x13p2 + Kootenay x9p2, T228 Coquitlam x37p0); T278: 121 (taps.json tidal 2: Fraser x15p3, Coquitlam x37p1)
-    assert sorted(set(HYDRATE["states"]) - set(IDS)) == sorted([*TAPS["gone"], *TAPS.get("tidal", {})])
+    # the frozen oracle's own facts are pinned; how many states the store taps follows the re-cut (taps.json `gone` /
+    # `tidal`, T667 slice 6, owner D3), so it is held as a relation: exactly those are left out, and they are the oracle's
+    assert (HYDRATE["meta"]["version"], HYDRATE["meta"]["year"], len(HYDRATE["states"])) == ("v38", 2026, 134)
+    left_out = sorted([*TAPS["gone"], *TAPS.get("tidal", {})])
+    assert set(left_out) <= set(HYDRATE["states"]) and len(set(left_out)) == len(left_out)
+    assert sorted(set(HYDRATE["states"]) - set(IDS)) == left_out and IDS
 
 
 @pytest.mark.needs_bundle
