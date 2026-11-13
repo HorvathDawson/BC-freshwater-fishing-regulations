@@ -16,7 +16,7 @@ import { spawnSync } from 'node:child_process';
 import { open } from './regs-web/cdp.mjs';
 
 const HERE = path.dirname(new URL(import.meta.url).pathname), APP = path.resolve(HERE, '..');
-const STORE = path.resolve(APP, '../handoff/PLAN/app-integration/store/graphics');
+const STORE = process.env.STORE_SHOTS_DIR ? path.resolve(process.env.STORE_SHOTS_DIR) : path.resolve(APP, '../handoff/PLAN/app-integration/store/graphics');   // (T701) run.mjs points it at its own folder
 const RAW = path.join(STORE, 'raw');
 const args = process.argv.slice(2), flag = (k) => args.includes(k), val = (k, d) => (args.includes(k) ? args[args.indexOf(k) + 1] : d);
 const THEME = val('--theme', 'light');

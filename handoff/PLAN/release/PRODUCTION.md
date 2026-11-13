@@ -97,6 +97,12 @@ Before: the release is on staging and the owner has checked it there (phone + we
 3. **Owner — data:** `CONFIRM_PROD=<r-id> .venv/bin/python -m pipeline release --prod <r-id>`.
 4. **Owner — feeds worker, only if it changed** (with the app, never ahead): `CONFIRM_PROD=bc-fishing-feeds deploy/prod/feeds.sh`.
 5. **Owner — site, if pages or the web app changed:** step 6 above (Claude builds, owner deploys).
+   **Store pictures (T704), after the staging site carries the final web build, before the Play listing is updated:**
+   `node app/tools/store-shots/run.mjs` (no arguments; a few minutes, headless Chrome, no credits). It re-shoots the 8 Play
+   phone pictures from the staging site into `app/dist/store-shots/play-phone/` and FAILS (exit 1, `report.json` says which
+   scene) when a shot's content is missing: salmon above the game-fish calendar, the forecast on the chart, more than one
+   part on the river. Look at them, then upload to Play Console. A failure on shot 2 usually means the staging site is older
+   than the app code: deploy the site first.
 6. **Owner — app, if it changed:** `CONFIRM_PROD=canifishthis.ca deploy/prod/build-apk.sh`, then in Play Console the
    same build to Closed / Production with a staged rollout (e.g. 20 % → 100 %).
 7. **Owner — watch:** the `[production]` emails (crash digest, feed health) and `/status` for a day.

@@ -6,10 +6,17 @@
 // The saved-spot scene seeds one sample spot (localStorage), the way spot-shots.mjs does; everything else is live data.
 import fs from 'node:fs'; import path from 'node:path';
 import { open } from './regs-web/cdp.mjs';
+import { checkScene } from './store-shots/checks.mjs';
 const args = process.argv.slice(2);
 const ONLY = args.includes('--only') ? args[args.indexOf('--only') + 1].split(',') : null;
 const OUT = path.resolve(args.find((a, i) => !a.startsWith('--') && args[i - 1] !== '--only') ?? '../handoff/PLAN/app-integration/store/graphics');
-const SITE = 'https://staging.canifishthis.ca';
+const SITE = process.env.STORE_SHOTS_SITE ?? 'https://staging.canifishthis.ca';
+// (T704) THE CLOCK IS PINNED: PIN_AT (an ISO instant) is what the page's Date says when it loads, then it runs on (timers and the
+// map's animations keep their pace). Unset = the page's own clock (the old behaviour). store-shots/run.mjs always sets it.
+const PIN = process.env.PIN_AT ? Date.parse(process.env.PIN_AT) : null;
+if (process.env.PIN_AT && Number.isNaN(PIN)) throw new Error('play-shots: PIN_AT is not a date: ' + process.env.PIN_AT);
+const PIN_JS = PIN === null ? '' : `(() => { const R = Date, off = ${PIN} - R.now(); const N = () => R.now() + off;
+  class D extends R { constructor(...a) { a.length ? super(...a) : super(N()); } static now() { return N(); } } globalThis.Date = D; })();`;
 fs.mkdirSync(OUT, { recursive: true });
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 const rd = (f, re) => re.exec(fs.readFileSync(path.join(ROOT, f), 'utf8'))?.[1];
@@ -97,6 +104,7 @@ Object.assign(SCENES, {
     // the tab press can land before the page is live: press again until the part stepper is there
     for (let i = 0; i < 6 && !(await b.evaluate(`!!document.querySelector('[data-testid=water-map-step-up]')`)); i++) { await click(b, `document.querySelector('[data-testid=water-view-map]')`); await sleep(8000); }
     await until(b, `!!document.querySelector('[data-testid=water-map-step-up]')`, 30000); await sleep(3000);
+    b.facts.parts = Number((await b.evaluate('document.body.innerText')).match(/PART \d+ OF (\d+)/i)?.[1] ?? 0);
     for (let i = 0; i < 2; i++) { await click(b, `document.querySelector('[data-testid=water-map-step-up]')`); await sleep(2500); }
     await click(b, `document.querySelector('[data-testid=water-map-regs]')`);
     await until(b, `!!document.querySelector('[data-testid=keep-strip]')`, 60000); await sleep(3000); await scrollTo(b, 'keep-strip'); await sleep(1500); },
@@ -108,16 +116,18 @@ const SIZES = { phone: { width: 360, height: 640, dpr: 3, mobile: true, pre: '' 
   iphone67: { width: 430, height: 932, dpr: 3, mobile: true, pre: 'iphone67-' }, iphone55: { width: 414, height: 736, dpr: 3, mobile: true, pre: 'iphone55-' },
   ipad13: { width: 1024, height: 1366, dpr: 2, mobile: true, pre: 'ipad13-' } };
 const sizeNames = (process.env.SIZES ?? 'phone').split(',');
-let failed = 0;
+let failed = 0; const report = {};   // (T704) scene -> 'ok' | the reason it was not captured, written beside the shots
 for (const sn of sizeNames) for (const [name, fn] of Object.entries(SCENES)) {
   if (ONLY && !ONLY.includes(name.slice(0, 2)) && !ONLY.includes(name)) continue;
   const z = SIZES[sn];
-  const b = await open(SITE + (URLS[name] ?? '/'), { ...z, init: SEEN });
+  const b = await open(SITE + (URLS[name] ?? '/'), { ...z, init: PIN_JS + SEEN });
   try {
-    await fn(b);
+    b.facts = {}; await fn(b);
+    await checkScene(b, name);   // (T704) the page holds the shot's content, or nothing is captured
     const { data } = await b.send('Page.captureScreenshot', { format: 'png' });
-    const f = path.join(OUT, `${z.pre}${name}.png`); fs.writeFileSync(f, Buffer.from(data, 'base64')); console.log(f);
-  } catch (e) { failed++; console.error(sn, name, e.message); }
+    const f = path.join(OUT, `${z.pre}${name}.png`); fs.writeFileSync(f, Buffer.from(data, 'base64')); console.log(f); report[`${sn}/${name}`] = 'ok';
+  } catch (e) { failed++; report[`${sn}/${name}`] = e.message; console.error(sn, name, e.message); }
   finally { await b.close(); }
 }
+fs.writeFileSync(path.join(OUT, 'play-shots-report.json'), JSON.stringify({ site: SITE, pinAt: process.env.PIN_AT ?? null, scenes: report }, null, 2) + '\n');
 process.exit(failed ? 1 : 0);
