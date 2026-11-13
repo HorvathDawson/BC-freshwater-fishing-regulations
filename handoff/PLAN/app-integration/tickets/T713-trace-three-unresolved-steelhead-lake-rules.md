@@ -1,6 +1,6 @@
 # T713 — Trace why trout_quota.r5b, trout_char_quota.r6b and r9b bind nowhere
 
-Status: DONE (traced: by design, no change).
+Status: DONE (655d3000a; traced: by design, no change).
 
 Source: boundary-name pack (PACK.md ~line 218): trout_quota.r5b (Region 1 "All wild steelhead"), trout_char_quota.r6b (Region 5 "ALL STEELHEAD"), trout_char_quota.r9b (Region 6 "all ...") were already unresolved in the old release; cause not traced. Owner 2026-11-13: needs tracing.
 ## Work

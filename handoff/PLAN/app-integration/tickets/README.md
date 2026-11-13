@@ -212,7 +212,6 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T710 | Parts list: a side channel is listed next to the main-stem part it runs beside (count first, report to owner) | OPEN | — | owner 2026-11-13; priority open for main to place |
 | T711 | Part header text follows the "Source" end name (P55, 62 tops) | OPEN | — | owner 2026-11-13 |
 | T712 | Vessel restriction section shows the book's words with the location text (Harrison r4; survey same shape) | OPEN | — | owner 2026-11-13; priority open for main to place |
-| T713 | Trace why trout_quota.r5b, trout_char_quota.r6b, r9b (steelhead) bind nowhere | OPEN | — | pack follow-up 2026-11-13 |
 
 ## Next after closed testing
 
