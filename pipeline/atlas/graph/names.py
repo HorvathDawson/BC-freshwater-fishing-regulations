@@ -19,6 +19,7 @@ from typing import Optional
 
 from pipeline.common.models import (WATERBODY_KINDS, BlkChain, NameSource, NameTuple, NodeKind,
                              StreamGraph)
+from pipeline.common.utils.wsc import code_owner
 
 # Display priority = the NameSource declaration order (override highest). Derived so it can
 # never drift out of sync with the enum (a missing source used to KeyError in _sorted_unique).
@@ -186,7 +187,7 @@ def resolve_names(chains: list[BlkChain], fid_rows, *, curated_blks) -> list[Blk
             t = connected[c.blk]
             tuples.append(NameTuple(t.gnis_name, NameSource.side_channel, gnis_id=t.gnis_id))
         elif siblings:
-            main = max(siblings, key=_mag)
+            main = code_owner(siblings, _mag, lambda s_: s_.blk)   # T560 item 3: the one owner rule
             if main.gnis_name and main.gnis_name != c.gnis_name and _mag(main) > _mag(c):
                 # carry the main channel's gnis so the registry can group the whole river by it
                 tuples.append(NameTuple(main.gnis_name, NameSource.side_channel, gnis_id=main.gnis_id))

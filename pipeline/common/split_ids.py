@@ -21,6 +21,14 @@ def slug(s: str, n: int = 60) -> str:
     return re.sub(r"[^a-z0-9]+", "_", str(s).lower()).strip("_")[:n].strip("_")
 
 
+def readable_slug(s: str) -> str:
+    """THE AREA / REGISTRY SLUG (T560 item 5): lower case, every run of other characters one `_`, never cut —
+    `area_catalog.area_id`'s `area:{kind}:{slug}`, the registry's `area:{slug}` and item/lake boundary ids, and the
+    review's `split_use.area_slug` (which must reproduce registry area ids) all call this one function; they were three
+    byte-identical copies. (`slug` above cuts to a length; that is the split id's rule, not this one.)"""
+    return re.sub(r"_+", "_", re.sub(r"[^a-z0-9]+", "_", (s or "").lower())).strip("_")
+
+
 def word_slug(s: str, n: int = NAME_MAX) -> str:
     """`slug`, cut back to the last whole word that fits in `n` (a single word longer than `n` is cut at `n`)."""
     full = re.sub(r"[^a-z0-9]+", "_", str(s).lower()).strip("_")

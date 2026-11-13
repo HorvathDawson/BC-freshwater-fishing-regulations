@@ -183,3 +183,31 @@ def format_wsc_50k(code) -> str:
     while len(parts) > 1 and set(parts[-1]) == {"0"}:
         parts.pop()
     return "-".join(parts)
+
+
+def blk_rank(blk: str | None) -> tuple[int, str]:
+    """A blue line key's tie-break order: lowest first, numerically when it is a number (`"-2200000392"` too)."""
+    s = str(blk or "")
+    try:
+        return (int(s), "")
+    except ValueError:
+        return (0, s)
+
+
+def code_owner(lines, magnitude, blk):
+    """THE ONE ANSWER to "which river owns a shared watershed code" (T560 item 3): of `lines` (the NAMED lines on one
+    code), the one with the highest `magnitude(line)` (a comparable, e.g. (stream magnitude, stream order)), the
+    lowest blue line key (`blk(line)`, `blk_rank`) breaking a tie — never the order the lines were met. Both the graph's
+    side-channel naming (`graph.names.resolve_names`: an unnamed channel inherits its code's owner when that owner is
+    bigger than it) and the registry's last-resort grouping (`registry.build._wsc_gnis_map`: a no-gnis node with no
+    inherited name joins its code's owner) ask it. None for no lines. Measured on the atlas promoted 2026-11-12: the
+    registry's old first-met answer equals this one on all 11,580 codes (9 carry two or more gnis); no top tie."""
+    best = None
+    for ln in lines:
+        if best is None:
+            best = ln
+            continue
+        a, b = magnitude(ln), magnitude(best)
+        if a > b or (a == b and blk_rank(blk(ln)) < blk_rank(blk(best))):
+            best = ln
+    return best

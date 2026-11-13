@@ -13,17 +13,16 @@ time (intersects + feature-type filter) only for the areas a reg actually refere
 
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass
 from pathlib import Path
 
 from pipeline.atlas.splits.area_splits import load_area_polys
+from pipeline.common.split_ids import readable_slug
 
 _CATALOG_LAYER = "areas"
 
 
-def _slug(s: str) -> str:
-    return re.sub(r"_+", "_", re.sub(r"[^a-z0-9]+", "_", (s or "").lower())).strip("_")
+_slug = readable_slug          # T560 item 5: one slug (common/split_ids)
 
 
 def area_id(kind: str, name: str) -> str:

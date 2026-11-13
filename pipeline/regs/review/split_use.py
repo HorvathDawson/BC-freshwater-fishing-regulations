@@ -21,8 +21,9 @@ Usage is CORPUS-WIDE: a cut another entry binds is used, even when the entry on 
 """
 from __future__ import annotations
 
-import re
 from typing import Iterable, Mapping
+
+from pipeline.common.split_ids import readable_slug
 
 #: extent keys that name an AREA (an `area:` id), as the corpus writes them
 AREA_KEYS = ("area_id", "within_area", "outside_area", "item_id", "item_ids", "outside_items")
@@ -30,8 +31,8 @@ AREA_KEYS = ("area_id", "within_area", "outside_area", "item_id", "item_ids", "o
 
 def area_slug(name: str) -> str:
     """An area's name as its registry id ends (`area_catalog._slug`): "GARIBALDI PARK" ->
-    "garibaldi_park", the tail of `area:park:garibaldi_park`."""
-    return re.sub(r"_+", "_", re.sub(r"[^a-z0-9]+", "_", (name or "").lower())).strip("_")
+    "garibaldi_park", the tail of `area:park:garibaldi_park`. The one function (`split_ids.readable_slug`, T560)."""
+    return readable_slug(name)
 
 
 def _as_list(v) -> list:

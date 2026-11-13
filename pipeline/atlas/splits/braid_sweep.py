@@ -55,6 +55,7 @@ from typing import Iterable, Optional
 from shapely.geometry import LineString, Point
 
 from pipeline.common.models import FlowEdge, NodeKind, SplitPoint, StreamGraph
+from pipeline.common.tolerances import meets_at
 
 #: half the chord the cut line is square to (m): the "median tangent" averages ±100 m of the host
 TANGENT_M = 100.0
@@ -966,11 +967,7 @@ def residual_straddles(graph: StreamGraph, geoms: dict, points: list[SplitPoint]
         host_all = set().union(*(set(view.by_blk.get(b, ())) for b in cut_blks))
 
         def severed(a: str, b: str) -> bool:
-            na, nb = g.nodes.get(a), g.nodes.get(b)
-            if na is None or nb is None or na.blk != nb.blk or not na.blk:
-                return False
-            bnd = na.upper_bound if abs(na.up_m - nb.down_m) < 1e-6 else (
-                na.lower_bound if abs(na.down_m - nb.up_m) < 1e-6 else None)
+            bnd = meets_at(g.nodes.get(a), g.nodes.get(b))
             return bnd is not None and (bnd.boundary_id == ref or ref in (bnd.aliases or ()))
 
         for sp in sorted(sps, key=lambda s: (s.blk, s.route_measure)):

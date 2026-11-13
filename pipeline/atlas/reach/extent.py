@@ -36,6 +36,7 @@ from pipeline.common.registry_kinds import area_key
 from pipeline.common.utils.wsc import trim_wsc   # noqa: F401  (used by the moved body)
 from pipeline.common.utils import wsc as _wsc
 from pipeline.common import tolerances as _tol
+from pipeline.common.tolerances import meets_at
 
 #: Basins answered from the graph, per graph object — a sub-basin is a full scan of the graph. The
 #: graph is held beside its answer and checked by identity, so a recycled `id()` never serves
@@ -356,10 +357,9 @@ def _by_measure(g, universe: set[str], blk: str, lo: float, hi: float,
 
     def _across_the_cut(a: str, b: str) -> bool:
         na, nb = g.nodes.get(a), g.nodes.get(b)
-        if na is None or nb is None or not na.blk or na.blk != nb.blk or na.blk == blk:
+        if na is None or na.blk == blk:
             return False
-        bnd = na.upper_bound if abs(na.up_m - nb.down_m) < 0.001 else (
-            na.lower_bound if abs(na.down_m - nb.up_m) < 0.001 else None)
+        bnd = meets_at(na, nb)
         return bnd is not None and (str(bnd.boundary_id) in cut_ids
                                     or any(x in cut_ids for x in (bnd.aliases or ())))
 
@@ -684,10 +684,9 @@ def _severed(g, a: str, b: str, principal: str, cut_ids) -> bool:
     if not cut_ids:
         return False
     na, nb = g.nodes.get(a), g.nodes.get(b)
-    if na is None or nb is None or not na.blk or na.blk != nb.blk or na.blk == principal:
+    if na is None or na.blk == principal:
         return False
-    bnd = na.upper_bound if abs(na.up_m - nb.down_m) < 0.001 else (
-        na.lower_bound if abs(na.down_m - nb.up_m) < 0.001 else None)
+    bnd = meets_at(na, nb)
     return bnd is not None and (str(bnd.boundary_id) in cut_ids
                                 or any(x in cut_ids for x in (bnd.aliases or ())))
 

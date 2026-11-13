@@ -53,3 +53,19 @@ def at_cut(m: float, cut_m: float, tol_m: float = AT_CUT_M) -> bool:
 
     The one predicate for "this join stands at the cut" (a join exactly `tol_m` away is beside it, not at it)."""
     return abs(m - cut_m) < tol_m
+
+
+def meets_at(na, nb):
+    """THE "two pieces meet at this bound" test (T560 item 5): the bound of piece `na` at which it meets piece `nb` of
+    the SAME blue line — `na.upper_bound` where `na` ends where `nb` begins, `na.lower_bound` the other way — or None
+    (another line, not touching, a missing piece). Both sides of a cut take their measure from the one split point, so
+    "meet" is float identity (`SAME_PLACE_M`). The reach's two severed-at-the-cut tests (`reach.extent`) and the braid
+    sweep's (`splits.braid_sweep`) ask it; they spelled it three times with 0.001 m and 1e-6 m. Measured on the atlas
+    promoted 2026-11-12: every pair of adjacent pieces on one line meets at exactly 0 m, none between the two."""
+    if na is None or nb is None or not na.blk or na.blk != nb.blk:
+        return None
+    if abs(na.up_m - nb.down_m) < SAME_PLACE_M:
+        return na.upper_bound
+    if abs(na.down_m - nb.up_m) < SAME_PLACE_M:
+        return na.lower_bound
+    return None
