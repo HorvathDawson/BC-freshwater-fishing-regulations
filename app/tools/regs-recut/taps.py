@@ -167,8 +167,18 @@ PART_GROWN = {
                  f"2026-10-25, decisions.md Koocanusa): the authored cut now stands on the reservoir's inlet (490242) and "
                  f"names it, so the part starts at 'the Koocanusa Reservoir upstream end', not 'Lake Koocanusa' (same rows)"
                    + _t517_at(7, "part 7")),
-    "x19p1_1010": (3, "T183 (owner 2026-10-24): Skeena section 2 starts at the Exchamsiks confluence, not the Ecological Reserve boundary (61 -> 59 sections; the extent changed, the rows did not)"
-                   + _t517_at(3, "parts 3 and 4")),
+    "x19p1_1010": (4, "T183 (owner 2026-10-24): Skeena section 2 starts at the Exchamsiks confluence, not the Ecological Reserve boundary (61 -> 59 sections; the extent changed, the rows did not)"
+                   + _t517_at(3, "parts 3 and 4")
+                   + "; then T678 junctions (owner 2026-11-13 'Accept same-piece changes', r-adc4e248a163): the automatic "
+                     "length cuts were re-placed on the corrected junctions — a new one at 360887278:77497 inside this "
+                     "stretch (59 -> 60 sections; same ends Exchamsiks -> Zymagotitz cut, 115.77 km mark, same rule-set "
+                     "group and rows), and the below-Reserve stretch of group 0 (old part 2, 46 sections) is now two runs "
+                     "either side of the Reserve (parts 1 and 3, 44 + 2 sections, same key), so this group is store parts 4 and 5"),
+    "x17p7_1010": (5, "T697 part ends (owner 2026-11-12, RULINGS P55 follow-up 'Yes, read the real boundary', 040b79d16, "
+                      "r-adc4e248a163): the Babine's juvenile counting weir cut is aliased onto Nilkitkwa Lake's outlet edge "
+                      "and now keeps its own name (bundle.spans.end_token), so the part's top end reads 'the juvenile "
+                      "counting weir', not 'the Nilkitkwa Lake outlet' (label only; same piece at the 99.05 km mark, 1 "
+                      "section, open, same rule rows; owner 2026-11-13 'Accept same-piece changes')"),
 }
 #: (2026-11-09) the store part each PART_GROWN state must land on: (label, section count) as `parts` reads it. Without
 #: it, any part whose label differed from the golden's passed.
@@ -177,11 +187,12 @@ PART_GROWN_IS: dict = {
     'x14p0_1010': ('From the Hwy 37 bridge up to the top of the river', 28),
     'x27p0_1010': ('Two stretches: from Region 7A boundary up to Region 6 boundary (through 4 lakes), and from Region 6 boundary up to the top of the river (through 1 lake)', 72),
     'x27p2_1010': ('From the mouth up to Region 5 boundary', 3),
-    'x19p1_1010': ('From the Exchamsiks River confluence up to 1.5 km upstream of the Kitsumkalum River confluence', 59),
+    'x19p1_1010': ('From the Exchamsiks River confluence up to 1.5 km upstream of the Kitsumkalum River confluence', 60),
     'x13p4_1010': ('From Anahim Lake up to the top of the river (through 3 lakes)', 27),
     'x9p1_1010': ('Upstream of Koocanusa Reservoir · From the Koocanusa Reservoir upstream end up to the White River confluence', 56),
     'x9p0_1010': ('From the B.C. border up to the Lake Koocanusa outlet', 1),
     'x5p0_1010': ('Upstream of Josephine Falls / See exceptions · From the Josephine Falls up to the top of the river', 11),
+    'x17p7_1010': ('From the fishing boundary signs 100 m upstream of adult fish counting fence up to the juvenile counting weir', 1),
 }
 PART_GONE = {
     "x37p0_1010": (0, T228),
