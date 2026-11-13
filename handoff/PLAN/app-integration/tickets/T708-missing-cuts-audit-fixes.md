@@ -18,7 +18,17 @@ Pictures (Esri imagery, scratch): `deena_cut.jpg`, `mamin_cut.jpg`, `mcrae_cut.j
 3. **Yakoun**: correct as placed. **McRae Creek**: check (picture). **Lakelse**: add "signs" to the mouth's name.
    **Kootenay `kootenay_river_lower.r1`**: fine if the lower boundary carries its proper name.
 4. **Columbia River r12 "in wetlands"**: a future item to look at better (not this ticket's work).
-5. Open owner questions: Haida Gwaii tidal boundary at the mouth (Copper/Deena/Mamin, audit Q1); Stave River Ruskin
+5. **Decided later the same day** (owner answers on the follow-up report):
+   - **Deena**: "deena proposed is good": the cut moves to crossing 2 (8.83 km on the line); stays `low`.
+   - **Mamin**: "same with mamin crossing": the cut moves to crossing 3 (16.71 km); stays `low`.
+   - **McRae**: "seems good. i think i spent time confirming before": no change, closed.
+   - **Gagnon**: "should cover a little bit above the unnamed lake too. so make it 200m above the unnamed lake or so":
+     the sign cut goes ~200 m above the unnamed lake's inlet (≈ 3,859 m on the line); the exemption covers the 74 m
+     channel, the whole unnamed lake and that ~200 m of creek (Work 3).
+   - **Unmatched lakes**: the owner goes through Hidden, Secret, Square (→ Whitton) and Frog with evidence pictures
+     (`~/bcfish-session-backup-2026-11-12/audit-cuts/`: `hidden_lake.jpg`, `secret_lake.jpg`,
+     `square_whitton_lake.jpg`, `frog_lake_leads.jpg`); not yet accepted.
+6. Open owner questions: Haida Gwaii tidal boundary at the mouth (Copper/Deena/Mamin, audit Q1); Stave River Ruskin
    channel (Q6); McArthur Island Slough (class a item 2).
 
 ## Work
@@ -27,8 +37,15 @@ Pictures (Esri imagery, scratch): `deena_cut.jpg`, `mamin_cut.jpg`, `mcrae_cut.j
    rules have it.
 2. **Ruby Creek r1**: `between` [`ruby_creek__signs_100_m_below_ruby_lake`, `ruby_creek__ruby_lake`] (both exist);
    diff the rule's bindings (100 m piece only).
-3. **Gagnon Creek r1** (owner direction, "maybe"): put the signs back 400 m upstream of the mouth so the exemption is
-   mouth → signs. Facts:
+3. **Gagnon Creek r1** — DECIDED (owner 2026-11-13, Owner decisions 5): a sign cut ~200 m above the unnamed lake's
+   inlet (≈ 3,859 m; the inlet is 3,659 m; that stretch is the creek's own double-line polygon, wbk 328948699).
+   `downstream_of` it then binds the 74 m channel, the unnamed lake wbk 329465442 (the walk/extent must take the lake:
+   lakes are never cut) and the ~200 m of creek. Mouth stays Williston and the lake stays its own (P57). What
+   changes: RULINGS P57 (its "signs ARE the mouth … covers no water" sentences; the mouth part of it stands), the cut
+   and its note in `cuts.json` (`gagnon_creek__fishing_boundary_signs_at_the_mouth` → a point cut with the book's
+   words), `pipeline/tests/test_t89_rules_that_bind_no_water.py` (gagnon r1 leaves BY_DESIGN: 8 → 7, ALLOWED 29 → 28
+   in `test_the_allow_list_is_exact`), and the creek's part names (one part "The mouth (at Williston Lake) → Source"
+   becomes mouth → signs → Source). Atlas rebuild. The earlier options, kept for the record — facts:
    - FWA line (blk 359565112): 0–1,761 m runs INSIDE Williston Lake's full-pool polygon (lake connector, the
      reservoir arm; the drawdown zone has no stream piece of its own); 1,761–1,835 m a 74 m channel; 1,835–3,659 m
      through the 58 ha unnamed lake wbk 329465442 (behind an embankment); creek above. First road crossings:
@@ -61,12 +78,14 @@ Pictures (Esri imagery, scratch): `deena_cut.jpg`, `mamin_cut.jpg`, `mcrae_cut.j
 
    Counting bridges AND reading the book's km as the bird flies fit both rows (2nd crossing ~5 km, 3rd ~9 km);
    Copper Creek, already accepted, fits the same reading (2nd crossing South Bay Main: 7.7 km stream, 5.3 km bird,
-   book "6 km"). Proposal: Deena → crossing 2 (8.83 km), Mamin → crossing 3 (16.71 km), both kept `low`. Unconfirmed:
+   book "6 km"). DECIDED (owner 2026-11-13): Deena → crossing 2 (8.83 km), Mamin → crossing 3 (16.71 km), both kept
+   `low`; re-anchor `deena_creek__second_bridge_5_km_above_tidal` / `mamin_river__third_bridge_mamin_main` (new
+   labels name the crossing), atlas rebuild, diff the two rules' bindings. Unconfirmed:
    no source says which roads have bridges vs culverts, and an unmapped crossing would change the count.
 5. **McRae Creek `mcrae_creek.r1`** ("falls ~4 km upstream of Christina Lake"): the cut is the FISS 4 m falls
    (24834) at 2.33 km on the line = 2.05 km above the lake shore by stream, 1.4 km bird. FISS has a 2 m falls at
-   2.47 km and nothing near 4 km (4.0 km above the shore is km 4.28). For the owner to look at (picture); no change
-   proposed.
+   2.47 km and nothing near 4 km (4.0 km above the shore is km 4.28). CLOSED, no change (owner 2026-11-13: "seems
+   good. i think i spent time confirming before").
 6. **Tlell `tlell_river.r5`** (tidal note). App facts: the Tlell River's own page shows it nowhere (part 1, 4 sections,
    source → tidal sign: r1, r2, licensing only; part 2, the tidal piece below the sign: no rules, the tidal guide
    line). The note sits in one rule set (bundle set via `trib`, 13 sections): Geikie Creek's upper part (1 section,
@@ -105,6 +124,13 @@ Pictures (Esri imagery, scratch): `deena_cut.jpg`, `mamin_cut.jpg`, `mcrae_cut.j
    Full evidence: `handoff/PLAN/curation-review/unmatched-lakes-research.md` (2026-10-28), re-checked 2026-11-13 on the
    current FWA (wbks, MUs and areas unchanged); new searches (FISS lake surveys, EcoCat titles incl. "(Frog)" /
    "(Squirrel)" / "(Redfern)" aliases, FWA names province-wide) found nothing more.
+   More (2026-11-13): FISS also holds a 1993-03-12 Region 5 winter-limnology record "Limnology data for Hidden Lake"
+   on 01338ATNA. The Cariboo region's 2008 harmonization table (env.gov.bc.ca RegChanges-Update05dec08.pdf) put
+   Frog, Hidden and Secret together in suite R3 (quota 1 + the ice closure) and Square, Squirrel, Stewart in R2; the
+   2008-09 Region 5 synopsis prints the same rows with no locating words. The repo's stocking records (FIDQ, 64,991
+   releases) hold none of these lakes. No other FWA lake in MU 5-6 carries any of the four names. Frog would be
+   settled by the Williams Lake office's lake file (the 1993/1994 survey forms on 01256/01267/01272 ATNA are not
+   online as text) or the scanned EcoCat reports; none of the 1997 AIM survey titles is Frog.
 
 ## Acceptance
 
