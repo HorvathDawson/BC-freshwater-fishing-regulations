@@ -206,6 +206,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T696 | Diversion gauges: Q103 + follow-ups answered; 08GC005 speaks above the Theodosia canal, labelled "measures a diversion"; the 28 left gaugeless | DONE | 8436b380e | owner 2026-11-12; RULINGS P54; intake cut answered "Leave it" (no cut); ships with the next deliver + app build |
 | T697 | Kanaka Creek's stretches named by their split names, never "stretch 1 of 2" (T204 follow-up); an unnamed lake at a water's own end is its Source/Mouth, mid-water "Unnamed lake near X" | DONE | 77e856247, 434449f3d | owner 2026-11-12 (RULINGS P55); 562 waters, 0 counted names; 62 tops "→ Source" (Kanaka "Cliff Park Falls → Source"), 5 mid-water ends "Unnamed lake (km N)"; rides the next release |
 | T698 | Remove the Parts sheet (start link `sheet=parts` only since T150; "Closed all year · N stretches" on 45 waters) | DONE | caa3a0133 | owner 2026-11-12 "Remove the screen" (RULINGS P56); start link now refused and said; next app build |
+| T700 | Regulations header named the first part of its picker choice, not its own (Capilano part 3: map "Capilano Lake → Source", Regs "Cable Pool Bridge footbridge → Capilano Lake outlet"); rules always the part's own; 304 parts / 206 waters | DONE — 2b49a643b; option for the owner in the ticket (book wording as the long label) | 2b49a643b | owner phone 2026-11-13 |
 
 ## Order for open tickets
 

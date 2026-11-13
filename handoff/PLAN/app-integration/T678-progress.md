@@ -457,3 +457,18 @@ Next commands:
   year-strip state count → none; a ruling on page v36 → one JSON entry (was 3–5 tables in two languages); a new release
   test's skip line → none. Still by hand: `smoke.txt` for a new test file, and the live atlas/corpus counts in
   `test_one_water_kind` / `test_review_queue` when the atlas or corpus moves them.
+
+
+## 2026-11-13 — T700: Regulations header said another part's name (owner phone, Capilano River)
+
+- Owner: Map "Part 3 of 3 · Capilano Lake → Source", Regulations "Cable Pool Bridge footbridge → Capilano Lake outlet".
+- A naming defect, not a selection one and not a T517 combined stretch: parts 2 (below the lake, ends at its outlet) and
+  3 (above it, starts at the lake) share one closed-all-year picker choice but are two map entries; `partLabels` named
+  the choice's first part. The page loaded part 3 and its own key (1140, shared with part 2): no wrong rules shown.
+- Every way in that lands on such a part showed it (Map pick, step, Show regulations, tab switch, tap); search lands on
+  the lowest keyed part. 304 parts on 206 waters on r-0a9930fb8826.
+- 2b49a643b: header names `inp.partIx`; `header.test.ts` Capilano shape (failed before); `tools/stretch-names.test.ts`
+  (T700) province-wide guard over every part by part open, tap and search, plus the key read (reverting the fix fails it).
+- Left for the owner (ticket): the long label still shows the book's wording when the part is its choice alone
+  (Capilano part 1 "From the CN Railway Bridge … up to the Cable Pool Bridge footbridge" vs map "CN Railway Bridge … →
+  Cable Pool Bridge footbridge"; 659 parts on 445 waters): keep, or the map's name always.
