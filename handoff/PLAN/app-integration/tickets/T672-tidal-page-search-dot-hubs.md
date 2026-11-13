@@ -60,3 +60,13 @@ Release measured: the live one at the time (the audit's). Throwaway measuring sc
 ## Owner 2026-11-12
 W4 web description: name every region. W1-W3, G11: accept as built. K9: leave.
 - DONE W4 (Claude, 2026-11-12): `waterRegions` in `tools/seo/html.ts` names every hub region of a multi-region water in the description ("Regions 2, 3, 5, 7"); one-region waters keep their code ("Region 7A"). Test `tools/seo/description.test.ts`; full SEO build not run. Qualifiers elsewhere still use the one region.
+
+## 2026-11-12 (app wave): item 1b is NOT an app read (the premise was wrong)
+The progress note said the release lists every tidal section in `undrawn.json` (`tidal`) and the app could read it. It cannot:
+`layers/undrawn.json` is a BUILD-side file of the tile export ("Read by the bundle build", `pipeline/deliver/bundle/undrawn.py`);
+the release ships neither it nor any list of them (`manifest.files` has no such file; the released tiles folder holds the
+pmtiles, `bc_outside.geojson` and the map assets only; `regs-sid` carries `section_akey` (0 for these) and `section_place`
+(none) per section). An unnamed tidal section and a section outside B.C. look the same to the app, so the page still says
+"outside B.C." for the 121 (reached only by a link to an unnamed reach, never a map tap). Needs a pipeline change: ship the
+fact, for example one bit per section in `regs-sid` (a `section_tidal` block) or the sid ranges in the water store; then the
+app reads it where `loadRegsInputs` sees `a === 0` and sets `tidalPart`. Held, pipeline lane. Default if never done: unchanged.
