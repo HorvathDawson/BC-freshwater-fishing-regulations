@@ -296,3 +296,17 @@ Not done (waiting):
 - **Lakelse mouth "signs"** — no mechanical form: a cut needs the designated mouth's place (signs 1.7 km below the
   logging-road bridge; not located), and a per-water mouth name is a new field in `display/part.py`. Not done.
 - **Tlell r5** — Work 6 is a proposal; no owner answer recorded. Not done.
+
+**Correction (same day, after the full suite):** three of the corpus edits cannot sit in the tree before the rebuild, so
+they were taken back out and handed over as a patch, `T708-files/apply-with-rebuild.patch`:
+- Gagnon r1 → `gagnon_creek__signs_200_m_above_the_unnamed_lake` and Kootenay r1 → `…_navigation_dolphin_2000_m_downstream`:
+  `test_one_acceptance_gate.py` refuses a rule naming a cut the SERVED atlas does not have.
+- Pitt r2 `undrawn_part`: `test_t100_area_caveat.py` pins the widened rules in the corpus (`WIDENED`) AND on the
+  shipped export (`test_the_export_carries_the_caveats`), so one of them fails until a deliver.
+The patch also carries the test pins: `WIDENED` + Pitt, and the T89 moves (gagnon out of `BY_DESIGN`, Hidden / Secret /
+Square out of `AWAITING_WATER_ROWS`; 7 / 10 / 17). Order for main: atlas rebuild (cuts.json + name_variants already in)
+→ `git apply handoff/PLAN/app-integration/tickets/T708-files/apply-with-rebuild.patch` → re-match the three lakes'
+entries (`matched`) → reach + deliver → binding diff. Applied before that, the acceptance gate fails (the old Gagnon id
+is gone from cuts.json); skipped after the rebuild, the gate fails the same way, so the patch cannot be forgotten.
+Ruby r1 stays in the tree (both its cut ids exist today). Full pipeline suite (chunked, unfiltered): the 30 other chunks
+passed, and chunks 27 and 31 (the two failing files) pass after the revert (1,208 passed).
