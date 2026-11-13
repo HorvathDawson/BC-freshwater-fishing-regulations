@@ -47,3 +47,6 @@ book's wording of the part, kept per rule-set group by T517: Capilano part 1 rea
 boundary) up to the Cable Pool Bridge footbridge" on Regulations, "CN Railway Bridge (tidal boundary) → Cable Pool
 Bridge footbridge" on Map. Same place, two forms (659 parts on 445 waters). Options: (a) keep (book words where they
 fit); (b) the map's "A → B" name on both screens always.
+
+**Answered (owner 2026-11-13): "Can keep long name"** — option (a): the header keeps the book's wording of the part
+where it fits two lines; the map keeps "A → B". No code change.
