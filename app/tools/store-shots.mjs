@@ -6,6 +6,9 @@
 // 2. Each raw shot is framed at the store's exact pixel size: a title + one line in the app's own faces
 //    (tools/seo/fonts, the self-hosted WOFF2) and colours (the theme files, no colour literal here), the screen below in a
 //    rounded card. The page is drawn and captured by the same headless Chrome (a file:// page, dpr 1 = the store's pixels).
+// A shot with `compose` is two (or more) captures of the same size stacked into one picture, each a crop (from..to, fractions of
+// its height, summing to 1 so nothing is rescaled) with a label pill on the join: the Conditions map in Change over the map in
+// Forecast; a river's sections on the map over one section's rules. Each part is a real capture, none is drawn.
 // The shot list (order, titles, lines) and the target sizes are tools/store-shots.json: the owner's to pick and reword.
 // Output: <store>/graphics/store/<theme>/<target>/<nn>-<scene>.png. Refuses a missing raw shot (no silent gap).
 import fs from 'node:fs'; import os from 'node:os'; import path from 'node:path';
@@ -25,14 +28,17 @@ if (!use.length) throw new Error(`store-shots: no target named ${ONLY}; targets:
 const RAW_PRE = { phone: '', tablet7: 'tablet7-', tablet10: 'tablet10-', iphone67: 'iphone67-', iphone55: 'iphone55-', ipad13: 'ipad13-' };
 const rawFile = (raw, scene) => path.join(RAW, `${RAW_PRE[raw] ?? `${raw}-`}${scene}.png`);
 
+// every capture the list needs: a shot's own scene, or each part of a composed one
+const parts = (shot) => (shot.compose ?? [{ scene: shot.scene }]).map((p) => p.scene);
+const needed = [...new Set(shots.flatMap(parts))];
 // 1. the raw shots, one play-shots run for every raw size wanted
 if (!flag('--no-shoot')) {
   const sizes = [...new Set(use.map(([, t]) => t.raw))].join(',');
-  const r = spawnSync(process.execPath, [path.join(HERE, 'play-shots.mjs'), RAW, '--only', shots.map((s) => s.scene).join(',')],
+  const r = spawnSync(process.execPath, [path.join(HERE, 'play-shots.mjs'), RAW, '--only', needed.join(',')],
     { stdio: 'inherit', env: { ...process.env, SIZES: sizes }, cwd: APP });
   if (r.status !== 0) throw new Error(`store-shots: play-shots failed (exit ${r.status}); nothing framed`);
 }
-const missing = use.flatMap(([, t]) => shots.map((s) => rawFile(t.raw, s.scene))).filter((f) => !fs.existsSync(f));
+const missing = use.flatMap(([, t]) => shots.flatMap((s) => parts(s).map((sc) => rawFile(t.raw, sc)))).filter((f) => !fs.existsSync(f));
 if (missing.length) throw new Error(`store-shots: raw shots missing (run without --no-shoot):\n  ${missing.join('\n  ')}`);
 
 // 2. the frame: the app's colours and faces
@@ -57,9 +63,39 @@ img { display: block; max-width: ${86 * u}px; max-height: 100%; width: auto; hei
 </style><div class="wrap"><h1>${esc(shot.title)}</h1><p>${esc(shot.line)}</p><div class="card"><img src="file://${img}"></div></div>`;
 }
 
+// the composed raws: the parts stacked at the raw's own pixel size, written where the framing step looks for the shot's raw
+const pngSize = (f) => { const b = fs.readFileSync(f); return [b.readUInt32BE(16), b.readUInt32BE(20)]; };
+async function composeRaw(raw, shot) {
+  const cs = shot.compose;
+  const files = cs.map((c) => rawFile(raw, c.scene)), [W, H] = pngSize(files[0]);
+  for (const f of files) { const [w, h] = pngSize(f); if (w !== W || h !== H) throw new Error(`store-shots: ${shot.scene}: ${f} is ${w}x${h}, the first part ${W}x${H}`); }
+  const u = W / 100, ink = c('ink'), wash = c('wash');
+  // stacked top to bottom, each part under a label band (`label`); crops are fractions of a part's height, so the crops plus
+  // the bands (`band`, a fraction of the height each) must sum to 1 and nothing is rescaled
+  const band = shot.band ?? 0.05, bandPx = Math.round(band * H);
+  if (Math.abs(cs.reduce((a, c) => a + (c.to - c.from), 0) + band * cs.length - 1) > 0.001) throw new Error(`store-shots: ${shot.scene}: the compose crops plus the bands must sum to 1`);
+  let y = 0;
+  const divs = cs.map((p, i) => { const last = i === cs.length - 1, n = last ? H - y - bandPx : Math.round((p.to - p.from) * H), top = y + bandPx; y = top + n;
+    return `<div class="band" style="top:${top - bandPx}px">${esc(p.label ?? '')}</div><div style="position:absolute;left:0;top:${top}px;width:${W}px;height:${n}px;overflow:hidden"><img src="file://${files[i]}" style="position:absolute;left:0;top:${-Math.round(p.from * H)}px;width:${W}px;height:${H}px"></div>`; });
+  const html = `<!doctype html><meta charset="utf-8"><style>
+@font-face { font-family: Body; src: url("file://${font('Archivo_500Medium')}") format("woff2"); }
+html, body { margin: 0; width: ${W}px; height: ${H}px; overflow: hidden; background: ${wash}; position: relative; }
+.band { position: absolute; left: 0; width: ${W}px; height: ${bandPx}px; background: ${ink}; color: ${wash}; font: ${3.8 * u}px/${bandPx}px Body; text-align: center; white-space: nowrap; }
+</style>${divs.join('')}`;
+  const tmpf = path.join(tmp, `compose-${raw}-${shot.scene}.html`); fs.writeFileSync(tmpf, html);
+  const b = await open(`file://${tmpf}`, { width: W, height: H, dpr: 1 });
+  try {
+    await b.evaluate(`document.fonts.ready.then(() => Promise.all([...document.images].map((i) => i.decode())))`);
+    if (!(await b.evaluate(`[...document.fonts].filter((f) => f.status === 'loaded').length === 1 && [...document.images].every((i) => i.naturalWidth > 0)`))) throw new Error(`store-shots: ${shot.scene}: a font or a part did not load`);
+    const { data } = await b.send('Page.captureScreenshot', { format: 'png' });
+    fs.writeFileSync(rawFile(raw, shot.scene), Buffer.from(data, 'base64'));
+  } finally { await b.close(); }
+}
+
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'store-shots-'));
 let n = 0;
 try {
+  for (const raw of new Set(use.map(([, t]) => t.raw))) for (const shot of shots) if (shot.compose) await composeRaw(raw, shot);
   for (const [name, t] of use) {
     const out = path.join(STORE, 'store', THEME, name); fs.mkdirSync(out, { recursive: true });
     for (const [i, shot] of shots.entries()) {

@@ -51,7 +51,47 @@ const SCENES = {
   '09-offline': async (b) => { await mapReady(b); await sleep(2000); await click(b, find('More', '[role=tab]')); await sleep(1500);
     await click(b, find('Offline maps', '[role=button],[role=link],[aria-label]')); await sleep(4000); },
 };
-const URLS = { '02-regulations': '/water/vedder-river', '03-conditions': '/?regs=gnis:3062&view=conditions' };
+// (T319, owner 2026-11-12) the second set: conditions as big as rules. Each scene is one half or one whole of a store shot;
+// the store-shots tool stacks two captures (same browser size, same camera) into one picture where a shot says `compose`.
+const scrollTo = (b, id) => b.evaluate(`document.querySelector('[data-testid=${id}]').scrollIntoView({ block: 'start' })`);
+const text = (b) => b.evaluate('document.body.innerText');
+// the Conditions map framed one zoom out (reaches coloured for the Chilliwack / Harrison watersheds), after the watershed
+// days have loaded; every scene that composes uses this same camera
+async function condMap(b) {
+  await mapReady(b); await sleep(2000);
+  await click(b, find('Conditions', '[role=tab]')); await sleep(3000);
+  // zoom out by the wheel until the scale bar reads 10 km (the same camera for every scene that composes)
+  const scale = () => b.evaluate(`document.querySelector('.maplibregl-ctrl-scale')?.textContent.replace(/\\s+/g, ' ').trim()`);
+  for (let i = 0; i < 12 && (await scale()) !== '10 km'; i++) {
+    for (let k = 0; k < 3; k++) { await b.send('Input.dispatchMouseEvent', { type: 'mouseWheel', x: 180, y: 250, deltaX: 0, deltaY: 100 }); await sleep(250); }
+    await sleep(2500); }
+  if ((await scale()) !== '10 km') throw new Error('condMap: the map did not reach the 10 km scale, it reads ' + JSON.stringify(await scale()));
+  await until(b, `!/still loading/.test(document.body.innerText) && /reaches coloured/.test(document.body.innerText)`, 90000); await sleep(8000);
+}
+Object.assign(SCENES, {
+  // the rules tab: the year bar and the species table in one view (scrolled so the bar sits under the water's title)
+  '10-regs-bar-table': async (b) => { await until(b, `!!document.querySelector('[data-testid=keep-strip]')`, 120000); await sleep(3000); await scrollTo(b, 'keep-strip'); await sleep(1500); },
+  // the gauge's chart with the forecast drawn on it (the model lines are the default on the chart: CLEVER, COFFEE, ELF)
+  '11-cond-chart': async (b) => { await until(b, `!!document.querySelector('[data-testid=gauge-card]')`, 120000); await sleep(6000);
+    await until(b, `!!document.querySelector('[data-testid=chart-model-CLEVER]')`); await b.evaluate(`document.querySelector('[data-testid=chart-legend]').scrollIntoView({ block: 'end' })`); await sleep(2500); },
+  '12-cond-change': async (b) => { await condMap(b); await click(b, `document.querySelector('[data-testid=map-horizons-change]')`); await sleep(7000); },
+  '13-cond-forecast': async (b) => { await condMap(b); await click(b, `document.querySelector('[data-testid=map-horizons-days]')`); await sleep(1500);
+    // the fourth day out: far enough that the forecast differs from today
+    await click(b, `[...document.querySelectorAll('[role=button],button')].filter((e) => /^(Mon|Tue|Wed|Thu|Fri|Sat|Sun) \\d+$/.test(e.textContent.trim()) && e.getBoundingClientRect().width > 0)[3]`);
+    await sleep(7000); },
+  // a river split into its sections: the main map framed on the water (its pane closed), then one section's own rules
+  '14-split-map': async (b) => { await until(b, `!!document.querySelector('[data-testid=water-close]')`, 120000); await sleep(3000);
+    await click(b, `document.querySelector('[data-testid=water-close]')`); await mapReady(b); await sleep(25000); },
+  '15-split-rules': async (b) => { await until(b, `!!document.querySelector('[data-testid=water-title]')?.innerText.trim()`, 120000); await sleep(5000);
+    // the tab press can land before the page is live: press again until the part stepper is there
+    for (let i = 0; i < 6 && !(await b.evaluate(`!!document.querySelector('[data-testid=water-map-step-up]')`)); i++) { await click(b, `document.querySelector('[data-testid=water-view-map]')`); await sleep(8000); }
+    await until(b, `!!document.querySelector('[data-testid=water-map-step-up]')`, 30000); await sleep(3000);
+    for (let i = 0; i < 2; i++) { await click(b, `document.querySelector('[data-testid=water-map-step-up]')`); await sleep(2500); }
+    await click(b, `document.querySelector('[data-testid=water-map-regs]')`);
+    await until(b, `!!document.querySelector('[data-testid=keep-strip]')`, 60000); await sleep(3000); await scrollTo(b, 'keep-strip'); await sleep(1500); },
+});
+const URLS = { '02-regulations': '/water/vedder-river', '03-conditions': '/?regs=gnis:3062&view=conditions',
+  '10-regs-bar-table': '/water/vedder-river', '11-cond-chart': '/?regs=gnis:3062&view=conditions', '14-split-map': '/water/chilliwack-river', '15-split-rules': '/water/chilliwack-river' };
 const SIZES = { phone: { width: 360, height: 640, dpr: 3, mobile: true, pre: '' }, tablet7: { width: 600, height: 960, dpr: 2, mobile: true, pre: 'tablet7-' }, tablet10: { width: 800, height: 1280, dpr: 2, mobile: true, pre: 'tablet10-' },
   // (T319) App Store: 6.7" iPhone 1290x2796 (430x932 @3), 5.5" 1242x2208 (414x736 @3), 13" iPad 2048x2732 (1024x1366 @2)
   iphone67: { width: 430, height: 932, dpr: 3, mobile: true, pre: 'iphone67-' }, iphone55: { width: 414, height: 736, dpr: 3, mobile: true, pre: 'iphone55-' },

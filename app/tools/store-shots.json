@@ -1,5 +1,5 @@
 {
-  "_": "T319 store shots: the order tells the story (find a water, today's answer, conditions, salmon, runs, a spot, offline). PROPOSAL for the owner: pick, reorder or reword. Each `scene` is a play-shots.mjs scene; `title` is the big line, `line` the small one. Plain words, no promise the app cannot keep, nothing that reads as official.",
+  "_": "T319 store shots, SECOND PROPOSAL (owner 2026-11-12: conditions as big as rules; schedule bar + table in one view; Change and Forecast in one picture; the chart with the forecast on it; a river split into sections with the rules of one). PROPOSAL for the owner: pick, reorder or reword. Each `scene` is a play-shots.mjs scene; a shot with `compose` stacks real captures (crops from..to summing to 1) into one picture. `title` is the big line, `line` the small one. Plain words, no promise the app cannot keep, nothing that reads as official. The first set (seven shots) is in git history of this file.",
   "shots": [
     {
       "scene": "01-map",
@@ -7,19 +7,52 @@
       "line": "Every BC freshwater lake and stream, coloured by today's rules"
     },
     {
-      "scene": "06-search",
-      "title": "Find any water",
-      "line": "Search a lake, river or creek by name"
+      "scene": "10-regs-bar-table",
+      "title": "The year at a glance",
+      "line": "When it is open, closed or fly-only, and what you can keep, together"
     },
     {
-      "scene": "02-regulations",
-      "title": "Today's rules, in plain words",
-      "line": "Open or closed, what you can keep, gear and methods"
+      "scene": "16-split-and-rules",
+      "title": "Rules for each stretch",
+      "line": "A river split into its sections on the map, with the rules of the one you pick",
+      "compose": [
+        {
+          "scene": "14-split-map",
+          "from": 0.12,
+          "to": 0.52,
+          "label": "The river's sections on the map"
+        },
+        {
+          "scene": "15-split-rules",
+          "from": 0.15,
+          "to": 0.65,
+          "label": "One section's rules"
+        }
+      ]
     },
     {
-      "scene": "03-conditions",
-      "title": "River conditions",
-      "line": "Flow and level from the gauge that fits the water"
+      "scene": "11-cond-chart",
+      "title": "River flow, and where it is heading",
+      "line": "The gauge's reading against past years, with the forecast drawn on it"
+    },
+    {
+      "scene": "17-cond-change-forecast",
+      "title": "What the rivers are doing",
+      "line": "Change over the next 10 days, and the forecast day by day, on the map",
+      "compose": [
+        {
+          "scene": "12-cond-change",
+          "from": 0.3,
+          "to": 0.75,
+          "label": "Change, next 10 days"
+        },
+        {
+          "scene": "13-cond-forecast",
+          "from": 0.3,
+          "to": 0.75,
+          "label": "Forecast, 4 days out"
+        }
+      ]
     },
     {
       "scene": "04-salmon",
