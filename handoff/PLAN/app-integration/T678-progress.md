@@ -743,3 +743,26 @@ Owner's phone report (build 29, the More tab). Done in code, not yet in a build:
      River confluence → Exchamsiks River confluence" (still a 2-way fork, main stem first).
   7. WaterMapView.test.tsx:276 `part={1}` -> `part={await partOf("skeenaReserve")}` (by ends; part 1 is now the stretch
      below the Reserve, whose ▲ is no fork). Expected list unchanged.
+- Main session made the 7 pins (de89e8d7d; owner "Yes, edit and resume"), plus one more for the owner's review list:
+  8. waterMap.test.ts Coquitlam "Coquitlam Watershed boundary → A lake outlet" -> "→ Source" (T697/P55 rename, same sections).
+- RELEASED r-adc4e248a163 to STAGING (rerun of `release --staging --push`): preflight ok, follows ok (whole app check +
+  7 pipeline files on the candidate), promote LATEST = r-adc4e248a163, staging upload + smoke 18 pass / 1 warn (the staging
+  SITE still serves r-0a9930fb8826: site deploy pending) / 0 fail. In-season after the promote: notice_waters.json names
+  r-adc4e248a163, staging matches.json is inseason-links/4 with 38 notices, worker /status inputs /4, gauges/dfo/inseason ok,
+  failures 0.
+- Step 3, full pipeline suite, chunked, unfiltered: fast 7,434 passed / 3 FAILED / 273 deselected; slow 273 passed /
+  1 FAILED / 1 skipped. STOPPED before any deploy (site, app). Tests NOT edited. The four, each a pin the release moved:
+  a. test_export_codec::test_only_named_lake_edges_ship: two lake_edge splits ship that no extent / in-season end /
+     same_place_as names: babine_river__juvenile_counting_weir, mitchell_river__100_m_above_mitchell_lake_weir. Cause:
+     040b79d16 (T697/P55 follow-up) — a cut aliased onto a lake edge keeps its name, so these two now name part ends and
+     the export ships them. The docstring already says "an extent, a run, …" but the assertion has no part-end term:
+     a test change (add the part-end tokens to the allowed set) or an export change — a judgement, not a pure re-pin.
+  b. test_fix_round_rows::…binds_nothing_above_it[gnis:15333 Harrison]: `== 3` rules on every section below the lake;
+     the entry has 4 now (harrison_river.r4, T209 2841fb605, owner "Keep them as two entries"); r1-r4 all bind the same
+     8 sections. Pin 3 -> 4 for Harrison (or "every rule of the entry"); Paul Lake stays 3.
+  c. test_review_queue::test_the_prechecks_measured_over_the_corpus: unresolved 29 vs pin 25 (tolerance 3). The one new
+     unresolved since reach `nextatlas_final` (28) is gagnon_creek.r1 `no_sections` (P57, in the accepted diff). Re-pin 25 -> 29.
+  d. (slow) test_unnamed_trib_sweep::…committed_result…: the committed sweep result is stale — unnamed_streams 1,179,620 ->
+     1,179,617 and the bundle digests; the other 10 fields equal (unexplained/by_rule unchanged). Fix is the documented
+     regenerate: `scripts/heavy.sh sweep 40 -- .venv/bin/python -m pipeline.tools.audit.unnamed_trib_sweep --write-result`,
+     then commit with the -3 explained (likely the junction fix's 3 leaf-pruned unnamed stubs; not verified one by one).
