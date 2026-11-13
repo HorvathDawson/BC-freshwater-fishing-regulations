@@ -435,7 +435,11 @@ def test_only_named_lake_edges_ship(doc):
     named |= set(export_read._split_refs([x["fields"] for x in doc["licensing"].values()]))
     named |= set(export_read._split_refs([e.get("extents") for e in doc["entries"].values()]))
     edges = {k for k, x in doc["splits"].items() if x["kind"] == "lake_edge"}
-    assert edges and edges <= named | inseason | {x.get("same_place_as") for x in doc["splits"].values()}
+    # (T697/P55 follow-up 040b79d16; owner 2026-11-13 "Keep the names, update test") a run's end: a cut aliased onto a
+    # lake's edge keeps its own name and ends a part (the Babine's juvenile counting weir, the Mitchell's weir)
+    ends = {r[k] for w in doc["waters"].values() for p in w["parts"] for r in p.get("runs") or ()
+            for k in ("from", "to") if r.get(k)}
+    assert edges and edges <= named | inseason | ends | {x.get("same_place_as") for x in doc["splits"].values()}
     assert not [k for k in named if k not in doc["splits"]]
 
 

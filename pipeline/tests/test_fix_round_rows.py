@@ -156,11 +156,13 @@ def _entry_rules_on(db, sid, entry):
 
 
 @pytest.mark.needs_bundle
-@pytest.mark.parametrize("item, entry, lake", [
-    ("gnis:22702", PAUL, "wbk:329320869"),          # Paul Lake
-    ("gnis:15333", HARRISON, "wbk:329177884"),      # Harrison Lake
+@pytest.mark.parametrize("item, entry, lake, n_rules", [
+    ("gnis:22702", PAUL, "wbk:329320869", 3),          # Paul Lake
+    # (T209 2841fb605, owner "Keep them as two entries"; owner 2026-11-13 "Yes, update and resume") the vessel line's
+    # second alternative is harrison_river.r4: four rules, all on the same 8 sections below the lake
+    ("gnis:15333", HARRISON, "wbk:329177884", 4),      # Harrison Lake
 ])
-def test_a_row_downstream_of_a_lake_binds_nothing_above_it(db, item, entry, lake):
+def test_a_row_downstream_of_a_lake_binds_nothing_above_it(db, item, entry, lake, n_rules):
     """Every section of the water above the lake's inlet carries none of the row's rules; every
     section below its outlet carries them all. MUTATION: the live bundle before this round (the
     rules `whole`) fails both."""
@@ -173,7 +175,7 @@ def test_a_row_downstream_of_a_lake_binds_nothing_above_it(db, item, entry, lake
              and v[0] is not None]
     assert above and below
     assert not [s for s in above if _entry_rules_on(db, s, entry)]
-    assert all(len(_entry_rules_on(db, s, entry)) == 3 for s in below)
+    assert all(len(_entry_rules_on(db, s, entry)) == n_rules for s in below)
 
 
 @pytest.mark.needs_bundle
