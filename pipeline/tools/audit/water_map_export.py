@@ -312,7 +312,7 @@ def build_group(gid: str, items: Sequence[str], *, export_waters: Dict[str, dict
             mine.append({"item": item, "name": w["name"], "kind": w.get("kind"), "v": v,
                          "picker": same.get(v, v), "label": dp.get("label"), "short": dp.get("short"),
                          "km": dp.get("km"), "runs": p.get("runs") or [],
-                         "sids": sids})
+                         "touches": p.get("touches") or [], "sids": sids})
         parts += order_parts(mine)
 
     group_sids = {s for p in parts for s in p["sids"]}

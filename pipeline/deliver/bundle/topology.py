@@ -15,7 +15,8 @@ The app draws lines and polygons from the tiles (feature id = sid). The bundle c
 THE RULES (stated, pinned in test_part_geo.py), moved here from `pipeline/tools/audit/water_map_export.py`, which now imports
 `order_parts` and `split_label` from this module (one implementation):
   rank      by the part's km from the mouth (the highest `km_from` of its main-stem runs, else of its side channels;
-            `answers.display.part_km`), mouth first; parts with no km go last, in part order.
+            `answers.display.part_km`), mouth first; a side-channel part with no km right after the main-stem part it
+            runs beside (`side_host`, T710); the other parts with no km last, in part order.
   midpoint  a stream part: the point at half its main-stem length, walked mouth first by route measure
             (`section_span`), or by summed section length where a section has no span; `mid_sid` is the section
             holding it, and the point is that section's own midpoint (within one section of the exact point). A lake
@@ -78,10 +79,47 @@ def part_km(runs: Sequence[dict]) -> Optional[float]:
     return max(m) if m else max(b) if b else None
 
 
+# end tokens every water has: they say nothing about which main-stem part a side channel runs beside
+_COMMON_ENDS = frozenset({"mouth", "source", "lake_inlet", "lake_outlet"})
+
+
+def _run_ends(p: dict, branch: bool) -> set:
+    return {t for r in p.get("runs") or () if bool(r.get("branch")) == branch
+            for t in (r.get("from"), r.get("to"))} - {None} - _COMMON_ENDS
+
+
+def is_side_part(p: dict) -> bool:
+    """A part made only of side-channel runs (no main-stem run, not a polygon)."""
+    runs = p.get("runs") or []
+    return bool(runs) and not p.get("poly") and all(r.get("branch") for r in runs)
+
+
+def side_host(p: dict, mains: Sequence[dict]) -> Optional[dict]:
+    """T710 (owner 2026-11-13, "List it where it sits"): the main-stem part a km-less side-channel part runs beside —
+    the one whose main runs share the most end names with its runs, else the first it touches (`touches`: the `v` of
+    the parts any of its sections borders); `mains` in river order, the first wins a tie. None: neither."""
+    mine = _run_ends(p, True)
+    score = [(len(mine & _run_ends(m, False)), -i) for i, m in enumerate(mains)]
+    if score and max(score)[0] > 0:
+        return mains[-max(score)[1]]
+    near = set(p.get("touches") or ())
+    return next((m for m in mains if m["v"] in near), None)
+
+
 def order_parts(parts: Sequence[dict]) -> List[dict]:
-    """Within one water: by km, mouth up; parts with no km (side channels, lake parts) last, in part order (`v`)."""
+    """Within one water: by km, mouth up. A side-channel part with no km goes right after the main-stem part it runs
+    beside (`side_host`, T710), after any side part already there; the other parts with no km (lake parts, a side
+    part with no host) last — both in part order (`v`, the input order)."""
     with_km = sorted((p for p in parts if p.get("km") is not None), key=lambda p: (p["km"], p["v"]))
-    return with_km + [p for p in parts if p.get("km") is None]
+    mains = [p for p in with_km if any(not r.get("branch") for r in p.get("runs") or ())]
+    beside: Dict[int, List[dict]] = defaultdict(list)
+    last: List[dict] = []
+    for p in parts:
+        if p.get("km") is not None:
+            continue
+        host = side_host(p, mains) if is_side_part(p) else None
+        (beside[id(host)] if host is not None else last).append(p)
+    return [x for p in with_km for x in [p] + beside.get(id(p), [])] + last
 
 
 def stretches(runs: Sequence[dict], span: Dict[int, tuple], other: Sequence[Tuple[float, float]]) -> List[dict]:
@@ -446,10 +484,14 @@ def write(db: sqlite3.Connection, geo: Dict[int, Geometry], cov,
         return bool(rows) and all(r is not None and r[5] == 1 and r[0] is None for r in rows)
 
     by_ord: Dict[int, List[dict]] = defaultdict(list)
+    part_of_sid = {s: (o, p) for (o, p), ss in sids.items() for s in ss}
     for (o, p), ss in sorted(sids.items()):
         poly = is_polygon_part(o, ss)
         runs = [] if poly or any(s not in span for s in ss) else SP.compose_runs(span, touch, ss)
-        by_ord[o].append({"v": p, "sids": ss, "km": None if poly else part_km(runs), "runs": runs, "poly": poly})
+        near = sorted({part_of_sid[y][1] for x in ss for y in touch.get(x, ())
+                       if y in part_of_sid and part_of_sid[y][0] == o and part_of_sid[y][1] != p})
+        by_ord[o].append({"v": p, "sids": ss, "km": None if poly else part_km(runs), "runs": runs, "poly": poly,
+                          "touches": near})
 
     # T204: every main-stem section of the water, by part — what separates a part's runs into stretches
     stem_of: Dict[int, List[Tuple[int, float, float]]] = defaultdict(list)

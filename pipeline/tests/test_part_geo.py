@@ -29,6 +29,38 @@ def test_parts_rank_mouth_first_and_parts_without_km_go_last_in_part_order():
     assert [p["v"] for p in T.order_parts(parts)] == [1, 3, 0, 2, 4]
 
 
+def _stem(v, km, frm, to):
+    return {"v": v, "km": km, "runs": [{"from": frm, "to": to, "km_from": km, "km_to": km - 1}]}
+
+
+def _side(v, frm, to, touches=()):
+    return {"v": v, "km": None, "runs": [{"from": frm, "to": to, "km_from": None, "km_to": None, "branch": True}],
+            "touches": list(touches)}
+
+
+def test_a_side_channel_with_no_km_is_listed_beside_the_main_stem_part_it_runs_beside():
+    """T710 (owner 2026-11-13, "List it where it sits"): the Skeena's Reserve side channel (part 18) goes right after
+    the main-stem part sharing its end names (Exchamsiks -> Reserve boundary), not after every main-stem part."""
+    parts = [_stem(0, 5.0, "tidal", "mouth"), _stem(1, 60.0, "exchamsiks", "tidal"),
+             _stem(2, 66.0, "reserve", "exchamsiks"), _stem(3, 115.0, "zymagotitz", "reserve"),
+             _side(4, "reserve", "exchamsiks"), {"v": 5, "km": None, "runs": [{"polygon": True}], "poly": True}]
+    assert [p["v"] for p in T.order_parts(parts)] == [0, 1, 2, 4, 3, 5]
+    # the most shared end names wins, a tie goes to the part nearer the mouth; "mouth"/"source" name no place
+    assert T.side_host(_side(9, "reserve", "zymagotitz"), parts[:4])["v"] == 3
+    assert T.side_host(_side(9, "exchamsiks", "mouth"), parts[:4])["v"] == 1
+    assert T.side_host(_side(9, "mouth", "source"), parts[:4]) is None
+
+
+def test_a_side_channel_with_no_shared_end_goes_beside_the_first_part_it_touches_else_last():
+    parts = [_stem(0, 5.0, "a", "mouth"), _stem(1, 9.0, "b", "a"), _stem(2, 14.0, "source", "b"),
+             _side(3, "x", "y", touches=[2, 1]), _side(4, "p", "q"), _side(5, "x2", "y2", touches=[1])]
+    # 3 touches 1 and 2: the first in river order (1); 5 also beside 1, after 3 (part order); 4 has no neighbour: last
+    assert [p["v"] for p in T.order_parts(parts)] == [0, 1, 3, 5, 2, 4]
+    # a side part WITH a km keeps its km place (Burman, Bedwell, Bella Coola), a host is only a main-stem part
+    withkm = {**_side(6, "a", "b"), "km": 7.0}
+    assert [p["v"] for p in T.order_parts(parts[:3] + [withkm, _side(7, "a", "zz")])] == [0, 7, 6, 1, 2]
+
+
 def test_the_midpoint_is_the_section_holding_half_the_stem_length():
     assert T.stem_midpoint([(10, 100.0), (11, 100.0), (12, 100.0), (13, 700.0)]) == 13
     assert T.stem_midpoint([(10, 400.0), (11, 100.0), (12, 500.0)]) == 11

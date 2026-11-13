@@ -607,10 +607,13 @@ def picker(W: Water, labels: Sequence[str], closed: Sequence[bool]) -> dict:
     if shut:
         groups.append({"idx": shut, "closed": True})
     groups.sort(key=lambda g: g["idx"][0])
-    def km_key(g):
-        km = part_km(W.parts[g["idx"][0]])
-        return (km is None, km or 0)                            # a part with no measure last
-    groups.sort(key=lambda g: (g["closed"],) + km_key(g))
+    # river order is `topology.order_parts` (one implementation): by km, a side channel with no km beside the
+    # main-stem part it runs beside (T710), the other parts with no measure last
+    from pipeline.deliver.bundle.topology import order_parts
+    rank = {p["v"]: r for r, p in enumerate(order_parts(
+        [{"v": i, "km": part_km(p), "runs": p.get("runs") or [], "touches": p.get("touches") or []}
+         for i, p in enumerate(W.parts)]))}
+    groups.sort(key=lambda g: (g["closed"], rank[g["idx"][0]]))
 
     def label(g):
         if g["closed"]:

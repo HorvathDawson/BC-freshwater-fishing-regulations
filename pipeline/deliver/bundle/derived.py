@@ -225,23 +225,23 @@ def _runs_of(db: sqlite3.Connection):
             return None
         return SP.compose_runs(span, touch, ss)
 
-    def split(o: int, groups: Dict[tuple, List[int]]) -> Dict[tuple, List[Tuple[List[int], Optional[float]]]]:
-        out: Dict[tuple, List[Tuple[List[int], Optional[float]]]] = {}
+    def split(o: int, groups: Dict[tuple, List[int]]) -> Dict[tuple, List[Tuple[List[int], Optional[float], list]]]:
+        out: Dict[tuple, List[Tuple[List[int], Optional[float], list]]] = {}
         if kind.get(o) != "stream":
-            return {g: [(ss, None)] for g, ss in groups.items()}
+            return {g: [(ss, None, [])] for g, ss in groups.items()}
         stem = {g: [(span[x][0], span[x][1]) for x in ss if x in span and not span[x][4]
                     and span[x][0] is not None and span[x][1] is not None] for g, ss in groups.items()}
         for g, ss in groups.items():
             runs = one(ss)
             if runs is None:
-                out[g] = [(ss, None)]
+                out[g] = [(ss, None, [])]
                 continue
             other = [ab for h, v in stem.items() if h != g for ab in v]
             pieces = join_touching([p["sids"] for p in stretches(runs, span, other)] or [ss], touch)
-            out[g] = [(p, part_km(one(p) or [])) for p in pieces]
+            out[g] = [(p, part_km(r), r) for p in pieces for r in [one(p) or []]]
         return out
 
-    return split
+    return split, touch
 
 
 def part_rows(db: sqlite3.Connection) -> List[tuple]:
@@ -249,9 +249,10 @@ def part_rows(db: sqlite3.Connection) -> List[tuple]:
     licensing_set, province_except, steelhead_water, steelhead, steelhead_rules, home_regions,
     tidal, sections, rep_sid, no_access, [sid], grp, run, chain)`. Grouped by (item, rule set, licensing set, province
     exceptions, steelhead water, steelhead presence, mostly inside no-access land, DFO salmon chain), each group cut into
-    its CONNECTED RUNS (T517, `_runs_of`: one part per run), and numbered in RIVER ORDER: by km from the
-    mouth (`part_km`, as `topology.order_parts` ranks them), then the parts with no km (a lake, side
-    channels only) — ties and the km-less in the old group order (rule set first, null last; licensing
+    its CONNECTED RUNS (T517, `_runs_of`: one part per run), and numbered in RIVER ORDER (`topology.order_parts`,
+    the one ranking): by km from the mouth (`part_km`); a side-channel part with no km right after the main-stem
+    part it runs beside (T710, owner 2026-11-13 "List it where it sits"); then the other parts with no km (a lake, a
+    side part with no neighbour) — ties and the km-less in the old group order (rule set first, null last; licensing
     set; no province exception first; not steelhead water first; presence known, possible, none; outside
     no-access land first), then lowest section.
     NO ACCESS IS A HARD BREAK (T226, owner 2026-10-28): a section mostly inside no-access land
@@ -289,7 +290,8 @@ def part_rows(db: sqlite3.Connection) -> List[tuple]:
         return (item_id[o], rs is None, rs or 0, ls is None, ls or 0, p != "", p, w,
                 s is None, s or 0, na) + tuple(g[7:])
 
-    split = _runs_of(db)
+    from pipeline.deliver.bundle.topology import order_parts
+    split, touch = _runs_of(db)
     by_ord: Dict[int, Dict[tuple, List[int]]] = defaultdict(dict)
     for g, sids in groups.items():
         by_ord[g[0]][g] = sids
@@ -307,12 +309,18 @@ def part_rows(db: sqlite3.Connection) -> List[tuple]:
         run_of: Dict[int, int] = {}
         for g, rs_ in free_runs.items():
             ranked = sorted(rs_, key=lambda x: (x[1] is None, x[1] or 0, min(x[0])))
-            for k, (ss, _) in enumerate(ranked):
+            for k, (ss, _, _) in enumerate(ranked):
                 for x in ss:
                     run_of[x] = k
-        mine = [(g, ss, km) for g in sorted(by_ord[o], key=order) for ss, km in runs[g]]
-        with_km = sorted((x for x in mine if x[2] is not None), key=lambda x: (x[2], order(x[0]), min(x[1])))
-        for g, ss, _ in with_km + [x for x in mine if x[2] is None]:
+        # RIVER ORDER is `topology.order_parts` (the rank `part_geo` asserts): `v` here is the tie order — the group
+        # order, then lowest section; `touches` the pieces any section borders (T710: a side channel's neighbour)
+        mine = sorted(((g, ss, km, rr) for g in by_ord[o] for ss, km, rr in runs[g]),
+                      key=lambda x: (order(x[0]), min(x[1])))
+        at = {x: i for i, m in enumerate(mine) for x in m[1]}
+        ranked_ = order_parts([{"v": i, "km": km, "runs": rr, "poly": not rr,
+                                "touches": sorted({at[y] for x in ss for y in touch.get(x, ()) if at.get(y, i) != i})}
+                               for i, (g, ss, km, rr) in enumerate(mine)])
+        for g, ss, _, _ in (mine[p["v"]] for p in ranked_):
             ks = {run_of[x] for x in ss}
             if len(ks) != 1:
                 raise DerivedError(f"part: {item_id[o]}: a salmon-chain run straddles two runs of its rule set")
