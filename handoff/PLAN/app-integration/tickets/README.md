@@ -210,7 +210,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T708 | Missing-cuts audit fixes (before closed testing): Pitt r2 "at Grant Narrows" label, Ruby Creek r1 between, Gagnon signs 400 m (mouth → signs), Deena/Mamin cuts onto bridges, Tlell r5 off the 13 freshwater tributaries, Kootenay/Lakelse end names, 3 unmatched lakes matched | OPEN | — | owner 2026-11-13 decisions in the ticket; owner: accept the bridge picks, the Gagnon option, the 3 lake matches; open: Haida Gwaii tidal at the mouth, Stave Ruskin channel, McArthur Island Slough; Frog/Redfern/Squirrel not found |
 | T709 | Store preview video from ONE command (like T704): Android emulator recording on the final build + staging data, 25-30 s, ffmpeg captions/poster, spec check; iOS version later at Apple's sizes (benched) | OPEN (before closed testing) | — | owner 2026-11-13 "we want to generate a nice App preview"; T704, T319, T244 |
 | T710 | Parts list: a side channel is listed next to the main-stem part it runs beside (count first, report to owner) | OPEN | — | owner 2026-11-13; priority open for main to place |
-| T711 | Part header text follows the "Source" end name (P55, 62 tops) | OPEN | — | owner 2026-11-13 |
+| T711 | Part header text follows the "Source" end name (P55, 62 tops) | IN PROGRESS | — | owner 2026-11-13; code + tests done (`part.own_end`, 62 tops); left (Claude): Kanaka shot after the next release |
 | T712 | Vessel restriction section shows the book's words with the location text (Harrison r4; survey same shape) | OPEN | — | owner 2026-11-13; priority open for main to place |
 
 ## Next after closed testing

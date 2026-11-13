@@ -108,3 +108,71 @@ def test_province_wide_no_part_ends_at_a_lake_or_a_count(request):
 #: and its unnamed lake splits no rule set, so the creek is one part, "The mouth (at Williston Lake) → Source"
 #: (candidate atlas full_next, side deliver 2026-11-13).
 OPEN: tuple[str, ...] = ()
+
+
+# ---------------------------------------------------------------------------------------------------------------------
+# T711 (owner 2026-11-13): the part HEADER (`runs`) follows the part's name (the header says a source as every water's
+# header does, "up to the top of the river": `end_name("source", "from")`). A top read "Cliff Park Falls → Source" while
+# its header said "From the Cliff Park Falls up to a lake outlet": the name took P55's own-end rule, the header did not.
+# Both now read `part.own_end`.
+# ---------------------------------------------------------------------------------------------------------------------
+def _headers(W):
+    from pipeline.deliver.answers.display.part import runs_label, water_ends_km
+    return [runs_label(W.doc, p, water_ends_km(W.w)) for p in W.parts]
+
+
+def test_the_header_of_a_top_at_an_unnamed_lake_says_the_source():
+    W = _water([[_run("kanaka__falls", "mouth", 8.2, 0.0)], [_run("lake_outlet", "kanaka__falls", 24.8, 8.2)]],
+               SPLITS)
+    assert _headers(W) == ["From the mouth up to the Cliff Park Falls", "From the Cliff Park Falls up to the top of the river"]
+
+
+def test_the_header_of_a_bottom_at_an_unnamed_lake_says_the_mouth():
+    W = _water([[_run("kanaka__falls", "lake_inlet", 8.2, 0.0)], [_run("source", "kanaka__falls", 24.8, 8.2)]],
+               SPLITS)
+    assert _headers(W)[0] == "From the mouth up to the Cliff Park Falls"
+
+
+def test_a_mid_water_unnamed_lake_keeps_its_header_words():
+    """Only the water's OWN ends: an unnamed lake two parts meet at is not the source (MUTATION: `own_end` ignoring km)."""
+    W = _water([[_run("lake_outlet", "mouth", 2.31, 0.0)], [_run("source", "lake_inlet", 8.47, 3.0)]])
+    assert _headers(W) == ["From the mouth up to a lake outlet", "From a lake up to the top of the river"]
+
+
+def test_without_the_waters_ends_the_header_is_the_old_one():
+    """MUTATION: the header built without the water's ends (the bug) says "a lake outlet" under a "→ Source" name."""
+    from pipeline.deliver.answers.display.part import runs_label
+    W = _water([[_run("kanaka__falls", "mouth", 8.2, 0.0)], [_run("lake_outlet", "kanaka__falls", 24.8, 8.2)]],
+               SPLITS)
+    assert runs_label(W.doc, W.parts[1]) == "From the Cliff Park Falls up to a lake outlet"
+
+
+@pytest.mark.needs_bundle
+def test_province_wide_every_source_top_has_a_source_header(request):
+    """Every part on the built export whose name ends "→ Source" because an unnamed lake is the water's own top (P55's
+    62) has a header that says the top of the river, never "a lake outlet"; and every part's header agrees with its name about
+    the top: a "source" name end is never a header "lake outlet". Recomputed from the export with the code under test."""
+    from pipeline.deliver.answers import common as C
+    from pipeline.deliver.answers.display.builders import _crossings
+    from pipeline.deliver.answers.display.part import runs_label, water_ends_km
+    from pipeline.deliver.export.codec import expand
+    from pipeline.tests import under_test
+    doc = expand(*C.load_export(under_test.export_dir(request)))
+    cr = _crossings(str(under_test.bundle(request)))
+    p55, bad, old = 0, [], 0
+    for iid, w in sorted(doc["waters"].items()):
+        W = Water(iid, w, doc)
+        if len(W.parts) < 2:
+            continue
+        for p, n in zip(W.parts, _names(W, cr)):
+            main = [r for r in p.get("runs") or [] if not r.get("branch") and r.get("km_from") is not None]
+            top = max(main, key=lambda r: r["km_from"]) if main else None
+            if n["hi"] != "source" or not top or top.get("from") != "lake_outlet":
+                continue
+            p55 += 1
+            h = runs_label(doc, p, water_ends_km(w))
+            if "lake outlet" in h or "up to the top of the river" not in h:
+                bad.append(f"{iid}: {h}")
+            old += "a lake outlet" in runs_label(doc, p)        # the bug, for the mutation count
+    assert bad == []
+    assert p55 >= 50 and old == p55, (p55, old)             # P55 counted 62 tops on 2026-11-12 (62 on r-adc4e248a163)

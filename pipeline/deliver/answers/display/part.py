@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import math
 import re
-from typing import Dict, List, Optional, Sequence
+from typing import Dict, List, Optional, Sequence, Tuple
 from pipeline.common import entry_id as EID
 from pipeline.common.models.splits import confidence_words
 from pipeline.deliver.answers.common import AnswersError, cap, clean, range_txt, when_dates
@@ -304,10 +304,38 @@ def _joining(side: List[dict]) -> str:
             else f"joining {lo:g}–{hi:g} km from the mouth")
 
 
-def runs_label(doc: dict, part: dict) -> str:
-    """`runsLabel` — where a part runs, said from the mouth upward (consumer 3.1 step 2)."""
+def water_ends_km(w: dict) -> Tuple[Optional[float], Optional[float]]:
+    """(T697) The km of a water's own lower and upper end: the lowest `km_to` and the highest `km_from` of the main-stem
+    runs of ALL its parts (outside B.C. too) — where its stem begins and ends, cut or not. (None, None): no measured
+    main-stem run."""
+    main = [r for p in w.get("parts") or [] for r in p.get("runs") or []
+            if not r.get("branch") and not _js(r.get("polygon"))]
+    los = [float(r["km_to"]) for r in main if r.get("km_to") is not None]
+    his = [float(r["km_from"]) for r in main if r.get("km_from") is not None]
+    return (min(los) if los else None, max(his) if his else None)
+
+
+def own_end(tok: Optional[str], km: Optional[float], w_km: Tuple[Optional[float], Optional[float]]) -> Optional[str]:
+    """(T697, RULINGS P55) An UNNAMED LAKE at the water's OWN top or bottom is no cut: the water's own end, "source" /
+    "mouth", as every water's is. THE ONE PLACE this is decided: the part's name (`builders._names`) and its header
+    (`runs_label`) both read it (T711: the header said "up to a lake outlet" under a name reading "→ Source")."""
+    lo_w, hi_w = w_km
+    if km is None:
+        return tok
+    if tok == "lake_outlet" and hi_w is not None and abs(km - hi_w) <= 0.05:
+        return "source"
+    if tok == "lake_inlet" and lo_w is not None and abs(km - lo_w) <= 0.05:
+        return "mouth"
+    return tok
+
+
+def runs_label(doc: dict, part: dict, w_km: Tuple[Optional[float], Optional[float]] = (None, None)) -> str:
+    """`runsLabel` — where a part runs, said from the mouth upward (consumer 3.1 step 2). `w_km` is the water's own
+    ends (`water_ends_km`): an unnamed lake there is said as the water's end (`own_end`), as the part's name says it."""
     rs = [r for r in part.get("runs") or []
           if not _js(r.get("polygon")) or r["polygon"] != "whole"]
+    rs = [r if r.get("branch") else {**r, "from": own_end(r.get("from"), r.get("km_from"), w_km),
+                                     "to": own_end(r.get("to"), r.get("km_to"), w_km)} for r in rs]
     if not rs:
         return ""
     main0 = sorted((r for r in rs if not r.get("branch")),
@@ -526,7 +554,7 @@ def part_km(part: dict) -> Optional[float]:
 
 def part_labels(W: Water) -> List[str]:
     """`partLabels` — each part's picker name, in the page's part order (consumer 3.1)."""
-    rls = [runs_label(W.doc, p) for p in W.parts]
+    rls = [runs_label(W.doc, p, water_ends_km(W.w)) for p in W.parts]
     out: List[str] = []
     for i in range(len(W.parts)):
         pl, lab, rl = part_place(W, i), part_label(W, i), rls[i]

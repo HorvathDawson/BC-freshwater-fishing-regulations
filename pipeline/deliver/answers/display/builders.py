@@ -7,7 +7,7 @@ from typing import Dict, List, Optional, Sequence, Tuple
 from pipeline.deliver.answers.common import AnswersError, when_words
 from pipeline.deliver.answers.display.rule import _num, cut_points, rule_facts
 from pipeline.deliver.answers.display.part import (
-    Water, part_km, part_label, part_labels, part_place, picker, runs_label
+    Water, own_end, part_km, part_label, part_labels, part_place, picker, runs_label, water_ends_km
 )
 
 
@@ -206,18 +206,6 @@ def _crossings(path: str) -> Dict[tuple, list]:
         db.close()
 
 
-def _water_ends_km(w: dict) -> Tuple[Optional[float], Optional[float]]:
-    """(T697) The km of a water's own lower and upper end: the lowest `km_to` and the highest `km_from` of the main-stem
-    runs of ALL its parts (outside B.C. too) — where its stem begins and ends, cut or not. (None, None): no measured
-    main-stem run."""
-    from pipeline.deliver.answers.display.part import _js
-    main = [r for p in w.get("parts") or [] for r in p.get("runs") or []
-            if not r.get("branch") and not _js(r.get("polygon"))]
-    los = [float(r["km_to"]) for r in main if r.get("km_to") is not None]
-    his = [float(r["km_from"]) for r in main if r.get("km_from") is not None]
-    return (min(los) if los else None, max(his) if his else None)
-
-
 def _names(W: "Water", crossings: Dict[tuple, List[Tuple[float, str]]]) -> List[dict]:
     """T517 (owner 2026-11-09) every part's name facts: its two END TOKENS (`lo`, `hi`; the app composes "<lower> →
     <upper>" from `display.ends`, `spanName`). A part with NO MAIN STEM (a lake, side channels only) ships none: the
@@ -287,13 +275,12 @@ def _names(W: "Water", crossings: Dict[tuple, List[Tuple[float, str]]]) -> List[
     # real boundary at a lake edge — the cut aliased there, the region line, the B.C. border (`bundle.spans.end_token`,
     # `lines_at_lake_edges`) — so on the export no part end says "Unnamed lake …"; `test_part_names_unnamed_lake.py`
     # proves zero province-wide. This only keeps a future bare lake end said at its place, never "a lake".
-    lo_w, hi_w = _water_ends_km(W.w)
+    # ONE rule for the name and the header (T711): `part.own_end`
+    w_km = water_ends_km(W.w)
     for i, t in enumerate(toks):
         if t and ends[i]:
-            if ends[i][1] == "lake_outlet" and hi_w is not None and t[3] is not None and abs(t[3] - hi_w) <= 0.05:
-                ends[i][1] = "source"
-            if ends[i][0] == "lake_inlet" and lo_w is not None and t[2] is not None and abs(t[2] - lo_w) <= 0.05:
-                ends[i][0] = "mouth"
+            ends[i][1] = own_end(ends[i][1], t[3], w_km)
+            ends[i][0] = own_end(ends[i][0], t[2], w_km)
     for i, t in enumerate(toks):                      # a river polygon has no name of its own: always said near
         if t:
             for side, km in ((0, t[2]), (1, t[3])):
@@ -354,7 +341,7 @@ def produce_parts(B, doc: dict, keys: Sequence[tuple], parts: Dict[str, list],
             closed.append(closed_memo[rk])
             k = gi[p["grp"]]
             facts[ex] = {
-                "order": i, "label": labels[i], **names[i], "runs": runs_label(doc, p),
+                "order": i, "label": labels[i], **names[i], "runs": runs_label(doc, p, water_ends_km(w)),
                 "place": part_place(Wg, k) or None,          # null: no entry heading
                 "km": part_km(p),
                 "closed_all_year": closed[-1],
