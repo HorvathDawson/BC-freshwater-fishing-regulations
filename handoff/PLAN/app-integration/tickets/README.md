@@ -195,7 +195,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T686 | Shrink shipped data across the board: survey every shipped file, measure candidate savings, propose (no design yet). Next free ticket T689 | OPEN | — | owner 2026-11-12 ("Raise now, shrink later"); RULINGS O5 |
 | T687 | Search "Vedder River": the book's pointer "see Chilliwack / Vedder Rivers" opened the Chilliwack: a pointer now opens the water it names | IN PROGRESS (fixed in the bundle; left (Claude): lands with the next release, check its search) | 5c294120d | build 29 emulator run 2026-11-12; 5 pointers move (Vedder, Bear, Cedar, Mara, Waneta) |
 | T688 | A wholly tidal water's Map view (Deas Slough) keeps the last camera and says "not available": frame the water, say it is tidal | DONE | 92849a835 | build 29 emulator run 2026-11-12; left: emulator check on the next APK |
-| T689 | Test bed `regs-open`: the lake step ("Cultus") found no tap target on build 29 — the T478 probe skipped every still-water point, so no lake could be a target (test bed only: hand taps open the lake) | IN PROGRESS | 606037505 | left (Claude): `regs-open` 10/10 on the next test-bed APK |
+| T689 | Test bed `regs-open`: the lake step ("Cultus") found no tap target on build 29 — the T478 probe skipped every still-water point, so no lake could be a target (test bed only: hand taps open the lake) | IN PROGRESS | 606037505 | left (Claude): `regs-open` 10/10 on the next test-bed APK; own-rules lake colour: option B ACCEPTED + applied (owner 11-12) |
 
 ## Order for open tickets
 

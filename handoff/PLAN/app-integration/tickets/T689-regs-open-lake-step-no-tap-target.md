@@ -40,7 +40,8 @@ on the rerun: a flake of the driver start-up, no ticket.
 ## Acceptance
 - `regs-open` passes 10/10 on the next test-bed APK (left: Claude, on the next APK).
 
-## Colour options (proposal, not accepted)
+## Colour options (ACCEPTED: option B, owner 2026-11-12)
+Owner 2026-11-12, verbatim: "Option b but the images you sent have no not fishable waters in it". Option B is applied (light `color.notfishing.fill` #B8B8C8, `.edge` #5A5C8C; style rebuilt, `tools` + `packages/map` suites and `check-colours` clean). Pictures with real Not fishable water: `own-rules-colour/nf-*.png`, `cultus-b-light.png`. The text below is the proposal as made.
 Owner 2026-11-12: "Yes move the colour further from Not fishable." Light theme only: an own-rules lake is `color.status.own` #D08404
 at `opacity.lake` 0.6 over the basemap's water (#82CDD9), (177,161,89) on screen; the Not fishable swatch is `color.notfishing.fill`
 #B1AF8B (key swatch drawn solid, the map fill at `opacity.notfishing` 0.9). Dark (own lake vs the olive swatch ΔE 42) and the
