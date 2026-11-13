@@ -18,8 +18,8 @@ The four fixed in T89 (curated catalogue, 2026-10-22):
     the copy is the Region 6 row's TWIN (`See`, as the seven MU 6-1 lakes under Region 5): the
     closure shows on every Endako section through `r6:endako_river@6-4`.
 
-Left unresolved, AWAITING A WATER (owner question, T89 ticket): seven rows whose printed MU holds no
-registry water of that name — every same-name candidate is 75+ km away in another MU (Frog/Hidden/Secret/Square Lake 5-6, Redfern Lake 5-15, Squirrel Lake 6-1; Squirrel's
+Left unresolved, AWAITING A WATER (owner question, T89 ticket): three rows whose printed MU holds no
+registry water of that name — every same-name candidate is 75+ km away in another MU (Frog Lake 5-6, Redfern Lake 5-15, Squirrel Lake 6-1 — Hidden, Secret and Square were named in T708; Squirrel's
 Region 5 twin already points at the Region 6 row). Binding them to a same-name lake elsewhere would
 put a quota on the wrong water; they need the lake located and named in the registry
 (`name_variants.json`, an atlas registry rebuild).
@@ -52,9 +52,6 @@ BY_DESIGN = frozenset({
     ("z1:daily_quotas", "trout_quota.r5b"),
     ("z5:daily_quotas", "trout_char_quota.r6b"),
     ("z6:daily_quotas", "trout_char_quota.r9b"),
-    # owner 2026-11-13 (RULINGS P57, "Mouth is still Williston"): Gagnon Creek's signs ARE its mouth, so "exempt from
-    # spring closure downstream of the signs" covers no water of the creek
-    ("r7:gagnon_creek@7-30", "gagnon_creek.r1"),
     # working exclusions: the Columbia / Kootenay tributary rows carry no tributary rule of their own
     ("r4:kinbasket_mcnaughton_lake_s_tributaries@4-36", "kinbasket_lake_tributaries.r2"),
     ("r4:kootenay_lake_s_tributaries@4-19+4-7", "kootenay_lake_tributaries.r2"),
@@ -66,20 +63,15 @@ AWAITING_WATER_ROWS = {
     # (owner 2026-10-26: Mackenzie Creek "4-21" is a book typo for 4-31 — it matches gnis:12042 now)
     "r5:frog_lake@5-6": ("Frog Lake", "5-6", ("frog_lake.r1", "frog_lake.r2", "frog_lake.r3",
                                              "frog_lake.r4")),
-    "r5:hidden_lake@5-6": ("Hidden Lake", "5-6", ("hidden_lake.r1", "hidden_lake.r2",
-                                                 "hidden_lake.r3", "hidden_lake.r4")),
     "r5:redfern_lake@5-15": ("Redfern Lake", "5-15", ("redfern_lake.r1", "redfern_lake.r2",
                                                      "redfern_lake.r3")),
-    "r5:secret_lake@5-6": ("Secret Lake", "5-6", ("secret_lake.r1", "secret_lake.r2",
-                                                 "secret_lake.r3", "secret_lake.r4")),
-    "r5:square_lake@5-6": ("Square Lake", "5-6", ("square_lake.r1", "square_lake.r2",
-                                                 "square_lake.r3")),
     "r6:squirrel_lake@6-1": ("Squirrel Lake", "6-1", ("squirrel_lake.r1", "squirrel_lake.r2",
                                                      "squirrel_lake.r3")),
 }
 AWAITING_WATER = frozenset((e, r) for e, (_, _, rids) in AWAITING_WATER_ROWS.items() for r in rids)
 
-#: Every rule allowed to end unresolved: 8 by design (3 steelhead twins back with T678 D1, Gagnon P57) + 21 awaiting a water.
+#: Every rule allowed to end unresolved: 7 by design (the steelhead lake twins, T713) + 10 awaiting a water (T708: Hidden,
+#: Secret, Square matched; Gagnon r1 binds its 200 m above the unnamed lake).
 ALLOWED_UNRESOLVED = BY_DESIGN | AWAITING_WATER
 
 
@@ -114,7 +106,7 @@ def _place(rule: dict) -> dict:
 # The allow-list itself (no data): exact, both ways — the key rule, mutation-pinned
 # ---------------------------------------------------------------------------------------------
 def test_the_allow_list_is_exact():
-    assert len(BY_DESIGN) == 8 and len(AWAITING_WATER) == 21 and len(ALLOWED_UNRESOLVED) == 29
+    assert len(BY_DESIGN) == 7 and len(AWAITING_WATER) == 10 and len(ALLOWED_UNRESOLVED) == 17
     assert unresolved_problems(set(ALLOWED_UNRESOLVED)) == []
 
 

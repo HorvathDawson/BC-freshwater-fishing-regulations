@@ -266,7 +266,8 @@ def test_the_prechecks_measured_over_the_corpus(request):
     # (`tiers.area_matched`) and Mackenzie Creek (book MU typo 4-21 -> 4-31) matches gnis:12042
     # owner 2026-11-13 ("Yes, update and resume", r-adc4e248a163): unresolved 25 -> 29 — measured 28 on reach
     # nextatlas_final, + gagnon_creek.r1 `no_sections` (RULINGS P57: the exemption covers no water)
-    measured = {"binds_nothing": 6, "unresolved": 29, "unplaced_pieces": 2, "ambiguous_cut": 95,
+    # T708 (owner 2026-11-13): 29 -> 17 — Hidden 4, Secret 4, Square 3 bind their lakes, gagnon_creek.r1 binds below its sign
+    measured = {"binds_nothing": 6, "unresolved": 17, "unplaced_pieces": 2, "ambiguous_cut": 95,
                 "split_to_verify": 0, "parser_uncertain": 137, "unresolved_locator": 22,
                 # owner 2026-10-27 ("needs a split" list): Pitt, McArthur, Columbia, Chapman, Deena, Mamin bound or
                 # held whole; measured 79 on the curated corpus that day

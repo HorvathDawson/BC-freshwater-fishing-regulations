@@ -7932,7 +7932,8 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "undrawn_part": "at Grant Narrows"
     },
     {
      "rule_id": "pitt_river.r3",
