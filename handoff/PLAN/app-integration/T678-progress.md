@@ -726,3 +726,20 @@ Owner's phone report (build 29, the More tab). Done in code, not yet in a build:
   dfo-suggestions.json). The ledger still records the re-cut on the candidate, so a rerun's preflight may pair the
   goldens with r-adc4e248a163 and stop ('goldens cut from LATEST', seen once); then re-cut in place first
   (`node app/tools/regs-recut/sync.mjs --release data/release/r-adc4e248a163`) and rerun.
+- Main session lifted "no test edits" for the 7 pins; the permission system REFUSED the test edit (second write to
+  waterMap.test.ts). Not worked around: the one applied edit was saved as
+  `~/bcfish-session-backup-2026-11-12/junctions/candidate-2026-11-13/waterMap.test.patch` and reverted (tree clean; the
+  release had already committed its re-cut fixtures, 974840dca). Proposed pins (unrun), each a pure rename of the same water:
+  1. stretch-names.test.ts:45 Kanaka "Cliff Park Falls → A lake outlet" -> "Cliff Park Falls → Source" (T697/P55; part 3
+     same 24.77 km, 3 sections, open, ruleset 526 / akey 184 both releases; hi token lake_outlet -> source).
+  2-4. seo/t670.web.release.test.ts:57 and conformance/src/regs/t670.release.test.ts:73 Mat Creek gnis:14254 ends
+     ["mouth","lake_outlet"] -> ["mouth","source"] (T697/P55; its one part: 10.47 km, 5 sections, open, ruleset 654 /
+     akey 261 both; the seo "guard" case fails on the same lookup).
+  5. waterMap.test.ts (the patch): SK_TIDAL_UP -> SK_RESERVE / SK_RESERVE_UP by ends (Reserve boundaries; Reserve-near-
+     Exchamsiks -> Exchamsiks cut, key 871 as the old main-stem option); indices found by waterMapStartIx, the "not a way
+     up" choice is the stretch below the Reserve; the regs case reads index SK_EXCHAMSIKS_UP - 1 (keeps "map index is not
+     part_ix"); one comment to update (the refused edit).
+  6. WaterMapView.test.tsx:248 chooser main-stem option -> "Skeena River Ecological Reserve boundary near the Exchamsiks
+     River confluence → Exchamsiks River confluence" (still a 2-way fork, main stem first).
+  7. WaterMapView.test.tsx:276 `part={1}` -> `part={await partOf("skeenaReserve")}` (by ends; part 1 is now the stretch
+     below the Reserve, whose ▲ is no fork). Expected list unchanged.
