@@ -14,7 +14,7 @@
 //   node app/tools/testbed/run.mjs zoom-flick        (FLICK_AT=lon,lat,zoom; FLICK_N=pinches each way, default 5)
 import fs from 'node:fs';
 import path from 'node:path';
-import { appUp, coldStart, toMap } from './common.mjs';
+import { coldStart, toMap } from './common.mjs';
 import { cameraTo } from './perf.mjs';
 import { touchscreen } from './gestures.mjs';
 
@@ -159,12 +159,7 @@ export const zoomFlick = {
     await ctx.step(`the map up (camera probe on), the camera at ${AT.join(',')}`, async () => {
       d.sh('setprop log.tag.CifCam D');
       d.sh('logcat -G 16M');
-      try { await coldStart(ctx, { ms: 90_000 }); } catch (e) {
-        // (T706) the notification inbox a new notice opens over the map: closed as a reader would
-        if (!d.screenText().includes('Notifications')) throw e;
-        ctx.flow('tap-text', { TEXT: 'Done' });
-        await appUp(ctx, { launch: false, ms: 30_000 });
-      }
+      await coldStart(ctx, { ms: 90_000 });
       await toMap(ctx);
       ts = touchscreen(ctx);
       if (!ts) throw new Error('no multi-touch screen found (getevent -pl)');

@@ -61,3 +61,12 @@ staging's rows; everything else was staging.
 Post-release check: open the bell on the phone, look at the inbox, tap a notice. Nothing to decide.
 
 Depends: T694 (built with it), T673. Size: M.
+
+## 2026-11-13 — test bed: one handling of the auto-opened inbox sheet (Claude)
+The inbox sheet opens by itself once at a cold start (unread notice not on the map) and covers the map; only `zoom-flick`
+handled it. `scenarios/common.mjs` `appUp` now detects it by its testID `inseason-notice` (when "Done" is on screen),
+records a finding in the scenario's report, closes it with Done, and fails the step if it is still up after 10 s
+(`closeInbox`); not showing: nothing happens. It replaced T360's "In-season changes" branch (that sheet is folded into
+this one) and zoom-flick's own copy. Emulator (t707 APK, lane 2, `--no-r2`): `install`, `regs-open`, `zoom-flick` 3/3
+pass; the finding shows in `install`. NOT asserted: "opens once" needs an unread unmatched notice in the live feed, which
+a test bed cannot arrange without writing feed data; left as the unit/render tests (`inseason.render.test.tsx`).

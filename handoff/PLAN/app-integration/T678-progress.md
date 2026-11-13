@@ -583,3 +583,11 @@ Owner's phone report (build 29, the More tab). Done in code, not yet in a build:
   zoom pass. Lockfile: patch hash only. Guard `app/tools/pinch-momentum.test.ts` (mutation-checked). iOS read only:
   MLNMapView's own pinch momentum, no binding switch. Native: rides the next APK.
 
+
+## 2026-11-13 — T706 test bed: the inbox sheet handled once, in `appUp`
+
+- `appUp` (`scenarios/common.mjs`) detects the auto-opened notification inbox sheet by testID `inseason-notice`, records a
+  finding, closes it with Done, fails if it will not close; zoom-flick's local copy and T360's old "In-season changes"
+  branch are gone. Run on lane 2 (t707 APK, stale allowed, `--no-r2`): install + regs-open + zoom-flick 3/3 passed (the
+  finding appeared in install). Static + test-bed unit tests, knip, check-tickets pass. No "opens once" assertion (needs
+  feed data the test bed cannot arrange). Note in T706.

@@ -16,8 +16,9 @@ export async function appUp(ctx, { launch = true, ms = 120_000 } = {}) {
     if (w.some((x) => /send you notifications/i.test(x))) ctx.flow('tap-text', { TEXT: 'Allow' });
     // a cleared app shows the first-run notice and the tour over the map: closed as a reader would
     else if (w.some((x) => /^(I understand|Skip|Before you fish|Welcome|Got it)$/.test(x))) ctx.flow('dismiss-first-run');
-    // (T360, 2026-11-09) the in-season changes sheet a fresh install opens over the map: closed as a reader would
-    else if (w.includes('In-season changes') && w.includes('Done')) ctx.flow('tap-text', { TEXT: 'Done' });
+    // (T706) the notification inbox's sheet, which opens by itself once at a cold start for an unread in-season notice not
+    // on the map (it replaced T360's "In-season changes" sheet): detected by its testID, closed as a reader would
+    else if (w.includes('Done') && ctx.hasId('inseason-notice')) await closeInbox(ctx);
     else if (!ctx.device.pidOf()) ctx.device.launch();
     await ctx.device.sleep(3000);
   }
@@ -27,6 +28,20 @@ export async function appUp(ctx, { launch = true, ms = 120_000 } = {}) {
   if (!(w.includes('More') || w.includes('MORE'))) throw new Error(`the app is not up in ${ms / 1000} s (saw: ${w.slice(0, 8).join(' | ').slice(0, 300)})`);
   const bad = w.find((x) => /could not be loaded|Something went wrong|Unable to load/i.test(x));
   if (bad) throw new Error(`the app says: ${bad}`);
+}
+
+/**
+ * (T706) The notification inbox's sheet (testID `inseason-notice`, closed by its "Done"): the app opens it by itself once at
+ * a cold start for an unread in-season notice that is not on the map, and it covers the map. Shown: recorded as a finding
+ * in the scenario's report and closed by "Done" as a reader would; a sheet that is still up afterwards is a failed step.
+ * Not shown: nothing happens. Returns whether it was shown.
+ */
+export async function closeInbox(ctx) {
+  if (!ctx.hasId('inseason-notice')) return false;
+  ctx.finding('the notification inbox sheet (inseason-notice) was showing over the map: closed with Done');
+  ctx.flow('tap-text', { TEXT: 'Done' });
+  await ctx.until(() => !ctx.hasId('inseason-notice'), { ms: 10_000, what: 'the notification inbox sheet (inseason-notice) closing after Done' });
+  return true;
 }
 
 /** The app put in the background (Home) and gone from the screen: its tab bar is no longer there. */
