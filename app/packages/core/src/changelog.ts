@@ -21,6 +21,15 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: "0.7.8", date: "2026-11-13", draft: true, notes: [
+      "A pinch zoom keeps gliding after you lift your fingers, as a quick flick should",
+      "The bell keeps an inbox of in-season notices: new ones are marked New, changed ones Updated, and Mark all as read clears them",
+      "More has a Settings screen for mobile data, crash reports and map colours; the Freshwater Atlas and basemap show their date instead of an age warning",
+      "On the Regulations page the salmon block comes first, salmon closed all year get a year bar like other fish, and the heading names the part you opened",
+      "Where rivers meet is placed more exactly, so a few side channels and small creeks follow the right part of their river; Gagnon Creek's mouth reads 'at Williston Lake', and part ends name the real boundary (a weir, the source) instead of 'a lake outlet'",
+    ],
+  },
+  {
     version: "0.7.7", date: "2026-11-12", draft: true, notes: [
       "The key for gauges that report only flow or only level sits on the Conditions map, out of the bottom bar",
       "Tidal water ends at DFO's written boundary; where there is none, a river is fresh to the shore and a creek is tidal only inside a tidal river. Deas, Woodward, McDonald, Tamboline and London sloughs are tidal",
