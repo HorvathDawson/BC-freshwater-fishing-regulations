@@ -766,3 +766,15 @@ Owner's phone report (build 29, the More tab). Done in code, not yet in a build:
      1,179,617 and the bundle digests; the other 10 fields equal (unexplained/by_rule unchanged). Fix is the documented
      regenerate: `scripts/heavy.sh sweep 40 -- .venv/bin/python -m pipeline.tools.audit.unnamed_trib_sweep --write-result`,
      then commit with the -3 explained (likely the junction fix's 3 leaf-pruned unnamed stubs; not verified one by one).
+- Owner 2026-11-13 dialog on the 4 suite failures. Done (6c1d…, see git log "three stale pins"): Harrison 3 -> 4 (Paul
+  stays 3), review_queue unresolved 25 -> 29, export_codec lake edges also allowed as a run's end (mutation-checked outside
+  the suite: an unnamed lake edge fails; the two weirs with their run ends removed fail). Those three pass unfiltered.
+- STOPPED on (c), the sweep: regenerated with the documented command (rc 0; only the bundle digests and unnamed_streams
+  1,179,620 -> 1,179,617 change), but the -3 could NOT be confirmed as the junction fix's 3 pruned stubs, so NOT committed
+  (copy: ~/bcfish-session-backup-2026-11-12/junctions/candidate-2026-11-13/t57_trib_sweep.regenerated.json). The sweep's
+  count is the bundle's `unnamed_part` stream sections; the r-0a9930fb8826 bundle is gone (overwritten by the deliver), so
+  the -3 cannot be listed id by id. A registry-based count (sections in no non-area item; `unnamed_diff.py` beside it)
+  over the two atlases gives -27 net over 41 lines, not 3: 16 lines lose their only unnamed section (4 Comox 354… on
+  inflated-URM lines: 354126477, 354137285, 354140926, 354142131; 12 on 356… lines), 18 Comox lines lose one piece each
+  (pieces cut at the inflated measure merge back), 7 356… lines gain one. So the net is a mix (junction fix merges and
+  stubs, plus the 356… moves, likely T690 Whiteswan naming / D1 folds — not traced), not exactly three stubs.
