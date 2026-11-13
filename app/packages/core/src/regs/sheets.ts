@@ -11,8 +11,8 @@
  *
  * Built: `rule:`, `gl:` (one term or several), `pos:pos`, `hatch` (part 1), `share:` (T475: the headline's ⓘ — like `src:`,
  * a row's own sheet, no golden key); `srcs:`, `src:`, `sp:`, `other:`
- * (part 2: sheets/sources.ts, sheets/fish.ts, sheets/other.ts), `parts` (sheets/parts.ts: each picker choice's STORED display
- * status on the day, read by T09 as `choicesOnDay`; null when the inputs do not carry it — never a guess).
+ * (part 2: sheets/sources.ts, sheets/fish.ts, sheets/other.ts). No `parts`: the Parts sheet is removed (T698, owner
+ * 2026-11-12 "Remove the screen"; the water's Map view lists its parts by name).
  */
 import { ruleBook, ruleBookLine } from "./book";
 import type { GlossaryTerm, RegsInputs, RuleView, Statics } from "./inputs";
@@ -27,7 +27,6 @@ import type { TreeTier } from "../answers.generated";
 import { srcSheet, srcsSheet } from "./sheets/sources";
 import { fishSheet } from "./sheets/fish";
 import { otherSheet } from "./sheets/other";
-import { partsSheet } from "./sheets/parts";
 
 const para = (s: string, tone?: "small" | "note" | "mono"): SheetBlock => (tone ? { k: "para", text: [text(s)], tone } : { k: "para", text: [text(s)] });
 
@@ -169,7 +168,6 @@ export function sheetOf(ctx: SheetCtx, key: SheetKey): SheetVM | null {
   if (key.startsWith("multi:r")) return multiSheet(key, ctx, +key.slice(7));
   if (key.startsWith("other:o")) return otherSheet(ctx, key, +key.slice(7));
   if (key.startsWith("sp:")) return fishSheet(ctx.inp, key, key.slice(3), ctx.env?.fish);
-  if (key === "parts") return partsSheet(key, ctx.inp, ctx.names);
   return null;
 }
 
@@ -289,8 +287,6 @@ export function sheetLines(vm: SheetVM, opts: SheetLinesOpts = {}): SheetLines {
           out.lines.push(...opts.groupLines(b.titled ? b.group : { ...b.group, title: "" }));
           keysDeep(b.group, nested); booksDeep(b.group, out.pages);
           break;
-        // the prototype's rows are inline buttons in one body: one line, each row's label, word, long label and its ✓
-        case "choice": parts(...b.items.flatMap((i) => [i.text, i.status, i.long, i.checked ? WORDS.CHECK : null])); break;
       }
     }
   };

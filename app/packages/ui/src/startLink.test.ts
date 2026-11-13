@@ -88,6 +88,10 @@ describe("parseStartLink (T41: the web test deep link)", () => {
       "start link: res=x is not resident|non_resident|non_resident_alien", "start link: theme=blue is not light|dark",
       "start link: scroll=up is not a scroll offset"]);
   });
+
+  it("(T698, owner 2026-11-12 \"Remove the screen\") sheet=parts opens no Parts sheet: refused, said, never ignored", () => {
+    expect(() => parseStartLink("?regs=gnis:11318&sheet=parts", NOW)).toThrow("start link: sheet=parts is not a sheet key");
+  });
 });
 
 describe("(T269) a water page's address", () => {

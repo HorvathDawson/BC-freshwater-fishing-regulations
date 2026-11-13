@@ -7,7 +7,7 @@ import type { RuleKey } from "./line";
 
 export type SheetKey =
   | `rule:${RuleKey}` | `gl:${string}`            // gl: one id, or ids joined by "," (multi-term sheet)
-  | `sp:${string}` | "hatch" | "parts"
+  | `sp:${string}` | "hatch"
   | `srcs:${"bait" | "ways" | "always" | "boats"}` | `srcs:gl|${"mode" | "lines" | "hook" | "weight"}`
   | `other:o${number}` | "pos:pos" | `src:r${number}`
   /** (T475) a card row's share ⓘ: how the headline's share stands to the regional total (`headline.info`) */
@@ -18,7 +18,8 @@ const SRCS = /^srcs:(?:bait|ways|always|boats|gl\|(?:mode|lines|hook|weight))$/;
 
 /** A sheet key the app knows, or null (an unknown shape is refused — the date sheet is D7's, not a SheetKey). */
 export function parseSheetKey(k: string): SheetKey | null {
-  if (k === "hatch" || k === "parts" || k === "pos:pos") return k;
+  // no "parts": the Parts sheet is removed (T698, owner 2026-11-12) — a start link `sheet=parts` is refused, said
+  if (k === "hatch" || k === "pos:pos") return k;
   if (/^rule:\S+::\S+$/.test(k)) return k as SheetKey;   // entry ids carry ":" ("zp:conduct"); "::" joins entry and rule
   if (/^gl:[a-z0-9_]+(?:,[a-z0-9_]+)*$/.test(k)) return k as SheetKey;
   if (/^sp:[A-Za-z0-9_]+$/.test(k)) return k as SheetKey;
@@ -29,7 +30,7 @@ export function parseSheetKey(k: string): SheetKey | null {
 
 /** golden → app: "other:vedder_1010|o0" → "other:o0"; "srcs:gl|vedder_1010|hook" → "srcs:gl|hook"; "srcs:bait|vedder_1010" →
  *  "srcs:bait"; "pos:vedder_1010|pos" → "pos:pos". A key with no state id
- *  (rule:, gl:, sp:, hatch, parts) is the same in both. Throws on a key that is not a sheet key once mapped. */
+ *  (rule:, gl:, sp:, hatch) is the same in both. Throws on a key that is not a sheet key once mapped. */
 export function appKeyOf(goldenKey: string, sid: string): SheetKey {
   const out = /^(rule|gl|sp):/.test(goldenKey) ? goldenKey
     : goldenKey.replace(`:${sid}|`, ":").replace(`|${sid}|`, "|").replace(new RegExp(`\\|${sid.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`), "");

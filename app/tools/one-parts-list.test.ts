@@ -2,11 +2,10 @@
  * ONE LIST OF A WATER'S PARTS, AND NO BOLD ON ITS MAP (T150 / T151, owner 2026-10-23) — the parts a render test cannot
  * reach, because each is about what is NOT written anywhere else:
  *
- *   - the words "Parts of this water" are spelled once (core regs/words.ts `PARTS_TITLE`); the Map view's list
- *     (`WATER_MAP_WORDS.parts`) and the start-link Parts sheet read that one value, so they cannot drift apart;
- *   - no app surface opens the Parts sheet (`"parts"` sheet key) or draws a Parts button: the water's Map view list is
- *     the one place a reader picks a part by name (the sheet stays reachable only through the web start link
- *     `sheet=parts`, T150 "Left / follow-ups");
+ *   - the words "Parts of this water" are spelled once (core regs/words.ts `PARTS_TITLE`), read by the Map view's list
+ *     (`WATER_MAP_WORDS.parts`);
+ *   - there is no Parts sheet (T698, owner 2026-11-12 "Remove the screen"): no `"parts"` sheet key, no component, no
+ *     Parts button; the water's Map view list is the one place a reader picks a part by name;
  *   - a boundary mark's label face is ONE value (`@app/map` marks.ts `MARK_LABEL_FONT`, weight 400) read by both maps —
  *     neither map spells a face or a weight of its own for it.
  */
@@ -41,6 +40,12 @@ describe("(T150) one list of a water's parts", () => {
     const ui = ["apps/mobile/src", "packages/ui/src", "packages/ui-native/src"];
     expect([where(ui, /["'`]parts["'`]\s*(as\s+SheetKey|\))|sheet:\s*["']parts["']|openSheet\(\s*["']parts/),
             where(ui, /\bonParts\b|PARTS_ARIA|WORDS\.PARTS\b/)]).toEqual([[], []]);
+  });
+
+  it("(T698) the Parts sheet is gone: no key, no sheet builder, no row component, no 'choice' block", () => {
+    const all = ["packages", "apps"];
+    expect([where(all, /\bpartsSheet\b|\bPartsChoice\b|k: "choice"|PART_OPEN|PART_UNKNOWN/),
+            where(all, /`sp:\$\{string\}` \| "hatch" \| "parts"|k === "parts"|key === "parts"/)]).toEqual([[], []]);
   });
 });
 

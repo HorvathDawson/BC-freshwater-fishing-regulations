@@ -84,8 +84,6 @@ export function WaterModeHost({ frame, nav, col, source, palette, loader, tiles,
                      // (T53: an unnamed reach, item null, is answered by the tapped section itself)
                      loader={loader} day={mapDay} onDay={onDay} section={frame.tapSid} at={frame.at}
                      part={frame.part} start={start} onStarted={onStarted}
-                     // (T58) a Parts sheet row is the frame's part, as a step on the water map is (one water screen)
-                     onPart={item === null ? undefined : (p) => go(partAction(item, item, p))}
                      // NO `feed`. The view quotes no number, so it reads no gauge data — the Conditions view, one
                      // swipe away, is where a water's numbers are.
                      // (T221, a try) the Keep tab's at-a-glance table, in the app (a screen mounted alone keeps the cards)

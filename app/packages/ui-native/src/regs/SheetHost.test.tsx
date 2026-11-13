@@ -15,7 +15,6 @@ import { RegsScreen } from "./RegsScreen";
 import { LIGHT } from "../theme";
 import vedder1010 from "./fixtures/vedder_1010.json";
 import klwa1010 from "./fixtures/klwa_1010.json";
-import bc1501 from "./fixtures/bc1_501.json";
 
 afterEach(cleanup);
 
@@ -55,34 +54,6 @@ describe("<SheetHost> over the frozen vedder_1010 page", () => {
     expect(screen.getByRole("heading", { name: "Do not waste the fish you catch" })).toBeTruthy();
     expect(screen.queryByRole("heading", { name: "Possession" })).toBeNull();
     expect(screen.getAllByLabelText("Done")).toHaveLength(1);
-  });
-
-  it("the Parts sheet (bc1_501): each choice's label, its day word and long label, ✓ on the part read; a row reads its part", () => {
-    const onPart = vi.fn();
-    render(<SheetHost page={sheetPage(bc1501)} open="parts" onOpen={() => {}} onClose={() => {}} onPart={onPart} palette={LIGHT} />);
-    expect(screen.getByRole("heading", { name: "Parts of this water" })).toBeTruthy();
-    const rows = screen.getAllByRole("radio");
-    expect(rows.map((r) => [r.getAttribute("aria-label"), r.getAttribute("aria-checked")]))
-      // (T517) the side channels (no ends) are said as the water
-      .toEqual([["Bella Coola River · open", "true"], ["Mouth → Talchako River confluence · open", "false"]]);
-    // (T517) part_ix is river order: the side channels are part 0, the main stem (row 2) part 1
-    act(() => { rows[1]!.click(); });
-    expect(onPart).toHaveBeenCalledWith(1);
-  });
-
-  it("(T58) on the Regulations page a Parts row reaches the page's caller with its part, and the sheet closes", () => {
-    const parts: number[] = [];
-    render(<RegsScreen page={sheetPage(bc1501)} palette={LIGHT} actions={{ onSheet() {}, onDay() {}, onBook() {} }}
-                       onDate={() => {}} start={{ tab: "keep", sheet: "parts" as SheetKey, scroll: 0 }}
-                       onPart={(i) => parts.push(i)} />);
-    const open = () => {   // react-native-web keeps a closed Modal until its slide-out ends, which jsdom never runs: end it
-      const done = screen.queryByRole("button", { name: "Done" });
-      act(() => { for (let e: HTMLElement | null = done; e; e = e.parentElement) e.dispatchEvent(new Event("animationend", { bubbles: true })); });
-      return screen.queryByRole("button", { name: "Done" }) !== null;
-    };
-    const before = open();
-    act(() => { screen.getAllByRole("radio")[1]!.click(); });
-    expect({ before, parts, after: open() }).toEqual({ before: true, parts: [1], after: false });
   });
 
   it("4. Done and the scrim each close it once", () => {

@@ -342,7 +342,6 @@ export type SheetBlock =
   | { k: "pages"; line: Line }
   | { k: "source"; line: Line }
   | { k: "link"; line: Line }
-  | { k: "choice"; items: readonly { text: string; sub: string | null; status: string; long: string | null; checked: boolean; part: number }[] }
   /** (T36) an other-fish row drawn as its Keep group (prototype g28 article): T37 draws it with the Keep tab's group component */
   | { k: "group"; group: GroupVM;
       /** false: the group's title is not drawn (the sheet's title says it) — the prototype drops a head title with no scope tag */
@@ -358,6 +357,4 @@ export interface SourceRowVM { readonly key: RuleKey | null; readonly title: str
 export interface SheetCtx { readonly inp: RegsInputs; readonly page: Omit<RegsPage, "sheet">; readonly today: Day;
   /** (T36 part 2) the page's hydrated answers (place, settled day, card model, fish manifest) the row sheets (src:, other:)
    *  read — page.ts hands its own; absent: those sheets are null */
-  readonly env?: KeepEnv;
-  /** (T517) the map's names of the parts (`header.ts` `PartNames`): the Parts sheet's row names */
-  readonly names?: ReadonlyMap<number, string> | null }
+  readonly env?: KeepEnv }

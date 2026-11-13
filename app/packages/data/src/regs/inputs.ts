@@ -13,7 +13,7 @@
  */
 import {
   broadOf, ruleIndex, segmentIndex, tapDay, viaOf, yearSegments,
-  type AkeyRow, type CellIds, type ChoiceDay, type Day, type DisplayFrame, type LadderFrameWire, type MergedPart, type Moment, type Picker,
+  type AkeyRow, type CellIds, type Day, type DisplayFrame, type LadderFrameWire, type MergedPart, type Moment, type Picker,
   type RegsInputs, type RegsTarget, type RegsYear, type RowsValue, type RuleIndex, type Statics, type Weekday,
 } from "@app/core";
 import { RegsStoreError } from "./errors";
@@ -78,7 +78,7 @@ export async function loadRegsInputs(store: InputsStore, target: RegsTarget, day
     // (T672 1b) a key-less section is outside B.C., or tidal water: regs-sid `section_tidal` says which (a release cut
     // before the table cannot say, and reads as outside, as it always did)
     if (a === 0) return { ...base, item: null, partIx: 0, place: null, ...outside(ruleIndex(stored, new Map(), sp)),
-                          tidalPart: (await store.sectionTidal(target.handle)) === true, choicesOnDay: null };
+                          tidalPart: (await store.sectionTidal(target.handle)) === true };
     const pl = await store.sectionPlace(target.handle);
     if (pl === null) throw new RegsInputsError(`regs: section ${target.handle} has a key (${a}) but no place`);
     const [placeRow, key] = await Promise.all([store.place(pl), store.akey(a)]);
@@ -86,8 +86,7 @@ export async function loadRegsInputs(store: InputsStore, target: RegsTarget, day
     if (name === undefined) throw new RegsInputsError(`regs: place ${pl} has no name for a ${key.kind}`);
     const k = await keyed(store, key, day, weekday, calendarYear);
     return { ...base, item: null, partIx: 0, place: { label: placeRow.label, name }, key, s: k.s, cell: k.cell,
-             frames: k.frames, year: k.year, ruleset: k.ruleset, rules: ruleIndex(stored, viaOf(k.ruleset), sp), mergedParts: null,
-             choicesOnDay: null };
+             frames: k.frames, year: k.year, ruleset: k.ruleset, rules: ruleIndex(stored, viaOf(k.ruleset), sp), mergedParts: null };
   }
 
   const ord = await store.itemOrd(target.item);
@@ -102,43 +101,13 @@ export async function loadRegsInputs(store: InputsStore, target: RegsTarget, day
   const part = parts[partIx]!;
   if (part.akey === null)
     // (T672) a key-less part is outside B.C., or the release's tidal piece: the store says which (`part.tidal`)
-    return { ...base, item, partIx, place: null, ...outside(ruleIndex(stored, new Map(), sp)), tidalPart: part.tidal,
-             choicesOnDay: await choicesOnDay(store, parts, picker, null, day, weekday, calendarYear) };
+    return { ...base, item, partIx, place: null, ...outside(ruleIndex(stored, new Map(), sp)), tidalPart: part.tidal };
 
   const key = await store.akey(part.akey);
   const k = await keyed(store, key, day, weekday, calendarYear);
   return { ...base, item, partIx, place: null, key, s: k.s, cell: k.cell, frames: k.frames, year: k.year, ruleset: k.ruleset,
            rules: ruleIndex(stored, viaOf(k.ruleset), sp),
-           mergedParts: await mergedParts(store, stored, sp, parts, picker, partIx, day, weekday, calendarYear),
-           choicesOnDay: await choicesOnDay(store, parts, picker, { akey: key.akey, display: k.frames.display }, day, weekday, calendarYear) };
-}
-
-/** A key's display frame on a day: its segment of the day (the pipeline's tap, T05 `segmentIndex`) → its cell → the frame. */
-async function dayDisplay(store: InputsStore, akey: number, day: Day, weekday: Weekday, calendarYear: number): Promise<DisplayFrame> {
-  const k = await store.akey(akey);
-  const [starts, moms] = await Promise.all([store.segStarts(k.seg), k.mom === null ? null : store.segMoments(k.mom)]);
-  const c = await store.cell(k.akey, segmentIndex(starts, tapDay(day, calendarYear).day, moms, weekday, false));
-  return store.display(k.akey, c.display);
-}
-
-/**
- * The Parts sheet's reads (prototype sheetHtml parts: each part's `statusOf` — its own page's open / closed word): for a
- * picker of ≥ 2 choices, each choice's first part's STORED display status on the day. Only selects — the status is the
- * frame's own `status`, the one that part's page reads; nothing here settles a part. The tapped part's key reuses its
- * already-loaded day frame.
- */
-async function choicesOnDay(store: InputsStore, parts: readonly PartRow[], picker: Picker | null,
-                            own: { akey: number; display: DisplayFrame } | null,
-                            day: Day, weekday: Weekday, calendarYear: number): Promise<readonly ChoiceDay[] | null> {
-  if (!picker || picker.choices.length < 2) return null;
-  return Promise.all(picker.choices.map(async (c): Promise<ChoiceDay> => {
-    const i = c.parts[0];
-    const p = i === undefined ? undefined : parts[i];
-    if (!p) throw new RegsInputsError(`regs: the picker names part ${i}, which the water does not have`);
-    if (p.akey === null) return { partIx: i!, status: null };
-    const f = own && own.akey === p.akey ? own.display : await dayDisplay(store, p.akey, day, weekday, calendarYear);
-    return { partIx: i!, status: f.status };
-  }));
+           mergedParts: await mergedParts(store, stored, sp, parts, picker, partIx, day, weekday, calendarYear) };
 }
 
 /** page mergedHtml's reads: only when the part's picker group is closed and holds ≥ 2 parts — each part's index, sections

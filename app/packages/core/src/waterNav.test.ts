@@ -212,14 +212,14 @@ describe("the group's parts, mouth first (the release's `part_ix`)", () => {
     expect([partWhere(g, 0), partWhere(g, 3)]).toEqual(["Part 1 of 4 · Chilliwack River", "Part 4 of 4 · Chilliwack River"]);
   });
 
-  it("(T150 review) a parts-list row as a screen reader says it, whole; the list's title is the Parts sheet's one word", () => {
+  it("(T150 review) a parts-list row as a screen reader says it, whole; the list's title is the one PARTS_TITLE", () => {
     const g = waterGroup([CHILLIWACK], NO_ENDS);
     expect([partRowAria(g, 0), partRowAria(g, 3), partRowAria(waterGroup([VEDDER], NO_ENDS), 0)]).toEqual([
       "Vedder Crossing Bridge → Tamihi Rapids Bridge, part 1 of 4 · Chilliwack River",
       "Chilliwack River Ecological Reserve boundary → Source, part 4 of 4 · Chilliwack River",
       "Vedder River, part 1 of 1"]);
-    // one copy of "Parts of this water": the Map view's list says what the (start-link) Parts sheet says (that it is
-    // SPELLED once, in regs/words.ts, is a source scan: tools/one-parts-list.test.ts — core may not read files)
+    // one copy of "Parts of this water" (that it is SPELLED once, in regs/words.ts, is a source scan:
+    // tools/one-parts-list.test.ts — core may not read files; the Parts sheet that also read it is removed, T698)
     expect([WATER_MAP_WORDS.parts, WORDS.PARTS_TITLE]).toEqual(["Parts of this water", "Parts of this water"]);
   });
 

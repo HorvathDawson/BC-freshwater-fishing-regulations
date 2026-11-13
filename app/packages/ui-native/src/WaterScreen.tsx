@@ -60,7 +60,7 @@ export function WaterScreen(p: Parameters<typeof WaterScreenBody>[0]) {
 
 function WaterScreenBody({ source, item, palette, onBack, onRetry,
                               loader = null, day = null, onDay, section = null, part = null, at = null, fishImages, adiposeImages,
-                              start = null, onStarted, onPart, glance = false }: {
+                              start = null, onStarted, glance = false }: {
   /** The water; null for an unnamed reach (T53), which `section` then names — its regulations are that section's. */
   source: WaterSource; item: ItemId | null;
   /**
@@ -89,8 +89,6 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
   /** (T41) where the page starts (the web start link, a test affordance), handed on to the page once */
   start?: RegsStart | null;
   onStarted?: () => void;
-  /** (T58) a Parts sheet row: read that part of this water (the caller makes it the frame's part). */
-  onPart?: (partIx: number) => void;
   /** (T221, a try) the Keep tab's at-a-glance table: the quota groups and Salmon folded into the species list. */
   glance?: boolean;
   /** (T254) ask the whole page again (the wrapper remounts it) */
@@ -254,7 +252,7 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
       <>
       {frame(null, (
       <RegsScreen page={regs} palette={palette} nameSource={s?.nameSource ?? null} images={fishImages} adipose={adiposeImages} onDate={() => setDayOpen(true)} layout={layout} sun={sun} daylight={daylight} waterBook={waterBook}
-                  start={start} onStarted={onStarted} onPart={onPart} scrollKey={regsScrollKey(item, part, section)}
+                  start={start} onStarted={onStarted} scrollKey={regsScrollKey(item, part, section)}
                   // past the release's last day in force, the page leads with core's out-of-date sentence (none unstamped)
                   lapsed={regsLapsedNote(loader.manifest?.regulations?.valid_until, clockNow())}
                   // (T54, T367) the access notices: pinned strips under the header

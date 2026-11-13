@@ -16,8 +16,8 @@ export const WORDS = Object.freeze({
   TAB_KEEP: "What you can keep", TAB_GEAR: "Gear", TAB_METHODS: "Methods", TAB_LICENCE: "Licence",
   // header
   TODAY: "Today",
-  // (T36) the Parts sheet: its title and each row's day word (prototype sheetHtml parts + statusOf)
-  PARTS_TITLE: "Parts of this water", PART_OPEN: "open", PART_CLOSED: "closed", PART_UNKNOWN: "unknown",
+  // the water map's list of parts (`WATER_MAP_WORDS.parts`); the Parts sheet that also read it is removed (T698)
+  PARTS_TITLE: "Parts of this water",
   // rich text (line.ts plain()): `${BOOK} ${PAGE}<printed> ${LINK_OUT}`
   BOOK: "Rule book",
   /** (T474) the water's own entry in the book: "This water in the rule book p.21 ↗" */

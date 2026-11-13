@@ -37,7 +37,7 @@ export function stableJson(v: unknown): string {
 
 /** Every sheet key a page names anywhere in its view model (the keys its presses open). */
 export function sheetKeysOf(page: RegsPage): string[] {
-  const out = new Set<string>(["hatch", "parts", "pos:pos"]);
+  const out = new Set<string>(["hatch", "pos:pos"]);
   const walk = (v: unknown): void => {
     if (typeof v === "string") { if (parseSheetKey(v)) out.add(v); return; }
     if (Array.isArray(v)) { v.forEach(walk); return; }

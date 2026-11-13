@@ -67,7 +67,7 @@ export function buildRegsPage(inp: RegsInputs, opts: RegsPageOpts): RegsPage {
     terms: Object.fromEntries(inp.statics.glossary.terms.map((t) => [t.id, t.term])),   // (T40) the ⓘ's spoken title
   };
   // T36: lazy and pure over the same inputs (a sheet is built when it is opened)
-  return { ...page, sheet: (key: SheetKey) => sheetOf({ inp, page, today: opts.today, env, names: opts.names ?? null }, key) };
+  return { ...page, sheet: (key: SheetKey) => sheetOf({ inp, page, today: opts.today, env }, key) };
 }
 
 /**

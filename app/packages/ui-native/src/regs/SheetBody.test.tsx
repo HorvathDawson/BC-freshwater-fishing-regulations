@@ -19,8 +19,8 @@ const LIGHT_RGB = { sub: rgb(LIGHT.sub), ink: rgb(LIGHT.ink) };
 const GROUP = (vedder1010 as unknown as { keep: { groups: GroupVM[] } }).keep.groups[0]!;
 
 function mount(b: SheetBlock) {
-  const opened: SheetKey[] = [], parts: number[] = [], tabs: Tab[] = [], books: number[] = [];
-  const r = render(<SheetBlockView b={b} palette={LIGHT} onOpen={(k) => opened.push(k)} onPart={(i) => parts.push(i)}
+  const opened: SheetKey[] = [], tabs: Tab[] = [], books: number[] = [];
+  const r = render(<SheetBlockView b={b} palette={LIGHT} onOpen={(k) => opened.push(k)}
                                    onTab={(x) => tabs.push(x)} onBook={(p) => books.push(p)} />);
   const text = r.container.textContent ?? "";
   const once = (s: string) => text.split(s).length - 1;
@@ -29,7 +29,7 @@ function mount(b: SheetBlock) {
   const pressables = [...r.container.querySelectorAll("[tabindex='0'], [role='button'], [role='link'], [role='radio']")];
   const unnamed = pressables.filter((e) => !["button", "link", "radio"].includes(e.getAttribute("role") ?? "")
     || !(e.getAttribute("aria-label") || (e.textContent ?? "").trim()));
-  return { r, text, once, press, opened, parts, tabs, books, unnamed };
+  return { r, text, once, press, opened, tabs, books, unnamed };
 }
 
 const CASES: [string, SheetBlock, string[]][] = [
@@ -61,9 +61,6 @@ const CASES: [string, SheetBlock, string[]][] = [
   ["pages", { k: "pages", line: [t("Rule book"), t(" "), { t: "book", printed: 4, pdf: 6, bare: true }] }, ["Rule book", "p.4 ↗"]],
   ["source", { k: "source", line: [{ t: "link", s: "Source ›", open: "rule:z2:p::p.r1" }, t(" "), book(21, 23)] }, ["Source ›", "Rule book p.21 ↗"]],
   ["link", { k: "link", line: [{ t: "link", s: "See every regulation line ›", open: "src:r0" }] }, ["See every regulation line ›"]],
-  ["choice", { k: "choice", items: [{ text: "Mouth → Canyon", sub: null, status: "open", long: "From the mouth up to the canyon", checked: true, part: 0 },
-    { text: "Canyon → Lake", sub: null, status: "closed", long: null, checked: false, part: 1 }] },
-    ["Mouth → Canyon", "open", "From the mouth up to the canyon", "Canyon → Lake", "closed"]],
   ["rowTitle", { k: "rowTitle", title: "Black crappie", scope: "Region 2-wide" }, ["Black crappie", "Region 2-wide"]],
   ["group", { k: "group", group: GROUP, titled: true }, [GROUP.title, "See every regulation line ›"]],
   ["list (small, stressed)", { k: "list", tone: "small", items: [{ line: [t("With 4 a day you may have 8.")], strong: "Possession doubles the 4." }] }, ["With 4 a day you may have 8. Possession doubles the 4."]],
@@ -102,19 +99,18 @@ describe("<SheetBlockView>: one case per block kind", () => {
     expect([b.getAttribute("aria-expanded"), (m.r.container.textContent ?? "").includes("zp:conduct::conduct.r1 { }")]).toEqual(["true", true]);
   });
 
-  it("presses say where they go: a rule row, a ladder line, a source row, a picture, a link, a part, a book page", () => {
-    const go = (b: SheetBlock, find: (m: ReturnType<typeof mount>) => Element) => { const m = mount(b); m.press(find(m)); const out = [m.opened, m.parts, m.books]; cleanup(); return out; };
-    const [rule, ladder, src, pic, link, part, pages] = [CASES[7]![1], CASES[10]![1], CASES[11]![1], CASES[13]![1], CASES[18]![1], CASES[19]![1], CASES[16]![1]];
+  it("presses say where they go: a rule row, a ladder line, a source row, a picture, a link, a book page", () => {
+    const go = (b: SheetBlock, find: (m: ReturnType<typeof mount>) => Element) => { const m = mount(b); m.press(find(m)); const out = [m.opened, m.books]; cleanup(); return out; };
+    const [rule, ladder, src, pic, link, pages] = [CASES[7]![1], CASES[10]![1], CASES[11]![1], CASES[13]![1], CASES[18]![1], CASES[16]![1]];
     expect([
       go(rule, (m) => m.r.getByRole("button", { name: "No netting · This water’s" })),
       go(ladder, (m) => m.r.getByRole("button", { name: "Sat–Sun Keep up to 5 · Today" })),
       go(src, (m) => m.r.getByRole("button", { name: "Keep up to 4" })),
       go(pic, (m) => m.r.getByRole("button", { name: "Kokanee — what it looks like" })),
       go(link, (m) => m.r.getByText("See every regulation line ›")),
-      go(part, (m) => m.r.getByRole("radio", { name: "Canyon → Lake · closed" })),
       go(pages, (m) => m.r.getByText("p.4 ↗")),
-    ]).toEqual([[["rule:zp:p::p.r1"], [], []], [["rule:r4:k::k.r3"], [], []], [["rule:z2:t::t.r1"], [], []], [["sp:KO"], [], []],
-      [["src:r0"], [], []], [[], [1], []], [[], [], [6]]]);
+    ]).toEqual([[["rule:zp:p::p.r1"], []], [["rule:r4:k::k.r3"], []], [["rule:z2:t::t.r1"], []], [["sp:KO"], []],
+      [["src:r0"], []], [[], [6]]]);
   });
 
   it("an untitled group draws no title line; the Today mark is a visible word, not colour alone", () => {

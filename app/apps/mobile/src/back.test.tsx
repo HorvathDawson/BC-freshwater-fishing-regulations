@@ -422,27 +422,6 @@ describe("Android's back, surface by surface (HANDOFF-ui 'Back, everywhere')", (
       "water Kootenay Lake — Lower West Arm on Regulations · no bar", "handled -> tab Map", "ANDROID -> tab Map"]);
   }, 60_000);
 
-  it("(T58) a Parts sheet row reads that part (the frame's part: the water's map comes back on it), and is no layer: " +
-     "one back is the map", async () => {
-    // (T517) part 3 in river order: "100 m below the Slesse → the Ecological Reserve" (Part 4 of 5)
-    await mount({ mode: "water", from: HOME, stack: [{ item: CHILLIWACK, part: 3, tapSid: null, at: null, view: "regs" }] },
-                nativeBack, openRegsFixture(), { regsStart: { tab: "keep", sheet: "parts" as RegsStart["sheet"], scroll: 0 } });
-    await until(() => screen.queryAllByRole("radio").length > 0);
-    const seen = [where()];
-    const row = screen.getAllByRole("radio").find((r) => r.getAttribute("aria-checked") === "false"
-                                                     && /^Vedder Crossing Bridge → /.test(r.getAttribute("aria-label") ?? ""))!;
-    await act(async () => { fireEvent.click(row); });
-    seen.push(where());
-    await view("Map"); await onWaterMap();
-    seen.push(`${where()} · ${mapWhere()}`);
-    expect([...seen, ...backs(1).slice(1)]).toEqual([
-      "water Chilliwack River on Regulations · Parts of this water sheet · no bar",
-      "water Chilliwack River on Regulations · no bar",
-      // opened on part 3 (Part 4 of 5, "100 m below the Slesse → the Ecological Reserve"); the row picked the mouth
-      "water Chilliwack River on Map · no bar · Part 1 of 5 · Chilliwack River",
-      "handled -> tab Map"]);
-  }, 60_000);
-
   it("(T58) a slow tap on a water's map: back pressed before its lookup finishes — the late answer opens nothing", async () => {
     const lake = await withLake();
     await mount({ mode: "water", from: HOME, stack: [{ item: CHILLIWACK, part: null, tapSid: null, at: null, view: "map" }] },

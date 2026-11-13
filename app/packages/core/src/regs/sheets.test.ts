@@ -234,73 +234,8 @@ describe("sheetLines: the golden join of the part 2 blocks", () => {
   });
 });
 
-describe("parts (prototype sheetHtml parts; the status is each choice's STORED display status on the day, T09 choicesOnDay)", () => {
-  // the Bella Coola on May 1 (golden bc1_501 parts): two picker choices, the tapped part (1) the first
-  // (T517) a part's facts: its two end TOKENS (none: the water's name), said by the release's `display.ends`
-  const facts = (lo: string | null, hi: string | null) => ({ order: 0, label: "l", lo, hi, runs: "", place: null, km: null, closed_all_year: false, paper_licence: [] });
-  const PART_ENDS = { vcb: ["Vedder Crossing Bridge"], orange: ["Orange signs"], tamihi: ["Tamihi Rapids Bridge"], mouth: ["Mouth"],
-                      talchako: ["Talchako River confluence"], source: ["Source"] };
-  const bc = (o: { partIx?: number; days?: RegsInputs["choicesOnDay"] } = {}): SheetCtx => ({ today: { month: 10, day: 10 }, page: {} as SheetCtx["page"],
-    inp: { partIx: o.partIx ?? 1, item: { name: "Bella Coola River", parts: [facts("mouth", "talchako"), facts(null, null)],
-      picker: { headed: false, choices: [
-        { parts: [1], closed: false, sections: 6, heading: "", text: "4 side channels, joining 55–59.1 km from the mouth" },
-        { parts: [0], closed: false, sections: 44, heading: "", text: "From the mouth up to the Talchako River confluence" }] } },
-      choicesOnDay: o.days === undefined ? [{ partIx: 1, status: "own" }, { partIx: 0, status: "base" }] : o.days,
-      statics: { ends: PART_ENDS } } as unknown as RegsInputs });
-
-  it("20. each choice: its short label, its day status word, its long label, ✓ on the part read (golden bc1_501, sans the prototype's D1 note)", () => {
-    const vm = sheetOf(bc(), "parts")!;
-    expect([vm.title, vm.sub, lines(vm).lines]).toEqual(["Parts of this water", null,
-      ["Bella Coola River open 4 side channels, joining 55–59.1 km from the mouth ✓ Mouth → Talchako River confluence open From the mouth up to the Talchako River confluence"]]);
-    // (T517, owner 2026-11-09) a part with no ends is said as its water: no stored name stands in
-    expect(vm.blocks).toEqual([{ k: "choice", items: [
-      { text: "Bella Coola River", sub: null, status: "open", long: "4 side channels, joining 55–59.1 km from the mouth", checked: true, part: 1 },
-      { text: "Mouth → Talchako River confluence", sub: null, status: "open", long: "From the mouth up to the Talchako River confluence", checked: false, part: 0 }] }]);
-  });
-  it("the word is the stored frame's: closed → closed, base/own → open, no key (or tidal) → unknown; the ✓ follows the part read", () => {
-    const vm = sheetOf(bc({ partIx: 0, days: [{ partIx: 1, status: "closed" }, { partIx: 0, status: null }] }), "parts")!;
-    const it = (vm.blocks[0] as Extract<SheetBlock, { k: "choice" }>).items;
-    expect(it.map((x) => [x.status, x.checked])).toEqual([["closed", false], ["unknown", true]]);
-    const tidal = sheetOf(bc({ days: [{ partIx: 1, status: "tidal" }, { partIx: 0, status: "own" }] }), "parts")!;
-    expect((tidal.blocks[0] as Extract<SheetBlock, { k: "choice" }>).items[0]!.status).toBe("unknown");
-  });
-  it("rows follow the picker's options: under their headings, each heading where it first appears (page v36 renderParts)", () => {
-    const c = (heading: string, part: number) => ({ parts: [part], closed: false, sections: 1, heading, text: `p${part}` });
-    const choices = [c("Down", 6), c("Down", 4), c("", 0), c("Up", 1), c("", 2)];
-    const inp = { partIx: 6, item: { name: "K", parts: Array.from({ length: 7 }, () => facts(null, null)), picker: { headed: true, choices } },
-      choicesOnDay: choices.map((x) => ({ partIx: x.parts[0], status: "own" })), statics: { ends: PART_ENDS } } as unknown as RegsInputs;
-    const order = (headed: boolean) => (sheetOf({ ...bc(), inp: { ...inp, item: { ...inp.item!, picker: { headed, choices } } } }, "parts")!
-      .blocks[0] as Extract<SheetBlock, { k: "choice" }>).items.map((x) => x.part);
-    expect([order(true), order(false)]).toEqual([[6, 4, 0, 2, 1], [6, 4, 0, 1, 2]]);
-  });
-  it("(T517) a row is named as the water's map names the entry holding the choice's first part (the live `names`)", () => {
-    const piece = (lo: string, hi: string) => facts(lo, hi);
-    const inp = { ...bc().inp, partIx: 1, item: { ...bc().inp.item!,
-      parts: [piece("vcb", "orange"), piece("orange", "tamihi"), piece("tamihi", "source")],
-      picker: { headed: false, choices: [
-        { parts: [0, 1], closed: false, sections: 10, heading: "", text: "From the Vedder Crossing Bridge up to the Tamihi Rapids Bridge" },
-        { parts: [2], closed: false, sections: 3, heading: "", text: "From the Tamihi Rapids Bridge up to the source" }] } },
-      choicesOnDay: [{ partIx: 0, status: "own" }, { partIx: 2, status: "own" }] } as unknown as RegsInputs;
-    const rows = (names: ReadonlyMap<number, string> | null) =>
-      (sheetOf({ ...bc(), inp, names }, "parts")!.blocks[0] as Extract<SheetBlock, { k: "choice" }>).items.map((x) => [x.text, x.checked, x.part]);
-    // the live salmon reads the two pieces alike: one entry, the run's name
-    expect(rows(new Map([[0, "Vedder Crossing Bridge → Tamihi Rapids Bridge"], [1, "Vedder Crossing Bridge → Tamihi Rapids Bridge"],
-                         [2, "Tamihi Rapids Bridge → Source"]]))).toEqual([
-      ["Vedder Crossing Bridge → Tamihi Rapids Bridge", true, 0], ["Tamihi Rapids Bridge → Source", false, 2]]);
-    // apart: the first piece's own entry
-    expect(rows(new Map([[0, "Vedder Crossing Bridge → Orange signs"], [1, "Orange signs → Tamihi Rapids Bridge"],
-                         [2, "Tamihi Rapids Bridge → Source"]]))).toEqual([
-      ["Vedder Crossing Bridge → Orange signs", true, 0], ["Tamihi Rapids Bridge → Source", false, 2]]);
-    // no names yet (the map's group not read): the part's own, composed from its ends, as the map lists it unjoined
-    expect(rows(null)).toEqual([["Vedder Crossing Bridge → Orange signs", true, 0], ["Tamihi Rapids Bridge → Source", false, 2]]);
-  });
-  it("no rows loaded (a hand-built input, or a picker of one choice): no sheet, never a guess", () => {
-    expect([sheetOf(bc({ days: null }), "parts"), sheetOf({ ...bc(), inp: { ...bc().inp, choicesOnDay: undefined } }, "parts")]).toEqual([null, null]);
-  });
-});
-
 describe("every key", () => {
-  it("19. an unknown key (licsrc: is one since owner 2026-11-04), or one this page has nothing for, opens nothing (never throws)", () => {
+  it("19. an unknown key (licsrc: since owner 2026-11-04; parts since T698, owner 2026-11-12), or one this page has nothing for, opens nothing (never throws)", () => {
     for (const k of ["date", "other:o99", "other:o0", "src:r0", "srcs:bait", "licsrc:adult", "parts", "kind:o0"])
       expect(sheetOf(ctx(), k as never), k).toBeNull();
   });

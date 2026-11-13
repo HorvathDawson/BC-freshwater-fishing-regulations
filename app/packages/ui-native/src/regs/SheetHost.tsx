@@ -23,7 +23,6 @@ export interface SheetHostProps {
   open: SheetKey | null;
   onOpen: (k: SheetKey) => void;        // nested open: replaces
   onClose: () => void;
-  onPart?: (partIx: number) => void;    // parts sheet rows
   onTab?: (t: Tab) => void;             // "Steelhead stamp ›" when it sits in a sheet
   palette: Palette;
   fish?: FishImages;                    // T20 map code → ImageSourcePropType (registered by apps/mobile)
@@ -48,7 +47,7 @@ export function SheetHost(p: SheetHostProps) {
   if (!drawn) return null;
   return (
     <Sheet open={vm !== null} title={drawn.title} sub={drawn.sub} scroll scrollRef={scroll} palette={p.palette} onClose={p.onClose} layout={layout} dialog footer={<SynopsisLoading palette={p.palette} />}>
-      <SheetBody vm={drawn} layout={layout} palette={p.palette} fish={p.fish} adipose={p.adipose} onOpen={p.onOpen} onPart={p.onPart} onTab={p.onTab} onBook={p.onBook} />
+      <SheetBody vm={drawn} layout={layout} palette={p.palette} fish={p.fish} adipose={p.adipose} onOpen={p.onOpen} onTab={p.onTab} onBook={p.onBook} />
     </Sheet>
   );
 }

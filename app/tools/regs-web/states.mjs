@@ -36,6 +36,8 @@ export const stateOf = (id) => {
 export function appKeyOf(goldenKey, sid) {
   // (owner 2026-11-04) the licence sources sheet is removed: a golden licsrc: key has no app key (core's throws)
   if (/^licsrc:/.test(goldenKey)) return null;
+  // (T698, owner 2026-11-12 "Remove the screen") the Parts sheet is removed: the golden's `parts` has no app key
+  if (goldenKey === 'parts') return null;
   if (/^(rule|gl|sp):/.test(goldenKey)) return goldenKey;
   const esc = sid.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   return goldenKey.replace(`:${sid}|`, ':').replace(`|${sid}|`, '|').replace(new RegExp(`\\|${esc}$`), '');

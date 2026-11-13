@@ -7,9 +7,9 @@ import type { RegsPage } from "@app/core";
 import { FIXTURE_DIR, FIXTURE_STATES, freezePage, sheetKeysOf, stableJson } from "./fixtures";
 
 describe("sheetKeysOf: the keys a page names", () => {
-  it("the three always-open sheets, plus every sheet key found anywhere in the view model (not under `sheet`)", () => {
+  it("the two always-open sheets (no Parts sheet: T698), plus every sheet key found anywhere in the view model (not under `sheet`)", () => {
     const page = { keep: { rows: [{ open: "pos:pos" }, { open: "gl:bait_ban" }, "not a key"] }, sheet: () => "gl:ignored" } as unknown as RegsPage;
-    expect(sheetKeysOf(page).sort()).toEqual(["gl:bait_ban", "hatch", "parts", "pos:pos"]);
+    expect(sheetKeysOf(page).sort()).toEqual(["gl:bait_ban", "hatch", "pos:pos"]);
   });
 });
 

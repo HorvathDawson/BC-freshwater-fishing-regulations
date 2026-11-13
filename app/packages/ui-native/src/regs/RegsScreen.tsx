@@ -70,11 +70,6 @@ export interface RegsScreenProps {
    * (this screen remounts on the next day's answer), and a sheet kept here closed under the reader at every step.
    */
   onDate: () => void;
-  /**
-   * (T58) A row of the Parts sheet pressed: read that part (the water screen makes it the frame's part — a move within
-   * the water, no back layer). The sheet closes. Absent → the rows read nothing.
-   */
-  onPart?: (partIx: number) => void;
   /** Gear / Methods / Licence (T34/T35); absent → that section is not drawn, its tab is still listed. A function is handed
    *  this screen's actions (its tab links scroll to the section, like the Keep tab's). */
   gear?: Slot; methods?: Slot; licence?: Slot;
@@ -141,7 +136,7 @@ export interface RegsScreenProps {
   scrollKey?: string | null;
 }
 
-export function RegsScreen({ page, palette, images, adipose, actions, onDate, onPart,
+export function RegsScreen({ page, palette, images, adipose, actions, onDate,
                              gear, methods, licence, referenceOpen = false, footer, salmon, store: injected, layout = "phone", start = null, onStarted,
                              lapsed = null, access = [], inSeason = [], glance = null, salmonStrip = null,
                              nameSource = null, asOf = null, scrollKey = null, sun = null, daylight = null, waterBook = [] }: RegsScreenProps) {
@@ -318,8 +313,7 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate, on
         </View>
       ) : pageScroll}
       <SheetHost page={page} open={sheet} onOpen={openSheet} onClose={() => setSheet(null)} palette={palette} fish={images} adipose={adipose}
-                 onTab={(t) => { setSheet(null); toTab(t); }} onBook={actions.onBook} layout={layout}
-                 onPart={onPart && ((i) => { setSheet(null); onPart(i); })} />
+                 onTab={(t) => { setSheet(null); toTab(t); }} onBook={actions.onBook} layout={layout} />
     </View>
     </TermTitles.Provider>
   );
