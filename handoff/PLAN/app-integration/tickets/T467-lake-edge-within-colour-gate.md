@@ -29,3 +29,10 @@ lake fill failed only under the CVD simulations (whether light/dark pass under n
   header records the decision. That is a scope change by the owner, not a loosened guard.
 
 Related: T457, T47 (status colours), T165, T158. Size: S.
+
+## Default taken 2026-11-12 (not an owner acceptance)
+The owner question (should the colour-blind check apply only to the colour-blind theme?) has no answer on record, so the
+default stands: **the check stays on all themes** (Claude's recommendation above; nothing is loosened, the gate is
+unchanged). It is on the owner's to-do page as a default taken: the owner acts only if they disagree. The ticket stays
+OPEN for Work 1 (the shoreline as a shade of the fill: a look, with before/after shots for the owner to pick), which is
+a map-style design change, not a one-answer fix.
