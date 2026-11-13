@@ -1,22 +1,36 @@
 diff --git a/android/src/main/java/org/maplibre/android/maps/MLRNCameraCache.java b/android/src/main/java/org/maplibre/android/maps/MLRNCameraCache.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..60c11af7f0d49544f212738e69914877753a30da
+index 0000000000000000000000000000000000000000..a5c0d529fcc1de4eb2072e33504d5f7615a67367
 --- /dev/null
 +++ b/android/src/main/java/org/maplibre/android/maps/MLRNCameraCache.java
-@@ -0,0 +1,15 @@
+@@ -0,0 +1,29 @@
 +package org.maplibre.android.maps;
 +
 +/**
 + * (canifishthis T452 patch) In MapLibre's package for its package-private camera cache: the binding's own glide moves the
 + * camera with {@code scrollBy} steps, which do not refresh {@code Transform}'s cached position, so the settle it reports
 + * at the end would read the position from before the glide. Pinned to MapLibre Android 13.6.1 (Transform's
-+ * {@code invalidateCameraPosition}, MapLibreMap's {@code getTransform}); a rename fails the build, not the app.
++ * {@code invalidateCameraPosition}, {@code getRawZoom}, {@code setZoom(double, PointF)}, MapLibreMap's {@code getTransform}); a
++ * rename fails the build, not the app.
 + */
 +public final class MLRNCameraCache {
 +  private MLRNCameraCache() {}
 +
 +  public static void refresh(MapLibreMap map) {
 +    map.getTransform().invalidateCameraPosition();
++  }
++
++  /** (canifishthis T707 patch) the zoom now, not the cached position's (MapLibre's own scale momentum reads the same) */
++  public static double zoom(MapLibreMap map) {
++    return map.getTransform().getRawZoom();
++  }
++
++  /**
++   * (canifishthis T707 patch) one frame of a pinch's carry, about its focal point: exactly what MapLibre's own scale
++   * animator does each frame ({@code Transform.setZoom(double, PointF)}: no camera-move-started, no cancel of anything).
++   */
++  public static void zoomTo(MapLibreMap map, double zoom, android.graphics.PointF focal) {
++    map.getTransform().setZoom(zoom, focal);
 +  }
 +}
 diff --git a/android/src/main/java/org/maplibre/reactnative/components/images/MLRNImagesManager.kt b/android/src/main/java/org/maplibre/reactnative/components/images/MLRNImagesManager.kt
@@ -54,14 +68,18 @@ index 86183442be292aa6084cd61dc7cf1bf286ea6b28..5a651fd8be582efc250b3c43884f8b36
  
                      else -> {
 diff --git a/android/src/main/java/org/maplibre/reactnative/components/mapview/MLRNMapView.kt b/android/src/main/java/org/maplibre/reactnative/components/mapview/MLRNMapView.kt
-index b088909a48c4265219e4e95c529f6c0a63ae7e11..cb260faf37bfe9b63cb0d5f3303277819a68b974 100644
+index b088909a48c4265219e4e95c529f6c0a63ae7e11..03167d6626289280b6f28bfd60030131a3ba7184 100644
 --- a/android/src/main/java/org/maplibre/reactnative/components/mapview/MLRNMapView.kt
 +++ b/android/src/main/java/org/maplibre/reactnative/components/mapview/MLRNMapView.kt
-@@ -8,8 +8,16 @@ import android.graphics.RectF
+@@ -8,8 +8,20 @@ import android.graphics.RectF
  import android.os.Handler
  import android.os.Looper
  import android.util.AttributeSet
++import android.animation.Animator
++import android.animation.AnimatorListenerAdapter
++import android.animation.ValueAnimator
 +import android.view.Choreographer
++import android.view.animation.DecelerateInterpolator
 +import android.view.PixelCopy
 +import android.widget.ImageView
 +import android.graphics.Bitmap
@@ -74,7 +92,7 @@ index b088909a48c4265219e4e95c529f6c0a63ae7e11..cb260faf37bfe9b63cb0d5f330327781
  import android.view.View
  import android.view.ViewGroup
  import android.widget.FrameLayout
-@@ -69,6 +77,9 @@ import org.maplibre.reactnative.events.MapPressEvent
+@@ -69,6 +81,9 @@ import org.maplibre.reactnative.events.MapPressEvent
  import org.maplibre.reactnative.utils.BitmapUtils
  import org.maplibre.reactnative.utils.ConvertUtils
  import org.maplibre.reactnative.utils.GeoJSONUtils
@@ -84,7 +102,7 @@ index b088909a48c4265219e4e95c529f6c0a63ae7e11..cb260faf37bfe9b63cb0d5f330327781
  import kotlin.math.roundToInt
  
  sealed class MapChild {
-@@ -458,8 +469,19 @@ open class MLRNMapView(
+@@ -458,8 +473,23 @@ open class MLRNMapView(
  
      override fun onMapReady(mapLibreMap: MapLibreMap) {
          this.mapLibreMap = mapLibreMap
@@ -100,31 +118,38 @@ index b088909a48c4265219e4e95c529f6c0a63ae7e11..cb260faf37bfe9b63cb0d5f330327781
 +        // (T452) the glide is the binding's own (`startGlide`, on the display's frame clock): MapLibre's fling animation is
 +        // off; its base time and threshold above stay as they were in case it is ever switched back on
 +        uiSettings.isFlingVelocityAnimationEnabled = false
++        // (T707) a pinch's momentum is the binding's own too (`tunePinch`): MapLibre's lets a release through only when the
++        // LAST touch event before the lift moved the span by >= 0.004 s x density of ONE finger's speed (its first pointer),
++        // so on a phone's batched, resampled touches a real flick mostly ended dead (owner, build 29: "no zoom flick")
++        uiSettings.isScaleVelocityAnimationEnabled = false
 +        camProbe(mapLibreMap)
          if (attributionGravity == null) attributionGravity = Gravity.END or Gravity.BOTTOM
          if (attributionMargin == null) {
              attributionMargin =
-@@ -519,6 +541,8 @@ open class MLRNMapView(
+@@ -519,6 +549,10 @@ open class MLRNMapView(
          updateScaleBar()
  
          mapLibreMap.addOnCameraMoveStartedListener { reason ->
 +            // (T452) a camera move the app asks for (a fit, an ease) takes over from a glide still running
 +            if (reason != MapLibreMap.OnCameraMoveStartedListener.REASON_API_GESTURE && glide != null) endGlide()
++            // (T707) …and from a pinch's carry still running
++            if (reason != MapLibreMap.OnCameraMoveStartedListener.REASON_API_GESTURE && zoomGlide != null) endZoomGlide()
              cameraChangeTracker.setReason(reason)
              handleMapChangedEvent("onRegionWillChange", true)
          }
-@@ -543,7 +567,9 @@ open class MLRNMapView(
+@@ -543,7 +577,10 @@ open class MLRNMapView(
              },
          )
  
 -        mapLibreMap.addOnCameraIdleListener { sendRegionDidChangeEvent() }
 +        // (T452) while the binding's own glide runs, the camera is not at rest: the finger's lift (MapLibre's move end) is
 +        // not a settle; the glide reports one when it stops (`endGlide`)
-+        mapLibreMap.addOnCameraIdleListener { if (glide == null) sendRegionDidChangeEvent() }
++        // (T707) nor is a pinch's lift whose zoom carries on (`pinchCarry`, then `zoomGlide`): it reports at its own end
++        mapLibreMap.addOnCameraIdleListener { if (glide == null && pinchCarry == null && zoomGlide == null) sendRegionDidChangeEvent() }
      }
  
      fun reflow() {
-@@ -610,8 +636,54 @@ open class MLRNMapView(
+@@ -610,9 +647,211 @@ open class MLRNMapView(
          }
      }
  
@@ -172,14 +197,171 @@ index b088909a48c4265219e4e95c529f6c0a63ae7e11..cb260faf37bfe9b63cb0d5f330327781
 +        }
 +    }
 +
++    /** (T707) both fingers' velocities while the map is touched, for a pinch's momentum (`pinchRelease`) */
++    private var pinchVelocity: VelocityTracker? = null
++
++    /** (T707) when the span between two fingers last changed (uptime ms): a pinch held still before the lift carries nothing */
++    private var pinchSpanAt = 0L
++    private var pinchSpan = -1f
++
++    /** (T707) the zoom a pinch's release carries, from its second-last finger's lift to the last one's */
++    private class PinchCarry(
++        val addZoom: Double,
++        val focal: PointF,
++        val at: Long,
++    )
++
++    private var pinchCarry: PinchCarry? = null
++
++    /** (T707) the carry running */
++    private var zoomGlide: ValueAnimator? = null
++
++    /**
++     * (T707, owner on build 29: "No zoom flick on map in app so zoom is clunky gesture wise") A PINCH'S RELEASE CARRIES
++     * ITS ZOOM, as stock MapLibre means it to: the same size (MapLibre's `calculateScale`: 2.5e-4 zoom per px/s of a
++     * finger, at most 2.5) over the same time and curve (`150 * (ln(1 + dz / e^2) + 2)` ms, decelerating), and only while
++     * the fingers were still moving apart or together as the first one lifted (`pinchRelease`). MapLibre's own gate read
++     * the span change of the LAST touch event only, against the first pointer's speed alone: on a phone's batched,
++     * resampled touches (and a thumb that holds still while the finger flicks) that sliver mostly failed, and the zoom
++     * stopped dead — measured 1 in 3 identical flicks on the emulator (testbed `zoom-flick`). Here both fingers'
++     * velocities give the span's rate; a release that has it within 40 ms of the lift carries. Like MapLibre's, it starts
++     * at the LAST finger's lift if that comes within 150 ms, a finger on the map stops it, an app camera move takes over.
++     */
++    private fun tunePinch(ev: MotionEvent) {
++        when (ev.actionMasked) {
++            MotionEvent.ACTION_DOWN -> {
++                if (zoomGlide != null) endZoomGlide()
++                pinchCarry = null
++                pinchSpan = -1f
++                pinchVelocity?.recycle()
++                pinchVelocity = VelocityTracker.obtain().also { it.addMovement(ev) }
++            }
++            MotionEvent.ACTION_POINTER_DOWN -> {
++                pinchCarry = null
++                pinchSpan = -1f
++                pinchVelocity?.addMovement(ev)
++            }
++            MotionEvent.ACTION_MOVE -> {
++                pinchVelocity?.addMovement(ev)
++                if (ev.pointerCount >= 2) {
++                    val span = hypot(ev.getX(1) - ev.getX(0), ev.getY(1) - ev.getY(0))
++                    if (pinchSpan < 0f || kotlin.math.abs(span - pinchSpan) >= 0.5f) {
++                        pinchSpan = span
++                        pinchSpanAt = ev.eventTime
++                    }
++                }
++            }
++            // the second-last finger lifts: what it carries is decided here, from the moves before this event (the lift
++            // itself is not added: it is where the finger left, not how it moved)
++            MotionEvent.ACTION_POINTER_UP -> {
++                val vt = pinchVelocity ?: return
++                pinchCarry = if (ev.pointerCount == 2) pinchRelease(ev, vt) else null
++                vt.addMovement(ev)
++            }
++        }
++    }
++
++    /** (T707) the carry a two-finger release has, or null: the span's rate from both fingers' velocities */
++    private fun pinchRelease(
++        ev: MotionEvent,
++        vt: VelocityTracker,
++    ): PinchCarry? {
++        if (mapLibreMap?.uiSettings?.isZoomGesturesEnabled != true) return null
++        val density = resources.displayMetrics.density
++        vt.computeCurrentVelocity(1000)
++        val a = ev.getPointerId(0)
++        val b = ev.getPointerId(1)
++        val dx = ev.getX(1) - ev.getX(0)
++        val dy = ev.getY(1) - ev.getY(0)
++        val span = hypot(dx, dy)
++        val still = ev.eventTime - pinchSpanAt
++        val rate =
++            if (span < 1f) {
++                0.0
++            } else {
++                ((vt.getXVelocity(b) - vt.getXVelocity(a)) * dx + (vt.getYVelocity(b) - vt.getYVelocity(a)) * dy).toDouble() / span
++            }
++        // a finger's speed, as MapLibre sizes the carry by (`calculateScale`): half the span's rate
++        val finger = kotlin.math.abs(rate) / 2.0
++        val carries = still <= PINCH_STILL_MS && finger / density >= PINCH_MIN_DP_S
++        val add = (finger * 2.5e-4).coerceAtMost(2.5) * (if (rate > 0) 1 else -1)
++        if (probeOn) Log.d(CAM_TAG, "p ${System.nanoTime()} ${(rate / density).roundToInt()} $still ${"%.3f".format(add)} ${if (carries) 1 else 0}")
++        if (!carries) return null
++        return PinchCarry(add, PointF((ev.getX(0) + ev.getX(1)) / 2f, (ev.getY(0) + ev.getY(1)) / 2f), ev.eventTime)
++    }
++
++    /** (T707) the last finger lifted (or the touch was taken): the carry starts, or the lift is the settle it held back */
++    private fun pinchLifted(ev: MotionEvent) {
++        pinchVelocity?.recycle()
++        pinchVelocity = null
++        val carry = pinchCarry ?: return
++        pinchCarry = null
++        if (ev.actionMasked == MotionEvent.ACTION_UP && ev.eventTime - carry.at <= PINCH_CARRY_WINDOW_MS && startZoomGlide(carry)) return
++        mapLibreMap?.let { org.maplibre.android.maps.MLRNCameraCache.refresh(it) }
++        sendRegionDidChangeEvent()
++    }
++
++    private fun startZoomGlide(c: PinchCarry): Boolean {
++        val map = mapLibreMap ?: return false
++        val from = org.maplibre.android.maps.MLRNCameraCache.zoom(map)
++        val to = (from + c.addZoom).coerceIn(map.minZoomLevel, map.maxZoomLevel)
++        if (kotlin.math.abs(to - from) < 0.005) return false
++        val ms = (150.0 * (ln(1.0 + kotlin.math.abs(c.addZoom) / exp(2.0)) + 2.0)).toLong()
++        val anim = ValueAnimator.ofFloat(from.toFloat(), to.toFloat())
++        anim.duration = ms
++        anim.interpolator = DecelerateInterpolator()
++        anim.addUpdateListener { va ->
++            val m = mapLibreMap ?: return@addUpdateListener
++            org.maplibre.android.maps.MLRNCameraCache.zoomTo(m, (va.animatedValue as Float).toDouble(), c.focal)
++            if (probeOn) probeSample(m)
++        }
++        anim.addListener(
++            object : AnimatorListenerAdapter() {
++                private var cancelled = false
++
++                override fun onAnimationCancel(animation: Animator) {
++                    cancelled = true
++                }
++
++                override fun onAnimationEnd(animation: Animator) {
++                    if (zoomGlide !== animation) return
++                    zoomGlide = null
++                    if (!cancelled) settleZoomGlide()
++                }
++            },
++        )
++        zoomGlide = anim
++        cameraChangeTracker.setReason(CameraChangeTracker.USER_GESTURE)
++        anim.start()
++        return true
++    }
++
++    /** (T707) the carry stopped (a finger, an app camera move): the camera rests where it is — one settle */
++    private fun endZoomGlide() {
++        val anim = zoomGlide ?: return
++        zoomGlide = null
++        anim.cancel()
++        settleZoomGlide()
++    }
++
++    private fun settleZoomGlide() {
++        val map = mapLibreMap ?: return
++        org.maplibre.android.maps.MLRNCameraCache.refresh(map)
++        cameraChangeTracker.setReason(CameraChangeTracker.USER_GESTURE)
++        sendRegionDidChangeEvent()
++    }
++
      @SuppressLint("ClickableViewAccessibility")
      override fun onTouchEvent(ev: MotionEvent?): Boolean {
 +        if (ev?.actionMasked == MotionEvent.ACTION_DOWN) endSwapHold("touch")
 +        if (ev != null) tuneFling(ev)
++        if (ev != null) tunePinch(ev)
          val result = super.onTouchEvent(ev)
++        if (ev?.actionMasked == MotionEvent.ACTION_UP || ev?.actionMasked == MotionEvent.ACTION_CANCEL) pinchLifted(ev)
  
          if (result && scrollEnabled == true) {
-@@ -774,6 +846,8 @@ open class MLRNMapView(
+             requestDisallowInterceptTouchEvent(true)
+@@ -774,6 +1013,8 @@ open class MLRNMapView(
          frameEncodingTime: Double,
          frameRenderingTime: Double,
      ) {
@@ -188,7 +370,7 @@ index b088909a48c4265219e4e95c529f6c0a63ae7e11..cb260faf37bfe9b63cb0d5f330327781
          if (fully) {
              handleMapChangedEvent("onDidFinishRenderingFrameFully")
          } else {
-@@ -794,6 +868,7 @@ open class MLRNMapView(
+@@ -794,6 +1035,7 @@ open class MLRNMapView(
      }
  
      override fun onDidFinishLoadingStyle() {
@@ -196,7 +378,7 @@ index b088909a48c4265219e4e95c529f6c0a63ae7e11..cb260faf37bfe9b63cb0d5f330327781
          handleMapChangedEvent("onDidFinishLoadingStyle")
          applyLight()
      }
-@@ -813,10 +888,77 @@ open class MLRNMapView(
+@@ -813,10 +1055,77 @@ open class MLRNMapView(
      private val displayDensity: Float
          get() = context.resources.displayMetrics.density
  
@@ -274,7 +456,7 @@ index b088909a48c4265219e4e95c529f6c0a63ae7e11..cb260faf37bfe9b63cb0d5f330327781
              mapLibreMap?.let { map ->
                  removeAllSourcesFromMap()
  
-@@ -871,6 +1013,172 @@ open class MLRNMapView(
+@@ -871,6 +1180,172 @@ open class MLRNMapView(
          updateInsets()
      }
  
@@ -292,7 +474,7 @@ index b088909a48c4265219e4e95c529f6c0a63ae7e11..cb260faf37bfe9b63cb0d5f330327781
 +     * camera moves, `u` the finger's lift, `d` each `onRegionDidChange` sent. Read by app/tools/testbed `glide`.
 +     */
 +    private fun camProbe(map: MapLibreMap) {
-+        addOnCameraIsChangingListener { if (probeOn && glide == null) probeSample(map) }
++        map.addOnCameraMoveListener { if (probeOn && glide == null) probeSample(map) }
 +        addOnDidFinishRenderingFrameListener { fully, enc, rend ->
 +            if (probeOn) Log.d(CAM_TAG, "f ${System.nanoTime()} ${if (fully) 1 else 0} $enc $rend")
 +        }
@@ -447,7 +629,7 @@ index b088909a48c4265219e4e95c529f6c0a63ae7e11..cb260faf37bfe9b63cb0d5f330327781
      fun setReactPreferredFramesPerSecond(preferredFramesPerSecond: Int?) {
          this.preferredFramesPerSecond = preferredFramesPerSecond
          updatePreferredFramesPerSecond()
-@@ -1565,6 +1873,7 @@ open class MLRNMapView(
+@@ -1565,6 +2040,7 @@ open class MLRNMapView(
          eventName: String,
          withViewState: Boolean? = null,
      ) {
@@ -455,7 +637,7 @@ index b088909a48c4265219e4e95c529f6c0a63ae7e11..cb260faf37bfe9b63cb0d5f330327781
          val event =
              if (withViewState == true) {
                  MapChangeEvent(surfaceId, id, eventName, makeViewState(null))
-@@ -1613,6 +1922,30 @@ open class MLRNMapView(
+@@ -1613,6 +2089,39 @@ open class MLRNMapView(
      }
  
      companion object {
@@ -484,6 +666,15 @@ index b088909a48c4265219e4e95c529f6c0a63ae7e11..cb260faf37bfe9b63cb0d5f330327781
 +        /** (T452) the glide stops within this of its end (dp), or after this long (s) */
 +        const val GLIDE_END_DP = 0.3
 +        const val GLIDE_MAX_S = 4.0
++
++        /** (T707) a pinch carries when its fingers were still parting or closing this recently (ms) at the lift … */
++        const val PINCH_STILL_MS = 40L
++
++        /** … at a finger's speed of at least this (dp/s: MapLibre's `maplibre_minimum_scale_velocity`) … */
++        const val PINCH_MIN_DP_S = 225.0
++
++        /** … and the last finger lifts within this of the first (ms: MapLibre's scheduled-animation window) */
++        const val PINCH_CARRY_WINDOW_MS = 150L
      }
  }
 diff --git a/android/src/main/java/org/maplibre/reactnative/components/mapview/MLRNMapViewManager.kt b/android/src/main/java/org/maplibre/reactnative/components/mapview/MLRNMapViewManager.kt
