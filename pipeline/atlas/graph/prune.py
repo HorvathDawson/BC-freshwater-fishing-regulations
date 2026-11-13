@@ -529,13 +529,15 @@ def prune_mainstem_loops(graph: StreamGraph, geoms: dict | None = None,
         # this river at its OWN mouth keeps that junction; re-homing its second way out (through the removed channel)
         # would add another junction where the channel left — Ash River into the Stamp at 14,264 m as well as at its
         # own mouth (14,509 m), parking it in the piece below. The edge goes with the channel instead.
-        if _joins_already(graph, e.from_node, exit_node, drop, i):
-            continue
         # the confluence the water actually used: where the removed channel met this target
         out_of = [j for j in graph.down_adj.get(e.to_node, [])]
         m = _measure_on(geoms, graph, e.from_node, exit_node, e.at_measure, out_of)
         if _gap(geoms, graph, e.from_node, exit_node, m) > max_shift_m:
             drop.discard(e.to_node)             # too far to move a confluence for a simplification
+            continue
+        # (only once the channel may go at all: the gap rule above keeps the channels it kept before, so this
+        # removes a duplicate junction, never a channel)
+        if _joins_already(graph, e.from_node, exit_node, drop, i):
             continue
         rehomed[i] = (exit_node, m)
     rehomed = {i: v for i, v in rehomed.items() if graph.edges[i].to_node in drop}
