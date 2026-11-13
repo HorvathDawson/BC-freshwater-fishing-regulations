@@ -247,7 +247,11 @@ PART_RECOUNTED = {
     "x21p1_1010": (1, f"{T220}: braid pieces that close a kept side channel were restored: 36 -> 37 sections"),
     "chw1_1010": (1, f"{T220}: a braid piece that closes a kept side channel was restored to the Vedder: 9 -> 10 sections"),
     "x15p2_1010": (2, f"{T67}: on the Fraser mainstem {_GAUGE} (94,834 / 108,135 / 111,137 / 122,096 / 132,550 / "
-                      f"148,097 m) and {_LEN} (93,822 / 116,370 / 135,999 m): 40 -> 36 sections"),
+                      f"148,097 m) and {_LEN} (93,822 / 116,370 / 135,999 m): 40 -> 36 sections; then (r-0a9930fb8826) "
+                      f"27 in the store's part 1; then T691 (owner 2026-11-12 'silent doesn't mean retired', r-adc4e248a163): "
+                      f"gauge cuts at 94,833 / 107,496 / 111,136 / 122,095 / 132,550 / 141,142 / 148,096 m replace the "
+                      f"length cuts at 93,821 / 116,370 / 135,998 m and three braid lines are cut beside them "
+                      f"(355992048:3190, 355992485:996, 355997500:1169): 27 -> 34 sections, same ends, same 99 rules"),
     "x18p0_1010": (0, f"{T67}: on the Columbia (356570372) {_LEN}: 4 cuts -> 5, 132 -> 133 sections"),
     "x19p3_1010": (3, f"{T67}: the Cedarvale cut takes the braid 360243437 (1,069 m): 51 -> 52 sections"),
     "x20p2_1010": (2, f"{T67}: the Thompson's side channel 355995300 is cut at the boundary signs (187 m): 7 -> 8 sections"),
@@ -272,11 +276,17 @@ PART_TIDAL = {
                          f"group is parts 1 and 3 (1 + 1 sections), tapped at part 1"),
     # (T517, r-d14bdb180f55) was PART_GROWN at index 0: river order numbers the Skeena's tidal piece first (part 0), so
     # the golden part's freshwater remainder is its rule-set group's lowest part, 2 (parts 2, 5, 6: 46 + 7 + 3 sections)
-    "x19p0_1010": (2, 0, f"{T67}: the Exchamsiks confluence cut runs straight across and {_LEN}; then T183 (owner "
+    # (T678 junctions, r-adc4e248a163) the group's lowest part is 1: see the reason's last clause
+    "x19p0_1010": (1, 0, f"{T67}: the Exchamsiks confluence cut runs straight across and {_LEN}; then T183 (owner "
                          f"2026-10-24): the mainstem from the Ecological Reserve up to the Exchamsiks left section 2 and "
                          f"joined this part (3 stretches, 44 -> 48 sections); then {SKEENA_TIDAL}; then {T517} — the "
                          f"tidal piece below the tidal boundary is part 0 (mouth first), the remainder's group is parts "
-                         f"2, 5 and 6 (56 sections), tapped at part 2"),
+                         f"2, 5 and 6 (56 sections), tapped at part 2; then T678 junctions (c24844fab cause A, one "
+                         f"junction per water and river; owner 2026-11-13 'Accept same-piece changes', r-adc4e248a163): "
+                         f"the side channel 360216962 no longer joins the mainstem from every piece (the old atlas had "
+                         f"360216962:3840 -> 360887278:44465 across the Ecological Reserve), so old part 2 (46 sections) is "
+                         f"two runs either side of the Reserve, parts 1 (44) and 3 (2), same key; the Reserve (superior_"
+                         f"closures.r3, 3,792 sections) is unchanged and moves 1 -> 2; tapped at part 1"),
 }
 _SUB = re.compile(r"^(.*?) · (\d+) sections?(?: · (.*))?$")
 
