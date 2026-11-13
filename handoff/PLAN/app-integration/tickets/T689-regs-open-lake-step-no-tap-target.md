@@ -39,3 +39,31 @@ on the rerun: a flake of the driver start-up, no ticket.
 
 ## Acceptance
 - `regs-open` passes 10/10 on the next test-bed APK (left: Claude, on the next APK).
+
+## Colour options (proposal, not accepted)
+Owner 2026-11-12: "Yes move the colour further from Not fishable." Light theme only: an own-rules lake is `color.status.own` #D08404
+at `opacity.lake` 0.6 over the basemap's water (#82CDD9), (177,161,89) on screen; the Not fishable swatch is `color.notfishing.fill`
+#B1AF8B (key swatch drawn solid, the map fill at `opacity.notfishing` 0.9). Dark (own lake vs the olive swatch ΔE 42) and the
+colour-blind theme (ΔE 23) already stand apart: unchanged. Own-rules RIVERS are lines in the same #D08404: unchanged.
+
+**Ruled out, because the existing checks refuse them unmodified:**
+- Raising light `opacity.lake` (0.7 / 0.75 / 0.8 / 0.85): `tools/water-status-cvd.test.ts` "base on lake" fails under tritan
+  (14.2 / 13.4 / 12.6 / 12.1, floor 15), the plain lake's base-blue line vanishes into a denser lake fill; and the status-colour
+  mutation pins move.
+- A redder own orange (#E8590C): `status-colours-distinct.test.ts` (own/closed, satellite) and `midzoom.test.ts` fail, and it only
+  reaches ΔE 20.5 from the swatch (an orange over cyan is khaki whatever the orange).
+So the only lever that passes is the Not fishable swatch itself. Each option changes light `color.notfishing.fill` and
+`.edge` only (the edge is also gated >= ΔE 12 from `no_access`, `water.unmapped`, `stock.old`, `region.edge`); every option was
+built (`tools/build-style.mjs`) and ran the full `tools` + `packages/map` suite and `check-colours` clean. Distances are CIEDE2000
+from the own-rules lake's mixed colour (177,161,89); "CVD worst" is the worst of protan/deutan/tritan (Viénot + Machado).
+
+| | `color.notfishing.fill` (light) | `.edge` (light) | key swatch ΔE (today 10.1) | drawn on map ΔE (today 12.9) | CVD worst, swatch (today 8.2) |
+|---|---|---|---|---|---|
+| A mauve grey | #B9A9C0 | #7B6B84 | 35.6 | 34.4 | 8.4 |
+| B blue-grey lavender | #B8B8C8 | #5A5C8C | 31.4 | 32.4 | 16.3 |
+| C dusty violet | #A08CB0 | #6A5878 | 40.7 | 38.8 | 8.4 |
+
+Dark and colour-blind: no change in any option. Opacity stays 0.9 (light), 0.85 (dark), 0.9 (cvd).
+Pictures (Cultus Lake, key visible; light, plus dark): `/Users/dawson.horvath/bcfish-session-backup-2026-11-12/own-rules-colour/`
+`today-light.png`, `a-light.png`, `a-dark.png`, `b-light.png`, `b-dark.png`, `c-light.png`, `c-dark.png` (dark is identical across options).
+Claude's lean: B (the only one clearly better for a colour-blind reader too). Nothing is changed in the tree until the owner picks.
