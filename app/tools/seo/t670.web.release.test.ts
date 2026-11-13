@@ -54,7 +54,7 @@ describe.skipIf(!LIVE)(`T672: the site's model carries what T670 put on the app'
       ["Whitefish · 15 a day", "Release every mountain whitefish."]],
     ["K3 Shuswap Lake", "wbk:329518145", null, on("2026-11-11"), ["Release every lake trout, Oct 15–Jan 31."]],
     ["K4 Bruer Creek", "gnis:10061", ["mouth", "source"], JUL15, ["Brook trout · 20 a day"]],
-    ["K5 Mat Creek", "gnis:14254", ["mouth", "lake_outlet"], on("2026-01-15"), ["Dolly Varden/bull trout · 2 a day"]],
+    ["K5 Mat Creek", "gnis:14254", ["mouth", "source"], on("2026-01-15"), ["Dolly Varden/bull trout · 2 a day"]],
     ["G1 Kispiox River", "gnis:2308", null, on("2026-08-15"), ["No angling (from a boat)", "No powered boats"]],
     ["G3 Mahood Lake", "wbk:329354708", null, JUL15, ["Bait ban · Jul 1–Dec 31", "Single barbless hook · Jul 1–Dec 31",
       "Where: Within fishing boundary signs at the western tip of the lake"]],

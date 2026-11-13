@@ -70,7 +70,7 @@ describe.skipIf(!at.dir)(`T670: what the release holds is on the screen (${at.di
   });
 
   it("K5 Mat Creek, Jan 15: the Duncan River's 'bull trout daily quota = 2' (p.36) leads the species list", async () => {
-    const p = await page("gnis:14254", await names.part("gnis:14254", "mouth", "lake_outlet"), 1, 15, "Thursday");
+    const p = await page("gnis:14254", await names.part("gnis:14254", "mouth", "source"), 1, 15, "Thursday");
     const o = p.keep.otherFish![0]!;
     expect([o.name, o.value, o.tone]).toEqual(["Dolly Varden/bull trout", "2 a day", "keep"]);
     expect(p.sheet(o.open)!.title).toBe("Dolly Varden/bull trout");

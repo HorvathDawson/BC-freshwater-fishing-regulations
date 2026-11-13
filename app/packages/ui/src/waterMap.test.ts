@@ -26,11 +26,16 @@ const CH_ENDS = [["continues:gnis:3062", "chilliwack_vedder_rivers__vedder_cross
   ["area:CHILLIWACK RIVER ECOLOGICAL RESERVE", "source"]] as const;
 const SKEENA_HOST_CHANNEL = 360216952;   // the Exchamsiks host channel's FWA stream key (a key is a name; its part number is not)
 let CH: number[];
-let SK_TIDAL_UP: number, SK_EXCHAMSIKS_UP: number, SK_SIDE: number;
+let SK_RESERVE: number, SK_RESERVE_UP: number, SK_EXCHAMSIKS_UP: number, SK_SIDE: number;
 beforeAll(async () => {
   const loader = openRegsFixtureWithLines(); st = await openRegsStore(loader); sec = sectionNames(loader);
   CH = await Promise.all(CH_ENDS.map(([lo, hi]) => sec.part("gnis:8634", lo, hi)));
-  SK_TIDAL_UP = await sec.part("gnis:2936", "skeena_river__tidal_boundary", "skeena_river__exchamsiks_river_into_skeena_river");
+  // (T678 junctions, r-adc4e248a163) the main stem just above the Reserve is a part of its own: the false junction that
+  // joined it to the stretch below the Reserve is gone (same rule key as that stretch)
+  SK_RESERVE = await sec.part("gnis:2936", "area:SKEENA RIVER ECOLOGICAL RESERVE@km63.5",
+    "area:SKEENA RIVER ECOLOGICAL RESERVE@near:skeena_river__exchamsiks_river_into_skeena_river");
+  SK_RESERVE_UP = await sec.part("gnis:2936", "area:SKEENA RIVER ECOLOGICAL RESERVE@near:skeena_river__exchamsiks_river_into_skeena_river",
+    "skeena_river__exchamsiks_river_into_skeena_river");
   SK_EXCHAMSIKS_UP = await sec.part("gnis:2936", "skeena_river__exchamsiks_river_into_skeena_river",
     "skeena_river__zymagotitz_river_into_skeena_river");
   SK_SIDE = await sec.partAt("gnis:2936", SKEENA_HOST_CHANNEL, 1017);   // the Exchamsiks host channel above the cut: a part with no ends
@@ -141,7 +146,7 @@ describe("the Chilliwack: ▼ / ▲ through its five parts, the ends disabled, t
     expect(view(g, waterMapStart(3)).regs).toEqual({ label: "Show regulations for this part", item: "gnis:8634", partIx: CH[3] });
     // where the map's index is not the part's (the Skeena: its tidal part 0 is no entry), the part's own part_ix
     const sk = await loadWaterGroup(st, "gnis:2936");
-    expect(view(sk, waterMapStart(2)).regs).toEqual({ label: "Show regulations for this part", item: "gnis:2936", partIx: SK_EXCHAMSIKS_UP });
+    expect(view(sk, waterMapStart(SK_EXCHAMSIKS_UP - 1)).regs).toEqual({ label: "Show regulations for this part", item: "gnis:2936", partIx: SK_EXCHAMSIKS_UP });
   });
 });
 
@@ -201,25 +206,29 @@ describe("(T150) the parts of this water, listed under the map — the header's 
 describe("a fork upstream: the Skeena's Ecological Reserve", () => {
   it("▲ at the fork opens a chooser, the main stem first; a choice steps there", async () => {
     const g = await loadWaterGroup(st, "gnis:2936");
-    // (T517) river order: the tidal part 0 is no entry, so the Reserve (part 1) is index 0, named by its two crossings of
-    // the Reserve's boundary (no "Within"); the side channel (part 17, no ends) is said as its water
-    const reserve = waterMapStart(0);
+    // (T517) river order; (T678 junctions) the Reserve is found by its ends, not a fixed index: the stretch below it is a
+    // part of its own now. It is named by its two crossings of the Reserve's boundary (no "Within"); the side channel
+    // (no ends) is said as its water
+    const reserve = waterMapStart(waterMapStartIx(g, "gnis:2936", SK_RESERVE));
+    const upIx = waterMapStartIx(g, "gnis:2936", SK_RESERVE_UP), sideIx = waterMapStartIx(g, "gnis:2936", SK_SIDE);
+    const belowIx = waterMapStartIx(g, "gnis:2936", SK_RESERVE) - 1;   // the stretch below the Reserve: not a way up
     expect([view(g, reserve).current.name, view(g, reserve).up]).toEqual([
       "Skeena River Ecological Reserve boundary (km 63.5) → Skeena River Ecological Reserve boundary near the Exchamsiks River confluence",
       { label: "Upstream", aria: "Upstream", disabled: false, fork: true, cross: null }]);
     const open = run(g, reserve, { type: "up" });
     expect(open).toEqual({ ...reserve, choosing: "up" });
     expect(view(g, open).chooser).toEqual({ title: "Which way upstream?", close: "Close", options: [
-      { ix: 1, item: "gnis:2936", partIx: SK_TIDAL_UP, name: "Tidal boundary → Exchamsiks River confluence", note: "Skeena River" },
-      { ix: 16, item: "gnis:2936", partIx: SK_SIDE, name: "Skeena River", note: "Skeena River" }] });
-    expect(run(g, open, { type: "choose", to: 1 })).toEqual(waterMapStart(1));
-    expect(run(g, open, { type: "choose", to: 16 })).toEqual(waterMapStart(16));
+      { ix: upIx, item: "gnis:2936", partIx: SK_RESERVE_UP,
+        name: "Skeena River Ecological Reserve boundary near the Exchamsiks River confluence → Exchamsiks River confluence", note: "Skeena River" },
+      { ix: sideIx, item: "gnis:2936", partIx: SK_SIDE, name: "Skeena River", note: "Skeena River" }] });
+    expect(run(g, open, { type: "choose", to: upIx })).toEqual(waterMapStart(upIx));
+    expect(run(g, open, { type: "choose", to: sideIx })).toEqual(waterMapStart(sideIx));
     // not one of the ways up: nothing
-    expect(run(g, open, { type: "choose", to: 2 })).toBe(open);
+    expect(run(g, open, { type: "choose", to: belowIx })).toBe(open);
     expect(run(g, open, { type: "closeChooser" })).toEqual(reserve);
     // the host channel above the cut is the highest part, and its own ▼ is a fork (section 2 and the Reserve meet it at
     // the Exchamsiks cut)
-    const side = view(g, waterMapStart(16));
+    const side = view(g, waterMapStart(sideIx));
     expect([side.current.name, side.up.disabled, side.down.fork]).toEqual(["Skeena River", true, true]);
   });
 });
@@ -432,7 +441,7 @@ describe("(T345) the Coquitlam: parts meet at the Lougheed bridge; the tidal Fra
     expect(parts).toEqual([
       ["Mary Hill Bypass Bridge → Lougheed Highway Bridge", await sec.streams(COQ_MARY_HILL)],
       ["Lougheed Highway Bridge → Coquitlam Watershed boundary", await sec.streams(COQ_LOUGHEED)],
-      ["Coquitlam Watershed boundary → A lake outlet",
+      ["Coquitlam Watershed boundary → Source",   // (T697 / P55) the top end reads its real boundary
        [...await sec.streams(COQ_UPPER), await sec.lake("gnis:19986", await sec.partAt("gnis:19986", 356364584, 16309))]],
     ]);
     // never one section in two parts, and every part's `water` is exactly the others' sections

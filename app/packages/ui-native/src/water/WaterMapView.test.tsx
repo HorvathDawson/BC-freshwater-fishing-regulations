@@ -245,7 +245,7 @@ describe("<WaterMapView>", () => {
     const chooser = within(screen.getByRole("dialog", { name: "Which way upstream?" }));
     const other = "Skeena River";
     expect(chooser.getAllByRole("button").map((b) => b.getAttribute("aria-label"))).toEqual(
-      ["Close", "Tidal boundary → Exchamsiks River confluence", other]);
+      ["Close", "Skeena River Ecological Reserve boundary near the Exchamsiks River confluence → Exchamsiks River confluence", other]);
     fireEvent.click(chooser.getByRole("button", { name: other }));
     expect([screen.queryByRole("dialog"), screen.getByTestId("water-map-name").textContent]).toEqual([null, other]);
   }, 30_000);
@@ -273,7 +273,7 @@ describe("<WaterMapView>", () => {
     act(() => seen.props!.onPressMark!(2));
     const seenMark = [open(), `${back()} -> ${open()}`, `${back()} -> ${open()}`];
     cleanup(); routes.length = 0;
-    render(<Harness item="gnis:2936" part={1} />);   // (T517) the Skeena's Ecological Reserve is part 1 (river order)
+    render(<Harness item="gnis:2936" part={await partOf("skeenaReserve")} />);   // (T678 junctions) the Skeena's Ecological Reserve, picked by its ends (part 1 is the stretch below it now)
     await ready();
     fireEvent.click(screen.getByRole("button", { name: "Upstream" }));
     const seenChooser = [open(), `${back()} -> ${open()}`];

@@ -42,7 +42,7 @@ describe.skipIf(!at.dir)("(T517) every part is one connected run, named by its o
       "Fort Nelson River Ecological Reserve boundary (km 155.2) → Fort Nelson River Ecological Reserve boundary (km 158)",
       "Fort Nelson River Ecological Reserve boundary (km 158) → Source"]);
     expect(names(kanaka!)).toEqual(["CPR Bridge (tidal boundary) → 112 Avenue bridge", "112 Avenue bridge → Cliff Park Falls",
-      "Cliff Park Falls → A lake outlet"]);
+      "Cliff Park Falls → Source"]);
   }, 60_000);
 
   it("no entry says 'N stretches' or 'stretch k of n', every one has a name, and each is one part", async () => {
