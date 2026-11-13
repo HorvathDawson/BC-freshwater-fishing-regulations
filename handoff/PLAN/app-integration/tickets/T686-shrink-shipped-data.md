@@ -46,10 +46,10 @@ Already near a gate: water (99.7 %), conditions after the fold, core after the f
 6. **`lines`, `down`, `geo`**: delta/varint packing and coordinate precision (what accuracy the map needs).
 7. **Strings**: `item.name`, `str`, `static`, `display_rule` — interning across files, a shared dictionary, or
    zstd with a trained dictionary instead of gzip where the platform allows.
-8. **Tiles and basemap** (≈ 400 MB on disk): zoom ranges, attribute columns per layer, simplification per zoom.
+8. **Tiles and basemap** (≈ 412 MB on disk): zoom ranges, attribute columns per layer, simplification per zoom. DEFERRED (owner 2026-11-13, with stocked lakes and bathy map): own ticket T699.
 
-9. **Fewer polygons** (owner 2026-11-12, after closed testing): fold more small widenings into the stream and draw the stream
-   line instead of the polygon where it really is the stream (the 456 unnamed lakes a river runs through): T695.
+9. **Fewer polygons** (owner 2026-11-12, after closed testing; DEFERRED 2026-11-13): fold more small widenings into the stream and draw the stream
+   line instead of the polygon where it really is the stream (the 456 unnamed lakes a river runs through): T695 (deferred).
 
 ## Work
 1. Finish the survey: every shipped file (release files, tiles, basemap, the app bundle itself), raw / gz / who

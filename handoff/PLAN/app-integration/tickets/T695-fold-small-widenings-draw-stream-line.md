@@ -1,6 +1,6 @@
 # T695 — Fold more small widenings into the stream: draw the stream line, not the polygon, where it is the stream
 
-Status: POSTPONED (owner 2026-11-12: "this is after closed build though"; nothing changes before closed testing).
+Status: POSTPONED (deferred, owner 2026-11-13, verbatim: "Then the last 2 items for after closed testing should be moved to deferred with stocked lakes and bathy map etc.."). Moved to the deferred group with stocked lakes and the bathymetry map; earlier 2026-11-12: "this is after closed build though".
 
 Source: owner 2026-11-12, verbatim: "the unnamed polygons depends if it is actually a lake... I thought we already
 captured most of these. We could do another ticket in future to combine more small widenings as part of the stream. In
