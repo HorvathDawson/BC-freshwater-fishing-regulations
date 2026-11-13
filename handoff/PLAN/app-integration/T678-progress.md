@@ -659,3 +659,13 @@ Owner's phone report (build 29, the More tab). Done in code, not yet in a build:
   notice_waters.json now names the candidate, so a bare `sync-inputs.sh` refuses until the promote. Not done: suites,
   site deploy, app build/smoke/Play upload, store shots. Resume: make the taps.py declaration change (owner or main session),
   commit, then rerun `.venv/bin/python -m pipeline release --staging --push` (accept-diff and push are remembered).
+- Resumed after e536aa195 (owner: "Yes, edit and resume"; Fraser part 19 = 113). Pushed 89ffd83d5..e536aa195 (preflight
+  wants HEAD on origin). Rerun: preflight ok, build reran deliver only (curated notice_waters.json changed; same id
+  r-adc4e248a163), checks ok (diff accepted), follows STOPPED AGAIN at the re-cut, on a DIFFERENT golden:
+  `x17p7_1010`'s golden part ('From the fishing boundary signs 100 m upstream of adult fish counting fence up to the
+  Nilkitkwa Lake outlet', 1) is not found. Read-only: Babine River part 5 is the same piece on both releases (99.05 km mark,
+  1 section, open); only its LABEL changed, "… up to the Nilkitkwa Lake outlet" -> "… up to the juvenile counting weir"
+  (T697 part ends, 040b79d16, "Babine counting weir": a cut aliased onto a lake edge keeps its name; it rode this
+  deliver; no binding change). Needs a declaration in taps.py (a relabelled golden part) — per the coordinator's limit
+  (any other changed golden: stop) NOT made. LATEST still r-0a9930fb8826; CANDIDATE r-adc4e248a163; nothing deployed
+  beyond the feeds worker + /4 above.
