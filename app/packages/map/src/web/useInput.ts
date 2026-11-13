@@ -163,7 +163,7 @@ export function useHoverCursor({ map, renderer }: WebMapRefs, on: {
         .some((g) => typeof g.properties?.title === "string" && g.properties.title)) return true;
       if (on.obstacle && await r.pressObstacle(x, y)) return true;
       if (on.feature && await r.press(x, y)) return true;
-      return on.notFishing && await r.pressNotFishing(x, y);
+      return !!(on.notFishing && await r.pressNotFishing(x, y));
     };
     const move = (e: maplibregl.MapMouseEvent) => {
       if (frame) return;
