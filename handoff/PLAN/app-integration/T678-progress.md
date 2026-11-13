@@ -591,3 +591,17 @@ Owner's phone report (build 29, the More tab). Done in code, not yet in a build:
   branch are gone. Run on lane 2 (t707 APK, stale allowed, `--no-r2`): install + regs-open + zoom-flick 3/3 passed (the
   finding appeared in install). Static + test-bed unit tests, knip, check-tickets pass. No "opens once" assertion (needs
   feed data the test bed cannot arrange). Note in T706.
+
+## 2026-11-13 (agent: suite pins, T600, Gagnon, junctions) — IN PROGRESS, NOT promoted
+- Job 1 DONE (8ee53d251): the 14 stale/slow failures set to their real invariant, each cause read (D1 fold, T664 oxbow
+  takes, T209 r4, T696 diversion); the three steelhead lake twins are no regression (all 55 old sections bound by the
+  stream sibling, same words, take 0). The four "clear at next deliver" tests are checked on a scratch deliver from the
+  candidate (pending, below).
+- Job 2 DONE (8319d401a, 3f5529ffe): T600 one curated writer (`pipeline/common/curated_write.py`), 17 call sites moved,
+  review app's writes.py + marks.append handed over, guard `test_curated_writer.py`, AGENTS 36b.
+- Gagnon DONE in data (c24844fab): RULINGS P57, OWNER-TODO answered, `waters/pond_calls.json` keeps the unnamed lake a
+  lake, mouth cut on Williston, 400 m cut removed. T700 answer recorded (b8893242f).
+- Junctions code (c24844fab): cause B `blk_chains.upstream_measure` (1,317 features / 371 lines), cause A prune keeps
+  the moved junction's x/y and one junction per water+river. First candidate build showed 222 live pieces REMOVED
+  (braid channels ending in a lake, kept before by the gap rule): the duplicate check ran before the gap check. Fixed
+  (dedupe only after the gap check); atlas rebuild 2 running (heavy lane), then reach, diffs, id map, dry run, suite.
