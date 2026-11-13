@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  INSEASON_FAILURES, INSEASON_LINKS_FORMAT, inSeasonAbsentWaters, inSeasonBanner, inSeasonCover, inSeasonDates, inSeasonNoticeRows, inSeasonSpan, inSeasonSummary, inSeasonUnseen,
+  INSEASON_FAILURES, INSEASON_LINKS_FORMAT, inSeasonAbsentWaters, inSeasonBanner, inSeasonCover, inSeasonDates, inSeasonSpan, inSeasonSummary,
   inSeasonWhere, joinInSeason, parseInSeasonFeed, parseInSeasonLinks, type InSeasonChange, type InSeasonFeed, type InSeasonRow,
   type InSeasonRun, type InSeasonSection,
 } from "./inseason";
@@ -161,12 +161,10 @@ describe("in-season: the words, whole", () => {
     expect([p.where, p.line]).toEqual(["Where: From Hell's Gate to Spuzzum Creek confluence",
       "In-season change: T Where: From Hell's Gate to Spuzzum Creek confluence. — source ›"]);
   });
-  it("the notice rows, and which are unseen", () => {
-    const u = [{ id: "is-k", region: "4", water: "Kaslo River", from: "2025-04-04", to: null, text: "Rescinding …", source: SRC, waters: null },
-               { id: "is-p", region: "provincial", water: "All waters", from: null, to: null, text: "X", source: SRC, waters: null }];
-    expect(inSeasonNoticeRows(u).map((r) => `${r.where} | ${r.dates}`))
-      .toEqual(["Region 4 · Kaslo River | since Apr 4, 2025", "Provincial · All waters | null"]);
-    expect(inSeasonUnseen(u, new Set(["is-k"]))).toEqual(["is-p"]);
+  it("(T694) an unread notice's mark leads its line", () => {
+    const b = inSeasonBanner({ id: "is-a", region: "8", water: "Okanagan River", from: "2026-10-15",
+      to: "2026-11-30", text: "No fishing.", source: SRC, waters: null }, { where: null }, "updated");
+    expect([b.mark, b.line]).toEqual(["Updated", "Updated · In-season change (Oct 15–Nov 30): No fishing. — source ›"]);
   });
 });
 
@@ -205,6 +203,12 @@ describe("inSeasonSummary (T472)", () => {
     expect(inSeasonSummary([])).toBeNull();
     expect(inSeasonSummary([b("2025-05-16")])).toBe("In-season change (since May 16, 2025) · see ›");
     expect(inSeasonSummary([b(null), b(null)])).toBe("2 in-season changes · see ›");
+  });
+  it("(T694) unread marks: one says its mark first; several count them", () => {
+    const m = (mark: "new" | "updated" | null) => inSeasonBanner({ id: "x", region: "2", water: "Fraser River", from: "2025-05-16", to: null, text: "t", source: "u", waters: null }, { where: null }, mark);
+    expect(inSeasonSummary([m("new")])).toBe("New · In-season change (since May 16, 2025) · see ›");
+    expect(inSeasonSummary([m("new"), m("updated"), m(null)])).toBe("3 in-season changes (1 new, 1 updated) · see ›");
+    expect(inSeasonSummary([m("updated"), m("updated")])).toBe("2 in-season changes (2 updated) · see ›");
   });
 });
 

@@ -99,6 +99,10 @@ export function openInSeasonStore(): { read(): string | null; write(text: string
 export function openInSeasonSeenStore(): { read(): string | null; write(text: string): void } {
   return keyStore("canifishthis.inseasonSeen.v1");
 }
+/** (T700) this device's in-season notification history (`@app/core` `inboxText`). */
+export function openInSeasonInboxStore(): { read(): string | null; write(text: string): void } {
+  return keyStore("canifishthis.inseasonInbox.v1");
+}
 
 
 /** (T231) The update service's small state (`@app/data` `UpdateStore`): validators, times, the metered setting. */

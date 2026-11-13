@@ -68,6 +68,10 @@ export function openInSeasonStore(): { read(): string | null; write(text: string
 export function openInSeasonSeenStore(): { read(): string | null; write(text: string): void } {
   return fileStore("inseason-seen.json");
 }
+/** (T700) this device's in-season notification history (`@app/core` `inboxText`) — a file of its own. */
+export function openInSeasonInboxStore(): { read(): string | null; write(text: string): void } {
+  return fileStore("inseason-inbox.json");
+}
 
 
 /** (T231) The update service's small state (`@app/data` `UpdateStore`): validators, times, the metered setting. */

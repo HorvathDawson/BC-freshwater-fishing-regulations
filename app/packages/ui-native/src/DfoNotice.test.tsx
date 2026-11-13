@@ -17,7 +17,7 @@ const NEW_WATER = { fingerprint: "bb22", region: "6", items: [], water: "Brand N
 
 describe("the bell's DFO section (T521)", () => {
   it("a new water: DFO's region · the water, and DFO's words", () => {
-    render(<InSeasonNotice open rows={[]} palette={LIGHT} onClose={() => {}}
+    render(<InSeasonNotice open palette={LIGHT} onClose={() => {}}
                            dfo={dfoNoticeRows({ ...FEED, unplaced: 1, unplacedRows: [NEW_WATER] })} />);
     expect(screen.getAllByTestId("dfo-notice-row").map((r) => r.textContent))
       .toEqual(["DFO Region 6 Skeena · Brand New CreekCoho · Sep 1 to Oct 31 · 2 per day"]);
@@ -26,13 +26,13 @@ describe("the bell's DFO section (T521)", () => {
   });
 
   it("an unread list is said, never an empty bell", () => {
-    render(<InSeasonNotice open rows={[]} palette={LIGHT} onClose={() => {}} dfo={dfoNoticeRows({ ...FEED, unplaced: 1 })} />);
+    render(<InSeasonNotice open palette={LIGHT} onClose={() => {}} dfo={dfoNoticeRows({ ...FEED, unplaced: 1 })} />);
     expect(screen.getByTestId("dfo-notice-unread").textContent)
       .toBe("1 DFO place not yet on the map could not be read. They will show when the next check reads them.");
   });
 
   it("zero unplaced: no section", () => {
-    render(<InSeasonNotice open rows={[]} palette={LIGHT} onClose={() => {}} dfo={dfoNoticeRows({ ...FEED, unplaced: 0, unplacedRows: [] })} />);
+    render(<InSeasonNotice open palette={LIGHT} onClose={() => {}} dfo={dfoNoticeRows({ ...FEED, unplaced: 0, unplacedRows: [] })} />);
     expect(screen.queryByTestId("notice-dfo")).toBeNull();
     expect(screen.getByTestId("notice-empty")).toBeTruthy();
   });

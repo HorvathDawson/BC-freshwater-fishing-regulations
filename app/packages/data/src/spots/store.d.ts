@@ -29,6 +29,8 @@ export declare function openGaugeHistoryStore(): HistoryText;
 export declare function openInSeasonStore(): { read(): string | null; write(text: string): void };
 /** (T230) The in-season row ids this device has been shown in the notice (a JSON list). */
 export declare function openInSeasonSeenStore(): { read(): string | null; write(text: string): void };
+/** (T700) This device's in-season notification history (`@app/core` `inboxText`), as whole text under one name. */
+export declare function openInSeasonInboxStore(): { read(): string | null; write(text: string): void };
 /** (T231) The update service's small state (`@app/data` `UpdateStore`), as whole text under one name. */
 export declare function openUpdateStore(): { read(): string | null; write(text: string): void };
 /** (T251) The Updates log's ring buffer (development and staging builds only), as whole text. */

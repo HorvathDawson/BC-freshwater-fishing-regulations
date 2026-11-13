@@ -52,7 +52,7 @@ describe("the bell's sync section (owner 2026-10-28)", () => {
     const failed: UpdateSourceInput[] = [{ k: "release", checkedAt: null, updatedAt: null, error: "HTTP 503", failedAt: NOW,
                                            offline: false }];
     let retried = 0;
-    render(<InSeasonNotice open rows={[]} palette={LIGHT} onClose={() => {}}
+    render(<InSeasonNotice open palette={LIGHT} onClose={() => {}}
                            sync={{ failed, checking: false, onRetry: () => { retried++; } }} />);
     expect(screen.getByTestId("sync-error-release").textContent)
       .toBe("Regulations, map and salmon dataThe server did not answerNot reached from this device yet");

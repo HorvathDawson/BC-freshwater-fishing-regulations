@@ -2,15 +2,18 @@
  * (T230) THE PROVINCIAL IN-SEASON CHANGES, as hooks: the feed + links read once per poll (`useInSeason`, the Shell's),
  * handed down by `InSeasonContext`; WHERE each lands on a page (`useInSeasonCovers`, T520: core's one `inSeasonCover`
  * over the water's section lines — the banners, the KeepTab line and the water map's highlight all read it); the
- * banners on one Regulations page (`useInSeasonBanners`); the app-wide notice of
- * the changes not matched to a water yet (`useInSeasonNotice`: it opens by itself once per row per device, and its
- * badge re-opens it). Every word is core's (`inSeasonBanner`, `inSeasonNoticeRows`, `INSEASON_WORDS`).
+ * banners on one Regulations page (`useInSeasonBanners`, with T694's "New"/"Updated" marks); the device's history of
+ * notices, the bell's inbox (`useInSeasonInbox`, T700: it opens by itself once for a notice not on the map yet, and the
+ * bell opens it). Every word is core's (`inSeasonBanner`, `inboxVM`, `INSEASON_WORDS`, `INBOX_WORDS`).
  *
  * Informational only: nothing here touches an answer, a status or the map's colours.
  */
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { INSEASON_FAILURES, INSEASON_WORDS, inSeasonAbsentWaters, inSeasonBanner, inSeasonCover, reportFailure, inSeasonNoticeRows, inSeasonUnseen, isoDayOf, joinInSeason,
-         type InSeasonBannerVM, type InSeasonChange, type InSeasonCover, type InSeasonNoticeRow, type InSeasonSection,
+import { INBOX_WORDS, INSEASON_FAILURES, inSeasonAbsentWaters, inSeasonBanner, inSeasonCover, reportFailure, isoDayOf, joinInSeason,
+         inboxDetail, inboxMark, inboxMerge, inboxPrompted, inboxRead, inboxReadAll, inboxTarget, inboxText, inboxUnread,
+         inboxVM, inboxWantsOpen, parseInbox,
+         type InboxArrival, type InboxDetailVM, type InboxState, type InboxVM,
+         type InSeasonBannerVM, type InSeasonChange, type InSeasonCover, type InSeasonSection,
          bcNow } from "@app/core";
 import type { InSeasonData, InSeasonSource } from "@app/data";
 import type { RegsStore } from "@app/data/regs";
@@ -32,6 +35,8 @@ export interface InSeasonNow {
   readonly data: InSeasonData | null;
   /** this device's data release (T693: which matched waters it holds is asked per release) */
   readonly release: string | null;
+  /** (T700) why the newest feed could not be read (the source's `failure()`, also reported), or null */
+  readonly failure?: string | null;
 }
 
 const NONE: InSeasonNow = { matched: [], unmatched: [], data: null, release: null };
@@ -52,6 +57,7 @@ export function useInSeason(source: InSeasonSource | null | undefined, epoch = 0
                             release: string | null = null, holds: HoldsWater | null = null): InSeasonNow {
   const tick = usePoll(INSEASON_POLL_MS, !!source);
   const [data, setData] = useState<InSeasonData | null>(null);
+  const [failure, setFailure] = useState<string | null>(null);
   // (T520) the device's release changed (a data update applied): the links are asked again (T673: the same file is
   // read on any release, but which waters it holds and their section lines are the new release's)
   const heldRelease = useRef(release);
@@ -60,7 +66,11 @@ export function useInSeason(source: InSeasonSource | null | undefined, epoch = 0
     if (heldRelease.current !== release) { heldRelease.current = release; source?.refresh?.(); }
     // (T368) a failure is reported (shown by the update service's own check of this feed, the sync badge); the last
     // read stays — offline is not a failure here (the source answers its capture)
-    if (source) void source.latest().then((d) => { if (live && d) setData(d); }, reportFailure);
+    if (source) void source.latest().then((d) => {
+      if (!live) return;
+      if (d) setData(d);
+      setFailure(source.failure?.() ?? null);
+    }, reportFailure);
     return () => { live = false; };
     // (T231) `epoch`: bumped when the update service sees the feed move (the source was told to forget it)
   }, [source, tick, epoch, release]);
@@ -77,8 +87,9 @@ export function useInSeason(source: InSeasonSource | null | undefined, epoch = 0
   }, key, !!holds && waters.length > 0);
   const absent = asked.state === "ready" && asked.value.size ? asked.value : null;
   const out = useMemo(() => (data && base
-    ? { ...(absent ? joinInSeason(data.feed, data.links, today, absent) : base), data, release } : NONE),
-    [data, base, absent, today, release]);
+    ? { ...(absent ? joinInSeason(data.feed, data.links, today, absent) : base), data, release, failure }
+    : failure ? { ...NONE, failure } : NONE),
+    [data, base, absent, today, release, failure]);
   useEffect(() => {
     if (!absent) return;
     for (const c of base?.matched ?? []) {
@@ -195,12 +206,37 @@ export function useReleaseLines(loader: Pick<ReleaseLoader, "manifest" | "db"> |
   return useMemo(() => (loader ? openLineReads(loader) : null), [loader]);
 }
 
-/** The banners on one Regulations page, for its day (null: today): `useInSeasonCovers`, worded. */
+/**
+ * The banners on one Regulations page, for its day (null: today): `useInSeasonCovers`, worded.
+ *
+ * (T694) An unread notice carries its "New" / "Updated" mark (the inbox's, `InSeasonInboxContext`). Shown on the page,
+ * it is SEEN: read in the inbox at once, while this page keeps the mark it was opened with (taken once per notice per
+ * water), so the reader is not shown a mark that vanishes under them.
+ */
 export function useInSeasonBanners(store: Pick<RegsStore, "navRows" | "statics"> | null,
                                    lines: Pick<LineReads, "hasLines" | "sectionLine"> | null,
                                    page: InSeasonPage | null, day: Date | null): readonly InSeasonBannerVM[] {
   const covers = useInSeasonCovers(store, lines, page, day);
-  return useMemo(() => covers.map((p) => inSeasonBanner(p.change, p.cover)), [covers]);
+  const inbox = useContext(InSeasonInboxContext);
+  const marks = useRef<{ item: string | null; of: Map<string, InboxArrival | null> }>({ item: null, of: new Map() });
+  const banners = useMemo(() => {
+    if (marks.current.item !== (page?.item ?? null)) marks.current = { item: page?.item ?? null, of: new Map() };
+    const of = marks.current.of;
+    for (const p of covers) if (!of.has(p.change.id)) of.set(p.change.id, inbox?.markOf(p.change.id) ?? null);
+    return covers.map((p) => inSeasonBanner(p.change, p.cover, of.get(p.change.id) ?? null));
+  }, [covers, inbox, page?.item]);
+  const marked = banners.filter((b) => b.mark).map((b) => b.id).join(",");
+  useEffect(() => { if (marked && inbox) inbox.read(marked.split(",")); }, [marked, inbox]);
+  return banners;
+}
+
+/** (T700) Whether an inbox row opened this page at one of these notices: true once (the banners open). */
+export function useInSeasonFocus(ids: readonly string[]): boolean {
+  const inbox = useContext(InSeasonInboxContext);
+  const [on, setOn] = useState(false);
+  const key = ids.join(",");
+  useEffect(() => { if (key && inbox?.takeFocus(key.split(","))) setOn(true); }, [key, inbox]);
+  return on;
 }
 
 /** (T518) The sections the water's map outlines for the changes on it today: each change's own sections, or (`all`,
@@ -213,42 +249,116 @@ export function inSeasonSections(covers: readonly InSeasonOnPage[], all: readonl
 
 export interface InSeasonSeenStore { read(): string | null; write(text: string): void }
 
-export interface InSeasonNoticeState {
-  /** the unmatched changes in effect today, worded */
-  readonly rows: readonly InSeasonNoticeRow[];
-  /** the badge's count (0: no badge) and its words */
-  readonly count: number;
-  readonly label: string;
-  readonly open: boolean;
-  show(): void;
-  /** close, and remember every row shown as seen on this device */
-  close(): void;
+/** (T230) the ids T230's notice showed on this device: read once, to start the T700 history quiet for them */
+function readSeen(store: InSeasonSeenStore | null | undefined): Set<string> {
+  if (!store) return new Set();
+  try { const t = store.read(); const j = t ? JSON.parse(t) : []; return new Set(Array.isArray(j) ? j.map(String) : []); }
+  catch (e) { reportFailure(e); return new Set(); }
 }
 
-function readSeen(store: InSeasonSeenStore | null | undefined): Set<string> {
-  try { const t = store?.read(); const j = t ? JSON.parse(t) : []; return new Set(Array.isArray(j) ? j.map(String) : []); }
-  catch { return new Set(); }
+/** (T694) What a Regulations page asks of the inbox: a notice's mark, reading it, and the notice a row opened it at. */
+export interface InSeasonInboxReads {
+  markOf(id: string): InboxArrival | null;
+  read(ids: readonly string[]): void;
+  /** the notice an inbox row opened its water at (its banner opens), once */
+  takeFocus(ids: readonly string[]): boolean;
+}
+export const InSeasonInboxContext = createContext<InSeasonInboxReads | null>(null);
+
+export interface InSeasonInboxState {
+  /** the list, grouped "New" then "Earlier" (core `inboxVM`) */
+  readonly vm: InboxVM;
+  /** a notice opened that has no one page to go to: its text (core `inboxDetail`); null: the list */
+  readonly detail: InboxDetailVM | null;
+  /** the feed could not be read: the inbox's line (`INBOX_WORDS.failure`), else null */
+  readonly failure: string | null;
+  /** the bell's in-season count (unread) and its words */
+  readonly count: number;
+  readonly label: string | null;
+  /** it opened by itself (an unread notice not on the map yet it has not opened for) */
+  readonly open: boolean;
+  /** a row tapped: read; its one water's page (`onOpenWater`), else its text */
+  pick(id: string): void;
+  back(): void;
+  readAll(): void;
+  /** the sheet closed: back to the list, and what it opened by itself for is not opened for again */
+  close(): void;
+  readonly reads: InSeasonInboxReads;
 }
 
 /**
- * THE APP-WIDE NOTICE: opens by itself when a row in effect with no match yet has not been shown on this device; the
- * badge (count) re-opens it any time; a row leaves it by itself once it is matched or no longer in effect.
+ * (T700, T694) THE IN-SEASON INBOX: this device's history of in-season notices (core `inboxMerge` after every feed read),
+ * kept in `store` (per device, nothing sent). Unread count for the bell; "New"/"Updated" marks for the pages; it opens by
+ * itself once for a notice not on the map yet (as T230's notice did) — the same sheet the bell opens. A history that
+ * cannot be read or saved is REPORTED (`INSEASON_FAILURES.unreadableInbox` / `inboxWrite`), never dropped quietly.
  */
-export function useInSeasonNotice(unmatched: readonly InSeasonChange[],
-                                  store?: InSeasonSeenStore | null): InSeasonNoticeState {
-  const [open, setOpen] = useState(false);
-  const rows = useMemo(() => inSeasonNoticeRows(unmatched), [unmatched]);
-  const ids = rows.map((r) => r.id).join(",");
+export function useInSeasonInbox(now: InSeasonNow, store: InSeasonSeenStore | null | undefined,
+                                 seenStore: InSeasonSeenStore | null | undefined,
+                                 onOpenWater: (item: string, id: string) => void): InSeasonInboxState {
+  const [state, setState] = useState<InboxState | null>(() => {
+    if (!store) return null;
+    try { return parseInbox(store.read()); }
+    catch (e) {
+      reportFailure(new Error(INSEASON_FAILURES.unreadableInbox(e instanceof Error ? e.message : String(e))));
+      return null;
+    }
+  });
+  const [detail, setDetail] = useState<string | null>(null);
+  const [opened, setOpened] = useState(false);
+  /** the notice a row opened its water's page at, and the mark it had: the page shows it once though it is read now */
+  const focus = useRef<{ id: string; mark: InboxArrival | null } | null>(null);
+  const today = isoDayOf(bcNow());
+  // the latest history, ahead of the render: two changes in one press (read, then prompted) build on each other
+  const stateRef = useRef(state);
+  const save = useCallback((next: InboxState) => {
+    stateRef.current = next;
+    setState(next);
+    if (!store) return;
+    try { store.write(inboxText(next)); }
+    catch (e) { reportFailure(new Error(INSEASON_FAILURES.inboxWrite(e instanceof Error ? e.message : String(e)))); }
+  }, [store]);
+  // every feed read (and every change of which waters this release holds) folds into the history
   useEffect(() => {
-    if (rows.length && inSeasonUnseen(unmatched, readSeen(store)).length) setOpen(true);
-  // once per set of ids
-  }, [ids]);
+    if (!now.data) return;
+    const was = stateRef.current;
+    const next = inboxMerge(was, now.data.feed, now, today, was ? new Set() : readSeen(seenStore));
+    if (!was || inboxText(next) !== inboxText(was)) save(next);
+  }, [now, today, save, seenStore]);
+  useEffect(() => { if (inboxWantsOpen(state)) setOpened(true); }, [state]);
+  const update = useCallback((f: (s: InboxState) => InboxState) => {
+    const s = stateRef.current;
+    if (!s) return;
+    const next = f(s);
+    if (inboxText(next) !== inboxText(s)) save(next);
+  }, [save]);
   const close = useCallback(() => {
-    setOpen(false);
-    const seen = readSeen(store);
-    for (const r of rows) seen.add(r.id);
-    try { store?.write(JSON.stringify([...seen].sort())); } catch { /* a preference: it only opens once more */ }
-  }, [rows, store]);
-  const show = useCallback(() => setOpen(true), []);
-  return { rows, count: rows.length, label: INSEASON_WORDS.badge(rows.length), open: open && rows.length > 0, show, close };
+    setOpened(false); setDetail(null);
+    update(inboxPrompted);
+  }, [update]);
+  const pick = useCallback((id: string) => {
+    const s = stateRef.current;
+    update((x) => inboxRead(x, [id]));
+    const to = inboxTarget(s, id);
+    if (!to) { setDetail(id); return; }
+    focus.current = { id, mark: inboxMark(s, id) };
+    close();
+    onOpenWater(to.item, id);
+  }, [update, close, onOpenWater]);
+  const reads = useMemo<InSeasonInboxReads>(() => ({
+    markOf: (id) => (focus.current?.id === id ? focus.current.mark : inboxMark(stateRef.current, id)),
+    read: (ids) => update((x) => inboxRead(x, ids)),
+    takeFocus: (ids) => {
+      if (focus.current === null || !ids.includes(focus.current.id)) return false;
+      focus.current = null;
+      return true;
+    },
+  }), [update]);
+  const vm = useMemo(() => inboxVM(state, today), [state, today]);
+  const count = inboxUnread(state);
+  return {
+    vm, detail: detail ? inboxDetail(state, detail, today) : null,
+    failure: now.failure ? INBOX_WORDS.failure : null,
+    count, label: count ? INBOX_WORDS.badge(count) : null,
+    open: opened, pick, back: () => setDetail(null), readAll: () => update(inboxReadAll), close, reads,
+  };
 }

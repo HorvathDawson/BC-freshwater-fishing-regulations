@@ -223,6 +223,8 @@ describe("back, everywhere: every surface registers a back layer", () => {
       "packages/ui-native/src/Faces.tsx#FaceBar: takes onBack",
       // (T367) the forecast day list under the horizon strip (registered: back closes the list)
       "packages/ui-native/src/HorizonPicker.tsx#HorizonPicker: draws HorizonPicker",
+      // (T700) a notice opened in the bell's inbox: back steps back to the list
+      "packages/ui-native/src/InSeasonInbox.tsx#InSeasonInboxDetail: takes onBack",
       "packages/ui-native/src/InSeasonNotice.tsx#InSeasonNotice: takes onClose",
       "packages/ui-native/src/LayersSheet.tsx#LayersSheet: takes onClose",
       // (T303) the rail's one-line location notice (why there is no dot): a tap puts it away; not a surface (COVERED)

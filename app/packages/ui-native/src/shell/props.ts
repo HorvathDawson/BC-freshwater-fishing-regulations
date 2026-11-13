@@ -56,6 +56,8 @@ export interface ShellProps {
   salmonFeed?: import("@app/data").SalmonFeedSource | null;
   /** (T230) the in-season row ids this device has been shown in the notice (once per row per device). */
   inSeasonSeen?: import("@app/ui").InSeasonSeenStore | null;
+  /** (T700) this device's history of in-season notices: the bell's inbox (per device, nothing sent). */
+  inSeasonInbox?: import("@app/ui").InSeasonSeenStore | null;
   /**
    * (T390) the platform's way to a newer app (`apps/mobile` `appUpdater`: Play's in-app update, the App Store page, the
    * staging APK page) and where its once-a-day check is kept. Absent: no gentle prompt; a release refused for an old

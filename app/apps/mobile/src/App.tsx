@@ -28,7 +28,7 @@ import { createNet, shareFetch, createReportOutbox, createUpdateLog, createUpdat
          type Held, type UpdateService, type WaterSource } from "@app/data";
 import { bootSaid, type MobileDataGate, type ReleaseLoader } from "@app/data/release";
 import * as platform from "@app/data/release/platform";
-import { fillDayFlow, onVisit, visitIdOf, storedHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openGaugeHistoryStore, openInSeasonStore, openInSeasonSeenStore, openFirstRunStore, openDataModeStore, openWalkthroughStore, openLocationAskStore, openAppUpdateStore, openRecentSearchStore, openRunSpeciesStore, openUpdateStore, openUpdateLogStore, openReportOutboxStore, openCrashSettingStore, openCrashPendingStore, openCrashExitStore, openInstallIdStore, openMeteo, openPhotos, openSpots, needsRefresh, refreshSpot,
+import { fillDayFlow, onVisit, visitIdOf, storedHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openGaugeHistoryStore, openInSeasonStore, openInSeasonSeenStore, openInSeasonInboxStore, openFirstRunStore, openDataModeStore, openWalkthroughStore, openLocationAskStore, openAppUpdateStore, openRecentSearchStore, openRunSpeciesStore, openUpdateStore, openUpdateLogStore, openReportOutboxStore, openCrashSettingStore, openCrashPendingStore, openCrashExitStore, openInstallIdStore, openMeteo, openPhotos, openSpots, needsRefresh, refreshSpot,
          type DayFlowAnswer, type Spot } from "@app/data/spots";
 import { Button, connectivity, ErrorState, LoadingState, SayingLine, setSynopsisNet, setSynopsisSource, Shell, StageBar, THEMES, UpdateToast, type ThemeName,
          platformLine, type ShellProps, type UpdatesLogControls } from "@app/ui-native";
@@ -226,6 +226,7 @@ export default function App() {
   // T230: the provincial in-season changes and where each applies, the last capture kept for offline; the ids shown
   const inSeason = useMemo(() => httpInSeason(ENDPOINTS.inSeason, openInSeasonStore()), []);
   const inSeasonSeen = useMemo(() => openInSeasonSeenStore(), []);
+  const inSeasonInbox = useMemo(() => openInSeasonInboxStore(), []);
   // T236: the first-run notice (not legal advice), once per device
   const firstRun = useMemo(() => openFirstRunStore(), []);
   const walkthrough = useMemo(() => openWalkthroughStore(), []);
@@ -665,7 +666,7 @@ export default function App() {
                onSaveSpot={spotsHook.save}
                spotsError={spotsHook.spots.state === "failed" ? spotsHook.error : null}
                feed={feed}
-               inSeason={inSeason} inSeasonSeen={inSeasonSeen} salmonFeed={salmonFeed} firstRun={firstRun} walkthrough={walkthrough} recentSearches={recentSearches}
+               inSeason={inSeason} inSeasonSeen={inSeasonSeen} inSeasonInbox={inSeasonInbox} salmonFeed={salmonFeed} firstRun={firstRun} walkthrough={walkthrough} recentSearches={recentSearches}
                runTiming={runTiming} runSpeciesStore={runSpeciesStore}
                refreshing={refreshing}
                onDeleteSpot={spotsHook.remove}

@@ -24,6 +24,7 @@ export * from "./salmon";
 export * from "./salmonFeed";
 export * from "./runTiming";
 export * from "./inseason";
+export * from "./inseasonInbox";
 export * from "./glance";
 export * from "./method";
 export * from "./paint";

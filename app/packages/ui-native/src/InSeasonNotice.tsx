@@ -1,24 +1,26 @@
 /**
- * (T230) THE IN-SEASON NOTICE: the provincial in-season changes in effect that are not placed on the map yet, as the
- * province printed them — region and water, the dates, the change verbatim, and its source. It opens by itself once per
- * row per device and from the top bar's bell (`@app/ui` `useInSeasonNotice`); words are core's (`INSEASON_WORDS`,
- * `inSeasonNoticeRows`). A scrolling sheet at every width (a centred dialog on a wide screen).
+ * (T230) THE BELL'S SHEET: the app and data updates, the sources that failed, (T700) THE IN-SEASON INBOX — every in-season
+ * notice this device has met, unread first (`InSeasonInbox`, `@app/ui` `useInSeasonInbox`) — and the DFO section. It
+ * opens from the top bar's bell, and by itself once for an in-season notice not on the map yet (as T230's notice did).
+ * A notice opened that has no one page to go to shows its text here, in place of the list. Words are core's. A
+ * scrolling sheet at every width (a centred dialog on a wide screen).
  */
 import { useState } from "react";
 import { View } from "react-native";
 import { Text } from "./Text";
-import { DFO_NOTICE_WORDS, INSEASON_WORDS, syncErrorVM, type DfoNoticeVM, UPDATE_WORDS, type AppUpdateVM, type InSeasonNoticeRow, type ReleaseNoticeVM,
+import { DFO_NOTICE_WORDS, INBOX_WORDS, INSEASON_WORDS, syncErrorVM, type DfoNoticeVM, UPDATE_WORDS, type AppUpdateVM, type ReleaseNoticeVM,
          type UpdateSourceInput, now } from "@app/core";
 import { SyncFailures } from "./SyncErrorSheet";
 import { Button } from "./Button";
-import { RegsPress } from "./regs/RegsPress";
+import { InSeasonInbox, InSeasonInboxDetail, type InboxProps } from "./InSeasonInbox";
 import { Sheet } from "./Sheet";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
-import { linkTo } from "./openLink";
 
-export function InSeasonNotice({ open, rows, palette, onClose, sync = null, release = null, app = null, dfo = null }: {
-  open: boolean; rows: readonly InSeasonNoticeRow[]; palette: Palette; onClose: () => void;
+export function InSeasonNotice({ open, inbox = null, palette, onClose, sync = null, release = null, app = null, dfo = null }: {
+  open: boolean; palette: Palette; onClose: () => void;
+  /** (T700) the in-season inbox (`@app/ui` `useInSeasonInbox`); null: no section */
+  inbox?: InboxProps | null;
   /** (T521) THE BELL'S DFO SECTION, after the in-season rows: DFO rules on a water no curated binding knows (core
    *  `dfoNoticeRows`), and a list the feed could not read. Null or nothing: no section. */
   dfo?: DfoNoticeVM | null;
@@ -42,19 +44,31 @@ export function InSeasonNotice({ open, rows, palette, onClose, sync = null, rele
   const rel = release?.vm ?? null;
   const upd = app?.vm ?? null;
   const dfoOn = !!dfo && (dfo.rows.length > 0 || !!dfo.unread);
-  const others = rows.length > 0 || dfoOn || !!(sync && sync.failed.length);
+  // (T700) the inbox counts as a section while it holds a notice (read or not) or a line saying the feed failed
+  const inboxOn = !!inbox && (!inbox.vm.empty || !!inbox.failure);
+  const others = inboxOn || dfoOn || !!(sync && sync.failed.length);
   const failed = sync && sync.failed.length ? syncErrorVM(sync.failed, now()) : null;
   // (owner 2026-10-29) the bell is always drawn, so it can open on nothing: "No notifications"
-  const empty = !upd && !rel && !failed && rows.length === 0 && !dfoOn;
+  const empty = !upd && !rel && !failed && !inboxOn && !dfoOn;
   const title = empty ? UPDATE_WORDS.bell.noneTitle : upd && !rel && !others ? upd.title
     : upd ? UPDATE_WORDS.bell.title : rel && !others ? rel.title
-    : failed && rows.length || rel && others ? UPDATE_WORDS.bell.title
-    : failed && dfoOn || rows.length && dfoOn ? UPDATE_WORDS.bell.title
-    : failed ? failed.title : rows.length ? INSEASON_WORDS.noticeTitle : DFO_NOTICE_WORDS.title;
+    : failed && inboxOn || rel && others ? UPDATE_WORDS.bell.title
+    : failed && dfoOn || inboxOn && dfoOn ? UPDATE_WORDS.bell.title
+    : failed ? failed.title : inboxOn ? INBOX_WORDS.title : DFO_NOTICE_WORDS.title;
+  // (T700) a notice opened from the list that has no one page to go to: its text, in the list's place
+  if (inbox?.detail) return (
+    <Sheet open={open} onClose={onClose} title={INBOX_WORDS.title} sub={null} palette={palette} scroll dialog>
+      <View testID="inseason-notice" style={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 12, gap: 14 }}>
+        <InSeasonInboxDetail d={inbox.detail} palette={palette} onBack={inbox.back} />
+        <Button palette={palette} label={INSEASON_WORDS.noticeClose} onPress={onClose} />
+      </View>
+    </Sheet>
+  );
   return (
     <Sheet open={open} onClose={onClose} title={title} sub={null} palette={palette} scroll dialog>
       <View testID="inseason-notice" style={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 12, gap: 14 }}>
         {empty && <Text testID="notice-empty" style={{ ...TYPE.body, color: palette.sub }}>{UPDATE_WORDS.bell.none}</Text>}
+        {empty && inbox && <Text testID="notice-empty-sub" style={{ ...TYPE.small, color: palette.sub }}>{INBOX_WORDS.emptySub}</Text>}
         {upd && app && (
           <View testID="notice-app" style={{ gap: 8 }}>
             {(rel || others) && <Text accessibilityRole="header" style={{ ...TYPE.section, color: palette.sub }}>{upd.title}</Text>}
@@ -109,34 +123,15 @@ export function InSeasonNotice({ open, rows, palette, onClose, sync = null, rele
         {rel && others && <View style={{ height: 1, backgroundColor: palette.line }} />}
         {failed && (
           <View testID="notice-sync" style={{ gap: 8 }}>
-            {(rows.length > 0 || !!rel) && <Text accessibilityRole="header" style={{ ...TYPE.section, color: palette.sub }}>{failed.title}</Text>}
+            {(inboxOn || !!rel) && <Text accessibilityRole="header" style={{ ...TYPE.section, color: palette.sub }}>{failed.title}</Text>}
             <Text style={{ ...TYPE.small, color: palette.sub }}>{failed.sub}</Text>
             <SyncFailures vm={failed} palette={palette} checking={sync!.checking} onRetry={sync!.onRetry} />
           </View>
         )}
-        {failed && rows.length > 0 && (
-          <Text accessibilityRole="header" style={{ ...TYPE.section, color: palette.sub, paddingTop: 6 }}>
-            {INSEASON_WORDS.noticeTitle}
-          </Text>
-        )}
-        {rows.length > 0 && <Text style={{ ...TYPE.body, color: palette.ink }}>{INSEASON_WORDS.noticeIntro}</Text>}
-        {rows.map((r) => (
-          <View key={r.id} testID="inseason-notice-row"
-                style={{ borderLeftWidth: 4, borderLeftColor: palette.attention, paddingLeft: 10, gap: 2 }}>
-            <Text style={{ ...TYPE.metaBold, color: palette.ink }}>{r.where}{r.dates ? ` · ${r.dates}` : ""}</Text>
-            <Text style={{ ...TYPE.body, color: palette.ink }}>{r.text}</Text>
-            {!!r.url && (
-              <RegsPress accessibilityRole="link" accessibilityLabel={INSEASON_WORDS.sourceLabel}
-                         onPress={linkTo(r.url)} box={{ w: 44, h: 32 }}
-                         style={{ minHeight: 32, justifyContent: "center", alignSelf: "flex-start" }}>
-                <Text style={{ ...TYPE.metaBold, color: palette.accent }}>{INSEASON_WORDS.source}</Text>
-              </RegsPress>
-            )}
-          </View>
-        ))}
+        {inboxOn && <InSeasonInbox inbox={inbox!} palette={palette} header={!!failed || !!rel || !!upd || dfoOn} />}
         {dfoOn && (
-          <View testID="notice-dfo" style={{ gap: 8, paddingTop: rows.length || failed ? 6 : 0 }}>
-            {(rows.length > 0 || !!failed || !!rel || !!upd) && (
+          <View testID="notice-dfo" style={{ gap: 8, paddingTop: inboxOn || failed ? 6 : 0 }}>
+            {(inboxOn || !!failed || !!rel || !!upd) && (
               <Text accessibilityRole="header" style={{ ...TYPE.section, color: palette.sub }}>{DFO_NOTICE_WORDS.title}</Text>
             )}
             {dfo!.rows.length > 0 && <Text style={{ ...TYPE.body, color: palette.ink }}>{DFO_NOTICE_WORDS.intro}</Text>}

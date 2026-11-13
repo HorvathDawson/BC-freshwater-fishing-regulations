@@ -21,7 +21,6 @@
  */
 import { MONTHS } from "./calendar.generated";
 import { FEED_FORMATS } from "./feedFormats.generated";
-import { MENU_WORDS } from "./menu/words";
 import { endWords, type EndsTable } from "./ends";
 
 // (T556) generated from the Python writers' one table (pipeline/common/feed_formats.py): never a literal here
@@ -41,13 +40,18 @@ export interface InSeasonRow {
                       readonly window?: { readonly from_month?: number; readonly from_day?: number;
                                           readonly to_month?: number; readonly to_day?: number } | null };
   readonly status?: string;
+  /** (T694) the feeds worker's link to the text this row amends: set with status "changed" (`buildFeed`) */
+  readonly previous?: { readonly change: string; readonly effective: string };
+  /** when the worker first met the row, and when it last changed (ISO) */
+  readonly firstSeen?: string;
+  readonly changedAt?: string;
 }
 export interface InSeasonFeed {
   readonly format: typeof INSEASON_FEED_FORMAT;
   readonly fetchedAt: string;
   readonly source: string;
   readonly rows: readonly InSeasonRow[];
-  readonly removed: readonly { readonly id: string }[];
+  readonly removed: readonly { readonly id: string; readonly removedAt?: string }[];
 }
 /** (T520, T673) one FWA range: stream key, start, end (metres) — every section whose line [from, to) on that stream
  *  overlaps [m0, m1) (`inSeasonCover`) */
@@ -248,6 +252,10 @@ export const INSEASON_FAILURES = {
   noHolds: (e: string) => `in-season: could not ask this release which matched waters it holds: ${e}`,
   /** (T517) the release's `display.ends` could not be read: no "Where" can be said */
   noTable: "in-season: this release's display.ends could not be read",
+  /** (T700) this device's notification history could not be read: it starts again (a first read) */
+  unreadableInbox: (e: string) => `in-season inbox: the saved history could not be read (${e}) — started again`,
+  /** (T700) this device's notification history could not be saved: what was read may show as unread again */
+  inboxWrite: (e: string) => `in-season inbox: the history could not be saved (${e})`,
 } as const;
 
 /**
@@ -307,10 +315,9 @@ export const INSEASON_WORDS = {
   /** (T518) where on the page's water a change covering only part of it applies (`inSeasonWhere`) */
   where: (where: string) => `Where: ${where}`,
   informational: "Shown as posted; the answers on this page do not include it yet.",
-  noticeTitle: MENU_WORDS.sources.names.inseason,
-  noticeIntro: "The province has posted changes we have not placed on the map yet. Check each one before you fish.",
   noticeClose: "Got it",
-  badge: (n: number) => `${n} in-season ${n === 1 ? "change" : "changes"} not on the map yet`,
+  /** (T694) the mark an unread notice carries on its water's page and in the inbox */
+  marks: { new: "New", updated: "Updated" },
 } as const;
 
 export interface InSeasonBannerVM {
@@ -324,6 +331,8 @@ export interface InSeasonBannerVM {
   /** (T518) "Where: From A to B" when the change covers only part of the page; null: all of it */
   readonly where: string | null;
   readonly note: string;
+  /** (T694) "New" / "Updated": an unread notice on this device; null: none */
+  readonly mark: string | null;
 }
 
 /**
@@ -333,36 +342,28 @@ export interface InSeasonBannerVM {
  */
 export function inSeasonSummary(banners: readonly InSeasonBannerVM[]): string | null {
   if (!banners.length) return null;
-  return `${banners.length === 1 ? banners[0]!.head : `${banners.length} in-season changes`} · ${INSEASON_WORDS.see}`;
+  if (banners.length === 1) {
+    const b = banners[0]!;
+    return `${b.mark ? `${b.mark} · ` : ""}${b.head} · ${INSEASON_WORDS.see}`;
+  }
+  // (T694) "3 in-season changes (1 new, 1 updated) · see ›"
+  const n = (m: string) => banners.filter((b) => b.mark === m).length;
+  const marks = [[n(INSEASON_WORDS.marks.new), "new"], [n(INSEASON_WORDS.marks.updated), "updated"]] as const;
+  const said = marks.filter(([k]) => k > 0).map(([k, w]) => `${k} ${w}`).join(", ");
+  return `${banners.length} in-season changes${said ? ` (${said})` : ""} · ${INSEASON_WORDS.see}`;
 }
 
-export function inSeasonBanner(change: InSeasonChange, cover: Pick<InSeasonCover, "where">): InSeasonBannerVM {
+/** (T694) `mark`: the notice is unread on this device, as it arrived (core `inboxMark`) */
+export function inSeasonBanner(change: InSeasonChange, cover: Pick<InSeasonCover, "where">,
+                               mark: "new" | "updated" | null = null): InSeasonBannerVM {
   const dates = inSeasonDates(change.from, change.to);
   const head = `In-season change${dates ? ` (${dates})` : ""}`;
   const where = cover.where ? INSEASON_WORDS.where(cover.where) : null;
+  const m = mark ? INSEASON_WORDS.marks[mark] : null;
   return { id: change.id, head, text: change.text, source: INSEASON_WORDS.source, url: change.source,
-           line: `${head}: ${change.text}${where ? ` ${where}.` : ""} — ${INSEASON_WORDS.source}`,
-           where, note: INSEASON_WORDS.informational };
-}
-
-export interface InSeasonNoticeRow {
-  readonly id: string;
-  /** "Region 4 · Kaslo River" — the region and the water as the province printed them */
-  readonly where: string;
-  readonly dates: string | null;
-  readonly text: string;
-  readonly url: string;
+           line: `${m ? `${m} · ` : ""}${head}: ${change.text}${where ? ` ${where}.` : ""} — ${INSEASON_WORDS.source}`,
+           where, note: INSEASON_WORDS.informational, mark: m };
 }
 
 /** "7a" -> "Region 7A": a region code as every surface names it (T622: the public site's water pages read it too) */
 export const regionWords = (r: string) => (/^\d[AB]?$/i.test(r) ? `Region ${r.toUpperCase()}` : r === "provincial" ? "Provincial" : r);
-
-export function inSeasonNoticeRows(unmatched: readonly InSeasonChange[]): InSeasonNoticeRow[] {
-  return unmatched.map((c) => ({ id: c.id, where: `${regionWords(c.region)} · ${c.water}`,
-                                 dates: inSeasonDates(c.from, c.to), text: c.text, url: c.source }));
-}
-
-/** The ids the notice should open for on load: unmatched rows in effect this device has not been shown. */
-export function inSeasonUnseen(unmatched: readonly InSeasonChange[], seen: ReadonlySet<string>): string[] {
-  return unmatched.map((c) => c.id).filter((id) => !seen.has(id));
-}

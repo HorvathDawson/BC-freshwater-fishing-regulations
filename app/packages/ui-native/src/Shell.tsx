@@ -26,10 +26,10 @@
  */
 import { GUIDE_WATER, WATER_SCREEN_WORDS, bellLabel, releaseNoticeVM, dayRange, placeholderFor, runSheet, stepDay, syncVM, type NotFishingKind, bcNow, now as clockNow, reportFailure } from "@app/core";
 import type { ItemId } from "@app/data";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Platform, View } from "react-native";
 import { bottomBarShown, spotPins, useDayFlow, useLikeVisit, useMapRail, useMyLocation, useOpenAtMe, opensAtMe, useShare, useGaugePageCheck, useMenu, useDataFacts, useSync, useAppUpdate,
-         BackLayerContext, InSeasonContext, useIdleOnce, useInSeason, loadRegsStore, useInSeasonNotice, useDfoNotice, useDfoCheckedAt, useReleasePrefetch, useBackgroundPrefetch, useNet, useNetQuiet, useRegsPrefetch, holdsMapStatus, openWater, useHeldLookStore, type HeldLookStore, type RegsStart } from "@app/ui";
+         BackLayerContext, InSeasonContext, InSeasonInboxContext, useIdleOnce, useInSeason, loadRegsStore, useInSeasonInbox, useDfoNotice, useDfoCheckedAt, useReleasePrefetch, useBackgroundPrefetch, useNet, useNetQuiet, useRegsPrefetch, holdsMapStatus, openWater, useHeldLookStore, type HeldLookStore, type RegsStart } from "@app/ui";
 import type { Camera, MapSpots } from "@app/map";
 import { visitSpot } from "@app/data/spots";
 import { connectivity } from "./connectivity";
@@ -337,13 +337,20 @@ export function Shell(p: ShellProps) {
   const barBottom = topBarBottom();
   /*
    * (T230) THE PROVINCIAL IN-SEASON CHANGES: read once here and handed to every Regulations page (`InSeasonContext`:
-   * the banners); the ones not on the map yet are the notice, which opens by itself once per row per device and from
-   * the top bar's bell. Informational: nothing here changes an answer.
+   * the banners). Informational: nothing here changes an answer.
+   * (T700) THE INBOX: this device's history of them (`useInSeasonInbox`) — the bell's in-season section and its unread
+   * count; it opens by itself once for a notice not on the map yet (T230's notice, folded in). A row opens its water's
+   * Regulations page at the notice, or its text in the inbox. (T694) the pages read its New / Updated marks.
    */
   // (T693) a notice matched to a water this release does not hold goes to the bell, reported (the store is the page's, shared)
   const holdsWater = useMemo(() => (loader ? async (item: string) => (await (await loadRegsStore(loader)).itemOrd(item)) !== null : null), [loader]);
   const inSeason = useInSeason(p.inSeason ?? null, syncState.inSeasonEpoch, loader?.manifest?.data_release ?? null, holdsWater);
-  const notice = useInSeasonNotice(inSeason.unmatched, p.inSeasonSeen ?? null);
+  const inboxOpensWater = useCallback((item: string) => {
+    setBellOpen(false);
+    if (searching) go({ type: "search", open: false });
+    nav.opener.item(item as ItemId, "regs");
+  }, [searching, go, nav.opener]);
+  const inbox = useInSeasonInbox(inSeason, p.inSeasonInbox ?? null, p.inSeasonSeen ?? null, inboxOpensWater);
   // (T521) the DFO feed's rules on a water no curated binding knows: the bell's DFO section, counted with the rest
   const dfoNotice = useDfoNotice(p.salmonFeed);
   const dfoCheckedAt = useDfoCheckedAt(p.salmonFeed, loader);   // (T526) when DFO was last CHECKED: the Data line's age
@@ -520,7 +527,10 @@ export function Shell(p: ShellProps) {
   const like = useLikeVisit(viewing, { weather, feed }, p.likeStore, Date.now, connectivity, shownVisit?.visitId ?? null);
   // T170: the visit day's own flow, and the action that asks for it (waits offline, asks again when back)
   const dayFlow = useDayFlow(shownVisit, p.onDayFlow, connectivity);
-  const withInSeason = (n: React.ReactNode) => <InSeasonContext.Provider value={inSeason}>{n}</InSeasonContext.Provider>;
+  const withInSeason = (n: React.ReactNode) => (
+    <InSeasonContext.Provider value={inSeason}>
+      <InSeasonInboxContext.Provider value={inbox.reads}>{n}</InSeasonInboxContext.Provider>
+    </InSeasonContext.Provider>);
   // (T498) A PANE OPENED OVER THE MAP IS BUILT HIDDEN and shown whole (`shell/paneReveal.ts`): held only when the last
   // screen committed was the browse body (a map or a list tab), never over a spot or the add flow, never at a landing.
   // (T508) Every view on a phone: the Conditions and Map views wait for their own live maps to draw too (`holdViews`)
@@ -614,9 +624,9 @@ export function Shell(p: ShellProps) {
       <>
         {topBar && (
           <TopBar ref={field} palette={palette} placeholder={placeholder} sync={sync} onSync={onSync}
-                  // (T231, owner 2026-10-28) one bell: the in-season changes not on the map, and the updates that failed
-                  notices={{ count: notice.count + dfoNotice.count + syncState.failed.length + releaseCount,
-                             label: bellLabel([notice.count ? notice.label : null, dfoNotice.label].filter(Boolean).join("; ") || null, syncState.failed.length, releaseVM?.counts ? releaseVM : null,
+                  // (T231, owner 2026-10-28) one bell: the unread in-season notices (T700), and the updates that failed
+                  notices={{ count: inbox.count + dfoNotice.count + syncState.failed.length + releaseCount,
+                             label: bellLabel([inbox.label, dfoNotice.label].filter(Boolean).join("; ") || null, syncState.failed.length, releaseVM?.counts ? releaseVM : null,
                                               appVM?.counts ? appVM : null),
                              onPress: () => setBellOpen(true) }}
                   open={searching}
@@ -753,9 +763,10 @@ export function Shell(p: ShellProps) {
                    // (T352) where the map was looking, read at this render (a report freezes it when it opens): the water's
                    // own map while it is in front, else the browse map's
                    camera={frame?.view === "map" ? waterCamera.current ?? camera.current : camera.current} />
-      {/* (T230) the in-season changes not on the map yet: once per row per device, and from the bell */}
-      <InSeasonNotice open={(notice.open && !firstRun.open && !guide.open) || bellOpen} rows={notice.rows} dfo={dfoNotice}
-                      palette={palette} onClose={() => { setBellOpen(false); notice.close(); }}
+      {/* (T230, T700) the bell's sheet: from the bell, and by itself once for an in-season notice not on the map yet */}
+      <InSeasonNotice open={(inbox.open && !firstRun.open && !guide.open) || bellOpen} dfo={dfoNotice}
+                      inbox={inbox}
+                      palette={palette} onClose={() => { setBellOpen(false); inbox.close(); }}
                       sync={{ failed: syncState.failed, checking: syncState.checking, onRetry: syncState.refresh }}
                       release={releaseVM ? { vm: releaseVM, onAction: onReleaseAction } : null}
                       app={appVM && appUpdate ? { vm: appVM, onUpdate: appUpdate.update } : null} />

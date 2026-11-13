@@ -205,7 +205,6 @@ export const FINE: Record<string, { n: number; why: string }> = {
   "packages/ui/src/errorLog.ts": { n: 2, why: "logging never breaks logging" },
   "packages/ui/src/hooks/water.ts": { n: 2, why: `${UNCACHE}; ${WARM}` },
   "packages/ui/src/imagery.ts": { n: 1, why: `the imagery probe: shown as the imagery state (${ENV})` },
-  "packages/ui/src/inseason.ts": { n: 2, why: PREF },
   "packages/ui/src/layerChoice.ts": { n: 2, why: PREF },
   "packages/ui/src/mapRail.ts": { n: 2, why: `permission / locate: shown as a state (${ENV})` },
   "packages/ui/src/myLocation.ts": { n: 1, why: `location refused: said (refusedLine); ${ENV}` },

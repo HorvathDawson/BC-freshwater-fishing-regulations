@@ -1,47 +1,123 @@
 import type React from "react";
 /**
- * (T230) The in-season notice opens by itself once per row per device, re-opens from the bell, and drops a row once it
- * is matched or out of effect (a new unmatched list). Mounted (jsdom) because it is a hook.
+ * (T230, T700) The in-season hooks, mounted (jsdom): the inbox (the device's history, the bell's count, opening by itself
+ * once for a notice not on the map yet), where a change lands on a page, and the waters this release does not hold.
  */
 import { afterEach, describe, expect, it } from "vitest";
 import { act, cleanup, render, waitFor } from "@testing-library/react";
-import { INSEASON_FAILURES, INSEASON_LINKS_FORMAT, setFailureSink, type InSeasonChange } from "@app/core";
-import { InSeasonContext, useInSeason, useInSeasonCovers, useInSeasonNotice, type InSeasonNoticeState, type InSeasonNow, type InSeasonOnPage } from "./inseason";
+import { INBOX_WORDS, INSEASON_FAILURES, INSEASON_LINKS_FORMAT, bcNow, isoDayOf, joinInSeason, setFailureSink } from "@app/core";
+import { httpInSeason } from "@app/data";
+import { InSeasonContext, useInSeason, useInSeasonCovers, useInSeasonInbox, type InSeasonInboxState, type InSeasonNow, type InSeasonOnPage } from "./inseason";
 
 afterEach(cleanup);
-const ch = (id: string): InSeasonChange =>
-  ({ id, region: "4", water: "Kaslo River", text: "No fishing", from: null, to: null, source: "s", waters: null });
-const mem = () => { let t: string | null = null; return { read: () => t, write: (x: string) => { t = x; } }; };
+const mem = (t: string | null = null) => ({ read: () => t, write: (x: string) => { t = x; } });
 
-function Probe({ rows, store, out }: { rows: InSeasonChange[]; store: ReturnType<typeof mem>; out: { s?: InSeasonNoticeState } }) {
-  out.s = useInSeasonNotice(rows, store);
-  return null;
-}
+/**
+ * (T700, T694) THE INBOX HOOK: one feed read folded into the device's history, the count, opening by itself once, a
+ * row's tap, Mark all as read, and a restart (the store read back).
+ */
+describe("useInSeasonInbox (T700)", () => {
+  const SRC = "https://www2.gov.bc.ca/in-season";
+  const row = (id: string, water: string, o: Record<string, unknown> = {}) =>
+    ({ id, region: "4", water, effective: "Nov 1, 2026", from: null, to: null, change: `No fishing on ${water}`,
+       status: "unchanged", firstSeen: "2026-11-01T00:00:00Z", changedAt: "2026-11-01T00:00:00Z", ...o });
+  const nowOf = (rows: ReturnType<typeof row>[], waters: Record<string, string[]>): InSeasonNow => {
+    const feed = { format: "inseason-feed/1" as const, fetchedAt: "x", source: SRC, removed: [], rows };
+    const links = { format: INSEASON_LINKS_FORMAT, notices: Object.fromEntries(Object.entries(waters).map(([id, ws]) =>
+      [id, { waters: Object.fromEntries(ws.map((w) => [w, { all: true as const }])) }])) };
+    return { ...joinInSeason(feed, links, isoDayOf(bcNow())), data: { feed, links }, release: "r-1" };
+  };
+  function Inbox({ now, store, seen, out, opened }: { now: InSeasonNow; store: ReturnType<typeof mem>; seen?: ReturnType<typeof mem>;
+                                                    out: { s?: InSeasonInboxState }; opened: string[] }) {
+    out.s = useInSeasonInbox(now, store, seen ?? null, (item, id) => opened.push(`${item}|${id}`));
+    return null;
+  }
+  const A = row("is-a", "Kaslo River"), B = row("is-b", "Okanagan River", { region: "8" });
 
-describe("useInSeasonNotice", () => {
-  it("opens for an unseen row, once per device; the bell re-opens it; a matched row leaves it", () => {
-    const store = mem(), out: { s?: InSeasonNoticeState } = {};
-    const a = [ch("is-a"), ch("is-b")];
-    const { rerender, unmount } = render(<Probe rows={a} store={store} out={out} />);
-    expect([out.s!.open, out.s!.count, out.s!.label]).toEqual([true, 2, "2 in-season changes not on the map yet"]);
+  it("a first read: quiet for the matched, opens once for one not on the map; survives a restart (the store read back)", async () => {
+    const store = mem(), out: { s?: InSeasonInboxState } = {}, opened: string[] = [];
+    const first = render(<Inbox now={nowOf([A, B], { "is-a": ["gnis:1"] })} store={store} out={out} opened={opened} />);
+    await waitFor(() => expect(out.s!.open).toBe(true));
+    expect([out.s!.count, out.s!.label]).toEqual([1, "1 unread in-season notice"]);
     act(() => out.s!.close());
-    expect([out.s!.open, store.read()]).toEqual([false, JSON.stringify(["is-a", "is-b"])]);
-    unmount();
-    // the next launch: both seen — closed, the bell still counts them
-    const again = render(<Probe rows={a} store={store} out={out} />);
-    expect([out.s!.open, out.s!.count]).toEqual([false, 2]);
-    act(() => out.s!.show());
-    expect(out.s!.open).toBe(true);
-    act(() => out.s!.close());
-    // is-a matched: it leaves; a new row opens the notice again
-    again.rerender(<Probe rows={[ch("is-b"), ch("is-c")]} store={store} out={out} />);
-    expect([out.s!.open, out.s!.rows.map((r) => r.id)]).toEqual([true, ["is-b", "is-c"]]);
-    void rerender;
+    expect(out.s!.open).toBe(false);
+    first.unmount();
+    // the next launch: the same history, read back; it does not open again; the count holds
+    const saved = store.read();
+    render(<Inbox now={nowOf([A, B], { "is-a": ["gnis:1"] })} store={store} out={out} opened={opened} />);
+    expect([out.s!.open, out.s!.count]).toEqual([false, 1]);
+    expect(store.read()).toBe(saved);
+    expect(out.s!.vm.groups.map((g) => [g.title, g.rows.map((r) => r.id)])).toEqual([["New", ["is-b"]], ["Earlier", ["is-a"]]]);
   });
-  it("nothing unmatched: no badge, never open", () => {
-    const out: { s?: InSeasonNoticeState } = {};
-    render(<Probe rows={[]} store={mem()} out={out} />);
-    expect([out.s!.open, out.s!.count]).toEqual([false, 0]);
+
+  it("read on open: a row with one water opens its page (at the notice); one with none shows its text; Mark all as read", async () => {
+    const store = mem(), out: { s?: InSeasonInboxState } = {}, opened: string[] = [];
+    const r = render(<Inbox now={nowOf([], {})} store={store} out={out} opened={opened} />);
+    r.rerender(<Inbox now={nowOf([A, B], { "is-a": ["gnis:1"] })} store={store} out={out} opened={opened} />);
+    await waitFor(() => expect(out.s!.count).toBe(2));
+    act(() => out.s!.pick("is-a"));
+    expect([opened, out.s!.count, out.s!.detail]).toEqual([["gnis:1|is-a"], 1, null]);
+    // the page it opened shows the mark it had (read now), and takes the focus once (its notices open)
+    expect(out.s!.reads.markOf("is-a")).toBe("new");
+    expect([out.s!.reads.takeFocus(["is-a"]), out.s!.reads.takeFocus(["is-a"])]).toEqual([true, false]);
+    expect(out.s!.reads.markOf("is-a")).toBeNull();
+    act(() => out.s!.pick("is-b"));
+    expect([opened.length, out.s!.count, out.s!.detail?.head]).toEqual([1, 0, "Okanagan River · Region 8"]);
+    act(() => out.s!.back());
+    expect(out.s!.detail).toBeNull();
+    const C = row("is-c", "Duncan River");
+    r.rerender(<Inbox now={nowOf([A, B, C], { "is-a": ["gnis:1"], "is-c": ["gnis:3"] })} store={store} out={out} opened={opened} />);
+    await waitFor(() => expect(out.s!.count).toBe(1));
+    expect(out.s!.reads.markOf("is-c")).toBe("new");
+    act(() => out.s!.readAll());
+    expect([out.s!.count, out.s!.label, out.s!.reads.markOf("is-c")]).toEqual([0, null, null]);
+    expect(JSON.parse(store.read()!).items.every((i: { read: boolean }) => i.read)).toBe(true);
+  });
+
+  it("(T694) the feed's link makes it Updated; a new id it does not link is New", async () => {
+    const store = mem(), out: { s?: InSeasonInboxState } = {}, opened: string[] = [];
+    const r = render(<Inbox now={nowOf([A], { "is-a": ["gnis:1"] })} store={store} out={out} opened={opened} />);
+    await waitFor(() => expect(store.read()).not.toBeNull());
+    const A2 = row("is-a2", "Kaslo River", { change: "No fishing until Dec 31", status: "changed",
+                                             previous: { change: A.change, effective: A.effective } });
+    const D = row("is-d", "Kaslo River", { change: "Bait ban", status: "new" });
+    r.rerender(<Inbox now={nowOf([A2, D], { "is-a2": ["gnis:1"], "is-d": ["gnis:1"] })} store={store} out={out} opened={opened} />);
+    await waitFor(() => expect(out.s!.count).toBe(2));
+    expect([out.s!.reads.markOf("is-a2"), out.s!.reads.markOf("is-d")]).toEqual(["updated", "new"]);
+    expect(out.s!.vm.groups.flatMap((g) => g.rows.map((x) => `${x.id} ${x.tag}`))).toEqual(["is-a2 Updated", "is-d New"]);
+  });
+
+  it("a saved history it cannot read is reported and starts again — never a quiet empty inbox", async () => {
+    const seen: unknown[] = [];
+    const undo = setFailureSink((e) => seen.push(e));
+    try {
+      const out: { s?: InSeasonInboxState } = {};
+      render(<Inbox now={nowOf([B], {})} store={mem("{not json")} out={out} opened={[]} />);
+      await waitFor(() => expect(out.s!.count).toBe(1));
+      expect((seen[0] as Error).message).toMatch(/^in-season inbox: the saved history could not be read \(.+\) — started again$/);
+    } finally { undo(); }
+  });
+
+  it("an index in a format this app does not read FAILS LOUDLY: reported, and the inbox says so while the capture answers", async () => {
+    const seen: unknown[] = [];
+    const undo = setFailureSink((e) => seen.push(e));
+    try {
+      const feed = { format: "inseason-feed/2", fetchedAt: "2026-11-13T00:00:00Z", source: SRC, removed: [], rows: [A] };
+      const serve = (async (u: string) => (String(u).endsWith("index.json") ? new Response(JSON.stringify(feed))
+        : new Response(JSON.stringify({ format: INSEASON_LINKS_FORMAT, notices: {} })))) as unknown as typeof fetch;
+      const source = httpInSeason("http://x/feeds/inseason", mem(), serve);
+      const out: { s?: InSeasonInboxState; now?: InSeasonNow } = {};
+      function Both() {
+        const now = useInSeason(source, 0, "r-1", null);
+        out.now = now;
+        out.s = useInSeasonInbox(now, mem(), null, () => {});
+        return null;
+      }
+      render(<Both />);
+      await waitFor(() => expect(out.s!.failure).toBe(INBOX_WORDS.failure));
+      expect(out.now!.failure).toBe("in-season index.json: not a readable inseason-feed/1 feed — refused");
+      expect(seen.map(String)).toEqual(["Error: in-season index.json: not a readable inseason-feed/1 feed — refused"]);
+    } finally { undo(); }
   });
 });
 

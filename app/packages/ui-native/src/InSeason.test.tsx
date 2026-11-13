@@ -3,7 +3,9 @@
  */
 import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { appUpdateVM, bellLabel, inSeasonBanner, inSeasonNoticeRows, releaseNoticeVM } from "@app/core";
+import { appUpdateVM, bellLabel, inSeasonBanner, inboxDetail, inboxMerge, inboxRead, inboxVM, joinInSeason, releaseNoticeVM,
+         type InSeasonFeed, type InSeasonRow } from "@app/core";
+import { InSeasonInboxContext } from "@app/ui";
 import { InSeasonBanners } from "./regs/InSeasonBanner";
 import { InSeasonNotice } from "./InSeasonNotice";
 import { TopBar } from "./TopBar";
@@ -47,27 +49,37 @@ describe("in-season", () => {
     render(<InSeasonBanners banners={[]} palette={LIGHT} />);
     expect(screen.queryByTestId("inseason-banners")).toBeNull();
   });
-  it("<InSeasonNotice>: each row's region · water · dates and the text", () => {
-    render(<InSeasonNotice open rows={inSeasonNoticeRows([{ ...change, region: "4", water: "Kaslo River", to: null, from: "2025-04-04" }])}
-                           palette={LIGHT} onClose={() => {}} />);
-    expect(screen.getAllByTestId("inseason-notice-row").map((r) => r.textContent))
-      .toEqual(["Region 4 · Kaslo River · since Apr 4, 2025No fishing July 30 to September 15.source ›"]);
+  it("(T694) <InSeasonBanners>: an unread notice's mark on the line and on its card", () => {
+    render(<InSeasonBanners banners={[inSeasonBanner(change, { where: null }, "updated")]} palette={LIGHT} />);
+    expect(screen.getByTestId("inseason-summary").textContent).toBe("Updated · In-season change (Oct 15–Nov 30) · see ›");
+    fireEvent.click(screen.getByTestId("inseason-line"));
+    expect(screen.getByTestId("inseason-mark").textContent).toBe("Updated");
+  });
+  it("(T700) <InSeasonBanners>: opened from an inbox row at this notice, the notices are open", () => {
+    let asked: readonly string[] = [];
+    const reads = { markOf: () => null, read: () => {}, takeFocus: (ids: readonly string[]) => { asked = ids; return ids.includes("is-a"); } };
+    render(<InSeasonInboxContext.Provider value={reads}>
+      <InSeasonBanners banners={[inSeasonBanner(change, { where: null })]} palette={LIGHT} />
+    </InSeasonInboxContext.Provider>);
+    expect(asked).toEqual(["is-a"]);
+    expect(screen.getByTestId("inseason-line").getAttribute("aria-expanded")).toBe("true");
+    expect(screen.getAllByTestId("inseason-banner")).toHaveLength(1);
   });
   it("<TopBar>: the bell with its count opens the notice; no count, the bell without a badge (owner 2026-10-29)", () => {
     let opened = 0;
     const bar = (count: number) => (
       <TopBar palette={LIGHT} placeholder="p" sync={null} open={false} query="" onQuery={() => {}} onOpen={() => {}}
-              onClose={() => {}} notices={{ count, label: `${count} in-season changes not on the map yet`, onPress: () => { opened++; } }} />);
+              onClose={() => {}} notices={{ count, label: `${count} unread in-season notices`, onPress: () => { opened++; } }} />);
     const { rerender } = render(bar(3));
     expect(screen.getByTestId("inseason-count").textContent).toBe("3");
-    fireEvent.click(screen.getByLabelText("3 in-season changes not on the map yet"));
+    fireEvent.click(screen.getByLabelText("3 unread in-season notices"));
     expect(opened).toBe(1);
     rerender(bar(0));
     expect(screen.getByTestId("inseason-bell")).toBeTruthy();
     expect(screen.queryByTestId("inseason-count")).toBeNull();
   });
   it("<InSeasonNotice>: opened with nothing pending, it says so", () => {
-    render(<InSeasonNotice open rows={[]} palette={LIGHT} onClose={() => {}} sync={{ failed: [], checking: false, onRetry: () => {} }} />);
+    render(<InSeasonNotice open palette={LIGHT} onClose={() => {}} sync={{ failed: [], checking: false, onRetry: () => {} }} />);
     expect(screen.getByTestId("notice-empty").textContent).toBe("No notifications");
     expect(screen.getByText("Notifications")).toBeTruthy();
     expect(bellLabel(null, 0)).toBe("No notifications");
@@ -79,7 +91,7 @@ describe("T263: the bell's Data update row", () => {
   const vm = (phase: "waiting-wifi" | "downloading" | "ready", progress: { bytes: number; of: number } | null = null) =>
     releaseNoticeVM({ phase, progress })!;
   const draw = (v: ReturnType<typeof vm>, onAction: (k: string) => void = () => {}) =>
-    render(<InSeasonNotice open rows={[]} palette={LIGHT} onClose={() => {}} release={{ vm: v, onAction }} />);
+    render(<InSeasonNotice open palette={LIGHT} onClose={() => {}} release={{ vm: v, onAction }} />);
 
   it("words and counting, per state", () => {
     expect(vm("waiting-wifi", { bytes: 0, of: 120 * MB }).text).toBe("New regulations ready to download — waiting for Wi-Fi (120 MB).");
@@ -117,7 +129,7 @@ describe("T263: the bell's Data update row", () => {
 
 describe("T390: the bell's App update section", () => {
   const draw = (app: Parameters<typeof InSeasonNotice>[0]["app"], extra: Partial<Parameters<typeof InSeasonNotice>[0]> = {}) =>
-    render(<InSeasonNotice open rows={[]} palette={LIGHT} onClose={() => {}} app={app} {...extra} />);
+    render(<InSeasonNotice open palette={LIGHT} onClose={() => {}} app={app} {...extra} />);
 
   it("the strong prompt: its words, the data kept, one Update button", () => {
     let pressed = 0;
@@ -153,7 +165,7 @@ describe("T390: the bell's App update section", () => {
 
 describe("T234 v1.1: what's new in the incoming version, under the bell's App update", () => {
   const draw = (app: Parameters<typeof InSeasonNotice>[0]["app"]) =>
-    render(<InSeasonNotice open rows={[]} palette={LIGHT} onClose={() => {}} app={app} />);
+    render(<InSeasonNotice open palette={LIGHT} onClose={() => {}} app={app} />);
   it("the version file's bullets, before the update is installed", () => {
     draw({ vm: appUpdateVM({ channel: "apk-page", check: { state: "available", version: "0.6.0", notes: ["Gauge alerts", "A changelog"] },
                              tooOld: false, start: "idle" })!, onUpdate: () => {} });
@@ -174,5 +186,67 @@ describe("the in-season line on the page (T472, T565)", () => {
     const vedder = (await import("./regs/fixtures/vedder_1010.json")).default as unknown as { keep: import("@app/core").KeepVM };
     render(<KeepTab keep={vedder.keep} dateLabel="Oct 10" palette={LIGHT} actions={{ onSheet() {}, onDay() {}, onBook() {} } as never} />);
     expect(screen.queryByTestId("inseason-banners")).toBeNull();
+  });
+});
+
+describe("T700: the bell's in-season inbox", () => {
+  const TODAY = "2026-11-13";
+  const row = (id: string, water: string, o: Partial<InSeasonRow> = {}): InSeasonRow =>
+    ({ id, region: "4", water, effective: "", from: null, to: null, change: `No fishing on ${water}`, status: "unchanged",
+       firstSeen: "2026-11-12T00:00:00Z", ...o });
+  const feed = (rows: InSeasonRow[]): InSeasonFeed => ({ format: "inseason-feed/1", fetchedAt: "x", source: SRC, rows, removed: [] });
+  const links = { format: "inseason-links/4" as const, notices: { "is-a": { waters: { "gnis:1": { all: true as const } } } } };
+  const s0 = inboxMerge(null, feed([]), { matched: [], unmatched: [] }, TODAY);
+  const f = feed([row("is-a", "Kaslo River"), row("is-b", "Okanagan River", { region: "8", firstSeen: "2026-11-13T00:00:00Z" }),
+                  row("is-c", "Slocan River", { firstSeen: "2026-11-01T00:00:00Z" })]);
+  const state = inboxRead(inboxMerge(s0, f, joinInSeason(f, links, TODAY), TODAY), ["is-c"]);
+  const draw = (o: { detail?: string; failure?: string | null; vm?: ReturnType<typeof inboxVM> } = {}) => {
+    const seen: string[] = [];
+    const inbox = { vm: o.vm ?? inboxVM(state, TODAY), detail: o.detail ? inboxDetail(state, o.detail, TODAY) : null,
+                    failure: o.failure ?? null, pick: (id: string) => { seen.push(`pick ${id}`); },
+                    back: () => { seen.push("back"); }, readAll: () => { seen.push("all"); } };
+    render(<InSeasonNotice open palette={LIGHT} onClose={() => {}} inbox={inbox} />);
+    return seen;
+  };
+
+  it("New (unread) ahead of Earlier, newest first: each row's mark, date, water, region, text; aloud whole", () => {
+    draw();
+    expect(screen.getByText("Notifications")).toBeTruthy();
+    expect(screen.getAllByTestId("inbox-group").map((g) => g.textContent)).toEqual(["New", "Earlier"]);
+    expect(screen.getAllByTestId("inbox-row").map((r) => r.textContent)).toEqual([
+      "NewNov 13Okanagan River · Region 8No fishing on Okanagan RiverNot on the map yet",
+      "NewNov 12Kaslo River · Region 4No fishing on Kaslo River",
+      "PostedNov 1Slocan River · Region 4No fishing on Slocan RiverNot on the map yet"]);
+    expect(screen.getAllByTestId("inbox-unread-dot")).toHaveLength(2);
+    expect(screen.getAllByTestId("inbox-row")[0]!.getAttribute("aria-label"))
+      .toBe("Unread. New: Okanagan River, Region 8, Nov 13. Not on the map yet. No fishing on Okanagan River");
+  });
+  it("a row's tap and Mark all as read go to the hook", () => {
+    const seen = draw();
+    fireEvent.click(screen.getAllByTestId("inbox-row")[1]!);
+    fireEvent.click(screen.getByLabelText("Mark all as read"));
+    expect(seen).toEqual(["pick is-a", "all"]);
+  });
+  it("nothing unread: no Mark all as read", () => {
+    draw({ vm: inboxVM({ ...state, items: state.items.map((i) => ({ ...i, read: true })) }, TODAY) });
+    expect(screen.queryByTestId("inbox-read-all")).toBeNull();
+    expect(screen.getAllByTestId("inbox-group").map((g) => g.textContent)).toEqual(["Earlier"]);
+  });
+  it("a notice opened with no one page: its text in the list's place, and back", () => {
+    const seen = draw({ detail: "is-b" });
+    expect(screen.queryByTestId("inbox")).toBeNull();
+    expect(screen.getByTestId("inbox-detail-text").textContent).toBe("No fishing on Okanagan River");
+    expect(screen.getByTestId("inbox-detail-note").textContent).toBe("We have not placed this change on the map yet. Check it before you fish.");
+    fireEvent.click(screen.getByLabelText("Back to all notifications"));
+    expect(seen).toEqual(["back"]);
+  });
+  it("empty: says so, and what will appear here", () => {
+    draw({ vm: inboxVM(null, TODAY) });
+    expect(screen.getByTestId("notice-empty").textContent).toBe("No notifications");
+    expect(screen.getByTestId("notice-empty-sub").textContent).toBe("In-season changes posted by BC Fish and Wildlife appear here.");
+  });
+  it("the feed could not be read: the line, as an alert", () => {
+    draw({ failure: "The latest in-season notices could not be read by this version of the app. Shown: the last ones it read." });
+    expect(screen.getByTestId("inbox-failure").getAttribute("role")).toBe("alert");
   });
 });

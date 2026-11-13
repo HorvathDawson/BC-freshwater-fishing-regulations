@@ -24,6 +24,11 @@ export interface InSeasonSource {
    * else as `refresh`.
    */
   offer?(text: string): void;
+  /**
+   * (T700) Why the newest fetch could not be READ (an index in a format this app does not read), or null: the inbox
+   * shows a line for it (`INBOX_WORDS.failure`) while the capture answers. Offline is not one. It is also reported.
+   */
+  failure?(): string | null;
 }
 
 export const INSEASON_TTL_MS = 60 * 60_000;
@@ -33,6 +38,7 @@ export function httpInSeason(base: string, store?: InSeasonStore, fetchImpl: typ
   const ttl = opts.ttlMs ?? INSEASON_TTL_MS, now = opts.now ?? Date.now;
   const root = base.replace(/\/$/, "");
   let held: { at: number; p: Promise<InSeasonData | null> } | null = null;
+  let failure: string | null = null;
   const captured = (): InSeasonData | null => {
     try {
       const t = store?.read();
@@ -55,8 +61,12 @@ export function httpInSeason(base: string, store?: InSeasonStore, fetchImpl: typ
   const get = async (): Promise<InSeasonData | null> => {
     const [f, l] = await Promise.all([getJson("index.json"), getJson("matches.json")]);
     const feed = parseInSeasonFeed(f);
-    // (T548) a body that came back but is not a feed this app reads is REPORTED; the capture answers meanwhile
-    if (f !== null && !feed) reported(null)(new Error(`in-season index.json: not a readable ${INSEASON_FEED_FORMAT} feed — refused`));
+    // (T548) a body that came back but is not a feed this app reads is REPORTED; the capture answers meanwhile.
+    // (T700) and held as this source's `failure()`, for the inbox's line, until a readable one comes back
+    if (f !== null && !feed) {
+      failure = `in-season index.json: not a readable ${INSEASON_FEED_FORMAT} feed — refused`;
+      reported(null)(new Error(failure));
+    } else if (feed) failure = null;
     const was = captured();
     if (!feed || (was && feed.fetchedAt < was.feed.fetchedAt)) return was;
     // (T520) links that came back but will not read (another format, a notice it cannot place) are REPORTED, naming the
@@ -74,6 +84,7 @@ export function httpInSeason(base: string, store?: InSeasonStore, fetchImpl: typ
       return held.p;
     },
     refresh() { held = null; },
+    failure: () => failure,
     offer(text) {
       if (!parseInSeasonFeed(JSON.parse(text))) throw new Error(`not a readable ${INSEASON_FEED_FORMAT} feed`);
       held = null;
