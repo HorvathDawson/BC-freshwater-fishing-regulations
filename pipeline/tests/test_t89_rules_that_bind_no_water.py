@@ -42,10 +42,16 @@ CAT = Path(under_test.curated().regulations.synopsis)
 
 #: BY DESIGN — a rule that binds nowhere and is right to.
 BY_DESIGN = frozenset({
-    # the steelhead quota twins: their siblings bind every book-known steelhead water in the area (z1 trout r5b,
-    # z5 r6b and z6 r9b left this list in T153: a steelhead river's unnamed widening is that river's lake water)
+    # the steelhead quota twins: their siblings bind every book-known steelhead water in the area. z1 trout r5b,
+    # z5 r6b and z6 r9b left this list in T153 (a steelhead river's unnamed widening was that river's lake water) and
+    # came back with T678 D1 (r-0a9930fb8826): the widening is folded INTO its river, so the stream sibling (same
+    # take 0, same words) binds it — all 55 sections the three twins bound on baseline-r-a178299f6005 are bound by
+    # their sibling on the live run (measured 2026-11-13)
     ("z1:hg_quota", "hg_quota.r6b"),
     ("z3:daily_quotas", "trout_char_quota.r5b"),
+    ("z1:daily_quotas", "trout_quota.r5b"),
+    ("z5:daily_quotas", "trout_char_quota.r6b"),
+    ("z6:daily_quotas", "trout_char_quota.r9b"),
     # working exclusions: the Columbia / Kootenay tributary rows carry no tributary rule of their own
     ("r4:kinbasket_mcnaughton_lake_s_tributaries@4-36", "kinbasket_lake_tributaries.r2"),
     ("r4:kootenay_lake_s_tributaries@4-19+4-7", "kootenay_lake_tributaries.r2"),
@@ -70,7 +76,7 @@ AWAITING_WATER_ROWS = {
 }
 AWAITING_WATER = frozenset((e, r) for e, (_, _, rids) in AWAITING_WATER_ROWS.items() for r in rids)
 
-#: Every rule allowed to end unresolved. 26 = 4 by design + 22 awaiting a water (T153 bound 3 steelhead twins).
+#: Every rule allowed to end unresolved: 7 by design (3 steelhead twins back with T678 D1) + 21 awaiting a water.
 ALLOWED_UNRESOLVED = BY_DESIGN | AWAITING_WATER
 
 
@@ -104,8 +110,8 @@ def _place(rule: dict) -> dict:
 # ---------------------------------------------------------------------------------------------
 # The allow-list itself (no data): exact, both ways — the key rule, mutation-pinned
 # ---------------------------------------------------------------------------------------------
-def test_the_allow_list_is_exact_26():
-    assert len(BY_DESIGN) == 4 and len(AWAITING_WATER) == 21 and len(ALLOWED_UNRESOLVED) == 25
+def test_the_allow_list_is_exact():
+    assert len(BY_DESIGN) == 7 and len(AWAITING_WATER) == 21 and len(ALLOWED_UNRESOLVED) == 28
     assert unresolved_problems(set(ALLOWED_UNRESOLVED)) == []
 
 
@@ -277,7 +283,7 @@ def _region_sections(registry, region: str) -> set:
 def test_the_endako_lies_wholly_in_region_6(registry):
     """Why the Region 7A copy is a twin: held to 7A (a per-region row) it would bind nothing."""
     s = set(registry["gnis:17338"]["section_ids"])
-    assert len(s) == 20
+    assert s    # how many is the atlas's (20 -> 29 with the T678 D1 pond fold); the claim is WHERE they lie
     assert s <= _region_sections(registry, "6")
     assert not s & (_region_sections(registry, "7a") | _region_sections(registry, "7b"))
 

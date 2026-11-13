@@ -267,6 +267,12 @@ UP_ADJ_READERS = {
     ("pipeline/common/io/export_gpkg.py", "export_tributaries"): "may_enter",
     ("pipeline/gauges/consume/shed.py", "build_gauge_sheds"): "hands up_adj to `_walk`, which asks may_enter",
     ("pipeline/gauges/consume/shed.py", "section_lengths"): "T252: a lake's inflow edges, one level (its length inflow to outlet)",
+    # T696 (8436b380e): a diversion's canal and the water above its intake — gauge choice only, binds no rule
+    ("pipeline/gauges/consume/diversion.py", "intake"):
+        "T696: the canal's own blue line up from the station, then the one river section with an edge into it",
+    ("pipeline/gauges/consume/diversion.py", "above"):
+        "T696: every section whose water reaches the intake (the raw drainage, through lakes too) — only REMOVES the "
+        "stations the diversion speaks in place of from those sections' gauge candidates; binds nothing",
     ("pipeline/tools/audit/unnamed_trib_sweep.py", "TopoGraph.__init__"): "builds the sweep's graph view",
     ("pipeline/tools/audit/unnamed_trib_sweep.py", "_subtree"): "may_enter",
     # an audit's ALLOWANCE, not a walk that binds: deliberately unguarded so it is a superset of any walk

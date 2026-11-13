@@ -325,17 +325,25 @@ def test_a_part_of_several_stretches_has_several_runs(doc):
     several = [p for w in doc["waters"].values() for p in w["parts"] if len(p["runs"]) > 1]
     assert len(several) > 1_000
     # T517: a part is ONE connected run, so its several runs are pieces joined through a lake (or a side channel):
-    # the Fraser's top part runs from its source through three lakes down to the Region 5 line, four runs
+    # the Fraser's top part runs from its source down to the Region 5 line, and every break between its runs is the
+    # river entering a lake and leaving the SAME lake. T678 D1: an unnamed widening the main flow runs through is
+    # folded into the river, so it breaks no run — every lake left between runs is a lake water of its own (Moose
+    # Lake among them), never an unnamed one (`lake_inlet` with no suffix).
     stems = [[(r["from"], r["to"]) for r in runs if not r.get("branch")] for _, runs in _runs(doc, FRASER)]
-    top = [st for st in stems if st and st[0][0] == "source" and st[-1][1] == "region_line:5"]
-    assert top == [[("source", "lake_inlet"), ("lake_outlet", "lake_inlet"),
-                    ("lake_outlet", "lake_inlet:wbk:329619001"), ("lake_outlet:wbk:329619001", "region_line:5")]]
+    (top,) = [st for st in stems if st and st[0][0] == "source" and st[-1][1] == "region_line:5"]
+    assert len(top) > 1
+    joins = [(a[1], b[0]) for a, b in zip(top, top[1:])]
+    for inlet, outlet in joins:
+        assert inlet.startswith("lake_inlet:") and outlet == "lake_outlet:" + inlet.split(":", 1)[1], (inlet, outlet)
+        assert doc["waters"][inlet.split(":", 1)[1]]["kind"] != "stream", inlet
+    assert "lake_inlet:wbk:329619001" in {j for j, _ in joins}
     # and a rule set of several stretches the river does not join is several parts, one run each — Bull River: the
-    # rest of the river is three parts, the release reaches two
+    # release reaches and the rest alternate down the river, one run per part
     bull = defaultdict(list)
     for rs, runs in _runs(doc, "gnis:10583"):
         bull[rs].append(len(runs))
-    assert sorted(bull.values()) == [[1, 1], [1, 1, 1]]
+    assert len(bull) == 2 and all(n == 1 for ns in bull.values() for n in ns)
+    assert all(len(ns) > 1 for ns in bull.values())
 
 
 @pytest.mark.needs_bundle
@@ -407,10 +415,17 @@ def test_bull_river_rest_is_the_river_outside_its_release_reaches(doc):
                                             "bull_river__van_creek_confl") in e]
     assert release == [[("bull_river__aberfeldie_dam", "bull_river__tie_mill_dam"),
                         ("bull_river__galbraith_creek_confl", "bull_river__van_creek_confl")]]
-    rest = [e for e in ends.values() if e is not release[0]]
-    assert rest == [[("bull_river__tie_mill_dam", "mouth"),
-                     ("bull_river__van_creek_confl", "lake_inlet"),
-                     ("source", "bull_river__galbraith_creek_confl")]]
+    # the rest is the river OUTSIDE the release reaches: with them it tiles the river from source to mouth, each run
+    # starting where the one above it ends, the two rule sets alternating (T678 D1 folded the unnamed reservoir above
+    # Aberfeldie Dam into the river, so the rest's middle run now reaches the dam)
+    (rest,) = [e for e in ends.values() if e is not release[0]]
+    order = sorted(((r["km_from"], r["km_to"], r["from"], r["to"], rs) for rs, runs in _runs(doc, "gnis:10583")
+                    for r in runs), reverse=True)
+    assert order[0][2] == "source" and order[-1][3] == "mouth" and order[-1][1] == 0.0
+    for up, down in zip(order, order[1:]):
+        assert up[3] == down[2] and up[1] == down[0], (up, down)
+        assert up[4] != down[4], (up, down)
+    assert sorted(rest) == sorted((f, t) for _kf, _kt, f, t, rs in order if (f, t) not in release[0])
 
 
 @pytest.mark.needs_bundle

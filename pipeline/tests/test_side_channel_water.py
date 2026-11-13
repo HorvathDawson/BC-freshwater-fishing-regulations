@@ -326,14 +326,14 @@ def test_one_map_decides_the_side_channel():
 # ------------------------------------------------------------------ on the real bundle
 
 @pytest.mark.needs_bundle
-@pytest.mark.parametrize("item_id, sections", [
-    # re-measured 2026-11-08 on the live AND the T517 side bundle (both 10 / 8; the 2026-10-23 counts predate an atlas
-    # rebuild that re-cut these channels — the pin is the section count, the test's point is the one panel)
-    ("gnis:21105", 10),         # Nicomen Slough: 5 side-channel lines, 1 connector (59599), 4 polygons
-    ("blk:355992187", 7),       # Herrling Island Side Channel (its own 08MF047 leading all seven)
-    ("gnis:13499", 8),          # Maria Slough: 4 lines, 1 connector (59777), 3 polygons
+@pytest.mark.parametrize("item_id", [
+    # the point is ONE panel over a water of SEVERAL sections; how many sections is the atlas's (Nicomen went 10 -> 16
+    # with the T678 D1 pond fold, r-0a9930fb8826), so the count is not pinned — only that there are several
+    "gnis:21105",               # Nicomen Slough: side-channel lines, a connector, polygons
+    "blk:355992187",            # Herrling Island Side Channel (its own 08MF047 leading all of it)
+    "gnis:13499",               # Maria Slough: lines, a connector, polygons
 ])
-def test_a_side_channel_water_reads_one_panel_in_the_bundle(item_id, sections):
+def test_a_side_channel_water_reads_one_panel_in_the_bundle(item_id):
     """Measured on the real graph (2026-10-23, T169): every section of these waters takes one panel. A bundle built
     before T169 has three on Nicomen (Fraser by adoption, its own level gauges alone on 59620/59622/1265716)."""
     from pipeline.tests.conftest import predates
@@ -341,7 +341,7 @@ def test_a_side_channel_water_reads_one_panel_in_the_bundle(item_id, sections):
     db = sqlite3.connect(f"file:{_bundle()}?mode=ro", uri=True)
     got = db.execute("SELECT s.sid, p.panel_id, p.area_km2 FROM item i JOIN item_section s ON s.ord = i.ord "
                      "LEFT JOIN section_panel p ON p.sid = s.sid WHERE i.item_id = ?", (item_id,)).fetchall()
-    assert len(got) == sections
+    assert len(got) > 1, got
     panels = {(pid, area) for _sid, pid, area in got}
     if len(panels) > 1:
         predates(f"{_bundle()} predates T169 (one panel per side-channel water): {item_id} has {len(panels)} "

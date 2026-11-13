@@ -346,9 +346,12 @@ def test_the_skeena_above_cedarvale_is_streams_without_the_mainstem(real, corpus
     import json
     calls = {f"lake:{w['wbk']}" for w in json.loads(
         under_test.curated().waters.slough_calls.read_text(encoding="utf-8"))["waters"]}
+    # or (T678 D1, r-0a9930fb8826) an UNNAMED widening a stream's main flow runs through, folded into that stream
+    from pipeline.atlas.graph.widenings import unnamed
     streams = {s for v in reg.values() if v.kind == "stream" for s in v.section_ids}
     polys = {s for s in got if g.nodes[s].kind != S}
-    assert polys <= calls & streams, sorted(polys - (calls & streams))[:5]
+    assert polys <= streams, sorted(polys - streams)[:5]
+    assert not [s for s in polys - calls if not unnamed(g, s)], sorted(s for s in polys - calls if not unnamed(g, s))[:5]
     assert all((_group(g, s, "400") or 10**7) > 326_256 for s in got), "Insect Creek and below out"
 
 

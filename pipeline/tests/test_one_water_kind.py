@@ -152,6 +152,14 @@ def _oxbow_wbks() -> set[str]:
     return {str(w) for w in rows[0]["waterbody_keys"]}
 
 
+def _oxbow_takes() -> set[str]:
+    """The oxbow polygons the owner ruled STREAMS of the one Oxbows water (T664, owner 2026-11-11: "They aren't lakes,
+    they are considered streams"): the name record's `one_water_takes`, read by the registry's own reader."""
+    from pipeline.atlas.registry.one_water import one_water_takes
+    nv = json.loads(under_test.curated().waters.name_variants.read_text(encoding="utf-8"))
+    return {i.split(":", 1)[1] for ids in one_water_takes(nv).values() for i in ids}
+
+
 def _owner(db) -> dict[int, tuple[str, str]]:
     """{sid: (item_id, kind)} from the bundle."""
     return {s: (i, k) for i, k, s in db.execute(
@@ -193,10 +201,12 @@ def test_one_water_kind(db, registry, graph, handles, doc, tiles):
     assert polys <= set(tiles["lake"]) | set(tiles["wetland"])
     # every LAKE node of a stream has a route (a wetland node has none: nothing to draw as a line), except a polygon
     # no line touches: an owner-confirmed ISOLATED slough call (T322, owner 10-30: the Okanagan River Oxbows are
-    # "general streams, cut off or not") has no route to draw — only its polygon (T306, 2026-11-06: 10 of them)
+    # "general streams, cut off or not") or an oxbow polygon the owner made a stream of the one Oxbows water (T664
+    # `one_water_takes`) has no route to draw — only its polygon (T306, 2026-11-06: 10 of them)
     lakes = {s for s in polys if graph.nodes[node_of[s]].kind.value == "lake"}
     routeless = {s for s in lakes if _routeless(graph, node_of[s])}
-    assert {node_of[s].split(":", 1)[1] for s in routeless} <= _slough_calls(), "a routeless stream polygon nobody confirmed"
+    assert {node_of[s].split(":", 1)[1] for s in routeless} <= _slough_calls() | _oxbow_takes(), \
+        "a routeless stream polygon nobody confirmed"
     routed = lakes - routeless
     assert routed and routed <= set(tiles["stream"]), "a stream's polygon draws its route as stream"
 
@@ -230,7 +240,9 @@ def test_flowing_polygons_belong_to_their_water(registry):
     # Checked PER POLYGON of the book's override (40 wbks), wherever it now lives: since T637 (build 27) the slough
     # fold joins 18 of them to the named oxbow LINE items threading them (aliases there), and T664 will make all of
     # them one water — so no item count is pinned here; every polygon must sit in an oxbows water of the right kind.
-    calls = _slough_calls()
+    # T664 (owner 2026-11-11): the polygons listed in `one_water_takes` are streams too ("They aren't lakes"), so a
+    # polygon is a stream exactly when it is a slough call OR an owner take.
+    calls = _slough_calls() | _oxbow_takes()
     book = _oxbow_wbks()
     owner = {s.split(":", 1)[1]: k for k, v in water.items() for s in v.section_ids if s.startswith("lake:")}
     bad = [(w, owner.get(w)) for w in sorted(book)
@@ -238,13 +250,20 @@ def test_flowing_polygons_belong_to_their_water(registry):
            or (registry[owner[w]].kind == "stream") != (w in calls)]
     assert bad == [], bad
     oxbows = [v for v in water.values() if "OXBOWS" in v.name.upper()]
+    # T678 D1: an UNNAMED widening an oxbow channel runs through is folded in as that stream's own polygon
+    # (lake:329461947, which T664 left to "the river-widening step"); such a fold is no item and no alias of its own
+    absorbed = {a for v in water.values() for a in v.aliases}
     for v in oxbows:                                         # an oxbows water holding NO polygon is a line (T637)
         wbks = {s.split(":", 1)[1] for s in v.section_ids if s.startswith("lake:")}
-        assert wbks <= book and (wbks or v.kind == "stream"), (v.name, v.section_ids, v.kind)
+        widening = {w for w in wbks - book if f"wbk:{w}" not in registry and f"wbk:{w}" not in absorbed}
+        assert wbks - widening <= book and (wbks or v.kind == "stream"), (v.name, v.section_ids, v.kind)
+        assert not widening or v.kind == "stream", (v.name, widening)       # only a stream folds a widening
     # 117 since the owner named polygon wbk 329505890 "Cayoosh Creek" (2026-10-25, name_variants.json),
     # so the fold joins it to gnis:37767 (was 116). Oxbow polygons folded into an oxbows line (T637: 18 on build 27)
     # are counted apart: each must alias an oxbows water, and the rest stays pinned.
-    folded = {a: k for k, v in water.items() for a in v.aliases if a.split(":", 1)[1] in book}
+    # T664: every id the one Oxbows water absorbed (its line items as well as the book's polygons) aliases it
+    folded = {a: k for k, v in water.items() for a in v.aliases
+              if a.split(":", 1)[1] in book or v.name.upper() == "OKANAGAN RIVER OXBOWS"}
     assert all(registry[k].name.upper() == "OKANAGAN RIVER OXBOWS" for k in folded.values()), folded
     assert sum(len(v.aliases) for v in water.values()) - len(folded) == 117
     assert "wbk:329505890" in registry["gnis:37767"].aliases
@@ -337,7 +356,9 @@ def test_absorbed_id_resolves_once(db, doc):
     # an oxbows line (T637, 18 on build 27; T664 makes them one water) — each of those must name an oxbows item
     book = _oxbow_wbks()
     names = dict(db.execute("SELECT item_id, name FROM item"))
-    folded = {a: i for a, i in aliases.items() if a.split(":", 1)[1] in book}
+    # T664: the one Oxbows water's absorbed LINE items (wsc ids) are its aliases too, counted with the polygons
+    folded = {a: i for a, i in aliases.items()
+              if a.split(":", 1)[1] in book or names[i].upper() == "OKANAGAN RIVER OXBOWS"}
     assert all(names[i].upper() == "OKANAGAN RIVER OXBOWS" for i in folded.values()), folded
     assert len(aliases) - len(folded) == 117
     assert aliases["wbk:329148363"] == "gnis:7836" and aliases["wbk:329707189"] == "gnis:3062"
@@ -354,8 +375,12 @@ def test_absorbed_id_resolves_once(db, doc):
 @pytest.mark.needs_bundle
 @pytest.mark.slow
 def test_tile_stream_polygon_draws_with_its_river(db, handles, graph, tiles):
-    """A stream's polygon route is in the `stream` layer no later than the stem pieces beside it
-    (FREV/sloughs F4: 65 of 141 used to appear 1-7 zooms later)."""
+    """A stream's polygon never HOLES its water: it is in the `stream` layer no later than its water's drawn pieces on
+    BOTH sides of it (FREV/sloughs F4: 65 of 141 used to appear 1-7 zooms later between two drawn stem pieces).
+    T678 D1 made the unnamed widenings a river runs through stream polygons of that river; one drawn by its own area
+    at the END of a drawn run (the water above it appears later, as any headwater does) is no hole — T493's
+    `fill_zooms` fills exactly where the water visibly breaks, and this is the same rule (2026-11-13: 5 such
+    widenings, e.g. lake:329680036 on gnis:4074, z11 above a z10 line with z13 water above it)."""
     owner = _owner(db)
     node_of = {s: n for n, s in handles.items()}
     late = []
@@ -372,10 +397,11 @@ def test_tile_stream_polygon_draws_with_its_river(db, handles, graph, tiles):
         # need not be"), and the fill lowers the stem pieces beside it to that — so the water shows from the earlier
         # of its route and its polygon
         z = min(tiles["stream"][sid][1], tiles["lake"].get(sid, (None, 99))[1])
-        nbrs = [graph.edges[e].to_node for e in graph.down_adj.get(nid, ())] + \
-               [graph.edges[e].from_node for e in graph.up_adj.get(nid, ())]
-        zs = [tiles["stream"][handles[n]][1] for n in nbrs
-              if n in handles and handles[n] in tiles["stream"] and owner.get(handles[n], ("",))[0] == item]
-        if zs and z > min(zs):
-            late.append((item, nid, z, min(zs)))
+        def side(nbrs):
+            return [tiles["stream"][handles[n]][1] for n in nbrs
+                    if n in handles and handles[n] in tiles["stream"] and owner.get(handles[n], ("",))[0] == item]
+        down = side(graph.edges[e].to_node for e in graph.down_adj.get(nid, ()))
+        up = side(graph.edges[e].from_node for e in graph.up_adj.get(nid, ()))
+        if down and up and z > max(min(down), min(up)):
+            late.append((item, nid, z, min(down), min(up)))
     assert late == [], late[:10]

@@ -298,7 +298,10 @@ def test_the_tiers_with_the_run_match_plan_section_3(request):
     got = Counter(T.entry_tier(e, binds=bool(covered_ids(e, ids)), run=run) for e in entries)
     # Z 132 -> 122: the zone daily-quota merge (6335f73d) into zN:daily_quotas
     # T207: an unidentified "on parts" is no risk — 3 closures P1 -> P2, 13 entries P3 -> P4
-    for tier, plan in {"P1": 224, "Z": 122, "P2": 264, "P3": 103, "P4": 743, "sweep": 59}.items():
+    # P3 103 -> 99, P4 743 -> 747 (measured 2026-11-13): McArthur Island Slough r1 drawn (no undrawn part) and the Okanagan River
+    # oxbows matched by their watershed code are curation fixes, P3 -> P4 (same run, 0e6050228 corpus vs today's); the
+    # other 2 left with the atlas since (the old corpus on today's run reads 101)
+    for tier, plan in {"P1": 224, "Z": 122, "P2": 264, "P3": 99, "P4": 747, "sweep": 59}.items():
         assert abs(got[tier] - plan) <= 3, (tier, got[tier], plan)
     closures = [(e, r) for e in entries for r in e.get("rules") or [] if closure_grade(r)]
     undrawn = sum(1 for _, r in closures if r.get("undrawn_part") and not T.unidentified_part(r))

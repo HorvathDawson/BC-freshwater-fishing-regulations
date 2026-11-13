@@ -143,11 +143,6 @@ GEAR_PHRASES: Tuple[GearPhrase, ...] = (
 #: Keyed (entry_id, rule_id, phrase). The corpus test fails when one stops firing — a fixed rule
 #: leaves a silencer behind that would hide the next real miss on it.
 KEPT_GEAR_GAPS: Dict[Tuple[str, str, str], str] = {
-    ("r2:harrison_river_from_the_fraser_river_upstream_to_harrison_la@2-18", "harrison_river.r3",
-     "powered_boats"):
-        "printed 'Speed restriction OR no powered boats in small bays … as signed': which one "
-        "applies is set by signs, not the book, so neither level can be stored; held as an "
-        "undrawn note with a review_reason",
     ("zp:bait", "bait.r4", "bait_ban"):
         "'… as bait unless a bait ban applies' defers to the bait bans held elsewhere (the "
         "regional bait_ban entries and each water's own); it imposes no ban of its own",

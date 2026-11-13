@@ -1,8 +1,8 @@
 {
  "bundle": {
-  "reach_digest": "920ff3101263a04d",
+  "reach_digest": "1d36413d5c5d9152",
   "rule_ids_sha256": "ddafd3cfc412bdae",
-  "section_handles": "105218b34c4adf1b"
+  "section_handles": "afe1af15fbc3fccf"
  },
  "by_reason": {
   "barrier": 29,
@@ -129,9 +129,8 @@
  "unexplained": 0,
  "unexplained_sections": 0,
  "unnamed_lake_at_reach_top": {
-  "r4:bull_river@4-22::bull_river.r1": 2,
   "r4:st_mary_river@4-20::st_mary_river.r3": 1
  },
- "unnamed_streams": 1179940,
+ "unnamed_streams": 1179620,
  "walking_rules": 479
 }
