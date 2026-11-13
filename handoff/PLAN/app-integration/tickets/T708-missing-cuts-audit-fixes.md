@@ -1,6 +1,6 @@
 # T708 — Missing-cuts audit fixes: Pitt "at Grant Narrows", Ruby Creek, Gagnon signs, Deena/Mamin bridges, Tlell note, end names, unmatched lakes
 
-Status: OPEN.
+Status: PARTIAL (874bbd00a: curated inputs; atlas rebuild + pin moves pending; owner: OWNER-TODO "t708-mcarthur-lakelse-tlell").
 
 Source: `handoff/PLAN/research/missing-cuts-audit.md` (2026-11-13, release r-adc4e248a163) and the owner's answers
 the same day; follow-up research 2026-11-13 (this ticket, read-only, no data changed). Before closed testing.
