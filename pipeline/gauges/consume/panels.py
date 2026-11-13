@@ -805,6 +805,9 @@ ADOPT_ANSWERED = True
 #: Q155 — a run of a stream water's own lines with no answer, between pieces of that water answering ALIKE, takes that
 #: answer (`water_line_gaps`).
 WATER_LINE_GAPS = True
+#: (2026-11-12) after the gap fill, the polygon fallback and the gap fill run again until nothing changes, so a stream
+#: polygon whose line only the gap fill answered is answered too (`build`; test_stream_polygon_panels.py pins it).
+REPEAT_POLYGON_FALLBACK = True
 
 
 def water_line_gaps(graph, water_of: dict[str, str], kind_of: dict[str, str],
@@ -1103,6 +1106,20 @@ def build(graph, model: AreaModel,
         if WATER_LINE_GAPS:
             for sec, end in water_line_gaps(graph, water_of, kind_of, by_section).items():
                 by_section[sec] = by_section[end]
+            # A POLYGON WHOSE LINE THE GAP PASS ANSWERED TAKES THAT ANSWER TOO (2026-11-12, Fishing Creek gnis:19786's
+            # pond lake:329301055, folded into the creek by T678 D1): the fallback ran before the gap fill answered the
+            # line above it, and nothing gave it a second look. Repeated until nothing changes (each round only adds);
+            # a polygon `side_channel_polygons` decided stays as that pass left it.
+            if REPEAT_POLYGON_FALLBACK:
+                side = set(side_channel_polygons(graph, water_of, kind_of, adopted))
+                while True:
+                    filled = {s: l for s, l in stream_polygons(graph, water_of, kind_of, by_section).items()
+                              if s not in side}
+                    by_section.update({s: by_section[l] for s, l in filled.items()})
+                    gaps = water_line_gaps(graph, water_of, kind_of, by_section)
+                    by_section.update({s: by_section[e] for s, e in gaps.items()})
+                    if not filled and not gaps:
+                        break
 
     def intern_panel(chosen: tuple[Member, ...]) -> int:
         key = tuple(sorted((m.station, m.role, round(m.area_km2, 3), m.years, m.regulated,

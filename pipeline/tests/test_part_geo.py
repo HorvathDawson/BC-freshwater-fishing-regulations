@@ -399,7 +399,14 @@ def test_keep_named_reads_the_1_based_handle_and_the_lake_polygons(tmp_path):
 #: leaves its river at no named place, so neither side has an end the other shares. Pinned as a KNOWN COUNT on the
 #: side build (2026-11-08, r-… T517 fix lane); a change moves this number and must say why. The assert in
 #: `topology.mark_words` (a mark's words are the parts' end words) is not weakened: it holds wherever two main stems meet.
-UNLABELLED_MARKS = 106                 # 112 before two parts meeting across a lake were said by the lake (5)
+UNLABELLED_MARKS = 110                 # 112 before two parts meeting across a lake were said by the lake (5)
+#                                        106 -> 110 release r-0a9930fb8826 (2026-11-12, T678 D1 pond fold): Biddy,
+#                                        Gravel and Hill creeks and the Exchamsiks River each gain one — a pond folded
+#                                        into the stream carries the pond's other off-stem line as a side-channel part,
+#                                        meeting it at no named place (Gravel/Hill/Exchamsiks met at the pond's
+#                                        lake_outlet / lake_inlet before). Bedwell and Koksilah gained a side part in
+#                                        r-483b295de57c and lost it again here (net 0). Measured from the shipped
+#                                        water files of r-923208749d0a, r-483b295de57c and r-0a9930fb8826.
 #                                        107 -> 106 build 27 (2026-11-11): T637 fix (a) 070230ff5 takes the nameless
 #                                        blue line 354141307 out of Quinsam Diversion (a curation-named water keeps only
 #                                        its named pieces; listed in that commit's dry count), so its side-channel part

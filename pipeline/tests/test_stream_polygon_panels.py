@@ -117,6 +117,39 @@ def test_a_stream_water_whose_lines_have_no_answer_leaves_its_polygons_without_o
     assert _answers(panels) == {}
 
 
+def _fishing_creek():
+    """Fishing Creek (gnis:19786) in miniature, upper → lower (2026-11-12, its pond lake:329301055 folded in by T678 D1):
+
+        head ─▶ p_top ─▶ run ─▶ pond ─▶ low ─▶ other_lake      (all the creek but `other_lake`, another water's lake)
+                           └──▶ braid ──────▶ low               (the creek's own braid line, gauged)
+
+    No walk reaches the unsized `run`, `pond`, `low`. `p_top` takes the braid's answer (downstream first); the pond finds
+    nothing below (silent `low`, then another water) and nothing above (`run` unanswered then). The gap fill answers
+    `run` (between `p_top` and `braid`, answering alike); the pond must then take it too."""
+    U = lambda x: N(x, stream_magnitude=None)  # noqa: E731 — an unsized line: no walk reaches it
+    nodes = [U("head"), poly("p_top"), U("run"), poly("pond"), U("low"), poly("other_lake"), N("braid", 100)]
+    edges = [E("head", "p_top"), E("p_top", "run"), E("run", "pond"), E("pond", "low"), E("low", "other_lake"),
+             E("run", "braid"), E("braid", "low")]
+    water_of = {x: SLOUGH for x in ("head", "p_top", "run", "pond", "low", "braid")} | {"other_lake": LAKE}
+    return g(nodes, edges), water_of, [("B", "braid", 40, False)]
+
+
+def test_a_polygon_whose_line_only_the_gap_fill_answers_takes_that_answer():
+    graph, water_of, donors = _fishing_creek()
+    panels = build(graph, MODEL, donors, water_of=water_of, kind_of=KINDS)
+    assert _answers(panels) == {s: (("B",), 100.0) for s in ("braid", "p_top", "run", "pond")}
+    assert panels.by_section["pond"] == panels.by_section["run"] == panels.by_section["braid"]
+
+
+def test_mutation_pin_repeat_polygon_fallback(monkeypatch):
+    """Without the repeat (the order before 2026-11-12) the pond stays silent beside its answered line — the live
+    bundle's one failure of `test_every_stream_polygon_beside_an_answered_line_of_its_water_has_an_answer`."""
+    monkeypatch.setattr(bp, "REPEAT_POLYGON_FALLBACK", False)
+    graph, water_of, donors = _fishing_creek()
+    got = build(graph, MODEL, donors, water_of=water_of, kind_of=KINDS).by_section
+    assert "run" in got and "pond" not in got
+
+
 def test_stream_polygons_names_each_polygon_s_line():
     graph, water_of, donors = _nicomen()
     panelled = {"top": (0, 100.0), "foot": (1, 100.0), "outlet": (2, 100.0), "narrows": (2, 100.0)}
@@ -195,7 +228,8 @@ def test_mutation_pin_lead_never_decides_whether_a_line_answers_its_polygon():
     and `p_up` walks past its own line to `foot`'s led panel — the wrong answer the needs_bundle test caught on 59620."""
     src = textwrap.dedent(inspect.getsource(bp.build))
     call = "stream_polygons(graph, water_of, kind_of, by_section)"
-    assert src.count(call) == 1, "the polygon pass's call moved; update this pin to match"
+    # two calls since 2026-11-12: the fallback, and its repeat after the gap fill (REPEAT_POLYGON_FALLBACK); both mutated
+    assert src.count(call) == 2, "the polygon pass's call moved; update this pin to match"
     led_only = ("stream_polygons(graph, water_of, kind_of, "
                 "{s: v for s, v in by_section.items() if any(m.lead for m in members[v[0]])})")
     ns = dict(vars(bp))
@@ -248,7 +282,11 @@ def _at(db, item_id, lo_m, shape):
     # answers from the slough's own gauges 08MH085/086 — members without a lead (17 km away), which still answer
     # (`_far_slough`). Before T101 the connector was unpanelled and that polygon walked on to the line at 16,918 m
     # (the Fraser, by adoption).
-    ("gnis:21105", {16690: 0, 17079: 16918, 17746: 17689, 21185: 18999}),
+    # Release r-0a9930fb8826 (2026-11-12): the lines at 3,369 m and 20,557 m — each the line JUST downstream of the
+    # polygons at 16,690 m and 21,185 m — now answer when the fallback runs (before, unanswered, the search walked on
+    # to the lines at 0 m and 18,999 m); the section ids and cuts did not move, and every Nicomen section still ends on
+    # the one water panel (T169), so no angler-visible answer changed. Pinned as the docstring's rule now holds it.
+    ("gnis:21105", {16690: 3369, 17079: 16918, 17746: 17689, 21185: 20557}),
     # Vedder River (blue line 356363467): the Vedder Canal polygon (4.7 km) takes the line at the mouth.
     ("gnis:3062", {80: 0}),
 ])
