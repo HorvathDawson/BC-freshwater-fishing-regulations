@@ -13,14 +13,14 @@
       "compose": [
         {
           "scene": "19-regs-salmon",
-          "from": 0.41,
-          "to": 0.84,
+          "from": 0.42,
+          "to": 0.725,
           "label": "Salmon (DFO)"
         },
         {
           "scene": "18-regs-trout",
-          "from": 0.41,
-          "to": 0.88,
+          "from": 0.405,
+          "to": 1.0,
           "label": "Game fish (B.C. rules)"
         }
       ]

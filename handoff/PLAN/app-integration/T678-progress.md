@@ -790,3 +790,20 @@ Owner's phone report (build 29, the More tab). Done in code, not yet in a build:
   | 356381530:0, 356404114:0, 356406960:0, 356410151:0, 356474947:0, 356495828:0, 356556059:0 | gained (7) | T690: the 7 short unnamed headwater lines above the newly named Whiteswan inlets, now kept as sections (2026-11-13 reach `nextatlas_final` note) |
   | 359570593:24745 -> 359570593:24434 | 1 lost, 1 gained | junction fix: length cut re-placed (length:359570593:24745 in full.prev, :24434 in full; changes between reach nextatlas_final and nextatlas_junctions3) |
   Net -11 +13 -12 +7 -1 +1 = -3. Not "3 pruned stubs" literally: a mix, every id attributed. Regenerated result committed.
+- CHAIN FINISHED (2026-11-13). Pipeline suite after 97ae122f8, chunked, unfiltered: fast 7,437 passed / 0 failed /
+  275 deselected; slow 274 passed / 0 failed / 1 skipped.
+- Staging site: `deploy/staging/site-all.sh` on r-adc4e248a163 (SEO /changes: 10 changed, 14 new, 0 gone), smoke 19 pass
+  / 0 warn / 0 fail; /site-release.json = r-adc4e248a163. Feeds worker: inputs /4, gauges/dfo/inseason ok, failures 0;
+  staging matches.json inseason-links/4, 38 notices, resolved on r-adc4e248a163.
+- App 0.7.8 (changelog draft, 5 bullets; app_reads row) committed; test-bed APK built from that HEAD (patched MapLibre):
+  install 1/1 PASS (first run 67 s to the map, updates log all ok), regs-open 13/13 steps PASS (small, Fraser, Cultus),
+  zoom-flick 9/9 PASS (fast pinch out/in 5/5 carry on, one-hand 5/5, held pinch stops, double tap, two-finger tap,
+  quick zoom). Run dirs app/tools/testbed/out/runs/2026-11-13T17-57-28 and …T18-01-05.
+- Play INTERNAL: `deploy/staging/build-apk.sh --play` -> versionCode 30 (0.7.8, built from 6a0d9b91f, libmaplibre
+  7bf3dc29 patched), track internal completed; play.json on staging. Commit 1b01d22e2 (app.json only).
+- Store pictures: `node app/tools/store-shots/run.mjs` all scene checks ok (shot 2 salmon on top passes). Shot 2's crops
+  re-fitted to the new layout (store-shots.json: salmon 0.42-0.725, game fish 0.405-1.0; the old 0.41-0.84 showed a
+  cut-off game-fish header that the second pane repeated). 8 PNGs + report.json in
+  ~/bcfish-session-backup-2026-11-12/store-auto/. Note for the owner: shot 8 "Works offline" shows More's data list
+  (since T703 the download/mobile-data controls are on More -> Settings), so its caption and picture no longer match well.
+- graphify update run.
