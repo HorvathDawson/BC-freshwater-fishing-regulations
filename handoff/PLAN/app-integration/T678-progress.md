@@ -390,3 +390,18 @@ Next commands:
 - **T670 (owner "Show the fee only")**: the basic licence "You need" item shows the disabled-resident $1.14 sentence (book's words, under "From the rule book:") for a B.C. resident adult; "one annual angling licence per year" stays off. The app does not ask about disability, so the line is read from the stored answer of the disabled resident adult profile (record picked by `fee_cad`). Commit 1ce54b2fa; tests fail before (core licence.test, live t670.release G8, web t670.web.release G8); RULINGS Li13b; OWNER-TODO default 6 now ANSWERED. Shows with the next app build / web deploy (staging still has the old Licence tab).
 - **T319 second set**: new scenes in `app/tools/play-shots.mjs` (10 regs bar+table, 11 conditions chart with forecast, 12/13 Conditions map Change/Forecast on the same camera, 14/15 river map + one section's rules), and `compose` shots in `store-shots.mjs`/`store-shots.json` (real captures stacked under label bands, nothing drawn). Proposed order: map; year-at-a-glance rules; sections + one section's rules; flow chart with forecast; Change/Forecast on the map; salmon; runs; offline (8, Play's cap). Images (gitignored) in `~/bcfish-session-backup-2026-11-12/store-077b/play-phone/`; store-077 untouched. Dropped for room: Search, the old Conditions pane.
 - Limits: the web chart's hint line reads "Scroll to zoom, drag to move…" (web wording; the phone says its own); the sections picture does not mark which line is the picked section; staging's Licence tab does not yet carry the fee line.
+
+## 2026-11-12 — T697 follow-up and T698 (owner answers)
+- Kanaka's top part read "Cliff Park Falls → A lake outlet". No cut stands there: the creek's blue line ends at an unnamed
+  lake (24.77 km, nothing of the creek above), so the lake is the creek's head; the atlas writes a lake edge as
+  `lake_outlet`, and the display said it as such. Owner: "mouth to cut the cut to head … unnamed lakes should be unnamed
+  lake near x" (RULINGS P55). 434449f3d (answers display, rides the next release): own-end unnamed lake → "Source" /
+  "Mouth" (62 tops on the live export); a mid-water unnamed lake → "Unnamed lake near X" (`crossing_near`), else
+  "Unnamed lake (km N)" (5 ends on Slack, Gagnon, Jones creeks; nothing named within 2 km). Kanaka will read "CPR Bridge
+  (tidal boundary) → 112 Avenue bridge", "112 Avenue bridge → Cliff Park Falls", "Cliff Park Falls → Source".
+- T698 caa3a0133: the Parts sheet removed ("Remove the screen", RULINGS P56): key, builder, component, block, words and the
+  `choicesOnDay` read; `sheet=parts` start link refused and said. Full app suite: 7,559 pass, 2 failed — back.test's
+  T58 Parts-row walk (removed with the sheet, then 26/26) and `methods-licence.render.test.tsx` x5p1 Licence (T670 G7),
+  the Licence-tab lane's, not this change. knip clean, typecheck clean. Pipeline affected tests: 483 pass + 6 new; 2 fail on HEAD too (`test_part_geo`
+  unlabelled-mark count 110≠106, `test_t207_split_confidence` contract pack), not this change.
+- Held: the 5 mid-water ends say a km ("Unnamed lake (km 2.3)") because nothing named stands within 2 km.

@@ -1,6 +1,6 @@
 # T697 — Kanaka Creek's stretches: named by their split names, never "stretch 1 of 2" (T204 follow-up)
 
-Status: DONE — 77e856247 (nothing to rebuild: the live release and app already do it; a province-wide guard added)
+Status: DONE — 77e856247, 434449f3d (follow-up: an unnamed lake at a water's end is its Source; rides the next release; RULINGS P55)
 
 Owner 2026-11-12, asked about T204's old phone-check line ("its lower part is two separately selectable stretches
 ('… · stretch 1 of 2'); say if the stretch wording should differ"): "No it has to use split names like we said before ??"
@@ -35,4 +35,34 @@ Owner 2026-11-12, asked about T204's old phone-check line ("its lower part is tw
 ## For the owner (not done)
 - "A lake outlet" (an unnamed lake's outlet, Kanaka's top end) is the one end with no name of its own. Proposed rule:
   an unnamed end is said by the nearest named feature, as T517 already does for crossings ("lake outlet near X").
-- The Parts sheet's "Closed all year · N stretches" second line (45 waters, start link only): drop the line, or the sheet.
+- The Parts sheet's "Closed all year · N stretches" second line (45 waters, start link only): owner 2026-11-12 "Remove the
+  screen" — removed, T698.
+
+## Follow-up 2026-11-12: "Cliff Park Falls → A lake outlet" (RULINGS P55)
+Owner, verbatim: "Why would this cause a cut? All cuts have a name? So then it is mouth to cut the cut to head? But yes
+unnamed lakes should be unnamed lake near x... But I still don't know why that is needed here...".
+
+**Why.** No cut stands there. Kanaka Creek's FWA blue line (blk 356352191) ends at 24.77 km: its last section (295116,
+24,725–24,767 m) runs from the creek's own polygon to an unnamed lake, and no section of the creek (or of that blue line)
+lies above it. The creek BEGINS at that lake. The atlas writes a lake edge as an end token (`bundle.spans.end_token`: a
+section whose upper end touches a lake is `lake_outlet`, `:<item>` dropped for a lake that is not a named water) instead
+of `source`, and the display said it "A lake outlet". T517's own end words are "Mouth" / "Source" (`part._end_short`); T517
+had no rule for an unnamed lake at a water's end (its crossing rule, "said near what stands there", fired only where two
+names clashed).
+
+**Counts (r-0a9930fb8826 / the live export).** Bare unnamed-lake tokens at a part end: 1,390 (1,387 tops, 3 bottoms). On
+waters whose parts are named (two or more): 56 on the release, 67 on the live export (62 tops, 5 mid-water). Of those, the
+water's OWN end: 62 (all tops); a real part boundary at an unnamed lake: 5 ends on 3 waters (Slack Creek: rules change
+across a lake at 2.3–2.4 km; Gagnon Creek 1.8 / 3.7 km; Jones Creek above its outside-B.C. piece). None of the 5 has a
+named feature within 2 km (no `crossing_near` row).
+
+**Done (434449f3d, pipeline answers display — rides the next release).** An unnamed lake at the water's own top / bottom
+(the highest `km_from` / lowest `km_to` of all its parts' main-stem runs) is `source` / `mouth`. Anywhere else it is always
+said at its place: "Unnamed lake near X" (`crossing_near`), else "Unnamed lake (km N)". Kanaka will read "CPR Bridge (tidal
+boundary) → 112 Avenue bridge", "112 Avenue bridge → Cliff Park Falls", "Cliff Park Falls → Source". Tests:
+`pipeline/tests/test_part_names_unnamed_lake.py` (4 of 5 synthetic cases and the live-export sweep fail on the old code).
+Not changed: the regulation's long "runs" text ("from the Cliff Park Falls up to a lake outlet"), which no screen shows
+now that the Parts sheet is gone (T698), and the 1,333 single-part waters, which are said by their water's name.
+
+**For the owner.** The 5 mid-water ends read "Unnamed lake (km 2.3)" (T517's km fallback: nothing named within 2 km). Say if
+those should name something farther away instead.

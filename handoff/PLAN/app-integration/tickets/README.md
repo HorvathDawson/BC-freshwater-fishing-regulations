@@ -203,7 +203,8 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T694 | An amended matched in-season notice carries no "new" mark (gap 2) | POSTPONED (owner 2026-11-12: after closed testing) | — | split from T693; nothing built |
 | T695 | Fold more small widenings into the stream; draw the stream line instead of the unnamed polygons a river runs through (the 456, Q124/T153; real lakes stay lakes) | POSTPONED (owner 2026-11-12: "after closed build") | — | RULINGS E27; measure first; links T686, T678 D1 |
 | T696 | Diversion gauges: Q103 + follow-ups answered; 08GC005 speaks above the Theodosia canal, labelled "measures a diversion"; the 28 left gaugeless | IN REVIEW (owner: OWNER-TODO "T696: a cut at the Theodosia intake?") | — | owner 2026-11-12; RULINGS P54; ships with the next deliver + app build |
-| T697 | Kanaka Creek's stretches named by their split names, never "stretch 1 of 2" (T204 follow-up): already so since T517; province-wide guard | DONE | 77e856247 | owner 2026-11-12 "No it has to use split names like we said before"; 562 waters, 0 counted names; 2 owner proposals in the ticket (unnamed "A lake outlet" end; Parts sheet's "Closed all year · N stretches" line, 45 waters) |
+| T697 | Kanaka Creek's stretches named by their split names, never "stretch 1 of 2" (T204 follow-up); an unnamed lake at a water's own end is its Source/Mouth, mid-water "Unnamed lake near X" | DONE | 77e856247, 434449f3d | owner 2026-11-12 (RULINGS P55); 562 waters, 0 counted names; 62 tops "→ Source" (Kanaka "Cliff Park Falls → Source"), 5 mid-water ends "Unnamed lake (km N)"; rides the next release |
+| T698 | Remove the Parts sheet (start link `sheet=parts` only since T150; "Closed all year · N stretches" on 45 waters) | DONE | caa3a0133 | owner 2026-11-12 "Remove the screen" (RULINGS P56); start link now refused and said; next app build |
 
 ## Order for open tickets
 
