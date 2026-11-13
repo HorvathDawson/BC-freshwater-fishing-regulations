@@ -1,6 +1,6 @@
 # T667 — Tests that grow with the app: fewer hand updates per release and per feature
 
-Status: IN PROGRESS — slices 1–2 done (the guard is on, both scanners at 0); left (Claude): slices 3–8 of `app-integration/T667-audit.md` §4, listed under "What is left" below.
+Status: IN PROGRESS — slices 1–2 done; 3 done by T666; 4 and 5 done in part, 6 begun (2026-11-12, 716999ebc, 0f7b29678, c79b4516b, fb91259ef); left (Claude): `smoke.txt` derived (D6), the page v36 inventory and retirement (D1), slice 6's live counts, slices 7–8 — "What is left" below.
 
 Source: owner 2026-11-11: "we need to also make the tests more expandable; right now they get progressively more
 unwieldy ... a Fable task to improve the tests generally, to naturally grow with the app without too many hand
@@ -70,7 +70,38 @@ Depends: T666. Size: L. Fable for audit and design (owner). Part of the closed-t
   scanner rule could tell a 12-hex text hash from a build digest), beside the fix-specific check; a mutation test
   moves one character in both texts and fails. The rest of P4's diff is reads through the helper, assertions unchanged.
 
-## What is left (slices of `app-integration/T667-audit.md` §4)
+## Done 2026-11-12: slices 3–6 in part (716999ebc, 0f7b29678, c79b4516b, fb91259ef)
+- 3 Re-cut against the candidate: nothing left for T667. `sync.mjs` / `taps.py` / `regs_fixture` take `--release`
+  (`RELEASE_DIR`), the three LATEST pipeline tests ask `under_test.release`, the parity falls back to the committed fixture
+  cut with the same taps (never absent). The proof is T666's first real release.
+- 4a (716999ebc) App skip allowlist KEYED BY HELPER: a `skipIf` / `runIf` made only of values from `liveRelease` /
+  `liveReleaseAt` / `parityGate` / `paritySkip` (imported from their home) needs no list line; 22 of 41 sites (18 files)
+  left the hand list, 19 stay with exact counts. 15 near-misses pinned (bare skip, env, file, derived value, fallback,
+  reassignment, local / renamed helper ...); a planted env skip in a helper file failed the gate. The pipeline twin has 5
+  entries, all genuine optional tools: nothing to key.
+- 4b (0f7b29678) Answers section versions: writer (`answers.SECTIONS`) = app reader (`core/regs/versions.ts`
+  KNOWN_VERSIONS) = SPEC, and the shipped display = the writer; no version typed in a test (was 4 numbers in 2 files).
+  Mutations: writer 20→21 (both tests), reader 20→19, reader gear 12→13 (the old pin never saw the reader).
+- 5a (c79b4516b) ONE RULINGS TABLE: `app/fixtures/reference/v36-rulings.json`, read by `oracles.ts` (settle / card /
+  describe parities) and `test_answers_year_strip_live.py`; 11 hand tables (8 TypeScript, 3 Python; Kitimat, Lois and Peace in both languages) → 7 entries.
+  card.parity holds the file's row indexes to page v36's own rows. Nine JSON mutations, each failing.
+- 6 (fb91259ef, first pin) the year-strip oracle's tapped-state count (121, four re-cut moves) is a relation.
+
+## What is left (slices of `app-integration/T667-audit.md` §4), as of 2026-11-12
+- 4 `smoke.txt` derived by rule (D6): not started — another lane had `smoke.txt` and `test_smoke_coverage.py` open
+  (fixing it) the whole session. Next after that lane merges.
+- 5b The page v36 inventory (D1): per v36 suite (settle, card, describe, book, edge, harness), what it asserts that the
+  taps parity does not; then retire suite by suite with a mutation per ported item. Not started: it removes coverage,
+  so it needs the inventory first (M).
+- 6 Live counts → invariants / the release diff (D3): `test_one_water_kind` (137 / 13 / 9 / 12 sections, 117 aliases),
+  `test_review_queue` (measured codes and tiers ± tolerance). Each is an atlas or reach-run count whose replacement must
+  be proved by a planted violation on an atlas (or a release-diff printer in `pipeline/release.py`): stopped here, per
+  the brief (needs an atlas to prove). `test_steelhead_streams`'s 57 is RULINGS (AGENTS 54), not a live count: stays.
+- 7 Environment contract and tiers (one env script, no-build default, chunk footprint): not started (touches
+  `conftest.py` / `ci_no_build.py`, shared with the other lane).
+- 8 The small frozen synthetic release (D2): not started (L).
+
+## Superseded list (2026-11-11)
 - 3 Re-cut against the candidate (with T666 items 1–2): partly in place (`RELEASE_DIR` is the release under test in
   both suites); `sync.mjs` / `taps.py` taking a release dir and the release command's `REGS_STORE_REQUIRED=1` are T666's.
 - 4 No number typed twice, no hand lists: version pins as relations, `smoke.txt` derived by rule (D6), skip allowlists

@@ -437,3 +437,23 @@ Next commands:
   today Nov 12 (salmon open). Line now "...and what you can keep, salmon included"; title unchanged. The trout bar and salmon bar do
   not both fit in one 360x640 view (the game-fish table is 8 rows), so the view shows the salmon bar + row with trout/char-table rows above.
   Old file kept as `02-10-regs-bar-table.prev.png` in `store-077b/play-phone/`.
+
+
+## 2026-11-12 (night) — T667 slices 3–6: tests that need fewer hand edits per release
+
+- Slice 3 needed nothing more: T666 already gives `sync.mjs` / `taps.py` a `--release` (or `RELEASE_DIR`), the pipeline's
+  three LATEST tests ask `under_test.release`, and the parity falls back to the committed fixture (never absent).
+- 716999ebc: the app's no-silent-skips list is keyed by helper. A new release test that skips through `liveRelease()` /
+  `parityGate()` needs no list line; 18 files left the list, the 19 other skip sites keep exact counts. 15 near-misses
+  still fail, and a planted skip in a real release test failed the gate.
+- 0f7b29678: answers section versions are no longer typed in tests: the writer is held to the app's reader and the SPEC,
+  the shipped display to the writer. Writer and reader mutations each fail (the reader was never checked before).
+- c79b4516b: one table of the rulings page v36 predates (`app/fixtures/reference/v36-rulings.json`), read by the TS
+  parities and the Python year-strip test (was 11 hand tables, 3 of them in both languages). Nine mutations fail.
+- fb91259ef: the year-strip test's tapped-state count (121) is a relation; two mutations fail.
+- Left, and why: `smoke.txt` derived (another lane is in it), the v36 inventory before any suite is retired, the atlas /
+  reach-run counts (need an atlas to prove a replacement), the env contract (shared `conftest.py`), the small release.
+- Fixture re-cut by hand after the next release, before → now: version pins in two tests (3 + 1 numbers) → none; the
+  year-strip state count → none; a ruling on page v36 → one JSON entry (was 3–5 tables in two languages); a new release
+  test's skip line → none. Still by hand: `smoke.txt` for a new test file, and the live atlas/corpus counts in
+  `test_one_water_kind` / `test_review_queue` when the atlas or corpus moves them.
