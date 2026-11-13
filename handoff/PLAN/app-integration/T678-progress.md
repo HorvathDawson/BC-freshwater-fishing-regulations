@@ -572,3 +572,14 @@ Owner's phone report (build 29, the More tab). Done in code, not yet in a build:
 - Tests unfiltered: pipeline `test_inseason_publish.py` 32 passed (+ review/feed-format/sync/follows 68 total); app core /
   data / ui / ui-native in-season 95 passed; feeds worker 447 passed. Full `pnpm -C app check`: see the final report.
 
+## 2026-11-13 — T707 pinch zoom momentum (owner, build 29: "No zoom flick on map in app")
+
+- Cause: nothing of ours switched it off; MapLibre Android 13.6.1's own scale momentum gate (bytecode,
+  `MapGestureDetector$ScaleGestureListener.onScaleEnd`) reads the LAST touch event's span change against the FIRST
+  pointer's speed only. Emulator A/B (`zoom-flick`, raw multi-touch as root): MapLibre's gate carried 11/12 two-finger
+  flicks and 5/12 one-hand ones (thumb still); 3/6 with sparser touches.
+- 1468cfba5: the binding patch carries a pinch itself (`tunePinch`: both fingers' span rate, still within 40 ms, MapLibre's
+  size/curve, settle held to its end); MapLibre's off. Fix APK: 24/24, held pinch 0; double tap, two-finger tap and quick
+  zoom pass. Lockfile: patch hash only. Guard `app/tools/pinch-momentum.test.ts` (mutation-checked). iOS read only:
+  MLNMapView's own pinch momentum, no binding switch. Native: rides the next APK.
+
