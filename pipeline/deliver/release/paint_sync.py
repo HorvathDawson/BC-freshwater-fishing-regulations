@@ -33,10 +33,12 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Dict, Iterable, List, Mapping, Sequence, Tuple
 
-from pipeline.deliver.binary import read_varint
+from pipeline.deliver.bundle.access import MOSTLY_INSIDE_PERMILLE
+from pipeline.deliver.status_index import Index
 
-#: a section is the no-access colour when more than this many permille of it lie in no-access land (`access.mostly_inside`)
-NO_ACCESS_PERMILLE = 500
+#: a section is the no-access colour when more than this many permille of it lie in no-access land: the build's own
+#: `access.MOSTLY_INSIDE_PERMILLE` (pinned to the app's `MOSTLY_INSIDE`), never a second copy (T560 item 2)
+NO_ACCESS_PERMILLE = MOSTLY_INSIDE_PERMILLE
 
 
 class PaintSyncError(SystemExit):
@@ -44,31 +46,12 @@ class PaintSyncError(SystemExit):
 
 
 def status_profiles(status: bytes) -> Dict[int, int]:
-    """{sid: profile index} from the status index bytes (`status_index` format 2); a sid in no run is base (absent)."""
-    if status[:4] != b"BCSI" or status[4] != 2:
-        raise PaintSyncError("paint sync: the paint file's status half is not BCSI v2")
-    i = 5 + 8 + 8
-    n_prof, i = read_varint(status, i)
-    for _ in range(n_prof):
-        n_runs, i = read_varint(status, i)
-        for _ in range(n_runs):
-            _, i = read_varint(status, i)
-    n, i = read_varint(status, i)
-    cols = []
-    for _ in range(3):
-        col = []
-        for _ in range(n):
-            v, i = read_varint(status, i)
-            col.append(v)
-        cols.append(col)
-    out: Dict[int, int] = {}
-    end = 0
-    for gap, count, prof in zip(*cols):
-        start = end + gap
-        for s in range(start, start + count):
-            out[s] = prof
-        end = start + count
-    return out
+    """{sid: profile index} from the status index bytes, read by the status index's own decoder (`status_index.Index`,
+    the twin of `encode`: T560 item 2, no hand copy of the layout); a sid in no run is base (absent)."""
+    try:
+        return Index(status).sections
+    except ValueError as e:
+        raise PaintSyncError(f"paint sync: the paint file's status half is not a status index this build reads: {e}")
 
 
 def problems(part_section: Iterable[Tuple[int, int, int]], parts: Mapping[Tuple[int, int], tuple],

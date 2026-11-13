@@ -86,13 +86,24 @@ def test_the_build_s_own_parts_pass_and_without_the_run_join_they_fail(monkeypat
 
 
 def test_the_status_runs_are_read_back_per_section():
-    from pipeline.deliver.binary import varint
-    b = bytearray(b"BCSI") + bytes([2]) + bytes(16)
-    b += varint(2)                                   # two profiles of one run each (366 days)
-    for code in (1, 2):
-        b += varint(1) + varint(366 << 3 | code)
-    b += varint(2) + varint(1) + varint(2) + varint(2) + varint(1) + varint(0) + varint(1)
-    assert status_profiles(bytes(b)) == {1: 0, 2: 0, 5: 1}
+    """T560 item 2: the bytes come from the status index's own encoder (never a hand-built copy of its layout), and
+    paint sync reads them with its decoder; another version is refused, loudly."""
+    from pipeline.deliver import status_index as SI
+    idx = {"handles": "0123456789abcdef", "reach_digest": "fedcba9876543210",
+           "profiles": [(1,) * SI.DAYS, (2,) * SI.DAYS], "sections": {1: 0, 2: 0, 5: 1}, "items": {"wbk:1": 1}}
+    b = SI.encode(idx)
+    assert status_profiles(b) == {1: 0, 2: 0, 5: 1}
+    with pytest.raises(SystemExit, match="not a status index"):
+        status_profiles(b[:4] + bytes([SI.VERSION + 1]) + b[5:])
+    with pytest.raises(SystemExit, match="not a status index"):
+        status_profiles(b + b"\0")
+
+
+def test_the_no_access_threshold_is_the_build_s_own():
+    """T560 item 2: paint sync's no-access threshold IS the build's (pinned to the app's in test_section_access.py)."""
+    from pipeline.deliver.bundle import access as A
+    from pipeline.deliver.release import paint_sync as PS
+    assert PS.NO_ACCESS_PERMILLE is A.MOSTLY_INSIDE_PERMILLE
 
 
 def test_the_no_access_colour_is_read_by_the_tier_s_name_and_summed():
