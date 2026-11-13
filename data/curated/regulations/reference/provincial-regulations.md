@@ -242,14 +242,7 @@ for some fishing school operations.
 > 6-12 and 6-13) are now within Region 1**. Refer to the Region 1 section for angling regulations
 > on Haida Gwaii and contact Region 1 for any Haida Gwaii angling enquiries.
 
-**This supersedes the previous Region 6 administration.** See `pipeline/docs/17-rule-catalogue.md`
-§Haida Gwaii — currently all 26 Region 6 zone rules bind to Haida Gwaii's 25,772 sections and
-none of them should.
-
 ## Region 3 daily quotas — worked example
-
-Kept here as the structural test case for the catalogue (nested sub-limits, release rules,
-closures-as-quotas, and an annual quota scoped to one named water).
 
 ```
 Trout/char: 5, but not more than:
@@ -296,3 +289,12 @@ Carrying and holding a licence (p.6):
 Licence fees (p.5):
 
 > All annual licences are valid for the current licence year, April 1st to March 31st, commencing on the date purchased. Licences are not transferrable. Taxes not included in fees listed below. LICENCE TYPE RESIDENT* NON-RESIDENT* NON-RESIDENT ALIEN* Basic Licences Annual Angling Licence $41.15 $62.87 $91.44 One Day Angling Licence $11.43 $22.86 $22.86 Eight Day Angling Licence $22.86 $41.15 $57.14 Annual Licence for Disabled $1.14 ★ ★ Annual Licence for Age 65 Plus $5.71** ★ ★ Conservation Surcharge Stamps (see page 7) Steelhead $28.57 $68.57 $68.57 Non-Tidal Salmon $17.14 $34.29 $34.29 Kootenay Lake Rainbow Trout $11.43 $22.86 $22.86 Shuswap Lake Rainbow Trout $11.43 $22.86 $22.86 Shuswap Lake Char $11.43 $22.86 $22.86 White Sturgeon Conservation Licences (see page 7) Annual $28.57 $68.58 $68.58 One Day $9.14 $17.14 $17.14 Eight Day $17.14 $34.29 $34.29 Classified Waters Licences (see page 7) Classified Waters Licence (annual) $17.15 ★ ★ Class I Waters Licence ★ $45.72/day $45.72/day Class II Waters Licence ★ $22.86/day $22.86/day ★ Not available. ** BC resident anglers aged 65 and over have the option to purchase an annual basic licence at the reduced rate of $5.71 or at the full BC resident rate of $41.15. NOTES: You may buy as many One Day and Eight Day Licences (covering 8 consecutive days) as you need, but only ONE Annual Licence. * Members of the Canadian military, students returning to B.C., and youth under 18 returning to B.C. to reside with a parent or guardian who is a resident, may be eligible to purchase licences at the resident rate.
+
+---
+
+## What this settles — our notes, not the book (T629, owner 2026-11-11: moved out of the transcription)
+
+- Haida Gwaii preamble (p.13): this supersedes the previous Region 6 administration. Written when every Region 6 zone
+  rule still bound Haida Gwaii (`pipeline/docs/17-rule-catalogue.md` §Haida Gwaii); figures of that time, not the book's.
+- Region 3 daily quotas (p.28): kept as the structural test case for the catalogue (nested sub-limits, release rules,
+  closures-as-quotas, and an annual quota scoped to one named water).

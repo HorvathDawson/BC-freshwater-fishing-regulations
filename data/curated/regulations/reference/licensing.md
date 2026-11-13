@@ -9,15 +9,6 @@ This chapter is the source for the entry's `licensing` list (`CatalogueEntry.lic
 
 ---
 
-## Fishing Licensing in WILD
-
-Freshwater fishing licensing will be issued through the **Wildlife Information and Licensing Data
-system (WILD)** as of the **2026-27 licence year, which starts April 1, 2026**.
-
-**Fish and Wildlife ID (FWID):** a permanent number linked to your electronic profile in WILD. You
-need an FWID to access WILD and buy fishing licences. There is no cost. You must only have one
-FWID.
-
 ## Proof of Identity and Authorization
 
 When fishing, you must produce your angling licence **and photo ID**, on request of an officer.
@@ -243,3 +234,21 @@ reach into a National Park, so no provincial rule can either.
 licence holder."* That is a NOTE on the accompaniment path — `accompanied_by` with
 `quota: counts_to_companion` — which a reader renders (an asterisk, a line). It is not quota
 arithmetic: quotas aggregate over water, water-group, region and province, never over anglers.
+
+---
+
+## Not from the book: Fishing Licensing in WILD (T629, owner 2026-11-11: keep, name the source)
+
+Not printed on pp. 5-7 of the repo's synopsis PDF (a later gov.bc.ca printing, or the province's own pages). The exact
+words were not found online; the facts are the Province of B.C.'s news release "Fishing and hunting licences are now
+available online" (Ministry of Water, Land and Resource Stewardship, February 2026, 2026WLRS0004-000093,
+https://news.gov.bc.ca/releases/2026WLRS0004-000093): WILD sells freshwater licences from the 2026-27 licence year
+(April 1, 2026); a Fish and Wildlife ID (FWID) is needed to buy one. Kept here, outside the transcription, so no quote
+test reads it as the book's.
+
+Freshwater fishing licensing will be issued through the **Wildlife Information and Licensing Data
+system (WILD)** as of the **2026-27 licence year, which starts April 1, 2026**.
+
+**Fish and Wildlife ID (FWID):** a permanent number linked to your electronic profile in WILD. You
+need an FWID to access WILD and buy fishing licences. There is no cost. You must only have one
+FWID.

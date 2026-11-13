@@ -53,17 +53,6 @@ DISAGREE = {
         "• Within a 100 m radius of any government facility … (a bullet, no 4.)"),
     ("zp:no_fishing_buffers", "pair: leap 4"): (
         9, "… obstacle or leap. 4. Within a 100 m radius …", "… obstacle or leap; • Within a 100 m radius …"),
-    ("licensing", "number: 2026"): (
-        6, "Fishing Licensing in WILD: … as of the 2026-27 licence year, which starts April 1, 2026.",
-        "(not printed: no WILD / FWID paragraph on pp. 5-7 of the repo PDF — likely a later gov.bc.ca printing)"),
-    ("licensing", "number: 27"): (
-        6, "… as of the 2026-27 licence year …", "(not printed in the repo PDF; see the 2026 line)"),
-    ("provincial-regulations", "number: 26"): (
-        13, "This supersedes the previous Region 6 administration. … currently all 26 Region 6 zone rules bind to "
-            "Haida Gwaii's 25,772 sections …",
-        "(our commentary, inside the transcription half of the file; the book prints only the preamble)"),
-    ("provincial-regulations", "number: 772"): (
-        13, "… Haida Gwaii's 25,772 sections …", "(our commentary; see the 26 line)"),
 }
 
 
