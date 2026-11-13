@@ -118,4 +118,14 @@ describe.skipIf(!at.dir)(`T670: what the release holds is on the screen (${at.di
     const elk = await bookOf("gnis:16880", 0, { age: "adult", residency: "non_resident" });
     expect([elk.some((t) => t.startsWith("If you are a NON-GUIDED “Non-Resident”")), elk.includes(BOOKING)]).toEqual([true, false]);
   });
+  it("G8 (owner 2026-11-12 'Show the fee only') the basic licence carries the disabled-resident fee line for a B.C. resident adult, not the one-licence line", async () => {
+    const FEE = "If you are a resident of B.C. and disabled: You may qualify for a basic freshwater angling licence at the reduced fee of $1.14.";
+    const basic = async (who: Parameters<typeof buildRegsPage>[1]["who"]) => {
+      const inp = await loadRegsInputs(st, { kind: "part", item: "gnis:16880", partIx: 0 }, { month: 7, day: 15 }, "Wednesday", 2026);
+      return (buildRegsPage(inp, { today: { month: 7, day: 15 }, who }).licence?.blocks ?? [])
+        .flatMap((b) => b.cls === "needs" ? [...b.items, ...(b.onlyIf?.items ?? [])] : []).find((i) => /basic/i.test(i.name))!.book;
+    };
+    expect(await basic({ age: "adult", residency: "resident" })).toEqual([FEE]);
+    expect(await basic({ age: "adult", residency: "non_resident" })).toEqual([]);
+  });
 });

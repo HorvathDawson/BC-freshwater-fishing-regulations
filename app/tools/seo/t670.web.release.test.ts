@@ -63,6 +63,9 @@ describe.skipIf(!LIVE)(`T672: the site's model carries what T670 put on the app'
     // (T670 G7, RULINGS Li13) a classified water's licence terms from p.7, in the book's words (the model's angler is the adult resident)
     ["G7 Wigwam River", "gnis:27703", ["mouth", "wigwam_river__wigwam_km42_ram_fsr"], JUL15,
       ["If you are a B.C. resident: Your Classified Waters Licence is valid"]],
+    // (T670, owner 2026-11-12 "Show the fee only") the basic licence's disabled-resident fee sentence, never the one-licence line
+    ["G8 basic licence fee", "gnis:16880", null, JUL15,
+      ["If you are a resident of B.C. and disabled: You may qualify for a basic freshwater angling licence at the reduced fee of $1.14."]],
   ];
   const pageOf = async (item: string, ends: readonly [string, string] | null, day: BuildDay) =>
     appPage(st, item, ends ? await names.part(item, ends[0], ends[1]) : 0, day);

@@ -208,11 +208,13 @@ describe("buildLicence", () => {
 describe("T670 G7 / RULINGS Li13: a classified water's Licence tab lists its p.7 terms, in the book's words", () => {
   const BOOKING = "A first-come-first-serve booking system is in place for these Kootenay Class II waters: Michel Creek, Skookumchuck Creek, and the Wigwam River.";
   const PER_DAY = "If you are a NON-GUIDED “Non-Resident” or NON-GUIDED “Non-Resident Alien”: Your Classified Waters Licence for Class I or Class II waters is sold on a per day basis and is date and water-specific.";
+  const FEE = "If you are a resident of B.C. and disabled: You may qualify for a basic freshwater angling licence at the reduced fee of $1.14.";
   const LICS_CW = new Map<number, unknown>([...LICS,
     [10, { entry_id: "zp:classified_waters_licence", record_id: "cwl", kind: "requirement", label: "Classified Waters Licence while classified.", placement: "on_designation", fields: {}, prov: {} }],
     [11, { entry_id: "zp:classified_waters_licence", record_id: "cwl_booking", kind: "licence_terms", label: "booking", verbatim: BOOKING, fields: { document: "classified_waters_licence" }, prov: {} }],
     [12, { entry_id: "zp:classified_waters_licence", record_id: "cwl_non_resident", kind: "licence_terms", label: "per day", verbatim: PER_DAY, fields: { document: "classified_waters_licence" }, prov: {} }],
     [13, { entry_id: "zp:licence_administration", record_id: "basic_one_per_year", kind: "licence_terms", label: "one a year", verbatim: "You are only permitted one annual angling licence per year.", fields: { document: "basic_licence" }, prov: {} }],
+    [14, { entry_id: "zp:licence_administration", record_id: "basic_disabled_fee", kind: "licence_terms", label: "disabled fee", verbatim: FEE, fields: { document: "basic_licence", fee_cad: 1.14 }, prov: {} }],
   ]);
   const VISITOR: ProfileAnswer = {
     documents: [{ ...BASIC, prices: { year: 62.87 } }, { doc: "classified_waters_licence", when: { act: "fishing", on: "classified_period" }, base: true, prices: { day: [22.86] } }],
@@ -231,7 +233,7 @@ describe("T670 G7 / RULINGS Li13: a classified water's Licence tab lists its p.7
     const { needs, cw } = cwlItem(VISITOR);
     expect(cw.book).toEqual([BOOKING, PER_DAY]);
     expect(needLine(cw)).toBe(`Classified waters licence ⓘ Needed to fish at all $22.86 a day From the rule book: ${BOOKING} ${PER_DAY}`);
-    // the basic licence's administrative term is not a p.7 classified-water term (held for the owner): not drawn
+    // the basic licence's one-annual-licence term is NOT drawn (owner 2026-11-12, "Show the fee only"); a non-resident has no fee line
     expect(needs.items.find((x) => /basic/i.test(x.name))!.book).toEqual([]);
   });
   it("mutation: an answer that names no term draws none", () => {
@@ -241,5 +243,41 @@ describe("T670 G7 / RULINGS Li13: a classified water's Licence tab lists its p.7
   it("a term the answer names that the release does not hold is an error, never a silent gap", () => {
     const lics = new Map(LICS_CW); lics.delete(12);
     expect(() => cwlItem(VISITOR, lics)).toThrow(/licensing record 12/);
+  });
+});
+
+describe("T670 (owner 2026-11-12, 'Show the fee only'): the basic licence shows the disabled-resident fee line, never the one-licence line", () => {
+  const FEE = "If you are a resident of B.C. and disabled: You may qualify for a basic freshwater angling licence at the reduced fee of $1.14.";
+  const ONE = "You are only permitted one annual angling licence per year.";
+  const LICS_B = new Map<number, unknown>([...LICS,
+    [13, { entry_id: "zp:licence_administration", record_id: "basic_one_per_year", kind: "licence_terms", label: "one a year", verbatim: ONE, fields: { document: "basic_licence" }, prov: {} }],
+    [14, { entry_id: "zp:licence_administration", record_id: "basic_disabled_fee", kind: "licence_terms", label: "fee", verbatim: FEE, fields: { document: "basic_licence", fee_cad: 1.14 }, prov: {} }]]);
+  const basicReq = (terms: number[]) => ({ req: 1, when: { act: "fishing" as const }, paths: [{ need: ["basic_licence"] }], terms });
+  // the stored answers: the plain resident adult holds the one-licence term only (the fee term is the disabled profile's); the disabled one both
+  const PLAIN: ProfileAnswer = { ...ADULT, requirements: [basicReq([13])] };
+  const DISABLED: ProfileAnswer = { ...ADULT, requirements: [basicReq([13, 14])] };
+  const slot = (k: string) => PROFILES.indexOf(k);
+  const basicOf = (who: Who, lics = LICS_B, over: Record<number, ProfileAnswer> = { [slot("resident/16_plus/non_guided/none")]: PLAIN, [slot("resident/16_plus/non_guided/disabled")]: DISABLED }) => {
+    const f = frame(); const profiles = [...f.profiles]; for (const [i, a] of Object.entries(over)) profiles[Number(i)] = a;
+    const vm = buildLicence(INP({ licence: { ...f, profiles }, lics, paper: [] }), who, { closed: false, glossary: GLOSS })!;
+    const needs = vm.blocks.find((b) => b.cls === "needs");
+    if (needs?.cls !== "needs") throw new Error("no 'You need' list");
+    return needs.items.find((x) => /basic/i.test(x.name))!;
+  };
+  it("a B.C. resident adult: the fee sentence, in the book's words, under the basic licence; the one-licence line stays off", () => {
+    const it_ = basicOf(WHO.adult!);
+    expect(it_.book).toEqual([FEE]);
+    expect(needLine(it_)).toBe(`Basic angling licence Needed to fish at all $41.15 a year · $11.43 a day · $22.86 for 8 days ${LIC.BOOK_TERMS} ${FEE}`);
+    expect(JSON.stringify(it_)).not.toContain("one annual");
+  });
+  it("a non-resident has no fee line (the sentence is for B.C. residents)", () => {
+    expect(basicOf(WHO.adult_non!, LICS_B, { [slot("non_resident/16_plus/non_guided/none")]: { ...ADULT_NON, requirements: [basicReq([13])] } }).book).toEqual([]);
+  });
+  it("mutation: a release whose disabled answer carries no fee term draws none", () => {
+    expect(basicOf(WHO.adult!, LICS_B, { [slot("resident/16_plus/non_guided/none")]: PLAIN, [slot("resident/16_plus/non_guided/disabled")]: PLAIN }).book).toEqual([]);
+  });
+  it("a fee term the answer names that the release does not hold is an error, never a silent gap", () => {
+    const lics = new Map(LICS_B); lics.delete(14);
+    expect(() => basicOf(WHO.adult!, lics)).toThrow(/licensing record 14/);
   });
 });

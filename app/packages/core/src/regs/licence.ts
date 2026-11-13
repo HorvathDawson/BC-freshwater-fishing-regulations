@@ -102,18 +102,11 @@ function pathTxt(inp: RegsInputs, p: Path_): string {
 }
 
 const CLASSIFIED_DOC = "classified_waters_licence";
+const BASIC_DOC = "basic_licence";
 
-/**
- * (T670 G7, RULINGS Li13, owner 2026-11-12 "Show on each water") THE p.7 TERMS OF A CLASSIFIED WATERS LICENCE, in the
- * book's words: the `licence_terms` records the stored answer hangs on the requirements this document meets (licence
- * `requirements[].terms` — the pipeline chose them for this angler and this water's designations: the Kootenay booking
- * on the Wigwam, the Dean draw on its Class I - Main Section), each record's `verbatim`, once, in answer order. Only the
- * Classified Waters Licence's: the basic licence's administrative terms (one annual licence a year, the disabled fee)
- * are not p.7's classified-water terms and are not drawn (held for the owner, T670).
- */
-function bookTerms(inp: RegsInputs, P: ProfileAnswer, doc: string): readonly string[] {
-  if (doc !== CLASSIFIED_DOC) return [];
-  const out: string[] = [];
+/** The licence_terms records `P` names on the requirements this document meets, in answer order. */
+function termsOf(inp: RegsInputs, P: ProfileAnswer, doc: string): LicWords[] {
+  const out: LicWords[] = [];
   for (const x of P.requirements) {
     if (!x.paths.some((p) => p.need?.includes(doc))) continue;
     for (const t of x.terms ?? []) {
@@ -121,9 +114,26 @@ function bookTerms(inp: RegsInputs, P: ProfileAnswer, doc: string): readonly str
       if (l.kind === "?") throw new Error(`licence: the answer names licensing record ${t}, which the release does not hold`);
       if (l.kind !== "licence_terms" || l.fields.document !== doc) continue;
       if (!l.verbatim) throw new Error(`licence: the term ${l.key} the answer names has no words (verbatim)`);
-      if (!out.includes(l.verbatim)) out.push(l.verbatim);
+      out.push(l);
     }
   }
+  return out;
+}
+
+/**
+ * (T670 G7, RULINGS Li13) THE BOOK'S TERMS OF A DOCUMENT, in the book's words, once, in answer order:
+ *  - the Classified Waters Licence: every p.7 `licence_terms` record the stored answer hangs on it for this angler and water
+ *    (the Kootenay booking on the Wigwam, the Dean draw on its Class I - Main Section);
+ *  - the basic licence (owner 2026-11-12, "Show the fee only"): ONLY the reduced-fee term (the record that carries a
+ *    `fee_cad`: the $1.14 for disabled B.C. residents), never the one-annual-licence term. The app does not ask whether the
+ *    angler is disabled, so a B.C. resident adult is shown the sentence the stored answer of the DISABLED resident adult
+ *    holds (`feeP`); the sentence states its own condition ("If you are a resident of B.C. and disabled: ...").
+ */
+function bookTerms(inp: RegsInputs, P: ProfileAnswer, doc: string, feeP: ProfileAnswer | null): readonly string[] {
+  const out: string[] = [];
+  const add = (v: string) => { if (!out.includes(v)) out.push(v); };
+  if (doc === CLASSIFIED_DOC) for (const l of termsOf(inp, P, doc)) add(l.verbatim);
+  if (doc === BASIC_DOC && feeP) for (const l of [...termsOf(inp, P, doc), ...termsOf(inp, feeP, doc)]) if (l.fields.fee_cad != null) add(l.verbatim);
   return out;
 }
 
@@ -143,6 +153,9 @@ function answerBlocks(inp: RegsInputs, F: LicenceValue & { holds: Holds }, who: 
                       gloss: ReadonlySet<string>): LicenceBlockVM[] {
   const sp = inp.statics.exportSpecies, H = F.holds, DOC = (d: string) => docName(inp, d);
   const gi = (id: string): string[] => gloss.has(id) ? [id] : [];
+  // the B.C. resident adult's reduced-fee sentence lives on the DISABLED resident adult's answer (the app does not ask)
+  const feeAt = who.age === "adult" && who.residency === "resident" ? F.profiles[profileIndex(who, inp.statics.profileDims, inp.statics.profiles, { status: "disabled" })] : undefined;
+  const feeP = isAnswer(feeAt) ? feeAt : null;
   const out: LicenceBlockVM[] = [];
   const des = (H.designations ?? []).map((d) => lx(inp, d));
   const datesOf = (w: unknown) => whenDates(w as RuleWhen).map(([a, b]) => rangeTxt(a, b)).join(LIC.SEP);
@@ -187,7 +200,7 @@ function answerBlocks(inp: RegsInputs, F: LicenceValue & { holds: Holds }, who: 
     const alts = altsOf(b);
     return { name: cap([DOC(b.doc), ...alts].join(` ${LIC.OR} `)), docs: [b.doc], terms: docGi(b.doc),
       when: [whenTxt(b.when), ...(b.also_when ?? []).map(alsoTxt)].join(LIC.ALSO_SEP) + (alts.length ? LIC.EITHER : ""),
-      price: priceTxt(b.prices ?? {}) || null, book: bookTerms(inp, P, b.doc) };
+      price: priceTxt(b.prices ?? {}) || null, book: bookTerms(inp, P, b.doc, feeP) };
   });
 
   // under 16: the stored under_16 entry for this residency (pipeline licence.under_16_summary: with_adult, buy, own_limit).
