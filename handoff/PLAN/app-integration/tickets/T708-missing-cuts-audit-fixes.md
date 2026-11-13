@@ -29,8 +29,21 @@ Pictures (Esri imagery, scratch): `deena_cut.jpg`, `mamin_cut.jpg`, `mcrae_cut.j
      (`~/bcfish-session-backup-2026-11-12/audit-cuts/`: `hidden_lake.jpg`, `secret_lake.jpg`,
      `square_whitton_lake.jpg`, `frog_lake_leads.jpg`). Then: "add the 3 high confidence lakes. frog seems unsure
      still … will look harder for frog and redfern later": Hidden, Secret, Square → Whitton DECIDED (Work 8).
-6. Open owner questions: Haida Gwaii tidal boundary at the mouth (Copper/Deena/Mamin, audit Q1); Stave River Ruskin
-   channel (Q6); McArthur Island Slough (class a item 2).
+6. **Answered 2026-11-13** (were the open questions):
+   - **Haida Gwaii tidal boundary (audit Q1)**: stays at the mouth for Copper, Deena and Mamin unless a written
+     boundary is listed elsewhere (standing order: DFO written boundary → points-of-land line → polygon). Check
+     (read-only, `data/source/dfo_tidal_areas/2026-10-28` and `2026-11-11`, SOR/2007-77, curated
+     `waters/tidal_limits.json`, `tidal_split_authority.json`, `cuts.json`): **no written tidal boundary for any of
+     the three.** DFO lists only "The tidal portion of all streams flowing into Areas 1, 2 and 102". Near-misses, not
+     tidal boundaries: "Diina (Deena Creek): That portion of subarea 2-1 that lies inside a line commencing at
+     53° 09.415' N, 132° 06.870' W …" is a sub-area of the X̲aana K̲aahlii (Skidegate Inlet) Marine Refuge
+     (`fm-gp/rec/tidal-maree/a-s2-eng.html`); "Copper River estuary … shoreward of a straight line between two
+     boundary signs located on either side of Copper River estuary" is a gear-restriction area in the 2026-10-28
+     copy only (gone from 2026-11-11). Mamin: nothing. No change.
+   - **Stave River Ruskin channel (Q6)**: the whole described channel; `stave_river.r1` stays on all 4 pieces. No change.
+   - **McArthur Island Slough (class a item 2)**: the whole slough; the stretch stays (3 sections). The card must keep
+     the book's place words ("from westerly entrance to 12th Street entrance to Park"); today's label reads only
+     "No powered boats".
 
 ## Work
 
