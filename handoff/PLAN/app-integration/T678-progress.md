@@ -807,3 +807,13 @@ Owner's phone report (build 29, the More tab). Done in code, not yet in a build:
   ~/bcfish-session-backup-2026-11-12/store-auto/. Note for the owner: shot 8 "Works offline" shows More's data list
   (since T703 the download/mobile-data controls are on More -> Settings), so its caption and picture no longer match well.
 - graphify update run.
+
+## 2026-11-13 (pipeline lane: T710, T691 phase 2, next release candidate) — IN PROGRESS, NOT promoted
+- T710 (023c61c9d): `topology.order_parts` is the one ranking; a km-less side-channel part sits right after the main-stem
+  part it runs beside (`side_host`: most shared end names, else first touched). Read-only on the live bundle: 8 waters,
+  33 part numbers (the count's Old Kootenay River Channel "swap" was the count script's insert order, not a real move).
+  Part numbers are stored nowhere durable: marks.jsonl has no part field, links carry FWA places (T369), `ix=` is the
+  browser tools' key; the release follows re-cut the goldens (taps.py Skeena declarations shift +1 for parts >= 4).
+- T691 phase 2 (de3590042): no owner approval recorded, so no matches.json row applied; review list in the ticket.
+- Candidate: `pipeline build --atlas` -> data/generated/atlas/full_next (running), then the T708 patch, the 3 lakes'
+  `matched` (backfill_matched), and a side run `pipeline build --side data/generated/side/next-rc`.
