@@ -9,7 +9,21 @@
     {
       "scene": "10-regs-bar-table",
       "title": "The year at a glance",
-      "line": "When it is open, closed or fly-only, and what you can keep, salmon included"
+      "line": "When it is open, closed or fly-only, and what you can keep, salmon included",
+      "compose": [
+        {
+          "scene": "18-regs-trout",
+          "from": 0.41,
+          "to": 0.88,
+          "label": "Game fish (B.C. rules)"
+        },
+        {
+          "scene": "19-regs-salmon",
+          "from": 0.41,
+          "to": 0.84,
+          "label": "Salmon (DFO)"
+        }
+      ]
     },
     {
       "scene": "16-split-and-rules",

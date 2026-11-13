@@ -73,11 +73,14 @@ Object.assign(SCENES, {
   // (owner 2026-11-12: "salmon are a thing too") scrolled so the SALMON (DFO) section — its own year bar, Open/Closed today and its
   // Salmon row — sits under the water's tabs with the tail of the game-fish table above it: trout/char rows and salmon in one view.
   // The Vedder is open for salmon in the fall; out of season the salmon bar and row still show, closed.
-  '10-regs-bar-table': async (b) => { await until(b, `!!document.querySelector('[data-testid=keep-strip]')`, 120000); await sleep(3000);
+  // (owner 2026-11-12 "Stacked: trout top, salmon bottom") store shot 10 is two captures of the Vedder, same day: 18 = trout/game-fish year bar
+  // and first rows, 19 = the SALMON (DFO) section. The composite is named 10-regs-bar-table in store-shots.json.
+  '18-regs-trout': async (b) => { await until(b, `!!document.querySelector('[data-testid=keep-strip]')`, 120000); await sleep(3000); await scrollTo(b, 'keep-strip'); await sleep(1500); },
+  '19-regs-salmon': async (b) => { await until(b, `!!document.querySelector('[data-testid=keep-strip]')`, 120000); await sleep(3000);
     const at = await b.evaluate(`(() => { const e = [...document.querySelectorAll('*')].filter((x) => x.children.length === 0 && /^salmon \\(dfo\\)$/i.test(x.textContent.trim())).pop(); if (!e) return 'no SALMON (DFO) section';
       let p = e.parentElement; while (p && p.scrollHeight <= p.clientHeight + 2) p = p.parentElement; if (!p) return 'nothing scrolls';
-      p.scrollTop += e.getBoundingClientRect().top - 420; return 'ok'; })()`);
-    if (at !== 'ok') throw new Error('10-regs-bar-table: ' + at);
+      p.scrollTop += e.getBoundingClientRect().top - 275; return 'ok'; })()`);
+    if (at !== 'ok') throw new Error('19-regs-salmon: ' + at);
     await sleep(1500); },
   // the gauge's chart with the forecast drawn on it (the model lines are the default on the chart: CLEVER, COFFEE, ELF)
   '11-cond-chart': async (b) => { await until(b, `!!document.querySelector('[data-testid=gauge-card]')`, 120000); await sleep(6000);
@@ -99,7 +102,7 @@ Object.assign(SCENES, {
     await until(b, `!!document.querySelector('[data-testid=keep-strip]')`, 60000); await sleep(3000); await scrollTo(b, 'keep-strip'); await sleep(1500); },
 });
 const URLS = { '02-regulations': '/water/vedder-river', '03-conditions': '/?regs=gnis:3062&view=conditions',
-  '10-regs-bar-table': '/water/vedder-river', '11-cond-chart': '/?regs=gnis:3062&view=conditions', '14-split-map': '/water/chilliwack-river', '15-split-rules': '/water/chilliwack-river' };
+  '18-regs-trout': '/water/vedder-river', '19-regs-salmon': '/water/vedder-river', '11-cond-chart': '/?regs=gnis:3062&view=conditions', '14-split-map': '/water/chilliwack-river', '15-split-rules': '/water/chilliwack-river' };
 const SIZES = { phone: { width: 360, height: 640, dpr: 3, mobile: true, pre: '' }, tablet7: { width: 600, height: 960, dpr: 2, mobile: true, pre: 'tablet7-' }, tablet10: { width: 800, height: 1280, dpr: 2, mobile: true, pre: 'tablet10-' },
   // (T319) App Store: 6.7" iPhone 1290x2796 (430x932 @3), 5.5" 1242x2208 (414x736 @3), 13" iPad 2048x2732 (1024x1366 @2)
   iphone67: { width: 430, height: 932, dpr: 3, mobile: true, pre: 'iphone67-' }, iphone55: { width: 414, height: 736, dpr: 3, mobile: true, pre: 'iphone55-' },
