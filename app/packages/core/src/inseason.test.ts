@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  INSEASON_FAILURES, inSeasonBanner, inSeasonCover, inSeasonDates, inSeasonNoticeRows, inSeasonSpan, inSeasonSummary, inSeasonUnseen,
+  INSEASON_FAILURES, inSeasonAbsentWaters, inSeasonBanner, inSeasonCover, inSeasonDates, inSeasonNoticeRows, inSeasonSpan, inSeasonSummary, inSeasonUnseen,
   inSeasonWhere, joinInSeason, parseInSeasonFeed, parseInSeasonLinks, type InSeasonChange, type InSeasonFeed, type InSeasonRow,
   type InSeasonRun, type InSeasonSection,
 } from "./inseason";
@@ -192,3 +192,22 @@ describe("inSeasonSummary (T472)", () => {
     expect(inSeasonSummary([b(null), b(null)])).toBe("2 in-season changes · see ›");
   });
 });
+
+describe("in-season: waters this release does not hold (T693)", () => {
+  const f = feed([row({ id: "is-a" }), row({ id: "is-b" }), row({ id: "is-c" })]);
+  const l = parseInSeasonLinks({ format: "inseason-links/3", release: "r-1", notices: {
+    "is-a": { waters: { "gnis:gone": { all: true } } },
+    "is-b": { waters: { "gnis:gone": { all: true }, "gnis:here": { all: true } } },
+    "is-c": { waters: { "gnis:here": { all: true } } } } });
+  it("every water absent: not matched (the bell takes it); a held one keeps it matched; none absent: as before", () => {
+    const j = joinInSeason(f, l, "2026-10-28", "r-1", new Set(["gnis:gone"]));
+    expect([j.matched.map((c) => c.id), j.unmatched.map((c) => [c.id, c.waters])]).toEqual([["is-b", "is-c"], [["is-a", null]]]);
+    expect(joinInSeason(f, l, "2026-10-28", "r-1").matched.map((c) => c.id)).toEqual(["is-a", "is-b", "is-c"]);
+    expect(joinInSeason(f, l, "2026-10-28", "r-1", new Set()).unmatched).toEqual([]);
+  });
+  it("names the absent waters of a change, sorted", () => {
+    const [, b] = joinInSeason(f, l, "2026-10-28", "r-1").matched;
+    expect(inSeasonAbsentWaters(b!, new Set(["gnis:gone", "gnis:x"]))).toEqual(["gnis:gone"]);
+  });
+});
+

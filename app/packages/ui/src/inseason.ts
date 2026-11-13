@@ -9,7 +9,7 @@
  * Informational only: nothing here touches an answer, a status or the map's colours.
  */
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { INSEASON_FAILURES, INSEASON_WORDS, inSeasonBanner, inSeasonCover, reportFailure, inSeasonNoticeRows, inSeasonUnseen, isoDayOf, joinInSeason,
+import { INSEASON_FAILURES, INSEASON_WORDS, inSeasonAbsentWaters, inSeasonBanner, inSeasonCover, reportFailure, inSeasonNoticeRows, inSeasonUnseen, isoDayOf, joinInSeason,
          type InSeasonBannerVM, type InSeasonChange, type InSeasonCover, type InSeasonNoticeRow, type InSeasonSection,
          bcNow } from "@app/core";
 import type { InSeasonData, InSeasonSource } from "@app/data";
@@ -37,9 +37,19 @@ export interface InSeasonNow {
 const NONE: InSeasonNow = { matched: [], unmatched: [], data: null, release: null };
 export const InSeasonContext = createContext<InSeasonNow>(NONE);
 
-/** The feed + links, joined for TODAY (the notice's day). A page joins again for its own day. */
+/** (T693) Whether this device's release holds a water, by its item id (the release's `core.item`, `itemOrd`). */
+export type HoldsWater = (item: string) => Promise<boolean>;
+
+/**
+ * The feed + links, joined for TODAY (the notice's day). A page joins again for its own day.
+ *
+ * (T693, owner 2026-11-12 "Fix gap 1 only") `holds`: the links may name a water this release does not have (a newer
+ * links file, T673), and that notice would sit on no page and in no bell. Each matched water is asked once per release;
+ * a notice whose every water is absent falls into the bell like an unmatched one, and is REPORTED once. No `holds` (no
+ * release open): nothing to ask. A failed ask is reported and the notices stay matched — never dropped.
+ */
 export function useInSeason(source: InSeasonSource | null | undefined, epoch = 0,
-                            release: string | null = null): InSeasonNow {
+                            release: string | null = null, holds: HoldsWater | null = null): InSeasonNow {
   const tick = usePoll(INSEASON_POLL_MS, !!source);
   const [data, setData] = useState<InSeasonData | null>(null);
   // (T520) the device's release changed (a data update applied): the links are asked again, never read across it
@@ -54,8 +64,31 @@ export function useInSeason(source: InSeasonSource | null | undefined, epoch = 0
     // (T231) `epoch`: bumped when the update service sees the feed move (the source was told to forget it)
   }, [source, tick, epoch, release]);
   const today = isoDayOf(bcNow());
-  return useMemo(() => (data ? { ...joinInSeason(data.feed, data.links, today, release), data, release } : NONE),
-    [data, today, release]);
+  const base = useMemo(() => (data ? joinInSeason(data.feed, data.links, today, release) : null), [data, today, release]);
+  const waters = useMemo(() => [...new Set((base?.matched ?? []).flatMap((c) => Object.keys(c.waters ?? {})))].sort(), [base]);
+  const key = `inseason-holds:${release ?? ""}:${waters.join(",")}`;
+  const asked = useAsync(async () => {
+    const gone = new Set<string>();
+    // a failed ask is reported by `useAsync` (once), in this sentence; the notices stay matched meanwhile
+    try { for (const w of waters) if (!(await holds!(w))) gone.add(w); }
+    catch (e) { throw new Error(INSEASON_FAILURES.noHolds(e instanceof Error ? e.message : String(e))); }
+    return gone;
+  }, key, !!holds && waters.length > 0);
+  const absent = asked.state === "ready" && asked.value.size ? asked.value : null;
+  const out = useMemo(() => (data && base
+    ? { ...(absent ? joinInSeason(data.feed, data.links, today, release, absent) : base), data, release } : NONE),
+    [data, base, absent, today, release]);
+  useEffect(() => {
+    if (!absent) return;
+    for (const c of base?.matched ?? []) {
+      const items = inSeasonAbsentWaters(c, absent);
+      const k = `absent|${c.id}|${items.join(",")}|${release}`;
+      if (!items.length || TOLD.has(k)) continue;
+      TOLD.add(k);
+      reportFailure(new Error(INSEASON_FAILURES.absentWaters(c.id, items)));
+    }
+  }, [base, absent, release]);
+  return out;
 }
 
 export interface InSeasonPage {

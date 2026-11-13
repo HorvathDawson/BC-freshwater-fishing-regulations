@@ -6,7 +6,7 @@ import type React from "react";
 import { afterEach, describe, expect, it } from "vitest";
 import { act, cleanup, render, waitFor } from "@testing-library/react";
 import { INSEASON_FAILURES, setFailureSink, type InSeasonChange } from "@app/core";
-import { InSeasonContext, useInSeasonCovers, useInSeasonNotice, type InSeasonNoticeState, type InSeasonOnPage } from "./inseason";
+import { InSeasonContext, useInSeason, useInSeasonCovers, useInSeasonNotice, type InSeasonNoticeState, type InSeasonNow, type InSeasonOnPage } from "./inseason";
 
 afterEach(cleanup);
 const ch = (id: string): InSeasonChange =>
@@ -140,6 +140,59 @@ describe("useInSeasonCovers (T520): one load path for the banner and the water m
       await waitFor(() => expect(off.v).toHaveLength(1));
       expect(off.v![0]!.cover).toEqual({ sections: null, where: "From A to B", failure: INSEASON_FAILURES.offRelease, whereFailure: null });
       await waitFor(() => expect(String(seen[0])).toContain("another data release"));
+    } finally { undo(); }
+  });
+});
+
+describe("useInSeason (T693): a notice matched to a water this release does not hold is in the bell, not nowhere", () => {
+  const feed = { format: "inseason-feed/1" as const, fetchedAt: "x", source: "s", removed: [],
+                 rows: [{ id: "is-a", region: "2", water: "Gone Creek", effective: "", from: null, to: null, change: "No fishing" },
+                        { id: "is-b", region: "2", water: "Here Creek", effective: "", from: null, to: null, change: "No bait" },
+                        { id: "is-c", region: "2", water: "Both", effective: "", from: null, to: null, change: "Closed" }] };
+  const links = { format: "inseason-links/3" as const, release: "r-1", notices: {
+    "is-a": { waters: { "gnis:gone": { all: true as const } } },
+    "is-b": { waters: { "gnis:here": { all: true as const } } },
+    "is-c": { waters: { "gnis:here": { all: true as const }, "gnis:gone": { all: true as const } } } } };
+  const source = { latest: async () => ({ feed, links }) } as never;
+  const holds = async (id: string) => id !== "gnis:gone";
+  function Now({ out, h }: { out: { v?: InSeasonNow }; h: ((id: string) => Promise<boolean>) | null }) {
+    out.v = useInSeason(source, 0, "r-1", h);
+    return null;
+  }
+
+  it("every water absent: the bell takes it (not matched); one still held stays matched; the absent ones are reported once", async () => {
+    const seen: unknown[] = [];
+    const undo = setFailureSink((e) => seen.push(e));
+    try {
+      const out: { v?: InSeasonNow } = {};
+      const r = render(<Now out={out} h={holds} />);
+      await waitFor(() => expect(out.v!.unmatched.map((c) => c.id)).toEqual(["is-a"]));
+      expect(out.v!.matched.map((c) => c.id)).toEqual(["is-b", "is-c"]);
+      await waitFor(() => expect(seen.map((e) => (e as Error).message)).toEqual([
+        INSEASON_FAILURES.absentWaters("is-a", ["gnis:gone"]), INSEASON_FAILURES.absentWaters("is-c", ["gnis:gone"])]));
+      r.rerender(<Now out={out} h={holds} />);        // a re-render and a re-ask say nothing twice
+      await new Promise((res) => setTimeout(res, 20));
+      expect(seen).toHaveLength(2);
+    } finally { undo(); }
+  });
+  it("no way to ask (no release open): matched as ever, nothing reported", async () => {
+    const seen: unknown[] = [];
+    const undo = setFailureSink((e) => seen.push(e));
+    try {
+      const out: { v?: InSeasonNow } = {};
+      render(<Now out={out} h={null} />);
+      await waitFor(() => expect(out.v!.matched).toHaveLength(3));
+      expect([out.v!.unmatched, seen]).toEqual([[], []]);
+    } finally { undo(); }
+  });
+  it("a failed ask is reported, and the notices stay matched (never dropped)", async () => {
+    const seen: unknown[] = [];
+    const undo = setFailureSink((e) => seen.push(e));
+    try {
+      const out: { v?: InSeasonNow } = {};
+      render(<Now out={out} h={async () => { throw new Error("store: damaged"); }} />);
+      await waitFor(() => expect(seen.map((e) => (e as Error).message)).toEqual([INSEASON_FAILURES.noHolds("store: damaged")]));
+      expect([out.v!.matched.length, out.v!.unmatched.length]).toEqual([3, 0]);
     } finally { undo(); }
   });
 });

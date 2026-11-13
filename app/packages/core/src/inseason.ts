@@ -155,9 +155,16 @@ export interface InSeasonChange {
 }
 
 
-/** Every row of the feed in effect on `day` ("YYYY-MM-DD"), split into matched and not. Removed rows are never in. */
+/**
+ * Every row of the feed in effect on `day` ("YYYY-MM-DD"), split into matched and not. Removed rows are never in.
+ *
+ * (T693, owner 2026-11-12 "Fix gap 1 only") `absent`: the water ids the links name that THIS device's release does not
+ * hold (the links may be newer than the release, T673). A notice whose every water is absent has no page on this phone, so
+ * it is NOT matched here: it falls into the bell as "not on the map yet", like an unmatched one (`waters` null). One with
+ * some water this release holds stays matched (its pages show it); `inSeasonAbsentWaters` names the rest for the report.
+ */
 export function joinInSeason(feed: InSeasonFeed | null, links: InSeasonLinks | null, day: string,
-                             release: string | null = null):
+                             release: string | null = null, absent: ReadonlySet<string> | null = null):
   { matched: InSeasonChange[]; unmatched: InSeasonChange[] } {
   const matched: InSeasonChange[] = [], unmatched: InSeasonChange[] = [];
   if (!feed) return { matched, unmatched };
@@ -168,12 +175,19 @@ export function joinInSeason(feed: InSeasonFeed | null, links: InSeasonLinks | n
     const link = links?.notices[r.id];
     const span = inSeasonSpan(r, link);
     if ((span.from && span.from > day) || (span.to && span.to < day)) continue;
+    const here = link?.waters ?? null;
+    const held = here !== null && !(absent && Object.keys(here).length > 0 && Object.keys(here).every((i) => absent.has(i)));
     const c: InSeasonChange = { id: r.id, region: r.region, water: r.water, text: r.change, ...span,
-                                source: feed.source, waters: link?.waters ?? null, onRelease,
+                                source: feed.source, waters: held ? here : null, onRelease,
                                 linksRelease: links?.release ?? null };
     (c.waters ? matched : unmatched).push(c);
   }
   return { matched, unmatched };
+}
+
+/** (T693) The water ids a matched change names that this release does not hold (`absent`): what the report names. */
+export function inSeasonAbsentWaters(c: { readonly waters: InSeasonChange["waters"] }, absent: ReadonlySet<string>): string[] {
+  return Object.keys(c.waters ?? {}).filter((i) => absent.has(i)).sort();
 }
 
 const MOUTH = "mouth", SOURCE = "source";
@@ -216,6 +230,11 @@ export const INSEASON_FAILURES = {
   nothing: (id: string, item: string) => `in-season: ${id}'s ranges land on no section of ${item} in this release`,
   /** (T517) an end the links name that this release's `display.ends` does not (publish refuses such links) */
   noWords: (id: string, e: string) => `in-season: ${id}: ${e}`,
+  /** (T693) the links match a notice to waters this device's release does not hold: it is in the bell, not on a page */
+  absentWaters: (id: string, items: readonly string[]) =>
+    `in-season: ${id} is matched to ${items.join(", ")}, which this release does not hold (shown in the bell, not on a page)`,
+  /** (T693) the release could not be asked whether it holds a matched water: the notice stays as matched */
+  noHolds: (e: string) => `in-season: could not ask this release which matched waters it holds: ${e}`,
   /** (T517) the release's `display.ends` could not be read: no "Where" can be said */
   noTable: "in-season: this release's display.ends could not be read",
 } as const;

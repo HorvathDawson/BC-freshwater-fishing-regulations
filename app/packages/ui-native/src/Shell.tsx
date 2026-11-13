@@ -29,7 +29,7 @@ import type { ItemId } from "@app/data";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Platform, View } from "react-native";
 import { bottomBarShown, spotPins, useDayFlow, useLikeVisit, useMapRail, useMyLocation, useOpenAtMe, opensAtMe, useShare, useGaugePageCheck, useMenu, useDataFacts, useSync, useAppUpdate,
-         BackLayerContext, InSeasonContext, useIdleOnce, useInSeason, useInSeasonNotice, useDfoNotice, useDfoCheckedAt, useReleasePrefetch, useBackgroundPrefetch, useNet, useNetQuiet, useRegsPrefetch, holdsMapStatus, openWater, useHeldLookStore, type HeldLookStore, type RegsStart } from "@app/ui";
+         BackLayerContext, InSeasonContext, useIdleOnce, useInSeason, loadRegsStore, useInSeasonNotice, useDfoNotice, useDfoCheckedAt, useReleasePrefetch, useBackgroundPrefetch, useNet, useNetQuiet, useRegsPrefetch, holdsMapStatus, openWater, useHeldLookStore, type HeldLookStore, type RegsStart } from "@app/ui";
 import type { Camera, MapSpots } from "@app/map";
 import { visitSpot } from "@app/data/spots";
 import { connectivity } from "./connectivity";
@@ -340,7 +340,9 @@ export function Shell(p: ShellProps) {
    * the banners); the ones not on the map yet are the notice, which opens by itself once per row per device and from
    * the top bar's bell. Informational: nothing here changes an answer.
    */
-  const inSeason = useInSeason(p.inSeason ?? null, syncState.inSeasonEpoch, loader?.manifest?.data_release ?? null);
+  // (T693) a notice matched to a water this release does not hold goes to the bell, reported (the store is the page's, shared)
+  const holdsWater = useMemo(() => (loader ? async (item: string) => (await (await loadRegsStore(loader)).itemOrd(item)) !== null : null), [loader]);
+  const inSeason = useInSeason(p.inSeason ?? null, syncState.inSeasonEpoch, loader?.manifest?.data_release ?? null, holdsWater);
   const notice = useInSeasonNotice(inSeason.unmatched, p.inSeasonSeen ?? null);
   // (T521) the DFO feed's rules on a water no curated binding knows: the bell's DFO section, counted with the rest
   const dfoNotice = useDfoNotice(p.salmonFeed);
