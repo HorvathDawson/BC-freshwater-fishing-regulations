@@ -4214,7 +4214,25 @@
        "item_id": "gnis:15333"
       }
      ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): no km/h value is given, the rule alternates between a speed restriction and a full powered-boat ban depending on local signage, and 'small bays along the river' has no bindable location",
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): no km/h value is given, the line prints a speed restriction OR no powered boats as signed in each bay (this rule is the speed alternative; harrison_river.r4 the other, T209 follow-up 2026-11-12), and 'small bays along the river' has no bindable location",
+     "undrawn_part": "in small bays along the river as signed"
+    },
+    {
+     "rule_id": "harrison_river.r4",
+     "type": "vessel_rule",
+     "verbatim": "Speed restriction or no powered boats in small bays along the river as signed",
+     "aspect": "propulsion",
+     "level": "unpowered",
+     "extents": [
+      {
+       "op": "downstream_of",
+       "splits": [
+        "harrison_river__harrison_lake"
+       ],
+       "item_id": "gnis:15333"
+      }
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): the no-powered-boats alternative of the printed line (p.23, 'Speed restriction or no powered boats in small bays along the river as signed'; harrison_river.r3 is the speed one), which the catalogue had dropped (owner 2026-11-12, T209 follow-up: \"Yes, book's full words\"); 'small bays along the river' has no bindable location",
      "undrawn_part": "in small bays along the river as signed"
     }
    ]

@@ -61,7 +61,7 @@ def _corpus():
 WIDENED = {
     "r1:cowichan_lake_including_bear_lake@1-4": 1, "r1:great_central_lake@1-7": 1,
     "r2:alouette_lake@2-8": 2, "r2:cultus_lake@2-3": 1,
-    "r2:harrison_lake@2-18": 1, "r2:harrison_river_from_the_fraser_river_upstream_to_harrison_la@2-18": 1,
+    "r2:harrison_lake@2-18": 1, "r2:harrison_river_from_the_fraser_river_upstream_to_harrison_la@2-18": 2,
     "r2:pitt_lake@2-8": 2, "r2:powell_lake@2-12": 1, "r2:ruby_lake@2-5": 1,
     "r2:sakinaw_lake@2-5": 2, "r3:adams_lake@3-37": 1, "r3:leighton_lake@3-18": 2,
     "r3:loon_lake@3-30": 2, "r3:mahood_lake_see_map_on_page_28_for_area_closure@3-46": 8,
@@ -114,7 +114,8 @@ def test_the_widened_rules_are_counted():
     # owner 2026-10-26: François Lake r2-r7 hold on the whole lake (97 -> 91); drop_on_parts made 33 "on parts" rules whole-water (no caveat), and Cranberry r1 binds
     # between its two canyon cuts (131, 83 before)
     # T222 (r-0fa7927b16e5): the Stave's r1/r2 bind the Ruskin and Northrop channels, drawn now (85, 56 -> 83, 55)
-    assert (sum(per.values()), len(per)) == (83, 55)
+    # T209 follow-up (owner 2026-11-12): the Harrison's no-powered-boats alternative, r4, beside r3 in the same bays
+    assert (sum(per.values()), len(per)) == (84, 55)
     lic = sorted(e["entry_id"] for f in sorted(under_test.curated().regulations.synopsis.glob("region-*.json"))
                  for e in json.loads(f.read_text(encoding="utf-8"))["entries"]
                  for x in e.get("licensing") or [] if str(x.get("undrawn_part") or "").strip())
