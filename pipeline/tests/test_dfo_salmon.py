@@ -2618,10 +2618,11 @@ def test_a_watershed_walk_passes_through_its_lakes_but_collects_streams():
     """
     from pipeline.common.io.serialize import read_artifact
     from pipeline.atlas.reach.build import build_reach
+    from pipeline.atlas.reach.water_kind import kind_of
     from pipeline.regs.dfo_salmon.splitwork import _registry
 
     graph_path = need(None, "atlas", under_test.atlas() / "graph.pkl", ATLAS_HINT)
-    reg = _registry()
+    reg = _registry(under_test.atlas() / "registry.json")    # the graph's own registry, not the live one
     g = read_artifact(graph_path)
 
     def walk(item_id):
@@ -2637,12 +2638,18 @@ def test_a_watershed_walk_passes_through_its_lakes_but_collects_streams():
 
     # (T374) a polygon the owner CALLED a stream (T322 slough review: a slough / channel, folded into the one stream
     # through it, `registry.flowing.fold_confirmed_sloughs`) is part of that stream, not a lake: the walk collects it
+    # (T678 D1, 2026-11-12) the same holds for a pond the fold made part of its river (`graph.widenings`, Q152: the
+    # pond is the river). A lake here is what RULE 55 says it is — the kind of the water that OWNS the section
+    # (`reach.water_kind.kind_of`, the one answer every regulation reads), never the polygon's drawn shape: the walk
+    # collects no section a lake or wetland water owns, and it does carry the folded ponds of its tributaries.
     calls = json.loads((under_test.curated().waters.slough_calls).read_text())
     streams = {f"lake:{w['wbk']}" for w in calls["waters"] if w.get("call") == "stream"}
-    lakes = {s for s in skeena - item - streams
-             if str(getattr(g.nodes.get(s), "kind", "")).endswith("lake")}
-    assert not lakes, f"the Skeena walk collected {len(lakes)} lake sections"
+    lakes = {s for s in skeena - item if kind_of(g, reg, s) in ("lake", "wetland")}
+    assert not lakes, f"the Skeena walk collected {len(lakes)} sections of lake/wetland waters: {sorted(lakes)[:5]}"
     assert skeena & streams, "the walk should carry the folded sloughs of its tributaries (11 on 2026-11-04)"
+    ponds = {s for s in skeena - item - streams if str(getattr(g.nodes.get(s), "kind", "")).endswith("lake")}
+    assert ponds, "the walk should carry the ponds folded into its tributaries (D1: 657 on 2026-11-12)"
+    assert all(kind_of(g, reg, s) == "stream" for s in ponds), "a lake-drawn section the walk took is not a stream's"
 
     # every major lake in the system is PASSED: a stream flowing into it is in the walk
     for name in ("Babine Lake", "Lakelse Lake", "Kitsumkalum Lake", "Morice Lake", "Sustut Lake"):
