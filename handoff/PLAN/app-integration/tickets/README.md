@@ -209,6 +209,10 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T707 | Pinch release carries its zoom on Android (owner, build 29: "No zoom flick"): MapLibre's own scale momentum gated on the last touch event's span and the first finger's speed only, so phone flicks stopped dead; the binding patch carries it itself (MapLibre's size/curve, both fingers' span rate, 40 ms stillness gate); test bed `zoom-flick`, guard `app/tools/pinch-momentum.test.ts` | DONE (rides the next APK; builds on T452, T420) | 1468cfba5 | owner phone check "map zoom carries momentum after a pinch" |
 | T708 | Missing-cuts audit fixes (before closed testing): Pitt r2 "at Grant Narrows" label, Ruby Creek r1 between, Gagnon signs 400 m (mouth → signs), Deena/Mamin cuts onto bridges, Tlell r5 off the 13 freshwater tributaries, Kootenay/Lakelse end names, 3 unmatched lakes matched | OPEN | — | owner 2026-11-13 decisions in the ticket; owner: accept the bridge picks, the Gagnon option, the 3 lake matches; open: Haida Gwaii tidal at the mouth, Stave Ruskin channel, McArthur Island Slough; Frog/Redfern/Squirrel not found |
 | T709 | Store preview video from ONE command (like T704): Android emulator recording on the final build + staging data, 25-30 s, ffmpeg captions/poster, spec check; iOS version later at Apple's sizes (benched) | OPEN (before closed testing) | — | owner 2026-11-13 "we want to generate a nice App preview"; T704, T319, T244 |
+| T710 | Parts list: a side channel is listed next to the main-stem part it runs beside (count first, report to owner) | OPEN | — | owner 2026-11-13; priority open for main to place |
+| T711 | Part header text follows the "Source" end name (P55, 62 tops) | OPEN | — | owner 2026-11-13 |
+| T712 | Vessel restriction section shows the book's words with the location text (Harrison r4; survey same shape) | OPEN | — | owner 2026-11-13; priority open for main to place |
+| T713 | Trace why trout_quota.r5b, trout_char_quota.r6b, r9b (steelhead) bind nowhere | OPEN | — | pack follow-up 2026-11-13 |
 
 ## Next after closed testing
 
