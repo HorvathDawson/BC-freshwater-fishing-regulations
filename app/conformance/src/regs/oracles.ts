@@ -32,7 +32,6 @@ interface Rulings {
     readonly lois_fold: { readonly id: string; readonly retired: string; readonly into: string; readonly row: number } };
   readonly on_parts_dropped: { readonly rules: readonly string[] };
   readonly part_drawn: { readonly rules: readonly string[] };
-  readonly predates: { readonly states: Readonly<Record<string, { readonly list: "shown"; readonly key: string }>> };
   readonly peace_kokanee: { readonly item: string; readonly out: string; readonly base: string; readonly daily: number;
     readonly kept_rows: Readonly<Record<string, number>> };
   readonly kitimat_nov_jun: { readonly rows: Readonly<Record<string, number>> };
@@ -55,6 +54,44 @@ export function taps(): TapsFile {
 }
 let TP: TapsFile | undefined;
 export const tapsOnce = (): TapsFile => (TP ??= taps());
+
+/** A rule as the page oracle names it: its durable key, "entry::rule" (never a rix — the oracle does not renumber). */
+type RuleKey = string;
+type Res = { readonly status: string; readonly daily: number | string | null; readonly win: RuleKey; readonly narrow: RuleKey | null } | null;
+/** One golden state in page-oracle.json (regs-recut/page-oracle.mjs: page v36's code over the release under test). */
+export interface PageOracleState {
+  readonly s: number;
+  readonly via: Readonly<Record<RuleKey, "trib">>;
+  readonly ranks: Readonly<Record<RuleKey, number>>;
+  readonly settle: {
+    readonly status: string | null; readonly broad: readonly RuleKey[]; readonly speaks: readonly RuleKey[];
+    readonly beside: readonly RuleKey[]; readonly shown: readonly RuleKey[]; readonly inpart: readonly (readonly [RuleKey, boolean])[];
+    readonly lifted: readonly (readonly [RuleKey, RuleKey | null])[]; readonly timed: readonly RuleKey[]; readonly side: readonly RuleKey[];
+    readonly standing: readonly RuleKey[]; readonly anglerclosed: readonly RuleKey[];
+  };
+  readonly model: {
+    readonly spp: readonly string[]; readonly line: string | null; readonly missingRows: boolean; readonly status: string | null;
+    readonly broad: readonly RuleKey[];
+    readonly rows: readonly { readonly kind: string; readonly pool: RuleKey | null; readonly win: RuleKey | null;
+      readonly daily: number | string | null; readonly narrow: RuleKey | null; readonly members: readonly string[] }[];
+    readonly R: Readonly<Record<string, { readonly H: Res; readonly W: Res }>>;
+  };
+  readonly dayStatus: readonly (readonly (readonly [string, number])[])[];
+}
+interface PageOracle {
+  readonly meta: { readonly generator: string; readonly page: string; readonly golden: string; readonly version: string; readonly year: number };
+  readonly states: Readonly<Record<string, PageOracleState>>;
+}
+const PAGE_ORACLE = `${GOLDEN_DIR}page-oracle.json`;
+let PO: PageOracle | undefined;
+/**
+ * page-oracle.json (T667 slice 5b): what page v36's OWN code says of every tapped golden state when it reads the RELEASE
+ * the goldens were cut from (regs-recut/page-oracle.mjs, through the Python reference decoder). Re-cut by sync.mjs with
+ * taps.json; rules by durable key, so it changes only when an answer does (release_follows `page-oracle`: a stop).
+ */
+export function pageOracle(): PageOracle {
+  return (PO ??= JSON.parse(readFileSync(PAGE_ORACLE, "utf8")) as PageOracle);
+}
 
 let H: Hydrate | undefined;
 /** hydrate.json (T06/T07/T08's oracle), parsed once per test file. */
@@ -98,8 +135,6 @@ export const partDrawn = (oracle: number): boolean => ORACLE_PART_DRAWN.includes
  * (`kept_rows`) the table's "Kokanee: 10" (`base`) answers, keep `daily` a day all year.
  */
 export const PEACE_KOKANEE = RULINGS.peace_kokanee;
-/** (predates) a rule page v36 predates, ADDED by durable key to the oracle's list for that state (settle.parity). */
-export const ORACLE_PREDATES = RULINGS.predates.states;
 /** (kitimat_nov_jun) the one row per Kitimat state whose Nov 1-June 30 'keep' days the ruling makes 'release'. */
 export const KITIMAT_RULED = RULINGS.kitimat_nov_jun.rows;
 

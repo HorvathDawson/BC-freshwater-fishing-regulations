@@ -1,5 +1,5 @@
 {
-  "_about": "THE PAGE v36 RULINGS TABLE (T667 slice 5, owner D1 2026-11-11). Every owner ruling or curation change the frozen reference (page_v36.html and the hydrate.json cut from it) predates, recorded ONCE, by ruling, and read by BOTH languages: app/conformance/src/regs/oracles.ts (the settle / card / describe parities, which import it from there) and pipeline/tests/test_answers_year_strip_live.py. A new ruling that moves what page v36 shows is one entry here, never a table per test. Every reader fails on an entry the oracle no longer needs (a re-cut retires it): the renames throw when the oracle names none of them, the predates throw when the oracle already has the rule, the Peace and Lois amendments throw when the oracle no longer shows the rule they amend. Hand-edited; read by nothing that ships.",
+  "_about": "THE PAGE v36 RULINGS TABLE (T667 slice 5, owner D1 2026-11-11). Every owner ruling or curation change the frozen reference (page_v36.html and the hydrate.json cut from it) predates, recorded ONCE, by ruling, and read by BOTH languages: app/conformance/src/regs/oracles.ts (the card / describe parities, which import it from there; the settle parity reads page-oracle.json since T667 5b and needs none) and pipeline/tests/test_answers_year_strip_live.py. A new ruling that moves what page v36 shows is one entry here, never a table per test. Every reader fails on an entry the oracle no longer needs (a re-cut retires it): the renames throw when the oracle names none of them, the Peace and Lois amendments throw when the oracle no longer shows the rule they amend. Hand-edited; read by nothing that ships.",
   "zone_daily_quota_merge": {
     "why": "2026-10-26 owner, handoff/PLAN/curation-review/zone-entry-merges.md: each region's trout/char quota and 'Other daily quotas' (7B: and its Arctic grayling block) are one entry, zN:daily_quotas, as the book prints them. Every rule_id kept; only the entry id moved. Page v36's keys are renamed ONCE at load (hydrate.json and #data.rid).",
     "renamed": {
@@ -29,13 +29,6 @@
   "part_drawn": {
     "why": "2026-10-27 owner, decisions.md 'needs a split': an undrawn part that is DRAWN now (columbia_river.r11 'from Mud Lake to Columbia Lake' binds its own stretch); page v36's `inpart` entry on the other parts is gone. The one golden state on the drawn part (x18p3) is taps.json `gone`.",
     "rules": ["r4:columbia_river@4-15+4-26+4-34+4-38+4-8::columbia_river.r11"]
-  },
-  "predates": {
-    "why": "T89 (010b5c28, review 894854c0; batch 3 'Nilkitkwa r4 +3'): nilkitkwa_lake.r4 (Rainbow Alley open all year) binds the Babine River between Babine and Nilkitkwa Lakes, Babine parts 1 and 2: an advisory the day shows, which page v36 predates. Each entry ADDS the rule to the oracle's list for that state.",
-    "states": {
-      "x17p1_1010": { "list": "shown", "key": "r6:nilkitkwa_lake@6-8::nilkitkwa_lake.r4" },
-      "x17p2_1010": { "list": "shown", "key": "r6:nilkitkwa_lake@6-8::nilkitkwa_lake.r4" }
-    }
   },
   "peace_kokanee": {
     "why": "T623 F6, ea1c74d67; owner 2026-11-11 'Keep it'; RULINGS Z2: p.64 'Kokanee: 10 (none from streams, except Peace River)'. Zone B's stream release (`out`) carries outside_items [gnis:14619], so it binds no Peace River section. Where a Peace row's own quota lifted it the lifted pair is gone; where nothing lifted it the table's 'Kokanee: 10' (`base`) answers, keep `daily` a day all year: the kokanee row of each `kept_rows` state (by index).",

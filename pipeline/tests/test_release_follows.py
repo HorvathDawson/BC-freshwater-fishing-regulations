@@ -28,7 +28,7 @@ def test_every_row_names_paths_that_exist_and_no_two_rows_share_one():
             assert p not in seen, f"{p} is in two rows ({seen.get(p)}, {row.name})"
             seen[p] = row.name
         assert row.refresh in (RF.RECUT, RF.INSEASON, None)
-    assert [r.name for r in RF.FOLLOWS] == ["goldens", "regs-fixture", "golden-pages", "inseason", "baseline"]
+    assert [r.name for r in RF.FOLLOWS] == ["goldens", "page-oracle", "regs-fixture", "golden-pages", "inseason", "baseline"]
 
 
 def test_the_table_is_the_source_the_release_and_the_tools_agree_with():
@@ -47,12 +47,15 @@ def test_the_table_is_the_source_the_release_and_the_tools_agree_with():
 
 
 def test_only_a_golden_page_is_an_answer_change():
-    """T667 D5: renumber-only changes are committed; a golden page's words stop the release."""
+    """T667 D5: renumber-only changes are committed; a golden page's words, or the page oracle, stop the release."""
     renumber = ["app/fixtures/golden/taps.json", "app/fixtures/golden/hydrate.json",
                 "app/packages/data/dev/regs-release/r-1/water-aa.sqlite.gz", "app/packages/data/dev/section-lines.json"]
     assert RF.answer_paths(renumber) == []
     page = "app/packages/ui-native/src/regs/fixtures/glenn_501.json"
     assert RF.answer_paths(renumber + [page]) == [page]
+    # (T667 5b) page v36's code over the release names rules by durable key: it moves only when an answer does
+    oracle = "app/fixtures/golden/page-oracle.json"
+    assert RF.answer_paths(renumber + [oracle]) == [oracle] and RF.row_of(oracle).name == "page-oracle"
     assert RF.row_of(page).name == "golden-pages" and RF.row_of("app/packages/ui-native/src/regs/fixturesX.json") is None
     assert RF.row_of("pipeline/release.py") is None
 

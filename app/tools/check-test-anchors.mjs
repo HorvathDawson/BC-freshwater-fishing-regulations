@@ -4,7 +4,7 @@
  *
  * A test stands on ONE of four anchors (T667-audit §3): (a) data it builds itself, (b) a frozen committed fixture (the
  * three `fixtureRelease(...)` releases, `makeFixtureSource`), (c) THE RELEASE UNDER TEST through the allowed helpers,
- * (d) a generated expectations file read through its reader (`taps()`, `hydrate()`). This scanner finds the test files
+ * (d) a generated expectations file read through its reader (`taps()`, `hydrate()`, `pageOracle()`). This scanner finds the test files
  * that stand on something else, or that name a POSITION of one build. It walks the TypeScript syntax tree, so a comment
  * is never an offender: only code is.
  *
@@ -93,7 +93,7 @@ const FOLLOWS = new Set(["openRegsFixture", "openRegsFixtureWithLines", "regsFix
   "REGS_FIXTURE_ROOT", "sectionNames", "liveRelease", "liveReleaseAt", "provinceStoreOf", "parityStore", "paritySource",
   "openPaired", "releasePairing"]);
 /** imported names that do so only from the golden / oracle / pointer modules (the names are common words) */
-const FOLLOWS_FROM = new Set(["taps", "tapsOnce", "hydrate", "requestOf", "cases", "latest", "latestId"]);
+const FOLLOWS_FROM = new Set(["taps", "tapsOnce", "hydrate", "pageOracle", "requestOf", "cases", "latest", "latestId"]);
 const FROM = /golden|oracles|latestRelease|regs\/testing/;
 const FOLLOWS_TEXT = /regs-release|section-lines\.json|fixtures\/golden/;
 

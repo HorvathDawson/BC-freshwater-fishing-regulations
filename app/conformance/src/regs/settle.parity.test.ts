@@ -1,108 +1,43 @@
 /**
  * T07 parity: core's `settle(inp, makePlace(inp))` — the stored ladder verdicts and display frames decoded, selected and
- * grouped — against page v36's OWN settle() (app/fixtures/golden/hydrate.json, regs-recut/hydrate.mjs running
- * page_v36.js lines 1–246 in node, YEAR 2026) on all 134 golden states, with inputs from T09 `inputsOf` over the live
- * release paired with the oracles (skipped with the reason otherwise; a failure under REGS_STORE_REQUIRED=1). Every
- * expected value is read from the oracle except the ticket's literal table (page v36's output, quoted by the ticket).
+ * grouped — against page v36's OWN settle() run over THE SAME RELEASE (app/fixtures/golden/page-oracle.json,
+ * regs-recut/page-oracle.mjs: page_v36.js up to `segBar` over page blocks the Python reference decoder cut from the
+ * release), on every tapped golden state, with inputs from T09 `inputsOf` over the release paired with the oracles
+ * (skipped with the reason otherwise; a failure under REGS_STORE_REQUIRED=1).
+ *
+ * Two paths, neither the code under test: the page's code over the Python's read of the release, against core's code
+ * over the app's read of it. Rules are compared by durable key ("entry::rule"). (T667 slice 5b) Until 2026-11-13 the
+ * oracle was page v36's FROZEN data (hydrate.json) and each approved ruling since it was a hand amendment here
+ * (v36-rulings.json: renames, retired rules, "on parts", a drawn part, a predated binding, the Peace kokanee); the
+ * release carries every ruling, so there is nothing to amend. What an approved ruling changes on a golden state is a
+ * page-oracle.json diff the release stops on (pipeline/release_follows.py `page-oracle`).
  */
-import { readFileSync } from "node:fs";
 import { describe as group, expect, it } from "vitest";
-import { describe, isClosedOn, makePlace, settle, displayStatusOn, type RuleView, type Settled } from "@app/core";
-import { inputsOf, oracleRix, parityStore, paritySkip, releasePairing, taps } from "./golden";
-import { flipsOver, HYDRATE, onPartsDropped, ORACLE_PREDATES, oracleLive, oracleRixOf, partDrawn, PEACE_KOKANEE, renamedOrder } from "./oracles";
+import { isClosedOn, makePlace, settle, displayStatusOn, type RuleView, type Settled } from "@app/core";
+import { inputsOf, parityStore, paritySkip, releasePairing, taps } from "./golden";
+import { pageOracle, type PageOracleState } from "./oracles";
 
-interface OracleSettle {
-  status: string | null; broad: number[]; speaks: number[]; beside: number[]; shown: number[]; inpart: [number, boolean][];
-  lifted: [number, number][]; timed: number[]; side: number[]; standing: number[]; anglerclosed: number[];
-}
-const H = JSON.parse(readFileSync(HYDRATE, "utf8")) as {
-  meta: { version: string; year: number };
-  states: Record<string, { s: number; via: Record<string, "trib">; ranks: Record<string, number>; settle: OracleSettle }>;
-};
+const O = pageOracle();
 const T = taps();
-/** (T115) every hydrated state but the 4 whose part the release merged away (taps.json `gone`), and (T278) those whose
- *  whole part is tidal now (taps.json `tidal`) */
-const ids = Object.keys(H.states).filter((id) => !(id in T.gone) && !(id in T.tidal));
+const ids = Object.keys(T.states);
 const at = await releasePairing();
 const pairing = paritySkip(at);
-/** page v36's rule numbers (the oracle's, and the ticket's literals quoted from it) → the paired store's, by durable key
- *  (golden.ts `oracleRix`): a rule added or dropped ahead of a rix renumbers it without changing a word. */
-const R = (await oracleRix()) ?? ((r: number) => r);
-/** CONTENT the oracle predates (oracles.ts ORACLE_PREDATES, v36-rulings.json `predates`): each entry ADDS a rule, by
- *  durable key, to the oracle's list for that state, and asserts the oracle lacks it — so it fails once page v36 is re-cut. */
-const NOW = new Map<string, number>();
-for (const [rix, r] of (await (await parityStore())?.rules()) ?? []) NOW.set(`${r.export.entry_id}::${r.export.rule_id}`, rix);
-function amended(id: string, o: OracleSettle): OracleSettle {
-  const a = ORACLE_PREDATES[id];
-  if (!a) return o;
-  const rix = NOW.get(a.key);
-  if (rix === undefined) throw new Error(`ORACLE_PREDATES ${id}: no rule ${a.key} in the store`);
-  if (o[a.list].includes(rix)) throw new Error(`ORACLE_PREDATES ${id}: the oracle already has ${a.key} — it was re-cut; drop the entry`);
-  // before the first rule numbered after it (the list is not wholly sorted: its standing rules come last)
-  const l = o[a.list], at = l.findIndex((x) => x > rix);
-  return { ...o, [a.list]: at < 0 ? [...l, rix] : [...l.slice(0, at), rix, ...l.slice(at)] };
-}
-/** (T623 F6, oracles.ts PEACE_KOKANEE) page v36's lists for a Peace River state without Zone B's kokanee stream release:
- *  its `lifted` pair dropped, and where it stood in a list the table's "Kokanee: 10" stands. Oracle numbering. */
-const PK = { out: oracleRixOf(PEACE_KOKANEE.out), base: oracleRixOf(PEACE_KOKANEE.base) };
-function peaceKokanee(id: string, o: OracleSettle): OracleSettle {
-  if (T.states[id]?.item !== PEACE_KOKANEE.item) return o;
-  const lists = ["broad", "speaks", "beside", "shown", "timed", "side", "standing", "anglerclosed"] as const;
-  const named = lists.some((k) => o[k].includes(PK.out)) || o.lifted.some(([a]) => a === PK.out) || o.inpart.some(([r]) => r === PK.out);
-  if (!named) throw new Error(`PEACE_KOKANEE ${id}: the oracle no longer names ${PEACE_KOKANEE.out} — it was re-cut; drop the amendment`);
-  const out = { ...o, lifted: o.lifted.filter(([a]) => a !== PK.out), inpart: o.inpart.filter(([r]) => r !== PK.out) };
-  for (const k of lists) {
-    if (!o[k].includes(PK.out)) continue;
-    if (o[k].includes(PK.base)) throw new Error(`PEACE_KOKANEE ${id}: ${k} already holds ${PEACE_KOKANEE.base}`);
-    out[k] = o[k].map((r) => (r === PK.out ? PK.base : r));
-  }
-  return out;
-}
-const STORED = (await (await parityStore())?.rules()) ?? [];
-/** (T206) did the zone daily-quota rename swap two store rules' order (oracles.ts `flipsOver`)? */
-const flip = flipsOver(STORED);
-/** (T206) a list drops the rules the release retired (oracles.ts ORACLE_RETIRED), then maps to the store's numbers */
-const L = (l: readonly number[]) => l.filter(oracleLive).map(R);
-/** before the first rule numbered after it (a list is not wholly sorted: its standing rules come last) */
-const insert = (l: readonly number[], rix: number) => { const at = l.findIndex((x) => x > rix); return at < 0 ? [...l, rix] : [...l.slice(0, at), rix, ...l.slice(at)]; };
-const mapSettle = (o: OracleSettle): OracleSettle => {
-  // (T206) ORACLE_ON_PARTS_DROPPED: the rule holds on the whole water, so it has no undrawn part; on the day it speaks
-  const dropped = o.inpart.filter(([r]) => onPartsDropped(r));
-  let speaks = L(o.speaks);
-  for (const [r, now] of dropped) if (now) speaks = insert(speaks, R(r));
-  return {
-    status: o.status, broad: L(o.broad), speaks, beside: L(o.beside), shown: L(o.shown),
-    // (2026-10-27) ORACLE_PART_DRAWN: drawn on its own part, the rule is no note on the others
-    inpart: o.inpart.filter(([r]) => oracleLive(r) && !onPartsDropped(r) && !partDrawn(r)).map(([r, now]) => [R(r), now]),
-    lifted: o.lifted.filter(([a]) => oracleLive(a)).map(([a, b]) => [R(a), b == null ? b : R(b)]),
-    timed: L(o.timed), side: L(o.side), standing: L(o.standing), anglerclosed: L(o.anglerclosed),
-  };
-};
-/** (T206) each list of the oracle's re-ordered as the app's where only renumbering flips differ (oracles.ts `renamedOrder`) */
-const reordered = (got: OracleSettle, want: OracleSettle): OracleSettle => {
-  const out = { ...want } as Record<string, unknown>;
-  for (const k of Object.keys(want) as (keyof OracleSettle)[]) {
-    const g = got[k], w = want[k];
-    if (!Array.isArray(g) || !Array.isArray(w)) continue;
-    out[k] = renamedOrder(g as unknown[], w as unknown[],
-      (x, y) => (typeof x === "number" ? flip(x, y as number) : flip((x as number[])[0]!, (y as number[])[0]!)));
-  }
-  return out as unknown as OracleSettle;
-};
-const mapKeys = <V>(o: Readonly<Record<string, V>>): Record<string, V> => Object.fromEntries(Object.entries(o).map(([k, v]) => [String(R(+k)), v]));
+/** the paired store's rix → durable key */
+const KEY = new Map<number, string>();
+for (const [rix, r] of (await (await parityStore())?.rules()) ?? []) KEY.set(rix, `${r.export.entry_id}::${r.export.rule_id}`);
+const key = (rix: number): string => { const k = KEY.get(rix); if (k === undefined) throw new Error(`no rule ${rix} in the paired store`); return k; };
 
-const ix = (l: readonly RuleView[]) => l.map((r) => r.rix);
-const project = (c: Settled): OracleSettle => ({
-  status: c.status?.status ?? null, broad: ix(c.broad), speaks: ix(c.speaks), beside: ix(c.beside), shown: ix(c.shown),
-  inpart: c.inpart.map((x) => [x.rule.rix, x.now]), lifted: [...c.lifted], timed: ix(c.timed), side: ix(c.side),
-  standing: ix(c.standing), anglerclosed: ix(c.anglerclosed),
+const keys = (l: readonly RuleView[]) => l.map((r) => r.key);
+const project = (c: Settled): PageOracleState["settle"] => ({
+  status: c.status?.status ?? null, broad: keys(c.broad), speaks: keys(c.speaks), beside: keys(c.beside), shown: keys(c.shown),
+  inpart: c.inpart.map((x) => [x.rule.key, x.now] as const), lifted: [...c.lifted].map(([a, b]) => [key(a), b == null ? null : key(b)] as const),
+  timed: keys(c.timed), side: keys(c.side), standing: keys(c.standing), anglerclosed: keys(c.anglerclosed),
 });
 
-it("the oracle: page v38's settle over the 134 golden states, YEAR 2026", () => {
-  expect([H.meta.version, H.meta.year, Object.keys(H.states).length, ids.length]).toEqual(["v38", 2026, 134, 121]);   // (T115, T67, T183, 2026-10-27 x18p3, T220 x13p2 x9p2, T228 x37p0) 11 gone; (T278) 2 tidal
-  expect(ids).toEqual(Object.keys(T.states));
-  expect(Object.keys(H.states).filter((id) => id in T.gone)).toEqual(Object.keys(T.gone));
-  expect(Object.keys(H.states).filter((id) => id in T.tidal)).toEqual(Object.keys(T.tidal));
+it("the oracle: page v38's code over the paired release, every tapped golden state, YEAR 2026", () => {
+  expect([O.meta.generator, O.meta.page, O.meta.version, O.meta.year]).toEqual(["app/tools/regs-recut/page-oracle.mjs", "page_v36.js", "v38", 2026]);
+  expect(O.meta.golden, "page-oracle.json and taps.json are from one sync (regs-recut/sync.mjs)").toBe(T.meta.golden);
+  expect(Object.keys(O.states)).toEqual(ids);
 });
 
 it(`T07 settle parity runs against a paired release${pairing.skip ? ` — SKIPPED: ${"reason" in pairing ? pairing.reason : pairing.fail}` : ""}`, () => {
@@ -113,68 +48,18 @@ it(`T07 settle parity runs against a paired release${pairing.skip ? ` — SKIPPE
 group.skipIf(pairing.skip)(`T07 settle on the live release (${at.path ?? at.reason})`, () => {
   const settled = async (id: string) => { const inp = (await inputsOf(id))!; return { inp, c: settle(inp, makePlace(inp)) }; };
 
-  it.each(ids)("4. %s: settle() projected to rix lists equals page v36's", async (id) => {
+  it.each(ids)("4. %s: settle() projected to rule keys equals page v36's over the same release", async (id) => {
     const { c } = await settled(id);
-    expect(c.s).toBe(H.states[id]!.s);
-    const got = project(c);
-    expect(got).toEqual(reordered(got, amended(id, mapSettle(peaceKokanee(id, H.states[id]!.settle)))));
+    expect(c.s).toBe(O.states[id]!.s);
+    expect(project(c)).toEqual(O.states[id]!.settle);
   });
 
   it.each(ids)("%s: makePlace — every candidate's via and rank is page v36's", async (id) => {
     const { inp } = await settled(id);
-    const p = makePlace(inp), o = H.states[id]!;
-    expect(Object.fromEntries(p.cands.filter((r) => r.via === "trib").map((r) => [r.rix, r.via]))).toEqual(mapKeys(o.via));
-    expect(Object.fromEntries(p.cands.filter((r) => r.rank !== r.baseRank).map((r) => [r.rix, r.rank]))).toEqual(mapKeys(o.ranks));
+    const p = makePlace(inp), o = O.states[id]!;
+    expect(Object.fromEntries(p.cands.filter((r) => r.via === "trib").map((r) => [r.key, r.via]))).toEqual(o.via);
+    expect(Object.fromEntries(p.cands.filter((r) => r.rank !== r.baseRank).map((r) => [r.key, r.rank]))).toEqual(o.ranks);
     expect([p.key, p.starts, p.moments, p.tidal]).toEqual([inp.key, inp.year!.segStarts, inp.year!.moments, inp.key!.tidal]);
-  });
-
-  it("5. the ticket's literals (page v36's own output)", async () => {
-    const count = (c: Settled) => [c.s, c.status?.status ?? null, c.speaks.length, c.beside.length, c.shown.length];
-    const v515 = (await settled("vedder_515")).c;
-    expect(count(v515)).toEqual([1, "own", 73, 0, 17]);   // (T206) page v36 74: z2:trout_char_quota.r3 retired (ORACLE_RETIRED)
-    expect([[...v515.lifted], ix(v515.standing), v515.inpart]).toEqual([[[R(3316), R(3378)], [R(3403), R(3404)]], [R(3351), R(3352)], []]);
-    const v615 = await settled("vedder_615");
-    expect([...count(v615.c), ix(v615.c.broad)]).toEqual([2, "closed", 59, 0, 17, [R(529)]]);
-    const b = v615.c.broad[0]!;
-    expect([b.key, b.rank, b.via]).toEqual(["r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4::chilliwack_vedder_rivers.r8", 0, "reach"]);
-    expect(describe(b, v615.inp.statics.exportSpecies)).toBe("No fishing for any game fish, Jun 1–30");
-    const v1010 = (await settled("vedder_1010")).c;
-    expect([...count(v1010), [...v1010.lifted]]).toEqual([3, "own", 71, 0, 17, [[R(3316), R(3378)], [R(3095), R(530)], [R(3101), R(530)], [R(3403), R(3404)]]]);   // (T206) page v36 72: z2 r3 retired
-    const sat = (await settled("klwa_1010")).c, mon = (await settled("klwa_1012")).c;
-    const satLifted: [number, number][] = [[R(3316), R(3378)], [R(3127), R(1363)], [R(3135), R(1362)], [R(3137), R(1363)]];
-    expect([...count(sat), ix(sat.broad), [...sat.lifted]]).toEqual([1, "own", 64, 0, 22, [3127, 3143, 3144, 3145, 3403].map(R),
-      renamedOrder([...sat.lifted], satLifted, (x, y) => flip(x[0], y[0]))]);   // (T206) the rename's order
-    expect([...count(mon), ix(mon.broad)]).toEqual([0, "own", 62, 0, 22, [3127, 3143, 3144, 3145, 3403].map(R)]);
-    const cow = (await settled("cow0_1010")).c;
-    // (T206, ORACLE_ON_PARTS_DROPPED) page v36: 57 speak and r8/r9 "on parts" (inpart [[78, true], [79, true]]); both now
-    // hold on the whole water, so they speak (59) and nothing is undrawn
-    expect([...count(cow), cow.broad.map((r) => r.key), cow.inpart.map((x) => [x.rule.rix, x.now])]).toEqual([3, "closed", 59, 0, 18,
-      ["r1:cowichan_river_see_map_below@1-4::cowichan_river.r6", "zp:white_sturgeon_licence::white_sturgeon_licence.r4"], []]);
-    expect([R(78), R(79)].every((r) => cow.speaks.some((x) => x.rix === r))).toBe(true);
-    const x14 = (await settled("x14p2_1010")).c;
-    expect([...count(x14), x14.broad.length, ix(x14.side)]).toEqual([3, "own", 73, 1, 25, 2, [R(2216)]]);
-    const x17 = (await settled("x17p3_1010")).c;
-    expect([...count(x17), x17.broad.length, ix(x17.anglerclosed)]).toEqual([7, "own", 72, 0, 25, 2, [R(2105)]]);
-    const x15 = (await settled("x15p7_1010")).c;
-    expect([...count(x15), ix(x15.broad)]).toEqual([4, "closed", 63, 0, 17, [R(575), R(578)]]);
-    const x31 = await settled("x31p_1010");
-    expect([x31.c.s, x31.c.status?.status, displayStatusOn(x31.inp, 284)]).toEqual([0, "tidal", "tidal"]);
-  });
-
-  // (T115) the 4 states whose part the release merged away (x15p14/15/17/18, taps.json `gone`; all 4 "own") and (T67) the 2
-  // closed states whose merged closed list the release re-cut (x19p5, x22p2; both "closed") are not tapped; (T183) nor the
-  // West Road's x27p1 (its part merged into part 0; "own")
-  // (T278) and the 2 whose whole part is tidal now (x15p3, x37p1: one "own", one "base")
-  it("5. census over the 121: own 93, closed 22, base 5, tidal 1; timed is empty on every golden state", async () => {
-    const tally: Record<string, number> = {};
-    let timed = 0;
-    for (const id of ids) {
-      const { c } = await settled(id);
-      const k = String(c.status?.status ?? null);
-      tally[k] = (tally[k] ?? 0) + 1;
-      timed += c.timed.length;
-    }
-    expect([tally, timed]).toEqual([{ own: 93, closed: 22, base: 5, tidal: 1 }, 0]);   // (T228) x37p0 gone: the Coquitlam's no-access split cut its golden part in two;   // (2026-10-27) x18p3 gone: the Columbia's Mud Lake speed limit split its golden part; (T220) x13p2 + x9p2 gone: restored braid pieces renumbered the Dean and grew the Kootenay's closed parts
   });
 
   it("6. displayStatusOn / isClosedOn on the Vedder: Jun 1–30 (leap days 153–182) closed, the days either side not", async () => {
