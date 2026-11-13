@@ -200,7 +200,10 @@ def test_display_closing_is_the_closed_predicate(shipped):
     from pipeline.deliver.types import GAME_FISH
     wire, _ = shipped
     sec = wire["sections"]["display"]
-    assert sec["version"] == 20                     # display 20 (T517): end tokens, dup; 19: ends, no hint; 18: `closers`; UR6 4 paper licence keepable; ROUND20g 3 possession line; UR3 2 buffers in feet; UR1 G record duty "Write each"; ROUND19 2/5 sizes in cm (in); ROUND16 3/Q1 title, caution; ROUND15 8 the_name; ROUND14 1 reason nearer_row; ROUND13 P book title; ROUND11 A3 `inherited` (2.8 `where`; 2.7 `short`; 2.6 `strip`)
+    # the shipped display section is the one this code writes (display 18 is `closers`, which the loop below reads); the
+    # writer is held to the app's reader in test_answers_tidal (T667 slice 4: no version typed here)
+    from pipeline.deliver.answers import answers as A
+    assert sec["version"] == next(s.version for s in A.SECTIONS if s.name == "display") >= 18
     for f in sec["frames"]:
         if f.get("status") == "tidal":
             continue

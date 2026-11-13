@@ -103,16 +103,44 @@ def test_mutation_the_licence_half_returns_to_no_licence_needed(monkeypatch):
     assert all(p.get("none_needed") is True for p in t["licence"]["profiles"])
 
 
+#: the app's reader (`app/packages/core/src/regs/versions.ts` KNOWN_VERSIONS): what each section must be for the app to
+#: read it. T667 slice 4: the versions are typed in their two homes (writer `answers.SECTIONS`, reader there) and this
+#: test holds them equal, so a bump is one edit per side and none here.
+APP_VERSIONS = Path(__file__).resolve().parents[2] / "app/packages/core/src/regs/versions.ts"
+TIDAL_SECTIONS = ("display", "gear", "licence")
+
+
+def app_reader_versions(text: str | None = None) -> dict[str, int]:
+    """KNOWN_VERSIONS as the app's reader types it ({section: version}); raises when the line cannot be read."""
+    import re
+    src = APP_VERSIONS.read_text(encoding="utf-8") if text is None else text
+    m = re.search(r"export const KNOWN_VERSIONS = Object\.freeze\(\{([^}]*)\}", src)
+    assert m, f"{APP_VERSIONS}: no `export const KNOWN_VERSIONS = Object.freeze({{...}})` line"
+    got = {k: int(v) for k, v in re.findall(r"(\w+):\s*(\d+)", m.group(1))}
+    assert got, f"{APP_VERSIONS}: KNOWN_VERSIONS names no section"
+    return got
+
+
 def test_the_tidal_sections_carry_their_versions():
-    # answers 2.3 (Q38 gear `caught`, G2 licence, Z12/G3 display): display 4, gear 4, licence 4;
-    # answers 2.6: display 5 (the strip code, the rules' book pages and `applies`), gear 5
-    # (`count_nouns`); answers 2.7: display 6 (part `short`, static `licensing` book pages);
-    # answers 2.8 (d78cda88, D2/P9): display 7 (`rules[].where`, "Where you can’t fish")
-    # ROUND10 W4: gear 6 (`counts[slot].cites`, the Lines row's `says`)
-    # ROUND11 A2/A3: gear 7 (`summary`), display 8 (frame `inherited`)
-    want = {"display": 20, "gear": 12, "licence": 7}   # T517: display 20; ROUND13: gear 9; ROUND14: display 10; ROUND15: 11, licence 5; ROUND16: 12, 6; ROUND19: 13; UR1: 14, gear 10; UR3: 15; ROUND20g: 16; UR6: 17; closers: 18; licence 7: the steelhead stamp, youth alternatives
-    assert {s.name: s.version for s in A.SECTIONS if s.name in want} == want
+    # The sections that carry the tidal state (display `status: tidal`, gear `tidal`, licence `tidal`) are written at the
+    # version the app reads, and the file's own spec says the same version and documents the tidal shape.
+    # (Was a hand-typed {"display": 20, "gear": 12, "licence": 7} with a 20-entry bump history: three edits per bump.)
+    reader = app_reader_versions()
+    writer = {s.name: s.version for s in A.SECTIONS if s.name in TIDAL_SECTIONS}
+    assert set(writer) == set(TIDAL_SECTIONS), writer
+    assert writer == {n: reader.get(n) for n in TIDAL_SECTIONS}, (
+        f"answers.SECTIONS writes {writer}, the app reads {({n: reader.get(n) for n in TIDAL_SECTIONS})}: bump both")
     from pipeline.deliver.answers.encode import SPEC
-    for name in want:
+    for name in TIDAL_SECTIONS:
         sec = SPEC["sections"][name]
-        assert sec["version"] == str(want[name]) and "tidal" in json.dumps(sec).lower(), name
+        assert sec["version"] == str(writer[name]) and "tidal" in json.dumps(sec).lower(), name
+
+
+def test_the_reader_versions_are_read_not_guessed():
+    # mutation pins for the relation above: a reader line that moved or a version that differs is a failure, never a pass
+    src = APP_VERSIONS.read_text(encoding="utf-8")
+    assert app_reader_versions(src.replace("display: ", "display: 9")) != app_reader_versions(src)
+    with pytest.raises(AssertionError):
+        app_reader_versions(src.replace("KNOWN_VERSIONS", "KNOWN_VERSION_S"))
+    with pytest.raises(AssertionError):
+        app_reader_versions("export const KNOWN_VERSIONS = Object.freeze({ } as const);")
