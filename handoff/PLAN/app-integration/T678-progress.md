@@ -636,3 +636,26 @@ Owner's phone report (build 29, the More tab). Done in code, not yet in a build:
   / 273 deselected; slow 274 passed / 0 failed / 1 skipped. The 6 all read the live atlas/bundle and clear at promote +
   deliver: the 5 above (pass on the side set) + test_one_acceptance_gate (the new Gagnon cut is not in the live registry;
   the candidate registry gates it clean).
+
+## 2026-11-13 (release lane, overnight) — STOPPED at follows: candidate r-adc4e248a163 NOT promoted
+- `pnpm -C app check` (heavy.sh): clean, 7,604 passed / 27 skipped. Dry run (`--dry-run --rehearse-follows`): no stop;
+  fresh-copy tests passed at 892cdcc41.
+- Order change (staging only): the release's upload runs `sync-inputs.sh`, which refuses inseason-links/4 while the worker
+  lists /3 (`sync-inputs.sh --dry-run` said so: "Deploy the worker … first"). So the STAGING feeds worker went first:
+  `deploy/staging/feeds.sh` (447 worker tests passed; gauges + DFO 200; in-season 500 "matches.json is /3, not /4", expected),
+  then `deploy/staging/sync-inputs.sh` (13 objects, /4 with 38 notices resolved on r-0a9930fb8826), then POST /run/inseason
+  200. /status.json: inputs list /4; gauges, dfo, inseason all `ok`, failures 0.
+- Build ok (1,573 s): r-adc4e248a163. Binding diff vs r-0a9930fb8826 compared entry by entry with
+  `~/bcfish-session-backup-2026-11-12/junctions/candidate-2026-11-13/bdiff_base.json`: IDENTICAL (385 rules, 1 unresolved,
+  9 licensing, 23 DFO places — the evidence file says 23, not 19 — 1 tidal/outside table, 5 diagnostics, standing 3; every
+  key and value equal; the .txt summaries equal). Accepted with `--accept-diff …/checks/r-adc4e248a163/binding_diff.json`.
+- Follows: in-season re-resolved on the candidate, committed 89ffd83d5 (not pushed yet). Then the fixtures re-cut STOPPED:
+  `taps: PART_GROWN x15p0_1010 -> 19: the store's part is (… Region 5 boundary up to the top of the river (through 1 lake), 113),
+  PART_GROWN_IS names (…, 112)`. Checked read-only: Fraser part 19 is the same part on both releases (label, ends
+  region_line:5 → source, 1,407.21 km, not closed), one more section = the attributed Fraser junction re-cut. The fix is the
+  declaration `app/tools/regs-recut/taps.py` PART_GROWN_IS 112 → 113 (+ the PART_GROWN reason), as afb4a72cd did for D1;
+  the lane's edit was REFUSED by the permission system (guard declaration), so nothing was changed and the chain stopped.
+- State: LATEST = r-0a9930fb8826 (unchanged), CANDIDATE = r-adc4e248a163, staging data unchanged. NOTE: curated
+  notice_waters.json now names the candidate, so a bare `sync-inputs.sh` refuses until the promote. Not done: suites,
+  site deploy, app build/smoke/Play upload, store shots. Resume: make the taps.py declaration change (owner or main session),
+  commit, then rerun `.venv/bin/python -m pipeline release --staging --push` (accept-diff and push are remembered).
