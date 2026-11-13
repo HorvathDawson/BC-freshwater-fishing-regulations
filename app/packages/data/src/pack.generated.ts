@@ -69,7 +69,8 @@ export const PACK_FILES: Record<string, PackFile> = {
         "matched_by",
         "match_m",
         "tidal",
-        "backwater"
+        "backwater",
+        "diversion"
       ],
       "lake_gauge": [
         "item_id",

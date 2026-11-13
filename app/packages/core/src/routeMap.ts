@@ -6,7 +6,7 @@
  * and fit back. The shares are `donorShare` — the panel's own words for the same number —
  * so the map and the rows under it cannot disagree about what a gauge contributed.
  */
-import { CONDITIONS_WORDS, donorShare, donorState, OTHER_QUANTITY_WORDS, type DonorAsk, type DonorFacts, type DonorReading }
+import { CONDITIONS_WORDS, DIVERSION_WORDS, donorShare, donorState, OTHER_QUANTITY_WORDS, type DonorAsk, type DonorFacts, type DonorReading }
   from "./conditions";
 
 export const ROUTE_MAP_WORDS = {
@@ -70,9 +70,14 @@ export function gaugeChoiceLabel(r: MapFacts & Pick<DonorFacts, "station" | "rou
   return `${on ? "Showing" : "Chart"} ${r.station}${name}, ${what}`;
 }
 
-/** A gauge's entry in the map's key: its station and the same words its dot carries. */
-export function donorMapKey(r: MapFacts & Pick<DonorFacts, "station">, o: DonorAsk = {}): string {
-  return `${r.station} · ${donorMapLabel(r, o)}`;
+/**
+ * A gauge's entry in the map's key: its station and the same words its dot carries — and, for a gauge on a diversion
+ * canal (T696, `PanelRoute.diversion`), what it measures: "08GC005 · 70% · measures a diversion".
+ */
+export function donorMapKey(r: MapFacts & Pick<DonorFacts, "station"> & Partial<Pick<DonorFacts, "route">>,
+                            o: DonorAsk = {}): string {
+  const said = `${r.station} · ${donorMapLabel(r, o)}`;
+  return r.route?.diversion === true ? `${said} · ${DIVERSION_WORDS}` : said;
 }
 
 /** The spot's own label on the map — the same words as its key entry. */

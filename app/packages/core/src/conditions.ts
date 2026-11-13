@@ -365,8 +365,9 @@ export interface DonorFacts {
   factors: { share: number; role: number; record: number };
   /** `tidal`: the tide or a tidal river's backwater moves this station's level (`PanelRoute.tidal`, T78). */
   /** `backwater`: a lake below backs water up onto this station (`PanelRoute.backwater`, T160). */
+  /** `diversion`: this station stands on a diversion canal (`PanelRoute.diversion`, T696). */
   /** `throughLake` / `lakeName` / `lakeSide`: the path to this gauge crosses a lake (`PanelRoute.throughLake`, T296). */
-  route?: { path: readonly unknown[]; name?: string | null; tidal?: boolean; backwater?: boolean;
+  route?: { path: readonly unknown[]; name?: string | null; tidal?: boolean; backwater?: boolean; diversion?: boolean;
             throughLake?: boolean; lakeName?: string; lakeSide?: "below" | "above" } | undefined;
   /** When the station last reported, from the feed's index (ISO), where the feed says. */
   observedAt?: string | null;
@@ -755,6 +756,23 @@ export const BACKWATER_NOTE = "One of these gauges sits where a lake backs up in
 export function backwaterNote(rows: readonly DonorFacts[], quantity: "discharge" | "level"): string | null {
   return quantity === "level" && rows.some((r) => r.route?.backwater === true && donorCounted(r))
     ? BACKWATER_NOTE : null;
+}
+
+/** The words a diversion gauge carries in the map's key (T696): "08GC005 · 70% · measures a diversion". */
+export const DIVERSION_WORDS = "measures a diversion";
+
+/** A diversion gauge, in one sentence — `diversionNote`'s words. */
+export const DIVERSION_NOTE = "One of these gauges measures a diversion: it stands on a canal that takes water out of "
+  + "the river at an intake, so it reads what the canal takes, not everything the river carries.";
+
+/**
+ * A GAUGE ON A DIVERSION, said once (T696; owner 2026-11-12, RULINGS P54: "Canal gauge also serves river", then "Show
+ * 08GC005 above the canal"). Flow and Level alike — the canal's discharge and its stage are both the canal's — and, like
+ * the dam, only about a number being shown: a reporting member whose station the release flags (`gauge.diversion`,
+ * data/curated/gauges/diversion_stations.json, checked against HYDAT).
+ */
+export function diversionNote(rows: readonly DonorFacts[]): string | null {
+  return rows.some((r) => r.route?.diversion === true && donorCounted(r)) ? DIVERSION_NOTE : null;
 }
 
 /** (T296) The caution under an answer read only through a lake — `throughLakeNote`'s words. */

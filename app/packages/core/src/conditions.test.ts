@@ -13,7 +13,7 @@ import {
   donorWeightLine, estimateHeadline, estimateRange, estimateSentence, forecastChartLabel,
   forecastModelOption, forecastRunLine, HORIZON_LABELS, HORIZONS, horizonChipLabel,
   noChartSentence, noGaugeSentence, readingHeading, readingStanding, regulatedNote,
-  shortRecordNote, sizeApart, stageLine, TIDAL_NOTE, tidalNote, BACKWATER_NOTE, backwaterNote, unplacedNote, type DonorFacts,
+  shortRecordNote, sizeApart, stageLine, TIDAL_NOTE, tidalNote, BACKWATER_NOTE, backwaterNote, DIVERSION_NOTE, diversionNote, unplacedNote, type DonorFacts,
 } from "./conditions";
 import { figure as chartFigure, standingLong } from "./standing";
 import type { Estimate, NoEstimate } from "./trust";
@@ -272,6 +272,23 @@ describe("the notes under the working", () => {
     expect(backwaterNote([row(), row({ route: { path: [], backwater: false } })], "level")).toBeNull();
     expect(backwaterNote([], "level")).toBeNull();
     expect(BACKWATER_NOTE).not.toBe(TIDAL_NOTE);
+  });
+
+  /*
+   * T696 (owner 2026-11-12, RULINGS P54: "Show 08GC005 above the canal"): a gauge on a diversion canal speaks for the
+   * river above its intake, and the answer says what it measures — Flow and Level alike, about a reporting member.
+   */
+  it("says a diversion gauge measures a diversion, about a reporting one, in either view", () => {
+    const canal = row({ route: { path: [], name: "Theodosia River Diversion Above Olsen Lake", diversion: true } });
+    expect(diversionNote([row(), canal]))
+      .toBe("One of these gauges measures a diversion: it stands on a canal that takes water out of the river at an "
+            + "intake, so it reads what the canal takes, not everything the river carries.");
+    expect(DIVERSION_NOTE).toBe(diversionNote([canal]));
+    expect(diversionNote([row({ ...canal, percentile: null })])).toBeNull();
+    expect(diversionNote([row(), row({ route: { path: [], diversion: false } })])).toBeNull();
+    expect(diversionNote([])).toBeNull();
+    expect(tidalNote([canal], "level")).toBeNull();
+    expect(backwaterNote([canal], "level")).toBeNull();
   });
 
   it("warns in words when the gauges disagree, above 25 points", () => {

@@ -416,7 +416,8 @@ def build_gauge_sheds(graph, stations: list[dict], node_for_station: dict[str, s
                       *, report: list[str] | None = None, registry=None,
                       policy: str = GAUGE_POLICY,
                       candidates: list[GaugeLink] | None = None,
-                      water_of: dict[str, str] | None = None, continues=()) -> list[GaugeLink]:
+                      water_of: dict[str, str] | None = None, continues=(),
+                      diversions: dict | None = None) -> list[GaugeLink]:
     """Every (section, gauge) pair worth storing — ONE gauge per section, the policy's best.
 
     ``policy`` (T93): which relationships may speak — `POLICIES`, default `GAUGE_POLICY` (today's drainage gate).
@@ -465,6 +466,12 @@ def build_gauge_sheds(graph, stations: list[dict], node_for_station: dict[str, s
 
     ``report`` collects a line for every station that produces NO rows, with the reason.
 
+    ``diversions`` (T696, RULINGS P54): `station -> diversion.Intake` for a gauge on a DIVERSION canal
+    (`pipeline.gauges.consume.diversion`). Besides its own walks on the canal, it CLIMBS from the river section at its
+    intake, every link rated against that section's magnitude (the water that reaches the intake) and placed
+    downstream of the section (`hops + 1`, the canal's metres added); it never descends the river. On every section
+    `above` the intake the stations it speaks `in_place_of` are no longer admitted — they stay in ``candidates``.
+
     Lake stations are excluded here and handled by ``lake_gauge_links`` — see
     ``is_lake_station`` for why mixing them is not a rounding error.
     """
@@ -476,6 +483,7 @@ def build_gauge_sheds(graph, stations: list[dict], node_for_station: dict[str, s
     # that silently vanishes here is a river the app calls ungauged, and the only way that
     # was ever noticeable was by differencing two bundles.
     dropped: dict[str, str] = {}
+    climbed: set[str] = set()           # diversion stations whose intake walk ran (T696)
 
     for station in sorted(node_for_station):
         node_id = node_for_station[station]
@@ -539,6 +547,29 @@ def build_gauge_sheds(graph, stations: list[dict], node_for_station: dict[str, s
                 # (the ratio, and so the band and the gate, are the same either way)
                 if sec not in mine or hops < mine[sec].hops:
                     mine[sec] = link
+        intake = (diversions or {}).get(station)
+        if intake is not None:
+            climbed.add(station)
+            # A DIVERSION GAUGE CLIMBS FROM ITS INTAKE (T696): the river above the intake is the water it measures a
+            # share of; rated against the intake's own magnitude, never walked down the river below the intake
+            in_mag = graph.nodes[intake.node].stream_magnitude
+            if not in_mag:
+                raise ValueError(f"diversion {station}: intake {intake.node} carries no stream_magnitude")
+
+            def keep_in(node: str, _mag: int = in_mag) -> bool:
+                return trust_for(graph.nodes[node].stream_magnitude, _mag) is not None
+
+            for sec, hops, metres in _walk(graph, intake.node, graph.up_adj, True, keep_in):
+                if is_lake_station(graph, sec, registry):
+                    continue
+                mag = int(graph.nodes[sec].stream_magnitude)
+                band = trust_for(mag, in_mag)
+                if band is None:
+                    continue
+                lo, hi = sorted((mag, int(in_mag)))
+                rel = relate(_trim(getattr(graph.nodes[sec], "wsc", "")), gauge_wsc, hops=hops + 1, upstream_walk=True)
+                mine[sec] = GaugeLink(sec, station, band, lo / hi, hops + 1, rel,
+                                      int(round((metres + intake.canal_m) / 100.0)) * 100)
         for sec, link in mine.items():
             found.setdefault(sec, []).append(link)
 
@@ -546,6 +577,13 @@ def build_gauge_sheds(graph, stations: list[dict], node_for_station: dict[str, s
     if candidates is not None:
         candidates.extend(sorted((l for ls in found.values() for l in ls),
                                  key=lambda l: (l.section_id, l.station)))
+    # ABOVE A DIVERSION'S INTAKE the stations it speaks instead of are not admitted (T696, owner 2026-11-12: "Show
+    # 08GC005 above the canal") — still candidates (`gauge_relation`), never chosen there
+    for station, intake in sorted((diversions or {}).items()):
+        if station not in climbed:
+            continue                     # it speaks nowhere above its intake, so nobody is displaced there
+        for sec in intake.above & found.keys():
+            found[sec] = [l for l in found[sec] if l.station not in intake.in_place_of]
     links = choose(found, by_id, policy)
 
     if report is not None:

@@ -1,0 +1,11 @@
+{
+ "_about": "AUTHORED (T696, RULINGS P54). Gauges that stand on a DIVERSION canal and speak for the river above its intake. Each row names the FWA blue line of the river the canal leaves (`river_blk`), the stations it speaks instead of above the intake (`in_place_of`), the owner's words and why. Read by pipeline/gauges/consume/diversion.py (checked against HYDAT: the station's own name says DIVERSION) into the bundle: the station is placed at the intake for the donor panels and the route, only climbs from there, the `in_place_of` stations leave every section above the intake, and gauge.diversion = 1 makes the app say \"measures a diversion\".",
+ "stations": {
+  "08GC005": {
+   "river_blk": "360856269",
+   "in_place_of": ["08GC006", "08GC007"],
+   "owner": "2026-11-12, dialog option verbatim: \"Show 08GC005 above the canal\" (Q103 before it: \"Canal gauge also serves river\")",
+   "why": "Theodosia River Diversion above Olsen Lake: the canal takes the Theodosia at an intake dam (seen on Esri imagery 2026-11-12) and carries it to Olsen Lake; HYDAT's drainage for it, 73.41 km2, is the catchment above the intake. 08GC006 (Diversion Bypass) and 08GC007 (below Olsen Lake Diversion) stand below the intake and measure what the dam lets past, not the river above it."
+  }
+ }
+}

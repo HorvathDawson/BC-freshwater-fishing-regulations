@@ -344,7 +344,8 @@ def branch_points(graph, area_of, water_of: dict[str, str] | None, kind_of: dict
 def candidates(graph, area_of, donors: list[tuple[str, str, Any, bool]],
                max_ratio: float = MAX_AREA_RATIO, water_of: dict[str, str] | None = None,
                kind_of: dict[str, str] | None = None, continues=(),
-               channels: dict[str, str] | None = None) -> dict[str, list[tuple]]:
+               channels: dict[str, str] | None = None,
+               up_only: frozenset[str] = frozenset()) -> dict[str, list[tuple]]:
     """`section -> [(station, role, donor area, years, regulated, lake, same river[, quantities])]`.
 
     `donors` is `(station, its section, years of record per quantity, is regulated)` — already gated on
@@ -357,6 +358,8 @@ def candidates(graph, area_of, donors: list[tuple[str, str, Any, bool]],
     allows, and its record then ends in the frozenset of those quantities (absent: every quantity, as before).
     `channels` (side-channel water -> its river's water, from `side_channel_waters`) says which water at a branch point
     is the side channel — the adoption's own answer (T169).
+    `up_only` (T696): stations whose walk only CLIMBS — a diversion gauge placed at its intake speaks for the water that
+    reaches the intake, never for the river below it, which its water never sees.
     """
     is_stream = flowing(graph, water_of, kind_of)
     branches = branch_points(graph, area_of, water_of, kind_of, continues, channels)
@@ -406,6 +409,8 @@ def candidates(graph, area_of, donors: list[tuple[str, str, Any, bool]],
         own_water = (water_of or {}).get(sec)
         # Walking upstream reaches sections the gauge is DOWNSTREAM of, and vice versa.
         for adj, role in ((up, "down"), (down, "up")):
+            if role == "up" and station in up_only:
+                continue                     # a diversion never speaks below its intake (T696)
             # `kept`: section -> how many quantities the reading still carries there. A section is walked once, as
             # it always was, unless a later path reaches it CARRYING MORE — the way round a branch point beats the way
             # through it (the Fraser below Nicomen Slough's mouth is reached down the Fraser itself as well as out of
@@ -935,7 +940,7 @@ def build(graph, model: AreaModel,
           measures: dict[str, set[str]] | None = None,
           published: dict[str, float] | None = None,
           kind_of: dict[str, str] | None = None,
-          continues=()) -> Panels:
+          continues=(), diversions: dict | None = None) -> Panels:
     """Candidates, gates, weights, and the dictionary — the whole pass.
 
     `water_of` (section -> water item) is what says which donors are a section's OWN gauges; without it nothing
@@ -965,6 +970,10 @@ def build(graph, model: AreaModel,
     `continues` (`(water, the water it goes on as)`, the bundle's `water_continue` as item ids) makes a continuation's
     gauges a section's own (T76, `own_distances`): the Vedder is led by the Chilliwack's 08MH001. Empty: each water
     item is its own.
+
+    `diversions` (T696, RULINGS P54): `station -> diversion.Intake`. The station's donor stands at its intake (the
+    caller places it there) and only climbs (`candidates` `up_only`); on every section `above` the intake the stations
+    it speaks `in_place_of` are no donors (owner 2026-11-12: "Show 08GC005 above the canal").
     """
     area_of = lambda n: model.area_km2(getattr(n, "stream_magnitude", None),
                                        getattr(n, "wsc", ""))
@@ -974,7 +983,17 @@ def build(graph, model: AreaModel,
     adopted = {sec: cands[0] for sec, cands in adoptable.items()}
     waters =side_channel_waters(graph, area_of, water_of, kind_of, adopted, continues) if water_of else {}
     cand = candidates(graph, area_of, donors, max_ratio, water_of=water_of, kind_of=kind_of, continues=continues,
-                      channels={w: (water_of or {}).get(p) for w, p in waters.items()})
+                      channels={w: (water_of or {}).get(p) for w, p in waters.items()},
+                      up_only=frozenset(diversions or ()))
+    placed_at = {st: sec for st, sec, *_ in donors}
+    for st, intake in sorted((diversions or {}).items()):
+        if st not in placed_at:
+            continue                         # no record to speak with: nobody is displaced for it
+        if placed_at[st] != intake.node:
+            raise ValueError(f"panels: diversion {st} must stand at its intake {intake.node}, not "
+                             f"{placed_at.get(st)} (bundle_tables places it)")
+        for sec in intake.above & cand.keys():
+            cand[sec] = [c for c in cand[sec] if c[0] not in intake.in_place_of]
     own = own_distances(graph, water_of, donors, continues, kind_of=kind_of) if water_of else {}
 
     by_section: dict[str, tuple[int, float | None]] = {}

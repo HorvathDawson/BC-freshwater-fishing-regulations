@@ -183,8 +183,8 @@ def test_the_bundle_gauge_table_carries_the_flag_last_with_a_default_and_the_rel
     con.executescript(schema)
     cols = [(r[1], r[2], r[3], r[4]) for r in con.execute("PRAGMA table_info(gauge)")]
     assert [c[0] for c in cols] == FILES["conditions"]["tables"]["gauge"]
-    # T160 added `backwater` after `tidal`, last and defaulted the same way: still conditions/1
-    assert cols[-2:] == [("tidal", "INTEGER", 1, "0"), ("backwater", "INTEGER", 1, "0")]
+    # T160 added `backwater` after `tidal`, defaulted the same way (T696's `diversion` follows): still conditions/1
+    assert cols[-3:-1] == [("tidal", "INTEGER", 1, "0"), ("backwater", "INTEGER", 1, "0")]
     assert FILES["conditions"]["format"] == "conditions/1"
 
 

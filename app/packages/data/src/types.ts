@@ -253,6 +253,13 @@ export interface PanelRoute {
    */
   backwater?: true;
   /**
+   * `true` only: the station stands on a DIVERSION canal and speaks for the river above its intake — the release's
+   * `gauge.diversion` (T696, RULINGS P54: data/curated/gauges/diversion_stations.json, checked against HYDAT; 08GC005 on
+   * the Theodosia). Absent otherwise, and on a release built before the flag. Core says "measures a diversion" in the
+   * map key and `diversionNote` under the answer, in Flow and Level alike.
+   */
+  diversion?: true;
+  /**
    * The chain of reaches between the spot and this gauge, SPOT FIRST, gauge last.
    *
    * Empty when the chain cannot be walked — the pointers only exist inside a gauge's

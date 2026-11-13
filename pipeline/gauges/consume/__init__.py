@@ -7,6 +7,7 @@ for. Topology only — no geometry, no matcher, so this is free to run on every 
     panels.py         every section's donor panel, built and interned
     basins.py         which station speaks for each watershed group
     tidal.py          tide and backwater stations
+    diversion.py      a diversion gauge placed at its intake (T696)
     cuts.py           where the atlas cuts a river at its gauge
     bundle_tables.py  the bundle's gauge tables, written in one place (`write`)
 """

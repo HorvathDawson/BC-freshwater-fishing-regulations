@@ -75,10 +75,10 @@ FILES = {
     # before the move the old way: a moved table is read from its old file when the manifest names no new one
     # (`app/packages/data/src/release/queries.ts` `MOVED_FROM`).
     "conditions": {"format": "conditions/1", "kind": "sqlite", "tables": {
-        # `tidal` (T78), `backwater` (T160): ADDITIVE, last, defaulted — still conditions/1; an older release is read
-        # as 0 (no flag)
+        # `tidal` (T78), `backwater` (T160), `diversion` (T696): ADDITIVE, last, defaulted — still conditions/1; an
+        # older release is read as 0 (no flag)
         "gauge": ["station", "name", "item_id", "sid", "lon", "lat", "area_km2", "mag", "matched_by", "match_m",
-                  "tidal", "backwater"],
+                  "tidal", "backwater", "diversion"],
         "lake_gauge": ["item_id", "station"],
         "lake_section": ["sid", "station"],
         "meta": ["k", "v"],

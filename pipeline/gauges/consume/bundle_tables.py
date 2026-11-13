@@ -181,6 +181,16 @@ def write(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_item
     matched = {st: n for st, n in placed.items() if st not in asleep}
     print(f"     dormant: {sum(1 for st in placed if st in asleep):,} placed stations are discontinued and silent — "
           f"matched, attached to no water")
+    # A GAUGE ON A DIVERSION STANDS AT ITS INTAKE (T696, owner 2026-11-12, RULINGS P54: "Show 08GC005 above the canal"):
+    # the authored rows (data/curated/gauges/diversion_stations.json, checked against HYDAT) placed on this graph. For
+    # the donor panels, the route the app draws and `gauge.sid` it reads the river at the intake (`at_river`); the shed
+    # keeps its own canal walk and climbs from the intake too. A row that cannot be placed stops the build.
+    from pipeline.gauges.consume.diversion import diversion_stations, intakes
+    diverted = intakes(graph, diversion_stations(Path(SOURCE) / "hydat.sqlite3"), matched)
+    at_river = {**matched, **{st: i.node for st, i in diverted.items()}}
+    for st, i in sorted(diverted.items()):
+        print(f"     diversion: {st} at its intake {i.node} ({i.canal_m:.0f} m up its canal), {len(i.above):,} sections "
+              f"above it, in place of {', '.join(i.in_place_of)} there")
 
     # section -> the WATER that owns it, so a client can name the river, not just the gauge.
     #
@@ -217,17 +227,19 @@ def write(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_item
     # that is not stops the build rather than keep the layer's name.
     hydat_names = hydat_station_names(Path(SOURCE) / "hydat.sqlite3", [s["station"] for s in stations])
     db.executemany("INSERT INTO gauge (station, name, item_id, sid, lon, lat, area_km2, mag, "
-                   "matched_by, match_m, tidal, backwater) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", [
+                   "matched_by, match_m, tidal, backwater, diversion) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)", [
         (s["station"], display_case(hydat_names[s["station"]]),
-         owner.get(matched.get(s["station"], "")),
-         sid.get(matched[s["station"]]) if s["station"] in matched else None,
+         owner.get(at_river.get(s["station"], "")),
+         sid.get(at_river[s["station"]]) if s["station"] in at_river else None,
          s["lon"], s["lat"], s.get("area_km2"),
-         (graph.nodes[placed[s["station"]]].stream_magnitude        # where it stands, attached or not
+         # where it stands (a diversion: where it reads the river, its intake), attached or not
+         (graph.nodes[at_river.get(s["station"]) or placed[s["station"]]].stream_magnitude
           if s["station"] in placed else None),
          prov[s["station"]].resolved_by if s["station"] in prov else None,
          prov[s["station"]].distance_m if s["station"] in prov else None,
          1 if s["station"] in tidal else 0,
-         1 if s["station"] in backwater else 0)
+         1 if s["station"] in backwater else 0,
+         1 if s["station"] in diverted else 0)
         for s in stations])
     cov.filled("gauge", len(stations))
 
@@ -246,7 +258,7 @@ def write(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_item
     candidates: list = []
     links = build_gauge_sheds(graph, stations, matched, prefer=active, report=shed_lost,
                               registry=kinds, policy=GAUGE_POLICY, candidates=candidates,
-                              water_of=owner, continues=continues)
+                              water_of=owner, continues=continues, diversions=diverted)
     db.executemany("INSERT INTO section_gauge (sid, station, trust, mag, rel, dist_b) VALUES (?,?,?,?,?,?)",
                    [(sid[l.section_id], l.station, l.trust,
                      graph.nodes[l.section_id].stream_magnitude, rel_code(_shown_rel(l)), dist_bucket(l.dist_m))
@@ -353,8 +365,8 @@ def write(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_item
         # stations transmitting today are flagged regulated, the Skagit at the International
         # Boundary among them, and the rule that was supposed to let it speak for the Skagit
         # never ran because the station was gone two steps earlier.
-        donors = [(st, matched[st], years_by_station[st], st in regulated)
-                  for st in matched
+        donors = [(st, at_river[st], years_by_station[st], st in regulated)
+                  for st in at_river
                   if any(y >= MIN_RECORD_YEARS for y in years_by_station.get(st, {}).values())]
         # `owner` (section -> water) is what makes a donor a section's OWN gauge, which then
         # leads its answer — owner 2026-10-22, "a water's own gauge comes first" (panel.py).
@@ -373,7 +385,8 @@ def write(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_item
                               kind_of={i["id"]: i.get("kind") for i in registry_items if is_water(i)},
                               measures=measures,
                               published={s["station"]: s["area_km2"] for s in stations
-                                         if s.get("area_km2")})
+                                         if s.get("area_km2")},
+                              diversions=diverted)
         # CLOSED DOWNSTREAM, WITH EACH REACH'S LENGTH (T252): a lake's pointer carries the walk on to its outlet, and
         # `len` (in DOWN_LEN_UNIT_M) lets the app say "about N km along the river" by summing a route's reaches.
         # SEEDED with shed members and every NAMED section a donor panel speaks for (T252): a named water's braid or
@@ -388,7 +401,7 @@ def write(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_item
         # match the data in the click"): the map, the sheet and a saved spot weigh it down alike (`lakeDamped`).
         lakes = lake_reaches(graph, down, owner, {i["id"]: i.get("kind") for i in registry_items if is_water(i)})
         before = len(panels.members)
-        panels = through_lake_panels(panels, down, lakes, dict(matched))
+        panels = through_lake_panels(panels, down, lakes, dict(at_river))
         flagged = sum(1 for ms in panels.members.values() if any(m.lake for m in ms))
         print(f"     lakes: {len(lakes):,} lake reaches on the routes; {flagged:,} panels carry a member across one "
               f"({before:,} -> {len(panels.members):,} panels)")

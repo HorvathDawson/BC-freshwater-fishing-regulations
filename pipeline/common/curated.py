@@ -230,6 +230,10 @@ class Domain(BaseModel):
     #: and quoting the HYDAT remark that says so, checked against the record by `pipeline.gauges.consume.tidal` into
     #: the bundle's `gauge.backwater` (T160).
     backwater_stations: FilePath | None = None
+    #: Gauges only: AUTHORED — gauges on a DIVERSION canal that speak for the river above its intake instead of the
+    #: gauges named (T696, RULINGS P54), checked against HYDAT by `pipeline.gauges.consume.diversion` into the bundle's
+    #: `gauge.diversion` and the intake placement.
+    diversion_stations: FilePath | None = None
 
     _abs = field_validator("*", mode="before")(_absolute)
 

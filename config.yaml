@@ -210,6 +210,7 @@ curated:
     # (T331) ECCC's water-body type per station is SCRAPED source data: data/source/bc_station_waterbody_type.json
     tidal_stations: "data/curated/gauges/tidal_stations.json"         # authored: level gauges the tide moves (T78)
     backwater_stations: "data/curated/gauges/backwater_stations.json" # authored: level gauges a lake below backs up (T160)
+    diversion_stations: "data/curated/gauges/diversion_stations.json" # authored: diversion gauges that speak above their intake (T696)
   stocking:
     matches: null       # not built — needs the FIDQ fetch
     match_calls: null

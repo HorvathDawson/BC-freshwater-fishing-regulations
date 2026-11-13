@@ -52,6 +52,25 @@ describe("a tidal gauge's flag on its route (T78)", () => {
     ]);
   });
 
+  it("carries a diversion (T696) where the release says 1, and absent where it says 0 or has no column", async () => {
+    const places = placesOf([
+      { station: "08GC005", name: "Theodosia River Diversion Above Olsen Lake", sid: 1, lon: -124.54, lat: 50.13,
+        tidal: 0, backwater: 0, diversion: 1 },
+      { station: "08GC008", name: "Theodosia River Above Scotty Creek", sid: 2, lon: -124.62, lat: 50.1, diversion: 0 },
+      { station: "08GC006", name: "Theodosia River Diversion Bypass", sid: 3, lon: -124.54, lat: 50.13 },
+    ]);
+    const routes = await routesOf(s(1),
+      [{ station: st("08GC005"), role: "up" }, { station: st("08GC008"), role: "down" },
+       { station: st("08GC006"), role: "up" }],
+      places, async () => null);
+    expect(routes).toEqual([
+      { station: "08GC005", name: "Theodosia River Diversion Above Olsen Lake", lon: -124.54, lat: 50.13, role: "up",
+        path: [s(1)], diversion: true },
+      { station: "08GC008", name: "Theodosia River Above Scotty Creek", lon: -124.62, lat: 50.1, role: "down", path: [] },
+      { station: "08GC006", name: "Theodosia River Diversion Bypass", lon: -124.54, lat: 50.13, role: "up", path: [] },
+    ]);
+  });
+
   it("is asked of the gauge table without naming the column, so an older release still answers", () => {
     expect(gaugePlaces(2)).toBe("SELECT * FROM gauge WHERE station IN (?,?)");
   });

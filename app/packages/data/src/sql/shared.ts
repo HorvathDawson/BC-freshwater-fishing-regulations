@@ -347,7 +347,8 @@ export async function routesOf(section: SectionId,
                                members: readonly { station: StationId; role: "up" | "down" }[],
                                places: ReadonlyMap<string, { name: string; section: SectionId | null;
                                                              lon: number | null; lat: number | null;
-                                                             tidal?: boolean; backwater?: boolean }>,
+                                                             tidal?: boolean; backwater?: boolean;
+                                                             diversion?: boolean }>,
                                down: DownOf, along: RouteFacts = {}): Promise<PanelRoute[]> {
   const walk = async (from: SectionId, stop: SectionId): Promise<SectionId[] | null> => {
     const path: SectionId[] = [from];
@@ -428,6 +429,8 @@ export async function routesOf(section: SectionId,
       ...(place?.tidal ? { tidal: true as const } : {}),
       // `true` only (T160): a station a lake below it backs up; absent otherwise, as an older release reads.
       ...(place?.backwater ? { backwater: true as const } : {}),
+      // `true` only (T696): a station on a diversion canal; absent otherwise, as an older release reads.
+      ...(place?.diversion ? { diversion: true as const } : {}),
     });
   }
   return out;
@@ -522,9 +525,10 @@ export async function joinWater(path: readonly SectionId[], join: number,
 /** `gaugePlaces` rows to the map `routesOf` reads. */
 export function placesOf(rows: readonly Row[]): Map<string, { name: string; section: SectionId | null;
                                                               lon: number | null; lat: number | null;
-                                                              tidal: boolean; backwater: boolean }> {
+                                                              tidal: boolean; backwater: boolean;
+                                                              diversion: boolean }> {
   const places = new Map<string, { name: string; section: SectionId | null; lon: number | null; lat: number | null;
-                                   tidal: boolean; backwater: boolean }>();
+                                   tidal: boolean; backwater: boolean; diversion: boolean }>();
   for (const r of rows)
     places.set(str(r.station), {
       name: str(r.name),
@@ -534,6 +538,8 @@ export function placesOf(rows: readonly Row[]): Map<string, { name: string; sect
       tidal: Number(r.tidal ?? 0) === 1,
       // `gauge.backwater` (T160); absent on a release built before it, read as not flagged.
       backwater: Number(r.backwater ?? 0) === 1,
+      // `gauge.diversion` (T696); absent on a release built before it, read as not flagged.
+      diversion: Number(r.diversion ?? 0) === 1,
     });
   return places;
 }

@@ -830,12 +830,17 @@ CREATE VIEW alternative_section AS
 -- data/curated/gauges/backwater.json, each row checked against the station's own HYDAT remark
 -- (pipeline/gauges/consume/tidal.py). Never 1 beside `tidal`. Its own Level sentence in the app.
 -- Added LAST with a default, as `tidal` was: still conditions/1.
+-- `diversion` (T696, RULINGS P54): 1 where the station stands on a DIVERSION canal and speaks for the river above its
+-- intake (data/curated/gauges/diversion_stations.json, checked against HYDAT; 08GC005 on the Theodosia). Its `sid` is
+-- the river section at the intake, where it reads the river (pipeline/gauges/consume/diversion.py); the app says
+-- "measures a diversion". Added LAST with a default: still conditions/1.
 CREATE TABLE gauge (station TEXT PRIMARY KEY, name TEXT NOT NULL,
                     item_id TEXT, sid INTEGER,
                     lon REAL, lat REAL, area_km2 REAL, mag INTEGER,
                     matched_by TEXT, match_m REAL,
                     tidal INTEGER NOT NULL DEFAULT 0,
-                    backwater INTEGER NOT NULL DEFAULT 0) WITHOUT ROWID;
+                    backwater INTEGER NOT NULL DEFAULT 0,
+                    diversion INTEGER NOT NULL DEFAULT 0) WITHOUT ROWID;
 
 -- ONE station per reach: the one that most nearly IS that water.
 --

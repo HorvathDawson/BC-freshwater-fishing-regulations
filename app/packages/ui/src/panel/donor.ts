@@ -6,7 +6,7 @@ import { changeLowWaterNote, donorState, CONDITIONS_WORDS, disagreeNote, donorBe
          estimateHeadline, estimateRange, estimateSentence, gaugeChoiceLabel, HORIZON_LABELS, isAhead, metresApart,
          panelCamera, refusalIsAboutTheDay, regulatedNote, SAME_PLACE_M, shortRecordNote, silentLine, sizeApart, tidalNote,
          throughLakeNote, interval,
-         backwaterNote, unplacedNote, type SectionKey } from "@app/core";
+         backwaterNote, diversionNote, unplacedNote, type SectionKey } from "@app/core";
 import { donorMapKey, donorMapLabel, hereMapLabel, joinMapLabel, ROUTE_MAP_WORDS, routeLegend } from "@app/core";
 import { gaugeSides, groupGauges, isDonorSide, stateAt, type GaugeGroup, type GaugeSide } from "@app/core";
 import { useAsync } from "../async";
@@ -157,6 +157,9 @@ export type DonorVM =
       /** A lake's standing backwater (T160): one sentence, Level only, where a reporting member's station is backed
        *  up by a lake below it; else null. */
       backwater: string | null;
+      /** A gauge on a diversion canal (T696): one sentence, Flow and Level, where a reporting member's station stands on
+       *  one; else null. */
+      diversion: string | null;
       /** (T296) Every counted gauge reaches this water through a lake: "Measured below Pitt Lake — …"; else null. */
       throughLake: string | null;
       disagree: string | null;
@@ -362,6 +365,7 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
     regulated: regulatedNote(rows),
     tidal: o.quantity ? tidalNote(rows, o.quantity) : null,
     backwater: o.quantity ? backwaterNote(rows, o.quantity) : null,
+    diversion: diversionNote(rows),
     throughLake: throughLakeNote(rows),
     disagree: disagreeNote(e, o.horizon),
     lowWater: o.horizon === "change" ? lowWaterNote(shown) : null,

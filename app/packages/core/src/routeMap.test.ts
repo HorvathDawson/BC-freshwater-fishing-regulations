@@ -14,6 +14,13 @@ describe("the route map's words", () => {
   it("keys a gauge with the same words its dot carries", () => {
     expect(donorMapKey({ station: "08MH001", weight: 0.62, percentile: 0.3 }))
       .toBe("08MH001 · 62%");
+    // T696: a gauge on a diversion canal says what it measures, after the words its dot carries
+    expect(donorMapKey({ station: "08GC005", weight: 0.7, percentile: 0.4, route: { path: [], diversion: true } }))
+      .toBe("08GC005 · 70% · measures a diversion");
+    expect(donorMapKey({ station: "08GC005", weight: 0, percentile: null, route: { path: [], diversion: true } }))
+      .toBe("08GC005 · not reporting · measures a diversion");
+    expect(donorMapKey({ station: "08GC008", weight: 0.3, percentile: 0.4, route: { path: [], diversion: false } }))
+      .toBe("08GC008 · 30%");
     expect(donorMapKey({ station: "08MH024", weight: 0, percentile: null }))
       .toBe("08MH024 · not reporting");
     expect(donorMapKey({ station: "08MH024", weight: 0, percentile: null, realtime: false }))
