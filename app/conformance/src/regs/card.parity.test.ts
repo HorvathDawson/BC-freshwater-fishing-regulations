@@ -13,7 +13,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { buildModel, makePlace, settle, type CardModel, type HydRes, type RegsPlace } from "@app/core";
 import { inputsOf, isGone, oracleRix, parityStore, paritySkip, releasePairing, taps } from "./golden";
-import { flipsOver, HYDRATE, LOIS_FOLD, oracleLive, oracleRixOf, PEACE_KOKANEE, renamedOrder } from "./oracles";
+import { flipsOver, HYDRATE, KITIMAT_RULED, LOIS_FOLD, oracleLive, oracleRixOf, PEACE_KOKANEE, renamedOrder } from "./oracles";
 
 type Res = { status: string; daily: number | string | null; win: number; narrow: number | null } | null;
 interface OracleModel {
@@ -175,9 +175,9 @@ describe.skipIf(pairing.skip)(`T08 card model on the live release (${at.path ?? 
  * OWNER RULING 2026-10-21 (a) — pipeline/docs/GOTCHAS.md: on the Kitimat, r5's hatchery-steelhead quota does NOT lift
  * Region 6's Nov 1-June 30 stream release, where page v36 (the oracle) lifted it. The one row per state that the ruling
  * changes (by index) gets the page's runs with every Nov 1-June 30 'keep' day made 'release'; nothing else moves, and
- * every other row and state must still equal the page. Mirrors pipeline/tests/test_answers_year_strip_live.py.
+ * every other row and state must still equal the page. The rows: oracles.ts KITIMAT_RULED (v36-rulings.json, read by
+ * pipeline/tests/test_answers_year_strip_live.py too).
  */
-const KITIMAT_RULED: Readonly<Record<string, number>> = { x14p0_1010: 2, x14p1_1010: 2, x14p2_1010: 2 };
 const NOV1 = 305, JUN30 = 181;   // book day-of-year (365-day year)
 
 export function novJunReleased(runs: readonly [string, number][]): [string, number][] {
@@ -195,6 +195,17 @@ function rulingApplied(id: string, page: [string, number][][]): [string, number]
   const row = KITIMAT_RULED[id];
   return row === undefined ? page : page.map((runs, i) => (i === row ? novJunReleased(runs) : runs));
 }
+
+describe("v36-rulings.json's row indexes are page v36's own (the Python year-strip test reads them, T667 slice 5)", () => {
+  it("Lois: the folded row is the page's row of the retired rule", () => {
+    expect(loisRow(LOIS_FOLD.id, H.states[LOIS_FOLD.id]!.model)).toBe(LOIS_FOLD.row);
+  });
+  it("Peace: the kept rows are exactly the page's kokanee stream-release rows on the Peace", () => {
+    const got = Object.fromEntries(Object.keys(H.states).map((id) => [id, peaceRow(id, H.states[id]!.model)] as const)
+      .filter(([, at]) => at >= 0));
+    expect(got).toEqual(PEACE_KOKANEE.kept_rows);
+  });
+});
 
 describe("the Kitimat ruling's oracle adjustment", () => {
   it("moves only the Nov 1-June 30 keep days", () => {

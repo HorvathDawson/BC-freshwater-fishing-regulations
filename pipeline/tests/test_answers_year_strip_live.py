@@ -22,6 +22,9 @@ EXPORT_DIR = under_test.path("export_dir")
 GOLDEN = Path(__file__).resolve().parents[2] / "app" / "fixtures" / "golden"
 HYDRATE = json.loads((GOLDEN / "hydrate.json").read_text())
 TAPS = json.loads((GOLDEN / "taps.json").read_text())
+#: (T667 slice 5) the rulings page v36 predates, recorded once for both languages (app/conformance/src/regs/oracles.ts
+#: reads the same file; its card parity holds these row indexes to the page's own rows)
+RULINGS = json.loads((GOLDEN.parent / "reference" / "v36-rulings.json").read_text())
 #: (T115) the hydrated states the store taps: not the 4 whose part the release merged away (taps.json `gone`), nor
 #: (T278) the 2 whose golden part is tidal water now (taps.json `tidal`: x15p3, x37p1)
 IDS = sorted(i for i in HYDRATE["states"] if i not in TAPS["gone"] and i not in TAPS.get("tidal", {}))
@@ -61,18 +64,16 @@ def test_every_rows_stored_year_is_page_v36s_day_status(built, sid):
     assert [r["year"] for r in frame["rows"]] == want
 
 
-#: OWNER RULING 2026-10-21 (a) — pipeline/docs/GOTCHAS.md: on the Kitimat, r5's hatchery-steelhead quota does NOT lift
-#: Region 6's Nov 1-June 30 stream release, where page v36 (the oracle) lifted it. The ONE row that differs per state
-#: (index) is the row the ruling changes; every other row of these states, and every other state, must equal the page.
-KITIMAT_RULED = {"x14p0_1010": 2, "x14p1_1010": 2, "x14p2_1010": 2}
-#: OWNER 2026-10-26 (handoff/PLAN/curation-review/overlapping-rules.md): Lois Lake's "hatchery rainbow trout = 6"
-#: (lois_lake.r3) is retired as implied by "rainbow trout/hatchery steelhead = 6 in the aggregate" (r4). The page's own
-#: rainbow row (index 1, pool r3) folds into the aggregate's row; every other row must still equal the page.
-OVERLAP_RETIRED = {"x25p_1010": 1}
-#: T623 F6 (the book, p.64 "Kokanee: 10 (none from streams, except Peace River)"; owner 2026-11-11 "Keep it"): Zone B's
-#: stream release no longer binds the Peace, so part 9 (Dinosaur Lake up to the Williston Lake outlet, no Peace row of
-#: its own) keeps 10 kokanee all year where page v38 released them. The ONE row that differs (index: the kokanee row).
-PEACE_KOKANEE_KEPT = {"x22p6_1010": 1}
+#: OWNER RULING 2026-10-21 (a) (v36-rulings.json `kitimat_nov_jun`): on the Kitimat, r5's hatchery-steelhead quota does
+#: NOT lift Region 6's Nov 1-June 30 stream release, where page v36 lifted it. The ONE row per state (index) the ruling
+#: changes; every other row of these states, and every other state, must equal the page.
+KITIMAT_RULED = RULINGS["kitimat_nov_jun"]["rows"]
+#: OWNER 2026-10-26 (`overlap_retired.lois_fold`): Lois Lake's retired r3 row folds into r4's aggregate row; every other
+#: row must still equal the page.
+OVERLAP_RETIRED = {RULINGS["overlap_retired"]["lois_fold"]["id"]: RULINGS["overlap_retired"]["lois_fold"]["row"]}
+#: T623 F6 (`peace_kokanee.kept_rows`): Zone B's stream release no longer binds the Peace, so the Peace part with no row
+#: of its own keeps 10 kokanee all year where page v38 released them. The ONE row that differs (the kokanee row).
+PEACE_KOKANEE_KEPT = RULINGS["peace_kokanee"]["kept_rows"]
 NOV1, JUN30 = 305, 181          # book day-of-year (365-day year; Feb 29 is not a book day)
 
 

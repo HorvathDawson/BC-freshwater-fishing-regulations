@@ -10,3 +10,4 @@ the design prototype was deleted.
 | `page_v36.html` | the page with its `#data` / `#answers` / `#cases` blocks inlined | `app/conformance/src/regs/{ruleSources,oracles}.ts` (the T06/T07 parity tests), `app/tools/regs-recut/{hydrate.mjs,taps.py}`, `app/tools/regs-fixtures.test.ts` |
 | `page_v36.js` | the page's script | the same, plus `app/tools/emit-fish.mjs` (the FISHART tips) |
 | `calendar.generated.js` | the calendar tables, generated (`python -m pipeline.tools.emit.calendar`; `--check` in CI) | `ruleSources.ts` `pageDecode`, `app/tools/regs-recut/hydrate.mjs` |
+| `v36-rulings.json` | every ruling page v36 predates, once, by ruling (T667 slice 5; a new ruling is one entry here) | `app/conformance/src/regs/oracles.ts` (settle / card / describe parities), `pipeline/tests/test_answers_year_strip_live.py` |

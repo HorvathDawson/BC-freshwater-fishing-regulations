@@ -1,0 +1,52 @@
+{
+  "_about": "THE PAGE v36 RULINGS TABLE (T667 slice 5, owner D1 2026-11-11). Every owner ruling or curation change the frozen reference (page_v36.html and the hydrate.json cut from it) predates, recorded ONCE, by ruling, and read by BOTH languages: app/conformance/src/regs/oracles.ts (the settle / card / describe parities, which import it from there) and pipeline/tests/test_answers_year_strip_live.py. A new ruling that moves what page v36 shows is one entry here, never a table per test. Every reader fails on an entry the oracle no longer needs (a re-cut retires it): the renames throw when the oracle names none of them, the predates throw when the oracle already has the rule, the Peace and Lois amendments throw when the oracle no longer shows the rule they amend. Hand-edited; read by nothing that ships.",
+  "zone_daily_quota_merge": {
+    "why": "2026-10-26 owner, handoff/PLAN/curation-review/zone-entry-merges.md: each region's trout/char quota and 'Other daily quotas' (7B: and its Arctic grayling block) are one entry, zN:daily_quotas, as the book prints them. Every rule_id kept; only the entry id moved. Page v36's keys are renamed ONCE at load (hydrate.json and #data.rid).",
+    "renamed": {
+      "z1:trout_quota": "z1:daily_quotas", "z1:species_quotas": "z1:daily_quotas",
+      "z2:trout_char_quota": "z2:daily_quotas", "z2:species_quotas": "z2:daily_quotas",
+      "z3:trout_char_quota": "z3:daily_quotas", "z3:species_quotas": "z3:daily_quotas",
+      "z4:trout_char_quota": "z4:daily_quotas", "z4:species_quotas": "z4:daily_quotas",
+      "z5:trout_char_quota": "z5:daily_quotas", "z5:species_quotas": "z5:daily_quotas",
+      "z6:trout_char_quota": "z6:daily_quotas", "z6:species_quotas": "z6:daily_quotas",
+      "z7a:trout_char_quota": "z7a:daily_quotas", "z7a:species_quotas": "z7a:daily_quotas",
+      "z7b:trout_char_quota": "z7b:daily_quotas", "z7b:arctic_grayling": "z7b:daily_quotas", "z7b:species_quotas": "z7b:daily_quotas",
+      "z8:trout_char_quota": "z8:daily_quotas", "z8:species_quotas": "z8:daily_quotas"
+    }
+  },
+  "overlap_retired": {
+    "why": "2026-10-26 owner, handoff/PLAN/curation-review/overlapping-rules.md; T206: rules implied by another were retired in r-3d6399afd7e2 (the binding diff showed only those changed, card_check 0 problems). Keys after the renames. Lois Lake (x25p_1010) is the one golden state where a retired rule drew a ROW of its own: lois_lake.r3 (hatchery rainbow trout, 6 a day) folds into r4's 'rainbow trout/hatchery steelhead = 6 in the aggregate' row; `row` is that row's index in the page's card.",
+    "retired": ["z1:daily_quotas::trout_quota.r3", "z2:daily_quotas::trout_char_quota.r3", "r2:lois_lake@2-12::lois_lake.r3"],
+    "lois_fold": { "id": "x25p_1010", "retired": "r2:lois_lake@2-12::lois_lake.r3", "into": "r2:lois_lake@2-12::lois_lake.r4", "row": 1 }
+  },
+  "on_parts_dropped": {
+    "why": "2026-10-26 owner, curation-review/on-parts.md; c16b1c5f drop_on_parts: 'on parts' holds on the WHOLE water, so these rules have no undrawn part; page v36's `inpart` entry is the rule speaking on the day or not at all.",
+    "rules": [
+      "r1:cowichan_lake_including_bear_lake@1-4::cowichan_lake.r4", "r1:cowichan_river_see_map_below@1-4::cowichan_river.r8",
+      "r1:cowichan_river_see_map_below@1-4::cowichan_river.r9", "r2:coquitlam_river@2-8::coquitlam_river.r2"
+    ]
+  },
+  "part_drawn": {
+    "why": "2026-10-27 owner, decisions.md 'needs a split': an undrawn part that is DRAWN now (columbia_river.r11 'from Mud Lake to Columbia Lake' binds its own stretch); page v36's `inpart` entry on the other parts is gone. The one golden state on the drawn part (x18p3) is taps.json `gone`.",
+    "rules": ["r4:columbia_river@4-15+4-26+4-34+4-38+4-8::columbia_river.r11"]
+  },
+  "predates": {
+    "why": "T89 (010b5c28, review 894854c0; batch 3 'Nilkitkwa r4 +3'): nilkitkwa_lake.r4 (Rainbow Alley open all year) binds the Babine River between Babine and Nilkitkwa Lakes, Babine parts 1 and 2: an advisory the day shows, which page v36 predates. Each entry ADDS the rule to the oracle's list for that state.",
+    "states": {
+      "x17p1_1010": { "list": "shown", "key": "r6:nilkitkwa_lake@6-8::nilkitkwa_lake.r4" },
+      "x17p2_1010": { "list": "shown", "key": "r6:nilkitkwa_lake@6-8::nilkitkwa_lake.r4" }
+    }
+  },
+  "peace_kokanee": {
+    "why": "T623 F6, ea1c74d67; owner 2026-11-11 'Keep it'; RULINGS Z2: p.64 'Kokanee: 10 (none from streams, except Peace River)'. Zone B's stream release (`out`) carries outside_items [gnis:14619], so it binds no Peace River section. Where a Peace row's own quota lifted it the lifted pair is gone; where nothing lifted it the table's 'Kokanee: 10' (`base`) answers, keep `daily` a day all year: the kokanee row of each `kept_rows` state (by index).",
+    "item": "gnis:14619",
+    "out": "z7b:daily_quotas::species_quotas.r5",
+    "base": "z7b:daily_quotas::species_quotas.r4",
+    "daily": 10,
+    "kept_rows": { "x22p6_1010": 1 }
+  },
+  "kitimat_nov_jun": {
+    "why": "OWNER RULING 2026-10-21 (a), pipeline/docs/GOTCHAS.md: on the Kitimat, r5's hatchery-steelhead quota does NOT lift Region 6's Nov 1-June 30 stream release, where page v36 lifted it. The ONE row per state the ruling changes (by index) gets the page's runs with every Nov 1-June 30 'keep' day made 'release'; every other row and state must still equal the page.",
+    "rows": { "x14p0_1010": 2, "x14p1_1010": 2, "x14p2_1010": 2 }
+  }
+}

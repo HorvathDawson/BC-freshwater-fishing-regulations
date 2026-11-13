@@ -21,24 +21,26 @@ export interface Hydrate {
 }
 
 /**
- * (2026-10-26 owner, handoff/PLAN/curation-review/zone-entry-merges.md) The zone DAILY QUOTA merge: each region's
- * trout/char quota and "Other daily quotas" (7B: and its Arctic grayling block) are one entry, `zN:daily_quotas`, as the
- * book prints them ("Region N Daily Quotas"). Every rule_id was kept; only the entry id moved, and the binding diff showed
- * the same sections under the new keys. Page v36 predates it, so its keys are renamed ONCE at load — in hydrate.json
- * and #data.rid — and nothing else in the oracle moves. An entry here the oracle no longer names throws, so a re-cut
- * oracle retires it.
+ * THE RULINGS PAGE v36 PREDATES (T667 slice 5): `app/fixtures/reference/v36-rulings.json`, one entry per ruling, read here
+ * and by `pipeline/tests/test_answers_year_strip_live.py` — a new ruling is one entry there, never a table per test. Each
+ * export below is that file's entry under the name the parities have always read; its `why` is the ruling and its source.
  */
-export const ORACLE_ENTRY_RENAMED: Readonly<Record<string, string>> = {
-  "z1:trout_quota": "z1:daily_quotas", "z1:species_quotas": "z1:daily_quotas",
-  "z2:trout_char_quota": "z2:daily_quotas", "z2:species_quotas": "z2:daily_quotas",
-  "z3:trout_char_quota": "z3:daily_quotas", "z3:species_quotas": "z3:daily_quotas",
-  "z4:trout_char_quota": "z4:daily_quotas", "z4:species_quotas": "z4:daily_quotas",
-  "z5:trout_char_quota": "z5:daily_quotas", "z5:species_quotas": "z5:daily_quotas",
-  "z6:trout_char_quota": "z6:daily_quotas", "z6:species_quotas": "z6:daily_quotas",
-  "z7a:trout_char_quota": "z7a:daily_quotas", "z7a:species_quotas": "z7a:daily_quotas",
-  "z7b:trout_char_quota": "z7b:daily_quotas", "z7b:arctic_grayling": "z7b:daily_quotas", "z7b:species_quotas": "z7b:daily_quotas",
-  "z8:trout_char_quota": "z8:daily_quotas", "z8:species_quotas": "z8:daily_quotas",
-};
+const RULINGS_FILE = `${REPO}app/fixtures/reference/v36-rulings.json`;
+interface Rulings {
+  readonly zone_daily_quota_merge: { readonly renamed: Readonly<Record<string, string>> };
+  readonly overlap_retired: { readonly retired: readonly string[];
+    readonly lois_fold: { readonly id: string; readonly retired: string; readonly into: string; readonly row: number } };
+  readonly on_parts_dropped: { readonly rules: readonly string[] };
+  readonly part_drawn: { readonly rules: readonly string[] };
+  readonly predates: { readonly states: Readonly<Record<string, { readonly list: "shown"; readonly key: string }>> };
+  readonly peace_kokanee: { readonly item: string; readonly out: string; readonly base: string; readonly daily: number;
+    readonly kept_rows: Readonly<Record<string, number>> };
+  readonly kitimat_nov_jun: { readonly rows: Readonly<Record<string, number>> };
+}
+const RULINGS = JSON.parse(readFileSync(RULINGS_FILE, "utf8")) as Rulings;
+
+/** (zone_daily_quota_merge) page v36's entry ids renamed ONCE at load; an entry the oracle no longer names throws. */
+export const ORACLE_ENTRY_RENAMED: Readonly<Record<string, string>> = RULINGS.zone_daily_quota_merge.renamed;
 const RENAMED_RE = new RegExp(`\\b(${Object.keys(ORACLE_ENTRY_RENAMED).join("|")})(?![a-z_])`, "g");
 function entryRenamed(file: string, text: string): string {
   let n = 0;
@@ -64,15 +66,11 @@ type Keyed = Iterable<readonly [number, { readonly export: { readonly entry_id: 
 const keyOf = (r: { readonly export: { readonly entry_id: string; readonly rule_id: string } }) => `${r.export.entry_id}::${r.export.rule_id}`;
 
 /**
- * (2026-10-26 owner, overlapping-rules.md; T206) The rules the release RETIRED that page v36 still prints (keys after
- * ORACLE_ENTRY_RENAMED): `z1:trout_quota.r3`, `z2:trout_char_quota.r3` and `lois_lake.r3` (with `khartoum_lake.r3`, which
- * is not in page v36's slice) were dropped in r-3d6399afd7e2; the binding diff showed only those changed, card_check found
- * 0 problems. `oracleLive` is false for them: a parity drops them from the oracle's lists instead of mapping them —
- * `oracleRixOver` throws on one, so a list that still names one cannot pass silently.
+ * (overlap_retired) The rules the release RETIRED that page v36 still prints (keys after the renames). `oracleLive` is false
+ * for them: a parity drops them from the oracle's lists instead of mapping them — `oracleRixOver` throws on one, so a list
+ * that still names one cannot pass silently.
  */
-export const ORACLE_RETIRED: readonly string[] = [
-  "z1:daily_quotas::trout_quota.r3", "z2:daily_quotas::trout_char_quota.r3", "r2:lois_lake@2-12::lois_lake.r3",
-];
+export const ORACLE_RETIRED: readonly string[] = RULINGS.overlap_retired.retired;
 /** Is page v36's rule `oracle` one the release still has (not ORACLE_RETIRED)? */
 export const oracleLive = (oracle: number): boolean => !ORACLE_RETIRED.includes(pageRid().get(oracle) ?? "");
 /** page v36's rule number for a key (after the renames); throws when the page lacks it. */
@@ -80,46 +78,30 @@ export function oracleRixOf(key: string): number {
   for (const [o, k] of pageRid()) if (k === key) return o;
   throw new Error(`page_v36.html has no rule ${key}`);
 }
-/**
- * (T206, ORACLE_RETIRED) The one golden state where a retired rule drew a ROW of its own: Lois Lake (x25p_1010). Page v36
- * drew `lois_lake.r3` (hatchery rainbow trout, 6 a day) as a row; with it retired, hatchery rainbow trout answer to
- * `lois_lake.r4` (6 a day) and the card folds them into r4's steelhead row: one "Rainbow trout and steelhead" row. The
- * answer did not change (6 a day; card_check passed). Parities that compare the card's rows amend page v36's by this.
- */
-export const LOIS_FOLD = { id: "x25p_1010", retired: "r2:lois_lake@2-12::lois_lake.r3", into: "r2:lois_lake@2-12::lois_lake.r4" } as const;
+/** (overlap_retired.lois_fold) The one golden state where a retired rule drew a ROW of its own (Lois Lake): its row folds
+ *  into `into`'s; parities that compare the card's rows amend page v36's by this. `row` is the folded row's index. */
+export const LOIS_FOLD = RULINGS.overlap_retired.lois_fold;
 
-/**
- * (2026-10-26 owner, curation-review/on-parts.md; c16b1c5f `drop_on_parts`) "on parts" holds on the WHOLE water: these
- * rules lost their `part: "on parts"`, so the store has no undrawn part for them — page v36's `inpart` entry is the rule
- * speaking on the day (`now` true) or not at all. The rules in page v36's slice; `onPartsDropped` names them by oracle rule.
- */
-const ORACLE_ON_PARTS_DROPPED: readonly string[] = [
-  "r1:cowichan_lake_including_bear_lake@1-4::cowichan_lake.r4", "r1:cowichan_river_see_map_below@1-4::cowichan_river.r8",
-  "r1:cowichan_river_see_map_below@1-4::cowichan_river.r9", "r2:coquitlam_river@2-8::coquitlam_river.r2",
-];
+/** (on_parts_dropped) "on parts" holds on the WHOLE water: page v36's `inpart` entry is the rule speaking on the day or
+ *  not at all. `onPartsDropped` names them by oracle rule. */
+const ORACLE_ON_PARTS_DROPPED: readonly string[] = RULINGS.on_parts_dropped.rules;
 export const onPartsDropped = (oracle: number): boolean => ORACLE_ON_PARTS_DROPPED.includes(pageRid().get(oracle) ?? "");
 
-/**
- * (2026-10-27 owner, decisions.md "needs a split") an undrawn part that is DRAWN now: the rule binds its own stretch
- * (`columbia_river.r11` "from Mud Lake to Columbia Lake": between the Fairmont and Columbia Lake cuts), so it holds on that
- * part alone — page v36's `inpart` entry on the water's other parts is gone, and the rule's view has no part. The one golden
- * state on the drawn part (x18p3) is taps.json `gone`.
- */
-const ORACLE_PART_DRAWN: readonly string[] = ["r4:columbia_river@4-15+4-26+4-34+4-38+4-8::columbia_river.r11"];
+/** (part_drawn) an undrawn part that is DRAWN now: page v36's `inpart` entry on the water's other parts is gone. */
+const ORACLE_PART_DRAWN: readonly string[] = RULINGS.part_drawn.rules;
 export const partDrawn = (oracle: number): boolean => ORACLE_PART_DRAWN.includes(pageRid().get(oracle) ?? "");
 
 /**
- * (T623 F6, ea1c74d67; owner 2026-11-11 "Keep it"; RULINGS Z2, Z1's one named exception b5f1c5cf6) p.64 prints Region 7B's
- * kokanee as "Kokanee: 10 (none from streams, except Peace River)". The stream release (`out`) now carries
- * `outside_items: [gnis:14619]`, so it binds no Peace River section; page v36 predates that and still has it there.
- * On a Peace state the oracle is amended (settle.parity, card.parity), and each amendment throws once the oracle no longer
- * names `out` on that state (a re-cut):
- * - where a Peace row's own kokanee quota lifted it (x22p0/p1/p3), the `lifted` pair is gone: nothing is there to lift;
- * - where nothing lifted it (x22p6, the Peace above its rows: Dinosaur Lake up to the Williston outlet), the table's
- *   "Kokanee: 10" (`base`) answers in its place: keep `daily` a day, all year (T623's table: "Peace part 9: keep 10").
+ * (peace_kokanee) Zone B's kokanee stream release (`out`) binds no Peace River section; page v36 predates that. On a Peace
+ * state the oracle is amended (settle.parity, card.parity), and each amendment throws once the oracle no longer names `out`
+ * on that state (a re-cut): where a Peace row's own quota lifted it the `lifted` pair is gone; where nothing lifted it
+ * (`kept_rows`) the table's "Kokanee: 10" (`base`) answers, keep `daily` a day all year.
  */
-export const PEACE_KOKANEE = { item: "gnis:14619", out: "z7b:daily_quotas::species_quotas.r5",
-  base: "z7b:daily_quotas::species_quotas.r4", daily: 10 } as const;
+export const PEACE_KOKANEE = RULINGS.peace_kokanee;
+/** (predates) a rule page v36 predates, ADDED by durable key to the oracle's list for that state (settle.parity). */
+export const ORACLE_PREDATES = RULINGS.predates.states;
+/** (kitimat_nov_jun) the one row per Kitimat state whose Nov 1-June 30 'keep' days the ruling makes 'release'. */
+export const KITIMAT_RULED = RULINGS.kitimat_nov_jun.rows;
 
 /** `oracleRix` over any rule set keyed by rix (a store's `rules()`, a RuleSource's `stored`). */
 export function oracleRixOver(rules: Keyed): (oracle: number) => number {

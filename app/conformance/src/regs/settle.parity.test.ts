@@ -9,7 +9,7 @@ import { readFileSync } from "node:fs";
 import { describe as group, expect, it } from "vitest";
 import { describe, isClosedOn, makePlace, settle, displayStatusOn, type RuleView, type Settled } from "@app/core";
 import { inputsOf, oracleRix, parityStore, paritySkip, releasePairing, taps } from "./golden";
-import { flipsOver, HYDRATE, onPartsDropped, oracleLive, oracleRixOf, partDrawn, PEACE_KOKANEE, renamedOrder } from "./oracles";
+import { flipsOver, HYDRATE, onPartsDropped, ORACLE_PREDATES, oracleLive, oracleRixOf, partDrawn, PEACE_KOKANEE, renamedOrder } from "./oracles";
 
 interface OracleSettle {
   status: string | null; broad: number[]; speaks: number[]; beside: number[]; shown: number[]; inpart: [number, boolean][];
@@ -28,19 +28,8 @@ const pairing = paritySkip(at);
 /** page v36's rule numbers (the oracle's, and the ticket's literals quoted from it) → the paired store's, by durable key
  *  (golden.ts `oracleRix`): a rule added or dropped ahead of a rix renumbers it without changing a word. */
 const R = (await oracleRix()) ?? ((r: number) => r);
-/**
- * CONTENT the oracle predates (expected changes, each with its commit; the oracle is page v36 over the answers its blocks
- * were cut from, 2026-10-20). Each entry ADDS a rule, by durable key, to the oracle's list for that state, and asserts the
- * oracle lacks it — so the entry fails, and must go, once page_v36.html's blocks and hydrate.json are re-cut
- * (`python -m pipeline.deliver.answers.reference.page_data --html …` then regs-recut/hydrate.mjs).
- * - T89 (010b5c28, review 894854c0; batch 3 "Nilkitkwa r4 +3"): nilkitkwa_lake.r4 — Rainbow Alley open all year — binds the
- *   Babine River between Babine and Nilkitkwa Lakes, Babine parts 1 (Nilkitkwa Lake → Fort Babine Bridge, 2 sections) and
- *   2 (Fort Babine Bridge → Babine Lake outlet, 1): an advisory the day shows.
- */
-const ORACLE_PREDATES: Readonly<Record<string, { readonly list: "shown"; readonly key: string }>> = {
-  x17p1_1010: { list: "shown", key: "r6:nilkitkwa_lake@6-8::nilkitkwa_lake.r4" },
-  x17p2_1010: { list: "shown", key: "r6:nilkitkwa_lake@6-8::nilkitkwa_lake.r4" },
-};
+/** CONTENT the oracle predates (oracles.ts ORACLE_PREDATES, v36-rulings.json `predates`): each entry ADDS a rule, by
+ *  durable key, to the oracle's list for that state, and asserts the oracle lacks it — so it fails once page v36 is re-cut. */
 const NOW = new Map<string, number>();
 for (const [rix, r] of (await (await parityStore())?.rules()) ?? []) NOW.set(`${r.export.entry_id}::${r.export.rule_id}`, rix);
 function amended(id: string, o: OracleSettle): OracleSettle {
