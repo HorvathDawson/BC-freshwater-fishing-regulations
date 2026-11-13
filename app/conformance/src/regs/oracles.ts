@@ -1,6 +1,7 @@
 /**
  * THE ORACLE FILES (app/fixtures/golden/) — the one module every regs parity suite reads them through:
- * taps.json (`taps()`), hydrate.json (`hydrate()`), their paths and REPO. (golden.json, pins.json, tokens.json and
+ * taps.json (`taps()`), page-oracle.json (`pageOracle()`), their paths and REPO. (hydrate.json is read only by card.parity's
+ * row-index check, until the Python year-strip test that needs it goes, T667 5b.) (golden.json, pins.json, tokens.json and
  * inventory.json, the retired prototype extracts, are gone: T439.) golden.ts re-exports these.
  */
 import { readFileSync } from "node:fs";
@@ -12,14 +13,6 @@ export const GOLDEN_DIR = `${REPO}app/fixtures/golden/`;
 export const TAPS = `${GOLDEN_DIR}taps.json`;
 export const HYDRATE = `${GOLDEN_DIR}hydrate.json`;
 
-/** hydrate.json (regs-recut/hydrate.mjs: page v36's decoded rules and describe() per rule, and each state's via / ranks). */
-export interface Hydrate {
-  readonly meta: { readonly generator: string; readonly ref: string; readonly sha: string; readonly golden: string; readonly version: string };
-  readonly describe: Readonly<Record<string, string>>;
-  readonly rules: Readonly<Record<string, Readonly<Record<string, unknown>>>>;
-  readonly states: Readonly<Record<string, { readonly via: Readonly<Record<string, "trib">>; readonly ranks: Readonly<Record<string, number>> }>>;
-}
-
 /**
  * THE RULINGS PAGE v36 PREDATES (T667 slice 5): `app/fixtures/reference/v36-rulings.json`, one entry per ruling, read here
  * and by `pipeline/tests/test_answers_year_strip_live.py` — a new ruling is one entry there, never a table per test. Each
@@ -28,10 +21,8 @@ export interface Hydrate {
 const RULINGS_FILE = `${REPO}app/fixtures/reference/v36-rulings.json`;
 interface Rulings {
   readonly zone_daily_quota_merge: { readonly renamed: Readonly<Record<string, string>> };
-  readonly overlap_retired: { readonly retired: readonly string[];
+  readonly overlap_retired: {
     readonly lois_fold: { readonly id: string; readonly retired: string; readonly into: string; readonly row: number } };
-  readonly on_parts_dropped: { readonly rules: readonly string[] };
-  readonly part_drawn: { readonly rules: readonly string[] };
   readonly peace_kokanee: { readonly item: string; readonly out: string; readonly base: string; readonly daily: number;
     readonly kept_rows: Readonly<Record<string, number>> };
   readonly kitimat_nov_jun: { readonly rows: Readonly<Record<string, number>> };
@@ -93,23 +84,6 @@ export function pageOracle(): PageOracle {
   return (PO ??= JSON.parse(readFileSync(PAGE_ORACLE, "utf8")) as PageOracle);
 }
 
-let H: Hydrate | undefined;
-/** hydrate.json (T06/T07/T08's oracle), parsed once per test file. */
-export function hydrate(): Hydrate {
-  return (H ??= JSON.parse(entryRenamed("hydrate.json", readFileSync(HYDRATE, "utf8"))) as Hydrate);
-}
-
-type Keyed = Iterable<readonly [number, { readonly export: { readonly entry_id: string; readonly rule_id: string } }]>;
-const keyOf = (r: { readonly export: { readonly entry_id: string; readonly rule_id: string } }) => `${r.export.entry_id}::${r.export.rule_id}`;
-
-/**
- * (overlap_retired) The rules the release RETIRED that page v36 still prints (keys after the renames). `oracleLive` is false
- * for them: a parity drops them from the oracle's lists instead of mapping them — `oracleRixOver` throws on one, so a list
- * that still names one cannot pass silently.
- */
-export const ORACLE_RETIRED: readonly string[] = RULINGS.overlap_retired.retired;
-/** Is page v36's rule `oracle` one the release still has (not ORACLE_RETIRED)? */
-export const oracleLive = (oracle: number): boolean => !ORACLE_RETIRED.includes(pageRid().get(oracle) ?? "");
 /** page v36's rule number for a key (after the renames); throws when the page lacks it. */
 export function oracleRixOf(key: string): number {
   for (const [o, k] of pageRid()) if (k === key) return o;
@@ -118,15 +92,6 @@ export function oracleRixOf(key: string): number {
 /** (overlap_retired.lois_fold) The one golden state where a retired rule drew a ROW of its own (Lois Lake): its row folds
  *  into `into`'s; parities that compare the card's rows amend page v36's by this. `row` is the folded row's index. */
 export const LOIS_FOLD = RULINGS.overlap_retired.lois_fold;
-
-/** (on_parts_dropped) "on parts" holds on the WHOLE water: page v36's `inpart` entry is the rule speaking on the day or
- *  not at all. `onPartsDropped` names them by oracle rule. */
-const ORACLE_ON_PARTS_DROPPED: readonly string[] = RULINGS.on_parts_dropped.rules;
-export const onPartsDropped = (oracle: number): boolean => ORACLE_ON_PARTS_DROPPED.includes(pageRid().get(oracle) ?? "");
-
-/** (part_drawn) an undrawn part that is DRAWN now: page v36's `inpart` entry on the water's other parts is gone. */
-const ORACLE_PART_DRAWN: readonly string[] = RULINGS.part_drawn.rules;
-export const partDrawn = (oracle: number): boolean => ORACLE_PART_DRAWN.includes(pageRid().get(oracle) ?? "");
 
 /**
  * (peace_kokanee) Zone B's kokanee stream release (`out`) binds no Peace River section; page v36 predates that. On a Peace
@@ -137,25 +102,6 @@ export const partDrawn = (oracle: number): boolean => ORACLE_PART_DRAWN.includes
 export const PEACE_KOKANEE = RULINGS.peace_kokanee;
 /** (kitimat_nov_jun) the one row per Kitimat state whose Nov 1-June 30 'keep' days the ruling makes 'release'. */
 export const KITIMAT_RULED = RULINGS.kitimat_nov_jun.rows;
-
-/** `oracleRix` over any rule set keyed by rix (a store's `rules()`, a RuleSource's `stored`). */
-export function oracleRixOver(rules: Keyed): (oracle: number) => number {
-  const byKey = new Map<string, number>();
-  for (const [rix, r] of rules) byKey.set(keyOf(r), rix);
-  const rid = pageRid(), named = new Set(rid.values());
-  for (const k of ORACLE_RETIRED) {
-    if (byKey.has(k)) throw new Error(`ORACLE_RETIRED ${k} is in the store again: drop it from the list`);
-    if (!named.has(k)) throw new Error(`ORACLE_RETIRED ${k} is not in page_v36.html: the oracle was re-cut; drop it`);
-  }
-  return (oracle: number) => {
-    const key = rid.get(oracle);
-    if (key === undefined) throw new Error(`oracle rule ${oracle} is not in page_v36.html's #data.rid`);
-    const now = byKey.get(key);
-    if (now === undefined) throw new Error(`oracle rule ${oracle} (${key}) is not in the store: ${ORACLE_RETIRED.includes(key)
-      ? "ORACLE_RETIRED — drop it from the list (oracleLive) first" : "a content change — re-cut the page blocks and hydrate.json"}`);
-    return now;
-  };
-}
 
 let HTML: string | undefined;
 /** page_v36.html with the zone daily-quota renames applied (`entryRenamed`), read once: its #data.rid here, and

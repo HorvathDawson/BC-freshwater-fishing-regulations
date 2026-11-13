@@ -1,5 +1,5 @@
 {
-  "_about": "THE PAGE v36 RULINGS TABLE (T667 slice 5, owner D1 2026-11-11). Every owner ruling or curation change the frozen reference (page_v36.html and the hydrate.json cut from it) predates, recorded ONCE, by ruling, and read by BOTH languages: app/conformance/src/regs/oracles.ts (the card / describe parities, which import it from there; the settle parity reads page-oracle.json since T667 5b and needs none) and pipeline/tests/test_answers_year_strip_live.py. A new ruling that moves what page v36 shows is one entry here, never a table per test. Every reader fails on an entry the oracle no longer needs (a re-cut retires it): the renames throw when the oracle names none of them, the Peace and Lois amendments throw when the oracle no longer shows the rule they amend. Hand-edited; read by nothing that ships.",
+  "_about": "THE PAGE v36 RULINGS TABLE (T667 slice 5, owner D1 2026-11-11). Every owner ruling or curation change the frozen reference (page_v36.html and the hydrate.json cut from it) predates, recorded ONCE, by ruling, and read by BOTH languages: app/conformance/src/regs/oracles.ts (the card / describe parities, which import it from there; the settle, card and describe parities read page v36's code over the release since T667 5b and need none; only card.parity's row-index check and the Python test still read this file) and pipeline/tests/test_answers_year_strip_live.py. A new ruling that moves what page v36 shows is one entry here, never a table per test. Every reader fails on an entry the oracle no longer needs (a re-cut retires it): the renames throw when the oracle names none of them, the Peace and Lois amendments throw when the oracle no longer shows the rule they amend. Hand-edited; read by nothing that ships.",
   "zone_daily_quota_merge": {
     "why": "2026-10-26 owner, handoff/PLAN/curation-review/zone-entry-merges.md: each region's trout/char quota and 'Other daily quotas' (7B: and its Arctic grayling block) are one entry, zN:daily_quotas, as the book prints them. Every rule_id kept; only the entry id moved. Page v36's keys are renamed ONCE at load (hydrate.json and #data.rid).",
     "renamed": {
@@ -16,19 +16,7 @@
   },
   "overlap_retired": {
     "why": "2026-10-26 owner, handoff/PLAN/curation-review/overlapping-rules.md; T206: rules implied by another were retired in r-3d6399afd7e2 (the binding diff showed only those changed, card_check 0 problems). Keys after the renames. Lois Lake (x25p_1010) is the one golden state where a retired rule drew a ROW of its own: lois_lake.r3 (hatchery rainbow trout, 6 a day) folds into r4's 'rainbow trout/hatchery steelhead = 6 in the aggregate' row; `row` is that row's index in the page's card.",
-    "retired": ["z1:daily_quotas::trout_quota.r3", "z2:daily_quotas::trout_char_quota.r3", "r2:lois_lake@2-12::lois_lake.r3"],
     "lois_fold": { "id": "x25p_1010", "retired": "r2:lois_lake@2-12::lois_lake.r3", "into": "r2:lois_lake@2-12::lois_lake.r4", "row": 1 }
-  },
-  "on_parts_dropped": {
-    "why": "2026-10-26 owner, curation-review/on-parts.md; c16b1c5f drop_on_parts: 'on parts' holds on the WHOLE water, so these rules have no undrawn part; page v36's `inpart` entry is the rule speaking on the day or not at all.",
-    "rules": [
-      "r1:cowichan_lake_including_bear_lake@1-4::cowichan_lake.r4", "r1:cowichan_river_see_map_below@1-4::cowichan_river.r8",
-      "r1:cowichan_river_see_map_below@1-4::cowichan_river.r9", "r2:coquitlam_river@2-8::coquitlam_river.r2"
-    ]
-  },
-  "part_drawn": {
-    "why": "2026-10-27 owner, decisions.md 'needs a split': an undrawn part that is DRAWN now (columbia_river.r11 'from Mud Lake to Columbia Lake' binds its own stretch); page v36's `inpart` entry on the other parts is gone. The one golden state on the drawn part (x18p3) is taps.json `gone`.",
-    "rules": ["r4:columbia_river@4-15+4-26+4-34+4-38+4-8::columbia_river.r11"]
   },
   "peace_kokanee": {
     "why": "T623 F6, ea1c74d67; owner 2026-11-11 'Keep it'; RULINGS Z2: p.64 'Kokanee: 10 (none from streams, except Peace River)'. Zone B's stream release (`out`) carries outside_items [gnis:14619], so it binds no Peace River section. Where a Peace row's own quota lifted it the lifted pair is gone; where nothing lifted it the table's 'Kokanee: 10' (`base`) answers, keep `daily` a day all year: the kokanee row of each `kept_rows` state (by index).",

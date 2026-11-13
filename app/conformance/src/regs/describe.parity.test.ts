@@ -1,22 +1,25 @@
 /**
- * T06 parity: core's rule views and describe() against page v36's OWN output (app/fixtures/golden/
- * hydrate.json, written by regs-recut/hydrate.mjs running page_v36.js lines 1–242 in node). Nothing here is a hand-copied string:
- * every expected value is read from the oracle.
+ * T06 parity: core's rule views and describe() against page v36's OWN decode layer (page_v36.js up to `segBar`, run here
+ * by `pageDecode`, ruleSources.ts) over THE SAME RULES. Nothing here is a hand-copied string: every expected value is what
+ * the page's code says of the rule core reads.
  *
- * Run over two inputs (ruleSources.ts): page_v36.html's own #data/#answers (always — the oracle's inputs), and the live
- * release when it is on this machine, read through `openRegsStore(loader)` as the app reads it (skipped otherwise).
- *   7. every rix the oracle describes: describe(ruleIndex(stored, new Map(), book).get(rix), book) === oracle
- *   8. every rix: {key, kind, baseRank, species, speciesExcept, wins, tcond, part, notes} deep-equal the oracle's
- *   9. every state: via = viaOf(the part's ruleset); every oracle `via` entry is "trib" there, every `ranks[rix]` equals
- *      ruleIndex(…, via, …).get(rix).rank — and (the pin) NOT what the view says without the via.
+ * Over two inputs (ruleSources.ts): page_v36.html's own #data/#answers (always — frozen inputs, frozen code: it never
+ * moves), and the release paired with the oracles, read through `openRegsStore(loader)` as the app reads it (skipped
+ * otherwise), EVERY rule of it:
+ *   7. every rix: describe(ruleIndex(stored, new Map(), book).get(rix), book) === the page's describe()
+ *   8. every rix: {key, kind, baseRank, species, speciesExcept, wins, tcond, part, notes} deep-equal the page's decode
+ * A part's via and per-part rank (old item 9) are held per golden state by settle.parity's makePlace test (page-oracle.json).
+ *
+ * (T667 slice 5b) Until 2026-11-13 the release run compared with page v36's FROZEN output (hydrate.json: its 726 rules)
+ * and so carried the rulings since (renames, retired rules, "on parts", a drawn part — v36-rulings.json); a second run
+ * (item 10) held the 28 rules with notes to the page's code. The page's code over every release rule is both, with no
+ * amendment.
  */
 import { describe as group, expect, it } from "vitest";
-import { describe, ruleIndex, viaOf, type RegsPage, type RuleView } from "@app/core";
-import { hydrate, onPartsDropped, ORACLE_RETIRED, oracleLive, oracleRixOver, partDrawn, taps } from "./oracles";
+import { describe, ruleIndex, type RegsPage, type RuleView } from "@app/core";
+import { pageOracle } from "./oracles";
 import { pageDecode, pageSource, storeSource, type RuleSource } from "./ruleSources";
 
-const H = hydrate();
-const T = taps();
 const store = await storeSource();
 
 /** The port target core's contract names (model.ts `RegsPage.version`): typed, so a contract bump fails tsc here. */
@@ -25,98 +28,42 @@ const TARGET: RegsPage["version"] = "regs-v38";
 const factsOf = (r: RuleView) => ({ key: r.key, kind: r.kind, baseRank: r.baseRank, species: r.species, speciesExcept: r.speciesExcept,
   wins: r.wins, tcond: r.tcond, part: r.part, notes: r.notes });
 
-/** `R`: the oracle's rule number → `src`'s (identity on page_v36.html's own inputs; by durable key on a store — oracles.ts
- *  `oracleRixOver`: a rule added or dropped ahead of a rix renumbers it without changing a word). */
-function parity(src: () => RuleSource, R: () => (oracle: number) => number = () => (r) => r, live: (oracle: number) => boolean = () => true,
-  onParts: (oracle: number, want: Readonly<Record<string, unknown>>) => unknown = (_, w) => w) {
-  it("the oracle is page v38's 726 rules over 134 states, written after this sync's taps.json", () => {
-    // provenance of the CONTENT, not of the run: the prototype version is the port target, and the golden/version are
-    // the ones taps.json carries — hydrate.mjs copies them from the taps.json it read, so a hydrate.json written before
-    // taps.py (the old sync.mjs order: golden d4a0ccd9 / v37 beside taps' bdda3586 / v38) fails here.
-    expect(H.meta.generator).toBe("app/tools/regs-recut/hydrate.mjs");
-    expect(`regs-${H.meta.version}`).toBe(TARGET);
-    expect({ golden: H.meta.golden, version: H.meta.version }).toEqual({ golden: T.meta.golden, version: T.meta.version });
-    expect(Object.keys(H.describe).length).toBe(726);
-    expect(Object.keys(H.states).length).toBe(134);
-  });
+it("the page oracle is the port target", () => {
+  expect(`regs-${pageOracle().meta.version}`).toBe(TARGET);
+});
 
-  it("7. describe() says what page v36 says, for every rule the oracle describes", () => {
-    const s = src();
+function parity(src: () => RuleSource, least: number) {
+  it("7. describe() says what page v36's code says, for every rule", () => {
+    const s = src(), page = pageDecode(s);
     const ix = ruleIndex(s.stored, new Map(), s.book);
     const bad: string[] = [];
-    const r = R();
-    for (const [rix, want] of Object.entries(H.describe)) {
-      if (!live(+rix)) continue;
-      expect(ix.has(r(+rix)), `rix ${rix} stored`).toBe(true);
-      const got = describe(ix.get(r(+rix)), s.book);
+    for (const rix of s.stored.keys()) {
+      const got = describe(ix.get(rix), s.book), want = page.describe(rix);
       if (got !== want) bad.push(`${rix}: ${JSON.stringify(got)} ≠ ${JSON.stringify(want)}`);
     }
     expect(bad).toEqual([]);
+    expect(s.stored.size).toBeGreaterThanOrEqual(least);
   });
 
-  it("8. every rule view decodes as page v36 does (key, kind, ranks, species, windows, time, part, notes)", () => {
-    const s = src();
+  it("8. every rule view decodes as page v36's code does (key, kind, ranks, species, windows, time, part, notes)", () => {
+    const s = src(), page = pageDecode(s);
     const ix = ruleIndex(s.stored, new Map(), s.book);
-    const r = R();
-    for (const [rix, want] of Object.entries(H.rules)) if (live(+rix)) expect(factsOf(ix.get(r(+rix))), `rix ${rix}`).toEqual(onParts(+rix, want));
-  });
-
-  it("9. per state, the part's ruleset gives every oracle trib via and every per-part rank", () => {
-    const s = src();
-    let tribs = 0, ranks = 0;
-    const r = R();
-    for (const [id, st] of Object.entries(H.states)) {
-      // (T115) a state whose part the release merged away has no tap (taps.json `gone`); (T278) nor one whose part is tidal
-      if (!T.states[id]) { expect(T.gone[id] ?? T.tidal[id], `${id} is neither tapped nor gone nor tidal`).toBeDefined(); continue; }
-      const via = viaOf(s.ruleset(T.states[id]!));
-      const ix = ruleIndex(s.stored, via, s.book), flat = ruleIndex(s.stored, new Map(), s.book);
-      for (const rix of Object.keys(st.via).filter((x) => live(+x))) { expect(via.get(r(+rix)), `${id} via ${rix}`).toBe("trib"); tribs++; }
-      for (const [rix, rank] of Object.entries(st.ranks).filter(([x]) => live(+x))) {
-        expect(ix.get(r(+rix)).rank, `${id} rank ${rix}`).toBe(rank);
-        expect(flat.get(r(+rix)).rank, `${id} rank ${rix} needs the via`).not.toBe(rank);
-        ranks++;
-      }
+    for (const rix of s.stored.keys()) {
+      const r = page.rules.get(rix)!;
+      expect(factsOf(ix.get(rix)), `rix ${rix}`).toEqual({ key: r.key, kind: r.k, baseRank: r.baseRank, species: r.species,
+        speciesExcept: r.speciesExcept, wins: r.wins, tcond: r.tcond, part: r.part, notes: r.notes });
     }
-    expect(tribs).toBeGreaterThan(0);
-    expect(ranks).toBeGreaterThan(0);
   });
 }
 
-group("T06 parity: page_v36.html's own inputs", () => parity(pageSource));
+group("T06 parity: page_v36.html's own inputs", () => parity(pageSource, 726));
 
 group.skipIf(!store)(`T06 parity: the regs store (${store?.name ?? "absent"})`, () => {
-  it("holds every rule of the store, a superset of the page's slice", () => {
-    expect(store!.stored.size).toBeGreaterThanOrEqual(Object.keys(H.describe).length);
-  });
-  // (T206) the rules the release retired (oracles.ts ORACLE_RETIRED) are page v36's but not the store's: not compared
-  it("the store lacks exactly the oracle's retired rules", () => {
-    const keys = new Set([...store!.stored.values()].map((r) => `${r.export.entry_id}::${r.export.rule_id}`));
-    expect(Object.keys(H.describe).filter((x) => !oracleLive(+x)).length).toBe(ORACLE_RETIRED.length);
-    expect(ORACLE_RETIRED.filter((k) => keys.has(k))).toEqual([]);
-  });
-  // (T206) ORACLE_ON_PARTS_DROPPED: the store's rule holds on the whole water (part null) where page v36 says "on parts"
-  parity(() => store!, () => oracleRixOver(store!.stored), oracleLive, (rix, want) => {
-    // (2026-10-27) ORACLE_PART_DRAWN: the rule binds its part, so its view has none
-    if (partDrawn(rix)) return { ...want, part: null };
-    if (!onPartsDropped(rix)) return want;
-    expect(want.part, `oracle rule ${rix}`).toBe("on parts");
-    return { ...want, part: null };
-  });
-
-  // hydrate.json's 726 rules all have empty notes; the store's rules with prov.uncertain (or a review_reason) are the only
-  // ones that exercise the UNCERTAIN / CURATOR wording. The oracle is page v36's own decode run over the same store rows.
-  it("10. every store rule with notes has page v36's notes (and its facts and describe())", () => {
-    const page = pageDecode(store!);
-    const ix = ruleIndex(store!.stored, new Map(), store!.book);
-    const noted = [...page.rules.values()].filter((r) => r.notes.length > 0);
-    expect(noted.length, "store rules with notes").toBeGreaterThan(0);
-    for (const r of noted) {
-      const v = ix.get(r.ix);
-      expect(v.notes, `rix ${r.ix} notes`).toEqual(r.notes);
-      expect(factsOf(v), `rix ${r.ix}`).toEqual({ key: r.key, kind: r.k, baseRank: r.baseRank, species: r.species,
-        speciesExcept: r.speciesExcept, wins: r.wins, tcond: r.tcond, part: r.part, notes: r.notes });
-      expect(describe(v, store!.book), `rix ${r.ix} describe`).toBe(page.describe(r.ix));
-    }
-    console.log(`T06 parity 10: ${noted.length} store rules with notes match page v36's decode`);
+  parity(() => store!, 726);
+  // the release's rules with prov.uncertain (or a review_reason) are the only ones that exercise the UNCERTAIN /
+  // CURATOR wording (the page's own 726 have none): the run above must have met some
+  it("the run covers rules with notes", () => {
+    const noted = [...pageDecode(store!).rules.values()].filter((r) => r.notes.length > 0).length;
+    expect(noted, "store rules with notes").toBeGreaterThan(0);
   });
 });

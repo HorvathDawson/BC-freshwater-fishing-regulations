@@ -1,6 +1,6 @@
 /**
  * The parity harness (tests.md §1.2; T05 → T09 → T12; T439 retired golden.json): the oracles (oracles.ts: taps.json,
- * hydrate.json), the store a parity suite reads, the per-state `RegsInputs` cache, and `cases()`.
+ * page-oracle.json), the store a parity suite reads, the per-state `RegsInputs` cache, and `cases()`.
  *
  * WHICH STORE (`paritySource`, REGS_PARITY=province|fixture|auto, default auto):
  * - province: the LIVE RELEASE on this machine (`releasePairing`): its water file must carry the answers the oracles were
@@ -21,7 +21,7 @@ import type { Tap, TapsFile } from "@app/core/regs/testing";
 import { loadRegsInputs, openRegsStore, RegsStoreError, type RegsLoader, type RegsStore } from "@app/data/regs";
 import { regsFixtureDir } from "@app/data/release/node";
 import { liveRelease, liveReleaseAt, openReleaseDir } from "../fixtureRelease";
-import { oracleRixOver, tapsOnce } from "./oracles";
+import { tapsOnce } from "./oracles";
 
 export { REPO, taps } from "./oracles";
 export type { Tap, TapsFile } from "@app/core/regs/testing";
@@ -47,11 +47,6 @@ export function paritySkip(at: Pairing, env: Readonly<Record<string, string | un
   return required ? { skip: true, fail: `REGS_STORE_REQUIRED is set and the parity cannot run: ${at.reason}` }
     : { skip: true, fail: null, reason: at.reason };
 }
-
-/** (T115) Is golden state `id` one whose part the release merged away (taps.json `gone`; exclusions.ts PART_GONE_IDS)?
- *  The suites that walk hydrate.json's 134 states (the prototype's own) leave these out: there is no part to tap. */
-/** (T115) a part gone, or (T278) a whole part tidal now (taps.json `tidal`): never tapped */
-export const isGone = (id: string): boolean => id in (tapsOnce().gone ?? {}) || id in (tapsOnce().tidal ?? {});
 
 /** golden id → the app's request (tests.md §1.2): the tap's item, part, date and weekday as taps.json gives them (never
  *  recomputed from another year); `today` is Oct 10 2026 for every state (the prototype's "today" is d=1010). */
@@ -201,18 +196,6 @@ export async function parityGate(env: Env = process.env): Promise<ReturnType<typ
   return gate;
 }
 
-/**
- * The page v36 oracle's rule numbers → the paired store's, by each rule's DURABLE key ("entry::rule"). hydrate.json (and the
- * tickets' literals quoted from page v36) number rules as page_v36.html's `#data.rid` does — the export's rix when the page's
- * blocks were last cut — and a rix moves whenever a rule ahead of it is added or dropped (T89 dropped Endako 7A's own rule:
- * every rix after it moved down one, and all 134 settle/card states failed on numbering alone). A rule the oracle names that
- * the store no longer has is a CONTENT change and throws: re-cut the page's blocks (page_data --html) and hydrate.json.
- * Identity when the numbering agrees. `store` defaults to the harness's paired store; null: no store (the caller skips).
- */
-export async function oracleRix(store?: RegsStore | null): Promise<((oracle: number) => number) | null> {
-  const st = store === undefined ? await parityStore() : store;
-  return st ? oracleRixOver(await st.rules()) : null;
-}
 const INPUTS = new Map<string, Promise<RegsInputs | null>>();
 /** The memoised `RegsInputs` of one golden state (T09 `loadRegsInputs` over `parityStore()`; calendar year = taps.json
  *  meta.year, 2026), or null when there is no paired store (skip). The same promise for the same id, per test file. */
