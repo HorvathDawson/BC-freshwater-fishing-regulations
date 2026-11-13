@@ -35,7 +35,7 @@
     "ios": {
       "bundleIdentifier": "ca.canifishthis.app",
       "supportsTablet": false,
-      "buildNumber": "29",
+      "buildNumber": "30",
       "config": {
         "usesNonExemptEncryption": false
       },
@@ -130,7 +130,7 @@
     },
     "android": {
       "package": "ca.canifishthis.app",
-      "versionCode": 29,
+      "versionCode": 30,
       "intentFilters": [
         {
           "action": "VIEW",
