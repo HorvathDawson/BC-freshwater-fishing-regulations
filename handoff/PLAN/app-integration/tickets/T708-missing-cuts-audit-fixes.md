@@ -310,3 +310,12 @@ entries (`matched`) → reach + deliver → binding diff. Applied before that, t
 is gone from cuts.json); skipped after the rebuild, the gate fails the same way, so the patch cannot be forgotten.
 Ruby r1 stays in the tree (both its cut ids exist today). Full pipeline suite (chunked, unfiltered): the 30 other chunks
 passed, and chunks 27 and 31 (the two failing files) pass after the revert (1,208 passed).
+
+**Candidate (2026-11-13, pipeline lane):** built on `data/generated/atlas/full_next` + side run
+`data/generated/side/next-rc` (NOT promoted). Every binding change attributed (`checks/ATTRIBUTION.md` there): Gagnon r1
+binds the 74 m channel, the unnamed lake and ~200 m of creek; Deena r1 -62 / Mamin r3 -29 (tributaries between old and new
+cut); Ruby r1 -7; 11 lake rules bound; Pitt r2 and Kootenay r1 unchanged in bindings. Unresolved 29 -> 17. The corpus
+edits, the 3 lakes' `matched` and the test pins are now `T708-files/apply-with-promote.patch` (supersedes
+apply-with-rebuild.patch). OPEN for the owner: Gagnon's cut label reads as a part end "Its mouth (placed 200 m above the
+unnamed lake)" (fails test_part_names_unnamed_lake); proposed label e.g. "fishing boundary signs (200 m above the lake
+below Williston)" — needs another atlas build.

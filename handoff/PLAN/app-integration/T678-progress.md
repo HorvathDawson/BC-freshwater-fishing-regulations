@@ -817,3 +817,27 @@ Owner's phone report (build 29, the More tab). Done in code, not yet in a build:
 - T691 phase 2 (de3590042): no owner approval recorded, so no matches.json row applied; review list in the ticket.
 - Candidate: `pipeline build --atlas` -> data/generated/atlas/full_next (running), then the T708 patch, the 3 lakes'
   `matched` (backfill_matched), and a side run `pipeline build --side data/generated/side/next-rc`.
+- Atlas `pipeline build --atlas` -> data/generated/atlas/full_next (29 min, sliver gate clean, NOT promoted). Parity:
+  items 21,291 -> 21,293 (+Hidden, +Secret), sections +9, boundaries +0; gone ids a rule names: the old Gagnon mouth cut and
+  `kootenay_river__kootenay_lake_main_body` (both re-pointed by the T708 patch); length:359565112:28611 re-spaced.
+- T708 patch applied, the 3 lakes' `matched` stamped by `backfill_matched --registry …/full_next/registry.json` (exactly
+  3 entries; the 5 known T546 disagreements left alone), side run `pipeline build --side data/generated/side/next-rc`
+  (reach 11 m, tiles 15 m, deliver 13 m; vintage agrees). Candidate release: data/generated/side/next-rc/deliver/release/r-c874b18502c9.
+- Binding diff vs live (checks/ beside the side run; ATTRIBUTION.md): 145 rules, 12 unresolved, 3 licensing, 6 DFO, 1
+  diagnostic; section ids -3 / +6. EVERY difference attributed: T708 Gagnon / Deena / Mamin / Ruby / 3 lakes, plus 2
+  short unnamed leaves beside Hidden and Secret that leaf_prune now keeps (1 hop from a named water, as T690). T710 is
+  order only (Skeena side 18 -> 4 on the candidate).
+- Suite on the candidate (env RELEASE_DIR/UI_EXPORT_*/ATLAS_BUILD at the side set), chunked, unfiltered: 19 FAILED.
+  STOPPED (no promote). By cause:
+  a. 9 Skeena golden-tap tests (keep_answers_live x19p2/3/4/6, year_strip_live x19p1/2/3/4/6): T710 renumbered Skeena
+     parts >= 4; clears when the release re-cuts the goldens (taps.py x19 declarations +1).
+  b. 5 read the SERVED atlas/tiles beside the side bundle (acceptance gate — passes on full_next's registry, checked;
+     review_gate `{b}_next`; curation_review_reports vintage; status_index vintage; tiles release path): clear at promote.
+  c. 2 re-pins, made and passing on the candidate: review_queue unresolved 29 -> 17, t100 (84,55) -> (85,56) (Pitt r2).
+  d. unnamed_trib_sweep 1,179,617 -> 1,179,619: the 2 kept leaves; regenerate at the release (`--write-result`).
+  e. OWNER: test_part_names_unnamed_lake — Gagnon's new cut label "fishing boundary signs near its mouth (placed 200 m
+     above the unnamed lake)" shows as "Mouth → Its mouth (placed 200 m above the unnamed lake)" / "… → Source": a part end
+     saying "unnamed lake" (P55 guard) and "Its mouth". A cuts.json label change = another atlas build.
+- Tree restored clean: the corpus edits (T708 patch + the 3 `matched`) and pins (c) are ONE patch,
+  `tickets/T708-files/apply-with-promote.patch` (supersedes apply-with-rebuild.patch); apply it at the promote.
+- Fast-fail note: `pnpm check:fast` fails on 5 colour literals in app/tools/store-video/checks.mjs (T709 lane's file).
