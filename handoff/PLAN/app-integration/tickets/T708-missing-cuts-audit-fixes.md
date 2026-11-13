@@ -204,6 +204,22 @@ Pictures (Esri imagery, scratch): `deena_cut.jpg`, `mamin_cut.jpg`, `mcrae_cut.j
      wbk 328967975 (34.1 ha), #22 00913EUCL wbk 329126782 (28.9 ha), #23 00908EUCL wbk 329126768 (33.0 ha), #24
      00898EUCL wbk 329126717 (77.1 ha), #25 01094EUCL wbk 329126741 (48.1 ha), all 52.99–53.03 N, 125.0–125.4 W. No
      sheet names Squirrel. Not found.
+   **Elimination (2026-11-13; registry + `matched` + `name_variants.json` of the current release, FWA names):**
+   - Squirrel, 1993-03-03 run (30 lakes, EUCL; 12 lie in MU 6-1). In 6-1: 4 carry a Synopsis row (Toms wbk
+     329126712, Chipmunk 329126718, Naglico 329126698, Pettry 329126727); 1 is gazetted with no row (Wolf Lake
+     329126708, 112 ha); **7 are unnamed and unmatched**: #19 329126790 (26.5 ha, 53.0208,-125.0010), #20 329126734
+     (53.8 ha, 53.0337,-125.0378), #21 328967975 (34.1 ha, 53.0168,-125.0423), #22 329126782 (28.9 ha,
+     53.0101,-125.2405), #23 329126768 (33.0 ha, 53.0094,-125.2811), #24 329126717 (77.1 ha, 53.0071,-125.3366), #25
+     329126741 (48.1 ha, 52.9898,-125.3511). Of the 7 rows of the 6-1 group, 4 are lakes of this run (Basalt and
+     Gatcho are not; Squirrel unknown), but the run is not "the lakes that got rows": Wolf and six named 5-12 lakes
+     of the same run (Blue, Neyasri, Tsetzi, Tsilbekuz, Cluchuta, Stuyvesant) have none. Elimination leaves 7.
+   - Frog, 7 candidates: #2 329238264, #3 329238354 (1993-03-12 run), #30 329021857, #31 329021820 (AIM 1997),
+     A 328962870, B 329021897, C 329021982 — all still unnamed and unmatched; none eliminated. (The 1993-03-12 run's
+     other lakes all carry a name: Fish, McClinchy, Agnus, Davidson, Hidden, Maydoe N/S, Avalanche, Banana, plus
+     Smokey (5-12) and Moose (5-6, wbk 329238146, no row) by survey title.)
+   - "Frog" appears nowhere in the Squirrel material: no FISS lake survey in the EUCL/UEUT/KLIN/ATNA/UDEN groups, no
+     EcoCat title in MU 6-1, and none of the 11 1993 limnology sheets read carries it. No sole or two-way candidate,
+     so no pictures.
    Would settle any of them: the Williams Lake (Region 5) office's lake files for the 1993 limnology runs, or an
    edition before 2004 (not online in any archive found).
 
