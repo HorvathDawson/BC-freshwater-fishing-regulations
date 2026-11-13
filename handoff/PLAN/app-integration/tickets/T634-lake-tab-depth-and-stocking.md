@@ -236,3 +236,8 @@ lists split on commas only (some use ";").
 6. **Lake tab in the app** (item 6, L): PDF viewer for scan-only lakes, stocking history, depth facts.
 7. **Placed vector depths on the map** (L, optional, after 6): owner ticks the 415 strict+loose placings beside the
    PDFs and the 110 unstated units, then a tile layer of placed contours; the 83 poor + 12 failed stay PDF-only.
+
+### Next after closed testing (owner 2026-11-13)
+Owner, 2026-11-13: "after the closed release we will do stocking and depth maps next." This ticket's "Path to ship"
+runs under **T200** (stocking, first) then **T201** (depth maps, second); each has the feasibility note's first step,
+matcher and owner questions: `handoff/PLAN/research/stocking-feasibility.md`, `handoff/PLAN/research/bathymetry-feasibility.md`.
