@@ -157,46 +157,6 @@ export function oracleRixOver(rules: Keyed): (oracle: number) => number {
   };
 }
 
-/**
- * (T206) ORDER-ONLY amendment for the zone daily-quota rename (bcaa5c79, ORACLE_ENTRY_RENAMED). The store numbers its rules
- * in `entry::rule` key order, so renaming `zN:trout_char_quota` / `zN:species_quotas` (…) to `zN:daily_quotas` moved those
- * rules ahead of the zone siblings whose names sort between (`z4:invasive_species_notice`, `z2:hatchery_steelhead_stop`…).
- * Page v36 and the app both list rules — and what rules name: the card's fish, a sheet's lines — in rule order within a
- * tie, so where page v36 numbered a before b and the store numbers b before a, the two lists may hold that pair the other
- * way round. Nothing else may move.
- *
- * `flipsOver(rules)`: (store rix a, store rix b) → did the renumbering swap their order? (false for a rule page v36 lacks)
- */
-export function flipsOver(rules: Keyed): (a: number, b: number) => boolean {
-  const back = new Map<string, number>();
-  for (const [o, k] of pageRid()) back.set(k, o);
-  const old = new Map<number, number>();
-  for (const [rix, r] of rules) { const o = back.get(keyOf(r)); if (o !== undefined) old.set(rix, o); }
-  return (a, b) => {
-    const oa = old.get(a), ob = old.get(b);
-    return oa !== undefined && ob !== undefined && Math.sign(a - b) !== Math.sign(oa - ob);
-  };
-}
-/**
- * `want` (the oracle's list, in store numbering) re-ordered as `got` when the two hold the same items and every pair whose
- * order differs is one `swapped(x, y)` allows (a renumbering flip, `flipsOver`); else `want` unchanged, so the caller's
- * toEqual shows the real difference.
- */
-export function renamedOrder<T>(got: readonly T[], want: readonly T[], swapped: (x: T, y: T) => boolean): readonly T[] {
-  if (got.length !== want.length) return want;
-  const tagged = (l: readonly T[]) => {
-    const seen = new Map<string, number>();
-    return l.map((x) => { const k = JSON.stringify(x), n = seen.get(k) ?? 0; seen.set(k, n + 1); return `${k}#${n}`; });
-  };
-  const w = tagged(want), g = tagged(got);
-  if (w.every((k, i) => k === g[i])) return want;
-  const at = new Map(g.map((k, i) => [k, i]));
-  if (w.some((k) => !at.has(k))) return want;
-  for (let i = 0; i < w.length; i++) for (let j = i + 1; j < w.length; j++)
-    if (at.get(w[i]!)! > at.get(w[j]!)! && !swapped(want[i]!, want[j]!)) return want;
-  return got;
-}
-
 let HTML: string | undefined;
 /** page_v36.html with the zone daily-quota renames applied (`entryRenamed`), read once: its #data.rid here, and
  *  ruleSources' page source (whose rules carry the entry ids). */
