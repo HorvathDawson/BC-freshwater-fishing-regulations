@@ -1,6 +1,6 @@
 # T703 — More: a Settings screen, the Freshwater Atlas is not "out of date" by age, no update lines repeating the table
 
-Status: IN PROGRESS — left (Claude): commit and push; owner: judge the Settings layout on the next build
+Status: DONE — 3efa7b099 (ships with the next app build; pictures in ~/bcfish-session-backup-2026-11-12/more-settings/, before and after, phone width, light and dark)
 
 Owner 2026-11-13, phone (0.7.7 build 29), the More tab, verbatim: "Fresh water atlas rarely changes it isn't stale. Also all
 the toggles for settings like crash reports or download source etc should be in a setting smenu in here. Also all the
