@@ -209,3 +209,18 @@ Next commands:
   Findings: (1) Deas Slough Map view keeps the previous camera (Okanagan) and says "The parts of this water are not
   available" — a wholly tidal water has no parts; needs a ticket. (2) Search "Vedder River" -> Open lands on Chilliwack
   River part 1 (Vedder Crossing -> Tamihi). (3) Part warning not captured (Elk Lake / Chilko show no warning in view).
+
+## After build 29 (2026-11-12, agent: staging site, walk test, Vedder search, T670 G7)
+- Staging SITE redeployed on r-0a9930fb8826 (`deploy/staging/site-all.sh`, web export from 9ccbe46f7 + SEO pages on
+  LATEST): staging smoke 19 pass, 0 warn, 0 fail ("site release matches the manifest release").
+- `test_dfo_salmon::test_a_watershed_walk_passes_through_its_lakes_but_collects_streams`: STALE EXPECTATION, not a
+  regression. The 657 "lake sections" are D1's folded ponds (each owned by one stream item; 0 on `full.pre_t678`). The
+  test read the polygon's drawn shape; it now reads the water kind (`reach.water_kind.kind_of`, rule 55), pins that the
+  folded ponds are carried, and reads the graph's own registry (4a4af38eb).
+- T687 (Vedder search): the search row "Vedder River" opens the Vedder correctly; the book pointer above it ("Vedder
+  River: see Chilliwack / Vedder Rivers") opened the target row's first water, the Chilliwack. Fixed in the bundle: a
+  pointer opens the water it names (5 pointers move: Vedder, Bear Lake, Cedar Lake, Mara Lake, Waneta Reservoir;
+  5c294120d). Lands with the next release.
+- T670 G7 (RULINGS Li13): the licence answers already carry the classified-water terms (requirements[].terms); the app
+  now draws them under the licence item, "From the rule book:" + the book's words (fab4c0f6f). No release needed; shows
+  with the next app build. Held for the owner: the basic licence's two administrative terms (not drawn).
