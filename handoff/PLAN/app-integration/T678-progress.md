@@ -374,3 +374,14 @@ Next commands:
   diversion gauge's (measured on `full`, shed climb guard on vs off). Two questions with the owner.
 - Checks: affected pipeline tests 291 passed (unfiltered); `pnpm -C app check` stops at typecheck on
   `app/packages/map/src/web/useInput.ts:166` (committed by the T692 lane, c4f101908), not on these files.
+
+## 2026-11-12 — T697: Kanaka Creek's stretches and split names (T204 follow-up)
+- Owner 2026-11-12 on the T204 phone-check line: "No it has to use split names like we said before ??". The earlier rule:
+  T509 owner 2026-11-08 "Ends only" (no "· stretch k of n") and T517 owner 2026-11-09 (every part named "lo → hi" from
+  its two end tokens by `spanName`, no count, no duplicates).
+- The line was stale (2026-10-27, before T509/T517). On r-0a9930fb8826 Kanaka reads "CPR Bridge (tidal boundary) → 112
+  Avenue bridge", "112 Avenue bridge → Cliff Park Falls" (closed all year), "Cliff Park Falls → A lake outlet".
+  Province-wide 562 waters of several entries: 0 named by a count. Labels are made in the app (`partName` → `spanName`).
+- 77e856247: province-wide guard in `app/tools/stretch-names.test.ts` (mutation-checked). No release or app change needed.
+- For the owner: the unnamed "A lake outlet" end (proposed: said near the nearest named feature, as crossings are); the
+  Parts sheet's "Closed all year · N stretches" second line (45 waters; the sheet is reachable only by start link).
