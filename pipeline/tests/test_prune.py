@@ -650,3 +650,19 @@ def test_a_creek_is_never_handed_a_channel_with_no_way_down():
     geoms = {"M:0": LineString([(0, 0), (1000, 0)]), "D:0": LineString([(500, 0), (500, 300)]),
              "C:0": LineString([(500, 300), (500, 500)])}
     assert close_dangling_ends(g, geoms, {"D:0"}) == set()
+
+
+def test_a_channel_the_gap_rule_keeps_stays_when_the_water_also_has_its_own_mouth():
+    """2026-11-13 (the first junction candidate dropped 222 live pieces): the one-junction check removes a DUPLICATE
+    junction only once the gap rule has let the channel go; a channel the gap rule keeps stays, even when the water
+    flowing into it also joins the river at its own mouth (MUTATION: run `_joins_already` before the gap check -> the
+    braid goes)."""
+    from shapely.geometry import LineString
+    g = _braid_with_creek_with_two_mouths()
+    g.nodes["1:0"] = replace(g.nodes["1:0"], down_m=0.0, up_m=40000.0)
+    geoms = {"1:1000": LineString([(0, 40000), (0, 45000)]),
+             "1:0": LineString([(0, 0), (0, 40000)]),
+             "9:0": LineString([(0, 39000), (0, 40000)]),
+             "5:0": LineString([(40000, 0), (41000, 0)])}     # creek sits 40 km off where the braid meets the river
+    _g, n, _fids = prune_mainstem_loops(g, geoms, reconnect_tributaries=True, max_shift_m=5000.0)
+    assert n == 0 and "9:0" in g.nodes
