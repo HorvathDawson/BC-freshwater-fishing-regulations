@@ -1,6 +1,6 @@
 # T696 — Diversion gauges: "Canal gauge also serves river" (Q103); the Theodosia's 08GC005 above the canal
 
-Status: IN REVIEW — built (08GC005 above the Theodosia's canal; the 28 left gaugeless); owner: OWNER-TODO "T696: a cut at the Theodosia intake?"
+Status: DONE — 8436b380e (08GC005 above the Theodosia's canal; the 28 left gaugeless; intake cut: owner "Leave it", 2026-11-12)
 
 Source: owner 2026-11-12 (dialog option, verbatim): "Canal gauge also serves river" — the diversion gauge is shown on the
 nearby river sections too, labelled as measuring a diversion; it must not outrank a real river gauge, only fill sections
@@ -57,3 +57,5 @@ that have none. RULINGS P54.
 ## The final release must rebuild
 - deliver (bundle → status index → export) for the new `gauge.diversion` column and the panels; the app build for the
   label. No atlas rebuild for this ticket unless the owner wants the intake cut.
+
+- Owner 2026-11-12 on the intake cut: "Leave it". No cut; the ~160 m between the intake and the 08GC006 cut reads 08GC005 with the river above, as built.
