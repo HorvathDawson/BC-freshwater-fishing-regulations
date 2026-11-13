@@ -203,6 +203,8 @@ def build(answers: Path, export_dir: Path, bundle: Path, out: Path, blobs: str =
                                     "ORDER BY sid").fetchall()
         in_bc = [s for (s,) in b.execute("SELECT sid FROM section_ruleset ORDER BY sid")]
         where = b.execute("SELECT sid, place FROM section_ruleset ORDER BY sid").fetchall()
+        tidal = [s for (s,) in b.execute("SELECT sid FROM tidal ORDER BY sid")]
+        outside = {s for (s,) in b.execute("SELECT sid FROM outside_bc")}
     finally:
         b.close()
 
@@ -212,7 +214,7 @@ def build(answers: Path, export_dir: Path, bundle: Path, out: Path, blobs: str =
     try:
         counts = write_store(tmp, raw, A, sub, item_ord, part_section, blobs,
                              unnamed_section=unnamed_section, in_bc=in_bc, where=where,
-                             card_check=stamp)
+                             card_check=stamp, tidal=tidal, outside=outside)
         if check:
             from pipeline.deliver.store.decode import Store
             s = Store(tmp)
@@ -233,12 +235,14 @@ def build(answers: Path, export_dir: Path, bundle: Path, out: Path, blobs: str =
 
 def write_store(path: Path, raw: bytes, A: dict, sub: dict, item_ord: Dict[str, int],
                 part_section: list, codec: str = "zdict", *, unnamed_section=(),
-                in_bc: Optional[List[int]] = None, where=(), card_check: Optional[dict] = None) -> dict:
+                in_bc: Optional[List[int]] = None, where=(), card_check: Optional[dict] = None,
+                tidal=(), outside=frozenset()) -> dict:
     """Write a store at `path` (replaced) from the decoded inputs — the answers wire `A` (and its
     bytes `raw`), the export subset `sub`, the bundle's item ords, its `part_section` rows
     (ord, sid, part_ix), its unnamed sections `(sid, up)`, every section in B.C. (`in_bc`: every
     one must end with a key and a place, and only those) and where each is (`where`: `(sid,
-    place)`) — stamp its digest and compact it. No pairing or decode check: `build`. `in_bc` None (a synthetic test) skips the every-section check."""
+    place)`), every tidal section (`tidal`, the bundle's `tidal` sids; none may be in `outside`, the bundle's
+    `outside_bc`) — stamp its digest and compact it. No pairing or decode check: `build`. `in_bc` None (a synthetic test) skips the every-section check."""
     if codec not in CODECS:
         raise StoreError(f"store: blob codec {codec!r} is not one of {CODECS}")
     path = Path(path)
@@ -247,7 +251,7 @@ def write_store(path: Path, raw: bytes, A: dict, sub: dict, item_ord: Dict[str, 
     con = sqlite3.connect(path)
     try:
         counts = _write(con, raw, A, sub, item_ord, part_section, codec, unnamed_section, in_bc,
-                        where)
+                        where, tidal, outside)
         if card_check is not None:
             con.execute("INSERT INTO meta VALUES ('card_check', ?)", (dumps_s(card_check),))
         con.commit()
@@ -260,7 +264,8 @@ def write_store(path: Path, raw: bytes, A: dict, sub: dict, item_ord: Dict[str, 
 
 
 def _write(con, raw: bytes, A: dict, sub: dict, item_ord: Dict[str, int], part_section: list,
-           codec: str, unnamed_section=(), in_bc: Optional[List[int]] = None, where=()) -> dict:
+           codec: str, unnamed_section=(), in_bc: Optional[List[int]] = None, where=(), tidal_sids=(),
+           outside=frozenset()) -> dict:
     con.executescript("PRAGMA journal_mode = OFF; PRAGMA synchronous = OFF;")
     con.executescript(SCHEMA.read_text())
     S = _Strings()
@@ -469,6 +474,17 @@ def _write(con, raw: bytes, A: dict, sub: dict, item_ord: Dict[str, int], part_s
     con.executemany("INSERT INTO section_place VALUES (?, ?)",
                     [(i, bytes(pblocks[i])) for i in sorted(pblocks)])
 
+    # ---- section_tidal (T672 1b): every tidal section, the bundle's fact as it is — so a key-less tidal section is
+    # told from one outside B.C. (both 0 in section_akey). A section both tidal and outside B.C. is refused.
+    both = sorted(set(tidal_sids) & set(outside))
+    if both:
+        raise StoreError(f"store: {len(both)} section(s) are both tidal and outside B.C. (e.g. {both[:5]})")
+    tblocks: Dict[int, bytearray] = {}
+    for sid in tidal_sids:
+        tblocks.setdefault(sid >> BLOCK_BITS, bytearray(BLOCK))[sid & (BLOCK - 1)] = 1
+    con.executemany("INSERT INTO section_tidal VALUES (?, ?)",
+                    [(i, bytes(tblocks[i])) for i in sorted(tblocks)])
+
     # ---- the export words
     rules = []
     for i, (rid, r) in enumerate(sub["rules"].items()):
@@ -524,7 +540,7 @@ def _write(con, raw: bytes, A: dict, sub: dict, item_ord: Dict[str, int], part_s
     counts = {"akeys": len(nseg), "cells": len(cells), "items": len(items), "parts": len(parts),
               "named_sections": named, "unnamed_sections": unnamed, "places": len(A["places"]),
               "unnamed_parts": n_unnamed, "unnamed_keys": len(nseg) - U["first"],
-              "placed_sections": len(placed),
+              "placed_sections": len(placed), "tidal_sections": len(set(tidal_sids)),
               "section_blocks": len(blocks), "strings": len(S.ix),
               "rules": len(rules), "licensing": len(lics), "entries": len(pending["entry"]),
               **{tbl: len(secs[n][k]) for (n, k), tbl in FAMILIES.items()}}

@@ -30,6 +30,11 @@ from pipeline.deliver.store import FORMAT
 from pipeline.deliver.store.common import StoreError, store_digest
 from pipeline.deliver.store.decode import Store
 
+#: (T672 1b) store tables added after releases were cut WITHOUT a format change (ADDITIVE, `contract.FILES`): a release
+#: whose files hold none of them was cut before the table, so the reassembled store drops it — its store, as built,
+#: had no such table (`store_digest` hashes every table's name). A release cut with it holds it and is held to it.
+ADDITIVE_TABLES = frozenset({"section_tidal"})
+
 #: the water file's meta keys an older release (no `store_meta`) carries over from the store's
 WATER_STORE_KEYS = ("about_bundle", "answers_sha256", "blob_codec", "card_check", "layout", "reach_digest",
                     "rule_ids_sha256", "section_handles")
@@ -67,6 +72,7 @@ def province_store(release: Optional[Path] = None, *, verify: bool = True) -> St
     con.executescript(SCHEMA.read_text())
     tables = [t for (t,) in con.execute("SELECT name FROM sqlite_master WHERE type = 'table' AND name <> 'meta'")]
     water_meta: dict = {}
+    held: set = set()
     with tempfile.TemporaryDirectory(prefix="province-store-") as tmp:
         for name in _store_files(manifest):
             f = manifest["files"][name]
@@ -77,6 +83,7 @@ def province_store(release: Optional[Path] = None, *, verify: bool = True) -> St
             p.write_bytes(raw)
             con.execute("ATTACH ? AS src", (str(p),))
             have = {t for (t,) in con.execute("SELECT name FROM src.sqlite_master WHERE type = 'table'")}
+            held |= have
             for t in tables:
                 if t in have:
                     cols = ", ".join(c[1] for c in con.execute(f"PRAGMA main.table_info({t})"))
@@ -85,6 +92,8 @@ def province_store(release: Optional[Path] = None, *, verify: bool = True) -> St
                 water_meta = dict(con.execute("SELECT k, v FROM src.meta"))
             con.commit()
             con.execute("DETACH src")
+    for t in sorted(ADDITIVE_TABLES - held):
+        con.execute(f"DROP TABLE {t}")
     if "store_meta" in water_meta:
         meta = json.loads(water_meta["store_meta"])
     else:

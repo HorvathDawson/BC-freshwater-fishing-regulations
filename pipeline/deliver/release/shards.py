@@ -24,8 +24,8 @@ TOP = {"ladder": "ladder_frame", "rows": "rows_frame", "gear": "gear_frame", "li
 #: every table a shard holds
 SHARD_TABLES = ("cell", "ladder_frame", "ladder_verdict", "rows_frame", "rows_decided", "rows_row", "gear_frame",
                 "licence_frame", "licence_hold", "licence_doc", "licence_answer", "licence_u16", "display_frame")
-#: the sid maps (`regs-sid`)
-SID_TABLES = ("section_akey", "section_place")
+#: the sid maps (`regs-sid`); `section_tidal` (T672 1b) is ADDITIVE, still regs-sid/1
+SID_TABLES = ("section_akey", "section_place", "section_tidal")
 
 
 def akey_regions(store: sqlite3.Connection) -> Dict[int, Set[str]]:

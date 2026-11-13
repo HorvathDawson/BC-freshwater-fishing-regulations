@@ -11,7 +11,8 @@
  *   regs-<r>   cell, cells and the five frame families, in the file water's `akey_region` names for the KEY — a frame
  *              id is the store's, the same in every region file that holds it, but only those files hold it; so every
  *              frame read is asked with the key it was reached from (`ladder(akey, id)`, not `ladder(id)`)
- *   regs-sid   sectionAkey, sectionPlace (one 8 KB / 4 KB block per lookup, cached), and so unnamedName
+ *   regs-sid   sectionAkey, sectionPlace (one 8 KB / 4 KB block per lookup, cached), and so unnamedName; sectionTidal
+ *              (T672 1b, `section_tidal`: ADDITIVE in regs-sid/1, so asked for first — a release cut before it says null)
  *
  * CACHING: the promise, not the value (two concurrent taps share one read). Statics, rules, lics and str once per store;
  * every id-keyed family unbounded per store (ids are immutable within a release, a session touches a few hundred).
@@ -99,6 +100,9 @@ export interface RegsReads {
   sectionAkey(handle: number): Promise<number>;
   /** A section handle's place index; null = outside B.C. */
   sectionPlace(handle: number): Promise<number | null>;
+  /** (T672 1b) Whether a section handle is tidal water (regs-sid `section_tidal`, the bundle's `tidal`): a key-less
+   *  tidal section is tidal water, not outside B.C. null: the release was cut before the table (it cannot say). */
+  sectionTidal(handle: number): Promise<boolean | null>;
   place(ix: number): Promise<PlaceRow>;
   /** An unnamed section's whole name ("Unnamed stream · Region 5"); null outside B.C. */
   unnamedName(handle: number): Promise<string | null>;
@@ -532,6 +536,12 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
       return v ? v - 1 : null;
     },
 
+    sectionTidal: async (h) => {
+      if (!(await hasTidal())) return null;
+      const b = await block("section_tidal", h);
+      return b ? b[h & SLOT] === 1 : false;
+    },
+
     place: (ix) => once("place", ix, async () => {
       const r = await row(base.water(), "SELECT place, regions, label, names FROM place WHERE place = ?", ix, "place");
       return { place: n(r.place), regions: json<PlaceRow["regions"]>(r.regions), label: await reads.str(n(r.label)),
@@ -617,8 +627,12 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
   };
 
 
-  /** One block of a regs-sid table (the table name is one of two literals). */
-  const block = (t: "section_akey" | "section_place", h: number): Promise<Uint8Array | null> =>
+  /** (T672 1b) whether this release's regs-sid carries `section_tidal` (ADDITIVE: a release cut before it has none). */
+  const hasTidal = (): Promise<boolean> => once("hasTidal", 0, async () =>
+    !!(await (await base.sid()).get("SELECT 1 AS x FROM sqlite_master WHERE type = 'table' AND name = 'section_tidal'")));
+
+  /** One block of a regs-sid table (the table name is one of three literals). */
+  const block = (t: "section_akey" | "section_place" | "section_tidal", h: number): Promise<Uint8Array | null> =>
     once(t, h >> BLOCK_BITS, async () => {
       const r = await (await base.sid()).get(`SELECT b FROM ${t} WHERE block = ?`, h >> BLOCK_BITS);
       if (!r) return null;

@@ -141,6 +141,11 @@ CREATE TABLE section_akey (block INTEGER PRIMARY KEY, b BLOB NOT NULL CHECK (len
 -- absent block is all zero. MUs are NOT shipped here (the bundle keeps `mu_set` /
 -- `section_ruleset.mus`; the app reads MUs from the tiles' MU layer).
 CREATE TABLE section_place (block INTEGER PRIMARY KEY, b BLOB NOT NULL CHECK (length(b) = 4096));
+-- (T672 1b) SECTION HANDLE -> 1 when the section is TIDAL WATER (u8, byte h & 4095): the bundle's `tidal`
+-- table (the reach run's tidal.jsonl), as it is. A tidal section with no key (0 above) is tidal water,
+-- not a section outside B.C.: the page says so. Only blocks holding a tidal section are written; an
+-- absent block is all zero. ADDITIVE in regs-sid (still regs-sid/1): a release cut before it has none.
+CREATE TABLE section_tidal (block INTEGER PRIMARY KEY, b BLOB NOT NULL CHECK (length(b) = 4096));
 
 -- THE EXPORT WORDS the answers lack (what a page reads: page_data.py's slice). Rule / licensing ids
 -- are `entry_id::rule_id` / `entry_id#record_id`, rebuilt from `j`. Rule sets hold rule / licensing

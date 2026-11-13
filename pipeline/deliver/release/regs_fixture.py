@@ -44,13 +44,14 @@ from pipeline.deliver.release import build as B
 from pipeline.deliver.release import lines as L
 from pipeline.deliver.release import shards as SH
 from pipeline.deliver.store.common import unpack
+from pipeline.deliver.store.release import ADDITIVE_TABLES
 
 REPO = Path(__file__).resolve().parents[3]
 TAPS = REPO / "app" / "fixtures" / "golden" / "taps.json"
 OUT = REPO / "app" / "packages" / "data" / "dev" / "regs-release"
 #: (T441) the fixture's stream lines, beside it (`@app/data/release/node` `regsFixtureLines`)
 LINES_OUT = REPO / "app" / "packages" / "data" / "dev" / "section-lines.json"
-SID_WIDTH = {"section_akey": 2, "section_place": 1}
+SID_WIDTH = {"section_akey": 2, "section_place": 1, "section_tidal": 1}
 #: water tables cut to the kept waters (by their ord column); every other water table is copied whole
 WATER_BY_ORD = {"item": "item_ord", "part": "item_ord", "part_section": "ord", "part_geo": "ord", "part_mark": "ord",
                 "water_exit": "ord"}
@@ -188,8 +189,11 @@ def build(release: Path, items: Sequence[str], handles: Sequence[int], out_root:
         # the section slots: the kept waters' sections + the golden unnamed handles
         sids = {s for (s,) in con["core"].execute(f"SELECT sid FROM item_section WHERE ord IN ({_ids(kept_ords)})")}
         sids |= set(handles)
-        blocks: Dict[str, Dict[int, bytearray]] = {t: {} for t in SH.SID_TABLES}
-        for t in SH.SID_TABLES:
+        # (T672 1b) `section_tidal` is ADDITIVE: a release cut before it has none, and its fixture none either
+        have_sid = {t for (t,) in con["regs-sid"].execute("SELECT name FROM sqlite_master WHERE type = 'table'")}
+        sid_tables = [t for t in SH.SID_TABLES if t in have_sid or t not in ADDITIVE_TABLES]
+        blocks: Dict[str, Dict[int, bytearray]] = {t: {} for t in sid_tables}
+        for t in sid_tables:
             w = SID_WIDTH[t]
             full = dict(con["regs-sid"].execute(
                 f"SELECT block, b FROM {t} WHERE block IN ({_ids(s >> SH.BLOCK_BITS for s in sids)})"))
@@ -243,12 +247,12 @@ def build(release: Path, items: Sequence[str], handles: Sequence[int], out_root:
             files[name] = B.copy_file(work / f"{name}.sqlite", {"s": src[name]}, plan, {**meta[name], **fix})
 
         def sid_extra(c: sqlite3.Connection) -> None:
-            for t in SH.SID_TABLES:
+            for t in sid_tables:
                 c.executemany(f"UPDATE {t} SET b = ? WHERE block = ?",
                               [(bytes(b), blk) for blk, b in sorted(blocks[t].items())])
         files["regs-sid"] = B.copy_file(
             work / "regs-sid.sqlite", {"s": src["regs-sid"]},
-            [("s", t, f"WHERE block IN ({_ids(blocks[t])})") for t in SH.SID_TABLES], {**meta["regs-sid"], **fix},
+            [("s", t, f"WHERE block IN ({_ids(blocks[t])})") for t in sid_tables], {**meta["regs-sid"], **fix},
             extra=sid_extra)
 
         ids_ = sorted(ords)

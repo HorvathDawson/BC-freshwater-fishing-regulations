@@ -35,7 +35,7 @@ const DICT = Buffer.from(JSON.stringify(RULE));
 
 /** Two regions; akey 1 → region 1, akey 2 → region 2. Frame id 5 exists in BOTH region files with DIFFERENT content,
  *  so a read routed to the wrong file is seen. regs-sid: handle 4097 (block 1, slot 1) → akey 2, place 0. */
-function seed(o: { badCells?: boolean; ruleGap?: boolean; noDict?: boolean; badStrip?: boolean; tidalPart?: boolean; lengths?: boolean;
+function seed(o: { noTidal?: boolean; badCells?: boolean; ruleGap?: boolean; noDict?: boolean; badStrip?: boolean; tidalPart?: boolean; lengths?: boolean;
                    partLine?: boolean; alias?: boolean } = {}) {
   const asked: string[] = [];
   const spy = (name: string, d: Db): Db => ({
@@ -124,10 +124,14 @@ function seed(o: { badCells?: boolean; ruleGap?: boolean; noDict?: boolean; badS
   // handle 4097 = block 1, slot 1: akey bytes [2, 0] at offset 2 (little-endian 2), place byte 1 at offset 1 (place 0)
   const akeyBlock = Buffer.alloc(8192); akeyBlock[2] = 2; akeyBlock[3] = 0; akeyBlock[8191] = 1;   // slot 4095 → akey 256
   const placeBlock = Buffer.alloc(4096); placeBlock[1] = 1;
+  // (T672 1b) handle 4100 (block 1, slot 4) tidal; `noTidal` is a release cut before the table
+  const tidalBlock = Buffer.alloc(4096); tidalBlock[4] = 1;
   const sid = openInMemory("", META({ format: "regs-sid/1", section_handles: H, reach_digest: R, rule_ids_sha256: I }) + `
     CREATE TABLE section_akey (block INTEGER PRIMARY KEY, b BLOB); CREATE TABLE section_place (block INTEGER PRIMARY KEY, b BLOB);
     INSERT INTO section_akey VALUES (1, X'${akeyBlock.toString("hex")}');
-    INSERT INTO section_place VALUES (1, X'${placeBlock.toString("hex")}');`);
+    INSERT INTO section_place VALUES (1, X'${placeBlock.toString("hex")}');` + (o.noTidal ? "" : `
+    CREATE TABLE section_tidal (block INTEGER PRIMARY KEY, b BLOB);
+    INSERT INTO section_tidal VALUES (1, X'${tidalBlock.toString("hex")}');`));
   const core = openInMemory("", "CREATE TABLE item (ord INTEGER PRIMARY KEY, item_id TEXT UNIQUE); INSERT INTO item VALUES (3, 'gnis:1');"
     + (o.alias ? "CREATE TABLE item_alias (alias TEXT PRIMARY KEY, item_id TEXT NOT NULL); INSERT INTO item_alias VALUES ('wbk:9', 'gnis:1');" : ""));
   const dbs: Record<string, Db> = { water: spy("water", water), "regs-1": spy("regs-1", regs1), "regs-2": spy("regs-2", regs2),
@@ -337,6 +341,14 @@ describe("regs-sid: section handles", () => {
     expect(await st.sectionPlace(4096)).toBeNull();
     expect(await st.sectionAkey(2_000_000_000)).toBe(0);
     expect(await st.sectionPlace(2_000_000_000)).toBeNull();
+  });
+
+  it("(T672 1b) sectionTidal: the section_tidal byte of block h >> 12 is 1; absent block → false; a release cut before the table → null", async () => {
+    const st = await openRegsStore(seed().loader);
+    expect([await st.sectionTidal(4100), await st.sectionTidal(4097), await st.sectionTidal(2_000_000_000)]).toEqual([true, false, false]);
+    expect(await st.sectionAkey(4100)).toBe(0);                   // key-less: told from outside B.C. only by the flag
+    const old = await openRegsStore(seed({ noTidal: true }).loader);
+    expect([await old.sectionTidal(4100), await old.sectionTidal(4097)]).toEqual([null, null]);
   });
 
   it("unnamedName: the place's name for the key's kind; null outside B.C.", async () => {

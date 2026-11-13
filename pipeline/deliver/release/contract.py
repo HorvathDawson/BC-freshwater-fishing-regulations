@@ -172,7 +172,11 @@ FILES = {
         "seglist": ["seg", "starts"], "segmom": ["mom", "ix"], "static": ["k", "j"], "str": ["id", "text"],
         "zdict": ["tbl", "d"]}},
     "regs-sid": {"format": "regs-sid/1", "kind": "sqlite", "tables": {
-        "meta": ["k", "v"], "section_akey": ["block", "b"], "section_place": ["block", "b"]}},
+        # (T672 1b) `section_tidal`: 1 per tidal section (the bundle's `tidal`), so a key-less tidal section is told
+        # from one outside B.C. ADDITIVE, so still regs-sid/1: a regs-sid without it is read as before (the app asks
+        # `hasSectionTidal` first; a key-less section of such a release reads "outside B.C." as it always did)
+        "meta": ["k", "v"], "section_akey": ["block", "b"], "section_place": ["block", "b"],
+        "section_tidal": ["block", "b"]}},
     # (T369) every stream section's stream key and measure span, so a link's PLACE resolves to a section of this release
     # (release/lines.py; the app's regs/line.ts). Its own file, fetched only when a link is made or opened: in no
     # WEB_BUDGET moment. A release cut before it has none, and then no link carries a place.

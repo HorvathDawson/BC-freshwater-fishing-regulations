@@ -90,6 +90,26 @@ describe("(T672, audit W1) a key-less TIDAL piece (the store's `part.tidal`): ti
   });
 });
 
+describe("(T672 1b) a key-less unnamed TIDAL section (regs-sid `section_tidal`): tidal water, never \"outside B.C.\"", () => {
+  const NOTE = "Tidal water: a different regulation system. The B.C. freshwater fishing regulations do not apply here: no provincial rule, "
+    + "quota, closure, gear rule, licence or stamp. See the federal (DFO) tidal waters sport fishing regulations or the Fishing BC app; "
+    + "a federal Tidal Waters Sport Fishing Licence is required.";
+  const section = (tidalPart: boolean): RegsInputs => ({ ...outsideInputs(), target: { kind: "section", handle: 2 }, tidalPart }) as unknown as RegsInputs;
+  it("the page is tidal: the tidal-water card's banner, whole, the Keep tab only, no Gear / Methods / Licence", () => {
+    const page = buildRegsPage(section(true), { today: OCT10, who: { age: "adult", residency: "resident" } });
+    expect([edgeKind(section(true)), page.status]).toEqual(["tidal", "tidal"]);
+    expect(page.keep).toEqual({ order: ["banner"], outside: null, strip: null, inherited: null, groups: [], plainRows: [], otherFish: null,
+      otherFishKey: [], caveats: [], possession: null, whereNot: null,
+      banner: { kind: "tidal", big: ["Tidal water"], paras: [NOTE], chain: [], reopen: null, merged: null } });
+    expect([page.gear, page.methods, page.licence]).toEqual([null, null, null]);
+    expect([page.header.dot, page.header.tabs]).toEqual(["faint", [{ tab: "keep", label: "What you can keep" }]]);
+  });
+  it("a key-less section not flagged tidal is outside B.C.", () => {
+    const out = buildRegsPage(section(false), { today: OCT10, who: { age: "adult", residency: "resident" } });
+    expect([out.status, out.keep.outside, out.keep.banner]).toEqual(["outside", OUTSIDE_LINE, null]);
+  });
+});
+
 describe("tidalKeep: the stored tidal frame's banner alone", () => {
   it("a tidal key whose day frame is tidal: the 'Tidal water' banner in the frame's note; nothing else", () => {
     const inp = { key: key({ tidal: true }), target: { kind: "part", item: "x", partIx: 0 }, frames: { display: TIDAL } } as unknown as RegsInputs;

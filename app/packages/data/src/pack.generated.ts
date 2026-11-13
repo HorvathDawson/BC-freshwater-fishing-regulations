@@ -1373,6 +1373,10 @@ export const PACK_FILES: Record<string, PackFile> = {
       "section_place": [
         "block",
         "b"
+      ],
+      "section_tidal": [
+        "block",
+        "b"
       ]
     }
   },

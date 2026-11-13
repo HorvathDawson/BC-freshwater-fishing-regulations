@@ -259,6 +259,15 @@ class Store:
         """Every handle with a place: {handle: place index} (S1b)."""
         return {h: v - 1 for h, v in self._all("section_place", 1).items()}
 
+    def tidal_of(self, handle: int) -> bool:
+        """(T672 1b) Whether a section handle is tidal water (the bundle's `tidal`): a key-less tidal section is tidal
+        water, not outside B.C. A store cut before `section_tidal` has no such table, and this raises."""
+        return self._cell("section_tidal", handle, 1) == 1
+
+    def section_tidals(self) -> set:
+        """Every tidal section handle (T672 1b)."""
+        return set(self._all("section_tidal", 1))
+
 
 def answers_bytes(path) -> bytes:
     s = Store(path)

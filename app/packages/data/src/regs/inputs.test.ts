@@ -23,7 +23,7 @@ const cell = (ladder: number, display: number): CellIds => ({ ladder, rows: 1, g
 /** One water (gnis:1, ord 3) of three parts — part 0 on key 2 (no moments, closed Jun 1–30), part 1 on key 5 (a weekday
  *  split), part 2 outside B.C. — a picker grouping parts 0 and 1 as closed, and two sections (4097 named → part 1; 4098
  *  unlisted, on key 5). `asked` logs every read. */
-function fake(o: { openGroup?: boolean; tidalPiece?: boolean } = {}) {
+function fake(o: { openGroup?: boolean; tidalPiece?: boolean; oldRelease?: boolean } = {}) {
   const asked: string[] = [];
   const log = <T>(what: string, v: T): Promise<T> => { asked.push(what); return Promise.resolve(v); };
   const parts: PartRow[] = [
@@ -60,6 +60,8 @@ function fake(o: { openGroup?: boolean; tidalPiece?: boolean } = {}) {
     display: (a: number, id: number) => log(`display ${a} ${id}`, display[id]!),
     sectionAkey: (h: number) => log(`sectionAkey ${h}`, h === 4097 || h === 4099 ? 2 : h === 4098 ? 5 : 0),
     sectionPlace: (h: number) => log(`sectionPlace ${h}`, h === 4099 ? null : 0),
+    // (T672 1b) handle 2 is key-less tidal water; `oldRelease`: a release cut before section_tidal (null)
+    sectionTidal: (h: number) => log(`sectionTidal ${h}`, o.oldRelease ? null : h === 2),
     sectionPart: (ord: number, sid: number) => log(`sectionPart ${ord} ${sid}`, ord === 3 && sid === 4097 ? 1 : null),
     place: (ix: number) => log(`place ${ix}`, { place: ix, regions: ["5"], label: "Region 5",
       names: { stream: "Unnamed stream · Region 5", lake: "Unnamed lake · Region 5", wetland: "Unnamed wetland · Region 5" } }),
@@ -197,6 +199,14 @@ describe("loadRegsInputs: a section (unnamed water)", () => {
   it("a section outside B.C. (section_akey 0): no key, no place", async () => {
     const inp = await loadRegsInputs(fake().store, { kind: "section", handle: 1 }, JUN15, "Monday", 2026);
     expect([inp.item, inp.place, inp.key, inp.s, inp.frames, inp.year]).toEqual([null, null, null, null, null, null]);
+  });
+
+  it("(T672 1b) a key-less section says whether it is tidal water: `tidalPart` is regs-sid's `section_tidal`, read, not decided", async () => {
+    const tide = await loadRegsInputs(fake().store, { kind: "section", handle: 2 }, JUN15, "Monday", 2026);
+    expect([tide.item, tide.place, tide.key, tide.frames, tide.tidalPart]).toEqual([null, null, null, null, true]);
+    expect((await loadRegsInputs(fake().store, { kind: "section", handle: 1 }, JUN15, "Monday", 2026)).tidalPart).toBe(false);
+    // a release cut before the table cannot say: read as outside B.C., as it always was
+    expect((await loadRegsInputs(fake({ oldRelease: true }).store, { kind: "section", handle: 2 }, JUN15, "Monday", 2026)).tidalPart).toBe(false);
   });
 
   it("a section with a key and no place is the store's fault, said", async () => {

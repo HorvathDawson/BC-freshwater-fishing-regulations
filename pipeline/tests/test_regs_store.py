@@ -417,6 +417,38 @@ def test_the_stores_shipped_weights_are_the_release_cut(synthetic):
 
 # --------------------------------------------------------------------------------------------
 # the live set
+def test_a_tidal_section_is_flagged_and_told_from_one_outside_bc(tmp_path):
+    """(T672 1b) `section_tidal` is the bundle's `tidal`, as it is: 11 (w:a's key-less part) and a section in a block
+    no other table touches are tidal; every other section, in B.C. or not, is not. MUTATION: a store written without
+    the bundle's tidal sids flags none, so a page could not tell 11 from a section outside B.C. (both key 0)."""
+    A = _wire()
+    p = tmp_path / "t.sqlite"
+    write_store(p, answers_file_bytes(A), A, _subset(), ITEM_ORD, PART_SECTION, **STORE_KW,
+                tidal=[11, 5 * BLOCK + 7])
+    s = Store(p)
+    try:
+        assert s.section_tidals() == {11, 5 * BLOCK + 7}
+        assert s.akey_of(11) == 0 and s.tidal_of(11) and s.tidal_of(5 * BLOCK + 7)
+        assert not any(s.tidal_of(h) for h in (10, 12, 13, BLOCK + 1, 7 * BLOCK))
+        assert json.loads(s.meta["counts"])["tidal_sections"] == 2
+    finally:
+        s.close()
+    m = tmp_path / "m.sqlite"
+    write_store(m, answers_file_bytes(A), A, _subset(), ITEM_ORD, PART_SECTION, **STORE_KW)
+    s = Store(m)
+    try:
+        assert s.section_tidals() == set() and not s.tidal_of(11)
+    finally:
+        s.close()
+
+
+def test_the_store_refuses_a_section_both_tidal_and_outside_bc(tmp_path):
+    A = _wire()
+    with pytest.raises(StoreError, match="both tidal and outside B.C."):
+        write_store(tmp_path / "x.sqlite", answers_file_bytes(A), A, _subset(), ITEM_ORD, PART_SECTION,
+                    **STORE_KW, tidal=[11], outside={11})
+
+
 # --------------------------------------------------------------------------------------------
 
 BUNDLE = under_test.path("bundle")
@@ -491,6 +523,25 @@ def test_every_section_in_bc_has_a_nonzero_akey_and_none_outside(live):
         for sid in list(up_of)[::50021]:
             name = s.unnamed_name(sid)
             assert name.startswith("Unnamed ") and " MU" not in name
+    finally:
+        s.close()
+        b.close()
+
+
+@pytest.mark.needs_bundle
+def test_every_tidal_section_of_the_bundle_is_flagged_and_no_other(live):
+    """(T672 1b) the live store's `section_tidal` is exactly the bundle's `tidal`; a key-less one is tidal water, not a
+    section outside B.C. (no `outside_bc` sid is flagged)."""
+    out, *_ = live
+    b = sqlite3.connect(f"file:{BUNDLE}?mode=ro", uri=True)
+    s = Store(out)
+    try:
+        want = {sid for (sid,) in b.execute("SELECT sid FROM tidal")}
+        outside = {sid for (sid,) in b.execute("SELECT sid FROM outside_bc")}
+        got = s.section_tidals()
+        assert got == want and len(want) > 100 and not got & outside
+        keyless = {h for h in got if s.akey_of(h) == 0}
+        assert len(keyless) > 100
     finally:
         s.close()
         b.close()
@@ -593,3 +644,25 @@ def test_one_altered_live_frame_is_refused(live, tmp_path):
             s.answers_bytes()
     finally:
         s.close()
+
+
+@pytest.mark.needs_bundle
+def test_the_release_under_test_reassembles_to_its_own_store_digest(request):
+    """(T672 1b) `section_tidal` is ADDITIVE in regs-sid: a release cut before it (no table in any file) reassembles
+    without it and still holds its store digest; one cut with it holds the table and is held to it. Either way the
+    release under test reassembles (`province_store` verifies the digest and raises on a mismatch)."""
+    from pipeline.deliver.store.release import province_store
+    d = under_test.release(request)
+    st = province_store(d)
+    try:
+        tables = {t for (t,) in st.con.execute("SELECT name FROM sqlite_master WHERE type = 'table'")}
+        m = json.loads((d / "manifest.json").read_text())
+        import gzip
+        raw = gzip.decompress((d.parent / m["files"]["regs-sid"]["url"]).read_bytes())
+        sid = sqlite3.connect(":memory:")
+        sid.deserialize(raw)
+        shipped = {t for (t,) in sid.execute("SELECT name FROM sqlite_master WHERE type = 'table'")}
+        assert ("section_tidal" in tables) == ("section_tidal" in shipped)
+        assert "store_digest" in st.meta
+    finally:
+        st.close()

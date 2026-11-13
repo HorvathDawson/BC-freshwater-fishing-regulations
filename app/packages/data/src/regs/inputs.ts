@@ -75,7 +75,10 @@ export async function loadRegsInputs(store: InputsStore, target: RegsTarget, day
 
   if (target.kind === "section") {
     const a = await store.sectionAkey(target.handle);
-    if (a === 0) return { ...base, item: null, partIx: 0, place: null, ...outside(ruleIndex(stored, new Map(), sp)), choicesOnDay: null };
+    // (T672 1b) a key-less section is outside B.C., or tidal water: regs-sid `section_tidal` says which (a release cut
+    // before the table cannot say, and reads as outside, as it always did)
+    if (a === 0) return { ...base, item: null, partIx: 0, place: null, ...outside(ruleIndex(stored, new Map(), sp)),
+                          tidalPart: (await store.sectionTidal(target.handle)) === true, choicesOnDay: null };
     const pl = await store.sectionPlace(target.handle);
     if (pl === null) throw new RegsInputsError(`regs: section ${target.handle} has a key (${a}) but no place`);
     const [placeRow, key] = await Promise.all([store.place(pl), store.akey(a)]);

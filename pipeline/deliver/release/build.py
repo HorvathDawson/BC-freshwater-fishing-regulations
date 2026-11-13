@@ -18,7 +18,7 @@ writes paint, derives three per-water flags for search, converts the climatology
                  store's own meta, so water + the shards + regs-sid ARE the store
                  (store/release.py; nothing reads regs.sqlite, P20)
   regs-<region>  cell + the frames its akeys reach (shards.py), × 9               regs store
-  regs-sid       section_akey, section_place                                      regs store
+  regs-sid       section_akey, section_place, section_tidal (T672 1b)            regs store
   lines          section_line (T369: the section a link's place falls on, lines.py)  bundle (section_measure)
   conditions     gauge, section_gauge, lake_gauge, lake_section (T182: the lake   bundle
                  road per section, so Conditions needs no core); basin, basin_frame,
