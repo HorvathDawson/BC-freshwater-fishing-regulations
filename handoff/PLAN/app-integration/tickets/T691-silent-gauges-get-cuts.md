@@ -43,3 +43,23 @@ rows marked `trust: wrong`, no water). These five need a human match call (OWNER
   Dam end); 08PA004 (1,015 m) and 08JB013 (520 m) made no cut, over the 400 m `PROXIMITY_M`. Long-river length cuts
   re-spaced around the new cuts (Fraser x4, Nechako, Muller, Iskut: 6 ids gone, 1 new; no curated rule names any). Sliver
   gate clean. Every binding change on the cut lines is the same metres under new section ids.
+
+## Phase 2 proposals — NOT applied (2026-11-13, pipeline lane)
+`~/bcfish-session-backup-2026-11-12/gauges/t691_proposed_rows.json` (Claude, 2026-11-13) says "NOT accepted", and no owner
+approval is recorded here, in OWNER-TODO (the five-station row is still open) or in the ledger, so **no row was applied**
+and `data/curated/gauges/matches.json` is untouched. Two of the rows also need code that does not exist yet: a `cut_at`
+field (where the CUT goes, the published station point unchanged) and `reads: "below"` (the station speaks for the
+stretch below its cut). Pictures beside the file (`08*.png`). For the owner, in plain words:
+
+| station | what the row would change |
+|---|---|
+| 08PA004 Skagit at the border | Keeps its match; adds a cut place at the Ross Lake inlet (a boundary already there), so the gauge finally gets its cut (today none: 1,015 m from the line). Needs `cut_at`. |
+| 08JB013 North Beach Ck above Allin Ck | Moves the match from Beach Creek (520 m away) to Beach Creek's unnamed north fork (24 m away), 805 m above the fork's mouth. NOTE: HYDAT 2026-10 lists it Discontinued — under P53 a discontinued station gets no cut, so this may be "leave uncut" instead. |
+| 08ND025 Revelstoke Project Outflow | New match: the Columbia, cut on Revelstoke Dam (joins the dam boundary); reads the Columbia from the dam down to the Hwy 1 bridge. Needs `cut_at` + `reads`. |
+| 08NE126 Arrow Reservoir Outflow | Replaces the "wrong" match: the Columbia, cut on Keenleyside Dam; reads the dam down to the old Robson ferry landing. Needs `cut_at` + `reads`. |
+| 08NJ158 Kootenay Lake Outflow (Corra Linn) | Replaces the "wrong" match: the Kootenay River, cut at Kootenay Lake's edge at Corra Linn Dam; reads Corra Linn down to Brilliant Dam. Needs `cut_at` + `reads`. |
+| 08JA013 Skins Lake Spillway | Replaces the "wrong" match: the unnamed 636 m spillway channel (Ootsa → Skins Lake), cut at its foot (Skins Lake edge); reads the whole channel. Needs `cut_at`. |
+| 08FE002 Kemano Powerhouse | Stays unmatched (the powerhouse water is only part of the river below the tailrace; any cut hands it the wrong water). |
+
+Each accepted row also needs its `match_calls.json` decision; applying is surgical (one row each, `promote --only`), then
+an atlas rebuild. Owner: OWNER-TODO "T691: five silent gauge stations need a match call".
