@@ -344,6 +344,20 @@ Next commands:
 - Final release must rebuild: deliver (store → regs-sid gains `section_tidal`; status index for T672 item 2) — the
   release command does this; the app build reads it. Nothing here needs an atlas or reach rerun.
 
+## 2026-11-12 (owner answers by dialog; app lane: T692, T693; tickets T694, T695)
+- Owner answers recorded in OWNER-TODO (ANSWERED 2026-11-12): T631 Skeena side channels: A, stay outside the place (nothing
+  changed); plan 6 pruned tidal lines: no list (1,204 lines stay a count, no file); T688 wording stays; T677 Ucona keep;
+  candidate atlas (`full_next`) is promoted with the final build; T673 parked until after closed testing.
+- T692 (c4f101908): the tidal fill stays drawn and labelled "Tidal water"; a tap on it does nothing (sheet, wiring and
+  strings removed, web and native). A tidal page asks no salmon: "SALMON (DFO) Closed" came from the app (the salmon card
+  answers closed for a water DFO does not list), not from pipeline data; nothing for the pipeline lane. RULINGS P52.
+- T693 (df0136892): an in-season notice matched to a water this release does not hold falls into the bell and is reported
+  once (gap 1). Gap 2 (a "new" mark on an amended matched notice) is T694, after closed testing. RULINGS O6.
+- T695 (ticket only, after closed testing): fold more small widenings into the stream and draw the stream line instead of
+  the unnamed polygons (the 456, Q124/T153), real lakes stay lakes; measure first; links T686 and D1. RULINGS E27 (Q124: keep as built now).
+- Pond fold (D1) and the 456: the census is older than D1; which of the 456 are still lakes on the live release is the
+  first thing T695 measures.
+
 ## 2026-11-12 (owner answers: Whiteswan T690, vessel parts T209, silent gauges T691, diversion gauges T696)
 - T690 (c41d54742, RULINGS E26): Whiteswan Lake's inlet & outlet streams. Printed p.40 checked against the coordinator's
   reading: no difference. r1 (No Fishing) now names all 15 inlets (Cave Creek, Inlet Creek, 356560775 above the lake and
