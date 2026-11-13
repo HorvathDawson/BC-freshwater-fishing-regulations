@@ -48,6 +48,9 @@ Already near a gate: water (99.7 %), conditions after the fold, core after the f
    zstd with a trained dictionary instead of gzip where the platform allows.
 8. **Tiles and basemap** (≈ 400 MB on disk): zoom ranges, attribute columns per layer, simplification per zoom.
 
+9. **Fewer polygons** (owner 2026-11-12, after closed testing): fold more small widenings into the stream and draw the stream
+   line instead of the polygon where it really is the stream (the 456 unnamed lakes a river runs through): T695.
+
 ## Work
 1. Finish the survey: every shipped file (release files, tiles, basemap, the app bundle itself), raw / gz / who
    reads it and when (`contract.WEB_BUDGET` moments, phone offline total).

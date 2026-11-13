@@ -1,8 +1,13 @@
 # T673 — Release-bound and atlas-bound feeds are keyed by what they are bound to
 
-Status: OPEN — split from T555 item 2 (2026-11-11); nothing built. Needs the worker, the deploy scripts and the app together, and a staging publish to prove it.
+Status: POSTPONED (owner 2026-11-12: parked until after closed testing; the notice-on-an-absent-water gap is fixed in T693) — was: OPEN — split from T555 item 2 (2026-11-11); nothing built. Needs the worker, the deploy scripts and the app together, and a staging publish to prove it.
 
 Source: T555 item 2 (data pipeline review 2026-11-09, severity 3, "partly": a documented design choice, not an oversight).
+
+## 2026-11-12
+Owner: parked until after closed testing. The part of it that left a notice nowhere (a notice matched to a water this
+phone's release does not hold) is fixed without this ticket: T693 (it goes to the bell and is reported). The per-section
+placement and run timing stay as described below.
 
 ## Today
 - `feeds/inseason/matches.json` names ONE release (`pipeline/regs/inseason/publish.py`; staged by
