@@ -39,6 +39,7 @@ function carried(page: RegsPage): string[] {
   for (const c of k.caveats) for (const i of [...c.items, ...(c.later ?? [])]) out.push(plain(i.what), i.where ?? "", ...(i.detail ?? []));
   for (const l of page.gear?.lines ?? []) out.push(...l.values);
   out.push(...(page.methods?.boats?.items ?? []));
+  for (const b of page.licence?.blocks ?? []) if (b.cls === "needs") for (const i of [...b.items, ...(b.onlyIf?.items ?? [])]) out.push(...i.book);
   return out.map(squash).filter(Boolean);
 }
 
@@ -59,6 +60,9 @@ describe.skipIf(!LIVE)(`T672: the site's model carries what T670 put on the app'
       "Where: Within fishing boundary signs at the western tip of the lake"]],
     ["G4 Qualicum River", "gnis:27804", ["qualicum_river__upper_hatchery_weir_125_m_downstream", "source"], JUL15,
       ["Hooks: One hook, lure or fly, Single barbless hook, no trebles, Single barbless hook; no hook more than 15 mm from point to shank"]],
+    // (T670 G7, RULINGS Li13) a classified water's licence terms from p.7, in the book's words (the model's angler is the adult resident)
+    ["G7 Wigwam River", "gnis:27703", ["mouth", "wigwam_river__wigwam_km42_ram_fsr"], JUL15,
+      ["If you are a B.C. resident: Your Classified Waters Licence is valid"]],
   ];
   const pageOf = async (item: string, ends: readonly [string, string] | null, day: BuildDay) =>
     appPage(st, item, ends ? await names.part(item, ends[0], ends[1]) : 0, day);

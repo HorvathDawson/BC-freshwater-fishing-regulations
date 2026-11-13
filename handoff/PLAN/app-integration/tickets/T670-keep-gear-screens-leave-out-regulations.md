@@ -154,4 +154,4 @@ G7 decision (owner 2026-11-12, "Show on each water"): each classified water's Li
 - HELD FOR THE OWNER: the basic licence's two administrative terms ("You are only permitted one annual angling licence per
   year." on every water's basic licence; the disabled-resident $1.14 fee) are in the answers too but are not p.7's
   classified-water terms, so they are not drawn. Default: leave them off (Li13 names classified waters).
-- Not done: the web water pages (`app/tools/seo/model.ts`, T672's lane) do not draw `book` yet.
+- Web water pages DONE 2026-11-12: `app/tools/seo/model.ts` Licence section now carries each "You need" item's `book` terms (the visible page already drew them: it is the app's pane prerendered; the text model, hubs and content hash did not). Test `tools/seo/t670.web.release.test.ts` (G7 Wigwam River case + the guard reads `needs[].book`; fails before). Basic-licence terms stay off (default; owner row in OWNER-TODO).

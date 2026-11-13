@@ -153,6 +153,8 @@ function sectionsOf(page: Omit<RegsPage, "sheet">): Section[] {
         case "flag": case "muted": return [item(b.text)];
         case "scopenote": return [item(b.text)];
         case "paper": return [item(`${b.lead} ${b.strong} ${b.tail}`)];
+        // (T670 G7, RULINGS Li13, T672) a classified water's p.7 licence terms, in the book's words, under what you need
+        case "needs": return [...b.items, ...(b.onlyIf?.items ?? [])].flatMap((i) => i.book.map((t) => item(t)));
         default: return [];
       }
     }));
