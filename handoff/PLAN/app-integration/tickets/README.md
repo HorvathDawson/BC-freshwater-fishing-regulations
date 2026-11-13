@@ -194,7 +194,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T681 | The gauge-reporting key (T636 ring line) on the map, not in the bottom bar | DONE | d84c664e1 | owner 2026-11-12; overrides T367 for this line only; other legends stay in the bar |
 | T686 | Shrink shipped data across the board: survey every shipped file, measure candidate savings, propose (no design yet). Next free ticket T689 | OPEN | — | owner 2026-11-12 ("Raise now, shrink later"); RULINGS O5 |
 | T687 | Search "Vedder River": the book's pointer "see Chilliwack / Vedder Rivers" opened the Chilliwack: a pointer now opens the water it names | IN PROGRESS (fixed in the bundle; left (Claude): lands with the next release, check its search) | 5c294120d | build 29 emulator run 2026-11-12; 5 pointers move (Vedder, Bear, Cedar, Mara, Waneta) |
-| T688 | A wholly tidal water's Map view (Deas Slough) keeps the last camera and says "not available": frame the water, say it is tidal | IN PROGRESS | — | build 29 emulator run 2026-11-12; left: emulator check on the next APK |
+| T688 | A wholly tidal water's Map view (Deas Slough) keeps the last camera and says "not available": frame the water, say it is tidal | DONE | 92849a835 | build 29 emulator run 2026-11-12; left: emulator check on the next APK |
 
 ## Order for open tickets
 

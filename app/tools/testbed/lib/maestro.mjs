@@ -4,7 +4,7 @@ import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { serial as androidSerial } from './device.mjs';
+import { serial as androidSerial, maestroDeviceArgs } from './device.mjs';
 import { udid } from './device-ios.mjs';
 
 // (T313) the iOS simulator target: TESTBED_PLATFORM=ios (session-ios.sh) — the same flows on the booted simulator
@@ -19,12 +19,18 @@ const serial = () => (process.env.TESTBED_PLATFORM === 'ios' ? udid() : androidS
  */
 const EMULATOR_PORTS = Array.from({ length: 31 }, (_, i) => `(remote tcp "*:${5555 + i}")`).join(' ');
 const NO_EMULATORS = `(version 1)(allow default)(deny network-outbound ${EMULATOR_PORTS})`;
-/** [command, args] for one Maestro call: on iOS, `sandbox-exec` around it and `--platform ios` */
+/**
+ * [command, args] for one Maestro call: on iOS, `sandbox-exec` around it and `--platform ios`.
+ * ANDROID EMULATOR (T688 lane, 2026-11-12): Maestro asks the adb server for every device (`Dadb.list`), and one OFFLINE
+ * entry throws away the whole list ("Device emulator-5580 was requested, but it is not connected"). A foreign listener on
+ * 5555 (the VS Code helper, never touched) makes adb register a phantom offline `emulator-5554`, so every flow failed.
+ * Maestro's hidden `--host/--port` connects straight to the emulator's own adb port (console N, adb N+1) and never asks
+ * the server: used for every `emulator-<N>` serial (instead of `--device`). A physical device keeps `--device`.
+ */
 export function maestroCmd(bin, args) {
   if (process.env.TESTBED_PLATFORM !== 'ios') return [bin, args];
   return ['/usr/bin/sandbox-exec', ['-p', NO_EMULATORS, bin, '--platform', 'ios', ...args]];
 }
-
 const HERE = path.dirname(new URL(import.meta.url).pathname);
 export const FLOWS = path.join(HERE, '..', 'flows');
 const BIN = process.env.MAESTRO_BIN ?? path.join(os.homedir(), '.maestro/maestro/bin/maestro');
@@ -36,7 +42,7 @@ const BIN = process.env.MAESTRO_BIN ?? path.join(os.homedir(), '.maestro/maestro
 export function flow(name, env = {}, { logDir } = {}) {
   const file = path.join(FLOWS, `${name}.yaml`);
   if (!fs.existsSync(file)) throw new Error(`no flow ${file}`);
-  const args = ['--device', serial(), 'test', file, ...Object.entries(env).flatMap(([k, v]) => ['-e', `${k}=${v}`])];
+  const args = [...(process.env.TESTBED_PLATFORM === 'ios' ? ['--device', serial()] : maestroDeviceArgs()), 'test', file, ...Object.entries(env).flatMap(([k, v]) => ['-e', `${k}=${v}`])];
   if (logDir) args.push('--test-output-dir', logDir);
   const t0 = Date.now();
   const [cmd, argv] = maestroCmd(BIN, args);

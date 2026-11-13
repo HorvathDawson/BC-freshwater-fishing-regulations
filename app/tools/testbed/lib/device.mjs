@@ -17,6 +17,13 @@ export function serial() {
   return s;
 }
 
+/** (T688 lane) Maestro's device selector (global options): an emulator by its OWN adb port, never through the adb server's
+ *  device list — one phantom offline entry there (`emulator-5554` from a foreign listener on 5555) fails every flow. */
+export function maestroDeviceArgs() {
+  const m = /^emulator-(\d+)$/.exec(serial());
+  return m ? ['--host', '127.0.0.1', '--port', String(Number(m[1]) + 1)] : ['--device', serial()];
+}
+
 export const adb = (args, opts = {}) =>
   execFileSync(ADB, ['-s', serial(), ...args], { maxBuffer: 64 << 20, timeout: opts.timeout ?? 120_000, ...opts });
 export const sh = (cmd) => adb(['shell', cmd]).toString().replace(/\r/g, '');
@@ -147,7 +154,7 @@ const unxml = (s) => s.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&
 function hierarchyText() {
   try {
     const bin = process.env.MAESTRO_BIN ?? path.join(os.homedir(), '.maestro/maestro/bin/maestro');
-    const json = execFileSync(bin, ['--device', serial(), 'hierarchy'], {
+    const json = execFileSync(bin, [...maestroDeviceArgs(), 'hierarchy'], {
       encoding: 'utf8', timeout: 60_000, maxBuffer: 64 << 20, stdio: ['ignore', 'pipe', 'ignore'],
       env: { ...process.env, MAESTRO_CLI_NO_ANALYTICS: '1', JAVA_HOME: process.env.JAVA_HOME ?? '/Applications/Android Studio.app/Contents/jbr/Contents/Home' } });
     const out = [];

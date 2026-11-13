@@ -1,6 +1,6 @@
 # T688 — A wholly tidal water's Map view keeps the last camera and says "not available"
 
-Status: IN PROGRESS
+Status: DONE (92849a835)
 
 Source: emulator run on build 29 (app 0.7.7), 2026-11-12. Evidence: `bcfish-session-backup-2026-11-12/apk-077/11-tidal-deas-slough.png`
 (Regulations view: the tidal card, correct) and `12-tidal-deas-slough-map.png` / `.txt` (Map view: the camera still on the

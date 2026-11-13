@@ -240,3 +240,29 @@ Next commands:
   (`coast.authority` reads `source`/`authority`) and a `coast_held` rerun with the next atlas.
 - Held: T606 item 3 (needs deliver's read set), T593 (owner's scrape; new stored field re-keys DFO entries / marks),
   T661 gate install (another lane in app/; mid-run commit question), T540 ledger-cell cap, T677 items 1/3.
+
+## Lane 2026-11-12 (evening): T688, emulator smoke, part warning, store shots, owner to-do
+- T688 (Deas Slough Map view) DONE, 92849a835. Cause: a wholly tidal water lists no part (T278), so `waterMapView` had no
+  view model: no `fit` (camera kept the Okanagan) and the bar printed "The parts of this water are not available" (and a
+  frame naming the tidal piece threw "part N is not in its group"). Fix: `loadTidalWater` (data), `useTidalWaterMap` /
+  `waterMapTidalView` (ui), the Map view frames the tidal pieces' boxes and the bar says "Tidal water" + the tidal card's
+  first paragraph + "Show regulations for this water". Test `WaterMapView.tidal.test.tsx` (fails before: "not available").
+  Targeted suites green (228 files, 2,291 tests, unfiltered), typecheck, knip, boundaries, tickets guard. Wording is the
+  owner's to confirm (default built in). Emulator check owed on the next APK.
+- Emulator smoke RAN against build 29 (APK stamp 87d2eeac0, `--allow-stale` with reason) on emulator-5580, heavy lane 2.
+  Cause of "not connected": Maestro lists devices through the adb server and ONE offline entry (the phantom
+  `emulator-5554` from the owner's VS Code listener on 5555) throws away the whole list. Fix (testbed only, no port or
+  process touched): Maestro's hidden `--host 127.0.0.1 --port <console+1>` connects straight to the emulator
+  (`lib/device.mjs maestroDeviceArgs`, used by `lib/maestro.mjs` and the hierarchy fallback). Report in
+  bcfish-session-backup-2026-11-12/smoke-b29/.
+  PASS: install (first run 951 s, updates log all ok), satellite 3/3, edge 10/10, part-steps 4/4, switch 2/2.
+  FAIL: regs-open 9/10 (lake "Cultus": the test bed's [target] probe logged no tap target; the map itself framed the lake,
+  shot 016) and water-nav 6/7 (step 7 "Maestro Android driver did not start up in time", a driver start timeout, the first
+  six steps passed). Neither looks like an app defect; rerun both before reading anything into them.
+- Part warning captured: Shuswap Lake ("Part of this lake is closed today", Salmon Arm Bay closure Sep 1-Dec 31) and
+  Quesnel Lake ("Part of this lake closes at times"): apk-077/18-part-warning-shuswap-lake.png/.txt and 18b-...quesnel-lake.
+  (T623 F4 `partClosedOf`: lakes with a closure on a part the map cannot draw; Elk Lake / Chilko had none.)
+- Store shots: `node app/tools/store-shots.mjs --only play-phone,play-tablet7,play-tablet10` shoots the STAGING WEB site
+  (headless Chrome), not the APK, so they show whatever release the staging site serves (still r-483b295de57c until the
+  site deploy). Copied to bcfish-session-backup-2026-11-12/store-077/ (the repo's store/ and raw/ dirs are gitignored).
+- Owner to-do: row "Phone check of build 29 (app 0.7.7)" in handoff/PLAN/OWNER-TODO.md (not yet added to the Owner To-Do page).
