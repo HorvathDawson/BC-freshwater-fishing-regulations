@@ -35,7 +35,7 @@ const NONE_PINS: readonly never[] = [];
 export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, onTheme, tiles, camera, insetTop, insetBottom,
                              spots, spotsShown, spotLayer, spotsError, onRefreshSpots, refreshing, locate, me = null,
                              photos, loader, syncState, dfoCheckedAt = null, sync = null, onSync, menu, menuInfo, mapDay, onSaveSpot, onLayers, onRegion,
-                             offline = null, onDay, onOpenDay, dayRange, onObstacle, onTidal, onNotFishing, onRuns, fishImages, regsPrefetch = null,
+                             offline = null, onDay, onOpenDay, dayRange, onObstacle, onNotFishing, onRuns, fishImages, regsPrefetch = null,
                              lookKey, look }: {
   nav: ShellNav; col: MapColouring; search: ShellSearch; rail: MapRail; palette: Palette; theme: string;
   themeName: ThemeName; onTheme: (t: ThemeName) => void; tiles: TileEndpoints; camera: MutableRefObject<Camera>;
@@ -61,7 +61,6 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
   /** (T173) A fish obstacle mark tapped on the Map tab: the Shell raises its sheet. */
   onObstacle?: (props: Readonly<Record<string, unknown>>) => void;
   /** (T166) A tap on tidal water (no water under it) on the Map tab: the Shell raises the tidal sheet. */
-  onTidal?: () => void;
   /** (T292) A tap on a sewage lagoon / tailings pond / dump (no water under it): its kind, for the not-fishing sheet. */
   onNotFishing?: (kind: NotFishingKind | null) => void;
   /** (T199, T261) A tap on the Runs map (at or above the handover): the Shell raises the runs sheet for that section. */
@@ -261,7 +260,6 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
                      // and no water opens under it
                      onPressObstacle={picking || wideSearch || tab !== "map" ? undefined : onObstacle}
                      // (T166) tidal water, asked last (Map tab only): its sheet
-                     onPressTidal={picking || wideSearch || tab !== "map" ? undefined : onTidal}
                      // (T292) a sewage lagoon / tailings pond / dump (Map tab only): what it is, never regulations
                      onPressNotFishing={picking || wideSearch || tab !== "map" ? undefined : onNotFishing}
                      // and anywhere off a spot, a tap clears the selected spot's pin (T145, `mapPointTap`)

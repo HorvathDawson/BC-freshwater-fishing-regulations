@@ -9,7 +9,7 @@ import { describe, expect, it } from "vitest";
 import { paintFor } from "./paint";
 import { nativeStyle } from "./native-style";
 import { runtimeStyle } from "./runtime-style";
-import { firstNotFishing, NOT_FISHING_LAYERS, SECTION_LAYERS, TAP_GROUPS, TIDAL_LAYERS, VISIBLE_LAYERS } from "./sections";
+import { firstNotFishing, NOT_FISHING_LAYERS, SECTION_LAYERS, TAP_GROUPS, VISIBLE_LAYERS } from "./sections";
 import { STYLE_META, resolveTheme } from "./style";
 
 type L = { id: string; type: string; source?: string; "source-layer"?: string; paint?: Record<string, unknown> };
@@ -63,9 +63,8 @@ describe("not fishing water (Q125)", () => {
     expect(Object.keys(web.sources.atlas!.promoteId ?? {})).not.toContain(ID);
   });
 
-  it("(T292) a tap on one is its own, after the water and before tidal water: the kind, never a section", () => {
+  it("(T292) a tap on one is its own, after the water, the last thing a tap asks: the kind, never a section", () => {
     expect(NOT_FISHING_LAYERS).toEqual([ID]);
-    expect(TIDAL_LAYERS).not.toContain(ID);
     expect(firstNotFishing([{ properties: { kind: "tailings" } }, { properties: { kind: "sewage" } }]))
       .toEqual({ kind: "tailings" });
     // an older atlas (no `kind`) or a value this app does not know: still the sheet, unnamed

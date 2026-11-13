@@ -7,7 +7,7 @@
 import { bboxOfGeometry, unionBbox, type Bbox, type SectionKey } from "@app/core";
 import { baseAdapter, type MapAdapter, type MapRenderer } from "./contract";
 import {
-  NOT_FISHING_LAYERS, OBSTACLE_LAYERS, TIDAL_LAYERS, anyTidal, VISIBLE_LAYERS, WATER_SOURCE_LAYERS, firstNotFishing, firstObstacle, pickSection, onceSink, sectionIdOf, stateHandle, tapBox, visibleSections,
+  NOT_FISHING_LAYERS, OBSTACLE_LAYERS, VISIBLE_LAYERS, WATER_SOURCE_LAYERS, firstNotFishing, firstObstacle, pickSection, onceSink, sectionIdOf, stateHandle, tapBox, visibleSections,
 } from "../sections";
 import { mirrorSink, type CopyTarget, type LitFeature, type WaterCopy } from "../water-copy";
 
@@ -85,10 +85,6 @@ export function webRenderer(m: GlMapSlice, maxZoom: number, mirror?: CopyMirror)
     pressObstacle: async (x, y) => {
       const layers = present(OBSTACLE_LAYERS);
       return layers.length ? firstObstacle(m.queryRenderedFeatures(tapBox(x, y), { layers })) : null;
-    },
-    pressTidal: async (x, y) => {
-      const layers = present(TIDAL_LAYERS);
-      return layers.length ? anyTidal(m.queryRenderedFeatures(tapBox(x, y), { layers })) : false;
     },
     pressNotFishing: async (x, y) => {
       const layers = present(NOT_FISHING_LAYERS);

@@ -31,7 +31,6 @@ import { syncVM, type SyncKind, type SyncVM } from "./more";
 import { RUN_STATES, RUN_WORDS, type RunState } from "./runTiming";
 import { SALMON_MAP_STATUSES, SALMON_WORDS, type SalmonMapStatus } from "./salmon";
 import { WATER_STATUS, WATER_STATUSES, WATER_STATUS_LINE, type WaterStatus } from "./status";
-import { TIDAL_SHEET_WORDS } from "./tidal";
 import { NOT_FISHING_WORDS } from "./notFishing";
 
 /**
@@ -424,7 +423,7 @@ export const HELP_WORDS = {
     fly: "An edge round the line: only fly fishing is allowed, and the line's colour still shows through.",
     bait: "A dashed edge round the line: no bait of any kind.",
   } satisfies Record<GearMark, string>,
-  tidal: "Tidal water. The provincial regulations stop here and DFO's tidal rules apply. Tap it to read more.",
+  tidal: "Tidal water. The provincial regulations stop here and DFO's tidal rules apply.",
   salmon: {
     open: "Salmon may be kept here under DFO's rules.",
     release: "Salmon may be caught here but must be released.",
@@ -500,7 +499,7 @@ export function helpVM(): readonly HelpSection[] {
         name: METHOD_WORDS.legend[m], text: HELP_WORDS.gear[m] })),
       { key: "status-no_access", swatch: { kind: "status", status: "no_access", dotted: WATER_STATUS_LINE.no_access === "dotted" },
         name: ACCESS_WORDS.legend, text: HELP_WORDS.status.no_access },
-      { key: "tidal", swatch: { kind: "tidal" }, name: TIDAL_SHEET_WORDS.title.split(" — ")[0]!, text: HELP_WORDS.tidal },
+      { key: "tidal", swatch: { kind: "tidal" }, name: "Tidal water", text: HELP_WORDS.tidal },
       // (T292) sewage lagoons, tailings ponds, dumps: the muted fill, no regulations
       { key: "not-fishing", swatch: { kind: "notfishing" }, name: NOT_FISHING_WORDS.legend, text: NOT_FISHING_WORDS.help },
     ]),

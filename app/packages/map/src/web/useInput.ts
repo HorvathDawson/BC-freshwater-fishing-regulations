@@ -90,11 +90,10 @@ export function useMapPoint({ map, longPress }: WebMapRefs, onMapPoint: MapProps
 
 export function usePressFeature({ map, renderer, longPress }: WebMapRefs, onPressFeature: MapProps["onPressFeature"],
                                 onError: MapProps["onError"], onPressObstacle?: MapProps["onPressObstacle"],
-                                onPressTidal?: MapProps["onPressTidal"],
                                 onPressNotFishing?: MapProps["onPressNotFishing"]) {
   useEffect(() => {
     const m = map.current, r = renderer.current;
-    if (!m || !r || (!onPressFeature && !onPressObstacle && !onPressTidal && !onPressNotFishing)) return;
+    if (!m || !r || (!onPressFeature && !onPressObstacle && !onPressNotFishing)) return;
     const onClick = (e: maplibregl.MapMouseEvent) => {
       if (longPress.current?.fired()) return;       // the click a long press may leave behind is not a tap
       if (hitMark(m, e.point.x, e.point.y) !== null) return;   // (T317) a boundary mark's: it opens no water under it
@@ -131,28 +130,26 @@ export function usePressFeature({ map, renderer, longPress }: WebMapRefs, onPres
         if (hit) { onPressFeature!(hit.layer, hit.id, lat, lng); return; }
         // (T292) no water under the tap: a sewage lagoon / tailings pond / dump says what it is
         const nf = onPressNotFishing ? await r.pressNotFishing(x, y) : null;
-        if (nf) { onPressNotFishing!(nf.kind); return; }
-        // (T166) no water under the tap: tidal water, if that is what it landed on
-        if (onPressTidal && await r.pressTidal(x, y)) onPressTidal();
+        if (nf) onPressNotFishing!(nf.kind);
       })().catch((err: unknown) => onError?.(err instanceof Error ? err : new Error(String(err))));
     };
     m.on("click", onClick);
     return () => { m.off("click", onClick); };
-  }, [onPressFeature, onPressObstacle, onPressTidal, onPressNotFishing]);
+  }, [onPressFeature, onPressObstacle, onPressNotFishing]);
 }
 
 /*
  * (owner 2026-11-04: "on webapp on a computer could we make it so clickable items change the cursor? like the map
  * streams") THE POINTER OVER WHAT A CLICK WOULD OPEN: a mouse resting on a boundary mark, a spot, a titled pin, an
- * obstacle, a water, a not-fishing site or tidal water shows the hand; anywhere else the map's own grab. Asked through
+ * obstacle, a water, or a not-fishing site shows the hand; anywhere else the map's own grab. Asked through
  * THE SAME hit tests the clicks above ask (`hitMark`, `hitSpot`, `MapRenderer.press*`), so the hand never promises a
  * click that does nothing. Once per frame at most, never while the map moves or a button is held (a drag), and a
  * slower answer than the next move is dropped. A failed ask goes to `onError`, as a click's does.
  */
 export function useHoverCursor({ map, renderer }: WebMapRefs, on: {
-  feature: boolean; obstacle: boolean; tidal: boolean; notFishing: boolean; mark: boolean },
+  feature: boolean; obstacle: boolean; notFishing: boolean; mark: boolean },
                                onError: MapProps["onError"]) {
-  const key = `${on.feature}${on.obstacle}${on.tidal}${on.notFishing}${on.mark}`;
+  const key = `${on.feature}${on.obstacle}${on.notFishing}${on.mark}`;
   useEffect(() => {
     const m = map.current, r = renderer.current;
     if (!m || !r) return;
@@ -166,8 +163,7 @@ export function useHoverCursor({ map, renderer }: WebMapRefs, on: {
         .some((g) => typeof g.properties?.title === "string" && g.properties.title)) return true;
       if (on.obstacle && await r.pressObstacle(x, y)) return true;
       if (on.feature && await r.press(x, y)) return true;
-      if (on.notFishing && await r.pressNotFishing(x, y)) return true;
-      return on.tidal && await r.pressTidal(x, y);
+      return on.notFishing && await r.pressNotFishing(x, y);
     };
     const move = (e: maplibregl.MapMouseEvent) => {
       if (frame) return;

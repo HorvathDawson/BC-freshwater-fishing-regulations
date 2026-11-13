@@ -233,11 +233,6 @@ export interface MapProps {
    */
   onPressObstacle?: (props: Readonly<Record<string, unknown>>) => void;
   /**
-   * (T166) A tap that hit no water section but landed on TIDAL WATER (the `tidal_water` layer): the app raises the tidal
-   * sheet (`@app/core` `tidalSheet`). Asked last — after the obstacle mark and the water. Absent, the tap does nothing.
-   */
-  onPressTidal?: () => void;
-  /**
    * (T292) A tap that hit no water section but landed on NOT FISHING WATER (the `not_fishing_water` layer: a sewage
    * lagoon, tailings pond or dump): its `kind` (null on an older atlas), which `@app/core` `notFishingSheet` turns into
    * words. Asked after the water and before tidal water. Absent, the tap falls through to tidal water as before.

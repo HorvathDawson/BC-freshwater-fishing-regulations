@@ -9,7 +9,6 @@
 export { MapScreen } from "./MapScreen";
 export { SpotCapture } from "./SpotCapture";
 export { ObstacleSheet } from "./ObstacleSheet";
-export { TidalSheet } from "./TidalSheet";
 export { NotFishingSheet } from "./NotFishingSheet";
 export { RunsSheet } from "./RunsSheet";
 export { SyncErrorSheet } from "./SyncErrorSheet";

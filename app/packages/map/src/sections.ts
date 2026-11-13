@@ -71,14 +71,7 @@ export async function pickSection(
  */
 export const OBSTACLE_LAYERS: readonly string[] = ["obstacle"];
 
-/**
- * (T166) TIDAL WATER, asked LAST (`MapRenderer.pressTidal`): a tap that hits no water section but lands on the `tidal_water`
- * area (the DFO tidal-waters polygon) opens the tidal sheet. Never before a section: freshwater drawn over it answers first.
- */
-export const TIDAL_LAYERS: readonly string[] = ["tidal_water"];
-
-/** True when any feature of a tidal query exists (the area carries no tap payload: it is the same sheet everywhere). */
-export const anyTidal = (features: readonly unknown[]): boolean => features.length > 0;
+/* (T692, owner 2026-11-12 "Keep fill, no tap sheet") The `tidal_water` area is drawn and labelled but never asked on a tap. */
 
 /**
  * (T292) NOT FISHING WATER — a sewage lagoon, tailings pond or dump (the decorative `not_fishing_water` layer, no id),

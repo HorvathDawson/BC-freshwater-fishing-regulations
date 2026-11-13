@@ -134,9 +134,12 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
   const subject = usePageSubject(inputs.value ?? null);
   const access = useAccessNotices(loader, store.value ?? null, subject);
   // (T211) the Salmon card: DFO's salmon for (T387) the page's part, on THE day — the same card for every tap on it
-  const salmonPage = useMemo(() => (subject ? { subject, akey: inputs.value?.key?.akey ?? null } : null),
+  // (T692, owner 2026-11-12 "tidal card only") a TIDAL page asks no salmon: DFO's tidal rules are not in this feed, so the
+  // card and bar read "Closed" over the tidal card for a water DFO does not list
+  const tidalPage = regs?.status === "tidal";
+  const salmonPage = useMemo(() => (subject && !tidalPage ? { subject, akey: inputs.value?.key?.akey ?? null } : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- the page's identity
-    [subject, inputs.value?.key?.akey]);
+    [subject, inputs.value?.key?.akey, tidalPage]);
   // (T254) a failed Salmon card is asked again on Try again, and when the line comes back
   const { mode: netMode } = useNet();
   const [salmonTry, setSalmonTry] = useState(0);
@@ -150,7 +153,7 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
     if (regsErrorNow.current) onRetry?.();
   }, [netMode.offline]);   // eslint-disable-line react-hooks/exhaustive-deps -- only the line coming back
   // (T254) a release that ships salmon draws a card on every page: until it is in, its place says why
-  const salmonExpected = !!loader?.manifest?.files?.salmon;
+  const salmonExpected = !!loader?.manifest?.files?.salmon && !tidalPage;
   // (T230) the provincial in-season changes matched to this water / part, in effect on THE day (informational)
   // (T517) the page covers the map entry holding its part (`inSeasonPageOf`)
   const inSeasonPage = useInSeasonPage(pageItem, inputs.value?.partIx ?? null, entries);

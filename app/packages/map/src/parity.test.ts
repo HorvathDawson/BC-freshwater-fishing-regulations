@@ -178,20 +178,6 @@ describe("map parity: one op script, both renderers, the same commands", () => {
     } finally { delete WORLD.rendered.obstacle; }
   });
 
-  it("(T166) tidal water under the tap: the same box, the tidal_water layer only, a yes/no back — on both", async () => {
-    WORLD.rendered.tidal_water = [{ id: null, properties: { area_id: "tidal", name: "Tidal water" } }];
-    try {
-      const wlog: string[] = [], nlog: string[] = [];
-      const w = await webRenderer(glRecorder(wlog), 14).pressTidal(10, 10);
-      const n = await nativeRenderer(bindingRecorder(nlog), () => {}).pressTidal(10, 10);
-      expect({ n, nlog }).toEqual({ n: w, nlog: wlog });
-      expect([w, wlog]).toEqual([true, ["query [[-2,-2],[22,22]] tidal_water"]]);
-      WORLD.rendered.tidal_water = [];
-      expect([await webRenderer(glRecorder([]), 14).pressTidal(10, 10),
-              await nativeRenderer(bindingRecorder([]), () => {}).pressTidal(10, 10)]).toEqual([false, false]);
-    } finally { delete WORLD.rendered.tidal_water; }
-  });
-
   it("(T292) not-fishing water under the tap: the same box, its layer only, the kind back — on both", async () => {
     WORLD.rendered.not_fishing_water = [{ id: null, properties: { kind: "sewage" } }];
     try {

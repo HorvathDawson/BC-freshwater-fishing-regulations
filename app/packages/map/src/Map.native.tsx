@@ -103,7 +103,7 @@ type Data = NonNullable<MapProps["data"]>;
 /** (T348) How long a settled camera waits for a full render before it asks what is on screen itself. */
 const SETTLE_ASK_MS = 700;
 
-export function Map({ at, theme, view, modes, groups, hide, show, initial, data, onPressFeature, onPressObstacle, onPressTidal, onPressNotFishing, chrome, onError,
+export function Map({ at, theme, view, modes, groups, hide, show, initial, data, onPressFeature, onPressObstacle, onPressNotFishing, chrome, onError,
                       onMoved, onMapPoint, onLongPress, onOpenLab, highlight, inSeason, water, waterLine, selection = "outline", marker, style, gauges,
                       onVisible, pins, bare, fit, status, standing, lakes, salmon, method, runs, focus, near,
                       basemap, marks, onPressMark, spots, me, onImageryError: _noTileErrors,
@@ -142,8 +142,8 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
 
   // Callbacks through refs: the SDK handlers are registered once, and an inline arrow from a caller must not
   // re-register them (or, for the style, swap it).
-  const cb = useRef({ onError, onMoved, onMapPoint, onPressFeature, onPressObstacle, onPressTidal, onPressNotFishing, onVisible, onLongPress });
-  cb.current = { onError, onMoved, onMapPoint, onPressFeature, onPressObstacle, onPressTidal, onPressNotFishing, onVisible, onLongPress };
+  const cb = useRef({ onError, onMoved, onMapPoint, onPressFeature, onPressObstacle, onPressNotFishing, onVisible, onLongPress });
+  cb.current = { onError, onMoved, onMapPoint, onPressFeature, onPressObstacle, onPressNotFishing, onVisible, onLongPress };
   // (T445) a call that outlived its view (the map left, or a style load made the atlas source anew) is not a failure:
   // `goneView.ts`. Any other — a live view's included — is reported.
   const gone = useRef(new GoneViews());
@@ -688,9 +688,9 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
       if (p) setCallout({ title: p.title, x, y });
     }
     cb.current.onMapPoint?.(lat, lon);
-    const press = cb.current.onPressFeature, obstacle = cb.current.onPressObstacle, tidal = cb.current.onPressTidal;
+    const press = cb.current.onPressFeature, obstacle = cb.current.onPressObstacle;
     const notFishing = cb.current.onPressNotFishing;
-    if ((!press && !obstacle && !tidal && !notFishing) || !rendered.current) return;       // no renderer to query yet (see `rendered`)
+    if ((!press && !obstacle && !notFishing) || !rendered.current) return;       // no renderer to query yet (see `rendered`)
     try {
       // (T173) a fish obstacle mark first: a tap on the mark is the mark's, and opens no water under it
       const ob = obstacle ? await renderer.pressObstacle(x, y) : null;
@@ -700,9 +700,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
       if (hit) { press!(hit.layer, hit.id, lat, lon); return; }
       // (T292) no water under the tap: a sewage lagoon / tailings pond / dump says what it is
       const nf = notFishing ? await renderer.pressNotFishing(x, y) : null;
-      if (nf) { notFishing!(nf.kind); return; }
-      // (T166) no water under the tap: tidal water, if that is what it landed on
-      if (tidal && await renderer.pressTidal(x, y)) tidal();
+      if (nf) notFishing!(nf.kind);
     } catch (err) { report(err); }
   }, [report, renderer]);
 

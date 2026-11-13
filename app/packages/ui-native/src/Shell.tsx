@@ -72,7 +72,6 @@ import { LoadingState } from "./LoadingState";
 // (T282) loaded later on the web (`part`): not on the first screen's path
 const SpotCapture = part(() => import("./later").then((m) => m.SpotCapture));
 const ObstacleSheet = part(() => import("./later").then((m) => m.ObstacleSheet), (p) => p.props !== null);
-const TidalSheet = part(() => import("./later").then((m) => m.TidalSheet), (p) => p.open);
 const NotFishingSheet = part(() => import("./later").then((m) => m.NotFishingSheet), (p) => p.kind !== undefined);
 const RunsSheet = part(() => import("./later").then((m) => m.RunsSheet), (p) => p.vm !== null);
 const SyncErrorSheet = part(() => import("./later").then((m) => m.SyncErrorSheet), (p) => p.open);
@@ -168,7 +167,6 @@ export function Shell(p: ShellProps) {
   /** (T173) The tapped fish obstacle mark's tile properties, while its sheet is up. */
   const [obstacle, setObstacle] = useState<Readonly<Record<string, unknown>> | null>(null);
   /** (T166) Whether the tidal water sheet is up (a tap on tidal water, no water under it). */
-  const [tidalOpen, setTidalOpen] = useState(false);
   /** (T292) The tapped not-fishing water's kind (`undefined`: no sheet; null: a tile with no kind), while its sheet is up. */
   const [notFishing, setNotFishing] = useState<NotFishingKind | null | undefined>(undefined);
   /** (T199) The section a tap asked about under Run timing (its runs sheet), else null. */
@@ -594,7 +592,7 @@ export function Shell(p: ShellProps) {
                   dayRange={dayRange(bcNow(), loader?.manifest?.regulations?.valid_until ?? null)}
                   onSaveSpot={onSaveSpot} onLayers={() => setLayersOpen(true)} onRegion={onRegion}
                   offline={background.scheduler ? background.status : null}
-                  onObstacle={setObstacle} onTidal={() => setTidalOpen(true)} onNotFishing={setNotFishing} onRuns={(sid, at) => { setRunsAt(sid); setRunsPoint(at); }}
+                  onObstacle={setObstacle} onNotFishing={setNotFishing} onRuns={(sid, at) => { setRunsAt(sid); setRunsPoint(at); }}
                   fishImages={p.fishImages}
                   lookKey={lookKey} look={lookStore as HeldLookStore<unknown>} />
     : null;
@@ -735,7 +733,6 @@ export function Shell(p: ShellProps) {
       {/* (T173) a tapped fish obstacle mark: what it is (Map tab, while browsing) */}
       <ObstacleSheet props={route.mode === "browse" ? obstacle : null} palette={palette} onClose={() => setObstacle(null)} />
       {/* (T166) a tap on tidal water: why the freshwater regulations stop here (Map tab, while browsing) */}
-      <TidalSheet open={route.mode === "browse" && tidalOpen} palette={palette} onClose={() => setTidalOpen(false)} />
       {/* (T292) a tap on a sewage lagoon / tailings pond / dump: what it is, and that it is not a fishing water */}
       <NotFishingSheet kind={route.mode === "browse" ? notFishing : undefined} palette={palette}
                        onClose={() => setNotFishing(undefined)} />

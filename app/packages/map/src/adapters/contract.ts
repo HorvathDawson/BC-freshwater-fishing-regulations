@@ -66,8 +66,6 @@ export interface MapRenderer {
   press(x: number, y: number): Promise<{ layer: string; id: number } | null>;
   /** (T173) The fish obstacle under a tap at `(x, y)` (the same box, `OBSTACLE_LAYERS`): its tile properties, or null. */
   pressObstacle(x: number, y: number): Promise<Readonly<Record<string, unknown>> | null>;
-  /** (T166) Whether a tap at `(x, y)` (the same box, `TIDAL_LAYERS`) lands on tidal water. Asked after the water. */
-  pressTidal(x: number, y: number): Promise<boolean>;
   /**
    * (T292) The not-fishing water (sewage lagoon, tailings pond, dump) under a tap at `(x, y)` (the same box,
    * `NOT_FISHING_LAYERS`): its `kind`, or null for none. Asked after the water, before tidal water.
