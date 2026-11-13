@@ -1,6 +1,6 @@
 # T690 — Whiteswan Lake's inlet & outlet streams: every inlet No Fishing, the exception only below the falls
 
-Status: IN PROGRESS — c41d54742; left (Claude): rides the final atlas build (the 12 unnamed inlets become items); read
+Status: IN PROGRESS — c41d54742; left (Claude): promote full_next + release (built 2026-11-12) (the 12 unnamed inlets become items); read
 `whiteswan_lakes_inlet_outlet_streams.r1` in that build's binding diff (2 → 16 sections expected)
 
 Source: owner 2026-11-12, answering T637's "say if the name or the piece is wrong", verbatim: "It is this (no Fishing
@@ -45,3 +45,7 @@ the book's 2.4 km) already exists: no new cut.
 - The outlet below the falls, Jul 1: open — rainbow trout daily quota 5 (replaces Region 4's "2 from streams"), catch and
   release all other game fish (crayfish may be kept), with the Region 4 gear rules.
 - The outlet below the falls, Sep 1: "No Fishing Aug 1-Mar 31" — closed.
+- Final atlas build 2026-11-12 (`full_next`, not promoted): the 12 inlets are items (Whiteswan Lake inlet stream); r1 binds
+  16 sections (was 2); r2-r4 unchanged. Side effect: 7 short unnamed headwater lines (271-923 m) above two of the named
+  inlets are now kept as sections; they carry the Region 4 zone rules and the White River's tributary rules (r2-r4), not r1
+  (Claude's reading: a tributary of an inlet is not an inlet of the lake).

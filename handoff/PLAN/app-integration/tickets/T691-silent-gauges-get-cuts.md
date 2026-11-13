@@ -1,6 +1,6 @@
 # T691 — A silent gauge station ECCC still calls Active gets its cut (Q113)
 
-Status: IN PROGRESS — 1935c1dc9; left (Claude): rides the final atlas build (32 new gauge cuts); read the build's sliver
+Status: IN PROGRESS — 1935c1dc9; left (Claude): promote full_next + release (built 2026-11-12) (32 new gauge cuts); read the build's sliver
 gate and gauge placement lines for the 32
 
 Source: owner 2026-11-12, answering Q113 (T122), verbatim: "silent doesn't mean retired so we should add cuts Incase they
@@ -38,3 +38,8 @@ rows marked `trust: wrong`, no water). These five need a human match call (OWNER
   join them (`sectionizer` merge), not sliver.
 - In the app meanwhile: the 38 are not on ECCC's real-time list, so the feed never asks them and has no reading to show as
   current; a silent gauge shows its muted dot and says so in words (T586 F10, T581). Not re-checked on a device.
+- Final atlas build 2026-11-12 (`full_next`, not promoted): 30 new gauge split ids; 26 new cut places; 4 joined a boundary
+  already there (08HDX05 = 08HD005's place; 08MH152 the border cut; 08LG028 Douglas Lake's outlet edge; 08NH126 the Duncan
+  Dam end); 08PA004 (1,015 m) and 08JB013 (520 m) made no cut, over the 400 m `PROXIMITY_M`. Long-river length cuts
+  re-spaced around the new cuts (Fraser x4, Nechako, Muller, Iskut: 6 ids gone, 1 new; no curated rule names any). Sliver
+  gate clean. Every binding change on the cut lines is the same metres under new section ids.

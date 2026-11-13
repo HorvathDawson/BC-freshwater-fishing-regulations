@@ -473,6 +473,50 @@ Next commands:
   (Capilano part 1 "From the CN Railway Bridge … up to the Cable Pool Bridge footbridge" vs map "CN Railway Bridge … →
   Cable Pool Bridge footbridge"; 659 parts on 445 waters): keep, or the map's name always.
 
+## 2026-11-13 (agent: vessel entries, HEAD test failures, part ends, Gagnon, final atlas candidate) — NOT promoted, no release
+- T209 (2841fb605): owner "Keep them as two entries": the one-chip "or" join of 81598325e undone; each "or" vessel line is two
+  entries with the locator (Harrison, Okanagan, Kalamalka, Skaha); harrison_river.r4 stays. RULINGS P51.
+- HEAD test failures (0bfcfb84c): Fishing Creek's folded pond silent = a pass-order DEFECT in `panels.build` (polygon
+  fallback ran before the gap fill; now repeated, `REPEAT_POLYGON_FALLBACK`, mutation-pinned; one section province-wide;
+  clears at the next deliver). Stale pins set to the real invariant: `test_part_geo` 106 → 110 (D1 fold: Biddy, Gravel, Hill,
+  Exchamsiks), Nicomen polygon → adjacent line (same final panel), smoke id for the T697 test file. `test_t207_split_confidence`
+  passes at HEAD and at caa3a0133/8436b380e/434449f3d: a dirty-tree transient, nothing to fix. `test_t100_area_caveat` 83/84:
+  the corpus (harrison r4) is ahead of the release; clears at the next deliver.
+- T697 part ends (040b79d16, subagent): owner "Yes, read the real boundary" — Slack "Region 8 boundary", Jones "B.C. border",
+  a cut aliased onto a lake edge keeps its name (also Duncan "Duncan Dam", Mitchell weir, Babine counting weir). Gagnon's
+  top end (km 3.66) has no real boundary yet. RULINGS P55 follow-up. Rides the next deliver.
+- Gagnon (NOT BUILT, owner question): the 58 ha lake wbk 329465442 is FWA "lake" (Williston "reservoir") behind what looks
+  like a rail/road embankment, joined only by the creek's 74 m channel — contradicts "the unnamed lake is part of Williston".
+  OWNER-TODO + To-Do row `gagnon-williston`; picture ~/bcfish-session-backup-2026-11-12/lake-ends/gagnon_creek.jpg.
+- Final atlas `full_next` (30 min, rc 0; includes T606 item 2, T560 items 3/5, T690, T691; T696 intake cut answered "Leave
+  it"): items 21,279 → 21,291 (+12 Whiteswan inlet streams); boundaries 11,361 → 11,382 (+26 gauge cuts, length cuts re-spaced
+  on the Fraser x4, Nechako, Muller, Iskut: 6 gone, 1 new); 49 items changed (27 waters gain a gauge boundary; 5 lakes lose
+  "West Road/Blackwater River" search names; Teslin's two Hutsigola edge ids swap; area counts). Sliver gate clean.
+  T691 watch: 08HDX05 joins 08HD005's cut; 08MH152 joins the border cut; 08LG028 joins Douglas Lake's outlet edge; 08NH126 the
+  Duncan Dam end; 08PA004 (1,015 m) and 08JB013 (520 m) no cut (over `PROXIMITY_M` 400 m).
+- Reach `data/generated/reaches/nextatlas_final` vs `release/baseline/r-0a9930fb8826`: 301 rules, 2 licensing, 13 DFO places,
+  0 tidal/outside, 1 diagnostic. By metres (scratch `cls/classify.py`): 205 rules, 2 licensing, 12 DFO = same water under new
+  section ids (the gauge/length re-cuts). The rest: harrison_river.r4 (new rule, = r3's 8 sections), Whiteswan r1 (16
+  sections, T690), and 94 zone/provincial rules + White River r2-r4 + DFO 4:region:section gain 7 short unnamed headwater
+  lines (271-923 m) above two newly named Whiteswan inlets (now kept as sections; zone rules only, not r1 — Claude's reading:
+  an inlet's tributary is not the lake's inlet). Nothing unexplained. Diagnostic: harrison r4's ambiguous cut, as r3.
+- Promote dry run: rc 0; boundary_loss 0; no curated boundary id gone or moved; no curated item id dead/absorbed. The plain
+  promote needs NO accept flag. The release's binding diff will stop for `--accept-diff` (the changes above).
+- Fast-fail (FAST_FAIL_ALL=1): all passed (41 s).
+
+## 2026-11-13 — More: Settings screen, Freshwater Atlas, update lines (T703)
+Owner's phone report (build 29, the More tab). Done in code, not yet in a build:
+- Staleness (`core/src/staleness.ts`): Freshwater Atlas and Basemap moved from an age line (730 / 365 days) to `dated`:
+  their date and "Changes rarely", never "Likely out of date" from age. No signal exists that a newer atlas is published
+  (the feed's notices cover HYDAT only), so nothing can mark it out of date. Synopsis (lapse date), Map tiles (the pair)
+  and HYDAT (feed notice; 18-month fallback) were already facts and are unchanged.
+- Settings: a first row on More opens `SettingsPage` (Data / Privacy / Display); the four controls moved unchanged
+  (mobile data, low-bandwidth on the web, crash reports, palette). Words naming their home now say "More → Settings".
+- More above the table: the "Checked ..." line and every healthy source's line are gone; the button, a failed source, a
+  release the app cannot use, and the in-season card stay (ticket T703 lists why). `check-platform.mjs` allowance moved
+  from MoreScreen to SettingsPage (the same one inline web check).
+- The one-off e2e `tools/updates-e2e.mjs` now reads the kept `data-updates-notice` (a script, not in the suite).
+
 
 ## 2026-11-13 — T667 slice 5b: page v36 inventory and retirement (owner: before closed testing)
 
@@ -489,3 +533,12 @@ Next commands:
 - Left: a smoke.txt-named node id (`test_the_ruling_moves_only_the_nov_jun_keep_days`) kept until D6; slice 8 planned in
   the ticket (build after the conftest / ci_no_build lane).
 
+- Pipeline suite, chunked, unfiltered (`scripts/heavy.sh … bash scripts/pytest-chunked.sh`, then `-- -m slow`):
+  fast 7,409 passed / 12 failed / 275 deselected; slow 268 passed / 6 failed / 1 skipped.
+  Clear at the next deliver (bundle behind the code/corpus): test_stream_polygon_panels (Fishing Creek, 0bfcfb84c),
+  test_t100_area_caveat (harrison r4), test_part_names_unnamed_lake (040b79d16), test_release contract (T696 `gauge.diversion`).
+  Stale since r-0a9930fb8826 / T678 D1 (pins to re-measure; T678 owner): test_part_runs x2, test_side_channel_water Nicomen
+  16 vs 10, test_t89 x2 (Endako 29 vs 20; the three lake twins r5b/r6b/r9b bind no water — documented D1 effect),
+  test_review_queue P3 99 vs 103; slow: test_one_water_kind x4, test_unnamed_trib_sweep (committed sweep moved),
+  test_watershed_parts Skeena lakes — not checked one by one. Today's lanes: test_gear_omission (kept gap harrison r3
+  'powered_boats' closed by r4, T209 81598325e), test_t117_walks (diversion.py reads up_adj unclassified, T696 8436b380e).
