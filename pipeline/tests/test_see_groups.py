@@ -131,6 +131,23 @@ def test_a_group_name_leads_to_the_waters_it_names(corpus):
         ("r2:marshall_creek@2-4", "Marshall Creek", 0, "r2:lonzo_marshall_creek@2-4", "Lonzo Creek", "gnis:1860")]
 
 
+def test_a_pointer_opens_the_water_it_names_in_a_row_of_several(corpus, monkeypatch):
+    """T687 (emulator, build 29): search "Vedder River" listed "Vedder River: see Chilliwack / Vedder Rivers", and opening
+    it landed on the Chilliwack River above Vedder Crossing: the pointer opened the target row's FIRST water. It opens
+    the water the pointer row itself names, where the target row matches it (5 pointers move, every other one stays)."""
+    got = {r[1]: r[5] for r in RULES.see_pointer_rows(corpus)
+           if r[1] in ("Vedder River", "Bear Lake", "Cedar Lake", "Mara Lake", "Waneta Reservoir", "Garbutt Lake")}
+    assert got == {"Vedder River": "gnis:3062", "Bear Lake": "wbk:329101330", "Cedar Lake": "wbk:329522925",
+                   "Mara Lake": "wbk:329518146", "Waneta Reservoir": "wbk:329262640",
+                   "Garbutt Lake": "wbk:329524023"}          # names both of Norbury's waters: the first, as before
+    before = RULES.see_pointer_rows(corpus)
+    # mutation: the first matched water again, and exactly those five move back
+    monkeypatch.setattr(RULES.see, "opens", lambda ce, te: te.matched[0] if te.matched else None)
+    old = RULES.see_pointer_rows(corpus)
+    moved = sorted(a[1] for a, b in zip(before, old) if a != b)
+    assert len(before) == len(old) and moved == ["Bear Lake", "Cedar Lake", "Mara Lake", "Vedder River", "Waneta Reservoir"]
+
+
 def test_only_a_row_that_only_points_is_a_group_and_a_twin_is_none(corpus):
     rows = RULES.see_pointer_rows(corpus)
     eids = {r[0] for r in rows}
@@ -189,10 +206,10 @@ def test_every_pointer_is_said_by_the_names_the_book_prints(corpus):
         # the two Wigwam rows are one river to open: one way to it, not two identical buttons
         "r4:bighorn_ram_creek@4-2": ("Bighorn Creek", [("Wigwam River", "gnis:27703")]),
         "r5:bella_coola_river@5-8": ("Bella Coola River", [("Atnarko/Bella Coola Rivers", "gnis:11611")]),
-        "r2:vedder_river@2-4": ("Vedder River", [("Chilliwack / Vedder Rivers", "gnis:8634")]),
+        "r2:vedder_river@2-4": ("Vedder River", [("Chilliwack / Vedder Rivers", "gnis:3062")]),   # T687: the water the pointer names
         # a lake part keeps its authored name
         "r7:nation_river@7-30": ("Nation River", [("Williston Lake — Nation Arm", "wbk:-16")]),
-        "r4:waneta_reservoir@4-8": ("Waneta Reservoir", [("Pend D'Oreille River", "gnis:4927")])}
+        "r4:waneta_reservoir@4-8": ("Waneta Reservoir", [("Pend D'Oreille River", "wbk:329262640")])}  # T687: the reservoir
     rows = RULES.see_pointer_rows(corpus)
     from pipeline.deliver.bundle.place_names import is_shouting
     assert [r for r in rows if '"' in r[1] + r[4] or is_shouting(r[1]) or is_shouting(r[4]) or r[1] == r[4]] == []

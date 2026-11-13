@@ -65,8 +65,8 @@ def see_pointer_rows(entries: dict) -> list[tuple]:
     "See …" (`pointer_only`: "TEE PEE LAKES  See Friday, Saturday, and Sunday Lakes") binds nothing
     and draws no line; what it gives a reader is the way to the waters it names. One row per named
     entry, in the pointer's order: (entry_id, name, ix, target_entry, target_name, item_id) — both
-    names the book's (`see_name`), `item_id` the target row's first matched water (what opening it
-    opens; NULL when it matched none). The same name to the same water from two rows (two regions'
+    names the book's (`see_name`), `item_id` what opening it opens (`opens`: the target row's water the
+    pointer names, else its first matched water; NULL when it matched none). The same name to the same water from two rows (two regions'
     copies of one pointer) is said once (`ONE_WAY_IN_ACROSS_ROWS`). A TWIN ("the same row printed in
     another region's table") is no group: it names its own water under its own name, so it is left out. Only a WATER row (`r…`)
     is a name a reader looks up: a zone table's note ("Main body of Kootenay Lake") is none. Two named
@@ -84,7 +84,7 @@ def see_pointer_rows(entries: dict) -> list[tuple]:
             if not targets or see_relation(ce, targets) == "twin":
                 continue
             for te in targets:
-                way = (see_name(te), te.matched[0] if te.matched else None)
+                way = (see_name(te), opens(ce, te))
                 if way in said or (ONE_WAY_IN_ACROSS_ROWS and (see_name(ce),) + way in across):
                     continue
                 said.add(way)
@@ -92,6 +92,19 @@ def see_pointer_rows(entries: dict) -> list[tuple]:
                 out.append((eid, see_name(ce), ix, te.entry_id) + way)
                 ix += 1
     return out
+
+
+def opens(ce, te):
+    """THE WATER A POINTER OPENS (T687): the one water of the target row that the pointer row ITSELF names, else the
+    target row's first matched water (NULL when it matched none). "VEDDER RIVER  See Chilliwack/Vedder Rivers" names the
+    Vedder River (gnis:3062); the row it points at matches the Chilliwack first, and search's "Vedder River: see
+    Chilliwack / Vedder Rivers" opened the Chilliwack River above Vedder Crossing. Same for Bear Lake (Cowichan Lake's
+    row), Cedar Lake (the Sumallo's), Mara Lake (Shuswap Lake's) and Waneta Reservoir (the Pend d'Oreille's). Where the
+    pointer names none of the target's waters, or several (Garbutt Lake, Cameron Lakes), the first is kept."""
+    if not te.matched:
+        return None
+    own = [m for m in te.matched if m in set(ce.matched)]
+    return own[0] if len(own) == 1 else te.matched[0]
 
 
 #: T80 (T56 review): ONE POINTER PRINTED IN TWO REGIONS IS ONE WAY IN. Regions 5 and 7 both print "Blackwater River:
