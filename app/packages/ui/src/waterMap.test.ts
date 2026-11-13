@@ -419,7 +419,8 @@ describe("leaving the map, through the route (P13)", () => {
 // is said, never a way into a part no Fraser map lists (which opened the Fraser on "2 stretches · stretch 1 of 2").
 // (T441) the Coquitlam's sections as [stream key, start metre] (the fixture's `lines`), never as ids: Mary Hill → Lougheed
 // is two sections (312 → 6590, the gauge 08MH002 cut, and 6590 → 7028), Lougheed → the watershed boundary one (7028 →
-// 16309), and the rest the lake-outlet part's
+// 16309), and the rest the lake-outlet part's — (T678 D1, r-0a9930fb8826) with the Coquitlam's one folded pond
+// (lake:329292598), a section of that part with no line, named by the part (`sec.lake`)
 const COQ_MARY_HILL = [[356364584, 312], [356364584, 6590]] as const;
 const COQ_LOUGHEED = [[356364584, 7028]] as const;
 const COQ_UPPER = [[355994322, 0], [355999215, 0], [356000341, 0], [356001729, 0], [356001891, 0], [356364584, 16309],
@@ -431,7 +432,8 @@ describe("(T345) the Coquitlam: parts meet at the Lougheed bridge; the tidal Fra
     expect(parts).toEqual([
       ["Mary Hill Bypass Bridge → Lougheed Highway Bridge", await sec.streams(COQ_MARY_HILL)],
       ["Lougheed Highway Bridge → Coquitlam Watershed boundary", await sec.streams(COQ_LOUGHEED)],
-      ["Coquitlam Watershed boundary → A lake outlet", await sec.streams(COQ_UPPER)],
+      ["Coquitlam Watershed boundary → A lake outlet",
+       [...await sec.streams(COQ_UPPER), await sec.lake("gnis:19986", await sec.partAt("gnis:19986", 356364584, 16309))]],
     ]);
     // never one section in two parts, and every part's `water` is exactly the others' sections
     const all = g.parts.flatMap((p) => p.sids);
