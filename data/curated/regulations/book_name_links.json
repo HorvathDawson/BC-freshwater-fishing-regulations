@@ -7218,7 +7218,7 @@
     "4-24"
    ]
   },
-  "note": "Whiteswan Lake's outlet stream (wsc 300-625474-814939-312002, registry item 'Whiteswan Lake outlet stream'), which carries the falls cut whiteswan_lake_s_inlet_outlet_streams__whiteswan_outlet_falls the row's EXCEPT clause names. The inlet streams are unnamed and have no registry item; they are NOT placed. [merge 2026-09-24]",
+  "note": "Whiteswan Lake's outlet stream (wsc 300-625474-814939-312002, registry item 'Whiteswan Lake outlet stream'), which carries the falls cut whiteswan_lake_s_inlet_outlet_streams__whiteswan_outlet_falls the row's EXCEPT clause names. [merge 2026-09-24] T690 (owner 2026-11-12, every inlet is No Fishing): the inlet streams are NOT matched here; rule r1 names them in its own extent (Cave Creek, Inlet Creek and 12 unnamed lines named 'Whiteswan Lake inlet stream' in name_variants), so this row's water stays the outlet.",
   "fwa_watershed_codes": [
    "300-625474-814939-312002"
   ]

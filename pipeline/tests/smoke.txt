@@ -422,3 +422,4 @@ pipeline/tests/test_workflow_pins.py::test_no_workflow_has_a_schedule
 pipeline/tests/test_dfo_vectors.py::test_the_file_holds_every_saved_page_and_every_shared_row
 pipeline/tests/test_feed_formats.py::test_every_python_writer_reads_the_table
 pipeline/tests/test_next_atlas_items.py::test_one_area_slug
+pipeline/tests/test_whiteswan_inlets_t690.py::test_every_inlet_and_the_outlet_above_the_falls_are_closed

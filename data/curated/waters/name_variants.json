@@ -72089,6 +72089,32 @@
  },
  {
   "target": {
+   "blks": [
+    "356410751",
+    "356421702",
+    "356444314",
+    "356475930",
+    "356485246",
+    "356498612",
+    "356510138",
+    "356517928",
+    "356526594",
+    "356527622",
+    "356544529",
+    "356559006"
+   ]
+  },
+  "names": [
+   {
+    "name": "Whiteswan Lake inlet stream",
+    "source": "regulation",
+    "display": true,
+    "note": "T690 (owner 2026-11-12: \"Inlet is all no fishing (every inlet)\"): the twelve unnamed FWA streams that flow straight INTO Whiteswan Lake (lake:329247790's lake_in edges in the atlas, read 2026-11-12; the other three inlets are the named Cave Creek gnis:11699, Inlet Creek gnis:10239 and blue line 356560775 above the lake, named by the entry above). Unnamed, the registry had no item for them, so the book row \"Whiteswan Lake's inlet & outlet streams\" (No Fishing EXCEPT the outlet stream downstream of the falls) could not reach them. Named whole line (each line from the lake edge to its source); their own tributaries are not inlet streams and stay unnamed. Each line has its own FWA code, so each becomes its own item wsc:<code>, named in the row's extent (whiteswan_lakes_inlet_outlet_streams.r1)."
+   }
+  ]
+ },
+ {
+  "target": {
    "wscs": [
     "910-999299"
    ],
