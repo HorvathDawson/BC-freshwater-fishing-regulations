@@ -305,11 +305,15 @@ describe("(T227) the salmon year at the top of the Keep tab", () => {
     expect([o.mark + o.word, o.soon]).toEqual(["✓ Open", { kind: "soon", text: "Closed from Aug 24" }]);
   });
 
-  it("salmon closed all year beside a provincial bar closed all year: no second bar (the two say the same)", () => {
+  it("(owner 2026-11-13, Capilano) salmon closed all year beside a provincial bar closed all year: its own bar, like game fish's", () => {
     const card = { headlineStatus: "closed", year: {
       bars: [{ label: null, unmapped: false, today: "closed", todayWord: "closed", runs: [{ status: "closed", days: 365 }] }] } } as never;
-    expect(salmonStripOf(card, { runs: [{ bits: 1 }], line: [] })).toBeNull();
-    expect(salmonStripOf(card, { runs: [{ bits: 1 }, { bits: 0 }], line: [] })?.word).toBe("Closed");
+    for (const general of [{ runs: [{ bits: 1 }], line: [{ kind: "when", text: "today" }], todayAt: 316 / 365 },
+                           { runs: [{ bits: 1 }, { bits: 0 }], line: [{ kind: "when", text: "today" }], todayAt: 316 / 365 }]) {
+      const s = salmonStripOf(card, general)!;
+      expect([s.status, s.mark + s.word, s.when, s.soon, s.runs, s.legend.map((l) => l.label)])
+        .toEqual(["closed", "✕Closed", "today", null, [{ drawn: "closed", days: 365 }], ["✕ Closed"]]);
+    }
   });
 
   it("(owner) the Gear / Methods tabs state no closure: shown only when game fish or salmon may be fished", () => {

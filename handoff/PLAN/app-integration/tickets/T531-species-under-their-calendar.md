@@ -44,4 +44,12 @@ Species go under a block by the source of the rule that governs them (DFO rule -
   (DFO first). Fixed: whenever the Salmon (DFO) block is drawn it comes first, above the game-fish calendar and its rows
   (`KeepTab`; separator rule moved under the salmon block). Tests: `KeepTab.test.tsx` order pins + a strict whole-block-above
   check across the fixture waters. Store shot 2 (T319, game fish stacked over salmon) no longer matches the app.
+- Follow-up (owner 2026-11-13, Capilano River on build 29: "Also when salmon are closed like that is should say the
+  calendar widget like game fish instead maybe?"): BUILT ON THE OWNER'S SUGGESTION ("maybe"), on the post-release phone
+  check list. Core `salmonStripOf` no longer drops the salmon bar when salmon are closed all year beside a provincial bar
+  closed all year (a T227 build rule, "the two say the same", never an owner ruling): the Salmon (DFO) block draws the
+  closed bar, today marked, its legend. Live release r-0a9930fb8826 census: 795 pages / 751 waters change from the bare
+  "Closed" to the bar (Capilano River parts 2 and 3 among them). Still the bare word, by the owner's T227 rules: no DFO
+  rule for the page (168 pages, "DFO lists nothing": never an all-closed bar for a water without salmon) and the
+  region-wide closures (about 8,060 pages in R4, R5, R7A, R7B: "one closed row in DFO's words, no bar").
 - Follow-up (main, 11-09): a DFO row with no DFO calendar (Glenn Creek) now sits under its own "Salmon (DFO)" heading and status ("Closed"), no bar or legend, after the B.C. block; the grouping test is strict across fixture waters. Versions 0.7.2, changelog entry added.

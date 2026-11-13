@@ -1095,10 +1095,13 @@ const SOON_DAYS = 21;
 const bookDayWords = (i: number) => fmtDay(BOOK_DAYS[i]!);   // book day i (no Feb 29) → "Nov 16"
 
 /**
- * (T227, owner 2026-10-28: "exactly like the game-fish bar") The salmon bar under the provincial year bar, or null: none
- * where DFO has no salmon rules for the page (never an all-closed bar for a water without salmon), and none where the
- * salmon bar is closed all year and so is the provincial bar (the two say the same thing). `general`: the provincial
- * year bar (null where the page draws none); `todayAt` its marker (book day / 365).
+ * (T227, owner 2026-10-28: "exactly like the game-fish bar") The salmon bar beside the provincial year bar, or null: none
+ * where DFO has no salmon rules for the page (never an all-closed bar for a water without salmon — `salmonYear` gives
+ * it no bar, nor the region-wide closure). (owner 2026-11-13, Capilano River: "when salmon are closed like that is should
+ * say the calendar widget like game fish instead maybe?") A water DFO speaks for whose salmon are closed all year draws
+ * its bar too — closed, today marked, the legend — even beside a provincial bar closed all year (it was dropped there
+ * as "the two say the same", which left a bare "Closed"). `general`: the provincial year bar (null where the page draws
+ * none); `todayAt` its marker (book day / 365).
  */
 export function salmonStripOf(card: SalmonCardVM, general: {
   readonly runs: readonly { readonly bits: number | null }[]; readonly line: readonly { readonly kind: string; readonly text: string }[];
@@ -1106,8 +1109,6 @@ export function salmonStripOf(card: SalmonCardVM, general: {
 ): SalmonStripVM | null {
   const bar = card.year.bars[0];
   if (!bar) return null;
-  const generalAllClosed = !!general && general.runs.every((r) => r.bits !== null && (r.bits & 1) === 1);
-  if (generalAllClosed && bar.runs.every((r) => r.status === "closed")) return null;
   const runs: { drawn: SalmonDrawn; days: number }[] = [];
   for (const r of bar.runs) {
     const dr = DRAWN[r.status], last = runs[runs.length - 1];
