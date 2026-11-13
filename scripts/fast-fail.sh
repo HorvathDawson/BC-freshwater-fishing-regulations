@@ -101,6 +101,10 @@ conflict_markers() {
 }
 step "no conflict markers" conflict_markers
 
+# caught (T540, 2026-11-12): STATUS.md grew to 155 KB with nobody moving the old days out; the fix is one command
+# (`scripts/status_archive.py --move`); < 0.1 s
+step "STATUS.md under its size limit (older days archived)" python3 scripts/status_archive.py --check
+
 # caught (T536, 2026-11-10): heavy.sh freed its lock while a stopped wrapper's job ran on, and read an empty memory
 # reading as 0 % free (killing a healthy job). Its shell test (fake jobs, stubbed memory_pressure, scratch lanes, ~10 s)
 # runs when heavy.sh or the test changes
