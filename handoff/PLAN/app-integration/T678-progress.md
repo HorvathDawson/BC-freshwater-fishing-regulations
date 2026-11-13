@@ -778,3 +778,15 @@ Owner's phone report (build 29, the More tab). Done in code, not yet in a build:
   inflated-URM lines: 354126477, 354137285, 354140926, 354142131; 12 on 356… lines), 18 Comox lines lose one piece each
   (pieces cut at the inflated measure merge back), 7 356… lines gain one. So the net is a mix (junction fix merges and
   stubs, plus the 356… moves, likely T690 Whiteswan naming / D1 folds — not traced), not exactly three stubs.
+- Sweep -3 ATTRIBUTED (coordinator: list it from the release dirs). The sweep's set (bundle sections whose unnamed part is a
+  stream) reproduced from each release read-only (`unnamed_release.py`: keyed handles, akey kind stream, in no core
+  item_section; handles -> ids by the atlas's section_handles.txt): r-0a9930fb8826 1,179,620 and r-adc4e248a163 1,179,617,
+  exactly the two sweep counts. 24 ids only old, 21 only new (list: candidate-2026-11-13/unnamed_diff.json):
+  | ids | side | cause |
+  |---|---|---|
+  | 354126477:182, 354129502:3098, 354130688:1206, 354137285:137, 354140926:0, 354142131:0, 354145916:1789, 354147713:793, 354147780:3112, 354147812:3645, 354151563:5035 | lost (11) | junction fix cause B: ids cut at the inflated measure, on bad-URM lines (bad_blks.txt), gone from the atlas — idmap.json `unproven` (on_bad_urm_line) |
+  | 354120506:2036, 354122939:772, 354124311:1109, 354130387:246, 354137022:106, 354146258:186, 354147088:8412, 354148037:4097, 354148037:4225, 354148740:1815, 354153340:214, 354153410:2379, 354154664:1714 | gained (13) | junction fix cause B: pieces the old run held OUTSIDE B.C. by the inflated measure, now inside (all 13 leave outside_bc.jsonl; the accepted diff's outside_bc table, 26 sections) |
+  | 356410751:522, 356421702:147, 356444314:179, 356475930:305, 356485246:437, 356498612:288, 356510138:427, 356517928:419, 356526594:345, 356527622:521, 356544529:563, 356559006:378 | lost (12) | T690: each line is now a named item "Whiteswan Lake inlet stream" (wsc:300-625474-814939-312002-…) |
+  | 356381530:0, 356404114:0, 356406960:0, 356410151:0, 356474947:0, 356495828:0, 356556059:0 | gained (7) | T690: the 7 short unnamed headwater lines above the newly named Whiteswan inlets, now kept as sections (2026-11-13 reach `nextatlas_final` note) |
+  | 359570593:24745 -> 359570593:24434 | 1 lost, 1 gained | junction fix: length cut re-placed (length:359570593:24745 in full.prev, :24434 in full; changes between reach nextatlas_final and nextatlas_junctions3) |
+  Net -11 +13 -12 +7 -1 +1 = -3. Not "3 pruned stubs" literally: a mix, every id attributed. Regenerated result committed.
