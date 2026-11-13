@@ -422,3 +422,18 @@ Next commands:
   `gauge.diversion` and the panels), then the app build. No atlas rebuild for these (unless the owner wants the intake cut).
   Until then `test_t100_area_caveat.py::test_the_export_carries_the_caveats` (needs_bundle) fails 83 vs 84 — expected.
 
+
+## 2026-11-12 (night) — Licence render test, full app check, store shot 2
+
+- Licence render test (`methods-licence.render.test.tsx`, "T670 G7, RULINGS Li13"): the failure was a stale expectation, not the
+  presenter. 1ce54b2fa (Li13b) intentionally adds the p.5 reduced-fee sentence ("If you are a resident of B.C. and disabled: ...
+  $1.14.") as a second "From the rule book:" box on the basic licence item for a B.C. resident adult. The test now asserts both
+  boxes for adult|resident (fee line, then the p.7 classified term), the non-resident's classified term alone, and that across
+  every fixture the only book text apart from the Elk's classified terms is the fee line, on adult|resident only (a non-classified
+  water carries no classified term). Not weakened. Commit 1e75ce6.
+- Full `pnpm -C app check` (heavy.sh lane 2, unfiltered): exit 0; Test Files 623 passed | 5 skipped (628); Tests 7561 passed | 27 skipped (7588).
+- Store shot 2 (`10-regs-bar-table`, Vedder River): scene now scrolls the page so the SALMON (DFO) section (its own year bar,
+  Open today, Salmon row) sits under the tabs with the tail of the game-fish table (Protected species) above it. Live staging,
+  today Nov 12 (salmon open). Line now "...and what you can keep, salmon included"; title unchanged. The trout bar and salmon bar do
+  not both fit in one 360x640 view (the game-fish table is 8 rows), so the view shows the salmon bar + row with trout/char-table rows above.
+  Old file kept as `02-10-regs-bar-table.prev.png` in `store-077b/play-phone/`.

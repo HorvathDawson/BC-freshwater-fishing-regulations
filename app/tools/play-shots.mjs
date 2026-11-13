@@ -70,7 +70,15 @@ async function condMap(b) {
 }
 Object.assign(SCENES, {
   // the rules tab: the year bar and the species table in one view (scrolled so the bar sits under the water's title)
-  '10-regs-bar-table': async (b) => { await until(b, `!!document.querySelector('[data-testid=keep-strip]')`, 120000); await sleep(3000); await scrollTo(b, 'keep-strip'); await sleep(1500); },
+  // (owner 2026-11-12: "salmon are a thing too") scrolled so the SALMON (DFO) section — its own year bar, Open/Closed today and its
+  // Salmon row — sits under the water's tabs with the tail of the game-fish table above it: trout/char rows and salmon in one view.
+  // The Vedder is open for salmon in the fall; out of season the salmon bar and row still show, closed.
+  '10-regs-bar-table': async (b) => { await until(b, `!!document.querySelector('[data-testid=keep-strip]')`, 120000); await sleep(3000);
+    const at = await b.evaluate(`(() => { const e = [...document.querySelectorAll('*')].filter((x) => x.children.length === 0 && /^salmon \\(dfo\\)$/i.test(x.textContent.trim())).pop(); if (!e) return 'no SALMON (DFO) section';
+      let p = e.parentElement; while (p && p.scrollHeight <= p.clientHeight + 2) p = p.parentElement; if (!p) return 'nothing scrolls';
+      p.scrollTop += e.getBoundingClientRect().top - 420; return 'ok'; })()`);
+    if (at !== 'ok') throw new Error('10-regs-bar-table: ' + at);
+    await sleep(1500); },
   // the gauge's chart with the forecast drawn on it (the model lines are the default on the chart: CLEVER, COFFEE, ELF)
   '11-cond-chart': async (b) => { await until(b, `!!document.querySelector('[data-testid=gauge-card]')`, 120000); await sleep(6000);
     await until(b, `!!document.querySelector('[data-testid=chart-model-CLEVER]')`); await b.evaluate(`document.querySelector('[data-testid=chart-legend]').scrollIntoView({ block: 'end' })`); await sleep(2500); },
