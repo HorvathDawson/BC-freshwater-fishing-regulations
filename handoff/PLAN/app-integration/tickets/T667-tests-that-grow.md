@@ -1,6 +1,6 @@
 # T667 — Tests that grow with the app: fewer hand updates per release and per feature
 
-Status: IN PROGRESS — slices 1–2 done; 3 done by T666; 4 and 5 done in part, 6 begun (2026-11-12, 716999ebc, 0f7b29678, c79b4516b, fb91259ef); left (Claude): `smoke.txt` derived (D6), the page v36 inventory and retirement (D1), slice 6's live counts, slices 7–8 — "What is left" below.
+Status: IN PROGRESS — slices 1–2 done; 3 done by T666; 4 and 5 done in part (5b, the page v36 inventory and retirement, done 2026-11-13: 5618e63bc, 3e933cc04, 34a4e0f61, afb6a5eda), 6 begun; left (Claude): `smoke.txt` derived (D6), slice 6's live counts, slice 7, slice 8 (planned below) — "What is left" below.
 
 Source: owner 2026-11-11: "we need to also make the tests more expandable; right now they get progressively more
 unwieldy ... a Fable task to improve the tests generally, to naturally grow with the app without too many hand
@@ -90,9 +90,7 @@ Depends: T666. Size: L. Fable for audit and design (owner). Part of the closed-t
 ## What is left (slices of `app-integration/T667-audit.md` §4), as of 2026-11-12
 - 4 `smoke.txt` derived by rule (D6): not started — another lane had `smoke.txt` and `test_smoke_coverage.py` open
   (fixing it) the whole session. Next after that lane merges.
-- 5b The page v36 inventory (D1): per v36 suite (settle, card, describe, book, edge, harness), what it asserts that the
-  taps parity does not; then retire suite by suite with a mutation per ported item. Not started: it removes coverage,
-  so it needs the inventory first (M).
+- 5b The page v36 inventory (D1): DONE 2026-11-13, below.
 - 6 Live counts → invariants / the release diff (D3): `test_one_water_kind` (137 / 13 / 9 / 12 sections, 117 aliases),
   `test_review_queue` (measured codes and tiers ± tolerance). Each is an atlas or reach-run count whose replacement must
   be proved by a planted violation on an atlas (or a release-diff printer in `pipeline/release.py`): stopped here, per
@@ -111,3 +109,75 @@ Depends: T666. Size: L. Fable for audit and design (owner). Part of the closed-t
   expectations. The scanners do not look at literal counts, entry ids or format versions yet.
 - 7 Environment contract and tiers (one env script, no-build default, chunk footprint).
 - 8 The small frozen synthetic release (D2), then UI logic tests off the regs fixture release.
+
+## Done 2026-11-13: slice 5b, the page v36 inventory and retirement (5618e63bc, 3e933cc04, 34a4e0f61, afb6a5eda)
+
+THE MOVE. Every page v36 suite compared core's port with page v36's CODE run over page v36's FROZEN DATA (hydrate.json,
+cut once from page_v36.html), so each approved ruling that moved a golden state was a hand amendment (v36-rulings.json,
+7 entries read in two languages). The page decides nothing (it renders the answers file), so its code over THE RELEASE
+UNDER TEST is the same oracle with every ruling already in it: `app/tools/regs-recut/page-oracle.mjs` runs page_v36.js
+(to `segBar`) over page blocks `page_blocks.py` cuts from the release through the Python reference decoder
+(`province_store` → `Store.answers()` + `export_subset()`), never the app's TypeScript read path, and writes
+`app/fixtures/golden/page-oracle.json` (121 tapped states; rules by DURABLE KEY, so a renumber-only release rewrites
+nothing; meta holds no release id). `sync.mjs` step 2 cuts it; `release_follows` row `page-oracle` has `answers=True`: a
+change in it STOPS the release for `--accept-fixtures`. Check of the move: the first cut against r-0a9930fb8826 differs
+from frozen hydrate.json (keyed) on exactly 73 states, and every difference is one of the v36-rulings.json entries (the
+retired z1/z2 r3s and Lois r3, Cowichan/Coquitlam "on parts", Nilkitkwa r4, Columbia r11 drawn, the Peace kokanee,
+Kitimat's strip) or the rename's order flips. A second cut is byte-identical.
+
+| # | family (where) | the defect it guards | covered by, after | verdict | proof (mutation → result) |
+|---|---|---|---|---|---|
+| 1 | settle.parity item 4 + makePlace via/rank (121 states) | core's settle/makePlace misdecodes the stored ladder / display frames or a part's via | the same test on page-oracle.json (page code over the same release) | RE-HOMED | speaks precedence dropped → many states red; lifted-by = itself → red; `timed` filter inverted → red (x14p2); undrawn `now` empty → red (x18, x22); trib rank `>= 0`→`> 0` → red; `viaOf` trib→reach → red |
+| 2 | settle.parity "5. the ticket's literals" + census (own 93 …) | (a) port defects on 9 named states; (b) the release's answers moving on them | (a) item 4 compares the whole projection the literals sample (counts, broad, lifted, standing, inpart, side, anglerclosed, status) on the same states; (b) the release stop on page-oracle.json | RETIRED | (a) the mutants of row 1 are red on item 4; (b) page v36's own answers put in as the oracle (renames only): 106 of 245 red, and `release_follows.answer_paths` names page-oracle.json (a stop) |
+| 3 | settle.parity 6 (Vedder Jun 1–30 closed) | isClosedOn / displayStatusOn | itself (a book fact on taps.json, not page v36) | KEPT as is | — |
+| 4 | card.parity item 4 (buildModel, 121 states) | core's card model misdecodes rows / decided answers | page-oracle.json `model` | RE-HOMED | `no_limit`→keep red; nolimit daily Infinity dropped red; members ← all_members red |
+| 5 | card.parity item 6 (stored `rows[].year` = page dayStatus) | the shipped strip is wrong, or the app reads the wrong one | page-oracle.json `dayStatus` (page strip over the release's rows frames) | RE-HOMED | reads.ts `strips[ys[0]]` → red |
+| 6 | card.parity literals, census, Kitimat helper test, v36-rulings row-index check | as row 2; the amendment helpers | as row 2; helpers gone | RETIRED | as row 2 |
+| 7 | describe.parity 7/8 on page_v36.html's own inputs | describe / rule view port on the 726 frozen rules | itself; the oracle is now computed in the test (`pageDecode(pageSource())`), no file | KEPT (re-homed off hydrate.json) | rows 8's mutants red here too |
+| 8 | describe.parity 7/8 on the store (hydrate's 726 + retired / on-parts / drawn-part amendments) and item 10 (28 noted rules) | describe / rule view on the release's rules | `pageDecode` over EVERY release rule (3,401) | RE-HOMED (10 folded in) | possession plain's full stop kept → red; band dash → red; UNCERTAIN prefix dropped → red. CURATOR prefix and the NO_REASON default SURVIVE here and survived the old suite too (no release rule carries them) → red in `packages/core/src/regs` unit tests |
+| 9 | describe.parity 9 (via / rank per state) | `viaOf` / rank of a trib rule | settle.parity makePlace (row 1) | RETIRED | `viaOf` mutant red in settle.parity |
+| 10 | describe.parity "store lacks exactly the retired rules", "superset" | an overlapping rule coming back to the corpus | the release stop on page-oracle.json (a returned rule speaks on the z1/z2/Lois states); pipeline pins (`test_competition`, `test_bundle_rule_rows`) | RETIRED | row 2 (b): the v36 answers, which hold those rules, stop the release |
+| 11 | `test_answers_year_strip_live.py` (HEAD's strips on the 42 golden waters = page dayStatus, Kitimat / Lois / Peace amended) | year.py on real shapes; HEAD drifting from the shipped answers | the same test on page-oracle.json (HEAD vs the release's page strips) + the no-data twin `test_answers_year_strip.py` | RE-HOMED | in memory (pipeline/deliver is another lane's): one moment per day → red here (2) and on the twin (3); release/closed rank swap → survives here (no golden day mixes them), red on the twin (2); the twin is red on all 5 year.py mutants (rank, hours window, Feb 29, moments, lead origin) |
+| 12 | `app/tools/regs-fixtures.test.ts` (core testing fixtures ⊂ page_v36.html) | a hand-trimmed fixture drifting from real data | itself | KEPT: frozen to frozen, no per-ruling cost; its one rename is a fixed const in oracles.ts | — |
+| 13 | `taps.py --page` (golden water names → ids), `emit-fish.mjs` (FISHART), `test_dataflow_gates` planted tables | input mapping / a data source / calendar tables | — | KEPT: not answer oracles | — |
+| 14 | `reads.release.test.ts` Vedder 515 strip literal | the read of a stored strip | card.parity 6 on all states | KEPT for now: a live literal, slice 6 / D3 material, not page v36 | — |
+
+Retired files: `app/fixtures/golden/hydrate.json`, `app/tools/regs-recut/hydrate.mjs`, `app/fixtures/reference/v36-rulings.json`
+(and in oracles.ts / golden.ts: hydrate(), oracleRix(Over), flipsOver, renamedOrder, isGone, every RULINGS export).
+`test_answers_year_strip_live.py::test_the_ruling_moves_only_the_nov_jun_keep_days` and its helper stay ONLY because
+`pipeline/tests/smoke.txt` (another lane's file) names that node id: delete both with the line when D6 derives the set.
+
+HAND WORK PER APPROVED RULING. Before: one entry in v36-rulings.json for each ruling that moved a golden state (7 entries
+by 2026-11-12), plus reader code in both languages when the ruling had a new shape (the Peace kokanee needed amendment code
+in settle, card and the Python test), plus the page-v36-quoted literals and census lines re-pinned. After: none. The
+release re-cuts page-oracle.json; if a golden state's answer moved, the release stops on that one file's diff and the
+owner accepts it once (`--accept-fixtures`), as T666 / D5 already do for the golden pages.
+
+## Slice 8 plan (not built): one small invented release for logic tests (D2)
+- WHAT: a release (water / regs-<r> / regs-sid / core / geo + manifest, the shipped formats) built BY THE REAL PIPELINE from
+  a tiny committed input tree: a synthetic FWA graph (≈ 12 invented waters: a river with a lake on it and two tributaries
+  (one with a row of its own), a braid, a tidal mouth, a lake cut into parts, a weekday rule, an hours-window rule, an
+  unnamed trib, a two-region straddler, a closed-all-year part), a 2-region curated tree and a ≈ 15-entry corpus that
+  exercises the reader's steps (zone vs water, lifts, closures, moot size clause, steelhead twin, licence/stamp).
+  Committed at `app/packages/data/dev/mini-release/` plus its inputs under `pipeline/tests/fixtures/mini/`.
+- HOW: `python -m pipeline.tools.mini_release --check` = atlas (from the synthetic graph; no gpkg) → reach → deliver →
+  release files, all in a temp dir; `--check` rebuilds and compares bytes with the committed copy (CI, no live data, a
+  minute), `--write` re-cuts it after a format change (a reviewed diff, never hand surgery). A test pins the inventory
+  above by name (every mechanism listed is present), so it cannot quietly shrink.
+- MOVES ONTO IT: the ~37 app test files on `openRegsFixture*` that test LOGIC (ui-native WaterMode / WaterMapView /
+  WaterScreen.unnamed, ui waterMap, regs-web states, waterGroup, decidedStory, twoRegions, the VM-fixture harness) and the
+  pipeline logic tests that today build their own toy bundle. The page oracle (page-oracle.mjs) is cut on it too, so the
+  settle / card / describe parities also run on invented waters with no release on the machine.
+- REPLACES: most re-cuts of `app/packages/data/dev/regs-release/` (64 commits in six weeks) and of the VM fixtures; the
+  regs fixture release shrinks to the ~10 real-water walks D2 keeps (Vedder, Skeena, Fraser, Kootenay …), still cut by
+  sync.mjs. taps.json / page-oracle.json stay on the real release (they are the release-tier walks).
+- SHARED PIECES (build only after the lane in `conftest.py` / `ci_no_build.py` / `smoke.txt` merges): a `needs_mini`
+  marker is NOT wanted (the mini release is committed, always present) but `ci_no_build.py` must not hide it and
+  `conftest.py`'s `need()` must name its rebuild command; `under_test.py` gets `mini()` (the one way a pipeline test
+  reaches it) and the anchors scanners (both halves) accept it as anchor (b); smoke membership follows D6's rule.
+- EFFORT: L — about 4 sessions: (1) synthetic graph + corpus + curated tree and the builder through reach (the atlas
+  stage needs a graph-in entry point; measure first whether `pipeline build --side` can take a prebuilt graph.pkl);
+  (2) deliver + release files + `--check` determinism (two runs identical); (3) move the app logic tests, one batch
+  per package, each with the mutation that proves it still bites; (4) the pipeline side + shrink regs_fixture.
+- ORDER: after slice 7 (the env contract touches the same two files) and after the smoke.txt lane; 1 → 2 before any
+  test moves; the page oracle on it last.

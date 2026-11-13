@@ -472,3 +472,20 @@ Next commands:
 - Left for the owner (ticket): the long label still shows the book's wording when the part is its choice alone
   (Capilano part 1 "From the CN Railway Bridge … up to the Cable Pool Bridge footbridge" vs map "CN Railway Bridge … →
   Cable Pool Bridge footbridge"; 659 parts on 445 waters): keep, or the map's name always.
+
+
+## 2026-11-13 — T667 slice 5b: page v36 inventory and retirement (owner: before closed testing)
+
+- The page v36 suites now run page v36's own CODE over the release under test, not its frozen data: `page-oracle.mjs` +
+  `page_blocks.py` (Python reference decoder) write `app/fixtures/golden/page-oracle.json` (rules by durable key; re-cut
+  by sync.mjs; a change stops the release). First cut vs frozen hydrate.json: 73 states differ, each one a v36-rulings
+  entry. Re-cut twice: byte-identical.
+- 5618e63bc settle, 3e933cc04 card, 34a4e0f61 describe (page decode over all 3,401 release rules), afb6a5eda Python
+  year-strip test; hydrate.json, hydrate.mjs, v36-rulings.json deleted. Inventory table (14 families: 6 re-homed, 5
+  retired, 4 kept) and every mutation in the ticket. Two notes-wording mutants survive the parity before and after (no
+  release rule has them); core unit tests catch them.
+- Hand work per approved ruling: was one v36-rulings.json entry (plus reader code in two languages for a new shape, and
+  literal re-pins); now none — a moved golden answer is a page-oracle.json diff the release stops on.
+- Left: a smoke.txt-named node id (`test_the_ruling_moves_only_the_nov_jun_keep_days`) kept until D6; slice 8 planned in
+  the ticket (build after the conftest / ci_no_build lane).
+
