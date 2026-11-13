@@ -29,7 +29,7 @@ Two consumers, one fact, and neither of them matches anything.
 
 from __future__ import annotations
 
-from pipeline.gauges.liveness import speaks_now
+from pipeline.gauges.liveness import may_speak
 
 # How far the resolver may look from the station's coordinate for a channel to cut. A gauge
 # is often on a bank or a bridge while the FWA line is the channel centre, and on a braided
@@ -46,16 +46,20 @@ def split_defs(matches, stations: list[dict], *, live_only: bool = True) -> list
     the braid — and a distinct type so a cut a curator wrote and a cut a station generated
     are told apart in `splits.resolved.json` and in the gpkg.
 
-    ``live_only`` keeps the cuts to transmitting stations (`liveness.speaks_now` on the roster's
-    snapshot — not `may_speak`: T122's owner question). A station discontinued in 1974
-    still sits somewhere, but cutting the river at it buys a boundary no reading will ever
-    appear on. The MATCH still covers every station, because the bundle wants them all.
+    ``live_only`` keeps the cuts to stations that MAY SPEAK (`liveness.may_speak`: ECCC's own
+    status is Active). SILENT IS NOT RETIRED (owner 2026-11-12, T691, answering T122's Q113:
+    "silent doesn't mean retired so we should add cuts Incase they start transmitting again?"):
+    an active station off today's real-time list (a seasonal gauge, a dropped feed) is cut like a
+    transmitting one, so its section is ready the day it reports again, and the cut set no longer
+    moves with the season the roster was fetched in. A station discontinued in 1974 still sits
+    somewhere, but cutting the river at it buys a boundary no reading will ever appear on, so it
+    is not cut. The MATCH still covers every station, because the bundle wants them all.
     """
     roster = {s["station"]: s for s in stations}
     out: list[dict] = []
     for m in sorted(matches, key=lambda m: m.station):
         s = roster.get(m.station)
-        if s is None or (live_only and not speaks_now(s)):
+        if s is None or (live_only and not may_speak(s)):
             continue
         # A LAKE STATION IS NOT A CUT. It reports a level for a body of water; there is no
         # "above it" and "below it" along a channel to separate. Lake gauges are linked to

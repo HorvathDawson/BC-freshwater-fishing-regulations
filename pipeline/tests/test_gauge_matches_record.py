@@ -90,7 +90,7 @@ def test_a_change_that_moves_no_cut_passes_and_one_that_does_is_refused(tmp_path
     """T159 promoted 8 stations — 6 lake gauges, 2 not transmitting — and the byte digest refused the
     bundle though no boundary moved. A non-cut row passes; a row that becomes a cut is still refused."""
     from pipeline.gauges.consume import cuts
-    monkeypatch.setattr(cuts, "speaks_now", lambda s: s["station"] == "08AA001")
+    monkeypatch.setattr(cuts, "may_speak", lambda s: s["station"] == "08AA001")
     roster = tmp_path / "roster.json"
     roster.write_text("[]")
     from pipeline.gauges.consume import shed
@@ -101,10 +101,10 @@ def test_a_change_that_moves_no_cut_passes_and_one_that_does_is_refused(tmp_path
     matches.write_text(json.dumps(_rows({"status": "no_match"})))
     M.write_record(atlas, cut=True, sha=M.matches_digest(matches),
                    cuts_sha=M.cuts_digest(matches, roster))
-    # a lake gauge / a silent station joins: no cut
+    # a lake gauge / a retired station joins: no cut
     matches.write_text(json.dumps(_rows({"status": "matched", "lon": -122.1, "lat": 49.1, "wsc": "100-2"})))
     M.check_record(atlas, matches, roster)
-    # it starts transmitting: now it IS a cut the atlas never made
-    monkeypatch.setattr(cuts, "speaks_now", lambda s: True)
+    # ECCC calls it Active: now it IS a cut the atlas never made
+    monkeypatch.setattr(cuts, "may_speak", lambda s: True)
     with pytest.raises(SystemExit, match="did not cut"):
         M.check_record(atlas, matches, roster)

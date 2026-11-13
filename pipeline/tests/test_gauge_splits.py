@@ -15,9 +15,9 @@ def _m(station="08AA001", **kw):
     return StationMatch(station, **base)
 
 
-def _s(station="08AA001", realtime=True, name="TEST RIVER AT NOWHERE"):
+def _s(station="08AA001", realtime=True, name="TEST RIVER AT NOWHERE", active=True):
     return {"station": station, "name": name, "lon": -123.0, "lat": 49.0,
-            "realtime": realtime}
+            "realtime": realtime, "active": active}
 
 
 class TestWhatIsEmitted:
@@ -61,8 +61,16 @@ class TestWhatIsRefused:
     def test_a_discontinued_station_is_matched_but_not_cut_at(self):
         # It still sits somewhere — the bundle wants it — but cutting the river there buys
         # a boundary no reading will ever appear on.
-        assert split_defs([_m()], [_s(realtime=False)]) == []
-        assert len(split_defs([_m()], [_s(realtime=False)], live_only=False)) == 1
+        assert split_defs([_m()], [_s(realtime=False, active=False)]) == []
+        assert len(split_defs([_m()], [_s(realtime=False, active=False)], live_only=False)) == 1
+
+    def test_a_silent_station_is_cut_like_a_transmitting_one(self):
+        # T691, owner 2026-11-12: "silent doesn't mean retired so we should add cuts Incase they start
+        # transmitting again?" — ECCC Active, off today's real-time list (a seasonal gauge): cut, so its
+        # section is there the day it reports. MUTATION: reading `speaks_now` again drops it.
+        assert [r["id"] for r in split_defs([_m()], [_s(realtime=False, active=True)])] == ["gauge__08AA001"]
+        # listed on the snapshot but discontinued by ECCC's own status: not cut
+        assert split_defs([_m()], [_s(realtime=True, active=False)]) == []
 
     def test_an_unmatched_station_contributes_nothing(self):
         assert split_defs([_m(status="unresolved", wsc="", lon=None, lat=None)], [_s()]) == []

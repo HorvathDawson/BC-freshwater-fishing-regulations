@@ -209,7 +209,7 @@ _CUT_KEYS = ("id", "station", "anchor", "wsc", "proximity_m")
 
 def cuts_digest_of(rows: list[dict]) -> str:
     """sha256 (16 hex) of the gauge CUT SET — `consume.cuts.split_defs` rows, the only thing the atlas
-    takes from the matches file. A station that is not a cut (a lake gauge, one not transmitting, an
+    takes from the matches file. A station that is not a cut (a lake gauge, one ECCC calls discontinued, an
     unresolved row) can change without moving any boundary, so it must not demand an atlas rebuild."""
     import hashlib
     canon = sorted(({k: r.get(k) for k in _CUT_KEYS} for r in rows), key=lambda r: r["id"])

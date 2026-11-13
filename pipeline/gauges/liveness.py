@@ -19,9 +19,9 @@ active stations are silent (seasonal, or dropped from the list); ECCC's list tha
 never seen (07FA008, 08DA013, 08DB015, 08FB012) — the feed asks them, the bundle cannot place them.
 
 DORMANT = neither (`dormant`): matched, kept, attached to nothing (the bundle's gauge tables, T226).
-WHO ASKS WHICH. May speak: the bundle's shed filter. Speaks now: the shed's tie-break between two stations of equal
-ratio (the roster snapshot), the atlas's gauge cuts (`consume.cuts.split_defs`, the roster snapshot — see T122's owner
-question), the feed's list of stations to ask (`stations_to_ask`, today's list), and the transmitting counts the
+WHO ASKS WHICH. May speak: the bundle's shed filter, and the atlas's gauge cuts (`consume.cuts.split_defs`; owner
+2026-11-12, T691: "silent doesn't mean retired"). Speaks now: the shed's tie-break between two stations of equal
+ratio (the roster snapshot), the feed's list of stations to ask (`stations_to_ask`, today's list), and the transmitting counts the
 bundle build and `generate.promote` print. Nothing else in `pipeline/` or `data/fetch_data.py` reads `active`,
 `realtime` or the ECCC list (`test_liveness.py`, the grep pin).
 
