@@ -21,7 +21,7 @@ import { Pressable } from "../Pressable";
 import { PART_FIT_MAX_ZOOM, WATER_MAP_WORDS, DAY_LABELS, bcNow } from "@app/core";
 import type { ItemId, SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
-import { inSeasonSections, useAsync, useBackLayer, useInSeasonCovers, useRegsStore, useReleaseLines, useSalmonKey, useWaterMap,
+import { inSeasonSections, useAsync, useBackLayer, useInSeasonCovers, useRegsStore, useReleaseLines, useSalmonKey, useTidalWaterMap, useWaterMap,
          type WaterMapPartVM, type WaterMapVM, type WaterMapAction } from "@app/ui";
 import { MapScreen } from "../MapScreen";
 import { WaterInset } from "../WaterFrame";
@@ -99,14 +99,18 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
   useGuideControl(vm ? "map:up" : null, vm ? !vm.up.disabled : false, () => step("up"));
   useGuideControl(vm ? "map:regs" : null, true, () => { if (vm) onShowRegs(vm.regs.item as ItemId, vm.regs.partIx); });
   const regsRing = useCoachTarget("map:regs");
-  const status = store.error || wm.error ? WATER_MAP_WORDS.unavailable
-    : wm.state === "loading" || store.state === "loading" ? WATER_MAP_WORDS.loading
-    : vm === null ? WATER_MAP_WORDS.unavailable : null;
+  // (T688) a wholly tidal water lists no part, so the map has no view model: it frames the water itself and says what is
+  // true (a tidal water), instead of keeping the last water's camera under "not available"
+  const td = useTidalWaterMap(store.value ?? null, item, !!store.value && wm.state === "ready" && vm === null);
+  const tidal = td.value;
+  const status = store.error || wm.error || td.error ? WATER_MAP_WORDS.unavailable
+    : wm.state === "loading" || store.state === "loading" || td.state === "loading" ? WATER_MAP_WORDS.loading
+    : vm === null && tidal === null ? WATER_MAP_WORDS.unavailable : null;
   // (T508) DRAWN WHOLE: the bar with the part's view model (or the words that say it is unavailable), and the map
   // with that part lit and framed (`usePaneMap`, armed only once the view model hands the map its part: a first draw of
   // nothing never counts) — what a pane held over the browse map waits for (`shell/paneReveal.ts`)
   usePaneReady(status !== WATER_MAP_WORDS.loading);
-  const onDrawn = usePaneMap(vm !== null || status === WATER_MAP_WORDS.unavailable);
+  const onDrawn = usePaneMap(vm !== null || tidal !== null || status === WATER_MAP_WORDS.unavailable);
 
   return (
     <View style={{ flex: 1, backgroundColor: palette.card }} testID="water-map">
@@ -123,7 +127,8 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
                    marks={vm?.marks.map((m) => ({ lon: m.lon, lat: m.lat, label: m.label, a11y: m.a11y, on: m.on })) ?? []}
                    onPressMark={(i) => { const m = vm?.marks[i]; if (m) act({ type: "mark", ix: m.ix }); }}
                    // (T443) a part in its country, framed the same however it was reached (the first open, a step)
-                   fit={vm ? { key: vm.fitKey, bbox: vm.bounds, refine: false, maxZoom: PART_FIT_MAX_ZOOM } : null}
+                   fit={vm ? { key: vm.fitKey, bbox: vm.bounds, refine: false, maxZoom: PART_FIT_MAX_ZOOM }
+                     : tidal ? { key: tidal.fitKey, bbox: tidal.bounds, refine: false, maxZoom: PART_FIT_MAX_ZOOM } : null}
                    onPressFeature={(_layer, id, lat, lon) => {
                      const sid = Number(id);
                      if (vm && (vm.selected.includes(sid) || vm.water.includes(sid))) act({ type: "section", sid });
@@ -191,6 +196,21 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
                 )}
               </View>
             )}
+          </>
+        ) : tidal ? (
+          <>
+            <Text style={{ ...TYPE.metaBold, color: palette.ink }} testID="water-map-tidal">{tidal.title}</Text>
+            <Text style={{ ...TYPE.name, fontSize: 19, lineHeight: 23, color: palette.ink, marginTop: 2 }}
+                  testID="water-map-name" accessibilityLabel={tidal.name}>{tidal.name}</Text>
+            <Text style={{ ...TYPE.body, color: palette.sub, marginTop: 6 }} testID="water-map-tidal-body">{tidal.body}</Text>
+            <Pressable onPress={() => onShowRegs(tidal.regs.item as ItemId, tidal.regs.partIx)} accessibilityRole="button"
+                       accessibilityLabel={tidal.regs.label} testID="water-map-regs"
+                       style={{ minHeight: 52, marginTop: 8, alignItems: "center", justifyContent: "center",
+                                backgroundColor: palette.accent }}>
+              <Text style={{ ...TYPE.bodyStrong, fontFamily: TYPE.metaBold.fontFamily, color: palette.onAccent }}>
+                {tidal.regs.label}
+              </Text>
+            </Pressable>
           </>
         ) : (
           <View style={{ gap: 12, alignItems: "flex-start" }}>

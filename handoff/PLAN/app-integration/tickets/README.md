@@ -193,6 +193,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T679 | Each decision in its own stage (everything but tidal): 18 findings, owner D2–D6 answered 2026-11-12 | IN PROGRESS | c9488453c | owner 2026-11-11 "look for other things like that too"; D2 (map and bar one source, 0 days moved) and D6 (Python reads DFO rows tolerantly, 0 rows fail today) built in c9488453c; D1/D3/D4/D5 + gauge placement built in 9b0d6f4ae (candidate `full_t678b`); left (Claude): lands with the promote + next deliver; 11 other-line gauge cuts held for the owner |
 | T681 | The gauge-reporting key (T636 ring line) on the map, not in the bottom bar | DONE | d84c664e1 | owner 2026-11-12; overrides T367 for this line only; other legends stay in the bar |
 | T686 | Shrink shipped data across the board: survey every shipped file, measure candidate savings, propose (no design yet). Next free ticket T687 | OPEN | — | owner 2026-11-12 ("Raise now, shrink later"); RULINGS O5 |
+| T688 | A wholly tidal water's Map view (Deas Slough) keeps the last camera and says "not available": frame the water, say it is tidal | IN PROGRESS | — | build 29 emulator run 2026-11-12; left: emulator check on the next APK |
 
 ## Order for open tickets
 

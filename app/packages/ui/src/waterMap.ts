@@ -24,11 +24,11 @@
 import { useMemo, useRef, useState } from "react";
 import {
   reportOnce, crossLabel, crossDown, crossUp, entryNames, entryPieces, exitLabel, groupBounds, mergeNav, itemNote, markA11y, markLabel, navSections, partAt, partBounds,
-  partName, partOfSection, partRowAria, partWhere, stepsDown, stepsUp, WATER_MAP_WORDS, wholeAria, wholeLabel, type Bbox,
+  partName, partOfSection, partRowAria, partWhere, stepsDown, stepsUp, TIDAL_SHEET_WORDS, WATER_MAP_WORDS, wholeAria, wholeLabel, type Bbox,
   type NavCross, type NavExit, type WaterGroup,
 } from "@app/core";
 import type { ItemId, SectionId } from "@app/data";
-import { loadRawWaterGroup, type GroupStore, type RegsStore } from "@app/data/regs";
+import { loadRawWaterGroup, loadTidalWater, type GroupStore, type RegsStore, type TidalWater } from "@app/data/regs";
 import { useAsync, type Async } from "./async";
 import { useFeedVersion } from "./feedVersion";
 import { useFrameView } from "./frameView";
@@ -395,6 +395,45 @@ export function waterMapStartIx(g: WaterGroup, item: string, part: number | null
   return i;
 }
 
+/**
+ * (T688, one load path) A WHOLLY TIDAL WATER'S MAP: it lists no part (T278), so `useWaterMap` has no view model and the
+ * map had nothing to frame — it kept the camera of the water before and said "The parts of this water are not available",
+ * a failure that was not one. The map frames the water itself (the union of its tidal pieces' boxes) and the bar says
+ * what is true: a tidal water, with the Regulations view (the tidal card) one press away. The same whichever way the water
+ * was opened (a search Open has no part, a tap or an address names the tidal piece).
+ */
+export interface WaterMapTidalVM {
+  readonly name: string;
+  readonly title: string;
+  readonly body: string;
+  readonly bounds: Bbox | null;
+  readonly fitKey: string;
+  readonly sids: readonly number[];
+  readonly regs: { readonly label: string; readonly item: string; readonly partIx: number };
+}
+
+/** The tidal water's bar and frame (pure). */
+export function waterMapTidalView(t: TidalWater): WaterMapTidalVM {
+  return { name: t.name, title: WATER_MAP_WORDS.tidal, body: TIDAL_SHEET_WORDS.body[0], bounds: t.bounds,
+           fitKey: `${t.item}:tidal`, sids: t.sids,
+           regs: { label: WATER_MAP_WORDS.tidalRegs, item: t.item, partIx: t.partIx } };
+}
+
+/**
+ * The water map's tidal case: asked only when `wanted` (the group is read and lists no part). Loading while it is read;
+ * null: the water is not wholly tidal (so the map really has nothing to show, and says so).
+ */
+export function useTidalWaterMap(store: RegsStore | null, item: ItemId | null, wanted: boolean): Async<WaterMapTidalVM | null> {
+  const key = `water-tidal:${store ? idOf(store) : ""}:${item ?? ""}`;
+  const r = useAsync(async () => {
+    const t = store && item ? await loadTidalWater(store, item) : null;
+    return { key, vm: t ? waterMapTidalView(t) : null };
+  }, key, wanted && !!store && !!item);
+  if (!wanted || !store || !item) return { state: "ready", value: null, error: null };
+  if (r.state !== "ready") return r.state === "failed" ? r : { state: "loading", value: null, error: null };
+  return r.value.key === key ? { state: "ready", value: r.value.vm, error: null } : { state: "loading", value: null, error: null };
+}
+
 export interface WaterMap {
   readonly vm: WaterMapVM;
   readonly act: (a: WaterMapAction) => void;
@@ -475,7 +514,9 @@ export function useWaterMap(store: RegsStore | null, item: ItemId | null, part: 
   // ⤢), dropped the moment the frame changes
   let startFailed: Error | null = null;
   let heldS: WaterMapState | null = null;
-  try { heldS = held && held.at === at ? held.s : g && item ? waterMapStart(waterMapStartIx(g, item, startPart)) : null; }
+  // (T688) a group with no part (a wholly tidal water: every piece is tidal and never listed) has no part to start on —
+  // not a failure: `useTidalWaterMap` frames it
+  try { heldS = held && held.at === at ? held.s : g && item && g.parts.length ? waterMapStart(waterMapStartIx(g, item, startPart)) : null; }
   // (no silent fallbacks) a frame on a part its group does not hold: the map is FAILED (shown unavailable) and reported
   catch (e) { startFailed = e instanceof Error ? e : new Error(String(e)); reportOnce(`waterMapStart:${startFailed.message}`, e); }
   // (T369 D7) ⤢ is the FRAME's (`whole`), never held: a view switch, back and a reload keep it

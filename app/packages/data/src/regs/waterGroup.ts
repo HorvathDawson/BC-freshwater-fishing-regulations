@@ -5,7 +5,7 @@
  * the navigation is core's, over this stored graph. No geometry is read: the tiles draw the water; the release says
  * which sections are which part, and where each part's box is.
  */
-import { mergeNav, waterGroup, type ItemNavRows, type WaterGroup } from "@app/core";
+import { geoBounds, mergeNav, waterGroup, type Bbox, type ItemNavRows, type WaterGroup } from "@app/core";
 import type { RegsReads } from "./reads";
 import { RegsInputsError } from "./inputs";
 
@@ -70,4 +70,30 @@ export async function siblingItems(store: Pick<RegsReads, "itemOrd" | "siblingOr
   if (ord === null) return [];
   const ords = await store.siblingOrds(ord);
   return Promise.all(ords.map(async (o) => (o === ord ? item : (await store.item(o)).id)));
+}
+
+/** (T688) A WHOLLY TIDAL water, as its map needs it: the water has no listed part (every piece is tidal, T278), so no group
+ *  holds its frame; the release's own rows for its tidal pieces do. */
+export interface TidalWater {
+  readonly item: string;
+  readonly name: string;
+  /** the part the Regulations view opens its tidal card on: the first tidal piece */
+  readonly partIx: number;
+  /** the camera's frame: the union of its tidal pieces' boxes (`geoBounds`), null when none is stored */
+  readonly bounds: Bbox | null;
+  /** its tidal pieces' sections */
+  readonly sids: readonly number[];
+}
+
+/** The water `item` as a wholly tidal water, or null: not in the store, or it lists a part, or it has no tidal piece. */
+export async function loadTidalWater(store: GroupStore, item: string): Promise<TidalWater | null> {
+  const ord = await store.itemOrd(item);
+  if (ord === null) throw new RegsInputsError(`water map: no water ${item} in the regs store`);
+  const [it, parts, nav] = await Promise.all([store.item(ord), store.parts(ord), store.navRows(ord)]);
+  const tidal = parts.filter((p) => p.tidal);
+  if (!tidal.length || tidal.length !== parts.length) return null;
+  const ix = new Set(tidal.map((p) => p.partIx));
+  return { item: it.id, name: it.name, partIx: Math.min(...ix),
+           bounds: geoBounds(nav.geo.filter((g) => ix.has(g.partIx))),
+           sids: nav.sections.filter((s) => ix.has(s.partIx)).map((s) => s.sid) };
 }

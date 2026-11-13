@@ -468,6 +468,21 @@ export function partBounds(g: WaterGroup, i: number): Bbox | null {
   return p.box ?? (p.mid ? around(p.mid) : null);
 }
 
+/**
+ * (T688) THE FRAME OF A WHOLLY TIDAL WATER: the union of its tidal pieces' boxes (a piece with no box: a kilometre around
+ * its midpoint). A wholly tidal water lists no part, so no `WaterGroup` holds a frame for it; its map is framed from the
+ * release's own `part_geo` rows, the same ones a part's frame is read from. Null: neither is stored.
+ */
+export function geoBounds(geo: readonly { readonly box: Bbox | null; readonly mid: readonly [number, number] | null }[]): Bbox | null {
+  let out: Bbox | null = null;
+  for (const g of geo) {
+    const b = g.box ?? (g.mid ? around(g.mid) : null);
+    if (!b) continue;
+    out = out ? [Math.min(out[0], b[0]), Math.min(out[1], b[1]), Math.max(out[2], b[2]), Math.max(out[3], b[3])] : b;
+  }
+  return out;
+}
+
 /** The whole group's frame: the union of its parts' frames. */
 export function groupBounds(g: WaterGroup): Bbox | null {
   let out: Bbox | null = null;
@@ -493,6 +508,9 @@ export const WATER_MAP_WORDS = {
   lowest: "Lowest part",
   highest: "Highest part",
   regs: "Show regulations for this part",
+  /** (T688) A wholly tidal water has no parts: its bar names it as tidal and opens its page (the tidal card). */
+  tidal: "Tidal water",
+  tidalRegs: "Show regulations for this water",
   thisPart: "This part",
   /** The ⤢ button framing the whole water; the noun is `waterNoun`'s (T116): "Whole river", "Whole wetland". */
   whole: (noun: string) => `Whole ${noun}`,
