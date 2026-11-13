@@ -405,3 +405,20 @@ Next commands:
   the Licence-tab lane's, not this change. knip clean, typecheck clean. Pipeline affected tests: 483 pass + 6 new; 2 fail on HEAD too (`test_part_geo`
   unlabelled-mark count 110≠106, `test_t207_split_confidence` contract pack), not this change.
 - Held: the 5 mid-water ends say a km ("Unnamed lake (km 2.3)") because nothing named stands within 2 km.
+
+## 2026-11-12 (agent: T696 Theodosia built, T209 Harrison follow-up, tidal style comment) — no atlas, release or APK
+- T696 (8436b380e, RULINGS P54): owner "Leave gaugeless" (the 28) and "Show 08GC005 above the canal". Authored
+  `data/curated/gauges/diversion_stations.json` + `pipeline/gauges/consume/diversion.py`: the bundle places 08GC005 at
+  its intake (panels, route, `gauge.sid`), climbs only, takes 08GC006/08GC007 off every section above the intake;
+  `gauge.diversion` (conditions/1 still). App: key "08GC005 · 70% · measures a diversion" + `diversionNote`. Live-atlas
+  scratch run: the main-stem panel (1195804) 08GC007 lead → 08GC005 lead + 08GC008; 180 match rows 08GC006 → 08GC005.
+  Owner question left: a cut at the intake (~160 m above the 08GC006 cut where 1195804 begins). Pictures in
+  `~/bcfish-session-backup-2026-11-12/theodosia/`.
+- T209 follow-up (81598325e): printed p.23 Harrison line holds both alternatives (r3 speed, new r4 no powered boats);
+  the app draws one chip "Speed restriction or no powered boats — in small bays along the river as signed" (and joins
+  the Okanagan/Kalamalka/Skaha pairs the same way). Sweep of the other 21: nothing else dropped.
+- Tidal layer `$comment` no longer says tap target (81598325e); style rebuilt, outputs unchanged.
+- The final release must rebuild: reach run + deliver (the corpus changed: harrison_river.r4; the bundle gets
+  `gauge.diversion` and the panels), then the app build. No atlas rebuild for these (unless the owner wants the intake cut).
+  Until then `test_t100_area_caveat.py::test_the_export_carries_the_caveats` (needs_bundle) fails 83 vs 84 — expected.
+
