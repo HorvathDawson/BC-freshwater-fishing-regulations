@@ -44,8 +44,9 @@ without this ticket equals T668's numbers (449 chains, 1,949,842 sections).
 - Fix (app, presentation only): `SalmonBucketVM.tiers`, one line per child tier in the store's words, while a species
   it names may be kept that day; `SalmonCard` draws them under the total. Two regions' buckets are one only when their
   whole trees are equal (Region 8's monthly limit made them differ and was dropped by the old key).
-- Test: `core/src/salmon.test.ts` "(T671 D3)". The card's render test file fails today on another lane's in-flight
-  Keep change (`KeepBlocks.tsx` `o.back`), so the new line is not render-tested yet.
+- Test: `core/src/salmon.test.ts` "(T671 D3)". Render test (2026-11-12): `ui-native/src/regs/SalmonCard.test.tsx` "(T671 D3) the
+  bucket's period limits are drawn under the total…" (a coho limit drawn, a chinook one not while only coho may be kept;
+  mutation: the card not mapping `tiers` fails it).
 - Shows: with the next app build; no release needed.
 
 ## Ruled by the owner 2026-11-12, built (4bc03ac14)

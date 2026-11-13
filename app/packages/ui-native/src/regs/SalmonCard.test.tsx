@@ -63,6 +63,25 @@ describe("the Salmon card", () => {
     expect(screen.queryByTestId("salmon-bucket-line")).toBeNull();
   });
 
+  it("(T671 D3) the bucket's period limits are drawn under the total, each in the store's words, while a species it names may be kept", () => {
+    const P = FACTS.payload;
+    const tier = (t: string, n: number, says: string, more: object = {}) => ({ node: "tier", id: "t1", tier: t, n, says, by: 0, children: [], ...more });
+    const annual = tier("size", 10, "The total annual limit for coho salmon over 50 cm is 10 fish from all fresh waters combined.",
+                        { over_cm: 50, period: "annual", id: "a", species: ["CO"] });
+    const chinook = tier("size", 10, "The total annual limit for chinook salmon over 50 cm is 10 fish.",
+                         { over_cm: 50, period: "annual", id: "b", species: ["CH"] });
+    const facts = { ...FACTS, payload: { ...P,
+      regions: { "6": { ...P.regions["6"]!, bucket: { tree: tier("total", 4, "Up to 4 salmon a day in total", { children: [annual, chinook] }), possession: 8,
+                                                     t: "The daily limit for all species of Pacific salmon from tidal and fresh waters combined is 4." } } },
+      verdicts: P.verdicts.map((v, i) => (i === 2 ? { ...v, tree: tier("count", 4, "4 a day", { species: ["CO"] }) } : v)) } } as SalmonFacts;
+    render(<SalmonCard card={salmonCard(facts, { sids: [101], item: null }, JUL20)} palette={LIGHT} />);
+    // coho may be kept (the chinook limit names a species that may not: not drawn); the line is the whole sentence
+    expect(screen.getAllByTestId("salmon-bucket-tier").map((e) => (e.textContent ?? "").replace(/\u00a0/g, " ")))
+      .toEqual(["The total annual limit for coho salmon over 50 cm is 10 fish from all fresh waters combined."]);
+    // the total stays first
+    expect(screen.getByTestId("salmon-bucket-line").textContent).toBe("Up to 4 salmon a day in total · 8 in possession");
+  });
+
   it("draws under the provincial rules, framed, with its own source and as-of line", () => {
     const card = salmonCard(FACTS, { sids: [101], item: null }, JUL20);
     render(<RegsScreen page={page} palette={LIGHT} actions={NOOP} onDate={() => {}}
