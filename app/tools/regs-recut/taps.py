@@ -148,7 +148,7 @@ def _t517_at(ix, group):
 
 
 PART_GROWN = {
-    "x15p0_1010": (19, f"{T183}: a Fraser piece at the Region 5 / 7A line carries both regions' rules and joined part 16 (109 -> 108 sections); then T678 D1 (owner 2026-11-11, r-0a9930fb8826): two ponds on the upper Fraser are the river now (3 -> 1 lakes, 108 -> 112 sections; same rows), and river order numbers it part 19"),
+    "x15p0_1010": (19, f"{T183}: a Fraser piece at the Region 5 / 7A line carries both regions' rules and joined part 16 (109 -> 108 sections); then T678 D1 (owner 2026-11-11, r-0a9930fb8826): two ponds on the upper Fraser are the river now (3 -> 1 lakes, 108 -> 112 sections; same rows), and river order numbers it part 19; then the T678 junction fix (owner 2026-11-13, r-adc4e248a163): a corrected junction measure re-cuts one Fraser piece (112 -> 113 sections; same part, same ends, same 1,407.21 km, same rows)"),
     "x14p0_1010": (3, f"{T220}: braid pieces that close a kept side channel were restored (26 -> 27 sections); then T678 D1 (owner 2026-11-11, r-0a9930fb8826): the Kitimat's pond lake:329233923 is the river now (27 -> 28 sections, no lake; same rows), and river order numbers it part 3"),
     "x13p4_1010": (7, "T322 (owner 2026-10-29 slough calls, folded 2026-11-03): a lake on this water is a slough of its stream now, so the part runs through one lake fewer (35 -> 42 sections; same rows); then T678 D1 (owner 2026-11-11, r-0a9930fb8826): 21 ponds on the Dean are the river now (24 -> 3 lakes, 17 -> 27 sections; same rows)"
                    + _t517_at(7, "parts 7, 8 and 9")),
@@ -173,7 +173,7 @@ PART_GROWN = {
 #: (2026-11-09) the store part each PART_GROWN state must land on: (label, section count) as `parts` reads it. Without
 #: it, any part whose label differed from the golden's passed.
 PART_GROWN_IS: dict = {
-    'x15p0_1010': ('In Region 7 · From Region 5 boundary up to the top of the river (through 1 lake)', 112),
+    'x15p0_1010': ('In Region 7 · From Region 5 boundary up to the top of the river (through 1 lake)', 113),
     'x14p0_1010': ('From the Hwy 37 bridge up to the top of the river', 28),
     'x27p0_1010': ('Two stretches: from Region 7A boundary up to Region 6 boundary (through 4 lakes), and from Region 6 boundary up to the top of the river (through 1 lake)', 72),
     'x27p2_1010': ('From the mouth up to Region 5 boundary', 3),
