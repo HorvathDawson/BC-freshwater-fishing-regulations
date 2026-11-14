@@ -222,6 +222,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T725 | iOS: memory table and cold start re-measured on 0.7.9 (IOS-8) | OPEN | — | owner 2026-11-14 (iOS reopened, simulator only); stub IOS-8 in handoff/PLAN/ios/START-HERE-ios.md |
 | T726 | iOS: safe areas, Dynamic Island, portrait lock, dark/light, Dynamic Type, VoiceOver (IOS-9) | OPEN | — | owner 2026-11-14 (iOS reopened, simulator only); stub IOS-9 in handoff/PLAN/ios/START-HERE-ios.md |
 | T727 | iOS: store pack, everything except what needs the Apple account (IOS-10) | IN PROGRESS (iOS chat, docs lane; screenshots after T718) | — | owner 2026-11-14 (iOS reopened, simulator only); stub IOS-10 in handoff/PLAN/ios/START-HERE-ios.md |
+| T728 | A Flow / Level pick in the Conditions card no longer changes the Conditions map's layer | IN PROGRESS (before closed testing) | — | owner 2026-11-14 ("when you chang elvel/condition in the card it should not change cindition map layers too"); code + test done; left (Claude): an emulator look on the next APK |
 | T729 | Map attribution goes under the legends on every map tab | OPEN (before closed testing) | — | owner 2026-11-14 ("attribution on app goes under the legends on the different map tabs"); needs Shell.tsx (T717's) for the foot's credit row; left (Claude): code + test + emulator look |
 
 ## Next after closed testing
