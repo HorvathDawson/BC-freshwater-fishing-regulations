@@ -65,7 +65,7 @@ export const modalBackIos = {
       await d.sleep(2000);
       if (!d.screenText().some((x) => /^Photo \d+ of \d+/.test(x))) {
         // the iOS photo picker: its tiles are "Photo, <date>" in the tree; one pick returns at once
-        ctx.flow('tap-text', { TEXT: 'Edit' });
+        ctx.flow('tap-text', { TEXT: 'Edit( .*)?' });   // its label is "Edit spot" or the like, its words "Edit"
         await d.sleep(1500);
         ctx.flow('scroll-to', { TEXT: 'Add from photos' });
         ctx.flow('tap-text', { TEXT: 'Add from photos' });
