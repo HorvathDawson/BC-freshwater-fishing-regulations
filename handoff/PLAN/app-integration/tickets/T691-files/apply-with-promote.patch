@@ -1,0 +1,83 @@
+diff --git a/data/curated/regulations/synopsis/region-1.json b/data/curated/regulations/synopsis/region-1.json
+index f4e3ae8c4..640eb01e7 100644
+--- a/data/curated/regulations/synopsis/region-1.json
++++ b/data/curated/regulations/synopsis/region-1.json
+@@ -12091,6 +12091,7 @@
+      "rule_id": "tlell_river.r5",
+      "type": "advisory",
+      "verbatim": "Tidal waters regulations apply to waters downstream of tidal boundary sign located 1.5 km upstream of Hwy 16 Bridge",
++     "includes_tributaries": false,
+      "extents": [
+       {
+        "op": "downstream_of",
+diff --git a/data/curated/regulations/synopsis/region-3.json b/data/curated/regulations/synopsis/region-3.json
+index ad0e73490..f9de7a59e 100644
+--- a/data/curated/regulations/synopsis/region-3.json
++++ b/data/curated/regulations/synopsis/region-3.json
+@@ -6246,7 +6246,8 @@
+       {
+        "op": "whole"
+       }
+-     ]
++     ],
++     "undrawn_part": "from westerly entrance to 12th Street entrance to Park"
+     }
+    ]
+   },
+diff --git a/pipeline/tests/test_t100_area_caveat.py b/pipeline/tests/test_t100_area_caveat.py
+index 567626efc..c9d633600 100644
+--- a/pipeline/tests/test_t100_area_caveat.py
++++ b/pipeline/tests/test_t100_area_caveat.py
+@@ -66,6 +66,7 @@ WIDENED = {
+     "r2:ruby_lake@2-5": 1,
+     "r2:sakinaw_lake@2-5": 2, "r3:adams_lake@3-37": 1, "r3:leighton_lake@3-18": 2,
+     "r3:loon_lake@3-30": 2, "r3:mahood_lake_see_map_on_page_28_for_area_closure@3-46": 8,
++    "r3:mcarthur_island_slough@3-28": 1,  # "from westerly entrance to 12th Street entrance to Park" (T708 (a))
+     "r3:roche_lake@3-20": 1, "r3:shumway_lake@3-20": 1,
+     "r3:shuswap_lake_see_maps_on_page_28_includes_little_shuswap_lak@3-26": 7, "r3:white_lake@3-26": 1,
+     "r4:columbia_lake@4-25": 1, "r4:columbia_river@4-15+4-26+4-34+4-38+4-8": 1,
+@@ -117,7 +118,8 @@ def test_the_widened_rules_are_counted():
+     # T222 (r-0fa7927b16e5): the Stave's r1/r2 bind the Ruskin and Northrop channels, drawn now (85, 56 -> 83, 55)
+     # T209 follow-up (owner 2026-11-12): the Harrison's no-powered-boats alternative, r4, beside r3 in the same bays
+     # T708 (owner 2026-11-13): Pitt r2 "speed restriction at Grant Narrows" is an undrawn part again (84, 55 -> 85, 56)
+-    assert (sum(per.values()), len(per)) == (85, 56)
++    # T708 (a) (owner 2026-11-13): McArthur Island Slough's "No powered boats" keeps its place words "in part" (85, 56 -> 86, 57)
++    assert (sum(per.values()), len(per)) == (86, 57)
+     lic = sorted(e["entry_id"] for f in sorted(under_test.curated().regulations.synopsis.glob("region-*.json"))
+                  for e in json.loads(f.read_text(encoding="utf-8"))["entries"]
+                  for x in e.get("licensing") or [] if str(x.get("undrawn_part") or "").strip())
+diff --git a/pipeline/tests/test_t89_rules_that_bind_no_water.py b/pipeline/tests/test_t89_rules_that_bind_no_water.py
+index 8b575edda..37b63ad30 100644
+--- a/pipeline/tests/test_t89_rules_that_bind_no_water.py
++++ b/pipeline/tests/test_t89_rules_that_bind_no_water.py
+@@ -55,6 +55,10 @@ BY_DESIGN = frozenset({
+     # working exclusions: the Columbia / Kootenay tributary rows carry no tributary rule of their own
+     ("r4:kinbasket_mcnaughton_lake_s_tributaries@4-36", "kinbasket_lake_tributaries.r2"),
+     ("r4:kootenay_lake_s_tributaries@4-19+4-7", "kootenay_lake_tributaries.r2"),
++    # T708 (c) (owner 2026-11-13: take the tidal note off the 13 freshwater tributaries): "Tidal waters regulations
++    # apply … downstream of tidal boundary sign" holds on the tidal piece only (`includes_tributaries: false`), which the
++    # tidal trim empties — unresolved `tidal`; the tidal part says "tidal water" by itself
++    ("r1:tlell_river@6-13", "tlell_river.r5"),
+ })
+ 
+ #: AWAITING A WATER — the row's printed MU holds no registry water of its name (owner, T89 Q-A).
+@@ -70,8 +74,8 @@ AWAITING_WATER_ROWS = {
+ }
+ AWAITING_WATER = frozenset((e, r) for e, (_, _, rids) in AWAITING_WATER_ROWS.items() for r in rids)
+ 
+-#: Every rule allowed to end unresolved: 7 by design (the steelhead lake twins, T713) + 10 awaiting a water (T708: Hidden,
+-#: Secret, Square matched; Gagnon r1 binds its 200 m above the unnamed lake).
++#: Every rule allowed to end unresolved: 8 by design (the steelhead lake twins, T713; the Tlell's tidal note, T708 (c)) + 10
++#: awaiting a water (T708: Hidden, Secret, Square matched; Gagnon r1 binds its 200 m above the unnamed lake).
+ ALLOWED_UNRESOLVED = BY_DESIGN | AWAITING_WATER
+ 
+ 
+@@ -106,7 +110,7 @@ def _place(rule: dict) -> dict:
+ # The allow-list itself (no data): exact, both ways — the key rule, mutation-pinned
+ # ---------------------------------------------------------------------------------------------
+ def test_the_allow_list_is_exact():
+-    assert len(BY_DESIGN) == 7 and len(AWAITING_WATER) == 10 and len(ALLOWED_UNRESOLVED) == 17
++    assert len(BY_DESIGN) == 8 and len(AWAITING_WATER) == 10 and len(ALLOWED_UNRESOLVED) == 18
+     assert unresolved_problems(set(ALLOWED_UNRESOLVED)) == []
+ 
+ 

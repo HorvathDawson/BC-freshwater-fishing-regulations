@@ -319,3 +319,10 @@ edits, the 3 lakes' `matched` and the test pins are now `T708-files/apply-with-p
 apply-with-rebuild.patch). OPEN for the owner: Gagnon's cut label reads as a part end "Its mouth (placed 200 m above the
 unnamed lake)" (fails test_part_names_unnamed_lake); proposed label e.g. "fishing boundary signs (200 m above the lake
 below Williston)" — needs another atlas build.
+
+## Owner wording answers (a)-(c) — applied 2026-11-13 (pipeline lane)
+- (b) Lakelse: d109408fd — `part.MOUTH_WORDS`, the lowest part's end token `mouth:gnis:4903` = "Mouth (at the signs)".
+- (a) McArthur r1 `undrawn_part` (label "No powered boats — in part: from westerly entrance to 12th Street entrance to
+  Park") and (c) Tlell r5 `includes_tributaries: false` (-13 sections, unresolved `tidal`): corpus edits + T89/T100 pins
+  in `T691-files/apply-with-promote.patch` (apply at the promote; they fail against the live release before it).
+- Kootenay "(km 123)" nit: d109408fd (a lake edge and a cut at one place need no km).

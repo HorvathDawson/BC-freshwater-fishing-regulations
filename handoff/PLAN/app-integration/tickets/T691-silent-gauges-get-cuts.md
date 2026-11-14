@@ -79,3 +79,11 @@ Verbatim:
   08FE002 Kemano Powerhouse → stays unmatched.
 Status: DECIDED, not yet applied. Needs `cut_at` + `reads: "below"` code, each row's `match_calls.json` decision,
 surgical rows in `data/curated/gauges/matches.json`, then an atlas rebuild. Do not ask the owner again.
+
+## Phase 2 — applied (2026-11-13, pipeline lane): 1965900be
+Code: `cut_at`, `reads: "below"`, `cut: false` (StationMatch / Decision / promote / split_defs / nodes_at_cuts / shed
+walk). Rows (surgical, the 7 stations only, built by `promote.build`): 08JB013 -> the north fork, cut: false, fork named
+"North Beach Creek" (name_variants, source gauge); 08PA004 -> Ross Lake lake gauge; 08ND025 / 08NE126 / 08NJ158 cut at
+the dam, reads below; 08JA013 cut at the channel foot; 08FE002 verdict none. Candidate atlas `full_next` + side run
+`data/generated/side/t691` (checks/ATTRIBUTION.md): all 4 new cuts join standing boundaries; placements exactly as
+proposed. Left (Claude): promote full_next + apply `T691-files/apply-with-promote.patch` + release.
