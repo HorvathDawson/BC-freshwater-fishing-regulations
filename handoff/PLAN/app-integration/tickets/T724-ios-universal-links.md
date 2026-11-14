@@ -1,6 +1,6 @@
 # T724 — iOS: shared links open the app as universal links (IOS-7)
 
-Status: IN PROGRESS (iOS chat, links lane).
+Status: PARTIAL (left (Claude): the simulator `openurl` run on the next build; the real hand-off waits for the Team ID and the signed build, T88).
 
 Source: owner 2026-11-14, verbatim: "Maybe we could make a handoff to start improving the ios versions? Making sure it is
 rock solid too?" and "We want to do as much work as possible without the Apple account". Stub IOS-7 in
