@@ -59,8 +59,7 @@ CONTACT: support@canifishthis.ca
 3. The background-mode paragraph REPLACES the T365 line "downloads the next regulations release in the background": the code
    says the check "never downloads a release" (`app/apps/mobile/src/notify.native.ts:8-9`, task at `:75-96`). A
    foreground download only (START-HERE-ios.md, "What is Android-only"). Use the paragraph above, not T365's.
-4. That the built app actually declares `fetch` and `processing`: T365 read them back from a built Info.plist on 2026-11-05,
-   but the `app/apps/mobile/ios/` folder here is stale and shows no UIBackgroundModes. Re-check after IOS-1 builds a fresh app.
+4. `fetch` and `processing` in UIBackgroundModes: verified on today's build (coordinator, 2026-11-14).
 5. The review build must read PRODUCTION data (T86). A staging build has "Simulate offline" and an environment switch
    (`EXPO_PUBLIC_ENV_SWITCH=1`, `app/apps/mobile/eas.json:8`); do not send that to review. If a staging build ever goes to
    review, add: "Simulate offline (More, About) is a test switch; ignore it." (check where the switch sits).
@@ -70,8 +69,7 @@ CONTACT: support@canifishthis.ca
 8. Demo account fields: leave empty and untick "Sign-in required".
 
 ## Category (proposal)
-- **Primary: Sports.** Matches `listing-draft.md` (owner draft 2026-10-29). Fishing is a sport and anglers search that shelf.
-- **Secondary: Navigation** (alt: Reference). It is a map people use on the water; "Reference" is the honest description of
-  the regulations and is a good alternative if Review pushes back on Sports. Weather and Travel fit worse.
+- **DECIDED (Claude's call under owner's "choose best", 2026-11-14): Primary Navigation, secondary Sports.** It is a map people use
+  on the water, and it matches Play's Maps and Navigation. Reference is a fallback if Review pushes back.
 - Check: App Store Connect may offer fewer or different category names than I list; pick the nearest.
-- Play uses Maps and Navigation (listing.md). The two stores need not match.
+- Play uses Maps and Navigation (listing.md): the same family.

@@ -49,3 +49,6 @@ etc etc choose best category"
 - Install id: Analytics and bug reports (so purposes = Analytics + App Functionality).
 - Category ("choose best", Claude's call): Navigation primary, Sports secondary, matching Play's "Maps & Navigation".
 - Not answered, default kept: email is "linked to the user" (a report carries the email and the install id).
+
+### Results, round 2 (docs lane, 2026-11-14)
+Owner answers applied to `handoff/PLAN/ios/store/`: Play texts are the source; new `listing.md` maps each App Store Connect field to them (all fit the Apple limits; name, subtitle and keywords sit exactly at 30/30/100; description 3924 of 4000). Decided and stated as decided: home-screen label "Can I Fish?", Precise (and Coarse) location, install id = Analytics + App Functionality, category Navigation then Sports. Open with default: email linked. Flagged (Play-side, not edited): `play/data-safety.md` says production sends no reports; `env.ts:44` says it does. Icon check: `icon-1024.png` is 1024 x 1024 but hasAlpha = yes, so a flattened copy is needed for Apple (not done). UIBackgroundModes fetch + processing verified (coordinator), "not verified" line dropped.

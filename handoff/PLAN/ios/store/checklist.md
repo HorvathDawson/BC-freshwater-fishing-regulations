@@ -16,7 +16,7 @@ T86 = needs production data and hosting live; OTHER LANE = being made by another
 |---|---|---|---|
 | 4 | Name (max 30 chars) | **Can I Fish This?** (16 chars; owner settled 2026-11-13 for both stores) | OWNER, ACCOUNT |
 | 5 | Subtitle (max 30) | BC fishing rules, by the water (exactly 30 chars: check the count Apple shows) (`listing-draft.md`) | OWNER, ACCOUNT |
-| 6 | Primary / secondary category | Sports / Navigation (alt Reference): `review-notes.md` | OWNER |
+| 6 | Primary / secondary category | Navigation / Sports (decided): `review-notes.md` | OWNER |
 | 7 | Content rights ("contains third-party content") | Yes: government data, OpenStreetMap, Esri imagery. Check that the licence page (More, Legal and the Licences page) covers each; the app wording is T365 "Government information" row | OWNER |
 | 8 | Age rating | `age-rating-answers.md` | OWNER |
 | 9 | Privacy policy URL | https://canifishthis.ca/privacy (live only when the production site is up, T240 section 5 / T86) | T86 |
@@ -25,8 +25,8 @@ T86 = needs production data and hosting live; OTHER LANE = being made by another
 ## C. Version page (1.0 or the first version)
 | # | Field | Value or page | Who |
 |---|---|---|---|
-| 11 | Promotional text (170 max, optional) | none drafted; proposal: use the Play short description (`handoff/PLAN/play/store-description.md`), 74 chars | OWNER |
-| 12 | Description (4000 max) | `handoff/PLAN/play/store-description.md` ("same text for the App Store"). Check the line "approximately 500 MB" against the real size; review notes say about 480 MB | DONE (text), OWNER to paste |
+| 11 | Promotional text (170 max, optional) | Play short description, 74 chars: see `listing.md` here | OWNER |
+| 12 | Description (4000 max) | `handoff/PLAN/play/store-description.md` unchanged, 3924 chars incl. the disclaimer (fits). Check "approximately 500 MB" against the real size; review notes say about 480 MB | DONE (text), OWNER to paste |
 | 13 | Keywords (100 max) | `fishing,BC,regulations,rules,freshwater,river,lake,trout,salmon,steelhead,angling,license,flow,gauge` (exactly 100 characters, counted today; Apple may count commas, check) (`listing-draft.md`) | DONE |
 | 14 | Support URL | https://canifishthis.ca/about | DONE (page up when prod is) |
 | 15 | Marketing URL (optional) | https://canifishthis.ca | OWNER |
@@ -35,7 +35,7 @@ T86 = needs production data and hosting live; OTHER LANE = being made by another
 | 18 | Screenshots, iPhone 6.9" and 6.5" | made by another lane from the simulator (`app/tools/store-shots.mjs`, `iphone67` and `iphone55`) | OTHER LANE |
 | 19 | App preview video | `app/tools/store-video` run on iOS (T709 step 2) | OTHER LANE |
 | 20 | iPad screenshots | none: `supportsTablet: false` (`app.json:37`) | n/a |
-| 21 | App icon 1024 | `app/apps/mobile/assets/icon/icon-1024.png`, already built into the app (`app.json:6`). Apple needs no alpha: check the file | DONE (check alpha) |
+| 21 | App icon 1024 | `app/apps/mobile/assets/icon/icon-1024.png` (the Play icon, `app.json:6`). CHECKED: 1024 x 1024 but hasAlpha = yes; Apple wants no alpha: flatten a copy onto the icon ground before upload (proposal, not done) | OWNER / needs a small fix |
 
 ## D. App Review information and release
 | # | Field | Value or page | Who |
@@ -65,15 +65,11 @@ Owner settled "Can I Fish This?" on both stores (2026-11-13). Earlier decision (
 | Changelog line | `app/packages/core/src/changelog.ts:201` | "New name on the home screen, Can I Fish?" | history text only |
 | Slug / Xcode product | `app.json:4` slug `canifishthis`, product name | canifishthis / CanIFish | not shown to users except in crash logs (T365) |
 
-Differences: the home-screen label is the short name on purpose; everything else already says the long name. Proposal:
-keep `expo.name` as "Can I Fish?" (iOS truncates long labels under an icon, and Apple allows the store name to differ from the
-home-screen label: check), enter "Can I Fish This?" as the store name. If you want one name everywhere, the edit is the single
-line `app.json:3` (not done here). The older generated `ios/` folder here shows the display name "canifishthis" and prompts
+DECIDED (owner 2026-11-14): the home-screen label stays "Can I Fish?" (`expo.name`, no app.json change); "Can I Fish This?" everywhere else, including the store name. The older generated `ios/` folder here shows the display name "canifishthis" and prompts
 built from the product name: it is stale, rebuild before judging.
 
-## F. Open owner questions (defaults)
-1. Home-screen label: (a) keep "Can I Fish?" (default), (b) change `expo.name` to "Can I Fish This?".
-2. Email in the privacy answers: (a) linked to the user (default, proposal), (b) not linked (as the draft).
-3. Report map centre: (a) declare both Coarse and Precise location (default), (b) round the report centre to 2 decimals in a new ticket and declare Coarse only.
-4. Install id purposes: (a) App Functionality plus Analytics (default, matches Play), (b) App Functionality only (as the manifest).
-5. Category: (a) Sports then Navigation (default), (b) Reference first.
+## F. Decided, and what is still open
+Decided (owner 2026-11-14): home-screen label "Can I Fish?"; Precise location (and Coarse); install id purposes Analytics + App Functionality; category Navigation then Sports; Play texts are the source.
+Open, default: email in the privacy answers is linked to the user (a) default, or (b) not linked.
+Flagged for the owner: `play/data-safety.md` says production builds send no reports; the code does (`env.ts:44`). Play-side fix, not edited here.
+See `listing.md` here for the field-by-field text.
