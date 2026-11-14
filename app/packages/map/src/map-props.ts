@@ -79,6 +79,8 @@ export interface MapChrome {
   accent: string;
   /** The hard offset slab under the stack. Not a blur — see controls.css. */
   shadow: string;
+  /** (T729) the dim behind an open credits card */
+  scrim: string;
   /**
    * A CSS `filter` for MapLibre's own glyphs.
    *

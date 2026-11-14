@@ -56,6 +56,7 @@ export function mapChrome(theme: string): MapChrome {
     sub: colour(theme, "color.ui.sub"),
     accent: colour(theme, "color.ui.accent"),
     shadow: translucent(theme, "color.ui.shadow", "opacity.ui.shadow"),
+    scrim: translucent(theme, "color.ui.shadow", "opacity.ui.scrim"),
     // MapLibre bakes near-black strokes into its glyph IMAGES, so on a dark control they
     // are black on near-black. There is no colour property to change — the image has to be
     // inverted.

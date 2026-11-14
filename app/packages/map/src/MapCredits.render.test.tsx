@@ -92,6 +92,21 @@ describe("the credits chip and card (T424)", () => {
   });
 });
 
+describe("the open card is above the app's overlays (T729)", () => {
+  it("is drawn in a modal layer, whole, with satellite's Esri text; a tap on the dim or Close shuts it", () => {
+    const chrome = mapChrome("dark");
+    render(<MapCredits look={{ ...PLAIN, basemap: "satellite" }} chrome={chrome} insetBottom={300} />);
+    fireEvent.click(screen.getByTestId("map-credits-chip"));
+    const card = screen.getByTestId("map-credits-card");
+    // not inside the map's own corner block (under the foot's legend): in a modal dialog layer
+    expect(card.closest("[data-testid=map-credits]")).toBeNull();
+    expect(card.closest("[aria-modal=true], [role=dialog]")).not.toBeNull();
+    expect(screen.getByTestId("map-credit-imagery").textContent).toContain("Powered by Esri");
+    fireEvent.click(screen.getByTestId("map-credits-scrim"));
+    expect(screen.queryByTestId("map-credits-card")).toBeNull();
+  });
+});
+
 describe("the credit is shown first, then folds (OSMF attribution guideline)", () => {
   const chrome = mapChrome("light");
   afterEach(() => { vi.useRealTimers(); resetStartupCredit(); });

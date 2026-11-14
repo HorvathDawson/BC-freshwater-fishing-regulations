@@ -6,7 +6,7 @@
  * "© OpenStreetMap contributors" is linked in the card's Basemap and Streams-and-rules lines, one tap from the map;
  * Esri's "Powered by Esri" stays visible beside the chip while its imagery is the ground (Esri's own requirement).
  *
- * WHERE: bottom-right, `GEOMETRY.right` from the edge and `insetBottom` over the foot block (the legend and its bar, a
+ * THE OPEN CARD is a Modal (T729), centred over everything, never under the legend. WHERE (the chip): bottom-right, `GEOMETRY.right` from the edge and `insetBottom` over the foot block (the legend and its bar, a
  * sheet). The scale bar is bottom-LEFT (`GEOMETRY.scaleLeft`), so the two can never meet: `GEOMETRY` is what a test checks
  * at the narrowest width. A bare map (an illustration) draws none; the page that carries it credits the data.
  * The map UI rule: square corners, a card, our type, no loose text.
@@ -17,7 +17,7 @@
  * the same session start folded (the guideline does not ask for it again on every map or on return from background).
  */
 import { useEffect, useState } from "react";
-import { Pressable, Text, View, useWindowDimensions } from "react-native";
+import { Modal, Pressable, ScrollView, Text, View, useWindowDimensions } from "react-native";
 import { ESRI_BADGE, GEOMETRY } from "./chrome";
 import { creditLines, type CreditPart } from "./credits";
 import type { Look } from "./look";
@@ -62,7 +62,7 @@ export function MapCredits({ look, chrome, insetBottom = 0, onOpenLink, onLongPr
   }, [startup]);
   const lines = creditLines(look);
   const G = GEOMETRY;
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
   const bottom = G.bottom + insetBottom;
   return (
     <>
@@ -92,26 +92,40 @@ export function MapCredits({ look, chrome, insetBottom = 0, onOpenLink, onLongPr
         </Pressable>
       )}
       {on && (
-        <View testID="map-credits-card" accessibilityRole="summary" accessibilityLabel="Map credits"
-              style={{ position: "absolute", right: G.right, bottom: bottom + G.chip + G.gap, width: Math.min(G.cardMax, width - 2 * G.right),
-                       backgroundColor: chrome.card, borderWidth: 1,
-                       borderColor: chrome.ink, padding: 10, gap: 6, boxShadow: `2px 2px 0 ${chrome.shadow}` }}>
-          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-            <Text style={{ color: chrome.ink, fontFamily: SEMI, fontSize: 13, lineHeight: 16 }}>Map credits</Text>
-            <Pressable testID="map-credits-close" accessibilityRole="button" accessibilityLabel="Close the credits"
-                       onPress={() => setOn(false)} hitSlop={10}
-                       style={{ paddingHorizontal: 6, paddingVertical: 2, borderWidth: 1, borderColor: chrome.ink }}>
-              <Text style={{ color: chrome.ink, fontFamily: SEMI, fontSize: 12, lineHeight: 15 }}>Close</Text>
-            </Pressable>
-          </View>
-          {lines.map((l) => (
-            <Text key={l.id} testID={`map-credit-${l.id}`}
-                  style={{ color: chrome.sub, fontFamily: TEXT, fontSize: 12, lineHeight: 16 }}>
-              <Text style={{ color: chrome.ink, fontFamily: SEMI }}>{`${l.label}: `}</Text>
-              <Parts parts={l.parts} chrome={chrome} onOpenLink={onOpenLink} />
-            </Text>
-          ))}
-        </View>
+        // (T729) THE OPEN CARD IS IN A MODAL: drawn inside the map it sat under the app's own overlays (the legend and the
+        // keys in the foot block are siblings of the map, painted over it), so a tap on the © opened a card nobody could
+        // read. A Modal is above every one of them, whatever the legend's height or state; centred and capped to the
+        // window, so it is inside the screen and whole. Closing is as before (Close, the chip is under it) plus the dim
+        // and the system back.
+        <Modal visible transparent animationType="none" statusBarTranslucent onRequestClose={() => setOn(false)}>
+          <Pressable testID="map-credits-scrim" accessibilityLabel="Close the credits" onPress={() => setOn(false)}
+                     style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: G.right * 2,
+                              backgroundColor: chrome.scrim }}>
+            <View testID="map-credits-card" accessibilityRole="summary" accessibilityLabel="Map credits"
+                  onStartShouldSetResponder={() => true}
+                  style={{ width: Math.min(G.cardMax, width - 4 * G.right), maxHeight: Math.max(160, height - 8 * G.right),
+                           backgroundColor: chrome.card, borderWidth: 1,
+                           borderColor: chrome.ink, boxShadow: `2px 2px 0 ${chrome.shadow}` }}>
+              <ScrollView contentContainerStyle={{ padding: 10, gap: 6 }}>
+                <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                  <Text style={{ color: chrome.ink, fontFamily: SEMI, fontSize: 13, lineHeight: 16 }}>Map credits</Text>
+                  <Pressable testID="map-credits-close" accessibilityRole="button" accessibilityLabel="Close the credits"
+                             onPress={() => setOn(false)} hitSlop={10}
+                             style={{ paddingHorizontal: 6, paddingVertical: 2, borderWidth: 1, borderColor: chrome.ink }}>
+                    <Text style={{ color: chrome.ink, fontFamily: SEMI, fontSize: 12, lineHeight: 15 }}>Close</Text>
+                  </Pressable>
+                </View>
+                {lines.map((l) => (
+                  <Text key={l.id} testID={`map-credit-${l.id}`}
+                        style={{ color: chrome.sub, fontFamily: TEXT, fontSize: 12, lineHeight: 16 }}>
+                    <Text style={{ color: chrome.ink, fontFamily: SEMI }}>{`${l.label}: `}</Text>
+                    <Parts parts={l.parts} chrome={chrome} onOpenLink={onOpenLink} />
+                  </Text>
+                ))}
+              </ScrollView>
+            </View>
+          </Pressable>
+        </Modal>
       )}
     </>
   );

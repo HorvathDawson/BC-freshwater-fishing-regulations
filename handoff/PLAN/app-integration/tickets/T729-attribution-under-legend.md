@@ -1,39 +1,28 @@
-# T729 — Map attribution goes under the legends, on every map tab
+# T729 — The opened credits card is under the legend and cannot be read
 
-Status: OPEN (before closed testing) — code needs a change in `Shell.tsx`, held by lane T717 (see Left)
+Status: IN PROGRESS (before closed testing) — code + test done; left (Claude): an emulator look on the next APK
 
 Source: owner 2026-11-14, verbatim: "attribution on app goes under the legends on the different map tabs."
+Clarified by the owner 2026-11-14 (dialog), verbatim: "i meant when you open the atrribtuion clicking on it it opens under the legend on the map so you cant read it"
 
-## Reading (ours; confirm with the owner)
-The owner's words are an instruction about where the credit sits: UNDER the legend, in the bottom block, not over the map
-above it. (The first reading, "the legend covers the credit", is not what the code does: see Cause.) The credit is a licence
-requirement (OpenStreetMap / Esri): it stays, always visible or one tap away; only its place changes.
+## Problem
+Tap the © chip on a map tab (Map, Conditions, Run timing): the credits card opens, but the legend (and the Runs / gauge
+keys) are drawn over it, so the credit text cannot be read. The licence text must be readable when asked for.
 
-## Cause (now)
-- `map/src/MapCredits.tsx:66` `bottom = G.bottom + insetBottom`: the "©" chip (and Esri's badge while satellite is drawn)
-  sits `insetBottom` px ABOVE the map's bottom edge.
-- `ui-native/src/Shell.tsx:762` measures the foot block (`map-foot`: the legend / Runs foot) into `footH`, and
-  `Shell.tsx:637` hands it to the browse map as `insetBottom`: so on Map, Conditions and Runs the credit rides on top of the
-  legend (T275/T309: "lifted above the foot"). `map/src/Map.native.tsx:1007` / `Map.web.tsx:143` pass it through; the scale
-  bar uses the same inset (`Map.native.tsx:1017`).
-- The water page's map (`water/WaterMapView.tsx:118`) passes no inset: its bar is below the map, not over it; the credit
-  already sits at the map's own bottom edge there, above the bar.
+## Cause
+`map/src/MapCredits.tsx` drew the card inside the map component. The Shell's foot block (`ui-native/src/Shell.tsx` `map-foot`,
+zIndex 1) holding the legend, `RunsKey` (right edge, exactly where the card opens) and `GaugeOnlyKey` is a SIBLING of the map
+painted over it, so anything inside the map is under them whatever its coordinates. (The chip itself was correctly lifted
+above the foot by `insetBottom`; the opened card was the one covered.)
 
-## Fix (one rule)
-The credit row belongs to the foot block, as its LAST row (below the legend, above the tab bar), so its place follows the
-legend's real height by construction, with no per-tab number:
-- the map stops lifting the credit by the foot (a separate prop from the scale's inset: the scale stays above the foot);
-- the foot block (`map-foot`, `Shell.tsx:761`) reserves one chip row under whatever legend is in it (collapsed or open,
-  any tab, no legend at all) and the chip + Esri badge are drawn in that row (right-aligned, square, card, as now).
-- No fallback: when the foot is not measured yet the row is simply at the bottom.
+## Fix
+The open card is a `Modal` (one rule, native and web through the same component): above every overlay whatever the legend's
+height or state, centred, width and height capped to the window (the credit lines scroll if the window is short), square
+card, our type, light/dark chrome, Esri's wording included (it is in `creditLines`). Closing: Close (unchanged), plus a tap on
+the dim and the system back. The chip, its place, the startup credit and `creditLines` are unchanged. No Shell.tsx change.
 
 ## Acceptance
-- Unit: for Map / Conditions / Runs and legend open / folded / absent, the credit chip's bottom edge is at or below the
-  legend's bottom edge and clear of the tab bar; satellite adds the Esri badge in the same row; fails before the fix.
-- `MapCredits.render.test.tsx` updated (the `insetBottom={120}` case) to the new rule.
-- Emulator/visual check (owed; T717 owns the emulator): Map, Conditions, Runs tabs x legend open/folded x light/dark x
-  satellite on/off, plus the water page's map.
-
-## Left
-- Needs `ui-native/src/Shell.tsx` (dirty from T717): the foot's credit row and the separate credit/scale insets.
-- Emulator check (above).
+- `MapCredits.render.test.tsx` "the open card is above the app's overlays": the card is in a modal layer, not inside the
+  map's corner block; satellite's "Powered by Esri" line is in it; the dim closes it. Fails before the fix.
+- Left (Claude), emulator look on the next APK: Map, Conditions, Run timing x legend open / folded x light / dark x satellite
+  on (card whole, readable, links open the licences); the water page's map.
