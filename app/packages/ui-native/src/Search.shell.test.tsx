@@ -8,7 +8,7 @@
  */
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Text, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SEARCH_BAR } from "@app/core";
@@ -29,7 +29,10 @@ vi.mock("./MapScreen", () => ({
     useEffect(() => { seen.mounts += 1; }, []);
     const f = p.fit;
     const said = !f ? "none" : f.camera ? `${f.key} camera ${f.camera.lat},${f.camera.lon},${f.camera.zoom}` : f.key;
-    if (seen.fits[seen.fits.length - 1] !== said) { seen.fits.push(said); seen.frames.push(f ?? null); }
+    // each map's own changes of fit (T717: the browse map is kept, hidden, under a water's page while the water's own map
+    // renders beside it — their renders interleave)
+    const last = useRef<string | null>(null);
+    if (last.current !== said) { last.current = said; seen.fits.push(said); seen.frames.push(f ?? null); }
     return (
       <View>
         <Text testID="map-state">
@@ -275,20 +278,23 @@ describe("a place is SHOWN by its tap; a water is framed by its tap and opened b
       .getAttribute("aria-label")];
     await leave();
     await settle();
-    return { header, landed: where(), fits: seen.fits.slice(), arrived: seen.frames[seen.frames.length - 1],
+    return { header, landed: where(), fits: seen.fits.slice(), arrived: arrivedFrame(),
              searchedWith: seen.frames[1], more: back(), mounts: seen.mounts };
   };
+  /** the last framing the browse map was handed on arrival (T717: it is the kept map's, sent under the page) */
+  const arrivedFrame = () => seen.frames.filter((f) => (f as { key?: string } | null)?.key?.startsWith("arrive:")).at(-1);
   const LANDED = async () => {
     const box = await makeFixtureSource().waterBox(CHILLIWACK);
     return {
       header: ["Map", "Close, back to Map"],
       landed: `search closed · no sheet · "" · tab Map`,
-      // framed by search, the water screen (no map), then the map back, framed on the water once
-      // (T203) a result opens the water on its MAP: that map mounts (a second "none") before the browse map returns
-      fits: ["none", "item:gnis:8634", "none", "arrive:gnis:8634:1"],
+      // framed by search, then (T717) the browse map, kept under the water's page, framed on the water once, there —
+      // so Back shows it already framed; (T203) a result opens the water on its MAP: that map mounts (the last "none")
+      fits: ["none", "item:gnis:8634", "arrive:gnis:8634:1", "none"],
       arrived: { key: "arrive:gnis:8634:1", bbox: box, refine: false },
       searchedWith: { key: "item:gnis:8634", bbox: box, refine: false },
-      more: false, mounts: 3,
+      // (T717) two maps mounted: the browse map (kept under the water, not built again on the way back) and the water's own
+      more: false, mounts: 2,
     };
   };
 
@@ -323,7 +329,7 @@ describe("a place is SHOWN by its tap; a water is framed by its tap and opened b
     back();
     await settle();
     expect([before, seen.fits.slice(before.length), where()]).toEqual([
-      ["none", "item:gnis:8634", "none", "arrive:gnis:8634:1"], ["none"], `search closed · no sheet · "" · tab Map`]);
+      ["none", "item:gnis:8634", "arrive:gnis:8634:1", "none"], ["none"], `search closed · no sheet · "" · tab Map`]);
   });
 
   it("(owner 2026-10-22 late) (T203) searched over the CONDITIONS map: the water opens on its MAP view too (a result always lands on the Map); moving between " +
@@ -346,9 +352,9 @@ describe("a place is SHOWN by its tap; a water is framed by its tap and opened b
     back();
     await settle();
     const box = await makeFixtureSource().waterBox(CHILLIWACK);
-    expect([opened, moved, where(), seen.fits, seen.frames[seen.frames.length - 1]]).toEqual([
+    expect([opened, moved, where(), seen.fits, arrivedFrame()]).toEqual([
       ["Map", "Conditions"], "Regulations", `search closed · no sheet · "" · tab Conditions`,
-      ["none", "item:gnis:8634", "none", "arrive:gnis:8634:1"], { key: "arrive:gnis:8634:1", bbox: box, refine: false }]);
+      ["none", "item:gnis:8634", "arrive:gnis:8634:1", "none"], { key: "arrive:gnis:8634:1", bbox: box, refine: false }]);
   });
 
   it("a water opened by a TAP on the map beside the half sheet (a phone) keeps search under it: its ‹ and × say " +

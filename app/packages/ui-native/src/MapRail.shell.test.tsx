@@ -254,8 +254,9 @@ describe("spots and the rail, through the Shell (T48)", () => {
     mount();
     press("tap a water");
     await waitFor(() => expect(screen.queryByText("Chilliwack River")).not.toBeNull());
-    // the water's own views strip, not the bottom bar: the water screen is up, and no map under it
-    expect(look()).toBe("Regulations Conditions Map (Regulations) | no map | nothing");
+    // the water's own views strip, not the bottom bar: the water screen is up; (T717) the map it was opened over is kept
+    // under it, hidden (TapCue.shell.test.tsx), as it was left: no pin, no fit
+    expect(look()).toBe("Regulations Conditions Map (Regulations) | pin none · fit none · camera 49.15,-121.85,10 | nothing");
   });
 
   it("pick mode is a back layer: Android's back leaves it one step (the Map tab as it was), the next leaves the app; " +

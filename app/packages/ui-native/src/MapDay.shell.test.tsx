@@ -141,9 +141,10 @@ describe("the one day, from the map's calendar and the page's pill", () => {
       "map Sat Oct 10 2026 | button Sat, Oct 10 | Closed Oct 10 | sheet: Showing Saturday, October 10",
       "map Sat Oct 10 2026 | button Sat, Oct 10 | Closed Oct 10 | no sheet",
       "pill SatOct 10",
-      "map gone | button none | no legend | sheet: Showing Saturday, October 10",
+      // (T717) the map is kept under the water's page (hidden), coloured as it was left; it takes the page's day after Back
+      "map Sat Oct 10 2026 | button none | no legend | sheet: Showing Saturday, October 10",
       "pill TodayOct 21",
-      "back true: map gone | button none | no legend | no sheet | on the water",
+      "back true: map Sat Oct 10 2026 | button none | no legend | no sheet | on the water",
       "back true",
       "map Wed Oct 21 2026 | button Today | Closed | no sheet",
     ]);

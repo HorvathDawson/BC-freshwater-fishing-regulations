@@ -44,7 +44,7 @@ function density(ctx) {
 }
 
 /** The last `[target]` the app logged, as a screen pixel (null: none yet, or the water answered nowhere). */
-const targets = (ctx, tag = '[target] ') => ctx.device.logcatJs().split('\n').filter((l) => l.includes(tag))
+export const targets = (ctx, tag = '[target] ') => ctx.device.logcatJs().split('\n').filter((l) => l.includes(tag))
   .map((l) => { try { return JSON.parse(l.slice(l.indexOf(tag) + tag.length)); } catch { return null; } }).filter(Boolean);
 
 /** Wait until the camera has rested (no new `[target]` for `quietMs`), then the last one as a screen pixel. */

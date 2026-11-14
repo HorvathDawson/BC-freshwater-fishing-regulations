@@ -56,6 +56,26 @@ export function usePaneMap(armed = true): (() => void) | undefined {
 }
 
 /**
+ * (T717, owner 2026-11-14 on 0.7.8/0.7.9: "when we go back from a regulation tab it flashes very hard while the map is
+ * loading") THE BROWSE MAP STAYS UNDER A WATER OPENED OVER IT. It used to be unmounted once the pane was shown, so Back
+ * built a new map: the emulator recorded 300-1,000 ms of blank, grey and half-drawn frames after every Back (test bed
+ * `back-flash`). Now the ONE map stays mounted, hidden behind the page and untouchable, and Back shows it as it was
+ * left. True from the render that opens a water while the browse body was the last screen shown (`overBrowse`), until
+ * the water closes; a water opened anywhere else (a spot, a landing, a start on a water) keeps nothing (a landing's map
+ * has its own rule, the Shell's `warm`).
+ */
+export function useBrowseKept(open: boolean, overBrowse: boolean): boolean {
+  // derived in render, as `usePaneHold`: the render that opens the water already keeps the map, so it is never unmounted
+  const [s, setS] = useState({ open, kept: false });
+  if (s.open !== open) {
+    const next = { open, kept: open && overBrowse };
+    setS(next);
+    return next.kept;
+  }
+  return s.kept;
+}
+
+/**
  * The hold, keyed on whether a water is open (`open`) and whether a map is on screen to hold over it (`overMap`): a
  * browse → water change made while the map was showing is held until no part of the pane is still waiting, or
  * `PANE_HOLD_MS` runs out. Returns whether the pane is held now, and the hold for `PaneReadyContext` (null: not held).

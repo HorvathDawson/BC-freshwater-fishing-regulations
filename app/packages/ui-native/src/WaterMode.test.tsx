@@ -22,6 +22,8 @@ const BACK = /^Back( to .+)?$/;
 /** The section the stub map's button taps, and where on it. */
 const TAP: { sid: number; lat: number; lon: number } = { sid: 0, lat: 49.1, lon: -121.6 };
 
+/** The map on screen: (T717) the browse map kept under a water's page is hidden (aria-hidden) and not counted. */
+const shownMap = () => screen.queryAllByLabelText("tap the map").find((e) => !e.closest('[aria-hidden="true"]')) ?? null;
 vi.mock("./MapScreen", () => ({
   MapScreen: ({ onPressFeature }: { onPressFeature?: (l: string, id: number, lat?: number, lon?: number) => void }) =>
     <Pressable accessibilityRole="button" accessibilityLabel="tap the map"
@@ -87,7 +89,7 @@ const look = () => {
       `${k}${screen.getByRole("tab", { name: k }).getAttribute("aria-selected") === "true" ? "*" : ""}`).join(" ")
     : "no bar";
   const title = screen.queryByText("Chilliwack River") ? "Chilliwack River" : "no title";
-  const body = regsShown() ? "regs page" : screen.queryByLabelText("tap the map") ? "the map" : panel();
+  const body = regsShown() ? "regs page" : shownMap() ? "the map" : panel();
   return `${back} | ${views} | ${title} | ${body} | ${bar}`;
 };
 
@@ -105,7 +107,7 @@ async function mount(tab: "map" | "conditions", sid?: SectionId, loader?: Return
   return TAP.sid;
 }
 const tapMap = async () => {
-  await act(async () => { fireEvent.click(screen.getByLabelText("tap the map")); });
+  await act(async () => { fireEvent.click(shownMap()!); });
 };
 const until = async (f: () => boolean) => waitFor(() => expect(f()).toBe(true));
 const titled = () => screen.queryByText("Chilliwack River") !== null;
@@ -152,7 +154,7 @@ describe("one water screen, whichever map you tapped", () => {
     swipe("view-swipe-body", -120);                         // anywhere on the Regulations view: Conditions
     await until(() => !regsShown()); seen.push(look());
     swipe("view-swipe-conditions", -120);                   // on the Conditions body: Map
-    await until(() => titled() && screen.queryByLabelText("tap the map") !== null); seen.push(look());
+    await until(() => titled() && shownMap() !== null); seen.push(look());
     act(() => { fireEvent.click(screen.getByLabelText(BACK)); });
     seen.push(look());
     expect(seen).toEqual([

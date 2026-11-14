@@ -59,7 +59,7 @@ export async function recordOpen(ctx, name, go, settleMs = 7000) {
 const TAGS = /\[(pan|swap|cam|move|open|drawn|whole|hold)\] /;
 
 /** A recording on the phone (≤ 180 s, the recorder's cap), pulled to `file` when `stop` is awaited. */
-function record(d, file, secs) {
+export function record(d, file, secs) {
   const remote = `/sdcard/${path.basename(file)}`;
   const rec = spawn(ADB, ['-s', d.serial(), 'shell', 'screenrecord', '--bit-rate', '16000000', '--time-limit', String(secs), remote], { stdio: 'ignore' });
   const t0 = Date.now();

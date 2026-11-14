@@ -53,7 +53,7 @@ import { NetBanner } from "./NetBanner";
 import { ShellSheets } from "./shell/ShellSheets";
 import { useSpotEdit } from "./shell/useSpotEdit";
 import { WaterModeHost } from "./shell/WaterModeHost";
-import { PaneReadyContext, usePaneHold } from "./shell/paneReveal";
+import { PaneReadyContext, useBrowseKept, usePaneHold } from "./shell/paneReveal";
 import { holdsView } from "./shell/holdViews";
 import type { ShellProps } from "./shell/props";
 import { HOME, useMapColouring } from "./shell/useMapColouring";
@@ -88,6 +88,12 @@ const BEHIND = { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, opa
  * So the held pane (`heldStyle`) hangs `tabsH` below the body, the height it will have once shown.
  */
 const heldStyle = (tabsH: number) => ({ ...BEHIND, bottom: -tabsH, transform: [{ translateX: 100_000 }] }) as const;
+/**
+ * (T717) THE BROWSE MAP KEPT UNDER A WATER's PAGE (`useBrowseKept`): unseen, at the size it has on the browse screen —
+ * the water hides the tab bar, so the body grows by its row; a map stretched into it would be resized again on Back
+ * (its surface rebuilt: a frame of nothing).
+ */
+const keptStyle = (tabsH: number) => ({ ...BEHIND, bottom: tabsH }) as const;
 
 /** (T293) The fish obstacles' switch in the Layers sheet (`@app/core` layers). */
 const OBSTACLES = "overlay.obstacles";
@@ -247,6 +253,8 @@ export function Shell(p: ShellProps) {
    * button says it is busy (`painting`).
    */
   const lookStore = useHeldLookStore<{ col: typeof col; tab: typeof tab }>();
+  // (T717) the colouring the browse map was last handed on the browse screen (below, `look`)
+  const browseLook = useRef<{ col: typeof col; lookKey: string } | null>(null);
   const lookKey = JSON.stringify(col.mm.modes);
   lookStore.ask({ col, tab }, lookKey);
   // (T369 D10) the day and the Conditions horizon are the address's (and a recreated activity's): told on each change
@@ -536,6 +544,8 @@ export function Shell(p: ShellProps) {
   // (T508) Every view on a phone: the Conditions and Map views wait for their own live maps to draw too (`holdViews`)
   const browseShown = useRef(false);
   const pane = usePaneHold(frame !== null && !nav.carrying, browseShown.current && !!frame && holdsView(frame.view));
+  // (T717) and the browse map it was opened over stays mounted under it (hidden), so Back shows that map, drawn
+  const browseKept = useBrowseKept(frame !== null, browseShown.current);
   // (T716) the tap's cue (`@app/ui` pressCue.ts): lit by the browse map's host, out once the map is back in front
   const tapCue = useMemo(() => pressCueStore(), []);
   useEffect(() => { if (frame === null) tapCue.drop(); }, [frame === null, tapCue]);   // eslint-disable-line react-hooks/exhaustive-deps
@@ -550,6 +560,8 @@ export function Shell(p: ShellProps) {
     stillOpen: (sid) => { const r = tapNav.current.route; return r.mode === "water" && r.stack.length === 1 && r.stack[0]!.tapSid === Number(sid); },
   }), [tapCue]);
   const tapAwaiting = useTapAwaiting(tapOpen);
+  // (T717) put out once the pane is shown, too: the map is kept under the page, and Back shows it as it was before the tap
+  useEffect(() => { if (frame !== null && !pane.holding) tapCue.drop(); }, [frame !== null && !pane.holding, tapCue]);   // eslint-disable-line react-hooks/exhaustive-deps
   // the pane built for a lift stays hidden until its click: one more part of the held pane still coming
   // (test bed only, `__tapShowAtLift`: T716 item 3, measured, NOT the app's behaviour) no wait for the click
   const atLift = !!(globalThis as { __tapShowAtLift?: boolean }).__tapShowAtLift;
@@ -622,8 +634,17 @@ export function Shell(p: ShellProps) {
    * colours load then, and back shows it painted — the same map, not a new one. Only for a landing: a water tapped from
    * the map, and an ordinary start, are as before.
    */
-  const browseLive = frame === null || (landed && warm)
-    ? <BrowseHost nav={nav} col={col} search={search} rail={rail} palette={palette} theme={theme}
+  /*
+   * (T717) UNDER A PAGE, THE KEPT MAP STAYS AS IT WAS LEFT: the colouring is computed for the map in front, and while a
+   * water is open that is the water's own map (`nav.mapTab` is "map" in water mode) — handed to the kept Conditions map,
+   * it was restyled in Standard colours under the page, then back to Conditions after Back (emulator: 876 ms of the wrong
+   * colours, `back-flash` conditions). So the kept map is handed the colouring of the last browse render; Back hands it
+   * the live one again (the same, unless a feed moved meanwhile).
+   */
+  if (frame === null) browseLook.current = { col, lookKey };
+  const look = frame === null ? { col, lookKey } : browseLook.current ?? { col, lookKey };
+  const browseLive = frame === null || (landed && warm) || browseKept
+    ? <BrowseHost nav={nav} col={look.col} search={search} rail={rail} palette={palette} theme={theme}
                   themeName={p.themeName} onTheme={p.onTheme} tiles={tiles} camera={camera} insetTop={barBottom} insetBottom={footH}
                   spots={spots} spotsShown={spotsShown} spotLayer={spotLayer} spotsError={p.spotsError}
                   onRefreshSpots={p.onRefreshSpots} refreshing={p.refreshing} locate={locate} me={me} photos={photos}
@@ -634,7 +655,7 @@ export function Shell(p: ShellProps) {
                   offline={background.scheduler ? background.status : null}
                   onObstacle={setObstacle} onNotFishing={setNotFishing} onRuns={(sid, at) => { setRunsAt(sid); setRunsPoint(at); }}
                   fishImages={p.fishImages}
-                  lookKey={lookKey} look={lookStore as HeldLookStore<unknown>} cue={tapCue} tap={tapOpen} />
+                  lookKey={look.lookKey} look={lookStore as HeldLookStore<unknown>} cue={tapCue} tap={tapOpen} />
     : null;
 
   /** (T48) The top bar — the search field, the sync icon and the bell — is the maps': on Map, Conditions and (T261)
@@ -694,13 +715,14 @@ export function Shell(p: ShellProps) {
   };
   if (frame === null) lastBrowse.current = { map: browseLive, ...chromeLive };
   const held = pane.holding ? lastBrowse.current : null;
-  const browse = held && !browseLive ? held.map : browseLive;
+  // (T717) held: the last browse render's map element (the same map, kept mounted; its props as they were)
+  const browse = held ? held.map : browseLive;
   const chrome = held ?? chromeLive;
   const browseView = browse && (
     // (T498) while a pane is held the map stays on screen, untouchable, until the pane is shown whole. NEVER COLLAPSED
     // (Fabric): a layout-only wrapper is flattened away, and the hold's pointerEvents made it a real view — the map was
     // re-parented into it, its surface torn down: black, then grey, for every hold (emulator)
-    <View key="browse" collapsable={false} style={frame === null || pane.holding ? { flex: 1 } : BEHIND}
+    <View key="browse" collapsable={false} style={frame === null || pane.holding ? { flex: 1 } : keptStyle(lastBrowse.current?.tabs ? tabsH : 0)}
           // (T716) …except while a lift's open waits for its click: a second tap (a double tap: MapLibre's zoom) must
           // still reach the map, or the detector, seeing none, confirms the first as a click and the water opens
           pointerEvents={frame === null || tapAwaiting ? "auto" : "none"} aria-hidden={frame !== null && !pane.holding}>{browse}</View>
@@ -748,7 +770,9 @@ export function Shell(p: ShellProps) {
             not hung from a zero-height row: Android delivers a native drag only within the parent's bounds, so the Runs
             species row (a native horizontal ScrollView) never scrolled, while taps (hit-tested in JS) still worked. */}
         <View testID="map-foot" style={{ position: "absolute", left: 0, right: 0, bottom: 0, zIndex: 1 }} pointerEvents="box-none"
-              onLayout={(e) => setFootH(Math.round(e.nativeEvent.layout.height))}>
+              // (T717) measured on the browse screen only: a water's page empties the foot, and a 0 kept from there put the
+              // Conditions map's card at the bottom edge (and moved the kept map's insets) for a frame after Back
+              onLayout={(e) => { if (frame === null) setFootH(Math.round(e.nativeEvent.layout.height)); }}>
           {chrome.foot}
         </View>
       </View>
