@@ -22,6 +22,7 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { readPng } from '../lib/png.mjs';
+import { runYaml } from '../lib/ios-flow.mjs';
 
 const APP = 'ca.canifishthis.app';
 const [LON, LAT] = (process.env.LOCATE_AT ?? '-121.95,49.1').split(',').map(Number);
@@ -200,7 +201,8 @@ export const auditFixes = {
       let w = [];
       for (let i = 0; i < 8; i++) { await d.sleep(1500); w = d.screenText(); if (w.some((x) => /^(Location|Notifications|Cellular Data|Background App Refresh)$/.test(x))) break; }
       shotTo(ctx, 'g6-settings');
-      const ok = w.some((x) => /^(Location|Notifications|Cellular Data|Background App Refresh|Allow Can I Fish.*to Access)$/i.test(x));
+      // the Settings app is in front: its own words on screen (the simulator may land on its root list, not the app's page)
+      const ok = w.some((x) => /^(Location|Notifications|Cellular Data|Background App Refresh|Allow Can I Fish.*to Access|Apple Account|General|Airplane Mode)$/i.test(x));
       if (!ok) throw new Error(`Settings did not come up (saw: ${w.slice(0, 14).join(' | ').slice(0, 300)})`);
       return `Settings page for the app: ${w.slice(0, 10).join(' | ').slice(0, 200)}`;
     });
@@ -209,6 +211,12 @@ export const auditFixes = {
     await ctx.step('G5: Location = While Using the App, Precise Location off; "At my location" says the fix is rough', async () => {
       const tried = [];
       try {
+        // the root list: the Settings search finds the app's own page
+        if (!d.screenText().some((x) => /^Location$/.test(x))) {
+          const r = runYaml(ctx.dir, 'settings-find', 'appId: com.apple.Preferences\n---\n- tapOn: { text: "Search", index: 0 }\n- inputText: "Can I Fish"\n- waitForAnimationToEnd: { timeout: 3000 }\n- tapOn: { text: "Can I Fish.*", index: 0 }\n');
+          if (!r.ok) throw new Error(`the Settings search did not reach the app's page: ${r.said}`);
+          await d.sleep(1500);
+        }
         ctx.flow('tap-text', { TEXT: 'Location' }); await d.sleep(1500);
         ctx.flow('tap-text', { TEXT: 'While Using the App' }); await d.sleep(1200);
         const w = d.screenText(); tried.push(w.slice(0, 12).join(' | '));
@@ -233,6 +241,7 @@ export const auditFixes = {
     // ---------- G8: Directions ----------
     await ctx.step('G8: Directions on a spot with a parking pin opens Apple Maps (not Google Maps in Safari)', async () => {
       d.stop(); await d.sleep(1000);
+      try { d.simctl(['privacy', d.udid(), 'grant', 'location', 'com.apple.Maps']); } catch { /* Maps may ask: closed below */ }
       const dir = path.join(d.dataDir(), 'Documents', 'spots');
       fs.mkdirSync(dir, { recursive: true });
       const spot = { id: 'audit-spot-1', createdAt: Date.now(), updatedAt: Date.now(), visitedAt: Date.now(), lat: 49.1, lon: -121.95,
