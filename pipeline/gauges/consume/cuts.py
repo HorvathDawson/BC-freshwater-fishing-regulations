@@ -67,9 +67,14 @@ def split_defs(matches, stations: list[dict], *, live_only: bool = True) -> list
         # they can actually answer. The match records them with a `wbk` and no `blk`.
         if m.status != "matched" or m.wbk or not m.wsc:
             continue
+        # THE OWNER SAID NO CUT (T691 phase 2, 08JB013 "rematch no cut"): matched and placed, never a boundary.
+        if not m.cut:
+            continue
         # The coordinate comes from the MATCH, not the roster: one frozen fact, so a
         # roster refreshed between the match and the build cannot move a cut on its own.
-        lon, lat = m.lon, m.lat
+        # WHERE THE CUT GOES (T691 phase 2): the row's reviewed `cut_at` when it has one (a dam's outflow gauge is cut
+        # at the dam), else the station's own published coordinate.
+        lon, lat = m.cut_at if m.cut_at is not None else (m.lon, m.lat)
         if lon is None or lat is None:
             continue
         out.append({

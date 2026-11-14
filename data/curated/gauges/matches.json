@@ -5401,6 +5401,33 @@
    },
    "trust": "auto"
   },
+  "08FE002": {
+   "station": "08FE002",
+   "station_name": "KEMANO POWERHOUSE",
+   "status": "no_match",
+   "resolved_by": null,
+   "distance_m": null,
+   "reason": "nothing named 'kemano powerhouse' within 5000 m",
+   "lon": null,
+   "lat": null,
+   "wbk": [],
+   "wsc": [],
+   "also": [],
+   "name": "",
+   "blk": "",
+   "evidence": {
+    "name_agrees": false,
+    "name_is_exact": false,
+    "distance_m": null,
+    "area_km2": 557.0999755859375,
+    "mag": null,
+    "area_agrees": null,
+    "stated_kind": "River",
+    "kind_agrees": true
+   },
+   "trust": "none",
+   "note": "owner 2026-11-13 (T691 phase 2): \"Accept all five proposals\" \u2014 stays unmatched: the powerhouse discharge is only part of the Kemano below the tailrace; any cut hands it the wrong water"
+  },
   "08FE003": {
    "station": "08FE003",
    "station_name": "KEMANO RIVER ABOVE POWERHOUSE TAILRACE",
@@ -14459,28 +14486,34 @@
    "station": "08JA013",
    "station_name": "SKINS LAKE SPILLWAY, NECHAKO RESERVOIR",
    "status": "matched",
-   "resolved_by": "name+radius",
-   "distance_m": 557.8,
+   "resolved_by": "override",
+   "distance_m": 21.7,
    "reason": null,
    "lon": -125.9705581665039,
    "lat": 53.77082824707031,
    "wbk": [],
-   "wsc": [],
+   "wsc": [
+    "100-567134-547905-872546"
+   ],
    "also": [],
-   "name": "Skins Lake",
-   "blk": "",
+   "name": "",
+   "blk": "356209076",
    "evidence": {
-    "name_agrees": true,
+    "name_agrees": false,
     "name_is_exact": false,
-    "distance_m": 557.8,
+    "distance_m": 21.7,
     "area_km2": 14000.0,
-    "mag": 51,
-    "area_agrees": false,
+    "mag": null,
+    "area_agrees": null,
     "stated_kind": "Lake",
-    "kind_agrees": true
+    "kind_agrees": false
    },
-   "trust": "wrong",
-   "note": "not Skins Lake"
+   "trust": "bound",
+   "note": "owner 2026-11-13 (T691 phase 2): \"Accept all five proposals\" \u2014 not Skins Lake: the unnamed 636 m spillway channel Ootsa -> Skins Lake (blk 356209076), cut at its foot (Skins Lake's edge, m 1234); reads the whole channel",
+   "cut_at": [
+    -125.964739,
+    53.774467
+   ]
   },
   "08JA014": {
    "station": "08JA014",
@@ -15214,29 +15247,31 @@
    "station": "08JB013",
    "station_name": "NORTH BEACH CREEK ABOVE ALLIN CREEK",
    "status": "matched",
-   "resolved_by": "name+radius",
-   "distance_m": 520.2,
+   "resolved_by": "override",
+   "distance_m": 23.9,
    "reason": null,
    "lon": -125.92832946777344,
    "lat": 54.1269416809082,
    "wbk": [],
    "wsc": [
-    "100-567134-374775-948201-671053-257338"
+    "100-567134-374775-948201-671053-257338-403752"
    ],
    "also": [],
-   "name": "Beach Creek",
-   "blk": "356361870",
+   "name": "North Beach Creek",
+   "blk": "356332315",
    "evidence": {
     "name_agrees": true,
-    "name_is_exact": false,
-    "distance_m": 520.2,
+    "name_is_exact": true,
+    "distance_m": 23.9,
     "area_km2": 7.159999847412109,
-    "mag": null,
-    "area_agrees": null,
+    "mag": 9,
+    "area_agrees": true,
     "stated_kind": "River",
     "kind_agrees": true
    },
-   "trust": "auto"
+   "trust": "bound",
+   "note": "owner 2026-11-13 (T691 phase 2): \"rematch no cut and add name variant to the fork\" \u2014 Beach Creek's unnamed north fork (blk 356332315, 24 m; 805 m above its mouth), not Beach Creek (520 m); no cut: HYDAT 2026-10 lists it Discontinued (P53); the fork carries \"North Beach Creek\" (name_variants.json)",
+   "cut": false
   },
   "08JB014": {
    "station": "08JB014",
@@ -38989,6 +39024,40 @@
    },
    "trust": "auto"
   },
+  "08ND025": {
+   "station": "08ND025",
+   "station_name": "REVELSTOKE PROJECT OUTFLOW",
+   "status": "matched",
+   "resolved_by": "override",
+   "distance_m": 255.7,
+   "reason": null,
+   "lon": -118.1972198486328,
+   "lat": 51.04444122314453,
+   "wbk": [],
+   "wsc": [
+    "300"
+   ],
+   "also": [],
+   "name": "Columbia River",
+   "blk": "356570372",
+   "evidence": {
+    "name_agrees": false,
+    "name_is_exact": false,
+    "distance_m": 255.7,
+    "area_km2": 26410.0,
+    "mag": null,
+    "area_agrees": null,
+    "stated_kind": "River",
+    "kind_agrees": true
+   },
+   "trust": "bound",
+   "note": "owner 2026-11-13 (T691 phase 2): \"Accept all five proposals\" \u2014 the Columbia, cut at Revelstoke Dam (m 1468514); reads the river from the dam down (8.1 km, to the Hwy 1 bridge)",
+   "cut_at": [
+    -118.192663,
+    51.049578
+   ],
+   "reads": "below"
+  },
   "08ND026": {
    "station": "08ND026",
    "station_name": "REVELSTOKE RESERVOIR AT MARTHA CREEK",
@@ -41725,28 +41794,35 @@
    "station": "08NE126",
    "station_name": "ARROW RESERVOIR OUTFLOW",
    "status": "matched",
-   "resolved_by": "name+radius",
-   "distance_m": 787.6,
+   "resolved_by": "override",
+   "distance_m": 143.2,
    "reason": null,
    "lon": -117.76416778564452,
    "lat": 49.3388900756836,
    "wbk": [],
-   "wsc": [],
+   "wsc": [
+    "300"
+   ],
    "also": [],
-   "name": "Lower Arrow Lake",
-   "blk": "",
+   "name": "Columbia River",
+   "blk": "356570372",
    "evidence": {
     "name_agrees": false,
     "name_is_exact": false,
-    "distance_m": 787.6,
+    "distance_m": 143.2,
     "area_km2": 36670.0,
-    "mag": 55974,
-    "area_agrees": true,
+    "mag": null,
+    "area_agrees": null,
     "stated_kind": "Lake",
-    "kind_agrees": true
+    "kind_agrees": false
    },
-   "trust": "wrong",
-   "note": "not Lower Arrow Lake"
+   "trust": "bound",
+   "note": "owner 2026-11-13 (T691 phase 2): \"Accept all five proposals\" \u2014 not Lower Arrow Lake: the Columbia, cut at Keenleyside Dam (m 1232075); reads the river from the dam down (7.4 km, to the old Robson ferry landing)",
+   "cut_at": [
+    -117.77395,
+    49.341936
+   ],
+   "reads": "below"
   },
   "08NE127": {
    "station": "08NE127",
@@ -49374,28 +49450,37 @@
    "station": "08NJ158",
    "station_name": "KOOTENAY LAKE OUTFLOW NEAR CORRA LINN",
    "status": "matched",
-   "resolved_by": "name+radius",
-   "distance_m": 20.4,
+   "resolved_by": "override",
+   "distance_m": 276.6,
    "reason": null,
    "lon": -117.46499633789062,
    "lat": 49.466941833496094,
    "wbk": [],
-   "wsc": [],
-   "also": [],
-   "name": "Kootenay Lake",
-   "blk": "",
+   "wsc": [
+    "300-625474"
+   ],
+   "also": [
+    "328974235"
+   ],
+   "name": "Kootenay River",
+   "blk": "356570348",
    "evidence": {
-    "name_agrees": true,
+    "name_agrees": false,
     "name_is_exact": false,
-    "distance_m": 20.4,
+    "distance_m": 276.6,
     "area_km2": 46450.0,
-    "mag": 58411,
-    "area_agrees": true,
+    "mag": null,
+    "area_agrees": null,
     "stated_kind": "Lake",
-    "kind_agrees": true
+    "kind_agrees": false
    },
-   "trust": "wrong",
-   "note": "not Kootenay Lake"
+   "trust": "bound",
+   "note": "owner 2026-11-13 (T691 phase 2): \"Accept all five proposals\" \u2014 not Kootenay Lake: the Kootenay River, cut at Corra Linn Dam (Kootenay Lake's edge in FWA, m 25860); reads Corra Linn down to Brilliant Dam (22.9 km)",
+   "cut_at": [
+    -117.46818,
+    49.468952
+   ],
+   "reads": "below"
   },
   "08NJ159": {
    "station": "08NJ159",
@@ -57918,31 +58003,32 @@
    "station": "08PA004",
    "station_name": "SKAGIT RIVER AT INTERNATIONAL BOUNDARY",
    "status": "matched",
-   "resolved_by": "name+radius",
-   "distance_m": 1015.1,
+   "resolved_by": "override",
+   "distance_m": 0.0,
    "reason": null,
    "lon": -121.06661987304688,
    "lat": 49.00025939941406,
-   "wbk": [],
+   "wbk": [
+    "328961736"
+   ],
    "wsc": [
     "970-106243"
    ],
    "also": [],
-   "name": "Skagit River",
-   "blk": "356570000",
+   "name": "Ross Lake",
+   "blk": "",
    "evidence": {
-    "name_agrees": true,
-    "name_is_exact": true,
-    "distance_m": 1015.1,
+    "name_agrees": false,
+    "name_is_exact": false,
+    "distance_m": 0.0,
     "area_km2": 990.9000244140624,
-    "mag": null,
-    "area_agrees": null,
+    "mag": 2889,
+    "area_agrees": true,
     "stated_kind": "River",
-    "kind_agrees": true
+    "kind_agrees": false
    },
-   "trust": "reviewed",
-   "note": "reviewed against the map and the Water Office page",
-   "reviewed": "2026-09-03"
+   "trust": "bound",
+   "note": "owner 2026-11-13 (T691 phase 2): \"Ross Lake level gauge\" \u2014 its point is inside the B.C. arm of Ross Lake (wbk 328961736): a lake gauge, never cut (replaces the Skagit match and the proposed cut at the Ross Lake inlet)"
   },
   "08PA010": {
    "station": "08PA010",

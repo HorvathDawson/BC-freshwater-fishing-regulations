@@ -143,19 +143,26 @@ ATLAS_CUT_PLACES_THE_GAUGE = True
 CUT_STARTS_M = 1.0
 
 
-def nodes_at_cuts(resolved_rows, graph, *, report: dict | None = None, by_line: dict | None = None) -> dict[str, str]:
+def nodes_at_cuts(resolved_rows, graph, *, report: dict | None = None, by_line: dict | None = None,
+                  below: frozenset[str] | set[str] = frozenset()) -> dict[str, str]:
     """`{station: node_id}` from the atlas's own gauge cuts: `resolved_rows` is the atlas's `splits.resolved.json`
     (rows with `split_id` `gauge__<station>`, `blk`, `route_measure`); the node is the stream section on that blue line
     whose lower end is the cut. `report` collects `held` rows (a cut where no section begins) with why. A gauge on a
     braided reach has one cut per channel (the host's and the braid sweep's): `by_line`, when given, collects every
-    one, `{station: {blk: node_id}}` (`owner_line`)."""
+    one, `{station: {blk: node_id}}` (`owner_line`).
+
+    ``below`` (T691 phase 2, owner 2026-11-13): stations whose match row `reads: "below"` — a dam's outflow gauge
+    speaks for the section whose UPPER end is the cut (the river leaving the dam), not the one beginning there (the
+    reservoir)."""
     rep = report if report is not None else {}
     starts: dict[str, list] = {}
+    ends: dict[str, list] = {}
     # a section ON a blue line is one carrying its key (polygon nodes carry none: 2026-11-12 on the T678 atlas, every
     # node with a `blk` is a line piece); no node kind is read here (T121)
     for nid, n in graph.nodes.items():
         if n.blk:
             starts.setdefault(n.blk, []).append((float(n.down_m), nid))
+            ends.setdefault(n.blk, []).append((float(n.up_m), nid))
     out: dict[str, str] = {}
     held: list = []
     for r in sorted(resolved_rows, key=lambda r: str(r.get("split_id"))):
@@ -163,15 +170,17 @@ def nodes_at_cuts(resolved_rows, graph, *, report: dict | None = None, by_line: 
         if not sid.startswith("gauge__"):
             continue
         st, blk, m = sid[len("gauge__"):], str(r.get("blk") or ""), float(r.get("route_measure") or 0.0)
-        got = sorted((abs(d - m), nid) for d, nid in starts.get(blk, ()) if abs(d - m) <= CUT_STARTS_M)
+        side = ends if st in below else starts
+        got = sorted((abs(d - m), nid) for d, nid in side.get(blk, ()) if abs(d - m) <= CUT_STARTS_M)
         if got:
             out[st] = got[0][1]
             if by_line is not None:
                 by_line.setdefault(st, {})[blk] = got[0][1]
         else:
             held.append({"station": st, "blk": blk, "measure": m,
-                         "why": "no stream section begins at the cut (it stands on another boundary: a lake outlet "
-                                "or the line's end)"})
+                         "why": ("no stream section ends at the cut (the station reads below it)" if st in below else
+                                 "no stream section begins at the cut (it stands on another boundary: a lake outlet "
+                                 "or the line's end)")})
     rep["held"] = held
     return out
 

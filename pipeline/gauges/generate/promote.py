@@ -119,6 +119,21 @@ def promotable(ev: dict) -> bool:
     return ev["name_agrees"] and False not in (ev["area_agrees"], ev["kind_agrees"])
 
 
+def _placement(d) -> dict:
+    """The owner's placement fields of a decision, as row fields (only those set): the channel (T682 `line` -> `blk`),
+    where the cut goes, which side it reads, and no cut at all (T691 phase 2)."""
+    out: dict = {}
+    if d.line:                       # T682: the channel the owner placed it on (`review.Decision.line`)
+        out["blk"] = d.line
+    if d.cut_at is not None:
+        out["cut_at"] = [float(d.cut_at[0]), float(d.cut_at[1])]
+    if d.reads:
+        out["reads"] = d.reads
+    if not d.cut:
+        out["cut"] = False
+    return out
+
+
 def build(matches, stations, types, mags, rev=None) -> tuple[list[dict], list[dict]]:
     """`(promoted, candidates)` — every station, sorted, with its trust and evidence."""
     rev = _review.load().stations if rev is None else rev
@@ -142,10 +157,10 @@ def build(matches, stations, types, mags, rev=None) -> tuple[list[dict], list[di
                "evidence": ev}
         if d is not None and d.verdict in ("bound", "bind"):
             row |= {"trust": "bound", "status": TRUST_STATUS["bound"], "wbk": list(d.wbk), "wsc": list(d.wsc), "note": d.note}
+            row |= _placement(d)
         elif d is not None and d.verdict == "confirmed":
             row |= {"trust": "reviewed", "status": TRUST_STATUS["reviewed"], "note": d.note, "reviewed": d.reviewed}
-            if d.line:                       # T682: the channel the owner placed it on (`review.Decision.line`)
-                row["blk"] = d.line
+            row |= _placement(d)
         elif d is not None and d.verdict == "wrong":
             # (T550 item 6) the stored status agrees with the decision (`matches.TRUST_STATUS`)
             row |= {"trust": "wrong", "status": TRUST_STATUS["wrong"], "wbk": [], "wsc": [], "note": d.note}

@@ -89,6 +89,14 @@ class Decision(BaseModel):
     #: Channel stub; the Elk near Natal on a 1.2 km side line). `promote` writes it as the row's `blk`, and the bundle
     #: places the station at the atlas's gauge cut on that line (`consume.place.owner_line`). Empty: the projection.
     line: str = ""
+    #: (T691 phase 2, owner 2026-11-13) WHERE THE CUT GOES, `[lon, lat]` on the line, when it is not the station's
+    #: own point (a dam's outflow gauge is cut at the dam). `promote` writes it as the row's `cut_at`
+    #: (`matches.StationMatch.cut_at`, read only by `consume.cuts.split_defs`).
+    cut_at: tuple[float, float] | None = None
+    #: (T691 phase 2) "below": the station speaks for the section BELOW its cut (`matches.StationMatch.reads`).
+    reads: Literal["", "below"] = ""
+    #: (T691 phase 2, 08JB013 "rematch no cut") False: matched, never cut at. `promote` writes `cut: false`.
+    cut: bool = True
     note: str = ""
     reviewed: str = ""
 
@@ -180,7 +188,7 @@ def save(review: Review, path: Path | None = None) -> Path:
             # Drop empties so a decision reads as what it IS. `model_dump` renders the
             # tuples as lists, so this must test `[]`, not `()`.
             s: {k: v for k, v in d.model_dump(mode="json").items()
-                if v not in ([], "", None)}
+                if v not in ([], "", None) and not (k == "cut" and v is True)}   # `cut` is said only when False
             for s, d in sorted(review.stations.items())
         },
     }

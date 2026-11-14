@@ -144,6 +144,8 @@ def write(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_item
     place_lost: list[str] = []
     shed_lost: list[str] = []
     placed = nodes_for(matches, graph, geoms, report=place_lost)
+    # T691 phase 2: the stations standing at the UPPER end of their section — placed below their cut (`reads: "below"`)
+    _reads_below: set[str] = set()
     # T679 #3 (owner 2026-11-12, "One rule, accept the moves"): THE ATLAS'S GAUGE CUT IS THE PLACEMENT where it made one
     # (`place.ATLAS_CUT_PLACES_THE_GAUGE`); every move and every station left on the projection is printed
     from pipeline.gauges.consume.place import ATLAS_CUT_PLACES_THE_GAUGE, nodes_at_cuts
@@ -151,7 +153,9 @@ def write(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_item
         _cut_rep: dict = {}
         _rows = json.loads((Path(build_dir) / "splits.resolved.json").read_text(encoding="utf-8"))
         _by_line: dict = {}
-        _at_cut = nodes_at_cuts(_rows, graph, report=_cut_rep, by_line=_by_line)
+        # T691 phase 2: a dam's outflow gauge (`reads: "below"`) speaks for the section below its cut
+        _below = frozenset(m.station for m in matches if m.reads == "below")
+        _at_cut = nodes_at_cuts(_rows, graph, report=_cut_rep, by_line=_by_line, below=_below)
         # T682 (owner 2026-11-12, RULINGS P49): the two stations the owner moved to the other channel (the match row
         # names that line and the atlas cut it at the gauge) are placed at THAT cut, before the hold below
         from pipeline.gauges.consume.place import owner_line
@@ -169,6 +173,7 @@ def write(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_item
         _at_cut = {st: n for st, n in _at_cut.items() if st not in _other}
         _moved = sorted(st for st, n in _at_cut.items() if st in placed and placed[st] != n)
         placed.update({st: n for st, n in _at_cut.items() if st in placed})
+        _reads_below = {st for st in _below if st in _at_cut and st in placed}
         print(f"     gauge placement: {len(_at_cut):,} station(s) at their atlas cut, {len(_moved)} moved off the "
               f"projection ({', '.join(_moved[:12])}{' …' if len(_moved) > 12 else ''}); "
               f"{len(_cut_rep['held'])} cut(s) where no section begins and {len(_other)} cut(s) on another blue line "
@@ -258,7 +263,8 @@ def write(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_item
     candidates: list = []
     links = build_gauge_sheds(graph, stations, matched, prefer=active, report=shed_lost,
                               registry=kinds, policy=GAUGE_POLICY, candidates=candidates,
-                              water_of=owner, continues=continues, diversions=diverted)
+                              water_of=owner, continues=continues, diversions=diverted,
+                              at_top=frozenset(_reads_below))
     db.executemany("INSERT INTO section_gauge (sid, station, trust, mag, rel, dist_b) VALUES (?,?,?,?,?,?)",
                    [(sid[l.section_id], l.station, l.trust,
                      graph.nodes[l.section_id].stream_magnitude, rel_code(_shown_rel(l)), dist_bucket(l.dist_m))

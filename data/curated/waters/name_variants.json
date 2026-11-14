@@ -325,6 +325,20 @@
  },
  {
   "target": {
+   "blks": [
+    "356332315"
+   ]
+  },
+  "names": [
+   {
+    "name": "North Beach Creek",
+    "source": "gauge",
+    "note": "Unnamed FWA stream (blue line 356332315, Beach Creek's north fork, 7.7 km) gauged by WSC 08JB013 (\"NORTH BEACH CREEK ABOVE ALLIN CREEK\", 24 m, 805 m above the fork's mouth); named from the gauge. Owner 2026-11-13 (T691 phase 2): \"rematch no cut and add name variant to the fork\"."
+   }
+  ]
+ },
+ {
+  "target": {
    "wbks": [
     "329484653"
    ]

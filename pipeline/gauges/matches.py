@@ -70,6 +70,24 @@ class StationMatch:
     #: — widening the match to several waters reaches split_defs, nodes_for and the shed
     #: walk, so the curation is captured now and acted on when those are ready.
     also: tuple[str, ...] = ()
+    #: (T691 phase 2, owner 2026-11-13) WHERE THE CUT GOES, `(lon, lat)` on the matched line, when it is not where the
+    #: station stands: a dam's outflow gauge sits a few hundred metres below the dam, but what it measures is what the
+    #: dam lets out, so its cut is the dam (Revelstoke, Keenleyside, Corra Linn) or the channel's foot (Skins Lake
+    #: spillway). The published `lon`/`lat` stay the station's own; only the atlas's gauge anchor reads this
+    #: (`consume.cuts.split_defs`). None: the cut is at the station.
+    cut_at: tuple[float, float] | None = None
+    #: (T691 phase 2) WHICH SIDE OF ITS CUT THE STATION SPEAKS FOR. "" (every station until now): the section that
+    #: BEGINS at the cut and runs upstream — the water that has just flowed past it. "below": the section whose UPPER
+    #: end is the cut — a dam's outflow gauge measures the river leaving the dam, not the reservoir above it
+    #: (`consume.place.nodes_at_cuts`). Closed vocabulary: `READS`.
+    reads: str = ""
+    #: (T691 phase 2, owner 2026-11-13 on 08JB013 North Beach Creek: "rematch no cut") False: matched and placed, but
+    #: the atlas does NOT cut the river at it (HYDAT lists it Discontinued while ECCC's roster still says Active).
+    cut: bool = True
+
+
+#: (T691 phase 2) every `reads` word a row may carry. Anything else raises: a typo would place a gauge on the wrong side.
+READS = ("", "below")
 
 
 #: THE ONE FROZEN FACT about where BC's gauges are, committed and reviewable.
@@ -182,6 +200,16 @@ def read_match(path: Path | None = None) -> list[StationMatch]:
                 raise ValueError(f"{path}: station {r.get('station')!r} has trust {trust!r}, not one of "
                                  f"{sorted(TRUST_STATUS)} — fix the row (a trust word places or refuses a gauge)")
             r["status"] = TRUST_STATUS[trust]
+        # (T691 phase 2) the cut's own place, the side it reads, whether it is cut — each refused when malformed
+        if r.get("reads", "") not in READS:
+            raise ValueError(f"{path}: station {r.get('station')!r} has reads {r.get('reads')!r}, not one of {READS}")
+        if r.get("cut_at") is not None:
+            ca = r["cut_at"]
+            if not (isinstance(ca, (list, tuple)) and len(ca) == 2 and all(isinstance(x, (int, float)) for x in ca)):
+                raise ValueError(f"{path}: station {r.get('station')!r} has cut_at {ca!r}, not [lon, lat]")
+            r["cut_at"] = (float(ca[0]), float(ca[1]))
+        if "cut" in r and not isinstance(r["cut"], bool):
+            raise ValueError(f"{path}: station {r.get('station')!r} has cut {r['cut']!r}, not true/false")
         out.append(StationMatch(**{k: v for k, v in r.items() if k in known}))
     return out
 

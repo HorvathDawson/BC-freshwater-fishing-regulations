@@ -267,7 +267,7 @@ GAUGE_POLICY = "drainage_continued"
 
 
 def _walk(graph, start: str, adj: dict[str, list[int]], forward: bool,
-          keep) -> Iterable[tuple[str, int, float]]:
+          keep, at_top: bool = False) -> Iterable[tuple[str, int, float]]:
     """Breadth-first over the flow graph, yielding (node_id, hops, metres) for nodes ``keep`` admits.
 
     METRES (T93) is the channel distance from the gauge to the near end of the node, along the walk's own tree. A
@@ -296,8 +296,10 @@ def _walk(graph, start: str, adj: dict[str, list[int]], forward: bool,
         if hops >= _MAX_HOPS:
             continue
         # the stretch between this node's near end and the next node's: this node's own length, except descending
-        # from the gauge's section, whose downstream end IS the gauge
-        step = float(getattr(graph.nodes[node], "length_m", 0.0) or 0.0) if (forward or node != start) else 0.0
+        # from the gauge's section, whose downstream end IS the gauge — or, for a station that reads the section BELOW
+        # its cut (`at_top`, T691 phase 2: a dam's outflow gauge), climbing from it, whose UPPER end is the gauge
+        mine = node == start and (forward == at_top)
+        step = 0.0 if mine else float(getattr(graph.nodes[node], "length_m", 0.0) or 0.0)
         for ix in sorted(adj.get(node, ())):
             e = graph.edges[ix]
             nxt = e.from_node if forward else e.to_node
@@ -417,7 +419,7 @@ def build_gauge_sheds(graph, stations: list[dict], node_for_station: dict[str, s
                       policy: str = GAUGE_POLICY,
                       candidates: list[GaugeLink] | None = None,
                       water_of: dict[str, str] | None = None, continues=(),
-                      diversions: dict | None = None) -> list[GaugeLink]:
+                      diversions: dict | None = None, at_top: frozenset[str] | set[str] = frozenset()) -> list[GaugeLink]:
     """Every (section, gauge) pair worth storing — ONE gauge per section, the policy's best.
 
     ``policy`` (T93): which relationships may speak — `POLICIES`, default `GAUGE_POLICY` (today's drainage gate).
@@ -465,6 +467,9 @@ def build_gauge_sheds(graph, stations: list[dict], node_for_station: dict[str, s
     returned exactly one row per section since.
 
     ``report`` collects a line for every station that produces NO rows, with the reason.
+
+    ``at_top`` (T691 phase 2): stations placed on the section BELOW their cut (`reads: "below"`, a dam's outflow
+    gauge): they stand at that section's upper end, so the distances measured from them start there.
 
     ``diversions`` (T696, RULINGS P54): `station -> diversion.Intake` for a gauge on a DIVERSION canal
     (`pipeline.gauges.consume.diversion`). Besides its own walks on the canal, it CLIMBS from the river section at its
@@ -514,9 +519,10 @@ def build_gauge_sheds(graph, stations: list[dict], node_for_station: dict[str, s
         def keep(node: str, _mag: int = gauge_mag) -> bool:
             return trust_for(graph.nodes[node].stream_magnitude, _mag) is not None
 
+        top = station in at_top     # T691 phase 2: it stands at its section's upper end (`reads: "below"`)
         walks = (
-            _walk(graph, node_id, graph.up_adj, True, keep),    # its tributaries
-            _walk(graph, node_id, graph.down_adj, False, keep),  # what it flows into
+            _walk(graph, node_id, graph.up_adj, True, keep, top),    # its tributaries
+            _walk(graph, node_id, graph.down_adj, False, keep, top),  # what it flows into
         )
         gauge_water = (water_of or {}).get(node_id)
         gauge_system = system.get(gauge_water) if gauge_water else None

@@ -141,3 +141,61 @@ def test_t682_the_owners_line_is_a_field_of_his_call_and_promote_writes_it():
     from pipeline.gauges.review import Decision
     d = Decision(verdict="confirmed", matched="Cannery Channel", wsc="100", line="356364114")
     assert d.line == "356364114" and Decision(verdict="confirmed").line == ""
+
+
+def test_t691_cut_at_moves_the_cut_and_never_the_station():
+    """T691 phase 2 (owner 2026-11-13, "Accept all five proposals"): a dam's outflow gauge is cut where its reviewed
+    `cut_at` says (the dam), its published point unchanged; a row without one is cut at the station. MUTATION: reading
+    `lon`/`lat` again puts the Revelstoke cut back on the station's point."""
+    row = split_defs([_m(cut_at=(-118.192663, 51.049578))], [_s()])[0]
+    assert row["anchor"]["coord"] == [-118.192663, 51.049578]
+    assert split_defs([_m()], [_s()])[0]["anchor"]["coord"] == [-123.0, 49.0]
+
+
+def test_t691_a_row_the_owner_said_no_cut_is_matched_and_never_cut():
+    """08JB013 North Beach Creek (owner 2026-11-13: "rematch no cut"): ECCC's roster still says Active, HYDAT says
+    Discontinued; `cut: false` keeps it out of the cut set. MUTATION: ignoring `cut` cuts the fork."""
+    assert split_defs([_m(cut=False)], [_s(realtime=False, active=True)]) == []
+
+
+def test_t691_a_station_that_reads_below_its_cut_speaks_for_the_section_ending_there():
+    """`reads: "below"`: the section whose UPPER end is the cut (the river leaving the dam), never the one beginning
+    there; a station that reads below where no section ends is held. MUTATION: dropping `below` places it upstream."""
+    from pipeline.common.models import NodeKind, StreamGraph, StreamNode
+    from pipeline.gauges.consume.place import nodes_at_cuts
+    g = StreamGraph()
+    for nid, lo, hi in (("C:1460385", 1460385.0, 1468514.0), ("C:1468514", 1468514.0, 1470000.0)):
+        g.nodes[nid] = StreamNode(node_id=nid, kind=NodeKind.stream, blk="C", down_m=lo, up_m=hi, length_m=hi - lo)
+    rows = [{"split_id": "gauge__08ND025", "blk": "C", "route_measure": 1468514.0},
+            {"split_id": "gauge__08XX003", "blk": "C", "route_measure": 1468514.0},
+            {"split_id": "gauge__08XX004", "blk": "C", "route_measure": 1460000.0}]
+    rep: dict = {}
+    got = nodes_at_cuts(rows, g, report=rep, below={"08ND025", "08XX004"})
+    assert got == {"08ND025": "C:1460385", "08XX003": "C:1468514"}
+    assert [h["station"] for h in rep["held"]] == ["08XX004"]
+
+
+def test_t691_the_placement_fields_are_read_closed_and_written_by_promote(tmp_path):
+    """`reads` is a closed word, `cut_at` a [lon, lat], `cut` a boolean — each refused otherwise; promote writes the
+    call's fields onto its row, and only those it sets."""
+    import json
+    import pytest
+    from pipeline.gauges.generate.promote import _placement
+    from pipeline.gauges.matches import read_match
+    from pipeline.gauges.review import Decision
+
+    def one(**kw):
+        p = tmp_path / "m.json"
+        p.write_text(json.dumps({"stations": {"08AA001": {"station": "08AA001", "status": "matched",
+                                                           "resolved_by": "override", "distance_m": 1.0, **kw}}}))
+        return read_match(p)[0]
+    m = one(cut_at=[-118.1, 51.0], reads="below", cut=False)
+    assert (m.cut_at, m.reads, m.cut) == ((-118.1, 51.0), "below", False)
+    assert (one().cut_at, one().reads, one().cut) == (None, "", True)
+    for bad in ({"reads": "above"}, {"cut_at": [1.0]}, {"cut": "no"}):
+        with pytest.raises(ValueError):
+            one(**bad)
+    d = Decision(verdict="bind", wsc="300", cut_at=(-118.19, 51.05), reads="below")
+    assert _placement(d) == {"cut_at": [-118.19, 51.05], "reads": "below"}
+    assert _placement(Decision(verdict="bind", wsc="1", cut=False)) == {"cut": False}
+    assert _placement(Decision(verdict="confirmed")) == {}

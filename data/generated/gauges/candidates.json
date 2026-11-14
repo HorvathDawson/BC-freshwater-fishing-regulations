@@ -649,33 +649,6 @@
    "trust": "candidate",
    "why": "nothing named 'port john creek' within 5000 m"
   },
-  "08FE002": {
-   "station": "08FE002",
-   "station_name": "KEMANO POWERHOUSE",
-   "status": "unresolved",
-   "resolved_by": null,
-   "distance_m": null,
-   "reason": "nothing named 'kemano powerhouse' within 5000 m",
-   "lon": null,
-   "lat": null,
-   "wbk": [],
-   "wsc": [],
-   "also": [],
-   "name": "",
-   "blk": "",
-   "evidence": {
-    "name_agrees": false,
-    "name_is_exact": false,
-    "distance_m": null,
-    "area_km2": 557.0999755859375,
-    "mag": null,
-    "area_agrees": null,
-    "stated_kind": "River",
-    "kind_agrees": true
-   },
-   "trust": "candidate",
-   "why": "nothing named 'kemano powerhouse' within 5000 m"
-  },
   "08FF005": {
    "station": "08FF005",
    "station_name": "KILOMETRE 18.9 CREEK NEAR KITIMAT",
@@ -3488,33 +3461,6 @@
    },
    "trust": "candidate",
    "why": "nothing named 'columbia river' within 5000 m"
-  },
-  "08ND025": {
-   "station": "08ND025",
-   "station_name": "REVELSTOKE PROJECT OUTFLOW",
-   "status": "unresolved",
-   "resolved_by": null,
-   "distance_m": null,
-   "reason": "nothing named 'revelstoke project outflow' within 5000 m",
-   "lon": null,
-   "lat": null,
-   "wbk": [],
-   "wsc": [],
-   "also": [],
-   "name": "",
-   "blk": "",
-   "evidence": {
-    "name_agrees": false,
-    "name_is_exact": false,
-    "distance_m": null,
-    "area_km2": 26410.0,
-    "mag": null,
-    "area_agrees": null,
-    "stated_kind": "River",
-    "kind_agrees": true
-   },
-   "trust": "candidate",
-   "why": "nothing named 'revelstoke project outflow' within 5000 m"
   },
   "08NE019": {
    "station": "08NE019",
