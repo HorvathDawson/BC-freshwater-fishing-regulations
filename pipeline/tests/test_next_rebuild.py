@@ -131,7 +131,7 @@ def _stage(tmp_path, monkeypatch, extra, limits, held=None):
     g, geoms, idx, fids = _cut_x(extra)
     from pipeline.tests.test_coast_cut import patch_stage
     patch_stage(monkeypatch, SEA, held)           # T678: the stage is the coast cut; its coast is the polygon here
-    b = SimpleNamespace(args=SimpleNamespace(gpkg="unused.gpkg", out=str(tmp_path)), graph=g, geoms=geoms,
+    b = SimpleNamespace(args=SimpleNamespace(gpkg="unused.gpkg", coast_gpkg="unused-coast.gpkg", out=str(tmp_path)), graph=g, geoms=geoms,
                         fid_index=idx, applied_splits=[], fids=fids, chains=build_blk_chains(fids, {}), bbox=None,
                         tidal_limits=limits, tidal_ids={}, tick=lambda label: None, splits=[], lake_names={},
                         wetland_names={}, _nv_all=[], wb_polys={}, _mined=[], added_lake_parts={}, area_defs=[])

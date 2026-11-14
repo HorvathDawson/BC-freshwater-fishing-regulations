@@ -172,6 +172,15 @@ curated_writer() {
 }
 step "one writer for curated data (a pipeline Python file changed)" curated_writer
 
+# caught 2026-11-14 (CI red on acd561469): pipeline/tools/mini_release.py split and joined watershed codes by hand
+# (`"-".join`, `.split("-")`) where pipeline.common.utils.wsc owns them. A changed pipeline Python file runs the scan (~1 s)
+wsc_scan() {
+  grep -qE '^(pipeline|curation-review)/.*\.py$' <<<"$CHANGED" \
+    || { echo "   (no pipeline Python file changed)"; return 0; }
+  "$PY" -m pytest -q -p no:cacheprovider pipeline/tests/test_wsc_relation.py
+}
+step "watershed codes read only in wsc.py (a pipeline Python file changed)" wsc_scan
+
 # caught 2026-11-14 (CI red on b07996827): scripts/test-env.sh hard-coded .venv/bin/python, which a hosted runner has
 # not; nothing ran the contract's test before the push. A changed scripts/test-*.sh, test-env runner or tiers file runs
 # it (~1 s; it also proves the source stops naming PIPELINE_PY when no interpreter is found)

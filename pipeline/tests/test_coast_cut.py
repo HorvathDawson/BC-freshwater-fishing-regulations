@@ -373,7 +373,7 @@ def test_the_atlas_stage_cuts_and_records_by_the_coast_rule(tmp_path, monkeypatc
     geoms = {nid: linemerge([by_fid[f] for f in n.member_fids]) for nid, n in g.nodes.items()}
     idx = {f.fid: (f.down_m, f.up_m, f.stream_order, f.stream_magnitude) for f in fids}
     patch_stage(monkeypatch, box(-500, -500, 100, 500))
-    b = SimpleNamespace(args=SimpleNamespace(gpkg="unused.gpkg", out=str(tmp_path)), graph=g, geoms=geoms,
+    b = SimpleNamespace(args=SimpleNamespace(gpkg="unused.gpkg", coast_gpkg="unused-coast.gpkg", out=str(tmp_path)), graph=g, geoms=geoms,
                         fid_index=idx, applied_splits=[], fids=fids, chains=build_blk_chains(fids, {}), bbox=None,
                         tidal_limits=[], tidal_ids={}, tick=lambda label: None)
     B.cut_shores(b)
@@ -398,7 +398,7 @@ def test_the_stage_reads_the_edge_on_the_graphs_own_line_never_the_merged_chain(
     idx = {f.fid: (f.down_m, f.up_m, f.stream_order, f.stream_magnitude) for f in fids}
     patch_stage(monkeypatch, box(-500, -500, 100, 500))
     bad = [SimpleNamespace(**{**vars(c), "geometry": LS([(400, 400), (900, 900)])}) for c in build_blk_chains(fids, {})]
-    b = SimpleNamespace(args=SimpleNamespace(gpkg="unused.gpkg", out=str(tmp_path)), graph=g, geoms=geoms,
+    b = SimpleNamespace(args=SimpleNamespace(gpkg="unused.gpkg", coast_gpkg="unused-coast.gpkg", out=str(tmp_path)), graph=g, geoms=geoms,
                         fid_index=idx, applied_splits=[], fids=fids, chains=bad, bbox=None,
                         tidal_limits=[], tidal_ids={}, tick=lambda label: None)
     B.cut_shores(b)

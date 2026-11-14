@@ -274,3 +274,7 @@ so it is out of the scan honestly, not classified) and two `test_test_env` tests
 checkout's `.venv` as the local default; neither runnable stops naming the file and `PIPELINE_PY`, tested).
 `scripts/fast-fail.sh` gained two steps that would have caught them (the curated-writer scan on a changed pipeline
 Python file; the test-env contract test on a changed test-env file).
+Then run 43629915901 (head 9db8065fe, which carried slice 8's acd561469) was red on 6 others from acd561469: the
+stage tests' fake build args had no `coast_gpkg` (the new `--coast-gpkg`; fakes given it) and `mini_release.full_wsc`
+split/joined codes by hand (`test_wsc_relation`; now `pipeline.common.utils.wsc.groups/join`). fast-fail runs
+`test_wsc_relation.py` on a changed pipeline Python file.

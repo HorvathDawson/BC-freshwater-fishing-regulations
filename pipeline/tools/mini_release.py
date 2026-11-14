@@ -37,6 +37,7 @@ import time
 from pathlib import Path
 
 from pipeline.common.curated import REPO_ROOT
+from pipeline.common.utils import wsc as W
 
 #: the committed inputs (a fixture of the tests; the one place this path is spelled)
 FIXTURE = REPO_ROOT / "pipeline" / "tests" / "fixtures" / "mini"
@@ -46,7 +47,7 @@ FORMAT = "mini-world/1"
 
 #: FWA's full watershed code is 21 groups: the root then 20 six-digit groups, zero-padded
 _WSC_GROUPS = 21
-_NO_CODE = "999-" + "-".join(["999999"] * (_WSC_GROUPS - 1))
+_NO_CODE = W.join(W.UNKNOWN_ROOT, *["999999"] * (_WSC_GROUPS - 1))
 EPSG = 3005
 
 
@@ -81,10 +82,10 @@ def full_wsc(world: dict, rel: str | None) -> str:
     no-code sentinel, a water off the network)."""
     if rel is None:
         return _NO_CODE
-    groups = world["wsc_root"].split("-") + ([g for g in rel.split("-")] if rel else [])
+    groups = W.groups(world["wsc_root"]) + W.groups(rel)
     if len(groups) > _WSC_GROUPS:
         raise ValueError(f"watershed code {rel!r} is deeper than FWA's {_WSC_GROUPS} groups")
-    return "-".join(groups + ["000000"] * (_WSC_GROUPS - len(groups)))
+    return W.join(*groups, *["000000"] * (_WSC_GROUPS - len(groups)))
 
 
 def _length(vertices) -> float:
