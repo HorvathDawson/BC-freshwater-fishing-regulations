@@ -42,6 +42,9 @@ if (process.env.EXPO_PUBLIC_PAN_PROBE === "1" && globalThis.HermesInternal?.getI
     console.log(`[heap] ${JSON.stringify({ at: Date.now(), size: s.js_heapSize, used: s.js_allocatedBytes, ext: s.js_externalBytes ?? null })}`);
   }, 2000);
 }
+// (T716 item 3) An experiment build: a map tap's page shown at the finger's lift, not held for the click (measured for the
+// owner's decision, never a store build: EXPO_PUBLIC_TAP_AT_LIFT=1)
+if (process.env.EXPO_PUBLIC_TAP_AT_LIFT === "1") globalThis.__tapShowAtLift = true;
 // (T420) An experiment build: the map asks for no atlas tile events (`MLRNTileIds`), so the pan's cost without the colouring's
 // per-tile pipeline can be measured (the sections are then not coloured). Never a store build.
 if (process.env.EXPO_PUBLIC_TB_NO_TILE_EVENTS === "1") globalThis.__tbNoTileEvents = true;

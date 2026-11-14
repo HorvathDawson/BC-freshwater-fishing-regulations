@@ -233,7 +233,7 @@ export interface MapProps {
    * was tapped at once. A double tap (a zoom) says it and then no `onPressFeature` follows. The web's click is not
    * delayed: there it is said in the same turn, just before `onPressFeature`.
    */
-  onPressStart?: (layerId: string, featureId: SectionKey) => void;
+  onPressStart?: (layerId: string, featureId: SectionKey, lat?: number, lon?: number) => void;
   /**
    * (T173) A tapped FISH OBSTACLE mark (the `obstacle` layer, drawn only while its switch is on): its tile properties,
    * which `@app/core` `obstacleSheet` turns into words. Asked before the water: a tap on a mark is the mark's, and opens

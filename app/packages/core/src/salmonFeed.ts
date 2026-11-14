@@ -130,6 +130,23 @@ function at(runs: readonly number[], day: number): number {
   return v;
 }
 
+/**
+ * (T716) THE DAYS A YEAR CAN CHANGE ON: day 0 and every run start of `runs` — between two of them every `at(runs, day)`
+ * is the same, so whatever a day's answer is made of only changes there. The composition asks those days and fills the
+ * rest (the same arrays a day-by-day pass makes: 366 days x 5 fish x each place, scanned from the start each time, was
+ * ~0.7 ms a chain on a desktop — 290 ms for the province's 435 chains, ~1 s on the emulator's JS thread).
+ */
+function changeDays(runs: Iterable<readonly number[]>): number[] {
+  const s = new Set<number>([0]);
+  for (const r of runs) for (let k = 0; k < r.length; k += 2) if (r[k]! > 0 && r[k]! < DAYS) s.add(r[k]!);
+  return [...s].sort((a, b) => a - b);
+}
+
+/** Each change day with the day after its span (`changeDays`), last one to `DAYS`. */
+function spans(days: readonly number[]): [number, number][] {
+  return days.map((d, i) => [d, days[i + 1] ?? DAYS]);
+}
+
 function runsOf(values: readonly number[]): number[] {
   const out: number[] = [];
   let prev: number | undefined;
@@ -148,6 +165,12 @@ export interface SalmonFeedTables {
   readonly verdicts: Verdict[]; readonly gears: string[][];
   /** (T668 option 2) the feed's pair table by `pairKey(a, b)`: the Python's answer for two differing openings */
   readonly pairs?: ReadonlyMap<string, Verdict>;
+}
+
+/** (T668) The tables a composition over `feed` adds to: copies of the feed's, never the feed's. */
+export function feedTables(feed: SalmonFeed): SalmonFeedTables {
+  return { verdicts: [...feed.verdicts], gears: feed.gears.map((g) => [...g]),
+           ...(feed.pairs ? { pairs: new Map(feed.pairs.pairs.map(([a, b, r]) => [pairKey(a, b), r] as const)) } : {}) };
 }
 
 /** (T668 option 2) a pair of openings as the table keys it: both verdicts' whole content, in fold order */
@@ -208,9 +231,10 @@ function gearOf(gs: readonly number[], t: SalmonFeedTables | undefined, G: reado
  * pipeline's `salmon_who.answering_places`, read off the composed answer, never re-decided.
  */
 function answeringPlaces(sp: readonly (readonly number[])[], places: readonly (SalmonFeedLocation | undefined)[],
-                         groups: readonly (readonly number[])[] | undefined): number[][] {
+                         groups: readonly (readonly number[])[] | undefined,
+                         daysOf: (runs: Iterable<readonly number[]>) => number[]): number[][] {
   const gs = groups ?? [places.map((_, i) => i)];
-  return sp.map((runs, k) => runsOf(Array.from({ length: DAYS }, (_, day) => {
+  return sp.map((runs, k) => runsOf(byChangeDay(daysOf([runs, ...places.flatMap((p) => (p ? [p.sp[k]!] : []))]), (day) => {
     const want = at(runs, day);
     for (const g of gs) {
       let own: [number, number] | null = null;
@@ -222,6 +246,13 @@ function answeringPlaces(sp: readonly (readonly number[])[], places: readonly (S
   })));
 }
 
+/** A value per day of the year, asked only on `days` (the days it can change on, `changeDays`) and held to the next. */
+function byChangeDay(days: readonly number[], f: (day: number) => number): number[] {
+  const out: number[] = new Array<number>(DAYS);
+  for (const [from, to] of spans(days)) out.fill(f(from), from, to);
+  return out;
+}
+
 /** One release chain's year, from the feed (the pipeline's `live.compose`). `undrawn`: the chain's `u` — a DFO place
  *  on its water not drawn yet; only whether the header closure `c` holds for it too. `speaks`: an undrawn place's own
  *  chain, which carries `n` (the days DFO speaks for it). (T668) `groups`: the chain's `s` — each region's places
@@ -230,21 +261,38 @@ function answeringPlaces(sp: readonly (readonly number[])[], places: readonly (S
 export function composeChain(lids: readonly string[], feed: SalmonFeed, undrawn: readonly string[] = [], speaks = false,
                              groups?: readonly (readonly number[])[], tables?: SalmonFeedTables,
                              who = false): Pick<Chain, "sp" | "g" | "m" | "c" | "n" | "a"> {
+  return composeChainOn(changeDays, lids, feed, undrawn, speaks, groups, tables, who);
+}
+
+/** (T716) `composeChain` asked on EVERY day of the year, as it was before the change-day pass: the reference that pass
+ *  is pinned against (`salmonFeed.test.ts`, every chain of the live release). */
+export function composeChainEveryDay(...a: Parameters<typeof composeChain>): ReturnType<typeof composeChain> {
+  return composeChainOn(() => EVERY_DAY, ...a);
+}
+const EVERY_DAY = Array.from({ length: DAYS }, (_, d) => d);
+
+function composeChainOn(daysOf: (runs: Iterable<readonly number[]>) => number[],
+                        lids: readonly string[], feed: SalmonFeed, undrawn: readonly string[] = [], speaks = false,
+                        groups?: readonly (readonly number[])[], tables?: SalmonFeedTables,
+                        who = false): Pick<Chain, "sp" | "g" | "m" | "c" | "n" | "a"> {
   const V = tables?.verdicts ?? feed.verdicts, G = tables?.gears ?? feed.gears;
   const subs = (groups ?? [lids.map((_, i) => i)]).map((g) => g.map((i) => feed.locs[lids[i]!]).filter((c): c is SalmonFeedLocation => !!c));
   const first = (xs: Iterable<number>, none: number) => { for (const v of xs) if (v >= 0) return v; return none; };
-  const sp: number[][] = [[], [], [], [], []], g: number[] = [], m: number[] = [];
-  for (let day = 0; day < DAYS; day++) {
+  const sp: number[][] = [[], [], [], [], []].map(() => new Array<number>(DAYS)), g = new Array<number>(DAYS),
+        m = new Array<number>(DAYS);
+  // (T716) asked on the days the places' calendars can change on, held to the next: the same arrays as day by day
+  const days = daysOf(subs.flatMap((cals) => cals.flatMap((c) => [...c.sp, c.g])));
+  for (const [day, to] of spans(days)) {
     const ss: string[] = [];
     for (let k = 0; k < 5; k++) {
       const ixs = subs.map((cals) => first(cals.map((c) => at(c.sp[k]!, day)), 0));
       const ix = ixs.length === 1 ? ixs[0]! : strictestIx(ixs, tables, V);
-      sp[k]!.push(ix);
+      sp[k]!.fill(ix, day, to);
       ss.push(V[ix]!.s);          // every feed index checked by parseSalmonFeed; a merged one is ours
     }
     const gs = subs.map((cals) => first(cals.map((c) => at(c.g, day)), -1));
-    g.push(gs.length === 1 ? gs[0]! : gearOf(gs, tables, G));
-    m.push(MAP_CODES.indexOf(mapStatus(ss)));
+    g.fill(gs.length === 1 ? gs[0]! : gearOf(gs, tables, G), day, to);
+    m.fill(MAP_CODES.indexOf(mapStatus(ss)), day, to);
   }
   const spr = sp.map(runsOf);
   // (T356) closed by the region header every day, and so is every undrawn place the feed lists: `c`, never partial
@@ -253,7 +301,7 @@ export function composeChain(lids: readonly string[], feed: SalmonFeed, undrawn:
   // (T372, owner 2026-11-04: the trout way) an undrawn place never paints the map — it is the card's caveat; `n`: the
   // pipeline's `speaks_runs`, a day some species has DFO's own verdict
   const n = speaks ? runsOf(sp[0]!.map((_, day) => (sp.some((x) => !V[x[day]!]!.d) ? 1 : 0))) : null;
-  const a = who ? answeringPlaces(spr, lids.map((l) => feed.locs[l]), groups) : null;
+  const a = who ? answeringPlaces(spr, lids.map((l) => feed.locs[l]), groups, daysOf) : null;
   return { sp: spr, g: runsOf(g), m: runsOf(m), ...(c.length ? { c } : {}), ...(n ? { n } : {}), ...(a ? { a } : {}) };
 }
 
@@ -294,6 +342,25 @@ export function withSalmonFeed(f: SalmonFacts, feed: SalmonFeed): SalmonFacts {
 }
 
 /**
+ * (T716) A LIST WHOSE ITEMS ARE MADE WHEN FIRST READ, then kept: an ordinary array to its readers (index, length, map,
+ * spread, equality), each slot a getter until it is read, then its value.
+ */
+function lazyList<T>(n: number, make: (i: number) => T): T[] {
+  const out = new Array<T>(n);
+  for (let i = 0; i < n; i++) {
+    Object.defineProperty(out, i, {
+      configurable: true, enumerable: true,
+      get() {
+        const v = make(i);
+        Object.defineProperty(out, i, { value: v, enumerable: true, writable: false, configurable: false });
+        return v;
+      },
+    });
+  }
+  return out;
+}
+
+/**
  * (T716) THE FEED LAID OVER THE RELEASE'S HEAD, ONCE PER HEAD AND FEED. It reads only the head (`payload`: every chain
  * of the province) and the feed, never the slices — yet each set of slices asked (a page's regions; every one for the
  * map) is its own `SalmonFacts`, and each was composed again: 1.0 s on the emulator's JS thread the first time a Fraser
@@ -325,12 +392,15 @@ function composeFeedPayload(P: Payload, feed: SalmonFeed): { payload: Payload; s
     return [slug, { ...rest, asof: fr.asof ?? r.asof, ...head }];
   }));
   // (T668) a two-region chain may add a merged verdict or gear list: to copies of the feed's tables, never the feed's
-  const tables: SalmonFeedTables = { verdicts: [...feed.verdicts], gears: feed.gears.map((g) => [...g]),
-    ...(feed.pairs ? { pairs: new Map(feed.pairs.pairs.map(([a, b, r]) => [pairKey(a, b), r] as const)) } : {}) };
+  const tables = feedTables(feed);
   // the release's own closure (`c`) never outlives its verdicts: the feed's composition says whether one holds;
   // (T668 fix 4) `a` re-read from the feed where the release names places (absent before fix 4: none, as it was)
-  const chains = P.chains.map(({ c: _c, n, a, ...c }) =>
-    ({ ...c, ...composeChain(c.l, feed, c.u ?? [], n !== undefined, c.s, tables, a !== undefined) }));
+  // (T716, owner 2026-11-13: "Maybe a card builds its item when it needs it?") EACH CHAIN WHEN FIRST READ: a page reads
+  // its own water's chains, the Salmon map the chains of the sections it draws; none is built for nobody
+  const chains = lazyList(P.chains.length, (i) => {
+    const { c: _c, n, a, ...c } = P.chains[i]!;
+    return { ...c, ...composeChain(c.l, feed, c.u ?? [], n !== undefined, c.s, tables, a !== undefined) };
+  });
   // (T549) the release's location set: what it shows (chains) and what it states it does not (`off`)
   const shown = new Set(P.chains.flatMap((c) => [...c.l, ...(c.u ?? [])]));
   const offFeed = Object.fromEntries(Object.keys(P.off ?? {}).filter((l) => feed.locs[l]).map((l) => {

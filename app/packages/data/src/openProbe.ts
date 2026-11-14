@@ -97,6 +97,13 @@ export const openProbe = {
     const t = cur;
     setTimeout(() => { if (!t.done) write(t); }, 1500);
   },
+  /** (T716) `[<tag>] {wall}` on the next drawn frame: an instant (epoch ms) the test bed sets beside the device clock. */
+  instantOnFrame(tag: string): void {
+    if (!g.__openProbe) return;
+    const raf = (globalThis as { requestAnimationFrame?: (f: () => void) => unknown }).requestAnimationFrame;
+    const say = () => console.log(`[${tag}] ${JSON.stringify({ wall: clockNow() })}`);
+    if (raf) raf(say); else setTimeout(say, 0);
+  },
   /** `end(stage)` on the next drawn frame (the screen's commit has reached the screen). Here, not in the component:
    *  the phone components ask the JS thread for no frames (tools/no-per-frame-animation.test.ts). */
   endOnFrame(stage: string): void {

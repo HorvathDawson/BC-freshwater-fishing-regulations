@@ -2,8 +2,8 @@
  * (T716) THE TAP'S CUE THROUGH THE REAL SHELL (owner on 0.7.8: "When you click on a stream it is taking a very long time
  * to open with no feedback"). The map says a tap at the finger's lift (`onPressStart`) and the click after it
  * (`onPressFeature`); the Shell lights the tapped section on the map at the lift — before the click, before any lookup —
- * keeps it lit while the water opens over the map, and the map is back unlit after Back. A lift with no click (a double
- * tap: a zoom) goes out by itself.
+ * and opens its water there, the pane built hidden behind the map and held until the click, then shown; the map is back
+ * unlit after Back. A lift with no click (a double tap: a zoom) is taken back: the cue out, the pane never shown.
  *
  * MUTATION PIN: a cue lit only at the click (the lift ignored), or one never put out, fails the sequence below.
  *
@@ -57,6 +57,12 @@ const android: SystemBack = (back) => { androidBack = back; return { sync: () =>
 afterEach(cleanup);
 
 const lit = () => screen.queryByTestId("map-lit")?.textContent ?? "no map";
+/** The water's page: none, built hidden behind the map (the held pane), or shown. */
+const pane = () => {
+  const h = screen.queryByTestId("regs-header");
+  return !h ? "no pane" : h.closest('[aria-hidden="true"]') ? "pane hidden" : "pane shown";
+};
+const wait = (ms: number) => act(async () => { await new Promise((r) => setTimeout(r, ms)); });
 const press = (name: string) => act(() => { fireEvent.click(screen.getByRole("button", { name })); });
 
 describe("(T716) the tap's cue", () => {
@@ -75,26 +81,30 @@ describe("(T716) the tap's cue", () => {
     await waitFor(() => expect(screen.getByTestId("map-lit")).toBeTruthy());
     const seen: string[] = [lit()];
 
-    // a double tap's first lift: lit at once, out by itself when no click follows
+    // a double tap's first lift: lit at once, the water built behind the map; no click: taken back, nothing shown
     press("lift");
     seen.push(lit());
-    await act(async () => { await new Promise((r) => setTimeout(r, CUE_WAIT_MS + 50)); });
-    seen.push(lit());
+    // watched through the wait: built hidden (on a loaded machine maybe not yet), never shown
+    const states = new Set<string>();
+    for (let t = 0; t < CUE_WAIT_MS + 100; t += 25) { states.add(pane()); await wait(25); }
+    seen.push(states.has("pane shown") ? "SHOWN during the wait" : "never shown");
+    seen.push(`${lit()} ${pane()}`);
 
-    // a tap: lit at the lift, still lit at the click while the water is looked up and built (the map is held over it)
+    // a tap: lit at the lift, the pane built hidden meanwhile and held until the click; shown at the click
     press("lift");
-    seen.push(lit());
+    await wait(400);   // the click comes ~300 ms after the finger went down
+    seen.push(`${lit()} ${pane() === "pane shown" ? "SHOWN before the click" : "not shown before the click"}`);
     await act(async () => { fireEvent.click(screen.getByRole("button", { name: "click" })); });
-    seen.push(lit());
-    // the water opens (the pane shown whole over the map): its header is up
-    await waitFor(() => expect(screen.getByTestId("regs-header")).toBeTruthy(), { timeout: 20_000 });
+    await waitFor(() => expect(pane()).toBe("pane shown"), { timeout: 5_000 });
+    seen.push(pane());
     // back: the map again, nothing lit
     act(() => { androidBack(); });
     await waitFor(() => expect(screen.getByTestId("map-lit")).toBeTruthy());
-    await act(async () => { await new Promise((r) => setTimeout(r, 50)); });
-    seen.push(lit());
+    await wait(50);
+    seen.push(`${lit()} ${pane()}`);
 
     const sid = String(TAP.sid);
-    expect(seen).toEqual(["lit []", `lit [${sid}]`, "lit []", `lit [${sid}]`, `lit [${sid}]`, "lit []"]);
+    expect(seen).toEqual(["lit []", `lit [${sid}]`, "never shown", "lit [] no pane",
+                          `lit [${sid}] not shown before the click`, "pane shown", "lit [] no pane"]);
   }, 40_000);
 });

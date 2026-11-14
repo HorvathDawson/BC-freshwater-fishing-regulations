@@ -19,6 +19,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { coldStart, toMap } from './common.mjs';
 import { recordOpen } from './pane.mjs';
+import { touchscreen } from './gestures.mjs';
+import { play, touchFiles } from './zoom-flick.mjs';
 
 const TAPS = Number(process.env.OPEN_TAPS ?? 3);
 const COLD = process.env.OPEN_COLD !== '0';
@@ -86,7 +88,8 @@ const opens = (ctx) => ctx.device.logcatJs().split('\n').filter((l) => l.include
 
 /** One trace as a line: total to the first frame, then each stage. */
 function said(o) {
-  const pre = (o.cueMs !== undefined ? `cue ${o.cueMs} ms · ` : '') + (o.pressMs !== undefined ? `press ${o.pressMs} ms + ` : '');
+  const pre = (o.cueMs !== undefined ? `cue ${o.cueMs} ms · ` : '') + (o.shownMs !== undefined ? `page ${o.shownMs} ms · ` : '')
+    + (o.pressMs !== undefined ? `press ${o.pressMs} ms + ` : '');
   const st = Object.entries(o.marks).sort((a, b) => a[1][0] - b[1][0]).map(([k, [ms, n]]) => `${k} ${ms}${n ? `/${n}q` : ''}`);
   return `${pre}${o.marks.shownFrame?.[0] ?? o.marks.frame?.[0] ?? o.marks.timeout?.[0] ?? '?'} ms · ${st.join(', ')} · sql ${o.sql} (wait ${o.sqlWait}, run ${o.sqlRun}, max ${o.sqlMax})`
     + (Object.keys(o.spans).length ? ` · ${Object.entries(o.spans).map(([k, v]) => `${k} ${v} ms`).join(', ')}` : '')
@@ -142,16 +145,19 @@ export const regsOpen = {
           while (Date.now() < end && !o) { await ctx.device.sleep(700); o = opens(ctx).at(-1) ?? null; }
           if (o && o.wall && Number.isFinite(tappedAt)) o.pressMs = o.wall - tappedAt;
           // (T716) what else the open logged: decodes that held the JS thread (`[work]`), how the pane's hold ended
-          // (`[hold]`), and the tap's cue — the first lit set to reach the screen after the tap, ms after it (`cueMs`)
+          // (`[hold]`), the tap's cue — the first lit set to reach the screen after the tap (`cueMs`) — and the page shown
+          // (`shownMs`, `[shown]`), off the device clock: read with or without a trace
+          const log = ctx.device.logcatJs().split('\n');
+          const after = (tag) => log.filter((l) => l.includes(`[${tag}] `)).map((l) => { try { return JSON.parse(l.slice(l.indexOf(`[${tag}] `) + tag.length + 3)); } catch { return null; } })
+            .filter((x) => x && Number.isFinite(tappedAt) && x.wall >= tappedAt);
+          const cue = after('cue').find((x) => x.n > 0), shown = after('shown')[0];
+          const seenAt = { cueMs: cue ? cue.wall - tappedAt : undefined, shownMs: shown ? shown.wall - tappedAt : undefined };
           if (o) {
-            const log = ctx.device.logcatJs().split('\n');
             o.work = log.filter((l) => l.includes('[work] ') || l.includes('[hold] ')).map((l) => l.slice(l.indexOf('[')));
-            const cue = log.filter((l) => l.includes('[cue] ')).map((l) => { try { return JSON.parse(l.slice(l.indexOf('[cue] ') + 6)); } catch { return null; } })
-              .find((c) => c && c.n > 0 && Number.isFinite(tappedAt) && c.wall >= tappedAt);
-            if (cue) o.cueMs = cue.wall - tappedAt;
+            Object.assign(o, seenAt);
           }
           const w = ctx.device.screenText();
-          if (!o) throw new Error(`no [open] line in 20 s (saw: ${w.slice(0, 10).join(' | ').slice(0, 300)})`);
+          if (!o) throw new Error(`no [open] line in 20 s (cue ${seenAt.cueMs ?? '-'} ms, page shown ${seenAt.shownMs ?? '-'} ms; saw: ${w.slice(0, 10).join(' | ').slice(0, 300)})`);
           opened = true;
           lines.push(`${c.id} #${i} ${JSON.stringify(o)}`);
           if (screens) lines.push(`${c.id} #${i} screens: ${screens.replace(/\n/g, ' | ')}`);
@@ -168,6 +174,37 @@ export const regsOpen = {
         // root leaves the app (the search bar keeps the water's name, so the screen's words cannot tell)
         if (opened) { ctx.device.sh('input keyevent 4'); await ctx.device.sleep(2000); }
       }
+      // (T716) the open starts at the lift: a DOUBLE TAP on the same point (MapLibre's zoom; no click comes) must take it
+      // back — no page shown, the cue lit then out, no failure reported. Raw touch events (root), the two taps 120 ms apart
+      if (c.id === 'small' && at) await ctx.step(`${c.id}: a double tap on the water zooms, shows no page, reports nothing`, async () => {
+        const d = ctx.device;
+        const ts = touchscreen(ctx);
+        if (!ts) throw new Error('no multi-touch screen found (getevent -pl)');
+        const [w, h] = (/(\d+)x(\d+)/.exec(d.sh('wm size'))?.slice(1) ?? ['1080', '2400']).map(Number);
+        d.adb(['root'], { timeout: 30_000 });
+        await d.sleep(3000);
+        d.adb(['wait-for-device'], { timeout: 60_000 });
+        try {
+          d.logcatClear();
+          const tap = [[[at.x, at.y]], 'up'];
+          play(d, ts, touchFiles(ts, { w, h }, [...tap, 'pause', ...tap], { gapMs: 120 }), path.join(ctx.dir, 'touch'));
+          await d.sleep(2500);
+          const log = d.logcatJs().split('\n');
+          const lit = log.filter((l) => l.includes('[cue] ')).map((l) => JSON.parse(l.slice(l.indexOf('[cue] ') + 6)).n);
+          const bad = log.filter((l) => /\[(shown|failure|open)\] |Unhandled promise rejection/.test(l)).map((l) => l.slice(l.indexOf('[')));
+          const words = d.screenText();
+          const onMap = words.includes('MORE') || words.includes('More');
+          const note = `cue lit/out: ${lit.join(',') || 'none'}; on the map: ${onMap}`;
+          if (bad.length) throw new Error(`the double tap showed or reported: ${bad.join(' | ').slice(0, 400)} — ${note}`);
+          if (!onMap) throw new Error(`not on the map after the double tap (saw: ${words.slice(0, 8).join(' | ')}) — ${note}`);
+          if (!lit.some((n) => n > 0) || lit.at(-1) !== 0) throw new Error(`the cue was not lit and put out again — ${note}`);
+          return note;
+        } finally {
+          try { d.adb(['unroot'], { timeout: 30_000 }); } catch { /* was not root */ }
+          await d.sleep(3000);
+          d.adb(['wait-for-device'], { timeout: 60_000 });
+        }
+      });
     }
   },
 };

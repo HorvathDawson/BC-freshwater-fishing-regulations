@@ -1,9 +1,16 @@
 # T716 — Tapping a stream takes a long time to open, with no feedback
 
-Status: IN PROGRESS (before closed testing; code done, rides the next APK; left (Claude): a look on the next build)
+Status: IN PROGRESS (before closed testing; round 2 done, rides the next APK; left (Claude): a look on the next build)
 
 Source: owner 2026-11-13, build 0.7.8 on their Android phone, verbatim: "When you click on a stream it is taking a very
 long time to open with no feedback it feels bad and slow. Want before closed testing"
+
+Owner follow-up 2026-11-13 (after 3180f75a8), verbatim: "This is still so long.. (Fraser freeze: its first open went from
+1.6 s to 0.5 s...)... The salmon build seems way to long? Maybe a card builds its item when it needs it?" — still before
+closed testing. Asked of this round: (1) the salmon build lazy, per chain, when a page needs it — no ~1 s stall anywhere
+(cold start, first Fraser open, the Salmon / Run timing map, the in-season inbox), same answers; (2) start the open at the
+finger's lift so the page shows within ~50 ms of the click; (3) measure (not ship) showing the page before the double-tap
+wait ends.
 
 ## Goal
 - Within about 100 ms of a tap the reader sees something.
@@ -75,3 +82,62 @@ the mp4s).
 - The feed composition itself still costs ~1 s once per feed per session (now paid once, not per region set); making
   `withSalmonFeed` lazy per chain would remove it. Not done here.
 - iOS: no `onTapUp` (benched); the cue there comes with the click.
+
+## Round 2 (owner follow-up, 2026-11-13)
+
+### 1. The salmon build: per chain, when read, and the waste cut
+- **Where the ~1 s sat after round 1:** at the COLD START. The map's salmon colouring asks every region's slices, and
+  the DFO feed was composed over all 435 chains in one go: `tap-stalls` on the round-1 build, `[work] dfo pick 1167 ms`,
+  `[stall] 1185 ms` at start, and again (`1449 ms`) when an applied release brought a new salmon head.
+- **Why one build cost ~1 s:** `composeChain` asked every one of the 366 days, per fish, per place, and `at()` scanned
+  each place's runs from the start every time (plus a JSON `stable()` per day on two-region chains): ~0.7 ms a chain on
+  a desktop (290 ms for the province), ~1 s on the emulator's JS thread. A place's calendar only changes on its run
+  starts. **Now** it is asked only on those days and held to the next (`changeDays`): the whole province 290 → ~10 ms on
+  a desktop. And **each chain is built when first read** (`lazyList` in `composeFeedPayload`): a page builds its own
+  water's chains, the Salmon map those of the sections it draws; the payload itself costs ~1 ms.
+- **Same answers:** `conformance/src/regs/salmonLazy.release.test.ts`: on the live release and a frozen feed
+  (`app/fixtures/dfo-feed-2026-11-13.json`), every chain read lazily in reverse order equals, by content, the
+  every-day whole build (`composeChainEveryDay`, the old pass). Mutation-checked: dropping change days fails it. The
+  pipeline-made goldens (`salmonFeed.test.ts`) pass unchanged.
+- **No stall left (emulator, `tap-stalls`, fails at 300 ms):** cold start worst 125 ms (was 1,185), Salmon colouring
+  0, the bell 0, back to Standard 0 (was 1,464). Run timing 262 ms: the tab's own restyle, no salmon work in it (it
+  was 141-151 ms before this round too). First Fraser open: in the table below.
+
+### 2. The open starts at the lift
+- `tapAhead` (`@app/ui` pressCue.ts): at the finger's lift the one opener resolves the water and the pane is built
+  hidden behind the map (T498's hold) during MapLibre's double-tap wait; the Shell adds one wait to the hold until the
+  click (`useTapAwaiting`), so the page is shown as soon as the click comes. The click reuses the lift's hit test.
+- A lift with no click (a double tap: a zoom) is taken back after 700 ms: the lookup dropped (`opener.cancel`) or the
+  open undone (back), never shown. The map stays touchable while a lift waits for its click (else the second tap of a
+  double tap never reached it and the detector confirmed the first as a click). `regs-open` now plays a raw double tap
+  on Norrish Creek: zooms, no page, cue lit then out, no failure reported — PASS.
+- One load path: the lift's open is `opener.tap`, the same action a click, search or link makes.
+- Found by that check and fixed: every water open asked the PRODUCTION site for the share link's slug shard; that site
+  (the old webapp) answers every path with its page (200, text/html), so each new shard reported "JSON Parse error".
+  `slugReader` now reads an HTML answer as "no shards" (as a 404); a body that claims JSON and is not one is still
+  reported (`startLink.test.ts`).
+
+### Before / after (emulator; ms after the tap; cold first tap, then two more)
+
+| water | round 0 (0.7.8 code): page shown | round 1: page shown | round 2: cue | round 2: page shown | round 2: click → page |
+|---|---|---|---|---|---|
+| small (Norrish) | 420 / 434 / 438 | 418 / 416 / 414 | 54 / 45 / 43 | 354 / 360 / 371 | 43 / 39 / 52 |
+| unnamed stream | 564 / 408 / 404 | 421 / 397 / 398 | 32 / 22 / 32 | 357 / 402 / 361 | 47 / 66 / 43 |
+| mid (Coquitlam) | 504 / 434 / 453 | 478 / 440 / 399 | 50 / 73 / 61 | 377 / 364 / 384 | 47 / 42 / 49 |
+| Fraser | 1,626 / 423 / 403 | 514 / 436 / 413 | 55 / 66 / 39 | 352 / 352 / 363 | 45 / 49 / 43 |
+| Skeena | 578 / 496 / 461 | 546 / 460 / 445 | 59 / 83 / 44 | 356 / 384 / 371 | 47 / 78 / 47 |
+| lake (Cultus) | 395 / 422 / 417 | 380 / 407 / 420 | 58 / 112 / 93 | 357 / 374 / 378 | 46 / 52 / 47 |
+
+The click itself arrives 303-336 ms after the tap (the double-tap wait): the page now follows it by 39-78 ms.
+Run: `app/tools/testbed/out/runs/2026-11-14T06-07-46` (regs-open 18/18 + double tap + tap-stalls, all PASS).
+
+### 3. Showing the page at the lift (measured, NOT shipped — the owner's call)
+Experiment build (`EXPO_PUBLIC_TAP_AT_LIFT=1`, test bed only): the page is shown **117-278 ms** after the tap (Norrish
+117 / 126, Fraser 278 / 144, Cultus 176 / 160), ~200 ms sooner than now. As built it does not work: once the page is
+up the browse map is gone, so MapLibre never confirms the click, the open is taken back after 700 ms and the map
+redraws (recording: `~/bcfish-session-backup-2026-11-12/tap-feedback/variant-show-at-lift-small.mp4` / `-strip.png`:
+page at once, then map, grey, map). Making it work needs a choice the owner has to make: once the page covers the map
+the second tap of a double tap lands on the page, so either (a) a double tap on a water opens it (no double-tap zoom on
+a water; zoom still by pinch and on empty map), or (b) keep the page hidden until the double-tap window passes (today's
+behaviour). (a) would show the page at ~120-280 ms instead of ~350-400 ms.
+

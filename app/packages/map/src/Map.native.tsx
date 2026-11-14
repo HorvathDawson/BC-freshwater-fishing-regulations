@@ -757,7 +757,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
         // the two asked together: the cue waits on one round trip, not two
         const [ob, hit] = await Promise.all([cb.current.onPressObstacle ? renderer.pressObstacle(x, y) : null, renderer.press(x, y)]);
         if (ob) return null;
-        if (hit) start(hit.layer, hit.id);
+        if (hit) start(hit.layer, hit.id, lat, lon);
         return { hit };
       } catch (err) { report(err); return null; }
     };

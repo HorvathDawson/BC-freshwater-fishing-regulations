@@ -334,7 +334,12 @@ interface ErrorUtilsLike { getGlobalHandler?(): (e: unknown, fatal?: boolean) =>
 export function installCrashHandlers(reporter: CrashReporter, g: Record<string, any> = globalThis as never): () => void { // eslint-disable-line @typescript-eslint/no-explicit-any
   if (g.__crashHandlers) return () => {};
   g.__crashHandlers = true;
-  const unsink = setFailureSink((e) => reporter.report(e, { kind: "js", fatal: false }));
+  const unsink = setFailureSink((e) => {
+    // (T716, test bed only) every reported failure said in the log, so a scenario can prove a gesture reported none
+    if ((globalThis as { __openProbe?: boolean }).__openProbe)
+      console.log(`[failure] ${String(e)} ${((e as { stack?: string } | null)?.stack ?? "").split("\n").slice(1, 5).join(" | ")}`);
+    reporter.report(e, { kind: "js", fatal: false });
+  });
   const undo: Array<() => void> = [() => { delete g.__crashHandlers; unsink(); }];
   const eu = g.ErrorUtils as ErrorUtilsLike | undefined;
   if (eu?.setGlobalHandler) {

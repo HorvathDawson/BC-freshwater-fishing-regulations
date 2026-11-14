@@ -166,4 +166,16 @@ describe("(T624) a water page's address, and the slug reader both Shares use", (
     expect(await r.of("gnis:2")).toBeNull();
     expect(fetcher.mock.calls[0]![0]).toBe(`https://site.test${slugShardPath("gnis:1")}`);
   });
+  it("(T716) a site that serves its page for every path (200, text/html) has no shards: null, nothing reported; a body that claims JSON and is not one is reported", async () => {
+    const { slugReader } = await import("./startLink");
+    const { setFailureSink } = await import("@app/core");
+    const got: unknown[] = [];
+    const undo = setFailureSink((e) => got.push(e));
+    try {
+      const html = slugReader("https://old.test", async () => new Response("<!doctype html>", { headers: { "content-type": "text/html; charset=utf-8" } }));
+      expect([await html.of("gnis:1"), got.length]).toEqual([null, 0]);
+      const broken = slugReader("https://bad.test", async () => new Response("<!doctype html>", { headers: { "content-type": "application/json" } }));
+      expect([await broken.of("gnis:1"), got.length]).toEqual([null, 1]);
+    } finally { undo(); }
+  });
 });

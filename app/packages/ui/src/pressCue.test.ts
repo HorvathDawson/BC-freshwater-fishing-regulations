@@ -86,3 +86,79 @@ describe("pressCue", () => {
     expect([store.lit(), told]).toEqual([[8], 2]);
   });
 });
+
+describe("(T716) tapAhead: the open starts at the lift, is shown at the click, is taken back without one", () => {
+  async function bed(answer: boolean | Error = true) {
+    const said: string[] = [];
+    const fs: (() => void)[] = [];
+    let open = false;
+    let release: (() => void) | null = null;
+    const cue = pressCue((id) => said.push(`lit ${id}`), { set: () => 0, clear: () => {} });
+    const { tapAhead } = await import("./pressCue");
+    const t = tapAhead({
+      cue,
+      open: (sid) => new Promise<boolean>((ok, no) => {
+        said.push(`open ${sid}`);
+        release = () => { if (answer instanceof Error) no(answer); else { open = answer; ok(answer); } };
+      }),
+      dropLookup: () => said.push("cancel"),
+      back: () => { said.push("back"); open = false; },
+      stillOpen: () => open,
+    }, { set: (f) => { fs.push(f); return fs.length; }, clear: (i) => { fs[(i as number) - 1] = () => {}; } });
+    const settle = async () => { release?.(); await new Promise((r) => setTimeout(r, 0)); };
+    return { t, said, fire: () => { for (const f of fs.splice(0)) f(); }, settle, isOpen: () => open };
+  }
+
+  it("lift then click: one open, made at the lift; held until the click, then shown", async () => {
+    const b = await bed();
+    b.t.lift(5, null, "regs");
+    const waiting = b.t.awaiting();
+    await b.settle();
+    const ok = await b.t.click(5, null, "regs");
+    expect([waiting, b.t.awaiting(), ok, b.said]).toEqual([true, false, true, ["lit 5", "open 5", "lit 5"]]);
+  });
+
+  it("a lift with no click (a double tap): the open made is undone, the cue out — nothing else", async () => {
+    const b = await bed();
+    b.t.lift(5, null, "regs");
+    await b.settle();
+    b.fire();
+    expect([b.t.awaiting(), b.isOpen(), b.said]).toEqual([false, false, ["lit 5", "open 5", "cancel", "back", "lit null"]]);
+  });
+
+  it("a lift whose lookup is still out when the wait ends: dropped (cancel), nothing to undo", async () => {
+    const b = await bed();
+    b.t.lift(5, null, "regs");
+    b.fire();
+    expect(b.said).toEqual(["lit 5", "open 5", "cancel", "lit null"]);
+  });
+
+  it("a click with no lift (iOS, the web): opened at the click", async () => {
+    const b = await bed();
+    const p = b.t.click(9, null, "regs");
+    await b.settle();
+    expect([await p, b.said]).toEqual([true, ["lit 9", "open 9"]]);
+  });
+
+  it("a failed lookup reaches the click that waits for it (reported there, as before), the cue out", async () => {
+    const b = await bed(new Error("store gone"));
+    b.t.lift(5, null, "regs");
+    const p = expect(b.t.click(5, null, "regs")).rejects.toThrow("store gone");
+    await b.settle();
+    await p;
+  });
+
+  it("the reader moved on before the wait ended (the route is no longer this tap's open): nothing undone", async () => {
+    const { tapAhead } = await import("./pressCue");
+    const said: string[] = [];
+    const fs: (() => void)[] = [];
+    const t = tapAhead({ cue: pressCue(() => {}, { set: () => 0, clear: () => {} }), open: async () => true,
+                         dropLookup: () => said.push("cancel"), back: () => said.push("back"), stillOpen: () => false },
+                       { set: (f) => { fs.push(f); return 0; }, clear: () => {} });
+    t.lift(5, null, "regs");
+    await new Promise((r) => setTimeout(r, 0));
+    for (const f of fs) f();
+    expect(said).toEqual(["cancel"]);
+  });
+
+});

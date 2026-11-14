@@ -25,11 +25,11 @@
  * down. Every answer on every screen comes from a hook (rule 25).
  */
 import { GUIDE_WATER, WATER_SCREEN_WORDS, bellLabel, releaseNoticeVM, dayRange, placeholderFor, runSheet, stepDay, syncVM, type NotFishingKind, bcNow, now as clockNow, reportFailure } from "@app/core";
-import { openProbe, type ItemId } from "@app/data";
+import { openProbe, type ItemId, type SectionId } from "@app/data";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Platform, View } from "react-native";
 import { bottomBarShown, spotPins, useDayFlow, useLikeVisit, useMapRail, useMyLocation, useOpenAtMe, opensAtMe, useShare, useGaugePageCheck, useMenu, useDataFacts, useSync, useAppUpdate,
-         BackLayerContext, InSeasonContext, InSeasonInboxContext, useIdleOnce, useInSeason, loadRegsStore, useInSeasonInbox, useDfoNotice, useDfoCheckedAt, useReleasePrefetch, useBackgroundPrefetch, useNet, useNetQuiet, useRegsPrefetch, holdsMapStatus, openWater, pressCueStore, useHeldLookStore, type HeldLookStore, type RegsStart } from "@app/ui";
+         BackLayerContext, InSeasonContext, InSeasonInboxContext, useIdleOnce, useInSeason, loadRegsStore, useInSeasonInbox, useDfoNotice, useDfoCheckedAt, useReleasePrefetch, useBackgroundPrefetch, useNet, useNetQuiet, useRegsPrefetch, holdsMapStatus, openWater, pressCueStore, tapAhead, useTapAwaiting, useHeldLookStore, type HeldLookStore, type RegsStart } from "@app/ui";
 import type { Camera, MapSpots } from "@app/map";
 import { visitSpot } from "@app/data/spots";
 import { connectivity } from "./connectivity";
@@ -539,9 +539,31 @@ export function Shell(p: ShellProps) {
   // (T716) the tap's cue (`@app/ui` pressCue.ts): lit by the browse map's host, out once the map is back in front
   const tapCue = useMemo(() => pressCueStore(), []);
   useEffect(() => { if (frame === null) tapCue.drop(); }, [frame === null, tapCue]);   // eslint-disable-line react-hooks/exhaustive-deps
+  // (T716) a tap's open starts at the finger's lift, through the one opener, and its pane waits for the click
+  const tapNav = useRef({ opener: nav.opener, route, go });
+  tapNav.current = { opener: nav.opener, route, go };   // read when a lift goes unclicked, renders after its open
+  const tapOpen = useMemo(() => tapAhead({
+    cue: tapCue,
+    open: (sid, at, view) => tapNav.current.opener.tap(Number(sid) as SectionId, at, view),
+    dropLookup: () => tapNav.current.opener.cancel(),
+    back: () => tapNav.current.go({ type: "back" }),
+    stillOpen: (sid) => { const r = tapNav.current.route; return r.mode === "water" && r.stack.length === 1 && r.stack[0]!.tapSid === Number(sid); },
+  }), [tapCue]);
+  const tapAwaiting = useTapAwaiting(tapOpen);
+  // the pane built for a lift stays hidden until its click: one more part of the held pane still coming
+  // (test bed only, `__tapShowAtLift`: T716 item 3, measured, NOT the app's behaviour) no wait for the click
+  const atLift = !!(globalThis as { __tapShowAtLift?: boolean }).__tapShowAtLift;
+  useEffect(() => (pane.hold && tapAwaiting && !atLift ? pane.hold.wait() : undefined), [pane.hold, tapAwaiting, atLift]);
   // (T716, test bed only) the open probe's `shown`: the commit in which the water's pane is on screen (held or not)
   const paneShown = frame !== null && !pane.holding;
-  useEffect(() => { if (paneShown && openProbe.on()) { openProbe.mark("shown"); openProbe.endOnFrame("shownFrame"); } }, [paneShown]);
+  useEffect(() => {
+    if (!paneShown || !openProbe.on()) return;
+    openProbe.mark("shown");
+    openProbe.endOnFrame("shownFrame");
+    // (T716) and as an instant on the next frame (`[shown]`): the bench reads tap → page shown off the device clock,
+    // whichever of the lift or the click the open started from
+    openProbe.instantOnFrame("shown");
+  }, [paneShown]);
   // (T498) while a pane is held, the screen is the one the reader left, AS IT WAS: the elements of the last browse
   // render (the map, and the search bar, the map's foot and the tab bar over it), so the route's change (a search
   // consumed, the water's fit, the bars a water hides) reaches none of them under the hold — the screen changes once
@@ -612,7 +634,7 @@ export function Shell(p: ShellProps) {
                   offline={background.scheduler ? background.status : null}
                   onObstacle={setObstacle} onNotFishing={setNotFishing} onRuns={(sid, at) => { setRunsAt(sid); setRunsPoint(at); }}
                   fishImages={p.fishImages}
-                  lookKey={lookKey} look={lookStore as HeldLookStore<unknown>} cue={tapCue} />
+                  lookKey={lookKey} look={lookStore as HeldLookStore<unknown>} cue={tapCue} tap={tapOpen} />
     : null;
 
   /** (T48) The top bar — the search field, the sync icon and the bell — is the maps': on Map, Conditions and (T261)
@@ -679,7 +701,9 @@ export function Shell(p: ShellProps) {
     // (Fabric): a layout-only wrapper is flattened away, and the hold's pointerEvents made it a real view — the map was
     // re-parented into it, its surface torn down: black, then grey, for every hold (emulator)
     <View key="browse" collapsable={false} style={frame === null || pane.holding ? { flex: 1 } : BEHIND}
-          pointerEvents={frame === null ? "auto" : "none"} aria-hidden={frame !== null && !pane.holding}>{browse}</View>
+          // (T716) …except while a lift's open waits for its click: a second tap (a double tap: MapLibre's zoom) must
+          // still reach the map, or the detector, seeing none, confirms the first as a click and the water opens
+          pointerEvents={frame === null || tapAwaiting ? "auto" : "none"} aria-hidden={frame !== null && !pane.holding}>{browse}</View>
   );
   const waterView = water && (
     <View key="water" collapsable={false} style={pane.holding ? heldStyle(held?.tabs ? tabsH : 0) : { flex: 1 }} pointerEvents={pane.holding ? "none" : "auto"}

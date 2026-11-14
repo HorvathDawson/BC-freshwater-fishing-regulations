@@ -5,9 +5,9 @@
 import { dayLabel, type DayRange, type NotFishingKind, type SectionKey, type SyncVM, now as clockNow } from "@app/core";
 import { useCallback, useContext, type MutableRefObject } from "react";
 import { Platform, View } from "react-native";
-import { openProbe, type SectionId } from "@app/data";
+import { openProbe } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
-import { mapPointTap, routeWhere, spotsMenu, tapOpensWater, useCueLit, type PressCueStore, type Locate, type MyLocation, type MapRail, type MenuControls, type RegsPrefetch,
+import { mapPointTap, routeWhere, spotsMenu, tapOpensWater, useCueLit, type PressCueStore, type TapAhead, type Locate, type MyLocation, type MapRail, type MenuControls, type RegsPrefetch,
          mapError, InSeasonContext, type HeldLookStore, type SpotPhotos, type SyncState } from "@app/ui";
 import type { Spot } from "@app/data/spots";
 import type { Camera, MapSpots, TileEndpoints } from "@app/map";
@@ -36,7 +36,7 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
                              spots, spotsShown, spotLayer, spotsError, onRefreshSpots, refreshing, locate, me = null,
                              photos, loader, syncState, dfoCheckedAt = null, sync = null, onSync, menu, menuInfo, mapDay, onSaveSpot, onLayers, onRegion,
                              offline = null, onDay, onOpenDay, dayRange, onObstacle, onNotFishing, onRuns, fishImages, regsPrefetch = null,
-                             lookKey, look, cue }: {
+                             lookKey, look, cue, tap }: {
   nav: ShellNav; col: MapColouring; search: ShellSearch; rail: MapRail; palette: Palette; theme: string;
   themeName: ThemeName; onTheme: (t: ThemeName) => void; tiles: TileEndpoints; camera: MutableRefObject<Camera>;
   insetTop: number; insetBottom: number; spots: readonly Spot[]; spotsShown: boolean; spotLayer: MapSpots | undefined;
@@ -78,8 +78,10 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
   lookKey?: string; look?: HeldLookStore<unknown>;
   /** (T716) the tap's cue, the Shell's (`@app/ui` pressCue.ts): lit here, put out by the Shell when the map is back */
   cue: PressCueStore;
+  /** (T716) a tap's open, started at the lift and shown at the click (the Shell's, `@app/ui` pressCue.ts `tapAhead`) */
+  tap: TapAhead;
 }) {
-  const { route, go, browse, tab, back, opener } = nav;
+  const { route, go, browse, tab, back } = nav;
   const { flowParam, mm, layers, imagery, cond, gauges, lakeFeed, salmonFeed, methodFeed, mapStatus, noteVisible, setZoomedOut,
           horizonChipsShown, pickDay, vintage } = col;
   const { searching, session, restore, arrive, wideSearch, closeSearch } = search;
@@ -102,34 +104,33 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
   const tapLit = useCueLit(cue);
   const opensWater = () => !picking && tab !== "runs"
     && tapOpensWater({ tab, flowParam, zoom: camera.current?.zoom ?? HOME.zoom, handover: HANDOVER_Z });
-  const onPressStart = useCallback((_layer: string, featureId: SectionKey) => { if (opensWater()) cue.start(featureId); },
+  const where = (lat?: number, lon?: number) => (lat !== undefined && lon !== undefined ? { lat, lon } : null);
+  // (T716) and the open starts here, behind the map, while MapLibre waits out a double tap (`tapAhead`)
+  const onPressStart = useCallback((_layer: string, featureId: SectionKey, lat?: number, lon?: number) => {
+    if (!opensWater()) return;
+    regsPrefetch?.stop();
+    tap.lift(featureId, where(lat, lon), tab === "conditions" ? "conditions" : "regs");
+  },
     // eslint-disable-next-line react-hooks/exhaustive-deps -- `opensWater` reads exactly these
-    [tab, flowParam, picking, cue]);
+    [tab, flowParam, picking, tap, regsPrefetch]);
   const onPressFeature = useCallback(async (_layer: string, featureId: SectionKey, lat?: number, lon?: number) => {
     // PICK ON THE MAP: a tap places the spot's pin (`onMapPoint`) and opens nothing — a water under it included
     if (picking) return;
     // (T199, T261) on Runs a tap answers "which runs, when" for the section, not the regulations — and below the
     // handover it is the watershed groups, where nothing is tapped (as on Conditions)
     if (tab === "runs") {
-      if (col.runsFeed && onRuns && (camera.current?.zoom ?? HOME.zoom) >= HANDOVER_Z) onRuns(Number(featureId), lat !== undefined && lon !== undefined ? { lat, lon } : null);
+      if (col.runsFeed && onRuns && (camera.current?.zoom ?? HOME.zoom) >= HANDOVER_Z) onRuns(Number(featureId), where(lat, lon));
       return;
     }
     const conditions = tab === "conditions";
     if (!tapOpensWater({ tab, flowParam, zoom: camera.current?.zoom ?? HOME.zoom, handover: HANDOVER_Z })) return;
     // The tile's feature id IS the section handle — converted, not cast (see noteVisible).
     openProbe.start(`sid ${featureId}`);
-    cue.confirm(featureId);
     regsPrefetch?.stop();
-    // (T716) nothing opened (overtaken, stale): the cue goes out; a failed open is the opener's to report, and still
-    // leaves nothing lit
-    let opened = false;
-    try {
-      opened = await opener.tap(Number(featureId) as SectionId,
-                                lat !== undefined && lon !== undefined ? { lat, lon } : null, conditions ? "conditions" : "regs");
-    } finally {
-      if (!opened) cue.drop();
-    }
-  }, [tab, flowParam, opener, picking, col.runsFeed, onRuns, regsPrefetch, cue]);
+    // (T716) the lift's open shown, or (no lift: iOS, the web) opened now — through the one opener either way; nothing
+    // opened (overtaken, stale) puts the cue out (`tapAhead`)
+    await tap.click(featureId, where(lat, lon), conditions ? "conditions" : "regs");
+  }, [tab, flowParam, picking, col.runsFeed, onRuns, regsPrefetch, tap]);
   /** What More's Data block reads (T167: the only place a source's date and freshness are drawn): the release's dates, the pair, the feed's age. */
   const inseasonFetchedAt = useContext(InSeasonContext).data?.feed.fetchedAt ?? null;
   const dataFacts = {

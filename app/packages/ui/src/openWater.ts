@@ -104,6 +104,8 @@ export interface WaterOpener {
    * A solo water (`OpenerOptions.solo`) opens on its Regulations; any other on its whole Map (T203).
    */
   searched(item: ItemId): Promise<void>;
+  /** (T716) Drop any open still being looked up (a tap's lift whose click never came): it dispatches nothing. */
+  cancel(): void;
 }
 
 export interface OpenerOptions {
@@ -162,6 +164,7 @@ export function waterOpener(source: Pick<WaterSource, "itemForSection">, go: (a:
       void settle(async () => ((await ask(item).catch(reported(false)))
         ? openWater({ item, view: "regs", solo: true }) : openWater({ item, view })));
     },
+    cancel: () => { latest += 1; },
     // (T203) a result opens the water's Map, the whole water shown, from Conditions or Regs alike — (T221) unless the
     // water is solo: nothing to choose on its map, so its Regulations
     searched: (item) => {

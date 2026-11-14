@@ -128,7 +128,7 @@ export function usePressFeature({ map, renderer, longPress }: WebMapRefs, onPres
         // under the finger — without it the route panel can mark the station and nothing
         // else. The coordinate is snapped to nothing: it is where the person tapped.
         // (T716) the tap's first word, then the press — one turn here: a browser's click is not held back for a double tap
-        if (hit) { onPressStart?.(hit.layer, hit.id); onPressFeature!(hit.layer, hit.id, lat, lng); return; }
+        if (hit) { onPressStart?.(hit.layer, hit.id, lat, lng); onPressFeature!(hit.layer, hit.id, lat, lng); return; }
         // (T292) no water under the tap: a sewage lagoon / tailings pond / dump says what it is
         const nf = onPressNotFishing ? await r.pressNotFishing(x, y) : null;
         if (nf) onPressNotFishing!(nf.kind);

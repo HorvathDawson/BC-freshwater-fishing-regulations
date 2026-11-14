@@ -167,7 +167,8 @@ export interface SlugReader {
 /**
  * (T624) THE SLUG READER, once for the web and the phone: the shard of the SEO build's slug map that holds the water
  * (`slugShardPath`), fetched from `origin` ("" on the web: its own site; the production site on the phone) and kept. A
- * site with no shards (a development server, a 404) answers null; a fetch that fails is reported and answers null.
+ * site with no shards (a development server, a 404, a page served for every path) answers null; a fetch that fails is
+ * reported and answers null.
  */
 export function slugReader(origin: string, fetcher: (url: string) => Promise<Response> = (u) => fetch(u)): SlugReader {
   const shards = new Map<string, Promise<Readonly<Record<string, string>> | null>>();
@@ -181,7 +182,11 @@ export function slugReader(origin: string, fetcher: (url: string) => Promise<Res
       const path = slugShardPath(item);
       let p = shards.get(path);
       if (!p) {
-        p = fetcher(origin + path).then((r) => (r.ok ? r.json() as Promise<Record<string, string>> : null))
+        // (T716) a site that answers every path with its page (200, text/html: the production site before the new build
+        // is deployed there) has no shards either — answered null, as a 404 is; a body that claims JSON and is not one
+        // is still a failure, reported
+        p = fetcher(origin + path).then((r) => (r.ok && !/^text\/html\b/i.test(r.headers.get("content-type") ?? "")
+          ? r.json() as Promise<Record<string, string>> : null))
           .catch((e: unknown) => { shards.delete(path); reportFailure(e); return null; });
         shards.set(path, p);
       }

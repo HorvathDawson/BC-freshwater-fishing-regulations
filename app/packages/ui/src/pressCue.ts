@@ -77,3 +77,85 @@ export function useCueLit(store: PressCueStore): readonly SectionKey[] {
 }
 
 const NONE: readonly SectionKey[] = [];
+
+/**
+ * (T716, owner 2026-11-13: "This is still so long") THE OPEN STARTS AT THE LIFT. The click comes ~300 ms after the
+ * finger went down (MapLibre waits out a double tap); the water is looked up and its pane built hidden behind the map
+ * (T498's hold) in that wait, so the pane is shown as soon as the click comes. Until the click the pane is held
+ * (`awaiting`, which the Shell turns into one more wait on the pane's hold); a lift whose click never comes (a double tap:
+ * a zoom) is taken back after `CUE_WAIT_MS` — the lookup dropped (`dropLookup`), or the open it made undone (`back`) while
+ * nothing has moved since — before anything of it was shown. The open itself is the one opener's (`open`), so the pane
+ * is the one every way in makes.
+ */
+export interface TapAhead {
+  /** the finger lifted on section `sid`: lit, and its water opened behind the map */
+  lift(sid: SectionKey, at: { lat: number; lon: number } | null, view: TapView): void;
+  /** the click: the lift's open shown (or, with no lift for it, opened now); true when a water opened */
+  click(sid: SectionKey, at: { lat: number; lon: number } | null, view: TapView): Promise<boolean>;
+  /** a lift's open is waiting for its click: the pane stays hidden */
+  awaiting(): boolean;
+  subscribe(f: () => void): () => void;
+}
+type TapView = "regs" | "conditions";
+
+export interface TapAheadDeps {
+  cue: PressCue;
+  /** the one opener's tap (`WaterOpener.tap`) */
+  open(sid: SectionKey, at: { lat: number; lon: number } | null, view: TapView): Promise<boolean>;
+  /** drop an open still being looked up (`WaterOpener.cancel`) */
+  dropLookup(): void;
+  /** undo the open just made (the route's back) */
+  back(): void;
+  /** whether the route is still the open this tap made (its water on top, opened from the map): only then undone */
+  stillOpen(sid: SectionKey): boolean;
+}
+
+export function tapAhead(d: TapAheadDeps, timers: Timers = TIMERS, waitMs = CUE_WAIT_MS): TapAhead {
+  type Pending = { sid: SectionKey; waiting: boolean; made: boolean; p: Promise<boolean>; t: unknown };
+  let pending: Pending | null = null;
+  const subs = new Set<() => void>();
+  const tell = () => { for (const f of [...subs]) f(); };
+  const takeBack = (x: Pending) => {
+    timers.clear(x.t);
+    if (pending === x) pending = null;
+    d.dropLookup();
+    if (x.made && d.stillOpen(x.sid)) d.back();
+    tell();
+  };
+  return {
+    lift(sid, at, view) {
+      if (pending) takeBack(pending);
+      d.cue.start(sid);
+      const x: Pending = { sid, waiting: true, made: false, p: Promise.resolve(false), t: null };
+      x.p = d.open(sid, at, view).then((ok) => { if (ok && pending === x) x.made = true; return ok; });
+      x.t = timers.set(() => { if (pending === x && x.waiting) { takeBack(x); d.cue.drop(); } }, waitMs);
+      pending = x;
+      tell();
+    },
+    async click(sid, at, view) {
+      const x = pending;
+      if (x && x.sid === sid && x.waiting) {
+        timers.clear(x.t);
+        x.waiting = false;
+        d.cue.confirm(sid);
+        tell();
+        const ok = await x.p;
+        if (pending === x) pending = null;
+        if (!ok) d.cue.drop();
+        return ok;
+      }
+      if (x?.waiting) takeBack(x);
+      d.cue.confirm(sid);
+      const ok = await d.open(sid, at, view);
+      if (!ok) d.cue.drop();
+      return ok;
+    },
+    awaiting: () => !!pending?.waiting,
+    subscribe: (f) => { subs.add(f); return () => { subs.delete(f); }; },
+  };
+}
+
+/** Whether a lift's open is waiting for its click (the Shell holds the pane meanwhile). */
+export function useTapAwaiting(t: TapAhead): boolean {
+  return useSyncExternalStore(t.subscribe, t.awaiting, t.awaiting);
+}

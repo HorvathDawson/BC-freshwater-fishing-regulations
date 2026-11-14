@@ -66,7 +66,7 @@ export function afterLift({ samples, up }, z0) {
  * process per event (~200 ms a two-finger report on the emulator), far too slow for a flick. Frames of [x, y] points
  * (screen px), 'up' (every finger lifts in one report) or 'pause' (`gapMs`); then the `U` marker.
  */
-function touchFiles(ts, size, frames, { gapMs = 0, frameMs = 0 } = {}) {
+export function touchFiles(ts, size, frames, { gapMs = 0, frameMs = 0 } = {}) {
   const sx = ts.maxX / size.w, sy = ts.maxY / size.h;
   const files = [];
   let down = 0, evs = [];
@@ -94,7 +94,7 @@ function touchFiles(ts, size, frames, { gapMs = 0, frameMs = 0 } = {}) {
 }
 
 /** Push the gesture's files and play them in one shell call (root: the node is root's on the Play image). */
-function play(d, ts, files, dir) {
+export function play(d, ts, files, dir) {
   fs.rmSync(dir, { recursive: true, force: true });
   fs.mkdirSync(dir, { recursive: true });
   files.forEach((f, i) => fs.writeFileSync(path.join(dir, String(i)), f.data));
