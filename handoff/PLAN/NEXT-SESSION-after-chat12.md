@@ -5,8 +5,8 @@ the ledger `app-integration/tickets/README.md` (tickets are the sole source). **
 chat used T717 and T728-T731; the iOS chat T718-T727 and T732+; read the ledger's last row before taking a number).
 
 ## Where things are
-- Branch `redesign/stream-sections`. Release **r-f749475d0962** is `data/release/LATEST` and on staging.
-- **Build 31 = app 0.7.9, versionCode 31, on Play internal** (code c3c5850ec).
+- Branch `redesign/stream-sections`. The release in `data/release/LATEST` is the one on staging, and the last Play
+  internal build is named in the STATUS top entry (the restart page holds neither: `check-tickets.mjs`).
 - Five owner-reported fixes are committed but NOT in any Play build yet: T717 (Back from a water's page flashed; the
   browse map stays mounted, hidden), T728 (the card's Flow/Level pick no longer changes the Conditions map layer),
   T729 (the credits card is a modal above the legend), T730 (search: swipe down closes, at most 4 recents, the map stays
