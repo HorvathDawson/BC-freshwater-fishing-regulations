@@ -243,7 +243,10 @@ export function SpotScreen(p: SpotScreenProps) {
                  onSaveInstead={shown === "discard" ? p.onSave : undefined} />
       )}
 
-      <ScrollView contentContainerStyle={{ padding: 18, paddingTop: 6, gap: 22,
+      {/* (T723 F2, G10) iOS: the focused title / notes kept above the keyboard (iOS-only prop: Android resizes its
+          window), and a tap on a button with the keyboard up acts at once instead of only closing the keyboard */}
+      <ScrollView automaticallyAdjustKeyboardInsets keyboardShouldPersistTaps="handled"
+                  contentContainerStyle={{ padding: 18, paddingTop: 6, gap: 22,
                                            paddingBottom: 40, ...MEASURE_NOW }}>
         <View style={{ gap: 4 }}>
           {editable && p.onTitle ? (

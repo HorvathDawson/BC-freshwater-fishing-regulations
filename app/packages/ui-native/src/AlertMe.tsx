@@ -24,6 +24,7 @@ import { alertNow, useAlertContext, useAlertRecord, useNotifications, type Alert
 import { Text } from "./Text";
 import { Button } from "./Button";
 import { Chip } from "./Chip";
+import { DoneBar } from "./DoneBar";
 import { bringIntoView, CoachScrollContext, type Measurable } from "./coachScroll";
 import { TYPE } from "./type";
 import { SPACE, type Palette } from "./theme";
@@ -233,6 +234,7 @@ export function AlertEditor({ palette, source, gauge, onSave, onCancel }: {
             <TextInput testID="alert-form-value" value={text} onChangeText={(t) => { typedByReader.current = true; setText(t); setBad(false); }}
                        accessibilityLabel={E.value(quantity)} placeholder={E.value(quantity)}
                        placeholderTextColor={palette.faint} keyboardType="decimal-pad" inputMode="decimal"
+                       inputAccessoryViewID="alert-form-value-bar"
                        style={{ ...TYPE.body, color: palette.ink, borderWidth: 1.5, borderColor: bad ? palette.closed : palette.ink,
                                 borderRadius: palette.r.box, padding: SPACE.s2, backgroundColor: palette.card, minHeight: 44,
                                 minWidth: 110 }} />
@@ -256,7 +258,7 @@ export function AlertEditor({ palette, source, gauge, onSave, onCancel }: {
           {pct === "custom" && (
             <TextInput testID="alert-form-pct" value={pctText} onChangeText={(t) => { setPctText(t); setBad(false); }}
                        accessibilityLabel={E.customLabel} placeholder={E.customLabel} placeholderTextColor={palette.faint}
-                       keyboardType="number-pad" inputMode="numeric"
+                       keyboardType="number-pad" inputMode="numeric" inputAccessoryViewID="alert-form-pct-bar"
                        style={{ ...TYPE.body, color: palette.ink, borderWidth: 1.5, borderColor: bad ? palette.closed : palette.ink,
                                 borderRadius: palette.r.box, padding: SPACE.s2, backgroundColor: palette.card, minHeight: 44,
                                 maxWidth: 220 }} />
@@ -267,6 +269,9 @@ export function AlertEditor({ palette, source, gauge, onSave, onCancel }: {
             style={{ ...TYPE.small, color: bad ? palette.closed : palette.ink }}>
         {message}
       </Text>
+      {/* (T723 G10) iOS's decimal and number pads have no return key: a Done bar rides on each (iOS only) */}
+      <DoneBar id="alert-form-value-bar" palette={palette} />
+      <DoneBar id="alert-form-pct-bar" palette={palette} />
       <View style={{ flexDirection: "row", gap: SPACE.s2 }}>
         <Button palette={palette} label={E.save} testID="alert-form-save" busy={busy} onPress={() => { void save(); }} />
         <Button palette={palette} kind="ghost" label={E.cancel} testID="alert-form-cancel" onPress={onCancel} />

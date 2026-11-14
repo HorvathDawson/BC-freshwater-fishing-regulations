@@ -21,6 +21,7 @@ import { NATIVE_DRIVER, SHEET_MOTION, useReducedMotion } from "./motion";
 import { hitProps } from "./regs/hit";
 import { BottomInset } from "./WindowInset";
 import { Chip } from "./Chip";
+import { ModalBack } from "./ModalBack";
 import { CoachScrollContext, useCoachScroller } from "./coachScroll";
 
 /**
@@ -175,6 +176,8 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
   if (wide) {
     return (
       <Modal visible={open} transparent animationType="fade" onRequestClose={requestClose} aria-labelledby={titleId}>
+        {/* (T723 F7) iOS: the left-edge swipe is the back here, as Android's back is (the Modal is its own window) */}
+        <ModalBack onBack={requestClose}>
         <GestureHandlerRootView style={{ flex: 1 }}>
           <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: SHEET_DIALOG.inset }}>
             <Pressable accessibilityRole="button" accessibilityLabel={SHEET_WORDS.close} onPress={onClose} {...SCRIM_HIT}
@@ -203,11 +206,14 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
           </View>
           {overlay}
         </GestureHandlerRootView>
+        </ModalBack>
       </Modal>
     );
   }
   return (
     <Modal visible={up} transparent animationType="none" onRequestClose={requestClose} aria-labelledby={titleId}>
+      {/* (T723 F7) iOS: the left-edge swipe is the back here, as Android's back is (the Modal is its own window) */}
+      <ModalBack onBack={requestClose}>
       {/* A Modal is its own native root: on Android its gestures need a root view of their own (RNGH). While it leaves,
           it takes no touches: the map under it is live again from the press of Done. */}
       <GestureHandlerRootView style={{ flex: 1, justifyContent: "flex-end" }} pointerEvents={open ? "auto" : "none"}>
@@ -263,6 +269,7 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
         </Animated.View>
         {overlay}
       </GestureHandlerRootView>
+      </ModalBack>
     </Modal>
   );
 }

@@ -19,6 +19,7 @@ import { Icon } from "../icons";
 import { hitProps } from "../regs/hit";
 import { withWebProps } from "../gestureWeb";
 import { usePhotoWheel } from "../photoInput";
+import { ModalBack } from "../ModalBack";
 
 const SWIPE = 50;
 /** the browser keeps no touch scrolling over the photo: every touch is the viewer's */
@@ -105,6 +106,8 @@ export function PhotoViewer({ uris, index, onIndex, onClose, palette }: {
   };
   return (
     <Modal visible transparent animationType="fade" onRequestClose={requestClose} aria-label={photoLabel(index + 1, n)}>
+      {/* (T723 F7) iOS: the left-edge swipe is the back here, as Android's back is */}
+      <ModalBack onBack={requestClose}>
       <GestureHandlerRootView testID="photo-viewer" style={{ flex: 1, backgroundColor: palette.ink }}>
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 12 }}>
           <Text style={{ ...TYPE.small, color: palette.card }}>{photoLabel(index + 1, n)}</Text>
@@ -121,6 +124,7 @@ export function PhotoViewer({ uris, index, onIndex, onClose, palette }: {
           {arrow(1, PHOTO_WORDS.next, "next")}
         </View>
       </GestureHandlerRootView>
+      </ModalBack>
     </Modal>
   );
 }
