@@ -1,6 +1,6 @@
 # T667 — Tests that grow with the app: fewer hand updates per release and per feature
 
-Status: IN PROGRESS — slices 1–2 done; 3 done by T666; 4 and 5 done in part (5b, the page v36 inventory and retirement, done 2026-11-13: 5618e63bc, 3e933cc04, 34a4e0f61, afb6a5eda); 4c, 6 and 7 done 2026-11-14 (smoke set by rule; the tier decides the world, scripts/test-env.sh); left (Claude): slice 8 — steps 1-2 built 2026-11-14 (mini inputs, atlas + reach on them, two runs identical); deliver parked on live inputs (proposal in "Slice 8, steps 1-2 built").
+Status: IN PROGRESS — slices 1–2 done; 3 done by T666; 4 and 5 done in part (5b, the page v36 inventory and retirement, done 2026-11-13: 5618e63bc, 3e933cc04, 34a4e0f61, afb6a5eda); 4c, 6 and 7 done 2026-11-14 (smoke set by rule; the tier decides the world, scripts/test-env.sh); left (Claude): slice 8 — steps 1-2 built 2026-11-14 (mini inputs, atlas + reach on them, two runs identical); step 2b/3 built (deliver through the status index on invented inputs only, the world grown to the inventory); the release parked at the export, which is the book's (decision in "Slice 8, step 2b/3 built").
 
 Source: owner 2026-11-11: "we need to also make the tests more expandable; right now they get progressively more
 unwieldy ... a Fable task to improve the tests generally, to naturally grow with the app without too many hand
@@ -324,3 +324,64 @@ split/joined codes by hand (`test_wsc_relation`; now `pipeline.common.utils.wsc.
 - NEXT (in order): (a) decide the deliver route above; (b) grow the world to the plan's inventory (braid, tidal mouth,
   a lake cut into parts, weekday and hours rules, closed-all-year part) — each one a heavy.sh run of seconds; (c) commit
   the release + `--check` / `--write`; (d) move the app logic tests.
+
+## Slice 8, step 2b/3 built (2026-11-14, third shift, 1cb204a3f; route (a) taken: no tiles, no basemap)
+- DELIVER ON THE MINI WORLD, THROUGH THE STATUS INDEX: `python -m pipeline.tools.mini_release --build <scratch>` runs
+  atlas -> check_curated (now after the atlas, `--registry` = ITS registry: without the flag it read the live atlas's)
+  -> reach -> tile layers -> `pipeline.deliver bundle` -> `verdicts` -> `status_index`, each its production command.
+  `--twice` 7.3 s wall, peak RSS 0.32 GB, 63 files, identical (04875c5e4d25… on the grown world; sqlite files
+  compared by rows with the scratch path dropped). STOPS BEFORE THE EXPORT (`mini_release.PARKED_AT`, below).
+- PRODUCTION CHANGES (explicit inputs; with no flag each reads exactly what it read before; pinned in
+  `test_mini_deliver_inputs.py`): `pipeline.deliver.tiles` `--obstacles FILE` (default the fetched one) and
+  `--no-archive` (layer files + an `atlas.meta.json` naming no `tile_version`, no tippecanoe; refused for the live
+  tiles dir and without `--no-release`; `parser()` factored out); `export_admin` draws areas.json's areas from ITS
+  `--gpkg` (it read the configured file: the mini got the province's 9 regions); `pipeline.deliver bundle` `--source
+  DIR` (the existing `build(data_dir=)`, now also HYDAT + the FWA gpkg in the gauge tables, which read `SOURCE`
+  whatever `data_dir` said), `--clim FILE` (`bundle_tables.clim_file`, default `CLIM_PATH`), `--dfo-typed DIR`,
+  `--dfo-cache DIR` (`salmon.load_inputs/load_headers/load_current_headers` already took them); a named input that
+  is missing is refused. Mutations (each pin fails with the old or a wrong default, file restored): obstacles default,
+  `load_area_polys(None, …)` back, `clim_file` default, `--clim` not passed through, the missing-input refusal off, the
+  live-tiles refusal off, the live-dir watch off, the chain given a live-only `--clim` path: 8 of 8 bite.
+- THE INVENTED FED TREE (`mini_release.write_source`, from `world.json` alone): roster (one gauge, `99MA001`, at the
+  coordinate the mini `gauges/matches.json` row holds — the bundle refuses an empty match file and an empty clim, so
+  "no stations" was not an option), places, outline, a one-page synopsis PDF stating the period (written byte for byte),
+  HYDAT (STATIONS / STN_REGULATION / STN_REMARKS), clim.json, an empty typed DFO feed per page. The FWA gpkg gained the
+  layers the tile + gauge steps read (`land_access`, `aboriginal_lands`, `land_parcels_crown`, `watershed_groups`, a
+  second named watershed: the area model needs two points) and an obstacles gpkg; the mini tree gained the two access
+  area defs, `water-specific-tables.md` (the book's p.4 legend, as is) and `region-1/2.md` titles, and `zp:bait` r5
+  (lake-only): without a lake-only provincial rule a lake and the unnamed wetland shared a rule key, which the bundle
+  refuses (live lakes always differ from wetlands by it).
+- NOTHING WRITTEN IN data/: `build` lists the live dirs a deliver step writes by default (`watched_dirs`: bundle, tiles,
+  release, runtiming, synopsis cache, deliver-cache, gauge feeds, DFO feed + page cache, reaches, map-assets, the
+  curated tree) before and after and refuses a change, naming the paths (tested). Measured too: a listing digest of
+  all of `data/` (22,195 entries) before and after a build, equal (b188a000…), and a Python audit hook over every
+  stage logged 0 opens under `data/` once check_curated took the mini registry (it was 1: the live registry.json).
+- GROWN WORLD (step 2): 15 entries, 27 rules (24 bound, the 3 steelhead twins unresolved as before), 19 sections.
+  Fixture River now has a tidal mouth (1 km into the sea, the coast cut: `tidal` = crossing:900000001:0), a braid
+  (blk 900000005), Twofold Lake across the region line (a two-region lake), an hours window (21:00-05:00 Aug 1-Dec 31);
+  Fixture Lake a weekday rule (Sat/Sun kokanee); Mock Creek a point cut at its falls and "No Fishing upstream" (closed
+  all year, its own part); Stub Creek a lift (exempt from z2's new summer stream closure) and the moot size clause (its
+  release beside z2's "1 over 50 cm"); Mockup Creek closed whole; new zone rows z1 single barbless hook, z2 summer
+  closure, z2 possession quota; Twofold Lake / Mockup Marsh rows. Pinned by name against what was BUILT
+  (`test_the_mini_world_holds_the_plans_inventory`; mutations: the braid dropped, the hours rule dropped -> red).
+  NOT BUILT: "a lake cut into parts" — the live bundle has no lake of more than one part (7,595 lakes; lakes are never
+  cut), so there is nothing real to imitate; Twofold Lake (one part, two regions) stands in.
+- FOUND, PARKS THE RELEASE (owner/main lane decision): THE EXPORT IS THE BOOK'S. On the mini bundle it refuses 137
+  problems from four checks that assert the corpus IS the synopsis: `guide_example_problems` (64: `export.examples.
+  EXAMPLES` declares prose examples on real waters, Adams Lake …), `case_problems` (64: every `cases.CASE_MECHANISMS`
+  needs a real case), `paper_licence_problems` + `protected_problems` (1 each), and `pdf_page_problems` (7: the printed
+  page map is read off `synopsis_pages.default_pdf()` — the LIVE repo PDF — in the export, the answers and
+  `decided.py`, not the source the bundle was given). Measured with those muted in a scratch script (never shipped):
+  the answers step then stops on the same page map; nothing past it was tried. The release step needs the export pair +
+  answers + store, so no release can be cut, and steps 3-4 (commit + `--check`, move app tests) wait.
+  RECOMMENDED DEFAULT: an explicit export input naming what the corpus claims (`--claims FILE`: the synopsis PDF the
+  page map is read from, the examples it declares, the case mechanisms it must hold; default = the book's, pinned with
+  a mutation), the mini declaring its own invented examples and mechanisms, checked against the reader as strictly as
+  the live ones; plus mini rows for a protected fish and a recorded-retention duty. Alternative: grow the corpus to all
+  64 mechanisms (≈60+ entries) — still needs the examples input. The release flags route (a) needs (`--no-basemap`,
+  `--no-synopsis`, `--source`, `--dfo-rules`) were written and taken out again: unused until the export runs.
+- CHECKS: `scripts/fast-fail.sh` runs the two mini test files when an atlas / deliver / gauges / mini file changed
+  (~10 s); both are in CI's no-data tier (the chain test builds twice, ~8 s).
+- LEFT (in order): decide the export route above; then the release step on the mini (`--no-basemap` etc.), commit it
+  at `app/packages/data/dev/mini-release/` with `--check` / `--write`, the shared pieces (`under_test.mini()`, `need()`,
+  `ci_no_build.py`, anchors (b), smoke); then the first app test batch.
