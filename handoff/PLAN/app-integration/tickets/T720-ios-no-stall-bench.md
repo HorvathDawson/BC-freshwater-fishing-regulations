@@ -35,3 +35,19 @@ stream is not a pass). Twin, not shared: the Android file uses `input keyevent 4
 tap/back work lands.**
 **To prove (phase 2):** `HEAVY_LOCK=$HOME/.claude/heavy-job-2.lock scripts/heavy.sh testbed-ios 30 -- bash
 app/tools/testbed/session-ios.sh --max-min 15 -- node app/tools/testbed/run-ios.mjs tap-stalls`.
+
+### Phase 2 (2026-11-14): measured, PASS (run `ios-benches`, build 8ba815a23 `--testbed`, iPhone 17 sim)
+`node app/tools/testbed/run-ios.mjs tap-stalls`: 5 of 5 steps pass; the limit is 300 ms, the same as Android.
+
+| step | stalls > 50 ms (ms) | worst | work logged |
+|---|---|---|---|
+| cold start, 20 s watched | 227, 110, 134 | 227 | decodes, all sliced: paint 444, method 377, salmon-6 335, salmon-5 233, salmon-7a 205, salmon-1/2/3/7b 91-103 |
+| Salmon colouring | none | 0 | none |
+| Run timing tab | 169 | 169 | none |
+| the bell | none | 0 | none |
+| back to Standard | none | 0 | none |
+
+- No iOS-only stall at or over 300 ms, so nothing was fixed. The 227 ms at the cold start falls inside the sliced decodes:
+  the slices yield, so the longest single hold is the stall line, not the 444 ms wall time.
+- Simulator caveat: these are Mac CPU times; a phone is slower by an amount not measured for iOS. The 227 ms cold-start
+  stall is the one to re-check on a real iPhone (IOS-11).
