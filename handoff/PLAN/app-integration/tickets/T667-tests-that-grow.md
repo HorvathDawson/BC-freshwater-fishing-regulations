@@ -1,6 +1,6 @@
 # T667 — Tests that grow with the app: fewer hand updates per release and per feature
 
-Status: IN PROGRESS — slices 1–2 done; 3 done by T666; 4 and 5 done in part (5b, the page v36 inventory and retirement, done 2026-11-13: 5618e63bc, 3e933cc04, 34a4e0f61, afb6a5eda), 6 begun; 4c and 7 done 2026-11-14 (smoke set by rule; the tier decides the world, scripts/test-env.sh); left (Claude): slice 6's live counts, slice 8 (planned below) — "What is left" below.
+Status: IN PROGRESS — slices 1–2 done; 3 done by T666; 4 and 5 done in part (5b, the page v36 inventory and retirement, done 2026-11-13: 5618e63bc, 3e933cc04, 34a4e0f61, afb6a5eda); 4c, 6 and 7 done 2026-11-14 (smoke set by rule; the tier decides the world, scripts/test-env.sh); left (Claude): slice 8 (planned below) — "What is left" below.
 
 Source: owner 2026-11-11: "we need to also make the tests more expandable; right now they get progressively more
 unwieldy ... a Fable task to improve the tests generally, to naturally grow with the app without too many hand
@@ -90,10 +90,7 @@ Depends: T666. Size: L. Fable for audit and design (owner). Part of the closed-t
 ## What is left (slices of `app-integration/T667-audit.md` §4), as of 2026-11-12
 - 4 `smoke.txt` derived by rule (D6): DONE 2026-11-14, above.
 - 5b The page v36 inventory (D1): DONE 2026-11-13, below.
-- 6 Live counts → invariants / the release diff (D3): `test_one_water_kind` (137 / 13 / 9 / 12 sections, 117 aliases),
-  `test_review_queue` (measured codes and tiers ± tolerance). Each is an atlas or reach-run count whose replacement must
-  be proved by a planted violation on an atlas (or a release-diff printer in `pipeline/release.py`): stopped here, per
-  the brief (needs an atlas to prove). `test_steelhead_streams`'s 57 is RULINGS (AGENTS 54), not a live count: stays.
+- 6 Live counts → invariants / the release diff (D3): DONE 2026-11-14, above.
 - 7 Environment contract and tiers: DONE 2026-11-14, above.
 - 8 The small frozen synthetic release (D2): not started (L).
 
@@ -190,6 +187,29 @@ owner accepts it once (`--accept-fixtures`), as T666 / D5 already do for the gol
   bytecode prefix or parses the Tests step). `test_release_command` follows fresh-copy's marker source.
 - Proof the guard still bites: smoke under the auto-hide 427 passed; the review chunks above passed hidden.
 
+## Done 2026-11-14: slice 6, live counts → invariants + the release diff (D3)
+- THE PRINTER `pipeline/deliver/release/live_counts.py` (`python -m pipeline.deliver.release.live_counts <before> <after>
+  [--reach DIR]`): release counts from each folder's core (items, absorbed ids, the sections of Rancheria / East
+  Gribbell / Stellako / Six Mile Slough) and review counts from a reach run + corpus + registry (every pre-check code,
+  every tier, closures with undrawn parts / ambiguous cuts). `release.stage_checks` prints it beside the gone ids,
+  writes `checks/<rid>/live_counts.txt` and keeps the numbers on the candidate's ledger record (`checks.counts`), which
+  the next release diffs against. LISTED, never a stop. Run on disk, r-adc4e248a163 → r-f749475d0962: items 19779 →
+  19782, absorbed ids 187 = 187, Rancheria 137, East Gribbell 13, Stellako 9, Six Mile 12 (no change); review counts
+  (no earlier record) P1 221, Z 122, P2 266, P3 100, P4 746, sweep 60, ambiguous_cut 97, unresolved 18.
+- `test_one_water_kind`: the 137 / 13 / 9 / 12 pins → each of the four is a stream holding polygons AND line sections;
+  the two "117 aliases" pins → `alias_problems` (each absorbed id on one item, never an item itself, an absorbed
+  polygon's section on its absorber; 0 on the live atlas) and the bundle's `item_alias` == the registry's aliases
+  (187 = 187). Planted on the live atlas inside the test: the Stellako without lake:329148363 is named; a no-data twin
+  (`test_the_alias_rule_bites`) plants all three breaches.
+- `test_review_queue`: the ± tolerance tables (11 codes, 6 tiers, 43 / 32 closures) → `run_problems` (run and corpus
+  one vintage: every entry / rule the run names is the corpus's; every unresolved / unplaced rule and ambiguous cut is
+  exactly one finding) and the tier rules (one tier each; Z / sweep / P1-P2 closure / P3-P4 by definition; every entry
+  the run calls unresolved or open-ambiguous is in a risk tier, and without the run some leave it). Planted on the real
+  run: a fact for an entry the corpus lacks, and an unresolved finding dropped — each named.
+- Proved: test_one_water_kind's two slow tests (the alias rule + its planted Stellako, bundle = registry) 2 passed on
+  the live atlas and bundle (through heavy.sh, 21.5 s, peak 1.8 GB); test_review_queue 25 passed on the live atlas + reach run; test_release_live_counts 4, test_release_command
+  (stage prints, records, never stops) passed. `test_steelhead_streams`' 57 stays (a ruling, AGENTS 54).
+
 ## Slice 8 plan (not built): one small invented release for logic tests (D2)
 - WHAT: a release (water / regs-<r> / regs-sid / core / geo + manifest, the shipped formats) built BY THE REAL PIPELINE from
   a tiny committed input tree: a synthetic FWA graph (≈ 12 invented waters: a river with a lake on it and two tributaries
@@ -218,3 +238,30 @@ owner accepts it once (`--accept-fixtures`), as T666 / D5 already do for the gol
   per package, each with the mutation that proves it still bites; (4) the pipeline side + shrink regs_fixture.
 - ORDER: after slice 7 (the env contract touches the same two files) and after the smoke.txt lane; 1 → 2 before any
   test moves; the page oracle on it last.
+
+## Slice 8, step 1 measured (2026-11-14, read-only; PARKED before any build)
+- THE QUESTION "can `pipeline build --side` take a prebuilt graph.pkl": every stage after the atlas is its own command
+  taking `--build DIR` (`build.commands`: `atlas.reach.cli --build`, `deliver.tiles --build`, `deliver all --build
+  --reaches --tiles --out-dir`), and a side run reads `DIR/atlas/<build>_next` when one is there. So a prebuilt atlas
+  directory is accepted as is — but `pipeline build` itself first runs `preflight` (HYDAT, the FWA gpkg, `check_curated
+  --ci` on the REAL curated tree, tippecanoe), and a side run links the live basemap: it is the wrong driver for a mini
+  release. The mini builder should call the stage commands itself, with `CURATED_ROOT` (the sandbox switch the review
+  tests already use, `conftest.curated_root`) pointed at the mini curated tree.
+- NO GRAPH-IN ENTRY POINT IS NEEDED: `pipeline.atlas.build` reads everything from one `--gpkg` (plus the coast gpkg and
+  the curated tree). A committed generator can write a tiny FWA-shaped gpkg from the invented waters, and the REAL atlas
+  build runs over it unchanged — the strongest version of "built by the real pipeline". What the gpkg must hold (every
+  read in `pipeline/atlas`, by grep): `streams` (`blk_chains._STREAM_COLUMNS`: LINEAR_FEATURE_ID, BLUE_LINE_KEY,
+  FWA_WATERSHED_CODE, GNIS_ID, GNIS_NAME, WATERBODY_KEY, STREAM_ORDER, STREAM_MAGNITUDE, EDGE_TYPE, the two route
+  measures, LENGTH_METRE, WATERSHED_KEY), `lakes` / `wetlands` / `manmade` (WATERBODY_KEY, FWA_WATERSHED_CODE, AREA_HA,
+  GNIS names, FEATURE_CODE), `watersheds` (FWA_WATERSHED_CODE, AREA_HA), `wmu` (WILDLIFE_MGMT_UNIT_ID: the B.C. outline is
+  their union, AGENTS 59, so 2 invented regions = a few wmu polygons), `tidal_boundary`; optional `obstacles`; the
+  coast gpkg's `land` and `rivers` (BLUE_LINE_KEY); and the area layers `areas.json` names (none needed if the mini
+  tree defines no area).
+- Not yet known (needs the first real run): what else a full-province assumption breaks on 12 waters (the sliver /
+  straddle / unplaced gates, the border cut with a 2-region outline, `check_curated` on a tree that lacks the province's
+  files), whether tiles can be skipped (deliver reads the tiles for `section_access`, T54; `deliver all --out-dir`
+  refuses a release root without the released tiles / basemap) and HYDAT (clim.json is read by deliver by content).
+- PARKED HERE: the next step runs the atlas build (on invented data, into scratch) and a deliver chain. Today's brief
+  forbids any atlas build, so steps 1-2 (generator + builder + `--check`) start when an atlas build on scratch inputs
+  is allowed; no test moves before them (the order above stands).
+
