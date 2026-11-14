@@ -17,10 +17,10 @@ export function textForm(s: string): string {
 }
 
 /** True on the iPhone: the only platform that is asked (a one-value choice, `Platform.select`). */
-export const ASKS_TEXT_FORM: boolean = Platform.select({ ios: true, default: false });
+const asksTextForm = (): boolean => Platform.select({ ios: true, default: false });
 
 /** A Text's children with every plain string put in text form; unchanged (same object) where `ios` is false. */
-export function guardChildren(children: ReactNode, ios: boolean = ASKS_TEXT_FORM): ReactNode {
+export function guardChildren(children: ReactNode, ios: boolean = asksTextForm()): ReactNode {
   if (!ios) return children;
   if (typeof children === "string") return textForm(children);
   if (children == null || typeof children !== "object") return children;
