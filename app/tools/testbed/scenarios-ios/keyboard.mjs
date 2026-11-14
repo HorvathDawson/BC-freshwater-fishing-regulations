@@ -39,6 +39,11 @@ async function typeIn(ctx, name, target, text, { scroll = null } = {}) {
   if (!r.ok) throw new Error(`could not type in ${name}: ${r.said}`);
   await ctx.device.sleep(1200);
   ctx.device.screenshot(path.join(ctx.dir, `T723-kb-${name}.png`));
+  return report(ctx, name, text);
+}
+
+/** Where the typed field ends against the keyboard's top, from the tree (a COVERED field is a finding). */
+function report(ctx, name, text) {
   const ns = ctx.device.nodes();
   const top = keyboardTop(ns);
   const field = ns.find((n) => n.text === text || (n.text || '').endsWith(text));
@@ -90,9 +95,27 @@ export const keyboardIos = {
       ctx.flow('tap-text', { TEXT: 'At my location' });
       await ctx.device.sleep(4000);
       const title = await typeIn(ctx, 'spot-title', '(Name this spot|Add a title)', 'kb');
-      ctx.flow('spot-name-save', { TITLE: `kb probe ${Date.now().toString(36).slice(-4)}` });
+      const name = `kb probe ${Date.now().toString(36).slice(-4)}`;
+      ctx.flow('spot-name-save', { TITLE: name });
       await ctx.device.sleep(3000);
       return title;
+    });
+    await open('saved spot: notes (Spots → the spot → Edit → Notes)', async () => {
+      ctx.flow('tab', { TAB: 'Spots' });
+      ctx.flow('spot-notes', { TITLE: 'kb probe.*', NOTES: 'kb notes', SHOT: path.join(ctx.dir, 'T723-kb-spot-notes-flow') });
+      await ctx.device.sleep(1200);
+      ctx.device.screenshot(path.join(ctx.dir, 'T723-kb-spot-notes.png'));
+      return report(ctx, 'spot-notes', 'kb notes');
+    });
+    await open('alert fields: value and percent (a water\'s Conditions → Add an alert)', async () => {
+      ctx.flow('search', { Q: 'Fraser River' });
+      ctx.flow('open-result', { LINE: '.*Fraser River.*' });
+      await ctx.device.sleep(2000);
+      const yaml = `appId: ${APP}\n---\n- tapOn: { text: "Conditions", index: 0 }\n- scrollUntilVisible:\n    element: { id: "alert-me-open" }\n    timeout: 30000\n- tapOn: { id: "alert-me-open" }\n- scrollUntilVisible:\n    element: { id: "alert-form-value" }\n    timeout: 15000\n`;
+      const r = runYaml(ctx.dir, 'kb-alert-open', yaml);
+      if (!r.ok) throw new Error(`could not open the alert form: ${r.said}`);
+      const v = await typeIn(ctx, 'alert-value', 'id:alert-form-value', '12');
+      return v;
     });
   },
 };

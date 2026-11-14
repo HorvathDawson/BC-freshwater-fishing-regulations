@@ -37,6 +37,11 @@ export const modalBackIos = {
       await ctx.device.sleep(1200);
       return swipe('layers-sheet', (w) => w.includes('Done'));
     });
+    await ctx.step('photo viewer: a spot photo, enlarged', async () => {
+      // the photo reaches a spot through iOS's own picker, which has no Maestro flow yet (flows/spot-add-photo.yaml is
+      // Android's): said, not guessed. PhotoViewer takes the same ModalBack as the others.
+      ctx.skip('no iOS photo-picker flow: the photo viewer is checked by reading only (ModalBack, spot/PhotoViewer.tsx)');
+    });
     await ctx.step('PDF viewer: More → the synopsis', async () => {
       await toMap(ctx);
       ctx.flow('tab', { TAB: 'More' });
