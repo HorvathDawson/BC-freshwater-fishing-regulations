@@ -43,6 +43,12 @@ with the default Claude uses until you answer). Newest first inside each section
   send reports; crash switch is More, Settings, Privacy; spot place is rounded; downloads carry the app version; one
   app-stopping error is kept for the next start. No Play form answer changes.
 - **iOS reopened (owner 2026-11-14): four decisions to answer on return** (Apple account/TestFlight timing and individual vs organization, minimum iOS version, iPad, own iOS tap-up patch; defaults in the doc's Unattended section). ANSWERED 2026-11-14: rotation "Portrait only."; app name "Can I Fish This?" (same as Play, T371 closed on that point); proposals, physical needs and risks in `handoff/PLAN/ios/START-HERE-ios.md`.
+- **Apple Developer account: ENROLLED 2026-11-14, waiting for Apple's approval** (owner, verbatim: "okay i enrolled with
+  apple developer I will tell you wne i get approved"). This answers decision 1 of `handoff/PLAN/ios/START-HERE-ios.md`
+  (account now). Not yet said: individual or organization. After approval, yours to do: save the Team ID in
+  `~/.canifishthis/ios-team-id`; create the app record (bundle id `ca.canifishthis.app`, name "Can I Fish This?", English
+  (Canada)); make an App Store Connect API key (App Manager) and save `~/.canifishthis/asc-api-key.json`. TestFlight
+  (T88) stays yours to start.
 - **ANSWERED 2026-11-14 (iOS parity audit, T722/T723).** Owner, verbatim: "we want it to progress with app closed in both app
   and android" (the first install download); "need to just update text for ios" (the two promises that do not hold on
   iOS); "everything else looks like a good find should look for more things like that". So: a real iOS background
