@@ -65,6 +65,11 @@ export function MapCredits({ look, chrome, insetBottom = 0, onOpenLink, onLongPr
     return () => clearTimeout(t);
   }, [startup]);
   const requestClose = useBackLayer(on, () => setOn(false));
+  // (T729) THE CARD DESCRIBES THE LOOK IT WAS OPENED ON: a tab change (Map, Conditions, Runs) changes the look, and the card
+  // goes with it, scrim and all. One rule: if the card is not what the reader asked for, nothing of it is in the tree
+  // (the Modal is rendered only while `on`, so a scrim can never outlive its card).
+  const lookSig = JSON.stringify([look.view, look.modes, look.groups, look.basemap]);
+  useEffect(() => { setOn(false); }, [lookSig]);
   const lines = creditLines(look);
   const G = GEOMETRY;
   const { width, height } = useWindowDimensions();

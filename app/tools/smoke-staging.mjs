@@ -217,6 +217,11 @@ async function browser() {
       await b.evaluate(`document.querySelector('[data-testid=map-credits-chip]')?.click()`);
       const t = await b.evaluate(`document.querySelector('[data-testid=map-credits-card]')?.textContent ?? ''`);
       must(/OpenStreetMap/.test(t), `attribution text: ${JSON.stringify(t.slice(0, 160))}`);
+      // (T729) done reading: close it, and the card AND its scrim must be gone, or the next map tap lands on the scrim
+      await b.evaluate(`document.querySelector('[data-testid=map-credits-close]')?.click()`);
+      await sleep(300);
+      const left = await b.evaluate(`['map-credits-card','map-credits-scrim'].filter((i) => document.querySelector('[data-testid='+i+']'))`);
+      must(left.length === 0, `the credits card is still in the page after Close: ${JSON.stringify(left)}`);
     });
     for (const [label, id, file, re, tab] of [['Salmon', 'regs-paint-salmon', '02-salmon', /salmon/i, null], ['Run timing', null, '03-run-timing', /\/runtiming\/index\.json/, 'Runs']]) {
       await step(`phone: ${label} mode paints`, async () => {

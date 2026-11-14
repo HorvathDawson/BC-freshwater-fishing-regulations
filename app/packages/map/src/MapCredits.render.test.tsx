@@ -107,6 +107,26 @@ describe("the open card is above the app's overlays (T729)", () => {
   });
 });
 
+describe("the open card goes with the look it was opened on (T729)", () => {
+  it("a tab change closes it, scrim included: nothing of it is left to cover the map; no scrim without the card", () => {
+    const chrome = mapChrome("light");
+    const { rerender } = render(<MapCredits look={PLAIN} chrome={chrome} />);
+    fireEvent.click(screen.getByTestId("map-credits-chip"));
+    expect(screen.getByTestId("map-credits-scrim")).toBeTruthy();
+    expect(screen.getByTestId("map-credits-card")).toBeTruthy();
+    rerender(<MapCredits look={{ ...PLAIN, modes: { stream: "runs" } }} chrome={chrome} />);
+    expect(screen.queryByTestId("map-credits-scrim")).toBeNull();
+    expect(screen.queryByTestId("map-credits-card")).toBeNull();
+    rerender(<MapCredits look={PLAIN} chrome={chrome} />);
+    expect(screen.queryByTestId("map-credits-scrim")).toBeNull();
+    // and the scrim and the card are always together
+    fireEvent.click(screen.getByTestId("map-credits-chip"));
+    expect([!!screen.queryByTestId("map-credits-scrim"), !!screen.queryByTestId("map-credits-card")]).toEqual([true, true]);
+    fireEvent.click(screen.getByTestId("map-credits-close"));
+    expect([!!screen.queryByTestId("map-credits-scrim"), !!screen.queryByTestId("map-credits-card")]).toEqual([false, false]);
+  });
+});
+
 describe("the open card's back is the app's one back (T729)", () => {
   it("registers the open state with the back layer it is handed, and a back there closes the card", () => {
     const calls: boolean[] = [];
