@@ -35,6 +35,8 @@ The same NPE is in `app/tools/testbed/out/runs/t512-lean-a` (2026-11-08): the ra
 2. **JS** (`packages/map/src/native/labelShift.ts`, used by `shiftMarks`): no call is issued unless the map is mounted,
    styled and has drawn once (checked before each call); the shift runs again when the map first draws. A skipped call
    is not reported; a call that rejects goes to the map's `onError` (`reportFailure`), not `() => null`.
+   The web half (`web/markers.ts`) needs nothing: maplibre-gl's `project` is synchronous on a map that exists once
+   the component has it (rule 34a pair checked).
 3. **Test bed**: `open-race` (cold start → search → Open at once, and warm opens, Chilliwack + Fraser, crash buffer and
    pid read every cycle); `lib/maestro.mjs` runs a flow again once when Maestro's own driver did not start (the hold ×40
    failure on build 32 was "Maestro Android driver did not start up in time", not the app).

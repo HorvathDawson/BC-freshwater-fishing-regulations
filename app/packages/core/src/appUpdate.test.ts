@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import { APP_UPDATE_WORDS as W, apkIsNewer, appUpdateChannel, appUpdateVM, appVersionToTell, changelogVM, notesFor,
          readAppUpdateSaved, shouldCheckAppUpdate, type AppUpdateCheck } from "./appUpdate";
 import { CHANGELOG } from "./changelog";
+import { compareSemver } from "./appVersion";
 import { bellLabel } from "./updates";
 
 const own = { version: "0.5.0", build: 12, sha: "abc1234", date: "2026-11-04" };
@@ -133,7 +134,8 @@ describe("(T234 v1.1) the changelog and the incoming version's bullets", () => {
     const rows = changelogVM(null);
     expect(new Set(rows.map((r) => r.version)).size).toBe(CHANGELOG.length);
     expect(rows.every((r) => r.notes.length >= 1 && r.notes.length <= 5)).toBe(true);
-    expect(rows.map((r) => r.version)).toEqual([...rows.map((r) => r.version)].sort((a, b) => (a < b ? 1 : -1)));
+    // (T734) by semver: 0.7.10 is newer than 0.7.9 (a string sort put it last)
+    expect(rows.map((r) => r.version)).toEqual([...rows.map((r) => r.version)].sort((a, b) => compareSemver(b, a)));
   });
   it("the prompt shows the incoming version's bullets: the version file's first, else the bundled entry", () => {
     expect(notesFor("0.6.0", ["From the server"], log)).toEqual(["From the server"]);

@@ -341,6 +341,11 @@ vitest_changed() {
     while IFS= read -r t; do tests+=("$t"); done < <(cd app && grep -l "packages/ui-native/src" tools/*.test.ts \
       | xargs grep -l "readFileSync\|readdirSync")
   fi
+  # caught (2026-11-14, T734): two failures only CI saw. tools/failures.test.ts (no silent fallback) scans every app
+  # source file off disk and pins each file's unhandled-catch count, so a catch removed in packages/map broke it; and
+  # changelog.ts has no sibling test (its order is pinned in core's appUpdate.test.ts: 0.7.10 sorted as a string).
+  grep -qE '^app/(apps|packages)/.*\.(ts|tsx)$' <<<"$CHANGED" && tests+=("tools/failures.test.ts")
+  grep -qE '^app/packages/core/src/changelog\.ts$' <<<"$CHANGED" && tests+=("packages/core/src/appUpdate.test.ts")
   (( ${#tests[@]} )) || { echo "   (no changed app file has a test)"; return 0; }
   tests=($(printf '%s\n' "${tests[@]}" | sort -u))
   echo "   vitest: ${#tests[@]} test file(s): ${tests[*]}"
