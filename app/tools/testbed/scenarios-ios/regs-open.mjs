@@ -107,7 +107,9 @@ export const regsOpenIos = {
         ctx.device.logcatClear();                     // a [target] from the water before is not this one's
         // (T340, as Android) the water OPENED from its result, then its page's back: the map comes back framed on it
         ctx.flow('search', { Q: c.q });
-        ctx.flow('open-result', { LINE: c.row });
+        // (T719) on iOS a result row is ONE element whose text starts with the water's name ("Coquitlam River, Stream · …"):
+        // Maestro matches the whole text, so the row's line is matched after anything (tap-water's '.*Lindell Beach.*')
+        ctx.flow('open-result', { LINE: `.*${c.row}` });
         await ctx.device.sleep(3500);
         await pageBack(ctx);
         await ctx.device.sleep(3000);

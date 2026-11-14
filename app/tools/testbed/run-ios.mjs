@@ -116,6 +116,17 @@ function painted(file) {
   const total = r.w * r.h;
   return { grey: grey / total, colour: blueish / total, w: img.w, h: img.h };
 }
+/** (T718) The Updates log open (Developer card → Updates log). Already open: nothing. The flow's last wait for
+ *  `updates-log-status` failed right after a cold start (ios-benches 13:17, the log WAS on screen: shot 001), so the screen
+ *  itself is the judge: the log's own buttons on screen = open; else the flow's failure stands. */
+const logOpen = (w) => w.includes('Check now') && w.some((x) => /^Simulate offline: (on|off)$/.test(x));
+async function openLog(ctx) {
+  if (logOpen(device.screenText())) return;
+  try { ctx.flow('ios-open-updates-log'); } catch (e) {
+    await sleep(1500);
+    if (!logOpen(device.screenText())) throw e;
+  }
+}
 /** A water's page closed by its own back link (by id; the place when the id is not in the tree) */
 async function pageBack(ctx) {
   try { ctx.flow('tap-id', { ID: 'water-back' }); } catch { ctx.flow('tap-point', { POINT: PAGE_BACK }); }
@@ -203,7 +214,7 @@ const SCENARIOS = [
     async run(ctx) {
       await ctx.step('Updates log → Simulate offline: on', async () => {
         await toMap(ctx);
-        ctx.flow('ios-open-updates-log');
+        await openLog(ctx);
         ctx.flow('updates-log-action', { ACTION: 'offline' });
         await sleep(1500);
         const w = device.screenText();
@@ -228,7 +239,7 @@ const SCENARIOS = [
       });
       await ctx.step('Simulate offline put back off', async () => {
         await toMap(ctx);
-        ctx.flow('ios-open-updates-log');
+        await openLog(ctx);
         // only when still on (a cold start in between puts it back off by itself: it is not kept)
         if (device.screenText().some((x) => /Simulate offline: on/i.test(x))) ctx.flow('updates-log-action', { ACTION: 'offline' });
         await sleep(1000);
