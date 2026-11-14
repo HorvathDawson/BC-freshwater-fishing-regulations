@@ -67,6 +67,11 @@ xcodebuild -workspace "$WS" -scheme "$SCHEME" -configuration Release \
 APP=$(ls -d "$DD"/Build/Products/Release-iphonesimulator/*.app | head -1)
 [[ -d $APP ]] || { echo "no $APP" >&2; exit 1; }
 rm -rf "$OUT/canifishthis.app"; cp -R "$APP" "$OUT/canifishthis.app"
+# (T722) AD-HOC SIGNED, as Xcode's "Sign to Run Locally" does: with CODE_SIGNING_ALLOWED=NO the binary carries only the
+# linker's signature (identifier "CanIFish", no bundle id), and nsurlsessiond refuses such a process ("does not have a
+# bundle ID, rejecting connection"): every background URLSession task failed at once with NSURLError -1. Still no
+# Apple account, no team, no entitlements.
+codesign --force --deep --sign - --timestamp=none "$OUT/canifishthis.app"
 NAME="canifishthis-staging-$VER-$SHA.app.zip"
 (cd "$OUT" && rm -f canifishthis-staging-*.app.zip && ditto -c -k --keepParent canifishthis.app "$NAME")
 echo "$SHA_FULL" > "$OUT/sha"
