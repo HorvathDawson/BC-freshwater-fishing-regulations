@@ -43,6 +43,15 @@ with the default Claude uses until you answer). Newest first inside each section
   send reports; crash switch is More, Settings, Privacy; spot place is rounded; downloads carry the app version; one
   app-stopping error is kept for the next start. No Play form answer changes.
 - **iOS reopened (owner 2026-11-14): four decisions to answer on return** (Apple account/TestFlight timing and individual vs organization, minimum iOS version, iPad, own iOS tap-up patch; defaults in the doc's Unattended section). ANSWERED 2026-11-14: rotation "Portrait only."; app name "Can I Fish This?" (same as Play, T371 closed on that point); proposals, physical needs and risks in `handoff/PLAN/ios/START-HERE-ios.md`.
+- **Open from the iOS day (2026-11-14), each built with its default; also rows on the Owner To-Do page:**
+  (1) oldest iPhone / iPad: today's build needs iOS 16.4+, iPhone only [keep] (T725);
+  (2) App Store privacy: the report email "linked to the user" [linked], and the category Claude chose, Navigation then
+  Sports [keep] (T727);
+  (3) shared links with no Team ID: the site build skips Apple's link file with a warning [keep] or always fails (T724);
+  (4) backup (T732): confirm the words the Android chat relayed ("save spots with prioirty", "images can be compressed if
+  still visible"); a before/after photo pair is coming;
+  (5) clean-up: five calls in `handoff/PLAN/CLEANUP-CANDIDATES.md` (evidence screenshots, old releases, a leftover flag,
+  15 DONE rows still in the open ledger, graphify and scratch dirs).
 - **Apple Developer account: ENROLLED 2026-11-14, waiting for Apple's approval** (owner, verbatim: "okay i enrolled with
   apple developer I will tell you wne i get approved"). This answers decision 1 of `handoff/PLAN/ios/START-HERE-ios.md`
   (account now). Not yet said: individual or organization. After approval, yours to do: save the Team ID in
