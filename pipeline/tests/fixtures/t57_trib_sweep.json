@@ -1,8 +1,8 @@
 {
  "bundle": {
-  "reach_digest": "ece9fed50dc55db2",
+  "reach_digest": "74a2aee32fd124ab",
   "rule_ids_sha256": "cbdd8387c469591b",
-  "section_handles": "f53a1b8f1025224f"
+  "section_handles": "419f4428b01b8ccf"
  },
  "by_reason": {
   "barrier": 29,
@@ -131,6 +131,6 @@
  "unnamed_lake_at_reach_top": {
   "r4:st_mary_river@4-20::st_mary_river.r3": 1
  },
- "unnamed_streams": 1179617,
+ "unnamed_streams": 1179619,
  "walking_rules": 479
 }
