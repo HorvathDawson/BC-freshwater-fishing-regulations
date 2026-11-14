@@ -43,6 +43,9 @@ with the default Claude uses until you answer). Newest first inside each section
   send reports; crash switch is More, Settings, Privacy; spot place is rounded; downloads carry the app version; one
   app-stopping error is kept for the next start. No Play form answer changes.
 - **iOS reopened (owner 2026-11-14): four decisions to answer on return** (Apple account/TestFlight timing and individual vs organization, minimum iOS version, iPad, own iOS tap-up patch; defaults in the doc's Unattended section). ANSWERED 2026-11-14: rotation "Portrait only."; app name "Can I Fish This?" (same as Play, T371 closed on that point); proposals, physical needs and risks in `handoff/PLAN/ios/START-HERE-ios.md`.
+- **ANSWERED 2026-11-14 (atlas builds).** Owner, verbatim: "You can do atlas rebuilds if you coordinate with other agent".
+  Used so far only for the T667 slice 8 mini build (invented inputs, scratch output); the Android chat was told. Promote
+  and release stay as before (not from the iOS chat). T602 is still not started: the handoff parks it for you.
 - **Open from the iOS day (2026-11-14), each built with its default; also rows on the Owner To-Do page:**
   (1) oldest iPhone / iPad: today's build needs iOS 16.4+, iPhone only [keep] (T725);
   (2) App Store privacy: the report email "linked to the user" [linked], and the category Claude chose, Navigation then
