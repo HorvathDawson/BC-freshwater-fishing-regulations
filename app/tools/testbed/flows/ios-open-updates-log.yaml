@@ -1,0 +1,18 @@
+# (T718, iOS) open-updates-log.yaml without its first step: the run-ios.mjs caller is already on the Map tab (`toMap`
+# taps the tab by place). On iOS the text "Map" also names a water page's back link and other rows, and the shared flow's
+# `tapOn: "MAP|Map"` took one of them (baseline 2026-11-14, offline step 3: the Cultus page reopened, no © chip).
+appId: ca.canifishthis.app
+---
+- tapOn: { text: "Close search", optional: true }
+- waitForAnimationToEnd: { timeout: 3000 }
+- extendedWaitUntil:
+    visible: { id: "map-credits-chip" }
+    timeout: 15000
+- longPressOn: { id: "map-credits-chip" }
+- extendedWaitUntil:
+    visible: { id: "developer-card" }
+    timeout: 15000
+- tapOn: { id: "developer-tab-updates" }
+- extendedWaitUntil:
+    visible: { id: "updates-log-status" }
+    timeout: 15000

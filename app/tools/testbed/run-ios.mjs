@@ -201,7 +201,7 @@ const SCENARIOS = [
     async run(ctx) {
       await ctx.step('Updates log → Simulate offline: on', async () => {
         await toMap(ctx);
-        ctx.flow('open-updates-log');
+        ctx.flow('ios-open-updates-log');
         ctx.flow('updates-log-action', { ACTION: 'offline' });
         await sleep(1500);
         const w = device.screenText();
@@ -226,7 +226,7 @@ const SCENARIOS = [
       });
       await ctx.step('Simulate offline put back off', async () => {
         await toMap(ctx);
-        ctx.flow('open-updates-log');
+        ctx.flow('ios-open-updates-log');
         // only when still on (a cold start in between puts it back off by itself: it is not kept)
         if (device.screenText().some((x) => /Simulate offline: on/i.test(x))) ctx.flow('updates-log-action', { ACTION: 'offline' });
         await sleep(1000);
