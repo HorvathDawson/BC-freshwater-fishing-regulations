@@ -1,7 +1,7 @@
 /** P11: the start-up and first-run words, composed here and pinned whole (AGENTS 33). */
 import { describe, expect, it } from "vitest";
 import { downloadFraction, DOWNLOAD_NOTE_WORDS, DOWNLOAD_SAYINGS, INSTALL_WORDS, installLine, MOBILE_DATA_WORDS, mobileDataDecision, mobileDataFrom,
-         rolledBackLine, SAYING_MS, sayingAt, SETUP_WORDS, setupFraction, setupLine, SMALL_DOWNLOAD_BYTES, startStage } from "./install";
+         rolledBackLine, SAYING_MS, sayingAt, SETUP_WORDS, setupFraction, setupLine, SMALL_DOWNLOAD_BYTES, spaceLine, startStage } from "./install";
 
 describe("the first-run download line", () => {
   it("says how much of how much, in MB to one decimal, grouped", () => {
@@ -87,5 +87,22 @@ describe("(T298) the first download: mobile data, the notification, the fish say
       expect(s).not.toMatch(/\b(catch|caught|limit|guarantee|will bite|fish on)\b/i);
     }
     expect(SAYING_MS).toBeGreaterThanOrEqual(3000);
+  });
+});
+
+describe("(T722) iOS-truthful download words, and the full-disk sentence", () => {
+  it("iOS says what its background download does and does not survive; Android's lines are unchanged", () => {
+    expect(MOBILE_DATA_WORDS.closeOk).toBe("You can close the app: the download carries on.");
+    expect(MOBILE_DATA_WORDS.waiting).toBe("Waiting for Wi-Fi — the download starts by itself when you connect.");
+    expect(MOBILE_DATA_WORDS.closeOkIos).toBe("You can leave the app or lock the phone: the download carries on. "
+      + "Swiping the app away in the app switcher stops it until you open the app again.");
+    expect(MOBILE_DATA_WORDS.waitingIos).toBe("Waiting for Wi-Fi — the download starts by itself when you connect, "
+      + "unless the app is swiped away in the app switcher.");
+  });
+  it("a download that will not fit names the space it needs and the space free, whole", () => {
+    expect(spaceLine(481_234_567, 120_000_000)).toBe("Not enough free space: the download needs about 481.2 MB and "
+      + "this phone has 120.0 MB free. Free up some space and try again.");
+    expect(spaceLine(1_461_200_000, 0)).toBe("Not enough free space: the download needs about 1,461.2 MB and this "
+      + "phone has 0.0 MB free. Free up some space and try again.");
   });
 });
