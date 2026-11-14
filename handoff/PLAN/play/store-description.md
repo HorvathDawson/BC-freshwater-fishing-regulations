@@ -31,7 +31,7 @@ Plan Your Next Trip
 Check regulations days in advance and see upcoming regulation changes before your trip. River conditions and forecasts help you choose the best place and time to fish.
 
 Works Without Cell Service
-Fishing often takes you beyond reliable cellular coverage. Can I Fish This? stores mapping and regulation data locally on your device, allowing you to view important information even when you're offline. Live river readings and salmon updates need a connection.
+Fishing often takes you beyond reliable cellular coverage. Can I Fish This? stores mapping and regulation data locally on your device, allowing you to view important information even when you're offline.
 
 Save Your Favourite Fishing Spots
 Create a personal log of fishing locations throughout British Columbia.
