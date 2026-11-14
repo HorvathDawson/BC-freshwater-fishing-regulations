@@ -243,7 +243,19 @@ export const keyboardIos = {
       // the row by its second line: the field's own value matches the name, and a tap there opened the edit menu
       ctx.flow('open-result', { LINE: '.*near Hope.*' });
       await d.sleep(2500);
-      must(ctx, 'kb-cond-alert-open', '- tapOn: { text: "Conditions", index: 0 }\n- scrollUntilVisible:\n    element: { id: "alert-me-open" }\n    timeout: 30000\n- tapOn: { id: "alert-me-open" }\n- scrollUntilVisible:\n    element: { id: "alert-form-value" }\n    timeout: 15000\n');
+      // Maestro's own scroll starts mid-screen, which is the page's small map here (it panned the map): swiped from low on
+      // the page instead, until "Alert me" shows
+      must(ctx, 'kb-cond-tab', '- tapOn: { text: "Conditions", index: 0 }\n');
+      for (let i = 0; i < 8 && !d.hasId('alert-me-open'); i++) {
+        must(ctx, `kb-cond-swipe-${i}`, '- swipe: { start: "50%, 90%", end: "50%, 45%", duration: 700 }\n');
+        await d.sleep(800);
+      }
+      must(ctx, 'kb-cond-alert-open', '- tapOn: { id: "alert-me-open" }\n');
+      await d.sleep(1500);
+      for (let i = 0; i < 4 && !d.hasId('alert-form-value'); i++) {
+        must(ctx, `kb-cond-swipe-v${i}`, '- swipe: { start: "50%, 90%", end: "50%, 60%", duration: 700 }\n');
+        await d.sleep(800);
+      }
       const v = await typeIn(ctx, 'cond-alert-value', 'id:alert-form-value', '12');
       try { ctx.flow('tap-id', { ID: 'alert-form-cancel' }); } catch { /* left to toMap */ }
       return v.note;
