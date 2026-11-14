@@ -212,6 +212,16 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T714 | Share a saved spot, and a group of spots, by link or file (today Share sends a water only) | OPEN (after closed testing (owner 2026-11-13: "these are after closed")) | — | owner 2026-11-13; priority for the owner to place; decisions by dialog first (what travels, link vs file vs server, privacy text) |
 | T715 | Store video: the command builds its own starting state (fresh install, release, clock, settings, its own saved spot), checked on screen | OPEN (after closed testing (owner 2026-11-13: "these are after closed")) | — | owner 2026-11-13 ("create a proper state"); before the next regeneration for a store upload; follows T709 |
 | T716 | Tapping a stream takes a long time to open, with no feedback (build 0.7.8, Android): the tapped stretch lit at the lift (22-112 ms), the open started at the lift (page 352-402 ms, 39-78 ms after the click), the DFO salmon built per chain (no ~1 s stall) | IN PROGRESS (before closed testing) | — | owner 2026-11-13 phone (twice); code done; left (Claude): a look on the next APK; showing the page at the lift measured, the owner's call |
+| T718 | iOS: build 0.7.9 for the simulator and record the baseline (IOS-1) | IN PROGRESS (iOS chat, main lane) | — | owner 2026-11-14 (iOS reopened, simulator only); stub IOS-1 in handoff/PLAN/ios/START-HERE-ios.md |
+| T719 | iOS: tap open speed and cue, T716 parity (IOS-2) | OPEN | — | owner 2026-11-14 (iOS reopened, simulator only); stub IOS-2 in handoff/PLAN/ios/START-HERE-ios.md |
+| T720 | iOS: no-stall bench `tap-stalls` on the simulator (IOS-3) | OPEN | — | owner 2026-11-14 (iOS reopened, simulator only); stub IOS-3 in handoff/PLAN/ios/START-HERE-ios.md |
+| T721 | iOS: left-edge swipe back is dependable on every layer (IOS-4) | OPEN | — | owner 2026-11-14 (iOS reopened, simulator only); stub IOS-4 in handoff/PLAN/ios/START-HERE-ios.md |
+| T722 | iOS: downloads, offline, background and notices (IOS-5) | OPEN | — | owner 2026-11-14 (iOS reopened, simulator only); stub IOS-5 in handoff/PLAN/ios/START-HERE-ios.md |
+| T723 | iOS: salmon, run timing, search, saved spots, photos work on the simulator (IOS-6) | OPEN | — | owner 2026-11-14 (iOS reopened, simulator only); stub IOS-6 in handoff/PLAN/ios/START-HERE-ios.md |
+| T724 | iOS: shared links open the app as universal links (IOS-7) | IN PROGRESS (iOS chat, links lane) | — | owner 2026-11-14 (iOS reopened, simulator only); stub IOS-7 in handoff/PLAN/ios/START-HERE-ios.md |
+| T725 | iOS: memory table and cold start re-measured on 0.7.9 (IOS-8) | OPEN | — | owner 2026-11-14 (iOS reopened, simulator only); stub IOS-8 in handoff/PLAN/ios/START-HERE-ios.md |
+| T726 | iOS: safe areas, Dynamic Island, portrait lock, dark/light, Dynamic Type, VoiceOver (IOS-9) | OPEN | — | owner 2026-11-14 (iOS reopened, simulator only); stub IOS-9 in handoff/PLAN/ios/START-HERE-ios.md |
+| T727 | iOS: store pack, everything except what needs the Apple account (IOS-10) | IN PROGRESS (iOS chat, docs lane; screenshots after T718) | — | owner 2026-11-14 (iOS reopened, simulator only); stub IOS-10 in handoff/PLAN/ios/START-HERE-ios.md |
 
 ## Next after closed testing
 
