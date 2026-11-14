@@ -122,5 +122,8 @@ Between steps, pick items from D marked "left (Claude)" if you are waiting on so
 - **G14, Android, no ticket yet (needs one; unproven on a device):** saved spots and photos are never in Google backup,
   because the installed release puts the app over the 25 MB backup limit. Fix idea to check: exclude the downloaded
   release from backup so spots and photos fit. Decide before or after closed testing with the owner.
+  OWNER DECIDED 2026-11-14, verbatim: "we should have it save spots with prioirty" and "images can be compressed if
+  still visible". Sent to the iOS chat as a task (it already does the iOS backup exclusion in the same files); it opens
+  the ticket (T732 or later). Photo compression lands as a proposal with a before/after pair for the owner.
 - **T729 follow-up:** on iOS a React Native Modal has no edge swipe and `onRequestClose` is Android-only; wrap the
   credits card in the iOS chat's `ModalBack` once its `ios/t723-keyboard-back` branch is merged.

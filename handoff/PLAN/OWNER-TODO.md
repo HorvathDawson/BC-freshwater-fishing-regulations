@@ -11,6 +11,11 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
+- **T730 search (2026-11-14), not blocking; look on the next build.** (1) Recent searches PROPOSAL: one small block
+  under the search field, "Recent searches · Clear", then up to 4 searches as small square tags that wrap (about 80 px
+  tall instead of about 340). Alternatives in the ticket: 3 compact rows, or one scrolling line of tags. (2) Closing
+  search now always forgets what was typed, on desktop too (Escape or the panel's X). If desktop should keep the typed
+  text, say so; it is a one-line exception. Default until answered: as built.
 - **T686: pick the shipped-data shrink (2026-11-14), not blocking.** Measured on r-f749475d0962, nothing shipped (table in
   the ticket). The release data is 17.75 MB of a 463 MB phone download (tiles + basemap are 91 %, T699). Choose:
   (a) DEFAULT: near as one blob per place + climate bands packed + down in blocks, ≈ 1.94 MB, lossless, no web moment
