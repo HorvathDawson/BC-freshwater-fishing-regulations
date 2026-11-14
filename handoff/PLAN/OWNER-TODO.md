@@ -22,6 +22,15 @@ with the default Claude uses until you answer). Newest first inside each section
   Apple account after approval, Play closed-testing steps. Closed on the page: T688 wording (answered 11-12). Build 29
   phone check marked replaced by the 0.7.8 / 0.7.9 rows. Not on the page (old, to prune or re-ask): Run timing T199 runs,
   Q4 / Q126 / Q9 / Q26 / Q27, the long phone-test lists (T50 / T77 / T74 / T217 / T243), SEO v1.
+- **From the 0.7.10 checks (2026-11-14), two looks, not blocking; pictures sent in chat.** (1) T731: stepping from the
+  Chilliwack into the Vedder still makes the bottom bar 122 px shorter (the Vedder has one part, so no "Show all N
+  parts" row) and the map grows by that much; steps inside one river move it 4 px. Nothing goes blank any more.
+  Choose: leave [default], or keep the bar the same height across the step (an empty row's worth of space on one-part
+  waters). (2) T730: picking a PLACE row in search (for example the village "Cultus Lake"), then Back, reopens search
+  with the text still typed; a second Back clears it. Choose: leave [default], or Back from a place closes search too.
+- **0.7.10 held (2026-11-14):** the checks found a rare crash (the app closed twice in about 100 opens of a water; it is
+  older than today's work, seen once on 11-08). A fix lane is running; the build goes to Play internal only after it
+  passes. Nothing for you to do.
 - **T730 search (2026-11-14), not blocking; look on the next build.** (1) Recent searches PROPOSAL: one small block
   under the search field, "Recent searches · Clear", then up to 4 searches as small square tags that wrap (about 80 px
   tall instead of about 340). Alternatives in the ticket: 3 compact rows, or one scrolling line of tags. (2) Closing
