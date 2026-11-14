@@ -11,12 +11,12 @@ Paths are under `app/` unless they say otherwise.
 The form has to describe the build you actually upload.
 - The Play AAB is built by `deploy/staging/build-apk.sh`, which sets `EXPO_PUBLIC_APP_ENV=staging EXPO_PUBLIC_ENV_SWITCH=1`
   (`deploy/staging/build-apk.sh:42`). In that build, problem reports and crash reports go to the staging feeds worker
-  (`apps/mobile/src/env.ts:35-38`, `:52-57`), and the data comes from `data-staging.canifishthis.ca` (`env.ts:25`).
-- A `production` build (`apps/mobile/eas.json:15-16`) has no report endpoint (`env.ts:38`, `production: null`), and so
-  no crash endpoint either (`env.ts:56`). Such a build sends **no** problem reports and **no** crash reports. A problem
-  report can then only go by email or the share sheet.
-- **OWNER:** the answers below are for the staging-env AAB you upload today, which does send reports. They are also safe
-  for a later production build, because declaring more than a build sends is allowed. Declaring less is not.
+  (`apps/mobile/src/env.ts:41-45`, `:53-62`), and the data comes from `data-staging.canifishthis.ca` (`env.ts:25`).
+- A `production` build (`apps/mobile/eas.json:15-16`) also sends them: problem reports and crash reports go to the
+  production feeds worker, `https://feeds.canifishthis.ca/report` (`env.ts:44`, T404) and its `/crash`. (Corrected
+  2026-11-14: this page used to say a production build sends none; that was true before T404.)
+- **OWNER:** the answers below hold for both the staging-env AAB you upload today and a later production build; both
+  send reports.
 - Aside: `ENV_SWITCH=1` gives testers the environment switch on About. Decide whether closed testers should have it.
 
 ## What leaves the phone (the facts every answer rests on)
@@ -79,7 +79,7 @@ one small code change plus a weather test. It would be a new ticket. Nothing has
 ## Things to check before submitting
 1. The privacy page (`app/tools/seo/html.ts` `privacyBody`, canifishthis.ca/privacy) says the same as this table,
    including the install id, the map centre on a report, Open-Meteo and Esri.
-2. The uploaded AAB is the build these answers describe (the staging-env one: reports on).
+2. The uploaded AAB is the build these answers describe (staging-env or production: reports on in both).
 3. The listing's "private by design" paragraph matches (`handoff/PLAN/play/listing.md`). The 10-29 text said location
    stays on the phone, which is no longer quite true.
 4. Families / target audience: 18+ (the listing draft), so the Families policy questions do not apply.
@@ -90,7 +90,7 @@ one small code change plus a weather test. It would be a new ticket. Nothing has
   Open-Meteo for app functionality); no precise location leaves the device.
 - **Problem reports keep the map centre** (~100 m): approximate location, collected, user-initiated (the report is
   sent only when the reader sends it).
-- **Device or other IDs: Yes** (the install id, T352) — and OPTIONAL: More → Data → "Send crash reports" turns crash
+- **Device or other IDs: Yes** (the install id, T352) — and OPTIONAL: More → Settings → Privacy → "Send crash reports" (T703) turns crash
   reports (and the id with them) off; on by default.
 - **App interactions: Yes** (the screen / last steps in a crash report) — optional the same way.
 - **App name:** "Can I Fish This?" (web tab: app.json `web.name`; permission prompts; the SEO pages already). The

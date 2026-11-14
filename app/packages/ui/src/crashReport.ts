@@ -1,6 +1,6 @@
 /**
  * (T242) CRASH AND ERROR REPORTS — the app's own, to our own server (the feeds worker's `POST /crash`; no third-party
- * crash service, owner rule). What leaves the device, and only while "Send crash reports" (More → Data, default on) is on,
+ * crash service, owner rule). What leaves the device, and only while "Send crash reports" (More → Settings → Privacy, default on) is on,
  * the device is online and the error is new this run:
  *
  *   the app build, environment, platform, data release; the screen KIND (map / conditions / runs / spots / menu / water);
