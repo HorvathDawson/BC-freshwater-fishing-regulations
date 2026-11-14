@@ -12,7 +12,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, render } from "@testing-library/react";
 import { useState } from "react";
 import { setFailureSink } from "@app/core";
-import { useAsync } from "./async";
+import { useAsync, useKeptWhilePending } from "./async";
 
 afterEach(cleanup);
 
@@ -194,5 +194,34 @@ describe("useAsync with an answer in hand", () => {
     render(<Fresh />);
     await settle();
     expect(renders).toBeLessThan(5);
+  });
+});
+
+describe("useKeptWhilePending (T731: a step draws its bar in place, never a loading frame between two answers)", () => {
+  function Kept({ value, pending, seen }: { value: string; pending: boolean; seen: string[] }) {
+    const k = useKeptWhilePending(value, pending, 1000);
+    seen.push(`${k.value}${k.kept ? " (kept)" : ""}`);
+    return null;
+  }
+  it("nothing drawn yet: the caller's own waiting state; an answer drawn: kept while the next is read; the next drawn once in", () => {
+    const seen: string[] = [];
+    const { rerender } = render(<Kept value="loading" pending seen={seen} />);
+    rerender(<Kept value="A" pending={false} seen={seen} />);
+    rerender(<Kept value="loading" pending seen={seen} />);
+    rerender(<Kept value="B" pending={false} seen={seen} />);
+    expect([...new Set(seen)]).toEqual(["loading", "A", "A (kept)", "B"]);
+  });
+  it("never past its limit: a slow read then says it is loading", async () => {
+    vi.useFakeTimers();
+    try {
+      const seen: string[] = [];
+      const { rerender } = render(<Kept value="A" pending={false} seen={seen} />);
+      rerender(<Kept value="loading" pending seen={seen} />);
+      await act(async () => { vi.advanceTimersByTime(1001); });
+      expect(seen.at(-1)).toBe("loading");
+      rerender(<Kept value="B" pending={false} seen={seen} />);
+      rerender(<Kept value="loading" pending seen={seen} />);
+      expect(seen.at(-1)).toBe("B (kept)");                              // a new read keeps again, its own limit
+    } finally { vi.useRealTimers(); }
   });
 });

@@ -129,6 +129,28 @@ export function useAsync<T>(
 /** What `useAsync` holds: an answer, and the question (`key`) it answers — so a peeked answer can stand in for it. */
 interface Tagged<T> { key: string | null; sameAs?: string; v: Async<T> }
 
+/**
+ * (T731, owner 2026-11-14: "you click upstream or downstream it is like menus briefly close at bottom and cause a flash of
+ * a resize then rerender") THE LAST ANSWER KEPT ON SCREEN WHILE THE NEXT IS READ. A view that has drawn an answer and
+ * is moved to a question it has not read yet (a step into the water upstream) drew its loading state for the read: its
+ * controls went, the block shrank to a spinner, everything around it was laid out again, then it all came back. Here
+ * the answer last drawn (`value` from the last render that was not `pending`) is returned instead, marked `kept`, so the
+ * caller draws it as it was — inert, busy — until the new one is in. Nothing is kept before a first answer (the view's
+ * own waiting state, as always), and never longer than `limitMs`: past it the caller's waiting state is drawn, so a slow
+ * read is said, never hidden behind the old answer.
+ */
+export function useKeptWhilePending<T>(value: T, pending: boolean, limitMs: number): { value: T; kept: boolean } {
+  const last = useRef<{ v: T } | null>(null);
+  const [over, setOver] = useState(false);
+  useEffect(() => {
+    if (!pending) { setOver(false); return; }
+    const t = setTimeout(() => setOver(true), limitMs);
+    return () => clearTimeout(t);
+  }, [pending, limitMs]);
+  if (!pending) { last.current = { v: value }; return { value, kept: false }; }
+  return last.current && !over ? { value: last.current.v, kept: true } : { value, kept: false };
+}
+
 /** Debounce a fast-changing value — a search box, mostly. */
 export function useDebounced<T>(value: T, ms: number): T {
   const [held, setHeld] = useState(value);

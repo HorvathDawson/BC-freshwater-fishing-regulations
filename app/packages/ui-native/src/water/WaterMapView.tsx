@@ -21,7 +21,7 @@ import { Pressable } from "../Pressable";
 import { PART_FIT_MAX_ZOOM, WATER_MAP_WORDS, DAY_LABELS, bcNow } from "@app/core";
 import type { ItemId, SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
-import { inSeasonSections, useAsync, useBackLayer, useInSeasonCovers, useRegsStore, useReleaseLines, useSalmonKey, useTidalWaterMap, useWaterMap,
+import { inSeasonSections, useAsync, useBackLayer, useInSeasonCovers, useKeptWhilePending, useRegsStore, useReleaseLines, useSalmonKey, useTidalWaterMap, useWaterMap,
          type WaterMapPartVM, type WaterMapVM, type WaterMapAction } from "@app/ui";
 import { MapScreen } from "../MapScreen";
 import { WaterInset } from "../WaterFrame";
@@ -31,7 +31,7 @@ import { TYPE } from "../type";
 import { SPACE, type Palette } from "../theme";
 import { useCoachTarget } from "../CoachMarks";
 import { useGuideControl } from "../guideControls";
-import { usePaneMap, usePaneReady } from "../shell/paneReveal";
+import { PANE_HOLD_MS, usePaneMap, usePaneReady } from "../shell/paneReveal";
 
 /** The map's own props: everything the water map does not decide. */
 export type WaterMapMapProps = Omit<ComponentProps<typeof MapScreen>,
@@ -111,112 +111,132 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
   // nothing never counts) — what a pane held over the browse map waits for (`shell/paneReveal.ts`)
   usePaneReady(status !== WATER_MAP_WORDS.loading);
   const onDrawn = usePaneMap(vm !== null || tidal !== null || status === WATER_MAP_WORDS.unavailable);
+  /*
+   * (T731, owner 2026-11-14: "you click upstream or downstream it is like menus briefly close at bottom and cause a flash
+   * of a resize then rerender") A STEP CHANGES THE BAR IN PLACE. A step into another water (▲ / ▼ `onCross`, a split
+   * lake's other area) moves the frame to a water whose group is not read yet, and for that read the bar drew its
+   * loading state: the steps, the name and "Show regulations" went, the bar shrank to a spinner, the map above it grew
+   * into the room (a resize, and a refit on a phone), then all of it came back. Now what was last drawn — the bar and
+   * everything the map is handed — stays while the next water is read, inert (no press reaches the last water's
+   * handlers) and busy to a screen reader, then the new part is drawn into the same bar and the map glides to it. Not on
+   * a first open (nothing drawn yet: the waiting state, held over the browse map as before), and never past
+   * `PANE_HOLD_MS`: a slow read then says it is loading.
+   */
+  const shown = useKeptWhilePending({ vm, tidal, status, act, near, inSeason }, status === WATER_MAP_WORDS.loading, PANE_HOLD_MS);
+  const kept = shown.kept;
+  const d = shown.value;
+  const dv = d.vm, dt = d.tidal;
 
   return (
     <View style={{ flex: 1, backgroundColor: palette.card }} testID="water-map">
       <View style={{ flex: 1 }}>
         <MapScreen palette={palette} {...map} onDrawn={onDrawn}
-                   highlight={vm?.selected ?? []}
-                   inSeason={inSeason}
-                   water={vm?.water ?? []}
+                   highlight={dv?.selected ?? []}
+                   inSeason={d.inSeason}
+                   water={dv?.water ?? []}
                    // (T175) the whole water's line at every zoom, and it opens no further out than its first zoom
-                   waterLine={vm ? { sections: [...vm.selected, ...vm.water] } : undefined}
+                   waterLine={dv ? { sections: [...dv.selected, ...dv.water] } : undefined}
                    selection="dim"
                    // (T459) step mode: every other water grey, the receiving water kept
-                   focus near={near ?? NO_NEAR}
-                   marks={vm?.marks.map((m) => ({ lon: m.lon, lat: m.lat, label: m.label, a11y: m.a11y, on: m.on })) ?? []}
-                   onPressMark={(i) => { const m = vm?.marks[i]; if (m) act({ type: "mark", ix: m.ix }); }}
+                   focus near={d.near ?? NO_NEAR}
+                   marks={dv?.marks.map((m) => ({ lon: m.lon, lat: m.lat, label: m.label, a11y: m.a11y, on: m.on })) ?? []}
+                   onPressMark={(i) => { const m = dv?.marks[i]; if (m && !kept) d.act({ type: "mark", ix: m.ix }); }}
                    // (T443) a part in its country, framed the same however it was reached (the first open, a step)
-                   fit={vm ? { key: vm.fitKey, bbox: vm.bounds, refine: false, maxZoom: PART_FIT_MAX_ZOOM }
-                     : tidal ? { key: tidal.fitKey, bbox: tidal.bounds, refine: false, maxZoom: PART_FIT_MAX_ZOOM } : null}
+                   fit={dv ? { key: dv.fitKey, bbox: dv.bounds, refine: false, maxZoom: PART_FIT_MAX_ZOOM }
+                     : dt ? { key: dt.fitKey, bbox: dt.bounds, refine: false, maxZoom: PART_FIT_MAX_ZOOM } : null}
                    onPressFeature={(_layer, id, lat, lon) => {
+                     // (T731) the last water's map while the next is read: its sections are not this frame's to step on
+                     if (kept) return;
                      const sid = Number(id);
                      if (vm && (vm.selected.includes(sid) || vm.water.includes(sid))) act({ type: "section", sid });
                      else onOtherSection(sid as SectionId, lat !== undefined && lon !== undefined ? { lat, lon } : null);
                    }} />
-        {vm && (
-          <Pressable onPress={() => act({ type: "whole" })} accessibilityRole="button"
-                     accessibilityLabel={vm.whole.aria} testID="water-map-whole"
+        {dv && (
+          <Pressable onPress={() => { if (!kept) d.act({ type: "whole" }); }} accessibilityRole="button"
+                     accessibilityLabel={dv.whole.aria} testID="water-map-whole" aria-disabled={kept}
                      style={{ position: "absolute", right: 10, bottom: 10, minHeight: 44, paddingHorizontal: 12,
                               justifyContent: "center", backgroundColor: palette.card, borderWidth: 1.5,
                               borderColor: palette.ink, ...palette.lift }}>
-            <Text style={{ ...TYPE.metaBold, color: palette.ink }}>{vm.whole.label}</Text>
+            <Text style={{ ...TYPE.metaBold, color: palette.ink }}>{dv.whole.label}</Text>
           </Pressable>
         )}
-        {vm?.pop && <MarkPop vm={vm} palette={palette} act={act} />}
-        {vm?.chooser && <Chooser vm={vm} palette={palette} act={act} />}
+        {/* (T731) a kept bar is the part stepped FROM: the mark or chooser the step closed is not drawn again */}
+        {!kept && vm?.pop && <MarkPop vm={vm} palette={palette} act={act} />}
+        {!kept && vm?.chooser && <Chooser vm={vm} palette={palette} act={act} />}
       </View>
       {/* THE BAR spans the canvas's width (the map is full-bleed under the water frame's header, T44); its words are on
           the frame's column, at the gutter every view's content starts at */}
       <View style={{ paddingTop: 10, paddingBottom: 14, borderTopWidth: 1.5, borderTopColor: palette.ink,
-                     backgroundColor: palette.card }}>
+                     backgroundColor: palette.card }} testID="water-map-bar"
+            // (T731) kept through a step's read: drawn as it was, taking no press, busy to a screen reader
+            pointerEvents={kept ? "none" : "auto"} aria-busy={kept}>
         <WaterInset column>
-        {vm ? (
+        {dv ? (
           <>
-            {vm.list && <PartsList list={vm.list} palette={palette} act={act} />}
+            {dv.list && <PartsList list={dv.list} palette={palette} act={d.act} />}
             {/* (T582) which day the map's rules are for: a tab switch never changes the day silently */}
             <Text style={{ ...TYPE.metaBold, color: palette.ink }} testID="water-map-day">{DAY_LABELS.map(day, bcNow())}</Text>
-            <Text style={{ ...TYPE.section, color: palette.faint }} testID="water-map-where">{vm.where}</Text>
+            <Text style={{ ...TYPE.section, color: palette.faint }} testID="water-map-where">{dv.where}</Text>
             {/* (T214 item 4) two lines are kept for the name at every part: a name that wraps in one part and not in the
                 next must not move the steps when the reader steps between them (a longer name is cut; its full words are the label) */}
             <Text style={{ ...TYPE.name, fontSize: 19, lineHeight: 23, minHeight: 46, color: palette.ink, marginTop: 2 }}
-                  testID="water-map-name" numberOfLines={2} accessibilityLabel={vm.current.name}>{vm.current.name}</Text>
+                  testID="water-map-name" numberOfLines={2} accessibilityLabel={dv.current.name}>{dv.current.name}</Text>
             <View style={{ flexDirection: "row", gap: SPACE.s2, marginTop: 10 }}>
-              {([["down", vm.down], ["up", vm.up]] as const).map(([dir, st]) => (
+              {([["down", dv.down], ["up", dv.up]] as const).map(([dir, st]) => (
                 <Step key={dir} dir={dir} palette={palette} label={st.label} aria={st.aria} disabled={st.disabled}
                       onPress={() => step(dir)} />
               ))}
             </View>
-            <Pressable ref={regsRing} onPress={() => onShowRegs(vm.regs.item as ItemId, vm.regs.partIx)} accessibilityRole="button"
-                       accessibilityLabel={vm.regs.label} testID="water-map-regs"
+            <Pressable ref={regsRing} onPress={() => onShowRegs(dv.regs.item as ItemId, dv.regs.partIx)} accessibilityRole="button"
+                       accessibilityLabel={dv.regs.label} testID="water-map-regs"
                        style={{ minHeight: 52, marginTop: 8, alignItems: "center", justifyContent: "center",
                                 backgroundColor: palette.accent }}>
               <Text style={{ ...TYPE.bodyStrong, fontFamily: TYPE.metaBold.fontFamily, color: palette.onAccent }}>
-                {vm.regs.label}
+                {dv.regs.label}
               </Text>
             </Pressable>
             {/* (T203, T214 item 4) LAST, in a place kept for it. The bar sits at the foot of the screen, so a line that
                 appears (only at the mouth part) grows it UPWARD and lifts every control above it, whatever its order
                 (T203's "last" was not enough: the steps and "Show regulations" still jumped). On a water whose mouth
                 flows into another the place is held at every part, empty or not, so nothing moves under a finger. */}
-            {vm.exitHeld && (
+            {dv.exitHeld && (
               <View style={{ minHeight: EXIT_SLOT, marginTop: 8 }} testID="water-map-exit-slot">
                 {/* (T345) the mouth meets tidal water: the line is said, with no way into it */}
-                {vm.exit?.tidal && (
+                {dv.exit?.tidal && (
                   <View style={{ minHeight: EXIT_SLOT, justifyContent: "center" }} testID="water-map-exit">
-                    <Text numberOfLines={1} style={{ ...TYPE.body, color: palette.faint }}>{vm.exit.label}</Text>
+                    <Text numberOfLines={1} style={{ ...TYPE.body, color: palette.faint }}>{dv.exit.label}</Text>
                   </View>
                 )}
-                {vm.exit && !vm.exit.tidal && (
-                  <Pressable onPress={() => onOpenWater(vm.exit!.item as ItemId, vm.exit!.part)} accessibilityRole="link"
-                             accessibilityLabel={vm.exit.label} testID="water-map-exit"
+                {dv.exit && !dv.exit.tidal && (
+                  <Pressable onPress={() => onOpenWater(dv.exit!.item as ItemId, dv.exit!.part)} accessibilityRole="link"
+                             accessibilityLabel={dv.exit.label} testID="water-map-exit"
                              style={{ minHeight: EXIT_SLOT, justifyContent: "center" }}>
-                    <Text numberOfLines={1} style={{ ...TYPE.bodyStrong, color: palette.accent }}>{vm.exit.label}</Text>
+                    <Text numberOfLines={1} style={{ ...TYPE.bodyStrong, color: palette.accent }}>{dv.exit.label}</Text>
                   </Pressable>
                 )}
               </View>
             )}
           </>
-        ) : tidal ? (
+        ) : dt ? (
           <>
-            <Text style={{ ...TYPE.metaBold, color: palette.ink }} testID="water-map-tidal">{tidal.title}</Text>
+            <Text style={{ ...TYPE.metaBold, color: palette.ink }} testID="water-map-tidal">{dt.title}</Text>
             <Text style={{ ...TYPE.name, fontSize: 19, lineHeight: 23, color: palette.ink, marginTop: 2 }}
-                  testID="water-map-name" accessibilityLabel={tidal.name}>{tidal.name}</Text>
-            <Text style={{ ...TYPE.body, color: palette.sub, marginTop: 6 }} testID="water-map-tidal-body">{tidal.body}</Text>
-            <Pressable onPress={() => onShowRegs(tidal.regs.item as ItemId, tidal.regs.partIx)} accessibilityRole="button"
-                       accessibilityLabel={tidal.regs.label} testID="water-map-regs"
+                  testID="water-map-name" accessibilityLabel={dt.name}>{dt.name}</Text>
+            <Text style={{ ...TYPE.body, color: palette.sub, marginTop: 6 }} testID="water-map-tidal-body">{dt.body}</Text>
+            <Pressable onPress={() => onShowRegs(dt.regs.item as ItemId, dt.regs.partIx)} accessibilityRole="button"
+                       accessibilityLabel={dt.regs.label} testID="water-map-regs"
                        style={{ minHeight: 52, marginTop: 8, alignItems: "center", justifyContent: "center",
                                 backgroundColor: palette.accent }}>
               <Text style={{ ...TYPE.bodyStrong, fontFamily: TYPE.metaBold.fontFamily, color: palette.onAccent }}>
-                {tidal.regs.label}
+                {dt.regs.label}
               </Text>
             </Pressable>
           </>
         ) : (
           <View style={{ gap: 12, alignItems: "flex-start" }}>
             {/* (T257) still loading: the one spinner, beside the words that say what is coming */}
-            {status === WATER_MAP_WORDS.loading && <LoadingState palette={palette} size={64} label={status} />}
-            <Text style={{ ...TYPE.body, color: palette.sub }} testID="water-map-status">{status}</Text>
+            {d.status === WATER_MAP_WORDS.loading && <LoadingState palette={palette} size={64} label={d.status} />}
+            <Text style={{ ...TYPE.body, color: palette.sub }} testID="water-map-status">{d.status}</Text>
           </View>
         )}
         </WaterInset>
