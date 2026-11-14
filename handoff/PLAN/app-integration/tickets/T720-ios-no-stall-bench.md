@@ -1,6 +1,6 @@
 # T720 — iOS: no-stall bench `tap-stalls` on the simulator (IOS-3)
 
-Status: OPEN.
+Status: IN PROGRESS (iOS chat, test-bed lane: `tap-stalls` ported and passing on the simulator, worst stall 227 ms; ticket closes with the lane's report).
 
 Source: owner 2026-11-14, verbatim: "Maybe we could make a handoff to start improving the ios versions? Making sure it is
 rock solid too?" and "We want to do as much work as possible without the Apple account". Stub IOS-3 in

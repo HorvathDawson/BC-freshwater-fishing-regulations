@@ -1,6 +1,6 @@
 # T725 — iOS: memory table and cold start re-measured on 0.7.9 (IOS-8)
 
-Status: OPEN.
+Status: IN PROGRESS (iOS chat, test-bed lane: memory table and cold start measured on 0.7.9; the memory-warning trim is not tested on the simulator).
 
 Source: owner 2026-11-14, verbatim: "Maybe we could make a handoff to start improving the ios versions? Making sure it is
 rock solid too?" and "We want to do as much work as possible without the Apple account". Stub IOS-8 in

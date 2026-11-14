@@ -1,6 +1,6 @@
 # T723 — iOS: salmon, run timing, search, saved spots, photos work on the simulator (IOS-6)
 
-Status: OPEN.
+Status: IN PROGRESS (iOS chat: keyboard and back fixes on branch `ios/t723-keyboard-back`, small audit fixes on `ios/audit-fixes`; not merged; scenario ports not started).
 
 Source: owner 2026-11-14, verbatim: "Maybe we could make a handoff to start improving the ios versions? Making sure it is
 rock solid too?" and "We want to do as much work as possible without the Apple account". Stub IOS-6 in
