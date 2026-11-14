@@ -5,12 +5,18 @@ on:
     paths: ["app/**", ".github/workflows/app-ci.yml", "pipeline/deliver/bundle/schema.sql",
             "pipeline/deliver/bundle/indexes.sql",
             # (T543) the worker parity tests import these through Python; requirements/constraints build the venv
-            "pipeline/regs/dfo_salmon/**", "pipeline/gauges/**", "requirements.txt", "constraints.txt"]
+            "pipeline/regs/dfo_salmon/**", "pipeline/gauges/**", "requirements.txt", "constraints.txt",
+            # (2026-11-13) `pnpm check` runs the ticket ledger + handoff docs guard (tools/check-tickets.mjs): a ledger fix
+            # alone must run it, or a red run on a ledger edit stays the newest and blocks the release's CI check
+            "handoff/PLAN/app-integration/tickets/**", "handoff/PLAN/*.md"]
   pull_request:
     paths: ["app/**", ".github/workflows/app-ci.yml", "pipeline/deliver/bundle/schema.sql",
             "pipeline/deliver/bundle/indexes.sql",
             # (T543) the worker parity tests import these through Python; requirements/constraints build the venv
-            "pipeline/regs/dfo_salmon/**", "pipeline/gauges/**", "requirements.txt", "constraints.txt"]
+            "pipeline/regs/dfo_salmon/**", "pipeline/gauges/**", "requirements.txt", "constraints.txt",
+            # (2026-11-13) `pnpm check` runs the ticket ledger + handoff docs guard (tools/check-tickets.mjs): a ledger fix
+            # alone must run it, or a red run on a ledger edit stays the newest and blocks the release's CI check
+            "handoff/PLAN/app-integration/tickets/**", "handoff/PLAN/*.md"]
 
 # (T543) a newer push to the same ref supersedes the run in flight
 concurrency:
