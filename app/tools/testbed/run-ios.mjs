@@ -85,6 +85,8 @@ async function back(ctx, w = device.screenText()) {
   // a water's page ("‹ Map" over Regulations · Conditions): its own back link, by id (the tab bar may still be in the tree)
   if (onPage(w)) { await pageBack(ctx); await sleep(1500); return 'page'; }
   // (T706) the notification inbox sheet, or any sheet: its Done
+  // (T718) a card with its own Close (the Developer card, the credits pop-up): a Modal, no edge swipe
+  if ((w.ids ?? []).includes('developer-close')) { ctx.flow('tap-id', { ID: 'developer-close' }); await sleep(1000); return 'card'; }
   if ((w.ids ?? []).includes('inseason-notice') || (w.includes('Done') && !hasTabs(w))) { ctx.flow('tap-text', { TEXT: 'Done' }); await sleep(1000); return 'sheet'; }
   if (hasTabs(w) && !w.includes('Done') && !w.some((x) => /NAMED WATERS/i.test(x))) return null;
   // a menu page (a Modal from below: no edge swipe) has its own "‹ Back"; the search its ‹; else the edge-back
@@ -97,7 +99,7 @@ async function back(ctx, w = device.screenText()) {
 async function toMap(ctx) {
   for (let i = 0; i < 6; i++) {
     const w = device.screenText();
-    if (hasTabs(w) && !onPage(w) && !(w.ids ?? []).includes('inseason-notice')) break;
+    if (hasTabs(w) && !onPage(w) && !(w.ids ?? []).some((id) => id === 'inseason-notice' || /^developer-/.test(id))) break;
     if (!(await back(ctx, w))) break;
   }
   const w = device.screenText();
@@ -456,7 +458,7 @@ const SCENARIOS = [
         await ctx.waitText(/Regulations/, 30_000);
         return measure('water page');
       });
-      const LINK = process.env.BOOK_LINK ?? 'Rule book p\\.[2-9][0-9] ↗.*';
+      const LINK = process.env.BOOK_LINK ?? '.*[Rr]ule book p\\.[0-9]+ ↗.*';   // (T718) Cultus's link reads "This water in the rule book p.7 ↗" on 0.7.9
       const book = async (label) => {
         ctx.flow('scroll-to', { TEXT: LINK });
         const t0 = Date.now();
@@ -489,10 +491,10 @@ const SCENARIOS = [
       await ctx.step('the Map tab after Conditions', async () => { ctx.flow('tap-point', { POINT: MAP_TAB }); return measure('map after conditions', 6000); });
       await ctx.step('Salmon (the map coloured by salmon)', async () => {
         await toMap(ctx);
-        ctx.flow('tap-text', { TEXT: 'Salmon' });
+        ctx.flow('tap-id', { ID: 'regs-paint-salmon' });     // (T718) by id: the toggle's words changed ("Trout & more" gone)
         const r = await measure('salmon', 6000);
-        let back = 'Trout & more put back';
-        try { ctx.flow('tap-text', { TEXT: 'Trout & more' }); } catch { back = 'left on Salmon (Trout & more not found)'; }
+        let back = 'Standard put back';
+        try { ctx.flow('tap-id', { ID: 'regs-paint-standard' }); } catch { back = 'left on Salmon (regs-paint-standard not found)'; }
         return `${r} · ${back}`;
       });
       await ctx.step('iOS memory warning (the Simulator\'s "Simulate Memory Warning")', async () => {
