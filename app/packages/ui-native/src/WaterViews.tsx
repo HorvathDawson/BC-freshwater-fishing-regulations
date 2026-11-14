@@ -16,6 +16,7 @@
  *   Map         the water framed and lit on the map (`focusFor`, the search's framing); the parts and their steps
  *               are P15's. The canvas pans, so here the swipe listens on the header only.
  */
+import { useState } from "react";
 import { View } from "react-native";
 import { WATER_SCREEN_WORDS, waterReportWhere } from "@app/core";
 import type { ItemId, Parameter, WaterSource, SectionId } from "@app/data";
@@ -36,7 +37,7 @@ import { WaterReportLink } from "./menu/ReportLink";
 import { BasinDays } from "./BasinDays";
 import { usePaneReady } from "./shell/paneReveal";
 
-export function WaterConditions({ source, item, tapSid, palette, tiles, theme, parameter, onParameter, from, feed,
+export function WaterConditions({ source, item, tapSid, palette, tiles, theme, opening, from, feed,
                                   credits, horizon, onHorizon, regsDay, loader = null, part = null }: {
   source: WaterSource;
   /** (T53) the release, for an unnamed reach's name (the store's, as its Regulations page heads with); null: no name */
@@ -49,8 +50,11 @@ export function WaterConditions({ source, item, tapSid, palette, tiles, theme, p
   part?: number | null;
   palette: Palette;
   tiles?: TileEndpoints; theme?: string;
-  /** Kept in step with the map's own flow/level switch — see ConditionsPanel. */
-  parameter?: Parameter; onParameter?: (p: Parameter) => void;
+  /**
+   * (T728) The quantity the view OPENS on: the Conditions map's Flow or Level (undefined under Temperature: the station's
+   * own). Read only until the reader picks Flow / Level in the card; the card's pick is this view's, never the map's.
+   */
+  opening?: Parameter;
   /** Where the tap landed, for the route map's "you are here". */
   from?: { lat: number; lon: number } | null;
   /** The live index, for the donor panel — see ConditionsPanel. */
@@ -63,6 +67,11 @@ export function WaterConditions({ source, item, tapSid, palette, tiles, theme, p
   /** (T582) The regulations day (the map's; null: today): this view names its own day and links to it. */
   regsDay?: Date | null;
 }) {
+  // (T728, owner 2026-11-14: "when you chang elvel/condition in the card it should not change cindition map layers too")
+  // THE CARD'S QUANTITY IS THIS VIEW'S: one state, read by the card and the watershed days alike; the map's layer is
+  // only where it starts. A pick here never reaches the map's Show.
+  const [own, setOwn] = useState<Parameter | null>(null);
+  const parameter = own ?? opening;
   // (T369) THE FRAME'S REACH AND POINT, read once from the release (`useFrameView`, the one reading of a frame)
   const store = useRegsStore(loader);
   const fv = useFrameView(store.value ?? null, { item, part, tapSid, at: from ?? null });
@@ -90,7 +99,7 @@ export function WaterConditions({ source, item, tapSid, palette, tiles, theme, p
   const entries = useMapEntries(loader, store.value ?? null, item);
   const where = useWaterPlace(loader, source, item, section, entries?.names ?? null);
   // (T377) THE WATER'S OWN WATERSHED GROUP and its days — its tap, else its own point; never the map's centre. The
-  // quantity is the panel's own (`ConditionsPanel`: the map's Flow or Level); a tap on a day is the panel's horizon pick.
+  // quantity is the card's (T728: this view's pick, opening on the map's Flow or Level); a tap on a day is the panel's horizon pick.
   const basin = useWaterBasin(source, frameBasinAsk({ item, tapSid, at: from ?? null }, here), section !== null);
   const days = useBasinDays({ source, feed, basin, for: "water", quantity: parameter ?? "discharge",
                               horizon: horizon ?? 0, enabled: section !== null });
@@ -114,7 +123,7 @@ export function WaterConditions({ source, item, tapSid, palette, tiles, theme, p
           <AccessNoticeBlock notices={where.access} palette={palette} />
           <ConditionsPanel source={source} section={section} palette={palette}
                            tiles={tiles} theme={theme} feed={feed}
-                           parameter={parameter} onParameter={onParameter} from={here}
+                           parameter={parameter} onParameter={setOwn} from={here}
                            credits={credits} horizon={horizon} onHorizon={onHorizon} regsDay={regsDay} waterLine={line} waterBox={box}
                            alertWater={name ? { item, name } : null}
                            reportAbout={{ water: item, place: name, part: part ?? null, partLabel: where.place?.full ?? null }}

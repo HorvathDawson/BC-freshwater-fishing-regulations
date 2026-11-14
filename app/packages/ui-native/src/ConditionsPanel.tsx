@@ -70,8 +70,8 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
   /** The trace colour, so a sheet can tint the chart to its own outcome. */
   colour?: string;
   /**
-   * The quantity, when the CALLER owns it — the chart has to be about the same thing the
-   * map is painting. Left undefined, the panel owns the choice itself.
+   * The quantity, when the CALLER owns it (a water's Conditions view, `WaterConditions`: the card's own pick, opening on
+   * the map's Flow or Level; T728: never the map's state itself). Left undefined, the panel owns the choice itself.
    */
   parameter?: Parameter; onParameter?: (p: Parameter) => void;
   /** Data credits for the foot of the screen, passed down rather than restated. */
@@ -102,9 +102,8 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
   reportAbout?: { water: string | null; place: string | null; part: number | null; partLabel: string | null } | null;
 }) {
   /*
-   * THE SAME QUANTITY THE MAP IS PAINTING. `parameter` is undefined only under
-   * Temperature, which is not a hydrograph, so on Flow or Level this is exactly what the
-   * map was asked for.
+   * THE CARD'S QUANTITY (T728: the caller's pick, which opens on the map's Flow or Level). `parameter` is undefined
+   * until a pick under Temperature, which is not a hydrograph.
    */
   const vm = useConditionsView(source, section, day, horizon,
                                { feed, quantity: parameter ?? "discharge" });

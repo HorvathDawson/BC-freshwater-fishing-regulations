@@ -188,7 +188,12 @@ describe("Level as its own view, in the Conditions map's Layers", () => {
     ]);
   });
 
-  it("THE PANEL'S CHART IS THE SAME CHOICE: Level on the map opens a Level chart; Flow in the chart is Flow on the map", async () => {
+  /*
+   * (T728, owner 2026-11-14: "when you chang elvel/condition in the card it should not change cindition map layers too")
+   * the map's Level is where the card starts; the card's Flow is the card's alone. Mutation: hand the panel the map's
+   * `setFlowParam` as `onParameter` again (`WaterModeHost` -> `WaterConditions`) -> the sheet comes back Flow*.
+   */
+  it("THE CARD'S PICK IS THE CARD'S: Level on the map opens a Level chart; Flow in the chart leaves the map on Level", async () => {
     await mount("conditions");
     press("Choose layers");
     pick("Level");
@@ -202,8 +207,8 @@ describe("Level as its own view, in the Conditions map's Layers", () => {
     await waitFor(() => expect(screen.queryByTestId("map-look")).not.toBeNull());
     press("Choose layers");
     expect([chart, after, asked.standing, sheet()]).toEqual([
-      "chart level", "chart discharge", "discharge",
-      "SHOW · MAP · ON THE MAP | Flow* Level Temperature Map* Satellite | Spots+ Gauges+ Flow arrows+",
+      "chart level", "chart discharge", "level",
+      "SHOW · MAP · ON THE MAP | Flow Level* Temperature Map* Satellite | Spots+ Gauges+ Flow arrows+",
     ]);
   });
 });
