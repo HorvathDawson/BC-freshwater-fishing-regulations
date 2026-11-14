@@ -36,13 +36,9 @@ git -C "$T/repo" checkout -q --detach "$HEAD"
 ln -s "$ROOT/.venv" "$T/repo/.venv"
 cd "$T/repo"
 echo "fresh-copy: HEAD ${HEAD:0:12} cloned to $T/repo in $((SECONDS - t0)) s ($(git ls-files | wc -l | tr -d ' ') files; no generated data, nothing uncommitted)"
-MARKERS=$(.venv/bin/python -c 'import re, yaml
-s = [s for j in yaml.safe_load(open(".github/workflows/pipeline-ci.yml"))["jobs"].values() for s in j["steps"]
-     if s.get("name") == "Tests"]
-assert len(s) == 1, "Tests step not found"
-m = re.search(r"-m \"([^\"]+)\"", s[0]["run"])
-assert m, "no -m in the Tests step"
-print(m.group(1))') || { echo "fresh-copy: cannot read the marker expression from pipeline-ci.yml's Tests step" >&2; exit 1; }
+# the clone's own scripts/test-env.sh: CI's marker expression from its one home (pipeline-ci.yml's Tests step)
+. scripts/test-env.sh
+MARKERS=$(no_data_markers) || exit 1
 rc=0
 bash scripts/pytest-chunked.sh ${only[@]+"${only[@]}"} -- -m "$MARKERS" || rc=$?
 if (( rc )); then

@@ -139,7 +139,10 @@ A6. **Commit only your own paths: `git commit -- <paths>`.** Several agents shar
     **Test tiers (P00, 2026-10-20):** Tier 0 is the one file you touched; Tier 1 is `scripts/test-smoke.sh`, run per
     commit (≈ 75 s: `pnpm -C app check`, `pytest -m smoke`: per test file its first no-data test, or the
     ones it marks `@pytest.mark.smoke` (guards), by rule in `pipeline/tests/smoke.py` — no list to edit, T667 D6); Tier 2 is
-    `scripts/test-full.sh` via `scripts/heavy.sh`, once per phase or before a merge. **Heavy jobs** (atlas build, reach run,
+    `scripts/test-full.sh` via `scripts/heavy.sh`, once per phase or before a merge. **The tier decides the world** (T667 slice 7):
+    a run whose `-m` leaves out every `slow` / `needs_*` test (CI's tier, `-m smoke`) hides this machine's builds whoever
+    starts it (`pipeline/tests/tiers.py`; the pytest header says which); every runner script sources `scripts/test-env.sh`
+    (interpreter, fresh bytecode prefix, CI's marker expression) and `pytest-chunked.sh` prints each chunk's peak footprint. **Heavy jobs** (atlas build, reach run,
     `pipeline.deliver`, tile builds, full pytest, the Android emulator) go through `scripts/heavy.sh <label> <min free %> --
     <cmd>`: one at a time per lane (two lanes: the default and `HEAVY_LOCK=~/.claude/heavy-job-2.lock`), waits for free
     memory, kills the job if free memory falls under 6 % or its physical footprint passes the machine's RAM; stopping the

@@ -1,6 +1,6 @@
 # T667 — Tests that grow with the app: fewer hand updates per release and per feature
 
-Status: IN PROGRESS — slices 1–2 done; 3 done by T666; 4 and 5 done in part (5b, the page v36 inventory and retirement, done 2026-11-13: 5618e63bc, 3e933cc04, 34a4e0f61, afb6a5eda), 6 begun; 4c done 2026-11-14 (smoke set by rule); left (Claude): slice 6's live counts, slice 7, slice 8 (planned below) — "What is left" below.
+Status: IN PROGRESS — slices 1–2 done; 3 done by T666; 4 and 5 done in part (5b, the page v36 inventory and retirement, done 2026-11-13: 5618e63bc, 3e933cc04, 34a4e0f61, afb6a5eda), 6 begun; 4c and 7 done 2026-11-14 (smoke set by rule; the tier decides the world, scripts/test-env.sh); left (Claude): slice 6's live counts, slice 8 (planned below) — "What is left" below.
 
 Source: owner 2026-11-11: "we need to also make the tests more expandable; right now they get progressively more
 unwieldy ... a Fable task to improve the tests generally, to naturally grow with the app without too many hand
@@ -94,8 +94,7 @@ Depends: T666. Size: L. Fable for audit and design (owner). Part of the closed-t
   `test_review_queue` (measured codes and tiers ± tolerance). Each is an atlas or reach-run count whose replacement must
   be proved by a planted violation on an atlas (or a release-diff printer in `pipeline/release.py`): stopped here, per
   the brief (needs an atlas to prove). `test_steelhead_streams`'s 57 is RULINGS (AGENTS 54), not a live count: stays.
-- 7 Environment contract and tiers (one env script, no-build default, chunk footprint): not started (touches
-  `conftest.py` / `ci_no_build.py`, shared with the other lane).
+- 7 Environment contract and tiers: DONE 2026-11-14, above.
 - 8 The small frozen synthetic release (D2): not started (L).
 
 ## Superseded list (2026-11-11)
@@ -170,6 +169,26 @@ owner accepts it once (`--accept-fixtures`), as T666 / D5 already do for the gol
 - Docs: AGENTS 18 / 20a / W46, `pipeline/docs/MAP.md`, `pytest.ini`, `scripts/test-smoke.sh`, `scripts/fast-fail.sh`
   (step renamed "smoke set is derived by rule"). NOTE for T660: `T660-pending/shore-cuts.patch` adds a `smoke.txt`
   line; that hunk no longer applies — drop it (the new file is in the set by rule).
+
+## Done 2026-11-14: slice 7, one test-environment contract and tiers
+- THE TIER DECIDES THE WORLD (`pipeline/tests/tiers.py`, wired in the root `conftest.py`): a run whose marker expression
+  deselects every `slow` and `needs_*` test (CI's Tests step, `-m smoke`, fast-fail's "as CI", the fresh copy) loads
+  `ci_no_build` itself, so this machine's builds are hidden whoever starts pytest; any other run sees them. The pytest
+  header says which (`test tier: no-data …` / `test tier: data …`). The three `-p pipeline.tests.ci_no_build` flags in
+  fast-fail are gone (no runner passes it now).
+- ONE ENV SCRIPT `scripts/test-env.sh` (sourced, never run): `PY`, `test_env_pycache` (one fresh PYTHONPYCACHEPREFIX per
+  run, REUSED by child runners — test-full → pytest-chunked used to make a second), `no_data_markers` (CI's expression
+  from its one home, the workflow's Tests step; was parsed twice, in fast-fail and fresh-copy). Sourced by test-smoke,
+  test-full, pytest-chunked, fast-fail, fresh-copy.
+- CHUNK FOOTPRINT: `pytest-chunked.sh` runs each chunk under BSD `time -l` and prints its peak memory footprint, then the
+  five biggest (on Linux it says "not measured"). Measured today, no-data tier of the 21 `test_curation_review*` chunks:
+  42 s, biggest 1.3 GB (`_writes`, `_safety`), the rest ≤ 0.1 GB — so the 60 GB / 111 GB growth (T638) is in the DATA
+  tier. NOT measured: the data tier (it is the full suite; not run today). The next Tier 2 run prints the top five.
+- Pins: `test_test_env.py` (the marker set = slow + every `needs_<KIND>`; a truth table with a one-kind-short mutation;
+  CI's own expression is no-data and fails with `needs_cache` dropped; three real `--collect-only` runs read the header:
+  CI's tier and smoke hidden, default visible; every runner sources test-env.sh and none passes the plugin, makes its own
+  bytecode prefix or parses the Tests step). `test_release_command` follows fresh-copy's marker source.
+- Proof the guard still bites: smoke under the auto-hide 427 passed; the review chunks above passed hidden.
 
 ## Slice 8 plan (not built): one small invented release for logic tests (D2)
 - WHAT: a release (water / regs-<r> / regs-sid / core / geo + manifest, the shipped formats) built BY THE REAL PIPELINE from

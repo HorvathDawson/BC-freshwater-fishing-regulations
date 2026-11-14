@@ -931,7 +931,7 @@ def test_the_fresh_copy_runs_ci_s_tier_on_a_clone_through_heavy(monkeypatch):
     assert seen == [["bash", "scripts/heavy.sh", "release-fresh-copy", "30", "--", "bash", "scripts/fresh-copy-tests.sh"]]
     sh = (Path(R.REPO_ROOT) / "scripts/fresh-copy-tests.sh").read_text()
     assert "git clone -q --shared --no-checkout" in sh and "scripts/pytest-chunked.sh" in sh
-    assert 'pipeline-ci.yml' in sh and "ci_no_build" not in sh                 # CI's own markers; no build to hide
+    assert "MARKERS=$(no_data_markers)" in sh and "ci_no_build" not in sh      # CI's own markers (test-env.sh); no build to hide
 
 
 # ------------------------------------------------------------------------------------------------------------- prod

@@ -32,12 +32,10 @@
 # `heavy-precheck` before the lock).
 set -euo pipefail
 cd "$(dirname "$0")/.."
-PY=.venv/bin/python
 DEV=redesign/stream-sections
-# T638 item 3: gating runs never trust old bytecode (matcher.py edited twice in one second at the same size kept its
-# old .pyc): one fresh PYTHONPYCACHEPREFIX per run, shared by its processes, removed at exit
-PYTHONPYCACHEPREFIX=$(mktemp -d "${TMPDIR:-/tmp}/pycache.XXXXXX"); export PYTHONPYCACHEPREFIX
-trap 'rm -rf "$PYTHONPYCACHEPREFIX"' EXIT
+# the test environment (T667 slice 7): PY, one fresh PYTHONPYCACHEPREFIX per run (T638 item 3), CI's marker expression
+. scripts/test-env.sh
+test_env_pycache
 t0=$SECONDS
 ran=0; not_run=0; failed=()
 step() {
@@ -234,15 +232,9 @@ step "app gates (pnpm check:fast: every pnpm check gate but vitest)" pnpm -C app
 # caught (2026-11-09, CI run 42717971280): 15 tests red on CI only — tests without a `needs_*` marker read the local
 # atlas build (T522's deliver chain resolved it before its stub; the review 503 test read the registry first) and every
 # local run passed because the build is here. The changed pipeline test files run as CI runs them: the data tiers
-# deselected and this machine's builds hidden (`pipeline/tests/ci_no_build.py`)
+# deselected and this machine's builds hidden (a no-data tier always hides them: pipeline/tests/tiers.py, T667 slice 7)
 # (T535) the marker expression has ONE home, CI's "Tests" step (`pytest -q -m "<markers>"`), read from there
-CI_MARKERS=$("$PY" -c 'import re, yaml
-s = [s for j in yaml.safe_load(open(".github/workflows/pipeline-ci.yml"))["jobs"].values() for s in j["steps"]
-     if s.get("name") == "Tests"]
-assert len(s) == 1, "Tests step not found"
-m = re.search(r"-m \"([^\"]+)\"", s[0]["run"])
-assert m, "no -m in the Tests step"
-print(m.group(1))') || { echo "fast-fail: cannot read the marker expression from pipeline-ci.yml's Tests step" >&2; exit 1; }
+CI_MARKERS=$(no_data_markers) || exit 1
 # (T533) a changed pipeline SOURCE file (not a test) can break any test. With FAST_FAIL_BASE (release preflight and
 # build-apk.sh pass the commit the last shipped thing was built from) the whole no-data tier then runs, as CI's "Tests"
 # step does, in chunks (scripts/pytest-chunked.sh: one process for the suite grows to ~111 GB) — minutes, once per ship.
@@ -252,7 +244,7 @@ as_ci() {
   src=$(grep -E '^pipeline/.*\.py$' <<<"$CHANGED" | grep -vE '(^|/)(test_[^/]*|conftest)\.py$' | grep -vE '^pipeline/tests/' || true)
   if [[ -n $src && -n ${FAST_FAIL_BASE:-} ]]; then
     echo "   $(grep -c . <<<"$src") pipeline source file(s) changed ($(head -3 <<<"$src" | paste -sd' ' -)…): the whole no-data tier, as CI"
-    bash scripts/pytest-chunked.sh -- -p pipeline.tests.ci_no_build -m "$CI_MARKERS"
+    bash scripts/pytest-chunked.sh -- -m "$CI_MARKERS"
     return
   fi
   [[ -n $src ]] && echo "   $(grep -c . <<<"$src") pipeline source file(s) changed: the whole no-data tier runs only with a ship base (FAST_FAIL_BASE); here the changed tests"
@@ -260,7 +252,7 @@ as_ci() {
   [[ -n $tests ]] || { echo "   (no pipeline test file changed)"; return 0; }
   echo "   as CI: $(grep -c . <<<"$tests") test file(s): $(paste -sd' ' - <<<"$tests" | cut -c1-300)"
   # exit 5 = every test in them deselected (all data-tier): nothing CI runs, nothing to fail
-  "$PY" -m pytest -q -p no:cacheprovider -p pipeline.tests.ci_no_build -m "$CI_MARKERS" $tests || [[ $? == 5 ]]
+  "$PY" -m pytest -q -p no:cacheprovider -m "$CI_MARKERS" $tests || [[ $? == 5 ]]
 }
 step "changed pipeline tests pass as CI runs them (no local builds)" as_ci
 
@@ -286,7 +278,7 @@ step "review app frontend typechecks (a frontend file changed)" review_frontend
 # test_curation_review_* files, one process each (~30 s; scripts/pytest-chunked.sh, T638: one process grew to 60 GB)
 review_backend() {
   grep -qE '^curation-review/backend/' <<<"$CHANGED" || { echo "   (no review backend file changed)"; return 0; }
-  bash scripts/pytest-chunked.sh --only '/test_curation_review' -- -p pipeline.tests.ci_no_build -m "$CI_MARKERS"
+  bash scripts/pytest-chunked.sh --only '/test_curation_review' -- -m "$CI_MARKERS"
 }
 step "review app backend tests (a backend file changed)" review_backend
 

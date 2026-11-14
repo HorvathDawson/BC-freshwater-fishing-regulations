@@ -18,11 +18,9 @@
 # Every step runs unfiltered (no rtk). If a step fails, fix it, rerun only the failing files, then run Tier 2 once more.
 set -uo pipefail
 cd "$(dirname "$0")/.."
-PY=.venv/bin/python
-# T638 item 3: gating runs never trust old bytecode (matcher.py edited twice in one second at the same size kept its
-# old .pyc): one fresh PYTHONPYCACHEPREFIX per run, shared by its processes, removed at exit
-PYTHONPYCACHEPREFIX=$(mktemp -d "${TMPDIR:-/tmp}/pycache.XXXXXX"); export PYTHONPYCACHEPREFIX
-trap 'rm -rf "$PYTHONPYCACHEPREFIX"' EXIT
+# the test environment (T667 slice 7): PY, one fresh PYTHONPYCACHEPREFIX per run (T638 item 3), CI's marker expression
+. scripts/test-env.sh
+test_env_pycache
 t0=$SECONDS; failed=()
 step() { local name=$1 s=$SECONDS; shift; echo "── $name"; if "$@"; then echo "   ok ($((SECONDS - s)) s)"; else
   echo "   FAILED ($((SECONDS - s)) s)"; failed+=("$name"); fi; }
