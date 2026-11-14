@@ -11,6 +11,11 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
+- **T728 follow-up (2026-11-14), not blocking.** Fixed: Flow / Level in a water's Conditions card no longer changes the
+  map's layer. Left as it was, for you to decide: (1) the card still OPENS on whatever the map shows (map on Level, card
+  starts on Level); alternative: always open on Flow. (2) a pick in the card lasts while that water is open; another
+  water starts again from the map; alternative: keep the pick for the whole session, like 72 h / Year. Default until
+  answered: as it is now.
 - **ANSWERED 2026-11-14 (privacy page check).** Owner, verbatim: "we are close to moving staging webpage into prod.
   tonight we will probably do that." and "choose the best wording please you know better then I do for that stuff".
   So: item 1 is settled by the production move (after it, check that `https://canifishthis.ca/privacy` shows the
