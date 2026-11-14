@@ -224,6 +224,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T727 | iOS: store pack, everything except what needs the Apple account (IOS-10) | IN PROGRESS (iOS chat, docs lane; screenshots after T718) | — | owner 2026-11-14 (iOS reopened, simulator only); stub IOS-10 in handoff/PLAN/ios/START-HERE-ios.md |
 | T728 | A Flow / Level pick in the Conditions card no longer changes the Conditions map's layer | IN PROGRESS (before closed testing) | — | owner 2026-11-14 ("when you chang elvel/condition in the card it should not change cindition map layers too"); code + test done; left (Claude): an emulator look on the next APK |
 | T729 | The opened credits card is under the legend and cannot be read | IN PROGRESS (before closed testing) | — | owner 2026-11-14 ("attribution on app goes under the legends on the different map tabs"; "it opens under the legend on the map so you cant read it"); fix: the open card is a Modal; left (Claude): an emulator look on the next APK |
+| T732 | The phone's backup carries saved spots first, photos second, never the downloaded release (Android Auto Backup skips everything past 25 MB today) | IN PROGRESS (iOS chat, branch `android/t732-backup`; proposal) | — | audit G14, 2026-11-14; owner words relayed by the Android chat ("save spots with prioirty", "images can be compressed if still visible"); sibling of T722's iOS backup exclusion |
 
 ## Next after closed testing
 
