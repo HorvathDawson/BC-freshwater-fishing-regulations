@@ -79,6 +79,7 @@ export * from "./tabs";
 export * from "./spotWords";
 export * from "./linkFailed";
 export * from "./permissions";
+export * from "./approxFix";
 export * from "./uiWords";
 export * from "./ends";
 export * from "./waterNav";

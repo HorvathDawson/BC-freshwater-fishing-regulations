@@ -220,7 +220,7 @@ export function useMapRail(go: (a: RouteAction) => void, locate: Locate | null =
     return () => { alive = false; };
   }, [onSpots, locate]);
 
-  const addAt = useCallback((at: LatLon) => {
+  const addAt = useCallback((at: LatLon & { accuracy?: number }) => {
     setDrop(null);
     go({ type: "addSpot", at });
   }, [go]);

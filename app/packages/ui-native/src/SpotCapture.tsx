@@ -23,7 +23,7 @@
 
  */
 import { ErrorState } from "./ErrorState";
-import { latLon, SPOT_CAPTURE_AT, SPOT_CAPTURE_WORDS as CW, VISIT_QUICK_DAYS, type LatLon, type SectionKey, type VisitSteps } from "@app/core";
+import { captureAtDetail, latLon, SPOT_CAPTURE_AT, SPOT_CAPTURE_WORDS as CW, VISIT_QUICK_DAYS, type LatLon, type SectionKey, type VisitSteps } from "@app/core";
 import { useRef, useState } from "react";
 import { View } from "react-native";
 import { Text } from "./Text";
@@ -69,7 +69,7 @@ export interface SpotCaptureProps {
   theme: string;
   camera: Camera;
   /** The point the spot was started at (a long press, a tap in pick mode, the reader's location); absent: picked here. */
-  at?: LatLon | null;
+  at?: (LatLon & { accuracy?: number }) | null;
   onCancel: () => void;
   /** S1: the photo store and the platform's picker. Absent -> the draft offers no photos. */
   photos?: SpotPhotos;
@@ -203,7 +203,7 @@ function SpotCaptureFlow(props: SpotCaptureProps) {
       <Coach palette={palette}
              title={step === "water" ? (preset ? SPOT_CAPTURE_AT.title : CW.pickWater) : CW.exactSpot}
              detail={step === "water"
-               ? (preset ? SPOT_CAPTURE_AT.detail : CW.pickWaterDetail)
+               ? (preset ? captureAtDetail(props.at?.accuracy) : CW.pickWaterDetail)
                : CW.tapPoint(water?.name ?? null)}
              chose={step === "water" ? water?.name ?? null
                                      : point && latLon(point)}

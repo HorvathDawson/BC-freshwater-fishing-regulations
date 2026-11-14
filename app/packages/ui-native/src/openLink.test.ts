@@ -24,7 +24,7 @@ describe("openLink (T723 G9): a refused open is reported AND shown", () => {
 
 describe("openDirections", () => {
   it("iOS opens Apple Maps; Android opens Google Maps (unchanged)", async () => {
-    const open = vi.spyOn(Linking, "openURL").mockResolvedValue(true);
+    const open = vi.spyOn(Linking, "openURL").mockResolvedValue(undefined);
     await openDirections({ lat: 49.25, lon: -123.1 }, "ios");
     await openDirections({ lat: 49.25, lon: -123.1 }, "android");
     expect(open.mock.calls.map((c) => c[0])).toEqual([

@@ -137,6 +137,13 @@ describe("useMapRail", () => {
       "drop:- perm:granted err:Your location could not be read, so no spot was started. fly:-", 1]);
   });
 
+  it("(T723 G5) the fix's accuracy rides on the point the capture starts at", async () => {
+    const locate: Locate = { permission: async () => "granted", here: async () => ({ lat: 50, lon: -120, accuracy: 3000 }) };
+    const { acts, out } = rig(locate, SPOTS);
+    await act(async () => { await out.r!.addMine(); });
+    expect(acts).toEqual([{ type: "addSpot", at: { lat: 50, lon: -120, accuracy: 3000 } }]);
+  });
+
   it("(T723 G6) At my location refused: the line says location is off, and a refusal is not reported", async () => {
     const reported: unknown[] = [];
     const undo = setFailureSink((e) => reported.push(e));

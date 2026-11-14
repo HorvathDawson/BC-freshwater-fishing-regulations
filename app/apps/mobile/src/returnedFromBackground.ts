@@ -4,6 +4,6 @@
  * a return, and a staged release must not swap under the page being read. Android has no "inactive" in practice, so
  * there every return is from "background" and the answer is what it always was.
  */
-export function returnedFromBackground(was: string, now: string): boolean {
+export function returnedFromBackground(was: string | null | undefined, now: string): boolean {
   return now === "active" && was === "background";
 }
