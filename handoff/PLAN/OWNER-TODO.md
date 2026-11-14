@@ -11,6 +11,12 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
+- **T686: pick the shipped-data shrink (2026-11-14), not blocking.** Measured on r-f749475d0962, nothing shipped (table in
+  the ticket). The release data is 17.75 MB of a 463 MB phone download (tiles + basemap are 91 %, T699). Choose:
+  (a) DEFAULT: near as one blob per place + climate bands packed + down in blocks, ≈ 1.94 MB, lossless, no web moment
+  at risk; (b) (a) + core.item_section without its by-item index + water.part_section as runs (first search and
+  water's gate get headroom; device scan time to measure first); (c) every lossless candidate, ≈ 2.59 MB; (d) brotli
+  instead of gzip, ≈ 3.66 MB, a host and native-client change, no format change; (e) nothing now.
 - **T728 follow-up (2026-11-14), not blocking.** Fixed: Flow / Level in a water's Conditions card no longer changes the
   map's layer. Left as it was, for you to decide: (1) the card still OPENS on whatever the map shows (map on Level, card
   starts on Level); alternative: always open on Flow. (2) a pick in the card lasts while that water is open; another
