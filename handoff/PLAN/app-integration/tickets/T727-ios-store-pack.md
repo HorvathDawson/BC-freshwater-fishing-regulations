@@ -22,4 +22,13 @@ a folder + a checklist the owner pastes from.
 Depends: T718 for the screenshots. Size: M. Owner: yes (enters the answers in App Store Connect). Name answered: "Can I Fish This?".
 
 ## Results
-(filled in as the work runs)
+Text half drafted 2026-11-14 (docs lane). All PROPOSALS; nothing entered in App Store Connect; screenshots and video are another lane's.
+Pages in `handoff/PLAN/ios/store/`: `app-privacy-answers.md` (questionnaire + 8-row three-way Mismatches table), `age-rating-answers.md`,
+`review-notes.md` (paste block + category), `checklist.md` (ordered fields, who does each, the name differences).
+
+Open points:
+- Mismatches to decide: Product Interaction missing from the manifest and draft; Precise vs Coarse location (Play says approximate only); Analytics purpose on the install id; email linked or not; Performance Data not sent; `play/data-safety.md` is stale on two points (production DOES send reports, `app/apps/mobile/src/env.ts:44`; crash switch is More, Settings, Privacy).
+- T365's background-mode line is wrong: the background task never downloads a release (`app/apps/mobile/src/notify.native.ts:8-9`); review notes use the corrected wording.
+- Name: `expo.name` "Can I Fish?" (home-screen label) is the only differing string; proposal keep it, store name "Can I Fish This?". No app.json edit made.
+- Not verified: Apple's live form wording; tap paths in the review notes (not walked on iOS); `fetch`/`processing` in a fresh build's Info.plist (the `ios/` folder here is stale); whether a ~100 m report centre counts as Apple "precise".
+- Owner needs: Apple account, App Store Connect entries, production data (T86) before the review build.
