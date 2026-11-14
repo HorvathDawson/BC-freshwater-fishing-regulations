@@ -1,7 +1,7 @@
 {
   "$comment": "notice_waters.json (was matches.json; T324). T226 AUTHORED: provincial in-season notices (feeds/inseason/index.json `rows[].id`) -> the waters they apply to. Written by the review app's In-season tab (POST /api/inseason/matches) or by hand; read through pipeline.regs.inseason.matches (validates: unknown splits, ops, ids refused). INFORMATIONAL ONLY: a match puts a banner on the water in the app, it never changes an answer. `history` is append-only, one note per edit.",
   "format": "inseason-matches/2",
-  "release": "r-a9914d6b25b7",
+  "release": "r-f749475d0962",
   "words": {
     "alexander_creek__easternmost_hwy_3": "easternmost Hwy 3",
     "border:356537100:0": "BC boundary",
@@ -73,7 +73,7 @@
           ]
         }
       },
-      "stamp": "0094207a9edf191a"
+      "stamp": "9ae63dd48efcf187"
     },
     "is-03e14f544b83": {
       "region": "1",
@@ -105,7 +105,7 @@
           "all": true
         }
       },
-      "stamp": "91632db162d7e925"
+      "stamp": "af083aa45676cb4d"
     },
     "is-06e7bf41d7fc": {
       "region": "3",
@@ -316,7 +316,7 @@
           "all": true
         }
       },
-      "stamp": "dddd15328870a17f"
+      "stamp": "db855f0d3b0649f7"
     },
     "is-0762f7371d1a": {
       "region": "4",
@@ -344,7 +344,7 @@
           "all": true
         }
       },
-      "stamp": "d1de493446fe203b"
+      "stamp": "f64949777af18f57"
     },
     "is-14c1a6f972a3": {
       "region": "3",
@@ -401,7 +401,7 @@
           ]
         }
       },
-      "stamp": "6d1febb39b9cf324"
+      "stamp": "c1cb0539a211187f"
     },
     "is-164f9965bfbd": {
       "region": "4",
@@ -438,7 +438,7 @@
           "all": true
         }
       },
-      "stamp": "f8ae971862d7198d"
+      "stamp": "6b37481faf797c79"
     },
     "is-1cf72da5a533": {
       "region": "4",
@@ -466,7 +466,7 @@
           ]
         }
       },
-      "stamp": "78887caffbcd60a3"
+      "stamp": "65d9ba0558a6515f"
     },
     "is-20205c2b98c9": {
       "region": "4",
@@ -514,7 +514,7 @@
           ]
         }
       },
-      "stamp": "2739c777ad2e2cc5"
+      "stamp": "63b36557b62c756c"
     },
     "is-2fa458fef3c3": {
       "region": "8",
@@ -546,7 +546,7 @@
           "all": true
         }
       },
-      "stamp": "b62145c84bcaea78"
+      "stamp": "923db020640f7e41"
     },
     "is-4169515839dc": {
       "region": "2",
@@ -613,7 +613,7 @@
           "all": true
         }
       },
-      "stamp": "e15383b436429522"
+      "stamp": "0523de77740e480b"
     },
     "is-472d822b755f": {
       "region": "4",
@@ -664,7 +664,7 @@
           ]
         }
       },
-      "stamp": "cbb1953f4018178d"
+      "stamp": "d98c7bda339b4b81"
     },
     "is-498820589328": {
       "region": "5",
@@ -698,7 +698,7 @@
           ]
         }
       },
-      "stamp": "f4e41d1784ed485b"
+      "stamp": "c2a06a24e6d88f10"
     },
     "is-4eaad82900f8": {
       "region": "4",
@@ -732,7 +732,7 @@
           ]
         }
       },
-      "stamp": "ca05f49c4ce8bfbb"
+      "stamp": "fdb2b72c589d77d5"
     },
     "is-50ac6c61eb00": {
       "region": "4",
@@ -769,7 +769,7 @@
           "all": true
         }
       },
-      "stamp": "c499837a37f02bdc"
+      "stamp": "dbb949caf3b2904d"
     },
     "is-546bc1e74bbc": {
       "region": "4",
@@ -790,7 +790,7 @@
           "all": true
         }
       },
-      "stamp": "d1de493446fe203b"
+      "stamp": "f64949777af18f57"
     },
     "is-689cae172c40": {
       "region": "1",
@@ -822,7 +822,7 @@
           "all": true
         }
       },
-      "stamp": "d257094831fcaa0d"
+      "stamp": "d3e70a826ee7a87d"
     },
     "is-695fd31ebf80": {
       "region": "4",
@@ -872,7 +872,7 @@
           ]
         }
       },
-      "stamp": "ca05f49c4ce8bfbb"
+      "stamp": "fdb2b72c589d77d5"
     },
     "is-69d2a07100fc": {
       "region": "8",
@@ -1076,7 +1076,7 @@
           "all": true
         }
       },
-      "stamp": "c03b1819ba232094"
+      "stamp": "302e0a884b1f479a"
     },
     "is-6a32433916ac": {
       "region": "8",
@@ -1935,7 +1935,7 @@
           "all": true
         }
       },
-      "stamp": "7044f3a31c5144fc"
+      "stamp": "d7372daa48a3093d"
     },
     "is-6db43a66acf9": {
       "region": "7B",
@@ -1977,7 +1977,7 @@
           ]
         }
       },
-      "stamp": "08c635be58821868"
+      "stamp": "3ac8469a36a66d90"
     },
     "is-74fcb31b2d0b": {
       "region": "1",
@@ -2020,7 +2020,7 @@
           "all": true
         }
       },
-      "stamp": "91632db162d7e925"
+      "stamp": "af083aa45676cb4d"
     },
     "is-7826b2108311": {
       "region": "2",
@@ -2076,7 +2076,7 @@
           ]
         }
       },
-      "stamp": "f16d89ea14915bd0"
+      "stamp": "2ad6b30d7556477d"
     },
     "is-79fcd6f4a6bc": {
       "region": "8",
@@ -2266,7 +2266,7 @@
           "all": true
         }
       },
-      "stamp": "c03b1819ba232094"
+      "stamp": "302e0a884b1f479a"
     },
     "is-8cd37f6e5bf9": {
       "region": "2",
@@ -2327,7 +2327,7 @@
           ]
         }
       },
-      "stamp": "48756c2a3095db35"
+      "stamp": "1e0bb2435a21d9e7"
     },
     "is-9e042d16dbe9": {
       "region": "4",
@@ -2373,7 +2373,7 @@
           ]
         }
       },
-      "stamp": "ea38403f3d29f9f6"
+      "stamp": "34891175407ec6a4"
     },
     "is-a8dcfeb1e3c6": {
       "region": "2",
@@ -2495,7 +2495,7 @@
           ]
         }
       },
-      "stamp": "a119e404078008e8"
+      "stamp": "621a50dba297a14f"
     },
     "is-a9ddfd332aa7": {
       "region": "4",
@@ -2537,7 +2537,7 @@
           ]
         }
       },
-      "stamp": "d289c257a51d3288"
+      "stamp": "f1c7dcb423a4c91a"
     },
     "is-b7a6816f8679": {
       "region": "4",
@@ -2585,7 +2585,7 @@
           ]
         }
       },
-      "stamp": "cdefcc7dcd77b59a"
+      "stamp": "6f6b8995f0359891"
     },
     "is-bb5426c61ff3": {
       "region": "8",
@@ -2613,7 +2613,7 @@
           "all": true
         }
       },
-      "stamp": "b171a2caef0e6954"
+      "stamp": "816101e636798a0a"
     },
     "is-c77bf6cd7da6": {
       "region": "2",
@@ -2642,7 +2642,7 @@
           "all": true
         }
       },
-      "stamp": "2540cef13715add0"
+      "stamp": "c60ceda6f8e48e56"
     },
     "is-c7dd217d00e3": {
       "region": "4",
@@ -2677,7 +2677,7 @@
           "all": true
         }
       },
-      "stamp": "7b3d50e32e16aa2b"
+      "stamp": "3e92bd11ff1f08cd"
     },
     "is-cd23c37ead11": {
       "region": "4",
@@ -2712,7 +2712,7 @@
           "all": true
         }
       },
-      "stamp": "b00b64bd14179f34"
+      "stamp": "27c04025af3decba"
     },
     "is-d55f2ace6f8e": {
       "region": "4",
@@ -2747,7 +2747,7 @@
           ]
         }
       },
-      "stamp": "78887caffbcd60a3"
+      "stamp": "65d9ba0558a6515f"
     },
     "is-e03c3754d0af": {
       "region": "8",
@@ -2779,7 +2779,7 @@
           "all": true
         }
       },
-      "stamp": "8b935ff1ee825280"
+      "stamp": "c9803a9ab441e6cd"
     },
     "is-ed799087db95": {
       "region": "4",
@@ -2814,7 +2814,7 @@
           "all": true
         }
       },
-      "stamp": "d0afb9fee06d9e75"
+      "stamp": "965ca52f4365667a"
     },
     "is-f1670924c755": {
       "region": "4",
@@ -2849,7 +2849,7 @@
           "all": true
         }
       },
-      "stamp": "e2834660d84226ca"
+      "stamp": "eb48c87a9fc5f856"
     },
     "is-f528732e7d5b": {
       "region": "8",
@@ -2954,7 +2954,7 @@
           "all": true
         }
       },
-      "stamp": "62eb564feb9b1d8f"
+      "stamp": "dd60b0c4480d8c0d"
     },
     "is-f9e5db230277": {
       "region": "4",
@@ -2983,7 +2983,7 @@
           ]
         }
       },
-      "stamp": "0094207a9edf191a"
+      "stamp": "9ae63dd48efcf187"
     }
   },
   "history": [
