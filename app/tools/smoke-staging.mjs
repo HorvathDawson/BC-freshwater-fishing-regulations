@@ -97,8 +97,10 @@ async function http() {
   if (!PROD) await check('site release matches the manifest release', async () => {
     const st = await json(`${SITE}/site-release.json`);
     must(st.release, `${SITE}/site-release.json names no release`);
-    const said = `site ${st.release} (min app ${st.minAppVersion ?? 'none'}), manifest ${manifest.data_release} (min app ${manifest.minAppVersion ?? 'none'})`;
-    if (st.release === manifest.data_release) return said;
+    // (2026-11-14) and the commit it was built from (site-all.sh refuses a dirty app/ unless SITE_DIRTY_OK): dirty warns
+    const built = st.commit ? `built from ${st.commit.slice(0, 9)}${st.dirty ? ' + UNCOMMITTED app/ edits' : st.dirty === false ? ' (clean)' : ''}` : 'no commit stamp';
+    const said = `site ${st.release} (min app ${st.minAppVersion ?? 'none'}), manifest ${manifest.data_release} (min app ${manifest.minAppVersion ?? 'none'}); ${built}`;
+    if (st.release === manifest.data_release) return st.dirty ? { warn: `the site was built from uncommitted code: ${said}` } : said;
     must((st.minAppVersion ?? null) === (manifest.minAppVersion ?? null), `the site is on another release and the min app version moved: ${said}`);
     return { warn: `the site is on another release, same min app version: ${said}` };
   });

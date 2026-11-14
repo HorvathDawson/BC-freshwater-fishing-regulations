@@ -42,7 +42,7 @@ cp "$S/_worker.js" "$K/worker.js"
 # release's min app version. The staging smoke compares it with staging's manifest. A build on anything but LATEST is
 # refused (SITE_RELEASE_ANY=<reason> allows it, printing the reason): the site goes up on the release about to be uploaded.
 node -e '
-const fs = require("fs"), [S, O, LATEST_F, ANY] = process.argv.slice(1);
+const fs = require("fs"), [S, O, LATEST_F, ANY, COMMIT, DIRTY] = process.argv.slice(1);
 const rel = JSON.parse(fs.readFileSync(S + "/snapshot.json", "utf8")).release;
 if (!rel) { console.error("site.sh: " + S + "/snapshot.json names no release"); process.exit(1); }
 const latest = fs.readFileSync(LATEST_F, "utf8").trim();
@@ -53,9 +53,11 @@ if (rel !== latest) {
 const mf = "data/release/" + rel + "/manifest.json";
 if (!fs.existsSync(mf)) { console.error("site.sh: " + mf + " is missing: the site cannot name its release\x27s min app version"); process.exit(1); }
 const min = JSON.parse(fs.readFileSync(mf, "utf8")).minAppVersion ?? null;
-fs.writeFileSync(O + "/site-release.json", JSON.stringify({ release: rel, minAppVersion: min }) + "\n");
-console.log("site-release.json: " + rel + " (min app " + min + ")");
-' "$S" "$O" data/release/LATEST "${SITE_RELEASE_ANY:-}"
+const commit = COMMIT || null, dirty = DIRTY === "true" ? true : DIRTY === "false" ? false : null;
+fs.writeFileSync(O + "/site-release.json", JSON.stringify({ release: rel, minAppVersion: min, commit, dirty }) + "\n");
+console.log("site-release.json: " + rel + " (min app " + min + "), commit " + commit + (dirty ? " DIRTY" : dirty === false ? " clean" : " (dirty unknown)"));
+' "$S" "$O" data/release/LATEST "${SITE_RELEASE_ANY:-}" "${SITE_COMMIT:-$(git rev-parse HEAD)}" \
+  "${SITE_DIRTY:-$([[ -n $(git status --porcelain -- app) ]] && echo true || echo false)}"
 # staging must never be indexed: robots disallows everything, every response says noindex
 printf 'User-agent: *\nDisallow: /\n# STAGING (staging.canifishthis.ca): not for indexing. Production robots.txt is built by tools/seo.\n' > "$O/robots.txt"
 printf '\n/*\n  X-Robots-Tag: noindex, nofollow\n' >> "$O/_headers"

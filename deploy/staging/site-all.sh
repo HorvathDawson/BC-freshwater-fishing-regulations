@@ -24,6 +24,20 @@ echo "site-all: release $R (LATEST)"
 # 1. cheap checks ------------------------------------------------------------------------------------------------------
 [[ -f $D/manifest.json ]] || { echo "site-all: $D/manifest.json is missing (LATEST names a release that is not here)" >&2; exit 1; }
 for f in deploy/staging/site.sh deploy/staging/site-all.sh; do bash -n "$f"; done
+# (2026-11-14) THE SITE IS BUILT FROM A COMMIT: an export of a working tree holding other lanes' uncommitted app/ edits
+# went to staging once (a tap opened nothing). A dirty app/ is refused unless SITE_DIRTY_OK=<reason>, printed here; build
+# from a clean worktree (`git worktree add --detach <dir> <sha>`). site.sh stamps the commit + dirty flag in
+# /site-release.json and the staging smoke prints them.
+SITE_COMMIT=$(git rev-parse HEAD); dirty=$(git status --porcelain -- app)
+if [[ -n $dirty ]]; then
+  if [[ -z ${SITE_DIRTY_OK:-} ]]; then
+    echo "site-all: app/ has uncommitted changes: the site must be built from a commit (a clean worktree), or SITE_DIRTY_OK=<reason>" >&2
+    head -20 <<<"$dirty" >&2; exit 1
+  fi
+  echo "site-all: SITE_DIRTY_OK: building $SITE_COMMIT with $(wc -l <<<"$dirty" | tr -d ' ') uncommitted app/ path(s) - $SITE_DIRTY_OK"
+  SITE_DIRTY=true
+else SITE_DIRTY=false; fi
+export SITE_COMMIT SITE_DIRTY
 node app/tools/build-seo.mjs --release-dir "$D" --check-changes
 if [[ $RELINK == 1 ]]; then
   [[ -f $S/snapshot.json ]] || { echo "site-all: --relink needs the SEO pages in $S (run without --relink)" >&2; exit 1; }
