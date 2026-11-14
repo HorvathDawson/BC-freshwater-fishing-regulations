@@ -3,7 +3,8 @@
  * `Linking.openURL` rejects when nothing on the device takes the link; that was `void`ed at a dozen taps, so a failed open
  * did nothing and (before the phone's rejection tracker) told no one. Here it is logged (the Updates log) and REPORTED.
  */
-import { Linking } from "react-native";
+import { Linking, Platform } from "react-native";
+import { directionsUrl } from "@app/core";
 import { reportFailure } from "@app/ui";
 
 export function openLink(url: string): Promise<void> {
@@ -22,6 +23,15 @@ export function openLinkShown(url: string): Promise<void> {
     console.warn(`openLink: could not open ${url.split("?")[0]}`, e);
     throw e;
   });
+}
+
+/**
+ * (T723 G8) Directions to a point in the phone's own maps app: Apple Maps on an iPhone, Google Maps elsewhere (core's
+ * `directionsUrl`). `os` defaults to the platform's, by `Platform.select` (a one-value choice), and tests pass it.
+ */
+export function openDirections(q: { lat: number; lon: number },
+                               os: string = Platform.select({ ios: "ios", default: "other" })): Promise<void> {
+  return openLink(directionsUrl(os, q.lat, q.lon));
 }
 
 /** `onPress={linkTo(url)}`: a tap that opens `url` through `openLink`. */

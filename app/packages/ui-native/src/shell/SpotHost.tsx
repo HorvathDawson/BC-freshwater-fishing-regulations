@@ -20,7 +20,7 @@ import { TABS, TabBar, type TabKey } from "../TabBar";
 import type { Palette } from "../theme";
 import type { ShellNav } from "./useShellNav";
 import type { useSpotEdit } from "./useSpotEdit";
-import { openLink } from "../openLink";
+import { openDirections } from "../openLink";
 
 /** The open spot's visit-day flow block and its action (`useDayFlow`). */
 type DayFlowBlock = ReturnType<typeof useDayFlow>;
@@ -104,7 +104,7 @@ export function SpotHost({ viewing, spotEdit, nav, palette, camera, like, dayFlo
                     photoStore={photos?.store} photoEdit={edit ? photoEdit : undefined}
                     title={edit?.title} notes={edit?.notes}
                     parking={edit ? edit.parking : viewing.parking ?? null} parkingNotice={parkingNotice}
-                    onDirections={() => { const q = viewing.parking; if (q) void openLink(`https://www.google.com/maps/dir/?api=1&destination=${q.lat},${q.lon}`); }}
+                    onDirections={() => { const q = viewing.parking; if (q) void openDirections(q); }}
                     onParkingPick={edit && tiles && theme ? () => setPickingParking(edit.parking ?? null) : undefined}
                     onParkingHere={edit && locate ? () => {
                       setParkingNotice(null);
