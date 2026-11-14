@@ -40,6 +40,7 @@ import { onAppLink } from "./appLink";
 import { PHOTO_SOURCES, pickPhoto } from "./pickPhoto";
 import { routeAddress, routeLinks, routeUrl, systemBack } from "./systemBack";
 import { locate } from "./locate";
+import { returnedFromBackground } from "./returnedFromBackground";
 import { share } from "./share";
 // (T390) the platform's way to a newer app: Play's in-app update, the App Store page, the staging APK page; none on the web
 import { makeAppUpdater } from "./appUpdater";
@@ -388,7 +389,8 @@ export default function App() {
   // back from the background with an update ready: the safest moment there is
   useEffect(() => {
     let was = AppState.currentState;
-    const sub = AppState.addEventListener("change", (st) => { if (st === "active" && was !== "active") apply(); was = st; });
+    // (T723 G2) from the BACKGROUND only: iOS's "inactive" (Control Center, a permission alert) is not a return
+    const sub = AppState.addEventListener("change", (st) => { if (returnedFromBackground(was, st)) apply(); was = st; });
     return () => sub.remove();
   }, [apply]);
   // THE BOOT THAT APPLIED A SET: told to the service, and said ("Updated to …") — one rule (`bootSaid`) for every boot.
