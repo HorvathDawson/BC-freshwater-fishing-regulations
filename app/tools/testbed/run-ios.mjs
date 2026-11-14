@@ -119,12 +119,16 @@ function painted(file) {
 /** (T718) The Updates log open (Developer card → Updates log). Already open: nothing. The flow's last wait for
  *  `updates-log-status` failed right after a cold start (ios-benches 13:17, the log WAS on screen: shot 001), so the screen
  *  itself is the judge: the log's own buttons on screen = open; else the flow's failure stands. */
-const logOpen = (w) => w.includes('Check now') && w.some((x) => /^Simulate offline: (on|off)$/.test(x));
+// (ios-open 14:07, Maestro's saved tree) the first open after a cold start showed the card's TABS only in the
+// accessibility tree, none of the log, for longer than the flow's 15 s wait, though the screenshot showed the log: the
+// log is waited for here (30 s more), by its status id or its words
+const logOpen = (w) => (w.ids ?? []).includes('updates-log-status') || (w.includes('Check now') && w.some((x) => /^Simulate offline: (on|off)$/.test(x)));
 async function openLog(ctx) {
   if (logOpen(device.screenText())) return;
   try { ctx.flow('ios-open-updates-log'); } catch (e) {
-    await sleep(1500);
-    if (!logOpen(device.screenText())) throw e;
+    const end = Date.now() + 30_000;
+    while (Date.now() < end) { if (logOpen(device.screenText())) { ctx.finding('the Updates log reached the accessibility tree only after the flow\'s 15 s wait'); return; } await sleep(2000); }   // poll interval
+    throw e;
   }
 }
 /** A water's page closed by its own back link (by id; the place when the id is not in the tree) */

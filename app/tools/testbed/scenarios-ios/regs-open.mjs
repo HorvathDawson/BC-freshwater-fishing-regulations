@@ -31,13 +31,15 @@ const CUE_MAX = Number(process.env.OPEN_CUE_MAX ?? 150);
 const TAP_GAP = 45;
 // the same waters as Android's bench (scenarios/regs-open.mjs CASES): read there, written here (that file is another
 // lane's while the Android tap/back work is open)
+// (T719) the same waters; the ROW is iOS's own: a result is one element whose accessibility text is "Show <name>, Region 2,
+// MU 2-8, near Dewdney, 1 km on the map. …" (Maestro's saved tree, ios-open 14:13), not Android's "Stream · Region 2 · …"
 const CASES = [
-  { id: 'small', q: 'Norrish Creek', row: 'Stream · Region 2 · MU 2-8 · near Dewdney.*', title: /Norrish Creek/ },
-  { id: 'unnamed', q: 'Norrish Creek', row: 'Stream · Region 2 · MU 2-8 · near Dewdney.*', title: /Unnamed|Tributary|Creek|River/, other: true },
-  { id: 'mid', q: 'Coquitlam River', row: 'Stream · .*', title: /Coquitlam River/ },
-  { id: 'fraser', q: 'Fraser River', row: 'Stream · .*', title: /Fraser River/ },
-  { id: 'skeena', q: 'Skeena River', row: 'Stream · .*', title: /Skeena River/ },
-  { id: 'lake', q: 'Cultus', row: 'Lake · .*Lindell Beach.*', title: /Cultus Lake/ },
+  { id: 'small', q: 'Norrish Creek', row: 'Show Norrish Creek, Region 2, MU 2-8, near Dewdney.*', title: /Norrish Creek/ },
+  { id: 'unnamed', q: 'Norrish Creek', row: 'Show Norrish Creek, Region 2, MU 2-8, near Dewdney.*', title: /Unnamed|Tributary|Creek|River/, other: true },
+  { id: 'mid', q: 'Coquitlam River', row: 'Show Coquitlam River,.*', title: /Coquitlam River/ },
+  { id: 'fraser', q: 'Fraser River', row: 'Show Fraser River,.*', title: /Fraser River/ },
+  { id: 'skeena', q: 'Skeena River', row: 'Show Skeena River,.*', title: /Skeena River/ },
+  { id: 'lake', q: 'Cultus', row: 'Show Cultus Lake,.*Lindell Beach.*', title: /Cultus Lake/ },
 ].filter((c) => !process.env.OPEN_CASES || process.env.OPEN_CASES.split(',').includes(c.id));
 
 /** `[tag] {json}` lines in the app's JS log since the mark, parsed. */
@@ -107,9 +109,7 @@ export const regsOpenIos = {
         ctx.device.logcatClear();                     // a [target] from the water before is not this one's
         // (T340, as Android) the water OPENED from its result, then its page's back: the map comes back framed on it
         ctx.flow('search', { Q: c.q });
-        // (T719) on iOS a result row is ONE element whose text starts with the water's name ("Coquitlam River, Stream · …"):
-        // Maestro matches the whole text, so the row's line is matched after anything (tap-water's '.*Lindell Beach.*')
-        ctx.flow('open-result', { LINE: `.*${c.row}` });
+        ctx.flow('open-result', { LINE: c.row });
         await ctx.device.sleep(3500);
         await pageBack(ctx);
         await ctx.device.sleep(3000);
