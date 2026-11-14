@@ -65,7 +65,7 @@ after/).
 - vitest: `TapCue.shell.test.tsx` (T717: the map stays mounted, hidden and unlit under the page, Back shows the same
   map — one mount; on the Conditions map the kept map keeps its Conditions colouring under the page). Both
   mutation-checked: the old unmount gives "no map" / 2 mounts; handing the live colouring fails the second.
-  `Search.shell.test.tsx` (fits recorded per map; two mounts, not three), `MapDay` / `MapRail` (the map kept, not gone), `WaterMode.test.tsx` (queries the map on screen; the kept one is aria-hidden). The kept map is out of the accessibility tree and takes no touch (TapCue pins pointer-events none).
+  `Search.shell.test.tsx` (fits recorded per map; two mounts, not three), `MapDay` / `MapRail` (the map kept, not gone), `WaterMode.test.tsx` and `apps/mobile/src/back.test.tsx` (press the one map a reader can reach; two reachable still fail — back.test was missed in the first commit and turned app CI red on b74512aee, fixed in the next). The kept map is out of the accessibility tree and takes no touch (TapCue pins pointer-events none).
 
 ## Left
 - One unexplained app exit in the final run's first Conditions case: the page opened, then the app closed (the

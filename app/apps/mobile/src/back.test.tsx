@@ -194,7 +194,13 @@ function backs(n: number): string[] {
   for (let i = 0; i < n; i++) { const h = hardwareBack(); out.push(`${h ? "handled" : "ANDROID"} -> ${where()}`); }
   return out;
 }
-const click = async (label: string) => { await act(async () => { fireEvent.click(screen.getByLabelText(label)); }); };
+/** Press the ONE control by that label a reader can reach: (T717) the map kept under a water's page is hidden from
+ *  readers and touch (aria-hidden, no pointer events) and is not it; two reachable ones still fail. */
+const click = async (label: string) => {
+  const shown = screen.queryAllByLabelText(label).filter((e) => !e.closest('[aria-hidden="true"]'));
+  if (shown.length !== 1) throw new Error(`${shown.length} reachable controls labelled "${label}"`);
+  await act(async () => { fireEvent.click(shown[0]!); });
+};
 // a 30 s ceiling, not waitFor's 1 s: CI's runner is several times slower than a laptop (T80 item 6), and 10 s ran out
 // under the full parallel check (T402); it only waits longer
 const until = async (f: () => boolean) => waitFor(() => expect(f()).toBe(true), { timeout: 30_000 });
