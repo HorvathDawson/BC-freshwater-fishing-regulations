@@ -725,9 +725,10 @@ COMMITTED = REPO_ROOT / "app" / "packages" / "data" / "dev" / "mini-release"
 def release_files(root: Path) -> dict[str, str]:
     """{path under `root`: sha256} of a release root holding ONE release (`r-*/` + `LATEST`); anything else is
     refused, so a stale second folder can never pass a check."""
+    from pipeline.deliver.release.manifest import latest, releases      # the one lister + the one pointer reader
     root = Path(root)
-    rels = sorted(p.name for p in root.glob("r-*") if p.is_dir())
-    if len(rels) != 1 or not (root / "LATEST").is_file():
+    rels = sorted(p.name for p in releases(root))
+    if len(rels) != 1 or not (root / "LATEST").is_file() or latest(root).name != rels[0]:
         raise SystemExit(f"mini release: {root} must hold exactly one r-* folder and LATEST (found {rels})")
     extra = sorted(p.name for p in root.iterdir() if p.name not in {rels[0], "LATEST"})
     if extra:

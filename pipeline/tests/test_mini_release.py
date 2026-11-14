@@ -234,7 +234,7 @@ def test_check_and_write_compare_and_replace_the_copy_whole(chain, tmp_path, mon
     manifest.write_text(manifest.read_text() + " ")
     assert M.check(dest, tmp_path / "s") == 1 and "manifest.json" in capsys.readouterr().out
     (dest / "r-000000000001").mkdir()
-    with pytest.raises(SystemExit, match="exactly one r-"):
+    with pytest.raises(SystemExit, match="beside the release"):          # a folder with no manifest
         M.check(dest, tmp_path / "s")
 
 
