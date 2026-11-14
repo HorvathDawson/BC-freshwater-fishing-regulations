@@ -132,6 +132,18 @@ All files are in `handoff/PLAN/app-integration/store/graphics/`.
 | Tablet screenshots (7", 10") | none | `play-shots.mjs` can make them at 1200 × 1920 and 1600 × 2560. Play only needs them if you list for tablets. |
 | Video | none | optional |
 
+## Pushing the listing to Play
+The short and full descriptions now live in `handoff/PLAN/play/store-description.md` (the owner's text); this page
+is the fact sheet they are checked against. One command pushes title, both descriptions, the 8 phone screenshots
+(`node app/tools/store-shots/run.mjs` output, file-name order, replacing Play's), and the icon and feature graphic
+when Play's differ:
+
+    .venv/bin/python deploy/staging/play-listing-push.py            # dry run: edit, validate, delete
+    .venv/bin/python deploy/staging/play-listing-push.py --commit   # the real push
+
+`--shots DIR` names the screenshot folder; `--video-url <YouTube URL>` sets the promo video (Play takes a URL, not
+a file). Limits and image rules are checked before anything is sent; a wrong file is refused, never resized.
+
 ## Other listing fields (answers are in listing-draft.md)
 Category: Maps & Navigation. Contact: support@canifishthis.ca. Privacy policy: https://canifishthis.ca/privacy. Ads:
 none. In-app purchases: none. Target audience: 18+. Content rating: IARC questionnaire, expected Everyone. Data safety:

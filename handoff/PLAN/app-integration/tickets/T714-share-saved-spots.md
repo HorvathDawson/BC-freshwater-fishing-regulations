@@ -1,6 +1,6 @@
 # T714 — Share a saved spot, and a group of spots
 
-Status: OPEN (priority for the owner to place; not in the 0.7.8 build; the store text does not promise it)
+Status: OPEN (after closed testing (owner 2026-11-13: "these are after closed"); priority for the owner to place; not in the 0.7.8 build; the store text does not promise it)
 
 Source: owner 2026-11-13, on the store description: "we should add a ticket to share saved fishing spots tho and maybe
 every a group of spots". Today Share sends a water link only (water, view, place, day); a spot, its notes and photos

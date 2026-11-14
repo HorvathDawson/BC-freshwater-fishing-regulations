@@ -1,6 +1,6 @@
 # T715 — Store video: the command builds its own starting state
 
-Status: OPEN (before the next time the video is regenerated for a store upload)
+Status: OPEN (after closed testing (owner 2026-11-13: "these are after closed"); before the next time the video is regenerated for a store upload)
 
 Source: owner 2026-11-13, after approving the first cut ("the video looks good"): "should make a ticket create a proper
 state". Follows T709 (`node app/tools/store-video/run.mjs`, f535ebdca).
