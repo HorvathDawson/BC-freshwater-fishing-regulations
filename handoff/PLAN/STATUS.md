@@ -8,6 +8,29 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-14 — build 31 (0.7.9) on Play internal; five phone fixes waiting for the next build; privacy page reworded
+
+- **Out (11-12 to 11-14):** release r-f749475d0962 is live on staging (after r-adc4e248a163 and r-a9914d6b25b7 on 11-13:
+  tidal and junction fixes, Whiteswan inlets, Gagnon/Lakelse/Kootenay wording, seven silent-gauge answers). App 0.7.8
+  (build 30) and 0.7.9 (build 31, faster tap-to-open) are on Play internal.
+- **Fixed after your phone reports, committed, not in a Play build yet:** back from a water's page no longer flashes
+  [T717]; a Flow/Level pick in the card no longer changes the Conditions map [T728]; the credits card opens above the
+  legend [T729]; search closes with a swipe down, keeps 4 recents, leaves the map where it was moved [T730]; stepping up
+  or down a water keeps the bar [T731]. A build lane for 0.7.10 was running: the newest entry in
+  `app-integration/T678-progress.md` says whether it uploaded.
+- **Privacy page:** reworded 2026-11-14 as you delegated (staging site, smoke 19/19). One owed fix: it names the crash
+  switch at More > Settings; the real place is More > Settings > Privacy. The Play form location answer needs your word.
+- **Production move is yours:** a clean copy of the site is built in `~/bcfish-clean-staging`; leave it alone until you
+  have deployed (`release/PRODUCTION.md`, steps 3-8). Then check https://canifishthis.ca/privacy.
+- **Tests and iOS:** the test-making work reached the invented mini release (T667). The iOS chat is working in the
+  simulator (T718-T727); your Apple Developer enrolment is waiting for Apple. T732 (backup keeps saved spots first) is
+  not merged.
+- **Filed:** T717, T728-T731 (above), T732. **Next free ticket: T733.**
+- **Next:** 0.7.10 result and your phone check; you run `/code-review ultra`; fixes; final build and one full suite;
+  DFO labelling (yours); Play closed testing. Page for a new chat: `NEXT-SESSION-after-chat12.md`.
+
+---
+
 ## 2026-11-11 night — release r-483b295de57c on staging; tidal rulings; T678-T680 filed
 
 - **Out:** release r-483b295de57c is live on staging (site, data and feeds worker). It stopped four times on the way,
