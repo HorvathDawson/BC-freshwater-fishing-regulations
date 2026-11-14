@@ -244,8 +244,9 @@ export function SpotScreen(p: SpotScreenProps) {
       )}
 
       {/* (T723 F2, G10) iOS: the focused title / notes kept above the keyboard (iOS-only prop: Android resizes its
-          window), and a tap on a button with the keyboard up acts at once instead of only closing the keyboard */}
-      <ScrollView automaticallyAdjustKeyboardInsets keyboardShouldPersistTaps="handled"
+          window), a tap on a button with the keyboard up acts at once instead of only closing the keyboard, and a drag
+          down the page takes the keyboard with it (iOS only), so the Save row under it can be reached */}
+      <ScrollView automaticallyAdjustKeyboardInsets keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive"
                   contentContainerStyle={{ padding: 18, paddingTop: 6, gap: 22,
                                            paddingBottom: 40, ...MEASURE_NOW }}>
         <View style={{ gap: 4 }}>
