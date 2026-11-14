@@ -37,6 +37,9 @@ jobs:
   check:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    # (T667) the interpreter scripts/test-env.sh runs: setup-python's `python` (on PATH from the step below). A hosted
+    # runner has no .venv, the local default; test-env.sh stops naming PIPELINE_PY when neither runs.
+    env: { PIPELINE_PY: python }
     steps:
       # FULL history: the review-proposal tests rebuild their fixtures with `git show <commit>:<path>` from the commit
       # the owner's marks were made against (test_review_proposals.py `MARKED_AT`); a shallow clone has no such commit.

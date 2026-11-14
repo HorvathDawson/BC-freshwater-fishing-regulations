@@ -23,7 +23,6 @@ import gzip
 import json
 import sqlite3
 import sys
-import tempfile
 from collections import Counter
 from pathlib import Path
 
@@ -53,19 +52,18 @@ def _core(release_dir: Path) -> Path:
 def release_counts(release_dir: Path) -> dict[str, int]:
     """Counts read from a release folder's core file."""
     gz = _core(release_dir)
-    with tempfile.TemporaryDirectory() as tmp:
-        db = Path(tmp) / "core.sqlite"
-        db.write_bytes(gzip.decompress(gz.read_bytes()))
-        con = sqlite3.connect(f"file:{db}?mode=ro", uri=True)
-        try:
-            out = {"items": con.execute("SELECT COUNT(*) FROM item").fetchone()[0],
-                   "absorbed ids (item_alias)": con.execute("SELECT COUNT(*) FROM item_alias").fetchone()[0]}
-            for item, label in WATCHED.items():
-                n = con.execute("SELECT COUNT(*) FROM item i JOIN item_section s ON s.ord = i.ord WHERE i.item_id = ?",
-                                (item,)).fetchone()[0]
-                out[f"sections: {label} ({item})"] = n
-        finally:
-            con.close()
+    # in memory: this module LISTS and writes no file (not even a temp copy; test_curated_writer's scan, AGENTS 36b)
+    con = sqlite3.connect(":memory:")
+    try:
+        con.deserialize(gzip.decompress(gz.read_bytes()))
+        out = {"items": con.execute("SELECT COUNT(*) FROM item").fetchone()[0],
+               "absorbed ids (item_alias)": con.execute("SELECT COUNT(*) FROM item_alias").fetchone()[0]}
+        for item, label in WATCHED.items():
+            n = con.execute("SELECT COUNT(*) FROM item i JOIN item_section s ON s.ord = i.ord WHERE i.item_id = ?",
+                            (item,)).fetchone()[0]
+            out[f"sections: {label} ({item})"] = n
+    finally:
+        con.close()
     return out
 
 

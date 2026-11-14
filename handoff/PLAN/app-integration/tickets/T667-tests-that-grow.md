@@ -265,3 +265,12 @@ owner accepts it once (`--accept-fixtures`), as T666 / D5 already do for the gol
   forbids any atlas build, so steps 1-2 (generator + builder + `--check`) start when an atlas build on scratch inputs
   is allowed; no test moves before them (the order above stands).
 
+
+**CI red on b07996827 (2026-11-14), fixed.** The slice 6/7 lane ran only its changed files' tests, so three guards
+first ran on CI (run 43627410432): `test_curated_writer` (the new `deliver/release/live_counts.py` read the curated tree
+and wrote a temp copy of the core: it now opens the core in memory with `sqlite3.deserialize`, writes no file at all,
+so it is out of the scan honestly, not classified) and two `test_test_env` tests (`scripts/test-env.sh` hard-coded
+`.venv/bin/python`: the interpreter is now `$PIPELINE_PY`, set to `python` in `pipeline-ci.yml`'s job env, with the
+checkout's `.venv` as the local default; neither runnable stops naming the file and `PIPELINE_PY`, tested).
+`scripts/fast-fail.sh` gained two steps that would have caught them (the curated-writer scan on a changed pipeline
+Python file; the test-env contract test on a changed test-env file).

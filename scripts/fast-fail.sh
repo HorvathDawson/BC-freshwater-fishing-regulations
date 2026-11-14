@@ -162,6 +162,26 @@ silent_skips() {
 }
 step "no silent skips (a pipeline test file changed)" silent_skips
 
+# caught 2026-11-14 (CI red on b07996827): pipeline/deliver/release/live_counts.py read the curated tree and wrote a
+# file, unclassified; its lane ran only the tests of the files it changed. A changed pipeline / review-app Python file
+# runs the one-writer scan (AGENTS 36b, ~2 s)
+curated_writer() {
+  grep -qE '^(pipeline|curation-review/backend)/.*\.py$' <<<"$CHANGED" \
+    || { echo "   (no pipeline Python file changed)"; return 0; }
+  "$PY" -m pytest -q -p no:cacheprovider pipeline/tests/test_curated_writer.py
+}
+step "one writer for curated data (a pipeline Python file changed)" curated_writer
+
+# caught 2026-11-14 (CI red on b07996827): scripts/test-env.sh hard-coded .venv/bin/python, which a hosted runner has
+# not; nothing ran the contract's test before the push. A changed scripts/test-*.sh, test-env runner or tiers file runs
+# it (~1 s; it also proves the source stops naming PIPELINE_PY when no interpreter is found)
+test_env_contract() {
+  grep -qE '^scripts/(test-[^/]*|pytest-chunked|fast-fail|fresh-copy-tests)\.sh$|^pipeline/tests/(tiers|test_test_env|conftest)\.py$|^conftest\.py$|^\.github/workflows/pipeline-ci\.yml$' <<<"$CHANGED" \
+    || { echo "   (no test-environment file changed)"; return 0; }
+  "$PY" -m pytest -q -p no:cacheprovider pipeline/tests/test_test_env.py
+}
+step "test-environment contract (a test-env file changed)" test_env_contract
+
 # caught (T667, 2026-11-11): 158 test files read the live tree past the helper or typed one build's section number,
 # part number or digest, so every rebuild and release meant hand edits to tests and 13 were red from build to promote.
 # A test file off its anchor fails here with what to write instead (< 2 s, every test file, no baseline; the app half

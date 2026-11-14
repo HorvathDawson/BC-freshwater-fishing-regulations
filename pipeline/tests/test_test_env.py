@@ -2,6 +2,7 @@
 (`pipeline/tests/tiers.py`, the repo-root `conftest.py`), and the shell half has one home (`scripts/test-env.sh`)."""
 from __future__ import annotations
 
+import os
 import re
 import subprocess
 import sys
@@ -22,6 +23,30 @@ def _ci_markers() -> str:
                          text=True)
     assert out.returncode == 0, out.stderr
     return out.stdout.strip()
+
+
+def _source(env_py: str | None, cwd: Path) -> subprocess.CompletedProcess:
+    env = {k: v for k, v in os.environ.items() if k != "PIPELINE_PY"} | ({"PIPELINE_PY": env_py} if env_py else {})
+    return subprocess.run(["bash", "-c", f'. "{ROOT}/scripts/test-env.sh" && echo "PY=$PY"'], cwd=cwd, env=env,
+                          capture_output=True, text=True)
+
+
+def test_the_interpreter_is_named_one_way_and_a_missing_one_stops(tmp_path):
+    """PIPELINE_PY names it (CI sets it); unset, the checkout's .venv; neither runnable stops, naming the file and what
+    to set — never whatever python is on PATH (CI red on b07996827: a hosted runner has no .venv)."""
+    assert _source(sys.executable, tmp_path).stdout.strip() == f"PY={sys.executable}"
+    if (ROOT / ".venv/bin/python").exists():
+        assert _source(None, ROOT).stdout.strip() == "PY=.venv/bin/python"
+    for py in (None, str(tmp_path / "no-such-python")):           # tmp_path has no .venv
+        out = _source(py, tmp_path)
+        assert out.returncode != 0 and "PY=" not in out.stdout, out.stdout
+        assert "scripts/test-env.sh" in out.stderr and "PIPELINE_PY" in out.stderr, out.stderr
+
+
+def test_ci_names_its_interpreter():
+    import yaml
+    jobs = yaml.safe_load((ROOT / ".github/workflows/pipeline-ci.yml").read_text(encoding="utf-8"))["jobs"]
+    assert jobs["check"]["env"]["PIPELINE_PY"] == "python"
 
 
 def test_the_data_markers_are_slow_and_every_needs_kind():
