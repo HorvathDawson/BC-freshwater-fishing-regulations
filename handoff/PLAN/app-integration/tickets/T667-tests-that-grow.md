@@ -385,3 +385,42 @@ split/joined codes by hand (`test_wsc_relation`; now `pipeline.common.utils.wsc.
 - LEFT (in order): decide the export route above; then the release step on the mini (`--no-basemap` etc.), commit it
   at `app/packages/data/dev/mini-release/` with `--check` / `--write`, the shared pieces (`under_test.mini()`, `need()`,
   `ci_no_build.py`, anchors (b), smoke); then the first app test batch.
+
+## Slice 8, step 3 in scratch (2026-11-14, fourth shift, 931f14e75; the claims input is a PROPOSAL for the owner)
+- THE EXPORT CLAIMS (`pipeline/deliver/export/claims.py`, main lane's pick of the default above, recorded as a proposal):
+  `--claims FILE` on `pipeline.deliver.export` / `answers` (and `python -m pipeline.deliver export|answers`) names the
+  synopsis PDF the page map is read off, its row-boxes sidecar (the highlights, `answers.display.decided.book_files`),
+  the declared examples, the case mechanisms and the duties (`paper_licence`, `protected_fish`). With no flag:
+  `claims.book()` = the repo PDF, the generated row boxes, all 64 `EXAMPLES`, all 75 `CASE_MECHANISMS`, both duties —
+  pinned whole in `test_export_claims.py`; mutations (an example dropped, a mechanism dropped, a duty dropped, the
+  default duties emptied, the highlight PDF default moved) each red. A claims file is validated whole (an unknown
+  mechanism / duty / example field, a second example id, a missing file, another format: refused). On the mini the
+  declared items are checked as the book's are: a declared mechanism with no case, or an example the reader
+  contradicts, refuses the export (`test_the_export_holds_the_mini_corpus_to_its_own_claims`).
+- THE MINI CLAIMS (`fixtures/mini/claims.json`): 14 mechanisms the corpus really has (annual_clock,
+  blanket_closure_exempt, gear_only, home_region_differs, keep_beside_release, lake_no_steelhead, licensing_stamp,
+  part_day_decides, same_statement_smaller, steelhead_possible, steelhead_water, two_regions_lake,
+  water_closure_silences_zone, water_release), 2 invented examples (Mock Creek closed above its falls, Stub Creek's
+  release), both duties. The corpus was NOT grown toward 75 mechanisms.
+- WHAT ELSE THE BOOK-BOUND STEPS NEEDED (each fixed in the fixture, no guard touched): the synopsis PDF now prints a
+  running footer on every page 1-92 (printed = PDF page; the page map read 0 pages off a one-page cover); a row-boxes
+  sidecar of that PDF (no rows); a quota silenced under a blanket closure must be on the export's known list, so
+  Fixture River's row exempts z2's summer closure by name (r4); kokanee zone quotas (a reader with no decided answer
+  on non-weekend days was refused); z1 possession quota; the protected-species row and the paper-licence duty; and the
+  answers' GLOSSARY reads ten provincial rows of the book by id (barbless hook streams, set lining, classified waters,
+  basic licence, licence fees, and every Conservation Surcharge Stamp's requirement row: salmon, Kootenay rainbow,
+  Shuswap rainbow and char) — copied from the book as is (provincial text, no water), the three lake stamps rebound to
+  invented lakes (`wbk:800000006` / `800000001`), `outside_area_kind` dropped (no national parks). Region 1's WMU now
+  covers the estuary (the store refuses a section both tidal and outside B.C.); the outline is the WMU union. Corpus:
+  27 entries (17 the mini's own + the 10 book rows).
+- THE RELEASE CUTS IN SCRATCH: stages export -> answers -> card_check (0 problems, 44 cards) -> store -> release
+  (`--no-basemap --no-synopsis --source --dfo-rules`, put back on `pipeline.deliver.release`; pinned behaviourally in
+  `test_release_sources.py` — the old source-text pin replaced; 3 mutations red). r-997892a92397, 52 files.
+  `--twice` identical over 121 files (d616d6d3…). `--write --release-dir <scratch>` / `--check --release-dir
+  <scratch>` work (7.5 s; a planted byte in the manifest is named, exit 1; a second r-* folder is refused); the
+  default `--release-dir` is `app/packages/data/dev/mini-release/`.
+- FOUND: a mutation restored with `cp` within the same second and the same size left a stale `.pyc` (the restored
+  `rulez` -> `rules` read the mutant); clearing `__pycache__` after a mutation round is needed (the earlier rounds bit
+  in the other direction, so none of their results is affected).
+- WAITS FOR THE app/ ALL-CLEAR: the committed copy (`--write`), `--check` in fast-fail and pipeline CI, the shared
+  pieces, step 4. Nothing pushed (main lane holds pushes).
