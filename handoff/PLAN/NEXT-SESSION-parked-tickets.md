@@ -117,3 +117,10 @@ Between steps, pick items from D marked "left (Claude)" if you are waiting on so
 ## The first message the owner can paste into the new chat
 > Read `handoff/PLAN/NEXT-SESSION-parked-tickets.md` and start work. The main chat owns the build train and the app
 > tap/back path; ask me before any app build, Play upload or atlas promote.
+
+## Added 2026-11-14 (from the iOS chat's read-only audit, `handoff/PLAN/ios/parity-audit.md`)
+- **G14, Android, no ticket yet (needs one; unproven on a device):** saved spots and photos are never in Google backup,
+  because the installed release puts the app over the 25 MB backup limit. Fix idea to check: exclude the downloaded
+  release from backup so spots and photos fit. Decide before or after closed testing with the owner.
+- **T729 follow-up:** on iOS a React Native Modal has no edge swipe and `onRequestClose` is Android-only; wrap the
+  credits card in the iOS chat's `ModalBack` once its `ios/t723-keyboard-back` branch is merged.
