@@ -243,12 +243,6 @@ export function writeSite(out: string, files: ReadonlyMap<string, string>, binar
 const opt = (args: readonly string[], k: string): string | null => { const i = args.indexOf(k); return i >= 0 ? (args[i + 1] ?? null) : null; };
 
 /**
- * The command line: build, gate, write. Throws on a failed gate. Called by tools/build-seo.mjs through vite-node (a dynamic
- * load knip cannot follow). The water pages are written as they are made, into `<out>.partial`, which becomes `<out>` only
- * when every gate has passed — a failed build never leaves a half site where the deploy looks.
- * @public
- */
-/**
  * (T724) The Apple Team ID the iOS universal-link file names: env `CIFT_IOS_TEAM_ID`, else the owner's
  * `~/.canifishthis/ios-team-id` (the file the iOS build scripts read, T88). null when neither exists (the owner has no Apple
  * account yet); a value that is not a Team ID throws, never written.
@@ -261,6 +255,12 @@ export function readIosTeamId(env: NodeJS.ProcessEnv = process.env, file = `${ho
   return id;
 }
 
+/**
+ * The command line: build, gate, write. Throws on a failed gate. Called by tools/build-seo.mjs through vite-node (a dynamic
+ * load knip cannot follow). The water pages are written as they are made, into `<out>.partial`, which becomes `<out>` only
+ * when every gate has passed — a failed build never leaves a half site where the deploy looks.
+ * @public
+ */
 export async function main(args: readonly string[]): Promise<void> {
   const dir = opt(args, "--release-dir"), fixture = args.includes("--fixture"), appDir = opt(args, "--app");
   if (dir && args.includes("--snapshot-only")) return snapshotOnly(dir, args);
