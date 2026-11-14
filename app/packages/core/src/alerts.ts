@@ -333,12 +333,13 @@ export const NOTIFY_WORDS = {
   intro: "Notifications are made on this phone. Nothing is sent to a server: the app checks the gauges and the data "
     + "itself, about every 15 minutes at best. Android may check less often while the phone is idle.",
   /**
-   * (T722 F3) iOS has no interval to promise: BGTaskScheduler runs the check when the system chooses, may wait hours,
-   * and runs none in Low Power Mode or for an app swiped away in the app switcher (until it is opened again).
+   * (T722 F3, audit G3) iOS has no interval to promise: expo-background-task submits a BGProcessingTaskRequest
+   * (`BackgroundTaskScheduler.swift:92`), which iOS runs when the phone is idle, often overnight; none in Low Power Mode
+   * or for an app swiped away in the app switcher (until it is opened again).
    */
   introIos: "Notifications are made on this phone. Nothing is sent to a server: the app checks the gauges and the data "
-    + "itself, when iOS lets it run in the background. iOS decides how often: checks can be hours apart, and none run "
-    + "in Low Power Mode or after the app is swiped away, until you open it again.",
+    + "itself, when iOS lets it run in the background. iOS runs these checks while the phone is idle, often overnight, "
+    + "so a notice can come hours late. None run in Low Power Mode or after the app is swiped away, until you open it again.",
   master: { label: "Notifications", on: "On", off: "Off", hint: "Turn every notification from this app on or off." },
   updateReady: { label: "New regulations data", hint: "Tell me when a newer regulations release is ready to download." },
   appVersion: { label: "New app version", hint: "Tell me when a newer version of the app is out." },

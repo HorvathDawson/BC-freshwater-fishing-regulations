@@ -403,7 +403,8 @@ describe("(T722 F3) the notifications intro per platform", () => {
     expect(NOTIFY_WORDS.intro).toBe("Notifications are made on this phone. Nothing is sent to a server: the app checks "
       + "the gauges and the data itself, about every 15 minutes at best. Android may check less often while the phone is idle.");
     expect(NOTIFY_WORDS.introIos).toBe("Notifications are made on this phone. Nothing is sent to a server: the app checks "
-      + "the gauges and the data itself, when iOS lets it run in the background. iOS decides how often: checks can be "
-      + "hours apart, and none run in Low Power Mode or after the app is swiped away, until you open it again.");
+      + "the gauges and the data itself, when iOS lets it run in the background. iOS runs these checks while the phone is "
+      + "idle, often overnight, so a notice can come hours late. None run in Low Power Mode or after the app is swiped "
+      + "away, until you open it again.");
   });
 });
