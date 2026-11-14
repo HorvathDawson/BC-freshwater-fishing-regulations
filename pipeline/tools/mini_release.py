@@ -298,6 +298,9 @@ def build(out: Path, stop_after: str | None = None) -> dict:
     (out / "logs").mkdir(parents=True)
     t0 = time.perf_counter()
     fwa, coast = write_inputs(out / "inputs")
+    # the atlas build makes its --out only when it has a curated cut (`cut_curated`); its coast record is written
+    # either way, so with no cut it died writing coast_owner.json. A writer may create its directory (AGENTS 41).
+    (out / "atlas").mkdir()
     took = {"inputs": round(time.perf_counter() - t0, 1)}
     for name, cmd in stage_commands(out, fwa, coast):
         log = out / "logs" / f"{name}.log"
@@ -336,8 +339,10 @@ _SKIP = {"logs", "inputs", "timings.json"}
 def _normalised(rel: str, data: bytes, out: Path) -> bytes | None:
     """The bytes a file is compared by, or None to leave it out (named in `digests`' report)."""
     name = rel.rsplit("/", 1)[-1]
-    if name.endswith(".pkl") or name.endswith(".gpkg"):
-        return None                                  # pickles / sqlite pages: compared by what they decode to
+    if name.endswith(".pkl"):
+        return None                                  # pickles: compared by what they decode to (`_decoded`)
+    if name.endswith(".gpkg"):
+        return _gpkg_content(out / rel)              # sqlite pages carry write times: compared by their features
     text = data.decode("utf-8", errors="strict") if name.endswith((".json", ".jsonl", ".txt")) else None
     if text is None:
         return data
@@ -346,11 +351,27 @@ def _normalised(rel: str, data: bytes, out: Path) -> bytes | None:
         text = text.split("\n\ntimings, by cost:")[0]
     if name.endswith(".meta.json") or name == "report.json" or name == "COMPLETE.json":
         doc = json.loads(text)
-        for k in ("build_ts", "built_at", "elapsed_s", "timings", "seconds", "wall_s", "ts"):
+        # the clocks: the atlas meta's build time, COMPLETE.json's `at`, the reach report's seconds
+        clocks = ("build_ts", "built_at", "elapsed_s", "timings", "seconds", "wall_s", "ts")
+        for k in clocks + (("at",) if name == "COMPLETE.json" else ()):
             _drop(doc, k)
         _drop_stamps(doc)
         text = json.dumps(doc, sort_keys=True)
     return text.encode("utf-8")
+
+
+def _gpkg_content(path: Path) -> bytes:
+    """A GeoPackage by what it holds: per layer (sorted), its columns and every feature's attributes + WKB."""
+    import pyogrio
+    parts = []
+    for layer in sorted(str(n) for n, _ in pyogrio.list_layers(path)):
+        df = pyogrio.read_dataframe(path, layer=layer)
+        cols = [c for c in df.columns if c != "geometry"]
+        attrs = df[cols].astype(str).values.tolist() if cols else [[] for _ in range(len(df))]
+        rows = sorted(json.dumps(a) + "|" + (g.wkb_hex if g is not None else "")
+                      for a, g in zip(attrs, df.geometry))
+        parts.append(json.dumps([layer, cols, rows]))
+    return "\n".join(parts).encode("utf-8")
 
 
 def _drop(doc, key):
@@ -436,7 +457,11 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--twice", action="store_true", help="build twice (DIR/a, DIR/b) and refuse unless digests agree")
     ap.add_argument("--stop-after", help="stop after this stage (inputs, check_curated, atlas, reach)")
     ap.add_argument("--inputs", type=Path, help="only write the FWA-shaped GeoPackages into this directory")
+    ap.add_argument("--compare", nargs=2, type=Path, metavar=("A", "B"),
+                    help="digest two finished builds and refuse unless they agree (reads only)")
     a = ap.parse_args(argv)
+    if a.compare:
+        return _compare(*(digests(d) for d in a.compare))
     if a.inputs:
         fwa, coast = write_inputs(a.inputs)
         print(f"wrote {fwa} ({fwa.stat().st_size:,} B) and {coast} ({coast.stat().st_size:,} B)")
@@ -452,14 +477,18 @@ def main(argv: list[str] | None = None) -> int:
         results.append((r, took, d))
         print(f"mini release: {r}: {len(d)} files, digest {total(d)}  ({sum(took.values()):.1f}s)")
     if a.twice:
-        (ra, _, da), (rb, _, db) = results
-        diff = sorted(k for k in set(da) | set(db) if da.get(k) != db.get(k))
-        if diff:
-            print(f"mini release: NOT DETERMINISTIC — {len(diff)} file(s) differ between the two runs:")
-            for k in diff[:40]:
-                print(f"  {k}: {da.get(k, '(absent)')[:12]} vs {db.get(k, '(absent)')[:12]}")
-            return 1
-        print(f"mini release: deterministic — both runs {total(da)} over {len(da)} files")
+        return _compare(results[0][2], results[1][2])
+    return 0
+
+
+def _compare(da: dict[str, str], db: dict[str, str]) -> int:
+    diff = sorted(k for k in set(da) | set(db) if da.get(k) != db.get(k))
+    if diff:
+        print(f"mini release: NOT DETERMINISTIC — {len(diff)} file(s) differ between the two runs:")
+        for k in diff[:40]:
+            print(f"  {k}: {da.get(k, '(absent)')[:12]} vs {db.get(k, '(absent)')[:12]}")
+        return 1
+    print(f"mini release: deterministic — both runs {total(da)} over {len(da)} files")
     return 0
 
 

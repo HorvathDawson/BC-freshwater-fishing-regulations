@@ -127,3 +127,19 @@ def test_a_digest_ignores_the_clock_and_the_scratch_path(tmp_path):
 def test_the_build_refuses_a_directory_inside_the_fixture_or_the_data_tree():
     with pytest.raises(SystemExit, match="scratch only"):
         M.build(M.FIXTURE / "out")
+
+
+def test_a_gpkg_is_compared_by_its_features_not_its_pages(tmp_path):
+    a, _ = M.write_inputs(tmp_path / "a")
+    b, _ = M.write_inputs(tmp_path / "b")
+    assert M._gpkg_content(a) == M._gpkg_content(b)
+    w = json.loads(M.WORLD.read_text(encoding="utf-8"))
+    w["streams"][0]["z"] = [2, 401]                                    # one vertex height moved
+    c, _ = M.write_inputs(tmp_path / "c", w)
+    assert M._gpkg_content(c) != M._gpkg_content(a)
+
+
+def test_compare_names_the_file_that_differs(capsys):
+    assert M._compare({"x": "1", "y": "2"}, {"x": "1", "y": "2"}) == 0
+    assert M._compare({"x": "1", "y": "2"}, {"x": "1", "y": "3"}) == 1
+    assert "y: 2 vs 3" in capsys.readouterr().out

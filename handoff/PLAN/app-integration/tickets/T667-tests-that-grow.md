@@ -1,6 +1,6 @@
 # T667 — Tests that grow with the app: fewer hand updates per release and per feature
 
-Status: IN PROGRESS — slices 1–2 done; 3 done by T666; 4 and 5 done in part (5b, the page v36 inventory and retirement, done 2026-11-13: 5618e63bc, 3e933cc04, 34a4e0f61, afb6a5eda); 4c, 6 and 7 done 2026-11-14 (smoke set by rule; the tier decides the world, scripts/test-env.sh); left (Claude): slice 8 (planned below) — "What is left" below.
+Status: IN PROGRESS — slices 1–2 done; 3 done by T666; 4 and 5 done in part (5b, the page v36 inventory and retirement, done 2026-11-13: 5618e63bc, 3e933cc04, 34a4e0f61, afb6a5eda); 4c, 6 and 7 done 2026-11-14 (smoke set by rule; the tier decides the world, scripts/test-env.sh); left (Claude): slice 8 — steps 1-2 built 2026-11-14 (mini inputs, atlas + reach on them, two runs identical); deliver parked on live inputs (proposal in "Slice 8, steps 1-2 built").
 
 Source: owner 2026-11-11: "we need to also make the tests more expandable; right now they get progressively more
 unwieldy ... a Fable task to improve the tests generally, to naturally grow with the app without too many hand
@@ -278,3 +278,49 @@ Then run 43629915901 (head 9db8065fe, which carried slice 8's acd561469) was red
 stage tests' fake build args had no `coast_gpkg` (the new `--coast-gpkg`; fakes given it) and `mini_release.full_wsc`
 split/joined codes by hand (`test_wsc_relation`; now `pipeline.common.utils.wsc.groups/join`). fast-fail runs
 `test_wsc_relation.py` on a changed pipeline Python file.
+
+## Slice 8, steps 1-2 built (2026-11-14, second shift; acd561469 + this commit)
+- INPUTS (committed, 268 KB): `pipeline/tests/fixtures/mini/world.json` (invented: Fixture River 45 km with Fixture Lake
+  on it and a region line across it at 25 km, Mock Creek with an unnamed trib, Stub Creek with an added (municipal-style)
+  Mockup Creek, the isolated Sample Lake, one wetland, one reservoir, the sea, PFMA 29) and `curated/`, a whole curated
+  tree with invented rows only (regions area def, the added stream, a one-water steelhead list, an 8-entry corpus:
+  z1/z2 daily quotas, 5 water rows, `zp:steelhead` narrowed to regions 1-2). Ids sit in their own ranges (blk
+  900000001+, wbk 800000001+, gnis 990001+, code root 920-123456).
+- BUILDER `pipeline/tools/mini_release.py`: writes `fwa.gpkg` (248 KB) + `coast.gpkg` (116 KB) in FWA's layers / columns
+  / dtypes, then runs the PRODUCTION commands (`check_curated --waters`, `pipeline.atlas.build --full --no-gauge-splits
+  --gpkg --coast-gpkg --out`, `pipeline.atlas.reach.cli --build --out`) with `CURATED_ROOT` = the mini tree, all into
+  the `--build` scratch dir (refuses one inside `data/` or the fixture). `--twice` builds a/b and compares; `--compare
+  A B` re-digests two finished builds (reads only). Digest = sha256 per output file, pickles by decoded content, gpkg by
+  features, json with the clocks dropped (`build_ts`, COMPLETE `at`, reach `seconds`, the gpkg `stamp:` mtimes).
+- PRODUCTION CHANGE (step 1's obstacle): the atlas build read three inputs from the CONFIGURED gpkg whatever `--gpkg`
+  said — `area_splits.load_area_polys` (+ the outline it clips to) and the PFMA drainage in `registry.build_registry` —
+  and the coast pair had no flag. Now: `load_area_polys(fwa, …)` reads `fwa.gpkg_path` (the tile export still passes
+  None = the configured file), `build_registry(…, gpkg=)` (None = configured), `--coast-gpkg` (default = config),
+  `inputs.build_paths` records the coast file given. Live defaults pinned by `test_mini_release.py`; mutations (either
+  read back to `_GPKG`) fail `test_area_polygons_come_from_the_builds_own_gpkg`. The other lane's 464c5d45c fixed the
+  fake args in `test_coast_cut` / `test_next_rebuild` and the wsc splitting.
+- FOUND: an atlas build with ZERO curated cuts dies writing `coast_owner.json` (`--out` is made only in `cut_curated`
+  when there is a cut). The builder makes `atlas/` first; production never has zero cuts, so left as is (note only).
+- RUN (heavy.sh lane 2, `mini-release`): `scripts/heavy.sh mini-release 30 -- .venv/bin/python -m
+  pipeline.tools.mini_release --build <scratch>/run3 --twice`: per build inputs 0.8 s, check 0.5 s, atlas 0.7 s, reach
+  0.3 s; 3.7 s wall for both; peak RSS 1.02 GB (`time -l`, the largest stage process). Atlas: 11 sections, 9 registry
+  items (2 regions, PFMA 29 drainage, 3 rivers/creeks, 2 lakes, the added stream), Fixture River cut at the region line.
+  Reach: 13 rules bound, 3 unresolved `no_sections` (the steelhead twins r1b/r2b/r4b: no book-known water), digest
+  30f0ee55cbcabea7. TWO RUNS IDENTICAL: 40 files, total 911ca5c6301d94fa3c55768af5a88ba60edc6a7af6327244415bb28202d86c72;
+  a planted edit (one name in registry.json) is named by `--compare`.
+- DELIVER PARKED (not run): the tile and `deliver all` steps read live inputs no flag moves and write into the live
+  tree, so they cannot run on invented data without production changes. Blocking: the release step needs the basemap
+  (`TILES/basemap.meta.json` + `OUT/release/basemap`) and released tiles; `bundle/build.py` reads SOURCE
+  `bc_hydrometric_stations.json` / `bc_places.json` / `bc_boundary.geojson` / the synopsis PDF, `gauges/consume/
+  bundle_tables.py` reads HYDAT, GENERATED `gauges/feeds/clim.json` and the live fwa gpkg; `deliver/salmon.py` reads
+  GENERATED `regs/dfo_salmon/typed/`; tiles read SOURCE `fish_obstacles.gpkg` and draw admin areas from the configured
+  gpkg (`export.py` `load_area_polys(None, …)`). WRITES OUTSIDE --out-dir: `runtiming/feed/release.py` `base_for`
+  (`data/generated/runtiming/feed/base-<handles>.json.gz`), `release/synopsis.py` (the synopsis PDF cache),
+  `tiles/assets.fetch` (SOURCE `map-assets/`, network when incomplete). PROPOSAL (smallest): one `--source-root` /
+  `--feeds` input pair on `pipeline.deliver all` and `pipeline.deliver.tiles` (validated, no fallback), the two cache
+  writers taking the out dir, and a mini `source/` (an invented roster with no stations, empty clim, empty DFO typed
+  feed, no obstacles) under the fixture; or, cheaper, a mini release WITHOUT tiles/basemap (`--no-release` + the bundle /
+  export / answers only) if the app tests need only those. Owner/main lane to pick (report).
+- NEXT (in order): (a) decide the deliver route above; (b) grow the world to the plan's inventory (braid, tidal mouth,
+  a lake cut into parts, weekday and hours rules, closed-all-year part) — each one a heavy.sh run of seconds; (c) commit
+  the release + `--check` / `--write`; (d) move the app logic tests.

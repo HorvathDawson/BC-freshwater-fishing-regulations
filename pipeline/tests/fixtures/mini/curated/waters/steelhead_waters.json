@@ -2,6 +2,10 @@
  "$comment": [
   "MINI FIXTURE (T667 slice 8): an invented tree for the mini release; see pipeline/tests/fixtures/mini/README.md."
  ],
- "generated": {},
- "waters": []
+ "waters": [
+  {
+   "item_id": "gnis:990001",
+   "note": "Fixture River: invented, listed so the mini release carries a curated-list steelhead water"
+  }
+ ]
 }
