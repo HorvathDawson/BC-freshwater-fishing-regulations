@@ -26,7 +26,7 @@ It does not need closed testing. It needs two things that exist already on inter
    the shared parser.
 4. Verify on the emulator with a Play-signed or locally re-signed build:
    `adb shell pm get-app-links ca.canifishthis.app` says `verified`; a tapped link opens the app on that water.
-5. iOS universal links are the same idea (`apple-app-site-association`); out of scope while iOS is benched.
+5. iOS universal links are the same idea (`apple-app-site-association`); out of scope while iOS is benched. (Now T724.)
 
 ## Acceptance
 - On a phone with the app from Play, a shared water link opens the app on that water; without the app, the website.

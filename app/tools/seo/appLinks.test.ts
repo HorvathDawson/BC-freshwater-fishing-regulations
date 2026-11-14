@@ -7,9 +7,9 @@ import { readFileSync } from "node:fs";
 import { beforeAll, describe, expect, it } from "vitest";
 import { APP_LINK_HOSTS, APP_PACKAGE, PLAY_SIGNING_SHA256 } from "@app/core";
 import { openRegsFixture } from "@app/data/release/node";
-import { buildAll, type Built } from "./build";
+import { buildAll, readIosTeamId, type Built } from "./build";
 import { TODAY } from "./fixture";
-import { assetLinksFile, headersFile } from "./hosting";
+import { appSiteAssociationFile, assetLinksFile, headersFile } from "./hosting";
 import { openInAppControl } from "./gauges";
 
 let built: Built;
@@ -46,6 +46,36 @@ describe("T625 assetlinks.json", () => {
       expect(data.filter((d) => d.host === h).map((d) => d.pathPrefix ?? d.path).sort()).toEqual(["/", "/water/"]);
     }
     expect(data.every((d) => d.scheme === "https")).toBe(true);
+  });
+});
+
+describe("T724 apple-app-site-association", () => {
+  const TEAM = "ABCDE12345";   // a test value, never a real account
+  it("with a Team ID the site build writes it: appID <team>.<bundle>, the same pages as the Android filter, JSON headers", async () => {
+    const withIos = await buildAll({ loader: openRegsFixture(), on: TODAY, gauges: null, iosTeamId: TEAM });
+    const text = withIos.files.get(".well-known/apple-app-site-association")!;
+    expect(text).toBe(appSiteAssociationFile(TEAM));
+    expect(JSON.parse(text)).toEqual({ applinks: { details: [{ appIDs: ["ABCDE12345.ca.canifishthis.app"], components: [{ "/": "/water/*" }, { "/": "/" }] }] } });
+    expect(headersFile()).toMatch(/\/\.well-known\/apple-app-site-association\n {2}Content-Type: application\/json/);
+    expect(withIos.files.get("_redirects")!).not.toContain(".well-known");
+    // Android is untouched by the iOS file
+    expect(withIos.files.get(".well-known/assetlinks.json")).toBe(assetLinksFile());
+  }, 300_000);
+
+  it("without a Team ID no file is written (never a made-up one); a malformed id is refused", () => {
+    expect(built.files.has(".well-known/apple-app-site-association")).toBe(false);
+    expect(() => appSiteAssociationFile("TEAMID")).toThrow(/not an Apple Team ID/);
+  });
+
+  it("the Team ID is read from CIFT_IOS_TEAM_ID or the owner's file; none -> null, bad -> throws", () => {
+    expect(readIosTeamId({ CIFT_IOS_TEAM_ID: " ABCDE12345\n" }, "/nonexistent")).toBe("ABCDE12345");
+    expect(readIosTeamId({}, "/nonexistent/ios-team-id")).toBeNull();
+    expect(() => readIosTeamId({ CIFT_IOS_TEAM_ID: "nope" }, "/nonexistent")).toThrow(/not 10 letters\/digits/);
+  });
+
+  it("app.json declares associatedDomains for exactly the hosts the file serves from", () => {
+    const app = JSON.parse(readFileSync(new URL("../../apps/mobile/app.json", import.meta.url), "utf8")).expo;
+    expect([...app.ios.associatedDomains].sort()).toEqual(APP_LINK_HOSTS.map((h) => `applinks:${h}`).sort());
   });
 });
 

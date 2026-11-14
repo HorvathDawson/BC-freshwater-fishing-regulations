@@ -72,6 +72,22 @@ export function assetLinksFile(): string {
   }], null, 2)}\n`;
 }
 
+/** An Apple Team ID: ten letters and digits (Apple Developer account, Membership). */
+export const IOS_TEAM_ID_RE = /^[A-Z0-9]{10}$/;
+
+/**
+ * (T724) `/.well-known/apple-app-site-association`: the file iOS reads to open the installed app on this site's `/water/…`
+ * links and the plain `/` start link (the same pages the Android filter covers; the app declares the hosts under
+ * `ios.associatedDomains`, `apps/mobile/app.json`). The appID is `<Team ID>.<bundle id>`; the Team ID is the owner's Apple
+ * account and is READ from configuration (`readIosTeamId` in build.ts), never written here. JSON, no extension.
+ */
+export function appSiteAssociationFile(teamId: string): string {
+  if (!IOS_TEAM_ID_RE.test(teamId)) throw new Error(`apple-app-site-association: "${teamId}" is not an Apple Team ID (10 letters/digits)`);
+  return `${JSON.stringify({
+    applinks: { details: [{ appIDs: [`${teamId}.${APP_PACKAGE}`], components: [{ "/": "/water/*" }, { "/": "/" }] }] },
+  }, null, 2)}\n`;
+}
+
 const HTML_CACHE = "Cache-Control: public, max-age=300, must-revalidate";
 
 /** `_headers` (Cloudflare Pages / Netlify syntax). Specific groups, so a rule never merges with a broader one. */
@@ -83,6 +99,7 @@ export function headersFile(): string {
     block("/assets/*", "Cache-Control: public, max-age=31536000, immutable"),
     block("/share/*", "Cache-Control: public, max-age=86400"),
     block("/.well-known/assetlinks.json", "Content-Type: application/json", "Cache-Control: public, max-age=3600"),
+    block("/.well-known/apple-app-site-association", "Content-Type: application/json", "Cache-Control: public, max-age=3600"),
     ...["/water/*", "/region/*", "/gauge/*", "/gauges", "/about", "/privacy", "/changes", "/sitemap.xml", "/sitemap-*.xml", "/robots.txt"].map((p) => block(p, HTML_CACHE)),
   ].join("\n");
 }

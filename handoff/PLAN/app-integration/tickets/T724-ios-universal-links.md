@@ -22,4 +22,29 @@ simulator `xcrun simctl openurl` opens the water; link without the app opens the
 Depends: T625; the Team ID (owner) for the final proof. Size: M. Owner: yes (Team ID, after the Apple account). Default: a placeholder read from config, never invented.
 
 ## Results
-(filled in as the work runs)
+Built (code and config only; nothing run on a simulator, nothing deployed):
+- `app/tools/seo/hosting.ts` `appSiteAssociationFile(teamId)`; `build.ts` writes `/.well-known/apple-app-site-association` when a Team
+  ID is configured; `_headers` serves it `application/json`. Paths: `/water/*` and `/` (the same pages as the Android filter), appID
+  `<TeamID>.ca.canifishthis.app`. The same text serves from both hosts (canifishthis.ca, staging.canifishthis.ca).
+- `app/apps/mobile/app.json` `ios.associatedDomains`: `applinks:canifishthis.ca`, `applinks:staging.canifishthis.ca`
+  (`APP_LINK_HOSTS`; a test pins file hosts = associatedDomains).
+- No app-code gap: `appLink.native.ts` uses `Linking.getInitialURL` + the `url` event, which iOS fills for universal links exactly as
+  Android does; `resolveAppLink` is platform-free. No new unit test needed.
+- Android untouched: `assetlinks.json` and the intent filters are unchanged (the T625 test still passes and the new test asserts
+  assetlinks.json equals `assetLinksFile()` in the iOS build).
+- Tests: `tools/seo/appLinks.test.ts` (with Team ID, without, bad id, read from env/file, associatedDomains).
+
+PROPOSAL (Team ID behaviour, owner to confirm): the Team ID is read from env `CIFT_IOS_TEAM_ID`, else `~/.canifishthis/ios-team-id`
+(the file T88 reads). None -> the file is NOT written (no bogus appID) and `build-seo` prints one warning line saying so; a
+malformed value throws. `node app/tools/build-seo.mjs ... --require-ios-links` turns the missing id into an error: use it for the
+production build once the account exists. Until then iOS links just open the web page (the correct no-app behaviour).
+
+Simulator proof (main lane, after the next simulator build; the simulator build has the associatedDomains entitlement but, with
+no Team ID, no verified association, so the first run is the "no app / unverified" case):
+1. `xcrun simctl openurl booted "https://staging.canifishthis.ca/water/<a real slug>"` : expect Safari to open the web page
+   (acceptance: a link without the verified app opens the web).
+2. After T88 (signed build, file deployed): `curl -sI https://staging.canifishthis.ca/.well-known/apple-app-site-association`
+   (200, `application/json`), install the build, repeat step 1: the app opens on that water.
+Waits for T88: the Apple account and Team ID, a build with the Associated Domains entitlement signed by that team, the site deploy
+carrying the file (rebuild with the Team ID set, `--require-ios-links` for prod), and the on-device/simulator verified proof.
+Apple fetches the file through its CDN: a change can take hours to be seen.

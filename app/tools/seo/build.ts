@@ -19,6 +19,7 @@
  */
 import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync, readdirSync, renameSync, rmSync, statSync, writeFileSync, existsSync } from "node:fs";
+import { homedir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { openRegsStore } from "@app/data/regs";
@@ -36,7 +37,7 @@ import type { WaterModel } from "./model";
 import { appDocument } from "./prerender";
 import { drawSharePngs } from "./share";
 import { withFavicon } from "./favicon";
-import { assetLinksFile, headersFile, hostRules, hostWorker, redirectsFile } from "./hosting";
+import { appSiteAssociationFile, assetLinksFile, headersFile, IOS_TEAM_ID_RE, hostRules, hostWorker, redirectsFile } from "./hosting";
 import type { Site } from "./html";
 import { legacyRedirects, legacyWorker, type Crosswalk, type LegacyBuilt } from "./legacy";
 import { buildDayOf, type BuildDay } from "./model";
@@ -67,6 +68,8 @@ export interface Config extends Site { readonly alsoHosts: readonly string[] }
 export const readConfig = (): Config => JSON.parse(readFileSync(join(APP, "seo/site.json"), "utf8")) as Config;
 
 export interface BuildArgs {
+  /** (T724) the Apple Team ID (`readIosTeamId`); null/absent → no apple-app-site-association is written (never a made-up one) */
+  readonly iosTeamId?: string | null;
   readonly loader: ReturnType<typeof openRegsFixture>;
   readonly config?: Config; readonly on: BuildDay;
   readonly slugMap?: SlugMap; readonly previous?: Snapshot | null;
@@ -173,6 +176,7 @@ export async function buildAll(a: BuildArgs): Promise<Built> {
   files.set(paneHref.slice(1), paneCss);
   files.set("_headers", headersFile());
   files.set(".well-known/assetlinks.json", assetLinksFile());
+  if (a.iosTeamId) files.set(".well-known/apple-app-site-association", appSiteAssociationFile(a.iosTeamId));
   withFavicon(files);
   files.set("_redirects", redirectsFile(build.removed, build.regions));
   files.set("redirects.json", `${JSON.stringify(hostRules(config, config.alsoHosts), null, 1)}\n`);
@@ -244,6 +248,19 @@ const opt = (args: readonly string[], k: string): string | null => { const i = a
  * when every gate has passed — a failed build never leaves a half site where the deploy looks.
  * @public
  */
+/**
+ * (T724) The Apple Team ID the iOS universal-link file names: env `CIFT_IOS_TEAM_ID`, else the owner's
+ * `~/.canifishthis/ios-team-id` (the file the iOS build scripts read, T88). null when neither exists (the owner has no Apple
+ * account yet); a value that is not a Team ID throws, never written.
+ */
+export function readIosTeamId(env: NodeJS.ProcessEnv = process.env, file = `${homedir()}/.canifishthis/ios-team-id`): string | null {
+  const raw = env.CIFT_IOS_TEAM_ID ?? (existsSync(file) ? readFileSync(file, "utf8") : null);
+  if (raw === null) return null;
+  const id = raw.trim();
+  if (!IOS_TEAM_ID_RE.test(id)) throw new Error(`seo: the iOS Team ID "${id}" (${env.CIFT_IOS_TEAM_ID !== undefined ? "CIFT_IOS_TEAM_ID" : file}) is not 10 letters/digits`);
+  return id;
+}
+
 export async function main(args: readonly string[]): Promise<void> {
   const dir = opt(args, "--release-dir"), fixture = args.includes("--fixture"), appDir = opt(args, "--app");
   if (dir && args.includes("--snapshot-only")) return snapshotOnly(dir, args);
@@ -261,8 +278,15 @@ export async function main(args: readonly string[]): Promise<void> {
   const started = Date.now();
   // (T279) with the app's export, the water pages are rendered on threads (at most 4) and written compressed into `partial`
   const threads = app ? { n: Number(opt(args, "--threads") ?? 4), releaseDir: dir ? resolve(dir) : regsFixtureDir(), appDir: resolve(appDir!), out: partial } : undefined;
+  // (T724) no Team ID → no apple-app-site-association, said once; `--require-ios-links` (a production build) makes it an error
+  const iosTeamId = readIosTeamId();
+  if (!iosTeamId) {
+    const msg = "seo: no iOS Team ID (CIFT_IOS_TEAM_ID or ~/.canifishthis/ios-team-id): /.well-known/apple-app-site-association is NOT written, so iOS universal links will not verify";
+    if (args.includes("--require-ios-links")) throw new Error(msg);
+    console.warn(msg);
+  }
   const built = await buildAll({
-    loader, on: buildDayOf(now),
+    loader, on: buildDayOf(now), iosTeamId,
     slugMap: existsSync(slugFile) ? (JSON.parse(readFileSync(slugFile, "utf8")) as SlugMap) : EMPTY_SLUG_MAP,
     ...(existsSync(CROSSWALK_FILE) ? { crosswalk: JSON.parse(readFileSync(CROSSWALK_FILE, "utf8")) as Crosswalk } : {}),
     previous: prevFile ? (JSON.parse(readFileSync(resolve(prevFile), "utf8")) as Snapshot) : null,
