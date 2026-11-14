@@ -34,6 +34,7 @@
     ],
     "ios": {
       "bundleIdentifier": "ca.canifishthis.app",
+      "associatedDomains": ["applinks:canifishthis.ca", "applinks:staging.canifishthis.ca"],
       "supportsTablet": false,
       "buildNumber": "31",
       "config": {
