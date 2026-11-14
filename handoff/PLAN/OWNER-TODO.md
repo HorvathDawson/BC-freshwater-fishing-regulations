@@ -12,6 +12,14 @@ with the default Claude uses until you answer). Newest first inside each section
 ## Decisions that block work (nothing ships until you answer)
 
 - **iOS reopened (owner 2026-11-14): four decisions to answer on return** (Apple account/TestFlight timing and individual vs organization, minimum iOS version, iPad, own iOS tap-up patch; defaults in the doc's Unattended section). ANSWERED 2026-11-14: rotation "Portrait only."; app name "Can I Fish This?" (same as Play, T371 closed on that point); proposals, physical needs and risks in `handoff/PLAN/ios/START-HERE-ios.md`.
+- **ANSWERED 2026-11-14 (iOS store pack, T727).** Owner, verbatim: "all privacy and descriptions and stuff could use
+  playstore items. like icon and name etc it is can i fish? on the icon but can i fish this? on everything else. we want
+  precise. it is the id mainly for for analytics and bug report etc etc choose best category". So: the App Store listing
+  reuses the Play items (description, privacy answers, icon); home-screen label stays "Can I Fish?", every other name is
+  "Can I Fish This?"; location is declared PRECISE; the install id is for Analytics and bug reports (App Functionality);
+  category was left to Claude: **Navigation first, Sports second** (matches Play's "Maps & Navigation"; Claude's call, say
+  if you want Sports first). Still open from that pack: email "linked to the user" (default: linked) and the stale line in
+  `handoff/PLAN/play/data-safety.md` (it says production builds send no reports; the code sends them).
 - ANSWERED 2026-11-12 (T678 release, size gate): **data size budgets after the pond fold**: "Raise now, shrink later, but the ticket should cover ways to shrink data across the board, not just ponds." Raised: core 1,450,000 → 1,650,000 B gzip, conditions 950,000 → 1,060,000, web first search 1,500,000 → 1,650,000 (measured: core 1,508,127, conditions 963,726 after D1). Shrinking every shipped file is ticket T686 (survey + proposal for you to pick from). RULINGS O5.
 - ANSWERED 2026-11-12 (T678, Owner To-Do row `dewdney-four-lines`): **the four Dewdney lines** (FWA 355991890/895/899/902, 1.6 km): "Yes, cover them". The Nicomen Slough rule covers them; nothing to build, the promoted atlas already does. RULINGS K10.
 - ANSWERED 2026-11-12 (T678, Owner To-Do row `gauges-11-other-line`): **eleven gauges on a different river line**: "Take the suggestion". Nine keep today's line; Elk River near Natal (08NK016) and Fraser River at Steveston (08MH028) move to the new line. Ticket T682. RULINGS P49.

@@ -38,3 +38,14 @@ Open points:
   `com.expo.modules.backgroundtask.processing`; `UIDeviceFamily` = 1 (iPhone only); the three permission prompts say
   "Can I Fish This?"; `CFBundleDisplayName` = "Can I Fish?"; `ITSAppUsesNonExemptEncryption` = false;
   `PrivacyInfo.xcprivacy` is in the app. Orientations: Portrait and PortraitUpsideDown (see T726).
+
+## Owner answers (2026-11-14, mid-day)
+Verbatim: "all privacy and descriptions and stuff could use playstore items. like icon and name etc it is can i fish? on
+the icon but can i fish this? on everything else. we want precise. it is the id mainly for for analytics and bug report
+etc etc choose best category"
+- Listing text, privacy answers and icon: reuse the Play items (`handoff/PLAN/play/`); the Play page is the source.
+- Name: home-screen label "Can I Fish?" stays (`expo.name`); "Can I Fish This?" everywhere else. No app.json change.
+- Location: declare Precise.
+- Install id: Analytics and bug reports (so purposes = Analytics + App Functionality).
+- Category ("choose best", Claude's call): Navigation primary, Sports secondary, matching Play's "Maps & Navigation".
+- Not answered, default kept: email is "linked to the user" (a report carries the email and the install id).
