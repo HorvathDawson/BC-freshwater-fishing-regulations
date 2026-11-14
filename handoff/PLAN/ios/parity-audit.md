@@ -203,3 +203,205 @@ Severity: **core** (breaks a core flow), **visible** (a defect the person would 
 - Dark and light, largest text (IOS-9).
 - Crash report on next start (`crash` scenario) after the Swift module.
 - Cold-start notification tap opening the water (the one `openRequest` path).
+
+# Pass 2 (2026-11-14)
+
+Read-only, same standard as pass 1: nothing built or run. Paths are under `app/` unless they start with `handoff/`.
+**Correction to pass 1's first caveat:** the package sources ARE installed, hoisted at `app/node_modules/<package>`
+(expo-file-system 58.0.11, expo-background-task, expo-notifications, expo-location 58.0.19, expo-image-picker 58.0.10,
+expo-sqlite 58.0.14, react-native 0.88.0, @react-native-community/netinfo). Every package claim below is from its own iOS
+source, with the file named. G1 also corrects pass 1's F1 and F14 (the `.part` resume does not happen on iOS).
+
+Severity words as pass 1: **core** (breaks a core flow), **visible**, **cosmetic**, **review** (App Review risk).
+
+## Findings, sorted by severity
+
+**G1 · core · iOS only · the big download restarts from zero after any drop, and "What has downloaded is kept" is false.**
+- Evidence: `install.native.ts:131,136` hands DownloadTask the `.part` itself as the destination. expo's iOS DownloadTask is a
+  `URLSessionDownloadTask` in BOTH session types (`node_modules/expo-file-system/ios/FileSystemDownloadTask.swift:277`
+  `session.downloadTask(with:)`): URLSession writes to its own temp file and the bytes reach the `.part` only at the end
+  (`:420` `moveItem(at: location, to:)`). On a failure only `error.localizedDescription` comes back (`:456`), so the resume
+  data iOS keeps is lost. So on iOS `have` (`install.native.ts:126`) is always 0 after a drop, a lock or a kill: each of the
+  4 tries and each launch starts the ~480 MB basemap again. The code comment at `:133-135` believes the foreground session
+  leaves a `.part` to resume from; it does not. Knock-on: the T272 follower (`release/install.ts:125-146`) has nothing to read
+  while the file grows, so on iOS the whole file is hashed in JS after the download (F14 is the full cost, not a part).
+  The boot screen's "What has downloaded is kept" (`core/src/install.ts:11`) is untrue for the file in flight.
+- Prove it: first open on the simulator, `xcrun simctl get_app_container booted ca.canifishthis.app data`, watch
+  `Documents/release/tiles/**.part` during the download: it stays absent until the very end; toggle the Mac's Wi-Fi at 50 %:
+  the next try logs `0 of N bytes on disk` (`install.native.ts:128`).
+- Fix (`install.native.ts`, shared file, the change only matters where `bg` is null, i.e. iOS): fill the `.part` in bounded
+  ranges, one DownloadTask per range (`Range: bytes=have-(have+32 MB-1)`), each landing in `.tail` and appended with the
+  existing `appendFile`. A drop then costs one range, and the follower gets a growing file again. (Alternative: `pause()`
+  on AppState background for its resumeData; does not help a dropped line.)
+
+**G2 · visible · iOS only · a staged update is applied whenever the app comes back from "inactive", not only from the background.**
+- Evidence: `apps/mobile/src/App.tsx:389-393` applies a ready update on `st === "active" && was !== "active"`, commented
+  "back from the background ... the safest moment". iOS also passes through `inactive` for Control Center, Notification
+  Center, the app switcher glance, an incoming-call banner and every system permission alert (Android has no `inactive`).
+  So on iOS pulling down Notification Center, or answering the first-open location prompt (G7), swaps the release under the
+  page being read, with the "Updated to ..." toast. Same pattern, cheaper effect: `App.tsx:363-366` (update checks,
+  throttled by `service.ts:541-546`) and `shell/useResumed.ts:15-16` (app-update check count).
+- Prove it: stage an update (`deploy/staging/test-updates.mjs`), open a water's regulations, pull down Control Center
+  and release: the page re-boots.
+- Fix: track `background` explicitly (`was === "background"`) in the three listeners. Shared files; Android behaviour unchanged.
+
+**G3 · core (for gauge alerts) · iOS only · the background check is a BGProcessingTask, Apple's overnight-maintenance kind.**
+- Evidence: `node_modules/expo-background-task/ios/BackgroundTaskScheduler.swift:92` submits a `BGProcessingTaskRequest`
+  (earliest begin = now + interval, `:95`); the plugin declares `UIBackgroundModes: processing`
+  (`plugin/build/withBackgroundTask.js:25-26`). iOS runs processing tasks when the phone is idle (typically locked, often
+  charging, often overnight), not on a 15-minute rhythm. This sharpens F3: on iOS "Crosses above" alerts
+  (`core/src/changelog.ts:166`, "when a river rises or falls past a level") can arrive hours late or not that day.
+- Prove it: only on a real phone over a day (the simulator never fires them by itself; `e -l objc -- (void)[[BGTaskScheduler
+  sharedScheduler] _simulateLaunchForTaskWithIdentifier:@"com.expo.modules.backgroundtask.processing"]` proves the task
+  runs, not when).
+- Fix: product decision. Either iOS words that say alerts are checked "when your phone allows, often overnight"
+  (`core/src/alerts.ts` via F3's fix), or a `BGAppRefreshTask` (needs a small iOS module; expo-background-task has no
+  option for it). A `deps.md` line either way.
+
+**G4 · visible · iOS (both differ) · "Wi-Fi only" downloads over a phone hotspot and ignores Low Data Mode on iOS.**
+- Evidence: metered is `s.type === "cellular" || isConnectionExpensive` (`ui-native/src/netInfoConnectivity.ts:36`). NetInfo's
+  iOS half uses SCNetworkReachability and sets `expensive` only for WWAN
+  (`node_modules/@react-native-community/netinfo/ios/RNCConnectionState.m:45-47`): Wi-Fi to another phone's hotspot is
+  "wifi", not expensive, and iOS Low Data Mode (`NWPath.isConstrained`) is never read. Android's NetInfo uses the
+  system's metered flag, so a hotspot counts as metered there. The hundreds-of-MB update (`core/src/install.ts:114`) goes
+  out over the reader's cellular plan.
+- Prove it: Mac Internet Sharing is not a hotspot; needs a real iPhone on an iPhone hotspot with the setting on Wi-Fi only.
+- Fix: read Low Data Mode / `isExpensive` from `NWPathMonitor` in a small iOS function (new module or the `exit-info` iOS
+  module), merged in `netInfoConnectivity.ts` (shared file, the extra signal is null on Android).
+
+**G5 · visible · both · a spot "At my location" or a parking pin "here" is saved from an approximate fix without a word.**
+- Evidence: `apps/mobile/src/locate.native.ts:30-32` takes `getCurrentPositionAsync` whatever its accuracy; callers save it
+  as is (`ui/src/mapRail.ts:253` `addAt(await locate.here())`, `ui-native/src/shell/SpotHost.tsx:111`). With iOS
+  "Precise: Off" (or Android's "Approximate") the fix is km off; expo already reports it
+  (`node_modules/expo-location/ios/Requesters/EXBaseLocationRequester.m:162-170` `accuracy: "reduced"`), and the fix's own
+  `accuracy` is in hand (`locate.native.ts:32`) but unused for spots.
+- Prove it: Simulator Settings > Privacy > Location > Can I Fish > Precise off; Spots > At my location: the pin lands far off.
+- Fix: in `ui/src/mapRail.ts` (shared), refuse or warn above ~200 m ("Your location is approximate; pick the spot on the
+  map"), and on iOS ask `requestTemporaryFullAccuracyAsync` (needs an `NSLocationTemporaryUsageDescriptionDictionary`
+  entry in `app.json`, iOS-only).
+
+**G6 · visible · both, worse on iOS · a refused camera or location has no way to Settings, and the camera refusal is reported as a defect.**
+- Evidence: camera: `pickPhoto.native.ts:24-25` throws a plain `Error("the camera was not allowed")`, which `ui/src/photos.ts:76`
+  reports (not an `environmentError`, against `core/src/failure.ts:5-8`) and shows as "The photo was not added (the camera
+  was not allowed)" (`data/src/spots/words.ts:306-309`), with no Settings button. Location: after one "Don't Allow" iOS never
+  prompts again; `locate.native.ts:20` turns that into `denied`, the Spots row disappears with only "Location access is
+  turned off for this app" (`ui/src/mapRail.ts:80-81`, `core/src/mapRail.ts:28,44`), no button. Notifications already have
+  the button (`AlertMe.tsx:113`, `notify.native.ts:116`). Also `ui/src/mapRail.ts:250-256` turns every `here()` failure,
+  refusal included, into "Your location could not be read" and reports none of them.
+- Prove it: deny the camera prompt (real phone) or `xcrun simctl privacy booted revoke location ca.canifishthis.app`, then the Spots tab.
+- Fix: an "Open Settings" link (`Linking.openSettings`) under both lines (`SpotsScreen.tsx`, the photo error in
+  `SpotScreen.tsx`); `environmentError` in `pickPhoto.native.ts`; `refusedLine` (already in `ui/src/myLocation.ts:51`) in
+  `addMine`. All shared files.
+
+**G7 · review · iOS (both ask) · the first open asks for location to centre the map; the purpose string says it is for pinning a spot.**
+- Evidence: `ui/src/myLocation.ts:140-147` (`useOpenAtMe`) raises the prompt on the first plain open, right after the
+  first-run notice (`ui-native/src/Shell.tsx:366`). The only string the prompt shows is "Allow Can I Fish This? to pin a
+  spot where you are standing" (`apps/mobile/app.json`, expo-location `locationWhenInUsePermission`). Apple asks that the
+  string say every use (guideline 5.1.1); a reader also meets the prompt with no context (Apple's in-context guidance).
+- Prove it: fresh install on the simulator, accept the notice: read the prompt.
+- Fix: one string covering both ("to show where you are on the map and pin spots where you stand. It stays on this
+  device.") in `app.json` (shared, both platforms use it).
+
+**G8 · visible · iOS · "Directions ... in your maps app" opens Google Maps in Safari.**
+- Evidence: `ui-native/src/shell/SpotHost.tsx:107` always opens `https://www.google.com/maps/dir/?api=1&destination=...`;
+  the label promises "your maps app" (`core/src/spotWords.ts:38`). On Android that URL opens Google Maps; on an iPhone
+  without the Google Maps app it opens the web page in Safari, never Apple Maps.
+- Prove it: simulator, a spot with a parking pin, Directions: Safari opens.
+- Fix: on iOS `maps://?daddr=lat,lon` (Apple Maps; no `LSApplicationQueriesSchemes` needed for `openURL`), chosen by platform
+  in a `directionsUrl(os)` beside `bookUrl` in core (shared, platform-chosen).
+
+**G9 · visible · both · a link that cannot open does nothing on screen.**
+- Evidence: `ui-native/src/openLink.ts:9-14` logs and reports a refused `Linking.openURL` but shows nothing, against the
+  shown-and-reported rule (`app/MAP.md` "Failures"). RN's iOS `openURL` does reject when the open fails
+  (`node_modules/react-native/Libraries/LinkingIOS/RCTLinkingManager.mm:144-163`). Callers that then look dead: the report's
+  "Email" (`menu/ReportPage.tsx:55`, an iPhone with Mail deleted), Directions (G8), Licences, Info pages, privacy link.
+- Prove it: simulator has no Mail app account: More > Report a problem > Email: no draft, no message.
+- Fix: a shared toast/line for `openLink` failures (`openLink.ts`, shared file), or move callers to `openLinkShown`.
+
+**G10 · visible · iOS (shared code) · with the keyboard up, the first tap on a button is eaten, and the number pads have no Done key.**
+- Evidence: the menu page and spot page ScrollViews set no `keyboardShouldPersistTaps` (`menu/MenuPage.tsx:39`,
+  `SpotScreen.tsx:246`), so RN's default "never" makes the first tap on Save / a search result only close the keyboard.
+  The alert value and percent fields use `decimal-pad` / `number-pad` (`AlertMe.tsx:235,259`): on iOS those keyboards
+  have no return key, so tapping elsewhere is the only way to close them (Android's pad has Done and a back key). The
+  gauge search on the Notifications page has `autoFocus` and no `autoCorrect={false}` (`menu/NotificationsPage.tsx:108-109`),
+  so iOS autocorrect rewrites river names on space (the top search and glossary turn it off: `TopBar.tsx:132`,
+  `GlossaryPage.tsx:99`). Not F2 (that is the keyboard covering fields).
+- Prove it: More > Notifications > Add an alert, type "Coquihalla " (autocorrect), pick a gauge, type a value, tap Save once.
+- Fix: `keyboardShouldPersistTaps="handled"` on both ScrollViews, an `InputAccessoryView` Done bar for the two numeric
+  fields (iOS-only component), `autoCorrect={false} autoCapitalize="none"` on the gauge search. Shared files.
+
+**G11 · review · iOS · About > What's new tells iPhone readers about Google Play and Android.**
+- Evidence: `changelogVM` lists every version unfiltered (`core/src/appUpdate.ts:95-101`); notes include "only once Google
+  Play has it for your phone" (`core/src/changelog.ts:135`), "on Android" (`:141`, `:178`) and Android-only changes such as
+  the pinch glide (`:31`, T707 is Kotlin only, pass 1 section 6). Apple rejects mentions of other platforms in app UI
+  (guideline 2.3.10), and the iOS app's first version would show a long Android history.
+- Prove it: simulator, More > About > What's new.
+- Fix: a `platforms?: ("android"|"ios"|"web")[]` per note or entry in `core/src/changelog.ts`, filtered by `changelogVM`
+  (shared; `build-apk.sh` reads the same file, so keep the field optional).
+
+**G12 · review · iOS · the build asks for the push entitlement the app never uses.**
+- Evidence: expo-notifications adds `aps-environment` unless told not to
+  (`node_modules/expo-notifications/plugin/build/withNotificationsIOS.js:51-57`, default `enableRemoteNotifications: true`);
+  `app.json` passes only `icon` to the plugin. The app is local-only (`notify.native.ts:2`). Push then has to be enabled on
+  the App ID for signing, and a review may ask what push is for.
+- Prove it: `npx expo prebuild -p ios`, read `ios/*/*.entitlements`.
+- Fix: `["expo-notifications", { "icon": ..., "enableRemoteNotifications": false }]` in `app.json` (shared file, iOS-only effect).
+
+**G13 · cosmetic · iOS mostly · a dropped native download is reported as a defect.**
+- Evidence: offline is recognised by a thrower's flag or the fetch words in `core/src/failure.ts:26,38`. The native
+  download's iOS failure is `UnableToDownloadException(error.localizedDescription)`
+  (`FileSystemDownloadTask.swift:456`, e.g. "The network connection was lost."), unmarked; `nativeFill` rethrows it
+  (`install.native.ts:157`) and `ui/src/boot.ts:91` reports it. With F1 and G1, every locked screen during a first install
+  is a crash-inbox entry. Android mostly uses the system downloader (bg-download), so it is rarer there.
+- Fix: in `nativeFill`, mark the last error `environmentError` when the device is offline or the message is an
+  NSURLError/OkHttp line drop (`install.native.ts`, shared).
+
+**G14 · visible · Android · spots and photos are never backed up to Google.**
+- Evidence: the prebuild manifest has `android:allowBackup="true"` and no backup rules (`apps/mobile/android/app/src/main/
+  AndroidManifest.xml:17`, generated: `app.json` sets nothing). Spots, photos and the ~480 MB release share the files
+  directory (`spots/store.native.ts:25`, `photoStore.native.ts:15`, `install.native.ts:24`). From the Android docs (not
+  code): Auto Backup stops when an app's data passes 25 MB, so nothing is saved. Device-to-device transfer has no cap.
+  The mirror of F6: iOS backs up too much, Android nothing.
+- Prove it: `adb shell bmgr backupnow ca.canifishthis.app` on an installed emulator; logcat shows the quota exceeded.
+- Fix: `dataExtractionRules` / `fullBackupContent` excluding `release/` (a config plugin beside `plugins/with-no-minify`,
+  Android-only), which also lets spots back up.
+
+**G15 · review (low) · both · no sentence says the app is not affiliated with the Province.**
+- Evidence: the first-run notice says "Not the official regulations" and "not legal advice" (`core/src/menu/legal.ts:20-24`);
+  only the DFO licence text says "not ... in affiliation with ... the Government of Canada" (`core/src/menu/licences.ts:98`).
+  Store reviewers ask government-information apps for an explicit non-affiliation line (Google Play's policy says so; Apple
+  reviewers ask under 5.x). Not verified against a current rule text.
+- Fix: add "This app is not made by or affiliated with the Government of British Columbia." to the first point
+  (`legal.ts`, shared; `FIRST_RUN_VERSION` bump re-asks).
+
+## Angles checked, clean
+
+- **Hermes / Intl / dates (5):** every day and time goes through `core/src/clock.ts` (UTC-7 written in code, not tz data)
+  and `day.ts` B.C. fields; `Intl.DateTimeFormat` only for an explicit zone, with a reported fallback (`day.ts:172-190`);
+  numbers through `grouped.ts`, not `toLocaleString`. `localeCompare` is only a tie-break in sorts (`search.ts:104,146,223`).
+- **sqlite on iOS:** pass 1's open question (does `openDatabaseAsync` take a `file://` directory on iOS) is answered yes:
+  `expo-sqlite/ios/DatabaseFileUtils.swift:17-33` percent-encodes and parses `file:` URIs, so spaces are safe.
+- **Files (6):** HEIC from the iOS library comes back raw `.heic` (`expo-image-picker/ios/ImageUtils.swift:147`) and is
+  kept as such (`data/src/spots/photos.ts:50-61`); photo refs are relative. Release file names are lowercase hashes (54 files
+  in `data/release/r-f749475d0962`, no two differ only by case, none has a space).
+- **Network (8):** no `http://` outside the local dev LAN base (`config.ts:8`, `env.ts:8`); no `canOpenURL`, so no
+  `LSApplicationQueriesSchemes` needed. Background-task identifier and mode come from the plugin.
+- **Staging switches in production (10):** `app.config.js` refuses a production build with the map lab or a local MapLibre;
+  the Updates log and test tags are off in production (`config.ts:69,111-112`).
+- **Reduce Motion (9):** read and followed (`motion.ts:43-44`, `FishSpinner.native.tsx:59-62`, `RegsScreen.tsx:159`).
+  Pressables carry roles or labels nearly everywhere (scan of `ui-native` and `map`); the exceptions are scrims with labels.
+- **Report outbox:** "will be sent automatically" is backed by a file outbox flushed on every check and reconnect
+  (`spots/store.native.ts:88`, `update/service.ts:497-498`); true while the app is open, on both.
+
+## Needs a run to know
+
+- Dynamic Type at the largest accessibility size: iOS goes to about 3.1x, Android to 2x; most Text is uncapped by design
+  (`type.ts:117-122`). Shots at AX5 on iPhone 17e.
+- Restore from an iCloud backup onto a new phone: `location-ask.txt`, `first-run.txt` and `notify.json` come back
+  (`spots/store.native.ts`), the permissions may not, so alerts read "on" with notification permission undetermined, and
+  the open never asks for location again. `install-id.txt` is duplicated across the two phones.
+- A JS `fetch` in flight when iOS suspends the app: does it settle (error -1005) or hang a spinner on return.
+- Photo viewer memory with a 48 MP HEIC (raw, not recompressed, per the clean item above).
+- A dev or test-bed build aimed at a LAN data base (`http://192.168...`) will raise iOS's Local Network prompt; is the
+  `NSLocalNetworkUsageDescription` string present after prebuild.
+- VoiceOver across the map: what the map view itself announces, and whether the tap cue is read out.
