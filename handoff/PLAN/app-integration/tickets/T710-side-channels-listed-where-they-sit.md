@@ -1,6 +1,6 @@
 # T710 — Parts list: a side channel is listed next to the main-stem part it runs beside
 
-Status: IN PROGRESS — left (Claude): ships with the next release (candidate r-c874b18502c9); taps.py Skeena indices at the re-cut.
+Status: DONE (shipped in r-a9914d6b25b7 on staging: 023c61c9d, 523d2e45c, e25736f4b).
 
 Source: owner 2026-11-13, boundary-name review (pack: ~/bcfish-session-backup-2026-11-12/boundary-names/PACK.md, Skeena Reserve). Split accepted; owner chose "List it where it sits". Today side channels are numbered after all main-stem parts (the closed Reserve side channel is part 18).
 ## Work

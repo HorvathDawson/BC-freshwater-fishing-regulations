@@ -854,3 +854,25 @@ Owner's phone report (build 29, the More tab). Done in code, not yet in a build:
 - STOPPED: `python -m pipeline.atlas.promote data/generated/atlas/full_next` was DENIED by the permission system. Not
   worked around. Tree put back clean (the patch stays in tickets/T708-files/apply-with-promote.patch). Nothing promoted,
   released or deployed; LATEST r-adc4e248a163.
+- PROMOTED and RELEASED (2026-11-13). Main ran the atlas promote (owner approved). The promote's sections +9 is ITEM
+  membership (Gagnon +1, region 5 +2, MU 5-6 +2, basin 200 +1, region 7A +1, Hidden +1, Secret +1); section ids net +3
+  (-3/+6) — consistent. Patch covers both gone ids: Gagnon r1 -> the signs cut, Kootenay r1 -> the dolphin;
+  `kootenay_river_lower.r4` still names `kootenay_river__kootenay_lake_main_body`, which still resolves (gate passes on
+  the promoted registry; r1/r4 bind the same sections, not in the diff).
+- Commits: 8937f6b73 (promote patch), 57eb9e027 (T712 ledger: committed "CLOSED" status broke check-tickets/CI),
+  63ae3a586 (app-ci also runs on ticket/handoff edits: a ledger-only fix never re-ran CI, the red run blocked the
+  release's CI check), 523d2e45c (taps.py: Skeena x19p1 4 -> 5 for T710; Kootenay x9p3 relabel CPR -> "CPR Bridge near
+  Creston", PART_GROWN + _IS as Babine), ae963e6e0 (release re-cut; edge_unnamed handle 917242 -> 918000 = the even
+  sample's stride moved with +3 handles, page text identical, accepted), e25736f4b (waterMap.test: the Skeena host
+  channel's ▲/▼ follow T710), c864e9040 (sweep +2 = the two kept leaves).
+- `release --staging`: diff identical to the attributed one (accepted), follows ok (in-season on r-a9914d6b25b7, whole
+  app check + 7 pipeline files on the candidate), LATEST = r-a9914d6b25b7 (r-adc4e248a163 kept on disk), staging upload +
+  smoke ok. `site-all.sh`: smoke 19 pass / 0 warn / 0 fail. Feeds worker: gauges/dfo/inseason ok, inputs
+  inseason-links/4; `sync-inputs.sh --dry-run`: in sync, 38 notices checked on r-a9914d6b25b7.
+- Pipeline suite after promote, chunked, unfiltered: fast 7,445 passed / 0 failed / 275 deselected; slow 274 passed /
+  0 failed / 1 skipped. The 19 earlier failures are gone (Skeena taps re-cut; served atlas = candidate; pins in the
+  patch; sweep regenerated; Gagnon label). `pnpm check:fast` rc 0. graphify updated.
+- Nit for the owner (not blocking): Kootenay part 2 reads "From the navigation dolphin (2 km below CPR Bridge) (km 123)
+  up to the CPR Bridge near Creston" — the "(km 123)" is the duplicate-name disambiguator (the dolphin aliases the Main
+  Body lake edge).
+- Not done: app build, Play upload (main decides).
