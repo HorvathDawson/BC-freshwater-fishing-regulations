@@ -6,4 +6,4 @@
 import type { ReactNode } from "react";
 import type { Palette } from "./theme";
 
-export declare function OpenSettings(props: { palette: Palette; line: string | null | undefined }): ReactNode;
+export declare function OpenSettings(props: { palette: Palette; line: string | null | undefined; inset?: number }): ReactNode;

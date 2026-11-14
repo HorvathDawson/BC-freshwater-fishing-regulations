@@ -12,7 +12,6 @@ export const CAMERA_REFUSED = "the camera was not allowed";
 /** The action's label, its screen-reader name, and the line said when Settings itself would not open. */
 export const OPEN_SETTINGS = {
   label: "Open Settings",
-  a11y: "Open this app's settings to allow it",
   failed: "Could not open Settings.",
 } as const;
 

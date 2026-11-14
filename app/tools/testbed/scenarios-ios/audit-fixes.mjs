@@ -27,7 +27,9 @@ const APP = 'ca.canifishthis.app';
 const [LON, LAT] = (process.env.LOCATE_AT ?? '-121.95,49.1').split(',').map(Number);
 const REPO = path.resolve(path.dirname(new URL(import.meta.url).pathname), '../../../..');
 
-const shotTo = (ctx, name) => ctx.device.screenshot(path.join(ctx.dir, `audit-${name}.png`));
+/** the button's words (the first build exposed an accessibility label instead; both are accepted) */
+const OPEN_SETTINGS = /^Open (Settings|this app.s settings.*)$/;
+const shotTo =(ctx, name) => ctx.device.screenshot(path.join(ctx.dir, `audit-${name}.png`));
 
 /** The screen size in iOS points (the largest box on it) and the pixel scale of a screenshot. */
 function screenPts(ctx) {
@@ -176,7 +178,7 @@ export const auditFixes = {
       const w = d.screenText();
       shotTo(ctx, 'g6-spots');
       const line = w.find((x) => /Location access is turned off for this app/.test(x));
-      const btn = w.find((x) => x === 'Open Settings');
+      const btn = w.find((x) => OPEN_SETTINGS.test(x));
       if (!line) throw new Error(`no refusal line (saw: ${w.slice(0, 14).join(' | ').slice(0, 300)})`);
       if (!btn) throw new Error(`the refusal line has no "Open Settings" (saw: ${w.slice(0, 14).join(' | ').slice(0, 300)})`);
       return `${JSON.stringify(line)} + button "${btn}"`;
@@ -190,11 +192,11 @@ export const auditFixes = {
       shotTo(ctx, 'g6-map');
       const line = w.find((x) => /^Location is off for this app/.test(x));
       if (!line) throw new Error(`no line (saw: ${w.slice(0, 14).join(' | ').slice(0, 300)})`);
-      if (!w.includes('Open Settings')) throw new Error(`no "Open Settings" under it (saw: ${w.slice(0, 14).join(' | ').slice(0, 300)})`);
+      if (!w.some((x) => OPEN_SETTINGS.test(x))) throw new Error(`no "Open Settings" under it (saw: ${w.slice(0, 14).join(' | ').slice(0, 300)})`);
       return `${JSON.stringify(line)} + "Open Settings"`;
     });
     await ctx.step('G6: tapping "Open Settings" brings the Settings app to the front', async () => {
-      ctx.flow('tap-text', { TEXT: 'Open Settings' });
+      ctx.flow('tap-text', { TEXT: 'Open (Settings|this app.s settings.*)' });
       let w = [];
       for (let i = 0; i < 8; i++) { await d.sleep(1500); w = d.screenText(); if (w.some((x) => /^(Location|Notifications|Cellular Data|Background App Refresh)$/.test(x))) break; }
       shotTo(ctx, 'g6-settings');
@@ -247,6 +249,8 @@ export const auditFixes = {
       const w = d.screenText();
       shotTo(ctx, 'g8-after');
       const maps = running(ctx, 'com.apple.Maps'), safari = running(ctx, 'com.apple.mobilesafari');
+      // Maps raises its own location prompt over everything after it: closed with the app, so the next steps see ours
+      for (const b of ['com.apple.Maps', 'com.apple.mobilesafari']) { try { d.simctl(['terminate', d.udid(), b]); } catch { /* not running */ } }
       const said = `front words: ${w.slice(0, 10).join(' | ').slice(0, 220)}; Maps running: ${maps}; Safari running: ${safari}`;
       const google = w.some((x) => /google\.com\/maps/i.test(x));
       if (google) throw new Error(`Google Maps opened: ${said}`);

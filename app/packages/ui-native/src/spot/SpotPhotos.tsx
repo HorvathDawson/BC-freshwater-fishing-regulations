@@ -72,7 +72,7 @@ export function SpotPhotos({ photos, uris, pe, palette }: {
       {pe?.error ? (
         <ErrorState palette={palette} message={pe.error} />
       ) : null}
-      <OpenSettings palette={palette} line={pe?.error} />
+      <OpenSettings palette={palette} line={pe?.error} inset={0} />
     </Block>
   );
 }

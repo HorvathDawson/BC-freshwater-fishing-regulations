@@ -98,7 +98,7 @@ export function MapRail({ palette, onLayers, layersChanged = 0, top = 0, me, chi
         <Text style={{ ...TYPE.small, color: palette.ink }}>{me.notice}</Text>
       </Pressable>
     )}
-    <OpenSettings palette={palette} line={me?.notice} />
+    <OpenSettings palette={palette} line={me?.notice} inset={0} />
     {children}
     </View>
   );
