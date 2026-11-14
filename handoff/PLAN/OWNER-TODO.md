@@ -11,6 +11,22 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
+- **Privacy page check (2026-11-14, owner: "please check page too"), before closed testing.** Found:
+  1. `https://canifishthis.ca/privacy` (the link on the Play listing) does NOT show the policy: the live site is still
+     the old site and answers every address with its own front page. The policy is only on
+     `https://staging.canifishthis.ca/privacy`. Choose: publish the new site's privacy page to canifishthis.ca (you run
+     it; production is yours), or point the Play listing at the staging address until production goes live.
+  2. Three wording proposals for the policy text (`app/tools/seo/html.ts` `privacyBody`; NOT changed, the text was
+     approved 2026-11-06):
+     a. Short version says spots "stay on your device". A saved spot's place, rounded to about 1 km, goes to Open-Meteo
+        for weather (the Weather section says so, but says "that spot's coordinates" without the rounding).
+     b. A problem report's map centre is described as "where the map was looking, not where you were". The app opens
+        centred on the reader, so it is often about where they are (to about 100 m).
+     c. Not mentioned: Share (a link you send) and Directions (opens Google Maps with a spot's parking point). Both
+        only on your tap.
+  Fixed without asking (our own working page `handoff/PLAN/play/data-safety.md`, not the Play form): production does
+  send reports; crash switch is More, Settings, Privacy; spot place is rounded; downloads carry the app version; one
+  app-stopping error is kept for the next start. No Play form answer changes.
 - **iOS reopened (owner 2026-11-14): four decisions to answer on return** (Apple account/TestFlight timing and individual vs organization, minimum iOS version, iPad, own iOS tap-up patch; defaults in the doc's Unattended section). ANSWERED 2026-11-14: rotation "Portrait only."; app name "Can I Fish This?" (same as Play, T371 closed on that point); proposals, physical needs and risks in `handoff/PLAN/ios/START-HERE-ios.md`.
 - **ANSWERED 2026-11-14 (iOS store pack, T727).** Owner, verbatim: "all privacy and descriptions and stuff could use
   playstore items. like icon and name etc it is can i fish? on the icon but can i fish this? on everything else. we want
