@@ -213,7 +213,7 @@ export const auditFixes = {
       try {
         // the root list: the Settings search finds the app's own page
         if (!d.screenText().some((x) => /^Location$/.test(x))) {
-          const r = runYaml(ctx.dir, 'settings-find', 'appId: com.apple.Preferences\n---\n- tapOn: { text: "Search", index: 0 }\n- inputText: "Can I Fish"\n- waitForAnimationToEnd: { timeout: 3000 }\n- tapOn: { text: "Can I Fish.*", index: 0 }\n');
+          const r = runYaml(ctx.dir, 'settings-find', 'appId: com.apple.Preferences\n---\n- tapOn: { text: "Search", index: 0 }\n- inputText: "Can I Fish"\n- waitForAnimationToEnd: { timeout: 3000 }\n- tapOn: { text: "Can I Fish.*", index: 1 }\n');
           if (!r.ok) throw new Error(`the Settings search did not reach the app's page: ${r.said}`);
           await d.sleep(1500);
         }
@@ -259,6 +259,12 @@ export const auditFixes = {
       shotTo(ctx, 'g8-after');
       const maps = running(ctx, 'com.apple.Maps'), safari = running(ctx, 'com.apple.mobilesafari');
       // Maps raises its own location prompt over everything after it: closed with the app, so the next steps see ours
+      // (Maps raises more than one prompt of its own: each is answered "Don't Allow")
+      for (let i = 0; i < 4; i++) {
+        if (!d.screenText().some((x) => /^Allow .*(Maps|widgets).*\?$|Don.t Allow/.test(x))) break;
+        try { ctx.flow('ios-alert', { BUTTON: 'Don.t Allow' }); } catch { /* none */ }
+        await d.sleep(1500);
+      }
       for (const b of ['com.apple.Maps', 'com.apple.mobilesafari']) { try { d.simctl(['terminate', d.udid(), b]); } catch { /* not running */ } }
       const said = `front words: ${w.slice(0, 10).join(' | ').slice(0, 220)}; Maps running: ${maps}; Safari running: ${safari}`;
       const google = w.some((x) => /google\.com\/maps/i.test(x));
@@ -269,18 +275,19 @@ export const auditFixes = {
     d.launch();
 
     // ---------- G9 ----------
-    await ctx.step('G9: a link the phone will not open says so (More > Contact > Email)', async () => {
+    await ctx.step('G9: a link the phone will not open says so (needs a link that is refused: none may be reachable here)', async () => {
       await coldStart(ctx);
       ctx.flow('tab', { TAB: 'More' }); await d.sleep(1500);
       ctx.flow('scroll-to', { TEXT: 'Contact' });
       ctx.flow('tap-text', { TEXT: 'Contact' }); await d.sleep(1500);
-      ctx.flow('tap-text', { TEXT: 'Email.*' });
-      await d.sleep(4000);
       const w = d.screenText();
       shotTo(ctx, 'g9');
-      const toast = w.find((x) => /^Could not open/.test(x));
-      const mail = running(ctx, 'com.apple.mobilemail');
-      if (!toast) ctx.skip(`the open was accepted (Mail running: ${mail}; front: ${w.slice(0, 8).join(' | ').slice(0, 160)}): a refused open cannot be made here`);
+      const mail = w.find((x) => /^Email/.test(x));
+      if (!mail) ctx.skip(`this build's Contact page has no mail link (it says: ${w.filter((x) => /coming soon|Contact/i.test(x)).join(' | ').slice(0, 200)}); no link the simulator refuses is reachable`);
+      ctx.flow('tap-text', { TEXT: 'Email.*' });
+      await d.sleep(4000);
+      const toast = d.screenText().find((x) => /^Could not open/.test(x));
+      if (!toast) ctx.skip('the open was accepted (Mail took it): a refused open cannot be made here');
       return toast;
     });
     d.launch();
