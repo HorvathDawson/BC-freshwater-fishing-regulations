@@ -193,3 +193,32 @@ def test_signs_that_are_the_place_read_as_the_signs():
     sp["g__note"] = {"name": "fishing boundary signs (200 m upstream)", "km": 3.9, "water_id": "gnis:1"}
     assert end_words(W.doc, "g__note", "to") == "Fishing boundary signs (200 m upstream)"
     assert end_words(W.doc, "p__pool", "to") == "The tail of the canyon pool (300 m downstream)"
+
+
+def test_a_mouth_the_book_places_by_signs_is_said_with_them():
+    """T708 (b) (owner 2026-11-13: the Lakelse's lower stretch ends "Mouth (at the signs)", the end renamed only): a water
+    in `part.MOUTH_WORDS` ships `mouth:<item_id>` as its lowest part's lower end; every other water still says "Mouth".
+    MUTATION: emptying MOUTH_WORDS gives "Mouth → …" back."""
+    from pipeline.deliver.answers.display import part as P
+    sp = {"l__power": {"name": "power line crossing", "km": 3.75, "water_id": "gnis:4903"}}
+    w = {"name": "Lakelse River", "parts": [{"ruleset": i, "sections": 10 - i, "grp": i, "run": 0, "runs": runs}
+                                            for i, runs in enumerate([[_run("l__power", "mouth", 3.75, 0.0)],
+                                                                      [_run("source", "l__power", 21.4, 3.75)]])]}
+    W = Water("gnis:4903", w, {"waters": {"gnis:4903": w}, "rulesets": [{}, {}], "rules": {}, "splits": sp})
+    assert _said(W) == ["Mouth (at the signs) → Power line crossing", "Power line crossing → Source"]
+    assert _names(W, {})[0]["lo"] == "mouth:gnis:4903"
+    assert _said(_water([[_run("kanaka__falls", "mouth", 8.2, 0.0)]], SPLITS)) == ["Mouth → Cliff Park Falls"]
+
+
+def test_a_lake_edge_and_a_cut_at_one_place_need_no_km():
+    """T691 item 3 (the Kootenay's navigation dolphin aliases the Main Body lake edge, both km 122.7): two ids of one
+    name at ONE place, one a lake edge, are not told apart by "(km …)"; two places of one name still are."""
+    sp = {"k__dolphin": {"name": "navigation dolphin (2 km below CPR Bridge)", "km": 122.7, "water_id": "gnis:1",
+                         "kind": "lake_edge"},
+          "k__main_body": {"name": "navigation dolphin (2 km below CPR Bridge)", "km": 122.7, "water_id": "gnis:1",
+                           "kind": "lake_edge"},
+          "f__a": {"name": "falls", "km": 2.0, "water_id": "gnis:1"},
+          "f__b": {"name": "falls", "km": 9.0, "water_id": "gnis:1"}}
+    W = _water([[_run("k__dolphin", "mouth", 122.7, 0.0)]], sp)
+    assert end_words(W.doc, "k__dolphin", "to") == "Navigation dolphin (2 km below CPR Bridge)"
+    assert end_words(W.doc, "f__a", "to") == "Falls (km 2)"

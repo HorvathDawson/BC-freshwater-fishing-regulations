@@ -189,10 +189,29 @@ def _crossing_words(doc: dict, base: str, side: str) -> str:
     return "unnamed lake" if base in UNNAMED_LAKE else end_name(doc, base, side)
 
 
+#: a lake edge and another split id of one water this close (km, the export's own two decimals) stand at ONE place
+#: (`end_name`'s "(km …)"): the lake edge is in no `same_place_as` group (`bundle.spans._clashes` skips edges)
+ONE_PLACE_KM = 0.05
+
+#: (T708 (b), owner 2026-11-13: "rename the end only … 'Mouth (at the signs)', no new cut, no change to which water the
+#: rules cover") A WATER WHOSE MOUTH THE BOOK PLACES BY SIGNS, said with them: the Lakelse River ("Note: The mouth of the
+#: river is designated by signs 1.7 km downstream of Lakelse River logging road bridge"). Its lowest part's lower end
+#: ships the token `mouth:<item_id>` (`builders._names`) in place of `mouth`; only the words change, never a run, a cut
+#: or a binding. Keyed by the durable item id (AGENTS 5).
+MOUTH_WORDS: Dict[str, str] = {"gnis:4903": "at the signs"}
+#: the prefix of that token
+MOUTH_OF = "mouth:"
+
+
 def end_name(doc: dict, e: Optional[str], side: str = "") -> str:
     """`endName` — a run end in words."""
     if not e:
         return ""
+    if str(e).startswith(MOUTH_OF):
+        iid = str(e)[len(MOUTH_OF):]
+        if iid not in MOUTH_WORDS:
+            raise AnswersError(f"run end {e!r}: no mouth words for {iid} (`part.MOUTH_WORDS`)")
+        return f"the mouth ({MOUTH_WORDS[iid]})"
     if NEAR in str(e):
         # T517 (owner 2026-11-09): a crossing two parts of one water would otherwise name alike (a border, an area's
         # boundary, an unnamed lake, a river polygon), said near what stands there (`topology.crossing_near`)
@@ -250,10 +269,15 @@ def end_name(doc: dict, e: Optional[str], side: str = "") -> str:
     splits = doc.get("splits") or {}
     sp = splits.get(e)
     if sp:
+        # "(km …)" tells two PLACES of one water with one name apart — never two ids at ONE place (T691 item 3: the
+        # Kootenay's navigation dolphin and the Main Body lake edge it aliases, km 122.7 both, read "… (km 123)";
+        # a lake edge is no `same_place_as` member, `bundle.spans._clashes`)
         dup = bool(sp.get("water_id")) and sp.get("km") is not None and any(
             o is not sp and k != sp.get("same_place_as") and o.get("same_place_as") != e
             and o.get("water_id") == sp.get("water_id")
             and str(o.get("name")).lower() == str(sp.get("name")).lower()
+            and not ("lake_edge" in (o.get("kind"), sp.get("kind")) and o.get("km") is not None
+                     and abs(float(o["km"]) - float(sp["km"])) <= ONE_PLACE_KM)
             for k, o in splits.items())
         nm0 = re.sub(r"\bd/s\b", "downstream", re.sub(r"\bu/s\b", "upstream", sp["name"]))
         the = "" if re.match(r"^(area|region_line):", e) or _THE_LESS.search(nm0) else "the "

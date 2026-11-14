@@ -281,6 +281,13 @@ def _names(W: "Water", crossings: Dict[tuple, List[Tuple[float, str]]]) -> List[
         if t and ends[i]:
             ends[i][1] = own_end(ends[i][1], t[3], w_km)
             ends[i][0] = own_end(ends[i][0], t[2], w_km)
+    # (T708 (b), owner 2026-11-13) a mouth the book places by signs is said with them: "Mouth (at the signs)"
+    # (`part.MOUTH_WORDS`; the token `mouth:<item_id>`, words only)
+    from pipeline.deliver.answers.display.part import MOUTH_OF, MOUTH_WORDS
+    if W.id in MOUTH_WORDS:
+        for i in range(len(ends)):
+            if ends[i] and ends[i][0] == "mouth":
+                ends[i][0] = f"{MOUTH_OF}{W.id}"
     for i, t in enumerate(toks):                      # a river polygon has no name of its own: always said near
         if t:
             for side, km in ((0, t[2]), (1, t[3])):
