@@ -141,3 +141,6 @@ the second tap of a double tap lands on the page, so either (a) a double tap on 
 a water; zoom still by pinch and on empty map), or (b) keep the page hidden until the double-tap window passes (today's
 behaviour). (a) would show the page at ~120-280 ms instead of ~350-400 ms.
 
+
+## Owner answer 2026-11-13 (dialog): page at the lift?
+"Keep as is (Recommended)": the page shows when the click confirms (~0.35 s); double-tap anywhere still zooms. The show-at-the-lift variant (a) is NOT to be built. Decided; do not ask again unless the owner raises speed again after trying 0.7.9.
