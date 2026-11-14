@@ -7,8 +7,43 @@ while Android closed testing proceeds. Whether the Apple Developer account is bo
 (decision 1 below). Nothing in this page is approved work: the ticket stubs are **proposals for the owner to accept**
 and are not in the tickets ledger.
 
+**First message to paste into the new chat:** "read handoff/PLAN/ios/START-HERE-ios.md and work the Unattended day section; I am away, batch questions for when I am back"
+
 Read first: `AGENTS.md`, `CLAUDE.md`, `app/MAP.md`, then this page. History: tickets T88, T217, T250 (iOS walk), T313,
 T336, T362, T363, T364, T365, T420 ("iOS half"), T244. The newest restart page is `handoff/PLAN/START-HERE.md`.
+
+## Unattended day (owner away 2026-11-14): follow this without stopping
+
+Owner, verbatim: "Portrait only. We want to do as much work as possible without the Apple account in the next agent also
+anything else the agent could work on at same time? Need enough tasks for the agent for the day while I am gone."
+The IOS-1..10 stubs below are **owner-approved to start** as of this message ("as much work as possible"); open each as a
+real ticket in the ledger (next free number) when you start it. IOS-11 is not approved.
+
+- **Goal:** everything that needs no Apple account, IOS-1 then IOS-2 ... IOS-10, simulator only. **IOS-11 (TestFlight, real
+  iPhone) is NOT started.**
+- **Open decisions do not block.** Use the default, mark it a proposal in the ticket, queue the question for the owner's
+  return (batched, multiple choice, with pictures sent by SendUserFile). Defaults:
+  minimum iOS = leave what the current Expo/RN setup gives and record the number; iPhone only (no iPad layout work);
+  tap-up patch = measure first (IOS-2), write up the numbers, build an iOS patch only if the measured delay matches
+  Android's and the patch is lean, as a proposal behind the same event name; Apple-account questions wait. Rotation and name
+  are answered (above).
+- **Parallel lanes** (disjoint files; at most 2 heavy jobs via `scripts/heavy.sh`, the second on `HEAVY_LOCK=~/.claude/heavy-job-2.lock`):
+  1. iOS lane(s) in `app/` and the iOS test bed (this document).
+  2. **Pipeline/tests lane** works `handoff/PLAN/NEXT-SESSION-parked-tickets.md` in this order: T667 4c, T667 7, T667 6,
+     T686 survey + prototypes + ranking (**stop before the owner's pick**), then T667 slice 8. **T602 is NOT started**
+     (needs a full build and the owner).
+  3. **Docs lane when idle:** iOS store pack drafts (IOS-10): review notes, age-rating answers, App Privacy answers checked
+     against `handoff/PLAN/play/data-safety.md`, iPhone 6.9" / 6.5" screenshots from the simulator.
+- **Each IOS ticket:** open it as a ticket when started; record baseline numbers; fix the parity gaps found; add or port the
+  bench so it runs on the simulator; tests only for what changed plus `pnpm check:fast` run unfiltered; app CI green on push.
+- **Hard limits:** no Play upload, no TestFlight, no production, no atlas promote or release, no parser or `claude` CLI,
+  nothing needing the owner's Apple ID. Android behaviour must not change: run the Android `regs-open` and `tap-stalls`
+  benches after any shared-code change. Never loosen a guard or skip CI. **The other chat owns the Android build train and is
+  changing the tap/back path** (`packages/ui-native` Shell, `map/`, test bed): `git pull --rebase` often, commit small with
+  `git commit -- <paths>`, keep iOS changes in `.native`/iOS-only files where possible.
+- **If a lane is blocked, park it with a note and move to the next item; do not wait.**
+- **End of day:** a plain summary at the TOP of this document (what was done, numbers, what failed, batched owner
+  questions with pictures), `handoff/PLAN/OWNER-TODO.md` and the Owner To-Do page rows updated.
 
 ## Where things stand (checked 2026-11-14; "unknown" means not confirmed)
 
@@ -111,7 +146,7 @@ Store video (`app/tools/store-video`, T709/T715): Android only; T709 step 2 plan
 - Tickets are the sole source of work; new numbers come from the README ledger (next free number: check the README, it
   is later than T716). The stubs below use IOS-n labels until the owner accepts them.
 
-## Proposed work list (PROPOSALS; owner accepts before any becomes a ticket)
+## Work list (IOS-1..10 approved to start 2026-11-14, see Unattended day; IOS-11 still a proposal)
 
 Order matters: baseline first, then parity gaps by severity, then benches, then TestFlight.
 
@@ -119,48 +154,83 @@ Order matters: baseline first, then parity gaps by severity, then benches, then 
 `deploy/staging/build-ios-sim.sh --testbed`, then `session-ios.sh --fresh --max-min 40 -- node app/tools/testbed/run-ios.mjs all`;
 fix test-bed drift only (not app behaviour yet). Acceptance: report with the 11 existing scenarios, build time, first-open
 time, memory table, shots; every failure listed with cause (app vs test bed). Size: M (one heavy run + drift fixes).
+  Sub-steps: (a) `rtk git pull`, check `heavy.sh --status`; (b) build with `--testbed`, then again with `--probes` for perf/memory;
+  (c) run all 11 scenarios, triage each failure app vs test bed; (d) fix bed drift (hard-coded tab/back coordinates in
+  `run-ios.mjs`, Maestro ids); (e) record minimum iOS from the generated Podfile; (f) shots into `handoff/PLAN/ios/shots/`;
+  (g) list every Android scenario with no iOS twin (feeds IOS-3..6). Mirrors: Android `run.mjs all`.
 
 **IOS-2. Tap open speed and cue on iOS (T716 parity).** Goal: a tapped water shows something within ~100 ms of the tap
 and opens in the Android time class. Do: add `regs-open` to `run-ios.mjs` (press / cue / shown from the `[open]` lines);
 measure whether iOS waits for a double-tap before the click; then decide: accept (if click is prompt), or an iOS
 `onTapUp` in the patch (decision 4). Acceptance: cold + 2 warm taps on small/mid/lake waters, numbers beside Android's,
 double tap still zooms and does not open twice. Size: M (L if a patch).
+  Sub-steps: port `scenarios/regs-open.mjs` (press/cue/shown) using the `[open]` lines; measure click delay with and
+  without a double-tap recogniser; cold + 2 warm taps on small/unnamed/mid/Fraser/lake waters; double-tap-zoom check;
+  write numbers beside Android's (T716); lean iOS `onTapUp` only per the default. Mirrors: Android `regs-open`.
 
 **IOS-3. No-stall bench on iOS (`tap-stalls`).** Goal: no JS stall of 300 ms or more at cold start, Salmon colouring,
 Run timing tab, the bell. Acceptance: bench passes on the simulator with the same threshold. Size: S-M (needs `[stall]`
 lines in the `--probes` build).
+  Sub-steps: port `scenarios/stalls.mjs`; make `--probes` print `[stall]`/`[work]`; cover cold start, Salmon colouring, Run
+  timing tab, the bell; fail at 300 ms; fix any iOS-only stall. Mirrors: `tap-stalls`.
 
 **IOS-4. Back and swipe.** Goal: left-edge swipe back is dependable by thumb and by the test bed; sheets, menu pages,
 walkthrough, rule book, salmon/run-timing screens all leave predictably. Acceptance: `back-layers`-style walk on
 simulator; real-iPhone verdict (needs owner) recorded; if a fast mid-height drag still stays, fix the gesture or its
 hit area. Size: M.
+  Sub-steps: port `edge.mjs` and the `edge-back*.yaml` flows; sweep drag height/speed grid, record which go back; walk every
+  layer (water page, sheets, menu pages, walkthrough, rule book, salmon/run timing, search) one step per swipe; fix hit
+  area/threshold in `EdgeBack.tsx` if the grid fails (iOS-only file); confirm Android untouched. Mirrors: `edge`,
+  `back-layers.test.ts`.
 
 **IOS-5. Downloads, offline, background.** Goal: first run survives a kill, app-switch, Wi-Fi to cellular, low disk, and
 a big update; background release check and notices behave on iOS. Acceptance: `first-open`, `offline`, `big-update`,
 `bg-install` equivalents on iOS; notification permission and one delivered notice shown; the Always/background
 declarations explained for review. Size: L (background behaviour needs a real device to be honest).
+  Sub-steps: port `install.mjs`, `bg-install.mjs`, `big-update.mjs`, `offline.mjs`, `gauge-offline.mjs`; kill mid-download and
+  relaunch; app to background mid-download; low-disk (simctl) message; notification permission prompt flow and one
+  raised notice via the feeds test channel; read what expo-background-task allows on iOS and write it down; background-
+  mode declarations explained for review. Mirrors: same-named Android scenarios.
 
 **IOS-6. Map, salmon and run timing, search, saved spots, photos.** Goal: the screens added since 11-05 work on iOS.
 Do: port `saved-spots`, `photo-zoom`, `route-scroll`, `pane` scenarios; shots side by side with Android. Acceptance: each
 scenario passes or its failure is ticketed. Size: M-L.
+  Sub-steps: port `saved-spots`, `spots`, `photo-zoom`, `route-scroll`, `pane`, `part-steps`, `regs-switch`, `report`, `feeds`,
+  `locate`; photos via simctl addmedia; side-by-side shots with Android; salmon + run timing map walks. Mirrors: those
+  scenarios; `spot-*.yaml` flows are shared.
 
 **IOS-7. Shared links as universal links.** Goal: a shared `canifishthis.ca/water/...` link opens the app on that water.
 Do: `associatedDomains` in app config for both hosts, site build serves `/.well-known/apple-app-site-association` (mirror
 the T625 `assetlinks.json` work and its site test), Team ID from the owner. Acceptance: simulator `xcrun simctl openurl`
 opens the water; link without the app opens the web. Size: M (final proof needs a signed build).
+  Sub-steps: copy the T625 site test for `/.well-known/apple-app-site-association` (Team ID as a placeholder read from config,
+  never invented); `associatedDomains` via app config for both hosts; check `appLink.native.ts` and `resolveAppLink` handle
+  the iOS launch URL; `xcrun simctl openurl` runs; no-app case = web. Real proof needs a signed build (IOS-11, parked).
+  Mirrors: T625 items 2-4.
 
 **IOS-8. Memory and cold start on a real-class device.** Goal: the footprint table re-run on 0.7.9; the memory-warning
 trim measured; cold start to map. Acceptance: table in T363 shape; a verdict on the oldest supported iPhone (needs the
 minimum-version decision and, ideally, a real older phone). Size: S-M.
+  Sub-steps: re-run `memory.mjs` on 0.7.9 and diff with T363; confirm the `memoryWarning` trim (`simctl` memory warning) frees
+  what it claims; cold start x3 via `perf`; record minimum-iOS number; no device claims. Mirrors: `memory`, `perf`,
+  T360 table.
 
 **IOS-9. Layout: safe areas, Dynamic Island, rotation, dark/light, Dynamic Type, VoiceOver.** Acceptance: shots on iPhone
 17 / 17e / Air / 17 Pro Max sims in light and dark; large text; VoiceOver reaches every card and button (T336 class).
 Size: M.
+  Sub-steps: **lock portrait on iPhone** (`expo.orientation`/`ios` Info.plist; check Android's setting and leave it);
+  shots on iPhone 17 / 17e / Air / 17 Pro Max in light and dark; largest Dynamic Type; VoiceOver tree walk like T336
+  (every card/button reachable); Dynamic Island / home-indicator insets; port `a11y-walk.mjs`. Mirrors: `check-colours`,
+  `regs-text-scale.test.ts`, `a11y-walk.mjs`.
 
 **IOS-10. Store pack for iOS.** Goal: everything for the App Store listing except what needs the account. Do: iPhone
 6.9"/6.5" screenshots from `store-shots`, the iOS store video (T709 step 2), App Privacy answers drafted from
 `privacy-labels-draft.md`, review notes, age-rating answers, name decision applied. Acceptance: a folder + a checklist the
 owner pastes from. Size: M.
+  Sub-steps: 6.9"/6.5" shots from the simulator through `store-shots.mjs` (iphone67 / iphone55); iOS store video via
+  `store-video` (886 x 1920, 1200 x 1600); review notes; age-rating answers; App Privacy answers cross-checked with
+  `play/data-safety.md` and the manifest; apply the name "Can I Fish This?" where `app.json` differs. Mirrors: T319, T709,
+  T365 missing list.
 
 **IOS-11. TestFlight (needs account; owner runs the signed script).** Goal: build 1 on TestFlight, internal testers, the
 real-iPhone run (T364 list: location prompt, download on Wi-Fi and cellular, edge-back by thumb, pill padding,
@@ -192,7 +262,7 @@ Each line names the Android check to reuse; "new" means no iOS or Android bench 
 | Crash path | `crash` | a signal crash reports on next start; no report loop |
 | Privacy / review | T365 table | every "Met" row still true on the new build |
 
-## Decisions that are the owner's (ask as multiple choice dialogs, one at a time, defaults noted)
+## Decisions that are the owner's (ask as multiple choice dialogs, batched on return; defaults in the Unattended section)
 
 1. **Apple Developer account and TestFlight.** "Buy the Apple Developer account ($99/year)?" (a) now, so TestFlight
    starts as soon as the Android closed test is running; (b) after Android closed testing has begun (default, per the
@@ -205,8 +275,10 @@ Each line names the Android check to reuse; "new" means no iOS or Android bench 
 4. **iOS own tap-up patch.** "If iOS also waits for a double tap before opening a water:" (a) measure first, then decide
    (default); (b) always add an iOS `onTapUp` to the binding patch for parity; (c) accept the iOS delay. Note the patch
    is not upstreamed and each addition makes bumping the binding harder.
-5. **Name.** "Can I Fish?" (home screen) vs "Can I Fish This?" (prompts, web, store). One answer for both stores (T371).
-6. **Rotation.** Lock portrait (default if Android is locked: unknown, check) or support landscape.
+
+**ANSWERED 2026-11-14 (owner, "Portrait only."):** rotation = portrait only. Lock it on iPhone (part of IOS-9).
+**ANSWERED (name; settled for Play 2026-11-13, same for iOS; T371 closed on that point):** "Can I Fish This?" on both stores.
+Apply it to app.json's `expo.name` / prompts / listing in IOS-10 if they still differ.
 
 ## What needs the owner physically (kept to the minimum)
 
