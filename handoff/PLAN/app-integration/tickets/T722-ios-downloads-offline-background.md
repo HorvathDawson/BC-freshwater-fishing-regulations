@@ -23,3 +23,14 @@ Depends: T718. Size: L. Owner: no (real-device proof waits for T88).
 
 ## Results
 (filled in as the work runs)
+
+## Audit (2026-11-14, read from the code)
+Full table: `handoff/PLAN/ios/parity-audit.md` (nothing was run; no package source was installed, so package behaviour is "from memory").
+- **F1 (core, likely broken):** the first install moves only with the app open and the screen on: foreground session (`install.native.ts:136`), no iOS background downloader (`bgDownload.ts`), no keep-awake or background time. Test first: `first-open`, home button at 20 %, wait, return.
+- **F8 (wrong words):** "starts by itself when you connect" (`core/src/install.ts:123`) holds on iOS only while the app is open; the boot line says "Wi-Fi recommended" (`App.tsx:735`), not "keep the app open".
+- **F3 (wrong words):** notification settings promise "about every 15 minutes at best" (`core/src/alerts.ts:333-334`); iOS BGTaskScheduler is the OS's call, may be rare or never, and does not run on its own in the simulator. Port `feeds` plus the package's test trigger.
+- **F6:** the release (~480 MB) is in Documents with no iCloud-backup exclusion (`install.native.ts:24`); spots and photos share that folder and should stay backed up. Check with `xattr` after install.
+- **F9:** no free-space check; a full disk shows "Check the connection" (`App.tsx:618`). Shared with Android.
+- **F14:** iOS hashes the big files in JS (`install.native.ts:167`); count `[stall]` lines in the hash phase.
+- Notices: permission asked only from a reader's switch (`notify.native.ts:112`), `trigger: null`, tap code is platform-free; cold-start tap needs one run. No iOS update notice until `EXPO_PUBLIC_APP_STORE_URL` is set (by design, answered: nothing shows, the too-old boot screen says so without a button).
+- `deps.md:211-213` still claims a background URLSession on iOS: stale (F12).
