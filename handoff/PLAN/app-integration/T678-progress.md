@@ -876,3 +876,30 @@ Owner's phone report (build 29, the More tab). Done in code, not yet in a build:
   up to the CPR Bridge near Creston" — the "(km 123)" is the duplicate-name disambiguator (the dolphin aliases the Main
   Body lake edge).
 - Not done: app build, Play upload (main decides).
+
+## 2026-11-13 (pipeline lane) — T691 phase 2 + T708 wording: r-f749475d0962 LATEST and on staging
+- Code + data: 1965900be (cut_at / reads below / cut false; the 7 owner answers as surgical matches.json +
+  match_calls.json rows; "North Beach Creek" on the fork), d109408fd (Lakelse "Mouth (at the signs)", Kootenay dolphin
+  without "(km 123)"), 8a1ce30f1 (promote patch: McArthur r1 undrawn_part, Tlell r5 off its tributaries, T89/T100 pins).
+- Atlas full_next (29 min, sliver gate clean), promoted by main. Parity: items +1 (North Beach Creek), boundaries +0,
+  section ids +9 (the fork's 9 unnamed tributaries, kept by leaf_prune now it is named). The promote's "+28 sections" is
+  ITEM MEMBERSHIP, not ids: the 9 ids each join basin 100, pfma_29 and region 6 (27) + 1 for the new item's own section
+  (the fork's existing piece, now owned by North Beach Creek). 425 gauge cuts; the 4 new ones stand on boundaries that
+  were already there (Revelstoke, Keenleyside, Corra Linn dams; Skins Lake edge).
+- Binding diff vs r-a9914d6b25b7 = the side run's, accepted: 102 rules + steelhead_targeting + DFO 6:a/6:f +9 (the
+  leaves); tlell_river.r5 -13 -> unresolved tidal. Gauges: only the 7 stations change rows; 556 sections change speaker,
+  every one to or from them (attribution: data/generated/side/t691/checks/ATTRIBUTION.md).
+- Release: fixtures re-cut fb3f5c3158be (edge_unnamed handle 918000 -> 918009 = the +9 handles' stride, page text same;
+  taps.json numbers only), in-season 729494886 (resolved on the candidate). Staging upload smoke 18 pass / 1 warn (site on
+  the old release) -> `site-all.sh` 19 pass / 0 warn / 0 fail. Feeds dfo/gauges/inseason ok and fresh; sync-inputs
+  --dry-run in sync (38 notices on r-f749475d0962).
+- Tests (owner 2026-11-13: only what changed): pytest fast, all 32 chunks (were running when the rule came): 7,451
+  passed / 0 failed. Slow, only the touched areas (no_slivers, one_water_kind, watershed_parts, status_index,
+  one_data_flow, verdicts, derived_tables, reach_tributaries, reach_flow_placement, placement_rulings, ambiguous_cut,
+  tributary_lakes, reach_area_bounds, dfo_salmon, unnamed_trib_sweep): 92 passed / 0 failed / 1 skipped. Skipped slow:
+  extract_synopsis, tiles, tile_mvt_ids, curation_review_browser, review_screen, region_homes, mu_regions, bc_boundary,
+  basin_areas, zone_decisions, competition, reader_answers, answers_28_live, phase3_rulings. Card gate 0 problems;
+  fast-fail rc 0; `pnpm check:fast` rc 0. App check (strict): 2 failed in tools/back-layers.test.ts on
+  `Shell.tsx` — another lane's uncommitted app edit, not this release.
+- T57 sweep 6b78e6a: unnamed_streams 1,179,619 -> 1,179,627 (+9 leaves, -1 the fork now named), walking_rules 479 -> 478
+  (Tlell r5), unexplained 0.

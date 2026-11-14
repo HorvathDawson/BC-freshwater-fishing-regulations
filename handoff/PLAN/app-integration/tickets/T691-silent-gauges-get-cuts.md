@@ -1,6 +1,6 @@
 # T691 — A silent gauge station ECCC still calls Active gets its cut (Q113)
 
-Status: IN PROGRESS — 1935c1dc9; left (Claude): promote full_next + release (built 2026-11-12) (32 new gauge cuts); read the build's sliver
+Status: DONE (1935c1dc9 phase 1; 1965900be + 8a1ce30f1 phase 2; released r-f749475d0962 2026-11-13)
 gate and gauge placement lines for the 32
 
 Source: owner 2026-11-12, answering Q113 (T122), verbatim: "silent doesn't mean retired so we should add cuts Incase they
@@ -86,4 +86,4 @@ walk). Rows (surgical, the 7 stations only, built by `promote.build`): 08JB013 -
 "North Beach Creek" (name_variants, source gauge); 08PA004 -> Ross Lake lake gauge; 08ND025 / 08NE126 / 08NJ158 cut at
 the dam, reads below; 08JA013 cut at the channel foot; 08FE002 verdict none. Candidate atlas `full_next` + side run
 `data/generated/side/t691` (checks/ATTRIBUTION.md): all 4 new cuts join standing boundaries; placements exactly as
-proposed. Left (Claude): promote full_next + apply `T691-files/apply-with-promote.patch` + release.
+proposed. Promoted, patch applied (8a1ce30f1) and released: r-f749475d0962 (LATEST, staging).
