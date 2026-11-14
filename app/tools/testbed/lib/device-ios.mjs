@@ -3,7 +3,7 @@
 // simulator cannot do is said, not faked: it shares the Mac's network (no airplane mode, no link shaping from simctl),
 // so `net('offline')` throws a skip and the scenarios use the app's own "Simulate offline" (Updates log) instead.
 // Nothing here kills a process it did not start; the simulator's lifetime is session-ios.sh's.
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawn } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -65,26 +65,78 @@ export function screenshot(file) {
   return file;
 }
 
-/** Every text / accessibility label on screen (Maestro's view of it: XCUITest's accessibility tree). */
-export function screenText() {
+/** Maestro's view of the screen (XCUITest's accessibility tree) as its JSON root; null when Maestro did not answer. */
+function hierarchy() {
   try {
     const bin = process.env.MAESTRO_BIN ?? path.join(os.homedir(), '.maestro/maestro/bin/maestro');
     const [cmd, argv] = maestroCmd(bin, ['--device', udid(), 'hierarchy']);   // off the emulator ports (lib/maestro.mjs)
     const json = execFileSync(cmd, argv, {
       encoding: 'utf8', timeout: 90_000, maxBuffer: 64 << 20, stdio: ['ignore', 'pipe', 'ignore'],
       env: { ...process.env, MAESTRO_CLI_NO_ANALYTICS: '1', JAVA_HOME: process.env.JAVA_HOME ?? '/Applications/Android Studio.app/Contents/jbr/Contents/Home' } });
-    const out = [], ids = [];
-    const walk = (n) => {
-      const a = n.attributes ?? {};
-      for (const k of ['text', 'accessibilityText', 'hintText', 'value']) if (a[k] && !out.includes(a[k])) out.push(a[k]);
-      if (a['resource-id']) ids.push(a['resource-id']);
-      (n.children ?? []).forEach(walk);
-    };
-    walk(JSON.parse(json.slice(json.indexOf('{'))));
-    // (T313) the RN testIDs on screen ride along (not words: a scenario's text match never sees them)
-    Object.defineProperty(out, 'ids', { value: ids, enumerable: false });
-    return out;
-  } catch { return Object.defineProperty([], 'ids', { value: [], enumerable: false }); }
+    return JSON.parse(json.slice(json.indexOf('{')));
+  } catch { return null; }
+}
+
+/** Every text / accessibility label on screen (Maestro's view of it: XCUITest's accessibility tree). */
+export function screenText() {
+  const out = [], ids = [];
+  const walk = (n) => {
+    const a = n.attributes ?? {};
+    for (const k of ['text', 'accessibilityText', 'hintText', 'value']) if (a[k] && !out.includes(a[k])) out.push(a[k]);
+    if (a['resource-id']) ids.push(a['resource-id']);
+    (n.children ?? []).forEach(walk);
+  };
+  const root = hierarchy();
+  if (root) walk(root);
+  // (T313) the RN testIDs on screen ride along (not words: a scenario's text match never sees them)
+  return Object.defineProperty(out, 'ids', { value: ids, enumerable: false });
+}
+
+/** (T721-T723) THE SCREEN AS NODES, the iOS stand-in for lib/screen.mjs's uiautomator dump: the same row shape
+ *  { id, cls, text, desc, box } in document order (box in iOS points, from Maestro's `bounds` "[x0,y0][x1,y1]"), so
+ *  screen.mjs's pure helpers (find, all, shown, inside, within, squeezed, labelProblem) read it unchanged. `text` is
+ *  the element's text (or value), `desc` its accessibility label. Empty when Maestro did not answer (never a guess). */
+export function nodes() {
+  const out = [];
+  const walk = (n) => {
+    const a = n.attributes ?? {};
+    const b = /^\[(-?[\d.]+),(-?[\d.]+)\]\[(-?[\d.]+),(-?[\d.]+)\]$/.exec(a.bounds ?? '');
+    if (b) out.push({ id: a['resource-id'] ?? '', cls: a.class ?? '', text: a.text || a.value || '', desc: a.accessibilityText ?? '',
+                      box: { x0: +b[1], y0: +b[2], x1: +b[3], y1: +b[4] } });
+    (n.children ?? []).forEach(walk);
+  };
+  const root = hierarchy();
+  if (root) walk(root);
+  return out;
+}
+/** (T542 waits on iOS) a testID on screen */
+export const hasId = (id) => screenText().ids.includes(id);
+/** The screen's pixels as a PNG buffer (a frame-equal check: `settle({ frame })`). */
+export function screenFrame() {
+  const f = path.join(os.tmpdir(), `tb-ios-frame-${process.pid}.png`);
+  screenshot(f);
+  try { return fs.readFileSync(f); } finally { try { fs.unlinkSync(f); } catch { /* gone */ } }
+}
+
+// ---------- the simulator's own tools (Android's adb equivalents) ----------
+/** A photo or video into the simulator's library (Android: `addPhoto`). */
+export const addMedia = (file) => simctl(['addmedia', udid(), file]);
+/** Light or dark appearance (Android: `cmd uimode night`). */
+export const appearance = (mode) => simctl(['ui', udid(), 'appearance', mode]);
+/** Start recording the screen to `file` (H.264 .mp4); `stop()` ends it (SIGINT to OUR child only) and waits for the
+ *  file to be written. Android: `screenrecord`. */
+export function recordVideo(file) {
+  const base = SIMCTL === 'simctl' ? ['xcrun', ['simctl']] : [SIMCTL, []];
+  const p = spawn(base[0], [...base[1], 'io', udid(), 'recordVideo', '--codec=h264', '--force', file], { stdio: 'ignore' });
+  return {
+    async stop() {
+      const done = new Promise((r) => p.once('exit', r));
+      p.kill('SIGINT');
+      await Promise.race([done, sleep(15_000)]);
+      if (!fs.existsSync(file)) throw new Error(`recordVideo wrote no ${file}`);
+      return file;
+    },
+  };
 }
 
 /** (T363) The app's memory as iOS counts it (`footprint`, the host's view of the simulator process; MB): the footprint

@@ -35,7 +35,9 @@ const appSource = [...walk(join(app, "apps"), (p) => /\.(tsx?|js)$/.test(p) && !
   .map(read).join("\n");
 const appLower = appSource.toLowerCase();
 
-const scenarioFiles = [...walk(join(bed, "scenarios"), (p) => p.endsWith(".mjs")), join(bed, "run.mjs"), ...walk(join(bed, "lib"), (p) => p.endsWith(".mjs") && !/\.test\./.test(p))];
+// (T719) the iOS runner and its twins too: a renamed id fails here, not in a simulator run
+const scenarioFiles = [...walk(join(bed, "scenarios"), (p) => p.endsWith(".mjs")), join(bed, "run.mjs"), join(bed, "run-ios.mjs"),
+  ...walk(join(bed, "scenarios-ios"), (p) => p.endsWith(".mjs")), ...walk(join(bed, "lib"), (p) => p.endsWith(".mjs") && !/\.test\./.test(p))];
 const flowFiles = walk(join(bed, "flows"), (p) => p.endsWith(".yaml"));
 const where = (p: string) => relative(app, p);
 
@@ -96,6 +98,7 @@ const idExists = (id: string): boolean => {
 describe("every id and label a scenario uses exists in the app", () => {
   it("the scan actually saw the scenarios (not an empty pass)", () => {
     expect(scenarioFiles.length).toBeGreaterThan(30);
+    expect(scenarioFiles.some((p) => p.endsWith("run-ios.mjs")) && scenarioFiles.some((p) => p.includes("scenarios-ios"))).toBe(true);
     expect(ids.size).toBeGreaterThan(10);
     expect(texts.size).toBeGreaterThan(10);
     expect(appSource.length).toBeGreaterThan(1_000_000);

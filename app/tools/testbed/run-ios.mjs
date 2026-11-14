@@ -15,6 +15,8 @@ import path from 'node:path';
 import * as device from './lib/device-ios.mjs';
 import { flow } from './lib/maestro.mjs';
 import { writeReport } from './lib/report.mjs';
+import { makeWaits } from './lib/waits.mjs';
+import { runYaml, swipeYaml } from './lib/ios-flow.mjs';
 import { count, readPng } from './lib/png.mjs';
 import { regsOpenIos } from './scenarios-ios/regs-open.mjs';
 import { tapStallsIos } from './scenarios-ios/stalls.mjs';
@@ -56,6 +58,10 @@ async function appUp(ctx, { launch = true, ms = 180_000, alerts = 'Allow' } = {}
       // (T313 finding, T332) a walk left at its Layers step reopens the sheet, and the card over it is not in the
       // accessibility tree: the sheet's Done first, then the card can be skipped
       ctx.flow('tap-text', { TEXT: 'Done' });
+    } else if ((w.ids ?? []).includes('inseason-notice') && w.includes('Done')) {
+      // (T706, as common.mjs closeInbox) the notification inbox opens itself once at a cold start over the map: said, closed
+      ctx.finding('the notification inbox sheet (inseason-notice) was showing over the map: closed with Done');
+      ctx.flow('tap-text', { TEXT: 'Done' });
     } else if (hasTabs(w)) {
       // the walkthrough opens once the map has drawn: a beat, then a last look before calling the app up
       await sleep(4000);
@@ -70,21 +76,29 @@ async function appUp(ctx, { launch = true, ms = 180_000, alerts = 'Allow' } = {}
   if (bad) throw new Error(`the app says: ${bad}`);
 }
 async function coldStart(ctx, opts) { device.stop(); await sleep(1000); return appUp(ctx, opts); }
-/** Back to the Map tab: the edge-back (iOS has no system Back) until the tab bar shows, then the tab. */
+/**
+ * (T721-T723) ONE STEP BACK, the iOS stand-in for Android's `input keyevent 4` (iOS has no system Back): the screen's
+ * own way out, read off the screen. Returns what it did ('page' | 'sheet' | 'menu' | 'search' | 'edge'), or null at the
+ * map root with nothing over it (Back there does nothing: Android's would leave the app, which no scenario wants).
+ */
+async function back(ctx, w = device.screenText()) {
+  // a water's page ("‹ Map" over Regulations · Conditions): its own back link, by id (the tab bar may still be in the tree)
+  if (onPage(w)) { await pageBack(ctx); await sleep(1500); return 'page'; }
+  // (T706) the notification inbox sheet, or any sheet: its Done
+  if ((w.ids ?? []).includes('inseason-notice') || (w.includes('Done') && !hasTabs(w))) { ctx.flow('tap-text', { TEXT: 'Done' }); await sleep(1000); return 'sheet'; }
+  if (hasTabs(w) && !w.includes('Done') && !w.some((x) => /NAMED WATERS/i.test(x))) return null;
+  // a menu page (a Modal from below: no edge swipe) has its own "‹ Back"; the search its ‹; else the edge-back
+  if (w.some((x) => /^(Back|Glossary)$/.test(x))) { ctx.flow('tap-text', { TEXT: '(Back|Glossary)' }); await sleep(1000); return 'menu'; }
+  if (w.some((x) => /NAMED WATERS/i.test(x))) { ctx.flow('tap-point', { POINT: SEARCH_BACK }); await sleep(1000); return 'search'; }
+  if (w.includes('Done')) { ctx.flow('tap-text', { TEXT: 'Done' }); await sleep(1000); return 'sheet'; }
+  ctx.flow('edge-back'); await sleep(1000); return 'edge';
+}
+/** Back to the Map tab: one step back at a time (`back`) until the tab bar shows, then the tab. */
 async function toMap(ctx) {
   for (let i = 0; i < 6; i++) {
     const w = device.screenText();
-    // a water's page ("‹ Map" over Regulations · Conditions): its own back link, by id (the tab bar may still be in the tree)
-    if (onPage(w)) {
-      try { ctx.flow('tap-id', { ID: 'water-back' }); } catch { ctx.flow('tap-point', { POINT: PAGE_BACK }); }
-      await sleep(1500); continue;
-    }
-    if (hasTabs(w)) break;
-    // a menu page (a Modal from below: no edge swipe) has its own "‹ Back"; a water's page the edge-back
-    if (w.some((x) => /^(Back|Glossary)$/.test(x))) ctx.flow('tap-text', { TEXT: '(Back|Glossary)' });
-    else if (w.some((x) => /NAMED WATERS/i.test(x))) ctx.flow('tap-point', { POINT: SEARCH_BACK });   // the search open
-    else ctx.flow('edge-back');
-    await sleep(1000);
+    if (hasTabs(w) && !onPage(w) && !(w.ids ?? []).includes('inseason-notice')) break;
+    if (!(await back(ctx, w))) break;
   }
   const w = device.screenText();
   if (!hasTabs(w) || onPage(w)) await coldStart(ctx);
@@ -599,7 +613,23 @@ function makeCtx(sc) {
   const ctx = {
     device, rec, dir,
     // (T719) the iOS steps the twins in scenarios-ios/ share with the scenarios here
-    ios: { appUp, coldStart, toMap, pageBack, onPage, hasTabs },
+    ios: { appUp, coldStart, toMap, back, pageBack, onPage, hasTabs },
+    // (T542 waits) until / timer as Android's; hasId off Maestro's tree; settle's frame look a simulator screenshot
+    ...makeWaits(device),
+    hasId: (id) => device.hasId(id),
+    async settle({ ms = 3000, every = 700, frame = false } = {}) {
+      const look = () => (frame ? device.screenFrame().toString('base64') : device.screenText().join('\u0001'));
+      const end = Date.now() + ms;
+      let prev = look();
+      while (Date.now() + every <= end) { await sleep(every); const cur = look(); if (cur === prev) return true; prev = cur; }   // poll interval
+      return false;
+    },
+    /** (T721-T723) a timed swipe at points (iOS points), as Android's `input swipe x0 y0 x1 y1 ms` */
+    swipe(from, to, ms) {
+      const r = runYaml(dir, `swipe-${Date.now()}`, swipeYaml(from, to, ms));
+      if (!r.ok) throw new Error(`swipe ${from} → ${to} (${ms} ms) failed: ${r.said || 'see flows-ios/'}`);
+      return r;
+    },
     flow(name, env) {
       let r = flow(name, env, { logDir: path.join(dir, 'maestro', sc.id) });
       if (!r.ok) { execSleep(2); r = flow(name, env, { logDir: path.join(dir, 'maestro', sc.id) }); }
