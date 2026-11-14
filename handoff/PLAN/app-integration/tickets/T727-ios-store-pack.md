@@ -32,3 +32,9 @@ Open points:
 - Name: `expo.name` "Can I Fish?" (home-screen label) is the only differing string; proposal keep it, store name "Can I Fish This?". No app.json edit made.
 - Not verified: Apple's live form wording; tap paths in the review notes (not walked on iOS); `fetch`/`processing` in a fresh build's Info.plist (the `ios/` folder here is stale); whether a ~100 m report centre counts as Apple "precise".
 - Owner needs: Apple account, App Store Connect entries, production data (T86) before the review build.
+
+- **Checked on the 2026-11-14 simulator build (HEAD 8ba815a23), from its `Info.plist`:** `UIBackgroundModes` = `fetch`,
+  `processing` (the text pack's "not verified" point: now verified); `BGTaskSchedulerPermittedIdentifiers` =
+  `com.expo.modules.backgroundtask.processing`; `UIDeviceFamily` = 1 (iPhone only); the three permission prompts say
+  "Can I Fish This?"; `CFBundleDisplayName` = "Can I Fish?"; `ITSAppUsesNonExemptEncryption` = false;
+  `PrivacyInfo.xcprivacy` is in the app. Orientations: Portrait and PortraitUpsideDown (see T726).

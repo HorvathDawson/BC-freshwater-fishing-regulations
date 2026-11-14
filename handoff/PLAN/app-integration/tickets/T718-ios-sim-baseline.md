@@ -22,4 +22,10 @@ report with the 11 existing scenarios, build time, first-open time, memory table
 Depends: none. Size: M. Owner: no.
 
 ## Results
-(filled in as the work runs)
+- **Build (2026-11-14, HEAD 8ba815a23, 0.7.9 build 31):** `deploy/staging/build-ios-sim.sh --testbed` passed first time, no
+  fix needed after two weeks of app changes. `xcodebuild` 122 s; the whole job (worktree, pnpm, prebuild, pods, compile)
+  under 10 minutes on heavy lane 2. Xcode 27.2, iphonesimulator, arm64, Release, no signing.
+- **Minimum iOS: 16.4** (`MinimumOSVersion` in the built `Info.plist`; not set in `app.json`, so it is what Expo SDK 58 /
+  RN 0.88 give). Answers the handoff's "unknown". Owner decision 2 keeps this as the default.
+- Display name in the build: "Can I Fish?" (`CFBundleDisplayName`), version 0.7.9, build 31.
+- Rotation: `expo.orientation` is already `"portrait"` in `app.json` (checked 2026-11-14); T726 confirms it on the build.
