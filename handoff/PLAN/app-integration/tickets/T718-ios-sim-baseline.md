@@ -60,3 +60,45 @@ iOS device/runner pieces to add; "ctx" = runner pieces `run-ios.mjs` lacks (`ctx
 | pan, switch-pan | Android-only | `dumpsys gfxinfo` frame stats; iOS frame times need Instruments (`xctrace`), not wired |
 | heapprof | Android-only | Perfetto heapprofd; iOS stand-in is `footprint` (the `memory` twin) |
 | crash-bed | part portable | JS rejection / uncaught error parts portable (crash stub on localhost, the simulator shares it); native SIGSEGV part = iOS `crash` |
+
+### Baseline triage (test-bed lane, 2026-11-14; build 8ba815a23 `--testbed`, iPhone 17 sim, iOS 26.5)
+Runs: `ios-baseline` (main lane, `all`, cut by its 40 min cap during `pdf`), then `ios-rest`, `ios-benches` and `ios-open`
+(lane 2) for what failed or never ran. Shots: `handoff/PLAN/ios/shots/baseline/` (one per scenario, JPEG under 80 KB).
+
+| scenario | result | cause | number |
+|---|---|---|---|
+| first-open | PASS | | 397 s to the map (split below) |
+| map | PASS | | 5.4 % coloured, 39 % light grey |
+| tap-water | PASS | | edge drag: 50 % / 400 ms stayed, 30 % / 900 ms went back (as at 0.5.0) |
+| offline | 2 of 3 → see re-run | **test bed:** (1) step 3: the shared flow's `tapOn "MAP\|Map"` hit another "Map" on iOS and the Cultus page reopened → `ios-open-updates-log.yaml`, no text tap (6572ee881); (2) step 1: the Developer card's log reaches the accessibility tree only after the flow's 15 s wait at a cold start (the screenshot shows it) → wait on the tree (1f3376368) | |
+| satellite | PASS | | light grey 10.6 % → 5.6 % |
+| location | 2 PASS, 1 SKIP | **app (parity):** no "At my location" row in iOS search (START-HERE flagged it) | 949 blue px at the centre |
+| walkthrough | PASS | | 41 of 41 |
+| pdf | PASS (re-run) | baseline: cut by the session cap | "Page 11 of 88" in PDFKit |
+| crash | FAIL step 2 | **app or server, unconfirmed:** the next start read the record (`1 new … (CRASH_NATIVE), 1 bad`) but `sendExit` returned false on every start (POST /crash to the staging worker was made: CFNetwork lines). The app does not log the HTTP status. Likely the worker's per-IP limit (40 crash POSTs a day: many crash tests from this Mac today), not proven | |
+| perf | PASS | | cold start → map 597 / 583 / 595 ms; tap → first frame 123 / 54 / 64 ms; pan lag max 18 ms, 0 stalls |
+| memory | PASS (re-run) | baseline: never ran. **Test bed:** the rule-book link (now "This water in the rule book p.7 ↗") and the Salmon toggle's words had changed (59aaa4de8) | peak footprint 274 MB (0.5.0: 290); table in T725 |
+
+**First open, 397 s (0.5.0: 168 s), split from the app's own log (`ios-baseline/app-os.log`):**
+- **Release size: 479,277,504 bytes = 479 MB (457 MiB)**, from the app's `[download] mobile data: go (479277504 bytes)`.
+  So "about 480 MB" is right; "about 500 MB" overstates it. Pieces: basemap 225.4 MB, atlas 197.2 MB, rule book 11.7 MB,
+  the rest (regulations data etc.) ~45 MB.
+- launch → map drawn **327 s**: 25 s before the big files started (the smaller files are not logged one by one; JS
+  stalls up to 826 ms in that window); big files 257 s. **On average 479 MB in 282 s = 1.70 MB/s** (0.5.0: 492 MB in
+  153 s = 3.2 MB/s). A single curl from this Mac
+  to staging at 13:00 read 2.3 MB/s, so most of the doubling is the line today, not the app.
+- **44 s after the last byte** hashing (`[setup] installed 44158 ms after the last byte`): the following hash (T272)
+  could not keep up (atlas 40.6 s, basemap 44.1 s "to catch up").
+- open + first draw 1 s. The remaining **~70 s are the test bed** (Maestro: the first-run notice, the walkthrough
+  dismissal and `hierarchy` reads after the map was already up).
+- **App finding (iOS only): 4,999 `TypeError: Cannot convert BigInt to number` lines during the download**, ~20 a second,
+  from 10:22:37.850 to 10:26:54.569. Those are the exact times the three big files were downloading. expo-file-system's iOS
+  `DownloadTask` gives `bytesWritten` as Int64, which reaches JS as a BigInt, and `install.native.ts:137`
+  `onProgress: (p) => onBytes?.(have + p.bytesWritten)` adds it to a number. **Likely effect: the first-open progress on
+  iOS does not move** (not seen: no shot during the download). Fix (shared `packages/data`, not this lane's):
+  `Number(p.bytesWritten)`. Android is unaffected (its value is a number).
+
+**Test bed cost:** every Maestro call (a flow or a `hierarchy` read) takes 10-25 s on this simulator (a JVM start plus the
+XCTest driver), so the 11 scenarios need about 60 min, more than the 40 min cap given. Run them in two batches.
+**Also seen:** the Developer card's log is missing from the accessibility tree for 15 s or more after a cold start, while
+it is on screen. That card is test builds only, so it has no reader impact.
