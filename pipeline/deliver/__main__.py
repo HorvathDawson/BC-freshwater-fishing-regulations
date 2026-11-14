@@ -46,7 +46,8 @@ def _bundle(a) -> Path:
     build_dir = a.build or GENERATED.require_build()
     out = a.out or (GENERATED.bundle / "bundle.sqlite")
     print(f"bundling {build_dir} -> {out}")
-    build(build_dir, out, reaches=a.reaches, entries=a.entries, tiles=a.tiles)
+    build(build_dir, out, reaches=a.reaches, entries=a.entries, tiles=a.tiles,
+          data_dir=a.source, clim=a.clim, dfo_typed=a.dfo_typed, dfo_cache=a.dfo_cache)
     return out
 
 
@@ -322,6 +323,16 @@ def main(argv=None) -> int:
     b.add_argument("--out", type=Path, default=None)
     b.add_argument("--tiles", type=Path, default=None,
                    help="the tile set the access measure reads (default: the live tiles)")
+    # (T667 slice 8) the fetched and fed inputs, each named or the live one — the mini release names all four
+    b.add_argument("--source", type=Path, default=None,
+                   help="the fetched source tree (stations, places, boundary, synopsis, HYDAT, FWA gpkg; default: "
+                        "data_tree.source)")
+    b.add_argument("--clim", type=Path, default=None,
+                   help="the gauge envelope clim.json (default: the live feed's, gauges.consume.bundle_tables.CLIM_PATH)")
+    b.add_argument("--dfo-typed", type=Path, default=None,
+                   help="the typed DFO salmon feed directory (default: the live one under regs/dfo_salmon/typed)")
+    b.add_argument("--dfo-cache", type=Path, default=None,
+                   help="the DFO page cache the current headers are read from (default: the fetch's cache)")
     v = sub.add_parser("verdicts", help="the reader's every answer, once: verdicts.sqlite")
     v.add_argument("--bundle", type=Path, default=GENERATED.bundle / "bundle.sqlite")
     v.add_argument("--out", type=Path, default=None,

@@ -56,11 +56,97 @@
    ]
   },
   {
+   "entry_id": "z2:summer_stream_closure",
+   "name": "Summer stream closure",
+   "display_name": "Streams of Region 2",
+   "region": "2",
+   "regs_verbatim": "Summer closure: No Fishing in any stream in Region 2 from July 15-Aug 31 (see water specific regulations table for exceptions).",
+   "source_pages": [
+    92
+   ],
+   "extents": [
+    {
+     "op": "within",
+     "area_id": "area:region:2",
+     "feature_types": [
+      "stream"
+     ]
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "summer_stream_closure.r1",
+     "type": "retention_limit",
+     "verbatim": "Summer closure: No Fishing in any stream in Region 2 from July 15-Aug 31 (see water specific regulations table for exceptions).",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 7,
+        "from_day": 15,
+        "to_month": 8,
+        "to_day": 31
+       }
+      ]
+     },
+     "take": 0,
+     "may_target": false,
+     "water": "stream",
+     "closure_kind": "summer",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:2",
+       "feature_types": [
+        "stream"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "entry_id": "z2:possession_quota",
+   "name": "Possession quota",
+   "display_name": "Region 2",
+   "region": "2",
+   "regs_verbatim": "Possession quotas = 2 daily quotas",
+   "source_pages": [
+    92
+   ],
+   "extents": [
+    {
+     "op": "within",
+     "area_id": "area:region:2"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "possession_quota.r1",
+     "type": "retention_limit",
+     "verbatim": "Possession quotas = 2 daily quotas",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "period": "possession",
+     "per_daily": 2,
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:2"
+      }
+     ]
+    }
+   ]
+  },
+  {
    "entry_id": "r2:stub_creek@2-1",
    "name": "STUB CREEK",
    "display_name": "Stub Creek",
    "region": "2",
-   "regs_verbatim": "Trout/char catch and release",
+   "regs_verbatim": "Trout/char catch and release\nExempt from July 15-Aug 31 summer closure",
    "source_pages": [
     92
    ],
@@ -87,6 +173,24 @@
       }
      ],
      "may_target": true
+    },
+    {
+     "rule_id": "stub_creek.r2",
+     "type": "retention_limit",
+     "verbatim": "Exempt from July 15-Aug 31 summer closure",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "default_id": "summer_stream_closure"
+      }
+     ]
     }
    ]
   },
@@ -116,6 +220,107 @@
       "TROUT_CHAR"
      ],
      "take": 1,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "entry_id": "r2:twofold_lake@1-1+2-1",
+   "name": "TWOFOLD LAKE",
+   "display_name": "Twofold Lake",
+   "region": "2",
+   "regs_verbatim": "Trout/char daily quota = 2",
+   "source_pages": [
+    92
+   ],
+   "matched": [
+    "wbk:800000006"
+   ],
+   "extents": [
+    {
+     "op": "whole"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "twofold_lake.r1",
+     "type": "retention_limit",
+     "verbatim": "Trout/char daily quota = 2",
+     "species": [
+      "TROUT_CHAR"
+     ],
+     "take": 2,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "entry_id": "r2:mockup_creek@2-1",
+   "name": "MOCKUP CREEK",
+   "display_name": "Mockup Creek",
+   "region": "2",
+   "regs_verbatim": "No Fishing",
+   "source_pages": [
+    92
+   ],
+   "matched": [
+    "wsc:920-123456-666666-500000"
+   ],
+   "extents": [
+    {
+     "op": "whole"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "mockup_creek.r1",
+     "type": "retention_limit",
+     "verbatim": "No Fishing",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "take": 0,
+     "may_target": false,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "entry_id": "r2:mockup_marsh@2-1",
+   "name": "MOCKUP MARSH",
+   "display_name": "Mockup Marsh",
+   "region": "2",
+   "regs_verbatim": "No powered boats",
+   "source_pages": [
+    92
+   ],
+   "matched": [
+    "wbk:800000005"
+   ],
+   "extents": [
+    {
+     "op": "whole"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "mockup_marsh.r1",
+     "type": "vessel_rule",
+     "verbatim": "No powered boats",
+     "aspect": "propulsion",
+     "level": "unpowered",
      "extents": [
       {
        "op": "whole"

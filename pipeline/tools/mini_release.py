@@ -21,8 +21,10 @@ WHAT COMES OUT: everything under `--build DIR` and nothing anywhere else. `diges
 one (the atlas meta's build time, the gpkg stamp of a scratch path). Two runs from the same inputs must agree.
 
 STEPS (ticket T667 slice 8): (1) the input tree + the atlas, (2) the reach run and deliver + the digest proof, (3)
-the app logic tests move onto the committed release, (4) the pipeline side. `--check` / `--write` against a committed
-copy come with step 3, when there is a release to commit.
+the app logic tests move onto the committed release, (4) the pipeline side. Built: atlas -> reach -> tile layers
+(`--no-archive`) -> bundle -> verdicts -> status index, every fetched and fed input invented (`write_source`), and a
+watch that refuses a build that changed a live directory (`watched_dirs`). Parked at the export (`PARKED_AT`), so
+there is no release to commit yet: `--check` / `--write` against a committed copy wait for it.
 """
 from __future__ import annotations
 
@@ -143,17 +145,18 @@ def write_inputs(out_dir: Path, world: dict | None = None) -> tuple[Path, Path]:
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     fwa, coast = out_dir / "fwa.gpkg", out_dir / "coast.gpkg"
-    for p in (fwa, coast):
+    for p in (fwa, coast, out_dir / "obstacles.gpkg"):
         if p.exists():
             p.unlink()
     nan = float("nan")
 
-    def write(path, layer, rows, geoms, dtypes):
+    def write(path, layer, rows, geoms, dtypes, geometry_type=None):
         df = pd.DataFrame(rows, columns=list(dtypes))
         for col, dt in dtypes.items():
             df[col] = df[col].astype(dt)
+        kw = {"geometry_type": geometry_type} if geometry_type else {}
         gpd.GeoDataFrame(df, geometry=list(geoms), crs=f"EPSG:{EPSG}").to_file(
-            path, layer=layer, driver="GPKG", engine="pyogrio")
+            path, layer=layer, driver="GPKG", engine="pyogrio", **kw)
 
     # --- streams
     stream_cols = {
@@ -214,7 +217,7 @@ def write_inputs(out_dir: Path, world: dict | None = None) -> tuple[Path, Path]:
     for i, ws in enumerate(world["watersheds"], 1):
         g = _box(world, ws["box"])
         rows.append([float(930000 + i), ws["gnis_id"], ws["name"], ws["blk"], ws["blk"], full_wsc(world, ws["wsc"]),
-                     3, 4, round(g.area / 10_000, 6), "WA25100000", g.length, g.area])
+                     ws["order"], ws["magnitude"], round(g.area / 10_000, 6), "WA25100000", g.length, g.area])
         geoms.append(g)
     write(fwa, "watersheds", rows, geoms, ws_cols)
 
@@ -245,6 +248,49 @@ def write_inputs(out_dir: Path, world: dict | None = None) -> tuple[Path, Path]:
         geoms.append(g)
     write(fwa, "pfma_areas", rows, geoms, pf_cols)
 
+    # --- the OpenStreetMap access layers the area defs select from (`restricted_land_access`, `aboriginal_lands`)
+    la_cols = {"osm_id": "object", "osm_type": "object", "name": "object", "access": "object", "landuse": "object",
+               "restriction_level": "object"}
+    write(fwa, "land_access", [[a["osm_id"], a["osm_id"].split("/")[0], a["name"], "no", a.get("landuse"),
+                                 a["restriction_level"]] for a in world["land_access"]],
+          [_box(world, a["box"]) for a in world["land_access"]], la_cols)
+    al_cols = {"osm_id": "object", "name": "object", "boundary": "object", "type": "object"}
+    write(fwa, "aboriginal_lands", [[a["osm_id"], a["name"], "aboriginal_lands", "boundary"]
+                                    for a in world["aboriginal_lands"]],
+          [_box(world, a["box"]) for a in world["aboriginal_lands"]], al_cols)
+
+    # --- the watershed groups (the gauge field's catchments: `deliver.tiles.basins`, the bundle's basin_member)
+    wg_cols = {"WATERSHED_GROUP_ID": "float64", "WATERSHED_GROUP_CODE": "object", "WATERSHED_GROUP_NAME": "object"}
+    write(fwa, "watershed_groups", [[float(g["id"]), g["code"], g["name"]] for g in world["watershed_groups"]],
+          [_box(world, g["box"]) for g in world["watershed_groups"]], wg_cols)
+
+    # --- the dissolved title fabric (the tile export draws its Private class as `parcel`; access measures it, T54)
+    parcel_cols = {"OWNER_TYPE": "object", "FEATURE_AREA_SQM": "float64", "FEATURE_LENGTH_M": "float64"}
+    rows, geoms = [], []
+    for p in world["parcels"]:
+        g = _box(world, p["box"])
+        rows.append([p["owner"], g.area, g.length])
+        geoms.append(g)
+    write(fwa, "land_parcels_crown", rows, geoms, parcel_cols)
+
+    # --- the fish obstacles, in the fetched file's three layers (`deliver.tiles.obstacles` reads it whole)
+    obstacles = out_dir / "obstacles.gpkg"
+    fiss_cols = {"FISH_OBSTACLE_POINT_ID": "int32", "OBSTACLE_NAME": "object", "GAZETTED_NAME": "object",
+                 "HEIGHT": "float64", "SURVEY_DATE": "datetime64[ms]"}
+    rows, geoms = [], []
+    for o in world["obstacles"]:
+        rows.append([o["id"], o["name"], o.get("water"), float(o["height_m"]), pd.Timestamp(o["surveyed"])])
+        geoms.append(_pt(*_shift(world, *o["at"])))
+    write(obstacles, "fiss", rows, geoms, fiss_cols)
+    dam_cols = {"WRIS_DP_SYSID": "int32", "DAM_FILE_NUMBER": "object", "DAM_NAME": "object",
+                "COMMISSIONED_YEAR": "float64", "DAM_FUNCTION": "object", "DAM_OPERATION_CODE": "object",
+                "DAM_HEIGHT": "float64"}
+    write(obstacles, "dams", [], [], dam_cols, geometry_type="MultiLineString")
+    pscis_cols = {"STREAM_CROSSING_ID": "int32", "ASSESSMENT_DATE": "datetime64[ms]", "STREAM_NAME": "object",
+                  "ROAD_NAME": "object", "CURRENT_CROSSING_TYPE_CODE": "object",
+                  "CURRENT_BARRIER_RESULT_CODE": "object", "HABITAT_VALUE_CODE": "object"}
+    write(obstacles, "pscis", [], [], pscis_cols, geometry_type="Point")
+
     # --- the coast pair: the land mass and the FWA river polygons by blue line
     land_cols = {"WATERSHED_FEATURE_ID": "float64", "WATERSHED_TYPE": "object", "FWA_WATERSHED_CODE": "object",
                  "AREA_HA": "float64", "FEATURE_CODE": "object"}
@@ -266,7 +312,117 @@ def write_inputs(out_dir: Path, world: dict | None = None) -> tuple[Path, Path]:
     return fwa, coast
 
 
+# ------------------------------------------------------------------------------------- the fetched and fed inputs
+
+def lonlat(world: dict, x: float, y: float) -> tuple[float, float]:
+    """A world point as the fetched files carry it (lon, lat, 6 decimals)."""
+    from pyproj import Transformer
+    lon, lat = Transformer.from_crs(EPSG, 4326, always_xy=True).transform(*_shift(world, x, y))
+    return round(lon, 6), round(lat, 6)
+
+
+def tiny_pdf(text: str) -> bytes:
+    """A one-page PDF whose page says `text` (Helvetica, one line): the synopsis the bundle reads its period off
+    (`synopsis_pages.synopsis_period`). Written byte for byte here, so it is the same on every machine."""
+    safe = text.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
+    stream = f"BT /F1 10 Tf 40 700 Td ({safe}) Tj ET".encode("latin-1")
+    objs = [b"<< /Type /Catalog /Pages 2 0 R >>",
+            b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+            b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R "
+            b"/Resources << /Font << /F1 5 0 R >> >> >>",
+            b"<< /Length " + str(len(stream)).encode() + b" >>\nstream\n" + stream + b"\nendstream",
+            b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>"]
+    out = bytearray(b"%PDF-1.4\n")
+    offsets = []
+    for i, o in enumerate(objs, 1):
+        offsets.append(len(out))
+        out += f"{i} 0 obj\n".encode() + o + b"\nendobj\n"
+    xref = len(out)
+    out += f"xref\n0 {len(objs) + 1}\n0000000000 65535 f \n".encode()
+    out += b"".join(f"{o:010d} 00000 n \n".encode() for o in offsets)
+    out += f"trailer\n<< /Size {len(objs) + 1} /Root 1 0 R >>\nstartxref\n{xref}\n%%EOF\n".encode()
+    return bytes(out)
+
+
+def write_source(out_dir: Path, fwa: Path, world: dict | None = None) -> dict[str, Path]:
+    """The FETCHED and FED inputs the deliver steps read, invented, into `out_dir` (`bundle --source / --clim /
+    --dfo-typed / --dfo-cache`, `release --source / --dfo-rules`): the source tree (`source/`: the station roster,
+    the places, the B.C. outline, the synopsis, HYDAT, the FWA gpkg), the gauge envelope and an empty DFO salmon
+    feed. Returns {name: path}. Every value comes from `world.json`; nothing is copied from the live tree."""
+    import shutil as _sh
+    import sqlite3
+
+    from shapely.geometry import mapping
+    from shapely.ops import transform, unary_union
+    from pyproj import Transformer
+
+    world = world or load_world()
+    out_dir = Path(out_dir)
+    src = out_dir / "source"
+    src.mkdir(parents=True, exist_ok=True)
+    _sh.copyfile(fwa, src / "bc_fisheries_data.gpkg")
+    roster = [{"station": g["station"], "name": g["name"], "lon": lonlat(world, *g["at"])[0],
+               "lat": lonlat(world, *g["at"])[1], "realtime": g["realtime"], "active": g["active"],
+               "area_km2": g["area_km2"]} for g in world["gauges"]]
+    (src / "bc_hydrometric_stations.json").write_text(json.dumps(roster, indent=1) + "\n", encoding="utf-8")
+    places = [{"name": p["name"], "lat": lonlat(world, *p["at"])[1], "lon": lonlat(world, *p["at"])[0],
+               "place": p["place"], "rank": p["rank"], "pop": p["pop"], "alt": []} for p in world["places"]]
+    (src / "bc_places.json").write_text(json.dumps(
+        {"_licence": {"spdx": "none", "notice": "INVENTED for the mini release (T667): no source"},
+         "places": places}, indent=1) + "\n", encoding="utf-8")
+    tf = Transformer.from_crs(EPSG, 4326, always_xy=True).transform
+    outline = transform(tf, unary_union([_box(world, b) for b in world["land"]]))
+    (src / "bc_boundary.geojson").write_text(json.dumps(
+        {"type": "FeatureCollection", "features": [{"type": "Feature", "properties": {"name": "Mini Province"},
+                                                    "geometry": mapping(outline)}]}) + "\n", encoding="utf-8")
+    from pipeline.common.synopsis_pages import PDF_NAME
+    (src / PDF_NAME).write_bytes(tiny_pdf(world["synopsis"]))
+    (src / "hydat.release").write_text(world["hydat_release"] + "\n", encoding="utf-8")
+    hydat = src / "hydat.sqlite3"
+    if hydat.exists():
+        hydat.unlink()
+    con = sqlite3.connect(hydat)
+    con.executescript("""
+        CREATE TABLE STATIONS (STATION_NUMBER TEXT PRIMARY KEY, STATION_NAME TEXT, PROV_TERR_STATE_LOC TEXT,
+                               HYD_STATUS TEXT, LATITUDE REAL, LONGITUDE REAL, DRAINAGE_AREA_GROSS REAL,
+                               REAL_TIME INTEGER);
+        CREATE TABLE STN_REGULATION (STATION_NUMBER TEXT, YEAR_FROM INTEGER, YEAR_TO INTEGER, REGULATED INTEGER);
+        CREATE TABLE STN_REMARKS (STATION_NUMBER TEXT, REMARK_TYPE_CODE INTEGER, YEAR INTEGER, REMARK_EN TEXT,
+                                  REMARK_FR TEXT);""")
+    for g, r in zip(world["gauges"], roster):
+        con.execute("INSERT INTO STATIONS VALUES (?,?,?,?,?,?,?,?)",
+                    (g["station"], g["name"], "BC", "A" if g["active"] else "D", r["lat"], r["lon"], g["area_km2"],
+                     int(g["realtime"])))
+        con.execute("INSERT INTO STN_REGULATION VALUES (?,?,?,?)", (g["station"], 1990, 2024, int(g["regulated"])))
+    con.commit()
+    con.close()
+    feeds = out_dir / "feeds"
+    feeds.mkdir(parents=True, exist_ok=True)
+    clim = {"release": world["hydat_release"], "percentiles": [10, 25, 50, 75, 90], "pentads": 73,
+            "stations": {g["station"]: g["pentads"] for g in world["gauges"]},
+            "stats": {g["station"]: g["record"] for g in world["gauges"]},
+            "recentYears": {}, "recentYearCount": 2, "ratings": {}, "ratingPadM": 0.5, "levelShifts": {}}
+    (feeds / "clim.json").write_text(json.dumps(clim, indent=1, sort_keys=True) + "\n", encoding="utf-8")
+    # THE DFO SALMON FEED, EMPTY: every region page the fetch reads, typed with no rows and no notes — the mini world
+    # has no federal salmon water (a page that says nothing, in today's typed format)
+    from pipeline.regs.dfo_salmon import header as H
+    from pipeline.regs.dfo_salmon.fetch import ALL_SLUGS, PAGES
+    from pipeline.regs.dfo_salmon.typed import FORMAT as TYPED_FORMAT
+    typed, cache = feeds / "dfo_salmon" / "typed", feeds / "dfo_salmon" / "cache"
+    for d in (typed, cache):
+        d.mkdir(parents=True, exist_ok=True)
+    for s in (s for s in ALL_SLUGS if not PAGES[s].is_stub):
+        (typed / f"region-{s}.json").write_text(json.dumps(
+            {"region": s, "date_modified": None, "typed_format": TYPED_FORMAT, "page": {"sha256": None,
+             "date_modified": None}, "notes": [], "header_format": H.FORMAT, "preamble": [], "locators": []},
+            indent=1) + "\n", encoding="utf-8")
+    return {"source": src, "clim": feeds / "clim.json", "dfo_typed": typed, "dfo_cache": cache}
+
+
 # ----------------------------------------------------------------------------------------------------------- stages
+
+#: the deliver steps after the last stage built here, and why they wait (`stage_commands`)
+PARKED_AT = ("export", "the export's guide is the book's: its examples, case mechanisms and page map (T667)")
 
 def _env() -> dict:
     env = dict(os.environ)
@@ -277,14 +433,35 @@ def _env() -> dict:
 
 
 def stage_commands(out: Path, fwa: Path, coast: Path) -> list[tuple[str, list[str]]]:
-    """Every stage, as the production command it is, pointed at `out` (ORDER IS THE BUILD)."""
+    """Every stage, as the production command it is, pointed at `out` (ORDER IS THE BUILD). The deliver steps are
+    `pipeline.deliver all`'s own, in its order, each named its inputs (`write_source`); `all` itself is not the driver:
+    it promotes into canonical homes, keeps a step cache beside its out-dir and reads the released tiles + basemap
+    (route (a), T667 slice 8: this release ships no tiles and no basemap). The tile step writes only its layer files
+    (`--no-archive`): the bundle measures section access against them (T54).
+
+    THE CHAIN STOPS AFTER `status_index` (`PARKED_AT`): the export refuses a corpus that is not the book — its guide's
+    prose examples name the book's waters (`export.examples.EXAMPLES`), every case mechanism needs a real case
+    (`export.cases`), and the printed-page map is read off the repo synopsis (`synopsis_pages.default_pdf`), not the
+    source the bundle was given. Ticket T667 "Slice 8, step 2b/3 built" says what deciding it takes."""
     py = [sys.executable, "-m"]
-    atlas, reaches = out / "atlas", out / "reaches"
+    atlas, reaches, tiles, d, fed = out / "atlas", out / "reaches", out / "tiles", out / "deliver", out / "fed"
+    b = str(d / "bundle.sqlite")
+    dlv = py + ["pipeline.deliver"]
     return [
-        ("check_curated", py + ["pipeline.tools.audit.check_curated", "--waters"]),
         ("atlas", py + ["pipeline.atlas.build", "--gpkg", str(fwa), "--coast-gpkg", str(coast), "--full",
                         "--no-gauge-splits", "--out", str(atlas)]),
+        # after the atlas, against ITS registry: without `--registry` the check reads the promoted live atlas's
+        ("check_curated", py + ["pipeline.tools.audit.check_curated", "--waters", "--registry",
+                                str(atlas / "registry.json")]),
         ("reach", py + ["pipeline.atlas.reach.cli", "--build", str(atlas), "--out", str(reaches)]),
+        ("tiles", py + ["pipeline.deliver.tiles", "--build", str(atlas), "--gpkg", str(fwa), "--out", str(tiles),
+                        "--no-archive", "--no-release", "--obstacles", str(fwa.parent / "obstacles.gpkg")]),
+        ("bundle", dlv + ["bundle", "--build", str(atlas), "--reaches", str(reaches), "--tiles", str(tiles),
+                          "--out", b, "--source", str(fed / "source"), "--clim", str(fed / "feeds" / "clim.json"),
+                          "--dfo-typed", str(fed / "feeds" / "dfo_salmon" / "typed"),
+                          "--dfo-cache", str(fed / "feeds" / "dfo_salmon" / "cache")]),
+        ("verdicts", dlv + ["verdicts", "--bundle", b, "--out", str(d / "verdicts.sqlite"), "--workers", "1"]),
+        ("status_index", dlv + ["status_index", "--bundle", b, "--out", str(d / "status_index.bin")]),
     ]
 
 
@@ -293,11 +470,14 @@ def build(out: Path, stop_after: str | None = None) -> dict:
     stops the build and raises naming it and its log's last lines. Returns {stage: seconds}."""
     out = Path(out).resolve()
     _refuse_inside_repo_data(out)
+    before = listing(watched_dirs())
     if out.exists():
         shutil.rmtree(out)
     (out / "logs").mkdir(parents=True)
     t0 = time.perf_counter()
     fwa, coast = write_inputs(out / "inputs")
+    write_source(out / "fed", fwa)
+    (out / "deliver").mkdir()
     # the atlas build makes its --out only when it has a curated cut (`cut_curated`); its coast record is written
     # either way, so with no cut it died writing coast_owner.json. A writer may create its directory (AGENTS 41).
     (out / "atlas").mkdir()
@@ -318,8 +498,40 @@ def build(out: Path, stop_after: str | None = None) -> dict:
                              + "\n  ".join(tail))
         if name == stop_after:
             break
+    after = listing(watched_dirs())
+    moved = sorted(k for k in set(before) | set(after) if before.get(k) != after.get(k))
+    if moved:
+        raise SystemExit(f"mini release: the build changed {len(moved)} live path(s) — it must write only under "
+                         f"{out}:\n  " + "\n  ".join(moved[:20]))
     (out / "timings.json").write_text(json.dumps(took, indent=1) + "\n", encoding="utf-8")
     return took
+
+
+def watched_dirs() -> list[Path]:
+    """The live directories a deliver step writes when no flag moves it (step 1 measured, T667 slice 8): the bundle,
+    the tiles and the released tile folders, the release root, the run-timing base, the synopsis cache, the deliver
+    step cache, the gauge feeds, the DFO salmon feed and its page cache, the fetched map assets — and the curated
+    tree. A mini build must leave every one exactly as it found it (`build` refuses otherwise)."""
+    from pipeline.common.curated import GENERATED, SOURCE, load_repo
+    from pipeline.regs.dfo_salmon.fetch import DEFAULT_CACHE
+    g = Path(GENERATED.base)
+    return [Path(GENERATED.bundle), Path(GENERATED.tiles), Path(GENERATED.release), Path(GENERATED.runtiming),
+            g / "synopsis", g / "deliver-cache", Path(GENERATED.gauges.feeds), Path(GENERATED.regs.dfo_salmon),
+            Path(GENERATED.reaches), Path(SOURCE) / "map-assets", REPO_ROOT / DEFAULT_CACHE, Path(load_repo().base)]
+
+
+def listing(dirs: list[Path]) -> dict[str, tuple]:
+    """{path: (size, mtime_ns)} of every file and directory under `dirs` (a missing dir lists as absent)."""
+    got: dict[str, tuple] = {}
+    for d in dirs:
+        if not d.exists():
+            got[str(d)] = ("absent",)
+            continue
+        for root, subdirs, files in os.walk(d):
+            for n in [*subdirs, *files]:
+                st = os.lstat(os.path.join(root, n))
+                got[os.path.join(root, n)] = (st.st_size if n in files else "dir", st.st_mtime_ns)
+    return got
 
 
 def _refuse_inside_repo_data(out: Path) -> None:
@@ -333,7 +545,7 @@ def _refuse_inside_repo_data(out: Path) -> None:
 # ---------------------------------------------------------------------------------------------------------- digests
 
 #: files that carry a clock or a scratch path by design, and how each is normalised before it is hashed
-_SKIP = {"logs", "inputs", "timings.json"}
+_SKIP = {"logs", "inputs", "fed", "timings.json"}
 
 
 def _normalised(rel: str, data: bytes, out: Path) -> bytes | None:
@@ -343,6 +555,8 @@ def _normalised(rel: str, data: bytes, out: Path) -> bytes | None:
         return None                                  # pickles: compared by what they decode to (`_decoded`)
     if name.endswith(".gpkg"):
         return _gpkg_content(out / rel)              # sqlite pages carry write times: compared by their features
+    if name.endswith(".sqlite"):
+        return _sqlite_content(out / rel, out)       # the bundle's meta names its atlas by path: by rows, path dropped
     text = data.decode("utf-8", errors="strict") if name.endswith((".json", ".jsonl", ".txt")) else None
     if text is None:
         return data
@@ -372,6 +586,22 @@ def _gpkg_content(path: Path) -> bytes:
                       for a, g in zip(attrs, df.geometry))
         parts.append(json.dumps([layer, cols, rows]))
     return "\n".join(parts).encode("utf-8")
+
+
+def _sqlite_content(path: Path, out: Path) -> bytes:
+    """A SQLite file by what it holds: per table (sorted), its schema and its rows sorted, the scratch root `out`
+    written `<OUT>` (the bundle's `meta.build` names the atlas by path when it lies outside the repo)."""
+    import sqlite3
+    con = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
+    try:
+        parts = []
+        for name, sql in con.execute("SELECT name, sql FROM sqlite_master WHERE type = 'table' ORDER BY name"):
+            rows = sorted(repr(tuple(v.hex() if isinstance(v, bytes) else v for v in r))
+                          for r in con.execute(f'SELECT * FROM "{name}"'))
+            parts.append(json.dumps([name, sql, rows]))
+    finally:
+        con.close()
+    return "\n".join(parts).replace(str(out), "<OUT>").encode("utf-8")
 
 
 def _drop(doc, key):
@@ -455,7 +685,7 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="python -m pipeline.tools.mini_release", description=__doc__.split("\n\n")[0])
     ap.add_argument("--build", type=Path, help="build the mini release into this scratch directory")
     ap.add_argument("--twice", action="store_true", help="build twice (DIR/a, DIR/b) and refuse unless digests agree")
-    ap.add_argument("--stop-after", help="stop after this stage (inputs, check_curated, atlas, reach)")
+    ap.add_argument("--stop-after", help="stop after this stage (atlas, check_curated, reach, tiles, bundle, verdicts, status_index)")
     ap.add_argument("--inputs", type=Path, help="only write the FWA-shaped GeoPackages into this directory")
     ap.add_argument("--compare", nargs=2, type=Path, metavar=("A", "B"),
                     help="digest two finished builds and refuse unless they agree (reads only)")

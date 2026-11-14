@@ -230,6 +230,53 @@
      "kind": "requirement"
     }
    ]
+  },
+  {
+   "entry_id": "zp:bait",
+   "name": "Bait",
+   "display_name": "Everywhere in B.C.",
+   "regs_verbatim": "No person shall use as bait or possess for that purpose any freshwater invertebrate (this includes the aquatic stage of any insect, such as dragonfly nymphs or caddisfly larvae) at a lake.",
+   "source_pages": [
+    8
+   ],
+   "extents": [
+    {
+     "op": "within",
+     "area_kind": "region"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "bait.r5",
+     "type": "bait_restriction",
+     "verbatim": "No person shall use as bait or possess for that purpose any freshwater invertebrate (this includes the aquatic stage of any insect, such as dragonfly nymphs or caddisfly larvae) at a lake.",
+     "gear": [
+      {
+       "slot": "bait",
+       "ban": [
+        "invertebrate"
+       ]
+      }
+     ],
+     "water": "lake",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:1",
+       "feature_types": [
+        "lake"
+       ]
+      },
+      {
+       "op": "within",
+       "area_id": "area:region:2",
+       "feature_types": [
+        "lake"
+       ]
+      }
+     ]
+    }
+   ]
   }
  ]
 }

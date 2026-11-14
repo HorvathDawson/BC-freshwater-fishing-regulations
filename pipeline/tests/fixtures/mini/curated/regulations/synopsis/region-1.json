@@ -56,11 +56,59 @@
    ]
   },
   {
+   "entry_id": "z1:single_barbless_hook",
+   "name": "Single barbless hook",
+   "display_name": "Every stream in Region 1",
+   "region": "1",
+   "regs_verbatim": "Single barbless hook: must be used in all streams of Region 1, all year.",
+   "source_pages": [
+    91
+   ],
+   "extents": [
+    {
+     "op": "within",
+     "area_id": "area:region:1",
+     "feature_types": [
+      "stream"
+     ]
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "single_barbless_hook.r1",
+     "type": "tackle_restriction",
+     "verbatim": "Single barbless hook: must be used in all streams of Region 1, all year.",
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      },
+      {
+       "slot": "points_per_hook",
+       "max": 1.0
+      }
+     ],
+     "water": "stream",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:1",
+       "feature_types": [
+        "stream"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
    "entry_id": "r1:fixture_river@1-1",
    "name": "FIXTURE RIVER",
    "display_name": "Fixture River",
    "region": "1",
-   "regs_verbatim": "No Fishing Apr 1-June 30\nTrout/char daily quota = 2",
+   "regs_verbatim": "No Fishing Apr 1-June 30\nTrout/char daily quota = 2\nNo Fishing from 21:00 hours to 05:00 hours each day, Aug 1-Dec 31",
    "source_pages": [
     91
    ],
@@ -111,6 +159,39 @@
        "op": "whole"
       }
      ]
+    },
+    {
+     "rule_id": "fixture_river.r3",
+     "type": "retention_limit",
+     "verbatim": "No Fishing from 21:00 hours to 05:00 hours each day, Aug 1-Dec 31",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "when": {
+      "dates": [
+       {
+        "from_month": 8,
+        "from_day": 1,
+        "to_month": 12,
+        "to_day": 31
+       }
+      ],
+      "hours": {
+       "start": {
+        "at": "21:00"
+       },
+       "end": {
+        "at": "05:00"
+       }
+      }
+     },
+     "take": 0,
+     "may_target": false,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
     }
    ]
   },
@@ -119,7 +200,7 @@
    "name": "MOCK CREEK",
    "display_name": "Mock Creek",
    "region": "1",
-   "regs_verbatim": "Bait ban",
+   "regs_verbatim": "Bait ban\nNo Fishing upstream of Mock Creek Falls",
    "source_pages": [
     91
    ],
@@ -149,6 +230,25 @@
        "op": "whole"
       }
      ]
+    },
+    {
+     "rule_id": "mock_creek.r2",
+     "type": "retention_limit",
+     "verbatim": "No Fishing upstream of Mock Creek Falls",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "take": 0,
+     "may_target": false,
+     "extents": [
+      {
+       "op": "upstream_of",
+       "splits": [
+        "mock_creek__mock_creek_falls"
+       ]
+      }
+     ],
+     "extent_text": "upstream of Mock Creek Falls"
     }
    ]
   },
@@ -157,7 +257,7 @@
    "name": "FIXTURE LAKE",
    "display_name": "Fixture Lake",
    "region": "1",
-   "regs_verbatim": "Electric motor only - max 7.5 kW",
+   "regs_verbatim": "Electric motor only - max 7.5 kW\nKokanee daily quota = 5, but only on Saturday and Sunday of each week.",
    "source_pages": [
     91
    ],
@@ -182,6 +282,26 @@
       }
      ],
      "max_power_kw": 7.5
+    },
+    {
+     "rule_id": "fixture_lake.r2",
+     "type": "retention_limit",
+     "verbatim": "Kokanee daily quota = 5, but only on Saturday and Sunday of each week.",
+     "species": [
+      "KO"
+     ],
+     "when": {
+      "weekdays": [
+       "Saturday",
+       "Sunday"
+      ]
+     },
+     "take": 5,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
     }
    ]
   }

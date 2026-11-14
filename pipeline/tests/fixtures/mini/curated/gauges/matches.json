@@ -1,4 +1,33 @@
 {
  "_about": "MINI FIXTURE (T667 slice 8): an invented tree for the mini release; see pipeline/tests/fixtures/mini/README.md.",
- "stations": {}
+ "stations": {
+  "99MA001": {
+   "station": "99MA001",
+   "station_name": "FIXTURE RIVER BELOW FIXTURE LAKE",
+   "status": "matched",
+   "resolved_by": "name+radius",
+   "distance_m": 0.0,
+   "reason": null,
+   "lon": -125.677505,
+   "lat": 52.210279,
+   "wbk": [],
+   "wsc": [
+    "920-123456"
+   ],
+   "also": [],
+   "name": "Fixture River",
+   "blk": "900000001",
+   "evidence": {
+    "name_agrees": true,
+    "name_is_exact": true,
+    "distance_m": 0.0,
+    "area_km2": 310.0,
+    "mag": 4,
+    "area_agrees": true,
+    "stated_kind": "River",
+    "kind_agrees": true
+   },
+   "trust": "bound"
+  }
+ }
 }

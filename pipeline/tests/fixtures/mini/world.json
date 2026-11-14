@@ -12,9 +12,12 @@
  "pfma": [{"area": 29, "box": [-6000, -15000, 0, 15000]}],
  "streams": [
   {"blk": 900000001, "gnis_id": 990001, "name": "Fixture River", "wsc": "", "order": 3, "magnitude": 4,
-   "vertices": [[0, 0], [45000, 0]], "z": [2, 400],
-   "breaks": [5000, 10000, 15000, 18000, 25000, 30000],
-   "waterbodies": [{"wbk": 800000001, "from": 15000, "to": 18000, "edge_type": 1050}]},
+   "vertices": [[-1000, 0], [45000, 0]], "z": [0, 400],
+   "breaks": [6000, 11000, 16000, 19000, 25000, 26000, 27000, 31000, 33000, 37000],
+   "waterbodies": [{"wbk": 800000001, "from": 16000, "to": 19000, "edge_type": 1050},
+                   {"wbk": 800000006, "from": 25000, "to": 27000, "edge_type": 1050}]},
+  {"blk": 900000005, "gnis_id": 990001, "name": "Fixture River", "wsc": "", "order": 3, "magnitude": 4,
+   "vertices": [[32000, 0], [34000, 500], [36000, 0]], "z": [285, 320], "breaks": [], "side": "L"},
   {"blk": 900000002, "gnis_id": 990002, "name": "Mock Creek", "wsc": "222222", "order": 2, "magnitude": 2,
    "vertices": [[10000, 0], [10000, 8000]], "z": [60, 300], "breaks": [4000]},
   {"blk": 900000003, "gnis_id": null, "name": null, "wsc": "222222-500000", "order": 1, "magnitude": 1,
@@ -26,8 +29,44 @@
   {"wbk": 800000001, "layer": "lakes", "gnis_id": 990101, "name": "Fixture Lake", "wsc": "", "box": [15000, -800, 18000, 800]},
   {"wbk": 800000002, "layer": "lakes", "gnis_id": 990102, "name": "Sample Lake", "wsc": null, "box": [40000, 7800, 40600, 8200]},
   {"wbk": 800000003, "layer": "wetlands", "gnis_id": null, "name": null, "wsc": null, "box": [5000, -9000, 5300, -8800]},
+  {"wbk": 800000006, "layer": "lakes", "gnis_id": 990106, "name": "Twofold Lake", "wsc": "", "box": [24000, -700, 26000, 700]},
+  {"wbk": 800000005, "layer": "wetlands", "gnis_id": 990105, "name": "Mockup Marsh", "wsc": null, "box": [44000, -9000, 44400, -8700]},
   {"wbk": 800000004, "layer": "manmade", "gnis_id": null, "name": null, "wsc": null, "box": [20000, -9000, 20200, -8850]}
  ],
- "watersheds": [{"gnis_id": 990001, "name": "Fixture River", "blk": 900000001, "wsc": "", "box": [0, -10000, 46000, 10000]}],
- "coast_rivers": [{"wbk": 800000099, "blk": 900000001, "box": [30500, -60, 32000, 60]}]
+ "watersheds": [
+  {"gnis_id": 990001, "name": "Fixture River", "blk": 900000001, "wsc": "", "order": 3, "magnitude": 4,
+   "box": [0, -10000, 46000, 10000]},
+  {"gnis_id": 990002, "name": "Mock Creek", "blk": 900000002, "wsc": "222222", "order": 2, "magnitude": 2,
+   "box": [8000, 0, 14000, 9000]}
+ ],
+ "coast_rivers": [{"wbk": 800000099, "blk": 900000001, "box": [30500, -60, 32000, 60]}],
+ "land_access": [
+  {"osm_id": "way/970000001", "name": "Mock Range", "restriction_level": "closed", "landuse": "military",
+   "box": [29000, -5000, 31000, -3000]}
+ ],
+ "aboriginal_lands": [
+  {"osm_id": "relation/970000101", "name": "Sample Reserve 1", "box": [35000, -700, 37000, 700]}
+ ],
+ "parcels": [
+  {"owner": "Private", "box": [26000, -500, 28000, 500]},
+  {"owner": "Crown", "box": [0, -15000, 50000, -12000]}
+ ],
+ "watershed_groups": [{"id": 990, "code": "MINI", "name": "Mini Basin", "box": [0, -15000, 50000, 15000]}],
+ "gauges": [
+  {"station": "99MA001", "name": "FIXTURE RIVER BELOW FIXTURE LAKE", "at": [22000, 0], "area_km2": 310.0,
+   "realtime": true, "active": true, "regulated": false,
+   "record": {"discharge": {"from_year": 1990, "to_year": 2024, "years": 35, "days": 12700}},
+   "pentads": {"discharge": {"0": [4.0, 5.0, 6.0, 7.5, 9.0], "36": [20.0, 26.0, 31.0, 38.0, 45.0],
+                             "72": [4.2, 5.1, 6.1, 7.4, 8.8]}}}
+ ],
+ "hydat_release": "20250115",
+ "places": [
+  {"name": "Mockton", "place": "town", "rank": 2, "pop": 1200, "at": [12000, 2500]},
+  {"name": "Stubville", "place": "village", "rank": 4, "pop": 140, "at": [31000, 1500]}
+ ],
+ "synopsis": "Invented mini synopsis (T667). EFFECTIVE APRIL 1, 2025 THROUGH MARCH 31, 2027",
+ "obstacles": [
+  {"id": 950000001, "name": "Falls", "water": "Mock Creek", "height_m": 3.0, "surveyed": "2001-07-01",
+   "at": [10000, 6000]}
+ ]
 }

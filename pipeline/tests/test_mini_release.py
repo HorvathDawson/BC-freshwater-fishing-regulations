@@ -62,9 +62,10 @@ def test_the_streams_read_back_as_fwa_features_mouth_first(inputs):
     from pipeline.atlas.graph.blk_chains import load_stream_fids
     rows = load_stream_fids(str(inputs[0]))
     river = sorted((r for r in rows if r.blk == "900000001"), key=lambda r: r.down_m)
-    assert [round(r.down_m) for r in river] == [0, 5000, 10000, 15000, 18000, 25000, 30000]
-    assert river[-1].up_m == pytest.approx(45000)
-    assert [r.wbk for r in river if r.wbk] == ["800000001"]           # the lake run, one feature
+    assert [round(r.down_m) for r in river] == [0, 6000, 11000, 16000, 19000, 25000, 26000, 27000, 31000, 33000,
+                                                37000]
+    assert river[-1].up_m == pytest.approx(46000)                      # its mouth 1 km out in the sea (the tidal mouth)
+    assert [r.wbk for r in river if r.wbk] == ["800000001", "800000006", "800000006"]   # the two lake runs
     mock = next(r for r in rows if r.blk == "900000002")
     assert mock.down_node == river[2].down_node                        # the confluence is a shared vertex
     assert mock.wsc == "920-123456-222222"
@@ -143,3 +144,127 @@ def test_compare_names_the_file_that_differs(capsys):
     assert M._compare({"x": "1", "y": "2"}, {"x": "1", "y": "2"}) == 0
     assert M._compare({"x": "1", "y": "2"}, {"x": "1", "y": "3"}) == 1
     assert "y: 2 vs 3" in capsys.readouterr().out
+
+
+def test_the_fed_inputs_are_written_from_the_world_alone(tmp_path):
+    """`write_source`: the roster, places, outline, synopsis, HYDAT and the feeds come from `world.json`; the one gauge
+    stands where the mini tree's frozen match says it does, and the synopsis states its period."""
+    from pipeline.common.synopsis_pages import PDF_NAME, synopsis_period
+    from pipeline.regs.dfo_salmon.fetch import ALL_SLUGS, PAGES
+    from pipeline.regs.dfo_salmon.typed import FORMAT
+    w = M.load_world()
+    fwa, _ = M.write_inputs(tmp_path / "in")
+    got = M.write_source(tmp_path / "fed", fwa)
+    roster = json.loads((got["source"] / "bc_hydrometric_stations.json").read_text())
+    match = json.loads((M.CURATED_TREE / "gauges" / "matches.json").read_text())["stations"]
+    assert [s["station"] for s in roster] == sorted(match) == ["99MA001"]
+    assert (roster[0]["lon"], roster[0]["lat"]) == (match["99MA001"]["lon"], match["99MA001"]["lat"]) \
+        == M.lonlat(w, *w["gauges"][0]["at"])
+    assert tuple(synopsis_period(got["source"] / PDF_NAME)) == ("2025-04-01", "2027-03-31")
+    clim = json.loads(got["clim"].read_text())
+    assert set(clim["stations"]) == set(clim["stats"]) == {"99MA001"}
+    typed = sorted(p.name for p in got["dfo_typed"].glob("region-*.json"))
+    assert typed == sorted(f"region-{s}.json" for s in ALL_SLUGS if not PAGES[s].is_stub)
+    assert all(json.loads(p.read_text())["typed_format"] == FORMAT for p in got["dfo_typed"].glob("*.json"))
+
+
+def test_a_build_that_writes_a_live_path_is_refused(tmp_path, monkeypatch):
+    """The watch `build` keeps on the live directories a deliver step writes by default: a stage that touches one
+    stops the build, naming the path."""
+    watched = tmp_path / "live"
+    watched.mkdir()
+    monkeypatch.setattr(M, "watched_dirs", lambda: [watched])
+    monkeypatch.setattr(M, "write_inputs", lambda d: (d / "fwa.gpkg", d / "coast.gpkg"))
+    monkeypatch.setattr(M, "write_source", lambda d, fwa: {})
+    import sys
+    touch = [sys.executable, "-c", f"open({str(watched / 'x')!r}, 'w').write('1')"]
+    monkeypatch.setattr(M, "stage_commands", lambda out, fwa, coast: [("toucher", touch)])
+    with pytest.raises(SystemExit, match=r"changed 1 live path"):
+        M.build(tmp_path / "out")
+    monkeypatch.setattr(M, "stage_commands", lambda out, fwa, coast: [("quiet", [sys.executable, "-c", "1"])])
+    assert set(M.build(tmp_path / "out2")) == {"inputs", "quiet"}
+
+
+@pytest.fixture(scope="module")
+def chain(tmp_path_factory):
+    """The mini chain built twice (a, b), once for this file."""
+    root = tmp_path_factory.mktemp("mini-chain")
+    return root, M.build(root / "a"), M.build(root / "b")
+
+
+def test_the_mini_chain_builds_twice_alike_on_invented_inputs_only(chain):
+    """THE CHAIN on the mini world (atlas -> reach -> tile layers -> bundle -> verdicts -> status index), twice, into
+    tmp: every stage's own command, every input invented (on CI there is no live tree at all, so a stage that reached
+    one fails here), no live directory changed (`build` refuses), and the two runs' digests equal (AGENTS 19)."""
+    root, a, _ = chain
+    assert list(a) == ["inputs"] + [n for n, _ in M.stage_commands(root, root, root)]
+    da, db = M.digests(root / "a"), M.digests(root / "b")
+    assert da == db
+    assert {"deliver/bundle.sqlite", "deliver/verdicts.sqlite", "deliver/status_index.bin",
+            "tiles/atlas.meta.json", "tiles/layers/stream.geojsonl", "reaches/report.json"} <= set(da)
+    assert M.PARKED_AT[0] == "export"
+
+
+def test_the_mini_world_holds_the_plans_inventory(chain):
+    """THE INVENTORY (ticket T667 "Slice 8 plan"), each mechanism read off what the chain BUILT (never off the inputs),
+    by name, so the world cannot quietly shrink. The plan's "a lake cut into parts" has no live counterpart (every lake
+    of the live bundle is one part; lakes are never cut) and is not here: Twofold Lake is the two-region lake."""
+    import sqlite3
+    out = chain[0] / "a"
+    reg = {i["id"]: i for i in json.loads((out / "atlas" / "registry.json").read_text())["items"]}
+    db = sqlite3.connect(f"file:{out / 'deliver' / 'bundle.sqlite'}?mode=ro", uri=True)
+    q = lambda sql, *a: db.execute(sql, a).fetchall()                         # noqa: E731
+    secs = lambda item: set(reg[item]["section_ids"])                           # noqa: E731
+    in_region = lambda r: secs(f"area:region:{r}")                              # noqa: E731
+
+    def bound(entry_id, rule_id):
+        return {s for (s,) in q("SELECT DISTINCT sr.sid FROM section_ruleset sr JOIN ruleset r ON r.set_id = sr.set_id "
+                                "WHERE r.entry_id = ? AND r.rule_id = ?", entry_id, rule_id)}
+
+    def parts(item):
+        return q("SELECT p.part_ix, p.set_id FROM part p JOIN item i ON i.ord = p.ord WHERE i.item_id = ?", item)
+
+    def in_set(set_id, entry_id, rule_id):
+        return bool(q("SELECT 1 FROM ruleset WHERE set_id = ? AND entry_id = ? AND rule_id = ?", set_id, entry_id,
+                      rule_id))
+    river, mock, stub = "gnis:990001", "gnis:990002", "gnis:990004"
+    # the waters: a river with a lake on it, two tributaries (one with a row), an unnamed trib, an added stream
+    assert reg["wbk:800000001"]["name"] == "Fixture Lake" and "lake:800000001" not in secs(river)
+    assert "Fixture Lake  through=['Fixture River']" in (out / "atlas" / "summary.txt").read_text()
+    assert {reg[mock]["name"], reg[stub]["name"]} == {"Mock Creek", "Stub Creek"}
+    assert not [i for i in reg.values() if "900000003:0" in i.get("section_ids", []) and not i["id"].startswith("area")]
+    assert reg["wsc:920-123456-666666-500000"]["name"] == "Mockup Creek"
+    # a braid: the river holds a section of a second blue line
+    assert {s.split(":")[0] for s in secs(river)} == {"900000001", "900000005"}
+    # a tidal mouth: the river's piece below the coast is tidal in the bundle
+    assert q("SELECT entry_id FROM tidal") == [("crossing:900000001:0",)]
+    # two regions: the river straddles the line, and Twofold Lake lies in both
+    assert secs(river) & in_region(1) and secs(river) & in_region(2)
+    assert "lake:800000006" in in_region(1) & in_region(2)
+    # a part closed all year: Mock Creek above its falls, the closure with no `when`
+    closed = [p for p in parts(mock) if in_set(p[1], "r1:mock_creek@1-1", "mock_creek.r2")]
+    assert len(parts(mock)) == 2 and len(closed) == 1
+    assert q("SELECT when_, take FROM rule WHERE rule_id = 'mock_creek.r2'") == [(None, 0)]
+    # a weekday rule and an hours window, bound, and read by the reader as moments of their keys
+    assert bound("r1:fixture_lake@1-1", "fixture_lake.r2") and bound("r1:fixture_river@1-1", "fixture_river.r3")
+    v = sqlite3.connect(f"file:{out / 'deliver' / 'verdicts.sqlite'}?mode=ro", uri=True)
+    assert v.execute("SELECT COUNT(*) FROM moment WHERE weekdays IS NOT NULL AND weekdays != 127").fetchone()[0]
+    assert v.execute("SELECT COUNT(*) FROM moment WHERE hours IS NOT NULL").fetchone()[0]
+    # zone vs water, a lift, a moot size clause: Stub Creek's own release beside the zone's 50 cm clause, and its row
+    # exempting the zone's summer closure
+    stub_sets = {p[1] for p in parts(stub)}
+    assert all(in_set(x, "r2:stub_creek@2-1", "stub_creek.r1") and in_set(x, "z2:daily_quotas", "trout_char_quota.r2")
+               for x in stub_sets)
+    assert bound("r2:stub_creek@2-1", "stub_creek.r2") and \
+        "summer_stream_closure" in (q("SELECT exempts FROM rule WHERE rule_id = 'stub_creek.r2'")[0][0] or "")
+    # closures: the river's spring closure and a water closed whole (Mockup Creek)
+    assert bound("r1:fixture_river@1-1", "fixture_river.r1") and bound("r2:mockup_creek@2-1", "mockup_creek.r1")
+    # the steelhead twin (book-known waters: none, so it stays unresolved) and the stamp
+    twins = q("SELECT rule_id, unresolved FROM rule WHERE entry_id = 'zp:steelhead' AND rule_id LIKE '%b'")
+    assert sorted(r for r, _ in twins) == ["steelhead.r1b", "steelhead.r2b", "steelhead.r4b"] and all(u for _, u in twins)
+    assert bound("zp:steelhead", "steelhead.r1")
+    assert q("SELECT COUNT(*) FROM section_licensing")[0][0] > 0
+    # the land a section crosses (T54), a gauge, and the corpus size
+    assert {t for (t,) in q("SELECT tier FROM access_area")} == {"no_access", "reserve", "private"}
+    assert q("SELECT station, item_id FROM gauge") == [("99MA001", river)]
+    assert q("SELECT COUNT(*) FROM entry")[0][0] == 15

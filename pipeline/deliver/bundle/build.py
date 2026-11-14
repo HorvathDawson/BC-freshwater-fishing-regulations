@@ -500,8 +500,15 @@ def _repo_relative(p: Path) -> str:
 
 
 def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
-          reaches: Path | None = None, entries: Path | None = None, tiles: Path | None = None) -> Path:
+          reaches: Path | None = None, entries: Path | None = None, tiles: Path | None = None,
+          clim: Path | None = None, dfo_typed: Path | None = None, dfo_cache: Path | None = None) -> Path:
     """Write the bundle. Returns the path written.
+
+    The fetched and fed inputs default to the live ones and each may be named instead (T667 slice 8: the mini release
+    builds a whole bundle from an invented tree): ``data_dir`` (the fetched source: stations, places, boundary, the
+    synopsis, HYDAT, the FWA gpkg the gauge areas are fitted on), ``clim`` (the gauge envelope,
+    `gauges.consume.bundle_tables.CLIM_PATH`), ``dfo_typed`` / ``dfo_cache`` (the typed DFO salmon feed and the page
+    cache its current headers are read from, `pipeline.deliver.salmon`). A named one that is missing is refused.
 
     ``data_dir`` is where FETCHED source lives, and it comes from config — not from anything
     derived from the build directory, and not from a literal.
@@ -519,6 +526,10 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
     a skipped table.
     """
     data_dir = Path(data_dir) if data_dir else Path(SOURCE)
+    for _what, _p, _ok in (("--clim", clim, Path.is_file), ("--dfo-typed", dfo_typed, Path.is_dir),
+                           ("--dfo-cache", dfo_cache, Path.is_dir)):
+        if _p is not None and not _ok(Path(_p)):
+            raise FileNotFoundError(f"bundle: {_what} {_p} not found")
     if not data_dir.is_dir():
         raise FileNotFoundError(
             f"source data not found: {data_dir} — check `data_tree.source` in config.yaml")
@@ -596,7 +607,7 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
     _place_water(db, build_dir, places, registry_items, geoms, cov)
     _gauge_tables.write(db, build_dir, data_dir, registry_items, graph, geoms, cov,
                         kinds=_kind_registry(registry_items),
-                        continues=_continuation.item_pairs(db, _settled))
+                        continues=_continuation.item_pairs(db, _settled), clim_path=clim)
     # WHERE EACH WATER'S MOUTH FLOWS (T59: `water_exit` named Annacis Channel for the Fraser): read here, while the
     # graph is loaded; `topology.write` keeps only the exits the mouth reaches
     from pipeline.deliver.bundle import topology as _topology
@@ -682,7 +693,7 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
         if _reaches is not None:
             from pipeline.deliver import salmon as _salmon
             _salmon_reg = _load_registry(str(Path(build_dir) / "registry.json"))
-            _files, _feeds, _placed = _salmon.load_inputs(_reaches, _salmon_reg)
+            _files, _feeds, _placed = _salmon.load_inputs(_reaches, _salmon_reg, feed_dir=dfo_typed)
             # (T668) each section's regions (the one membership), so a DFO place answers for its own region and a
             # straddler takes both regions' places, the most strict per fish (`salmon.SectionRegions`)
             _sregions = _salmon.section_regions_of(
@@ -729,8 +740,9 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
                 [s for (s,) in db.execute("SELECT sid FROM section_span WHERE off_stem = 1")], _touch)
             del _ord_of_sid, _touch
             _payload, _salmon_secs = _salmon.build(_files, _feeds, _placed, _read_handles(build_dir)[1], _item_secs,
-                                                   headers=_salmon.load_headers(_feeds),
-                                                   scope_headers=_salmon.load_current_headers(_feeds), upstream=_upstream,
+                                                   headers=_salmon.load_headers(_feeds, dfo_cache),
+                                                   scope_headers=_salmon.load_current_headers(_feeds, dfo_cache),
+                                                   upstream=_upstream,
                                                    section_regions=_sregions)
             del _sregions
             _salmon.write_bundle(db, _payload, _salmon_secs)

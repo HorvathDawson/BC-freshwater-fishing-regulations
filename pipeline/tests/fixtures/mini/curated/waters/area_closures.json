@@ -12,6 +12,31 @@
    "note": "The mini world's two regions, dissolved from its wmu units by REGION_RESPONSIBLE_ID (copied from the live def, its Haida Gwaii remap dropped).",
    "tile_layer": "region",
    "label_term": "Region"
+  },
+  {
+   "id": "restricted_land_access",
+   "layer": "land_access",
+   "name_field": "name",
+   "id_field": "osm_id",
+   "per_feature": true,
+   "label_default": "Restricted-access land",
+   "where": "restriction_level = 'closed'",
+   "cut": "first_last",
+   "membership": "both_sides",
+   "note": "The mini world's one no-access polygon (Mock Range, over Stub Creek), as the live def selects it.",
+   "tile_layer": "no_access",
+   "tile_kind": "closed",
+   "tile_visible_px": 1.0
+  },
+  {
+   "id": "aboriginal_lands",
+   "kind": "indigenous_land",
+   "layer": "aboriginal_lands",
+   "name_field": "name",
+   "which": "all",
+   "cut": false,
+   "note": "The mini world's one reserve (Sample Reserve 1, over Fixture River), membership only, never cut, as live.",
+   "tile_layer": "indigenous_land"
   }
  ],
  "_cut_policy": "see the live data/curated/waters/area_closures.json",

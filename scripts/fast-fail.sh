@@ -181,6 +181,16 @@ wsc_scan() {
 }
 step "watershed codes read only in wsc.py (a pipeline Python file changed)" wsc_scan
 
+# caught 2026-11-14 (T667 slice 8): the tile export drew the configured gpkg's areas and the bundle read HYDAT, the
+# gpkg, clim.json and the DFO feed from the live tree whatever it was given — found only by running the chain on the
+# invented world. A changed atlas / deliver / gauges module or mini fixture runs the mini chain twice (~10 s, no data)
+mini_chain() {
+  grep -qE '^pipeline/(atlas|deliver|gauges|tools/mini_release)[/.]|^pipeline/tests/fixtures/mini/' <<<"$CHANGED" \
+    || { echo "   (no atlas / deliver / gauges / mini file changed)"; return 0; }
+  "$PY" -m pytest -q -p no:cacheprovider pipeline/tests/test_mini_release.py pipeline/tests/test_mini_deliver_inputs.py
+}
+step "the mini chain on invented data (an atlas / deliver / gauges / mini file changed)" mini_chain
+
 # caught 2026-11-14 (CI red on b07996827): scripts/test-env.sh hard-coded .venv/bin/python, which a hosted runner has
 # not; nothing ran the contract's test before the push. A changed scripts/test-*.sh, test-env runner or tiers file runs
 # it (~1 s; it also proves the source stops naming PIPELINE_PY when no interpreter is found)

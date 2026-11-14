@@ -5,11 +5,26 @@ import time
 from pathlib import Path
 
 from project_config import get_config
-from pipeline.deliver.tiles import export, ladder, tippe
+from pipeline.deliver.tiles import export, ladder, obstacles, tippe
 from pipeline.common.curated import CURATED, GENERATED, SOURCE
 
 
-def main() -> None:
+def no_archive_refusals(out_dir: Path, no_release: bool, tiles_only: bool) -> list[str]:
+    """Why `--no-archive` cannot run here ([] = it can). The live tiles directory pairs its atlas.meta.json with the
+    atlas.pmtiles the app reads, so a sidecar naming no version must never land there; and a set with no archive has
+    nothing to release or to cut tiles from."""
+    out = []
+    if Path(out_dir).resolve() == Path(GENERATED.tiles).resolve():
+        out.append(f"{out_dir} is the live tiles directory (scratch only)")
+    if not no_release:
+        out.append("give --no-release too (there is no archive to release)")
+    if tiles_only:
+        out.append("--tiles-only builds an archive; it cannot be combined")
+    return out
+
+
+def parser() -> argparse.ArgumentParser:
+    """The tile step's flags; every input defaults to the live one (`test_mini_deliver_inputs.py` pins that)."""
     cfg = get_config()
     ap = argparse.ArgumentParser(prog="python -m pipeline.deliver.tiles")
     ap.add_argument("--build", default=str(GENERATED.build()),
@@ -38,11 +53,21 @@ def main() -> None:
                     help="the bundle the finished tiles are checked against (default: the live one)")
     ap.add_argument("--no-release", action="store_true",
                     help="stamp the version but do not copy into data/release/tiles/<version>/ (a scratch build)")
+    ap.add_argument("--obstacles", type=Path, default=SOURCE / obstacles.GPKG,
+                    help="the fetched fish obstacles GeoPackage (default: data/source/fish_obstacles/)")
+    ap.add_argument("--no-archive", action="store_true",
+                    help="(T667 slice 8, the mini release) write the layer files and an atlas.meta.json that names NO "
+                         "tile version, and run no tippecanoe: a tile set a bundle can be measured against (access, "
+                         "T54) that no app can draw. Needs --no-release; refused for the live tiles directory")
     ap.add_argument("--write-contract", action="store_true",
                     help="regenerate pipeline/deliver/tiles/tile-contract.json and stop. The app's "
                          "style is checked against it, so a layer rename cannot silently "
                          "stop drawing.")
-    a = ap.parse_args()
+    return ap
+
+
+def main() -> None:
+    a = parser().parse_args()
 
     if a.write_contract:
         import json as _json
@@ -53,13 +78,18 @@ def main() -> None:
         return
 
     build_dir, out_dir = Path(a.build), Path(a.out)
+    if a.no_archive:
+        no_archive_problems = no_archive_refusals(out_dir, a.no_release, a.tiles_only)
+        if no_archive_problems:
+            raise SystemExit("--no-archive: " + "; ".join(no_archive_problems))
     layer_dir = out_dir / "layers"
     layer_dir.mkdir(parents=True, exist_ok=True)
     if a.obstacles_only:
         from pipeline.deliver.tiles.obstacles import export_obstacles
-        print(f"obstacles -> {layer_dir}: {export_obstacles(layer_dir)}")
+        print(f"obstacles -> {layer_dir}: {export_obstacles(layer_dir, a.obstacles)}")
         return
-    tippe.check()                       # fail before an hour of work, not after
+    if not a.no_archive:
+        tippe.check()                   # fail before an hour of work, not after (--no-archive runs no tippecanoe)
     if not a.no_release:
         from pipeline.deliver.tiles import assets
         assets.fetch()                  # the glyphs + sprites the release folder needs (cached; P18)
@@ -91,7 +121,7 @@ def main() -> None:
     counts |= export_basins(a.gpkg, layer_dir)
     # (T173) the fish obstacles: their own fetched file, not the main gpkg (`tiles/obstacles.py`)
     from pipeline.deliver.tiles.obstacles import export_obstacles
-    counts |= export_obstacles(layer_dir)
+    counts |= export_obstacles(layer_dir, a.obstacles)
     if not a.skip_water:
         print("water")
         # T166: the pieces below the tidal boundaries come off the map; the tidal area is drawn instead
@@ -111,6 +141,10 @@ def main() -> None:
         print(f"  {k:<16} {counts[k]:>9,}")
     print(f"export took {time.time() - t0:,.0f}s")
 
+    if a.no_archive:
+        _write_sidecar(build_dir, out_dir, None)
+        print(f"layers in {layer_dir}; no archive (--no-archive)")
+        return
     if a.geojson_only:
         print(f"layers in {layer_dir}")
         return
@@ -165,8 +199,9 @@ def _write_sidecar(build_dir: Path, out_dir: Path, tile_version: str) -> None:
     from pipeline.common.section_handles import digest_for, registry_digest_for
 
     meta = {"section_handles": digest_for(build_dir), "build": build_dir.name,
-            "registry": registry_digest_for(build_dir),     # P2: names and kinds too (informational, P18)
-            "tile_version": tile_version}                    # P18: also stamped inside the archive
+            "registry": registry_digest_for(build_dir)}     # P2: names and kinds too (informational, P18)
+    if tile_version is not None:                            # None: --no-archive, a set with no archive to name
+        meta["tile_version"] = tile_version                 # P18: also stamped inside the archive
     # T64: how many sections each layer left out on purpose (`layers/undrawn.json`); the bundle
     # build requires that file whenever this says anything was left out
     from pipeline.deliver.tiles.export import UNDRAWN_FILE

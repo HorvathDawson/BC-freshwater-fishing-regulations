@@ -16,7 +16,7 @@ import sqlite3
 from pathlib import Path
 
 from pipeline.atlas.graph.drainage import AreaModel, fit_area_model
-from pipeline.common.curated import GENERATED, SOURCE
+from pipeline.common.curated import GENERATED
 from pipeline.common.registry_kinds import is_water
 from pipeline.gauges.consume.panels import build as build_panels, through_lake_panels
 from pipeline.gauges.feed.record import MIN_RECORD_YEARS, QUANTITIES, record_years
@@ -26,6 +26,12 @@ from pipeline.gauges.feed.record import MIN_RECORD_YEARS, QUANTITIES, record_yea
 #: used to resolve to `output/output/feeds/...` whenever `data_dir` was defaulted.
 CLIM_PATH = GENERATED.gauges.feeds / "clim.json"
 
+
+
+def clim_file(named: Path | None = None) -> Path:
+    """The gauge envelope the bundle snapshots: the one the caller names (T667 slice 8: the mini release's invented
+    one), else the live feed's `CLIM_PATH`."""
+    return Path(named) if named is not None else CLIM_PATH
 
 
 def hydat_station_names(hydat: Path, stations: list) -> dict:
@@ -74,7 +80,7 @@ def _report(what: str, lost: list[str], live: set[str]) -> None:
 
 
 def write(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_items: list[dict],
-          graph, geoms, cov, *, kinds: dict, continues=()) -> None:
+          graph, geoms, cov, *, kinds: dict, continues=(), clim_path: Path | None = None) -> None:
     """Which water has a gauge, and how well that gauge speaks for it.
 
     `kinds`: the registry as `reach.water_kind.kind_of` reads it (`bundle.build._kind_registry`).
@@ -191,7 +197,7 @@ def write(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_item
     # the donor panels, the route the app draws and `gauge.sid` it reads the river at the intake (`at_river`); the shed
     # keeps its own canal walk and climbs from the intake too. A row that cannot be placed stops the build.
     from pipeline.gauges.consume.diversion import diversion_stations, intakes
-    diverted = intakes(graph, diversion_stations(Path(SOURCE) / "hydat.sqlite3"), matched)
+    diverted = intakes(graph, diversion_stations(Path(data_dir) / "hydat.sqlite3"), matched)
     at_river = {**matched, **{st: i.node for st, i in diverted.items()}}
     for st, i in sorted(diverted.items()):
         print(f"     diversion: {st} at its intake {i.node} ({i.canal_m:.0f} m up its canal), {len(i.above):,} sections "
@@ -217,9 +223,9 @@ def write(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_item
     # missing HYDAT or list raises (P2) — a flag silently all-0 would say the Fraser at
     # Mission is an ordinary river gauge.
     from pipeline.gauges.consume.tidal import backwater_stations, tidal_stations
-    tidal = tidal_stations(Path(SOURCE) / "hydat.sqlite3")   # the authored list: TIDAL_FILE
+    tidal = tidal_stations(Path(data_dir) / "hydat.sqlite3")   # the authored list: TIDAL_FILE
     # A LAKE'S STANDING BACKWATER (T160): the authored rows, each checked against the station's own HYDAT remark.
-    backwater = backwater_stations(Path(SOURCE) / "hydat.sqlite3")   # the authored list: BACKWATER_FILE
+    backwater = backwater_stations(Path(data_dir) / "hydat.sqlite3")   # the authored list: BACKWATER_FILE
 
     # No liveness column of any kind -- see schema.sql. The bundle says a gauge exists and
     # where it is; the feed index says which are talking, by containing them.
@@ -230,7 +236,7 @@ def write(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_item
     # (T339) THE NAME IS HYDAT'S: the Province's stations layer lags a rename (08MH044 "AT WHONOCK" is HYDAT 2026-10-19's
     # "AT ALBION", ~6 km downstream; 08HB083 "5TH AVENUE" is "5TH STREET"). Every station of the layer is in HYDAT; one
     # that is not stops the build rather than keep the layer's name.
-    hydat_names = hydat_station_names(Path(SOURCE) / "hydat.sqlite3", [s["station"] for s in stations])
+    hydat_names = hydat_station_names(Path(data_dir) / "hydat.sqlite3", [s["station"] for s in stations])
     db.executemany("INSERT INTO gauge (station, name, item_id, sid, lon, lat, area_km2, mag, "
                    "matched_by, match_m, tidal, backwater, diversion) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)", [
         (s["station"], display_case(hydat_names[s["station"]]),
@@ -290,7 +296,7 @@ def write(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_item
     # and the bundle snapshots it here so a client can draw a seasonal band and date an old
     # spot offline. Building it twice would be two envelopes that can disagree about the
     # same river.
-    clim_path = CLIM_PATH
+    clim_path = clim_file(clim_path)
     if clim_path.exists():
         clim = json.loads(clim_path.read_text(encoding="utf-8"))
         # ONE BLOB PER (station, parameter) — the packing is described in schema.sql. Built
@@ -339,7 +345,7 @@ def write(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_item
     # than no panel: a regulated donor reports a dam's release schedule as if it were
     # rainfall, and a three-year record cannot carry a percentile at all. So this is skipped
     # rather than approximated when either is missing.
-    hydat = Path(SOURCE) / "hydat.sqlite3"
+    hydat = Path(data_dir) / "hydat.sqlite3"
     # THE RECORD PER QUANTITY (T110): `record_years(stats, station, quantity)` over clim.json's `stats` — the same rows
     # `gauge_stats` was just written from. It was `max(years)` across quantities here, so 07ED001 (59 years of
     # discharge, 4 of level) weighed its level reading as a 59-year record.
@@ -362,7 +368,7 @@ def write(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_item
         raise SystemExit("section_panel: gauge_stats is empty — clim.json carries no record "
                          "lengths")
     else:
-        model = _area_model(Path(SOURCE) / "bc_fisheries_data.gpkg")
+        model = _area_model(Path(data_dir) / "bc_fisheries_data.gpkg")
         # REGULATED STATIONS ARE PASSED THROUGH, NOT FILTERED OUT HERE.
         #
         # The regulation flag travels with the donor and `panel.eligible` decides what it
@@ -433,7 +439,7 @@ def write(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_item
         from pipeline.gauges.consume.basins import gauged_groups, roster
         from pipeline.deliver.tiles.basins import groups as _groups
 
-        _frame = _groups(str(Path(SOURCE) / "bc_fisheries_data.gpkg"))
+        _frame = _groups(str(Path(data_dir) / "bc_fisheries_data.gpkg"))
         # EVERY station with a coordinate, live or not. Which of them is transmitting is the
         # feed's business and changes every half hour; this file must not encode it.
         #

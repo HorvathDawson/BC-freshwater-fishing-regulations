@@ -752,7 +752,10 @@ def export_admin(gpkg: str, out_dir: Path) -> dict:
     from pipeline.atlas.splits.area_splits import (load_area_attrs, load_area_polys,
                                                    load_area_split_defs)
 
+    from pipeline.atlas.fwa import FWADataAccessor
+
     tf = Transformer.from_crs(3005, 4326, always_xy=True)
+    fwa = FWADataAccessor(gpkg)
     writers: dict[str, tuple] = {}
 
     def writer_for(lname: str):
@@ -779,7 +782,9 @@ def export_admin(gpkg: str, out_dir: Path) -> dict:
                              f"in pipeline/deliver/tiles/layers.py")
         spec = BY_NAME[lname]
         write = writer_for(lname)
-        polys = load_area_polys(None, ad)
+        # THE EXPORT'S OWN GPKG (T667 slice 8): `--gpkg` (default: the configured file, as before), so the areas drawn
+        # are the ones the atlas built from that file cut at — not the province's, under an invented world
+        polys = load_area_polys(fwa, ad)
         # DRAWN, BUT ONLY THESE (T202, owner 2026-10-27): `tile_names` keeps the named areas in the tile and leaves the
         # rest of the def cut and stamped but undrawn — the WMAs, where only Creston Valley carries a regulation. A
         # listed name the def does not produce fails, so a renamed source area cannot silently empty the layer.

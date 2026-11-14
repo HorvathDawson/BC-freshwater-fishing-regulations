@@ -1,5 +1,28 @@
 {
  "_about": "MINI FIXTURE (T667 slice 8): an invented tree for the mini release; see pipeline/tests/fixtures/mini/README.md.",
  "_licence": {},
- "waterbodies": []
+ "waterbodies": [
+  {
+   "name": "MOCK CREEK",
+   "applies_to": {
+    "gnis_id": "990002"
+   },
+   "splits": [
+    {
+     "id": "mock_creek__mock_creek_falls",
+     "label": "Mock Creek Falls",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -125.853228,
+       52.264448
+      ],
+      "is_lonlat": true
+     },
+     "note": "INVENTED: the mini world's falls (world.json obstacles), 6 km up Mock Creek"
+    }
+   ]
+  }
+ ]
 }
