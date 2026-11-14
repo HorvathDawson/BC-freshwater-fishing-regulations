@@ -70,7 +70,7 @@ Runs: `ios-baseline` (main lane, `all`, cut by its 40 min cap during `pdf`), the
 | first-open | PASS | | 397 s to the map (split below) |
 | map | PASS | | 5.4 % coloured, 39 % light grey |
 | tap-water | PASS | | edge drag: 50 % / 400 ms stayed, 30 % / 900 ms went back (as at 0.5.0) |
-| offline | 2 of 3 → see re-run | **test bed:** (1) step 3: the shared flow's `tapOn "MAP\|Map"` hit another "Map" on iOS and the Cultus page reopened → `ios-open-updates-log.yaml`, no text tap (6572ee881); (2) step 1: the Developer card's log reaches the accessibility tree only after the flow's 15 s wait at a cold start (the screenshot shows it) → wait on the tree (1f3376368) | |
+| offline | 2 of 3 (steps 2 and 3 pass after the fixes; step 1 still fails in 3 re-runs) | **test bed:** (1) step 3: the shared flow's `tapOn "MAP\|Map"` hit another "Map" on iOS and the Cultus page reopened → `ios-open-updates-log.yaml`, no text tap (6572ee881); (2) step 1: the Developer card's log reaches the accessibility tree only after the flow's 15 s wait at a cold start (the screenshot shows it) → wait on the tree (1f3376368). Still failing (ios-open2): even 30 s more, the log never entered the tree on that first open, while step 3's open later in the same run read it. **Open: test bed, or an app accessibility gap in the test-only Developer card;** the next move is a scroll or a re-open inside the card | |
 | satellite | PASS | | light grey 10.6 % → 5.6 % |
 | location | 2 PASS, 1 SKIP | **app (parity):** no "At my location" row in iOS search (START-HERE flagged it) | 949 blue px at the centre |
 | walkthrough | PASS | | 41 of 41 |
