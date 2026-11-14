@@ -113,6 +113,76 @@ export function memory() {
 /** (T363) iOS's memory warning, as the Simulator's menu sends it */
 export const memoryWarning = () => simctl(['spawn', udid(), 'notifyutil', '-p', 'UISimulatedMemoryWarningNotification']);
 
+// ---------- the app's log, as the Android scenarios read logcat (T719/T720) ----------
+// run-ios.mjs streams the app's unified log (`log stream --style compact --level debug`, process CanIFish) to app-os.log
+// beside the report and names it here (`useAppLog`). `logcatClear()` is a MARK (the file's length now), never a delete;
+// `logcatJs()` is the app's JS lines (RN console.log → `[com.facebook.react.log:javascript]`) written since it, so a
+// scenario that reads `[open]` / `[stall]` / `[target]` lines with `l.indexOf('[tag] ')` reads them the same on both.
+// The stream is written a beat after the app logs: a reader waits (the scenarios poll), never assumes "nothing yet".
+let appLog = null, appLogMark = 0;
+export function useAppLog(file) { appLog = file; appLogMark = 0; }
+const appLogSize = () => { try { return fs.statSync(appLog).size; } catch { return 0; } };
+export function logcatClear() {
+  if (!appLog) throw new Error('no app log: run-ios.mjs names it (device.useAppLog)');
+  appLogMark = appLogSize();
+}
+/** Every app-log line (all subsystems: UIKit, MapLibre, RN) since the mark, or since `from` (a byte offset). */
+export function appLogLines(from = appLogMark) {
+  if (!appLog) throw new Error('no app log: run-ios.mjs names it (device.useAppLog)');
+  try {
+    const size = appLogSize(), start = Math.max(0, Math.min(from, size));
+    const fd = fs.openSync(appLog, 'r'), buf = Buffer.alloc(size - start);
+    fs.readSync(fd, buf, 0, buf.length, start); fs.closeSync(fd);
+    return buf.toString('utf8').split('\n');
+  } catch { return []; }
+}
+export const logcatJs = () => appLogLines().filter((l) => l.includes('[com.facebook.react.log:javascript]')).join('\n');
+/** The Mac's UTC offset as `log` prints times (ms), from macOS's own zone data (`date +%z`). NOT Node's: Node 2026a's
+ *  ICU still turns America/Vancouver back to UTC−8 on 1 Nov 2026 while macOS keeps B.C.'s permanent UTC−7, so a Node
+ *  local-time parse of a log line was an hour out (checked 2026-11-14 on ios-t313g's log). */
+let zoneMs = null;
+function macZoneMs() {
+  if (zoneMs === null) {
+    const z = /^([+-])(\d\d)(\d\d)$/.exec(execFileSync('date', ['+%z'], { encoding: 'utf8' }).trim());
+    if (!z) throw new Error('date +%z: no UTC offset');
+    zoneMs = (z[1] === '-' ? -1 : 1) * (Number(z[2]) * 60 + Number(z[3])) * 60_000;
+  }
+  return zoneMs;
+}
+/** A compact-style log line's own time (`2026-11-14 10:23:45.123 …`, the Mac's local clock) as epoch ms; null if none.
+ *  The simulator app's `Date.now()` is the Mac's clock, so this is directly comparable with a probe's `wall`/`at`
+ *  (checked on ios-t313g: `[stall] {"at":1793868519188}` was logged at 01:48:39.188, UTC−7). */
+export function logTime(line) {
+  const m = /^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)\.(\d{3})/.exec(line ?? '');
+  if (!m) return null;
+  const [, y, mo, d, h, mi, s, ms] = m.map(Number);
+  return Date.UTC(y, mo - 1, d, h, mi, s, ms) - macZoneMs();
+}
+/** (T719) The app's clock minus the log's, ms: each `[heap]` / `[stall]` line since `from` carries the app's `Date.now()`
+ *  (`at`) and is stamped by the log a moment later, so this is ≤ 0 and small (a few ms) when the two agree; null with
+ *  no such line. A bench that compares `wall` with a log time checks it first. */
+export function clockSkew(from = appLogMark) {
+  const d = [];
+  for (const l of appLogLines(from)) {
+    const k = l.includes('[heap] {') ? '[heap] ' : l.includes('[stall] {') ? '[stall] ' : null;
+    if (!k) continue;
+    try { const at = JSON.parse(l.slice(l.indexOf(k) + k.length)).at, t = logTime(l); if (Number.isFinite(at) && t) d.push(at - t); } catch { /* a cut line */ }
+  }
+  d.sort((a, b) => a - b);
+  return d.length ? d[Math.floor(d.length / 2)] : null;
+}
+/** (T719) UIKit's own word on each touch the app received: `[com.apple.UIKit:EventDispatch] Evaluating dispatch of
+ *  UIEvent …; type: 0;` is one touches event (a finger down, moved or up), and `(UIKitCore) send gesture actions` a
+ *  gesture recogniser firing its action. Both in the app process, on the Mac's clock (ms). Since the mark / `from`. */
+export function touchLog(from = appLogMark) {
+  const touches = [], actions = [];
+  for (const l of appLogLines(from)) {
+    if (l.includes('Evaluating dispatch of UIEvent') && /type: 0;/.test(l)) { const t = logTime(l); if (t) touches.push(t); }
+    else if (l.includes('send gesture actions')) { const t = logTime(l); if (t) actions.push(t); }
+  }
+  return { touches, actions };
+}
+
 /** The app's log lines (os_log, the simulator's unified log) since `since` (a Date), matching `re`. */
 export function logSince(since, re) {
   const t = new Date(since).toISOString().replace('T', ' ').slice(0, 19);

@@ -1,0 +1,5 @@
+# (T719, iOS bench) One tap at an absolute point (iOS points = the app's dp: "x,y"), and nothing else: no retry if the
+# screen does not change (a second tap would be a double open or a double tap), no wait (the bench reads the app's log).
+appId: ca.canifishthis.app
+---
+- tapOn: { point: "${POINT}", retryTapIfNoChange: false }

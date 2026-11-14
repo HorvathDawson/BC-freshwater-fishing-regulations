@@ -1,0 +1,5 @@
+# (T719, iOS bench) A double tap at an absolute point (iOS points: "x,y"). Whether the two taps came close enough for
+# UIKit to call it a double tap is read from the app's log (UIKit's touches events), not assumed.
+appId: ca.canifishthis.app
+---
+- doubleTapOn: { point: "${POINT}" }

@@ -5,8 +5,10 @@
 // app's own "Simulate offline" (Updates log, staging builds), said as such in the report.
 //
 //   node app/tools/testbed/run-ios.mjs [all | <scenario id>…] [--out <dir>]
-//   scenarios: first-open map tap-water offline satellite location walkthrough pdf crash perf memory
+//   scenarios: first-open map tap-water offline satellite location walkthrough pdf crash perf memory  (= `all`)
 //   (perf, memory: a --probes build — the app's [open] [pan] [heap] lines)
+//   benches, by name only (not in `all`): regs-open (T719, scenarios-ios/regs-open.mjs), tap-stalls (T720,
+//   scenarios-ios/stalls.mjs) — the Android benches' iOS twins; a --testbed or --probes build
 import { execFileSync, spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -14,6 +16,8 @@ import * as device from './lib/device-ios.mjs';
 import { flow } from './lib/maestro.mjs';
 import { writeReport } from './lib/report.mjs';
 import { count, readPng } from './lib/png.mjs';
+import { regsOpenIos } from './scenarios-ios/regs-open.mjs';
+import { tapStallsIos } from './scenarios-ios/stalls.mjs';
 
 process.env.TESTBED_PLATFORM = 'ios';
 const HERE = path.dirname(new URL(import.meta.url).pathname);
@@ -95,6 +99,10 @@ function painted(file) {
   const blueish = count(img, r, (R, G, B) => B > R + 20);                  // water, open-status colours
   const total = r.w * r.h;
   return { grey: grey / total, colour: blueish / total, w: img.w, h: img.h };
+}
+/** A water's page closed by its own back link (by id; the place when the id is not in the tree) */
+async function pageBack(ctx) {
+  try { ctx.flow('tap-id', { ID: 'water-back' }); } catch { ctx.flow('tap-point', { POINT: PAGE_BACK }); }
 }
 const shot = (ctx, name) => device.screenshot(path.join(ctx.dir, `T313-${name}.png`));
 
@@ -560,10 +568,13 @@ const SCENARIOS = [
         return `JS lag max ${out.pan.lagMax} ms, ${out.pan.late} ticks >100 ms late · stalls >50 ms: ${out.pan.stalls} (max ${out.pan.stallMax}, p95 ${out.pan.stallP95} ms) · tiles ${out.pan.tiles}, labels ${out.pan.labels}, sends ${out.pan.sends} (ack max ${out.pan.ackMax} ms), renders ${out.pan.renders} · RSS peak ${out.rssPeakMb} MB`;
       });
     } },
+  // (T719, T720) the Android benches' iOS twins: by name only (`inAll: false`), so `all` stays the T718 baseline's 11
+  regsOpenIos,
+  tapStallsIos,
 ];
 
 // ---------- the runner (as run.mjs, without the Android-only crash buffer and test channel) ----------
-const want = args.length && !args.includes('all') ? args : SCENARIOS.map((s) => s.id);
+const want = args.length && !args.includes('all') ? args : SCENARIOS.filter((s) => s.inAll !== false).map((s) => s.id);
 for (const w of want) if (!SCENARIOS.some((s) => s.id === w)) { console.error(`no scenario ${w}: ${SCENARIOS.map((s) => s.id).join(', ')}`); process.exit(2); }
 const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
 const dir = OUTDIR ?? path.join(HERE, 'out', 'runs', `ios-${stamp}`);
@@ -587,6 +598,8 @@ function makeCtx(sc) {
   run.scenarios.push(rec);
   const ctx = {
     device, rec, dir,
+    // (T719) the iOS steps the twins in scenarios-ios/ share with the scenarios here
+    ios: { appUp, coldStart, toMap, pageBack, onPage, hasTabs },
     flow(name, env) {
       let r = flow(name, env, { logDir: path.join(dir, 'maestro', sc.id) });
       if (!r.ok) { execSleep(2); r = flow(name, env, { logDir: path.join(dir, 'maestro', sc.id) }); }
@@ -639,6 +652,7 @@ function newCrashes() {
   return out;
 }
 // (T313) the app's unified log (CFNetwork, RN errors, MapLibre) for the whole run, beside the report
+device.useAppLog(path.join(dir, 'app-os.log'));     // (T719) the scenarios' logcatClear / logcatJs read it
 const osLog = spawn(device.SIMCTL, ['spawn', device.udid(), 'log', 'stream', '--style', 'compact', '--level', 'debug',
   '--predicate', 'process == "CanIFish"'], { stdio: ['ignore', fs.openSync(path.join(dir, 'app-os.log'), 'a'), 'ignore'] });
 process.on('exit', () => { try { osLog.kill(); } catch { /* gone */ } });
