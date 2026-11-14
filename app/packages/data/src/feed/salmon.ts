@@ -15,6 +15,7 @@
  * be read (`salmonFeedLine`), never an empty list passed off as none.
  */
 import type { Region } from "../pack.generated";
+import { openProbe } from "../openProbe";
 import { reportFailure, parseDfoUnplaced, parseSalmonFeed, pickSalmon, SALMON_FEED_FORMAT, type SalmonFacts, type SalmonFeed } from "@app/core";
 
 export interface SalmonFeedStore { read(): string | null; write(text: string): void }
@@ -104,7 +105,8 @@ const PICKED = new WeakMap<SalmonFacts, { live: unknown; out: SalmonFacts }>();
 function picked(f: SalmonFacts, live: Parameters<typeof pickSalmon>[1]): SalmonFacts {
   const was = PICKED.get(f);
   if (was && was.live === live) return was.out;
-  const out = pickSalmon(f, live);
+  // (T716) timed in the test bed's build: the composition is once per release head and feed (`withSalmonFeed`)
+  const out = openProbe.work("dfo pick", () => pickSalmon(f, live));
   PICKED.set(f, { live, out });
   return out;
 }

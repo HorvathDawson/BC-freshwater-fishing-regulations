@@ -25,11 +25,11 @@
  * down. Every answer on every screen comes from a hook (rule 25).
  */
 import { GUIDE_WATER, WATER_SCREEN_WORDS, bellLabel, releaseNoticeVM, dayRange, placeholderFor, runSheet, stepDay, syncVM, type NotFishingKind, bcNow, now as clockNow, reportFailure } from "@app/core";
-import type { ItemId } from "@app/data";
+import { openProbe, type ItemId } from "@app/data";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Platform, View } from "react-native";
 import { bottomBarShown, spotPins, useDayFlow, useLikeVisit, useMapRail, useMyLocation, useOpenAtMe, opensAtMe, useShare, useGaugePageCheck, useMenu, useDataFacts, useSync, useAppUpdate,
-         BackLayerContext, InSeasonContext, InSeasonInboxContext, useIdleOnce, useInSeason, loadRegsStore, useInSeasonInbox, useDfoNotice, useDfoCheckedAt, useReleasePrefetch, useBackgroundPrefetch, useNet, useNetQuiet, useRegsPrefetch, holdsMapStatus, openWater, useHeldLookStore, type HeldLookStore, type RegsStart } from "@app/ui";
+         BackLayerContext, InSeasonContext, InSeasonInboxContext, useIdleOnce, useInSeason, loadRegsStore, useInSeasonInbox, useDfoNotice, useDfoCheckedAt, useReleasePrefetch, useBackgroundPrefetch, useNet, useNetQuiet, useRegsPrefetch, holdsMapStatus, openWater, pressCueStore, useHeldLookStore, type HeldLookStore, type RegsStart } from "@app/ui";
 import type { Camera, MapSpots } from "@app/map";
 import { visitSpot } from "@app/data/spots";
 import { connectivity } from "./connectivity";
@@ -536,6 +536,12 @@ export function Shell(p: ShellProps) {
   // (T508) Every view on a phone: the Conditions and Map views wait for their own live maps to draw too (`holdViews`)
   const browseShown = useRef(false);
   const pane = usePaneHold(frame !== null && !nav.carrying, browseShown.current && !!frame && holdsView(frame.view));
+  // (T716) the tap's cue (`@app/ui` pressCue.ts): lit by the browse map's host, out once the map is back in front
+  const tapCue = useMemo(() => pressCueStore(), []);
+  useEffect(() => { if (frame === null) tapCue.drop(); }, [frame === null, tapCue]);   // eslint-disable-line react-hooks/exhaustive-deps
+  // (T716, test bed only) the open probe's `shown`: the commit in which the water's pane is on screen (held or not)
+  const paneShown = frame !== null && !pane.holding;
+  useEffect(() => { if (paneShown && openProbe.on()) { openProbe.mark("shown"); openProbe.endOnFrame("shownFrame"); } }, [paneShown]);
   // (T498) while a pane is held, the screen is the one the reader left, AS IT WAS: the elements of the last browse
   // render (the map, and the search bar, the map's foot and the tab bar over it), so the route's change (a search
   // consumed, the water's fit, the bars a water hides) reaches none of them under the hold — the screen changes once
@@ -606,7 +612,7 @@ export function Shell(p: ShellProps) {
                   offline={background.scheduler ? background.status : null}
                   onObstacle={setObstacle} onNotFishing={setNotFishing} onRuns={(sid, at) => { setRunsAt(sid); setRunsPoint(at); }}
                   fishImages={p.fishImages}
-                  lookKey={lookKey} look={lookStore as HeldLookStore<unknown>} />
+                  lookKey={lookKey} look={lookStore as HeldLookStore<unknown>} cue={tapCue} />
     : null;
 
   /** (T48) The top bar — the search field, the sync icon and the bell — is the maps': on Map, Conditions and (T261)

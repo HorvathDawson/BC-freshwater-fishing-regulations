@@ -303,7 +303,7 @@ const WATER_SHARED: DbName = "water-shared";
       // (T287) the same head and slices answer with the same object: a map handed it again relabels nothing
       const memo = salmonMemo.get(asked.join(","));
       if (memo && memo.head === head && memo.read.length === read.length && memo.read.every((x, i) => x === read[i])) return memo.facts;
-      const facts = salmonFacts(head, handles, read);
+      const facts = openProbe.work(`salmon facts ${asked.join(",")}`, () => salmonFacts(head, handles, read));
       salmonMemo.set(asked.join(","), { head, read, facts });
       return facts;
     },

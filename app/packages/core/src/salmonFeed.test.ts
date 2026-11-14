@@ -29,6 +29,22 @@ describe("the DFO feed over the release", () => {
       release().chains, G.release.chains[2].l]);
   });
 
+  it("(T716) composed once per release head and feed: another set of slices over the same head reuses it, a new feed does not", () => {
+    const f = feed();
+    // two sets of slices over ONE head (a page's regions, the map's every region): two facts, one payload
+    const a = release(), b = { ...release(), chainOf: () => 0 };
+    const la = withSalmonFeed(a, f), lb = withSalmonFeed(b, f);
+    expect([la.payload === lb.payload, la.chainOf(12), lb.chainOf(12)]).toEqual([true, a.chainOf(12), 0]);
+    // the feed's time and words per answer, from that feed
+    expect(salmonFeedLine(lb)).toBe(salmonFeedLine(la));
+    // a feed taken later (another object): composed afresh, never the earlier answer
+    const later = parseSalmonFeed({ ...G.feed, at: "2026-10-28T18:04:00Z" })!;
+    const lc = withSalmonFeed(a, later);
+    expect([lc.payload === la.payload, salmonFeedLine(lc) === salmonFeedLine(la)]).toEqual([false, false]);
+    // and the same answer as composing it alone
+    expect(lc.payload).toEqual(withSalmonFeed(release(), parseSalmonFeed({ ...G.feed, at: "2026-10-28T18:04:00Z" })!).payload);
+  });
+
   it("the card reads the feed: the Kispiox's coho moved to Aug 1–Sep 15, and the page date and check time show", () => {
     const live = withSalmonFeed(release(), feed());
     const was = salmonCard(release(), { sids: [12], item: null }, new Date(2026, 8, 10));

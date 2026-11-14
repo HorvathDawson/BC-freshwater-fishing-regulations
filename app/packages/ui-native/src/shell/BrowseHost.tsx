@@ -7,7 +7,7 @@ import { useCallback, useContext, type MutableRefObject } from "react";
 import { Platform, View } from "react-native";
 import { openProbe, type SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
-import { mapPointTap, routeWhere, spotsMenu, tapOpensWater, type Locate, type MyLocation, type MapRail, type MenuControls, type RegsPrefetch,
+import { mapPointTap, routeWhere, spotsMenu, tapOpensWater, useCueLit, type PressCueStore, type Locate, type MyLocation, type MapRail, type MenuControls, type RegsPrefetch,
          mapError, InSeasonContext, type HeldLookStore, type SpotPhotos, type SyncState } from "@app/ui";
 import type { Spot } from "@app/data/spots";
 import type { Camera, MapSpots, TileEndpoints } from "@app/map";
@@ -36,7 +36,7 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
                              spots, spotsShown, spotLayer, spotsError, onRefreshSpots, refreshing, locate, me = null,
                              photos, loader, syncState, dfoCheckedAt = null, sync = null, onSync, menu, menuInfo, mapDay, onSaveSpot, onLayers, onRegion,
                              offline = null, onDay, onOpenDay, dayRange, onObstacle, onNotFishing, onRuns, fishImages, regsPrefetch = null,
-                             lookKey, look }: {
+                             lookKey, look, cue }: {
   nav: ShellNav; col: MapColouring; search: ShellSearch; rail: MapRail; palette: Palette; theme: string;
   themeName: ThemeName; onTheme: (t: ThemeName) => void; tiles: TileEndpoints; camera: MutableRefObject<Camera>;
   insetTop: number; insetBottom: number; spots: readonly Spot[]; spotsShown: boolean; spotLayer: MapSpots | undefined;
@@ -76,6 +76,8 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
   offline?: { ready: readonly string[]; total: number } | null;
   /** (T566) the colouring asked of the map (`MapProps.lookKey`) and the key held until the map says it drew it */
   lookKey?: string; look?: HeldLookStore<unknown>;
+  /** (T716) the tap's cue, the Shell's (`@app/ui` pressCue.ts): lit here, put out by the Shell when the map is back */
+  cue: PressCueStore;
 }) {
   const { route, go, browse, tab, back, opener } = nav;
   const { flowParam, mm, layers, imagery, cond, gauges, lakeFeed, salmonFeed, methodFeed, mapStatus, noteVisible, setZoomedOut,
@@ -92,6 +94,17 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
    * number about a region. The rivers come back at the handover and they are what you tap (`tapOpensWater`).
    */
   const picking = rail.picking;
+  /**
+   * (T716) THE TAP'S CUE (`@app/ui` pressCue.ts): the tapped section is lit on this map the moment the finger lifts
+   * (`onPressStart`), held through the open, and put out when nothing opens or (the Shell's) the map is back in front. Only where a
+   * tap opens a water — not in pick mode, not on Runs, not below the handover on Conditions.
+   */
+  const tapLit = useCueLit(cue);
+  const opensWater = () => !picking && tab !== "runs"
+    && tapOpensWater({ tab, flowParam, zoom: camera.current?.zoom ?? HOME.zoom, handover: HANDOVER_Z });
+  const onPressStart = useCallback((_layer: string, featureId: SectionKey) => { if (opensWater()) cue.start(featureId); },
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `opensWater` reads exactly these
+    [tab, flowParam, picking, cue]);
   const onPressFeature = useCallback(async (_layer: string, featureId: SectionKey, lat?: number, lon?: number) => {
     // PICK ON THE MAP: a tap places the spot's pin (`onMapPoint`) and opens nothing — a water under it included
     if (picking) return;
@@ -105,10 +118,18 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
     if (!tapOpensWater({ tab, flowParam, zoom: camera.current?.zoom ?? HOME.zoom, handover: HANDOVER_Z })) return;
     // The tile's feature id IS the section handle — converted, not cast (see noteVisible).
     openProbe.start(`sid ${featureId}`);
+    cue.confirm(featureId);
     regsPrefetch?.stop();
-    await opener.tap(Number(featureId) as SectionId,
-                     lat !== undefined && lon !== undefined ? { lat, lon } : null, conditions ? "conditions" : "regs");
-  }, [tab, flowParam, opener, picking, col.runsFeed, onRuns, regsPrefetch]);
+    // (T716) nothing opened (overtaken, stale): the cue goes out; a failed open is the opener's to report, and still
+    // leaves nothing lit
+    let opened = false;
+    try {
+      opened = await opener.tap(Number(featureId) as SectionId,
+                                lat !== undefined && lon !== undefined ? { lat, lon } : null, conditions ? "conditions" : "regs");
+    } finally {
+      if (!opened) cue.drop();
+    }
+  }, [tab, flowParam, opener, picking, col.runsFeed, onRuns, regsPrefetch, cue]);
   /** What More's Data block reads (T167: the only place a source's date and freshness are drawn): the release's dates, the pair, the feed's age. */
   const inseasonFetchedAt = useContext(InSeasonContext).data?.feed.fetchedAt ?? null;
   const dataFacts = {
@@ -194,7 +215,8 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
                          : restore ? { key: restore.key, bbox: null, camera: restore.camera } : null}
                      // WHAT SEARCH LIGHTS, whole, while search is open — on either map; closed, nothing (the Conditions
                      // view lights a gauge's route with the same feature-state and must not inherit a search)
-                     highlight={searching ? session.focus?.highlight ?? NONE : NONE}
+                     // (T716) and closed, the section a tap is opening (the tap's cue), else nothing
+                     highlight={searching ? session.focus?.highlight ?? NONE : tapLit}
                      standing={cond.standing}
                      lakes={lakeFeed}
                      salmon={salmonFeed}
@@ -256,6 +278,7 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
                      // — and on a WIDE screen while search is open, a click on the map beside the panel closes search
                      // and does nothing else (owner 2026-10-22 late): no water opens under it, no pin drops
                      onPressFeature={picking || wideSearch ? undefined : onPressFeature}
+                     onPressStart={picking || wideSearch ? undefined : onPressStart}
                      // (T173) a fish obstacle mark (drawn only while its Layers switch is on, Map tab only): its sheet,
                      // and no water opens under it
                      onPressObstacle={picking || wideSearch || tab !== "map" ? undefined : onObstacle}

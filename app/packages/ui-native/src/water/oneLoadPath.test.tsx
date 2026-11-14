@@ -51,7 +51,7 @@ const AT = { lat: 49.23, lon: -122.79 };
 const DAY = new Date(2026, 6, 15, 12);
 
 /** The app's opener on a route: every open the app makes goes through it (with the release's `partOf`). */
-async function viaOpener(from: Route, act: (o: ReturnType<typeof waterOpener>) => Promise<void> | void): Promise<Route> {
+async function viaOpener(from: Route, act: (o: ReturnType<typeof waterOpener>) => Promise<unknown> | void): Promise<Route> {
   let r = from;
   const o = waterOpener(itemFor, (a) => { r = reduce(r, a); }, { now: () => r, partOf: regsPartOf(lined) });
   await act(o);

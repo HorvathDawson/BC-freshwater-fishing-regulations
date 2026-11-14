@@ -287,7 +287,30 @@ type WithFeed = SalmonFacts & { readonly [FEED]?: SalmonFeedFacts };
 /** The release's salmon with the feed's answers: same sections, same chains, the feed's verdicts, gears and page
  *  dates. A region the feed does not carry keeps the release's page date. */
 export function withSalmonFeed(f: SalmonFacts, feed: SalmonFeed): SalmonFacts {
-  const P = f.payload;
+  const { payload, stale, unread } = feedPayload(f.payload, feed);
+  const out: WithFeed = { handles: f.handles, chains: f.chains, chainOf: (sid) => f.chainOf(sid), payload, loaded: f.loaded,
+                          [FEED]: { at: feed.at, stale, ...(unread ? { unplacedUnread: unread } : {}) } };
+  return out;
+}
+
+/**
+ * (T716) THE FEED LAID OVER THE RELEASE'S HEAD, ONCE PER HEAD AND FEED. It reads only the head (`payload`: every chain
+ * of the province) and the feed, never the slices — yet each set of slices asked (a page's regions; every one for the
+ * map) is its own `SalmonFacts`, and each was composed again: 1.0 s on the emulator's JS thread the first time a Fraser
+ * page asked its four regions (testbed `regs-open`, `[work] dfo pick 1010.5 ms`), the map held over the pane all that
+ * while. Keyed by the two objects themselves, so a new release head or a new feed is composed afresh — never an older
+ * answer.
+ */
+const COMPOSED = new WeakMap<Payload, WeakMap<SalmonFeed, { payload: Payload; stale: string[]; unread: number }>>();
+function feedPayload(P: Payload, feed: SalmonFeed): { payload: Payload; stale: string[]; unread: number } {
+  let byFeed = COMPOSED.get(P);
+  if (!byFeed) { byFeed = new WeakMap(); COMPOSED.set(P, byFeed); }
+  let done = byFeed.get(feed);
+  if (!done) { done = composeFeedPayload(P, feed); byFeed.set(feed, done); }
+  return done;
+}
+
+function composeFeedPayload(P: Payload, feed: SalmonFeed): { payload: Payload; stale: string[]; unread: number } {
   const regions = Object.fromEntries(Object.entries(P.regions).map(([slug, r]) => {
     const fr = feed.regions[slug];
     if (!fr) return [slug, r];
@@ -335,9 +358,7 @@ export function withSalmonFeed(f: SalmonFacts, feed: SalmonFeed): SalmonFacts {
   const stale = Object.entries(feed.regions).filter(([, r]) => r.stale || r.held).map(([s]) => s).sort();
   // (T521) the index counts places its unplaced.json was not read for: said on the card's feed line, never hidden
   const unread = feed.unplacedRows ? 0 : feed.unplaced ?? 0;
-  const out: WithFeed = { handles: f.handles, chains: f.chains, chainOf: (sid) => f.chainOf(sid), payload, loaded: f.loaded,
-                          [FEED]: { at: feed.at, stale, ...(unread ? { unplacedUnread: unread } : {}) } };
-  return out;
+  return { payload, stale, unread };
 }
 
 /**

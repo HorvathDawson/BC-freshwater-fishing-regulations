@@ -212,6 +212,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T711 | Part header text follows the "Source" end name (P55, 62 tops) | IN PROGRESS | — | owner 2026-11-13; code + tests done (`part.own_end`, 62 tops); left (Claude): Kanaka shot after the next release |
 | T714 | Share a saved spot, and a group of spots, by link or file (today Share sends a water only) | OPEN (after closed testing (owner 2026-11-13: "these are after closed")) | — | owner 2026-11-13; priority for the owner to place; decisions by dialog first (what travels, link vs file vs server, privacy text) |
 | T715 | Store video: the command builds its own starting state (fresh install, release, clock, settings, its own saved spot), checked on screen | OPEN (after closed testing (owner 2026-11-13: "these are after closed")) | — | owner 2026-11-13 ("create a proper state"); before the next regeneration for a store upload; follows T709 |
+| T716 | Tapping a stream takes a long time to open, with no feedback (build 0.7.8, Android): the tapped stretch lit at the finger's lift (28-73 ms), the Fraser's first open 1,626 → 514 ms | IN PROGRESS (before closed testing) | — | owner 2026-11-13 phone; code done; left (Claude): a look on the next APK |
 
 ## Next after closed testing
 

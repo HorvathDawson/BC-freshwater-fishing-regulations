@@ -68,7 +68,7 @@ index 86183442be292aa6084cd61dc7cf1bf286ea6b28..5a651fd8be582efc250b3c43884f8b36
  
                      else -> {
 diff --git a/android/src/main/java/org/maplibre/reactnative/components/mapview/MLRNMapView.kt b/android/src/main/java/org/maplibre/reactnative/components/mapview/MLRNMapView.kt
-index b088909a48c4265219e4e95c529f6c0a63ae7e11..03167d6626289280b6f28bfd60030131a3ba7184 100644
+index b088909a48c4265219e4e95c529f6c0a63ae7e11..ab33a475346f01f5ae76cc19707a966158bc5cbf 100644
 --- a/android/src/main/java/org/maplibre/reactnative/components/mapview/MLRNMapView.kt
 +++ b/android/src/main/java/org/maplibre/reactnative/components/mapview/MLRNMapView.kt
 @@ -8,8 +8,20 @@ import android.graphics.RectF
@@ -149,7 +149,7 @@ index b088909a48c4265219e4e95c529f6c0a63ae7e11..03167d6626289280b6f28bfd60030131
      }
  
      fun reflow() {
-@@ -610,9 +647,211 @@ open class MLRNMapView(
+@@ -610,9 +647,261 @@ open class MLRNMapView(
          }
      }
  
@@ -351,9 +351,59 @@ index b088909a48c4265219e4e95c529f6c0a63ae7e11..03167d6626289280b6f28bfd60030131
 +        sendRegionDidChangeEvent()
 +    }
 +
++    /** (T716) the tap being made: where and when its finger went down, whether it moved or grew a second finger */
++    private var tapDownAt = 0L
++    private var tapDownX = 0f
++    private var tapDownY = 0f
++    private var tapSpoiled = true
++    /** (T716) the last tap said at its lift (uptime ms, -1: none): a finger down soon after it near it is a double tap */
++    private var tapUpAt = -1L
++    private var tapUpX = 0f
++    private var tapUpY = 0f
++
++    /**
++     * (T716, owner on 0.7.8: "When you click on a stream it is taking a very long time to open with no feedback") A TAP
++     * IS SAID AT ITS LIFT. MapLibre reports a click only once Android's gesture detector has ruled out a double tap
++     * (`onSingleTapConfirmed`: the double-tap timeout, 300 ms, after the finger went down), so for that long nothing
++     * on screen answered the finger (measured, testbed `regs-open`: 303-326 ms from the injected tap to the press).
++     * `onTapUp` is sent the moment a still, single-finger tap lifts, so the app can mark what is under it at once; the
++     * click (`onPress`) still decides what opens. Not sent for the second tap of a double tap (MapLibre zooms), a drag,
++     * a pinch or a long press.
++     */
++    private fun tuneTap(ev: MotionEvent) {
++        val cfg = ViewConfiguration.get(context)
++        when (ev.actionMasked) {
++            MotionEvent.ACTION_DOWN -> {
++                val second = tapUpAt >= 0 && ev.eventTime - tapUpAt <= ViewConfiguration.getDoubleTapTimeout() &&
++                    hypot((ev.x - tapUpX).toDouble(), (ev.y - tapUpY).toDouble()) <= cfg.scaledDoubleTapSlop
++                tapUpAt = -1L
++                tapDownAt = ev.eventTime
++                tapDownX = ev.x
++                tapDownY = ev.y
++                tapSpoiled = second
++            }
++            MotionEvent.ACTION_MOVE ->
++                if (hypot((ev.x - tapDownX).toDouble(), (ev.y - tapDownY).toDouble()) > cfg.scaledTouchSlop) tapSpoiled = true
++            MotionEvent.ACTION_POINTER_DOWN, MotionEvent.ACTION_CANCEL -> tapSpoiled = true
++            MotionEvent.ACTION_UP -> {
++                if (tapSpoiled || ev.eventTime - tapDownAt > ViewConfiguration.getLongPressTimeout()) return
++                tapUpAt = ev.eventTime
++                tapUpX = ev.x
++                tapUpY = ev.y
++                if (paused || destroyed || !isAttachedToWindow) return
++                val map = mapLibreMap ?: return
++                val at = PointF(ev.x, ev.y)
++                val latLng = map.projection.fromScreenLocation(at)
++                val event = MapPressEvent(surfaceId, id, "onTapUp", latLng, PointF(at.x / displayDensity, at.y / displayDensity))
++                eventDispatcher?.dispatchEvent(event)
++            }
++        }
++    }
++
      @SuppressLint("ClickableViewAccessibility")
      override fun onTouchEvent(ev: MotionEvent?): Boolean {
 +        if (ev?.actionMasked == MotionEvent.ACTION_DOWN) endSwapHold("touch")
++        if (ev != null) tuneTap(ev)
 +        if (ev != null) tuneFling(ev)
 +        if (ev != null) tunePinch(ev)
          val result = super.onTouchEvent(ev)
@@ -361,7 +411,7 @@ index b088909a48c4265219e4e95c529f6c0a63ae7e11..03167d6626289280b6f28bfd60030131
  
          if (result && scrollEnabled == true) {
              requestDisallowInterceptTouchEvent(true)
-@@ -774,6 +1013,8 @@ open class MLRNMapView(
+@@ -774,6 +1063,8 @@ open class MLRNMapView(
          frameEncodingTime: Double,
          frameRenderingTime: Double,
      ) {
@@ -370,7 +420,7 @@ index b088909a48c4265219e4e95c529f6c0a63ae7e11..03167d6626289280b6f28bfd60030131
          if (fully) {
              handleMapChangedEvent("onDidFinishRenderingFrameFully")
          } else {
-@@ -794,6 +1035,7 @@ open class MLRNMapView(
+@@ -794,6 +1085,7 @@ open class MLRNMapView(
      }
  
      override fun onDidFinishLoadingStyle() {
@@ -378,7 +428,7 @@ index b088909a48c4265219e4e95c529f6c0a63ae7e11..03167d6626289280b6f28bfd60030131
          handleMapChangedEvent("onDidFinishLoadingStyle")
          applyLight()
      }
-@@ -813,10 +1055,77 @@ open class MLRNMapView(
+@@ -813,10 +1105,77 @@ open class MLRNMapView(
      private val displayDensity: Float
          get() = context.resources.displayMetrics.density
  
@@ -456,7 +506,7 @@ index b088909a48c4265219e4e95c529f6c0a63ae7e11..03167d6626289280b6f28bfd60030131
              mapLibreMap?.let { map ->
                  removeAllSourcesFromMap()
  
-@@ -871,6 +1180,172 @@ open class MLRNMapView(
+@@ -871,6 +1230,172 @@ open class MLRNMapView(
          updateInsets()
      }
  
@@ -629,7 +679,7 @@ index b088909a48c4265219e4e95c529f6c0a63ae7e11..03167d6626289280b6f28bfd60030131
      fun setReactPreferredFramesPerSecond(preferredFramesPerSecond: Int?) {
          this.preferredFramesPerSecond = preferredFramesPerSecond
          updatePreferredFramesPerSecond()
-@@ -1565,6 +2040,7 @@ open class MLRNMapView(
+@@ -1565,6 +2090,7 @@ open class MLRNMapView(
          eventName: String,
          withViewState: Boolean? = null,
      ) {
@@ -637,7 +687,7 @@ index b088909a48c4265219e4e95c529f6c0a63ae7e11..03167d6626289280b6f28bfd60030131
          val event =
              if (withViewState == true) {
                  MapChangeEvent(surfaceId, id, eventName, makeViewState(null))
-@@ -1613,6 +2089,39 @@ open class MLRNMapView(
+@@ -1613,6 +2139,39 @@ open class MLRNMapView(
      }
  
      companion object {
@@ -1878,7 +1928,7 @@ index 46db8c919a36ce57cca573f7bb248bd797be1242..8bd9c6c6b5c51b1eca0227a0da3c9d81
        }
      });
 diff --git a/lib/commonjs/components/map/AndroidTextureMapViewNativeComponent.ts b/lib/commonjs/components/map/AndroidTextureMapViewNativeComponent.ts
-index af4549f0889d69db52cbbe200d8f67290ea16692..d71b70a0bb51fe563988c7e181030264fae8f666 100644
+index af4549f0889d69db52cbbe200d8f67290ea16692..1860d6c86ef373804587dfe2f6c920f1998dc8a9 100644
 --- a/lib/commonjs/components/map/AndroidTextureMapViewNativeComponent.ts
 +++ b/lib/commonjs/components/map/AndroidTextureMapViewNativeComponent.ts
 @@ -58,6 +58,8 @@ export interface NativeProps extends ViewProps {
@@ -1890,8 +1940,17 @@ index af4549f0889d69db52cbbe200d8f67290ea16692..d71b70a0bb51fe563988c7e181030264
  
    dragPan?: CodegenTypes.WithDefault<boolean, true>;
    touchZoom?: CodegenTypes.WithDefault<boolean, true>;
+@@ -83,6 +85,8 @@ export interface NativeProps extends ViewProps {
+ 
+   onPress?: CodegenTypes.BubblingEventHandler<NativePressEvent>;
+   onLongPress?: CodegenTypes.BubblingEventHandler<NativePressEvent>;
++  /** (canifishthis T716 patch) Android: a still single-finger tap at its lift, before the click is confirmed */
++  onTapUp?: CodegenTypes.BubblingEventHandler<NativePressEvent>;
+ 
+   onRegionWillChange?: CodegenTypes.DirectEventHandler<NativeViewStateEvent>;
+   onRegionIsChanging?: CodegenTypes.DirectEventHandler<NativeViewStateEvent>;
 diff --git a/lib/commonjs/components/map/MapViewNativeComponent.ts b/lib/commonjs/components/map/MapViewNativeComponent.ts
-index 8d387ef65d38f06ea72f4eb1da3162e8535d2d1c..b517661bfcdb2c66fd994a01526d9fd3f1284fe9 100644
+index 8d387ef65d38f06ea72f4eb1da3162e8535d2d1c..d19a7346e499a1e071b142e1197b1cc62f9ceed6 100644
 --- a/lib/commonjs/components/map/MapViewNativeComponent.ts
 +++ b/lib/commonjs/components/map/MapViewNativeComponent.ts
 @@ -55,6 +55,8 @@ export interface NativeProps extends ViewProps {
@@ -1903,6 +1962,15 @@ index 8d387ef65d38f06ea72f4eb1da3162e8535d2d1c..b517661bfcdb2c66fd994a01526d9fd3
  
    dragPan?: CodegenTypes.WithDefault<boolean, true>;
    touchZoom?: CodegenTypes.WithDefault<boolean, true>;
+@@ -80,6 +82,8 @@ export interface NativeProps extends ViewProps {
+ 
+   onPress?: CodegenTypes.BubblingEventHandler<NativePressEvent>;
+   onLongPress?: CodegenTypes.BubblingEventHandler<NativePressEvent>;
++  /** (canifishthis T716 patch) Android: a still single-finger tap at its lift, before the click is confirmed */
++  onTapUp?: CodegenTypes.BubblingEventHandler<NativePressEvent>;
+ 
+   onRegionWillChange?: CodegenTypes.DirectEventHandler<NativeViewStateEvent>;
+   onRegionIsChanging?: CodegenTypes.DirectEventHandler<NativeViewStateEvent>;
 diff --git a/lib/commonjs/components/sources/vector-source/VectorSource.js b/lib/commonjs/components/sources/vector-source/VectorSource.js
 index 89658de044640903973f5a230da9695e59f29ca1..73baf06557b71c5e1545eae075a8c9556f18f2e9 100644
 --- a/lib/commonjs/components/sources/vector-source/VectorSource.js
@@ -1940,7 +2008,7 @@ index a7f1cd85c4d2117fc5bd43c388c125cffab8c401..2db798ac2503368bfde454d9cefea8ab
        }
      });
 diff --git a/lib/module/components/map/AndroidTextureMapViewNativeComponent.ts b/lib/module/components/map/AndroidTextureMapViewNativeComponent.ts
-index af4549f0889d69db52cbbe200d8f67290ea16692..d71b70a0bb51fe563988c7e181030264fae8f666 100644
+index af4549f0889d69db52cbbe200d8f67290ea16692..1860d6c86ef373804587dfe2f6c920f1998dc8a9 100644
 --- a/lib/module/components/map/AndroidTextureMapViewNativeComponent.ts
 +++ b/lib/module/components/map/AndroidTextureMapViewNativeComponent.ts
 @@ -58,6 +58,8 @@ export interface NativeProps extends ViewProps {
@@ -1952,8 +2020,17 @@ index af4549f0889d69db52cbbe200d8f67290ea16692..d71b70a0bb51fe563988c7e181030264
  
    dragPan?: CodegenTypes.WithDefault<boolean, true>;
    touchZoom?: CodegenTypes.WithDefault<boolean, true>;
+@@ -83,6 +85,8 @@ export interface NativeProps extends ViewProps {
+ 
+   onPress?: CodegenTypes.BubblingEventHandler<NativePressEvent>;
+   onLongPress?: CodegenTypes.BubblingEventHandler<NativePressEvent>;
++  /** (canifishthis T716 patch) Android: a still single-finger tap at its lift, before the click is confirmed */
++  onTapUp?: CodegenTypes.BubblingEventHandler<NativePressEvent>;
+ 
+   onRegionWillChange?: CodegenTypes.DirectEventHandler<NativeViewStateEvent>;
+   onRegionIsChanging?: CodegenTypes.DirectEventHandler<NativeViewStateEvent>;
 diff --git a/lib/module/components/map/MapViewNativeComponent.ts b/lib/module/components/map/MapViewNativeComponent.ts
-index 8d387ef65d38f06ea72f4eb1da3162e8535d2d1c..b517661bfcdb2c66fd994a01526d9fd3f1284fe9 100644
+index 8d387ef65d38f06ea72f4eb1da3162e8535d2d1c..d19a7346e499a1e071b142e1197b1cc62f9ceed6 100644
 --- a/lib/module/components/map/MapViewNativeComponent.ts
 +++ b/lib/module/components/map/MapViewNativeComponent.ts
 @@ -55,6 +55,8 @@ export interface NativeProps extends ViewProps {
@@ -1965,6 +2042,15 @@ index 8d387ef65d38f06ea72f4eb1da3162e8535d2d1c..b517661bfcdb2c66fd994a01526d9fd3
  
    dragPan?: CodegenTypes.WithDefault<boolean, true>;
    touchZoom?: CodegenTypes.WithDefault<boolean, true>;
+@@ -80,6 +82,8 @@ export interface NativeProps extends ViewProps {
+ 
+   onPress?: CodegenTypes.BubblingEventHandler<NativePressEvent>;
+   onLongPress?: CodegenTypes.BubblingEventHandler<NativePressEvent>;
++  /** (canifishthis T716 patch) Android: a still single-finger tap at its lift, before the click is confirmed */
++  onTapUp?: CodegenTypes.BubblingEventHandler<NativePressEvent>;
+ 
+   onRegionWillChange?: CodegenTypes.DirectEventHandler<NativeViewStateEvent>;
+   onRegionIsChanging?: CodegenTypes.DirectEventHandler<NativeViewStateEvent>;
 diff --git a/lib/module/components/sources/vector-source/VectorSource.js b/lib/module/components/sources/vector-source/VectorSource.js
 index 59458ca46193ca52559627ebca120c9718e4df79..0a3365e1439919398e3fa963d1a546c421a581a4 100644
 --- a/lib/module/components/sources/vector-source/VectorSource.js
@@ -1998,7 +2084,7 @@ index 473e240b3fac4b00d8a0dabc447bdb9d5b76abb2..4e75d942ce3b7f9a7e5b71bd97264cec
  /**
   * A map image entry: a URL string, a native asset require, or an
 diff --git a/lib/typescript/commonjs/components/map/AndroidTextureMapViewNativeComponent.d.ts b/lib/typescript/commonjs/components/map/AndroidTextureMapViewNativeComponent.d.ts
-index 47f536b7c0bcf57c445b6866d47c10a083682905..515ff21da0f3eb1000f6d585bf8a686676f648f7 100644
+index 47f536b7c0bcf57c445b6866d47c10a083682905..512623e68e794c361e16679b529d6ab2b96eed8d 100644
 --- a/lib/typescript/commonjs/components/map/AndroidTextureMapViewNativeComponent.d.ts
 +++ b/lib/typescript/commonjs/components/map/AndroidTextureMapViewNativeComponent.d.ts
 @@ -42,6 +42,8 @@ export interface NativeProps extends ViewProps {
@@ -2010,8 +2096,17 @@ index 47f536b7c0bcf57c445b6866d47c10a083682905..515ff21da0f3eb1000f6d585bf8a6866
      dragPan?: CodegenTypes.WithDefault<boolean, true>;
      touchZoom?: CodegenTypes.WithDefault<boolean, true>;
      doubleTapZoom?: CodegenTypes.WithDefault<boolean, true>;
+@@ -60,6 +62,8 @@ export interface NativeProps extends ViewProps {
+     scaleBarPosition?: NativeOrnamentViewPosition;
+     onPress?: CodegenTypes.BubblingEventHandler<NativePressEvent>;
+     onLongPress?: CodegenTypes.BubblingEventHandler<NativePressEvent>;
++    /** (canifishthis T716 patch) Android: a still single-finger tap at its lift, before the click is confirmed */
++    onTapUp?: CodegenTypes.BubblingEventHandler<NativePressEvent>;
+     onRegionWillChange?: CodegenTypes.DirectEventHandler<NativeViewStateEvent>;
+     onRegionIsChanging?: CodegenTypes.DirectEventHandler<NativeViewStateEvent>;
+     onRegionDidChange?: CodegenTypes.DirectEventHandler<NativeViewStateEvent>;
 diff --git a/lib/typescript/commonjs/components/map/Map.d.ts b/lib/typescript/commonjs/components/map/Map.d.ts
-index 25657578618e1ce75273fc672ece61f347da1cab..d27801564926a7a5f2d1760c22eb6729bfa9f525 100644
+index 25657578618e1ce75273fc672ece61f347da1cab..7e485f630c16a88b9b85821efc6c4b44e9b3b17b 100644
 --- a/lib/typescript/commonjs/components/map/Map.d.ts
 +++ b/lib/typescript/commonjs/components/map/Map.d.ts
 @@ -259,6 +259,19 @@ export interface MapProps extends BaseProps, ViewProps {
@@ -2034,8 +2129,17 @@ index 25657578618e1ce75273fc672ece61f347da1cab..d27801564926a7a5f2d1760c22eb6729
      /**
       * Toggle pan interaction of the map
       *
+@@ -379,6 +392,8 @@ export interface MapProps extends BaseProps, ViewProps {
+      * Called when a user long presses the map
+      */
+     onLongPress?: (event: NativeSyntheticEvent<PressEvent>) => void;
++    /** (canifishthis T716 patch) Android: a still single-finger tap at its lift, before `onPress` (the click, which waits out a double tap) */
++    onTapUp?: (event: NativeSyntheticEvent<PressEvent>) => void;
+     /**
+      * Called when the currently displayed map region is about to change
+      */
 diff --git a/lib/typescript/commonjs/components/map/MapViewNativeComponent.d.ts b/lib/typescript/commonjs/components/map/MapViewNativeComponent.d.ts
-index e337bbf4b2f53bdf5631d1272e6ad3b31cc6db86..276e0d3c8308705b8b1a1bc2ad5dc69865811e97 100644
+index e337bbf4b2f53bdf5631d1272e6ad3b31cc6db86..4f958beba7b42723eead193fdf9b808b42ab0e72 100644
 --- a/lib/typescript/commonjs/components/map/MapViewNativeComponent.d.ts
 +++ b/lib/typescript/commonjs/components/map/MapViewNativeComponent.d.ts
 @@ -42,6 +42,8 @@ export interface NativeProps extends ViewProps {
@@ -2047,6 +2151,15 @@ index e337bbf4b2f53bdf5631d1272e6ad3b31cc6db86..276e0d3c8308705b8b1a1bc2ad5dc698
      dragPan?: CodegenTypes.WithDefault<boolean, true>;
      touchZoom?: CodegenTypes.WithDefault<boolean, true>;
      doubleTapZoom?: CodegenTypes.WithDefault<boolean, true>;
+@@ -60,6 +62,8 @@ export interface NativeProps extends ViewProps {
+     scaleBarPosition?: NativeOrnamentViewPosition;
+     onPress?: CodegenTypes.BubblingEventHandler<NativePressEvent>;
+     onLongPress?: CodegenTypes.BubblingEventHandler<NativePressEvent>;
++    /** (canifishthis T716 patch) Android: a still single-finger tap at its lift, before the click is confirmed */
++    onTapUp?: CodegenTypes.BubblingEventHandler<NativePressEvent>;
+     onRegionWillChange?: CodegenTypes.DirectEventHandler<NativeViewStateEvent>;
+     onRegionIsChanging?: CodegenTypes.DirectEventHandler<NativeViewStateEvent>;
+     onRegionDidChange?: CodegenTypes.DirectEventHandler<NativeViewStateEvent>;
 diff --git a/lib/typescript/commonjs/components/sources/vector-source/VectorSource.d.ts b/lib/typescript/commonjs/components/sources/vector-source/VectorSource.d.ts
 index 3111419e423e19c03855efd613a9f3f1e1c72122..8f6e612c060eccbb40b92353c0eb7e209fbe5bae 100644
 --- a/lib/typescript/commonjs/components/sources/vector-source/VectorSource.d.ts
@@ -2080,7 +2193,7 @@ index 473e240b3fac4b00d8a0dabc447bdb9d5b76abb2..4e75d942ce3b7f9a7e5b71bd97264cec
  /**
   * A map image entry: a URL string, a native asset require, or an
 diff --git a/lib/typescript/module/components/map/AndroidTextureMapViewNativeComponent.d.ts b/lib/typescript/module/components/map/AndroidTextureMapViewNativeComponent.d.ts
-index 47f536b7c0bcf57c445b6866d47c10a083682905..515ff21da0f3eb1000f6d585bf8a686676f648f7 100644
+index 47f536b7c0bcf57c445b6866d47c10a083682905..512623e68e794c361e16679b529d6ab2b96eed8d 100644
 --- a/lib/typescript/module/components/map/AndroidTextureMapViewNativeComponent.d.ts
 +++ b/lib/typescript/module/components/map/AndroidTextureMapViewNativeComponent.d.ts
 @@ -42,6 +42,8 @@ export interface NativeProps extends ViewProps {
@@ -2092,8 +2205,17 @@ index 47f536b7c0bcf57c445b6866d47c10a083682905..515ff21da0f3eb1000f6d585bf8a6866
      dragPan?: CodegenTypes.WithDefault<boolean, true>;
      touchZoom?: CodegenTypes.WithDefault<boolean, true>;
      doubleTapZoom?: CodegenTypes.WithDefault<boolean, true>;
+@@ -60,6 +62,8 @@ export interface NativeProps extends ViewProps {
+     scaleBarPosition?: NativeOrnamentViewPosition;
+     onPress?: CodegenTypes.BubblingEventHandler<NativePressEvent>;
+     onLongPress?: CodegenTypes.BubblingEventHandler<NativePressEvent>;
++    /** (canifishthis T716 patch) Android: a still single-finger tap at its lift, before the click is confirmed */
++    onTapUp?: CodegenTypes.BubblingEventHandler<NativePressEvent>;
+     onRegionWillChange?: CodegenTypes.DirectEventHandler<NativeViewStateEvent>;
+     onRegionIsChanging?: CodegenTypes.DirectEventHandler<NativeViewStateEvent>;
+     onRegionDidChange?: CodegenTypes.DirectEventHandler<NativeViewStateEvent>;
 diff --git a/lib/typescript/module/components/map/Map.d.ts b/lib/typescript/module/components/map/Map.d.ts
-index 25657578618e1ce75273fc672ece61f347da1cab..d27801564926a7a5f2d1760c22eb6729bfa9f525 100644
+index 25657578618e1ce75273fc672ece61f347da1cab..7e485f630c16a88b9b85821efc6c4b44e9b3b17b 100644
 --- a/lib/typescript/module/components/map/Map.d.ts
 +++ b/lib/typescript/module/components/map/Map.d.ts
 @@ -259,6 +259,19 @@ export interface MapProps extends BaseProps, ViewProps {
@@ -2116,8 +2238,17 @@ index 25657578618e1ce75273fc672ece61f347da1cab..d27801564926a7a5f2d1760c22eb6729
      /**
       * Toggle pan interaction of the map
       *
+@@ -379,6 +392,8 @@ export interface MapProps extends BaseProps, ViewProps {
+      * Called when a user long presses the map
+      */
+     onLongPress?: (event: NativeSyntheticEvent<PressEvent>) => void;
++    /** (canifishthis T716 patch) Android: a still single-finger tap at its lift, before `onPress` (the click, which waits out a double tap) */
++    onTapUp?: (event: NativeSyntheticEvent<PressEvent>) => void;
+     /**
+      * Called when the currently displayed map region is about to change
+      */
 diff --git a/lib/typescript/module/components/map/MapViewNativeComponent.d.ts b/lib/typescript/module/components/map/MapViewNativeComponent.d.ts
-index e337bbf4b2f53bdf5631d1272e6ad3b31cc6db86..276e0d3c8308705b8b1a1bc2ad5dc69865811e97 100644
+index e337bbf4b2f53bdf5631d1272e6ad3b31cc6db86..4f958beba7b42723eead193fdf9b808b42ab0e72 100644
 --- a/lib/typescript/module/components/map/MapViewNativeComponent.d.ts
 +++ b/lib/typescript/module/components/map/MapViewNativeComponent.d.ts
 @@ -42,6 +42,8 @@ export interface NativeProps extends ViewProps {
@@ -2129,6 +2260,15 @@ index e337bbf4b2f53bdf5631d1272e6ad3b31cc6db86..276e0d3c8308705b8b1a1bc2ad5dc698
      dragPan?: CodegenTypes.WithDefault<boolean, true>;
      touchZoom?: CodegenTypes.WithDefault<boolean, true>;
      doubleTapZoom?: CodegenTypes.WithDefault<boolean, true>;
+@@ -60,6 +62,8 @@ export interface NativeProps extends ViewProps {
+     scaleBarPosition?: NativeOrnamentViewPosition;
+     onPress?: CodegenTypes.BubblingEventHandler<NativePressEvent>;
+     onLongPress?: CodegenTypes.BubblingEventHandler<NativePressEvent>;
++    /** (canifishthis T716 patch) Android: a still single-finger tap at its lift, before the click is confirmed */
++    onTapUp?: CodegenTypes.BubblingEventHandler<NativePressEvent>;
+     onRegionWillChange?: CodegenTypes.DirectEventHandler<NativeViewStateEvent>;
+     onRegionIsChanging?: CodegenTypes.DirectEventHandler<NativeViewStateEvent>;
+     onRegionDidChange?: CodegenTypes.DirectEventHandler<NativeViewStateEvent>;
 diff --git a/lib/typescript/module/components/sources/vector-source/VectorSource.d.ts b/lib/typescript/module/components/sources/vector-source/VectorSource.d.ts
 index 3111419e423e19c03855efd613a9f3f1e1c72122..8f6e612c060eccbb40b92353c0eb7e209fbe5bae 100644
 --- a/lib/typescript/module/components/sources/vector-source/VectorSource.d.ts
@@ -2188,7 +2328,7 @@ index 22c6cf91e9b2f8d2c62f7da7988dc2e95c86ab39..63e4aae5a48521c8a469a5ee384fc4fb
  
  export interface NativeProps extends ViewProps {
 diff --git a/src/components/map/AndroidTextureMapViewNativeComponent.ts b/src/components/map/AndroidTextureMapViewNativeComponent.ts
-index af4549f0889d69db52cbbe200d8f67290ea16692..d71b70a0bb51fe563988c7e181030264fae8f666 100644
+index af4549f0889d69db52cbbe200d8f67290ea16692..1860d6c86ef373804587dfe2f6c920f1998dc8a9 100644
 --- a/src/components/map/AndroidTextureMapViewNativeComponent.ts
 +++ b/src/components/map/AndroidTextureMapViewNativeComponent.ts
 @@ -58,6 +58,8 @@ export interface NativeProps extends ViewProps {
@@ -2200,8 +2340,17 @@ index af4549f0889d69db52cbbe200d8f67290ea16692..d71b70a0bb51fe563988c7e181030264
  
    dragPan?: CodegenTypes.WithDefault<boolean, true>;
    touchZoom?: CodegenTypes.WithDefault<boolean, true>;
+@@ -83,6 +85,8 @@ export interface NativeProps extends ViewProps {
+ 
+   onPress?: CodegenTypes.BubblingEventHandler<NativePressEvent>;
+   onLongPress?: CodegenTypes.BubblingEventHandler<NativePressEvent>;
++  /** (canifishthis T716 patch) Android: a still single-finger tap at its lift, before the click is confirmed */
++  onTapUp?: CodegenTypes.BubblingEventHandler<NativePressEvent>;
+ 
+   onRegionWillChange?: CodegenTypes.DirectEventHandler<NativeViewStateEvent>;
+   onRegionIsChanging?: CodegenTypes.DirectEventHandler<NativeViewStateEvent>;
 diff --git a/src/components/map/Map.tsx b/src/components/map/Map.tsx
-index b193cda77510b23b6a7b8cd50c2b66adfe2c92c9..be7639c4a793f3d33342137d9aec3d477a62b503 100644
+index b193cda77510b23b6a7b8cd50c2b66adfe2c92c9..a0da248a495868c5a725780a4f9be5104695aa82 100644
 --- a/src/components/map/Map.tsx
 +++ b/src/components/map/Map.tsx
 @@ -321,6 +321,20 @@ export interface MapProps extends BaseProps, ViewProps {
@@ -2225,8 +2374,17 @@ index b193cda77510b23b6a7b8cd50c2b66adfe2c92c9..be7639c4a793f3d33342137d9aec3d47
    /**
     * Toggle pan interaction of the map
     *
+@@ -463,6 +477,8 @@ export interface MapProps extends BaseProps, ViewProps {
+    * Called when a user long presses the map
+    */
+   onLongPress?: (event: NativeSyntheticEvent<PressEvent>) => void;
++  /** (canifishthis T716 patch) Android: a still single-finger tap at its lift, before `onPress` (the click, which waits out a double tap) */
++  onTapUp?: (event: NativeSyntheticEvent<PressEvent>) => void;
+ 
+   /**
+    * Called when the currently displayed map region is about to change
 diff --git a/src/components/map/MapViewNativeComponent.ts b/src/components/map/MapViewNativeComponent.ts
-index 8d387ef65d38f06ea72f4eb1da3162e8535d2d1c..b517661bfcdb2c66fd994a01526d9fd3f1284fe9 100644
+index 8d387ef65d38f06ea72f4eb1da3162e8535d2d1c..d19a7346e499a1e071b142e1197b1cc62f9ceed6 100644
 --- a/src/components/map/MapViewNativeComponent.ts
 +++ b/src/components/map/MapViewNativeComponent.ts
 @@ -55,6 +55,8 @@ export interface NativeProps extends ViewProps {
@@ -2238,6 +2396,15 @@ index 8d387ef65d38f06ea72f4eb1da3162e8535d2d1c..b517661bfcdb2c66fd994a01526d9fd3
  
    dragPan?: CodegenTypes.WithDefault<boolean, true>;
    touchZoom?: CodegenTypes.WithDefault<boolean, true>;
+@@ -80,6 +82,8 @@ export interface NativeProps extends ViewProps {
+ 
+   onPress?: CodegenTypes.BubblingEventHandler<NativePressEvent>;
+   onLongPress?: CodegenTypes.BubblingEventHandler<NativePressEvent>;
++  /** (canifishthis T716 patch) Android: a still single-finger tap at its lift, before the click is confirmed */
++  onTapUp?: CodegenTypes.BubblingEventHandler<NativePressEvent>;
+ 
+   onRegionWillChange?: CodegenTypes.DirectEventHandler<NativeViewStateEvent>;
+   onRegionIsChanging?: CodegenTypes.DirectEventHandler<NativeViewStateEvent>;
 diff --git a/src/components/sources/vector-source/NativeVectorSourceModule.ts b/src/components/sources/vector-source/NativeVectorSourceModule.ts
 index ba614e748a677aef9fe4a301e04ff07d2d891442..3d96df5b74762cb2b0b72ca196ba737749ed55d9 100644
 --- a/src/components/sources/vector-source/NativeVectorSourceModule.ts

@@ -90,7 +90,7 @@ export function useMapPoint({ map, longPress }: WebMapRefs, onMapPoint: MapProps
 
 export function usePressFeature({ map, renderer, longPress }: WebMapRefs, onPressFeature: MapProps["onPressFeature"],
                                 onError: MapProps["onError"], onPressObstacle?: MapProps["onPressObstacle"],
-                                onPressNotFishing?: MapProps["onPressNotFishing"]) {
+                                onPressNotFishing?: MapProps["onPressNotFishing"], onPressStart?: MapProps["onPressStart"]) {
   useEffect(() => {
     const m = map.current, r = renderer.current;
     if (!m || !r || (!onPressFeature && !onPressObstacle && !onPressNotFishing)) return;
@@ -127,7 +127,8 @@ export function usePressFeature({ map, renderer, longPress }: WebMapRefs, onPres
         // long and the answer to "how does this spot reach the gauge" starts at the point
         // under the finger — without it the route panel can mark the station and nothing
         // else. The coordinate is snapped to nothing: it is where the person tapped.
-        if (hit) { onPressFeature!(hit.layer, hit.id, lat, lng); return; }
+        // (T716) the tap's first word, then the press — one turn here: a browser's click is not held back for a double tap
+        if (hit) { onPressStart?.(hit.layer, hit.id); onPressFeature!(hit.layer, hit.id, lat, lng); return; }
         // (T292) no water under the tap: a sewage lagoon / tailings pond / dump says what it is
         const nf = onPressNotFishing ? await r.pressNotFishing(x, y) : null;
         if (nf) onPressNotFishing!(nf.kind);
@@ -135,7 +136,7 @@ export function usePressFeature({ map, renderer, longPress }: WebMapRefs, onPres
     };
     m.on("click", onClick);
     return () => { m.off("click", onClick); };
-  }, [onPressFeature, onPressObstacle, onPressNotFishing]);
+  }, [onPressFeature, onPressObstacle, onPressNotFishing, onPressStart]);
 }
 
 /*

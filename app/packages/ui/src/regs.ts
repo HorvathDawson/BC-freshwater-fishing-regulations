@@ -238,8 +238,8 @@ export async function salmonCardFor(loader: SalmonLoader, store: Pick<RegsStore,
   // (T368) offline: no gear marks; any other failure fails the card (said with Try again, reported) — never a card
   // silently missing its gear rules
   const m = loader.method ? await loader.method().catch(offlineAs(null)) : null;
-  const gear = m ? [...new Set(sids.map((sid) => methodClassOn(m, sid, on)))] : [];
-  return salmonCardLive(f, { sids, item: page.subject.kind === "part" ? page.subject.item : null, gear }, on);
+  const gear = openProbe.work("salmon gear", () => (m ? [...new Set(sids.map((sid) => methodClassOn(m, sid, on)))] : []));
+  return openProbe.work("salmon card", () => salmonCardLive(f, { sids, item: page.subject.kind === "part" ? page.subject.item : null, gear }, on));
 }
 
 export function useSalmonCard(loader: SalmonLoader | null, store: Pick<RegsStore, "navRows"> | null,

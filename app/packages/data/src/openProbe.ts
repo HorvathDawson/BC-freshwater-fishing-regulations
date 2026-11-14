@@ -11,8 +11,10 @@ import { now as clockNow } from "@app/core";
 interface Trace {
   what: string; t0: number; marks: Record<string, [number, number]>; spans: Record<string, number>;
   sql: number; sqlWait: number; sqlRun: number; sqlMax: number; sqlMaxWhat: string; lagMax: number; lagAt: number; done: boolean;
+  /** (T716) the press as an instant (epoch ms, the map's handler), for the test bed's tap → JS delay; null: none left */
+  wall: number | null;
 }
-type Probe = { __openProbe?: boolean; __openPressAt?: number };
+type Probe = { __openProbe?: boolean; __openPressAt?: number; __openPressWall?: number };
 const g = globalThis as Probe;
 const now = (): number => globalThis.performance?.now?.() ?? clockNow();
 const r1 = (x: number) => Math.round(x * 10) / 10;
@@ -24,7 +26,7 @@ function write(t: Trace): void {
   if (tick) { clearInterval(tick); tick = null; }
   console.log(`[open] ${JSON.stringify({ what: t.what, marks: t.marks, spans: t.spans, sql: t.sql, sqlWait: r1(t.sqlWait),
                                           sqlRun: r1(t.sqlRun), sqlMax: r1(t.sqlMax), sqlMaxWhat: t.sqlMaxWhat,
-                                          lagMax: r1(t.lagMax), lagAt: r1(t.lagAt) })}`);
+                                          lagMax: r1(t.lagMax), lagAt: r1(t.lagAt), wall: t.wall })}`);
 }
 
 export const openProbe = {
@@ -35,9 +37,9 @@ export const openProbe = {
   start(what: string): void {
     if (!g.__openProbe) return;
     if (cur && !cur.done) write(cur);
-    const at = g.__openPressAt, t = now();
-    g.__openPressAt = undefined;
-    cur = { what, t0: at ?? t, marks: {}, spans: {}, sql: 0, sqlWait: 0, sqlRun: 0, sqlMax: 0, sqlMaxWhat: "", lagMax: 0, lagAt: 0, done: false };
+    const at = g.__openPressAt, wall = g.__openPressWall ?? null, t = now();
+    g.__openPressAt = undefined; g.__openPressWall = undefined;
+    cur = { what, t0: at ?? t, marks: {}, spans: {}, sql: 0, sqlWait: 0, sqlRun: 0, sqlMax: 0, sqlMaxWhat: "", lagMax: 0, lagAt: 0, done: false, wall };
     cur.marks.hit = [r1(t - cur.t0), 0];
     const mine = cur;
     // the JS thread's worst stall during the open (a 16 ms timer's overshoot) and when it ended
@@ -87,13 +89,13 @@ export const openProbe = {
     console.log(`[work] ${label} sliced ${r1(now() - t)} ms`);
     return out;
   },
-  /** The open is drawn: the trace is written, 400 ms later (what still lands then — the Salmon card, the access
-   *  notice, the JS thread's stalls — is in it too). */
+  /** The open is drawn: the trace is written, 1.5 s later (what still lands then — the Salmon card, the access
+   *  notice, the held pane shown (T716: `shown`, up to `PANE_HOLD_MS` after), the JS thread's stalls — is in it too). */
   end(stage: string): void {
     if (!cur || cur.done || cur.marks[stage]) return;
     openProbe.mark(stage);
     const t = cur;
-    setTimeout(() => { if (!t.done) write(t); }, 400);
+    setTimeout(() => { if (!t.done) write(t); }, 1500);
   },
   /** `end(stage)` on the next drawn frame (the screen's commit has reached the screen). Here, not in the component:
    *  the phone components ask the JS thread for no frames (tools/no-per-frame-animation.test.ts). */

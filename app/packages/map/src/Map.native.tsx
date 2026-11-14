@@ -53,6 +53,7 @@ import { zoomStep } from "./zoom-step";
 import { nativeMapGestures } from "./gestures";
 import { areaLayer, nativeStyle } from "./native-style";
 import { NativeLookTracker } from "./look-drawn";
+import { liftFor, type Lift, type LiftAnswer } from "./tapLift";
 import { isTapTarget, litKey, spreadSections, TAP_GROUPS, tapBox, VISIBLE_LAYERS, visibleSections } from "./sections";
 import { withoutEngineKeys } from "./colouring";
 import { nativeImages } from "./images";
@@ -100,10 +101,13 @@ type RegionEvent = { nativeEvent: { center?: [number, number]; zoom?: number; us
                                     bounds?: [number, number, number, number] } | null };
 type Data = NonNullable<MapProps["data"]>;
 
+/** What a tap's hit test answers (`MapRenderer.press`). */
+type PressHit = { layer: string; id: number };
+
 /** (T348) How long a settled camera waits for a full render before it asks what is on screen itself. */
 const SETTLE_ASK_MS = 700;
 
-export function Map({ at, theme, view, modes, groups, hide, show, initial, data, onPressFeature, onPressObstacle, onPressNotFishing, chrome, onError,
+export function Map({ at, theme, view, modes, groups, hide, show, initial, data, onPressFeature, onPressStart, onPressObstacle, onPressNotFishing, chrome, onError,
                       onMoved, onMapPoint, onLongPress, onOpenLab, highlight, inSeason, water, waterLine, selection = "outline", marker, style, gauges,
                       onVisible, pins, bare, fit, status, standing, lakes, salmon, method, runs, focus, near,
                       basemap, marks, onPressMark, spots, me, onImageryError: _noTileErrors,
@@ -142,8 +146,8 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
 
   // Callbacks through refs: the SDK handlers are registered once, and an inline arrow from a caller must not
   // re-register them (or, for the style, swap it).
-  const cb = useRef({ onError, onMoved, onMapPoint, onPressFeature, onPressObstacle, onPressNotFishing, onVisible, onLongPress });
-  cb.current = { onError, onMoved, onMapPoint, onPressFeature, onPressObstacle, onPressNotFishing, onVisible, onLongPress };
+  const cb = useRef({ onError, onMoved, onMapPoint, onPressFeature, onPressStart, onPressObstacle, onPressNotFishing, onVisible, onLongPress });
+  cb.current = { onError, onMoved, onMapPoint, onPressFeature, onPressStart, onPressObstacle, onPressNotFishing, onVisible, onLongPress };
   // (T445) a call that outlived its view (the map left, or a style load made the atlas source anew) is not a failure:
   // `goneView.ts`. Any other — a live view's included — is reported.
   const gone = useRef(new GoneViews());
@@ -338,6 +342,12 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
                               [...(near ?? [])], [...(inSeason ?? [])]);
     wasLit.current = [...highlight, ...(water ?? []), ...(near ?? []), ...(inSeason ?? [])];
     litWritten.current = `${litText}|${gen}`;
+    // (T716, test bed only) when a lit set reached the map, and the frame after: the tap cue's arrival (`[cue]`, epoch ms)
+    if ((globalThis as { __openProbe?: boolean }).__openProbe) {
+      const raf = (globalThis as { requestAnimationFrame?: (f: () => void) => unknown }).requestAnimationFrame;
+      const n = highlight.length;
+      raf?.(() => console.log(`[cue] ${JSON.stringify({ wall: clockNow(), n })}`));
+    }
   }, [litText, selection, gen, styled, drawn, report, renderer]);
 
   /*
@@ -642,8 +652,19 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     const pts: [number, number][] = [];
     for (let y = Math.round(h * 0.18); y < h * 0.78; y += 24) for (let x = 24; x < w - 24; x += 24) pts.push([x, y]);
     pts.sort((a, b) => Math.hypot(a[0] - w / 2, a[1] - h / 2) - Math.hypot(b[0] - w / 2, b[1] - h / 2));
+    // (T716) the nearest point that answers with ANOTHER stream (no still water under it): a tap on a neighbour, most
+    // often an unnamed tributary, for the open bench's never-opened case; logged once per search, beside `[target]`
+    let other = false;
     for (const [x, y] of pts.slice(0, 400)) {
       const hit = await renderer.press(x, y).catch(() => null);
+      if (hit && !other && !ids.has(Number(hit.id)) && hit.layer !== "lake") {
+        const still = await mapRef.current?.queryRenderedFeatures(tapBox(x, y), { layers: [...STILL_WATER] })
+          .catch((e: unknown) => { report(e); return null; }) ?? null;
+        if (still !== null && still.length === 0) {
+          other = true;
+          console.log(`[target-other] ${JSON.stringify({ x, y, id: hit.id, win: winRect.current })}`);
+        }
+      }
       if (!hit || !ids.has(Number(hit.id))) continue;
       const still = await mapRef.current?.queryRenderedFeatures(tapBox(x, y), { layers: [...STILL_WATER] })
         .catch((e: unknown) => { report(e); return null; }) ?? null;
@@ -655,16 +676,24 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     console.log(`[target] ${JSON.stringify({ none: true, win: winRect.current })}`);
   };
 
+  /** (T716) the last tap's lift and what it found (`onTapUp`), for that tap's click */
+  const lift = useRef<Lift<PressHit> | null>(null);
   /** A tap: the 24 px box, streams first, the section as a number (`MapRenderer.press`). */
   const onPress = useCallback(async (e: PressEvent) => {
     // READ THE EVENT BEFORE ANY await: React Native recycles it, and `nativeEvent` is null afterwards (N1 §3)
     const ne = e.nativeEvent;
     if (!ne) return;
     // (T286) the open probe's zero (test bed only: `@app/data` openProbe), before the hit test
-    const probe = globalThis as { __openProbe?: boolean; __openPressAt?: number };
-    if (probe.__openProbe) probe.__openPressAt = globalThis.performance?.now?.() ?? clockNow();
+    // (T716) and the press as an instant (epoch ms): the test bed sets it beside the device clock read just after the
+    // injected tap, which is how long the press took to reach JS (MapLibre's single-tap confirmation included)
+    const probe = globalThis as { __openProbe?: boolean; __openPressAt?: number; __openPressWall?: number };
+    if (probe.__openProbe) { probe.__openPressAt = globalThis.performance?.now?.() ?? clockNow(); probe.__openPressWall = clockNow(); }
     const [x, y] = Array.isArray(ne.point) ? ne.point : [ne.point.x, ne.point.y];
     const [lon, lat] = ne.lngLat;
+    // (T716) this tap's lift already asked what is under it (a spot, a mark, an obstacle, the water): its answer, if it
+    // decided, stands for the queries below; undecided (or no lift: iOS, a lift elsewhere) asks as before
+    const early = await (liftFor(lift.current, x, y, clockNow()) ?? Promise.resolve(null));
+    lift.current = null;
     // (T145) a tap on a spot is the spot's: never ALSO the map's — no water opens under it, and the off-spot tap that
     // clears the selection does not clear the one this tap makes. (T316) the marks are map layers: their 44 px target is
     // `spotUnder` at the zoom they were placed at, and the press is `pressSpot`
@@ -675,7 +704,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
       return;
     }
     // (T317) a boundary mark's 44 px target: the mark's layers, asked first; the tap opens no water under it
-    if (marksNow.current?.length && rendered.current) {
+    if (!early && marksNow.current?.length && rendered.current) {
       const hit = markHit(await mapRef.current?.queryRenderedFeatures(markBox(x, y), { layers: [MARK_RING, MARK_LABEL] })
         .catch((e: unknown) => { report(e); return []; }) ?? []);   // (T368, Q2) the tap falls through; the host reports it
       if (hit !== null) { pressMarkNow.current?.(hit); return; }
@@ -693,15 +722,47 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     if ((!press && !obstacle && !notFishing) || !rendered.current) return;       // no renderer to query yet (see `rendered`)
     try {
       // (T173) a fish obstacle mark first: a tap on the mark is the mark's, and opens no water under it
-      const ob = obstacle ? await renderer.pressObstacle(x, y) : null;
+      const ob = !early && obstacle ? await renderer.pressObstacle(x, y) : null;
       if (ob) { obstacle!(ob); return; }
-      const hit = press ? await renderer.press(x, y) : null;
+      const hit = early ? early.hit : press ? await renderer.press(x, y) : null;
       if (probe.__openProbe) console.log(`[tap] ${JSON.stringify({ x, y, hit })}`);   // (T478) beside the [target] line
       if (hit) { press!(hit.layer, hit.id, lat, lon); return; }
       // (T292) no water under the tap: a sewage lagoon / tailings pond / dump says what it is
       const nf = notFishing ? await renderer.pressNotFishing(x, y) : null;
       if (nf) notFishing!(nf.kind);
     } catch (err) { report(err); }
+  }, [report, renderer]);
+
+  /**
+   * (T716) A TAP'S LIFT (the patched binding's `onTapUp`, Android): what the tap would open, said at once
+   * (`onPressStart`) — the click (`onPress`) comes once a double tap is ruled out, 300 ms after the finger went down. The
+   * same precedence as the click: a spot, a boundary mark or a fish obstacle mark under the finger is theirs, and no
+   * water is said. A failed query is reported and says nothing (the click still asks for itself).
+   */
+  const onTapUp = useCallback((e: PressEvent) => {
+    const ne = e.nativeEvent;          // before any await: React Native recycles the event
+    if (!ne) return;
+    const start = cb.current.onPressStart;
+    if (!start || !cb.current.onPressFeature || !rendered.current) return;
+    const [x, y] = Array.isArray(ne.point) ? ne.point : [ne.point.x, ne.point.y];
+    const [lon, lat] = ne.lngLat;
+    const ask = async (): Promise<LiftAnswer<PressHit> | null> => {
+      if (spotUnder(spotsAt.current.marks, lat, lon, spotsAt.current.zoom)) return null;
+      try {
+        if (marksNow.current?.length) {
+          const mk = markHit(await mapRef.current?.queryRenderedFeatures(markBox(x, y), { layers: [MARK_RING, MARK_LABEL] })
+            .catch((err: unknown) => { report(err); return []; }) ?? []);
+          if (mk !== null) return null;
+        }
+        // the two asked together: the cue waits on one round trip, not two
+        const [ob, hit] = await Promise.all([cb.current.onPressObstacle ? renderer.pressObstacle(x, y) : null, renderer.press(x, y)]);
+        if (ob) return null;
+        if (hit) start(hit.layer, hit.id);
+        return { hit };
+      } catch (err) { report(err); return null; }
+    };
+    // (T716) the click of this same tap reads this answer (`liftFor`) instead of asking again
+    lift.current = { x, y, at: clockNow(), answer: ask() };
   }, [report, renderer]);
 
   /**
@@ -858,6 +919,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
         scaleBar
         scaleBarPosition={OFF_SCREEN}
         onPress={onPress as never}
+        onTapUp={onPressStart && onPressFeature ? onTapUp as never : undefined}
         onLongPress={onLongPress ? onLongPressed as never : undefined}
         onRegionDidChange={onRegionDidChange as never}
         onRegionWillChange={probe || me?.on || PAN_PROBE ? ((e: RegionEvent) => { probe?.moving(); panProbe.moving(); onRegionWillChange(e); }) as never : undefined}

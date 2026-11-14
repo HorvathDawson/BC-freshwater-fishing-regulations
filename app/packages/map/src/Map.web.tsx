@@ -54,7 +54,7 @@ export function Map(props: MapProps) {
   return <div ref={probe} data-map-unbuilt="" style={{ position: "absolute", inset: 0, ...(props.style as object) }} />;
 }
 
-function SeenMap({ at, theme, view, modes, groups, hide, show, initial, data, onPressFeature, onPressObstacle, onPressNotFishing,
+function SeenMap({ at, theme, view, modes, groups, hide, show, initial, data, onPressFeature, onPressStart, onPressObstacle, onPressNotFishing,
                      chrome,
                       onError, onMoved, onMapPoint, onLongPress, onOpenLab, highlight, inSeason, water, waterLine, selection = "outline", marker,
                       style,
@@ -97,7 +97,7 @@ function SeenMap({ at, theme, view, modes, groups, hide, show, initial, data, on
   useVisible(refs, onVisible);
   useRegion(refs, onRegion);
   useDrawn(refs, onDrawn);
-  usePressFeature(refs, onPressFeature, onError, onPressObstacle, onPressNotFishing);
+  usePressFeature(refs, onPressFeature, onError, onPressObstacle, onPressNotFishing, onPressStart);
   useHoverCursor(refs, { feature: !!onPressFeature, obstacle: !!onPressObstacle,
                         notFishing: !!onPressNotFishing, mark: !!onPressMark }, onError);
 

@@ -44,7 +44,7 @@ function nativeCrash(d) {
 }
 
 /** (T508) a recording of one way in, from `go()` (the tap) until settled, cut into the screens shown */
-async function recordOpen(ctx, name, go, settleMs = 7000) {
+export async function recordOpen(ctx, name, go, settleMs = 7000) {
   const d = ctx.device;
   d.logcatClear();
   const r = record(d, path.join(ctx.dir, `${name}.mp4`), 14);

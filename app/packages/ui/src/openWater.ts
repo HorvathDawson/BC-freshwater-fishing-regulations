@@ -87,8 +87,11 @@ export async function openTap(source: Pick<WaterSource, "itemForSection">, sid: 
 }
 
 export interface WaterOpener {
-  /** A tap on a map: the section, where on it, and which view to put in front. */
-  tap(sid: SectionId, at: LatLon | null, view: View, except?: ItemId | null): Promise<void>;
+  /**
+   * A tap on a map: the section, where on it, and which view to put in front. (T716) Resolves true when the water was
+   * opened, false when nothing opened (the water already on screen, or the open was overtaken or went stale).
+   */
+  tap(sid: SectionId, at: LatLon | null, view: View, except?: ItemId | null): Promise<boolean>;
   /**
    * (T58) "Flows into …" from a water's map: the receiving water `item`, its action built by `build` (waterMap.ts
    * `exitAction`) once the water's split-lake areas are known.
@@ -137,19 +140,20 @@ export function waterOpener(source: Pick<WaterSource, "itemForSection">, go: (a:
   let latest = 0;
   /** Ask, then dispatch what was asked for — unless a later open was asked, or the route moved, meanwhile. */
   const settle = async (ask: (groupOf: ((item: ItemId) => Promise<readonly ItemId[] | undefined>) | undefined)
-                          => Promise<RouteAction | null>) => {
+                          => Promise<RouteAction | null>): Promise<boolean> => {
     const mine = ++latest;
     const start = o.now?.();
     const groupOf = o.group && (start === undefined || start.mode === "water")
       ? (item: ItemId) => o.group!(item).catch(reported(undefined)) : undefined;
     const a = await ask(groupOf);
-    if (a === null || mine !== latest || (o.now && o.now() !== start)) return;
+    if (a === null || mine !== latest || (o.now && o.now() !== start)) return false;
     openProbe.mark("go");
     go(a);
+    return true;
   };
   return {
     tap: (sid, at, view, except = null) => settle((groupOf) => openTap(source, sid, at, view, except, groupOf, o.partOf, o.solo)),
-    flow: (item, build) => settle(async (groupOf) => build(groupOf ? await groupOf(item) : undefined)),
+    flow: (item, build) => settle(async (groupOf) => build(groupOf ? await groupOf(item) : undefined)).then(() => undefined),
     // nothing to wait on: at once, and any open still in flight is overtaken — (T369 D13) but a Map asked for asks first
     // whether the water is solo (no Map view: its Regulations), as a search result does, so no Map mounts and is dropped
     item: (item, view = "regs") => {
@@ -165,7 +169,7 @@ export function waterOpener(source: Pick<WaterSource, "itemForSection">, go: (a:
       const ask = o.solo;
       return settle(async () => ((await ask(item).catch(reported(false)))
         ? openWater({ item, view: "regs", solo: true, fromSearch: true })
-        : openWater({ item, view: "map", whole: true, fromSearch: true })));
+        : openWater({ item, view: "map", whole: true, fromSearch: true }))).then(() => undefined);
     },
   };
 }

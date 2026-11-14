@@ -146,7 +146,9 @@ off as before; shrinking is a decision of its own (keep rules + a device walk), 
   (the gauge pill is a stretchable image). iOS (T217): the map view's `tileDidTriggerAction` delegate, the same reader
   in Obj-C (`MLRNPmTilesIds.m`), tiles requested before the watch replayed by it, states sent before the source attaches
   kept until it does; the stretch zones become UIImage cap insets, so on iOS the pill's `content` box is its stretch box
-  (text sits a few px further in). Bump the binding only with the patch re-applied and the emulator AND simulator pans
+  (text sits a few px further in). (T716, Android) `onTapUp`: a still single-finger tap said at its lift, before
+  MapLibre's click (which waits out a double tap, 300 ms), so the app can light the tapped water at once (`MLRNMapView.tuneTap`,
+  the codegen specs' `onTapUp`; iOS emits nothing). Bump the binding only with the patch re-applied and the emulator AND simulator pans
   re-run.
   **T250 (SDK 58 / RN 0.88): kept at 11.5.0** (11.5.1 is from 2026-10-29, under the two-week rule); the patch applies
   unchanged (same package version) and the Android build on RN 0.88 is the proof (T250 ticket). Not upstreamed.

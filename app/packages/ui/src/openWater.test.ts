@@ -55,6 +55,14 @@ describe("openTap: a map tap, resolved in one place", () => {
     }
   });
 
+  it("(T716) the opener's tap says whether a water opened: the water already on screen opens nothing", async () => {
+    const sent: RouteAction[] = [];
+    const o = waterOpener(source, (a) => sent.push(a));
+    expect([await o.tap(77 as SectionId, AT, "regs", VEDDER), await o.tap(77 as SectionId, AT, "regs"),
+            await o.tap(501 as SectionId, AT, "regs")]).toEqual([false, true, true]);
+    expect(sent.map((a) => (a as { item: ItemId | null }).item)).toEqual([VEDDER, null]);
+  });
+
   it("a tap on the water already on screen (its own map) opens nothing; another water opens on top", async () => {
     expect([await openTap(source, 77 as SectionId, AT, "regs", VEDDER),
             await openTap(source, 77 as SectionId, AT, "regs", "gnis:1" as ItemId)])
@@ -146,9 +154,12 @@ describe("(T58) the opener: a split lake's areas, and a late lookup dropped", ()
     const twice = app(HOME, s.src);
     const [t3, t4] = [twice.o.tap(3 as SectionId, null, "regs"), twice.o.tap(1 as SectionId, null, "regs")];
     // the first tap's answer comes first, while the second is still asked: it is dropped, the second opens
-    await s.answer(2); await s.answer(3); await Promise.all([t3, t4]);
-    expect({ backed: backed.sent, closed: closed.sent, twice: twice.sent.map((a) => (a as { item: ItemId }).item) }).toEqual({
+    await s.answer(2); await s.answer(3);
+    // (T716) each tap says whether it opened: the map's cue goes out for the ones that did not
+    const said = { backed: await t1, closed: await t2, twice: await Promise.all([t3, t4]) };
+    expect({ backed: backed.sent, closed: closed.sent, twice: twice.sent.map((a) => (a as { item: ItemId }).item), said }).toEqual({
       backed: [{ type: "back" }], closed: [{ type: "close" }], twice: [LAKE_B],
+      said: { backed: false, closed: false, twice: [false, true] },
     });
   });
 

@@ -227,6 +227,14 @@ export interface MapProps {
   onPressFeature?: (layerId: string, featureId: SectionKey,
                     lat?: number, lon?: number) => void;
   /**
+   * (T716) THE TAP'S FIRST WORD: the water section under a finger as it lifts — before `onPressFeature`, which on a phone
+   * waits out a possible double tap (MapLibre Android's click comes 300 ms after the finger went down). Said only where
+   * `onPressFeature` would be asked (not on a spot, a boundary mark or a fish obstacle mark), so the host can mark what
+   * was tapped at once. A double tap (a zoom) says it and then no `onPressFeature` follows. The web's click is not
+   * delayed: there it is said in the same turn, just before `onPressFeature`.
+   */
+  onPressStart?: (layerId: string, featureId: SectionKey) => void;
+  /**
    * (T173) A tapped FISH OBSTACLE mark (the `obstacle` layer, drawn only while its switch is on): its tile properties,
    * which `@app/core` `obstacleSheet` turns into words. Asked before the water: a tap on a mark is the mark's, and opens
    * no water under it. Absent, a mark is not tappable and the water under it answers as before.
