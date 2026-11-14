@@ -32,10 +32,10 @@ T86 = needs production data and hosting live; OTHER LANE = being made by another
 | 15 | Marketing URL (optional) | https://canifishthis.ca | OWNER |
 | 16 | What's New | for a first version, proposal: "First release for iPhone." Check later versions against `app/packages/core/src/changelog.ts` | OWNER |
 | 17 | Copyright | proposal: the year and the name of the seller entered at enrolment (not mine to choose) | OWNER |
-| 18 | Screenshots, iPhone 6.9" and 6.5" | made by another lane from the simulator (`app/tools/store-shots.mjs`, `iphone67` and `iphone55`) | OTHER LANE |
+| 18 | Screenshots, iPhone 6.9" and 6.5": STILL TO TAKE | none taken yet; to be made from the simulator by another lane (`app/tools/store-shots.mjs`, `iphone67` and `iphone55`) | OTHER LANE |
 | 19 | App preview video | `app/tools/store-video` run on iOS (T709 step 2) | OTHER LANE |
 | 20 | iPad screenshots | none: `supportsTablet: false` (`app.json:37`) | n/a |
-| 21 | App icon 1024 | `app/apps/mobile/assets/icon/icon-1024.png` (the Play icon, `app.json:6`). CHECKED: 1024 x 1024 but hasAlpha = yes; Apple wants no alpha: flatten a copy onto the icon ground before upload (proposal, not done) | OWNER / needs a small fix |
+| 21 | App icon 1024: NO ALPHA CHANNEL | `app/apps/mobile/assets/icon/icon-1024.png` (the Play icon, `app.json:6`) is 1024 x 1024 but has alpha; Apple rejects that. A flattened copy (onto the icon ground) is made at upload time and is never committed; the repo file stays as it is | OWNER, at upload |
 
 ## D. App Review information and release
 | # | Field | Value or page | Who |
@@ -72,4 +72,5 @@ built from the product name: it is stale, rebuild before judging.
 Decided (owner 2026-11-14): home-screen label "Can I Fish?"; Precise location (and Coarse); install id purposes Analytics + App Functionality; category Navigation then Sports; Play texts are the source.
 Open, default: email in the privacy answers is linked to the user (a) default, or (b) not linked.
 Resolved 2026-11-14 (fa0d0a45c): `play/data-safety.md` now says production does send reports and that the crash switch is under More, Settings, Privacy. The Play form itself was already right (its answers were written for the build that sends reports); nothing submitted to Play changes.
+Re-read 2026-11-14 afternoon against the reworded Play page and privacy page (c29a989ef, 9048fbc20): the iOS answers match; the one thing the sources disagree on is in `app-privacy-answers.md` Mismatches row 2.
 See `listing.md` here for the field-by-field text.

@@ -22,7 +22,9 @@ affiliated with, endorsed by or sponsored by the Province of British Columbia or
 the app (More, Legal: "Not the official regulations") and in the store description, with links to the official sources.
 
 LOCATION: when-in-use only, asked once on first open. It only centres the map on you and can pin a saved spot where you
-stand. It is not sent to us and there is no background location.
+stand. The GPS position itself is never sent to us. Two things can show roughly where the reader was, and both are in our
+privacy policy: the weather for a saved spot (the spot's place rounded to about 1 km, sent to Open-Meteo) and the map
+centre in a problem report the reader chooses to send (about 100 m). There is no background location.
 
 PHOTOS AND CAMERA: only when you add a picture to a saved fishing spot. The photos stay on the phone.
 
@@ -34,8 +36,8 @@ check about every 15 minutes at best. The check reads our small alert feed, the 
 file, then raises a local notification if a river the user chose crossed their line or a new data release exists. It does
 not download the regulations in the background; the data update is taken when the user opens the app.
 
-PRIVACY: no tracking, no ads, no analytics SDK. Crash reports (switch: More, Settings, Privacy) and problem reports
-(sent only when the user presses Send) go to our own server. Policy: https://canifishthis.ca/privacy
+PRIVACY: no tracking, no ads, no analytics SDK. Crash reports (on by default; switch: More, Settings, Privacy) and problem
+reports (sent only when the user presses Send) go to our own server. Satellite tiles come from Esri only if the user picks Satellite. Policy: https://canifishthis.ca/privacy
 
 HOW TO REACH EACH FEATURE:
 - Map and regulations: tap any water on the map; its rules open in a panel.
