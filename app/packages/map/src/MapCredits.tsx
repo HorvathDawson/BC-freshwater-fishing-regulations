@@ -46,9 +46,13 @@ function Parts({ parts, chrome, onOpenLink }: { parts: readonly CreditPart[]; ch
   );
 }
 
-export function MapCredits({ look, chrome, insetBottom = 0, onOpenLink, onLongPress }: {
+const ownBack = (_open: boolean, close: () => void) => close;
+
+export function MapCredits({ look, chrome, insetBottom = 0, onOpenLink, onLongPress, useBackLayer = ownBack }: {
   look: Pick<Look, "view" | "modes" | "groups" | "basemap">; chrome: MapChrome; insetBottom?: number;
   onOpenLink?: ((url: string) => void) | undefined;
+  /** (T729) the app's one back for the open card (MapProps.useBackLayer); absent: the card's own close */
+  useBackLayer?: ((open: boolean, close: () => void) => () => void) | undefined;
   /** (T420) a lab build's way into the map lab (`MapLab`); none in any other build */
   onLongPress?: (() => void) | undefined;
 }) {
@@ -60,6 +64,7 @@ export function MapCredits({ look, chrome, insetBottom = 0, onOpenLink, onLongPr
     const t = setTimeout(() => setStartup(false), STARTUP_MS);
     return () => clearTimeout(t);
   }, [startup]);
+  const requestClose = useBackLayer(on, () => setOn(false));
   const lines = creditLines(look);
   const G = GEOMETRY;
   const { width, height } = useWindowDimensions();
@@ -97,7 +102,7 @@ export function MapCredits({ look, chrome, insetBottom = 0, onOpenLink, onLongPr
         // read. A Modal is above every one of them, whatever the legend's height or state; centred and capped to the
         // window, so it is inside the screen and whole. Closing is as before (Close, the chip is under it) plus the dim
         // and the system back.
-        <Modal visible transparent animationType="none" statusBarTranslucent onRequestClose={() => setOn(false)}>
+        <Modal visible transparent animationType="none" statusBarTranslucent onRequestClose={requestClose}>
           <Pressable testID="map-credits-scrim" accessibilityLabel="Close the credits" onPress={() => setOn(false)}
                      style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: G.right * 2,
                               backgroundColor: chrome.scrim }}>

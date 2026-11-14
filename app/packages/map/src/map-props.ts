@@ -372,6 +372,11 @@ export interface MapProps {
    */
   onOpenLink?: (url: string) => void;
   /**
+   * (T729) The app's one back (`useBackLayer`, @app/ui): the open credits card is a Modal, and its back goes through it so
+   * the browser's and the system's back close it before leaving the screen. Absent (the map alone): the card's own close.
+   */
+  useBackLayer?: (open: boolean, close: () => void) => () => void;
+  /**
    * The ground under the water: the drawn basemap, or satellite imagery.
    *
    * A property of the MAP, not a layer group a screen may address: the imagery is an

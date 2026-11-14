@@ -187,6 +187,8 @@ describe("back, everywhere: one mechanism", () => {
       && [...src.matchAll(/\bonRequestClose\s*=\s*\{([^}]*)\}/g)].every((m) => m[1]!.trim() === "requestClose");
     const users = where(/\bonRequestClose\b/);
     expect([users, users.filter((p) => !wired(read(p)))]).toEqual([[
+      // (T729) the map's credits card, opened from the © chip (its back is the app's, handed down as MapProps.useBackLayer)
+      "packages/map/src/MapCredits.tsx",
       // (T476, T420) the Developer card, in a development or staging build only
       "packages/ui-native/src/DeveloperModal.tsx", "packages/ui-native/src/Sheet.tsx", "packages/ui-native/src/menu/MenuPage.tsx",
       // (T354) the rule book in the app, full screen
@@ -217,6 +219,8 @@ describe("back, everywhere: every surface registers a back layer", () => {
       return w ? [`${p}#${d.name}: ${w}`] : [];
     }));
     expect(found).toEqual([
+      // (T729) the credits card, open: a Modal over the map, registered (useBackLayer, handed down by MapScreen)
+      "packages/map/src/MapCredits.tsx#MapCredits: a Modal",
       // (T234) the "Alert me" form, inline in the gauge card (COVERED)
       "packages/ui-native/src/AlertMe.tsx#AlertEditor: takes onCancel",
       // (T476) the Developer card, open: its own Modal, registered (useBackLayer); MapScreen hands it devOpen

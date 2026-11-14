@@ -107,6 +107,20 @@ describe("the open card is above the app's overlays (T729)", () => {
   });
 });
 
+describe("the open card's back is the app's one back (T729)", () => {
+  it("registers the open state with the back layer it is handed, and a back there closes the card", () => {
+    const calls: boolean[] = [];
+    let close: () => void = () => {};
+    const layer = (open: boolean, c: () => void) => { calls.push(open); close = c; return c; };
+    render(<MapCredits look={PLAIN} chrome={mapChrome("light")} useBackLayer={layer} />);
+    fireEvent.click(screen.getByTestId("map-credits-chip"));
+    expect(calls.at(-1)).toBe(true);
+    act(() => { close(); });
+    expect(screen.queryByTestId("map-credits-card")).toBeNull();
+    expect(calls.at(-1)).toBe(false);
+  });
+});
+
 describe("the credit is shown first, then folds (OSMF attribution guideline)", () => {
   const chrome = mapChrome("light");
   afterEach(() => { vi.useRealTimers(); resetStartupCredit(); });
