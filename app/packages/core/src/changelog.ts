@@ -21,6 +21,12 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: "0.7.9", date: "2026-11-13", draft: true, notes: [
+      "Faster opening when you tap a water: the stretch you tapped lights up at once",
+      "Gauge and wording fixes",
+    ],
+  },
+  {
     version: "0.7.8", date: "2026-11-13", notes: [
       "A pinch zoom keeps gliding after you lift your fingers, as a quick flick should",
       "The bell keeps an inbox of in-season notices: new ones are marked New, changed ones Updated, and Mark all as read clears them",

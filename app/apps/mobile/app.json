@@ -2,7 +2,7 @@
   "expo": {
     "name": "Can I Fish?",
     "slug": "canifishthis",
-    "version": "0.7.8",
+    "version": "0.7.9",
     "icon": "./assets/icon/icon-1024.png",
     "orientation": "portrait",
     "scheme": "canifishthis",
