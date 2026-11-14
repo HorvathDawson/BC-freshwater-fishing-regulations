@@ -21,4 +21,10 @@ shots on iPhone 17 / 17e / Air / 17 Pro Max sims in light and dark; large text; 
 Depends: T718. Size: M. Owner: no (rotation answered 2026-11-14: portrait only).
 
 ## Results
-(filled in as the work runs)
+- **Found on the 2026-11-14 baseline (0.7.9, iPhone 17, iOS 26.5), not fixed yet:** the "This water in the rule book p.N ↗"
+  link draws its arrow as a blue EMOJI tile on iOS (U+2197 takes emoji presentation there; Android draws the plain
+  arrow). Every "↗" in the app's text is suspect. Fix to try: the text variation selector (U+FE0E) after the arrow, or the
+  app's own icon; check Android stays the same. Shot: baseline `006-tap-water-…png`.
+- **Orientations in the built Info.plist:** Portrait and PortraitUpsideDown (Expo's `"portrait"`). iPhones without a
+  home button ignore upside-down, so this is portrait only in practice; tighten to Portrait alone only if a run shows
+  the app turning over.
