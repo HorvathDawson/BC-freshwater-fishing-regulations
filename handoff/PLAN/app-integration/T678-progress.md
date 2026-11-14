@@ -903,3 +903,23 @@ Owner's phone report (build 29, the More tab). Done in code, not yet in a build:
   `Shell.tsx` — another lane's uncommitted app edit, not this release.
 - T57 sweep 6b78e6a: unnamed_streams 1,179,619 -> 1,179,627 (+9 leaves, -1 the fork now named), walking_rules 479 -> 478
   (Tlell r5), unexplained 0.
+
+## 2026-11-14 (app build lane: build 31 = 0.7.9, Play internal) — SMOKE PASSED, UPLOAD HELD (CI red)
+- d95a9127c: 0.7.9 bump (app.json, package.json), changelog draft (2 bullets: "Faster opening when you tap a water: the
+  stretch you tapped lights up at once"; "Gauge and wording fixes"), app_reads row. `pnpm check:fast` rc 0 (unfiltered).
+- Test-bed APK from d95a9127c (clean, libmaplibre 7bf3dc29 patched), staging test channel r-f749475d0962:
+  install PASS (first run to the map 242 s; build 30 was 67 s), regs-open 19/19 PASS (cue 26-145 ms, page 345-445 ms,
+  double tap lit/out, no page), tap-stalls 5/5 PASS (worst 133 ms on Run timing). Ad-hoc smoke (scratch scenario, by map
+  tap): More data list all up to date, "Data release r-f749475d0962" on a gauge card; Skeena parts 1..18 in order, the
+  km-less side channel at part 4; Lakelse "Mouth (at the signs) → Power line crossing, part 1 of 3"; McArthur Island
+  Slough "No powered boats — in part: from westerly entrance to 12th Street entrance to Park"; Geikie Creek page without
+  the Tlell r5 tidal line; Ross Lake its own level gauge (Skagit River at International Boundary, not reporting);
+  Columbia "Hwy 1 bridge in Revelstoke → Revelstoke Dam" with Revelstoke Project Outflow (not a real-time gauge).
+  Shots: ~/bcfish-session-backup-2026-11-12/build-31/ (run/, columbia/).
+- NOT UPLOADED: `build-apk.sh --play` stopped at its CI check — app-ci RED on 8ce9abe2f (docs-only over d95a9127c, whose
+  run was green), three runs: packages/ui-native/src/TapCue.shell.test.tsx (T716) "lit [] not shown before the click"
+  (expected lit [59887]): its real-timer `wait(400)` outlasts the 700 ms cue timeout on a slow runner (passes locally).
+  Also packages/ui/src/regs.render.test.tsx "mapDay null is today" fails 07:00-08:00 UTC daily: the test's `new Date()`
+  day (vitest TZ, PST in winter) vs the app's B.C. day (PDT all year). Both test-side; neither touched by this build.
+  To go on: fix the TapCue test (fake timers), or `HEAVY_LOCK=~/.claude/heavy-job-2.lock deploy/staging/build-apk.sh
+  --play --no-ci-check="<reason>"` if the coordinator accepts it.
