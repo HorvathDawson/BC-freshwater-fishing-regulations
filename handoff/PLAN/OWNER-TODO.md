@@ -59,7 +59,18 @@ with the default Claude uses until you answer). Newest first inside each section
   (4) backup (T732): confirm the words the Android chat relayed ("save spots with prioirty", "images can be compressed if
   still visible"); a before/after photo pair is coming;
   (5) clean-up: five calls in `handoff/PLAN/CLEANUP-CANDIDATES.md` (evidence screenshots, old releases, a leftover flag,
-  15 DONE rows still in the open ledger, graphify and scratch dirs).
+  15 DONE rows still in the open ledger, graphify and scratch dirs);
+  (6) the small invented release for tests (T667 slice 8): cut it with no map tiles and no basemap, only the data files
+  the app's logic tests read [yes, being built that way as a proposal], or also give the tile step its own invented
+  inputs (more pipeline change);
+  (7) the About page gains one sentence saying the app is not affiliated with the government (Apple asks for it; audit
+  G15) [About only, the first-run notice is not shown again];
+  (8) the web build leaves out the four Android-only "What's new" notes [keep];
+  (9) moving to a new phone copies saved spots and photos but not the downloaded data, which downloads again [yes];
+  (10) an own iOS tap-up patch for MapLibre (decision 4) [measure first; the numbers are in T719 when the run lands];
+  (11) a third heavy lane for iOS simulator jobs: three simulator lanes queued behind one lock all day, one waited
+  1 h 46 min [stay at two unless you say];
+  (12) Play's data-safety form says approximate location and the App Store answers say precise: should Play match?
 - **Apple Developer account: ENROLLED 2026-11-14, waiting for Apple's approval** (owner, verbatim: "okay i enrolled with
   apple developer I will tell you wne i get approved"). This answers decision 1 of `handoff/PLAN/ios/START-HERE-ios.md`
   (account now). Not yet said: individual or organization. After approval, yours to do: save the Team ID in
