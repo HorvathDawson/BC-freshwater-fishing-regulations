@@ -32,4 +32,158 @@ wording; confirm the relayed words). Default: build as a proposal on the branch;
 lands clean and proven, otherwise first thing after (the Android chat tells the owner).
 
 ## Results
-(filled in as the work runs)
+
+2026-11-14, backup lane (branch `android/t732-backup`, from local `redesign/stream-sections` 8d7d01d9a: origin was not
+reachable, no DNS). Code and design only: no emulator, no build. Everything marked **(to prove)** waits for the
+emulator slot below.
+
+### 1. Facts: where the data lives on Android, and the manifest today
+expo-file-system `Paths.document` = `Context.getFilesDir()` (`expo-modules-core` `AppDirectoriesService.kt:18-19`,
+`persistentFilesDirectory`); `Paths.cache` = `getCacheDir()`.
+
+| Data | Where (Android) | Size | Source |
+|---|---|---|---|
+| Spots (all visits, notes, frozen panels) | `files/spots/spots.spots` (+ `.bak`, `.writing` while saving) | small: KB per visit; a few hundred visits = low MB (estimate) | `spots/store.native.ts:20,25`, `spots/core.ts:58` |
+| Photos (as kept) | `files/spots/photos/<spot>-<n>.jpg` | **full camera pixels**, JPEG re-encoded at `quality: 0.8` (no resize): ~3–5 MB each for 12 MP (4.6 MB measured below) | `photoStore.native.ts:15`, `apps/mobile/src/pickPhoto.native.ts:21` |
+| Settings the reader sets | `files/spots/{layers.json, notify.json, low-data.txt, crash-reports.txt, run-species.json, first-run.txt, walkthrough.txt}` | bytes to KB | `spots/store.native.ts` (`fileStore`) |
+| Caches / state beside them | `files/spots/{like-visit, dfo-feed, gauge-history, inseason-feed, inseason-seen, inseason-inbox, updates, update-log, report-outbox, crash-exit-seen, crash-pending, app-update, recent-searches}.json/.txt`, `install-id.txt`, `location-ask.txt`; `files/feeds/runtiming.json`; `files/settings/{app-env,update-channel}.txt` | KB to a few MB | same file; `runTimingStore.native.ts:6`; `apps/mobile/src/envStore.native.ts:9` |
+| The release | `files/release/<id>/…` + `release/tiles/…` + `release/basemap/…` + `release/current` | r-f749475d0962 manifest: data files 57.3 MB, atlas 197.2 MB, basemap 225.4 MB, mask 0.06 MB = **~480 MB**, plus `release/previous` during an update | `install.native.ts:24-25`, `install.ts:215,281-285`, `data/release/r-f749475d0962/manifest.json` |
+| Rule book | `files/synopsis-<sha16>.pdf` | 11.7 MB | `install.ts:432`, `synopsisPdf.native.ts:18` |
+| System downloads in flight | `getExternalFilesDir("bg-download")/…` + shared prefs `metered:<id>` | up to a whole big file | `modules/bg-download/…/BgDownloadModule.kt:62,71` |
+| Map tile cache | MapLibre's ambient cache, `files/mbgl-offline.db` (from memory of the MapLibre Android source; **to prove**) | up to its cap | – |
+| Others | `databases/` (WorkManager, expo-background-task), `shared_prefs/` (expo-notifications, bg-download), `cache/` (picker copies, `synopsis-open.pdf`) | small | – |
+
+**Auto Backup's default** (Android docs, "Back up user data with Auto Backup"): with no rules it takes `getFilesDir()`,
+`getDatabasePath()` files, shared preferences, `getExternalFilesDir()` and `getDir()`; it leaves out `getCacheDir()`,
+`getCodeCacheDir()` and `getNoBackupFilesDir()`. **The manifest today** (prebuild, `apps/mobile/android/app/src/main/
+AndroidManifest.xml:17` in the owner's checkout, generated): `android:allowBackup="true"` (Expo's default,
+`@expo/config-plugins` `AllowBackup.js:37`: `config.android?.allowBackup ?? true`; `app.json` sets nothing), and no
+`fullBackupContent` or `dataExtractionRules`; no library manifest under `app/node_modules` names either. minSdk 24,
+targetSdk 36 (`expo-modules-autolinking` defaults), so both rule files matter: `fullBackupContent` on Android 6–11,
+`dataExtractionRules` on 12+.
+
+**At the quota** (Android docs, same page): "If the amount of data is over 25 MB, the system calls `onQuotaExceeded()`
+and doesn't back up data to the cloud." The full backup measures first (a preflight) and gives up whole: the spots go
+with the release. Device-to-device transfer has no such limit. **(to prove on the emulator)** — today's state (quota hit)
+and the fixed state (success, size) are steps 2 and 4 of the proof.
+
+### 2. Built: the rules (`apps/mobile/plugins/with-backup-rules.js`, in `app.json`'s plugins)
+A local config plugin: writes `res/xml/backup_rules.xml` and `res/xml/data_extraction_rules.xml` and points
+`android:fullBackupContent` / `android:dataExtractionRules` at them (`app.json` has no key for either). INCLUDE lists, so
+everything not named stays out by construction (Android: one `<include>` and nothing else is taken by default).
+- **cloud-backup (and Android ≤11):** `spots/spots.spots`, `spots/spots.spots.bak`, and the settings: `layers.json`,
+  `notify.json` (alert rules), `low-data.txt`, `crash-reports.txt` (a consent), `run-species.json`, `first-run.txt`,
+  `walkthrough.txt`. No photos.
+- **device-transfer (Android 12+):** the same, plus `spots/photos` (every photo at its kept size: no quota).
+- **Out on purpose:** the release, the rule book, tile/feed/forecast caches; `updates.json` (its validators would tell
+  the update service a release is current on a phone that has none: the reader re-sets "download on mobile data");
+  bg-download jobs (prefs + external folder name another phone's DownloadManager ids); `install-id.txt` (a new phone is a
+  new install); `location-ask.txt` (the new phone asks again); recent searches; unsent problem reports and crash
+  records; `settings/` (developer environment and update channel: a new install takes its build's defaults).
+- **Android ≤11 carries no photos even in a transfer**, decided: the `requireFlags="deviceToDeviceTransfer"` gate is
+  Android 9+, and an ungated photo include on Android 7–8 could push the cloud set over quota and lose the spots.
+- `disableIfNoEncryptionCapabilities` is left unset (backup still runs on a phone with no screen lock; Android
+  end-to-end encrypts it when a lock exists). Owner question B.
+- A manifest that already names other rules, or `allowBackup="false"`, fails the prebuild (one owner of the rules).
+- `npx expo config --type introspect` shows both attributes on `<application>`. Test: `app/tools/backup-rules.test.ts`
+  pins both XML files whole, the manifest attributes, both refusals, and the plugin's place in `app.json`.
+
+### 3. Photos and the limit: options and the recommendation
+- **(a) Photos out of cloud backup, and the app says so.** Zero machinery (this is the state the rules above give
+  today). Cost: photos are only in a new-phone transfer, never in a cloud restore.
+- **(b) A backup set (RECOMMENDED):** the app keeps compressed copies (1600 px long edge, JPEG 70, ~0.37 MB) of the
+  newest photos in `files/spots/backup-photos/`, chosen to fit what the spots and settings leave of the quota less
+  5 MB headroom; the rules add that one folder to cloud-backup. The Spots screen shows the line. Spots are counted
+  first, so they are never the part dropped; what is left out is named in the line. **Built:** the choice and the line,
+  `packages/core/src/backupSet.ts` (`planBackupSet`, `backupLine`, `BACKUP_QUOTA_BYTES`, `BACKUP_HEADROOM_BYTES`;
+  newest visit first, ties by reference, first fit) and `backupSet.test.ts` (whole sentences). **Designed, not built**
+  (needs a new native dependency the owner should approve, `expo-image-manipulator` on the SDK 58 line, plus a
+  `deps.md` line): `packages/data/src/spots/backupSet.native.ts` + `backupSet.web.ts` (web: nothing, no backup) +
+  `backupSet.d.ts` — on save/delete of a spot and once per start: list every photo ref with its visit time, make any
+  missing copy into `cache/backup-stage/` (`manipulateAsync` resize 1600, compress 0.7), size the spots/settings files,
+  `planBackupSet`, then move the kept copies into `spots/backup-photos/` and delete the ones no longer kept (a copy
+  never replaces an original); `apps/mobile/plugins/with-backup-rules.js` adds `spots/backup-photos` to cloud-backup only
+  (the transfer already has the originals); the line on the Spots list (`packages/ui-native/src/spot/…`, words from
+  `backupLine`), Android only (a `.native`/`.web` pair, rule 34a; iOS shows nothing or its own line). A restore brings
+  copies, not originals: the restore path must map `backup-photos/<ref>` back to `photos/<ref>` when the original is
+  missing (one function in `photoStore.native.ts`'s `uri`), else restored spots show no photo.
+- **(c) A custom BackupAgent** (`onFullBackup`, `FullBackupDataOutput.getQuota()`, API 26+): could say "photos until
+  25 MB" exactly, but it is Kotlin outside JS tests, a new module, `android:backupAgent` + `fullBackupOnly`, and it
+  replaces the platform's own file walk. Not recommended.
+
+### 4. Photo compression
+Today: the picker's file is copied whole; `quality: 0.8` re-encodes at full camera size (a 12 MP phone gives
+4032×3024); nothing resizes on a phone (`photoStore.native.ts:6-8`); the web already downsizes to `PHOTO_MAX_EDGE` 2048.
+Measured with `sips` on a 12 MP stand-in (a 4:3 frame of the macOS "Tahoe Day" lake wallpaper at 4032×3024 with light
+grain, JPEG 80 to match the picker; real phone photos vary ±50 %):
+
+| Version | Pixels | JPEG q | Size | Per 20 MB |
+|---|---|---|---|---|
+| as kept today | 4032×3024 | 80 | 4.61 MB | 4 |
+| proposed stored (new photos) | 2048×1536 | 80 | 0.78 MB | 25 |
+| proposed backup copy | 1600×1200 | 70 | 0.37 MB | 54 |
+| smaller backup copy (option) | 1280×960 | 70 | 0.25 MB | 81 |
+
+Proposal: NEW photos stored at 2048 px / q80 (same `expo-image-manipulator` step in `photoStore.native.ts` `keep`);
+backup copies at 1600 px / q70. **Existing photos are never re-encoded**: they stay as kept; only the backup set copies
+them. Pair for the owner (scratch, not committed; regenerate with `sips -Z 1600 -s format jpeg -s formatOptions 70`):
+before `before-12mp-q80.jpg` (4,608,757 B), after `after-backup-1600-q70.jpg` (373,736 B), in the backup lane's scratch
+folder `/private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/035b8307-2c5e-4a11-bceb-d03b90dacf24/scratchpad/t732/`.
+
+### 5. iOS
+iCloud device backup takes the app container's `Documents/` and `Library/` (not `Library/Caches`, not `tmp/`), with no
+per-app cap: the limit is the reader's iCloud storage, and the reader can switch the app off in Settings → iCloud →
+Backups (Apple's iOS Data Storage Guidelines / `isExcludedFromBackup` docs; from memory). `Paths.document` is
+`Documents/`. Branch `ios/t722-install` a190b3c4a marks `release/` and the rule book `isExcludedFromBackup`
+(`boot.ts` `outOfBackup`, `BgDownloadModule.swift:83,287-290`), at every install and boot. After it, iCloud carries
+`spots/` whole (spots file, all settings and caches there, every photo at full size), `settings/` and `feeds/`. No
+all-or-nothing app quota, so the spots are carried by construction and **no backup set is needed on iOS**. The stored-
+photo compression (2048/q80, new photos) is still worth it there: ~6× less of the reader's iCloud per photo.
+
+### 6. Privacy page and data-safety (READ ONLY here; owned by the Android chat)
+Sentences that stop being true once spots ride in the phone's own backup (and are already untrue on iOS today, where
+Documents are in iCloud backup):
+- `html.ts:138` "Your photos and the spots you save stay on your device, and the app never sends us your GPS position."
+  → "Your photos and the spots you save stay on your device and in your phone's own backup if you have it on (we never
+  see either), and the app never sends us your GPS position."
+- `html.ts:145` "The pictures stay on your device and are not uploaded." → "The pictures stay on your device and are
+  never sent to us. Your phone's own backup can keep a copy (on Android, smaller copies of the newest pictures)."
+- `html.ts:146-147` "Spots, notes and photos are stored only on your device, and there is no account. If you delete the
+  app or clear its data, they are gone; we cannot recover them." → "Spots, notes and photos are stored on your device,
+  and in your phone's own backup (your Google account or iCloud) if you have it on; there is no account with us and we
+  never see them. If you delete the app or clear its data, they are gone from the device, and we cannot recover them;
+  restoring your phone's backup can bring them back."
+- `html.ts:204` "Spots, photos, notes and settings live only on your device: delete them in the app, or uninstall the
+  app, and they are gone." → "Spots, photos, notes and settings live on your device, and in your phone's own backup if
+  you have it on: delete them in the app, or uninstall the app, and they are gone from the device; your phone's backup
+  keeps its last copy until the backup service removes it."
+- `data-safety.md` row 7 "nowhere: kept on the phone with the spot" → "kept on the phone with the spot; the phone's own
+  backup (the user's Google account, Android Backup) holds the spots and, with the backup set, smaller photo copies; we
+  never receive them". Play's Data safety answers (Photos: not collected) stay, IF Play still treats Android Backup as
+  not developer collection (my reading of the Play help, **to confirm against the current text**).
+
+### 7. Emulator proof (for the booked slot; one build with the plugin, one without)
+1. `aapt2 dump xmltree app.apk --file AndroidManifest.xml | grep -i -e allowBackup -e fullBackupContent -e dataExtractionRules`
+   and `aapt2 dump xmltree app.apk --file res/xml/data_extraction_rules.xml` → both attributes; the include list above.
+2. BEFORE (today's APK, release installed, 3 spots, 2 photos): `adb shell bmgr enabled true`;
+   `adb shell bmgr transport com.android.localtransport/.LocalTransport`;
+   `adb shell settings put secure backup_local_transport_parameters "is_encrypted=true"`;
+   `adb logcat -c; adb shell bmgr backupnow --monitor-verbose ca.canifishthis.app; adb logcat -d | grep -i -e quota -e PFTBT`
+   → the package reported over quota (quota hit at preflight), nothing written.
+3. `adb shell run-as ca.canifishthis.app du -sk files/release files/spots files/spots/photos files/synopsis-*.pdf` → the
+   sizes behind 2.
+4. AFTER (plugin APK, same data): the same `bmgr backupnow` → success; `adb shell dumpsys backup | grep -A3 canifishthis`
+   shows the backup time; size of the set: `adb root; adb shell du -sk /data/cache/backup/*/_full/ca.canifishthis.app`
+   (Google-APIs image, not Play) → under 25 MB, and `tar tvf` of that file lists only the included paths.
+5. Photos past the limit: add 40 photos, back up again → still success, still no `spots/photos/` in the archive.
+6. Restore: `adb shell bmgr list sets` (token); `adb uninstall ca.canifishthis.app; adb install app.apk` (restore at
+   install), or `adb shell bmgr restore <token> ca.canifishthis.app` → the spots and settings back, the app asks for the
+   release download, photos missing (said by the line once (b) lands).
+7. Transfer: `adb shell settings put secure backup_local_transport_parameters "is_device_transfer=true"`, back up, restore
+   → the archive and the restore include `spots/photos/`, never `release/`.
+8. Reset: `adb shell settings delete secure backup_local_transport_parameters`; transport back to the default.
+
+### Not done / unverified
+Every Android behaviour above is from the docs and the code, not seen on a device. Not built: the backup-set worker,
+the line in the app, the stored-photo resize (all wait on the `expo-image-manipulator` decision). The privacy and
+data-safety texts are untouched (other chat's files).
