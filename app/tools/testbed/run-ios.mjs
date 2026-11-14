@@ -20,6 +20,7 @@ import { runYaml, swipeYaml } from './lib/ios-flow.mjs';
 import { count, readPng } from './lib/png.mjs';
 import { regsOpenIos } from './scenarios-ios/regs-open.mjs';
 import { tapStallsIos } from './scenarios-ios/stalls.mjs';
+import { auditFixes } from './scenarios-ios/audit-fixes.mjs';
 
 process.env.TESTBED_PLATFORM = 'ios';
 const HERE = path.dirname(new URL(import.meta.url).pathname);
@@ -585,6 +586,8 @@ const SCENARIOS = [
   // (T719, T720) the Android benches' iOS twins: by name only (`inAll: false`), so `all` stays the T718 baseline's 11
   regsOpenIos,
   tapStallsIos,
+  // (T723) the iOS audit fixes' proof, by name only
+  auditFixes,
 ];
 
 // ---------- the runner (as run.mjs, without the Android-only crash buffer and test channel) ----------
