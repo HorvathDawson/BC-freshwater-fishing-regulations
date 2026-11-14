@@ -34,3 +34,17 @@ Full table: `handoff/PLAN/ios/parity-audit.md` (nothing was run; no package sour
 - **F14:** iOS hashes the big files in JS (`install.native.ts:167`); count `[stall]` lines in the hash phase.
 - Notices: permission asked only from a reader's switch (`notify.native.ts:112`), `trigger: null`, tap code is platform-free; cold-start tap needs one run. No iOS update notice until `EXPO_PUBLIC_APP_STORE_URL` is set (by design, answered: nothing shows, the too-old boot screen says so without a button).
 - `deps.md:211-213` still claims a background URLSession on iOS: stale (F12).
+
+## Owner answers (2026-11-14, on the parity audit)
+Verbatim: "we want it to progress with app closed in both app and android (First install: the ~480 MB download only
+progresses with the app open and the screen on, and the app doesn't say so.)" / "need to just update text for ios (Wrong
+promises on iOS: "about every 15 minutes" for notices and "download starts by itself when you connect" don't hold
+there.)" / "everything else looks like a good find should look for more things like that".
+- F1: the release download must continue with the app not in front, on iOS as on Android: a real iOS background
+  download (replaces the foreground-only session of b8e33ca80). Known iOS limit, to be said in the text: a force-quit
+  from the app switcher cancels background transfers; the next open resumes or restarts cleanly.
+- F3 / F8: text only, iOS-truthful wording.
+- The other findings (keyboard, modal back, iCloud backup, full-disk message, style-swap cover) are accepted as work;
+  a second audit pass looks for more of the same kind.
+- Code lane: branch `ios/t722-install` (kept off `redesign/stream-sections` until the simulator and the Android benches
+  have proven it).

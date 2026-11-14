@@ -32,6 +32,12 @@ with the default Claude uses until you answer). Newest first inside each section
   send reports; crash switch is More, Settings, Privacy; spot place is rounded; downloads carry the app version; one
   app-stopping error is kept for the next start. No Play form answer changes.
 - **iOS reopened (owner 2026-11-14): four decisions to answer on return** (Apple account/TestFlight timing and individual vs organization, minimum iOS version, iPad, own iOS tap-up patch; defaults in the doc's Unattended section). ANSWERED 2026-11-14: rotation "Portrait only."; app name "Can I Fish This?" (same as Play, T371 closed on that point); proposals, physical needs and risks in `handoff/PLAN/ios/START-HERE-ios.md`.
+- **ANSWERED 2026-11-14 (iOS parity audit, T722/T723).** Owner, verbatim: "we want it to progress with app closed in both app
+  and android" (the first install download); "need to just update text for ios" (the two promises that do not hold on
+  iOS); "everything else looks like a good find should look for more things like that". So: a real iOS background
+  download is being built (branch `ios/t722-install`); wording only for the notices / auto-download promises; the other
+  findings are accepted as work; a second audit pass is running. Also offered 2026-11-14: "i have time to set uoa.
+  developer account right now": the steps are in `handoff/PLAN/ios/START-HERE-ios.md` ("What needs the owner physically").
 - **ANSWERED 2026-11-14 (iOS store pack, T727).** Owner, verbatim: "all privacy and descriptions and stuff could use
   playstore items. like icon and name etc it is can i fish? on the icon but can i fish this? on everything else. we want
   precise. it is the id mainly for for analytics and bug report etc etc choose best category". So: the App Store listing
