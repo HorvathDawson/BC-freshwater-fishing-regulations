@@ -1,0 +1,5 @@
+{
+ "_about": "MINI FIXTURE (T667 slice 8): an invented tree for the mini release; see pipeline/tests/fixtures/mini/README.md.",
+ "_schema": "ungazetted waterbodies with no (or partial) FWA feature; location is [lon,lat] EPSG:4326. `links` names the FWA feature a sub-area (arm/bay/pond) belongs to. The resolver binds a reg row here by name+MU, then to the point/linked feature.",
+ "ungazetted": []
+}

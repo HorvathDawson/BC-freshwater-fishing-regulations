@@ -1,0 +1,29 @@
+{
+ "region": "6",
+ "region_number": 6,
+ "region_name": "Skeena",
+ "structure": {
+  "sections": [
+   "A",
+   "B",
+   "B(i)",
+   "B(ii)",
+   "C",
+   "D",
+   "E",
+   "F"
+  ],
+  "n_locations": 86,
+  "n_waters": 76,
+  "n_defaults": 10,
+  "precedences": [
+   "area",
+   "closure",
+   "region",
+   "section"
+  ]
+ },
+ "scopes": [],
+ "waters": [],
+ "locations": []
+}

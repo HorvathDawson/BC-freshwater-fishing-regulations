@@ -87,9 +87,11 @@ def test_a_skipped_or_unrecorded_input_is_behind(tmp_path, gpkg):
 
 def test_build_paths_follow_the_build_flags(gpkg):
     import argparse
-    a = argparse.Namespace(gpkg=str(gpkg), no_splits=True, splits=None, name_variants=None, no_added_lakes=False,
-                           added_lakes="/x/lakes.geojson", no_added_streams=True, added_streams=None)
+    a = argparse.Namespace(gpkg=str(gpkg), coast_gpkg="/x/coast.gpkg", no_splits=True, splits=None,
+                           name_variants=None, no_added_lakes=False, added_lakes="/x/lakes.geojson",
+                           no_added_streams=True, added_streams=None)
     got = I.build_paths(a)
+    assert got["source:fwa_gpkg"] == Path(str(gpkg)) and got["source:fwa_coast"] == Path("/x/coast.gpkg")
     assert got["curated:waters.cuts"] == got["curated:waters.tidal"] == "not read (--no-splits)"
     assert got["curated:waters.added_streams"] == "not read (--no-added-streams)"
     assert got["curated:waters.added_lakes"] == Path("/x/lakes.geojson")

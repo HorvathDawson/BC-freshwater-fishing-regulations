@@ -1,0 +1,14 @@
+{
+ "_about": "MINI FIXTURE (T667 slice 8): an invented tree for the mini release; see pipeline/tests/fixtures/mini/README.md.",
+ "format": "tidal_split_authority/2",
+ "classified": "2026-11-11",
+ "counts": {
+  "splits": 33,
+  "dfo_written": 23,
+  "not_shown": 10,
+  "authority_dfo": 23,
+  "authority_owner": 10,
+  "authority_none": 0
+ },
+ "splits": []
+}

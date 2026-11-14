@@ -1,0 +1,9 @@
+{
+ "_about": "MINI FIXTURE (T667 slice 8): an invented tree for the mini release; see pipeline/tests/fixtures/mini/README.md.",
+ "scope_extents": [],
+ "scope_held": [],
+ "tidal_extents": [],
+ "_tidal_extents_note": "Keyed by the Area numbers the page names, not by section letter (three sit under E). feature_types is load-bearing: Areas 5 and 6 say 'streams', Areas 3-4-5-6 says 'streams AND LAKES'. Areas not listed are held: 'all streams flowing into tidal water Area N' is a drainage relation, not containment (the PFMA subarea layer, re-fetched, and a drainage membership pass at atlas build).",
+ "page_defaults": [],
+ "_page_defaults_note": "(region slug, scope = cascade.page_scope: 'region' or 'areas-N-M') -> label, extents, whether DFO prints the sentence. Haida Gwaii is DFO Region 6 though the province files it under Region 1; 5A is Region 5 less 5B (MUs 5-6 to 5-11); Region 6's default is section A's extents."
+}

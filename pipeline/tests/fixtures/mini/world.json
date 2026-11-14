@@ -1,0 +1,33 @@
+{
+ "_about": "THE MINI WORLD (T667 slice 8): every water here is INVENTED. `python -m pipeline.tools.mini_release` writes an FWA-shaped GeoPackage (and the coast pair) from it and runs the real atlas build over them. Coordinates are metres in a local frame, shifted by `origin` into EPSG:3005; a line runs mouth -> source (FWA's order), measures count from its mouth. Every blue line is cut into features at `breaks` (its own measures); a `waterbody` run gives the features inside it that lake's key. Ids live in invented ranges (blue lines 900000001+, waterbody keys 800000001+, GNIS ids 990001+) so no number can be mistaken for an FWA one.",
+ "format": "mini-world/1",
+ "origin": [1000000, 800000],
+ "wsc_root": "920-123456",
+ "regions": [
+  {"mu": "1-1", "region": "1", "region_name": "Mini West", "zone": "1a", "box": [0, -15000, 25000, 15000]},
+  {"mu": "2-1", "region": "2", "region_name": "Mini East", "zone": "2a", "box": [25000, -15000, 50000, 15000]}
+ ],
+ "land": [[0, -15000, 50000, 15000]],
+ "sea": [-6000, -15000, 0, 15000],
+ "pfma": [{"area": 29, "box": [-6000, -15000, 0, 15000]}],
+ "streams": [
+  {"blk": 900000001, "gnis_id": 990001, "name": "Fixture River", "wsc": "", "order": 3, "magnitude": 4,
+   "vertices": [[0, 0], [45000, 0]], "z": [2, 400],
+   "breaks": [5000, 10000, 15000, 18000, 25000, 30000],
+   "waterbodies": [{"wbk": 800000001, "from": 15000, "to": 18000, "edge_type": 1050}]},
+  {"blk": 900000002, "gnis_id": 990002, "name": "Mock Creek", "wsc": "222222", "order": 2, "magnitude": 2,
+   "vertices": [[10000, 0], [10000, 8000]], "z": [60, 300], "breaks": [4000]},
+  {"blk": 900000003, "gnis_id": null, "name": null, "wsc": "222222-500000", "order": 1, "magnitude": 1,
+   "vertices": [[10000, 4000], [13000, 4000]], "z": [150, 250], "breaks": []},
+  {"blk": 900000004, "gnis_id": 990004, "name": "Stub Creek", "wsc": "666666", "order": 1, "magnitude": 1,
+   "vertices": [[30000, 0], [30000, -6000]], "z": [250, 500], "breaks": []}
+ ],
+ "waterbodies": [
+  {"wbk": 800000001, "layer": "lakes", "gnis_id": 990101, "name": "Fixture Lake", "wsc": "", "box": [15000, -800, 18000, 800]},
+  {"wbk": 800000002, "layer": "lakes", "gnis_id": 990102, "name": "Sample Lake", "wsc": null, "box": [40000, 7800, 40600, 8200]},
+  {"wbk": 800000003, "layer": "wetlands", "gnis_id": null, "name": null, "wsc": null, "box": [5000, -9000, 5300, -8800]},
+  {"wbk": 800000004, "layer": "manmade", "gnis_id": null, "name": null, "wsc": null, "box": [20000, -9000, 20200, -8850]}
+ ],
+ "watersheds": [{"gnis_id": 990001, "name": "Fixture River", "blk": 900000001, "wsc": "", "box": [0, -10000, 46000, 10000]}],
+ "coast_rivers": [{"wbk": 800000099, "blk": 900000001, "box": [30500, -60, 32000, 60]}]
+}

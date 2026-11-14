@@ -1,0 +1,235 @@
+{
+ "region": "provincial",
+ "entries": [
+  {
+   "entry_id": "zp:steelhead",
+   "name": "Steelhead",
+   "display_name": "Everywhere in B.C.",
+   "regs_verbatim": "The annual province-wide quota for hatchery steelhead is 10. All wild steelhead must be released. Your basic licence must be validated with a Conservation Surcharge Stamp if you fish for steelhead anywhere in B.C. (whether you keep or release your catch). You must immediately record your retention of hatchery steelhead on your basic angling licence.",
+   "source_pages": [
+    6
+   ],
+   "extents": [
+    {
+     "op": "within",
+     "area_kind": "region"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "steelhead.r1",
+     "type": "retention_limit",
+     "verbatim": "The annual province-wide quota for hatchery steelhead is 10.",
+     "species": [
+      "ST"
+     ],
+     "take": 10,
+     "period": "annual",
+     "water": "stream",
+     "origin": "hatchery",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:1",
+       "feature_types": [
+        "stream"
+       ]
+      },
+      {
+       "op": "within",
+       "area_id": "area:region:2",
+       "feature_types": [
+        "stream"
+       ]
+      }
+     ]
+    },
+    {
+     "rule_id": "steelhead.r1b",
+     "type": "retention_limit",
+     "verbatim": "The annual province-wide quota for hatchery steelhead is 10.",
+     "species": [
+      "ST"
+     ],
+     "take": 10,
+     "period": "annual",
+     "origin": "hatchery",
+     "extents": [
+      {
+       "op": "steelhead_waters",
+       "siblings": [
+        "steelhead.r1"
+       ]
+      }
+     ]
+    },
+    {
+     "rule_id": "steelhead.r2",
+     "type": "retention_limit",
+     "verbatim": "All wild steelhead must be released.",
+     "species": [
+      "ST"
+     ],
+     "take": 0,
+     "may_target": true,
+     "origin": "wild",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:1",
+       "feature_types": [
+        "stream"
+       ]
+      },
+      {
+       "op": "within",
+       "area_id": "area:region:2",
+       "feature_types": [
+        "stream"
+       ]
+      }
+     ]
+    },
+    {
+     "rule_id": "steelhead.r2b",
+     "type": "retention_limit",
+     "verbatim": "All wild steelhead must be released.",
+     "species": [
+      "ST"
+     ],
+     "take": 0,
+     "may_target": true,
+     "origin": "wild",
+     "extents": [
+      {
+       "op": "steelhead_waters",
+       "siblings": [
+        "steelhead.r2"
+       ]
+      }
+     ]
+    },
+    {
+     "rule_id": "steelhead.r4",
+     "type": "retention_limit",
+     "verbatim": "You must immediately record your retention of hatchery steelhead on your basic angling licence.",
+     "species": [
+      "ST"
+     ],
+     "record_retention": true,
+     "water": "stream",
+     "origin": "hatchery",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:1",
+       "feature_types": [
+        "stream"
+       ]
+      },
+      {
+       "op": "within",
+       "area_id": "area:region:2",
+       "feature_types": [
+        "stream"
+       ]
+      }
+     ]
+    },
+    {
+     "rule_id": "steelhead.r4b",
+     "type": "retention_limit",
+     "verbatim": "You must immediately record your retention of hatchery steelhead on your basic angling licence.",
+     "species": [
+      "ST"
+     ],
+     "record_retention": true,
+     "origin": "hatchery",
+     "extents": [
+      {
+       "op": "steelhead_waters",
+       "siblings": [
+        "steelhead.r4"
+       ]
+      }
+     ]
+    }
+   ],
+   "licensing": [
+    {
+     "id": "steelhead_targeting",
+     "satisfied_by": [
+      {
+       "hold": [
+        "steelhead_stamp"
+       ]
+      }
+     ],
+     "who": {
+      "age": [
+       "16_plus"
+      ]
+     },
+     "doing": {
+      "act": "targeting",
+      "species": [
+       "ST"
+      ]
+     },
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:1",
+       "feature_types": [
+        "stream"
+       ]
+      },
+      {
+       "op": "within",
+       "area_id": "area:region:2",
+       "feature_types": [
+        "stream"
+       ]
+      }
+     ],
+     "water": "stream",
+     "waived_where": "steelhead_stamp_waived",
+     "verbatim": "Your basic licence must be validated with a Conservation Surcharge Stamp if you fish for steelhead anywhere in B.C. (whether you keep or release your catch).",
+     "kind": "requirement"
+    },
+    {
+     "id": "steelhead_targeting_known",
+     "satisfied_by": [
+      {
+       "hold": [
+        "steelhead_stamp"
+       ]
+      }
+     ],
+     "who": {
+      "age": [
+       "16_plus"
+      ]
+     },
+     "doing": {
+      "act": "targeting",
+      "species": [
+       "ST"
+      ]
+     },
+     "extents": [
+      {
+       "op": "steelhead_waters",
+       "siblings": [
+        "steelhead_targeting"
+       ]
+      }
+     ],
+     "waived_where": "steelhead_stamp_waived",
+     "verbatim": "Your basic licence must be validated with a Conservation Surcharge Stamp if you fish for steelhead anywhere in B.C. (whether you keep or release your catch).",
+     "kind": "requirement"
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,128 @@
+{
+ "region": "2",
+ "entries": [
+  {
+   "entry_id": "z2:daily_quotas",
+   "name": "Region 2 Daily Quotas",
+   "display_name": "Region 2",
+   "region": "2",
+   "regs_verbatim": "Region 2 Daily Quotas. Trout/char: 4, but not more than 1 over 50 cm.",
+   "source_pages": [
+    92
+   ],
+   "extents": [
+    {
+     "op": "within",
+     "area_id": "area:region:2"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "trout_char_quota.r1",
+     "type": "retention_limit",
+     "verbatim": "Trout/char: 4",
+     "species": [
+      "TROUT_CHAR"
+     ],
+     "take": 4,
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:2"
+      }
+     ]
+    },
+    {
+     "rule_id": "trout_char_quota.r2",
+     "type": "retention_limit",
+     "verbatim": "1 over 50 cm",
+     "species": [
+      "TROUT_CHAR"
+     ],
+     "take": 1,
+     "within": "trout_char_quota.r1",
+     "lengths": [
+      {
+       "min_cm": 50
+      }
+     ],
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:2"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "entry_id": "r2:stub_creek@2-1",
+   "name": "STUB CREEK",
+   "display_name": "Stub Creek",
+   "region": "2",
+   "regs_verbatim": "Trout/char catch and release",
+   "source_pages": [
+    92
+   ],
+   "matched": [
+    "gnis:990004"
+   ],
+   "extents": [
+    {
+     "op": "whole"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "stub_creek.r1",
+     "type": "retention_limit",
+     "verbatim": "Trout/char catch and release",
+     "species": [
+      "TROUT_CHAR"
+     ],
+     "take": 0,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "may_target": true
+    }
+   ]
+  },
+  {
+   "entry_id": "r2:sample_lake@2-1",
+   "name": "SAMPLE LAKE",
+   "display_name": "Sample Lake",
+   "region": "2",
+   "regs_verbatim": "Trout/char daily quota = 1",
+   "source_pages": [
+    92
+   ],
+   "matched": [
+    "wbk:800000002"
+   ],
+   "extents": [
+    {
+     "op": "whole"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "sample_lake.r1",
+     "type": "retention_limit",
+     "verbatim": "Trout/char daily quota = 1",
+     "species": [
+      "TROUT_CHAR"
+     ],
+     "take": 1,
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

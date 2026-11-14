@@ -1,0 +1,15 @@
+{
+ "region": "8",
+ "region_number": 8,
+ "region_name": "Okanagan",
+ "structure": {
+  "sections": [],
+  "n_locations": 3,
+  "n_waters": 3,
+  "n_defaults": 0,
+  "precedences": []
+ },
+ "scopes": [],
+ "waters": [],
+ "locations": []
+}

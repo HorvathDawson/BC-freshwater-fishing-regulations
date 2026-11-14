@@ -1,0 +1,15 @@
+{
+ "region": "1",
+ "region_number": 1,
+ "region_name": "Vancouver Island",
+ "structure": {
+  "sections": [],
+  "n_locations": 27,
+  "n_waters": 27,
+  "n_defaults": 0,
+  "precedences": []
+ },
+ "scopes": [],
+ "waters": [],
+ "locations": []
+}

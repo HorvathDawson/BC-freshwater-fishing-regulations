@@ -1,0 +1,15 @@
+{
+ "region": "3",
+ "region_number": 3,
+ "region_name": "Thompson-Nicola",
+ "structure": {
+  "sections": [],
+  "n_locations": 6,
+  "n_waters": 6,
+  "n_defaults": 0,
+  "precedences": []
+ },
+ "scopes": [],
+ "waters": [],
+ "locations": []
+}

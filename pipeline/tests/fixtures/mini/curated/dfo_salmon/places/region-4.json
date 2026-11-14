@@ -1,0 +1,17 @@
+{
+ "region": "4",
+ "region_number": 4,
+ "region_name": "Kootenays",
+ "structure": {
+  "sections": [],
+  "n_locations": 1,
+  "n_waters": 0,
+  "n_defaults": 1,
+  "precedences": [
+   "section"
+  ]
+ },
+ "scopes": [],
+ "waters": [],
+ "locations": []
+}

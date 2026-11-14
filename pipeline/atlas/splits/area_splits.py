@@ -147,7 +147,7 @@ def clips_to_bc(area_def: dict) -> bool:
     return area_def.get("layer") != "wmu"
 
 
-def _clip_to_bc(g, area_def: dict) -> None:
+def _clip_to_bc(g, area_def: dict, gpkg: str) -> None:
     """CLIP AN AREA TO THE B.C. OUTLINE, in place (BOUND round, 2026-10-06).
 
     A B.C. regulation stops at the border, and so does every area it is written for. A park, a
@@ -163,7 +163,7 @@ def _clip_to_bc(g, area_def: dict) -> None:
     import shapely
 
     from pipeline.atlas.splits.bc_boundary import load_outline
-    outline = load_outline(_GPKG)
+    outline = load_outline(gpkg)
     if outline is None:
         raise RuntimeError("no B.C. outline (wmu layer) to clip areas to")
     shapely.prepare(outline)
@@ -193,6 +193,10 @@ def load_area_polys(fwa, area_def: dict, bbox=None) -> dict:
     """
     import geopandas as gpd
 
+    # THE GPKG IS THE CALLER'S (T667 slice 8): the atlas build hands its accessor (`--gpkg`, the mini release's invented
+    # one), so the layer and the outline it is clipped to come from the build's own file; the tile export passes None
+    # and reads the configured file, as before.
+    gpkg = str(fwa.gpkg_path) if fwa is not None else _GPKG
     kw: dict = {"engine": "pyogrio"}
     if area_def.get("where"):
         kw["where"] = area_def["where"]
@@ -222,12 +226,12 @@ def load_area_polys(fwa, area_def: dict, bbox=None) -> dict:
     else:
         if bbox is not None:
             kw["bbox"] = tuple(bbox)
-        g = gpd.read_file(_GPKG, layer=area_def["layer"], **kw)
+        g = gpd.read_file(gpkg, layer=area_def["layer"], **kw)
     nf = area_def["name_field"]
     out: dict = {}
     if g.empty:
         return out
-    _clip_to_bc(g, area_def)
+    _clip_to_bc(g, area_def, gpkg)
 
     if area_def.get("combine"):
         # ONE POLYGON FOR A GROUP OF UNITS, because that is the shape the regulation has.

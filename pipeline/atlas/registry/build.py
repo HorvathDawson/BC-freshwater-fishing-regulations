@@ -405,9 +405,14 @@ def pinned_by_override(overrides_path=None) -> dict[str, str]:
     return out
 
 
-def build_registry(graph: StreamGraph, prof=None, pinned: dict[str, str] | None = None) -> dict[str, RegistryItem]:
+def build_registry(graph: StreamGraph, prof=None, pinned: dict[str, str] | None = None, *,
+                   gpkg: str | None = None) -> dict[str, RegistryItem]:
     """Group section-nodes into RegistryItems (one coded stream / lake = one item) with their
     bindable boundaries. gnis-first grouping, braid-unified via the WSC->gnis map.
+
+    ``gpkg``: the FWA GeoPackage the drainage areas are read from (`pfma_drainage.basin_areas`) — the atlas build
+    passes its own `--gpkg` (T667 slice 8: the mini release builds from an invented one); None reads the configured
+    file, as every caller did before.
 
     ``prof`` (optional ``pipeline.common.utils.profiling.Profiler``) breaks the ~60-min stage into
     sub-phases; pass one or set env ``PIPELINE_PROFILE=1`` to see where the time goes."""
@@ -519,7 +524,9 @@ def build_registry(graph: StreamGraph, prof=None, pinned: dict[str, str] | None 
         # warning in a 60-minute log is how they would vanish from a shipped atlas; the build stops, naming the fetch.
         from pipeline.atlas.splits import pfma_drainage
         try:
-            basins = pfma_drainage.basin_areas(pfma_drainage.MINTED_AREAS)     # T349: + Region 2's 13/15/16/28/29
+            # T349: + Region 2's 13/15/16/28/29; the atlas build's own gpkg (checked by its FWADataAccessor)
+            basins = pfma_drainage.basin_areas(pfma_drainage.MINTED_AREAS,
+                                               pfma_drainage._GPKG if gpkg is None else str(gpkg))
         except Exception as exc:                      # noqa: BLE001 — re-raised, never swallowed
             raise SystemExit(f"registry: drainage areas could not be built ({exc}) — DFO section E's tidal scopes "
                              "need the PFMA layer: python -m data.fetch_data --layers pfma_areas") from exc

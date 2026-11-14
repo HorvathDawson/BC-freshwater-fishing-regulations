@@ -1,0 +1,17 @@
+{
+ "region": "5b",
+ "region_number": 5,
+ "region_name": "Cariboo Part B, Coastal Watershed",
+ "structure": {
+  "sections": [],
+  "n_locations": 9,
+  "n_waters": 8,
+  "n_defaults": 1,
+  "precedences": [
+   "section"
+  ]
+ },
+ "scopes": [],
+ "waters": [],
+ "locations": []
+}

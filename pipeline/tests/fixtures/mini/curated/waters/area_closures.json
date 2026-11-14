@@ -1,0 +1,21 @@
+{
+ "_about": "MINI FIXTURE (T667 slice 8): an invented tree for the mini release; see pipeline/tests/fixtures/mini/README.md.",
+ "areas": [
+  {
+   "id": "regions",
+   "kind": "region",
+   "layer": "wmu",
+   "name_field": "REGION_RESPONSIBLE_ID",
+   "which": "all",
+   "cut": "first_last",
+   "membership": "both_sides",
+   "note": "The mini world's two regions, dissolved from its wmu units by REGION_RESPONSIBLE_ID (copied from the live def, its Haida Gwaii remap dropped).",
+   "tile_layer": "region",
+   "label_term": "Region"
+  }
+ ],
+ "_cut_policy": "see the live data/curated/waters/area_closures.json",
+ "_tile_note": "see the live data/curated/waters/area_closures.json",
+ "_tile_visible_px": "see the live data/curated/waters/area_closures.json",
+ "_clip_policy": "see the live data/curated/waters/area_closures.json"
+}

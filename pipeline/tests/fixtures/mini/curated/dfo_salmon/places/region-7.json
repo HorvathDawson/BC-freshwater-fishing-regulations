@@ -1,0 +1,15 @@
+{
+ "region": "7",
+ "region_number": 7,
+ "region_name": "Omineca-Peace",
+ "structure": {
+  "sections": [],
+  "n_locations": 1,
+  "n_waters": 1,
+  "n_defaults": 0,
+  "precedences": []
+ },
+ "scopes": [],
+ "waters": [],
+ "locations": []
+}

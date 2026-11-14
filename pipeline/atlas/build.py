@@ -351,6 +351,10 @@ def _added_name_variant_entries(variants: list[dict]) -> list[dict]:
 def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     ap = argparse.ArgumentParser()
     ap.add_argument("--gpkg", default=_DEFAULT_GPKG)
+    # T667 slice 8: the coast layers are an input like --gpkg (the mini release builds from an invented pair). The
+    # default is the configured file, as before; a missing file is refused by `coast.CoastGeometry` (AGENTS 37).
+    ap.add_argument("--coast-gpkg", default=str(CURATED_COAST_GPKG()),
+                    help="the FWA coast layers (land, rivers) the coast cut reads (default: config coast_gpkg_path)")
     # ON by default: an unnamed anabranch is not a water any regulation names, and leaving the loops
     # in is what makes a big braided river a hairball of 330 channels all displaying as one name.
     # A NAMED channel and a dead-end channel are never removed either way.
@@ -1318,7 +1322,7 @@ def cut_shores(b: _Build) -> None:
     b.shore_tidal = tidal
     b.shore_tidal_cover = _coast.water_cover(graph, tidal)
     governed = _shore.owner_limited(graph, tidal, limits, waters)
-    cg = _coast.CoastGeometry(CURATED_COAST_GPKG(), bbox)
+    cg = _coast.CoastGeometry(args.coast_gpkg, bbox)
     # THE LINE THE EDGE IS READ ON: the graph's own lowest run of sections of each blue line, mouth first (as the dry
     # run and `shore.graph_lines` read it). Never `b.chains`: a blue line that carries added-stream pieces (Burnaby's
     # Power House Creek, with two tributary branches folded onto its key) has a merged chain geometry that is not one
@@ -1533,7 +1537,7 @@ def water_registry(b: _Build, graph, *, areas: bool = True) -> tuple[dict, dict]
     # `build_registry` reads overrides.json itself for the waterbody keys a curator pinned by
     # hand, so an FWA-unnamed water a regulation names still becomes an item. See
     # `pipeline.atlas.registry.build.pinned_by_override`.
-    registry = _items(graph)
+    registry = _items(graph, gpkg=b.args.gpkg)       # the drainage areas read the build's own gpkg (T667 slice 8)
     info["named"] = len(registry)
     # T207: each curated boundary carries its split's authored confidence (display only)
     registry = add_boundary_confidence(registry, b.splits)

@@ -1,0 +1,15 @@
+{
+ "region": "2",
+ "region_number": 2,
+ "region_name": "Lower Mainland",
+ "structure": {
+  "sections": [],
+  "n_locations": 22,
+  "n_waters": 22,
+  "n_defaults": 0,
+  "precedences": []
+ },
+ "scopes": [],
+ "waters": [],
+ "locations": []
+}

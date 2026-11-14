@@ -1,0 +1,15 @@
+{
+ "region": "5a",
+ "region_number": 5,
+ "region_name": "Cariboo Part A, Fraser River Watershed",
+ "structure": {
+  "sections": [],
+  "n_locations": 2,
+  "n_waters": 2,
+  "n_defaults": 0,
+  "precedences": []
+ },
+ "scopes": [],
+ "waters": [],
+ "locations": []
+}

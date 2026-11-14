@@ -131,7 +131,8 @@ def digests(paths: dict[str, Path | str | None] | None = None) -> dict[str, str]
 def build_paths(args) -> dict[str, Path | str | None]:
     """The files `pipeline.atlas.build` reads under `args` (its own flags), for `digests`."""
     from pipeline.atlas.registry import flowing
-    out: dict[str, Path | str | None] = {"source:fwa_gpkg": Path(args.gpkg)}
+    # both FWA files as the build was told (`--gpkg`, `--coast-gpkg`: T667 slice 8; each defaults to the config's)
+    out: dict[str, Path | str | None] = {"source:fwa_gpkg": Path(args.gpkg), "source:fwa_coast": Path(args.coast_gpkg)}
     if args.no_splits:
         out["curated:waters.cuts"] = not_read("--no-splits")
         out["curated:waters.tidal"] = not_read("--no-splits")
