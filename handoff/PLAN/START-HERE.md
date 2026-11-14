@@ -10,6 +10,8 @@ One page, one pointer (T437): a new chat reads, in order,
 
 A second chat working the parked tickets (T667 rest, T686, T602, loose nits) reads `handoff/PLAN/NEXT-SESSION-parked-tickets.md` instead of step 2; iOS: `handoff/PLAN/ios/START-HERE-ios.md`.
 
+iOS hardening (owner reopened it 2026-11-14, own chat, simulator work first): `handoff/PLAN/ios/START-HERE-ios.md`.
+
 When a newer restart page is written, point line 2 here at it and delete the one it replaces (git keeps it). Pages
 that are not restart pages: `INBOX.md` (the owner's notes), `OWNER-PHONE.md` (what to watch for in testers' reports),
 `ticket-audit-2026-11-05.md` (proposals waiting on the owner), `implement_progress.md` and `IMPLEMENT-HANDOFF.md`
