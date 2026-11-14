@@ -1,54 +1,88 @@
 // (T723 F7) DOES A LEFT-EDGE SWIPE GO BACK OVER EACH iOS MODAL? Menu pages, the PDF viewer, a sheet and the photo
-// viewer are React Native Modals (their own windows). Each step opens one, swipes in from the left edge (the same
-// swipe `flows/edge-back.yaml` does on a page), and says whether the modal is still up. One step per swipe: the swipe
-// must close only the modal, never a page under it.
+// viewer are React Native Modals (their own windows). Each step opens one and swipes in from the left edge: first a
+// quick drag (start under 3% of the width, mid height, 300 ms), then, when the modal is still up, a slow one (1200 ms).
+// The verdict is the modal's own marker (its testID or words) gone. One modal per step: a swipe must close only it.
 //
 //   node app/tools/testbed/run-ios.mjs modal-back
 import path from 'node:path';
+import { TABS, home, menuPage } from './keyboard.mjs';
 
 export const modalBackIos = {
   id: 'modal-back',
   inAll: false,
   title: 'T723 F7: left-edge swipe back over each Modal (iOS)',
   async run(ctx) {
-    const { toMap } = ctx.ios;
-    const swipe = async (name, still) => {
-      ctx.device.screenshot(path.join(ctx.dir, `T723-mb-${name}-before.png`));
-      ctx.flow('edge-back');
-      await ctx.device.sleep(1200);
-      ctx.device.screenshot(path.join(ctx.dir, `T723-mb-${name}-after.png`));
-      const w = ctx.device.screenText();
-      if (still(w)) throw new Error(`${name}: the edge swipe left the modal up (saw: ${w.slice(0, 8).join(' | ').slice(0, 200)})`);
-      return `${name}: the edge swipe closed it`;
+    const d = ctx.device;
+    /** the screen in iOS points (the tree's widest and tallest node) */
+    const screen = () => { const ns = d.nodes(); return { W: Math.max(...ns.map((n) => n.box.x1)), H: Math.max(...ns.map((n) => n.box.y1)) }; };
+    const swipe = async (name, up) => {
+      if (!up()) throw new Error(`${name}: the modal is not up before the swipe`);
+      const { W, H } = screen();
+      d.screenshot(path.join(ctx.dir, `T723-mb-${name}-before.png`));
+      const tried = [];
+      for (const [label, ms] of [['quick 300 ms', 300], ['slow 1200 ms', 1200]]) {
+        ctx.swipe([Math.round(W * 0.02), Math.round(H * 0.5)], [Math.round(W * 0.75), Math.round(H * 0.5)], ms);
+        await d.sleep(1500);
+        const gone = !up();
+        tried.push(`${label}: ${gone ? 'CLOSED' : 'stayed'}`);
+        d.screenshot(path.join(ctx.dir, `T723-mb-${name}-after-${ms}.png`));
+        if (gone) break;
+      }
+      const note = `${name}: ${tried.join(' · ')}`;
+      if (!tried.some((t) => t.includes('CLOSED'))) ctx.finding(`F7 ${note}`);
+      return note;
     };
-    const menu = (label, title) => ctx.step(`menu page: ${label}`, async () => {
-      await toMap(ctx);
-      ctx.flow('tab', { TAB: 'More' });
-      ctx.flow('scroll-to', { TEXT: label });
-      ctx.flow('tap-text', { TEXT: label });
-      await ctx.device.sleep(1500);
-      return swipe(label.toLowerCase().replace(/\W+/g, '-'), (w) => w.some((x) => title.test(x)) && w.some((x) => /^(Back|Glossary)$/.test(x)));
+    const words = () => d.screenText();
+    const menu = (key, title) => ctx.step(`menu page: ${title}`, async () => {
+      await home(ctx);
+      await menuPage(ctx, key);
+      return swipe(key, () => { const w = words(); return w.includes(title) && w.includes('Back'); });
     });
-    await menu('About', /^About$/);
-    await menu('Help', /^Help$/);
+    await menu('about', 'About');
+    await menu('help', 'Help');
     await ctx.step('sheet: Layers', async () => {
-      await toMap(ctx);
+      await home(ctx);
       ctx.flow('tap-text', { TEXT: 'Choose layers.*' });
-      await ctx.device.sleep(1200);
-      return swipe('layers-sheet', (w) => w.includes('Done'));
+      await d.sleep(1200);
+      return swipe('layers-sheet', () => { const w = words(); return w.includes('Done') && w.includes('Layers'); });
     });
-    await ctx.step('photo viewer: a spot photo, enlarged', async () => {
-      // the photo reaches a spot through iOS's own picker, which has no Maestro flow yet (flows/spot-add-photo.yaml is
-      // Android's): said, not guessed. PhotoViewer takes the same ModalBack as the others.
-      ctx.skip('no iOS photo-picker flow: the photo viewer is checked by reading only (ModalBack, spot/PhotoViewer.tsx)');
+    await ctx.step('PDF viewer: a Rule book link on Cultus Lake', async () => {
+      await home(ctx);
+      ctx.flow('search', { Q: 'Cultus' });
+      ctx.flow('open-result', { LINE: '.*Lindell Beach.*' });
+      await ctx.waitText(/Regulations/, 30_000);
+      ctx.flow('scroll-to', { TEXT: 'Rule book p\\.[0-9]+ ↗.*' });
+      ctx.flow('tap-text', { TEXT: 'Rule book p\\.[0-9]+ ↗.*' });
+      for (let i = 0; i < 20 && !words().some((x) => /^Page \d+ of \d+$/.test(x)); i++) await d.sleep(3000);
+      return swipe('pdf', () => d.hasId('pdf-viewer') || words().some((x) => /^Page \d+ of \d+$/.test(x)));
     });
-    await ctx.step('PDF viewer: More → the synopsis', async () => {
-      await toMap(ctx);
-      ctx.flow('tab', { TAB: 'More' });
-      ctx.flow('scroll-to', { TEXT: 'Fishing regulations.*' });
-      ctx.flow('tap-text', { TEXT: 'Fishing regulations.*' });
-      await ctx.device.sleep(6000);
-      return swipe('pdf', (w) => w.some((x) => /^(Close|Done)$/.test(x)));
+    await ctx.step('photo viewer: a photo added to the saved probe spot, enlarged', async () => {
+      await home(ctx);
+      d.addMedia(path.join(path.dirname(new URL(import.meta.url).pathname), '..', 'media', 'testbed-photo.jpg'));
+      ctx.flow('tap-point', { POINT: TABS.spots });
+      await d.sleep(1500);
+      try { ctx.flow('tap-text', { TEXT: 'kb probe.*' }); } catch { ctx.skip('no saved "kb probe" spot (the keyboard scenario saves one)'); }
+      await d.sleep(2000);
+      if (!d.screenText().some((x) => /^Photo \d+ of \d+/.test(x))) {
+        // the iOS photo picker: its tiles are "Photo, <date>" in the tree; one pick returns at once
+        ctx.flow('tap-text', { TEXT: 'Edit' });
+        await d.sleep(1500);
+        ctx.flow('scroll-to', { TEXT: 'Add from photos' });
+        ctx.flow('tap-text', { TEXT: 'Add from photos' });
+        await d.sleep(4000);
+        d.screenshot(path.join(ctx.dir, 'T723-mb-picker.png'));
+        try { ctx.flow('tap-text', { TEXT: 'Photo.*' }); } catch (e) { ctx.skip(`the iOS photo picker could not be driven (${e.message.slice(0, 120)}): photo viewer by reading only`); }
+        await d.sleep(2000);
+        try { ctx.flow('tap-text', { TEXT: '(Add|Done)' }); } catch { /* a single pick returns by itself */ }
+        await d.sleep(3000);
+        ctx.flow('scroll-to', { TEXT: 'Save changes' });
+        ctx.flow('tap-text', { TEXT: 'Save changes' });
+        await d.sleep(3000);
+      }
+      ctx.flow('scroll-to', { TEXT: 'Photo 1 of .*' });
+      ctx.flow('tap-text', { TEXT: 'Photo 1 of .*' });
+      await d.sleep(1500);
+      return swipe('photo-viewer', () => d.hasId('photo-viewer') || d.hasId('photo-image'));
     });
   },
 };
