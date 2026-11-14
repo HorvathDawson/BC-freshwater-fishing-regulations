@@ -904,7 +904,7 @@ Owner's phone report (build 29, the More tab). Done in code, not yet in a build:
 - T57 sweep 6b78e6a: unnamed_streams 1,179,619 -> 1,179,627 (+9 leaves, -1 the fork now named), walking_rules 479 -> 478
   (Tlell r5), unexplained 0.
 
-## 2026-11-14 (app build lane: build 31 = 0.7.9, Play internal) — SMOKE PASSED, UPLOAD HELD (CI red)
+## 2026-11-14 (app build lane: build 31 = 0.7.9, Play internal) — UPLOADED (versionCode 31, internal track)
 - d95a9127c: 0.7.9 bump (app.json, package.json), changelog draft (2 bullets: "Faster opening when you tap a water: the
   stretch you tapped lights up at once"; "Gauge and wording fixes"), app_reads row. `pnpm check:fast` rc 0 (unfiltered).
 - Test-bed APK from d95a9127c (clean, libmaplibre 7bf3dc29 patched), staging test channel r-f749475d0962:
@@ -923,3 +923,17 @@ Owner's phone report (build 29, the More tab). Done in code, not yet in a build:
   day (vitest TZ, PST in winter) vs the app's B.C. day (PDT all year). Both test-side; neither touched by this build.
   To go on: fix the TapCue test (fake timers), or `HEAVY_LOCK=~/.claude/heavy-job-2.lock deploy/staging/build-apk.sh
   --play --no-ci-check="<reason>"` if the coordinator accepts it.
+- Fixed both tests (coordinator: no --no-ci-check), c3c5850ec: TapCue on fake time (setTimeout/clearTimeout faked once
+  the Shell is up; mutation: a 300 ms store timeout fails it); mapDay-is-today from `bcNow()`. The whole app vitest suite
+  run with the clock shifted to 07:30Z (a scratch `--import` Date shift) failed only that one test: no sibling.
+  App CI GREEN on c3c5850ec (run 43575958947). Re-smoke on a test-bed APK from c3c5850ec: regs-open 19/19, tap-stalls
+  5/5 (shots ~/bcfish-session-backup-2026-11-12/build-31/resmoke-c3c5850/).
+- Play INTERNAL: `deploy/staging/build-apk.sh --play` (lane 2) -> versionCode 31 (0.7.9, built from c3c5850ec,
+  libmaplibre 7bf3dc29 patched, 37.0 MB), track internal completed; notes = the 2 changelog bullets; play.json on staging;
+  email 200. Commit e662db393 (app.json only).
+- First run 242 s vs 67 s (build 30): NOT the app. Same release bytes (479,277,504 vs 479,271,311; manifest 491.6 MB both),
+  same four files in the same order, no download/setup code changed fd6fa4dc6..d95a9127c (loader.ts: one probe wrapper).
+  The device's own timeline: the atlas + basemap (422 MB) landed 10 s after the small files on build 30, 175 s on build
+  31 (~2.4 vs ~40 MB/s through the emulator from data-staging). Map assets (776 files) 52 s vs 36 s, now inside the
+  download; the pipeline lane's slow pytest held the other heavy lock the whole time (host load on the emulator's network
+  and CPU). Network/host, not app start.
