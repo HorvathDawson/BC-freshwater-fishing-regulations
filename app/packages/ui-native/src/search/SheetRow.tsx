@@ -4,6 +4,7 @@ import { View } from "react-native";
 import { Text } from "../Text";
 import { ErrorState } from "../ErrorState";
 import { Pressable } from "../Pressable";
+import { Button } from "../Button";
 import { SEARCH_BAR, SEARCH_FIND, areaPhrase, nearRowSub, spokenName, waterRowSub, type StatusIndex } from "@app/core";
 import type { ItemId } from "@app/data";
 import { isSelected, rowStatus, type SearchAction, type SearchPick, type SearchTarget } from "@app/ui";
@@ -43,12 +44,7 @@ export function SheetRow({ r, palette, pick, act, onOpenWater, statusIndex, toda
             {r.label}
           </Text>
         )}
-        {r.right && r.action === "clear-recents" ? (
-          <Pressable {...hitProps({ w: 40, h: 14 })} testID="search-clear-recents" onPress={onClearRecents} accessibilityRole="button"
-                     accessibilityLabel={SEARCH_FIND.clearLabel} style={{ marginLeft: "auto" }}>
-            <Text style={{ ...TYPE.section, color: palette.accent }}>{r.right}</Text>
-          </Pressable>
-        ) : r.right ? (
+        {r.right ? (
           <Text style={{ ...TYPE.section, marginLeft: "auto",
                          // `faint` is under 4.5:1 on the band; `place` is not.
                          color: r.band ? palette.place : palette.faint }}>
@@ -65,16 +61,29 @@ export function SheetRow({ r, palette, pick, act, onOpenWater, statusIndex, toda
         {r.text}
       </Text>
     );
-  if (r.t === "recent")
+  if (r.t === "recents")
     return (
-      <Pressable {...hitProps({ w: 300, h: 48 })} testID={`search-recent-${r.q}`} onPress={() => onRecent?.(r.q)} accessibilityRole="button"
-                 accessibilityLabel={SEARCH_FIND.again(r.q)}
-                 style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 12, minHeight: 48,
-                                            paddingHorizontal: 18, borderTopWidth: 1, borderTopColor: palette.line,
-                                            backgroundColor: pressed ? palette.tint : palette.card })}>
-        <Icon name="search" colour={palette.faint} size={18} />
-        <Text style={{ ...TYPE.body, color: palette.ink, flexShrink: 1 }}>{r.q}</Text>
-      </Pressable>
+      /*
+       * (T730, owner 2026-11-14: "recent searchs take up a huge amount") THE RECENTS, ONE COMPACT BLOCK: a heading line
+       * with its Clear, then a small tag per search (the one button's `small` kind: card, hairline, square), wrapping —
+       * four short searches fit on one or two lines where six 48 px rows took most of the sheet.
+       */
+      <View testID="search-recents" style={{ borderTopWidth: 1, borderTopColor: palette.line, marginTop: 10,
+                                             paddingHorizontal: 18, paddingTop: 10, paddingBottom: 12, gap: 8 }}>
+        <View style={{ flexDirection: "row", alignItems: "baseline" }}>
+          <Text accessibilityRole="header" style={{ ...TYPE.section, color: palette.faint }}>{SEARCH_FIND.recent}</Text>
+          <Pressable {...hitProps({ w: 40, h: 14 })} testID="search-clear-recents" onPress={onClearRecents} accessibilityRole="button"
+                     accessibilityLabel={SEARCH_FIND.clearLabel} style={{ marginLeft: "auto" }}>
+            <Text style={{ ...TYPE.section, color: palette.accent }}>{SEARCH_FIND.clear}</Text>
+          </Pressable>
+        </View>
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+          {r.list.map((q) => (
+            <Button key={q} palette={palette} kind="small" icon="search" label={q} testID={`search-recent-${q}`}
+                    a11yLabel={SEARCH_FIND.again(q)} onPress={() => onRecent?.(q)} />
+          ))}
+        </View>
+      </View>
     );
   if (r.t === "see")
     return (

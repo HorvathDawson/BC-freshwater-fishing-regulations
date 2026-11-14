@@ -1,6 +1,6 @@
 # T730 — Search on the phone: swipe down to close, small recents, the map stays, a fresh search each time
 
-Status: IN PROGRESS (before closed testing) — code + render tests in progress; left (Claude): commit after T717, an emulator look on the next APK
+Status: IN PROGRESS (before closed testing) — code + render tests done; left (Claude): an emulator look on the next APK
 
 Source: owner 2026-11-14, from using the app on a phone, verbatim:
 1. "When you open search on app you can't swipe down to close it also recent searchs take up a huge amount."
@@ -43,7 +43,9 @@ c. Closing search sends the camera nowhere: `restore` is gone (hook and BrowseHo
    map where it is (one load path): ‹, back, Escape, swipe, a tab, the wide panel's ✕ or a click beside it.
 d. Every close resets search (`setSearchMemory(NO_SEARCH)` when `searching` turns false). A water opened by a tap on
    the map beside the half sheet does not close search (it stays under the water), so its Back still returns to the
-   results as they were.
+   results as they were. One rule for every layout: on a wide screen too, Escape / the panel's ✕ / a click beside it
+   forget the query (the T69 focused-but-closed field keeps the focus, but Enter there reopens an EMPTY search). Say so
+   to the owner with the screens; if desktop should keep its query, that is a one-line layout exception.
 
 ## Acceptance
 - `app/packages/ui-native/src/Search.close.shell.test.tsx` (each fails before the fix):
@@ -51,7 +53,11 @@ d. Every close resets search (`setSearchMemory(NO_SEARCH)` when `searching` turn
   slow short drag springs back; the recents are one block of at most 4 tags with Clear; a water row tapped then back
   leaves the map framed on it (no camera sent back); reopened, the field is empty and the recents show (‹, back,
   swipe and Escape alike).
-- `Search.shell.test.tsx` updated where it pinned the old T48 behaviour (camera given back; query kept after back).
+- `Search.shell.test.tsx` updated where it pinned the old T48 behaviour (camera given back; query kept after back,
+  Escape, ✕ and a click beside the wide panel).
+- Not this ticket: `apps/mobile/src/back.test.tsx` has 2 red tests at T717's commit 6c4547b13 ("Found multiple elements
+  with the text of: tap the map": the browse map kept under the page is a second map); they fail the same with T730's
+  files reverted.
 - Left (Claude), emulator on the next APK: the swipe from the grabber and from the list (keyboard up and down, list
   scrolled and not, full and half), the recents block in light / dark, Thompson River framed then back stays there,
   reopen is empty.

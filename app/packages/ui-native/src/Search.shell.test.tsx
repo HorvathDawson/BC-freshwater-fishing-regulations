@@ -1,7 +1,8 @@
 /**
  * (T48) SEARCH IN THE TOP BAR, THROUGH THE REAL SHELL: the always-open field over the browse maps, the sync icon at
  * its right end (owner 2026-10-22: no status text over the field), the results sheet rising over the SAME map (never a second one), a place shown by its tap (no eye), a water
- * opened through the one opener, and back / Escape / ‹ closing search first and giving the camera back exactly.
+ * opened through the one opener, and back / Escape / ‹ closing search first — (T730) leaving the map where search moved it
+ * and forgetting the query, so the next open is a fresh search (Search.close.shell.test.tsx: the swipe, the recents).
  *
  * The map renderer is replaced by a stub that counts its mounts and writes down every framing the Shell sends it (no
  * WebGL in jsdom). Everything else is the app's, on the fixture.
@@ -209,8 +210,9 @@ describe("opening search: in place, over the SAME map", () => {
     const map = where();
     expect([open, h1, closed, h2, map, back(), seen.mounts]).toEqual([
       `search open · full · "chilliwack" · tab Conditions`, true,
-      `search closed · no sheet · "chilliwack" · tab Conditions`, true,
-      `search closed · no sheet · "chilliwack" · tab Map`, false, 1]);
+      // (T730) a close forgets the query
+      `search closed · no sheet · "" · tab Conditions`, true,
+      `search closed · no sheet · "" · tab Map`, false, 1]);
   });
 
   it("‹ and Escape close it too; a cancel that moved nothing sends the camera nowhere", async () => {
@@ -243,7 +245,7 @@ describe("a place is SHOWN by its tap; a water is framed by its tap and opened b
     expect([where(), screen.queryByLabelText("Back to all results")]).toEqual([`search open · full · "chilliwack" · tab Map`, null]);
   });
 
-  it("a water row: its tap frames it (half); closing search then gives the camera back exactly", async () => {
+  it("a water row: its tap frames it (half); (T730) closing search then leaves the map on it and forgets the query", async () => {
     mount();
     act(() => { fireEvent.focus(field()); });
     await typeIn("chilliwack river");
@@ -254,9 +256,10 @@ describe("a place is SHOWN by its tap; a water is framed by its tap and opened b
     await settle();
     expect([framed, where(), seen.fits]).toEqual([
       [`search open · half · "chilliwack river" · tab Map`, "fit item:gnis:8634"],
-      `search closed · no sheet · "chilliwack river" · tab Map`,
-      // the framing; then, as search closes, one render with no fit (nothing sent), the camera put back, and no fit again
-      ["none", "item:gnis:8634", "none", "restore:1 camera 49.15,-121.85,10", "none"],
+      `search closed · no sheet · "" · tab Map`,
+      // the framing; then, as search closes, no fit: nothing is sent, the map stays on the river (T730, owner 2026-11-14:
+      // "it should have stayed at the location it moved to"; T48 sent the camera from before search back here)
+      ["none", "item:gnis:8634", "none"],
     ]);
   });
 
@@ -453,9 +456,10 @@ describe("closing search on a wide screen (owner 2026-10-22 late)", () => {
       await settle();
       expect([empty, typed, picked, where()]).toEqual([
         `search closed · no sheet · "" · tab Map`,
-        `search closed · no sheet · "chilliwack" · tab Map`,
+        // (T730) every close forgets the query, on a wide screen too (one way out, one result)
+        `search closed · no sheet · "" · tab Map`,
         [`search open · half · "chilliwack river" · tab Map`, false],
-        `search closed · no sheet · "chilliwack river" · tab Map`]);
+        `search closed · no sheet · "" · tab Map`]);
     }));
 
   it("Escape typed IN THE FIELD closes it: react-native-web's input stops its keys at the field, so the window never " +
@@ -469,7 +473,7 @@ describe("closing search on a wide screen (owner 2026-10-22 late)", () => {
       await typeIn("chilliwack");
       act(() => { fireEvent.keyDown(field(), { key: "Escape" }); });
       expect([empty, where()]).toEqual([
-        `search closed · no sheet · "" · tab Map`, `search closed · no sheet · "chilliwack" · tab Map`]);
+        `search closed · no sheet · "" · tab Map`, `search closed · no sheet · "" · tab Map`]);
     }));
 
   it("a click on the map beside the panel closes it — on the ground or on a water, which it does not open", () =>
@@ -483,7 +487,7 @@ describe("closing search on a wide screen (owner 2026-10-22 late)", () => {
       act(() => { fireEvent.click(screen.getByTestId("stub-feature-click")); });
       await settle();
       expect([ground, where(), water()]).toEqual([
-        `search closed · no sheet · "chilliwack" · tab Map`, `search closed · no sheet · "chilliwack" · tab Map`, false]);
+        `search closed · no sheet · "" · tab Map`, `search closed · no sheet · "" · tab Map`, false]);
     }));
 
   it("the panel carries the one close, at its top-right; the bar keeps only the field's clear", () =>
@@ -496,7 +500,7 @@ describe("closing search on a wide screen (owner 2026-10-22 late)", () => {
       await settle();
       expect([offered, where()]).toEqual([
         { bar: [SEARCH_BAR.clear], panel: [SEARCH_BAR.close] },
-        `search closed · no sheet · "zzqx" · tab Map`]);
+        `search closed · no sheet · "" · tab Map`]);
     }));
 
   it("THE FIELD'S ✕ ONLY CLEARS: the text goes, search stays open (wide and phone alike)", async () => {
@@ -523,10 +527,10 @@ describe("closing search on a wide screen (owner 2026-10-22 late)", () => {
       open();
       await typeIn("chilliwack");
       const h = back();
-      expect([h, where()]).toEqual([true, `search closed · no sheet · "chilliwack" · tab Map`]);
+      expect([h, where()]).toEqual([true, `search closed · no sheet · "" · tab Map`]);
     }));
 
-  it("ON A PHONE NOTHING CHANGES: the ‹ in the field closes, the ✕ clears, the sheet has no close of its own; a " +
+  it("ON A PHONE NOTHING CHANGES: the ‹ in the field closes, the ✕ clears, the sheet has no close button of its own (T730: its swipe down closes); a " +
      "window Escape away from the field leaves it open", async () => {
     mount();
     open();
@@ -607,8 +611,9 @@ describe("(T69) search on a wide screen by keyboard alone", () => {
         [`search open · full · "chilliwack river" · tab Map`, SEARCH_BAR.label,
          [SEARCH_BAR.label, SEARCH_BAR.clear, SEARCH_BAR.close], true],
         [`search open · half · "chilliwack river" · tab Map`, ROW, SEARCH_BAR.open(NAMED)],
-        [`search closed · no sheet · "chilliwack river" · tab Map`, SEARCH_BAR.label, "accent"],
-        [`search closed · no sheet · "chilliwack river" · tab Map`, SEARCH_BAR.label]]);
+        // (T730) closed, the query is forgotten; the focus still comes back to the field
+        [`search closed · no sheet · "" · tab Map`, SEARCH_BAR.label, "accent"],
+        [`search closed · no sheet · "" · tab Map`, SEARCH_BAR.label]]);
     }));
 
   it("the focused-but-closed field opens again by typing, by Enter or ↓, and by focusing it afresh; the panel's ✕ " +
@@ -642,11 +647,12 @@ describe("(T69) search on a wide screen by keyboard alone", () => {
       expect([resting, byTyping, byClose, byEnter, byDown, away, [where(), focused()]]).toEqual([
         [`search closed · no sheet · "" · tab Map`, SEARCH_BAR.label],
         [`search open · full · "chilliwack" · tab Map`, SEARCH_BAR.label],
-        [`search closed · no sheet · "chilliwack" · tab Map`, SEARCH_BAR.label],
-        [`search open · full · "chilliwack" · tab Map`, SEARCH_BAR.label],
-        `search open · full · "chilliwack" · tab Map`,
-        [`search closed · no sheet · "chilliwack" · tab Map`, "page body"],
-        [`search open · full · "chilliwack" · tab Map`, SEARCH_BAR.label]]);
+        // (T730) each close forgets the query: every reopening is a fresh search
+        [`search closed · no sheet · "" · tab Map`, SEARCH_BAR.label],
+        [`search open · full · "" · tab Map`, SEARCH_BAR.label],
+        `search open · full · "" · tab Map`,
+        [`search closed · no sheet · "" · tab Map`, "page body"],
+        [`search open · full · "" · tab Map`, SEARCH_BAR.label]]);
     }));
 
   it("a mouse click on the focused-but-closed field opens search again (the click gives no fresh focus)", () =>
@@ -674,7 +680,7 @@ describe("(T69) search on a wide screen by keyboard alone", () => {
       fireEvent.click(screen.getByTestId("stub-map-click"));
       await settle();
       expect([resting, where(), focused(), edge()]).toEqual([
-        "ink", `search closed · no sheet · "chilliwack" · tab Map`, "page body", "ink"]);
+        "ink", `search closed · no sheet · "" · tab Map`, "page body", "ink"]);
     }));
 
   it("ON A PHONE closing still drops the focus and the keyboard (no focused-but-closed field holding a keyboard up)",

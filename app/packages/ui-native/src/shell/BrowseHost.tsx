@@ -84,7 +84,7 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
   const { route, go, browse, tab, back } = nav;
   const { flowParam, mm, layers, imagery, cond, gauges, lakeFeed, salmonFeed, methodFeed, mapStatus, noteVisible, setZoomedOut,
           horizonChipsShown, pickDay, vintage } = col;
-  const { searching, session, restore, arrive, wideSearch, closeSearch } = search;
+  const { searching, session, arrive, wideSearch, closeSearch } = search;
   /**
    * Tapping a map. A tile carries a `section_id`, and a section is not something a person asked about — they tapped a
    * river. `opener.tap` resolves it to the water and opens the water screen (`@app/ui` openWater.ts): with Regulations
@@ -208,12 +208,11 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
                      basemap={mm.basemap} onImageryError={imagery.tileFailed}
                      // WHERE THE CAMERA IS SENT, one subject at a time: a spot "Show" asked for (the rail forgets it
                      // whenever the route moves), else what search has picked (a water framed, a town flown to), else
-                     // — once, as search closes — back to where the reader was before search moved it
+                     // a searched water's arrival; closing search sends nothing — the map stays where search moved it (T730)
                      fit={rail.fly ? { key: rail.fly.key, bbox: rail.fly.bbox }
                        : searching && session.focus
                          ? { key: session.focus.key, bbox: session.focus.bbox, refine: session.focus.refine }
-                         : arrive ? arrive
-                         : restore ? { key: restore.key, bbox: null, camera: restore.camera } : null}
+                         : arrive}
                      // WHAT SEARCH LIGHTS, whole, while search is open — on either map; closed, nothing (the Conditions
                      // view lights a gauge's route with the same feature-state and must not inherit a search)
                      // (T716) and closed, the section a tap is opening (the tap's cue), else nothing

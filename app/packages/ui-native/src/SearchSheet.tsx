@@ -15,8 +15,11 @@
  * (›), which opens the water screen through `openWater` (the one opener). Back from that water returns here as it was.
  *
  * ON A WIDE SCREEN it is a panel beside the map and closes where the eye is (owner 2026-10-22 late): its own ✕ at its
- * top-right, Escape wherever the focus is, a click on the map beside it (the Shell). A phone's sheet has no close of
- * its own: the field's ‹ is it, as before.
+ * top-right, Escape wherever the focus is, a click on the map beside it (the Shell). A phone's sheet closes by the
+ * field's ‹, the system back, and (T730, owner 2026-11-14: "you can't swipe down to close it") A SWIPE DOWN, as every
+ * bottom sheet in the app does (`Sheet`, `useSheetDrag`): from the grabber at any time, or from the list when it is at
+ * its top. The sheet follows the finger; past a third of its height or on a downward flick search closes, otherwise it
+ * springs back. A drag that starts with the list scrolled down scrolls the list; upward from the top scrolls as usual.
  *
  * Reduced motion: a cross-fade, no slide (`useReducedMotion`). Transforms and opacity only, on the native driver.
  *
@@ -31,13 +34,14 @@
  *  - a town is a question about the ground, not a water: its row says so, in its colour (`palette.place`).
  */
 import { useEscapeCloses } from "./escapeCloses";
-import { useEffect, useRef, useState } from "react";
-import { Animated, FlatList, View, useWindowDimensions } from "react-native";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Animated, View, useWindowDimensions } from "react-native";
+import { FlatList, GestureDetector, usePanGesture, type PanGestureConfig } from "react-native-gesture-handler";
 import { Text } from "./Text";
 import { Pressable } from "./Pressable";
 import { SEARCH_BAR, type StatusIndex, bcNow } from "@app/core";
 import type { ItemId } from "@app/data";
-import { useBackLayer, type SearchAction, type SearchPick, type SearchSession } from "@app/ui";
+import { useBackLayer, useSheetDrag, type SearchAction, type SearchPick, type SearchSession } from "@app/ui";
 import { LoadingState } from "./LoadingState";
 import { Icon } from "./icons";
 import { NATIVE_DRIVER, useReducedMotion } from "./motion";
@@ -58,9 +62,9 @@ export function SearchSheet({ open, top, palette, session, pick, onAct, onOpenWa
   /** Search is open (route `search`). Closed: the sheet slides (or fades) away and its rows go. */
   open: boolean;
   /**
-   * Close search (route `search` off; the Shell restores the map). A WIDE screen's panel calls it from its ✕ at the
-   * top-right and from Escape anywhere on the page (owner 2026-10-22 late); a phone's sheet never does (its ‹ is the
-   * field's).
+   * Close search (route `search` off; the map stays where search left it, T730). A WIDE screen's panel calls it from its
+   * ✕ at the top-right and from Escape anywhere on the page (owner 2026-10-22 late); a phone's sheet from a swipe down
+   * (T730; its ‹ is the field's).
    */
   onClose: () => void;
   /** The bar's bottom edge: the sheet's top sits 8 px under it. */
@@ -92,6 +96,39 @@ export function SearchSheet({ open, top, palette, session, pick, onAct, onOpenWa
   const lowered = useRef(new Animated.Value(0)).current;
   const [height, setHeight] = useState(0);
   const [shown, setShown] = useState(open);
+  /*
+   * (T730) THE SWIPE DOWN (a phone's sheet only; the wide panel has no bottom edge to pull it to). `pull` is how far the
+   * finger has the sheet below where it stands; reset whenever search opens.
+   */
+  const drag = useSheetDrag(onClose);
+  const pull = useRef(new Animated.Value(0)).current;
+  const tall = useRef(0);
+  tall.current = height;
+  const listTop = useRef(0);
+  useEffect(() => { if (open) { pull.setValue(0); listTop.current = 0; } }, [open, pull]);
+  const phone = panel === null;
+  const handlePull = usePanGesture(useMemo((): PanGestureConfig => ({
+    runOnJS: true, disableReanimated: true, testID: "search-sheet-drag", enabled: phone,
+    activeOffsetY: 6, failOffsetX: [-24, 24],
+    onUpdate: (e) => pull.setValue(drag.offset(e.translationY)),
+    // `canceled`: the system took the drag after it went active — not a release, so it springs back
+    onDeactivate: (e) => { if (e.canceled || !drag.release(e.translationY, e.velocityY, tall.current)) springBack(pull); },
+  }), [drag, pull, phone]));
+  const listPull = usePanGesture(useMemo((): PanGestureConfig => {
+    let armed = false;
+    return {
+      runOnJS: true, disableReanimated: true, testID: "search-list-drag", enabled: phone,
+      activeOffsetY: 6, failOffsetX: [-24, 24],
+      // only a drag that starts with the list at its top moves the sheet
+      onBegin: () => { armed = listTop.current <= 0; },
+      onUpdate: (e) => { if (armed) pull.setValue(drag.offset(e.translationY)); },
+      onDeactivate: (e) => {
+        if (!armed) return;
+        armed = false;
+        if (e.canceled || !drag.release(e.translationY, e.velocityY, tall.current)) springBack(pull);
+      },
+    };
+  }, [drag, pull, phone]));
   if (open && !shown) setShown(true);
   useEffect(() => {
     const run = Animated.timing(gone, { toValue: open ? 0 : 1, duration: SHEET_MS, useNativeDriver: NATIVE_DRIVER });
@@ -135,13 +172,15 @@ export function SearchSheet({ open, top, palette, session, pick, onAct, onOpenWa
                                     borderLeftColor: palette.ink, borderRightColor: palette.ink }),
                               backgroundColor: palette.card, borderTopWidth: 1.5, borderTopColor: palette.ink,
                               opacity: still ? gone.interpolate({ inputRange: [0, 1], outputRange: [1, 0] }) : 1,
-                              transform: [{ translateY: Animated.add(
+                              transform: [{ translateY: Animated.add(Animated.add(
                                 still ? 0 : gone.interpolate({ inputRange: [0, 1], outputRange: [0, height || 900] }),
-                                lowered.interpolate({ inputRange: [0, 1], outputRange: [0, drop] })) }] }}>
-        {/* the grabber: says this is a sheet over the map, not a page */}
-        <View style={{ alignItems: "center", paddingTop: 7, paddingBottom: 3 }}>
-          <View style={{ width: 38, height: 4, backgroundColor: palette.line2 }} />
-        </View>
+                                lowered.interpolate({ inputRange: [0, 1], outputRange: [0, drop] })), pull) }] }}>
+        {/* the grabber: says this is a sheet over the map, not a page — and (T730) on a phone it is what a swipe down pulls */}
+        <GestureDetector gesture={handlePull} touchAction="none">
+          <View testID="search-sheet-handle" style={{ alignItems: "center", paddingTop: 7, paddingBottom: 3 }}>
+            <View style={{ width: 38, height: 4, backgroundColor: palette.line2 }} />
+          </View>
+        </GestureDetector>
         {panel !== null ? (
           /*
            * A WIDE SCREEN'S PANEL CLOSES FROM ITS TOP-RIGHT (owner 2026-10-22 late): the ✕ sits by the results, where the
@@ -169,21 +208,35 @@ export function SearchSheet({ open, top, palette, session, pick, onAct, onOpenWa
           <LoadingState palette={palette} size={86} label={SEARCH_BAR.searching}
                         style={{ alignItems: "center", paddingVertical: 28 }} />
         ) : (
-          <FlatList
-            data={rows}
-            keyExtractor={(r) => r.key}
-            keyboardShouldPersistTaps="handled"
-            // at half the sheet's lower part is below the screen's edge: the list ends where the screen does
-            contentContainerStyle={{ paddingBottom: half ? drop : 0 }}
-            extraData={pick}
-            renderItem={({ item: r }) => (
-              <SheetRow r={r} palette={palette} pick={pick} act={act} onOpenWater={onOpenWater}
-                        statusIndex={statusIndex} today={today} onRecent={onRecent}
-                        onClearRecents={onClearRecents} />
-            )}
-          />
+          <GestureDetector gesture={listPull}>
+            {/* (T440's lesson) a real view between the pan's detector and the list's own: drawn as its direct child, Android
+                left the list out of the accessibility tree */}
+            <View testID="search-list-frame" collapsable={false} style={{ flex: 1 }}>
+              <FlatList
+                testID="search-list"
+                data={rows}
+                keyExtractor={(r) => r.key}
+                keyboardShouldPersistTaps="handled"
+                // the list's own scroll runs beside the pull (neither cancels the other); `bounces` off: at the top a
+                // downward pull moves the sheet, not an iOS overscroll of the list
+                simultaneousWith={listPull} bounces={false} scrollEventThrottle={16}
+                onScroll={(e) => { listTop.current = e.nativeEvent.contentOffset.y; }}
+                // at half the sheet's lower part is below the screen's edge: the list ends where the screen does
+                contentContainerStyle={{ paddingBottom: half ? drop : 0 }}
+                extraData={pick}
+                renderItem={({ item: r }) => (
+                  <SheetRow r={r} palette={palette} pick={pick} act={act} onOpenWater={onOpenWater}
+                            statusIndex={statusIndex} today={today} onRecent={onRecent}
+                            onClearRecents={onClearRecents} />
+                )}
+              />
+            </View>
+          </GestureDetector>
         )}
       </Animated.View>
     </>
   );
 }
+
+/** A drag let go short of closing: the sheet springs back to where it stands. */
+const springBack = (v: Animated.Value) => Animated.spring(v, { toValue: 0, useNativeDriver: NATIVE_DRIVER, bounciness: 0 }).start();

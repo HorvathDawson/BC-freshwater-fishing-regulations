@@ -1,15 +1,13 @@
 /** The rows search's sheet draws (`sheetRows`), from what the reader picked and what search answered. Pure (a .tsx so the
  * T60 copy scan reads its words with the sheet's). */
-import { SEARCH_BAR, SEARCH_FIND, nearCount, watersNear } from "@app/core";
+import { RECENT_MAX, SEARCH_BAR, SEARCH_FIND, nearCount, watersNear } from "@app/core";
 import type { ItemId, NameHit, NearHit, PlaceHit } from "@app/data";
 import { resultGroups, type SearchPick, type SearchSession } from "@app/ui";
 
 export type Row =
   | { t: "head"; key: string; label: string; right?: string; back?: boolean; place?: boolean;
       /** Drawn on the places band — the heading of the places group. */
-      band?: boolean;
-      /** (T247) a control at the heading's end (the recents' Clear) */
-      action?: "clear-recents" }
+      band?: boolean }
   | { t: "place"; key: string; place: PlaceHit }
   | { t: "water"; key: string; hit: NameHit; dup: boolean }
   | { t: "near"; key: string; near: NearHit }
@@ -18,8 +16,9 @@ export type Row =
   | { t: "note"; key: string; text: string }
   /** (T368) a read that failed: the one failure face (`ErrorState`), never a plain note */
   | { t: "failed"; key: string; text: string }
-  /** (T247) a recent search: its text, drawn as a row that searches it again */
-  | { t: "recent"; key: string; q: string };
+  /** (T247) the recent searches, (T730) as ONE compact block: its heading with Clear, then a small tag per search that
+   *  searches it again (owner 2026-11-14: "recent searchs take up a huge amount") */
+  | { t: "recents"; key: string; list: readonly string[] };
 
 /** The rows the sheet draws, from what the reader picked and what search answered. Pure: the render test reads it. */
 export function sheetRows(pick: SearchPick, s: SearchSession, recents: readonly string[] = []): Row[] {
@@ -51,12 +50,10 @@ export function sheetRows(pick: SearchPick, s: SearchSession, recents: readonly 
     if (s.none) rows.push({ t: "note", key: "none", text: SEARCH_BAR.none });
     if (s.failed) rows.push({ t: "failed", key: "fail", text: SEARCH_BAR.failed });
   } else {
+    // (T730) the recents right under the start line, before the longer hint: the quick way back is the first thing seen
     rows.push({ t: "note", key: "start", text: SEARCH_BAR.start });
+    if (recents.length) rows.push({ t: "recents", key: "recents", list: recents.slice(0, RECENT_MAX) });
     rows.push({ t: "note", key: "start2", text: SEARCH_FIND.hint });
-    if (recents.length) {
-      rows.push({ t: "head", key: "recent-h", label: SEARCH_FIND.recent, right: SEARCH_FIND.clear, action: "clear-recents" });
-      for (const q of recents) rows.push({ t: "recent", key: `r:${q}`, q });
-    }
   }
   return rows;
 }

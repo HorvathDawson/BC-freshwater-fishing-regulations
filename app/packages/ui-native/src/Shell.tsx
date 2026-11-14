@@ -197,7 +197,7 @@ export function Shell(p: ShellProps) {
   // (T369 D12) held by the app when it asks (`cameraHold`): the refs outlive a recreated activity's remount
   const camera = p.cameraHold ? (p.cameraHold.browse ??= ownCamera) : ownCamera;
   const waterCamera = p.cameraHold ? (p.cameraHold.water ??= ownWaterCamera) : ownWaterCamera;
-  const search = useShellSearch({ source, nav, camera, recentStore: p.recentSearches ?? null });
+  const search = useShellSearch({ source, nav, recentStore: p.recentSearches ?? null });
   const { searching, session, searchMemory, field } = search;
   /** (owner 2026-10-29) the page started ON a water (a landing): the map is readied behind it once idle (below) */
   const [landed] = useState(() => !!p.arriveAt && p.initialRoute?.mode === "water");

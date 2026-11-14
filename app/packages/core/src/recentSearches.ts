@@ -6,8 +6,12 @@
 import { searchKey } from "./searchKey";
 import type { AreaAsk } from "./searchIndex";
 
-/** How many recents are kept and shown. */
-export const RECENT_MAX = 6;
+/**
+ * How many recents are kept and shown. (T730, owner 2026-11-14: "recent searchs take up a huge amount") 4, drawn as one
+ * compact block of small tags (search/SheetRow `recents`), not 6 full-width 48 px rows; an older one is dropped, not
+ * hidden behind a "more".
+ */
+export const RECENT_MAX = 4;
 
 /** The words search adds to the sheet beside its results: recents, the area heading, the typo note, what else it takes. */
 export const SEARCH_FIND = {

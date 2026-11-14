@@ -5,11 +5,10 @@
  * (`useSearchSession`) feeds both the sheet's rows and what the main map frames, lights and pins (T62 3.4: out of the
  * Shell, unchanged).
  */
-import { useCallback, useEffect, useRef, useState, type MutableRefObject } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Keyboard, useWindowDimensions, type TextInputInstance } from "react-native";
 import type { ItemId, WaterSource } from "@app/data";
 import { NO_SEARCH, reportFailure, searchStep, useRecentSearches, useSearchSession, type SearchAction, type SearchMemory } from "@app/ui";
-import type { Camera } from "@app/map";
 import { searchPanelWidth } from "../TopBar";
 import { CLOSE_KEEPS_FOCUS } from "../searchFocus";
 import type { ShellNav } from "./useShellNav";
@@ -18,8 +17,8 @@ import type { ShellNav } from "./useShellNav";
  *  hook returning a ref to it cannot have its type written out (TS2742); a local interface over it can. */
 export interface SearchField extends TextInputInstance {}
 
-export function useShellSearch({ source, nav, camera, recentStore }: {
-  source: WaterSource; nav: ShellNav; camera: MutableRefObject<Camera>;
+export function useShellSearch({ source, nav, recentStore }: {
+  source: WaterSource; nav: ShellNav;
   /** (T247) where recent searches are kept (device-only); absent: kept for this run */
   recentStore?: import("@app/ui").RecentStore | null;
 }) {
@@ -33,15 +32,17 @@ export function useShellSearch({ source, nav, camera, recentStore }: {
   // (T247) a search the reader picked a result from is a recent search
   const recents = useRecentSearches(recentStore);
   /*
-   * (T48) SEARCH GIVES THE CAMERA BACK. Where it was when search opened is kept; a pick moves the map (a water framed, a
-   * town flown to); closing search — ‹, Escape, the system back, a tab — puts it back EXACTLY (`fit.camera`, sent
-   * once) and drops the keyboard. A water opened FROM A RESULT consumes search (owner 2026-10-22 late, route
-   * `fromSearch`): nothing is restored — the map comes back framed on that water (`arrive`, below).
+   * (T730, owner 2026-11-14) CLOSING SEARCH LEAVES THE MAP WHERE SEARCH MOVED IT, AND STARTS SEARCH AFRESH. "click on
+   * thompson river it moves to show it but then if you click back it goes back to original location when it feels like
+   * it should have stayed at the location it moved to Incase the user was just trying to get there" — a pick moves the
+   * map (a water framed, a town flown to) and every close (‹, Escape, the system back, a swipe down, a tab, the wide
+   * panel's ✕ or a click beside it) keeps that camera: nothing is sent back (T48 put the camera from before search back;
+   * the owner's words replace that). And "if you highlight search again it goes back to where you were highlighting it
+   * didn't reset search state": every close forgets the query and the pick, so the field opens empty, on the recents.
+   * The keyboard drops. A water opened FROM A RESULT consumes search the same way (owner 2026-10-22 late, route
+   * `fromSearch`) and the map comes back framed on that water (`arrive`, below). A water opened by a tap on the map
+   * beside the half sheet does NOT close search (it stays under the water), so back from it returns to the results.
    */
-  const searchCamera = useRef<Camera | null>(null);
-  const searchMoved = useRef(false);
-  const [restore, setRestore] = useState<{ key: string; camera: Camera } | null>(null);
-  const restores = useRef(0);
   const wasSearching = useRef(searching);
   /*
    * (T69) FOCUSED BUT CLOSED. A close the keyboard asked for — Escape, the panel's ✕ — on a wide screen on the web hands
@@ -56,7 +57,7 @@ export function useShellSearch({ source, nav, camera, recentStore }: {
     wasSearching.current = searching;
     const keep = toField.current && CLOSE_KEEPS_FOCUS && searchPanelWidth(screenWidth) !== null;
     toField.current = false;
-    if (searching) { searchCamera.current = { ...camera.current }; searchMoved.current = false; return; }
+    if (searching) return;
     if (keep) {
       quiet.current = true;                   // the focus event fires inside focus(): it opens nothing
       try { field.current?.focus(); } finally { quiet.current = false; }
@@ -64,15 +65,8 @@ export function useShellSearch({ source, nav, camera, recentStore }: {
       field.current?.blur();
       Keyboard.dismiss();
     }
-    const back = searchCamera.current;
-    if (searchMoved.current && back) {
-      camera.current = back;                       // a map mounted later (a spot was opened) starts there too
-      setRestore({ key: `restore:${++restores.current}`, camera: back });
-    }
+    setSearchMemory(NO_SEARCH);               // (T730) the next open is a fresh search
   }, [searching]);
-  useEffect(() => { if (searching && session.focus?.bbox) searchMoved.current = true; }, [searching, session.focus?.key]);
-  // sent once: the next render hands the map no fit, so a later remount is never dragged back
-  useEffect(() => { if (restore) setRestore(null); }, [restore]);
   /*
    * (Owner 2026-10-22 late, "back from a searched water lands on the map, at the water") A water opened from a result
    * consumes search — the route's `from` is the map with search closed — and the map comes back FRAMED ON THAT WATER:
@@ -101,7 +95,6 @@ export function useShellSearch({ source, nav, camera, recentStore }: {
       void source.waterBox(id).then((bbox) => { if (bbox && arrivals.current === n) setArrive({ key, bbox, refine: false }); },
                                     reportFailure);   // (T368) not framed: reported
     }
-    searchMoved.current = false;            // the camera from before search is not put back: the water is the subject
     // (T508) the search is consumed, its text with it — ONCE THE WATER HAS OPENED (the opener first asks whether it is
     // solo): consumed before, the browse screen drew one more screen between the results and the pane (the field
     // emptied, the recent searches, the water's outline gone), and only then was the opened pane held over it
@@ -140,7 +133,7 @@ export function useShellSearch({ source, nav, camera, recentStore }: {
   const onFieldFocus = () => { if (!quiet.current) go({ type: "search", open: true }); };
   /** (T247) a recent search tapped: it becomes the query again */
   const pickRecent = useCallback((q: string) => searchType(q), [searchType]);
-  return { searching, searchMemory, recents, pickRecent, session, field, restore, arrive, openSearched, landOn, searchAct, searchType, closeSearch,
+  return { searching, searchMemory, recents, pickRecent, session, field, arrive, openSearched, landOn, searchAct, searchType, closeSearch,
            closeToField, wideSearch, onFieldFocus };
 }
 
