@@ -424,3 +424,8 @@ split/joined codes by hand (`test_wsc_relation`; now `pipeline.common.utils.wsc.
   in the other direction, so none of their results is affected).
 - WAITS FOR THE app/ ALL-CLEAR: the committed copy (`--write`), `--check` in fast-fail and pipeline CI, the shared
   pieces, step 4. Nothing pushed (main lane holds pushes).
+- CALLERS (2026-11-14 16:03, lane 2 held by iOS jobs for 1.5 h, so run directly per the main lane): CI's no-data tier
+  over the 221 test files that import a changed module, one process: 1 failed, 3421 passed —
+  `test_review_vintage::test_no_second_copy…` refused `mini_release.release_files` as a second newest-release picker
+  (`glob("r-*")` + `st_mtime` in one file); fixed at the cause (it asks `manifest.releases` / `latest`), 4b62638da;
+  re-run green. The slow / `needs_*` tier and a fresh-copy run of the mini tests are still queued (`t667-callers`).
