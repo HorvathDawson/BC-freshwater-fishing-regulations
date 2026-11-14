@@ -82,7 +82,11 @@ with the default Claude uses until you answer). Newest first inside each section
   15 DONE rows still in the open ledger, graphify and scratch dirs);
   (6) the small invented release for tests (T667 slice 8): cut it with no map tiles and no basemap, only the data files
   the app's logic tests read [yes, being built that way as a proposal], or also give the tile step its own invented
-  inputs (more pipeline change);
+  inputs (more pipeline change). Found on the way: the export step checks that the rules are the real rule book (64
+  guide examples, 64 case mechanisms, the licence and protected-fish duties, the printed page map), so it refuses the
+  invented world. Being built as a proposal: the export takes the list it checks against as a named input, the real
+  book's list is the default and is pinned so it cannot shrink, and the invented world brings its own list [yes]; the
+  other way is to grow the invented rules to about 60 entries;
   (7) the About page gains one sentence saying the app is not affiliated with the government (Apple asks for it; audit
   G15) [About only, the first-run notice is not shown again];
   (8) the web build leaves out the four Android-only "What's new" notes [keep];
