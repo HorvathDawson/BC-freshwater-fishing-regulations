@@ -67,8 +67,8 @@ export const keyboardIos = {
     });
     await ctx.step('software keyboard on for this simulator', async () => {
       const said = softKeyboard(ctx.device, true);
-      ctx.device.stop(); await ctx.device.sleep(1000);
-      await appUp(ctx);
+      // a first open downloads the whole staging release (~7 min): the app is NOT restarted meanwhile (a stop restarts the download)
+      await appUp(ctx, { launch: !ctx.device.pidOf(), ms: 1_200_000 });
       return said;
     });
     await open('report a problem: the what-happened field', async () => {
@@ -87,7 +87,11 @@ export const keyboardIos = {
       ctx.flow('scroll-to', { TEXT: 'Notifications' });
       ctx.flow('tap-text', { TEXT: 'Notifications' });
       await ctx.device.sleep(1500);
-      return typeIn(ctx, 'notifications', '(Search|Find).*', 'fraser');
+      // (G10) autocorrect: "Coquihalla " typed, then read back; a rewritten word is a finding
+      const said = await typeIn(ctx, 'notifications', '(Search|Find).*', 'Coquihalla ');
+      const back = ctx.device.nodes().map((n) => n.text).find((t) => /^coq/i.test(t || ''));
+      if (back !== undefined && back.trim() !== 'Coquihalla') ctx.finding(`G10: the gauge search was autocorrected: typed "Coquihalla " read back "${back}"`);
+      return `${said}; read back "${back ?? 'not found'}"`;
     });
     await open('saved spot: title', async () => {
       ctx.device.geo(-121.44, 49.38);
@@ -105,7 +109,14 @@ export const keyboardIos = {
       ctx.flow('spot-notes', { TITLE: 'kb probe.*', NOTES: 'kb notes', SHOT: path.join(ctx.dir, 'T723-kb-spot-notes-flow') });
       await ctx.device.sleep(1200);
       ctx.device.screenshot(path.join(ctx.dir, 'T723-kb-spot-notes.png'));
-      return report(ctx, 'spot-notes', 'kb notes');
+      const note = report(ctx, 'spot-notes', 'kb notes');
+      // (G10) ONE tap on "Save changes" with the keyboard up: it must save, not only close the keyboard
+      runYaml(ctx.dir, 'kb-save-once', `appId: ${APP}\n---\n- tapOn: { text: "Save changes", index: 0 }\n`);
+      await ctx.device.sleep(2000);
+      const still = ctx.device.screenText().includes('Save changes');
+      ctx.device.screenshot(path.join(ctx.dir, 'T723-kb-spot-save-once.png'));
+      if (still) ctx.finding('G10: the first tap on Save changes (keyboard up) did not save: the form is still open');
+      return `${note}; one tap on Save changes: ${still ? 'EATEN (form still open)' : 'saved'}`;
     });
     await open('alert fields: value and percent (a water\'s Conditions → Add an alert)', async () => {
       ctx.flow('search', { Q: 'Fraser River' });
@@ -115,7 +126,11 @@ export const keyboardIos = {
       const r = runYaml(ctx.dir, 'kb-alert-open', yaml);
       if (!r.ok) throw new Error(`could not open the alert form: ${r.said}`);
       const v = await typeIn(ctx, 'alert-value', 'id:alert-form-value', '12');
-      return v;
+      // (G10) the decimal pad has no return key on iOS: is there a Done / Return key above the pad's top?
+      const ns = ctx.device.nodes(), top = keyboardTop(ns);
+      const done = ns.some((n) => /^(Done|return|Return)$/.test(n.text || n.desc) && top !== null && n.box.y0 >= top - 60);
+      if (!done) ctx.finding('G10: the number pad has no Done / Return key');
+      return `${v}; Done key: ${done ? 'present' : 'ABSENT'}`;
     });
   },
 };
