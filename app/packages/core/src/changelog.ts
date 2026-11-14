@@ -21,7 +21,7 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
-    version: "0.7.8", date: "2026-11-13", draft: true, notes: [
+    version: "0.7.8", date: "2026-11-13", notes: [
       "A pinch zoom keeps gliding after you lift your fingers, as a quick flick should",
       "The bell keeps an inbox of in-season notices: new ones are marked New, changed ones Updated, and Mark all as read clears them",
       "More has a Settings screen for mobile data, crash reports and map colours; the Freshwater Atlas and basemap show their date instead of an age warning",

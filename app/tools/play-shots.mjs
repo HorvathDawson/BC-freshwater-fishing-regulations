@@ -54,9 +54,13 @@ const SCENES = {
     await click(b, find('Bridge pool', '[role=button]')); await until(b, `!!document.querySelector('[data-testid=spot-when]')`); await sleep(6000); },
   '08-glossary': async (b) => { await mapReady(b); await sleep(2000); await click(b, find('More', '[role=tab]')); await sleep(1500);
     await click(b, find('Glossary', '[role=button],[role=link],[aria-label]')); await sleep(4000); },
-  // (T319) what is kept on the phone, region by region: the "works offline" shot
+  // (T319, T704) the "works offline" shot: the dated list of what the phone holds
   '09-offline': async (b) => { await mapReady(b); await sleep(2000); await click(b, find('More', '[role=tab]')); await sleep(1500);
-    await click(b, find('Offline maps', '[role=button],[role=link],[aria-label]')); await sleep(4000); },
+    // (T703) the offline / mobile-data controls live under More -> Settings and the phone-only mobile-data control is not drawn on the
+    // web, so the offline story is the More data list: every source with its date, scrolled so the dated rows are whole
+    await b.evaluate(`(() => { const el = [...document.querySelectorAll('*')].find((e) => e.children.length === 0 && e.textContent.trim() === 'Synopsis' && e.getBoundingClientRect().width > 0);
+      el.scrollIntoView({ block: 'start' }); const sc = (() => { let n = el.parentElement; while (n && n.scrollHeight <= n.clientHeight + 1) n = n.parentElement; return n; })(); if (sc) sc.scrollTop -= 330; })()`);
+    await sleep(1500); },
 };
 // (T319, owner 2026-11-12) the second set: conditions as big as rules. Each scene is one half or one whole of a store shot;
 // the store-shots tool stacks two captures (same browser size, same camera) into one picture where a shot says `compose`.

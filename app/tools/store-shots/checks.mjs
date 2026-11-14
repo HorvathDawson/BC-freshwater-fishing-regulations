@@ -32,7 +32,9 @@ export const CHECKS = {
   '15-split-rules': (s, facts) => [...need((facts.parts ?? 0) > 1, `the river has ${facts.parts ?? 'no readable number of'} parts, need more than one`), ...need(s.vis['keep-strip'], "the part's rules (keep-strip) are not showing")],
   '04-salmon': (s) => [...need(s.vis['map-day'] && s.canvas, 'the map is not showing')],
   '05-runs': (s) => [...need(/Runs/.test(s.text), 'the Runs tab is not showing')],
-  '09-offline': (s) => [...need(/Offline/i.test(s.text), 'the Offline maps screen is not showing')],
+  // (T703/T704) the More data list: each source with its date, the whole rows in view (the Settings screen has no offline control on the web)
+  '09-offline': (s) => [...need(/Synopsis/.test(s.text) && /Freshwater Atlas/.test(s.text) && /Map tiles/.test(s.text), 'the More data list (Synopsis, Freshwater Atlas, Map tiles) is not showing'),
+    ...need(/Valid to [A-Z][a-z]{2} \d{1,2}, \d{4}/.test(s.text) && /[A-Z][a-z]{2} \d{1,2}, \d{4}/.test(s.text.replace(/Valid to [^\n]*/, '')), 'the sources are not showing their dates')],
 };
 // every scene: no error/loading wording on the page
 export function judge(scene, s, facts = {}) {

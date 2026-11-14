@@ -13,14 +13,14 @@
       "compose": [
         {
           "scene": "19-regs-salmon",
-          "from": 0.42,
-          "to": 0.725,
+          "from": 0.41,
+          "to": 0.7425,
           "label": "Salmon (DFO)"
         },
         {
           "scene": "18-regs-trout",
           "from": 0.405,
-          "to": 1.0,
+          "to": 0.9725,
           "label": "Game fish (B.C. rules)"
         }
       ]
@@ -80,8 +80,8 @@
     },
     {
       "scene": "09-offline",
-      "title": "Works offline",
-      "line": "Keep the maps and rules for the regions you fish"
+      "title": "Rules and map work offline",
+      "line": "Each source is dated, so you know what is saved on your phone"
     }
   ],
   "targets": {

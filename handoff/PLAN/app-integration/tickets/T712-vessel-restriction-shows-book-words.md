@@ -1,6 +1,6 @@
 # T712 — Vessel restriction section shows the book's words with the location text
 
-Status: IN REVIEW (already built in build 30). owner: OWNER-TODO "t712-harrison-vessel-words"
+Status: CLOSED (owner 2026-11-13 by dialog: the two vessel entries in build 30 are fine; nothing to change). owner: OWNER-TODO "t712-harrison-vessel-words"
 
 Source: owner 2026-11-13, Harrison River harrison_river.r4: "in the vessel restriuction section it should say the words with the location text and a user can infer it". Book: "Speed restriction or no powered boats in small bays along the river as signed"; the app shows a bare "No powered boats".
 ## Work

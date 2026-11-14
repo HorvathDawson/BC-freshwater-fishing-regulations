@@ -257,7 +257,7 @@ part; Deena/Mamin the moved cuts; Tlell r5 0 tributary sections); the T89 allow-
 now bind; labels read "… at Grant Narrows", the Kootenay end in the book's words, the Lakelse mouth with "signs".
 
 Depends: atlas rebuild for new/moved cuts (Deena, Mamin, Gagnon, Kootenay, Lakelse); reach + deliver for the rest.
-Size: M. Owner: yes — Frog and Redfern (owner looks harder later), and the open
+Size: M. Owner: DECIDED 2026-11-13 by dialog, NOT YET IMPLEMENTED (a pipeline lane does these after the current release chain): (a) McArthur Island Slough shows the "in part" form "No powered boats — in part: from westerly entrance to 12th Street entrance to Park"; (b) Lakelse River: rename the end only, the lower stretch's end reads "Mouth (at the signs)", no new cut, no change to which water the rules cover; (c) Tlell r5: yes, take the tidal note off the 13 freshwater tributaries. Still open: Frog and Redfern (owner looks harder later), and the open
 questions in Owner decisions 5. Default: nothing changes until accepted.
 
 ## Progress (2026-11-13, pipeline lane)
