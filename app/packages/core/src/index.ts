@@ -77,6 +77,7 @@ export * from "./gestures";
 export * from "./waterViews";
 export * from "./tabs";
 export * from "./spotWords";
+export * from "./linkFailed";
 export * from "./uiWords";
 export * from "./ends";
 export * from "./waterNav";

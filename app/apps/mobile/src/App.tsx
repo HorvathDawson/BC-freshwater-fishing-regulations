@@ -30,7 +30,7 @@ import { bootSaid, type MobileDataGate, type ReleaseLoader } from "@app/data/rel
 import * as platform from "@app/data/release/platform";
 import { fillDayFlow, onVisit, visitIdOf, storedHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openGaugeHistoryStore, openInSeasonStore, openInSeasonSeenStore, openInSeasonInboxStore, openFirstRunStore, openDataModeStore, openWalkthroughStore, openLocationAskStore, openAppUpdateStore, openRecentSearchStore, openRunSpeciesStore, openUpdateStore, openUpdateLogStore, openReportOutboxStore, openCrashSettingStore, openCrashPendingStore, openCrashExitStore, openInstallIdStore, openMeteo, openPhotos, openSpots, needsRefresh, refreshSpot,
          type DayFlowAnswer, type Spot } from "@app/data/spots";
-import { Button, connectivity, ErrorState, LoadingState, SayingLine, setSynopsisNet, setSynopsisSource, Shell, StageBar, THEMES, UpdateToast, type ThemeName,
+import { Button, connectivity, ErrorState, LoadingState, SayingLine, setSynopsisNet, setSynopsisSource, Shell, StageBar, THEMES, UpdateToast, setLinkFailedSink, type ThemeName,
          platformLine, type ShellProps, type UpdatesLogControls } from "@app/ui-native";
 import { LayoutWidthContext, liveFetch, NetRoot, useNet, useNetActivity, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, createCrashReporter, createCrashSetting, CrashSettingRoot, NotifyRoot, AlertLinesRefresh, installCrashHandlers, installId, reportPastExits, crashWhere, useRefreshOnReconnect, useReleaseBoot, useSpots, type MapTiles,
          DataProvenanceContext, loadRegsStore, reportFailure, startNeedsRelease, startNoticeLine,
@@ -415,6 +415,8 @@ export default function App() {
     setToast(updatedToast(manifestDate(boot.booted.manifest)));
   }, [boot, updates]);
   const clearToast = useCallback(() => setToast(null), []);
+  // (T723 G9) a link the phone would not open is said on the same toast (and was reported by `openLink`)
+  useEffect(() => setLinkFailedSink(setToast), []);
   // (T585 F12, F13) a development or staging build says which data release it answers from on the Conditions card (and
   // the data source / channel when they are not this build's own); null in a production build
   const provenance = useMemo(() => dataProvenanceLine({
