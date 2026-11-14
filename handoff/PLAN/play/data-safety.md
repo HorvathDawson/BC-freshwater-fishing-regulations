@@ -83,6 +83,7 @@ one small code change plus a weather test. It would be a new ticket. Nothing has
 3. The listing's "private by design" paragraph matches (`handoff/PLAN/play/listing.md`). The 10-29 text said location
    stays on the phone, which is no longer quite true.
 4. Families / target audience: 18+ (the listing draft), so the Families policy questions do not apply.
+5. 2026-11-14: the privacy page was re-checked against the code and reworded (owner-delegated; effective 2026-11-14): GPS never sent, spot place rounded to about 1 km, report map centre to about 100 m, new "Sharing and directions" section.
 
 ## Owner answers (2026-11-04)
 - **Open-Meteo:** coordinates ROUNDED to 0.01° (~1 km) in every weather request (`weatherPlace`,

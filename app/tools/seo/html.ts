@@ -125,7 +125,7 @@ export function aboutBody(site: Site, asOf: string): string {
 
 /** where privacy questions go: a placeholder until the owner sets the mailbox up (OWNER-TODO) */
 export const PRIVACY_EMAIL = "privacy@canifishthis.ca";
-export const PRIVACY_EFFECTIVE = "2026-11-03";
+export const PRIVACY_EFFECTIVE = "2026-11-14";
 
 /** (owner 2026-10-29) THE PRIVACY POLICY. Every claim here is checked against the code (see T268): change the app, change this. */
 export function privacyBody(site: Site, asOf: string): string {
@@ -135,19 +135,19 @@ export function privacyBody(site: Site, asOf: string): string {
     `<p>${esc(site.name)} is a free, non-profit app and website that shows BC freshwater fishing regulations. ` +
     `It has no accounts, no ads and no tracking. This page says what the app and this website do with your information.</p>` +
     `<h2>The short version</h2><ul>` +
-    `<li>Your location, your photos and the spots you save stay on your device. We never receive them.</li>` +
+    `<li>Your photos and the spots you save stay on your device, and the app never sends us your GPS position. Two things that can show roughly where you were do leave it, both explained below: a saved spot’s place, rounded to about 1 km, goes to a weather service, and a problem report you choose to send includes the middle of the map you were looking at.</li>` +
     `<li>The app sends us two things: a problem report, only when you press Send, and, unless you switch it off, a short error report when the app itself fails.</li>` +
     `<li>We do not sell or share your information, and we use no advertising or analytics services.</li></ul>` +
     `<h2>Location</h2><p>If you allow it, the app uses your location while it is open, to show where you are on the map, ` +
-    `to show what is near you, and to pin a spot where you are standing. It is used on your device and is not sent to us. ` +
+    `to show what is near you, and to pin a spot where you are standing. It is used on your device and is not sent to us. Two things described below can show roughly where you were: the weather request for a spot you pinned where you stood, and the map centre in a problem report you choose to send. ` +
     `The app never uses your location in the background. You can turn the permission off in your phone settings; the map still works.</p>` +
     `<h2>Camera and photos</h2><p>The app asks for the camera or your photos only so you can attach a picture to a spot you saved. ` +
     `The pictures stay on your device and are not uploaded.</p>` +
     `<h2>Saved spots</h2><p>Spots, notes and photos are stored only on your device, and there is no account. ` +
     `If you delete the app or clear its data, they are gone; we cannot recover them.</p>` +
-    `<h2>Weather for a spot</h2><p>To show the weather at a spot you saved, the app sends that spot’s coordinates and the date to ` +
+    `<h2>Weather for a spot</h2><p>To show the weather at a spot you saved, the app sends that spot’s coordinates, rounded to about 1 km, and the date to ` +
     `<a href="https://open-meteo.com" rel="noopener">Open-Meteo</a>, a weather service, and shows what comes back. ` +
-    `If you pinned the spot where you were standing, those coordinates are where you were. ` +
+    `If you pinned the spot where you were standing, that is roughly where you were. ` +
     `Open-Meteo’s servers see your device’s IP address as any website would; we do not control their records. ` +
     `Nothing else about you is sent with the request.</p>` +
     `<h2>Downloads from our servers</h2><p>The app downloads the regulations, the map and river-gauge readings (including past days’ flow) and salmon notices from our servers, ` +
@@ -157,10 +157,11 @@ export function privacyBody(site: Site, asOf: string): string {
     `Our servers, not the app, fetch the underlying data from Environment and Climate Change Canada and Fisheries and Oceans Canada.</p>` +
     `<h2>Map and satellite imagery</h2><p>The map is drawn from files on our servers. Its fonts and symbols come from our servers too. When you turn satellite imagery on, the app asks Esri for the picture tiles of the area ` +
     `you are looking at, so Esri sees those tile requests and your IP address. Imagery is shown only while online and is not stored.</p>` +
+    `<h2>Sharing and directions</h2><p>Share makes a link to the water you are viewing (the water, the view, the place on the map and the day) and hands it to the app you pick. Directions opens Google Maps with a spot’s parking point. Both happen only when you tap them, and what the other app does with what it receives follows that app’s own policy.</p>` +
     `<h2>Reporting a problem</h2><p>Sending a report is your choice, and the form shows exactly what will go. A report holds:</p><ul>` +
     `<li>the kind of problem and the words you wrote;</li>` +
     `<li>the details under “Include with your report” that you leave switched on (the water, part and section you were viewing, the day, the screen, ` +
-    `the map colouring, the map’s layer, forecast day, zoom and centre (where the map was looking, not where you were), the app version, data release, platform, ` +
+    `the map colouring, the map’s layer, forecast day, zoom and centre (the middle of the map you were looking at, to about 100 m; if the map was centred on you, that is about where you were), the app version, data release, platform, ` +
     `the install id described below, and recent app errors);</li>` +
     `<li>your email address, only if you type one. It is used only to reply, and only if you tick “You may contact me”.</li></ul>` +
     `<p>Reports are stored privately on Cloudflare, are read only by the people who run the app, and are not published. ` +
