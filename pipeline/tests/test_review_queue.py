@@ -243,76 +243,93 @@ def _reach_dir() -> Path:
     return under_test.path("reach_run")
 
 
-@pytest.mark.needs_atlas
-@pytest.mark.needs_reach_run
-def test_the_prechecks_measured_over_the_corpus(request):
-    """Measured 2026-10-23 on the reach run 81e726a3e6fbad3b (the corpus at lane-T135): the
-    severity-A codes are facts whose counts reproduce PLAN §3's; within the day's drift.
-    PLAN §3: 14 rows that bind nothing, 33 unresolved rules, 93 ambiguous cuts on 86 rules, 232
-    rules with a review_reason, 32 with unresolved locators. T189: `parser_uncertain` no longer
-    repeats the 126 undrawn parts whose review_reason the normaliser wrote (263 -> 137). T207: an
-    "on parts" the book never identifies is a note (`unidentified_part`, 39), not `undrawn_part`
-    (133 -> 94, counted on the curated corpus 2026-10-26)."""
-    from pipeline.tests.conftest import ATLAS_HINT, REACH_HINT, need
-    need(request, "atlas", under_test.atlas(request) / "registry.json", ATLAS_HINT)
-    need(request, "reach_run", _reach_dir() / "report.json", REACH_HINT)
-    run = RunFacts.read(_reach_dir())
-    entries = P._corpus(under_test.curated().regulations.synopsis)
-    splits = json.loads(under_test.curated().waters.cuts.read_text(encoding="utf-8"))
-    got = P.corpus_findings(entries, registry_ids=_registry_ids(), run=run, splits=splits)
-    from collections import Counter
-    n = Counter(f["code"] for fs in got.values() for f in fs)
-    # owner 2026-10-26: 13 -> 6 binds_nothing — six item-less area rows are matched by area
-    # (`tiers.area_matched`) and Mackenzie Creek (book MU typo 4-21 -> 4-31) matches gnis:12042
-    # owner 2026-11-13 ("Yes, update and resume", r-adc4e248a163): unresolved 25 -> 29 — measured 28 on reach
-    # nextatlas_final, + gagnon_creek.r1 `no_sections` (RULINGS P57: the exemption covers no water)
-    # T708 (owner 2026-11-13): 29 -> 17 — Hidden 4, Secret 4, Square 3 bind their lakes, gagnon_creek.r1 binds below its sign
-    measured = {"binds_nothing": 6, "unresolved": 17, "unplaced_pieces": 2, "ambiguous_cut": 95,
-                "split_to_verify": 0, "parser_uncertain": 137, "unresolved_locator": 22,
-                # owner 2026-10-27 ("needs a split" list): Pitt, McArthur, Columbia, Chapman, Deena, Mamin bound or
-                # held whole; measured 79 on the curated corpus that day
-                "undrawn_part": 79, "unquoted_text": 214,
-                # owner 2026-10-26 (drop_on_parts): 33 "on parts" rules hold on the whole water, so 39 -> 6 notes
-                "unidentified_part": 6}
-    for code, want in measured.items():
-        assert abs(n[code] - want) <= max(3, want // 10), (code, n[code], want)
-    # owner 2026-10-26: no split is to-verify from its note (was 164); unresolved 29 -> 25 re-pinned to the measured corpus
-    assert n["split_to_verify"] == 0
-    assert n["quote_not_in_row"] == 0, "the gate refuses a quote not in its row; the strip agrees"
-    assert set(n) <= set(P.CHECKS)
+def run_problems(entries: list[dict], run: RunFacts, findings: dict[str, list[dict]]) -> list[str]:
+    """(T667 slice 6, D3) the run and the corpus as ONE vintage, and every fact of the run reaching the review: each entry
+    and rule the run names is the corpus's, and each unresolved rule, unplaced rule and ambiguous cut is one finding."""
+    rules = {e["entry_id"]: {r["rule_id"] for r in e.get("rules") or []} for e in entries}
+    out = []
+    for kind, facts in (("unresolved", run.unresolved), ("unclassified", run.unclassified), ("ambiguous", run.ambiguous)):
+        for eid, by_rule in sorted(facts.items()):
+            if eid not in rules:
+                out.append(f"{kind}: the run names entry {eid}, which the corpus does not hold")
+            else:
+                out += [f"{kind}: the run names {eid} {rid}, not a rule of it" for rid in sorted(by_rule)
+                        if rid not in rules[eid]]
+    def got(code):
+        return sorted((eid, f["rule_id"]) for eid, fs in findings.items() for f in fs if f["code"] in code)
+    want = {
+        ("unresolved",): sorted((e, r) for e, by in run.unresolved.items() if e in rules for r in by),
+        ("unplaced_pieces",): sorted((e, r) for e, by in run.unclassified.items() if e in rules for r in by),
+        ("ambiguous_cut", "cut_picked"): sorted((e, r) for e, by in run.ambiguous.items() if e in rules
+                                                for r, cuts in by.items() for _ in cuts)}
+    out += [f"{'/'.join(c)}: {len(got(c))} findings for {len(w)} facts of the run" for c, w in want.items() if got(c) != w]
+    return out
 
 
-@pytest.mark.needs_atlas
-@pytest.mark.needs_reach_run
-def test_the_tiers_with_the_run_match_plan_section_3(request):
-    """PLAN §3: P1 227 (starting with 14 rows that bind nothing, the unresolved closures, 52
-    closures with undrawn parts and 32 with ambiguous cuts), P2 261, P3 116, P4 730, sweep 59 —
-    measured with the run's factors: P1 226, P2 261, P3 118, P4 728, sweep 60; closures with
-    undrawn parts 52 RULES, with ambiguous cuts 32 RULES, exactly PLAN's."""
-    from collections import Counter
-
-    from pipeline.atlas.reach.covered import covered_ids
-    from pipeline.deliver.bundle.rules import closure_grade
+@pytest.fixture(scope="module")
+def corpus_run(request):
     from pipeline.tests.conftest import ATLAS_HINT, REACH_HINT, need
     need(request, "atlas", under_test.atlas(request) / "registry.json", ATLAS_HINT)
     need(request, "reach_run", _reach_dir() / "report.json", REACH_HINT)
     run, ids = RunFacts.read(_reach_dir()), _registry_ids()
     entries = P._corpus(under_test.curated().regulations.synopsis)
-    got = Counter(T.entry_tier(e, binds=bool(covered_ids(e, ids)), run=run) for e in entries)
-    # Z 132 -> 122: the zone daily-quota merge (6335f73d) into zN:daily_quotas
-    # T207: an unidentified "on parts" is no risk — 3 closures P1 -> P2, 13 entries P3 -> P4
-    # P3 103 -> 99, P4 743 -> 747 (measured 2026-11-13): McArthur Island Slough r1 drawn (no undrawn part) and the Okanagan River
-    # oxbows matched by their watershed code are curation fixes, P3 -> P4 (same run, 0e6050228 corpus vs today's); the
-    # other 2 left with the atlas since (the old corpus on today's run reads 101)
-    for tier, plan in {"P1": 224, "Z": 122, "P2": 264, "P3": 99, "P4": 747, "sweep": 59}.items():
-        assert abs(got[tier] - plan) <= 3, (tier, got[tier], plan)
-    closures = [(e, r) for e in entries for r in e.get("rules") or [] if closure_grade(r)]
-    undrawn = sum(1 for _, r in closures if r.get("undrawn_part") and not T.unidentified_part(r))
-    amb = sum(1 for e, r in closures if r["rule_id"] in run.ambiguous_of(e["entry_id"]))
-    # 52 -> 48 closures with undrawn parts (owner 2026-10-26): Cranberry r1 and Fulton r3 are drawn by their new
-    # cuts, and drop_on_parts made the pure "on parts" closures whole-water. 48 -> 43: Chapman r2, Deena r1, Mamin r3
-    # (owner "needs a split" marks 2026-10-27) and Stave r1 + r2 (T222 Ruskin / Northrop channels, 2026-10-28) drawn
-    assert (abs(undrawn - 43) <= 3, abs(amb - 32) <= 3) == (True, True), (undrawn, amb)
+    return entries, run, ids
+
+
+@pytest.mark.needs_atlas
+@pytest.mark.needs_reach_run
+def test_the_prechecks_over_the_corpus_say_every_fact_of_the_run(corpus_run):
+    """The severity-A codes over the whole corpus with the reach run under test. (T667 slice 6, D3) Their COUNTS were
+    pinned here (measured 2026-10-23 .. 11-13, ± tolerance, re-pinned at every approved change); they are printed by the
+    release check now (`deliver/release/live_counts.py`). What stays is the rule: one vintage, every fact a finding.
+    Planted on the real run: a fact for an entry the corpus lacks, and an unresolved rule the review never saw."""
+    from dataclasses import replace
+    entries, run, ids = corpus_run
+    splits = json.loads(under_test.curated().waters.cuts.read_text(encoding="utf-8"))
+    got = P.corpus_findings(entries, registry_ids=ids, run=run, splits=splits)
+    from collections import Counter
+    n = Counter(f["code"] for fs in got.values() for f in fs)
+    assert run_problems(entries, run, got) == []
+    # owner 2026-10-26: no split is to-verify from its note (was 164)
+    assert n["split_to_verify"] == 0
+    assert n["quote_not_in_row"] == 0, "the gate refuses a quote not in its row; the strip agrees"
+    assert set(n) <= set(P.CHECKS)
+    stray = replace(run, unresolved={**run.unresolved, "r9:no_such_entry@1-1": {"x.r1": {"reason": "planted"}}})
+    assert run_problems(entries, stray, got) == ["unresolved: the run names entry r9:no_such_entry@1-1, which the corpus "
+                                                 "does not hold"]
+    eid = next(e for e, by in sorted(run.unresolved.items()) if by and any(x["entry_id"] == e for x in entries))
+    dropped = {k: [f for f in v if not (k == eid and f["code"] == "unresolved")] for k, v in got.items()}
+    assert [p.split(":")[0] for p in run_problems(entries, run, dropped)] == ["unresolved"]
+
+
+@pytest.mark.needs_atlas
+@pytest.mark.needs_reach_run
+def test_every_entry_has_one_tier_and_the_run_moves_it(corpus_run):
+    """The tiers over the whole corpus (PLAN §3). (T667 slice 6, D3) the per-tier COUNTS (P1 224, Z 122, P2 264, P3 99,
+    P4 747, sweep 59 ± 3, and the closures with undrawn parts / ambiguous cuts, 43 / 32) are printed by the release check
+    now. The rules: every entry has one tier; a zone table is Z, an entry with no rules is the sweep, a closure entry
+    P1/P2 and any other P3/P4; and an entry the run calls unresolved or holds an open ambiguous cut of is in a RISK
+    tier (P1 / P3) unless it is a table. Planted: the same corpus WITHOUT the run moves those entries out of risk."""
+    from collections import Counter
+
+    from pipeline.atlas.reach.covered import covered_ids
+    from pipeline.common.entry_id import is_table
+    entries, run, ids = corpus_run
+    tier = {e["entry_id"]: T.entry_tier(e, binds=bool(covered_ids(e, ids)), run=run) for e in entries}
+    assert len(tier) == len(entries) and set(Counter(tier.values())) <= set(T.TIERS)
+    for e in entries:
+        eid, want = e["entry_id"], tier[e["entry_id"]]
+        if is_table(eid):
+            assert want == "Z", eid
+        elif not e.get("rules"):
+            assert want == "sweep", eid
+        else:
+            assert want in (("P1", "P2") if T.is_closure_entry(e) else ("P3", "P4")), (eid, want)
+    moved = [e for e in entries if not is_table(e["entry_id"]) and e.get("rules")
+             and (run.unresolved_of(e["entry_id"]) or run.open_ambiguous_of(e["entry_id"]))]
+    assert moved and all(tier[e["entry_id"]] in ("P1", "P3") for e in moved)
+    unrun = {e["entry_id"]: T.entry_tier(e, binds=bool(covered_ids(e, ids)), run=None) for e in moved}
+    assert any(unrun[e] in ("P2", "P4") for e in unrun), "the run's facts are what put some of these in a risk tier"
 
 
 # --------------------------------------------------------------------------- tickets

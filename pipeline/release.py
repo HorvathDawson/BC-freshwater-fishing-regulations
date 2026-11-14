@@ -648,6 +648,21 @@ def gone_ids(before_rid: str, after_rid: str) -> tuple[dict, str]:
     return rep, summary(rep, before_rid, after_rid)
 
 
+def live_counts(before_rid: str | None, after_rid: str, led: dict) -> tuple[dict, str]:
+    """(T667 slice 6, D3) the counts tests used to pin, before -> after, as text: the candidate's measured now (its release
+    folder, its reach run, the corpus and the registry), the live release's from its ledger record (a release recorded
+    before this kept none: its release-folder counts are read, the review counts say "not recorded")."""
+    from pipeline.deliver.release import live_counts as LC
+    after = LC.release_counts(release_root() / after_rid) | LC.review_counts(
+        reach_dir(), entries_dir=CURATED.regulations.synopsis, cuts=CURATED.waters.cuts, registry_json=GENERATED.registry())
+    before = None
+    if before_rid and before_rid != after_rid:
+        before = ((led.get("releases", {}).get(before_rid) or {}).get("checks") or {}).get("counts")
+        if before is None:
+            before = LC.release_counts(release_root() / before_rid)
+    return after, LC.diff_text(before, after, before_rid or "(no live release)", after_rid)
+
+
 def diff_summary(rep: dict) -> str:
     from pipeline.atlas.reach.binding_diff import summary
     return summary(rep)
@@ -1032,8 +1047,13 @@ def stage_checks(ctx: Ctx) -> str:
         (out_dir / "gone_ids.json").write_text(json.dumps(rep, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
         (out_dir / "gone_ids.txt").write_text(txt + "\n", encoding="utf-8")
         print(txt if n_gone <= 40 else "\n".join(txt.splitlines()[:41]) + f"\n  … {n_gone - 40} more: {out_dir / 'gone_ids.txt'}")
+    # (T667 slice 6, D3) the live counts: LISTED, never a stop; stored so the next release diffs against them
+    counts, txt = live_counts(ctx.live, rid, ctx.led)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / "live_counts.txt").write_text(txt + "\n", encoding="utf-8")
+    print(txt)
     r["checks"] = {"manifest": "ok", "app_gate": "ok", "min_app_version": ctx.min_app,
-                   "binding_diff": done["status"], "gone_ids": n_gone, "at": now()}
+                   "binding_diff": done["status"], "gone_ids": n_gone, "counts": counts, "at": now()}
     r["fingerprint"] = fingerprint(rid)
     save_ledger(ctx.led)
     return (f"manifest ok, app gate ok (min app {ctx.min_app or 'manifest stamp'}), bindings {done['status']}, "

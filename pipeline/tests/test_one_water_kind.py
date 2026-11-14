@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import re
 import sqlite3
+from dataclasses import dataclass
 from pathlib import Path
 
 import pytest
@@ -211,6 +212,40 @@ def test_one_water_kind(db, registry, graph, handles, doc, tiles):
     assert routed and routed <= set(tiles["stream"]), "a stream's polygon draws its route as stream"
 
 
+@dataclass(frozen=True)
+class _Item:
+    kind: str
+    section_ids: tuple
+    aliases: tuple
+
+
+def alias_problems(registry) -> list[tuple[str, str, str]]:
+    """Every absorbed id held by ONE item, never an item itself, and an absorbed polygon (`wbk:N`) with its section
+    (`lake:N`) on the item that absorbed it. (item, alias, what is wrong) for each breach."""
+    seen: dict[str, str] = {}
+    out = []
+    for k, v in registry.items():
+        for a in v.aliases:
+            if a in seen:
+                out.append((k, a, f"also held by {seen[a]}"))
+            seen[a] = k
+            if a in registry:
+                out.append((k, a, "is an item itself"))
+            if a.startswith("wbk:") and f"lake:{a[4:]}" not in v.section_ids:
+                out.append((k, a, f"its polygon lake:{a[4:]} is not on it"))
+    return out
+
+
+def test_the_alias_rule_bites():
+    """No-data twin of the registry check: each breach is named."""
+    reg = {"gnis:1": _Item("stream", ("1:0", "lake:9"), ("wbk:9", "wbk:8")),
+           "gnis:2": _Item("stream", ("2:0",), ("wbk:9", "gnis:1"))}
+    assert alias_problems(reg) == [("gnis:1", "wbk:8", "its polygon lake:8 is not on it"),
+                                   ("gnis:2", "wbk:9", "also held by gnis:1"),
+                                   ("gnis:2", "wbk:9", "its polygon lake:9 is not on it"),
+                                   ("gnis:2", "gnis:1", "is an item itself")]
+
+
 @pytest.mark.needs_bundle
 @pytest.mark.slow
 def test_flowing_polygons_belong_to_their_water(registry):
@@ -219,13 +254,14 @@ def test_flowing_polygons_belong_to_their_water(registry):
     water = {k: v for k, v in registry.items() if v.kind in ("stream", "lake", "wetland")}
     assert not [k for k, v in water.items() if v.kind != "stream" and flows(v.kind, v.name)]
     secs = lambda i: set(registry[i].section_ids)           # noqa: E731
-    # Rancheria: the 42 on the Little Rancheria. 137 since the border is cut by the clean rule (BOUND
-    # round, 2026-10-06): the Little Rancheria crossed the outline 4.9 m above its mouth, inside the
-    # border's 10 m zone of that end, so it is no longer cut there (138 on an atlas built before).
-    assert len(secs("gnis:11267")) == 137
-    assert len(secs("wsc:915-679587-924307")) == 13          # East Gribbell
-    assert len(secs("gnis:7836")) == 9 and "lake:329148363" in secs("gnis:7836")   # Stellako
-    assert registry["gnis:6438"].name == "Six Mile Slough" and len(secs("gnis:6438")) == 12
+    # (T667 slice 6, D3) the Rancheria (its 42 polygons on the Little Rancheria), East Gribbell, the Stellako and Six Mile
+    # Slough: each a stream holding its polygons AND its line. Their section counts (137 / 13 / 9 / 12 on r-f749475d0962)
+    # are no pin: they move with every cut, and the release check prints them (`deliver/release/live_counts.py`).
+    for i in ("gnis:11267", "wsc:915-679587-924307", "gnis:7836", "gnis:6438"):
+        polys = {s for s in secs(i) if s.startswith("lake:")}
+        assert registry[i].kind == "stream" and polys and secs(i) - polys, (i, sorted(secs(i)))
+    assert "lake:329148363" in secs("gnis:7836")                                    # Stellako's wide reach
+    assert registry["gnis:6438"].name == "Six Mile Slough"
     assert {"lake:328970802", "lake:328970811", "lake:329177996", "lake:329178131"} <= secs("gnis:21105")
     assert "lake:329707189" in secs("gnis:3062") and "wbk:329707189" not in registry   # Vedder Canal
     assert "wbk:329707189" in registry["gnis:3062"].aliases
@@ -258,15 +294,18 @@ def test_flowing_polygons_belong_to_their_water(registry):
         widening = {w for w in wbks - book if f"wbk:{w}" not in registry and f"wbk:{w}" not in absorbed}
         assert wbks - widening <= book and (wbks or v.kind == "stream"), (v.name, v.section_ids, v.kind)
         assert not widening or v.kind == "stream", (v.name, widening)       # only a stream folds a widening
-    # 117 since the owner named polygon wbk 329505890 "Cayoosh Creek" (2026-10-25, name_variants.json),
-    # so the fold joins it to gnis:37767 (was 116). Oxbow polygons folded into an oxbows line (T637: 18 on build 27)
-    # are counted apart: each must alias an oxbows water, and the rest stays pinned.
     # T664: every id the one Oxbows water absorbed (its line items as well as the book's polygons) aliases it
     folded = {a: k for k, v in water.items() for a in v.aliases
               if a.split(":", 1)[1] in book or v.name.upper() == "OKANAGAN RIVER OXBOWS"}
     assert all(registry[k].name.upper() == "OKANAGAN RIVER OXBOWS" for k in folded.values()), folded
-    assert sum(len(v.aliases) for v in water.values()) - len(folded) == 117
-    assert "wbk:329505890" in registry["gnis:37767"].aliases
+    # (T667 slice 6, D3) the absorbed ids as a RULE, not a count (117 + the oxbows' was pinned; 187 in all on
+    # r-f749475d0962, printed by the release check): each held by one item, none an item itself, an absorbed polygon's
+    # section on the water that absorbed it. Planted on this atlas: the Stellako without its wide reach is named.
+    assert alias_problems(registry) == []
+    s = registry["gnis:7836"]
+    planted = {**registry, "gnis:7836": _Item(s.kind, tuple(x for x in s.section_ids if x != "lake:329148363"), s.aliases)}
+    assert alias_problems(planted) == [("gnis:7836", "wbk:329148363", "its polygon lake:329148363 is not on it")]
+    assert "wbk:329505890" in registry["gnis:37767"].aliases    # the owner's Cayoosh Creek polygon (2026-10-25)
 
 
 @pytest.mark.needs_bundle
@@ -348,19 +387,19 @@ def test_run_through_own_polygon_is_one_run(doc):
 
 @pytest.mark.needs_bundle
 @pytest.mark.slow
-def test_absorbed_id_resolves_once(db, doc):
+def test_absorbed_id_resolves_once(db, doc, registry):
     """No bundle row names an absorbed id; `item_alias` holds every one; the export's `absorbed`
     lists them on the water; the folded polygon's rows reach the river's `entries`."""
     aliases = dict(db.execute("SELECT alias, item_id FROM item_alias"))
-    # 117 + wbk:329505890 -> Cayoosh Creek (owner 2026-10-25), not counting the oxbow polygons the slough fold joins to
-    # an oxbows line (T637, 18 on build 27; T664 makes them one water) — each of those must name an oxbows item
+    # (T667 slice 6, D3) the bundle carries the registry's absorbed ids exactly (was: 117 counted; the release check
+    # prints the count); the oxbow polygons the slough fold joins to an oxbows line (T637; T664 one water) name it
     book = _oxbow_wbks()
     names = dict(db.execute("SELECT item_id, name FROM item"))
     # T664: the one Oxbows water's absorbed LINE items (wsc ids) are its aliases too, counted with the polygons
     folded = {a: i for a, i in aliases.items()
               if a.split(":", 1)[1] in book or names[i].upper() == "OKANAGAN RIVER OXBOWS"}
     assert all(names[i].upper() == "OKANAGAN RIVER OXBOWS" for i in folded.values()), folded
-    assert len(aliases) - len(folded) == 117
+    assert aliases == {a: k for k, v in registry.items() for a in v.aliases}
     assert aliases["wbk:329148363"] == "gnis:7836" and aliases["wbk:329707189"] == "gnis:3062"
     for (matched,) in db.execute("SELECT matched FROM entry"):
         assert not set(json.loads(matched)) & set(aliases)

@@ -131,6 +131,10 @@ def world(tmp_path: Path, monkeypatch):
         rep = {"before": 3, "kept": 3 - len(w["gone"]), "aliased": [], "gone": list(w["gone"])}
         return rep, f"item ids, {before} -> {after}: {len(w['gone'])} gone with no alias"
     monkeypatch.setattr(R, "gone_ids", gone)
+    # (T667 slice 6) the live counts: read a release folder, a reach run and the corpus (pinned in test_release_live_counts.py)
+    w["counts"] = {"items": 3}
+    monkeypatch.setattr(R, "live_counts", lambda before, after, led: (
+        dict(w["counts"]), f"live counts, {before} -> {after}: items {w['counts']['items']}"))
     monkeypatch.setattr(R, "diff_summary", lambda rep: f"{rep['rules_changed']} rule(s) bind different sections")
     # the manifest check's real body reads the size gate and publish.plan over real release files: pinned elsewhere
     monkeypatch.setattr(R, "manifest_problems", lambda rid: list(w.get("manifest_problems", [])))
@@ -210,6 +214,17 @@ def test_the_stages_run_in_order_and_ship_the_candidate(world, capsys):
     assert _latest(world) == NEW and not (world["root"] / "CANDIDATE").exists()
     rec = json.loads(R.LEDGER.read_text())["releases"][NEW]
     assert rec["checks"]["binding_diff"] == "same" and rec["staged_at"] and rec["commit"] == "abc123"
+
+
+def test_the_live_counts_are_printed_recorded_and_never_stop_the_release(world, capsys):
+    """(T667 slice 6, D3) the counts tests used to pin are printed in the release check and kept on the candidate's
+    ledger record (the next release diffs against them); a big jump still ships."""
+    world["counts"] = {"items": 999_999}
+    assert _staging() == 0
+    out = capsys.readouterr().out
+    assert f"live counts, {LIVE} -> {NEW}: items 999999" in out
+    assert json.loads(R.LEDGER.read_text())["releases"][NEW]["checks"]["counts"] == {"items": 999_999}
+    assert (R.HOME / "checks" / NEW / "live_counts.txt").read_text() == f"live counts, {LIVE} -> {NEW}: items 999999\n"
 
 
 def test_ids_gone_with_no_alias_are_listed_and_kept_and_never_stop_the_release(world, capsys):
