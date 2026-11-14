@@ -21,6 +21,15 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: "0.7.10", date: "2026-11-14", draft: true, notes: [
+      "Going back from a water's page no longer flashes while the map comes back",
+      "The map's credits card opens above the legend, where it can be read",
+      "Search: swipe down to close it, recent searches take less room, and the map stays where search took it",
+      "Stepping upstream or downstream on a water no longer redraws the bar, and a Flow or Level pick in a gauge card leaves the map alone",
+      "Fixed a rare crash when opening a water",
+    ],
+  },
+  {
     version: "0.7.9", date: "2026-11-13", draft: true, notes: [
       "Faster opening when you tap a water: the stretch you tapped lights up at once",
       "Gauge and wording fixes",
