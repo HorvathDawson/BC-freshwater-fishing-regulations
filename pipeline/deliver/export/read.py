@@ -417,7 +417,7 @@ def add_recorded(licensing: dict, rules: dict) -> None:
             x["records"] = list(got)
 
 
-def protected_problems(doc: dict) -> list[str]:
+def protected_problems(doc: dict, required: bool = True) -> list[str]:
     """Every protected fish a rule names is in `species.protected`, and every protected-species
     rule names at least one fish (the group alone, with no members, is what hid them). Run on the
     OUTPUT."""
@@ -429,19 +429,19 @@ def protected_problems(doc: dict) -> list[str]:
         bad = [c for c in sp if c in C.PROTECTED_FISH and c not in known]
         if bad:
             out.append(f"{k}: protected fish {bad} missing from species.protected")
-    if not any(c in C.PROTECTED_FISH for x in doc["rules"].values()
-               for c in x["fields"].get("species") or []):
+    if required and not any(c in C.PROTECTED_FISH for x in doc["rules"].values()
+                            for c in x["fields"].get("species") or []):
         out.append("no rule names a protected fish")
     return out
 
 
-def paper_licence_problems(doc: dict) -> list[str]:
+def paper_licence_problems(doc: dict, required: bool = True) -> list[str]:
     """The paper-licence duty names every record-duty rule and nothing else, and says them in its
     line. Run on the OUTPUT."""
     out, want = [], recorded_rules(doc["rules"])
     duties = [x for x in doc["licensing"].values()
               if (x["fields"].get("doing") or {}).get("act") == "retaining_recorded"]
-    if not duties:
+    if required and not duties:
         out.append("no 'carry your paper licence' duty (doing.act retaining_recorded)")
     for x in duties:
         if x.get("records") != want:

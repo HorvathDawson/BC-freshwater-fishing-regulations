@@ -1202,7 +1202,8 @@ def guide_gotchas(d: dict) -> dict:
     return gotchas
 
 
-def pdf_pages() -> dict[str, int]:
-    """`guide.pdf_pages`: the printed -> PDF page map, from the one reader of the PDF's footers."""
+def pdf_pages(pdf=None) -> dict[str, int]:
+    """`guide.pdf_pages`: the printed -> PDF page map, from the one reader of the PDF's footers (`pdf`: the claims'
+    synopsis; None = the repo copy)."""
     from pipeline.common.synopsis_pages import printed_to_pdf
-    return {str(k): v for k, v in printed_to_pdf().items()}
+    return {str(k): v for k, v in printed_to_pdf(pdf).items()}

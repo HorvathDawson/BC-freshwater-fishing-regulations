@@ -23,8 +23,9 @@ one (the atlas meta's build time, the gpkg stamp of a scratch path). Two runs fr
 STEPS (ticket T667 slice 8): (1) the input tree + the atlas, (2) the reach run and deliver + the digest proof, (3)
 the app logic tests move onto the committed release, (4) the pipeline side. Built: atlas -> reach -> tile layers
 (`--no-archive`) -> bundle -> verdicts -> status index, every fetched and fed input invented (`write_source`), and a
-watch that refuses a build that changed a live directory (`watched_dirs`). Parked at the export (`PARKED_AT`), so
-there is no release to commit yet: `--check` / `--write` against a committed copy wait for it.
+watch that refuses a build that changed a live directory (`watched_dirs`), then the export, answers, card gate,
+store and release, the export held to the mini corpus's own claims. `--check` rebuilds in a temp dir and compares
+the release with the committed copy (`--release-dir` names another); `--write` replaces it.
 """
 from __future__ import annotations
 
@@ -45,6 +46,7 @@ from pipeline.common.utils import wsc as W
 FIXTURE = REPO_ROOT / "pipeline" / "tests" / "fixtures" / "mini"
 WORLD = FIXTURE / "world.json"
 CURATED_TREE = FIXTURE / "curated"
+CLAIMS = FIXTURE / "claims.json"
 FORMAT = "mini-world/1"
 
 #: FWA's full watershed code is 21 groups: the root then 20 six-digit groups, zero-padded
@@ -321,17 +323,28 @@ def lonlat(world: dict, x: float, y: float) -> tuple[float, float]:
     return round(lon, 6), round(lat, 6)
 
 
-def tiny_pdf(text: str) -> bytes:
-    """A one-page PDF whose page says `text` (Helvetica, one line): the synopsis the bundle reads its period off
-    (`synopsis_pages.synopsis_period`). Written byte for byte here, so it is the same on every machine."""
-    safe = text.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
-    stream = f"BT /F1 10 Tf 40 700 Td ({safe}) Tj ET".encode("latin-1")
+#: the running footer the page map is read off (`synopsis_pages._FOOTER_PAGE`)
+FOOTER = "2025-2027 BC Freshwater Fishing Regulations Synopsis"
+
+
+def tiny_pdf(pages: list[tuple[list[str], str]]) -> bytes:
+    """A PDF of `pages`, each (lines from the top, a footer line at the foot; Helvetica): the synopsis the bundle reads its period off
+    (`synopsis_pages.synopsis_period`) and the export its printed-page map (`printed_to_pdf`). Written byte for byte
+    here, so it is the same on every machine."""
+    def esc(t: str) -> str:
+        return t.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
+    n = len(pages)
+    font = 3 + 2 * n                                    # objects: 1 catalog, 2 pages, (page, content) per page, font
     objs = [b"<< /Type /Catalog /Pages 2 0 R >>",
-            b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
-            b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R "
-            b"/Resources << /Font << /F1 5 0 R >> >> >>",
-            b"<< /Length " + str(len(stream)).encode() + b" >>\nstream\n" + stream + b"\nendstream",
-            b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>"]
+            ("<< /Type /Pages /Kids [" + " ".join(f"{3 + 2 * i} 0 R" for i in range(n)) + f"] /Count {n} >>").encode()]
+    for i, (lines, foot) in enumerate(pages):
+        body = " ".join([*(f"BT /F1 10 Tf 40 {700 - 14 * k} Td ({esc(t)}) Tj ET" for k, t in enumerate(lines)),
+                         *([f"BT /F1 8 Tf 40 14 Td ({esc(foot)}) Tj ET"] if foot else [])])
+        stream = body.encode("latin-1")
+        objs.append(f"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents {4 + 2 * i} 0 R "
+                    f"/Resources << /Font << /F1 {font} 0 R >> >> >>".encode())
+        objs.append(b"<< /Length " + str(len(stream)).encode() + b" >>\nstream\n" + stream + b"\nendstream")
+    objs.append(b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>")
     out = bytearray(b"%PDF-1.4\n")
     offsets = []
     for i, o in enumerate(objs, 1):
@@ -342,6 +355,14 @@ def tiny_pdf(text: str) -> bytes:
     out += b"".join(f"{o:010d} 00000 n \n".encode() for o in offsets)
     out += f"trailer\n<< /Size {len(objs) + 1} /Root 1 0 R >>\nstartxref\n{xref}\n%%EOF\n".encode()
     return bytes(out)
+
+
+def synopsis_pages(world: dict) -> list[tuple[list[str], str]]:
+    """The mini synopsis: every page from 1 to the last one the corpus cites, each printing its own number in the
+    book's running footer (so printed = PDF page), the cover (page 1) stating the period."""
+    syn = world["synopsis"]
+    return [([syn["cover"]] if n == 1 else [f"Invented page {n} of the mini synopsis."], f"{n} {FOOTER}")
+            for n in range(1, max(syn["printed_pages"]) + 1)]
 
 
 def write_source(out_dir: Path, fwa: Path, world: dict | None = None) -> dict[str, Path]:
@@ -371,12 +392,20 @@ def write_source(out_dir: Path, fwa: Path, world: dict | None = None) -> dict[st
         {"_licence": {"spdx": "none", "notice": "INVENTED for the mini release (T667): no source"},
          "places": places}, indent=1) + "\n", encoding="utf-8")
     tf = Transformer.from_crs(EPSG, 4326, always_xy=True).transform
-    outline = transform(tf, unary_union([_box(world, b) for b in world["land"]]))
+    # the B.C. outline is the union of the management units (AGENTS 59), coastal water included
+    outline = transform(tf, unary_union([_box(world, r["box"]) for r in world["regions"]]))
     (src / "bc_boundary.geojson").write_text(json.dumps(
         {"type": "FeatureCollection", "features": [{"type": "Feature", "properties": {"name": "Mini Province"},
                                                     "geometry": mapping(outline)}]}) + "\n", encoding="utf-8")
     from pipeline.common.synopsis_pages import PDF_NAME
-    (src / PDF_NAME).write_bytes(tiny_pdf(world["synopsis"]))
+    pdf = src / PDF_NAME
+    pdf.write_bytes(tiny_pdf(synopsis_pages(world)))
+    # the row boxes cut from that PDF (the highlight a rule's page opens at): none — the mini book prints no table rows
+    import hashlib as _h
+    (src / "row_boxes.json").write_text(json.dumps(
+        {"pdf_sha256": _h.sha256(pdf.read_bytes()).hexdigest(), "rows": {}}, indent=1) + "\n", encoding="utf-8")
+    # what the corpus claims (`pipeline.deliver.export.claims`): the committed declaration, its files these
+    _sh.copyfile(CLAIMS, out_dir / "claims.json")
     (src / "hydat.release").write_text(world["hydat_release"] + "\n", encoding="utf-8")
     hydat = src / "hydat.sqlite3"
     if hydat.exists():
@@ -408,21 +437,20 @@ def write_source(out_dir: Path, fwa: Path, world: dict | None = None) -> dict[st
     from pipeline.regs.dfo_salmon import header as H
     from pipeline.regs.dfo_salmon.fetch import ALL_SLUGS, PAGES
     from pipeline.regs.dfo_salmon.typed import FORMAT as TYPED_FORMAT
-    typed, cache = feeds / "dfo_salmon" / "typed", feeds / "dfo_salmon" / "cache"
-    for d in (typed, cache):
+    typed, cache, rules = (feeds / "dfo_salmon" / x for x in ("typed", "cache", "rules"))
+    for d in (typed, cache, rules):
         d.mkdir(parents=True, exist_ok=True)
     for s in (s for s in ALL_SLUGS if not PAGES[s].is_stub):
         (typed / f"region-{s}.json").write_text(json.dumps(
             {"region": s, "date_modified": None, "typed_format": TYPED_FORMAT, "page": {"sha256": None,
              "date_modified": None}, "notes": [], "header_format": H.FORMAT, "preamble": [], "locators": []},
             indent=1) + "\n", encoding="utf-8")
-    return {"source": src, "clim": feeds / "clim.json", "dfo_typed": typed, "dfo_cache": cache}
+    return {"source": src, "clim": feeds / "clim.json", "dfo_typed": typed, "dfo_cache": cache,
+            "claims": out_dir / "claims.json"}
 
 
 # ----------------------------------------------------------------------------------------------------------- stages
 
-#: the deliver steps after the last stage built here, and why they wait (`stage_commands`)
-PARKED_AT = ("export", "the export's guide is the book's: its examples, case mechanisms and page map (T667)")
 
 def _env() -> dict:
     env = dict(os.environ)
@@ -438,11 +466,9 @@ def stage_commands(out: Path, fwa: Path, coast: Path) -> list[tuple[str, list[st
     it promotes into canonical homes, keeps a step cache beside its out-dir and reads the released tiles + basemap
     (route (a), T667 slice 8: this release ships no tiles and no basemap). The tile step writes only its layer files
     (`--no-archive`): the bundle measures section access against them (T54).
-
-    THE CHAIN STOPS AFTER `status_index` (`PARKED_AT`): the export refuses a corpus that is not the book — its guide's
-    prose examples name the book's waters (`export.examples.EXAMPLES`), every case mechanism needs a real case
-    (`export.cases`), and the printed-page map is read off the repo synopsis (`synopsis_pages.default_pdf`), not the
-    source the bundle was given. Ticket T667 "Slice 8, step 2b/3 built" says what deciding it takes."""
+    The export and the answers are held to the mini corpus's own claims (`fixtures/mini/claims.json`,
+    `pipeline.deliver.export.claims`); the release ships no basemap and no synopsis.
+    """
     py = [sys.executable, "-m"]
     atlas, reaches, tiles, d, fed = out / "atlas", out / "reaches", out / "tiles", out / "deliver", out / "fed"
     b = str(d / "bundle.sqlite")
@@ -462,6 +488,17 @@ def stage_commands(out: Path, fwa: Path, coast: Path) -> list[tuple[str, list[st
                           "--dfo-cache", str(fed / "feeds" / "dfo_salmon" / "cache")]),
         ("verdicts", dlv + ["verdicts", "--bundle", b, "--out", str(d / "verdicts.sqlite"), "--workers", "1"]),
         ("status_index", dlv + ["status_index", "--bundle", b, "--out", str(d / "status_index.bin")]),
+        ("export", dlv + ["export", "--bundle", b, "--out", str(d / "ui-rules-export.json"),
+                          "--claims", str(fed / "claims.json")]),
+        ("answers", dlv + ["answers", "--bundle", b, "--export-dir", str(d), "--workers", "1",
+                           "--claims", str(fed / "claims.json")]),
+        ("card_check", dlv + ["card_check", "--bundle", b, "--export-dir", str(d)]),
+        ("store", dlv + ["store", "--bundle", b, "--export-dir", str(d), "--out", str(d / "regs.sqlite")]),
+        ("release", dlv + ["release", "--bundle", b, "--store", str(d / "regs.sqlite"), "--status-index",
+                           str(d / "status_index.bin"), "--export-dir", str(d), "--out-root", str(out / "release"),
+                           "--tiles", str(tiles), "--tiles-release-root", str(out / "release"), "--no-basemap",
+                           "--no-synopsis", "--source", str(fed / "source"),
+                           "--dfo-rules", str(fed / "feeds" / "dfo_salmon" / "rules")]),
     ]
 
 
@@ -679,6 +716,60 @@ def total(d: dict[str, str]) -> str:
     return hashlib.sha256(json.dumps(d, sort_keys=True).encode("utf-8")).hexdigest()
 
 
+# ---------------------------------------------------------------------------------------- the committed release copy
+
+#: where the committed copy lives (T667 slice 8 plan); `--release-dir` names another (a scratch copy)
+COMMITTED = REPO_ROOT / "app" / "packages" / "data" / "dev" / "mini-release"
+
+
+def release_files(root: Path) -> dict[str, str]:
+    """{path under `root`: sha256} of a release root holding ONE release (`r-*/` + `LATEST`); anything else is
+    refused, so a stale second folder can never pass a check."""
+    root = Path(root)
+    rels = sorted(p.name for p in root.glob("r-*") if p.is_dir())
+    if len(rels) != 1 or not (root / "LATEST").is_file():
+        raise SystemExit(f"mini release: {root} must hold exactly one r-* folder and LATEST (found {rels})")
+    extra = sorted(p.name for p in root.iterdir() if p.name not in {rels[0], "LATEST"})
+    if extra:
+        raise SystemExit(f"mini release: {root} holds {extra} beside the release")
+    return {p.relative_to(root).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
+            for p in sorted(root.rglob("*")) if p.is_file()}
+
+
+def _fresh_release(scratch: Path) -> Path:
+    took = build(scratch)
+    print(f"mini release: rebuilt in {sum(took.values()):.1f}s")
+    return scratch / "release"
+
+
+def write(dest: Path, scratch: Path) -> int:
+    """Rebuild in `scratch` and replace the copy at `dest` with it, whole (a reviewed diff, never hand surgery)."""
+    dest = Path(dest)
+    new = _fresh_release(scratch)
+    release_files(new)
+    if dest.exists():
+        shutil.rmtree(dest)
+    shutil.copytree(new, dest)
+    print(f"mini release: wrote {dest} ({len(release_files(dest))} files)")
+    return 0
+
+
+def check(dest: Path, scratch: Path) -> int:
+    """Rebuild in `scratch` and compare, file by file, with the copy at `dest`; 1 and the differences when any."""
+    have = release_files(dest)
+    got = release_files(_fresh_release(scratch))
+    diff = sorted(k for k in set(have) | set(got) if have.get(k) != got.get(k))
+    if diff:
+        print(f"mini release: {dest} is STALE — {len(diff)} file(s) differ from a rebuild:")
+        for k in diff[:40]:
+            print(f"  {k}: committed {have.get(k, '(absent)')[:12]}, rebuilt {got.get(k, '(absent)')[:12]}")
+        print(f"  re-cut it: python -m pipeline.tools.mini_release --write"
+              + ("" if Path(dest).resolve() == COMMITTED.resolve() else f" --release-dir {dest}"))
+        return 1
+    print(f"mini release: {dest} matches a rebuild ({len(have)} files)")
+    return 0
+
+
 # -------------------------------------------------------------------------------------------------------------- cli
 
 def main(argv: list[str] | None = None) -> int:
@@ -689,7 +780,17 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--inputs", type=Path, help="only write the FWA-shaped GeoPackages into this directory")
     ap.add_argument("--compare", nargs=2, type=Path, metavar=("A", "B"),
                     help="digest two finished builds and refuse unless they agree (reads only)")
+    ap.add_argument("--check", action="store_true",
+                    help="rebuild in a temp dir and compare with the committed copy (or --release-dir); exit 1 on drift")
+    ap.add_argument("--write", action="store_true",
+                    help="rebuild in a temp dir and replace the committed copy (or --release-dir) with it")
+    ap.add_argument("--release-dir", type=Path, default=COMMITTED,
+                    help="the release copy --check / --write compare / replace (default: the committed one)")
     a = ap.parse_args(argv)
+    if a.check or a.write:
+        import tempfile
+        with tempfile.TemporaryDirectory(prefix="mini-release-") as t:
+            return (check if a.check else write)(a.release_dir, Path(t) / "build")
     if a.compare:
         return _compare(*(digests(d) for d in a.compare))
     if a.inputs:

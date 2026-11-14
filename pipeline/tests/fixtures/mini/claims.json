@@ -1,0 +1,54 @@
+{
+ "_about": "MINI FIXTURE (T667 slice 8): what the invented corpus claims (pipeline.deliver.export.claims). The mini release builder copies this beside the fed source tree it writes, so the two paths resolve there. Every declared example must read as declared, every mechanism must have a real case, every duty must hold.",
+ "format": "export-claims/1",
+ "synopsis": "source/fishing_synopsis.pdf",
+ "row_boxes": "source/row_boxes.json",
+ "examples": [
+  {
+   "id": "mock_creek_closed_above_its_falls",
+   "cited_in": [
+    "mini.closures"
+   ],
+   "water": "gnis:990002",
+   "date": "06-01",
+   "fish": "RB",
+   "speaks": [
+    "r1:mock_creek@1-1::mock_creek.r2"
+   ],
+   "says": "Mock Creek's 'No Fishing upstream of Mock Creek Falls' speaks on its upper part, all year"
+  },
+  {
+   "id": "stub_creek_release_speaks",
+   "cited_in": [
+    "mini.releases"
+   ],
+   "water": "gnis:990004",
+   "date": "05-01",
+   "fish": "RB",
+   "speaks": [
+    "r2:stub_creek@2-1::stub_creek.r1"
+   ],
+   "says": "Stub Creek's own catch and release speaks beside the zone's quota"
+  }
+ ],
+ "mechanisms": [
+  "annual_clock",
+  "blanket_closure_exempt",
+  "gear_only",
+  "home_region_differs",
+  "keep_beside_release",
+  "lake_no_steelhead",
+  "licensing_stamp",
+  "part_day_decides",
+  "same_statement_smaller",
+  "steelhead_possible",
+  "steelhead_water",
+  "two_regions_lake",
+  "water_closure_silences_zone",
+  "water_release"
+ ],
+ "duties": [
+  "paper_licence",
+  "protected_fish"
+ ]
+}

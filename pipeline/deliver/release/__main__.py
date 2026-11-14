@@ -35,21 +35,38 @@ def main(argv=None) -> int:
                          "by default the release ships no `lakes` (owner 2026-10-21: prepared, not fed)")
     ap.add_argument("--synopsis", type=Path, default=None,
                     help="the synopsis PDF this release ships for the highlighted 'open the PDF' (T215; default: the repo copy)")
+    # (T667 slice 8) a release cut for tests on invented data (the mini release) names its fetched inputs and ships no
+    # ground and no book, each by an explicit flag; with none, every input is the live one and a basemap is still
+    # required (T416)
+    ap.add_argument("--no-basemap", action="store_true",
+                    help="ship no basemap (manifest basemap: null): only for a release no device installs")
+    ap.add_argument("--no-synopsis", action="store_true",
+                    help="ship no synopsis PDF, and read or write no synopsis cache")
+    ap.add_argument("--source", type=Path, default=SOURCE,
+                    help="the fetched source tree the source dates are read from (default: data_tree.source)")
+    ap.add_argument("--dfo-rules", type=Path, default=GENERATED.regs.dfo_salmon / "rules",
+                    help="the parsed DFO salmon pages the DFO date is read from (default: the live ones)")
     a = ap.parse_args(argv)
+    if a.no_synopsis and a.synopsis:
+        ap.error("--no-synopsis and --synopsis name opposite things")
+    if not Path(a.source).is_dir():
+        ap.error(f"--source {a.source} is not a directory")
     from pipeline.common.synopsis_pages import default_pdf
-    syn = a.synopsis or default_pdf()
-    if syn.exists():
+    syn = None if a.no_synopsis else (a.synopsis or default_pdf())
+    if syn is not None and syn.exists():
         from pipeline.deliver.release.synopsis import shipped
         syn = shipped(syn)              # (T354) the downsampled copy, render-gated, cached by the source's digest
     import sqlite3
     handles = dict(sqlite3.connect(f"file:{a.bundle}?mode=ro", uri=True).execute("SELECT k, v FROM meta"))[
         "section_handles"]
     d = B.build(bundle=a.bundle, store=a.store, status_index=a.status_index, export_dir=a.export_dir,
-                out_root=a.out_root, data_release=a.data_release, lakes=a.lake_facts, synopsis=syn if syn.exists() else None, tiles=tiles_block(a.tiles_release_root, handles, a.tiles / "atlas.meta.json"),
+                out_root=a.out_root, data_release=a.data_release, lakes=a.lake_facts,
+                synopsis=syn if syn is not None and syn.exists() else None,
+                tiles=tiles_block(a.tiles_release_root, handles, a.tiles / "atlas.meta.json"),
                 # T75: the released basemap (its sidecar beside the tiles), so a native install can fetch the ground
-                basemap=basemap_block(a.tiles_release_root, a.tiles / "basemap.meta.json"),
+                basemap=None if a.no_basemap else basemap_block(a.tiles_release_root, a.tiles / "basemap.meta.json"),
                 # the date each source was last updated, read from the fetched inputs (the app's Data sources screen)
-                sources=sources_block(SOURCE, synopsis_title=BOOK_TITLE, dfo_rules=GENERATED.regs.dfo_salmon / "rules"))
+                sources=sources_block(a.source, synopsis_title=BOOK_TITLE, dfo_rules=a.dfo_rules))
     sz = B.sizes(d)
     print(json.dumps({"release": str(d), "gz_total": sum(v["gz"] for v in sz.values()), "files": sz}, indent=1))
     bad = B.gate_problems(d)

@@ -31,10 +31,15 @@ def main(argv=None) -> int:
                     help="indent both files for a human (the shipped files are not indented)")
     ap.add_argument("--verdicts", type=Path, default=None,
                     help="the bundle's verdicts (default: verdicts.sqlite beside the bundle)")
+    ap.add_argument("--claims", type=Path, default=None,
+                    help="what the corpus claims: synopsis + row boxes, examples, mechanisms, duties "
+                         "(pipeline.deliver.export.claims; default: the book's)")
     a = ap.parse_args(argv)
+    from pipeline.deliver.export.claims import of
+    claims = of(a.claims)
     verdicts_of(a.bundle, a.verdicts)          # opened and held to the bundle's digests, once
-    doc = build(a.bundle)
-    bad = problems(doc)
+    doc = build(a.bundle, claims)
+    bad = problems(doc, claims)
     try:
         data, gd = encode(doc)
     except K.EncodeError as e:

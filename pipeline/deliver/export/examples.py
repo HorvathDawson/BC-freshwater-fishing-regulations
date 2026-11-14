@@ -301,7 +301,7 @@ def moment_of(ex: Example, ms: list):
                 and (mo.hours is None or mo.inside == ex.inside))
 
 
-def examples(bundle: Path | str) -> dict:
+def examples(bundle: Path | str, declared=None) -> dict:
     """{id: example as shipped}: the declaration and the reader's answer (`expect`) on its section
     — `expect` is None where no section of the water carries the rules it names."""
     from pipeline.deliver.export.verdicts import answer_on, verdicts_of
@@ -313,7 +313,7 @@ def examples(bundle: Path | str) -> dict:
         return db.execute("SELECT key_ix FROM section_ruleset WHERE sid = ?", (sid,)).fetchone()[0]
     out = {}
     try:
-        for ex in EXAMPLES:
+        for ex in (EXAMPLES if declared is None else declared):
             sid = _section(db, ex)
             m, d = (int(x) for x in ex.date.split("-"))
             # THE STORED VERDICT of the section's rule key (DATAFLOW P5): the reader's answer, at

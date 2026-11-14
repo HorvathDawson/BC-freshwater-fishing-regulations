@@ -6,7 +6,7 @@
    "name": "Region 2 Daily Quotas",
    "display_name": "Region 2",
    "region": "2",
-   "regs_verbatim": "Region 2 Daily Quotas. Trout/char: 4, but not more than 1 over 50 cm.",
+   "regs_verbatim": "Region 2 Daily Quotas. Trout/char: 4, but not more than 1 over 50 cm. Kokanee: 5.",
    "source_pages": [
     92
    ],
@@ -46,6 +46,21 @@
        "min_cm": 50
       }
      ],
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:2"
+      }
+     ]
+    },
+    {
+     "rule_id": "species_quotas.r1",
+     "type": "retention_limit",
+     "verbatim": "Kokanee: 5",
+     "species": [
+      "KO"
+     ],
+     "take": 5,
      "extents": [
       {
        "op": "within",

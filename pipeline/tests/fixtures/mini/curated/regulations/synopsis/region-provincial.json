@@ -277,6 +277,1138 @@
      ]
     }
    ]
+  },
+  {
+   "entry_id": "zp:protected_species",
+   "name": "Protected species",
+   "display_name": "Everywhere in B.C.",
+   "regs_verbatim": "It is illegal to fish for, or catch and retain any of the fish listed below. If you accidentally catch one, you must release it right away where you captured it. Nooksack Dace, Salish Sucker.",
+   "source_pages": [
+    9
+   ],
+   "extents": [
+    {
+     "op": "within",
+     "area_kind": "region"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "protected_species.r1",
+     "type": "retention_limit",
+     "verbatim": "It is illegal to fish for, or catch and retain any of the fish listed below.",
+     "species": [
+      "NOOKSACK_DACE",
+      "SALISH_SUCKER"
+     ],
+     "take": 0,
+     "may_target": false,
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:1"
+      },
+      {
+       "op": "within",
+       "area_id": "area:region:2"
+      }
+     ],
+     "authority": "superior"
+    }
+   ]
+  },
+  {
+   "entry_id": "zp:licence_administration",
+   "name": "Licence administration",
+   "display_name": "Everywhere in B.C.",
+   "regs_verbatim": "Electronic licences are acceptable however paper licences are required when retaining hatchery steelhead.",
+   "source_pages": [
+    4
+   ],
+   "extents": [
+    {
+     "op": "within",
+     "area_kind": "region"
+    }
+   ],
+   "rules": [],
+   "licensing": [
+    {
+     "id": "carry_paper_licence",
+     "conduct": [
+      "carry_paper_licence"
+     ],
+     "presumes": [
+      "basic_licence"
+     ],
+     "who": {
+      "age": [
+       "16_plus"
+      ]
+     },
+     "doing": {
+      "act": "retaining_recorded"
+     },
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:1"
+      },
+      {
+       "op": "within",
+       "area_id": "area:region:2"
+      }
+     ],
+     "verbatim": "Electronic licences are acceptable however paper licences are required when retaining hatchery steelhead.",
+     "kind": "requirement"
+    }
+   ]
+  },
+  {
+   "entry_id": "zp:barbless_single_hook_streams",
+   "name": "Single barbless hook in streams",
+   "display_name": "Every stream in B.C.",
+   "regs_verbatim": "It is unlawful to use barbed hooks or a hook with more than one point in any river, stream, creek or slough in B.C. (Note: the use of barbed hooks in lakes is permitted, unless noted in the Regional Water-Specific Tables).",
+   "source_pages": [
+    8
+   ],
+   "extents": [
+    {
+     "op": "within",
+     "area_kind": "region"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "barbless_single_hook_streams.r1",
+     "type": "tackle_restriction",
+     "verbatim": "use barbed hooks",
+     "gear": [
+      {
+       "slot": "barb",
+       "only": [
+        "barbless"
+       ]
+      }
+     ],
+     "water": "stream",
+     "extents": [
+      {
+       "op": "within",
+       "area_kind": "region",
+       "feature_types": [
+        "stream"
+       ]
+      }
+     ]
+    },
+    {
+     "rule_id": "barbless_single_hook_streams.r3",
+     "type": "tackle_restriction",
+     "verbatim": "a hook with more than one point in any river, stream, creek or slough in B.C.",
+     "gear": [
+      {
+       "slot": "points_per_hook",
+       "max": 1.0
+      }
+     ],
+     "water": "stream",
+     "extents": [
+      {
+       "op": "within",
+       "area_kind": "region",
+       "feature_types": [
+        "stream"
+       ]
+      }
+     ]
+    },
+    {
+     "rule_id": "barbless_single_hook_streams.r2",
+     "type": "advisory",
+     "verbatim": "Note: the use of barbed hooks in lakes is permitted, unless noted in the Regional Water-Specific Tables",
+     "water": "lake",
+     "extents": [
+      {
+       "op": "within",
+       "area_kind": "region",
+       "feature_types": [
+        "lake"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "entry_id": "zp:set_lining",
+   "name": "Set lining",
+   "display_name": "Lakes of Region 6 and Region 7A",
+   "regs_verbatim": "You may only fish with a set line (an unattended line) in lakes of Region 6 and Region 7A. You are allowed to use only one line with one hook (no smaller than 3 cm from point to shank). Any game fish that you catch other than burbot must be released. Set lines must be marked with angler's name, address, and telephone number.",
+   "source_pages": [
+    8
+   ],
+   "extents": [
+    {
+     "op": "within",
+     "area_kind": "region"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "set_lining.r1",
+     "type": "method_rule",
+     "verbatim": "You may only fish with a set line (an unattended line) in lakes of Region 6 and Region 7A.",
+     "gear": [
+      {
+       "slot": "method",
+       "allow": [
+        "set_lining"
+       ]
+      }
+     ],
+     "water": "lake",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:6",
+       "feature_types": [
+        "lake"
+       ]
+      },
+      {
+       "op": "within",
+       "area_id": "area:region:7a",
+       "feature_types": [
+        "lake"
+       ]
+      }
+     ],
+     "exempts": [
+      {
+       "target": "set_lining.r1b",
+       "note": "set lining is permitted in these lakes and nowhere else"
+      }
+     ]
+    },
+    {
+     "rule_id": "set_lining.r1b",
+     "type": "method_rule",
+     "verbatim": "You may only fish with a set line (an unattended line) in lakes of Region 6 and Region 7A.",
+     "gear": [
+      {
+       "slot": "method",
+       "ban": [
+        "set_lining"
+       ]
+      }
+     ],
+     "derived_from": "set_lining.r1",
+     "extents": [
+      {
+       "op": "within",
+       "area_kind": "region"
+      }
+     ]
+    },
+    {
+     "rule_id": "set_lining.r2",
+     "type": "method_rule",
+     "verbatim": "You are allowed to use only one line with one hook (no smaller than 3 cm from point to shank).",
+     "gear": [
+      {
+       "slot": "lines_per_angler",
+       "max": 1.0
+      },
+      {
+       "slot": "hooks_per_line",
+       "max": 1.0
+      },
+      {
+       "slot": "hook_gap_mm",
+       "min": 30.0
+      }
+     ],
+     "while": [
+      "set_lining"
+     ],
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:6",
+       "feature_types": [
+        "lake"
+       ]
+      },
+      {
+       "op": "within",
+       "area_id": "area:region:7a",
+       "feature_types": [
+        "lake"
+       ]
+      }
+     ]
+    },
+    {
+     "rule_id": "set_lining.r3",
+     "type": "retention_limit",
+     "verbatim": "Any game fish that you catch other than burbot must be released.",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "species_except": [
+      "BB"
+     ],
+     "while": [
+      "set_lining"
+     ],
+     "take": 0,
+     "may_target": true,
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:6",
+       "feature_types": [
+        "lake"
+       ]
+      },
+      {
+       "op": "within",
+       "area_id": "area:region:7a",
+       "feature_types": [
+        "lake"
+       ]
+      }
+     ]
+    },
+    {
+     "rule_id": "set_lining.r4",
+     "type": "method_rule",
+     "verbatim": "Set lines must be marked with angler's name, address, and telephone number.",
+     "while": [
+      "set_lining"
+     ],
+     "conduct": [
+      "mark_set_line_with_contact_details"
+     ],
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:6",
+       "feature_types": [
+        "lake"
+       ]
+      },
+      {
+       "op": "within",
+       "area_id": "area:region:7a",
+       "feature_types": [
+        "lake"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "entry_id": "zp:classified_waters_licence",
+   "name": "Classified Waters Licence",
+   "display_name": "Classified waters",
+   "regs_verbatim": "All anglers required to buy a basic angling licence must also purchase a Classified Waters Licence before fishing on a stream during the period when it is classified. This licence is required in addition to the basic angling licence and any other stamps required by regulation. Also note that a Steelhead Conservation Surcharge Stamp is required at all times when fishing for steelhead, or when fishing classified waters during the period when steelhead are known to be present. The specific times when a Steelhead Stamp is mandatory are listed in the Water-Specific Tables for each Region. If you are a B.C. resident: Your Classified Waters Licence is valid for the licencing year. This means you can fish on any Class I or Class II water in the province during the year. If you are a NON-GUIDED “Non-Resident” or NON-GUIDED “Non-Resident Alien”: Your Classified Waters Licence for Class I or Class II waters is sold on a per day basis and is date and water-specific. Although anglers may purchase as many Classified Waters Licences as they wish, each licence may not exceed 8 consecutive days. A first-come-first-serve booking system is in place for these Kootenay Class II waters: Michel Creek, Skookumchuck Creek, and the Wigwam River. If you are a GUIDED “Non-Resident” or a GUIDED “Non-Resident Alien”: Your Classified Waters Licence for Class I or Class II waters is sold on a per day basis and is date and water-specific. If guided confirm with your angling guide before purchasing your licence. Although anglers may purchase as many Classified Waters Licences as they wish, each licence may not exceed 8 consecutive days. EXCEPTION: Non-Resident Aliens (whether GUIDED or NON-GUIDED) may only purchase one Classified Waters Licence for the Dean River per licence year.",
+   "source_pages": [
+    7
+   ],
+   "licensing": [
+    {
+     "id": "classified_waters_licence",
+     "satisfied_by": [
+      {
+       "hold": [
+        "basic_licence",
+        "classified_waters_licence"
+       ]
+      }
+     ],
+     "who": {
+      "age": [
+       "16_plus"
+      ]
+     },
+     "doing": {
+      "act": "fishing"
+     },
+     "water": "stream",
+     "on": "classified_period",
+     "verbatim": "All anglers required to buy a basic angling licence must also purchase a Classified Waters Licence before fishing on a stream during the period when it is classified.",
+     "kind": "requirement"
+    },
+    {
+     "id": "classified_steelhead_stamp",
+     "satisfied_by": [
+      {
+       "hold": [
+        "steelhead_stamp"
+       ]
+      }
+     ],
+     "who": {
+      "age": [
+       "16_plus"
+      ]
+     },
+     "doing": {
+      "act": "fishing"
+     },
+     "on": "steelhead_period",
+     "verbatim": "Steelhead Conservation Surcharge Stamp is required at all times when fishing for steelhead, or when fishing classified waters during the period when steelhead are known to be present.",
+     "kind": "requirement"
+    },
+    {
+     "id": "cwl_resident",
+     "document": "classified_waters_licence",
+     "who": {
+      "residency": [
+       "resident"
+      ]
+     },
+     "sold": "per_licence_year",
+     "covers": "every_unit",
+     "verbatim": "If you are a B.C. resident: Your Classified Waters Licence is valid for the licencing year. This means you can fish on any Class I or Class II water in the province during the year.",
+     "kind": "licence_terms"
+    },
+    {
+     "id": "cwl_non_resident",
+     "document": "classified_waters_licence",
+     "who": {
+      "residency": [
+       "non_resident",
+       "non_resident_alien"
+      ],
+      "guidance": [
+       "non_guided"
+      ]
+     },
+     "sold": "per_day",
+     "covers": "one_unit",
+     "max_consecutive_days": 8,
+     "verbatim": "If you are a NON-GUIDED “Non-Resident” or NON-GUIDED “Non-Resident Alien”: Your Classified Waters Licence for Class I or Class II waters is sold on a per day basis and is date and water-specific. Although anglers may purchase as many Classified Waters Licences as they wish, each licence may not exceed 8 consecutive days.",
+     "kind": "licence_terms"
+    },
+    {
+     "id": "cwl_non_resident_guided",
+     "document": "classified_waters_licence",
+     "who": {
+      "residency": [
+       "non_resident",
+       "non_resident_alien"
+      ],
+      "guidance": [
+       "guided"
+      ]
+     },
+     "sold": "per_day",
+     "covers": "one_unit",
+     "max_consecutive_days": 8,
+     "verbatim": "If you are a GUIDED “Non-Resident” or a GUIDED “Non-Resident Alien”: Your Classified Waters Licence for Class I or Class II waters is sold on a per day basis and is date and water-specific. If guided confirm with your angling guide before purchasing your licence. Although anglers may purchase as many Classified Waters Licences as they wish, each licence may not exceed 8 consecutive days.",
+     "kind": "licence_terms"
+    },
+    {
+     "id": "cwl_booking",
+     "document": "classified_waters_licence",
+     "who": {
+      "residency": [
+       "non_resident",
+       "non_resident_alien"
+      ],
+      "guidance": [
+       "non_guided"
+      ]
+     },
+     "classified": "II",
+     "units": [
+      "michel_creek",
+      "skookumchuck_creek",
+      "wigwam_river"
+     ],
+     "allocation": "booking",
+     "verbatim": "A first-come-first-serve booking system is in place for these Kootenay Class II waters: Michel Creek, Skookumchuck Creek, and the Wigwam River.",
+     "kind": "licence_terms"
+    },
+    {
+     "id": "dean_nra_one_licence",
+     "document": "classified_waters_licence",
+     "who": {
+      "residency": [
+       "non_resident_alien"
+      ]
+     },
+     "units": [
+      "dean_river_class_i_main",
+      "dean_river_class_i_lower",
+      "dean_river_class_ii_upper"
+     ],
+     "max_per_licence_year": 1,
+     "verbatim": "EXCEPTION: Non-Resident Aliens (whether GUIDED or NON-GUIDED) may only purchase one Classified Waters Licence for the Dean River per licence year.",
+     "kind": "licence_terms"
+    }
+   ]
+  },
+  {
+   "entry_id": "zp:basic_licence",
+   "name": "Basic angling licence",
+   "display_name": "Everywhere in B.C.",
+   "regs_verbatim": "If you are 16 years of age or older: You must have a valid basic licence to sport fish for any species of fish in non-tidal waters (including salmon) - see definition of “fish” on page 80. You must purchase appropriate supplementary licences and stamps. You must carry your licence while sport fishing and, if asked, produce it for inspection by a conservation officer, fishery officer, RCMP constable, park ranger in a park, or an officer under the Wildlife Act. Basic and supplementary licences and stamps are not valid in National Parks. If you are under 16 and a resident of B.C.: You may sport fish without any licence or stamp (but must abide by the regulations). You do not need to be accompanied by a licence holder. You are entitled to your own quota of fish. If you are under 16 and not a resident of B.C.: You do not require any licence or stamp to sport fish, but you must be accompanied by a person 16 years or older who holds the appropriate licences and stamps. Any fish you keep must be counted as part of the catch and possession of your accompanying licence holder. If you want to catch and keep your own quota of fish, you must buy a licence and any necessary supplementary licences and stamps. If you are an Indian and a resident of B.C., you are not required to obtain any type of fishing licence or stamp to sport fish in non-tidal waters. Métis: A reminder that all Métis individuals intending to sport fish in non-tidal waters are required, under the Wildlife Act, to hold appropriate angling licences and stamps, and comply with all angling regulations.",
+   "source_pages": [
+    6
+   ],
+   "extents": [
+    {
+     "op": "within",
+     "area_kind": "region"
+    }
+   ],
+   "licensing": [
+    {
+     "id": "basic_licence",
+     "satisfied_by": [
+      {
+       "hold": [
+        "basic_licence"
+       ]
+      }
+     ],
+     "who": {
+      "age": [
+       "16_plus"
+      ]
+     },
+     "doing": {
+      "act": "fishing"
+     },
+     "extents": [
+      {
+       "op": "within",
+       "area_kind": "region"
+      }
+     ],
+     "verbatim": "If you are 16 years of age or older: You must have a valid basic licence to sport fish for any species of fish in non-tidal waters (including salmon)",
+     "kind": "requirement"
+    },
+    {
+     "id": "under_16_non_resident",
+     "satisfied_by": [
+      {
+       "accompanied_by": {
+        "who": {
+         "age": [
+          "16_plus"
+         ]
+        }
+       },
+       "quota": "counts_to_companion"
+      },
+      {
+       "as": {
+        "residency": [
+         "non_resident",
+         "non_resident_alien"
+        ],
+        "age": [
+         "16_plus"
+        ]
+       },
+       "quota": "own"
+      }
+     ],
+     "who": {
+      "residency": [
+       "non_resident",
+       "non_resident_alien"
+      ],
+      "age": [
+       "under_16"
+      ]
+     },
+     "doing": {
+      "act": "fishing"
+     },
+     "extents": [
+      {
+       "op": "within",
+       "area_kind": "region"
+      }
+     ],
+     "verbatim": "If you are under 16 and not a resident of B.C.: You do not require any licence or stamp to sport fish, but you must be accompanied by a person 16 years or older who holds the appropriate licences and stamps. Any fish you keep must be counted as part of the catch and possession of your accompanying licence holder. If you want to catch and keep your own quota of fish, you must buy a licence and any necessary supplementary licences and stamps.",
+     "kind": "requirement"
+    },
+    {
+     "id": "indian_bc_resident",
+     "who": {
+      "status": [
+       "indian_bc_resident"
+      ]
+     },
+     "documents": [
+      "basic_licence",
+      "steelhead_stamp",
+      "salmon_stamp",
+      "kootenay_rainbow_stamp",
+      "shuswap_char_stamp",
+      "shuswap_rainbow_stamp",
+      "white_sturgeon_licence",
+      "classified_waters_licence"
+     ],
+     "verbatim": "If you are an Indian and a resident of B.C., you are not required to obtain any type of fishing licence or stamp to sport fish in non-tidal waters.",
+     "kind": "exemption"
+    }
+   ]
+  },
+  {
+   "entry_id": "zp:licence_fees",
+   "name": "Licence fees",
+   "display_name": "Everywhere in B.C.",
+   "regs_verbatim": "All annual licences are valid for the current licence year, April 1st to March 31st, commencing on the date purchased. Licences are not transferrable. Taxes not included in fees listed below. LICENCE TYPE RESIDENT* NON-RESIDENT* NON-RESIDENT ALIEN* Basic Licences Annual Angling Licence $41.15 $62.87 $91.44 One Day Angling Licence $11.43 $22.86 $22.86 Eight Day Angling Licence $22.86 $41.15 $57.14 Annual Licence for Disabled $1.14 ★ ★ Annual Licence for Age 65 Plus $5.71** ★ ★ Conservation Surcharge Stamps (see page 7) Steelhead $28.57 $68.57 $68.57 Non-Tidal Salmon $17.14 $34.29 $34.29 Kootenay Lake Rainbow Trout $11.43 $22.86 $22.86 Shuswap Lake Rainbow Trout $11.43 $22.86 $22.86 Shuswap Lake Char $11.43 $22.86 $22.86 White Sturgeon Conservation Licences (see page 7) Annual $28.57 $68.58 $68.58 One Day $9.14 $17.14 $17.14 Eight Day $17.14 $34.29 $34.29 Classified Waters Licences (see page 7) Classified Waters Licence (annual) $17.15 ★ ★ Class I Waters Licence ★ $45.72/day $45.72/day Class II Waters Licence ★ $22.86/day $22.86/day ★ Not available. ** BC resident anglers aged 65 and over have the option to purchase an annual basic licence at the reduced rate of $5.71 or at the full BC resident rate of $41.15. NOTES: You may buy as many One Day and Eight Day Licences (covering 8 consecutive days) as you need, but only ONE Annual Licence. * Members of the Canadian military, students returning to B.C., and youth under 18 returning to B.C. to reside with a parent or guardian who is a resident, may be eligible to purchase licences at the resident rate.",
+   "source_pages": [
+    5
+   ],
+   "rules": [
+    {
+     "rule_id": "licence_fees.r1",
+     "type": "advisory",
+     "verbatim": "Members of the Canadian military, students returning to B.C., and youth under 18 returning to B.C. to reside with a parent or guardian who is a resident, may be eligible to purchase licences at the resident rate.",
+     "extents": [
+      {
+       "op": "within",
+       "area_kind": "region"
+      }
+     ]
+    }
+   ],
+   "licensing": [
+    {
+     "id": "basic_annual",
+     "document": "basic_licence",
+     "sold": "per_licence_year",
+     "name": "Annual Angling Licence",
+     "fees_cad": {
+      "resident": 41.15,
+      "non_resident": 62.87,
+      "non_resident_alien": 91.44
+     },
+     "verbatim": "Annual Angling Licence $41.15 $62.87 $91.44",
+     "review_reason": "Fees as printed in the 2025-2027 synopsis (p.5), taxes not included; they can change during its term — check www.gov.bc.ca/fish-licence.",
+     "kind": "licence_terms"
+    },
+    {
+     "id": "basic_one_day",
+     "document": "basic_licence",
+     "name": "One Day Angling Licence",
+     "valid_days": 1,
+     "fees_cad": {
+      "resident": 11.43,
+      "non_resident": 22.86,
+      "non_resident_alien": 22.86
+     },
+     "verbatim": "One Day Angling Licence $11.43 $22.86 $22.86",
+     "review_reason": "Fees as printed in the 2025-2027 synopsis (p.5), taxes not included; they can change during its term — check www.gov.bc.ca/fish-licence.",
+     "kind": "licence_terms"
+    },
+    {
+     "id": "basic_eight_day",
+     "document": "basic_licence",
+     "name": "Eight Day Angling Licence",
+     "valid_days": 8,
+     "fees_cad": {
+      "resident": 22.86,
+      "non_resident": 41.15,
+      "non_resident_alien": 57.14
+     },
+     "verbatim": "Eight Day Angling Licence $22.86 $41.15 $57.14",
+     "review_reason": "Fees as printed in the 2025-2027 synopsis (p.5), taxes not included; they can change during its term — check www.gov.bc.ca/fish-licence.",
+     "kind": "licence_terms"
+    },
+    {
+     "id": "basic_annual_disabled",
+     "document": "basic_licence",
+     "who": {
+      "residency": [
+       "resident"
+      ],
+      "status": [
+       "disabled"
+      ]
+     },
+     "sold": "per_licence_year",
+     "name": "Annual Licence for Disabled",
+     "fees_cad": {
+      "resident": 1.14
+     },
+     "verbatim": "Annual Licence for Disabled $1.14 ★ ★",
+     "review_reason": "Fees as printed in the 2025-2027 synopsis (p.5), taxes not included; they can change during its term — check www.gov.bc.ca/fish-licence.",
+     "kind": "licence_terms"
+    },
+    {
+     "id": "basic_annual_65_plus",
+     "document": "basic_licence",
+     "who": {
+      "residency": [
+       "resident"
+      ],
+      "status": [
+       "aged_65_plus"
+      ]
+     },
+     "sold": "per_licence_year",
+     "name": "Annual Licence for Age 65 Plus",
+     "fees_cad": {
+      "resident": 5.71
+     },
+     "verbatim": "Annual Licence for Age 65 Plus $5.71 ★ ★",
+     "review_reason": "p.5 '**': a B.C. resident 65 or over may buy this at $5.71 or the Annual Angling Licence at the full resident rate ($41.15); the angling is the same. Fees as printed in the 2025-2027 synopsis (p.5), taxes not included; they can change during its term — check www.gov.bc.ca/fish-licence.",
+     "kind": "licence_terms"
+    },
+    {
+     "id": "steelhead_stamp",
+     "document": "steelhead_stamp",
+     "sold": "per_licence_year",
+     "name": "Steelhead",
+     "fees_cad": {
+      "resident": 28.57,
+      "non_resident": 68.57,
+      "non_resident_alien": 68.57
+     },
+     "verbatim": "Steelhead $28.57 $68.57 $68.57",
+     "review_reason": "Fees as printed in the 2025-2027 synopsis (p.5), taxes not included; they can change during its term — check www.gov.bc.ca/fish-licence.",
+     "kind": "licence_terms"
+    },
+    {
+     "id": "salmon_stamp",
+     "document": "salmon_stamp",
+     "sold": "per_licence_year",
+     "name": "Non-Tidal Salmon",
+     "fees_cad": {
+      "resident": 17.14,
+      "non_resident": 34.29,
+      "non_resident_alien": 34.29
+     },
+     "verbatim": "Non-Tidal Salmon $17.14 $34.29 $34.29",
+     "review_reason": "Fees as printed in the 2025-2027 synopsis (p.5), taxes not included; they can change during its term — check www.gov.bc.ca/fish-licence.",
+     "kind": "licence_terms"
+    },
+    {
+     "id": "kootenay_rainbow_stamp",
+     "document": "kootenay_rainbow_stamp",
+     "sold": "per_licence_year",
+     "name": "Kootenay Lake Rainbow Trout",
+     "fees_cad": {
+      "resident": 11.43,
+      "non_resident": 22.86,
+      "non_resident_alien": 22.86
+     },
+     "verbatim": "Kootenay Lake Rainbow Trout $11.43 $22.86 $22.86",
+     "review_reason": "Fees as printed in the 2025-2027 synopsis (p.5), taxes not included; they can change during its term — check www.gov.bc.ca/fish-licence.",
+     "kind": "licence_terms"
+    },
+    {
+     "id": "shuswap_rainbow_stamp",
+     "document": "shuswap_rainbow_stamp",
+     "sold": "per_licence_year",
+     "name": "Shuswap Lake Rainbow Trout",
+     "fees_cad": {
+      "resident": 11.43,
+      "non_resident": 22.86,
+      "non_resident_alien": 22.86
+     },
+     "verbatim": "Shuswap Lake Rainbow Trout $11.43 $22.86 $22.86",
+     "review_reason": "Fees as printed in the 2025-2027 synopsis (p.5), taxes not included; they can change during its term — check www.gov.bc.ca/fish-licence.",
+     "kind": "licence_terms"
+    },
+    {
+     "id": "shuswap_char_stamp",
+     "document": "shuswap_char_stamp",
+     "sold": "per_licence_year",
+     "name": "Shuswap Lake Char",
+     "fees_cad": {
+      "resident": 11.43,
+      "non_resident": 22.86,
+      "non_resident_alien": 22.86
+     },
+     "verbatim": "Shuswap Lake Char $11.43 $22.86 $22.86",
+     "review_reason": "Fees as printed in the 2025-2027 synopsis (p.5), taxes not included; they can change during its term — check www.gov.bc.ca/fish-licence.",
+     "kind": "licence_terms"
+    },
+    {
+     "id": "white_sturgeon_annual",
+     "document": "white_sturgeon_licence",
+     "sold": "per_licence_year",
+     "name": "Annual",
+     "fees_cad": {
+      "resident": 28.57,
+      "non_resident": 68.58,
+      "non_resident_alien": 68.58
+     },
+     "verbatim": "Annual $28.57 $68.58 $68.58",
+     "review_reason": "Fees as printed in the 2025-2027 synopsis (p.5), taxes not included; they can change during its term — check www.gov.bc.ca/fish-licence.",
+     "kind": "licence_terms"
+    },
+    {
+     "id": "white_sturgeon_one_day",
+     "document": "white_sturgeon_licence",
+     "name": "One Day",
+     "valid_days": 1,
+     "fees_cad": {
+      "resident": 9.14,
+      "non_resident": 17.14,
+      "non_resident_alien": 17.14
+     },
+     "verbatim": "One Day $9.14 $17.14 $17.14",
+     "review_reason": "Fees as printed in the 2025-2027 synopsis (p.5), taxes not included; they can change during its term — check www.gov.bc.ca/fish-licence.",
+     "kind": "licence_terms"
+    },
+    {
+     "id": "white_sturgeon_eight_day",
+     "document": "white_sturgeon_licence",
+     "name": "Eight Day",
+     "valid_days": 8,
+     "fees_cad": {
+      "resident": 17.14,
+      "non_resident": 34.29,
+      "non_resident_alien": 34.29
+     },
+     "verbatim": "Eight Day $17.14 $34.29 $34.29",
+     "review_reason": "Fees as printed in the 2025-2027 synopsis (p.5), taxes not included; they can change during its term — check www.gov.bc.ca/fish-licence.",
+     "kind": "licence_terms"
+    },
+    {
+     "id": "classified_annual",
+     "document": "classified_waters_licence",
+     "who": {
+      "residency": [
+       "resident"
+      ]
+     },
+     "sold": "per_licence_year",
+     "name": "Classified Waters Licence (annual)",
+     "fees_cad": {
+      "resident": 17.15
+     },
+     "verbatim": "Classified Waters Licence (annual) $17.15 ★ ★",
+     "review_reason": "Fees as printed in the 2025-2027 synopsis (p.5), taxes not included; they can change during its term — check www.gov.bc.ca/fish-licence.",
+     "kind": "licence_terms"
+    },
+    {
+     "id": "classified_class_i_day",
+     "document": "classified_waters_licence",
+     "who": {
+      "residency": [
+       "non_resident",
+       "non_resident_alien"
+      ]
+     },
+     "classified": "I",
+     "sold": "per_day",
+     "name": "Class I Waters Licence",
+     "fees_cad": {
+      "non_resident": 45.72,
+      "non_resident_alien": 45.72
+     },
+     "verbatim": "Class I Waters Licence ★ $45.72/day $45.72/day",
+     "review_reason": "Fees as printed in the 2025-2027 synopsis (p.5), taxes not included; they can change during its term — check www.gov.bc.ca/fish-licence.",
+     "kind": "licence_terms"
+    },
+    {
+     "id": "classified_class_ii_day",
+     "document": "classified_waters_licence",
+     "who": {
+      "residency": [
+       "non_resident",
+       "non_resident_alien"
+      ]
+     },
+     "classified": "II",
+     "sold": "per_day",
+     "name": "Class II Waters Licence",
+     "fees_cad": {
+      "non_resident": 22.86,
+      "non_resident_alien": 22.86
+     },
+     "verbatim": "Class II Waters Licence ★ $22.86/day $22.86/day",
+     "review_reason": "Fees as printed in the 2025-2027 synopsis (p.5), taxes not included; they can change during its term — check www.gov.bc.ca/fish-licence.",
+     "kind": "licence_terms"
+    }
+   ]
+  },
+  {
+   "entry_id": "zp:salmon_stamp",
+   "name": "Non-tidal salmon stamp",
+   "display_name": "Everywhere in B.C.",
+   "regs_verbatim": "Your basic licence must be validated with a Conservation Surcharge Stamp to keep a salmon of any legal size or species (other than kokanee) from non-tidal waters. A stamp is not required if you release all salmon caught. You must immediately record your retention of adult chinook salmon on your basic angling licence. For definition of adult chinook see page 77.",
+   "source_pages": [
+    6,
+    7
+   ],
+   "extents": [
+    {
+     "op": "within",
+     "area_kind": "region"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "salmon_stamp.r1",
+     "type": "retention_limit",
+     "verbatim": "You must immediately record your retention of adult chinook salmon on your basic angling licence.",
+     "species": [
+      "CH"
+     ],
+     "record_retention": true,
+     "extents": [
+      {
+       "op": "within",
+       "area_kind": "region"
+      }
+     ],
+     "review_reason": "'adult' is defined on page 77 by a length that differs by water (over 50 cm in most non-tidal waters, over 62 cm in some rivers), so the stage is `life_stage: adult`, never `lengths`. SPECIES (2026-09-28): chinook is a named fish in the SALMON group, not a game fish (`catalogue.SALMON_FISH`).",
+     "life_stage": "adult"
+    }
+   ],
+   "licensing": [
+    {
+     "id": "salmon_stamp",
+     "satisfied_by": [
+      {
+       "hold": [
+        "salmon_stamp"
+       ]
+      }
+     ],
+     "who": {
+      "age": [
+       "16_plus"
+      ]
+     },
+     "doing": {
+      "act": "retaining",
+      "species": [
+       "SALMON"
+      ]
+     },
+     "extents": [
+      {
+       "op": "within",
+       "area_kind": "region"
+      }
+     ],
+     "verbatim": "Your basic licence must be validated with a Conservation Surcharge Stamp to keep a salmon of any legal size or species (other than kokanee) from non-tidal waters.",
+     "kind": "requirement"
+    }
+   ]
+  },
+  {
+   "entry_id": "zp:kootenay_rainbow_stamp",
+   "name": "Kootenay Lake rainbow stamp",
+   "display_name": "Main body of Kootenay Lake",
+   "regs_verbatim": "Your basic licence must be validated with a Conservation Surcharge Stamp to keep rainbow trout over 50 cm from the main body of Kootenay Lake. You must immediately record your retention on your basic angling licence. No Conservation Surcharge Stamp is required if you release all Kootenay Lake rainbow trout over 50 cm.",
+   "source_pages": [
+    7
+   ],
+   "rules": [
+    {
+     "rule_id": "kootenay_rainbow_stamp.r1",
+     "type": "retention_limit",
+     "verbatim": "Your basic licence must be validated with a Conservation Surcharge Stamp to keep rainbow trout over 50 cm from the main body of Kootenay Lake. You must immediately record your retention on your basic angling licence.",
+     "species": [
+      "RB"
+     ],
+     "lengths": [
+      {
+       "min_cm": 50
+      }
+     ],
+     "record_retention": true,
+     "extents": [
+      {
+       "op": "whole",
+       "item_id": "wbk:800000006"
+      }
+     ]
+    }
+   ],
+   "licensing": [
+    {
+     "id": "kootenay_rainbow_stamp",
+     "satisfied_by": [
+      {
+       "hold": [
+        "kootenay_rainbow_stamp"
+       ]
+      }
+     ],
+     "who": {
+      "age": [
+       "16_plus"
+      ]
+     },
+     "doing": {
+      "act": "retaining",
+      "species": [
+       "RB"
+      ],
+      "lengths": [
+       {
+        "min_cm": 50
+       }
+      ]
+     },
+     "extents": [
+      {
+       "op": "whole",
+       "item_id": "wbk:800000006"
+      }
+     ],
+     "verbatim": "Your basic licence must be validated with a Conservation Surcharge Stamp to keep rainbow trout over 50 cm from the main body of Kootenay Lake.",
+     "kind": "requirement"
+    }
+   ]
+  },
+  {
+   "entry_id": "zp:shuswap_char_stamp",
+   "name": "Shuswap Lake char stamp",
+   "display_name": "Shuswap Lake",
+   "regs_verbatim": "Your basic licence must be validated with a Conservation Surcharge Stamp to keep char over 60 cm (Lake trout and Bull trout) caught in Shuswap Lake. You must immediately record your retention on your basic angling licence. No Conservation Surcharge Stamp is required if you release all Shuswap Lake char over 60 cm (Lake trout and Bull trout).",
+   "source_pages": [
+    7
+   ],
+   "rules": [
+    {
+     "rule_id": "shuswap_char_stamp.r1",
+     "type": "retention_limit",
+     "verbatim": "Your basic licence must be validated with a Conservation Surcharge Stamp to keep char over 60 cm (Lake trout and Bull trout) caught in Shuswap Lake. You must immediately record your retention on your basic angling licence.",
+     "species": [
+      "LT",
+      "DV"
+     ],
+     "lengths": [
+      {
+       "min_cm": 60
+      }
+     ],
+     "record_retention": true,
+     "extents": [
+      {
+       "op": "whole",
+       "item_id": "wbk:800000001"
+      }
+     ],
+     "review_reason": "User ruling 2026-09-30: the book (p.7) says char over 60 cm 'caught in Shuswap Lake', but the stamp and its record duty are extended beyond Shuswap Lake to every water the Shuswap Lake row (r3:shuswap_lake_see_maps_on_page_28_includes_little_shuswap_lak@3-26) binds — Shuswap Lake, Little Shuswap Lake, Mara Lake and Little River — to match the row, whose char quota (1, none under 60 cm; annual 5) and 'Conservation Surcharge Stamp required to catch and keep … char over 60 cm' hold on all of them."
+    }
+   ],
+   "licensing": [
+    {
+     "id": "shuswap_char_stamp",
+     "satisfied_by": [
+      {
+       "hold": [
+        "shuswap_char_stamp"
+       ]
+      }
+     ],
+     "who": {
+      "age": [
+       "16_plus"
+      ]
+     },
+     "doing": {
+      "act": "retaining",
+      "species": [
+       "LT",
+       "DV"
+      ],
+      "lengths": [
+       {
+        "min_cm": 60
+       }
+      ]
+     },
+     "extents": [
+      {
+       "op": "whole",
+       "item_id": "wbk:800000001"
+      }
+     ],
+     "verbatim": "Your basic licence must be validated with a Conservation Surcharge Stamp to keep char over 60 cm (Lake trout and Bull trout) caught in Shuswap Lake.",
+     "review_reason": "User ruling 2026-09-30: the book (p.7) says char over 60 cm 'caught in Shuswap Lake', but the stamp and its record duty are extended beyond Shuswap Lake to every water the Shuswap Lake row (r3:shuswap_lake_see_maps_on_page_28_includes_little_shuswap_lak@3-26) binds — Shuswap Lake, Little Shuswap Lake, Mara Lake and Little River — to match the row, whose char quota (1, none under 60 cm; annual 5) and 'Conservation Surcharge Stamp required to catch and keep … char over 60 cm' hold on all of them.",
+     "kind": "requirement"
+    }
+   ]
+  },
+  {
+   "entry_id": "zp:shuswap_rainbow_stamp",
+   "name": "Shuswap rainbow stamp",
+   "display_name": "Shuswap system",
+   "regs_verbatim": "Your basic licence must be validated with a Conservation Surcharge Stamp to keep rainbow trout over 50 cm from Shuswap Lake, Little Shuswap Lake, South Thompson River between Shuswap Lake and Little Shuswap Lake, Seymour, Anstey and Salmon Arms and Mara Lake. You must immediately record your retention on your basic angling licence. No Conservation Surcharge Stamp is required if you release all Shuswap Lake rainbow trout over 50 cm.",
+   "source_pages": [
+    7
+   ],
+   "rules": [
+    {
+     "rule_id": "shuswap_rainbow_stamp.r1",
+     "type": "retention_limit",
+     "verbatim": "Your basic licence must be validated with a Conservation Surcharge Stamp to keep rainbow trout over 50 cm from Shuswap Lake, Little Shuswap Lake, South Thompson River between Shuswap Lake and Little Shuswap Lake, Seymour, Anstey and Salmon Arms and Mara Lake. You must immediately record your retention on your basic angling licence.",
+     "species": [
+      "RB"
+     ],
+     "lengths": [
+      {
+       "min_cm": 50
+      }
+     ],
+     "record_retention": true,
+     "extents": [
+      {
+       "op": "whole",
+       "item_id": "wbk:800000001"
+      }
+     ]
+    }
+   ],
+   "licensing": [
+    {
+     "id": "shuswap_rainbow_stamp",
+     "satisfied_by": [
+      {
+       "hold": [
+        "shuswap_rainbow_stamp"
+       ]
+      }
+     ],
+     "who": {
+      "age": [
+       "16_plus"
+      ]
+     },
+     "doing": {
+      "act": "retaining",
+      "species": [
+       "RB"
+      ],
+      "lengths": [
+       {
+        "min_cm": 50
+       }
+      ]
+     },
+     "extents": [
+      {
+       "op": "whole",
+       "item_id": "wbk:800000001"
+      }
+     ],
+     "verbatim": "Your basic licence must be validated with a Conservation Surcharge Stamp to keep rainbow trout over 50 cm from Shuswap Lake, Little Shuswap Lake, South Thompson River between Shuswap Lake and Little Shuswap Lake, Seymour, Anstey and Salmon Arms and Mara Lake.",
+     "review_reason": "Binds the three lake items and gnis:33426, the atlas's LITTLE RIVER (boundary little_river__shuswap_lake) — the channel the book calls 'South Thompson River between Shuswap Lake and Little Shuswap Lake'.",
+     "kind": "requirement"
+    }
+   ]
   }
  ]
 }

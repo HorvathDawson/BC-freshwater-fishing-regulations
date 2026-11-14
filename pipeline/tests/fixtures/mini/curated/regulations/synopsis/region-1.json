@@ -6,7 +6,7 @@
    "name": "Region 1 Daily Quotas",
    "display_name": "Region 1",
    "region": "1",
-   "regs_verbatim": "Region 1 Daily Quotas. Trout/char: 4, but not more than 1 over 50 cm.",
+   "regs_verbatim": "Region 1 Daily Quotas. Trout/char: 4, but not more than 1 over 50 cm. Kokanee: 5.",
    "source_pages": [
     91
    ],
@@ -46,6 +46,21 @@
        "min_cm": 50
       }
      ],
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:1"
+      }
+     ]
+    },
+    {
+     "rule_id": "species_quotas.r1",
+     "type": "retention_limit",
+     "verbatim": "Kokanee: 5",
+     "species": [
+      "KO"
+     ],
+     "take": 5,
      "extents": [
       {
        "op": "within",
@@ -104,11 +119,45 @@
    ]
   },
   {
+   "entry_id": "z1:possession_quota",
+   "name": "Possession quota",
+   "display_name": "Region 1",
+   "region": "1",
+   "regs_verbatim": "Possession quotas = 2 daily quotas",
+   "source_pages": [
+    91
+   ],
+   "extents": [
+    {
+     "op": "within",
+     "area_id": "area:region:1"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "possession_quota.r1",
+     "type": "retention_limit",
+     "verbatim": "Possession quotas = 2 daily quotas",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "period": "possession",
+     "per_daily": 2,
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:1"
+      }
+     ]
+    }
+   ]
+  },
+  {
    "entry_id": "r1:fixture_river@1-1",
    "name": "FIXTURE RIVER",
    "display_name": "Fixture River",
    "region": "1",
-   "regs_verbatim": "No Fishing Apr 1-June 30\nTrout/char daily quota = 2\nNo Fishing from 21:00 hours to 05:00 hours each day, Aug 1-Dec 31",
+   "regs_verbatim": "No Fishing Apr 1-June 30\nTrout/char daily quota = 2\nNo Fishing from 21:00 hours to 05:00 hours each day, Aug 1-Dec 31\nExempt from July 15-Aug 31 summer closure",
    "source_pages": [
     91
    ],
@@ -190,6 +239,25 @@
      "extents": [
       {
        "op": "whole"
+      }
+     ]
+    },
+    {
+     "rule_id": "fixture_river.r4",
+     "type": "retention_limit",
+     "verbatim": "Exempt from July 15-Aug 31 summer closure",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "extents": [
+      {
+       "op": "whole"
+      }
+     ],
+     "exempts": [
+      {
+       "target": "summer_stream_closure.r1",
+       "entry_id": "z2:summer_stream_closure"
       }
      ]
     }

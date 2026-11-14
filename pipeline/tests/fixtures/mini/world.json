@@ -4,7 +4,7 @@
  "origin": [1000000, 800000],
  "wsc_root": "920-123456",
  "regions": [
-  {"mu": "1-1", "region": "1", "region_name": "Mini West", "zone": "1a", "box": [0, -15000, 25000, 15000]},
+  {"mu": "1-1", "region": "1", "region_name": "Mini West", "zone": "1a", "box": [-6000, -15000, 25000, 15000]},
   {"mu": "2-1", "region": "2", "region_name": "Mini East", "zone": "2a", "box": [25000, -15000, 50000, 15000]}
  ],
  "land": [[0, -15000, 50000, 15000]],
@@ -64,7 +64,8 @@
   {"name": "Mockton", "place": "town", "rank": 2, "pop": 1200, "at": [12000, 2500]},
   {"name": "Stubville", "place": "village", "rank": 4, "pop": 140, "at": [31000, 1500]}
  ],
- "synopsis": "Invented mini synopsis (T667). EFFECTIVE APRIL 1, 2025 THROUGH MARCH 31, 2027",
+ "synopsis": {"cover": "Invented mini synopsis (T667). EFFECTIVE APRIL 1, 2025 THROUGH MARCH 31, 2027",
+              "printed_pages": [4, 5, 6, 7, 8, 9, 80, 91, 92]},
  "obstacles": [
   {"id": 950000001, "name": "Falls", "water": "Mock Creek", "height_m": 3.0, "surveyed": "2001-07-01",
    "at": [10000, 6000]}

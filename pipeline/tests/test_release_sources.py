@@ -152,13 +152,36 @@ def test_ship_writes_the_block_into_the_manifest(tmp_path):
     assert json.loads((d / "manifest.json").read_text())["sources"] == s
 
 
-def test_the_release_cli_dates_the_sources_from_the_fetched_data_dir():
-    # the CLI's one call: the fetched inputs (SOURCE), the book's own title (answers.common.BOOK_TITLE) and the DFO scrape
-    import inspect
-
+def test_the_release_cli_dates_the_sources_from_the_fetched_data_dir(monkeypatch, tmp_path):
+    # the CLI's one call: the fetched inputs (SOURCE), the book's own title (answers.common.BOOK_TITLE) and the DFO
+    # scrape — by default the live ones; (T667 slice 8) `--source` / `--dfo-rules` name others, and the basemap is still
+    # required unless `--no-basemap` says so
+    from pipeline.common.curated import SOURCE
     from pipeline.deliver.release import __main__ as CLI
-    assert ('sources=sources_block(SOURCE, synopsis_title=BOOK_TITLE, dfo_rules=GENERATED.regs.dfo_salmon / "rules")'
-            in inspect.getsource(CLI.main))
+    from pipeline.deliver.release import manifest as MAN
+    seen = {}
+
+    class Stop(Exception):
+        pass
+
+    def sources(d, *, synopsis_title, dfo_rules):
+        seen.update(source=d, title=synopsis_title, dfo=dfo_rules)
+        raise Stop
+    monkeypatch.setattr(MAN, "sources_block", sources)
+    monkeypatch.setattr(MAN, "tiles_block", lambda *a: None)
+    monkeypatch.setattr(MAN, "basemap_block", lambda *a: seen.setdefault("basemap", True))
+    import sqlite3
+    b = tmp_path / "b.sqlite"
+    sqlite3.connect(b).executescript("CREATE TABLE meta (k, v); INSERT INTO meta VALUES ('section_handles', 'x');")
+    args = ["--bundle", str(b), "--store", str(b), "--no-synopsis"]
+    with pytest.raises(Stop):
+        CLI.main(args)
+    assert (seen["source"], seen["title"], seen["basemap"]) == (SOURCE, TITLE, True)
+    assert seen["dfo"].as_posix().endswith("/regs/dfo_salmon/rules")              # the live DFO scrape
+    seen.clear()
+    with pytest.raises(Stop):
+        CLI.main(args + ["--no-basemap", "--source", str(tmp_path), "--dfo-rules", str(tmp_path / "r")])
+    assert (seen["source"], seen["dfo"], "basemap" in seen) == (tmp_path, tmp_path / "r", False)
 
 
 def test_the_release_id_covers_the_manifest_not_only_the_files(tmp_path):

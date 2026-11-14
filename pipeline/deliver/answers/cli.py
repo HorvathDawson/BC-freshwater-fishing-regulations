@@ -37,9 +37,16 @@ def cmd_build(a) -> int:
     very bytes (it used to hold the model, the wire, a JSON round-trip copy, the decoded model
     and the bytes at once)."""
     data, guide = load_export(a.export_dir)
+    book = None
+    if a.claims is not None:                  # (T667 slice 8) the claims' synopsis + row boxes, never the repo copy
+        from pipeline.deliver.answers.display import decided
+        from pipeline.deliver.export.claims import load
+        c = load(a.claims)
+        book = (c.synopsis, c.row_boxes)
+        decided.use_book(*book)
     model = build(a.bundle, a.export_dir, workers=a.workers,
                   items=a.items.split(",") if a.items else None, export=(data, guide),
-                  verdicts=a.verdicts)
+                  verdicts=a.verdicts, book=book)
     wire = E.encode(model, data)
     E.check_pair(wire, data, guide)
     per = {}
@@ -79,6 +86,9 @@ def main(argv=None) -> int:
     b.add_argument("--workers", type=int, default=0)
     b.add_argument("--items", help="comma-separated item ids (a partial file, for checks)")
     b.add_argument("--verdicts", default=None, help="default: verdicts.sqlite beside the bundle")
+    b.add_argument("--claims", type=Path, default=None,
+                   help="the export claims (pipeline.deliver.export.claims): the synopsis + row boxes the highlights "
+                        "are read from (default: the book's)")
     t = sub.add_parser("tap")
     t.add_argument("--answers", required=True, type=Path)
     t.add_argument("--export-dir", required=True, type=Path)

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import re
+from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Tuple
 from pipeline.common import entry_id as EID
 from pipeline.deliver.answers.common import BOOK_TITLE, AnswersError, cap, join, range_txt
@@ -244,6 +245,26 @@ def book_pages(x: dict, doc: dict) -> List[List[int]]:
 
 
 _BOXES: dict = {}
+#: (T667 slice 8) the synopsis PDF and its row boxes this run reads: the export claims' (`use_book`), else the repo
+#: copy and the generated sidecar, as before
+_BOOK: dict = {}
+
+
+def book_files() -> tuple:
+    """(synopsis PDF, row-boxes sidecar) the highlights read: `use_book`'s, else the repo copy and the generated one."""
+    from pipeline.common.synopsis_pages import default_pdf
+    from pipeline.regs.extraction.row_boxes import default_out
+    return (Path(_BOOK["pdf"]) if _BOOK.get("pdf") else default_pdf(),
+            Path(_BOOK["row_boxes"]) if _BOOK.get("row_boxes") else default_out())
+
+
+def use_book(pdf=None, row_boxes=None) -> None:
+    """Name the synopsis PDF and row-boxes sidecar the highlights are read from (`export.claims`; None = the book's).
+    Clears what was read before."""
+    _BOOK.clear()
+    _BOXES.clear()
+    if pdf is not None or row_boxes is not None:
+        _BOOK.update(pdf=pdf, row_boxes=row_boxes)
 
 
 def _row_boxes() -> dict:
@@ -255,9 +276,9 @@ def _row_boxes() -> dict:
     if "rows" in _BOXES:
         return _BOXES["rows"]
     out: dict = {}
-    from pipeline.common.synopsis_pages import default_pdf
-    from pipeline.regs.extraction.row_boxes import default_out, sha256
-    path, fix = default_out(), "python -m pipeline.regs.extraction.row_boxes (no credits), or scripts/bootstrap.sh"
+    from pipeline.regs.extraction.row_boxes import sha256
+    pdf, path = book_files()
+    fix = "python -m pipeline.regs.extraction.row_boxes (no credits), or scripts/bootstrap.sh"
     if not path.exists():
         raise AnswersError(f"display: no synopsis row boxes ({path} is missing) — every rule would lose its "
                            f"highlight; {fix}")
@@ -266,7 +287,7 @@ def _row_boxes() -> dict:
         rows = side["rows"].values()
     except (ValueError, KeyError, AttributeError, TypeError) as e:
         raise AnswersError(f"display: {path} is not a row-boxes sidecar ({e}); {fix}") from e
-    if side.get("pdf_sha256") != sha256(default_pdf()):
+    if side.get("pdf_sha256") != sha256(pdf):
         raise AnswersError(f"display: {path} was cut from another synopsis PDF (pdf_sha256 "
                            f"{str(side.get('pdf_sha256'))[:16]}), not the one the release ships; {fix}")
     for r in rows:

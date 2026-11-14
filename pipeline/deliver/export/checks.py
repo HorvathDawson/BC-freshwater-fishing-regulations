@@ -431,7 +431,10 @@ def pdf_page_problems(doc: dict) -> list[str]:
             if str(n) not in m]
 
 
-def problems(doc: dict) -> list[str]:
+def problems(doc: dict, claims=None) -> list[str]:
+    """Every problem of the model; `claims` the duties the corpus claims (`export.claims`; None = the book's, all)."""
+    from pipeline.deliver.export.claims import duties_of
+    duties = duties_of(claims)
     return ([f"retired key {w}" for w in retired_keys(doc)] + unexplained(doc) + dangling(doc)
             + pdf_page_problems(doc) + undrawn_map_problems(doc)
             + guide_example_problems(doc)
@@ -439,5 +442,6 @@ def problems(doc: dict) -> list[str]:
             + case_problems(doc) + record_link_problems(doc) + steelhead_lake_problems(doc)
             + steelhead_presence_problems(doc) + steelhead_set_problems(doc)
             + run_problems(doc) + period_problems(doc) + name_problems(doc)
-            + paper_licence_problems(doc) + protected_problems(doc)
+            + paper_licence_problems(doc, required="paper_licence" in duties)
+            + protected_problems(doc, required="protected_fish" in duties)
             + release_under_closure_problems(doc))

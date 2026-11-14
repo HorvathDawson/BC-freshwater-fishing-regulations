@@ -16,7 +16,10 @@ from pipeline.deliver.export.closures import quota_under_closure, release_under_
 from pipeline.deliver.export.checks import corpus_references
 
 
-def build(bundle: Path = BUNDLE) -> dict:
+def build(bundle: Path = BUNDLE, claims=None) -> dict:
+    """`claims`: what the corpus claims (`export.claims`; None = the book's)."""
+    from pipeline.deliver.export.claims import book
+    claims = claims or book()
     d = read(bundle)
     counts = {
         "entries": len(d["entries"]),
@@ -48,8 +51,9 @@ def build(bundle: Path = BUNDLE) -> dict:
             # (`quota_under_closure`): each must be listed as known, or the export is refused
             "quota_under_closure": quota_under_closure(bundle),
         },
-        "guide": with_closure_gotchas(dict(guide(d), examples=_guide_examples(bundle),
-                                           cases=cases(d, bundle), pdf_pages=pdf_pages()),
+        "guide": with_closure_gotchas(dict(guide(d), examples=_guide_examples(bundle, claims.examples),
+                                           cases=cases(d, bundle, claims.mechanisms),
+                                           pdf_pages=pdf_pages(claims.synopsis)),
                                       d, bundle),
         "field_dictionary": field_dictionary(d),
         "species": species_table(),
@@ -71,6 +75,6 @@ def build(bundle: Path = BUNDLE) -> dict:
     return doc
 
 
-def _guide_examples(bundle) -> dict:
+def _guide_examples(bundle, declared=None) -> dict:
     from pipeline.deliver.export.examples import examples
-    return examples(bundle)
+    return examples(bundle, declared)

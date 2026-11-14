@@ -386,8 +386,11 @@ RESERVED: Dict[str, str] = {}
 _WORKER: Optional[Context] = None
 
 
-def _init_worker(bundle, rule_index, licence_reps, verdicts):
+def _init_worker(bundle, rule_index, licence_reps, verdicts, book=None):
     global _WORKER
+    if book is not None:
+        from pipeline.deliver.answers.display import decided
+        decided.use_book(*book)
     _WORKER = Context(bundle, rule_index, licence_reps, verdicts=verdicts)
 
 
@@ -448,7 +451,7 @@ class Model:
 def build(bundle: str, export_dir: Path, *, workers: int = 0, items: Optional[Iterable[str]] = None,
           sections: Optional[Sequence[str]] = None, log=print,
           export: Optional[Tuple[dict, dict]] = None, verdicts: Optional[str] = None,
-          unnamed: Optional[Iterable[int]] = None) -> Model:
+          unnamed: Optional[Iterable[int]] = None, book: Optional[Tuple] = None) -> Model:
     """Every answer for every part of every named water in the export (or only `items`) AND every
     part of the unnamed water (answers 2.4, S1: the bundle's `unnamed_part`, keyed after the named
     parts — all of them, or only `unnamed` (part ids); none when `items` is given without
@@ -510,7 +513,7 @@ def build(bundle: str, export_dir: Path, *, workers: int = 0, items: Optional[It
     from pipeline.deliver.answers import licence as _licence
     lic_scopes = [sc for name, sc, _ in tasks if name == "licence"]
     licence_reps = _licence.representatives(B.path, lic_scopes) if lic_scopes else {}
-    args = (B.path, rule_index, licence_reps, verdicts)
+    args = (B.path, rule_index, licence_reps, verdicts, book)
     if workers == 1:
         _init_worker(*args)
         got = map(_run_scope, tasks)

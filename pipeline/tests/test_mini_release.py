@@ -193,7 +193,7 @@ def chain(tmp_path_factory):
 
 
 def test_the_mini_chain_builds_twice_alike_on_invented_inputs_only(chain):
-    """THE CHAIN on the mini world (atlas -> reach -> tile layers -> bundle -> verdicts -> status index), twice, into
+    """THE CHAIN on the mini world (atlas -> reach -> tile layers -> bundle ... -> release), twice, into
     tmp: every stage's own command, every input invented (on CI there is no live tree at all, so a stage that reached
     one fails here), no live directory changed (`build` refuses), and the two runs' digests equal (AGENTS 19)."""
     root, a, _ = chain
@@ -202,7 +202,40 @@ def test_the_mini_chain_builds_twice_alike_on_invented_inputs_only(chain):
     assert da == db
     assert {"deliver/bundle.sqlite", "deliver/verdicts.sqlite", "deliver/status_index.bin",
             "tiles/atlas.meta.json", "tiles/layers/stream.geojsonl", "reaches/report.json"} <= set(da)
-    assert M.PARKED_AT[0] == "export"
+    assert {"deliver/ui-rules-export.json", "deliver/ui-rules-answers.json", "release/LATEST"} <= set(da)
+    rel = [k for k in da if k.startswith("release/r-") and k.endswith("/manifest.json")]
+    assert len(rel) == 1                                                  # one release, the same id both runs
+
+
+def test_the_export_holds_the_mini_corpus_to_its_own_claims(chain, tmp_path):
+    """The mini claims bite as the book's do: a mechanism the corpus has no case of, or an example the reader
+    contradicts, refuses the export (the shipped claims pass: the chain above built)."""
+    from pipeline.deliver.export import __main__ as X
+    out = chain[0] / "a"
+    claims = json.loads((out / "fed" / "claims.json").read_text())
+    for change, said in ((lambda c: c["mechanisms"].append("two_regions_closure"), "no real case of two_regions_closure"),
+                         (lambda c: c["examples"][0].update(silent=c["examples"][0]["speaks"]), "is not silent"),
+                         (lambda c: c["duties"].remove("protected_fish"), None)):
+        c = json.loads(json.dumps(claims))
+        change(c)
+        p = out / "fed" / "claims-planted.json"
+        p.write_text(json.dumps(c))
+        rc = X.main(["--bundle", str(out / "deliver" / "bundle.sqlite"), "--out", str(tmp_path / "e.json"),
+                     "--claims", str(p)])
+        assert rc == (0 if said is None else 1), change
+
+
+def test_check_and_write_compare_and_replace_the_copy_whole(chain, tmp_path, monkeypatch, capsys):
+    built = chain[0] / "a" / "release"
+    monkeypatch.setattr(M, "_fresh_release", lambda scratch: built)
+    dest = tmp_path / "mini-release"
+    assert M.write(dest, tmp_path / "s") == 0 and M.check(dest, tmp_path / "s") == 0
+    manifest = next(dest.glob("r-*/manifest.json"))
+    manifest.write_text(manifest.read_text() + " ")
+    assert M.check(dest, tmp_path / "s") == 1 and "manifest.json" in capsys.readouterr().out
+    (dest / "r-000000000001").mkdir()
+    with pytest.raises(SystemExit, match="exactly one r-"):
+        M.check(dest, tmp_path / "s")
 
 
 def test_the_mini_world_holds_the_plans_inventory(chain):
@@ -267,4 +300,5 @@ def test_the_mini_world_holds_the_plans_inventory(chain):
     # the land a section crosses (T54), a gauge, and the corpus size
     assert {t for (t,) in q("SELECT tier FROM access_area")} == {"no_access", "reserve", "private"}
     assert q("SELECT station, item_id FROM gauge") == [("99MA001", river)]
-    assert q("SELECT COUNT(*) FROM entry")[0][0] == 15
+    # 17 entries of the mini's own and 10 of the book's provincial rows the answers' glossary needs (copied)
+    assert q("SELECT COUNT(*) FROM entry")[0][0] == 27

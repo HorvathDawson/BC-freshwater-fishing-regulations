@@ -1152,7 +1152,8 @@ def _find_licensing(K, add):
                     break
 
 
-def cases(d: dict, bundle: Path) -> dict:
+def cases(d: dict, bundle: Path, mechanisms=None) -> dict:
+    """`mechanisms`: the ones the corpus claims (`export.claims`; None = every one, the book's)."""
     from pipeline.deliver.bundle.rules import release_origins, same_statement
     K = _Cases(d, bundle)
     R, RD = K.R, K.RD
@@ -1222,9 +1223,9 @@ def cases(d: dict, bundle: Path) -> dict:
                    "mechanism. A licensing case also carries `expect_licensing`: every record "
                    "its licensing set holds. The ids are the export's own; section handles "
                    "never leave the bundle.",
-        "mechanisms": CASE_MECHANISMS,
-        "missing": sorted(set(CASE_MECHANISMS) - set(got)),
-        "cases": [c for mech in CASE_MECHANISMS for c in got.get(mech, [])],
+        "mechanisms": {m: CASE_MECHANISMS[m] for m in (CASE_MECHANISMS if mechanisms is None else mechanisms)},
+        "missing": sorted(set(CASE_MECHANISMS if mechanisms is None else mechanisms) - set(got)),
+        "cases": [c for mech in (CASE_MECHANISMS if mechanisms is None else mechanisms) for c in got.get(mech, [])],
     }
 
 

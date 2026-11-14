@@ -63,11 +63,12 @@ def _status_index(bundle: Path, out: Path) -> Path:
     return out
 
 
-def _export(bundle: Path, out: Path) -> Path:
+def _export(bundle: Path, out: Path, claims: Path | None = None) -> Path:
     from pipeline.deliver.export import __main__ as export_main
     # a REFUSED export (problems, a lossy or dangling encoding) leaves the old pair on disk and
     # must fail the command, never exit 0
-    if export_main.main(["--bundle", str(bundle), "--out", str(out)]):
+    if export_main.main(["--bundle", str(bundle), "--out", str(out),
+                         *(["--claims", str(claims)] if claims is not None else [])]):
         raise SystemExit(f"pipeline.deliver: the export was refused — {out} was not written")
     return out
 
@@ -345,6 +346,8 @@ def main(argv=None) -> int:
     e.add_argument("--bundle", type=Path, default=GENERATED.bundle / "bundle.sqlite")
     e.add_argument("--out", type=Path, default=None,
                    help="the data file; ui-rules-guide.json is written beside it")
+    e.add_argument("--claims", type=Path, default=None,
+                   help="(T667 slice 8) what the corpus claims (pipeline.deliver.export.claims; default: the book's)")
     an = sub.add_parser("answers", help="the answers file (answers/2) beside the export pair")
     an.add_argument("--bundle", type=Path, default=GENERATED.bundle / "bundle.sqlite")
     an.add_argument("--export-dir", type=Path, default=None,
@@ -352,6 +355,8 @@ def main(argv=None) -> int:
     an.add_argument("--out", type=Path, default=None,
                     help="default: ui-rules-answers.json in the export's directory")
     an.add_argument("--workers", type=int, default=4)
+    an.add_argument("--claims", type=Path, default=None,
+                    help="(T667 slice 8) the export claims the highlights are read from (default: the book's)")
     cc = sub.add_parser("card_check", help="the card gate on the shipped answers; writes card-check.json")
     cc.add_argument("--bundle", type=Path, default=GENERATED.bundle / "bundle.sqlite")
     cc.add_argument("--export-dir", type=Path, default=None,
@@ -419,7 +424,8 @@ def main(argv=None) -> int:
         exp = a.export_dir or _EXPORT_OUT.parent
         out = a.out or exp / "ui-rules-answers.json"
         rc = answers_main(["build", "--bundle", str(a.bundle), "--export-dir", str(exp),
-                           "--out", str(out), "--workers", str(a.workers)])
+                           "--out", str(out), "--workers", str(a.workers),
+                           *(["--claims", str(a.claims)] if a.claims is not None else [])])
         if rc:
             raise SystemExit(f"pipeline.deliver: the answers were refused — {out} was not written")
     elif a.step == "card_check":
@@ -440,7 +446,7 @@ def main(argv=None) -> int:
             raise SystemExit(f"pipeline.deliver: the store was refused — {out} was not written")
     elif a.step == "export":
         from pipeline.deliver.export.contract import OUT as _EXPORT_OUT
-        _export(a.bundle, a.out or _EXPORT_OUT)
+        _export(a.bundle, a.out or _EXPORT_OUT, a.claims)
     return 0
 
 
