@@ -211,6 +211,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T709 | Store preview video from ONE command (like T704): Android emulator recording on the final build + staging data, 25-30 s, ffmpeg captions/poster, spec check; iOS version later at Apple's sizes (benched) | IN PROGRESS (step 1 Android built: `node app/tools/store-video/run.mjs`; owner looks at the clip before any upload; step 2 iOS benched) | — | owner 2026-11-13 "we want to generate a nice App preview"; T704, T319, T244 |
 | T710 | Parts list: a side channel is listed next to the main-stem part it runs beside (count first, report to owner) | IN PROGRESS (left (Claude): ships with the next release; taps.py Skeena indices at the re-cut) | 023c61c9d | owner 2026-11-13; priority open for main to place |
 | T711 | Part header text follows the "Source" end name (P55, 62 tops) | IN PROGRESS | — | owner 2026-11-13; code + tests done (`part.own_end`, 62 tops); left (Claude): Kanaka shot after the next release |
+| T714 | Share a saved spot, and a group of spots, by link or file (today Share sends a water only) | OPEN | — | owner 2026-11-13; priority for the owner to place; decisions by dialog first (what travels, link vs file vs server, privacy text) |
 
 ## Next after closed testing
 
