@@ -63,6 +63,8 @@ A = privacy-labels-draft.md, B = play/data-safety.md, C = app.json manifest. Rec
 | 7 | Where the crash switch is | More, Data | More, Data | n/a | `SettingsPage.tsx:8`: More, Settings, Privacy; the comment at `crashReport.ts:3` is old | Say "More, Settings, Privacy" in review notes and the privacy page. The two older docs predate T703 |
 | 8 | Purposes list per type | one purpose each | per type, some two | one purpose each | see rows 1 and 3 | If rows 1 and 3 are accepted, the manifest block gets Product Interaction and an Analytics purpose on Device ID: a small app.json edit, to be a ticket, not done here |
 
+Rows 4 and 7 were fixed on the Play page on 2026-11-14 (fa0d0a45c): production sends reports; the switch is under More, Settings, Privacy. The Play form needed no change.
+
 ## Not verified
 - The exact screens and wording of App Store Connect's current questionnaire (shapes above are from memory of Apple's categories).
 - That no other payload carries more (only crashReport.ts and weather.ts were read in full today; report.ts per data-safety.md).

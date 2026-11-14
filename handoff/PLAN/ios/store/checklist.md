@@ -71,5 +71,5 @@ built from the product name: it is stale, rebuild before judging.
 ## F. Decided, and what is still open
 Decided (owner 2026-11-14): home-screen label "Can I Fish?"; Precise location (and Coarse); install id purposes Analytics + App Functionality; category Navigation then Sports; Play texts are the source.
 Open, default: email in the privacy answers is linked to the user (a) default, or (b) not linked.
-Flagged for the owner: `play/data-safety.md` says production builds send no reports; the code does (`env.ts:44`). Play-side fix, not edited here.
+Resolved 2026-11-14 (fa0d0a45c): `play/data-safety.md` now says production does send reports and that the crash switch is under More, Settings, Privacy. The Play form itself was already right (its answers were written for the build that sends reports); nothing submitted to Play changes.
 See `listing.md` here for the field-by-field text.

@@ -52,3 +52,6 @@ etc etc choose best category"
 
 ### Results, round 2 (docs lane, 2026-11-14)
 Owner answers applied to `handoff/PLAN/ios/store/`: Play texts are the source; new `listing.md` maps each App Store Connect field to them (all fit the Apple limits; name, subtitle and keywords sit exactly at 30/30/100; description 3924 of 4000). Decided and stated as decided: home-screen label "Can I Fish?", Precise (and Coarse) location, install id = Analytics + App Functionality, category Navigation then Sports. Open with default: email linked. Flagged (Play-side, not edited): `play/data-safety.md` says production sends no reports; `env.ts:44` says it does. Icon check: `icon-1024.png` is 1024 x 1024 but hasAlpha = yes, so a flattened copy is needed for Apple (not done). UIBackgroundModes fetch + processing verified (coordinator), "not verified" line dropped.
+- 2026-11-14: the two stale lines the pack found in `handoff/PLAN/play/data-safety.md` (production sends no reports; the
+  crash switch under More, Data) were corrected by the main chat (fa0d0a45c). The owner relayed: nothing submitted to Play
+  needs changing, the form's answers were already written for the build that sends reports.
