@@ -68,10 +68,12 @@ export function count(img, r, test) {
  * The accessibility tree does not list the keyboard, so it is read off the pixels: its material is a light grey with a
  * blue cast (iOS 26 light: about 223,224,228), keys are white with grey gaps between rows. From the bottom up, a row is
  * "keyboard" when 30% or more of its middle is that grey; key rows (mostly white) are crossed as gaps up to 7% of the
- * height. Checked against a shot by eye (T723-kb-glossary.png: the row found is the keyboard's rounded top).
+ * height. Checked against shots by eye (T723-kb-glossary.png, T723-kb-spot-notes.png with the violet typing glow: the
+ * row found is the keyboard's rounded top).
  */
 export function keyboardTop(img) {
-  const kb = (r, g, b) => r >= 195 && r <= 240 && b - r >= 1 && b - r <= 12 && Math.abs(g - r) <= 6;
+  // the grey (B a little over R), and the violet glow iOS 26 lays over the keyboard's lower rows while typing
+  const kb = (r, g, b) => r >= 180 && r <= 240 && b >= 200 && b - r >= 1 && b - r <= 80 && g <= r + 6;
   const x0 = Math.round(img.w * 0.1), x1 = Math.round(img.w * 0.9);
   const rowIn = (y) => {
     let n = 0, k = 0;
