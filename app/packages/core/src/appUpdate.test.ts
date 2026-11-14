@@ -5,7 +5,7 @@
 import { describe, expect, it } from "vitest";
 import { APP_UPDATE_WORDS as W, apkIsNewer, appUpdateChannel, appUpdateVM, appVersionToTell, changelogVM, notesFor,
          readAppUpdateSaved, shouldCheckAppUpdate, type AppUpdateCheck } from "./appUpdate";
-import { CHANGELOG } from "./changelog";
+import { CHANGELOG, type ChangelogEntry } from "./changelog";
 import { compareSemver } from "./appVersion";
 import { bellLabel } from "./updates";
 
@@ -137,7 +137,7 @@ describe("(T234 v1.1) the changelog and the incoming version's bullets", () => {
     expect(rows.map((r) => r.version)).toEqual([...rows.map((r) => r.version)].sort((a, b) => (a < b ? 1 : -1)));
   });
   it("(T723 G11) each platform reads only its own notes; Android's list is the file's, byte for byte", () => {
-    const tagged = [
+    const tagged: ChangelogEntry[] = [
       { version: "0.2.0", date: null, notes: ["Both", "Only Play has it"], only: { "Only Play has it": "android" as const } },
       { version: "0.1.0", date: null, notes: ["Only Play has it too"], only: { "Only Play has it too": "android" as const } },
     ];
