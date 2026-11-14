@@ -8,7 +8,7 @@
  */
 import { afterEach, beforeAll, describe, expect, it } from "vitest";
 import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
-import type { Day, RegsInputs, RegsTarget, Weekday, Who } from "@app/core";
+import { bcNow, type Day, type RegsInputs, type RegsTarget, type Weekday, type Who } from "@app/core";
 import type { ItemId } from "@app/data";
 import { openRegsStore, RegsStoreError, type RegsStore } from "@app/data/regs";
 import { openRegsFixture, regsFixtureLines } from "@app/data/release/node";
@@ -143,7 +143,9 @@ describe("useRegsTarget / useRegulations (through the T09 seam)", () => {
     const { asks, load } = recorder();
     renderHook(() => useRegulations(st, { kind: "section", handle: UNNAMED }, null, load));
     await waitFor(() => expect(asks.length).toBe(1));
-    const now = new Date();
+    // today on the B.C. clock the app reads (UTC−7 all year, core clock.ts) — never the test runner's zone (vitest's
+    // America/Vancouver tz data says UTC−8 in winter: 07:00–08:00 UTC it named yesterday, CI 2026-11-14)
+    const now = bcNow();
     expect([asks[0]!.target, asks[0]!.day, asks[0]!.year])
       .toEqual([{ kind: "section", handle: UNNAMED }, { month: now.getMonth() + 1, day: now.getDate() }, now.getFullYear()]);   // as given
   });

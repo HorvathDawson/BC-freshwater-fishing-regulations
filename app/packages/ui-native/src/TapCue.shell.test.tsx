@@ -54,7 +54,7 @@ const PAIRING: PairingInput = {
 let androidBack: () => boolean = () => false;
 const android: SystemBack = (back) => { androidBack = back; return { sync: () => {}, dispose: () => {} }; };
 
-afterEach(cleanup);
+afterEach(() => { vi.useRealTimers(); cleanup(); });
 
 const lit = () => screen.queryByTestId("map-lit")?.textContent ?? "no map";
 /** The water's page: none, built hidden behind the map (the held pane), or shown. */
@@ -62,7 +62,19 @@ const pane = () => {
   const h = screen.queryByTestId("regs-header");
   return !h ? "no pane" : h.closest('[aria-hidden="true"]') ? "pane hidden" : "pane shown";
 };
-const wait = (ms: number) => act(async () => { await new Promise((r) => setTimeout(r, ms)); });
+/** FAKE time, advanced only here (setTimeout/clearTimeout faked once the Shell is up): the cue's CUE_WAIT_MS timer fires
+ *  only when the test moves the clock past it, never because a slow runner took long (CI, 2026-11-14: a real 400 ms wait
+ *  outlasted the 700 ms cue). A real event-loop turn (setImmediate, not faked) after each step lets the fixture store's
+ *  I/O and the pane's build go on. */
+const wait = (ms: number) => act(async () => {
+  await vi.advanceTimersByTimeAsync(ms);
+  await new Promise((r) => setImmediate(r));
+});
+/** Fake time moved 25 ms at a step until `ok`, or throws naming `what` (waitFor would wait on the faked clock). */
+async function until(ok: () => boolean, what: string, steps = 400) {
+  for (let i = 0; i < steps; i++) { if (ok()) return; await wait(25); }
+  throw new Error(`never: ${what}`);
+}
 const press = (name: string) => act(() => { fireEvent.click(screen.getByRole("button", { name })); });
 
 describe("(T716) the tap's cue", () => {
@@ -80,6 +92,7 @@ describe("(T716) the tap's cue", () => {
       </GestureHandlerRootView>);
     await waitFor(() => expect(screen.getByTestId("map-lit")).toBeTruthy());
     const seen: string[] = [lit()];
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
 
     // a double tap's first lift: lit at once, the water built behind the map; no click: taken back, nothing shown
     press("lift");
@@ -92,14 +105,15 @@ describe("(T716) the tap's cue", () => {
 
     // a tap: lit at the lift, the pane built hidden meanwhile and held until the click; shown at the click
     press("lift");
-    await wait(400);   // the click comes ~300 ms after the finger went down
+    expect(400).toBeLessThan(CUE_WAIT_MS);
+    await wait(400);   // the click comes ~300 ms after the finger went down: before the cue's own timeout
     seen.push(`${lit()} ${pane() === "pane shown" ? "SHOWN before the click" : "not shown before the click"}`);
     await act(async () => { fireEvent.click(screen.getByRole("button", { name: "click" })); });
-    await waitFor(() => expect(pane()).toBe("pane shown"), { timeout: 5_000 });
+    await until(() => pane() === "pane shown", "the pane shown after the click");
     seen.push(pane());
     // back: the map again, nothing lit
     act(() => { androidBack(); });
-    await waitFor(() => expect(screen.getByTestId("map-lit")).toBeTruthy());
+    await until(() => screen.queryByTestId("map-lit") !== null, "the map back after Back");
     await wait(50);
     seen.push(`${lit()} ${pane()}`);
 
