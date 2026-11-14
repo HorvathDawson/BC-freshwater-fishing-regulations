@@ -55,6 +55,10 @@ BY_DESIGN = frozenset({
     # working exclusions: the Columbia / Kootenay tributary rows carry no tributary rule of their own
     ("r4:kinbasket_mcnaughton_lake_s_tributaries@4-36", "kinbasket_lake_tributaries.r2"),
     ("r4:kootenay_lake_s_tributaries@4-19+4-7", "kootenay_lake_tributaries.r2"),
+    # T708 (c) (owner 2026-11-13: take the tidal note off the 13 freshwater tributaries): "Tidal waters regulations
+    # apply … downstream of tidal boundary sign" holds on the tidal piece only (`includes_tributaries: false`), which the
+    # tidal trim empties — unresolved `tidal`; the tidal part says "tidal water" by itself
+    ("r1:tlell_river@6-13", "tlell_river.r5"),
 })
 
 #: AWAITING A WATER — the row's printed MU holds no registry water of its name (owner, T89 Q-A).
@@ -70,8 +74,8 @@ AWAITING_WATER_ROWS = {
 }
 AWAITING_WATER = frozenset((e, r) for e, (_, _, rids) in AWAITING_WATER_ROWS.items() for r in rids)
 
-#: Every rule allowed to end unresolved: 7 by design (the steelhead lake twins, T713) + 10 awaiting a water (T708: Hidden,
-#: Secret, Square matched; Gagnon r1 binds its 200 m above the unnamed lake).
+#: Every rule allowed to end unresolved: 8 by design (the steelhead lake twins, T713; the Tlell's tidal note, T708 (c)) + 10
+#: awaiting a water (T708: Hidden, Secret, Square matched; Gagnon r1 binds its 200 m above the unnamed lake).
 ALLOWED_UNRESOLVED = BY_DESIGN | AWAITING_WATER
 
 
@@ -106,7 +110,7 @@ def _place(rule: dict) -> dict:
 # The allow-list itself (no data): exact, both ways — the key rule, mutation-pinned
 # ---------------------------------------------------------------------------------------------
 def test_the_allow_list_is_exact():
-    assert len(BY_DESIGN) == 7 and len(AWAITING_WATER) == 10 and len(ALLOWED_UNRESOLVED) == 17
+    assert len(BY_DESIGN) == 8 and len(AWAITING_WATER) == 10 and len(ALLOWED_UNRESOLVED) == 18
     assert unresolved_problems(set(ALLOWED_UNRESOLVED)) == []
 
 

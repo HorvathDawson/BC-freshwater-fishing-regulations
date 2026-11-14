@@ -12091,6 +12091,7 @@
      "rule_id": "tlell_river.r5",
      "type": "advisory",
      "verbatim": "Tidal waters regulations apply to waters downstream of tidal boundary sign located 1.5 km upstream of Hwy 16 Bridge",
+     "includes_tributaries": false,
      "extents": [
       {
        "op": "downstream_of",

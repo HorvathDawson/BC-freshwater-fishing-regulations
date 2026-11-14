@@ -66,6 +66,7 @@ WIDENED = {
     "r2:ruby_lake@2-5": 1,
     "r2:sakinaw_lake@2-5": 2, "r3:adams_lake@3-37": 1, "r3:leighton_lake@3-18": 2,
     "r3:loon_lake@3-30": 2, "r3:mahood_lake_see_map_on_page_28_for_area_closure@3-46": 8,
+    "r3:mcarthur_island_slough@3-28": 1,  # "from westerly entrance to 12th Street entrance to Park" (T708 (a))
     "r3:roche_lake@3-20": 1, "r3:shumway_lake@3-20": 1,
     "r3:shuswap_lake_see_maps_on_page_28_includes_little_shuswap_lak@3-26": 7, "r3:white_lake@3-26": 1,
     "r4:columbia_lake@4-25": 1, "r4:columbia_river@4-15+4-26+4-34+4-38+4-8": 1,
@@ -117,7 +118,8 @@ def test_the_widened_rules_are_counted():
     # T222 (r-0fa7927b16e5): the Stave's r1/r2 bind the Ruskin and Northrop channels, drawn now (85, 56 -> 83, 55)
     # T209 follow-up (owner 2026-11-12): the Harrison's no-powered-boats alternative, r4, beside r3 in the same bays
     # T708 (owner 2026-11-13): Pitt r2 "speed restriction at Grant Narrows" is an undrawn part again (84, 55 -> 85, 56)
-    assert (sum(per.values()), len(per)) == (85, 56)
+    # T708 (a) (owner 2026-11-13): McArthur Island Slough's "No powered boats" keeps its place words "in part" (85, 56 -> 86, 57)
+    assert (sum(per.values()), len(per)) == (86, 57)
     lic = sorted(e["entry_id"] for f in sorted(under_test.curated().regulations.synopsis.glob("region-*.json"))
                  for e in json.loads(f.read_text(encoding="utf-8"))["entries"]
                  for x in e.get("licensing") or [] if str(x.get("undrawn_part") or "").strip())
