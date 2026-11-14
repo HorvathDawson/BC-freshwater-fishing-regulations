@@ -11,6 +11,17 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
+- **Production move (2026-11-14): READY, yours to run** (owner: "tonight we will probably do that"). Follow
+  `handoff/PLAN/release/PRODUCTION.md`, first-transition steps 3-8. Data, from the main folder:
+  `CONFIRM_PROD=r-f749475d0962 .venv/bin/python -m pipeline release --prod r-f749475d0962`. Website, from the clean copy
+  `~/bcfish-clean-staging` (must be at 9048fbc20, `git status --porcelain -- app` empty): `deploy/prod/site.sh --dry-run`,
+  then `CONFIRM_PROD=canifishthis.ca deploy/prod/site.sh`, then `node app/tools/smoke-staging.mjs --production`. Then look
+  at `https://canifishthis.ca/privacy`. Production has no Play config file (`play.json`) yet. Page row
+  `hold-prod-move-staging-dirty-1114` has the same steps.
+- **To-Do page and this file compared 2026-11-14.** Added to the page: T686 pick, the 12 iOS-day defaults (one row),
+  Apple account after approval, Play closed-testing steps. Closed on the page: T688 wording (answered 11-12). Build 29
+  phone check marked replaced by the 0.7.8 / 0.7.9 rows. Not on the page (old, to prune or re-ask): Run timing T199 runs,
+  Q4 / Q126 / Q9 / Q26 / Q27, the long phone-test lists (T50 / T77 / T74 / T217 / T243), SEO v1.
 - **T730 search (2026-11-14), not blocking; look on the next build.** (1) Recent searches PROPOSAL: one small block
   under the search field, "Recent searches · Clear", then up to 4 searches as small square tags that wrap (about 80 px
   tall instead of about 340). Alternatives in the ticket: 3 compact rows, or one scrolling line of tags. (2) Closing
