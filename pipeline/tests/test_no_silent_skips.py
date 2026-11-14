@@ -68,6 +68,7 @@ def _files() -> list[Path]:
     return sorted(p for t in TREES for p in t.rglob("*.py") if "__pycache__" not in p.parts)
 
 
+@pytest.mark.smoke  # T667 D6: a guard beside the file's first test
 def test_no_skip_outside_the_allowlist():
     found: dict[str, list[tuple[int, str]]] = {}
     for p in _files():
@@ -177,6 +178,7 @@ def test_every_kind_is_a_registered_marker_and_strict():
     assert "--strict-markers" in cp["pytest"]["addopts"]
 
 
+@pytest.mark.smoke  # T667 D6: a guard beside the file's first test
 def test_ci_deselects_slow_and_every_data_kind():
     """The no-data tier must leave out every marker that needs data, and `slow` (the command line
     `-m` REPLACES the ini's `-m "not slow"`, so CI must say it again)."""

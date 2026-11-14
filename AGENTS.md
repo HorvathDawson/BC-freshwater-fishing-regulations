@@ -137,7 +137,8 @@ A6. **Commit only your own paths: `git commit -- <paths>`.** Several agents shar
     2026-09-29 (`pytest --collect-only -q -m slow`, run unfiltered, not through rtk). Determinism and full-build
     guards live there, so CI must run `-m slow` explicitly or they never run.
     **Test tiers (P00, 2026-10-20):** Tier 0 is the one file you touched; Tier 1 is `scripts/test-smoke.sh`, run per
-    commit (≈ 75 s: `pnpm -C app check`, `pytest -m smoke` from `pipeline/tests/smoke.txt`); Tier 2 is
+    commit (≈ 75 s: `pnpm -C app check`, `pytest -m smoke`: per test file its first no-data test, or the
+    ones it marks `@pytest.mark.smoke` (guards), by rule in `pipeline/tests/smoke.py` — no list to edit, T667 D6); Tier 2 is
     `scripts/test-full.sh` via `scripts/heavy.sh`, once per phase or before a merge. **Heavy jobs** (atlas build, reach run,
     `pipeline.deliver`, tile builds, full pytest, the Android emulator) go through `scripts/heavy.sh <label> <min free %> --
     <cmd>`: one at a time per lane (two lanes: the default and `HEAVY_LOCK=~/.claude/heavy-job-2.lock`), waits for free
@@ -152,8 +153,7 @@ A6. **Commit only your own paths: `git commit -- <paths>`.** Several agents shar
     held was never used and was deleted (T561).
 20a. **Fast-fail first, and it grows (owner 2026-11-07, T483).** Before any long job (build, release, APK, emulator,
     full suite), run `scripts/fast-fail.sh`: the cheap checks that stop a doomed job in a minute or two (each item
-    is listed there with a "caught:" comment: conflict markers, ticket ledger, smoke.txt covering every pipeline test
-    files, changed Python compiles, colours, answers-stale, app typecheck, vitest related to the changed app files;
+    is listed there with a "caught:" comment: conflict markers, ticket ledger, the derived smoke rule, changed Python compiles, colours, answers-stale, app typecheck, vitest related to the changed app files;
     2026-11-09: format pairs Python ↔ app/worker, goldens cut from LATEST, no-silent-skips on a changed test file).
     Run it while a build waits, too. `python -m pipeline release --staging` (preflight, with the branch-pushed check)
     and `deploy/staging/build-apk.sh` run it first; the escape (`--no-fast-fail REASON` / `--no-fast-fail=REASON`)
@@ -381,8 +381,9 @@ W46. **The guards the 2026-11 audits put in (T429–T442) stay in. A change that
       lettered ones are `A` Absolute, `W` Working style; the Reading section's 45/46 are the numbers other files cite).
       It does not compare the Status text with the row's text beyond the keyword. After a cherry-pick, remap the hashes
       the tickets cite.
-    - **Smoke coverage gate** (`pipeline/tests/smoke_pending.txt`): the list only shrinks; a new module gets a smoke
-      test, not a line in the file. Golden parity is strict.
+    - **Smoke set by rule** (T667 D6, 2026-11-14; `pipeline/tests/smoke.py`, pinned by `test_smoke_coverage.py`): every test
+      file is in it by its first no-data test (or the tests it marks `smoke`); no hand list, and a `smoke` mark on a
+      `needs_*` / `slow` test stops the run. Golden parity is strict.
     - **No frozen prototype oracles**: `golden.json` and its tests were retired (T439); the regs oracles are
       release-backed (`app/fixtures/golden/taps.json`, re-cut by `node app/tools/regs-recut/sync.mjs`). The release
       re-cuts EVERY release-backed fixture itself, on its candidate, before the promote (T666); when LATEST moved any

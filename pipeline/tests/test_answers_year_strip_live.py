@@ -53,23 +53,3 @@ def test_every_rows_stored_year_is_page_v36s_day_status(built, sid):
     assert built.segments[k] == tap["starts"]                   # the same key year as the oracle's tap
     frame = built.sections["rows"][k][oracle["s"]]
     assert [r["year"] for r in frame["rows"]] == oracle["dayStatus"]
-
-
-#: (T667 5b) KEPT ONLY because pipeline/tests/smoke.txt (another lane's file) names this node id; delete the helper and
-#: this test with that line when the smoke set is derived (T667 D6). Nothing reads `_nov_jun_released` any more.
-NOV1, JUN30 = 305, 181          # book day-of-year (365-day year; Feb 29 is not a book day)
-
-
-def _nov_jun_released(runs):
-    days = [st for st, n in runs for _ in range(n)]
-    days = ["release" if st == "keep" and (d >= NOV1 or d <= JUN30) else st for d, st in enumerate(days, 1)]
-    out = []
-    for st in days:
-        if out and out[-1][0] == st: out[-1][1] += 1
-        else: out.append([st, 1])
-    return out
-
-
-def test_the_ruling_moves_only_the_nov_jun_keep_days():
-    assert _nov_jun_released([["keep", 74], ["closed", 92], ["keep", 199]]) == \
-        [["release", 74], ["closed", 92], ["release", 15], ["keep", 123], ["release", 61]]

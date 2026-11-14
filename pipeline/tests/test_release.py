@@ -52,6 +52,7 @@ def _tiny_bundle() -> sqlite3.Connection:
     return db
 
 
+@pytest.mark.smoke  # T667 D6: a guard beside the file's first test
 def test_paint_and_flow_area_round_trip():
     db = _tiny_bundle()
     status = b"BCSI" + bytes(range(20))
@@ -307,6 +308,7 @@ def test_every_cores_effective_key_is_the_search_key(rel, tmp_path):
         assert sum(n for *_, n in rows) > len(rows) // 2, table
 
 
+@pytest.mark.smoke  # T667 D6: a guard beside the file's first test
 def test_the_apps_pack_contract_is_current():
     from pipeline.tools.emit import pack as emit_pack
     assert emit_pack.OUT.read_text() == emit_pack.render(), "run: python -m pipeline.tools.emit.pack"
@@ -499,6 +501,7 @@ def app_paint_fixture() -> dict:
             "file_areas": [list(x) for x in a["areas"]], "file_rows": [list(x) for x in a["rows"]]}
 
 
+@pytest.mark.smoke  # T667 D6: a guard beside the file's first test
 def test_the_apps_paint_fixture_is_current():
     want = app_paint_fixture()
     if os.environ.get("UPDATE_APP_FIXTURE"):

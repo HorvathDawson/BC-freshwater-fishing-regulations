@@ -87,5 +87,5 @@ step's output; nothing is promoted unless every step and the vintage check pass)
 ## Tests
 
 `pipeline/tests/` (pytest; `pytest.ini` deselects `slow`). Tiers: Tier 0 the file you touched; Tier 1
-`scripts/test-smoke.sh` (`pipeline/tests/smoke.txt`); Tier 2 `scripts/test-full.sh` through `scripts/heavy.sh`. A test
+`scripts/test-smoke.sh` (the smoke set by rule, `pipeline/tests/smoke.py`); Tier 2 `scripts/test-full.sh` through `scripts/heavy.sh`. A test
 reading generated data carries a `needs_*` marker and fails when the data is missing (AGENTS 62).

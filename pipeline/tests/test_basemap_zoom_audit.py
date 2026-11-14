@@ -80,6 +80,7 @@ def test_a_kind_and_a_name_kept_for_z14_outside_roads_are_reported_lost(tmp_path
     assert not B.lossless({"fixture": rep})
 
 
+@pytest.mark.smoke  # T667 D6: quicker than the file's first test
 def test_a_road_kind_that_comes_up_short_is_a_loss_unless_accepted():
     k, urban = ("roads", "path", "track"), ("roads", "path", "sidewalk")
     deep = ({k: 3, urban: 2}, set(), {k: 10.0, urban: 5.0})

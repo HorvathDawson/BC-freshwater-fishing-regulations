@@ -1,6 +1,6 @@
 # T667 — Tests that grow with the app: fewer hand updates per release and per feature
 
-Status: IN PROGRESS — slices 1–2 done; 3 done by T666; 4 and 5 done in part (5b, the page v36 inventory and retirement, done 2026-11-13: 5618e63bc, 3e933cc04, 34a4e0f61, afb6a5eda), 6 begun; left (Claude): `smoke.txt` derived (D6), slice 6's live counts, slice 7, slice 8 (planned below) — "What is left" below.
+Status: IN PROGRESS — slices 1–2 done; 3 done by T666; 4 and 5 done in part (5b, the page v36 inventory and retirement, done 2026-11-13: 5618e63bc, 3e933cc04, 34a4e0f61, afb6a5eda), 6 begun; 4c done 2026-11-14 (smoke set by rule); left (Claude): slice 6's live counts, slice 7, slice 8 (planned below) — "What is left" below.
 
 Source: owner 2026-11-11: "we need to also make the tests more expandable; right now they get progressively more
 unwieldy ... a Fable task to improve the tests generally, to naturally grow with the app without too many hand
@@ -88,8 +88,7 @@ Depends: T666. Size: L. Fable for audit and design (owner). Part of the closed-t
 - 6 (fb91259ef, first pin) the year-strip oracle's tapped-state count (121, four re-cut moves) is a relation.
 
 ## What is left (slices of `app-integration/T667-audit.md` §4), as of 2026-11-12
-- 4 `smoke.txt` derived by rule (D6): not started — another lane had `smoke.txt` and `test_smoke_coverage.py` open
-  (fixing it) the whole session. Next after that lane merges.
+- 4 `smoke.txt` derived by rule (D6): DONE 2026-11-14, above.
 - 5b The page v36 inventory (D1): DONE 2026-11-13, below.
 - 6 Live counts → invariants / the release diff (D3): `test_one_water_kind` (137 / 13 / 9 / 12 sections, 117 aliases),
   `test_review_queue` (measured codes and tiers ± tolerance). Each is an atlas or reach-run count whose replacement must
@@ -152,6 +151,25 @@ by 2026-11-12), plus reader code in both languages when the ruling had a new sha
 in settle, card and the Python test), plus the page-v36-quoted literals and census lines re-pinned. After: none. The
 release re-cuts page-oracle.json; if a golden state's answer moved, the release stops on that one file's diff and the
 owner accepts it once (`--accept-fixtures`), as T666 / D5 already do for the golden pages.
+
+## Done 2026-11-14: part 4c, the smoke set derived by rule (D6)
+- THE RULE (`pipeline/tests/smoke.py`, applied by the repo-root `conftest.py` at collection): per test file, the tests it
+  marks `@pytest.mark.smoke` itself, else its FIRST test with no `needs_*` / `slow` marker; a data / slow-only file has
+  none. A `smoke` mark on a `needs_*` / `slow` test stops the run, naming it. `smoke.txt` (423 ids, hand-edited in 58
+  commits) and `smoke_pending.txt` (3 files) are deleted; `test_smoke_coverage.py` pins the rule (4 planted cases, a
+  real `--collect-only -m smoke` of its own file, and that no script reads a retired list).
+- Measured before choosing (scratch probe over the collected tree): the plain "first no-data test" rule agreed with the
+  hand pick in 128 of 416 files and took 24 s wall / 19.9 s of test time against 9.8 s / 6.1 s. So 10 files mark their
+  own: 5 where the first test was 0.6-3.5 s and the hand pick quick (`test_dfo_wording`, `test_dfo_vectors`,
+  `test_answers_28_card_solver`, `test_basemap_zoom_audit`, `test_forecast_clock`), and the 5 guard files that had 2-3
+  ids (`test_curation_review_safety`, `test_no_silent_skips`, `test_one_data_flow`, `test_release`, plus
+  `test_smoke_coverage` itself), each mark a short comment saying why. Whole-repo gates that come first in their file
+  (dataflow gate 1, no-silent-except, no-orphan-modules, gauge imports) now run in smoke too.
+- Result: `pytest -m smoke` 426 passed (was 423: the 3 pending files joined), ≈ 29 s under load. The dead
+  `test_answers_year_strip_live.py::test_the_ruling_moves_only_the_nov_jun_keep_days` and `_nov_jun_released` deleted.
+- Docs: AGENTS 18 / 20a / W46, `pipeline/docs/MAP.md`, `pytest.ini`, `scripts/test-smoke.sh`, `scripts/fast-fail.sh`
+  (step renamed "smoke set is derived by rule"). NOTE for T660: `T660-pending/shore-cuts.patch` adds a `smoke.txt`
+  line; that hunk no longer applies — drop it (the new file is in the set by rule).
 
 ## Slice 8 plan (not built): one small invented release for logic tests (D2)
 - WHAT: a release (water / regs-<r> / regs-sid / core / geo + manifest, the shipped formats) built BY THE REAL PIPELINE from

@@ -1,96 +1,83 @@
-"""SMOKE COVERAGE (T432, 2026-11-05). `pytest -m smoke` (Tier 1, `smoke.txt`) is one fast data-free test per test file,
-but nothing made a new file join it: on 11-05 the set covered 205 of 385 files and the root conftest refused only stale
-ids. Now every test file under the pytest.ini testpaths must be
-
-  - in `smoke.txt` (at least one id), or
-  - made only of data / slow tests (every test, or the module's `pytestmark`, carries a `needs_*` or `slow` marker), or
-  - in `smoke_pending.txt` (fast tests exist, the fastest was never picked) — a ratchet: the list may only shrink.
-
-A file in both `smoke.txt` and `smoke_pending.txt`, or a pending line naming no file, fails (stale).
+"""SMOKE COVERAGE (T432 2026-11-05; derived by rule since T667 D6, 2026-11-14). The smoke set is no longer a hand list:
+`pipeline/tests/smoke.py` picks, per test file, the tests it marks `smoke` itself, else its first no-data test. Every
+test file with a no-data test is therefore in the set by construction; these tests pin the rule by mutation, and that
+nothing names the retired hand lists.
 """
 from __future__ import annotations
 
-import ast
-import configparser
+import subprocess
+import sys
+from dataclasses import dataclass, field
 from pathlib import Path
 
+import pytest
+
+from pipeline.tests import smoke
+
 ROOT = Path(__file__).resolve().parents[2]
-SMOKE = ROOT / "pipeline" / "tests" / "smoke.txt"
-PENDING = ROOT / "pipeline" / "tests" / "smoke_pending.txt"
-#: smoke_pending.txt after T496 (2026-11-08); it may only shrink (a new file goes into smoke.txt)
-PENDING_MAX = 3
 
 
-def _lines(p: Path) -> list[str]:
-    return [l.strip() for l in p.read_text(encoding="utf-8").splitlines() if l.strip() and not l.lstrip().startswith("#")]
+@dataclass
+class _M:
+    name: str
 
 
-def _test_files() -> list[str]:
-    ini = configparser.ConfigParser()
-    ini.read(ROOT / "pytest.ini")
-    trees = ini["pytest"]["testpaths"].split()
-    return sorted(p.relative_to(ROOT).as_posix() for t in trees for p in (ROOT / t).rglob("test_*.py")
-                  if "__pycache__" not in p.parts)
+@dataclass
+class _Item:
+    nodeid: str
+    marks: list[str] = field(default_factory=list)
+
+    def iter_markers(self, name=None):
+        return iter([_M(m) for m in self.marks if name is None or m == name])
 
 
+def _ids(items):
+    return [i.nodeid for i in smoke.pick(items)]
 
 
-def _out_mark(node: ast.AST) -> bool:
-    s = ast.unparse(node)
-    return "needs_" in s or "mark.slow" in s
+def test_a_new_file_joins_by_its_first_no_data_test():
+    items = [_Item("t/test_a.py::test_data", ["needs_bundle"]), _Item("t/test_a.py::test_slow", ["slow"]),
+             _Item("t/test_a.py::test_fast"), _Item("t/test_a.py::test_fast_2")]
+    assert _ids(items) == ["t/test_a.py::test_fast"]
 
 
-def only_data_or_slow(source: str) -> bool:
-    """Every test in the file carries a needs_* or slow marker (its own, its class's, or the module's `pytestmark`)."""
-    tree = ast.parse(source)
-    for n in tree.body:
-        if isinstance(n, ast.Assign) and any(isinstance(t, ast.Name) and t.id == "pytestmark" for t in n.targets) \
-                and _out_mark(n.value):
-            return True
-    marked: list[bool] = []
-    for n in tree.body:
-        if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and n.name.startswith("test"):
-            marked.append(any(_out_mark(d) for d in n.decorator_list))
-        elif isinstance(n, ast.ClassDef) and n.name.startswith("Test"):
-            cls = any(_out_mark(d) for d in n.decorator_list)
-            for f in n.body:
-                if isinstance(f, (ast.FunctionDef, ast.AsyncFunctionDef)) and f.name.startswith("test"):
-                    marked.append(cls or any(_out_mark(d) for d in f.decorator_list))
-    return bool(marked) and all(marked)
+def test_a_file_that_marks_its_own_has_exactly_those():
+    items = [_Item("t/test_g.py::test_first"), _Item("t/test_g.py::test_guard", ["smoke"]),
+             _Item("t/test_g.py::test_other"), _Item("t/test_g.py::test_guard_2", ["smoke"])]
+    assert _ids(items) == ["t/test_g.py::test_guard", "t/test_g.py::test_guard_2"]
 
 
-def uncovered(files: list[str], smoke: set[str], pending: set[str], read) -> list[str]:
-    return [f for f in files if f not in smoke and f not in pending and not only_data_or_slow(read(f))]
+def test_a_data_or_slow_only_file_has_none_and_files_do_not_mix():
+    items = [_Item("t/test_d.py::test_a", ["needs_atlas"]), _Item("t/test_d.py::test_b", ["slow", "needs_tiles"]),
+             _Item("t/test_e.py::test_a", ["needs_source"]), _Item("t/test_e.py::test_b"),
+             _Item("t/test_f.py::test_a", ["smoke"]), _Item("t/test_h.py::test_a")]
+    assert _ids(items) == ["t/test_e.py::test_b", "t/test_f.py::test_a", "t/test_h.py::test_a"]
 
 
-def _read(f: str) -> str:
-    return (ROOT / f).read_text(encoding="utf-8")
+def test_a_smoke_mark_on_a_data_or_slow_test_is_refused():
+    items = [_Item("t/test_a.py::test_ok", ["smoke"]), _Item("t/test_a.py::test_bad", ["smoke", "needs_bundle"]),
+             _Item("t/test_b.py::test_bad", ["slow", "smoke"]), _Item("t/test_b.py::test_data", ["needs_bundle"])]
+    assert smoke.refused(items) == ["t/test_a.py::test_bad", "t/test_b.py::test_bad"]
 
 
-def test_every_test_file_is_smoke_listed_data_only_or_pending():
-    smoke = {i.split("::")[0] for i in _lines(SMOKE)}
-    bad = uncovered(_test_files(), smoke, set(_lines(PENDING)), _read)
-    assert not bad, ("a test file with no smoke id: put its fastest data-free test in pipeline/tests/smoke.txt "
-                     f"(one per file): {bad}")
+@pytest.mark.smoke
+def test_no_hand_list_is_back():
+    """The hand lists are gone (D6): nothing may recreate them, or a script read them."""
+    for name in ("smoke.txt", "smoke_pending.txt"):
+        assert not (ROOT / "pipeline" / "tests" / name).exists(), f"pipeline/tests/{name} is retired (T667 D6)"
+    for script in ("scripts/test-smoke.sh", "scripts/fast-fail.sh", "conftest.py", "pytest.ini"):
+        text = (ROOT / script).read_text(encoding="utf-8")
+        code = "\n".join(l for l in text.splitlines() if not l.lstrip().startswith("#"))
+        assert "smoke.txt" not in code and "smoke_pending" not in code, f"{script} still reads a retired smoke list"
 
 
-def test_pending_is_not_stale_and_only_shrinks():
-    smoke = {i.split("::")[0] for i in _lines(SMOKE)}
-    pending = _lines(PENDING)
-    files = set(_test_files())
-    assert len(pending) == len(set(pending)), "smoke_pending.txt repeats a line"
-    assert not [p for p in pending if p in smoke], "in smoke.txt now: delete its smoke_pending.txt line"
-    assert not [p for p in pending if p not in files], "smoke_pending.txt names a file that is gone"
-    assert len(pending) <= PENDING_MAX, f"smoke_pending.txt may only shrink (≤ {PENDING_MAX}): a new file goes into smoke.txt"
-
-
-def test_the_gate_names_a_planted_file():
-    """Mutation pin: a new file with a fast test and no smoke id is named; marked needs_*/slow, or listed, it is not."""
-    src = {"pipeline/tests/test_planted.py": "def test_fast():\n    assert 1\n",
-           "pipeline/tests/test_planted_data.py": "import pytest\npytestmark = pytest.mark.needs_bundle\ndef test_a():\n    pass\n",
-           "pipeline/tests/test_planted_slow.py": "import pytest\n@pytest.mark.slow\ndef test_a():\n    pass\n"
-                                                  "class TestB:\n    @pytest.mark.needs_atlas\n    def test_b(self):\n        pass\n",
-           "pipeline/tests/test_planted_mixed.py": "import pytest\n@pytest.mark.slow\ndef test_a():\n    pass\ndef test_b():\n    pass\n"}
-    files = sorted(src)
-    assert uncovered(files, set(), set(), src.__getitem__) == ["pipeline/tests/test_planted.py", "pipeline/tests/test_planted_mixed.py"]
-    assert uncovered(files, {"pipeline/tests/test_planted.py"}, {"pipeline/tests/test_planted_mixed.py"}, src.__getitem__) == []
+@pytest.mark.smoke
+def test_the_root_conftest_applies_the_rule():
+    """Real collection, not the rule alone: `-m smoke` on this file selects exactly its two marked tests (the first test
+    of the file, unmarked, is not picked because the file marks its own)."""
+    me = Path(__file__).relative_to(ROOT).as_posix()
+    out = subprocess.run([sys.executable, "-m", "pytest", "--collect-only", "-q", "-p", "no:cacheprovider", "-m", "smoke",
+                          me], cwd=ROOT, capture_output=True, text=True)
+    assert out.returncode == 0, out.stdout + out.stderr
+    got = sorted(l for l in out.stdout.splitlines() if "::" in l)
+    assert got == [f"{me}::test_no_hand_list_is_back", f"{me}::test_the_root_conftest_applies_the_rule"], out.stdout

@@ -10,6 +10,8 @@ from __future__ import annotations
 
 import json
 
+import pytest
+
 from pipeline.regs.dfo_salmon import locations as LOC
 from pipeline.tools.emit import dfo_vectors as E
 
@@ -22,6 +24,7 @@ def test_the_committed_vectors_are_what_the_python_reads_today():
     assert E.main(["--check"]) == 0, "run: python -m pipeline.tools.emit.dfo_vectors (then the worker's dfo.vectors.test.ts)"
 
 
+@pytest.mark.smoke  # T667 D6: quicker than the file's first test
 def test_the_file_holds_every_saved_page_and_every_shared_row():
     doc = _committed()
     assert doc["format"] == E.FORMAT

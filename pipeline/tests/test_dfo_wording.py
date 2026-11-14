@@ -83,6 +83,7 @@ def test_the_builder_keeps_every_entrys_meaning(tmp_path):
     assert json.loads(reg.read_text()) == got                                # the one-entry-a-line writer round-trips
 
 
+@pytest.mark.smoke  # T667 D6: quicker than the file's first test
 def test_a_rejected_entry_is_unknown():
     reg = {t: dict(e) for t, e in W.registry().items()}
     assert W.unknown("4 per day, bait ban", reg) == []

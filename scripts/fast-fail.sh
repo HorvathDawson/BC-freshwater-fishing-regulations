@@ -151,8 +151,9 @@ step "CI: hand-edited waters files are sound" ci_step "Hand-edited waters files 
 step "CI: generated files are current" ci_step "Generated files are current (gauge policy, calendar, release contract, answers model)"
 
 # caught 2026-11-07: three test files merged with no smoke.txt id (test_dfo_tidal_water, test_lake_through_river,
-# test_tile_smooth), found only by the Tier 1 run after the merges; the guard is T432's test_smoke_coverage (< 1 s)
-step "smoke.txt covers every pipeline test file" "$PY" -m pytest -q -p no:cacheprovider pipeline/tests/test_smoke_coverage.py
+# test_tile_smooth), found only by the Tier 1 run after the merges; the guard was T432's test_smoke_coverage. Since T667 D6
+# (2026-11-14) the set is derived (pipeline/tests/smoke.py), so a new file is in it by construction; this pins the rule (~2 s)
+step "smoke set is derived by rule" "$PY" -m pytest -q -p no:cacheprovider pipeline/tests/test_smoke_coverage.py
 
 # caught (2026-11-09): a committed `pytest.skip` failed test_no_silent_skips only in the full suite. A changed pipeline
 # test file runs that guard here (~1 s)

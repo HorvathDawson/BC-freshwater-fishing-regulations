@@ -1,9 +1,0 @@
-# SMOKE PENDING (T432, 2026-11-05): test files with NO smoke id yet. `test_smoke_coverage.py` requires every test file to be
-# in smoke.txt, or here, or made only of data / slow tests (every test carries a needs_* or slow marker: those cannot be
-# smoke). Each file below has fast data-free tests, but its fastest one was never picked: picking needs a timed run of the
-# fast suite (`pytest --durations`, Tier 2), so the 148 were recorded here instead of guessed. To move one: put its fastest
-# data-free test id in smoke.txt and delete its line here (a file in both FAILS). A NEW test file goes into smoke.txt, not
-# here. One repo-relative path per line.
-pipeline/tests/test_part_line.py
-pipeline/tests/test_release_slices.py
-pipeline/tests/test_t207_split_confidence.py

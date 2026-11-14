@@ -13,6 +13,8 @@ import random
 import time
 from types import SimpleNamespace
 
+import pytest
+
 from pipeline.deliver.answers import card_check as CC
 from pipeline.tests import answers28_fixture as F
 
@@ -127,6 +129,7 @@ def test_fast_equals_brute_on_random_cap_systems():
     assert asked == 800 and nonzero > 200 and unlimited > 50, (asked, nonzero, unlimited)
 
 
+@pytest.mark.smoke  # T667 D6: quicker than the file's first test
 def test_a_15_a_day_pool_is_fast():
     """The whitefish shape: 15 a day over two species, a wild sub-cap, a size band, a stream share one
     origin is lifted out of, and a water's own 8. Here and elsewhere together the reference search

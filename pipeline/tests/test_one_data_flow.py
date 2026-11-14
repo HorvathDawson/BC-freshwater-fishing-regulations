@@ -40,6 +40,7 @@ def _sources(*dirs: Path) -> dict[Path, str]:
 
 # --------------------------------------------------------------------------- grep gates
 
+@pytest.mark.smoke  # T667 D6: a guard beside the file's first test
 def test_the_bundle_reads_no_curated_waters_file():
     """`CURATED.` under pipeline/deliver/bundle may name only the corpus (`regulations.synopsis`) and the book's own
     text the glossary quotes (`regulations.reference`, copied into `glossary_source`, plan 2.14).
@@ -90,6 +91,7 @@ def test_the_review_app_neither_builds_nor_promotes_an_atlas():
         assert "/api/rebuild" not in text and "pipeline.atlas.build" not in text, p.name
 
 
+@pytest.mark.smoke  # T667 D6: a guard beside the file's first test
 def test_the_tiles_carry_only_what_is_read():
     from pipeline.deliver.tiles.layers import BY_NAME, contract
     assert BY_NAME["stream"].attrs == ("section_id", "name", "ord")
@@ -117,6 +119,7 @@ def _closure(**kw):
     return {"type": "retention_limit", "take": 0, "may_target": 0, **kw}
 
 
+@pytest.mark.smoke  # T667 D6: a guard beside the file's first test
 def test_closure_grade_full_partial_none():
     assert closure_grade(_closure()) == "full"
     for k in CLOSURE_CONDITIONS:

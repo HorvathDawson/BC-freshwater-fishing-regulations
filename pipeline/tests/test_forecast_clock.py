@@ -99,6 +99,7 @@ def test_a_horizon_reads_the_step_at_that_instant_not_eight_hours_off():
     assert pub.forecast_at(naive, datetime(2026, 10, 22, 19, tzinfo=timezone.utc), "discharge") == at11
 
 
+@pytest.mark.smoke  # T667 D6: quicker than the file's first test
 def test_a_daily_step_answers_for_its_whole_centre_day():
     """ELF's steps are DAYS. 15:30 at the Centre on 10-22 is 10-22's value — not 10-23's, whose midnight is nearer.
     Mutation: drop the `is_day` branch in `forecast_at` -> 23:30Z reads 10-23 (11.0)."""

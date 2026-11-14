@@ -102,6 +102,7 @@ def test_the_process_detector_sees_every_spawn(src, found):
     assert _spawners(src, "m.py") == found
 
 
+@pytest.mark.smoke  # T667 D6: a guard beside the file's first test
 def test_no_endpoint_starts_a_process(env):
     """No route rebuilds or promotes, and no backend module can spawn a process."""
     paths = sorted(r.path for r in env["app"].app.routes if r.path.startswith("/api/"))
@@ -226,6 +227,7 @@ def _load_app(monkeypatch, env_value: str | None):
     return mod
 
 
+@pytest.mark.smoke  # T667 D6: a guard beside the file's first test
 def test_the_app_serves_one_write_a_mark(env):
     """Reads and POST /api/marks — nothing else writes (PLAN §4 phase 3, T185) — but the T230 in-season
     matches route."""
