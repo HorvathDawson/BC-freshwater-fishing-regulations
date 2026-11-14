@@ -226,7 +226,7 @@ describe("spots and the rail, through the Shell (T48)", () => {
     mount({ locate: null, spots: [] });
     tab("Spots");
     expect([refused, screen.queryByLabelText("At my location"), screen.getByTestId("spots-note").textContent]).toEqual([
-      [`${BAR} (Spots) | no map | spots tab`, "Your location could not be read, so no spot was started.", []],
+      [`${BAR} (Spots) | no map | spots tab`, "Location is off for this app. Turn it on in your device settings, then tap again.", []],
       null, "Your location is not available here, so At my location is not offered."]);
   });
 

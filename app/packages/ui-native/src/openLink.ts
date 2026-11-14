@@ -4,7 +4,7 @@
  * did nothing and (before the phone's rejection tracker) told no one. Here it is logged (the Updates log) and REPORTED.
  */
 import { Linking, Platform } from "react-native";
-import { directionsUrl, linkFailedLine } from "@app/core";
+import { directionsUrl, linkFailedLine, OPEN_SETTINGS } from "@app/core";
 import { reportFailure } from "@app/ui";
 
 export function openLink(url: string): Promise<void> {
@@ -42,6 +42,15 @@ export function openLinkShown(url: string): Promise<void> {
 export function openDirections(q: { lat: number; lon: number },
                                os: string = Platform.select({ ios: "ios", default: "other" })): Promise<void> {
   return openLink(directionsUrl(os, q.lat, q.lon));
+}
+
+/** (T723 G6) This app's page in the phone's Settings; a refusal to open it is reported and said, as a link's is. */
+export function openAppSettings(): Promise<void> {
+  return Linking.openSettings().then(() => undefined, (e: unknown) => {
+    console.warn("openLink: could not open Settings", e);
+    reportFailure(e);
+    shown?.(OPEN_SETTINGS.failed);
+  });
 }
 
 /** `onPress={linkTo(url)}`: a tap that opens `url` through `openLink`. */

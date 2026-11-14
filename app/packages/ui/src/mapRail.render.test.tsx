@@ -5,6 +5,7 @@
  */
 import { afterEach, describe, expect, it } from "vitest";
 import { act, cleanup, render } from "@testing-library/react";
+import { environmentError, setFailureSink } from "@app/core";
 import type { Spot } from "@app/data/spots";
 import { mapPointTap, spotsMenu, useMapRail, type Locate, type LocatePermission, type MapRail } from "./mapRail";
 import { HOME, reduce, type Route, type RouteAction } from "./route";
@@ -134,6 +135,18 @@ describe("useMapRail", () => {
     expect([ok, text(), acts.length]).toEqual([
       ["drop:- perm:granted err:- fly:-", [{ type: "addSpot", at: { lat: 50, lon: -120 } }]],
       "drop:- perm:granted err:Your location could not be read, so no spot was started. fly:-", 1]);
+  });
+
+  it("(T723 G6) At my location refused: the line says location is off, and a refusal is not reported", async () => {
+    const reported: unknown[] = [];
+    const undo = setFailureSink((e) => reported.push(e));
+    const locate: Locate = { permission: async () => "granted",
+                             here: async () => { throw environmentError(new Error("location permission refused")); } };
+    const { out, text } = rig(locate, SPOTS);
+    await act(async () => { await out.r!.addMine(); });
+    undo();
+    expect([text(), reported]).toEqual([
+      "drop:- perm:granted err:Location is off for this app. Turn it on in your device settings, then tap again. fly:-", []]);
   });
 
   it("Show goes to the Map tab, frames the spot, and moves again each time", () => {
