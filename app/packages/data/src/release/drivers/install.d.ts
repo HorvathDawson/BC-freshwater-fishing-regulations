@@ -9,6 +9,7 @@
  */
 import type { Download, DownloadTo, ReleaseFs } from "../install";
 import type { BackgroundNative, BgItem } from "../bgDownload";
+import type { DeviceSpace } from "../boot";
 
 export interface Device {
   fs: ReleaseFs;
@@ -25,6 +26,8 @@ export interface Device {
    * so they download with the app closed. `metered` false: they wait for an unmetered network.
    */
   background?: { queue(items: BgItem[], metered: boolean): Promise<void> };
+  /** (T722 F9) free bytes and what a file holds: the space check before a release download */
+  space?: DeviceSpace;
 }
 
 export declare function device(fetchImpl?: typeof fetch, bg?: BackgroundNative | null): Device | null;

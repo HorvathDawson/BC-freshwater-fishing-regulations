@@ -158,9 +158,10 @@ const nativeFill = (tries = 4): PartFill => async (url, part, _have, total, onBy
 };
 
 /**
- * `bg`: (T298) the system's downloader (Android's DownloadManager, `apps/mobile/modules/bg-download`) — the big files
- * download in its process (on with the app closed, its own notification) and are hashed natively. Absent (iOS, a client
- * built before the module): `nativeFill` as before, which stops when the app does and resumes from the `.part`.
+ * `bg`: (T298) the system's downloader (`apps/mobile/modules/bg-download`: Android's DownloadManager; (T722) iOS's
+ * background URLSession) — the big files download out of the app's process (on with the app in the background) and
+ * are hashed natively. Absent (a client built before the module): `nativeFill` as before, which stops when the app does
+ * and resumes from the `.part`; also the resume of a `.part` an older app left with no job.
  */
 export function device(fetchImpl: typeof fetch = fetch, bg?: BackgroundNative | null): Device | null {
   const sys = bg ? background(bg, { ...fs, uri: (p) => fileAt(p).uri }, nativeFill()) : null;
@@ -174,5 +175,8 @@ export function device(fetchImpl: typeof fetch = fetch, bg?: BackgroundNative | 
     ...(sys ? { background: { queue: sys.queue } } : {}),
     dirUri: (path) => dirAt(path).uri,
     fileUri: (path) => fileAt(path).uri,
+    // (T722 F9) the volume's free bytes (iOS: systemFreeSize; Android: usableSpace; null when it will not say) and what
+    // a file already holds, for the space check before a release download (`checkRoom`)
+    space: { free: async () => Paths.availableDiskSpace, size: fs.size },
   };
 }

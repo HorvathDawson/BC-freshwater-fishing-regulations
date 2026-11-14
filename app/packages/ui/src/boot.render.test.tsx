@@ -6,7 +6,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, renderHook, waitFor } from "@testing-library/react";
 import { setFailureSink } from "@app/core";
-import type { BootOptions, Booted } from "@app/data/release";
+import { SpaceError, type BootOptions, type Booted } from "@app/data/release";
 
 const boots: (() => Promise<Booted>)[] = [];
 vi.mock("@app/data/release", async (orig) => ({
@@ -53,5 +53,19 @@ describe("useReleaseBoot: the replaced set is retired (T360)", () => {
     rerender({ g: 2 });
     await waitFor(() => expect(result.current.state === "ready" && result.current.applyError?.message).toBe("offline"));
     expect(b.retire).not.toHaveBeenCalled();
+  });
+
+  it("(T722 F9) a download that will not fit fails in its own words (said, reported); any other failure says none", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const words = "Not enough free space: the download needs about 482.0 MB and this phone has 120.0 MB free. "
+      + "Free up some space and try again.";
+    boots.push(async () => { throw new SpaceError(words); }, async () => { throw new Error("offline"); });
+    const { result, rerender } = renderHook(({ a }) => useReleaseBoot(OPTS, 0, a), { initialProps: { a: 0 } });
+    await waitFor(() => expect(result.current.state).toBe("failed"));
+    expect(result.current.state === "failed" && result.current.said).toBe(words);
+    expect(reported.map(String)).toEqual([`Error: ${words}`]);
+    rerender({ a: 1 });
+    await waitFor(() => expect(result.current.state === "failed" && result.current.error.message).toBe("offline"));
+    expect(result.current.state === "failed" && result.current.said).toBeNull();
   });
 });
