@@ -109,3 +109,11 @@ built APK when `--build` is left out) vs no tag (stock). The A/B must be run wit
 3. `git apply --check` the patch on the new tag; on a conflict, redo the four points above by hand and regenerate
    the patch with `git add -N metrics/integration/render-tests/feature-state && git diff --binary -- src metrics`.
 4. Rebuild, run `tests.sh`, rebuild the test-bed APK, run `check-loaded.sh`, then the A/B.
+
+## Beside it: the binding's own patch (T734)
+
+This patch is the native SDK. The React Native binding (`@maplibre/maplibre-react-native` 11.5.0) carries a separate
+pnpm patch, `app/patches/@maplibre__maplibre-react-native@11.5.0.patch` (listed in `app/deps.md`). T734 added to it: a
+module method that throws on the UI thread rejects its promise instead of closing the app (`ReactTagResolver.runOrReject`;
+the crash was `NullPointerException at MLRNMapView.project`, `mapLibreMap!!` before `onMapReady`), and `project` /
+`unproject` / `queryRenderedFeaturesWith{Point,Rect}` say "the map is not ready" (`readyMap`). Small and upstreamable as is.

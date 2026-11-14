@@ -39,7 +39,21 @@ const BIN = process.env.MAESTRO_BIN ?? path.join(os.homedir(), '.maestro/maestro
  * Run `flows/<name>.yaml` with `env` (each `${KEY}` in the flow). Resolves { ok, ms, log } — never throws: a failed
  * flow is a failed step, said in the report with Maestro's own words.
  */
-export function flow(name, env = {}, { logDir } = {}) {
+/**
+ * (T734) Maestro's own driver never came up ("Maestro Android driver did not start up in time", seen once in 40 opens of
+ * the build-32 hold): it failed before any command of the flow ran, so the flow is run again ONCE, and the first log is
+ * kept beside the second. Any other failure is the step's.
+ */
+export const driverNeverStarted = (log) => /AndroidDriverTimeoutException|driver did not start up in time/.test(log);
+
+export function flow(name, env = {}, opts = {}) {
+  const r = flowOnce(name, env, opts);
+  if (r.ok || !driverNeverStarted(r.log)) return r;
+  const again = flowOnce(name, env, opts);
+  return { ...again, ms: r.ms + again.ms, log: `${r.log}\n[testbed] Maestro's driver did not start: the flow run again\n${again.log}` };
+}
+
+function flowOnce(name, env, { logDir } = {}) {
   const file = path.join(FLOWS, `${name}.yaml`);
   if (!fs.existsSync(file)) throw new Error(`no flow ${file}`);
   const args = [...(process.env.TESTBED_PLATFORM === 'ios' ? ['--device', serial()] : maestroDeviceArgs()), 'test', file, ...Object.entries(env).flatMap(([k, v]) => ['-e', `${k}=${v}`])];

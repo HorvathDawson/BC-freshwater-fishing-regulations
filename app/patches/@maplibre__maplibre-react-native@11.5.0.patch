@@ -68,7 +68,7 @@ index 86183442be292aa6084cd61dc7cf1bf286ea6b28..5a651fd8be582efc250b3c43884f8b36
  
                      else -> {
 diff --git a/android/src/main/java/org/maplibre/reactnative/components/mapview/MLRNMapView.kt b/android/src/main/java/org/maplibre/reactnative/components/mapview/MLRNMapView.kt
-index b088909a48c4265219e4e95c529f6c0a63ae7e11..ab33a475346f01f5ae76cc19707a966158bc5cbf 100644
+index b088909a48c4265219e4e95c529f6c0a63ae7e11..d4d43185e04ae1515a90ccd8a103a720285a6923 100644
 --- a/android/src/main/java/org/maplibre/reactnative/components/mapview/MLRNMapView.kt
 +++ b/android/src/main/java/org/maplibre/reactnative/components/mapview/MLRNMapView.kt
 @@ -8,8 +8,20 @@ import android.graphics.RectF
@@ -679,7 +679,48 @@ index b088909a48c4265219e4e95c529f6c0a63ae7e11..ab33a475346f01f5ae76cc19707a9661
      fun setReactPreferredFramesPerSecond(preferredFramesPerSecond: Int?) {
          this.preferredFramesPerSecond = preferredFramesPerSecond
          updatePreferredFramesPerSecond()
-@@ -1565,6 +2090,7 @@ open class MLRNMapView(
+@@ -1082,7 +1607,7 @@ open class MLRNMapView(
+         val screenPoint = PointF(point.x * displayDensity, point.y * displayDensity)
+ 
+         val features =
+-            mapLibreMap!!.queryRenderedFeatures(
++            readyMap("queryRenderedFeaturesWithPoint").queryRenderedFeatures(
+                 screenPoint,
+                 filter,
+                 *(layers?.let { Array(layers.size()) { layers.getString(it) } } ?: emptyArray()),
+@@ -1115,7 +1640,7 @@ open class MLRNMapView(
+             }
+ 
+         val features =
+-            mapLibreMap!!.queryRenderedFeatures(
++            readyMap("queryRenderedFeaturesWithRect").queryRenderedFeatures(
+                 screenRect,
+                 filter,
+                 *(layers?.let { Array(layers.size()) { layers.getString(it) } } ?: emptyArray()),
+@@ -1124,8 +1649,12 @@ open class MLRNMapView(
+         return GeoJSONUtils.fromFeatureList(features)
+     }
+ 
++    /** The map, or a failure naming the call when it is not ready yet (`mapLibreMap` is set in `onMapReady`). */
++    private fun readyMap(call: String): MapLibreMap =
++        mapLibreMap ?: throw IllegalStateException("$call: the map is not ready")
++
+     fun project(mapCoordinate: LatLng): WritableArray {
+-        val pointInView = mapLibreMap!!.projection.toScreenLocation(mapCoordinate)
++        val pointInView = readyMap("project").projection.toScreenLocation(mapCoordinate)
+         pointInView.x /= displayDensity
+         pointInView.y /= displayDensity
+         val payload: WritableArray = Arguments.createArray()
+@@ -1140,7 +1669,7 @@ open class MLRNMapView(
+         pointInView.x *= displayDensity
+         pointInView.y *= displayDensity
+ 
+-        val latLng = mapLibreMap!!.projection.fromScreenLocation(pointInView)
++        val latLng = readyMap("unproject").projection.fromScreenLocation(pointInView)
+ 
+         return GeoJSONUtils.fromLatLng(latLng)
+     }
+@@ -1565,6 +2094,7 @@ open class MLRNMapView(
          eventName: String,
          withViewState: Boolean? = null,
      ) {
@@ -687,7 +728,7 @@ index b088909a48c4265219e4e95c529f6c0a63ae7e11..ab33a475346f01f5ae76cc19707a9661
          val event =
              if (withViewState == true) {
                  MapChangeEvent(surfaceId, id, eventName, makeViewState(null))
-@@ -1613,6 +2139,39 @@ open class MLRNMapView(
+@@ -1613,6 +2143,39 @@ open class MLRNMapView(
      }
  
      companion object {
@@ -1234,6 +1275,62 @@ index d396d39c3c174a13c2576d5a3fab96e8bb75a8b3..17eb57897706d0ddfade6257a8f9d89c
      @JvmField
      var scale: Double = scale ?: DEFAULT_SCALE
  
+diff --git a/android/src/main/java/org/maplibre/reactnative/utils/ReactTagResolver.kt b/android/src/main/java/org/maplibre/reactnative/utils/ReactTagResolver.kt
+index b2576923403aa5bb1271f9072ce610e614b837b1..360fa867ddc783e6b84397cda5798360219fb5a7 100644
+--- a/android/src/main/java/org/maplibre/reactnative/utils/ReactTagResolver.kt
++++ b/android/src/main/java/org/maplibre/reactnative/utils/ReactTagResolver.kt
+@@ -35,7 +35,7 @@ open class ReactTagResolver(
+                 try {
+                     val view = manager.resolveView(reactTag)
+ 
+-                    list.forEach { it.fn(view) }
++                    list.forEach { runOrReject(it.reject) { it.fn(view) } }
+                 } catch (err: IllegalViewOperationException) {
+                     list.forEach { it.reject?.reject(err) }
+                 }
+@@ -49,6 +49,24 @@ open class ReactTagResolver(
+         createdViews.remove(reactTag)
+     }
+ 
++    /**
++     * A module method's body runs here on the UI thread, where an exception closes the app: e.g. `MLRNMapView.project`
++     * dereferences `mapLibreMap!!`, which is null until the map is ready. With a promise to answer, the failure rejects
++     * it instead (the JS caller's `catch` sees it); without one it is thrown as before.
++     */
++    private fun runOrReject(
++        promise: Promise?,
++        block: () -> Unit,
++    ) {
++        if (promise == null) return block()
++        try {
++            block()
++        } catch (err: Exception) {
++            Logger.e(LOG_TAG, "a view method failed: $err")
++            promise.reject(err)
++        }
++    }
++
+     private val manager: UIManager
+         get() = UIManagerHelper.getUIManager(context, UIManagerType.FABRIC)!!
+ 
+@@ -62,7 +80,7 @@ open class ReactTagResolver(
+                 val resolvedView: View? = manager.resolveView(reactTag)
+                 val view = resolvedView as? V
+                 if (view != null) {
+-                    fn(view)
++                    runOrReject(promise) { fn(view) }
+                 } else {
+                     val message =
+                         "`reactTag` $reactTag resolved to `view` $resolvedView which is null or a wrong type"
+@@ -74,7 +92,7 @@ open class ReactTagResolver(
+                     awaitedViews.getOrPut(reactTag) { mutableListOf() }.add(
+                         Await({ view ->
+                             if (view != null) {
+-                                fn(view as V)
++                                runOrReject(promise) { fn(view as V) }
+                             } else {
+                                 val message = "`reactTag` $reactTag resolved null"
+                                 Logger.e(LOG_TAG, message)
 diff --git a/ios/components/images/MLRNImageLoader.m b/ios/components/images/MLRNImageLoader.m
 index d12c0cf0a05fef42b8b6def84add771e60741e63..b1dc01fa5474775e583324c2e2e989218e8dd163 100644
 --- a/ios/components/images/MLRNImageLoader.m

@@ -148,7 +148,11 @@ off as before; shrinking is a decision of its own (keep rules + a device walk), 
   kept until it does; the stretch zones become UIImage cap insets, so on iOS the pill's `content` box is its stretch box
   (text sits a few px further in). (T716, Android) `onTapUp`: a still single-finger tap said at its lift, before
   MapLibre's click (which waits out a double tap, 300 ms), so the app can light the tapped water at once (`MLRNMapView.tuneTap`,
-  the codegen specs' `onTapUp`; iOS emits nothing). Bump the binding only with the patch re-applied and the emulator AND simulator pans
+  the codegen specs' `onTapUp`; iOS emits nothing). (T734, Android) a module method that throws on the UI thread
+  REJECTS its promise instead of closing the app (`ReactTagResolver.runOrReject`; build 32's verify lane saw
+  `NullPointerException at MLRNMapView.project`: `mapLibreMap!!` asked before `onMapReady`), and `project` / `unproject` /
+  `queryRenderedFeaturesWith{Point,Rect}` name the call when the map is not ready (`readyMap`); upstreamable as is. The
+  app also never asks a map that has not drawn (`packages/map/src/native/labelShift.ts`). Bump the binding only with the patch re-applied and the emulator AND simulator pans
   re-run.
   **T250 (SDK 58 / RN 0.88): kept at 11.5.0** (11.5.1 is from 2026-10-29, under the two-week rule); the patch applies
   unchanged (same package version) and the Android build on RN 0.88 is the proof (T250 ticket). Not upstreamed.

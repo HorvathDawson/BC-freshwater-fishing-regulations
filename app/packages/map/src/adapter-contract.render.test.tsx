@@ -138,6 +138,9 @@ vi.mock("@maplibre/maplibre-react-native", () => ({
         return answer(layers, true);
       },
       getBounds: async () => [-123, 48, -121, 50],
+      // (T734) the marks' label shift: x 362 of 400 (62 px in), the label's point back as lng = x / 1000 - 122.2
+      project: async ([lon, lat]: [number, number]) => { log.push(`project ${lon},${lat}`); return [362, 400]; },
+      unproject: async ([x, y]: [number, number]) => { log.push(`unproject ${x},${y}`); return [x / 1000 - 122.2, 49]; },
     }));
     // a style finishes loading after the view mounts, and again after every style swap, as on a phone
     const loaded = props.onDidFinishLoadingStyle as (() => void) | undefined;
@@ -548,6 +551,41 @@ it("the lift that ends a long press is cancelled, so the browser makes no click 
     expect(fc.features.map((f) => [f.properties.kind, f.properties.tone, f.properties.img])).toEqual([
       ["pin", colour("light", "color.ui.spot"), `t317-pin-${colour("light", "color.ui.spot").slice(1)}`], ["marker", colour("light", "color.ui.accent"), `t317-pin-${colour("light", "color.ui.accent").slice(1)}`]]);
     expect(document.querySelectorAll(".maplibregl-marker").length).toBe(0);
+  });
+});
+
+describe("(T734) the phone's marks' label shift asks only a map that is there", () => {
+  const MARKS = [{ lon: -121.83788, lat: 49.071839, label: "Tamihi Rapids Bridge", a11y: "Boundary: Tamihi Rapids Bridge", on: false }];
+  const asked = () => log.filter((l) => /^(un)?project /.test(l));
+  const layout = () => act(() => { (native.props!.onLayout as (e: unknown) => void)({ nativeEvent: { layout: { width: 400, height: 800 } } }); });
+  const rest = (h = native.props!.onRegionDidChange) => act(() => {
+    (h as (e: unknown) => void)({ nativeEvent: { center: [-122, 49], zoom: 12, userInteraction: false } });
+  });
+
+  it("styled, not drawn yet: no project / unproject sent (MLRNMapView.project threw on such a map); once drawn: asked", async () => {
+    native.holdRender = true;
+    render(<NativeMap {...base({ data: undefined, highlight: undefined, marks: MARKS })} />);
+    await waitFor(() => expect(native.props).toBeTruthy());
+    layout();
+    rest();                                         // a settle before the first draw asks for the shift too
+    await act(async () => {});
+    expect(asked()).toEqual([]);
+    act(() => { (native.props!.onDidFinishRenderingMapFully as () => void)(); });
+    await waitFor(() => expect(asked()).toEqual(["project -121.83788,49.071839", "unproject 300,400"]));
+  });
+
+  it("unmounted: a late settle sends nothing", async () => {
+    const r = render(<NativeMap {...base({ data: undefined, highlight: undefined, marks: MARKS })} />);
+    await waitFor(() => expect(native.props).toBeTruthy());
+    layout();
+    rest();
+    await waitFor(() => expect(asked().length).toBeGreaterThan(0));
+    const late = native.props!.onRegionDidChange;
+    r.unmount();
+    log.length = 0;
+    rest(late);
+    await act(async () => {});
+    expect(asked()).toEqual([]);
   });
 });
 

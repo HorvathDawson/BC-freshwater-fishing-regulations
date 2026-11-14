@@ -61,8 +61,9 @@ import { useNativeColouring, type AtlasSource } from "./native/useColouring";
 import { colourProbe } from "./native/probe";
 import { panProbe } from "./native/panProbe";
 import { GoneViews } from "./native/goneView";
+import { nativeLabelShift } from "./native/labelShift";
 import { MARK_BOX_IMAGE, MARK_LABEL, MARK_RING, MARK_SOURCE, PIN_SOURCE, markBox, markBoxImage, markHit, marksData,
-         marksLayers, pinDotLayer, pinsData, shiftedLabels, titledPin, PIN_DOT } from "./point-marks";
+         marksLayers, pinDotLayer, pinsData, titledPin, PIN_DOT } from "./point-marks";
 import { pngDataUri } from "./png";
 import { metricScale } from "./scale";
 import { GEOMETRY, SHOW_SCALE } from "./chrome";
@@ -791,16 +792,21 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   /** (T50) where each mark's label is centred, kept inside the map as the web's `markers.ts` does (`labelShift`):
    *  measured where the camera settles, from each ring's screen x, and moved as a point of the marks' source (T317) */
   const [labelAt, setLabelAt] = useState<{ key: string; at: readonly ([number, number] | null)[] }>({ key: "", at: [] });
+  // (T734) only a map that is mounted, styled and has drawn is asked (`nativeLabelShift`): asked before, the binding's
+  // `project` threw a NullPointerException on the native main thread and closed the app
+  const mountedNow = useRef(false);
+  useEffect(() => { mountedNow.current = true; return () => { mountedNow.current = false; }; }, []);
   const shiftMarks = useCallback(async () => {
-    const ms = marksNow.current ?? [], w = size.current.width, map = mapRef.current;
-    if (!ms.some((k) => k.label) || !w || !map) return;
-    const next = await shiftedLabels(ms, w, (lon, lat) => map.project([lon, lat]).then((p) => [p[0], p[1]] as [number, number], () => null),
-                                     (x, y) => map.unproject([x, y]).then((l) => [l[0], l[1]] as [number, number], () => null));
+    const ms = marksNow.current ?? [], w = size.current.width;
+    if (!ms.some((k) => k.label) || !w) return;
+    const next = await nativeLabelShift(ms, w, mapRef.current,
+                                        () => mountedNow.current && styledNow.current && rendered.current, report);
     const key = JSON.stringify(ms);
-    if (JSON.stringify(marksNow.current ?? []) !== key) return;
+    if (!next || JSON.stringify(marksNow.current ?? []) !== key) return;
     setLabelAt((was) => (was.key === key && JSON.stringify(was.at) === JSON.stringify(next) ? was : { key, at: next }));
-  }, []);
-  useEffect(() => { void shiftMarks(); }, [JSON.stringify(marks ?? []), shiftMarks]);  // eslint-disable-line react-hooks/exhaustive-deps
+  }, [report]);
+  // asked again once the map has drawn (a shift asked before it was skipped)
+  useEffect(() => { void shiftMarks(); }, [JSON.stringify(marks ?? []), shiftMarks, drawn]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   const onRegionDidChange = useCallback((e: RegionEvent) => {
     // (T508) the fit's glide at its end (not the camera it started from), and the last frame drawn had every tile in
