@@ -11,7 +11,11 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
-- **Privacy page check (2026-11-14, owner: "please check page too"), before closed testing.** Found:
+- **ANSWERED 2026-11-14 (privacy page check).** Owner, verbatim: "we are close to moving staging webpage into prod.
+  tonight we will probably do that." and "choose the best wording please you know better then I do for that stuff".
+  So: item 1 is settled by the production move (after it, check that `https://canifishthis.ca/privacy` shows the
+  policy); item 2: Claude chose the wording and applied it to `privacyBody` and the staging site (effective date
+  2026-11-14). Original findings (owner: "please check page too"):
   1. `https://canifishthis.ca/privacy` (the link on the Play listing) does NOT show the policy: the live site is still
      the old site and answers every address with its own front page. The policy is only on
      `https://staging.canifishthis.ca/privacy`. Choose: publish the new site's privacy page to canifishthis.ca (you run
