@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import { APP_UPDATE_WORDS as W, apkIsNewer, appUpdateChannel, appUpdateVM, appVersionToTell, changelogVM, notesFor,
          readAppUpdateSaved, shouldCheckAppUpdate, type AppUpdateCheck } from "./appUpdate";
 import { CHANGELOG } from "./changelog";
+import { compareSemver } from "./appVersion";
 import { bellLabel } from "./updates";
 
 const own = { version: "0.5.0", build: 12, sha: "abc1234", date: "2026-11-04" };
@@ -134,6 +135,23 @@ describe("(T234 v1.1) the changelog and the incoming version's bullets", () => {
     expect(new Set(rows.map((r) => r.version)).size).toBe(CHANGELOG.length);
     expect(rows.every((r) => r.notes.length >= 1 && r.notes.length <= 5)).toBe(true);
     expect(rows.map((r) => r.version)).toEqual([...rows.map((r) => r.version)].sort((a, b) => (a < b ? 1 : -1)));
+  });
+  it("(T723 G11) each platform reads only its own notes; Android's list is the file's, byte for byte", () => {
+    const tagged = [
+      { version: "0.2.0", date: null, notes: ["Both", "Only Play has it"], only: { "Only Play has it": "android" as const } },
+      { version: "0.1.0", date: null, notes: ["Only Play has it too"], only: { "Only Play has it too": "android" as const } },
+    ];
+    expect(changelogVM(null, tagged, "ios").map((r) => [r.version, r.notes])).toEqual([["0.2.0", ["Both"]]]);
+    expect(changelogVM(null, tagged, "android").map((r) => [r.version, r.notes])).toEqual(
+      [["0.2.0", ["Both", "Only Play has it"]], ["0.1.0", ["Only Play has it too"]]]);
+    // the shipped log: Android sees every note of every entry exactly as written; no tag names a note that is not there
+    expect(changelogVM(null).map((r) => [r.version, r.notes])).toEqual(
+      [...CHANGELOG].sort((a, b) => compareSemver(b.version, a.version)).map((e) => [e.version, e.notes]));
+    for (const e of CHANGELOG) for (const k of Object.keys(e.only ?? {})) expect(e.notes).toContain(k);
+  });
+  it("(T723 G11) the shipped notes an iPhone reads never name Google Play, Android or the APK", () => {
+    const text = changelogVM(null, CHANGELOG, "ios").flatMap((r) => r.notes).join("\n");
+    expect(/google play|android|\bapk\b/i.test(text)).toBe(false);
   });
   it("the prompt shows the incoming version's bullets: the version file's first, else the bundled entry", () => {
     expect(notesFor("0.6.0", ["From the server"], log)).toEqual(["From the server"]);

@@ -17,6 +17,12 @@ export interface ChangelogEntry {
   readonly date: string | null;
   readonly notes: readonly string[];
   readonly draft?: boolean;
+  /**
+   * (T723 G11) A note true on ONE platform only, keyed by its exact text. Every other note is every platform's. What's new
+   * shows a reader only their own (`changelogVM`: an iPhone is not told about Google Play); `notes` is unchanged: the
+   * Play release notes and `latest.json` (build-apk.sh) still read it whole, and Android's list is byte for byte as it was.
+   */
+  readonly only?: Readonly<Record<string, "android" | "ios">>;
 }
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
@@ -34,6 +40,7 @@ export const CHANGELOG: readonly ChangelogEntry[] = [
       "On the Regulations page the salmon block comes first, salmon closed all year get a year bar like other fish, and the heading names the part you opened",
       "Where rivers meet is placed more exactly, so a few side channels and small creeks follow the right part of their river; Gagnon Creek's mouth reads 'at Williston Lake', and part ends name the real boundary (a weir, the source) instead of 'a lake outlet'",
     ],
+    only: { "A pinch zoom keeps gliding after you lift your fingers, as a quick flick should": "android" },
   },
   {
     version: "0.7.7", date: "2026-11-12", draft: true, notes: [
@@ -134,12 +141,14 @@ export const CHANGELOG: readonly ChangelogEntry[] = [
     version: "0.6.5", date: "2026-11-06", notes: [
       "The app says a new version is out only once Google Play has it for your phone",
     ],
+    only: { "The app says a new version is out only once Google Play has it for your phone": "android" },
   },
   {
     version: "0.6.4", date: "2026-11-06", notes: [
       "Panning the map is smoother: the map no longer re-reads every tile each time it stops",
       "Screen readers can read the first-run notice and press \"I understand\" on Android",
     ],
+    only: { "Screen readers can read the first-run notice and press \"I understand\" on Android": "android" },
   },
   {
     version: "0.6.3", date: "2026-11-06", notes: [
@@ -178,6 +187,7 @@ export const CHANGELOG: readonly ChangelogEntry[] = [
       "Fewer crashes and less memory use on Android; the map glides farther",
       "\"Non-retention until further notice\" now reads as closed",
     ],
+    only: { "Fewer crashes and less memory use on Android; the map glides farther": "android" },
   },
   {
     version: "0.4.0", date: "2026-10-31", notes: [
