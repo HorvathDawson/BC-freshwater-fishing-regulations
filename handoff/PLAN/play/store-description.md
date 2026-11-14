@@ -1,7 +1,7 @@
 # Store description (owner's text, 2026-11-13, fact-checked against listing.md)
 
 Written by the owner; Claude corrected four claims (share link, reserve lands, always-shown layers, "summaries"),
-small inaccuracies, added Salmon and Run Timing, and the official source links (the same links the app uses).
+small inaccuracies, added salmon and run timing (one section, to fit 4000), and the official source links (the same links the app uses).
 Limits: short 80 characters, long 4000. Same text for the App Store.
 
 ## Short description
@@ -24,11 +24,8 @@ Understand Regulations Faster
 Fishing regulations can be difficult to interpret. Can I Fish This? breaks the rules for each water body into a clear, organised view: seasons, limits, size and gear rules, and closures, section by section where the rules change along a river.
 Need more detail? A glossary of terms is available for reference.
 
-Salmon Limits and Closures
-See the federal salmon limits and closures for the water you're looking at, alongside the provincial freshwater regulations, and switch the map to a salmon view.
-
-Run Timing
-Switch the map to a run timing view to see when salmon runs are expected on the rivers you fish.
+Salmon Limits, Closures and Run Timing
+See the federal salmon limits and closures for the water you're looking at, and switch the map to a salmon view or a run timing view.
 
 Plan Your Next Trip
 Check regulations days in advance and see upcoming regulation changes before your trip. River conditions and forecasts help you choose the best place and time to fish.
@@ -46,7 +43,7 @@ Save:
 Your photos and notes stay on your phone.
 
 Share With Friends
-Share a water with friends. The link opens the same water, map view and date, so they see exactly what you see.
+Share a water with friends. The link opens the same water, map view and date.
 
 River Conditions and Forecasts
 View current river conditions using live federal hydrometric monitoring data, including:
@@ -54,7 +51,6 @@ View current river conditions using live federal hydrometric monitoring data, in
 • Water levels
 • Historical comparisons
 • River forecasts
-Quickly compare current conditions with other years to better understand what's happening on the water.
 
 Custom Flow Alerts
 Set personalized river alerts for the rivers you care about most. Choose a monitoring gauge and define your own flow or level threshold to receive a notification when the river crosses it.
@@ -72,6 +68,5 @@ Official sources:
 • BC Freshwater Fishing Regulations Synopsis and in-season changes: https://www2.gov.bc.ca/gov/content/sports-culture/recreation/fishing-hunting/fishing/fishing-regulations
 • Fisheries and Oceans Canada, freshwater salmon regulations: https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/index-eng.html
 • Water Survey of Canada, river flow and level data: https://wateroffice.ec.gc.ca
-• BC River Forecast Centre: https://www2.gov.bc.ca/gov/content/environment/air-land-water/water/drought-flooding-dikes-dams/river-forecast-centre
 
 Important: The app's initial download includes a large data package (approximately 500 MB). For the best experience, we recommend downloading and setting up the app while connected to WiFi.
