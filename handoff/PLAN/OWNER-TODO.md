@@ -370,3 +370,4 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   means Device IDs = Yes; the report's map centre counts as approximate location; App interactions is new; Open-Meteo
   and Esri sharing (you decided these 10-29); the app name ("Can I Fish?" or "Can I Fish This?"); whether to round
   spot coordinates before they go to Open-Meteo.
+- **T691 gauge proposals: ANSWERED 2026-11-13** (all seven; recorded in the T691 ticket, "Phase 2 — OWNER ANSWERED"): 08JB013 rematch to the fork, no cut, name variant; 08PA004 is a Ross Lake level gauge; the five dam/outflow proposals accepted (Kemano stays unmatched). Any earlier "five silent gauge stations need a match call" / "7 proposals" row is closed by this.

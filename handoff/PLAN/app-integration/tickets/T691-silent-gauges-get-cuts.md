@@ -63,3 +63,19 @@ stretch below its cut). Pictures beside the file (`08*.png`). For the owner, in 
 
 Each accepted row also needs its `match_calls.json` decision; applying is surgical (one row each, `promote --only`), then
 an atlas rebuild. Owner: OWNER-TODO "T691: five silent gauge stations need a match call".
+
+## Phase 2 — OWNER ANSWERED 2026-11-13 (by dialog, 15:11 UTC; main failed to record it, found again in the transcript)
+The "no owner approval is recorded" note above was wrong: the owner answered every one the morning of 2026-11-13.
+Verbatim:
+- 08JB013 North Beach Creek above Allin Creek: "rematch no cut and add name variant to the fork". So: match moves to
+  Beach Creek's unnamed north fork (24 m), NO cut (discontinued, P53), and the fork gets "North Beach Creek" as a name
+  variant. (Asked again by mistake the same evening: "Fix match, no cut", same answer.)
+- 08PA004 Skagit: "Ross Lake level gauge". So: it is a level gauge of Ross Lake (its point is inside the BC arm of the
+  lake, level only): match it to Ross Lake as a lake gauge; lake gauges are never cut. This REPLACES the proposed row
+  (river match + `cut_at` the Ross Lake inlet).
+- The five dam/outflow gauges: "Accept all five proposals": 08ND025 Revelstoke → Columbia from Revelstoke Dam down
+  8.1 km; 08NE126 Arrow → Columbia from Keenleyside Dam down 7.4 km; 08NJ158 Kootenay Lake outflow → Kootenay River,
+  Corra Linn Dam to Brilliant Dam (22.9 km); 08JA013 Skins Lake Spillway → the 636 m channel Ootsa → Skins Lake;
+  08FE002 Kemano Powerhouse → stays unmatched.
+Status: DECIDED, not yet applied. Needs `cut_at` + `reads: "below"` code, each row's `match_calls.json` decision,
+surgical rows in `data/curated/gauges/matches.json`, then an atlas rebuild. Do not ask the owner again.
