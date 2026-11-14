@@ -226,10 +226,11 @@ describe("a fork upstream: the Skeena's Ecological Reserve", () => {
     // not one of the ways up: nothing
     expect(run(g, open, { type: "choose", to: belowIx })).toBe(open);
     expect(run(g, open, { type: "closeChooser" })).toEqual(reserve);
-    // the host channel above the cut is the highest part, and its own ▼ is a fork (section 2 and the Reserve meet it at
-    // the Exchamsiks cut)
+    // (T710, owner 2026-11-13 "List it where it sits", r-a9914d6b25b7) the host channel above the cut is listed right
+    // after the stretch it runs beside, no longer the highest part: its ▲ steps up (it rejoins the main stem above the
+    // cut) and its ▼ is the one stretch below the cut (the main stem beside it is no longer "below" it by index)
     const side = view(g, waterMapStart(sideIx));
-    expect([side.current.name, side.up.disabled, side.down.fork]).toEqual(["Skeena River", true, true]);
+    expect([side.current.name, side.up.disabled, side.down.fork]).toEqual(["Skeena River", false, false]);
   });
 });
 
