@@ -34,6 +34,22 @@ real ticket in the ledger (next free number) when you start it. IOS-11 is not ap
      (needs a full build and the owner).
   3. **Docs lane when idle:** iOS store pack drafts (IOS-10): review notes, age-rating answers, App Privacy answers checked
      against `handoff/PLAN/play/data-safety.md`, iPhone 6.9" / 6.5" screenshots from the simulator.
+  4. **Clean-up hunt (Sonnet, lowest priority, runs when a slot is free).** Owner 2026-11-14, verbatim: "can we send another
+     thing to that agent to look for things that could be cleaned up too". Survey the repo for what can go or be tidied: dead
+     code and unused exports, unused dependencies, files nothing reads, duplicate helpers, stale `handoff/PLAN` and
+     NEXT-SESSION pages that newer ones replace, tickets marked open that are done, old generated outputs and scratch dirs
+     inside the repo, old releases beyond live + previous, leftover experiment flags (e.g. `EXPO_PUBLIC_TAP_AT_LIFT`),
+     TODO/FIXME comments that are done, tests that pin nothing, scripts no longer called, large files tracked in git that
+     should not be. Write findings to `handoff/PLAN/CLEANUP-CANDIDATES.md` as a table: what, where, evidence it is unused
+     (who was checked for readers; `graphify query` first), size or lines saved, risk (safe / needs a look / owner's call).
+     Do the **safe** ones straight away (owner rule 2026-10-24: git is the safety net, quick importance check, no approval
+     list): one small commit per group, `git commit -- <paths>`, tests for what changed plus `pnpm check:fast` or the
+     pipeline fast-fail as fits, no behaviour change, app CI and fast-fail green. **Do NOT touch:** `marks.jsonl`,
+     `data/generated/review/dfo-suggestions.json`, `data/curated/**` content, the tiles dir, guards and their tests,
+     anything the other chat is changing (`app/packages/ui-native` Shell, `app/packages/map`, the test bed), files
+     T667/T686/T602 already cover (the pipeline lane's), credentials and anything under `~/.canifishthis`. Never drop, rename
+     or filter data content. Never pipe `ls` into `rm`. Anything not clearly safe stays in the table for the owner, batched
+     with the end-of-day questions.
 - **Each IOS ticket:** open it as a ticket when started; record baseline numbers; fix the parity gaps found; add or port the
   bench so it runs on the simulator; tests only for what changed plus `pnpm check:fast` run unfiltered; app CI green on push.
 - **Hard limits:** no Play upload, no TestFlight, no production, no atlas promote or release, no parser or `claude` CLI,
