@@ -8200,7 +8200,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "ecstall_river__johnston_creek"
+            ],
+            "item_id": "gnis:3986"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
