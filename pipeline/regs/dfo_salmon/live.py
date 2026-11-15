@@ -23,8 +23,15 @@ chain_calendar` does (`compose` here is the reference, pinned against it), so th
 
     index.json    {format: "dfo-feed/3", at, regions: {slug: {name, url, asof, sha256, changed, checked, stale, held,
                    failures, notes, header, unresolved, bucket?, shared, sizes}}, verdicts, gears, locs: {location_id: {r, sp: [5 runs], g: runs, x?}},
-                   unplaced: n}      notes: the region header's typed notes (`header.py`); header: their digest
+                   unplaced: n, known}  notes: the region header's typed notes (`header.py`); header: their digest
                    x (T321): the rows the location's card shows in DFO's words ({k: new|unread|note, sp, d, t})
+                   holds (T549/T759): the places read "check" this run [{location_id, fingerprint, why, kept: "check",
+                     last?}] — `last` the place's last real answer {sp, g} (this feed's tables), what rule (ii) compares
+                   gone (T549): the places DFO dropped, the wider rule answering [{location_id, water, place, page}]
+                   known (T759): slug -> sorted ids of EVERY place the run had an entry for (active, dormant, page
+                     defaults, derived closed pieces); only regions read this run (or carried unasked from the run that
+                     read them) — a held or failed region has no key. The app's backstop fires only for a
+                     release-named id absent from `known[slug]` of a region that has the key (`missing_places`)
     unplaced.json the places the page lists that no curated location knows (part 4) — their rules HELD, never dropped
     <out>.notified.json   BESIDE the feed dir, never synced: the notices already sent (`gauges.feed.notify`)
 
@@ -78,6 +85,20 @@ FAIL_NOTIFY = 2
 QUEUE_ACTION = "python -m pipeline.regs.dfo_salmon.live queue --regions {slug}"
 #: (T321) an in-season notice number in a cell, as printed
 Q_FN = re.compile(r"\bFN\s*\d{3,4}\b", re.I)
+
+
+#: (T549 item 4, the worker's `REWORDED_VERDICT`, mirrored by T759) a curated place DFO reworded: the top candidate of a
+#: `drift` row, held unplaced — it reads "check", never the wider rule of its chain
+REWORDED_VERDICT = {"s": "check", "t": "DFO reworded this place and the new wording is not confirmed yet — check DFO"}
+REWORDED_WHY = "DFO reworded this place; the new wording is held unplaced until it is confirmed"
+#: (T759, proposal pending the owner's answer) a curated place the feed would list as GONE that may have been misread:
+#: its water has an unplaced row today (`MISSING_UNPLACED`), or its last answer was stricter than what would answer in
+#: its stead (`MISSING_STRICTER`). It reads "check" until the owner confirms the drop (the place made dormant) or the row
+#: is placed. One verdict for both; the reason is the hold's `why`.
+MISSING_VERDICT = {"s": "check", "t": "DFO's page no longer shows this place as we read it, and the rule that would "
+                                       "answer in its stead may be wrong — check DFO"}
+MISSING_UNPLACED = "not on DFO's page as we read it, and its water has a row no curated place matches (held unplaced)"
+MISSING_STRICTER = "not on DFO's page as we read it, and its last answer was stricter than what would answer instead"
 
 
 def _now() -> str:
@@ -323,17 +344,143 @@ def _write(p: Path, obj) -> None:
     os.replace(tmp, p)
 
 
+def _reindex(c: dict, prev: dict, verdicts: S._Interner, gears: S._Interner) -> dict:
+    """One calendar `{sp, g}` of the last feed, its verdict / gear indices moved into this run's tables."""
+    pv, pg = prev.get("verdicts") or [], prev.get("gears") or []
+    sp = [[x if k % 2 == 0 or x < 0 else verdicts(pv[x]) for k, x in enumerate(runs)] for runs in c["sp"]]
+    g = [x if k % 2 == 0 or x < 0 else gears(pg[x]) for k, x in enumerate(c["g"])]
+    return {"sp": sp, "g": g}
+
+
 def _carry(prev: dict, slug: str, verdicts: S._Interner, gears: S._Interner, only: Optional[set] = None) -> dict:
     """The last feed's answers for a region (or for some of its locations), re-indexed into this run's tables."""
-    pv, pg = prev.get("verdicts") or [], prev.get("gears") or []
     out = {}
     for lid, c in (prev.get("locs") or {}).items():
         if c.get("r") != slug or (only is not None and lid not in only):
             continue
-        sp = [[x if k % 2 == 0 or x < 0 else verdicts(pv[x]) for k, x in enumerate(runs)] for runs in c["sp"]]
-        g = [x if k % 2 == 0 or x < 0 else gears(pg[x]) for k, x in enumerate(c["g"])]
-        out[lid] = {"r": slug, "sp": sp, "g": g, **({"x": c["x"]} if c.get("x") else {})}
+        out[lid] = {"r": slug, **_reindex(c, prev, verdicts, gears), **({"x": c["x"]} if c.get("x") else {})}
     return out
+
+
+def _carry_missing(region: dict, prev: dict, verdicts: S._Interner, gears: S._Interner) -> dict:
+    """(T759) a region kept at the last feed keeps its `holds` and `gone`, each hold's `last` re-indexed into this run's
+    tables (the next run compares with it, so it must survive a held page or a failed fetch)."""
+    holds = [{**h, **({"last": _reindex(h["last"], prev, verdicts, gears)} if h.get("last") else {})}
+             for h in region.get("holds") or ()]
+    return {**region, "holds": holds, "gone": list(region.get("gone") or ())}
+
+
+# ── (T759) a curated place the page no longer shows ─────────────────────────────────────────────────────────────────
+
+def _looser(instead: dict, was: dict) -> bool:
+    """`instead` reads more open than `was` for one species and day, by the one strictness order the feed has
+    (`deliver.salmon.STRICT`, two openings by `stricter_opening`): the stricter of the two is not `instead`. Two answers
+    of the same kind that is not an opening (two closures, two checks) are not looser."""
+    if was == instead or (was["s"] == instead["s"] != "open"):
+        return False
+    return S.strictest([was, instead]) != instead
+
+
+def stricter_where(lid: str, last: dict, locs: Mapping[str, dict], verdicts: Sequence[dict],
+                   gears: Sequence[Sequence[str]], chains: Sequence[Mapping]) -> Optional[dict]:
+    """(T759 rule ii) the first (chain, species, day) where the place's LAST answer (`last`, a calendar in this run's
+    tables) is stricter than what answers in its stead — each release chain naming `lid` composed (`compose`) with it and
+    without it: the next place in the chain answers, or closed (`NOT_LISTED`) when none does. None: nowhere."""
+    for c in chains:
+        if lid not in c["l"]:
+            continue
+        vv, gg = list(verdicts), list(gears)
+        intern = lambda v: vv.append(v) or len(vv) - 1                    # noqa: E731 — merged two-region verdicts
+        gintern = lambda g: gg.append(g) or len(gg) - 1                   # noqa: E731
+        w = compose(c["l"], {**locs, lid: last}, vv, (), False, c.get("s"), intern, gg, gintern)
+        wo = compose(c["l"], locs, vv, (), False, c.get("s"), intern, gg, gintern)
+        for k, sp in enumerate(S.SPECIES):
+            for day, md in enumerate(S.DAYS):
+                a, b = vv[_at(w["sp"][k], day)], vv[_at(wo["sp"][k], day)]
+                if _looser(b, a):
+                    return {"chain": list(c["l"]), "sp": sp, "md": md, "was": a, "instead": b}
+    return None
+
+
+def missing_places(slug: str, rep, unplaced: Sequence[dict], prev: dict, locs: Mapping[str, dict],
+                   verdicts: S._Interner, gears: S._Interner, chains: Optional[Sequence[Mapping]], page: str,
+                   ) -> Tuple[Dict[str, dict], List[dict], List[dict], List[dict]]:
+    """(T549 item 4 + T759) every ACTIVE curated place `reconcile` found absent from today's page (`dormant`), read so
+    that a place that may have been misread never lets the wider place of its chain answer:
+
+      reworded  the top candidate of a `drift` row                                        -> "check" (REWORDED_VERDICT)
+      (i)       its water (`names.key`) has an unplaced row on today's page               -> "check" (MISSING_VERDICT)
+      (ii)      its last answer was stricter than what would answer in its stead, on some
+                release chain naming it, species and day (`stricter_where`)               -> "check" (MISSING_VERDICT)
+      gone      none of these: DFO plainly removed it — it leaves `locs` and the wider rule answers; listed in `gone`
+                and told, only when the last feed published it (or already listed it)
+
+    The last answer is the last feed's `locs[lid]`, or — when that was a check this rule wrote — the `last` its hold
+    carries (so a check never becomes the answer it is compared with). `chains` None: rule (ii) is not evaluated, and
+    every gone notice says so. Returns (check calendars by lid, holds, gone, notices); every check is in `holds`
+    (`{location_id, fingerprint, why, kept: "check", last?}`, the worker's RowHold) and told by an urgent notice."""
+    from pipeline.common.names import key
+    was = (prev.get("regions") or {}).get(slug) or {}
+    was_holds = {h["location_id"]: h for h in was.get("holds") or ()}
+    was_gone = {g["location_id"]: g for g in was.get("gone") or ()}
+    prev_locs = prev.get("locs") or {}
+    reworded: Dict[str, str] = {}
+    for o in rep.outcomes:
+        if o.status == "drift" and o.candidates and o.candidates[0]["location_id"] not in reworded:
+            reworded[o.candidates[0]["location_id"]] = o.fingerprint
+    on_water: Dict[str, List[str]] = {}
+    for u in unplaced:
+        if key(u.get("water") or ""):
+            on_water.setdefault(key(u["water"]), []).append(u["fingerprint"])
+
+    def last_of(lid: str) -> Optional[dict]:
+        h = was_holds.get(lid)
+        if h is not None and h.get("kept") == "check":
+            return _reindex(h["last"], prev, verdicts, gears) if h.get("last") else None
+        c = prev_locs.get(lid)
+        return {"r": slug, **_reindex(c, prev, verdicts, gears)} if c and c.get("r") == slug else None
+
+    checks: Dict[str, dict] = {}
+    holds: List[dict] = []
+    gone: List[dict] = []
+    notices: List[dict] = []
+    for o in rep.outcomes:
+        if o.status != "dormant" or not o.location_id or o.location_id in locs:
+            continue
+        lid = o.location_id
+        last = last_of(lid)
+        if lid in reworded:
+            fp, why, v = reworded[lid], REWORDED_WHY, REWORDED_VERDICT
+        elif on_water.get(key(o.water or "")):
+            fp, why, v = sorted(on_water[key(o.water)])[0], MISSING_UNPLACED, MISSING_VERDICT
+        else:
+            hit = stricter_where(lid, {"r": slug, **last}, locs, verdicts.items, gears.items, chains) \
+                if last is not None and chains is not None else None
+            if hit is None:
+                g = was_gone.get(lid) or ({"location_id": lid, "water": o.water, "place": o.specific_area,
+                                           "page": page} if lid in prev_locs and prev_locs[lid].get("r") == slug
+                                          else None)
+                if g is not None:
+                    gone.append(g)
+                    what = "is no longer on DFO's page: its rule left the feed and the wider rule of its water answers"
+                    off = "" if chains is not None or last is None else \
+                        " (the stricter-answer check did not run: no release chains were given)"
+                    notices.append({"key": f"dfo-gone:{slug}:{lid}:{g['page']}", "urgent": True,
+                                    "text": f"DFO Region {slug}: {lid} ({g['water']}: {g['place']!r}) {what}{off}. "
+                                            "Read DFO's page: if the row is still printed, the page was misread"})
+                continue
+            fp, v = o.fingerprint, MISSING_VERDICT
+            why = (f"{MISSING_STRICTER} ({hit['was']['s']} -> {hit['instead']['s']}, {hit['sp']} on "
+                   f"{hit['md'] // 100:02d}-{hit['md'] % 100:02d}, chain {' > '.join(hit['chain'])})")
+        ix = verdicts(v)
+        checks[lid] = {"r": slug, "sp": [[0, ix] for _ in S.SPECIES], "g": [0, -1]}
+        holds.append({"location_id": lid, "fingerprint": fp, "why": why, "kept": "check",
+                      **({"last": {"sp": last["sp"], "g": last["g"]}} if last is not None else {})})
+        notices.append({"key": f"dfo-missing:{slug}:{lid}:{fp}", "urgent": True,
+                        "text": f"DFO Region {slug}: {lid} ({o.water}: {o.specific_area!r}) reads 'check DFO' — {why}. "
+                                "Confirm in DFO review: place the held row, or make the place dormant if DFO removed "
+                                "it (the wider rule then answers)"})
+    return checks, sorted(holds, key=lambda h: h["location_id"]), sorted(gone, key=lambda g: g["location_id"]), notices
 
 
 Fetcher = Callable[[str], Tuple[str, Optional[str]]]
@@ -413,9 +560,13 @@ def _read_texts(slug: str, html: str, reg: dict, was: dict, notices: List[dict])
 def run(out: Path, *, fetcher: Fetcher, regions: Optional[Sequence[str]] = None, entries_dir: Optional[Path] = None,
         history_dir: Optional[Path] = None, now: Optional[str] = None, notify_url: Optional[str] = None,
         sender=None, typed_dir: Optional[Path] = None, scrape_dir: Optional[Path] = None, dry_run: bool = False,
-        marks_path: Optional[Path] = None, with_marks: bool = True) -> dict:
+        marks_path: Optional[Path] = None, with_marks: bool = True,
+        chains: Optional[Sequence[Mapping]] = None) -> dict:
     """One feed run. `fetcher(slug)` → (html, fetched_at) or raises. Writes `<out>/index.json` + `unplaced.json`,
     sends the due notices; returns `{index, unplaced, notices, sent, previews}`.
+
+    T759: `chains` — the release's chains (`deliver.salmon.read_release(...)["chains"]`), for `missing_places` rule
+    (ii); `main` always passes the live release's. None: rule (ii) is not evaluated and each gone notice says so.
 
     T366: `typed_dir` — the typed feed the review app and the release read: each region read is compared with it
     (`refresh.preview`: places, rows changed, marks that would move, urgent rows) and its row changes go to ONE digest
@@ -438,10 +589,14 @@ def run(out: Path, *, fetcher: Fetcher, regions: Optional[Sequence[str]] = None,
     unplaced: List[dict] = []
     notices: List[dict] = []
     previews: Dict[str, dict] = {}
+    pending: List[tuple] = []                                  # (T759) the regions read today, missing places decided last
+    known: Dict[str, List[str]] = {}                           # (T759) region -> every place id the run had an entry for
     for slug in F.ALL_SLUGS:                                   # regions not asked this run keep their last answers
         if slug not in todo and slug in (prev.get("regions") or {}):
             locs.update(_carry(prev, slug, verdicts, gears))
-            region_out[slug] = prev["regions"][slug]
+            if slug in (prev.get("known") or {}):              # the run that read it knew these; its answers stand
+                known[slug] = list(prev["known"][slug])
+            region_out[slug] = _carry_missing(prev["regions"][slug], prev, verdicts, gears)
             unplaced += [u for (r, _), u in prev_unplaced.items() if r == slug]
     for slug in todo:
         page = F.PAGES[slug]
@@ -453,7 +608,10 @@ def run(out: Path, *, fetcher: Fetcher, regions: Optional[Sequence[str]] = None,
                # read's kept through a failed fetch or a held page like the answers
                "notes": was.get("notes") or [], "header": was.get("header"), "unresolved": was.get("unresolved") or [],
                # (T320) the page's general text, kept to tell the owner what changed (`_read_texts`)
-               "texts": was.get("texts") or []}
+               "texts": was.get("texts") or [],
+               # (T549 item 4, T759) the places read "check" and the places DFO dropped: kept with the answers when
+               # the page is not read today; a page read today replaces them (`missing_places`)
+               **{k: v for k, v in _carry_missing(was, prev, verdicts, gears).items() if k in ("holds", "gone")}}
         _set_bucket(reg)
         region_out[slug] = reg
 
@@ -520,6 +678,9 @@ def run(out: Path, *, fetcher: Fetcher, regions: Optional[Sequence[str]] = None,
             u["first_seen"] = (prev_unplaced.get((slug, u["fingerprint"])) or {}).get("first_seen") or at
             unplaced.append(u)
             notices.append(unplaced_notice(u))
+        pending.append((slug, rep, held, sha[:12]))
+        # (T759) every place id this run had an entry for: active, dormant, page defaults, the closed pieces it derived
+        known[slug] = sorted({l.location_id for l in ef.locations} | set(rules))
         # T366: what this page changes against the typed rows in use — places, rows (the digest), marks, urgent rows
         old = _read_typed(typed_dir, slug) if typed_dir is not None else None
         pv = R.preview(slug, ef, rep, typed, old, held, typed_dir=typed_dir, entries_dir=entries_dir,
@@ -540,9 +701,19 @@ def run(out: Path, *, fetcher: Fetcher, regions: Optional[Sequence[str]] = None,
         if scrape_dir is not None and not dry_run:              # one vintage: the typed rows ARE this page's
             emit_region(slug, html, Path(scrape_dir), typed_dir)
 
+    # (T759) the places today's pages no longer show, decided once every region's answers are in (rule ii composes the
+    # release chains, which may cross regions) and against no check this step writes
+    checks: Dict[str, dict] = {}
+    for slug, rep, held, page in pending:
+        got, holds, gone, told = missing_places(slug, rep, held, prev, locs, verdicts, gears, chains, page)
+        checks.update(got)
+        region_out[slug]["holds"], region_out[slug]["gone"] = holds, gone
+        notices.extend(told)
+    locs.update(checks)
+
     index = {"format": FORMAT, "at": at, "regions": {s: region_out[s] for s in F.ALL_SLUGS if s in region_out},
              "verdicts": verdicts.items, "gears": gears.items, "locs": dict(sorted(locs.items())),
-             "unplaced": len(unplaced)}
+             "unplaced": len(unplaced), "known": {s: known[s] for s in F.ALL_SLUGS if s in known}}
     if dry_run:
         return {"index": index, "unplaced": unplaced, "notices": notices, "sent": None, "previews": previews}
     _write(out / "index.json", index)
@@ -646,7 +817,7 @@ def check_release(out: Path, release: Optional[Path] = None) -> int:
 def main(argv: Optional[List[str]] = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("command", nargs="?", default="run", choices=["run", "queue", "check-release"])
-    ap.add_argument("--release", type=Path, help="check-release: the release dir (default: the live one, LATEST)")
+    ap.add_argument("--release", type=Path, help="check-release, and run's T759 chains: the release dir (default: the live one, LATEST)")
     ap.add_argument("--regions", nargs="+", choices=F.ALL_SLUGS)
     ap.add_argument("--out", type=Path, default=OUT_DIR)
     ap.add_argument("--cache-dir", type=Path, default=F.DEFAULT_CACHE)
@@ -679,9 +850,12 @@ def main(argv: Optional[List[str]] = None) -> int:
     scrape = Path(GENERATED.regs.dfo_salmon)
     fetcher = (cached_fetcher(args.cache_dir) if args.offline else
                peek_fetcher() if args.dry_run else live_fetcher(args.cache_dir))
+    from pipeline.deliver.release.manifest import live
+    rel = Path(args.release) if args.release else live(GENERATED.release)   # T759 rule (ii): raises when none
     got = run(args.out, fetcher=fetcher, regions=args.regions, dry_run=args.dry_run,
               history_dir=None if args.offline else Path(args.cache_dir) / "history",
-              typed_dir=FD.FEED_DIR, scrape_dir=scrape, with_marks=not args.no_marks)
+              typed_dir=FD.FEED_DIR, scrape_dir=scrape, with_marks=not args.no_marks,
+              chains=S.read_release(rel)["chains"])
     for slug, pv in got["previews"].items():                    # T366: the same summary, dry or real
         print(R.text(pv) + "\n")
     urgent = [n for n in got["notices"] if n.get("urgent")]

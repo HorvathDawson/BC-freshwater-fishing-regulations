@@ -85,7 +85,9 @@ def test_todays_pages_join_every_location(tmp_path):
     assert not any(r["stale"] or r["held"] for r in ix["regions"].values())
     assert json.loads((tmp_path / "index.json").read_text()) == ix
     # T332: the quota trees (game-fish TreeTier nodes) add ~22 kB to the ~74 kB of T320; gzip on the wire
-    assert (tmp_path / "index.json").stat().st_size < 108_000          # T343: + each note's `fold`; T573: + 17 closed areas (~1.4 kB)
+    # T343: + each note's `fold`; T573: + 17 closed areas (~1.4 kB); T759: + `known`, every entry id per region (~14.7 kB
+    # raw, ids repeat `locs`' so gzip takes most of it) and an empty `holds` / `gone` per region
+    assert (tmp_path / "index.json").stat().st_size < 124_000
 
 
 def _unseen() -> str:
@@ -108,12 +110,17 @@ def test_an_unseen_location_is_held_and_told_once(tmp_path):
     assert {u["kind"] for u in held} == {"drift", "new_water"} and all(u["rules"] for u in held)
     assert any("Invented Creek" in t and "rule" in t for t in s.sent)
     assert any("new wording" in t and "likely 6:" in t for t in s.sent)
-    assert len(s.sent) == 2
-    # every other location publishes, with today's answers
+    # T759: + 1, the reworded place's own `dfo-missing` notice (it reads "check", the place id and the reason)
+    assert len(s.sent) == 3
+    assert any(t.startswith("DFO Region 6: 6:") and L.REWORDED_WHY in t for t in s.sent)
+    # every location publishes: the others with today's answers, and (T759, was: the reworded place LEFT `locs`, the
+    # fail-open this asserted as intended) the reworded place reads "check" like the worker's, listed in `holds`
     ix = got["index"]
     reworded = {c["location_id"] for u in got["unplaced"] for c in u["candidates"][:1]}
-    assert set(base["locs"]) - set(ix["locs"]) <= reworded
-    assert len(ix["locs"]) >= len(base["locs"]) - 1
+    assert set(base["locs"]) <= set(ix["locs"]) and len(reworded) == 1
+    check = ix["verdicts"].index(L.REWORDED_VERDICT)
+    assert all(ix["locs"][lid]["sp"] == [[0, check]] * len(S.SPECIES) for lid in reworded)
+    assert [h["location_id"] for h in ix["regions"]["6"]["holds"]] == sorted(reworded)
     # the next run tells nobody again, and keeps when it was first seen
     s2 = Sender()
     again = L.run(tmp_path / "b", fetcher=_pages({"6": _unseen()}), now="2026-10-28T00:00:00Z",
@@ -405,3 +412,181 @@ def test_queue_with_nothing_unplaced_here_fails_and_says_where_it_read(tmp_path,
     assert L.main(["queue", "--regions", "6", "--out", str(tmp_path)]) == 1
     err = capsys.readouterr().err
     assert str(tmp_path / "unplaced.json") in err and "live run --regions 6" in err
+
+
+# ── T759: a curated place the page no longer shows never lets a looser wider place answer ──────────────────────────
+# Doctored copies of the region 1 fixture page (built here, nothing saved); the chains are written out by hand in the
+# release's shape (`chains[].l`, narrowest first) — the two the trace found (handoff/PLAN/curation-review/
+# feed-missing-location-2026-11-15.md): the Quatse weir closure inside the Quatse, and the Campbell River "Maple Street
+# to the cement block" closure inside the stretch below the Quinsam confluence.
+
+QUATSE_WEIR = "100m upstream and downstream of the Quatse River Hatchery weir"
+QUATSE = ["1:quatse-river:100m-upstream-and-downstream-of-th", "1:quatse-river:whole", "1:default:region"]
+MAPLE = ("from a fishing boundary sign at the end of Maple Street downstream to the fishing boundary sign at the cement "
+         "block.")
+CAMPBELL = ["1:campbell-river:from-a-fishing-boundary-sign-at-th", "1:campbell-river:downstream-of-the-confluence-with",
+            "1:default:region"]
+CAYEGHLE = "1:cayeghle-river:including-colonial-river"
+CHAINS = [{"l": QUATSE}, {"l": QUATSE[1:]}, {"l": CAMPBELL}, {"l": [CAYEGHLE, "1:default:region"]}]
+CO, SEP1 = S.SPECIES.index("CO"), S.DAYS.index(901)
+
+
+def _r1(replace: dict | None = None, drop: str | None = None, water: tuple | None = None) -> str:
+    """Region 1's fixture page with texts replaced, or the row printing `drop` removed (`water`: (name, rowspan) when
+    the water's cell rode on that row — the next row carries it, one row shorter)."""
+    html = (FIX / "region1-eng.html").read_text(encoding="utf-8")
+    for a, b in (replace or {}).items():
+        assert a in html
+        html = html.replace(a, b, 1)
+    if drop:
+        i = html.index(drop)
+        a, b = html.rindex("<tr", 0, i), html.index("</tr>", i) + len("</tr>")
+        html = html[:a] + html[b:]
+        if water:
+            j = html.index("<tr>", a) + len("<tr>")
+            html = html[:j] + f'<td rowspan="{water[1] - 1}">{water[0]}</td>' + html[j:]
+    return html
+
+
+def _run1(out, html=None, chains=CHAINS, s=None):
+    return L.run(out, fetcher=_pages({"1": html} if html else None), regions=["1"], now=AT, notify_url="http://n",
+                 sender=s if s is not None else Sender(), chains=chains)
+
+
+def _on(ix, chain, sp=CO, day=SEP1) -> dict:
+    return ix["verdicts"][L._at(L.compose(chain, ix["locs"], ix["verdicts"])["sp"][sp], day)]
+
+
+def _hold(ix, lid) -> dict:
+    (h,) = [h for h in ix["regions"]["1"]["holds"] if h["location_id"] == lid]
+    return h
+
+
+def _never_more_open(base, ix, chain):
+    """Over the whole year, every fish: the chain never reads OPEN where today's full page does not read the same."""
+    b, d = L.compose(chain, base["locs"], base["verdicts"]), L.compose(chain, ix["locs"], ix["verdicts"])
+    for k in range(len(S.SPECIES)):
+        for day in range(len(S.DAYS)):
+            was, now = base["verdicts"][L._at(b["sp"][k], day)], ix["verdicts"][L._at(d["sp"][k], day)]
+            assert now["s"] != "open" or now == was, (chain[0], S.SPECIES[k], S.DAYS[day], was, now)
+
+
+def test_t759_a_close_reword_reads_check_as_the_worker(tmp_path):
+    """The top candidate of a drift row stays in `locs` reading the worker's REWORDED_VERDICT (live.ts:570-582), listed
+    in `holds` with the worker's RowHold fields; with a last feed, the hold carries that place's last answer."""
+    base = _run1(tmp_path / "a")["index"]
+    s = Sender()
+    got = _run1(tmp_path / "a", _r1({QUATSE_WEIR: "100 m upstream and downstream of the Quatse River hatchery weir"}),
+                s=s)
+    ix = got["index"]
+    (u,) = got["unplaced"]
+    assert u["kind"] == "drift" and u["candidates"][0]["location_id"] == QUATSE[0]
+    assert ix["locs"][QUATSE[0]] == {"r": "1", "sp": [[0, ix["verdicts"].index(L.REWORDED_VERDICT)]] * 5, "g": [0, -1]}
+    h = _hold(ix, QUATSE[0])
+    assert {k: h[k] for k in ("location_id", "fingerprint", "why", "kept")} == \
+        {"location_id": QUATSE[0], "fingerprint": u["fingerprint"], "why": L.REWORDED_WHY, "kept": "check"}
+    # the last answer, the same verdicts on the same days, in this feed's table
+    assert [r[0::2] for r in h["last"]["sp"]] == [r[0::2] for r in base["locs"][QUATSE[0]]["sp"]]
+    assert [ix["verdicts"][x] for r in h["last"]["sp"] for x in r[1::2] if x >= 0] == \
+        [base["verdicts"][x] for r in base["locs"][QUATSE[0]]["sp"] for x in r[1::2] if x >= 0]
+    assert _on(ix, QUATSE)["s"] == "check" and _on(base, QUATSE)["s"] == "closed"
+    assert any(f"{QUATSE[0]} (" in t and L.REWORDED_WHY in t for t in s.sent)
+    _never_more_open(base, ix, QUATSE)
+
+
+def test_t759_a_far_reword_on_a_water_with_an_unplaced_row_reads_check(tmp_path):
+    """Rule (i): no candidate scores (a `new` row on the Quatse), the place would go — its water has an unplaced row,
+    so it reads "check" (MISSING_VERDICT), with no last feed at all, told with its id and the reason."""
+    s = Sender()
+    got = _run1(tmp_path / "a", _r1({QUATSE_WEIR: "Within signed boundaries at the hatchery fence"}), s=s)
+    ix = got["index"]
+    (u,) = got["unplaced"]
+    assert u["kind"] == "new" and u["water"] == "Quatse River" and not u["candidates"]
+    assert ix["locs"][QUATSE[0]]["sp"] == [[0, ix["verdicts"].index(L.MISSING_VERDICT)]] * 5
+    h = _hold(ix, QUATSE[0])
+    assert h["why"] == L.MISSING_UNPLACED and h["fingerprint"] == u["fingerprint"] and h["kept"] == "check"
+    assert "last" not in h                                     # nothing was published before
+    assert _on(ix, QUATSE)["s"] == "check"
+    assert any(f"{QUATSE[0]} (" in t and L.MISSING_UNPLACED in t for t in s.sent)
+
+
+def test_t759_campbell_maple_street_closure_reworded_toward_its_sibling_no_longer_reads_open(tmp_path):
+    """The trace's worst case: the "Maple Street to the cement block" closure reworded so its SIBLING (`~2`, still on
+    the page) is the better match. Before T759 the place went and the stretch read open with the wider place's limit;
+    now rule (i) holds it at "check", every day it closed."""
+    base = _run1(tmp_path / "a")["index"]
+    assert _on(base, CAMPBELL, day=S.DAYS.index(1001))["s"] == "closed"      # the closure, inside the coho opening
+    got = _run1(tmp_path / "a", _r1({MAPLE: "from the end of Maple Street downstream to the confluence with the "
+                                            "Quinsam River."}))
+    ix = got["index"]
+    (u,) = got["unplaced"]
+    assert u["candidates"][0]["location_id"] == "1:campbell-river:downstream-of-the-confluence-with~2"
+    assert _hold(ix, CAMPBELL[0])["why"] == L.MISSING_UNPLACED
+    assert _on(ix, CAMPBELL, day=S.DAYS.index(1001))["s"] == "check"
+    _never_more_open(base, ix, CAMPBELL)
+
+
+def test_t759_a_dropped_stricter_place_reads_check_until_the_owner_confirms(tmp_path):
+    """Rule (ii): DFO's page no longer prints the Maple Street row and nothing on the Campbell is unplaced. Its last
+    answer (closed) is stricter than what answers in its stead (the coho opening below the Quinsam), so it reads
+    "check" — and the next run compares with that LAST answer, never with the check it wrote. Without chains the rule
+    cannot run: the place goes, and the gone notice says the check did not run."""
+    base = _run1(tmp_path / "a")["index"]
+    page = _r1(drop=MAPLE, water=("Campbell River", 4))
+    s = Sender()
+    got = _run1(tmp_path / "a", page, s=s)
+    ix = got["index"]
+    assert got["unplaced"] == [] and ix["regions"]["1"]["gone"] == []
+    h = _hold(ix, CAMPBELL[0])
+    assert h["why"].startswith(L.MISSING_STRICTER) and "closed -> open" in h["why"] and h["last"]
+    assert _on(ix, CAMPBELL, day=S.DAYS.index(1001))["s"] == "check"
+    _never_more_open(base, ix, CAMPBELL)
+    assert any(t.startswith(f"DFO Region 1: {CAMPBELL[0]} (") and L.MISSING_STRICTER in t for t in s.sent)
+    s2 = Sender()
+    again = _run1(tmp_path / "a", page, s=s2)["index"]                       # the third run: still check, nobody told
+    assert _hold(again, CAMPBELL[0])["why"] == h["why"] and s2.sent == []
+    assert _on(again, CAMPBELL, day=S.DAYS.index(1001))["s"] == "check"
+    off = _run1(tmp_path / "b", None)
+    off = _run1(tmp_path / "b", page, chains=None)
+    assert CAMPBELL[0] not in off["index"]["locs"]
+    assert [g["location_id"] for g in off["index"]["regions"]["1"]["gone"]] == [CAMPBELL[0]]
+    assert any("the stricter-answer check did not run" in n["text"] for n in off["notices"])
+
+
+def test_t759_a_plainly_removed_place_goes(tmp_path):
+    """A place DFO dropped with no unplaced row on its water, whose last answer is not stricter than what answers
+    instead (the Cayeghle's coho limit against the region's): it leaves `locs`, is listed in `gone` and told once —
+    the worker's case (a), unchanged."""
+    base = _run1(tmp_path / "a")["index"]
+    assert CAYEGHLE in base["locs"]
+    s = Sender()
+    got = _run1(tmp_path / "a", _r1(drop="including Colonial River."), s=s)
+    ix = got["index"]
+    assert CAYEGHLE not in ix["locs"] and ix["regions"]["1"]["holds"] == []
+    (g,) = ix["regions"]["1"]["gone"]
+    assert g["location_id"] == CAYEGHLE and g["water"] == "Cayeghle River"
+    assert [n["key"].split(":")[0] for n in got["notices"]] == ["dfo-gone"] and len(s.sent) == 1
+
+
+def test_t759_known_lists_every_place_the_run_had_an_entry_for(tmp_path):
+    """`known[slug]`: every place id the run had an entry for — dormant ones too (the fixture page is older than the
+    entries, so region 2 has places it no longer prints) and the closed pieces it derived. A held region has no key.
+    THE CONTRACT: an id absent from `known` of a region that has the key is the only kind the app's backstop fires on
+    (renamed between release and feed, or a release newer than the feed's entries)."""
+    from pipeline.regs.dfo_salmon import entries as E
+    got = L.run(tmp_path / "a", fetcher=_pages(), now=AT, notify_url="http://n", sender=Sender())["index"]
+    ef = E.load("2")
+    dormant = [l.location_id for l in ef.locations if l.location_id not in got["locs"]]
+    assert dormant and set(dormant) <= set(got["known"]["2"])
+    assert got["known"]["2"] == sorted({l.location_id for l in ef.locations})
+    assert {k for k in got["locs"] if "#closed:" in k} <= {i for ids in got["known"].values() for i in ids}
+    assert all(got["locs"][k]["r"] == s for s, ids in got["known"].items() for k in ids if k in got["locs"])
+    held = L.run(tmp_path / "a", fetcher=_pages({"6": "<html>nothing</html>"}), now=AT, notify_url="http://n",
+                 sender=Sender())["index"]
+    assert held["regions"]["6"]["held"] and "6" not in held["known"] and "2" in held["known"]
+    failed = L.run(tmp_path / "b", fetcher=_pages({"6": OSError("down")}), now=AT, notify_url="http://n",
+                   sender=Sender())["index"]
+    assert "6" not in failed["known"]
+    # a region not asked this run keeps the known of the run that read it, with its answers
+    one = L.run(tmp_path / "a", fetcher=_pages(), regions=["1"], now=AT, notify_url="http://n", sender=Sender())
+    assert one["index"]["known"]["2"] == got["known"]["2"] and "6" not in one["index"]["known"]
