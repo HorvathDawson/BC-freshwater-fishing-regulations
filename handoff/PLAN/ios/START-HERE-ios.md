@@ -11,8 +11,10 @@
 3. **Push test:** More → Notifications → turn on "New regulations data", allow notifications, put the app in the
    background, tell Claude; Claude sends one test push; then More → Notifications → "Last background checks" should
    show a newest line starting "woken by our server".
-4. **Answer when you can** (also on the To-Do page): which fish-pun lines stay; merge timing of the iOS work into the
-   shared branch; the open picks further down (questions 2 to 5, 9 to 13, 15 to 18).
+4. **Answer when you can** (also on the To-Do page): which fish-pun lines stay; the open picks further down
+   (questions 2 to 5, 9 to 13, 15 to 18). ANSWERED 10:33: the iOS work may merge whenever ("ios work could merge
+   when ever I think?"), in three steps timed with the Android chat; and the R8 build goes to Play internal if its
+   checks pass ("if that build passes the tests then it should be good to release").
 
 **What build 36 carries (branch `ios/next`, app CI green, nothing merged into the shared branch)**
 | part | what it does | how well proven |

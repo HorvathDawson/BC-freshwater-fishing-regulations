@@ -200,6 +200,11 @@ with the default Claude uses until you answer). Newest first inside each section
   back swipe, tap cue); owner, verbatim: "yes". Build 34 from 51349c3bf **uploaded 23:39** (0.7.10 build 34, staging data). The shared
   branch is not touched by it. Yours: add build 34 to your internal group and install it; checks only a phone can do
   are on the To-Do page row.
+- **ANSWERED 2026-11-15 10:33 (merge timing of the iOS work).** Owner, verbatim: "ios work could merge when ever I
+  think?" My reading: no need to wait for him. Plan, timed with the Android chat: (i) the four iOS fix branches
+  (proven on both platforms) first; (ii) the loading screen, first-install bar, crash-report app half and the
+  faster-and-lighter branch after one Android run; (iii) push last, with the privacy-page line for his eyes. The R8
+  Play internal build is taken before any of these, so it carries nothing else.
 - **NEW 2026-11-15 10:09 (iOS chat, T749, Android's code shrinker R8).** The trial passed on the emulator: the app
   starts and passes all six checks; the test APK is 7.45 MB smaller (about 7.4 MB off the Play download, estimated).
   It is behind a switch that is off. Pick: make one Play INTERNAL build with the switch on for you to walk on your
