@@ -81,10 +81,13 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
   address, sends a silent wake after a feed run that changed and on a new release, and says on its status page when
   the keys are missing; the iPhone registers while alerts are on and withdraws when they are turned off; Android is
   switched off until the Firebase file exists (the Android build config is byte-identical before and after).
-  **Proven on the simulator 23:20:** registering and withdrawing. **NOT proven:** the silent push never ran the app's
-  wake task on the simulator, in front, in the background or closed. Cause not settled; the lane is reading the
-  library code for it now. Until that is settled the feature is unproven. Also open: the lane reworded the existing
-  "new data ready" notice; told to restore it unless it is the same notice by design (then an owner question).
+  **Proven on the simulator 23:20:** registering and withdrawing. **Cannot be proven on the simulator:** that a silent
+  push runs the app's wake task. Settled from the library code and the logs (file and line in the ticket): the
+  simulator hands a pushed file to the app as a "background fetch", a different call from the one a real phone gets
+  from Apple, and our task only answers the real one. Nothing of ours was wrong. So the first real check is on a
+  phone: one push, then the app's log says "woken by our server". That needs the Apple push key, the worker on
+  staging and a TestFlight build from this branch: each one a step for the owner's go. The existing "new data ready"
+  notice keeps its old words (Android unchanged); the push path has its own sentence. Head 650665c61, app CI green.
   Needs from the owner later: an Apple push key and three `wrangler secret put` commands (in the ticket), and for
   Android a Firebase project with its `google-services.json`.
 - `perf/t741` (T741, **started 23:10**): a standing pass to make the app faster and lighter on both platforms (owner:
