@@ -200,15 +200,23 @@ const metresApart = (a: { lon: number; lat: number }, b: { lon: number; lat: num
 /** A mark's end token without the place the release says it at (`<token>@km…` / `@near:…`): the same end. */
 const placeOf = (token: string): string => token.replace(/@.*$/, "");
 
-/** The marks with every label of the same end (`same`: each mark's end token without its place) within
- *  `MARK_LABEL_ONE_M` of a kept one dropped (the open mark's kept first). */
-function oneLabelPerPlace(marks: readonly WaterMapMarkVM[], same: ReadonlyMap<number, string>): WaterMapMarkVM[] {
+/**
+ * The marks with every label of the same end (`same`: each mark's end token without its place) within
+ * `MARK_LABEL_ONE_M` of a kept one dropped (the open mark's kept first). (T747) And a mark whose WHOLE token (place
+ * included: the same words) is a kept one's is one label at any distance: the Skeena's part 1 meets parts 2 and 5 at two
+ * marks 4.2 km apart, both "Skeena River Ecological Reserve boundary (km 63.5)" — at a wide frame the two labels sat a
+ * few pixels apart (doubled text), framed on the part two boxes saying the same thing. The ring stays (and its words for
+ * a screen reader).
+ */
+function oneLabelPerPlace(marks: readonly WaterMapMarkVM[], same: ReadonlyMap<number, string>,
+                          token: ReadonlyMap<number, string>): WaterMapMarkVM[] {
   const kept: WaterMapMarkVM[] = [];
   const order = [...marks].sort((a, b) => Number(b.on) - Number(a.on));
   const drop = new Set<number>();
   for (const m of order) {
     if (m.label === null) continue;
-    if (kept.some((k) => same.get(k.ix) === same.get(m.ix) && metresApart(k, m) < MARK_LABEL_ONE_M)) drop.add(m.ix);
+    if (kept.some((k) => same.get(k.ix) === same.get(m.ix)
+                         && (token.get(k.ix) === token.get(m.ix) || metresApart(k, m) < MARK_LABEL_ONE_M))) drop.add(m.ix);
     else kept.push(m);
   }
   return marks.map((m) => (drop.has(m.ix) ? { ...m, label: null } : m));
@@ -256,7 +264,8 @@ export function waterMapView(g: WaterGroup, s: WaterMapState): WaterMapVM | null
     chooser: choice.length > 1
       ? { title: s.choosing === "down" ? W.chooserDown : W.chooser, close: W.close,
           options: choice.map((i) => partVM(g, i)) } : null,
-    marks: oneLabelPerPlace(marks, new Map(g.marks.flatMap((m, ix) => (m.token === null ? [] : [[ix, placeOf(m.token)] as const])))),
+    marks: oneLabelPerPlace(marks, new Map(g.marks.flatMap((m, ix) => (m.token === null ? [] : [[ix, placeOf(m.token)] as const]))),
+                            new Map(g.marks.flatMap((m, ix) => (m.token === null ? [] : [[ix, m.token] as const])))),
     // a mark with no named place (no end token) is titled "Boundary" — the words it has, nothing composed
     pop: open ? { title: markLabel(g, open) ?? W.boundary, close: W.close,
                   upLabel: W.upstreamSide, up: open.up.map((i) => partVM(g, i)),
@@ -431,7 +440,14 @@ export function useTidalWaterMap(store: RegsStore | null, item: ItemId | null, w
   }, key, wanted && !!store && !!item);
   if (!wanted || !store || !item) return { state: "ready", value: null, error: null };
   if (r.state !== "ready") return r.state === "failed" ? r : { state: "loading", value: null, error: null };
-  return r.value.key === key ? { state: "ready", value: r.value.vm, error: null } : { state: "loading", value: null, error: null };
+  if (r.value.key !== key) return { state: "loading", value: null, error: null };
+  // (T747) a tidal water with no frame: reported and unavailable, never left on the camera before
+  if (r.value.vm && r.value.vm.bounds === null) {
+    const e = new Error(`water map: ${r.value.vm.fitKey} has no frame`);
+    reportOnce(`waterMapFrame:${r.value.vm.fitKey}`, e);
+    return { state: "failed", value: null, error: e };
+  }
+  return { state: "ready", value: r.value.vm, error: null };
 }
 
 export interface WaterMap {
@@ -529,6 +545,13 @@ export function useWaterMap(store: RegsStore | null, item: ItemId | null, part: 
   if (store === null || item === null) return { state: "ready", value: null, error: null };
   if (group.state === "failed") return group;
   if (startFailed) return { state: "failed", value: null, error: startFailed };
+  // (T747, no silent fallbacks) a part (or a whole water) with no frame: the map was handed no camera and stayed where it
+  // was (a province view under "Part 1 of 18"). Said unavailable and reported, never drawn as if framed
+  if (vm && vm.bounds === null) {
+    const e = new Error(`water map: ${vm.fitKey} has no frame (no part_geo box or midpoint)`);
+    reportOnce(`waterMapFrame:${vm.fitKey}`, e);
+    return { state: "failed", value: null, error: e };
+  }
   if (group.state === "loading" || waiting) return { state: "loading", value: null, error: null };
   if (!g || !s || !vm) return { state: "ready", value: null, error: null };
   const act = (a: WaterMapAction) => {

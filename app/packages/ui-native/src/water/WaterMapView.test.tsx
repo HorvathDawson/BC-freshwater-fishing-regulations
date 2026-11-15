@@ -411,7 +411,7 @@ describe("<WaterMapView>", () => {
     expect(layout()).toEqual(atMouth);
   }, 30_000);
 
-  it("(T203) opened for a search result (`whole`): the camera frames the WHOLE water, offering 'This part'", async () => {
+  it("(T203, T369 D7) framed whole (⤢, the frame's `whole`): the camera frames the WHOLE water, offering 'This part'", async () => {
     render(<WaterMapView loader={loader} item={"gnis:8634" as ItemId} part={null} tapSid={null} palette={LIGHT} map={MAP} whole
                          onOpenWater={() => {}} onShowRegs={() => {}} onOtherSection={() => {}} onCross={() => {}} />);
     await ready();
@@ -509,7 +509,9 @@ describe("<WaterMapView>", () => {
       const ways: Record<string, [string, string]> = {
         // (T369) the part's own address — a place (its midpoint section's middle), never `part=1`
         reload: await wayIn((await opened(await addressOf(open({ item: C, part: 1, view: "map" })))).route),
-        "search Open, then the list": await wayIn(open({ item: C, view: "map", whole: true, fromSearch: true }), [pick(0)]),
+        // (T747) a search Open frames the part its bar names at once: no pick needed
+        "search Open": await wayIn(open({ item: C, view: "map", fromSearch: true })),
+        "search Open, then the list": await wayIn(open({ item: C, view: "map", fromSearch: true }), [pick(0)]),
         "tap (356364584:312)": await wayIn(await tap(C, MARY_HILL[0]!)),
         "▼ from Lougheed → boundary": await wayIn(open({ item: C, part: 2, view: "map" }), [down]),
         "the list, from the top part": await wayIn(open({ item: C, part: 3, view: "map" }), [pick(0)]),
@@ -526,8 +528,8 @@ describe("<WaterMapView>", () => {
       expect(urls.length).toBeGreaterThan(0);
       expect(urls.filter((u) => /(^|[?&])(sid|part)=/.test(u) || u.split(/[^0-9]+/).some((n) => sids.has(n)))).toEqual([]);
       expect([...new Set(urls)].filter((u) => u.includes("view=map") && !u.includes("blk="))).toEqual(
-        // only a search Open's whole-water frame has no place before its pick
-        [`?regs=${C}&view=map&whole=1`]);
+        // only a search Open's frame has no place before a pick (its part is the frame's, read as the Regulations view reads it)
+        [`?regs=${C}&view=map`]);
       // the part's place: the Coquitlam's stream key, the middle of the part's run (T388 `part_line`: 312–7028 m; the
       // fixture re-cut on r-4230bc0c1dd5 carries it, the one before took the midpoint section's middle, 3451); the
       // other places are the frames the ways in started on (parts 2 and 3). A tap's is its part's too, said as a tap

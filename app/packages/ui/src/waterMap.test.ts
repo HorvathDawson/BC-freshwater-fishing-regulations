@@ -488,6 +488,26 @@ describe("(T443, owner on 0.6.7) two marks with the same words a few steps apart
     expect(open.marks.find((m) => m.ix === zone[0])!.label).toBeNull();
   });
 
+  it("(T747) two marks with the SAME words (the same end token, place and all) are one label at any distance", async () => {
+    // the Skeena's part 1 meets parts 2 and 5 at two marks 4.2 km apart, both "… Ecological Reserve boundary (km 63.5)":
+    // framed wide, two labels a few pixels apart (doubled text). Made here from the Chilliwack: one of part 2's ends
+    // said again 4 km east, bounding the same part
+    const g = await loadWaterGroup(st, "gnis:8634");
+    const v0 = view(g, waterMapStart(1));
+    const end = v0.marks.find((m) => m.label !== null)!;
+    const src = g.marks[end.ix]!;
+    const twin = { ...src, lon: src.lon! + 0.055 };
+    const g2 = { ...g, marks: [...g.marks, twin] };
+    const v = view(g2, waterMapStart(1));
+    const both = v.marks.filter((m) => m.ix === end.ix || m.ix === g.marks.length);
+    expect([both.length, both.filter((m) => m.label !== null).length, both.every((m) => m.a11y.length > 0)]).toEqual([2, 1, true]);
+    // MUTATION PIN: the same end said at ANOTHER place (other words) 4 km away is its own label
+    const tok = `${src.token!.replace(/@.*$/, "")}@km999.9`;
+    const other = { ...twin, token: tok };
+    const v3 = view({ ...g, ends: { ...g.ends, [tok]: g.ends[src.token!]! }, marks: [...g.marks, other] }, waterMapStart(1));
+    expect(v3.marks.filter((m) => m.ix === end.ix || m.ix === g.marks.length).filter((m) => m.label !== null)).toHaveLength(2);
+  });
+
   it("MUTATION PIN: labels a kilometre apart, or of other ends, are both drawn", async () => {
     const g = await loadWaterGroup(st, "gnis:8634");
     const v = view(g, waterMapStart(1));

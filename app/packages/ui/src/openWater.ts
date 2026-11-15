@@ -165,14 +165,17 @@ export function waterOpener(source: Pick<WaterSource, "itemForSection">, go: (a:
         ? openWater({ item, view: "regs", solo: true }) : openWater({ item, view })));
     },
     cancel: () => { latest += 1; },
-    // (T203) a result opens the water's Map, the whole water shown, from Conditions or Regs alike — (T221) unless the
-    // water is solo: nothing to choose on its map, so its Regulations
+    // (T203) a result opens the water's Map, from Conditions or Regs alike — (T221) unless the water is solo: nothing to
+    // choose on its map, so its Regulations. (T747, owner 2026-11-14: "it is the section view but it is fully zoomed out
+    // instead of on the first section") framed on THE PART ITS BAR NAMES (the frame's part, `useFrameView`), never the
+    // whole water: T203 opened it whole while the bar said "Part 1 of 18", and on the wide desktop strip (243 px tall)
+    // the whole Skeena read as the province. ⤢ "Whole river" is one press away.
     searched: (item) => {
-      if (!o.solo) { latest += 1; go(openWater({ item, view: "map", whole: true, fromSearch: true })); return Promise.resolve(); }
+      if (!o.solo) { latest += 1; go(openWater({ item, view: "map", fromSearch: true })); return Promise.resolve(); }
       const ask = o.solo;
       return settle(async () => ((await ask(item).catch(reported(false)))
         ? openWater({ item, view: "regs", solo: true, fromSearch: true })
-        : openWater({ item, view: "map", whole: true, fromSearch: true }))).then(() => undefined);
+        : openWater({ item, view: "map", fromSearch: true }))).then(() => undefined);
     },
   };
 }
