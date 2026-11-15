@@ -287,3 +287,43 @@ Ranked options (gain estimated from the numbers above):
    rebuilding the members' objects from it; more code and a new on-disk format to keep honest. Second; not built.
 3. Decoding paint without the slices at launch (`runNow`): ~−300 ms but one ~190 ms hold, and the boot line's own
    updates wait for it; option 1 gets most of that without the hold.
+
+### Round 3 B: the launch's long paint slice (committed on perf/t741, not yet measured on a build)
+`core/src/sliced.ts` `LAUNCH_SLICE_MS = 40`; `decodePaintAsync(…, sliceMs)`; `ReleaseLoader.paint({ sliceMs })` (the
+first caller decides; decoded once); `boot.ts` `paintSliceFor(o)` → 40 ms on a launch, `SLICE_MS` (8) when `keepReplaced`
+(an update applied with the map on screen); the phone's held-set open asks with it; the web's first paint keeps the
+default (its turns are a MessageChannel's, no timer floor). Pinned by `packages/data/src/release/launchSlice.test.ts`:
+the choice per path, the loader passing it to the decoder (and only the first caller's), and the boot's code calling
+`loader.paint(paintSliceFor(o))` on the phone's path and `loader.paint()` on the web's (a revert fails it).
+Nothing is decoded differently: the same generator, the same answer (`sliced.test.ts` holds sliced = one-go).
+
+**Where a turn's ~12 ms comes from (code: `core/src/sliced.ts` `nextTurn`, the slicer's yield `await turn()` in
+`runSliced`).** React Native has no `MessageChannel`, so the yield is `setTimeout(resolve, 0)`. RN's timers are fired by
+the native timing module on its frame clock (a display-link tick, ~16.7 ms at 60 Hz), not on demand, so a 0 ms timer
+waits on average part of a frame; with other JS queued between slices the observed cost is ~12 ms a turn (estimated:
+the 501 ms wall minus ~180-190 ms CPU, over ~23-25 turns). Cheaper yields on native, and what each would starve:
+- `setImmediate` / a resolved promise / `queueMicrotask`: run before the JS thread returns to the native side, so no
+  touch, no native event, no React commit gets in between slices: the same as decoding in one go (a freeze). Not honest.
+- `requestAnimationFrame`: frame-aligned like the timer: no gain.
+- A longer slice (fewer turns): the only option that keeps the native side breathing; the cost is the longest the JS
+  thread is held (a finger's wait). That is what B does, and only where no finger can be waiting.
+
+**Every other caller of the same slicer (PROPOSALS, not changed).** CPU measured on the live release's files in node
+`--jitless` (the Hermes stand-in), turns at 8 ms, gain estimated at ~12 ms a turn saved:
+| caller | when | CPU | turns @8 ms | at 16 ms / 40 ms | est. gain | what a longer slice costs a finger |
+|---|---|---|---|---|---|---|
+| `sha256HexAsync` / `ungzipAsync` (`HASH_SLICE` 256 KiB ≈ 20 ms a slice on Hermes) | every release file at install and at each update (~40 MB raw) | ~3.3 s (T272 rate) | ~160 | 512 KiB: ~80 turns | ~1 s per install/update | a 40 ms hold while the map may be on screen (update): under the 300 ms limit, a tap could wait 40 ms |
+| paint, in-session apply (`keepReplaced`) | T746: the apply measured 702-880 ms | 178 ms | ~23 | ~12 / ~5 | ~130 / ~220 ms | 16 ms: nothing a finger feels; 40 ms: a tap or pan frame may wait up to 40 ms (bench: `tap-stalls`, a pan during an apply) |
+| method (`decodeMethodAsync`) | after the first draw at a launch; an apply | 58 ms | ~8 | ~4 / ~2 | ~50-70 ms | as above |
+| salmon shards (`decodeSalmonShardAsync`, 11 files) | after the first draw; an apply | 6-53 ms each (salmon-6 53) | 1-7 each, ~20 in all | ~10 / ~6 | ~120-170 ms over all | as above |
+Ranked: 1) the hash/inflate slice at install and update (largest, off-screen most of the time); 2) the apply's paint at
+16 ms; 3) salmon shards; 4) method. Each needs `tap-stalls` and a pan during an apply to stay under 300 ms, and T746's
+apply bench before/after.
+
+**Android, for a like-for-like cold-start number (PROPOSAL for the emulator lane).** The same JS lines reach logcat
+under `ReactNativeJS` in a `--probes`/test-bed APK: `Running "main"`, `[setup] opened … manifest + paint N ms`,
+`[work] decode paint sliced N ms`, the first `[drawn]`. The process's start is ActivityManager's
+`Start proc <pid>:ca.canifishthis.app` line (or `am start -W`'s `TotalTime` for the launch). Measure per launch:
+`Start proc` → first `[drawn]` (logcat `-v epoch`, the same clock), 6 cold starts (`am force-stop` between), base vs
+branch, the emulator quiet and the load written down; plus `tap-stalls`. Android's timer floor is the Choreographer
+frame too, so the same gain is expected there, unmeasured.
