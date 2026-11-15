@@ -737,7 +737,7 @@ export default function App() {
               <Text style={{ color: palette.sub, fontSize: 13 }}>{installLine(progress)}</Text>
               {/* (T298) with the system's downloader the download carries on with the app closed: said; (T722) iOS
                   says what its background session does not survive (a swipe away in the app switcher) */}
-              {!setup && <Text testID="boot-close-ok" style={{ color: palette.faint, fontSize: 12 }}>
+              {!setup && <Text testID="boot-close-ok" style={{ color: palette.faint, fontSize: 12, textAlign: "center", paddingHorizontal: 24 }}>
                 {backgroundDownloads ? Platform.select({ ios: MOBILE_DATA_WORDS.closeOkIos, default: MOBILE_DATA_WORDS.closeOk })
                   : INSTALL_WORDS.wifi}</Text>}
             </>

@@ -44,7 +44,7 @@ Audit check: every F1/F3/F6/F8/F9/F12/F14 claim held in the code. Android's "Wor
 expo's background session: its task lives in a JS `DownloadTask` promise (lost on a kill) and writes no `.part` until the
 end (audit G1).
 
-**F1 built, NOT proven (the simulator refuses it, below).** The iOS half of `apps/mobile/modules/bg-download`
+**F1 built and PROVEN on the simulator (2026-11-14 18:15, build c750d571d, see "Simulator proof" below).** The iOS half of `apps/mobile/modules/bg-download`
 (`ios/BgDownloadModule.swift`, `ios/BgDownload.podspec`, `expo-module.config.json` "apple"): the Android module's JS
 surface (`jobs/enqueue/remove/claim/sha256`), so the one JS state machine (`packages/data/src/release/bgDownload.ts`)
 drives both; no JS logic forks. One background `URLSession`, fixed identifier `ca.canifishthis.bgdownload`, made at launch
@@ -73,7 +73,29 @@ space: reported, download goes on.
 **G13 not done:** a dropped iOS download reaches `reportFailure` through the boot failure unclassified; classify it in the
 report path (network condition) as a follow-up.
 
-**Simulator result (iPhone 17 Pro, build 1f7c2ab3f, --testbed).** Swift compiles and links. But every background task
+**Simulator proof (iPhone 17 Pro, build c750d571d, --testbed, fresh install, staging release r-f749475d0962, 479.3 MB).**
+The cause of the refusal below was the build, not the simulator: `build-ios-sim.sh` passed `CODE_SIGNING_ALLOWED=NO`, so
+Xcode never linked the simulated entitlements (`__TEXT,__entitlements` / `__ents_der`, `application-identifier`
+`FAKETEAMID.ca.canifishthis.app`) that nsurlsessiond reads the app's identity from. The script now signs "to run locally"
+(`CODE_SIGN_IDENTITY=- CODE_SIGNING_ALLOWED=YES CODE_SIGNING_REQUIRED=NO DEVELOPMENT_TEAM=`, no account, no keychain) and
+fails when the section is missing (commit dc77c8914). **This changes EVERY iOS simulator build: the test-bed lane needs a
+rebuild.** With it, one run:
+- foreground: download started at once (no "rejecting connection" in 11 MB of log);
+- Settings in front for 60 s: nsurlsessiond's temp files 15.0 → 167.5 MB (152 MB with the app not in front);
+- `simctl terminate` mid-download: 163.2 → 179.3 MB in the 20 s with the app gone; relaunch: the same job ids [1, 2, 3, 4]
+  (no new job, no double download), the bar moving again ("27.3 of 479.3 MB downloaded", screenshot);
+- installed at 18:22 (6 min from first open, `Documents/release/current` → r-f749475d0962), the map drawn;
+- `xattr`: `com_apple_backup_excludeItem` on `Documents/release`, the rule book `synopsis-80614b20045f74c9.pdf` and
+  `Application Support/bg-download`; none on `Documents/spots`;
+- 0 "Cannot convert BigInt" lines (T718 saw 4,999 on the old path; that path is fixed too, `Number(...)`, and is now only a
+  fallback: a client without the module, an older app's `.part`). The module's own numbers reach JS as doubles.
+Seen, not fixed: right after a relaunch the bar restarted low (27 MB while ~180 MB were down) because a re-attached task
+reports bytes only after its next progress tick; it caught up as the download went on. The iOS line under the bar was two
+lines edge to edge: now centred with side padding (no visible change for Android's one-line text).
+Not shown by the simulator: real suspension when the phone locks, cellular / hotspot / Low Data Mode, swipe-away in the
+app switcher (resume data) — those need a device (T88).
+
+**Earlier result (build 1f7c2ab3f, before the signing fix), kept for the record.** Swift compiles and links. But every background task
 failed at once with NSURLError -1: nsurlsessiond logged "Process with pid … does not have a bundle ID, rejecting
 connection" (also with the app ad-hoc re-signed with its bundle id; an `application-identifier` entitlement made
 SpringBoard refuse the launch). JS then re-queued jobs in a loop (ids 1 → 81 in 25 min) and the first install never
@@ -81,7 +103,7 @@ finished. This is very likely why expo's background session also "stopped with n
 build as made by `build-ios-sim.sh` (CODE_SIGNING_ALLOWED=NO) the branch's first install fails; on a signed build it is
 expected to work but is unproven.** Proven on the simulator: the module loads, the session is made at launch, records
 persist, `isExcludedFromBackup` lands (`xattr`: `com.apple.metadata:com_apple_backup_excludeItem` on `bg-download/`).
-Do not merge the iOS half for a simulator-tested release until one of these passes:
+Steps 1–4 below now pass with the signing fix; step 5 still needs a device. The steps, for re-running:
 1. Xcode-signed simulator run (Sign to Run Locally, a personal team) or a TestFlight build (T88): fresh install, first open;
    in `log stream --predicate 'process == "nsurlsessiond"'` no "rejecting connection"; `CFNetworkDownload_*.tmp` under
    the sim's `data/Library/Caches/com.apple.nsurlsessiond` grows.
