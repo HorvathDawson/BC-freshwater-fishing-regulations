@@ -738,6 +738,38 @@ def release_files(root: Path) -> dict[str, str]:
             for p in sorted(root.rglob("*")) if p.is_file()}
 
 
+#: the manifest fields that follow a file's BYTES (a SQLite or zlib build writes the same rows in other bytes): the
+#: release is compared by what each file holds, so a CI runner's libraries cannot fail a copy cut on this machine
+_BYTE_FIELDS = ("sha256", "url", "gz", "bytes")
+
+
+def release_content(root: Path) -> dict[str, str]:
+    """{logical file: sha256 of what it holds} of the one release under `root`: each file the manifest names, gunzipped,
+    a SQLite file by its rows (`_sqlite_content`), the manifest with its byte-following fields and the release id
+    dropped. Two releases with the same content compare equal whatever library wrote their bytes."""
+    import gzip
+    import tempfile
+    release_files(root)
+    from pipeline.deliver.release.manifest import latest
+    rel = latest(Path(root))
+    man = json.loads((rel / "manifest.json").read_text(encoding="utf-8"))
+    out = {}
+    with tempfile.TemporaryDirectory(prefix="mini-content-") as t:
+        for name, f in sorted(man["files"].items()):
+            raw = gzip.decompress((Path(root) / f["url"]).read_bytes())
+            if f["url"].endswith(".sqlite.gz"):
+                db = Path(t) / f"{name}.sqlite"
+                db.write_bytes(raw)
+                raw = _sqlite_content(db, Path(t))
+            out[name] = hashlib.sha256(raw).hexdigest()
+    man.pop("data_release", None)
+    for f in man["files"].values():
+        for k in _BYTE_FIELDS:
+            f.pop(k, None)
+    out["manifest.json"] = hashlib.sha256(json.dumps(man, sort_keys=True).encode()).hexdigest()
+    return out
+
+
 def _fresh_release(scratch: Path) -> Path:
     took = build(scratch)
     print(f"mini release: rebuilt in {sum(took.values()):.1f}s")
@@ -757,9 +789,10 @@ def write(dest: Path, scratch: Path) -> int:
 
 
 def check(dest: Path, scratch: Path) -> int:
-    """Rebuild in `scratch` and compare, file by file, with the copy at `dest`; 1 and the differences when any."""
-    have = release_files(dest)
-    got = release_files(_fresh_release(scratch))
+    """Rebuild in `scratch` and compare, file by file BY CONTENT (`release_content`), with the copy at `dest`; 1 and the
+    differences when any."""
+    have = release_content(dest)
+    got = release_content(_fresh_release(scratch))
     diff = sorted(k for k in set(have) | set(got) if have.get(k) != got.get(k))
     if diff:
         print(f"mini release: {dest} is STALE — {len(diff)} file(s) differ from a rebuild:")

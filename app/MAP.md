@@ -55,6 +55,7 @@ The app decides nothing about a regulation: every answer is looked up in the rel
 |---|---|---|
 | `packages/data/dev/fixture-release/` | three frozen BUNDLE-half releases (plain, lakeGauged, conformance) | cut once (T61), frozen |
 | `packages/data/dev/regs-release/` | the regs fixture release, cut from a live one | `pnpm regs-fixture` (owner-run on a new release) |
+| `packages/data/dev/mini-release/` | (T667 slice 8) a whole release built by the real pipeline from an invented world: logic tests on mechanisms, no real water (`openMiniRelease()`, `@app/data/release/node`) | `python -m pipeline.tools.mini_release --write`; CI's `--check` holds it to a rebuild |
 | `packages/data/dev/feeds/` | a gauge feed for tests | `pipeline.gauges.feed.publish` |
 | `fixtures/golden/` | the release-backed regs oracles, re-cut after a release: `taps.json` (the Python decoder's answers) and `page-oracle.json` (page v36's own code over the same release, rules by durable key; a change stops the release), from `states.json` (the 134 tap questions, no answers). The prototype extracts (golden, pins, tokens, inventory) are retired (T439) | `tools/regs-recut/sync.mjs` |
 | `fixtures/reference/` | page v36 (html, js) and its calendar copy, frozen: the parity tests' and the re-cut's oracle | `python -m pipeline.tools.emit.calendar` (calendar only) |

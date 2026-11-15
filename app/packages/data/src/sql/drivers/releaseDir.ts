@@ -57,6 +57,28 @@ export function regsFixtureDir(root: string = REGS_FIXTURE_ROOT): string {
   return join(root, dirs[0]!);
 }
 
+/**
+ * (T667 slice 8) THE MINI RELEASE: a whole release (every file the app reads but tiles and basemap) built by the real
+ * pipeline from an invented world (`pipeline/tests/fixtures/mini/`), committed under `packages/data/dev/mini-release/`
+ * by `python -m pipeline.tools.mini_release --write` and held to a rebuild by `--check`. Invented waters only: a test
+ * on it pins mechanisms (a braid, a tidal mouth, a weekday rule, …), never the real book.
+ */
+export const MINI_RELEASE_ROOT = resolve(__dirname, "../../../dev/mini-release");
+
+/** The mini release's folder (`<root>/<release id>`, the one `LATEST` names); throws when it is missing or not alone. */
+export function miniReleaseDir(root: string = MINI_RELEASE_ROOT): string {
+  const dirs = existsSync(root)
+    ? readdirSync(root).filter((n) => /^r-[0-9a-f]{12}$/.test(n) && existsSync(join(root, n, "manifest.json"))) : [];
+  const named = existsSync(join(root, "LATEST")) ? readFileSync(join(root, "LATEST"), "utf8").trim() : "";
+  if (dirs.length !== 1 || named !== dirs[0])
+    throw new Error(`mini release: ${root} holds ${dirs.length} releases (LATEST ${named || "missing"}), not 1 — ` +
+      "run python -m pipeline.tools.mini_release --write");
+  return join(root, dirs[0]!);
+}
+
+/** The mini release as the app reads a release (`openReleaseDir`). */
+export const openMiniRelease = (tamper: ReleaseTamper = {}): ReleaseLoader => openReleaseDir(miniReleaseDir(), tamper);
+
 /** node:sqlite over a verified file: the bytes written to a temp file and opened read-only. */
 export function nodeOpener(): Opener {
   const tmp = mkdtempSync(join(process.env.TMPDIR || "/tmp", "release-open-"));

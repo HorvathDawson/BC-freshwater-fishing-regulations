@@ -18,13 +18,13 @@ on:
   push:
     paths: ["pipeline/**", "data/**", "config.yaml", "project_config.py",
             "requirements.txt", "constraints.txt", ".github/workflows/pipeline-ci.yml",
-            "app/packages/core/src/*.generated.*",
+            "app/packages/core/src/*.generated.*", "app/packages/data/dev/mini-release/**",
             # (T535) the review app's backend tests and the path gate's own dirs live here; fast-fail runs both too
             "curation-review/**", "scripts/**"]
   pull_request:
     paths: ["pipeline/**", "data/**", "config.yaml", "project_config.py",
             "requirements.txt", "constraints.txt", ".github/workflows/pipeline-ci.yml",
-            "app/packages/core/src/*.generated.*",
+            "app/packages/core/src/*.generated.*", "app/packages/data/dev/mini-release/**",
             # (T535) the review app's backend tests and the path gate's own dirs live here; fast-fail runs both too
             "curation-review/**", "scripts/**"]
   workflow_dispatch:
@@ -99,6 +99,12 @@ jobs:
       # `-m "not slow"`, so slow is deselected again explicitly.
       - name: Tests
         run: python -m pytest -q -m "not slow and not needs_bundle and not needs_atlas and not needs_reach_run and not needs_tiles and not needs_source and not needs_cache"
+
+      # (T667 slice 8) THE MINI RELEASE the app's logic tests read is what the real pipeline builds from the invented
+      # world NOW: rebuilt in a temp dir (no live data: ~10 s) and compared by content with the committed copy; a
+      # pipeline change that moves it fails here, naming the files and `python -m pipeline.tools.mini_release --write`.
+      - name: The committed mini release matches a rebuild
+        run: python -m pipeline.tools.mini_release --check
 
       # NO HARDCODED PATH MAY BYPASS THE CONFIG. Everything curated, and everything
       # fetched, is reached through `pipeline.common.curated`.

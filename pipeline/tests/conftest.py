@@ -176,3 +176,6 @@ TILES_HINT = "python -m pipeline.deliver.tiles"
 GPKG_HINT = "python -m data.fetch_data (the FWA geopackage, not in git)"
 ROWS_HINT = "python -m pipeline.regs.extraction.extract_synopsis"
 DFO_CACHE_HINT = "python -m pipeline.regs.dfo_salmon.churn"
+#: (T667 slice 8) the COMMITTED mini release (`under_test.mini()`): no marker — it is in git, always here — and when it
+#: is missing or stale this is what makes it again
+MINI_HINT = "python -m pipeline.tools.mini_release --write (--check says whether the committed copy is stale)"

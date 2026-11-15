@@ -8,8 +8,10 @@ import { execFileSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { basename } from "node:path";
+import { miniReleaseDir } from "../packages/data/src/sql/drivers/releaseDir";
 // @ts-expect-error a .mjs tool, no types
-import { INSTEAD, KINDS, isDigest, main, realReleaseIds, report, scan, scanSource, strict, totals } from "./check-test-anchors.mjs";
+import { INSTEAD, KINDS, committedReleaseIds, isDigest, main, realReleaseIds, report, scan, scanSource, strict, totals } from "./check-test-anchors.mjs";
 
 type Hit = [number, string, string];
 const hits = (src: string, committed: string[] = []): Hit[] => scanSource(src, "planted.test.tsx", committed);
@@ -63,6 +65,7 @@ describe("T667 test anchors: what is found", () => {
     expect(kinds(src)).toEqual([]);
     expect(hits(src, ["r-1a2b3c4d5e6f"])).toEqual([[1, "release-id", "r-1a2b3c4d5e6f"]]);
   });
+
 });
 
 describe("T667 test anchors: what is left alone", () => {
@@ -176,5 +179,16 @@ describe("T667 test anchors: the guard", () => {
   it("the guard is on unless a run only reports", () => {
     expect([strict([]), strict(["--strict"]), strict(["--json"]), strict(["--list"]), strict(["--report"])])
       .toEqual([true, true, true, true, false]);
+  });
+});
+
+describe("T667 slice 8: the mini release is anchor (b)", () => {
+  it("its id is a committed fixture release's, and a test on it follows a release", () => {
+    expect(committedReleaseIds()).toContain(basename(miniReleaseDir()));
+    // a section number typed beside openMiniRelease() is a pin; the same number in a test on its own data is not
+    const on = `import { openMiniRelease } from "@app/data/release/node";\n` +
+      `it("x", async () => { const l = openMiniRelease(); expect(await f(l)).toBe(12 as SectionId); });`;
+    expect(kinds(on)).toEqual(["raw-section"]);
+    expect(kinds(`it("x", () => { expect(g()).toBe(12 as SectionId); });`)).toEqual([]);
   });
 });

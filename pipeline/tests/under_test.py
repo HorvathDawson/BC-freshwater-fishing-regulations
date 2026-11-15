@@ -149,6 +149,22 @@ def tile_layers(request=None) -> Path:
     return _need(request, "tile_layers")
 
 
+# ------------------------------------------------------------------------------------------------------- the mini release
+def mini() -> Path:
+    """THE MINI RELEASE (T667 slice 8): the committed release the real pipeline built from the invented world
+    (`pipeline/tests/fixtures/mini/`), as a folder — the one its `LATEST` names. Anchor (b), a frozen fixture: no
+    `needs_*` marker, CI has it, and `ci_no_build` hides nothing of it. Missing or not alone FAILS naming the command
+    that makes it (`conftest.MINI_HINT`)."""
+    import pytest
+    from pipeline.tools.mini_release import COMMITTED, release_files
+    from pipeline.deliver.release.manifest import latest
+    try:
+        release_files(COMMITTED)
+    except SystemExit as e:
+        pytest.fail(f"the mini release: {e} — make it with: {C.MINI_HINT}", pytrace=False)
+    return latest(COMMITTED)
+
+
 # ------------------------------------------------------------------------------------------------------------- the release
 def release_root() -> Path:
     """Where releases live for this run (`conftest.release_root`: a side set's, else `data/release`)."""

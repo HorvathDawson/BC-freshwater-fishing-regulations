@@ -231,8 +231,27 @@ def test_check_and_write_compare_and_replace_the_copy_whole(chain, tmp_path, mon
     dest = tmp_path / "mini-release"
     assert M.write(dest, tmp_path / "s") == 0 and M.check(dest, tmp_path / "s") == 0
     manifest = next(dest.glob("r-*/manifest.json"))
-    manifest.write_text(manifest.read_text() + " ")
+    text = manifest.read_text()
+    manifest.write_text(text + " ")                                   # bytes only: the same content
+    assert M.check(dest, tmp_path / "s") == 0
+    manifest.write_text(text.replace('"valid_until": "2027-03-31"', '"valid_until": "2027-04-01"'))
     assert M.check(dest, tmp_path / "s") == 1 and "manifest.json" in capsys.readouterr().out
+    manifest.write_text(text)
+    import gzip
+    core = next(dest.glob("r-*/core-*.sqlite.gz"))                    # one row of a data file changed
+    db = tmp_path / "core.sqlite"
+    db.write_bytes(gzip.decompress(core.read_bytes()))
+    import sqlite3
+    con = sqlite3.connect(db)
+    t = next(n for (n,) in con.execute("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name")
+             if con.execute(f'SELECT COUNT(*) FROM "{n}"').fetchone()[0])
+    first = con.execute(f'SELECT * FROM "{t}" LIMIT 1').fetchone()                    # WITHOUT ROWID tables too
+    cols = [r[1] for r in con.execute(f'PRAGMA table_info("{t}")')]
+    con.execute(f'DELETE FROM "{t}" WHERE ' + " AND ".join(f'"{c}" IS ?' for c in cols), first)
+    con.commit()
+    con.close()
+    core.write_bytes(gzip.compress(db.read_bytes(), mtime=0))
+    assert M.check(dest, tmp_path / "s") == 1 and core.name.split("-")[0] in capsys.readouterr().out
     (dest / "r-000000000001").mkdir()
     with pytest.raises(SystemExit, match="beside the release"):          # a folder with no manifest
         M.check(dest, tmp_path / "s")
@@ -302,3 +321,19 @@ def test_the_mini_world_holds_the_plans_inventory(chain):
     assert q("SELECT station, item_id FROM gauge") == [("99MA001", river)]
     # 17 entries of the mini's own and 10 of the book's provincial rows the answers' glossary needs (copied)
     assert q("SELECT COUNT(*) FROM entry")[0][0] == 27
+
+
+def test_under_test_mini_is_the_committed_release_and_ci_no_build_hides_none_of_it():
+    """`under_test.mini()` is the one way a pipeline test reaches the mini release: the committed copy, alone, the
+    release its LATEST names — and a run under CI's view (`-p pipeline.tests.ci_no_build`, every local build hidden)
+    still has it."""
+    import subprocess
+    import sys
+    from pipeline.tests import under_test
+    d = under_test.mini()
+    assert d.parent == M.COMMITTED and (d / "manifest.json").is_file()
+    code = ("from pipeline.tests import under_test; d = under_test.mini(); "
+            "import json; print(json.loads((d / 'manifest.json').read_text())['format'])")
+    out = subprocess.run([sys.executable, "-c", "import pipeline.tests.ci_no_build; " + code], cwd=M.REPO_ROOT,
+                         capture_output=True, text=True, env={**__import__("os").environ, "PYTHONPATH": str(M.REPO_ROOT)})
+    assert out.returncode == 0 and out.stdout.strip() == "app-manifest/2", out.stderr[-500:]

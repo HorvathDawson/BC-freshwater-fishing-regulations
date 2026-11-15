@@ -91,11 +91,11 @@ export const KINDS = [...READ_KINDS, ...PIN_KINDS];
 /** names that make the code using them release-following, wherever they come from */
 const FOLLOWS = new Set(["openRegsFixture", "openRegsFixtureWithLines", "regsFixtureDir", "regsFixtureLines",
   "REGS_FIXTURE_ROOT", "sectionNames", "liveRelease", "liveReleaseAt", "provinceStoreOf", "parityStore", "paritySource",
-  "openPaired", "releasePairing"]);
+  "openPaired", "releasePairing", "openMiniRelease", "miniReleaseDir", "MINI_RELEASE_ROOT"]);
 /** imported names that do so only from the golden / oracle / pointer modules (the names are common words) */
 const FOLLOWS_FROM = new Set(["taps", "tapsOnce", "pageOracle", "requestOf", "cases", "latest", "latestId"]);
 const FROM = /golden|oracles|latestRelease|regs\/testing/;
-const FOLLOWS_TEXT = /regs-release|section-lines\.json|fixtures\/golden/;
+const FOLLOWS_TEXT = /regs-release|mini-release|section-lines\.json|fixtures\/golden/;
 
 const DATA_PATH = /^(?:\.\.\/)*(?:\.\/)?data\/(?:release|generated|curated|source)(?:\/|$)/;
 const REPO_ROOTS = new Set(["REPO", "ROOT", "REPO_ROOT", "__dirname"]);
@@ -132,10 +132,11 @@ export function isDigest(text) {
   return new Set(text).size >= 6 && /[0-9]/.test(text) && /[a-f]/.test(text);
 }
 
-/** The ids of the committed fixture releases (`packages/data/dev/fixture-release/r-*`, `dev/regs-release/r-*`). */
+/** The ids of the committed fixture releases (`packages/data/dev/fixture-release/r-*`, `dev/regs-release/r-*`, and
+ *  (T667 slice 8) the mini release `dev/mini-release/r-*`, opened by `openMiniRelease()` / `miniReleaseDir()`). */
 export function committedReleaseIds(app = APP) {
   const out = [];
-  for (const d of ["packages/data/dev/fixture-release", "packages/data/dev/regs-release"]) {
+  for (const d of ["packages/data/dev/fixture-release", "packages/data/dev/regs-release", "packages/data/dev/mini-release"]) {
     const p = join(app, d);
     if (existsSync(p)) out.push(...readdirSync(p).filter((n) => /^r-[0-9a-f]{12}$/.test(n)));
   }
