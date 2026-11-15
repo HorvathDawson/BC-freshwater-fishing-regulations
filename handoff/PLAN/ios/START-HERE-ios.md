@@ -22,9 +22,10 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
 - **App Store text pack (T727):** `handoff/PLAN/ios/store/`: listing (Play's text, fits Apple's limits), privacy answers,
   age rating, review notes, checklist. Re-checked against the privacy page reworded today.
 - **Two audits of iOS against Android, read from the code:** 29 findings in `handoff/PLAN/ios/parity-audit.md`.
-- **Pipeline lane:** T667 parts 4c, 6 and 7 done. T686 survey done and ranked, stopped before your pick. T667 slice 8:
-  a small invented release now builds through the real pipeline in seconds, two runs identical (commit to the app and
-  first test moves: running).
+- **Pipeline lane (finished its list):** T667 parts 4c, 6 and 7 done. T686 survey done and ranked, stopped before your
+  pick. T667 slice 8: a small invented release (53 files, 396 KB) is built by the real pipeline from invented inputs in
+  about 8 s, two runs identical; it is committed in the app, CI rebuilds it and compares on every pipeline change, and
+  the first app test file runs on it. Left for later sessions: about 36 more app test files, one package at a time.
 - **Clean-up lane:** 219 files, about 29 MB, removed; 18 candidates listed in `handoff/PLAN/CLEANUP-CANDIDATES.md`.
 
 **Built on a branch, proof still running or waiting for the simulator**
