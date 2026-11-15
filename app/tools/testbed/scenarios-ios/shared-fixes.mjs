@@ -9,7 +9,7 @@ import path from 'node:path';
 const LOOKS = (process.env.SHARED_LOOKS ?? 'light,dark').split(',');
 const ITEMS = (process.env.SHARED_ITEMS ?? 't729,t728,t731,t717,t730').split(',');
 // iOS search rows by their accessibility text (data names: kept out of the static check's literal scan, as regs-open's)
-const ROW = { coquitlam: 'Show Coquitlam River,.*', cultus: 'Show Cultus Lake,.*Lindell Beach.*' };
+const ROW = { fraser: 'Show Fraser River,.*', coquitlam: 'Show Coquitlam River,.*', cultus: 'Show Cultus Lake,.*Lindell Beach.*' };
 const has = (ctx, id) => (ctx.device.screenText().ids ?? []).includes(id);
 const box = (ctx, id) => ctx.device.nodes().find((n) => n.id === id)?.box ?? null;
 const mid = (b) => [Math.round((b.x0 + b.x1) / 2), Math.round((b.y0 + b.y1) / 2)];
@@ -87,8 +87,11 @@ export const sharedFixesIos = {
             if (!(await chip())) throw new Error(`the © chip on ${tab} opened no card`);
             shot(`t729-${tab.toLowerCase()}`);
             if (tab === 'Conditions') { ctx.flow('tap-id', { ID: 'map-credits-close' }); await sleep(800); return 'opened, closed'; }
-            // (c099e9977) left OPEN, the tab changed: the card and its scrim must go, and the next map tap must reach the map
-            ctx.flow('tab', { TAB: 'Map' }); await sleep(2000);
+            // (c099e9977) left OPEN, then the Map tab tapped where it sits: on iOS the card is a Modal, so the tab bar is
+            // out of the accessibility tree (a text tap finds no "Map": ios-shared2) and a finger there lands on the
+            // scrim. Either way the card and its scrim must go, and the next map tap must reach the map
+            ctx.flow('tap-point', { POINT: '10%,92%' }); await sleep(1500);
+            if (!has(ctx, 'map-credits-card')) { ctx.flow('tap-point', { POINT: '10%,92%' }); await sleep(2000); }   // the scrim took the first
             const left = has(ctx, 'map-credits-card') || has(ctx, 'map-credits-scrim');
             d.logcatClear();
             const n0 = taps(ctx);
@@ -112,12 +115,14 @@ export const sharedFixesIos = {
           shot('t728-layers-before');
           const before = d.nodes().filter((n) => /^option-/.test(n.id)).map((n) => `${n.id}:${n.desc}`);
           ctx.flow('tap-text', { TEXT: 'Done' }); await sleep(1500);
-          ctx.flow('search', { Q: 'Coquitlam River' });
-          ctx.flow('open-result', { LINE: ROW.coquitlam });
-          await ctx.until(() => has(ctx, 'water-back'), { ms: 20_000, what: 'the Coquitlam River page' });
+          // a GAUGED water (its card has the Flow / Level chart): Coquitlam's card is an estimate with no chart (ios-shared2)
+          ctx.flow('search', { Q: 'Fraser River' });
+          ctx.flow('open-result', { LINE: ROW.fraser });
+          await ctx.until(() => has(ctx, 'water-back'), { ms: 20_000, what: 'the Fraser River page' });
           if (has(ctx, 'water-view-conditions')) ctx.flow('tap-id', { ID: 'water-view-conditions' });
           await sleep(3000);
           shot('t728-card-level');
+          if (!has(ctx, 'chart-quantity')) { await pageBack(ctx); ctx.skip('no Flow / Level chart (chart-quantity) on the Fraser card either'); }
           ctx.flow('tap-text', { TEXT: 'Flow' }); await sleep(1500);
           shot('t728-card-flow');
           await pageBack(ctx); await sleep(2000);
