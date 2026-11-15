@@ -50,3 +50,7 @@ Branch `feeds/t757-worker-pieces` (not merged). Work items 1 and 2 done; item 3 
   mutation-checked (it fails with its piece of code removed or broken).
 - **Not covered by a dedicated test:** a piece on a page whose region header closes it (no saved page has both); it is
   the same line every place takes.
+- **Follow-up (fixture refresh):** `test/fixtures/dfo/entries/region-*.json` are now the committed curated places of
+  `redesign/stream-sections` (they were T225 copies). The vectors carry `live`: every location id the Python's `live.run`
+  publishes over the saved pages (274), and the worker's run must equal it except ONE NAMED GAP: the worker types no
+  page-default sentence (T349 `cascade.statement_locators`), so the 7 `page_default` places are in the Python's feed only.

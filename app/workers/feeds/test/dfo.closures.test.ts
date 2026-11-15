@@ -80,6 +80,16 @@ describe("two live wordings of one water naming the same item: one piece, the fi
   });
 });
 
+describe("a place with no water_id (a page default, a section row) builds no piece", () => {
+  // the Python's answer: the oracle's entry file with the place's water_id set to None -> `K.live_piece_rules` = {}
+  it("today's row says closed over named areas, and still nothing is emitted", () => {
+    const c = ORACLE.cases[0]!;
+    const ef = JSON.parse(JSON.stringify(c.entry_file));
+    ef.locations[0].water_id = null;
+    expect([...livePieceRules(loadEntryFile("3", JSON.stringify(ef)), c.rows)]).toEqual([]);
+  });
+});
+
 describe("the piece id grammar (closures.PIECE_ID_RE == the Python's)", () => {
   // acceptance written by the Python: `K.PIECE_ID_RE.match(id)` for each (.venv/bin/python, pipeline.regs.dfo_salmon.closures)
   const split = (id: string): [string, string] => [id.slice(0, id.lastIndexOf("#closed:")), id.slice(id.lastIndexOf("#closed:") + 8)];
@@ -144,9 +154,22 @@ describe("runDfo over the saved pages: one loc per piece the rows name, each the
       expect(named(ix.locs[lid].sp, ix.verdicts), lid).toEqual(named(want[lid]!.calendar.sp, want[lid]!.calendar.verdicts));
       expect(ix.locs[lid].g, lid).toEqual(want[lid]!.calendar.g);
     }
-    // the spec's pin for region 6 (test_dfo_live.py: 137 places + Babine's 13 closed areas). The Python's total of 271 is
-    // over its own page fixtures and the curated entry files, not these: the worker's total here is not pinned
+    // the spec's pin for region 6 (test_dfo_live.py: 137 places + Babine's 13 closed areas)
     expect(Object.values<{ r: string }>(ix.locs).filter((l) => l.r === "6").length).toBe(150);
+    // the WHOLE feed: every location id the Python's `live.run` publishes over the same pages and entry files (vectors
+    // `live`, written by the emitter), each in its region — 274 with the entry files refreshed from the curated places
+    // (T757 follow-up). ONE NAMED GAP, not hidden: the worker types no page-default sentence (the Python's T349
+    // `cascade.statement_locators`, `feed.build`), so the curated `page_default` places — exactly these 7 — are in the
+    // Python's feed and not the worker's. Closing that gap makes this fail: then drop the exception.
+    const pageDefaults = new Set(slugs.flatMap((s) => (JSON.parse(readFileSync(join(FIX, `entries/region-${s}.json`), "utf-8")).locations as { location_id: string; kind: string; status?: string }[])
+      .filter((l) => l.kind === "page_default").map((l) => l.location_id)));
+    const python = V.live.locs as Record<string, string>;
+    expect(Object.keys(python).length).toBe(274);
+    expect(Object.keys(python).filter((l) => pageDefaults.has(l)).sort()).toEqual([
+      "1:default:region", "2:default:areas-13-15-16", "2:default:areas-28-29", "3:default:region", "5a:default:region", "7:default:region", "8:default:region"]);
+    const worker = Object.fromEntries(Object.entries<{ r: string }>(ix.locs).map(([lid, c]) => [lid, c.r]));
+    expect(worker).toEqual(Object.fromEntries(Object.entries(python).filter(([l]) => !pageDefaults.has(l))));
+    expect([ix.unplaced, V.live.unplaced]).toEqual([0, 0]);
   });
 });
 

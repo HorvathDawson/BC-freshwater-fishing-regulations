@@ -1009,7 +1009,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_ids": [
+              "gnis:30524",
+              "gnis:30061"
+            ]
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -1299,7 +1307,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_ids": [
+              "gnis:12227",
+              "wbk:329101302"
+            ]
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -1417,7 +1433,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "cowichan_river__white_triangle_boundary_sign_loc"
+            ],
+            "item_id": "gnis:12227"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -1468,8 +1492,17 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
-        "tributaries": null,
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "cowichan_river__cowichan_lake",
+              "cowichan_river__cnr_trestle"
+            ],
+            "item_id": "gnis:12227"
+          }
+        ],
+        "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -1560,7 +1593,12 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:14076"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -1608,7 +1646,11 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "rest"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -1658,7 +1700,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "little_qualicum_river__hatchery_fence",
+              "little_qualicum_river__signs_35_m_downstream_of_hatchery_fence"
+            ],
+            "item_id": "gnis:10886"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -1712,7 +1763,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "little_qualicum_river__little_qualicum_falls_park_bound",
+              "little_qualicum_river__hatchery_fence"
+            ],
+            "item_id": "gnis:10886"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -1807,7 +1867,12 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "rest",
+            "item_id": "gnis:16505"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -1862,7 +1927,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "nanaimo_river__power_line_at_bore_hole",
+              "nanaimo_river__boulder_creek_into_nanaimo_river"
+            ],
+            "item_id": "gnis:16505"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -1916,7 +1990,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "nanaimo_river__cedar_road_bridge",
+              "nanaimo_river__hwy_19_bridge"
+            ],
+            "item_id": "gnis:16505"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -1968,7 +2051,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "nanaimo_river__cedar_road_bridge",
+              "nanaimo_river__hwy_1_bridge"
+            ],
+            "item_id": "gnis:16505"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -2380,7 +2472,22 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "puntledge_river__signs_75_m_downstream_of_puntledge_river_hatchery_fence",
+              "puntledge_river__morrison_creek_into_puntledge_river_u100m"
+            ],
+            "item_id": "gnis:27060"
+          },
+          {
+            "op": "downstream_of",
+            "splits": [
+              "puntledge_river__morrison_creek_into_puntledge_river_d100m"
+            ]
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -2432,7 +2539,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "puntledge_river__morrison_creek_into_puntledge_river_u100m",
+              "puntledge_river__morrison_creek_into_puntledge_river_d100m"
+            ],
+            "item_id": "gnis:27060"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -2486,7 +2602,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "qualicum_river__upper_hatchery_weir_125_m_downstream"
+            ],
+            "item_id": "gnis:27804"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -2542,7 +2666,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "qualicum_river__upper_hatchery_weir_125_m_downstream",
+              "qualicum_river__boundary_signs_qfn"
+            ],
+            "item_id": "gnis:27804"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -2593,7 +2726,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "qualicum_river__boundary_signs_qfn",
+              "qualicum_river__hwy_19a_bridge"
+            ],
+            "item_id": "gnis:27804"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -2642,7 +2784,11 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "other_places"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -2688,7 +2834,8 @@
       "binding": {
         "extents": [
           {
-            "op": "whole"
+            "op": "whole",
+            "item_id": "gnis:32101"
           }
         ],
         "tributaries": null,
@@ -2740,7 +2887,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "quatse_river__quatse_river_hatchery_weir_d100m",
+              "quatse_river__quatse_river_hatchery_weir_u100m"
+            ],
+            "item_id": "gnis:32101"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -3148,7 +3304,7 @@
       "binding": {
         "extents": [
           {
-            "op": "whole"
+            "op": "rest"
           }
         ],
         "tributaries": null,
@@ -3443,7 +3599,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "sproat_river__sproat_lake",
+              "sproat_river__fishing_boundary_signs_300_m_downstream_of_hwy_4"
+            ],
+            "item_id": "gnis:25640"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -3492,7 +3657,12 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "rest",
+            "item_id": "gnis:14533"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -3544,8 +3714,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
-        "tributaries": null,
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "stamp_river__ash_river_into_stamp_river"
+            ],
+            "item_id": "gnis:14533"
+          }
+        ],
+        "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -3594,7 +3772,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "stamp_river__fishing_boundary_signs_200_m_upstream_of_stamp_falls",
+              "stamp_river__signs_500_m_downstream_of_stamp_falls"
+            ],
+            "item_id": "gnis:14533"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -3653,7 +3840,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "stamp_river__robertson_creek_hatchery_lagoon_outlet",
+              "stamp_river__robertson_creek_hatchery_lagoon_inlet"
+            ],
+            "item_id": "gnis:14533"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -3709,7 +3905,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "stamp_river__robertson_creek_hatchery_lagoon_outlet",
+              "stamp_river__robertson_creek_hatchery_lagoon_inlet"
+            ],
+            "item_id": "gnis:14533"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -3767,7 +3972,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "stamp_river__stamp_river_powerline_crossing_b",
+              "stamp_river__robertson_creek_hatchery_lagoon_inlet"
+            ],
+            "item_id": "gnis:14533"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -3821,7 +4035,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "stamp_river__girl_guide_falls_signs"
+            ],
+            "item_id": "gnis:14533"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -3875,7 +4097,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "stamp_river__girl_guide_falls_signs"
+            ],
+            "item_id": "gnis:14533"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -4186,8 +4416,17 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
-        "tributaries": null,
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "cowichan_river__cnr_bridge",
+              "cowichan_river__skutz_falls"
+            ],
+            "item_id": "gnis:12227"
+          }
+        ],
+        "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -4236,7 +4475,11 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "other_places"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -4287,7 +4530,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "nanaimo_river__cedar_road_bridge",
+              "nanaimo_river__hwy_19_bridge"
+            ],
+            "item_id": "gnis:16505"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -4489,7 +4741,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "sproat_river__sproat_lake",
+              "sproat_river__fishing_boundary_signs_300_m_downstream_of_hwy_4"
+            ],
+            "item_id": "gnis:25640"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -4541,7 +4802,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "stamp_river__ash_river_into_stamp_river"
+            ],
+            "item_id": "gnis:14533"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -4607,7 +4876,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "stamp_river__fishing_boundary_signs_200_m_upstream_of_stamp_falls",
+              "stamp_river__signs_500_m_downstream_of_stamp_falls"
+            ],
+            "item_id": "gnis:14533"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -4667,7 +4945,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "stamp_river__robertson_creek_hatchery_lagoon_inlet",
+              "stamp_river__robertson_creek_hatchery_lagoon_outlet"
+            ],
+            "item_id": "gnis:14533"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -4728,7 +5015,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "stamp_river__stamp_river_powerline_crossing_b",
+              "stamp_river__robertson_creek_hatchery_lagoon_inlet"
+            ],
+            "item_id": "gnis:14533"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -4787,7 +5083,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "stamp_river__girl_guide_falls_signs"
+            ],
+            "item_id": "gnis:14533"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -4847,7 +5151,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "puntledge_river__fishing_boundary_signs_50_m_upstream_of_bc_hydro_puntledge_generating_station_tailrace",
+              "puntledge_river__signs_75_m_downstream_of_puntledge_river_hatchery_fence"
+            ],
+            "item_id": "gnis:27060"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -4904,7 +5217,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "puntledge_river__base_of_stotan_falls"
+            ],
+            "item_id": "gnis:27060"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -4974,7 +5295,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "stamp_river__robertson_creek_hatchery_lagoon_inlet",
+              "stamp_river__robertson_creek_hatchery_lagoon_outlet"
+            ],
+            "item_id": "gnis:14533"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -5079,7 +5409,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "nanaimo_river__power_line_at_bore_hole",
+              "nanaimo_river__boulder_creek_into_nanaimo_river"
+            ],
+            "item_id": "gnis:16505"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -5214,6 +5553,164 @@
           }
         ],
         "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:nanaimo-river:in-subarea-17-14-tidal-portions-of",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Nanaimo River",
+      "water_id": "1:nanaimo-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "b06fab380224fc28"
+      ],
+      "source_text": {
+        "waters": "Nanaimo River",
+        "specific_area": "in Subarea 17-14 (tidal portions of the Nanaimo River) from Cedar Bridge downstream",
+        "landmarks": [
+          "cedar",
+          "nanaimo",
+          "portions",
+          "subarea",
+          "tidal"
+        ],
+        "op": "downstream_of",
+        "anchor_types": [
+          "confluence",
+          "bridge"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      },
+      "tidal_water": true
+    },
+    {
+      "location_id": "1:nanaimo-river:in-subarea-17-14-tidal-portions-of~2",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Nanaimo River",
+      "water_id": "1:nanaimo-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "431c6c51e0cac490"
+      ],
+      "source_text": {
+        "waters": "Nanaimo River",
+        "specific_area": "in Subarea 17-14 (tidal portions of the Nanaimo River), that portion of the Nanaimo River from the Cedar Bridge to the white square boundary signs approximately 400 m downstream of the Cedar Bridge",
+        "landmarks": [
+          "400",
+          "cedar",
+          "nanaimo",
+          "portion",
+          "portions",
+          "square",
+          "subarea",
+          "that",
+          "tidal"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "confluence",
+          "bridge",
+          "boundary_sign"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      },
+      "tidal_water": true
+    },
+    {
+      "location_id": "1:default:region",
+      "region": "1",
+      "region_number": 1,
+      "kind": "page_default",
+      "precedence": -1,
+      "water": "All Region 1 waters (DFO: Haida Gwaii is Region 6)",
+      "water_id": null,
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "page:1:region"
+      ],
+      "source_text": {
+        "waters": "",
+        "specific_area": "All Region 1 waters (DFO: Haida Gwaii is Region 6)",
+        "areas": [],
+        "statement": "limit_zero",
+        "says": "Unless otherwise stated in the table below, the daily limit for all waters in Region 1 is zero (0).",
+        "unlisted": "closed"
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "owner",
+      "reviewed_at": "2026-11-02",
+      "review_note": "T349 owner decisions: region/scope defaults are entries; limit 0 = closed; unlisted = closed",
+      "binding": {
+        "extents": [
+          {
+            "op": "within",
+            "area_id": "area:region:1",
+            "outside_areas": [
+              "area:mu_group:management_units_6_12_and_6_13"
+            ]
+          }
+        ],
+        "tributaries": false,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,

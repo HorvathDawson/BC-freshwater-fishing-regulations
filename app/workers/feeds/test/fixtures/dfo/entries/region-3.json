@@ -294,7 +294,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "area:3",
+              "fraser_river__spuzzum_creek_into_fraser_river"
+            ]
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -400,7 +408,20 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "south_thompson_river__little_shuswap_lake",
+              "south_thompson_river__campbell_creek_d100m"
+            ],
+            "item_id": "gnis:8675"
+          },
+          {
+            "op": "whole",
+            "item_id": "wbk:329534136"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -453,9 +474,9 @@
         "areas": []
       },
       "status": "dormant",
-      "duplicate_of": null,
+      "duplicate_of": "3:thompson-river:from-kamloops-lake-outlet-downstre~2",
       "duplicate_score": null,
-      "duplicate_confirmed": null,
+      "duplicate_confirmed": true,
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -526,7 +547,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "thompson_river__signs_just_below_goldpan_provincial_park",
+              "thompson_river__easterly_border_of_the_skihist_ecological_reserve_along_the"
+            ],
+            "item_id": "gnis:39492"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -650,8 +680,63 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "thompson_river__kamloops_lake",
+              "thompson_river__signs_just_below_goldpan_provincial_park"
+            ],
+            "item_id": "gnis:39492"
+          }
+        ],
         "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "3:default:region",
+      "region": "3",
+      "region_number": 3,
+      "kind": "page_default",
+      "precedence": -1,
+      "water": "All Region 3 waters",
+      "water_id": null,
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "page:3:region"
+      ],
+      "source_text": {
+        "waters": "",
+        "specific_area": "All Region 3 waters",
+        "areas": [],
+        "statement": "closed_except_listed",
+        "says": "There is no fishing for salmon in Region 3 except for the opportunities listed in the table below.",
+        "unlisted": "closed"
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "owner",
+      "reviewed_at": "2026-11-02",
+      "review_note": "T349 owner decisions: region/scope defaults are entries; limit 0 = closed; unlisted = closed",
+      "binding": {
+        "extents": [
+          {
+            "op": "within",
+            "area_id": "area:region:3"
+          }
+        ],
+        "tributaries": false,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,

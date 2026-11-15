@@ -494,34 +494,16 @@
       "sections": [
         "D"
       ],
-      "item_ids": [],
+      "item_ids": [
+        "blk:360846083"
+      ],
       "tributaries": null,
       "match": {
-        "status": "unmatched",
-        "via": "",
-        "reason": "no name/variant match",
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
         "candidates": [],
-        "suggestions": [
-          {
-            "kind": "spelling",
-            "name": "shields creek",
-            "why": "ratio 0.889",
-            "item_ids": [
-              "gnis:22826",
-              "gnis:3417"
-            ],
-            "resolves_to": "Shields Creek"
-          },
-          {
-            "kind": "spelling",
-            "name": "helen creek",
-            "why": "ratio 0.88",
-            "item_ids": [
-              "gnis:4160"
-            ],
-            "resolves_to": "Helen Creek"
-          }
-        ]
+        "suggestions": []
       },
       "resolution": "pending",
       "resolution_reason": "",
@@ -2210,6 +2192,43 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "note": ""
+    },
+    {
+      "water_id": "6:fraser-river",
+      "region": "6",
+      "region_number": 6,
+      "name": "Fraser River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:39325",
+        "gnis:10494",
+        "gnis:11566",
+        "gnis:17805",
+        "gnis:17368",
+        "gnis:14905",
+        "gnis:22631",
+        "gnis:21224",
+        "gnis:14010",
+        "gnis:11481",
+        "gnis:13499",
+        "gnis:25152",
+        "gnis:8341"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "override",
+        "reason": "Fraser River (GNIS 39325) upstream of the CPR Bridge at Mission, plus all named channels and sloughs without their own regulation entries. Region 2. Nicomen Slough and Strawberry Slough excluded — they have separate regulation entries.",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": "owner 2026-11-03: the same river as region 2's Fraser River, so R6's header exception (adult chinook \"other than Fraser River Watershed\") finds the Fraser-side waters of Region 6. No R6 DFO place names it."
     }
   ],
   "locations": [
@@ -2228,7 +2247,8 @@
       ],
       "inherits": [],
       "fingerprints": [
-        "16340060a3e2fdfd"
+        "16340060a3e2fdfd",
+        "page:6:region"
       ],
       "source_text": {
         "waters": "",
@@ -2259,62 +2279,6 @@
           {
             "op": "within",
             "area_id": "area:mu_group:management_units_6_12_and_6_13"
-          }
-        ],
-        "tributaries": false,
-        "tributaries_only": false,
-        "tributary_excludes": [],
-        "sections_cached": null,
-        "notes": [],
-        "spatial_caveat": false
-      }
-    },
-    {
-      "location_id": "6:b:section",
-      "region": "6",
-      "region_number": 6,
-      "kind": "section_default",
-      "precedence": 1,
-      "water": "",
-      "water_id": null,
-      "aliases": [],
-      "section": "B",
-      "section_history": [
-        "B"
-      ],
-      "inherits": [],
-      "fingerprints": [
-        "3c12577e5675ae1c"
-      ],
-      "source_text": {
-        "waters": "",
-        "specific_area": "All waters in section \"B\" – Skeena River Watershed",
-        "landmarks": [
-          "all",
-          "section",
-          "skeena",
-          "watershed"
-        ],
-        "op": "described",
-        "anchor_types": [
-          "confluence"
-        ],
-        "excludes": [],
-        "areas": []
-      },
-      "status": "dormant",
-      "duplicate_of": null,
-      "duplicate_score": null,
-      "duplicate_confirmed": null,
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "review_note": "",
-      "binding": {
-        "extents": [
-          {
-            "op": "within",
-            "area_id": "area:basin:400-"
           }
         ],
         "tributaries": false,
@@ -2403,6 +2367,7 @@
         "A"
       ],
       "fingerprints": [
+        "d7d011f3271f96bd",
         "1b043061ae380699"
       ],
       "source_text": {
@@ -2502,153 +2467,6 @@
               "area:basin:500-",
               "area:basin:100-",
               "area:mu_group:management_units_6_12_and_6_13"
-            ]
-          },
-          {
-            "op": "within",
-            "area_id": "area:mu_group:management_units_6_12_and_6_13",
-            "outside_areas": [
-              "area:mu_group:management_units_6_12_and_6_13"
-            ]
-          }
-        ],
-        "tributaries": false,
-        "tributaries_only": false,
-        "tributary_excludes": [],
-        "sections_cached": null,
-        "notes": [],
-        "spatial_caveat": false
-      }
-    },
-    {
-      "location_id": "6:e:area:areas-5",
-      "region": "6",
-      "region_number": 6,
-      "kind": "area_default",
-      "precedence": 2,
-      "water": "",
-      "water_id": null,
-      "aliases": [],
-      "section": "E",
-      "section_history": [
-        "E"
-      ],
-      "inherits": [
-        "E",
-        "A"
-      ],
-      "fingerprints": [
-        "c1d43a07d6adafd1"
-      ],
-      "source_text": {
-        "waters": "",
-        "specific_area": "All streams flowing into tidal water Area 5 (refer to the BC Tidal Waters Sport Fishing Guide for Area 5 description).",
-        "landmarks": [
-          "all",
-          "area",
-          "description",
-          "flowing",
-          "for",
-          "guide",
-          "into",
-          "refer",
-          "sport",
-          "streams",
-          "tidal"
-        ],
-        "op": "described",
-        "anchor_types": [],
-        "excludes": [],
-        "areas": [
-          5
-        ]
-      },
-      "status": "dormant",
-      "duplicate_of": null,
-      "duplicate_score": null,
-      "duplicate_confirmed": null,
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "review_note": "",
-      "binding": {
-        "extents": [
-          {
-            "op": "within",
-            "area_id": "area:drains_to:pfma_5",
-            "feature_types": [
-              "stream"
-            ]
-          }
-        ],
-        "tributaries": false,
-        "tributaries_only": false,
-        "tributary_excludes": [],
-        "sections_cached": null,
-        "notes": [],
-        "spatial_caveat": false
-      }
-    },
-    {
-      "location_id": "6:e:area:areas-6",
-      "region": "6",
-      "region_number": 6,
-      "kind": "area_default",
-      "precedence": 2,
-      "water": "",
-      "water_id": null,
-      "aliases": [],
-      "section": "E",
-      "section_history": [
-        "E"
-      ],
-      "inherits": [
-        "E",
-        "A"
-      ],
-      "fingerprints": [
-        "3a316477f825ecd4"
-      ],
-      "source_text": {
-        "waters": "",
-        "specific_area": "All streams flowing into tidal water Area 6 unless stated below (refer to BC Tidal Waters Sport Fishing Guide for Area 6 description).",
-        "landmarks": [
-          "all",
-          "area",
-          "description",
-          "flowing",
-          "for",
-          "guide",
-          "into",
-          "refer",
-          "sport",
-          "stated",
-          "streams",
-          "tidal",
-          "unless"
-        ],
-        "op": "described",
-        "anchor_types": [],
-        "excludes": [],
-        "areas": [
-          6
-        ]
-      },
-      "status": "dormant",
-      "duplicate_of": null,
-      "duplicate_score": null,
-      "duplicate_confirmed": null,
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "review_note": "",
-      "binding": {
-        "extents": [
-          {
-            "op": "within",
-            "area_id": "area:drains_to:pfma_6",
-            "feature_types": [
-              "stream"
             ]
           }
         ],
@@ -2761,7 +2579,12 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:4674"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -2865,7 +2688,12 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:4069"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -2914,7 +2742,12 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:3674"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -2963,7 +2796,12 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "wbk:329223895"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -3012,7 +2850,12 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "wbk:329223895"
+          }
+        ],
         "tributaries": false,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -3061,7 +2904,12 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:28108"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -3123,7 +2971,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "nass_river__canyon_city_gitwinksihlkw_bridge",
+              "gauge__08DB001"
+            ],
+            "item_id": "gnis:3206"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -3177,8 +3034,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
-        "tributaries": null,
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "meziadin_river__meziadin_river_into_nass_river"
+            ],
+            "item_id": "gnis:3206"
+          }
+        ],
+        "tributaries": false,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -3337,7 +3202,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "ksi_sii_aks_river__nass_road_bridge"
+            ],
+            "item_id": "gnis:3828"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -3393,7 +3266,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "ksi_sii_aks_river__nass_road_bridge"
+            ],
+            "item_id": "gnis:3828"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -3618,7 +3499,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "sheldens_creek__spur_19_bridge_site"
+            ],
+            "item_id": "blk:360846083"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -3728,7 +3617,12 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:3480"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -3777,7 +3671,12 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:4264"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -3826,7 +3725,12 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:4688"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -3986,7 +3890,12 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:4205"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -4088,7 +3997,12 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:36313"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -4137,7 +4051,12 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:4074"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -4239,7 +4158,12 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:3665"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -4357,7 +4281,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "kitimat_river__kitimat_hatchery_outfall_u_s_sign",
+              "kitimat_river__kitimat_hatchery_outfall_d_s_sign"
+            ],
+            "item_id": "gnis:3225"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -4410,7 +4343,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "kitimat_river__hwy_37_bridge"
+            ],
+            "item_id": "gnis:3225"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -4463,7 +4404,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "kitimat_river__hwy_37_bridge"
+            ],
+            "item_id": "gnis:3225"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -4623,7 +4572,11 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -4672,7 +4625,12 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:3696"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -4725,7 +4683,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "ksi_x_anmas_river__lower_bridge_abutments"
+            ],
+            "item_id": "gnis:3815"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -4778,7 +4744,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "ksi_x_anmas_river__lower_bridge_abutments"
+            ],
+            "item_id": "gnis:3815"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -4880,7 +4854,12 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:4622"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -4986,7 +4965,12 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:15430"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -5035,7 +5019,12 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:2728"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -5084,7 +5073,12 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:23163"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -5138,7 +5132,12 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:8231"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -5187,7 +5186,12 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:25405"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -5447,7 +5451,8 @@
             "op": "upstream_of",
             "splits": [
               "border:360886456:1"
-            ]
+            ],
+            "item_id": "gnis:25410"
           }
         ],
         "tributaries": true,
@@ -5513,7 +5518,12 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:38622"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -5673,139 +5683,13 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:3787"
+          }
+        ],
         "tributaries": true,
-        "tributaries_only": false,
-        "tributary_excludes": [],
-        "sections_cached": null,
-        "notes": [],
-        "spatial_caveat": false
-      }
-    },
-    {
-      "location_id": "6:b:section~2",
-      "region": "6",
-      "region_number": 6,
-      "kind": "section_default",
-      "precedence": 1,
-      "water": "",
-      "water_id": null,
-      "aliases": [],
-      "section": "B",
-      "section_history": [
-        "B"
-      ],
-      "inherits": [],
-      "fingerprints": [
-        "3590f63def65005d"
-      ],
-      "source_text": {
-        "waters": "",
-        "specific_area": "All waters in the Skeena River Watershed",
-        "landmarks": [
-          "all",
-          "skeena",
-          "watershed"
-        ],
-        "op": "named_tributaries",
-        "anchor_types": [
-          "confluence"
-        ],
-        "excludes": [],
-        "areas": []
-      },
-      "status": "dormant",
-      "duplicate_of": null,
-      "duplicate_score": null,
-      "duplicate_confirmed": null,
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "review_note": "",
-      "binding": {
-        "extents": [
-          {
-            "op": "within",
-            "area_id": "area:basin:400-"
-          }
-        ],
-        "tributaries": false,
-        "tributaries_only": false,
-        "tributary_excludes": [],
-        "sections_cached": null,
-        "notes": [],
-        "spatial_caveat": false
-      }
-    },
-    {
-      "location_id": "6:e:area:areas-3-4-5-6",
-      "region": "6",
-      "region_number": 6,
-      "kind": "area_default",
-      "precedence": 2,
-      "water": "",
-      "water_id": null,
-      "aliases": [],
-      "section": "E",
-      "section_history": [
-        "E"
-      ],
-      "inherits": [
-        "E",
-        "A"
-      ],
-      "fingerprints": [
-        "5310228c8894f353"
-      ],
-      "source_text": {
-        "waters": "",
-        "specific_area": "All streams flowing into tidal water Areas 3, 4, 5 and 6.",
-        "landmarks": [
-          "all",
-          "areas",
-          "flowing",
-          "into",
-          "streams",
-          "tidal"
-        ],
-        "op": "described",
-        "anchor_types": [],
-        "excludes": [],
-        "areas": [
-          3,
-          4,
-          5,
-          6
-        ]
-      },
-      "status": "dormant",
-      "duplicate_of": null,
-      "duplicate_score": null,
-      "duplicate_confirmed": null,
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "review_note": "",
-      "binding": {
-        "extents": [
-          {
-            "op": "within",
-            "area_id": "area:drains_to:pfma_3"
-          },
-          {
-            "op": "within",
-            "area_id": "area:drains_to:pfma_4"
-          },
-          {
-            "op": "within",
-            "area_id": "area:drains_to:pfma_5"
-          },
-          {
-            "op": "within",
-            "area_id": "area:drains_to:pfma_6"
-          }
-        ],
-        "tributaries": false,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -5831,6 +5715,7 @@
         "A"
       ],
       "fingerprints": [
+        "c1d43a07d6adafd1",
         "a7efdccc2852b478"
       ],
       "source_text": {
@@ -5866,6 +5751,12 @@
             "area_id": "area:drains_to:pfma_5",
             "feature_types": [
               "stream"
+            ],
+            "outside_areas": [
+              "area:basin:400-",
+              "area:basin:500-",
+              "area:basin:100-",
+              "area:mu_group:management_units_6_12_and_6_13"
             ]
           }
         ],
@@ -5873,7 +5764,9 @@
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
-        "notes": [],
+        "notes": [
+          "T229 (owner 2026-10-28): a section E sub-scope - streams of section E only; the Skeena, Nass, Fraser and Haida Gwaii (E's siblings) are outside it"
+        ],
         "spatial_caveat": false
       }
     },
@@ -5895,6 +5788,7 @@
         "A"
       ],
       "fingerprints": [
+        "3a316477f825ecd4",
         "3a8f01437efb37b2"
       ],
       "source_text": {
@@ -5932,6 +5826,12 @@
             "area_id": "area:drains_to:pfma_6",
             "feature_types": [
               "stream"
+            ],
+            "outside_areas": [
+              "area:basin:400-",
+              "area:basin:500-",
+              "area:basin:100-",
+              "area:mu_group:management_units_6_12_and_6_13"
             ]
           }
         ],
@@ -5939,7 +5839,9 @@
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
-        "notes": [],
+        "notes": [
+          "T229 (owner 2026-10-28): a section E sub-scope - streams of section E only; the Skeena, Nass, Fraser and Haida Gwaii (E's siblings) are outside it"
+        ],
         "spatial_caveat": false
       }
     },
@@ -5993,8 +5895,70 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:2728"
+          }
+        ],
         "tributaries": true,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "6:b:section",
+      "region": "6",
+      "region_number": 6,
+      "kind": "section_default",
+      "precedence": 1,
+      "water": "",
+      "water_id": null,
+      "aliases": [],
+      "section": "B",
+      "section_history": [
+        "B"
+      ],
+      "inherits": [],
+      "fingerprints": [
+        "3c12577e5675ae1c",
+        "3590f63def65005d"
+      ],
+      "source_text": {
+        "waters": "",
+        "specific_area": "All waters in section \"B\" – Skeena River Watershed",
+        "landmarks": [
+          "all",
+          "section",
+          "skeena",
+          "watershed"
+        ],
+        "op": "described",
+        "anchor_types": [
+          "confluence"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [
+          {
+            "op": "within",
+            "area_id": "area:basin:400-"
+          }
+        ],
+        "tributaries": false,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -6183,7 +6147,12 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "wbk:329026676"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -6421,7 +6390,12 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:15535"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -6475,7 +6449,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "bulkley_river__morice_river_into_bulkley_river"
+            ],
+            "item_id": "gnis:2195"
+          }
+        ],
         "tributaries": false,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -6531,10 +6513,20 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
-        "tributaries": null,
-        "tributaries_only": false,
-        "tributary_excludes": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:2195"
+          }
+        ],
+        "tributaries": true,
+        "tributaries_only": true,
+        "tributary_excludes": [
+          {
+            "op": "whole",
+            "item_id": "gnis:2637"
+          }
+        ],
         "sections_cached": null,
         "notes": [],
         "spatial_caveat": false
@@ -6695,7 +6687,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "kispiox_river__signs_near_kispiox_river_resort"
+            ],
+            "item_id": "gnis:2308"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -6745,7 +6745,12 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:12684"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -6795,7 +6800,12 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:3227"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -6913,7 +6923,7 @@
           {
             "op": "between",
             "splits": [
-              "morice_river__morice_lake",
+              "morice_river__fishing_boundary_signs_near_outlet_of_morice_lake_2000_m_downstream",
               "morice_river__gosnell_creek_into_morice_river"
             ]
           }
@@ -7115,7 +7125,7 @@
           {
             "op": "between",
             "splits": [
-              "morice_river__gosnell_creek_into_morice_river",
+              "morice_river__gosnell_creek_into_morice_river_d100m",
               "morice_river__lamprey_creek_into_morice_river"
             ]
           }
@@ -7362,7 +7372,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "pinkut_creek__signs_25_m_below_the_pinkut_fish_fence_d25m"
+            ],
+            "item_id": "gnis:23229"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -7418,7 +7436,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "shegunia_river__signs_above_the_shegunia_logging_road_bridge_u50m",
+              "shegunia_river__signs_below_the_shegunia_logging_road_bridge_d50m"
+            ],
+            "item_id": "gnis:22777"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -7888,7 +7915,12 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:25386"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -8016,7 +8048,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "zymoetz__hwy_16_bridge_over_the_zymoetz_copper"
+            ],
+            "item_id": "gnis:3137"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -8074,7 +8114,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "zymoetz__hwy_16_bridge_over_the_zymoetz_copper"
+            ],
+            "item_id": "gnis:3137"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -8185,7 +8233,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "ecstall_river__johnston_creek"
+            ],
+            "item_id": "gnis:3986"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -8293,7 +8349,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "exchamsiks_river__hwy_16_bridge_over_the_exchamsiks"
+            ],
+            "item_id": "gnis:3499"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -8401,7 +8465,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "exstew_river__hwy_16_bridge_over_the_exstew"
+            ],
+            "item_id": "gnis:3498"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -8457,7 +8529,11 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -8675,7 +8751,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "khyex_river__hwy_16_bridge_over_the_khyex"
+            ],
+            "item_id": "gnis:4076"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -8725,7 +8809,12 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "wbk:329241962"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -8836,7 +8925,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "kitsumkalum__signs_below_the_kitsumkalum_lower_canyon"
+            ],
+            "item_id": "gnis:3942"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -8893,7 +8990,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "kitsumkalum__signs_below_the_kitsumkalum_lower_canyon"
+            ],
+            "item_id": "gnis:3942"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -8948,7 +9053,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "kitsumkalum__cn_railway_bridge_over_the_kitsumkalum"
+            ],
+            "item_id": "gnis:3942"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -9003,7 +9116,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "lakelse_river__cnr_bridge"
+            ],
+            "item_id": "gnis:4903"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -9060,7 +9181,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "lakelse_river__whitebottom_rd_bridge_lakelse_near_the_mouth"
+            ],
+            "item_id": "gnis:4903"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -9117,7 +9246,14 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "lakelse_river__whitebottom_rd_bridge_lakelse_near_the_mouth"
+            ]
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -9167,7 +9303,12 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "wbk:-1"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -9217,7 +9358,12 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:3200"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -9506,7 +9652,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "zymagotitz_river__hwy_16_bridge_over_the_zymagotitz"
+            ],
+            "item_id": "gnis:3812"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -9562,8 +9716,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
-        "tributaries": null,
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "meziadin_river__meziadin_river_into_nass_river"
+            ],
+            "item_id": "gnis:3206"
+          }
+        ],
+        "tributaries": false,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -9773,12 +9935,21 @@
           {
             "op": "between",
             "splits": [
-              "bulkley_river__morice_river_into_bulkley_river_d1000m",
-              "bulkley_river__morice_river_into_bulkley_river_u100m"
-            ]
+              "bulkley_river__morice_river_into_bulkley_river_u100m",
+              "bulkley_river__morice_river_into_bulkley_river_d1000m"
+            ],
+            "item_id": "gnis:2195"
+          },
+          {
+            "op": "between",
+            "splits": [
+              "morice_river__bulkley_confluence_u100m",
+              "morice_river__bulkley_confluence"
+            ],
+            "item_id": "gnis:14918"
           }
         ],
-        "tributaries": null,
+        "tributaries": false,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -9847,9 +10018,18 @@
           {
             "op": "between",
             "splits": [
-              "morice_river__bulkley_confluence",
-              "morice_river__bulkley_confluence_u100m"
-            ]
+              "morice_river__bulkley_confluence_u100m",
+              "morice_river__bulkley_confluence"
+            ],
+            "item_id": "gnis:14918"
+          },
+          {
+            "op": "between",
+            "splits": [
+              "bulkley_river__morice_river_into_bulkley_river_u100m",
+              "bulkley_river__morice_river_into_bulkley_river_d1000m"
+            ],
+            "item_id": "gnis:2195"
           }
         ],
         "tributaries": true,
@@ -9913,7 +10093,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "skeena_river__cnr_railway_bridge_terrace",
+              "gauge__08EB005"
+            ]
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -10221,8 +10409,17 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
-        "tributaries": null,
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "meziadin_river__meziadin_river_into_nass_river",
+              "nass_river__hwy_37_bridge"
+            ],
+            "item_id": "gnis:3206"
+          }
+        ],
+        "tributaries": false,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -10338,13 +10535,24 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "nakina_river__sloko_river_u300m",
+              "nakina_river__sloko_river_u1300m"
+            ],
+            "item_id": "gnis:16492"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
-        "notes": [],
-        "spatial_caveat": false
+        "notes": [
+          "from the centre line to the northern bank"
+        ],
+        "spatial_caveat": true
       }
     },
     {
@@ -10397,10 +10605,28 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
-        "tributaries": null,
-        "tributaries_only": false,
-        "tributary_excludes": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:2195"
+          }
+        ],
+        "tributaries": true,
+        "tributaries_only": true,
+        "tributary_excludes": [
+          {
+            "op": "whole",
+            "item_id": "gnis:14918"
+          },
+          {
+            "op": "whole",
+            "item_id": "gnis:2637"
+          },
+          {
+            "op": "whole",
+            "item_id": "gnis:30327"
+          }
+        ],
         "sections_cached": null,
         "notes": [],
         "spatial_caveat": false
@@ -10621,7 +10847,12 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:2637"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -10973,6 +11204,7 @@
         "A"
       ],
       "fingerprints": [
+        "5310228c8894f353",
         "74340cd540a76f89"
       ],
       "source_text": {
@@ -11009,26 +11241,52 @@
         "extents": [
           {
             "op": "within",
-            "area_id": "area:drains_to:pfma_3"
+            "area_id": "area:drains_to:pfma_3",
+            "outside_areas": [
+              "area:basin:400-",
+              "area:basin:500-",
+              "area:basin:100-",
+              "area:mu_group:management_units_6_12_and_6_13"
+            ]
           },
           {
             "op": "within",
-            "area_id": "area:drains_to:pfma_4"
+            "area_id": "area:drains_to:pfma_4",
+            "outside_areas": [
+              "area:basin:400-",
+              "area:basin:500-",
+              "area:basin:100-",
+              "area:mu_group:management_units_6_12_and_6_13"
+            ]
           },
           {
             "op": "within",
-            "area_id": "area:drains_to:pfma_5"
+            "area_id": "area:drains_to:pfma_5",
+            "outside_areas": [
+              "area:basin:400-",
+              "area:basin:500-",
+              "area:basin:100-",
+              "area:mu_group:management_units_6_12_and_6_13"
+            ]
           },
           {
             "op": "within",
-            "area_id": "area:drains_to:pfma_6"
+            "area_id": "area:drains_to:pfma_6",
+            "outside_areas": [
+              "area:basin:400-",
+              "area:basin:500-",
+              "area:basin:100-",
+              "area:mu_group:management_units_6_12_and_6_13"
+            ]
           }
         ],
         "tributaries": false,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
-        "notes": [],
+        "notes": [
+          "T229 (owner 2026-10-28): a section E sub-scope - streams of section E only; the Skeena, Nass, Fraser and Haida Gwaii (E's siblings) are outside it"
+        ],
         "spatial_caveat": false
       }
     },
@@ -11080,7 +11338,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "babine_river__nilkitkwa_river_into_babine_river",
+              "babine_river__signs_80_m_downstream_of_adult_fish_counting_fence"
+            ],
+            "item_id": "gnis:17687"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -11136,7 +11403,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "babine_river__nilkitkwa_river_into_babine_river"
+            ],
+            "item_id": "gnis:17687"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -11333,66 +11608,6 @@
         "notes": [
           "SIGN-BOUNDED ZONE at the Kispiox confluence, now a drawn polygon rather than an assumed reach. The zone is an AREA in both corpora's own words — DFO in three wordings (4 / 3 / three triangular signs), the province in a fourth; one zone, see pipeline/docs/GOTCHAS.md. It is bound as the whole Skeena LIMITED TO the ring in data/curated/waters/added_areas.geojson: `within_area`, not `area_id`, because the rule is about the Skeena and the polygon only says where — an area-scoped extent would be filed as a zone default that any water-specific rule outranks. The ring supersedes the 400 m guess and the two splits it needed."
         ],
-        "spatial_caveat": false
-      }
-    },
-    {
-      "location_id": "6:d:section~2",
-      "region": "6",
-      "region_number": 6,
-      "kind": "section_default",
-      "precedence": 1,
-      "water": "",
-      "water_id": null,
-      "aliases": [],
-      "section": "D",
-      "section_history": [
-        "D"
-      ],
-      "inherits": [
-        "A"
-      ],
-      "fingerprints": [
-        "d7d011f3271f96bd"
-      ],
-      "source_text": {
-        "waters": "",
-        "specific_area": "All waters in section \"D\" - Haida Gwaii Watersheds unless otherwise stated below.",
-        "landmarks": [
-          "all",
-          "gwaii",
-          "haida",
-          "otherwise",
-          "section",
-          "stated",
-          "unless",
-          "watersheds"
-        ],
-        "op": "described",
-        "anchor_types": [],
-        "excludes": [],
-        "areas": []
-      },
-      "status": "dormant",
-      "duplicate_of": null,
-      "duplicate_score": null,
-      "duplicate_confirmed": null,
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "review_note": "",
-      "binding": {
-        "extents": [
-          {
-            "op": "within",
-            "area_id": "area:mu_group:management_units_6_12_and_6_13"
-          }
-        ],
-        "tributaries": false,
-        "tributaries_only": false,
-        "tributary_excludes": [],
-        "sections_cached": null,
-        "notes": [],
         "spatial_caveat": false
       }
     },
