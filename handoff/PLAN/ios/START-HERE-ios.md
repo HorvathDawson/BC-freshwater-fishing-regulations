@@ -221,8 +221,10 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
 19. ANSWERED 2026-11-15 01:50 ("yes to this"): on staging, test-bed crashes get their own daily limit (200 per
     address). Worker commit 441ec090e; landing and the staging deploy are being timed with the Android chat.
 
-20. The line on the "applying new data" screen (T746; pictures sent 03:00): "Putting the new regulations in place…"
-    (built) / "Applying the new regulations data…" / "Updating the regulations and map…".
+20. ANSWERED 03:20: the line on the "applying new data" screen (T746) becomes fish puns ("can we do more fish puns
+    here that are directed at this ?"); a small rotating set is built on the branch, candidates sent; the owner
+    strikes or adds. The failure message stays plain unless he says otherwise.
+21. ANSWERED 03:20 ("yes you can upload"): TestFlight build 36 in the morning with everything that passed overnight.
 
 Owner, 2026-11-14, verbatim: "Maybe we could make a handoff to start improving the ios versions? Making sure it is rock
 solid too?" This **reopens iOS**, which the owner benched on 2026-11-06 ("no iOS device work until DFO extents labelled +

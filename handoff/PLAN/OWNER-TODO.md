@@ -200,6 +200,12 @@ with the default Claude uses until you answer). Newest first inside each section
   back swipe, tap cue); owner, verbatim: "yes". Build 34 from 51349c3bf **uploaded 23:58** (0.7.10 build 34, staging data). The shared
   branch is not touched by it. Yours: add build 34 to your internal group and install it; checks only a phone can do
   are on the To-Do page row.
+- **ANSWERED 2026-11-15 03:20 (before bed).** (1) To "TestFlight build 36: may I upload one in the morning with
+  everything that passed overnight (loading screen, push re-register fix, crash-report fix, lighter fonts)?", owner,
+  verbatim: "yes you can upload". My reading: one upload, build 36, only what passed; later uploads are asked again.
+  (2) On the loading-screen line (T746), owner, verbatim: "can we do more fish puns here that are directed at this ?"
+  So the line becomes a fish pun about putting the new regulations in place; candidates sent in chat, a small set
+  built on the branch to rotate, the owner strikes or adds. The failure message stays plain (my pick; say if not).
 - **NEW 2026-11-15 03:00 (iOS chat, T746, your "loading icon with text like splash").** Built on a branch; pictures
   sent in chat (iPhone light and dark, web). Pick the line: "Putting the new regulations in place…" (built) /
   "Applying the new regulations data…" / "Updating the regulations and map…". A failed apply says: "The new
