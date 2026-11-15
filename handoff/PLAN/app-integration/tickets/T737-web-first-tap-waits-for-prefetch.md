@@ -1,6 +1,6 @@
 # T737 — Web: the first river click waits for the background download of the whole release files
 
-Status: IN PROGRESS (lane: first-click investigation 2026-11-14; fix committed + unnamed-stream background order e974cabf7 (2026-11-14 night); staging deploy is the main chat's; region slices left as an option)
+Status: IN PROGRESS (lane: first-click investigation 2026-11-14; fix committed + unnamed-stream background order e974cabf7 (2026-11-14 night); multi-region water 673b1d8e3 (2026-11-15, unpushed); staging deploy is the main chat's; region slices left as an option)
 
 Source: owner 2026-11-14 evening, verbatim: "On staging.canifishthis.ca  The first river click takes a very long time
 to open". Staging = b2dba0297 (app 0.7.10) on release r-f749475d0962. The staging smoke's "tap a named water" step said
@@ -139,3 +139,73 @@ because handles are ordered by stream key, not by region — so a block slice sa
 the whole (region 2 has 72k of 1.96M handles). `down` is per section with the downstream walk (crosses regions to the
 mouth). Touches pipeline `slices.py`/regs store, the contract (WEB_ONLY, budget), `loader.dbFor` routing for
 regs-sid/down, the release-budget pins. Ticket-sized; owner's call.
+
+## A multi-region water: "it still feels slow" (2026-11-15, 673b1d8e3, unpushed)
+Owner on live staging (dff2c7a22), verbatim: "i just tried it again and iot still feels slow" — then: "i clicked a
+section of the fraser in region 2". His panel after the click: regs-3, access, the whole `lines`, regs-5 (and 7A off
+screen). The lane's earlier test clicks were Region 2 waters that touch no other region.
+
+**Reproduced (live staging, fresh profile, Fraser part in Region 2, click 3 s after paint, desktop):** cue (the part lit
+on the map) at once; page readable 14.5 s, complete 17.0 s. Waterfall: the whole `core` 1.5 MB (9.4 s), then `water-2`
+(0.5 s), then `geo` (2.6 s), page; then `regs-3` → `regs-5` → `regs-7a` one after another, `access` and `lines` beside.
+Script: `~/bcfish-session-backup-2026-11-12/first-click-web/multi-1115/` (`measure.mjs`: `--complete` waits for every
+page download and picture, `--initiators` records who asked each file — the source-mapped stacks named the code below;
+`panTo` drags the map to a target, as a person pans). Line tonight: slow and variable (0.3-6 Mbit/s); every pair below
+is alternated before/after.
+
+**Cause — four, three in series.**
+1. The in-season check (`Shell` `holdsWater` → `itemOrd` of every water a notice names, province-wide) opens the WHOLE
+   `core` a few seconds after paint. `loader.wholeHere` counted an open in flight as "here", so the tap's `core` read
+   waited for 1.5 MB though `core-2` held its answer (the case a43e750b9 fixed for prefetches, not for opens).
+2. `useShellNav` still ran the P11 placeholder `useRegulationKeys`: it opened the region file of EVERY part of the open
+   water, one after another (Fraser: regs-3, regs-5, regs-7a, ~1 MB in series beside the page). The page never used it:
+   it reads its own part's file; the others serve a step or the parts list.
+3. `geo` (0.6 MB, every named water's open: the solo check and the parts) was asked only after the water slice (the
+   group read needs the slice first): 0.5-0.9 s + 1-2.6 s in series.
+4. `lines` (1.3 MB): the Fraser has in-season notices on PART of it (`useInSeasonCovers` places them on the section
+   lines), so its page asks the whole file once its rules are read. It holds no rule; it fills the banner in later.
+
+**Change (web only, nothing on the page changes).** (1) `loader.ts`: only a FINISHED open counts. (2) `useRegulationKeys`
+dropped from `useShellNav`; the open water's regions are handed to the background tier (`BackgroundPrefetch.want`,
+`useWaterRegionsAhead`, `waterRegionsOf`) — fetched next, behind the reader, under every hold (Save-Data, slow,
+metered, low-data, hidden, battery). (3) `warmWaterPage` + `warmedFirst`: the opener's part / solo questions ask `geo`
+at once, so slice and geo come together. (`access` was tried there too and dropped: on a ~1 Mbit/s spell it held the
+readable page back by its share of the line.) (4) `backgroundOrder`: the open water's regions; the view's water slice +
+geo FIRST (a named tap reads them; the whole core it does not); the view's files (named, then regs-sid/down/water);
+the neighbours; `lines`; the province. (5) The background starts nothing until the line has been free of the reader for
+1.5 s (`READER_GRACE_MS`): a 1.2 MB regs-sid started 6 ms after geo landed and 24 ms before the page asked `lines`.
+Tests (each fails with its piece reverted): loader "a whole file still being OPENED does not hold a tap"; background
+"the whole order", "want", the grace; `warmWaterPage.test.ts`; `prefetch.render.test.tsx` "the open water's other
+regions first". Run: release + sql + prefetch UI tests 219/219, ui + ui-native 2212/2212, check:fast clean (its
+`tickets` step was red in the worktree only for T742, fixed on HEAD).
+
+**Before / after** (local exports of HEAD f3028f9c3 and + this change, data-staging, alternated; readable = rules on
+screen; complete = every download and picture of the page in, incl. `lines`):
+
+| click | before readable / complete | after readable / complete |
+|---|---|---|
+| Fraser part R2, desktop, 3 s after paint (6 pairs) | 1.7/6.1, 9.5/19.1, 1.3/4.5, 0.9/2.9, 1.9/5.4, 1.8/6.2 | 0.8/2.2, 1.7/5.2, 0.6/1.7, 1.7/5.2 (slow spell), 1.1/2.7, 1.5/3.7 |
+| Fraser part R2, desktop, 8 s (4) | 3.9/8.8, 2.0/7.0, 3.3/14.1, 5.7/19.2 | 0.1/1.7, 3.7/7.6, 1.9/5.9, 14.7/26.5 (line ~0.3 Mbit/s) |
+| Fraser part R2, phone, 3 s / 8 s | 4.9/14.1 / 3.2/7.5, 1.7/5.0 | 1.3/5.3 / 0.6/15.2, 0.15/2.1 |
+| Fraser at Lillooet (R3), after a 14 s pan (2) | 0.9/2.2, 2.6/8.8 | 0.1/5.2, 0.1/7.4 (`lines` on a slow line) |
+| Thompson at Spences Bridge, after a pan (4) | 2.2, 2.7, 1.3, 1.0 | 5.4 (line stall), 7.7 (a 2.5 MB water in flight), 0.13, 0.12 |
+| Vedder (R2 only), 3 s (4) / 8 s (2) | 2.5, 1.5, 0.7, 0.7 / 6.6, 2.0 | 0.8, 0.9, 0.8, 0.7 / 2.5, 0.1 |
+| Elk Creek 3 s (2), Cultus Lake 3 s | 2.8, 21.6; 3.4 | 1.6, 0.9; 1.7 |
+| Unnamed R2, 3 s (2) / 8 s (2) | 5.1, 2.6 / 2.1, 1.3 | 3.1, 2.7 / 0.2, 7.1 |
+| search → Open, Fraser | 0.85 | 0.98 |
+
+Lighthouse 12.8.2 mobile on `/`, 5 alternated runs each (the build before the last two order tweaks): Perf 43 → 43,
+LCP 7.87 → 7.86 s, TBT 864 → 881 ms, SI 7.71 → 6.96 s, SEO 92 → 92.
+
+**Left (not this change).**
+- A slow line still costs the sum of what the page reads: water slice + geo (0.75 MB) before the page, `lines` 1.3 MB
+  before a part-water's in-season banner. Region slices of geo/lines are the only fix (pipeline; owner's call, as above).
+- An unnamed tap 3-8 s after paint can be slower than before on a slow line (one run 1.3 → 7.1 s): the view's slice +
+  geo now come before regs-sid/down. The trade is the named tap (the owner's case) first.
+- A whole file the background has IN FLIGHT at the click still holds a read that names no slice keys (seen once:
+  Thompson, 2.5 MB `water`, 7.7 s).
+- The click shows the part lit on the map at once, but the page is shown only whole (T498/T716: the held pane). A page
+  shell with the name at 100 ms would change that design: owner's call, not done.
+- Smoke step (item 4, still to add): a FIRST click on a Fraser part in Region 2 on a fresh profile 3 s after paint, and
+  one after panning to Lillooet, timed to readable (≤ 4 s) AND to complete (every page download in; `measure.mjs
+  --complete`).
