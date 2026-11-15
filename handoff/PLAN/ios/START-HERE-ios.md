@@ -100,6 +100,10 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
   crash-limit commit, 467 worker tests pass) waits for the Android chat's site deploy (it re-runs every feed job);
   a staging release tonight would put the old worker back, then it is deployed again. The push worker commits stay
   off the shared branch tonight (production worker and privacy page first).
+  **Worker deployed to staging 03:05** (branch `ios/staging-worker` cc43d998c = this branch's head ca91889bb plus the
+  crash-limit commit; version 2733f1d2; the three feed jobs answered 200; /status: all feeds ok, push: iOS keys
+  complete, 0 phones registered, Android lacks its Firebase key). The phone now registers once per app start (fix
+  ca91889bb, not in build 35). Next: the owner installs build 35, turns on "New regulations data", one test push.
   Needs from the owner later: an Apple push key and three `wrangler secret put` commands (in the ticket), and for
   Android a Firebase project with its `google-services.json`.
 - `perf/t741` (T741, head f1938dd60, not merged): the standing pass to make the app faster and lighter on both

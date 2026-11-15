@@ -163,7 +163,9 @@ with the default Claude uses until you answer). Newest first inside each section
   to staging, and upload TestFlight build 35 from the push branch), owner, verbatim: "yes i do i ran command". Build 35
   **uploaded 02:35** from `ios/t739-push` 650665c61; the worker deploy is timed with the Android chat. Yours
   after Claude says the worker is on staging: install build 35, turn notifications on in the app, tell Claude; Claude
-  sends one test push. Firebase (Android)
+  sends one test push.
+  **Worker on staging since 2026-11-15 03:05** (also carries the crash-report limit you approved). Ready for your
+  phone: build 35, More → Notifications → "New regulations data" on, app to the background, tell Claude. Firebase (Android)
   still yours, later.
   Still yours later: one more Apple key, for push, and a free Firebase project for Android (steps come when the worker
   side is ready);
