@@ -66,3 +66,7 @@ Test-bed flakes in these runs (not the app):
   looks.
 - First run (ios-shared, 16:50): an Apple Maps widget location prompt covered the app. It is now refused and logged
   as a finding (216495454).
+
+**Follow-up (T729, Android chat 2026-11-14):** on Android, one tap on a tab with the credits card open closes the card
+and changes the tab. On iOS it takes two taps (the first lands on the Modal's scrim), a real difference. Not fixed
+here: wrap the credits Modal in ModalBack after ios/t723-keyboard-back merges, and let the tab bar take the tap.
