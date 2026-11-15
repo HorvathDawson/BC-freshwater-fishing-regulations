@@ -1,5 +1,82 @@
 # iOS hardening: start here (written 2026-11-14)
 
+## Summary of the unattended day, 2026-11-14 (state at 18:00; lanes still running are marked)
+
+Nothing here touched Play, TestFlight, production, the atlas or a release, and nothing used an Apple account. Every app
+fix sits on its own branch, not on `redesign/stream-sections`, until it is proven on the simulator and the Android
+benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup proposal is T732.
+
+**Done and proven**
+- **The app builds for iOS as it is (T718).** 0.7.9 built first time for the simulator; compile 122 s. Needs iOS 16.4 or
+  newer. Already portrait only. Home-screen name "Can I Fish?".
+- **Baseline on the simulator (T718):** 8 of the 11 existing checks pass outright; the walkthrough passes 41 of 41.
+  Offline (one step, a test-bed fault), location (one step skipped) and crash (one step) do not; see failed.
+- **No long stalls (T720):** the same bench as Android passes; worst stall 227 ms at cold start, limit 300 ms.
+- **Memory (T725):** peak 274 MB on 0.7.9 against 290 MB on 0.5.0. The rule book does not leak. Cold start to map about
+  0.6 s. A tap opens a page in 54 to 123 ms.
+- **Tap speed measured (T719):** the page opens as fast as on Android (about 400 to 550 ms after the finger lifts). The
+  early cue is missing: it lights 371 to 495 ms after the lift, Android 28 to 73 ms. Cause confirmed: iOS waits 350 ms
+  to rule out a double tap.
+- **Shared links (T724):** the site build can now write Apple's link file and the app declares the two domains. The real
+  hand-off needs your Team ID and a signed build.
+- **App Store text pack (T727):** `handoff/PLAN/ios/store/`: listing (Play's text, fits Apple's limits), privacy answers,
+  age rating, review notes, checklist. Re-checked against the privacy page reworded today.
+- **Two audits of iOS against Android, read from the code:** 29 findings in `handoff/PLAN/ios/parity-audit.md`.
+- **Pipeline lane:** T667 parts 4c, 6 and 7 done. T686 survey done and ranked, stopped before your pick. T667 slice 8:
+  a small invented release now builds through the real pipeline in seconds, two runs identical (commit to the app and
+  first test moves: running).
+- **Clean-up lane:** 219 files, about 29 MB, removed; 18 candidates listed in `handoff/PLAN/CLEANUP-CANDIDATES.md`.
+
+**Built on a branch, proof still running or waiting for the simulator**
+- `ios/t722-install`: free-space check before a download (both platforms), downloaded data kept out of iCloud backup,
+  iOS-only wording for the two promises that do not hold there, Wi-Fi-only refuses hotspot and Low Data Mode, and the
+  iOS background download. **The background download does not work on the simulator yet** (see failed).
+- `ios/t723-keyboard-back`: keyboard and back fixes from the audit. Proof running.
+- `ios/audit-fixes`: eight small fixes (among them the "↗" that iOS draws as a blue emoji tile). Proof running.
+- `ios/t719-tapup`: the early tap cue for iOS, same event as Android's. Started 17:40.
+- `android/t732-backup`: Android backup carries saved spots and settings, never the 480 MB download. Emulator proof
+  running.
+- The iOS look at today's five shared fixes (T717, T728 to T731): running.
+
+**What failed or was found**
+- **iOS background download refused on the simulator:** the system service rejected every task ("does not have a bundle
+  ID"), the app re-queued in a loop and the first install never finished. A retry with Xcode's own build-time signing
+  step is queued. If that fails too, the proof needs a signed build (TestFlight).
+- **First-open progress most likely does not move on iPhone today:** about 5,000 number-conversion errors from the
+  progress callback during the download. Being fixed on `ios/t722-install`.
+- **Crash report not delivered in the baseline** (crash check, step 2): the app read the crash record at the next start
+  but the send returned false each time. Probably the worker's daily limit from this Mac; not proven.
+- **No "At my location" row in iOS search** in the baseline run; cause not settled (app or test bed).
+- **The memory-warning trim could not be tested:** the headless simulator has no way to send the warning.
+- **First open took 397 s** (0.5.0: 168 s). The download is 479 MB and ran at 1.7 MB/s on the line today; 44 s more was
+  checking the files after the last byte; about 70 s was the test bed itself.
+- **Mine, fixed:** pipeline CI went red twice on slice 8 commits (a lane tested only its own files). Both fixed at the
+  cause without loosening a guard; fast-fail now runs the repo-wide scans. I also cut the ticket ledger short once for
+  about a minute and restored it; nothing was lost.
+- **The simulator was the bottleneck all day:** five lanes behind one lock, waits of up to three hours.
+
+**Not started**
+- T721 (edge-swipe back grid), T726 (screens on four iPhone sizes, light and dark, large text, VoiceOver), the store
+  screenshots and video, the remaining test-bed ports (saved spots, photos, feeds, offline update), the simulator run of
+  a shared link. IOS-11 (TestFlight) and T602 were not to be started.
+
+**Questions for you (default first; all are also on the Owner To-Do page)**
+1. Apple account: individual or organization? After approval: save the Team ID, create the app record, make the API key.
+2. Oldest iPhone: keep iOS 16.4 and iPhone only / go lower / add iPad.
+3. App Store privacy: the report email "linked to the user": yes / no.
+4. Category: Navigation then Sports (my pick) / other.
+5. Site build with no Team ID: skip Apple's link file with a warning / always fail.
+6. Backup (T732): confirm the relayed words; add the image library for compressed copies: yes / no; back up only with
+   a screen lock: no / yes; copy size 1600 px quality 70 / other. The photo pair was sent.
+7. iOS background download proof, if the retry fails: wait for TestFlight / sign a simulator run with a personal team.
+8. Early tap cue on iOS (branch `ios/t719-tapup`): merge once proven / leave.
+9. About page gains "not affiliated with the government" (Apple asks): About only / also show the first-run notice again.
+10. Play's form says approximate location, the App Store answers say precise: change Play to match? (no default)
+11. T686: which data savings become tickets: (a) three lossless, about 1.94 MB / others in the ticket.
+12. Slice 8: the small test release has no map tiles, and the export takes its checklist as a named input: keep / other.
+13. Clean-up: five calls in `CLEANUP-CANDIDATES.md` (defaults there).
+14. A third heavy lane for simulator jobs: stay at two / allow three.
+
 Owner, 2026-11-14, verbatim: "Maybe we could make a handoff to start improving the ios versions? Making sure it is rock
 solid too?" This **reopens iOS**, which the owner benched on 2026-11-06 ("no iOS device work until DFO extents labelled +
 Play closed testing started; then paid TestFlight"). Read that as: simulator and code work may start now, in its own chat,
