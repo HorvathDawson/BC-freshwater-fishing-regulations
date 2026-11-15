@@ -7,3 +7,4 @@ export {
 export { runBackgroundCheck, type Notice, type NotifyData } from "./check";
 export { createPushRegistrar, type PushSeam } from "./push";
 export { runWake } from "./wake";
+export { conditionalJson } from "./conditional";

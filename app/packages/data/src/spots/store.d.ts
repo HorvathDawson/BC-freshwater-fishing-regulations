@@ -63,3 +63,6 @@ export declare function openDataModeStore(): { read(): string | null; write(text
 export declare function openRunSpeciesStore(): { read(): string | null; write(text: string): void };
 /** (T234) The notification settings, alert rules and background-check log, as whole text; device-only. */
 export declare function openNotifyStore(): { read(): string | null; write(text: string): void; keepAside(text: string): void };
+/** (T741) The background check's last copy of `obs.json`, the release manifest or the version file, with its ETag
+ *  (`fetchObs`'s `held`, `conditionalJson`): a cache file on a phone. */
+export declare function openHeldCopyStore(what: "obs" | "manifest" | "version"): { read(): string | null; write(text: string): void };

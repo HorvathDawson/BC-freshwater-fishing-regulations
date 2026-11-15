@@ -30,9 +30,9 @@ import * as BackgroundTask from "expo-background-task";
 import * as Notifications from "expo-notifications";
 import * as TaskManager from "expo-task-manager";
 import { appUpdateChannel, appVersionFileUrl, NOTIFY_WORDS, now, reportFailure, versionHeaders } from "@app/core";
-import { createNotifySettings, createPushRegistrar, fetchObs, parseManifest, runBackgroundCheck, runWake, versionedFetch,
-         type Notice, type NotifyData, type UpdateService } from "@app/data";
-import { openNotifyStore, openPushStore } from "@app/data/spots";
+import { conditionalJson, createNotifySettings, createPushRegistrar, fetchObs, parseManifest, runBackgroundCheck, runWake,
+         versionedFetch, type Notice, type NotifyData, type UpdateService } from "@app/data";
+import { openHeldCopyStore, openNotifyStore, openPushStore } from "@app/data/spots";
 import type { NotifyControls, NotifyPermission } from "@app/ui";
 import { APP_VERSION, ENDPOINTS, PUSH_URL } from "./config";
 import { pushSeam } from "./pushToken";
@@ -59,6 +59,9 @@ const VERSION_FILE = OWN_CHANNEL === "play" ? null : OWN_VERSION_FILE && ENDPOIN
 const FETCH = versionedFetch((u, i) => fetch(u, i),
                              versionHeaders(APP_VERSION, { platform: platformLine(), ua: true }));
 
+// (T741) the last copy of each file the check reads, with its ETag: an unchanged file costs a 304
+const HELD = { obs: openHeldCopyStore("obs"), manifest: openHeldCopyStore("manifest"), version: openHeldCopyStore("version") };
+
 let channels: Promise<void> | null = null;
 function ensureChannels(): Promise<void> {
   if (Platform.OS !== "android") return Promise.resolve();
@@ -84,17 +87,11 @@ async function raise(n: Notice): Promise<void> {
 /** what the check reads and raises: one set for the periodic task and the push wake-up */
 const CHECK = {
   settings, now, appVersion: APP_VERSION, notify: raise,
-  obs: () => fetchObs(ENDPOINTS.alertFeed, FETCH),
-  latestApp: VERSION_FILE ? async () => {
-    const res = await FETCH(VERSION_FILE, { cache: "no-store" });
-    if (!res.ok) throw new Error(`${VERSION_FILE}: HTTP ${res.status}`);
-    return res.json();
-  } : null,
-  manifest: async () => {
-    const res = await FETCH(ENDPOINTS.manifest, { cache: "no-store" });
-    if (!res.ok) throw new Error(`${ENDPOINTS.manifest}: HTTP ${res.status}`);
-    return parseManifest(await res.json());
-  },
+  // (T741) a conditional GET with the last copy kept: an unchanged obs.json costs a 304, not ~24 kB a run
+  obs: () => fetchObs(ENDPOINTS.alertFeed, FETCH, undefined, HELD.obs),
+  latestApp: VERSION_FILE ? () => conditionalJson(VERSION_FILE, FETCH, HELD.version) : null,
+  // the kept copy is held to the same reader as a fresh one (`parseManifest` throws on a manifest it refuses)
+  manifest: async () => parseManifest(await conditionalJson(ENDPOINTS.manifest, FETCH, HELD.manifest, (v) => { parseManifest(v); })),
 };
 
 TaskManager.defineTask(TASK, async () => {

@@ -215,3 +215,115 @@ Builds, same script and signing: base 410564271 (the branch point), branch d2fd8
   shots for the notice too before keeping inline requires (it changes the order module top levels run).
 - **B3 functional (cache build, `PRAGMA cache_size=-256`):** `memory` 10 of 10 steps PASS; the rule book opens. Its
   numbers wait for the timed pair against the branch build (load 6-20 during this run).
+
+### Round 2, TIMED (2026-11-15 03:00-04:39, the quiet slot; t741-17, iPhone 17 sim, iOS 26.5; one heavy job, lane 2)
+Load average (1 min) written at each session start: 4.6-7.2 (the script waited up to 5 min for it to fall under 6; one
+editor process of the owner's uses about one core all night). At the very end of the last memory run the load jumped to
+35.9 (04:39): the cache run's last step only. Simulator numbers: the Mac's CPU, not a phone's.
+Cold start is read two ways: the scenario's screenshot poll (±0.3 s, too coarse to split these builds) and, finer, the
+app's own log per launch (ms from the process's first log line to `Running "main"`, `[setup] opened`, the first
+`[drawn]`; scratchpad `t741/scripts/launches.py`), 6 launches per build (3 `perf` cold starts + the other cold starts of
+that session).
+
+| measure | base 410564271 | branch d2fd851b7 | inline b1f4bb080 | verdict |
+|---|---|---|---|---|
+| `.app` size | 65,720 KB | 61,824 KB | — | −3,896 KB (fonts), measured |
+| cold start, screenshot poll (3 runs) | 712 / 583 / 607 ms | 714 / 603 / 586 ms | 708 / 597 / 612 ms | no difference at ±0.3 s |
+| launch → first `[drawn]`, median (min-max), 6 launches | 1,086 (1,049-1,137) ms | 1,074 (1,021-1,136) ms | 1,050 (1,006-1,072) ms | inline −24 ms against a 115 ms spread: NOT a win |
+| launch → `[setup] opened`, median | 860 ms | 843 ms | 817 ms | inside the spread |
+| `tap-stalls` (limit 300 ms) | PASS, worst 225 ms | PASS, worst 240 ms | PASS, worst 244 ms | all pass |
+| map tap → first frame (cold / warm) | 142 / 54 / 71 ms | 148 / 54 / 66 ms | — | same |
+| `tap-water` ×3 | 2 of 3 (run 2: edge-back) | — | 2 of 3 (run 2: edge-back) | the edge drag failed on BOTH builds in the same round: test bed; the notice failure seen once before did not come back |
+
+**B2 decision: inline requires NOT kept.** The cold start gain (−24 ms median) is inside the run-to-run spread, and
+tap-water was not 3 of 3 (the failure was on both builds, but the rule is the rule). The commit stays on the local side
+branch `perf/t741-inline` only; `perf/t741` never had it. It also makes the bytecode 153 KB bigger.
+**B4 (fonts embedded at build): not done.** No log line marks font loading; between `Running "main"` (~140 ms) and
+the first draw (~1,070 ms) the logged work is the release open and the paint decode (`[work] decode paint sliced`
+~440-490 ms). Nothing shows the 8 faces as a visible share, so the rule for B4 is not met.
+
+**B3 memory, footprint MB** (malloc in brackets; one run each; T725 measured ±30 MB between two runs of one build):
+| step | base | branch | cache_size 256 KiB |
+|---|---|---|---|
+| boot | 135 (46) | 129 (42) | 134 (44) |
+| 8 pans | 161 (51) | 149 (45) | 158 (49) |
+| satellite, 4 pans | 172 (52) | 159 (47) | 173 (53) |
+| a water's page | 240 (59) | 241 (55) | 235 (55) |
+| rule book open / closed | 307 / 251 | 309 / 252 | 299 / 245 |
+| second open / closed | 249 / 252 | 249 / 252 | 241 / 245 |
+| Conditions | 250 (66) | 241 (60) | 244 (61) |
+| Map after Conditions | 243 (63) | 236 (58) | 236 (58) |
+| Salmon | 245 (63) | 238 (58) | 237 (58) |
+| memory warning | 243 (63) | 235 (57) | 235 (58) |
+- Branch vs base: 0 to −12 MB, inside the noise; the fonts were never loaded beyond the 8, so no RAM saving was expected
+  (the saving is the app's size, above).
+- **SQLite cache_size: the ~28 MB ceiling is not real on this path.** 256 KiB per connection instead of 2,000 KiB moved
+  the footprint by +1 to −8 MB against base and by −10 to +14 MB against branch: inside one run's noise. So no
+  proposal to lower it, and closing connections when their screen closes (A5) is not worth a change for memory either:
+  the page caches never fill on these screens. Recorded; nothing changes.
+
+### Round 3 A: where the launch's ~1.07 s goes (code + the app's own log; branch build, 6 launches, iPhone 17 sim)
+From one launch's log (49299, typical of the six; ms from the process's first log line):
+| step | at | takes | what (code) | skippable on an unchanged release? |
+|---|---|---|---|---|
+| native start, Expo modules made | 0 → 141 | ~140 ms | `Running "main"` at 131-198 ms in all 18 launches | no (native) |
+| JS start: App module top levels, stores opened, React's first mount, boot: held pointer + `heldManifest` (JSON parse), `readsRelease`, tiles compat check, loader made | 141 → ~347 | ~200 ms | `boot.ts` `openSet`; `App.tsx` | checks are cheap and must stay (they refuse a set this app cannot read) |
+| **paint read + decode, SLICED** | ~347 → 848 | **501 ms wall** (`[work] decode paint sliced 501 ms`; 437-501 ms over the 18 launches) | `loader.paint()` → `source.bytes("paint")` (2,311,087 B read from disk, no hash) → `decodePaintAsync` → `runSliced` with an **8 ms** budget, each turn a `setTimeout(0)` (React Native has no `MessageChannel`, so each turn waits for the next timer tick) | see below |
+| core opened | 848 → 851 | 3 ms | `loader.db("core")` | no |
+| Shell mount, map made, first frame | 851 → 1,093 | ~240 ms | the salmon slices 4/8/x decoded before the draw (12 ms), MapLibre's first frame | out of scope here |
+**The paint decode's CPU** (measured on the live release's paint, node `--jitless` as the Hermes stand-in): **~190 ms**
+(JIT: 25 ms), with 883 yield points. Sliced at 8 ms that is ~25 slices; the 501 ms wall is the CPU plus ~25 turns of
+~12 ms waiting (estimated from wall − CPU) plus whatever else the JS thread runs between them. Nothing is hashed at a start
+(the files were hashed when installed); the release is NOT re-verified at a start, and nothing here proposes to.
+
+Ranked options (gain estimated from the numbers above):
+1. **Bigger slices for the launch's paint decode only (40 ms instead of 8 ms) while the boot screen is the only thing
+   on screen** — est. −200 to −250 ms (25 turns → ~5). Nothing a reader sees changes: the boot screen's fish is a native-
+   driver animation (`FishSpinner.native.tsx`, `useNativeDriver: true`), so a busy JS thread does not stutter it, and a
+   40 ms hold stays under the 50 ms of a long task and far under the 300 ms stall limit. An update applied while the map
+   is on screen (`keepReplaced`) keeps the 8 ms slices. **Pick.**
+2. A decoded paint kept on disk beside the release (keyed by release id + the paint's sha256, its own checksum; a stale or
+   corrupt one detected, reported, rebuilt) — saves at most the CPU (~190 ms proxy) minus the cost of reading and
+   rebuilding the members' objects from it; more code and a new on-disk format to keep honest. Second; not built.
+3. Decoding paint without the slices at launch (`runNow`): ~−300 ms but one ~190 ms hold, and the boot line's own
+   updates wait for it; option 1 gets most of that without the hold.
+
+### Round 3 B: the launch's long paint slice (committed on perf/t741, not yet measured on a build)
+`core/src/sliced.ts` `LAUNCH_SLICE_MS = 40`; `decodePaintAsync(…, sliceMs)`; `ReleaseLoader.paint({ sliceMs })` (the
+first caller decides; decoded once); `boot.ts` `paintSliceFor(o)` → 40 ms on a launch, `SLICE_MS` (8) when `keepReplaced`
+(an update applied with the map on screen); the phone's held-set open asks with it; the web's first paint keeps the
+default (its turns are a MessageChannel's, no timer floor). Pinned by `packages/data/src/release/launchSlice.test.ts`:
+the choice per path, the loader passing it to the decoder (and only the first caller's), and the boot's code calling
+`loader.paint(paintSliceFor(o))` on the phone's path and `loader.paint()` on the web's (a revert fails it).
+Nothing is decoded differently: the same generator, the same answer (`sliced.test.ts` holds sliced = one-go).
+
+**Where a turn's ~12 ms comes from (code: `core/src/sliced.ts` `nextTurn`, the slicer's yield `await turn()` in
+`runSliced`).** React Native has no `MessageChannel`, so the yield is `setTimeout(resolve, 0)`. RN's timers are fired by
+the native timing module on its frame clock (a display-link tick, ~16.7 ms at 60 Hz), not on demand, so a 0 ms timer
+waits on average part of a frame; with other JS queued between slices the observed cost is ~12 ms a turn (estimated:
+the 501 ms wall minus ~180-190 ms CPU, over ~23-25 turns). Cheaper yields on native, and what each would starve:
+- `setImmediate` / a resolved promise / `queueMicrotask`: run before the JS thread returns to the native side, so no
+  touch, no native event, no React commit gets in between slices: the same as decoding in one go (a freeze). Not honest.
+- `requestAnimationFrame`: frame-aligned like the timer: no gain.
+- A longer slice (fewer turns): the only option that keeps the native side breathing; the cost is the longest the JS
+  thread is held (a finger's wait). That is what B does, and only where no finger can be waiting.
+
+**Every other caller of the same slicer (PROPOSALS, not changed).** CPU measured on the live release's files in node
+`--jitless` (the Hermes stand-in), turns at 8 ms, gain estimated at ~12 ms a turn saved:
+| caller | when | CPU | turns @8 ms | at 16 ms / 40 ms | est. gain | what a longer slice costs a finger |
+|---|---|---|---|---|---|---|
+| `sha256HexAsync` / `ungzipAsync` (`HASH_SLICE` 256 KiB ≈ 20 ms a slice on Hermes) | every release file at install and at each update (~40 MB raw) | ~3.3 s (T272 rate) | ~160 | 512 KiB: ~80 turns | ~1 s per install/update | a 40 ms hold while the map may be on screen (update): under the 300 ms limit, a tap could wait 40 ms |
+| paint, in-session apply (`keepReplaced`) | T746: the apply measured 702-880 ms | 178 ms | ~23 | ~12 / ~5 | ~130 / ~220 ms | 16 ms: nothing a finger feels; 40 ms: a tap or pan frame may wait up to 40 ms (bench: `tap-stalls`, a pan during an apply) |
+| method (`decodeMethodAsync`) | after the first draw at a launch; an apply | 58 ms | ~8 | ~4 / ~2 | ~50-70 ms | as above |
+| salmon shards (`decodeSalmonShardAsync`, 11 files) | after the first draw; an apply | 6-53 ms each (salmon-6 53) | 1-7 each, ~20 in all | ~10 / ~6 | ~120-170 ms over all | as above |
+Ranked: 1) the hash/inflate slice at install and update (largest, off-screen most of the time); 2) the apply's paint at
+16 ms; 3) salmon shards; 4) method. Each needs `tap-stalls` and a pan during an apply to stay under 300 ms, and T746's
+apply bench before/after.
+
+**Android, for a like-for-like cold-start number (PROPOSAL for the emulator lane).** The same JS lines reach logcat
+under `ReactNativeJS` in a `--probes`/test-bed APK: `Running "main"`, `[setup] opened … manifest + paint N ms`,
+`[work] decode paint sliced N ms`, the first `[drawn]`. The process's start is ActivityManager's
+`Start proc <pid>:ca.canifishthis.app` line (or `am start -W`'s `TotalTime` for the launch). Measure per launch:
+`Start proc` → first `[drawn]` (logcat `-v epoch`, the same clock), 6 cold starts (`am force-stop` between), base vs
+branch, the emulator quiet and the load written down; plus `tap-stalls`. Android's timer floor is the Choreographer
+frame too, so the same gain is expected there, unmeasured.

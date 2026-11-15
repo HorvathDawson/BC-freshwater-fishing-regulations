@@ -55,7 +55,11 @@ export interface ReleaseLoader {
   readonly manifest: Manifest;
   readonly handles: string;
   db(name: DbName): Promise<Db>;
-  paint(): Promise<Paint>;
+  /**
+   * The release's paint, decoded once (the first caller's `sliceMs` decides the decode's slice: (T741) a launch passes
+   * `LAUNCH_SLICE_MS`, everything else the default `SLICE_MS`).
+   */
+  paint(o?: { sliceMs?: number }): Promise<Paint>;
   /** The target areas, in paint section order (opened with Conditions). */
   flowArea(): Promise<Float64Array>;
   /** The lake modes' values (`lakes`), checked against the release's handles; null when the manifest names none. */
@@ -265,10 +269,11 @@ const WATER_SHARED: DbName = "water-shared";
     manifest: m,
     handles,
     db,
-    paint() {
+    paint(o) {
       if (!paint) {
         touch("paint");
-        paint = source.bytes("paint").then((b) => decoded("decode paint", () => decodePaint(b, handles), () => decodePaintAsync(b, handles)));
+        paint = source.bytes("paint").then((b) => decoded("decode paint", () => decodePaint(b, handles),
+                                                          () => decodePaintAsync(b, handles, null, o?.sliceMs)));
         paint.catch(() => { paint = null; });
       }
       return paint;
