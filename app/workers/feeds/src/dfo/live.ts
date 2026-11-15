@@ -23,6 +23,7 @@
 import { FEED_FORMATS } from "../../../../packages/core/src/feedFormats.generated";
 import { contentHash, loadManifest, rev, skipSameStore, type Fetch, type Meter, type Store } from "../io";
 import { sendDue } from "../notify";
+import { livePieceRules } from "./closures";
 import { byFingerprint, loadEntryFile, reconcile, type EntryFile, type Report } from "./entries";
 import { build, type TypedFeed } from "./feed";
 import { ALL_SLUGS, fetchRegion, isoSeconds, normalizeSlug, PAGES, pageUrl, REAL_SLUGS, type FetchRegionOptions, type RegionSnapshot } from "./fetch";
@@ -86,7 +87,7 @@ export interface DfoDeps {
 }
 
 /** Bump when a code change alters what a region's page types to: unchanged pages are re-typed once after a deploy. */
-export const DFO_REV = "2026-11-09.1"; // T521: an unplaced row carries its water's app items (`items`); T332 quota trees
+export const DFO_REV = "2026-11-15.1"; // T757: + one loc per closed-area piece today's row names; T521: an unplaced row carries its water's app items (`items`); T332 quota trees
 // (T549 items 7, 10) index.json is written by EVERY run that gets to the end, so its `at` is when DFO was last CHECKED.
 // It was skipped while unchanged and under a 20 h heartbeat: in season (a run every 6 h) `at` moved once a day and sat
 // exactly on the app's stale line, so the card said "checked 24 h ago" 6 h after a check. One small put a run.
@@ -528,6 +529,10 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
     const rowHolds = new Map<string, { fingerprint: string; why: string }>();
     const xOf = (lid: string) => (words.get(lid)?.length ? { x: words.get(lid)! } : {});
     const [rules, held] = join(slug, ef, typed, found, rep, rowHolds);
+    // T573 / T757: every closed area TODAY'S rows still name, its own rule (`closures.livePieceRules`, the Python's
+    // `live_piece_rules`); one DFO dropped is not in the feed, so its place answers there (never free-standing). A row the
+    // port cannot read THROWS, as the Python's run raises: the job fails, the last good feed stands.
+    for (const [lid, rs] of livePieceRules(ef, found)) rules.set(lid, rs);
     if (aware) inputsOut[slug] = { page: sha, entries: contentHash((await rawEntries(slug)) ?? "") };
     const moved = new Set(rep.outcomes.filter((o) => o.status === "section_moved" && o.location_id).map((o) => o.location_id!));
     for (const lid of [...rules.keys()].sort(cmpStr)) {

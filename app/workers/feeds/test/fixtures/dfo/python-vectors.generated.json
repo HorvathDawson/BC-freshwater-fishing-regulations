@@ -28962,6 +28962,7 @@
      ]
     }
    ],
+   "pieces": {},
    "structure": {
     "n_defaults": 0,
     "n_locations": 27,
@@ -34728,6 +34729,7 @@
      ]
     }
    ],
+   "pieces": {},
    "structure": {
     "n_defaults": 0,
     "n_locations": 22,
@@ -36110,6 +36112,185 @@
      ]
     }
    ],
+   "pieces": {
+    "3:thompson-river#closed:00673ca0afe5": {
+     "calendar": {
+      "g": [
+       0,
+       -1
+      ],
+      "gears": [],
+      "sp": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ]
+      ],
+      "verdicts": [
+       {
+        "s": "closed",
+        "t": "No fishing, year-round — Deadman - from the fishing boundary signs approximately 1 km downstream of the Hwy No. 1 Bridge at Savona to the CN rail bridge approximately 500 m downstream of the confluence with Deadman Creek. (Jan 1–Dec 31)"
+       }
+      ]
+     },
+     "rules": [
+      {
+       "may_target": false,
+       "rule_id": "3:thompson-river#closed:00673ca0afe5#0",
+       "species": [
+        "SA"
+       ],
+       "take": 0,
+       "type": "retention_limit",
+       "verbatim": "No fishing, year-round — Deadman - from the fishing boundary signs approximately 1 km downstream of the Hwy No. 1 Bridge at Savona to the CN rail bridge approximately 500 m downstream of the confluence with Deadman Creek.",
+       "when": {
+        "dates": [
+         {
+          "from_day": 1,
+          "from_month": 1,
+          "to_day": 31,
+          "to_month": 12
+         }
+        ]
+       }
+      }
+     ]
+    },
+    "3:thompson-river#closed:5adc77c1f78d": {
+     "calendar": {
+      "g": [
+       0,
+       -1
+      ],
+      "gears": [],
+      "sp": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ]
+      ],
+      "verdicts": [
+       {
+        "s": "closed",
+        "t": "No fishing, year-round — Juniper - from the fishing boundary signs approximately 1.5 km downstream from Juniper Beach Park downstream approximately 4 km to the fishing boundary signs located at 50°46.893' N and 121°08.110' W. (Jan 1–Dec 31)"
+       }
+      ]
+     },
+     "rules": [
+      {
+       "may_target": false,
+       "rule_id": "3:thompson-river#closed:5adc77c1f78d#0",
+       "species": [
+        "SA"
+       ],
+       "take": 0,
+       "type": "retention_limit",
+       "verbatim": "No fishing, year-round — Juniper - from the fishing boundary signs approximately 1.5 km downstream from Juniper Beach Park downstream approximately 4 km to the fishing boundary signs located at 50°46.893' N and 121°08.110' W.",
+       "when": {
+        "dates": [
+         {
+          "from_day": 1,
+          "from_month": 1,
+          "to_day": 31,
+          "to_month": 12
+         }
+        ]
+       }
+      }
+     ]
+    },
+    "3:thompson-river#closed:c76883c57564": {
+     "calendar": {
+      "g": [
+       0,
+       -1
+      ],
+      "gears": [],
+      "sp": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ]
+      ],
+      "verdicts": [
+       {
+        "s": "closed",
+        "t": "No fishing, year-round — Ashcroft - from the fishing boundary sign at the upstream side of the mouth of the Bonaparte River to Hwy 97C bridge in Ashcroft. (Jan 1–Dec 31)"
+       }
+      ]
+     },
+     "rules": [
+      {
+       "may_target": false,
+       "rule_id": "3:thompson-river#closed:c76883c57564#0",
+       "species": [
+        "SA"
+       ],
+       "take": 0,
+       "type": "retention_limit",
+       "verbatim": "No fishing, year-round — Ashcroft - from the fishing boundary sign at the upstream side of the mouth of the Bonaparte River to Hwy 97C bridge in Ashcroft.",
+       "when": {
+        "dates": [
+         {
+          "from_day": 1,
+          "from_month": 1,
+          "to_day": 31,
+          "to_month": 12
+         }
+        ]
+       }
+      }
+     ]
+    }
+   },
    "structure": {
     "n_defaults": 0,
     "n_locations": 6,
@@ -36254,6 +36435,7 @@
      ]
     }
    ],
+   "pieces": {},
    "structure": {
     "n_defaults": 1,
     "n_locations": 1,
@@ -36652,6 +36834,7 @@
      ]
     }
    ],
+   "pieces": {},
    "structure": {
     "n_defaults": 0,
     "n_locations": 2,
@@ -39283,6 +39466,7 @@
      ]
     }
    ],
+   "pieces": {},
    "structure": {
     "n_defaults": 1,
     "n_locations": 9,
@@ -56586,6 +56770,671 @@
      ]
     }
    ],
+   "pieces": {
+    "6:babine-lake#closed:00503bc8b63e": {
+     "calendar": {
+      "g": [
+       0,
+       -1
+      ],
+      "gears": [],
+      "sp": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ]
+      ],
+      "verdicts": [
+       {
+        "s": "closed",
+        "t": "No fishing for salmon — within a 400 m radius of the mouth of Twain Creek"
+       }
+      ]
+     },
+     "rules": [
+      {
+       "dfo_words": "Closed",
+       "may_target": false,
+       "reading": "the owner's reading, 2026-11-10, of DFO's word “closed”: “babine is closed in the circles (no fishing salmon)”",
+       "rule_id": "6:babine-lake#closed:00503bc8b63e#0",
+       "species": [
+        "SA"
+       ],
+       "take": 0,
+       "type": "retention_limit",
+       "verbatim": "No fishing for salmon — within a 400 m radius of the mouth of Twain Creek"
+      }
+     ]
+    },
+    "6:babine-lake#closed:0e1518e92322": {
+     "calendar": {
+      "g": [
+       0,
+       -1
+      ],
+      "gears": [],
+      "sp": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ]
+      ],
+      "verdicts": [
+       {
+        "s": "closed",
+        "t": "No fishing for salmon — within a 400 m radius of the mouth of Tachek Creek"
+       }
+      ]
+     },
+     "rules": [
+      {
+       "dfo_words": "Closed",
+       "may_target": false,
+       "reading": "the owner's reading, 2026-11-10, of DFO's word “closed”: “babine is closed in the circles (no fishing salmon)”",
+       "rule_id": "6:babine-lake#closed:0e1518e92322#0",
+       "species": [
+        "SA"
+       ],
+       "take": 0,
+       "type": "retention_limit",
+       "verbatim": "No fishing for salmon — within a 400 m radius of the mouth of Tachek Creek"
+      }
+     ]
+    },
+    "6:babine-lake#closed:36f5b357ebcf": {
+     "calendar": {
+      "g": [
+       0,
+       -1
+      ],
+      "gears": [],
+      "sp": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ]
+      ],
+      "verdicts": [
+       {
+        "s": "closed",
+        "t": "No fishing for salmon — within a 400 m radius of the mouth of Pendleton Creek"
+       }
+      ]
+     },
+     "rules": [
+      {
+       "dfo_words": "Closed",
+       "may_target": false,
+       "reading": "the owner's reading, 2026-11-10, of DFO's word “closed”: “babine is closed in the circles (no fishing salmon)”",
+       "rule_id": "6:babine-lake#closed:36f5b357ebcf#0",
+       "species": [
+        "SA"
+       ],
+       "take": 0,
+       "type": "retention_limit",
+       "verbatim": "No fishing for salmon — within a 400 m radius of the mouth of Pendleton Creek"
+      }
+     ]
+    },
+    "6:babine-lake#closed:379a9388f532": {
+     "calendar": {
+      "g": [
+       0,
+       -1
+      ],
+      "gears": [],
+      "sp": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ]
+      ],
+      "verdicts": [
+       {
+        "s": "closed",
+        "t": "No fishing for salmon — within a 400 m radius of the mouth of Six Mile Creek"
+       }
+      ]
+     },
+     "rules": [
+      {
+       "dfo_words": "Closed",
+       "may_target": false,
+       "reading": "the owner's reading, 2026-11-10, of DFO's word “closed”: “babine is closed in the circles (no fishing salmon)”",
+       "rule_id": "6:babine-lake#closed:379a9388f532#0",
+       "species": [
+        "SA"
+       ],
+       "take": 0,
+       "type": "retention_limit",
+       "verbatim": "No fishing for salmon — within a 400 m radius of the mouth of Six Mile Creek"
+      }
+     ]
+    },
+    "6:babine-lake#closed:40d829f72ad9": {
+     "calendar": {
+      "g": [
+       0,
+       -1
+      ],
+      "gears": [],
+      "sp": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ]
+      ],
+      "verdicts": [
+       {
+        "s": "closed",
+        "t": "No fishing for salmon — within a 400 m radius of the mouth of Big Loon Creek"
+       }
+      ]
+     },
+     "rules": [
+      {
+       "dfo_words": "Closed",
+       "may_target": false,
+       "reading": "the owner's reading, 2026-11-10, of DFO's word “closed”: “babine is closed in the circles (no fishing salmon)”",
+       "rule_id": "6:babine-lake#closed:40d829f72ad9#0",
+       "species": [
+        "SA"
+       ],
+       "take": 0,
+       "type": "retention_limit",
+       "verbatim": "No fishing for salmon — within a 400 m radius of the mouth of Big Loon Creek"
+      }
+     ]
+    },
+    "6:babine-lake#closed:6b5f946bc1eb": {
+     "calendar": {
+      "g": [
+       0,
+       -1
+      ],
+      "gears": [],
+      "sp": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ]
+      ],
+      "verdicts": [
+       {
+        "s": "closed",
+        "t": "No fishing for salmon — within a 400 m radius of the mouth of Sockeye Creek"
+       }
+      ]
+     },
+     "rules": [
+      {
+       "dfo_words": "Closed",
+       "may_target": false,
+       "reading": "the owner's reading, 2026-11-10, of DFO's word “closed”: “babine is closed in the circles (no fishing salmon)”",
+       "rule_id": "6:babine-lake#closed:6b5f946bc1eb#0",
+       "species": [
+        "SA"
+       ],
+       "take": 0,
+       "type": "retention_limit",
+       "verbatim": "No fishing for salmon — within a 400 m radius of the mouth of Sockeye Creek"
+      }
+     ]
+    },
+    "6:babine-lake#closed:6fb2db5fc268": {
+     "calendar": {
+      "g": [
+       0,
+       -1
+      ],
+      "gears": [],
+      "sp": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ]
+      ],
+      "verdicts": [
+       {
+        "s": "closed",
+        "t": "No fishing for salmon — within a 400 m radius of the mouth of Tsezakwa Creek"
+       }
+      ]
+     },
+     "rules": [
+      {
+       "dfo_words": "Closed",
+       "may_target": false,
+       "reading": "the owner's reading, 2026-11-10, of DFO's word “closed”: “babine is closed in the circles (no fishing salmon)”",
+       "rule_id": "6:babine-lake#closed:6fb2db5fc268#0",
+       "species": [
+        "SA"
+       ],
+       "take": 0,
+       "type": "retention_limit",
+       "verbatim": "No fishing for salmon — within a 400 m radius of the mouth of Tsezakwa Creek"
+      }
+     ]
+    },
+    "6:babine-lake#closed:963a5557f71b": {
+     "calendar": {
+      "g": [
+       0,
+       -1
+      ],
+      "gears": [],
+      "sp": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ]
+      ],
+      "verdicts": [
+       {
+        "s": "closed",
+        "t": "No fishing for salmon — within a 400 m radius of the mouth of Hazelwood Creek"
+       }
+      ]
+     },
+     "rules": [
+      {
+       "dfo_words": "Closed",
+       "may_target": false,
+       "reading": "the owner's reading, 2026-11-10, of DFO's word “closed”: “babine is closed in the circles (no fishing salmon)”",
+       "rule_id": "6:babine-lake#closed:963a5557f71b#0",
+       "species": [
+        "SA"
+       ],
+       "take": 0,
+       "type": "retention_limit",
+       "verbatim": "No fishing for salmon — within a 400 m radius of the mouth of Hazelwood Creek"
+      }
+     ]
+    },
+    "6:babine-lake#closed:c2013e4ac580": {
+     "calendar": {
+      "g": [
+       0,
+       -1
+      ],
+      "gears": [],
+      "sp": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ]
+      ],
+      "verdicts": [
+       {
+        "s": "closed",
+        "t": "No fishing for salmon — within a 400 m radius of the mouth of Five Mile Creek"
+       }
+      ]
+     },
+     "rules": [
+      {
+       "dfo_words": "Closed",
+       "may_target": false,
+       "reading": "the owner's reading, 2026-11-10, of DFO's word “closed”: “babine is closed in the circles (no fishing salmon)”",
+       "rule_id": "6:babine-lake#closed:c2013e4ac580#0",
+       "species": [
+        "SA"
+       ],
+       "take": 0,
+       "type": "retention_limit",
+       "verbatim": "No fishing for salmon — within a 400 m radius of the mouth of Five Mile Creek"
+      }
+     ]
+    },
+    "6:babine-lake#closed:c6d917f3f165": {
+     "calendar": {
+      "g": [
+       0,
+       -1
+      ],
+      "gears": [],
+      "sp": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ]
+      ],
+      "verdicts": [
+       {
+        "s": "closed",
+        "t": "No fishing for salmon — within a 400 m radius of the mouth of Pierre Creek"
+       }
+      ]
+     },
+     "rules": [
+      {
+       "dfo_words": "Closed",
+       "may_target": false,
+       "reading": "the owner's reading, 2026-11-10, of DFO's word “closed”: “babine is closed in the circles (no fishing salmon)”",
+       "rule_id": "6:babine-lake#closed:c6d917f3f165#0",
+       "species": [
+        "SA"
+       ],
+       "take": 0,
+       "type": "retention_limit",
+       "verbatim": "No fishing for salmon — within a 400 m radius of the mouth of Pierre Creek"
+      }
+     ]
+    },
+    "6:babine-lake#closed:d8c7cac1841a": {
+     "calendar": {
+      "g": [
+       0,
+       -1
+      ],
+      "gears": [],
+      "sp": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ]
+      ],
+      "verdicts": [
+       {
+        "s": "closed",
+        "t": "No fishing for salmon — east of a line from Gullwing Creek to south shore of Babine Lake"
+       }
+      ]
+     },
+     "rules": [
+      {
+       "dfo_words": "Closed",
+       "may_target": false,
+       "reading": "the owner's reading, 2026-11-10, of DFO's word “closed”: “babine is closed in the circles (no fishing salmon)”",
+       "rule_id": "6:babine-lake#closed:d8c7cac1841a#0",
+       "species": [
+        "SA"
+       ],
+       "take": 0,
+       "type": "retention_limit",
+       "verbatim": "No fishing for salmon — east of a line from Gullwing Creek to south shore of Babine Lake"
+      }
+     ]
+    },
+    "6:babine-lake#closed:f3116ad57dbe": {
+     "calendar": {
+      "g": [
+       0,
+       -1
+      ],
+      "gears": [],
+      "sp": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ]
+      ],
+      "verdicts": [
+       {
+        "s": "closed",
+        "t": "No fishing for salmon — within a 400 m radius of the mouth of Four Mile Creek"
+       }
+      ]
+     },
+     "rules": [
+      {
+       "dfo_words": "Closed",
+       "may_target": false,
+       "reading": "the owner's reading, 2026-11-10, of DFO's word “closed”: “babine is closed in the circles (no fishing salmon)”",
+       "rule_id": "6:babine-lake#closed:f3116ad57dbe#0",
+       "species": [
+        "SA"
+       ],
+       "take": 0,
+       "type": "retention_limit",
+       "verbatim": "No fishing for salmon — within a 400 m radius of the mouth of Four Mile Creek"
+      }
+     ]
+    },
+    "6:babine-lake#closed:f4c347aad97f": {
+     "calendar": {
+      "g": [
+       0,
+       -1
+      ],
+      "gears": [],
+      "sp": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ]
+      ],
+      "verdicts": [
+       {
+        "s": "closed",
+        "t": "No fishing for salmon — within a 400 m radius of the mouth of Morrison Creek"
+       }
+      ]
+     },
+     "rules": [
+      {
+       "dfo_words": "Closed",
+       "may_target": false,
+       "reading": "the owner's reading, 2026-11-10, of DFO's word “closed”: “babine is closed in the circles (no fishing salmon)”",
+       "rule_id": "6:babine-lake#closed:f4c347aad97f#0",
+       "species": [
+        "SA"
+       ],
+       "take": 0,
+       "type": "retention_limit",
+       "verbatim": "No fishing for salmon — within a 400 m radius of the mouth of Morrison Creek"
+      }
+     ]
+    }
+   },
    "structure": {
     "n_defaults": 10,
     "n_locations": 86,
@@ -56870,6 +57719,7 @@
      ]
     }
    ],
+   "pieces": {},
    "structure": {
     "n_defaults": 0,
     "n_locations": 1,
@@ -57727,6 +58577,57 @@
      ]
     }
    ],
+   "pieces": {
+    "8:shuswap-river#closed:200d03a74aaf": {
+     "calendar": {
+      "g": [
+       0,
+       -1
+      ],
+      "gears": [],
+      "sp": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ]
+      ],
+      "verdicts": [
+       {
+        "s": "closed",
+        "t": "Closed — closed from the water survey station (located at 50°19.105' N and 118°48.857' W) approximately 200 m down stream of Shuswap Falls Hatchery to WTFB signs (located at 50°18.181' N and 118°49.105' W) one km down stream"
+       }
+      ]
+     },
+     "rules": [
+      {
+       "may_target": false,
+       "rule_id": "8:shuswap-river#closed:200d03a74aaf#0",
+       "species": [
+        "SA"
+       ],
+       "take": 0,
+       "type": "retention_limit",
+       "verbatim": "Closed — closed from the water survey station (located at 50°19.105' N and 118°48.857' W) approximately 200 m down stream of Shuswap Falls Hatchery to WTFB signs (located at 50°18.181' N and 118°49.105' W) one km down stream"
+      }
+     ]
+    }
+   },
    "structure": {
     "n_defaults": 0,
     "n_locations": 3,

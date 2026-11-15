@@ -19,7 +19,8 @@ rules and year calendar (`live.type_page`, `live.location_calendar`). Beside the
 for the hand rows of `dfo-rows.json` (the shared rows of T671's two tests). (T676) Per page also: the curated entry file
 (`entries/region-<slug>.json`) joined to it (`by_fingerprint`, `reconcile`), and the region header (`header.parse_header`,
 `digest`, `resolve`, `deliver.salmon.header_answers`, `quota.header_closure`); `joins` holds hand cases of the join (a
-page default, never dormant); `dates` is the robust date reader (`dates.read_dates`) on every recorded cell, the named
+page default, never dormant); (T757) per page `pieces`: the closed-area pieces its rows name
+(`closures.live_piece_rules`: piece id -> rules + calendar); `dates` is the robust date reader (`dates.read_dates`) on every recorded cell, the named
 shapes and a seeded fuzz.
 
 WHO READS IT. `app/workers/feeds/test/dfo.vectors.test.ts` (the worker must reproduce every value in its
@@ -40,6 +41,7 @@ from pathlib import Path
 from pipeline.common import names
 from pipeline.common.curated import REPO_ROOT
 from pipeline.deliver import salmon as S
+from pipeline.regs.dfo_salmon import closures as K
 from pipeline.regs.dfo_salmon import dates as D
 from pipeline.regs.dfo_salmon import entries as ENT
 from pipeline.regs.dfo_salmon import feed as FD
@@ -226,6 +228,10 @@ def build() -> dict:
             "locators": [{"fingerprint": l["fingerprint"], "rows": l["rows"], "rules": l["rules"],
                           **({"words": l["words"]} if "words" in l else {}), "calendar": _calendar(l["rules"])}
                          for l in typed["locators"] if l["fingerprint"] in tables],
+            # (T757) the closed-area pieces today's rows name (`closures.live_piece_rules`, as `live.run` adds them):
+            # piece id -> its rule and its year on its own (the header closure, when the page has one, is `header.closure`)
+            "pieces": {lid: {"rules": rs, "calendar": _calendar(rs)}
+                       for lid, rs in sorted(K.live_piece_rules(ef, locs).items())},
         }
     cases = json.loads(ROWS.read_text(encoding="utf-8"))["cases"]
     rows = {}

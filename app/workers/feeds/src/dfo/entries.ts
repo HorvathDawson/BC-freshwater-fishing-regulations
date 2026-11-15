@@ -16,6 +16,8 @@ export interface WaterBinding {
 }
 export interface EntryLocation {
   location_id: string;
+  /** the region key (as the file stores it; T757: a closed-area piece's entry B carries it) */
+  region?: string;
   kind: string;
   precedence: number;
   water: string;

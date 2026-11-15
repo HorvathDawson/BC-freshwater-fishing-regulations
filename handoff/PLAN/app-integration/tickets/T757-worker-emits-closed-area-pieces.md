@@ -33,3 +33,20 @@ area as OPEN, without a word. Nothing binds today (the owner has confirmed no pi
   are what is deployed there now). No release with bound pieces before that.
 
 Depends: the spec; T573's branch. Size: M. Production stays the owner's.
+
+## Results (worker lane)
+Branch `feeds/t757-worker-pieces` (not merged). Work items 1 and 2 done; item 3 (the app) is not this lane's.
+- **Port:** `app/workers/feeds/src/dfo/closures.ts`, a line-for-line twin of `closures.py`'s read side (`derive`,
+  `says_closed`, `areas`, `inline_items`, `closure_entry`, `piece_key`, `_inline_key`, `piece_id` (throws outside the
+  grammar), `piece_rule`, `OWNER_READINGS`, `live_piece_rules`); sha1 is the worker's own `hash.ts`; Python's
+  `f"{r:g}"` is `py.ts formatG`. Wired after the join in `live.ts` (`rules.set` per piece, so the header closure and the
+  calendar are the places' own path). `DFO_REV` bumped.
+- **`/status.json`:** top-level `"dfo": {"pieces": 1}` (`status.ts DFO_SHAPE`, from `closures.ts PIECES_SHAPE`), on the
+  503 too, as `inputs`; `pieces_gate.py` reads `dfo.pieces` (int >= 1).
+- **Tests:** `test/dfo.closures.test.ts` (the three oracle cases piece for piece; the id grammar against the Python's
+  answers; the two typing slips and `:g` with Python-computed values; first entry wins; runDfo over the saved pages:
+  17 pieces, region 6 = 150; `/status.json`); `dfo.vectors.test.ts` covers each page's `pieces`, which
+  `python -m pipeline.tools.emit.dfo_vectors` now writes (region 3: 3, region 6: 13, region 8: 1). Each new test was
+  mutation-checked (it fails with its piece of code removed or broken).
+- **Not covered by a dedicated test:** a piece on a page whose region header closes it (no saved page has both); it is
+  the same line every place takes.
