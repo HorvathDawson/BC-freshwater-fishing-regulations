@@ -15,6 +15,7 @@ Data-free: stand-in registries and graphs, and DFO places typed here.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 from types import SimpleNamespace
@@ -30,7 +31,9 @@ BELLA_TRIBS = "5b:bella-coola-river-not-including-at:all-tributaries-to-the-bell
 BELLA_LOC = {
     "location_id": BELLA_TRIBS, "region": "5b", "region_number": 5, "kind": "water", "precedence": 3,
     "water": "Bella Coola River (not including Atnarko River)", "water_id": "5b:bella-coola-river-not-including-atnarko-river",
-    "aliases": [], "section": None, "section_history": [], "inherits": [], "fingerprints": ["f3a6e363e6d41f12"],
+    "aliases": [], "section": None, "section_history": [], "inherits": [],
+    # the place is built here: its wording fingerprint is this test's own (nothing reads it), never a scraped one
+    "fingerprints": [hashlib.sha256(b"All tributaries to the Bella Coola River.").hexdigest()[:16]],
     "source_text": {"waters": "Bella Coola River (not including Atnarko River)",
                     "specific_area": "All tributaries to the Bella Coola River.", "landmarks": [], "op": "tributary_set",
                     "anchor_types": ["confluence"], "excludes": [], "areas": []},
@@ -399,3 +402,26 @@ def test_a_hunted_point_on_the_lines_end_is_the_mouth_an_open_end(where):
                         _water(where, "gnis:2", "900-2"), _Snap("360867921", 0.0), existing=lambda *_: None)
     assert (got2["suggestion"]["op"], got2["suggestion"]["points"]) == ("downstream_of",
                                                                         [{"kind": "split", "split_id": "a_cut"}])
+
+
+def test_a_bound_places_row_keeps_its_own_extent_and_carries_the_hunt_as_evidence():
+    """(CI 2026-11-15, Stave) a bound place offered its tributary call still carries the split hunt (every hunted place
+    on the queue does, `test_dfo_suggest`), and the hunt's extent is not put over the curated one"""
+    from pipeline.regs.dfo_salmon import suggest as S
+    w = _water("Bella Coola River", "gnis:11611", "910-920000")
+    row = S.bound_row(BELLA_LOC, w, _Look())
+    entry, cuts = _hunt("upstream_of", [{"cut": "c1"}], {})
+    got = S.with_hunt(row, entry, cuts, w, _Snap("1", 500.0), bound=True, existing=lambda *_: None)
+    assert got["hunt"]["status"] == "found" and got["suggestion"] == row["suggestion"]
+    unbound = S.with_hunt({"endpoints": [], "matched": "none", "suggestion": None}, entry, cuts, w, _Snap("1", 500.0),
+                          bound=False, existing=lambda *_: None)
+    assert unbound["suggestion"]["op"] == "upstream_of" and unbound["hunt"]["status"] == "found"
+
+
+def test_one_named_tributary_is_not_the_tributary_walk():
+    """Stave: "… including its tributary containing the fishway" names one stream; it does not take the tributaries in"""
+    from pipeline.regs.dfo_salmon import suggest as S
+    w = _water()
+    assert not S.tributary_form("downstream of the dam, including its tributary containing the fishway", "Stave River",
+                                w, _Look())["with"]
+    assert S.tributary_form("downstream of the dam, including its tributaries", "Stave River", w, _Look())["with"]

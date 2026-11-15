@@ -663,8 +663,9 @@ _EXCEPT = re.compile(r"\b(?i:other\s+than|except(?:ing)?|excluding|not\s+includi
 _NAMED = re.compile(r"[A-Z][\w'.-]*(?:\s+[\w'.-]+)*?\s+(?:River|Creek|Lake|Slough|Channel|Brook)")
 #: (owner 2026-11-15: "all items with tributaries in the name etc have tributaries in extent") the words that TAKE
 #: the tributaries in, and the ones that leave them out
+#: the tributaries in the PLURAL: "including its tributary containing the fishway" (Stave) names one stream, not the walk
 _WITH = re.compile(r"\b(?:and|including|incl\.?|with|plus)\s+(?:all\s+)?(?:of\s+)?(?:its\s+|their\s+|the\s+)?(?:other\s+)?"
-                   r"tributar|✱",
+                   r"tributaries\b|\bincl\.?\s*tribs\b|✱",
                    re.I)
 _WITHOUT = re.compile(r"\b(?:excluding|not\s+including|without|except)\s+(?:its\s+|the\s+|their\s+)?tributar|"
                       r"\bmainstem\b|\bmain\s+stem\b", re.I)
@@ -1162,6 +1163,15 @@ def nearest_cut(cuts: Iterable[tuple[float, str]], m: float, within: float = SAM
     return (best[1], best[0]) if best and best[0] <= within else None
 
 
+def with_hunt(row: dict, entry: Mapping, cuts: Mapping[str, Mapping], water: Water, look: "Lookup", *, bound: bool,
+              **kw) -> dict:
+    """THE SPLIT HUNT ON A ROW: an unbound place takes the hunt's extent (`apply_hunt`); a BOUND place's row is its own
+    curated extent with DFO's tributary call (`bound_row`) and keeps it — the hunt's research rides along as its
+    evidence (every hunted place on the queue carries its hunt), never offered over the curated extent."""
+    got = apply_hunt(dict(row), entry, cuts, water, look, **kw)
+    return {**row, "hunt": got["hunt"]} if bound else got
+
+
 def apply_hunt(row: dict, entry: Mapping, cuts: Mapping[str, Mapping], water: Water, look: Lookup,
                page: Optional[str] = None, labels: Optional[Mapping[str, str]] = None,
                existing=None) -> dict:
@@ -1579,11 +1589,12 @@ def run(out_dir: Path = OUT_DIR, *, marks_path: Optional[Path] = None, gpkg: Opt
         bound = bool((loc.get("binding") or {}).get("extents"))
         r = (bound_row(loc, water, look, head, flag) if bound
              else suggest_one(loc, water, cuts_on(items, registry, smeta, props), look, head, flag))
-        h = None if bound else (hunt.get("locations") or {}).get(lid)
+        h = (hunt.get("locations") or {}).get(lid)
         if h:
-            r = apply_hunt(r, h, hunt.get("cuts") or {}, water, look, page=D.page_url(slugs[lid]),
-                           labels={c.id: c.label for c in cuts_on(items, registry, smeta, props)}, existing=existing)
-            r = with_tributary_form(r, loc, water, look, head, flag)  # the hunt's extent, DFO's tributary call
+            r = with_hunt(r, h, hunt.get("cuts") or {}, water, look, bound=bound, page=D.page_url(slugs[lid]),
+                          labels={c.id: c.label for c in cuts_on(items, registry, smeta, props)}, existing=existing)
+            if not bound:
+                r = with_tributary_form(r, loc, water, look, head, flag)  # the hunt's extent, DFO's tributary call
         if items and loc.get("region_number") is not None and not bound:     # a curated extent is not re-capped
             secs = [sid for iid in items for sid in (registry.get(iid) or {}).get("section_ids") or []]
             span = region_span(int(loc["region_number"]), secs, member, cut_at)
