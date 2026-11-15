@@ -206,3 +206,17 @@ Each item: what to do, and what a failure looks like. Any app closing by itself 
 9. **Leave it in the background a while, come back** (memory trim): open other apps for a few minutes, come back to the
    map. Fail: the app restarted from scratch with an error, or the map stays blank.
 10. **Saved spot after a restart.** Your spots and settings are still there after a force stop. Fail: anything missing.
+
+**Plan as changed (coordinator, 2026-11-15 10:40; supersedes the "Sequence" above where they differ).** Branch
+`perf/r8-play` = `redesign/stream-sections` at d29dffccc + `perf/r8` (merge) + version 0.7.11 (app.json, package.json,
+changelog draft entry, `app_reads.json` row = 0.7.10's reads). This lane: the test-bed APK of that commit with the flag and
+the six benches. The coordinator merges `perf/r8-play` into the shared branch; the Android chat then runs
+`CANIFISHTHIS_R8=1 deploy/staging/build-apk.sh --play` in the main checkout (it bumps and commits versionCode itself).
+How the flag reaches the build: it is in the environment of build-apk.sh → kept by its `exec scripts/heavy.sh … "$0" "$@"`
+(heavy.sh runs the command with the same environment, no `env -i`) → the inner run's `npx expo prebuild` in the clean
+`git worktree` (`cd "$WT"` changes the directory, not the environment) → app.config.js loads `plugins/with-no-minify.js`,
+which writes `android.enableMinifyInReleaseBuilds=true` into gradle.properties and the keep rules into proguard-rules.pro;
+Gradle reads those files, so it needs no variable of its own. The same path made the trial's minified test-bed APK.
+Flag off: build-apk.sh prints and does exactly what it did (the R8 lines are all behind `== 1`). "R8 on" is said in the
+precheck, the dry run and one line of the owner's email ("Code shrinker (R8): on (T749)"); play.json is left as it is (the
+app reads it; no field added).
