@@ -127,6 +127,12 @@ with the default Claude uses until you answer). Newest first inside each section
   the new left-edge back strip on full-screen pages is 16 pt wide [keep] or 8 pt;
   (14) the first-install bar reads low on both platforms (38.8 MB shown with 116 MB on disk after a relaunch): the four
   big files download at once and the bar counts one at a time [fix it, ticket T738] or leave it;
+  (15) push for iPhone notices (owner 2026-11-14, verbatim: "dont we want to use it for the notifications thought?"):
+  today no notification on either platform uses push; the phone checks in the background and makes the notification
+  itself, and on iPhone that check runs only when iOS allows (often hours late). Proposal [Claude's pick]: a "wake-up"
+  push from our feeds worker when notices change, so the iPhone checks at once; the worker learns a device token only,
+  never which waters you watch. Needs: Push ticked on the App ID, an APNs key, a privacy-page line, a ticket. Until you
+  pick, the build keeps its push entitlement (the G12 change is on hold);
   (12) Play's data-safety form says approximate location and the App Store answers say precise: should Play match?
 - **Apple Developer account: APPROVED 2026-11-14 evening (individual); the owner has the Team ID** (given in chat; not
   written in the repo). DONE by you 2026-11-14: the Team ID is saved in `~/.canifishthis/ios-team-id` (checked: the site build reads
