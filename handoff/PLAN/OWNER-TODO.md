@@ -116,7 +116,9 @@ with the default Claude uses until you answer). Newest first inside each section
   G15) [About only, the first-run notice is not shown again];
   (8) the web build leaves out the four Android-only "What's new" notes [keep];
   (9) moving to a new phone copies saved spots and photos but not the downloaded data, which downloads again [yes];
-  (10) an own iOS tap-up patch for MapLibre (decision 4) [measure first; the numbers are in T719 when the run lands];
+  (10) an own iOS tap-up patch for MapLibre (decision 4): BUILT and proven on the simulator 2026-11-14 (branch
+  `ios/t719-tapup`): the cue lights 8 to 121 ms after the lift, was 371 to 495; Android's half of the patch is
+  byte-identical [merge with the other iOS branches after the Android benches] or leave;
   (11) ANSWERED 2026-11-14, a third heavy lane for iOS simulator jobs. Owner, verbatim: "Maybe we can run 2 at same time
   might have enough resources". Done: `heavy-job-3.lock` in `scripts/heavy.sh` (bbee2220f), same memory guards, three lanes
   at most;

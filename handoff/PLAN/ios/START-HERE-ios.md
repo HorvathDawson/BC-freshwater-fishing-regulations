@@ -49,7 +49,11 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
   Not provable on the simulator, unit-tested only: a link the phone cannot open now says so; a spot saved from an
   approximate location says so; a staged update no longer applies on a brief "inactive" (no update was applied in the
   run, so nothing to compare). Shots sent (arrow, Open Settings).
-- `ios/t719-tapup`: the early tap cue for iOS, same event as Android's. Started 17:40.
+- `ios/t719-tapup` (**proven on the simulator 20:50**, head d6afcf124, not merged): the early tap cue on iOS, through
+  the same event Android uses. The cue now lights 8 to 121 ms after the finger lifts (before: 371 to 495 ms) on all 18
+  taps, and the page shows at 374 to 390 ms (before 401 to 553). A double tap still zooms and opens nothing. The
+  no-stall bench still passes. Only the iOS half of the MapLibre patch changed; the Android half is byte-identical.
+  Not proven: a real finger (drift), pinch or long press starting on a water, VoiceOver.
 - `android/t732-backup` (**proven on the Android emulator, 19:10 and again 21:15 with photos**, head 56b6ea539, app CI
   green, not merged): today a backup of the app carries nothing at all ("Size quota exceeded", 516 MB of app data against
   Android's 25 MB limit). With the branch: the backup carries the spots, the settings and smaller copies of the photos
@@ -77,6 +81,9 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
 - **Mine, fixed:** pipeline CI went red twice on slice 8 commits (a lane tested only its own files). Both fixed at the
   cause without loosening a guard; fast-fail now runs the repo-wide scans. I also cut the ticket ledger short once for
   about a minute and restored it; nothing was lost.
+- **On today's iPhone build (0.7.10) every app launch restarts the big first downloads from zero** (seen by the tap
+  lane on a fresh simulator: its test's cold starts kept killing the download). The install branch fixes this (the
+  download carries on across a relaunch).
 - **The simulator was the bottleneck all day:** five lanes behind one lock, waits of up to three hours.
 
 **Not started**
@@ -96,7 +103,8 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
    with a screen lock: no / yes; copy size 1600 px quality 70 / other.
 7. iOS background download (proven on the simulator): merge after the Android benches pass on the branch, phone checks
    follow with TestFlight / wait for the phone checks first. Not merged tonight either way (production move).
-8. Early tap cue on iOS (branch `ios/t719-tapup`): merge once proven / leave.
+8. Early tap cue on iOS (branch `ios/t719-tapup`, proven on the simulator: cue 8 to 121 ms, was 371 to 495): merge with
+   the other iOS branches after the Android benches / leave.
 9. About page gains "not affiliated with the government" (Apple asks): About only / also show the first-run notice again.
 10. Play's form says approximate location, the App Store answers say precise: change Play to match? (no default)
 11. T686: which data savings become tickets: (a) three lossless, about 1.94 MB / others in the ticket.
