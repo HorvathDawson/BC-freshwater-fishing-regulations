@@ -130,8 +130,10 @@ with the default Claude uses until you answer). Newest first inside each section
   (12) Play's data-safety form says approximate location and the App Store answers say precise: should Play match?
 - **Apple Developer account: APPROVED 2026-11-14 evening (individual); the owner has the Team ID** (given in chat; not
   written in the repo). DONE by you 2026-11-14: the Team ID is saved in `~/.canifishthis/ios-team-id` (checked: the site build reads
-  it and now writes Apple's link file). Left for you: register the App ID `ca.canifishthis.app` with Associated Domains
-  on, create the app record, make the API key. History: ENROLLED 2026-11-14, waiting for Apple's approval (owner, verbatim: "okay i enrolled with
+  it and now writes Apple's link file). Also 2026-11-14: the owner made the App Store Connect API key (Key ID and Issuer ID given in
+  chat, not written in the repo; the `.p8` is in his Downloads). Left for you: move the `.p8` into `~/.canifishthis/` and
+  write `asc-api-key.json` (one pasted command, given in chat; Claude does not write that folder); confirm the App ID
+  `ca.canifishthis.app` is registered with Associated Domains on and the app record exists. History: ENROLLED 2026-11-14, waiting for Apple's approval (owner, verbatim: "okay i enrolled with
   apple developer I will tell you wne i get approved"). This answers decision 1 of `handoff/PLAN/ios/START-HERE-ios.md`
   (account now). ANSWERED 2026-11-14 evening, verbatim: "it is a individual evelper account" (so the App Store shows
   your own legal name as the seller). Same message: "i cant find team id how do i make one?": it is not made, Apple
