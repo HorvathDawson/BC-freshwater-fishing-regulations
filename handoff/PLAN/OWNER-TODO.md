@@ -205,6 +205,18 @@ with the default Claude uses until you answer). Newest first inside each section
   (proven on both platforms) first; (ii) the loading screen, first-install bar, crash-report app half and the
   faster-and-lighter branch after one Android run; (iii) push last, with the privacy-page line for his eyes. The R8
   Play internal build is taken before any of these, so it carries nothing else.
+- **NEW 2026-11-15 10:42 (iOS chat, T739, push: privacy wording; PROPOSAL).** With push the app sends our server one
+  new thing, a push token (an address Apple issues so a message can reach the app). The push code merges into the
+  shared branch only after the privacy page and the store answers say so; the live privacy page changes only on your
+  yes (production stays yours). Proposed privacy-page line, under what the app sends: "Push token. If you turn
+  notifications on, the app sends our server a push token for this phone (an address Apple or Google issue so a
+  message can reach the app) and whether the phone is an iPhone or Android. We use it only to send a silent signal
+  telling the app to check for new data; the signal carries no words, no waters and no location. We do not receive
+  your alerts, the waters you watch or where you are. The token is deleted when you turn notifications off, or when
+  Apple or Google tell us it no longer works. It is not linked to you or to an account and is not backed up."
+  Proposed App Store privacy answer: Identifiers, Device ID: collected, App Functionality, not linked, not used for
+  tracking. The Android (Firebase) line and the Play Data safety answer wait for your Firebase decision; their draft is
+  in T739. Answer: yes as written / your changes. To-Do page row `t739-privacy-wording`.
 - **NEW 2026-11-15 10:09 (iOS chat, T749, Android's code shrinker R8).** The trial passed on the emulator: the app
   starts and passes all six checks; the test APK is 7.45 MB smaller (about 7.4 MB off the Play download, estimated).
   It is behind a switch that is off. Pick: make one Play INTERNAL build with the switch on for you to walk on your
