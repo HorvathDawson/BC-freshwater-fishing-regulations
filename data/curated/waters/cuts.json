@@ -1,6 +1,6 @@
 {
  "_about": "THE CURATED CUTS (was splits.json; T324): every authored cut point on a water, organized by waterbody (`waterbodies[].splits[]`: an id, a label, an anchor). AUTHORED by hand and by the review app's write-through (`pipeline.regs.review.apply_proposals`, from the owner's saved marks); never regenerated. Read by the atlas build (`pipeline.atlas.splits.splits.load_split_defs`, CURATED.waters.cuts), which cuts the blue lines there; the review app reads it for split labels. Which cut is a tidal limit lives in tidal_limits.json, never here.",
- "_licence": {"spdx": "ODbL-1.0", "attribution": "© OpenStreetMap contributors", "applies_to": "the anchor `coord` of the splits listed in `ids`: each was placed on an OpenStreetMap feature (a bridge, dam, weir, falls, rail line or road crossing, named by its OSM way/node in the split's `_note`, or an `[osm-candidate]` OSM-road-by-river intersection). Every other split is anchored on the Freshwater Atlas (OGL-BC) or the curator's own reading; an `OSM: https://www.openstreetmap.org/?mlat=` link in a note is a map view for checking, not data taken.", "url": "https://opendatacommons.org/licenses/odbl/1-0/", "source": "https://www.openstreetmap.org/copyright", "notice": "data/LICENSE-ODbL.md", "ids": ["adam_river__hwy_19_bridge", "alexander_creek__easternmost_hwy_3", "babine_river__adult_counting_fence", "babine_river__fort_babine_bridge", "burton_creek__hwy_6_bridge", "campbell_river__maple_street_boundary_sign", "campbell_river__pedestrian_bridge_at_the_foot_of_stayte_road", "capilano_river__cable_pool_bridge_footbridge", "chehalis_river__hatchery_outlet", "chilko_river__henry_crossing_bridge", "clearwater_river__old_north_thompson_highway_bridge", "crooked_river__200_road_bridge", "elk_river__elko_dam", "findlay_creek__lavington_creek_bridge", "keogh_river__lower_fish_counting_fence", "ksi_sii_aks_river__nass_road_bridge", "lakelse_river__power_line_crossing", "little_qualicum_river__upper_waterfall", "lodgepole_creek__falls", "lynn_creek__sign_150_m_downstream_of_twin_falls_bridge", "lynn_creek__sign_200_m_upstream_of_twin_falls_bridge", "michel_creek__easternmost_hwy_3", "moyie_river__bridge_at_south_end_of_moyie_lake", "nahatlatch_river__signs_at_logging_bridge", "nass_river__hwy_37_bridge", "nathan__272_street", "nechako_river__hwy_27_bridge", "pallant_creek__bridge_near_mouth", "peace_river__peace_canyon_dam", "peace_river__site_c_dam", "pend_d_oreille_river__waneta_dam", "pitt_river__cpr_bridge", "puntledge_river__base_of_stotan_falls", "puntledge_river__bc_hydro_diversion_dam", "qualicum_river__hwy_19a_bridge", "qualicum_river__upper_hatchery_weir_125_m_downstream", "quinsam_river__falls_d_s_of_middle_quinsam_lake", "quinsam_river__fishing_boundary_signs_300_m_downstream_of_quinsam_hatchery_weir", "quinsam_river__signs_at_power_line_crossing", "salmon_river__232_street", "salmon_river__hwy_97_bridge_at_falkland", "sand_creek__hwy_3", "silverhope__bailey_bridge", "skookumchuck_creek__point_on_skookumchuck_ck_closest_to_km38_fsr", "somass_river__somass_park_north", "squamish_river__powerline_crossing_at_9_mile", "st_leon_creek__st_leon_falls", "sustut_river__bcr_bridge_at_bear_river_mouth", "tahltan_river__boundary_signs_400_m_upstream_of_tahltan_river_bridge", "toquart_river__toquart_mainline", "trepanier_river__hwy_97c_bridge", "trout_creek__rail_trestle_trout_creek_canyon", "yakoun_river__6_mile_bridge"]},
+ "_licence": {"spdx": "ODbL-1.0", "attribution": "© OpenStreetMap contributors", "applies_to": "the anchor `coord` of the splits listed in `ids`: each was placed on an OpenStreetMap feature (a bridge, dam, weir, falls, rail line or road crossing, named by its OSM way/node in the split's `_note`, or an `[osm-candidate]` OSM-road-by-river intersection). Every other split is anchored on the Freshwater Atlas (OGL-BC) or the curator's own reading; an `OSM: https://www.openstreetmap.org/?mlat=` link in a note is a map view for checking, not data taken.", "url": "https://opendatacommons.org/licenses/odbl/1-0/", "source": "https://www.openstreetmap.org/copyright", "notice": "data/LICENSE-ODbL.md", "ids": ["adam_river__hwy_19_bridge", "alexander_creek__easternmost_hwy_3", "babine_river__adult_counting_fence", "babine_river__fort_babine_bridge", "burton_creek__hwy_6_bridge", "campbell_river__maple_street_boundary_sign", "campbell_river__pedestrian_bridge_at_the_foot_of_stayte_road", "capilano_river__cable_pool_bridge_footbridge", "chehalis_river__hatchery_outlet", "chilko_river__henry_crossing_bridge", "clearwater_river__old_north_thompson_highway_bridge", "crooked_river__200_road_bridge", "elk_river__elko_dam", "findlay_creek__lavington_creek_bridge", "keogh_river__lower_fish_counting_fence", "ksi_sii_aks_river__nass_road_bridge", "lakelse_river__power_line_crossing", "little_qualicum_river__upper_waterfall", "lodgepole_creek__falls", "lynn_creek__sign_150_m_downstream_of_twin_falls_bridge", "lynn_creek__sign_200_m_upstream_of_twin_falls_bridge", "michel_creek__easternmost_hwy_3", "moyie_river__bridge_at_south_end_of_moyie_lake", "nahatlatch_river__signs_at_logging_bridge", "nass_river__hwy_37_bridge", "nathan__272_street", "nechako_river__hwy_27_bridge", "pallant_creek__bridge_near_mouth", "peace_river__peace_canyon_dam", "peace_river__site_c_dam", "pend_d_oreille_river__waneta_dam", "pitt_river__cpr_bridge", "puntledge_river__base_of_stotan_falls", "puntledge_river__bc_hydro_diversion_dam", "puntledge_river__puntledge_lower_hatchery_weir", "puntledge_river__signs_75_m_downstream_of_puntledge_river_hatchery_fence", "qualicum_river__hwy_19a_bridge", "qualicum_river__upper_hatchery_weir_125_m_downstream", "quinsam_river__falls_d_s_of_middle_quinsam_lake", "quinsam_river__fishing_boundary_signs_300_m_downstream_of_quinsam_hatchery_weir", "quinsam_river__signs_at_power_line_crossing", "salmon_river__232_street", "salmon_river__hwy_97_bridge_at_falkland", "sand_creek__hwy_3", "silverhope__bailey_bridge", "skookumchuck_creek__point_on_skookumchuck_ck_closest_to_km38_fsr", "somass_river__somass_park_north", "squamish_river__powerline_crossing_at_9_mile", "st_leon_creek__st_leon_falls", "sustut_river__bcr_bridge_at_bear_river_mouth", "tahltan_river__boundary_signs_400_m_upstream_of_tahltan_river_bridge", "toquart_river__toquart_mainline", "trepanier_river__hwy_97c_bridge", "trout_creek__rail_trestle_trout_creek_canyon", "yakoun_river__6_mile_bridge"]},
  "waterbodies": [
   {
    "name": "ADAM RIVER (except Eve River)",
@@ -1677,24 +1677,43 @@
      "_offset_m": 50
     },
     {
+     "id": "puntledge_river__puntledge_lower_hatchery_weir",
+     "label": "Puntledge lower hatchery weir",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -125.0323,
+       49.685118
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "_note": "[owner 2026-11-15, T743: \"please add both cut on weir and one downstream\"] promoted from the DFO split hunt (data/generated/review/dfo-split-hunt.json `puntledge_lower_weir`, high: the weir across the Puntledge beside the Puntledge River Hatchery, lower hatchery; OSM way 152588484, rel 9443986; hunt point 49.68512,-125.03234) for 1:puntledge-river:from-the-weir-at-the-lower-hatcher — \"from the weir at the lower hatchery to fishing boundary signs approximately 75m downstream of the weir\". Snapped to the FWA line: blk 354154204 measure 4001. The 75 m signs are puntledge_river__signs_75_m_downstream_of_puntledge_river_hatchery_fence (the hunt's puntledge_lower_weir_d75 would duplicate it).",
+     "_coord": [
+      -125.0323,
+      49.685118
+     ]
+    },
+    {
      "id": "puntledge_river__signs_75_m_downstream_of_puntledge_river_hatchery_fence",
      "label": "signs 75 m downstream of Puntledge River hatchery fence",
      "kind": "point",
      "anchor": {
       "type": "point",
       "coord": [
-       -125.03217,
-       49.68578
+       -125.0323,
+       49.685118
       ],
       "is_lonlat": true,
       "offset_m": 75,
       "offset_dir": "downstream"
      },
      "note": "",
-     "_note": "[auto-proposal L] BC Hydro Puntledge generating-station tailrace + signs (50 m up / 75 m down) on Puntledge River (Courtenay, at powerhouse tailrace). Candidate coord [-125.0, 49.686]. OSM: https://www.openstreetmap.org/?mlat=49.68600&mlon=-125.00000#map=15/49.68600/-125.00000. Verify: Locate the Puntledge generating-station tailrace in Courtenay; set signs 50 m upstream and 75 m downstream of it.. Closure between signs 50 m above and 75 m below the BC Hydro Puntledge generating-station tailrace on the lower Puntledge River (Courtenay). Powerhouse not in FWA; candidate is an approximate lower-Puntledge location - verify on map. [structural-split 2026-08-05 from \"from fishing boundary signs located 50 m upstream of the BC \"] boundary=signs located 75 m down [hint-fix 2026-08-06 dam_weir_fence->boundary_signs] [curated 2026-08-08 manual-review batch=puntledge-1-6] [base=Puntledge River Hatchery OSM rel 9443986; +75m d/s -> 49.68512,-125.0323; reach ~451m matches ~500m]",
+     "_note": "[auto-proposal L] BC Hydro Puntledge generating-station tailrace + signs (50 m up / 75 m down) on Puntledge River (Courtenay, at powerhouse tailrace). Candidate coord [-125.0, 49.686]. OSM: https://www.openstreetmap.org/?mlat=49.68600&mlon=-125.00000#map=15/49.68600/-125.00000. Verify: Locate the Puntledge generating-station tailrace in Courtenay; set signs 50 m upstream and 75 m downstream of it.. Closure between signs 50 m above and 75 m below the BC Hydro Puntledge generating-station tailrace on the lower Puntledge River (Courtenay). Powerhouse not in FWA; candidate is an approximate lower-Puntledge location - verify on map. [structural-split 2026-08-05 from \"from fishing boundary signs located 50 m upstream of the BC \"] boundary=signs located 75 m down [hint-fix 2026-08-06 dam_weir_fence->boundary_signs] [curated 2026-08-08 manual-review batch=puntledge-1-6] [owner 2026-11-15, T743: base moved off the hatchery grounds (old coord [-125.03217, 49.68578], FWA measure 4075 on blk 354154204, which with the 75 m offset put this cut ON the weir at 4000) onto the lower-hatchery weir / fish fence (OSM way 152588484, snapped to the FWA line at [-125.0323, 49.685118], measure 4001); +75m d/s -> measure ~3926, 49.684467,-125.03216; r4 reach ~527m matches ~500m. The weir itself is puntledge_river__puntledge_lower_hatchery_weir. Report: handoff/PLAN/curation-review/puntledge-hatchery-fence-2026-11-15.md]",
      "_coord": [
-      -125.03217,
-      49.68578
+      -125.0323,
+      49.685118
      ],
      "_offset_m": 75
     }

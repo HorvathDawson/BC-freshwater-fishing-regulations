@@ -116,3 +116,43 @@ the lower hatchery to signs approximately 75m downstream of the weir". Its propo
 
 **Result: Puntledge is the only confirmed case.** The scans cannot catch a wrong base point in general. A cut
 anchored on a facility polygon instead of the structure looks correct by its label, and only a map check finds it.
+
+## Done 2026-11-15
+
+Owner, 2026-11-15: "please add both cut on weir and one downstream then i give you permission to edit that extent for
+regulations and dfo places." Applied as Option A plus the weir cut. Measures are on blk `354154204`, projected onto the
+FWA line in `data/source/bc_fisheries_data.gpkg` (scratchpad `t743w/proj.py`) **[ran]**.
+
+| cut | anchor in `data/curated/waters/cuts.json` | where it resolves | referenced by |
+|---|---|---|---|
+| **new** `puntledge_river__puntledge_lower_hatchery_weir` (the weir / fish fence) | point [-125.0323, 49.685118], no offset. Promoted from the split hunt's `puntledge_lower_weir` (OSM way 152588484, hunt point 49.68512,-125.03234, 2.9 m off the line), snapped to the line | measure **~4001.0**, on the weir | nothing yet. Meant for the dormant DFO place `1:puntledge-river:from-the-weir-at-the-lower-hatcher` |
+| **moved** `puntledge_river__signs_75_m_downstream_of_puntledge_river_hatchery_fence` (same id) | anchor moved from [-125.03217, 49.68578] (hatchery grounds, measure 4075) to the weir [-125.0323, 49.685118]. The 75 m downstream offset is kept | measure **~3926.0**, at [-125.03216, 49.684467]. It was 4000.3, on the weir | synopsis `puntledge_river.r4` (`between` tailrace cut and this one, ~527 m instead of 451.6 m). DFO `from-signs-located-50m-upstream-of` (same reach). DFO `downstream-from-a-fishing-boundary` (its top end, 75 m lower) |
+
+- Both cuts have `_note` "owner 2026-11-15" and are listed in the file's ODbL `_licence.ids`, because both are now
+  anchored on the OSM weir. The edit was made through `curated_write.write` (backup
+  `data/generated/curated_writes/backups/waters/cuts.json/20261115T185615166470Z-8bd7c60bcf3b.json`, and a copy in
+  `~/bcfish-session-backup-2026-11-12/cuts-backups/`).
+- **Synopsis r4: no change.** It already names the 75 m id, so it moves with the cut.
+- **DFO places: no change and no mark appended.** Both "75 m below" places already name the 75 m id. The weir place is
+  dormant: its binding is empty and it has **no mark**. Its verdict and extent are for the owner: between
+  `puntledge_river__puntledge_lower_hatchery_weir` and `puntledge_river__signs_75_m_downstream_of_puntledge_river_hatchery_fence`.
+  Do not use the hunt's `puntledge_lower_weir_d75`, which would duplicate the 75 m cut.
+- **When it takes effect:** at the next atlas rebuild, which is already queued (sections 57879/57880 are re-cut), then
+  the reach run and bundle. Not built here.
+- **Owner re-ticks after that rebuild:** entry mark **marks.jsonl:1263** (`r1:puntledge_river@1-6`, its r4 reach print
+  changes), and DFO marks **:2447** and **:2687** (same ids, but the reach moves 75 m). The weir place also needs a first
+  mark.
+- Validation: `check_curated --waters` gave 0 errors, and the full `check_curated` passed. `load_split_defs` loads 468 cuts.
+  `pytest test_splits test_t207_split_confidence test_splits_accuracy test_licence_records test_curated_writer
+  test_atlas_inputs test_rules_round`: 178 passed. `review.apply --check` exits 1 with 49 not landed (the Fraser, Region 6
+  and other cut/new-split waits) and no Puntledge row. `check-tickets` passes.
+
+### The tailrace cut has the same fault (checked, not changed)
+
+`puntledge_river__fishing_boundary_signs_50_m_upstream_of_bc_hydro_puntledge_generating_station_tailrace` is anchored at
+[-125.03397, 49.68837]. That point is the centre of the generating-station polygon (OSM rel 15937988, bbox centre
+projects to 4401.9) and resolves at **4401.9 + 50 = 4451.9**. OSM maps the tailrace as a canal, way 1178621508
+(`usage=tailrace`), which meets the river at 49.6885474,-125.0342327. That outlet projects to measure **~4429.3**, 0.9 m
+off the line **[ran]**. Signs "50 m upstream of the tailrace" would then sit at about **4479**, which is **~27 m** above
+today's cut. If the owner approves the move, r4 would be about 553 m long and the 50 m DFO place would move with it. This
+is a proposal only. It was not part of the owner's instruction.
