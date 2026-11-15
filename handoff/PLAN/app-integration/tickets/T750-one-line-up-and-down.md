@@ -73,3 +73,5 @@ Depends: none. Size: S. Owner: yes (the Wap/Nimpkish question; default stands).
 Asked: keep the shipped order (a part ranked by its upper end) or switch to the strict downstream-end rule (differs only
 on Wap Creek and Nimpkish River; needs a pipeline change and a release). Owner, verbatim: "upstream is fine". So the
 shipped `part_ix` order stays; no pipeline change, no release for this.
+
+- 2026-11-15 (CI red on e0785054a): the removed Chooser was still on tools/back-layers.test.ts's surface list (and named in Head's note); both taken off, nothing else of it left in the code. `pnpm check:fast` now runs the two inventories; fast-fail runs back-layers on any apps/mobile, ui, ui-native or map change.

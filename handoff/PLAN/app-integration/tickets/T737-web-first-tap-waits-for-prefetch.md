@@ -209,3 +209,5 @@ LCP 7.87 → 7.86 s, TBT 864 → 881 ms, SI 7.71 → 6.96 s, SEO 92 → 92.
 - Smoke step (item 4, still to add): a FIRST click on a Fraser part in Region 2 on a fresh profile 3 s after paint, and
   one after panning to Lillooet, timed to readable (≤ 4 s) AND to complete (every page download in; `measure.mjs
   --complete`).
+
+- 2026-11-15 (CI red on e0785054a): the two new swallowing catches were listed in tools/failures.test.ts FINE with their reasons, not reported: `warmWaterPage`'s geo warm (regs.ts; the loader forgets a failed open and the page's own `store.geo` read asks again and says it) and `useWaterRegionsAhead` (prefetch.ts; only the background order is lost, its store / akey_region reads are the page's own open). `pnpm check:fast` now runs the two inventories (`pnpm inventories`).

@@ -148,7 +148,7 @@ const COVERED: Record<string, string> = {
   "packages/ui-native/src/TopBar.tsx#TopBar: takes onClose (TopBarProps)": "T48: the field's ‹ and Escape; search open is ROUTE state (route `search`), so system back closes it through the Shell's route layer, first",
   "packages/ui-native/src/Faces.tsx#FaceBar: takes onBack": "the water header's ‹ button; system back is the Shell's route layer",
   "packages/ui-native/src/ViewSwipe.tsx#WaterViewsContext: takes onBack (WaterViews)": "carries the Shell's back to the header's ‹ and the edge swipe; not a surface",
-  "packages/ui-native/src/water/WaterMapView.tsx#Head: takes onClose": "a header's × button; MarkPop and Chooser, which draw it, register",
+  "packages/ui-native/src/water/WaterMapView.tsx#Head: takes onClose": "a header's × button; MarkPop, which draws it, registers (T750: the Chooser that also drew it is gone)",
   "packages/ui-native/src/spot/Confirm.tsx#Confirm: takes onCancel": "SpotScreen's layer answers back while a confirm is shown (keep)",
   "packages/ui-native/src/SpotCapture.tsx#WhenScreen: takes onBack": "a capture step; SpotCapture's layer steps back from it",
   "packages/ui-native/src/SpotCapture.tsx#Coach: takes onCancel": "the capture's banner; SpotCapture's layer is its back",
@@ -283,7 +283,6 @@ describe("back, everywhere: every surface registers a back layer", () => {
     "packages/ui-native/src/spot/PhotoViewer.tsx#PhotoViewer: a Modal",
       "packages/ui-native/src/water/WaterMapView.tsx#Head: takes onClose",
       "packages/ui-native/src/water/WaterMapView.tsx#MarkPop: a dialog",
-      "packages/ui-native/src/water/WaterMapView.tsx#Chooser: a dialog",
     ]);
   });
 
