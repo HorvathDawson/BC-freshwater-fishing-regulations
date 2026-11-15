@@ -658,3 +658,12 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   removed they adapt their extent". Main chat's reading: the "rest of the water" kind of extent (a place with no stretch
   of its own, e.g. Qualicum "all open portions"). Being checked (audit report Section F): is it worked out from the other
   places at build time, and does it follow when one is added, removed or changed. Fixes, if needed, come as proposals.
+- ASKED 2026-11-15, on the audit's re-saved places (33 saved more than once, Thompson link, Fraser Region 3, Sheldens
+  Creek): "please audit these and see if you see any issue". Second look running; report
+  `handoff/PLAN/curation-review/resaved-marks-second-look-2026-11-15.md`.
+- PERMISSION 2026-11-15, verbatim: "i give you permission to fix these (Three places mean tributaries only and are wrong
+  today: Bella Coola "all tributaries" also includes the mainstem. The two Bulkley places have tributaries off, while
+  their proposals have them on.) and these too (Stave and three "mainstem" places have the tributary choice left blank
+  rather than set to off.)". Scope: those seven places only. The four blank ones are being set to off now (new marks
+  appended, noted "saved by Claude at the owner's request"); Bella Coola and the two Bulkley follow once the app can
+  record tributaries-only (T742).
