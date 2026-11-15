@@ -70,11 +70,15 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
   10 MB where it used to free about 50. Not fully like for like (the build carries every change since the baseline).
   Told to the Android chat, which owns T717 and will ticket it. On iPhone, changing tab with the credits card open
   takes two taps (Android: one); taken as an iOS follow-up, not fixed.
-- `ios/integration` (head 3212f4936, app CI green, not merged): the four iOS branches (install, keyboard and back,
-  audit fixes, tap cue) merged together. The whole app test suite passes (7,707 tests) and the feeds worker's (447).
-  Six tests went red after the merge and were fixed at the cause (lists that name every scenario and every reported
-  failure; one stale label). Running at 22:15: the simulator checks on the merged build, then the four Android benches
-  on the emulator (the Android chat gave the emulator for the night).
+- `ios/integration` (head 51349c3bf plus notes, app CI green, not merged; TestFlight build 34 was made from it): the
+  four iOS branches (install, keyboard and back, audit fixes, tap cue) merged together. The whole app test suite
+  passes (7,707 tests) and the feeds worker's (447). **iPhone simulator on the merged build, functional checks done
+  01:30:** offline 3 of 3, satellite, walkthrough 41 of 41, rule book, keyboard 7 of 7, edge-swipe back on About, Help,
+  Layers and the rule-book viewer, the audit fixes (arrow, Open Settings, Maps, What's new) pass. Not judged: the
+  photo viewer's back swipe (the test misread a viewer that was up), the staged-update check (0 of 3 on the branch
+  alone too; no control), first open (slow line that hour). **Found:** the photo viewer's "Photo 1 of 1" sits under
+  the status-bar clock (base too; written into T726). **Still owed, in a quiet window:** the four Android benches
+  (three tries failed on the test bed's Android driver not starting under load) and the timed iPhone runs.
 - `ios/t739-push` (T739, head 1734a8429, app CI green, nothing deployed or merged): push wake-ups for iPhone and
   Android (owner: "okay i ticked push notifications for app yes build for iphone." and "for android too."), with a
   new-data wake-up (owner: "i guess if new data is there we could send a notification that the user needs to download
