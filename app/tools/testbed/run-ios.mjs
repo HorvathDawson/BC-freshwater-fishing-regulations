@@ -21,6 +21,8 @@ import { count, readPng } from './lib/png.mjs';
 import { regsOpenIos } from './scenarios-ios/regs-open.mjs';
 import { tapStallsIos } from './scenarios-ios/stalls.mjs';
 import { sharedFixesIos } from './scenarios-ios/shared-fixes.mjs';
+import { keyboardIos } from './scenarios-ios/keyboard.mjs';
+import { modalBackIos } from './scenarios-ios/modal-back.mjs';
 
 process.env.TESTBED_PLATFORM = 'ios';
 const HERE = path.dirname(new URL(import.meta.url).pathname);
@@ -609,6 +611,9 @@ const SCENARIOS = [
   regsOpenIos,
   tapStallsIos,
   sharedFixesIos,   // (T723) a look at five shared-UI fixes, light and dark
+  // (T723 F2, F7) iOS-only checks: the software keyboard against each field, the left-edge swipe over each Modal
+  keyboardIos,
+  modalBackIos,
 ];
 
 // ---------- the runner (as run.mjs, without the Android-only crash buffer and test channel) ----------
