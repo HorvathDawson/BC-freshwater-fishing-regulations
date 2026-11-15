@@ -23,7 +23,7 @@
  */
 import {
   alertNotification, alertSilentNotification, APP_VERSION_NOTE, appVersionToTell, evaluateAlerts, isEnvironment, newestReading, NOTIFY_WORDS,
-  releaseAllowed, reportFailure, UPDATE_READY_NOTE, type AppVersion,
+  releaseAllowed, reportFailure, UPDATE_DOWNLOAD_NOTE, UPDATE_READY_NOTE, type AppVersion,
 } from "@app/core";
 import type { Manifest } from "../manifest";
 import type { ObsFile } from "../feed/history";
@@ -50,6 +50,8 @@ export interface CheckDeps {
   /** this app's version: a release asking for a newer one is not announced; null: no gate */
   appVersion?: AppVersion | null;
   now(): number;
+  /** (T739) this run was woken by our server's push (`runWake`); `downloading`: the release whose download it started */
+  woke?: { readonly downloading: string | null };
 }
 
 /**
@@ -122,7 +124,9 @@ export async function runBackgroundCheck(d: CheckDeps): Promise<BgResult> {
     try {
       const m = await d.manifest();
       if (updateReadyFor(d.settings.read(), m, d.appVersion)) {
-        await d.notify({ channel: "updates", title: UPDATE_READY_NOTE.title, body: UPDATE_READY_NOTE.body,
+        // (T739) a push wake says it is to download (the wake already tried and could not start it); the periodic check as before
+        const note = d.woke ? UPDATE_DOWNLOAD_NOTE : UPDATE_READY_NOTE;
+        await d.notify({ channel: "updates", title: note.title, body: note.body,
                          data: { kind: "update", release: m.data_release } });
         d.settings.update((s) => ({ ...s, toldRelease: m.data_release }));
         told = true;
@@ -146,6 +150,8 @@ export async function runBackgroundCheck(d: CheckDeps): Promise<BgResult> {
   }
 
   const W = NOTIFY_WORDS.run;
+  if (d.woke) parts.push(W.woke);
+  if (d.woke?.downloading) parts.push(W.downloading);
   if (!s0.on || (!live.length && !s0.updateReady && !s0.appVersion)) parts.push(W.noRules);
   if (fired) parts.push(W.fired(fired));
   if (silent) parts.push(W.silent(silent));
@@ -153,7 +159,7 @@ export async function runBackgroundCheck(d: CheckDeps): Promise<BgResult> {
   if (toldApp) parts.push(W.appVersion);
   if (offline) parts.push(W.offline);
   for (const f of failed) parts.push(W.failed(f));
-  if (!parts.length) parts.push(W.quiet);
+  if (parts.length === (d.woke ? 1 : 0)) parts.push(W.quiet);
   const result: BgResult = { fired, told, offline, failed, line: parts.join(", ") };
   try {
     d.settings.update(noteRun({ at: started, ms: d.now() - started, result: result.line }));

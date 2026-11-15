@@ -50,7 +50,7 @@ import { trimOnPressure } from "./memoryTrim";
 import { backgroundDownloads, excludeFromBackup } from "./bgDownload";
 import { releaseSplash } from "./splash";
 // (T234) the phone's local notifications (gauge alerts, new data ready) and their background check; none on the web
-import { notifications, onTap } from "./notify";
+import { notifications, onTap, setWakeUpdates } from "./notify";
 
 import { APP_ENV, APP_VERSION, BUILT_CHANNEL, ENDPOINTS, IMAGERY_TILES, MENU_INFO, CRASH_URL, TEST_REPORTS, pickChannel, storedChannel, REPORT_URL, UPDATE_CHANNEL, UPDATES_LOG } from "./config";
 
@@ -380,6 +380,8 @@ export default function App() {
     updates.start();
   }, [booted, updates]);
   useEffect(() => () => updates.stop(), [updates]);
+  // (T739) a push wake-up checks through this service (it starts a newer release's download when the setting allows)
+  useEffect(() => { setWakeUpdates(updates); return () => setWakeUpdates(null); }, [updates]);
   /** Apply a staged update: boot onto it, the set in use on screen until the new one is ready. */
   const applying = useRef<{ before: Held | null; at: number } | null>(null);
   const [applyTarget, setApplyTarget] = useState<string | null>(null);

@@ -4,3 +4,5 @@ import type { NotifyControls } from "@app/ui";
 
 export const notifications: NotifyControls | null = null;
 export function onTap(_on: (d: NotifyData) => void): () => void { return () => {}; }
+/** (T739) no push wake-ups on the web */
+export function setWakeUpdates(_u: unknown): void {}

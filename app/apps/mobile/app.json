@@ -27,7 +27,7 @@
         }
       ],
       ["@maplibre/maplibre-react-native", { "android": { "nativeVariant": "vulkan" } }],
-      ["expo-notifications", { "icon": "./assets/icon/adaptive-monochrome.png" }],
+      ["expo-notifications", { "icon": "./assets/icon/adaptive-monochrome.png", "enableBackgroundRemoteNotifications": true }],
       "expo-background-task",
       "./plugins/with-upload-signing",
       "./plugins/with-no-minify"

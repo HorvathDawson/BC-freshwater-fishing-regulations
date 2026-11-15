@@ -35,9 +35,11 @@ import { STATION_LIST } from "./gauges/liveness";
 import { READING_MAX_AGE_HOURS } from "../../../packages/core/src/gauge-policy.generated";
 import { checkToken, dispatchOnce, OVERDUE_MS, unfinished, type Dispatch, type DispatchEnv } from "./dispatch";
 import { checkRunTiming } from "./runtiming";
+import { handlePush, newRelease, pushMissing, PUSH_STATUS_KEY, sendWake, wakeReason, type PushEnv } from "./push";
 import { capEvents, CORS as REPORT_CORS, handleReport, listReportsCounted, purgeLimits, purgeReports, purgeTestReports, reportEvents, RETENTION_DAYS, RETENTION_STATUS_KEY, type ReportEnv } from "./reports";
 
-export interface Env extends ReportEnv, DispatchEnv {
+/** (T739) PushEnv: the APNs / FCM secrets (APNS_KEY, APNS_KEY_ID, APNS_TEAM_ID, FCM_SERVICE_ACCOUNT; src/push.ts) */
+export interface Env extends ReportEnv, DispatchEnv, PushEnv {
   BUCKET: R2BucketLike;
   RUN_TOKEN?: string;
   FEED_NOTIFY_URL?: string;
@@ -488,7 +490,27 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
       logErr(`status: not written (${String((e as Error)?.message ?? e)})`);
     }
   }
-  return { job, ok: error === null, error, wallMs, meter: m, sources: health.sources, failingParts: Object.keys(health.parts).length, summary, notify, stepErrors, log: logs.slice(-40) };
+  // (T739) THE WAKE-UP: a feed the phones' check reads changed, or (asked on the gauge run, the most frequent) a new
+  // release was published -> one silent push to every registered phone. Never on a dry run; a failure is a step error
+  let push: unknown = null;
+  if (!opts.dryNotify) {
+    const reasons = [wakeReason(job, error === null, counts)];
+    if (job === "gauges") {
+      try { const rel = await newRelease(env.BUCKET); if (rel) reasons.push(`release ${rel}`); }
+      catch (e) { logErr(`push: the release manifest was not read (${String((e as Error)?.message ?? e)})`); }
+    }
+    const why = reasons.filter(Boolean).join(", ");
+    if (why) {
+      try {
+        const r = await sendWake(env, (u, i) => fetch(u, i), new Date(), why);
+        push = { reason: why, ok: r.ok, unreadable: r.unreadable, ios: { sent: r.ios.sent, failed: r.ios.failed, missing: r.ios.missing },
+                 android: { sent: r.android.sent, failed: r.android.failed, missing: r.android.missing } };
+        if (r.ios.failed + r.android.failed) logErr(`push: ${r.ios.failed + r.android.failed} wake(s) failed (${[...r.ios.errors, ...r.android.errors].slice(0, 3).join("; ")})`);
+        if (r.unreadable) logErr(`push: ${r.unreadable} stored token record(s) did not parse; deleted (those phones register again at their next start)`);
+      } catch (e) { logErr(`push: not sent (${String((e as Error)?.message ?? e)})`); }
+    }
+  }
+  return { job, ok: error === null, error, wallMs, meter: m, sources: health.sources, failingParts: Object.keys(health.parts).length, summary, notify, push, stepErrors, log: logs.slice(-40) };
 }
 
 /** what a DFO run left held: whole regions (page / structure), stale regions (fetch failed), single places */
@@ -682,6 +704,22 @@ export default {
       if (req.method !== "POST") return new Response("Method Not Allowed", { status: 405, headers: { ...REPORT_CORS, Allow: "POST, OPTIONS" } });
       return handleCrash(req, env);
     }
+    // (T739) a phone's push token: public POST (validated, rate-limited per address, stored private), nothing else kept
+    if (url.pathname === "/push/register" || url.pathname === "/push/unregister") {
+      if (req.method !== "POST") return new Response("Method Not Allowed", { status: 405, headers: { Allow: "POST" } });
+      return handlePush(req, env, url.pathname === "/push/register" ? "register" : "unregister");
+    }
+    if (url.pathname === "/run/push" && req.method === "POST") {
+      // (T739) one wake to every registered phone now (a test after the secrets are set); the result as /status shows it
+      if (!authed(req, env)) return new Response("Forbidden", { status: 403 });
+      const reason = (url.searchParams.get("reason") ?? "by hand").slice(0, 40);
+      try {
+        const r = await sendWake(env, (u, i) => fetch(u, i), new Date(), reason);
+        return Response.json(r, { status: r.ok ? 200 : 502 });
+      } catch (e) {
+        return Response.json({ ok: false, error: String((e as Error)?.message ?? e) }, { status: 500 });
+      }
+    }
     if (url.pathname === "/crashes" && req.method === "GET") {
       if (!authed(req, env)) return new Response("Forbidden", { status: 403 });
       const since = url.searchParams.get("since") ?? new Date(Date.now() - 30 * 86_400_000).toISOString().slice(0, 10);
@@ -719,12 +757,14 @@ export default {
       const rt = await side(RETENTION_STATUS_KEY);
       // (T178) the last monthly model score
       const sk = await side(SKILL_STATUS_KEY);
+      // (T739) the push wake-ups: which platform cannot send (a secret missing: said, never a silent skip) and the last send
+      const push = { missing: pushMissing(env), last: await side(PUSH_STATUS_KEY) };
       publicStatus(st);
       // (T558) how owner messages go out: "log" means nobody is told
       const nc = notifyConfig(env);
       const notifyInfo = { channel: channelOf(nc), digest: !!nc.digest };
-      if (url.pathname === "/status.json") return Response.json({ ...servedStatus(st, now), notify: notifyInfo, backup: bk, reportRetention: rt, skill: sk, inputs: INPUT_FORMATS }, { headers: { "Cache-Control": "no-store", ...SAFE_HEADERS } });
-      return new Response(statusHtml(st, now, sk, notifyInfo, { backup: bk, purge: rt }), { headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store", ...SAFE_HEADERS,
+      if (url.pathname === "/status.json") return Response.json({ ...servedStatus(st, now), notify: notifyInfo, backup: bk, reportRetention: rt, skill: sk, push, inputs: INPUT_FORMATS }, { headers: { "Cache-Control": "no-store", ...SAFE_HEADERS } });
+      return new Response(statusHtml(st, now, sk, notifyInfo, { backup: bk, purge: rt, push }), { headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store", ...SAFE_HEADERS,
         "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'" } });
     }
     if (url.pathname === "/notify/test" && req.method === "POST") {

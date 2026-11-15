@@ -15,7 +15,7 @@
 import { Platform } from "react-native";
 import { APP_ENVS, resolveAppVersion, versionLine, type AppEnv } from "@app/core";
 import { imageryTiles } from "@app/map/colours";
-import { crashUrlFor, endpointsFor, reportUrlFor, resolveChannel, resolveEnv, UPDATE_CHANNELS, type UpdateChannel } from "./env";
+import { crashUrlFor, endpointsFor, pushUrlFor, reportUrlFor, resolveChannel, resolveEnv, UPDATE_CHANNELS, type UpdateChannel } from "./env";
 import { channelStore, envStore, restart } from "./envStore";
 import { onEmulator } from "./emulator";
 
@@ -112,6 +112,8 @@ export const TEST_REPORTS = process.env.EXPO_PUBLIC_TEST_REPORTS === "1" || APP_
   || (APP_ENV.env !== "production" && onEmulator());
 /** (T242) where an app error is sent (the same worker); null: none */
 export const CRASH_URL = crashUrlFor(REPORT_URL, process.env.EXPO_PUBLIC_CRASH_URL);
+/** (T739) where this phone's push token is registered (the same worker); null: none */
+export const PUSH_URL = pushUrlFor(REPORT_URL);
 
 /** (T251) Pick the update channel (a switchable build): kept, applied on the next start. Throws when it cannot be kept (T423). */
 export function pickChannel(c: string): void {

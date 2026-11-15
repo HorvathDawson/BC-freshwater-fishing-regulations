@@ -62,6 +62,15 @@ export function crashUrlFor(reportUrl: string | null, override?: string | undefi
   return reportUrl && /\/report$/.test(reportUrl) ? reportUrl.replace(/\/report$/, "/crash") : null;
 }
 
+/**
+ * (T739) WHERE A PUSH TOKEN IS REGISTERED: the same worker again (its `POST /push/register|unregister`), derived from the
+ * report address exactly as the crash address is — so the test bed's report override (`EXPO_PUBLIC_REPORT_URL`, a local
+ * stub) points push there too, and a build with no report address registers nowhere.
+ */
+export function pushUrlFor(reportUrl: string | null): string | null {
+  return reportUrl && /\/report$/.test(reportUrl) ? reportUrl.replace(/\/report$/, "/push") : null;
+}
+
 const isAppEnv = (v: unknown): v is AppEnv => typeof v === "string" && (APP_ENVS as readonly string[]).includes(v);
 
 const trimBase = (u: string) => u.trim().replace(/\/+$/, "");
