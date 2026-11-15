@@ -9045,7 +9045,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "kitsumkalum__cn_railway_bridge_over_the_kitsumkalum"
+            ],
+            "item_id": "gnis:3942"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
