@@ -148,11 +148,12 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
   bar now counts the four big files from the first moment and after a relaunch. Cause: the bar counted only the small
   data files (about 44 MB) while the big files were already downloading; the same on both platforms. Unit tests pin
   the shown line (a relaunch with 104 MB held reads "104.0 of 482.0 MB downloaded", was "2.0 of 482.0").
-- `perf/t741`, cold start (head 571edb7b7, app CI green, **not measured on a build yet**): at launch the map colours
+- `perf/t741`, cold start (head 571edb7b7, app CI green, **measured 06:45 on a quiet iPhone simulator: launch to the
+  first drawn frame 786 ms against 1,030 ms before, 6 launches each, the two ranges do not overlap (733 to 858 against
+  997 to 1,084); no long stalls, worst 233 ms; kept**; Android not measured yet): at launch the map colours
   are decoded in 40 ms slices instead of 8. Found from the app's own log: of about 1.07 s from launch to the first
   frame, about 440 to 500 ms was that decode, of which only about 190 ms is work; the rest was waiting between about
-  25 slices (each pause costs about 12 ms on a phone). Estimated gain 200 to 250 ms on both platforms; kept only if the
-  simulator measure shows it. Other places with the same cost are listed in T741 as proposals (install and update
+  25 slices (each pause costs about 12 ms on a phone). The estimate was 200 to 250 ms; the measure gave 244 ms. Other places with the same cost are listed in T741 as proposals (install and update
   about 1 s, the in-session apply 130 to 220 ms).
 - `perf/r8` (T749, head 9fe5e2d6c, **nothing built yet**): Android's code shrinker behind a switch that is off by
   default (switch off = today's build, pinned by a test; refused in a production build). The old crash's cause is
