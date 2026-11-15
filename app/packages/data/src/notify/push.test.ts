@@ -44,6 +44,26 @@ describe("the push token follows the reader's notifications (T739)", () => {
     ]);
   });
 
+  it("an unchanged token is registered once per app start, not once per sync: a token the worker lost comes back", async () => {
+    const srv = server(), store = memory();
+    const first = createPushRegistrar({ seam: seam(), url: URL_, fetch: srv.fetch, store });
+    await first.sync(true);
+    await first.sync(true);
+    await first.sync(true);
+    expect(srv.calls.map((c) => c.url)).toEqual(["https://w.example/push/register"]);
+    // the next app start: a new registrar over the same stored record (token, env and address unchanged) registers again
+    const next = createPushRegistrar({ seam: seam(), url: URL_, fetch: srv.fetch, store });
+    await next.sync(true);
+    await next.sync(true);
+    expect(srv.calls.map((c) => c.url)).toEqual(["https://w.example/push/register", "https://w.example/push/register"]);
+    expect(srv.calls[1]!.body).toEqual({ platform: "ios", token: IOS, env: "sandbox" });
+  });
+
+  it("the worker's per-address limit (429) is the environment's: thrown (tried again next start), never reported as a defect", async () => {
+    const r = createPushRegistrar({ seam: seam(), url: URL_, fetch: server(429).fetch, store: memory() });
+    await expect(r.sync(true)).rejects.toMatchObject({ environment: true, message: "push register: HTTP 429 (the worker's per-address limit; tried again at the next start)" });
+  });
+
   it("off: unregisters the token last sent, forgets it, and stops listening; off again sends nothing", async () => {
     const s = seam(), srv = server(), store = memory();
     const r = createPushRegistrar({ seam: s, url: URL_, fetch: srv.fetch, store });

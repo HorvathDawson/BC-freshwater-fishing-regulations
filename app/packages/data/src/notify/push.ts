@@ -4,13 +4,16 @@
  * none on Android until the Firebase file is in the build), our worker's address (`POST <url>/register|unregister`,
  * app/workers/feeds src/push.ts) and a small store of what was last sent.
  *
- *   on    (the reader has notifications on: `notifyActive`) the token is read and, when it is not the one last sent,
- *         registered (an older one unregistered first); a new token from the system (`onToken`) is sent the same way.
+ *   on    (the reader has notifications on: `notifyActive`) the token is read and registered ONCE PER APP START even
+ *         when it is the one last sent — so a token the worker deleted (APNs called it dead, its store was lost) comes
+ *         back at the next start — and again within the run only when it changes (an older one unregistered first); a
+ *         new token from the system (`onToken`) is sent the same way.
  *   off   the token last sent is unregistered and forgotten.
  *   WHAT IS SENT: {platform, token, env} — never an alert, a water, a location or the install id.
  *
- * A failed send THROWS (the caller reports it; offline is the environment's and never reported) and the store keeps
- * what was really sent, so the next sync (the next start, or the next switch) tries again.
+ * A failed send THROWS (the caller reports it; offline, and the worker's per-address limit (429), are the
+ * environment's and never reported) and the store keeps what was really sent, so the next sync (the next start, or the
+ * next switch) tries again.
  */
 import { environmentError, reportFailure } from "@app/core";
 
@@ -56,19 +59,24 @@ export function createPushRegistrar(o: { seam: PushSeam; url: string; fetch: Fet
       res = await o.fetch(`${base}/${what}`, { method: "POST", headers: { "Content-Type": "application/json" },
                                                body: JSON.stringify({ platform: s.platform, token: s.token, env: s.env }) });
     } catch (e) { throw e instanceof Error ? environmentError(e) : e; }   // no line: the environment's, tried again later
+    if (res.status === 429) throw environmentError(new Error(`push ${what}: HTTP 429 (the worker's per-address limit; tried again at the next start)`));
     if (!res.ok) throw new Error(`push ${what}: HTTP ${res.status}`);
   };
   let active = false;
   let undo: (() => void) | null = null;
   // one sync at a time, in order (a quick on → off → on ends where the reader left it)
   let chain: Promise<void> = Promise.resolve();
+  /** a register our worker answered in THIS run (this registrar lives as long as the app's runtime: one app start) */
+  let confirmed = false;
   const register = async (token: string) => {
     const was = readSent(o.store);
     const now = { platform: o.seam.platform, token, env: o.seam.env };
-    if (was && was.token === token && was.env === now.env && was.url === base) return;
+    const same = !!was && was.token === token && was.env === now.env && was.url === base;
+    if (same && confirmed) return;
     if (was && was.url === base && was.token !== token) await post("unregister", was);
     await post("register", now);
     o.store.write(JSON.stringify({ ...now, url: base }));
+    confirmed = true;
   };
   const unregister = async () => {
     const was = readSent(o.store);
@@ -76,6 +84,7 @@ export function createPushRegistrar(o: { seam: PushSeam; url: string; fetch: Fet
     // a token sent to another address (a build switched environment) is dropped there
     await post("unregister", was).catch((e) => { if (was.url === base) throw e; reportFailure(e); });
     o.store.write("");
+    confirmed = false;
   };
   const run = (f: () => Promise<void>) => (chain = chain.then(f, f));
   return {

@@ -17,7 +17,7 @@
 //   skip. Every send's counts (sent / dead / failed, the first errors) are kept at PUSH_STATUS_KEY and shown there.
 //
 // Stored at private/push/tokens/<sha256(token)>.json — never backed up (backup.ts `personalKind`: "never"): a lost store
-// is rebuilt by the phones, which register again at every start.
+// is rebuilt by the phones: one with notifications on registers its token again at every app start (packages/data notify/push.ts).
 import type { R2BucketLike } from "./io";
 import { LIMIT_PREFIXES, listKeys, rateLimit, readCapped, sha256hex, noSalt, type ReportEnv } from "./reports";
 
@@ -54,9 +54,14 @@ export interface PushEnv extends ReportEnv {
   FCM_SERVICE_ACCOUNT?: string;
 }
 
-/** per address: one change every 2 s, 20 a day (a reader toggling notifications, a token turning over) */
+/**
+ * Per address (an IPv4 address or an IPv6 /64): one call every 2 s, 200 a day. Each phone registers once per app start
+ * (a cold start, and a background launch a push or the periodic task makes), plus a switch turned on or off; a
+ * normal day is a few to a few dozen. 200 leaves room for several phones behind one address (a home, a carrier's NAT).
+ * Over the limit the app is answered 429 and registers again at its next start.
+ */
 export const PUSH_GAP_MS = 2_000;
-export const PUSH_PER_DAY = 20;
+export const PUSH_PER_DAY = 200;
 const MAX_BODY = 1024;
 /** in flight at once while sending */
 const PARALLEL = 20;

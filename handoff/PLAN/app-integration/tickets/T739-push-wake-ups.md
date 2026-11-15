@@ -61,10 +61,12 @@ the APNs key, the App ID box; for Android the Firebase project and the self-host
 **A. Feeds worker** (`app/workers/feeds/src/push.ts`, wired in `src/index.ts`, `src/status.ts`):
 - `POST /push/register` / `POST /push/unregister` with `{platform: "ios"|"android", token, env: "sandbox"|"production"}`.
   Validated (an iOS token is 64–200 hex, an Android one 32–4096 url-safe characters, Android env is production, any other
-  field refused), rate-limited per address exactly like `POST /crash` (R2 counter, salted address hash, 2 s apart, 20 a day,
+  field refused), rate-limited per address exactly like `POST /crash` (R2 counter, salted address hash, 2 s apart, 200 a day (follow-up 2: was 20),
   counters deleted with the others by the daily purge), needs `REPORT_SALT` (503 without). Stored in R2 at
   `private/push/tokens/<sha256(token)>.json` = `{format, platform, token, env, at}`: no address, no install id, nothing else.
-  Never backed up (`backup.ts personalKind` → "never"): a lost store is rebuilt by the phones, which register at every start.
+  Never backed up (`backup.ts personalKind` → "never"): a lost store is rebuilt by the phones, because a phone with
+  notifications on registers its token again at every app start (follow-up 2; before it, an unchanged token was never
+  re-sent, so a token the worker had deleted stayed gone until the token changed).
 - The sender `sendWake`: one content-free wake to every token. iPhone: APNs HTTP/2 with an ES256 provider token made with
   WebCrypto from `APNS_KEY` (the .p8 text), `APNS_KEY_ID`, `APNS_TEAM_ID`; topic `ca.canifishthis.app`, `apns-push-type:
   background`, `apns-priority: 5`, `apns-expiration` now + 1 h, payload `{"aps":{"content-available":1},"k":"check"}`, the
@@ -93,9 +95,15 @@ the APNs key, the App ID box; for Android the Firebase project and the self-host
   when the build says `EXPO_PUBLIC_APNS_ENV=production` (`deploy/staging/build-ios-testflight.sh` now does).
 - `packages/data/src/notify/push.ts` `createPushRegistrar`: while notifications are on (`notifyActive`, the same switch
   that schedules the periodic check, `@app/ui` `NotifyRoot`) the token is registered with `PUSH_URL` (the report worker's
-  `/push`, `env.ts pushUrlFor`), re-sent when it changes (the old one withdrawn), withdrawn when they are turned off. What
-  was sent is kept in `push-token.json`; a failed send throws (reported; offline is the environment's) and the next start
-  tries again.
+  `/push`, `env.ts pushUrlFor`) ONCE PER APP START even when unchanged, again within the run only when it changes (the
+  old one withdrawn), withdrawn when they are turned off. What was sent is kept in `push-token.json`; a failed send throws
+  (reported; offline and the worker's 429 limit are the environment's) and the next start tries again.
+  Follow-up 2 (2026-11-15): "once per app start" is new. A start is a cold start or a background launch (a push or the
+  periodic task launching the app); `NotifyRoot` mounts on each (`App.tsx:611`) and syncs once. Test:
+  `notify/push.test.ts` "an unchanged token is registered once per app start, not once per sync". The worker's
+  per-address limit went from 20 to 200 a day (`PUSH_PER_DAY`): a normal day for one phone is a few to a few dozen
+  starts (iOS throttles background pushes to a few an hour), and several phones can share one address (a home, a
+  carrier's NAT).
 - `packages/data/src/notify/wake.ts` `runWake`: the push task (`PUSH_TASK`, expo-notifications `registerTaskAsync`)
   runs the update service's check in this runtime (App hands it over, `setWakeUpdates`) and then the SAME
   `runBackgroundCheck` the periodic task runs (which stays). A newer release whose download that check started (T722's
@@ -271,6 +279,41 @@ fetchCompletionHandler:)` for a background push (`apns-push-type: background`, `
 quoted above (`ExpoAppDelegate.swift:147-150` → `TaskManagerAppDelegateSubscriber.swift:13-14` → reason
 RemoteNotification → `NotificationsBackgroundTaskConsumer.swift:7-8,31-34` → our JS task). The simulator's bridge never
 takes that path, so the first real-phone check is still: one push → the run log says "woken by our server".
+
+### Real-phone test: steps and what to read (TestFlight build 35, staging worker)
+Build 35 was made by `deploy/staging/build-ios-testflight.sh`, which sets `EXPO_PUBLIC_APNS_ENV=production` (`:57`), so the
+phone registers as "production" (`apps/mobile/src/pushToken.ios.ts:9`) and the worker sends to `api.push.apple.com`
+(`workers/feeds/src/push.ts` `APNS_HOSTS`, the request URL in `apnsRequest`). The APNs key must allow Production.
+NOTE: build 35 is from `650665c61`, BEFORE follow-up 2: it re-sends an unchanged token only when the token changes, so
+if its first register succeeded and the worker later lost the token, turn Notifications off and "New regulations data"
+on again (a build from this branch's later head registers at every start by itself).
+1. **Register (the owner, in the app).** More → Notifications → turn on **"New regulations data"** ("Tell me when a
+   newer regulations release is ready to download."). The "Notifications" switch alone does not register: something to
+   check must be on as well (`data/src/notify/settings.ts` `notifyActive`); turning "New regulations data" on also turns
+   Notifications on (`ui/src/notify.ts` `setUpdateReady`). The iPhone's permission prompt ("… Would Like to Send You
+   Notifications") appears at that moment if it was never answered (`allow` → `ask`); the token is sent at the same time
+   and does not wait for the answer (a silent push needs no permission). If the worker was not deployed yet, the next
+   app start registers (nothing is stored after a failed send).
+2. **Check it arrived (Claude / the coordinator).** `GET https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/status.json`
+   → `push.missing.ios` must be `[]`. After step 3, `push.last.ios.tokens` ≥ 1.
+3. **Send one wake by hand** (from the repo root; the token is never printed):
+   `curl -sS -X POST -H @<(printf 'Authorization: Bearer %s\n' "$(cat app/workers/feeds/.run-token)") 'https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/run/push?reason=owner-phone-test'`
+   The answer (HTTP 200 if ok, 502 if not) is the send: `{at, reason, ok, unreadable, ios:{configured, missing, tokens,
+   sent, dead, failed, errors[]}, android:{…}}`. **APNs accepted it when `ios.sent` ≥ 1** (APNs answered 200).
+   `ios.dead` ≥ 1 with "BadDeviceToken" in `ios.errors` would mean the wrong host for that token (it is then deleted);
+   any other APNs reason is in `ios.errors`. The same object is `push.last` on `/status.json`, and the HTML `/status` has
+   a "Push wake-ups" table. `wrangler tail` on the feeds worker prints `{"job":"push","reason":…,"ios":{…}}`.
+4. **What the owner sees.** With the app in the background (not swiped away), a few seconds after the wake: More →
+   Notifications → tap **"Last background checks"** to open it. The newest line reads
+   `<date> at <time> PT · <n> s · woken by our server, …` — `nothing to tell`, or `new data downloading`, or `new data
+   ready` (`core/src/alerts.ts` `NOTIFY_WORDS.run.woke` / `.downloading`; `ui-native/src/menu/NotificationsPage.tsx`, the
+   `notify-runs` card, shown on every build). The periodic task's lines never say "woken by our server". Leave the page
+   and open it again to see a new line.
+5. **A trace without the phone.** A successful wake sends nothing to the feeds worker. It reads the data host:
+   `wrangler tail bc-fishing-r2-staging` (`deploy/staging/data.wrangler.toml`) prints `release/manifest.json app=<version>`
+   and `…/index.json app=<version>` for app requests (`deploy/staging/data-worker.js:34-35`); those lines seconds after
+   the push, with the app in the background, are the wake (an app start looks the same: read them by time).
+6. **Off.** Turning Notifications off sends `POST /push/unregister`; the next `/run/push` shows `ios.tokens` one fewer.
 
 ### What needs a real phone
 FIRST: that a real silent push starts the push task at all (run log "woken by our server"; the simulator could not show

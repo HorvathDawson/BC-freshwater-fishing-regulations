@@ -76,7 +76,7 @@ describe("POST /push/register and /push/unregister (T739)", () => {
     expect(tokens(BUCKET)).toEqual([]);
   });
 
-  it("is rate-limited per address like POST /crash: 2 s apart, 20 a day", async () => {
+  it("is rate-limited per address like POST /crash: 2 s apart, 200 a day", async () => {
     const BUCKET = new MemBucket();
     const env = { BUCKET, REPORT_SALT: SALT };
     const body = { platform: "ios", token: IOS, env: "sandbox" };
@@ -86,7 +86,7 @@ describe("POST /push/register and /push/unregister (T739)", () => {
     expect(await fast.json()).toEqual({ ok: false, error: "too many changes; try again in a minute" });
     // another address is not held back
     expect((await handlePush(req("/push/register", body, "198.51.100.9"), env, "register", at("2026-11-14T12:00:01Z"))).status).toBe(201);
-    for (let i = 1; i < 20; i++) expect((await handlePush(req("/push/register", body), env, "register", new Date(Date.parse("2026-11-14T12:00:00Z") + i * 3000))).status).toBe(201);
+    for (let i = 1; i < 200; i++) expect((await handlePush(req("/push/register", body), env, "register", new Date(Date.parse("2026-11-14T12:00:00Z") + i * 3000))).status).toBe(201);
     const day = await handlePush(req("/push/register", body), env, "register", at("2026-11-14T13:00:00Z"));
     expect(await day.json()).toEqual({ ok: false, error: "too many changes today" });
   });

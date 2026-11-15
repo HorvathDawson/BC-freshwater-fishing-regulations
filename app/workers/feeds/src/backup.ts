@@ -41,7 +41,8 @@ const DAY = 86_400_000;
  *  counters, the staging test stores, anything else in a personal store), or null: not personal data */
 export function personalKind(key: string): "report" | "crash" | "never" | null {
   if (key.startsWith(TEST_REPORTS_PREFIX) || key.startsWith(TEST_CRASHES_PREFIX)) return "never";
-  // (T739) the push tokens and their counters: never copied (the phones register again at every start)
+  // (T739) the push tokens and their counters: never copied (a phone with notifications on registers its token again at
+  // every app start, app/packages/data/src/notify/push.ts, so a lost store fills again)
   if (key.startsWith("private/push/tokens/") || key.startsWith("private/push/limits/")) return "never";
   if (key.startsWith(REPORTS_PREFIX)) return /^\d{4}-\d{2}-\d{2}\/[^/]+\.json$/.test(key.slice(REPORTS_PREFIX.length)) ? "report" : "never";
   if (key.startsWith(CRASHES_PREFIX)) return /^[^/]+\.json$/.test(key.slice(CRASHES_PREFIX.length)) ? "crash" : "never";
