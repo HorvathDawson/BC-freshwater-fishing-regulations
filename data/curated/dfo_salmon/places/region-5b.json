@@ -583,7 +583,22 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "dean_river__crag_creek_into_dean_river",
+              "dean_river__signs_0_5_km_above_the_canyon_500_m_upstream"
+            ],
+            "item_id": "gnis:16075"
+          },
+          {
+            "op": "downstream_of",
+            "splits": [
+              "dean_river__signs_100_m_below_the_canyon_100_m_downstream"
+            ]
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
