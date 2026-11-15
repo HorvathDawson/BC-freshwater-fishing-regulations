@@ -10480,10 +10480,28 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
-        "tributaries": null,
-        "tributaries_only": false,
-        "tributary_excludes": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:2195"
+          }
+        ],
+        "tributaries": true,
+        "tributaries_only": true,
+        "tributary_excludes": [
+          {
+            "op": "whole",
+            "item_id": "gnis:14918"
+          },
+          {
+            "op": "whole",
+            "item_id": "gnis:2637"
+          },
+          {
+            "op": "whole",
+            "item_id": "gnis:30327"
+          }
+        ],
         "sections_cached": null,
         "notes": [],
         "spatial_caveat": false
