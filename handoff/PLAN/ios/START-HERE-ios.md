@@ -45,6 +45,31 @@ would show such a closed area as open. Nothing binds today. I take it as T757 wh
 (`handoff/PLAN/app-integration/tickets/T573-files/worker-handoff.md`); I asked for a mechanical guard (the release
 refuses when the worker does not report the new feed shape) and for the app to say "not known" instead of "open".
 
+**State 16:08, 2026-11-15 (newest first; the notes below it are older).**
+1. **R8 Play build (build 33): still possible tonight.** The 15:17 run of the six checks failed at the first one, and
+   I traced why on the emulator instead of guessing: the system's downloader still held half-finished atlas and
+   basemap downloads from the morning's cut-short runs; the freshly cleared app adopted them, and they never moved
+   ("paused, 18 of 197 MB", the same bytes for 35 minutes). That, not R8 and not the internet line, is very likely
+   what failed this morning's sixth check too. After an uninstall + install of the same APK the clean run started
+   15:54: install PASS (map up 481 s), crash reports PASS; four checks to go, due about 17:10. If all pass: merge,
+   CI, and the Android chat builds for Play internal tonight; if not, tomorrow.
+2. **A real bug came out of that (T760, open):** a first install waits for ever, without a word, on a system download
+   that is paused and never moves. On a phone a battery saver can do the same. Also in the ticket: the bench must
+   clear the downloader between runs.
+3. **Region-default salmon sentences were missing under live data (T758): fixed and live on STAGING 15:57.** With
+   the live feed, waters covered only by a region's default rule showed the right status (closed) but a generic line
+   instead of DFO's own sentence; about 1.1 M stream sections. The worker now publishes the seven default places
+   and equals the pipeline's feed on all 435 chains of the staging release. Production's worker has the same gap;
+   that deploy is the owner's, after the merge.
+4. **A wider question went to the owner from the Android chat (T759):** when DFO rewords or drops a restricting
+   place, the wider opening answers and a closed stretch can read open (worst example found: a Campbell River
+   closure). Proposal on branches only: such places read "not known, check the DFO notice". My parts (worker port,
+   app backstop using a new `known` list in the feed) start after build 33; nothing deploys before his answer.
+5. **T756 (reopen restarts downloads):** the fix now also keeps a paused download that already has bytes, every
+   restart from zero is written to the log, and the bench reads that line (branch `fix/t756-keep-running-job`
+   81591d974, not merged, not yet run on the emulator).
+6. **T757 (closed areas inside a DFO place):** worker half live on staging since 15:13; app half on its branch.
+
 **CORRECTION 15:19 (my error).** The internet line was NOT down all afternoon. My probe asked for the staging basemap
 without its `release/` prefix and timed a 9-byte "not found" answer from 13:04 on; "30-46 bytes a second" was that.
 Measured properly at 15:16: 8 MB in 4.7 s (1.77 MB/s). The failures up to 12:49 were real; when the line came back

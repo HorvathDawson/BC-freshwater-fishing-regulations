@@ -243,6 +243,12 @@ with the default Claude uses until you answer). Newest first inside each section
   **State 2026-11-15 14:44: planned for tomorrow.** The line is still down (30–46 bytes a second since 13:04). The
   Android chat lands its desktop split (T752) on the shared branch first, so all six checks are re-run on that new
   head with the shrinker on before the build. If the line recovers today the sixth check is still re-run today.
+- **NEW 2026-11-15 16:08 (iOS chat; yours, later, no decision needed now): production feeds worker deploy.** Two
+  worker fixes are live on STAGING only: T758 (waters covered only by a region's default salmon rule show DFO's own
+  sentence under live data again, not a generic "Not opened by DFO" line; the status was right all along) and T757
+  (closed areas inside a DFO place are emitted as their own live locations). Production's worker has the same gap
+  until it is deployed from the shared branch after these merge; that deploy is yours (`deploy/prod`, never an
+  agent's). I say when the branch is ready.
 - **DONE 2026-11-15 07:32.** TestFlight build 36 uploaded (0.7.10, branch `ios/next` d658f88ac, staging data): the
   iOS fixes, the first-install bar, the "applying new data" screen with fish puns, push, the crash-report fix, the
   faster cold start and lighter fonts. Yours: install 36 (not 34 or 35), then the phone checks and the push test;
