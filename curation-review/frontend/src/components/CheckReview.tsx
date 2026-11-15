@@ -192,7 +192,8 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
   const [hideDone, setHideDone] = useState(() => pref("ck-hide-done", true));
   const [easiest, setEasiest] = useState(() => pref("ck-easiest-first", false));
   // (a filter that ASKS for done places — verified earlier, saved by you — shows them whatever the toggle says)
-  const hiding = hideDone && !["earlier", "saved"].includes(filter);
+  // (T742: "marked in a group" asks for places that are mostly done — shown whatever the toggle says)
+  const hiding = hideDone && !["earlier", "saved", "group"].includes(filter);
   const arranged = useMemo(() => arrange(queue ?? [], { easiest, hideDone: hiding, keep: selected }), [queue, easiest, hiding, selected]);
   const list = arranged.list;
   // an older wording is not a queue row: prev / next and the position are those of the place it rides
