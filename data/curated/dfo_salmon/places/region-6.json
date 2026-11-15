@@ -4645,7 +4645,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "ksi_x_anmas_river__lower_bridge_abutments"
+            ],
+            "item_id": "gnis:3815"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
