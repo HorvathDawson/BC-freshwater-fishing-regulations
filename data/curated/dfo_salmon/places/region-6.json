@@ -8105,7 +8105,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "zymoetz__hwy_16_bridge_over_the_zymoetz_copper"
+            ],
+            "item_id": "gnis:3137"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
