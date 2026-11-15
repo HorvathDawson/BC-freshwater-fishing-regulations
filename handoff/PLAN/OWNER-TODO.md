@@ -728,3 +728,8 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
 - ASKED 2026-11-15: "there was one river i dropped highway 16 split near mouth in the skeena i shouldnt have done that
   help me fix it please". Found: Exchamsiks River "upstream of Highway 16 bridge", mark 2674, saved as the whole river.
   Fix: save it again as upstream of the proposed "Hwy 16 bridge over the Exchamsiks" point; the new save replaces it.
+- PERMISSION 2026-11-15 (Puntledge), verbatim: "please add both cut on weir and one downstream then i give you
+  permission to edit that extent for regulations and dfo places." Scope: the Puntledge hatchery weir cut, the cut 75 m
+  downstream, and the Puntledge rule-book and DFO extents that use them. In work.
+- ASKED 2026-11-15: "the shuswap one add it as proposal so i dcan see it". The Shuswap closed stretch is being prepared
+  as a proposal for the review app; added to his proposals once ready.
