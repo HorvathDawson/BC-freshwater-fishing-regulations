@@ -35,7 +35,8 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
   installed about 6 minutes after first open. Also on the branch: free-space check before a download (both platforms),
   downloaded data kept out of iCloud backup (seen on the files), iOS-only wording for the two promises that do not hold
   there, Wi-Fi-only refuses hotspot and Low Data Mode, the progress-number fix. Needs a real phone: lock screen,
-  cellular, hotspot, swipe-away.
+  cellular, hotspot, swipe-away. Found in the proof and not fixed: the bar reads low while the big files download
+  (T738, both platforms).
 - `ios/t723-keyboard-back` (**proven on the simulator 20:25**, head 97f3523ca, not merged): the keyboard no longer
   covers the gauge search under Notifications or the line being typed in a spot's notes; a left-edge swipe now closes
   About, Help, Layers, the rule-book viewer and the photo viewer (About and Layers did not before); the number pads on
@@ -96,6 +97,8 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
 11. T686: which data savings become tickets: (a) three lossless, about 1.94 MB / others in the ticket.
 12. Slice 8: the small test release has no map tiles, and the export takes its checklist as a named input: keep / other.
 13. Clean-up: five calls in `CLEANUP-CANDIDATES.md` (defaults there).
+17. The first-install bar reads low on both platforms (38.8 MB shown with 116 MB on disk): the four big files download
+    at once and the bar counts one at a time. Fix it as a small ticket (T738) / leave it.
 15. A spot's Save row stays under the keyboard while typing: leave it (drag down or Done first) / lift the row above
     the keyboard.
 16. The new left-edge back strip on full-screen pages is 16 pt wide and takes taps in that gutter: keep / narrow to 8 pt.

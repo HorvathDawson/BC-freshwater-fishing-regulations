@@ -121,6 +121,8 @@ with the default Claude uses until you answer). Newest first inside each section
   (13) iOS keyboard and back fixes are proven on the simulator (T723, branch `ios/t723-keyboard-back`); two picks: a
   spot's Save row stays under the keyboard while typing [leave: drag down or Done first] or lift it above the keyboard;
   the new left-edge back strip on full-screen pages is 16 pt wide [keep] or 8 pt;
+  (14) the first-install bar reads low on both platforms (38.8 MB shown with 116 MB on disk after a relaunch): the four
+  big files download at once and the bar counts one at a time [fix it, ticket T738] or leave it;
   (12) Play's data-safety form says approximate location and the App Store answers say precise: should Play match?
 - **Apple Developer account: ENROLLED 2026-11-14, waiting for Apple's approval** (owner, verbatim: "okay i enrolled with
   apple developer I will tell you wne i get approved"). This answers decision 1 of `handoff/PLAN/ios/START-HERE-ios.md`
