@@ -754,3 +754,16 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
 - READY 2026-11-15: the final marks audit is one command (branch review/marks-audit, commits d9f7045 + 88dec44, lands
   with the other fixes after marking). Trial run on today's marks: 303 candidates in 11 sections; every finding from
   today's hand audits is in it. Run by the main chat when you say the marks are fully done.
+
+## 2026-11-15 afternoon — owner done labelling for now; clean-up asked (T743)
+Owner, verbatim: "i thought skeena used to have a hells gate cut? also other ones liek this dont have the confluence
+cut? (from Lakelse River mouth upstream to the Skeena River Overpass (New Hwy Bridge) at Ferry Island) again this doesnt
+split on confluence.. (from the confluence with the Babine River downstream to the CNR Railway Bridge at Terrace. ) ...
+all the audit stuff i will have to review later like shuswap stuff etc etc. i think i am done labelling for now. can you
+audit everything a lot compile all results/issues into questions for me later. and make sure to fix all the remaining
+items left. a lot have issues with bad cuts etc etc. also we could rebuild the cuts and make sure nothing causes issues?
+also want to make sure we deduplicate the new cuts from proposal (if they rewference same thing they should be matched
+etc) we just really want to clean it all up and then have questions ready for me later."
+Main chat's plan: land the prepared fixes; run the full audit; clean the cuts (duplicates matched to one cut, confluence
+ends on the confluence cut, bad positions fixed where the evidence is clear, the rest as questions); side rebuild and
+checks; one page of questions for him. Nothing that changes what a wording means is decided for him.
