@@ -9205,7 +9205,14 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "lakelse_river__whitebottom_rd_bridge_lakelse_near_the_mouth"
+            ]
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
