@@ -4908,9 +4908,9 @@
         "areas": []
       },
       "status": "active",
-      "duplicate_of": "2:fraser-river:mainstem-waters-upstream-of-the-cp",
+      "duplicate_of": null,
       "duplicate_score": 0.972,
-      "duplicate_confirmed": true,
+      "duplicate_confirmed": false,
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
