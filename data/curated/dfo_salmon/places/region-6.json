@@ -9148,7 +9148,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "lakelse_river__whitebottom_rd_bridge_lakelse_near_the_mouth"
+            ],
+            "item_id": "gnis:4903"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
