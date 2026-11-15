@@ -7,6 +7,8 @@ from pipeline.regs.review import dfo as D
 
 LIVE = "3:thompson-river:from-kamloops-lake-outlet-downstre~2"
 OLD = "3:thompson-river:from-kamloops-lake-outlet-downstre"
+SHUSWAP_LIVE = "8:shuswap-river:middle-between-shuswap-falls-and-m~2"
+SHUSWAP_OLD = "8:shuswap-river:middle-between-shuswap-falls-and-m"
 
 
 def _stored():
@@ -30,9 +32,11 @@ def test_the_thompson_row_gives_a_closure_entry_with_dfos_words_for_each_area():
 def test_only_rows_whose_words_say_no_fishing_are_derived_and_no_place_id_changes():
     stored = _stored()
     got = K.derive(stored)
-    # the two Thompson wordings (named stretches) and the two Babine Lake wordings (mouths with a radius): nothing else
+    # the two Thompson wordings (named stretches), the two Babine Lake wordings (mouths with a radius) and the two middle
+    # Shuswap wordings (an inline "except closed from … to …", T743): nothing else
     assert sorted(got) == sorted(x + "#closed" for x in (OLD, LIVE, "6:babine-lake:babine-lake-excluding-tributaries~2",
-                                                         "6:babine-lake:babine-lake-excluding-tributaries~3"))
+                                                         "6:babine-lake:babine-lake-excluding-tributaries~3",
+                                                         SHUSWAP_OLD, SHUSWAP_LIVE))
     ids = {l["location_id"] for l in stored}
     assert not (set(got) & ids) and all(e["derived_from"] in ids for e in got.values())   # new ids only, each from a real row
     # a list with no closed / no-fishing words, or of neither shape, derives nothing
@@ -231,3 +235,75 @@ def test_the_centre_is_where_the_creeks_own_channel_meets_the_shore_never_the_in
     assert "looked" in CM.shore_mouth(lake, 9, segs, "Nowhere Creek")
     hint = CM.shore_mouth(lake, 9, segs, "Bay Creek", hint={"near": [550, 1000], "why": "a bay of that name"}, to_albers=lambda x, y: (x, y))
     assert hint["confidence"] == "low" and hint["stream"] == 3, "the unnamed stream at the hint, never another named creek"
+
+
+# --------------------------------------------------------------------------- T743: an inline "except closed from A to B"
+
+def test_the_middle_shuswaps_inline_closed_stretch_is_entry_b_with_dfos_points_as_printed():
+    """owner 2026-11-15: "(middle) between Shuswap Falls and Mabel Lake except closed from the water survey station
+    (located at 50°19.105' N …) … to WTFB signs (located at 50°18.181' N …) one km down stream" — the scrape stored no
+    exclusion (the clause is not a bullet); it is read from the words as one stretch, both ends with their coordinates"""
+    got = K.derive(_stored())
+    live, old = got[SHUSWAP_LIVE + "#closed"], got[SHUSWAP_OLD + "#closed"]
+    assert live["status"] == "active" and old["status"] == "dormant" and live["water_id"] == old["water_id"] == "8:shuswap-river"
+    # the words say "closed" and name no season: the rule claims none (as Babine Lake's)
+    assert live["rule"]["verbatim"] == "Closed" and "when" not in live["rule"] and live["rule"]["take"] == 0
+    assert live["title"] == "Shuswap River: closed in 1 named area"
+    [a] = live["areas"]
+    assert a["kind"] == "stretch" and a["inline"] is True and a["name"] == "the water survey station to WTFB signs"
+    assert a["item"].startswith("closed from the water survey station (located at 50°19.105' N")
+    assert a["item"].endswith("to WTFB signs (located at 50°18.181' N and 118°49.105' W) one km down stream")
+    first, second = a["ends"]
+    assert first["words"].endswith("approximately 200 m down stream of Shuswap Falls Hatchery")
+    assert second["words"] == "WTFB signs (located at 50°18.181' N and 118°49.105' W) one km down stream"
+    # degrees + decimal minutes, exactly, as printed (never reordered or corrected: the mismatch is the owner's call)
+    assert first["coords"] == [{"printed": "50°19.105' N 118°48.857' W", "lat": 50.3184167, "lon": -118.8142833}]
+    assert second["coords"] == [{"printed": "50°18.181' N 118°49.105' W", "lat": 50.3030167, "lon": -118.8184167}]
+    # the dormant wording's typing slips ("( located", "200m") do not make it another piece: one key across both
+    assert old["areas"][0]["key"] == a["key"] and old["areas"][0]["item"] != a["item"]
+    assert a["key"] in K.live_keys(got, "8:shuswap-river")
+
+
+def test_only_an_except_closed_or_no_fishing_from_to_clause_is_read_inline():
+    def row(words, excludes=()):
+        return {"location_id": "1:a:b", "water_id": "1:a", "water": "A River",
+                "source_text": {"specific_area": words, "excludes": list(excludes)}}
+    # pointers to other rows, a "with exception of" note, and the Stave's spawning channels (rows of their own) derive nothing
+    for words in ("including tributaries, except in the area described below.",
+                  "downstream of Parker Creek, except in the areas and times described below.",
+                  "from the confluence with Crag Creek downstream to the tidal boundary, except for the canyon as listed below.",
+                  "upstream of CNR bridge at Terrace to a point above the confluence with the Babine River, excluding the areas below",
+                  "from a line … downstream, with exception of “no fishing for salmon” closure area identified above.",
+                  "downstream of B.C. Hydro Dam to the CPR Railway Bridge; except you shall not fish for salmon in that portion "
+                  "on the east side of the Stave River, known as the Ruskin Spawning Channel from the inlet near the dam, "
+                  "downstream to the boat ramp crossing"):
+        assert K.inline_items(row(words)) == [] and K.derive([row(words)]) == {}, words
+    # "no fishing" reads as no fishing; "downstream to" and a trailing Note are handled; an end without a point has none
+    got = K.derive([row("the river except no fishing from the dam downstream to the old bridge. Note: barbless.")])
+    [a] = got["1:a:b#closed"]["areas"]
+    assert got["1:a:b#closed"]["rule"]["verbatim"] == "No fishing"
+    assert a["item"] == "no fishing from the dam downstream to the old bridge"
+    assert [e["words"] for e in a["ends"]] == ["the dam", "the old bridge"] and all(e["coords"] == [] for e in a["ends"])
+    assert a["name"] == "the dam to the old bridge"
+    # a bulleted list is the row's list: an inline clause beside it is not read a second time
+    assert K.inline_items(row("the river except closed from A to B, and no fishing in the following areas:",
+                              ["Upper - above the dam"])) == []
+
+
+def test_printed_coordinates_convert_exactly():
+    assert K.coords_in("at 50°19.105' N and 118°48.857' W") == [
+        {"printed": "50°19.105' N 118°48.857' W", "lat": 50.3184167, "lon": -118.8142833}]
+    assert K.coords_in("49°41'30\" N 123°58'27\" W") == [
+        {"printed": "49°41'30\" N 123°58'27\" W", "lat": round(49 + 41 / 60 + 30 / 3600, 7), "lon": round(-(123 + 58 / 60 + 27 / 3600), 7)}]
+    assert K.coords_in("50°46.893' N only") == [{"printed": "50°46.893' N", "lat": 50.78155, "lon": None}]
+    assert K.coords_in("no point here") == []
+
+
+def test_rows_with_a_bulleted_list_derive_what_they_did_before():
+    """T743 adds inline stretches only: the Thompson's and Babine Lake's pieces carry no `inline` and keep their keys"""
+    got = K.derive(_stored())
+    for eid, e in got.items():
+        if not eid.startswith("8:shuswap-river"):
+            assert not any(a.get("inline") for a in e["areas"]), eid
+    live = next(l for l in _stored() if l["location_id"] == LIVE)
+    assert [a["key"] for a in got[LIVE + "#closed"]["areas"]] == [K.piece_key(x) for x in K._excludes(live)]

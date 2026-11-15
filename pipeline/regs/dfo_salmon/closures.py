@@ -16,6 +16,9 @@ This module only DERIVES entry B from the stored rows (pure: no fetch, no feed, 
 writes the derived entries to `<generated>/review/dfo_closure_entries.json` as PROPOSALS for the review app; putting
 an accepted one into the places file and its rule into the feed is the build-side step (T573).
 
+An inline "except closed from <A> to <B>" in the place's own words (T743, the middle Shuswap) is one more stretch: the
+scrape never makes it an exclusion (`inline_items`).
+
 Only a row whose own words say no fishing / closed is derived (a wording that merely says "except:" takes it from a
 wording of the same water with the identical list).
 
@@ -55,6 +58,78 @@ RADIUS_RE = re.compile(r"within\s+a?\s*(?P<m>\d+(?:\.\d+)?)\s*(?P<unit>km|m)\b[^
 #: "(Also) closed east of a line from Gullwing Creek to south shore of Babine Lake"
 LINE_RE = re.compile(r"(?:also\s+)?closed\s+(?P<words>(?:east|west|north|south)\w*\s+of\s+a\s+line[^.]*)", re.I)
 
+#: AN EXCEPTED STRETCH INSIDE THE PLACE'S OWN WORDS (T743, owner 2026-11-15, the middle Shuswap: "(middle) between
+#: Shuswap Falls and Mabel Lake except closed from the water survey station (located at 50°19.105' N …) … to WTFB signs
+#: (located at 50°18.181' N …) one km down stream."). The scrape fills `source_text.excludes` only from the cell's
+#: `<li>` bullets (parse → untangle → locations, and the feeds worker's twin), so a clause written inline is never
+#: one: it is read HERE, from the stored words, as one excluded stretch. Only "except closed / except no fishing from
+#: <A> to <B>" — an "except in the areas described below" is a pointer to other rows (Nanaimo, Nitinat, Dean, Skeena),
+#: and the Stave's "except you shall not fish for salmon in that portion … known as the Ruskin Spawning Channel …" names
+#: side channels that DFO also lists as rows of their own (reading it here would close them twice).
+INLINE_RE = re.compile(r"\bexcept\s+(?P<verb>closed|no\s+fishing)\s+(?P<words>from\s+.+?)\s*(?:\bnote\s*:.*)?$",
+                       re.I | re.S)
+#: a printed coordinate, degrees + decimal minutes (seconds optional): 50°19.105' N, 118°48.857' W
+COORD_RE = re.compile(r"(?P<deg>\d{1,3})\s*°\s*(?P<min>\d{1,2}(?:\.\d+)?)\s*['’′]\s*"
+                      r"(?:(?P<sec>\d{1,2}(?:\.\d+)?)\s*[\"”″]\s*)?(?P<hem>[NSEW])\b")
+
+
+def coords_in(words: str) -> list[dict]:
+    """every printed coordinate pair in `words`, AS PRINTED and converted exactly: {printed, lat, lon} (decimal degrees,
+    W and S negative). A latitude with no longitude after it is kept with `lon` None (never guessed)."""
+    out, lat = [], None
+    for m in COORD_RE.finditer(words):
+        v = int(m.group("deg")) + float(m.group("min")) / 60.0 + float(m.group("sec") or 0) / 3600.0
+        hem = m.group("hem").upper()
+        v = round(-v if hem in "SW" else v, 7)
+        if hem in "NS":
+            if lat is not None:
+                out.append({"printed": lat[0], "lat": lat[1], "lon": None})
+            lat = (m.group(0).strip(), v)
+        elif lat is not None:
+            out.append({"printed": f"{lat[0]} {m.group(0).strip()}", "lat": lat[1], "lon": v})
+            lat = None
+    if lat is not None:
+        out.append({"printed": lat[0], "lat": lat[1], "lon": None})
+    return out
+
+
+def _split_from_to(words: str) -> Optional[tuple[str, str]]:
+    """"from <A> to <B>": the first " to " outside parentheses after "from" (a printed "(located at …)" holds none)"""
+    w = re.sub(r"^\s*from\s+", "", words, flags=re.I)
+    depth = 0
+    for i, ch in enumerate(w):
+        depth += ch == "("
+        depth -= ch == ")" and depth > 0
+        if depth == 0 and re.match(r"\s(?:down(?:stream)?\s+|up(?:stream)?\s+)?to\s", w[i:], re.I):
+            a, b = w[:i], re.sub(r"^\s(?:down(?:stream)?\s+|up(?:stream)?\s+)?to\s+", "", w[i:], flags=re.I)
+            return a.strip(" ,;"), b.strip(" ,;.")
+    return None
+
+
+def _head(end: str) -> str:
+    """an end's landmark, before its "(located …)", ", " or "approximately …": "the water survey station" """
+    return re.split(r"\s*\(|,|\s+(?:approximately|approx\.?|located)\b", end, maxsplit=1, flags=re.I)[0].strip()[:60]
+
+
+def _inline_key(item: str) -> str:
+    """THE KEY OF AN INLINE ITEM: `piece_key` of its words with DFO's typing slips aside ("( located" / "(located",
+    "200m" / "200 m": the two stored Shuswap wordings), so one closed stretch is one piece across them"""
+    return piece_key(re.sub(r"(\d)\s*(k?m)\b", r"\1 \2", re.sub(r"\(\s+", "(", item)))
+
+
+def inline_items(loc: Mapping) -> list[dict]:
+    """THE EXCEPTED STRETCHES WRITTEN INSIDE THE PLACE'S WORDS (`INLINE_RE`), only when the scrape stored no bulleted
+    list (a bulleted list is the row's list; never both): [{item, verb, ends: [{words, coords}, …] | None}]"""
+    if (loc.get("source_text") or {}).get("excludes"):
+        return []
+    m = INLINE_RE.search(_text(loc))
+    if m is None:
+        return []
+    item = re.sub(r"\s+", " ", f"{m.group('verb')} {m.group('words')}").strip().rstrip(".").strip()
+    ft = _split_from_to(m.group("words"))
+    ends = None if ft is None else [{"words": e, "coords": coords_in(e)} for e in ft]
+    return [{"item": item, "verb": m.group("verb").lower(), "ends": ends}]
+
 
 #: THE OWNER'S READING of words DFO leaves open, per water (never guessed in code): Babine Lake's row only "exclud[es] …
 #: those waters" and says "closed"; owner 2026-11-10: "babine is closed in the circles (no fishing salmon)". Shown as
@@ -89,6 +164,8 @@ def _excludes(loc: Mapping) -> tuple[str, ...]:
 def says_closed(loc: Mapping) -> bool:
     """the place's own words (or an exclusion's) say no fishing / closed, AND the list is one of the two shapes: named
     stretches ("Deadman - from … to …": at least one) or mouths with a radius ("within a 400 m radius of …")"""
+    if inline_items(loc):           # "except closed from … to …": the clause itself says closed
+        return True
     ex = _excludes(loc)
     return (bool(ex) and (any(AREA_RE.match(e) for e in ex) or radius_m(loc) is not None)
             and bool(CLOSED_RE.search(_text(loc) + " " + " ".join(ex))))
@@ -114,6 +191,11 @@ def areas(loc: Mapping) -> list[dict]:
     for m in LINE_RE.finditer(_text(loc)):
         w = m.group("words").strip()
         out.append({"key": piece_key(w), "item": w, "kind": "line", "name": w[:60], "words": "closed " + w})
+    for it in inline_items(loc):      # an inline "except closed from A to B": one stretch, each end with its printed points
+        ends = it["ends"]
+        name = (f"{_head(ends[0]['words'])} to {_head(ends[1]['words'])}" if ends else it["item"][:60])
+        out.append({"key": _inline_key(it["item"]), "item": it["item"], "kind": "stretch" if ends else "unknown",
+                    "name": name, "words": it["item"], "inline": True, **({"ends": ends} if ends else {})})
     return out
 
 
@@ -131,7 +213,8 @@ def closure_entry(loc: Mapping, because: Optional[str] = None) -> dict:
     dfo_words, words = words, (read["verbatim"] if read else words)
     return {"id": lid + SUFFIX, "derived_from": lid, "kind": "closure", "water": loc.get("water"),
             "water_id": loc.get("water_id"), "region": loc.get("region"), "status": loc.get("status") or "active",
-            "title": f"{loc.get('water') or ''}: {words.lower()} in {len(areas(loc))} named areas".strip(": "),
+            "title": (f"{loc.get('water') or ''}: {words.lower()} in {len(areas(loc))} named "
+                      f"area{'' if len(areas(loc)) == 1 else 's'}").strip(": "),
             # the rule in the catalogue's own shape (what the Region 6 section-F closure carries): all salmon, take 0
             "rule": {"type": "retention_limit", "species": ["SA"], "take": 0, "may_target": False, "verbatim": words,
                      **({"when": {"dates": [{"from_month": 1, "from_day": 1, "to_month": 12, "to_day": 31}]}}
@@ -143,7 +226,7 @@ def closure_entry(loc: Mapping, because: Optional[str] = None) -> dict:
 
 def derive(locations: Iterable[Mapping]) -> dict[str, dict]:
     """every closure entry the stored rows give: location id + "#closed" -> entry B. Pure."""
-    locs = [l for l in locations if _excludes(l)]
+    locs = [l for l in locations if _excludes(l) or inline_items(l)]
     said = {(l.get("water_id"), _excludes(l)): str(l["location_id"]) for l in locs if says_closed(l)}
     out: dict[str, dict] = {}
     for l in locs:
