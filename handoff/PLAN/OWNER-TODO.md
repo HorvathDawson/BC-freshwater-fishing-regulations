@@ -787,3 +787,7 @@ checks; one page of questions for him. Nothing that changes what a wording means
   Bella Coola whole "(not including Atnarko River)" = Atnarko excepted (2731, per your note "make sure this excludes
   atnarko"); the two Bulkley "all tributaries" places (2732, 2733) = tributaries only. YOURS: the two Bulkley places had
   no mark of yours, so they are saved as "unsure" from the proposal: confirm or change.
+- BLOCKED 2026-11-15, NEEDS YOU: the side map rebuild did not start. The permission check refused its first step
+  (`python -m pipeline.regs.review.proposals side … --out data/generated/side/dfo-cuts23`) twice for the rebuild job; the
+  main chat does not run a command a job was refused. Run it yourself or tell the main chat to. Details in
+  `handoff/PLAN/OWNER-RETURN-2026-11-15.md` section 6.
