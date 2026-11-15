@@ -1,6 +1,6 @@
 # T737 — Web: the first river click waits for the background download of the whole release files
 
-Status: IN PROGRESS (lane: first-click investigation 2026-11-14; fix committed, staging deploy is the main chat's)
+Status: IN PROGRESS (lane: first-click investigation 2026-11-14; fix committed + unnamed-stream background order e974cabf7 (2026-11-14 night); staging deploy is the main chat's; region slices left as an option)
 
 Source: owner 2026-11-14 evening, verbatim: "On staging.canifishthis.ca  The first river click takes a very long time
 to open". Staging = b2dba0297 (app 0.7.10) on release r-f749475d0962. The staging smoke's "tap a named water" step said
@@ -76,3 +76,66 @@ T256 (2026-10-29) with the background prefetch (T253/T238).
 - The smoke step of item 4 (follow-up).
 
 Depends: none. Size: S. Owner: no (a look after the next staging deploy).
+
+## Unnamed streams in the background, without moving Lighthouse (2026-11-14 night)
+Owner, verbatim: "could we slow load the stuff needed for unnamed streams in background without it effecting the
+lighthouse seo scores?" Answer: **yes, with limits** — done (e974cabf7, unpushed); a tap in the first ~5 s after paint
+stays slow on a slow line (only slices fix that, below). Lighthouse: unchanged on every page measured.
+
+**Facts (HEAD before this change).**
+- An unnamed page waits for `regs-sid` (1.24 MB gz) and `down` (1.17 MB), then its region's water slice (0.17 MB,
+  serial). It also asks for `lines` (1.28 MB) but does NOT wait for it (tap at 15 s: readable in 0.07 s with `lines`
+  still downloading).
+- The background tier (`release/background.ts`) starts 4 s after `requestIdleCallback` after the map's first region
+  report, one file at a time: (core from the idle tier) → whole `water` 2.57 MB → access → regs-sid → down → salmon →
+  the other regions' regs + salmon (~9 MB). Measured (desktop, data-staging): water 4.0-8.0 s after paint, regs-sid
+  in at ~12.8 s, down at ~14.7 s. So an unnamed tap was fast from ~15 s after paint, slow (5-11 s) before it.
+- Lighthouse is not in CI. `tools/seo` writes a `lighthouserc.json` for the water pages; the T196/T409 runs were water
+  pages + region hubs (mobile, simulated). Region hubs are static (3 requests, no app). Water pages are the app with
+  the pane prerendered, but the map is built only when seen (T409), so the map never reports a region and the
+  background tier never starts: no regs-sid/down/water/lines in any water-page run. Only `/` (the app shell, not an
+  SEO landing page) runs it, and there it already fell inside Lighthouse's window in 3 of 5 runs BEFORE this change.
+- The SEO category is page markup only (titles, meta, crawlability): no download timing can move it. What timing can
+  move is Performance (LCP, TBT, Speed Index, CLS) — so the worry applies to Performance on `/`, not to SEO.
+
+**Change (web only; the phone never runs the background tier).** (a) Per region: what a named tap reads (core, access,
+regs-<r>, salmon, salmon-<r>), then regs-sid and down, then the whole water (it helped no tap since the fix above:
+a tap reads its slice while it comes). `lines` is not fetched ahead (the page does not wait for it; fetched ahead it
+slowed a named tap at 8 s, 0.8 → 2.2 s on a phone, in a first pass). Still one at a time, still after idle + 4 s.
+(b) While the reader downloads (any release download under the `ahead` priority, net activity) nothing new starts
+(`reader()`, wired in `useBackgroundPrefetch`); a tap on a file in flight already joined it (web source `inflight`)
+and asked the others in parallel — now pinned by a test. Holds unchanged: Save-Data, effectiveType not 4g, measured
+under 1.5 Mbit/s, low-data mode, metered (cellular) without the setting, hidden, low battery (tests pass as before).
+Not done: `fetch` priority "low" on ahead files — a tap that joins a file in flight would inherit the low priority.
+Tests: `background.test.ts` (order, yield, join + parallel, readerDownloading), `prefetch.render.test.tsx` (hook
+wiring; and the idle-core test fixed: fetch, then open after it settles — CI red on 4cc85a914). Mutation-checked
+(order off → 6 fail, yield off → 1, `<=` → 2, join off → 1, hook off → 1). `pnpm check:fast` clean.
+
+**Timing** (local exports of HEAD vs this change against data-staging, alternated per scenario; page readable after
+the tap; the real line was slow tonight, ~3-4 Mbit/s, so the 10 Mbit throttle mostly did not bind):
+
+| tap after paint | desktop real | phone real | desktop 10 Mbit | phone 10 Mbit |
+|---|---|---|---|---|
+| unnamed 3 s | 5.7 → 1.6 s | 7.2 → 5.6 s | 7.8 → 4.2 s | 4.5 → 7.6 s |
+| unnamed 8 s | 5.9 → 0.8 s | 10.8 → 10.5 s | 6.1 → 1.0 s | timeout → 1.5 s |
+| unnamed 15 s | 0.1 → 0.1 s | 0.1 → 0.1 s | 0.1 → 0.1 s | 0.1 → 0.1 s |
+| Fraser 3 s | 1.5 → 1.2 s | 1.2 → 1.0 s | 1.7 → 1.4 s | 2.1 → 1.2 s |
+| Fraser 8 s (3 / 2 runs) | 1.0, 1.0, 0.5 → 2.5, 0.6, 0.3 s | 4.7, 0.3 → 2.3, 0.3 s | | |
+
+Named taps: no slower (the 2.5 s desktop run fetched its 0.17 MB water slice on a slow spell; at 8 s the whole water is no longer in, so a named tap reads its slice — as at 3 s). At 3 s nothing has been fetched ahead yet in either build (the tier starts ~5 s after paint), so 3 s moves only with
+the line. The phone 8 s 10.5 s run: the idle core was still coming (the line ~1.4 Mbit/s then).
+
+**Lighthouse 12.8.2, mobile preset, alternated, median of the valid runs** (a run whose data-staging requests failed
+is left out): `/` Perf 48 → 48, LCP 7.84 → 7.84 s, TBT 668 → 692 ms, SI 6.68 → 6.76 s, SEO 92 → 92; `/water/vedder-river`
+Perf 51 → 54, LCP 19.3 → 18.1 s, TBT 352 → 368 ms, SI 6.7 → 8.2 s, SEO 100 → 100; `/region/2` 100 → 100 (LCP 0.90 s,
+TBT 0), SEO 100 → 100. Run-to-run spread is ±8 points. The water page's LCP is the app's "Before you fish" first-run
+notice drawn after hand-over (a fresh profile; T409's rig numbers differ for this reason).
+
+**Left: region slices (option c, not built — a pipeline/release-format change).** Only slices make a tap in the first
+seconds fast on a slow line: ~2.4 MB must arrive first today. Measured on r-f749475d0962 (block-level, today's handle
+order): a region's handles touch 13-78 % of regs-sid's 479 blocks and 9-88 % of lines' 303 (region 2: 51 % / 69 %),
+because handles are ordered by stream key, not by region — so a block slice saves about half (region 2: regs-sid
+≈ 0.63 MB). Re-keyed per region (only the region's handles, plus a handle → slot index) the files would be ~4-30 % of
+the whole (region 2 has 72k of 1.96M handles). `down` is per section with the downstream walk (crosses regions to the
+mouth). Touches pipeline `slices.py`/regs store, the contract (WEB_ONLY, budget), `loader.dbFor` routing for
+regs-sid/down, the release-budget pins. Ticket-sized; owner's call.
