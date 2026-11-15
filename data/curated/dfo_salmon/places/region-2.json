@@ -4433,7 +4433,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "fraser_river__the_cpr_bridge_at_mission",
+              "fraser_river__spuzzum_creek_into_fraser_river"
+            ],
+            "item_id": "gnis:39325"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
