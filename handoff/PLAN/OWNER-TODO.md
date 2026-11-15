@@ -11,7 +11,12 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
-- **Production move (2026-11-14): READY, yours to run** (owner: "tonight we will probably do that"). Follow
+- **ANSWERED 2026-11-14 (production move changed).** Owner, verbatim: "Production will use the latest version" and "It
+  will also get new dfo places I will label tonight". So production is NOT deployed from the 9048fbc20 copy below: it
+  waits for tonight's DFO labels, then a new data release with them, then the website built from the latest checked
+  code and that release. Claude: staging site redeployed from the latest code now; after the labels, a new staging
+  release, then fresh production folders and fresh commands here. The commands in the next item are OUT OF DATE.
+- **Production move (2026-11-14): SUPERSEDED by the answer above; was: READY, yours to run** (owner: "tonight we will probably do that"). Follow
   `handoff/PLAN/release/PRODUCTION.md`, first-transition steps 3-8. Data, from the main folder:
   `CONFIRM_PROD=r-f749475d0962 .venv/bin/python -m pipeline release --prod r-f749475d0962`. Website, from the clean copy
   `~/bcfish-clean-staging` (must be at 9048fbc20, `git status --porcelain -- app` empty): `deploy/prod/site.sh --dry-run`,
