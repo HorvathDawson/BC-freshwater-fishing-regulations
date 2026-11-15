@@ -28,9 +28,13 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
 - **Clean-up lane:** 219 files, about 29 MB, removed; 18 candidates listed in `handoff/PLAN/CLEANUP-CANDIDATES.md`.
 
 **Built on a branch, proof still running or waiting for the simulator**
-- `ios/t722-install`: free-space check before a download (both platforms), downloaded data kept out of iCloud backup,
-  iOS-only wording for the two promises that do not hold there, Wi-Fi-only refuses hotspot and Low Data Mode, and the
-  iOS background download. **The background download does not work on the simulator yet** (see failed).
+- `ios/t722-install` (**proven on the simulator 18:45**, not merged): the iOS first download now runs with the app not
+  in front and with the app closed. In the run: 152 MB arrived in 60 s with Settings in front; after the app was
+  force-closed mid-download it kept going, and the relaunch picked up the same downloads with nothing fetched twice;
+  installed about 6 minutes after first open. Also on the branch: free-space check before a download (both platforms),
+  downloaded data kept out of iCloud backup (seen on the files), iOS-only wording for the two promises that do not hold
+  there, Wi-Fi-only refuses hotspot and Low Data Mode, the progress-number fix. Needs a real phone: lock screen,
+  cellular, hotspot, swipe-away.
 - `ios/t723-keyboard-back`: keyboard and back fixes from the audit. Proof running.
 - `ios/audit-fixes`: eight small fixes (among them the "↗" that iOS draws as a blue emoji tile). Proof running.
 - `ios/t719-tapup`: the early tap cue for iOS, same event as Android's. Started 17:40.
@@ -39,11 +43,11 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
 - The iOS look at today's five shared fixes (T717, T728 to T731): running.
 
 **What failed or was found**
-- **iOS background download refused on the simulator:** the system service rejected every task ("does not have a bundle
-  ID"), the app re-queued in a loop and the first install never finished. A retry with Xcode's own build-time signing
-  step is queued. If that fails too, the proof needs a signed build (TestFlight).
-- **First-open progress most likely does not move on iPhone today:** about 5,000 number-conversion errors from the
-  progress callback during the download. Being fixed on `ios/t722-install`.
+- **iOS background download refused on the simulator, then fixed:** the system service rejected every task ("does not
+  have a bundle ID") in two runs. Cause: our simulator build skipped Xcode's signing step, which is what gives the app
+  its identity there. The build script now signs "to run locally" (no account, no team); the third run passed.
+- **First-open progress most likely does not move on iPhone today (0.7.9/0.7.10):** about 5,000 number-conversion
+  errors from the progress callback during the download. Fixed on `ios/t722-install` (zero such lines in its run).
 - **Crash report not delivered in the baseline** (crash check, step 2): the app read the crash record at the next start
   but the send returned false each time. Probably the worker's daily limit from this Mac; not proven.
 - **No "At my location" row in iOS search** in the baseline run; cause not settled (app or test bed).
@@ -68,7 +72,8 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
 5. Site build with no Team ID: skip Apple's link file with a warning / always fail.
 6. Backup (T732): confirm the relayed words; add the image library for compressed copies: yes / no; back up only with
    a screen lock: no / yes; copy size 1600 px quality 70 / other. The photo pair was sent.
-7. iOS background download proof, if the retry fails: wait for TestFlight / sign a simulator run with a personal team.
+7. iOS background download (proven on the simulator): merge after the Android benches pass on the branch, phone checks
+   follow with TestFlight / wait for the phone checks first. Not merged tonight either way (production move).
 8. Early tap cue on iOS (branch `ios/t719-tapup`): merge once proven / leave.
 9. About page gains "not affiliated with the government" (Apple asks): About only / also show the first-run notice again.
 10. Play's form says approximate location, the App Store answers say precise: change Play to match? (no default)
