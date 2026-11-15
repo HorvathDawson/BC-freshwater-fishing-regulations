@@ -49,7 +49,12 @@ async function appUp(ctx, { launch = true, ms = 180_000, alerts = 'Allow' } = {}
   let w = [];
   while (Date.now() < end) {
     w = device.screenText();
-    if (w.some((x) => /Would Like to Send You Notifications|Allow .* to use your location/i.test(x))) {
+    if (w.some((x) => /^Allow widgets from|^Allow “(?!Can I Fish)[^”]+” to use/i.test(x))) {
+      // (T723 run, 2026-11-14) another app's or a widget's prompt (Apple Maps' widgets asked for location over everything,
+      // and "Allow.*" matched the prompt's own title, never its button): not ours to allow, refused, and said
+      ctx.finding(`a system prompt that is not the app's was on screen: "${w.find((x) => /^Allow /.test(x))}" (Don't Allow)`);
+      ctx.flow('ios-alert', { BUTTON: "Don.t Allow" });
+    } else if (w.some((x) => /Would Like to Send You Notifications|Allow .* to use your location/i.test(x))) {
       ctx.flow('ios-alert', { BUTTON: alerts === 'Allow' ? 'Allow.*' : "Don.t Allow" });
     } else if (w.some((x) => /^(I understand|Skip|Before you fish|Welcome|Got it)$/.test(x) || GUIDE.test(x))) {
       ctx.flow('dismiss-first-run');                     // the notice, the walkthrough (it reopens itself until skipped)
