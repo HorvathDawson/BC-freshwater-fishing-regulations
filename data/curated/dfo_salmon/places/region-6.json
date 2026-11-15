@@ -4243,7 +4243,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "kitimat_river__kitimat_hatchery_outfall_u_s_sign",
+              "kitimat_river__kitimat_hatchery_outfall_d_s_sign"
+            ],
+            "item_id": "gnis:3225"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
