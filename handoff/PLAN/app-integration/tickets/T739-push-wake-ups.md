@@ -166,13 +166,58 @@ refuses that flag without `app/apps/mobile/google-services.json`.
    - `npx --prefix app wrangler secret put APNS_KEY_ID -c app/workers/feeds/wrangler.toml`
    - `npx --prefix app wrangler secret put APNS_TEAM_ID -c app/workers/feeds/wrangler.toml`
    then the feeds worker is deployed with this branch (main chat), and `/status` shows "Push wake-ups: ios ok".
+   The bundle id is NOT a secret: it is in the code (`APNS_TOPIC = "ca.canifishthis.app"`, worker `src/push.ts`).
+   Production later: the same three (and `FCM_SERVICE_ACCOUNT`) with `-c app/workers/feeds/wrangler.prod.toml`.
 3. Android (when you want it): console.firebase.google.com → Add project (Analytics: OFF when it asks) → Add app →
    Android → package name `ca.canifishthis.app` → download `google-services.json` and hand it over. Then Project settings
    → Service accounts → "Generate new private key" (a JSON file) and run
    `npx --prefix app wrangler secret put FCM_SERVICE_ACCOUNT -c app/workers/feeds/wrangler.toml` (paste the whole JSON).
 
+**The catch sites listed in FINE (`app/tools/failures.test.ts`), each one line (none hides a failure the reader could see):**
+- `workers/feeds/src/push.ts:196` an APNs answer without a JSON body: its HTTP status alone decides (non-200 is still counted failed).
+- `workers/feeds/src/push.ts:205` the same for an FCM answer.
+- `workers/feeds/src/push.ts:236` a token record in R2 that does not parse is deleted (the phone registers again at its next start).
+- `workers/feeds/src/push.ts:280` a send that never reached APNs/FCM: counted `failed` with its reason in the send's result and `/status`, and the run prints it as a step error.
+- `workers/feeds/src/push.ts:309` the sender's own "release last seen" state unreadable: treated as first look (records the release, sends no wake).
+- `packages/data/src/notify/push.ts:80` the sync queue's own link (`chain.then(f, f)`): each sync's failure goes to its caller's promise, which `NotifyRoot` reports; the queue only goes on.
+(Also: two credential failures in `sendWake` now log with `console.error` and are counted, `push.ts` APNs key / FCM credential.)
+
+### Simulator proof (2026-11-14, build `1f6272410`, `deploy/staging/build-ios-sim.sh --testbed` via heavy.sh lane 3, device `t739-17` iPhone 17 / iOS 26.5)
+Set-up: the build pointed at local stand-ins through the test bed's own switches: `EXPO_PUBLIC_REPORT_URL=http://127.0.0.1:39257/report`
+(the app derives `/push` from it) served by `app/tools/testbed/crash-stub/server.mjs` (now also the worker's own `handlePush`),
+and `EXPO_PUBLIC_DATA_BASE=http://127.0.0.1:39258`, a scratch proxy to data-staging that can answer the test-channel manifest
+with another `data_release` (a "newer release" without any R2 write). The built binary's `__TEXT,__entitlements` holds
+`aps-environment = development` (and associated domains); Info.plist `UIBackgroundModes` = fetch, processing, remote-notification.
+- **(a) register — PASS.** Turning on "New regulations data" (notifications on, iOS permission allowed) sent the token: the
+  stub held `{platform: "ios", env: "sandbox", token: 160 hex}`; nothing else in the body. Shot `03-notifications-on.png`
+  (the push intro shown, whole). Re-registered after a later re-enable (stub log 05:54:42 201).
+- **(b) silent push — NOT PROVABLE ON THIS SIMULATOR; handler to prove on a phone.** `xcrun simctl push <udid>
+  ca.canifishthis.app` with `{"aps":{"content-available":1},"k":"check"}` and with an alert + content-available payload:
+  - app in front: the simulator log shows SpringBoard's `SBBackgroundFetchTask` → `UIFetchContentInBackgroundAction`, "Finished
+    … with result: NoNewDataAvailable" 4 ms later, "Not delivering user visible notification … because it has no alert";
+    no request reached the data proxy, the check's run log stayed empty (`notify.json runs: []`).
+  - app in background (suspended): the same fetch action, NoNewData after 46 ms, suspended again 1.2 s later; no request.
+    The alert-type push showed its banner (shot `bg-alert-1.png`: "T739 test"), so delivery to the app works; the
+    JS task still did not run.
+  - app terminated: the push cold-launched the app in the background; the app's own boot and update service then read the
+    manifest (proxy: `obs.json`, `test/release/manifest.json` → the "newer" release, the feed indexes) and staged and applied
+    it (`held` became that release; its files are the same as the installed set, so 0 bytes were fetched). That is the
+    ordinary start, not the push task: the run log stayed empty.
+  - The task IS registered: the app's preferences hold `EXTaskService.mainApplication.tasks."canifishthis-push-wake"` with
+    consumer `ExpoNotifications.NotificationsBackgroundTaskConsumer`, and no failure was reported to the stub. The
+    consumer runs only for the remote-notification launch reason; the simulator hands the push over as a background
+    FETCH (expo-task-manager's `performFetch` path), which the consumer does not take. So on this simulator the push task
+    cannot be reached by `simctl push`; there is no test-bed call that starts it directly (none was invented). What the
+    task runs (`runWake`: update check, then the same check; one notice for a held release, none for one downloading,
+    none twice) is proved by unit tests (`packages/data/src/notify/push.test.ts`), not on a device.
+- **(c) unregister — PASS.** Turning Notifications off sent `POST /push/unregister`; the stub held 0 tokens (shot
+  `10-notifications-off.png`).
+Shots and logs: the agent's scratchpad `shots/` (03, 05, 06, 09, 10, bg-alert-*), `session.log`, `session2.log`,
+`proxy-*.log`, `simlog.txt` (not committed).
+
 ### What needs a real phone
-APNs end to end (the worker → Apple → phone; the simulator cannot receive from APNs, and Cloudflare Workers' outbound
+FIRST: that a real silent push starts the push task at all (run log "woken by our server"; the simulator could not show
+it, above). Then APNs end to end (the worker → Apple → phone; the simulator cannot receive from APNs, and Cloudflare Workers' outbound
 fetch speaking HTTP/2 to APNs is proved only by the first real send — `/status` will show it), iOS's throttling of silent
 pushes (Apple: "two or three per hour"), Low Power Mode holding them, a swiped-away app not being woken, the wake-to-
 notice time against the acceptance's 2 minutes, a token turning over, and the production host with a TestFlight build.
