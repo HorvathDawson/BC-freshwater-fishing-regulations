@@ -129,8 +129,9 @@ with the default Claude uses until you answer). Newest first inside each section
   big files download at once and the bar counts one at a time [fix it, ticket T738] or leave it;
   (12) Play's data-safety form says approximate location and the App Store answers say precise: should Play match?
 - **Apple Developer account: APPROVED 2026-11-14 evening (individual); the owner has the Team ID** (given in chat; not
-  written in the repo). Left for you: save it as one line in `~/.canifishthis/ios-team-id` (Claude does not write that
-  folder), create the app record with Associated Domains on, make the API key. History: ENROLLED 2026-11-14, waiting for Apple's approval (owner, verbatim: "okay i enrolled with
+  written in the repo). DONE by you 2026-11-14: the Team ID is saved in `~/.canifishthis/ios-team-id` (checked: the site build reads
+  it and now writes Apple's link file). Left for you: register the App ID `ca.canifishthis.app` with Associated Domains
+  on, create the app record, make the API key. History: ENROLLED 2026-11-14, waiting for Apple's approval (owner, verbatim: "okay i enrolled with
   apple developer I will tell you wne i get approved"). This answers decision 1 of `handoff/PLAN/ios/START-HERE-ios.md`
   (account now). ANSWERED 2026-11-14 evening, verbatim: "it is a individual evelper account" (so the App Store shows
   your own legal name as the seller). Same message: "i cant find team id how do i make one?": it is not made, Apple
