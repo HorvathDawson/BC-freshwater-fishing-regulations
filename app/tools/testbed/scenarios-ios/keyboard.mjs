@@ -74,7 +74,8 @@ export function measure(ctx, name, find) {
   ctx.device.screenshot(file);
   const img = readPng(file);
   const ns = ctx.device.nodes();
-  const W = Math.max(...ns.map((n) => n.box.x1), 1);
+  const win = ns.find((n) => n.box.x0 === 0 && n.box.y0 === 0 && n.box.x1 > 0);   // the app's window, not the widest node
+  const W = win ? win.box.x1 : 390;
   const scale = img.w / W;                                   // pixels per iOS point
   const px = keyboardTop(img);
   const kbTop = px === null ? null : px / scale;

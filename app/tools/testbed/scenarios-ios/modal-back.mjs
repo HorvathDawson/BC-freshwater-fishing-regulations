@@ -15,7 +15,12 @@ export const modalBackIos = {
     const d = ctx.device;
     /** the screen in iOS points (the tree's widest and tallest node) */
     // (a read of the tree can come back empty under load: looked at again, and the iPhone 17e's 390 × 844 when it stays empty)
-    const screen = () => { const ns = d.nodes(); return ns.length ? { W: Math.max(...ns.map((n) => n.box.x1)), H: Math.max(...ns.map((n) => n.box.y1)) } : { W: 390, H: 844 }; };
+    // the app's own window (the first node at 0,0 with a size), not the widest node: a page's content can run past the
+    // right edge (Help: its swatch rows), and 2% of that width started the drag outside the edge strip
+    const screen = () => {
+      const win = d.nodes().find((n) => n.box.x0 === 0 && n.box.y0 === 0 && n.box.x1 > 0 && n.box.y1 > 0);
+      return win ? { W: win.box.x1, H: win.box.y1 } : { W: 390, H: 844 };
+    };
     // the modal's marker read off a tree that is not empty (an empty read is neither "up" nor "gone": read again)
     const look = async (up0) => {
       for (let i = 0; i < 3; i++) { if (d.screenText().length) return up0(); await d.sleep(1500); }
