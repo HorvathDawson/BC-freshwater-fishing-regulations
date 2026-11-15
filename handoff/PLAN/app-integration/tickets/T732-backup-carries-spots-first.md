@@ -261,6 +261,17 @@ Found on the way (none of them the rules):
 - **Dependency**: `expo-image-manipulator` 58.0.15 (the SDK 58 `bundledNativeModules` pin), `apps/mobile` + a peer of
   `@app/data` + the root `overrides`; `deps.md` line; `layers.json` lets `packages/data/src/spots` import it.
 
+### 10. Emulator proof of the photo set (2026-11-14 evening, test-bed APK from 76b828cb3, one heavy job, 33 min)
+| # | Step | Key output | Result |
+|---|---|---|---|
+| 1 | Rules in the APK | cloud-backup and full-backup-content: the 9 files + `spots/backup-photos`; device-transfer: the 9 + `spots/photos` | **PASS** |
+| 2 | Three spots, each with a 12 MP photo, through the app | 3 copies made in `spots/backup-photos/` (66,021 / 64,477 / 67,426 B; originals 570–681 KB after the picker's own re-encode); the line: "Your phone's backup holds your 6 spots and 3 of 5 photos, made smaller, the newest first. The other 2 photos are on this phone only." The 2 left out are the two older spots' photos, which were **0-byte files** on the device (copied in as root by the earlier proof, then the emulator was killed before they reached disk): no copy could be made, each was reported and said, as designed | **PASS** |
+| 2b | Cloud backup | `Success`, set **227,328 bytes**: spots, `.bak`, the settings, `backup-photos/` with the 3 copies | **PASS** |
+| 3 | Wipe (`pm clear`) + `bmgr restore 1` | `restoreFinished: 0`; restored: spots, `.bak`, settings, the 3 copies; no `photos/`. The app opened, downloaded the release again (map up in 310 s), and its start-up sync put the 3 copies back in `spots/photos/` (66,021 / 64,477 / 67,426 B, originals never overwritten: there were none); the Spots tab shows all three photos (screenshot `t732proof/out-proof2/restored-spots.png`), line "Your phone's backup holds your 6 spots and all 3 photos, made smaller."; crash buffer: none | **PASS** |
+| 4 | ~50 MB of photos (26 noisy 1600×1200 JPEGs, 50.3 MB as files, added to one spot through the picker) | the picker's own re-encode stored them at 24,788 KB for all 29 photos; 29 copies, **20,088 KB**; the line: "Your phone's backup holds your 7 spots and all 29 photos, made smaller."; cloud backup `Success`, set **20,440,576 bytes**, 29 copies in the archive | **PASS**, but **the over-quota path was not reached**: all 29 fit (budget ~20.9 MB). "Some left out, newest first" is shown by `backupSync.test.ts` and core `backupSet.test.ts`, not on the device |
+
+Found: a copy of a photo that is already 1600 px or smaller is barely smaller than its original (the 26 test photos: ~780 KB copy for ~850 KB stored). Cheap follow-up if wanted: when the original is no larger than the long edge and smaller than its copy, keep the original's bytes as the copy.
+
 ### Not done / unverified
 Not shown on an emulator: a real device-to-device transfer with no quota (needs two phones and Google's D2D transport;
 the local transport caps it at 25 MB, step 5b); the Google cloud transport itself (no Play services account on this
