@@ -200,6 +200,10 @@ with the default Claude uses until you answer). Newest first inside each section
   back swipe, tap cue); owner, verbatim: "yes". Build 34 from 51349c3bf **uploaded 23:39** (0.7.10 build 34, staging data). The shared
   branch is not touched by it. Yours: add build 34 to your internal group and install it; checks only a phone can do
   are on the To-Do page row.
+- **DONE 2026-11-15 07:32.** TestFlight build 36 uploaded (0.7.10, branch `ios/next` d658f88ac, staging data): the
+  iOS fixes, the first-install bar, the "applying new data" screen with fish puns, push, the crash-report fix, the
+  faster cold start and lighter fonts. Yours: install 36 (not 34 or 35), then the phone checks and the push test;
+  the steps are at the top of `handoff/PLAN/ios/START-HERE-ios.md` and on the To-Do page.
 - **ANSWERED 2026-11-15 02:09 (before bed).** (1) To "TestFlight build 36: may I upload one in the morning with
   everything that passed overnight (loading screen, push re-register fix, crash-report fix, lighter fonts)?", owner,
   verbatim: "yes you can upload". My reading: one upload, build 36, only what passed; later uploads are asked again.

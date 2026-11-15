@@ -1,5 +1,53 @@
 # iOS hardening: start here (written 2026-11-14)
 
+## Morning summary, 2026-11-15 (written 07:35; the night's work in one place)
+
+**For you to do, in this order**
+1. **Install TestFlight build 36** (uploaded 07:32; it replaces 34 and 35: everything below is in it). App Store
+   Connect → TestFlight → your internal group → add build 36; on the iPhone, TestFlight → install.
+2. **Try on the phone what only a phone can show:** start the first download, lock the screen a few minutes, switch
+   apps, swipe the app away and reopen (it should carry on, and the bar should show what is already down); tap a
+   river (it should light at once); left-edge swipe on About, Help, Layers.
+3. **Push test:** More → Notifications → turn on "New regulations data", allow notifications, put the app in the
+   background, tell Claude; Claude sends one test push; then More → Notifications → "Last background checks" should
+   show a newest line starting "woken by our server".
+4. **Answer when you can** (also on the To-Do page): which fish-pun lines stay; merge timing of the iOS work into the
+   shared branch; the open picks further down (questions 2 to 5, 9 to 13, 15 to 18).
+
+**What build 36 carries (branch `ios/next`, app CI green, nothing merged into the shared branch)**
+| part | what it does | how well proven |
+|---|---|---|
+| iOS fixes (T719, T722, T723, audit) | background first download, early tap cue, keyboard and back-swipe fixes | iPhone simulator and Android emulator, quiet machine: pass; Android unchanged |
+| First-install bar (T738) | the number counts the big files from the start and after a relaunch | simulator: bar 325 MB with 362 MB on disk, never went down; Android not run |
+| "Applying new data" screen (T746) | fish and a pun line, no taps, a failed apply says so | simulator and web: seen, timed; Android not run |
+| Push wake-ups (T739) | the server wakes the phone for alerts and new data | registering proven on the simulator; the wake itself needs your phone (step 3) |
+| Crash reports (T718) | a refused report is logged and reported; test runs no longer use up the daily limit on staging | unit tests; staging worker deployed 02:05 |
+| Faster and lighter (T741) | cold start 786 ms against 1,030 ms (simulator); app 3.9 MB smaller (8 fonts, not 41); background checks ask "changed?" first | simulator, measured; Android not measured |
+
+**Checked on the combined build this morning (iPhone simulator):** walkthrough 41 of 41, tap a water 3 of 3, offline
+3 of 3, satellite; one first-open step failed on a test-bed timing fault (a notice covered the tabs). The second
+session (rule book, keyboard, back swipes, timed runs) was running at 07:35.
+
+**Still running or queued at 07:35**
+- The combined build's second simulator session.
+- Android's code shrinker trial (T749, R8): built; the test APK is 55.0 MB against 62.4 MB (app code 7.9 MB against
+  30.4 MB). Whether the shrunk app starts and passes the six emulator checks is not known yet.
+
+**What went wrong overnight (mine unless said)**
+- A push from one of my lanes turned app CI red on the shared branch for about 40 minutes (a list test); fixed.
+- I first told you crash reports were not held back by the daily limit; they were (the limit's day turns at 17:00).
+- My noted clock times ran up to an hour fast from about 21:45; corrected against the logs.
+- The first TestFlight tries failed twice on setup (no registered iPhone; an API key without the Admin role, which my
+  own steps had asked for).
+- Three Android bench runs failed on the test bed's driver under load; they passed on a quiet machine.
+
+**Not done**
+- Android runs for T746, T738 and `perf/t741`; the R8 emulator checks; T721 (edge-swipe grid), T726 (four iPhone
+  sizes, large text: the pun line "Casting the new regulations into place…" wraps at the largest text size; the photo
+  viewer's "Photo 1 of 1" sits under the clock), T727 screenshots and video, the T731 step into the next water.
+- Nothing is merged into `redesign/stream-sections` except the crash-limit worker commit (your yes). No Play upload,
+  no production, no release.
+
 ## Summary of the unattended day, 2026-11-14 (state at 03:20 on 2026-11-15; lanes still running are marked; times from 21:45 on were corrected against the logs at 03:20, earlier notes of mine ran up to an hour fast)
 
 Nothing here touched Play, production, the atlas or a release. The Apple account was used only for the owner's first TestFlight build in the evening (below). Every app
