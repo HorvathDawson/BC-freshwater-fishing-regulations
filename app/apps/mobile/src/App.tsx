@@ -22,7 +22,7 @@ import {
   Archivo_400Regular, Archivo_500Medium, Archivo_600SemiBold, Archivo_700Bold, Archivo_800ExtraBold,
 } from "@expo-google-fonts/archivo";
 import { JetBrainsMono_500Medium } from "@expo-google-fonts/jetbrains-mono";
-import { DOWNLOAD_NOTE_WORDS, downloadFraction, INSTALL_WORDS, MAP_CREDITS, MOBILE_DATA_WORDS, mobileDataDecision, installLine, SETUP_WORDS, setupFraction, setupLine, netBanner, progressWords, rolledBackLine, splashLineFor, startStage, updatedToast, UPDATE_LOG_WORDS, UPDATE_WORDS, versionHeaders,
+import { applyLine, DOWNLOAD_NOTE_WORDS, downloadFraction, INSTALL_WORDS, MAP_CREDITS, MOBILE_DATA_WORDS, mobileDataDecision, installLine, SETUP_WORDS, setupFraction, setupLine, netBanner, progressWords, rolledBackLine, splashLineFor, startStage, updatedToast, UPDATE_LOG_WORDS, UPDATE_WORDS, versionHeaders,
          versionLine, dataProvenanceLine, now as clockNow } from "@app/core";
 import { createNet, shareFetch, createReportOutbox, createUpdateLog, createUpdateService, phoneNetwork, versionedFetch, httpFeed, gaugeHistory, httpInSeason, httpRunTiming, httpSalmonFeed, manifestDate, noteHeld, followSavedItems, openRunTimingStore,
          type Held, type UpdateService, type WaterSource } from "@app/data";
@@ -381,9 +381,12 @@ export default function App() {
   useEffect(() => () => updates.stop(), [updates]);
   /** Apply a staged update: boot onto it, the set in use on screen until the new one is ready. */
   const applying = useRef<{ before: Held | null; at: number } | null>(null);
+  const [applyTarget, setApplyTarget] = useState<string | null>(null);
   const apply = useCallback(() => {
     if (updates.snapshot().release?.phase !== "ready") return;
     applying.current = { before: bootedRef.current?.held ?? null, at: clockNow() };
+    // (T746) the release being put in use: its curtain line is picked by it (the cold start's boot screen picks the same)
+    setApplyTarget(updates.snapshot().release?.target ?? null);
     if ((globalThis as { __openProbe?: boolean }).__openProbe) console.log("[swap] apply");
     setGeneration((g) => g + 1);
   }, [updates]);
@@ -416,7 +419,7 @@ export default function App() {
   }, [boot, updates]);
   const clearToast = useCallback(() => setToast(null), []);
   // (T746) the apply in flight, and the failed one until the reader closes it (it was reported where it was caught)
-  const curtain = useApplyCurtain(boot);
+  const curtain = useApplyCurtain(boot, applyTarget);
   const applyingNow = curtain.applying;
   useEffect(() => {
     // (T287) the test bed's stall log reads the curtain off these lines
@@ -595,7 +598,7 @@ export default function App() {
   const ready = fontsIn || !!fontError || fontWaitOver;
   // (T244) the native splash is let go when the boot screen's fish is up (BootScreen); a start that skips that screen lets it go here
   useEffect(() => { if (failed || (ready && data)) releaseSplash(); }, [failed, ready, data]);
-  const bootWords = setup ? SETUP_WORDS.title : startStage(!ready && data ? "fonts" : stage);
+  const bootWords = setup ? SETUP_WORDS.title : (stage === "apply" ? applyLine(boot.state === "loading" ? boot.release : null) : startStage(!ready && data ? "fonts" : stage));
 
   // (T45) THE WINDOW'S WIDTH, read here and nowhere else in the app: every screen takes its layout class from it
   // (@app/ui `useLayoutClass`), so a component arranges itself for a phone, a tablet or a desktop without reading the window

@@ -4,13 +4,13 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { APPLY_WORDS } from "@app/core";
+
 import { BackLayerContext, useBack, useRoute, type Back, type Route, type RouteAction } from "@app/ui";
 import { ApplyCurtain } from "./ApplyCurtain";
 import { LIGHT } from "./theme";
 
 const curtain = (applying: boolean, failed: Error | null = null, onClose = () => {}) =>
-  <ApplyCurtain palette={LIGHT} applying={applying} failed={failed} onClose={onClose} />;
+  <ApplyCurtain palette={LIGHT} applying={applying} failed={failed} onClose={onClose} line="Landing the new regulations…" />;
 const tick = (ms: number) => act(() => { vi.advanceTimersByTime(ms); });
 
 describe("ApplyCurtain (T746)", () => {
@@ -29,8 +29,9 @@ describe("ApplyCurtain (T746)", () => {
     tick(299);
     expect(screen.queryByTestId("apply-line")).toBeNull();
     tick(1);
-    expect(screen.getByTestId("apply-line").textContent).toBe("Putting the new regulations in place…");
-    expect(screen.getByTestId("apply-line").textContent).toBe(APPLY_WORDS.line);
+    expect(screen.getByTestId("apply-line").textContent).toBe("Landing the new regulations…");
+    // the screen reader hears the line that is drawn
+    expect(screen.getByLabelText("Landing the new regulations…")).toBeTruthy();
     tick(100);
     rerender(curtain(false));                                         // the new set committed
     expect(screen.getByTestId("apply-line")).toBeTruthy();            // held: drawn 400 ms in all, no flicker
@@ -55,7 +56,7 @@ describe("ApplyCurtain (T746)", () => {
       const [route, go] = useRoute();
       out.b = useBack(route, go); out.r = route; out.go = go;
       return <BackLayerContext.Provider value={out.b.layers}>
-        <ApplyCurtain palette={LIGHT} applying={applying} failed={failed} onClose={onClose} />
+        <ApplyCurtain palette={LIGHT} applying={applying} failed={failed} onClose={onClose} line="Landing the new regulations…" />
       </BackLayerContext.Provider>;
     }
     const onClose = vi.fn();

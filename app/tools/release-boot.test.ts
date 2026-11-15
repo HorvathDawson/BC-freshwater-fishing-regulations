@@ -308,7 +308,7 @@ describe("native: always offline, updated by diff, swapped at the next launch", 
       let stages: string[] = [];
       const boot = (f: typeof fetch, keepReplaced?: boolean) => { stages = []; return bootRelease({
         manifestUrl: `${BASE}manifest.json`, releaseBase: BASE, wasmBase: "", platform: phone(fs), fetch: f,
-        manifestTimeoutMs: 1000, deferUpdate: true, onStage: (s) => stages.push(s), ...(keepReplaced ? { keepReplaced } : {}) }); };
+        manifestTimeoutMs: 1000, deferUpdate: true, onStage: (s, r) => stages.push(r ? `${s} ${r}` : s), ...(keepReplaced ? { keepReplaced } : {}) }); };
       const said = (b: Awaited<ReturnType<typeof boot>>, generation = 0, before: typeof b.held | null = null) =>
         bootSaid({ generation, booted: b, before });
 
@@ -329,7 +329,7 @@ describe("native: always offline, updated by diff, swapped at the next launch", 
       const cold = await boot(offline);
       expect(cold.manifest.data_release).toBe(id2);
       expect(cold.applied).toEqual({ from: id1 });
-      expect(stages).toEqual(["manifest", "apply"]);
+      expect(stages).toEqual(["manifest", `apply ${id2}`]);   // the id its line is picked by (core applyLine)
       expect(said(cold)).toEqual({ kind: "applied", release: id2, from: id1 });
       // … once: the next launch on the same set says nothing
       const again = await boot(offline);

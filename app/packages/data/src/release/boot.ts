@@ -88,7 +88,8 @@ export interface BootOptions {
   fetch?: typeof fetch;
   /** (T254) the app's bad-connection kit: the web source's fetches take their turn, survive cuts, say how far they got */
   net?: Net | null;
-  onStage?: (s: BootStage) => void;
+  /** `release`: (T746) with "apply", the id of the release being put in use (its line is picked by it, core `applyLine`) */
+  onStage?: (s: BootStage, release?: string | null) => void;
   onProgress?: (p: Progress) => void;
   /** (T298) a phone's system downloader (Android's DownloadManager): the first install's big files go on with the app closed */
   background?: BackgroundNative | null;
@@ -436,7 +437,7 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
           return spec ? { dir: dev.dirUri(dir), file: heldPath(h, spec.url).split("/").pop()! } : null;
         },
       }));
-    o.onStage?.(firstOpen(h) ? "apply" : "paint");
+    if (firstOpen(h)) o.onStage?.("apply", h.release ?? null); else o.onStage?.("paint");
     const paint = await loader.paint();
     openStep(2);
     const tPaint = clockNow();

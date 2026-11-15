@@ -25,8 +25,10 @@ import type { Palette } from "./theme";
 const FISH = 110;
 const NOTHING = () => {};
 
-export function ApplyCurtain({ palette, applying, failed, onClose }: {
+export function ApplyCurtain({ palette, applying, failed, onClose, line }: {
   palette: Palette;
+  /** what it says while applying: one of core `APPLY_WORDS.lines`, picked for the release (`applyLine`) */
+  line: string;
   /** an apply is in flight */
   applying: boolean;
   /** the apply that just failed (null: none, or closed) */
@@ -54,9 +56,10 @@ export function ApplyCurtain({ palette, applying, failed, onClose }: {
                         retryTestID="apply-failed-ok" />
           ) : (
             <>
-              <LoadingState palette={palette} size={FISH} label={APPLY_WORDS.line} shown />
+              {/* the screen reader hears the line that is drawn */}
+              <LoadingState palette={palette} size={FISH} label={line} shown />
               <Text testID="apply-line" style={{ ...TYPE.body, fontSize: 15, color: palette.ink, textAlign: "center" }}>
-                {APPLY_WORDS.line}
+                {line}
               </Text>
             </>
           )}

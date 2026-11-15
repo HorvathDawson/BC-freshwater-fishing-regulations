@@ -20,26 +20,43 @@ const STAGES: Readonly<Record<string, string>> = {
   install: "Downloading the map and regulations for offline use",
   paint: "Opening the map…",
   fonts: "Loading type…",
-  /** (T746) a start that opens a set downloaded earlier for the first time: the same line as the in-session curtain */
-  apply: "Putting the new regulations in place…",
 };
 
 /**
  * (T746) WHILE A DOWNLOADED DATA RELEASE IS PUT IN USE (owner 2026-11-14: "a loading icon with text like splash so it
- * doesnt looking like it is frozen"): the one line under the loading fish, on the curtain over the app and on the boot
- * screen of a start that applies one. `failed`: an apply that did not go through (the app keeps the data it had).
- * `options`: the wordings put to the owner; `line` is the default until the owner picks (T746 Results).
+ * doesnt looking like it is frozen"; 2026-11-15: "can we do more fish puns here that are directed at this ?"): the line
+ * under the loading fish, on the curtain over the app and on the boot screen of a start that applies one. A fish pun
+ * that still says plainly what is happening; ONE per release, picked by `applyLine`. `failed`: an apply that did not go
+ * through (plain; the app keeps the data it had).
  */
 export const APPLY_WORDS = {
-  line: "Putting the new regulations in place…",
-  options: [
-    "Putting the new regulations in place…",
-    "Applying the new regulations data…",
-    "Updating the regulations and map…",
+  lines: [
+    "Reeling in the new regulations…",
+    "Netting the latest regulations…",
+    "Landing the new regulations…",
+    "Tying on the new regulations…",
+    "Casting the new regulations into place…",
   ],
   failed: "The new regulations could not be put in place. The app is still using the data it had.",
   ok: "OK",
 } as const;
+
+/**
+ * (T746) The line for applying the release `release` (its `data_release` id): the id hashed (FNV-1a, 32-bit) to one of
+ * `APPLY_WORDS.lines`. Picked by the release, never at random, so one apply says one line from start to end, the cold
+ * start's boot screen and the in-session curtain say the same for the same release, and a test is deterministic. No id
+ * (not known): the first line.
+ */
+export function applyLine(release: string | null | undefined): string {
+  const lines = APPLY_WORDS.lines;
+  if (!release) return lines[0];
+  let h = 0x811c9dc5;
+  for (let i = 0; i < release.length; i += 1) {
+    h ^= release.charCodeAt(i);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return lines[h % lines.length]!;
+}
 
 /** The line for a start-up stage; an unknown stage says nothing rather than something made up. */
 export function startStage(stage: string): string {

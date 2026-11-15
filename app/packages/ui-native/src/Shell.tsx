@@ -811,7 +811,7 @@ export function Shell(p: ShellProps) {
                       checking={syncState.checking} onRetry={syncState.refresh} onClose={() => setSyncErrorOpen(false)} />
       {/* (T746) a downloaded release being put in use: the curtain over everything, taking every tap and the back */}
       {p.applyCurtain && <ApplyCurtain palette={palette} applying={p.applyCurtain.applying} failed={p.applyCurtain.failed}
-                                       onClose={p.applyCurtain.close} />}
+                                       onClose={p.applyCurtain.close} line={p.applyCurtain.line} />}
     </View>
     </SharePortContext.Provider>
     </MenuContext.Provider>

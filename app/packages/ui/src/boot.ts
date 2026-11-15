@@ -3,12 +3,14 @@
  * held for the loading screen. The app shell passes the platform half in (`@app/data/release/platform`), so this hook,
  * like every hook, runs under both renderers.
  */
-import { reportFailure, now } from "@app/core";
+import { applyLine, reportFailure, now } from "@app/core";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { bootRelease, BootError, SpaceError, warmLike, type BootOptions, type Booted, type Progress } from "@app/data/release";
 
 export type BootState =
-  | { state: "loading"; stage: string; progress: Progress | null }
+  | { state: "loading"; stage: string; progress: Progress | null;
+      /** (T746) with stage "apply": the id of the release being put in use (its line: core `applyLine`) */
+      release?: string | null }
   | { state: "ready"; booted: Booted; generation: number; applyError?: Error;
       /** (T746) an in-session apply is in flight: the set on screen stays until the new one commits (or fails) */
       applying?: boolean }
@@ -48,14 +50,14 @@ export function useReleaseBoot(opts: BootOptions | null, generation = 0, attempt
     if (!opts) return;
     let live = true;
     const again = generation > 0;
-    let progress: Progress | null = null, stage = "manifest";
+    let progress: Progress | null = null, stage = "manifest", release: string | null = null;
     // (T272) the loading screen is redrawn at most every PROGRESS_MS: a native download reports far more often than a
     // screen can show, and every redraw is JS-thread time the follower hash (install.ts) does not get. A new stage of
     // the second bar is drawn at once.
     let drawn = 0, pending: ReturnType<typeof setTimeout> | null = null, lastStep: string | undefined;
-    const draw = () => { pending = null; drawn = now(); if (live && !again) set({ state: "loading", stage, progress }); };
+    const draw = () => { pending = null; drawn = now(); if (live && !again) set({ state: "loading", stage, progress, release }); };
     // (T262) a failed first start tried again (`attempt`): back to the loading screen; the download resumes
-    if (!again && attempt > 0) set({ state: "loading", stage, progress });
+    if (!again && attempt > 0) set({ state: "loading", stage, progress, release });
     // (T746) an in-session apply: the set in use stays on screen, and the app draws its curtain over it until this ends
     if (again) set((prev) => (prev.state === "ready" ? { ...prev, applying: true, applyError: undefined } : prev));
     /** what a failed boot shows (the boot-failed page / the apply curtain's `applyError`); reported in the catch below */
@@ -77,7 +79,7 @@ export function useReleaseBoot(opts: BootOptions | null, generation = 0, attempt
       ...(startRegion ? { focus: startRegion } : {}),
       // (T418) an applied update: the set on screen stays whole (its tiles, mask and map assets) until the next launch
       ...(again ? { keepReplaced: true } : {}),
-      onStage: (st) => { stage = st; if (live && !again) set({ state: "loading", stage, progress }); },
+      onStage: (st, rel) => { stage = st; release = rel ?? null; if (live && !again) set({ state: "loading", stage, progress, release }); },
       onProgress: (p) => {
         progress = p;
         const step = p.setup?.step;
@@ -113,11 +115,14 @@ export function useReleaseBoot(opts: BootOptions | null, generation = 0, attempt
  * (T746) WHAT THE APPLY CURTAIN SHOWS, read off the boot: `applying` while an in-session apply is in flight (every way in
  * — the safe moment, "Apply now", the return from the background — is one generation bump, so one state), `failed` the
  * apply that just failed until the reader closes it (`close`); it was reported where it was caught (`useReleaseBoot`).
+ * `line`: what it says, picked by `release` (the id being put in use: the update service's staged target) — core
+ * `applyLine`, the same pick a cold start's boot screen makes for the same release.
  */
-export function useApplyCurtain(boot: BootState): { applying: boolean; failed: Error | null; close: () => void } {
+export function useApplyCurtain(boot: BootState, release: string | null):
+    { applying: boolean; failed: Error | null; close: () => void; line: string } {
   const applying = boot.state === "ready" && !!boot.applying;
   const error = boot.state === "ready" ? boot.applyError ?? null : null;
   const [closed, setClosed] = useState<Error | null>(null);
   const close = useCallback(() => setClosed(error), [error]);
-  return { applying, failed: error && error !== closed ? error : null, close };
+  return { applying, failed: error && error !== closed ? error : null, close, line: applyLine(release) };
 }

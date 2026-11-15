@@ -8,7 +8,7 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { setFailureSink, APPLY_WORDS } from "@app/core";
+import { setFailureSink, APPLY_WORDS, applyLine } from "@app/core";
 import type { BootOptions, Booted } from "@app/data/release";
 
 const boots: (() => Promise<Booted>)[] = [];
@@ -25,12 +25,13 @@ import { LIGHT } from "./theme";
 const set = (name: string) => ({ loader: { release: name, retire: async () => 0 } }) as unknown as Booted;
 const OPTS = {} as BootOptions;
 
-function AppLike({ generation }: { generation: number }) {
+/** `target`: the release being applied, as App.tsx's `apply()` reads it off the update service */
+function AppLike({ generation, target = null }: { generation: number; target?: string | null }) {
   const boot = useReleaseBoot(OPTS, generation);
-  const c = useApplyCurtain(boot);
+  const c = useApplyCurtain(boot, target);
   return <>
     <span data-testid="on-screen">{boot.state === "ready" ? (boot.booted.loader as unknown as { release: string }).release : boot.state}</span>
-    <ApplyCurtain palette={LIGHT} applying={c.applying} failed={c.failed} onClose={c.close} />
+    <ApplyCurtain palette={LIGHT} applying={c.applying} failed={c.failed} onClose={c.close} line={c.line} />
   </>;
 }
 
@@ -53,12 +54,16 @@ describe("the apply curtain, every way in (T746)", () => {
       await flush();
       expect(screen.getByTestId("on-screen").textContent).toBe("r-a");
       expect(screen.queryByTestId("apply-curtain")).toBeNull();
-      rerender(<AppLike generation={1} />);                 // apply(): the one generation bump every way in makes
+      rerender(<AppLike generation={1} target="release-four" />);   // apply(): one generation bump, every way in
       await flush();
       expect(screen.getByTestId("apply-curtain")).toBeTruthy();
       expect(screen.queryByTestId("apply-line")).toBeNull();
       await flush(300);
-      expect(screen.getByTestId("apply-line").textContent).toBe(APPLY_WORDS.line);
+      // the line is the release's own (core applyLine), the same a cold start's boot screen says for it
+      expect(screen.getByTestId("apply-line").textContent).toBe("Casting the new regulations into place…");
+      expect(screen.getByTestId("apply-line").textContent).toBe(applyLine("release-four"));
+      await flush(1000);
+      expect(screen.getByTestId("apply-line").textContent).toBe("Casting the new regulations into place…");   // one line, start to end
       expect(screen.getByTestId("on-screen").textContent).toBe("r-a");   // the set in use stays under it
       open();
       await flush();
