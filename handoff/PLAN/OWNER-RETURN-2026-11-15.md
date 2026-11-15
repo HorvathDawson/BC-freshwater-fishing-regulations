@@ -4,8 +4,10 @@ Asked by you: "record everything i need to do for when i am back what i need to 
 etc etc. what needs testings etc etc". This page is kept current by the main chat until you return. The same items are
 rows on the To-Do page; reports named here are in `handoff/PLAN/curation-review/`.
 
-Status line (updated 13:40): fixes landed; cut clean-up and tributaries-only saves done; the side map rebuild is
-running; the Android build is on hold (the internet line here is too slow for one of its checks today).
+Status line (updated 14:50 by the system clock; earlier stamps on this page ran fast): review-app fixes and follow-ups,
+the closed-area build step and the desktop split map are landed and pushed; the side map rebuild passed its checks
+and is being promoted locally (marks landing, reach step, data bundle running); no staging release yet; the Android
+build with the code shrinker is tomorrow (the internet line here is down).
 
 ## 1. First thing to do
 1. Restart the review app once (Ctrl-C, then `bash curation-review/run.sh`). It has new code: tributaries only /
@@ -108,11 +110,26 @@ after the clean-up and the rebuild; the final list replaces these numbers here.
   answered "You can run it" (2026-11-15) and the main chat ran that step; the build and its checks follow, in a side
   folder only (nothing live replaced; promotion decided after the checks). Disk: 65 GB free after 27.6 GB of old side
   builds, old atlases, old reach runs and 9 old releases were deleted (live + previous kept).
-- Build step that carries accepted closed areas (Thompson, Shuswap) into the app. NOT WRITTEN; needed before release.
-- App fix: BC border as a pickable point; reason shown when a place cannot be edited. NOT DONE.
-- Review app speed after a save (rebuild only the saved place). NOT DONE.
-- Android build with the code shrinker: ON HOLD. The other chat's background-install check failed three times; it is
-  finding out whether the shrinker or last night's loader change (mine) is the cause.
+- Side rebuild result (report `side-rebuild-2026-11-15.md`): every difference from the live map accounted for; 22 of
+  the 23 new cuts and the Puntledge weir built; no end cuts or slivers; gauges unmoved in the match file; 28 marks
+  land. HOLD: the Seton River mouth cut was NOT built and the build did not say so (it picked the wrong line for the
+  Seton); the Fraser place starting at the Seton stays unlanded until that is fixed and you have answered question 1.
+  New question: the Stamp River "everything else" place now covers nothing.
+- Promote of that build + reach step + data bundle: RUNNING (report will be `promote-2026-11-15.md`, with rollback).
+- Build step that carries accepted closed areas into the app: DONE in the pipeline (T573). A closed stretch's new cuts
+  now reach the cut proposals; a release with an accepted closed area is refused unless the feed server lists closed
+  areas; it edits BOTH upload scripts (staging and production) to add that check: for your code review. The feed-server
+  and app halves are with the other chat (T757), in progress.
+- Review app follow-ups: DONE (restart to get them): BC border as a pickable end (917 crossings), a reason on the 15
+  places that cannot be edited, saves about 4x faster (measured with write-through off; a save that rewrites a region
+  file still rebuilds the list once), an "old extent still in force" flag and filter (4 places).
+- Desktop split map (text left, map right): DONE and pushed; visible on staging after the next site deploy.
+- Local only: one test fails in the main copy because two rows of your proposals file (Stave, Bella Coola "all
+  tributaries") lack their split-hunt evidence; say so and the main chat regenerates those rows.
+- Android build with the code shrinker: TOMORROW. Five of six phone checks passed; the background-install check cannot
+  run on today's line. Found on the way (T756, the other chat): reopening the app mid-download restarts the big files
+  from zero; fix written on a branch, not yet run on a device.
+- Staging release of all this: NOT DONE (needs the bundle checks and a working line).
 
 ## 7. What needs testing by you
 - Review app after the restart: tributaries only / except; "to the tidal boundary" end; the warnings; the Shuswap
