@@ -205,25 +205,26 @@ def lake_area(loc: dict, water: dict | None) -> bool:
         and bool(AREA_WORDS.search(text))
 
 
-def _groups() -> dict:
-    """location id -> its HISTORIC GROUP (`review.dfo.groups`, owner 2026-10-28)."""
-    return D.groups(_locations())
-
-
 def _live_waters() -> set:
     """The water ids with a location on the live page."""
     return {l.get("water_id") for _s, l, _w in _locations().values()
             if (l.get("status") or "active") == "active" and l.get("water_id")}
 
 
-def historic_only(loc: dict, groups: dict | None, live_waters: set) -> bool:
-    """A HISTORIC-ONLY PLACE (owner 2026-11-02, the North Alouette): a dormant location that no live
-    one rewords — in no group, or the head of a group of dormant rewordings — on a water still on the
-    live page. Its own place, so the live queue shows it (the "active" filter used to drop it)."""
-    if (loc.get("status") or "active") == "active" or loc.get("water_id") not in live_waters:
-        return False
-    g = (groups or {}).get(loc["location_id"])
-    return g is None or g["canonical"] == loc["location_id"]
+def historic_only(loc: dict, live_waters: set) -> bool:
+    """A HISTORIC-ONLY PLACE (owner 2026-11-02, the North Alouette): a dormant location on a water still on the live
+    page — its own place, so the live queue shows it (the "active" filter used to drop it). T742 (owner 2026-11-14:
+    "remove the grouping option … one at a time is better"): EVERY such wording is its own place, never folded into a
+    group head."""
+    return (loc.get("status") or "active") != "active" and loc.get("water_id") in live_waters
+
+
+def group_marked(m) -> dict | None:
+    """T742: THE MARK IN FORCE WAS WRITTEN BY A GROUP SAVE (`Mark.group`, before grouping was removed): {group, date},
+    so the place is flagged "marked in a group" for the owner to re-check on its own; None otherwise. The mark stays
+    exactly what it says — the flag changes no state."""
+    g = getattr(m, "group", None) if m is not None else None
+    return {"group": g, "date": m.date} if g else None
 
 
 #: T449: THE TIDAL CONTEXT (tidal-limit rows by blk, cut labels) once per tidal_limits.json / cuts.json stamp
@@ -390,7 +391,10 @@ def cut_labels(view) -> dict[str, str]:
     no label is left out: the screen shows it as an error."""
     meta, records, bounds = reuse._splits_meta(), reuse._split_records(), reuse._boundary_index()
     out = {}
-    for sid in _strings(view) & (set(meta) | set(records) | set(bounds)):
+    for sid in _strings(view):
+        if reuse.REGION_CUT.match(sid):           # T742 C: "Region 5 boundary", never another water's atlas label
+            out[sid] = reuse.region_words(sid)
+    for sid in (_strings(view) & (set(meta) | set(records) | set(bounds))) - set(out):
         b = bounds.get(sid, (None, None))[1]
         label = ((meta.get(sid) or {}).get("label") or records.get(sid, ("", {}))[1].get("label")
                  or (getattr(b, "label", None) if b is not None else None))
@@ -419,40 +423,7 @@ def binds_same(a: dict, a_water: dict | None, b: dict, b_water: dict | None) -> 
     return same_extents(ea, eb) and tributaries_now(a, a_water) == tributaries_now(b, b_water)
 
 
-def fix_taking(src: dict, src_water: dict | None, member: dict, member_water: dict | None) -> tuple[list, list[str]]:
-    """THE EXTENT FIX THAT GIVES AN OLDER WORDING THE SHOWN PLACE'S EXTENT (owner 2026-11-09: "it should save extent to
-    all variants of location text"): the shown place's curated pieces (`proposals.fixes_of_extents`) and the tributary
-    call it binds with — its own flag, or, when the wording would bind another call, the shown place's effective one.
-    -> (fixes, why not): the shown place has no extent, holds a field a fix cannot say, or its call cannot be made."""
-    from pipeline.regs.review import proposals as P
-    b = src.get("binding") or {}
-    exts = list(b.get("extents") or [])
-    if not exts:
-        return [], ["the shown place has no extent to give it"]
-    call = b.get("tributaries")
-    want = tributaries_now(src, src_water)
-    after = call if call is not None else tributaries_now(member, member_water)
-    if after != want:
-        if want is None:
-            return [], ["its tributary call cannot be made the shown place's (that one inherits none)"]
-        call = want
-    return P.fixes_of_extents(exts, call)
-
-
-def wording_check(src: dict, src_water: dict | None, member: dict, member_water: dict | None) -> dict:
-    """AN OLDER WORDING BESIDE THE SHOWN PLACE (owner 2026-11-09): does it bind the same extent; the fields it holds
-    that no extent fix can say (R4: a save that changes its extent would drop them, so it is refused by name); and,
-    when it differs, why it cannot take the shown place's extent. Read only."""
-    from pipeline.regs.review import proposals as P
-    same = binds_same(src, src_water, member, member_water)
-    take = [] if same else fix_taking(src, src_water, member, member_water)[1]
-    return {"same_extent": same,
-            "cannot_change": P.unexpressed((member.get("binding") or {}).get("extents") or []),
-            "cannot_take": take}
-
-
-def _row(slug: str, loc: dict, water: dict | None, m, groups: dict | None = None,
-         live_waters: set | None = None) -> dict:
+def _row(slug: str, loc: dict, water: dict | None, m, live_waters: set | None = None) -> dict:
     st = loc.get("source_text") or {}
     need = D.need(loc)
     rows, rules = D.rule_rows(loc, DFO_TYPED)
@@ -484,11 +455,9 @@ def _row(slug: str, loc: dict, water: dict | None, m, groups: dict | None = None
             "lake_area": lake_area(loc, water),
             "tidal": tidal,
             "new_splits": len(m.new_splits) if m is not None else 0,
-            "historic_only": historic_only(loc, groups, live_waters if live_waters is not None
-                                           else _live_waters()),
-            # owner 2026-10-28: historic rewordings grouped with this place (one decision labels all)
-            "group": ({"id": g["id"], "size": len(g["members"]), "canonical": g["canonical"]}
-                      if (g := (groups or {}).get(loc["location_id"])) else None)}
+            "historic_only": historic_only(loc, live_waters if live_waters is not None else _live_waters()),
+            # T742: no grouping — a mark a group save wrote is flagged on its own place (`group_marked`)
+            "group_marked": group_marked(m)}
 
 
 #: THE DFO ROWS, COMPUTED ONCE PER INPUT (owner 2026-10-28): the queue, its progress and the tab
@@ -503,7 +472,7 @@ def _rows_inputs() -> tuple:
     return (reuse._stamp((reuse.MARKS_PATH, SUGGESTIONS_PATH, preverify.FILES["dfo"], _fixes_path(),
                           CURATED.review.proposal_overrides, CURATED.waters.tidal, CURATED.waters.cuts)),
             D.regions(reuse._dfo_dir()), D.typed(DFO_TYPED), reuse._registry(), reuse.applied_keys(),
-            _locations, _states, _groups, _row)
+            _locations, _states, _row)
 
 
 def _rows() -> list[dict]:
@@ -512,10 +481,10 @@ def _rows() -> list[dict]:
 
 
 def _compute_rows() -> list[dict]:
-    states, groups, live = _states(), _groups(), _live_waters()
+    states, live = _states(), _live_waters()
     # T349 (owner 2026-11-02): a SCOPE entry (region / section / tidal-area / page default — no water) is not a water
     # place; its coverage is its scope, resolved in Python, and it is shown in the Cascade tab only
-    out = [_row(slug, loc, water, states.get(lid), groups, live)
+    out = [_row(slug, loc, water, states.get(lid), live)
            for lid, (slug, loc, water) in _locations().items() if loc.get("water_id")]
     # the review order: the live page first, then what is missing a cut, then region and water
     # (T449: a place accepted as tidal water is missing nothing — last, with the bound ones)
@@ -635,7 +604,30 @@ def _splits_fc(loc: dict, water: dict | None) -> dict:
         for b in (it.boundaries if it else ()):
             on_water.setdefault(b.id, iid)
     feats, unplaced = [], []
+    # T742 C: A REGION LINE IS OFFERED AS THIS WATER'S CROSSINGS OF IT (`reuse.region_ends`): each by its plain name and
+    # km, at its own point, with the id that binds it — the one atlas row per id drew the Fraser's Region 5 cut on
+    # Antler Creek, labelled "Region 1 – Region 5 boundary", and offered `area:5` with no way to say which crossing
+    ends = [e for iid in (water or {}).get("item_ids") or [] for e in reuse.region_ends(iid)]
+    for e in ends:
+        props = {"split_id": e["id"], "label": e["label"], "water": (water or {}).get("name") or loc.get("water") or "",
+                 "rules": ["extent"] if e["id"] in named else [], "parts": [], "to_verify": False, "grade": None,
+                 "item_id": next((i for i in (water or {}).get("item_ids") or [] if e in reuse.region_ends(i)), None),
+                 "region_end": e}
+        props["name"] = f"{props['water']}: {e['label']}" if props["water"] else e["label"]
+        if not e["bindable"] or e["coord"] is None:
+            unplaced.append({**props, "why": e["why"] or "the served atlas has no point for it"})
+        else:
+            feats.append({"type": "Feature", "geometry": {"type": "Point", "coordinates": e["coord"]}, "properties": props})
+    offered = {e["id"] for e in ends} | {e["base"] for e in ends}
     for sid in list(dict.fromkeys([*named, *on_water])):
+        if sid in offered:
+            if sid not in {e["id"] for e in ends}:      # an extent naming a line this water crosses more than once
+                km = ", ".join(f"km {e['km']}" for e in ends if e["base"] == sid)
+                unplaced.append({"split_id": sid, "label": reuse.region_words(sid), "water": loc.get("water") or "",
+                                 "name": reuse.region_words(sid), "rules": ["extent"] if sid in named else [],
+                                 "parts": [], "to_verify": False, "grade": None, "item_id": on_water.get(sid),
+                                 "why": f"this water crosses it more than once ({km}): the extent does not say which"})
+            continue
         f = _split_feature(sid, rules=["extent"] if sid in named else [], to_verify=False,
                            item_id=on_water.get(sid))
         if f is None:
@@ -724,26 +716,8 @@ def detail(location_id: str) -> dict | None:
                  "status": l.get("status") or "active", "section": l.get("section")}
                 for lid, (_s, l, _w) in _locations().items()
                 if l.get("water_id") and l.get("water_id") == loc.get("water_id") and lid != location_id]
-    groups = _groups()
-    g = groups.get(location_id)
-    group = None
-    if g is not None:
-        states, locs = _states(), _locations()
-        group = {"id": g["id"], "canonical": g["canonical"], "members": [
-            {"id": x["id"], "why": x["why"], "this": x["id"] == location_id,
-             "water": locs[x["id"]][1].get("water") or "",
-             "text": (locs[x["id"]][1].get("source_text") or {}).get("specific_area") or "",
-             "status": locs[x["id"]][1].get("status") or "active",
-             "verify": _verify(states.get(x["id"]), locs[x["id"]][1], locs[x["id"]][2])["status"],
-             # owner 2026-11-09: an older wording is never assumed to match — each is listed with its own words and
-             # extent and starts UNTICKED; a ticked one takes the check, and this place's extent when it differs
-             # (`marks_for_group`); `cannot_change` / `cannot_take` say why one cannot be ticked
-             **wording_check(loc, water, locs[x["id"]][1], locs[x["id"]][2]),
-             "extent": seen_extent(locs[x["id"]][1]),
-             **({} if x["id"] == location_id else _member_check(x["id"], states.get(x["id"])))}
-            for x in g["members"]]}
     view = {
-        "row": _row(slug, loc, water, m, groups), "location": loc, "water": water, "group": group,
+        "row": _row(slug, loc, water, m), "location": loc, "water": water,
         "places": water_places(loc.get("water_id"), location_id) if loc.get("water_id") else [],
         "wordings": D.location_wordings(loc),
         "items": [_item_ref(i) for i in (water or {}).get("item_ids") or []],
@@ -1025,14 +999,6 @@ def dead_why(fixes, dead: list[int], water: dict | None) -> list[str]:
     return out
 
 
-def _member_check(mid: str, m) -> dict:
-    """an older wording's own checklist digest (sent back with a group check, refused when it moved), whether a save of
-    its own still waits to land (`held`: a check would replace it) and its check state"""
-    import checks
-    got = checks.dfo_check(mid) or {}
-    return {"digest": got.get("digest"), "held": got.get("held"), "check": got.get("check")}
-
-
 def rekeyed(mark: dict) -> dict:
     """T355: A MARK AS SHOWN — each new split's local ref ("n1-2", a hunt's, a tidal one) read as the REAL id
     of the proposed cut it is (by its anchor, `real_ids`), its extent fix's points with it. Read only: the
@@ -1054,12 +1020,14 @@ def rekeyed(mark: dict) -> dict:
 
 
 def water_places(water_id: str, this: str | None = None) -> list[dict]:
-    """EVERY PLACE ON ONE WATER (owner 2026-11-02), for one view of the river: per place (`D.places`)
-    its row (verify, state, status…), and every wording of every member with the page dates, so the
-    same extent written differently is one item. Read only."""
+    """EVERY PLACE ON ONE WATER (owner 2026-11-02), for one view of the river: per location its row (verify, state,
+    status…) and its wordings with the page dates. T742 (owner 2026-11-14): ONE LOCATION, ONE PLACE — no grouping
+    folds wordings together (live first, in location order). Read only."""
     locs, rows = _locations(), {r["id"]: r for r in _rows()}
     out = []
-    for p in D.places(locs, water_id, _groups()):
+    on = [lid for lid, (_s, l, _w) in locs.items() if l.get("water_id") == water_id]
+    on.sort(key=lambda lid: (locs[lid][1].get("status") or "active") != "active")
+    for p in ({"id": lid, "members": [lid]} for lid in on):
         c = p["id"]
         r = rows.get(c) or {}
         wordings = []
@@ -1502,74 +1470,6 @@ def mark_for(body: dict, *, date: str, pdf_sha256: str):
             "pdf_sha256": pdf_sha256, "pages": [], "prints": now}
     mark = M.Mark.model_validate(data)
     return mark, M.Prints.model_validate(now), reused
-
-
-def marks_for_group(body: dict, *, date: str, pdf_sha256: str) -> list:
-    """ONE DECISION ON THE WORDINGS OF A PLACE (owner 2026-10-28; 2026-11-09: "it should save extent to all variants of
-    location text" — and "we cant blindly assume variants … they must match and that requires human check too"): the
-    mark `mark_for` makes for `target`, and one for every OTHER wording the owner ticked "same place" — each named in
-    `targets` AND listed in `members` with the extent the owner saw it hold (`extent_before`, R3 per member) and, on a
-    checklist, its own checklist digest (refused by the app when it moved). The server never adds a wording on its own.
-
-      the save carries an extent fix   every ticked wording takes it (it holds the new extent)
-      no fix, a wording binds the same  it takes the same answers / check
-      no fix, a wording DIFFERS         it takes the shown place's extent (`fix_taking`) plus the check — never a
-                                        "correct" stamped on a wording that holds another extent (a defer changes
-                                        nothing, so it carries none)
-    REFUSED (ValueError), nothing saved, naming the wording: a wording not in target's group, one not listed, one whose
-    extent would change while it holds a field no fix can say (R4), one that cannot take the shown extent. The checklist
-    a wording carries is the rows the owner checked, its digest the wording's own as it will bind. -> marks, target's
-    first."""
-    import checks
-    target = str(body.get("target") or "")
-    g = _groups().get(target)
-    if g is None:
-        raise ValueError(f"{target} is in no historic group")
-    others = [t for t in dict.fromkeys(body.get("targets") or []) if t != target]
-    members = {m["id"] for m in g["members"]}
-    stray = [t for t in others if t not in members]
-    if stray:
-        raise ValueError(f"not in {target}'s group: {', '.join(stray)}")
-    listed = body.get("members") or {}
-    locs = _locations()
-    words = lambda t: f"“{(locs[t][1].get('source_text') or {}).get('specific_area') or t}”"  # noqa: E731
-    missing = [t for t in others if not isinstance(listed.get(t), dict) or "extent_before" not in listed[t]]
-    extra = [t for t in listed if t not in others]
-    if missing or extra:
-        raise ValueError("a save on older wordings names each one it writes, with the extent you saw it hold: "
-                         + "; ".join([f"{words(t)} is not listed" for t in missing if t in locs]
-                                     + [f"{t} is listed but not ticked" for t in extra])
-                         + " — reload the place, nothing was saved")
-    _s, tloc, twater = locs[target]
-    base = {k: v for k, v in body.items() if k not in ("targets", "members")}
-    fix = base.get("extent_fix")
-    out, refused = [], []
-    for t in others:
-        _s, loc, water = locs[t]
-        mb = {**base, "target": t, "group": g["id"], "extent_before": listed[t]["extent_before"]}
-        w = wording_check(tloc, twater, loc, water)
-        takes = bool(fix) or not w["same_extent"]
-        if fix:
-            if w["cannot_change"]:
-                refused.append(f"{words(t)} holds what an extent fix cannot say ({'; '.join(w['cannot_change'])})")
-                continue
-        elif not w["same_extent"] and base.get("verdict") != "deferred":
-            why = w["cannot_change"] + w["cannot_take"]
-            if why:
-                refused.append(f"{words(t)} cannot take this extent ({'; '.join(why)})")
-                continue
-            mb["extent_fix"] = [f.model_dump(mode="json") for f in fix_taking(tloc, twater, loc, water)[0]]
-        else:
-            takes = False
-        if base.get("checklist"):
-            mb["checklist"] = {**base["checklist"],
-                               "digest": checks.digest_as(loc, water, tloc if takes and not fix else None, twater)}
-        out.append(mb)
-    if refused:
-        raise ValueError("not saved — untick these older wordings and leave them for a hand edit: "
-                         + "; ".join(refused))
-    first = mark_for({**base, "target": target, "group": g["id"]}, date=date, pdf_sha256=pdf_sha256)[0]
-    return [first] + [mark_for(mb, date=date, pdf_sha256=pdf_sha256)[0] for mb in out]
 
 
 def real_ids(extra: tuple = (), *, tidal: bool = False, tidal_water: str | None = None) -> dict:

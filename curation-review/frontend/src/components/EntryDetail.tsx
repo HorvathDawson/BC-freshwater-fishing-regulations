@@ -211,9 +211,11 @@ export function EntryDetail({ detail, onNavigate, reloadKey = 0, nav, mode, onMa
       out.push({ id: f.properties.split_id, name: f.properties.name || f.properties.label });
     }
     for (const b of boundaries) {
-      if (seen.has(b.id) || !b.curated) continue;
+      // T742 C: a region line comes as this water's crossings, each named plainly with its km and binding its own
+      // id; a crossing no id binds is not offered (its row says why in the boundaries list)
+      if (seen.has(b.id) || !b.curated || b.pickable === false) continue;
       seen.add(b.id);
-      out.push({ id: b.id, name: `${splitLabel(b)} (${b.kind}${
+      out.push({ id: b.id, name: b.region_end ? b.label : `${splitLabel(b)} (${b.kind}${
         b.live?.label || b.label ? ` · ${b.id.split("__").pop()}` : ""})` });
     }
     return out;

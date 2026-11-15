@@ -160,9 +160,8 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
             <Text style={{ ...TYPE.metaBold, color: palette.ink }}>{dv.whole.label}</Text>
           </Pressable>
         )}
-        {/* (T731) a kept bar is the part stepped FROM: the mark or chooser the step closed is not drawn again */}
+        {/* (T731) a kept bar is the part stepped FROM: the mark the step closed is not drawn again */}
         {!kept && vm?.pop && <MarkPop vm={vm} palette={palette} act={act} />}
-        {!kept && vm?.chooser && <Chooser vm={vm} palette={palette} act={act} />}
       </View>
       {/* THE BAR spans the canvas's width (the map is full-bleed under the water frame's header, T44); its words are on
           the frame's column, at the gutter every view's content starts at */}
@@ -316,7 +315,7 @@ function Step({ dir, palette, label, aria, disabled, onPress }: {
   );
 }
 
-/** A part named in a pop or the chooser: its name, its water beside it where the water has several parts. */
+/** A part named in a mark's pop: its name, its water beside it where the water has several parts. */
 function PartLine({ p, palette }: { p: WaterMapPartVM; palette: Palette }) {
   return (
     <>
@@ -361,26 +360,6 @@ function MarkPop({ vm, palette, act }: { vm: WaterMapVM; palette: Palette; act: 
       <Head title={pop.title} close={pop.close} palette={palette} onClose={() => act({ type: "mark", ix: null })} />
       {side(pop.upLabel, pop.up)}
       {side(pop.downLabel, [pop.down])}
-    </View>
-  );
-}
-
-/** ▲ or ▼ at a fork: which way, the main stem first. */
-function Chooser({ vm, palette, act }: { vm: WaterMapVM; palette: Palette; act: (a: WaterMapAction) => void }) {
-  const c = vm.chooser!;
-  // back closes the chooser (no way taken) before it leaves the water
-  useBackLayer(true, () => act({ type: "closeChooser" }));
-  return (
-    <View style={card(palette)} role="dialog" aria-label={c.title} testID="water-map-chooser">
-      <Head title={c.title} close={c.close} palette={palette} onClose={() => act({ type: "closeChooser" })} />
-      {c.options.map((p) => (
-        <Pressable key={p.ix} onPress={() => act({ type: "choose", to: p.ix })} accessibilityRole="button"
-                   accessibilityLabel={p.name}
-                   style={{ minHeight: 44, paddingVertical: 6, justifyContent: "center", borderTopWidth: 1,
-                            borderTopColor: palette.line }}>
-          <PartLine p={p} palette={palette} />
-        </Pressable>
-      ))}
     </View>
   );
 }

@@ -182,7 +182,8 @@ WARM = os.environ.get("CURATION_WARM") == "1"
 def _warm_at_startup():
     if WARM:
         import threading
-        threading.Thread(target=reuse.warm, name="curation-warm", daemon=True).start()
+        threading.Thread(target=reuse.warm, kwargs={"late": reuse.LATE_WARM_STEPS},   # T742 E8: zone counts last
+                         name="curation-warm", daemon=True).start()
 
         def _health():                    # owner 2026-10-28: say orphaned marks at startup, loudly
             import logging
@@ -389,9 +390,8 @@ class MarkPayload(BaseModel):
     #: T532 (scope dfo or rule): the checklist the mark answers — `marks.Checklist` {digest, rows}; refused when its
     #: digest is not the place's now (the words or the extent moved since the owner looked)
     checklist: dict | None = None
-    #: owner 2026-11-09 (scope dfo, a group save): every OTHER wording in `targets`, listed with what the owner saw —
-    #: {id: {extent_before, digest?}} (its extent; on a checklist its own digest). A wording not listed is refused
-    #: (`dfo.marks_for_group`): the server never writes a wording nobody ticked
+    #: owner 2026-11-09 (scope dfo, a group save) — REMOVED T742 (owner 2026-11-14, one place at a time): any value is
+    #: refused; kept as a field only so an old client's group save is refused by name, never silently dropped
     members: dict[str, dict] = {}
 
 
@@ -495,6 +495,11 @@ def _post_mark(body: MarkPayload):
         if body.members:
             raise HTTPException(422, [{"path": "members", "msg": "only a DFO save lists older wordings"}])
         data.pop("members")
+    elif body.targets or body.members:
+        # T742 (owner 2026-11-14: "remove the grouping option … one at a time is better"): a DFO mark names ONE place;
+        # a save on several wordings at once (the old group save) is refused, nothing written
+        raise HTTPException(422, [{"path": "targets", "msg": "a DFO mark is saved on one place at a time: open "
+                                   "each wording and mark it on its own — nothing was saved"}])
     if body.checklist is None:
         data.pop("checklist")
     else:
@@ -507,19 +512,13 @@ def _post_mark(body: MarkPayload):
         if body.targets:
             raise HTTPException(422, [{"path": "", "msg": "a Q154 mark names one sample pond"}])
         data.pop("targets")
-    elif body.scope == "dfo":                       # owner 2026-10-28: a historic group's members
+    elif body.scope == "dfo":
         # T449: the one DFO call — a place proposed as wholly in tidal water, accepted or rejected
         if body.call not in (None, "tidal water", "not tidal"):
             raise HTTPException(422, [{"path": "call", "msg": "a DFO call is tidal water or not tidal"}])
         if body.call is None:
             data.pop("call")
-        if not body.targets:
-            data.pop("targets")
-            if body.members:
-                raise HTTPException(422, [{"path": "members", "msg": "older wordings are listed only with the "
-                                           "targets they are saved on"}])
-        if not body.members:
-            data.pop("members")
+        data.pop("targets"), data.pop("members")
     elif body.scope == "tidal":                     # T359: "the whole water is tidal" is a tidal call
         if body.targets:
             raise HTTPException(422, [{"path": "", "msg": "a tidal mark names one candidate"}])
@@ -563,25 +562,9 @@ def _post_mark(body: MarkPayload):
 
 def _refuse_stale_checklist(body: MarkPayload) -> None:
     """T532: a checklist is saved only on the rows the place has NOW (same digest) — never on words or an extent that
-    moved since the owner looked, and never for a group (each member has its own rows)."""
+    moved since the owner looked; one place per check (T742: a group save is refused before this)."""
     import checks
     if body.scope == "dfo":
-        # owner 2026-11-09: a check on the older wordings the owner ticked "same place" — each one's own digest NOW
-        # (its words or extent moved since: refused by name) and none whose own save still waits to land
-        import dfo
-        for t in dict.fromkeys(body.targets):
-            if t == body.target:
-                continue
-            got = checks.dfo_check(t)
-            if got is None:
-                raise HTTPException(404, f"dfo {t} not found")
-            words = (dfo._locations()[t][1].get("source_text") or {}).get("specific_area") or t
-            if got.get("held"):
-                raise HTTPException(422, [{"path": "targets", "msg": f"older wording “{words}”: {got['held']}"}])
-            if (body.members.get(t) or {}).get("digest") != got["digest"]:
-                raise HTTPException(422, [{"path": "targets", "msg": f"older wording “{words}”: its words or its "
-                                           "extent changed since you opened it: reload the place and check it again "
-                                           "— nothing was saved"}])
         now = checks.dfo_check(body.target)
     elif body.scope == "rule":
         now = checks.rule_check(body.target, body.rule_id or "")

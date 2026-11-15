@@ -189,6 +189,30 @@ def _strip_lead(t: str) -> str:
                   r"those waters |[\w ]+ - |\([a-z]+\) |[A-Z][\w ]+ – )", "", t, flags=re.I).strip()
 
 
+def _same_words(a: str, b: str) -> bool:
+    """One place said twice ("the Highway 1 Bridge at Hope" / "the Highway 1 bridge at Hope")."""
+    key = lambda s: [t for t in tokens(s) if t not in GENERIC]  # noqa: E731
+    return bool(key(a)) and key(a) == key(b)
+
+
+_BACK_TO_BACK = re.compile(r"(?:from\s+)?(.+?)\s+(?:upstream\s+|downstream\s+)?to\s+(.+?),?\s+and\s+from\s+(.+?)\s+"
+                           r"(?:upstream\s+|downstream\s+)?to\s+(.+)", re.I)
+
+
+def _back_to_back(t: str) -> Optional[tuple[str, str]]:
+    """"from A to B and from B to C" (the middle end said twice) -> (A, C); else None."""
+    m = _BACK_TO_BACK.fullmatch(t)
+    if m and _same_words(m.group(2), m.group(3)) and not _same_words(m.group(1), m.group(4)):
+        return m.group(1), m.group(4)
+    return None
+
+
+def double_reach(text: str) -> bool:
+    """Is this notice TWO REACHES BACK TO BACK ("from A to B and from B to C")? Such a wording is never the
+    same place as either half, however alike the words read (`coverage.cluster`)."""
+    return _back_to_back(_strip_lead(_clean(text))) is not None
+
+
 def endpoints(text: str) -> list[Phrase]:
     """THE NOTICE'S PLACE WORDS AS ENDPOINT PHRASES: two for a reach ("from A downstream to B",
     "between A and B", "N m upstream and downstream of A"), one otherwise."""
@@ -211,6 +235,11 @@ def endpoints(text: str) -> list[Phrase]:
     m = re.search(r"\bbetween\s+(.+?)\s+above and below\s+(.+)$", t, re.I)
     if m:
         return [Phrase(f"above {m.group(2)}", "from"), Phrase(f"below {m.group(2)}", "to")]
+    # TWO REACHES BACK TO BACK (Fraser, FN0841 2025): "from A upstream to B and from B to C" is one
+    # reach, A to C — the shared middle end B is not a boundary (Fraser dossier 2026-11-14)
+    two = _back_to_back(t)
+    if two:
+        return [Phrase(two[0], "from"), Phrase(two[1], "to")]
     # "A (downstream|upstream) (approx N m) to B" — the first " to " outside parentheses
     depth, cut = 0, None
     for mm in re.finditer(r"[()]|\b(?:downstream |upstream |down stream )?(?:approx(?:imately|\.)? ?[\d.,]+ ?k?m\.? )?to\b", t, re.I):
@@ -282,6 +311,14 @@ class NoLookup:
     def mouth(self, item_id, on_items): return None
     def snap(self, lonlat, on_items): return None
     def falls(self, name, on_items): return None
+
+
+def same_cut(a: Cut, b: Cut) -> bool:
+    """Two candidates that are ONE place: a proposal anchored on the other's curated cut
+    (`anchor: split`, its `split_id`), or two proposals on the same curated cut."""
+    sa = (a.proposal or {}).get("split_id") if (a.proposal or {}).get("anchor") == "split" else None
+    sb = (b.proposal or {}).get("split_id") if (b.proposal or {}).get("anchor") == "split" else None
+    return bool((sa and sa == b.id) or (sb and sb == a.id) or (sa and sa == sb))
 
 
 def own_words(water: Water) -> set[str]:
@@ -445,6 +482,10 @@ def resolve(phrase: str, water: Water, cuts: list[Cut], look: Lookup, *, ref: st
     ranked = sorted(((score(phrase, c, own), c) for c in cuts), key=lambda x: -x[0][0])
     if ranked and ranked[0][0][0] >= 3.0:
         (s, shared), c = ranked[0]
+        # a runner-up that IS the winner (a proposal naming this very cut, e.g. the Tidal tab's
+        # `tidal-356364114` = the curated CPR Bridge at Mission) is no rival (Fraser dossier 2026-11-14)
+        rivals = [r for r in ranked[1:] if not same_cut(r[1], c)]
+        ranked = [ranked[0]] + rivals
         second = ranked[1][0][0] if len(ranked) > 1 else -9
         conf = "high" if s >= 4.0 and s - second >= 2.0 else "medium" if s - second >= 1.0 else "low"
         pk = "proposed" if c.proposal else "split"
@@ -684,6 +725,193 @@ def suggest_one(loc: Mapping, water: Water, cuts: list[Cut], look: Lookup | None
             "reason": reason, "endpoints": [p.view() for p in pts],
             "points": [{"label": p.label, "coord": p.coord, "kind": p.kind,
                         "split_id": (p.fix or {}).get("split_id")} for p in pts if p.fix]}
+
+
+# --------------------------------------------------------------------------- the page's region
+
+#: A DFO PAGE SPEAKS FOR ITS OWN REGION (T668; Fraser dossier 2026-11-14). An open end ("upstream of the CPR
+#: Bridge at Mission") or a "whole water" on a water that runs on into another region would, drawn, bind the
+#: Fraser to Prince George (`reach.dfo_salmon` reads a place's extent as its own words, `regional=False`) — so a
+#: suggestion on such a water stops at the page region's LINE when a curated cut stands there, and says so when
+#: none does (an area boundary): an UNDRAWN place already rides only its own region's sections (T668 D1). Still
+#: a suggestion — which stretch a wording means is the owner's call.
+
+@dataclass(frozen=True)
+class RegionLine:
+    """One end of the page region's stretch of a water: the measure on its main line, and the curated cut
+    standing there (None: the line is an area boundary, no cut)."""
+    measure: float
+    cut: Optional[str] = None
+    label: str = ""
+
+
+@dataclass(frozen=True)
+class RegionSpan:
+    """The page region's stretch of a water's main line (`blk`, measures `lo`..`hi`; `hi` None = to the top),
+    the regions the whole water runs through, its lines (None where the water itself ends), and the stretches
+    inside it that are in two regions at once (`shared`: (from, to, regions))."""
+    region: int
+    regions: tuple[int, ...]
+    blk: str
+    lo: float
+    hi: Optional[float]
+    down: Optional[RegionLine] = None
+    up: Optional[RegionLine] = None
+    shared: tuple[tuple[float, Optional[float], tuple[int, ...]], ...] = ()
+
+
+def _region_no(key: str) -> int:
+    m = re.match(r"(?:area:region:)?(\d+)", str(key))
+    if not m:
+        raise ValueError(f"{key!r} is not a region")
+    return int(m.group(1))
+
+
+def region_span(region: int, sections: Iterable[str], member: Mapping[str, frozenset],
+                cuts: Iterable[tuple[str, str, float, str]], tol: float = 25.0) -> Optional[RegionSpan]:
+    """THE PAGE REGION'S STRETCH of a water: `sections` the water's section ids (`blk:measure`), `member`
+    section -> the region numbers it is a member of (the one membership: a straddler in both), `cuts`
+    (split_id, blk, measure, label) the curated cuts. None when the region holds none of the main line, or
+    holds it in more than one run (never guessed)."""
+    by_blk: dict[str, list[tuple[float, str]]] = {}
+    for sid in sections:
+        m = re.fullmatch(r"(\d+):(\d+(?:\.\d+)?)", sid)
+        if m:
+            by_blk.setdefault(m.group(1), []).append((float(m.group(2)), sid))
+    if not by_blk:
+        return None
+    blk = max(by_blk, key=lambda b: (len(by_blk[b]), b))
+    line = sorted(by_blk[blk])
+    regs = [frozenset(member.get(sid) or ()) for _m, sid in line]
+    inside = [i for i, r in enumerate(regs) if region in r]
+    if not inside or inside != list(range(inside[0], inside[-1] + 1)):
+        return None
+    every = tuple(sorted({r for sid in sections for r in (member.get(sid) or ())}))
+    i0, i1 = inside[0], inside[-1]
+    lo = line[i0][0]
+    hi = line[i1 + 1][0] if i1 + 1 < len(line) else None
+    on = [(sid, m, lab) for sid, b, m, lab in cuts if b == blk]
+
+    def at(measure: float) -> RegionLine:
+        hit = min(on, key=lambda c: abs(c[1] - measure), default=None)
+        if hit and abs(hit[1] - measure) <= tol:
+            return RegionLine(measure, hit[0], hit[2])
+        return RegionLine(measure)
+
+    down = at(lo) if i0 > 0 else None
+    up = at(hi) if hi is not None else None
+    shared, run = [], None
+    for i in range(i0, i1 + 1):
+        many = tuple(sorted(regs[i])) if len(regs[i]) > 1 else None
+        if many and run and run[2] == many:
+            continue
+        if run:
+            shared.append((run[0], line[i][0], run[2]))
+            run = None
+        if many:
+            run = (line[i][0], None, many)
+    if run:
+        shared.append((run[0], hi, run[2]))
+    return RegionSpan(region, every, blk, lo, hi, down, up, tuple(shared))
+
+
+def _km(m: Optional[float]) -> str:
+    return "the top" if m is None else f"km {m / 1000:.1f}"
+
+
+def cap_to_region(row: dict, span: Optional[RegionSpan], measures: Mapping[str, Mapping[str, float]]) -> dict:
+    """THE SUGGESTION HELD TO ITS PAGE'S REGION (block comment above). `measures` split id / new-split ref ->
+    {blk: measure} for the suggestion's points. A water in one region, or no span, is left as it is."""
+    s = row.get("suggestion")
+    if not s or span is None or len(span.regions) < 2 or span.region not in span.regions:
+        return row
+    R, others = span.region, [r for r in span.regions if r != span.region]
+    names = ", ".join(f"Region {r}" for r in others)
+    op, pts = s["op"], list(s.get("points") or [])
+    out = dict(row)
+    notes: list[str] = []
+
+    def held(op2: str, pts2: list[dict], why: str) -> None:
+        out["before"] = {"suggestion": s, "confidence": row.get("confidence"), "matched": row.get("matched"),
+                         "reason": row.get("reason")}
+        words = s.get("words", "")
+        out["suggestion"] = {**s, "op": op2, "points": pts2, "words": f"{words} (to Region {R}'s line)"}
+        if CONF_RANK.get(row.get("confidence") or "none", 0) > CONF_RANK["medium"]:
+            out["confidence"] = "medium"     # the reading (a page = its region) is the owner's call
+        if out.get("matched") == "whole":
+            out["matched"] = "existing"
+        notes.append(why)
+
+    line_pt = lambda ln: {"kind": "split", "split_id": ln.cut}  # noqa: E731
+    if op == "upstream_of" and span.up:
+        if span.up.cut:
+            held("between", pts + [line_pt(span.up)],
+                 f"DFO's Region {R} page: the water runs on into {names}, so it stops at Region {R}'s line, "
+                 f"the cut `{span.up.cut}` ({span.up.label}, {_km(span.up.measure)})")
+        else:
+            out["confidence"] = "low"
+            notes.append(f"the water runs on past Region {R}'s line ({_km(span.up.measure)}, an area boundary — no "
+                         f"cut) into {names}: drawn as it stands this binds those regions too; left undrawn it rides "
+                         f"only Region {R}'s sections (T668)")
+    elif op == "downstream_of" and span.down:
+        if span.down.cut:
+            held("between", [line_pt(span.down)] + pts,
+                 f"DFO's Region {R} page: the water runs on down into {names}, so it stops at Region {R}'s line, "
+                 f"the cut `{span.down.cut}` ({span.down.label}, {_km(span.down.measure)})")
+        else:
+            out["confidence"] = "low"
+            notes.append(f"the water runs on below Region {R}'s line ({_km(span.down.measure)}, an area boundary "
+                         f"— no cut) into {names}: drawn as it stands this binds them too; left undrawn it rides "
+                         f"only Region {R}'s sections (T668)")
+    elif op == "whole":
+        ends = [ln for ln in (span.down, span.up) if ln]
+        if all(ln.cut for ln in ends):
+            if span.down and span.up:
+                held("between", [line_pt(span.down), line_pt(span.up)],
+                     f"DFO's Region {R} page names the whole water, which runs through {names}: Region {R}'s "
+                     f"stretch, {_km(span.lo)} to {_km(span.hi)}")
+            elif span.up:
+                held("downstream_of", [line_pt(span.up)],
+                     f"DFO's Region {R} page names the whole water: below Region {R}'s line ({_km(span.hi)})")
+            else:
+                held("upstream_of", [line_pt(span.down)],
+                     f"DFO's Region {R} page names the whole water: above Region {R}'s line ({_km(span.lo)})")
+        else:
+            no = [_km(ln.measure) for ln in ends if not ln.cut]
+            out["before"] = {"suggestion": s, "confidence": row.get("confidence"), "matched": row.get("matched"),
+                             "reason": row.get("reason")}
+            out["suggestion"], out["matched"], out["confidence"] = None, "none", "none"
+            notes.append(f"DFO's Region {R} page names the whole water, but it runs through {names} and Region "
+                         f"{R}'s line at {' and '.join(no)} is an area boundary, not a cut: drawn whole it would "
+                         f"bind every region — leave it undrawn (T668: an undrawn place rides only Region {R}'s "
+                         f"sections, {_km(span.lo)} to {_km(span.hi)}) or cut at the line")
+    lo, hi = span.lo, span.hi
+    for p in (out.get("suggestion") or {}).get("points") or []:
+        bm = (measures.get(p.get("split_id") or "") or {}).get(span.blk)
+        if bm is not None and (bm < lo - 25 or (hi is not None and bm > hi + 25)):
+            past = (lo - bm) if bm < lo else (bm - hi)
+            notes.append(f"the end `{p['split_id']}` ({_km(bm)}) is {past / 1000:.1f} km past Region {R}'s line "
+                         f"({_km(lo if bm < lo else hi)}): DFO's words or the region — the owner's call")
+    fin = out.get("suggestion") or {}
+    ms = [(measures.get(p.get("split_id") or "") or {}).get(span.blk) for p in fin.get("points") or []]
+    ms = [m for m in ms if m is not None]
+    reach = None
+    if fin and len(ms) == len(fin.get("points") or []):
+        reach = ((min(ms), max(ms)) if fin["op"] == "between" and ms else
+                 (ms[0], hi) if fin["op"] == "upstream_of" and ms else
+                 (lo, ms[0]) if fin["op"] == "downstream_of" and ms else None)
+    if reach:
+        for a, b, regs in span.shared:
+            if reach[1] is not None and reach[1] <= a + 25:
+                continue
+            if b is not None and reach[0] >= b - 25:
+                continue
+            notes.append(f"{_km(a)} to {_km(b)} is in {' and '.join(f'Region {r}' for r in regs)} at once: "
+                         f"whether this place holds there is the owner's call")
+    if notes:
+        out["region_note"] = "; ".join(notes)
+        out["reason"] = (row.get("reason") or "") + " — " + out["region_note"]
+    return out
 
 
 # --------------------------------------------------------------------------- the split hunt
@@ -1115,6 +1343,23 @@ def run(out_dir: Path = OUT_DIR, *, marks_path: Optional[Path] = None, gpkg: Opt
     hp = Path(hunt_path or HUNT_PATH)
     hunt = json.loads(hp.read_text()) if hp.exists() else {}
     slugs = {lid: s for lid, (s, _l, _w) in D.locations().items()}
+    # the page's region (T668): each section's regions (the one membership) and where the curated cuts stand
+    member: dict[str, frozenset] = {}
+    for iid, it in registry.items():
+        if iid.startswith("area:region:"):
+            n = _region_no(iid)
+            for sid in it.get("section_ids") or []:
+                member[sid] = member.get(sid, frozenset()) | {n}
+    resolved = Path(registry_path).parent if registry_path else GENERATED.build()
+    cut_at = [(c["split_id"], str(c["blk"]), float(c["route_measure"]), c.get("label") or c["split_id"])
+              for c in json.loads((resolved / "splits.resolved.json").read_text())
+              if c.get("source") == "curated" and c.get("blk") and c.get("route_measure") is not None]
+    measures: dict[str, dict[str, float]] = {}
+    for sid, blk, m, _l in cut_at:
+        measures.setdefault(sid, {})[blk] = m
+    for p in props:
+        if p["split"].get("blk") and p["split"].get("measure") is not None:
+            measures.setdefault(p["id"], {}).setdefault(str(p["split"]["blk"]), float(p["split"]["measure"]))
     rows = []
     for lid, loc, w in todo:
         items = list((w or {}).get("item_ids") or [])
@@ -1124,6 +1369,13 @@ def run(out_dir: Path = OUT_DIR, *, marks_path: Optional[Path] = None, gpkg: Opt
         if h:
             r = apply_hunt(r, h, hunt.get("cuts") or {}, water, look, page=D.page_url(slugs[lid]),
                            labels={c.id: c.label for c in cuts_on(items, registry, smeta, props)})
+        if items and loc.get("region_number") is not None:
+            secs = [sid for iid in items for sid in (registry.get(iid) or {}).get("section_ids") or []]
+            span = region_span(int(loc["region_number"]), secs, member, cut_at)
+            news = {n["ref"]: {str(n["blk"]): float(n["measure"])}
+                    for n in (r.get("suggestion") or {}).get("new_splits") or []
+                    if n.get("blk") and n.get("measure") is not None}
+            r = cap_to_region(r, span, {**measures, **news})
         r["state"] = "no_water" if not items else "needs_cut" if D.need(loc)["missing"] else "unbound"
         r["status"] = loc.get("status") or "active"
         rows.append(r)

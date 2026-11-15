@@ -573,6 +573,17 @@ def _combined_bindable(item, e: dict) -> list[dict]:
 
 
 @lru_cache(maxsize=1)
+def _section_owner() -> dict[str, str]:
+    """section id -> the registry item that lists it (the last one in registry order, as `item_side_channels` read it);
+    one per build (`_BUILD_CACHES`)."""
+    owner: dict[str, str] = {}
+    for iid, item in _registry().items():
+        for sid in item.section_ids:
+            owner[sid] = iid
+    return owner
+
+
+@lru_cache(maxsize=1)
 def _blk_to_item() -> dict[str, str]:
     """blk -> owning registry item id (from each item's `blk:` ref_ids). Lets us map a graph node
     (`<blk>:<measure>`) back to the named stream it belongs to — for graph-based tributary lookup."""
@@ -1567,17 +1578,12 @@ def post_mark(body: dict) -> dict:
         elif scope == "dfo":
             # T164: a DFO salmon location — its prints from `review.dfo`, each NEW split's anchor
             # checked and its resolved point stamped (`dfo.mark_for`); the same one commit below
+            # T742 (owner 2026-11-14): ONE PLACE PER MARK — a group save is refused at the route, never written here
             import dfo
-            if body.get("targets"):
-                # owner 2026-10-28: a historic group — one mark per member kept, linked by `group`
-                batch = dfo.marks_for_group(body, date=_dt.date.today().isoformat(),
-                                            pdf_sha256=_pdf_sha256())
-                mark, reused = batch[0], []
-                now = mark.prints
-            else:
-                body = {k: v for k, v in body.items() if k != "targets"}
-                mark, now, reused = dfo.mark_for(body, date=_dt.date.today().isoformat(),
-                                                 pdf_sha256=_pdf_sha256())
+            if body.get("targets") or body.get("members"):
+                raise ValueError("a DFO mark is saved on one place at a time: open each wording and mark it on its own")
+            mark, now, reused = dfo.mark_for({k: v for k, v in body.items() if k not in ("targets", "members")},
+                                             date=_dt.date.today().isoformat(), pdf_sha256=_pdf_sha256())
         elif scope == "tidal":
             # T212: a proposed tidal boundary — its prints from `review.tidal`, each new split
             # snapped to the stream and stamped (`tidal.mark_for`); the same one commit below
@@ -1608,8 +1614,6 @@ def post_mark(body: dict) -> dict:
     view = _mark_view(mark, now if scope in ("dfo", "tidal") else _prints(e))
     if reused:                       # T210: "already proposed — reused", said back to the screen
         view = {**view, "reused": reused}
-    if batch and scope == "dfo":     # owner 2026-10-28: a group's marks, how many
-        view = {**view, "n": len(marks), "group": mark.group}
     return view
 
 
@@ -1723,7 +1727,8 @@ def entry_detail(entry_id: str) -> dict | None:
                 # built graph ∪ live splits.json, over the primary item AND a combined
                 # override's other items — the same closed set the parser was given, so a
                 # Vedder rule on the Chilliwack/Vedder entry has a Vedder cut-point to bind.
-                "boundaries": _combined_bindable(item, e),
+                # T742 C: a region line is offered as this water's crossings of it, by plain name and km
+                "boundaries": with_region_ends(_combined_bindable(item, e), lambda b: b.get("item_id")),
             },
             "also_items": _also_items(e),      # a combined override's other items (Vedder, …)
             "matched_areas": [] if item else matched_areas(e),   # matched by area (no item)
@@ -2034,6 +2039,138 @@ def _split_point(split_id: str):
     return None
 
 
+def _point_at(blk: str, m: float):
+    """The point at route measure `m` on blue line `blk` (the section that holds it), or None."""
+    from shapely.geometry import Point
+    for down, up, nid in _blk_index().get(str(blk), []):
+        if down <= m <= up:
+            g = _geoms().get(nid)
+            if g is None or g.is_empty:
+                return None
+            return Point(g.interpolate(min(max(m - down, 0.0), g.length)))
+    return None
+
+
+# --------------------------------------------------------------------------- region ends (T742 C)
+
+#: a region line's cut id: `area:<code>`, and the crossing an alias names (`sectionizer._name_the_crossings`)
+REGION_CUT = re.compile(r"^area:([1-8]|7A|7B)(?:@(down|up))?$")
+
+
+def region_words(sid: str) -> str | None:
+    """THE PLAIN NAME OF A REGION-LINE CUT, as the app says it (`inseason.resolve.interim_words`, the release's
+    `display.ends`): "Region 5 boundary"; a named crossing says which ("lowest crossing" / "highest crossing"). The
+    atlas label ("Region 3 – Region 5 boundary") names a neighbour that differs per water and was shared by two cuts on
+    the Fraser, so it is never what a picker says. None for any other cut."""
+    m = REGION_CUT.match(str(sid))
+    if not m:
+        return None
+    which = {"down": " (its lowest crossing of this water)", "up": " (its highest crossing of this water)"}
+    return f"Region {m.group(1)} boundary{which.get(m.group(2) or '', '')}"
+
+
+@lru_cache(maxsize=1)
+def _region_rows() -> dict[str, list[tuple[str, float]]]:
+    """blk -> [(region cut id, route measure)] from splits.resolved.json, every crossing (one id has a row per water
+    and per crossing: `_splits_meta` keeps ONE row per id, so it put the Fraser's Region 5 cut on Antler Creek)"""
+    if not SPLITS_RESOLVED_PATH.exists():
+        return {}
+    out: dict[str, list[tuple[str, float]]] = {}
+    for r in json.loads(SPLITS_RESOLVED_PATH.read_text(encoding="utf-8")):
+        if REGION_CUT.match(str(r.get("split_id"))) and r.get("blk") is not None and not r.get("concern"):
+            out.setdefault(str(r["blk"]), []).append((str(r["split_id"]), float(r.get("route_measure") or 0.0)))
+    return out
+
+
+def _section_regions() -> dict:
+    """section -> the regions it is a member of (the atlas's one membership; a straddler is in both)"""
+    from pipeline.atlas.registry.regions import section_regions
+    return section_regions(_registry(), _graph())
+
+
+@lru_cache(maxsize=512)
+def region_ends(item_id: str) -> tuple[dict, ...]:
+    """T742 C: EVERY PLACE THIS WATER CROSSES A REGION LINE, as a picker offers it — in measure order, each with the
+    id that BINDS that crossing (`area:5`; when the line is crossed more than once on one blue line, `area:5@down` /
+    `area:5@up`, the aliases the build cuts at the lowest / highest one — a middle crossing has no id and says so),
+    its plain name (`region_words` + "km N"), the regions on each side by the atlas's own membership, and the stretch
+    where two regions MEET (the river is the line: both regions'), named so the owner can include it (pick its far
+    end) or exclude it (pick its near end). -> ({id, base, region, blk, measure, km, coord, below, above, label,
+    bindable, why}, …)."""
+    it = _registry().get(item_id)
+    if it is None:
+        return ()
+    blks = [r[len("blk:"):] for r in it.ref_ids if str(r).startswith("blk:")]
+    rows = _region_rows()
+    answers = {sid: set(b.answers_to()) for b in it.boundaries for sid in [b.id] if REGION_CUT.match(b.id)}
+    sreg = _section_regions()
+    idx = _blk_index()
+
+    def regions_at(blk: str, m: float) -> list[str]:
+        nid = next((n for d, u, n in idx.get(blk, []) if d <= m < u), None)
+        return sorted(r.upper() for r in sreg.get(nid, ())) if nid else []
+
+    def both(rs: list[str]) -> str:
+        return " and ".join(f"Region {r}" for r in rs)
+    out: list[dict] = []
+    for blk in blks:
+        here = sorted(rows.get(blk, ()), key=lambda x: x[1])
+        if not here:
+            continue
+        by_base: dict[str, list[float]] = {}
+        for sid, m in here:
+            by_base.setdefault(sid.split("@")[0], []).append(m)
+        for sid, m in here:
+            base = sid.split("@")[0]
+            ms = sorted(by_base[base])
+            code = REGION_CUT.match(base).group(1)
+            if len(ms) == 1:
+                bid, bindable, why = base, base in answers, ""
+            elif m == ms[0] or m == ms[-1]:
+                bid = f"{base}@{'down' if m == ms[0] else 'up'}"
+                bindable = bid in answers.get(base, set())
+                why = ""
+            else:
+                bid, bindable, why = base, False, (f"a middle crossing of Region {code}'s line: no id binds it (only "
+                                                    "the lowest and the highest crossing have one)")
+            if not why and not bindable:
+                why = f"this water's cut-points do not answer to {bid}"
+            below, above = regions_at(blk, m - 1.0), regions_at(blk, m + 1.0)
+            km = round(m / 1000)
+            label = f"Region {code} boundary · km {km}"
+            if len(above) > 1 and len(below) <= 1:
+                top = next((x for _s, x in here if x > m and len(regions_at(blk, x + 1.0)) <= 1), None)
+                label += (f" — where {both(above)} meet starts here, upstream"
+                          + (f" to km {round(top / 1000)}" if top is not None else ""))
+            elif len(below) > 1 and len(above) <= 1:
+                bot = next((x for _s, x in reversed(here) if x < m and len(regions_at(blk, x - 1.0)) <= 1), None)
+                label += (f" — where {both(below)} meet ends here"
+                          + (f" (it runs down to km {round(bot / 1000)})" if bot is not None else ""))
+            pt = _point_at(blk, m)
+            ll = _geo(pt, "region_end", {}) if pt is not None else None        # the atlas is BC Albers: to lon/lat
+            out.append({"id": bid, "base": base, "region": code, "blk": blk, "measure": m, "km": km,
+                        "coord": list(ll["geometry"]["coordinates"])[:2] if ll else None, "below": below, "above": above,
+                        "label": label, "bindable": bindable, "why": why})
+    return tuple(out)
+
+
+def with_region_ends(boundaries: list[dict], item_of=lambda b: None) -> list[dict]:
+    """A picker's boundary list with each REGION-LINE cut replaced by this water's crossings of it (`region_ends`):
+    one row per crossing, named plainly and by its km, carrying the id that binds it; a crossing no id binds is kept,
+    said with why, and marked not pickable (`pickable: false`). Every other boundary is unchanged."""
+    out: list[dict] = []
+    for b in boundaries:
+        item = item_of(b)
+        ends = [e for e in region_ends(item) if e["base"] == b["id"]] if item and REGION_CUT.match(b["id"]) else []
+        if not ends:
+            out.append(b)
+            continue
+        for e in ends:
+            out.append({**b, "id": e["id"], "label": e["label"] if e["bindable"] else f"{e['label']} — {e['why']}",
+                        "aliases": [], "names": [], "region_end": e, "pickable": e["bindable"]})
+    return out
+
+
 def _features(layer: str, ids, kind: str) -> list[dict]:
     """The `graph.gpkg` layers, served from the artifacts they were built from.
 
@@ -2098,12 +2235,10 @@ def item_side_channels(item_id: str) -> list[str]:
         for i in g.up_adj.get(nid, []):
             if (f := g.edges[i].from_node) not in own:
                 gives_to.add(f)                            # water comes back from them
-    owner: dict[str, str] = {}
-    for iid, item in reg.items():
-        if iid == item_id:
-            continue
-        for sid in item.section_ids:
-            owner[sid] = iid
+    # T742 E2 (perf): the section -> item map is the build's, read once (it was rebuilt over the whole registry on
+    # every request: ~0.55 s per item, 7.5 s for the 13 items of a Fraser place's map). The nodes asked about are
+    # never this item's own, so the one map answers exactly as the per-request one (which skipped this item) did.
+    owner = _section_owner()
     a = {owner[n] for n in takes_from if n in owner}
     b = {owner[n] for n in gives_to if n in owner}
 
@@ -2286,6 +2421,15 @@ def entry_split_points(entry_id: str) -> dict | None:
             water = _registry()[on_item].name
         label = ((meta.get(sid) or {}).get("label") or sp.get("label")
                  or (getattr(b, "label", None) if b is not None else None) or sid)
+        # T742 C: a region-line cut by its plain name, at THIS water's crossing (the one row `meta` keeps is often
+        # on another water); one the water crosses more than once, unqualified, is said so and left unplaced
+        rend = None
+        if REGION_CUT.match(sid):
+            ends = [x for x in (region_ends(on_item) if on_item else ()) if x["id"] == sid or x["base"] == sid]
+            rend = ends[0] if len(ends) == 1 else None
+            label = (rend["label"] if rend else region_words(sid) + (
+                f" — this water crosses it {len(ends)} times ({', '.join(f'km {x['km']}' for x in ends)}): the rule "
+                "does not say which" if len(ends) > 1 else ""))
         # T207: a cut placed approximately says so on its map label and wherever it is named (splits.json's
         # own value, so it shows before the rebuild; else the built boundary's)
         conf = split_confidence(sid, sp, b)
@@ -2298,7 +2442,9 @@ def entry_split_points(entry_id: str) -> dict | None:
         if conf == LOW_CUT and sp.get("_note"):      # owner 2026-10-28: why the cut is a guess, on screen
             props["note"] = sp["_note"]
         geom = None
-        if sid in meta:                               # a cut on a line: its point on the section
+        if REGION_CUT.match(sid):
+            geom = {"type": "Point", "coordinates": rend["coord"]} if rend and rend["coord"] else None
+        elif sid in meta:                             # a cut on a line: its point on the section
             f = _geo(_split_point(sid), "named_split", {})
             geom = f["geometry"] if f else None
         # a lake boundary: the lake's own point — also a curated cut whose point stood on the LAKE side of the
@@ -2377,6 +2523,13 @@ def search_splits(q: str, limit: int = 30, first: "list[str] | tuple[str, ...]" 
         if want in hay:
             out.append({"id": sid, "label": sp.get("label") or sid, "water": water,
                         "kind": (sp.get("anchor") or {}).get("type"), "own": water.strip().casefold() in mine})
+    # T742 C: the asker's waters' REGION-LINE crossings are cuts too (not in splits.json): each by its plain name and
+    # km, with the id that binds it, before any other water's cuts; a crossing no id binds is never offered
+    if mine:
+        for e in (e for iid, it in _registry().items() if it.name and it.name.strip().casefold() in mine
+                  for e in region_ends(iid) if e["bindable"]):
+            if want in f"{e['id']} {e['label']} region boundary".casefold() and not any(h["id"] == e["id"] for h in out):
+                out.append({"id": e["id"], "label": e["label"], "water": "", "kind": "region line", "own": True})
     out.sort(key=lambda h: not h["own"])                 # stable: file order inside each group
     return out[:limit]
 
@@ -2613,7 +2766,7 @@ def check_entry(entry_dict: dict) -> dict:
 
 #: Every cache read from the served build — what `invalidate_caches` drops.
 _BUILD_CACHES = (_registry, _place_namer_for, _splits_meta, _split_points_attrs, _tidal_pieces_for,
-                 _blk_to_item, _graph, _geoms, _wbk_polys,
+                 _blk_to_item, _section_owner, _region_rows, region_ends, _graph, _geoms, _wbk_polys,
                  _blk_index, _review_context_for, _built_atlas, _built_for, _splits_context_for,
                  _run_facts_for, _boundary_index,
                  # T207: corpus-wide split use (reads the registry) and the authored confidences
@@ -2636,8 +2789,22 @@ _BUILD_CACHES = (_registry, _place_namer_for, _splits_meta, _split_points_attrs,
 WARM_STEPS: tuple[tuple[str, str], ...] = (
     ("registry", "_registry"), ("bundle facts", "_review_context"),
     ("vintage", "built"), ("reach run facts", "run_facts"), ("graph", "_graph"),
-    ("geometry", "_geoms"), ("rule section counts", "_warm_rule_counts"), ("queue", "queue"),
+    ("geometry", "_geoms"), ("queue", "queue"), ("DFO places", "_warm_dfo"),
 )
+#: T742 E8 (perf): warmed AFTER the app says ready — the 60 s rule section counts serve a regulation ZONE entry, never
+#: a DFO place, so the owner's DFO labelling no longer waits for them (`todo` lists them until they are done)
+LATE_WARM_STEPS: tuple[tuple[str, str], ...] = (("rule section counts", "_warm_rule_counts"),)
+
+
+def _warm_dfo() -> None:
+    """T742 E8: what a first DFO place reads — the DFO rows and the checklist's places (the queue the DFO tab opens on)"""
+    import checks
+    import dfo
+    dfo._rows()
+    checks._places()
+    _section_regions()            # the region membership the pickers' region ends read (`region_ends`), ~8 s cold
+
+
 def _warm_rule_counts() -> None:
     """Every rule's bound-section count, counted once per bundle (`fingerprint.rule_section_counts`):
     ~50 s on a zone-heavy bundle, so a reviewer never waits for it on a zone entry."""
@@ -2650,10 +2817,10 @@ def _warm_rule_counts() -> None:
         db.close()
 
 
-_READY: dict = {"ready": False, "warming": False, "done": [], "seconds": None, "error": None}
+_READY: dict = {"ready": False, "warming": False, "done": [], "seconds": None, "error": None, "late": False}
 
 
-def warm(steps=WARM_STEPS) -> dict:
+def warm(steps=WARM_STEPS, late=None) -> dict:
     """Load every cache a first entry reads (`WARM_STEPS`), recording each step as it finishes —
     what `readiness` reports and `GET /api/ready` serves. Run once at startup in a thread when
     `CURATION_WARM=1` (`run.sh` sets it), so a reviewer is never the one who waits."""
@@ -2665,6 +2832,10 @@ def warm(steps=WARM_STEPS) -> dict:
             globals()[fn]()
             _READY["done"].append({"step": name, "at_s": round(_t.time() - t0, 1)})
         _READY["ready"] = True
+        _READY["late"] = bool(late)
+        for name, fn in late or ():          # after ready (the app passes `LATE_WARM_STEPS`)
+            globals()[fn]()
+            _READY["done"].append({"step": name, "at_s": round(_t.time() - t0, 1)})
     except Exception as ex:  # noqa: BLE001 — reported by /api/ready, never swallowed silently
         _READY["error"] = f"{type(ex).__name__}: {ex}"
     finally:
@@ -2676,4 +2847,6 @@ def readiness() -> dict:
     """THE READY SIGNAL: {ready, warming, done: [{step, at_s}], todo: [step], seconds, error}."""
     done = [d["step"] for d in _READY["done"]]
     return {**{k: _READY[k] for k in ("ready", "warming", "seconds", "error")},
-            "done": list(_READY["done"]), "todo": [n for n, _ in WARM_STEPS if n not in done]}
+            "done": list(_READY["done"]),
+            "todo": [n for n, _ in WARM_STEPS if n not in done]
+            + [n for n, _ in LATE_WARM_STEPS if _READY.get("late") and n not in done]}

@@ -177,7 +177,7 @@ export async function resolveStartLink(link: StartLink, store: PlaceReads, itemF
 
 
 /** (T369) A link naming a water alone: a water of one part opens at it; any other — a multi-part water whose link has
- *  no place (a release cut before `section_line` made it) — on its Map, whole. */
+ *  no place (a release cut before `section_line` made it) — as it asks, its Map on its frame's part (T747: not whole). */
 async function ownPart(link: StartLink, store: PlaceReads, solo?: (item: ItemId) => Promise<boolean>): Promise<StartLink> {
   const f = waterFrame(link.route);
   if (!f || f.item === null || f.part !== null || f.tapSid !== null) return link;
@@ -197,5 +197,6 @@ async function ownPart(link: StartLink, store: PlaceReads, solo?: (item: ItemId)
     return { ...link, tap: null, route: reduce(HOME, openWater({ item: f.item, part: parts[0]!.partIx, view, ...tap,
                                                                   ...(isSolo ? { solo: true } : {}) })) };
   }
-  return f.view === "map" ? { ...link, route: reduce(HOME, openWater({ item: f.item, view: "map", whole: true })) } : link;
+  // (T747) its Map on the part its bar names (the frame's part, read as the Regulations view reads it), not whole
+  return link;
 }

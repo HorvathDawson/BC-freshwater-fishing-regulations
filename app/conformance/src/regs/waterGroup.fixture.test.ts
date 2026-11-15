@@ -5,7 +5,7 @@
  * copies). The fixture's core holds only its 43 waters, so a mouth into a water it dropped is no exit here.
  */
 import { beforeAll, describe, expect, it } from "vitest";
-import { crossDown, crossUp, markLabel, navSections, partName, spanName, stepsDown, stepsUp, type WaterGroup } from "@app/core";
+import { crossDown, crossUp, markLabel, navSections, partName, spanName, stepDown, stepUp, type WaterGroup } from "@app/core";
 import { loadWaterGroup, openRegsStore, RegsInputsError, siblingItems, type RegsStore } from "@app/data/regs";
 import { openRegsFixtureWithLines, sectionNames, type SectionNames } from "@app/data/release/node";
 
@@ -16,7 +16,7 @@ const names = (g: WaterGroup) => g.parts.map((_, i) => partName(g, i));
 // a mark with no named place (no end token) says no words: "—" here
 const marks = (g: WaterGroup) => g.marks.map((m) => `${markLabel(g, m) ?? "—"}: ${m.down} → ${m.up.join(",")}`);
 const steps = (g: WaterGroup) =>
-  g.parts.map((_, i) => `${stepsDown(g, i).join(",") || "-"}|${stepsUp(g, i).join(",") || "-"}`);
+  g.parts.map((_, i) => `${stepDown(g, i) ?? "-"}|${stepUp(g, i) ?? "-"}`);
 
 describe("the water map's group from the fixture release", () => {
   // (T517, regs fixture r-fc17c4373686) a part is one connected run of one rule set AND one DFO salmon chain, part_ix in

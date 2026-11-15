@@ -27,6 +27,20 @@ with the default Claude uses until you answer). Newest first inside each section
   Apple account after approval, Play closed-testing steps. Closed on the page: T688 wording (answered 11-12). Build 29
   phone check marked replaced by the 0.7.8 / 0.7.9 rows. Not on the page (old, to prune or re-ask): Run timing T199 runs,
   Q4 / Q126 / Q9 / Q26 / Q27, the long phone-test lists (T50 / T77 / T74 / T217 / T243), SEO v1.
+- **ANSWERED 2026-11-14 (T750 step order).** Upstream / Downstream now walk one line through every part, no "Which way
+  upstream?" picker (owner: "we should only have up or downastream that access all components"). Asked whether to rank a
+  part by its upper end (as shipped) or its downstream end (differs on Wap Creek and Nimpkish River only): "upstream is
+  fine". Shipped order stays; no release needed.
+- **T743 Fraser DFO places (2026-11-14): BLOCKS tonight's release until re-marked.** Dossier:
+  `handoff/PLAN/curation-review/fraser-dossier-2026-11-14.md`. Three "Mission to Hope" wordings (marks lines 2552, 2554,
+  2555; two written by a group click) are bound Mission → Spuzzum; with the live chum/coho opening that would show
+  salmon open on Hope → Spuzzum (km 158.8-197.0) where DFO says no fishing for salmon. Yours, one at a time once
+  grouping is gone: (1) re-mark those three as Mission → Hope (your own line 2546 was right); (2) accept ONE Hope Hwy 1
+  bridge cut (proposed twice, km 158.8; needs an atlas build after); (3) which bridge is "the Alexandra Bridge": the
+  Hwy 1 bridge (km 201.2) or the old suspension bridge 855 m upstream (both are 4.3 km past the Region 2/3 line at
+  Spuzzum); (4) re-check the two "upstream of Mission" marks (Mission → Spuzzum is plausible); (5) does Region 3's
+  "Mainstem waters" include the stretch shared with Region 5; (6) which edge of Lillooet the signs are measured from.
+  Suggester fixed (319a447a0): 3 Fraser suggestions change; regenerate only after (1). Page row `t743-fraser-remark`.
 - **T735 dark-mode highlight (2026-11-14): pick a look; four sheets sent in chat.** Owner: "The highlighting isn't very
   good in dark mode on regulated streams." Measured: the white ring nearly swallows a yellow or mint line (1.1-1.3:1),
   and on the Fraser every other part carries the same bright ring. Options, dark only: A dark edge, status colour
@@ -116,22 +130,85 @@ with the default Claude uses until you answer). Newest first inside each section
   G15) [About only, the first-run notice is not shown again];
   (8) the web build leaves out the four Android-only "What's new" notes [keep];
   (9) moving to a new phone copies saved spots and photos but not the downloaded data, which downloads again [yes];
-  (10) an own iOS tap-up patch for MapLibre (decision 4) [measure first; the numbers are in T719 when the run lands];
+  (10) an own iOS tap-up patch for MapLibre (decision 4): BUILT and proven on the simulator 2026-11-14 (branch
+  `ios/t719-tapup`): the cue lights 8 to 121 ms after the lift, was 371 to 495; Android's half of the patch is
+  byte-identical [merge with the other iOS branches after the Android benches] or leave;
   (11) ANSWERED 2026-11-14, a third heavy lane for iOS simulator jobs. Owner, verbatim: "Maybe we can run 2 at same time
   might have enough resources". Done: `heavy-job-3.lock` in `scripts/heavy.sh` (bbee2220f), same memory guards, three lanes
-  at most;
+  at most. Clarified later the same evening, relayed by the Android chat, verbatim: "i just meant use as much of the
+  resources as you can to speed stuff up": lanes run in parallel as far as the machine allows; every heavy job still
+  goes through `scripts/heavy.sh` and its memory gate;
   (13) iOS keyboard and back fixes are proven on the simulator (T723, branch `ios/t723-keyboard-back`); two picks: a
   spot's Save row stays under the keyboard while typing [leave: drag down or Done first] or lift it above the keyboard;
   the new left-edge back strip on full-screen pages is 16 pt wide [keep] or 8 pt;
   (14) the first-install bar reads low on both platforms (38.8 MB shown with 116 MB on disk after a relaunch): the four
   big files download at once and the bar counts one at a time [fix it, ticket T738] or leave it;
+  (15) push for iPhone notices (owner 2026-11-14, verbatim: "dont we want to use it for the notifications thought?"):
+  today no notification on either platform uses push; the phone checks in the background and makes the notification
+  itself, and on iPhone that check runs only when iOS allows (often hours late). Proposal [Claude's pick]: a "wake-up"
+  push from our feeds worker when notices change, so the iPhone checks at once; the worker learns a device token only,
+  never which waters you watch. Needs: Push ticked on the App ID, an APNs key, a privacy-page line, a ticket. Until you
+  pick, the build keeps its push entitlement (the G12 change is on hold). Ticket T739 (proposal). Also asked: "can we
+  do this same push notification style to android?": yes, but Android's only push channel is Google's Firebase, a Google
+  service in the app, so it needs your exception to "self-host everything" [iPhone first; Android only if phones show
+  late alerts]; and "there are also time sensitive notifications?": possible for closure notices on iPhone [off for now].
+  ANSWERED 2026-11-14 late, verbatim: "okay i ticked push notifications for app yes build for iphone."; time-sensitive:
+  "dont need this"; and "i guess if new data is there we could send a notification that the user needs to download it."
+  (built as: a new release wakes the phone, which downloads by itself when settings allow and otherwise tells you new
+  data is ready). Then, verbatim: "for android too." (Android push approved as well; it uses Google's Firebase for delivery only,
+  Claude's reading: your exception to "self-host everything" for this one thing). Being built on branch `ios/t739-push`.
+  **ANSWERED 2026-11-15 02:10 (push on a real phone).** The owner made the Apple push key (Key ID 6T3DBFF92H) and ran
+  the three `wrangler secret put` commands himself; the staging feeds worker lists APNS_KEY, APNS_KEY_ID and
+  APNS_TEAM_ID (names checked, values not read). To "Do you want those tonight?" (deploy the worker with the push code
+  to staging, and upload TestFlight build 35 from the push branch), owner, verbatim: "yes i do i ran command". Build 35
+  **uploaded 02:35** from `ios/t739-push` 650665c61; the worker deploy is timed with the Android chat. Yours
+  after Claude says the worker is on staging: install build 35, turn notifications on in the app, tell Claude; Claude
+  sends one test push. Firebase (Android)
+  still yours, later.
+  Still yours later: one more Apple key, for push, and a free Firebase project for Android (steps come when the worker
+  side is ready);
   (12) Play's data-safety form says approximate location and the App Store answers say precise: should Play match?
-- **Apple Developer account: ENROLLED 2026-11-14, waiting for Apple's approval** (owner, verbatim: "okay i enrolled with
+- **Apple Developer account: APPROVED 2026-11-14 evening (individual); the owner has the Team ID** (given in chat; not
+  written in the repo). DONE by you 2026-11-14: the Team ID is saved in `~/.canifishthis/ios-team-id` (checked: the site build reads
+  it and now writes Apple's link file). Also 2026-11-14: the owner made the App Store Connect API key (Key ID and Issuer ID given in
+  chat, not written in the repo; the `.p8` is in his Downloads). DONE by you the same evening: the key and `asc-api-key.json` are in
+  `~/.canifishthis/` (checked by shape only; `build-ios-testflight.sh --dry-run` finds both files and would build 0.7.10
+  as build 33). CONFIRMED by you 2026-11-14 ("yes and yes"): the App ID `ca.canifishthis.app` is registered with
+  Associated Domains on (Push left off: Claude turns the unused push entitlement off in the build, audit G12), and the
+  app record exists. The Apple side is complete. FIRST TESTFLIGHT RUN: owner 2026-11-14 late, verbatim: "you can do first
+  ios release test for me". Claude started it 21:32: staging data, version 0.7.10 as iOS build 33, from f51870652 (last
+  green app CI, the same app code as Play build 32). RESULT 21:33: stopped in the signing step after 1 minute, nothing uploaded. Apple: "Your team has no devices
+  from which to generate a provisioning profile": Xcode's automatic signing needs one iPhone registered on the team
+  before it can archive. YOURS (2 minutes): register your iPhone under developer.apple.com → Devices (steps in chat),
+  then tell Claude, who runs it again. Later TestFlight runs: ask
+  first unless you say otherwise (Claude's reading: the go-ahead was for the first one). History: ENROLLED 2026-11-14, waiting for Apple's approval (owner, verbatim: "okay i enrolled with
   apple developer I will tell you wne i get approved"). This answers decision 1 of `handoff/PLAN/ios/START-HERE-ios.md`
-  (account now). Not yet said: individual or organization. After approval, yours to do: save the Team ID in
+  (account now). ANSWERED 2026-11-14 evening, verbatim: "it is a individual evelper account" (so the App Store shows
+  your own legal name as the seller). Same message: "i cant find team id how do i make one?": it is not made, Apple
+  assigns it once the enrolment is approved and paid; it then shows under developer.apple.com → Account → Membership
+  details. After approval, yours to do: save the Team ID in
   `~/.canifishthis/ios-team-id`; create the app record (bundle id `ca.canifishthis.app`, name "Can I Fish This?", English
-  (Canada)); make an App Store Connect API key (App Manager) and save `~/.canifishthis/asc-api-key.json`. TestFlight
+  (Canada)); make an App Store Connect API key (role Admin; corrected 2026-11-14 22:15, an App Manager key cannot sign for the store) and save `~/.canifishthis/asc-api-key.json`. TestFlight
   (T88) stays yours to start.
+  **DONE 2026-11-14 22:22:** first TestFlight upload, 0.7.10 build 33 (staging data), after the owner registered his
+  iPhone and made an Admin key. Yours now: App Store Connect → TestFlight → Internal Testing, make a group and add
+  yourself; install the TestFlight app on the iPhone; install the build and open it. Later uploads: Claude asks first.
+  **ANSWERED 2026-11-14 23:35:** owner asked "i thought it can download in background?" (not on iPhone in build 33);
+  offered a second build from the merged iOS branch `ios/integration` (background download, progress bar, keyboard,
+  back swipe, tap cue); owner, verbatim: "yes". Build 34 from 51349c3bf **uploaded 23:58** (0.7.10 build 34, staging data). The shared
+  branch is not touched by it. Yours: add build 34 to your internal group and install it; checks only a phone can do
+  are on the To-Do page row.
+- **NEW 2026-11-15 03:00 (iOS chat, T746, your "loading icon with text like splash").** Built on a branch; pictures
+  sent in chat (iPhone light and dark, web). Pick the line: "Putting the new regulations in place…" (built) /
+  "Applying the new regulations data…" / "Updating the regulations and map…". A failed apply says: "The new
+  regulations could not be put in place. The app is still using the data it had." (OK button): fine / change.
+- **NEW 2026-11-15 01:10 (iOS chat, T718 crash check).** Crash reports from the iPhone test runs were refused by the
+  staging worker's daily limit (40 per address per day); the Mac's test beds used the 40 up, and your phone at home
+  shares that address. Pick: give test-bed crashes their own limit of 200 a day on staging, production unchanged: yes
+  (my pick) / no. On yes Claude deploys the feeds worker to staging from branch `ios/crash-send`.
+  **ANSWERED 2026-11-15 01:50**, owner, verbatim: "yes to this". The worker commit (441ec090e) goes onto the shared
+  branch and to staging at a time agreed with the Android chat (the owner is testing the staging site; the deploy also
+  re-runs every feed job).
 - **ANSWERED 2026-11-14 (iOS parity audit, T722/T723).** Owner, verbatim: "we want it to progress with app closed in both app
   and android" (the first install download); "need to just update text for ios" (the two promises that do not hold on
   iOS); "everything else looks like a good find should look for more things like that". So: a real iOS background
@@ -483,7 +560,7 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
 
 - **iOS (T88, T364, T365; 2026-11-05)** — **BENCHED (owner 11-06) until the DFO extents are labelled and Play closed testing has started; then pay the $99 (pick individual vs organization first) and run TestFlight, not the free 7-day route.** the real iPhone run (T364) is AFTER the launch-and-hygiene chat (owner 11-05). Claude built and tested everything the simulator can show (T313).
      Membership details) and `asc-api-key.json` `{"key_id","issuer_id","key_path"}` for an App Store Connect API key
-     (Users and Access → Integrations → Team key, role App Manager; keep the .p8 outside the repo).
+     (Users and Access → Integrations → Team key, role Admin (App Manager cannot sign for the store); keep the .p8 outside the repo).
      missing). It uploads to TestFlight; install TestFlight on the iPhone and accept the build.
      download on Wi-Fi and on cellular (the foreground download, b8e33ca80); the left-edge swipe back from a water's page
      (simulator: a slow drag goes back, a fast mid-height one sometimes does not — say which works for your thumb); the

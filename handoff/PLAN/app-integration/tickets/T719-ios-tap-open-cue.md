@@ -71,7 +71,7 @@ T716 "after" (emulator, with its `onTapUp` cue).
 |---|---|---|---|---|---|
 | small (Norrish) | 352 / 352 / 352 | 448 / 407 / 407 | 448 / 408 / 407 | 40 / 37 / 32 | 418 / 416 / 414 |
 | unnamed stream | 352 / 352 / 352 | 371 / 401 / 402 | 444 / 401 / 402 | 28 / 37 / 36 | 421 / 397 / 398 |
-| mid (Coquitlam) | no target: `[target] {"none":true}` (the probe found no point on the framed river; test bed, see below) | | | 40 / 59 / 39 | 478 / 440 / 399 |
+| mid (Coquitlam) | 352 / 352 / 352 (re-run `ios-mid`, 081d93f90, iPhone 17) | 366 / 434 / 454 | 575 / 434 / 454 | 40 / 59 / 39 | 478 / 440 / 399 |
 | Fraser | 351 / 352 / 351 | 382 / 427 / 426 | 545 / 427 / 426 | 40 / 37 / 39 | 514 / 436 / 413 |
 | Skeena | 351 / 351 / 351 | 402 / 451 / 495 | 553 / 451 / 495 | 36 / 48 / 48 | 546 / 460 / 445 |
 | lake (Cultus) | 351 / 351 / 351 | 429 / 403 / 402 | 429 / 403 / 402 | 42 / 73 / 52 | 380 / 407 / 420 |
@@ -86,8 +86,8 @@ T716 "after" (emulator, with its `onTapUp` cue).
   on the Mac.
 - **Double tap (small): PASS.** UIKit saw 2 taps 233 ms apart, the map zoomed (32 % of the map changed), no page,
   nothing reported, no cue lit (nothing lights without an `onTapUp`).
-- `mid`: the app's own `[target]` search found no point on Coquitlam River after the search framing (T689's "searched,
-  found none"). A test-bed case to re-run (Android found one). Not an app open-speed result.
+- `mid`: the first run's probe found no point on Coquitlam River (`[target] {"none":true}`). The re-run found one
+  and measured the same 352 ms. That was a one-off of the probe after the search framing, not the app.
 
 **A lean iOS `onTapUp` (a design for the main lane's decision; NOT written):**
 - *Why not just override `touchesEnded:` in `MLRNMapView`* (it already overrides `touchesBegan:`): UIKit holds a

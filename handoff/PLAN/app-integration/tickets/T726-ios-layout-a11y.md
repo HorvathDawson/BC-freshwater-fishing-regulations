@@ -28,3 +28,9 @@ Depends: T718. Size: M. Owner: no (rotation answered 2026-11-14: portrait only).
 - **Orientations in the built Info.plist:** Portrait and PortraitUpsideDown (Expo's `"portrait"`). iPhones without a
   home button ignore upside-down, so this is portrait only in practice; tighten to Portrait alone only if a run shows
   the app turning over.
+
+## Found before this ticket started (2026-11-15, merged-branch simulator run)
+- **Photo viewer:** its "Photo 1 of 1" line sits under the iPhone status-bar clock (no top safe-area inset). Seen on
+  `ios/integration` and on the base alike, so not from the merge. Shot in the integration lane's session 3 folder
+  (`integ-ios-3`, the modal-back photo step). To fix here: the viewer's header takes the top inset; check the Dynamic
+  Island models too.

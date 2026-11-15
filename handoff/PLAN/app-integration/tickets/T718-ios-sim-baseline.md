@@ -75,7 +75,7 @@ Runs: `ios-baseline` (main lane, `all`, cut by its 40 min cap during `pdf`), the
 | location | 2 PASS, 1 SKIP | **app (parity):** no "At my location" row in iOS search (START-HERE flagged it) | 949 blue px at the centre |
 | walkthrough | PASS | | 41 of 41 |
 | pdf | PASS (re-run) | baseline: cut by the session cap | "Page 11 of 88" in PDFKit |
-| crash | FAIL step 2 | **app or server, unconfirmed:** the next start read the record (`1 new … (CRASH_NATIVE), 1 bad`) but `sendExit` returned false on every start (POST /crash to the staging worker was made: CFNetwork lines). The app does not log the HTTP status. Likely the worker's per-IP limit (40 crash POSTs a day: many crash tests from this Mac today), not proven | |
+| crash | FAIL step 2 | **app or server, unconfirmed:** the next start read the record (`1 new … (CRASH_NATIVE), 1 bad`) but `sendExit` returned false on every start (POST /crash to the staging worker was made: CFNetwork lines). The app does not log the HTTP status. The worker's per-IP limit (40 a day) is now **unlikely**: the re-run at 23:30 PT, a new UTC day, failed the same way. So it is the app's payload or the worker's validation (400), unconfirmed. Next: log the POST's status in `sendExit` (no silent failure), or replay the iOS record against the local crash stub | |
 | perf | PASS | | cold start → map 597 / 583 / 595 ms; tap → first frame 123 / 54 / 64 ms; pan lag max 18 ms, 0 stalls |
 | memory | PASS (re-run) | baseline: never ran. **Test bed:** the rule-book link (now "This water in the rule book p.7 ↗") and the Salmon toggle's words had changed (59aaa4de8) | peak footprint 274 MB (0.5.0: 290); table in T725 |
 

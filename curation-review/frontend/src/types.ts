@@ -481,6 +481,11 @@ export type EntrySeverity = "high" | "medium" | "low" | "none" | "later";
 /** the queue's severity filter (`severity.FILTERS`): a level, or high + medium */
 export type SeverityFilter = EntrySeverity | "issues" | "all" | "";
 
+/** T742 C: where a water crosses a region line (`reuse.region_ends`) */
+export interface RegionEnd {
+  id: string; base: string; region: string; km: number; coord: [number, number] | null;
+  below: string[]; above: string[]; label: string; bindable: boolean; why: string;
+}
 export interface Boundary {
   id: string;
   label: string;
@@ -490,6 +495,10 @@ export interface Boundary {
   curated: boolean;
   /** a cut the build minted itself (gauge__…, length:…, area:…) — never in splits.json */
   minted?: boolean;
+  /** T742 C: one crossing of a region line on this water (`reuse.region_ends`): its plain name is `label` */
+  region_end?: RegionEnd;
+  /** T742 C: false for a region crossing no id binds (a middle crossing): listed, never offered */
+  pickable?: boolean;
   /** every other id this cut-point answers to (a rule naming any of them binds it) */
   aliases?: string[];
   /** the other NAMES at this place (merged gauge/area/border/length, lake, a second authored point) */
@@ -835,10 +844,8 @@ export interface MarkPost {
   extent_fix?: ExtentFix[];
   /** T164: NEW splits proposed (`marks.NewSplit`) — proposals only, never splits.json */
   new_splits?: NewSplit[];
-  /** owner 2026-10-28: a DFO historic group — every member kept gets the same mark (one each) */
+  /** several targets in one mark: a slough / name batch, or a batch clear. T742: never a DFO save (refused) */
   targets?: string[];
-  /** owner 2026-11-09 (dfo group): each other wording in `targets`, with the extent (and digest) the owner saw */
-  members?: GroupSave["members"];
   /** T525 (dfo): the extent the mark was made on (`DfoExtentNow.seen`); the server refuses it when the file moved */
   extent_before?: DfoSeenExtent;
   /** owner 2026-11-02 (dfo): this wording is a variant of that location (T185 writes duplicate_of) */
@@ -891,14 +898,18 @@ export interface PlaceCheck {
 export interface CheckPlace {
   source: "dfo" | "regs"; id: string; water: string; water_key: string; region: string; text: string;
   summary: PlaceCheck["summary"]; check: CheckState; new?: boolean; entry_id?: string; rule_id?: string;
-  /** DFO: its older wordings, and how many have no check in force ("older wording not confirmed") */
-  older?: number; older_unconfirmed?: number;
+  /** T742: its mark in force was written by a group save (before grouping was removed) — re-check it on its own */
+  group_marked?: GroupMarked | null;
+  /** DFO: on the live page */
+  live?: boolean;
   /** DFO: the extent's state (`dfo._row`) — unbound / needs_cut have nothing to check yet; a proposal waits for it */
   state?: DfoState | null; proposal?: boolean; earlier?: EarlierMark;
   /** how much work the place is (`checks.ease_of`): lower rank = easier; null when done */
   ease?: Ease | null;
 }
 export interface Ease { rank: number; word: string }
+/** T742: the group save that wrote a place's mark in force, and its date (a flag only: the mark stays what it says) */
+export interface GroupMarked { group: string; date: string }
 /** one place on a water (GET /api/checks/water): the queue's places and, under each DFO place, its older wordings */
 export interface WaterPlace {
   source: "dfo" | "regs"; id: string; text: string; live: boolean; check: CheckState; bad: number;
@@ -910,7 +921,9 @@ export interface WaterPlace {
   seen?: DfoSeenExtent;
   /** DFO: the last date its page carried this wording */
   last_seen?: string | null;
-  /** the same-place group it sits in (the group's first id) and why (`checks.same_place`) */
+  /** T742: its mark in force was written by a group save — flagged "marked in a group" */
+  group_marked?: GroupMarked | null;
+  /** `checks.same_place`: T742 — always its own id, no reasons (no grouping) */
   same: string; why: string[];
 }
 export interface WaterView {
@@ -925,7 +938,8 @@ export type WaterReach = GeoJSON.FeatureCollection & { failed: { id: string; why
 export interface CheckProgress {
   total: number; done: number; left: number; needs: number; by_check: Partial<Record<CheckState, number>>;
   by_worst: Partial<Record<RowState, number>>; rows: Partial<Record<RowState, number>>;
-  older_unconfirmed?: number;
+  /** T742: places whose mark in force a group save wrote */
+  group_marked?: number;
   waters: Record<string, { water: string; total: number; done: number }>;
 }
 
@@ -1171,8 +1185,8 @@ export interface DfoRow {
   lake_area?: boolean;
   /** the confidence of the location's SUGGESTED extent (`dfo-suggestions.json`), when there is one */
   suggested?: SuggestConfidence | null;
-  /** owner 2026-10-28: historic rewordings grouped with this place — one decision labels them all */
-  group?: { id: string; size: number; canonical: string } | null;
+  /** T742: its mark in force was written by a group save (before grouping was removed) */
+  group_marked?: GroupMarked | null;
   /** owner 2026-11-02: a dormant place no live wording rewords, on a live water — its own item */
   historic_only?: boolean;
   /** a fix proposal waits on this item (`dfo_fix_proposals.json`) */
@@ -1181,26 +1195,6 @@ export interface DfoRow {
   fix_vs_current?: FixVsCurrentState | null;
   /** T449: wholly in tidal water — proposed / accepted / rejected, or null */
   tidal?: DfoTidal | null;
-}
-/** a member of a DFO historic group (`review.dfo.groups`) and why it was grouped */
-export interface DfoGroupMember {
-  id: string; why: string | null; this: boolean; water: string; text: string; status: string;
-  verify: VerifyStatus;
-  /** it binds this place's extent (pieces as a set, the tributary call it binds with) */
-  same_extent: boolean;
-  extent: DfoSeenExtent;
-  /** R4: fields it holds that no extent fix can say — it cannot be ticked when its extent would change */
-  cannot_change: string[];
-  /** why it cannot take this place's extent (only when it differs) */
-  cannot_take: string[];
-  /** an OTHER wording: its own checklist digest, a save of its own waiting to land, its check state */
-  digest?: string | null; held?: string | null; check?: CheckState | null;
-}
-/** owner 2026-11-09: a save on older wordings — every one the owner ticked "same place", each listed with what was
- *  seen (the server refuses a wording that is not) */
-export interface GroupSave {
-  targets: string[];
-  members: Record<string, { extent_before: DfoSeenExtent; digest?: string }>;
 }
 export type SuggestConfidence = "high" | "medium" | "low" | "none";
 /** A SUGGESTED extent (`pipeline.regs.dfo_salmon.suggest`): never applied — "accept suggestion"
@@ -1433,7 +1427,6 @@ export interface DfoDetail {
   places?: DfoPlace[];
   /** this location's own wordings with their page dates */
   wordings?: DfoWording[];
-  group?: { id: string; canonical: string; members: DfoGroupMember[] } | null;
   /** the SUGGESTED extent, or null (never applied) */
   suggestion?: DfoSuggestion | null;
   /** owner 2026-11-02: Claude's FIX PROPOSAL for this item, from the mark's note — never applied */

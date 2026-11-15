@@ -196,42 +196,64 @@ describe("(T150) the parts of this water, listed under the map — the header's 
   });
 });
 
-// (T67, r-0ed3c2b2a0a7) the Zymoetz's canyon side channel is no part of its own any more: E15's spurious mark is gone
-// and the channel joins the part above the canyon. A side-channel piece of the Skeena's Ecological Reserve is a part of
-// its own, and the Reserve's part is a fork upstream.
-// (T183, r-98c43091c440) Skeena section 2 starts at the Exchamsiks cut: the Reserve below the cut lost it (with the side
-// channel piece 360216962:96, one part again, part 5, the lowest on the map) and the mainstem from the Reserve up to the
-// Exchamsiks joined part 0 ("3 stretches"). The part of its own is now the Exchamsiks host channel ABOVE the cut
-// (360216952:1017, part 6, still section 2): the Reserve's ▲ is part 0 (the main stem) or that channel.
-describe("a fork upstream: the Skeena's Ecological Reserve", () => {
-  it("▲ at the fork opens a chooser, the main stem first; a choice steps there", async () => {
+// (T750, owner 2026-11-14 on staging, the Skeena's part 2 of 18: "navigating up the skeena it gives a branching option. we
+// should only have up or downastream that access all components. we just need to choose the most sensible next item. for
+// example here which ever has a lower downstream item maybe.") The Reserve's part forks upstream in the marks (the main
+// stem above it, and the km-less side channel that leaves it further up and rejoins at the Exchamsiks): ▲ takes the
+// next part in the water's one line (the release's river order, the parts list's order), the main stem, whose
+// downstream end is the lower; the next ▲ the side channel; the next the Exchamsiks stretch. No chooser, ever.
+describe("(T750) no fork: the Skeena's Ecological Reserve steps up one line", () => {
+  it("▲ from the Reserve: the main stem above it, then the side channel, then above the Exchamsiks; ▼ the same way back", async () => {
     const g = await loadWaterGroup(st, "gnis:2936");
-    // (T517) river order; (T678 junctions) the Reserve is found by its ends, not a fixed index: the stretch below it is a
-    // part of its own now. It is named by its two crossings of the Reserve's boundary (no "Within"); the side channel
-    // (no ends) is said as its water
-    const reserve = waterMapStart(waterMapStartIx(g, "gnis:2936", SK_RESERVE));
-    const upIx = waterMapStartIx(g, "gnis:2936", SK_RESERVE_UP), sideIx = waterMapStartIx(g, "gnis:2936", SK_SIDE);
-    const belowIx = waterMapStartIx(g, "gnis:2936", SK_RESERVE) - 1;   // the stretch below the Reserve: not a way up
+    const ix = (partIx: number) => waterMapStartIx(g, "gnis:2936", partIx);
+    const reserve = waterMapStart(ix(SK_RESERVE));
     expect([view(g, reserve).current.name, view(g, reserve).up]).toEqual([
       "Skeena River Ecological Reserve boundary (km 63.5) → Skeena River Ecological Reserve boundary near the Exchamsiks River confluence",
-      { label: "Upstream", aria: "Upstream", disabled: false, fork: true, cross: null }]);
-    const open = run(g, reserve, { type: "up" });
-    expect(open).toEqual({ ...reserve, choosing: "up" });
-    expect(view(g, open).chooser).toEqual({ title: "Which way upstream?", close: "Close", options: [
-      { ix: upIx, item: "gnis:2936", partIx: SK_RESERVE_UP,
-        name: "Skeena River Ecological Reserve boundary near the Exchamsiks River confluence → Exchamsiks River confluence", note: "Skeena River" },
-      { ix: sideIx, item: "gnis:2936", partIx: SK_SIDE, name: "Skeena River", note: "Skeena River" }] });
-    expect(run(g, open, { type: "choose", to: upIx })).toEqual(waterMapStart(upIx));
-    expect(run(g, open, { type: "choose", to: sideIx })).toEqual(waterMapStart(sideIx));
-    // not one of the ways up: nothing
-    expect(run(g, open, { type: "choose", to: belowIx })).toBe(open);
-    expect(run(g, open, { type: "closeChooser" })).toEqual(reserve);
-    // (T710, owner 2026-11-13 "List it where it sits", r-a9914d6b25b7) the host channel above the cut is listed right
-    // after the stretch it runs beside, no longer the highest part: its ▲ steps up (it rejoins the main stem above the
-    // cut) and its ▼ is the one stretch below the cut (the main stem beside it is no longer "below" it by index)
-    const side = view(g, waterMapStart(sideIx));
-    expect([side.current.name, side.up.disabled, side.down.fork]).toEqual(["Skeena River", false, false]);
+      { label: "Upstream", aria: "Upstream", disabled: false, cross: null }]);
+    const ups = [run(g, reserve, { type: "up" }), run(g, reserve, { type: "up" }, { type: "up" }),
+                 run(g, reserve, { type: "up" }, { type: "up" }, { type: "up" })];
+    expect(ups).toEqual([waterMapStart(ix(SK_RESERVE_UP)), waterMapStart(ix(SK_SIDE)), waterMapStart(ix(SK_EXCHAMSIKS_UP))]);
+    expect(ups.map((s) => view(g, s).current.name)).toEqual([
+      "Skeena River Ecological Reserve boundary near the Exchamsiks River confluence → Exchamsiks River confluence",
+      "Skeena River", "Exchamsiks River confluence → Zymagotitz (Zymachord) River confluence"]);
+    // and back down the same line
+    expect(run(g, ups[2]!, { type: "down" }, { type: "down" }, { type: "down" })).toEqual(reserve);
+    // the line IS the parts list's order (one order, every screen)
+    expect(view(g, reserve).list!.rows.map((r) => r.ix)).toEqual(g.parts.map((_, i) => i));
   });
+});
+
+// (T750) ONE LINE THROUGH EVERY PART, on waters cut from the real release (the committed regs fixture): the Skeena (its
+// side channel), the Fraser (the Landstrom Bar sign zone inside a stretch), the Columbia and the Thompson (lakes in the
+// line), the West Road (Blackwater) (a braid beside a stretch: a fork in the marks both ways), the Kootenay (border
+// crossings). ▲ pressed from the lowest part n-1 times visits every part exactly once, in the release's river order
+// (`part_ix` ascending, the parts list's order), stopping at the top; ▼ from there walks the same line back.
+describe("(T750) ▲ from the lowest part walks every part once; ▼ walks it back", () => {
+  const WATERS = { Skeena: "gnis:2936", Fraser: "gnis:39325", Columbia: "gnis:37414", Thompson: "gnis:39492",
+                   "West Road (Blackwater)": "gnis:26104", Kootenay: "gnis:14097" } as const;
+  for (const [name, id] of Object.entries(WATERS)) {
+    it(`${name}`, async () => {
+      const g = await loadWaterGroup(st, id);
+      const n = g.parts.length;
+      expect(n).toBeGreaterThan(2);
+      const up: number[] = [];
+      let s = waterMapStart(0);
+      for (let k = 0; k < n; k += 1) { up.push(s.at); s = run(g, s, { type: "up" }); }
+      // the top: ▲ stops there ("Highest part"), every part seen once
+      expect([s.at, view(g, s).up.disabled, view(g, s).up.label]).toEqual([n - 1, true, "Highest part"]);
+      expect(up).toEqual(g.parts.map((_, i) => i));
+      expect(new Set(up).size).toBe(n);
+      // the order is the release's river order, and the parts list's
+      const ord = (await st.itemOrd(id))!;
+      const listed = (await st.parts(ord)).filter((p) => !p.tidal).map((p) => p.partIx).sort((a, b) => a - b);
+      expect(up.map((i) => g.parts[i]!.partIx)).toEqual(listed);
+      expect(view(g, s).list!.rows.map((r) => r.ix)).toEqual(up);
+      const down: number[] = [];
+      for (let k = 0; k < n; k += 1) { down.push(s.at); s = run(g, s, { type: "down" }); }
+      expect(down).toEqual([...up].reverse());
+      expect([s.at, view(g, s).down.disabled]).toEqual([0, true]);
+    });
+  }
 });
 
 // (T278, owner T166 2026-10-28: no parts on tidal water) the release keeps each tidal cut's piece as an unkeyed part
@@ -247,12 +269,9 @@ describe("a tidal piece is never a part of the water map", () => {
 });
 
 describe("every part is reached by ▼ / ▲ (P15 review: the Zymoetz's lake part was not)", () => {
-  /** Every state one press of ▼ or ▲ (and, at a fork, each choice) leads to from part `at`. */
-  const presses = (g: WaterGroup, at: number): number[] => (["down", "up"] as const).flatMap((type) => {
-    const s = waterMapStep(g, waterMapStart(at), { type });
-    if (s.choosing) return view(g, s).chooser!.options.map((o) => waterMapStep(g, s, { type: "choose", to: o.ix }).at);
-    return [s.at];
-  }).filter((j) => j !== at);
+  /** Every state one press of ▼ or ▲ leads to from part `at`. */
+  const presses = (g: WaterGroup, at: number): number[] => (["down", "up"] as const)
+    .map((type) => waterMapStep(g, waterMapStart(at), { type }).at).filter((j) => j !== at);
 
   it("over every fixture water, each part is stepped INTO from another, and all are reached from the mouth", async () => {
     const missed: string[] = [];
@@ -276,7 +295,7 @@ describe("every part is reached by ▼ / ▲ (P15 review: the Zymoetz's lake par
     // Lake outlet", 5: "McDonell Lake → Source" — each one part, part_ix the river order
     expect([3, 4, 5].map((i) => [g.parts[i]!.partIx, g.parts[i]!.pieces])).toEqual([[3, [3]], [4, [4]], [5, [5]]]);
     const top = waterMapStart(5);
-    expect(view(g, top).down).toEqual({ label: "Downstream", aria: "Downstream", disabled: false, fork: false, cross: null });
+    expect(view(g, top).down).toEqual({ label: "Downstream", aria: "Downstream", disabled: false, cross: null });
     expect(run(g, top, { type: "down" })).toEqual(waterMapStart(4));
     expect(run(g, waterMapStart(4), { type: "down" })).toEqual(waterMapStart(3));
   });
@@ -288,11 +307,11 @@ describe("across waters: the Vedder goes on from the Chilliwack (`water_continue
     // (T517) two parts of one run (the DFO salmon chain cuts it at the cable car crossing): ▲ from the mouth part is a step
     const v0 = view(g, waterMapStart(0)), v1 = view(g, waterMapStart(1));
     expect([v0.up, v0.down, v1.up, v1.down]).toEqual([
-      { label: "Upstream", aria: "Upstream", disabled: false, fork: false, cross: null },
-      { label: "Lowest part", aria: "Lowest part", disabled: true, fork: false, cross: null },
+      { label: "Upstream", aria: "Upstream", disabled: false, cross: null },
+      { label: "Lowest part", aria: "Lowest part", disabled: true, cross: null },
       { label: "Upstream into Chilliwack River", aria: "Upstream into Chilliwack River", disabled: false,
-        fork: false, cross: { item: "gnis:8634", part: 0 } },
-      { label: "Downstream", aria: "Downstream", disabled: false, fork: false, cross: null }]);
+        cross: { item: "gnis:8634", part: 0 } },
+      { label: "Downstream", aria: "Downstream", disabled: false, cross: null }]);
     expect(run(g, waterMapStart(0), { type: "up" })).toEqual(waterMapStart(1));
     // ▲ off the top is not a step inside the group: the state does not move (the caller opens the Chilliwack)
     expect(run(g, waterMapStart(1), { type: "up" })).toEqual(waterMapStart(1));
@@ -301,7 +320,7 @@ describe("across waters: the Vedder goes on from the Chilliwack (`water_continue
   it("the Chilliwack: ▼ at its lowest part names the Vedder's top part (1), and 'Flows into' stays; no other part crosses", async () => {
     const g = await loadWaterGroup(st, "gnis:8634");
     expect([view(g, waterMapStart(0)).down, view(g, waterMapStart(0)).exit?.label]).toEqual([
-      { label: "Downstream into Vedder River", aria: "Downstream into Vedder River", disabled: false, fork: false,
+      { label: "Downstream into Vedder River", aria: "Downstream into Vedder River", disabled: false,
         cross: { item: "gnis:3062", part: 1 } }, "Flows into Vedder River ›"]);
     expect(g.parts.map((_, i) => [view(g, waterMapStart(i)).down.cross, view(g, waterMapStart(i)).up.cross]))
       .toEqual([[{ item: "gnis:3062", part: 1 }, null], [null, null], [null, null], [null, null], [null, null]]);
@@ -486,6 +505,26 @@ describe("(T443, owner on 0.6.7) two marks with the same words a few steps apart
     const open = view(g, { ...waterMapStart(parts[0]!), mark: zone[1]! });
     expect(open.marks.find((m) => m.ix === zone[1])!.label).not.toBeNull();
     expect(open.marks.find((m) => m.ix === zone[0])!.label).toBeNull();
+  });
+
+  it("(T747) two marks with the SAME words (the same end token, place and all) are one label at any distance", async () => {
+    // the Skeena's part 1 meets parts 2 and 5 at two marks 4.2 km apart, both "… Ecological Reserve boundary (km 63.5)":
+    // framed wide, two labels a few pixels apart (doubled text). Made here from the Chilliwack: one of part 2's ends
+    // said again 4 km east, bounding the same part
+    const g = await loadWaterGroup(st, "gnis:8634");
+    const v0 = view(g, waterMapStart(1));
+    const end = v0.marks.find((m) => m.label !== null)!;
+    const src = g.marks[end.ix]!;
+    const twin = { ...src, lon: src.lon! + 0.055 };
+    const g2 = { ...g, marks: [...g.marks, twin] };
+    const v = view(g2, waterMapStart(1));
+    const both = v.marks.filter((m) => m.ix === end.ix || m.ix === g.marks.length);
+    expect([both.length, both.filter((m) => m.label !== null).length, both.every((m) => m.a11y.length > 0)]).toEqual([2, 1, true]);
+    // MUTATION PIN: the same end said at ANOTHER place (other words) 4 km away is its own label
+    const tok = `${src.token!.replace(/@.*$/, "")}@km999.9`;
+    const other = { ...twin, token: tok };
+    const v3 = view({ ...g, ends: { ...g.ends, [tok]: g.ends[src.token!]! }, marks: [...g.marks, other] }, waterMapStart(1));
+    expect(v3.marks.filter((m) => m.ix === end.ix || m.ix === g.marks.length).filter((m) => m.label !== null)).toHaveLength(2);
   });
 
   it("MUTATION PIN: labels a kilometre apart, or of other ends, are both drawn", async () => {

@@ -309,25 +309,29 @@ def test_progress_counts_earlier_work_as_done_per_water_and_overall(monkeypatch)
     assert B._matches(places[2], "needs") and not B._matches(places[1], "needs")
 
 
-def test_the_waters_places_are_grouped_by_the_data_that_exists(monkeypatch):
-    """same place = an older wording of the place, DFO's own rewording link, or the identical extent (same source) — a
-    place with no extent matches nothing by extent; the group is named by its first place in list order"""
+def test_no_place_on_a_water_is_grouped_with_another(monkeypatch):
+    """T742 (owner 2026-11-14: "remove the grouping option … one at a time is better"): an older wording, DFO's rewording
+    link or an identical extent no longer groups places — the identical-extent union chained unrelated Fraser wordings
+    into one "same place" heading. Each place stands alone, with no reasons."""
     B = _backend(monkeypatch, "checks")
     p = lambda i, **kw: {"id": i, "source": "dfo", "extent_key": "", "older_of": None, "duplicate_of": None, **kw}  # noqa: E731
-    got = B.same_place([p("a", extent_key="k1"), p("a-old", older_of="a"), p("b"), p("c"),
-                        p("d", duplicate_of="b"), p("e", extent_key="k1"), p("r", source="regs", extent_key="k1"),
-                        p("f", duplicate_of="gone")])
-    assert {i: g["same"] for i, g in got.items()} == {"a": "a", "a-old": "a", "e": "a", "b": "b", "d": "b", "c": "c",
-                                                      "r": "r", "f": "f"}
-    assert got["a-old"]["why"] == ["our proposal: an older wording, its words alike"]
-    assert got["e"]["why"] == ["the identical extent"] and got["d"]["why"] == ["our proposal: matched as a rewording"]
-    assert got["c"]["why"] == [] and got["b"]["why"] == ["our proposal: matched as a rewording"]
-    # WHOSE CLAIM: a confirmed link is the owner's decision; a wording he took out is never grouped again
-    got = B.same_place([p("a", extent_key="k1"), p("b", duplicate_of="a", confirmed=True),
-                        p("c", extent_key="k1", apart=True, older_of="a")])
-    assert got["b"] == {"same": "a", "why": ["your decision: linked as the same place"]}
-    assert got["c"] == {"same": "c", "why": []}
+    got = B.same_place([p("a", extent_key="k1"), p("a-old", older_of="a"), p("b"), p("d", duplicate_of="b", confirmed=True),
+                        p("e", extent_key="k1"), p("r", source="regs", extent_key="k1")])
+    assert got == {i: {"same": i, "why": []} for i in ("a", "a-old", "b", "d", "e", "r")}
 
+
+def test_a_group_written_mark_is_a_filter_and_a_count_never_a_state(monkeypatch):
+    """T742: a place whose mark in force a group save wrote carries `group_marked`; the "group" filter finds exactly
+    those, the progress counts them, and its check state is its own (unchanged by the flag)"""
+    B = _backend(monkeypatch, "checks")
+    row = lambda i, check, gm=None: {"id": i, "source": "dfo", "water_key": "w", "water": "W", "check": check,  # noqa: E731
+                                     "state": "bound", "summary": {"ok": 1, "bad": 0, "worst": "ok"},
+                                     **({"group_marked": gm} if gm else {})}
+    gm = {"group": "grp:x", "date": "2026-11-14"}
+    places = [row("a", "saved", gm), row("b", "unchecked"), row("c", "earlier", gm)]
+    assert [p["id"] for p in places if B._matches(p, "group")] == ["a", "c"]
+    assert B.progress_of(places)["group_marked"] == 2
+    assert B.progress_of(places)["by_check"] == {"saved": 1, "unchecked": 1, "earlier": 1}
 
 def test_the_row_for_words_no_row_checks_says_what_to_do_and_stays_bad():
     """owner 2026-11-09: "words not checked · read them" told the owner nothing — the row says to read the source's
@@ -548,8 +552,9 @@ def test_a_cut_carried_across_braids_is_drawn_on_its_own_water(monkeypatch):
 
 
 def test_the_places_cache_goes_stale_on_each_thing_it_is_made_from_and_on_nothing_else(monkeypatch):
-    """T591: the checklist's places are memoised (T532 r8, speed). Each of its five inputs must miss the memo — a
-    missed one shows the owner a place as not done after he saved it — and a read with nothing changed must hit."""
+    """T591: the checklist's places are memoised (T532 r8, speed). Each of its four inputs must miss the memo — a
+    missed one shows the owner a place as not done after he saved it — and a read with nothing changed must hit.
+    T742 E4: the write-through's outcomes no longer rebuild the list: each change lays them over it once."""
     import sys
     B = _backend(monkeypatch, "checks")
     reuse, dfo = sys.modules["reuse"], sys.modules.get("dfo") or __import__("dfo")
@@ -563,16 +568,25 @@ def test_the_places_cache_goes_stale_on_each_thing_it_is_made_from_and_on_nothin
     monkeypatch.setattr(B, "_dfo_places", lambda: built.append(1) or [])
     monkeypatch.setattr(B, "_regs_places", lambda: [])
     monkeypatch.setattr(B, "_PLACES", reuse._Memo())
+    monkeypatch.setattr(B, "_PLACES_WT", reuse._Memo())
+    laid = []
+    monkeypatch.setattr(B, "_with_outcomes", lambda base: laid.append(1) or base)
     B._places()
     B._places()
     assert len(built) == 1, "nothing changed: one computation"
-    for part, new in (("marks", 2), ("rows", ("other rows",)), ("ctx", ("other ctx",)), ("entries", 2), ("apply", 2)):
+    for part, new in (("marks", 2), ("rows", ("other rows",)), ("ctx", ("other ctx",)), ("entries", 2)):
         now[part] = new
         n = len(built)
         B._places()
         assert len(built) == n + 1, f"a change of {part} must recompute the places"
         B._places()
         assert len(built) == n + 1, f"…and only once ({part})"
+    n, k = len(built), len(laid)
+    now["apply"] = 2
+    B._places()
+    B._places()
+    assert len(built) == n, "a write-through outcome never rebuilds the whole list"
+    assert len(laid) == k + 1, "…it is laid over it, once per change"
 
 
 def test_a_cut_search_lists_this_waters_cuts_before_any_other_waters(monkeypatch):
@@ -588,3 +602,24 @@ def test_a_cut_search_lists_this_waters_cuts_before_any_other_waters(monkeypatch
     assert [h["id"] for h in R.search_splits("bridge", limit=2, first=["Thompson River"])] == ["m1", "m2"], \
         "the limit keeps the asker's own cuts, not the first two in the file"
     assert R.search_splits("b") == []
+
+
+def test_a_write_through_outcome_recomputes_only_the_places_it_holds(monkeypatch):
+    """T742 E4 (perf): the write-through's word on a save re-reads ONLY that place's row over the cached list — its water
+    as the list named it — and every other row is the very same object (the whole list was rebuilt per outcome)"""
+    import sys
+    B = _backend(monkeypatch, "checks")
+    dfo = sys.modules.get("dfo") or __import__("dfo")
+    monkeypatch.setattr(dfo, "_rows", lambda: [{"id": "a"}, {"id": "b"}])
+    monkeypatch.setattr(dfo, "_states", lambda: {})
+    monkeypatch.setattr(dfo, "_locations", lambda: {})
+    monkeypatch.setattr(B, "context", lambda: None)
+    monkeypatch.setattr(B, "_dfo_place", lambda r, *_a: {"source": "dfo", "id": r["id"], "check": "saved",
+                                                         "water": "own", "water_key": "own"})
+    monkeypatch.setattr(B, "apply_outcome", lambda t: {"state": "saved"} if t == "a" else None)
+    a = {"source": "dfo", "id": "a", "check": "unchecked", "water": "W", "water_key": "w", "place_water": "Wa"}
+    b = {"source": "dfo", "id": "b", "check": "unchecked", "water": "W", "water_key": "w"}
+    r = {"source": "regs", "id": "e#r", "check": "unchecked", "water": "W", "water_key": "w"}
+    got = B._with_outcomes([a, b, r])
+    assert got[0] == {**a, "check": "saved"}
+    assert got[1] is b and got[2] is r

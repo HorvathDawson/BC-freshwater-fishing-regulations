@@ -149,6 +149,8 @@ export function releaseLoader(m: Manifest, source: ReleaseSource, open: Opener,
   const ahead = new Map<FileName, Promise<void>>();
   /** (T737) the files a prefetch has finished: in the release cache, so an open reads them without waiting */
   const aheadDone = new Set<FileName>();
+  /** (T737) the files whose open has FINISHED (a whole file still opening does not hold a read its slice answers) */
+  const openDone = new Set<DbName>();
   let focused: Region | null = null;
   /** (T256) the slices opened so far, per file, in the order opened (a slice once read keeps answering what it covers) */
   const slicesOpen: Record<Sliced, Region[]> = { core: [], water: [] };
@@ -160,9 +162,12 @@ const WATER_SHARED: DbName = "water-shared";
    * (T737) A whole file still being fetched AHEAD (the background prefetch) is NOT here: a tap read it, so the first tap
    * a few seconds after the map painted waited for the whole 2.5 MB `water` (8-9 s on staging, measured) instead of its
    * region's 0.17 MB slice. The slice answers now, the prefetch goes on beside it, and once it is in the whole file reads.
+   * (T737, 2026-11-15) Nor is a whole file still being OPENED: the in-season check (`itemOrd` of every water a notice
+   * names, province-wide) opens the whole 1.5 MB `core` a few seconds after paint, and a Region 2 tap then waited for it
+   * (9.4 s on staging, measured) though `core-2` held its answer. Only a finished open counts.
    */
   const wholeHere = async (name: Sliced): Promise<boolean> =>
-    dbs.has(name) || aheadDone.has(name) || (source.stored ? await source.stored(name).catch(() => false) : false);
+    openDone.has(name) || aheadDone.has(name) || (source.stored ? await source.stored(name).catch(() => false) : false);
 
   /**
    * (T360) A file's ONE handle: what `db()` hands out and every reader keeps. Its connection may be closed while idle
@@ -249,7 +254,7 @@ const WATER_SHARED: DbName = "water-shared";
         if (retired) shut(conns.get(name)!).catch(retired);
         return h;
       });
-      p.catch(() => dbs.delete(name));          // a failure is not cached: the next ask tries again
+      p.then(() => { if (dbs.get(name) === p) openDone.add(name); }, () => dbs.delete(name));   // a failure is not cached: the next ask tries again
       dbs.set(name, p);
     }
     return p;
