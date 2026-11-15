@@ -698,3 +698,7 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   areas (Deadman, Juniper, Ashcroft). (3) Sheldens Creek: the Spur 19 cut leaves only the top ~290 m of a 3.69 km line;
   a second road (SP 19H) was never located. (4) Fraser Region 3: the extent in force (Spuzzum to the Region 3/5 line)
   looks right; your Seabird note fits the Region 2 places.
+- ASKED 2026-11-15: "PUNTLEDGE RIVER: 75 m downstream of Puntledge River hatchery fence split is on the hatchery fence
+  (the split already in the river) we should fix the proposal and make sure we fix this existing split." Being looked
+  at: which wording made the existing split, where the fence and the 75 m point are, and other "N m downstream of"
+  places sitting on the landmark itself. Fix comes as a proposal; cut changes ride on the rebuild after marking.
