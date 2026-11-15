@@ -81,6 +81,12 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
   notice. Time-sensitive notices are left out ("dont need this"). Needs from the owner later: an Apple push key, and for
   Android a free Firebase project with its `google-services.json`.
 
+- `perf/t741` (T741, **started 23:10**): a standing pass to make the app faster and lighter on both platforms (owner:
+  "can you make sure to keep working on optimizations? make app faster and lighter for both ios and android"). First a
+  survey with no device time (app size, the JS bundle, cold start, memory per screen, first install), then fixes that
+  change nothing a reader sees, on the branch. Savings that would lose detail or change what is shown become
+  proposals for the owner.
+
 **What failed or was found**
 - **iOS background download refused on the simulator, then fixed:** the system service rejected every task ("does not
   have a bundle ID") in two runs. Cause: our simulator build skipped Xcode's signing step, which is what gives the app
