@@ -46,7 +46,7 @@ import { makeAppUpdater } from "./appUpdater";
 import { resolveStart, startLink } from "./startLink";
 import { exitSource } from "./exitInfo";
 import { trimOnPressure } from "./memoryTrim";
-import { backgroundDownloads } from "./bgDownload";
+import { backgroundDownloads, excludeFromBackup } from "./bgDownload";
 import { releaseSplash } from "./splash";
 // (T234) the phone's local notifications (gauge alerts, new data ready) and their background check; none on the web
 import { notifications, onTap } from "./notify";
@@ -296,6 +296,8 @@ export default function App() {
   const boot = useReleaseBoot(useMemo(() => ({
     manifestUrl: ENDPOINTS.manifest, releaseBase: ENDPOINTS.release, wasmBase: ENDPOINTS.sqlWasm, platform, feed,
     salmonFeed, deferUpdate: true, net: NET, background: backgroundDownloads, mobileData: mobileGate, beforeBackground,
+    // (T722 F6) iOS: the release is kept out of the device's backup (null on Android and the web)
+    noBackup: excludeFromBackup,
     // (T251) a phone's requests name the app; its first install is gated by the release's minAppVersion (the web's app
     // ships with its data: never gated)
     ...(WEB ? {} : { fetch: DATA_FETCH, appVersion: APP_VERSION }),
@@ -537,6 +539,8 @@ export default function App() {
   const bootUpdate = useAppUpdate(tooOld ? appUpdater : null, appUpdateStore, { offline: false, tooOld });
   const bootUpdateVM = tooOld ? bootUpdate?.vm ?? null : null;
   const firstRunOffline = boot.state === "failed" && boot.firstRunOffline;
+  // (T722 F9) a download that will not fit says how much space it needs (not "Check the connection")
+  const bootSaidWords = boot.state === "failed" ? boot.said : null;
   const retryBoot = useCallback(() => setAttempt((a) => a + 1), []);
   const stage = boot.state === "loading" ? boot.stage : boot.state === "failed" ? "manifest" : "paint";
   const progress = boot.state === "loading" ? boot.progress : null;
@@ -615,7 +619,7 @@ export default function App() {
                         retryLabel={bootUpdateVM.button?.label} retryTestID="boot-app-update-action" />
           ) : (
             <ErrorState palette={palette} size="body" align="center"
-                        message={tooOld ? failed : firstRunOffline ? INSTALL_WORDS.firstRunOffline : INSTALL_WORDS.again}
+                        message={tooOld ? failed : bootSaidWords ?? (firstRunOffline ? INSTALL_WORDS.firstRunOffline : INSTALL_WORDS.again)}
                         onRetry={tooOld ? undefined : retryBoot} retryLabel={INSTALL_WORDS.retry} retryTestID="boot-retry" />
           )}
           {APP_ENV.env === "local" && (
@@ -715,7 +719,8 @@ export default function App() {
           )}
           {stage === "wifi" && (
             <View testID="boot-wifi-wait" style={{ alignItems: "center", gap: 10, paddingHorizontal: 24 }}>
-              <Text style={{ color: palette.sub, fontSize: 13, textAlign: "center" }}>{MOBILE_DATA_WORDS.waiting}</Text>
+              <Text style={{ color: palette.sub, fontSize: 13, textAlign: "center" }}>{
+                Platform.select({ ios: MOBILE_DATA_WORDS.waitingIos, default: MOBILE_DATA_WORDS.waiting })}</Text>
               {wifiWait && <Button palette={palette} label={MOBILE_DATA_WORDS.now} kind="ghost" grow={false}
                                    testID="boot-wifi-now" onPress={wifiWait} />}
             </View>
@@ -730,9 +735,11 @@ export default function App() {
             <>
               <StageBar palette={palette} value={downloadFraction(progress)} testID="boot-download-bar" />
               <Text style={{ color: palette.sub, fontSize: 13 }}>{installLine(progress)}</Text>
-              {/* (T298) with the system's downloader the download carries on with the app closed: said */}
-              {!setup && <Text style={{ color: palette.faint, fontSize: 12 }}>
-                {backgroundDownloads ? MOBILE_DATA_WORDS.closeOk : INSTALL_WORDS.wifi}</Text>}
+              {/* (T298) with the system's downloader the download carries on with the app closed: said; (T722) iOS
+                  says what its background session does not survive (a swipe away in the app switcher) */}
+              {!setup && <Text testID="boot-close-ok" style={{ color: palette.faint, fontSize: 12, textAlign: "center", paddingHorizontal: 24 }}>
+                {backgroundDownloads ? Platform.select({ ios: MOBILE_DATA_WORDS.closeOkIos, default: MOBILE_DATA_WORDS.closeOk })
+                  : INSTALL_WORDS.wifi}</Text>}
             </>
           )}
           {setup && (

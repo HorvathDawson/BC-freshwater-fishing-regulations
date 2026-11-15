@@ -36,6 +36,16 @@ const mb = (bytes: number) => {
 /** (T238) a size in words: "1.2 MB" */
 export const megabytes = (bytes: number): string => `${mb(bytes)} MB`;
 
+/**
+ * (T722 F9) A RELEASE DOWNLOAD THAT WILL NOT FIT, said before anything downloads (both platforms, the first install and
+ * an update): how much it still needs and how much the phone has free. Without it a full disk failed as "Check the
+ * connection".
+ */
+export function spaceLine(need: number, free: number): string {
+  return `Not enough free space: the download needs about ${megabytes(need)} and this phone has ${megabytes(free)} free. `
+    + "Free up some space and try again.";
+}
+
 /** (T272) The download's share done, 0..1 (the first bar). */
 export function downloadFraction(p: { bytes: number; of: number }): number {
   return p.of > 0 ? Math.min(1, Math.max(0, p.bytes / p.of)) : 0;
@@ -122,6 +132,15 @@ export const MOBILE_DATA_WORDS = {
   /** the first install, held for Wi-Fi */
   waiting: "Waiting for Wi-Fi — the download starts by itself when you connect.",
   closeOk: "You can close the app: the download carries on.",
+  /**
+   * (T722 F1, F8, owner 2026-11-14 "update text for ios") the same two on iOS, where the download is the system's
+   * background URLSession: it goes on with the app in the background or the phone locked, but iOS cancels it when the
+   * app is swiped away in the app switcher (it resumes the next time the app is opened).
+   */
+  waitingIos: "Waiting for Wi-Fi — the download starts by itself when you connect, unless the app is swiped away "
+    + "in the app switcher.",
+  closeOkIos: "You can leave the app or lock the phone: the download carries on. Swiping the app away in the app "
+    + "switcher stops it until you open the app again.",
 } as const;
 
 /** A stored setting read back: anything unknown is "ask". */

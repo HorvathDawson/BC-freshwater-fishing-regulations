@@ -200,7 +200,7 @@ off as before; shrinking is a decision of its own (keep rules + a device walk), 
   `apps/mobile` for autolinking (it needs a rebuilt development build, like the map). Not used on the web
   (`navigator.onLine` does that job). Cost: a small native module (Android/iOS) and ~25 KB of TypeScript source before minification. Not a data package:
   the owner's "minimal prod packages" rule (2026-10-20) is about the release's data files and is untouched.
-- **No package — `apps/mobile/modules/bg-download` (local Expo module, Kotlin, Android only; T298).** The first install's
+- **No package — `apps/mobile/modules/bg-download` (local Expo module, Kotlin on Android (T298), Swift on iOS (T722)).** The first install's
   big files (tiles, mask, basemap, rule book: ~95 % of the ~500 MB) go to **Android's own `DownloadManager`**, so they keep
   downloading with the app swiped away or the screen off, with the system's progress notification, its resume of a
   dropped line, and its "Wi-Fi only" hold (`setAllowedOverMetered(false)`) for the mobile-data setting. Chosen over a
@@ -212,9 +212,16 @@ off as before; shrinking is a decision of its own (keep rules + a device walk), 
   not one combined bar); files land in the app's external files folder and are moved into the install root; the
   module also hashes natively (sha256, ~1 s for the basemap where JS took 23 s). JS half: `packages/data/src/release/
   bgDownload.ts` (platform-free, tested), bound in `apps/mobile/src/bgDownload.ts` (`requireOptionalNativeModule`: a
-  client built without it downloads in the app, as before). iOS: no module (not built yet) — expo-file-system's `DownloadTask` already runs
-  on a background `URLSession` by default (it goes on while the app is suspended; a swipe-away cancels it, iOS's rule)
-  and the next open resumes from the `.part`.
+  client built without it downloads in the app, as before). (T722 F12: the line here used to say iOS downloads on
+  expo-file-system's background session; it did not — b8e33ca80 had forced a FOREGROUND session, because expo's
+  background task lives in JS and was lost on a kill.) iOS (T722, owner 2026-11-14): the same JS surface in Swift
+  (`ios/BgDownloadModule.swift`) over ONE background `URLSession` with a fixed identifier, made at launch by an Expo
+  AppDelegate subscriber (which also answers iOS's wake, `handleEventsForBackgroundURLSession`); each job a record on
+  disk, the finished file moved in the delegate callback, resumed from resume data after an error. It goes on with the
+  app in the background or the phone locked; iOS cancels it when the app is swiped away in the app switcher, and the
+  next open resumes it (said on the boot screen). Also native there: sha256 (CryptoKit) and the release's backup
+  exclusion (`isExcludedFromBackup`, T722 F6). No package, nothing to declare (a background URLSession needs no
+  background mode), no notification.
 - `expo-image-picker` — pinned 58.0.10 (the SDK 58 line; `bundledNativeModules` names `~58.0.10`). Adds a photograph to
   a spot on iOS and Android, from the library or the camera, through the system picker — so the app draws no picker
   of its own. Used ONLY by `apps/mobile/src/pickPhoto.native.ts`; the web side is a plain

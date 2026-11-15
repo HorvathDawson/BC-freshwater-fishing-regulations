@@ -5,12 +5,12 @@
  */
 import { reportFailure, now } from "@app/core";
 import { useEffect, useRef, useState } from "react";
-import { bootRelease, BootError, warmLike, type BootOptions, type Booted, type Progress } from "@app/data/release";
+import { bootRelease, BootError, SpaceError, warmLike, type BootOptions, type Booted, type Progress } from "@app/data/release";
 
 export type BootState =
   | { state: "loading"; stage: string; progress: Progress | null }
   | { state: "ready"; booted: Booted; generation: number; applyError?: Error }
-  | { state: "failed"; error: Error; firstRunOffline: boolean };
+  | { state: "failed"; error: Error; firstRunOffline: boolean; said: string | null };
 
 /**
  * Boot once (null: not on this path). `opts` is read at mount. (T231) `generation`: bumped by the app to APPLY an update
@@ -91,7 +91,9 @@ export function useReleaseBoot(opts: BootOptions | null, generation = 0, attempt
         reportFailure(error);   // (T368) shown (the boot-failed page / applyError) and reported
         // an apply that failed: the set in use stays (it never stopped working), and the failure is said
         if (again) set((prev) => (prev.state === "ready" ? { ...prev, applyError: error } : prev));
-        else set({ state: "failed", error, firstRunOffline: e instanceof BootError && e.firstRunOffline });
+        // (T722 F9) a failure in the reader's own words (a download that will not fit) is said as it is
+        else set({ state: "failed", error, firstRunOffline: e instanceof BootError && e.firstRunOffline,
+                   said: e instanceof SpaceError ? e.message : null });
       });
     return () => { live = false; };
     // once per mount and once per generation: a newer release is used at the next launch, or when the app applies it
