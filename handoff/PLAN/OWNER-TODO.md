@@ -650,3 +650,7 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   one half of the river closing maybe? could color only west or east side? could be an option in extent i think this is
   the only river like this? but worth at least doing the coloring. then idk how to represent it otherwise. have an agent
   look into this please". Being investigated (ticket T754, written by the lane); options come to you.
+- ASKED 2026-11-15: "also we need to make sure all items with tributaries in the name etc have tributaries in extent."
+  In work: the audit lists every place whose wording mentions tributaries against its extent and proposal (report
+  `handoff/PLAN/curation-review/resaved-marks-audit-2026-11-15.md`, Section E); the suggester proposes tributaries for
+  those wordings; the review app warns on a mismatch (T742). Mismatches on places you already saved come to you to re-mark.
