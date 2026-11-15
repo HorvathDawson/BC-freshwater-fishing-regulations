@@ -422,7 +422,8 @@
       "binding": {
         "extents": [
           {
-            "op": "whole"
+            "op": "whole",
+            "item_id": "gnis:11611"
           }
         ],
         "tributaries": true,
