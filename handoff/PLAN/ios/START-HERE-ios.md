@@ -25,11 +25,14 @@
 | Faster and lighter (T741) | cold start 786 ms against 1,030 ms (simulator); app 3.9 MB smaller (8 fonts, not 41); background checks ask "changed?" first | simulator, measured; Android not measured |
 
 **Checked on the combined build this morning (iPhone simulator):** walkthrough 41 of 41, tap a water 3 of 3, offline
-3 of 3, satellite; one first-open step failed on a test-bed timing fault (a notice covered the tabs). The second
-session (rule book, keyboard, back swipes, timed runs) was running at 07:32.
+3 of 3, satellite; one first-open step failed on a test-bed timing fault (a notice covered the tabs). Second session
+(ended 08:33, quiet machine): rule book, keyboard and back swipes pass, the photo viewer included; tap to page: cue 7
+to 99 ms after the lift, page 372 to 388 ms on 15 of 18 taps (the 3 Cultus taps opened a test spot an earlier check
+had left on the lake: test bed); no long stalls, but the worst at cold start is now 268 ms against a limit of 300
+(214 ms on the build before the faster cold start: less room, to watch on Android and a real phone). **Found, app:**
+on Conditions → Alert me the number pad covers the value field (written into T723; in build 36 as before).
 
-**Still running or queued at 07:32**
-- The combined build's second simulator session.
+**Still running at 08:34**
 - Android's code shrinker trial (T749, R8): built; the test APK is 55.0 MB against 62.4 MB (app code 7.9 MB against
   30.4 MB). Whether the shrunk app starts and passes the six emulator checks is not known yet.
 
