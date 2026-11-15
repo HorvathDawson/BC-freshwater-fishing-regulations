@@ -269,4 +269,38 @@ a waiting file the tap needs goes at once), "one file ahead at a time" (`others`
 unnamed tap only); `prefetch.render.test.tsx` (the hook feeds `others`). Run: release + sql + net + prefetch + warm +
 openWater + place + inventories 256/256 + 67/67; `pnpm check:fast` clean.
 
-**Timing** (after the quiet window; local export of this commit vs 3d21000ad against data-staging): below.
+5. (found in the first after-run) the water header's Share control makes its link AHEAD at the tap (`useShare`) — the
+   second reader of `lines` (1.3 MB) at the tap. It now fetches `lines` ahead first too (`share.ts`), so it waits in the
+   lane; the phone's source answers an ahead ask on an installed file with nothing read (`source.native.ts`). Test:
+   `share.test.ts` (unnamed asks it, named never; mutation-checked).
+Tried and dropped (measured worse): the whole core moved after regs-sid/down and the in-season check's core through the
+lane — with neither, sql.js, `core-2` and `water-shared` were cold at the tap (named Fraser 3 s: 4.2 s).
+
+**Timing** (local exports of 3d21000ad (before, bundle = live staging's) vs the change, data-staging, release
+r-f749475d0962; alternated per run; page readable after the tap, s; line = a 6 MB Range of the synopsis from
+data-staging before and after every pair; load = 1-min uptime; macOS's own load (mediaanalysisd …) had fallen from ~16 to
+3-7 by the runs). Scripts + JSON: `~/bcfish-session-backup-2026-11-12/first-click-web/lane-1115/`.
+
+| tap | before | after | line Mbit/s | load |
+|---|---|---|---|---|
+| desktop unnamed 3 s | 3.6 / 5.3 / 5.0 | 2.4 / 4.0 / 2.5 | 14-17 | 3-5 |
+| desktop Fraser R2 3 s | 1.5 / 1.0 / 1.2 | 0.9 / 1.9 / 0.8 | 16-18 | 3-4 |
+| desktop Vedder 3 s | 1.2 / 12.6 / 0.7 | 2.3 / 0.8 / 0.9 | 0 (a dropped curl)-17 | 3-5 |
+| desktop Thompson after a pan, 3 s | 0.1 ×3 | 0.1 ×3 | 16-17 | 3-7 |
+| desktop, every water, 8 s | 0.1 ×12 | 0.1 ×11 (1 run lost) | 12-17 | 2-7 |
+| phone unnamed 3 s | 3.6 / 3.6 / 2.9 | 3.4 / 2.8 / 3.5 | 15-18 | 3-4 |
+| phone Fraser R2 3 s | 0.8 / 1.3 / 2.0 | 1.4 / 1.2 / 1.5 | 14-18 | 3-5 |
+| phone unnamed 8 s | 2.8 / 0.1 / 0.1 | 0.7 / 0.1 / 0.1 | 15-18 | 3 |
+| phone Fraser / Thompson 3 + 8 s | 0.1 ×9 (Fraser 8 s, Thompson) | 0.1 ×9 | 14-18 | 3-5 |
+
+(Phone Vedder: no tap, the point is off the phone's start view — the harness.) Reading: the unnamed tap at 3 s now
+fetches only what its page needs, together (regs-sid, down, water-2, access at once; `lines` after the page), so it is
+the two whole files' 2.4 MB on the line: ~2.5 s at ~16 Mbit/s, down from 3.6-5.3 s desktop; the phone barely moved
+(its CPU, not the line, after the files land). It is NOT ~1 s: at 3 s nothing is fetched ahead yet (the lane yields to
+the boot's own reads, incl. the in-season check's whole core, and their grace), so regs-sid + down are a cold 2.4 MB.
+Only their region slices (pipeline, owner's call) or fetching them before the boot reads would get it to ~1 s. Named
+taps and every 8 s tap: unchanged (0.8-1.9 s at 3 s, 0.1 s at 8 s).
+
+**Lighthouse 12.8.2 mobile on `/`, 3 alternated runs each, median:** Perf 52 → 54, LCP 7.81 → 7.82 s, TBT 602 → 536 ms,
+SI 5.38 → 5.22 s, CLS 0.010 → 0.010, SEO 92 → 92 (after: `regs-sid` lands inside Lighthouse's window, 6.2 vs 5.6 MiB
+of release files; last request ends 5.8 vs 6.8 s).

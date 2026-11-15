@@ -149,3 +149,22 @@ describe("(T624) a water with a page is shared as that page; one without says so
     undo();
   });
 });
+
+describe("(T737, 2026-11-15) an unnamed reach's link: its lines fetched AHEAD first (the web's lane: after the page's files)", () => {
+  it("asks loader.prefetch('lines') for an unnamed reach, never for a named water", async () => {
+    const undo = setFailureSink(() => {});                       // the fake loader has no store: its open fails, reported
+    try {
+      for (const [r, want] of [
+        [reduce(HOME, openWater({ item: null, part: null, view: "regs", tapSid: 40 as SectionId })), ["lines"]],
+        [reduce(HOME, openWater({ item: RIVER, part: null, view: "regs" })), []],
+      ] as const) {
+        const asked: string[] = [];
+        const loader = { release: `r-${want.length}-${Math.random()}`, manifest: { files: { lines: {} } },
+                         prefetch: async (n: string) => { asked.push(n); }, db: async () => { throw new Error("no store"); } };
+        renderHook(() => useShare({ send: async () => "sent" }, loader as never, r, { day: null, horizon: 0 }));
+        await act(async () => { await Promise.resolve(); });
+        expect(asked).toEqual(want);
+      }
+    } finally { undo(); }
+  });
+});

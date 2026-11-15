@@ -212,6 +212,7 @@ export const FINE: Record<string, { n: number; why: string }> = {
   "packages/ui/src/myLocation.ts": { n: 1, why: `location refused: said (refusedLine); ${ENV}` },
   "packages/ui/src/net.ts": { n: 1, why: PREF },
   "packages/ui/src/photos.ts": { n: 1, why: "an orphaned photo file, not a lost record" },
+  "packages/ui/src/share.ts": { n: 1, why: `${WARM} (T737: an unnamed reach's lines fetched ahead before its share link is made; shareLink's own read of the file asks again and reports via reportFailure)` },
   "packages/ui/src/place.ts": { n: 1, why: "hands it to `onMissing`, which reports (systemBack.web.ts)" },
   "packages/ui/src/prefetch.ts": { n: 4, why: `${PROBE}; ${CAP} (battery); (T737) the open water's other regions for the background order (useWaterRegionsAhead): only the order is lost — the same store / akey_region reads are the page's own open (a failure is not kept), which shows and reports it` },
   "packages/ui/src/recentSearches.ts": { n: 2, why: PREF },
