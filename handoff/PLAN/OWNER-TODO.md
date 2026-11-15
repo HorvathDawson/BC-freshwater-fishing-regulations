@@ -190,6 +190,10 @@ with the default Claude uses until you answer). Newest first inside each section
   back swipe, tap cue); owner, verbatim: "yes". Build 34 from 51349c3bf **uploaded 23:58** (0.7.10 build 34, staging data). The shared
   branch is not touched by it. Yours: add build 34 to your internal group and install it; checks only a phone can do
   are on the To-Do page row.
+- **NEW 2026-11-15 01:10 (iOS chat, T718 crash check).** Crash reports from the iPhone test runs were refused by the
+  staging worker's daily limit (40 per address per day); the Mac's test beds used the 40 up, and your phone at home
+  shares that address. Pick: give test-bed crashes their own limit of 200 a day on staging, production unchanged: yes
+  (my pick) / no. On yes Claude deploys the feeds worker to staging from branch `ios/crash-send`.
 - **ANSWERED 2026-11-14 (iOS parity audit, T722/T723).** Owner, verbatim: "we want it to progress with app closed in both app
   and android" (the first install download); "need to just update text for ios" (the two promises that do not hold on
   iOS); "everything else looks like a good find should look for more things like that". So: a real iOS background

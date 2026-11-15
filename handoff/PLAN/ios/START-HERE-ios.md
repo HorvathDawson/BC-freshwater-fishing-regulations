@@ -112,11 +112,16 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
   its identity there. The build script now signs "to run locally" (no account, no team); the third run passed.
 - **First-open progress most likely does not move on iPhone today (0.7.9/0.7.10):** about 5,000 number-conversion
   errors from the progress callback during the download. Fixed on `ios/t722-install` (zero such lines in its run).
-- **Crash reports from the iPhone build are not delivered** (crash check, step 2): the app reads the crash record at
-  the next start but the send returns false each time. It failed again at 23:30, a new day for the worker's daily
-  limit, so the limit is unlikely; the cause is the report's shape or the worker's check, not yet known. Until fixed,
-  a crash on the owner's TestFlight build will not reach us. A lane is on it from 00:40 (branch `ios/crash-send`,
-  code and tests only).
+- **Crash reports from the iPhone build were refused by the staging worker's own daily limit; the report itself is
+  fine** (cause found 01:10, branch `ios/crash-send`, code and tests only). 24 of 25 sends in today's iOS runs were
+  answered 429 "too many reports today": the worker takes 40 crash reports per address per UTC day, the test beds on
+  this Mac share one address, and the UTC day turns at 17:00 here (the one send at 17:01 was taken), so the 23:30
+  failure was not a new day; my earlier line that the limit was unlikely was wrong. A phone on the same home line
+  shares that address, so the owner's phone can be refused the same way on a heavy test day. On the branch: the app's
+  log names the worker's answer and a refused report is reported, not dropped (441ec090e, 2daa9175d); the worker, on
+  staging only, counts test-bed crashes against their own limit of 200 a day so they cannot use up the 40 real phones
+  get. **The worker change alters the limit policy: owner's OK needed before any deploy** (question 19). Not proven
+  on a device.
 - **No "At my location" row in iOS search** in the baseline run; cause not settled (app or test bed).
 - **The memory-warning trim could not be tested:** the headless simulator has no way to send the warning.
 - **First open took 397 s** (0.5.0: 168 s). The download is 479 MB and ran at 1.7 MB/s on the line today; 44 s more was
@@ -188,6 +193,10 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
 18. Push (T739): ANSWERED, both platforms, no time-sensitive notices, new-data wake-up added. Open: "for android too"
     is read as your exception to "self-host everything" for push delivery only (Google's Firebase Cloud Messaging):
     right / not right.
+
+19. Crash reports on staging: give test-bed crashes their own daily limit (200 per address) so the Mac's test runs
+    cannot use up the 40 a real phone on the same line gets: yes (my pick; staging only, production unchanged) / no.
+    Then the feeds worker is deployed to staging from `ios/crash-send`.
 
 Owner, 2026-11-14, verbatim: "Maybe we could make a handoff to start improving the ios versions? Making sure it is rock
 solid too?" This **reopens iOS**, which the owner benched on 2026-11-06 ("no iOS device work until DFO extents labelled +
