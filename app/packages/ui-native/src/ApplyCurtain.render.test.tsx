@@ -5,6 +5,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { APPLY_WORDS } from "@app/core";
+import { BackLayerContext, useBack, useRoute, type Back, type Route, type RouteAction } from "@app/ui";
 import { ApplyCurtain } from "./ApplyCurtain";
 import { LIGHT } from "./theme";
 
@@ -46,6 +47,27 @@ describe("ApplyCurtain (T746)", () => {
     expect(screen.queryByTestId("apply-curtain")).toBeNull();
     tick(1000);
     expect(screen.queryByTestId("apply-line")).toBeNull();
+  });
+
+  it("the system back is held while the set is swapped (the route stays), and closes a failed apply's message", () => {
+    const out: { b?: Back; r?: Route; go?: (a: RouteAction) => void } = {};
+    function Host({ applying, failed, onClose }: { applying: boolean; failed: Error | null; onClose: () => void }) {
+      const [route, go] = useRoute();
+      out.b = useBack(route, go); out.r = route; out.go = go;
+      return <BackLayerContext.Provider value={out.b.layers}>
+        <ApplyCurtain palette={LIGHT} applying={applying} failed={failed} onClose={onClose} />
+      </BackLayerContext.Provider>;
+    }
+    const onClose = vi.fn();
+    const { rerender } = render(<Host applying={false} failed={null} onClose={onClose} />);
+    act(() => { out.go!({ type: "openWater", item: "gnis:1" as never }); });
+    const before = JSON.stringify(out.r);
+    rerender(<Host applying failed={null} onClose={onClose} />);
+    act(() => { out.b!.back(); });
+    expect(JSON.stringify(out.r)).toBe(before);                      // held: nothing underneath moved
+    rerender(<Host applying={false} failed={new Error("x")} onClose={onClose} />);
+    act(() => { out.b!.back(); });
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 
   it("a failed apply is said at once, in the whole sentence, until the reader closes it", () => {
