@@ -633,7 +633,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "dean_river__signs_0_5_km_above_the_canyon_500_m_upstream",
+              "dean_river__signs_100_m_below_the_canyon_100_m_downstream"
+            ],
+            "item_id": "gnis:16075"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
