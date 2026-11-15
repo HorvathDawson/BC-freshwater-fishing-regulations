@@ -29,6 +29,11 @@ export interface NotifyPlatform {
   openSettings(): void;
   /** register (true) or drop (false) the background check */
   schedule(active: boolean): Promise<void>;
+  /**
+   * (T739) send (true) or withdraw (false) this phone's push token with our server, so a feed change wakes the same
+   * check at once; absent: this build has no push (the web; Android until its Firebase file is in the build)
+   */
+  push?(active: boolean): Promise<void>;
 }
 
 export interface NotifyControls {
@@ -37,6 +42,9 @@ export interface NotifyControls {
   /** (T234 v1.1) this build can learn of a newer version of itself from our server (a version file for its channel) */
   readonly appVersion?: boolean;
 }
+
+/** (T739) this build wakes its check by push (its words say so: core `NOTIFY_WORDS.introPush*`) */
+const hasPush = (c: NotifyControls | null): boolean => typeof c?.platform.push === "function";
 
 const NotifyContext = createContext<NotifyControls | null>(null);
 
@@ -50,6 +58,8 @@ export function NotifyRoot({ controls, children }: { controls: NotifyControls | 
       if (now === was) return;
       was = now;
       controls.platform.schedule(now).catch(reportFailure);
+      // (T739) the push token follows the same switch: on → registered, off → withdrawn (each start syncs it again)
+      controls.platform.push?.(now).catch(reportFailure);
     };
     sync();
     return controls.settings.subscribe(sync);
@@ -66,6 +76,8 @@ export interface NotificationsVM {
   readonly error: string | null;
   /** (v1.1) the "New app version" switch is offered (this build has a version file to read) */
   readonly canAppVersion: boolean;
+  /** (T739) this build's checks are also woken by push (the intro says so) */
+  readonly push: boolean;
   setOn(on: boolean): Promise<void>;
   setUpdateReady(on: boolean): Promise<void>;
   /** (v1.1) the new-app-version notice */
@@ -116,7 +128,7 @@ export function useNotifications(): NotificationsVM | null {
 
   if (!c || !state) return null;
   return {
-    state, permission, asking, error, canAppVersion: c.appVersion === true,
+    state, permission, asking, error, canAppVersion: c.appVersion === true, push: hasPush(c),
     setOn: async (on) => { write(setNotifyOn(on)); if (on) await allow(); },
     setUpdateReady: async (on) => { write((s) => (on ? setNotifyOn(true)(setReady(true)(s)) : setReady(false)(s))); if (on) await allow(); },
     setAppVersion: async (on) => { write((s) => (on ? setNotifyOn(true)(setAppVersionNotice(true)(s)) : setAppVersionNotice(false)(s))); if (on) await allow(); },

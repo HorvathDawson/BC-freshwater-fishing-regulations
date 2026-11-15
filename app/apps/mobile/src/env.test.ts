@@ -92,6 +92,16 @@ describe("one switch (T404): every environment's hosts are its own", () => {
   });
 });
 
+describe("pushUrlFor (T739)", () => {
+  it("is the report worker's /push (staging's, production's, a test bed's stub); none without a report address", async () => {
+    const { pushUrlFor, reportUrlFor } = await import("./env");
+    expect(pushUrlFor(reportUrlFor("staging"))).toBe("https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/push");
+    expect(pushUrlFor(reportUrlFor("production"))).toBe("https://feeds.canifishthis.ca/push");
+    expect(pushUrlFor(reportUrlFor("staging", "http://127.0.0.1:39257/report"))).toBe("http://127.0.0.1:39257/push");
+    expect(pushUrlFor(reportUrlFor("production", "off"))).toBeNull();
+  });
+});
+
 describe("crashUrlFor (T242)", () => {
   it("is the report worker's /crash; none where there is no report address; the override wins", async () => {
     const { crashUrlFor, reportUrlFor } = await import("./env");

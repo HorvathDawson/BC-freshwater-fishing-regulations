@@ -149,6 +149,11 @@ export function openNotifyStore(): { read(): string | null; write(text: string):
   };
 }
 
+/** (T739) The push token last sent to our worker ({platform, token, env, url}, or empty), a small file of its own. */
+export function openPushStore(): { read(): string | null; write(text: string): void } {
+  return fileStore("push-token.json");
+}
+
 /** (T254) The Data setting for low-bandwidth mode ("auto" | "on" | "off"), a small file of its own. */
 export function openDataModeStore(): { read(): string | null; write(text: string): void } {
   return fileStore("low-data.txt");

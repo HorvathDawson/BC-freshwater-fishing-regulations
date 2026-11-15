@@ -242,7 +242,10 @@ export async function sendWake(env: PushEnv, fetch_: Fetch, now: Date, reason: s
   const fail = (p: PlatformSend, why: string) => { p.failed++; if (p.errors.length < KEEP_ERRORS) p.errors.push(why.slice(0, 200)); };
   try {
     if (out.ios.configured && out.ios.tokens) apns = await apnsJwt(env as Required<Pick<PushEnv, "APNS_KEY" | "APNS_KEY_ID" | "APNS_TEAM_ID">>, now);
-  } catch (e) { out.ios.errors.push(`APNs key: ${String((e as Error)?.message ?? e).slice(0, 200)}`); out.ios.failed = out.ios.tokens; }
+  } catch (e) {
+    out.ios.errors.push(`APNs key: ${String((e as Error)?.message ?? e).slice(0, 200)}`); out.ios.failed = out.ios.tokens;
+    console.error(JSON.stringify({ job: "push", apnsKey: String((e as Error)?.message ?? e) }));
+  }
   try {
     if (out.android.configured && out.android.tokens) {
       const sa = parseServiceAccount(env.FCM_SERVICE_ACCOUNT!);
@@ -255,7 +258,10 @@ export async function sendWake(env: PushEnv, fetch_: Fetch, now: Date, reason: s
       if (!tok) throw new Error("OAuth token: no access_token in the answer");
       fcm = { url: `https://fcm.googleapis.com/v1/projects/${sa.project_id}/messages:send`, bearer: tok };
     }
-  } catch (e) { out.android.errors.push(`FCM credential: ${String((e as Error)?.message ?? e).slice(0, 200)}`); out.android.failed = out.android.tokens; }
+  } catch (e) {
+    out.android.errors.push(`FCM credential: ${String((e as Error)?.message ?? e).slice(0, 200)}`); out.android.failed = out.android.tokens;
+    console.error(JSON.stringify({ job: "push", fcmCredential: String((e as Error)?.message ?? e) }));
+  }
 
   const one = async ({ key, rec }: { key: string; rec: PushRecord }) => {
     const p = out[rec.platform];

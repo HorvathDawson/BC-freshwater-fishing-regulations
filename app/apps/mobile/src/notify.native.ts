@@ -1,5 +1,5 @@
 /**
- * (T234) THE PHONE'S NOTIFICATIONS — local only (owner 2026-11-05: no server, no push token, no account).
+ * (T234) THE PHONE'S NOTIFICATIONS — made on the phone (owner 2026-11-05: no account; T739 2026-11-14: a push token, below).
  *
  *   the check   `expo-background-task` (Android WorkManager, iOS BGTaskScheduler) runs `runBackgroundCheck` (@app/data)
  *               every ~15 min at best — the system decides; Doze stretches it while the phone is idle. Defined HERE, at
@@ -17,6 +17,12 @@
  *   versions    (v1.1) the new-version notice reads the version file OUR server publishes for this build's channel
  *               (core `appVersionFileUrl`: `latest.json` beside the staging APK page, `play.json` for a Play build).
  *               Never Play's own check: Play's in-app update API needs the app in the foreground.
+ *   push        (T739, owner 2026-11-14) while the reader has notifications on, this phone's push token (`./pushToken`:
+ *               APNs on iPhone; FCM on Android only once the Firebase file is in the build) is registered with our
+ *               worker (`PUSH_URL`, POST /push/register; withdrawn when they turn off). The worker's content-free
+ *               "check now" push starts PUSH_TASK: `runWake` (@app/data) — the update service's check in this runtime
+ *               (it starts a newer release's download when the mobile-data setting allows) and then the SAME check as
+ *               the periodic task, which stays. The worker learns the token and the platform, nothing else.
  */
 import { Linking, Platform } from "react-native";
 import { platformLine } from "@app/ui-native";
@@ -24,13 +30,16 @@ import * as BackgroundTask from "expo-background-task";
 import * as Notifications from "expo-notifications";
 import * as TaskManager from "expo-task-manager";
 import { appUpdateChannel, appVersionFileUrl, NOTIFY_WORDS, now, reportFailure, versionHeaders } from "@app/core";
-import { createNotifySettings, fetchObs, parseManifest, runBackgroundCheck, versionedFetch,
-         type Notice, type NotifyData } from "@app/data";
-import { openNotifyStore } from "@app/data/spots";
+import { createNotifySettings, createPushRegistrar, fetchObs, parseManifest, runBackgroundCheck, runWake, versionedFetch,
+         type Notice, type NotifyData, type UpdateService } from "@app/data";
+import { openNotifyStore, openPushStore } from "@app/data/spots";
 import type { NotifyControls, NotifyPermission } from "@app/ui";
-import { APP_VERSION, ENDPOINTS } from "./config";
+import { APP_VERSION, ENDPOINTS, PUSH_URL } from "./config";
+import { pushSeam } from "./pushToken";
 
 const TASK = "canifishthis-background-check";
+/** (T739) the task a push wake-up starts (expo-notifications' background notification task) */
+const PUSH_TASK = "canifishthis-push-wake";
 /** minutes; Android's WorkManager floor */
 const EVERY_MIN = 15;
 
@@ -72,22 +81,25 @@ async function raise(n: Notice): Promise<void> {
   });
 }
 
+/** what the check reads and raises: one set for the periodic task and the push wake-up */
+const CHECK = {
+  settings, now, appVersion: APP_VERSION, notify: raise,
+  obs: () => fetchObs(ENDPOINTS.alertFeed, FETCH),
+  latestApp: VERSION_FILE ? async () => {
+    const res = await FETCH(VERSION_FILE, { cache: "no-store" });
+    if (!res.ok) throw new Error(`${VERSION_FILE}: HTTP ${res.status}`);
+    return res.json();
+  } : null,
+  manifest: async () => {
+    const res = await FETCH(ENDPOINTS.manifest, { cache: "no-store" });
+    if (!res.ok) throw new Error(`${ENDPOINTS.manifest}: HTTP ${res.status}`);
+    return parseManifest(await res.json());
+  },
+};
+
 TaskManager.defineTask(TASK, async () => {
   try {
-    await runBackgroundCheck({
-      settings, now, appVersion: APP_VERSION, notify: raise,
-      obs: () => fetchObs(ENDPOINTS.alertFeed, FETCH),
-      latestApp: VERSION_FILE ? async () => {
-        const res = await FETCH(VERSION_FILE, { cache: "no-store" });
-        if (!res.ok) throw new Error(`${VERSION_FILE}: HTTP ${res.status}`);
-        return res.json();
-      } : null,
-      manifest: async () => {
-        const res = await FETCH(ENDPOINTS.manifest, { cache: "no-store" });
-        if (!res.ok) throw new Error(`${ENDPOINTS.manifest}: HTTP ${res.status}`);
-        return parseManifest(await res.json());
-      },
-    });
+    await runBackgroundCheck(CHECK);
     return BackgroundTask.BackgroundTaskResult.Success;
   } catch (e) {
     // runBackgroundCheck never throws; this is a defect in the glue, said
@@ -95,6 +107,31 @@ TaskManager.defineTask(TASK, async () => {
     return BackgroundTask.BackgroundTaskResult.Failed;
   }
 });
+
+/** (T739) the app's update service, once App has made it (null in a headless start: nothing mounted) */
+let wakeUpdates: Pick<UpdateService, "check" | "snapshot"> | null = null;
+/** (T739) App hands its update service over (and back, null, when it goes): a push wake-up checks through it */
+export function setWakeUpdates(u: Pick<UpdateService, "check" | "snapshot"> | null): void { wakeUpdates = u; }
+
+/** (T739) this build's push: a token seam and our worker's address (none: no task, no token, nothing registered) */
+const registrar = pushSeam && PUSH_URL
+  ? createPushRegistrar({ seam: pushSeam, url: PUSH_URL, fetch: FETCH, store: openPushStore() }) : null;
+if (registrar) {
+  TaskManager.defineTask<Notifications.NotificationTaskPayload>(PUSH_TASK, async ({ data, error }) => {
+    if (error) { reportFailure(error); return Notifications.BackgroundNotificationTaskResult.Failed; }
+    // (Android) a tap on a notification also reaches this task: not a wake-up
+    if (data && typeof data === "object" && "actionIdentifier" in data) return Notifications.BackgroundNotificationTaskResult.NoData;
+    try {
+      const r = await runWake({ ...CHECK, updates: wakeUpdates });
+      return r.fired || r.told || r.downloading ? Notifications.BackgroundNotificationTaskResult.NewData
+        : Notifications.BackgroundNotificationTaskResult.NoData;
+    } catch (e) {
+      reportFailure(e);
+      return Notifications.BackgroundNotificationTaskResult.Failed;
+    }
+  });
+  Notifications.registerTaskAsync(PUSH_TASK).catch(reportFailure);
+}
 
 // a notification raised while the app is open is shown too (the check also runs in the same runtime)
 Notifications.setNotificationHandler({
@@ -119,6 +156,7 @@ export const notifications: NotifyControls | null = {
       if (active && !has) await BackgroundTask.registerTaskAsync(TASK, { minimumInterval: EVERY_MIN });
       if (!active && has) await BackgroundTask.unregisterTaskAsync(TASK);
     },
+    ...(registrar ? { push: (active: boolean) => registrar.sync(active) } : {}),
   },
 };
 

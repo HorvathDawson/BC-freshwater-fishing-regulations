@@ -37,10 +37,22 @@ const withLocalMaplibreVersion = (plugins) => !localMaplibre ? plugins : plugins
   Array.isArray(p) && p[0] === "@maplibre/maplibre-react-native"
     ? [p[0], { ...p[1], android: { ...p[1]?.android, nativeVersion: localMaplibre } }] : p);
 
+// (T739, owner 2026-11-14 "for android too.") ANDROID PUSH (FCM) IS OFF until the owner's Firebase file is here. With
+// EXPO_PUBLIC_FCM=1 the build takes `google-services.json` (beside this file; prebuild then applies the Google Services
+// Gradle plugin, and expo-notifications' firebase-messaging finds its project) and turns Firebase Analytics collection
+// off in the manifest (push delivery only, no Analytics). The flag without the file is refused. Unset (every build
+// today), nothing here changes the Android project, and `src/pushToken.android.ts` asks for no token.
+const FCM = process.env.EXPO_PUBLIC_FCM === "1";
+const GOOGLE_SERVICES = join(__dirname, "google-services.json");
+if (FCM && !require("node:fs").existsSync(GOOGLE_SERVICES)) {
+  throw new Error("app.config.js: EXPO_PUBLIC_FCM=1 needs app/apps/mobile/google-services.json (the owner's Firebase project, T739)");
+}
+
 module.exports = ({ config }) => ({
   ...config,
   // the adaptive icon's solid background: the icon's own ground (the splash below keeps the boot screen's `color.ui.card`)
-  android: { ...config.android, adaptiveIcon: { ...config.android?.adaptiveIcon, backgroundColor: iconGround } },
+  android: { ...config.android, adaptiveIcon: { ...config.android?.adaptiveIcon, backgroundColor: iconGround },
+             ...(FCM ? { googleServicesFile: "./google-services.json" } : {}) },
   plugins: [
     ...withLocalMaplibreVersion(config.plugins ?? []),
     ["expo-splash-screen", {
@@ -52,5 +64,7 @@ module.exports = ({ config }) => ({
     }],
     // (T420) opt-in only: unset (every normal and store build), the app uses the stock MapLibre from Maven Central
     ...(process.env.MLN_LOCAL_MAVEN ? ["./plugins/with-local-maplibre"] : []),
+    // (T739) with FCM only: Firebase Analytics collection off (the manifest meta-data Firebase reads)
+    ...(FCM ? ["./plugins/with-fcm-no-analytics"] : []),
   ],
 });

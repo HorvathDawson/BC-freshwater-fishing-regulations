@@ -8,7 +8,7 @@ import { describe, expect, it } from "vitest";
 import {
   ALERT_STALE_MS, alertContextLine, alertLine, alertListLine, alertNotification, alertSummary, evaluateAlert,
   evaluateAlerts, findGauges, hasRecord, migrateAlertRule, newestReading, normalRangeOf, parseAlertValue,
-  percentileByDay, percentileOk, rearmMargin, refreshAlertLines, readingDay, runLine, thresholdAt, NOTIFY_WORDS,
+  percentileByDay, percentileOk, rearmMargin, refreshAlertLines, readingDay, runLine, thresholdAt, NOTIFY_WORDS, UPDATE_READY_NOTE,
   type AlertReading, type AlertRuleState, type AlertThreshold, type GaugeAlertRule,
 } from "./alerts";
 import { levelName } from "./standing";
@@ -406,5 +406,17 @@ describe("(T722 F3) the notifications intro per platform", () => {
       + "the gauges and the data itself, when iOS lets it run in the background. iOS runs these checks while the phone is "
       + "idle, often overnight, so a notice can come hours late. None run in Low Power Mode or after the app is swiped "
       + "away, until you open it again.");
+  });
+  it("(T739) with push wake-ups: what the server sends and keeps, and what iOS may still hold back, whole", () => {
+    expect(NOTIFY_WORDS.introPushIos).toBe("Notifications are made on this phone. When our gauge, salmon or in-season data "
+      + "changes, or new regulations data is out, our server sends this phone a silent signal to check now; the app then "
+      + "checks the gauges and the data itself. The server keeps only a push token for this phone, never your alerts, your "
+      + "waters or where you are. iOS may still hold a check back, often in Low Power Mode, and wakes no app that was swiped "
+      + "away until you open it again.");
+    expect(NOTIFY_WORDS.introPushAndroid).toBe("Notifications are made on this phone. When our gauge, salmon or in-season "
+      + "data changes, or new regulations data is out, our server sends this phone a silent signal to check now; the app "
+      + "then checks the gauges and the data itself, and still checks about every 15 minutes at best on its own. The server "
+      + "keeps only a push token for this phone, never your alerts, your waters or where you are.");
+    expect(`${UPDATE_READY_NOTE.title}. ${UPDATE_READY_NOTE.body}`).toBe("New regulations data is ready to download. Open the app to download it.");
   });
 });
