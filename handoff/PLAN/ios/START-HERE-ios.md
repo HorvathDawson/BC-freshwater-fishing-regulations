@@ -50,11 +50,12 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
   approximate location says so; a staged update no longer applies on a brief "inactive" (no update was applied in the
   run, so nothing to compare). Shots sent (arrow, Open Settings).
 - `ios/t719-tapup`: the early tap cue for iOS, same event as Android's. Started 17:40.
-- `android/t732-backup` (**proven on the Android emulator 19:10**, not merged): today a backup of the app carries nothing
-  at all ("Size quota exceeded", 516 MB of app data against Android's 25 MB limit). With the rules: a 17,920-byte
-  backup with the saved spots and settings; after a wipe and restore the spots and notes are back and the app downloads
-  the map data again by itself. A phone-to-phone transfer also carries the photos. Photos in the cloud backup wait for
-  your yes on the compressed copies.
+- `android/t732-backup` (**proven on the Android emulator, 19:10 and again 21:15 with photos**, head 56b6ea539, app CI
+  green, not merged): today a backup of the app carries nothing at all ("Size quota exceeded", 516 MB of app data against
+  Android's 25 MB limit). With the branch: the backup carries the spots, the settings and smaller copies of the photos
+  (227 KB with 3 photos; 20.4 MB with 29); after a wipe and restore the spots and photos are back and the app downloads
+  the map data again by itself. The Spots tab says what the backup holds. A phone-to-phone transfer carries the photos at
+  full size. Not shown on the device: photos left out when they do not fit (all 29 fit; unit-tested only).
 - The iOS look at today's five shared fixes (T717, T728 to T731): running.
 
 **What failed or was found**

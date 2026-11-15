@@ -98,7 +98,9 @@ with the default Claude uses until you answer). Newest first inside each section
   important". Then: "Settings could also be saved". Being built on the branch: the backup carries the spots, the
   settings and the photos; photos ride
   the cloud backup as smaller copies (1600 px), which needs one image library (Claude read your sentence as the yes to
-  it). Still open: screen-lock-only [no], copy size [1600 px]. Not merged;
+  it). PROVEN again 2026-11-14 21:15 with photos: backup Success (227 KB with 3 photos, 20.4 MB with 29),
+  wipe + restore brings spots and photos back; the shot was sent. Still open: screen-lock-only [no], copy size [1600 px].
+  Not merged;
   (5) clean-up: five calls in `handoff/PLAN/CLEANUP-CANDIDATES.md` (evidence screenshots, old releases, a leftover flag,
   15 DONE rows still in the open ledger, graphify and scratch dirs);
   (6) the small invented release for tests (T667 slice 8): cut it with no map tiles and no basemap, only the data files
