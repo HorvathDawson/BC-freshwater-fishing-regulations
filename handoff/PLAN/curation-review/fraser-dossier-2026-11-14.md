@@ -4,7 +4,36 @@ For labelling the Fraser's DFO places one at a time. Read-only on marks: nothing
 `marks.jsonl`, `cuts.json` or `dfo-suggestions.json`. River km are FWA route measures on the Fraser main line
 (blk 356364114), from the atlas the release was built on (`atlas/full`, release r-f749475d0962).
 
-## Do these first
+## RESET 2026-11-14 23:35 — the Fraser places are unmarked again
+
+Owner: "can you just reset the fraser marks fully and I will redo them when app is usable again?"
+
+- The 7 Fraser places that had marks (15 mark lines, 2546–2560, all from tonight) each got one CLEARED mark
+  (`marks.cleared_mark`, the review app's own take-back; lines 2561–2567). Nothing was deleted: the old lines stay
+  in the store as history; every reader now sees the places unmarked. Backup of the store before the reset:
+  `~/bcfish-session-backup-2026-11-12/marks-backups/marks-before-fraser-reset-20261114-233106.jsonl`.
+- What those marks wrote through is undone: `region-2.json` is back to its 19:28 state (commit a9fbaa802). All 10
+  Fraser places are unbound again, so no Fraser DFO place is drawn and the Hope → Spuzzum wrong opening cannot ship.
+  Two links that predate tonight stay ("…upstream of the CPR Bridge at Mission" = its ", BC" wording;
+  "…downstream of the CPR Bridge … to Hope" = the 2024 "from the downstream side …" wording).
+- The Hope and Alexandra proposals from your marks are gone with the marks; the split hunt's proposals for the
+  same two bridges (`fraser_hope_bridge`, `fraser_alexandra_bridge`) remain, so there is one id each now. No cut was
+  ever written to `cuts.json`.
+- Untouched: Nicomen Slough, the Tidal tab's Mission cut, synopsis marks on the Fraser.
+
+**When the app is usable, do these first** (one place at a time):
+1. The three "Mission to Hope" wordings (rows 3, 4, 5): CPR Bridge at Mission → Hwy 1 Bridge at Hope (accept the
+   Hope proposal), no tributaries. Row 3 is the live one.
+2. The two "upstream of the CPR Bridge at Mission" wordings (rows 1, 2): Mission → Spuzzum, if a Region 2 page
+   means Region 2 only.
+3. "Upstream from Hope" (row 8): Hope → Spuzzum. The double wording (row 6) and Hope → Alexandra (row 7): decide
+   the Alexandra bridge first.
+4. Accepting the Hope / Alexandra cut writes it into `cuts.json`: the place is drawn only after the next atlas
+   build. Region 3's "Mainstem waters" (row 9): leave undrawn.
+
+The tables below describe the marks AS THEY WERE before the reset.
+
+## Before the reset: do these first (superseded)
 
 1. **Re-mark the three "Mission to Hope" wordings as CPR Bridge at Mission → Highway 1 Bridge at Hope**, no
    tributaries ("mainstem waters"). All three now say Mission → Spuzzum Creek, which is 38 km too far (Hope is
