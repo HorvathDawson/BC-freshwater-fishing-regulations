@@ -43,6 +43,17 @@ part". Mutation-checked: with `whole: true` put back in `searched` both cases fa
 twin 4 km away is one label, a different-place token is its own (mutation pin). `openWater.test.ts`, `WaterMapView.test.tsx`
 (one load path: "search Open" now draws the reload's frame with no pick) updated.
 
-## Proof
-Before/after screenshots, desktop 1512 × 738 and phone 390 × 844, each way in:
-`~/bcfish-session-backup-2026-11-12/water-map-framing/`.
+## Proof (local web exports, staging data; `before-*` = b90f73922, `after-*` = 7b60c75f1)
+Screenshots in `~/bcfish-session-backup-2026-11-12/water-map-framing/` (`<build>-<way>-<width>.png`; 1512 × 738,
+1920 × 1000, 390 × 844; `staging-search_open-1512.png` is the owner's case on staging).
+
+| way in | before: corner button / frame | after |
+|---|---|---|
+| search → Open (Skeena, Fraser, Vedder; 1512, 1920, 390) | "This part" / whole water (`whole=1`) | "⤢ Whole river" / part 1 |
+| search → Open → Regulations → Map | "⤢ Whole river" / part 1 | same |
+| `?regs=` link → Map tab | "⤢ Whole river" / part 1 | same |
+| `?regs=…&view=map` link (no place) | "This part" / whole water | "⤢ Whole river" / part 1 |
+| map tap → Map tab | "⤢ Whole river" / the tapped part (14) | same |
+| ▲ then ▼ | "⤢ Whole river" / part 1 | same |
+| a lake (Harrison, solo) | opens its Regulations (no Map view) | same |
+| ⤢ pressed (`after-whole_press-1512.png`) | — | "This part" / whole Skeena, ONE km 63.5 label |
