@@ -78,8 +78,18 @@ Branch `fix/t756-keep-running-job`, commit a03372ec5, off the shared head ff4463
   pause queued again once with its line; a short pause waited out). Each fails with its half of the change removed
   (checked by hand). The file: 11 passed. `pnpm -C app check:fast` exit 0; `tools/failures`, `tools/no-silent-skips`,
   `tools/release-boot` and `packages/data/src/release/` pass (24 files, 220 tests).
-- **Not done:** work 4 (the bench: fail on an app-side cancel, wait on bytes moving, the failure text, the
-  notification-group tap) and work 5 (no device run yet: Android `bg-install` + `install`; iPhone after T722 merges).
+- **Work 4, written 2026-11-15 14:50, NOT run on a device** (commit c0ad16d62 on the same branch; no internet line):
+  `scenarios/bg-install.mjs` (a) reads the system downloader's log every ~20 s through the reopen (it rolls on a long
+  run) and FAILS when the app stopped a running job ("onStopJob id=N, reason=cancel() called by app"), naming the jobs;
+  (b) waits for as long as the app's "X of Y MB downloaded" line or the bytes on disk move, fails after 4 minutes
+  without movement (45 minutes in all) and quotes the setup screen's own line and the bytes on disk; (c) the
+  notification tap is its own step: it unfolds the system's group ("2 files downloading") first, and a tap that does
+  not bring the app's activity to the front FAILS (before, it fell back to a launch and passed). Pure parts in
+  `lib/download-watch.mjs`, five node tests on the downloader lines captured from the defect
+  (`node --test app/tools/testbed/lib/download-watch.test.mjs`); `tools/testbed-static.test.ts` 20 pass.
+  To check on the first device run: that a group tap unfolds (not opens) on this Android image; that a finished file's
+  tidy-up never logs an onStopJob cancel; that verifying after "479.3 of 479.3 MB" is not read as a stall.
+- **Not done:** work 5 (no device run yet: Android `bg-install` + `install`; iPhone after T722 merges).
 - **Not verified:** that the iPhone downloader (T722) reports `running` and `metered` the way this rule needs; that
   DownloadManager reports a Wi-Fi-only job as `running` (not `paused`) for the whole time it moves on Wi-Fi.
 
