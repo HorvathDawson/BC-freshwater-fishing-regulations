@@ -93,6 +93,9 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
   phone: one push, then the app's log says "woken by our server". That needs the Apple push key, the worker on
   staging and a TestFlight build from this branch: each one a step for the owner's go. The existing "new data ready"
   notice keeps its old words (Android unchanged); the push path has its own sentence. Head 650665c61, app CI green.
+  **02:10: the owner made the push key, stored the three secrets on the staging worker himself, and said yes**
+  ("yes i do i ran command") to the worker with the push code on staging and a TestFlight build 35 from this
+  branch. Build 35 queued; the worker deploy waits for the Android chat's site deploy (it re-runs every feed job).
   Needs from the owner later: an Apple push key and three `wrangler secret put` commands (in the ticket), and for
   Android a Firebase project with its `google-services.json`.
 - `perf/t741` (T741, head e68b6ab93, not merged, nothing run on a device): the standing pass to make the app faster

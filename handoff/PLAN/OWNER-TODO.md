@@ -157,6 +157,12 @@ with the default Claude uses until you answer). Newest first inside each section
   (built as: a new release wakes the phone, which downloads by itself when settings allow and otherwise tells you new
   data is ready). Then, verbatim: "for android too." (Android push approved as well; it uses Google's Firebase for delivery only,
   Claude's reading: your exception to "self-host everything" for this one thing). Being built on branch `ios/t739-push`.
+  **ANSWERED 2026-11-15 02:10 (push on a real phone).** The owner made the Apple push key (Key ID 6T3DBFF92H) and ran
+  the three `wrangler secret put` commands himself; the staging feeds worker lists APNS_KEY, APNS_KEY_ID and
+  APNS_TEAM_ID (names checked, values not read). To "Do you want those tonight?" (deploy the worker with the push code
+  to staging, and upload TestFlight build 35 from the push branch), owner, verbatim: "yes i do i ran command". Build 35
+  queued 02:12 from `ios/t739-push` 650665c61; the worker deploy is timed with the Android chat. Firebase (Android)
+  still yours, later.
   Still yours later: one more Apple key, for push, and a free Firebase project for Android (steps come when the worker
   side is ready);
   (12) Play's data-safety form says approximate location and the App Store answers say precise: should Play match?
