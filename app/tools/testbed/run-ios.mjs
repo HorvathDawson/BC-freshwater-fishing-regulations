@@ -35,6 +35,8 @@ const sleep = device.sleep;
 
 // ---------- shared steps ----------
 const hasTabs = (w) => w.some((x) => /^MORE$|^More$/.test(x)) && w.some((x) => /^MAP$|^Map$/.test(x));
+/** The first-install screen (App.tsx's boot: "N of M MB downloaded", `boot-close-ok`): the app is not up while it shows. */
+const installing = (w) => w.some((x) => / MB downloaded$|^Downloading the map and regulations/.test(x)) || (w.ids ?? []).includes('boot-close-ok');
 // (iPhone 17 layout) the search bar's "‹" and a water page's "‹ Map": neither has words Maestro can match on iOS
 const SEARCH_BACK = '9%,11%', PAGE_BACK = '10%,10%';
 // the Map tab, by place: the text "Map" is also a water page's back link and a Layers tile, and Maestro took the first
@@ -75,12 +77,16 @@ async function appUp(ctx, { launch = true, ms = 180_000, alerts = 'Allow' } = {}
       // the walkthrough opens once the map has drawn: a beat, then a last look before calling the app up
       await sleep(4000);
       const again = device.screenText();
-      if (!again.some((x) => GUIDE.test(x) || /^(I understand|Got it)$/.test(x))) { w = again; break; }
+      // (integration 2026-11-14) the tabs must still be there on the second look, and the first-install screen gone: a
+      // first open passed at 67 s with the download screen up (its own shot, 38.8 of 479.3 MB) on one stray read
+      if (hasTabs(again) && !installing(again) && !again.some((x) => GUIDE.test(x) || /^(I understand|Got it)$/.test(x))) {
+        w = again; break;
+      }
       continue;
     } else if (!device.pidOf()) device.launch();
     await sleep(3000);
   }
-  if (!hasTabs(w)) throw new Error(`the app is not up in ${ms / 1000} s (saw: ${w.slice(0, 8).join(' | ').slice(0, 300)})`);
+  if (!hasTabs(w) || installing(w)) throw new Error(`the app is not up in ${ms / 1000} s (saw: ${w.slice(0, 8).join(' | ').slice(0, 300)})`);
   const bad = w.find((x) => /could not be loaded|Something went wrong|Unable to load/i.test(x));
   if (bad) throw new Error(`the app says: ${bad}`);
 }
