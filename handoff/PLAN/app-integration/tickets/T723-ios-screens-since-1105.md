@@ -32,3 +32,13 @@ Full table: `handoff/PLAN/ios/parity-audit.md` (nothing was run).
 - **F11:** "At my location" is not a Search row on either platform; it is the Spots tab's add row (`SpotsScreen.tsx:64-86`). The iOS `location` scenario's skip (`run-ios.mjs:297-304`) is a test-bed error: point it at Spots.
 - Same on iOS by code reading: saved spots storage, share (`share.native.ts:16`), photo refs (relative), salmon colouring event path (iOS half exists), part steps, in-season inbox, PDF in PDFKit (needs the F7 look).
 - Still no iOS twin of: `saved-spots`, `spots`, `photo-zoom`, `route-scroll`, `pane`, `part-steps`, `regs-switch`, `report`, `feeds`, `locate` (only `regs-open` and `tap-stalls` exist).
+
+## T734 on iOS (2026-11-14, read in the installed binding; not yet run)
+The Android chat's T734 (the app closed when `project` was called before the map was ready) patched the Kotlin binding
+and gated the JS call (`packages/map/src/native/labelShift.ts`, both platforms). iOS, read in
+`node_modules/@maplibre/maplibre-react-native/ios/components/map-view/`: `MLRNMapViewModule.mm` `project` / `unproject`
+resolve the view on the UI block (`MLRNViewModuleUtils withView`), class-check it and reject otherwise, then
+`MLRNMapViewManager` calls `[view convertCoordinate:toPointToView:]` on the MLRNMapView itself, an MLNMapView subclass.
+There is no separate map object that is nil until ready (Android's `mapLibreMap!!`), so the NPE has no iOS twin by the
+code, and the JS gate covers iOS as well. Left: an iOS twin of the test bed's `open-race` (cold start → search → Open at
+once; Chilliwack + Fraser) to prove it on the simulator.
