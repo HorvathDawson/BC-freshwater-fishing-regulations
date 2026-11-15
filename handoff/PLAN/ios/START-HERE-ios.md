@@ -1,5 +1,42 @@
 # iOS hardening: start here (written 2026-11-14)
 
+## Midday update, 2026-11-15 (written 12:49)
+
+**The R8 build is NOT on Play yet.** You picked "R8 build to Play internal, if the checks pass on that exact build".
+Five of the six checks passed on that exact build. The sixth (first install that carries on with the app closed) did
+not pass, and the reason is not the build: the same check fails the same way with the shrinker off. The cause is this
+Mac's internet line, which was crawling from late morning (a 25 KB file from our staging server took up to 20 s at
+12:46; this morning the whole 479 MB came down in 233 s). I do not call a check passed that did not pass, so nothing is
+merged and nothing is uploaded. A watch on the line is running; when it is fast again I re-run that one check and, if
+it passes, the Android chat makes build 33 (version 0.7.11) and uploads it to Play internal. If the line stays bad
+into the evening the build slips to tomorrow.
+
+| check (shrinker on, branch `perf/r8-play` 164c928c2) | result |
+|---|---|
+| install | pass 4/4 |
+| crash reports | pass 5/5 |
+| tap to regulations page | pass 26/26 (cue 33–89 ms, page 333–370 ms) |
+| no long stalls | pass 5/5 (worst 138 ms) |
+| memory and rule book | pass 14/14 |
+| first install with the app closed | NOT passed in 3 runs; fails the same with the shrinker off; internet line |
+
+**Changed from what I told you at 10:35.** The Android chat makes the Play build and uploads it (that step uses the Play
+sign-in); I run the checks and merge the switch, off by default. Build 33 also carries what the Android chat already
+put on the shared branch since build 32 (T737 web loader, T747 search opens the water map on its part, T750 one-line
+Upstream / Downstream). None of my other branches are in it.
+
+**A defect found on the way (T756), not caused by the shrinker.** On Android, if you choose "Wait for Wi-Fi" on the
+first install and then open the app again while it downloads on Wi-Fi, the app cancels the downloads and starts the big
+files again from zero. It has been like that since the background download was built (T298). A fix with tests is on
+branch `fix/t756-keep-running-job` (not merged, no phone or emulator run yet). It is not in build 33.
+
+**New for you:** To-Do page row "Push: the new privacy-page line and the App Store privacy answer". The push code
+merges only after your yes or your changes to those words.
+
+**iOS merge:** you said it can merge whenever. Order agreed with the Android chat: the four iOS fix branches first, right
+after build 33 is uploaded; then the loading screen, bar fix, crash-report fix and faster-and-lighter set after one
+Android run; push last. A trial merge of step 1 has two small conflicts (one test file, one ticket).
+
 ## Morning summary, 2026-11-15 (written 07:32; the night's work in one place)
 
 **For you to do, in this order**

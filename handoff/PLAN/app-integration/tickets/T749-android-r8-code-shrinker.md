@@ -148,3 +148,19 @@ photo, location, the rule book). Production stays the owner's.
 - Android chat: reads the script diff, then runs `CANIFISHTHIS_R8=1 deploy/staging/build-apk.sh --play` on that head
   (it bumps and commits versionCode, uploads to the internal track). Build 33.
 - The build also carries the shared branch since build 32: T737, T747, T750.
+
+### State 2026-11-15 12:49: five of six pass; bg-install unproven (the internet line); not merged, not built
+Flag-ON test-bed APK of `perf/r8-play` 164c928c2 (app CI 43742632555 and pipeline CI 43742632584 green), `--no-r2`,
+load 14.9 at the start, 5.4 at the end: install PASS 4/4 (map up 353 s), crash-bed PASS 5/5, regs-open PASS 26/26 (cue
+33–89 ms, page 333–370 ms), tap-stalls PASS 5/5 (worst 138 ms), memory PASS 14/14 (boot PSS 255.8 MB, rule book 8659 /
+8655 ms). APK 54,973,373 B, dex 7,892,984 B.
+bg-install: run 1 failed step 5 (no download notification with the app closed); runs 2 and 3 passed step 5 and failed
+step 6 (setup not finished after the 15-minute wait; at 12:11 the app was in front at 468.2 of 479.3 MB). CONTROL,
+flag-OFF APK of the same commit, same session: the same failure at step 6. The line from the host at 12:46–12:49: the
+25 KB staging manifest 6.7–19.8 s, www.cloudflare.com not resolved in 8 s, an 8 MB range of the staging basemap 0 bytes
+in 20 s. So it is not R8; on this line the shared head cannot be judged either. The reopen also restarts the big files
+from zero: T756 (old, T298's rule; fix on `fix/t756-keep-running-job`, not in this build).
+Next: re-run bg-install (flag on, and flag off beside it) when the line is fast again (a background probe watches for
+three 8 MB samples in a row above 1.5 MB/s). Pass -> merge `perf/r8-play` (onto the then head; flag default off) ->
+both CIs green -> the Android chat runs the Play build. The full lane report, the script diff, how the flag reaches
+Gradle and the owner's ten-step phone walk are in this ticket on the branch.

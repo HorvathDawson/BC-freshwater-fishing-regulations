@@ -232,6 +232,11 @@ with the default Claude uses until you answer). Newest first inside each section
   it does carry what the Android chat put on the shared branch since build 32: the web loader (T737), search opening
   the water map on its part (T747) and the one-line Upstream / Downstream (T750). Those were due for your next phone
   check anyway.
+  **State 2026-11-15 12:49: not uploaded.** Five of six checks passed on the exact build; the first-install-with-the-
+  app-closed check did not, and it fails the same way with the shrinker off: this Mac's internet line was crawling. No
+  merge and no upload until that check passes on a good line; I re-run it when the line recovers. If it is still bad
+  this evening the build slips to tomorrow. Found on the way, not from the shrinker: T756 (reopening mid-download
+  restarts the big files from zero after "Wait for Wi-Fi"); fix on a branch, not merged, not in this build.
 - **DONE 2026-11-15 07:32.** TestFlight build 36 uploaded (0.7.10, branch `ios/next` d658f88ac, staging data): the
   iOS fixes, the first-install bar, the "applying new data" screen with fish puns, push, the crash-report fix, the
   faster cold start and lighter fonts. Yours: install 36 (not 34 or 35), then the phone checks and the push test;
