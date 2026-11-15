@@ -4219,8 +4219,17 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
-        "tributaries": null,
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "fraser_river__the_cpr_bridge_at_mission",
+              "fraser_river__highway_1_bridge_at_hope_bill_hartley_fraser_hope"
+            ],
+            "item_id": "gnis:39325"
+          }
+        ],
+        "tributaries": false,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
