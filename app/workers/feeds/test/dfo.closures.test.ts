@@ -156,20 +156,7 @@ describe("runDfo over the saved pages: one loc per piece the rows name, each the
     }
     // the spec's pin for region 6 (test_dfo_live.py: 137 places + Babine's 13 closed areas)
     expect(Object.values<{ r: string }>(ix.locs).filter((l) => l.r === "6").length).toBe(150);
-    // the WHOLE feed: every location id the Python's `live.run` publishes over the same pages and entry files (vectors
-    // `live`, written by the emitter), each in its region — 274 with the entry files refreshed from the curated places
-    // (T757 follow-up). ONE NAMED GAP, not hidden: the worker types no page-default sentence (the Python's T349
-    // `cascade.statement_locators`, `feed.build`), so the curated `page_default` places — exactly these 7 — are in the
-    // Python's feed and not the worker's. Closing that gap makes this fail: then drop the exception.
-    const pageDefaults = new Set(slugs.flatMap((s) => (JSON.parse(readFileSync(join(FIX, `entries/region-${s}.json`), "utf-8")).locations as { location_id: string; kind: string; status?: string }[])
-      .filter((l) => l.kind === "page_default").map((l) => l.location_id)));
-    const python = V.live.locs as Record<string, string>;
-    expect(Object.keys(python).length).toBe(274);
-    expect(Object.keys(python).filter((l) => pageDefaults.has(l)).sort()).toEqual([
-      "1:default:region", "2:default:areas-13-15-16", "2:default:areas-28-29", "3:default:region", "5a:default:region", "7:default:region", "8:default:region"]);
-    const worker = Object.fromEntries(Object.entries<{ r: string }>(ix.locs).map(([lid, c]) => [lid, c.r]));
-    expect(worker).toEqual(Object.fromEntries(Object.entries(python).filter(([l]) => !pageDefaults.has(l))));
-    expect([ix.unplaced, V.live.unplaced]).toEqual([0, 0]);
+    // (the whole feed, every place with its year, is pinned to the Python's in dfo.vectors.test.ts, "the live feed")
   });
 });
 
