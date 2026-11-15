@@ -1797,31 +1797,20 @@
         "areas": []
       },
       "status": "dormant",
-      "duplicate_of": "2:fraser-river:mainstem-waters-downstream-of-the",
+      "duplicate_of": null,
       "duplicate_score": null,
-      "duplicate_confirmed": true,
+      "duplicate_confirmed": null,
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [
-          {
-            "op": "between",
-            "splits": [
-              "fraser_river__the_cpr_bridge_at_mission",
-              "fraser_river__spuzzum_creek_into_fraser_river"
-            ],
-            "item_id": "gnis:39325"
-          }
-        ],
+        "extents": [],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
-        "notes": [
-          "same place as 2:fraser-river:mainstem-waters-downstream-of-the: put in its group by the owner (checklist) — owner confirmed same place 2026-11-14"
-        ],
+        "notes": [],
         "spatial_caveat": false
       }
     },
@@ -4214,16 +4203,7 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [
-          {
-            "op": "between",
-            "splits": [
-              "fraser_river__the_cpr_bridge_at_mission",
-              "fraser_river__spuzzum_creek_into_fraser_river"
-            ],
-            "item_id": "gnis:39325"
-          }
-        ],
+        "extents": [],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -4447,22 +4427,13 @@
       "status": "dormant",
       "duplicate_of": null,
       "duplicate_score": null,
-      "duplicate_confirmed": false,
+      "duplicate_confirmed": null,
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [
-          {
-            "op": "between",
-            "splits": [
-              "fraser_river__the_cpr_bridge_at_mission",
-              "fraser_river__spuzzum_creek_into_fraser_river"
-            ],
-            "item_id": "gnis:39325"
-          }
-        ],
+        "extents": [],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -4908,24 +4879,15 @@
         "areas": []
       },
       "status": "active",
-      "duplicate_of": null,
+      "duplicate_of": "2:fraser-river:mainstem-waters-upstream-of-the-cp",
       "duplicate_score": 0.972,
-      "duplicate_confirmed": false,
+      "duplicate_confirmed": true,
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [
-          {
-            "op": "between",
-            "splits": [
-              "fraser_river__the_cpr_bridge_at_mission",
-              "fraser_river__spuzzum_creek_into_fraser_river"
-            ],
-            "item_id": "gnis:39325"
-          }
-        ],
+        "extents": [],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -4978,16 +4940,7 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [
-          {
-            "op": "between",
-            "splits": [
-              "fraser_river__the_cpr_bridge_at_mission",
-              "fraser_river__spuzzum_creek_into_fraser_river"
-            ],
-            "item_id": "gnis:39325"
-          }
-        ],
+        "extents": [],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
