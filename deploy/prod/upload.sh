@@ -41,6 +41,9 @@ rclone cat "$STAGING/release/manifest.json" --s3-no-check-bucket > "$LIVE"
 cmp -s "$M" "$LIVE" || { echo "upload (prod): staging's live manifest is not $M ($(q "m['data_release']")) — upload it to staging" \
   "(deploy/staging/upload.sh $REL), check it there, then promote" >&2; exit 1; }
 MIN_APP_VERSION= .venv/bin/python -m pipeline.deliver.release.app_gate "$M"
+# (T573/T757) bound closed-area pieces need a worker that emits them: production's, or FEEDS_URL for a rehearsal bucket
+if [[ $BUCKET == "$PROD_BUCKET" ]]; then PIECES_FEEDS=https://feeds.canifishthis.ca; else PIECES_FEEDS=${FEEDS_URL:-}; fi
+FEEDS_URL=$PIECES_FEEDS .venv/bin/python -m pipeline.deliver.release.pieces_gate "$M"
 say "promote $REL to $D (staging serves the same manifest)"
 IMM="Cache-Control: public, max-age=31536000, immutable"
 cp_() { rclone copyto "$1" "$D/$2" --s3-no-check-bucket ${DRY[@]+"${DRY[@]}"} "${@:3}"; }

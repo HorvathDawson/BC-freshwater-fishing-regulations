@@ -450,9 +450,18 @@ class ClosureLocation(EntryLocation):
     unlanded: list = field(default_factory=list)
 
 
+#: THE GRAMMAR OF A PIECE ID — `<water_id>#closed:<key>`: the water id is `<region>:<slug>` (`entries.make_water_id`:
+#: a region key of digits / lowercase letters, a slug of `[a-z0-9-]`), the key 12 lowercase hex digits (`piece_key`,
+#: sha1). Nothing in it needs escaping: no space, no non-ASCII, `#` and `:` only where the grammar puts them.
+PIECE_ID_RE = re.compile(r"^(?P<water>[0-9a-z]+:[a-z0-9-]+)#closed:(?P<key>[0-9a-f]{12})$")
+
+
 def piece_id(water_id: str, key: str) -> str:
-    """THE LOCATION ID OF ONE CLOSED AREA: `<water_id>#closed:<piece key>`"""
-    return f"{water_id}{PIECE_SEP}{key}"
+    """THE LOCATION ID OF ONE CLOSED AREA: `<water_id>#closed:<piece key>` (`PIECE_ID_RE`; anything else raises)"""
+    lid = f"{water_id}{PIECE_SEP}{key}"
+    if not PIECE_ID_RE.match(lid):
+        raise ValueError(f"closures: {lid!r} is not a piece id (`<region>:<slug>#closed:<12 hex>`)")
+    return lid
 
 
 def is_piece_id(location_id: str) -> bool:

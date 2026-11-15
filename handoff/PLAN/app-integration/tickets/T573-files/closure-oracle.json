@@ -1,0 +1,646 @@
+{
+ "_about": "THE ORACLE FOR THE WORKER'S CLOSED-AREA PORT (T573 -> T757): sample inputs and the `locs` the Python live feed emits\nfor them (`regs.dfo_salmon.closures.live_piece_rules` -> `live.location_calendar`, as `live.run` does).",
+ "cases": [
+  {
+   "confirmed": [
+    {
+     "item": "Deadman - from the fishing boundary signs approximately 1 km downstream of the Hwy No. 1 Bridge at Savona",
+     "key": "9fa028589ff1",
+     "kind": "stretch",
+     "name": "Deadman",
+     "on_item": "gnis:39492",
+     "points": [
+      {
+       "kind": "split",
+       "split_id": "thompson_river__a"
+      },
+      {
+       "kind": "split",
+       "split_id": "thompson_river__b"
+      }
+     ],
+     "water_id": "3:thompson-river"
+    }
+   ],
+   "entry_file": {
+    "locations": [
+     {
+      "aliases": [],
+      "binding": {
+       "extents": [
+        {
+         "op": "whole"
+        }
+       ],
+       "notes": [],
+       "sections_cached": null,
+       "spatial_caveat": false,
+       "tributaries": null,
+       "tributaries_only": false,
+       "tributary_excludes": []
+      },
+      "duplicate_confirmed": null,
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "fingerprints": [
+       "fp-thompson"
+      ],
+      "inherits": [],
+      "kind": "water",
+      "location_id": "3:thompson-river:from-kamloops-lake-outlet",
+      "locked": false,
+      "precedence": 3,
+      "region": "3",
+      "region_number": 3,
+      "review_note": "",
+      "reviewed_at": "",
+      "reviewed_by": "",
+      "section": null,
+      "section_history": [],
+      "source_text": {
+       "excludes": [
+        "Deadman - from the fishing boundary signs approximately 1 km downstream of the Hwy No. 1 Bridge at Savona",
+        "Juniper - from the fishing boundary signs 4 km above to the signs at Juniper Beach Provincial Park"
+       ],
+       "specific_area": "From Kamloops Lake outlet downstream. Please note that no fishing is allowed in the following areas, year-round:"
+      },
+      "status": "active",
+      "water": "Thompson River",
+      "water_id": "3:thompson-river"
+     }
+    ],
+    "region": "3",
+    "region_name": "Thompson / Nicola",
+    "region_number": 3,
+    "scopes": [],
+    "structure": {},
+    "waters": [
+     {
+      "aliases": [],
+      "item_ids": [
+       "gnis:39492"
+      ],
+      "locked": false,
+      "match": {},
+      "name": "Thompson River",
+      "note": "",
+      "region": "3",
+      "region_number": 3,
+      "resolution": "pending",
+      "resolution_reason": "",
+      "reviewed_at": "",
+      "reviewed_by": "",
+      "sections": [],
+      "tributaries": null,
+      "water_id": "3:thompson-river"
+     }
+    ]
+   },
+   "expect": {
+    "gears": [],
+    "locs": {
+     "3:thompson-river#closed:9fa028589ff1": {
+      "g": [
+       0,
+       -1
+      ],
+      "r": "3",
+      "sp": [
+       [
+        0,
+        1
+       ],
+       [
+        0,
+        1
+       ],
+       [
+        0,
+        1
+       ],
+       [
+        0,
+        1
+       ],
+       [
+        0,
+        1
+       ]
+      ]
+     },
+     "3:thompson-river#closed:cb48ccedb556": {
+      "g": [
+       0,
+       -1
+      ],
+      "r": "3",
+      "sp": [
+       [
+        0,
+        2
+       ],
+       [
+        0,
+        2
+       ],
+       [
+        0,
+        2
+       ],
+       [
+        0,
+        2
+       ],
+       [
+        0,
+        2
+       ]
+      ]
+     }
+    },
+    "verdicts": [
+     {
+      "d": 1,
+      "s": "closed",
+      "t": "Not opened by DFO: closed to salmon fishing"
+     },
+     {
+      "s": "closed",
+      "t": "No fishing, year-round — Deadman - from the fishing boundary signs approximately 1 km downstream of the Hwy No. 1 Bridge at Savona (Jan 1–Dec 31)"
+     },
+     {
+      "s": "closed",
+      "t": "No fishing, year-round — Juniper - from the fishing boundary signs 4 km above to the signs at Juniper Beach Provincial Park (Jan 1–Dec 31)"
+     }
+    ]
+   },
+   "name": "a_confirmed_on_todays_row",
+   "rows": [
+    {
+     "excludes": [
+      "Deadman - from the fishing boundary signs approximately 1 km downstream of the Hwy No. 1 Bridge at Savona",
+      "Juniper - from the fishing boundary signs 4 km above to the signs at Juniper Beach Provincial Park"
+     ],
+     "fingerprint": "fp-thompson",
+     "specific_area": "From Kamloops Lake outlet downstream. Please note that no fishing is allowed in the following areas, year-round:"
+    }
+   ],
+   "rules": {
+    "3:thompson-river#closed:9fa028589ff1": [
+     {
+      "may_target": false,
+      "rule_id": "3:thompson-river#closed:9fa028589ff1#0",
+      "species": [
+       "SA"
+      ],
+      "take": 0,
+      "type": "retention_limit",
+      "verbatim": "No fishing, year-round — Deadman - from the fishing boundary signs approximately 1 km downstream of the Hwy No. 1 Bridge at Savona",
+      "when": {
+       "dates": [
+        {
+         "from_day": 1,
+         "from_month": 1,
+         "to_day": 31,
+         "to_month": 12
+        }
+       ]
+      }
+     }
+    ],
+    "3:thompson-river#closed:cb48ccedb556": [
+     {
+      "may_target": false,
+      "rule_id": "3:thompson-river#closed:cb48ccedb556#0",
+      "species": [
+       "SA"
+      ],
+      "take": 0,
+      "type": "retention_limit",
+      "verbatim": "No fishing, year-round — Juniper - from the fishing boundary signs 4 km above to the signs at Juniper Beach Provincial Park",
+      "when": {
+       "dates": [
+        {
+         "from_day": 1,
+         "from_month": 1,
+         "to_day": 31,
+         "to_month": 12
+        }
+       ]
+      }
+     }
+    ]
+   },
+   "says": "Deadman is confirmed and today's row names it: emitted, closed every day"
+  },
+  {
+   "confirmed": [
+    {
+     "item": "Deadman - from the fishing boundary signs approximately 1 km downstream of the Hwy No. 1 Bridge at Savona",
+     "key": "9fa028589ff1",
+     "kind": "stretch",
+     "name": "Deadman",
+     "on_item": "gnis:39492",
+     "points": [
+      {
+       "kind": "split",
+       "split_id": "thompson_river__a"
+      },
+      {
+       "kind": "split",
+       "split_id": "thompson_river__b"
+      }
+     ],
+     "water_id": "3:thompson-river"
+    }
+   ],
+   "entry_file": {
+    "locations": [
+     {
+      "aliases": [],
+      "binding": {
+       "extents": [
+        {
+         "op": "whole"
+        }
+       ],
+       "notes": [],
+       "sections_cached": null,
+       "spatial_caveat": false,
+       "tributaries": null,
+       "tributaries_only": false,
+       "tributary_excludes": []
+      },
+      "duplicate_confirmed": null,
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "fingerprints": [
+       "fp-thompson"
+      ],
+      "inherits": [],
+      "kind": "water",
+      "location_id": "3:thompson-river:from-kamloops-lake-outlet",
+      "locked": false,
+      "precedence": 3,
+      "region": "3",
+      "region_number": 3,
+      "review_note": "",
+      "reviewed_at": "",
+      "reviewed_by": "",
+      "section": null,
+      "section_history": [],
+      "source_text": {
+       "excludes": [
+        "Deadman - from the fishing boundary signs approximately 1 km downstream of the Hwy No. 1 Bridge at Savona",
+        "Juniper - from the fishing boundary signs 4 km above to the signs at Juniper Beach Provincial Park"
+       ],
+       "specific_area": "From Kamloops Lake outlet downstream. Please note that no fishing is allowed in the following areas, year-round:"
+      },
+      "status": "active",
+      "water": "Thompson River",
+      "water_id": "3:thompson-river"
+     }
+    ],
+    "region": "3",
+    "region_name": "Thompson / Nicola",
+    "region_number": 3,
+    "scopes": [],
+    "structure": {},
+    "waters": [
+     {
+      "aliases": [],
+      "item_ids": [
+       "gnis:39492"
+      ],
+      "locked": false,
+      "match": {},
+      "name": "Thompson River",
+      "note": "",
+      "region": "3",
+      "region_number": 3,
+      "resolution": "pending",
+      "resolution_reason": "",
+      "reviewed_at": "",
+      "reviewed_by": "",
+      "sections": [],
+      "tributaries": null,
+      "water_id": "3:thompson-river"
+     }
+    ]
+   },
+   "expect": {
+    "gears": [],
+    "locs": {
+     "3:thompson-river#closed:9fa028589ff1": {
+      "g": [
+       0,
+       -1
+      ],
+      "r": "3",
+      "sp": [
+       [
+        0,
+        1
+       ],
+       [
+        0,
+        1
+       ],
+       [
+        0,
+        1
+       ],
+       [
+        0,
+        1
+       ],
+       [
+        0,
+        1
+       ]
+      ]
+     },
+     "3:thompson-river#closed:cb48ccedb556": {
+      "g": [
+       0,
+       -1
+      ],
+      "r": "3",
+      "sp": [
+       [
+        0,
+        2
+       ],
+       [
+        0,
+        2
+       ],
+       [
+        0,
+        2
+       ],
+       [
+        0,
+        2
+       ],
+       [
+        0,
+        2
+       ]
+      ]
+     }
+    },
+    "verdicts": [
+     {
+      "d": 1,
+      "s": "closed",
+      "t": "Not opened by DFO: closed to salmon fishing"
+     },
+     {
+      "s": "closed",
+      "t": "No fishing, year-round — Deadman - from the fishing boundary signs approximately 1 km downstream of the Hwy No. 1 Bridge at Savona (Jan 1–Dec 31)"
+     },
+     {
+      "s": "closed",
+      "t": "No fishing, year-round — Juniper - from the fishing boundary signs 4 km above to the signs at Juniper Beach Provincial Park (Jan 1–Dec 31)"
+     }
+    ]
+   },
+   "name": "b_unconfirmed_on_todays_row",
+   "rows": [
+    {
+     "excludes": [
+      "Deadman - from the fishing boundary signs approximately 1 km downstream of the Hwy No. 1 Bridge at Savona",
+      "Juniper - from the fishing boundary signs 4 km above to the signs at Juniper Beach Provincial Park"
+     ],
+     "fingerprint": "fp-thompson",
+     "specific_area": "From Kamloops Lake outlet downstream. Please note that no fishing is allowed in the following areas, year-round:"
+    }
+   ],
+   "rules": {
+    "3:thompson-river#closed:9fa028589ff1": [
+     {
+      "may_target": false,
+      "rule_id": "3:thompson-river#closed:9fa028589ff1#0",
+      "species": [
+       "SA"
+      ],
+      "take": 0,
+      "type": "retention_limit",
+      "verbatim": "No fishing, year-round — Deadman - from the fishing boundary signs approximately 1 km downstream of the Hwy No. 1 Bridge at Savona",
+      "when": {
+       "dates": [
+        {
+         "from_day": 1,
+         "from_month": 1,
+         "to_day": 31,
+         "to_month": 12
+        }
+       ]
+      }
+     }
+    ],
+    "3:thompson-river#closed:cb48ccedb556": [
+     {
+      "may_target": false,
+      "rule_id": "3:thompson-river#closed:cb48ccedb556#0",
+      "species": [
+       "SA"
+      ],
+      "take": 0,
+      "type": "retention_limit",
+      "verbatim": "No fishing, year-round — Juniper - from the fishing boundary signs 4 km above to the signs at Juniper Beach Provincial Park",
+      "when": {
+       "dates": [
+        {
+         "from_day": 1,
+         "from_month": 1,
+         "to_day": 31,
+         "to_month": 12
+        }
+       ]
+      }
+     }
+    ]
+   },
+   "says": "Juniper is not confirmed (the release carries it on the water, `u`) but today's row names it: emitted too — the feed decides liveness only"
+  },
+  {
+   "confirmed": [
+    {
+     "item": "Deadman - from the fishing boundary signs approximately 1 km downstream of the Hwy No. 1 Bridge at Savona",
+     "key": "9fa028589ff1",
+     "kind": "stretch",
+     "name": "Deadman",
+     "on_item": "gnis:39492",
+     "points": [
+      {
+       "kind": "split",
+       "split_id": "thompson_river__a"
+      },
+      {
+       "kind": "split",
+       "split_id": "thompson_river__b"
+      }
+     ],
+     "water_id": "3:thompson-river"
+    }
+   ],
+   "entry_file": {
+    "locations": [
+     {
+      "aliases": [],
+      "binding": {
+       "extents": [
+        {
+         "op": "whole"
+        }
+       ],
+       "notes": [],
+       "sections_cached": null,
+       "spatial_caveat": false,
+       "tributaries": null,
+       "tributaries_only": false,
+       "tributary_excludes": []
+      },
+      "duplicate_confirmed": null,
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "fingerprints": [
+       "fp-thompson"
+      ],
+      "inherits": [],
+      "kind": "water",
+      "location_id": "3:thompson-river:from-kamloops-lake-outlet",
+      "locked": false,
+      "precedence": 3,
+      "region": "3",
+      "region_number": 3,
+      "review_note": "",
+      "reviewed_at": "",
+      "reviewed_by": "",
+      "section": null,
+      "section_history": [],
+      "source_text": {
+       "excludes": [
+        "Deadman - from the fishing boundary signs approximately 1 km downstream of the Hwy No. 1 Bridge at Savona",
+        "Juniper - from the fishing boundary signs 4 km above to the signs at Juniper Beach Provincial Park"
+       ],
+       "specific_area": "From Kamloops Lake outlet downstream. Please note that no fishing is allowed in the following areas, year-round:"
+      },
+      "status": "active",
+      "water": "Thompson River",
+      "water_id": "3:thompson-river"
+     }
+    ],
+    "region": "3",
+    "region_name": "Thompson / Nicola",
+    "region_number": 3,
+    "scopes": [],
+    "structure": {},
+    "waters": [
+     {
+      "aliases": [],
+      "item_ids": [
+       "gnis:39492"
+      ],
+      "locked": false,
+      "match": {},
+      "name": "Thompson River",
+      "note": "",
+      "region": "3",
+      "region_number": 3,
+      "resolution": "pending",
+      "resolution_reason": "",
+      "reviewed_at": "",
+      "reviewed_by": "",
+      "sections": [],
+      "tributaries": null,
+      "water_id": "3:thompson-river"
+     }
+    ]
+   },
+   "expect": {
+    "gears": [],
+    "locs": {
+     "3:thompson-river#closed:cb48ccedb556": {
+      "g": [
+       0,
+       -1
+      ],
+      "r": "3",
+      "sp": [
+       [
+        0,
+        1
+       ],
+       [
+        0,
+        1
+       ],
+       [
+        0,
+        1
+       ],
+       [
+        0,
+        1
+       ],
+       [
+        0,
+        1
+       ]
+      ]
+     }
+    },
+    "verdicts": [
+     {
+      "d": 1,
+      "s": "closed",
+      "t": "Not opened by DFO: closed to salmon fishing"
+     },
+     {
+      "s": "closed",
+      "t": "No fishing, year-round — Juniper - from the fishing boundary signs 4 km above to the signs at Juniper Beach Provincial Park (Jan 1–Dec 31)"
+     }
+    ]
+   },
+   "name": "c_confirmed_dropped_today",
+   "rows": [
+    {
+     "excludes": [
+      "Juniper - from the fishing boundary signs 4 km above to the signs at Juniper Beach Provincial Park"
+     ],
+     "fingerprint": "fp-thompson",
+     "specific_area": "From Kamloops Lake outlet downstream. Please note that no fishing is allowed in the following areas, year-round:"
+    }
+   ],
+   "rules": {
+    "3:thompson-river#closed:cb48ccedb556": [
+     {
+      "may_target": false,
+      "rule_id": "3:thompson-river#closed:cb48ccedb556#0",
+      "species": [
+       "SA"
+      ],
+      "take": 0,
+      "type": "retention_limit",
+      "verbatim": "No fishing, year-round — Juniper - from the fishing boundary signs 4 km above to the signs at Juniper Beach Provincial Park",
+      "when": {
+       "dates": [
+        {
+         "from_day": 1,
+         "from_month": 1,
+         "to_day": 31,
+         "to_month": 12
+        }
+       ]
+      }
+     }
+    ]
+   },
+   "says": "DFO dropped Deadman today: NOT emitted (its place answers there); Juniper still is"
+  }
+ ],
+ "regenerate": "python -m pipeline.tools.emit.closure_oracle"
+}

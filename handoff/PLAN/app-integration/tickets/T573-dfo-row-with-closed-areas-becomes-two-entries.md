@@ -194,3 +194,12 @@ unmapped; closed_areas.json does not exist yet):
 3. Babine circles: nothing bound on Babine Lake (`marked` = the lake sections touched), carried; Gullwing line carried
    "deferred"; Pinkut Creek absent (not live).
 4. `feed_vs_release`: the 17 piece ids present on both sides once the worker emits them.
+
+### Build step, part 2 (same day)
+- The blocking finding is fixed: a confirmed closed area's new cuts are cut proposals (`marks.cut_proposals_of`,
+  `proposals.closed_area_cut`: an existing cut within 25 m is reused, no cut on a line's end), and the reach run
+  binds a stretch once its cuts have landed (`proposals.landed_cut`).
+- The bundle marks pieces in `p` (`piece: 1`, `bound: 1`). `deliver/release/pieces_gate.py` refuses an upload that
+  binds pieces when the worker's `/status.json` lacks `dfo.pieces >= 1`; both upload scripts call it.
+- Worker/app spec, piece-id grammar and oracle: `T573-files/worker-handoff.md`, `T573-files/closure-oracle.json`
+  (regenerated with `python -m pipeline.tools.emit.closure_oracle`). The worker port is T757.

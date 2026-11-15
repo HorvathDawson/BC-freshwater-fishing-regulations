@@ -887,6 +887,15 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
                "gears": gears.items, "chains": chains, "unmapped": unmapped, "scopes": scopes,
                **({"x": dict(sorted(words_of.items()))} if words_of else {}), **({"off": off} if off else {}),
                "p": places_named(locs, (l for c in chains for l in c["l"]))}
+    # T573: a closed-area piece says so (`piece: 1`; `bound: 1` when it covers a section), so the app reads it without
+    # parsing its id: where the live feed lacks a bound one, the answer is "not known, check the notice", never the
+    # place's opening (T757)
+    bound = {l for ls in covering.values() for l in ls}
+    for lid, v in payload["p"].items():
+        if getattr(locs[lid][1], "closure_rule", None):
+            v["piece"] = 1
+            if lid in bound:
+                v["bound"] = 1
     return payload, sections
 
 

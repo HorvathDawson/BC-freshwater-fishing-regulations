@@ -311,3 +311,94 @@ def test_a_landed_new_end_binds_the_stretch(monkeypatch):
     rows = {r["location_id"]: r for r in D.resolve_all(reg, gr, outside=frozenset(), closed_areas=[g],
                                                        landed=lambda n: None)}
     assert rows[PIECE]["carried"] and "x_lower" in rows[PIECE]["reason"] and "not landed" in rows[PIECE]["reason"]
+
+
+# --------------------------------------------------------------------------- the app's marker, the id, the gate, the oracle
+
+def test_a_bound_piece_is_marked_in_the_payload_and_a_place_is_not(monkeypatch):
+    """Mutation: drop the `piece: 1` marker — the app cannot tell a bound closed area the feed lacks from a dormant
+    place, and falls through to the place's opening."""
+    ef = _ef(_place())
+    rows = _reach(monkeypatch, ef, [_stretch()])
+    payload, _ = _bundle(ef, [_stretch()], rows)
+    assert payload["p"][PIECE] == {"r": "3", "water": "X River", "piece": 1, "bound": 1}
+    assert "piece" not in payload["p"]["3:x-river:whole"]
+    from pipeline.deliver.release.pieces_gate import bound_pieces
+    assert bound_pieces(payload) == [PIECE]
+    # a carried (unconfirmed) piece binds nothing: marked a piece (its own unmapped chain), not bound, nothing to gate
+    carried = _bundle(ef, [], _reach(monkeypatch, ef, []))[0]
+    assert carried["p"][PIECE].get("piece") == 1 and "bound" not in carried["p"][PIECE] and bound_pieces(carried) == []
+
+
+@pytest.mark.parametrize("water,key,ok", [
+    ("3:thompson-river", "00673ca0afe5", True), ("5a:quesnel-river", "0123456789ab", True),
+    ("3:thompson river", "00673ca0afe5", False), ("3:thompson-river", "00673CA0AFE5", False),
+    ("3:thompson-river", "00673ca0af", False), ("3:thompsön-river", "00673ca0afe5", False),
+    ("3:thompson#river", "00673ca0afe5", False)])
+def test_the_piece_id_grammar(water, key, ok):
+    """`<region>:<slug>#closed:<12 hex>` — nothing to escape; anything else is refused at the source."""
+    if ok:
+        lid = K.piece_id(water, key)
+        m = K.PIECE_ID_RE.match(lid)
+        assert (m["water"], m["key"]) == (water, key) and K.is_piece_id(lid)
+    else:
+        with pytest.raises(ValueError, match="not a piece id"):
+            K.piece_id(water, key)
+    assert len(K.piece_key("Deadman - ÉÀ from #a: to b")) == 12        # any words give 12 hex
+
+
+def test_every_curated_water_id_fits_the_piece_grammar():
+    import json
+    from pipeline.common.curated import CURATED
+    from pathlib import Path
+    ids = [w["water_id"] for p in sorted(Path(CURATED.dfo_salmon.places).glob("region-*.json"))
+           for w in json.loads(p.read_text(encoding="utf-8"))["waters"]]
+    assert ids and all(K.PIECE_ID_RE.match(K.piece_id(w, "0" * 12)) for w in ids)
+
+
+GATE_PAYLOAD = {"p": {"3:x-river:whole": {"r": "3"}, PIECE: {"r": "3", "piece": 1, "bound": 1}}}
+
+
+@pytest.mark.parametrize("status,refused,why", [
+    ({"format": "feeds-status/1", "dfo": {"pieces": 1}}, False, ""),
+    ({"format": "feeds-status/1", "dfo": {"pieces": 2}}, False, ""),
+    ({"format": "feeds-status/1", "feeds": {}}, True, "does not emit them"),
+    ({"format": "feeds-status/1", "dfo": {"pieces": 0}}, True, "does not emit them"),
+    (None, True, "cannot be asked")])
+def test_the_release_gate_refuses_bound_pieces_to_a_worker_that_does_not_emit_them(status, refused, why):
+    """Mutation: let the gate pass a worker without `dfo.pieces` (or an unreachable one) — the release ships, the
+    feed's chains skip the pieces and the Thompson's closed areas read open. No network: the status is a stub."""
+    from pipeline.deliver.release import pieces_gate as G
+    asked = []
+    got = G.problems(GATE_PAYLOAD, "https://w.example", lambda url: asked.append(url) or status)
+    assert asked == ["https://w.example"] and bool(got) is refused
+    if refused:
+        assert why in got[0] and "T757" in got[0] and "upload again" in got[0] and PIECE in got[0]
+
+
+def test_the_release_gate_asks_nothing_without_bound_pieces_and_refuses_with_no_worker_named():
+    from pipeline.deliver.release import pieces_gate as G
+    boom = lambda url: (_ for _ in ()).throw(AssertionError("asked"))     # noqa: E731
+    assert G.problems({"p": {"3:x-river:whole": {"r": "3"}, PIECE: {"r": "3", "piece": 1}}}, None, boom) == []
+    (only,) = G.problems(GATE_PAYLOAD, None, boom)
+    assert "no feeds worker was named" in only
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[2]
+    for script in ("deploy/staging/upload.sh", "deploy/prod/upload.sh"):          # both uploads ask it, before any copy
+        body = (root / script).read_text()
+        import re
+        first_copy = re.search(r'^\s*(?:\S+=\S+; )?cpr? "', body, re.M) or re.search(r'cp_ "', body)
+        assert body.index("pipeline.deliver.release.pieces_gate") < first_copy.start()
+
+
+def test_the_worker_oracle_is_what_the_python_feed_emits():
+    """`T573-files/closure-oracle.json` is regenerated by `python -m pipeline.tools.emit.closure_oracle`: stale, it
+    would hold the worker's port to answers the Python no longer gives."""
+    from pathlib import Path
+    from pipeline.tools.emit import closure_oracle as O
+    root = Path(__file__).resolve().parents[2]
+    assert (root / O.OUT / O.FILE).read_text(encoding="utf-8") == O.text()
+    cases = {c["name"]: c["expect"]["locs"] for c in __import__("json").loads(O.text())["cases"]}
+    dead = K.piece_id("3:thompson-river", K.piece_key(O.DEADMAN))
+    assert dead in cases["a_confirmed_on_todays_row"] and dead in cases["b_unconfirmed_on_todays_row"]
+    assert dead not in cases["c_confirmed_dropped_today"] and len(cases["c_confirmed_dropped_today"]) == 1
