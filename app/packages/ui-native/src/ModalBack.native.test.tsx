@@ -31,23 +31,23 @@ function drag(os: string, x0: number, dx: number, dy = 0, vx = 0) {
   function Probe() { decided = useEdgeBack(back, os, 1); return null; }
   render(<Probe />);
   const r = modalEdgeResponder(decided!, new Animated.Value(0));
-  const took = r.onMoveShouldSetPanResponderCapture!(ev, g(x0, Math.min(dx, 12), dy, vx));
+  const took = r.onStartShouldSetPanResponder!({ nativeEvent: { pageX: x0 } } as never, g(x0, 0));
   if (took) r.onPanResponderRelease!(ev, g(x0, dx, dy, vx));
   cleanup();
   return [took, back.mock.calls.length];
 }
 
 describe("<ModalBack> (T723 F7)", () => {
-  it("iOS: a drag from the edge past 80 px, or flicked, closes the modal once; short and slow, from mid-screen, or mostly vertical, it is not taken", () => {
-    expect([drag("ios", 5, 100), drag("ios", 5, 40, 0, 0.6), drag("ios", 5, 40), drag("ios", 60, 200), drag("ios", 5, 100, 30)])
-      .toEqual([[true, 1], [true, 1], [true, 0], [false, 0], [false, 0]]);
+  it("iOS: a drag from the edge past 80 px, or flicked, closes the modal once; short and slow it does not; a press past the edge zone is not taken", () => {
+    expect([drag("ios", 5, 100), drag("ios", 5, 40, 0, 0.6), drag("ios", 5, 40), drag("ios", 30, 200)])
+      .toEqual([[true, 1], [true, 1], [true, 0], [false, 0]]);
   });
 
   it("Android and the web: never taken (Android's system back closes the Modal through onRequestClose)", () => {
     expect([drag("android", 5, 100), drag("web", 5, 100)]).toEqual([[false, 0], [false, 0]]);
   });
 
-  it("drawn: iOS wraps the content in the responder's view; elsewhere the content is drawn as it is", () => {
+  it("drawn: iOS lays the edge strip over the content; elsewhere the content is drawn as it is", () => {
     const seen = ["ios", "android"].map((os) => {
       as(os);
       render(<ModalBack onBack={() => {}}><Text>About</Text></ModalBack>);

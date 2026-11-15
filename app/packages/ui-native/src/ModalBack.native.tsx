@@ -3,15 +3,15 @@
  * (`@app/core` `edgeBackEnabled`: iOS only) and decides it (where it starts, how far, a flick); where there is none
  * (Android, whose system back reaches the modal through `onRequestClose`) the children are drawn untouched.
  *
- * React Native's own responder (`PanResponder`), not a gesture-handler recogniser as the Shell's `EdgeBack`: inside a
- * Modal (a window of its own) RNGH attached its root recogniser late, once to a 0 × 0 view, and the simulator's edge
- * drags never reached it (T723 run a1); the responder system is the Modal's own touch handling. The drag is taken only
- * when it starts in the edge zone and moves sideways (capture on move), so taps and vertical scrolls are left alone.
+ * A strip down the left edge, over the content, owns the drag with React Native's own responder. Two ways that did not
+ * work inside a Modal on the simulator (T723 runs a1, a3): a gesture-handler recogniser (RNGH attached its root once to
+ * a 0 × 0 view) and a responder on the whole content (a menu page is a native scroll view, whose own pan took the drag
+ * and cancelled ours). A press on the strip never reaches the scroll view under it.
  */
 import { useCallback, useMemo, useRef, type ReactNode } from "react";
-import { Animated, PanResponder, Platform } from "react-native";
+import { Animated, PanResponder, Platform, View } from "react-native";
 import { useEdgeBack } from "@app/ui";
-import { modalEdgeResponder } from "./modalEdge";
+import { MODAL_EDGE, modalEdgeResponder } from "./modalEdge";
 
 export function ModalBack({ onBack, children }: { onBack: () => void; children: ReactNode }): ReactNode {
   // depth 1: the modal itself is the one step back; `onBack` closes it and nothing under it
@@ -21,8 +21,10 @@ export function ModalBack({ onBack, children }: { onBack: () => void; children: 
   const responder = useMemo(() => PanResponder.create(modalEdgeResponder(drag, x)), [drag, x]);
   if (!drag.available) return <>{children}</>;
   return (
-    <Animated.View testID="modal-edge-back" style={{ flex: 1, transform: [{ translateX: x }] }} {...responder.panHandlers}>
-      {children}
-    </Animated.View>
+    <View style={{ flex: 1 }}>
+      <Animated.View style={{ flex: 1, transform: [{ translateX: x }] }}>{children}</Animated.View>
+      <View testID="modal-edge-back" {...responder.panHandlers}
+            style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: MODAL_EDGE }} />
+    </View>
   );
 }
