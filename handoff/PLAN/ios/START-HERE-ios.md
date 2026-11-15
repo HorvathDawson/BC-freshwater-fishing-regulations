@@ -74,8 +74,9 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
 3. App Store privacy: the report email "linked to the user": yes / no.
 4. Category: Navigation then Sports (my pick) / other.
 5. Site build with no Team ID: skip Apple's link file with a warning / always fail.
-6. Backup (T732): ANSWERED in part ("Only need to backup photos and spots the rest of the data isn't important"): the
-   backup is being cut down to spots and photos, with smaller photo copies in the cloud backup. Still open: back up only
+6. Backup (T732): ANSWERED in part ("Only need to backup photos and spots the rest of the data isn't important"): then
+   "Settings could also be saved": the backup carries spots, settings and photos, with smaller photo copies in the cloud
+   backup. Still open: back up only
    with a screen lock: no / yes; copy size 1600 px quality 70 / other.
 7. iOS background download (proven on the simulator): merge after the Android benches pass on the branch, phone checks
    follow with TestFlight / wait for the phone checks first. Not merged tonight either way (production move).

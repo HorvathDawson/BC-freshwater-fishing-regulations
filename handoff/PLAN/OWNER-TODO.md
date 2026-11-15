@@ -95,7 +95,8 @@ with the default Claude uses until you answer). Newest first inside each section
   still visible"); the photo pair was sent. PROVEN on the emulator 2026-11-14: today a backup carries nothing (over
   Android's 25 MB limit); with the rules it is 17,920 bytes with spots and settings, and a wipe + restore brings them
   back. ANSWERED 2026-11-14 evening, verbatim: "Only need to backup photos and spots the rest of the data isn't
-  important". Being built on the branch: the backup carries the spots and the photos only (settings dropped); photos ride
+  important". Then: "Settings could also be saved". Being built on the branch: the backup carries the spots, the
+  settings and the photos; photos ride
   the cloud backup as smaller copies (1600 px), which needs one image library (Claude read your sentence as the yes to
   it). Still open: screen-lock-only [no], copy size [1600 px]. Not merged;
   (5) clean-up: five calls in `handoff/PLAN/CLEANUP-CANDIDATES.md` (evidence screenshots, old releases, a leftover flag,
