@@ -680,3 +680,7 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   tributaries off (new mark line 2672, noted as saved by Claude at your request; landed as 122a3d02d). The other three
   were not as the audit said: the Fraser "mainstem waters downstream of" mark already says off (it waits on the Hope
   bridge cut); the two Nass "mainstem" places have no mark at all, so they are yours to mark (set tributaries off).
+- ASKED 2026-11-15: "need to make sure all rules under a water with (includes tributaries) in the name gets tributaries
+  too." Main chat's reading: a DFO water whose heading says "(includes tributaries)" passes that to every place under it.
+  In work (T742): proposals inherit it, the app warns on a mismatch, and a list of already-marked places under such
+  waters that miss tributaries comes to you to re-mark.
