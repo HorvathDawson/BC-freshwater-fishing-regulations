@@ -147,10 +147,23 @@ def _ctx_now() -> C.Context:
         n = p["split"]
         proposed[rid] = n.name or n.anchor
     labels.update({k: v for k, v in proposed.items() if k not in labels and v})
+    # (owner 2026-11-15, mark 2578) a region line is never named by its one atlas row — that row sits on another
+    # water ("Region 3 – Region 8 boundary" on the Fraser): read alone it is "Region N boundary", read on a water it is
+    # that water's crossing (`on_water`, `reuse.cut_name` — the one namer)
+    labels.update({sid: reuse.region_words(sid) for sid in list(labels) if reuse.REGION_CUT.match(sid)})
     pending = frozenset((set(records) | set(proposed)) - built)
     reg = reuse._registry()
     items = _Lazy(lambda i: getattr(reg.get(i), "name", None) or None)
-    return C.Context(labels=labels, items=items, built=built, pending=pending, points=_Lazy(_point))
+    return C.Context(labels=labels, items=items, built=built, pending=pending, points=_Lazy(_point),
+                     on_water=_region_on_water)
+
+
+def _region_on_water(sid: str, items: tuple):
+    """`checklist.Context.on_water`: a region line read on these waters -> (its crossing's name, its pin); None for any
+    other cut (its label and point are the same on every water)"""
+    if not reuse.REGION_CUT.match(sid):
+        return None
+    return reuse.cut_name(sid, items), reuse.cut_point_on(sid, items)
 
 
 _CTX = reuse._Memo()
@@ -686,7 +699,8 @@ def water_alone(place_id: str) -> dict | None:
     view = {"water_key": f"alone:{place_id}", "water": loc.get("water") or "", "heading": C.dfo_heading(loc, w),
             "places": [place],
             "note": "This place is not in the checklist queue (a part of a lake: lake splits are deferred); it is shown alone."}
-    return reuse._json_safe({**view, "cut_labels": dfo.cut_labels(view), "item_names": dfo.item_names(view)})
+    return reuse._json_safe({**view, "cut_labels": dfo.cut_labels(view, list((w or {}).get("item_ids") or [])),
+                             "item_names": dfo.item_names(view)})
 
 
 def water(water_key: str, source: str = "dfo") -> dict | None:
@@ -751,7 +765,10 @@ def water(water_key: str, source: str = "dfo") -> dict | None:
     view = {"water_key": water_key, "water": mine[0]["water"], "places": out,
             # DFO's heading with its tributary qualifier put back (`checklist.dfo_heading`)
             "heading": C.dfo_heading(locs[first["id"]][1], locs[first["id"]][2]) if first else mine[0]["water"]}
-    return reuse._json_safe({**view, "cut_labels": dfo.cut_labels(view), "item_names": dfo.item_names(view)})
+    # a region line named on THIS water's crossing (`reuse.cut_name`): the DFO water's items, else the regs places'
+    on = list((locs[first["id"]][2] or {}).get("item_ids") or []) if first else sorted(
+        {i for p in mine for i in p.get("matched") or []})
+    return reuse._json_safe({**view, "cut_labels": dfo.cut_labels(view, on), "item_names": dfo.item_names(view)})
 
 
 #: the most sections one place's extent draws faintly (the water's own line, never its tributaries)

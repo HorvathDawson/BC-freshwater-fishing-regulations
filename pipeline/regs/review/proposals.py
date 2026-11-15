@@ -489,6 +489,22 @@ def extent_of(fix, split_of, rest_at_build: bool = False) -> tuple[Optional[dict
     return ex, problems
 
 
+def excludes_of(items) -> list[dict]:
+    """(owner 2026-11-15) an extent fix's excepted tributaries as the place's `tributary_excludes`: each water whole"""
+    return [{"op": "whole", "item_id": i} for i in items]
+
+
+def excepted_items(excludes) -> tuple[list[str], list[str]]:
+    """the inverse of `excludes_of`: (item ids, why not) — an exclusion that is not one water whole cannot be said"""
+    items, why = [], []
+    for i, x in enumerate(excludes or []):
+        if set(x) == {"op", "item_id"} and x.get("op") == "whole":
+            items.append(x["item_id"])
+        else:
+            why.append(f"excepted tributary {i + 1} ({x.get('op')}) is not one water whole: a hand edit")
+    return items, why
+
+
 #: T525: the fields of a curated extent an extent fix can say (`extent_of` writes exactly these)
 EXPRESSIBLE = frozenset({"op", "splits", "item_id", "item_ids", "area_id"})
 
@@ -506,7 +522,9 @@ def unexpressed(extents: Iterable[Mapping]) -> list[str]:
     return out
 
 
-def fixes_of_extents(extents: Iterable[Mapping], tributaries: Optional[bool]) -> tuple[list, list[str]]:
+def fixes_of_extents(extents: Iterable[Mapping], tributaries: Optional[bool], *,
+                     tributaries_only: Optional[bool] = None,
+                     tributary_excludes: Optional[Iterable[Mapping]] = None) -> tuple[list, list[str]]:
     """T525: A PLACE'S CURATED EXTENTS AS EXTENT FIXES — the pieces the review app's editor opens on, so a change
     starts FROM the extent the place has (never from an empty editor or an old mark). The inverse of `extent_of`:
     each extent's cuts as `split` points, its item(s), its area, and the place's own tributary flag as it is (None
@@ -516,13 +534,18 @@ def fixes_of_extents(extents: Iterable[Mapping], tributaries: Optional[bool]) ->
     from pipeline.regs.review.marks import ExtentFix
     extents = list(extents)
     why = unexpressed(extents)
+    excepted = None
+    if tributary_excludes is not None:
+        excepted, no = excepted_items(tributary_excludes)
+        why += no
     fixes = []
     for i, ex in enumerate(extents):
         items = list(ex.get("item_ids") or ([ex["item_id"]] if ex.get("item_id") else []))
         try:
             fixes.append(ExtentFix(scope="entry", op=ex["op"], items=items, tributaries=tributaries,
                                    points=[{"kind": "split", "split_id": s} for s in ex.get("splits") or []],
-                                   area=ex.get("area_id")))
+                                   area=ex.get("area_id"), tributaries_only=tributaries_only,
+                                   tributary_excludes=excepted))
         except ValueError as e:
             why.append(f"extent {i + 1} ({ex.get('op')}): {e}")
     return ([], why) if why else (fixes, [])
@@ -1125,6 +1148,12 @@ def build(decided, src: Sources, *, applied: Optional[set] = None) -> list[dict]
             got.setdefault("extents", []).append(ex)
             if f.tributaries is not None:                # one call for every piece: `marks.pieces_ok`
                 got[tri_field] = f.tributaries
+            # (owner 2026-11-15) a DFO place's "tributaries only" and its excepted tributaries, when the fix calls them
+            # (None = no call: the file's stay — every mark saved before these fields)
+            if m.scope == "dfo" and f.tributaries_only is not None:
+                got["tributaries_only"] = f.tributaries_only
+            if m.scope == "dfo" and f.tributary_excludes is not None:
+                got["tributary_excludes"] = excludes_of(f.tributary_excludes)
         for scope, call in m.tributaries.items():
             want = call == "include"
             got = sets.setdefault(scope, {})

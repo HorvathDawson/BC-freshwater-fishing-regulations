@@ -15,6 +15,7 @@ import time
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 
+from pipeline.atlas.reach import channels as _channels
 from pipeline.atlas.reach.covered import covered_ids as _covered_ids
 from pipeline.atlas.graph import tributaries as _tribs
 from pipeline.common.names import key as name_key
@@ -452,6 +453,10 @@ def build_reach(entry: dict, rule: dict, registry, graph, *, covered=None,
                            Outcome.unresolved, (), Reason.scope_unresolved,
                            "the entry's scope extents do not resolve, or place no section — the row "
                            "binds nothing until they do (never the whole water)"), []
+    # owner 2026-11-15: a DFO place's extent naming a water holds on that water's OWN CHANNELS too (`reach.channels`)
+    wide = _channels.expand_rule(entry, rule, registry, graph)
+    if wide is not None:
+        rule = wide
     lim = tidal_limit(entry, tidal)
     if lim:
         binding, diags = build_reach(entry, rule, registry, graph, covered=covered, clip=clip,

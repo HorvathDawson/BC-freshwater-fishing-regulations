@@ -2154,6 +2154,56 @@ def region_ends(item_id: str) -> tuple[dict, ...]:
     return tuple(out)
 
 
+def region_end_on(sid: str, items=()) -> dict | None:
+    """THE ONE CROSSING a region-line cut id names on these waters (`region_ends`), or None: the crossing whose bound id
+    it is, else (a bare `area:N`) the one crossing of that line when the waters cross it exactly once."""
+    if not REGION_CUT.match(str(sid)):
+        return None
+    ends = [e for i in dict.fromkeys(items or ()) for e in region_ends(i)]
+    exact = [e for e in ends if e["id"] == sid]
+    if len(exact) == 1:
+        return exact[0]
+    base = [e for e in ends if e["base"] == sid]
+    return base[0] if len(base) == 1 else None
+
+
+def cut_name(sid: str, items=()) -> str | None:
+    """THE ONE NAME OF A CUT, read on the waters it is named for (owner 2026-11-15, mark 2578: the Fraser's checklist read
+    "from Region 3 – Region 8 boundary", another water's atlas row). A REGION-LINE cut is named by this water's
+    crossing of it (`region_ends`: "Region 3 boundary · km 453 …"); a line these waters cross more than once, named
+    without saying which crossing, says so; a region line read on no water of its own is "Region N boundary"
+    (`region_words`). Never the atlas row's label, which names a neighbour that differs per water. Any other cut: the
+    resolved label, else the cuts file's, else the registry boundary's; None when it has none."""
+    sid = str(sid)
+    if REGION_CUT.match(sid):
+        e = region_end_on(sid, items)
+        if e is not None:
+            return e["label"]
+        many = [e for i in dict.fromkeys(items or ()) for e in region_ends(i) if e["base"] == sid.split("@")[0]]
+        if len(many) > 1 and "@" not in sid:
+            return (f"{region_words(sid)} — this water crosses it {len(many)} times "
+                    f"({', '.join(f'km {x['km']}' for x in many)}): the extent does not say which")
+        return region_words(sid)
+    m = _splits_meta().get(sid) or {}
+    if m.get("source") == "shore" or sid.startswith("shore:"):
+        # (owner 2026-11-15) a coast crossing IS the stream's tidal boundary (T678 coast/2), never just "shore"
+        return "tidal boundary (coast crossing)"
+    meta = m.get("label")
+    if meta:
+        return meta
+    rec = _split_records().get(sid, ("", {}))[1].get("label")
+    if rec:
+        return rec
+    b = _boundary_index().get(sid, (None, None))[1]
+    return getattr(b, "label", None) or None
+
+
+def cut_point_on(sid: str, items=()) -> tuple[float, float] | None:
+    """A region-line cut's pin on THESE waters (its crossing's point); None for any other cut (it has one point)."""
+    e = region_end_on(sid, items)
+    return tuple(e["coord"][:2]) if e and e.get("coord") else None
+
+
 def with_region_ends(boundaries: list[dict], item_of=lambda b: None) -> list[dict]:
     """A picker's boundary list with each REGION-LINE cut replaced by this water's crossings of it (`region_ends`):
     one row per crossing, named plainly and by its km, carrying the id that binds it; a crossing no id binds is kept,
@@ -2350,6 +2400,9 @@ def entry_scope_words(e: dict) -> dict:
     from pipeline.regs.review import scope_words as S
     labels = {sid: sp.get("label") for sid, (_, sp) in _split_records().items() if sp.get("label")}
     labels.update({sid: m["label"] for sid, m in _splits_meta().items() if m.get("label")})
+    # a region line by THIS entry's waters' crossing (`cut_name`), never its one atlas row on another water
+    on = list(e.get("matched") or [])
+    labels.update({sid: cut_name(sid, on) for sid in list(labels) if REGION_CUT.match(sid)})
     names = S.namer_names(_place_namer(), labels)
     return {"entry": S.entry_scope(e, names),
             "rules": {r.get("rule_id"): S.rule_scope(r, e, names)

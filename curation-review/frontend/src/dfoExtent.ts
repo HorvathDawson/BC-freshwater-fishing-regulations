@@ -14,7 +14,65 @@ export type DfoEffect = "keep" | "replace" | "add";
 
 /** one piece as compared: its op, its cuts in order, the SET of waters it holds on, its area and tributary call */
 const pieceKey = (f: ExtentFix) => JSON.stringify([f.op, f.points.map((p) => [p.kind, p.split_id ?? null, p.name ?? null,
-  p.item_id ?? null, p.coord ?? null]), [...f.items].sort(), f.area ?? null, f.tributaries ?? null]);
+  p.item_id ?? null, p.coord ?? null]), [...f.items].sort(), f.area ?? null, f.tributaries ?? null,
+  f.tributaries_only ?? null, f.tributary_excludes ? [...f.tributary_excludes].sort() : null]);
+
+/* (owner 2026-11-15, Bella Coola: "this one should be tributaries only?", "make sure this excludes atnarko") THE PLACE'S
+   TRIBUTARY CALL IN PLAIN CONTROLS: one of four, and the tributaries it does not take. One call for the whole place
+   (`marks.pieces_ok`): set on every piece. */
+export type TribChoice = "as_now" | "water_and_tributaries" | "tributaries_only" | "water_only";
+export const TRIB_CHOICES: { v: TribChoice; words: string }[] = [
+  { v: "as_now", words: "as the place has it" },
+  { v: "water_and_tributaries", words: "the water and its tributaries" },
+  { v: "tributaries_only", words: "tributaries only" },
+  { v: "water_only", words: "the water only" },
+];
+/** which of the four a piece says */
+export function tribChoiceOf(f: ExtentFix): TribChoice {
+  if (f.tributaries_only) return "tributaries_only";
+  if (f.tributaries === true) return "water_and_tributaries";
+  if (f.tributaries === false) return "water_only";
+  return "as_now";
+}
+/** the piece's fields for a choice: "the water only" takes no excepted tributaries (there is no walk to except from) */
+export function withTribChoice(f: ExtentFix, c: TribChoice): ExtentFix {
+  const set = c === "tributaries_only" ? { tributaries: true, tributaries_only: true }
+    : c === "water_and_tributaries" ? { tributaries: true, tributaries_only: false }
+    : c === "water_only" ? { tributaries: false, tributaries_only: false, tributary_excludes: [] }
+    : { tributaries: null, tributaries_only: null };
+  return { ...f, ...set };
+}
+/** the place's one call on every piece (the call and the excepted tributaries of `from`) */
+export function sameTribCall(fixes: ExtentFix[], from: ExtentFix): ExtentFix[] {
+  return fixes.map((x) => ({ ...x, tributaries: from.tributaries ?? null, tributaries_only: from.tributaries_only ?? null,
+                             tributary_excludes: from.tributary_excludes ?? null }));
+}
+/** "all the other places on this water" has no water of its own: the editor sends none (owner 2026-11-15, Qualicum) */
+export function withOp(f: ExtentFix, op: ExtentFix["op"]): ExtentFix {
+  return op === "other_places" ? { ...f, op, items: [] } : { ...f, op };
+}
+
+/* (owner 2026-11-15: Atnarko marked twice with different tributary calls) WHAT DIFFERS FROM THE EARLIER MARK, said before
+   a save. `was`: the pieces of the place's mark in force (none: a mark that kept the extent as it was) — one line per
+   difference, [] when the draft says the same. */
+export function earlierDiff(was: ExtentFix[], draft: ExtentFix[], words: (f: ExtentFix) => string): string[] {
+  if (!was.length) return [];
+  const a = was.map(pieceKey).sort().join("\n"), b = draft.map(pieceKey).sort().join("\n");
+  if (a === b) return [];
+  const out: string[] = [];
+  const tw = (f?: ExtentFix) => (f ? TRIB_CHOICES.find((c) => c.v === tribChoiceOf(f))!.words : "—");
+  if (tribChoiceOf(was[0]) !== tribChoiceOf(draft[0] ?? was[0]) && draft.length) {
+    out.push(`tributaries: earlier “${tw(was[0])}”, now “${tw(draft[0])}”`);
+  }
+  const ex = (f?: ExtentFix) => [...(f?.tributary_excludes ?? [])].sort().join(",");
+  if (draft.length && ex(was[0]) !== ex(draft[0])) out.push("the excepted tributaries differ");
+  const shape = (fs: ExtentFix[]) => fs.map((f) => pieceKey({ ...f, tributaries: null, tributaries_only: null,
+                                                               tributary_excludes: null })).sort().join("\n");
+  if (shape(was) !== shape(draft)) {
+    out.push(`the extent: earlier ${was.map(words).join(" + ")}; now ${draft.length ? draft.map(words).join(" + ") : "as it is"}`);
+  }
+  return out;
+}
 
 /** WHAT A CHANGE DOES to the extent now: `keep` when the draft is the same pieces (a union has no order), `add` when it
  *  is every piece now plus more, `replace` otherwise (a draft of no pieces changes nothing: `keep`). */
@@ -186,4 +244,45 @@ export function statusLine(a: { saved: DfoSaved | null | undefined; outcome?: { 
 export function newCutsOf(fixes: ExtentFix[]): string[] {
   return [...new Set(fixes.flatMap((f) => f.points.filter((p) => p.kind === "new" && p.split_id)
     .map((p) => p.split_id as string)))];
+}
+
+/** DFO's words on the tributaries (`dfo.words_tributaries`, the suggester's one reading) */
+export interface WordsTributaries { only: boolean; with: boolean; without: boolean; names: string[]; excepted: string[];
+                                    unresolved?: string[];
+                                    /** the WATER's heading takes the tributaries in ("and tributaries", "(including
+                                     *  tributaries)"): every place under it does, unless its own words narrow it */
+                                    water_says?: boolean;
+                                    /** its own words are narrower than its water's: said, his call */
+                                    conflict?: string }
+/* (owner 2026-11-15: "make sure all items with tributaries in the name etc have tributaries in extent") A WARNING, NEVER A
+   BLOCK: where DFO's words and the extent being saved disagree on the tributaries, one line each. The save goes ahead
+   if the owner presses it — what a wording means is his call. `walks`: whether the extent being saved walks them
+   (the draft's call, else the place's), `only` / `excepted` likewise. */
+export function tribWarnings(w: WordsTributaries | null | undefined,
+                             x: { walks: boolean | null | undefined; only: boolean; excepted: string[] },
+                             name: (id: string) => string = (i) => i): string[] {
+  if (!w) return [];
+  const out: string[] = [];
+  if (w.only && !x.only) out.push("DFO's words are on the tributaries only; this extent holds the water itself too.");
+  else if (w.with && x.walks === false && !x.only) out.push(w.water_says && !/tributar/i.test(w.names.join(" "))
+    ? "The water's DFO heading takes the tributaries in (every place under it); this extent has none."
+    : "DFO's words take the tributaries in; this extent has none.");
+  if (w.conflict) out.push(`Read it twice: ${w.conflict}.`);
+  if (w.without && (x.walks || x.only)) out.push("DFO's words leave the tributaries out (main stem / excluding tributaries); this extent walks them.");
+  const missing = (w.excepted ?? []).filter((i) => !x.excepted.includes(i));
+  if (missing.length && (x.walks || x.only)) out.push(`DFO's words leave out ${missing.map(name).join(", ")}; this extent does not except ${missing.length === 1 ? "it" : "them"}.`);
+  if ((w.unresolved ?? []).length && (x.walks || x.only)) out.push(`DFO's words leave out ${w.unresolved!.join(", ")}, which the data does not pin: check the map.`);
+  return out;
+}
+
+/** (owner 2026-11-15: "make sure all the mouth/ tidal splits are at the correct one … the tidal ones we give every
+ *  stream") AN END AT THE TIDAL BOUNDARY IS AN OPEN END: no cut — the reach run trims every DFO place at its stream's
+ *  tidal boundary (T632). Point `i` of a piece made "the tidal boundary": a stretch between A and it is downstream of A;
+ *  upstream of it is the whole water. null when the op has no seaward end to open. */
+export const TIDAL_END = "__tidal_end__";
+export function toTidalEnd(f: ExtentFix, i: number): ExtentFix | null {
+  const others = f.points.filter((_p, j) => j !== i);
+  if (f.op === "between" && others.length === 1) return { ...f, op: "downstream_of", points: others };
+  if (f.op === "upstream_of") return { ...f, op: "whole", points: [] };
+  return null;
 }

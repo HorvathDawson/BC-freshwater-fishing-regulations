@@ -106,3 +106,39 @@ def test_the_cut_search_offers_the_askers_region_crossings_first(R, monkeypatch)
     assert [h["id"] for h in got] == ["area:5@down", "area:3", "area:7A", "area:5@up", "x"]
     assert got[0]["own"] and got[0]["label"].startswith("Region 5 boundary · km 418")
     assert [h["id"] for h in R.search_splits("region")] == ["x"]          # no water named: no region crossings
+
+
+# ---------------------------------------------------------------------------- owner 2026-11-15, mark 2578: ONE NAMER
+
+def test_cut_name_reads_a_region_line_on_this_waters_crossing_never_another_waters_atlas_row(R, monkeypatch):
+    """mark 2578: the checklist read "from — ours: from Region 3 – Region 8 boundary" (the one atlas row of `area:3`
+    sits on another water). `cut_name` is the one namer: on the Fraser it is the Fraser's crossing at its km."""
+    monkeypatch.setattr(R, "_splits_meta", lambda: {"area:3": {"label": "Region 3 – Region 8 boundary"}})
+    monkeypatch.setattr(R, "_split_records", lambda: {})
+    monkeypatch.setattr(R, "_boundary_index", lambda: {})
+    assert R.cut_name("area:3", ["gnis:39325"]) == (
+        "Region 3 boundary · km 453 — where Region 3 and Region 5 meet ends here (it runs down to km 418)")
+    assert R.cut_name("area:5@up", ["gnis:39325"]).startswith("Region 5 boundary · km 704")
+    # a line this water crosses twice, named without saying which crossing: said so, never one of them guessed
+    assert R.cut_name("area:5", ["gnis:39325"]) == (
+        "Region 5 boundary — this water crosses it 2 times (km 418, km 704): the extent does not say which")
+    # read on no water: the plain name, never the atlas row
+    assert R.cut_name("area:3") == "Region 3 boundary"
+    assert R.cut_point_on("area:3", ["gnis:39325"]) is not None and R.cut_point_on("area:3") is None
+
+
+def test_the_checklist_names_a_region_end_by_the_pieces_water():
+    """the row generator takes the water-dependent name from `Context.on_water` (the backend hands in `cut_name`), and
+    a cut with one name everywhere keeps its label"""
+    from pipeline.regs.review import checklist as C
+    names = {("area:3", ("gnis:39325",)): ("Region 3 boundary · km 453", (-122.28, 51.52))}
+    ctx = C.Context(labels={"area:3": "Region 3 – Region 8 boundary", "spuzzum": "Spuzzum Creek → Fraser River"},
+                    items={"gnis:39325": "Fraser River"}, built=frozenset({"area:3", "spuzzum"}),
+                    on_water=lambda sid, items: names.get((sid, items)))
+    rows = C.rows(C.Source(water="Fraser River", place="from the Region 3 boundary to Spuzzum Creek"),
+                  [{"op": "between", "splits": ["area:3", "spuzzum"]}], own_items=["gnis:39325"], ctx=ctx)
+    frm = next(r for r in rows if r["kind"] == "from")
+    to = next(r for r in rows if r["kind"] == "to")
+    assert frm["ours"] == "from Region 3 boundary · km 453" and frm["anchor"]["coord"] == [-122.28, 51.52]
+    assert frm["state"] == "ok" and to["ours"] == "to Spuzzum Creek → Fraser River"
+    assert all("Region 8" not in r["ours"] for r in rows)

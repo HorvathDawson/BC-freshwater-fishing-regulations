@@ -963,6 +963,10 @@ export interface ExtentFix {
   items: string[];
   tributaries?: boolean | null;
   area?: string | null;
+  /** (owner 2026-11-15) a DFO place: the tributaries ONLY (true), the water too (false); absent / null = no call */
+  tributaries_only?: boolean | null;
+  /** (owner 2026-11-15) a DFO place: the tributaries the walk does not take (registry ids); absent / null = no call */
+  tributary_excludes?: string[] | null;
 }
 export interface ExtentOpInfo { op: ExtentOp; points: number; words: string }
 export interface SplitHit { id: string; label: string; water: string; kind?: string | null;
@@ -989,7 +993,14 @@ export interface ExtentPreview {
   dead_pieces?: number[];
   /** T532 r7: one line per dead piece, in plain words: why it binds nothing and what to do */
   dead_why?: string[];
+  /** (2026-11-15) the length of what it binds, km */
+  km?: number;
+  /** (owner 2026-11-15: "includes all channels too") the water's own side channels it holds beyond the water named */
+  channels?: { id: string; name: string; n_sections: number; km: number }[];
+  /** (2026-11-15) how big the SAVED extent is, tributaries included, and a warning when that is implausible */
+  size?: ExtentSize;
 }
+export interface ExtentSize { n_sections: number; km: number; tributary_km: number; own_km: number; warnings: string[] }
 
 /** T189: a reviewer's tributary call — the water's tributaries should be in, or out */
 export type TribCall = "include" | "exclude";
@@ -1206,6 +1217,9 @@ export interface DfoPiece {
   items: string[];
   tributaries: boolean | null;
   area?: string;
+  /** (owner 2026-11-15) the suggester's reading of "all tributaries of X" / "not including X" */
+  tributaries_only?: boolean | null;
+  tributary_excludes?: string[] | null;
 }
 export interface DfoSuggestion {
   location_id: string;
@@ -1218,6 +1232,9 @@ export interface DfoSuggestion {
     points: FixPoint[];
     items: string[];
     tributaries: boolean | null;
+    /** (owner 2026-11-15) "all tributaries of X": the tributaries only; "other than / not including X": X left out */
+    tributaries_only?: boolean | null;
+    tributary_excludes?: string[] | null;
     /** the NEW splits its `kind: new` points name, by ref */
     new_splits: NewSplit[];
     words?: string;
@@ -1447,6 +1464,8 @@ export interface DfoDetail {
   /** T525: the name of every registry water this place's data names (`dfo.item_names`) */
   item_names: Record<string, string>;
   mark: (MarkView & { new_splits?: NewSplit[] }) | null;
+  /** (owner 2026-11-15) DFO's words on the tributaries (`dfo.words_tributaries`), for the save's warning */
+  words_tributaries?: import("./dfoExtent").WordsTributaries;
 }
 
 // --- T212: the Tidal review mode (`curation-review/backend/tidal.py`) ---

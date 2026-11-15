@@ -26,7 +26,7 @@ import hashlib
 import json
 import re
 from dataclasses import dataclass, field
-from typing import Iterable, Mapping, Optional, Sequence
+from typing import Callable, Iterable, Mapping, Optional, Sequence
 
 #: owner 2026-11-09: "always add ✗ when unsure — data must be rock solid": a row is ✓ only when positively confirmed,
 #: every other row is ✗ (there is no "?" state)
@@ -90,6 +90,10 @@ class Context:
     pending: frozenset = frozenset()
     #: a cut id or a registry item id -> (lon, lat), for the row's pin
     points: Mapping[str, Sequence[float]] = field(default_factory=dict)
+    #: (owner 2026-11-15, mark 2578) A CUT WHOSE NAME DEPENDS ON THE WATER IT IS READ ON — a region line, crossed by many
+    #: waters, each at its own km: (cut id, the piece's waters) -> (label, pin) or None for a cut with one name
+    #: everywhere (`labels` / `points` then). The backend's one namer (`reuse.cut_name`); never another water's label.
+    on_water: Optional[Callable[[str, tuple], Optional[tuple]]] = None
 
 
 @dataclass(frozen=True)
@@ -177,10 +181,20 @@ def _best(clauses: list[_Clause], want: set[str], *, prefer: Optional[re.Pattern
     return best if score >= 0.25 else None
 
 
-def _cut_words(sid: str, ctx: Context) -> set[str]:
+def _on_water(sid: str, items: Sequence[str], ctx: Context) -> Optional[tuple]:
+    return ctx.on_water(sid, tuple(items)) if ctx.on_water is not None and items else None
+
+
+def _cut_label(sid: str, ctx: Context, items: Sequence[str] = ()) -> Optional[str]:
+    """a cut's name on the piece's waters (a region line: this water's crossing, `Context.on_water`), else its label"""
+    got = _on_water(sid, items, ctx)
+    return got[0] if got else ctx.labels.get(sid)
+
+
+def _cut_words(sid: str, ctx: Context, items: Sequence[str] = ()) -> set[str]:
     """what a cut is called: its label, and the words of its id after the water ("cowichan_river__holt_creek…")"""
     tail = sid.split("__", 1)[-1]
-    return _tokens(ctx.labels.get(sid, "")) | _tokens(tail)
+    return _tokens(_cut_label(sid, ctx, items) or "") | _tokens(tail)
 
 
 # --------------------------------------------------------------------------- rows
@@ -211,8 +225,9 @@ def _cut_state(sid: str, ctx: Context, landed: bool) -> tuple[str, str]:
     return BAD, "no cut by that id in the atlas or the cuts file"
 
 
-def _cut_anchor(sid: str, ctx: Context) -> dict:
-    pt = ctx.points.get(sid)
+def _cut_anchor(sid: str, ctx: Context, items: Sequence[str] = ()) -> dict:
+    got = _on_water(sid, items, ctx)
+    pt = got[1] if got and got[1] else ctx.points.get(sid)
     return {"cuts": [sid], **({"coord": list(pt)} if pt else {})}
 
 
@@ -235,9 +250,10 @@ def _end_anchor(up: bool, items: list[str], ctx: Context) -> dict:
     return {"items": items, "end": "source" if up else "mouth", **({"coord": list(pt)} if pt else {})}
 
 
-def _cut_row(kind: str, sid: str, clauses: list[_Clause], ctx: Context, landed: bool, end: str) -> dict:
-    label = ctx.labels.get(sid)
-    c = _best(clauses, _cut_words(sid, ctx))
+def _cut_row(kind: str, sid: str, clauses: list[_Clause], ctx: Context, landed: bool, end: str,
+             items: Sequence[str] = ()) -> dict:
+    label = _cut_label(sid, ctx, items)
+    c = _best(clauses, _cut_words(sid, ctx, items))
     state, why = _cut_state(sid, ctx, landed)
     ours = f"{end} {label}" if label else f"{end} a cut with no label ({sid})"
     if c is not None:
@@ -246,7 +262,7 @@ def _cut_row(kind: str, sid: str, clauses: list[_Clause], ctx: Context, landed: 
         state, why = BAD, "no words name this cut"
     if label is None and state == OK:
         state, why = BAD, "the cut has no label"
-    r = _row(kind, c.text if c else "", ours, state, why, _cut_anchor(sid, ctx))
+    r = _row(kind, c.text if c else "", ours, state, why, _cut_anchor(sid, ctx, items))
     r["_at"] = c.i if c is not None else None
     return r
 
@@ -329,13 +345,13 @@ def _piece_rows(x: Mapping, n: int, own: list[str], clauses: list[_Clause], ctx:
                             _items_anchor(items or own, ctx)))
     elif op in ("upstream_of", "downstream_of"):
         sid = (x.get("splits") or ["?"])[0]
-        start = _cut_row(first or "from", sid, clauses, ctx, landed, ("from" + on_words).strip())
+        start = _cut_row(first or "from", sid, clauses, ctx, landed, ("from" + on_words).strip(), items or own)
         out.append(start)
         out.append(_natural_end_row(op, items or own, clauses, ctx, landed, start["_at"]))
     elif op == "between":
         a, b = (list(x.get("splits") or []) + ["?", "?"])[:2]
-        out.append(_cut_row(first or "from", a, clauses, ctx, landed, ("from" + on_words).strip()))
-        out.append(_cut_row("to", b, clauses, ctx, landed, "to"))
+        out.append(_cut_row(first or "from", a, clauses, ctx, landed, ("from" + on_words).strip(), items or own))
+        out.append(_cut_row("to", b, clauses, ctx, landed, "to", items or own))
     elif op == "within":
         aid = str(x.get("area_id") or "")
         name = ctx.areas.get(aid) or (aid.rsplit(":", 1)[-1].replace("_", " ") if aid
@@ -395,10 +411,11 @@ def _carve_rows(extents: Sequence[Mapping], excludes: Sequence[Mapping], clauses
     for x in excludes:
         items = _items_of(x)
         sp = list(x.get("splits") or [])
-        name = " and ".join(_name(i, ctx) for i in items) or " and ".join(ctx.labels.get(s, s) for s in sp) or "?"
+        name = " and ".join(_name(i, ctx) for i in items) or " and ".join(_cut_label(s, ctx, items) or s
+                                                                           for s in sp) or "?"
         want = set().union(*(_tokens(_name(i, ctx)) for i in items)) if items else set()
         for s in sp:
-            want |= _cut_words(s, ctx)
+            want |= _cut_words(s, ctx, items)
         taken.append((f"the tributaries into {name} not walked", want,
                       {**_items_anchor(items, ctx), **({"cuts": sp} if sp else {})}))
     for ours, want, anchor in taken:

@@ -41,8 +41,10 @@ export function fixParts(f: ExtentFix, label: CutLabel, itemName: (id: string) =
     : p.kind === "new" && p.split_id ? ["NEW cut ", cutPart(p.split_id, label)] : [pointWords(p, (x) => x)])), " and ");
   return [OP_WORDS[f.op] ?? f.op, ...(pts.length ? [" ", ...pts] : []), ...(f.area ? [` ${f.area}`] : []),
           ` · ${f.items.length ? `on ${f.items.map(itemName).join(", ")}` : "on the place's waters"}`,
-          ` · ${f.tributaries == null ? tribsAsPlace(placeWalks) : f.tributaries ? "with tributaries"
-            : "without tributaries"}`];
+          ` · ${f.tributaries_only ? "the tributaries only (not the water itself)"
+            : f.tributaries == null ? tribsAsPlace(placeWalks) : f.tributaries ? "with tributaries"
+            : "without tributaries"}`,
+          ...(f.tributary_excludes?.length ? [` · except the tributaries ${f.tributary_excludes.map(itemName).join(", ")}`] : [])];
 }
 /** "no call on this piece": what the PLACE does, in plain words (T532 r10: "tributaries as the place has them" told
  *  the owner nothing) — `placeWalks` is the builder's own answer for the place (`dfo.walks_now`) */

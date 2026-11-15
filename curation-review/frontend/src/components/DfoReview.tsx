@@ -15,7 +15,7 @@ import { failed } from "../failures";
 import { current as writeThrough, keyOf as wtKey, subscribe as onWriteThrough } from "../curatedSave";
 import {
   CONFIRMED_AS_IS, addPiece, dropPiece, effectOf, heldBy, incompletePieces, inlineAction, markBody, newCutsOf, offerProposal, oneProposal, previewOf,
-  proposesCuts, saveWords, statusLine, withPiece, type DfoCall, type DfoEffect,
+  proposesCuts, saveWords, statusLine, withPiece, type DfoCall, type DfoEffect, earlierDiff, sameTribCall, tribWords, tribWarnings,
 } from "../dfoExtent";
 
 /** two clicks this close (m) are one cut — the server folds them the same way (`marks.SAME_CUT_M`) */
@@ -70,6 +70,9 @@ export function suggestionFix(s: DfoSuggestion | null | undefined, taken: string
       ? { ...p, split_id: rename[p.split_id] } : { ...p })),
     items: [...x.items], tributaries: x.tributaries ?? null,
     ...(x.area ? { area: x.area } : {}),
+    // (owner 2026-11-15) the place's one tributary call rides every piece
+    ...(sg.tributaries_only != null ? { tributaries_only: sg.tributaries_only } : {}),
+    ...(sg.tributary_excludes != null ? { tributary_excludes: [...sg.tributary_excludes] } : {}),
   });
   const fixes = (sg.pieces?.length ? sg.pieces : [sg]).map(asFix);
   return { fix: fixes[0], fixes, newSplits };
@@ -413,6 +416,8 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
   // EMBEDDED: the draft is drawn LIVE on the checklist's map — its reach (the server's own preview) once every piece
   // is whole and names only cuts that exist, and its points labelled either way (a NEW cut has no reach until built)
   const [liveWhy, setLiveWhy] = useState("");
+  // (owner 2026-11-15) what the live draft binds, said in numbers: sections, km, the water's own channels it holds
+  const [livePv, setLivePv] = useState<ExtentPreview | null>(null);
   const [approx, setApprox] = useState<[[number, number], [number, number]][] | null>(null);
   const [approxGot, setApproxGot] = useState<{ km: number; why?: string } | { why: string } | null>(null);
   // T742 E1: the effects below depend on WHETHER it is embedded, never on the object (a new one per parent render
@@ -453,6 +458,7 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
     }));
     const only = (why: string, unbuilt = false) => {
       setFixPreview({ type: "FeatureCollection", features: pts }); setLiveWhy(why); setApprox(unbuilt ? mock : null);
+      setLivePv(null);
     };
     if (!fixes.length) { only(""); return; }
     const inc = incompletePieces(fixes, opPoints);
@@ -469,6 +475,7 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
         setApprox(null);
         setFixPreview({ type: "FeatureCollection", features: [...((r.geojson?.features ?? []) as GeoJSON.Feature[]), ...pts] });
         setLiveWhy("");
+        setLivePv(r);
       }).catch((e) => { if (live) only(`the preview failed: ${e}`); failed("the draft's preview")(e); });
     }, 250);
     return () => { live = false; window.clearTimeout(t); };
@@ -598,6 +605,17 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
   });
   const offer = !!best && offerProposal(now.pieces, proposalFixes, pending);
   const draftCuts = newCutsOf(fixes).map((c) => cutLabel(c) ?? c);
+  // (owner 2026-11-15) DFO's words against the tributaries of the extent being saved: warnings, never a block
+  const saving_ = call === "change" && effect !== "keep" ? fixes : now.pieces;
+  const tribWarn = tribWarnings(detail.words_tributaries, {
+    walks: saving_[0]?.tributaries ?? now.walks_tributaries,
+    only: !!(saving_[0]?.tributaries_only ?? detail.location.binding.tributaries_only),
+    excepted: saving_[0]?.tributary_excludes ?? (detail.location.binding.tributary_excludes ?? [])
+      .flatMap((x) => (x.item_id ? [x.item_id] : [])),
+  }, itemNameOf);
+  // (owner 2026-11-15) the earlier mark against this save: what differs, said before it is made
+  const earlier = was ? earlierDiff(savedFixesOf(was), call === "change" && effect !== "keep" ? fixes : [],
+                                    (f) => partsText(fixPartsOf(f))) : [];
   const saveText = busy ? "saving…" : saveWords(call, effect);
   const noteOpen = showNote || note.trim() !== "" || (call !== null && call !== "keep" && call !== "change")
     || wrongChecks.length > 0;
@@ -644,6 +662,14 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
             </div>
           )}
 
+          {reach?.size && (
+            <div className={reach.size.warnings.length ? "warn-text" : "dim"} data-testid="dfo-size" style={{ fontSize: 12 }}>
+              The saved extent binds {reach.size.n_sections.toLocaleString()} section{reach.size.n_sections === 1 ? "" : "s"} ·{" "}
+              {reach.size.km.toLocaleString()} km{reach.size.tributary_km > 0 ? ` (${reach.size.tributary_km.toLocaleString()} km of it tributaries)` : ""}
+              {" "}— the water itself is {reach.size.own_km.toLocaleString()} km.
+              {reach.size.warnings.map((w) => <div key={w} data-testid="dfo-size-warning">⚠ {w}</div>)}
+            </div>
+          )}
           {errors.length > 0 && (
             <div className="errors dfo-errors" role="alert" data-testid="dfo-errors"
               style={{ position: "static", margin: "6px 0" }}>
@@ -809,13 +835,19 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
                     ? <><b>Approximate</b> (dashed on the map, about {approxGot.km < 1 ? `${Math.round(approxGot.km * 1000)} m` : `${approxGot.km.toFixed(1)} km`} along the river): {liveWhy} — the exact stretch is drawn after the next rebuild.{approxGot.why ? ` (${approxGot.why})` : ""}</>
                     : <>Not drawn as a stretch yet (its points are on the map): {liveWhy}
                       {approx && approxGot && "why" in approxGot ? ` — and no approximate stretch could be drawn: ${approxGot.why}` : ""}</>}</div>}
+                {embedded && livePv?.resolvable && <div className="dim" data-testid="ck-live-size" style={{ fontSize: 12 }}>
+                  Your draft binds <b>{livePv.n_sections?.toLocaleString()} section{livePv.n_sections === 1 ? "" : "s"}
+                  {livePv.km != null && ` · ${livePv.km.toLocaleString()} km`}</b>{tribWords(livePv.walks_tributaries, showTribs)}
+                  {(livePv.channels?.length ?? 0) > 0 && <> — its own side channels included: {livePv.channels!.map((c) =>
+                    `${c.name} (${c.n_sections}, ${c.km} km)`).join("; ")}</>}.</div>}
                 {moveErr && <div className="fix-row warn-text inline-notice" data-testid="dfo-move-refused">
                   <span style={{ flex: 1 }}>not moved: {moveErr}</span><CloseX onClick={() => setMoveErr("")} /></div>}
                 {(fixes.length ? fixes : [undefined]).map((pc, i) => (
                   <ExtentFixEditor key={i} defaultOpen scope="entry" entryId={id} piece={i}
                     currentOp={i === 0 ? detail.need.op ?? undefined : "downstream_of"}
                     mapSplits={mapSplits} waters={items} value={pc}
-                    onChange={(f) => setFixes((cur) => (f ? withPiece(cur, i, f) : dropPiece(cur, i)))}
+                    onChange={(f) => setFixes((cur) => (f ? sameTribCall(withPiece(cur, i, f), f) : dropPiece(cur, i)))}
+                    dfo
                     tributariesNow={tribNow} tributariesDrawn={showTribs} cutLabels={detail.cut_labels}
                     itemNames={detail.item_names}
                     onPreview={(fc) => setFixPreview(fc)}
@@ -877,6 +909,21 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
                     {incomplete.length > 0 && <div className="field-error" data-testid="dfo-incomplete">
                       Not ready to save: {incomplete.join("; ")}</div>}</>
                 )}
+              </div>
+            )}
+            {was && (call || embedded) && (
+              <div className={`dfo-earlier${earlier.length ? " warn-text" : " dim"}`} role="status" data-testid="dfo-earlier"
+                style={{ fontSize: 12 }}>
+                You marked this place before, {was.date} ({was.verdict}{was.extent_fix?.length ? "" : ", the extent kept as it was"}).
+                {earlier.length ? <> This save differs: <ul className="dfo-pieces">{earlier.map((d) => <li key={d} data-testid="dfo-earlier-diff">{d}</li>)}</ul></>
+                  : call === "change" && effect !== "keep" ? null : " This save says the same."}
+                {was.note?.trim() ? <div className="dim">its note: “{was.note.trim().slice(0, 200)}”</div> : null}
+              </div>
+            )}
+            {tribWarn.length > 0 && (
+              <div className="warn-text" role="status" data-testid="dfo-trib-warning" style={{ fontSize: 12 }}>
+                {tribWarn.map((w) => <div key={w} data-testid="dfo-trib-warning-line">⚠ {w}</div>)}
+                <div className="dim">You can save past this: what the wording means is your call.</div>
               </div>
             )}
             {held && call && <div className="warn-text" role="alert" data-testid="dfo-held">Save held: {held}.</div>}

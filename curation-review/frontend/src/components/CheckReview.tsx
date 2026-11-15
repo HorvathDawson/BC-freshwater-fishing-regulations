@@ -137,14 +137,23 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
   // T742 E3 (perf): only the end of an apply reloads (it reloaded on every change of the shown place's word, and again
   // on the move to the next place: two full reloads per save)
   const applying = useRef<Set<string>>(new Set());
+  // (owner 2026-11-15, Qualicum mark 2651: refused in the background and he found out only later) A SAVE REFUSED AT
+  // THE WRITE IS SAID AT ONCE, whatever place is open now: the place, why, and what to do — until he closes it
+  const [refusedNow, setRefusedNow] = useState<{ id: string; why: string }[]>([]);
   useEffect(() => onWriteThrough((s) => {
     let ended = false, shownEnded = false;
     for (const id of [...applying.current]) {
-      const st = s.outcomes[wtKey("dfo", id)]?.state;
+      const o = s.outcomes[wtKey("dfo", id)];
+      const st = o?.state;
       if (st === "saved" || st === "refused") {
         applying.current.delete(id);
         ended = true;
         if (id === shown.current) shownEnded = true;
+      }
+      if (st === "refused") {
+        const why = (o as { why?: string } | undefined)?.why ?? "no reason given";
+        setRefusedNow((cur) => [...cur.filter((x) => x.id !== id), { id, why }]);
+        failed("a save refused at the write")(new Error(`${id}: ${why}`));
       }
     }
     if (ended) loadQueue();
@@ -340,6 +349,17 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
       <InputsSyncLine reason="write-through" />
       {error && <div className="errors inline-notice" style={{ margin: "2px 8px", padding: "2px 8px" }}>
         <span style={{ flex: 1 }}>{error}</span><CloseX onClick={() => setError("")} /></div>}
+      {refusedNow.length > 0 && (
+        <div className="errors" role="alert" data-testid="ck-refused-now" style={{ position: "static", margin: "6px 0" }}>
+          {refusedNow.map((r) => (
+            <div key={r.id} data-testid="ck-refused-line">
+              <b>Your save was NOT written</b> — <a href={`#${prefix}${encodeURIComponent(r.id)}`}>{r.id}</a>: {r.why}.
+              {" "}Open it, change what the reason names, and save again (your mark is kept; the place is as it was).
+            </div>
+          ))}
+          <CloseX onClick={() => setRefusedNow([])} />
+        </div>
+      )}
       {editing?.full && cur?.dfo ? (
         <div className="main">
           <DfoLocation key={`${cur.id}|${version}`} detail={cur.dfo} mode={mode} initialCall="change"
