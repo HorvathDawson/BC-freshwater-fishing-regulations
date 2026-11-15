@@ -7355,7 +7355,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "pinkut_creek__signs_25_m_below_the_pinkut_fish_fence_d25m"
+            ],
+            "item_id": "gnis:23229"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
