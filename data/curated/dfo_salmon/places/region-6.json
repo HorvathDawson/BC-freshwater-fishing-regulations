@@ -2971,7 +2971,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "nass_river__canyon_city_gitwinksihlkw_bridge",
+              "gauge__08DB001"
+            ],
+            "item_id": "gnis:3206"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -3025,8 +3034,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
-        "tributaries": null,
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "meziadin_river__meziadin_river_into_nass_river"
+            ],
+            "item_id": "gnis:3206"
+          }
+        ],
+        "tributaries": false,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -3185,7 +3202,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "ksi_sii_aks_river__nass_road_bridge"
+            ],
+            "item_id": "gnis:3828"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -3241,7 +3266,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "ksi_sii_aks_river__nass_road_bridge"
+            ],
+            "item_id": "gnis:3828"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -3857,7 +3890,12 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:4205"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -4243,7 +4281,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "kitimat_river__kitimat_hatchery_outfall_u_s_sign",
+              "kitimat_river__kitimat_hatchery_outfall_d_s_sign"
+            ],
+            "item_id": "gnis:3225"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -4296,7 +4343,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "kitimat_river__hwy_37_bridge"
+            ],
+            "item_id": "gnis:3225"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -4349,7 +4404,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "kitimat_river__hwy_37_bridge"
+            ],
+            "item_id": "gnis:3225"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -4509,7 +4572,11 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -4616,7 +4683,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "ksi_x_anmas_river__lower_bridge_abutments"
+            ],
+            "item_id": "gnis:3815"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -4669,7 +4744,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "ksi_x_anmas_river__lower_bridge_abutments"
+            ],
+            "item_id": "gnis:3815"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -5368,7 +5451,8 @@
             "op": "upstream_of",
             "splits": [
               "border:360886456:1"
-            ]
+            ],
+            "item_id": "gnis:25410"
           }
         ],
         "tributaries": true,
@@ -5599,7 +5683,12 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:3787"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -6360,7 +6449,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "bulkley_river__morice_river_into_bulkley_river"
+            ],
+            "item_id": "gnis:2195"
+          }
+        ],
         "tributaries": false,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -6416,10 +6513,20 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
-        "tributaries": null,
-        "tributaries_only": false,
-        "tributary_excludes": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:2195"
+          }
+        ],
+        "tributaries": true,
+        "tributaries_only": true,
+        "tributary_excludes": [
+          {
+            "op": "whole",
+            "item_id": "gnis:2637"
+          }
+        ],
         "sections_cached": null,
         "notes": [],
         "spatial_caveat": false
@@ -6580,7 +6687,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "kispiox_river__signs_near_kispiox_river_resort"
+            ],
+            "item_id": "gnis:2308"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -7078,7 +7193,7 @@
           {
             "op": "between",
             "splits": [
-              "morice_river__bulkley_confluence_u100m",
+              "morice_river__bulkley_confluence",
               "morice_river__bymac_bridge"
             ]
           }
@@ -7257,7 +7372,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "pinkut_creek__signs_25_m_below_the_pinkut_fish_fence_d25m"
+            ],
+            "item_id": "gnis:23229"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -7313,7 +7436,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "shegunia_river__signs_above_the_shegunia_logging_road_bridge_u50m",
+              "shegunia_river__signs_below_the_shegunia_logging_road_bridge_d50m"
+            ],
+            "item_id": "gnis:22777"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -7916,7 +8048,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "zymoetz__hwy_16_bridge_over_the_zymoetz_copper"
+            ],
+            "item_id": "gnis:3137"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -7974,7 +8114,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "zymoetz__hwy_16_bridge_over_the_zymoetz_copper"
+            ],
+            "item_id": "gnis:3137"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -8085,7 +8233,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "ecstall_river__johnston_creek"
+            ],
+            "item_id": "gnis:3986"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -8193,7 +8349,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "exchamsiks_river__hwy_16_bridge_over_the_exchamsiks"
+            ],
+            "item_id": "gnis:3499"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -8301,7 +8465,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "exstew_river__hwy_16_bridge_over_the_exstew"
+            ],
+            "item_id": "gnis:3498"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -8357,7 +8529,11 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -8575,7 +8751,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "khyex_river__hwy_16_bridge_over_the_khyex"
+            ],
+            "item_id": "gnis:4076"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -8741,7 +8925,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "kitsumkalum__signs_below_the_kitsumkalum_lower_canyon"
+            ],
+            "item_id": "gnis:3942"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -8798,7 +8990,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "kitsumkalum__signs_below_the_kitsumkalum_lower_canyon"
+            ],
+            "item_id": "gnis:3942"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -8853,7 +9053,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "kitsumkalum__cn_railway_bridge_over_the_kitsumkalum"
+            ],
+            "item_id": "gnis:3942"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -8908,7 +9116,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "lakelse_river__cnr_bridge"
+            ],
+            "item_id": "gnis:4903"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -8965,7 +9181,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "lakelse_river__whitebottom_rd_bridge_lakelse_near_the_mouth"
+            ],
+            "item_id": "gnis:4903"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -9022,7 +9246,14 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "lakelse_river__whitebottom_rd_bridge_lakelse_near_the_mouth"
+            ]
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -9421,7 +9652,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "zymagotitz_river__hwy_16_bridge_over_the_zymagotitz"
+            ],
+            "item_id": "gnis:3812"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -9477,8 +9716,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
-        "tributaries": null,
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "meziadin_river__meziadin_river_into_nass_river"
+            ],
+            "item_id": "gnis:3206"
+          }
+        ],
+        "tributaries": false,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -9688,12 +9935,21 @@
           {
             "op": "between",
             "splits": [
-              "bulkley_river__morice_river_into_bulkley_river_d1000m",
-              "bulkley_river__morice_river_into_bulkley_river_u100m"
-            ]
+              "bulkley_river__morice_river_into_bulkley_river_u100m",
+              "bulkley_river__morice_river_into_bulkley_river_d1000m"
+            ],
+            "item_id": "gnis:2195"
+          },
+          {
+            "op": "between",
+            "splits": [
+              "morice_river__bulkley_confluence_u100m",
+              "morice_river__bulkley_confluence"
+            ],
+            "item_id": "gnis:14918"
           }
         ],
-        "tributaries": null,
+        "tributaries": false,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -9837,7 +10093,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "skeena_river__cnr_railway_bridge_terrace",
+              "gauge__08EB005"
+            ]
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -10145,8 +10409,17 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
-        "tributaries": null,
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "meziadin_river__meziadin_river_into_nass_river",
+              "nass_river__hwy_37_bridge"
+            ],
+            "item_id": "gnis:3206"
+          }
+        ],
+        "tributaries": false,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -10332,10 +10605,28 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
-        "tributaries": null,
-        "tributaries_only": false,
-        "tributary_excludes": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:2195"
+          }
+        ],
+        "tributaries": true,
+        "tributaries_only": true,
+        "tributary_excludes": [
+          {
+            "op": "whole",
+            "item_id": "gnis:14918"
+          },
+          {
+            "op": "whole",
+            "item_id": "gnis:2637"
+          },
+          {
+            "op": "whole",
+            "item_id": "gnis:30327"
+          }
+        ],
         "sections_cached": null,
         "notes": [],
         "spatial_caveat": false

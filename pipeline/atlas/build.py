@@ -1576,6 +1576,13 @@ def water_registry(b: _Build, graph, *, areas: bool = True) -> tuple[dict, dict]
     _wrep: dict = {}
     registry = _flowing.fold_widening_ponds(registry, graph, _wrep, kept_lakes=_flowing.load_pond_calls())
     info["widening_report"] = _wrep
+    # T753 (owner 2026-11-15): a nameless line that leaves a lake and comes back into the same lake is the lake's, not
+    # its river's (`registry.lake_loops`). After every fold, so the lake's holder is final (a river's own polygon or
+    # widening keeps its loop as a braid).
+    from pipeline.atlas.registry.lake_loops import move_lake_loops
+    _lrep: dict = {}
+    registry = move_lake_loops(registry, graph, _lrep)
+    info["lake_loop_report"] = _lrep
     # T224 mined names: labels on the item that already owns the feature, after every grouping pass
     from pipeline.atlas.registry.mined import add_mined_names
     _mined_rep: dict = {}
@@ -1624,6 +1631,9 @@ def build_registry(b: _Build) -> None:
     _wrep = _info["widening_report"]
     print(f"  widening ponds (T679 #5): {_wrep['counts']} (held: two streams / a cut on its edge)")
     (out / "widening_fold_report.json").write_text(json.dumps(_wrep, indent=1) + "\n", encoding="utf-8")
+    _lrep = _info["lake_loop_report"]
+    print(f"  lake loops (T753): {_lrep['counts']} -> lake_loop_report.json")
+    (out / "lake_loop_report.json").write_text(json.dumps(_lrep, indent=1) + "\n", encoding="utf-8")
     _mined_rep = _info["mined_report"]
     print(f"  mined names: {_mined_rep['labelled']} on an existing item, {_mined_rep['own_items']} item(s) of "
           f"their own, {_mined_rep['absent']} on a feature not in the atlas (pruned or absent)")

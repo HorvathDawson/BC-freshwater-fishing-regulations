@@ -486,6 +486,11 @@ export interface RegionEnd {
   id: string; base: string; region: string; km: number; coord: [number, number] | null;
   below: string[]; above: string[]; label: string; bindable: boolean; why: string;
 }
+/** T755 follow-up: one BC-border cut on a water (`reuse.border_end`) */
+export interface BorderEnd {
+  id: string; base: string; blk: string; km: number; coord: [number, number] | null; neighbour: string | null;
+  outside: "upstream" | "downstream" | null; label: string; bindable: boolean; why: string;
+}
 export interface Boundary {
   id: string;
   label: string;
@@ -497,6 +502,8 @@ export interface Boundary {
   minted?: boolean;
   /** T742 C: one crossing of a region line on this water (`reuse.region_ends`): its plain name is `label` */
   region_end?: RegionEnd;
+  /** T755 follow-up: a BC-border cut (`reuse.border_end`): its plain name ("BC–Yukon border · km 102 …") is `label` */
+  border_end?: BorderEnd;
   /** T742 C: false for a region crossing no id binds (a middle crossing): listed, never offered */
   pickable?: boolean;
   /** every other id this cut-point answers to (a rule naming any of them binds it) */
@@ -900,6 +907,8 @@ export interface CheckPlace {
   summary: PlaceCheck["summary"]; check: CheckState; new?: boolean; entry_id?: string; rule_id?: string;
   /** T742: its mark in force was written by a group save (before grouping was removed) — re-check it on its own */
   group_marked?: GroupMarked | null;
+  /** T755 follow-up: "old extent still in force" (a flag only; what ships is unchanged) */
+  old_extent?: OldExtent | null;
   /** DFO: on the live page */
   live?: boolean;
   /** DFO: the extent's state (`dfo._row`) — unbound / needs_cut have nothing to check yet; a proposal waits for it */
@@ -908,6 +917,8 @@ export interface CheckPlace {
   ease?: Ease | null;
 }
 export interface Ease { rank: number; word: string }
+/** T755 follow-up (`dfo.old_extent`): the last save is wrong / unsure with no fix while an older extent is in force */
+export interface OldExtent { verdict: "wrong" | "unsure"; date: string | null; flag: string; rides: string | null }
 /** T742: the group save that wrote a place's mark in force, and its date (a flag only: the mark stays what it says) */
 export interface GroupMarked { group: string; date: string }
 /** one place on a water (GET /api/checks/water): the queue's places and, under each DFO place, its older wordings */
@@ -923,6 +934,8 @@ export interface WaterPlace {
   last_seen?: string | null;
   /** T742: its mark in force was written by a group save — flagged "marked in a group" */
   group_marked?: GroupMarked | null;
+  /** T755 follow-up: "old extent still in force" (a flag only; what ships is unchanged) */
+  old_extent?: OldExtent | null;
   /** `checks.same_place`: T742 — always its own id, no reasons (no grouping) */
   same: string; why: string[];
 }
@@ -940,6 +953,8 @@ export interface CheckProgress {
   by_worst: Partial<Record<RowState, number>>; rows: Partial<Record<RowState, number>>;
   /** T742: places whose mark in force a group save wrote */
   group_marked?: number;
+  /** T755 follow-up: places flagged "old extent still in force" */
+  old_extent?: number;
   waters: Record<string, { water: string; total: number; done: number }>;
 }
 
@@ -963,6 +978,10 @@ export interface ExtentFix {
   items: string[];
   tributaries?: boolean | null;
   area?: string | null;
+  /** (owner 2026-11-15) a DFO place: the tributaries ONLY (true), the water too (false); absent / null = no call */
+  tributaries_only?: boolean | null;
+  /** (owner 2026-11-15) a DFO place: the tributaries the walk does not take (registry ids); absent / null = no call */
+  tributary_excludes?: string[] | null;
 }
 export interface ExtentOpInfo { op: ExtentOp; points: number; words: string }
 export interface SplitHit { id: string; label: string; water: string; kind?: string | null;
@@ -989,7 +1008,16 @@ export interface ExtentPreview {
   dead_pieces?: number[];
   /** T532 r7: one line per dead piece, in plain words: why it binds nothing and what to do */
   dead_why?: string[];
+  /** (2026-11-15) the length of what it binds, km */
+  km?: number;
+  /** (owner 2026-11-15: "includes all channels too") the water's own side channels it holds beyond the water named */
+  channels?: { id: string; name: string; n_sections: number; km: number }[];
+  /** (2026-11-15) how big the SAVED extent is, tributaries included, and a warning when that is implausible */
+  size?: ExtentSize | null;
+  /** T755 follow-up: the size walk is not kept yet — asked after (`api.dfoSize`), shown when it arrives */
+  size_pending?: boolean;
 }
+export interface ExtentSize { n_sections: number; km: number; tributary_km: number; own_km: number; warnings: string[] }
 
 /** T189: a reviewer's tributary call — the water's tributaries should be in, or out */
 export type TribCall = "include" | "exclude";
@@ -1206,6 +1234,9 @@ export interface DfoPiece {
   items: string[];
   tributaries: boolean | null;
   area?: string;
+  /** (owner 2026-11-15) the suggester's reading of "all tributaries of X" / "not including X" */
+  tributaries_only?: boolean | null;
+  tributary_excludes?: string[] | null;
 }
 export interface DfoSuggestion {
   location_id: string;
@@ -1218,6 +1249,9 @@ export interface DfoSuggestion {
     points: FixPoint[];
     items: string[];
     tributaries: boolean | null;
+    /** (owner 2026-11-15) "all tributaries of X": the tributaries only; "other than / not including X": X left out */
+    tributaries_only?: boolean | null;
+    tributary_excludes?: string[] | null;
     /** the NEW splits its `kind: new` points name, by ref */
     new_splits: NewSplit[];
     words?: string;
@@ -1303,12 +1337,16 @@ export interface DfoExtent { op: string; splits?: string[]; item_id?: string; it
   [field: string]: unknown }
 /** T525: the extent a mark is made on — the place's curated extents and its own tributary flag, as the file has them */
 export interface DfoSeenExtent { extents: DfoExtent[]; tributaries: boolean | null }
+/** T755 follow-up: why the editor cannot change an extent, in plain words, and what the owner can do */
+export interface CannotEdit { why: string[]; can: string }
 /** T525 (`dfo.extent_now`): the place's curated extent as the editor opens on it */
 export interface DfoExtentNow {
   /** the curated extents as extent-fix pieces — a change starts FROM them */
   pieces: ExtentFix[];
   /** why no extent fix can say this extent again (a field it has no word for): no change is offered */
   cannot_change: string[];
+  /** T755 follow-up: the same, in plain words, with what the owner can do instead (`dfo.cannot_edit_words`) */
+  cannot_edit?: CannotEdit | null;
   /** the tributary call it binds with: its own, else its water's (the DFO title) */
   tributaries: boolean | null;
   /** does the builder walk tributaries for this place as it stands (`dfo.walks_now`); null: cannot be asked */
@@ -1447,6 +1485,8 @@ export interface DfoDetail {
   /** T525: the name of every registry water this place's data names (`dfo.item_names`) */
   item_names: Record<string, string>;
   mark: (MarkView & { new_splits?: NewSplit[] }) | null;
+  /** (owner 2026-11-15) DFO's words on the tributaries (`dfo.words_tributaries`), for the save's warning */
+  words_tributaries?: import("./dfoExtent").WordsTributaries;
 }
 
 // --- T212: the Tidal review mode (`curation-review/backend/tidal.py`) ---

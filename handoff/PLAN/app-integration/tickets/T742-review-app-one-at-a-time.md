@@ -78,3 +78,9 @@ group saves refused, nothing written, logged; every wording its own place; group
 scripts/heavy.sh.
 
 2026-11-15: pipeline CI red on 67c9b32f1 / 189458c93, two stale tests: `test_marks_never_orphaned` still passed B's removed groups argument to `historic_only` (now 2 args; a dormant rewording is its own place), and C's region-line crossings made `search_splits` read the registry in the data-free cut-search test (now stubbed). The groups above ran in the data tier, so the build hid it; fast-fail now runs every review test in CI's tier when a review module changes.
+
+## Owner 2026-11-15
+- Owner 2026-11-15: "need to also fix all other tributary only items like on thre bulkley too. fix the proposals
+  after adding ability for it". Added to the review-fix lane: every tributaries-only / except-tributary place in all
+  regions listed; suggester proposes that form; a merge of only those rows into dfo-suggestions.json prepared (main
+  chat applies with a backup); a list of already-marked places of this kind for him to re-mark.

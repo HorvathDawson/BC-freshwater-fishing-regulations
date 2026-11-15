@@ -135,5 +135,14 @@ from __future__ import annotations
 #:     D4: a word read that matched before and no longer matches stops the run (`build.A_WORD_READ_THAT_STOPS_MATCHING_
 #:     STOPS_THE_RUN`, `reach.word_reads`). D1 (the river's widening pond is the river) is decided in the atlas registry
 #:     (`registry.flowing.fold_widening_ponds`), so no classify.py outcome changed for it; the bump marks the diff.
-POLICY_VERSION = "38"
+#: 39: (T743, 2026-11-15) A DFO LAKE PLACE'S THROUGH-RIVER ABOVE THE LAKE STAYS OUT unless DFO's words name it
+#:     (`build.DFO_THROUGH_RIVER_STAYS_OUT`; D5's reason applied to T468: a DFO place has no rows, so every through-river
+#:     read as unrowed). Redsand Lake 2,639 -> 4 sections, Kitsumkalum Lake loses the 1,643 of the river above it; no
+#:     place of the 11-13 reach run changes. No classify.py outcome changed; the bump marks the binding diff.
+#: 40: (T753, owner 2026-11-15) A LAKE'S LOOP IS THE LAKE'S: a nameless line that leaves a lake and comes back into the
+#:     same lake leaves its river's item and joins the lake's (`registry.lake_loops`, `LAKE_LOOPS_LEAVE_RIVER_ITEMS`,
+#:     `LAKE_LOOPS_JOIN_THEIR_LAKE`; the build lists every move in `lake_loop_report.json`). Sproat's narrows take Sproat
+#:     Lake's rows, not the lower river's. Decided in the atlas registry, so no classify.py outcome changed; the bump
+#:     marks the binding diff.
+POLICY_VERSION = "40"
 

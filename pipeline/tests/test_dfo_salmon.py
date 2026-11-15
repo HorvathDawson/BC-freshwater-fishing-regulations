@@ -851,8 +851,9 @@ def test_to_reach_input_shapes_a_watershed_above_a_point():
     entry, rules = to_reach_input(loc, [{"species": "Pink", "dates": "Jun 16 to Aug 23",
                                          "limits_gear": "2 per day"}], water)
 
+    # owner 2026-11-15: a DFO place's named water takes its own side channels (`reach.channels.CHANNELS_KEY`)
     assert entry == {"entry_id": loc.location_id, "matched": ["item:kispiox"],
-                     "includes_tributaries": True}
+                     "_named_water_takes_its_channels": True, "includes_tributaries": True}
     assert len(rules) == 1
     assert rules[0]["extents"][0]["op"] == "downstream_of"
     assert rules[0]["extents"][0]["splits"] == ["split:kispiox-resort"]
@@ -885,7 +886,7 @@ def test_to_reach_input_carries_tributary_carve_outs():
     entry, rules = to_reach_input(loc, [{"species": "All", "dates": "Aug 1 to Dec 31",
                                          "limits_gear": "No natural bait allowed"}], water)
     # The carve-outs and `only` are the RULE's — the catalogue has no entry-wide list.
-    assert set(entry) == {"entry_id", "matched", "includes_tributaries"}
+    assert set(entry) == {"entry_id", "matched", "includes_tributaries", "_named_water_takes_its_channels"}
     assert rules[0]["tributaries_only"] is True
     assert len(rules[0]["tributary_excludes"]) == 2
 

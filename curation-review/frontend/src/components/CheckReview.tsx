@@ -6,8 +6,9 @@ import { getReviewer, isTyping, setReviewer } from "../review";
 import { cleared, failed } from "../failures";
 import { current as writeThrough, keyOf as wtKey, subscribe as onWriteThrough } from "../curatedSave";
 import { HOW_IT_WORKS, LEAVE_DRAFT, arrange, showsProposal, headline, closedCircles, closedPairs, nextAfterSave, nextWaterWithWork, placeState, waterLeft, checkBody, checkStatus, chipOf, hintWords, isDone, needWords, needsExtent, openRows,
-  pinsFc, progressWords, sameAsOptions, step, where } from "../checklist";
-import { offerProposal } from "../dfoExtent";
+  oldExtentWords, pinsFc, progressWords, sameAsOptions, step, where } from "../checklist";
+import { cannotEditOf, offerProposal } from "../dfoExtent";
+import { CannotEditNote } from "./CannotEditNote";
 import { statusLine } from "../dfoExtent";
 import { extentParts, fixParts, partsText, piecesParts } from "../extentWords";
 import { MapPanel } from "./MapPanel";
@@ -36,7 +37,7 @@ import { InputsSyncLine } from "./InputsSyncLine";
 export type CheckSource = "dfo" | "regs" | "all";
 const FILTERS: [string, string][] = [["", "all"], ["todo", "to check"], ["needs", "needs extent"],
   ["earlier", "verified earlier"], ["saved", "saved by you"], ["stale", "changed"], ["bad", "has ✗"],
-  ["group", "marked in a group"]];
+  ["group", "marked in a group"], ["old", "old extent in force"]];
 const KIND_WORDS: Record<string, string> = { unchecked: "words" };
 /** the rows about where the extent runs: a click on one (DFO) opens the inline editor */
 const EDIT_KINDS = ["where", "from", "to", "also", "tributaries"];
@@ -137,14 +138,23 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
   // T742 E3 (perf): only the end of an apply reloads (it reloaded on every change of the shown place's word, and again
   // on the move to the next place: two full reloads per save)
   const applying = useRef<Set<string>>(new Set());
+  // (owner 2026-11-15, Qualicum mark 2651: refused in the background and he found out only later) A SAVE REFUSED AT
+  // THE WRITE IS SAID AT ONCE, whatever place is open now: the place, why, and what to do — until he closes it
+  const [refusedNow, setRefusedNow] = useState<{ id: string; why: string }[]>([]);
   useEffect(() => onWriteThrough((s) => {
     let ended = false, shownEnded = false;
     for (const id of [...applying.current]) {
-      const st = s.outcomes[wtKey("dfo", id)]?.state;
+      const o = s.outcomes[wtKey("dfo", id)];
+      const st = o?.state;
       if (st === "saved" || st === "refused") {
         applying.current.delete(id);
         ended = true;
         if (id === shown.current) shownEnded = true;
+      }
+      if (st === "refused") {
+        const why = (o as { why?: string } | undefined)?.why ?? "no reason given";
+        setRefusedNow((cur) => [...cur.filter((x) => x.id !== id), { id, why }]);
+        failed("a save refused at the write")(new Error(`${id}: ${why}`));
       }
     }
     if (ended) loadQueue();
@@ -283,6 +293,7 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
         {water && <span data-testid="ck-water-progress"> · {water.water}: {water.done} of {water.total} done</span>}
         {place?.group_marked ? <span className="warn-text" data-testid="ck-group-marked-head"> · marked in a group ({place.group_marked.date}):
           {" "}re-check it on its own</span> : null}
+        {place?.old_extent ? <span className="warn-text" data-testid="ck-old-extent-head"> · {oldExtentWords(place.old_extent)}</span> : null}
       </span>
       <button type="button" className="btn small" data-testid="ck-next-water-any" disabled={!nextWater}
         title={nextWater ? `the first place still to do on ${nextWater.water}` : "no other water has work left in this list"}
@@ -318,7 +329,8 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
                 : progress && k === "unapplied" ? ` ${progress.by_check.unapplied ?? 0}`
                 : progress && k === "stale" ? ` ${progress.by_check.stale ?? 0}`
                 : progress && k === "bad" ? ` ${progress.by_worst.bad ?? 0}`
-                : progress && k === "group" ? ` ${progress.group_marked ?? 0}` : ""}
+                : progress && k === "group" ? ` ${progress.group_marked ?? 0}`
+                : progress && k === "old" ? ` ${progress.old_extent ?? 0}` : ""}
             </button>))}
         </span>
         <select aria-label="jump to a water" data-testid="ck-water" value={ridden?.water_key ?? ""}
@@ -340,6 +352,17 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
       <InputsSyncLine reason="write-through" />
       {error && <div className="errors inline-notice" style={{ margin: "2px 8px", padding: "2px 8px" }}>
         <span style={{ flex: 1 }}>{error}</span><CloseX onClick={() => setError("")} /></div>}
+      {refusedNow.length > 0 && (
+        <div className="errors" role="alert" data-testid="ck-refused-now" style={{ position: "static", margin: "6px 0" }}>
+          {refusedNow.map((r) => (
+            <div key={r.id} data-testid="ck-refused-line">
+              <b>Your save was NOT written</b> — <a href={`#${prefix}${encodeURIComponent(r.id)}`}>{r.id}</a>: {r.why}.
+              {" "}Open it, change what the reason names, and save again (your mark is kept; the place is as it was).
+            </div>
+          ))}
+          <CloseX onClick={() => setRefusedNow([])} />
+        </div>
+      )}
       {editing?.full && cur?.dfo ? (
         <div className="main">
           <DfoLocation key={`${cur.id}|${version}`} detail={cur.dfo} mode={mode} initialCall="change"
@@ -649,6 +672,7 @@ function CheckPanel({ loaded, water, onSaved, onEdit, top, waterDone }: {
             {onEdit && !pc.held && <>{" "}<button type="button" className="btn small" data-testid="ck-edit-extent"
               title="opens a draft of this extent here; nothing is saved until you press Save this extent"
               onClick={() => onEdit(null)}>Edit this extent (draft, nothing saved)</button></>}
+            {!onEdit && cannotEditOf(d.extent_now) && <CannotEditNote why={cannotEditOf(d.extent_now)!} />}
           </div>)}
       </div>
       <div className="ck-rows" data-testid="ck-rows" onMouseLeave={() => pinTo(picked)}>
@@ -707,7 +731,8 @@ function CheckPanel({ loaded, water, onSaved, onEdit, top, waterDone }: {
               <div className="ck-btns">
                 <button data-testid="ck-set-extent" disabled={busy} onClick={() => onEdit(null)}>Draw the extent myself (opens a draft, nothing saved)</button>
               </div>
-            ) : <div className="warn-text">It cannot be changed here: {d.extent_now.cannot_change.join("; ")}</div>}
+            ) : cannotEditOf(d.extent_now) ? <CannotEditNote why={cannotEditOf(d.extent_now)!} />
+              : <div className="warn-text">It cannot be changed here.</div>}
             {onEdit && options.length > 0 && (
               <div className="ck-sameas" data-testid="ck-sameas">
                 <label>Copy the extent from another place on this river:{" "}
@@ -859,6 +884,8 @@ function WaterList({ view, selected, onOpen, onHover, undrawn, done: doneLine, h
                 <span className={`ck-chip ${chip.replace(/[^a-z]+/g, "-")}`}>{chip}</span>
                 {p.group_marked && <span className="ck-chip changed" data-testid="ck-group-marked"
                   title={`its mark in force (${p.group_marked.date}) was written by a group save: re-check it on its own`}>marked in a group</span>}
+                {p.old_extent && <span className="ck-chip changed" data-testid="ck-old-extent"
+                  title={oldExtentWords(p.old_extent)}>{p.old_extent.flag}</span>}
                 {p.ease && p.ease.word !== chip && <span className="ck-ease" data-testid="ck-ease" title="how much work it is: the easiest-first order goes by this">{p.ease.word}</span>}
                 <span className="t">{p.source === "regs" ? <i>{p.name ? `${p.name}: ` : ""}</i> : null}
                   {(p.text || "(the whole water)").slice(0, 110)}{(p.text || "").length > 110 ? "…" : ""}</span>

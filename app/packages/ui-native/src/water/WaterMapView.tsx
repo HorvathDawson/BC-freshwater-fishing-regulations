@@ -24,7 +24,7 @@ import type { ReleaseLoader } from "@app/data/release";
 import { inSeasonSections, useAsync, useBackLayer, useInSeasonCovers, useKeptWhilePending, useRegsStore, useReleaseLines, useSalmonKey, useTidalWaterMap, useWaterMap,
          type WaterMapPartVM, type WaterMapVM, type WaterMapAction } from "@app/ui";
 import { MapScreen } from "../MapScreen";
-import { WaterInset } from "../WaterFrame";
+import { useSplitReport, useWaterMapSplit, WaterInset, WaterSplit } from "../WaterFrame";
 import { Icon } from "../icons";
 import { useTestbedFlag } from "../testbedFlag";
 import { TYPE } from "../type";
@@ -68,6 +68,8 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
   /** (T520) THE day (the Shell's map day; null = today): the in-season changes outlined are those in force then */
   day?: Date | null;
 }) {
+  const split = useWaterMapSplit();
+  const report = useSplitReport();
   const store = useRegsStore(loader);
   // (T228, T517) parts of one run join only where salmon (the live DFO feed over the release) reads them alike
   const salmonKey = useSalmonKey(loader, store.value ?? null, item);
@@ -127,9 +129,8 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
   const d = shown.value;
   const dv = d.vm, dt = d.tidal;
 
-  return (
-    <View style={{ flex: 1, backgroundColor: palette.card }} testID="water-map">
-      <View style={{ flex: 1 }}>
+  const mapPane = (
+      <View style={split ? { flex: 1, minWidth: 0, minHeight: 0 } : { flex: 1 }}>
         <MapScreen palette={palette} {...map} onDrawn={onDrawn}
                    highlight={dv?.selected ?? []}
                    inSeason={d.inSeason}
@@ -163,16 +164,20 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
         {/* (T731) a kept bar is the part stepped FROM: the mark the step closed is not drawn again */}
         {!kept && vm?.pop && <MarkPop vm={vm} palette={palette} act={act} />}
       </View>
+  );
+  const bar = (
+      <>
       {/* THE BAR spans the canvas's width (the map is full-bleed under the water frame's header, T44); its words are on
           the frame's column, at the gutter every view's content starts at */}
-      <View style={{ paddingTop: 10, paddingBottom: 14, borderTopWidth: 1.5, borderTopColor: palette.ink,
-                     backgroundColor: palette.card }} testID="water-map-bar"
+      <View style={split ? { paddingTop: 14, paddingBottom: 14, backgroundColor: palette.card, flexShrink: 1, minHeight: 0 }
+                         : { paddingTop: 10, paddingBottom: 14, borderTopWidth: 1.5, borderTopColor: palette.ink,
+                             backgroundColor: palette.card }} testID="water-map-bar"
             // (T731) kept through a step's read: drawn as it was, taking no press, busy to a screen reader
             pointerEvents={kept ? "none" : "auto"} aria-busy={kept}>
-        <WaterInset column>
+        <BarInset split={split}>
         {dv ? (
           <>
-            {dv.list && <PartsList list={dv.list} palette={palette} act={d.act} />}
+            {dv.list && <PartsList list={dv.list} palette={palette} act={d.act} tall={!!split} />}
             {/* (T582) which day the map's rules are for: a tab switch never changes the day silently */}
             <Text style={{ ...TYPE.metaBold, color: palette.ink }} testID="water-map-day">{DAY_LABELS.map(day, bcNow())}</Text>
             <Text style={{ ...TYPE.section, color: palette.faint }} testID="water-map-where">{dv.where}</Text>
@@ -238,10 +243,32 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
             <Text style={{ ...TYPE.body, color: palette.sub }} testID="water-map-status">{d.status}</Text>
           </View>
         )}
-        </WaterInset>
+        </BarInset>
       </View>
+      </>
+  );
+  if (!split) {
+    return (
+      <View style={{ flex: 1, backgroundColor: palette.card }} testID="water-map">
+        {mapPane}
+        {bar}
+      </View>
+    );
+  }
+  // (T752) the split (the frame's `WaterSplit`): the text column does not scroll as a whole: the steps stay pinned and an
+  // open parts list takes what room is left and scrolls inside it
+  return (
+    <View style={{ flex: 1, backgroundColor: palette.card }} testID="water-map">
+      <WaterSplit palette={palette} map={mapPane}
+                  text={<>{bar}<View style={{ paddingBottom: SPACE.s3 }}>{report}</View></>} />
     </View>
   );
+}
+
+/** The bar's words: on the frame's column and gutter under the canvas; in the split the text column already is the gutter's
+ *  (T752), and the box may shrink so an open parts list scrolls instead of pushing the steps away. */
+function BarInset({ split, children }: { split: boolean; children: React.ReactNode }) {
+  return split ? <View style={{ flexShrink: 1, minHeight: 0 }}>{children}</View> : <WaterInset column>{children}</WaterInset>;
 }
 
 /**
@@ -250,8 +277,8 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
  * Parts sheet moved here (owner 2026-10-23); tapping a part on the map still works. Normal weight throughout (T151: no
  * bold competing with the map's colours); the list scrolls inside a bounded box so the bar stays on screen.
  */
-function PartsList({ list, palette, act }: {
-  list: NonNullable<WaterMapVM["list"]>; palette: Palette; act: (a: WaterMapAction) => void;
+function PartsList({ list, palette, act, tall }: {
+  list: NonNullable<WaterMapVM["list"]>; palette: Palette; act: (a: WaterMapAction) => void; tall: boolean;
 }) {
   // back closes the open list before it leaves the water (app/HANDOFF-ui.md "Back, everywhere")
   useBackLayer(list.open, () => act({ type: "list" }));
@@ -260,7 +287,7 @@ function PartsList({ list, palette, act }: {
   const toggle = useRef<ViewInstance>(null);
   const pick = (ix: number) => { act({ type: "part", ix }); (toggle.current as { focus?: () => void } | null)?.focus?.(); };
   return (
-    <View style={{ marginTop: -4, marginBottom: 6 }} testID="water-map-parts">
+    <View style={{ marginTop: -4, marginBottom: 6, flexShrink: 1, minHeight: 0 }} testID="water-map-parts">
       <Pressable ref={toggle} onPress={() => act({ type: "list" })} accessibilityRole="button" accessibilityLabel={list.toggle}
                  aria-expanded={list.open} testID="water-map-parts-toggle"
                  style={{ minHeight: 44, flexDirection: "row", alignItems: "center", gap: SPACE.s2 }}>
@@ -269,7 +296,7 @@ function PartsList({ list, palette, act }: {
         <Icon name={list.open ? "collapse" : "expand"} colour={palette.accent} size={18} />
       </Pressable>
       {list.open && (
-        <ScrollView style={{ maxHeight: 232, marginBottom: 10, borderTopWidth: 1, borderTopColor: palette.line,
+        <ScrollView style={{ maxHeight: tall ? 380 : 232, flexShrink: 1, minHeight: tall ? 132 : 0, marginBottom: 10, borderTopWidth: 1, borderTopColor: palette.line,
                              borderBottomWidth: 1.5, borderBottomColor: palette.ink }}
                     accessibilityRole="radiogroup" accessibilityLabel={list.title} testID="water-map-parts-list">
           {list.rows.map((r) => (

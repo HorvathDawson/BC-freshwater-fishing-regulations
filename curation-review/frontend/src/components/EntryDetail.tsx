@@ -215,7 +215,7 @@ export function EntryDetail({ detail, onNavigate, reloadKey = 0, nav, mode, onMa
       // id; a crossing no id binds is not offered (its row says why in the boundaries list)
       if (seen.has(b.id) || !b.curated || b.pickable === false) continue;
       seen.add(b.id);
-      out.push({ id: b.id, name: b.region_end ? b.label : `${splitLabel(b)} (${b.kind}${
+      out.push({ id: b.id, name: b.region_end || b.border_end ? b.label : `${splitLabel(b)} (${b.kind}${
         b.live?.label || b.label ? ` · ${b.id.split("__").pop()}` : ""})` });
     }
     return out;

@@ -75,7 +75,8 @@ def _proposals() -> list[dict]:
     from pipeline.regs.review import marks as M
     ov = CURATED.review.proposal_overrides
     # once per marks / overrides file (owner 2026-10-28: ~0.7 s, read by every DFO progress badge)
-    return _PROPOSALS_MEMO.get((reuse._stamp((reuse.MARKS_PATH, ov)), M.proposals, M.load),
+    # (T755 follow-up) keyed on the stamp the proposed cuts last changed at: a save that proposes no cut keeps them
+    return _PROPOSALS_MEMO.get((reuse.proposals_stamp(), reuse._stamp((ov,)), M.proposals, M.load),
                                lambda: M.proposals(M.load(reuse.MARKS_PATH), M.load_overrides(ov)))
 
 
@@ -89,7 +90,7 @@ def withdrawn_on(items: list[str]) -> list[dict]:
     from pipeline.common.curated import CURATED
     from pipeline.regs.review import marks as M
     ov = CURATED.review.proposal_overrides
-    rows = _WITHDRAWN_MEMO.get((reuse._stamp((reuse.MARKS_PATH, ov)), M.withdrawn_groups, M.load),
+    rows = _WITHDRAWN_MEMO.get((reuse.proposals_stamp(), reuse._stamp((ov,)), M.withdrawn_groups, M.load),
                                lambda: M.withdrawn_groups(M.proposal_groups(M.load(reuse.MARKS_PATH)),
                                                           M.load_overrides(ov)))
     blks = {str(n.blk) for _nid, n, _g in _line_sections(items)} if items else set()
@@ -227,6 +228,27 @@ def group_marked(m) -> dict | None:
     return {"group": g, "date": m.date} if g else None
 
 
+def old_extent(m, loc: dict) -> dict | None:
+    """(T755 follow-up) THE PLACE'S LAST SAVE IS "WRONG" OR "UNSURE" WITH NO FIX WHILE AN OLDER EXTENT IS STILL IN FORCE
+    (`audit.old_extent_in_force`, the audit's section B flag): {verdict, date, words} for the checklist's "old extent
+    still in force" flag; None otherwise. The extent is the place's own, or — with none of its own — the one it rides
+    (its confirmed or uncontested variant link, as `resolve_all` and the audit read it). A flag only: what ships does
+    not change, nothing is written."""
+    if m is None or getattr(getattr(m, "verdict", None), "value", getattr(m, "verdict", None)) not in ("wrong", "unsure"):
+        return None
+    from pipeline.regs.review import audit as A
+    ex = (loc.get("binding") or {}).get("extents") or []
+    d = loc.get("duplicate_of")
+    if not ex and d and loc.get("duplicate_confirmed") is not False:
+        got = _locations().get(d)
+        ex = ((got[1].get("binding") or {}).get("extents") or []) if got else []
+    md = json.loads(m.model_dump_json())
+    if not A.old_extent_in_force(md, ex):
+        return None
+    return {"verdict": md["verdict"], "date": md.get("date"), "flag": A.OLD_EXTENT_FLAG,
+            "rides": d if not (loc.get("binding") or {}).get("extents") else None}
+
+
 #: T449: THE TIDAL CONTEXT (tidal-limit rows by blk, cut labels) once per tidal_limits.json / cuts.json stamp
 _TIDAL_MEMO = reuse._Memo()
 
@@ -304,6 +326,7 @@ def fix_vs_current(m, loc: dict, water: dict | None) -> dict | None:
     Pieces are compared as a set (`same_extents`); a tributary call is compared as it BINDS (`tributaries_now`), so a
     fix calling what the place already inherits from its DFO title replaces nothing."""
     from pipeline.regs.review import marks as M
+    from pipeline.regs.review import proposals as P
     if m is None or not m.extent_fix:
         return None
     fixes = [M.ExtentFix.model_validate(f) for f in rekeyed(json.loads(m.model_dump_json()))["extent_fix"]
@@ -313,7 +336,11 @@ def fix_vs_current(m, loc: dict, water: dict | None) -> dict | None:
     mine, problems = fix_extents(fixes)
     call = next((f.tributaries for f in fixes if f.tributaries is not None), None)
     now = tributaries_now(loc, water)
-    same = not problems and same_extents(mine, current) and (call is None or call == now)
+    only = next((f.tributaries_only for f in fixes if f.tributaries_only is not None), None)
+    tex = next((sorted(f.tributary_excludes) for f in fixes if f.tributary_excludes is not None), None)
+    tex_now = sorted(P.excepted_items(b.get("tributary_excludes") or [])[0])
+    same = (not problems and same_extents(mine, current) and (call is None or call == now)
+            and (only is None or only == bool(b.get("tributaries_only"))) and (tex is None or tex == tex_now))
     state = "replaces" if not same else ("same" if m.verdict == "verified" else "applied")
     return {"state": state, "current": current, "fix": mine, "tributaries": {"current": now, "fix": call}}
 
@@ -356,11 +383,63 @@ def extent_now(loc: dict, water: dict | None) -> dict:
     that has moved since is refused (`mark_for`)."""
     from pipeline.regs.review import proposals as P
     b = loc.get("binding") or {}
-    pieces, why = P.fixes_of_extents(b.get("extents") or [], b.get("tributaries"))
+    pieces, why = P.fixes_of_extents(b.get("extents") or [], b.get("tributaries"),
+                                     tributaries_only=bool(b.get("tributaries_only")),
+                                     tributary_excludes=list(b.get("tributary_excludes") or []))
     return {"pieces": [f.model_dump(mode="json") for f in pieces], "cannot_change": why,
+            # (T755 follow-up) the same reason in plain words, with what the owner can do instead
+            "cannot_edit": cannot_edit_words(b.get("extents") or [], why),
             "tributaries": tributaries_now(loc, water), "seen": seen_extent(loc),
             # (T532 r10) what "tributaries as the place has them" MEANS here: does the builder walk them for this place
             "walks_tributaries": walks_now(loc, water)}
+
+
+def _area_words(aid: str) -> str:
+    """an atlas area by its plain name: "Region 6", "Skeena River — Kispiox confluence sign zone"; else its id"""
+    m = re.fullmatch(r"area:region:(\w+)", str(aid))
+    if m:
+        return f"Region {m.group(1).upper()}"
+    return reuse._area_name_map().get(str(aid)) or str(aid)
+
+
+#: what the owner can do with a place whose extent the editor cannot change (owner 2026-11-15, Blanchard)
+CANNOT_EDIT_CAN = ("You can still confirm it as it is, if it matches DFO's words (tick the rows, then Confirm). If it "
+                   "is wrong, mark it wrong and say in the note what should change: that change is made by hand in "
+                   "the place's curated file, not here.")
+
+
+def cannot_edit_words(extents: list[dict], why: list[str]) -> dict | None:
+    """(T755 follow-up, owner 2026-11-15: "i cant save or edit the extent") WHY THE EDITOR CANNOT CHANGE THIS EXTENT,
+    in plain words, and what the owner can do: {"why": [one line per field the editor has no word for], "can": …}.
+    None when it can be changed. The reasons are `proposals.unexpressed`'s (`why`), said per field; a reason this does
+    not know is shown as it is, never dropped. Read only: no place's data changes."""
+    if not why:
+        return None
+    from pipeline.regs.review import proposals as P
+    lines: list[str] = []
+    for i, ex in enumerate(extents):
+        n = f"Extent {i + 1}" if len(extents) > 1 else "The extent"
+        for f in sorted(set(ex) - P.EXPRESSIBLE):
+            v = ex.get(f)
+            if f == "within_area":
+                lines.append(f"{n} is held only inside {_area_words(v)}, and the editor has no way to say "
+                             "\"only inside an area\" on a water.")
+            elif f == "outside_areas":
+                names = ", ".join(_area_words(a) for a in v or [])
+                lines.append(f"{n} leaves out {names}, and the editor has no way to say \"leave out an area\".")
+            elif f == "watershed":
+                lines.append(f"{n} takes the whole watershed above its point, and the editor has no way to say "
+                             "\"the watershed\".")
+            elif f == "feature_types":
+                kinds = ", ".join(f"{k}s" for k in v or [])
+                lines.append(f"{n} holds only {kinds}, and the editor has no way to say \"only some kinds of "
+                             "water\".")
+            else:
+                lines.append(f"{n} holds {f}, which the editor has no word for.")
+    said = {f"extent {i + 1} ({ex.get('op')}) holds" for i, ex in enumerate(extents) if set(ex) - P.EXPRESSIBLE}
+    lines += [w for w in why if not any(w.startswith(x) for x in said)]          # any other reason, as it is
+    lines.append("A change made here would drop that part, so the edit button is off.")
+    return {"why": lines, "can": CANNOT_EDIT_CAN}
 
 
 def walks_now(loc: dict, water: dict | None) -> bool | None:
@@ -384,23 +463,34 @@ def _strings(x) -> set[str]:
     return set()
 
 
-def cut_labels(view) -> dict[str, str]:
+def cut_labels(view, items=None) -> dict[str, str]:
     """T525 (owner 2026-11-09: the owner reviews by WORDS): the label of every cut a place's view names anywhere — its
-    extent, the mark's fix, a fix proposal's or a suggestion's pieces, a group member's extent — from the curated cuts
-    (the resolved label, else the cuts file's, else the registry boundary's), so no cut reads as a bare id. A cut with
-    no label is left out: the screen shows it as an error."""
+    extent, the mark's fix, a fix proposal's or a suggestion's pieces, a group member's extent — by the one namer
+    (`reuse.cut_name`), so no cut reads as a bare id. `items`: the place's waters (default: the view's `items` /
+    `item_ids`) — a region line is named by THEIR crossing of it (owner 2026-11-15: "Region 3 boundary · km 453",
+    never another water's "Region 3 – Region 8 boundary"). A cut with no label is left out: the screen shows it as an
+    error."""
     meta, records, bounds = reuse._splits_meta(), reuse._split_records(), reuse._boundary_index()
+    if items is None:
+        items = view_items(view)
     out = {}
     for sid in _strings(view):
-        if reuse.REGION_CUT.match(sid):           # T742 C: "Region 5 boundary", never another water's atlas label
-            out[sid] = reuse.region_words(sid)
-    for sid in (_strings(view) & (set(meta) | set(records) | set(bounds))) - set(out):
-        b = bounds.get(sid, (None, None))[1]
-        label = ((meta.get(sid) or {}).get("label") or records.get(sid, ("", {}))[1].get("label")
-                 or (getattr(b, "label", None) if b is not None else None))
-        if label:
-            out[sid] = label
+        if reuse.REGION_CUT.match(sid) or sid in meta or sid in records or sid in bounds:
+            label = reuse.cut_name(sid, items)
+            if label:
+                out[sid] = label
     return out
+
+
+def view_items(view) -> list[str]:
+    """the waters a place's view is about: its `items` (refs or ids), else its water's `item_ids`"""
+    if not isinstance(view, dict):
+        return []
+    got = view.get("items")
+    if isinstance(got, list) and got:
+        return [x.get("id") if isinstance(x, dict) else str(x) for x in got if x]
+    w = view.get("water")
+    return list((w or {}).get("item_ids") or []) if isinstance(w, dict) else []
 
 
 def item_names(view) -> dict[str, str]:
@@ -457,7 +547,9 @@ def _row(slug: str, loc: dict, water: dict | None, m, live_waters: set | None = 
             "new_splits": len(m.new_splits) if m is not None else 0,
             "historic_only": historic_only(loc, live_waters if live_waters is not None else _live_waters()),
             # T742: no grouping — a mark a group save wrote is flagged on its own place (`group_marked`)
-            "group_marked": group_marked(m)}
+            "group_marked": group_marked(m),
+            # T755 follow-up: last save wrong / unsure with no fix, an older extent still in force (a flag only)
+            "old_extent": old_extent(m, loc)}
 
 
 #: THE DFO ROWS, COMPUTED ONCE PER INPUT (owner 2026-10-28): the queue, its progress and the tab
@@ -468,16 +560,75 @@ _ROWS_MEMO = reuse._Memo()
 
 
 def _rows_inputs() -> tuple:
+    """[0] the marks store's stamp, [5] the marks whose fix landed — the two a save moves (`_patched_rows`)"""
     from pipeline.common.curated import CURATED
-    return (reuse._stamp((reuse.MARKS_PATH, SUGGESTIONS_PATH, preverify.FILES["dfo"], _fixes_path(),
+    return (reuse.marks_stamp(),
+            reuse._stamp((SUGGESTIONS_PATH, preverify.FILES["dfo"], _fixes_path(),
                           CURATED.review.proposal_overrides, CURATED.waters.tidal, CURATED.waters.cuts)),
             D.regions(reuse._dfo_dir()), D.typed(DFO_TYPED), reuse._registry(), reuse.applied_keys(),
             _locations, _states, _row)
 
 
+#: the last rows made and the inputs they were made from: a save rebuilds only the saved place's rows from these
+_ROWS_HELD: dict = {}
+
+
 def _rows() -> list[dict]:
     """Every DFO row in review order — SHARED: callers filter, never mutate."""
-    return _ROWS_MEMO.get(_rows_inputs(), _compute_rows)
+    inputs = _rows_inputs()
+    return _ROWS_MEMO.get(inputs, lambda: _rows_for(inputs))
+
+
+def _rows_for(inputs: tuple) -> list[dict]:
+    held = _ROWS_HELD.get("v")
+    rows = _patched_rows(held, inputs) if held else None
+    if rows is None:
+        rows = _compute_rows()
+    _ROWS_HELD["v"] = (inputs, rows)
+    return rows
+
+
+def _held_same(a: tuple, b: tuple, moving: tuple) -> bool:
+    """two memo inputs agree everywhere but at the `moving` positions (compared as `reuse._Memo` compares)"""
+    return len(a) == len(b) and all((x == y) if isinstance(x, tuple) else (x is y)
+                                    for i, (x, y) in enumerate(zip(a, b)) if i not in moving)
+
+
+def _patched_rows(held: tuple, inputs: tuple) -> list[dict] | None:
+    """(T755 follow-up: speed after a save) THE ROWS AFTER A SAVE, ONLY THE SAVED PLACE'S REBUILT: when nothing but the
+    marks store moved since `held` and it only GREW (`reuse.marks_delta`), by lines that propose no cut and clear
+    nothing, and the landed-fix set moved only on those lines' keys, the rows of the places those lines name — and of
+    every place on the same water or linked to one, whose rows read each other — are made again and the rest kept as
+    they were (the same objects: `checks._places` keeps their places too). None: rebuild everything."""
+    old_in, old_rows = held
+    if not _held_same(old_in, inputs, (0, 5)):
+        return None
+    d = reuse.marks_delta(old_in[0], inputs[0])
+    if d is None or d["new_splits"] or d["cleared"]:
+        return None
+    if any(k not in d["keys"] for k in set(old_in[5]) ^ set(inputs[5])):
+        return None
+    targets = {t for sc, t, _r in d["keys"] if sc == "dfo"}
+    if not targets:
+        return old_rows
+    locs = _locations()
+    if any(t not in locs for t in targets):
+        return None
+    waters = {locs[t][1].get("water_id") for t in targets} - {None}
+    linked = {locs[t][1].get("duplicate_of") for t in targets} - {None}
+    hit = {lid for lid, (_s, loc, _w) in locs.items()
+           if lid in targets or lid in linked or loc.get("water_id") in waters or loc.get("duplicate_of") in targets}
+    states, live = _states(), _live_waters()
+    out = [_row(*locs[r["id"]], states.get(r["id"]), live) if r["id"] in hit else r for r in old_rows]
+    out.sort(key=_row_order)
+    return out
+
+
+def _row_order(r: dict) -> tuple:
+    """the review order: the live page first, then what is missing a cut, then region and water (T449: a place
+    accepted as tidal water is missing nothing — last, with the bound ones)"""
+    rank = {"needs_cut": 0, "unbound": 1, "no_water": 2, "bound": 3, "tidal": 4}
+    return (r["status"] != "active", rank[r["state"]], reuse._region_key(r["region"]), r["water"], r["id"])
 
 
 def _compute_rows() -> list[dict]:
@@ -488,9 +639,7 @@ def _compute_rows() -> list[dict]:
            for lid, (slug, loc, water) in _locations().items() if loc.get("water_id")]
     # the review order: the live page first, then what is missing a cut, then region and water
     # (T449: a place accepted as tidal water is missing nothing — last, with the bound ones)
-    rank = {"needs_cut": 0, "unbound": 1, "no_water": 2, "bound": 3, "tidal": 4}
-    out.sort(key=lambda r: (r["status"] != "active", rank[r["state"]], reuse._region_key(r["region"]),
-                            r["water"], r["id"]))
+    out.sort(key=_row_order)
     return out
 
 
@@ -568,10 +717,9 @@ def _split_feature(sid: str, *, rules: list[str], to_verify: bool, item_id: str 
     on_item, b = bounds.get(sid, (item_id, None))
     if not water and on_item in reuse._registry():
         water = reuse._registry()[on_item].name
-    label = ((meta.get(sid) or {}).get("label") or sp.get("label")
-             or (getattr(b, "label", None) if b is not None else None) or sid)
+    label = reuse.cut_name(sid, [item_id] if item_id else []) or sid
     geom = None
-    if sid in meta:
+    if sid in meta or reuse.border_end(sid) is not None:    # (T755 follow-up) a BC-border cut: its section bound
         f = reuse._geo(reuse._split_point(sid), "named_split", {})
         geom = f["geometry"] if f else None
     elif b is not None and getattr(b, "wbk", None):
@@ -738,8 +886,32 @@ def detail(location_id: str) -> dict | None:
         "fix_vs_current": (fvc := fix_vs_current(m, loc, water)), "saved": saved_status(m, fvc),
         "extent_now": extent_now(loc, water),
         "mark": ({**rekeyed(json.loads(m.model_dump_json())), **v} if m is not None else None),
+        # (owner 2026-11-15) what DFO's words say of the tributaries — the suggester's one reading — for the save's
+        # warning when the extent says otherwise (a warning only: the meaning is his call)
+        "words_tributaries": words_tributaries(loc, water),
     }
     return reuse._json_safe({**view, "cut_labels": cut_labels(view), "item_names": item_names(view)})
+
+
+def words_tributaries(loc: dict, water: dict | None) -> dict:
+    """{only, with, without, names, excepted}: DFO's words on the tributaries (`suggest.tributary_form`, the heading
+    with its qualifier), the excepted names pinned to this water's tributaries by the registry"""
+    from pipeline.regs.dfo_salmon import suggest as SG
+    look = _name_look(id(reuse._registry()))
+    items = list((water or {}).get("item_ids") or [])
+    st = loc.get("source_text") or {}
+    tf = SG.tributary_form(st.get("specific_area") or "", st.get("waters") or "", SG.water_of(items, look.reg), look,
+                           (water or {}).get("tributaries"))
+    return {k: tf[k] for k in ("only", "with", "without", "names", "excepted", "unresolved", "water_says", "conflict")}
+
+
+@lru_cache(maxsize=1)
+def _name_look(_registry_id: int):
+    """the suggester's registry-by-name lookup (no FWA file: only names are asked), one per served registry"""
+    from pipeline.regs.dfo_salmon import suggest as SG
+    reg = {i: {"id": i, "name": it.name, "kind": it.kind, "ref_ids": list(it.ref_ids)}
+           for i, it in reuse._registry().items() if not i.startswith("area:")}
+    return SG.FwaLookup(reg, "")
 
 
 #: ENTRY B PER PLACE (T573): the closure entries derived from the stored rows (`dfo_salmon.closures`), proposals only.
@@ -799,10 +971,9 @@ def piece_shape(location_id: str, g: dict, new: dict | None = None) -> dict:
     def end(pt: dict) -> dict:
         sid = pt.get("split_id")
         if pt.get("kind") == "split":
-            bounds = reuse._boundary_index()         # only a stretch's end reads the build (a circle needs none)
-            q = reuse._split_point(sid)
+            q = reuse._split_point(sid)              # only a stretch's end reads the build (a circle needs none)
             ll = reuse._to_lonlat()(q.x, q.y) if q is not None else None
-            return {"label": getattr(bounds.get(sid, (None, None))[1], "label", None) or sid, "new": False,
+            return {"label": reuse.cut_name(sid, water_items(location_id)) or sid, "new": False,
                     "coord": [round(ll[0], 6), round(ll[1], 6)] if ll else None,
                     "measure": (reuse._splits_meta().get(sid) or {}).get("route_measure"),
                     **({} if q is not None else {"why": f"no cut {sid} in the curated splits"})}
@@ -965,7 +1136,7 @@ def dead_why(fixes, dead: list[int], water: dict | None) -> list[str]:
     else the place's), so a point that is a cut on ANOTHER water gives it nothing to run between. -> one line per dead
     piece naming the stray cut, the water it is on, and the cuts that ARE on the piece's water."""
     reg, bounds = reuse._registry(), reuse._boundary_index()
-    label = lambda s: getattr(bounds[s][1], "label", None) or s            # noqa: E731
+    label = lambda s: reuse.cut_name(s, list((water or {}).get("item_ids") or [])) or s   # noqa: E731
     name = lambda i: getattr(reg.get(i), "name", None) or i                # noqa: E731
     out = []
     for i in dead:
@@ -1048,9 +1219,10 @@ def water_places(water_id: str, this: str | None = None) -> list[dict]:
 # --------------------------------------------------------------------------- reach (read)
 
 def _reach_input(loc: dict, water: dict | None, extents: list[dict] | None = None,
-                 tributaries: bool | None = None):
-    """`entries.to_reach_input` on the location (optionally with other extents): the builder's
-    own shape."""
+                 tributaries: bool | None = None, tributaries_only: bool | None = None,
+                 tributary_excludes: list[dict] | None = None):
+    """`entries.to_reach_input` on the location (optionally with other extents, tributary call, "tributaries only" or
+    excepted tributaries — a draft's): the builder's own shape."""
     import copy
     from dataclasses import fields
     from pipeline.regs.dfo_salmon import entries as E
@@ -1059,6 +1231,10 @@ def _reach_input(loc: dict, water: dict | None, extents: list[dict] | None = Non
         loc.setdefault("binding", {})["extents"] = extents
     if tributaries is not None:
         loc.setdefault("binding", {})["tributaries"] = tributaries
+    if tributaries_only is not None:
+        loc.setdefault("binding", {})["tributaries_only"] = tributaries_only
+    if tributary_excludes is not None:
+        loc.setdefault("binding", {})["tributary_excludes"] = tributary_excludes
     el = E.EntryLocation.from_dict(loc)
     wb = None
     if water:
@@ -1119,12 +1295,39 @@ def _bind(entry: dict, rule: dict, limit: int, walks: bool = False) -> dict:
     ids = sorted(binding.sections)
     return reuse._json_safe({
         "resolvable": True, "why": None, "n_sections": len(ids), "walks_tributaries": walks,
+        "km": section_km(ids), "channels": channels_in(entry, rule, set(ids)),
         "outcomes": {rule["rule_id"]: binding.outcome.value}, "truncated": len(ids) > limit,
         "geojson": {"type": "FeatureCollection",
                     "features": reuse._sections_geojson(ids[:limit], "preview")}})
 
 
-def reach(location_id: str, limit: int = 6000, tributaries: bool = False) -> dict | None:
+def section_km(ids) -> float:
+    """the length of these sections, km (one decimal): the graph's own lengths"""
+    nodes = reuse._graph().nodes
+    return round(sum((getattr(nodes.get(s), "length_m", 0.0) or 0.0) for s in ids) / 1000.0, 1)
+
+
+def channels_in(entry: dict, rule: dict, bound: set) -> list[dict]:
+    """(owner 2026-11-15, mark 2578: "includes all channels too. like sea bird island") WHICH OF THE WATER'S OWN
+    CHANNELS a binding holds, for the editor to show: each side channel the builder added to a named water
+    (`reach.channels.own_channels`, the same function the build reads), with the sections and km of it inside the
+    binding. [] when no extent names a water (the place's whole water is held already) or none is in it."""
+    from pipeline.atlas.reach import channels as CH
+    reg, g = reuse._registry(), reuse._graph()
+    among = list(entry.get("matched") or [])
+    named = [i for x in rule.get("extents") or [] if isinstance(x, dict)
+             for i in ([x["item_id"]] if x.get("item_id") else []) + list(x.get("item_ids") or [])]
+    if not named or not (entry.get(CH.CHANNELS_KEY) and CH.DFO_NAMED_WATER_TAKES_ITS_CHANNELS):
+        return []
+    out = []
+    for c in CH.own_channels(reg, g, named, among):
+        mine = sorted(set(reg[c].section_ids) & bound)
+        if mine:
+            out.append({"id": c, "name": reg[c].name, "n_sections": len(mine), "km": section_km(mine)})
+    return out
+
+
+def reach(location_id: str, limit: int = 6000, tributaries: bool = False, size: bool = True) -> dict | None:
     """WHAT THE LOCATION'S EXTENT BINDS NOW — `build_reach` on the curated binding. The tributary
     walk is the slow, huge part (Bella Coola `whole`: 13 MB), so by default it is skipped and the
     water's own reach comes back; `tributaries=True` walks them as the binding says.
@@ -1135,7 +1338,81 @@ def reach(location_id: str, limit: int = 6000, tributaries: bool = False) -> dic
     _slug, loc, water = got
     entry, rule = _reach_input(loc, water, tributaries=None if tributaries else False)
     walks = _walks_tributaries(*_reach_input(loc, water)) if not tributaries else _walks_tributaries(entry, rule)
-    return _bind(entry, rule, limit, walks)
+    out = _bind(entry, rule, limit, walks)
+    if out.get("resolvable") and size:
+        # (T755 follow-up) the size walk (Bella Coola 11.8 s cold) never holds the place up: it comes with the reach
+        # only when it is kept already; else `size_pending` and the screen asks `saved_size` after (`/size`)
+        got = saved_size(location_id, wait=False)
+        if got is _PENDING:
+            out["size_pending"] = True
+        else:
+            out["size"] = got
+    return out
+
+
+#: (owner 2026-11-15: Redsand Lake bound to 2,639 sections / 3,086 km; Cowichan weir -> 66 Mile Trestle with tributaries,
+#: 187 km, where the wording names none) when a saved extent is IMPLAUSIBLY LARGE for its water: more than this many times
+#: the water's own length, and at least this many km. Warnings inform; they never block or change a save.
+SIZE_TIMES_THE_WATER = 4.0
+SIZE_MIN_KM = 40.0
+_SIZES: dict = {}                 # location -> (its reach input's digest, id(registry), size)
+_SIZES_LOCK = __import__("threading").Lock()
+#: `saved_size(wait=False)`'s answer when the size is not kept yet
+_PENDING = object()
+
+
+def _size_key(loc: dict, water: dict | None) -> str:
+    """(T755 follow-up) what a place's size is a function of: its own reach input (its extent, tributary call, water),
+    so a save that rewrites one place's file walks again that place only — the whole cache went with the file's stamp"""
+    import hashlib
+    entry, rule = _reach_input(loc, water)
+    return hashlib.sha256(json.dumps([entry, rule], sort_keys=True, default=str).encode()).hexdigest()
+
+
+def saved_size(location_id: str, wait: bool = True):
+    """HOW BIG THE PLACE'S SAVED EXTENT IS, its tributary walk included (the drawn reach may leave the walk out): sections,
+    km, the km of it that are tributaries, the water's own length, and a plain warning line when it looks implausible —
+    it walks tributaries the DFO words never name, or it is several times the water itself. Kept per place and its
+    reach input (one walk per place and edit). `wait=False`: the kept size, or `_PENDING` when it would have to walk
+    (the caller asks again with wait). Read only; informs, never blocks."""
+    got = _locations().get(location_id)
+    if got is None:
+        return None
+    key = (_size_key(*got[1:]), id(reuse._registry()))
+    with _SIZES_LOCK:
+        held = _SIZES.get(location_id)
+        if held is not None and held[:2] == key:
+            return held[2]
+    if not wait:
+        return _PENDING
+    val = _size_of(*got[1:])
+    with _SIZES_LOCK:
+        _SIZES[location_id] = (*key, val)
+    return val
+
+
+def _size_of(loc: dict, water: dict | None) -> dict | None:
+    from pipeline.atlas.reach.build import build_reach
+    entry, rule = _reach_input(loc, water)
+    if not rule["extents"]:
+        return None
+    b, _d = build_reach(entry, rule, reuse._registry(), reuse._graph())
+    secs = set(b.sections)
+    reg = reuse._registry()
+    own = {s for i in (water or {}).get("item_ids") or [] if i in reg for s in reg[i].section_ids}
+    km, own_km = section_km(secs), section_km(own)
+    trib_km = section_km(secs - own)
+    st = loc.get("source_text") or {}
+    # the PLACE's own words; a place with none (the whole water) speaks through its heading
+    words = " ".join(str(x or "") for x in ([st.get("specific_area")] if (st.get("specific_area") or "").strip()
+                                            else [st.get("waters")]) + list(st.get("excludes") or []))
+    warn = []
+    if trib_km > 0 and not re.search(r"tributar|watershed|drainage", words, re.I):
+        warn.append(f"it walks {trib_km:,} km of tributaries, but DFO's words for this place name no tributaries")
+    if km >= SIZE_MIN_KM and km > SIZE_TIMES_THE_WATER * max(own_km, 0.1):
+        warn.append(f"it is {km:,} km — over {SIZE_TIMES_THE_WATER:g} times the water's own {own_km:,} km: check it is "
+                    "the place DFO means")
+    return {"n_sections": len(secs), "km": km, "tributary_km": trib_km, "own_km": own_km, "warnings": warn}
 
 
 def extent_preview(location_id: str, fix, limit: int = 6000, tributaries: bool = False) -> dict | None:
@@ -1163,9 +1440,16 @@ def extent_preview(location_id: str, fix, limit: int = 6000, tributaries: bool =
         return {"resolvable": False, "n_sections": None, "why": "; ".join(problems)}
     # a rest previews the remainder after every other PLACED extent on the water, as the build does
     call = next((f.tributaries for f in fixes if f.tributaries is not None), None)
+    # (owner 2026-11-15) "tributaries only" and the excepted tributaries are previewed as they bind: tributaries only
+    # IS the walk (drawn whatever the toggle says, or the preview would draw the water it leaves out)
+    only = next((f.tributaries_only for f in fixes if f.tributaries_only is not None), None)
+    tex = next((f.tributary_excludes for f in fixes if f.tributary_excludes is not None), None)
+    from pipeline.regs.review import proposals as P
+    texs = P.excludes_of(tex) if tex is not None else None
+    only_now = only if only is not None else bool((loc.get("binding") or {}).get("tributaries_only"))
     try:
-        entry, rule = _reach_input(loc, water, exs, call if tributaries else False)
-        walks = _walks_tributaries(*_reach_input(loc, water, exs, call)) if not tributaries \
+        entry, rule = _reach_input(loc, water, exs, call if (tributaries or only_now) else False, only, texs)
+        walks = _walks_tributaries(*_reach_input(loc, water, exs, call, only, texs)) if not tributaries \
             else _walks_tributaries(entry, rule)
     except Exception as e:  # noqa: BLE001 — the Extent model refuses a malformed one
         return {"resolvable": False, "n_sections": None, "why": f"not an extent: {e}"}
@@ -1469,7 +1753,36 @@ def mark_for(body: dict, *, date: str, pdf_sha256: str):
             **({"extent_fix": fixes} if fixes else {}),
             "pdf_sha256": pdf_sha256, "pages": [], "prints": now}
     mark = M.Mark.model_validate(data)
+    refused_later(mark, loc)
     return mark, M.Prints.model_validate(now), reused
+
+
+def refused_later(mark, loc: dict) -> None:
+    """A SAVE THE WRITE-THROUGH WOULD REFUSE IS REFUSED NOW, at the save, with the reason and what to change (owner
+    2026-11-15, Qualicum mark 2651: saved, then refused in the background — "op other_places has no water of its own" —
+    and he found out only later). Checked is what the apply writes: each piece as the place's extent (the `Extent`
+    model the place file holds, `entries.Binding`) and the editor's own rules (`marks.new_fix_problems`). ValueError
+    names every problem; nothing is written."""
+    from pipeline.regs.dfo_salmon import entries as E
+    from pipeline.regs.review import marks as M
+    from pipeline.regs.review import proposals as P
+    if not mark.extent_fix:
+        return
+    problems = [x for f in mark.extent_fix for x in M.new_fix_problems(f)]
+    exs = []
+    for f in mark.extent_fix:
+        # the cut ids do not matter here (a NEW cut has none yet): the shape does
+        ex, _ = P.extent_of(f, lambda i, p: p.split_id or f"new-point-{i}", rest_at_build=True)
+        exs.append(ex)
+    tex = next((f.tributary_excludes for f in mark.extent_fix if f.tributary_excludes is not None), None)
+    b = {**(loc.get("binding") or {}), "extents": exs,
+         **({"tributary_excludes": P.excludes_of(tex)} if tex is not None else {})}
+    try:
+        E.Binding.from_dict(b)
+    except ValueError as e:
+        problems.append(f"the place file would refuse it: {e}")
+    if problems:
+        raise ValueError("NOT SAVED — the write would be refused: " + " · ".join(problems))
 
 
 def real_ids(extra: tuple = (), *, tidal: bool = False, tidal_water: str | None = None) -> dict:
@@ -1481,8 +1794,8 @@ def real_ids(extra: tuple = (), *, tidal: bool = False, tidal_water: str | None 
     rows = [(p["id"], p["split"], False, None) for p in _proposals()]
     if not extra:
         from pipeline.common.curated import CURATED
-        return _REAL_IDS_MEMO.get((reuse._stamp((reuse.MARKS_PATH, reuse.SPLITS_JSON_PATH, reuse.REGISTRY_PATH,
-                                                 CURATED.review.proposal_overrides)),),
+        return _REAL_IDS_MEMO.get((reuse.proposals_stamp(), reuse._stamp((reuse.SPLITS_JSON_PATH, reuse.REGISTRY_PATH,
+                                                                          CURATED.review.proposal_overrides)),),
                                   lambda: {g: v["id"] for g, v in P.place_groups(rows, split_preview._sources()).items()})
     rows += [(k, n, tidal, tidal_water) for k, n in extra]
     return {g: v["id"] for g, v in P.place_groups(rows, split_preview._sources()).items()}

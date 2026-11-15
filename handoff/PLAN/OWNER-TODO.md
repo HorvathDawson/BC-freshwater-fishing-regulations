@@ -205,6 +205,18 @@ with the default Claude uses until you answer). Newest first inside each section
   (proven on both platforms) first; (ii) the loading screen, first-install bar, crash-report app half and the
   faster-and-lighter branch after one Android run; (iii) push last, with the privacy-page line for his eyes. The R8
   Play internal build is taken before any of these, so it carries nothing else.
+- **NEW 2026-11-15 10:42 (iOS chat, T739, push: privacy wording; PROPOSAL).** With push the app sends our server one
+  new thing, a push token (an address Apple issues so a message can reach the app). The push code merges into the
+  shared branch only after the privacy page and the store answers say so; the live privacy page changes only on your
+  yes (production stays yours). Proposed privacy-page line, under what the app sends: "Push token. If you turn
+  notifications on, the app sends our server a push token for this phone (an address Apple or Google issue so a
+  message can reach the app) and whether the phone is an iPhone or Android. We use it only to send a silent signal
+  telling the app to check for new data; the signal carries no words, no waters and no location. We do not receive
+  your alerts, the waters you watch or where you are. The token is deleted when you turn notifications off, or when
+  Apple or Google tell us it no longer works. It is not linked to you or to an account and is not backed up."
+  Proposed App Store privacy answer: Identifiers, Device ID: collected, App Functionality, not linked, not used for
+  tracking. The Android (Firebase) line and the Play Data safety answer wait for your Firebase decision; their draft is
+  in T739. Answer: yes as written / your changes. To-Do page row `t739-privacy-wording`.
 - **NEW 2026-11-15 10:09 (iOS chat, T749, Android's code shrinker R8).** The trial passed on the emulator: the app
   starts and passes all six checks; the test APK is 7.45 MB smaller (about 7.4 MB off the Play download, estimated).
   It is behind a switch that is off. Pick: make one Play INTERNAL build with the switch on for you to walk on your
@@ -214,6 +226,20 @@ with the default Claude uses until you answer). Newest first inside each section
   asked which build and which release, he picked "R8 build to Play internal": the Android app with the code shrinker
   on, built from the shared branch as it is today, the six emulator checks re-run on that exact build, and if all
   pass an upload to Play INTERNAL testing for his phone walk. Production stays his. Nothing else rides along.
+  **How it runs (agreed with the Android chat, 10:37).** I build the test APK and re-run the six checks; the Android
+  chat makes the Play build and uploads it, because that step uses the Play sign-in and its version counter. It will
+  be build 33, version 0.7.11. To be plain about "nothing else rides along": none of my other branches are in it, but
+  it does carry what the Android chat put on the shared branch since build 32: the web loader (T737), search opening
+  the water map on its part (T747) and the one-line Upstream / Downstream (T750). Those were due for your next phone
+  check anyway.
+  **State 2026-11-15 12:49: not uploaded.** Five of six checks passed on the exact build; the first-install-with-the-
+  app-closed check did not, and it fails the same way with the shrinker off: this Mac's internet line was crawling. No
+  merge and no upload until that check passes on a good line; I re-run it when the line recovers. If it is still bad
+  this evening the build slips to tomorrow. Found on the way, not from the shrinker: T756 (reopening mid-download
+  restarts the big files from zero after "Wait for Wi-Fi"); fix on a branch, not merged, not in this build.
+  **State 2026-11-15 14:44: planned for tomorrow.** The line is still down (30–46 bytes a second since 13:04). The
+  Android chat lands its desktop split (T752) on the shared branch first, so all six checks are re-run on that new
+  head with the shrinker on before the build. If the line recovers today the sixth check is still re-run today.
 - **DONE 2026-11-15 07:32.** TestFlight build 36 uploaded (0.7.10, branch `ios/next` d658f88ac, staging data): the
   iOS fixes, the first-install bar, the "applying new data" screen with fish puns, push, the crash-report fix, the
   faster cold start and lighter fonts. Yours: install 36 (not 34 or 35), then the phone checks and the push test;
@@ -613,3 +639,159 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
 - ANSWERED 2026-11-13 (T716): tap speed, open page before the double-tap wait? Owner: "Keep as is (Recommended)". No change; 0.7.9 carries the 0.35 s open.
 
 - [ ] Phone check after 0.7.9 (build 31, Play internal, 2026-11-14), T716: tap a small stream, the Fraser and a lake. The tapped stretch lights up at once; page in under half a second; double tap still zooms and opens nothing. Say if the highlight is too small zoomed out or it still feels slow. (To-Do page row: phone-check-079-tap-speed)
+
+## 2026-11-15 — overnight marks: your answers, and what is still yours (T743)
+- ANSWERED 2026-11-15: Alexandra Bridge stretches running 4.3 km into Region 3: "this is fine".
+- ANSWERED 2026-11-15: older group-saved labels being assessed: "ok good".
+- ANSWERED 2026-11-15: Atnarko "downstream of the sign": "no it needs to include tributaries". The save in force
+  already includes them; nothing to redo.
+- ASKED 2026-11-15: "we really need to check a lot of the items for this same issue and make sure we remove duplicates
+  or bad ones?" Audit running; you get a list to look at (proposals only).
+- OPEN, yes/no: Seton River mouth as its own cut 254 m below the Highway 99 bridge cut (recommended: yes, keep it), or
+  reuse the bridge cut.
+- ASKED 2026-11-15: "need to also fix all other tributary only items like on thre bulkley too. fix the proposals
+  after adding ability for it". In work (T742). Yours after it lands: re-mark the tributaries-only places already saved
+  (list will be on the To-Do page).
+- ASKED 2026-11-15 (Sproat River, DFO Region 1): "there is a tiny section of sprout river in the middle of the lake... if
+  anything it should be part of the lake....". Being investigated (ticket T753, written by the lane); options come to you.
+- ASKED 2026-11-15 (Kitimat, "on west bank between signs at Kitimat hatchery outfall"): "we should have a way to define
+  one half of the river closing maybe? could color only west or east side? could be an option in extent i think this is
+  the only river like this? but worth at least doing the coloring. then idk how to represent it otherwise. have an agent
+  look into this please". Being investigated (ticket T754, written by the lane); options come to you.
+- ASKED 2026-11-15: "also we need to make sure all items with tributaries in the name etc have tributaries in extent."
+  In work: the audit lists every place whose wording mentions tributaries against its extent and proposal (report
+  `handoff/PLAN/curation-review/resaved-marks-audit-2026-11-15.md`, Section E); the suggester proposes tributaries for
+  those wordings; the review app warns on a mismatch (T742). Mismatches on places you already saved come to you to re-mark.
+- ASKED 2026-11-15: "also we need to make sure all the res of extents work properly so that if other items get added or
+  removed they adapt their extent". Main chat's reading: the "rest of the water" kind of extent (a place with no stretch
+  of its own, e.g. Qualicum "all open portions"). Being checked (audit report Section F): is it worked out from the other
+  places at build time, and does it follow when one is added, removed or changed. Fixes, if needed, come as proposals.
+- ASKED 2026-11-15, on the audit's re-saved places (33 saved more than once, Thompson link, Fraser Region 3, Sheldens
+  Creek): "please audit these and see if you see any issue". Second look running; report
+  to come in handoff/PLAN/curation-review/ (resaved-marks-second-look, dated 2026-11-15).
+- PERMISSION 2026-11-15, verbatim: "i give you permission to fix these (Three places mean tributaries only and are wrong
+  today: Bella Coola "all tributaries" also includes the mainstem. The two Bulkley places have tributaries off, while
+  their proposals have them on.) and these too (Stave and three "mainstem" places have the tributary choice left blank
+  rather than set to off.)". Scope: those seven places only. The four blank ones are being set to off now (new marks
+  appended, noted "saved by Claude at the owner's request"); Bella Coola and the two Bulkley follow once the app can
+  record tributaries-only (T742).
+- ASKED 2026-11-15: "also we want to make sure all the mouth/ tidal splits are at the correct one (not the proposed one
+  but at the tidal ones we give every stream)". Audit running: every DFO place with a mouth or tidal end, the point it
+  uses against that stream's own tidal boundary; report to come in handoff/PLAN/curation-review/ (mouth-tidal-ends-audit, dated 2026-11-15).
+- OPEN, pick (T753, Sproat and 10 other waters): river pieces that loop out of a lake and back; take them out of the
+  river and give them to the lake (recommended), take out only, or leave. Rides on the next map rebuild.
+- OPEN, six questions (T754, one-bank places: Kitimat west bank, Nakina). On the To-Do page.
+- ANSWERED 2026-11-15 (T753, river pieces that loop out of a lake and back; Sproat): "yes do both steps but make sure it
+  is done in a clean way". Both steps = take the pieces out of the river, then give them to the lake. Code lane started;
+  it lands with the next map rebuild.
+- DONE 2026-11-15 (your permission on the blank tributary choices): Stave "downstream of B.C. Hydro dam" set to
+  tributaries off (new mark line 2672, noted as saved by Claude at your request; landed as 122a3d02d). The other three
+  were not as the audit said: the Fraser "mainstem waters downstream of" mark already says off (it waits on the Hope
+  bridge cut); the two Nass "mainstem" places have no mark at all, so they are yours to mark (set tributaries off).
+- ASKED 2026-11-15: "need to make sure all rules under a water with (includes tributaries) in the name gets tributaries
+  too." Main chat's reading: a DFO water whose heading says "(includes tributaries)" passes that to every place under it.
+  In work (T742): proposals inherit it, the app warns on a mismatch, and a list of already-marked places under such
+  waters that miss tributaries comes to you to re-mark.
+- OWNER 2026-11-15, right after the tributaries asks: "we should wait until fully done marks though". Main chat's reading:
+  nothing changes under him while he marks. So until he says he is done: no review-app update or restart, no change to
+  the proposals file, no further marks saved for him, no rebuild. The fixes keep being built and tested in separate
+  copies and land in one go afterwards.
+- OWNER 2026-11-15: "we just want to prepared for how we will audit them". So the checks asked today (saved twice,
+  tributaries, rest-of extents, mouth/tidal ends, side channels, one-bank) are being built into ONE repeatable audit
+  command, run once when he says the marks are fully done; today's reports are the trial run, not the final audit.
+- SECOND LOOK at the 31 re-saved places, 2026-11-15 (report `handoff/PLAN/curation-review/resaved-marks-second-look-2026-11-15.md`):
+  18 look right, 3 look wrong, 1 wrong by your own note (Sproat), 9 cannot tell. Yours to decide: (1) a place whose last
+  save is "wrong" with no fix still ships its older extent, with no flag: hold such places out of a release until
+  re-marked? (2) Thompson, Kamloops Lake outlet: the live place has no cut-outs for the three year-round no-fishing
+  areas (Deadman, Juniper, Ashcroft). (3) Sheldens Creek: the Spur 19 cut leaves only the top ~290 m of a 3.69 km line;
+  a second road (SP 19H) was never located. (4) Fraser Region 3: the extent in force (Spuzzum to the Region 3/5 line)
+  looks right; your Seabird note fits the Region 2 places.
+- ASKED 2026-11-15: "PUNTLEDGE RIVER: 75 m downstream of Puntledge River hatchery fence split is on the hatchery fence
+  (the split already in the river) we should fix the proposal and make sure we fix this existing split." Being looked
+  at: which wording made the existing split, where the fence and the 75 m point are, and other "N m downstream of"
+  places sitting on the landmark itself. Fix comes as a proposal; cut changes ride on the rebuild after marking.
+- MOUTH / TIDAL ENDS checked 2026-11-15 (report `handoff/PLAN/curation-review/mouth-tidal-ends-audit-2026-11-15.md`): no
+  place in force ends at a wrong mouth point (an open downstream end is trimmed at the stream's tidal boundary by the
+  build). Six PROPOSALS are bad: Chapman, Stave x2 (a new cut a few metres from the tidal boundary), Illiance, Kitsault,
+  Wilauks (a cut on the line's very end). Do not accept those; mark the stretch with an open downstream end instead.
+  Yours: Nass x2, Seymour, Illiance, Wilauks have no extent yet; Pallant Creek stops at "the bridge near the mouth",
+  57 m above the boundary (as DFO words it; your call). The proposal maker is being fixed to use the tidal boundary.
+- LOOK AND PICK (T752): desktop water map as a split, A map left / B map right / keep today's. Pictures sent in chat.
+- ANSWERED 2026-11-15: "Pallant Creek we can make the bridge the tidal boudnary i think". Queued for the rebuild after
+  marking (T743).
+- ANSWERED 2026-11-15 (T752 desktop split): "for the layout choose which ever you think is best practice". Main chat
+  chose B (text left, map right), from 900 px wide on every platform; being built properly with tests.
+- PUNTLEDGE checked 2026-11-15 (report `handoff/PLAN/curation-review/puntledge-hatchery-fence-2026-11-15.md`): you are
+  right, and for every user of that cut. The cut "signs 75 m downstream of Puntledge River hatchery fence" sits on the
+  lower-hatchery weir itself: its anchor was placed on the hatchery grounds 74 m upstream of the weir, so the 75 m
+  offset lands on the fence. Fix (your words: "make sure we fix this existing split"): anchor moved onto the weir, 75 m
+  offset kept; the cut lands 75 m below. Queued for the rebuild after marking. Yours afterwards: re-tick the three marks
+  that use it (lines 1263, 2447, 2687). No other "N m downstream of" place has this fault.
+- ASKED 2026-11-15 (Shuswap River, middle): "need help representing this ((middle) between Shuswap Falls and Mabel Lake
+  except closed from the water survey station … to WTFB signs … one km down stream.) it has the except closed structure
+  we encountered before". Save the place as the whole stretch (Shuswap Falls to Mabel Lake); the closed part becomes a
+  second, no-fishing entry as on the Thompson. The reader of DFO's page did not pick up this "except closed from … to …"
+  wording; being fixed in a separate copy. The two printed coordinates do not match the words (second is south of the
+  first); being checked.
+- ASKED 2026-11-15: "there was one river i dropped highway 16 split near mouth in the skeena i shouldnt have done that
+  help me fix it please". Found: Exchamsiks River "upstream of Highway 16 bridge", mark 2674, saved as the whole river.
+  Fix: save it again as upstream of the proposed "Hwy 16 bridge over the Exchamsiks" point; the new save replaces it.
+- PERMISSION 2026-11-15 (Puntledge), verbatim: "please add both cut on weir and one downstream then i give you
+  permission to edit that extent for regulations and dfo places." Scope: the Puntledge hatchery weir cut, the cut 75 m
+  downstream, and the Puntledge rule-book and DFO extents that use them. In work.
+- ASKED 2026-11-15: "the shuswap one add it as proposal so i dcan see it". The Shuswap closed stretch is being prepared
+  as a proposal for the review app; added to his proposals once ready.
+- PERMISSION 2026-11-15 (Exchamsiks only), verbatim: "can you fix Exchamsiks for me poroposal is gone so you can do it".
+  One new mark being saved for him: upstream of the Hwy 16 bridge point, tributaries on, noted as saved by Claude.
+- ASKED 2026-11-15 (Tatshenshini River, Region 6, "upstream of the BC/ Yukon border – along the Haines Hwy.; Kwatini
+  Creek, Stanley Creek and Goat Creek." and the Blanchard River one): "need to add bc boundary here i cant get it to
+  add. also i cant save or edit the extent of the other section there". Being reproduced in a separate copy of the app:
+  why no BC-border point is offered, why the Blanchard place will not save, and the marks those two places need.
+- DONE 2026-11-15: the Shuswap closed stretch is in your review app as a proposal (closed-areas panel of the Shuswap
+  "(middle) between Shuswap Falls and Mabel Lake" place; no restart needed). YOURS: which reading. DFO's two printed
+  points are 2,054 m apart along the river, not "one km", and look swapped: the second printed point is 27 m from the
+  Water Survey gauge "Shuswap River near Lumby", so it is the station. Options shown: as printed (km 133.08 to 135.13),
+  or station to 1 km downstream (km 134.13 to 135.13). Also yours: tell DFO about the mismatch?
+- DONE 2026-11-15 (Puntledge, your permission): weir cut added, 75 m cut moved to 75 m below the weir (same name, so
+  the rule-book stretch and both DFO places follow). Shows after the rebuild; then re-tick marks 1263, 2447, 2687.
+  YOURS: the retired "from the weir at the lower hatchery" place has no mark (weir to the 75 m cut). YOURS, yes/no: the
+  tailrace "50 m" cut has the same fault, about 27 m off; fix it the same way?
+- DONE 2026-11-15 (Exchamsiks, your permission): new mark line 2728, upstream of the Hwy 16 bridge point, tributaries
+  on, saved by Claude at your request; it replaces the whole-river save and waits on the rebuild like your other new-cut
+  saves. It shows as "unsure" because the app sets that for any extent using a not-yet-built cut.
+- READY 2026-11-15: the final marks audit is one command (branch review/marks-audit, commits d9f7045 + 88dec44, lands
+  with the other fixes after marking). Trial run on today's marks: 303 candidates in 11 sections; every finding from
+  today's hand audits is in it. Run by the main chat when you say the marks are fully done.
+
+## 2026-11-15 afternoon — owner done labelling for now; clean-up asked (T743)
+Owner, verbatim: "i thought skeena used to have a hells gate cut? also other ones liek this dont have the confluence
+cut? (from Lakelse River mouth upstream to the Skeena River Overpass (New Hwy Bridge) at Ferry Island) again this doesnt
+split on confluence.. (from the confluence with the Babine River downstream to the CNR Railway Bridge at Terrace. ) ...
+all the audit stuff i will have to review later like shuswap stuff etc etc. i think i am done labelling for now. can you
+audit everything a lot compile all results/issues into questions for me later. and make sure to fix all the remaining
+items left. a lot have issues with bad cuts etc etc. also we could rebuild the cuts and make sure nothing causes issues?
+also want to make sure we deduplicate the new cuts from proposal (if they rewference same thing they should be matched
+etc) we just really want to clean it all up and then have questions ready for me later."
+Main chat's plan: land the prepared fixes; run the full audit; clean the cuts (duplicates matched to one cut, confluence
+ends on the confluence cut, bad positions fixed where the evidence is clear, the rest as questions); side rebuild and
+checks; one page of questions for him. Nothing that changes what a wording means is decided for him.
+- TATSHENSHINI checked 2026-11-15 (report `handoff/PLAN/curation-review/tatshenshini-border-2026-11-15.md`). (A) The BC
+  border points exist in the data (the river leaves BC and comes back after 43 km in Yukon) but the app's picker cannot
+  show them; app fix proposed. The Kwatini / Stanley / Goat place does not need one: those creeks are wholly in BC, so
+  its whole-water extent is already right. (B) The Blanchard place cannot be edited because its extent carries a field
+  the editor cannot show, and the app hides the edit button without saying why; plain "whole" gives the same 15
+  sections. YOURS: on each of the two places, tick ✗ on rows 2 and 4, then "Confirm: the extent matches DFO's words"
+  (works today), or tell the main chat to save those two verified marks for you. 15 other unmarked places cannot be
+  edited in the app for the same kind of reason; listed in the report.
+- ASKED 2026-11-15 as he left: "record everything i need to do for when i am back what i need to review with questions
+  what was done etc etc. what needs testings etc etc". Kept in `handoff/PLAN/OWNER-RETURN-2026-11-15.md` (sent to him
+  as a file when final) and as the first row of the To-Do page.
+- DONE 2026-11-15 (your permission): Bella Coola "all tributaries" = tributaries only, Atnarko excepted (line 2730);
+  Bella Coola whole "(not including Atnarko River)" = Atnarko excepted (2731, per your note "make sure this excludes
+  atnarko"); the two Bulkley "all tributaries" places (2732, 2733) = tributaries only. YOURS: the two Bulkley places had
+  no mark of yours, so they are saved as "unsure" from the proposal: confirm or change.
+- BLOCKED 2026-11-15, NEEDS YOU: the side map rebuild did not start. The permission check refused its first step
+  (`python -m pipeline.regs.review.proposals side … --out data/generated/side/dfo-cuts23`) twice for the rebuild job; the
+  main chat does not run a command a job was refused. Run it yourself or tell the main chat to. Details in
+  `handoff/PLAN/OWNER-RETURN-2026-11-15.md` section 6.
+- ANSWERED 2026-11-15, on the blocked side rebuild step: "You can run it". Run by the main chat; rebuild continuing.

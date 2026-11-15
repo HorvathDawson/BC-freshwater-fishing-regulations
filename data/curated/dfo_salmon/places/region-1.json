@@ -1867,7 +1867,12 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "rest",
+            "item_id": "gnis:16505"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -1985,7 +1990,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "nanaimo_river__cedar_road_bridge",
+              "nanaimo_river__hwy_19_bridge"
+            ],
+            "item_id": "gnis:16505"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -2458,7 +2472,22 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "puntledge_river__signs_75_m_downstream_of_puntledge_river_hatchery_fence",
+              "puntledge_river__morrison_creek_into_puntledge_river_u100m"
+            ],
+            "item_id": "gnis:27060"
+          },
+          {
+            "op": "downstream_of",
+            "splits": [
+              "puntledge_river__morrison_creek_into_puntledge_river_d100m"
+            ]
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -3275,7 +3304,7 @@
       "binding": {
         "extents": [
           {
-            "op": "whole"
+            "op": "rest"
           }
         ],
         "tributaries": null,
@@ -3570,7 +3599,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "sproat_river__sproat_lake",
+              "sproat_river__fishing_boundary_signs_300_m_downstream_of_hwy_4"
+            ],
+            "item_id": "gnis:25640"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -3676,8 +3714,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
-        "tributaries": null,
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "stamp_river__ash_river_into_stamp_river"
+            ],
+            "item_id": "gnis:14533"
+          }
+        ],
+        "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -3726,7 +3772,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "stamp_river__fishing_boundary_signs_200_m_upstream_of_stamp_falls",
+              "stamp_river__signs_500_m_downstream_of_stamp_falls"
+            ],
+            "item_id": "gnis:14533"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -3785,7 +3840,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "stamp_river__robertson_creek_hatchery_lagoon_outlet",
+              "stamp_river__robertson_creek_hatchery_lagoon_inlet"
+            ],
+            "item_id": "gnis:14533"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -3841,7 +3905,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "stamp_river__robertson_creek_hatchery_lagoon_outlet",
+              "stamp_river__robertson_creek_hatchery_lagoon_inlet"
+            ],
+            "item_id": "gnis:14533"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -3899,7 +3972,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "stamp_river__stamp_river_powerline_crossing_b",
+              "stamp_river__robertson_creek_hatchery_lagoon_inlet"
+            ],
+            "item_id": "gnis:14533"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -3953,7 +4035,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "stamp_river__girl_guide_falls_signs"
+            ],
+            "item_id": "gnis:14533"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -4007,7 +4097,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "stamp_river__girl_guide_falls_signs"
+            ],
+            "item_id": "gnis:14533"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -4318,8 +4416,17 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
-        "tributaries": null,
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "cowichan_river__cnr_bridge",
+              "cowichan_river__skutz_falls"
+            ],
+            "item_id": "gnis:12227"
+          }
+        ],
+        "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -5188,7 +5295,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "stamp_river__robertson_creek_hatchery_lagoon_inlet",
+              "stamp_river__robertson_creek_hatchery_lagoon_outlet"
+            ],
+            "item_id": "gnis:14533"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],

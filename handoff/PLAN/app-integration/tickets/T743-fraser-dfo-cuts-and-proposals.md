@@ -1,6 +1,6 @@
 # T743 — The Fraser's DFO places: cuts checked, proposals fixed, a dossier to label from
 
-Status: DONE on the data side, 319a447a0, a9fbaa802 (Fraser data lane, 2026-11-14); the re-marks and cut acceptances wait on the owner
+Status: DONE on the data side, 319a447a0, a9fbaa802, eafa7b9f5 (Fraser data lane, 2026-11-14/15); the re-marks and cut acceptances wait on the owner
 
 Source: owner 2026-11-14: "also please try to fix up fraser and make sure all the cuts are good and fix proposals etc."
 
@@ -55,3 +55,49 @@ Owner: "can you just reset the fraser marks fully and I will redo them when app 
   Hydro tail race, km 327.9); Seton River mouth (-121.926856, 50.681805, km 329.1, the exact FWA mouth), 254 m
   downstream of the bridge. Recommendation (main chat): keep the Seton mouth as its own cut; the 250 m piece between the
   bridge and the mouth is real water where DFO's place does not apply. Awaiting his yes/no.
+- Atnarko, owner 2026-11-15 (second reply): "no it needs to include tributaries … we really need to check a lot of the
+  items for this same issue and make sure we remove duplicates or bad ones?" So mark 2584 (tributaries included) is the
+  right one and is in force; nothing to change there. Asked for: an audit of every place saved more than once, for
+  leftovers of the replaced save and for bad marks. Running (read-only); report
+  `handoff/PLAN/curation-review/resaved-marks-audit-2026-11-15.md`. Findings go to him as proposals.
+- Owner 2026-11-15: "can i keep reviewing while you work?" Yes (fix lane is in its own worktree; audit is read-only).
+
+## Channels, Redsand, spot checks, the nine cuts, group marks (2026-11-15, data lane)
+Report: `handoff/PLAN/curation-review/fraser-channels-2026-11-15.md` (no mark, curated file or suggestion touched).
+- Fraser channels Mission → Spuzzum: the 29 unnamed channels (57.8 km) are in `gnis:39325` and in every mark. Dropped
+  by every Fraser place: Herrling Island (12.2 km), Seabird Island North (4.7 km), Jeperson braids (3.3 km), split
+  out as `blk:` items with no gnis and not in the water record. Dropped by the item-restricted pair only: Maria Slough
+  (14.3 km, owner's call) + Jeperson's gazetted line (5.3 km) = the 9 sections / 19.5 km. Nicomen, Strawberry: separate.
+  Province-wide 4 waters; real gaps only Fraser and Squamish (Powerhouse Channel, 3.0 km, named in DFO's own water name).
+- Redsand: `wbk:-1` is a curated added lake and the mark is right; the tributary walk took the through-river
+  (T468 rule, no rows on a DFO place). Fixed eafa7b9f5 (POLICY_VERSION 39): Redsand 2,639 → 4 sections, Kitsumkalum
+  Lake 2,626 → 983; the other 259 DFO places identical; no shipped binding moves.
+- Spot checks right: Tahltan, Nakina, Tatsatua, Nitinat parts, Atnarko (by the cascade). Little Shuswap Lake and the
+  lower Atnarko wait on their cuts. Found wrong: Bella Coola "all tributaries" (2583) covers the mainstem and wins
+  the tie by id, so mainstem chinook reads no fishing (needs `tributaries_only`).
+- Nine cuts checked against OSM: eight ok (Alexandra per his 11-15 "fine"); second look: the Lillooet signs (which edge of town). Morice 2591/2592 sit
+  on the 100 m-off cuts of the other wordings (re-mark, no rebuild). Rebuild list in the report (not run).
+- Group marks: of 8 places only Nanaimo "500 m below the power line" (2442) is wrong (carries 2443's extent).
+- Pallant Creek, owner 2026-11-15: "Pallant Creek we can make the bridge the tidal boudnary i think". So Pallant's tidal
+  boundary moves to the "bridge near the mouth" (57 m upstream of today's boundary). Queued for the rebuild after the
+  marks are done (curated tidal limit change + reach rerun); not applied yet.
+
+## Cut clean-up after labelling (2026-11-15)
+Report, rebuild input and 23 owner questions: `handoff/PLAN/curation-review/cut-cleanup-2026-11-15.md`. Done (fd78c0a6f +
+write-through 9652ef28f, e702daa70, 7ed7a57fa): Pallant tidal boundary at the bridge (owner row + authority `owner`);
+marks 2734-2739 (Illiance, Wilauks open mouth end; Gitnadoix unused m-0 cut dropped; Morice at the Bulkley confluence;
+Morice Gosnell put back as saved, Q8). 23 new cuts remain for the side rebuild, none a duplicate; the Skeena's Hell's Gate is
+`skeena_river__kitsumkalum_river_into_skeena_river_u1500m` (never renamed); the Skeena Lakelse / Babine confluence cuts do not
+exist (Q12, Q13).
+
+## Before the release that carries the labels (added 2026-11-15)
+- Puntledge: weir cut added and the 75 m cut moved onto the right spot (bf1a29567, owner asked); takes effect at the
+  atlas rebuild; owner re-ticks marks 1263, 2447, 2687 after it. The dormant "from the weir at the lower hatchery" place
+  has no mark: his to mark (weir cut to 75 m cut). The tailrace "50 m" cut has the same anchor fault (about 27 m off):
+  not changed, owner to decide.
+- Closed areas inside a DFO place (T573 entry B: Thompson Deadman / Juniper / Ashcroft, Shuswap middle): proposals
+  exist, none accepted yet, and NO build step reads an accepted closed area into the atlas / bundle / feed. Must be
+  written and tested before the release, or those closures do not reach the app. The reader for "except closed from …
+  to …" is on branch data/except-closed (df546975a), to land after marking.
+- T753 lake loops (cf7df0dba, branch data/t753-lake-loops) and Pallant Creek's tidal boundary at the bridge ride on the
+  same rebuild.

@@ -28,20 +28,22 @@
  * header (`RegsHeader`, whose date pill sits in it; no Parts button since T150). Either way the row is the same box at the same
  * place. An inset block is `WaterInset` (the frame's gutter), never a padding of the view's own.
  *
- * THE MAP MAY GO FULL-BLEED (`bleed`): the canvas takes the window's width under the header; the header, the name row
+ * THE MAP MAY GO FULL-BLEED (`bleed`, the phone's Map): the canvas takes the window's width under the header; from the tablet
+ * breakpoint up (T752) the Map is a split INSIDE the column instead, not full-bleed. The header, the name row
  * and the bar's words (`WaterInset column`) stay on the column. That is the one difference allowed between the views.
  *
  * Safe areas are the app's (`apps/mobile` App.tsx wraps everything in a SafeAreaView); the frame adds none of its own.
  */
-import { useContext, useRef } from "react";
+import { createContext, useContext, useRef } from "react";
 import { WATER_TITLE_WORDS } from "@app/core";
+import { useLayoutClass } from "@app/ui";
 import { Animated, View, type StyleProp, type ViewStyle } from "react-native";
 import { Selectable, Text } from "./Text";
 import { FaceBar, type Face } from "./Faces";
 import { SwipeFollow, SwipeOffsetContext, ViewSwipe, WaterViewsContext } from "./ViewSwipe";
 import { useCappedScale } from "./textScale";
 import { CAPPED_SCALE, TYPE } from "./type";
-import { WATER_FRAME, type Palette } from "./theme";
+import { SPACE, WATER_FRAME, type Palette } from "./theme";
 
 /** The column: the frame's measure, centred. */
 const COLUMN: ViewStyle = { width: "100%", maxWidth: WATER_FRAME.maxWidth, alignSelf: "center" };
@@ -146,6 +148,35 @@ export function WaterInset({ column = false, style, testID, children }: {
   return (
     <View testID={testID} style={[column ? COLUMN : null, { paddingHorizontal: WATER_FRAME.gutter }, style]}>
       {children}
+    </View>
+  );
+}
+
+/**
+ * (T752) THE MAP TAB'S WIDE SPLIT: from the app's own `tablet` breakpoint (`useLayoutClass`, 900) up, on every platform,
+ * the water's Map is the part's text column on the LEFT (a fixed width) and the map on the RIGHT filling the rest, both
+ * inside the frame's column (not full-bleed). Below it the Map is the phone's layout, unchanged.
+ */
+export const SPLIT_TEXT_WIDTH = 420;
+/** The map pane never gets shorter than this (px). */
+export const SPLIT_MAP_MIN_HEIGHT = 360;
+export function useWaterMapSplit(): boolean {
+  return useLayoutClass() !== "phone";
+}
+/** The report link, drawn by the text column in a split (`WaterMap` owns the link's words). */
+export const SplitReportContext = createContext<React.ReactNode>(null);
+export const useSplitReport = () => useContext(SplitReportContext);
+
+/** The split's two sides on the frame's column and gutter: `text` first in the tree (tab order: tabs, text, map). */
+export function WaterSplit({ palette, text, map, testID }: {
+  palette: Palette; text: React.ReactNode; map: React.ReactNode; testID?: string;
+}) {
+  return (
+    <View testID={testID} style={[COLUMN, { flex: 1, flexDirection: "row", gap: SPACE.s4, paddingHorizontal: WATER_FRAME.gutter,
+                                           paddingBottom: SPACE.s4, backgroundColor: palette.card }]}>
+      <View style={{ width: SPLIT_TEXT_WIDTH, minHeight: 0 }} testID="water-map-text">{text}</View>
+      <View style={{ flex: 1, minWidth: 0, minHeight: SPLIT_MAP_MIN_HEIGHT, borderWidth: 1.5, borderColor: palette.ink }}
+            testID="water-map-pane">{map}</View>
     </View>
   );
 }
