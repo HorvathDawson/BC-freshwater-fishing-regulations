@@ -75,7 +75,7 @@ Runs: `ios-baseline` (main lane, `all`, cut by its 40 min cap during `pdf`), the
 | location | 2 PASS, 1 SKIP | **app (parity):** no "At my location" row in iOS search (START-HERE flagged it) | 949 blue px at the centre |
 | walkthrough | PASS | | 41 of 41 |
 | pdf | PASS (re-run) | baseline: cut by the session cap | "Page 11 of 88" in PDFKit |
-| crash | FAIL step 2 | **app or server, unconfirmed:** the next start read the record (`1 new … (CRASH_NATIVE), 1 bad`) but `sendExit` returned false on every start (POST /crash to the staging worker was made: CFNetwork lines). The app does not log the HTTP status. The worker's per-IP limit (40 a day) is now **unlikely**: the re-run at 23:30 PT, a new UTC day, failed the same way. So it is the app's payload or the worker's validation (400), unconfirmed. Next: log the POST's status in `sendExit` (no silent failure), or replay the iOS record against the local crash stub | |
+| crash | FAIL step 2 | **app or server, unconfirmed:** the next start read the record (`1 new … (CRASH_NATIVE), 1 bad`) but `sendExit` returned false on every start (POST /crash to the staging worker was made: CFNetwork lines). The app does not log the HTTP status. Likely the worker's per-IP limit (40 crash POSTs a day: many crash tests from this Mac today), not proven. **2026-11-15: proven, the per-address day limit (every send a 429 "too many reports today"); see "Crash report not delivered on iPhone" below** | |
 | perf | PASS | | cold start → map 597 / 583 / 595 ms; tap → first frame 123 / 54 / 64 ms; pan lag max 18 ms, 0 stalls |
 | memory | PASS (re-run) | baseline: never ran. **Test bed:** the rule-book link (now "This water in the rule book p.7 ↗") and the Salmon toggle's words had changed (59aaa4de8) | peak footprint 274 MB (0.5.0: 290); table in T725 |
 
@@ -97,6 +97,36 @@ Runs: `ios-baseline` (main lane, `all`, cut by its 40 min cap during `pdf`), the
   `onProgress: (p) => onBytes?.(have + p.bytesWritten)` adds it to a number. **Likely effect: the first-open progress on
   iOS does not move** (not seen: no shot during the download). Fix (shared `packages/data`, not this lane's):
   `Number(p.bytesWritten)`. Android is unaffected (its value is a number).
+
+### Crash report not delivered on iPhone: cause and fix (iOS crash lane, 2026-11-15, branch `ios/crash-send`)
+- **Cause: the staging worker's per-address day limit, not the iOS payload.** 24 of the 25 `POST /crash` answers in the
+  T718 runs' `app-os.log` (`ios-baseline`, `ios-rest`, `ios-benches`, `ios-open`, `ios-open2`, `ios-shared`, `ios-shared4`,
+  `ios-mid`; 10:22 to 23:49 MST, the Mac's clock) are `response_status=429` in CFNetwork's summary, each with a 45-byte body. 45 bytes is exactly
+  `{"ok":false,"error":"too many reports today"}`, the refusal at `app/workers/feeds/src/reports.ts:262` (`st.n >= perDay`,
+  `CRASH_PER_DAY = 40` a day per address, counted by UTC day, `crashes.ts` `handleCrash`). The other 429 ("try again in a
+  minute") is 62 bytes. **The same build's send at 17:01:01 MST (00:01 UTC, a new UTC day) was taken** (201, `sent 1 exit
+  record(s)`, `ios-shared`). The 23:30 failure was not a new day: 23:30 MST is 06:30 UTC, and that UTC day's 40 had been
+  spent since 17:00 MST. Who spent it is not in these logs (iOS logs show 1 accepted crash send after 17:00); every test
+  bed on this Mac (iOS simulators, Android emulators) and any phone on the same line share one address.
+- **"1 bad" is not a verdict on the record:** it is how many records have a bad-exit reason (`BAD_EXITS`, `crashReport.ts`
+  `reportPastExits`). The iOS record and its payload are fine: the worker takes them (tests below).
+- **Android and the web:** the limit is the same for every platform (the Android `crash` scenario passes when the address
+  has room). The payload code was not changed: Android's payload is byte-identical.
+- **Fix (branch only, the worker is NOT deployed):** (1) worker: on staging a `test: true` crash (every test-bed build sends
+  it) counts against its own per-address counter (`private/crashes/limits/test-ip-…`, 200 a day = `TEST_PER_DAY_TOTAL`),
+  as its new kinds already count against their own day total (T609 W19), so test beds never spend the 40 a real phone on
+  the same line needs; production ignores the tag (one counter, as before). This is a limit-policy change: owner's call
+  before the deploy. (2) App (`@app/ui` crashReport.ts, shared): each send's answer (HTTP status and the worker's `error`
+  words) is in the `[crash-reports]` line (`; answers: HTTP 429 (too many reports today)`), and a REFUSED exit record or
+  kept fatal error is reported (`reportFailure`, name `CrashReportRefused`), no longer silent. No answer at all (offline)
+  is logged, not reported. `exitPayload` is the one exit-record payload builder.
+- **Tests:** worker `crashes.test.ts` "the iPhone's exit record": the real iOS payload is taken (201); 40 sends then the
+  41st is a 429 with that exact 45-byte body, and a new UTC day takes it; test-tagged sends have their own 200 and leave a
+  real report from the same address taken. App: `crashReport.test.ts` pins the iOS record's payload whole, the 429 line
+  and its report; `tools/wire.test.ts` sends iOS's two record kinds and an Android one through `validateCrash`.
+- **Not proven:** the device run, and the worker change on staging (needs a deploy). Device proof, after a build of this
+  branch (and the staging worker deployed with this change, or run it early in a UTC day before the 40 are spent):
+  `HEAVY_LOCK=$HOME/.claude/heavy-job-2.lock TESTBED_SIM="iPhone 17" scripts/heavy.sh ios-crash 30 -- bash app/tools/testbed/session-ios.sh --max-min 20 -- node app/tools/testbed/run-ios.mjs crash`
 
 **Test bed cost:** every Maestro call (a flow or a `hierarchy` read) takes 10-25 s on this simulator (a JVM start plus the
 XCTest driver), so the 11 scenarios need about 60 min, more than the 40 min cap given. Run them in two batches.
