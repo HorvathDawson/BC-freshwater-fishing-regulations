@@ -1,5 +1,5 @@
 /**
- * (T716) A TAP'S LIFT ANSWERS ITS CLICK. On Android the map hears a tap twice: at the finger's lift (`onTapUp`, the
+ * (T716) A TAP'S LIFT ANSWERS ITS CLICK. On Android (and iOS, T719) the map hears a tap twice: at the finger's lift (`onTapUp`, the
  * patched binding) and, once a double tap is ruled out, as a click (`onPress`, ~300 ms after the finger went down). The
  * lift has already asked what is under the finger — a spot, a boundary mark, a fish obstacle mark, the water — so the
  * click at the same point reads that answer instead of asking again (measured: the second set of queries waited on the
