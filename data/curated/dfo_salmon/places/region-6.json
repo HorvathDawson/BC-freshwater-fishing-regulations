@@ -8681,7 +8681,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "khyex_river__hwy_16_bridge_over_the_khyex"
+            ],
+            "item_id": "gnis:4076"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
