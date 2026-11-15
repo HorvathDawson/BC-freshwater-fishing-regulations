@@ -1,6 +1,6 @@
 # iOS hardening: start here (written 2026-11-14)
 
-## Morning summary, 2026-11-15 (written 07:35; the night's work in one place)
+## Morning summary, 2026-11-15 (written 07:32; the night's work in one place)
 
 **For you to do, in this order**
 1. **Install TestFlight build 36** (uploaded 07:32; it replaces 34 and 35: everything below is in it). App Store
@@ -26,9 +26,9 @@
 
 **Checked on the combined build this morning (iPhone simulator):** walkthrough 41 of 41, tap a water 3 of 3, offline
 3 of 3, satellite; one first-open step failed on a test-bed timing fault (a notice covered the tabs). The second
-session (rule book, keyboard, back swipes, timed runs) was running at 07:35.
+session (rule book, keyboard, back swipes, timed runs) was running at 07:32.
 
-**Still running or queued at 07:35**
+**Still running or queued at 07:32**
 - The combined build's second simulator session.
 - Android's code shrinker trial (T749, R8): built; the test APK is 55.0 MB against 62.4 MB (app code 7.9 MB against
   30.4 MB). Whether the shrunk app starts and passes the six emulator checks is not known yet.
