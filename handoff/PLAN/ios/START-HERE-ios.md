@@ -1,6 +1,6 @@
 # iOS hardening: start here (written 2026-11-14)
 
-## Summary of the unattended day, 2026-11-14 (state at 18:00; lanes still running are marked)
+## Summary of the unattended day, 2026-11-14 (state at 22:15; lanes still running are marked)
 
 Nothing here touched Play, TestFlight, production, the atlas or a release, and nothing used an Apple account. Every app
 fix sits on its own branch, not on `redesign/stream-sections`, until it is proven on the simulator and the Android
@@ -63,8 +63,17 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
 - The iOS look at today's five shared fixes (T717, T728 to T731): **no verdict yet.** The first run (16:50) failed in
   every step on a test-bed fault (an Apple Maps location prompt covered the screen), and the build with the fixes was
   never made for that lane. Rebuilding and re-running from 20:45.
-- `ios/integration`: the three proven iOS branches merged together, to be run on the simulator and against the Android
-  benches. Started 20:45.
+- `ios/integration` (head 3212f4936, app CI green, not merged): the four iOS branches (install, keyboard and back,
+  audit fixes, tap cue) merged together. The whole app test suite passes (7,707 tests) and the feeds worker's (447).
+  Six tests went red after the merge and were fixed at the cause (lists that name every scenario and every reported
+  failure; one stale label). Running at 22:15: the simulator checks on the merged build, then the four Android benches
+  on the emulator (the Android chat gave the emulator for the night).
+- `ios/t739-push` (T739, **started 21:50**, nothing deployed or merged): push wake-ups so a closure alert arrives on
+  time with the app closed, iPhone and Android (owner: "okay i ticked push notifications for app yes build for iphone."
+  and "for android too."). Also a new-data wake-up (owner: "i guess if new data is there we could send a notification
+  that the user needs to download it."): the phone downloads by itself when the settings allow, and otherwise shows one
+  notice. Time-sensitive notices are left out ("dont need this"). Needs from the owner later: an Apple push key, and for
+  Android a free Firebase project with its `google-services.json`.
 
 **What failed or was found**
 - **iOS background download refused on the simulator, then fixed:** the system service rejected every task ("does not
@@ -124,8 +133,12 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
 15. A spot's Save row stays under the keyboard while typing: leave it (drag down or Done first) / lift the row above
     the keyboard.
 16. The new left-edge back strip on full-screen pages is 16 pt wide and takes taps in that gutter: keep / narrow to 8 pt.
-14. ANSWERED 18:15 ("Maybe we can run 2 at same time might have enough resources"): a third heavy lane exists, so two
-    simulator jobs run at once.
+14. ANSWERED 18:15 ("Maybe we can run 2 at same time might have enough resources") and later, relayed by the Android
+    chat ("i just meant use as much of the resources as you can to speed stuff up"): three heavy lanes exist; each job
+    still waits for free memory.
+18. Push (T739): ANSWERED, both platforms, no time-sensitive notices, new-data wake-up added. Open: "for android too"
+    is read as your exception to "self-host everything" for push delivery only (Google's Firebase Cloud Messaging):
+    right / not right.
 
 Owner, 2026-11-14, verbatim: "Maybe we could make a handoff to start improving the ios versions? Making sure it is rock
 solid too?" This **reopens iOS**, which the owner benched on 2026-11-06 ("no iOS device work until DFO extents labelled +
