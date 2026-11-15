@@ -1,6 +1,6 @@
 # T729 — The opened credits card is under the legend and cannot be read
 
-Status: IN PROGRESS (before closed testing) — code + test done; left (Claude): an emulator look on the next APK
+Status: IN REVIEW (in build 32 = 0.7.10, Play internal 2026-11-14; emulator looks passed; owner: OWNER-TODO "Phone check, build 32 = 0.7.10")
 
 Source: owner 2026-11-14, verbatim: "attribution on app goes under the legends on the different map tabs."
 Clarified by the owner 2026-11-14 (dialog), verbatim: "i meant when you open the atrribtuion clicking on it it opens under the legend on the map so you cant read it"

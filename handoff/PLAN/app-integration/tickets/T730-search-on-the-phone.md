@@ -1,6 +1,6 @@
 # T730 — Search on the phone: swipe down to close, small recents, the map stays, a fresh search each time
 
-Status: IN PROGRESS (before closed testing) — code + render tests done; left (Claude): an emulator look on the next APK
+Status: IN REVIEW (in build 32 = 0.7.10, Play internal 2026-11-14; emulator looks passed; owner: OWNER-TODO "Phone check, build 32 = 0.7.10")
 
 Source: owner 2026-11-14, from using the app on a phone, verbatim:
 1. "When you open search on app you can't swipe down to close it also recent searchs take up a huge amount."

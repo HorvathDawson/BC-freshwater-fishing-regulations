@@ -1,6 +1,6 @@
 # T731 — A step on a water's map closes the bar, resizes the map, then draws it all again
 
-Status: IN PROGRESS (before closed testing) — code + tests done; left (Claude): an emulator look on the next APK (test bed scenario owed, below)
+Status: IN REVIEW (in build 32 = 0.7.10, Play internal 2026-11-14; emulator looks passed; owner: OWNER-TODO "Phone check, build 32 = 0.7.10")
 
 Source: owner 2026-11-14, phone, verbatim: "When you are in the navigate section view and you click upstream or downstream it
 is like menus briefly close at bottom and cause a flash of a resize then rerender that is a bit abraisive"

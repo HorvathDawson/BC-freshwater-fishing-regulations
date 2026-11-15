@@ -1,6 +1,6 @@
 # T734 — The app closed when a water was opened before its map was ready
 
-Status: IN PROGRESS (before closed testing; fixed and proven on the emulator; left (Claude): build 32 to Play internal once pipeline CI is green)
+Status: DONE (514f2cc14; in build 32 = 0.7.10, Play internal 2026-11-14; owner phone check pending)
 
 Source: build 32's verify lane, 2026-11-14 (HEAD 59aaa4de8). The app closed twice with
 `java.lang.NullPointerException at org.maplibre.reactnative.components.mapview.MLRNMapView.project(MLRNMapView.kt:1653)`

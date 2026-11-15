@@ -1,6 +1,6 @@
 # T728 — A Flow / Level pick in the Conditions card does not change the Conditions map's layer
 
-Status: IN PROGRESS (before closed testing)
+Status: IN REVIEW (in build 32 = 0.7.10, Play internal 2026-11-14; emulator looks passed; owner: OWNER-TODO "Phone check, build 32 = 0.7.10")
 
 Source: owner 2026-11-14, verbatim: "when you chang elvel/condition in the card it should not change cindition map layers too"
 
