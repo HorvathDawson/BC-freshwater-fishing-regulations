@@ -8,7 +8,7 @@ never jump between waters").
     rule_check(e, r)      one regulation rule: the same
     queue(source, ...)    every place of a source (dfo | regs | all), grouped by water, with its summary and check state
     progress(...)         done / total over the whole list, by state, per water
-    water(key, source)    every place on ONE water — older wordings too — each with its extent, grouped by same place
+    water(key, source)    every place on ONE water — older wordings too, each its own row (T742: no grouping)
     water_reach(key)      what each of the water's DFO extents binds, as geometry (the faint lines under the shown one)
 
 READ ONLY. The rows resolve nothing (AGENTS 16): the cuts built are the served atlas's (`dfo._built_cuts`), the
@@ -147,10 +147,25 @@ def _ctx_now() -> C.Context:
         n = p["split"]
         proposed[rid] = n.name or n.anchor
     labels.update({k: v for k, v in proposed.items() if k not in labels and v})
+    # (owner 2026-11-15, mark 2578) a region line is never named by its one atlas row — that row sits on another
+    # water ("Region 3 – Region 8 boundary" on the Fraser): read alone it is "Region N boundary", read on a water it is
+    # that water's crossing (`on_water`, `reuse.cut_name` — the one namer)
+    labels.update({sid: reuse.region_words(sid) for sid in list(labels) if reuse.REGION_CUT.match(sid)})
+    # (T755 follow-up) a BC-border cut by its own crossing ("BC–Yukon border · km 102 …"), never the bare "BC boundary"
+    labels.update({sid: n for sid in list(labels) if reuse.BORDER_CUT.match(sid) for n in [reuse.cut_name(sid)] if n})
     pending = frozenset((set(records) | set(proposed)) - built)
     reg = reuse._registry()
     items = _Lazy(lambda i: getattr(reg.get(i), "name", None) or None)
-    return C.Context(labels=labels, items=items, built=built, pending=pending, points=_Lazy(_point))
+    return C.Context(labels=labels, items=items, built=built, pending=pending, points=_Lazy(_point),
+                     on_water=_region_on_water)
+
+
+def _region_on_water(sid: str, items: tuple):
+    """`checklist.Context.on_water`: a region line read on these waters -> (its crossing's name, its pin); None for any
+    other cut (its label and point are the same on every water)"""
+    if not reuse.REGION_CUT.match(sid):
+        return None
+    return reuse.cut_name(sid, items), reuse.cut_point_on(sid, items)
 
 
 _CTX = reuse._Memo()
@@ -158,8 +173,10 @@ _CTX = reuse._Memo()
 
 def context() -> C.Context:
     from pipeline.common.curated import CURATED
-    return _CTX.get((reuse._stamp((reuse.MARKS_PATH, reuse.SPLITS_JSON_PATH, reuse.REGISTRY_PATH,
-                                   CURATED.review.proposal_overrides)), reuse._registry()), _ctx_now)
+    # (T755 follow-up) the marks reach the context only through the proposed cuts: keyed on when those last changed
+    return _CTX.get((reuse.proposals_stamp(), reuse._stamp((reuse.SPLITS_JSON_PATH, reuse.REGISTRY_PATH,
+                                                           CURATED.review.proposal_overrides)), reuse._registry()),
+                    _ctx_now)
 
 
 # --------------------------------------------------------------------------- the check state
@@ -468,46 +485,40 @@ def rule_check(entry_id: str, rule_id: str) -> dict | None:
 # --------------------------------------------------------------------------- the queue, by water
 
 def _dfo_places() -> list[dict]:
-    """one row per DFO place (a historic rewording rides its place, as the DFO queue lists them; `older_unconfirmed`:
-    how many of its older wordings have no check in force)"""
+    """one row per DFO place. T742 (owner 2026-11-14: "remove the grouping option … one at a time is better"): EVERY
+    wording is its own row with its own state — a live one, and each older wording on a live water — never folded
+    under another; a place whose mark in force a group save wrote carries `group_marked` (a flag, no state change)"""
     import dfo
-    states, locs, ctx, groups = dfo._states(), dfo._locations(), context(), dfo._groups()
-    verify = {r["id"]: r["verify"] for r in dfo._rows()}
-    out = []
-    for r in dfo._rows():
-        if r["lake_area"] or (r["status"] != "active" and not r["historic_only"]):
-            continue
-        g = r.get("group")
-        if g and g["canonical"] != r["id"] and g["canonical"] in locs:
-            continue
-        _s, loc, water = locs[r["id"]]
-        got = dfo_rows(loc, water, states.get(r["id"]), ctx, r["verify"])
-        items = list((water or {}).get("item_ids") or [])
-        # owner 2026-11-09: an older wording is checked only when the owner ticks it "same place" — one not checked
-        # (or whose check went stale) keeps its place in the queue, flagged on the place it rides
-        older = [m["id"] for m in ((groups.get(r["id"]) or {}).get("members") or [])
-                 if m["id"] != r["id"] and m["id"] in locs]
-        unconfirmed = sum(1 for o in older
-                          if dfo_rows(locs[o][1], locs[o][2], states.get(o), ctx, verify.get(o))["check"]
-                          not in DONE_STATES)
-        out.append({"source": "dfo", "id": r["id"], "water": r["water"], "water_key": _water_key(items, r["water"]),
-                    "items": items,
-                    "region": r["region"], "text": r["text"] or "(the whole water)", "summary": got["summary"],
-                    "check": got["check"], "new": r["verify"] == "unmarked",
-                    # what the place needs before any row can be checked: no extent (unbound), or a cut (needs_cut)
-                    "state": r["state"], "proposal": bool(r["suggested"] or r["fix_proposed"]),
-                    "ease": ease_of(check=got["check"], has_extent=bool((loc.get("binding") or {}).get("extents")),
-                                    bad=got["summary"]["bad"], proposal=_proposal_facts(r["id"]),
-                                    twin=any((locs[o][1].get("binding") or {}).get("extents") for o in older)),
-                    **({"earlier": got["earlier"]} if "earlier" in got else {}),
-                    **({"older": len(older), "older_unconfirmed": unconfirmed} if older else {})})
-    return out
+    states, locs, ctx = dfo._states(), dfo._locations(), context()
+    return [_dfo_place(r, locs, states, ctx) for r in dfo._rows() if _queued(r)]
 
 
-def _regs_places() -> list[dict]:
+def _dfo_place(r: dict, locs: dict, states: dict, ctx) -> dict:
+    """one DFO place's queue row (`_dfo_places`)"""
+    _s, loc, water = locs[r["id"]]
+    got = dfo_rows(loc, water, states.get(r["id"]), ctx, r["verify"])
+    items = list((water or {}).get("item_ids") or [])
+    return ({"source": "dfo", "id": r["id"], "water": r["water"], "water_key": _water_key(items, r["water"]),
+                "items": items,
+                "region": r["region"], "text": r["text"] or "(the whole water)", "summary": got["summary"],
+                "check": got["check"], "new": r["verify"] == "unmarked",
+                # what the place needs before any row can be checked: no extent (unbound), or a cut (needs_cut)
+                "state": r["state"], "proposal": bool(r["suggested"] or r["fix_proposed"]),
+                "ease": ease_of(check=got["check"], has_extent=bool((loc.get("binding") or {}).get("extents")),
+                                bad=got["summary"]["bad"], proposal=_proposal_facts(r["id"]), twin=False),
+                "live": r["status"] == "active",
+                **({"group_marked": r["group_marked"]} if r.get("group_marked") else {}),
+                **({"old_extent": r["old_extent"]} if r.get("old_extent") else {}),
+                **({"earlier": got["earlier"]} if "earlier" in got else {})})
+
+
+def _regs_places(only: set | None = None) -> list[dict]:
+    """every regulation rule with an extent, as a checklist place; `only`: just these entries' (T755 follow-up)"""
     marks, ctx = _rule_marks(), context()
     out = []
     for region, e in reuse._all_entries():
+        if only is not None and e["entry_id"] not in only:
+            continue
         for r in e.get("rules") or []:
             if not isinstance(r, dict) or not r.get("extents"):
                 continue
@@ -531,6 +542,8 @@ def _water_key(items: list[str], name: str) -> str:
 
 
 _PLACES = reuse._Memo()
+#: T742 E4: the cached list with the write-through's outcomes laid over it (`_with_outcomes`)
+_PLACES_WT = reuse._Memo()
 
 
 def _places() -> list[dict]:
@@ -538,9 +551,87 @@ def _places() -> list[dict]:
     # (T532 r8) the key is by VALUE or by a held identity: `reuse.regions()` was a fresh list on every call, so this
     # memo never hit and every queue / progress / water read recomputed all 3,686 places (~0.5 s each)
     from pipeline.regs.review import recheck as RC
-    return _PLACES.get((reuse._stamp((reuse.MARKS_PATH, RC.path())), dfo._rows(), context(),
-                        reuse._dir_stamp(reuse.ENTRIES_DIR), tuple(apply_stamp())),
-                       lambda: by_water(one_water(_dfo_places() + _regs_places())))
+    inputs = (reuse.marks_stamp(), reuse._stamp((RC.path(),)), dfo._rows(), context(),
+              reuse._dir_stamp(reuse.ENTRIES_DIR))
+    base = _PLACES.get(inputs, lambda: _places_for(inputs))
+    # T742 E4 (perf): the write-through's word on a save changes ONLY the places it holds an outcome for — those rows
+    # are recomputed over the cached list (the whole list of 3,686 was rebuilt on every saving -> saved)
+    stamp = tuple(apply_stamp())
+    if not stamp:
+        return base
+    return _PLACES_WT.get((base, stamp), lambda: _with_outcomes(base))
+
+
+#: the last places made — (inputs, the DFO places by row identity, the rule places): a save rebuilds only its own
+_PLACES_HELD: dict = {}
+
+
+def _places_for(inputs: tuple) -> list[dict]:
+    """(T755 follow-up: speed after a save) the checklist's places, the saved place's rebuilt and the rest kept: a DFO
+    place is made again only when its row is a new object (`dfo._patched_rows` keeps every other row as it was), a
+    regulation rule's only when the save names its entry; anything `reuse.marks_delta` cannot prove — or a changed
+    recheck list, checklist context or catalogue — rebuilds all of them. The one-water pass and the order run on the
+    whole list as before (pure, a few ms)."""
+    import dfo
+    held = _PLACES_HELD.get("v")
+    got = _patched_places(held, inputs) if held else None
+    if got is None:
+        got = (_dfo_places(), _regs_places())
+        if held is None or not __import__("gc").get_freeze_count():
+            reuse.settle_gc()            # a first build, or the first after the caches were dropped
+    _PLACES_HELD["v"] = (inputs, *got)
+    dfo_ps, regs = got
+    return by_water(one_water(dfo_ps + regs))
+
+
+def _queued(r: dict) -> bool:
+    """a DFO row the checklist lists (`_dfo_places`)"""
+    return not (r["lake_area"] or (r["status"] != "active" and not r["historic_only"]))
+
+
+def _patched_places(held: tuple, inputs: tuple) -> tuple | None:
+    import dfo
+    old_in, old_dfo, old_regs = held
+    if not (old_in[1] == inputs[1] and old_in[3] is inputs[3] and old_in[4] == inputs[4]):
+        return None
+    d = reuse.marks_delta(old_in[0], inputs[0])
+    if d is None or d["new_splits"] or d["cleared"]:
+        return None
+    # a DFO place is kept when its row is the same object as before: the old rows are alive in `held` (its inputs),
+    # so no new row can share an old one's id
+    place_of = {p["id"]: p for p in old_dfo}
+    was = {id(r): place_of[r["id"]] for r in old_in[2] if r["id"] in place_of}
+    states, locs, ctx = dfo._states(), dfo._locations(), context()
+    dfo_ps = [was[id(r)] if id(r) in was else _dfo_place(r, locs, states, ctx) for r in inputs[2] if _queued(r)]
+    entries = {t for sc, t, _r in d["keys"] if sc in ("rule", "entry")}
+    if not entries:
+        return dfo_ps, old_regs
+    fresh = _regs_places(only=entries)
+    by_entry: dict[str, list[dict]] = {}
+    for p in fresh:
+        by_entry.setdefault(p["entry_id"], []).append(p)
+    regs, done = [], set()
+    for p in old_regs:
+        e = p["entry_id"]
+        if e not in entries:
+            regs.append(p)
+        elif e not in done:
+            done.add(e)
+            regs += by_entry.get(e, [])
+    if set(by_entry) - done:             # an entry with places now that had none: rebuild them all, in order
+        return None
+    return dfo_ps, regs
+
+
+def _with_outcomes(base: list[dict]) -> list[dict]:
+    import dfo
+    rows = {r["id"]: r for r in dfo._rows()}
+    states, locs, ctx = dfo._states(), dfo._locations(), context()
+    def fresh(p: dict) -> dict:          # its state anew; its water as the list's one-water pass named it
+        got = _dfo_place(rows[p["id"]], locs, states, ctx)
+        return {**p, **{k: v for k, v in got.items() if k not in ("water", "water_key")}}
+    return [fresh(p) if p["source"] == "dfo" and p["id"] in rows and apply_outcome(p["id"]) is not None else p
+            for p in base]
 
 
 def one_water(places: list[dict]) -> list[dict]:
@@ -589,12 +680,16 @@ def _matches(p: dict, want: str | None) -> bool:
     if want in CHECK_STATES:
         return p["check"] == want
     if want == "todo":
-        return p["check"] in ("unchecked", "stale") or p.get("older_unconfirmed", 0) > 0
+        return p["check"] in ("unchecked", "stale")
+    if want == "group":                      # T742: a mark in force written by a group save, to re-check on its own
+        return bool(p.get("group_marked"))
+    if want == "old":                        # T755 follow-up: last save wrong / unsure, no fix, older extent in force
+        return bool(p.get("old_extent"))
     if want == "bad":
         return p["summary"]["bad"] > 0
     if want == "needs":                      # a DFO place with no extent yet, or waiting on a cut
         return p.get("state") in NEEDS_EXTENT
-    raise ValueError(f"filter is one of todo, bad, needs, {', '.join(CHECK_STATES)}")
+    raise ValueError(f"filter is one of todo, bad, needs, group, old, {', '.join(CHECK_STATES)}")
 
 
 def queue(source: str = "dfo", filter: str | None = None, q: str | None = None) -> list[dict]:
@@ -629,50 +724,19 @@ def progress_of(rows: list[dict]) -> dict:
             "by_check": dict(Counter(p["check"] for p in rows)),
             "by_worst": dict(Counter(p["summary"]["worst"] for p in rows)),
             "rows": dict(sum((Counter({s: p["summary"][s] for s in C.STATES}) for p in rows), Counter())),
-            "older_unconfirmed": sum(p.get("older_unconfirmed", 0) for p in rows),
+            "group_marked": sum(1 for p in rows if p.get("group_marked")),
+            "old_extent": sum(1 for p in rows if p.get("old_extent")),
             "waters": waters}
 
 
 # --------------------------------------------------------------------------- one water, all in sight
 
 def same_place(places: list[dict]) -> dict[str, dict]:
-    """WHICH OF A WATER'S PLACES ARE THE SAME PLACE (owner 2026-11-09: "have them grouped then you confirm them"), from
-    the data that exists — never a new matcher: an older wording rides its place (`older_of`, `dfo._groups`), DFO lists
-    it as a rewording (`duplicate_of`), or the two hold the IDENTICAL extent (`extent_key`, same source; a place with no
-    extent matches nothing by it). -> id -> {"same": the group's first id in list order, "why": [...]}. A grouping is
-    a prior shown to the owner; it confirms nothing. Pure."""
-    ids = [p["id"] for p in places]
-    parent = {i: i for i in ids}
-
-    def find(x: str) -> str:
-        while parent[x] != x:
-            parent[x] = parent[parent[x]]
-            x = parent[x]
-        return x
-    why: dict[str, list[str]] = {i: [] for i in ids}
-
-    def join(a: str, b: str, word: str) -> None:
-        if a not in parent or b not in parent or a == b:
-            return
-        ra, rb = find(a), find(b)
-        if ra != rb:
-            parent[max(ra, rb, key=ids.index)] = min(ra, rb, key=ids.index)
-        for x in (a, b):
-            if word not in why[x]:
-                why[x].append(word)
-    by_extent: dict[tuple, str] = {}
-    for p in places:
-        if p.get("older_of") and not p.get("apart"):
-            join(p["id"], p["older_of"], "your decision: linked as the same place" if p.get("confirmed")
-                 else "our proposal: an older wording, its words alike")
-        if p.get("duplicate_of"):
-            # WHOSE CLAIM: `duplicate_confirmed` true is the owner's decision; unconfirmed is our matcher's proposal
-            join(p["id"], p["duplicate_of"], "your decision: linked as the same place" if p.get("confirmed")
-                 else "our proposal: matched as a rewording")
-        if p.get("extent_key") and not p.get("apart"):       # a wording he took out is never put back by its extent
-            first = by_extent.setdefault((p["source"], p["extent_key"]), p["id"])
-            join(p["id"], first, "the identical extent")
-    return {i: {"same": find(i), "why": why[i]} for i in ids}
+    """T742 (owner 2026-11-14: "remove the grouping option … one at a time is better"): NO PLACE IS GROUPED WITH
+    ANOTHER — not by an older wording's group, not by DFO's rewording link, not by an identical extent (that chained
+    unrelated Fraser wordings into one "same place" heading). Each place is its own: -> id -> {"same": id, "why": []}.
+    Kept as the one answer the water view reads. Pure."""
+    return {p["id"]: {"same": p["id"], "why": []} for p in places}
 
 
 def _extent_key(extents: list[dict], tributaries, only: bool = False) -> str:
@@ -681,13 +745,8 @@ def _extent_key(extents: list[dict], tributaries, only: bool = False) -> str:
 
 
 def water_key_of(place_id: str) -> str | None:
-    """the water a place is on: its own queue row's, or — an older wording — the place it rides"""
-    import dfo
-    by = {p["id"]: p["water_key"] for p in _places()}
-    if place_id in by:
-        return by[place_id]
-    g = dfo._groups().get(place_id)
-    return by.get(g["canonical"]) if g else None
+    """the water a place is on: its own queue row's (T742: every wording has its own row)"""
+    return {p["id"]: p["water_key"] for p in _places()}.get(place_id)
 
 
 def water_alone(place_id: str) -> dict | None:
@@ -711,21 +770,22 @@ def water_alone(place_id: str) -> dict | None:
     view = {"water_key": f"alone:{place_id}", "water": loc.get("water") or "", "heading": C.dfo_heading(loc, w),
             "places": [place],
             "note": "This place is not in the checklist queue (a part of a lake: lake splits are deferred); it is shown alone."}
-    return reuse._json_safe({**view, "cut_labels": dfo.cut_labels(view), "item_names": dfo.item_names(view)})
+    return reuse._json_safe({**view, "cut_labels": dfo.cut_labels(view, list((w or {}).get("item_ids") or [])),
+                             "item_names": dfo.item_names(view)})
 
 
 def water(water_key: str, source: str = "dfo") -> dict | None:
     """EVERY PLACE ON ONE WATER, ALL IN SIGHT (owner 2026-11-09: "for a river show all historical boundaries too"): the
     queue's places on it (DFO first, then its regulation extents when `source` takes them) and, under each DFO place,
-    its older wordings — each with its words, its extent now (the frontend says it in words: `cut_labels`,
-    `item_names`), whether it is on the live page, its check state, and the group it sits in (`same_place`). Read
-    only."""
+    every older wording as its own row (T742) — each with its words, its extent now (the frontend says it in words:
+    `cut_labels`, `item_names`), whether it is on the live page, its check state, and `group_marked` when its mark in
+    force came from a group save. Read only."""
     import dfo
     mine = [p for p in _places() if p["water_key"] == water_key and (source == "all" or p["source"] == source)]
     if not mine:
         return None
     from pipeline.regs.review import dfo as D
-    locs, states, ctx, groups = dfo._locations(), dfo._states(), context(), dfo._groups()
+    locs, states, ctx = dfo._locations(), dfo._states(), context()
     rows = {r["id"]: r for r in dfo._rows()}
     rules = None
     out: list[dict] = []
@@ -752,23 +812,13 @@ def water(water_key: str, source: str = "dfo") -> dict | None:
                 "last_seen": max((d_ for w_ in D.location_wordings(loc) for d_ in w_.get("dates") or []), default=None),
                 "proposal": bool(r.get("suggested") or r.get("fix_proposed")),
                 "ease": ease_of(check=got["check"], has_extent=bool(exts), bad=got["summary"]["bad"],
-                                proposal=_proposal_facts(lid), twin=lid in twins),
+                                proposal=_proposal_facts(lid), twin=False),
+                **({"group_marked": r["group_marked"]} if r.get("group_marked") else {}),
+                **({"old_extent": r["old_extent"]} if r.get("old_extent") else {}),
                 **({"earlier": got["earlier"]} if "earlier" in got else {})}
-    # a wording with no extent whose group (the place it rides, or a wording riding it) has one: one click gives it
-    twins: set[str] = set()
-    for p in mine:
-        if p["source"] != "dfo":
-            continue
-        ids = [m["id"] for m in (groups.get(p["id"]) or {}).get("members") or [] if m["id"] in locs] or [p["id"]]
-        has = [i for i in ids if (locs[i][1].get("binding") or {}).get("extents")]
-        if has:
-            twins |= {i for i in ids if i not in has}
     for p in mine:
         if p["source"] == "dfo":
-            out.append(dfo_place(p["id"], p, None))
-            for m in (groups.get(p["id"]) or {}).get("members") or []:
-                if m["id"] != p["id"] and m["id"] in locs:
-                    out.append(dfo_place(m["id"], None, p["id"]))
+            out.append(dfo_place(p["id"], p, None))      # T742: every wording is its own queue row
         else:
             if rules is None:
                 rules = {(e["entry_id"], r.get("rule_id")): (e, r) for _rg, e in reuse._all_entries()
@@ -787,7 +837,10 @@ def water(water_key: str, source: str = "dfo") -> dict | None:
     view = {"water_key": water_key, "water": mine[0]["water"], "places": out,
             # DFO's heading with its tributary qualifier put back (`checklist.dfo_heading`)
             "heading": C.dfo_heading(locs[first["id"]][1], locs[first["id"]][2]) if first else mine[0]["water"]}
-    return reuse._json_safe({**view, "cut_labels": dfo.cut_labels(view), "item_names": dfo.item_names(view)})
+    # a region line named on THIS water's crossing (`reuse.cut_name`): the DFO water's items, else the regs places'
+    on = list((locs[first["id"]][2] or {}).get("item_ids") or []) if first else sorted(
+        {i for p in mine for i in p.get("matched") or []})
+    return reuse._json_safe({**view, "cut_labels": dfo.cut_labels(view, on), "item_names": dfo.item_names(view)})
 
 
 #: the most sections one place's extent draws faintly (the water's own line, never its tributaries)
@@ -815,7 +868,7 @@ def water_reach(water_key: str) -> dict | None:
     feats, failed = [], []
     for ids in by.values():
         try:
-            r = dfo.reach(ids[0], limit=WATER_REACH_LIMIT)
+            r = dfo.reach(ids[0], limit=WATER_REACH_LIMIT, size=False)     # the faint layer needs no size walk
         except Exception as ex:  # noqa: BLE001 — said on the screen (`failed`), the other extents still draw
             failed.append({"id": ids[0], "why": f"{type(ex).__name__}: {ex}"})
             continue

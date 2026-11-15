@@ -22,7 +22,7 @@ import { QUEUE_ACTION } from "./dfo/live";
 import { runInSeason } from "./inseason";
 import { channelOf, compose, deliver, readState, sendApk, sendTest, type FeedEvent, type NotifyConfig } from "./events";
 import { parseApk, sampleDfoEvents } from "./email";
-import { checkStatus, INPUT_FORMATS, readStatus, readStatusAt, record, recordHealth, refresh, servedStatus, statusHtml, STATUS_KEY, type Alert, type Held, type Job } from "./status";
+import { checkStatus, DFO_SHAPE, INPUT_FORMATS, readStatus, readStatusAt, record, recordHealth, refresh, servedStatus, statusHtml, STATUS_KEY, type Alert, type Held, type Job } from "./status";
 import { classOfError, fmtErrors, resilientFetch, RunHealth, SourceError, summarize } from "./health";
 import { pageUrl } from "./dfo/fetch";
 import { limited, routeClass, bearerOk, type RateLimiter } from "./guard";
@@ -746,7 +746,7 @@ export default {
         const error = `the feeds' status could not be read: ${e instanceof Error ? e.message : String(e)}`;
         console.error(JSON.stringify({ job: "status", error }));
         return url.pathname === "/status.json"
-          ? Response.json({ ok: false, error, inputs: INPUT_FORMATS }, { status: 503, headers: { "Cache-Control": "no-store" } })
+          ? Response.json({ ok: false, error, inputs: INPUT_FORMATS, dfo: DFO_SHAPE }, { status: 503, headers: { "Cache-Control": "no-store" } })
           : new Response(error, { status: 503, headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" } });
       }
       // (T246) the last backup run beside the feeds (null: none yet)
@@ -763,7 +763,7 @@ export default {
       // (T558) how owner messages go out: "log" means nobody is told
       const nc = notifyConfig(env);
       const notifyInfo = { channel: channelOf(nc), digest: !!nc.digest };
-      if (url.pathname === "/status.json") return Response.json({ ...servedStatus(st, now), notify: notifyInfo, backup: bk, reportRetention: rt, skill: sk, push, inputs: INPUT_FORMATS }, { headers: { "Cache-Control": "no-store", ...SAFE_HEADERS } });
+      if (url.pathname === "/status.json") return Response.json({ ...servedStatus(st, now), notify: notifyInfo, backup: bk, reportRetention: rt, skill: sk, push, inputs: INPUT_FORMATS, dfo: DFO_SHAPE }, { headers: { "Cache-Control": "no-store", ...SAFE_HEADERS } });
       return new Response(statusHtml(st, now, sk, notifyInfo, { backup: bk, purge: rt, push }), { headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store", ...SAFE_HEADERS,
         "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'" } });
     }

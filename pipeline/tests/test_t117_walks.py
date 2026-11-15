@@ -262,6 +262,13 @@ UP_ADJ_READERS = {
     ("pipeline/deliver/tiles/export.py", "fill_zooms"):
         "T493: a hidden piece's drawn water of its OWN item up and down — a drawing zoom, binds nothing",
     ("curation-review/backend/reuse.py", "item_side_channels"): "leaves-and-rejoins test, one level",
+    # owner 2026-11-15 (mark 2578): a DFO place's named water's own side channels — the same one-level test, binds the
+    # water's own items only (`reach.channels`)
+    ("pipeline/atlas/reach/channels.py", "side_channels"): "leaves-and-rejoins test, one level",
+    # T743 (da9b1f4b0): where a channel's pieces meet its river, for the audit report — at most 4 pieces, binds nothing
+    ("pipeline/regs/review/audit.py", "_attach"): "audit report: a channel's attach measures, depth 4, binds nothing",
+    # T753 (a458c1fd4): a piece's flow neighbours, to see whether it leaves a lake and comes back — one level
+    ("pipeline/atlas/registry/lake_loops.py", "_neighbours"): "a piece's own up / down neighbours, one level",
     # the climbs: each asks `may_enter` (see WALKS above)
     ("pipeline/atlas/reach/build.py", "_stem_to_first_lake"): "may_enter",
     ("pipeline/common/io/export_gpkg.py", "export_tributaries"): "may_enter",

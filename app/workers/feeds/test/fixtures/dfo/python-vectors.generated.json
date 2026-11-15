@@ -19864,7 +19864,8 @@
     "833f87488f7809fc": "8:shuswap-river:middle-between-shuswap-falls-and-m~2",
     "afc9f6314421516a": "8:osoyoos-lake:in-the-waters-in-the-portion-of-os~2",
     "b70729bdede8fab3": "8:shuswap-river:lower-50-m-upstream-of-the-trinity",
-    "b823e688f7b85f22": "8:shuswap-river:middle-between-shuswap-falls-and-m"
+    "b823e688f7b85f22": "8:shuswap-river:middle-between-shuswap-falls-and-m",
+    "page:8:region": "8:default:region"
    },
    "entries": {
     "locations": [
@@ -20052,7 +20053,16 @@
      {
       "aliases": [],
       "binding": {
-       "extents": [],
+       "extents": [
+        {
+         "item_id": "gnis:25478",
+         "op": "between",
+         "splits": [
+          "shuswap_river__mara_bridge",
+          "shuswap_river__mabel_lake"
+         ]
+        }
+       ],
        "notes": [],
        "sections_cached": null,
        "spatial_caveat": false,
@@ -20103,7 +20113,16 @@
      {
       "aliases": [],
       "binding": {
-       "extents": [],
+       "extents": [
+        {
+         "item_id": "gnis:25478",
+         "op": "between",
+         "splits": [
+          "shuswap_river__signs_50_m_upstream_of_trinity_bridge",
+          "shuswap_river__signs_50_m_downstream_of_trinity_bridge"
+         ]
+        }
+       ],
        "notes": [],
        "sections_cached": null,
        "spatial_caveat": false,
@@ -20269,6 +20288,52 @@
       "water_id": "8:shuswap-river"
      },
      {
+      "aliases": [],
+      "binding": {
+       "extents": [
+        {
+         "area_id": "area:region:8",
+         "op": "within"
+        }
+       ],
+       "notes": [],
+       "sections_cached": null,
+       "spatial_caveat": false,
+       "tributaries": false,
+       "tributaries_only": false,
+       "tributary_excludes": []
+      },
+      "duplicate_confirmed": null,
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "fingerprints": [
+       "page:8:region"
+      ],
+      "inherits": [],
+      "kind": "page_default",
+      "location_id": "8:default:region",
+      "locked": false,
+      "precedence": -1,
+      "region": "8",
+      "region_number": 8,
+      "review_note": "T349 owner decisions: region/scope defaults are entries; limit 0 = closed; unlisted = closed",
+      "reviewed_at": "2026-11-02",
+      "reviewed_by": "owner",
+      "section": null,
+      "section_history": [],
+      "source_text": {
+       "areas": [],
+       "says": "There is no fishing for salmon in Region 8 except for the opportunities listed in the table below.",
+       "specific_area": "All Region 8 waters",
+       "statement": "closed_except_listed",
+       "unlisted": "closed",
+       "waters": ""
+      },
+      "status": "active",
+      "water": "All Region 8 waters",
+      "water_id": null
+     },
+     {
       "fingerprints": [
        "0000000000000000"
       ],
@@ -20423,6 +20488,285 @@
    },
    "slug": "8"
   }
+ },
+ "live": {
+  "locs": {
+   "1:adam-and-eve-rivers:whole": "1",
+   "1:campbell-river:downstream-of-the-confluence-with": "1",
+   "1:campbell-river:downstream-of-the-confluence-with~2": "1",
+   "1:campbell-river:from-a-fishing-boundary-sign-at-th": "1",
+   "1:cayeghle-river:including-colonial-river": "1",
+   "1:chemainus-river:whole": "1",
+   "1:cluxewe-river:whole": "1",
+   "1:comox-lake:whole": "1",
+   "1:conuma-river:whole": "1",
+   "1:courtenay-river-the-waters-below-t:whole": "1",
+   "1:cowichan-river:from-66-mile-trestle-downstream-to": "1",
+   "1:cowichan-river:from-the-white-triangle-boundary-s": "1",
+   "1:default:region": "1",
+   "1:goldstream-river:whole": "1",
+   "1:koksilah-river:including-tributaries": "1",
+   "1:little-qualicum-river:all-open-portions-of-the-little-qu": "1",
+   "1:little-qualicum-river:all-waters-unless-indicated-below": "1",
+   "1:little-qualicum-river:from-the-falls-in-little-qualicum": "1",
+   "1:little-qualicum-river:from-the-hatchery-fence-to-signs-l": "1",
+   "1:nahwitti-river:whole": "1",
+   "1:nanaimo-river:from-500-m-below-the-lower-power-l": "1",
+   "1:nanaimo-river:from-the-cedar-road-bridge-crossin": "1",
+   "1:nanaimo-river:from-the-upstream-side-of-the-ceda": "1",
+   "1:nanaimo-river:in-subarea-17-14-tidal-portions-of": "1",
+   "1:nanaimo-river:in-subarea-17-14-tidal-portions-of~2": "1",
+   "1:nanaimo-river:including-tributaries-except-in-th": "1",
+   "1:nitinat-river:between-fishing-boundary-signs-loc": "1",
+   "1:nitinat-river:downstream-of-parker-creek-except": "1",
+   "1:nitinat-river:from-the-powerline-crossing-upstre": "1",
+   "1:nitinat-river:nitinat-river-from-50m-upstream-to": "1",
+   "1:nitinat-river:upstream-of-parker-creek": "1",
+   "1:puntledge-river:downstream-from-the-base-of-stotan": "1",
+   "1:puntledge-river:from-signs-located-50m-upstream-of": "1",
+   "1:puntledge-river:morrison-creek-closure-between-fis": "1",
+   "1:qualicum-river:all-open-portions-of-the-qualicum": "1",
+   "1:qualicum-river:downstream-of-the-upper-weir-locat": "1",
+   "1:qualicum-river:those-waters-upstream-of-the-big-q": "1",
+   "1:qualicum-river:waters-below-the-qfn-boundary-fenc": "1",
+   "1:quatse-river:100m-upstream-and-downstream-of-th": "1",
+   "1:quatse-river:whole": "1",
+   "1:quinsam-river:whole": "1",
+   "1:reay-creek:whole": "1",
+   "1:seymour-river:whole": "1",
+   "1:shawnigan-creek:whole": "1",
+   "1:somass-river:except-in-those-areas-and-times-li": "1",
+   "1:somass-river:from-the-northern-boundary-of-soma": "1",
+   "1:somass-river:from-the-tidal-boundary-signs-at-t": "1",
+   "1:somass-river:whole": "1",
+   "1:sproat-river:from-sproat-lake-to-approx-300m-be": "1",
+   "1:sproat-river:whole": "1",
+   "1:stamp-river:except-in-those-areas-and-times-li": "1",
+   "1:stamp-river:from-approx-200-m-upstream-of-the": "1",
+   "1:stamp-river:from-the-confluence-of-the-ash-riv~2": "1",
+   "1:stamp-river:from-the-inlet-upstream-of-roberst": "1",
+   "1:stamp-river:from-the-powerline-crossing-downst": "1",
+   "1:stamp-river:stamp-river-downstream-of-girl-gui": "1",
+   "1:washlawlis-river:whole": "1",
+   "1:waukwaas-river:whole": "1",
+   "2:alouette-river-and-tributaries:downstream-of-the-216th-street-bri": "2",
+   "2:alouette-river-and-tributaries:north-alouette-and-tributaries": "2",
+   "2:alouette-river-and-tributaries:upstream-of-the-216th-street-bridg": "2",
+   "2:ashlu-creek:whole": "2",
+   "2:capilano-river:including-tributaries": "2",
+   "2:chapman-creek:upstream-of-tidal-water-fishing-bo": "2",
+   "2:cheakamus-river:whole": "2",
+   "2:chehalis-river:downstream-of-the-logging-bridge-2": "2",
+   "2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun~3": "2",
+   "2:coquitlam-river:whole": "2",
+   "2:de-boville-slough:downstream-of-the-confluence-of-ce": "2",
+   "2:default:areas-13-15-16": "2",
+   "2:default:areas-28-29": "2",
+   "2:fraser-river:mainstem-waters-upstream-of-the-cp": "2",
+   "2:harrison-river:from-the-highway-7-bridge-downstre": "2",
+   "2:harrison-river:from-the-outlet-of-harrison-lake-d": "2",
+   "2:kanaka-creek:downstream-of-the-112th-street-bri": "2",
+   "2:khartoum-lake:whole": "2",
+   "2:little-campbell-river:downstream-of-12th-avenue-includin": "2",
+   "2:little-campbell-river:downstream-of-a-line-between-2-fis": "2",
+   "2:lois-lake:whole": "2",
+   "2:mamquam-river:whole": "2",
+   "2:nicomekl-river:downstream-of-208th-street": "2",
+   "2:nicomen-including-dewdney-slough:from-the-confluence-of-siddle-bell": "2",
+   "2:nicomen-including-dewdney-slough:from-the-highway-7-bridge-at-dewdn": "2",
+   "2:norrish-creek:whole": "2",
+   "2:serpentine-river:downstream-of-168th-street-at-both": "2",
+   "2:squamish-river-including-powerhous:whole": "2",
+   "2:stave-river:downstream-of-b-c-hydro-dam-to-the~2": "2",
+   "3:bridge-river:whole": "3",
+   "3:clearwater-river:whole": "3",
+   "3:default:region": "3",
+   "3:fraser-river:in-that-portion-of-the-fraser-rive": "3",
+   "3:kamloops-lake:whole": "3",
+   "3:south-thompson-river:from-the-green-can-buoy-near-outle": "3",
+   "3:thompson-river#closed:00673ca0afe5": "3",
+   "3:thompson-river#closed:5adc77c1f78d": "3",
+   "3:thompson-river#closed:c76883c57564": "3",
+   "3:thompson-river:from-kamloops-lake-outlet-downstre~2": "3",
+   "3:thompson-river:from-the-white-triangle-fishing-bo": "3",
+   "4:region:section": "4",
+   "5a:default:region": "5a",
+   "5a:quesnel-lake:that-portion-of-quesnel-lake-known": "5a",
+   "5a:quesnel-river:that-portion-of-the-quesnel-river": "5a",
+   "5b:atnarko-river:downstream-of-the-fishing-boundary": "5b",
+   "5b:atnarko-river:whole": "5b",
+   "5b:bella-coola-river-not-including-at:all-tributaries-to-the-bella-coola": "5b",
+   "5b:bella-coola-river-not-including-at:whole": "5b",
+   "5b:chuckwalla-river:whole": "5b",
+   "5b:dean-river:from-signs-located-approx-500-m-up": "5b",
+   "5b:dean-river:from-the-confluence-with-crag-cree": "5b",
+   "5b:dean-river:upstream-of-the-confluence-with-cr": "5b",
+   "5b:docee-river:whole": "5b",
+   "5b:kilbella-river:whole": "5b",
+   "5b:long-lake:including-tributaries": "5b",
+   "5b:region:section": "5b",
+   "5b:wannock-river:whole": "5b",
+   "6:a:region": "6",
+   "6:b(i):section": "6",
+   "6:b(ii):section": "6",
+   "6:babine-lake#closed:00503bc8b63e": "6",
+   "6:babine-lake#closed:0e1518e92322": "6",
+   "6:babine-lake#closed:36f5b357ebcf": "6",
+   "6:babine-lake#closed:379a9388f532": "6",
+   "6:babine-lake#closed:40d829f72ad9": "6",
+   "6:babine-lake#closed:6b5f946bc1eb": "6",
+   "6:babine-lake#closed:6fb2db5fc268": "6",
+   "6:babine-lake#closed:963a5557f71b": "6",
+   "6:babine-lake#closed:c2013e4ac580": "6",
+   "6:babine-lake#closed:c6d917f3f165": "6",
+   "6:babine-lake#closed:d8c7cac1841a": "6",
+   "6:babine-lake#closed:f3116ad57dbe": "6",
+   "6:babine-lake#closed:f4c347aad97f": "6",
+   "6:babine-lake:babine-lake-excluding-tributaries~3": "6",
+   "6:babine-lake:including-tributaries": "6",
+   "6:babine-river:whole": "6",
+   "6:bear-river:including-tributaries": "6",
+   "6:bish-creek:including-tributaries": "6",
+   "6:braverman-river:whole": "6",
+   "6:brim-river:including-tributaries": "6",
+   "6:bulkley-river:all-tributaries-of-the-bulkley-riv": "6",
+   "6:bulkley-river:all-tributaries-of-the-bulkley-riv~2": "6",
+   "6:bulkley-river:bulkley-river-and-morice-river-wat": "6",
+   "6:bulkley-river:downstream-of-the-morice-river-con": "6",
+   "6:c:section": "6",
+   "6:cranberry-river:including-tributaries-note-the-sec": "6",
+   "6:cranberry-river:whole": "6",
+   "6:d:section": "6",
+   "6:dala-river:including-tributaries": "6",
+   "6:e:area:areas-3-4-5-6~2": "6",
+   "6:e:area:areas-5~2": "6",
+   "6:e:area:areas-6~2": "6",
+   "6:e:section": "6",
+   "6:ecstall-river:upstream-of-fishing-boundary-signs": "6",
+   "6:ecstall-river:whole": "6",
+   "6:endako-river:whole": "6",
+   "6:exchamsiks-river:upstream-of-highway-16-bridge": "6",
+   "6:exchamsiks-river:whole": "6",
+   "6:exstew-river:upstream-of-highway-16-bridge": "6",
+   "6:exstew-river:whole": "6",
+   "6:f:closure": "6",
+   "6:fulton-river:whole": "6",
+   "6:giltoyees-creek:whole": "6",
+   "6:gitnadoix-river:upstream-of-powerline-crossing-nea": "6",
+   "6:iknouk-river:whole": "6",
+   "6:illiance-river:upstream-of-white-triangular-fishi": "6",
+   "6:ishkheenickh-river:including-tributaries": "6",
+   "6:kasiks-river:downstream-of-fishing-boundary-sig": "6",
+   "6:kasiks-river:upstream-of-fishing-boundary-signs": "6",
+   "6:kasiks-river:upstream-of-highway-16-bridge": "6",
+   "6:kemano-river:whole": "6",
+   "6:khutze:including-tributaries": "6",
+   "6:khutzeymateen-river:including-tributaries": "6",
+   "6:khyex-river:upstream-of-highway-16-bridge": "6",
+   "6:kildala-river:whole": "6",
+   "6:kiltuish-river:including-tributaries": "6",
+   "6:kincolith-river:upstream-of-white-triangular-fishi": "6",
+   "6:kispiox-river:downstream-of-fishing-boundary-sig": "6",
+   "6:kispiox-river:whole": "6",
+   "6:kiteen-river:including-tributaries": "6",
+   "6:kiteen-river:whole": "6",
+   "6:kitimat-river:downstream-of-highway-37-bridge": "6",
+   "6:kitimat-river:on-west-bank-between-signs-at-kiti": "6",
+   "6:kitimat-river:upstream-of-highway-37-bridge": "6",
+   "6:kitimat-river:whole": "6",
+   "6:kitlope-river:whole": "6",
+   "6:kitsault-river:upstream-of-white-triangular-fishi": "6",
+   "6:kitsault-river:whole": "6",
+   "6:kitseguecla-river:including-tributaries": "6",
+   "6:kitseguecla-river:whole": "6",
+   "6:kitsumkalum-lake:including-tributaries": "6",
+   "6:kitsumkalum-river:downstream-of-fishing-boundary-sig": "6",
+   "6:kitsumkalum-river:downstream-of-railway-bridge": "6",
+   "6:kitsumkalum-river:upstream-of-fishing-boundary-signs": "6",
+   "6:kitsumkalum-river:whole": "6",
+   "6:kitwanga-river:including-tributaries": "6",
+   "6:kloiya-river:including-tributaries": "6",
+   "6:kwinimass-river:downstream-of-lower-bridge-abutmen": "6",
+   "6:kwinimass-river:upstream-of-lower-bridge-abutments": "6",
+   "6:lakelse-river:above-logging-road-bridge-near-the": "6",
+   "6:lakelse-river:below-logging-road-bridge-near-the": "6",
+   "6:lakelse-river:downstream-of-the-cnr-bridge": "6",
+   "6:lakelse-river:whole": "6",
+   "6:meziadin-lake:excluding-tributaries": "6",
+   "6:meziadin-lake:including-tributaries": "6",
+   "6:meziadin-river:including-tributaries": "6",
+   "6:meziadin-river:whole": "6",
+   "6:morice-lake:including-tributaries": "6",
+   "6:morice-river:below-lamprey-creek": "6",
+   "6:morice-river:bulkley-river-and-morice-river-wat": "6",
+   "6:morice-river:from-fishing-boundary-signs-locate~2": "6",
+   "6:morice-river:from-fishing-boundary-signs-posted": "6",
+   "6:morice-river:from-gosnell-creek-to-lamprey-cree": "6",
+   "6:morice-river:from-the-confluence-of-the-bulkley": "6",
+   "6:morice-river:upstream-of-the-bymac-bridge-on-wa": "6",
+   "6:morice-river:whole": "6",
+   "6:nakina-river:whole": "6",
+   "6:nass-river:mainstem-waters-downstream-of-the~2": "6",
+   "6:nass-river:mainstem-waters-near-the-meziadin": "6",
+   "6:nass-river:portions-from-the-canyon-city-brid": "6",
+   "6:nilkitkwa-lake:whole": "6",
+   "6:oweegee-creek:whole": "6",
+   "6:oweegee-lake:whole": "6",
+   "6:pallant-creek:upstream-of-the-bridge-located-nea": "6",
+   "6:pinkut-creek:downstream-of-fishing-boundary-sig": "6",
+   "6:quaal-river:including-tributaries": "6",
+   "6:rainy-creek:whole": "6",
+   "6:redsand-lake:including-tributaries": "6",
+   "6:scotia-river:including-tributaries": "6",
+   "6:shegunia-river:between-fishing-boundary-signs-loc": "6",
+   "6:sheldens-creek:upstream-of-white-triangular-fishi": "6",
+   "6:skeena-river:all-waters-within-the-4-triangular": "6",
+   "6:skeena-river:mainstem-waters-downstream-of-cnr": "6",
+   "6:skeena-river:mainstem-waters-near-the-kitsumkal": "6",
+   "6:skeena-river:mainstem-waters-near-the-kitwanga": "6",
+   "6:skeena-river:mainstem-waters-only": "6",
+   "6:skeena-river:mainstem-waters-only-between-cedar": "6",
+   "6:skeena-river:mainstem-waters-only-upstream-of-c": "6",
+   "6:skeena-river:mainstem-waters-only-upstream-of-c~2": "6",
+   "6:skeena-river:upstream-of-cnr-bridge-at-terrace~2": "6",
+   "6:skeena-river:upstream-of-the-cnr-bridge-located": "6",
+   "6:stikine-river:including-tributaries-see-the-tahl": "6",
+   "6:suskwa-river:including-tributaries": "6",
+   "6:suskwa-river:whole": "6",
+   "6:sustut-river:including-tributaries": "6",
+   "6:sustut-river:whole": "6",
+   "6:swift-river:including-tributaries": "6",
+   "6:tahltan-river:including-tributaries": "6",
+   "6:taku-river:including-tributaries-see-the-naki": "6",
+   "6:tatsatua-creek:including-tributaries": "6",
+   "6:tatshenshini-river:downstream-of-the-bc-yukon-border~2": "6",
+   "6:tatshenshini-river:upstream-of-the-bc-yukon-border-al": "6",
+   "6:tatshenshini-river:upstream-of-the-bc-yukon-border-al~2": "6",
+   "6:tatshenshini-river:upstream-of-the-bc-yukon-border-al~3": "6",
+   "6:telkwa-river:downstream-of-howson-creek": "6",
+   "6:treston-lake:whole": "6",
+   "6:tseax-river:downstream-of-nisga-a-highway-brid": "6",
+   "6:tseax-river:upstream-of-nisga-a-highway-bridge": "6",
+   "6:wahoo-river:including-tributaries": "6",
+   "6:weeanie-river:whole": "6",
+   "6:whalen-creek:whole": "6",
+   "6:wilauks-creek:upstream-of-white-triangular-fishi": "6",
+   "6:yakoun-river:downstream-of-the-6-mile-bridge": "6",
+   "6:zymagotitz-river:upstream-of-highway-16-bridge": "6",
+   "6:zymagotitz-river:whole": "6",
+   "6:zymoetz-river:upstream-of-highway-16-bridge": "6",
+   "6:zymoetz-river:whole": "6",
+   "7:default:region": "7",
+   "7:nechako-river:from-the-downstream-edge-of-the-fo": "7",
+   "8:default:region": "8",
+   "8:mabel-lake:northerly-of-a-line-drawn-from-a-w": "8",
+   "8:osoyoos-lake:in-the-waters-in-the-portion-of-os~2": "8",
+   "8:shuswap-river#closed:200d03a74aaf": "8",
+   "8:shuswap-river:lower-50-m-upstream-of-the-trinity": "8",
+   "8:shuswap-river:lower-upstream-from-white-triangul": "8",
+   "8:shuswap-river:middle-between-shuswap-falls-and-m~2": "8"
+  },
+  "unplaced": 0
  },
  "names": [
   [
@@ -21128,6 +21472,7 @@
      "3ec50569c9c30708": "1:puntledge-river:morrison-creek-closure-between-fis",
      "3fbae663a67785f5": "1:nitinat-river:from-the-powerline-crossing-upstre",
      "411369737d53c913": "1:stamp-river:from-approx-200-m-upstream-of-the",
+     "431c6c51e0cac490": "1:nanaimo-river:in-subarea-17-14-tidal-portions-of~2",
      "440687aca2984551": "1:nanaimo-river:from-the-upstream-side-of-the-ceda",
      "446a267a2373ee73": "1:somass-river:from-the-eastern-boundary-of-west",
      "45d4ed65399dde74": "1:qualicum-river:all-open-portions-of-the-qualicum",
@@ -21168,6 +21513,7 @@
      "a7ff91bb04341bfd": "1:stamp-river:between-fishing-boundary-signs-app",
      "ae7eb871747278fb": "1:cowichan-river:from-cnr-trestle-at-mile-70-2-to-s",
      "afca1aab4ec79514": "1:san-juan-river:that-portion-of-the-san-juan-river",
+     "b06fab380224fc28": "1:nanaimo-river:in-subarea-17-14-tidal-portions-of",
      "b12878bc3d5c55b1": "1:stamp-river:from-the-inlet-upstream-of-roberst",
      "b252a76bd2ec2e89": "1:cowichan-river:from-66-mile-trestle-downstream-to",
      "b3487d55981e12fd": "1:koksilah-river:including-tributaries",
@@ -21190,7 +21536,8 @@
      "eeca09c3455e5d86": "1:puntledge-river:downstream-from-the-base-of-stotan",
      "f057b74fbc39be5e": "1:stamp-river:upstream-of-signs-located-at-girl",
      "faf119f69558bb37": "1:stamp-river:hatchery-lagoon-from-fishing-bound",
-     "fd896cb9e1efab84": "1:stamp-river:except-in-those-areas-and-times-li"
+     "fd896cb9e1efab84": "1:stamp-river:except-in-those-areas-and-times-li",
+     "page:1:region": "1:default:region"
     },
     "reconcile": {
      "outcomes": [
@@ -21394,20 +21741,20 @@
       },
       {
        "candidates": [],
-       "detail": "no known location on this water",
+       "detail": "",
        "fingerprint": "b06fab380224fc28",
-       "location_id": null,
+       "location_id": "1:nanaimo-river:in-subarea-17-14-tidal-portions-of",
        "specific_area": "in Subarea 17-14 (tidal portions of the Nanaimo River) from Cedar Bridge downstream",
-       "status": "new",
+       "status": "ok",
        "water": "Nanaimo River"
       },
       {
        "candidates": [],
-       "detail": "no known location on this water",
+       "detail": "",
        "fingerprint": "431c6c51e0cac490",
-       "location_id": null,
+       "location_id": "1:nanaimo-river:in-subarea-17-14-tidal-portions-of~2",
        "specific_area": "in Subarea 17-14 (tidal portions of the Nanaimo River), that portion of the Nanaimo River from the Cedar Bridge to the white square boundary signs approximately 400 m downstream of the Cedar Bridge",
-       "status": "new",
+       "status": "ok",
        "water": "Nanaimo River"
       },
       {
@@ -28962,6 +29309,7 @@
      ]
     }
    ],
+   "pieces": {},
    "structure": {
     "n_defaults": 0,
     "n_locations": 27,
@@ -28999,6 +29347,7 @@
      "6394f39fecbedb4f": "2:mamquam-river:whole",
      "65922ee430009940": "2:serpentine-river:within-23-m-downstream-of-the-floo",
      "6aca6102a50ea196": "2:fraser-river:upstream-from-the-highway-1-bridge",
+     "6b292a6d0efaaf8d": "2:fraser-river:mainstem-waters-upstream-of-the-cp~2",
      "6efb3a537cb6cd6f": "2:stave-river:in-that-portion-of-the-stave-river",
      "6fa0053b382715c2": "2:seymour-river:from-the-seymour-river-dam-to-the",
      "76fc4bd463724f96": "2:cheakamus-river:whole",
@@ -29015,6 +29364,7 @@
      "a213d8b6165cf4b0": "2:alouette-river-and-tributaries:north-alouette-and-tributaries",
      "a29f87a614bc7467": "2:sakinaw-lake:easterly-of-a-line-drawn-from-a-bo",
      "a4f43bfee22743ae": "2:alouette-river-and-tributaries:downstream-of-a-line-between-two-f",
+     "a58851c8ad05c3a3": "2:fraser-river:mainstem-waters-downstream-of-the",
      "a6f9e2abcb339547": "2:sakinaw-lake:the-body-of-water-known-as-bear-ba",
      "ab43369ac93c4a0f": "2:harrison-river:from-the-outlet-of-harrison-lake-d~2",
      "abb2d14b5f3c419c": "2:alouette-river-and-tributaries:above-216th-street-including-the-n",
@@ -29038,7 +29388,9 @@
      "f25a4f83235cf446": "2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun~3",
      "fc0e1fe344d57f50": "2:kanaka-creek:downstream-of-the-112th-street-bri",
      "fe4e05f4834a86fd": "2:fraser-river:mainstem-waters-from-the-downstrea",
-     "fee896ee3ff2d7d4": "2:scott-creek:whole"
+     "fee896ee3ff2d7d4": "2:scott-creek:whole",
+     "page:2:areas-13-15-16": "2:default:areas-13-15-16",
+     "page:2:areas-28-29": "2:default:areas-28-29"
     },
     "reconcile": {
      "outcomes": [
@@ -29143,11 +29495,11 @@
       },
       {
        "candidates": [],
-       "detail": "",
+       "detail": "dormant location is published again",
        "fingerprint": "d367a8ea913387b2",
        "location_id": "2:fraser-river:mainstem-waters-upstream-of-the-cp",
        "specific_area": "mainstem waters upstream of the CPR Bridge at Mission, BC",
-       "status": "ok",
+       "status": "revived",
        "water": "Fraser River"
       },
       {
@@ -29242,11 +29594,11 @@
       },
       {
        "candidates": [],
-       "detail": "dormant location is published again",
+       "detail": "",
        "fingerprint": "dc1cd8596c4a6283",
        "location_id": "2:nicomen-including-dewdney-slough:from-the-highway-7-bridge-at-dewdn",
        "specific_area": "from the Highway 7 bridge at Dewdney downstream to the Fraser River",
-       "status": "revived",
+       "status": "ok",
        "water": "Nicomen (including Dewdney) Slough"
       },
       {
@@ -29284,6 +29636,24 @@
        "specific_area": "downstream of B.C. Hydro Dam to the CPR Railway Bridge; except you shall not fish for salmon in that portion on the east side of the Stave River, known as the Ruskin Spawning Channel on the east bank of the BC Hydro park from the inlet near the dam, downstream to the boat ramp crossing; and you shall not fish for salmon in that portion on the west side of the Stave River known as the Northrop Spawning Channel from the intake downstream to where the channel joins the Stave River mainstem, including its tributary containing the fishway",
        "status": "ok",
        "water": "Stave River"
+      },
+      {
+       "candidates": [],
+       "detail": "absent from the page; binding kept",
+       "fingerprint": "6b292a6d0efaaf8d",
+       "location_id": "2:fraser-river:mainstem-waters-upstream-of-the-cp~2",
+       "specific_area": "mainstem waters upstream of the CPR Bridge at Mission",
+       "status": "dormant",
+       "water": "Fraser River"
+      },
+      {
+       "candidates": [],
+       "detail": "absent from the page; binding kept",
+       "fingerprint": "a58851c8ad05c3a3",
+       "location_id": "2:fraser-river:mainstem-waters-downstream-of-the",
+       "specific_area": "mainstem waters downstream of the CPR Bridge at Mission to the Highway 1 Bridge at Hope",
+       "status": "dormant",
+       "water": "Fraser River"
       }
      ],
      "region": "2",
@@ -34728,6 +35098,7 @@
      ]
     }
    ],
+   "pieces": {},
    "structure": {
     "n_defaults": 0,
     "n_locations": 22,
@@ -34747,7 +35118,8 @@
      "81e8caa355f3f207": "3:fraser-river:in-that-portion-of-the-fraser-rive",
      "a1ba54224f07d820": "3:south-thompson-river:from-the-green-can-buoy-near-outle",
      "d6605b684afb9a23": "3:clearwater-river:whole",
-     "e63fabef088a0d6b": "3:kamloops-lake:whole"
+     "e63fabef088a0d6b": "3:kamloops-lake:whole",
+     "page:3:region": "3:default:region"
     },
     "reconcile": {
      "outcomes": [
@@ -36110,6 +36482,185 @@
      ]
     }
    ],
+   "pieces": {
+    "3:thompson-river#closed:00673ca0afe5": {
+     "calendar": {
+      "g": [
+       0,
+       -1
+      ],
+      "gears": [],
+      "sp": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ]
+      ],
+      "verdicts": [
+       {
+        "s": "closed",
+        "t": "No fishing, year-round — Deadman - from the fishing boundary signs approximately 1 km downstream of the Hwy No. 1 Bridge at Savona to the CN rail bridge approximately 500 m downstream of the confluence with Deadman Creek. (Jan 1–Dec 31)"
+       }
+      ]
+     },
+     "rules": [
+      {
+       "may_target": false,
+       "rule_id": "3:thompson-river#closed:00673ca0afe5#0",
+       "species": [
+        "SA"
+       ],
+       "take": 0,
+       "type": "retention_limit",
+       "verbatim": "No fishing, year-round — Deadman - from the fishing boundary signs approximately 1 km downstream of the Hwy No. 1 Bridge at Savona to the CN rail bridge approximately 500 m downstream of the confluence with Deadman Creek.",
+       "when": {
+        "dates": [
+         {
+          "from_day": 1,
+          "from_month": 1,
+          "to_day": 31,
+          "to_month": 12
+         }
+        ]
+       }
+      }
+     ]
+    },
+    "3:thompson-river#closed:5adc77c1f78d": {
+     "calendar": {
+      "g": [
+       0,
+       -1
+      ],
+      "gears": [],
+      "sp": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ]
+      ],
+      "verdicts": [
+       {
+        "s": "closed",
+        "t": "No fishing, year-round — Juniper - from the fishing boundary signs approximately 1.5 km downstream from Juniper Beach Park downstream approximately 4 km to the fishing boundary signs located at 50°46.893' N and 121°08.110' W. (Jan 1–Dec 31)"
+       }
+      ]
+     },
+     "rules": [
+      {
+       "may_target": false,
+       "rule_id": "3:thompson-river#closed:5adc77c1f78d#0",
+       "species": [
+        "SA"
+       ],
+       "take": 0,
+       "type": "retention_limit",
+       "verbatim": "No fishing, year-round — Juniper - from the fishing boundary signs approximately 1.5 km downstream from Juniper Beach Park downstream approximately 4 km to the fishing boundary signs located at 50°46.893' N and 121°08.110' W.",
+       "when": {
+        "dates": [
+         {
+          "from_day": 1,
+          "from_month": 1,
+          "to_day": 31,
+          "to_month": 12
+         }
+        ]
+       }
+      }
+     ]
+    },
+    "3:thompson-river#closed:c76883c57564": {
+     "calendar": {
+      "g": [
+       0,
+       -1
+      ],
+      "gears": [],
+      "sp": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ]
+      ],
+      "verdicts": [
+       {
+        "s": "closed",
+        "t": "No fishing, year-round — Ashcroft - from the fishing boundary sign at the upstream side of the mouth of the Bonaparte River to Hwy 97C bridge in Ashcroft. (Jan 1–Dec 31)"
+       }
+      ]
+     },
+     "rules": [
+      {
+       "may_target": false,
+       "rule_id": "3:thompson-river#closed:c76883c57564#0",
+       "species": [
+        "SA"
+       ],
+       "take": 0,
+       "type": "retention_limit",
+       "verbatim": "No fishing, year-round — Ashcroft - from the fishing boundary sign at the upstream side of the mouth of the Bonaparte River to Hwy 97C bridge in Ashcroft.",
+       "when": {
+        "dates": [
+         {
+          "from_day": 1,
+          "from_month": 1,
+          "to_day": 31,
+          "to_month": 12
+         }
+        ]
+       }
+      }
+     ]
+    }
+   },
    "structure": {
     "n_defaults": 0,
     "n_locations": 6,
@@ -36121,7 +36672,8 @@
   "4": {
    "entries": {
     "by_fingerprint": {
-     "1d1c79cfcd34d4c5": "4:region:section"
+     "1d1c79cfcd34d4c5": "4:region:section",
+     "page:4:region": "4:region:section"
     },
     "reconcile": {
      "outcomes": [
@@ -36254,6 +36806,7 @@
      ]
     }
    ],
+   "pieces": {},
    "structure": {
     "n_defaults": 1,
     "n_locations": 1,
@@ -36270,7 +36823,8 @@
      "472e213f4a20e490": "5a:quesnel-lake:in-the-waters-of-horsefly-bay-loca",
      "47c91b93af6df33a": "5a:quesnel-river:that-portion-of-the-quesnel-river",
      "88e5238ca194a164": "5a:quesnel-lake:that-portion-of-quesnel-lake-known",
-     "e474eb8cf13f1159": "5a:quesnel-river:between-the-johnson-subdivision-br"
+     "e474eb8cf13f1159": "5a:quesnel-river:between-the-johnson-subdivision-br",
+     "page:5a:region": "5a:default:region"
     },
     "reconcile": {
      "outcomes": [
@@ -36652,6 +37206,7 @@
      ]
     }
    ],
+   "pieces": {},
    "structure": {
     "n_defaults": 0,
     "n_locations": 2,
@@ -36675,7 +37230,8 @@
      "a99637e62e7295d7": "5b:region:section",
      "d4902614b1498bcd": "5b:kilbella-river:whole",
      "d6fe5f612f53505d": "5b:atnarko-river:downstream-of-the-fishing-boundary",
-     "f3a6e363e6d41f12": "5b:bella-coola-river-not-including-at:all-tributaries-to-the-bella-coola"
+     "f3a6e363e6d41f12": "5b:bella-coola-river-not-including-at:all-tributaries-to-the-bella-coola",
+     "page:5b:region": "5b:region:section"
     },
     "reconcile": {
      "outcomes": [
@@ -39283,6 +39839,7 @@
      ]
     }
    ],
+   "pieces": {},
    "structure": {
     "n_defaults": 1,
     "n_locations": 9,
@@ -39327,11 +39884,11 @@
      "2f05fe92c8e6160e": "6:wilauks-creek:upstream-of-white-triangular-fishi",
      "3055938aaeed9b91": "6:nass-river:mainstem-waters-downstream-of-the",
      "323f54a8379b8aa1": "6:tatshenshini-river:downstream-of-the-bc-yukon-border",
-     "3590f63def65005d": "6:b:section~2",
+     "3590f63def65005d": "6:b:section",
      "36a11a9611add148": "6:morice-river:from-fishing-boundary-signs-posted",
      "379e5efe640b46c8": "6:skeena-river:mainstem-waters-within-3-white-tri",
      "397df568900abc9e": "6:exchamsiks-river:whole",
-     "3a316477f825ecd4": "6:e:area:areas-6",
+     "3a316477f825ecd4": "6:e:area:areas-6~2",
      "3a8f01437efb37b2": "6:e:area:areas-6~2",
      "3b2baa48a00504e4": "6:sustut-river:whole",
      "3c12577e5675ae1c": "6:b:section",
@@ -39349,7 +39906,7 @@
      "4bdb774bbe0408f9": "6:redsand-lake:including-tributaries",
      "4e7e9341536e3063": "6:gitnadoix-river:whole",
      "500430f17a537efe": "6:kasiks-river:upstream-of-highway-16-bridge",
-     "5310228c8894f353": "6:e:area:areas-3-4-5-6",
+     "5310228c8894f353": "6:e:area:areas-3-4-5-6~2",
      "5460e2d75cc1630d": "6:morice-river:upstream-of-the-bymac-bridge-on-wa",
      "57e46335ddd59009": "6:babine-lake:within-a-400m-radius-of-the-mouth",
      "5827407b9e342c4d": "6:kitsumkalum-river:downstream-of-railway-bridge",
@@ -39421,7 +39978,7 @@
      "ba231fbef98cc9d3": "6:skeena-river:upstream-of-the-cnr-bridge-located",
      "bb47e7bee5b57b1b": "6:skeena-river:from-the-confluence-with-the-babin",
      "bdc3af9e1760fd7d": "6:khutzeymateen-river:including-tributaries",
-     "c1d43a07d6adafd1": "6:e:area:areas-5",
+     "c1d43a07d6adafd1": "6:e:area:areas-5~2",
      "c6c1a9ed3abc07b3": "6:shegunia-river:between-fishing-boundary-signs-loc",
      "c726ff1f20aa7095": "6:skeena-river:all-waters-within-the-4-triangular",
      "c7c9ebae57ba791d": "6:kwinimass-river:upstream-of-lower-bridge-abutments",
@@ -39433,7 +39990,7 @@
      "d0ab1127d468b92d": "6:lakelse-river:below-logging-road-bridge-near-the",
      "d0ece9609f3950e0": "6:babine-lake:babine-lake-excluding-tributaries~3",
      "d5c4563b8b62a745": "6:lakelse-river:downstream-of-the-cnr-bridge",
-     "d7d011f3271f96bd": "6:d:section~2",
+     "d7d011f3271f96bd": "6:d:section",
      "d9ca1b31bbe9f886": "6:fulton-river:whole",
      "e29785f95fb6884f": "6:skeena-river:mainstem-waters-only-upstream-of-c~2",
      "e437698bc66d02c8": "6:skeena-river:mainstem-waters-downstream-of-cnr",
@@ -39458,7 +40015,8 @@
      "f8c8c3598672afc5": "6:nass-river:mainstem-waters-downstream-of-the~2",
      "f8e62d8220f63762": "6:kitsumkalum-river:downstream-of-fishing-boundary-sig",
      "f9525e83850c16ca": "6:wahoo-river:including-tributaries",
-     "fa3ba7855c064969": "6:quaal-river:including-tributaries"
+     "fa3ba7855c064969": "6:quaal-river:including-tributaries",
+     "page:6:region": "6:a:region"
     },
     "reconcile": {
      "outcomes": [
@@ -41006,13 +41564,24 @@
       "t": "Reminder: There is no fishing for eulachon in Region 6."
      }
     ],
-    "scopes": {},
-    "unresolved": [
-     {
-      "name": "Fraser River",
-      "note": "6:adult:77a9fd2a"
-     }
-    ]
+    "scopes": {
+     "fraser river+ws": [
+      "gnis:10494",
+      "gnis:11481",
+      "gnis:11566",
+      "gnis:13499",
+      "gnis:14010",
+      "gnis:14905",
+      "gnis:17368",
+      "gnis:17805",
+      "gnis:21224",
+      "gnis:22631",
+      "gnis:25152",
+      "gnis:39325",
+      "gnis:8341"
+     ]
+    },
+    "unresolved": []
    },
    "locations": [
     {
@@ -56586,6 +57155,671 @@
      ]
     }
    ],
+   "pieces": {
+    "6:babine-lake#closed:00503bc8b63e": {
+     "calendar": {
+      "g": [
+       0,
+       -1
+      ],
+      "gears": [],
+      "sp": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ]
+      ],
+      "verdicts": [
+       {
+        "s": "closed",
+        "t": "No fishing for salmon — within a 400 m radius of the mouth of Twain Creek"
+       }
+      ]
+     },
+     "rules": [
+      {
+       "dfo_words": "Closed",
+       "may_target": false,
+       "reading": "the owner's reading, 2026-11-10, of DFO's word “closed”: “babine is closed in the circles (no fishing salmon)”",
+       "rule_id": "6:babine-lake#closed:00503bc8b63e#0",
+       "species": [
+        "SA"
+       ],
+       "take": 0,
+       "type": "retention_limit",
+       "verbatim": "No fishing for salmon — within a 400 m radius of the mouth of Twain Creek"
+      }
+     ]
+    },
+    "6:babine-lake#closed:0e1518e92322": {
+     "calendar": {
+      "g": [
+       0,
+       -1
+      ],
+      "gears": [],
+      "sp": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ]
+      ],
+      "verdicts": [
+       {
+        "s": "closed",
+        "t": "No fishing for salmon — within a 400 m radius of the mouth of Tachek Creek"
+       }
+      ]
+     },
+     "rules": [
+      {
+       "dfo_words": "Closed",
+       "may_target": false,
+       "reading": "the owner's reading, 2026-11-10, of DFO's word “closed”: “babine is closed in the circles (no fishing salmon)”",
+       "rule_id": "6:babine-lake#closed:0e1518e92322#0",
+       "species": [
+        "SA"
+       ],
+       "take": 0,
+       "type": "retention_limit",
+       "verbatim": "No fishing for salmon — within a 400 m radius of the mouth of Tachek Creek"
+      }
+     ]
+    },
+    "6:babine-lake#closed:36f5b357ebcf": {
+     "calendar": {
+      "g": [
+       0,
+       -1
+      ],
+      "gears": [],
+      "sp": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ]
+      ],
+      "verdicts": [
+       {
+        "s": "closed",
+        "t": "No fishing for salmon — within a 400 m radius of the mouth of Pendleton Creek"
+       }
+      ]
+     },
+     "rules": [
+      {
+       "dfo_words": "Closed",
+       "may_target": false,
+       "reading": "the owner's reading, 2026-11-10, of DFO's word “closed”: “babine is closed in the circles (no fishing salmon)”",
+       "rule_id": "6:babine-lake#closed:36f5b357ebcf#0",
+       "species": [
+        "SA"
+       ],
+       "take": 0,
+       "type": "retention_limit",
+       "verbatim": "No fishing for salmon — within a 400 m radius of the mouth of Pendleton Creek"
+      }
+     ]
+    },
+    "6:babine-lake#closed:379a9388f532": {
+     "calendar": {
+      "g": [
+       0,
+       -1
+      ],
+      "gears": [],
+      "sp": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ]
+      ],
+      "verdicts": [
+       {
+        "s": "closed",
+        "t": "No fishing for salmon — within a 400 m radius of the mouth of Six Mile Creek"
+       }
+      ]
+     },
+     "rules": [
+      {
+       "dfo_words": "Closed",
+       "may_target": false,
+       "reading": "the owner's reading, 2026-11-10, of DFO's word “closed”: “babine is closed in the circles (no fishing salmon)”",
+       "rule_id": "6:babine-lake#closed:379a9388f532#0",
+       "species": [
+        "SA"
+       ],
+       "take": 0,
+       "type": "retention_limit",
+       "verbatim": "No fishing for salmon — within a 400 m radius of the mouth of Six Mile Creek"
+      }
+     ]
+    },
+    "6:babine-lake#closed:40d829f72ad9": {
+     "calendar": {
+      "g": [
+       0,
+       -1
+      ],
+      "gears": [],
+      "sp": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ]
+      ],
+      "verdicts": [
+       {
+        "s": "closed",
+        "t": "No fishing for salmon — within a 400 m radius of the mouth of Big Loon Creek"
+       }
+      ]
+     },
+     "rules": [
+      {
+       "dfo_words": "Closed",
+       "may_target": false,
+       "reading": "the owner's reading, 2026-11-10, of DFO's word “closed”: “babine is closed in the circles (no fishing salmon)”",
+       "rule_id": "6:babine-lake#closed:40d829f72ad9#0",
+       "species": [
+        "SA"
+       ],
+       "take": 0,
+       "type": "retention_limit",
+       "verbatim": "No fishing for salmon — within a 400 m radius of the mouth of Big Loon Creek"
+      }
+     ]
+    },
+    "6:babine-lake#closed:6b5f946bc1eb": {
+     "calendar": {
+      "g": [
+       0,
+       -1
+      ],
+      "gears": [],
+      "sp": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ]
+      ],
+      "verdicts": [
+       {
+        "s": "closed",
+        "t": "No fishing for salmon — within a 400 m radius of the mouth of Sockeye Creek"
+       }
+      ]
+     },
+     "rules": [
+      {
+       "dfo_words": "Closed",
+       "may_target": false,
+       "reading": "the owner's reading, 2026-11-10, of DFO's word “closed”: “babine is closed in the circles (no fishing salmon)”",
+       "rule_id": "6:babine-lake#closed:6b5f946bc1eb#0",
+       "species": [
+        "SA"
+       ],
+       "take": 0,
+       "type": "retention_limit",
+       "verbatim": "No fishing for salmon — within a 400 m radius of the mouth of Sockeye Creek"
+      }
+     ]
+    },
+    "6:babine-lake#closed:6fb2db5fc268": {
+     "calendar": {
+      "g": [
+       0,
+       -1
+      ],
+      "gears": [],
+      "sp": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ]
+      ],
+      "verdicts": [
+       {
+        "s": "closed",
+        "t": "No fishing for salmon — within a 400 m radius of the mouth of Tsezakwa Creek"
+       }
+      ]
+     },
+     "rules": [
+      {
+       "dfo_words": "Closed",
+       "may_target": false,
+       "reading": "the owner's reading, 2026-11-10, of DFO's word “closed”: “babine is closed in the circles (no fishing salmon)”",
+       "rule_id": "6:babine-lake#closed:6fb2db5fc268#0",
+       "species": [
+        "SA"
+       ],
+       "take": 0,
+       "type": "retention_limit",
+       "verbatim": "No fishing for salmon — within a 400 m radius of the mouth of Tsezakwa Creek"
+      }
+     ]
+    },
+    "6:babine-lake#closed:963a5557f71b": {
+     "calendar": {
+      "g": [
+       0,
+       -1
+      ],
+      "gears": [],
+      "sp": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ]
+      ],
+      "verdicts": [
+       {
+        "s": "closed",
+        "t": "No fishing for salmon — within a 400 m radius of the mouth of Hazelwood Creek"
+       }
+      ]
+     },
+     "rules": [
+      {
+       "dfo_words": "Closed",
+       "may_target": false,
+       "reading": "the owner's reading, 2026-11-10, of DFO's word “closed”: “babine is closed in the circles (no fishing salmon)”",
+       "rule_id": "6:babine-lake#closed:963a5557f71b#0",
+       "species": [
+        "SA"
+       ],
+       "take": 0,
+       "type": "retention_limit",
+       "verbatim": "No fishing for salmon — within a 400 m radius of the mouth of Hazelwood Creek"
+      }
+     ]
+    },
+    "6:babine-lake#closed:c2013e4ac580": {
+     "calendar": {
+      "g": [
+       0,
+       -1
+      ],
+      "gears": [],
+      "sp": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ]
+      ],
+      "verdicts": [
+       {
+        "s": "closed",
+        "t": "No fishing for salmon — within a 400 m radius of the mouth of Five Mile Creek"
+       }
+      ]
+     },
+     "rules": [
+      {
+       "dfo_words": "Closed",
+       "may_target": false,
+       "reading": "the owner's reading, 2026-11-10, of DFO's word “closed”: “babine is closed in the circles (no fishing salmon)”",
+       "rule_id": "6:babine-lake#closed:c2013e4ac580#0",
+       "species": [
+        "SA"
+       ],
+       "take": 0,
+       "type": "retention_limit",
+       "verbatim": "No fishing for salmon — within a 400 m radius of the mouth of Five Mile Creek"
+      }
+     ]
+    },
+    "6:babine-lake#closed:c6d917f3f165": {
+     "calendar": {
+      "g": [
+       0,
+       -1
+      ],
+      "gears": [],
+      "sp": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ]
+      ],
+      "verdicts": [
+       {
+        "s": "closed",
+        "t": "No fishing for salmon — within a 400 m radius of the mouth of Pierre Creek"
+       }
+      ]
+     },
+     "rules": [
+      {
+       "dfo_words": "Closed",
+       "may_target": false,
+       "reading": "the owner's reading, 2026-11-10, of DFO's word “closed”: “babine is closed in the circles (no fishing salmon)”",
+       "rule_id": "6:babine-lake#closed:c6d917f3f165#0",
+       "species": [
+        "SA"
+       ],
+       "take": 0,
+       "type": "retention_limit",
+       "verbatim": "No fishing for salmon — within a 400 m radius of the mouth of Pierre Creek"
+      }
+     ]
+    },
+    "6:babine-lake#closed:d8c7cac1841a": {
+     "calendar": {
+      "g": [
+       0,
+       -1
+      ],
+      "gears": [],
+      "sp": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ]
+      ],
+      "verdicts": [
+       {
+        "s": "closed",
+        "t": "No fishing for salmon — east of a line from Gullwing Creek to south shore of Babine Lake"
+       }
+      ]
+     },
+     "rules": [
+      {
+       "dfo_words": "Closed",
+       "may_target": false,
+       "reading": "the owner's reading, 2026-11-10, of DFO's word “closed”: “babine is closed in the circles (no fishing salmon)”",
+       "rule_id": "6:babine-lake#closed:d8c7cac1841a#0",
+       "species": [
+        "SA"
+       ],
+       "take": 0,
+       "type": "retention_limit",
+       "verbatim": "No fishing for salmon — east of a line from Gullwing Creek to south shore of Babine Lake"
+      }
+     ]
+    },
+    "6:babine-lake#closed:f3116ad57dbe": {
+     "calendar": {
+      "g": [
+       0,
+       -1
+      ],
+      "gears": [],
+      "sp": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ]
+      ],
+      "verdicts": [
+       {
+        "s": "closed",
+        "t": "No fishing for salmon — within a 400 m radius of the mouth of Four Mile Creek"
+       }
+      ]
+     },
+     "rules": [
+      {
+       "dfo_words": "Closed",
+       "may_target": false,
+       "reading": "the owner's reading, 2026-11-10, of DFO's word “closed”: “babine is closed in the circles (no fishing salmon)”",
+       "rule_id": "6:babine-lake#closed:f3116ad57dbe#0",
+       "species": [
+        "SA"
+       ],
+       "take": 0,
+       "type": "retention_limit",
+       "verbatim": "No fishing for salmon — within a 400 m radius of the mouth of Four Mile Creek"
+      }
+     ]
+    },
+    "6:babine-lake#closed:f4c347aad97f": {
+     "calendar": {
+      "g": [
+       0,
+       -1
+      ],
+      "gears": [],
+      "sp": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ]
+      ],
+      "verdicts": [
+       {
+        "s": "closed",
+        "t": "No fishing for salmon — within a 400 m radius of the mouth of Morrison Creek"
+       }
+      ]
+     },
+     "rules": [
+      {
+       "dfo_words": "Closed",
+       "may_target": false,
+       "reading": "the owner's reading, 2026-11-10, of DFO's word “closed”: “babine is closed in the circles (no fishing salmon)”",
+       "rule_id": "6:babine-lake#closed:f4c347aad97f#0",
+       "species": [
+        "SA"
+       ],
+       "take": 0,
+       "type": "retention_limit",
+       "verbatim": "No fishing for salmon — within a 400 m radius of the mouth of Morrison Creek"
+      }
+     ]
+    }
+   },
    "structure": {
     "n_defaults": 10,
     "n_locations": 86,
@@ -56612,7 +57846,8 @@
    "entries": {
     "by_fingerprint": {
      "8e55a740643c4b5e": "7:nechako-river:from-the-downstream-edge-of-the-fo",
-     "ecc24086fb225910": "7:nechako-river:upstream-from-the-boundary-signs-a"
+     "ecc24086fb225910": "7:nechako-river:upstream-from-the-boundary-signs-a",
+     "page:7:region": "7:default:region"
     },
     "reconcile": {
      "outcomes": [
@@ -56870,6 +58105,7 @@
      ]
     }
    ],
+   "pieces": {},
    "structure": {
     "n_defaults": 0,
     "n_locations": 1,
@@ -56887,7 +58123,8 @@
      "833f87488f7809fc": "8:shuswap-river:middle-between-shuswap-falls-and-m~2",
      "afc9f6314421516a": "8:osoyoos-lake:in-the-waters-in-the-portion-of-os~2",
      "b70729bdede8fab3": "8:shuswap-river:lower-50-m-upstream-of-the-trinity",
-     "b823e688f7b85f22": "8:shuswap-river:middle-between-shuswap-falls-and-m"
+     "b823e688f7b85f22": "8:shuswap-river:middle-between-shuswap-falls-and-m",
+     "page:8:region": "8:default:region"
     },
     "reconcile": {
      "outcomes": [
@@ -57727,6 +58964,57 @@
      ]
     }
    ],
+   "pieces": {
+    "8:shuswap-river#closed:200d03a74aaf": {
+     "calendar": {
+      "g": [
+       0,
+       -1
+      ],
+      "gears": [],
+      "sp": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ]
+      ],
+      "verdicts": [
+       {
+        "s": "closed",
+        "t": "Closed — closed from the water survey station (located at 50°19.105' N and 118°48.857' W) approximately 200 m down stream of Shuswap Falls Hatchery to WTFB signs (located at 50°18.181' N and 118°49.105' W) one km down stream"
+       }
+      ]
+     },
+     "rules": [
+      {
+       "may_target": false,
+       "rule_id": "8:shuswap-river#closed:200d03a74aaf#0",
+       "species": [
+        "SA"
+       ],
+       "take": 0,
+       "type": "retention_limit",
+       "verbatim": "Closed — closed from the water survey station (located at 50°19.105' N and 118°48.857' W) approximately 200 m down stream of Shuswap Falls Hatchery to WTFB signs (located at 50°18.181' N and 118°49.105' W) one km down stream"
+      }
+     ]
+    }
+   },
    "structure": {
     "n_defaults": 0,
     "n_locations": 3,

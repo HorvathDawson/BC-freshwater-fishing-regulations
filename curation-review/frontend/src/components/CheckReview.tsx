@@ -5,10 +5,10 @@ import type { DfoProgress, EntrySplits, CheckPlace, CheckProgress, CheckRow, Dfo
 import { getReviewer, isTyping, setReviewer } from "../review";
 import { cleared, failed } from "../failures";
 import { current as writeThrough, keyOf as wtKey, subscribe as onWriteThrough } from "../curatedSave";
-import { HOW_IT_WORKS, LEAVE_DRAFT, arrange, showsProposal, headline, closedCircles, closedPairs, groupStillNeeds, nextAfterSave, nextWaterWithWork, placeState, waterLeft, checkBody, checkStatus, chipOf, groupHeading, groupSave, hintWords, isDone, needWords, needsExtent, openRows,
-  pinsFc, progressWords, sameAsOptions, step, waterGroups, where } from "../checklist";
-import { markBody, offerProposal } from "../dfoExtent";
-import { OlderWordings } from "./OlderWordings";
+import { HOW_IT_WORKS, LEAVE_DRAFT, arrange, showsProposal, headline, closedCircles, closedPairs, nextAfterSave, nextWaterWithWork, placeState, waterLeft, checkBody, checkStatus, chipOf, hintWords, isDone, needWords, needsExtent, openRows,
+  oldExtentWords, pinsFc, progressWords, sameAsOptions, step, where } from "../checklist";
+import { cannotEditOf, offerProposal } from "../dfoExtent";
+import { CannotEditNote } from "./CannotEditNote";
 import { statusLine } from "../dfoExtent";
 import { extentParts, fixParts, partsText, piecesParts } from "../extentWords";
 import { MapPanel } from "./MapPanel";
@@ -30,11 +30,14 @@ import { InputsSyncLine } from "./InputsSyncLine";
    Owner 2026-11-09 (after trying it): EARLIER WORK COUNTS (a verified mark made before the checklist is done, said so);
    a place with NO EXTENT leads with the fix (what it needs, the one proposal, "Use this proposal" / "Set the extent…" /
    "Same place as…" — each opens the editor, whose save is the only write); and THE WATER'S PLACES are all in sight
-   above the rows (older wordings too, same places grouped, every extent faint on the map). */
+   above the rows (older wordings too, every extent faint on the map). T742 (owner 2026-11-14: "remove the grouping
+   option … one at a time is better"): every wording is its own row, marked on its own; a place whose mark in force a
+   group save wrote is flagged "marked in a group", with its own filter, to re-check one at a time. */
 
 export type CheckSource = "dfo" | "regs" | "all";
 const FILTERS: [string, string][] = [["", "all"], ["todo", "to check"], ["needs", "needs extent"],
-  ["earlier", "verified earlier"], ["saved", "saved by you"], ["stale", "changed"], ["bad", "has ✗"]];
+  ["earlier", "verified earlier"], ["saved", "saved by you"], ["stale", "changed"], ["bad", "has ✗"],
+  ["group", "marked in a group"], ["old", "old extent in force"]];
 const KIND_WORDS: Record<string, string> = { unchecked: "words" };
 /** the rows about where the extent runs: a click on one (DFO) opens the inline editor */
 const EDIT_KINDS = ["where", "from", "to", "also", "tributaries"];
@@ -79,6 +82,12 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
     setEditingRaw(e);
     if (!e || e.full) setLayers(null);
   }, []);
+  // T742 E1 (perf): ONE `embedded` object per draft — a new one each render re-ran the inline editor's preview effect,
+  // whose `onMap` set the parent's layers, which re-rendered the parent: ~970 renders a second while picking ends,
+  // and the same 684 KB extent preview fetched about once a second
+  const editDraft = editing?.draft ?? null;
+  const embedded = useMemo(() => ({ onMap: setLayers, onFull: () => setEditing({ draft: editDraft, full: true }) }),
+    [editDraft, setEditing]);
   // the water the shown place is on: every place, older wordings too (`checks.water`), and its DFO extents' geometry
   const [waterView, setWaterView] = useState<(WaterView & { at: string }) | null>(null);
   const [waterReach, setWaterReach] = useState<{ key: string; fc: WaterReach } | null>(null);
@@ -124,17 +133,33 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
   }, [prefix]);
   // the editor (and the draft it was opened on) belongs to ONE place: any move to another place closes it
   useEffect(() => { setEditing(null); }, [selected]);
-  // a save is applied in the background: when the write-through's word on the shown place changes (saving → saved /
-  // refused), the place and the counts are read again — it never stays on "being applied"
-  const wtSeen = useRef<string | undefined>(undefined);
+  // a save is applied in the background: when the write-through on a place saved here ends (saved / refused), the
+  // counts are read again ONCE — and the place too when it is the one shown — so it never stays on "being applied".
+  // T742 E3 (perf): only the end of an apply reloads (it reloaded on every change of the shown place's word, and again
+  // on the move to the next place: two full reloads per save)
+  const applying = useRef<Set<string>>(new Set());
+  // (owner 2026-11-15, Qualicum mark 2651: refused in the background and he found out only later) A SAVE REFUSED AT
+  // THE WRITE IS SAID AT ONCE, whatever place is open now: the place, why, and what to do — until he closes it
+  const [refusedNow, setRefusedNow] = useState<{ id: string; why: string }[]>([]);
   useEffect(() => onWriteThrough((s) => {
-    const st = selected ? s.outcomes[wtKey("dfo", selected)]?.state : undefined;
-    if (st !== wtSeen.current) {
-      const was = wtSeen.current;
-      wtSeen.current = st;
-      if (was !== undefined || st === "saved" || st === "refused") { loadQueue(); setVersion((v) => v + 1); }
+    let ended = false, shownEnded = false;
+    for (const id of [...applying.current]) {
+      const o = s.outcomes[wtKey("dfo", id)];
+      const st = o?.state;
+      if (st === "saved" || st === "refused") {
+        applying.current.delete(id);
+        ended = true;
+        if (id === shown.current) shownEnded = true;
+      }
+      if (st === "refused") {
+        const why = (o as { why?: string } | undefined)?.why ?? "no reason given";
+        setRefusedNow((cur) => [...cur.filter((x) => x.id !== id), { id, why }]);
+        failed("a save refused at the write")(new Error(`${id}: ${why}`));
+      }
     }
-  }), [selected, loadQueue]);
+    if (ended) loadQueue();
+    if (shownEnded) setVersion((v) => v + 1);
+  }), [loadQueue]);
   // the first place of the list when the URL names none
   useEffect(() => { if (!selected && queue?.length) open(queue[0].id); }, [queue, selected, open]);
 
@@ -177,7 +202,8 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
   const [hideDone, setHideDone] = useState(() => pref("ck-hide-done", true));
   const [easiest, setEasiest] = useState(() => pref("ck-easiest-first", false));
   // (a filter that ASKS for done places — verified earlier, saved by you — shows them whatever the toggle says)
-  const hiding = hideDone && !["earlier", "saved"].includes(filter);
+  // (T742: "marked in a group" asks for places that are mostly done — shown whatever the toggle says)
+  const hiding = hideDone && !["earlier", "saved", "group"].includes(filter);
   const arranged = useMemo(() => arrange(queue ?? [], { easiest, hideDone: hiding, keep: selected }), [queue, easiest, hiding, selected]);
   const list = arranged.list;
   // an older wording is not a queue row: prev / next and the position are those of the place it rides
@@ -209,6 +235,7 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
   const afterSave = (id: string, what: "extent" | "confirm" | "problem" | "group" | "area", text?: string) => {
     setSavedNote({ id, what, text });
     setEditing(null);
+    applying.current.add(id);
     const fresh = loadQueue();
     setVersion((v) => v + 1);
     if (what === "problem" || what === "group" || what === "area") return;      // stays on the place
@@ -216,7 +243,8 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
     (!filter && !q.trim() ? fresh : api.checksQueue(source, "", "")).then((all) => {
       if (!all) return;
       const t = nextAfterSave(all, id);
-      if (t.next !== null) { const to = t.next; window.setTimeout(() => { if (shown.current === id && !draft.current) open(to); }, 1600); }
+      // T742 E3 (perf): straight on to the next place (it waited a fixed 1.6 s); the "Saved: …" note says what was saved
+      if (t.next !== null && shown.current === id && !draft.current) open(t.next);
       // none left on this water: the permanent "all N places done" line (the list header, the done block) says so
     }).catch(failed("the next place after the save"));
   };
@@ -230,7 +258,11 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
   const labelOf = (c: string) => d0?.cut_labels[c] ?? d0?.proposed.find((x) => x.id === c)?.name ?? null;
   const nameOf = (i: string) => d0?.item_names[i] ?? i;
   const pendingFix = d0?.saved && d0.saved.state !== "landed" && d0.saved.state !== "deferred" ? savedFixesOf(d0.mark) : [];
-  const savedWords = !cur || !savedNote || savedNote.id !== cur.id ? "" : savedNote.what === "confirm" ? "Saved: your confirmation"
+  // T742 E3: the list moves on at once after a save — the place it came from is said saved, by its words, here
+  const prevText = savedNote && cur && savedNote.id !== cur.id ? (queue?.find((p) => p.id === savedNote.id)?.text ?? savedNote.id) : "";
+  const savedWords = !cur || !savedNote ? "" : savedNote.id !== cur.id
+    ? (savedNote.what === "extent" || savedNote.what === "confirm" ? `Saved the previous place (“${prevText.slice(0, 60)}”); this is the next one` : "")
+    : savedNote.what === "confirm" ? "Saved: your confirmation"
     : savedNote.what === "problem" ? "Saved: your problem report"
     : savedNote.what === "group" ? `Saved just now: ${savedNote.text ?? "your grouping decision"}`
     : savedNote.what === "area" ? savedNote.text ?? "the closed area"
@@ -259,8 +291,9 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
       <span className="ck-progress" data-testid="ck-progress">
         {progress ? <b>{progressWords(progress)}</b> : "…"}
         {water && <span data-testid="ck-water-progress"> · {water.water}: {water.done} of {water.total} done</span>}
-        {place?.older_unconfirmed ? <span className="warn-text" data-testid="ck-older-unconfirmed"> · {place.older_unconfirmed}
-          {" "}older wording{place.older_unconfirmed > 1 ? "s" : ""} not confirmed</span> : null}
+        {place?.group_marked ? <span className="warn-text" data-testid="ck-group-marked-head"> · marked in a group ({place.group_marked.date}):
+          {" "}re-check it on its own</span> : null}
+        {place?.old_extent ? <span className="warn-text" data-testid="ck-old-extent-head"> · {oldExtentWords(place.old_extent)}</span> : null}
       </span>
       <button type="button" className="btn small" data-testid="ck-next-water-any" disabled={!nextWater}
         title={nextWater ? `the first place still to do on ${nextWater.water}` : "no other water has work left in this list"}
@@ -295,7 +328,9 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
                 : progress && k === "saved" ? ` ${progress.by_check.saved ?? 0}`
                 : progress && k === "unapplied" ? ` ${progress.by_check.unapplied ?? 0}`
                 : progress && k === "stale" ? ` ${progress.by_check.stale ?? 0}`
-                : progress && k === "bad" ? ` ${progress.by_worst.bad ?? 0}` : ""}
+                : progress && k === "bad" ? ` ${progress.by_worst.bad ?? 0}`
+                : progress && k === "group" ? ` ${progress.group_marked ?? 0}`
+                : progress && k === "old" ? ` ${progress.old_extent ?? 0}` : ""}
             </button>))}
         </span>
         <select aria-label="jump to a water" data-testid="ck-water" value={ridden?.water_key ?? ""}
@@ -317,6 +352,17 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
       <InputsSyncLine reason="write-through" />
       {error && <div className="errors inline-notice" style={{ margin: "2px 8px", padding: "2px 8px" }}>
         <span style={{ flex: 1 }}>{error}</span><CloseX onClick={() => setError("")} /></div>}
+      {refusedNow.length > 0 && (
+        <div className="errors" role="alert" data-testid="ck-refused-now" style={{ position: "static", margin: "6px 0" }}>
+          {refusedNow.map((r) => (
+            <div key={r.id} data-testid="ck-refused-line">
+              <b>Your save was NOT written</b> — <a href={`#${prefix}${encodeURIComponent(r.id)}`}>{r.id}</a>: {r.why}.
+              {" "}Open it, change what the reason names, and save again (your mark is kept; the place is as it was).
+            </div>
+          ))}
+          <CloseX onClick={() => setRefusedNow([])} />
+        </div>
+      )}
       {editing?.full && cur?.dfo ? (
         <div className="main">
           <DfoLocation key={`${cur.id}|${version}`} detail={cur.dfo} mode={mode} initialCall="change"
@@ -348,7 +394,7 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
                 <div className="ck-inline-scroll">
                   <DfoLocation key={`${cur.id}|${version}`} detail={cur.dfo} mode={mode} initialCall="change"
                     initialDraft={editing.draft} nav={{ pos: at.pos, total: at.total }} saving={false}
-                    embedded={{ onMap: setLayers, onFull: () => setEditing({ draft: editing.draft, full: true }) }}
+                    embedded={embedded}
                     onBack={() => setEditing(null)}
                     onMarked={(said) => afterSave(cur.id, "extent", said)} />
                 </div>
@@ -369,22 +415,24 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
 async function loadPlace(id: string, place: CheckPlace | null, onWater: string | null = null): Promise<Loaded> {
   const isRule = place ? place.source === "regs" : id.includes("#");
   if (!isRule) {
+    // T742 E7 (perf): the place's requests go together — the reach with the rows and the detail, then the saved
+    // extent's preview and the proposal's side by side (they were one after another)
+    const reachP = api.dfoReach(id, false).catch((e) => { failed("the DFO reach")(e); return null; });
     const [check, d] = await Promise.all([api.checkDfo(id), api.dfoLocation(id)]);
-    const reach = await api.dfoReach(id, false).catch((e) => { failed("the DFO reach")(e); return null; });
-    let pending: GeoJSON.FeatureCollection | null = null;
     const saved = d.saved && d.saved.state !== "landed" && d.saved.state !== "deferred" ? savedFixesOf(d.mark) : null;
-    if (saved?.length) {
-      const pv = await api.dfoExtentPreview(id, saved as ExtentFix[], false).catch((e) => { failed("the saved extent's preview")(e); return null; });
-      if (pv?.resolvable) pending = (pv.geojson ?? null) as GeoJSON.FeatureCollection | null;
-    }
+    const pendingP: Promise<GeoJSON.FeatureCollection | null> = saved?.length
+      ? api.dfoExtentPreview(id, saved as ExtentFix[], false)
+        .then((pv) => (pv?.resolvable ? (pv.geojson ?? null) as GeoJSON.FeatureCollection | null : null))
+        .catch((e) => { failed("the saved extent's preview")(e); return null; })
+      : Promise.resolve(null);
     const p: CheckPlace = place ?? { source: "dfo", id, water: d.row.water,
       water_key: onWater ?? d.items.map((i) => i.id).sort().join("|"),
       region: d.row.region, text: d.row.text, summary: check.summary, check: check.check };
     // THE ONE PROPOSAL (the editor's own: Claude's fix proposal, else the suggestion), offered as the editor offers it
     const best = proposalOf(d);
     const fixes = suggestionFix(best?.s ?? null, [])?.fixes ?? [];
-    let proposal: Loaded["proposal"] = null;
-    if (best && !d.extent_now.cannot_change.length && offerProposal(d.extent_now.pieces, fixes, saved?.length ? saved : null)) {
+    const proposalP = (async (): Promise<Loaded["proposal"]> => {
+    if (!(best && !d.extent_now.cannot_change.length && offerProposal(d.extent_now.pieces, fixes, saved?.length ? saved : null))) return null;
       const label = (sid: string) => d.cut_labels[sid] ?? d.proposed.find((x) => x.id === sid)?.name
         ?? best.s.suggestion?.new_splits?.find((n) => n.ref === sid)?.name ?? null;
       const name = (i: string) => d.item_names[i] ?? d.items.find((x) => x.id === i)?.name ?? i;
@@ -401,12 +449,13 @@ async function loadPlace(id: string, place: CheckPlace | null, onWater: string |
           tributaries: sg.tributaries }, false).catch((e) => { failed("the proposal's preview")(e); return null; });
         if (pv?.resolvable) feats = [...((pv.geojson?.features ?? []) as GeoJSON.Feature[]), ...feats];
       }
-      proposal = { words: sg.words ?? partsText(piecesParts(fixes, (f) => fixParts(f, label, name))),
+      return { words: sg.words ?? partsText(piecesParts(fixes, (f) => fixParts(f, label, name))),
                    ring: fixes.flatMap((f) => f.points).filter((x) => x.kind === "split" && x.split_id).map((x) => x.split_id as string),
                    from: best.from, confidence: best.from === "suggestion" ? d.suggestion?.confidence ?? null : null,
                    caveat: best.from === "suggestion" ? d.suggestion?.caveat ?? null : null,
                    fc: { type: "FeatureCollection", features: feats } };
-    }
+    })();
+    const [reach, pending, proposal] = await Promise.all([reachP, pendingP, proposalP]);
     return { id, place: p, check, dfo: d, named: d.splits, items: d.items.map((i) => ({ id: i.id, name: i.name })), proposal,
              reach: reach?.resolvable ? (reach.geojson as GeoJSON.FeatureCollection) : null, pending,
              title: d.verbatim.waters || d.row.water, sub: `DFO region ${d.row.region}${d.row.status !== "active" ? " · no longer on the live page" : ""}`,
@@ -516,8 +565,6 @@ function CheckPanel({ loaded, water, onSaved, onEdit, top, waterDone }: {
   const [busy, setBusy] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
   const [picked, setPicked] = useState<number | null>(null);
-  // owner 2026-11-09: older wordings of a DFO place start UNTICKED — only ones the owner ticks "same place" take the check
-  const [same, setSame] = useState<Set<string>>(() => new Set());
   const since = useRef(Date.now());
   useEffect(() => {
     const h = (e: Event) => { const n = (e as CustomEvent<number>).detail; setPicked(n); pinTo(n);
@@ -542,9 +589,9 @@ function CheckPanel({ loaded, water, onSaved, onEdit, top, waterDone }: {
       const target = loaded.dfo ? { source: "dfo" as const, id: loaded.id, seen: loaded.dfo.extent_now.seen }
         : { source: "regs" as const, entry_id: loaded.place.entry_id ?? loaded.id.split("#")[0],
             rule_id: loaded.place.rule_id ?? loaded.id.split("#")[1] };
-      const group = loaded.dfo?.group ? groupSave(loaded.id, loaded.dfo.group.members, same, false, true) : null;
+      // T742: one place per mark — never a group
       await api.postMark(checkBody(target, pc, call, ticked, wrong, note,
-        { reviewer: reviewer.trim(), seconds: Math.round((Date.now() - since.current) / 100) / 10 }, group));
+        { reviewer: reviewer.trim(), seconds: Math.round((Date.now() - since.current) / 100) / 10 }));
       setWrongMode(false);
       onSaved(call === "ok" ? "confirm" : "problem");
     } catch (e) {
@@ -573,9 +620,8 @@ function CheckPanel({ loaded, water, onSaved, onEdit, top, waterDone }: {
         partsText(piecesParts(pc.differs.now, (x) => extentParts(x, cutLabel, itemName))) || "no extent"}.` : "";
   const status = busy ? "Saving…" : `${checkStatus(pc)}${differs}`;
   // DONE BY HIS OWN SAVE (owner: "i cant accept it ?"): nothing to tick or confirm is rendered — only the done line,
-  // Edit and Report a problem; the group's wordings that still need him are named (`groupStillNeeds`)
+  // Edit and Report a problem
   const doneBySave = pc.check === "saved" || pc.check === "unapplied";
-  const stillNeeds = doneBySave && d?.group ? groupStillNeeds(d.group.members) : [];
   const extentNote = saved && d?.saved && d.saved.state !== "landed" ? saved.text : "";
 
   // A PLACE WITH NO EXTENT LEADS WITH THE FIX (owner 2026-11-09): what it needs, the one proposal, the way to set it.
@@ -590,67 +636,6 @@ function CheckPanel({ loaded, water, onSaved, onEdit, top, waterDone }: {
   }, [options, me]);
   const wLabel = (c: string) => water?.cut_labels[c] ?? cutLabel(c);
   const wName = (i: string) => water?.item_names[i] ?? itemName(i);
-  // every wording the data groups with this place (`checks.same_place`), to read side by side
-  const same_ = me ? (water?.places ?? []).filter((p) => p.same === me.same) : [];
-  const datesOf = (id: string) => {
-    const ds = (d?.places ?? []).flatMap((pl) => pl.wordings).filter((w) => w.location_id === id).flatMap((w) => w.dates).sort();
-    return ds.length ? (ds[0] === ds[ds.length - 1] ? ds[0] : `${ds[0]} to ${ds[ds.length - 1]}`) : "";
-  };
-  /* THE GROUPING IS HIS DECISION (owner 2026-11-09: "how would i refute same wording", "have a way to add items to it
-     from list"): take a wording out (a `not_variant_of` mark) or put one in (a `variant_of` mark) — each a mark through
-     the one save path, each undone by the other. */
-  const short = (p: WaterPlace) => `“${(p.text || "(the whole water)").slice(0, 70)}”`;
-  const head = same_.find((p) => !p.older_of && !p.duplicate_of) ?? same_[0];
-  const [addPick, setAddPick] = useState("");
-  const addable = (water?.places ?? []).filter((p) => p.source === "dfo" && me && p.same !== me.same);
-  async function regroup(target: WaterPlace, to: WaterPlace | null, from: WaterPlace | null) {
-    setErrors([]);
-    if (!reviewer.trim()) { setErrors(["Type your name first: every mark names its reviewer."]); return; }
-    setReviewer(reviewer.trim());
-    setBusy(true);
-    try {
-      await api.postMark({ scope: "dfo", target: target.id, verdict: "verified", answers: { T: "y" }, reviewer: reviewer.trim(),
-        extent_before: target.seen,
-        ...(to ? { variant_of: to.id, note: `same place as ${to.id}: put in its group by the owner (checklist)` }
-          : { not_variant_of: from?.id ?? target.id, note: `not the same place as ${from?.id ?? "its group"}: taken out of the group by the owner (checklist)` }) });
-      onSaved("group", to ? `${short(target)} is now the same place as ${short(to)}. Undo: take it out of the group again.`
-        : `${short(target)} is out of the group and stands alone (it needs its own extent). Undo: put it back with "Same place as…".`);
-    } catch (e) {
-      const fe = (e as EntryRefused).fieldErrors;
-      setErrors([`Refused: ${fe ? fe.map((x) => x.msg).join("; ") : String(e)}`]);
-    } finally {
-      setBusy(false);
-    }
-  }
-  /* A HALF-DONE GROUP (owner 2026-11-09: "saving one extent in the group didnt handle the reworded version"): this
-     wording has no extent and another wording of its group has one — one click gives it that extent. It is the
-     editor's own mark (`markBody`: an extent fix on this wording, the extent it was made on, T / R implied by his
-     saving the extent), the server's guards unchanged. */
-  const twin = d && me && !ext.length && !pc.held ? same_.find((p) => p.id !== me.id && p.extents.length > 0 && !p.apart) : undefined;
-  async function takeTwin() {
-    if (!twin || !d) return;
-    setErrors([]);
-    if (!reviewer.trim()) { setErrors(["Type your name first: every mark names its reviewer."]); return; }
-    setReviewer(reviewer.trim());
-    setBusy(true);
-    try {
-      const other = await api.dfoLocation(twin.id);
-      if (other.extent_now.cannot_change.length || !other.extent_now.pieces.length) {
-        setErrors([`Its extent cannot be given to this wording here: ${other.extent_now.cannot_change.join("; ") || "it has none"}`]);
-        return;
-      }
-      await api.postMark(markBody({ target: loaded.id, call: "change", answers: { T: "y", R: "y" }, problem: "",
-        note: `the same extent as ${twin.id} (the same place), given by the owner from the checklist · T and R not asked: implied yes by the owner saving this extent`,
-        reviewer: reviewer.trim(), seconds: Math.round((Date.now() - since.current) / 100) / 10,
-        fixes: other.extent_now.pieces, carried: [], now: d.extent_now }));
-      onSaved("extent");
-    } catch (e) {
-      const fe = (e as EntryRefused).fieldErrors;
-      setErrors([`Refused: ${fe ? fe.map((x) => x.msg).join("; ") : String(e)}`]);
-    } finally {
-      setBusy(false);
-    }
-  }
   const wordsOf = (p: WaterPlace) => partsText(piecesParts(p.extents, (x) => extentParts(x, wLabel, wName)));
   async function useSameAs() {
     const o = options.find((x) => x.id === sameAs);
@@ -687,68 +672,10 @@ function CheckPanel({ loaded, water, onSaved, onEdit, top, waterDone }: {
             {onEdit && !pc.held && <>{" "}<button type="button" className="btn small" data-testid="ck-edit-extent"
               title="opens a draft of this extent here; nothing is saved until you press Save this extent"
               onClick={() => onEdit(null)}>Edit this extent (draft, nothing saved)</button></>}
+            {!onEdit && cannotEditOf(d.extent_now) && <CannotEditNote why={cannotEditOf(d.extent_now)!} />}
           </div>)}
       </div>
       <div className="ck-rows" data-testid="ck-rows" onMouseLeave={() => pinTo(picked)}>
-        {same_.length > 1 && (
-          <details className="ck-same" open data-testid="ck-same-group">
-            <summary>These {same_.length} wordings are the same place — read them together</summary>
-            {same_.map((p) => (
-              <div key={p.id} className={`ck-same-row${p.id === loaded.id ? " this" : ""}`} data-testid="ck-same-wording">
-                <div>{p.text || "(the whole water)"}</div>
-                <div className="dim">
-                  {p.id === loaded.id ? "this one · " : ""}{p.live ? "on DFO's live page" : "no longer on the live page"}
-                  {datesOf(p.id) ? ` · seen ${datesOf(p.id)}` : ""}
-                  {" · extent: "}{p.extents.length ? wordsOf(p) : "none"}
-                  {p.id !== loaded.id && <>{" · "}<a href={`#dfo/${encodeURIComponent(p.id)}`}>open</a></>}
-                </div>
-                <div className="ck-claim" data-testid="ck-claim">{p.why.length ? <>Whose claim: {p.why.join("; ")}</> : "The place the others are grouped with"}</div>
-                {head && p.id !== head.id && <button type="button" className="btn small" data-testid="ck-take-out" disabled={busy}
-                  title="saves a mark: this wording stands alone and needs its own extent; undo by putting it back"
-                  onClick={() => void regroup(p, null, head)}>Not the same place: take this wording out of the group (saves)</button>}
-              </div>))}
-            {addable.length > 0 && head && (
-              <div className="ck-sameas" data-testid="ck-group-add">
-                <label>Add a wording to this group:{" "}
-                  <select value={addPick} aria-label="add a wording to this group" data-testid="ck-group-add-pick" onChange={(e) => setAddPick(e.target.value)}>
-                    <option value="">pick one of this water's wordings</option>
-                    {addable.map((o) => <option key={o.id} value={o.id}>{(o.text || "(the whole water)").slice(0, 70)}{o.live ? "" : " (older)"}</option>)}
-                  </select>
-                </label>
-                <button type="button" className="btn small" data-testid="ck-group-add-save" disabled={!addPick || busy}
-                  title="saves a mark: that wording becomes the same place as this group; undo by taking it out"
-                  onClick={() => { const o = addable.find((x) => x.id === addPick); if (o) void regroup(o, head, null); }}>Add it: same place (saves)</button>
-              </div>)}
-            <div className="dim">The grouping is a prior from the data, not a decision: a wording counts as checked only when you tick or save it.</div>
-          </details>
-        )}
-        {d && me && same_.length <= 1 && addable.length > 0 && (
-          <div className="ck-same" data-testid="ck-same-as-group">
-            {me.apart && <div className="dim" data-testid="ck-apart">Your decision: this wording was taken out of a group and stands alone. Put it back below to undo.</div>}
-            <div className="ck-sameas" style={{ borderTop: 0, paddingTop: 0 }}>
-              <label>Same place as…{" "}
-                <select value={addPick} aria-label="same place as (group)" data-testid="ck-same-as-pick" onChange={(e) => setAddPick(e.target.value)}>
-                  <option value="">another wording on this water</option>
-                  {addable.map((o) => <option key={o.id} value={o.id}>{(o.text || "(the whole water)").slice(0, 70)}{o.live ? "" : " (older)"}</option>)}
-                </select>
-              </label>
-              <button type="button" className="btn small" data-testid="ck-same-as-save" disabled={!addPick || busy}
-                title="saves a mark: this wording becomes the same place as the one picked (it rides that place's extent); undo by taking it out of the group"
-                onClick={() => { const o = addable.find((x) => x.id === addPick); if (o) void regroup(me, o, null); }}>Group them: same place (saves)</button>
-            </div>
-          </div>
-        )}
-        {twin && onEdit && (
-          <div className="ck-lead" data-testid="ck-twin">
-            <b>Another wording of this place already has its extent.</b>
-            <div>“{(twin.text || "(the whole water)").slice(0, 110)}”: {wordsOf(twin)}</div>
-            <div className="ck-btns">
-              <button data-testid="ck-take-twin" disabled={busy} onClick={() => void takeTwin()}>
-                Give this wording the same extent as “{(twin.text || "that wording").slice(0, 40)}…” (saves)</button>
-            </div>
-            <div className="dim">One click, saved as your mark on this wording. Not the same place? Take it out of the group below.</div>
-          </div>
-        )}
         {d?.closure && (
           <div className="ck-two" data-testid="ck-two-entries">
             {d.closure.error ? <div className="warn-text">{d.closure.error}</div> : <>
@@ -804,7 +731,8 @@ function CheckPanel({ loaded, water, onSaved, onEdit, top, waterDone }: {
               <div className="ck-btns">
                 <button data-testid="ck-set-extent" disabled={busy} onClick={() => onEdit(null)}>Draw the extent myself (opens a draft, nothing saved)</button>
               </div>
-            ) : <div className="warn-text">It cannot be changed here: {d.extent_now.cannot_change.join("; ")}</div>}
+            ) : cannotEditOf(d.extent_now) ? <CannotEditNote why={cannotEditOf(d.extent_now)!} />
+              : <div className="warn-text">It cannot be changed here.</div>}
             {onEdit && options.length > 0 && (
               <div className="ck-sameas" data-testid="ck-sameas">
                 <label>Copy the extent from another place on this river:{" "}
@@ -839,10 +767,6 @@ function CheckPanel({ loaded, water, onSaved, onEdit, top, waterDone }: {
         {doneBySave && (
           <div className="ck-done" data-testid="ck-done-block">
             <b>{checkStatus(pc)}</b>
-            {stillNeeds.length > 0
-              ? <div className="warn-text" data-testid="ck-group-needs">{stillNeeds.length} other wording{stillNeeds.length > 1 ? "s" : ""} of this place still need{stillNeeds.length > 1 ? "" : "s"} you
-                  — open {stillNeeds.length > 1 ? "each" : "it"}: {stillNeeds.map((m, i) => <span key={m.id}>{i ? ", " : ""}<a href={`#dfo/${encodeURIComponent(m.id)}`}>“{(m.text || "(the whole water)").slice(0, 70)}”</a></span>)}</div>
-              : d?.group && d.group.members.length > 1 ? <div className="dim">Every other wording of this place is done too.</div> : null}
             <div className="ck-btns">
               {onChange && <button className="alt" data-testid="ck-done-edit" disabled={busy} onClick={onChange}>Edit the extent (draft, nothing saved)</button>}
               <button className="alt" data-testid="ck-wrong" disabled={busy || !!pc.held} title={pc.held ? "its save has not landed yet: edit the extent instead" : undefined}
@@ -851,9 +775,6 @@ function CheckPanel({ loaded, water, onSaved, onEdit, top, waterDone }: {
             {waterDone}
           </div>
         )}
-        {d?.group && !pc.held && !doneBySave && <OlderWordings members={d.group.members} shownText={d.verbatim.specific_area}
-          same={same} setSame={setSame} fix={false} checklist={true} link={(m) => `#dfo/${encodeURIComponent(m)}`}
-          extentWords={(e) => partsText(piecesParts(e.extents, (x) => extentParts(x, cutLabel, itemName)))} />}
         {doneBySave && !wrongMode ? null : !wrongMode ? (
           <>
             <div className="ck-btns">
@@ -899,7 +820,7 @@ function CheckPanel({ loaded, water, onSaved, onEdit, top, waterDone }: {
 
 /** THE WATER'S PLACES, ALL IN SIGHT (owner 2026-11-09: "for a river show all historical boundaries too … have them
  *  grouped"): every place on the water — live, no longer live, older wordings, its regulation extents — with its words,
- *  its extent in a few words and one state chip; places the data calls the same place under one heading. Click = open;
+ *  its extent in a few words and one state chip; each its own row (T742: no grouping). Click = open;
  *  hover = its extent stronger on the map. */
 const pref = (k: string, dflt: boolean) => {
   try { const v = window.localStorage.getItem(k); return v == null ? dflt : v === "1"; } catch { return dflt; }
@@ -913,15 +834,15 @@ function WaterList({ view, selected, onOpen, onHover, undrawn, done: doneLine, h
   done?: React.ReactNode;
   undrawn: { id: string; why: string }[];
 }) {
-  // hide done rows (the shown one stays; a group stays whole while any of its rows is not done), easiest first
-  const groups = useMemo(() => {
-    let gs = waterGroups(view.places);
-    if (hideDone) gs = gs.filter((g) => g.places.some((p) => !isDone(p) || p.id === selected));
+  // hide done rows (the shown one stays), easiest first — one row per place (T742)
+  const rows = useMemo(() => {
+    let ps = view.places;
+    if (hideDone) ps = ps.filter((p) => !isDone(p) || p.id === selected);
     const rank = (p: WaterPlace) => (isDone(p) ? 99 : p.ease?.rank ?? 50);
-    if (easiest) gs = gs.map((g, i) => ({ g, i, r: Math.min(...g.places.map(rank)) })).sort((a, b) => a.r - b.r || a.i - b.i).map((x) => x.g);
-    return gs;
+    if (easiest) ps = ps.map((p, i) => ({ p, i })).sort((a, b) => rank(a.p) - rank(b.p) || a.i - b.i).map((x) => x.p);
+    return ps;
   }, [view.places, hideDone, easiest, selected]);
-  const hiddenRows = view.places.length - groups.reduce((n, g) => n + g.places.length, 0);
+  const hiddenRows = view.places.length - rows.length;
   const label = (c: string) => view.cut_labels[c] ?? null;
   const name = (i: string) => view.item_names[i] ?? i;
   const done = view.places.filter(isDone).length;
@@ -932,8 +853,7 @@ function WaterList({ view, selected, onOpen, onHover, undrawn, done: doneLine, h
     try { window.localStorage.setItem("ck-water-list", o ? "0" : "1"); } catch { /* per-viewer only */ }
     return !o;
   });
-  // owner 2026-11-09: "hard to see the same wording things at same time" — the list can be made taller, and a
-  // selected row brings its WHOLE group into view
+  // owner 2026-11-09: the list can be made taller; the selected row is brought into view
   const [tall, setTall] = useState(() => {
     try { return window.localStorage.getItem("ck-water-list-tall") === "1"; } catch { return false; }
   });
@@ -943,7 +863,7 @@ function WaterList({ view, selected, onOpen, onHover, undrawn, done: doneLine, h
   });
   useEffect(() => {
     const row = document.querySelector('.ck-wl [aria-current="true"]');
-    (row?.closest(".ck-wg") ?? row)?.scrollIntoView({ block: "nearest" });
+    row?.scrollIntoView({ block: "nearest" });
   }, [selected, open, tall]);
   return (
     <div className={`ck-wl${tall ? " tall" : ""}`} data-testid="ck-water-list" onMouseLeave={() => onHover(null)}>
@@ -956,26 +876,24 @@ function WaterList({ view, selected, onOpen, onHover, undrawn, done: doneLine, h
       {view.note && <div className="dim" data-testid="ck-water-note" style={{ padding: "0 16px 6px", fontSize: 12 }}>{view.note}</div>}
       {open && (
         <div className="ck-wl-rows">
-          {groups.map((g) => (
-            <div key={g.same} className={g.places.length > 1 ? "ck-wg" : undefined} data-testid={g.places.length > 1 ? "ck-water-group" : undefined}>
-              {g.places.length > 1 && <div className="ck-wg-head" title={g.why.join(" · ")}>{groupHeading(g)}
-                <span className="dim"> · {g.why.join(" · ")}</span></div>}
-              {g.places.map((p) => {
-                const chip = chipOf(p);
-                return (
-                  <button type="button" key={p.id} className="ck-wp" aria-current={p.id === selected} data-testid="ck-water-place"
-                    onMouseEnter={() => onHover(p.id)} onClick={() => onOpen(p.id)}>
-                    <span className={`ck-chip ${chip.replace(/[^a-z]+/g, "-")}`}>{chip}</span>
-                    {p.ease && p.ease.word !== chip && <span className="ck-ease" data-testid="ck-ease" title="how much work it is: the easiest-first order goes by this">{p.ease.word}</span>}
-                    <span className="t">{p.source === "regs" ? <i>{p.name ? `${p.name}: ` : ""}</i> : null}
-                      {(p.text || "(the whole water)").slice(0, 110)}{(p.text || "").length > 110 ? "…" : ""}</span>
-                    <span className="e">{p.source === "regs" ? "regulation · " : ""}
-                      {p.extents.length ? partsText(piecesParts(p.extents, (x) => extentParts(x, label, name))) : "no extent"}
-                      {p.source !== "dfo" ? "" : p.live ? " · live" : ` · no longer live${p.last_seen ? `, last seen ${p.last_seen}` : ""}`}</span>
-                  </button>);
-              })}
-            </div>
-          ))}
+          {rows.map((p) => {
+            const chip = chipOf(p);
+            return (
+              <button type="button" key={p.id} className="ck-wp" aria-current={p.id === selected} data-testid="ck-water-place"
+                onMouseEnter={() => onHover(p.id)} onClick={() => onOpen(p.id)}>
+                <span className={`ck-chip ${chip.replace(/[^a-z]+/g, "-")}`}>{chip}</span>
+                {p.group_marked && <span className="ck-chip changed" data-testid="ck-group-marked"
+                  title={`its mark in force (${p.group_marked.date}) was written by a group save: re-check it on its own`}>marked in a group</span>}
+                {p.old_extent && <span className="ck-chip changed" data-testid="ck-old-extent"
+                  title={oldExtentWords(p.old_extent)}>{p.old_extent.flag}</span>}
+                {p.ease && p.ease.word !== chip && <span className="ck-ease" data-testid="ck-ease" title="how much work it is: the easiest-first order goes by this">{p.ease.word}</span>}
+                <span className="t">{p.source === "regs" ? <i>{p.name ? `${p.name}: ` : ""}</i> : null}
+                  {(p.text || "(the whole water)").slice(0, 110)}{(p.text || "").length > 110 ? "…" : ""}</span>
+                <span className="e">{p.source === "regs" ? "regulation · " : ""}
+                  {p.extents.length ? partsText(piecesParts(p.extents, (x) => extentParts(x, label, name))) : "no extent"}
+                  {p.source !== "dfo" ? "" : p.live ? " · live" : ` · no longer live${p.last_seen ? `, last seen ${p.last_seen}` : ""}`}</span>
+              </button>);
+          })}
           {undrawn.length > 0 && <div className="warn-text" data-testid="ck-water-undrawn" style={{ fontSize: 12, padding: "2px 8px" }}>
             {undrawn.length} extent{undrawn.length > 1 ? "s" : ""} on this water could not be drawn: {undrawn[0].why}</div>}
         </div>

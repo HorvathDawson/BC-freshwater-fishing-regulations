@@ -12,10 +12,12 @@ W=app/dist/web-staging; S=app/dist/seo; O=app/dist/staging-site; K=app/dist/stag
 js=$(grep -o '/_expo/static/js/web/index-[0-9a-f]*\.js' "$W/index.html")
 # (T279: a water page is stored compressed only — index.html.gz / .br — and served by the worker)
 one=$(find "$S/water" -name index.html.gz -print -quit)
-gunzip -c "$one" | grep -q "$js" || { echo "site.sh: $S's water pages were built against another app export (not $js): rebuild with --app $W" >&2; exit 1; }
+gunzip -c "$one" | grep -c "$js" >/dev/null || { echo "site.sh: $S's water pages were built against another app export (not $js): rebuild with --app $W" >&2; exit 1; }
 # (T304) the app focuses the region a water page names; a page without `cift:region` is from an older SEO build (every
 # landing would read the whole files AND report it): rebuild the pages, not just relink them
-gunzip -c "$one" | grep -q '<meta name="cift:region"' || { echo "site.sh: $S's water pages carry no cift:region (built before T304): run build-seo again" >&2; exit 1; }
+# grep -c, not -q: -q stops reading at the first hit, gunzip then dies on the closed pipe and `pipefail` turned a page that
+# HAS the tag into this failure at random (staging deploy 2026-11-14). -c reads to the end; the test is the same.
+gunzip -c "$one" | grep -c '<meta name="cift:region"' >/dev/null || { echo "site.sh: $S's water pages carry no cift:region (built before T304): run build-seo again" >&2; exit 1; }
 rm -rf "$O" "$K"; mkdir -p "$O" "$K"
 cp -R "$W/." "$O/"
 # SEO files never overwrite the app (the app owns /index.html); report any clash

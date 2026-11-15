@@ -214,8 +214,9 @@ def test_auto_approve_takes_only_a_bare_water_named_once(words, area, places, ok
 
 def test_a_historic_only_place_is_its_own_item_with_its_dormant_rewordings():
     """The North Alouette (owner 2026-11-02): a dormant place that no live place rewords stayed in
-    no group and the live queue dropped it. It is its own place, its dormant rewordings join it,
-    and the live queue keeps it while its water is live."""
+    no group and the live queue dropped it. It is its own place, and the live queue keeps it while
+    its water is live. T742 B (owner 2026-11-14, grouping removed): a dormant rewording is its own
+    place too, never folded into a group head, so `historic_only` no longer takes the groups."""
     import sys
     sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "curation-review" / "backend"))
     import dfo as B
@@ -226,10 +227,10 @@ def test_a_historic_only_place_is_its_own_item_with_its_dormant_rewordings():
     g = D.groups(locs)
     assert "north" not in g and g["2"]["canonical"] == g["two"]["canonical"] == "two"
     live = {"1:test-river"}
-    assert B.historic_only(locs["north"][1], g, live) and B.historic_only(locs["two"][1], g, live)
-    assert not B.historic_only(locs["2"][1], g, live)          # a rewording rides its place
-    assert not B.historic_only(locs["up"][1], g, live)         # live: shown anyway
-    assert not B.historic_only(locs["north"][1], g, set())     # a water off the live page: archived
+    assert B.historic_only(locs["north"][1], live) and B.historic_only(locs["two"][1], live)
+    assert B.historic_only(locs["2"][1], live)                 # T742 B: a rewording is its own place
+    assert not B.historic_only(locs["up"][1], live)            # live: shown anyway
+    assert not B.historic_only(locs["north"][1], set())        # a water off the live page: archived
 
 
 def test_applied_keys_names_a_missing_build_instead_of_calling_marks_moved(tmp_path):

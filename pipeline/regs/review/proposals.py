@@ -127,6 +127,7 @@ class Sources:
     tidal_decisions: Optional[Path] = None
     _reg: Optional[dict] = field(default=None, repr=False)
     _texts: dict = field(default_factory=dict, repr=False)
+    _parsed: dict = field(default_factory=dict, repr=False)
     #: (T421) whether registry.json was there (None = not read yet), and whether an item was asked for without one:
     #: `applied_keys` refuses that
     _has_reg: Optional[bool] = field(default=None, repr=False)
@@ -152,6 +153,15 @@ class Sources:
     def doc(self, path: Path) -> dict:
         return json.loads(self.text(path))
 
+    def parsed(self, path: Path) -> dict:
+        """(T755 follow-up) the file parsed ONCE per Sources, READ ONLY — for the finders, which hand out copies:
+        `applied_keys` parsed every region file once per place it looked up (1,438 parses, 0.65 s per save)"""
+        p = Path(path)
+        got = self._parsed.get(p)
+        if got is None:
+            got = self._parsed[p] = json.loads(self.text(p))
+        return got
+
     def item(self, iid: str) -> Optional[dict]:
         """A registry item as registry.json holds it (raw), or None."""
         if self._reg is None:
@@ -172,18 +182,22 @@ def _region_files(d: Path) -> list[Path]:
 
 
 def _find_entry(src: Sources, entry_id: str) -> Optional[tuple[Path, dict]]:
+    """(path, a COPY of the entry): a fresh object per call, as when each call parsed the file anew"""
+    import copy
     for p in _region_files(src.entries_dir):
-        for e in src.doc(p).get("entries") or []:
+        for e in src.parsed(p).get("entries") or []:
             if e.get("entry_id") == entry_id:
-                return p, e
+                return p, copy.deepcopy(e)
     return None
 
 
 def _find_location(src: Sources, location_id: str) -> Optional[tuple[Path, dict]]:
+    """(path, a COPY of the place): a fresh object per call, as when each call parsed the file anew"""
+    import copy
     for p in _region_files(src.dfo_dir):
-        for loc in src.doc(p).get("locations") or []:
+        for loc in src.parsed(p).get("locations") or []:
             if loc.get("location_id") == location_id:
-                return p, loc
+                return p, copy.deepcopy(loc)
     return None
 
 
@@ -489,6 +503,22 @@ def extent_of(fix, split_of, rest_at_build: bool = False) -> tuple[Optional[dict
     return ex, problems
 
 
+def excludes_of(items) -> list[dict]:
+    """(owner 2026-11-15) an extent fix's excepted tributaries as the place's `tributary_excludes`: each water whole"""
+    return [{"op": "whole", "item_id": i} for i in items]
+
+
+def excepted_items(excludes) -> tuple[list[str], list[str]]:
+    """the inverse of `excludes_of`: (item ids, why not) — an exclusion that is not one water whole cannot be said"""
+    items, why = [], []
+    for i, x in enumerate(excludes or []):
+        if set(x) == {"op", "item_id"} and x.get("op") == "whole":
+            items.append(x["item_id"])
+        else:
+            why.append(f"excepted tributary {i + 1} ({x.get('op')}) is not one water whole: a hand edit")
+    return items, why
+
+
 #: T525: the fields of a curated extent an extent fix can say (`extent_of` writes exactly these)
 EXPRESSIBLE = frozenset({"op", "splits", "item_id", "item_ids", "area_id"})
 
@@ -506,7 +536,9 @@ def unexpressed(extents: Iterable[Mapping]) -> list[str]:
     return out
 
 
-def fixes_of_extents(extents: Iterable[Mapping], tributaries: Optional[bool]) -> tuple[list, list[str]]:
+def fixes_of_extents(extents: Iterable[Mapping], tributaries: Optional[bool], *,
+                     tributaries_only: Optional[bool] = None,
+                     tributary_excludes: Optional[Iterable[Mapping]] = None) -> tuple[list, list[str]]:
     """T525: A PLACE'S CURATED EXTENTS AS EXTENT FIXES — the pieces the review app's editor opens on, so a change
     starts FROM the extent the place has (never from an empty editor or an old mark). The inverse of `extent_of`:
     each extent's cuts as `split` points, its item(s), its area, and the place's own tributary flag as it is (None
@@ -516,13 +548,18 @@ def fixes_of_extents(extents: Iterable[Mapping], tributaries: Optional[bool]) ->
     from pipeline.regs.review.marks import ExtentFix
     extents = list(extents)
     why = unexpressed(extents)
+    excepted = None
+    if tributary_excludes is not None:
+        excepted, no = excepted_items(tributary_excludes)
+        why += no
     fixes = []
     for i, ex in enumerate(extents):
         items = list(ex.get("item_ids") or ([ex["item_id"]] if ex.get("item_id") else []))
         try:
             fixes.append(ExtentFix(scope="entry", op=ex["op"], items=items, tributaries=tributaries,
                                    points=[{"kind": "split", "split_id": s} for s in ex.get("splits") or []],
-                                   area=ex.get("area_id")))
+                                   area=ex.get("area_id"), tributaries_only=tributaries_only,
+                                   tributary_excludes=excepted))
         except ValueError as e:
             why.append(f"extent {i + 1} ({ex.get('op')}): {e}")
     return ([], why) if why else (fixes, [])
@@ -653,6 +690,9 @@ def _provenance(m) -> dict:
 
 
 def _proposes(m) -> bool:
+    if m.scope == "closed_area":                 # T573: a confirmed closed area proposes its stretch's new cuts
+        from pipeline.regs.review.marks import cut_proposals_of
+        return bool(cut_proposals_of(m))
     return m.scope in ("entry", "rule", "dfo") and bool(
         m.extent_fix or m.tributaries or m.new_splits or m.lake_split_later
         or getattr(m, "variant_of", None) or getattr(m, "not_variant_of", None) or _dfo_tidal_call(m))
@@ -827,6 +867,41 @@ def _cut_already_there(n, have: Mapping, src: "Sources") -> Optional[str]:
     return min(rows, key=lambda r: abs(float(r["route_measure"]) - float(m)))["split_id"] if rows else None
 
 
+def closed_area_cut(n, have: Mapping, src: "Sources") -> tuple[Optional[str], Optional[str]]:
+    """T573: A CLOSED AREA'S NEW END, by the T755 split hunt's rules (`dfo_salmon.suggest`): (the existing cut it IS,
+    or None; why it cannot be a cut, or None). An existing cut on the same blue line within `SAME_CUT_M` (25 m, by
+    the built atlas's `splits.resolved.json`) is reused; an end at the line's end (measure <= `LINE_END_M`) is
+    refused — a cut there breaks both halves, and a closed stretch needs two real ends."""
+    from pipeline.regs.dfo_salmon.suggest import LINE_END_M, SAME_CUT_M
+    m = getattr(n, "measure", None)
+    if m is not None and not n.offset_m and float(m) <= LINE_END_M:
+        return None, (f"the closed area's end {n.ref} is on its line's end (m {float(m):.1f}): no cut there — "
+                      "move the end off the mouth")
+    blk = getattr(n, "blk", None)
+    if blk is None or m is None or n.offset_m or not src.build:
+        return None, None
+    p = Path(src.build) / "splits.resolved.json"
+    if not p.exists():
+        return None, None
+    rows = [r for r in json.loads(src.text(p)) if str(r.get("blk")) == str(blk) and r.get("split_id") in have
+            and r.get("route_measure") is not None and abs(float(r["route_measure"]) - float(m)) <= SAME_CUT_M]
+    return (min(rows, key=lambda r: abs(float(r["route_measure"]) - float(m)))["split_id"] if rows else None), None
+
+
+def landed_cut(n, src: "Sources") -> Optional[str]:
+    """T573: THE CUT A CLOSED AREA'S NEW END IS NOW, in the cuts file of `src`: the split whose anchor is the one this
+    end lands as (`place_groups`' own dup rule) or the existing cut it reuses (`closed_area_cut`) — None while the cut
+    has not landed. The reach run reads a confirmed stretch's new ends through this, so a landed cut binds it."""
+    from pipeline.regs.review.marks import NewSplit
+    n = NewSplit.model_validate(n) if isinstance(n, Mapping) else n
+    doc = src.doc(src.splits_path)
+    have = {sp["id"]: sp for wb in doc.get("waterbodies") or [] for sp in wb.get("splits") or [] if sp.get("id")}
+    if n.anchor == "split" and not n.offset_m:
+        return n.split_id if n.split_id in have else None
+    got = place_groups([(n.ref, n, False, None)], src, doc, have)[n.ref]["dup"]
+    return got or closed_area_cut(n, have, src)[0]
+
+
 def _tidal_label(n, water: str = "") -> str:
     """A tidal cut's label: its name without the water's own name ("Nanaimo River: tidal boundary"
     -> "tidal boundary"), as every other split of the water is labelled; it always says tidal."""
@@ -994,9 +1069,11 @@ def build(decided, src: Sources, *, applied: Optional[set] = None) -> list[dict]
     ref_group: dict[tuple, dict] = {}                    # (mark key, ref | #i) -> group
     for m in inforce:
         who = {"target": m.target, "rule_id": m.rule_id, "reviewer": m.reviewer, "date": m.date, "scope": m.scope}
-        for n in m.new_splits:
+        for n in M.cut_proposals_of(m):              # T573: a confirmed closed area's new ends too
             if n.anchor != "split" or n.offset_m:     # an existing cut + an offset is a new cut
-                ref_group[(m.key, n.ref)] = group_for(n, who)
+                g = ref_group[(m.key, n.ref)] = group_for(n, who)
+                if g is not None and m.scope == "closed_area":
+                    g["closed"] = True
         for fi, f in enumerate(m.extent_fix):
             for pi, p in enumerate(f.points):
                 if p.kind in ("confluence", "lake_inlet", "lake_outlet", "coord"):
@@ -1031,6 +1108,12 @@ def build(decided, src: Sources, *, applied: Optional[set] = None) -> list[dict]
         targets = ", ".join(sorted({w["target"] for w in g["marks"]}))
         prov = f"proposed in review marks on {targets}"
         dup = pl["dup"]
+        if dup is None and g.get("closed"):
+            # T573: a closed area's end follows the T755 hunt's rules — an existing cut on its line within
+            # `SAME_CUT_M` IS that cut, and no cut is made on a line's end
+            dup, why = closed_area_cut(n, have, src)
+            if why:
+                problems.append(why)
         if dup is not None:                              # already in splits.json: applied
             gid_split[g["gid"]] = dup
             if g.get("tidal"):                           # T166: ... but flagged tidal?
@@ -1125,6 +1208,12 @@ def build(decided, src: Sources, *, applied: Optional[set] = None) -> list[dict]
             got.setdefault("extents", []).append(ex)
             if f.tributaries is not None:                # one call for every piece: `marks.pieces_ok`
                 got[tri_field] = f.tributaries
+            # (owner 2026-11-15) a DFO place's "tributaries only" and its excepted tributaries, when the fix calls them
+            # (None = no call: the file's stay — every mark saved before these fields)
+            if m.scope == "dfo" and f.tributaries_only is not None:
+                got["tributaries_only"] = f.tributaries_only
+            if m.scope == "dfo" and f.tributary_excludes is not None:
+                got["tributary_excludes"] = excludes_of(f.tributary_excludes)
         for scope, call in m.tributaries.items():
             want = call == "include"
             got = sets.setdefault(scope, {})

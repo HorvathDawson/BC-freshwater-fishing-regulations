@@ -1,10 +1,11 @@
 // T532: the checklist screen's logic — run by `node --test` from pipeline/tests/test_review_dfo.py.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { checkBody, checkStatus, chipOf, earlierWords, groupHeading, groupLine, groupSave, hintWords, needWords,
-  needsExtent, openRows, pinsFc, problemOf, progressWords, sameAsOptions, step, tickAll, untickable, waterGroups, where,
-  wordDiff, wrongNote } from "../src/checklist.ts";
-import type { CheckPlace, CheckRow, DfoGroupMember, PlaceCheck, WaterPlace } from "../src/types.ts";
+import * as CL from "../src/checklist.ts";
+import { checkBody, checkStatus, chipOf, earlierWords, hintWords, needWords,
+  needsExtent, openRows, pinsFc, problemOf, progressWords, sameAsOptions, step, where,
+  wrongNote } from "../src/checklist.ts";
+import type { CheckPlace, CheckRow, PlaceCheck, WaterPlace } from "../src/types.ts";
 
 const row = (n: number, kind: CheckRow["kind"], state: CheckRow["state"], coord?: [number, number]): CheckRow =>
   ({ n, kind, state, quote: `q${n}`, ours: `o${n}`, reason: state === "ok" ? "" : "why", anchor: coord ? { coord } : {} });
@@ -76,48 +77,6 @@ test("one numbered pin per row with a point; rows on one point sit side by side"
   assert.notDeepEqual((fc.features[1].geometry as GeoJSON.Point).coordinates, (fc.features[2].geometry as GeoJSON.Point).coordinates);
 });
 
-// owner 2026-11-09: older wordings are never assumed to match — each starts unticked; a ticked one takes the check,
-// and this place's extent when its own differs; the save line names exactly what it writes
-const SEEN = { extents: [{ op: "whole" }], tributaries: null } as unknown as DfoGroupMember["extent"];
-const mem = (id: string, o: Partial<DfoGroupMember> = {}): DfoGroupMember => ({
-  id, why: null, this: false, water: "W", text: `text ${id}`, status: "historic", verify: "unmarked" as DfoGroupMember["verify"],
-  same_extent: true, extent: SEEN, cannot_change: [], cannot_take: [], digest: `d${id}`.padEnd(16, "0"), held: null,
-  check: "unchecked", ...o });
-const GROUP = [mem("a", { this: true }), mem("b"), mem("c", { same_extent: false }), mem("d", { same_extent: false,
-  cannot_change: ["extent 1 (within) holds within_area"] })];
-
-test("older wordings start unticked: the save writes this place only", () => {
-  assert.deepEqual(groupSave("a", GROUP, new Set(), false, true), { targets: ["a"], members: {} });
-  assert.equal(groupLine(GROUP, new Set(), false, true), "Saves on this wording only. 3 older wordings not ticked: they stay unchecked.");
-  const body = checkBody({ source: "dfo", id: "a", seen: SEEN }, PC, "ok", new Set([3, 4]), new Set(), "", who,
-                         groupSave("a", GROUP, new Set(), false, true));
-  assert.equal(body.targets, undefined);
-  assert.equal(body.members, undefined);
-});
-
-test("ticked wordings are listed with what was seen, and the line names which take this extent", () => {
-  const g = groupSave("a", GROUP, new Set(["b", "c", "d"]), false, true);
-  assert.deepEqual(g.targets, ["a", "b", "c"]);                     // d holds within_area: never written
-  assert.deepEqual(g.members.c, { extent_before: SEEN, digest: "dc".padEnd(16, "0") });
-  assert.equal(groupLine(GROUP, new Set(["b", "c", "d"]), false, true),
-    "Also saves on 2 older wordings: “text b”, “text c”; 1 takes this extent: “text c”. 1 older wording not ticked: it stays unchecked.");
-  const body = checkBody({ source: "dfo", id: "a", seen: SEEN }, PC, "ok", new Set([3, 4]), new Set(), "", who, g);
-  assert.deepEqual(body.targets, ["a", "b", "c"]);
-  assert.deepEqual(Object.keys(body.members ?? {}), ["b", "c"]);
-  assert.match(untickable(GROUP[3], false, true), /within_area/);
-  assert.equal(untickable(GROUP[3], false, false).length > 0, true);
-  assert.equal(untickable(mem("e", { held: "your save of 2026-11-09 has not landed yet: …" }), false, true).length > 0, true);
-  assert.equal(untickable(mem("e", { held: "x" }), false, false), "");     // the editor's save replaces its own save
-  // a change (an extent fix): every ticked wording takes it
-  assert.match(groupLine(GROUP, new Set(["b"]), true, false), /1 takes this extent: “text b”/);
-});
-
-test("an older wording's words mark what differs from the shown place's", () => {
-  const got = wordDiff("From the Vedder Crossing bridge downstream", "From Vedder Crossing to the Fraser downstream");
-  assert.deepEqual(got.filter((t) => t.diff).map((t) => t.w), ["to", "the", "Fraser"]);
-  assert.deepEqual(got.map((t) => t.w).join(" "), "From Vedder Crossing to the Fraser downstream");
-});
-
 // ---- owner 2026-11-09 (after trying it): earlier work counts, a no-extent place leads with the fix, the water in sight
 
 test("a verified mark made before the checklist reads as done; any other earlier mark says what it was", () => {
@@ -146,7 +105,7 @@ const wp = (id: string, o: Partial<WaterPlace> = {}): WaterPlace => ({ source: "
   check: "unchecked", bad: 0, state: "bound", extents: [{ op: "whole" }], tributaries: null, extent_key: `k-${id}`,
   older_of: null, duplicate_of: null, proposal: false, same: id, why: [], ...o });
 
-test("the water's places: one chip each, the same place under one heading", () => {
+test("the water's places: one chip each", () => {
   assert.equal(chipOf(wp("a", { check: "checked" })), "done");
   assert.equal(chipOf(wp("a", { check: "earlier" })), "verified earlier");
   assert.equal(chipOf(wp("a", { check: "wrong" })), "reported wrong");
@@ -154,26 +113,26 @@ test("the water's places: one chip each, the same place under one heading", () =
   assert.equal(chipOf(wp("a", { check: "stale" })), "changed");
   assert.equal(chipOf(wp("a", { bad: 2 })), "has ✗");
   assert.equal(chipOf(wp("a")), "to check");
-  const places = [wp("a"), wp("b"), wp("a2", { same: "a", why: ["an older wording of the place"], live: false }),
-                  wp("c", { same: "a", why: ["the identical extent"] })];
-  const gs = waterGroups(places);
-  assert.deepEqual(gs.map((g) => g.places.map((p) => p.id)), [["a", "a2", "c"], ["b"]]);
-  assert.deepEqual(gs[0].why, ["an older wording of the place", "the identical extent"]);
-  assert.equal(groupHeading(gs[0]), "These 3 wordings are the same place");
-  assert.equal(groupHeading(gs[1]), "");
+});
+
+// T742 (owner 2026-11-14: "remove the grouping option … one at a time is better")
+test("T742: one place at a time — no group save, no save-for-all, no same-place grouping in the checklist logic", () => {
+  for (const gone of ["groupSave", "groupLine", "tickAll", "untickable", "saveForAll", "saveForAllWords", "coveredWords",
+                      "groupStillNeeds", "waterGroups", "groupHeading", "wordDiff"])
+    assert.equal((CL as Record<string, unknown>)[gone], undefined, `${gone} is gone`);
+  // a DFO check is one mark on one place: never several targets, never members
+  const body = checkBody({ source: "dfo", id: "a", seen: { extents: [], tributaries: null } }, PC, "ok", new Set([3, 4]),
+                         new Set(), "", who);
+  assert.equal(body.target, "a");
+  assert.equal(body.targets, undefined);
+  assert.equal((body as Record<string, unknown>).members, undefined);
+  assert.equal(checkBody.length, 7);                          // (target, pc, call, ticked, wrong, note, who): no group
 });
 
 test("same place as: only DFO places that have an extent, one per extent, DFO's own rewording link first", () => {
   const places = [wp("me", { extents: [], extent_key: "", duplicate_of: "old" }), wp("x"), wp("x2", { extent_key: "k-x" }),
                   wp("none", { extents: [], extent_key: "" }), wp("r", { source: "regs" }), wp("old", { live: false })];
   assert.deepEqual(sameAsOptions(places, "me").map((p) => p.id), ["old", "x"]);
-});
-
-test("these N wordings are the same place: ticks every tickable older wording, never one that cannot be", () => {
-  assert.deepEqual([...tickAll(GROUP, false, true)].sort(), ["b", "c"]);       // d holds what a fix cannot say
-  const g = groupSave("a", GROUP, tickAll(GROUP, false, true), false, true);
-  assert.deepEqual(g.targets, ["a", "b", "c"]);
-  assert.deepEqual([...tickAll([mem("a", { this: true })], false, true)], []);
 });
 
 test("the place's one state line is one of exactly six", async () => {
@@ -224,22 +183,8 @@ test("after a save: the next not-done place on the same water, else the next wat
     "The extent is no longer the one you saved: check it again.");
 });
 
-test("save for all: every wording that can take the extent is covered, the rest named; a taken-out wording is no member", async () => {
-  const { saveForAll, coveredWords } = await import("../src/checklist.ts");
-  const got = saveForAll("a", GROUP, true);
-  assert.deepEqual(got.group.targets, ["a", "b", "c"]);
-  assert.deepEqual(got.covered.map((m) => m.id), ["b", "c"]);
-  assert.deepEqual(got.left.map((x) => x.m.id), ["d"]);                   // d holds what an extent fix cannot say
-  assert.match(got.left[0].why, /within_area/);
-  assert.equal(coveredWords(got.covered), ", and the same extent given to 2 other wordings of this place: “text b”, “text c”");
-  assert.equal(coveredWords([]), "");
-  // the group is the server's list of members: one taken out (not_variant_of) is not in it, so never covered
-  assert.deepEqual(saveForAll("a", GROUP.filter((m) => m.id !== "b"), true).group.targets, ["a", "c"]);
-  assert.deepEqual(saveForAll("a", [GROUP[0]], true).group, { targets: ["a"], members: {} });
-});
-
-test("the next water with work, from anywhere; a water's left count; a group's wordings that still need him", async () => {
-  const { nextWaterWithWork, waterLeft, groupStillNeeds } = await import("../src/checklist.ts");
+test("the next water with work, from anywhere; a water's left count", async () => {
+  const { nextWaterWithWork, waterLeft } = await import("../src/checklist.ts");
   const p = (id: string, water_key: string, check: CheckPlace["check"]): CheckPlace => ({ source: "dfo", id, water: water_key.toUpperCase(),
     water_key, region: "2", text: id, summary: { ok: 1, bad: 0, worst: "ok" }, check });
   const q = [p("a1", "a", "saved"), p("a2", "a", "earlier"), p("b1", "b", "checked"), p("c1", "c", "unchecked"), p("d1", "d", "stale")];
@@ -249,11 +194,6 @@ test("the next water with work, from anywhere; a water's left count; a group's w
   assert.equal(nextWaterWithWork(q.slice(0, 3), "a1"), null);
   assert.deepEqual(waterLeft(q, "a"), { total: 2, left: 0 });
   assert.deepEqual(waterLeft(q, "c"), { total: 1, left: 1 });
-  // one rule: a wording is done by its own state — a saved / verified-earlier / checked one needs nothing from him
-  const ms = [mem("a", { this: true, check: "saved" }), mem("b", { check: "saved" }), mem("c", { check: "earlier" }),
-              mem("d", { check: "unchecked" }), mem("e", { check: "stale" }), mem("f", { check: null })];
-  assert.deepEqual(groupStillNeeds(ms).map((m) => m.id), ["d", "e", "f"]);
-  assert.deepEqual(groupStillNeeds(ms.slice(0, 3)), []);
 });
 
 test("hide done, and easiest first: least work first, a water never split, the shown place kept", async () => {
@@ -349,18 +289,6 @@ test("T562: the landed check and a file save's dropped rows, in words", async ()
   assert.equal(notLandedWords({ state: "failed", why: "boom" })!.tone, "error");
   assert.deepEqual(domainSaveWords({ names: { state: "done", files: ["found_names.json"], sha: "0123456789abcdef", dropped: ["Review Creek"] }, dfo: { state: "done" } }),
     { dropped: ["names: Review Creek"], commits: ["names: found_names.json · commit 012345678"] });
-});
-
-test("T588: save-for-all says exactly which rows it writes, and which it does not", async () => {
-  const { saveForAllWords } = await import("../src/checklist.ts");
-  const w = saveForAllWords("from the bridge down", [{ text: "from the old bridge down", replaces: true }, { text: "" }], [{ text: "above the falls", why: "it is on another water" }]);
-  assert.equal(w.label, "Save this extent on 3 rows: this wording and 2 older wordings");
-  assert.deepEqual(w.rows, ["“from the bridge down” (this wording)", "“from the old bridge down” (an older wording: REPLACES the extent it has now)", "“(the whole water)” (an older wording)"]);
-  assert.equal(w.not[0], "“above the falls”: it is on another water");
-  assert.match(w.not[1], /live wording of the same place.*same extent as/);
-  assert.match(w.confirm, /^This writes 3 rows, one mark each:/);
-  assert.match(w.confirm, /NOT written:[\s\S]*above the falls[\s\S]*live wording/);
-  assert.equal(saveForAllWords("x", [{ text: "y" }], []).label, "Save this extent on 2 rows: this wording and 1 older wording");
 });
 
 test("T607: a place on the check-again list reads as that, never as done", async () => {

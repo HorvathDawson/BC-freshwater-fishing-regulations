@@ -12,6 +12,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { livePieceRules } from "../src/dfo/closures";
 import { readDates } from "../src/dfo/dates";
 import { byFingerprint, loadEntryFile, reconcile } from "../src/dfo/entries";
 import { digest, parseHeader, resolve } from "../src/dfo/header";
@@ -34,7 +35,9 @@ interface Vectors {
   text: { section: string | null; water: string; specific_area: string; fingerprint: string; normalize: [string, string]; landmarks: string[] }[];
   names: [string, string][];
   rows: Record<string, { rules: Record<string, unknown>[]; calendar: Calendar; error?: string }>;
-  pages: Record<string, { structure: unknown; locations: Record<string, unknown>[]; locators: PyLocator[]; entries: Join; header: Header }>;
+  pages: Record<string, { structure: unknown; locations: Record<string, unknown>[]; locators: PyLocator[]; entries: Join; header: Header;
+                          /** T757: piece id -> its rules and calendar (closures.live_piece_rules) */
+                          pieces: Record<string, { rules: Record<string, unknown>[]; calendar: Calendar }> }>;
   joins: Record<string, Join & { slug: string; entries: unknown }>;
   dates: [string, unknown][];
 }
@@ -130,6 +133,19 @@ describe.each(Object.keys(V.pages))("region %s: the saved page", (slug) => {
     expect({ scopes, unresolved }).toEqual({ scopes: want.header.scopes, unresolved: want.header.unresolved });
     expect(plain(headerAnswers(notes))).toEqual(want.header.answers);
     expect(plain(headerClosure(notes, slug))).toEqual(want.header.closure);
+  });
+  // T757: the closed-area pieces the page's rows name (closures.live_piece_rules), each its rules and its year
+  it("the closed-area pieces its rows name: ids, rules, calendars", () => {
+    const [, locs] = typePage(page(slug), slug, true, REG);
+    const got = livePieceRules(loadEntryFile(slug, entryText(slug)), locs);
+    expect(Object.fromEntries([...got].map(([lid, rs]) => [lid, { rules: plain(rs), calendar: calendarOf(rs as TypedRule[]) }]))).toEqual(want.pieces);
+  });
+});
+
+describe("T757: the pieces the saved pages carry are not empty", () => {
+  it("17 in all: Thompson 3 (region 3), Babine 12 mouths + the Gullwing line (region 6), the middle Shuswap 1 (region 8)", () => {
+    expect(Object.fromEntries(Object.entries(V.pages).map(([s, p]) => [s, Object.keys(p.pieces).length]).filter(([, n]) => n)))
+      .toEqual({ "3": 3, "6": 13, "8": 1 });
   });
 });
 

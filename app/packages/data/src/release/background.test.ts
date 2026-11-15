@@ -11,14 +11,15 @@ import { parseManifest, type Manifest } from "../manifest";
 import { REGIONS, WEB_BUDGET } from "../pack.generated";
 import type { Db } from "../sql/db";
 import { releaseLoader, type DbName, type FileName, type ReleaseLoader } from "./loader";
-import { createBackgroundPrefetch, FAST_BYTES_PER_S, NET_DEFAULT, prefetchHold, REGION_NEAR, regionOrder,
+import { backgroundOrder, createBackgroundPrefetch, FAST_BYTES_PER_S, NET_DEFAULT, othersAhead, prefetchHold, readerDownloading, REGION_NEAR, regionOrder,
          unnamedTapFiles, type NetSignals } from "./background";
 import { releaseCache } from "./drivers/cache.web";
 import { releaseSource } from "./drivers/source.web";
+import { createAheadLane } from "./lane";
 
 const enc = (s: string) => new TextEncoder().encode(s);
 const H = "d768d6e135e62b99";
-const SHARED = ["core", "water", "access", "regs-sid", "down", "salmon"];
+const SHARED = ["core", "water", "access", "regs-sid", "down", "lines", "salmon"];   // (T737) lines: never fetched ahead
 const ALL = [...SHARED, ...REGIONS.flatMap((r) => [`regs-${r}`, `salmon-${r}`])];
 
 function manifest(names: readonly string[] = ALL, gz = 1000): Manifest {
@@ -60,11 +61,13 @@ describe("what and in which order", () => {
     expect(WEB_BUDGET.first_tap_unnamed!.files).toEqual(
       ["core", "water-{region}", "water-shared", "access", "regs-{region}", "regs-sid", "down", "salmon", "salmon-{region}"]);
     // (T256) the answer slice is read as its WHOLE file: this walks the province; (T370) so is `water-shared`, once
+    // (T737) in fetch order: a named tap's files, then the unnamed page's two whole files, the whole water last; never
+    // `lines` (in the manifest here: the page does not wait for it)
     expect(unnamedTapFiles(manifest(), "7a")).toEqual(
-      ["core", "water", "access", "regs-7a", "regs-sid", "down", "salmon", "salmon-7a"]);
+      ["core", "access", "regs-7a", "salmon", "salmon-7a", "regs-sid", "down", "water"]);
     // a release cut without salmon: those are skipped, not asked for
     expect(unnamedTapFiles(manifest(ALL.filter((f) => !f.startsWith("salmon"))), "2")).toEqual(
-      ["core", "water", "access", "regs-2", "regs-sid", "down"]);
+      ["core", "access", "regs-2", "regs-sid", "down", "water"]);
   });
 
   it("the region in view, its neighbours, then every other region (T238, owner 2026-10-29: regs of ALL regions)", () => {
@@ -138,11 +141,12 @@ describe("createBackgroundPrefetch: scheduling", () => {
     const bg = createBackgroundPrefetch({ loader: f.loader, signals: { effectiveType: "4g" } });
     bg.view(["2"]); bg.start();
     expect(await f.finish()).toBe("core");
-    bg.view(["7b"]);                                // core done, water in flight: then 7b's own regs before 2's
-    expect(await f.finish()).toBe("water");
-    for (let i = 0; i < 4; i++) await f.finish();   // access, regs-7b, regs-sid, down
-    expect(f.pending.map((p) => p.name)).toEqual(["salmon"]);
-    await f.finish(); await f.finish();
+    bg.view(["7b"]);                                // core done, access in flight: then 7b's own regs before 2's
+    expect(await f.finish()).toBe("access");
+    expect(f.pending.map((p) => p.name)).toEqual(["regs-7b"]);
+    for (let i = 0; i < 2; i++) await f.finish();   // regs-7b, salmon
+    expect(f.pending.map((p) => p.name)).toEqual(["salmon-7b"]);
+    for (let i = 0; i < 4; i++) await f.finish();   // salmon-7b, regs-sid, down, water
     expect(bg.snapshot().ready).toEqual(["7b"]);
   });
 
@@ -186,7 +190,7 @@ describe("createBackgroundPrefetch: holds, cancellation, failures", () => {
     bg.signals({ hidden: false, effectiveType: "3g" });
     expect([f.pending.length, bg.snapshot().hold]).toEqual([0, "slow"]);
     bg.signals({ effectiveType: "4g" });
-    expect(f.pending.map((p) => p.name)).toEqual(["water"]);
+    expect(f.pending.map((p) => p.name)).toEqual(["access"]);
     expect(events.filter((e) => e.kind !== "prefetched").map((e) => [e.kind, e.note]))
       .toEqual([["paused", "background"], ["paused", "slow"], ["resumed", "after slow"]]);
   });
@@ -224,10 +228,10 @@ describe("createBackgroundPrefetch: holds, cancellation, failures", () => {
     const bg = createBackgroundPrefetch({ loader: f.loader, signals: { effectiveType: "4g" }, onEvent: (e) => events.push(e) });
     bg.view(["2"]); bg.start();
     expect(await f.finish(true)).toBe("core");
-    expect(f.pending.map((p) => p.name)).toEqual(["water"]);
+    expect(f.pending.map((p) => p.name)).toEqual(["access"]);
     expect(events.find((e) => e.kind === "failed")).toMatchObject({ source: "prefetch", note: "core", error: "HTTP 503" });
     bg.signals({ online: false });
-    await f.finish();                               // water lands
+    await f.finish();                               // access lands
     bg.signals({ online: true });
     expect(f.pending.map((p) => p.name)).toEqual(["core"]);
   });
@@ -270,6 +274,211 @@ describe("the tap reads what the background fetched: the real web source and cac
       else await L.db(n as DbName);
     }
     expect(fetched.length).toBe(names.length);
+  });
+});
+
+describe("(T737, owner 2026-11-14) the unnamed tap's files early, behind the reader, joined by a tap", () => {
+  it("the two whole files an unnamed page waits for come right after a named tap's, before the whole water", async () => {
+    const f = fakeLoader();
+    const bg = createBackgroundPrefetch({ loader: f.loader, signals: { effectiveType: "4g" } });
+    bg.view(["2"]); bg.start();
+    const got: string[] = [];
+    while (got.length < 8) got.push(await f.finish());
+    expect(got).toEqual(["core", "access", "regs-2", "salmon", "salmon-2", "regs-sid", "down", "water"]);
+    await f.finish();                               // then the next region's own files: never lines
+    expect(f.pending.map((p) => p.name)).not.toContain("lines");
+  });
+
+  it("(2026-11-15) the whole order: the open water's regions, the view with its slice + geo, neighbours, lines, the rest", () => {
+    const m = manifest([...ALL, "geo", "water-2", "water-3"]);
+    const o = backgroundOrder(m, ["2"], ["3", "5", "7a", "2"]);
+    // a Fraser part in Region 2: the other parts' regions first (the page reads only its own part's)
+    expect(o.slice(0, 4)).toEqual(["regs-3", "regs-5", "regs-7a", "regs-2"]);
+    // the view's named tap reads its water slice and geo: first of the view's files, before the whole core
+    expect(o.slice(4, 8)).toEqual(["water-2", "geo", "core", "access"]);
+    expect(o.indexOf("water-3")).toBe(-1);                      // a neighbour's slice: never (its tap reads geo too)
+    // lines: after the view and every neighbour (1, 3, 5, 8), before the far regions (4, 6, 7a, 7b)
+    const at = o.indexOf("lines");
+    expect(o.indexOf("salmon-8")).toBeLessThan(at);
+    expect(o.indexOf("regs-4")).toBeGreaterThan(at);
+    expect(o.indexOf("regs-sid")).toBeLessThan(o.indexOf("regs-1"));   // the unnamed files still before the neighbours
+    expect(new Set(o).size).toBe(o.length);
+    expect(backgroundOrder(m, [])).toEqual([]);                 // no view, no water: nothing
+  });
+
+  it("(2026-11-15) want: the open water's regions go next, behind the file in flight", async () => {
+    const f = fakeLoader();
+    const bg = createBackgroundPrefetch({ loader: f.loader, signals: { effectiveType: "4g" } });
+    bg.view(["2"]); bg.start();
+    bg.want(["3", "5"]);
+    expect(await f.finish()).toBe("core");                       // the one in flight lands
+    expect(f.pending.map((p) => p.name)).toEqual(["regs-3"]);
+    expect(await f.finish()).toBe("regs-3");
+    expect(f.pending.map((p) => p.name)).toEqual(["regs-5"]);
+    bg.want([]);                                                 // the water closed: the view's order again
+    await f.finish();
+    expect(f.pending.map((p) => p.name)).toEqual(["access"]);
+  });
+
+  it("while the reader downloads nothing new starts (the file in flight goes on); after it, the next one does", async () => {
+    const f = fakeLoader();
+    const events: UpdateEvent[] = [];
+    const bg = createBackgroundPrefetch({ loader: f.loader, signals: { effectiveType: "4g" }, onEvent: (e) => events.push(e),
+                                         readerGraceMs: 40 });
+    bg.view(["2"]); bg.start();
+    bg.reader(true);                                // a tap's download is under way
+    expect(await f.finish()).toBe("core");          // the one in flight lands
+    expect(f.pending.length).toBe(0);
+    bg.view(["3"]);                                 // a new view starts nothing either
+    expect(f.pending.length).toBe(0);
+    // (2026-11-15) the line free for a moment between the tap's steps: nothing starts within the grace
+    bg.reader(false);
+    await new Promise((r) => setTimeout(r, 20));
+    expect(f.pending.length).toBe(0);
+    bg.reader(true);                                // the page's next step: the grace starts again after it
+    bg.reader(false);
+    await new Promise((r) => setTimeout(r, 25));
+    expect(f.pending.length).toBe(0);
+    await new Promise((r) => setTimeout(r, 40));
+    expect(f.pending.map((p) => p.name)).toEqual(["access"]);
+    // a yield is not a hold: never said as paused
+    expect(events.filter((e) => e.kind === "paused" || e.kind === "resumed")).toEqual([]);
+  });
+
+  it("readerDownloading: a tap's answer or a page's extra (raised or not), never a file only fetched ahead", () => {
+    expect(readerDownloading({ downloads: [] })).toBe(false);
+    expect(readerDownloading({ downloads: [{ priority: 2 }, { priority: 2 }] })).toBe(false);
+    expect(readerDownloading({ downloads: [{ priority: 2 }, { priority: 0 }] })).toBe(true);
+    expect(readerDownloading({ downloads: [{ priority: 1 }] })).toBe(true);
+  });
+
+  it("a tap while regs-sid comes ahead joins that download, and asks down and lines at once beside it (the web source)", async () => {
+    const m = manifest(["core", "access", "regs-sid", "down", "lines", "regs-2"]);
+    const asked: string[] = [];
+    const held = new Map<string, () => void>();
+    const name = (url: string) => url.replace(/^.*\/r-1\//, "").replace(/-x\.sqlite\.gz$/, "");
+    const source = releaseSource(m, { base: "https://r2.test/release/", cache: await releaseCache(`t737-${Math.random()}`),
+      held: null, fetch: ((url: string) => { const n = name(url); asked.push(n);
+        return new Promise<Response>((ok) => held.set(n, () => ok(new Response(enc(n))))); }) as typeof fetch });
+    const L = releaseLoader(m, source, async (n: DbName, bytes) => {
+      await bytes();
+      return { all: async () => [{ k: "format", v: n.startsWith("regs-") ? "regs-region/1" : `${n}/1` },
+                                 { k: "section_handles", v: H }], get: async () => undefined } as unknown as Db;
+    });
+    const tick = () => new Promise((r) => setTimeout(r, 0));
+    for (const n of ["core", "access", "regs-2"]) { void L.prefetch(n as FileName); await tick(); held.get(n)!(); await tick(); }
+    void L.prefetch("regs-sid"); await tick();       // the background's file in flight
+    expect(asked).toEqual(["core", "access", "regs-2", "regs-sid"]);
+    // the tap: its three opens together, as the unnamed page asks them
+    const tap = Promise.all((["regs-sid", "down", "lines"] as const).map((n) => L.db(n)));
+    await tick(); await tick();
+    expect(asked).toEqual(["core", "access", "regs-2", "regs-sid", "down", "lines"]);   // joined: no second regs-sid
+    for (const n of ["regs-sid", "down", "lines"]) held.get(n)!();
+    await tap;
+    expect(asked.filter((n) => n === "regs-sid").length).toBe(1);
+  });
+});
+
+describe("(T737, 2026-11-15) a reader's request never waits for a file fetched ahead (the web source's lane)", () => {
+  /** The real web source + loader over a fetch the test answers; each request's url, priority and abort are logged. */
+  async function rig(names: readonly string[]) {
+    const m = manifest(names);
+    const log: string[] = [];
+    const open = new Map<string, () => void>();
+    const name = (url: string) => url.replace(/^.*\/r-1\//, "").replace(/-x\.sqlite\.gz$/, "");
+    const source = releaseSource(m, { base: "https://r2.test/release/", cache: await releaseCache(`lane-${Math.random()}`),
+      held: null, lane: createAheadLane({ joinMs: 5, graceMs: 20 }),
+      fetch: ((url: string, init?: RequestInit) => { const n = name(url); log.push(`${n}:${init?.priority}`);
+        return new Promise<Response>((ok, no) => {
+          init?.signal?.addEventListener("abort", () => { log.push(`${n}✗`); const e = new Error("aborted"); e.name = "AbortError"; no(e); });
+          open.set(n, () => ok(new Response(enc(n))));
+        }); }) as typeof fetch });
+    const L = releaseLoader(m, source, async (n: DbName, bytes) => {
+      await bytes();
+      return { all: async () => [{ k: "format", v: n.startsWith("regs-") ? "regs-region/1" : `${n}/1` },
+                                 { k: "section_handles", v: H }], get: async () => undefined } as unknown as Db;
+    });
+    const tick = () => new Promise((r) => setTimeout(r, 0));
+    const finish = async (n: string) => { open.get(n)!(); open.delete(n); await tick(); await tick(); };
+    return { L, log, open, tick, finish };
+  }
+
+  it("a tap during a background download: its own request goes out at once (high), the background's is aborted and comes again after", async () => {
+    const r = await rig(["core", "regs-sid", "down", "water-2", "geo"]);
+    let bgDone = false;
+    void r.L.prefetch("regs-sid").then(() => { bgDone = true; });
+    await r.tick();
+    expect(r.log).toEqual(["regs-sid:low"]);                       // the background's file, low priority
+    const tap = Promise.all([r.L.db("water-2"), r.L.db("geo")]);   // a named tap: neither is regs-sid
+    await r.tick();
+    expect(r.log).toEqual(["regs-sid:low", "water-2:high", "geo:high"]);   // at once, not behind it
+    await new Promise((ok) => setTimeout(ok, 10));
+    expect(r.log).toContain("regs-sid✗");                          // and the line is theirs: regs-sid stopped
+    await r.finish("water-2"); await r.finish("geo");
+    await tap;
+    expect(r.log.filter((x) => x.startsWith("regs-sid:")).length).toBe(1);   // nothing new within the grace
+    await new Promise((ok) => setTimeout(ok, 30));
+    expect(r.log.filter((x) => x.startsWith("regs-sid:"))).toEqual(["regs-sid:low", "regs-sid:low"]);   // again, after
+    await r.finish("regs-sid");
+    expect(bgDone).toBe(true);                                     // the prefetch never failed: no file lost for the tap
+  });
+
+  it("at most one file ahead on the network, whoever asked (idle tier, background tier, address bar)", async () => {
+    const r = await rig(["core", "regs-2", "lines", "regs-sid"]);
+    for (const n of ["regs-2", "core", "lines", "regs-sid"] as const) void r.L.prefetch(n);
+    await r.tick(); await r.tick();
+    expect(r.log).toEqual(["regs-2:low"]);
+    await r.finish("regs-2");
+    expect(r.log).toEqual(["regs-2:low", "core:low"]);
+    await r.finish("core");
+    await r.finish("lines");
+    expect(r.log).toEqual(["regs-2:low", "core:low", "lines:low", "regs-sid:low"]);
+  });
+
+  it("a file still waiting in the lane that the tap needs goes out at once, as the tap's", async () => {
+    const r = await rig(["core", "regs-sid", "down"]);
+    void r.L.prefetch("core"); void r.L.prefetch("regs-sid");
+    await r.tick(); await r.tick();
+    expect(r.log).toEqual(["core:low"]);
+    const tap = r.L.db("regs-sid");                                // the unnamed tap needs regs-sid, waiting behind core
+    await r.tick(); await r.tick();
+    expect(r.log).toEqual(["core:low", "regs-sid:high"]);
+    await r.finish("regs-sid");
+    await tap;
+    expect(r.log.filter((x) => x.startsWith("regs-sid")).length).toBe(1);   // one download, the tap's
+  });
+});
+
+describe("(T737, 2026-11-15) the background tier: one file ahead at a time, and a yield is not a slow line", () => {
+  it("another tier's file ahead on the network: nothing new starts until it is in (no grace)", async () => {
+    const f = fakeLoader();
+    const bg = createBackgroundPrefetch({ loader: f.loader, signals: { effectiveType: "4g" } });
+    bg.view(["2"]);
+    bg.others(true);                                   // the idle core, the address bar's lines
+    bg.start();
+    expect(f.pending.length).toBe(0);
+    bg.others(false);
+    expect(f.pending.map((p) => p.name)).toEqual(["core"]);
+  });
+
+  it("othersAhead: a started download ahead that is not the background's own", () => {
+    expect(othersAhead({ downloads: [] }, [])).toBe(false);
+    expect(othersAhead({ downloads: [{ key: "core", priority: 2 }] }, ["core"])).toBe(false);
+    expect(othersAhead({ downloads: [{ key: "lines", priority: 2 }] }, ["core"])).toBe(true);
+    expect(othersAhead({ downloads: [{ key: "lines", priority: 2, waiting: true }] }, [])).toBe(false);
+    expect(othersAhead({ downloads: [{ key: "water-2", priority: 0 }] }, [])).toBe(false);   // the reader's: `reader`
+  });
+
+  it("a file the reader made wait is not measured: a parked download never reads as a slow connection", async () => {
+    let t = 0;
+    const f = fakeLoader(manifest(ALL, 100_000));
+    const bg = createBackgroundPrefetch({ loader: f.loader, now: () => t, signals: { effectiveType: null }, readerGraceMs: 0 });
+    bg.view(["2"]); bg.start();
+    bg.reader(true);                                   // a tap: the web source parked this file for it
+    t += 5000;                                         // 100 kB in 5 s would be 20 kB/s: "slow"
+    bg.reader(false);
+    await f.finish();
+    expect([f.pending.length, bg.snapshot().hold]).toEqual([1, null]);
   });
 });
 

@@ -373,7 +373,14 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "atnarko_river__signs_near_tweedsmuir_park_lodge_stuie"
+            ]
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -422,12 +429,18 @@
       "binding": {
         "extents": [
           {
-            "op": "whole"
+            "op": "whole",
+            "item_id": "gnis:11611"
           }
         ],
         "tributaries": true,
         "tributaries_only": false,
-        "tributary_excludes": [],
+        "tributary_excludes": [
+          {
+            "op": "whole",
+            "item_id": "gnis:17209"
+          }
+        ],
         "sections_cached": null,
         "notes": [],
         "spatial_caveat": false
@@ -474,10 +487,20 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:11611"
+          }
+        ],
         "tributaries": true,
-        "tributaries_only": false,
-        "tributary_excludes": [],
+        "tributaries_only": true,
+        "tributary_excludes": [
+          {
+            "op": "whole",
+            "item_id": "gnis:17209"
+          }
+        ],
         "sections_cached": null,
         "notes": [],
         "spatial_caveat": false
@@ -577,7 +600,22 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "dean_river__crag_creek_into_dean_river",
+              "dean_river__signs_0_5_km_above_the_canyon_500_m_upstream"
+            ],
+            "item_id": "gnis:16075"
+          },
+          {
+            "op": "downstream_of",
+            "splits": [
+              "dean_river__signs_100_m_below_the_canyon_100_m_downstream"
+            ]
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -627,7 +665,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "dean_river__signs_0_5_km_above_the_canyon_500_m_upstream",
+              "dean_river__signs_100_m_below_the_canyon_100_m_downstream"
+            ],
+            "item_id": "gnis:16075"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -676,7 +723,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "dean_river__crag_creek_into_dean_river"
+            ],
+            "item_id": "gnis:16075"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -816,7 +871,12 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "wbk:329462886"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],

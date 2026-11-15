@@ -77,13 +77,15 @@ def test_todays_pages_join_every_location(tmp_path):
     got = L.run(tmp_path, fetcher=_pages(), now=AT, notify_url="http://n", sender=Sender())
     ix = got["index"]
     assert ix["format"] == L.FORMAT == "dfo-feed/3" and ix["unplaced"] == 0 and not got["notices"]
-    assert len(ix["locs"]) == 254          # T349: + 7 page-default entries (R4/5B/6 carry the sentence on their own row)
+    assert len(ix["locs"]) == 271          # T349: + 7 page-default entries (R4/5B/6 carry the sentence on their own row)
+    # T573: + 17 closed areas the live rows name (Thompson 3, middle Shuswap 1, Babine 12 mouths + the Gullwing line)
+    assert sum(1 for k in ix["locs"] if "#closed:" in k) == 17
     assert ix["verdicts"][0] == S.NOT_LISTED
     assert ix["regions"]["6"]["asof"] == "2026-08-28" and ix["regions"]["6"]["checked"] == AT
     assert not any(r["stale"] or r["held"] for r in ix["regions"].values())
     assert json.loads((tmp_path / "index.json").read_text()) == ix
     # T332: the quota trees (game-fish TreeTier nodes) add ~22 kB to the ~74 kB of T320; gzip on the wire
-    assert (tmp_path / "index.json").stat().st_size < 105_000          # T343: + each note's `fold`
+    assert (tmp_path / "index.json").stat().st_size < 108_000          # T343: + each note's `fold`; T573: + 17 closed areas (~1.4 kB)
 
 
 def _unseen() -> str:
@@ -125,7 +127,7 @@ def test_a_failed_fetch_keeps_the_last_answers_and_two_notify(tmp_path):
     one = L.run(tmp_path, fetcher=_pages({"6": OSError("down")}), now=AT, notify_url="http://n", sender=s)
     r6 = one["index"]["regions"]["6"]
     assert r6["stale"] and r6["failures"] == 1 and r6["asof"] == "2026-08-28" and s.sent == []
-    assert sum(1 for c in one["index"]["locs"].values() if c["r"] == "6") == 137
+    assert sum(1 for c in one["index"]["locs"].values() if c["r"] == "6") == 150          # T573: 137 + Babine's 13 closed areas
     two = L.run(tmp_path, fetcher=_pages({"6": OSError("down")}), now=AT, notify_url="http://n", sender=s)
     assert two["index"]["regions"]["6"]["failures"] == 2 and len(s.sent) == 1 and "Region 6" in s.sent[0]
 
@@ -135,7 +137,7 @@ def test_a_page_that_does_not_parse_holds_the_region(tmp_path):
     s = Sender()
     got = L.run(tmp_path, fetcher=_pages({"6": "<html>nothing</html>"}), now=AT, notify_url="http://n", sender=s)
     assert got["index"]["regions"]["6"]["held"]
-    assert sum(1 for c in got["index"]["locs"].values() if c["r"] == "6") == 137
+    assert sum(1 for c in got["index"]["locs"].values() if c["r"] == "6") == 150          # T573: 137 + Babine's 13 closed areas
     assert len(s.sent) == 1
 
 

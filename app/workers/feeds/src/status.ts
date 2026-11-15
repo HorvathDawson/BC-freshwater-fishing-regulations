@@ -5,6 +5,7 @@ import { isVersioned, readStored, type Fetch, type Meter, type Store } from "./i
 import { body as notifyBody } from "./notify";
 import { fmtErrors, foldHealth, summarize, type FeedHealth, type RunHealth, type SourceRun } from "./health";
 import { FORMAT as WORDING_FORMAT } from "./dfo/wording";
+import { PIECES_SHAPE } from "./dfo/closures";
 import { FEED_FORMATS } from "../../../packages/core/src/feedFormats.generated";
 import { INSEASON_LINKS_FORMAT } from "../../../packages/core/src/inseason";
 
@@ -69,6 +70,14 @@ export const INPUT_FORMATS: Readonly<Record<string, readonly string[]>> = {
   "private/feeds/dfo/pairs.json": [FEED_FORMATS.dfoPairs],
   "feeds/inseason/matches.json": [INSEASON_LINKS_FORMAT],
 };
+
+/**
+ * (T757) THE DFO FEED SHAPE THIS WORKER EMITS: served on /status.json as `dfo` (on a 503 too, like `inputs`: it is the
+ * deployed code's, not a run's). `pieces: 1` = one `locs["<water_id>#closed:<key>"]` per closed area today's row names
+ * (`dfo/closures.ts`); `pipeline/deliver/release/pieces_gate.py` refuses a release that binds a piece for a bucket whose
+ * worker does not serve `dfo.pieces >= 1`.
+ */
+export const DFO_SHAPE = { pieces: PIECES_SHAPE } as const;
 
 export const STATUS_KEY = "status.json";
 /** a feed is stale when its last success is older than this many cadences */

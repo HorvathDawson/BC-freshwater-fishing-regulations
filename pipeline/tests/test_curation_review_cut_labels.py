@@ -35,7 +35,11 @@ def test_area_cuts():
     assert reuse.cut_label(b("area:Coquitlam Watershed [13480215]")) == "Coquitlam Watershed boundary"
 
 
-def test_border_and_lake_edge():
+def test_border_and_lake_edge(monkeypatch):
+    monkeypatch.setattr(reuse, "border_end", lambda sid: None)      # no crossing read: the atlas label
     assert reuse.cut_label(b("border:356566436:0", "BC boundary")) == "BC boundary"
+    # (T755 follow-up) with its crossing read, by the one namer's words
+    monkeypatch.setattr(reuse, "border_end", lambda sid: {"label": "BC–Yukon border · km 102"})
+    assert reuse.cut_label(b("border:356566436:0", "BC boundary")) == "BC–Yukon border · km 102"
     assert reuse.cut_label(b("iskut_river__tatogga_lake", "Tatogga Lake", "lake")) == "lake edge · Tatogga Lake"
     assert reuse.cut_label(b("iskut_river__lake_1", "lake 329305544", "lake")) == "lake edge"

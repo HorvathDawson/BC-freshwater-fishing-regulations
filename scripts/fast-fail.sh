@@ -210,6 +210,23 @@ source_scanners() {
 }
 step "every source scanner (a pipeline Python file changed)" source_scanners
 
+# caught 2026-11-15 (CI red on 189458c93 and 67c9b32f1): T742 B dropped `historic_only`'s groups argument and T742 C made
+# `search_splits` read the atlas registry; test_marks_never_orphaned still passed the groups and
+# test_review_checklist's cut-search test (data-free) now read the build. The lanes ran `test_review_*` / `test_dfo_*`
+# directly in the DATA tier, so the build was visible and the first file was not in the run at all. A changed review
+# module (pipeline/regs/review, the review app's backend) runs EVERY test file that reads review code (found by the
+# same grep each time, so a new one joins by itself) under CI's markers, which hide this machine's builds (tiers.py)
+review_tests() {
+  grep -qE '^(pipeline/regs/review|curation-review/backend)/.*\.py$' <<<"$CHANGED" \
+    || { echo "   (no review module changed)"; return 0; }
+  local files markers
+  files=$(git grep -l -E 'pipeline\.regs\.review|regs\.review import|curation-review' -- 'pipeline/tests/test_*.py')
+  markers=$(no_data_markers) || return 1
+  # shellcheck disable=SC2086
+  "$PY" -m pytest -q -p no:cacheprovider -m "$markers" $files
+}
+step "every review test, CI's tier (a review module changed)" review_tests
+
 # caught 2026-11-14 (CI red on b07996827): scripts/test-env.sh hard-coded .venv/bin/python, which a hosted runner has
 # not; nothing ran the contract's test before the push. A changed scripts/test-*.sh, test-env runner or tiers file runs
 # it (~1 s; it also proves the source stops naming PIPELINE_PY when no interpreter is found)
@@ -285,6 +302,10 @@ step "every curated override id names a water" "$PY" -m pipeline.regs.matching.m
 # what fast-fail ran by hand before: the ticket ledger (T84, T437), colours (2026-11-07 pin-study hex, T481), answers
 # not stale (2026-11-07, found at the end of a release), the app typecheck (2026-11-07 TS6133, 1b84c5ae6). The whole
 # vitest suite stays `pnpm check` (Tier 1); the changed files' tests run below.
+# caught 2026-11-15 (CI red on e0785054a): T750 removed WaterMapView's Chooser (tools/back-layers.test.ts still listed it)
+# and T737 added two swallowing catches (tools/failures.test.ts pins each file's count); both lanes ran their targeted
+# tests + `pnpm check:fast`, which ran no vitest, and the two inventories import none of what they scan, so no sibling
+# test finds them. check:fast now ends with `pnpm inventories` (those two files, ~3 s), whatever changed.
 step "app gates (pnpm check:fast: every pnpm check gate but vitest)" pnpm -C app run -s check:fast
 
 # caught (2026-11-09, CI run 42717971280): 15 tests red on CI only — tests without a `needs_*` marker read the local
@@ -364,6 +385,9 @@ vitest_changed() {
   # source file off disk and pins each file's unhandled-catch count, so a catch removed in packages/map broke it; and
   # changelog.ts has no sibling test (its order is pinned in core's appUpdate.test.ts: 0.7.10 sorted as a string).
   grep -qE '^app/(apps|packages)/.*\.(ts|tsx)$' <<<"$CHANGED" && tests+=("tools/failures.test.ts")
+  # caught 2026-11-15 (CI red on e0785054a): tools/back-layers.test.ts inventories every back surface in apps/mobile, ui,
+  # ui-native and map off disk; only a ui-native change ran it above. Any of its roots changed runs it
+  grep -qE '^app/(apps/mobile|packages/(ui|ui-native|map))/src/.*\.(ts|tsx)$' <<<"$CHANGED" && tests+=("tools/back-layers.test.ts")
   grep -qE '^app/packages/core/src/changelog\.ts$' <<<"$CHANGED" && tests+=("packages/core/src/appUpdate.test.ts")
   (( ${#tests[@]} )) || { echo "   (no changed app file has a test)"; return 0; }
   tests=($(printf '%s\n' "${tests[@]}" | sort -u))

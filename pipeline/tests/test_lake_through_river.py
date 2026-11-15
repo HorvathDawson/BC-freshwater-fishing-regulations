@@ -103,3 +103,48 @@ def test_mutation_pin(powell, monkeypatch):
     monkeypatch.setattr(T, "A_LAKE_ROWS_UNROWED_THROUGH_RIVER_IS_A_TRIBUTARY", False)
     got, diags = _bind(powell)
     assert got == {"lake:L", "C"} and diags == []
+
+
+# ---------------------------------------------------------------- T743: a DFO lake place (Redsand Lake)
+# "Redsand Lake, including tributaries" (DFO Region 6 B(ii), mark 2625) is the curated non-FWA lake wbk:-1 on the
+# Kitsumkalum mainstem, 2 km below Kitsumkalum Lake. A DFO place is resolved with no table of rows (`owned` None), so
+# T468 read its through-river as unrowed and took the Kitsumkalum above it with Kitsumkalum Lake's whole basin: 2,639
+# sections, 3,086 km, for a 40 ha lake. The same shape as Powell's; the rule carries D5's DFO key.
+
+DFO_ROW = {"entry_id": "6:redsand-lake:including-tributaries", "matched": ["wbk:L"], "includes_tributaries": True}
+
+
+def _dfo_rule(**kw):
+    from pipeline.atlas.reach.build import JOINING_WATER_STAYS_OUT_KEY
+    return {"rule_id": "6:redsand-lake:including-tributaries#0", "extents": [{"op": "whole", "item_id": "wbk:L"}],
+            "includes_tributaries": True, JOINING_WATER_STAYS_OUT_KEY: True, **kw}
+
+
+def test_a_dfo_lake_places_through_river_stays_out(powell):
+    g, reg = powell
+    b, d = build_reach(DFO_ROW, _dfo_rule(), reg, g)          # owned None: how `reach.dfo_salmon` resolves a place
+    got = set(b.sections)
+    assert got == {"lake:L", "C"}, "the lake and its own inflows; never the river above it and its basin"
+    assert [x.payload for x in d if x.kind == "through_river"] == [
+        {"lake": "lake:L", "inlet": "R:up", "water": "Powell River", "own_row": [], "negated": False, "joined": 0,
+         "stays_out": True}]
+
+
+def test_a_dfo_lake_place_whose_words_name_the_river_takes_it(powell):
+    g, reg = powell
+    b, _ = build_reach(DFO_ROW, _dfo_rule(verbatim="including tributaries, including the Powell River"), reg, g)
+    assert {"R:up", "RT"} <= set(b.sections)
+
+
+def test_a_lake_row_without_the_dfo_key_is_unchanged(powell):
+    """The synopsis row (no DFO key) still takes its unrowed through-river (T468)."""
+    got, _ = _bind(powell)
+    assert {"R:up", "RT"} <= got
+
+
+def test_dfo_through_river_mutation_pin(powell, monkeypatch):
+    from pipeline.atlas.reach import build as B
+    monkeypatch.setattr(B, "DFO_THROUGH_RIVER_STAYS_OUT", False)
+    g, reg = powell
+    b, _ = build_reach(DFO_ROW, _dfo_rule(), reg, g)
+    assert {"R:up", "RT"} <= set(b.sections), "False = every DFO through-river goes with the lake, as before"

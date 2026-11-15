@@ -120,8 +120,11 @@ export default function App() {
 
   const selectedRef = useRef(selected);
   selectedRef.current = selected;
+  // T742 E5 (perf): the entries list (811 KB, 16 s cold) is read only while the entries screen is the one shown — the
+  // DFO, checklist and other tabs never show it
+  const entriesShown = !(dfo || tidal || sloughs || cascade || inseason || reportsTab || p1 || checks);
   const loadRows = useCallback(() => {
-    if (!region) return;
+    if (!region || !entriesShown) return;
     setLoadingRows(true);
     api
       .entries(region === ALL_REGIONS ? undefined : region, status, "", verify, order, tier, severity)
@@ -129,7 +132,7 @@ export default function App() {
       .then((fresh) => setRows((old) => keepSelected(fresh, old, selectedRef.current)))
       .catch((e) => setError(String(e)))
       .finally(() => setLoadingRows(false));
-  }, [region, status, verify, order, tier, severity]);
+  }, [region, status, verify, order, tier, severity, entriesShown]);
 
   useEffect(() => {
     loadRows();

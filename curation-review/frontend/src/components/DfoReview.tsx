@@ -12,13 +12,12 @@ import { MapPanel, type EditPoint } from "./MapPanel";
 import { ExtentFixEditor, loadOps } from "./ExtentFixEditor";
 import { effectHead, extentParts, fixParts, partsText, piecesParts, type Part } from "../extentWords";
 import { failed } from "../failures";
-import { coveredWords, groupSave, saveForAll, saveForAllWords } from "../checklist";
-import { OlderWordings } from "./OlderWordings";
 import { current as writeThrough, keyOf as wtKey, subscribe as onWriteThrough } from "../curatedSave";
 import {
-  CONFIRMED_AS_IS, addPiece, dropPiece, effectOf, heldBy, incompletePieces, inlineAction, markBody, newCutsOf, offerProposal, oneProposal, previewOf,
-  proposesCuts, saveWords, statusLine, withPiece, type DfoCall, type DfoEffect,
+  CONFIRMED_AS_IS, addPiece, cannotEditOf, dropPiece, effectOf, heldBy, incompletePieces, inlineAction, markBody, newCutsOf, offerProposal, oneProposal, previewOf,
+  proposesCuts, saveWords, statusLine, withPiece, type DfoCall, type DfoEffect, earlierDiff, sameTribCall, tribWords, tribWarnings,
 } from "../dfoExtent";
+import { CannotEditNote } from "./CannotEditNote";
 
 /** two clicks this close (m) are one cut — the server folds them the same way (`marks.SAME_CUT_M`) */
 const SAME_CUT_M = 10;
@@ -72,6 +71,9 @@ export function suggestionFix(s: DfoSuggestion | null | undefined, taken: string
       ? { ...p, split_id: rename[p.split_id] } : { ...p })),
     items: [...x.items], tributaries: x.tributaries ?? null,
     ...(x.area ? { area: x.area } : {}),
+    // (owner 2026-11-15) the place's one tributary call rides every piece
+    ...(sg.tributaries_only != null ? { tributaries_only: sg.tributaries_only } : {}),
+    ...(sg.tributary_excludes != null ? { tributary_excludes: [...sg.tributary_excludes] } : {}),
   });
   const fixes = (sg.pieces?.length ? sg.pieces : [sg]).map(asFix);
   return { fix: fixes[0], fixes, newSplits };
@@ -273,9 +275,6 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
   const [reviewer, setName] = useState(getReviewer);
   const [splits, setSplits] = useState<NewSplit[]>([]);
   const [checks, setChecks] = useState<Record<string, AnchorCheck>>({});
-  // owner 2026-10-28: the historic group's members to label with this decision; 2026-11-09: every older wording starts
-  // UNTICKED ("we cant blindly assume variants"); a ticked one takes this save, and the new extent
-  const [same, setSame] = useState<Set<string>>(() => new Set());
   // THE DRAFT: the extent now, as pieces (T524: the place binds their union) — a change starts from it, never from an
   // empty editor or an old mark
   const [fixes, setFixes] = useState<ExtentFix[]>(now.pieces);
@@ -308,7 +307,13 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
   // what the extent binds now — magenta, always
   useEffect(() => {
     let live = true;
-    api.dfoReach(id, showTribs).then((r) => live && setReach(r)).catch(failed("the DFO reach"))
+    api.dfoReach(id, showTribs).then((r) => {
+      if (!live) return;
+      setReach(r);
+      // T755 follow-up: the size walk comes after — never holding the place up — and shows when it arrives
+      if (r.size_pending) api.dfoSize(id).then((z) => live && setReach((cur) => cur ? { ...cur, size: z.size, size_pending: false } : cur))
+        .catch(failed("the saved extent's size"));
+    }).catch(failed("the DFO reach"))
       .finally(() => live && setLoadingTribs(false));
     return () => { live = false; };
   }, [id, showTribs]);
@@ -418,8 +423,13 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
   // EMBEDDED: the draft is drawn LIVE on the checklist's map — its reach (the server's own preview) once every piece
   // is whole and names only cuts that exist, and its points labelled either way (a NEW cut has no reach until built)
   const [liveWhy, setLiveWhy] = useState("");
+  // (owner 2026-11-15) what the live draft binds, said in numbers: sections, km, the water's own channels it holds
+  const [livePv, setLivePv] = useState<ExtentPreview | null>(null);
   const [approx, setApprox] = useState<[[number, number], [number, number]][] | null>(null);
   const [approxGot, setApproxGot] = useState<{ km: number; why?: string } | { why: string } | null>(null);
+  // T742 E1: the effects below depend on WHETHER it is embedded, never on the object (a new one per parent render
+  // looped them)
+  const isEmbedded = !!embedded;
   useEffect(() => {
     if (!embedded || call !== "change" || !opPoints) return;
     const where = (pt: ExtentFix["points"][number]): [number, number] | null => {
@@ -455,6 +465,7 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
     }));
     const only = (why: string, unbuilt = false) => {
       setFixPreview({ type: "FeatureCollection", features: pts }); setLiveWhy(why); setApprox(unbuilt ? mock : null);
+      setLivePv(null);
     };
     if (!fixes.length) { only(""); return; }
     const inc = incompletePieces(fixes, opPoints);
@@ -471,10 +482,11 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
         setApprox(null);
         setFixPreview({ type: "FeatureCollection", features: [...((r.geojson?.features ?? []) as GeoJSON.Feature[]), ...pts] });
         setLiveWhy("");
+        setLivePv(r);
       }).catch((e) => { if (live) only(`the preview failed: ${e}`); failed("the draft's preview")(e); });
     }, 250);
     return () => { live = false; window.clearTimeout(t); };
-  }, [embedded, call, fixes, opPoints, showTribs, splits, checks]);  // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isEmbedded, call, fixes, opPoints, showTribs, splits, checks]);  // eslint-disable-line react-hooks/exhaustive-deps
   // r4: every new cut of the draft gets its position from the server (an offset from a cut has no coordinate of its own)
   useEffect(() => {
     if (!embedded) return;
@@ -483,7 +495,7 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
     let live = true;
     void newCutChecks(id, need, splitAt).then((got) => { if (live && Object.keys(got).length) setChecks((m) => ({ ...got, ...m })); });
     return () => { live = false; };
-  }, [embedded, splits]);  // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isEmbedded, splits]);  // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!embedded) return;
     embedded.onMap({ draft: call === "change" ? fixPreview : null, cutPreview: cutPv, named, editPoints, onPick: pick.cb,
@@ -492,7 +504,6 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
                      approx: call === "change" ? approx : null, onApprox: setApproxGot });
   }, [fixPreview, cutPv, named, editPoints, pick, call, changes, approx, fixes]);  // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => () => embedded?.onMap(null), []);  // eslint-disable-line react-hooks/exhaustive-deps
-  const group = detail.group ? groupSave(id, detail.group.members, same, changes, false) : null;
   // r3 (owner 2026-11-09: "if you save extent you assume it is correct?"): the inline editor asks no T / R — a mark
   // needs both answered, so they go as y and the note says where the y came from
   const asked: Partial<Record<"T" | "R", CheckAnswer>> = embedded ? { T: "y", R: "y" } : answers;
@@ -504,13 +515,9 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
   const held = heldBy({ call: asKeep ? "keep" : call, answers: asked, problem, note, effect, cuts, cannotChange: asKeep ? [] : now.cannot_change,
                         extents: detail.location.binding.extents.length, incomplete });
 
-  // r6 (inline): one save for EVERY wording of the place, or for this wording only
-  const forAll = embedded && detail.group ? saveForAll(id, detail.group.members, changes) : null;
-  // T588: the button, the line under it and the confirmation name exactly the rows a save-for-all writes
-  const forAllWords = forAll ? saveForAllWords(detail.verbatim.specific_area,
-    forAll.covered.map((m) => ({ text: m.text, replaces: m.extent.extents.length > 0 && !m.same_extent })),
-    forAll.left.map(({ m, why }) => ({ text: m.text, why }))) : null;
-  async function submit(defer = false, all = false) {
+  // T742 (owner 2026-11-14: "remove the grouping option … one at a time is better"): a save writes ONE mark, on this
+  // wording only — there is no save for a group or for every wording any more
+  async function submit(defer = false) {
     setErrors([]);
     if (!defer && held) { setErrors([`Not saved yet — ${held}.`]); return; }
     if (defer && !note.trim()) { setShowNote(true); setErrors(["A defer needs a note: say what is unclear."]); return; }
@@ -529,9 +536,9 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
       const body = markBody({ target: id, call: asKeep && !defer ? "keep" : call ?? "unsure", answers: asked, problem,
                               note: embedded && !defer ? [note.trim(), asKeep ? CONFIRMED_AS_IS : "", IMPLIED].filter(Boolean).join(" · ") : note, reviewer: reviewer.trim(),
                               seconds: Math.round((Date.now() - since.current) / 100) / 10, fixes, carried, now,
-                              group: embedded ? (all && forAll ? forAll.group : null) : group, defer });
+                              defer });
       await api.postMark(body);
-      onMarked(all && forAll ? coveredWords(forAll.covered) : "");
+      onMarked("");
     } catch (e) {
       const fe = (e as EntryRefused).fieldErrors;
       setErrors([`Refused: ${fe ? fe.map((x) => x.msg).join("; ") : String(e)}`]);
@@ -605,6 +612,17 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
   });
   const offer = !!best && offerProposal(now.pieces, proposalFixes, pending);
   const draftCuts = newCutsOf(fixes).map((c) => cutLabel(c) ?? c);
+  // (owner 2026-11-15) DFO's words against the tributaries of the extent being saved: warnings, never a block
+  const saving_ = call === "change" && effect !== "keep" ? fixes : now.pieces;
+  const tribWarn = tribWarnings(detail.words_tributaries, {
+    walks: saving_[0]?.tributaries ?? now.walks_tributaries,
+    only: !!(saving_[0]?.tributaries_only ?? detail.location.binding.tributaries_only),
+    excepted: saving_[0]?.tributary_excludes ?? (detail.location.binding.tributary_excludes ?? [])
+      .flatMap((x) => (x.item_id ? [x.item_id] : [])),
+  }, itemNameOf);
+  // (owner 2026-11-15) the earlier mark against this save: what differs, said before it is made
+  const earlier = was ? earlierDiff(savedFixesOf(was), call === "change" && effect !== "keep" ? fixes : [],
+                                    (f) => partsText(fixPartsOf(f))) : [];
   const saveText = busy ? "saving…" : saveWords(call, effect);
   const noteOpen = showNote || note.trim() !== "" || (call !== null && call !== "keep" && call !== "change")
     || wrongChecks.length > 0;
@@ -651,6 +669,16 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
             </div>
           )}
 
+          {reach?.size_pending && <div className="dim" data-testid="dfo-size-pending" style={{ fontSize: 12 }}>
+            Checking how big the saved extent is (its tributaries too)…</div>}
+          {reach?.size && (
+            <div className={reach.size.warnings.length ? "warn-text" : "dim"} data-testid="dfo-size" style={{ fontSize: 12 }}>
+              The saved extent binds {reach.size.n_sections.toLocaleString()} section{reach.size.n_sections === 1 ? "" : "s"} ·{" "}
+              {reach.size.km.toLocaleString()} km{reach.size.tributary_km > 0 ? ` (${reach.size.tributary_km.toLocaleString()} km of it tributaries)` : ""}
+              {" "}— the water itself is {reach.size.own_km.toLocaleString()} km.
+              {reach.size.warnings.map((w) => <div key={w} data-testid="dfo-size-warning">⚠ {w}</div>)}
+            </div>
+          )}
           {errors.length > 0 && (
             <div className="errors dfo-errors" role="alert" data-testid="dfo-errors"
               style={{ position: "static", margin: "6px 0" }}>
@@ -684,14 +712,8 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
                   {loadingTribs && <span className="dim" data-testid="dfo-tribs-loading"> loading…</span>}
                 </label>
               </div>
-              {now.cannot_change.length > 0 && <div className="warn-text" data-testid="dfo-cannot-change" style={{ fontSize: 12 }}>
-                It cannot be changed here: {now.cannot_change.join("; ")}</div>}
+              {cannotEditOf(now) && <div data-testid="dfo-cannot-change"><CannotEditNote why={cannotEditOf(now)!} /></div>}
             </div>
-            {detail.group && (
-              <OlderWordings members={detail.group.members} shownText={detail.verbatim.specific_area} same={same}
-                setSame={setSame} fix={changes} checklist={false} extentWords={(e) => extentText(e.extents)}
-                link={(m) => `#${DFO_HASH}${encodeURIComponent(m)}`} />
-            )}
             <details className="dfo-more">
               <summary>more about this place</summary>
               <div className="ext-row">
@@ -700,8 +722,7 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
               </div>
               {loc.binding.notes.length > 0 && <div className="ext-row"><span className="k">notes</span>{loc.binding.notes.join(" · ")}</div>}
               {(detail.places?.length ?? 0) > 0 ? (
-                <DfoPlaces places={detail.places!} href={(x) => `#${DFO_HASH}${encodeURIComponent(x)}`}
-                  onAttached={(msg) => setAccepted(msg)} />
+                <DfoPlaces places={detail.places!} href={(x) => `#${DFO_HASH}${encodeURIComponent(x)}`} />
               ) : detail.siblings.length > 0 && (
                 <ul className="named-splits">
                   {detail.siblings.map((s) => (
@@ -822,13 +843,19 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
                     ? <><b>Approximate</b> (dashed on the map, about {approxGot.km < 1 ? `${Math.round(approxGot.km * 1000)} m` : `${approxGot.km.toFixed(1)} km`} along the river): {liveWhy} — the exact stretch is drawn after the next rebuild.{approxGot.why ? ` (${approxGot.why})` : ""}</>
                     : <>Not drawn as a stretch yet (its points are on the map): {liveWhy}
                       {approx && approxGot && "why" in approxGot ? ` — and no approximate stretch could be drawn: ${approxGot.why}` : ""}</>}</div>}
+                {embedded && livePv?.resolvable && <div className="dim" data-testid="ck-live-size" style={{ fontSize: 12 }}>
+                  Your draft binds <b>{livePv.n_sections?.toLocaleString()} section{livePv.n_sections === 1 ? "" : "s"}
+                  {livePv.km != null && ` · ${livePv.km.toLocaleString()} km`}</b>{tribWords(livePv.walks_tributaries, showTribs)}
+                  {(livePv.channels?.length ?? 0) > 0 && <> — its own side channels included: {livePv.channels!.map((c) =>
+                    `${c.name} (${c.n_sections}, ${c.km} km)`).join("; ")}</>}.</div>}
                 {moveErr && <div className="fix-row warn-text inline-notice" data-testid="dfo-move-refused">
                   <span style={{ flex: 1 }}>not moved: {moveErr}</span><CloseX onClick={() => setMoveErr("")} /></div>}
                 {(fixes.length ? fixes : [undefined]).map((pc, i) => (
                   <ExtentFixEditor key={i} defaultOpen scope="entry" entryId={id} piece={i}
                     currentOp={i === 0 ? detail.need.op ?? undefined : "downstream_of"}
                     mapSplits={mapSplits} waters={items} value={pc}
-                    onChange={(f) => setFixes((cur) => (f ? withPiece(cur, i, f) : dropPiece(cur, i)))}
+                    onChange={(f) => setFixes((cur) => (f ? sameTribCall(withPiece(cur, i, f), f) : dropPiece(cur, i)))}
+                    dfo
                     tributariesNow={tribNow} tributariesDrawn={showTribs} cutLabels={detail.cut_labels}
                     itemNames={detail.item_names}
                     onPreview={(fc) => setFixPreview(fc)}
@@ -892,23 +919,27 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
                 )}
               </div>
             )}
+            {was && (call || embedded) && (
+              <div className={`dfo-earlier${earlier.length ? " warn-text" : " dim"}`} role="status" data-testid="dfo-earlier"
+                style={{ fontSize: 12 }}>
+                You marked this place before, {was.date} ({was.verdict}{was.extent_fix?.length ? "" : ", the extent kept as it was"}).
+                {earlier.length ? <> This save differs: <ul className="dfo-pieces">{earlier.map((d) => <li key={d} data-testid="dfo-earlier-diff">{d}</li>)}</ul></>
+                  : call === "change" && effect !== "keep" ? null : " This save says the same."}
+                {was.note?.trim() ? <div className="dim">its note: “{was.note.trim().slice(0, 200)}”</div> : null}
+              </div>
+            )}
+            {tribWarn.length > 0 && (
+              <div className="warn-text" role="status" data-testid="dfo-trib-warning" style={{ fontSize: 12 }}>
+                {tribWarn.map((w) => <div key={w} data-testid="dfo-trib-warning-line">⚠ {w}</div>)}
+                <div className="dim">You can save past this: what the wording means is your call.</div>
+              </div>
+            )}
             {held && call && <div className="warn-text" role="alert" data-testid="dfo-held">Save held: {held}.</div>}
-            {forAll && changes && (forAll.covered.length > 0 || forAll.left.length > 0) && (
-              <div className="dim" data-testid="dfo-save-all-words" style={{ fontSize: 12 }}>
-                {forAllWords && forAll.covered.length > 0 && <>Saving for all writes {forAllWords.rows.length} rows: {forAllWords.rows.join("; ")}
-                  {" "}— and counts as your confirming these are the same place. </>}
-                {forAllWords && <span className="warn-text" data-testid="dfo-save-all-not">Not written: {forAllWords.not.join("; ")}.</span>}
-              </div>)}
             <div className="verdict-bar" style={{ position: "static", margin: 0 }}>
               <input placeholder="your name" value={reviewer} onChange={(e) => setName(e.target.value)} aria-label="reviewer" />
-              {forAll && forAll.covered.length > 0 && changes && (
-                <button className="btn primary dfo-replace" disabled={busy || !!held} data-testid="dfo-save-all"
-                  title="one mark per wording, each through the write-through; saving for all is your confirming they are the same place"
-                  onClick={() => { if (forAllWords && window.confirm(forAllWords.confirm)) void submit(false, true); }}>
-                  {forAllWords?.label}</button>)}
-              <button className={`btn ${forAll && forAll.covered.length > 0 && changes ? "small" : "primary"}${call === "change" && effect !== "keep" ? " dfo-replace" : ""}`}
+              <button className={`btn primary${call === "change" && effect !== "keep" ? " dfo-replace" : ""}`}
                 disabled={busy || !!held || inline?.kind === "none"} data-testid="dfo-save" onClick={() => void submit()}>
-                {inline && !busy ? (inline.kind === "save" && forAll && forAll.covered.length > 0 && changes ? "Save for this wording only" : inline.label)
+                {inline && !busy ? inline.label
                   : saveText}</button>
               {embedded && <button className="btn small" disabled={busy} onClick={onBack}>Discard my changes</button>}
               <button className="btn small" disabled={busy} data-testid="dfo-defer"

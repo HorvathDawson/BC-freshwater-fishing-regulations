@@ -10,6 +10,6 @@ export { assetsDigest } from "./assets";
 export { bootRelease, bootSaid, releaseTiles, BootError, SpaceError, type BootOptions, type Booted, type MobileDataGate, type ReleasePlatform } from "./boot";
 export type { BackgroundNative, BgJob } from "./bgDownload";
 export { prefetchPlan, regionOfTile, runPrefetch, type PrefetchSignals } from "./prefetch";
-export { createBackgroundPrefetch, LOW_BATTERY, type BackgroundPrefetch, type NetSignals, type PrefetchSnapshot }
+export { createBackgroundPrefetch, LOW_BATTERY, othersAhead, readerDownloading, type BackgroundPrefetch, type NetSignals, type PrefetchSnapshot }
   from "./background";
 export { offlineSizes, regsKept } from "./offline";

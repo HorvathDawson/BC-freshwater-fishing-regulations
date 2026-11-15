@@ -151,3 +151,55 @@ Tests: `test_dfo_closures.py::test_entry_b_is_never_free_standing_item_removed_c
    when the words return it is live again with no re-curation. Thompson's older wording names the same three areas.
    Tests: `test_dfo_closures.py::test_an_item_only_an_older_wording_names_is_reviewable_not_live_and_live_again…`,
    `test_review_closed_areas.py::test_prints_are_dfos_words_from_any_stored_wording…`.
+
+## Build step 2026-11-15 (branch data/t573-closed-area-build; nothing built or run on real data)
+WHERE ENTRY B ENTERS: one DFO location per LIVE closed area, `<water_id>#closed:<piece key>`
+(`closures.build_pieces`), never written into a places file. Same tier as its place, fewer sections, so the existing
+`chain_order` ("narrowest first") puts it before the place on its sections; its rule is entry B's ("No fishing,
+year-round" / Babine's "No fishing for salmon") followed by DFO's own words for the area.
+- reach: `atlas/reach/dfo_salmon.resolve_closures` (called per region by `resolve_all`): a CONFIRMED stretch binds
+  `between` its two cuts on `on_item` (same `build_reach`, no tributaries, the place's tidal limit); a confirmed circle
+  binds only sections WHOLLY inside it (`closures.circle_sections`, atlas geometry via `reach.position`) and MARKS the
+  ones it touches. Everything else is a row with `carried: true` + `reason`: unconfirmed proposal, reworded, radius
+  differs, lake line (DEFERRED, reported), stretch whose new cut is not in the atlas, circle partly over a section.
+  `entries_digest` now includes closed_areas.json. The run prints one `dfo closed` line per piece.
+- bundle: `salmon.load_inputs` appends the pieces (`closures.with_pieces`); `build` gives each its own rule and puts a
+  carried piece on its water (`u`: on its marked sections, else the water's, never on its own bound ones).
+- live feed (Python reference): `live.run` adds `closures.live_piece_rules` — a piece only while today's row names it.
+  The R1-8 fixture pages: +17 locs (Thompson 3, middle Shuswap 1, Babine 12 circles + Gullwing line).
+- Tests: `pipeline/tests/test_dfo_closure_build.py` (toy river; mutation checks included); `test_dfo_live.py` counts.
+
+FEEDS WORKER HAND-OFF (other chat, app/workers/feeds/src/dfo/live.ts + a TS port of `closures.derive` / `areas` /
+`piece_key` / `inline_items` / `piece_rule`): after the fingerprint join, for each scraped row joined to a curated
+place, derive entry B from the row's own `specific_area` + `excludes` (same rules as Python), and set
+`locs["<water_id>#closed:<key>"] = {r, ...location_calendar([piece_rule])}` (header closure applied as for any place).
+Emit none for an item the row no longer names. Pin it with `dfo_vectors` (add the piece ids + calendars); the worker's
+loc count on the fixture pages rises 254 -> 271. UNTIL THE WORKER DOES THIS, a release carrying a bound piece must not
+ship with the live feed: the app's `withSalmonFeed` skips a chain location the feed lacks, so the place answers and
+the Thompson's closed areas read OPEN once chinook opens (`salmon.feed_vs_release` lists the pieces as release_only).
+
+BLOCKING FOR THE THOMPSON AND SHUSWAP: every proposed end except `thompson_river__cnr_bridge` is a NEW cut (5 Thompson,
+2 Shuswap) and none is in `data/curated/waters/cuts.json`. A `closed_area` mark keeps its new cuts in
+`piece.new_splits`, which `marks.proposal_groups` does not read, so they never become split proposals: confirmed, these
+stretches are carried (`cut_not_found`), not bound, until the cuts land (wire `piece.new_splits` into the split
+proposals, or the owner re-proposes them) and the atlas is rebuilt.
+
+WHAT THE NEXT REACH RUN + BUNDLE MUST VERIFY (read-only facts from the main checkout today: Thompson live place
+`3:thompson-river:from-kamloops-lake-outlet-downstre~2` binds 20 sections; Babine and middle-Shuswap places are
+unmapped; closed_areas.json does not exist yet):
+1. `dfo closed` lines: 17 pieces total; before any confirm all are `carried` with "not confirmed".
+2. After the owner confirms + the cuts land: each Thompson piece bound to a few sections, all inside the place's 20;
+   its sections' chains start with the piece and every species reads closed every day; the place's other sections'
+   chains are byte-equal to the previous release.
+3. Babine circles: nothing bound on Babine Lake (`marked` = the lake sections touched), carried; Gullwing line carried
+   "deferred"; Pinkut Creek absent (not live).
+4. `feed_vs_release`: the 17 piece ids present on both sides once the worker emits them.
+
+### Build step, part 2 (same day)
+- The blocking finding is fixed: a confirmed closed area's new cuts are cut proposals (`marks.cut_proposals_of`,
+  `proposals.closed_area_cut`: an existing cut within 25 m is reused, no cut on a line's end), and the reach run
+  binds a stretch once its cuts have landed (`proposals.landed_cut`).
+- The bundle marks pieces in `p` (`piece: 1`, `bound: 1`). `deliver/release/pieces_gate.py` refuses an upload that
+  binds pieces when the worker's `/status.json` lacks `dfo.pieces >= 1`; both upload scripts call it.
+- Worker/app spec, piece-id grammar and oracle: `T573-files/worker-handoff.md`, `app/workers/feeds/test/fixtures/dfo/closure-oracle.generated.json`
+  (regenerated with `python -m pipeline.tools.emit.closure_oracle`). The worker port is T757.

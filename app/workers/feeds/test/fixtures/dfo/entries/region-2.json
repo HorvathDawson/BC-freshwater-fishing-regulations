@@ -950,8 +950,22 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
-        "tributaries": null,
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "alouette_river__216_street_bridge"
+            ]
+          },
+          {
+            "op": "upstream_of",
+            "splits": [
+              "alouette_river__216th_street"
+            ],
+            "item_id": "gnis:39404"
+          }
+        ],
+        "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -1000,7 +1014,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "alouette_river__alouette_boundary_signs"
+            ],
+            "item_id": "gnis:9630"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -1242,7 +1264,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "capilano_river__cable_pool_bridge_footbridge"
+            ],
+            "item_id": "gnis:5922"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -1301,7 +1331,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "chapman_creek__tidal_boundary",
+              "chapman_creek__100_m_below_lower_falls"
+            ],
+            "item_id": "gnis:12936"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -1399,7 +1438,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "chehalis_river__main_logging_road_bridge_2_4km_d_s_chehalis_lk"
+            ],
+            "item_id": "gnis:13015"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -1517,7 +1564,14 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "chilliwack_vedder_rivers__boundary_signs_below_slesse_creek"
+            ]
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -1581,7 +1635,25 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "chilliwack_vedder_rivers__boundary_signs_below_slesse_creek"
+            ],
+            "item_ids": [
+              "gnis:8634",
+              "gnis:3062"
+            ]
+          },
+          {
+            "op": "downstream_of",
+            "splits": [
+              "sumas_river__barrow_town_pump_station"
+            ],
+            "item_id": "gnis:26216"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -1627,7 +1699,8 @@
       "binding": {
         "extents": [
           {
-            "op": "whole"
+            "op": "whole",
+            "item_id": "gnis:19986"
           }
         ],
         "tributaries": null,
@@ -1740,7 +1813,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "fraser_river__the_cpr_bridge_at_mission",
+              "fraser_river__highway_1_bridge_at_hope_bill_hartley_fraser_hope"
+            ]
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -1789,7 +1870,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "fraser_river__highway_1_bridge_at_hope_bill_hartley_fraser_hope",
+              "fraser_river__spuzzum_creek_into_fraser_river"
+            ],
+            "item_id": "gnis:39325"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -1840,7 +1930,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "harrison_river__harrison_lake",
+              "harrison_river__hwy_7_bridge_over_the_harrison"
+            ],
+            "item_id": "gnis:15333"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -1892,7 +1991,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "harrison_river__hwy_7_bridge_over_the_harrison"
+            ],
+            "item_id": "gnis:15333"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -2093,7 +2200,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "kanaka_creek__112_avenue_bridge"
+            ],
+            "item_id": "gnis:11318"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -2142,7 +2257,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "kanaka_creek__112_avenue_bridge"
+            ],
+            "item_id": "gnis:11318"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -2241,7 +2364,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "campbell_river__12th_avenue"
+            ],
+            "item_id": "gnis:7250"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -2298,7 +2429,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "campbell_river__two_white_triangular_fishing_boundary_signs_200_m_upstream",
+              "campbell_river__pedestrian_bridge_at_the_foot_of_stayte_road"
+            ],
+            "item_id": "gnis:7250"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -2490,7 +2630,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "nicomekl_river__208th_street"
+            ],
+            "item_id": "gnis:21100"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -2542,7 +2690,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "nicomen_slough__siddle_creek"
+            ],
+            "item_id": "gnis:21105"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -2585,7 +2741,7 @@
         "excludes": [],
         "areas": []
       },
-      "status": "dormant",
+      "status": "active",
       "duplicate_of": null,
       "duplicate_score": null,
       "duplicate_confirmed": null,
@@ -2594,7 +2750,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "nicomen_slough__hwy_7_nicomen_slough_bridge_at_dewdney"
+            ],
+            "item_id": "gnis:21105"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -2996,9 +3160,9 @@
         "areas": []
       },
       "status": "dormant",
-      "duplicate_of": null,
+      "duplicate_of": "2:serpentine-river:downstream-of-168th-street-at-both",
       "duplicate_score": null,
-      "duplicate_confirmed": null,
+      "duplicate_confirmed": true,
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -3009,7 +3173,9 @@
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
-        "notes": [],
+        "notes": [
+          "same place as 2:serpentine-river:downstream-of-168th-street-at-both: put in its group by the owner (checklist) — owner confirmed same place 2026-11-10"
+        ],
         "spatial_caveat": false
       }
     },
@@ -3203,7 +3369,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "stave_river__hayward_lake",
+              "stave_river__cpr_bridge_tidal_boundary"
+            ],
+            "item_id": "gnis:14589"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -3268,7 +3443,12 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "blk:355993381"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -3319,7 +3499,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "alouette_river__alouette_boundary_signs"
+            ],
+            "item_id": "gnis:9630"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -3380,6 +3568,10 @@
             "splits": [
               "chilliwack_vedder_rivers__vedder_crossing_bridge_200_m_upstream",
               "chilliwack_vedder_rivers__vedder_crossing_bridge_200_m_downstream"
+            ],
+            "item_ids": [
+              "gnis:8634",
+              "gnis:3062"
             ]
           }
         ],
@@ -3454,7 +3646,25 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "chilliwack_vedder_rivers__boundary_signs_below_slesse_creek"
+            ],
+            "item_ids": [
+              "gnis:8634",
+              "gnis:3062"
+            ]
+          },
+          {
+            "op": "downstream_of",
+            "splits": [
+              "sumas_river__barrow_town_pump_station"
+            ],
+            "item_id": "gnis:26216"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -3505,7 +3715,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "fraser_river__highway_1_bridge_at_hope_bill_hartley_fraser_hope",
+              "fraser_river__alexandra_bridge_hwy_1"
+            ]
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -3624,8 +3842,17 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
-        "tributaries": null,
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "alouette_river__216_street_bridge",
+              "alouette_river__alouette_boundary_signs"
+            ],
+            "item_id": "gnis:9630"
+          }
+        ],
+        "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -3676,8 +3903,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
-        "tributaries": null,
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "alouette_river__216_street_bridge"
+            ],
+            "item_id": "gnis:9630"
+          }
+        ],
+        "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -3721,8 +3956,13 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
-        "tributaries": null,
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:39404"
+          }
+        ],
+        "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -3785,7 +4025,25 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "chilliwack_vedder_rivers__boundary_signs_below_slesse_creek"
+            ],
+            "item_ids": [
+              "gnis:8634",
+              "gnis:3062"
+            ]
+          },
+          {
+            "op": "downstream_of",
+            "splits": [
+              "sumas_river__barrow_town_pump_station"
+            ],
+            "item_id": "gnis:26216"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -3836,7 +4094,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "serpentine_river__168th_street_at_bothwell_park"
+            ],
+            "item_id": "gnis:24978"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -3900,7 +4166,25 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "chilliwack_vedder_rivers__boundary_signs_below_slesse_creek"
+            ],
+            "item_ids": [
+              "gnis:8634",
+              "gnis:3062"
+            ]
+          },
+          {
+            "op": "downstream_of",
+            "splits": [
+              "sumas_river__barrow_town_pump_station"
+            ],
+            "item_id": "gnis:26216"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -3952,8 +4236,17 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
-        "tributaries": null,
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "fraser_river__the_cpr_bridge_at_mission",
+              "fraser_river__highway_1_bridge_at_hope_bill_hartley_fraser_hope"
+            ],
+            "item_id": "gnis:39325"
+          }
+        ],
+        "tributaries": false,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -4001,7 +4294,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "nicomekl_river__dyke_gates",
+              "nicomekl_river__23_m_below_the_nicomekl_flood_dam_d23m"
+            ],
+            "item_id": "gnis:21100"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -4050,7 +4352,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "serpentine_river__dyke_gates",
+              "serpentine_river__23_m_below_the_serpentine_flood_dam_d23m"
+            ],
+            "item_id": "gnis:24978"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -4111,7 +4422,12 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "blk:355993381"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -4150,7 +4466,7 @@
         "excludes": [],
         "areas": []
       },
-      "status": "active",
+      "status": "dormant",
       "duplicate_of": null,
       "duplicate_score": null,
       "duplicate_confirmed": null,
@@ -4159,8 +4475,17 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
-        "tributaries": null,
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "fraser_river__the_cpr_bridge_at_mission",
+              "fraser_river__spuzzum_creek_into_fraser_river"
+            ],
+            "item_id": "gnis:39325"
+          }
+        ],
+        "tributaries": false,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -4212,7 +4537,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "fraser_river__the_cpr_bridge_at_mission",
+              "fraser_river__alexandra_bridge_hwy_1"
+            ]
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -4263,7 +4596,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "harrison_river__harrison_lake"
+            ],
+            "item_id": "gnis:15333"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -4342,7 +4683,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_ids": [
+              "blk:355993381",
+              "wsc:100-046202-028692-080600"
+            ]
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -4424,12 +4773,257 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
-        "tributaries": null,
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "stave_river__hayward_lake",
+              "stave_river__cpr_bridge_tidal_boundary"
+            ],
+            "item_id": "gnis:14589"
+          }
+        ],
+        "tributaries": false,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
         "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:default:areas-28-29",
+      "region": "2",
+      "region_number": 2,
+      "kind": "page_default",
+      "precedence": -1,
+      "water": "Region 2 waters flowing into Areas 28 and 29",
+      "water_id": null,
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "page:2:areas-28-29"
+      ],
+      "source_text": {
+        "waters": "",
+        "specific_area": "Region 2 waters flowing into Areas 28 and 29",
+        "areas": [
+          28,
+          29
+        ],
+        "statement": "closed_except_listed",
+        "says": "There is no fishing for salmon in waters of Region 2 flowing into Areas 28 and 29 except for the opportunities listed in the table below.",
+        "unlisted": "closed"
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "owner",
+      "reviewed_at": "2026-11-02",
+      "review_note": "T349 owner decisions: region/scope defaults are entries; limit 0 = closed; unlisted = closed",
+      "binding": {
+        "extents": [
+          {
+            "op": "within",
+            "area_id": "area:drains_to:pfma_28",
+            "within_area": "area:region:2"
+          },
+          {
+            "op": "within",
+            "area_id": "area:drains_to:pfma_29",
+            "within_area": "area:region:2"
+          }
+        ],
+        "tributaries": false,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:default:areas-13-15-16",
+      "region": "2",
+      "region_number": 2,
+      "kind": "page_default",
+      "precedence": -1,
+      "water": "Region 2 waters flowing into Areas 13, 15 and 16",
+      "water_id": null,
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "page:2:areas-13-15-16"
+      ],
+      "source_text": {
+        "waters": "",
+        "specific_area": "Region 2 waters flowing into Areas 13, 15 and 16",
+        "areas": [
+          13,
+          15,
+          16
+        ],
+        "statement": "limit_zero",
+        "says": "Unless otherwise stated in the table below, the daily limit for waters in Region 2 flowing into Areas 13, 15, and 16 is zero (0).",
+        "unlisted": "closed"
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "owner",
+      "reviewed_at": "2026-11-02",
+      "review_note": "T349 owner decisions: region/scope defaults are entries; limit 0 = closed; unlisted = closed",
+      "binding": {
+        "extents": [
+          {
+            "op": "within",
+            "area_id": "area:drains_to:pfma_13",
+            "within_area": "area:region:2"
+          },
+          {
+            "op": "within",
+            "area_id": "area:drains_to:pfma_15",
+            "within_area": "area:region:2"
+          },
+          {
+            "op": "within",
+            "area_id": "area:drains_to:pfma_16",
+            "within_area": "area:region:2"
+          }
+        ],
+        "tributaries": false,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:fraser-river:mainstem-waters-upstream-of-the-cp~2",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Fraser River",
+      "water_id": "2:fraser-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "6b292a6d0efaaf8d"
+      ],
+      "source_text": {
+        "waters": "Fraser River",
+        "specific_area": "mainstem waters upstream of the CPR Bridge at Mission",
+        "landmarks": [
+          "cpr",
+          "fraser",
+          "mission"
+        ],
+        "op": "upstream_of",
+        "anchor_types": [
+          "bridge"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": "2:fraser-river:mainstem-waters-upstream-of-the-cp",
+      "duplicate_score": 0.972,
+      "duplicate_confirmed": true,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "fraser_river__the_cpr_bridge_at_mission",
+              "fraser_river__spuzzum_creek_into_fraser_river"
+            ]
+          }
+        ],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [
+          "DFO dropped \", BC\" from the same reach (upstream of the CPR Bridge at Mission); owner confirmed 2026-11-03"
+        ],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:fraser-river:mainstem-waters-downstream-of-the",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Fraser River",
+      "water_id": "2:fraser-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "a58851c8ad05c3a3"
+      ],
+      "source_text": {
+        "waters": "Fraser River",
+        "specific_area": "mainstem waters downstream of the CPR Bridge at Mission to the Highway 1 Bridge at Hope",
+        "landmarks": [
+          "cpr",
+          "fraser",
+          "highway",
+          "hope",
+          "mission"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "bridge",
+          "road"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": "2:fraser-river:mainstem-waters-from-the-downstrea",
+      "duplicate_score": 0.897,
+      "duplicate_confirmed": true,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "fraser_river__the_cpr_bridge_at_mission",
+              "fraser_river__highway_1_bridge_at_hope_bill_hartley_fraser_hope"
+            ],
+            "item_id": "gnis:39325"
+          }
+        ],
+        "tributaries": false,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [
+          "DFO reworded the Mission→Hope reach (\"downstream of the CPR Bridge at Mission to the Highway 1 Bridge at Hope\" = the reach from the downstream side of the CPR Bridge to Hope); owner confirmed 2026-11-03"
+        ],
         "spatial_caveat": false
       }
     }

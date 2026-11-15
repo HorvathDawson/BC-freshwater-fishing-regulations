@@ -496,7 +496,11 @@ def run(out: Path, *, fetcher: Fetcher, regions: Optional[Sequence[str]] = None,
         _read_header(slug, html, reg, was, entries_dir, notices)    # a held page keeps its last header
         _read_texts(slug, html, reg, was, notices)
         rules, held = join(slug, ef, typed, found, rep)
-        moved = {o.location_id for o in rep.outcomes if o.status == "section_moved" and o.location_id}
+        # T573: every closed area TODAY'S rows still name, its own rule (`closures.live_piece_rules`); one DFO dropped
+        # is not in the feed, so its place answers there (never free-standing)
+        from pipeline.regs.dfo_salmon.closures import live_piece_rules
+        rules.update(live_piece_rules(ef, found))
+        moved ={o.location_id for o in rep.outcomes if o.status == "section_moved" and o.location_id}
         from pipeline.regs.dfo_salmon.quota import header_closure
         closure = header_closure(reg.get("notes") or [], slug)     # T320: the header's closure wins
         words = {} if closure else words_by_location(ef, typed)    # T321: a closed page's rows are not in force

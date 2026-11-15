@@ -71,9 +71,12 @@ export async function openTap(source: Pick<WaterSource, "itemForSection">, sid: 
                               view: View, except: ItemId | null = null,
                               groupOf?: (item: ItemId) => Promise<readonly ItemId[] | undefined>,
                               partOf?: OpenerOptions["partOf"],
-                              solo?: OpenerOptions["solo"]): Promise<RouteAction | null> {
+                              solo?: OpenerOptions["solo"],
+                              unnamed?: OpenerOptions["unnamed"]): Promise<RouteAction | null> {
   const item = await waterOfSection(source, sid);
   if (item !== null && item === except) return null;
+  // (T737) an unnamed reach: what its page waits on, asked now and together
+  if (item === null) unnamed?.(sid);
   const [group, at2, isSolo] = await Promise.all([
     item !== null && groupOf ? groupOf(item) : undefined,
     // (T369 D3) the tapped water opens AT its part: one frame for it
@@ -134,6 +137,11 @@ export interface OpenerOptions {
    * later and the address names it. A read that fails opens part-less (each view asks the same `targetFor`).
    */
   partOf?: (item: ItemId, sid: SectionId) => Promise<{ part: number } | null>;
+  /**
+   * (T737, 2026-11-15) A tap on an UNNAMED reach is known: what its page will read is asked now, together
+   * (`regs.ts` `warmUnnamedPage`) — a hint, it decides nothing. Absent: nothing asked.
+   */
+  unnamed?: (sid: SectionId) => void;
 }
 
 /** The opener (`useOpenWater`'s value), React-free: what a test drives. */
@@ -154,7 +162,8 @@ export function waterOpener(source: Pick<WaterSource, "itemForSection">, go: (a:
     return true;
   };
   return {
-    tap: (sid, at, view, except = null) => settle((groupOf) => openTap(source, sid, at, view, except, groupOf, o.partOf, o.solo)),
+    tap: (sid, at, view, except = null) => settle((groupOf) => openTap(source, sid, at, view, except, groupOf, o.partOf, o.solo,
+                                                                        o.unnamed)),
     flow: (item, build) => settle(async (groupOf) => build(groupOf ? await groupOf(item) : undefined)).then(() => undefined),
     // nothing to wait on: at once, and any open still in flight is overtaken — (T369 D13) but a Map asked for asks first
     // whether the water is solo (no Map view: its Regulations), as a search result does, so no Map mounts and is dropped
@@ -165,14 +174,17 @@ export function waterOpener(source: Pick<WaterSource, "itemForSection">, go: (a:
         ? openWater({ item, view: "regs", solo: true }) : openWater({ item, view })));
     },
     cancel: () => { latest += 1; },
-    // (T203) a result opens the water's Map, the whole water shown, from Conditions or Regs alike — (T221) unless the
-    // water is solo: nothing to choose on its map, so its Regulations
+    // (T203) a result opens the water's Map, from Conditions or Regs alike — (T221) unless the water is solo: nothing to
+    // choose on its map, so its Regulations. (T747, owner 2026-11-14: "it is the section view but it is fully zoomed out
+    // instead of on the first section") framed on THE PART ITS BAR NAMES (the frame's part, `useFrameView`), never the
+    // whole water: T203 opened it whole while the bar said "Part 1 of 18", and on the wide desktop strip (243 px tall)
+    // the whole Skeena read as the province. ⤢ "Whole river" is one press away.
     searched: (item) => {
-      if (!o.solo) { latest += 1; go(openWater({ item, view: "map", whole: true, fromSearch: true })); return Promise.resolve(); }
+      if (!o.solo) { latest += 1; go(openWater({ item, view: "map", fromSearch: true })); return Promise.resolve(); }
       const ask = o.solo;
       return settle(async () => ((await ask(item).catch(reported(false)))
         ? openWater({ item, view: "regs", solo: true, fromSearch: true })
-        : openWater({ item, view: "map", whole: true, fromSearch: true }))).then(() => undefined);
+        : openWater({ item, view: "map", fromSearch: true }))).then(() => undefined);
     },
   };
 }
@@ -180,6 +192,7 @@ export function waterOpener(source: Pick<WaterSource, "itemForSection">, go: (a:
 /** The Shell's handle on `openWater` / `openTap`, dispatching to the route. */
 export function useOpenWater(source: Pick<WaterSource, "itemForSection">, go: (a: RouteAction) => void,
                              o: OpenerOptions = {}): WaterOpener {
-  const { now, group, solo, partOf } = o;
-  return useMemo(() => waterOpener(source, go, { now, group, solo, partOf }), [source, go, now, group, solo, partOf]);
+  const { now, group, solo, partOf, unnamed } = o;
+  return useMemo(() => waterOpener(source, go, { now, group, solo, partOf, unnamed }),
+                 [source, go, now, group, solo, partOf, unnamed]);
 }

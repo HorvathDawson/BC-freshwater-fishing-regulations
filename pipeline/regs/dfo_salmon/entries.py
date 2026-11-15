@@ -924,6 +924,8 @@ def to_reach_input(loc: EntryLocation, rules: List[dict],
     entry = {
         "entry_id": loc.location_id,
         "matched": item_ids,
+        # owner 2026-11-15: an extent naming the water holds on its own channels too (`reach.channels`)
+        "_named_water_takes_its_channels": True,
         # The location's own flag, else its water's. A rule's `None` inherits this (AGENTS 9).
         "includes_tributaries": bool(loc.binding.tributaries
                                      if loc.binding.tributaries is not None
