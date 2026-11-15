@@ -130,3 +130,10 @@ R8 APK (`app-testbed-stub-r8.apk`), report `out/runs/2026-11-15T15-35-44`, load 
 
 No keep-rule round was needed: the first R8 APK passed. Left: a Play internal AAB with the flag (Play's own processing,
 the download size from Play) and the owner's phone check.
+
+## Owner decision (2026-11-15 10:32)
+Owner, verbatim: "if that build passes the tests then it should be good to release". Asked which build and which
+release, he picked: the R8 build to Play INTERNAL. So: build from the shared branch as it is today plus this branch's
+switch and keep rules, switch on; keep `mapping.txt` beside the Hermes source map; re-run the six emulator benches on
+that exact build; if all pass, upload to Play internal testing for the owner's phone walk (update, notifications, a spot
+photo, location, the rule book). Production stays the owner's.

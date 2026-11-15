@@ -205,6 +205,10 @@ with the default Claude uses until you answer). Newest first inside each section
   It is behind a switch that is off. Pick: make one Play INTERNAL build with the switch on for you to walk on your
   phone (update, notifications, a spot photo, location, the rule book): yes / not now. Nothing is uploaded until you
   say.
+  **ANSWERED 2026-11-15 10:32.** Owner, verbatim: "if that build passes the tests then it should be good to release";
+  asked which build and which release, he picked "R8 build to Play internal": the Android app with the code shrinker
+  on, built from the shared branch as it is today, the six emulator checks re-run on that exact build, and if all
+  pass an upload to Play INTERNAL testing for his phone walk. Production stays his. Nothing else rides along.
 - **DONE 2026-11-15 07:32.** TestFlight build 36 uploaded (0.7.10, branch `ios/next` d658f88ac, staging data): the
   iOS fixes, the first-install bar, the "applying new data" screen with fish puns, push, the crash-report fix, the
   faster cold start and lighter fonts. Yours: install 36 (not 34 or 35), then the phone checks and the push test;
