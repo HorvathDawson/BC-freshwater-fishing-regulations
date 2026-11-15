@@ -25,7 +25,7 @@ if [[ -n $dirty ]]; then
 else SITE_DIRTY=false; fi
 js=$(grep -o '/_expo/static/js/web/index-[0-9a-f]*\.js' "$W/index.html")
 one=$(find "$S/water" -name index.html.gz -print -quit)
-gunzip -c "$one" | grep -q "$js" || { echo "site.sh: $S's water pages were built against another app export (not $js): rebuild with --app $W" >&2; exit 1; }
+gunzip -c "$one" | grep -c "$js" >/dev/null || { echo "site.sh: $S's water pages were built against another app export (not $js): rebuild with --app $W" >&2; exit 1; }
 # (T304) the app focuses the region a water page names; a page without `cift:region` is from an older SEO build (every
 # landing would read the whole files AND report it): rebuild the pages, not just relink them
 # grep -c, not -q: -q stops reading at the first hit, gunzip then dies on the closed pipe and `pipefail` turned a page that
