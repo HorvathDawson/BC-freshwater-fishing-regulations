@@ -95,6 +95,26 @@ describe("runPrefetch through the loader: one download per file, the later open 
                                                          [`${PREFETCH_MARK}:regs-2`, `${PREFETCH_MARK}:core`]]);
   });
 
+  it("(T737) idle core is fetched ahead, then opened: never an open in flight a tap would wait on", async () => {
+    const m = manifest(body);
+    let release!: () => void;
+    const gate = new Promise<void>((r) => { release = r; });
+    const source = releaseSource(m, { base: "https://r2.test/release/", cache: await releaseCache(), held: null,
+      fetch: (async (url: string) => { await gate; return new Response(enc(body[url.replace(/^.*\/r-1\//, "").replace(/-x\.sqlite\.gz$/, "")]!)); }) as typeof fetch });
+    const open = async (name: DbName, bytes: () => Promise<Uint8Array>): Promise<Db> => {
+      await bytes();
+      return { all: async () => [{ k: "format", v: name.startsWith("regs-") ? "regs-region/1" : `${name}/1` },
+                                 { k: "section_handles", v: H }], get: async () => undefined };
+    };
+    const L = releaseLoader(m, source, open);
+    runPrefetch(L, prefetchPlan({ region: null, idle: true, saveData: false, effectiveType: "4g" }));
+    await settle();
+    expect([L.opened(), L.prefetched("core")]).toEqual([[], true]);
+    release();
+    for (let i = 0; i < 20 && !L.opened().includes("core"); i++) await settle();
+    expect(L.opened()).toEqual(["core"]);
+  });
+
   it("the view moves to another region: that region's file too, each once", async () => {
     const { L, fetched, mark } = await setup();
     for (const region of ["2", "5", "2"] as const)

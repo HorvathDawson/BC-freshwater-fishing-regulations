@@ -147,15 +147,22 @@ export function releaseLoader(m: Manifest, source: ReleaseSource, open: Opener,
   let regions: Promise<Map<number, Region[]>> | null = null;
   const touch = (n: FileName) => { if (!order.includes(n)) order.push(n); };
   const ahead = new Map<FileName, Promise<void>>();
+  /** (T737) the files a prefetch has finished: in the release cache, so an open reads them without waiting */
+  const aheadDone = new Set<FileName>();
   let focused: Region | null = null;
   /** (T256) the slices opened so far, per file, in the order opened (a slice once read keeps answering what it covers) */
   const slicesOpen: Record<Sliced, Region[]> = { core: [], water: [] };
   const sliceOf = (name: Sliced, r: Region) => `${name}-${r}` as DbName;
 /** (T370) the web file of the region-wide water tables, cut beside the slices (pipeline `slices.WATER_SHARED`) */
 const WATER_SHARED: DbName = "water-shared";
-  /** Whether the whole file is here or on its way (opened, asked ahead, or kept in this browser): then it is read. */
+  /**
+   * Whether the whole file is here (opened, prefetched to the end, or kept in this browser): then it is read.
+   * (T737) A whole file still being fetched AHEAD (the background prefetch) is NOT here: a tap read it, so the first tap
+   * a few seconds after the map painted waited for the whole 2.5 MB `water` (8-9 s on staging, measured) instead of its
+   * region's 0.17 MB slice. The slice answers now, the prefetch goes on beside it, and once it is in the whole file reads.
+   */
   const wholeHere = async (name: Sliced): Promise<boolean> =>
-    dbs.has(name) || ahead.has(name) || (source.stored ? await source.stored(name).catch(() => false) : false);
+    dbs.has(name) || aheadDone.has(name) || (source.stored ? await source.stored(name).catch(() => false) : false);
 
   /**
    * (T360) A file's ONE handle: what `db()` hands out and every reader keeps. Its connection may be closed while idle
@@ -403,7 +410,7 @@ const WATER_SHARED: DbName = "water-shared";
       if (!m.files[name]) return Promise.reject(new ReleaseError(`release ${m.data_release} has no file ${name}`));
       let p = ahead.get(name);
       if (!p) {
-        p = source.bytes(name, { ahead: true }).then(() => {});
+        p = source.bytes(name, { ahead: true }).then(() => { aheadDone.add(name); });
         p.catch(() => ahead.delete(name));        // a failure is not kept: the next ask (or the open) tries again
         ahead.set(name, p);
       }

@@ -172,6 +172,32 @@ describe("releaseLoader", () => {
     // a fake loader (no decodes of its own) adopts nothing
     expect(adoptDecoded({} as typeof next, prev)).toEqual([]);
   });
+  it("(T737) a whole file still fetched ahead does not hold a tap: its region's slice answers, the whole once it is in", async () => {
+    const ms = manifest({ core: "c", water: "w", "core-2": "c2", "water-2": "w2", "water-shared": "ws" });
+    let release!: () => void;
+    const late = new Promise<Uint8Array>((r) => { release = () => r(new Uint8Array()); });
+    const s = { bytes: async (n: string) => (n === "water" || n === "core" ? late : new Uint8Array()) };
+    const base = fakeOpen();
+    // a slice holds the water asked for (`covers`: its count is the keys'); the whole files hold everything
+    const open = async (n: DbName, bytes: () => Promise<Uint8Array>): Promise<Db> => {
+      await bytes();
+      const d = await base(n);
+      return { ...d, get: async (sql: string) => (sql.startsWith("SELECT count(*)") ? { n: 1 } : undefined) };
+    };
+    const L = releaseLoader(ms, s, open);
+    L.focus("2");
+    void L.prefetch("water"); void L.prefetch("core");      // the background prefetch, under way
+    const NOT_YET = Symbol("waiting");
+    const now = <T>(p: Promise<T>) => Promise.race([p, new Promise<typeof NOT_YET>((r) => setTimeout(() => r(NOT_YET), 50))]);
+    expect(await now(L.dbFor("water", { ords: [5] }))).not.toBe(NOT_YET);
+    expect(await now(L.dbFor("core", { items: ["gnis:1"] }))).not.toBe(NOT_YET);
+    expect(L.opened()).toEqual(["water-2", "core-2"]);
+    release();
+    await L.prefetch("water"); await L.prefetch("core");
+    await L.dbFor("water", { ords: [5] });
+    await L.dbFor("core", { items: ["gnis:1"] });
+    expect(L.opened()).toEqual(["water-2", "core-2", "water", "core"]);
+  });
   it("refuses a file whose meta is not the manifest's, and does not cache the failure", async () => {
     const L = releaseLoader(m, src, fakeOpen("core/0"));
     await expect(L.db("core")).rejects.toBeInstanceOf(ReleaseError);
