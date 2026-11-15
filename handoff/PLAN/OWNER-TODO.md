@@ -27,6 +27,10 @@ with the default Claude uses until you answer). Newest first inside each section
   Apple account after approval, Play closed-testing steps. Closed on the page: T688 wording (answered 11-12). Build 29
   phone check marked replaced by the 0.7.8 / 0.7.9 rows. Not on the page (old, to prune or re-ask): Run timing T199 runs,
   Q4 / Q126 / Q9 / Q26 / Q27, the long phone-test lists (T50 / T77 / T74 / T217 / T243), SEO v1.
+- **ANSWERED 2026-11-14 (T750 step order).** Upstream / Downstream now walk one line through every part, no "Which way
+  upstream?" picker (owner: "we should only have up or downastream that access all components"). Asked whether to rank a
+  part by its upper end (as shipped) or its downstream end (differs on Wap Creek and Nimpkish River only): "upstream is
+  fine". Shipped order stays; no release needed.
 - **T743 Fraser DFO places (2026-11-14): BLOCKS tonight's release until re-marked.** Dossier:
   `handoff/PLAN/curation-review/fraser-dossier-2026-11-14.md`. Three "Mission to Hope" wordings (marks lines 2552, 2554,
   2555; two written by a group click) are bound Mission → Spuzzum; with the live chum/coho opening that would show

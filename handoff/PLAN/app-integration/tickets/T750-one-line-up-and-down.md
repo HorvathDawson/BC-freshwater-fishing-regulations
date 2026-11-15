@@ -68,3 +68,8 @@ its main runs; a side channel's: the stem measure where it leaves) and rank `ord
 the topology rank assert and every golden follow; then a release.
 
 Depends: none. Size: S. Owner: yes (the Wap/Nimpkish question; default stands).
+
+## Owner answer 2026-11-14 (order rule)
+Asked: keep the shipped order (a part ranked by its upper end) or switch to the strict downstream-end rule (differs only
+on Wap Creek and Nimpkish River; needs a pipeline change and a release). Owner, verbatim: "upstream is fine". So the
+shipped `part_ix` order stays; no pipeline change, no release for this.
