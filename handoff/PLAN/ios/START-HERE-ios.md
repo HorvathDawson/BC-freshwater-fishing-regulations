@@ -39,8 +39,11 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
 - `ios/t723-keyboard-back`: keyboard and back fixes from the audit. Proof running.
 - `ios/audit-fixes`: eight small fixes (among them the "↗" that iOS draws as a blue emoji tile). Proof running.
 - `ios/t719-tapup`: the early tap cue for iOS, same event as Android's. Started 17:40.
-- `android/t732-backup`: Android backup carries saved spots and settings, never the 480 MB download. Emulator proof
-  running.
+- `android/t732-backup` (**proven on the Android emulator 19:10**, not merged): today a backup of the app carries nothing
+  at all ("Size quota exceeded", 516 MB of app data against Android's 25 MB limit). With the rules: a 17,920-byte
+  backup with the saved spots and settings; after a wipe and restore the spots and notes are back and the app downloads
+  the map data again by itself. A phone-to-phone transfer also carries the photos. Photos in the cloud backup wait for
+  your yes on the compressed copies.
 - The iOS look at today's five shared fixes (T717, T728 to T731): running.
 
 **What failed or was found**

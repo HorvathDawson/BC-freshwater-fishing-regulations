@@ -1,6 +1,6 @@
 # T732 — The phone's backup carries saved spots first, photos second, never the downloaded release
 
-Status: IN PROGRESS (iOS chat, branch `android/t732-backup`; a proposal for the owner to look at before it is the default).
+Status: IN PROGRESS (iOS chat; proven on the emulator 2026-11-14, branch `android/t732-backup` head c95ea31c5, results in the ticket on that branch; not merged: a proposal that waits for the owner's look and three picks).
 
 Source: audit finding G14 (`handoff/PLAN/ios/parity-audit.md`, pass 2, 2026-11-14): on Android, saved spots and photos
 are never in the Google backup, because the installed release (~480 MB) puts the app over Auto Backup's 25 MB limit and

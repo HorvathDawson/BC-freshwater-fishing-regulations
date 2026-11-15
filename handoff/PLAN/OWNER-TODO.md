@@ -92,7 +92,9 @@ with the default Claude uses until you answer). Newest first inside each section
   Sports [keep] (T727);
   (3) shared links with no Team ID: the site build skips Apple's link file with a warning [keep] or always fails (T724);
   (4) backup (T732): confirm the words the Android chat relayed ("save spots with prioirty", "images can be compressed if
-  still visible"); a before/after photo pair is coming;
+  still visible"); the photo pair was sent. PROVEN on the emulator 2026-11-14: today a backup carries nothing (over
+  Android's 25 MB limit); with the rules it is 17,920 bytes with spots and settings, and a wipe + restore brings them
+  back. Not merged: waits for your look and the three picks (image library yes/no, screen-lock-only no/yes, copy size);
   (5) clean-up: five calls in `handoff/PLAN/CLEANUP-CANDIDATES.md` (evidence screenshots, old releases, a leftover flag,
   15 DONE rows still in the open ledger, graphify and scratch dirs);
   (6) the small invented release for tests (T667 slice 8): cut it with no map tiles and no basemap, only the data files
