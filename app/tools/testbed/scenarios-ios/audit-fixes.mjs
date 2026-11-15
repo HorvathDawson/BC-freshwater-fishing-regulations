@@ -105,6 +105,18 @@ export const auditFixes = {
     const { appUp, coldStart, toMap } = ctx.ios;
     const d = ctx.device;
     let page = false;
+    // a system prompt left over from Apple's Maps (it raises its own, over everything, after Directions) is answered
+    // first, and Maps and Safari closed, so every step starts on this app
+    const clearStrays = async () => {
+      for (let i = 0; i < 5; i++) {
+        const w = d.screenText();
+        if (!w.some((x) => /^Allow .*(Maps|widgets).*\?$/.test(x))) break;
+        try { ctx.flow('ios-alert', { BUTTON: 'Don.t Allow' }); } catch { /* gone */ }
+        await d.sleep(1500);
+      }
+      for (const b of ['com.apple.Maps', 'com.apple.mobilesafari', 'com.apple.Preferences']) { try { d.simctl(['terminate', d.udid(), b]); } catch { /* not running */ } }
+    };
+    await clearStrays();
 
     // ---------- the arrow ----------
     await ctx.step('arrow: a water\'s "Rule book p.N ↗" is plain text, not the blue emoji tile', async () => {
@@ -272,6 +284,7 @@ export const auditFixes = {
       if (!maps && !w.some((x) => /maps\.apple\.com|Apple Maps/i.test(x))) throw new Error(`Apple Maps did not open: ${said}`);
       return said;
     });
+    await clearStrays();
     d.launch();
 
     // ---------- G9 ----------
