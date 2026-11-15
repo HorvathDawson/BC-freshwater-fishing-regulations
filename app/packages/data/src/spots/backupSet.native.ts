@@ -62,10 +62,12 @@ function backupFiles(): BackupFiles {
   };
 }
 
-let running: Promise<unknown> = Promise.resolve();
+/** The sync in hand: a later one waits for it to settle (its outcome is its own caller's). */
+let busy: Promise<void> | null = null;
 
-export function syncBackupSet(spots: readonly Spot[]): Promise<BackupSync | null> {
-  const run = running.then(() => syncBackupSetWith(backupFiles(), spots));
-  running = run.then(() => undefined, () => undefined);   // the queue only waits; the failure is the caller's (`run`)
-  return run;
+export async function syncBackupSet(spots: readonly Spot[]): Promise<BackupSync | null> {
+  while (busy) await busy;
+  let settled!: () => void;
+  busy = new Promise<void>((r) => { settled = r; });
+  try { return await syncBackupSetWith(backupFiles(), spots); } finally { busy = null; settled(); }
 }

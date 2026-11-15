@@ -68,18 +68,17 @@ const nameOf = (ref: string) => ref.slice(PREFIX.length);
 export async function syncBackupSetWith(files: BackupFiles, spots: readonly Spot[]): Promise<BackupSync> {
   const restored: string[] = [], failed: string[] = [], unstaged: string[] = [];
   const unrestored = new Set<string>();   // its copy is the only one left: never deleted here
-  const fail = (ref: string, e: unknown) => { reportFailure(e); failed.push(ref); };
   const held = spotPhotos(spots);
   const candidates: BackupPhoto[] = [];
   for (const p of held) {
     const name = nameOf(p.ref);
     if (!files.hasOriginal(name)) {
       if (files.copyBytes(name) === null) continue;         // gone from this phone and from the set: nothing to back up
-      try { await files.restore(name); restored.push(p.ref); } catch (e) { fail(p.ref, e); unrestored.add(name); continue; }
+      try { await files.restore(name); restored.push(p.ref); } catch (e) { reportFailure(e); failed.push(p.ref); unrestored.add(name); continue; }
     }
     let bytes = files.copyBytes(name);
     if (bytes === null) {
-      try { bytes = await files.stage(name); } catch (e) { fail(p.ref, e); unstaged.push(p.ref); continue; }
+      try { bytes = await files.stage(name); } catch (e) { reportFailure(e); failed.push(p.ref); unstaged.push(p.ref); continue; }
     }
     candidates.push({ ...p, bytes });
   }
