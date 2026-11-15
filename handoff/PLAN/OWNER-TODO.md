@@ -744,3 +744,7 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   points are 2,054 m apart along the river, not "one km", and look swapped: the second printed point is 27 m from the
   Water Survey gauge "Shuswap River near Lumby", so it is the station. Options shown: as printed (km 133.08 to 135.13),
   or station to 1 km downstream (km 134.13 to 135.13). Also yours: tell DFO about the mismatch?
+- DONE 2026-11-15 (Puntledge, your permission): weir cut added, 75 m cut moved to 75 m below the weir (same name, so
+  the rule-book stretch and both DFO places follow). Shows after the rebuild; then re-tick marks 1263, 2447, 2687.
+  YOURS: the retired "from the weir at the lower hatchery" place has no mark (weir to the 75 m cut). YOURS, yes/no: the
+  tailrace "50 m" cut has the same fault, about 27 m off; fix it the same way?

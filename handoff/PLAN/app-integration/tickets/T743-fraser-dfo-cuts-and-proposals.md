@@ -81,3 +81,15 @@ Report: `handoff/PLAN/curation-review/fraser-channels-2026-11-15.md` (no mark, c
 - Pallant Creek, owner 2026-11-15: "Pallant Creek we can make the bridge the tidal boudnary i think". So Pallant's tidal
   boundary moves to the "bridge near the mouth" (57 m upstream of today's boundary). Queued for the rebuild after the
   marks are done (curated tidal limit change + reach rerun); not applied yet.
+
+## Before the release that carries the labels (added 2026-11-15)
+- Puntledge: weir cut added and the 75 m cut moved onto the right spot (bf1a29567, owner asked); takes effect at the
+  atlas rebuild; owner re-ticks marks 1263, 2447, 2687 after it. The dormant "from the weir at the lower hatchery" place
+  has no mark: his to mark (weir cut to 75 m cut). The tailrace "50 m" cut has the same anchor fault (about 27 m off):
+  not changed, owner to decide.
+- Closed areas inside a DFO place (T573 entry B: Thompson Deadman / Juniper / Ashcroft, Shuswap middle): proposals
+  exist, none accepted yet, and NO build step reads an accepted closed area into the atlas / bundle / feed. Must be
+  written and tested before the release, or those closures do not reach the app. The reader for "except closed from …
+  to …" is on branch data/except-closed (df546975a), to land after marking.
+- T753 lake loops (cf7df0dba, branch data/t753-lake-loops) and Pallant Creek's tidal boundary at the bridge ride on the
+  same rebuild.
