@@ -15,6 +15,13 @@ build with the code shrinker may be today (its phone checks are re-running; the 
 2. Read section 2 (questions) and answer what you can; nothing in it blocks the others.
 
 ## 2. Questions for you (each also a To-Do row)
+MOST IMPORTANT (T759, found 2026-11-15, before closed testing)
+0. A restricting DFO place (a closed stretch inside an open river) can drop out of the live feed when DFO rewords its
+   row, and the app then shows the wider, more open rule: 68 of 435 rule chains could read looser; worst case found is a
+   Campbell River closure reading open on Sep 1. This is how the app has always worked; nothing shows wrong today that
+   we know of. Proposed: when our reader cannot tell "DFO removed it" from "DFO reworded it", the stretch reads "not
+   known, check the DFO notice" instead of the wider rule. Yes (recommended) / no? The fix is being built on branches
+   meanwhile, not shipped without your answer.
 Cuts and places
 1. Seton River mouth: its own cut 254 m below the Highway 99 bridge cut (recommended), or reuse the bridge cut?
 2. Shuswap closed stretch: DFO's two points are 2,054 m apart and look swapped. Use them as printed (2 km closed) or
