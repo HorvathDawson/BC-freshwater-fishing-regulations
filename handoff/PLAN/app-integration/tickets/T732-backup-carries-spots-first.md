@@ -34,8 +34,7 @@ lands clean and proven, otherwise first thing after (the Android chat tells the 
 ## Results
 
 2026-11-14, backup lane (branch `android/t732-backup`, from local `redesign/stream-sections` 8d7d01d9a: origin was not
-reachable, no DNS). Code and design only: no emulator, no build. Everything marked **(to prove)** waits for the
-emulator slot below.
+reachable, no DNS). Code and design only: no emulator, no build. The emulator proof ran later the same day: §8.
 
 ### 1. Facts: where the data lives on Android, and the manifest today
 expo-file-system `Paths.document` = `Context.getFilesDir()` (`expo-modules-core` `AppDirectoriesService.kt:18-19`,
@@ -50,7 +49,7 @@ expo-file-system `Paths.document` = `Context.getFilesDir()` (`expo-modules-core`
 | The release | `files/release/<id>/…` + `release/tiles/…` + `release/basemap/…` + `release/current` | r-f749475d0962 manifest: data files 57.3 MB, atlas 197.2 MB, basemap 225.4 MB, mask 0.06 MB = **~480 MB**, plus `release/previous` during an update | `install.native.ts:24-25`, `install.ts:215,281-285`, `data/release/r-f749475d0962/manifest.json` |
 | Rule book | `files/synopsis-<sha16>.pdf` | 11.7 MB | `install.ts:432`, `synopsisPdf.native.ts:18` |
 | System downloads in flight | `getExternalFilesDir("bg-download")/…` + shared prefs `metered:<id>` | up to a whole big file | `modules/bg-download/…/BgDownloadModule.kt:62,71` |
-| Map tile cache | MapLibre's ambient cache, `files/mbgl-offline.db` (from memory of the MapLibre Android source; **to prove**) | up to its cap | – |
+| Map tile cache | MapLibre's ambient cache, `files/mbgl-offline.db` (proven on the emulator, §8: 312 KB there, measured by the BEFORE preflight) | up to its cap | – |
 | Others | `databases/` (WorkManager, expo-background-task), `shared_prefs/` (expo-notifications, bg-download), `cache/` (picker copies, `synopsis-open.pdf`) | small | – |
 
 **Auto Backup's default** (Android docs, "Back up user data with Auto Backup"): with no rules it takes `getFilesDir()`,
@@ -64,8 +63,8 @@ targetSdk 36 (`expo-modules-autolinking` defaults), so both rule files matter: `
 
 **At the quota** (Android docs, same page): "If the amount of data is over 25 MB, the system calls `onQuotaExceeded()`
 and doesn't back up data to the cloud." The full backup measures first (a preflight) and gives up whole: the spots go
-with the release. Device-to-device transfer has no such limit. **(to prove on the emulator)** — today's state (quota hit)
-and the fixed state (success, size) are steps 2 and 4 of the proof.
+with the release. Device-to-device transfer has no such limit. **Proven on the emulator (§8)**: today's state (quota hit)
+and the fixed state (success, 17,920 bytes) are steps 2 and 4 there.
 
 ### 2. Built: the rules (`apps/mobile/plugins/with-backup-rules.js`, in `app.json`'s plugins)
 A local config plugin: writes `res/xml/backup_rules.xml` and `res/xml/data_extraction_rules.xml` and points
@@ -183,7 +182,47 @@ Documents are in iCloud backup):
    → the archive and the restore include `spots/photos/`, never `release/`.
 8. Reset: `adb shell settings delete secure backup_local_transport_parameters`; transport back to the default.
 
+### 8. Emulator proof: RESULTS (2026-11-14, `n1_pixel`, Android 15 / API 35 google_apis, lane 1)
+Branch rebased onto origin `redesign/stream-sections` c739bdd75 (build 32 = 0.7.10), head 87ec94d38. Test-bed APK built
+from that head by `session.sh --build` (stamp: commit 87ec94d38 clean, patched MapLibre build id 7bf3dc29…, versionCode
+32). BEFORE APK: the T717 test-bed build (0.7.9, versionCode 31, no rules; `--allow-stale`). Release r-f749475d0962
+installed on the device throughout (`files/release` 473,848 KB). Transport: `com.android.localtransport/.LocalTransport`,
+`backup_local_transport_parameters` `is_encrypted=true` (cloud) or `is_encrypted=true,is_device_transfer=true`
+(transfer). The local transport keeps its set at `/data/user/0/com.android.localtransport/files/1/_full/<pkg>` on this
+image (not `/data/cache/backup/…`, as step 4 above guessed). Scripts and logs: the backup lane's scratch
+`t732proof/` (`before.sh`, `after.sh`, `diag.sh`, `restore.sh`, `session{A,B,C,D}.log`, the pulled archives).
+
+| # | Step | Command / key output | Result |
+|---|---|---|---|
+| 1 | Rules in the APK | `aapt2 dump xmltree` of the installed `base.apk`: `allowBackup=true`, `fullBackupContent=@0x7f140000` (xml/backup_rules), `dataExtractionRules=@0x7f140002` (xml/data_extraction_rules); both files dumped (R8 renames them `res/Qq.xml`, `res/4j.xml`): cloud-backup 9 includes, device-transfer the same 9 + `spots/photos`, full-backup-content the 9 | **PASS** |
+| 2+3 | BEFORE (no rules, release installed) | `bmgr backupnow --monitor-verbose ca.canifishthis.app` → `ERROR_PREFLIGHT … (v31)`, `Package ca.canifishthis.app with result: Size quota exceeded`; logcat `PFTBT: Error -1005 backing up ca.canifishthis.app`, `Transport quota exceeded for package`; no archive written. Behind it (`du -sk`): `files/release` 473,848 KB, `synopsis-…pdf` 11,452 KB, `cache` 23,024 KB, `files/feeds` 5,728 KB, `files/spots` 1,560 KB, app total 516,548 KB. The preflight measured every file, `mbgl-offline.db` (312 KB, in `files/`: the ticket's guess confirmed) and `shared_prefs/bg-download.xml` included | **PASS** (the gap is real: nothing is backed up) |
+| 4 | AFTER (T732 APK, same release, 3 spots made through the UI, 2 with a photo, all with notes) | `Package ca.canifishthis.app with result: Success`; archive **17,920 bytes** (vs the 25 MB quota); `tar tvf`: `_manifest`, `f/spots/spots.spots` (4,688), `spots.spots.bak` (4,663), `layers.json`, `notify.json`, `first-run.txt`, `walkthrough.txt`. No release, no synopsis, no `mbgl-offline.db`, no feeds/caches, no `updates.json`, no `install-id.txt`, no shared prefs, no photos. (`low-data.txt`, `crash-reports.txt`, `run-species.json` absent on this device, so not in the set) | **PASS** |
+| 5 | Photos past the limit | 8 × 5 MB files added to `spots/photos` (39,160 KB), cloud backup → `Success`, archive still **17,920 bytes**, no `spots/photos` | **PASS** |
+| 5b | The same 40 MB, device-transfer rules | `Size quota exceeded` (`PFTBT Error -1005`): the transfer rules DO take the photos (that is why it is measured over 25 MB), but the LOCAL transport applies its 25 MB quota to every full backup. A real device-to-device transfer has no quota (Android docs); the emulator cannot show that | info (emulator limit) |
+| 7 | Device transfer (2 real photos) | `Success`, archive **56,320 bytes**: the 6 spot/settings files + `f/spots/photos/` with both photos (17,926 B each); never `release/`. `pm clear`, `bmgr restore 1 ca.canifishthis.app` → `restoreFinished: 0`; restored files: spots, `.bak`, 4 settings, both photos; md5 of every restored file = before; the 3 titles and 3 notes in the spots file; release, synopsis, `updates.json`, `install-id.txt`, `update-log.json`, `gauge-history.json`, `mbgl-offline.db` absent | **PASS** |
+| 6 | Cloud restore onto a wiped app | cloud backup 17,920 B → `pm clear` → `bmgr restore 1` → `restoreFinished: 0`; restored: spots, `.bak`, `layers.json`, `notify.json`, `first-run.txt`, `walkthrough.txt` (md5 = before), no photos, none of the excluded files. Then the app opened (no first-run notice: `first-run.txt` came back): it downloaded the release again by itself (`files/release` 473,848 KB again, map up in 282 s), made a NEW `install-id.txt` and fresh `updates.json` (none restored, so no stale validators), the Spots tab lists T732 spot 1-3 with their dates and places, each row NO PHOTO (cloud carries no photos, as designed), notes in the spots file; crash buffer: none | **PASS** |
+| 8 | Reset | `settings delete secure backup_local_transport_parameters`; transport back to `com.google.android.gms/.backup.BackupTransportService` (the image's default before the proof) | done |
+
+Found on the way (none of them the rules):
+- **The emulator's local transport had a broken `@pm@` set** (its `@ancestral_record@` and `@meta@` keys 0 bytes since
+  its first backup here): every `bmgr restore`, and restore-at-install, failed `restoreFinished: -1000` with
+  `EOFException` in `PackageManagerBackupAgent.getAncestralRecordVersionValue`, before the app was reached (sessions B,
+  C). Removing that set's journal and key files (`/data/backup/com.android.localtransport.LocalTransport/@pm@`,
+  `…/files/1/_delta/@pm@`) let the next backup write `@pm@` whole (14 and 4 bytes); both restores then passed.
+  Emulator state only; a phone's Google transport keeps its own.
+- With nothing included present (a wiped app), the local transport answers `Transport rejected package` (-1002, size
+  0): expected, not a failure.
+- Restored files carry an mtime of 1970-01-21 (the platform's restore; seen on every restored file). The app reads the
+  files' contents, not their dates, as far as the spot store goes; noted, not chased.
+- Test bed: the `spots` scenario's `spot-notes` flow fails at its first `takeScreenshot` when `run.mjs --out` is an
+  absolute directory outside Maestro's output folder ("resolves outside this run's takeScreenshot output folder");
+  the proof's own spot maker passed a relative `SHOT`. The scenario also deletes its spot at the end, so it cannot
+  seed data that must stay.
+
 ### Not done / unverified
-Every Android behaviour above is from the docs and the code, not seen on a device. Not built: the backup-set worker,
-the line in the app, the stored-photo resize (all wait on the `expo-image-manipulator` decision). The privacy and
-data-safety texts are untouched (other chat's files).
+Not shown on an emulator: a real device-to-device transfer with no quota (needs two phones and Google's D2D transport;
+the local transport caps it at 25 MB, step 5b); the Google cloud transport itself (no Play services account on this
+image: the local transport stands in for it, same rules engine, same 25 MB quota); Android 11-and-lower's
+`fullBackupContent` path (this image is API 35, which reads `dataExtractionRules` only; the file is pinned by the test
+and in the APK). Not built: the backup-set worker, the line in the app, the stored-photo resize (all wait on the
+`expo-image-manipulator` decision). The privacy and data-safety texts are untouched (other chat's files).
