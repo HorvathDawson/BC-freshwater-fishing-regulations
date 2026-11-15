@@ -1,6 +1,6 @@
 # T758 — The feeds worker's live salmon feed has no answer for the region-default places the Python feed publishes
 
-Status: IN PROGRESS (iOS chat; step 1, the investigation on real data, started 2026-11-15 15:25; the fix waits for its answer).
+Status: IN PROGRESS (iOS chat; step 1 answered 2026-11-15: the status is right, DFO's sentence is lost; the worker fix is being written on branch `feeds/t758-page-defaults`).
 
 Source: found 2026-11-15 by the T757 worker lane when the worker's test copies of the curated DFO entries were
 refreshed; confirmed on the live staging feed the same day. The Android chat (DFO is its area) has no ticket or owner
@@ -41,3 +41,40 @@ Python feed publishes. And whether the release's chains name the `:default:` ids
 - For the three sample waters the app reads the same under the live worker feed as under the Python feed.
 
 Depends: T757's worker branch (the refreshed entry copies and the `live` pin). Size: S to M (decided by step 1).
+
+## Step 1, answered 2026-11-15 15:27: the status is right everywhere, the words are wrong; no case shows open
+Real data: release r-f749475d0962 (on disk), the live staging worker feed of 22:14Z, and the Python's page-default
+locations from a `live.run` dry run over the saved pages (regions 3 to 8 are byte-identical to today's pages; regions
+1 and 2 changed on Nov 6, but the default sentences in the feed's own texts are word for word the ones the Python
+read). Cards from the app's own path (`pickSalmon` -> `withSalmonFeed`, `salmonCardLive`).
+- **The release uses the ids:** 153 chains name a `:default:` place, always last in `l`. Chains that are the default
+  alone cover about 1.1 M sections (R1 106,817; R2 62,978; R3 134,365; R5a 167,128; R7 598,878; R8 41,416).
+- **What the app shows under the live worker feed:** "Salmon: closed — Not opened by DFO: closed to salmon fishing"
+  (verdict 0, NOT_LISTED; no "from" line). **Offline, and under the Python feed:** DFO's own sentence, e.g. "There is
+  no fishing for salmon in Region 3 except for the opportunities listed in the table below." from "Region 3 · All
+  Region 3 waters"; for Region 2 Areas 13, 15, 16: "…the daily limit … is zero (0)."
+- **Samples** (Nov 15 and Jul 15 alike): North Thompson River (R3), Okanagan River (R8), Lillooet River (R2, Areas
+  28/29), Southgate River (R2, Areas 13/15/16). Headline "Closed today", map closed, in all three readings.
+- **Full sweep, worker feed against Python feed:** 153 chains x 5 species x 366 days: verdict status and map code are
+  identical everywhere; only the text differs (about 205k species-days).
+- **Why:** `composeChain` drops a chain location the feed lacks and falls to verdict 0, which is always closed. On a
+  mixed chain NOT_LISTED replaces the default on the days the narrower places say nothing.
+- **Rank:** not a wrong answer today (all 7 sentences are closures or zero limits). It becomes one the day a default
+  sentence opens something: live would read closed, offline open. By the Android chat's rule ("not listed" = fix
+  before closed testing) the fix started the same day. Worker only; no app build; production's worker has the same gap
+  and its deploy is the owner's.
+
+## What the Android chat wants before the staging deploy (2026-11-15)
+The vectors test holding worker == Python on the defaults' calendars with the 7-id exception gone, and the sweep
+(153 chains x 5 species x 366 days) re-run with the TEXT identical too.
+
+## Open question for the owner's review (asked by the Android chat; list, do not change)
+A chain location missing from the feed reads as verdict 0, "not opened, closed" (fail closed). T757 adds "not known"
+for a bound closed-area piece. Is there another kind of location where "missing from the feed" should read "not known"
+instead? Candidates to check in the code before they go to the owner (NOT verified, the iOS chat's reading):
+1. A narrower place that RESTRICTS inside a wider opening (a closed or reduced stretch that is an ordinary place, not
+   a T573 piece): if it is missing because its wording drifted and no longer joins, rather than because DFO removed
+   it, the chain falls to the wider place and reads more open than DFO says. What the feed does today with a curated
+   place that no longer joins (held row, "missing" report, unplaced list) decides whether this can happen.
+2. A two-region section (`s` groups): one region's places missing from the feed leaves the other region's answer
+   alone, where the strictest of both was meant.
