@@ -5,7 +5,7 @@
  * (stretches counted) is walked through the app's own `loadWaterGroup`.
  */
 import { describe, expect, it } from "vitest";
-import { stepsDown, stepsUp, type WaterGroup } from "@app/core";
+import { stepDown, stepUp, type WaterGroup } from "@app/core";
 import { loadWaterGroup, openRegsStore } from "@app/data/regs";
 import { liveReleaseAt, openReleaseDir } from "../conformance/src/fixtureRelease";
 
@@ -20,7 +20,7 @@ function unreached(g: WaterGroup): number[] {
   const seen = new Set([0]), queue = [0];
   while (queue.length) {
     const i = queue.shift()!;
-    for (const j of [...stepsUp(g, i), ...stepsDown(g, i)]) if (!seen.has(j)) { seen.add(j); queue.push(j); }
+    for (const j of [stepUp(g, i), stepDown(g, i)]) if (j !== null && !seen.has(j)) { seen.add(j); queue.push(j); }
   }
   return g.parts.map((_, i) => i).filter((i) => !seen.has(i));
 }

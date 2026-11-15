@@ -230,27 +230,29 @@ describe("<WaterMapView>", () => {
       ["part gnis:8634 4", `other ${VEDDER}`]]);
   }, 30_000);
 
-  // (T67, r-0ed3c2b2a0a7) the Zymoetz's canyon side channel is no part of its own any more (E15's mark is gone); the
-  // Skeena's Ecological Reserve part is a fork upstream. (T183, r-98c43091c440) Skeena section 2 starts at the Exchamsiks
-  // cut: the Reserve is part 5 now (part 6 is the Exchamsiks host channel above the cut, still section 2), and its ▲ is
-  // part 0 (which took in the mainstem up to the Exchamsiks) or that channel. (T517) part_ix is the river order: the
-  // Reserve is part 1 (named by its two crossings of the Reserve's boundary), the mainstem round it part 2 (from the tidal
-  // boundary: it joins the stem below and above the Reserve), the channel (no ends: said as its water) part 17
-  it("a fork upstream: ▲ on the Skeena's Ecological Reserve opens the chooser, the main stem first", async () => {
+  // (T750, owner 2026-11-14: "navigating up the skeena it gives a branching option. we should only have up or downastream
+  // that access all components") the Skeena's Ecological Reserve forks upstream in the marks (the main stem, and the
+  // km-less side channel beside it): ▲ steps straight to the next part in the water's one line, the main stem, and the
+  // next ▲ to the side channel. No dialog opens.
+  it("(T750) no fork: ▲ on the Skeena's Ecological Reserve steps to the main stem, then the side channel; no chooser", async () => {
     mount("gnis:2936", await partOf("skeenaReserve"));
     await ready();
-    expect(screen.getByTestId("water-map-name").textContent).toBe(
+    const name = () => screen.getByTestId("water-map-name").textContent;
+    const where = () => screen.getByTestId("water-map-where").textContent;
+    expect(name()).toBe(
       "Skeena River Ecological Reserve boundary (km 63.5) → Skeena River Ecological Reserve boundary near the Exchamsiks River confluence");
+    expect(where()).toBe("Part 2 of 18 · Skeena River");
     fireEvent.click(screen.getByRole("button", { name: "Upstream" }));
-    const chooser = within(screen.getByRole("dialog", { name: "Which way upstream?" }));
-    const other = "Skeena River";
-    expect(chooser.getAllByRole("button").map((b) => b.getAttribute("aria-label"))).toEqual(
-      ["Close", "Skeena River Ecological Reserve boundary near the Exchamsiks River confluence → Exchamsiks River confluence", other]);
-    fireEvent.click(chooser.getByRole("button", { name: other }));
-    expect([screen.queryByRole("dialog"), screen.getByTestId("water-map-name").textContent]).toEqual([null, other]);
+    expect([screen.queryByRole("dialog"), name(), where()]).toEqual([null,
+      "Skeena River Ecological Reserve boundary near the Exchamsiks River confluence → Exchamsiks River confluence", "Part 3 of 18 · Skeena River"]);
+    fireEvent.click(screen.getByRole("button", { name: "Upstream" }));
+    expect([screen.queryByRole("dialog"), name(), where()]).toEqual([null, "Skeena River", "Part 4 of 18 · Skeena River"]);
+    fireEvent.click(screen.getByRole("button", { name: "Downstream" }));
+    fireEvent.click(screen.getByRole("button", { name: "Downstream" }));
+    expect([screen.queryByRole("dialog"), where()]).toEqual([null, "Part 2 of 18 · Skeena River"]);
   }, 30_000);
 
-  it("Android's back closes an open mark, then the chooser, before it leaves the water (back, everywhere)", async () => {
+  it("Android's back closes an open mark before it leaves the water (back, everywhere)", async () => {
     let press: (() => boolean) | null = null;
     const system: SystemBack = (b) => { press = b; return { sync: () => {}, dispose: () => { press = null; } }; };
     const routes: string[] = [];
@@ -272,17 +274,10 @@ describe("<WaterMapView>", () => {
     await ready();
     act(() => seen.props!.onPressMark!(2));
     const seenMark = [open(), `${back()} -> ${open()}`, `${back()} -> ${open()}`];
-    cleanup(); routes.length = 0;
-    render(<Harness item="gnis:2936" part={await partOf("skeenaReserve")} />);   // (T678 junctions) the Skeena's Ecological Reserve, picked by its ends (part 1 is the stretch below it now)
-    await ready();
-    fireEvent.click(screen.getByRole("button", { name: "Upstream" }));
-    const seenChooser = [open(), `${back()} -> ${open()}`];
-    expect([...seenMark, ...seenChooser]).toEqual([
+    expect(seenMark).toEqual([
       "100 m below the Slesse Creek confluence · water",
       "true -> nothing open · water",
       "true -> nothing open · browse",
-      "Which way upstream? · water",
-      "true -> nothing open · water",
     ]);
   });
 

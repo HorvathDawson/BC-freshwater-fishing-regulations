@@ -14,19 +14,22 @@
  * river order, mouth first); neighbouring parts of one run the DFO salmon chain cuts are joined on the map where the live
  * salmon reads them alike (`mergeNav`). A joined entry knows every part it holds (`pieces`).
  *
- * THE STEP. ▲ takes the parts above the current one by the marks (a fork: a mark with two upper parts); ▼ the parts
- * below it (a fork too: two parts whose marks both say they sit below this one — the Zymoetz's source part has the main
- * stem and "A lake → McDonell Lake outlet" below it, and that lake part is reached ONLY that way). Where the marks say
- * nothing the order (`part_ix`) does, so every part stays reachable. At a fork the MAIN stem goes first: a side channel is
- * a branch from which the other branch is reachable going on in the same direction (it rejoins), and the main stem is
- * not — the Zymoetz's side channel rejoins above the canyon (`up_parts [0, 5]`).
+ * THE STEP (T750, owner 2026-11-14: "we should only have up or downstream that access all components. we just need to
+ * choose the most sensible next item"). ▲ and ▼ walk ONE LINE through every part of the water: the group's `parts` in
+ * order (the release's `part_ix`, river order, mouth first — what "Show all N parts" lists), ▲ the next, ▼ the one
+ * before. There is no fork and no choice: where the water splits into its own side channels or braids (the Skeena's
+ * km-less channel beside the Ecological Reserve) the next part is the next in that order, so pressing ▲ from the lowest
+ * part visits every part once and ▼ walks the same line back. The order is decided in Python at build time
+ * (`topology.order_parts`: by km from the mouth, a side channel right after the main-stem part it runs beside); the
+ * marks only draw and name the boundaries.
  *
  * ACROSS WATERS (owner 2026-10-21: "navigate up if one stream comes directly from another, like vedder from
  * chilliwack"). The release's `water_continue` says which stream goes on as another — the same watercourse under a new
  * name (pipeline `continuation.py`; never a tributary). On the part where this water meets the one it goes on from
- * (`prev`), ▲ with nothing above it in this water steps into that water's part; on the part where it goes on as the
- * next (`next`), ▼ with nothing below steps into the next one's part. The step is the caller's to take: it opens the
- * other water (`crossUp` / `crossDown` say which, and where).
+ * (`prev`) — the top of its line — ▲ steps into that water's part; on the part where it goes on as the next (`next`) —
+ * its lowest part — ▼ steps into the next one's part: one next item past either end, never a choice. A junction anywhere
+ * else in the line is a release defect (`waterGroup` throws). The step is the caller's to take: it opens the other
+ * water (`crossUp` / `crossDown` say which, and where).
  */
 import { endWords, spanName, type EndsTable } from "./ends";
 import { waterNoun, WORDS } from "./regs/words";
@@ -50,7 +53,7 @@ export interface NavPart {
    *  unkeyed part — its water's name. */
   readonly lo: string | null;
   readonly hi: string | null;
-  /** (T460) A side channel (the release's part with no km): a fork's branch, never a skipped part of the main stem. */
+  /** (T460) A side channel (the release's part with no km). (T750) Said only: the step walks the one line regardless. */
   readonly side?: boolean;
   /** (T517) Its rule-set group and connected run: parts sharing both are one run the DFO salmon chain cuts, which the
    *  map joins where the live salmon reads them alike (`mergeNav`). */
@@ -217,7 +220,12 @@ export function waterGroup(all: readonly ItemNavRows[], ends: EndsTable): WaterG
     return { item: c.item, name: c.name, part: c.otherPart, at: ix(i, c.part, "its water_continue row") };
   };
   const top = placed.find((i) => i.continuesFrom);
-  return { parts, ends, marks, exit, next: cross(low, low?.continuesAs), prev: cross(top, top?.continuesFrom) };
+  const next = cross(low, low?.continuesAs), prev = cross(top, top?.continuesFrom);
+  // (T750) the step past an end of the line is the cross: a junction inside the line could never be stepped into
+  if (next && next.at !== 0) throw defect(low!, `goes on as ${next.item} at part ${parts[next.at]!.partIx}, not its lowest part`);
+  if (prev && prev.at !== parts.length - 1)
+    throw defect(top!, `goes on from ${prev.item} at part ${parts[prev.at]!.partIx}, not its top part`);
+  return { parts, ends, marks, exit, next, prev };
 }
 
 /**
@@ -312,85 +320,19 @@ export function partOfSection(g: WaterGroup, sid: number): number {
   return g.parts.findIndex((p) => p.sids.includes(sid));
 }
 
-type Dir = "up" | "down";
-/** The marks that lead from `at` one step in `dir`, each with the part it leads to. */
-function waysOut(g: WaterGroup, at: number, dir: Dir): { to: number; m: NavMark }[] {
-  return dir === "up"
-    ? g.marks.filter((m) => m.down === at).flatMap((m) => m.up.map((to) => ({ to, m })))
-    : g.marks.filter((m) => m.up.includes(at)).map((m) => ({ to: m.down, m }));
-}
-/** The parts one step away by the marks alone. */
-function byMarks(g: WaterGroup, at: number, dir: Dir): number[] {
-  return [...new Set(waysOut(g, at, dir).map((w) => w.to))].filter((i) => i !== at);
-}
-const placed = (m: NavMark): boolean => m.lon !== null && m.lat !== null;
-const samePlace = (a: NavMark, b: NavMark): boolean => a.lon === b.lon && a.lat === b.lat;
-
-/** Whether, going on in `dir` from `from` by the marks (never through `avoid`), `to` is reached. */
-function reaches(g: WaterGroup, from: number, to: number, dir: Dir, avoid = -1): boolean {
-  const seen = new Set([from, avoid]);
-  const queue = [from];
-  while (queue.length) {
-    for (const n of byMarks(g, queue.shift()!, dir)) {
-      if (n === to) return true;
-      if (!seen.has(n)) { seen.add(n); queue.push(n); }
-    }
-  }
-  return false;
+/** (T750) ▲: the next part up the water's one line (the group's order, mouth first), or null at its top. */
+export function stepUp(g: WaterGroup, at: number): number | null {
+  return at >= 0 && at + 1 < g.parts.length ? at + 1 : null;
 }
 
-/**
- * (T460, owner 2026-11-06: "it gives an option to basically skip one of the sections") Whether the way from `at` to `c`
- * SKIPS a part: `c` is also reached by going on from another way out of `at`, and the two ways leave at different
- * places. The Fraser's "Williams Lake River confluence → Region 7A boundary" holds a side channel that touches the part
- * two boundaries up, so ▲ offered both "Region 7A boundary → Region 5 boundary" and, past it, "Region 5 boundary →
- * Source". A true fork leaves at ONE place (the Zymoetz's canyon upper entrance: main stem and side channel) and stays.
- * A side channel is never a skip, nor a step from one (the Skeena's Reserve: ▲ offers the main stem OR the channel beside
- * it, a true fork; the channel's ▼ offers both places it rejoins). The
- * shapes are the same in the marks, so the release's km says which: a side channel has none. A mark with no place (a
- * split lake's boundary) is never judged a skip, and the way on never comes back through `at`
- * (the Fraser's channels round Lillooet leave part 3 and come back to it: no skip); two ways that each reach the other
- * are a loop, not a skip, and both stay.
- */
-function skips(g: WaterGroup, at: number, c: number, dir: Dir): boolean {
-  if (g.parts[c]?.side || g.parts[at]?.side) return false;
-  const ways = waysOut(g, at, dir);
-  const mine = ways.filter((w) => w.to === c).map((w) => w.m);
-  if (!mine.every(placed)) return false;
-  return ways.some((o) => o.to !== c && o.to !== at && placed(o.m) && !mine.some((m) => samePlace(m, o.m))
-    && reaches(g, o.to, c, dir, at) && !reaches(g, c, o.to, dir, at));
-}
-
-/**
- * The parts one step away in `dir`, the main stem first: by the marks, else (where they say nothing) the next part in
- * the order. Empty at the end.
- */
-export function stepsFrom(g: WaterGroup, at: number, dir: Dir): readonly number[] {
-  const marked = byMarks(g, at, dir).filter((c) => !skips(g, at, c, dir));
-  if (!marked.length) {
-    const n = dir === "up" ? at + 1 : at - 1;
-    return n >= 0 && n < g.parts.length ? [n] : [];
-  }
-  const side = (c: number) => marked.some((o) => o !== c && reaches(g, c, o, dir));
-  // (T204) a way that goes no further by the marks (a side channel's top: the release marks a channel with no km as
-  // the UPPER part of every boundary it has) is never the main stem while another way goes on
-  const end = (c: number) => byMarks(g, c, dir).length === 0;
-  return [...marked].sort((a, b) => Number(end(a)) - Number(end(b)) || Number(side(a)) - Number(side(b)) || a - b);
-}
-
-/** ▼: the part below, main stem first, or null at the lowest part (`stepsDown`: every way down at a fork). */
+/** (T750) ▼: the part before it in the water's one line, or null at the lowest part. */
 export function stepDown(g: WaterGroup, at: number): number | null {
-  return stepsFrom(g, at, "down")[0] ?? null;
-}
-
-/** ▼: the parts below, main stem first (two or more: a fork, offered as a choice); empty at the lowest part. */
-export function stepsDown(g: WaterGroup, at: number): readonly number[] {
-  return stepsFrom(g, at, "down");
+  return at > 0 && at < g.parts.length ? at - 1 : null;
 }
 
 /** ▼ off the end of this water into the one it goes on as: only on the part that meets it, with nothing below. */
 export function crossDown(g: WaterGroup, at: number): NavCross | null {
-  return g.next && g.next.at === at && !stepsDown(g, at).length ? g.next : null;
+  return g.next && g.next.at === at && stepDown(g, at) === null ? g.next : null;
 }
 
 /**
@@ -404,12 +346,7 @@ export function soloWater(g: WaterGroup): boolean {
 
 /** ▲ off the top of this water into the one it goes on from: only on the part that meets it, with nothing above. */
 export function crossUp(g: WaterGroup, at: number): NavCross | null {
-  return g.prev && g.prev.at === at && !stepsUp(g, at).length ? g.prev : null;
-}
-
-/** ▲: the parts above, main stem first (two or more: a fork, offered as a choice); empty at the highest part. */
-export function stepsUp(g: WaterGroup, at: number): readonly number[] {
-  return stepsFrom(g, at, "up");
+  return g.prev && g.prev.at === at && stepUp(g, at) === null ? g.prev : null;
 }
 
 /** Whether more than one part of `item` is in the group (then a part is named by its short name). */
@@ -520,8 +457,6 @@ export const WATER_MAP_WORDS = {
   boundary: "Boundary",
   /** The close button's label; its glyph is the icon set's `close` (N1). */
   close: "Close",
-  chooser: "Which way upstream?",
-  chooserDown: "Which way downstream?",
   /** (T150) The list of the water's parts under the map — the header's Parts sheet, moved here. */
   parts: WORDS.PARTS_TITLE,
   /** (T150) The list's toggle, closed / open, with the count: "Show all 15 parts" / "Hide the list of parts". */

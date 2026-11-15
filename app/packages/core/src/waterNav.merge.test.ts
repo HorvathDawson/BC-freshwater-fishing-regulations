@@ -7,7 +7,7 @@
  * ONE mode (owner 2026-11-08): they join only where the live salmon reads them alike; with no reading, never.
  */
 import { describe, expect, it } from "vitest";
-import { entryNames, markLabel, mergeNav, partAt, partName, stepsUp, waterGroup, type ItemNavRows } from "./waterNav";
+import { entryNames, markLabel, mergeNav, partAt, partName, stepUp, waterGroup, type ItemNavRows } from "./waterNav";
 import { salmonTimelineKey, type SalmonFacts } from "./salmon";
 
 // one river: parts 0 (sids 1, 2), 1 (sid 3), 2 (sid 4) are one run of one rule set (grp 0, run 0) cut by DFO chains;
@@ -40,7 +40,7 @@ describe("mergeNav (T228, T517)", () => {
     expect(g.parts[0]!.box).toEqual([0, 0, 3, 1]);
     expect([0, 1].map((i) => partName(g, i))).toEqual([RUN, "Watershed boundary → Source"]);
     expect(g.marks.map((m) => [m.down, m.up, markLabel(g, m)])).toEqual([[0, [1], "Watershed boundary"]]);
-    expect(stepsUp(g, 0)).toEqual([1]);
+    expect(stepUp(g, 0)).toBe(1);
   });
 
   it("a feed opening salmon on the middle piece splits it out; reverting joins them again", () => {

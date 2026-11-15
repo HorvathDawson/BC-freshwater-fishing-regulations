@@ -4,7 +4,7 @@
  * the release (`@app/data/regs` `loadWaterGroup`: `part_geo`, `part_mark`, `part_section`, `water_exit`), stepped by
  * `@app/core` waterNav. NAVIGATION, not a regulation: nothing here decides what is open or kept.
  *
- *   waterMapStep   the pure reducer: ▼, ▲ (a fork either way opens the chooser), choose, tap a part, tap a mark, ⤢
+ *   waterMapStep   the pure reducer: ▼, ▲ (one line through every part, T750: never a choice), tap a part, a mark, ⤢
  *   waterMapView   the pure view model a component draws (every string finished here, AGENTS rule 33)
  *   useWaterMap    the store → group read (one keyed read per table per item), the start part, the state
  *
@@ -24,7 +24,7 @@
 import { useMemo, useRef, useState } from "react";
 import {
   reportOnce, crossLabel, crossDown, crossUp, entryNames, entryPieces, exitLabel, groupBounds, mergeNav, itemNote, markA11y, markLabel, navSections, partAt, partBounds,
-  partName, partOfSection, partRowAria, partWhere, stepsDown, stepsUp, TIDAL_SHEET_WORDS, WATER_MAP_WORDS, wholeAria, wholeLabel, type Bbox,
+  partName, partOfSection, partRowAria, partWhere, stepDown, stepUp, TIDAL_SHEET_WORDS, WATER_MAP_WORDS, wholeAria, wholeLabel, type Bbox,
   type NavCross, type NavExit, type WaterGroup,
 } from "@app/core";
 import type { ItemId, SectionId } from "@app/data";
@@ -45,8 +45,6 @@ export interface WaterMapState {
   readonly whole: boolean;
   /** The boundary mark that is open (its index in the group's `marks`), or null. */
   readonly mark: number | null;
-  /** ▲ or ▼ at a fork: the chooser is open, for that way; null when it is not. */
-  readonly choosing: "up" | "down" | null;
   /** (T150) The list of the water's parts under the map is open. Closed at the start and after a pick. */
   readonly list: boolean;
 }
@@ -54,8 +52,6 @@ export interface WaterMapState {
 export type WaterMapAction =
   | { type: "down" }
   | { type: "up" }
-  | { type: "choose"; to: number }
-  | { type: "closeChooser" }
   | { type: "part"; ix: number }
   /** A tap on the map: the section id; a section of another water changes nothing here. */
   | { type: "section"; sid: number }
@@ -64,10 +60,11 @@ export type WaterMapAction =
   /** (T150) Open or close the list of parts. */
   | { type: "list" };
 
-export const waterMapStart = (at: number, whole = false): WaterMapState => ({ at, whole, mark: null, choosing: null, list: false });
+export const waterMapStart = (at: number, whole = false): WaterMapState => ({ at, whole, mark: null, list: false });
 
 const go = (at: number): WaterMapState => waterMapStart(at);
-const ways = (g: WaterGroup, at: number, dir: "up" | "down") => (dir === "up" ? stepsUp(g, at) : stepsDown(g, at));
+/** (T750) The one next part that way (the water's one line), or null at its end. */
+const next = (g: WaterGroup, at: number, dir: "up" | "down") => (dir === "up" ? stepUp(g, at) : stepDown(g, at));
 
 /** One step of the water map. Pure: an end, a stray index or a tap off the water leaves the state as it was. */
 export function waterMapStep(g: WaterGroup, s: WaterMapState, a: WaterMapAction): WaterMapState {
@@ -75,13 +72,10 @@ export function waterMapStep(g: WaterGroup, s: WaterMapState, a: WaterMapAction)
   switch (a.type) {
     case "down":
     case "up": {
-      const to = ways(g, s.at, a.type);
-      if (!to.length) return s;
-      // a fork (a side channel, a lake split, two parts below one): the reader picks which way, the main stem first
-      return to.length > 1 ? { ...s, choosing: a.type, mark: null } : go(to[0]!);
+      // (T750) one next part, never a choice: where the water forks, the next in its one line
+      const to = next(g, s.at, a.type);
+      return to === null ? s : go(to);
     }
-    case "choose": return s.choosing && ways(g, s.at, s.choosing).includes(a.to) ? go(a.to) : s;
-    case "closeChooser": return s.choosing ? { ...s, choosing: null } : s;
     case "part": return ok(a.ix) ? go(a.ix) : s;
     case "section": {
       const i = partOfSection(g, a.sid);
@@ -90,10 +84,10 @@ export function waterMapStep(g: WaterGroup, s: WaterMapState, a: WaterMapAction)
     case "mark":
       if (a.ix === null) return s.mark === null ? s : { ...s, mark: null };
       if (!g.marks[a.ix]) return s;
-      return { ...s, mark: s.mark === a.ix ? null : a.ix, choosing: null };        // a second tap closes it
-    case "whole": return { ...s, whole: !s.whole, mark: null, choosing: null };
+      return { ...s, mark: s.mark === a.ix ? null : a.ix };        // a second tap closes it
+    case "whole": return { ...s, whole: !s.whole, mark: null };
     // a water of one part has no list to open
-    case "list": return g.parts.length > 1 ? { ...s, list: !s.list, mark: null, choosing: null } : s;
+    case "list": return g.parts.length > 1 ? { ...s, list: !s.list, mark: null } : s;
   }
 }
 
@@ -126,7 +120,6 @@ export interface WaterMapStepVM {
   readonly label: string;
   readonly aria: string;
   readonly disabled: boolean;
-  readonly fork: boolean;
   readonly cross: { readonly item: string; readonly part: number } | null;
 }
 
@@ -135,12 +128,10 @@ export interface WaterMapVM {
   readonly current: WaterMapPartVM;
   /** "Part 2 of 4 · Chilliwack River". */
   readonly where: string;
-  /** ▼ / ▲: the label, its words for a screen reader (`aria`), whether it is an end, whether it is a fork, and — where it
+  /** ▼ / ▲: the label, its words for a screen reader (`aria`), whether it is an end, and — where it
    *  steps into ANOTHER water (`water_continue`) — that water and its part, for the caller to open (`crossAction`). */
   readonly down: WaterMapStepVM;
   readonly up: WaterMapStepVM;
-  /** ▲ or ▼ at a fork: which way, the main stem first. */
-  readonly chooser: { readonly title: string; readonly close: string; readonly options: readonly WaterMapPartVM[] } | null;
   readonly marks: readonly WaterMapMarkVM[];
   /** The open mark: its words, the parts above it and the part below it. */
   readonly pop: {
@@ -235,14 +226,12 @@ export function waterMapView(g: WaterGroup, s: WaterMapState): WaterMapVM | null
     throw new Error(`water map: part ${s.at} of a group of ${g.parts.length}`);
   const at = s.at;
   const W = WATER_MAP_WORDS;
-  const downs = stepsDown(g, at), ups = stepsUp(g, at);
-  const step = (dir: "up" | "down", to: readonly number[], cross: NavCross | null): WaterMapStepVM => {
+  const down = stepDown(g, at), up = stepUp(g, at);
+  const step = (dir: "up" | "down", to: number | null, cross: NavCross | null): WaterMapStepVM => {
     const fwd = dir === "up" ? W.up : W.down, end = dir === "up" ? W.highest : W.lowest;
-    const label = cross ? crossLabel(dir, cross) : to.length ? fwd : end;
-    return { label, aria: label, disabled: !to.length && !cross, fork: to.length > 1,
-             cross: cross ? { item: cross.item, part: cross.part } : null };
+    const label = cross ? crossLabel(dir, cross) : to !== null ? fwd : end;
+    return { label, aria: label, disabled: to === null && !cross, cross: cross ? { item: cross.item, part: cross.part } : null };
   };
-  const choice = s.choosing === null ? [] : s.choosing === "up" ? ups : downs;
   const current = partVM(g, at);
   const { selected, water } = navSections(g, at);
   const open = s.mark === null ? null : g.marks[s.mark];
@@ -259,18 +248,15 @@ export function waterMapView(g: WaterGroup, s: WaterMapState): WaterMapVM | null
     parts: g.parts.map((_, i) => partVM(g, i)),
     current,
     where: partWhere(g, at),
-    down: step("down", downs, crossDown(g, at)),
-    up: step("up", ups, crossUp(g, at)),
-    chooser: choice.length > 1
-      ? { title: s.choosing === "down" ? W.chooserDown : W.chooser, close: W.close,
-          options: choice.map((i) => partVM(g, i)) } : null,
+    down: step("down", down, crossDown(g, at)),
+    up: step("up", up, crossUp(g, at)),
     marks: oneLabelPerPlace(marks, new Map(g.marks.flatMap((m, ix) => (m.token === null ? [] : [[ix, placeOf(m.token)] as const]))),
                             new Map(g.marks.flatMap((m, ix) => (m.token === null ? [] : [[ix, m.token] as const])))),
     // a mark with no named place (no end token) is titled "Boundary" — the words it has, nothing composed
     pop: open ? { title: markLabel(g, open) ?? W.boundary, close: W.close,
                   upLabel: W.upstreamSide, up: open.up.map((i) => partVM(g, i)),
                   downLabel: W.downstreamSide, down: partVM(g, open.down) } : null,
-    exit: !downs.length && at === 0 && g.exit
+    exit: down === null && g.exit
       ? { label: exitLabel(g.exit), item: g.exit.item, part: g.exit.part, ...(g.exit.tidal ? { tidal: true as const } : {}) }
       : null,
     exitHeld: !!g.exit,
@@ -514,7 +500,7 @@ export function useWaterMap(store: RegsStore | null, item: ItemId | null, part: 
   // (T228) a new salmon grouping re-indexes the pieces: the walk starts again on the frame's part. (T508) Keyed on the
   // GROUPING ITSELF (each entry's pieces and sections), never on the salmon reading's identity: a DFO feed taken
   // (`useFeedVersion("dfo")`) hands a new reading that most often groups the pieces exactly as before, and keyed on its
-  // identity that reset an open mark, the chooser and the parts list under the reader's finger
+  // identity that reset an open mark and the parts list under the reader's finger
   const grouping = useMemo(() => (g ? g.parts.map((p) => `${p.item}/${p.pieces.join("+")}/${p.sids.length}:${p.sids[0] ?? ""}`).join(",") : ""), [g]);
   const key = `${group.state}:${item ?? ""}:${startPart ?? ""}:${grouping}`;
   // THIS FRAME's visit: a new number each time the key changes, so what was held on an EARLIER visit to the same frame
@@ -526,7 +512,7 @@ export function useWaterMap(store: RegsStore | null, item: ItemId | null, part: 
   // the state as the last step left it, ahead of the render, so two taps before a render are two steps
   const latest = useRef<{ at: number; s: WaterMapState } | null>(null);
   // THE PLACE IS THE FRAME'S (owner 2026-11-03, one load path): the part comes from the frame alone
-  // (`waterMapStartIx`); what is held here is only what the reader opened on THIS frame (a mark, the chooser, the list,
+  // (`waterMapStartIx`); what is held here is only what the reader opened on THIS frame (a mark, the list,
   // ⤢), dropped the moment the frame changes
   let startFailed: Error | null = null;
   let heldS: WaterMapState | null = null;
