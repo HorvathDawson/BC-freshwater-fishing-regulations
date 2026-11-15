@@ -8318,7 +8318,11 @@
       "binding": {
         "extents": [
           {
-            "op": "whole"
+            "op": "upstream_of",
+            "splits": [
+              "exchamsiks_river__hwy_16_bridge_over_the_exchamsiks"
+            ],
+            "item_id": "gnis:3499"
           }
         ],
         "tributaries": true,
