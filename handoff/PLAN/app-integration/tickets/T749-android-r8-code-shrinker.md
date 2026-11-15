@@ -1,6 +1,8 @@
 # T749 — Android: turn the code shrinker (R8) back on, with keep rules, behind a device proof
 
-Status: OPEN (proposal from T741; needs an emulator run and then a phone before it can ship).
+Status: IN REVIEW (2026-11-15: the trial on branch `perf/r8` passes all six emulator benches behind the switch
+`CANIFISHTHIS_R8=1`, off by default; step left: the build script keeps mapping.txt, then one Play internal build and the
+owner's phone walk, his pick).
 
 Source: T741 survey 2026-11-14 (owner, verbatim: "can you make sure to keep working on optimizations? make app faster
 and lighter for both ios and android"). History: T250, where the first APK built with R8 died at start and R8 was
