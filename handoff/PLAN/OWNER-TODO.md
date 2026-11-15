@@ -676,3 +676,7 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
 - ANSWERED 2026-11-15 (T753, river pieces that loop out of a lake and back; Sproat): "yes do both steps but make sure it
   is done in a clean way". Both steps = take the pieces out of the river, then give them to the lake. Code lane started;
   it lands with the next map rebuild.
+- DONE 2026-11-15 (your permission on the blank tributary choices): Stave "downstream of B.C. Hydro dam" set to
+  tributaries off (new mark line 2672, noted as saved by Claude at your request; landed as 122a3d02d). The other three
+  were not as the audit said: the Fraser "mainstem waters downstream of" mark already says off (it waits on the Hope
+  bridge cut); the two Nass "mainstem" places have no mark at all, so they are yours to mark (set tributaries off).
