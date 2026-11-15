@@ -1,6 +1,6 @@
 # iOS hardening: start here (written 2026-11-14)
 
-## Summary of the unattended day, 2026-11-14 (state at 22:15; lanes still running are marked)
+## Summary of the unattended day, 2026-11-14 (state at 03:20 on 2026-11-15; lanes still running are marked; times from 21:45 on were corrected against the logs at 03:20, earlier notes of mine ran up to an hour fast)
 
 Nothing here touched Play, production, the atlas or a release. The Apple account was used only for the owner's first TestFlight build in the evening (below). Every app
 fix sits on its own branch, not on `redesign/stream-sections`, until it is proven on the simulator and the Android
@@ -60,7 +60,7 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
   (227 KB with 3 photos; 20.4 MB with 29); after a wipe and restore the spots and photos are back and the app downloads
   the map data again by itself. The Spots tab says what the backup holds. A phone-to-phone transfer carries the photos at
   full size. Not shown on the device: photos left out when they do not fit (all 29 fit; unit-tested only).
-- The iOS look at today's five shared fixes (**done 22:40**, build 081d93f90, simulator, light and dark; write-up in
+- The iOS look at today's five shared fixes (**done 21:50**, build 081d93f90, simulator, light and dark; write-up in
   T723): the credits card (T729), search (T730) and Back from a page (T717) pass. The step bar (T731) passes for a
   step within one water; the step into the next water was not reached (Coquitlam has none; needs another water).
   Flow / Level (T728) **passes** on the Vedder (the card opened on Level 1.81 m, switched to Flow 29.7 m³/s, the map
@@ -73,12 +73,12 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
 - `ios/integration` (head 51349c3bf plus notes, app CI green, not merged; TestFlight build 34 was made from it): the
   four iOS branches (install, keyboard and back, audit fixes, tap cue) merged together. The whole app test suite
   passes (7,707 tests) and the feeds worker's (447). **iPhone simulator on the merged build, functional checks done
-  01:30:** offline 3 of 3, satellite, walkthrough 41 of 41, rule book, keyboard 7 of 7, edge-swipe back on About, Help,
+  00:50:** offline 3 of 3, satellite, walkthrough 41 of 41, rule book, keyboard 7 of 7, edge-swipe back on About, Help,
   Layers and the rule-book viewer, the audit fixes (arrow, Open Settings, Maps, What's new) pass. Not judged: the
   photo viewer's back swipe (the test misread a viewer that was up), the staged-update check (0 of 3 on the branch
   alone too; no control), first open (slow line that hour). **Found:** the photo viewer's "Photo 1 of 1" sits under
   the status-bar clock (base too; written into T726).
-  **Quiet window 03:06 to 03:59, both platforms done (head 639d54d0d; tables in `integration-2026-11-14.md`):**
+  **Quiet window 02:06 to 02:59, both platforms done (head 639d54d0d; tables in `integration-2026-11-14.md`):**
   Android on the emulator: background install 7 of 7 (asks on mobile data, waits for Wi-Fi, carries on with the app
   killed, map up after relaunch); tap to page: cue 29 to 100 ms, page 339 to 360 ms (before: 22 to 112 and 352 to
   402); no long stalls (worst 140 ms); spots 10 pass, 2 fail on a test-bed fault (a screenshot path the driver
@@ -95,21 +95,21 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
   address, sends a silent wake after a feed run that changed and on a new release, and says on its status page when
   the keys are missing; the iPhone registers while alerts are on and withdraws when they are turned off; Android is
   switched off until the Firebase file exists (the Android build config is byte-identical before and after).
-  **Proven on the simulator 23:20:** registering and withdrawing. **Cannot be proven on the simulator:** that a silent
+  **Proven on the simulator about 22:55:** registering and withdrawing. **Cannot be proven on the simulator:** that a silent
   push runs the app's wake task. Settled from the library code and the logs (file and line in the ticket): the
   simulator hands a pushed file to the app as a "background fetch", a different call from the one a real phone gets
   from Apple, and our task only answers the real one. Nothing of ours was wrong. So the first real check is on a
   phone: one push, then the app's log says "woken by our server". That needs the Apple push key, the worker on
   staging and a TestFlight build from this branch: each one a step for the owner's go. The existing "new data ready"
   notice keeps its old words (Android unchanged); the push path has its own sentence. Head 650665c61, app CI green.
-  **02:10: the owner made the push key, stored the three secrets on the staging worker himself, and said yes**
+  **01:10: the owner made the push key, stored the three secrets on the staging worker himself, and said yes**
   ("yes i do i ran command") to the worker with the push code on staging and a TestFlight build 35 from this
-  branch. **Build 35 uploaded 02:35** (0.7.10 build 35 = build 34's app plus the push code; symbols in
+  branch. **Build 35 uploaded 01:24** (0.7.10 build 35 = build 34's app plus the push code; symbols in
   `data/sourcemaps/0.7.10-b35-650665c/ios/`). The worker deploy (branch `ios/staging-worker` = this branch plus the
   crash-limit commit, 467 worker tests pass) waits for the Android chat's site deploy (it re-runs every feed job);
   a staging release tonight would put the old worker back, then it is deployed again. The push worker commits stay
   off the shared branch tonight (production worker and privacy page first).
-  **Worker deployed to staging 03:05** (branch `ios/staging-worker` cc43d998c = this branch's head ca91889bb plus the
+  **Worker deployed to staging 02:05** (branch `ios/staging-worker` cc43d998c = this branch's head ca91889bb plus the
   crash-limit commit; version 2733f1d2; the three feed jobs answered 200; /status: all feeds ok, push: iOS keys
   complete, 0 phones registered, Android lacks its Firebase key). The phone now registers once per app start (fix
   ca91889bb, not in build 35). Next: the owner installs build 35, turns on "New regulations data", one test push.
@@ -121,7 +121,7 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
   are shipped, not 41 (the built iPhone app went from 65.7 to 61.8 MB, measured; the same 3.9 MB on Android by the
   export); the file check written in JS is 16 to 20 % faster (measured in node as a stand-in, not on a phone); the
   background checks for alerts, for new data and for a new app version ask "changed?" first (an unchanged answer is
-  0 bytes; it was 24 KB and 6 KB each run). **Simulator, functional (03:20):** the branch passes first open, search,
+  0 bytes; it was 24 KB and 6 KB each run). **Simulator, functional (01:40):** the branch passes first open, search,
   edge-back and tap to page, and every face is drawn as before (by eye against the baseline shots). **Waiting for a
   quiet machine:** cold start and stalls with and without "load code on first use" (one unexplained tap failure in two
   runs with it on), memory base against branch, and a smaller database cache. **Looked at and left:** 35 KB of
@@ -146,7 +146,7 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
 - **First-open progress most likely does not move on iPhone today (0.7.9/0.7.10):** about 5,000 number-conversion
   errors from the progress callback during the download. Fixed on `ios/t722-install` (zero such lines in its run).
 - **Crash reports from the iPhone build were refused by the staging worker's own daily limit; the report itself is
-  fine** (cause found 01:10, branch `ios/crash-send`, code and tests only). 24 of 25 sends in today's iOS runs were
+  fine** (cause found 00:20, branch `ios/crash-send`, code and tests only). 24 of 25 sends in today's iOS runs were
   answered 429 "too many reports today": the worker takes 40 crash reports per address per UTC day, the test beds on
   this Mac share one address, and the UTC day turns at 17:00 here (the one send at 17:01 was taken), so the 23:30
   failure was not a new day; my earlier line that the limit was unlikely was wrong. A phone on the same home line
@@ -181,9 +181,9 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
   processing. `~/.canifishthis/testflight-last-build` reads 33; the debug symbols are in
   `data/sourcemaps/0.7.10-b33-f518706/ios/`. Not yet seen: the build on the owner's phone. Later TestFlight uploads:
   ask the owner first (his go-ahead was for the first test).
-- **Build 34, 23:36:** the owner asked why the iPhone build does not download in the background (build 33 is the shared
+- **Build 34, 23:30:** the owner asked why the iPhone build does not download in the background (build 33 is the shared
   branch's code); offered a build from `ios/integration` (51349c3bf: the four iOS fix branches merged, app CI green,
-  simulator: walkthrough 41 of 41, rule book, keyboard, offline, satellite pass); owner: "yes". **Uploaded 23:58**
+  simulator: walkthrough 41 of 41, rule book, keyboard, offline, satellite pass); owner: "yes". **Uploaded 23:39**
   (0.7.10 build 34, staging data, 363 s; a first try failed in setup when the engine download dropped on the bad
   line). Symbols in `data/sourcemaps/0.7.10-b34-51349c3/ios/`. Not yet seen on the phone.
 - The Apple account side is otherwise complete (individual account, Team ID, App ID with Associated Domains, app
@@ -227,13 +227,13 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
     is read as your exception to "self-host everything" for push delivery only (Google's Firebase Cloud Messaging):
     right / not right.
 
-19. ANSWERED 2026-11-15 01:50 ("yes to this"): on staging, test-bed crashes get their own daily limit (200 per
+19. ANSWERED 2026-11-15 01:05 ("yes to this"): on staging, test-bed crashes get their own daily limit (200 per
     address). Worker commit 441ec090e; landing and the staging deploy are being timed with the Android chat.
 
-20. ANSWERED 03:20: the line on the "applying new data" screen (T746) becomes fish puns ("can we do more fish puns
+20. ANSWERED 02:09: the line on the "applying new data" screen (T746) becomes fish puns ("can we do more fish puns
     here that are directed at this ?"); a small rotating set is built on the branch, candidates sent; the owner
     strikes or adds. The failure message stays plain unless he says otherwise.
-21. ANSWERED 03:20 ("yes you can upload"): TestFlight build 36 in the morning with everything that passed overnight.
+21. ANSWERED 02:09 ("yes you can upload"): TestFlight build 36 in the morning with everything that passed overnight.
 
 Owner, 2026-11-14, verbatim: "Maybe we could make a handoff to start improving the ios versions? Making sure it is rock
 solid too?" This **reopens iOS**, which the owner benched on 2026-11-06 ("no iOS device work until DFO extents labelled +

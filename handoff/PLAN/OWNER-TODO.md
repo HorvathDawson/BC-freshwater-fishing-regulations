@@ -157,14 +157,14 @@ with the default Claude uses until you answer). Newest first inside each section
   (built as: a new release wakes the phone, which downloads by itself when settings allow and otherwise tells you new
   data is ready). Then, verbatim: "for android too." (Android push approved as well; it uses Google's Firebase for delivery only,
   Claude's reading: your exception to "self-host everything" for this one thing). Being built on branch `ios/t739-push`.
-  **ANSWERED 2026-11-15 02:10 (push on a real phone).** The owner made the Apple push key (Key ID 6T3DBFF92H) and ran
+  **ANSWERED 2026-11-15 01:10 (push on a real phone).** The owner made the Apple push key (Key ID 6T3DBFF92H) and ran
   the three `wrangler secret put` commands himself; the staging feeds worker lists APNS_KEY, APNS_KEY_ID and
   APNS_TEAM_ID (names checked, values not read). To "Do you want those tonight?" (deploy the worker with the push code
   to staging, and upload TestFlight build 35 from the push branch), owner, verbatim: "yes i do i ran command". Build 35
-  **uploaded 02:35** from `ios/t739-push` 650665c61; the worker deploy is timed with the Android chat. Yours
+  **uploaded 01:24** from `ios/t739-push` 650665c61; the worker deploy is timed with the Android chat. Yours
   after Claude says the worker is on staging: install build 35, turn notifications on in the app, tell Claude; Claude
   sends one test push.
-  **Worker on staging since 2026-11-15 03:05** (also carries the crash-report limit you approved). Ready for your
+  **Worker on staging since 2026-11-15 02:05** (also carries the crash-report limit you approved). Ready for your
   phone: build 35, More → Notifications → "New regulations data" on, app to the background, tell Claude. Firebase (Android)
   still yours, later.
   Still yours later: one more Apple key, for push, and a free Firebase project for Android (steps come when the worker
@@ -195,26 +195,26 @@ with the default Claude uses until you answer). Newest first inside each section
   **DONE 2026-11-14 22:22:** first TestFlight upload, 0.7.10 build 33 (staging data), after the owner registered his
   iPhone and made an Admin key. Yours now: App Store Connect → TestFlight → Internal Testing, make a group and add
   yourself; install the TestFlight app on the iPhone; install the build and open it. Later uploads: Claude asks first.
-  **ANSWERED 2026-11-14 23:35:** owner asked "i thought it can download in background?" (not on iPhone in build 33);
+  **ANSWERED 2026-11-14 23:29:** owner asked "i thought it can download in background?" (not on iPhone in build 33);
   offered a second build from the merged iOS branch `ios/integration` (background download, progress bar, keyboard,
-  back swipe, tap cue); owner, verbatim: "yes". Build 34 from 51349c3bf **uploaded 23:58** (0.7.10 build 34, staging data). The shared
+  back swipe, tap cue); owner, verbatim: "yes". Build 34 from 51349c3bf **uploaded 23:39** (0.7.10 build 34, staging data). The shared
   branch is not touched by it. Yours: add build 34 to your internal group and install it; checks only a phone can do
   are on the To-Do page row.
-- **ANSWERED 2026-11-15 03:20 (before bed).** (1) To "TestFlight build 36: may I upload one in the morning with
+- **ANSWERED 2026-11-15 02:09 (before bed).** (1) To "TestFlight build 36: may I upload one in the morning with
   everything that passed overnight (loading screen, push re-register fix, crash-report fix, lighter fonts)?", owner,
   verbatim: "yes you can upload". My reading: one upload, build 36, only what passed; later uploads are asked again.
   (2) On the loading-screen line (T746), owner, verbatim: "can we do more fish puns here that are directed at this ?"
   So the line becomes a fish pun about putting the new regulations in place; candidates sent in chat, a small set
   built on the branch to rotate, the owner strikes or adds. The failure message stays plain (my pick; say if not).
-- **NEW 2026-11-15 03:00 (iOS chat, T746, your "loading icon with text like splash").** Built on a branch; pictures
+- **NEW 2026-11-15 01:28 (iOS chat, T746, your "loading icon with text like splash").** Built on a branch; pictures
   sent in chat (iPhone light and dark, web). Pick the line: "Putting the new regulations in place…" (built) /
   "Applying the new regulations data…" / "Updating the regulations and map…". A failed apply says: "The new
   regulations could not be put in place. The app is still using the data it had." (OK button): fine / change.
-- **NEW 2026-11-15 01:10 (iOS chat, T718 crash check).** Crash reports from the iPhone test runs were refused by the
+- **NEW 2026-11-15 00:20 (iOS chat, T718 crash check).** Crash reports from the iPhone test runs were refused by the
   staging worker's daily limit (40 per address per day); the Mac's test beds used the 40 up, and your phone at home
   shares that address. Pick: give test-bed crashes their own limit of 200 a day on staging, production unchanged: yes
   (my pick) / no. On yes Claude deploys the feeds worker to staging from branch `ios/crash-send`.
-  **ANSWERED 2026-11-15 01:50**, owner, verbatim: "yes to this". The worker commit (441ec090e) goes onto the shared
+  **ANSWERED 2026-11-15 01:05**, owner, verbatim: "yes to this". The worker commit (441ec090e) goes onto the shared
   branch and to staging at a time agreed with the Android chat (the owner is testing the staging site; the deploy also
   re-runs every feed job).
 - **ANSWERED 2026-11-14 (iOS parity audit, T722/T723).** Owner, verbatim: "we want it to progress with app closed in both app
