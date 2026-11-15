@@ -23,6 +23,7 @@ import { tapStallsIos } from './scenarios-ios/stalls.mjs';
 import { sharedFixesIos } from './scenarios-ios/shared-fixes.mjs';
 import { keyboardIos } from './scenarios-ios/keyboard.mjs';
 import { modalBackIos } from './scenarios-ios/modal-back.mjs';
+import { auditFixes } from './scenarios-ios/audit-fixes.mjs';
 
 process.env.TESTBED_PLATFORM = 'ios';
 const HERE = path.dirname(new URL(import.meta.url).pathname);
@@ -614,6 +615,8 @@ const SCENARIOS = [
   // (T723 F2, F7) iOS-only checks: the software keyboard against each field, the left-edge swipe over each Modal
   keyboardIos,
   modalBackIos,
+  // (T723) the iOS audit fixes' proof, by name only
+  auditFixes,
 ];
 
 // ---------- the runner (as run.mjs, without the Android-only crash buffer and test channel) ----------

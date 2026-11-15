@@ -78,7 +78,8 @@ export interface WaterFrame {
   solo?: boolean;
 }
 /** A spot being added: at the point the reader gave (a long press, a tap in pick mode, their location), or none yet. */
-export interface AddingSpot { at: LatLon | null }
+/** `accuracy` (metres) rides on a point that came from the phone's location: the capture says so when it is rough (T723 G5). */
+export interface AddingSpot { at: (LatLon & { accuracy?: number }) | null }
 export interface BrowseRoute {
   mode: "browse"; tab: BrowseTab;
   spot: SpotId | null; adding: AddingSpot | null;
@@ -166,7 +167,7 @@ export type RouteAction =
   | { type: "close" }
   | { type: "openSpot"; id: SpotId }
   /** Start adding a spot, at a point when one was given (a long press, a tap in pick mode, the reader's location). */
-  | { type: "addSpot"; at?: LatLon | null };
+  | { type: "addSpot"; at?: (LatLon & { accuracy?: number }) | null };
 
 /** The water stack holds at most this many frames (APP-PREP §0 rule 4): the oldest goes first. */
 export const STACK_CAP = 8;

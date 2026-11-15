@@ -18,8 +18,9 @@
  *               tab, which is what the framing was made for.
  */
 import { useCallback, useEffect, useState } from "react";
-import { SPOTS_MENU, boxAround, type Bbox, type LatLon } from "@app/core";
+import { MY_LOCATION, SPOTS_MENU, boxAround, reportFailure, type Bbox, type LatLon } from "@app/core";
 import { needsRefresh, spotLabel, spotRowLines, staleSpotsLine, type Spot } from "@app/data/spots";
+import { refusedLine } from "./myLocation";
 import { HOME, type Route, type RouteAction } from "./route";
 
 /** Whether the app may read where the device is: asked of the platform, never assumed. */
@@ -219,7 +220,7 @@ export function useMapRail(go: (a: RouteAction) => void, locate: Locate | null =
     return () => { alive = false; };
   }, [onSpots, locate]);
 
-  const addAt = useCallback((at: LatLon) => {
+  const addAt = useCallback((at: LatLon & { accuracy?: number }) => {
     setDrop(null);
     go({ type: "addSpot", at });
   }, [go]);
@@ -251,8 +252,11 @@ export function useMapRail(go: (a: RouteAction) => void, locate: Locate | null =
       setError(null);
       try {
         addAt(await locate.here());
-      } catch {
-        setError(SPOTS_MENU.noLocation);
+      } catch (e) {
+        // (T723 G6) a refusal says so (with "Open Settings" under it) and is not a defect; anything else is reported
+        reportFailure(e);
+        const refused = refusedLine(e);
+        setError(refused === MY_LOCATION.denied ? refused : SPOTS_MENU.noLocation);
       }
     },
     show: (spot) => {

@@ -107,3 +107,11 @@ export const WEB_SPOTS_WORDS = {
   appUrl: "https://play.google.com/store/apps/details?id=ca.canifishthis.app",
   back: "Back to the map",
 } as const;
+
+/**
+ * (T723 G8) Where "Directions" to a parking pin goes. The label promises "your maps app": on an iPhone that is Apple Maps
+ * (the `maps.apple.com` universal link opens it with no `LSApplicationQueriesSchemes` entry), everywhere else Google
+ * Maps (Android opens its app; the web opens the page). `os` is `Platform.OS`'s value.
+ */
+export const directionsUrl = (os: string, lat: number, lon: number): string =>
+  os === "ios" ? `http://maps.apple.com/?daddr=${lat},${lon}` : `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}`;

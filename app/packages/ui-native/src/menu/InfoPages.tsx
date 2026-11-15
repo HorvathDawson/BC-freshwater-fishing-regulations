@@ -2,7 +2,7 @@
  * The menu's reading pages — About, Sources and credits. Each draws one VM from core/menu/ and decides nothing; a link
  * only says where it goes. (Owner 2026-10-22) Display and Contact are drawn on the More tab itself (`MoreScreen`).
  */
-import { View } from "react-native";
+import { Platform, View } from "react-native";
 import { Text } from "../Text";
 import { Pressable } from "../Pressable";
 import { CHANGELOG_WORDS, changelogVM, LICENCE_WORDS, licencesVM, MENU_WORDS, PRIVACY_URL, WORDS, type AboutEnvVM, type AboutVM, type SourcesVM } from "@app/core";
@@ -127,7 +127,8 @@ export function SourcesPage({ vm, palette }: { vm: SourcesVM; palette: Palette }
  * none says so.
  */
 export function ChangelogPage({ palette, installed }: { palette: Palette; installed: string | null }) {
-  const rows = changelogVM(installed);
+  // (T723 G11) each platform reads its own notes (an iPhone is not told about Google Play); `Platform.select` is a one-value choice
+  const rows = changelogVM(installed, undefined, Platform.select({ ios: "ios", web: "web", default: "android" }));
   return (
     <View testID="changelog" style={{ gap: SPACE.s3 }}>
       {rows.map((r) => (
