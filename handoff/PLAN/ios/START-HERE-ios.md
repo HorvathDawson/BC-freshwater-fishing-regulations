@@ -132,6 +132,9 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
   processing. `~/.canifishthis/testflight-last-build` reads 33; the debug symbols are in
   `data/sourcemaps/0.7.10-b33-f518706/ios/`. Not yet seen: the build on the owner's phone. Later TestFlight uploads:
   ask the owner first (his go-ahead was for the first test).
+- **Build 34, 23:36:** the owner asked why the iPhone build does not download in the background (build 33 is the shared
+  branch's code); offered a build from `ios/integration` (51349c3bf: the four iOS fix branches merged, app CI green,
+  simulator: walkthrough 41 of 41, rule book, keyboard, offline, satellite pass); owner: "yes". Building now.
 - The Apple account side is otherwise complete (individual account, Team ID, App ID with Associated Domains, app
   record, registered iPhone).
 
