@@ -128,7 +128,9 @@ with the default Claude uses until you answer). Newest first inside each section
   (14) the first-install bar reads low on both platforms (38.8 MB shown with 116 MB on disk after a relaunch): the four
   big files download at once and the bar counts one at a time [fix it, ticket T738] or leave it;
   (12) Play's data-safety form says approximate location and the App Store answers say precise: should Play match?
-- **Apple Developer account: ENROLLED 2026-11-14, waiting for Apple's approval** (owner, verbatim: "okay i enrolled with
+- **Apple Developer account: APPROVED 2026-11-14 evening (individual); the owner has the Team ID** (given in chat; not
+  written in the repo). Left for you: save it as one line in `~/.canifishthis/ios-team-id` (Claude does not write that
+  folder), create the app record with Associated Domains on, make the API key. History: ENROLLED 2026-11-14, waiting for Apple's approval (owner, verbatim: "okay i enrolled with
   apple developer I will tell you wne i get approved"). This answers decision 1 of `handoff/PLAN/ios/START-HERE-ios.md`
   (account now). ANSWERED 2026-11-14 evening, verbatim: "it is a individual evelper account" (so the App Store shows
   your own legal name as the seller). Same message: "i cant find team id how do i make one?": it is not made, Apple
