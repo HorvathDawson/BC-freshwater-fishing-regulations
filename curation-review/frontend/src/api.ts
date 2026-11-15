@@ -1,7 +1,7 @@
 // Tiny typed API client matching curation-review/API.md.
 // All calls are relative to /api (Vite proxies to http://127.0.0.1:8787).
 
-import type { InputsSync, CheckPlace, CheckProgress, PlaceCheck, WaterReach, WaterView,
+import type { ExtentSize, InputsSync, CheckPlace, CheckProgress, PlaceCheck, WaterReach, WaterView,
   EntryKind,
   FieldError,
   EntryDetail,
@@ -271,6 +271,8 @@ export const api = {
     getJSON<PlaceCheck>(`/api/checks/rule/${encodeURIComponent(entryId)}/${encodeURIComponent(ruleId)}`),
   dfoLocation: (id: string) => getJSON<DfoDetail>(`/api/dfo/locations/${encodeURIComponent(id)}`),
   /** the tributary walk is skipped unless `tributaries` (the Extents map's "Show tributaries") */
+  /** T755 follow-up: the saved extent's size (its tributary walk included), asked after the reach said `size_pending` */
+  dfoSize: (id: string) => getJSON<{ size: ExtentSize | null }>(`/api/dfo/locations/${encodeURIComponent(id)}/size`),
   dfoReach: (id: string, tributaries = false) =>
     getJSON<ExtentPreview & { walks_tributaries?: boolean }>(
       `/api/dfo/locations/${encodeURIComponent(id)}/reach${tributaries ? "?tributaries=true" : ""}`),

@@ -1,4 +1,6 @@
 import { TopNav } from "./TopNav";
+import { CannotEditNote } from "./CannotEditNote";
+import type { CannotEdit } from "../types";
 import { useEffect, useMemo, useRef, useState } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -23,7 +25,9 @@ export function RegionOptions() {
   );
 }
 
-interface CodeDefault { id: string; status: string; precedence: number; tier: string; scope: string; extents: string[]; rows: string[] }
+interface CodeDefault { id: string; status: string; precedence: number; tier: string; scope: string; extents: string[]; rows: string[];
+  /** T755 follow-up: why the review editor cannot change this extent, and what to do (`dfo.cannot_edit_words`) */
+  cannot_edit?: CannotEdit | null }
 interface Node {
   id: string; kind: string; label: string; quote: string | null; unlisted?: string; areas?: number[];
   falls_back_to_a?: boolean; n_waters?: number; code: CodeDefault[]; children: Node[];
@@ -246,6 +250,7 @@ function Tree({ node, depth, onPick }: { node: Node; depth: number; onPick: (s: 
         <div key={c.id} style={{ color: c.status === "active" ? "#374151" : "#9ca3af", marginTop: 2 }}>
           <b>{c.scope || c.id}</b> <span className="muted"><code>{c.id}</code> · {c.status} · {c.tier}</span>
           {c.extents.map((x) => <div key={x} className="muted" style={{ marginLeft: 8 }}>{x}</div>)}
+          {c.cannot_edit && <div style={{ marginLeft: 8 }}><CannotEditNote why={c.cannot_edit} /></div>}
           {c.status === "active" && c.rows.map((x) => <div key={x} style={{ marginLeft: 8 }}>{x}</div>)}
         </div>
       ))}

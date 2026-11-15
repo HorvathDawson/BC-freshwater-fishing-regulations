@@ -14,9 +14,10 @@ import { effectHead, extentParts, fixParts, partsText, piecesParts, type Part } 
 import { failed } from "../failures";
 import { current as writeThrough, keyOf as wtKey, subscribe as onWriteThrough } from "../curatedSave";
 import {
-  CONFIRMED_AS_IS, addPiece, dropPiece, effectOf, heldBy, incompletePieces, inlineAction, markBody, newCutsOf, offerProposal, oneProposal, previewOf,
+  CONFIRMED_AS_IS, addPiece, cannotEditOf, dropPiece, effectOf, heldBy, incompletePieces, inlineAction, markBody, newCutsOf, offerProposal, oneProposal, previewOf,
   proposesCuts, saveWords, statusLine, withPiece, type DfoCall, type DfoEffect, earlierDiff, sameTribCall, tribWords, tribWarnings,
 } from "../dfoExtent";
+import { CannotEditNote } from "./CannotEditNote";
 
 /** two clicks this close (m) are one cut — the server folds them the same way (`marks.SAME_CUT_M`) */
 const SAME_CUT_M = 10;
@@ -306,7 +307,13 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
   // what the extent binds now — magenta, always
   useEffect(() => {
     let live = true;
-    api.dfoReach(id, showTribs).then((r) => live && setReach(r)).catch(failed("the DFO reach"))
+    api.dfoReach(id, showTribs).then((r) => {
+      if (!live) return;
+      setReach(r);
+      // T755 follow-up: the size walk comes after — never holding the place up — and shows when it arrives
+      if (r.size_pending) api.dfoSize(id).then((z) => live && setReach((cur) => cur ? { ...cur, size: z.size, size_pending: false } : cur))
+        .catch(failed("the saved extent's size"));
+    }).catch(failed("the DFO reach"))
       .finally(() => live && setLoadingTribs(false));
     return () => { live = false; };
   }, [id, showTribs]);
@@ -662,6 +669,8 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
             </div>
           )}
 
+          {reach?.size_pending && <div className="dim" data-testid="dfo-size-pending" style={{ fontSize: 12 }}>
+            Checking how big the saved extent is (its tributaries too)…</div>}
           {reach?.size && (
             <div className={reach.size.warnings.length ? "warn-text" : "dim"} data-testid="dfo-size" style={{ fontSize: 12 }}>
               The saved extent binds {reach.size.n_sections.toLocaleString()} section{reach.size.n_sections === 1 ? "" : "s"} ·{" "}
@@ -703,8 +712,7 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
                   {loadingTribs && <span className="dim" data-testid="dfo-tribs-loading"> loading…</span>}
                 </label>
               </div>
-              {now.cannot_change.length > 0 && <div className="warn-text" data-testid="dfo-cannot-change" style={{ fontSize: 12 }}>
-                It cannot be changed here: {now.cannot_change.join("; ")}</div>}
+              {cannotEditOf(now) && <div data-testid="dfo-cannot-change"><CannotEditNote why={cannotEditOf(now)!} /></div>}
             </div>
             <details className="dfo-more">
               <summary>more about this place</summary>

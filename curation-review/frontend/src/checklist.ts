@@ -321,3 +321,11 @@ export function headline(state: string, saved: { what: string; words: string } |
   if (saved.what === "area") return { lead: `Closed area saved: ${saved.words}`, rest: `this place's own extent: ${state}` };
   return { lead: state, rest: saved.words };
 }
+
+/** T755 follow-up: the "old extent still in force" flag in words — the last save said wrong / not sure with no fix, so
+ * the older extent is what the place has (and ships: unchanged by this flag) */
+export function oldExtentWords(o: { verdict: string; date: string | null; rides: string | null }): string {
+  const said = o.verdict === "wrong" ? "wrong" : "not sure";
+  return `old extent still in force: your last save${o.date ? ` (${o.date})` : ""} said ${said} with no fix, so the `
+    + `older extent ${o.rides ? `it rides (${o.rides}) ` : ""}is still what this place has`;
+}

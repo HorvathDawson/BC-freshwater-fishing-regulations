@@ -127,6 +127,7 @@ class Sources:
     tidal_decisions: Optional[Path] = None
     _reg: Optional[dict] = field(default=None, repr=False)
     _texts: dict = field(default_factory=dict, repr=False)
+    _parsed: dict = field(default_factory=dict, repr=False)
     #: (T421) whether registry.json was there (None = not read yet), and whether an item was asked for without one:
     #: `applied_keys` refuses that
     _has_reg: Optional[bool] = field(default=None, repr=False)
@@ -152,6 +153,15 @@ class Sources:
     def doc(self, path: Path) -> dict:
         return json.loads(self.text(path))
 
+    def parsed(self, path: Path) -> dict:
+        """(T755 follow-up) the file parsed ONCE per Sources, READ ONLY — for the finders, which hand out copies:
+        `applied_keys` parsed every region file once per place it looked up (1,438 parses, 0.65 s per save)"""
+        p = Path(path)
+        got = self._parsed.get(p)
+        if got is None:
+            got = self._parsed[p] = json.loads(self.text(p))
+        return got
+
     def item(self, iid: str) -> Optional[dict]:
         """A registry item as registry.json holds it (raw), or None."""
         if self._reg is None:
@@ -172,18 +182,22 @@ def _region_files(d: Path) -> list[Path]:
 
 
 def _find_entry(src: Sources, entry_id: str) -> Optional[tuple[Path, dict]]:
+    """(path, a COPY of the entry): a fresh object per call, as when each call parsed the file anew"""
+    import copy
     for p in _region_files(src.entries_dir):
-        for e in src.doc(p).get("entries") or []:
+        for e in src.parsed(p).get("entries") or []:
             if e.get("entry_id") == entry_id:
-                return p, e
+                return p, copy.deepcopy(e)
     return None
 
 
 def _find_location(src: Sources, location_id: str) -> Optional[tuple[Path, dict]]:
+    """(path, a COPY of the place): a fresh object per call, as when each call parsed the file anew"""
+    import copy
     for p in _region_files(src.dfo_dir):
-        for loc in src.doc(p).get("locations") or []:
+        for loc in src.parsed(p).get("locations") or []:
             if loc.get("location_id") == location_id:
-                return p, loc
+                return p, copy.deepcopy(loc)
     return None
 
 

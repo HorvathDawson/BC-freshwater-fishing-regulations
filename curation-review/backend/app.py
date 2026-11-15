@@ -1007,6 +1007,17 @@ def dfo_reach(location_id: str, limit: int = 6000, tributaries: bool = False):
     return got
 
 
+@app.get("/api/dfo/locations/{location_id:path}/size")
+def dfo_size(location_id: str):
+    """(T755 follow-up) How big the place's saved extent is, its tributary walk included (`dfo.saved_size`): asked by
+    the screen AFTER the reach, when that said `size_pending`, so the walk never holds a place or a save up."""
+    import dfo
+    got = dfo._locations().get(location_id)
+    if got is None:
+        raise HTTPException(404, f"DFO location {location_id} not found")
+    return {"size": dfo.saved_size(location_id)}
+
+
 @app.get("/api/dfo/locations/{location_id:path}/anchor")
 def dfo_anchor(location_id: str, split: str):
     """A PROPOSED NEW SPLIT's anchor resolved, READ ONLY (`dfo.check_anchor`): `split` is one
