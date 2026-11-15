@@ -89,7 +89,14 @@ rebuild.** With it, one run:
   `Application Support/bg-download`; none on `Documents/spots`;
 - 0 "Cannot convert BigInt" lines (T718 saw 4,999 on the old path; that path is fixed too, `Number(...)`, and is now only a
   fallback: a client without the module, an older app's `.part`). The module's own numbers reach JS as doubles.
-Seen, not fixed: right after a relaunch the bar restarted low (27 MB while ~180 MB were down) because a re-attached task
+**Bar after a relaunch, second look (build 347281f96, 20:19).** The module now keeps each job's bytes from its progress
+(on disk every 4 MB) and reports them for a re-attached task at once (JS seam test in `release/bgDownload.test.ts`).
+Run: terminated at 104.3 MB on disk, relaunched; at +4 s the bar said "38.8 of 479.3 MB" with 116.3 MB on disk; installed
+at 20:22. So the low bar is NOT (only) the re-attach: the system downloads all four big files AT ONCE, while the bar
+(`install` progress) counts finished files plus only the file being filled, one at a time. On disk the bytes are spread
+over the four. Same on Android (DownloadManager also runs them together). Fix (not made: it moves Android's bar): the
+first install's progress sums every queued job's bytes (`jobs()`) while the big files download. Owner/main-lane call.
+Earlier note: right after a relaunch the bar restarted low (27 MB while ~180 MB were down) because a re-attached task
 reports bytes only after its next progress tick; it caught up as the download went on. The iOS line under the bar was two
 lines edge to edge: now centred with side padding (no visible change for Android's one-line text).
 Not shown by the simulator: real suspension when the phone locks, cellular / hotspot / Low Data Mode, swipe-away in the
