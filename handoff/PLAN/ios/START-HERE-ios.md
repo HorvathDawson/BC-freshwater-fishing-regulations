@@ -36,7 +36,12 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
   downloaded data kept out of iCloud backup (seen on the files), iOS-only wording for the two promises that do not hold
   there, Wi-Fi-only refuses hotspot and Low Data Mode, the progress-number fix. Needs a real phone: lock screen,
   cellular, hotspot, swipe-away.
-- `ios/t723-keyboard-back`: keyboard and back fixes from the audit. Proof running.
+- `ios/t723-keyboard-back` (**proven on the simulator 20:25**, head 97f3523ca, not merged): the keyboard no longer
+  covers the gauge search under Notifications or the line being typed in a spot's notes; a left-edge swipe now closes
+  About, Help, Layers, the rule-book viewer and the photo viewer (About and Layers did not before); the number pads on
+  the alert fields get a Done key. Not proven: a real thumb, the Save row on a spot (still under the keyboard until you
+  drag down), one tap acting while the keyboard is up, the alert box on the Conditions card. Shots: before/after pair
+  sent; 18 in `handoff/PLAN/ios/shots/t723/` on the branch.
 - `ios/audit-fixes`: eight small fixes (among them the "↗" that iOS draws as a blue emoji tile). Proof running.
 - `ios/t719-tapup`: the early tap cue for iOS, same event as Android's. Started 17:40.
 - `android/t732-backup` (**proven on the Android emulator 19:10**, not merged): today a backup of the app carries nothing
@@ -86,6 +91,9 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
 11. T686: which data savings become tickets: (a) three lossless, about 1.94 MB / others in the ticket.
 12. Slice 8: the small test release has no map tiles, and the export takes its checklist as a named input: keep / other.
 13. Clean-up: five calls in `CLEANUP-CANDIDATES.md` (defaults there).
+15. A spot's Save row stays under the keyboard while typing: leave it (drag down or Done first) / lift the row above
+    the keyboard.
+16. The new left-edge back strip on full-screen pages is 16 pt wide and takes taps in that gutter: keep / narrow to 8 pt.
 14. ANSWERED 18:15 ("Maybe we can run 2 at same time might have enough resources"): a third heavy lane exists, so two
     simulator jobs run at once.
 
