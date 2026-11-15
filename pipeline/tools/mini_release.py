@@ -41,6 +41,7 @@ from pathlib import Path
 
 from pipeline.common.curated import REPO_ROOT
 from pipeline.common.utils import wsc as W
+from pipeline.gauges.liveness import may_speak, speaks_now      # the one reader of a station's liveness (T122)
 
 #: the committed inputs (a fixture of the tests; the one place this path is spelled)
 FIXTURE = REPO_ROOT / "pipeline" / "tests" / "fixtures" / "mini"
@@ -383,7 +384,7 @@ def write_source(out_dir: Path, fwa: Path, world: dict | None = None) -> dict[st
     src.mkdir(parents=True, exist_ok=True)
     _sh.copyfile(fwa, src / "bc_fisheries_data.gpkg")
     roster = [{"station": g["station"], "name": g["name"], "lon": lonlat(world, *g["at"])[0],
-               "lat": lonlat(world, *g["at"])[1], "realtime": g["realtime"], "active": g["active"],
+               "lat": lonlat(world, *g["at"])[1], "realtime": speaks_now(g), "active": may_speak(g),
                "area_km2": g["area_km2"]} for g in world["gauges"]]
     (src / "bc_hydrometric_stations.json").write_text(json.dumps(roster, indent=1) + "\n", encoding="utf-8")
     places = [{"name": p["name"], "lat": lonlat(world, *p["at"])[1], "lon": lonlat(world, *p["at"])[0],
@@ -420,8 +421,8 @@ def write_source(out_dir: Path, fwa: Path, world: dict | None = None) -> dict[st
                                   REMARK_FR TEXT);""")
     for g, r in zip(world["gauges"], roster):
         con.execute("INSERT INTO STATIONS VALUES (?,?,?,?,?,?,?,?)",
-                    (g["station"], g["name"], "BC", "A" if g["active"] else "D", r["lat"], r["lon"], g["area_km2"],
-                     int(g["realtime"])))
+                    (g["station"], g["name"], "BC", "A" if may_speak(g) else "D", r["lat"], r["lon"], g["area_km2"],
+                     int(speaks_now(g))))
         con.execute("INSERT INTO STN_REGULATION VALUES (?,?,?,?)", (g["station"], 1990, 2024, int(g["regulated"])))
     con.commit()
     con.close()
