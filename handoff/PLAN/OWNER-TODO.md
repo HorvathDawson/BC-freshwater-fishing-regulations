@@ -28,9 +28,13 @@ with the default Claude uses until you answer). Newest first inside each section
   Choose: leave [default], or keep the bar the same height across the step (an empty row's worth of space on one-part
   waters). (2) T730: picking a PLACE row in search (for example the village "Cultus Lake"), then Back, reopens search
   with the text still typed; a second Back clears it. Choose: leave [default], or Back from a place closes search too.
-- **0.7.10 held (2026-11-14):** the checks found a rare crash (the app closed twice in about 100 opens of a water; it is
-  older than today's work, seen once on 11-08). A fix lane is running; the build goes to Play internal only after it
-  passes. Nothing for you to do.
+- **Phone check, build 32 = 0.7.10 (Play internal, 2026-11-14).** Look at: (1) Back from a water's page: no flash
+  (Map, Conditions, satellite, dark); (2) Flow / Level in a water's Conditions card leaves the Conditions map's layer
+  alone; (3) the credits card opens above the legend on every map tab and closes on a tap outside or Back; (4) search:
+  swipe down closes it, at most 4 recents in a small block, after picking a water Back leaves the map there, search
+  reopens empty; (5) Upstream / Downstream: the bar no longer blanks (the height change into a one-part water is the
+  open look above); (6) say if the app ever closes by itself when opening a water (a rare crash was fixed, T734: twice
+  in about 100 opens before, none in 110 after). Page row `phone-check-0710`.
 - **T730 search (2026-11-14), not blocking; look on the next build.** (1) Recent searches PROPOSAL: one small block
   under the search field, "Recent searches · Clear", then up to 4 searches as small square tags that wrap (about 80 px
   tall instead of about 340). Alternatives in the ticket: 3 compact rows, or one scrolling line of tags. (2) Closing

@@ -956,3 +956,7 @@ Owner's phone report (build 29, the More tab). Done in code, not yet in a build:
   2d5f64048 and 6da5e2565 (run 43654912628): `test_liveness.py::test_nothing_else_reads_liveness` names
   `pipeline/tools/mini_release.py` (T667 slice 8, 4b62638da) — not this build's change. Nothing built or uploaded.
   To go on once pipeline CI is green: `deploy/staging/build-apk.sh --play` (versionCode 32 is the next; Play's highest is 31).
+- UPLOADED 2026-11-14 (main chat): pipeline CI green on 30400c415 (iOS chat's one-file fix, run 43657670404), app CI green
+  on 9542fce5c. `deploy/staging/build-apk.sh --play` -> versionCode 32 (0.7.10, built from 1ce3db25c, docs-only over
+  30400c415; libmaplibre 7bf3dc29 patched, 37.0 MB), track internal completed; play.json on staging; email 200. Commit
+  b2dba0297 (app.json only). Staging site not redeployed (still 9048fbc20, held for the owner's production move).
