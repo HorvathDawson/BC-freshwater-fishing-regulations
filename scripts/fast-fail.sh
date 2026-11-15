@@ -191,6 +191,22 @@ mini_chain() {
 }
 step "the mini chain on invented data (an atlas / deliver / gauges / mini file changed)" mini_chain
 
+# caught 2026-11-14 (CI red on 931f14e75): test_liveness's scan of every pipeline file refused mini_release reading
+# a station's `active` / `realtime` itself; the lane ran only the tests importing the modules it changed, and a scan
+# imports nothing. A changed pipeline Python file runs every test file that walks the pipeline's sources (found by
+# the same grep each time, so a new scanner joins by itself), CI's markers (~40 s). Two are left out: their time is
+# the review app's own fixtures, not the scan (test_review_screen 83 s, test_review_marks 15 s), and CI runs them.
+source_scanners() {
+  grep -qE '^pipeline/.*\.py$' <<<"$CHANGED" || { echo "   (no pipeline Python file changed)"; return 0; }
+  local files
+  files=$(git grep -l -E 'rglob\("\*\.py"\)|glob\("\*\*/\*\.py"\)|_py_sources\(|walk\(.*pipeline' -- 'pipeline/tests/test_*.py' \
+    | grep -vE 'test_review_(screen|marks)\.py$')
+  # shellcheck disable=SC2086
+  local markers; markers=$(no_data_markers) || return 1
+  "$PY" -m pytest -q -p no:cacheprovider -m "$markers" $files
+}
+step "every source scanner (a pipeline Python file changed)" source_scanners
+
 # caught 2026-11-14 (CI red on b07996827): scripts/test-env.sh hard-coded .venv/bin/python, which a hosted runner has
 # not; nothing ran the contract's test before the push. A changed scripts/test-*.sh, test-env runner or tiers file runs
 # it (~1 s; it also proves the source stops naming PIPELINE_PY when no interpreter is found)
