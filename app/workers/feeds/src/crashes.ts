@@ -46,6 +46,9 @@ export const CRASH_LIMITS = { bytes: 8192, name: 60, message: 200, stack: 2000, 
 /** one crash POST per IP per this, and at most PER_DAY a day (the app sends one per new kind per run) */
 export const CRASH_GAP_MS = 1_000;
 export const CRASH_PER_DAY = 40;
+/** (staging) a `test: true` crash's per-address day: its own counter, under the limits folder (`purgeLimits` clears it) */
+export const CRASH_TEST_PER_DAY = TEST_PER_DAY_TOTAL;
+const TEST_LIMITS_PREFIX = `${LIMITS_PREFIX}test-ip-`;
 export const CRASH_RETENTION_DAYS = 90;
 const STR_FIELDS = ["app", "env", "platform", "release"] as const;
 
@@ -202,16 +205,21 @@ export async function handleCrash(req: Request, env: ReportEnv, now: Date = new 
   // (T352) a developer's own build is not a tester: answered (so it does not retry) and not stored, wherever it was sent
   if (v.crash.env === "local") return json({ ok: true, stored: false }, 202);
   const ip = req.headers.get("CF-Connecting-IP") ?? "unknown";
+  const isTest = v.crash.test === true && env.FEEDS_ENV === "staging";   // honoured on staging only
   let refused: string | null;
   try {
-    refused = await rateLimit(env, ip, now, { prefix: LIMITS_PREFIX, gapMs: CRASH_GAP_MS, perDay: CRASH_PER_DAY, edge: false });
+    // (iOS crash lane, 2026-11-15) a TOOL's crash counts against its own per-address counter (as its new kinds count against
+    // their own day total, T609 W19): the test beds on one machine share its address, and spent the 40 a day that the
+    // owner's phone on the same line needs (every iOS `crash` run on 2026-11-14 was a 429 "too many reports today")
+    refused = await rateLimit(env, ip, now, isTest
+      ? { prefix: TEST_LIMITS_PREFIX, gapMs: CRASH_GAP_MS, perDay: CRASH_TEST_PER_DAY, edge: false }
+      : { prefix: LIMITS_PREFIX, gapMs: CRASH_GAP_MS, perDay: CRASH_PER_DAY, edge: false });
   } catch (e) {
     console.error(JSON.stringify({ job: "crashes", limitError: String(e) }));
     return json({ ok: false, error: "could not count" }, 503);
   }
   if (refused) return json({ ok: false, error: refused }, 429);
   const hash = await crashHash(v.crash);
-  const isTest = v.crash.test === true && env.FEEDS_ENV === "staging";   // honoured on staging only
   const key = isTest ? `${TEST_CRASHES_PREFIX}${hash}.json` : crashKey(hash);
   const at = now.toISOString();
   const { format: _format, test: _test, ...sample } = v.crash;
