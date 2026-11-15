@@ -42,3 +42,27 @@ resolve the view on the UI block (`MLRNViewModuleUtils withView`), class-check i
 There is no separate map object that is nil until ready (Android's `mapLibreMap!!`), so the NPE has no iOS twin by the
 code, and the JS gate covers iOS as well. Left: an iOS twin of the test bed's `open-race` (cold start → search → Open at
 once; Chilliwack + Fraser) to prove it on the simulator.
+
+## iOS look at shared fixes (2026-11-14)
+Build **081d93f90** `--testbed`, ad-hoc signed "to run locally" (495c9d490; earlier iOS numbers were the unsigned
+8ba815a23), simulator **iPhone 17 Pro**, iOS 26.5, light and dark. `run-ios.mjs shared-fixes`
+(`app/tools/testbed/scenarios-ios/shared-fixes.mjs`). Runs: `ios-shared2` (all five items) and `ios-shared3` (T729 and
+T728 again). Shots: `handoff/PLAN/ios/shots/shared-fixes/`.
+
+| fix | iOS | what was seen | shots |
+|---|---|---|---|
+| T729 credits card | **PASS** | A centred pop-up (box 31,358 to 371,516 pt), above the legend, readable in light and dark. With satellite on it carries "Imagery: Powered by Esri · Source: Esri, Vantor, …" (ios-shared2, both looks). It closes by its Close button and by a tap outside. It opens on Map, Conditions and Run timing. | t729-map-dark/-light, t729-satellite-dark, t729-conditions-dark, t729-runs-dark/-light |
+| T729 left-edge swipe | **iOS-only difference** | The edge drag over the open card CLOSED it (both looks), although it is a React Native Modal. Most likely the drag's start lands on the scrim as a tap; not looked into further. Harmless. | |
+| T729 + c099e9977 | **PASS** | Card left open on Run timing, then the Map tab tapped where it sits: no card or scrim left, and the next map tap reached the map's press handler (`[tap]` 1). **iOS-only difference:** while the card is open, iOS keeps the tab bar out of the accessibility tree (a Modal), and a finger on the tab bar may land on the scrim first. So on iOS "the tab changes with the card open" is a scrim tap, then a tab tap. | |
+| T728 Flow / Level | **not verified on iOS** | The Conditions layers sheet was set to Level (shot). But both waters reached from search (Coquitlam River; Fraser River at Mission) show an "Estimate for this spot" card with no Flow / Level chart (`chart-quantity` absent), so the card's pick could not be made. Needs a gauged section reached from the map (Android's way). Test bed, not app. | (in run dir: shared-t728-layers-before-*, shared-t728-card-level-*) |
+| T731 step bar | **PASS (a step within a water)** | Coquitlam River Part 1 → Part 2 (Upstream), recorded: the bar's words change in place in one frame; the Downstream / Upstream buttons keep their box (67,625-145,647 / 272,625-340,647 pt); no spinner, no resize. A step that CROSSES into the next water (the case b40336850 is about) was not reached: Part 1 is the lowest, and its "Lowest part" button is disabled. | t731-step-frames-dark |
+| T717 Back from a page | **PASS** | Back from Cultus Lake's page, recorded (light and dark): the frame after the page is the map as left, fully coloured; no blank, grey or light frame. A tap on the page's empty header was not heard by the hidden browse map, and the page stayed. | t717-back-frames-dark, t717-page-dark, t717-map-after-dark |
+| T717 memory | **iOS difference, for the main lane** | Footprint on a water's page: **331 / 306 MB** (light / dark run), against **213-230 MB** on the baseline build (8ba815a23, unsigned, iPhone 17). +80-115 MB, consistent with the browse map kept mounted under the page. Also differs: the signing and the device. Peak elsewhere at the baseline: 274 MB. | |
+| T730 search | **PASS** | Recents are one small block (2 chips). A swipe down from the handle with the keyboard up closes search. Back after opening Cultus stays on Cultus. Search reopens empty. (The step's own close by `search-panel-close` failed: no such id in the iOS tree. Test bed.) | t730-recents-dark, t730-after-swipe-dark, t730-back-on-water-dark, t730-reopened-dark |
+
+Test-bed flakes in these runs (not the app):
+- ios-shared3's satellite step: in dark the Close id was not found after the layer switch; in light satellite ended
+  up off, because the earlier look had left it on and the toggle flipped it. ios-shared2 passed the same step in both
+  looks.
+- First run (ios-shared, 16:50): an Apple Maps widget location prompt covered the app. It is now refused and logged
+  as a finding (216495454).
