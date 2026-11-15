@@ -45,6 +45,16 @@ would show such a closed area as open. Nothing binds today. I take it as T757 wh
 (`handoff/PLAN/app-integration/tickets/T573-files/worker-handoff.md`); I asked for a mechanical guard (the release
 refuses when the worker does not report the new feed shape) and for the app to say "not known" instead of "open".
 
+**CORRECTION 15:19 (my error).** The internet line was NOT down all afternoon. My probe asked for the staging basemap
+without its `release/` prefix and timed a 9-byte "not found" answer from 13:04 on; "30-46 bytes a second" was that.
+Measured properly at 15:16: 8 MB in 4.7 s (1.77 MB/s). The failures up to 12:49 were real; when the line came back
+after that is not known. So the "still down" lines in the two notes below are wrong, and the R8 Play build (build 33)
+is back on for TODAY if the checks pass: all six are running since 15:17 on the shrinker-on APK of `perf/r8-play`
+6a2dc612d. Also at 15:13 the feeds worker with T757 went to STAGING (version f2b98bd4): its status says
+`"dfo": {"pieces": 1}` and the live feed carries the 17 closed areas. Found on the way: the worker's live feed has no
+answer for the 7 region-default places (`1:default:region` and six more) that the Python feed makes from the page's own
+sentence; older than T757; being ticketed, first step = what the app shows for such a water today.
+
 **Added 14:44.** (1) The internet line is still down (30–46 bytes a second on every probe from 13:04 to 14:39), so
 the sixth R8 check cannot be re-run. The Android chat now plans the R8 Play build (build 33) for TOMORROW. It is
 landing its desktop split (T752) on the shared branch first, so I re-run all six checks on that new head, not on

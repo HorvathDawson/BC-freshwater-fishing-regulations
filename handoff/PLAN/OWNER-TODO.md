@@ -237,6 +237,9 @@ with the default Claude uses until you answer). Newest first inside each section
   merge and no upload until that check passes on a good line; I re-run it when the line recovers. If it is still bad
   this evening the build slips to tomorrow. Found on the way, not from the shrinker: T756 (reopening mid-download
   restarts the big files from zero after "Wait for Wi-Fi"); fix on a branch, not merged, not in this build.
+  **CORRECTION 2026-11-15 15:19: back on for today.** The line was not down; my probe was wrong (it timed a "not
+  found" answer). All six checks are running since 15:17 on the merged code (T752 included) with the shrinker on. If
+  all pass: merge, CI, then the Android chat's Play build today. The 14:44 note below is superseded.
   **State 2026-11-15 14:44: planned for tomorrow.** The line is still down (30–46 bytes a second since 13:04). The
   Android chat lands its desktop split (T752) on the shared branch first, so all six checks are re-run on that new
   head with the shrinker on before the build. If the line recovers today the sixth check is still re-run today.
