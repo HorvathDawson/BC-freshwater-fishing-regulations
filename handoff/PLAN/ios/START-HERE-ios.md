@@ -56,7 +56,11 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
   (227 KB with 3 photos; 20.4 MB with 29); after a wipe and restore the spots and photos are back and the app downloads
   the map data again by itself. The Spots tab says what the backup holds. A phone-to-phone transfer carries the photos at
   full size. Not shown on the device: photos left out when they do not fit (all 29 fit; unit-tested only).
-- The iOS look at today's five shared fixes (T717, T728 to T731): running.
+- The iOS look at today's five shared fixes (T717, T728 to T731): **no verdict yet.** The first run (16:50) failed in
+  every step on a test-bed fault (an Apple Maps location prompt covered the screen), and the build with the fixes was
+  never made for that lane. Rebuilding and re-running from 20:45.
+- `ios/integration`: the three proven iOS branches merged together, to be run on the simulator and against the Android
+  benches. Started 20:45.
 
 **What failed or was found**
 - **iOS background download refused on the simulator, then fixed:** the system service rejected every task ("does not
