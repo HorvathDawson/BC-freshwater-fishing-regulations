@@ -31,3 +31,14 @@ then the text controls, then the map's.
 - Native tablets: the layout class is the same on a tablet (900 and up), so an Android tablet or iPad in landscape would get
   the split; decide whether it should (default: yes, it is the same room).
 - Decision for the owner: A or B (or keep today's), and whether the split starts at 900 (tablet) or 1280 (desktop).
+
+## What the build showed (2026-11-15)
+- The split sits inside the frame's 1280 column (not full-bleed), so the map edge lines up with the header's gutter; at
+  1920 the layout is the same 1280 block centred. The text column is first in the tree (keyboard: tabs, text, map).
+- Framing: the fit uses the map's real size; Fraser part 4, Skeena part 1 and Vedder frame well at 1280x720, 1512x760 and
+  1920x1080. A part that is wide (Skeena part 1) sits small in the taller pane; nothing is cut off. T747's tests assume the
+  strip's size and need a second size case.
+- The open part list in the text column: capped at 380 px and scrolls inside; the column scrolls as a whole under it, so the
+  steps can sit below the fold at 720 px with the list open (a shipped version may want the steps above the list).
+- Phone (390 wide): identical with the variant switched on.
+- The proposal switch was a `globalThis.__bcSplit` flag; a shipped version picks one look and drops the flag.
