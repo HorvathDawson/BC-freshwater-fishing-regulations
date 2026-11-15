@@ -77,8 +77,17 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
   Layers and the rule-book viewer, the audit fixes (arrow, Open Settings, Maps, What's new) pass. Not judged: the
   photo viewer's back swipe (the test misread a viewer that was up), the staged-update check (0 of 3 on the branch
   alone too; no control), first open (slow line that hour). **Found:** the photo viewer's "Photo 1 of 1" sits under
-  the status-bar clock (base too; written into T726). **Still owed, in a quiet window:** the four Android benches
-  (three tries failed on the test bed's Android driver not starting under load) and the timed iPhone runs.
+  the status-bar clock (base too; written into T726).
+  **Quiet window 03:06 to 03:59, both platforms done (head 639d54d0d; tables in `integration-2026-11-14.md`):**
+  Android on the emulator: background install 7 of 7 (asks on mobile data, waits for Wi-Fi, carries on with the app
+  killed, map up after relaunch); tap to page: cue 29 to 100 ms, page 339 to 360 ms (before: 22 to 112 and 352 to
+  402); no long stalls (worst 140 ms); spots 10 pass, 2 fail on a test-bed fault (a screenshot path the driver
+  refuses), so the Android keyboard edit of a spot is unverified. iPhone simulator, timed: the tap cue lights 7 to
+  90 ms after the lift on every tap (was 371 to 495), the page shows at 372 to 389 ms, a double tap zooms and opens
+  nothing, no long stalls (worst 214 ms at cold start). The 202 / 223 ms Android cue seen earlier was machine load
+  (48 / 63 ms quiet). **Verdict: nothing that passed on a branch alone fails on the merged branch because of the app,
+  and Android's behaviour did not change.** Not proven: iPhone first open on a good line, the Android spot edit, the
+  photo viewer's back swipe, the staged-update check, and everything that needs a real phone.
 - `ios/t739-push` (T739, head 1734a8429, app CI green, nothing deployed or merged): push wake-ups for iPhone and
   Android (owner: "okay i ticked push notifications for app yes build for iphone." and "for android too."), with a
   new-data wake-up (owner: "i guess if new data is there we could send a notification that the user needs to download
