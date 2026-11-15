@@ -165,7 +165,8 @@ def test_the_fifteen_places_each_show_their_reason():
     import region_cascade
     from pipeline.regs.review import proposals as P
     locs = {}
-    for f in sorted((ROOT / "data/curated/dfo_salmon/places").glob("region-*.json")):
+    from pipeline.tests import under_test
+    for f in sorted(Path(under_test.curated().dfo_salmon.places).glob("region-*.json")):
         for loc in json.loads(f.read_text(encoding="utf-8")).get("locations") or ():
             locs[loc["location_id"]] = loc
     for lid in CANNOT:
