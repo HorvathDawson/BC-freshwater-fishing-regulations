@@ -21,9 +21,12 @@ function memFs(): PartFs & { files: Map<string, Uint8Array>; uri(p: string): str
   };
 }
 
-/** A downloader whose jobs advance one step per `jobs()` poll: pending → running (half) → done (whole). */
+/**
+ * A downloader whose jobs advance one step per `jobs()` poll: pending → running (half) → done (whole). `still()` true:
+ * no job moves on this poll (a download caught mid-way, as a reopened app finds it).
+ */
 function fakeDm(fs: ReturnType<typeof memFs>, bodies: Record<string, Uint8Array>,
-                o: { failFirst?: boolean; hold?: (j: BgJob) => boolean } = {}) {
+                o: { failFirst?: boolean; hold?: (j: BgJob) => boolean; still?: () => boolean } = {}) {
   const jobs = new Map<number, BgJob>();
   let next = 1, failed = 0;
   const log: string[] = [];
@@ -31,6 +34,7 @@ function fakeDm(fs: ReturnType<typeof memFs>, bodies: Record<string, Uint8Array>
     jobs: async () => {
       for (const j of jobs.values()) {
         const body = bodies[j.url]!;
+        if (o.still?.()) continue;
         if (o.hold?.(j)) { j.status = "paused"; continue; }
         if (j.status === "pending") { j.status = "running"; j.total = body.length; j.bytes = body.length >> 1; }
         else if (j.status === "running") {
@@ -96,6 +100,69 @@ describe("background (T298): the system's downloader carries the big files", () 
     await bg.queue([{ url: URL, file: "basemap", bytes: BODY.length, path: "b" }], true);
     expect(log.map((l) => l.split(" ").slice(0, 3).join(" "))).toEqual(
       [`enqueue ${URL} wifi`, "remove 1", `enqueue ${URL} metered`]);
+  });
+
+  it("(T756) a reopen on Wi-Fi after Wait for Wi-Fi keeps the RUNNING Wi-Fi-only jobs: nothing is removed, no byte thrown away", async () => {
+    let still = false;
+    const fs = memFs(), { dm, log, jobs } = fakeDm(fs, { [URL]: BODY }, { still: () => still });
+    await background(dm, fs, never).queue([{ url: URL, file: "basemap", bytes: BODY.length, path: "b" }], false);
+    await dm.jobs();                                               // Wi-Fi is back: the job runs, half of it down
+    still = true;                                                  // …and is found so by the reopened app
+    expect([...jobs.values()].map((j) => [j.status, j.metered, j.bytes])).toEqual([["running", false, BODY.length >> 1]]);
+    // the app is opened again, now on Wi-Fi: the mobile-data question answers "go"
+    const again = background(dm, fs, never, { pollMs: 0 });
+    await again.queue([{ url: URL, file: "basemap", bytes: BODY.length, path: "b" }], true);
+    expect(log.map((l) => l.split(" ").slice(0, 3).join(" "))).toEqual([`enqueue ${URL} wifi`]);
+    still = false;
+    vi.spyOn(console, "info").mockImplementation(() => {});
+    await partDownload({ ...fs, hash: (p) => dm.sha256(fs.uri(p)) }, again.fill)(URL, "b", want);
+    expect(fs.files.get("b")).toEqual(BODY);
+    expect(log.map((l) => l.split(" ")[0])).toEqual(["enqueue", "claim"]);       // the one job, claimed
+  });
+
+  it("(T756) the other way is still queued again: jobs that may use mobile data, then Wi-Fi only asked", async () => {
+    const fs = memFs(), { dm, log } = fakeDm(fs, { [URL]: BODY });
+    await background(dm, fs, never).queue([{ url: URL, file: "basemap", bytes: BODY.length, path: "b" }], true);
+    // the second queue's own poll finds it running, on whatever network
+    await background(dm, fs, never).queue([{ url: URL, file: "basemap", bytes: BODY.length, path: "b" }], false);
+    expect(log.map((l) => l.split(" ").slice(0, 3).join(" "))).toEqual(
+      [`enqueue ${URL} metered`, "remove 1", `enqueue ${URL} wifi`]);
+  });
+
+  it("(T756) a kept Wi-Fi-only job that then waits while mobile data is allowed is queued again, and the log says so", async () => {
+    let wifi = true, still = false;
+    const fs = memFs(), { dm, log } = fakeDm(fs, { [URL]: BODY }, { hold: (j) => !j.metered && !wifi, still: () => still });
+    await background(dm, fs, never).queue([{ url: URL, file: "basemap", bytes: BODY.length, path: "b" }], false);
+    await dm.jobs();                                               // running on Wi-Fi
+    still = true;
+    const again = background(dm, fs, never, { pollMs: 0, stuckMs: 0 });
+    await again.queue([{ url: URL, file: "basemap", bytes: BODY.length, path: "b" }], true);   // kept (running)
+    still = false; wifi = false;                                   // Wi-Fi drops: the kept job waits for it
+    const said: string[] = [];
+    vi.spyOn(console, "info").mockImplementation((m: string) => { said.push(m); });
+    await partDownload({ ...fs, hash: (p) => dm.sha256(fs.uri(p)) }, again.fill)(URL, "b", want);
+    expect(fs.files.get("b")).toEqual(BODY);
+    expect(log.map((l) => l.split(" ").slice(0, 3).join(" "))).toEqual(
+      [`enqueue ${URL} wifi`, "remove 1", `enqueue ${URL} metered`, "claim 2"]);
+    expect(said.filter((m) => m.includes("queued again"))).toEqual([
+      `[download] ${URL}: a Wi-Fi-only download paused (reason 0) at ${BODY.length >> 1} of ${BODY.length} bytes while mobile data is allowed; queued again to use it`]);
+  });
+
+  it("(T756) a short pause of a kept Wi-Fi-only job is waited out (not queued again before stuckMs)", async () => {
+    let held = 0, still = false;                                   // paused for two polls, then moving again
+    const fs = memFs(), { dm, log, jobs } = fakeDm(fs, { [URL]: BODY }, { hold: () => held-- > 0, still: () => still });
+    await background(dm, fs, never).queue([{ url: URL, file: "basemap", bytes: BODY.length, path: "b" }], false);
+    await dm.jobs();
+    still = true;
+    const again = background(dm, fs, never, { pollMs: 0, stuckMs: 60_000 });
+    await again.queue([{ url: URL, file: "basemap", bytes: BODY.length, path: "b" }], true);
+    still = false; held = 2;
+    // the fake's paused job is set moving again by hand once the hold is over (it only advances pending / running)
+    const wake = setInterval(() => { if (held <= 0) for (const j of jobs.values()) if (j.status === "paused") j.status = "running"; }, 0);
+    vi.spyOn(console, "info").mockImplementation(() => {});
+    await partDownload({ ...fs, hash: (p) => dm.sha256(fs.uri(p)) }, again.fill)(URL, "b", want);
+    clearInterval(wake);
+    expect(log.map((l) => l.split(" ")[0])).toEqual(["enqueue", "claim"]);
   });
 
   it("a failed job is queued again (and the file still verified)", async () => {

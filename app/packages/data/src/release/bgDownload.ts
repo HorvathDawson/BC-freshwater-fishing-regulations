@@ -8,11 +8,16 @@
  *   queue     before the install starts, every big file the set needs is enqueued at once (closing the app a second
  *             later still downloads all of them). A job already there is kept — unless it was queued under the other
  *             mobile-data choice (it is queued again: the system cannot change a job's network) or it failed.
+ *             (T756) One exception: a Wi-Fi-only job that is RUNNING stays when mobile data is now allowed. It is on
+ *             an unmetered network, which both choices permit; removing it threw its bytes away (a reopen on Wi-Fi
+ *             after "Wait for Wi-Fi" restarted every big file from zero).
  *   fill      `PartFill` over a job: polls it (progress), and once it is done claims its file onto the `.part`. A job
  *             that failed is queued again (a few times); one waiting for Wi-Fi is waited on. A `.part` an older app
- *             left with no job is resumed the old way (`fallback`).
+ *             left with no job is resumed the old way (`fallback`). (T756) A Wi-Fi-only job that was kept and then
+ *             sits paused for `stuckMs` while mobile data is allowed is queued again under the allowed rule, and the
+ *             log says so: it would otherwise wait for a Wi-Fi the reader no longer asked it to wait for.
  */
-import { DOWNLOAD_NOTE_WORDS } from "@app/core";
+import { DOWNLOAD_NOTE_WORDS, now as clockNow } from "@app/core";
 import type { PartFill, PartFs } from "./install";
 
 /** One of this app's downloads, as the platform's downloader reports it. `total` is -1 until the server said. */
@@ -68,6 +73,14 @@ const nameFor = (url: string, bytes: number) =>
 
 const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
+/**
+ * (T756) Does a job queued under one mobile-data rule serve the rule now asked? The same rule does. So does a Wi-Fi-only
+ * job that is running when mobile data is allowed (it is downloading on an unmetered network). A job that allows
+ * mobile data never serves "Wi-Fi only", and a Wi-Fi-only job that is not moving does not serve "use mobile data".
+ */
+const serves = (job: BgJob, allowMetered: boolean) =>
+  job.metered === allowMetered || (allowMetered && !job.metered && job.status === "running");
+
 export interface Background {
   /** Enqueue every big file not yet in place; `metered`: may they use mobile data (false: they wait for Wi-Fi). */
   queue(items: BgItem[], metered: boolean): Promise<void>;
@@ -76,8 +89,8 @@ export interface Background {
 }
 
 export function background(bg: BackgroundNative, fs: PartFs & { uri(path: string): string }, fallback: PartFill,
-                           o: { pollMs?: number; tries?: number } = {}): Background {
-  const pollMs = o.pollMs ?? 500, tries = o.tries ?? 4;
+                           o: { pollMs?: number; tries?: number; stuckMs?: number } = {}): Background {
+  const pollMs = o.pollMs ?? 500, tries = o.tries ?? 4, stuckMs = o.stuckMs ?? 20_000;
   /** what each url is (for a job started by `fill` itself: an update's file, or one whose job vanished) */
   const kinds = new Map<string, string>();
   /** the last mobile-data choice (`queue`'s); an update's job started by `fill` uses it too */
@@ -98,7 +111,7 @@ export function background(bg: BackgroundNative, fs: PartFs & { uri(path: string
         if (job?.status === "done" && !stale(job)) continue;                      // claimed when the install reaches it
         if (await fs.size(it.path) === it.bytes) continue;                        // in place (verified by the install)
         if (!job && await fs.size(`${it.path}.part`) > 0) continue;               // an older app's .part: resumed as before
-        if (job && job.status !== "failed" && !stale(job) && job.metered === allowMetered) continue;
+        if (job && job.status !== "failed" && !stale(job) && serves(job, allowMetered)) continue;
         if (job) await bg.remove(job.id);
         await enqueue(it.url, it.bytes);
       }
@@ -109,7 +122,7 @@ export function background(bg: BackgroundNative, fs: PartFs & { uri(path: string
       if (!first && have > 0) return fallback(url, part, have, total, onBytes, onRewrite);
       onRewrite?.();                                         // the job's file replaces whatever is in the .part
       let id = first?.id ?? await enqueue(url, total);
-      let failures = 0, said = "";
+      let failures = 0, said = "", pausedAt = 0;
       for (;;) {
         const job = (await bg.jobs()).find((j) => j.id === id) ?? null;
         const bad = !job ? "is gone" : job.status === "failed" ? `failed (reason ${job.reason})`
@@ -132,6 +145,17 @@ export function background(bg: BackgroundNative, fs: PartFs & { uri(path: string
           return;
         }
         onBytes?.(Math.max(0, job!.bytes));
+        // (T756) a Wi-Fi-only job (kept by `queue` because it was running) that now waits, while mobile data is allowed
+        if (job!.status === "paused" && !job!.metered && metered) {
+          pausedAt ||= clockNow();
+          if (clockNow() - pausedAt >= stuckMs) {
+            console.info(`[download] ${url}: a Wi-Fi-only download paused (reason ${job!.reason}) at ${job!.bytes} of ${total} bytes while mobile data is allowed; queued again to use it`);
+            await bg.remove(job!.id);
+            id = await enqueue(url, total);
+            pausedAt = 0; said = "";
+            continue;
+          }
+        } else pausedAt = 0;
         const now = job!.status === "paused" ? `paused (reason ${job!.reason})` : job!.status;
         if (now !== said) { console.info(`[download] ${url}: ${now}, ${job!.bytes} of ${total} bytes`); said = now; }
         await wait(pollMs);
