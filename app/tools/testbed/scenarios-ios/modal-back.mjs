@@ -78,7 +78,9 @@ export const modalBackIos = {
         ctx.flow('tap-text', { TEXT: 'Add from photos' });
         await d.sleep(4000);
         d.screenshot(path.join(ctx.dir, 'T723-mb-picker.png'));
-        try { ctx.flow('tap-text', { TEXT: 'Photo.*' }); } catch (e) { ctx.skip(`the iOS photo picker could not be driven (${e.message.slice(0, 120)}): photo viewer by reading only`); }
+        // the newest photo is the first tile (its words are not in the tree, and "Photos" is the picker's own tab): by place,
+        // under the picker's "Private Access" card (iPhone 17e, T723-mb-picker.png)
+        try { ctx.flow('tap-point', { POINT: '16%,43%' }); } catch (e) { ctx.skip(`the iOS photo picker could not be driven (${e.message.slice(0, 120)}): photo viewer by reading only`); }
         await d.sleep(2000);
         try { ctx.flow('tap-text', { TEXT: '(Add|Done)' }); } catch { /* a single pick returns by itself */ }
         await d.sleep(3000);
