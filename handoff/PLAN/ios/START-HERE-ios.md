@@ -90,12 +90,16 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
   notice keeps its old words (Android unchanged); the push path has its own sentence. Head 650665c61, app CI green.
   Needs from the owner later: an Apple push key and three `wrangler secret put` commands (in the ticket), and for
   Android a Firebase project with its `google-services.json`.
-- `perf/t741` (T741, **started 23:10**): a standing pass to make the app faster and lighter on both platforms (owner:
-  "can you make sure to keep working on optimizations? make app faster and lighter for both ios and android"). First a
-  survey with no device time (app size, the JS bundle, cold start, memory per screen, first install), then fixes that
-  change nothing a reader sees, on the branch. Savings that would lose detail or change what is shown become
-  proposals for the owner.
-
+- `perf/t741` (T741, head e68b6ab93, not merged, nothing run on a device): the standing pass to make the app faster
+  and lighter on both platforms (owner: "can you make sure to keep working on optimizations? make app faster and
+  lighter for both ios and android"). Survey done (ranked table in the ticket). **Landed on the branch:** only the 8
+  type faces the app draws are shipped, not 41 (3.9 MB less installed on each platform, measured from the export);
+  the file check written in JS is 16 to 20 % faster (measured in node as a stand-in, not on a phone); the background
+  alert check asks "changed?" and no longer reads 24 KB every run. **Found:** the 44 s check after a first download
+  on iPhone is already gone on `ios/t722-install` (native check). **Waiting for a device run:** the three changes
+  above (every face drawn as before), loading code on first use, fonts built in, Android's code shrinker (R8: 6 to
+  10 MB estimated, high risk, own ticket to open). Proposals for the owner are in the ticket (photo thumbnails,
+  database cache size). Round 2 running.
 - `ios/t746-apply-splash` (T746, **started 23:40**, from `ios/t722-install`): while new data is applied the app shows a
   loading mark and a line of text, not a still screen (owner, relayed by the Android chat: "also when changes apply to
   app we want to make it so that it has a loading icon with text like splash so it doesnt looking like it is frozen.
@@ -137,7 +141,9 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
   ask the owner first (his go-ahead was for the first test).
 - **Build 34, 23:36:** the owner asked why the iPhone build does not download in the background (build 33 is the shared
   branch's code); offered a build from `ios/integration` (51349c3bf: the four iOS fix branches merged, app CI green,
-  simulator: walkthrough 41 of 41, rule book, keyboard, offline, satellite pass); owner: "yes". Building now.
+  simulator: walkthrough 41 of 41, rule book, keyboard, offline, satellite pass); owner: "yes". **Uploaded 23:58**
+  (0.7.10 build 34, staging data, 363 s; a first try failed in setup when the engine download dropped on the bad
+  line). Symbols in `data/sourcemaps/0.7.10-b34-51349c3/ios/`. Not yet seen on the phone.
 - The Apple account side is otherwise complete (individual account, Team ID, App ID with Associated Domains, app
   record, registered iPhone).
 

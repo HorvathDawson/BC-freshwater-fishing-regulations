@@ -183,8 +183,9 @@ with the default Claude uses until you answer). Newest first inside each section
   yourself; install the TestFlight app on the iPhone; install the build and open it. Later uploads: Claude asks first.
   **ANSWERED 2026-11-14 23:35:** owner asked "i thought it can download in background?" (not on iPhone in build 33);
   offered a second build from the merged iOS branch `ios/integration` (background download, progress bar, keyboard,
-  back swipe, tap cue); owner, verbatim: "yes". Build 34 from 51349c3bf started 23:36. The shared branch is not
-  touched by it.
+  back swipe, tap cue); owner, verbatim: "yes". Build 34 from 51349c3bf **uploaded 23:58** (0.7.10 build 34, staging data). The shared
+  branch is not touched by it. Yours: add build 34 to your internal group and install it; checks only a phone can do
+  are on the To-Do page row.
 - **ANSWERED 2026-11-14 (iOS parity audit, T722/T723).** Owner, verbatim: "we want it to progress with app closed in both app
   and android" (the first install download); "need to just update text for ios" (the two promises that do not hold on
   iOS); "everything else looks like a good find should look for more things like that". So: a real iOS background
