@@ -101,3 +101,32 @@ MapLibre build-id check and `build-stamp.mjs write`, without the emulator boot t
 (part A was builds only, while the simulator lane ran). The APK names are session.sh's own (`--crash-stub` +
 `TESTBED_APK_TAG=nor8|r8`), so part B reuses them via session.sh with `--allow-stale` (this ticket commit moved HEAD; the
 app code is 9fe5e2d6c's). `pnpm -C app check:fast` green after the builds.
+
+## Phase 2, part B (2026-11-15 08:34–10:04, n1_pixel, heavy lane 2, `--crash-stub`, `run.mjs --no-r2`: nothing written to staging)
+R8 APK (`app-testbed-stub-r8.apk`), report `out/runs/2026-11-15T15-35-44`, load 4.1 at start, 4.0 at end:
+
+| bench | R8 | notes |
+|---|---|---|
+| install | PASS 4/4 | first-run download (DownloadManager, bg-download module) → map in 245 s; no FATAL at start |
+| crash-bed | PASS 5/5 | promise, JS error, native SIGSEGV each reached the local stub |
+| regs-open | PASS 26/26 | cue 31–86 ms (limit 150), page 338–373 ms |
+| bg-install | PASS 7/7 | WorkManager/Room opened (the T250 path); "opened by launch, the tap did not open it": same wording in the earlier non-R8 runs `apk-0400`, `overnight-1030` |
+| tap-stalls | PASS 5/5 | worst stall 141 ms (Run timing; limit 300) |
+| memory | PASS 14/14 | rule book (pdfium) opens at p.25; trim: "1 map view(s) told, purge 2" (rules 2 and 3 work) |
+
+**One boot, both APKs** (report `16-12-28` = R8, `16-31-17` = flag off; load 3.3–4.4 throughout):
+- Cold start, `Start proc` → first ReactNativeJS `[drawn]`, 6 each, `am force-stop` between: R8 1197/1700/1468/1491/1467/1452 ms
+  (median 1468); flag off 1657/1733/1487/1687/1526/1657 (median 1657); R8 again after the flag-off run 1699/1549/1572/1655/1542/1710
+  (median 1614). The second R8 set is within ~45 ms of flag off: no cold-start difference shown beyond drift on this boot.
+- regs-open: both 26/26; cue R8 31–86 ms vs off 40–97 ms, page 334–361 vs 330–372 ms: the same.
+- memory: R8 13/14 on that boot: the Salmon step's Maestro `tap-text` failed with no driver output while the screen showed
+  the map and the SALMON button (no FATAL, the next step passed); rerun alone on a fresh boot (`16-53-01`, load 3.9): 14/14.
+  dumpsys "Code" at boot: R8 51.9 / 38.3 MB (rerun) vs off 70.6 MB; boot PSS R8 247.7 / 221.4 vs off 282.3 MB.
+  Rule book open (first/held): R8 8405/8041 and 8297/8041 ms vs off 7907/7823 ms (R8 3–6 % slower on this path; two R8
+  samples vs one off, unconfirmed).
+- R8's mapping.txt shows the reflection targets kept by name: `MapLibreSurfaceView`'s `detachedListener` / `renderThread`
+  (the class itself is renamed; the guard uses the class literal), `MapView`, `MemoryTrimModule`, `HasChildPressedStateDelay`,
+  `WorkDatabase_Impl`. The detach guard's failure log line could not be grepped (the scenarios clear logcat).
+
+No keep-rule round was needed: the first R8 APK passed. Left: a Play internal AAB with the flag (Play's own processing,
+the download size from Play) and the owner's phone check.
