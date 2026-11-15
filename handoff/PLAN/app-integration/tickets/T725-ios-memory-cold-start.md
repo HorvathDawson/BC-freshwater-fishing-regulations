@@ -54,3 +54,31 @@ Two runs of 8ba815a23, `ios-rest` (12:27) and `ios-benches` (13:20), MB, shown a
 - Map tap → page first frame (`perf`, Hope Slough at the start view): 123 ms cold, 54 / 64 ms warm (sql 13 / 3 / 3).
 - Pan (8 swipes): JS lag max 18 ms, 0 stalls > 50 ms, RSS peak 591 MB (0.5.0: lag 17 ms, 0 stalls, peak 609-613 MB).
 - Minimum iOS: 16.4 (T718). No device verdict: simulator only.
+
+### After T717 (browse map kept under a page): `ios-mem`, build 081d93f90, iPhone 17, 2026-11-14 22:33
+The same scenario and the same device as the baseline. **Still not fully like for like:** this build is ad-hoc signed
+(495c9d490) and carries every change since 8ba815a23, not only T717. And the two baseline runs already differed by up
+to 40 MB on the same step.
+
+| step | baseline 8ba815a23 (rest / benches) | 081d93f90 | malloc now |
+|---|---|---|---|
+| boot | 164 / 135 | 134 | 41 |
+| 8 pans | 194 / 154 | 217 | 107 |
+| satellite on, 4 pans | 205 / 164 | 192 | 77 |
+| **water page (Cultus)** | **230 / 213** | **279** | 95 |
+| rule book open / closed | - ; 271 / 222 | 348 / **338** | 166 / 148 |
+| rule book 2nd open / closed | - ; 218 / 222 | **389** / 343 | 206 / 150 |
+| Conditions (page left) | 242 / 230 | 158 | 45 |
+| Map tab after Conditions | 243 / 273 | 160 | 43 |
+| Salmon | 248 / 274 | 218 | 95 |
+| after a memory warning | 248 / 271 | 215 | 91 |
+
+- **Water page: 279 MB, +49 to +66 MB on the baseline** (Android after T717: 332-411 MB with a page up, the kept map
+  estimated at 10-25 MB there).
+- **Peak 389 MB** (the rule book's second open), against the baseline's 274.
+- **New, to look at:** with the page up, closing the rule book now frees only 10 MB (348 → 338; second time 389 → 343),
+  where the baseline freed about 50 MB (271 → 222). malloc stays at about 150 MB, against 54 before. Once the page is
+  left (Conditions), the footprint drops to 158 MB. So about 180 MB is held while a page is up and the book has been
+  opened. The test bed cannot split that between PDFKit and the kept map; Instruments (Allocations) on the simulator
+  would.
+- The memory warning freed nothing measurable (218 → 215), and still no `[trim]` line in the log.
