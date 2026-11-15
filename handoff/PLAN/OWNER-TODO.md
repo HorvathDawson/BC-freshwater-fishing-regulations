@@ -27,6 +27,12 @@ with the default Claude uses until you answer). Newest first inside each section
   Apple account after approval, Play closed-testing steps. Closed on the page: T688 wording (answered 11-12). Build 29
   phone check marked replaced by the 0.7.8 / 0.7.9 rows. Not on the page (old, to prune or re-ask): Run timing T199 runs,
   Q4 / Q126 / Q9 / Q26 / Q27, the long phone-test lists (T50 / T77 / T74 / T217 / T243), SEO v1.
+- **T735 dark-mode highlight (2026-11-14): pick a look; four sheets sent in chat.** Owner: "The highlighting isn't very
+  good in dark mode on regulated streams." Measured: the white ring nearly swallows a yellow or mint line (1.1-1.3:1),
+  and on the Fraser every other part carries the same bright ring. Options, dark only: A dark edge, status colour
+  carries; B thinner white ring, others dimmer; C dark edge + soft glow [recommended, glow can be stronger]. Patch kept
+  outside the repo (`~/bcfish-session-backup-2026-11-12/dark-highlight/options.patch`); nothing changes until you pick.
+  Page row `t735-dark-highlight-pick`.
 - **From the 0.7.10 checks (2026-11-14), two looks, not blocking; pictures sent in chat.** (1) T731: stepping from the
   Chilliwack into the Vedder still makes the bottom bar 122 px shorter (the Vedder has one part, so no "Show all N
   parts" row) and the map grows by that much; steps inside one river move it 4 px. Nothing goes blank any more.
