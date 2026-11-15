@@ -775,3 +775,6 @@ checks; one page of questions for him. Nothing that changes what a wording means
   sections. YOURS: on each of the two places, tick ✗ on rows 2 and 4, then "Confirm: the extent matches DFO's words"
   (works today), or tell the main chat to save those two verified marks for you. 15 other unmarked places cannot be
   edited in the app for the same kind of reason; listed in the report.
+- ASKED 2026-11-15 as he left: "record everything i need to do for when i am back what i need to review with questions
+  what was done etc etc. what needs testings etc etc". Kept in `handoff/PLAN/OWNER-RETURN-2026-11-15.md` (sent to him
+  as a file when final) and as the first row of the To-Do page.
