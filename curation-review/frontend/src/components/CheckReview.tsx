@@ -81,6 +81,12 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
     setEditingRaw(e);
     if (!e || e.full) setLayers(null);
   }, []);
+  // T742 E1 (perf): ONE `embedded` object per draft — a new one each render re-ran the inline editor's preview effect,
+  // whose `onMap` set the parent's layers, which re-rendered the parent: ~970 renders a second while picking ends,
+  // and the same 684 KB extent preview fetched about once a second
+  const editDraft = editing?.draft ?? null;
+  const embedded = useMemo(() => ({ onMap: setLayers, onFull: () => setEditing({ draft: editDraft, full: true }) }),
+    [editDraft, setEditing]);
   // the water the shown place is on: every place, older wordings too (`checks.water`), and its DFO extents' geometry
   const [waterView, setWaterView] = useState<(WaterView & { at: string }) | null>(null);
   const [waterReach, setWaterReach] = useState<{ key: string; fc: WaterReach } | null>(null);
@@ -126,17 +132,24 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
   }, [prefix]);
   // the editor (and the draft it was opened on) belongs to ONE place: any move to another place closes it
   useEffect(() => { setEditing(null); }, [selected]);
-  // a save is applied in the background: when the write-through's word on the shown place changes (saving → saved /
-  // refused), the place and the counts are read again — it never stays on "being applied"
-  const wtSeen = useRef<string | undefined>(undefined);
+  // a save is applied in the background: when the write-through on a place saved here ends (saved / refused), the
+  // counts are read again ONCE — and the place too when it is the one shown — so it never stays on "being applied".
+  // T742 E3 (perf): only the end of an apply reloads (it reloaded on every change of the shown place's word, and again
+  // on the move to the next place: two full reloads per save)
+  const applying = useRef<Set<string>>(new Set());
   useEffect(() => onWriteThrough((s) => {
-    const st = selected ? s.outcomes[wtKey("dfo", selected)]?.state : undefined;
-    if (st !== wtSeen.current) {
-      const was = wtSeen.current;
-      wtSeen.current = st;
-      if (was !== undefined || st === "saved" || st === "refused") { loadQueue(); setVersion((v) => v + 1); }
+    let ended = false, shownEnded = false;
+    for (const id of [...applying.current]) {
+      const st = s.outcomes[wtKey("dfo", id)]?.state;
+      if (st === "saved" || st === "refused") {
+        applying.current.delete(id);
+        ended = true;
+        if (id === shown.current) shownEnded = true;
+      }
     }
-  }), [selected, loadQueue]);
+    if (ended) loadQueue();
+    if (shownEnded) setVersion((v) => v + 1);
+  }), [loadQueue]);
   // the first place of the list when the URL names none
   useEffect(() => { if (!selected && queue?.length) open(queue[0].id); }, [queue, selected, open]);
 
@@ -211,6 +224,7 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
   const afterSave = (id: string, what: "extent" | "confirm" | "problem" | "group" | "area", text?: string) => {
     setSavedNote({ id, what, text });
     setEditing(null);
+    applying.current.add(id);
     const fresh = loadQueue();
     setVersion((v) => v + 1);
     if (what === "problem" || what === "group" || what === "area") return;      // stays on the place
@@ -218,7 +232,8 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
     (!filter && !q.trim() ? fresh : api.checksQueue(source, "", "")).then((all) => {
       if (!all) return;
       const t = nextAfterSave(all, id);
-      if (t.next !== null) { const to = t.next; window.setTimeout(() => { if (shown.current === id && !draft.current) open(to); }, 1600); }
+      // T742 E3 (perf): straight on to the next place (it waited a fixed 1.6 s); the "Saved: …" note says what was saved
+      if (t.next !== null && shown.current === id && !draft.current) open(t.next);
       // none left on this water: the permanent "all N places done" line (the list header, the done block) says so
     }).catch(failed("the next place after the save"));
   };
@@ -232,7 +247,11 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
   const labelOf = (c: string) => d0?.cut_labels[c] ?? d0?.proposed.find((x) => x.id === c)?.name ?? null;
   const nameOf = (i: string) => d0?.item_names[i] ?? i;
   const pendingFix = d0?.saved && d0.saved.state !== "landed" && d0.saved.state !== "deferred" ? savedFixesOf(d0.mark) : [];
-  const savedWords = !cur || !savedNote || savedNote.id !== cur.id ? "" : savedNote.what === "confirm" ? "Saved: your confirmation"
+  // T742 E3: the list moves on at once after a save — the place it came from is said saved, by its words, here
+  const prevText = savedNote && cur && savedNote.id !== cur.id ? (queue?.find((p) => p.id === savedNote.id)?.text ?? savedNote.id) : "";
+  const savedWords = !cur || !savedNote ? "" : savedNote.id !== cur.id
+    ? (savedNote.what === "extent" || savedNote.what === "confirm" ? `Saved the previous place (“${prevText.slice(0, 60)}”); this is the next one` : "")
+    : savedNote.what === "confirm" ? "Saved: your confirmation"
     : savedNote.what === "problem" ? "Saved: your problem report"
     : savedNote.what === "group" ? `Saved just now: ${savedNote.text ?? "your grouping decision"}`
     : savedNote.what === "area" ? savedNote.text ?? "the closed area"
@@ -351,7 +370,7 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
                 <div className="ck-inline-scroll">
                   <DfoLocation key={`${cur.id}|${version}`} detail={cur.dfo} mode={mode} initialCall="change"
                     initialDraft={editing.draft} nav={{ pos: at.pos, total: at.total }} saving={false}
-                    embedded={{ onMap: setLayers, onFull: () => setEditing({ draft: editing.draft, full: true }) }}
+                    embedded={embedded}
                     onBack={() => setEditing(null)}
                     onMarked={(said) => afterSave(cur.id, "extent", said)} />
                 </div>
@@ -372,22 +391,24 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
 async function loadPlace(id: string, place: CheckPlace | null, onWater: string | null = null): Promise<Loaded> {
   const isRule = place ? place.source === "regs" : id.includes("#");
   if (!isRule) {
+    // T742 E7 (perf): the place's requests go together — the reach with the rows and the detail, then the saved
+    // extent's preview and the proposal's side by side (they were one after another)
+    const reachP = api.dfoReach(id, false).catch((e) => { failed("the DFO reach")(e); return null; });
     const [check, d] = await Promise.all([api.checkDfo(id), api.dfoLocation(id)]);
-    const reach = await api.dfoReach(id, false).catch((e) => { failed("the DFO reach")(e); return null; });
-    let pending: GeoJSON.FeatureCollection | null = null;
     const saved = d.saved && d.saved.state !== "landed" && d.saved.state !== "deferred" ? savedFixesOf(d.mark) : null;
-    if (saved?.length) {
-      const pv = await api.dfoExtentPreview(id, saved as ExtentFix[], false).catch((e) => { failed("the saved extent's preview")(e); return null; });
-      if (pv?.resolvable) pending = (pv.geojson ?? null) as GeoJSON.FeatureCollection | null;
-    }
+    const pendingP: Promise<GeoJSON.FeatureCollection | null> = saved?.length
+      ? api.dfoExtentPreview(id, saved as ExtentFix[], false)
+        .then((pv) => (pv?.resolvable ? (pv.geojson ?? null) as GeoJSON.FeatureCollection | null : null))
+        .catch((e) => { failed("the saved extent's preview")(e); return null; })
+      : Promise.resolve(null);
     const p: CheckPlace = place ?? { source: "dfo", id, water: d.row.water,
       water_key: onWater ?? d.items.map((i) => i.id).sort().join("|"),
       region: d.row.region, text: d.row.text, summary: check.summary, check: check.check };
     // THE ONE PROPOSAL (the editor's own: Claude's fix proposal, else the suggestion), offered as the editor offers it
     const best = proposalOf(d);
     const fixes = suggestionFix(best?.s ?? null, [])?.fixes ?? [];
-    let proposal: Loaded["proposal"] = null;
-    if (best && !d.extent_now.cannot_change.length && offerProposal(d.extent_now.pieces, fixes, saved?.length ? saved : null)) {
+    const proposalP = (async (): Promise<Loaded["proposal"]> => {
+    if (!(best && !d.extent_now.cannot_change.length && offerProposal(d.extent_now.pieces, fixes, saved?.length ? saved : null))) return null;
       const label = (sid: string) => d.cut_labels[sid] ?? d.proposed.find((x) => x.id === sid)?.name
         ?? best.s.suggestion?.new_splits?.find((n) => n.ref === sid)?.name ?? null;
       const name = (i: string) => d.item_names[i] ?? d.items.find((x) => x.id === i)?.name ?? i;
@@ -404,12 +425,13 @@ async function loadPlace(id: string, place: CheckPlace | null, onWater: string |
           tributaries: sg.tributaries }, false).catch((e) => { failed("the proposal's preview")(e); return null; });
         if (pv?.resolvable) feats = [...((pv.geojson?.features ?? []) as GeoJSON.Feature[]), ...feats];
       }
-      proposal = { words: sg.words ?? partsText(piecesParts(fixes, (f) => fixParts(f, label, name))),
+      return { words: sg.words ?? partsText(piecesParts(fixes, (f) => fixParts(f, label, name))),
                    ring: fixes.flatMap((f) => f.points).filter((x) => x.kind === "split" && x.split_id).map((x) => x.split_id as string),
                    from: best.from, confidence: best.from === "suggestion" ? d.suggestion?.confidence ?? null : null,
                    caveat: best.from === "suggestion" ? d.suggestion?.caveat ?? null : null,
                    fc: { type: "FeatureCollection", features: feats } };
-    }
+    })();
+    const [reach, pending, proposal] = await Promise.all([reachP, pendingP, proposalP]);
     return { id, place: p, check, dfo: d, named: d.splits, items: d.items.map((i) => ({ id: i.id, name: i.name })), proposal,
              reach: reach?.resolvable ? (reach.geojson as GeoJSON.FeatureCollection) : null, pending,
              title: d.verbatim.waters || d.row.water, sub: `DFO region ${d.row.region}${d.row.status !== "active" ? " · no longer on the live page" : ""}`,

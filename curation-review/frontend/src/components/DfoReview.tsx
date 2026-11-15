@@ -415,6 +415,9 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
   const [liveWhy, setLiveWhy] = useState("");
   const [approx, setApprox] = useState<[[number, number], [number, number]][] | null>(null);
   const [approxGot, setApproxGot] = useState<{ km: number; why?: string } | { why: string } | null>(null);
+  // T742 E1: the effects below depend on WHETHER it is embedded, never on the object (a new one per parent render
+  // looped them)
+  const isEmbedded = !!embedded;
   useEffect(() => {
     if (!embedded || call !== "change" || !opPoints) return;
     const where = (pt: ExtentFix["points"][number]): [number, number] | null => {
@@ -469,7 +472,7 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
       }).catch((e) => { if (live) only(`the preview failed: ${e}`); failed("the draft's preview")(e); });
     }, 250);
     return () => { live = false; window.clearTimeout(t); };
-  }, [embedded, call, fixes, opPoints, showTribs, splits, checks]);  // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isEmbedded, call, fixes, opPoints, showTribs, splits, checks]);  // eslint-disable-line react-hooks/exhaustive-deps
   // r4: every new cut of the draft gets its position from the server (an offset from a cut has no coordinate of its own)
   useEffect(() => {
     if (!embedded) return;
@@ -478,7 +481,7 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
     let live = true;
     void newCutChecks(id, need, splitAt).then((got) => { if (live && Object.keys(got).length) setChecks((m) => ({ ...got, ...m })); });
     return () => { live = false; };
-  }, [embedded, splits]);  // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isEmbedded, splits]);  // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!embedded) return;
     embedded.onMap({ draft: call === "change" ? fixPreview : null, cutPreview: cutPv, named, editPoints, onPick: pick.cb,
