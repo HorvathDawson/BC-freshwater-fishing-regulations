@@ -139,8 +139,10 @@ with the default Claude uses until you answer). Newest first inside each section
   ANSWERED 2026-11-14 late, verbatim: "okay i ticked push notifications for app yes build for iphone."; time-sensitive:
   "dont need this"; and "i guess if new data is there we could send a notification that the user needs to download it."
   (built as: a new release wakes the phone, which downloads by itself when settings allow and otherwise tells you new
-  data is ready). Being built on branch `ios/t739-push`. Still yours later: one more Apple key, for push (steps come when
-  the worker side is ready);
+  data is ready). Then, verbatim: "for android too." (Android push approved as well; it uses Google's Firebase for delivery only,
+  Claude's reading: your exception to "self-host everything" for this one thing). Being built on branch `ios/t739-push`.
+  Still yours later: one more Apple key, for push, and a free Firebase project for Android (steps come when the worker
+  side is ready);
   (12) Play's data-safety form says approximate location and the App Store answers say precise: should Play match?
 - **Apple Developer account: APPROVED 2026-11-14 evening (individual); the owner has the Team ID** (given in chat; not
   written in the repo). DONE by you 2026-11-14: the Team ID is saved in `~/.canifishthis/ios-team-id` (checked: the site build reads

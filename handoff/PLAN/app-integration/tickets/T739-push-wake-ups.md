@@ -1,6 +1,6 @@
 # T739 — Push "wake-ups" so alerts and notices arrive on time (iPhone first, Android as a second step)
 
-Status: IN PROGRESS (iPhone step approved by the owner 2026-11-14; iOS chat, branch `ios/t739-push`; Android step not approved).
+Status: IN PROGRESS (both steps approved by the owner 2026-11-14: iPhone, then "for android too."; iOS chat, branch `ios/t739-push`; Android needs the owner's Firebase project file before it can be built).
 
 Source: owner 2026-11-14, verbatim: "dont we want to use it for the notifications thought?" (on the Push Notifications
 box of the App ID), "there are also time sensitive notifications?" and "can we do this same push notification style to
@@ -15,8 +15,10 @@ needs to download it."
 So: step 1 (iPhone, APNs) is approved and Push is ticked on the App ID; the `aps-environment` entitlement stays (audit
 G12's removal is dropped). Time-sensitive notices are NOT wanted. New scope from the third sentence (Claude's reading):
 the wake-up also fires when a new release is published; the phone then starts the download itself when its settings
-allow, and otherwise makes a local notification saying new data is ready to download. Android (FCM) was not answered:
-the default stands (only if phones show late alerts).
+allow, and otherwise makes a local notification saying new data is ready to download. Android (FCM): answered a minute later, verbatim: "for android too."
+So the Android step is approved as well, said after being told it means Google's Firebase inside the app: Claude reads
+that as the owner's exception to "self-host everything" for push delivery only (no Firebase Analytics, nothing else of
+Firebase). The owner makes the Firebase project and hands over `google-services.json`.
 
 ## Today (read in the code)
 No notification on either platform uses push. The phone wakes in the background (`apps/mobile/src/notify.native.ts`,
