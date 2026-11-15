@@ -778,3 +778,7 @@ checks; one page of questions for him. Nothing that changes what a wording means
 - ASKED 2026-11-15 as he left: "record everything i need to do for when i am back what i need to review with questions
   what was done etc etc. what needs testings etc etc". Kept in `handoff/PLAN/OWNER-RETURN-2026-11-15.md` (sent to him
   as a file when final) and as the first row of the To-Do page.
+- DONE 2026-11-15 (your permission): Bella Coola "all tributaries" = tributaries only, Atnarko excepted (line 2730);
+  Bella Coola whole "(not including Atnarko River)" = Atnarko excepted (2731, per your note "make sure this excludes
+  atnarko"); the two Bulkley "all tributaries" places (2732, 2733) = tributaries only. YOURS: the two Bulkley places had
+  no mark of yours, so they are saved as "unsure" from the proposal: confirm or change.

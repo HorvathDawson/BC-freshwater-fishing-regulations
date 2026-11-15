@@ -64,13 +64,18 @@ App looks
 - Gitnadoix "upstream of powerline crossing": saved as the whole river with the powerline point unused. Intended?
 - Kitimat west bank: saved as a whole-width stretch; leave until question 12 is answered.
 - After the rebuild: re-tick the three Puntledge marks (1263, 2447, 2687).
+- The two Bulkley "all tributaries" places: saved for you as "unsure" from the proposal (they had no mark); confirm.
 - The audit's list (section 5) after you have answered the questions.
 
 ## 4. What was done today (so you know what changed)
 Saved for you, each noted "saved by Claude at the owner's request", your marks never edited, backups taken:
 - Stave "downstream of B.C. Hydro dam": tributaries set to off (line 2672).
 - Exchamsiks "upstream of Highway 16 bridge": the Highway 16 split restored (line 2728).
-- Running now: Bella Coola "all tributaries" (tributaries only, Atnarko excepted) and the two Bulkley places.
+- Bella Coola "all tributaries": tributaries only, Atnarko excepted (line 2730). It no longer holds any Bella Coola
+  mainstem or Atnarko section (10,048 sections down to 4,994), so mainstem chinook stops reading "no fishing".
+- Bella Coola "(not including Atnarko River)", whole: the Atnarko excepted (line 2731), as your note on it asked.
+- The two Bulkley "all tributaries of the Bulkley River" places (lines 2732, 2733): tributaries only. NOTE: these two
+  had NO mark of yours; they were built from the proposal and saved as "unsure" for you to confirm or change.
 Data
 - Puntledge: weir cut added; the "75 m downstream" cut moved to 75 m below the weir (was on the weir).
 - Redsand Lake bug fixed (2,639 sections down to 4; Kitsumkalum Lake 2,626 to 983).
@@ -91,7 +96,7 @@ after the clean-up and the rebuild; the final list replaces these numbers here.
 
 ## 6. Still running / not done (the main chat fills this in)
 - Cut clean-up: duplicates matched, confluence ends, Hells Gate search, bad cuts. RUNNING.
-- Tributaries-only saves. RUNNING.
+- Tributaries-only saves. DONE (lines 2730-2733); they land in the place files with the clean-up's apply step.
 - Side map rebuild with the cleaned cuts, and its checks. NOT STARTED.
 - Build step that carries accepted closed areas (Thompson, Shuswap) into the app. NOT WRITTEN; needed before release.
 - App fix: BC border as a pickable point; reason shown when a place cannot be edited. NOT DONE.
