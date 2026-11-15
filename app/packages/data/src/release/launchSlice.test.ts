@@ -1,9 +1,9 @@
 /**
  * (T741) A LAUNCH decodes the paint in long slices (`LAUNCH_SLICE_MS`: the boot screen is all there is); an update applied
  * while the map is on screen (`keepReplaced`) and every other caller keep `SLICE_MS`. Pinned at the three joints: the boot's
- * choice (`paintSliceFor`), the loader handing the choice to the decoder, and the boot's open path asking with it.
+ * choice (`paintSliceFor`) and the loader handing the choice to the decoder; the boot's open path asking with it is
+ * `tools/launch-slice.test.ts` (a source read: packages/data may not import node:fs).
  */
-import { readFileSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
 
 const asked: (number | undefined)[] = [];
@@ -47,12 +47,4 @@ describe("(T741) the launch's paint slice", () => {
     expect(asked).toEqual([LAUNCH_SLICE_MS, undefined, undefined]);
   });
 
-  it("the phone's open path asks with paintSliceFor; no other paint() call in the boot passes a slice", () => {
-    // code lines only (a doc comment names `loader.paint()` too); the web's first paint (its turns are a MessageChannel's,
-    // no timer floor) keeps the default, the phone's held-set open asks with paintSliceFor
-    const code = readFileSync(new URL("./boot.ts", import.meta.url), "utf8").split("\n")
-      .filter((l) => !/^\s*(\*|\/\/|\/\*\*)/.test(l)).join("\n");
-    const calls = [...code.matchAll(/loader\.paint\(([^)]*\)?)\)/g)].map((c) => c[1]);
-    expect(calls).toEqual(["", "paintSliceFor(o)"]);
-  });
 });
