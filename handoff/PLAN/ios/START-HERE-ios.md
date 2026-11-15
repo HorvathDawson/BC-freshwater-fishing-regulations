@@ -37,6 +37,14 @@ merges only after your yes or your changes to those words.
 after build 33 is uploaded; then the loading screen, bar fix, crash-report fix and faster-and-lighter set after one
 Android run; push last. A trial merge of step 1 has two small conflicts (one test file, one ticket).
 
+**Added 13:08.** (1) Disk: I deleted seven orphaned Xcode build caches from the TestFlight builds and four simulators
+of finished lanes (integ-17, t739-17, t741-17, t746-17); free space went from 20 to 32 GB for the Android chat's atlas
+build. The crash symbols of builds 33–36 and simulator next-17 are kept. (2) Coming from the Android chat, not started:
+the feeds worker must emit the "closed areas inside a DFO place" pieces (T573) before any release binds one, or the app
+would show such a closed area as open. Nothing binds today. I take it as T757 when its spec lands
+(`handoff/PLAN/app-integration/tickets/T573-files/worker-handoff.md`); I asked for a mechanical guard (the release
+refuses when the worker does not report the new feed shape) and for the app to say "not known" instead of "open".
+
 ## Morning summary, 2026-11-15 (written 07:32; the night's work in one place)
 
 **For you to do, in this order**
