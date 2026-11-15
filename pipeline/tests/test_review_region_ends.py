@@ -40,7 +40,8 @@ def R(monkeypatch):
     monkeypatch.setattr(reuse, "_region_rows", lambda: {BLK: list(CROSSINGS)})
     monkeypatch.setattr(reuse, "_blk_index", lambda: {BLK: [(d, u, f"{BLK}:{int(d)}") for d, u, _r in SPANS]})
     monkeypatch.setattr(reuse, "_section_regions", lambda: {f"{BLK}:{int(d)}": frozenset(r) for d, _u, r in SPANS})
-    monkeypatch.setattr(reuse, "_point_at", lambda blk, m: SimpleNamespace(x=-121.0, y=49.0 + m / 1e7))
+    from shapely.geometry import Point
+    monkeypatch.setattr(reuse, "_point_at", lambda blk, m: Point(1_400_000.0, 500_000.0 + m / 100))   # BC Albers
     reuse.region_ends.cache_clear()
     yield reuse
     reuse.region_ends.cache_clear()
@@ -57,6 +58,8 @@ def test_the_fraser_offers_each_crossing_by_its_plain_name_km_and_the_id_that_bi
         "Region 7A boundary · km 674 — where Region 5 and Region 7A meet starts here, upstream to km 704",
         "Region 5 boundary · km 704 — where Region 5 and Region 7A meet ends here (it runs down to km 674)"]
     assert (got[0]["below"], got[0]["above"]) == (["3"], ["3", "5"])
+    lon, lat = got[0]["coord"]                     # lon/lat, never the atlas's metres (the map refused 500,000 as a latitude)
+    assert -140 < lon < -110 and 47 < lat < 61
     # never the atlas label, which named the same neighbour pair on two different cuts
     assert not any("–" in e["label"] for e in got)
 

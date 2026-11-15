@@ -2147,8 +2147,9 @@ def region_ends(item_id: str) -> tuple[dict, ...]:
                 label += (f" — where {both(below)} meet ends here"
                           + (f" (it runs down to km {round(bot / 1000)})" if bot is not None else ""))
             pt = _point_at(blk, m)
+            ll = _geo(pt, "region_end", {}) if pt is not None else None        # the atlas is BC Albers: to lon/lat
             out.append({"id": bid, "base": base, "region": code, "blk": blk, "measure": m, "km": km,
-                        "coord": [pt.x, pt.y] if pt is not None else None, "below": below, "above": above,
+                        "coord": list(ll["geometry"]["coordinates"])[:2] if ll else None, "below": below, "above": above,
                         "label": label, "bindable": bindable, "why": why})
     return tuple(out)
 
