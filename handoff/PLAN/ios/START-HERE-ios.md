@@ -95,7 +95,11 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
   notice keeps its old words (Android unchanged); the push path has its own sentence. Head 650665c61, app CI green.
   **02:10: the owner made the push key, stored the three secrets on the staging worker himself, and said yes**
   ("yes i do i ran command") to the worker with the push code on staging and a TestFlight build 35 from this
-  branch. Build 35 queued; the worker deploy waits for the Android chat's site deploy (it re-runs every feed job).
+  branch. **Build 35 uploaded 02:35** (0.7.10 build 35 = build 34's app plus the push code; symbols in
+  `data/sourcemaps/0.7.10-b35-650665c/ios/`). The worker deploy (branch `ios/staging-worker` = this branch plus the
+  crash-limit commit, 467 worker tests pass) waits for the Android chat's site deploy (it re-runs every feed job);
+  a staging release tonight would put the old worker back, then it is deployed again. The push worker commits stay
+  off the shared branch tonight (production worker and privacy page first).
   Needs from the owner later: an Apple push key and three `wrangler secret put` commands (in the ticket), and for
   Android a Firebase project with its `google-services.json`.
 - `perf/t741` (T741, head e68b6ab93, not merged, nothing run on a device): the standing pass to make the app faster

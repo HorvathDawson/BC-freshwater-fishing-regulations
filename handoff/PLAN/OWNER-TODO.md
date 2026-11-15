@@ -161,7 +161,9 @@ with the default Claude uses until you answer). Newest first inside each section
   the three `wrangler secret put` commands himself; the staging feeds worker lists APNS_KEY, APNS_KEY_ID and
   APNS_TEAM_ID (names checked, values not read). To "Do you want those tonight?" (deploy the worker with the push code
   to staging, and upload TestFlight build 35 from the push branch), owner, verbatim: "yes i do i ran command". Build 35
-  queued 02:12 from `ios/t739-push` 650665c61; the worker deploy is timed with the Android chat. Firebase (Android)
+  **uploaded 02:35** from `ios/t739-push` 650665c61; the worker deploy is timed with the Android chat. Yours
+  after Claude says the worker is on staging: install build 35, turn notifications on in the app, tell Claude; Claude
+  sends one test push. Firebase (Android)
   still yours, later.
   Still yours later: one more Apple key, for push, and a free Firebase project for Android (steps come when the worker
   side is ready);
