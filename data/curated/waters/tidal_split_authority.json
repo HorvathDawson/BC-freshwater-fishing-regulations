@@ -3,11 +3,11 @@
  "format": "tidal_split_authority/2",
  "classified": "2026-11-11",
  "counts": {
-  "splits": 33,
+  "splits": 34,
   "dfo_written": 23,
-  "not_shown": 10,
+  "not_shown": 11,
   "authority_dfo": 23,
-  "authority_owner": 10,
+  "authority_owner": 11,
   "authority_none": 0
  },
  "splits": [
@@ -312,6 +312,16 @@
    "url": "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region6-eng.html",
    "cached": "data/source/dfo_tidal_areas/2026-10-28 and 2026-11-11: fm-gp/rec/fresh-douce/region6-eng.html; data/source/dfo_tidal_areas/2026-10-28 and 2026-11-11: fm-gp/rec/tidal-maree/a-s2-eng.html",
    "agrees": "the 1.5 km sign is located at 5750.1 m, the split at 5750.3 m; DFO's two pages disagree by 500 m"
+  },
+  {
+   "blk": "360874940",
+   "name": "Pallant Creek",
+   "split": "pallant_creek__bridge_near_mouth",
+   "dfo_written": false,
+   "authority": "owner",
+   "note": "the owner's own call 2026-11-15; DFO's freshwater place names the bridge ('upstream of the bridge located near the mouth of Pallant Creek'), not a tidal boundary",
+   "owner": "owner 2026-11-15, verbatim: \"Pallant Creek we can make the bridge the tidal boudnary i think\" (T743). The owner's boundary: it governs its water like a DFO-written one (T678).",
+   "decided": "2026-11-15"
   },
   {
    "blk": "360875983",
