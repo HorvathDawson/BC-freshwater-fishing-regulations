@@ -139,10 +139,12 @@ export function Shell(p: ShellProps) {
    *  Salmon / Bait & fly files wait for its idle start on the web (`settled`), so first paint fetches paint alone. */
   const [settled, setSettled] = useState(!(p.prefetch && loader));
   // (T253) and the background tier after it: every file an unnamed-stream tap reads, the region in view first
-  const background = useBackgroundPrefetch(p.prefetch ? loader : null, { onEvent: p.prefetchLog ?? undefined });
   // (T254) LOW-BANDWIDTH MODE: the background tier holds, the idle tier fetches only the region's file (no core), and the
-  // map's bait & fly marks wait for a quiet line (15 s with nothing downloading)
+  // map's bait & fly marks wait for a quiet line (15 s with nothing downloading). (T737) While the reader downloads (a
+  // tap's files: the net's activity), the background tier starts nothing new.
   const netState = useNet();
+  const background = useBackgroundPrefetch(p.prefetch ? loader : null, { onEvent: p.prefetchLog ?? undefined,
+                                                                         activity: netState.net?.activity ?? null });
   const lowNow = useRef(netState.mode.low);
   lowNow.current = netState.mode.low;
   useEffect(() => { background.scheduler?.signals({ lowData: netState.mode.low }); }, [background.scheduler, netState.mode.low]);

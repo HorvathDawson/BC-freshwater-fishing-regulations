@@ -6,6 +6,8 @@
  *   WHAT        `WEB_BUDGET.first_tap_unnamed` (the contract's own list: core, water, access, regs-<r>, regs-sid,
  *               down, salmon, salmon-<r>), per region; a file the manifest does not name is skipped, one already
  *               prefetched or opened costs nothing. A region is READY when every one of its files is held.
+ *               (T737) Within a region: what a named tap reads, then regs-sid and down, then the whole water
+ *               (`UNNAMED_ORDER`); and while the reader is downloading (`reader`) nothing new starts.
  *   ORDER       the region in view, then its neighbours (`REGION_NEAR`), then every other region (T238, owner
  *               2026-10-29: the regulations of ALL regions over time, the view's first; this replaces the 10-28 cap at
  *               view + neighbours). When the view moves to another region, that region and its neighbours go next. The shared files (water, regs-sid, down …) come with the first region, so the next costs
@@ -27,6 +29,7 @@ import { REGIONS, WEB_BUDGET, type Region } from "../pack.generated";
 import type { Manifest } from "../manifest";
 import type { FileName, ReleaseLoader } from "./loader";
 import { PREFETCH_MARK } from "./prefetch";
+import { PRIORITY } from "../net/policy";
 import { now as clockNow } from "@app/core";
 
 /**
@@ -66,15 +69,39 @@ export function regionOrder(view: readonly Region[]): Region[] {
   return out;
 }
 
-/** The files an unnamed tap in region `r` reads, as the contract lists them, that this manifest names. */
+/**
+ * (T737, owner 2026-11-14: "slow load the stuff needed for unnamed streams in background") THE ORDER WITHIN A REGION: what
+ * a NAMED tap reads first (core, access, the region's regs and salmon: small), then the two whole files only an UNNAMED
+ * tap's page waits for (`regs-sid` 1.2 MB, `down` 1.2 MB gzip), and only then the whole `water` (2.6 MB). Since T737 a
+ * tap reads its region's 0.17 MB water slice while the whole water is still coming, so the whole water first held the
+ * unnamed files back ~4-8 s and helped no tap. A file not named here keeps the contract's order, after these.
+ * `lines` (1.3 MB) is NOT fetched ahead: the unnamed tap asks for it (its link place) but its page does not wait for it
+ * (measured 2026-11-14: readable in 0.07 s with `lines` still downloading), and fetched ahead it slowed a named tap at 8 s
+ * (0.8 → 2.2 s on a phone, `lines` in flight).
+ */
+export const UNNAMED_ORDER: readonly string[] = ["core", "access", "regs-{region}", "salmon", "salmon-{region}",
+  "regs-sid", "down", "water"];
+
+/** The files an unnamed tap in region `r` reads, as the contract lists them, that this manifest names, in fetch order. */
 export function unnamedTapFiles(m: Pick<Manifest, "files">, r: Region): FileName[] {
-  return WEB_BUDGET.first_tap_unnamed!.files
+  const files = WEB_BUDGET.first_tap_unnamed!.files
     // (T256) the answer slices as their WHOLE files: this walks the province, and the whole water answers every region
     // (T370) — `water-shared` too: the whole water holds its tables
     .map((f) => (f === "core-{region}" || f === "water-{region}" || f === "water-shared" ? f.split("-")[0]!
       : f.replace("{region}", r)) as FileName)
     .filter((f, i, all) => !!m.files[f] && all.indexOf(f) === i);
+  const order = UNNAMED_ORDER.map((f) => f.replace("{region}", r));
+  const rank = (f: FileName) => { const i = order.indexOf(f); return i < 0 ? order.length : i; };
+  return files.map((f, i) => [f, i] as const).sort((a, b) => rank(a[0]) - rank(b[0]) || a[1] - b[1]).map(([f]) => f);
 }
+
+/**
+ * (T737) Whether the READER is downloading a release file now (a tap's answer or the page's extras: priority under
+ * `ahead`; a file the prefetch started that a tap then joined counts too, it was raised). While so, the background
+ * starts nothing new: a tap's files never share the line with a file nobody asked for yet.
+ */
+export const readerDownloading = (s: { readonly downloads: readonly { readonly priority: number }[] }): boolean =>
+  s.downloads.some((d) => d.priority < PRIORITY.ahead);
 
 export interface NetSignals {
   online: boolean;
@@ -139,6 +166,11 @@ export interface BackgroundPrefetch {
   view(regions: readonly Region[]): void;
   /** New network / device signals: a hold pauses, its end resumes. */
   signals(s: Partial<NetSignals>): void;
+  /**
+   * (T737) The reader is downloading (`readerDownloading`): nothing new starts until it is not; the file in flight goes on
+   * (a tap that needs it has joined it). Not a hold: it is said nowhere, it only yields the line for a moment.
+   */
+  reader(busy: boolean): void;
   /** Stop for good (the loader changed, the app is closing). */
   cancel(): void;
   snapshot(): PrefetchSnapshot;
@@ -164,7 +196,7 @@ export function createBackgroundPrefetch(o: BackgroundOptions): BackgroundPrefet
   const cap = Math.max(1, o.concurrency ?? 1);
   let net: NetSignals = { ...NET_DEFAULT, ...o.signals };
   let view: Region[] = [];
-  let started = false, cancelled = false;
+  let started = false, cancelled = false, readerBusy = false;
   const active = new Set<FileName>();
   const failed = new Set<FileName>();
   const told = new Set<Region>();
@@ -213,7 +245,7 @@ export function createBackgroundPrefetch(o: BackgroundOptions): BackgroundPrefet
       else if (lastHold) say({ kind: "resumed", note: `after ${lastHold}` });
       lastHold = hold;
     }
-    if (hold) { changed(); return; }
+    if (hold || readerBusy) { changed(); return; }
     while (active.size < cap) {
       const f = next();
       if (!f) break;
@@ -259,6 +291,11 @@ export function createBackgroundPrefetch(o: BackgroundOptions): BackgroundPrefet
       net = { ...net, ...s };
       // the end of a hold is a fresh chance for what failed under it
       if (was && !prefetchHold(net)) failed.clear();
+      pump();
+    },
+    reader(busy) {
+      if (busy === readerBusy) return;
+      readerBusy = busy;
       pump();
     },
     cancel() {

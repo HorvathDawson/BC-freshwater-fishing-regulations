@@ -15,8 +15,9 @@
  * `BACKGROUND_DELAY_MS` after the idle tier and tells it each region the map settles in.
  */
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
-import { createBackgroundPrefetch, prefetchPlan, regionOfTile, runPrefetch, LOW_BATTERY,
+import { createBackgroundPrefetch, prefetchPlan, readerDownloading, regionOfTile, runPrefetch, LOW_BATTERY,
          type BackgroundPrefetch, type NetSignals, type PrefetchSignals, type PrefetchSnapshot } from "@app/data/release";
+import type { NetActivity } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import type { UpdateEvent } from "@app/core";
 
@@ -132,7 +133,11 @@ const NONE: PrefetchSnapshot = { state: "waiting", hold: null, ready: [], total:
  * (T253) The web's background prefetch for a loader: the scheduler (null: no loader, or the walk turned it off) and its
  * state, re-read on every change. Cancelled when the loader changes (a new release) or the screen goes.
  */
-export function useBackgroundPrefetch(loader: ReleaseLoader | null, o: { onEvent?: (e: UpdateEvent) => void } = {}):
+export function useBackgroundPrefetch(loader: ReleaseLoader | null,
+                                      o: { onEvent?: (e: UpdateEvent) => void;
+                                           /** (T737) the app's download activity: while the reader downloads, nothing new
+                                            *  starts (`readerDownloading`); null: no app `Net` */
+                                           activity?: Pick<NetActivity, "snapshot" | "subscribe"> | null } = {}):
     { scheduler: BackgroundPrefetch | null; status: PrefetchSnapshot } {
   const onEvent = useRef(o.onEvent);
   onEvent.current = o.onEvent;
@@ -173,6 +178,14 @@ export function useBackgroundPrefetch(loader: ReleaseLoader | null, o: { onEvent
       scheduler.cancel();
     };
   }, [scheduler]);
+  // (T737) a tap's downloads go first: the background starts nothing new while any is under way
+  const activity = o.activity ?? null;
+  useEffect(() => {
+    if (!scheduler || !activity) return;
+    const read = () => scheduler.reader(readerDownloading(activity.snapshot()));
+    read();
+    return activity.subscribe(read);
+  }, [scheduler, activity]);
   const subscribe = useCallback((on: () => void) => scheduler?.subscribe(on) ?? (() => {}), [scheduler]);
   const read = useCallback(() => scheduler?.snapshot() ?? NONE, [scheduler]);
   const status = useSyncExternalStore(subscribe, read, read);

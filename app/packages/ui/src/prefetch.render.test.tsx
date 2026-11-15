@@ -42,21 +42,26 @@ function Probe({ loader, out, onIdle }: { loader: ReleaseLoader | null; out: { c
 }
 
 describe("useReleasePrefetch", () => {
-  it("after first paint: the region's file now, core when idle; a new region's file as the view moves", () => {
+  it("after first paint: the region's file now, core when idle; a new region's file as the view moves", async () => {
     const idle: (() => void)[] = [];
+    const { loader, asked } = fakeLoader();
     withGlobals(idle, { effectiveType: "4g", saveData: false }, () => {
-      const { loader, asked } = fakeLoader(), out: { cb?: (r: unknown) => void } = {};
+      const out: { cb?: (r: unknown) => void } = {};
       render(<Probe loader={loader} out={out} />);
       expect([asked, idle.length]).toEqual([[], 0]);         // nothing before the map's first report
       out.cb!("2");
       expect([asked, idle.length]).toEqual([["fetch regs-2"], 1]);
       idle[0]!();
-      expect(asked).toEqual(["fetch regs-2", "open core"]);
+      // (T737) core is fetched AHEAD first (a tap meanwhile reads its slice), opened once it is in
+      expect(asked).toEqual(["fetch regs-2", "fetch core"]);
       out.cb!(null);                                          // over the sea: nothing new, nothing forgotten
       out.cb!("7A");
       out.cb!("2");
-      expect(asked).toEqual(["fetch regs-2", "open core", "fetch regs-7a"]);
+      expect(asked).toEqual(["fetch regs-2", "fetch core", "fetch regs-7a"]);
     });
+    // (T737) and opened only once its fetch has settled
+    await new Promise((r) => setTimeout(r, 0));
+    expect(asked).toEqual(["fetch regs-2", "fetch core", "fetch regs-7a", "open core"]);
   });
 
   for (const [what, connection] of [["Save-Data", { saveData: true, effectiveType: "4g" }],
@@ -161,6 +166,30 @@ describe("(T253) the background tier", () => {
       render(<StatusProbe loader={loader} out={out} />);
       expect(out.s!.scheduler).toBeNull();
     } finally { delete g.__releasePrefetchBackground; }
+  });
+
+  it("(T737) useBackgroundPrefetch yields to the reader: told on every activity change, stopped with the screen", () => {
+    const { loader } = fakeLoader();
+    (loader as unknown as { manifest: unknown }).manifest = { files: {} };
+    let snap = { downloads: [] as { priority: number }[] };
+    const subs = new Set<() => void>();
+    const activity = { snapshot: () => snap as never, subscribe: (on: () => void) => { subs.add(on); return () => { subs.delete(on); }; } };
+    function ActProbe({ out }: { out: { s?: ReturnType<typeof useBackgroundPrefetch> } }) {
+      out.s = useBackgroundPrefetch(loader, { activity });
+      return null;
+    }
+    const out: { s?: ReturnType<typeof useBackgroundPrefetch> } = {};
+    const r = render(<ActProbe out={out} />);
+    const told: boolean[] = [];
+    const real = out.s!.scheduler!.reader.bind(out.s!.scheduler);
+    out.s!.scheduler!.reader = (b: boolean) => { told.push(b); real(b); };
+    const emit = (d: { priority: number }[]) => { snap = { downloads: d }; for (const f of [...subs]) f(); };
+    emit([{ priority: 2 }]);
+    emit([{ priority: 2 }, { priority: 0 }]);
+    emit([]);
+    expect(told).toEqual([false, true, false]);
+    r.unmount();
+    expect(subs.size).toBe(0);
   });
 
   it("webNetSignals: online, Save-Data, speed, cellular = metered (the web has no mobile-data setting), hidden", () => {
