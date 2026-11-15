@@ -733,3 +733,5 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   downstream, and the Puntledge rule-book and DFO extents that use them. In work.
 - ASKED 2026-11-15: "the shuswap one add it as proposal so i dcan see it". The Shuswap closed stretch is being prepared
   as a proposal for the review app; added to his proposals once ready.
+- PERMISSION 2026-11-15 (Exchamsiks only), verbatim: "can you fix Exchamsiks for me poroposal is gone so you can do it".
+  One new mark being saved for him: upstream of the Hwy 16 bridge point, tributaries on, noted as saved by Claude.
