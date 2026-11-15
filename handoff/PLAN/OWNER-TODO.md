@@ -709,3 +709,7 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   Yours: Nass x2, Seymour, Illiance, Wilauks have no extent yet; Pallant Creek stops at "the bridge near the mouth",
   57 m above the boundary (as DFO words it; your call). The proposal maker is being fixed to use the tidal boundary.
 - LOOK AND PICK (T752): desktop water map as a split, A map left / B map right / keep today's. Pictures sent in chat.
+- ANSWERED 2026-11-15: "Pallant Creek we can make the bridge the tidal boudnary i think". Queued for the rebuild after
+  marking (T743).
+- ANSWERED 2026-11-15 (T752 desktop split): "for the layout choose which ever you think is best practice". Main chat
+  chose B (text left, map right), from 900 px wide on every platform; being built properly with tests.

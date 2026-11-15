@@ -78,3 +78,6 @@ Report: `handoff/PLAN/curation-review/fraser-channels-2026-11-15.md` (no mark, c
 - Nine cuts checked against OSM: eight ok (Alexandra per his 11-15 "fine"); second look: the Lillooet signs (which edge of town). Morice 2591/2592 sit
   on the 100 m-off cuts of the other wordings (re-mark, no rebuild). Rebuild list in the report (not run).
 - Group marks: of 8 places only Nanaimo "500 m below the power line" (2442) is wrong (carries 2443's extent).
+- Pallant Creek, owner 2026-11-15: "Pallant Creek we can make the bridge the tidal boudnary i think". So Pallant's tidal
+  boundary moves to the "bridge near the mouth" (57 m upstream of today's boundary). Queued for the rebuild after the
+  marks are done (curated tidal limit change + reach rerun); not applied yet.

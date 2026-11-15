@@ -42,3 +42,10 @@ then the text controls, then the map's.
   steps can sit below the fold at 720 px with the list open (a shipped version may want the steps above the list).
 - Phone (390 wide): identical with the variant switched on.
 - The proposal switch was a `globalThis.__bcSplit` flag; a shipped version picks one look and drops the flag.
+
+## Owner answer 2026-11-15
+"for the layout choose which ever you think is best practice". Main chat's choice: variant B (text column on the left,
+map on the right). Reason: it is the common pattern for a detail panel beside a map (panel left, map right, as the big
+map and listing sites do), and reading starts at the left with the part's name and steps. Defaults also chosen by the
+main chat, his to change: starts at the existing 900 px breakpoint on every platform, so app tablets get it too; phone
+unchanged. Build lane started in a worktree; lands after Play build 33 is uploaded (app/ pushes are held until then).
