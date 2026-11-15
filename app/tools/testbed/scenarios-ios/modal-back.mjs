@@ -14,17 +14,24 @@ export const modalBackIos = {
   async run(ctx) {
     const d = ctx.device;
     /** the screen in iOS points (the tree's widest and tallest node) */
-    const screen = () => { const ns = d.nodes(); return { W: Math.max(...ns.map((n) => n.box.x1)), H: Math.max(...ns.map((n) => n.box.y1)) }; };
-    const swipe = async (name, up) => {
-      if (!up()) throw new Error(`${name}: the modal is not up before the swipe`);
+    // (a read of the tree can come back empty under load: looked at again, and the iPhone 17e's 390 × 844 when it stays empty)
+    const screen = () => { const ns = d.nodes(); return ns.length ? { W: Math.max(...ns.map((n) => n.box.x1)), H: Math.max(...ns.map((n) => n.box.y1)) } : { W: 390, H: 844 }; };
+    // the modal's marker read off a tree that is not empty (an empty read is neither "up" nor "gone": read again)
+    const look = async (up0) => {
+      for (let i = 0; i < 3; i++) { if (d.screenText().length) return up0(); await d.sleep(1500); }
+      return null;
+    };
+    const swipe = async (name, up0) => {
+      if ((await look(up0)) !== true) throw new Error(`${name}: the modal is not up before the swipe`);
       const { W, H } = screen();
       d.screenshot(path.join(ctx.dir, `T723-mb-${name}-before.png`));
       const tried = [];
       for (const [label, ms] of [['quick 300 ms', 300], ['slow 1200 ms', 1200]]) {
         ctx.swipe([Math.round(W * 0.02), Math.round(H * 0.5)], [Math.round(W * 0.75), Math.round(H * 0.5)], ms);
         await d.sleep(1500);
-        const gone = !up();
-        tried.push(`${label}: ${gone ? 'CLOSED' : 'stayed'}`);
+        const seen = await look(up0);
+        const gone = seen === false;
+        tried.push(`${label}: ${gone ? 'CLOSED' : seen === null ? 'unread (empty tree)' : 'stayed'}`);
         d.screenshot(path.join(ctx.dir, `T723-mb-${name}-after-${ms}.png`));
         if (gone) break;
       }

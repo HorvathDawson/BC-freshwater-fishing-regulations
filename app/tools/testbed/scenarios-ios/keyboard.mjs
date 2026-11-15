@@ -160,8 +160,16 @@ export const keyboardIos = {
       must(ctx, 'kb-notify-name', '- eraseText: 40\n- inputText: "Coquihalla"\n');
       await d.sleep(2000);
       const kb = measure(ctx, 'notify-hits', 'notify-add-search').kbTop;
-      const hit = d.nodes().find((n) => /^notify-add-hit-/.test(n.id));
+      let hit = d.nodes().find((n) => /^notify-add-hit-/.test(n.id));
       let tap = 'no gauge hit listed';
+      // with room to scroll above the keyboard (the fix), a reader drags the list up a little with the keyboard still up
+      if (hit && kb !== null && (hit.box.y0 + hit.box.y1) / 2 > kb) {
+        must(ctx, 'kb-notify-drag', '- swipe: { start: "50%, 45%", end: "50%, 25%", duration: 600 }\n');
+        await d.sleep(1000);
+        const again = d.nodes().find((n) => n.id === hit.id);
+        const kb2 = measure(ctx, 'notify-hits-dragged', 'notify-add-search').kbTop;
+        if (again && kb2 !== null && (again.box.y0 + again.box.y1) / 2 < kb2) hit = again;
+      }
       if (hit && kb !== null && (hit.box.y0 + hit.box.y1) / 2 > kb) {
         tap = `the first hit (${Math.round(hit.box.y0)} pt) is UNDER the keyboard (${Math.round(kb)} pt): not tappable; keyboard hidden to reach it`;
         must(ctx, 'kb-notify-hide', '- hideKeyboard\n');
