@@ -138,7 +138,12 @@ refuses that flag without `app/apps/mobile/google-services.json`.
   that was swiped away until you open it again."
 - `NOTIFY_WORDS.introPushAndroid` (shown once FCM is in): the same, "…and still checks about every 15 minutes at best on
   its own. The server keeps only a push token…".
-- `UPDATE_READY_NOTE`: "New regulations data is ready to download" / "Open the app to download it."
+- The new-data notices (follow-up 2026-11-14): the EXISTING notice of the periodic check is unchanged —
+  `UPDATE_READY_NOTE` "New regulations data is ready" / "Open the app to update." (the first commit had changed it; restored
+  in the follow-up). The PUSH path has its own, `UPDATE_DOWNLOAD_NOTE`: "New regulations data is ready to download" /
+  "Open the app to download it.", raised only by a run a push woke (`CheckDeps.woke`). Android has no push yet, so it
+  never says the new one. Both share the once-per-release memory (`toldRelease`): a release told by either is not told
+  again by the other. Pinned whole in `alerts.test.ts`, `check.test.ts`, `push.test.ts`.
 - Run log words: "woken by our server", "new data downloading".
 
 **For the privacy page and the stores (another chat's files; not edited here):**
@@ -176,9 +181,13 @@ refuses that flag without `app/apps/mobile/google-services.json`.
 **The catch sites listed in FINE (`app/tools/failures.test.ts`), each one line (none hides a failure the reader could see):**
 - `workers/feeds/src/push.ts:196` an APNs answer without a JSON body: its HTTP status alone decides (non-200 is still counted failed).
 - `workers/feeds/src/push.ts:205` the same for an FCM answer.
-- `workers/feeds/src/push.ts:236` a token record in R2 that does not parse is deleted (the phone registers again at its next start).
 - `workers/feeds/src/push.ts:280` a send that never reached APNs/FCM: counted `failed` with its reason in the send's result and `/status`, and the run prints it as a step error.
-- `workers/feeds/src/push.ts:309` the sender's own "release last seen" state unreadable: treated as first look (records the release, sends no wake).
+- (follow-up) Two former FINE sites now REPORT and are out of the list (`push.ts` FINE n 5 → 3): a stored token record that
+  does not parse is counted (`unreadable` on the send's result and `/status`: "N stored token record(s) did not parse
+  (deleted)"), makes the send not ok, is logged and is a run step error; a "release last seen" record that exists but does
+  not parse is replaced with the release now published and THROWS ("private/push/state.json did not parse (…); replaced with
+  r-…, so no wake was sent for it"), which the run records as a step error. A missing record stays a first look. Tests in
+  `test/push.test.ts`.
 - `packages/data/src/notify/push.ts:80` the sync queue's own link (`chain.then(f, f)`): each sync's failure goes to its caller's promise, which `NotifyRoot` reports; the queue only goes on.
 (Also: two credential failures in `sendWake` now log with `console.error` and are counted, `push.ts` APNs key / FCM credential.)
 
@@ -214,6 +223,54 @@ with another `data_release` (a "newer release" without any R2 write). The built 
   `10-notifications-off.png`).
 Shots and logs: the agent's scratchpad `shots/` (03, 05, 06, 09, 10, bg-alert-*), `session.log`, `session2.log`,
 `proxy-*.log`, `simlog.txt` (not committed).
+
+### Why the silent push did not run on the simulator (follow-up, settled by reading the code and the log)
+**(c) The payload pushed** (`xcrun simctl push <udid> ca.canifishthis.app <file>`), whole:
+`{"Simulator Target Bundle":"ca.canifishthis.app","aps":{"content-available":1},"k":"check"}` — the same `aps` and `k`
+the worker sends (`APNS_PAYLOAD`); the alert trials added `"alert":{"title":"T739 test","body":"alert-type push with content-available"}`.
+
+**The delegate chain (node_modules, SDK 58):**
+- `expo/ios/Expo/ExpoAppDelegate.swift:147-150` forwards `application(_:didReceiveRemoteNotification:fetchCompletionHandler:)`,
+  and `:209-211` forwards `application(_:performFetchWithCompletionHandler:)`, each to
+  `expo-modules-core/ios/AppDelegates/ExpoAppDelegateSubscriberManager.swift` (`:213-251` and `:398-433`), which calls every
+  subscriber that implements it and aggregates the results.
+- `expo-task-manager/ios/TaskManagerAppDelegateSubscriber.swift:9-10`: `performFetch…` → `runTasks(with:
+  EXTaskLaunchReasonBackgroundFetch, userInfo: nil …)`; `:13-14`: `didReceiveRemoteNotification…` → `runTasks(with:
+  EXTaskLaunchReasonRemoteNotification, userInfo: userInfo …)`.
+- `expo-task-manager/ios/EXTaskManager/EXTaskService.m:571-597`: only tasks whose consumer `supportsLaunchReason:` the reason
+  are added; with none, the request is evaluated at once (NoData). `:708-717` `_addTask` calls the consumer's
+  `didBecomeReadyToExecuteWithData:`, and `:313-326` `executeTask` NSLogs "EXTaskService: Executing task '…' for app '…'."
+  `:776-777`: a cold launch whose launch options carry `UIApplicationLaunchOptionsRemoteNotificationKey` is the
+  RemoteNotification reason too.
+- `expo-notifications/ios/ExpoNotifications/Notifications/Background/NotificationsBackgroundTaskConsumer.swift:7-8`:
+  `supportsLaunchReason` is `launchReason == EXTaskLaunchReasonRemoteNotification` ONLY; `:31-34` it then executes the task
+  with the payload. No condition on the payload's shape (alert / sound absent is fine).
+- `expo-notifications/ios/ExpoNotifications/Notifications/NotificationsAppDelegateSubscriber.swift:21-26` also takes
+  `didReceiveRemoteNotification` (it answers NoData when no JS delegate claims it; the aggregator still waits for the task).
+
+**(a) The call the simulator made:** the app's own log at each push (`log show --predicate 'process == "CanIFish"'`) has
+exactly one line: `Received action(s) in scene-update: <UIFetchContentInBackgroundAction …>`; SpringBoard's log says
+`Executing <SBBackgroundFetchTask: app<ca.canifishthis.app>…>` then `Finished … with result: NoNewDataAvailable` (4 ms in
+front, 46 ms in the background); and the notification itself was added by `CoreSimulatorBridge` ("Adding notification
+request … to destinations: Default"), not by `apsd` (no apsd line at the push times). So `simctl push` injects the
+notification through the simulator bridge and pokes a background-FETCH task.
+
+**(b) Did it reach expo-task-manager, and why no task ran:** a remote-notification call would have run our task: the task
+was registered and restored (the app's preferences: `EXTaskService.mainApplication.tasks."canifishthis-push-wake"`,
+consumer `ExpoNotifications.NotificationsBackgroundTaskConsumer`; the cold-launch log: "EXTaskService: Restoring tasks
+configuration"), the consumer has no payload condition, and `executeTask` would have logged "EXTaskService: Executing
+task" — that line appears NOWHERE in the app's log for any of the four pushes. The 4–46 ms NoData answer is the fetch path
+with no fetch consumer (`TaskManagerAppDelegateSubscriber.swift:9-10` → reason BackgroundFetch → our consumer refuses it
+at `NotificationsBackgroundTaskConsumer.swift:7-8`). The cold launch (terminated app) carried a fetch action at scene
+creation (`scene-create: <UIFetchContentInBackgroundAction>`), not a remote-notification launch option. Not the payload
+(it is the documented shape), not registration timing (the task was restored before the call), not missing wiring (both
+delegate methods are forwarded). **Nothing of ours to fix.**
+
+**What a real phone does differently:** there APNs → `apsd` → UIKit calls `application(_:didReceiveRemoteNotification:
+fetchCompletionHandler:)` for a background push (`apns-push-type: background`, `content-available: 1`), which is the path
+quoted above (`ExpoAppDelegate.swift:147-150` → `TaskManagerAppDelegateSubscriber.swift:13-14` → reason
+RemoteNotification → `NotificationsBackgroundTaskConsumer.swift:7-8,31-34` → our JS task). The simulator's bridge never
+takes that path, so the first real-phone check is still: one push → the run log says "woken by our server".
 
 ### What needs a real phone
 FIRST: that a real silent push starts the push task at all (run log "woken by our server"; the simulator could not show

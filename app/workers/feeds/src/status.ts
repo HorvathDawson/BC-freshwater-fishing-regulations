@@ -261,13 +261,14 @@ function pushHtml(p: { missing: Record<string, string[]>; last: any }, now: Date
   const l = p.last;
   const row = (pl: string) => {
     const miss = p.missing[pl] ?? [];
-    const s = l && !l.unreadable ? l[pl] : null;
+    const s = l && typeof l.unreadable !== "string" ? l[pl] : null;
     const state = miss.length ? `<td class="failing">not configured</td>` : `<td class="${s && s.failed ? "failing" : "ok"}">${s && s.failed ? "failing" : "ok"}</td>`;
     const what = miss.length ? `nothing is sent: ${esc(miss.join(", "))} not set` : "";
     const counts = s ? `${s.tokens} tokens · ${s.sent} sent · ${s.dead} dead (deleted) · ${s.failed} failed${s.errors?.length ? ` · ${esc(s.errors.join("; "))}` : ""}` : "no send yet";
     return `<tr><td>${pl}</td>${state}<td><small>${what}${what ? "<br>" : ""}${counts}</small></td></tr>`;
   };
-  const when = l?.unreadable ? `<span class="failing">unreadable: ${esc(l.unreadable)}</span>` : l ? `${esc(l.at)} <small>(${ago(l.at, now)}) · ${esc(l.reason)}</small>` : "never";
+  const when = typeof l?.unreadable === "string" ? `<span class="failing">unreadable: ${esc(l.unreadable)}</span>` : l ? `${esc(l.at)} <small>(${ago(l.at, now)}) · ${esc(l.reason)}</small>` +
+    (l.unreadable ? ` · <b class="failing">${esc(l.unreadable)} stored token record(s) did not parse (deleted)</b>` : "") : "never";
   return `<h2>Push wake-ups</h2><p><small>last send: ${when}</small></p><div class="wrap"><table><tr><th>platform</th><th>state</th><th>last send</th></tr>${row("ios")}${row("android")}</table></div>`;
 }
 

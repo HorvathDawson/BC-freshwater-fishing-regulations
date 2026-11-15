@@ -234,7 +234,7 @@ export const FINE: Record<string, { n: number; why: string }> = {
   "workers/feeds/src/inseason.ts": { n: 2, why: W_STATE },
   "workers/feeds/src/io.ts": { n: 1, why: `${W_STATE} (the write manifest: unreadable → every file written again)` },
   "workers/feeds/src/notify.ts": { n: 1, why: `${W_STATE} (what was sent: unreadable → may be sent again, never lost)` },
-  "workers/feeds/src/push.ts": { n: 5, why: `(T739) a push service's answer with no JSON body is judged by its status alone (twice); a send that never reached the service is counted failed with its reason (the send's result and /status); ${W_TORN} (a token record: deleted, the phone registers again); ${W_STATE} (the release last seen)` },
+  "workers/feeds/src/push.ts": { n: 3, why: "(T739) a push service's answer with no JSON body is judged by its status alone (twice); a send that never reached the service is counted failed with its reason (the send's result, /status, a step error)" },
   "workers/feeds/src/reports.ts": { n: 6, why: `${W_TORN}; ${W_STATE} (the per-IP gate); the edge limiter failing never blocks (the R2 gate holds); a test-report delete the next day's purge tries again` },
 };
 

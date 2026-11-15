@@ -503,9 +503,10 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
     if (why) {
       try {
         const r = await sendWake(env, (u, i) => fetch(u, i), new Date(), why);
-        push = { reason: why, ok: r.ok, ios: { sent: r.ios.sent, failed: r.ios.failed, missing: r.ios.missing },
+        push = { reason: why, ok: r.ok, unreadable: r.unreadable, ios: { sent: r.ios.sent, failed: r.ios.failed, missing: r.ios.missing },
                  android: { sent: r.android.sent, failed: r.android.failed, missing: r.android.missing } };
-        if (!r.ok) logErr(`push: ${r.ios.failed + r.android.failed} wake(s) failed (${[...r.ios.errors, ...r.android.errors].slice(0, 3).join("; ")})`);
+        if (r.ios.failed + r.android.failed) logErr(`push: ${r.ios.failed + r.android.failed} wake(s) failed (${[...r.ios.errors, ...r.android.errors].slice(0, 3).join("; ")})`);
+        if (r.unreadable) logErr(`push: ${r.unreadable} stored token record(s) did not parse; deleted (those phones register again at their next start)`);
       } catch (e) { logErr(`push: not sent (${String((e as Error)?.message ?? e)})`); }
     }
   }

@@ -23,7 +23,7 @@
  */
 import {
   alertNotification, alertSilentNotification, APP_VERSION_NOTE, appVersionToTell, evaluateAlerts, isEnvironment, newestReading, NOTIFY_WORDS,
-  releaseAllowed, reportFailure, UPDATE_READY_NOTE, type AppVersion,
+  releaseAllowed, reportFailure, UPDATE_DOWNLOAD_NOTE, UPDATE_READY_NOTE, type AppVersion,
 } from "@app/core";
 import type { Manifest } from "../manifest";
 import type { ObsFile } from "../feed/history";
@@ -124,7 +124,9 @@ export async function runBackgroundCheck(d: CheckDeps): Promise<BgResult> {
     try {
       const m = await d.manifest();
       if (updateReadyFor(d.settings.read(), m, d.appVersion)) {
-        await d.notify({ channel: "updates", title: UPDATE_READY_NOTE.title, body: UPDATE_READY_NOTE.body,
+        // (T739) a push wake says it is to download (the wake already tried and could not start it); the periodic check as before
+        const note = d.woke ? UPDATE_DOWNLOAD_NOTE : UPDATE_READY_NOTE;
+        await d.notify({ channel: "updates", title: note.title, body: note.body,
                          data: { kind: "update", release: m.data_release } });
         d.settings.update((s) => ({ ...s, toldRelease: m.data_release }));
         told = true;

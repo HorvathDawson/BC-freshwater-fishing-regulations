@@ -144,7 +144,7 @@ describe("sendWake (T739)", () => {
     expect(calls).toEqual([]);
     expect(r).toEqual({ at: "2026-11-14T12:00:00.000Z", reason: "gauges", ok: true,
       ios: { configured: false, missing: ["APNS_KEY", "APNS_KEY_ID", "APNS_TEAM_ID"], tokens: 1, sent: 0, dead: 0, failed: 0, errors: [] },
-      android: { configured: false, missing: ["FCM_SERVICE_ACCOUNT"], tokens: 1, sent: 0, dead: 0, failed: 0, errors: [] } });
+      android: { configured: false, missing: ["FCM_SERVICE_ACCOUNT"], tokens: 1, sent: 0, dead: 0, failed: 0, errors: [] }, unreadable: 0 });
     expect(JSON.parse(BUCKET.m.get(PUSH_STATUS_KEY)!)).toEqual(r);
     expect(tokens(BUCKET)).toHaveLength(2);
     expect(pushMissing({ BUCKET, APNS_KEY: "k", APNS_KEY_ID: "i", APNS_TEAM_ID: "t", FCM_SERVICE_ACCOUNT: "{}" })).toEqual({ ios: [], android: [] });
@@ -198,6 +198,19 @@ describe("sendWake (T739)", () => {
     expect(tokens(BUCKET).map((t) => t.token)).toEqual([AND]);
   });
 
+  it("a stored token record that does not parse is a fault: counted, the send not ok, shown on /status; the record deleted", async () => {
+    const BUCKET = new MemBucket();
+    await seed(BUCKET, [{ platform: "ios", token: IOS, env: "sandbox" }]);
+    BUCKET.m.set(`${TOKENS_PREFIX}broken.json`, "{not json");
+    const r = await sendWake({ BUCKET }, async () => new Response(null), at("2026-11-14T12:00:00Z"), "gauges");
+    expect(r.unreadable).toBe(1);
+    expect(r.ok).toBe(false);
+    expect(r.ios.tokens).toBe(1);
+    expect(BUCKET.m.has(`${TOKENS_PREFIX}broken.json`)).toBe(false);
+    const h = await (await worker.fetch(new Request("https://w.example/status"), { BUCKET } as never)).text();
+    expect(h).toContain('<b class="failing">1 stored token record(s) did not parse (deleted)</b>');
+  });
+
   it("a key that cannot be read fails every token of that platform, said (never a silent skip)", async () => {
     const BUCKET = new MemBucket();
     await seed(BUCKET, [{ platform: "ios", token: IOS, env: "sandbox" }]);
@@ -229,6 +242,15 @@ describe("when a wake is sent (T739)", () => {
     expect(await newRelease(BUCKET)).toBe(null);
     BUCKET.m.set(MANIFEST_KEY, JSON.stringify({ data_release: "r-2" }));
     expect(await newRelease(BUCKET)).toBe("r-2");
+    expect(await newRelease(BUCKET)).toBe(null);
+  });
+
+  it("a release-seen record that exists but does not parse is a fault: said (the run's step error), replaced, no wake", async () => {
+    const BUCKET = new MemBucket();
+    BUCKET.m.set(MANIFEST_KEY, JSON.stringify({ data_release: "r-3" }));
+    BUCKET.m.set(PUSH_STATE_KEY, "{torn");
+    await expect(newRelease(BUCKET)).rejects.toThrow(/^private\/push\/state\.json did not parse \(.+\); replaced with r-3, so no wake was sent for it$/);
+    expect(JSON.parse(BUCKET.m.get(PUSH_STATE_KEY)!)).toEqual({ release: "r-3" });
     expect(await newRelease(BUCKET)).toBe(null);
   });
 

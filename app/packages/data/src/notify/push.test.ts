@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { UPDATE_READY_NOTE } from "@app/core";
+import { UPDATE_DOWNLOAD_NOTE } from "@app/core";
 import type { Manifest } from "../manifest";
 import { createPushRegistrar, type PushSeam } from "./push";
 import { runWake } from "./wake";
@@ -103,7 +103,7 @@ describe("a push wake-up (T739)", () => {
       expect(r.downloading).toBe(null);
       expect(h.settings.read().runs.map((x) => x.result)).toEqual(["woken by our server, new data ready", "woken by our server, nothing to tell"]);
       expect(h.told.map((n) => `${n.title}. ${n.body}`)).toEqual(["New regulations data is ready to download. Open the app to download it."]);
-      expect(h.told[0]!.title).toBe(UPDATE_READY_NOTE.title);
+      expect(h.told[0]!.title).toBe(UPDATE_DOWNLOAD_NOTE.title);
     }
   });
 

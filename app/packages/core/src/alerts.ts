@@ -571,7 +571,16 @@ export function findGauges<T extends { readonly station: string; readonly name: 
 
 /** The update-ready notification. */
 export const UPDATE_READY_NOTE = {
-  /** (T739) said only when the download has not started (held for Wi-Fi, or no app runtime to download in) */
+  title: "New regulations data is ready",
+  body: "Open the app to update.",
+} as const;
+
+/**
+ * (T739, owner 2026-11-14 "if new data is there we could send a notification that the user needs to download it") The
+ * notice of a PUSH wake-up that found a newer release it could not start downloading (held for Wi-Fi, or no app runtime
+ * to download in). The periodic check keeps `UPDATE_READY_NOTE`; Android, which has no push yet, never says this one.
+ */
+export const UPDATE_DOWNLOAD_NOTE = {
   title: "New regulations data is ready to download",
   body: "Open the app to download it.",
 } as const;

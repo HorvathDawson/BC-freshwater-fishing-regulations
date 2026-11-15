@@ -186,7 +186,7 @@ describe("new data ready, once per release (T234)", () => {
     rel = "r-3";
     await runBackgroundCheck(h.deps);
     expect(h.told.map((n) => n.data)).toEqual([{ kind: "update", release: "r-2" }, { kind: "update", release: "r-3" }]);
-    expect(h.told[0]).toMatchObject({ channel: "updates", title: "New regulations data is ready to download", body: "Open the app to download it." });
+    expect(h.told[0]).toMatchObject({ channel: "updates", title: "New regulations data is ready", body: "Open the app to update." });
   });
 
   it("the decision: switch, release in use, already told, app too old", () => {

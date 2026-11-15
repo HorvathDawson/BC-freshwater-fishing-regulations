@@ -217,7 +217,11 @@ export function pushMissing(env: PushEnv): Record<PushPlatform, string[]> {
 }
 
 export interface PlatformSend { configured: boolean; missing: string[]; tokens: number; sent: number; dead: number; failed: number; errors: string[] }
-export interface PushSend { at: string; reason: string; ok: boolean; ios: PlatformSend; android: PlatformSend; error?: string }
+export interface PushSend {
+  at: string; reason: string; ok: boolean; ios: PlatformSend; android: PlatformSend; error?: string;
+  /** token records that were stored but did not parse: a fault (counted, logged, shown on /status), each deleted */
+  unreadable: number;
+}
 
 const blankSend = (missing: string[]): PlatformSend => ({ configured: !missing.length, missing, tokens: 0, sent: 0, dead: 0, failed: 0, errors: [] });
 
@@ -227,13 +231,18 @@ const blankSend = (missing: string[]): PlatformSend => ({ configured: !missing.l
  */
 export async function sendWake(env: PushEnv, fetch_: Fetch, now: Date, reason: string): Promise<PushSend> {
   const missing = pushMissing(env);
-  const out: PushSend = { at: now.toISOString(), reason, ok: true, ios: blankSend(missing.ios), android: blankSend(missing.android) };
+  const out: PushSend = { at: now.toISOString(), reason, ok: true, ios: blankSend(missing.ios), android: blankSend(missing.android), unreadable: 0 };
   const keys = await listKeys(env.BUCKET, TOKENS_PREFIX, 100_000);
   const recs: { key: string; rec: PushRecord }[] = [];
   for (const key of keys) {
     const o = await env.BUCKET.get(key);
     if (!o) continue;
-    try { recs.push({ key, rec: JSON.parse(await o.text()) as PushRecord }); } catch { await env.BUCKET.delete(key); }   // our own junk: gone
+    try { recs.push({ key, rec: JSON.parse(await o.text()) as PushRecord }); } catch (e) {
+      // a record we wrote that does not parse is a fault: counted and said; deleted (the phone registers again at its next start)
+      out.unreadable++;
+      console.error(JSON.stringify({ job: "push", unreadableToken: key, error: String((e as Error)?.message ?? e) }));
+      await env.BUCKET.delete(key);
+    }
   }
   for (const { rec } of recs) if (out[rec.platform]) out[rec.platform].tokens++;
   // one credential per platform per send (made only when that platform has someone to send to)
@@ -283,7 +292,7 @@ export async function sendWake(env: PushEnv, fetch_: Fetch, now: Date, reason: s
     else fail(p, r.failed);
   };
   for (let i = 0; i < recs.length; i += PARALLEL) await Promise.all(recs.slice(i, i + PARALLEL).map(one));
-  out.ok = !out.ios.failed && !out.android.failed;
+  out.ok = !out.ios.failed && !out.android.failed && !out.unreadable;
   try {
     await env.BUCKET.put(PUSH_STATUS_KEY, JSON.stringify(out), { httpMetadata: { contentType: "application/json", cacheControl: "no-store" } });
   } catch (e) { console.error(JSON.stringify({ job: "push", statusError: String(e) })); }
@@ -306,7 +315,15 @@ export async function newRelease(bucket: R2BucketLike): Promise<string | null> {
   if (typeof rel !== "string" || !rel) throw new Error(`${MANIFEST_KEY} names no data_release`);
   const s = await bucket.get(PUSH_STATE_KEY);
   let seen: string | null = null;
-  if (s) { try { seen = (JSON.parse(await s.text()) as { release?: string }).release ?? null; } catch { seen = null; } }
+  // a missing record is a first look; one that exists but does not parse is a fault: it is replaced with the release
+  // now published and the run is told (a step error on /status) — no wake for this release, said, never silent
+  if (s) {
+    const text = await s.text();
+    try { seen = (JSON.parse(text) as { release?: string }).release ?? null; } catch (e) {
+      await bucket.put(PUSH_STATE_KEY, JSON.stringify({ release: rel }), { httpMetadata: { contentType: "application/json" } });
+      throw new Error(`${PUSH_STATE_KEY} did not parse (${String((e as Error)?.message ?? e)}); replaced with ${rel}, so no wake was sent for it`);
+    }
+  }
   if (seen === rel) return null;
   await bucket.put(PUSH_STATE_KEY, JSON.stringify({ release: rel }), { httpMetadata: { contentType: "application/json" } });
   return seen === null ? null : rel;
