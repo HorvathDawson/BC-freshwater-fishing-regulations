@@ -1797,9 +1797,9 @@
         "areas": []
       },
       "status": "dormant",
-      "duplicate_of": null,
+      "duplicate_of": "2:fraser-river:mainstem-waters-downstream-of-the",
       "duplicate_score": null,
-      "duplicate_confirmed": false,
+      "duplicate_confirmed": true,
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -1810,7 +1810,9 @@
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
-        "notes": [],
+        "notes": [
+          "same place as 2:fraser-river:mainstem-waters-downstream-of-the: put in its group by the owner (checklist) — owner confirmed same place 2026-11-14"
+        ],
         "spatial_caveat": false
       }
     },
