@@ -9535,7 +9535,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "zymagotitz_river__hwy_16_bridge_over_the_zymagotitz"
+            ],
+            "item_id": "gnis:3812"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
