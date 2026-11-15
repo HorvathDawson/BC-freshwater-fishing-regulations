@@ -198,6 +198,10 @@ with the default Claude uses until you answer). Newest first inside each section
   back swipe, tap cue); owner, verbatim: "yes". Build 34 from 51349c3bf **uploaded 23:58** (0.7.10 build 34, staging data). The shared
   branch is not touched by it. Yours: add build 34 to your internal group and install it; checks only a phone can do
   are on the To-Do page row.
+- **NEW 2026-11-15 03:00 (iOS chat, T746, your "loading icon with text like splash").** Built on a branch; pictures
+  sent in chat (iPhone light and dark, web). Pick the line: "Putting the new regulations in place…" (built) /
+  "Applying the new regulations data…" / "Updating the regulations and map…". A failed apply says: "The new
+  regulations could not be put in place. The app is still using the data it had." (OK button): fine / change.
 - **NEW 2026-11-15 01:10 (iOS chat, T718 crash check).** Crash reports from the iPhone test runs were refused by the
   staging worker's daily limit (40 per address per day); the Mac's test beds used the 40 up, and your phone at home
   shares that address. Pick: give test-bed crashes their own limit of 200 a day on staging, production unchanged: yes

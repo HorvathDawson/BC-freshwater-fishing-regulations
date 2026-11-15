@@ -112,10 +112,16 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
   above (every face drawn as before), loading code on first use, fonts built in, Android's code shrinker (R8: 6 to
   10 MB estimated, high risk, own ticket to open). Proposals for the owner are in the ticket (photo thumbnails,
   database cache size). Round 2 running.
-- `ios/t746-apply-splash` (T746, **started 23:40**, from `ios/t722-install`): while new data is applied the app shows a
-  loading mark and a line of text, not a still screen (owner, relayed by the Android chat: "also when changes apply to
-  app we want to make it so that it has a loading icon with text like splash so it doesnt looking like it is frozen.
-  (applying changes as in new data regs)"). Android, iPhone and web. The wording will come to the owner with pictures.
+- `ios/t746-apply-splash` (T746, head 9975a07fe, from `ios/t722-install`, app CI green, not merged): while new data
+  is applied the app shows the boot screen's fish and one line of text over everything, takes no taps, and a failed
+  apply now says so with an OK button (before, a failure was reported but shown nowhere, and one kind hung the
+  apply). Owner, relayed by the Android chat: "also when changes apply to app we want to make it so that it has a
+  loading icon with text like splash so it doesnt looking like it is frozen. (applying changes as in new data regs)".
+  **Measured, rough (machine under load):** web 164 and 346 ms from apply to swap; iPhone simulator 702 ms (map left
+  still) and 880 ms (back from the background); cold start with new data waiting about 1.3 s. The screen shows only
+  when the wait passes 300 ms, so a quick apply does not flash. **Not measured:** Android, and a release whose map
+  tiles changed. **Found:** on the way back from the background the app stalls about 550 ms just after the swap.
+  Wording options sent to the owner with pictures (question 20).
 
 **What failed or was found**
 - **iOS background download refused on the simulator, then fixed:** the system service rejected every task ("does not
@@ -207,6 +213,9 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
 
 19. ANSWERED 2026-11-15 01:50 ("yes to this"): on staging, test-bed crashes get their own daily limit (200 per
     address). Worker commit 441ec090e; landing and the staging deploy are being timed with the Android chat.
+
+20. The line on the "applying new data" screen (T746; pictures sent 03:00): "Putting the new regulations in place…"
+    (built) / "Applying the new regulations data…" / "Updating the regulations and map…".
 
 Owner, 2026-11-14, verbatim: "Maybe we could make a handoff to start improving the ios versions? Making sure it is rock
 solid too?" This **reopens iOS**, which the owner benched on 2026-11-06 ("no iOS device work until DFO extents labelled +
