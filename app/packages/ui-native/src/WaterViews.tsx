@@ -32,7 +32,7 @@ import { Place } from "./regs/RegsHeader";
 import { LoadingState } from "./LoadingState";
 import { ErrorState } from "./ErrorState";
 import { type Palette } from "./theme";
-import { WaterFrame, WaterInset, WaterTitle } from "./WaterFrame";
+import { SplitReportContext, useWaterMapSplit, WaterFrame, WaterInset, WaterTitle } from "./WaterFrame";
 import { WaterReportLink } from "./menu/ReportLink";
 import { BasinDays } from "./BasinDays";
 import { usePaneReady } from "./shell/paneReveal";
@@ -143,17 +143,21 @@ export function WaterMap({ source, item, palette, children }: {
   const sheet = useWater(source, item);
   const name = sheet.state === "ready" ? sheet.value?.name ?? null : null;
   const nameSource = sheet.state === "ready" ? sheet.value?.nameSource ?? null : null;
-  // the canvas goes full-bleed under the frame's header (the one difference the frame allows); the name row stays on it
+  // the canvas goes full-bleed under the frame's header (the one difference the frame allows); the name row stays on it.
+  // (T752) from the tablet breakpoint up it is a split inside the column instead: text left, map right
+  const split = useWaterMapSplit();
+  const report = <WaterReportLink where={waterReportWhere({ view: "map", water: item, place: name })} palette={palette}
+                                  testID="report-link-water-map" />;
   return (
-    <WaterFrame palette={palette} face="regulations" title={<WaterTitle name={name} palette={palette} source={nameSource} />} bleed>
+    <WaterFrame palette={palette} face="regulations" title={<WaterTitle name={name} palette={palette} source={nameSource} />} bleed={!split}>
       {/* (T342) the map and its chrome are never selectable text */}
       <View style={{ flex: 1 }}>
-      <View style={{ flex: 1 }}><Selectable on={false}>{children}</Selectable></View>
+      <View style={{ flex: 1 }}>
+        {/* (T752) a split carries the report link in its text column (`SplitReportContext`) */}
+        <SplitReportContext.Provider value={split ? report : null}><Selectable on={false}>{children}</Selectable></SplitReportContext.Provider>
+      </View>
       {/* (T569) the report entry on the Map view too: a slim row under the canvas, at the column's gutter */}
-      <WaterInset column>
-        <WaterReportLink where={waterReportWhere({ view: "map", water: item, place: name })} palette={palette}
-                         testID="report-link-water-map" />
-      </WaterInset>
+      {!split && <WaterInset column>{report}</WaterInset>}
       </View>
     </WaterFrame>
   );

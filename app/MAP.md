@@ -102,6 +102,8 @@ Source maps (T352, `sourcemaps.mjs`): the web export (`export:web*`, `--source-m
 (the Hermes map) keep their maps per build in `data/sourcemaps/<version>-b<build>-<sha7>/` (gitignored, never served);
 `node app/tools/sourcemaps.mjs symbolicate <crash json>` reads a crash's stack back with them.
 
+(T752) **The water's Map tab is a split from the tablet breakpoint (900) up, on every platform:** text column left (420 px: name, Downstream / Upstream pinned, a parts list that scrolls inside it, report link), map right, inside the frame's column (`ui-native/src/WaterFrame.tsx` `WaterSplit`, `water/WaterMapView.tsx`); below 900 the phone layout, unchanged.
+
 The SEO site (`build-seo.mjs` over `seo/`, T192–T198): hub pages, sitemap, slugs (`app/seo/slug-map.json`), v1 301s. **A water
 page is the app (T269):** `seo/pane.tsx` server-renders the real `Shell` on that water's Regulations view (react-native-web;
 the hooks answered first through `@app/ui` `setPrerenderAnswers`), `seo/prerender.ts` + `seo/layouts.ts` merge the light/dark

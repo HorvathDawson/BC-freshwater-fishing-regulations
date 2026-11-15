@@ -4,7 +4,7 @@
  * PART ITS BAR NAMES, whatever way it was reached — through the real Shell on the fixture: a search result's Open, the
  * Regulations view then the Map tab, and the part's own frame (a link or a tap opens at its part). The bar's part line, the
  * corner button's words and the camera the water's map is handed are compared; ⤢ "Whole river" frames the whole water and
- * says "This part". On a phone and on a wide screen alike (the desktop strip is the one the owner saw).
+ * says "This part". On a phone and on a wide screen alike (the desktop strip is the one the owner saw; T752's split pane is the same framing in a taller, narrower map: the window's width is provided as the app shell does, so 1512 and 1280 are the split and 390 the phone).
  * The map renderer is a stub that writes down every framing it is handed, as in Search.shell.test.tsx.
  */
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
@@ -15,7 +15,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SEARCH_BAR } from "@app/core";
 import type { ItemId } from "@app/data";
 import { makeFixtureSource } from "@app/data/fixture";
-import { HOME, openWater, reduce, type Route } from "@app/ui";
+import { HOME, LayoutWidthContext, openWater, reduce, type Route } from "@app/ui";
 import { LIGHT } from "./theme";
 
 type Fit = { key: string; bbox: unknown } | null | undefined;
@@ -34,7 +34,9 @@ const { Shell } = await import("./Shell");
 const { openRegsFixtureWithLines } = await import("@app/data/release/node");
 
 const CHILLIWACK = "gnis:8634" as ItemId;
+let width = 390;
 const size = (w: number, h: number) => {
+  width = w;
   Object.defineProperty(document.documentElement, "clientWidth", { configurable: true, value: w });
   Object.defineProperty(document.documentElement, "clientHeight", { configurable: true, value: h });
   window.dispatchEvent(new Event("resize"));
@@ -44,12 +46,12 @@ beforeAll(() => size(390, 844));
 
 function mount(start: Route = HOME) {
   render(
-    <GestureHandlerRootView>
+    <LayoutWidthContext.Provider value={width}><GestureHandlerRootView>
       <Shell source={makeFixtureSource()} loader={openRegsFixtureWithLines()} palette={LIGHT} theme="light" themeName="light" onTheme={() => {}}
              tiles={{ atlas: "a", basemap: "b" } as never} initialRoute={start} systemBack={() => ({ sync: () => {}, dispose: () => {} })}
              feed={{ index: async () => ({ fetchedAt: new Date().toISOString(), stations: {} }) } as never}
              spots={[]} onSaveSpot={async () => {}} />
-    </GestureHandlerRootView>);
+    </GestureHandlerRootView></LayoutWidthContext.Provider>);
 }
 const settle = () => act(async () => { await new Promise((r) => setTimeout(r, 260)); });
 const field = () => screen.getByLabelText(SEARCH_BAR.label) as HTMLInputElement;
@@ -84,7 +86,7 @@ const ways = {
 };
 
 describe("(T747) the water's Map frames the part its bar names, on every way in", () => {
-  for (const [label, w, h] of [["a phone", 390, 844], ["a wide desktop screen", 1512, 738]] as const) {
+  for (const [label, w, h] of [["a phone", 390, 844], ["a wide desktop screen", 1512, 738], ["the split pane (T752)", 1280, 720]] as const) {
     it(`on ${label}: a search Open draws what the part's own frame draws (part framed, "⤢ Whole river"); ⤢ frames the whole`, async () => {
       size(w, h);
       const got: Record<string, unknown> = {};
