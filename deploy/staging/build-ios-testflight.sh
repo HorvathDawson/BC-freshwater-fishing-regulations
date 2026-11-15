@@ -21,7 +21,7 @@
 # Secrets (never committed), in ~/.canifishthis/:
 #   ios-team-id           the 10-character Team ID (developer.apple.com → Membership details)
 #   asc-api-key.json      {"key_id": "…", "issuer_id": "…", "key_path": "/Users/…/AuthKey_<key_id>.p8"} — App Store Connect →
-#                         Users and Access → Integrations → App Store Connect API → a Team key with the "App Manager" role
+#                         Users and Access → Integrations → App Store Connect API → a Team key with the "Admin" role (an "App Manager" key archives but cannot sign for the store: "Cloud signing permission error", seen 2026-11-14)
 #   testflight-last-build (written here) the last CFBundleVersion uploaded; each upload must be higher
 # Before the first run, in App Store Connect: My Apps → + → New App, platform iOS, bundle id ca.canifishthis.app (register
 # it at developer.apple.com → Identifiers if it is not offered), the name, primary language English (Canada), SKU any.

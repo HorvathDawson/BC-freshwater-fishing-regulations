@@ -102,8 +102,13 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
 - Tried 21:32 from f51870652 (last green app CI, same app code as Play build 32), staging data, 0.7.10 as build 33.
   Stopped after 1 minute in signing; nothing was uploaded. Cause: the team has no registered iPhone, and Xcode's
   automatic signing needs one to archive. Waits for the owner to register his iPhone; then one re-run.
+- Second try 22:07, after the owner registered his iPhone: signing and the archive passed (2 minutes), the export for
+  the store failed; nothing was uploaded. Apple: "You haven't been given access to cloud-managed distribution
+  certificates". Cause: the API key was made with the App Manager role, as our own steps said; signing for the store
+  needs an Admin key (Apple offers no switch for it on a key). The steps now say Admin. Waits for the owner to make a
+  new key with the Admin role; then a third run. Not yet proven that the Admin key is enough.
 - The Apple account side is otherwise complete (individual account, Team ID, App ID with Associated Domains, app
-  record, API key).
+  record, registered iPhone).
 
 **Not started**
 - T721 (edge-swipe back grid), T726 (screens on four iPhone sizes, light and dark, large text, VoiceOver), the store

@@ -166,7 +166,7 @@ with the default Claude uses until you answer). Newest first inside each section
   assigns it once the enrolment is approved and paid; it then shows under developer.apple.com → Account → Membership
   details. After approval, yours to do: save the Team ID in
   `~/.canifishthis/ios-team-id`; create the app record (bundle id `ca.canifishthis.app`, name "Can I Fish This?", English
-  (Canada)); make an App Store Connect API key (App Manager) and save `~/.canifishthis/asc-api-key.json`. TestFlight
+  (Canada)); make an App Store Connect API key (role Admin; corrected 2026-11-14 22:15, an App Manager key cannot sign for the store) and save `~/.canifishthis/asc-api-key.json`. TestFlight
   (T88) stays yours to start.
 - **ANSWERED 2026-11-14 (iOS parity audit, T722/T723).** Owner, verbatim: "we want it to progress with app closed in both app
   and android" (the first install download); "need to just update text for ios" (the two promises that do not hold on
@@ -519,7 +519,7 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
 
 - **iOS (T88, T364, T365; 2026-11-05)** — **BENCHED (owner 11-06) until the DFO extents are labelled and Play closed testing has started; then pay the $99 (pick individual vs organization first) and run TestFlight, not the free 7-day route.** the real iPhone run (T364) is AFTER the launch-and-hygiene chat (owner 11-05). Claude built and tested everything the simulator can show (T313).
      Membership details) and `asc-api-key.json` `{"key_id","issuer_id","key_path"}` for an App Store Connect API key
-     (Users and Access → Integrations → Team key, role App Manager; keep the .p8 outside the repo).
+     (Users and Access → Integrations → Team key, role Admin (App Manager cannot sign for the store); keep the .p8 outside the repo).
      missing). It uploads to TestFlight; install TestFlight on the iPhone and accept the build.
      download on Wi-Fi and on cellular (the foreground download, b8e33ca80); the left-edge swipe back from a water's page
      (simulator: a slow drag goes back, a fast mid-height one sometimes does not — say which works for your thumb); the
