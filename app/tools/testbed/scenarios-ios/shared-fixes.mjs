@@ -9,7 +9,7 @@ import path from 'node:path';
 const LOOKS = (process.env.SHARED_LOOKS ?? 'light,dark').split(',');
 const ITEMS = (process.env.SHARED_ITEMS ?? 't729,t728,t731,t717,t730').split(',');
 // iOS search rows by their accessibility text (data names: kept out of the static check's literal scan, as regs-open's)
-const ROW = { fraser: 'Show Fraser River,.*', coquitlam: 'Show Coquitlam River,.*', cultus: 'Show Cultus Lake,.*Lindell Beach.*' };
+const ROW = { vedder: 'Show Vedder River,.*', coquitlam: 'Show Coquitlam River,.*', cultus: 'Show Cultus Lake,.*Lindell Beach.*' };
 const has = (ctx, id) => (ctx.device.screenText().ids ?? []).includes(id);
 const box = (ctx, id) => ctx.device.nodes().find((n) => n.id === id)?.box ?? null;
 const mid = (b) => [Math.round((b.x0 + b.x1) / 2), Math.round((b.y0 + b.y1) / 2)];
@@ -68,7 +68,9 @@ export const sharedFixesIos = {
         });
         await ctx.step(`${look} T729: satellite on, the card names Esri`, async () => {
           await toMap(ctx);
-          ctx.flow('layers-satellite'); await sleep(800); ctx.flow('tap-text', { TEXT: 'Done' }); await sleep(3000);
+          // by the option's id, never the toggle flow: a look left on satellite turned it off again (ios-shared3)
+          ctx.flow('tap-text', { TEXT: 'Choose layers.*' }); await sleep(1000);
+          ctx.flow('tap-id', { ID: 'option-ground\\.satellite' }); await sleep(800); ctx.flow('tap-text', { TEXT: 'Done' }); await sleep(3000);
           await chip();
           const w = d.screenText();
           shot('t729-satellite');
@@ -115,14 +117,17 @@ export const sharedFixesIos = {
           shot('t728-layers-before');
           const before = d.nodes().filter((n) => /^option-/.test(n.id)).map((n) => `${n.id}:${n.desc}`);
           ctx.flow('tap-text', { TEXT: 'Done' }); await sleep(1500);
-          // a GAUGED water (its card has the Flow / Level chart): Coquitlam's card is an estimate with no chart (ios-shared2)
-          ctx.flow('search', { Q: 'Fraser River' });
-          ctx.flow('open-result', { LINE: ROW.fraser });
-          await ctx.until(() => has(ctx, 'water-back'), { ms: 20_000, what: 'the Fraser River page' });
+          // Vedder River: a gauged card with the Flow / Level chart (Android read Flow 30.4, Level 1.83 there). Coquitlam's
+          // and the Fraser at Mission's open on an "Estimate for this spot" with no chart in reach (ios-shared2/3)
+          ctx.flow('search', { Q: 'Vedder River' });
+          ctx.flow('open-result', { LINE: ROW.vedder });
+          await ctx.until(() => has(ctx, 'water-back'), { ms: 20_000, what: 'the Vedder River page' });
           if (has(ctx, 'water-view-conditions')) ctx.flow('tap-id', { ID: 'water-view-conditions' });
           await sleep(3000);
+          try { ctx.flow('scroll-to', { TEXT: 'Level' }); } catch { /* said below */ }
+          await sleep(1000);
           shot('t728-card-level');
-          if (!has(ctx, 'chart-quantity')) { await pageBack(ctx); ctx.skip('no Flow / Level chart (chart-quantity) on the Fraser card either'); }
+          if (!has(ctx, 'chart-quantity')) { await pageBack(ctx); ctx.skip('no Flow / Level chart (chart-quantity) on the card, scrolled'); }
           ctx.flow('tap-text', { TEXT: 'Flow' }); await sleep(1500);
           shot('t728-card-flow');
           await pageBack(ctx); await sleep(2000);
@@ -179,7 +184,7 @@ export const sharedFixesIos = {
           ctx.swipe([x, y], [x, y + 450], 350); await sleep(1500);
           const closed = !has(ctx, 'search-sheet-handle');
           shot('t730-after-swipe');
-          if (!closed) ctx.flow('tap-id', { ID: 'search-panel-close' });
+          if (!closed) await ctx.ios.back(ctx);          // the search's ‹ (no search-panel-close in the iOS tree)
           return `handle at ${x},${y}; swipe down (keyboard up): ${closed ? 'closed' : 'STAYED OPEN'}`;
         });
         await ctx.step(`${look} T730: Back after a result stays on that water; search starts afresh`, async () => {
@@ -190,7 +195,7 @@ export const sharedFixesIos = {
           const w = d.screenText();
           shot('t730-reopened');
           const kept = w.find((x) => /^Cultus/.test(x));
-          ctx.flow('tap-id', { ID: 'search-panel-close' }); await sleep(800);
+          await ctx.ios.back(ctx);
           return `search reopened: ${kept ? `still says "${kept}"` : 'empty (afresh)'} (judge the map from the shot)`;
         });
       }
