@@ -641,3 +641,6 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   or bad ones?" Audit running; you get a list to look at (proposals only).
 - OPEN, yes/no: Seton River mouth as its own cut 254 m below the Highway 99 bridge cut (recommended: yes, keep it), or
   reuse the bridge cut.
+- ASKED 2026-11-15: "need to also fix all other tributary only items like on thre bulkley too. fix the proposals
+  after adding ability for it". In work (T742). Yours after it lands: re-mark the tributaries-only places already saved
+  (list will be on the To-Do page).
