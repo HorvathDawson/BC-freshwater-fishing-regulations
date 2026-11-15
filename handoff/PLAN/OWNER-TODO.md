@@ -131,9 +131,10 @@ with the default Claude uses until you answer). Newest first inside each section
 - **Apple Developer account: APPROVED 2026-11-14 evening (individual); the owner has the Team ID** (given in chat; not
   written in the repo). DONE by you 2026-11-14: the Team ID is saved in `~/.canifishthis/ios-team-id` (checked: the site build reads
   it and now writes Apple's link file). Also 2026-11-14: the owner made the App Store Connect API key (Key ID and Issuer ID given in
-  chat, not written in the repo; the `.p8` is in his Downloads). Left for you: move the `.p8` into `~/.canifishthis/` and
-  write `asc-api-key.json` (one pasted command, given in chat; Claude does not write that folder); confirm the App ID
-  `ca.canifishthis.app` is registered with Associated Domains on and the app record exists. History: ENROLLED 2026-11-14, waiting for Apple's approval (owner, verbatim: "okay i enrolled with
+  chat, not written in the repo; the `.p8` is in his Downloads). DONE by you the same evening: the key and `asc-api-key.json` are in
+  `~/.canifishthis/` (checked by shape only; `build-ios-testflight.sh --dry-run` finds both files and would build 0.7.10
+  as build 33). Left for you: confirm the App ID `ca.canifishthis.app` is registered with Associated Domains on and the
+  app record exists; the first TestFlight run stays yours to start (Claude's advice: after the iOS branches merge). History: ENROLLED 2026-11-14, waiting for Apple's approval (owner, verbatim: "okay i enrolled with
   apple developer I will tell you wne i get approved"). This answers decision 1 of `handoff/PLAN/ios/START-HERE-ios.md`
   (account now). ANSWERED 2026-11-14 evening, verbatim: "it is a individual evelper account" (so the App Store shows
   your own legal name as the seller). Same message: "i cant find team id how do i make one?": it is not made, Apple
