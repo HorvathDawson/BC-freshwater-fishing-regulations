@@ -63,9 +63,12 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
 - The iOS look at today's five shared fixes (**done 22:40**, build 081d93f90, simulator, light and dark; write-up in
   T723): the credits card (T729), search (T730) and Back from a page (T717) pass. The step bar (T731) passes for a
   step within one water; the step into the next water was not reached. Flow / Level (T728) is **not verified**: the
-  test bed did not reach a water with a gauge chart. Found: on a water's page the app used 306 to 331 MB against 213 to
-  230 MB on the baseline build (the map is now kept alive under the page); not yet measured like for like, being
-  re-measured. On iPhone, changing tab with the credits card open takes two taps (the first closes the card).
+  test bed did not reach a water with a gauge chart (retry on the Vedder running). **Found, memory:** measured again on
+  the baseline's own simulator model, a water's page takes 279 MB against 213 to 230 MB on the baseline (the map is now
+  kept alive under the page), and the peak is 389 MB against 274 MB: with a page up, closing the rule book frees about
+  10 MB where it used to free about 50. Not fully like for like (the build carries every change since the baseline).
+  Told to the Android chat, which owns T717 and will ticket it. On iPhone, changing tab with the credits card open
+  takes two taps (Android: one); taken as an iOS follow-up, not fixed.
 - `ios/integration` (head 3212f4936, app CI green, not merged): the four iOS branches (install, keyboard and back,
   audit fixes, tap cue) merged together. The whole app test suite passes (7,707 tests) and the feeds worker's (447).
   Six tests went red after the merge and were fixed at the cause (lists that name every scenario and every reported
