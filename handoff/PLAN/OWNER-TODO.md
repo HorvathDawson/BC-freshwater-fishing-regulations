@@ -748,3 +748,6 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   the rule-book stretch and both DFO places follow). Shows after the rebuild; then re-tick marks 1263, 2447, 2687.
   YOURS: the retired "from the weir at the lower hatchery" place has no mark (weir to the 75 m cut). YOURS, yes/no: the
   tailrace "50 m" cut has the same fault, about 27 m off; fix it the same way?
+- DONE 2026-11-15 (Exchamsiks, your permission): new mark line 2728, upstream of the Hwy 16 bridge point, tributaries
+  on, saved by Claude at your request; it replaces the whole-river save and waits on the rebuild like your other new-cut
+  saves. It shows as "unsure" because the app sets that for any extent using a not-yet-built cut.
