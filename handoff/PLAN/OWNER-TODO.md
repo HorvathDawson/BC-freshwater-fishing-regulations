@@ -654,3 +654,7 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   In work: the audit lists every place whose wording mentions tributaries against its extent and proposal (report
   `handoff/PLAN/curation-review/resaved-marks-audit-2026-11-15.md`, Section E); the suggester proposes tributaries for
   those wordings; the review app warns on a mismatch (T742). Mismatches on places you already saved come to you to re-mark.
+- ASKED 2026-11-15: "also we need to make sure all the res of extents work properly so that if other items get added or
+  removed they adapt their extent". Main chat's reading: the "rest of the water" kind of extent (a place with no stretch
+  of its own, e.g. Qualicum "all open portions"). Being checked (audit report Section F): is it worked out from the other
+  places at build time, and does it follow when one is added, removed or changed. Fixes, if needed, come as proposals.
