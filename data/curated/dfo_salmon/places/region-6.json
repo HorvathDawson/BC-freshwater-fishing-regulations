@@ -6678,7 +6678,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "kispiox_river__signs_near_kispiox_river_resort"
+            ],
+            "item_id": "gnis:2308"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
