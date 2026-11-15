@@ -1,0 +1,33 @@
+# T752 — Desktop: the water's Map tab as a split (map on one side, the part's text on the other)
+
+Status: IN PROGRESS (proposal: pictures to the owner)
+
+Source: owner 2026-11-15, staging website, desktop, a water's page, Map tab (Fraser River, part 4 of 19), verbatim:
+"on desktop the section navigator should maybe be map on one side and text on other (split column?) thoughts?"
+His screenshot at about 1512x760: the map is a strip about 1512x270, wider than the content column, and the controls
+(the parts toggle, the part's name, Downstream / Upstream, "Show regulations for this part") sit in the 1280 column under
+it with a lot of empty width.
+
+This is a LOOK PROPOSAL. Nothing is committed in the app; the patch and the pictures are in
+`~/bcfish-session-backup-2026-11-12/desktop-split/` (`split.patch`, the sheets).
+
+## The two looks built
+- A: map LEFT (about 60% of the column, the full height under the tabs, at least 560 px), the text column RIGHT (the
+  part's label, name, Downstream / Upstream, "Show regulations for this part", "Show all N parts" as a list that opens in
+  place and scrolls inside the column, the report link at the bottom).
+- B: the same mirrored: text LEFT (fixed 420 px), map RIGHT filling the rest.
+Both: "Whole river" / "This part" and the zoom buttons stay on the map; the open list marks the current part and a click
+steps to it; below the breakpoint (the app's `tablet`, 900 px, `useLayoutClass`) nothing changes; keyboard order is the tabs,
+then the text controls, then the map's.
+
+## What shipping it would need (not done)
+- Tests: the layout at the breakpoint (899 phone unchanged, 900 and up split; the same test class as
+  `tools/water-frame-layout.test.ts`), the framing at the new map size (a part frames well in a taller, narrower
+  canvas; T747's framing tests assume the strip, re-check their size assumptions), the part list scrolling inside the
+  column and a click stepping, keyboard order, and the phone golden unchanged.
+- Inventories: `tools/back-layers.test.ts` (the list is the same back layer, no new one expected), `tools/failures.test.ts`
+  if any new read; `app/MAP.md` line for the Map view; the water-frame header comment ("the Map may go full-bleed") updated:
+  the split sits inside the column, not full-bleed.
+- Native tablets: the layout class is the same on a tablet (900 and up), so an Android tablet or iPad in landscape would get
+  the split; decide whether it should (default: yes, it is the same room).
+- Decision for the owner: A or B (or keep today's), and whether the split starts at 900 (tablet) or 1280 (desktop).
