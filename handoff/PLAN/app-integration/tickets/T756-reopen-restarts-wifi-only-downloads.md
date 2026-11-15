@@ -64,3 +64,22 @@ a new job.
 
 Depends: nothing to start; merges after T722 (`ios/integration`) so the iPhone downloader is covered by the same tests.
 Size: S (code) + S (bench). On the list for the owner's code review.
+
+## Results (2026-11-15, iOS chat)
+Branch `fix/t756-keep-running-job`, commit a03372ec5, off the shared head ff4463a61. Pushed, NOT merged.
+- **Work 1, done:** `queue` keeps a job when it `serves` the rule now asked: the same rule, or Wi-Fi only + running +
+  mobile data allowed. Pending / paused Wi-Fi-only jobs are queued again as before ("Use mobile data now" still works).
+- **Work 2, done, platform-free:** in `fill`, a kept Wi-Fi-only job that sits paused for `stuckMs` (20 s) while mobile
+  data is allowed is removed and queued again under the allowed rule, with the line `[download] <url>: a Wi-Fi-only
+  download paused (reason N) at X of Y bytes while mobile data is allowed; queued again to use it`. It goes by time,
+  not by the platform's paused reason, so the shared code needs no Android or iPhone constant; the cost is that a
+  20-second retry pause on Wi-Fi also restarts that file.
+- **Work 3, done:** four tests in `bgDownload.test.ts` (kept when running; the mirror case queued again; the later
+  pause queued again once with its line; a short pause waited out). Each fails with its half of the change removed
+  (checked by hand). The file: 11 passed. `pnpm -C app check:fast` exit 0; `tools/failures`, `tools/no-silent-skips`,
+  `tools/release-boot` and `packages/data/src/release/` pass (24 files, 220 tests).
+- **Not done:** work 4 (the bench: fail on an app-side cancel, wait on bytes moving, the failure text, the
+  notification-group tap) and work 5 (no device run yet: Android `bg-install` + `install`; iPhone after T722 merges).
+- **Not verified:** that the iPhone downloader (T722) reports `running` and `metered` the way this rule needs; that
+  DownloadManager reports a Wi-Fi-only job as `running` (not `paused`) for the whole time it moves on Wi-Fi.
+
