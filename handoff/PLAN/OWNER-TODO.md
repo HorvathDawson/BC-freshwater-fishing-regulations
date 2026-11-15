@@ -644,3 +644,9 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
 - ASKED 2026-11-15: "need to also fix all other tributary only items like on thre bulkley too. fix the proposals
   after adding ability for it". In work (T742). Yours after it lands: re-mark the tributaries-only places already saved
   (list will be on the To-Do page).
+- ASKED 2026-11-15 (Sproat River, DFO Region 1): "there is a tiny section of sprout river in the middle of the lake... if
+  anything it should be part of the lake....". Being investigated (ticket T753, written by the lane); options come to you.
+- ASKED 2026-11-15 (Kitimat, "on west bank between signs at Kitimat hatchery outfall"): "we should have a way to define
+  one half of the river closing maybe? could color only west or east side? could be an option in extent i think this is
+  the only river like this? but worth at least doing the coloring. then idk how to represent it otherwise. have an agent
+  look into this please". Being investigated (ticket T754, written by the lane); options come to you.
