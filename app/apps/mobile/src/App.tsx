@@ -32,7 +32,7 @@ import { fillDayFlow, onVisit, visitIdOf, storedHydat, openLayerStore, openLikeS
          type DayFlowAnswer, type Spot } from "@app/data/spots";
 import { Button, connectivity, ErrorState, LoadingState, SayingLine, setSynopsisNet, setSynopsisSource, Shell, StageBar, THEMES, UpdateToast, type ThemeName,
          platformLine, type ShellProps, type UpdatesLogControls } from "@app/ui-native";
-import { LayoutWidthContext, liveFetch, NetRoot, useNet, useNetActivity, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, createCrashReporter, createCrashSetting, CrashSettingRoot, NotifyRoot, AlertLinesRefresh, installCrashHandlers, installId, reportPastExits, crashWhere, useRefreshOnReconnect, useReleaseBoot, useSpots, type MapTiles,
+import { LayoutWidthContext, liveFetch, NetRoot, useNet, useNetActivity, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, createCrashReporter, createCrashSetting, CrashSettingRoot, NotifyRoot, AlertLinesRefresh, installCrashHandlers, installId, reportPastExits, crashWhere, useRefreshOnReconnect, useApplyCurtain, useReleaseBoot, useSpots, type MapTiles,
          DataProvenanceContext, loadRegsStore, reportFailure, startNeedsRelease, startNoticeLine,
          type AddressState, type PairingInput, type Route, type SpotPhotos, type StartLink, type StatusSource,
          useAppUpdate } from "@app/ui";
@@ -415,6 +415,13 @@ export default function App() {
     setToast(updatedToast(manifestDate(boot.booted.manifest)));
   }, [boot, updates]);
   const clearToast = useCallback(() => setToast(null), []);
+  // (T746) the apply in flight, and the failed one until the reader closes it (it was reported where it was caught)
+  const curtain = useApplyCurtain(boot);
+  const applyingNow = curtain.applying;
+  useEffect(() => {
+    // (T287) the test bed's stall log reads the curtain off these lines
+    if ((globalThis as { __openProbe?: boolean }).__openProbe) console.log(`[swap] curtain ${applyingNow ? "up" : "down"}`);
+  }, [applyingNow]);
   // (T585 F12, F13) a development or staging build says which data release it answers from on the Conditions card (and
   // the data source / channel when they are not this build's own); null in a production build
   const provenance = useMemo(() => dataProvenanceLine({
@@ -646,6 +653,9 @@ export default function App() {
         <Shell source={data.source} palette={palette} loader={data.loader} menuInfo={menuInfo}
                // (T231) the sync icon reads the update service; a ready update is applied at the Shell's safe moment
                updates={updates} onSafeToApply={apply}
+               // (T746) while it is put in use: the curtain (loading fish + one line) over the app, taking every tap and
+               // the back; a failed apply said on it until closed
+               applyCurtain={curtain}
                // T129: the boot's manifest read seeds the service's first release check (`seedRelease`): no second request
                // (T186, Q164) the web fetches ahead after first paint; a phone holds the release installed
                prefetch={Platform.OS === "web"}

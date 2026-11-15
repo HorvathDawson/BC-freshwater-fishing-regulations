@@ -20,7 +20,26 @@ const STAGES: Readonly<Record<string, string>> = {
   install: "Downloading the map and regulations for offline use",
   paint: "Opening the map…",
   fonts: "Loading type…",
+  /** (T746) a start that opens a set downloaded earlier for the first time: the same line as the in-session curtain */
+  apply: "Putting the new regulations in place…",
 };
+
+/**
+ * (T746) WHILE A DOWNLOADED DATA RELEASE IS PUT IN USE (owner 2026-11-14: "a loading icon with text like splash so it
+ * doesnt looking like it is frozen"): the one line under the loading fish, on the curtain over the app and on the boot
+ * screen of a start that applies one. `failed`: an apply that did not go through (the app keeps the data it had).
+ * `options`: the wordings put to the owner; `line` is the default until the owner picks (T746 Results).
+ */
+export const APPLY_WORDS = {
+  line: "Putting the new regulations in place…",
+  options: [
+    "Putting the new regulations in place…",
+    "Applying the new regulations data…",
+    "Updating the regulations and map…",
+  ],
+  failed: "The new regulations could not be put in place. The app is still using the data it had.",
+  ok: "OK",
+} as const;
 
 /** The line for a start-up stage; an unknown stage says nothing rather than something made up. */
 export function startStage(stage: string): string {

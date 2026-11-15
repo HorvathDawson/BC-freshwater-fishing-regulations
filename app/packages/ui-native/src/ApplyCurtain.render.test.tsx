@@ -1,0 +1,60 @@
+/**
+ * (T746) THE APPLY CURTAIN: takes taps from the first moment, is drawn (fish + the whole line) only after 300 ms and then
+ * held at least 400 ms, never flashes for a quick apply, and says a failed apply in plain words until closed.
+ */
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { APPLY_WORDS } from "@app/core";
+import { ApplyCurtain } from "./ApplyCurtain";
+import { LIGHT } from "./theme";
+
+const curtain = (applying: boolean, failed: Error | null = null, onClose = () => {}) =>
+  <ApplyCurtain palette={LIGHT} applying={applying} failed={failed} onClose={onClose} />;
+const tick = (ms: number) => act(() => { vi.advanceTimersByTime(ms); });
+
+describe("ApplyCurtain (T746)", () => {
+  beforeEach(() => { vi.useFakeTimers({ toFake: ["Date", "performance", "setTimeout", "clearTimeout"] }); });
+  afterEach(() => { cleanup(); vi.useRealTimers(); });
+
+  it("nothing when no apply is in flight", () => {
+    render(curtain(false));
+    expect(screen.queryByTestId("apply-curtain")).toBeNull();
+  });
+
+  it("takes taps at once, draws nothing for 300 ms, then the fish and the whole line, drawn at least 400 ms", () => {
+    const { rerender } = render(curtain(true));
+    expect(screen.getByTestId("apply-curtain")).toBeTruthy();       // the tap stopper is up from the first frame
+    expect(screen.queryByTestId("apply-line")).toBeNull();           // not drawn yet: a quick apply never flashes
+    tick(299);
+    expect(screen.queryByTestId("apply-line")).toBeNull();
+    tick(1);
+    expect(screen.getByTestId("apply-line").textContent).toBe("Putting the new regulations in place…");
+    expect(screen.getByTestId("apply-line").textContent).toBe(APPLY_WORDS.line);
+    tick(100);
+    rerender(curtain(false));                                         // the new set committed
+    expect(screen.getByTestId("apply-line")).toBeTruthy();            // held: drawn 400 ms in all, no flicker
+    tick(299);
+    expect(screen.getByTestId("apply-line")).toBeTruthy();
+    tick(1);
+    expect(screen.queryByTestId("apply-curtain")).toBeNull();
+  });
+
+  it("an apply quicker than 300 ms: the curtain goes without ever being drawn", () => {
+    const { rerender } = render(curtain(true));
+    tick(200);
+    rerender(curtain(false));
+    expect(screen.queryByTestId("apply-curtain")).toBeNull();
+    tick(1000);
+    expect(screen.queryByTestId("apply-line")).toBeNull();
+  });
+
+  it("a failed apply is said at once, in the whole sentence, until the reader closes it", () => {
+    const onClose = vi.fn();
+    render(curtain(false, new Error("core: open failed"), onClose));
+    expect(screen.getByTestId("apply-failed").textContent)
+      .toBe("The new regulations could not be put in place. The app is still using the data it had.");
+    expect(screen.queryByTestId("apply-line")).toBeNull();
+    fireEvent.click(screen.getByTestId("apply-failed-ok"));
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+});

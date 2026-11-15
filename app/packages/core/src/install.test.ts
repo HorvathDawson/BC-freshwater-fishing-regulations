@@ -1,6 +1,6 @@
 /** P11: the start-up and first-run words, composed here and pinned whole (AGENTS 33). */
 import { describe, expect, it } from "vitest";
-import { downloadFraction, DOWNLOAD_NOTE_WORDS, DOWNLOAD_SAYINGS, INSTALL_WORDS, installLine, MOBILE_DATA_WORDS, mobileDataDecision, mobileDataFrom,
+import { APPLY_WORDS, downloadFraction, DOWNLOAD_NOTE_WORDS, DOWNLOAD_SAYINGS, INSTALL_WORDS, installLine, MOBILE_DATA_WORDS, mobileDataDecision, mobileDataFrom,
          rolledBackLine, SAYING_MS, sayingAt, SETUP_WORDS, setupFraction, setupLine, SMALL_DOWNLOAD_BYTES, spaceLine, startStage } from "./install";
 
 describe("the first-run download line", () => {
@@ -38,6 +38,22 @@ describe("the rollback line (a new set would not open, so the one it replaced is
   it("leaves out a name it does not have rather than making one up", () => {
     expect(rolledBackLine({ refused: null, using: null }))
       .toBe("The newest map data would not open, so the app is using the data it had before.");
+  });
+});
+
+describe("(T746) a downloaded release put in use", () => {
+  it("says one whole line, the same on the curtain and on the boot screen, and a failure in plain words", () => {
+    expect(APPLY_WORDS.line).toBe("Putting the new regulations in place…");
+    expect(startStage("apply")).toBe("Putting the new regulations in place…");
+    expect(startStage("apply")).toBe(APPLY_WORDS.line);
+    expect(APPLY_WORDS.options).toEqual([
+      "Putting the new regulations in place…",
+      "Applying the new regulations data…",
+      "Updating the regulations and map…",
+    ]);
+    expect(APPLY_WORDS.options).toContain(APPLY_WORDS.line);
+    expect(APPLY_WORDS.failed).toBe("The new regulations could not be put in place. The app is still using the data it had.");
+    expect(APPLY_WORDS.ok).toBe("OK");
   });
 });
 

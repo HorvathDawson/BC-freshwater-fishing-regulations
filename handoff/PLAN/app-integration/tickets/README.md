@@ -224,6 +224,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T727 | iOS: store pack, everything except what needs the Apple account (IOS-10) | IN PROGRESS (iOS chat, docs lane; screenshots after T718) | — | owner 2026-11-14 (iOS reopened, simulator only); stub IOS-10 in handoff/PLAN/ios/START-HERE-ios.md |
 | T728 | A Flow / Level pick in the Conditions card no longer changes the Conditions map's layer | IN PROGRESS (before closed testing) | — | owner 2026-11-14 ("when you chang elvel/condition in the card it should not change cindition map layers too"); code + test done; left (Claude): an emulator look on the next APK |
 | T729 | Map attribution goes under the legends on every map tab | OPEN (before closed testing) | — | owner 2026-11-14 ("attribution on app goes under the legends on the different map tabs"); needs Shell.tsx (T717's) for the foot's credit row; left (Claude): code + test + emulator look |
+| T746 | While new data is applied the app shows a loading mark and a line of text, not a still screen (Android, iPhone, web). Next free ticket T747 (T742 to T745 are taken by the Android chat) | IN PROGRESS (iOS chat 2026-11-14: on a branch from `ios/t722-install`; wording goes to the owner with pictures) | — | owner 2026-11-14, relayed by the Android chat: "also when changes apply to app we want to make it so that it has a loading icon with text like splash so it doesnt looking like it is frozen. (applying changes as in new data regs)". Depends on T722 |
 
 ## Next after closed testing
 

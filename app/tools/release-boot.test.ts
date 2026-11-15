@@ -304,17 +304,21 @@ describe("native: always offline, updated by diff, swapped at the next launch", 
       expect(id2).not.toBe(id1);
       const fs = memFs();
       // as the app boots: the update is the update service's (`deferUpdate`), staged through `Booted.stage`
-      const boot = (f: typeof fetch, keepReplaced?: boolean) => bootRelease({
+      // (T746) the stages each boot named: a boot that opens a set for the first time says "apply" while it opens it
+      let stages: string[] = [];
+      const boot = (f: typeof fetch, keepReplaced?: boolean) => { stages = []; return bootRelease({
         manifestUrl: `${BASE}manifest.json`, releaseBase: BASE, wasmBase: "", platform: phone(fs), fetch: f,
-        manifestTimeoutMs: 1000, deferUpdate: true, ...(keepReplaced ? { keepReplaced } : {}) });
+        manifestTimeoutMs: 1000, deferUpdate: true, onStage: (s) => stages.push(s), ...(keepReplaced ? { keepReplaced } : {}) }); };
       const said = (b: Awaited<ReturnType<typeof boot>>, generation = 0, before: typeof b.held | null = null) =>
         bootSaid({ generation, booted: b, before });
 
       // a first install is not an update
       const first = await boot(releaseFetch(BASE, r1.dir, []));
       expect([first.applied, said(first)]).toEqual([null, { kind: "nothing" }]);
+      expect(stages).not.toContain("apply");
       // nor is opening the same set again
       expect((await boot(offline)).applied).toBeNull();
+      expect(stages).toEqual(["manifest", "paint"]);
 
       // the server names r2: the session stays on r1 and stages r2 beside it; the app is then closed before any safe moment
       const session = await boot(releaseFetch(BASE, r2.dir, []));
@@ -325,10 +329,12 @@ describe("native: always offline, updated by diff, swapped at the next launch", 
       const cold = await boot(offline);
       expect(cold.manifest.data_release).toBe(id2);
       expect(cold.applied).toEqual({ from: id1 });
+      expect(stages).toEqual(["manifest", "apply"]);
       expect(said(cold)).toEqual({ kind: "applied", release: id2, from: id1 });
       // … once: the next launch on the same set says nothing
       const again = await boot(offline);
       expect([again.manifest.data_release, again.applied, said(again)]).toEqual([id2, null, { kind: "nothing" }]);
+      expect(stages).toEqual(["manifest", "paint"]);
 
       // THE WEB, asked the same manifest, is on the same release: once staging is done the two platforms agree
       const onWeb = await bootRelease({ manifestUrl: `${BASE}manifest.json`, releaseBase: BASE, wasmBase: "",
@@ -699,7 +705,10 @@ describe("native: always offline, updated by diff, swapped at the next launch", 
       // online: installed BEFORE the map, as a first run is (not in the background for the next launch)
       stages.length = 0;
       const b = await boot(releaseFetch(BASE, r2.dir, []));
-      expect(stages).toEqual(["manifest", "install", "paint"]);
+      // (T746) the set installed over the old one opens for the first time on this device: "apply" while it opens, the
+      // same rule as `Booted.applied` (this boot applied it, from the set it replaced)
+      expect(stages).toEqual(["manifest", "install", "apply"]);
+      expect(b.applied).toEqual({ from: first.held.release });
       expect(b.held.release).not.toBe(first.held.release);
       expect(b.rolledBack).toBeNull();
       expect(await b.update).toBeNull();

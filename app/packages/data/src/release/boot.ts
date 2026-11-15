@@ -61,7 +61,8 @@ export interface ReleasePlatform {
 export interface DeviceSpace { free(): Promise<number>; size(path: string): Promise<number> }
 
 /** (T298) "wifi": a first install held for Wi-Fi by the reader's mobile-data choice. */
-export type BootStage = "manifest" | "wifi" | "install" | "paint";
+/** (T746) "apply": the set opening is one this device has not opened before (downloaded earlier, put in use now). */
+export type BootStage = "manifest" | "wifi" | "install" | "paint" | "apply";
 
 /**
  * (T298) THE FIRST INSTALL'S MOBILE-DATA GATE, the app's (it asks the reader and keeps the answer as the setting).
@@ -410,6 +411,11 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
   }
   /** Open a held set: its manifest, paint decoded against its handles, core opened and checked, its tiles paired. */
   const cache = await o.platform.releaseCache();
+  // (T585 F12) the set this device opened last — read BEFORE opening, so (T746) a start that applies a set downloaded
+  // earlier says so while it opens ("apply"); unreadable, it is reported and the boot goes on (worst case a later launch
+  // says "Updated to" again)
+  const openedBefore = await readHeld(dev.fs, OPENED).catch((e: unknown) => { reportFailure(e); return null; });
+  const firstOpen = (h: Held) => openedBefore !== null && !sameSet(openedBefore, h);
   const openSet = async (h: Held) => {
     const t0 = clockNow();
     openStep(0);
@@ -430,7 +436,7 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
           return spec ? { dir: dev.dirUri(dir), file: heldPath(h, spec.url).split("/").pop()! } : null;
         },
       }));
-    o.onStage?.("paint");
+    o.onStage?.(firstOpen(h) ? "apply" : "paint");
     const paint = await loader.paint();
     openStep(2);
     const tPaint = clockNow();
@@ -485,9 +491,8 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
   const now = held;
   // (T722 F6) at every boot, so a set an older app installed is covered too (a first install's is this call)
   await outOfBackup(o.noBackup, dev, set.m);
-  // (T585 F12) is this the boot that APPLIES the set (the first to open it)? The record is this device's own small file;
-  // unreadable or unwritable, it is reported and the boot goes on (worst case a later launch says "Updated to" again)
-  const openedBefore = await readHeld(dev.fs, OPENED).catch((e: unknown) => { reportFailure(e); return null; });
+  // (T585 F12) is this the boot that APPLIES the set (the first to open it)? The record (read above) is this device's own
+  // small file; unwritable, it is reported and the boot goes on
   const applied = openedBefore && !sameSet(openedBefore, now) ? { from: openedBefore.release ?? null } : null;
   if (!openedBefore || applied) await writeHeld(dev.fs, OPENED, now).catch((e: unknown) => { reportFailure(e); });
   const refused = await readHeld(dev.fs, REFUSED);

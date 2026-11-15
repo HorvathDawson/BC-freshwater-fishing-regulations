@@ -219,6 +219,8 @@ describe("back, everywhere: every surface registers a back layer", () => {
     expect(found).toEqual([
       // (T234) the "Alert me" form, inline in the gauge card (COVERED)
       "packages/ui-native/src/AlertMe.tsx#AlertEditor: takes onCancel",
+      // (T746) the apply curtain: a back layer while it is up (back closes a failed apply's message, and is held mid-apply)
+      "packages/ui-native/src/ApplyCurtain.tsx#ApplyCurtain: a dialog",
       // (T476) the Developer card, open: its own Modal, registered (useBackLayer); MapScreen hands it devOpen
       "packages/ui-native/src/DeveloperCard.tsx#DeveloperCard: takes onClose",
       "packages/ui-native/src/DeveloperModal.tsx#DeveloperModal: a Modal",

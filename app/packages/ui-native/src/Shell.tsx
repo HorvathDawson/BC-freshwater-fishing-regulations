@@ -42,6 +42,7 @@ import { TabBar } from "./TabBar";
 import { EdgeBack } from "./EdgeBack";
 import { LayersSheet } from "./LayersSheet";
 import { InSeasonNotice } from "./InSeasonNotice";
+import { ApplyCurtain } from "./ApplyCurtain";
 import { DaySheet } from "./regs/DaySheet";
 import { WaterViewsContext } from "./ViewSwipe";
 import { SharePortContext } from "./SharePortContext";
@@ -808,6 +809,9 @@ export function Shell(p: ShellProps) {
       {/* (T231) the sync icon's red badge: what could not be updated, when each last succeeded, Retry */}
       <SyncErrorSheet open={syncErrorOpen && syncState.failed.length > 0} failed={syncState.failed} palette={palette}
                       checking={syncState.checking} onRetry={syncState.refresh} onClose={() => setSyncErrorOpen(false)} />
+      {/* (T746) a downloaded release being put in use: the curtain over everything, taking every tap and the back */}
+      {p.applyCurtain && <ApplyCurtain palette={palette} applying={p.applyCurtain.applying} failed={p.applyCurtain.failed}
+                                       onClose={p.applyCurtain.close} />}
     </View>
     </SharePortContext.Provider>
     </MenuContext.Provider>

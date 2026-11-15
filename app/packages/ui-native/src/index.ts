@@ -39,6 +39,8 @@ export { Credits } from "./Credits";
 export { LoadingState, useDelayedShow, SPINNER_TIMING } from "./LoadingState";
 export { StageBar } from "./StageBar";
 export { ErrorState } from "./ErrorState";
+// (T746) the curtain over the app while a downloaded data release is put in use
+export { ApplyCurtain } from "./ApplyCurtain";
 // (T231) the "Updated to …" toast and the device's word on its network (online, metered) for the update service
 export { UpdateToast } from "./UpdateToast";
 export { connectivity } from "./connectivity";
