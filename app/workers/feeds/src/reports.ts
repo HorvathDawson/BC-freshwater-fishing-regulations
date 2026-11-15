@@ -371,7 +371,8 @@ export async function purgeReports(bucket: R2BucketLike, now: Date = new Date())
 }
 
 /** (T559) the per-address counters of POST /report and POST /crash (a salted hash of the address, last time, day, count) */
-export const LIMIT_PREFIXES = [LIMITS_PREFIX, "private/crashes/limits/"] as const;
+/** (T739) and of POST /push/register|unregister (src/push.ts) */
+export const LIMIT_PREFIXES = [LIMITS_PREFIX, "private/crashes/limits/", "private/push/limits/"] as const;
 
 /**
  * (T559) Delete every rate-limit counter whose day is over (privacy page: the salted hash is kept "for a day's counting").

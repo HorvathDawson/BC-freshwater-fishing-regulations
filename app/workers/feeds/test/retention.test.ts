@@ -49,10 +49,11 @@ describe("report retention", () => {
 
 // T559: the privacy page keeps the salted address hash "for a day's counting": a counter goes once its UTC day is over.
 describe("rate-limit counters (T559)", () => {
-  it("are the ones POST /report and POST /crash write", async () => {
+  it("are the ones POST /report, POST /crash and (T739) POST /push/* write", async () => {
     const b = new Mem();
     await rateLimit({ BUCKET: b, REPORT_SALT: "s" }, "1.2.3.4", NOW);
     await rateLimit({ BUCKET: b, REPORT_SALT: "s" }, "1.2.3.4", NOW, { prefix: LIMIT_PREFIXES[1], gapMs: 1000, perDay: 40, edge: false });
+    await rateLimit({ BUCKET: b, REPORT_SALT: "s" }, "1.2.3.4", NOW, { prefix: LIMIT_PREFIXES[2], gapMs: 1000, perDay: 20, edge: false });
     expect([...b.m.keys()].map((k) => k.slice(0, k.lastIndexOf("/") + 1)).sort()).toEqual([...LIMIT_PREFIXES].sort());
   });
   it("deletes yesterday's and unreadable counters, keeps today's, leaves reports alone", async () => {
