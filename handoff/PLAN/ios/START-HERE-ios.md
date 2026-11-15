@@ -74,13 +74,19 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
   Six tests went red after the merge and were fixed at the cause (lists that name every scenario and every reported
   failure; one stale label). Running at 22:15: the simulator checks on the merged build, then the four Android benches
   on the emulator (the Android chat gave the emulator for the night).
-- `ios/t739-push` (T739, **started 21:50**, nothing deployed or merged): push wake-ups so a closure alert arrives on
-  time with the app closed, iPhone and Android (owner: "okay i ticked push notifications for app yes build for iphone."
-  and "for android too."). Also a new-data wake-up (owner: "i guess if new data is there we could send a notification
-  that the user needs to download it."): the phone downloads by itself when the settings allow, and otherwise shows one
-  notice. Time-sensitive notices are left out ("dont need this"). Needs from the owner later: an Apple push key, and for
-  Android a free Firebase project with its `google-services.json`.
-
+- `ios/t739-push` (T739, head 1734a8429, app CI green, nothing deployed or merged): push wake-ups for iPhone and
+  Android (owner: "okay i ticked push notifications for app yes build for iphone." and "for android too."), with a
+  new-data wake-up (owner: "i guess if new data is there we could send a notification that the user needs to download
+  it."); no time-sensitive notices ("dont need this"). **Written and unit-tested:** the worker stores a phone's push
+  address, sends a silent wake after a feed run that changed and on a new release, and says on its status page when
+  the keys are missing; the iPhone registers while alerts are on and withdraws when they are turned off; Android is
+  switched off until the Firebase file exists (the Android build config is byte-identical before and after).
+  **Proven on the simulator 23:20:** registering and withdrawing. **NOT proven:** the silent push never ran the app's
+  wake task on the simulator, in front, in the background or closed. Cause not settled; the lane is reading the
+  library code for it now. Until that is settled the feature is unproven. Also open: the lane reworded the existing
+  "new data ready" notice; told to restore it unless it is the same notice by design (then an owner question).
+  Needs from the owner later: an Apple push key and three `wrangler secret put` commands (in the ticket), and for
+  Android a Firebase project with its `google-services.json`.
 - `perf/t741` (T741, **started 23:10**): a standing pass to make the app faster and lighter on both platforms (owner:
   "can you make sure to keep working on optimizations? make app faster and lighter for both ios and android"). First a
   survey with no device time (app size, the JS bundle, cold start, memory per screen, first install), then fixes that
