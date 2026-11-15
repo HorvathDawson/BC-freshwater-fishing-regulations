@@ -27,6 +27,16 @@ with the default Claude uses until you answer). Newest first inside each section
   Apple account after approval, Play closed-testing steps. Closed on the page: T688 wording (answered 11-12). Build 29
   phone check marked replaced by the 0.7.8 / 0.7.9 rows. Not on the page (old, to prune or re-ask): Run timing T199 runs,
   Q4 / Q126 / Q9 / Q26 / Q27, the long phone-test lists (T50 / T77 / T74 / T217 / T243), SEO v1.
+- **T743 Fraser DFO places (2026-11-14): BLOCKS tonight's release until re-marked.** Dossier:
+  `handoff/PLAN/curation-review/fraser-dossier-2026-11-14.md`. Three "Mission to Hope" wordings (marks lines 2552, 2554,
+  2555; two written by a group click) are bound Mission → Spuzzum; with the live chum/coho opening that would show
+  salmon open on Hope → Spuzzum (km 158.8-197.0) where DFO says no fishing for salmon. Yours, one at a time once
+  grouping is gone: (1) re-mark those three as Mission → Hope (your own line 2546 was right); (2) accept ONE Hope Hwy 1
+  bridge cut (proposed twice, km 158.8; needs an atlas build after); (3) which bridge is "the Alexandra Bridge": the
+  Hwy 1 bridge (km 201.2) or the old suspension bridge 855 m upstream (both are 4.3 km past the Region 2/3 line at
+  Spuzzum); (4) re-check the two "upstream of Mission" marks (Mission → Spuzzum is plausible); (5) does Region 3's
+  "Mainstem waters" include the stretch shared with Region 5; (6) which edge of Lillooet the signs are measured from.
+  Suggester fixed (319a447a0): 3 Fraser suggestions change; regenerate only after (1). Page row `t743-fraser-remark`.
 - **T735 dark-mode highlight (2026-11-14): pick a look; four sheets sent in chat.** Owner: "The highlighting isn't very
   good in dark mode on regulated streams." Measured: the white ring nearly swallows a yellow or mint line (1.1-1.3:1),
   and on the Fraser every other part carries the same bright ring. Options, dark only: A dark edge, status colour
