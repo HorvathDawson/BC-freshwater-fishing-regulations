@@ -9948,7 +9948,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "skeena_river__cnr_railway_bridge_terrace",
+              "gauge__08EB005"
+            ]
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
