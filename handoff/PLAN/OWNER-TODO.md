@@ -132,7 +132,10 @@ with the default Claude uses until you answer). Newest first inside each section
   itself, and on iPhone that check runs only when iOS allows (often hours late). Proposal [Claude's pick]: a "wake-up"
   push from our feeds worker when notices change, so the iPhone checks at once; the worker learns a device token only,
   never which waters you watch. Needs: Push ticked on the App ID, an APNs key, a privacy-page line, a ticket. Until you
-  pick, the build keeps its push entitlement (the G12 change is on hold);
+  pick, the build keeps its push entitlement (the G12 change is on hold). Ticket T739 (proposal). Also asked: "can we
+  do this same push notification style to android?": yes, but Android's only push channel is Google's Firebase, a Google
+  service in the app, so it needs your exception to "self-host everything" [iPhone first; Android only if phones show
+  late alerts]; and "there are also time sensitive notifications?": possible for closure notices on iPhone [off for now];
   (12) Play's data-safety form says approximate location and the App Store answers say precise: should Play match?
 - **Apple Developer account: APPROVED 2026-11-14 evening (individual); the owner has the Team ID** (given in chat; not
   written in the repo). DONE by you 2026-11-14: the Team ID is saved in `~/.canifishthis/ios-team-id` (checked: the site build reads
