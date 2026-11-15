@@ -573,6 +573,17 @@ def _combined_bindable(item, e: dict) -> list[dict]:
 
 
 @lru_cache(maxsize=1)
+def _section_owner() -> dict[str, str]:
+    """section id -> the registry item that lists it (the last one in registry order, as `item_side_channels` read it);
+    one per build (`_BUILD_CACHES`)."""
+    owner: dict[str, str] = {}
+    for iid, item in _registry().items():
+        for sid in item.section_ids:
+            owner[sid] = iid
+    return owner
+
+
+@lru_cache(maxsize=1)
 def _blk_to_item() -> dict[str, str]:
     """blk -> owning registry item id (from each item's `blk:` ref_ids). Lets us map a graph node
     (`<blk>:<measure>`) back to the named stream it belongs to — for graph-based tributary lookup."""
@@ -2091,12 +2102,10 @@ def item_side_channels(item_id: str) -> list[str]:
         for i in g.up_adj.get(nid, []):
             if (f := g.edges[i].from_node) not in own:
                 gives_to.add(f)                            # water comes back from them
-    owner: dict[str, str] = {}
-    for iid, item in reg.items():
-        if iid == item_id:
-            continue
-        for sid in item.section_ids:
-            owner[sid] = iid
+    # T742 E2 (perf): the section -> item map is the build's, read once (it was rebuilt over the whole registry on
+    # every request: ~0.55 s per item, 7.5 s for the 13 items of a Fraser place's map). The nodes asked about are
+    # never this item's own, so the one map answers exactly as the per-request one (which skipped this item) did.
+    owner = _section_owner()
     a = {owner[n] for n in takes_from if n in owner}
     b = {owner[n] for n in gives_to if n in owner}
 
@@ -2606,7 +2615,7 @@ def check_entry(entry_dict: dict) -> dict:
 
 #: Every cache read from the served build — what `invalidate_caches` drops.
 _BUILD_CACHES = (_registry, _place_namer_for, _splits_meta, _split_points_attrs, _tidal_pieces_for,
-                 _blk_to_item, _graph, _geoms, _wbk_polys,
+                 _blk_to_item, _section_owner, _graph, _geoms, _wbk_polys,
                  _blk_index, _review_context_for, _built_atlas, _built_for, _splits_context_for,
                  _run_facts_for, _boundary_index,
                  # T207: corpus-wide split use (reads the registry) and the authored confidences
@@ -2629,8 +2638,21 @@ _BUILD_CACHES = (_registry, _place_namer_for, _splits_meta, _split_points_attrs,
 WARM_STEPS: tuple[tuple[str, str], ...] = (
     ("registry", "_registry"), ("bundle facts", "_review_context"),
     ("vintage", "built"), ("reach run facts", "run_facts"), ("graph", "_graph"),
-    ("geometry", "_geoms"), ("rule section counts", "_warm_rule_counts"), ("queue", "queue"),
+    ("geometry", "_geoms"), ("queue", "queue"), ("DFO places", "_warm_dfo"),
 )
+#: T742 E8 (perf): warmed AFTER the app says ready — the 60 s rule section counts serve a regulation ZONE entry, never
+#: a DFO place, so the owner's DFO labelling no longer waits for them (`todo` lists them until they are done)
+LATE_WARM_STEPS: tuple[tuple[str, str], ...] = (("rule section counts", "_warm_rule_counts"),)
+
+
+def _warm_dfo() -> None:
+    """T742 E8: what a first DFO place reads — the DFO rows and the checklist's places (the queue the DFO tab opens on)"""
+    import checks
+    import dfo
+    dfo._rows()
+    checks._places()
+
+
 def _warm_rule_counts() -> None:
     """Every rule's bound-section count, counted once per bundle (`fingerprint.rule_section_counts`):
     ~50 s on a zone-heavy bundle, so a reviewer never waits for it on a zone entry."""
@@ -2643,10 +2665,10 @@ def _warm_rule_counts() -> None:
         db.close()
 
 
-_READY: dict = {"ready": False, "warming": False, "done": [], "seconds": None, "error": None}
+_READY: dict = {"ready": False, "warming": False, "done": [], "seconds": None, "error": None, "late": False}
 
 
-def warm(steps=WARM_STEPS) -> dict:
+def warm(steps=WARM_STEPS, late=None) -> dict:
     """Load every cache a first entry reads (`WARM_STEPS`), recording each step as it finishes —
     what `readiness` reports and `GET /api/ready` serves. Run once at startup in a thread when
     `CURATION_WARM=1` (`run.sh` sets it), so a reviewer is never the one who waits."""
@@ -2658,6 +2680,10 @@ def warm(steps=WARM_STEPS) -> dict:
             globals()[fn]()
             _READY["done"].append({"step": name, "at_s": round(_t.time() - t0, 1)})
         _READY["ready"] = True
+        _READY["late"] = bool(late)
+        for name, fn in late or ():          # after ready (the app passes `LATE_WARM_STEPS`)
+            globals()[fn]()
+            _READY["done"].append({"step": name, "at_s": round(_t.time() - t0, 1)})
     except Exception as ex:  # noqa: BLE001 — reported by /api/ready, never swallowed silently
         _READY["error"] = f"{type(ex).__name__}: {ex}"
     finally:
@@ -2669,4 +2695,6 @@ def readiness() -> dict:
     """THE READY SIGNAL: {ready, warming, done: [{step, at_s}], todo: [step], seconds, error}."""
     done = [d["step"] for d in _READY["done"]]
     return {**{k: _READY[k] for k in ("ready", "warming", "seconds", "error")},
-            "done": list(_READY["done"]), "todo": [n for n, _ in WARM_STEPS if n not in done]}
+            "done": list(_READY["done"]),
+            "todo": [n for n, _ in WARM_STEPS if n not in done]
+            + [n for n, _ in LATE_WARM_STEPS if _READY.get("late") and n not in done]}

@@ -78,3 +78,9 @@ def test_every_wording_on_a_live_water_is_its_own_place_and_group_marks_are_flag
     mk = lambda **kw: M.Mark.model_construct(scope="dfo", target=LOC, date="2026-11-14", **kw)  # noqa: E731
     assert dfo.group_marked(mk(group="grp:" + LOC)) == {"group": "grp:" + LOC, "date": "2026-11-14"}
     assert dfo.group_marked(mk(group=None)) is None and dfo.group_marked(None) is None
+
+
+def test_the_section_owner_map_is_a_build_cache(env):
+    """T742 E2 (perf): `item_side_channels` reads one section -> item map per build, dropped with the build's caches"""
+    import reuse
+    assert reuse._section_owner in reuse._BUILD_CACHES

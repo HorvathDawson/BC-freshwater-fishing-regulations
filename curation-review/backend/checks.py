@@ -473,25 +473,26 @@ def _dfo_places() -> list[dict]:
     under another; a place whose mark in force a group save wrote carries `group_marked` (a flag, no state change)"""
     import dfo
     states, locs, ctx = dfo._states(), dfo._locations(), context()
-    out = []
-    for r in dfo._rows():
-        if r["lake_area"] or (r["status"] != "active" and not r["historic_only"]):
-            continue
-        _s, loc, water = locs[r["id"]]
-        got = dfo_rows(loc, water, states.get(r["id"]), ctx, r["verify"])
-        items = list((water or {}).get("item_ids") or [])
-        out.append({"source": "dfo", "id": r["id"], "water": r["water"], "water_key": _water_key(items, r["water"]),
-                    "items": items,
-                    "region": r["region"], "text": r["text"] or "(the whole water)", "summary": got["summary"],
-                    "check": got["check"], "new": r["verify"] == "unmarked",
-                    # what the place needs before any row can be checked: no extent (unbound), or a cut (needs_cut)
-                    "state": r["state"], "proposal": bool(r["suggested"] or r["fix_proposed"]),
-                    "ease": ease_of(check=got["check"], has_extent=bool((loc.get("binding") or {}).get("extents")),
-                                    bad=got["summary"]["bad"], proposal=_proposal_facts(r["id"]), twin=False),
-                    "live": r["status"] == "active",
-                    **({"group_marked": r["group_marked"]} if r.get("group_marked") else {}),
-                    **({"earlier": got["earlier"]} if "earlier" in got else {})})
-    return out
+    return [_dfo_place(r, locs, states, ctx) for r in dfo._rows()
+            if not (r["lake_area"] or (r["status"] != "active" and not r["historic_only"]))]
+
+
+def _dfo_place(r: dict, locs: dict, states: dict, ctx) -> dict:
+    """one DFO place's queue row (`_dfo_places`)"""
+    _s, loc, water = locs[r["id"]]
+    got = dfo_rows(loc, water, states.get(r["id"]), ctx, r["verify"])
+    items = list((water or {}).get("item_ids") or [])
+    return ({"source": "dfo", "id": r["id"], "water": r["water"], "water_key": _water_key(items, r["water"]),
+                "items": items,
+                "region": r["region"], "text": r["text"] or "(the whole water)", "summary": got["summary"],
+                "check": got["check"], "new": r["verify"] == "unmarked",
+                # what the place needs before any row can be checked: no extent (unbound), or a cut (needs_cut)
+                "state": r["state"], "proposal": bool(r["suggested"] or r["fix_proposed"]),
+                "ease": ease_of(check=got["check"], has_extent=bool((loc.get("binding") or {}).get("extents")),
+                                bad=got["summary"]["bad"], proposal=_proposal_facts(r["id"]), twin=False),
+                "live": r["status"] == "active",
+                **({"group_marked": r["group_marked"]} if r.get("group_marked") else {}),
+                **({"earlier": got["earlier"]} if "earlier" in got else {})})
 
 
 def _regs_places() -> list[dict]:
@@ -521,6 +522,8 @@ def _water_key(items: list[str], name: str) -> str:
 
 
 _PLACES = reuse._Memo()
+#: T742 E4: the cached list with the write-through's outcomes laid over it (`_with_outcomes`)
+_PLACES_WT = reuse._Memo()
 
 
 def _places() -> list[dict]:
@@ -528,9 +531,26 @@ def _places() -> list[dict]:
     # (T532 r8) the key is by VALUE or by a held identity: `reuse.regions()` was a fresh list on every call, so this
     # memo never hit and every queue / progress / water read recomputed all 3,686 places (~0.5 s each)
     from pipeline.regs.review import recheck as RC
-    return _PLACES.get((reuse._stamp((reuse.MARKS_PATH, RC.path())), dfo._rows(), context(),
-                        reuse._dir_stamp(reuse.ENTRIES_DIR), tuple(apply_stamp())),
+    base = _PLACES.get((reuse._stamp((reuse.MARKS_PATH, RC.path())), dfo._rows(), context(),
+                        reuse._dir_stamp(reuse.ENTRIES_DIR)),
                        lambda: by_water(one_water(_dfo_places() + _regs_places())))
+    # T742 E4 (perf): the write-through's word on a save changes ONLY the places it holds an outcome for — those rows
+    # are recomputed over the cached list (the whole list of 3,686 was rebuilt on every saving -> saved)
+    stamp = tuple(apply_stamp())
+    if not stamp:
+        return base
+    return _PLACES_WT.get((base, stamp), lambda: _with_outcomes(base))
+
+
+def _with_outcomes(base: list[dict]) -> list[dict]:
+    import dfo
+    rows = {r["id"]: r for r in dfo._rows()}
+    states, locs, ctx = dfo._states(), dfo._locations(), context()
+    def fresh(p: dict) -> dict:          # its state anew; its water as the list's one-water pass named it
+        got = _dfo_place(rows[p["id"]], locs, states, ctx)
+        return {**p, **{k: v for k, v in got.items() if k not in ("water", "water_key")}}
+    return [fresh(p) if p["source"] == "dfo" and p["id"] in rows and apply_outcome(p["id"]) is not None else p
+            for p in base]
 
 
 def one_water(places: list[dict]) -> list[dict]:

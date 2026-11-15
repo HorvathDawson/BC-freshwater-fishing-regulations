@@ -182,7 +182,8 @@ WARM = os.environ.get("CURATION_WARM") == "1"
 def _warm_at_startup():
     if WARM:
         import threading
-        threading.Thread(target=reuse.warm, name="curation-warm", daemon=True).start()
+        threading.Thread(target=reuse.warm, kwargs={"late": reuse.LATE_WARM_STEPS},   # T742 E8: zone counts last
+                         name="curation-warm", daemon=True).start()
 
         def _health():                    # owner 2026-10-28: say orphaned marks at startup, loudly
             import logging
