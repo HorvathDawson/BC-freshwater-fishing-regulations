@@ -28,6 +28,12 @@ out of each place after its walk, by the same `build_reach`. A place keeps its t
 `data/curated/dfo_salmon/tidal_calls.json` (`CURATED.dfo_salmon.tidal_calls`) states a reason for it. A place the
 subtraction EMPTIES stops the run (`drowned`): it lies wholly in tidal water, which is the owner's T449 call
 (`tidal_water`), never decided here.
+
+CLOSED AREAS INSIDE A PLACE (T573 entry B, `regs.dfo_salmon.closures`): each LIVE closed area of a place is a row of
+its own (`<water_id>#closed:<key>`, `resolve_closures`) — a confirmed stretch bound between its cuts, a confirmed
+circle on the sections wholly inside it; anything else `carried: true` with its `reason` (and a circle's `marked`
+sections), which the bundle puts on the water as an undrawn part. It wins over its place on its sections by the
+salmon chain's own order (same tier, fewer sections: `deliver.salmon.chain_order`).
 """
 from __future__ import annotations
 
@@ -69,8 +75,11 @@ def load_tidal_calls(path: Optional[Path] = None) -> Dict[str, str]:
 
 def resolve_all(registry, graph, *, entries_dir: Optional[Path] = None, outside=None,
                 diagnostics: Optional[list] = None, tidal=None,
-                keep_tidal: Optional[Dict[str, str]] = None) -> List[dict]:
-    """One row per curated location, sorted by location_id: `{location_id, region, mapped, outcome, reason, sections}`.
+                keep_tidal: Optional[Dict[str, str]] = None,
+                closed_areas: Optional[List[dict]] = None) -> List[dict]:
+    """One row per curated location, sorted by location_id: `{location_id, region, mapped, outcome, reason, sections}`
+    — and (T573) one per live CLOSED AREA of a place (`resolve_closures`; `closed_areas`: the confirmed placements,
+    default the curated file `review.closed_areas.confirmed()`).
     `diagnostics`: a list to fill with `{location_id, region, kind, payload}` per diagnostic `build_reach` emitted
     for a placed location (T546 item 4; `write_diagnostics`).
 
@@ -85,6 +94,7 @@ def resolve_all(registry, graph, *, entries_dir: Optional[Path] = None, outside=
     if outside is None:
         outside = outside_bc(registry, graph)
     keep_tidal = dict(keep_tidal or {})
+    confirmed = load_closed_areas() if closed_areas is None else list(closed_areas)
     rows: List[dict] = []
     gone: List[str] = []
     dead: List[str] = []
@@ -127,6 +137,9 @@ def resolve_all(registry, graph, *, entries_dir: Optional[Path] = None, outside=
                     if binding.reason is Reason.tidal:
                         drowned.append(f"r{slug} {loc.location_id}: {binding.detail}")
             rows.append(row)
+        # T573: the region's live CLOSED AREAS (entry B), each its own location — bound, or carried on its water
+        rows += resolve_closures(slug, ef, registry, graph, outside=outside, tidal=tidal, keep_tidal=keep_tidal,
+                                 diagnostics=diagnostics, confirmed=confirmed)
     stale = sorted(set(keep_tidal) - seen)
     if stale:
         raise ValueError(f"dfo_salmon: {len(stale)} `keep_tidal` row(s) in tidal_calls.json name no DFO place — "
@@ -144,6 +157,93 @@ def resolve_all(registry, graph, *, entries_dir: Optional[Path] = None, outside=
                          "review app's DFO mode before building:\n  " + "\n  ".join(dead))
     rows.sort(key=lambda r: r["location_id"])
     return rows
+
+
+def load_closed_areas() -> List[dict]:
+    """T573: the closed areas the owner confirmed (`data/curated/dfo_salmon/closed_areas.json`, `PieceGeometry` fields
+    only); [] before his first confirm (the file is born with it)."""
+    from pipeline.regs.review import closed_areas as CA
+    return CA.confirmed()
+
+
+def resolve_closures(slug: str, ef, registry, graph, *, outside=None, tidal=None,
+                     keep_tidal: Optional[Dict[str, str]] = None, diagnostics: Optional[list] = None,
+                     confirmed: Iterable[dict] = ()) -> List[dict]:
+    """T573: ONE ROW PER LIVE CLOSED AREA of the region's places (`closures.build_pieces`), in the places' shape plus
+    `closure: {of, key, kind, state}`:
+
+        bound    a confirmed stretch, `between` its two cuts by the same `build_reach` (no tributaries; the place's
+                 tidal limit); a confirmed circle, the sections of its water WHOLLY inside it
+        carried  `carried: true` + `reason` (why), and `marked` (the sections a circle only touches): the bundle puts
+                 the piece on its water as an undrawn part ("parts not mapped") — never widened to a whole section,
+                 never dropped. Unconfirmed, reworded, a lake line (deferred), a cut not in this atlas, a circle
+                 partly over a section: all carried.
+
+    An item no live row names makes no row (`closures.attach`)."""
+    from pipeline.atlas.reach.build import build_reach
+    from pipeline.atlas.reach.models import Outcome, Reason
+    from pipeline.regs.dfo_salmon import closures as K
+    from pipeline.regs.dfo_salmon import entries as E
+
+    keep_tidal = keep_tidal or {}
+    rows: List[dict] = []
+    for p in K.build_pieces(getattr(ef, "locations", ()), confirmed):
+        lim = None if (p.derived_from in keep_tidal or p.location_id in keep_tidal) else tidal
+        row = {"location_id": p.location_id, "region": slug, "mapped": False, "outcome": "closure_carried",
+               "reason": None, "sections": [],
+               "closure": {"of": p.derived_from, "key": p.piece_key, "kind": p.piece_kind, "state": p.state}}
+        why, marked = p.why, []
+        if not why and p.piece_kind == "stretch":
+            water = ef.water(p.water_id) if p.water_id else None
+            entry, rules = E.to_reach_input(p, [{}], water, siblings={})
+            b, diags = build_reach(entry, rules[0], registry, graph, outside=outside, regional=False, tidal=lim)
+            if diagnostics is not None:
+                diagnostics.extend({"location_id": p.location_id, "region": slug, "kind": d.kind,
+                                    "payload": d.payload} for d in diags)
+            if b.outcome is Outcome.bound and b.sections:
+                row.update(mapped=True, outcome="bound", sections=sorted(b.sections))
+            else:
+                new = [x["split_id"] for x in (p.geometry or {}).get("points") or () if x.get("kind") == "new"]
+                why = (f"its stretch did not bind ({b.reason.value if b.reason else b.outcome.value})"
+                       + (f"; its new cut(s) {new} must be in the cuts file and the atlas rebuilt" if new else "")
+                       + ("; it lies wholly in tidal water" if b.reason is Reason.tidal else "")
+                       + ": carried on its water")
+        elif not why and p.piece_kind == "circle":
+            inside, marked, why = _circle(p.geometry, registry, graph, lim)
+            if inside:
+                row.update(mapped=True, outcome="bound", sections=inside)
+        if why:
+            row.update(carried=True, reason=why)
+            if marked:
+                row["marked"] = marked
+        rows.append(row)
+    return rows
+
+
+def _circle(g: dict, registry, graph, lim) -> tuple:
+    """(inside, touched, why) of a confirmed circle on its water (`closures.circle_sections`, the atlas's own section
+    geometry, `reach.position`). No geometry in the run, or a water this registry lacks: nothing bound, all carried."""
+    from pipeline.atlas.reach import position
+    from pipeline.regs.dfo_salmon import closures as K
+    item = registry.get(g["on_item"]) if hasattr(registry, "get") else None
+    if item is None:
+        return [], [], f"its water {g['on_item']} is not in this registry: carried on its water"
+    geoms = position._geoms(graph)
+    if geoms is None:
+        return [], [], "no section geometry in this run (no atlas build attached): carried on its water"
+    outlines, lines = geoms
+    shapes = {}
+    for s in item.section_ids:
+        shp = outlines.get(s) if s.startswith("lake:") else None
+        shapes[s] = shp if shp is not None else lines.get(s)
+    inside, touched = K.circle_sections(g["centre"], g["radius_m"], shapes)
+    inside = [s for s in inside if not lim or s not in lim]
+    if not inside and not touched:
+        return [], [], f"the circle touches no section of {g['on_item']}: carried on its water"
+    if touched:
+        return inside, touched, (f"{len(touched)} section(s) only partly inside the circle: marked, carried on its "
+                                 "water (a section is never bound whole for a circle)")
+    return inside, [], ""
 
 
 def _piece_words(slug: str, location_id: str, extents: List[dict], i: int) -> str:
@@ -249,4 +349,8 @@ def entries_digest(entries_dir: Optional[Path] = None) -> str:
         h.update(p.read_bytes())
     h.update(b"tidal_calls")
     h.update(Path(CURATED.dfo_salmon.tidal_calls).read_bytes())
+    # T573: the confirmed closed areas (a piece confirmed or moved must move the key; absent before his first confirm)
+    from pipeline.regs.review import closed_areas as CA
+    h.update(b"closed_areas")
+    h.update(CA.path().read_bytes() if CA.path().exists() else b"-")
     return h.hexdigest()[:16]

@@ -173,6 +173,11 @@ def main() -> int:
         n = dfo_salmon.write_diagnostics(Path(args.out), dfo_diags)
         print(f"  dfo salmon   {sum(r['mapped'] for r in rows):,} of {len(rows):,} locations placed (digest {d}), "
               f"{n:,} diagnostic(s)")
+        # T573: every live closed area of a place, bound or carried on its water (with why) — never silent
+        for r in (r for r in rows if r.get("closure")):
+            print(f"  dfo closed   {r['location_id']} ({r['closure']['kind']}, of {r['closure']['of']}): "
+                  + (f"{len(r['sections']):,} section(s) bound" if r["mapped"] else "nothing bound")
+                  + (f"; CARRIED — {r['reason']}" if r.get("carried") else ""))
         loud = [x for x in dfo_diags if x["kind"] == "unclassified"]
         for x in loud:
             # T546 item 4: a DFO place's piece the reach could not place, as the provincial ones are printed

@@ -12,9 +12,11 @@ there", so the row becomes TWO ENTRIES:
 B is narrower than A, so the salmon chain's own order ("narrowest first", `deliver.salmon.chain_order`) lets B win on
 its sections: no new precedence.
 
-This module only DERIVES entry B from the stored rows (pure: no fetch, no feed, no places file is written). `main`
-writes the derived entries to `<generated>/review/dfo_closure_entries.json` as PROPOSALS for the review app; putting
-an accepted one into the places file and its rule into the feed is the build-side step (T573).
+This module DERIVES entry B from the stored rows (pure: no fetch, no feed, no places file is written). `main`
+writes the derived entries to `<generated>/review/dfo_closure_entries.json` as PROPOSALS for the review app. THE BUILD
+SIDE (T573, 2026-11-15, "THE BUILD SIDE" below): each LIVE closed area becomes a DFO location of the build
+(`build_pieces`) — bound by the reach run when the owner confirmed it, carried on its water otherwise — and its rule
+reaches the bundle and the live feed; still no places file holds it.
 
 An inline "except closed from <A> to <B>" in the place's own words (T743, the middle Shuswap) is one more stretch: the
 scrape never makes it an exclusion (`inline_items`).
@@ -397,6 +399,171 @@ def attach(entry: Mapping, geometry: Iterable[Mapping], live: Optional[Iterable[
                         "note": "no stored wording names it any more: kept ready, never bound",
                         "geometry": r.model_dump(mode="json"), **({"radius_m": r.radius_m} if r.kind == "circle" else {})})
     return out
+
+
+# --------------------------------------------------------------------------- THE BUILD SIDE (T573 build step, 2026-11-15)
+#
+# WHERE ENTRY B ENTERS: one DFO LOCATION PER LIVE CLOSED AREA, beside the curated places — never written into a places
+# file. The reach run binds each (`pipeline.atlas.reach.dfo_salmon.resolve_closures`), the bundle puts it in the salmon
+# chains with its own rule (`deliver.salmon.load_inputs` -> `with_pieces`), and the live feed computes its calendar
+# from the live row (`live.run` -> `live_piece_rules`). Each piece has its PLACE'S TIER (`precedence`) and covers fewer
+# sections than its place, so `deliver.salmon.chain_order` ("narrowest first": tier, then size) puts it before the
+# place on its sections — no new precedence rule. Its id is the WATER's, not a wording's (`piece_id`: the same item
+# of any wording is one piece, as the review mark's target `<water_id>#<key>` is).
+#
+#   bound      a live item confirmed (`closed_area` mark -> closed_areas.json) for exactly these words: a stretch is
+#              `between` its two cuts on its water (`build_reach`); a circle binds the sections wholly inside it
+#   carried    every other live item — unconfirmed, reworded, radius differs, a line across a lake (deferred), a
+#              stretch whose cut is not in the atlas yet, a circle's sections only partly inside it: on its water with
+#              the caveat (the chain's `u`, "parts not mapped"), NEVER widened, never vanished
+#   absent     an item no live row names (`attach`: "not live"): its geometry stays on file, nothing is built
+
+from dataclasses import dataclass, field  # noqa: E402
+
+from pipeline.regs.dfo_salmon.entries import EntryLocation  # noqa: E402
+
+PIECE_SEP = SUFFIX + ":"
+
+#: why a live closed area binds nothing — said on its reach row (`closure.why`) and printed by the run
+WHY_UNBOUND = {
+    "unplaced": "not confirmed (no verified closed_area mark): carried on its water",
+    "changed": "DFO's words changed since it was confirmed: carried on its water until confirmed again",
+    "radius": "the stored circle's radius is not the one DFO's words give: carried on its water",
+    "line": "a line across a lake is deferred (T573): carried on its water",
+    "unknown": "DFO's words for it are of no known shape: carried on its water",
+}
+
+
+@dataclass
+class ClosureLocation(EntryLocation):
+    """ONE CLOSED AREA OF ENTRY B as a DFO location of the build (`build_pieces`). No fingerprint: the live feed joins
+    it through its place's row (`live_piece_rules`), never by a wording of its own."""
+    derived_from: str = ""
+    piece_key: str = ""
+    piece_kind: str = ""
+    state: str = ""
+    #: "" when it can bind; else why it is carried on its water (`WHY_UNBOUND`)
+    why: str = ""
+    closure_rule: dict = field(default_factory=dict)
+    geometry: Optional[dict] = None
+
+
+def piece_id(water_id: str, key: str) -> str:
+    """THE LOCATION ID OF ONE CLOSED AREA: `<water_id>#closed:<piece key>`"""
+    return f"{water_id}{PIECE_SEP}{key}"
+
+
+def is_piece_id(location_id: str) -> bool:
+    return PIECE_SEP in str(location_id)
+
+
+def piece_rule(entry: Mapping, area: Mapping, lid: str) -> dict:
+    """THE RULE OF ONE PIECE: entry B's rule ("No fishing, year-round", "No fishing for salmon", …), its words followed
+    by DFO's own words for the area (a stretch: the item as printed; a circle: its radius and the creek it names)."""
+    rule = dict(entry["rule"])
+    words = area["words"] if area.get("kind") == "circle" else area["item"]
+    return {**rule, "rule_id": f"{lid}#0", "verbatim": f"{rule['verbatim']} — {words}"}
+
+
+def _active_entries(locations: Iterable[Mapping]) -> list[dict]:
+    """entry B of every ACTIVE row (a dormant wording builds nothing of its own), in id order — the order that decides
+    which row a piece of two live wordings takes its place's tier from"""
+    got = derive(locations)
+    return [got[k] for k in sorted(got) if (got[k].get("status") or "active") == "active"]
+
+
+def build_pieces(locations: Iterable, confirmed: Iterable[Mapping]) -> list[ClosureLocation]:
+    """EVERY LIVE CLOSED AREA OF ONE REGION as a `ClosureLocation` (pure). `locations`: the curated places
+    (`entries.EntryLocation`); `confirmed`: the owner's confirmed placements (`review.closed_areas.confirmed()`). An
+    unconfirmed or unbuildable item is a piece too, `why` set (carried, never dropped); an item no live row names is
+    none (`attach`: never free-standing)."""
+    locs = [l for l in locations if hasattr(l, "to_dict") and not isinstance(l, ClosureLocation)]
+    by_id = {l.location_id: l for l in locs}
+    geo = list(confirmed)
+    out, seen = [], set()
+    for e in _active_entries([l.to_dict() for l in locs]):
+        parent = by_id[e["derived_from"]]
+        for row in attach(e, geo, live=live_keys({e["id"]: e}, e["water_id"])):
+            if not row["live"] or (e["water_id"], row["key"]) in seen:
+                continue
+            seen.add((e["water_id"], row["key"]))
+            out.append(_piece_location(parent, e, row))
+    return out
+
+
+def _piece_location(parent, entry: Mapping, row: Mapping) -> ClosureLocation:
+    from pipeline.regs.dfo_salmon.entries import Binding
+    from pipeline.regs.parsing.entry_models import Extent
+    lid = piece_id(entry["water_id"], row["key"])
+    g = row.get("geometry")
+    kind = g["kind"] if g else row["kind"]
+    why, extents = "", []
+    if row["state"] != "placed":
+        why = WHY_UNBOUND.get(row["state"], WHY_UNBOUND["unplaced"])
+    elif kind == "line":
+        why = WHY_UNBOUND["line"]
+    elif kind == "stretch":
+        extents = [Extent(op="between", splits=[p["split_id"] for p in g["points"]], item_id=g["on_item"])]
+    elif kind != "circle":
+        why = WHY_UNBOUND["unknown"]
+    return ClosureLocation(
+        location_id=lid, region=parent.region, region_number=parent.region_number, kind="closure",
+        precedence=parent.precedence, water=parent.water, water_id=parent.water_id, section=parent.section,
+        source_text={"specific_area": row["words"] if row.get("kind") == "circle" else row["item"]},
+        binding=Binding(extents=extents, tributaries=False), status="active",
+        derived_from=parent.location_id, piece_key=row["key"], piece_kind=kind, state=row["state"], why=why,
+        closure_rule=piece_rule(entry, row, lid), geometry=g if row["state"] == "placed" else None)
+
+
+def with_pieces(ef, confirmed: Iterable[Mapping]):
+    """the entry file with its region's live closed areas appended (`build_pieces`) — what the BUNDLE reads
+    (`deliver.salmon.load_inputs`). Never saved: a places file never holds a piece."""
+    import copy
+    pieces = build_pieces(getattr(ef, "locations", ()), confirmed)
+    if not pieces:
+        return ef
+    out = copy.copy(ef)
+    out.locations = list(ef.locations) + pieces
+    return out
+
+
+def live_piece_rules(ef, found: Iterable) -> dict[str, list[dict]]:
+    """THE LIVE FEED'S PIECES (`live.run`): piece id -> [its rule], for every item TODAY'S page names — read from the
+    live rows (`found`, the page's scraped locations, joined to their curated place by fingerprint), so a piece DFO
+    dropped leaves the feed on the run it goes (the release's piece is still in the chain, the feed says nothing for
+    it: the place answers). Confirmation is the release's matter (bound or carried); the feed carries every live one."""
+    index = ef.by_fingerprint()
+    rows = []
+    for f in found:
+        hit = index.get(f.fingerprint)
+        if hit is None or not hit.water_id:
+            continue
+        rows.append({"location_id": hit.location_id, "water_id": hit.water_id, "water": hit.water,
+                     "region": hit.region, "status": "active",
+                     "source_text": {"specific_area": f.specific_area, "excludes": list(f.excludes or [])}})
+    out: dict[str, list[dict]] = {}
+    for e in _active_entries(rows):
+        for a in e["areas"]:
+            lid = piece_id(e["water_id"], a["key"])
+            out.setdefault(lid, [piece_rule(e, a, lid)])
+    return out
+
+
+def circle_sections(centre, radius_m: float, shapes: Mapping[str, object]) -> tuple[list[str], list[str]]:
+    """(inside, touched): of `shapes` (section -> its EPSG:3005 geometry: a lake's outline or a line), those wholly
+    inside the circle at true ground radius (`circle_polygon`) and those it only touches. A section partly inside is
+    never bound whole (a 400 m circle on Babine Lake would close the lake): it is touched, and carried."""
+    from pyproj import Transformer
+    from shapely.geometry import Polygon
+    to = Transformer.from_crs("EPSG:4326", "EPSG:3005", always_xy=True)
+    circ = Polygon([to.transform(x, y) for x, y in circle_polygon(tuple(centre), radius_m)])
+    inside, touched = [], []
+    for s in sorted(shapes):
+        g = shapes[s]
+        if g is None or g.is_empty or not g.intersects(circ):
+            continue
+        (inside if g.within(circ) else touched).append(s)
+    return inside, touched
 
 
 def main(argv: Optional[list[str]] = None) -> int:
