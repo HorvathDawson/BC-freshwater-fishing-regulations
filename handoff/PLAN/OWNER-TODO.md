@@ -613,3 +613,13 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
 - ANSWERED 2026-11-13 (T716): tap speed, open page before the double-tap wait? Owner: "Keep as is (Recommended)". No change; 0.7.9 carries the 0.35 s open.
 
 - [ ] Phone check after 0.7.9 (build 31, Play internal, 2026-11-14), T716: tap a small stream, the Fraser and a lake. The tapped stretch lights up at once; page in under half a second; double tap still zooms and opens nothing. Say if the highlight is too small zoomed out or it still feels slow. (To-Do page row: phone-check-079-tap-speed)
+
+## 2026-11-15 — overnight marks: your answers, and what is still yours (T743)
+- ANSWERED 2026-11-15: Alexandra Bridge stretches running 4.3 km into Region 3: "this is fine".
+- ANSWERED 2026-11-15: older group-saved labels being assessed: "ok good".
+- ANSWERED 2026-11-15: Atnarko "downstream of the sign": "no it needs to include tributaries". The save in force
+  already includes them; nothing to redo.
+- ASKED 2026-11-15: "we really need to check a lot of the items for this same issue and make sure we remove duplicates
+  or bad ones?" Audit running; you get a list to look at (proposals only).
+- OPEN, yes/no: Seton River mouth as its own cut 254 m below the Highway 99 bridge cut (recommended: yes, keep it), or
+  reuse the bridge cut.

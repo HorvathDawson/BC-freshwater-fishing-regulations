@@ -55,3 +55,9 @@ Owner: "can you just reset the fraser marks fully and I will redo them when app 
   Hydro tail race, km 327.9); Seton River mouth (-121.926856, 50.681805, km 329.1, the exact FWA mouth), 254 m
   downstream of the bridge. Recommendation (main chat): keep the Seton mouth as its own cut; the 250 m piece between the
   bridge and the mouth is real water where DFO's place does not apply. Awaiting his yes/no.
+- Atnarko, owner 2026-11-15 (second reply): "no it needs to include tributaries … we really need to check a lot of the
+  items for this same issue and make sure we remove duplicates or bad ones?" So mark 2584 (tributaries included) is the
+  right one and is in force; nothing to change there. Asked for: an audit of every place saved more than once, for
+  leftovers of the replaced save and for bad marks. Running (read-only); report
+  `handoff/PLAN/curation-review/resaved-marks-audit-2026-11-15.md`. Findings go to him as proposals.
+- Owner 2026-11-15: "can i keep reviewing while you work?" Yes (fix lane is in its own worktree; audit is read-only).
