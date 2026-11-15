@@ -1,6 +1,6 @@
 # T753 — A piece of the Sproat River drawn inside Sproat Lake
 
-Status: OPEN (investigated; fix proposed, owner to pick)
+Status: IN PROGRESS (built on branch `data/t753-lake-loops`, worktree `~/bcfish-t753`; takes effect at the next atlas rebuild)
 
 Owner, 2026-11-15, on the review app's DFO Region 1 place "Sproat River from Sproat Lake to fishing boundary signs
 300 m downstream of Hwy 4": "there is a tiny section of sprout river in the middle of the lake... if anything it
@@ -151,3 +151,90 @@ never meets the item's named line outside a lake.
 "yes do both steps but make sure it is done in a clean way" (both = option (b) take the pieces out of the river, then
 (a) give same-lake loops to the lake). Build lane started; the atlas rebuild that carries it is the one held for the
 owner's new cuts.
+
+## Built (2026-11-15, branch `data/t753-lake-loops`)
+
+One rule, `pipeline/atlas/registry/lake_loops.py` (`LAKE_LOOPS_LEAVE_RIVER_ITEMS` = option b,
+`LAKE_LOOPS_JOIN_THEIR_LAKE` = option a, both True). It runs in `atlas/build.py` `water_registry` right after the
+widening-pond fold, and `atlas/sidecars.py` runs the same pass. It is not run beside `drop_ditches`. The reason is that
+the lake's holder is only final after the flowing and widening folds: a loop off a river's own polygon or widening is
+that river's braid, and a pass beside the ditch rule could not see that. The build writes `lake_loop_report.json`.
+`POLICY_VERSION` is now 40 (it marks the binding diff), and AGENTS rule 12 and `pipeline/docs/MAP.md` have a line each.
+
+**Criteria (per blue line, read off the graph's flow edges; no names, no length or distance limit):**
+1. No piece on the blue line has a gnis or a name of its own. Every name tuple is `side_channel` (the ditch rule's test).
+2. Every piece flows into exactly one lake node and out of exactly one lake node. Consecutive pieces meet in the same
+   lake, and the line starts and ends in the same lake X. Edges, not bounds: FWA starts the Sproat line inside the
+   lake, so the piece's lower bound is `None`. Reading the bounds moved nothing on real data.
+3. Where the pieces go depends on what holds X:
+   - a lake or wetland item: they join it;
+   - no item: they join no item;
+   - a stream item: they stay, because it is a braid of that river.
+
+   A pond the loop passes through that belongs to another water also means the pieces stay.
+4. An item made only of such pieces keeps them.
+
+**The pond stays its own unnamed water.** Only the line pieces move. Giving the pond to the lake would change the rules
+on the pond itself; that is left for the owner.
+
+**Dry run on the promoted atlas** (graph.pkl + registry.json, read only, via heavy.sh): 8 lines (11 pieces, 755 m on
+8 waters) move, and all 8 join a named lake. The list is in `T753-files/lake_loop_dry_run.json` (moved, near misses with
+reasons, bindings). It is a proposal for the owner, not applied data.
+
+| water left | lake joined | pieces | m |
+|---|---|---|---|
+| Sproat River | Sproat Lake | 354087683:898, :1295 | 166 |
+| Cruickshank River | Moat Lake | 354087804:134, :214 | 70 |
+| Firesteel River | Tatlatui Lake | 359018360:34, :179 | 214 |
+| Nanika River | Nanika Lake | 360240946:664 | 85 |
+| Kotcho River | Kotcho Lake | 359013342:6118 | 52 |
+| Tsintsunko Creek | Tsintsunko Lake | 355997590:1138 | 97 |
+| Isintok Creek | Isintok Lake | 356369274:212 | 58 |
+| Eneas Creek | Garnet Lake | 356369362:73 | 14 |
+
+**Against the ticket:** the ticket counted 15 runs on 11 items (29 runs on 21 items without its 200 m filter). The rule
+moves 8 lines, all inside the 29. None of the 29 is unexplained. The rest are listed as not moved:
+- **Lake held by the river's own polygon or widening (a braid): 8.** Burnstead, Fiftynine, Gladys, Four Mile,
+  Northwest, Chasm, Schooler, Antigonish.
+- **A stream joins the loop or it splits to a stream: 4.** Stalk, Iverson and Jennings have a nameless creek flowing
+  in. Otter's loop also flows out to a stream.
+- **A curated name on the piece: 1.** Little Rancheria's piece carries "Rancheria River" (source: regulation).
+
+Near misses in all: 462 (365 leave the lakes, 38 named, 32 between two different lakes, 19 joined by a stream, 8 braids).
+
+**What binds differently** (live reach run, dry): these rules leave the pieces:
+- the river's rows: `sproat_river.r2`/`r2x`, `cruickshank_river.r1`, `eneas_creek.r1`, Williston r4 on Firesteel,
+  Bulkley r1/r3 and Skeena r1 on the Nanika piece;
+- the zone stream rules (stream closures, bait bans, stream quotas, steelhead).
+
+These arrive: the lake's rows (`sproat_lake.r1-r3`, `tatlatui_lake.r1`) and the zone lake rules (set lining, lake
+quotas, `bait.r5`). Section ids and item ids do not change: no cut is made, and every river keeps sections.
+
+The river loses only:
+- the pond-edge boundaries `sproat_river__lake_329016376`, `cruickshank_river__lake_329097416` and
+  `firesteel_river__lake_329139181`. None is named in the curated tree, the DFO suggestions, the review app or the
+  marks;
+- the `blk:` ref of each moved line.
+
+Gauge `matches.json` names none of these blue lines. The marks name none of them.
+
+**The rebuild must verify:**
+1. `lake_loop_report.json` equals this list.
+2. The binding diff matches the table above.
+3. DFO places: `1:sproat-river:whole` drops 4 to 2 sections; `6:morice-lake:including-tributaries` and the region
+   defaults may drop the Nanika and other pieces.
+4. Promote's moved-boundary check is clean, and no gauged section moved.
+5. Readers handle a lake item that holds line sections (an audit read the code, nothing was run):
+   - `bundle/spans.py` writes no `section_span` row for them (stream items only), so the parts treat them as polygon
+     parts (no km);
+   - the tiles draw them in the `stream` layer under the lake's name;
+   - `area_ha` is unaffected;
+   - the review app's `_lake_ends` reads only items with lake boundaries, so it is not hit.
+
+Tests: `pipeline/tests/test_lake_loops.py` (18, toy graphs, mutation pins for both flags, idempotence) and the policy pin
+in `test_reach_builder.py`.
+
+**Open for the owner:**
+- Should the pond a loop passes through (Sproat's 4.2 ha pond, Moat's, Tatlatui's) also go to the lake?
+- Should a loop that a nameless creek flows into (Stalk, Iverson, Jennings) move too? The rule leaves it because the
+  creek's receiving water would change.

@@ -367,7 +367,7 @@ def test_policy_version_is_bumped_when_classify_changes():
     from pipeline.atlas.graph import tributaries
     from pipeline.atlas.reach import extent, licensing, outside, steelhead
     from pipeline.atlas.reach import build as reach_build
-    from pipeline.atlas.registry import regions
+    from pipeline.atlas.registry import lake_loops, regions
     policy.update({
         "confluence_cut_excludes_the_joining_water":
             tributaries.CONFLUENCE_CUT_EXCLUDES_THE_JOINING_WATER,
@@ -394,6 +394,8 @@ def test_policy_version_is_bumped_when_classify_changes():
         "dfo_joining_water_stays_out": reach_build.DFO_JOINING_WATER_STAYS_OUT,
         "dfo_through_river_stays_out": reach_build.DFO_THROUGH_RIVER_STAYS_OUT,
         "verbatim_reads_are_guarded": reach_build.A_WORD_READ_THAT_STOPS_MATCHING_STOPS_THE_RUN,
+        "lake_loops_leave_river_items": lake_loops.LAKE_LOOPS_LEAVE_RIVER_ITEMS,
+        "lake_loops_join_their_lake": lake_loops.LAKE_LOOPS_JOIN_THEIR_LAKE,
     })
     expected.update({"confluence_cut_excludes_the_joining_water": True,
                      "confluence_water_without_a_row_goes_with_the_cut": True,
@@ -416,8 +418,10 @@ def test_policy_version_is_bumped_when_classify_changes():
                      "a_line_the_atlas_lists_inside_is_tidal": True,
                      "dfo_joining_water_stays_out": True,
                      "dfo_through_river_stays_out": True,
-                     "verbatim_reads_are_guarded": True})
-    assert cache.POLICY_VERSION == "39", "update this pin with the version it was taken at"
+                     "verbatim_reads_are_guarded": True,
+                     "lake_loops_leave_river_items": True,
+                     "lake_loops_join_their_lake": True})
+    assert cache.POLICY_VERSION == "40", "update this pin with the version it was taken at"
     assert policy == expected, (
         f"classify.py policy changed to {policy} — bump cache.POLICY_VERSION "
         f"(currently {cache.POLICY_VERSION!r}) and update this test together")

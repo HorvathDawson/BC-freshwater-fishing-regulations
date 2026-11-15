@@ -85,7 +85,8 @@ A6. **Commit only your own paths: `git commit -- <paths>`.** Several agents shar
     accepted that piece in `waters/unplaced_piece_calls.json` `accepted` (`build.unplaced_gate`, T632; `proposed` rows are not
     acceptances); a braid piece cut at BOTH ends by a `between`'s own two cuts is inside it (RULINGS
     E18, T187, `extent.A_PIECE_BETWEEN_THE_WINDOWS_CUTS_IS_INSIDE`). Length cuts never take a junction a braid spans. A 2300-only ditch with no gnis
-    of its own is in no river item (`registry.build.DITCHES_LEAVE_RIVER_ITEMS`).
+    of its own is in no river item (`registry.build.DITCHES_LEAVE_RIVER_ITEMS`). A nameless line that leaves a lake and comes back into the SAME lake is that lake's, never its
+    river's (T753, `registry.lake_loops`; every move and near miss listed in `lake_loop_report.json`).
 13. **A rule's extents are its own — never inherited from its entry. Never widen a rule
     that names a place it could not bind.** No reader (reach builder, bundle,
     `pipeline/deliver/bundle/read/source.py` `source_of`) hands a rule its entry's `extents`; the entry's only clip.
