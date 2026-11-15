@@ -130,3 +130,72 @@ R8 APK (`app-testbed-stub-r8.apk`), report `out/runs/2026-11-15T15-35-44`, load 
 
 No keep-rule round was needed: the first R8 APK passed. Left: a Play internal AAB with the flag (Play's own processing,
 the download size from Play) and the owner's phone check.
+
+## Owner decision 2026-11-15, and the R8 Play internal build
+Owner, verbatim: "if that build passes the tests then it should be good to release"; picked "R8 build to Play internal":
+the shared branch as it is, R8 on, the six emulator benches on that build, then Play INTERNAL for the owner's phone walk.
+The coordinator uploads; this lane never does.
+
+**Mapping kept (on `perf/r8`).** `deploy/staging/build-apk.sh` `keep_map` now also runs `sourcemaps.mjs keep-r8` when
+`CANIFISHTHIS_R8=1`: R8's `android/app/build/outputs/mapping/release/mapping.txt` is copied to
+`data/sourcemaps/<version>-b<code>-<sha7>/android/r8-mapping.txt`, beside `index.android.bundle.map`. A missing or empty
+mapping FAILS the build there, before the AAB is checked, committed (versionCode), copied or uploaded (and before the
+sideload APK is copied). The precheck (before the heavy lock) says "R8 ON" / "R8 off", refuses a value other than unset/0/1
+and refuses the flag with `--production`. Tests: `app/tools/sourcemaps.test.ts` (keepR8 keeps / refuses missing / refuses
+empty), `app/tools/r8-config.test.ts` (build-apk.sh: `bash -n`; keep-r8 under the flag with no `|| true`; kept before
+`commit_bump`, the Play upload and the APK copy; precheck before the lock; mutation-checked: an added `|| true` fails it);
+`pipeline/tests/test_staging_scripts_fail_safe.py -k build_apk` still passes.
+
+**Is a Play internal build "production" for the refusal?** No. `app.config.js` calls a build production only when
+`EXPO_PUBLIC_APP_ENV=production` or `EAS_BUILD_PROFILE=production`; `build-apk.sh --play` (internal) exports
+`EXPO_PUBLIC_APP_ENV=staging` and only `--play --production` (deploy/prod/build-apk.sh) sets production. So the flag is
+allowed on the Play internal build as written, and refused on the production build (app.config.js and now the precheck).
+Nothing blocks the internal build. Later, a closed-testing/production R8 build needs that refusal lifted on purpose, after
+the phone walk is recorded here (not part of this step).
+
+**Sequence** (the Android chat owns the build scripts and names the commit; nothing here runs before the coordinator's go):
+1. Merge `perf/r8` into `redesign/stream-sections` (flag off = no behaviour change; it already holds today's shared branch).
+   Pin that merge commit `<C>`.
+2. Emulator benches on `<C>` with the flag (a test-bed APK: same Java/Kotlin and keep rules as the Play AAB; the JS env
+   differs: test channel, crash stub, map lab):
+   `cd <checkout at C>; export HEAVY_LOCK=$HOME/.claude/heavy-job-2.lock CANIFISHTHIS_R8=1 TESTBED_APK_TAG=r8`
+   `$M/scripts/heavy.sh t749-r8-c 30 -- bash app/tools/testbed/session.sh --build --crash-stub --max-min 80 -- node app/tools/testbed/run.mjs --no-r2 install crash-bed bg-install regs-open tap-stalls memory`
+   (`MLN_LOCAL_MAVEN=$M/cache/maplibre/fslean-m2` too when the checkout is a worktree; pass lines as in Phase 2 above.)
+3. If all six pass: the Play internal build, from the checkout at `<C>` (clean app/, app.json committed):
+   `CANIFISHTHIS_R8=1 HEAVY_LOCK=$HOME/.claude/heavy-job-2.lock deploy/staging/build-apk.sh --play --precheck` (no lock;
+   expect "R8 ON"), then `CANIFISHTHIS_R8=1 HEAVY_LOCK=$HOME/.claude/heavy-job-2.lock deploy/staging/build-apk.sh --play`.
+   That one run: changelog/version precheck (app.json's version needs a changelog entry and must not be the version Play
+   builds already read, else `--same-version=<reason>`), CI + fast-fail, then under the lock: prebuild with the flag →
+   `bundleRelease` (arm64, upload key) → Hermes map + r8-mapping.txt kept → upload-key signature check → patched-MapLibre
+   build-id check → versionCode bump committed (app.json only) → AAB to `app/dist/aab/` → Play INTERNAL upload with the
+   changelog bullets → `play.json` to the staging bucket → email. `--no-upload` stops after the AAB but still commits the
+   versionCode bump, and there is no "upload this AAB" mode that also writes play.json, so the one-run form is the clean one.
+   NOT the exact bytes the benches ran: the AAB is a separate Gradle run of the same commit (same R8 input, other JS env).
+   Benching the AAB itself needs bundletool (not installed: a universal APK from the AAB with the upload key), say if wanted.
+4. Owner's phone walk (below) on the Play internal build; record it here.
+
+## Phone walk for the owner (Play internal R8 build)
+Each item: what to do, and what a failure looks like. Any app closing by itself ("Can I Fish? keeps stopping") is a fail.
+1. **Update through Play.** Install the R8 build from the Play internal link over the build you have. Open it. Fail: Play
+   says it cannot install, or the app closes on its first open. Later, when the next internal build is out: the app's
+   "Update" button opens Play's update sheet inside the app. Fail: the button does nothing or the app closes.
+2. **First open and the map.** The map draws in colour, pan and zoom, tap a river: its regulations open. Fail: blank or grey
+   map, a closed app, or a tap that opens nothing.
+3. **A notification, and tapping it.** More → Notifications: turn on an alert on a gauge (or "new data ready"), close the
+   app (swipe it away), wait until it fires (can take hours; the background check runs at most every ~15 min when Android
+   allows). Tap the notification. Fail: nothing ever arrives while the same alert fires on the old build, or the tap
+   closes the app / opens a blank screen.
+4. **Background check after the app sat closed** (same as 3, read the other way): after a few hours closed, More →
+   Notifications (or the Updates log) shows background runs since you closed it. Fail: no run listed at all.
+5. **Spot photo from the picker.** Spots → a spot → add a photo → choose one from the gallery. Fail: the picker does not
+   open, the app closes on return, or the photo is not on the spot.
+6. **Spot photo from the camera.** Same, take a new photo. Fail: the camera does not open, the app closes after the shot,
+   or no photo.
+7. **Location.** The locate button on the map, and "At my location" when saving a spot. Fail: the permission prompt
+   never shows, the app closes, or the dot never appears outdoors.
+8. **The rule book.** On a water's page tap "Rule book p.N ↗": the book opens at that page, highlighted; swipe pages,
+   pinch to zoom, back closes it. (The app shows no table of contents; the viewer builds it on every open, so a failure there
+   would show as this open failing.) Fail: a blank viewer, an error line instead of the page, or the app closes.
+9. **Leave it in the background a while, come back** (memory trim): open other apps for a few minutes, come back to the
+   map. Fail: the app restarted from scratch with an error, or the map stays blank.
+10. **Saved spot after a restart.** Your spots and settings are still there after a force stop. Fail: anything missing.

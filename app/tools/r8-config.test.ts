@@ -59,6 +59,40 @@ describe("T749: R8 is off unless CANIFISHTHIS_R8=1", () => {
   });
 });
 
+describe("T749: a release build with the flag keeps R8's mapping, or stops", () => {
+  const sh = readFileSync(resolve(process.cwd(), "../deploy/staging/build-apk.sh"), "utf8");
+  const code = sh.split("\n").filter((l) => !l.trimStart().startsWith("#")).join("\n");
+
+  it("parses as bash", () => {
+    expect(spawnSync("bash", ["-n", resolve(process.cwd(), "../deploy/staging/build-apk.sh")]).status).toBe(0);
+  });
+
+  it("keep_map keeps r8-mapping.txt when the flag is 1, through the refusing keep-r8 (no `|| true`, no skip)", () => {
+    const body = /keep_map\(\) \{\n([\s\S]*?)\n\}/.exec(code)?.[1] ?? "";
+    expect(body).toContain('if [[ ${CANIFISHTHIS_R8:-} == 1 ]]; then node "$REPO/app/tools/sourcemaps.mjs" keep-r8 "$R8_MAP"');
+    expect(body).not.toMatch(/\|\| *true|2>\/dev\/null/);
+    expect(code).toContain("R8_MAP=$M/android/app/build/outputs/mapping/release/mapping.txt");
+  });
+
+  it("the mapping is kept before the AAB is committed, copied or uploaded, and before the APK is copied", () => {
+    const play = code.indexOf("keep_map\n  AAB=");
+    expect(play).toBeGreaterThan(0);
+    expect(play).toBeLessThan(code.indexOf("commit_bump\n  cp"));
+    expect(play).toBeLessThan(code.indexOf('play-upload.py" --aab'));
+    const apk = code.lastIndexOf("keep_map\n");
+    expect(apk).toBeLessThan(code.indexOf('cp "$APKF" "$OUT/$NAME"'));
+  });
+
+  it("the precheck refuses a bad flag value and the flag with --production, before the heavy lock", () => {
+    const lock = code.indexOf("exec scripts/heavy.sh build-apk");
+    const pre = code.indexOf("case ${CANIFISHTHIS_R8:-} in");
+    expect(pre).toBeGreaterThan(0);
+    expect(pre).toBeLessThan(lock);
+    expect(code).toMatch(/1\) if \[\[ -n \$PROD \]\]; then bad "CANIFISHTHIS_R8=1 is a trial/);
+    expect(code).toMatch(/\*\) bad "CANIFISHTHIS_R8 must be unset, 0 or 1/);
+  });
+});
+
 describe("T749: the keep rules reach proguard-rules.pro", () => {
   const rules = readFileSync(plugin.KEEP_FILE, "utf8");
   const template = "# Add project specific ProGuard rules here.\n-keep class com.facebook.react.turbomodule.** { *; }\n";
