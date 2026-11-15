@@ -292,7 +292,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "quesnel_river__johnson_subdivision_bridge",
+              "quesnel_river__powerlines"
+            ],
+            "item_id": "gnis:27867"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
