@@ -735,3 +735,7 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   as a proposal for the review app; added to his proposals once ready.
 - PERMISSION 2026-11-15 (Exchamsiks only), verbatim: "can you fix Exchamsiks for me poroposal is gone so you can do it".
   One new mark being saved for him: upstream of the Hwy 16 bridge point, tributaries on, noted as saved by Claude.
+- ASKED 2026-11-15 (Tatshenshini River, Region 6, "upstream of the BC/ Yukon border – along the Haines Hwy.; Kwatini
+  Creek, Stanley Creek and Goat Creek." and the Blanchard River one): "need to add bc boundary here i cant get it to
+  add. also i cant save or edit the extent of the other section there". Being reproduced in a separate copy of the app:
+  why no BC-border point is offered, why the Blanchard place will not save, and the marks those two places need.
