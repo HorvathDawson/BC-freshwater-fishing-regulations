@@ -137,7 +137,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "nechako_river__foothills_boulevard_bridge_in_prince_george"
+            ],
+            "item_id": "gnis:16605"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
