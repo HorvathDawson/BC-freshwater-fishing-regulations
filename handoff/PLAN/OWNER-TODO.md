@@ -121,7 +121,9 @@ with the default Claude uses until you answer). Newest first inside each section
   byte-identical [merge with the other iOS branches after the Android benches] or leave;
   (11) ANSWERED 2026-11-14, a third heavy lane for iOS simulator jobs. Owner, verbatim: "Maybe we can run 2 at same time
   might have enough resources". Done: `heavy-job-3.lock` in `scripts/heavy.sh` (bbee2220f), same memory guards, three lanes
-  at most;
+  at most. Clarified later the same evening, relayed by the Android chat, verbatim: "i just meant use as much of the
+  resources as you can to speed stuff up": lanes run in parallel as far as the machine allows; every heavy job still
+  goes through `scripts/heavy.sh` and its memory gate;
   (13) iOS keyboard and back fixes are proven on the simulator (T723, branch `ios/t723-keyboard-back`); two picks: a
   spot's Save row stays under the keyboard while typing [leave: drag down or Done first] or lift it above the keyboard;
   the new left-edge back strip on full-screen pages is 16 pt wide [keep] or 8 pt;
