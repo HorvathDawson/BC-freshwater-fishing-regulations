@@ -137,3 +137,14 @@ release, he picked: the R8 build to Play INTERNAL. So: build from the shared bra
 switch and keep rules, switch on; keep `mapping.txt` beside the Hermes source map; re-run the six emulator benches on
 that exact build; if all pass, upload to Play internal testing for the owner's phone walk (update, notifications, a spot
 photo, location, the rule book). Production stays the owner's.
+
+### How it runs (agreed with the Android chat, 2026-11-15 10:37)
+- Pin: shared head d29dffccc (app code = 8d823e7b9, app CI green; pipeline CI green at 6a12b63cc). The Android chat
+  holds `app/` pushes until the upload.
+- iOS chat: branch `perf/r8-play` = the pin + `perf/r8` + the `mapping.txt` step in `deploy/staging/build-apk.sh`
+  (flag off = today's script; flag on = mapping kept beside the Hermes source map under `app/dist/aab/`, fail if none)
+  + version 0.7.11 and a notes line. Test-bed APK with the flag on, then install, crash-bed, bg-install, regs-open,
+  tap-stalls, memory (`--no-r2`). All pass -> merge into `redesign/stream-sections` (flag default off).
+- Android chat: reads the script diff, then runs `CANIFISHTHIS_R8=1 deploy/staging/build-apk.sh --play` on that head
+  (it bumps and commits versionCode, uploads to the internal track). Build 33.
+- The build also carries the shared branch since build 32: T737, T747, T750.
