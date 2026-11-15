@@ -5437,7 +5437,8 @@
             "op": "upstream_of",
             "splits": [
               "border:360886456:1"
-            ]
+            ],
+            "item_id": "gnis:25410"
           }
         ],
         "tributaries": true,
