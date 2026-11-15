@@ -391,7 +391,10 @@ def cut_labels(view) -> dict[str, str]:
     no label is left out: the screen shows it as an error."""
     meta, records, bounds = reuse._splits_meta(), reuse._split_records(), reuse._boundary_index()
     out = {}
-    for sid in _strings(view) & (set(meta) | set(records) | set(bounds)):
+    for sid in _strings(view):
+        if reuse.REGION_CUT.match(sid):           # T742 C: "Region 5 boundary", never another water's atlas label
+            out[sid] = reuse.region_words(sid)
+    for sid in (_strings(view) & (set(meta) | set(records) | set(bounds))) - set(out):
         b = bounds.get(sid, (None, None))[1]
         label = ((meta.get(sid) or {}).get("label") or records.get(sid, ("", {}))[1].get("label")
                  or (getattr(b, "label", None) if b is not None else None))
@@ -601,7 +604,30 @@ def _splits_fc(loc: dict, water: dict | None) -> dict:
         for b in (it.boundaries if it else ()):
             on_water.setdefault(b.id, iid)
     feats, unplaced = [], []
+    # T742 C: A REGION LINE IS OFFERED AS THIS WATER'S CROSSINGS OF IT (`reuse.region_ends`): each by its plain name and
+    # km, at its own point, with the id that binds it — the one atlas row per id drew the Fraser's Region 5 cut on
+    # Antler Creek, labelled "Region 1 – Region 5 boundary", and offered `area:5` with no way to say which crossing
+    ends = [e for iid in (water or {}).get("item_ids") or [] for e in reuse.region_ends(iid)]
+    for e in ends:
+        props = {"split_id": e["id"], "label": e["label"], "water": (water or {}).get("name") or loc.get("water") or "",
+                 "rules": ["extent"] if e["id"] in named else [], "parts": [], "to_verify": False, "grade": None,
+                 "item_id": next((i for i in (water or {}).get("item_ids") or [] if e in reuse.region_ends(i)), None),
+                 "region_end": e}
+        props["name"] = f"{props['water']}: {e['label']}" if props["water"] else e["label"]
+        if not e["bindable"] or e["coord"] is None:
+            unplaced.append({**props, "why": e["why"] or "the served atlas has no point for it"})
+        else:
+            feats.append({"type": "Feature", "geometry": {"type": "Point", "coordinates": e["coord"]}, "properties": props})
+    offered = {e["id"] for e in ends} | {e["base"] for e in ends}
     for sid in list(dict.fromkeys([*named, *on_water])):
+        if sid in offered:
+            if sid not in {e["id"] for e in ends}:      # an extent naming a line this water crosses more than once
+                km = ", ".join(f"km {e['km']}" for e in ends if e["base"] == sid)
+                unplaced.append({"split_id": sid, "label": reuse.region_words(sid), "water": loc.get("water") or "",
+                                 "name": reuse.region_words(sid), "rules": ["extent"] if sid in named else [],
+                                 "parts": [], "to_verify": False, "grade": None, "item_id": on_water.get(sid),
+                                 "why": f"this water crosses it more than once ({km}): the extent does not say which"})
+            continue
         f = _split_feature(sid, rules=["extent"] if sid in named else [], to_verify=False,
                            item_id=on_water.get(sid))
         if f is None:

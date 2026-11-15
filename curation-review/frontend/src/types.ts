@@ -481,6 +481,11 @@ export type EntrySeverity = "high" | "medium" | "low" | "none" | "later";
 /** the queue's severity filter (`severity.FILTERS`): a level, or high + medium */
 export type SeverityFilter = EntrySeverity | "issues" | "all" | "";
 
+/** T742 C: where a water crosses a region line (`reuse.region_ends`) */
+export interface RegionEnd {
+  id: string; base: string; region: string; km: number; coord: [number, number] | null;
+  below: string[]; above: string[]; label: string; bindable: boolean; why: string;
+}
 export interface Boundary {
   id: string;
   label: string;
@@ -490,6 +495,10 @@ export interface Boundary {
   curated: boolean;
   /** a cut the build minted itself (gauge__…, length:…, area:…) — never in splits.json */
   minted?: boolean;
+  /** T742 C: one crossing of a region line on this water (`reuse.region_ends`): its plain name is `label` */
+  region_end?: RegionEnd;
+  /** T742 C: false for a region crossing no id binds (a middle crossing): listed, never offered */
+  pickable?: boolean;
   /** every other id this cut-point answers to (a rule naming any of them binds it) */
   aliases?: string[];
   /** the other NAMES at this place (merged gauge/area/border/length, lake, a second authored point) */
