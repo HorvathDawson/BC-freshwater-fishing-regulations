@@ -11,6 +11,8 @@ source, never typed twice.
     feed_formats   app/packages/core/src/feedFormats.generated.ts           (every live feed's format string, T556)
     dfo_vectors    app/workers/feeds/test/fixtures/dfo/python-vectors.generated.json  (what the Python reads on the saved DFO
                    pages — the feeds worker's test reproduces it, T556)
+    closure_oracle app/workers/feeds/test/fixtures/dfo/closure-oracle.generated.json  (the live feed's closed-area pieces
+                   on sample rows — the worker's T757 port reproduces it, T573)
 
 Each still runs alone: `python -m pipeline.tools.emit.<name> [--check]`.
 """

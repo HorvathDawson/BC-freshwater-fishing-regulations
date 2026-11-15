@@ -51,7 +51,7 @@ same refusal applies when the worker is unreachable or no `FEEDS_URL` is set. Bo
 **Pins:**
 - On the fixture pages, the loc count rises from 254 to 271 (+17: Thompson 3, middle Shuswap 1, Babine 12 circles +
   the Gullwing line). Region 6 rises from 137 to 150. Source: `pipeline/tests/test_dfo_live.py`.
-- The oracle: `T573-files/closure-oracle.json`, regenerated with `python -m pipeline.tools.emit.closure_oracle`;
+- The oracle: `app/workers/feeds/test/fixtures/dfo/closure-oracle.generated.json` (beside `python-vectors.generated.json`), regenerated with `python -m pipeline.tools.emit.closure_oracle` (`--check` runs in `python -m pipeline.tools.emit --check`);
   `test_the_worker_oracle_is_what_the_python_feed_emits` keeps it current. Each case gives `entry_file` (as
   `loadEntryFile` reads it), today's `rows`, the owner's `confirmed` placements (the feed ignores them), the per-piece
   `rules`, and `expect: {locs, verdicts, gears}` (verdicts[0] is NOT_LISTED, as in `live.run`):

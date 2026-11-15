@@ -201,5 +201,5 @@ unmapped; closed_areas.json does not exist yet):
   binds a stretch once its cuts have landed (`proposals.landed_cut`).
 - The bundle marks pieces in `p` (`piece: 1`, `bound: 1`). `deliver/release/pieces_gate.py` refuses an upload that
   binds pieces when the worker's `/status.json` lacks `dfo.pieces >= 1`; both upload scripts call it.
-- Worker/app spec, piece-id grammar and oracle: `T573-files/worker-handoff.md`, `T573-files/closure-oracle.json`
+- Worker/app spec, piece-id grammar and oracle: `T573-files/worker-handoff.md`, `app/workers/feeds/test/fixtures/dfo/closure-oracle.generated.json`
   (regenerated with `python -m pipeline.tools.emit.closure_oracle`). The worker port is T757.
