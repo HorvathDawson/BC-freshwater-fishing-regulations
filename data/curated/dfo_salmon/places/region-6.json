@@ -8925,7 +8925,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "kitsumkalum__signs_below_the_kitsumkalum_lower_canyon"
+            ],
+            "item_id": "gnis:3942"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
