@@ -163,6 +163,12 @@ check "taken over once (got $n)" [ "$n" = 1 ]
 check "jobs never overlapped" bash -c "[[ \$(awk '{print \$1}' '$T/events' | paste -sd' ' -) == 'start end start end' ]]"
 check "lock gone" [ ! -d "$L" ]
 
+echo "9b. the third lane is a lane (owner 2026-11-14: a second simulator job at once)"
+reset
+LANE=$T/heavy-job-3.lock H third 10 -- true > "$T/t3.out" 2>&1; rc=$?
+check "third lane runs a job" [ $rc = 0 ]
+check "third lane left no lock" [ ! -d "$T/heavy-job-3.lock" ]
+
 echo "10. unknown lane refused; nested call runs under the holder's lock"
 reset
 LANE=$T/other.lock H x 10 -- true > "$T/x.out" 2>&1; rc=$?

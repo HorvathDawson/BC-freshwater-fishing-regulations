@@ -4,8 +4,10 @@
 #   heavy.sh [--again] <label> <min_free_pct_to_start> -- <command...>
 #   heavy.sh --status                 what holds each lane: holder, command, elapsed, free memory, last log lines
 #
-# - A lock per lane (mkdir is atomic). Two lanes exist, nothing else is accepted (owner 2026-11-09: max 2):
-#   ~/.claude/heavy-job.lock (the default) and ~/.claude/heavy-job-2.lock (HEAVY_LOCK=…/heavy-job-2.lock).
+# - A lock per lane (mkdir is atomic). Three lanes exist, nothing else is accepted (owner 2026-11-09: max 2; owner
+#   2026-11-14, five iOS simulator lanes behind one lock: "Maybe we can run 2 at same time might have enough
+#   resources" -> a third lane, for a second simulator job): ~/.claude/heavy-job.lock (the default),
+#   ~/.claude/heavy-job-2.lock and ~/.claude/heavy-job-3.lock (HEAVY_LOCK=…/heavy-job-<n>.lock).
 # - Refuses to start until system free memory >= <min_free_pct_to_start> % (memory_pressure -Q).
 # - While it runs, stops the job's whole process group if free memory falls below KILL_PCT (default 6 %), or if the
 #   group's PHYSICAL FOOTPRINT (`footprint`, compressed pages included) passes HEAVY_MAX_FOOTPRINT_GB (default: the
@@ -32,7 +34,7 @@
 # 2 usage / unknown lane; 3 duplicate.
 set -u
 LANES_DIR=${HEAVY_LANES_DIR:-$HOME/.claude}      # tests point this at a scratch dir; nothing else should
-LANES=("$LANES_DIR/heavy-job.lock" "$LANES_DIR/heavy-job-2.lock")
+LANES=("$LANES_DIR/heavy-job.lock" "$LANES_DIR/heavy-job-2.lock" "$LANES_DIR/heavy-job-3.lock")
 KILL_PCT=${KILL_PCT:-6}
 POLL=${HEAVY_POLL:-5}                  # seconds between memory samples while the job runs
 WAIT_POLL=${HEAVY_WAIT_POLL:-20}       # seconds between lock / start-gate checks
@@ -120,8 +122,9 @@ label=$1; need=$2; shift 2; [[ $1 == -- ]] && shift
 (( $# )) || usage
 [[ $need =~ ^[0-9]+$ ]] && (( need <= 100 )) || { echo "[heavy:$label] min free % must be 0-100, got '$need'" >&2; exit 2; }
 LOCK=${HEAVY_LOCK:-${LANES[0]}}
-if [[ $LOCK != "${LANES[0]}" && $LOCK != "${LANES[1]}" ]]; then
-  echo "[heavy:$label] unknown lane $LOCK — only ${LANES[0]} or ${LANES[1]} (max 2 heavy lanes)" >&2; exit 2
+known=0; for l in "${LANES[@]}"; do [[ $LOCK == "$l" ]] && known=1; done
+if (( ! known )); then
+  echo "[heavy:$label] unknown lane $LOCK — only ${LANES[*]} (max ${#LANES[@]} heavy lanes)" >&2; exit 2
 fi
 if [[ -n ${HEAVY_HELD:-} && -d $LOCK && "$(owner_pid "$LOCK")" == "$HEAVY_HELD" ]]; then
   echo "[heavy:$label] inside heavy job $HEAVY_HELD — running under its lock: $*"

@@ -144,7 +144,8 @@ A6. **Commit only your own paths: `git commit -- <paths>`.** Several agents shar
     starts it (`pipeline/tests/tiers.py`; the pytest header says which); every runner script sources `scripts/test-env.sh`
     (interpreter, fresh bytecode prefix, CI's marker expression) and `pytest-chunked.sh` prints each chunk's peak footprint. **Heavy jobs** (atlas build, reach run,
     `pipeline.deliver`, tile builds, full pytest, the Android emulator) go through `scripts/heavy.sh <label> <min free %> --
-    <cmd>`: one at a time per lane (two lanes: the default and `HEAVY_LOCK=~/.claude/heavy-job-2.lock`), waits for free
+    <cmd>`: one at a time per lane (three lanes: the default, `HEAVY_LOCK=~/.claude/heavy-job-2.lock` and, owner 2026-11-14 for a
+    second iOS simulator job, `HEAVY_LOCK=~/.claude/heavy-job-3.lock`), waits for free
     memory, kills the job if free memory falls under 6 % or its physical footprint passes the machine's RAM; stopping the
     wrapper stops the job (T536). **`scripts/heavy.sh --status`** says what holds each lane (command, elapsed, free memory,
     last log lines): ask it before deciding a quiet job died or starting it again — an identical label + command is refused
