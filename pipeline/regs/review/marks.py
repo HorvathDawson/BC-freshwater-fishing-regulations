@@ -1296,6 +1296,16 @@ def confidence_of(group: Sequence[NewSplit], overrides: Sequence[ConfidenceOverr
     return default_confidence(group[0].anchor)
 
 
+def cut_proposals_of(m: Mark) -> list[NewSplit]:
+    """EVERY NEW CUT A MARK PROPOSES: its own `new_splits`, and (T573) the new ends of a CONFIRMED closed area's stretch
+    (`piece.new_splits`, only those its two ends name) — a proposal or a wrong mark proposes none."""
+    out = list(m.new_splits)
+    if m.scope == "closed_area" and getattr(m.verdict, "value", m.verdict) == "verified" and m.piece:
+        ends = {p.get("split_id") for p in m.piece.get("points") or () if p.get("kind") == "new"}
+        out += [NewSplit.model_validate(n) for n in m.piece.get("new_splits") or () if n.get("ref") in ends]
+    return out
+
+
 def proposal_groups(marks: Iterable[Mark]) -> list[dict]:
     """THE PROPOSED SPLITS, SHARED AND DEDUPED, before any confidence: every `new_splits` entry of
     EVERY mark (superseded ones too — the store is the history), one group per distinct cut
@@ -1305,7 +1315,7 @@ def proposal_groups(marks: Iterable[Mark]) -> list[dict]:
     `review.export.decide` holds (T266); `proposals` adds the confidence."""
     out: list[dict] = []
     for m in uncleared(marks):              # a cleared mark's proposals are taken back with it
-        for n in m.new_splits:
+        for n in cut_proposals_of(m):       # T573: a confirmed closed area's new ends too
             # T355: an EDIT of a proposed cut takes that cut's place — the group keeps its id, every
             # member that named it, and this split is what it now is
             i = next((k for k, p in enumerate(out) if n.amends is not None

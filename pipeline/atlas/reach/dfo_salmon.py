@@ -76,7 +76,7 @@ def load_tidal_calls(path: Optional[Path] = None) -> Dict[str, str]:
 def resolve_all(registry, graph, *, entries_dir: Optional[Path] = None, outside=None,
                 diagnostics: Optional[list] = None, tidal=None,
                 keep_tidal: Optional[Dict[str, str]] = None,
-                closed_areas: Optional[List[dict]] = None) -> List[dict]:
+                closed_areas: Optional[List[dict]] = None, landed=None) -> List[dict]:
     """One row per curated location, sorted by location_id: `{location_id, region, mapped, outcome, reason, sections}`
     — and (T573) one per live CLOSED AREA of a place (`resolve_closures`; `closed_areas`: the confirmed placements,
     default the curated file `review.closed_areas.confirmed()`).
@@ -95,6 +95,7 @@ def resolve_all(registry, graph, *, entries_dir: Optional[Path] = None, outside=
         outside = outside_bc(registry, graph)
     keep_tidal = dict(keep_tidal or {})
     confirmed = load_closed_areas() if closed_areas is None else list(closed_areas)
+    landed = landed if landed is not None else landed_resolver(graph)
     rows: List[dict] = []
     gone: List[str] = []
     dead: List[str] = []
@@ -139,7 +140,7 @@ def resolve_all(registry, graph, *, entries_dir: Optional[Path] = None, outside=
             rows.append(row)
         # T573: the region's live CLOSED AREAS (entry B), each its own location — bound, or carried on its water
         rows += resolve_closures(slug, ef, registry, graph, outside=outside, tidal=tidal, keep_tidal=keep_tidal,
-                                 diagnostics=diagnostics, confirmed=confirmed)
+                                 diagnostics=diagnostics, confirmed=confirmed, landed=landed)
     stale = sorted(set(keep_tidal) - seen)
     if stale:
         raise ValueError(f"dfo_salmon: {len(stale)} `keep_tidal` row(s) in tidal_calls.json name no DFO place — "
@@ -166,9 +167,24 @@ def load_closed_areas() -> List[dict]:
     return CA.confirmed()
 
 
+def landed_resolver(graph):
+    """T573: a closed area's NEW end -> the cut it landed as in the curated cuts file (`review.proposals.landed_cut`,
+    the anchor rule the proposals use; the build named on the graph for its resolved measures). Sources are opened on
+    the first new end asked about only."""
+    src: list = []
+
+    def landed(n):
+        if not src:
+            from pipeline.regs.review import proposals as P
+            src.append(P.Sources.live(build=getattr(graph, "_position_build", None)))
+        from pipeline.regs.review import proposals as P
+        return P.landed_cut(n, src[0])
+    return landed
+
+
 def resolve_closures(slug: str, ef, registry, graph, *, outside=None, tidal=None,
                      keep_tidal: Optional[Dict[str, str]] = None, diagnostics: Optional[list] = None,
-                     confirmed: Iterable[dict] = ()) -> List[dict]:
+                     confirmed: Iterable[dict] = (), landed=None) -> List[dict]:
     """T573: ONE ROW PER LIVE CLOSED AREA of the region's places (`closures.build_pieces`), in the places' shape plus
     `closure: {of, key, kind, state}`:
 
@@ -187,7 +203,7 @@ def resolve_closures(slug: str, ef, registry, graph, *, outside=None, tidal=None
 
     keep_tidal = keep_tidal or {}
     rows: List[dict] = []
-    for p in K.build_pieces(getattr(ef, "locations", ()), confirmed):
+    for p in K.build_pieces(getattr(ef, "locations", ()), confirmed, landed):
         lim = None if (p.derived_from in keep_tidal or p.location_id in keep_tidal) else tidal
         row = {"location_id": p.location_id, "region": slug, "mapped": False, "outcome": "closure_carried",
                "reason": None, "sections": [],
@@ -203,9 +219,10 @@ def resolve_closures(slug: str, ef, registry, graph, *, outside=None, tidal=None
             if b.outcome is Outcome.bound and b.sections:
                 row.update(mapped=True, outcome="bound", sections=sorted(b.sections))
             else:
-                new = [x["split_id"] for x in (p.geometry or {}).get("points") or () if x.get("kind") == "new"]
+                new = p.unlanded
                 why = (f"its stretch did not bind ({b.reason.value if b.reason else b.outcome.value})"
-                       + (f"; its new cut(s) {new} must be in the cuts file and the atlas rebuilt" if new else "")
+                       + (f"; its new cut(s) {new} have not landed: accept the cut proposal(s) and rebuild the atlas"
+                          if new else "")
                        + ("; it lies wholly in tidal water" if b.reason is Reason.tidal else "")
                        + ": carried on its water")
         elif not why and p.piece_kind == "circle":

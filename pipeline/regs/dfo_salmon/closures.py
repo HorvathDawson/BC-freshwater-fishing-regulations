@@ -446,6 +446,8 @@ class ClosureLocation(EntryLocation):
     why: str = ""
     closure_rule: dict = field(default_factory=dict)
     geometry: Optional[dict] = None
+    #: a stretch's NEW ends whose cut has not landed in the cuts file (refs): it cannot bind until they do
+    unlanded: list = field(default_factory=list)
 
 
 def piece_id(water_id: str, key: str) -> str:
@@ -472,11 +474,12 @@ def _active_entries(locations: Iterable[Mapping]) -> list[dict]:
     return [got[k] for k in sorted(got) if (got[k].get("status") or "active") == "active"]
 
 
-def build_pieces(locations: Iterable, confirmed: Iterable[Mapping]) -> list[ClosureLocation]:
+def build_pieces(locations: Iterable, confirmed: Iterable[Mapping], landed=None) -> list[ClosureLocation]:
     """EVERY LIVE CLOSED AREA OF ONE REGION as a `ClosureLocation` (pure). `locations`: the curated places
     (`entries.EntryLocation`); `confirmed`: the owner's confirmed placements (`review.closed_areas.confirmed()`). An
     unconfirmed or unbuildable item is a piece too, `why` set (carried, never dropped); an item no live row names is
-    none (`attach`: never free-standing)."""
+    none (`attach`: never free-standing). `landed(new_split) -> split id | None`: the cut a stretch's NEW end landed
+    as (`review.proposals.landed_cut`); None reads no new end as landed."""
     locs = [l for l in locations if hasattr(l, "to_dict") and not isinstance(l, ClosureLocation)]
     by_id = {l.location_id: l for l in locs}
     geo = list(confirmed)
@@ -487,23 +490,34 @@ def build_pieces(locations: Iterable, confirmed: Iterable[Mapping]) -> list[Clos
             if not row["live"] or (e["water_id"], row["key"]) in seen:
                 continue
             seen.add((e["water_id"], row["key"]))
-            out.append(_piece_location(parent, e, row))
+            out.append(_piece_location(parent, e, row, landed))
     return out
 
 
-def _piece_location(parent, entry: Mapping, row: Mapping) -> ClosureLocation:
+def _piece_location(parent, entry: Mapping, row: Mapping, landed=None) -> ClosureLocation:
     from pipeline.regs.dfo_salmon.entries import Binding
     from pipeline.regs.parsing.entry_models import Extent
     lid = piece_id(entry["water_id"], row["key"])
     g = row.get("geometry")
     kind = g["kind"] if g else row["kind"]
-    why, extents = "", []
+    why, extents, unlanded = "", [], []
     if row["state"] != "placed":
         why = WHY_UNBOUND.get(row["state"], WHY_UNBOUND["unplaced"])
     elif kind == "line":
         why = WHY_UNBOUND["line"]
     elif kind == "stretch":
-        extents = [Extent(op="between", splits=[p["split_id"] for p in g["points"]], item_id=g["on_item"])]
+        ends = []
+        for pt in g["points"]:
+            sid = pt["split_id"]
+            if pt["kind"] == "new":
+                # a NEW end binds once its cut has landed (`review.proposals.landed_cut`, the id it landed as)
+                n = next((x for x in g.get("new_splits") or () if x.get("ref") == sid), None)
+                got = landed(n) if (landed is not None and n is not None) else None
+                if got is None:
+                    unlanded.append(sid)
+                sid = got or sid
+            ends.append(sid)
+        extents = [Extent(op="between", splits=ends, item_id=g["on_item"])]
     elif kind != "circle":
         why = WHY_UNBOUND["unknown"]
     return ClosureLocation(
@@ -512,7 +526,8 @@ def _piece_location(parent, entry: Mapping, row: Mapping) -> ClosureLocation:
         source_text={"specific_area": row["words"] if row.get("kind") == "circle" else row["item"]},
         binding=Binding(extents=extents, tributaries=False), status="active",
         derived_from=parent.location_id, piece_key=row["key"], piece_kind=kind, state=row["state"], why=why,
-        closure_rule=piece_rule(entry, row, lid), geometry=g if row["state"] == "placed" else None)
+        closure_rule=piece_rule(entry, row, lid), geometry=g if row["state"] == "placed" else None,
+        unlanded=unlanded)
 
 
 def with_pieces(ef, confirmed: Iterable[Mapping]):

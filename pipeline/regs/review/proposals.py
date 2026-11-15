@@ -690,6 +690,9 @@ def _provenance(m) -> dict:
 
 
 def _proposes(m) -> bool:
+    if m.scope == "closed_area":                 # T573: a confirmed closed area proposes its stretch's new cuts
+        from pipeline.regs.review.marks import cut_proposals_of
+        return bool(cut_proposals_of(m))
     return m.scope in ("entry", "rule", "dfo") and bool(
         m.extent_fix or m.tributaries or m.new_splits or m.lake_split_later
         or getattr(m, "variant_of", None) or getattr(m, "not_variant_of", None) or _dfo_tidal_call(m))
@@ -864,6 +867,41 @@ def _cut_already_there(n, have: Mapping, src: "Sources") -> Optional[str]:
     return min(rows, key=lambda r: abs(float(r["route_measure"]) - float(m)))["split_id"] if rows else None
 
 
+def closed_area_cut(n, have: Mapping, src: "Sources") -> tuple[Optional[str], Optional[str]]:
+    """T573: A CLOSED AREA'S NEW END, by the T755 split hunt's rules (`dfo_salmon.suggest`): (the existing cut it IS,
+    or None; why it cannot be a cut, or None). An existing cut on the same blue line within `SAME_CUT_M` (25 m, by
+    the built atlas's `splits.resolved.json`) is reused; an end at the line's end (measure <= `LINE_END_M`) is
+    refused — a cut there breaks both halves, and a closed stretch needs two real ends."""
+    from pipeline.regs.dfo_salmon.suggest import LINE_END_M, SAME_CUT_M
+    m = getattr(n, "measure", None)
+    if m is not None and not n.offset_m and float(m) <= LINE_END_M:
+        return None, (f"the closed area's end {n.ref} is on its line's end (m {float(m):.1f}): no cut there — "
+                      "move the end off the mouth")
+    blk = getattr(n, "blk", None)
+    if blk is None or m is None or n.offset_m or not src.build:
+        return None, None
+    p = Path(src.build) / "splits.resolved.json"
+    if not p.exists():
+        return None, None
+    rows = [r for r in json.loads(src.text(p)) if str(r.get("blk")) == str(blk) and r.get("split_id") in have
+            and r.get("route_measure") is not None and abs(float(r["route_measure"]) - float(m)) <= SAME_CUT_M]
+    return (min(rows, key=lambda r: abs(float(r["route_measure"]) - float(m)))["split_id"] if rows else None), None
+
+
+def landed_cut(n, src: "Sources") -> Optional[str]:
+    """T573: THE CUT A CLOSED AREA'S NEW END IS NOW, in the cuts file of `src`: the split whose anchor is the one this
+    end lands as (`place_groups`' own dup rule) or the existing cut it reuses (`closed_area_cut`) — None while the cut
+    has not landed. The reach run reads a confirmed stretch's new ends through this, so a landed cut binds it."""
+    from pipeline.regs.review.marks import NewSplit
+    n = NewSplit.model_validate(n) if isinstance(n, Mapping) else n
+    doc = src.doc(src.splits_path)
+    have = {sp["id"]: sp for wb in doc.get("waterbodies") or [] for sp in wb.get("splits") or [] if sp.get("id")}
+    if n.anchor == "split" and not n.offset_m:
+        return n.split_id if n.split_id in have else None
+    got = place_groups([(n.ref, n, False, None)], src, doc, have)[n.ref]["dup"]
+    return got or closed_area_cut(n, have, src)[0]
+
+
 def _tidal_label(n, water: str = "") -> str:
     """A tidal cut's label: its name without the water's own name ("Nanaimo River: tidal boundary"
     -> "tidal boundary"), as every other split of the water is labelled; it always says tidal."""
@@ -1031,9 +1069,11 @@ def build(decided, src: Sources, *, applied: Optional[set] = None) -> list[dict]
     ref_group: dict[tuple, dict] = {}                    # (mark key, ref | #i) -> group
     for m in inforce:
         who = {"target": m.target, "rule_id": m.rule_id, "reviewer": m.reviewer, "date": m.date, "scope": m.scope}
-        for n in m.new_splits:
+        for n in M.cut_proposals_of(m):              # T573: a confirmed closed area's new ends too
             if n.anchor != "split" or n.offset_m:     # an existing cut + an offset is a new cut
-                ref_group[(m.key, n.ref)] = group_for(n, who)
+                g = ref_group[(m.key, n.ref)] = group_for(n, who)
+                if g is not None and m.scope == "closed_area":
+                    g["closed"] = True
         for fi, f in enumerate(m.extent_fix):
             for pi, p in enumerate(f.points):
                 if p.kind in ("confluence", "lake_inlet", "lake_outlet", "coord"):
@@ -1068,6 +1108,12 @@ def build(decided, src: Sources, *, applied: Optional[set] = None) -> list[dict]
         targets = ", ".join(sorted({w["target"] for w in g["marks"]}))
         prov = f"proposed in review marks on {targets}"
         dup = pl["dup"]
+        if dup is None and g.get("closed"):
+            # T573: a closed area's end follows the T755 hunt's rules — an existing cut on its line within
+            # `SAME_CUT_M` IS that cut, and no cut is made on a line's end
+            dup, why = closed_area_cut(n, have, src)
+            if why:
+                problems.append(why)
         if dup is not None:                              # already in splits.json: applied
             gid_split[g["gid"]] = dup
             if g.get("tidal"):                           # T166: ... but flagged tidal?

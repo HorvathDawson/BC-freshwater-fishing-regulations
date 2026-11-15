@@ -216,3 +216,98 @@ def test_a_changed_piece_is_carried(state):
                           {"key": "a" * 12, "item": DEADMAN, "words": DEADMAN, "kind": "stretch", "state": state,
                            "geometry": _stretch()})
     assert p.why and not p.binding.extents
+
+
+# --------------------------------------------------------------------------- a confirmed stretch's new cuts are proposed
+
+def _cut_src(tmp_path, resolved=()):
+    import json
+    from pipeline.regs.review import proposals as P
+    tmp_path.mkdir(parents=True, exist_ok=True)
+    (tmp_path / "cat").mkdir()
+    (tmp_path / "dfo").mkdir()
+    (tmp_path / "build").mkdir()
+    (tmp_path / "build" / "registry.json").write_text(json.dumps({"items": []}))
+    (tmp_path / "build" / "splits.resolved.json").write_text(json.dumps(list(resolved)))
+    (tmp_path / "splits.json").write_text(json.dumps({"waterbodies": [{
+        "name": "THOMPSON RIVER", "applies_to": {"gnis_id": "39492"}, "splits": [{
+            "id": "thompson_river__cnr_bridge", "label": "CNR bridge", "kind": "point", "note": "",
+            "anchor": {"type": "point", "coord": [-121.3, 50.6], "is_lonlat": True}}]}]}))
+    return P.Sources(entries_dir=tmp_path / "cat", dfo_dir=tmp_path / "dfo", splits_path=tmp_path / "splits.json",
+                     build=tmp_path / "build")
+
+
+KEY = "00673ca0afe5"
+TARGET = f"3:thompson-river#{KEY}"
+
+
+def _end(ref, lon, m):
+    return {"ref": ref, "anchor": "bridge", "name": f"{ref} signs", "on_item": "gnis:39492", "coord": [lon, 50.7],
+            "blk": "356", "measure": m}
+
+
+def _closed_mark(verdict="verified", ends=(("x_upper", -120.9, 5000.0), ("x_lower", -121.0, 9000.0))):
+    from pipeline.regs.review import marks as M
+    piece = {"key": KEY, "water_id": "3:thompson-river", "name": "Deadman", "item": "Deadman - …", "kind": "stretch",
+             "on_item": "gnis:39492", "points": [{"kind": "new", "split_id": r} for r, _l, _m in ends],
+             "new_splits": [_end(*e) for e in ends]}
+    return M.Mark.model_validate({
+        "scope": "closed_area", "target": TARGET, "verdict": verdict,
+        "answers": {"P": "y" if verdict == "verified" else "n"}, "reviewer": "dawson", "date": "2026-11-15",
+        "pdf_sha256": "0" * 64, "piece": piece if verdict == "verified" else None,
+        "note": "" if verdict == "verified" else "the signs are elsewhere",
+        "problem": None if verdict == "verified" else "wrong place",
+        "prints": {"text": None, "records": [{"key": f"closed_area:{TARGET}", "meaning": "Deadman - …",
+                                              "binding": "3:thompson-river · stretch"}]}})
+
+
+def _new_splits(marks, src):
+    from pipeline.regs.review import export as X
+    from pipeline.regs.review import proposals as P
+    return [p for p in P.build(X.decide(marks), src) if p["kind"] == "new_split"]
+
+
+def test_a_confirmed_stretch_with_two_new_cuts_proposes_both(tmp_path):
+    """Mutation: drop `cut_proposals_of` from `proposals.build` / `marks.proposal_groups` — the confirmed piece's cuts
+    never reach the cuts file and the stretch is carried `cut_not_found` for ever."""
+    got = _new_splits([_closed_mark()], _cut_src(tmp_path))
+    assert len(got) == 2 and all(p["applicable"] and not p["problems"] for p in got)
+    assert all(p["marks"][0]["scope"] == "closed_area" and p["marks"][0]["target"] == TARGET for p in got)
+    assert {p["edits"][0]["split"]["anchor"]["type"] for p in got} == {"point"}
+
+
+def test_an_unconfirmed_piece_proposes_no_cut(tmp_path):
+    assert _new_splits([_closed_mark("wrong")], _cut_src(tmp_path)) == []
+
+
+def test_an_existing_cut_within_25_m_is_reused_and_a_cut_on_the_lines_end_is_refused(tmp_path):
+    src = _cut_src(tmp_path, resolved=[{"split_id": "thompson_river__cnr_bridge", "blk": "356",
+                                        "route_measure": 9010.0}])
+    got = _new_splits([_closed_mark()], src)
+    assert len(got) == 1 and "x_upper" in got[0]["id"]                 # x_lower IS the CNR bridge cut (10 m)
+    from pipeline.regs.review import marks as M
+    from pipeline.regs.review import proposals as P
+    assert P.landed_cut(M.NewSplit.model_validate(_end("x_lower", -121.0, 9000.0)), src) == \
+        "thompson_river__cnr_bridge"
+    assert P.landed_cut(M.NewSplit.model_validate(_end("x_upper", -120.9, 5000.0)), src) is None
+    got = _new_splits([_closed_mark(ends=(("x_mouth", -120.9, 1.0), ("x_upper", -120.95, 5000.0)))],
+                      _cut_src(tmp_path / "b"))
+    (mouth,) = [p for p in got if "x_mouth" in p["id"]]
+    assert not mouth["applicable"] and "line's end" in mouth["problems"][0]
+
+
+def test_a_landed_new_end_binds_the_stretch(monkeypatch):
+    """Mutation: read a new end by its ref (ignore `landed`) — the stretch stays carried after its cut landed."""
+    g = _stretch()
+    g["points"][1] = {"kind": "new", "split_id": "x_lower"}
+    g["new_splits"] = [_end("x_lower", -121.0, 9000.0)]
+    g["new_splits"][0]["on_item"] = "gnis:1"
+    gr, reg = _river()
+    monkeypatch.setattr(D, "_slugs", lambda: ["3"])
+    monkeypatch.setattr(E, "load", lambda *a, **k: _ef(_place()))
+    rows = {r["location_id"]: r for r in D.resolve_all(reg, gr, outside=frozenset(), closed_areas=[g],
+                                                       landed=lambda n: "x_river__lake_1")}
+    assert rows[PIECE]["sections"] == ["r1"] and not rows[PIECE].get("carried")
+    rows = {r["location_id"]: r for r in D.resolve_all(reg, gr, outside=frozenset(), closed_areas=[g],
+                                                       landed=lambda n: None)}
+    assert rows[PIECE]["carried"] and "x_lower" in rows[PIECE]["reason"] and "not landed" in rows[PIECE]["reason"]
