@@ -62,8 +62,9 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
   full size. Not shown on the device: photos left out when they do not fit (all 29 fit; unit-tested only).
 - The iOS look at today's five shared fixes (**done 22:40**, build 081d93f90, simulator, light and dark; write-up in
   T723): the credits card (T729), search (T730) and Back from a page (T717) pass. The step bar (T731) passes for a
-  step within one water; the step into the next water was not reached. Flow / Level (T728) is **not verified**: the
-  test bed did not reach a water with a gauge chart (retry on the Vedder running). **Found, memory:** measured again on
+  step within one water; the step into the next water was not reached (Coquitlam has none; needs another water).
+  Flow / Level (T728) **passes** on the Vedder (the card opened on Level 1.81 m, switched to Flow 29.7 m³/s, the map
+  layer stayed Level). **Found, memory:** measured again on
   the baseline's own simulator model, a water's page takes 279 MB against 213 to 230 MB on the baseline (the map is now
   kept alive under the page), and the peak is 389 MB against 274 MB: with a page up, closing the rule book frees about
   10 MB where it used to free about 50. Not fully like for like (the build carries every change since the baseline).
@@ -111,8 +112,11 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
   its identity there. The build script now signs "to run locally" (no account, no team); the third run passed.
 - **First-open progress most likely does not move on iPhone today (0.7.9/0.7.10):** about 5,000 number-conversion
   errors from the progress callback during the download. Fixed on `ios/t722-install` (zero such lines in its run).
-- **Crash report not delivered in the baseline** (crash check, step 2): the app read the crash record at the next start
-  but the send returned false each time. Probably the worker's daily limit from this Mac; not proven.
+- **Crash reports from the iPhone build are not delivered** (crash check, step 2): the app reads the crash record at
+  the next start but the send returns false each time. It failed again at 23:30, a new day for the worker's daily
+  limit, so the limit is unlikely; the cause is the report's shape or the worker's check, not yet known. Until fixed,
+  a crash on the owner's TestFlight build will not reach us. A lane is on it from 00:40 (branch `ios/crash-send`,
+  code and tests only).
 - **No "At my location" row in iOS search** in the baseline run; cause not settled (app or test bed).
 - **The memory-warning trim could not be tested:** the headless simulator has no way to send the warning.
 - **First open took 397 s** (0.5.0: 168 s). The download is 479 MB and ran at 1.7 MB/s on the line today; 44 s more was
