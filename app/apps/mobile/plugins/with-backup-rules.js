@@ -12,12 +12,15 @@
  * phone does not have), the background-download jobs (shared preferences and the external folder name another device's
  * DownloadManager ids), WorkManager's database, logs, crash records and the install id (a new phone is a new install).
  *
- *   cloud backup (25 MB quota)   the spots file (+ its `.bak`) and the small settings the reader would miss.
- *                                NO PHOTOS: a phone's photos pass 25 MB within a few dozen, and an over-quota set backs
- *                                up nothing, spots included. Photos go through the T732 backup set when it is built.
+ *   cloud backup (25 MB quota)   the spots file (+ its `.bak`), the small settings the reader would miss, and the
+ *                                BACKUP SET: compressed copies of the newest photos in `spots/backup-photos/`, chosen
+ *                                by the app to fit what the spots and settings leave of the quota (`@app/data`
+ *                                `syncBackupSet`, core `planBackupSet`). Never the originals: a phone's photos pass
+ *                                25 MB within a few dozen, and an over-quota set backs up nothing, spots included.
  *   device-to-device transfer    the same, PLUS the photos as kept (no quota on a cable or Wi-Fi transfer to a new phone).
- *   Android 11 and lower         `fullBackupContent` is the cloud list only: its `requireFlags="deviceToDeviceTransfer"`
- *                                gate is Android 9+, and an ungated photo include on Android 7–8 would risk the quota.
+ *   Android 11 and lower         `fullBackupContent` is the cloud list only (with the backup set: it fits by design):
+ *                                its `requireFlags="deviceToDeviceTransfer"` gate is Android 9+, and an ungated
+ *                                include of the originals on Android 7–8 would risk the quota.
  *
  * A manifest that already names backup rules (another plugin, a template change) is refused here, at prebuild: two
  * owners of the backup rules is the silent-loss case this file exists to prevent.
@@ -40,9 +43,11 @@ const SETTINGS = [
 ];
 /** The photos as kept (`photoStore.native.ts`): device-to-device transfer only. */
 const PHOTOS = "spots/photos";
+/** The backup set (`@app/data` `backupSet.native.ts`): compressed copies of the newest photos, sized to fit the quota. */
+const COPIES = "spots/backup-photos";
 
-const CLOUD = [...SPOTS, ...SETTINGS];
-const DEVICE = [...CLOUD, PHOTOS];
+const CLOUD = [...SPOTS, ...SETTINGS, COPIES];
+const DEVICE = [...SPOTS, ...SETTINGS, PHOTOS];
 
 const includes = (paths, indent) => paths.map((p) => `${indent}<include domain="file" path="${p}"/>`).join("\n");
 

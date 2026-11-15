@@ -28,7 +28,7 @@ import { createNet, shareFetch, createReportOutbox, createUpdateLog, createUpdat
          type Held, type UpdateService, type WaterSource } from "@app/data";
 import { bootSaid, type MobileDataGate, type ReleaseLoader } from "@app/data/release";
 import * as platform from "@app/data/release/platform";
-import { fillDayFlow, onVisit, visitIdOf, storedHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openGaugeHistoryStore, openInSeasonStore, openInSeasonSeenStore, openInSeasonInboxStore, openFirstRunStore, openDataModeStore, openWalkthroughStore, openLocationAskStore, openAppUpdateStore, openRecentSearchStore, openRunSpeciesStore, openUpdateStore, openUpdateLogStore, openReportOutboxStore, openCrashSettingStore, openCrashPendingStore, openCrashExitStore, openInstallIdStore, openMeteo, openPhotos, openSpots, needsRefresh, refreshSpot,
+import { fillDayFlow, onVisit, visitIdOf, storedHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openGaugeHistoryStore, openInSeasonStore, openInSeasonSeenStore, openInSeasonInboxStore, openFirstRunStore, openDataModeStore, openWalkthroughStore, openLocationAskStore, openAppUpdateStore, openRecentSearchStore, openRunSpeciesStore, openUpdateStore, openUpdateLogStore, openReportOutboxStore, openCrashSettingStore, openCrashPendingStore, openCrashExitStore, openInstallIdStore, openMeteo, openPhotos, openSpots, needsRefresh, refreshSpot, syncBackupSet,
          type DayFlowAnswer, type Spot } from "@app/data/spots";
 import { Button, connectivity, ErrorState, LoadingState, SayingLine, setSynopsisNet, setSynopsisSource, Shell, StageBar, THEMES, UpdateToast, type ThemeName,
          platformLine, type ShellProps, type UpdatesLogControls } from "@app/ui-native";
@@ -94,6 +94,8 @@ const FEED = ENDPOINTS.feed;
  * workers allow it, the local dev server's `serve-tiles` too once restarted), and the browser's own User-Agent.
  */
 const WEB = Platform.OS === "web";
+/** (T732) The phone backup's photo set: Android's cloud backup only (25 MB quota; see `@app/data` `syncBackupSet`). */
+const BACKUP_SET = Platform.select({ android: true, default: false });
 const VERSION_HEADERS = WEB
   ? (APP_ENV.env === "local" ? {} : versionHeaders(APP_VERSION, { platform: "web", ua: false }))
   : versionHeaders(APP_VERSION, { platform: platformLine(), ua: true });
@@ -208,12 +210,30 @@ export default function App() {
   const hydat = useMemo(() => storedHydat(ENDPOINTS.hydat), []);
   // S1: a spot's photographs — files beside the spots file on a phone, IndexedDB in a browser — and the platform's
   // picker (`./pickPhoto.native.ts` / `.web.ts`). The user's own: never in a release, never uploaded.
+  // (T732) `photoEpoch`: a new store when photos were put back from the backup set (a restored phone), so every tile
+  // that drew "no photo" asks again; `backupLine`: what the Spots tab says the phone's backup holds (Android only)
+  const [photoEpoch, setPhotoEpoch] = useState(0);
+  const [backupLine, setBackupLine] = useState<string | null>(null);
+  const photoStore = useMemo(() => openPhotos(), [photoEpoch]);   // eslint-disable-line react-hooks/exhaustive-deps
   const photos = useMemo<SpotPhotos>(
-    () => ({ store: openPhotos(), pick: pickPhoto, sources: PHOTO_SOURCES }), []);
+    () => ({ store: photoStore, pick: pickPhoto, sources: PHOTO_SOURCES, backupLine }), [photoStore, backupLine]);
   const [refreshing, setRefreshing] = useState(false);
   // P01: every write awaited and serialised; a failure reaches the screen that asked
   const spotsHook = useSpots(spotStore);
   const spots: Spot[] = spotsHook.spots.state === "ready" ? spotsHook.spots.value : [];
+  // (T732) THE PHONE BACKUP'S PHOTO SET, in step with the spots: at the start and after every save or delete (the list
+  // changes). Android only: its cloud backup has a 25 MB quota; iCloud carries the photos as kept (no set, no line).
+  const spotsReady = spotsHook.spots.state === "ready";
+  useEffect(() => {
+    if (!BACKUP_SET || !spotsReady) return;
+    let live = true;
+    syncBackupSet(spots).then((r) => {
+      if (!live || !r) return;
+      setBackupLine(r.line);
+      if (r.restored.length) setPhotoEpoch((n) => n + 1);
+    }, reportFailure);
+    return () => { live = false; };
+  }, [spots, spotsReady]);
   // (T231) the gauge index is the update service's to renew: once read it is held until the service offers a newer one
   // (T315) and every station's last week kept on the phone (each station file read, and the publisher's feed-wide
   // newest rows on each feed update): offline, a Conditions chart still draws its measured line, "as of" its age

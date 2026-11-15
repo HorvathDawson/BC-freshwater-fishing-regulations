@@ -25,7 +25,8 @@ const spot = (over: Partial<Spot> = {}): Spot => ({
 });
 
 function mount(spots: Spot[], o: { permission?: LocatePermission | null; error?: string | null; refresh?: boolean;
-                                   photoStore?: { uri: (r: string) => Promise<string> }; railError?: string } = {}) {
+                                   photoStore?: { uri: (r: string) => Promise<string> }; railError?: string;
+                                   backupLine?: string | null } = {}) {
   const calls: string[] = [];
   const vm = spotsMenu(spots, { error: o.error ?? null, canAdd: true, canRefresh: !!o.refresh,
                                 permission: o.permission ?? null });
@@ -34,7 +35,7 @@ function mount(spots: Spot[], o: { permission?: LocatePermission | null; error?:
       <SpotsScreen palette={LIGHT} vm={vm}
                   onOpen={(id) => calls.push(`open ${id}`)} onShow={(id) => calls.push(`show ${id}`)}
                   onAdd={(k) => calls.push(`add ${k}`)} onRefresh={o.refresh ? () => calls.push("refresh") : undefined}
-                  photoStore={o.photoStore} error={o.railError ?? null} />
+                  photoStore={o.photoStore} error={o.railError ?? null} backupLine={o.backupLine ?? null} />
     </GestureHandlerRootView>);
   return calls;
 }
@@ -42,6 +43,18 @@ function mount(spots: Spot[], o: { permission?: LocatePermission | null; error?:
 const buttons = () => screen.getAllByRole("button").map((b) => b.getAttribute("aria-label"));
 
 describe("<SpotsScreen>", () => {
+  it("(T732) says what the phone's backup holds under the list; nothing with no spots or no line", () => {
+    const line = "Your phone's backup holds your 1 spot and your photo, made smaller.";
+    mount([spot()], { backupLine: line });
+    expect(screen.getByTestId("spots-backup").textContent).toBe(line);
+    cleanup();
+    mount([], { backupLine: line });
+    expect(screen.queryByTestId("spots-backup")).toBeNull();
+    cleanup();
+    mount([spot()]);
+    expect(screen.queryByTestId("spots-backup")).toBeNull();
+  });
+
   it("is a tab page: its title is a header, and nothing on it closes (back from a tab is the route's)", () => {
     mount([]);
     expect([screen.getByRole("heading").textContent, screen.queryByRole("button", { name: "Done" })]).toEqual(["Spots", null]);

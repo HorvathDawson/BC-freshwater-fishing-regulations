@@ -25,7 +25,7 @@ import { GUTTER, type Palette } from "./theme";
 import { hitProps } from "./regs/hit";
 import { CoachSpot } from "./CoachMarks";
 
-export function SpotsScreen({ palette, vm, onOpen, onShow, onAdd, onRefresh, refreshing, error, photoStore }: {
+export function SpotsScreen({ palette, vm, onOpen, onShow, onAdd, onRefresh, refreshing, error, photoStore, backupLine }: {
   palette: Palette; vm: SpotsMenuVM;
   onOpen: (id: string) => void;
   /** The Map tab, framed on the spot with its pin. */
@@ -37,6 +37,8 @@ export function SpotsScreen({ palette, vm, onOpen, onShow, onAdd, onRefresh, ref
   error?: string | null;
   /** S1: where a spot's first photo is drawn from. Absent -> the row says NO PHOTO. */
   photoStore?: Pick<PhotoStore, "uri">;
+  /** (T732) What the phone's backup holds (core `backupLine`): said under the list, so nothing is left out silently. */
+  backupLine?: string | null;
 }) {
   // (T302) the web keeps no spots: they live in the phone app, said in the list's place (spots saved here earlier stay, unshown)
   if (webSpotsNotice()) return <WebSpotsNotice palette={palette} />;
@@ -62,6 +64,10 @@ export function SpotsScreen({ palette, vm, onOpen, onShow, onAdd, onRefresh, ref
           <SpotRow key={r.id} row={r} palette={palette} photoStore={photoStore}
                    onOpen={() => onOpen(r.id)} onShow={() => onShow(r.id)} />
         ))}
+        {backupLine && vm.rows.length > 0 ? (
+          <Text testID="spots-backup" style={{ ...TYPE.small, fontSize: 12, color: palette.sub, paddingHorizontal: 20,
+                                               paddingTop: 10, paddingBottom: 6 }}>{backupLine}</Text>
+        ) : null}
         {error ? (
           <ErrorState palette={palette} message={error} style={{ paddingHorizontal: 20, paddingTop: 12 }} />
         ) : null}
@@ -96,6 +102,8 @@ export function SpotsScreen({ palette, vm, onOpen, onShow, onAdd, onRefresh, ref
 function SpotRow({ row, palette, onOpen, onShow, photoStore }: {
   row: SpotsMenuRow; palette: Palette; onOpen: () => void; onShow: () => void;
   photoStore?: Pick<PhotoStore, "uri">;
+  /** (T732) What the phone's backup holds (core `backupLine`): said under the list, so nothing is left out silently. */
+  backupLine?: string | null;
 }) {
   const first = row.photo === null ? [] : [row.photo];
   const thumb = usePhotoUris(photoStore, first).get(row.photo ?? "") ?? null;

@@ -31,6 +31,19 @@ Depends: T722 (iOS backup exclusion, sibling). Size: M. Owner: yes (look at the 
 wording; confirm the relayed words). Default: build as a proposal on the branch; timing before closed testing only if it
 lands clean and proven, otherwise first thing after (the Android chat tells the owner).
 
+## Owner answers
+
+2026-11-14 evening, relayed by the main iOS chat, verbatim:
+1. "Only need to backup photos and spots the rest of the data isn't important"
+2. "Settings could also be saved"
+
+What was built to them (branch `android/t732-backup`, still a proposal, not merged): the rule sets stay as proven in
+§8 (spots + `.bak` + the seven settings files), and the cloud set ADDS the photos' backup copies
+(`spots/backup-photos/`); the device transfer keeps `spots/photos` at full size. Quota order: spots first, then the
+settings' bytes, then photo copies newest first. **The main chat's reading, not the owner's words:** sentence 1 is the
+yes to the new native dependency `expo-image-manipulator` (photos cannot ride the 25 MB cloud backup any other way, §3);
+it is in `app/deps.md`. See §9.
+
 ## Results
 
 2026-11-14, backup lane (branch `android/t732-backup`, from local `redesign/stream-sections` 8d7d01d9a: origin was not
@@ -72,8 +85,10 @@ A local config plugin: writes `res/xml/backup_rules.xml` and `res/xml/data_extra
 everything not named stays out by construction (Android: one `<include>` and nothing else is taken by default).
 - **cloud-backup (and Android ≤11):** `spots/spots.spots`, `spots/spots.spots.bak`, and the settings: `layers.json`,
   `notify.json` (alert rules), `low-data.txt`, `crash-reports.txt` (a consent), `run-species.json`, `first-run.txt`,
-  `walkthrough.txt`. No photos.
-- **device-transfer (Android 12+):** the same, plus `spots/photos` (every photo at its kept size: no quota).
+  `walkthrough.txt`; and (§9, after the owner's answers) `spots/backup-photos` — the photos' compressed copies, never
+  the originals.
+- **device-transfer (Android 12+):** the spots and settings, plus `spots/photos` (every photo at its kept size: no
+  quota); not the copies (the originals are there).
 - **Out on purpose:** the release, the rule book, tile/feed/forecast caches; `updates.json` (its validators would tell
   the update service a release is current on a phone that has none: the reader re-sets "download on mobile data");
   bg-download jobs (prefs + external folder name another phone's DownloadManager ids); `install-id.txt` (a new phone is a
@@ -95,7 +110,8 @@ everything not named stays out by construction (Android: one `<include>` and not
   5 MB headroom; the rules add that one folder to cloud-backup. The Spots screen shows the line. Spots are counted
   first, so they are never the part dropped; what is left out is named in the line. **Built:** the choice and the line,
   `packages/core/src/backupSet.ts` (`planBackupSet`, `backupLine`, `BACKUP_QUOTA_BYTES`, `BACKUP_HEADROOM_BYTES`;
-  newest visit first, ties by reference, first fit) and `backupSet.test.ts` (whole sentences). **Designed, not built**
+  newest visit first, ties by reference, first fit) and `backupSet.test.ts` (whole sentences). **Built since (§9);
+  the design as first written:**
   (needs a new native dependency the owner should approve, `expo-image-manipulator` on the SDK 58 line, plus a
   `deps.md` line): `packages/data/src/spots/backupSet.native.ts` + `backupSet.web.ts` (web: nothing, no backup) +
   `backupSet.d.ts` — on save/delete of a spot and once per start: list every photo ref with its visit time, make any
@@ -218,6 +234,32 @@ Found on the way (none of them the rules):
   absolute directory outside Maestro's output folder ("resolves outside this run's takeScreenshot output folder");
   the proof's own spot maker passed a relative `SHOT`. The scenario also deletes its spot at the end, so it cannot
   seed data that must stay.
+
+### 9. Built after the owner's answers: the photo backup set (code and tests; emulator proof waits for the go)
+- **Rules** (`with-backup-rules.js`): `spots/backup-photos` added to cloud-backup and to `fullBackupContent`
+  (Android ≤11 reads the cloud list; the set fits by design). Device-transfer unchanged. `backup-rules.test.ts` pins
+  both files whole again.
+- **The set** (`packages/data/src/spots/backupSync.ts`, the rules over a file seam; `backupSet.native.ts` the phone's
+  files; `backupSet.web.ts` null; `backupSet.d.ts`): every photo a spot or visit holds, at its visit's time; a copy made
+  once per photo (`expo-image-manipulator`: rendered, resized to 1600 px on the long edge when larger, saved JPEG 0.7;
+  core `BACKUP_PHOTO_EDGE` / `BACKUP_PHOTO_QUALITY`) into `cache/backup-stage/`; core `planBackupSet` with the bytes of
+  the spots file, `.bak` and the seven settings files counted first; kept copies moved into `spots/backup-photos/`;
+  left-out and stale copies (a photo no spot holds) deleted. Originals are never re-encoded. One sync at a time.
+- **When** (`apps/mobile/src/App.tsx`): at the start and after every save or delete (the spots list changes), Android
+  only (`Platform.select`, one value: iCloud carries the photos as kept, §5, so iOS makes no copies and shows no line).
+- **Restore**: on that same start, a photo a spot holds whose original is missing and whose copy is in the set is
+  COPIED into `spots/photos/` (the copy stays); an original that exists is never written over; the photo store is
+  reopened so every "no photo" tile asks again. A restored photo is the copy (1600 px), under its original name.
+- **Nothing silent**: a copy that cannot be made is reported (`reportFailure`) and counted as on this phone only (the
+  line says so); a copy that cannot be put back is reported and its copy kept for the next start.
+- **The line** (core `backupLine`, whole-sentence tests): under the Spots list (`SpotsScreen`, `testID="spots-backup"`),
+  e.g. "Your phone's backup holds your 4 spots and 3 of 4 photos, made smaller, the newest first. The other 1 photo is
+  on this phone only."
+- **Tests**: `packages/data/src/spots/backupSync.test.ts` (fit and order, copy made once, stale copy deleted, restore
+  never over an original, a failed copy reported and said, a failed restore keeps its copy), `SpotsScreen.test.tsx`
+  (the line shown, and not with no spots or no line), `backup-rules.test.ts`.
+- **Dependency**: `expo-image-manipulator` 58.0.15 (the SDK 58 `bundledNativeModules` pin), `apps/mobile` + a peer of
+  `@app/data` + the root `overrides`; `deps.md` line; `layers.json` lets `packages/data/src/spots` import it.
 
 ### Not done / unverified
 Not shown on an emulator: a real device-to-device transfer with no quota (needs two phones and Google's D2D transport;

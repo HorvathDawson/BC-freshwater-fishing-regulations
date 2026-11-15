@@ -26,6 +26,8 @@ export { DRAFT_WORDS } from "./words";
 export { leadUpPendingDays } from "./leadup";
 export { isPhotoRef, type PhotoSource, type PhotoStore, type PickedPhoto } from "./photos";
 export { openPhotos } from "./photoStore";
+// T732: the phone backup's photo set (compressed copies, newest first, fitted to the quota) and the restore of its copies
+export { syncBackupSet } from "./backupSet";
 // T51: "Like your visit?" — the inputs to core's `likeDay`, and the last fetched forecast kept for offline
 export { comingConditions, fetchLike, NOTHING_FETCHED, readLike, visitConditions, visitHour, writeLike,
          type LikeFetched, type LikeSources, type LikeStore } from "./likeVisit";
