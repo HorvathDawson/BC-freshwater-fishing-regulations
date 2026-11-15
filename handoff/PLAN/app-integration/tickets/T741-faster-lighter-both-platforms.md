@@ -327,3 +327,15 @@ under `ReactNativeJS` in a `--probes`/test-bed APK: `Running "main"`, `[setup] o
 `Start proc` → first `[drawn]` (logcat `-v epoch`, the same clock), 6 cold starts (`am force-stop` between), base vs
 branch, the emulator quiet and the load written down; plus `tap-stalls`. Android's timer floor is the Choreographer
 frame too, so the same gain is expected there, unmeasured.
+
+### Round 3 C: the launch's 40 ms paint slice MEASURED — KEPT (2026-11-15 06:31-06:45, t741-17, lane 2)
+Same simulator, same scenario (`perf` 3 cold starts + `tap-stalls`, 6 launches each), the app's own log per launch
+(process's first log line → first `[drawn]`, `t741/scripts/launches.py`). Load (1/5/15 min) at the sessions' starts:
+5.25 / 8.96 / 7.42 (pre) and 4.27 / 6.74 / 7.34 (slice); 5.59 at the end.
+| measure | pre-slice d2fd851b7 | 40 ms slice 571edb7b7 | verdict |
+|---|---|---|---|
+| launch → first `[drawn]`, median (min-max) | 1,030 (997-1,084) ms | **786 (733-858) ms** | **−244 ms**, ranges do not overlap: KEPT |
+| launch → `[setup] opened`, median | 829 (788-879) ms | 577 (533-643) ms | −252 ms |
+| `[work] decode paint sliced` | 406-520 ms | 196-221 ms | the waiting between slices gone, as estimated |
+| `tap-stalls` (limit 300 ms) | PASS, worst 210 ms (Run timing 173) | PASS, worst 233 ms (Run timing 174) | the cold-start window's worst stall within run noise (T720/round 2: 225-244 ms) |
+Simulator, the Mac's CPU; a phone's number will differ. Android: not measured (the logcat measure above is the proposal).
