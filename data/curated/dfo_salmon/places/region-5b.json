@@ -428,7 +428,12 @@
         ],
         "tributaries": true,
         "tributaries_only": false,
-        "tributary_excludes": [],
+        "tributary_excludes": [
+          {
+            "op": "whole",
+            "item_id": "gnis:17209"
+          }
+        ],
         "sections_cached": null,
         "notes": [],
         "spatial_caveat": false
