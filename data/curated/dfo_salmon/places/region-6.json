@@ -2971,7 +2971,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "nass_river__canyon_city_gitwinksihlkw_bridge",
+              "gauge__08DB001"
+            ],
+            "item_id": "gnis:3206"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
