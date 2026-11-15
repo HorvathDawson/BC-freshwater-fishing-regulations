@@ -1,6 +1,6 @@
 # T750 — Upstream and Downstream walk one line through every part; no branch picker
 
-Status: IN PROGRESS (this lane; app change committed, unpushed; left (Claude): staging deploy by the main chat, then the owner's look)
+Status: IN PROGRESS (this lane; app change e920d4d0d, unpushed; left (Claude): staging deploy by the main chat, then the owner's look)
 
 Source: owner 2026-11-14, staging website (dff2c7a22), Skeena River, Map tab, part 2 of 18 ("Skeena River Ecological
 Reserve boundary (km 63.5) → Skeena River Ecological Reserve boundary near the Exchamsiks River confluence"). Pressing
