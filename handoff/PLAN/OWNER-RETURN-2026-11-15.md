@@ -8,7 +8,6 @@ Status line (updated 13:40): fixes landed; cut clean-up and tributaries-only sav
 running; the Android build is on hold (the internet line here is too slow for one of its checks today).
 
 ## 1. First thing to do
-0. Unblock the map rebuild (section 6, first item): one command, or one sentence to the main chat.
 1. Restart the review app once (Ctrl-C, then `bash curation-review/run.sh`). It has new code: tributaries only /
    except a tributary, the tidal boundary as an end choice, warnings, clearer region-boundary names.
 2. Read section 2 (questions) and answer what you can; nothing in it blocks the others.
@@ -105,14 +104,10 @@ after the clean-up and the rebuild; the final list replaces these numbers here.
   confluence. Your two Skeena examples have no Lakelse or Babine confluence cut on the main line; both places are
   retired and unmarked: questions in the report ask whether to make those cuts.
 - Tributaries-only saves. DONE (lines 2730-2733); they land in the place files with the clean-up's apply step.
-- Side map rebuild with the cleaned cuts: BLOCKED, NEEDS YOU. The automatic permission check refused the first step
-  twice (it makes the patched copy of the curated files in a side folder). The job that was refused asked the main chat
-  to run it instead; the main chat does not run a command another job was refused, so it waits for you. To unblock,
-  either run this yourself in the repo, or tell the main chat in your own words to run it:
-  `python -m pipeline.regs.review.proposals side <the 23 cut ids in cut-cleanup-2026-11-15.md section 5> --out data/generated/side/dfo-cuts23`
-  (read from code: it writes only under that side folder and refuses any path under data/curated). Everything after it
-  is ready: the cut list (23 new cuts, checked), 65 GB free disk (27.6 GB of old side builds, old atlases, old reach
-  runs and 9 old releases were deleted; live + previous kept).
+- Side map rebuild with the cleaned cuts: RUNNING. It was stopped by the permission check on its first step; you
+  answered "You can run it" (2026-11-15) and the main chat ran that step; the build and its checks follow, in a side
+  folder only (nothing live replaced; promotion decided after the checks). Disk: 65 GB free after 27.6 GB of old side
+  builds, old atlases, old reach runs and 9 old releases were deleted (live + previous kept).
 - Build step that carries accepted closed areas (Thompson, Shuswap) into the app. NOT WRITTEN; needed before release.
 - App fix: BC border as a pickable point; reason shown when a place cannot be edited. NOT DONE.
 - Review app speed after a save (rebuild only the saved place). NOT DONE.

@@ -791,3 +791,4 @@ checks; one page of questions for him. Nothing that changes what a wording means
   (`python -m pipeline.regs.review.proposals side … --out data/generated/side/dfo-cuts23`) twice for the rebuild job; the
   main chat does not run a command a job was refused. Run it yourself or tell the main chat to. Details in
   `handoff/PLAN/OWNER-RETURN-2026-11-15.md` section 6.
+- ANSWERED 2026-11-15, on the blocked side rebuild step: "You can run it". Run by the main chat; rebuild continuing.
