@@ -764,6 +764,7 @@ def check_F(inp: Inputs) -> list[Finding]:
     for wid, w in inp.waters.items():
         for i in w.get("item_ids") or ():
             own_water[i].append(wid)
+    tidal_items = {t.get("item") for t in (inp.tidal or {}).values() if t.get("limit") == "whole"}
     for lid, loc in sorted(inp.places.items()):
         w = inp.waters.get(loc.get("water_id") or "") or {}
         rec = set(w.get("item_ids") or ())
@@ -777,7 +778,7 @@ def check_F(inp: Inputs) -> list[Finding]:
                 if (inp.registry.get(river) or {}).get("kind") != "stream":
                     continue
                 for c in chans.get(river, ()):
-                    if c in held:
+                    if c in held or c in tidal_items:      # a channel tidal throughout is no DFO water (T632)
                         continue
                     it = inp.registry[c]
                     nodes = [n for n in it.get("section_ids") or () if n in inp.graph.nodes]
@@ -791,7 +792,8 @@ def check_F(inp: Inputs) -> list[Finding]:
                     tok = (it.get("name") or "").split(" ")[0].lower()
                     if tok and tok in wording(loc).lower():
                         extra.append("its name is in the wording")
-                    out.append(F_(inp, "F", "dropped_channel", lid, what=c,
+                    out.append(F_(inp, "F", "dropped_channel" if not note else "dropped_channel_window_unknown",
+                                  lid, what=c,
                                   found=f"drops {it.get('name')} ({c}, {len(nodes)} sections, {km:.2f} km) of {river}: "
                                         f"{why}" + "".join(f"; {x}" for x in extra) + (f"; {note}" if note else "")
                                         + _status(loc)))
@@ -847,6 +849,11 @@ def check_H(inp: Inputs) -> list[Finding]:
 
 # =============================================================================================== I
 
+def _short(text: str) -> str:
+    """Absolute paths cut to their file name, so a report does not depend on where the tree sits."""
+    return re.sub(r"(?:/[^\s/:]+)+/([^\s/:]+)", r"\1", text)
+
+
 def wait_category(row: Mapping) -> str:
     """What a not-landed row waits on, in a few words (I's grouping)."""
     why = str(row.get("why") or "")
@@ -862,7 +869,7 @@ def wait_category(row: Mapping) -> str:
     if "waits on new split" in why:
         return "a new cut not applied yet"
     if st == "refused":
-        head = why.split("—")[0].split(";")[0].strip()
+        head = _short(why).split("—")[0].split(";")[0].strip()
         return "refused: " + (head[:70] or "?")
     return f"{st}: {why.splitlines()[0][:70] if why else '?'}"
 
@@ -878,7 +885,7 @@ def check_I(inp: Inputs) -> list[Finding]:
             scope, target = (k.split("|") + ["", ""])[:2]
             place = target if scope == "dfo" else k
             out.append(F_(inp, "I", cat, place, what=str(r.get("id") or k),
-                          found=f"{r.get('status')} ({r.get('domain')}): {str(r.get('why') or '').splitlines()[0][:220]}"))
+                          found=f"{r.get('status')} ({r.get('domain')}): {_short(str(r.get('why') or '')).splitlines()[0][:220]}"))
     return out
 
 
@@ -1008,7 +1015,10 @@ def document(inp: Inputs, findings: list[Finding], prev: Optional[dict] = None) 
              "seaward end ('downstream of X', 'whole') lands on the boundary by construction (T632) and is not listed. "
              "New cuts not built yet cannot be measured: they are listed by their words only.",
         "F": "A channel = a registry item whose `ref_ids` carry the river's gnis; 'beside the place' = it meets the "
-             "river's line (graph edges, up to 4 pieces through other lines) inside the extent's cut window.",
+             "river's line (graph edges, up to 4 pieces through other lines) inside the extent's cut window. A channel "
+             "tidal throughout (a `whole` tidal row) is left out. `dropped_channel_window_unknown`: the window could "
+             "not be placed on one line (a cut not built, or cuts on two lines), so the channel was checked against the "
+             "whole river — read those with the map.",
         "I": "Rows are `apply.check` (imported, the same as `apply --check`), one per mark behind each row.",
     }
     for s, (title, plain) in SECTIONS.items():

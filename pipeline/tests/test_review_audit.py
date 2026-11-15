@@ -315,3 +315,18 @@ def test_the_command_end_to_end(tmp_path):
     (tmp_path / "marks.jsonl").write_text("not json\n")
     assert A.main([*args, "--out", str(tmp_path / "r3.md")]) == 2                     # cannot run: 2, nothing written
     assert not (tmp_path / "r3.md").exists()
+
+
+def test_F_a_tidal_channel_is_left_out_and_an_unplaced_window_says_so():
+    pos = {"a": ("100", 0.0, "a"), "b": ("100", 800.0, "b")}
+    p = place("1:river:a", extents=[{"op": "between", "splits": ["a", "b"], "item_id": "gnis:1"}])
+    tidal = {"200": {"id": None, "measure": None, "limit": "whole", "item": "blk:200", "tier": "whole", "name": ""}}
+    assert A.check_F(inputs([p], [water()], split_pos=pos, registry=_reg(), graph=_graph(), tidal=tidal)) == []
+    unbuilt = place("1:river:a", extents=[{"op": "between", "splits": ["a", "zz"], "item_id": "gnis:1"}])
+    got = A.check_F(inputs([unbuilt], [water()], split_pos=pos, registry=_reg(), graph=_graph()))
+    assert [f.kind for f in got] == ["dropped_channel_window_unknown"]
+
+
+def test_I_paths_are_cut_to_file_names():
+    row = {"status": "refused", "domain": "tidal", "marks": [], "why": "/x/y/curated/waters/tidal_limits.json: would drop 11"}
+    assert A.wait_category(row) == "refused: tidal_limits.json: would drop 11"
