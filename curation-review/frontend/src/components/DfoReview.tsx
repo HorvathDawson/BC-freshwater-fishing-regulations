@@ -12,8 +12,6 @@ import { MapPanel, type EditPoint } from "./MapPanel";
 import { ExtentFixEditor, loadOps } from "./ExtentFixEditor";
 import { effectHead, extentParts, fixParts, partsText, piecesParts, type Part } from "../extentWords";
 import { failed } from "../failures";
-import { coveredWords, groupSave, saveForAll, saveForAllWords } from "../checklist";
-import { OlderWordings } from "./OlderWordings";
 import { current as writeThrough, keyOf as wtKey, subscribe as onWriteThrough } from "../curatedSave";
 import {
   CONFIRMED_AS_IS, addPiece, dropPiece, effectOf, heldBy, incompletePieces, inlineAction, markBody, newCutsOf, offerProposal, oneProposal, previewOf,
@@ -273,9 +271,6 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
   const [reviewer, setName] = useState(getReviewer);
   const [splits, setSplits] = useState<NewSplit[]>([]);
   const [checks, setChecks] = useState<Record<string, AnchorCheck>>({});
-  // owner 2026-10-28: the historic group's members to label with this decision; 2026-11-09: every older wording starts
-  // UNTICKED ("we cant blindly assume variants"); a ticked one takes this save, and the new extent
-  const [same, setSame] = useState<Set<string>>(() => new Set());
   // THE DRAFT: the extent now, as pieces (T524: the place binds their union) — a change starts from it, never from an
   // empty editor or an old mark
   const [fixes, setFixes] = useState<ExtentFix[]>(now.pieces);
@@ -492,7 +487,6 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
                      approx: call === "change" ? approx : null, onApprox: setApproxGot });
   }, [fixPreview, cutPv, named, editPoints, pick, call, changes, approx, fixes]);  // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => () => embedded?.onMap(null), []);  // eslint-disable-line react-hooks/exhaustive-deps
-  const group = detail.group ? groupSave(id, detail.group.members, same, changes, false) : null;
   // r3 (owner 2026-11-09: "if you save extent you assume it is correct?"): the inline editor asks no T / R — a mark
   // needs both answered, so they go as y and the note says where the y came from
   const asked: Partial<Record<"T" | "R", CheckAnswer>> = embedded ? { T: "y", R: "y" } : answers;
@@ -504,13 +498,9 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
   const held = heldBy({ call: asKeep ? "keep" : call, answers: asked, problem, note, effect, cuts, cannotChange: asKeep ? [] : now.cannot_change,
                         extents: detail.location.binding.extents.length, incomplete });
 
-  // r6 (inline): one save for EVERY wording of the place, or for this wording only
-  const forAll = embedded && detail.group ? saveForAll(id, detail.group.members, changes) : null;
-  // T588: the button, the line under it and the confirmation name exactly the rows a save-for-all writes
-  const forAllWords = forAll ? saveForAllWords(detail.verbatim.specific_area,
-    forAll.covered.map((m) => ({ text: m.text, replaces: m.extent.extents.length > 0 && !m.same_extent })),
-    forAll.left.map(({ m, why }) => ({ text: m.text, why }))) : null;
-  async function submit(defer = false, all = false) {
+  // T742 (owner 2026-11-14: "remove the grouping option … one at a time is better"): a save writes ONE mark, on this
+  // wording only — there is no save for a group or for every wording any more
+  async function submit(defer = false) {
     setErrors([]);
     if (!defer && held) { setErrors([`Not saved yet — ${held}.`]); return; }
     if (defer && !note.trim()) { setShowNote(true); setErrors(["A defer needs a note: say what is unclear."]); return; }
@@ -529,9 +519,9 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
       const body = markBody({ target: id, call: asKeep && !defer ? "keep" : call ?? "unsure", answers: asked, problem,
                               note: embedded && !defer ? [note.trim(), asKeep ? CONFIRMED_AS_IS : "", IMPLIED].filter(Boolean).join(" · ") : note, reviewer: reviewer.trim(),
                               seconds: Math.round((Date.now() - since.current) / 100) / 10, fixes, carried, now,
-                              group: embedded ? (all && forAll ? forAll.group : null) : group, defer });
+                              defer });
       await api.postMark(body);
-      onMarked(all && forAll ? coveredWords(forAll.covered) : "");
+      onMarked("");
     } catch (e) {
       const fe = (e as EntryRefused).fieldErrors;
       setErrors([`Refused: ${fe ? fe.map((x) => x.msg).join("; ") : String(e)}`]);
@@ -687,11 +677,6 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
               {now.cannot_change.length > 0 && <div className="warn-text" data-testid="dfo-cannot-change" style={{ fontSize: 12 }}>
                 It cannot be changed here: {now.cannot_change.join("; ")}</div>}
             </div>
-            {detail.group && (
-              <OlderWordings members={detail.group.members} shownText={detail.verbatim.specific_area} same={same}
-                setSame={setSame} fix={changes} checklist={false} extentWords={(e) => extentText(e.extents)}
-                link={(m) => `#${DFO_HASH}${encodeURIComponent(m)}`} />
-            )}
             <details className="dfo-more">
               <summary>more about this place</summary>
               <div className="ext-row">
@@ -700,8 +685,7 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
               </div>
               {loc.binding.notes.length > 0 && <div className="ext-row"><span className="k">notes</span>{loc.binding.notes.join(" · ")}</div>}
               {(detail.places?.length ?? 0) > 0 ? (
-                <DfoPlaces places={detail.places!} href={(x) => `#${DFO_HASH}${encodeURIComponent(x)}`}
-                  onAttached={(msg) => setAccepted(msg)} />
+                <DfoPlaces places={detail.places!} href={(x) => `#${DFO_HASH}${encodeURIComponent(x)}`} />
               ) : detail.siblings.length > 0 && (
                 <ul className="named-splits">
                   {detail.siblings.map((s) => (
@@ -893,22 +877,11 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
               </div>
             )}
             {held && call && <div className="warn-text" role="alert" data-testid="dfo-held">Save held: {held}.</div>}
-            {forAll && changes && (forAll.covered.length > 0 || forAll.left.length > 0) && (
-              <div className="dim" data-testid="dfo-save-all-words" style={{ fontSize: 12 }}>
-                {forAllWords && forAll.covered.length > 0 && <>Saving for all writes {forAllWords.rows.length} rows: {forAllWords.rows.join("; ")}
-                  {" "}— and counts as your confirming these are the same place. </>}
-                {forAllWords && <span className="warn-text" data-testid="dfo-save-all-not">Not written: {forAllWords.not.join("; ")}.</span>}
-              </div>)}
             <div className="verdict-bar" style={{ position: "static", margin: 0 }}>
               <input placeholder="your name" value={reviewer} onChange={(e) => setName(e.target.value)} aria-label="reviewer" />
-              {forAll && forAll.covered.length > 0 && changes && (
-                <button className="btn primary dfo-replace" disabled={busy || !!held} data-testid="dfo-save-all"
-                  title="one mark per wording, each through the write-through; saving for all is your confirming they are the same place"
-                  onClick={() => { if (forAllWords && window.confirm(forAllWords.confirm)) void submit(false, true); }}>
-                  {forAllWords?.label}</button>)}
-              <button className={`btn ${forAll && forAll.covered.length > 0 && changes ? "small" : "primary"}${call === "change" && effect !== "keep" ? " dfo-replace" : ""}`}
+              <button className={`btn primary${call === "change" && effect !== "keep" ? " dfo-replace" : ""}`}
                 disabled={busy || !!held || inline?.kind === "none"} data-testid="dfo-save" onClick={() => void submit()}>
-                {inline && !busy ? (inline.kind === "save" && forAll && forAll.covered.length > 0 && changes ? "Save for this wording only" : inline.label)
+                {inline && !busy ? inline.label
                   : saveText}</button>
               {embedded && <button className="btn small" disabled={busy} onClick={onBack}>Discard my changes</button>}
               <button className="btn small" disabled={busy} data-testid="dfo-defer"

@@ -1567,17 +1567,12 @@ def post_mark(body: dict) -> dict:
         elif scope == "dfo":
             # T164: a DFO salmon location — its prints from `review.dfo`, each NEW split's anchor
             # checked and its resolved point stamped (`dfo.mark_for`); the same one commit below
+            # T742 (owner 2026-11-14): ONE PLACE PER MARK — a group save is refused at the route, never written here
             import dfo
-            if body.get("targets"):
-                # owner 2026-10-28: a historic group — one mark per member kept, linked by `group`
-                batch = dfo.marks_for_group(body, date=_dt.date.today().isoformat(),
-                                            pdf_sha256=_pdf_sha256())
-                mark, reused = batch[0], []
-                now = mark.prints
-            else:
-                body = {k: v for k, v in body.items() if k != "targets"}
-                mark, now, reused = dfo.mark_for(body, date=_dt.date.today().isoformat(),
-                                                 pdf_sha256=_pdf_sha256())
+            if body.get("targets") or body.get("members"):
+                raise ValueError("a DFO mark is saved on one place at a time: open each wording and mark it on its own")
+            mark, now, reused = dfo.mark_for({k: v for k, v in body.items() if k not in ("targets", "members")},
+                                             date=_dt.date.today().isoformat(), pdf_sha256=_pdf_sha256())
         elif scope == "tidal":
             # T212: a proposed tidal boundary — its prints from `review.tidal`, each new split
             # snapped to the stream and stamped (`tidal.mark_for`); the same one commit below
@@ -1608,8 +1603,6 @@ def post_mark(body: dict) -> dict:
     view = _mark_view(mark, now if scope in ("dfo", "tidal") else _prints(e))
     if reused:                       # T210: "already proposed — reused", said back to the screen
         view = {**view, "reused": reused}
-    if batch and scope == "dfo":     # owner 2026-10-28: a group's marks, how many
-        view = {**view, "n": len(marks), "group": mark.group}
     return view
 
 
