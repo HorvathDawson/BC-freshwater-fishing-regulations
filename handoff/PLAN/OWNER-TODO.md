@@ -130,7 +130,10 @@ with the default Claude uses until you answer). Newest first inside each section
   (12) Play's data-safety form says approximate location and the App Store answers say precise: should Play match?
 - **Apple Developer account: ENROLLED 2026-11-14, waiting for Apple's approval** (owner, verbatim: "okay i enrolled with
   apple developer I will tell you wne i get approved"). This answers decision 1 of `handoff/PLAN/ios/START-HERE-ios.md`
-  (account now). Not yet said: individual or organization. After approval, yours to do: save the Team ID in
+  (account now). ANSWERED 2026-11-14 evening, verbatim: "it is a individual evelper account" (so the App Store shows
+  your own legal name as the seller). Same message: "i cant find team id how do i make one?": it is not made, Apple
+  assigns it once the enrolment is approved and paid; it then shows under developer.apple.com → Account → Membership
+  details. After approval, yours to do: save the Team ID in
   `~/.canifishthis/ios-team-id`; create the app record (bundle id `ca.canifishthis.app`, name "Can I Fish This?", English
   (Canada)); make an App Store Connect API key (App Manager) and save `~/.canifishthis/asc-api-key.json`. TestFlight
   (T88) stays yours to start.

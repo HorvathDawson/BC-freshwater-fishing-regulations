@@ -92,7 +92,9 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
   a shared link. IOS-11 (TestFlight) and T602 were not to be started.
 
 **Questions for you (default first; all are also on the Owner To-Do page)**
-1. Apple account: individual or organization? After approval: save the Team ID, create the app record, make the API key.
+1. Apple account: ANSWERED, individual ("it is a individual evelper account"); the App Store will show your legal name
+   as the seller. The Team ID appears only once Apple approves the enrolment; then save it, create the app record, make
+   the API key.
 2. Oldest iPhone: keep iOS 16.4 and iPhone only / go lower / add iPad.
 3. App Store privacy: the report email "linked to the user": yes / no.
 4. Category: Navigation then Sports (my pick) / other.
