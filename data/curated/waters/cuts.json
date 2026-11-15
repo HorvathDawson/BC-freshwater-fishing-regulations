@@ -642,6 +642,26 @@
       -123.835989,
       48.757157
      ]
+    },
+    {
+     "id": "cowichan_river__skutz_falls",
+     "label": "Skutz Falls",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -123.955626,
+       48.783139
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 1:cowichan-river:from-cnr-trestle-at-mile-70-2-to-s",
+     "_coord": [
+      -123.955626,
+      48.783139
+     ]
     }
    ]
   },
@@ -4446,6 +4466,82 @@
      "applies_to": {
       "wsc": "100"
      }
+    },
+    {
+     "id": "fraser_river__highway_1_bridge_at_hope_bill_hartley_fraser_hope",
+     "label": "Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope)",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -121.452186,
+       49.386489
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 2:fraser-river:from-the-downstream-side-of-the-cp, 2:fraser-river:from-the-highway-1-bridge-at-hope, 2:fraser-river:mainstem-waters-downstream-of-the, 2:fraser-river:mainstem-waters-from-the-downstrea, 2:fraser-river:upstream-from-the-highway-1-bridge",
+     "_coord": [
+      -121.452186,
+      49.386489
+     ]
+    },
+    {
+     "id": "fraser_river__alexandra_bridge_hwy_1",
+     "label": "Alexandra Bridge (Hwy 1)",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -121.409692,
+       49.701209
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 2:fraser-river:from-the-downstream-side-of-the-cp~2, 2:fraser-river:from-the-highway-1-bridge-at-hope",
+     "_coord": [
+      -121.409692,
+      49.701209
+     ]
+    },
+    {
+     "id": "fraser_river__seton_river",
+     "label": "Seton River confluence",
+     "kind": "confluence",
+     "anchor": {
+      "type": "confluence",
+      "tributary_wsc": "100-233886",
+      "_name": "Seton River"
+     },
+     "note": "",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 3:fraser-river:in-that-portion-of-the-fraser-rive — \"In that portion of the Fraser River from the confluence with the Seton River\"",
+     "_coord": [
+      -121.926856,
+      50.681805
+     ]
+    },
+    {
+     "id": "fraser_river__signs_4_km_below_lillooet",
+     "label": "signs ~4 km below Lillooet",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -121.904312,
+       50.655955
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 3:fraser-river:in-that-portion-of-the-fraser-rive",
+     "_coord": [
+      -121.904312,
+      50.655955
+     ]
     }
    ]
   },
@@ -7206,6 +7302,44 @@
      "applies_to": {
       "wsc": "100-458399"
      }
+    },
+    {
+     "id": "quesnel_river__johnson_subdivision_bridge",
+     "label": "Johnson Subdivision Bridge",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -122.489466,
+       52.973025
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 5a:quesnel-river:between-the-johnson-subdivision-br, 5a:quesnel-river:that-portion-of-the-quesnel-river — \"the Johnson Subdivision Bridge (52°58.373'N; 122°29.349'W)\"",
+     "_coord": [
+      -122.489466,
+      52.973025
+     ]
+    },
+    {
+     "id": "quesnel_river__powerlines",
+     "label": "powerlines",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -122.496669,
+       52.996503
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 5a:quesnel-river:between-the-johnson-subdivision-br, 5a:quesnel-river:that-portion-of-the-quesnel-river — \"powerlines (52°59.788'N; 122°29.826'W ) located just upstream of Highway 97 Bridge near Quesnel, British Columbia (BC)\"",
+     "_coord": [
+      -122.496669,
+      52.996503
+     ]
     }
    ]
   },
@@ -7687,6 +7821,46 @@
      "applies_to": {
       "wsc": "400-195432"
      }
+    },
+    {
+     "id": "kitsumkalum__signs_below_the_kitsumkalum_lower_canyon",
+     "label": "signs below the Kitsumkalum lower canyon",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -128.678234,
+       54.604005
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 6:kitsumkalum-river:downstream-of-fishing-boundary-sig, 6:kitsumkalum-river:upstream-of-fishing-boundary-signs",
+     "_coord": [
+      -128.678234,
+      54.604005
+     ]
+    },
+    {
+     "id": "kitsumkalum__cn_railway_bridge_over_the_kitsumkalum",
+     "label": "CN railway bridge over the Kitsumkalum",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -128.661401,
+       54.520277
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 6:kitsumkalum-river:downstream-of-railway-bridge",
+     "_coord": [
+      -128.661401,
+      54.520277
+     ]
     }
    ]
   },
@@ -8051,6 +8225,26 @@
       -129.951193,
       54.979542
      ]
+    },
+    {
+     "id": "nass_river__canyon_city_gitwinksihlkw_bridge",
+     "label": "Canyon City (Gitwinksihlkw) bridge",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -129.210037,
+       55.195211
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 6:nass-river:portions-from-the-canyon-city-brid",
+     "_coord": [
+      -129.210037,
+      55.195211
+     ]
     }
    ]
   },
@@ -8077,6 +8271,27 @@
      "_coord": [
       -125.45955,
       54.44574
+     ]
+    },
+    {
+     "id": "pinkut_creek__signs_25_m_below_the_pinkut_fish_fence_d25m",
+     "label": "signs 25 m below the Pinkut fish fence",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -125.45955,
+       54.44574
+      ],
+      "is_lonlat": true,
+      "offset_m": 25.0,
+      "offset_dir": "downstream"
+     },
+     "note": "",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 6:pinkut-creek:downstream-of-fishing-boundary-sig",
+     "_coord": [
+      -125.459485,
+      54.445762
      ]
     }
    ]
@@ -8563,6 +8778,26 @@
      "applies_to": {
       "wsc": "400-221484"
      }
+    },
+    {
+     "id": "zymoetz__hwy_16_bridge_over_the_zymoetz_copper",
+     "label": "Hwy 16 bridge over the Zymoetz (Copper)",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -128.476985,
+       54.542222
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 6:zymoetz-river:note-section-of-river-from-highway, 6:zymoetz-river:upstream-of-highway-16-bridge",
+     "_coord": [
+      -128.476985,
+      54.542222
+     ]
     }
    ]
   },
@@ -10850,6 +11085,305 @@
      "_coord": [
       -122.193194,
       49.16313
+     ]
+    }
+   ]
+  },
+  {
+   "name": "SOUTH THOMPSON RIVER",
+   "applies_to": {
+    "gnis_id": "8675"
+   },
+   "splits": [
+    {
+     "id": "south_thompson_river__campbell_creek_d100m",
+     "label": "Campbell Creek confluence",
+     "kind": "confluence",
+     "anchor": {
+      "type": "confluence",
+      "tributary_wsc": "100-190442-999098-290548",
+      "_name": "Campbell Creek",
+      "offset_m": 100.0,
+      "offset_dir": "downstream"
+     },
+     "note": "",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 3:south-thompson-river:from-the-green-can-buoy-near-outle — \"the fishing white triangle fishing boundary approximately 100 m downstream of Campbell Creek\"",
+     "_coord": [
+      -120.078674,
+      50.660036
+     ]
+    }
+   ]
+  },
+  {
+   "name": "ATNARKO RIVER",
+   "applies_to": {
+    "gnis_id": "17209"
+   },
+   "splits": [
+    {
+     "id": "atnarko_river__signs_near_tweedsmuir_park_lodge_stuie",
+     "label": "signs near Tweedsmuir Park Lodge (Stuie)",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -126.073265,
+       52.370657
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 5b:atnarko-river:downstream-of-the-fishing-boundary",
+     "_coord": [
+      -126.073265,
+      52.370657
+     ]
+    }
+   ]
+  },
+  {
+   "name": "ZYMAGOTITZ RIVER",
+   "applies_to": {
+    "gnis_id": "3812"
+   },
+   "splits": [
+    {
+     "id": "zymagotitz_river__hwy_16_bridge_over_the_zymagotitz",
+     "label": "Hwy 16 bridge over the Zymagotitz",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -128.732915,
+       54.487079
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 6:zymagotitz-river:upstream-of-highway-16-bridge",
+     "_coord": [
+      -128.732915,
+      54.487079
+     ]
+    }
+   ]
+  },
+  {
+   "name": "KHYEX RIVER",
+   "applies_to": {
+    "gnis_id": "4076"
+   },
+   "splits": [
+    {
+     "id": "khyex_river__hwy_16_bridge_over_the_khyex",
+     "label": "Hwy 16 bridge over the Khyex",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -129.804703,
+       54.232242
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 6:khyex-river:upstream-of-highway-16-bridge",
+     "_coord": [
+      -129.804703,
+      54.232242
+     ]
+    }
+   ]
+  },
+  {
+   "name": "SHEGUNIA RIVER",
+   "applies_to": {
+    "gnis_id": "22777"
+   },
+   "splits": [
+    {
+     "id": "shegunia_river__signs_above_the_shegunia_logging_road_bridge_u50m",
+     "label": "signs above the Shegunia logging road bridge",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -127.6321,
+       55.347395
+      ],
+      "is_lonlat": true,
+      "offset_m": 50.0,
+      "offset_dir": "upstream"
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 6:shegunia-river:between-fishing-boundary-signs-loc",
+     "_coord": [
+      -127.6321,
+      55.347395
+     ]
+    },
+    {
+     "id": "shegunia_river__signs_below_the_shegunia_logging_road_bridge_d50m",
+     "label": "signs below the Shegunia logging road bridge",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -127.6321,
+       55.347395
+      ],
+      "is_lonlat": true,
+      "offset_m": 50.0,
+      "offset_dir": "downstream"
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 6:shegunia-river:between-fishing-boundary-signs-loc",
+     "_coord": [
+      -127.6321,
+      55.347395
+     ]
+    }
+   ]
+  },
+  {
+   "name": "ECSTALL RIVER",
+   "applies_to": {
+    "gnis_id": "3986"
+   },
+   "splits": [
+    {
+     "id": "ecstall_river__johnston_creek",
+     "label": "Johnston Creek confluence",
+     "kind": "confluence",
+     "anchor": {
+      "type": "confluence",
+      "tributary_wsc": "400-014636-509207",
+      "_name": "Johnston Creek"
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 6:ecstall-river:upstream-of-fishing-boundary-signs — \"upstream of fishing boundary signs near confluence with Johnston Creek\"",
+     "_coord": [
+      -129.491288,
+      53.857346
+     ]
+    }
+   ]
+  },
+  {
+   "name": "EXCHAMSIKS RIVER",
+   "applies_to": {
+    "gnis_id": "3499"
+   },
+   "splits": [
+    {
+     "id": "exchamsiks_river__hwy_16_bridge_over_the_exchamsiks",
+     "label": "Hwy 16 bridge over the Exchamsiks",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -129.29687,
+       54.332696
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 6:exchamsiks-river:upstream-of-highway-16-bridge",
+     "_coord": [
+      -129.29687,
+      54.332696
+     ]
+    }
+   ]
+  },
+  {
+   "name": "EXSTEW RIVER",
+   "applies_to": {
+    "gnis_id": "3498"
+   },
+   "splits": [
+    {
+     "id": "exstew_river__hwy_16_bridge_over_the_exstew",
+     "label": "Hwy 16 bridge over the Exstew",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -129.056405,
+       54.400377
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 6:exstew-river:upstream-of-highway-16-bridge",
+     "_coord": [
+      -129.056405,
+      54.400377
+     ]
+    }
+   ]
+  },
+  {
+   "name": "KISPIOX RIVER",
+   "applies_to": {
+    "gnis_id": "2308"
+   },
+   "splits": [
+    {
+     "id": "kispiox_river__signs_near_kispiox_river_resort",
+     "label": "signs near Kispiox River Resort",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -127.716805,
+       55.434224
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 6:kispiox-river:downstream-of-fishing-boundary-sig",
+     "_coord": [
+      -127.716805,
+      55.434224
+     ]
+    }
+   ]
+  },
+  {
+   "name": "LAKELSE RIVER",
+   "applies_to": {
+    "gnis_id": "4903"
+   },
+   "splits": [
+    {
+     "id": "lakelse_river__whitebottom_rd_bridge_lakelse_near_the_mouth",
+     "label": "Whitebottom Rd bridge (Lakelse, near the mouth)",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -128.762699,
+       54.444371
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 6:lakelse-river:above-logging-road-bridge-near-the, 6:lakelse-river:below-logging-road-bridge-near-the",
+     "_coord": [
+      -128.762699,
+      54.444371
      ]
     }
    ]
