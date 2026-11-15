@@ -18,7 +18,7 @@ after the first upload (0.7.10 build 33, staging data). Only the owner submits t
 | Privacy Policy URL | https://canifishthis.ca/privacy | `listing.md` |
 | Contact (first name, last name, phone, email) | the owner's | owner |
 | Sign-in required | No (the app has no accounts) | `review-notes.md` |
-| Review notes | the first three paragraphs of `review-notes.md` (no sign-in; the first open downloads about 480 MB, Wi-Fi advised; the data is a test copy of the BC regulations) | `review-notes.md` |
+| Review notes | take them from `review-notes.md` (no sign-in; the first open downloads about 480 MB, Wi-Fi advised) | `review-notes.md` |
 
 ## "What to Test" (per build, shown to testers)
 PROPOSAL: "First iPhone test build. Please try: opening the app and waiting for the first download (about 480 MB,
