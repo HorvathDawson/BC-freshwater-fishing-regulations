@@ -60,9 +60,12 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
   (227 KB with 3 photos; 20.4 MB with 29); after a wipe and restore the spots and photos are back and the app downloads
   the map data again by itself. The Spots tab says what the backup holds. A phone-to-phone transfer carries the photos at
   full size. Not shown on the device: photos left out when they do not fit (all 29 fit; unit-tested only).
-- The iOS look at today's five shared fixes (T717, T728 to T731): **no verdict yet.** The first run (16:50) failed in
-  every step on a test-bed fault (an Apple Maps location prompt covered the screen), and the build with the fixes was
-  never made for that lane. Rebuilding and re-running from 20:45.
+- The iOS look at today's five shared fixes (**done 22:40**, build 081d93f90, simulator, light and dark; write-up in
+  T723): the credits card (T729), search (T730) and Back from a page (T717) pass. The step bar (T731) passes for a
+  step within one water; the step into the next water was not reached. Flow / Level (T728) is **not verified**: the
+  test bed did not reach a water with a gauge chart. Found: on a water's page the app used 306 to 331 MB against 213 to
+  230 MB on the baseline build (the map is now kept alive under the page); not yet measured like for like, being
+  re-measured. On iPhone, changing tab with the credits card open takes two taps (the first closes the card).
 - `ios/integration` (head 3212f4936, app CI green, not merged): the four iOS branches (install, keyboard and back,
   audit fixes, tap cue) merged together. The whole app test suite passes (7,707 tests) and the feeds worker's (447).
   Six tests went red after the merge and were fixed at the cause (lists that name every scenario and every reported
