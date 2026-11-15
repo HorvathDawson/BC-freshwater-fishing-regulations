@@ -4,9 +4,8 @@ Asked by you: "record everything i need to do for when i am back what i need to 
 etc etc. what needs testings etc etc". This page is kept current by the main chat until you return. The same items are
 rows on the To-Do page; reports named here are in `handoff/PLAN/curation-review/`.
 
-Status line (updated 12:50): fixes landed and pushed; cut clean-up and the tributaries-only saves are running; the map
-rebuild has NOT started (it waits for the cut clean-up and for the other chat's phone checks); the Android build is on
-hold.
+Status line (updated 13:40): fixes landed; cut clean-up and tributaries-only saves done; the side map rebuild is
+running; the Android build is on hold (the internet line here is too slow for one of its checks today).
 
 ## 1. First thing to do
 1. Restart the review app once (Ctrl-C, then `bash curation-review/run.sh`). It has new code: tributaries only /
@@ -95,9 +94,17 @@ mouth/tidal 10, group-saved 8, wrong/unsure with older extent 4, re-saved leftov
 after the clean-up and the rebuild; the final list replaces these numbers here.
 
 ## 6. Still running / not done (the main chat fills this in)
-- Cut clean-up: duplicates matched, confluence ends, Hells Gate search, bad cuts. RUNNING.
+- Cut clean-up: DONE (report `cut-cleanup-2026-11-15.md`, with 23 questions for you in plain words). Of 59 new cuts
+  your marks asked for: 22 reuse a cut that already existed, 17 mark entries merge into 7 cuts, 23 are new, 3 on a
+  line's end were dropped by re-saving. Six marks saved for you (lines 2734-2739): Illiance and Wilauks now end at the
+  tidal boundary with no new cut; Gitnadoix's unused point dropped; Morice 2592 uses the Bulkley confluence cut; Morice
+  2591 kept as you saved it (the Gosnell confluence cut would add the whole Thautil basin: a question). Pallant's tidal
+  boundary is the bridge.
+- Hells Gate on the Skeena: no cut was ever named that; the place is the existing cut 1.5 km above the Kitsumkalum
+  confluence. Your two Skeena examples have no Lakelse or Babine confluence cut on the main line; both places are
+  retired and unmarked: questions in the report ask whether to make those cuts.
 - Tributaries-only saves. DONE (lines 2730-2733); they land in the place files with the clean-up's apply step.
-- Side map rebuild with the cleaned cuts, and its checks. NOT STARTED.
+- Side map rebuild with the cleaned cuts, and its checks. RUNNING (side copy only; nothing replaced).
 - Build step that carries accepted closed areas (Thompson, Shuswap) into the app. NOT WRITTEN; needed before release.
 - App fix: BC border as a pickable point; reason shown when a place cannot be edited. NOT DONE.
 - Review app speed after a save (rebuild only the saved place). NOT DONE.
