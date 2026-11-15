@@ -1,6 +1,6 @@
 # T757 — Feeds worker and app: closed areas inside a DFO place (T573's pieces) are live locations, never read as open
 
-Status: OPEN (iOS chat; waits for the Android chat's spec `T573-files/worker-handoff.md`, which lands with branch `data/t573-closed-area-build`).
+Status: IN PROGRESS (iOS chat; started 2026-11-15 14:44 on the spec `T573-files/worker-handoff.md`; branches `feeds/t757-worker-pieces` and `app/t757-piece-not-known`, nothing merged).
 
 Source: Android chat 2026-11-15 (its pipeline lane's T573 build step), agreed between the two chats the same day.
 

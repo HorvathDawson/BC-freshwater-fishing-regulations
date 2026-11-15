@@ -45,6 +45,16 @@ would show such a closed area as open. Nothing binds today. I take it as T757 wh
 (`handoff/PLAN/app-integration/tickets/T573-files/worker-handoff.md`); I asked for a mechanical guard (the release
 refuses when the worker does not report the new feed shape) and for the app to say "not known" instead of "open".
 
+**Added 14:44.** (1) The internet line is still down (30–46 bytes a second on every probe from 13:04 to 14:39), so
+the sixth R8 check cannot be re-run. The Android chat now plans the R8 Play build (build 33) for TOMORROW. It is
+landing its desktop split (T752) on the shared branch first, so I re-run all six checks on that new head, not on
+164c928c2. Final word to it at 17:00 as promised; if the line recovers before then I still re-run the sixth check today.
+(2) T757 started: the spec landed with the Android chat's push (b58aa325a … 554558a12). Two lanes on branches, nothing
+merged: `feeds/t757-worker-pieces` (the worker emits the pieces and says `"dfo": {"pieces": 1}` in `/status.json`,
+tested against the Android chat's oracle file) and `app/t757-piece-not-known` (a bound piece missing from the feed
+reads "not known, check the DFO notice" and is reported, never open). No staging worker deploy without the Android
+chat's word. Its release step already refuses an upload that binds a piece when the worker does not say it emits them.
+
 ## Morning summary, 2026-11-15 (written 07:32; the night's work in one place)
 
 **For you to do, in this order**
