@@ -155,12 +155,12 @@ export function openDataModeStore(): { read(): string | null; write(text: string
 }
 
 /**
- * (T741) The background check's last `obs.json` and its ETag (`@app/data` `fetchObs`'s `held`): in the CACHE directory,
+ * (T741) The background check's last copy of a file it reads (`obs.json`, the release manifest, the version file) and its ETag (`fetchObs`'s `held`, `conditionalJson`): in the CACHE directory,
  * not with the spots — a copy the origin can always send again, so not backed up, and the OS emptying it costs one whole
  * read. Atomic like `fileStore`; a failed read is reported and answers null (a whole read follows).
  */
-export function openObsHeldStore(): { read(): string | null; write(text: string): void } {
-  const name = "obs-held.json";
+export function openHeldCopyStore(what: "obs" | "manifest" | "version"): { read(): string | null; write(text: string): void } {
+  const name = `${what}-held.json`;
   const file = () => new File(Paths.cache, name);
   return {
     read: () => {
