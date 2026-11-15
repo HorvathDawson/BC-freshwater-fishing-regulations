@@ -4358,8 +4358,7 @@
       "binding": {
         "extents": [
           {
-            "op": "whole",
-            "item_id": "gnis:10886"
+            "op": "other_places"
           }
         ],
         "tributaries": null,
