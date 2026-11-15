@@ -1,23 +1,26 @@
 // (T756) WHAT THE FIRST-INSTALL BENCH READS FROM THE SYSTEM'S DOWNLOADER, as plain functions so they are tested without
 // a device (node --test app/tools/testbed/lib/download-watch.test.mjs).
 //
-//   cancelledByApp(lines)   the RUNNING jobs the app itself stopped ("onStopJob id=N, reason=cancel() called by app").
-//                           In "Wait for Wi-Fi, then reopened on Wi-Fi" there must be none: a stopped job's bytes are
-//                           deleted and the file starts again from zero. A finished file's row being deleted ("Deleting
-//                           … via provider delete" with no onStopJob) is the app tidying up, not a cancel.
+//   thrownAway(jsLines)    the downloads the APP queued again from zero while they had bytes down: its own line
+//                           "[download] <url>: queued again from zero (was <status>, N of M bytes): <why>"
+//                           (`bgDownload.ts` `queue`). In "Wait for Wi-Fi, then reopened on Wi-Fi" there must be none.
+//                           NOT read from the system downloader's log: its "onStopJob … cancel() called by app" is
+//                           the downloader's own call (its uid) and also follows every "WAITING_TO_RETRY … rescheduling",
+//                           so it fires on any network retry (seen 2026-11-15, T760).
 //   diskBytes(ls)           the bytes the downloader has on disk for us (`ls -l` of its folder).
 //   stallWatch(stallMs)     see(value, now) → ms since `value` last changed; `stalled` once that passes stallMs. The
 //                           step waits for as long as bytes move, and fails on a stall, whatever the line's speed.
 
-const CANCEL = /DownloadManager: onStopJob id=(\d+), reason=cancel\(\) called by app/;
+const AGAIN = /\[download\] (\S+): queued again from zero \(was (\w+), (\d+) of (\d+) bytes\): (.*)$/;
 
-export function cancelledByApp(lines) {
-  const seen = new Map();
-  for (const l of lines) {
-    const m = CANCEL.exec(l);
-    if (m && !seen.has(m[1])) seen.set(m[1], l.trim());
+export function thrownAway(jsLines) {
+  const out = [];
+  for (const l of jsLines) {
+    const m = AGAIN.exec(l);
+    // a FAILED job (or a finished one whose file is gone) cannot be resumed: queueing it again loses nothing the app could keep
+    if (m && Number(m[3]) > 0 && m[2] !== 'failed' && m[2] !== 'done') out.push({ url: m[1], was: m[2], bytes: Number(m[3]), total: Number(m[4]), why: m[5].trim() });
   }
-  return [...seen].map(([id, line]) => ({ id: Number(id), line }));
+  return out;
 }
 
 export function diskBytes(ls) {

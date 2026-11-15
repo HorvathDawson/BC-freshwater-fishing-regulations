@@ -75,11 +75,13 @@ const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
 /**
  * (T756) Does a job queued under one mobile-data rule serve the rule now asked? The same rule does. So does a Wi-Fi-only
- * job that is running when mobile data is allowed (it is downloading on an unmetered network). A job that allows
- * mobile data never serves "Wi-Fi only", and a Wi-Fi-only job that is not moving does not serve "use mobile data".
+ * job that is running when mobile data is allowed (it is downloading on an unmetered network), or that already has
+ * bytes (a pause between tries must not throw them away: `fill` queues it again only if it stays paused, T756). A job
+ * that allows mobile data never serves "Wi-Fi only", and a Wi-Fi-only job with nothing down yet does not serve "use
+ * mobile data" (nothing is lost by queueing it again).
  */
 const serves = (job: BgJob, allowMetered: boolean) =>
-  job.metered === allowMetered || (allowMetered && !job.metered && job.status === "running");
+  job.metered === allowMetered || (allowMetered && !job.metered && (job.status === "running" || job.bytes > 0));
 
 export interface Background {
   /** Enqueue every big file not yet in place; `metered`: may they use mobile data (false: they wait for Wi-Fi). */
@@ -112,7 +114,14 @@ export function background(bg: BackgroundNative, fs: PartFs & { uri(path: string
         if (await fs.size(it.path) === it.bytes) continue;                        // in place (verified by the install)
         if (!job && await fs.size(`${it.path}.part`) > 0) continue;               // an older app's .part: resumed as before
         if (job && job.status !== "failed" && !stale(job) && serves(job, allowMetered)) continue;
-        if (job) await bg.remove(job.id);
+        if (job) {
+          // (T756 / T760, W46) never a silent restart: what is thrown away, and why (the bench reads this line)
+          const why = job.status === "failed" ? `it failed (reason ${job.reason})`
+            : stale(job) ? "it finished, but its file is gone (the app's data was cleared)"
+            : `it was queued ${job.metered ? "to use mobile data" : "for Wi-Fi only"} and ${allowMetered ? "mobile data is now allowed" : "Wi-Fi only is now asked"}`;
+          console.info(`[download] ${it.url}: queued again from zero (was ${job.status}, ${Math.max(0, job.bytes)} of ${it.bytes} bytes): ${why}`);
+          await bg.remove(job.id);
+        }
         await enqueue(it.url, it.bytes);
       }
     },

@@ -1,38 +1,29 @@
 // (T756) node --test app/tools/testbed/lib/download-watch.test.mjs
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { cancelledByApp, diskBytes, stallWatch } from './download-watch.mjs';
+import { diskBytes, stallWatch, thrownAway } from './download-watch.mjs';
 
-// the downloader's own lines from the run that showed the defect (emulator, 2026-11-15; the app reopened on Wi-Fi after
-// "Wait for Wi-Fi": jobs 441 and 443 were stopped by the app, their partial files deleted, 445 and 446 began from zero)
-const CAPTURED = `
-         1794769084.901  1621  1621 D DownloadManager: onStopJob id=441, reason=cancel() called by app, callingUid=10094 uid=10094 jobId=441
-         1794769084.902  1621  4001 V DownloadManager: Deleting /storage/emulated/0/Android/data/ca.canifishthis.app/files/bg-download/atlas-b9de120e9ee60b6b.6441dc020a6d.pmtiles-197196706 via provider delete
-         1794769084.937  1621  1621 D DownloadManager: onStopJob id=443, reason=cancel() called by app, callingUid=10094 uid=10094 jobId=443
-         1794769084.937  1621  6311 D DownloadManager: [445] Starting
-         1794769085.024  1621  5406 D DownloadManager: [441] Finished with status WAITING_TO_RETRY
-         1794769207.813  1621  1633 V DownloadManager: Deleting /storage/emulated/0/Android/data/ca.canifishthis.app/files/bg-download/bc_outside.geojson-62563 via provider delete
-         1794769770.428  1621  6316 D DownloadManager: [446] Finished with status SUCCESS
-`.split('\n');
+const U = 'https://data-staging.canifishthis.ca/release/basemap/basemap-6960ed933a82/basemap-6960ed933a82.pmtiles';
+const js = (t) => `11-15 14:48:19.490 26400 26422 I ReactNativeJS: ${t}`;
 
-test('the captured restart reads as two jobs cancelled by the app', () => {
-  const c = cancelledByApp(CAPTURED);
-  assert.deepEqual(c.map((x) => x.id), [441, 443]);
-  assert.match(c[0].line, /^1794769084\.901 .* onStopJob id=441, reason=cancel\(\) called by app/);
-});
-
-test('a job the SYSTEM stopped, a finished job and a tidied-up file are not cancels', () => {
+test('the app\'s own "queued again from zero" line with bytes down is a download thrown away', () => {
   const lines = [
-    '11-15 11:58:04.901  1621  1621 D DownloadManager: onStopJob id=7, reason=constraints not satisfied, callingUid=1000 uid=10094 jobId=7',
-    '11-15 11:58:05.024  1621  5406 D DownloadManager: [7] Finished with status WAITING_FOR_NETWORK',
-    '11-15 12:00:07.813  1621  1633 V DownloadManager: Deleting /storage/emulated/0/Android/data/ca.canifishthis.app/files/bg-download/bc_outside.geojson-62563 via provider delete',
-    '11-15 12:09:30.428  1621  6316 D DownloadManager: [8] Finished with status SUCCESS',
+    js(`[download] mobile data: go (479277504 bytes)`),
+    js(`[download] ${U}: queued again from zero (was running, 17413559 of 225356297 bytes): it was queued for Wi-Fi only and mobile data is now allowed`),
+    js(`[download] ${U}: paused (reason 1), 17413559 of 225356297 bytes`),
   ];
-  assert.deepEqual(cancelledByApp(lines), []);
+  assert.deepEqual(thrownAway(lines), [{ url: U, was: 'running', bytes: 17413559, total: 225356297, why: 'it was queued for Wi-Fi only and mobile data is now allowed' }]);
 });
 
-test('the same cancel read twice (the log is read again and again) counts once', () => {
-  assert.equal(cancelledByApp([...CAPTURED, ...CAPTURED]).length, 2);
+test('queued again with nothing down, a failed-job retry line and the system downloader\'s own cancel are not', () => {
+  const lines = [
+    js(`[download] ${U}: queued again from zero (was pending, 0 of 225356297 bytes): it was queued for Wi-Fi only and mobile data is now allowed`),
+    js(`[download] ${U}: the download failed (reason 1008); queued again (1)`),
+    js(`[download] ${U}: queued again from zero (was failed, 17413559 of 225356297 bytes): it failed (reason 1008)`),
+    // the downloader's own line after a retry (its uid, not ours): never read as the app stopping a job
+    '11-15 14:18:25.779  1926  1926 D DownloadManager: onStopJob id=454, reason=cancel() called by app, callingUid=10094 uid=10094 jobId=454',
+  ];
+  assert.deepEqual(thrownAway(lines), []);
 });
 
 test('the bytes on disk are the files\' sizes, not the header or a folder', () => {

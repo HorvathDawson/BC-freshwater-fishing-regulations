@@ -120,13 +120,31 @@ describe("background (T298): the system's downloader carries the big files", () 
     expect(log.map((l) => l.split(" ")[0])).toEqual(["enqueue", "claim"]);       // the one job, claimed
   });
 
-  it("(T756) the other way is still queued again: jobs that may use mobile data, then Wi-Fi only asked", async () => {
+  it("(T756) the other way is still queued again, and the log says what was thrown away: jobs that may use mobile data, then Wi-Fi only asked", async () => {
     const fs = memFs(), { dm, log } = fakeDm(fs, { [URL]: BODY });
     await background(dm, fs, never).queue([{ url: URL, file: "basemap", bytes: BODY.length, path: "b" }], true);
+    const said: string[] = [];
+    vi.spyOn(console, "info").mockImplementation((m: string) => { said.push(m); });
     // the second queue's own poll finds it running, on whatever network
     await background(dm, fs, never).queue([{ url: URL, file: "basemap", bytes: BODY.length, path: "b" }], false);
     expect(log.map((l) => l.split(" ").slice(0, 3).join(" "))).toEqual(
       [`enqueue ${URL} metered`, "remove 1", `enqueue ${URL} wifi`]);
+    expect(said).toEqual([`[download] ${URL}: queued again from zero (was running, ${BODY.length >> 1} of ${BODY.length} bytes): it was queued to use mobile data and Wi-Fi only is now asked`]);
+  });
+
+  it("(T756) a Wi-Fi-only job PAUSED with bytes down is kept when mobile data is allowed; one with nothing down is queued again", async () => {
+    const one = async (bytes: number) => {
+      let still = false;
+      const fs = memFs(), { dm, log, jobs } = fakeDm(fs, { [URL]: BODY }, { still: () => still });
+      await background(dm, fs, never).queue([{ url: URL, file: "basemap", bytes: BODY.length, path: "b" }], false);
+      still = true;                                                // the job as the reopened app finds it: between tries
+      for (const j of jobs.values()) { j.status = "paused"; j.bytes = bytes; }
+      vi.spyOn(console, "info").mockImplementation(() => {});
+      await background(dm, fs, never).queue([{ url: URL, file: "basemap", bytes: BODY.length, path: "b" }], true);
+      return log.map((l) => l.split(" ").slice(0, 3).join(" "));
+    };
+    expect(await one(BODY.length >> 1)).toEqual([`enqueue ${URL} wifi`]);
+    expect(await one(0)).toEqual([`enqueue ${URL} wifi`, "remove 1", `enqueue ${URL} metered`]);
   });
 
   it("(T756) a kept Wi-Fi-only job that then waits while mobile data is allowed is queued again, and the log says so", async () => {

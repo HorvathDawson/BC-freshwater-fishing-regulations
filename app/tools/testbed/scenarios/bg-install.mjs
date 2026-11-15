@@ -6,7 +6,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { appUp } from './common.mjs';
-import { cancelledByApp, diskBytes, stallWatch } from '../lib/download-watch.mjs';
+import { diskBytes, stallWatch, thrownAway } from '../lib/download-watch.mjs';
 
 const SAYING = /…$|… of data$/;
 
@@ -133,11 +133,12 @@ export const bgInstall = {
       // goes on (a slow line is not a failure); no movement for STALL is, and it is said in the app's words
       const STALL = 4 * 60_000, CAP = 45 * 60_000;
       const watch = stallWatch(STALL);
-      const dmLines = new Set();
-      // read again and again: on a long run the first lines roll out of the log before the end
-      const readDm = () => { try { for (const l of d.adb(['logcat', '-d', '-s', 'DownloadManager:*']).toString().split('\n')) if (/DownloadManager:/.test(l)) dmLines.add(l.trim()); } catch { /* no log this time */ } };
-      const cancels = () => cancelledByApp([...dmLines]);
-      const saidCancels = () => (cancels().length ? ` The app also stopped ${cancels().length} running download(s) itself: ${cancels().map((c) => c.line.replace(/^.*DownloadManager: /, '')).join(' ; ')}` : '');
+      const jsLines = new Set();
+      // read again and again: on a long run the first lines roll out of the log before the end. The APP's own lines
+      // (`[download] …: queued again from zero (was …, N of M bytes)`), never the system downloader's (T760)
+      const readJs = () => { try { for (const l of d.logcatJs().split('\n')) if (/\[download\]|\[setup\]/.test(l)) jsLines.add(l.trim()); } catch { /* no log this time */ } };
+      const lost = () => thrownAway([...jsLines]);
+      const saidLost = () => (lost().length ? ` The app also queued ${lost().length} download(s) again from zero: ${lost().map((x) => `${x.url.split('/').pop()} (${x.was}, ${Math.round(x.bytes / 1e6)} of ${Math.round(x.total / 1e6)} MB: ${x.why})`).join(' ; ')}` : '');
       let setupShot = false, n = 0, line = '';
       for (;;) {
         const w = words();
@@ -145,7 +146,7 @@ export const bgInstall = {
         const dl = w.find((x) => /MB downloaded/.test(x));
         line = dl ?? w.find((x) => /^Setting up|^Waiting for Wi-Fi|^Downloading the map/.test(x)) ?? line;
         if (!setupShot && w.some((x) => /^Setting up|MB downloaded/.test(x))) { shot('5-reopened'); setupShot = true; }
-        if (n++ % 10 === 0) readDm();
+        if (n++ % 10 === 0) readJs();
         const disk = bytesOnDisk();
         // only the download can stall here: once its line is gone the app is verifying and unpacking (the limit is CAP)
         // (a line that reads full, "479.3 of 479.3 MB", is the same: every byte is down and being checked)
@@ -153,12 +154,12 @@ export const bgInstall = {
         const moving = dl && !full;
         const still = watch.see(moving ? `${dl}|${disk}` : `setup ${Date.now()}`);
         if (moving && watch.stalled()) {
-          readDm(); shot('5-stalled');
-          throw new Error(`the download stopped moving: the setup screen has read "${dl}" and the system's downloader has held ${onDisk() || 'nothing'} for ${Math.round(still / 1000)} s (${Math.round((Date.now() - t0) / 1000)} s after the app was reopened).${saidCancels()}`);
+          readJs(); shot('5-stalled');
+          throw new Error(`the download stopped moving: the setup screen has read "${dl}" and the system's downloader has held ${onDisk() || 'nothing'} for ${Math.round(still / 1000)} s (${Math.round((Date.now() - t0) / 1000)} s after the app was reopened).${saidLost()}`);
         }
         if (Date.now() - t0 > CAP) {
-          readDm(); shot('5-not-finished');
-          throw new Error(`setup not finished ${CAP / 60_000} min after the app was reopened, though it kept moving: the setup screen reads "${line}"; on disk: ${onDisk() || 'nothing'}.${saidCancels()}`);
+          readJs(); shot('5-not-finished');
+          throw new Error(`setup not finished ${CAP / 60_000} min after the app was reopened, though it kept moving: the setup screen reads "${line}"; on disk: ${onDisk() || 'nothing'}.${saidLost()}`);
         }
         if (!alive()) d.launch();
         await d.sleep(2000);   // poll interval
@@ -167,18 +168,17 @@ export const bgInstall = {
       ctx.flow('dismiss-first-run');
       shot('6-map');
       d.link('full', 'none');
-      readDm();
+      readJs();
       let after = '';
       try {
-        const js = d.logcatJs().split('\n').filter((l) => /\[download\]|\[setup\]/.test(l));
-        // the system's downloader's own lines: which jobs started, finished or were stopped, and when (against the kill)
-        const dm = [...dmLines].filter((l) => /Finished|Starting|onStopJob/.test(l));
-        fs.writeFileSync(path.join(ctx.dir, 'T298-install-timeline.txt'), [`app killed ${killedAt}`, ...dm, ...js].join('\n') + '\n');
+        // the system's downloader's own lines: which jobs started and finished, and when (against the kill)
+        const dm = d.adb(['logcat', '-d', '-s', 'DownloadManager:*']).toString().split('\n').filter((l) => /Finished|Starting/.test(l));
+        fs.writeFileSync(path.join(ctx.dir, 'T298-install-timeline.txt'), [`app killed ${killedAt}`, ...dm, ...jsLines].join('\n') + '\n');
         after = ` · system downloads finished: ${dm.filter((l) => /Finished/.test(l)).map((l) => l.slice(6, 14)).join(', ')} (app killed ${killedAt.slice(6)})`;
       } catch { /* no log */ }
-      // (T756) "Wait for Wi-Fi", Wi-Fi back, the app reopened: both choices permit the running jobs, so none may be stopped
-      if (cancels().length) throw new Error(`reopening the app threw away ${cancels().length} running download(s); they began again from zero.${saidCancels()}`);
-      return `opened by ${opened}; map up ${Math.round((Date.now() - t0) / 1000)} s later; no running download stopped by the app${after}`;
+      // (T756) "Wait for Wi-Fi", Wi-Fi back, the app reopened: both choices permit the jobs under way, so no bytes may go
+      if (lost().length) throw new Error(`reopening the app threw away bytes already down.${saidLost()}`);
+      return `opened by ${opened}; map up ${Math.round((Date.now() - t0) / 1000)} s later; no download queued again from zero${after}`;
     }, { stop: true });
     await ctx.step('More → Settings: "Download over mobile data" shows the saved Wi-Fi only', async () => {
       ctx.flow('tab', { TAB: 'More' });
