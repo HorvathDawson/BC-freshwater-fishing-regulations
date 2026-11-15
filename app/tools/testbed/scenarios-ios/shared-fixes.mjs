@@ -44,7 +44,8 @@ export const sharedFixesIos = {
 
     for (const L of LOOKS) {
       look = L;
-      await ctx.step(`${look}: appearance set, cold start`, async () => { d.appearance(look); await coldStart(ctx); await sleep(3000); shot('map'); });
+      // the first start may be a first open on a fresh simulator (TESTBED_SIM other than the baseline's): the release downloads
+      await ctx.step(`${look}: appearance set, cold start`, async () => { d.appearance(look); await coldStart(ctx, { ms: 600_000 }); await sleep(3000); shot('map'); });
 
       if (ITEMS.includes('t729')) {
         await ctx.step(`${look} T729: the credits card on Map: opens, Close closes it, a tap outside closes it, the edge swipe`, async () => {
