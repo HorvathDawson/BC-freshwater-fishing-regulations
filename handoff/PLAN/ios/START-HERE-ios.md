@@ -42,7 +42,12 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
   the alert fields get a Done key. Not proven: a real thumb, the Save row on a spot (still under the keyboard until you
   drag down), one tap acting while the keyboard is up, the alert box on the Conditions card. Shots: before/after pair
   sent; 18 in `handoff/PLAN/ios/shots/t723/` on the branch.
-- `ios/audit-fixes`: eight small fixes (among them the "↗" that iOS draws as a blue emoji tile). Proof running.
+- `ios/audit-fixes` (head e7b3df8a8, not merged; 5 of 8 **proven on the simulator 20:40**): the "↗" is a plain arrow, not a
+  blue emoji tile; the location prompt says what location is for; "Open Settings" shows under both location-refused
+  lines and opens Settings; Directions on a spot opens Maps, not Safari; "What's new" lists no Android-only notes.
+  Not provable on the simulator, unit-tested only: a link the phone cannot open now says so; a spot saved from an
+  approximate location says so; a staged update no longer applies on a brief "inactive" (no update was applied in the
+  run, so nothing to compare). Shots sent (arrow, Open Settings).
 - `ios/t719-tapup`: the early tap cue for iOS, same event as Android's. Started 17:40.
 - `android/t732-backup` (**proven on the Android emulator 19:10**, not merged): today a backup of the app carries nothing
   at all ("Size quota exceeded", 516 MB of app data against Android's 25 MB limit). With the rules: a 17,920-byte
