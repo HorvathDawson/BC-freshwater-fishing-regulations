@@ -75,7 +75,8 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
 11. T686: which data savings become tickets: (a) three lossless, about 1.94 MB / others in the ticket.
 12. Slice 8: the small test release has no map tiles, and the export takes its checklist as a named input: keep / other.
 13. Clean-up: five calls in `CLEANUP-CANDIDATES.md` (defaults there).
-14. A third heavy lane for simulator jobs: stay at two / allow three.
+14. ANSWERED 18:15 ("Maybe we can run 2 at same time might have enough resources"): a third heavy lane exists, so two
+    simulator jobs run at once.
 
 Owner, 2026-11-14, verbatim: "Maybe we could make a handoff to start improving the ios versions? Making sure it is rock
 solid too?" This **reopens iOS**, which the owner benched on 2026-11-06 ("no iOS device work until DFO extents labelled +

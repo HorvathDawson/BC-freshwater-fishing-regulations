@@ -103,8 +103,9 @@ with the default Claude uses until you answer). Newest first inside each section
   (8) the web build leaves out the four Android-only "What's new" notes [keep];
   (9) moving to a new phone copies saved spots and photos but not the downloaded data, which downloads again [yes];
   (10) an own iOS tap-up patch for MapLibre (decision 4) [measure first; the numbers are in T719 when the run lands];
-  (11) a third heavy lane for iOS simulator jobs: three simulator lanes queued behind one lock all day, one waited
-  1 h 46 min [stay at two unless you say];
+  (11) ANSWERED 2026-11-14, a third heavy lane for iOS simulator jobs. Owner, verbatim: "Maybe we can run 2 at same time
+  might have enough resources". Done: `heavy-job-3.lock` in `scripts/heavy.sh` (bbee2220f), same memory guards, three lanes
+  at most;
   (12) Play's data-safety form says approximate location and the App Store answers say precise: should Play match?
 - **Apple Developer account: ENROLLED 2026-11-14, waiting for Apple's approval** (owner, verbatim: "okay i enrolled with
   apple developer I will tell you wne i get approved"). This answers decision 1 of `handoff/PLAN/ios/START-HERE-ios.md`
