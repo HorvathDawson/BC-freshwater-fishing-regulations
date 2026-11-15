@@ -739,3 +739,8 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   Creek, Stanley Creek and Goat Creek." and the Blanchard River one): "need to add bc boundary here i cant get it to
   add. also i cant save or edit the extent of the other section there". Being reproduced in a separate copy of the app:
   why no BC-border point is offered, why the Blanchard place will not save, and the marks those two places need.
+- DONE 2026-11-15: the Shuswap closed stretch is in your review app as a proposal (closed-areas panel of the Shuswap
+  "(middle) between Shuswap Falls and Mabel Lake" place; no restart needed). YOURS: which reading. DFO's two printed
+  points are 2,054 m apart along the river, not "one km", and look swapped: the second printed point is 27 m from the
+  Water Survey gauge "Shuswap River near Lumby", so it is the station. Options shown: as printed (km 133.08 to 135.13),
+  or station to 1 km downstream (km 134.13 to 135.13). Also yours: tell DFO about the mismatch?

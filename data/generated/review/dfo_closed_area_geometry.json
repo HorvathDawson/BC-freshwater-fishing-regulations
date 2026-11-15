@@ -220,6 +220,26 @@
    "centre_from": "where Pinkut Creek's own channel (FWA blue line 360886207) meets the lake's outline; the in-lake connector line is not counted",
    "confidence": "high",
    "note": ""
+  },
+  {
+   "key": "200d03a74aaf",
+   "water_id": "8:shuswap-river",
+   "name": "the water survey station to WTFB signs",
+   "item": "closed from the water survey station (located at 50°19.105' N and 118°48.857' W) approximately 200 m down stream of Shuswap Falls Hatchery to WTFB signs (located at 50°18.181' N and 118°49.105' W) one km down stream",
+   "kind": "stretch",
+   "on_item": "gnis:25478",
+   "points": [
+    {
+     "kind": "new",
+     "split_id": "shuswap_closed_station_as_printed"
+    },
+    {
+     "kind": "new",
+     "split_id": "shuswap_closed_wtfb_as_printed"
+    }
+   ],
+   "confidence": "low",
+   "note": "CHECK: DFO's printed points look SWAPPED against its words. The river flows north here (Shuswap Falls km 136.5 → Mabel Lake), so 'downstream' is north. The point printed for the water survey station (50°19.105' N) is the NORTH (downstream) one, at km 133.08; the point printed for the WTFB signs (50°18.181' N) is 27 m from WSC gauge 08LC003 'Shuswap River near Lumby' at km 135.13 — that is the water survey station. Between them is 2.05 km of river, not 'one km'. Stored as printed; the alternative end reads it as station → 1 km below."
   }
  ],
  "new_splits": [
@@ -286,6 +306,46 @@
    "confidence": "high",
    "quote": "to Hwy 97C bridge in Ashcroft",
    "note": "BC MoTI road structure 'ASHCROFT' (Hwy 97C) over the Thompson, 50.72701,-121.28188"
+  },
+  {
+   "ref": "shuswap_closed_station_as_printed",
+   "anchor": "coord",
+   "on_item": "gnis:25478",
+   "name": "Shuswap closed stretch, the point DFO prints for the water survey station (50°19.105' N 118°48.857' W)",
+   "coord": [
+    -118.8142833,
+    50.3184167
+   ],
+   "confidence": "low",
+   "quote": "the water survey station ( located at 50°19.105' N and 118°48.857' W) approximately 200 m down stream of Shuswap Falls Hatchery",
+   "note": "DFO's coordinate as printed (50.3184167, -118.8142833), 13 m from the river line, km 133.08. It is 2 km BELOW the real WSC station 08LC003 (km 135.13): see the piece's note"
+  },
+  {
+   "ref": "shuswap_closed_wtfb_as_printed",
+   "anchor": "coord",
+   "on_item": "gnis:25478",
+   "name": "Shuswap closed stretch, the point DFO prints for the WTFB signs (50°18.181' N 118°49.105' W)",
+   "coord": [
+    -118.8184167,
+    50.3030167
+   ],
+   "confidence": "low",
+   "quote": "to WTFB signs (located at 50°18.181' N and 118°49.105' W) one km down stream",
+   "note": "DFO's coordinate as printed (50.3030167, -118.8184167), 8 m from the river line, km 135.13 — 27 m from WSC gauge 08LC003 (50.30278, -118.81861): this point is the station, not signs 1 km below it"
+  },
+  {
+   "ref": "shuswap_closed_1km_below_station",
+   "anchor": "coord",
+   "on_item": "gnis:25478",
+   "name": "Shuswap closed stretch, WTFB signs read as 1 km below the WSC station (proposed reading, not printed)",
+   "coord": [
+    -118.8184167,
+    50.3030167
+   ],
+   "offset_m": -1000,
+   "confidence": "low",
+   "quote": "WTFB signs … one km down stream",
+   "note": "the reading proposed for the owner: DFO's printed station point (gauge 08LC003, km 135.13) and 1,000 m down the river from it (km 134.13, ≈ 50.31001, -118.81727). Not DFO's printed coordinate"
   }
  ],
  "looked": {
@@ -311,6 +371,26 @@
     "point": {
      "kind": "split",
      "split_id": "length:356364690:94205"
+    }
+   }
+  ],
+  "8:shuswap-river#200d03a74aaf": [
+   {
+    "end": 0,
+    "label": "as printed: 50°19.105' N (km 133.08)",
+    "why": "DFO's own coordinate for the first end, as printed: the closed stretch is then 2.05 km",
+    "point": {
+     "kind": "new",
+     "split_id": "shuswap_closed_station_as_printed"
+    }
+   },
+   {
+    "end": 0,
+    "label": "1 km below the water survey station (km 134.13)",
+    "why": "the words: the station (DFO's second printed point = gauge 08LC003) to signs one km downstream; the closed stretch is then 1.0 km. A proposal, not DFO's printed point",
+    "point": {
+     "kind": "new",
+     "split_id": "shuswap_closed_1km_below_station"
     }
    }
   ]
