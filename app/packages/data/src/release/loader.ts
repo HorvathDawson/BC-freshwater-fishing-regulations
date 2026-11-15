@@ -86,6 +86,13 @@ export interface ReleaseLoader {
   routed(name: Sliced): Db;
   /** (T256) The file a read naming `keys` goes to: the whole file when it is here or no slice covers the keys. */
   dbFor(name: Sliced, keys: SliceKeys | null): Promise<Db>;
+  /**
+   * (T737, 2026-11-15) Open the FOCUS region's slice of `name` now, before any read names its keys: an unnamed tap's
+   * answer key comes out of `regs-sid` (1.2 MB), and only then did its water read go to the 0.17 MB `water-<r>` — in
+   * series. Nothing when no region is focused, the whole file is here, or the release cuts no such slice. Optional: a
+   * fake loader has none.
+   */
+  warmSlice?(name: Sliced): Promise<void>;
   /** Which files have been opened so far (the web's lazy-load test reads this). */
   opened(): readonly FileName[];
   /**
@@ -361,6 +368,11 @@ const WATER_SHARED: DbName = "water-shared";
       return db(`regs-${held ?? rs[0]!}`);
     },
     focus(region) { focused = region; },
+    async warmSlice(name) {
+      const r = focused;
+      if (!r || !m.files[sliceOf(name, r)] || await wholeHere(name)) return;
+      await db(sliceOf(name, r));
+    },
     routed(name) { return routedDb((sql, p) => loader.dbFor(name, sliceKeys(name, sql, p))); },
     async dbFor(name, keys) {
       if (keys === null || await wholeHere(name)) return db(name);

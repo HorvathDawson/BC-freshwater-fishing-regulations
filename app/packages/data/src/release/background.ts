@@ -141,6 +141,16 @@ export function unnamedTapFiles(m: Pick<Manifest, "files">, r: Region): FileName
 export const readerDownloading = (s: { readonly downloads: readonly { readonly priority: number }[] }): boolean =>
   s.downloads.some((d) => d.priority < PRIORITY.ahead);
 
+/**
+ * (T737, 2026-11-15) Whether a file fetched AHEAD by someone else (the idle tier's region file or `core`, the address
+ * bar's `lines`) is on the network now — not one of `mine` (the background's own in flight). While so the background
+ * starts nothing: one file ahead at a time, whoever asked it (the web source's lane holds the same rule for the network).
+ */
+export const othersAhead = (s: { readonly downloads: readonly { readonly key: string; readonly priority: number;
+                                                                   readonly waiting?: boolean }[] },
+                            mine: readonly string[]): boolean =>
+  s.downloads.some((d) => d.priority >= PRIORITY.ahead && !d.waiting && !mine.includes(d.key));
+
 export interface NetSignals {
   online: boolean;
   /** `navigator.connection.saveData` */
@@ -215,6 +225,11 @@ export interface BackgroundPrefetch {
    * said nowhere, it only yields the line for a moment.
    */
   reader(busy: boolean): void;
+  /**
+   * (T737) Another file fetched ahead (not this tier's: `othersAhead`) is on the network: nothing new starts until it is
+   * in — one file ahead at a time. No grace: it is not the reader.
+   */
+  others(busy: boolean): void;
   /** Stop for good (the loader changed, the app is closing). */
   cancel(): void;
   snapshot(): PrefetchSnapshot;
@@ -251,7 +266,10 @@ export function createBackgroundPrefetch(o: BackgroundOptions): BackgroundPrefet
   let net: NetSignals = { ...NET_DEFAULT, ...o.signals };
   let view: Region[] = [];
   let wanted: Region[] = [];
-  let started = false, cancelled = false, readerBusy = false;
+  let started = false, cancelled = false, readerBusy = false, othersBusy = false;
+  /** (T737) files in flight while the reader downloaded: the web source's lane parked or shared them, so their time says
+   *  nothing about the line (measured, a parked file would read as a slow connection and hold the tier) */
+  const yielded = new Set<FileName>();
   const grace = Math.max(0, o.readerGraceMs ?? READER_GRACE_MS);
   let graceTimer: ReturnType<typeof setTimeout> | null = null;
   const active = new Set<FileName>();
@@ -298,7 +316,7 @@ export function createBackgroundPrefetch(o: BackgroundOptions): BackgroundPrefet
       else if (lastHold) say({ kind: "resumed", note: `after ${lastHold}` });
       lastHold = hold;
     }
-    if (hold || readerBusy) { changed(); return; }
+    if (hold || readerBusy || othersBusy) { changed(); return; }
     while (active.size < cap) {
       const f = next();
       if (!f) break;
@@ -309,7 +327,7 @@ export function createBackgroundPrefetch(o: BackgroundOptions): BackgroundPrefet
       loader.prefetch(f).then(() => {
         const ms = now() - t0;
         files++; bytes += gz;
-        if (ms >= MEASURE_MIN_MS && gz > 0) net = { ...net, measuredBps: (gz * 1000) / ms };
+        if (ms >= MEASURE_MIN_MS && gz > 0 && !yielded.has(f)) net = { ...net, measuredBps: (gz * 1000) / ms };
         say({ kind: "prefetched", bytes: gz, ms, note: f });
       }, (e: unknown) => {
         failed.add(f);
@@ -317,6 +335,7 @@ export function createBackgroundPrefetch(o: BackgroundOptions): BackgroundPrefet
         say({ kind: "failed", ms: now() - t0, note: f, error, errorClass: null });
       }).finally(() => {
         active.delete(f);
+        yielded.delete(f);
         if (cancelled) { changed(); return; }
         tellReady();
         pump();
@@ -353,8 +372,15 @@ export function createBackgroundPrefetch(o: BackgroundOptions): BackgroundPrefet
       if (was && !prefetchHold(net)) failed.clear();
       pump();
     },
+    others(busy) {
+      if (busy) active.forEach((f) => yielded.add(f));
+      if (busy === othersBusy) return;
+      othersBusy = busy;
+      pump();
+    },
     reader(busy) {
       if (busy) {
+        active.forEach((f) => yielded.add(f));
         if (graceTimer) { clearTimeout(graceTimer); graceTimer = null; }
         if (!readerBusy) { readerBusy = true; pump(); }
         return;

@@ -110,6 +110,27 @@ export function warmWaterPage(loader: Pick<ReleaseLoader, "manifest" | "db">): (
 }
 
 /**
+ * (T737, 2026-11-15) WHAT AN UNNAMED REACH'S PAGE WAITS ON, asked together the moment its tap is known to be unnamed
+ * (`OpenerOptions.unnamed`). The page reads, in series: `regs-sid` (1.2 MB whole: the section's answer key and place),
+ * THEN its key's row in the water — routed to the focus region's 0.17 MB `water-<r>` slice only once the key was read —
+ * THEN `access` (0.2 MB, asked by the page's subject once its inputs are in); beside them `down` (1.2 MB whole: "Tributary
+ * of …"). Measured on staging (desktop, 3 s after paint): `water-<r>` started 5.9 s after the tap, when `regs-sid` was
+ * in. Asked here they all go out at once (the same loader opens the page makes later: nothing is fetched twice). The
+ * region slice is the map's focus region's (`warmSlice`: a tap in another region than the map's centre reads its own
+ * slice later, as before). A failure is not kept (the loader forgets it) and the page's own read of the same file asks
+ * again and says it — nothing is hidden by dropping it here.
+ */
+export function warmUnnamedPage(loader: Pick<ReleaseLoader, "manifest" | "db" | "access" | "warmSlice">): () => void {
+  return () => {
+    const f = loader.manifest.files;
+    if (f["regs-sid"]) void loader.db("regs-sid").catch(() => { /* the page's read says it */ });
+    if (f.down) void loader.db("down").catch(() => { /* the page's read says it */ });
+    void loader.warmSlice?.("water").catch(() => { /* the page's read says it */ });
+    void loader.access().catch(() => { /* the page's read says it */ });
+  };
+}
+
+/**
  * (T737, 2026-11-15) THE REGIONS A WATER'S PARTS ARE IN (their answer keys' regions, `regionsOf`): what the background
  * prefetch fetches next for an open water (`BackgroundPrefetch.want`) — a Fraser part in Region 2 opens a page whose
  * other parts are in 3, 5 and 7A. The page reads only its own part's region file; these are for a step or the parts list.

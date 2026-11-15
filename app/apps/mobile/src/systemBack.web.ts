@@ -70,6 +70,13 @@ async function write(): Promise<void> {
   if (opener === null || waterFrame(asked) === null) return;   // no water, no place to add
   await drawn();
   if (last !== asked) return;
+  // (T737, 2026-11-15) an unnamed reach's place is read from `lines` (1.3 MB whole): fetched AHEAD, so it waits in the
+  // web source's lane until the page's own files are in (measured on staging: asked 38 ms after the tap, it shared the
+  // line with regs-sid and down, which the page waits for). A failure is not kept: `linkSearch` below opens the file
+  // itself and reports what fails (`onMissing`).
+  if (waterFrame(asked)?.item === null && opener.loader.manifest.files.lines)
+    await opener.loader.prefetch("lines").catch(() => { /* linkSearch's own read says it */ });
+  if (last !== asked) return;
   const places = await placesNow();
   if (places === null || last !== asked) return;
   const q = await linkSearch(places, asked, window.location.search, onMissing, extra);

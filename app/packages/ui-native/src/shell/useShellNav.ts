@@ -7,7 +7,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Platform } from "react-native";
 import type { ItemId, WaterSource } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
-import { carryRoute, frameViews, loadRegsStore, regsGroupOf, regsPartOf, regsSoloOf, reportFailure, useOpenWater, useRegsStore, warmedFirst, warmWaterPage,
+import { carryRoute, frameViews, loadRegsStore, regsGroupOf, regsPartOf, regsSoloOf, reportFailure, useOpenWater, useRegsStore, warmedFirst, warmUnnamedPage, warmWaterPage,
          useRoute, useSalmonKey, useWaterGroup, waterFrame, type BrowseTab, type Route } from "@app/ui";
 import { backDepth, edgeBackDepth, useBack, useEdgeBack, useViewSwipe, type SystemBack } from "@app/ui";
 import { placeReads } from "@app/ui/place";
@@ -69,7 +69,9 @@ export function useShellNav({ source, loader, systemBack, initialRoute, onRoute 
   const soloOf = useMemo(() => (loader ? warmedFirst(warm, regsSoloOf(loader)) : undefined), [loader, warm]);
   // (T369 D3) a tapped water opens AT its part: the Regulations view's own answer, asked before the frame is made
   const partOf = useMemo(() => (loader ? warmedFirst(warm, regsPartOf(loader)) : undefined), [loader, warm]);
-  const opener = useOpenWater(source, go, { now, group: groupOf, solo: soloOf, partOf });
+  // (T737) an unnamed reach's tap: what its page waits on (regs-sid, down, its region's water slice, access), together
+  const unnamed = useMemo(() => (loader ? warmUnnamedPage(loader) : undefined), [loader]);
+  const opener = useOpenWater(source, go, { now, group: groupOf, solo: soloOf, partOf, unnamed });
   /*
    * (T369 D8, owner 2026-11-04) A NEW RELEASE WITH A WATER OPEN is applied at once, and the open stack is CARRIED to the
    * same place on the water in it (`carryRoute`: by item and point, never by the old part index). Until it is, the water
