@@ -87,3 +87,49 @@ and the kept map under a page (T740, the Android chat's).
 
 **First five:** 1 (fonts), 2 (SHA-256), 3 (background conditional GET), then 8, and 6 / 7 / 4 / 5 handed over as
 device-run items.
+
+### Phase 2: landed on `perf/t741` (2026-11-14 night; not merged, no device run)
+| commit | item | before → after | how measured |
+|---|---|---|---|
+| d0050b7d2 | 1. only the 8 faces drawn | fonts 41 / 4,778,008 B → 8 / 900,016 B, Android and iOS alike (−3,877,992 B installed; ~−1.66 MB download, gzip estimate) | `expo export` asset map, before (this branch's base) and after; pinned by `tools/font-imports.test.ts` (no family index import; faces named in styles = imported = loaded by `useFonts`, so no text falls back to the system face) |
+| 3b2d8bc0e | 2. SHA-256 rounds unrolled | node `--jitless` (Hermes stand-in), 16 MB: 4.3-4.4 → 5.0-5.4 MB/s; JIT: 237 → 264 MB/s | scratch bench, best of 3, alternated twice, load ~15; NOT on Hermes. Pinned by `tools/sha256-node.test.ts` (node's crypto on 5 MB random, odd chunk runs, every length around a block end, the `.part` resume path, a wrong sha refused) + the FIPS vectors |
+| 47f6e3888 | 3. background obs.json by conditional GET | every run a whole read (24,039 B gzip on staging) → a 304 when unchanged (estimated; obs.json's ETag on staging was the same over 25 min tonight, its change rate not measured) | `packages/data/src/feed/obsHeld.test.ts`: unchanged (strong validator, 304, kept copy), changed (whole read, new copy), no validator (whole read every run, said), bad kept copy (reported, whole read), no store (as before), stray 304 (a failure) |
+
+**Validators today (item 3):** staging's edge answers `obs.json` with a WEAK ETag (`W/"…"`, it gzips) and
+`cache-control: public, max-age=300`; the data worker compares the STRONG form against the R2 object's ETag (measured
+2026-10-28 for `update/check.ts`). So the check sends the strong form, as the update service already does: the 304 is the
+origin's word that the R2 object has not moved. With no ETag, every run reads whole and logs `[obs] … no ETag`. The
+manifest and the version file are still whole reads (manifest 25 KB raw; not changed: smaller, and the release check
+needs the body's fields). Web: no background check, nothing changes.
+
+**Items 2 and 4 per platform (restated after T722):**
+- Android: the big files (tiles, mask, basemap, rule book) are hashed NATIVELY today (`BgDownloadModule.kt`,
+  MessageDigest). Every other release file (the ~40 MB of SQLite and binary files, raw) and the update service's feed
+  bodies are hashed by the JS `Sha256` at install and at every update.
+- iOS on 0.7.9/0.7.10: everything in JS, the big files included (the 44 s, T718). On `ios/t722-install` the big files are
+  hashed natively (CryptoKit, `BgDownloadModule.swift` `sha256`, F14), so item 4 is DONE there for the big files once
+  that branch merges; the small files stay JS as on Android.
+- Web: release files by WebCrypto (`source.web.ts`); JS `Sha256` only for the update check's feed bodies.
+- So item 2's gain is for the small files on both phones: estimated (proxy ratio on T272's ~12 MB/s Hermes figure)
+  ~3.3 s → ~2.7 s of JS-thread hashing per install or full update, spread in slices. Not measured on a device.
+
+### Needs a device run (the main lane schedules; nothing here is built)
+| item | what | bench | pass line |
+|---|---|---|---|
+| 1, 2, 3 (this branch) | fonts drawn, install hash, background check | Android: `node app/tools/testbed/run.mjs install perf walkthrough`; iOS: `run-ios.mjs first-open walkthrough perf`; shots of a regs page + the boot screen | every face drawn as before (shots match build 32), install passes, `[download] … followed, N ms to catch up` shorter or equal |
+| 4 | native hash on iOS | lands with `ios/t722-install` (F14) | T722's own: `[setup] installed … ms after the last byte` under ~5 s (was 44,158 ms) |
+| 5 | R8 + keep rules (WorkManager/Room, MapLibre patch, pdfium, bg-download, expo modules) | own ticket; Android `run.mjs install crash-bed bg-install regs-open tap-stalls memory`, then a Play internal build on a phone | the app starts and every scenario passes; AAB dex 30.4 MB → measured |
+| 6 | Metro `inlineRequires: true` | Android `run.mjs perf tap-stalls`, iOS `run-ios.mjs perf tap-stalls`, 3 cold starts each, same build ± the flag | cold start to map faster than ±0.3 s noise, no new stall ≥ 300 ms, walkthrough passes |
+| 7 | fonts embedded at build (expo-font plugin), `useFonts` off on native | `perf` on both + shots of the boot screen and a regs page | no system-face frame; cold start not slower |
+
+### Memory: second pass, code only (2026-11-14 night)
+| holder | where set | today | a lower value would cost | bench |
+|---|---|---|---|---|
+| MapLibre tile prefetch | `Map.native.tsx` `PREFETCH_ZOOM_DELTA = -1` | 1 lower zoom prefetched | blurrier tiles longer while zooming out | `memory` + `pan` (frames) |
+| MapLibre ambient/tile cache | not set by the app (MapLibre defaults; T360: the ambient cache is disk) | default | — (no RAM win found in T360) | — |
+| SQLite page cache | `open.native.ts`; no `PRAGMA cache_size`, so SQLite's default 2,000 KiB per connection | ~14 connections: up to ~28 MB if all fill (estimated ceiling, not measured) | slower repeat reads on a page | `memory` with `cache_size=-500` vs default, + `regs-open` timings |
+| idle connections | `loader.closeIdle(60 s)`, only on a trim | open for the app's life otherwise | a 0.1-0.3 ms reopen | `memory` (PSS after 2 min idle on the map) |
+| spot photos | `pickPhoto.native.ts` keeps full pixels (quality 0.8); thumbnails `SpotsScreen.tsx` / `SpotPhotos.tsx` draw the full file | decode at the platform's choice (iOS scales to the view; Android Fresco downsamples large JPEGs: not verified) | none if a thumbnail file is made; needs an image module (new dependency: proposal) | `saved-spots` with 10 photos, `memory` |
+| rule book viewer | react-native-pdf (Android, pdfium), PDFKit (iOS) | ~70 MB while open; T740: only ~10 MB freed on close with a page up (iOS) | — | T740's pair (Android chat) |
+| decoded release files | JS external bytes, 33-67 MB (T360) | held for the session | slower first open of what was dropped | `memory` |
+| lists | `FlatList` in search, regs wide, glossary; other lists are short | — | — | nothing to do found |
