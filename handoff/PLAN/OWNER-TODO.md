@@ -135,7 +135,12 @@ with the default Claude uses until you answer). Newest first inside each section
   pick, the build keeps its push entitlement (the G12 change is on hold). Ticket T739 (proposal). Also asked: "can we
   do this same push notification style to android?": yes, but Android's only push channel is Google's Firebase, a Google
   service in the app, so it needs your exception to "self-host everything" [iPhone first; Android only if phones show
-  late alerts]; and "there are also time sensitive notifications?": possible for closure notices on iPhone [off for now];
+  late alerts]; and "there are also time sensitive notifications?": possible for closure notices on iPhone [off for now].
+  ANSWERED 2026-11-14 late, verbatim: "okay i ticked push notifications for app yes build for iphone."; time-sensitive:
+  "dont need this"; and "i guess if new data is there we could send a notification that the user needs to download it."
+  (built as: a new release wakes the phone, which downloads by itself when settings allow and otherwise tells you new
+  data is ready). Being built on branch `ios/t739-push`. Still yours later: one more Apple key, for push (steps come when
+  the worker side is ready);
   (12) Play's data-safety form says approximate location and the App Store answers say precise: should Play match?
 - **Apple Developer account: APPROVED 2026-11-14 evening (individual); the owner has the Team ID** (given in chat; not
   written in the repo). DONE by you 2026-11-14: the Team ID is saved in `~/.canifishthis/ios-team-id` (checked: the site build reads

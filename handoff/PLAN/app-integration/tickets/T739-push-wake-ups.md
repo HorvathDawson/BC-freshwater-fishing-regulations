@@ -1,12 +1,22 @@
 # T739 — Push "wake-ups" so alerts and notices arrive on time (iPhone first, Android as a second step)
 
-Status: OPEN (proposal; owner pick first: nothing is built).
+Status: IN PROGRESS (iPhone step approved by the owner 2026-11-14; iOS chat, branch `ios/t739-push`; Android step not approved).
 
 Source: owner 2026-11-14, verbatim: "dont we want to use it for the notifications thought?" (on the Push Notifications
 box of the App ID), "there are also time sensitive notifications?" and "can we do this same push notification style to
 android?". Audit findings F3 / G3 (`handoff/PLAN/ios/parity-audit.md`): the app's own words say checks run "about every
 15 minutes at best. Android may check less often while the phone is idle" (`packages/core/src/alerts.ts`), and on iPhone
 the background check runs only when iOS allows, often hours late.
+
+## Owner answers (2026-11-14, late)
+Verbatim: "okay i ticked push notifications for app yes build for iphone." / "dont need this (Closure notices marked
+time-sensitive on iPhone: off for now / on.)" / "i guess if new data is there we could send a notification that the user
+needs to download it."
+So: step 1 (iPhone, APNs) is approved and Push is ticked on the App ID; the `aps-environment` entitlement stays (audit
+G12's removal is dropped). Time-sensitive notices are NOT wanted. New scope from the third sentence (Claude's reading):
+the wake-up also fires when a new release is published; the phone then starts the download itself when its settings
+allow, and otherwise makes a local notification saying new data is ready to download. Android (FCM) was not answered:
+the default stands (only if phones show late alerts).
 
 ## Today (read in the code)
 No notification on either platform uses push. The phone wakes in the background (`apps/mobile/src/notify.native.ts`,
