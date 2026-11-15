@@ -78,6 +78,42 @@ task over 50 ms between apply and the curtain going. Curtain: blocking at 5–6 
 standing with no word (the work is the same; the curtain adds no work). The map after the commit: this bench's release
 has the same files, so the map reloads nothing; a release whose tiles or paint changed is NOT measured.
 
-**iPhone simulator**: see below (pending the build).
+**iPhone simulator** (build 9c46116f1 `--testbed`, data base = the stand-in, device `t746-17` iPhone 17 / iOS 26.5, heavy.sh
+lane 3, 2026-11-15 01:16–01:28; load average 26–52, other lanes' jobs running, so rough figures). The app's own lines:
+| way in | apply → committed | still stretch before this change | with the curtain |
+|---|---|---|---|
+| safe moment (map still 3 s), light | **702 ms** | 702 ms of the old map with no word | blocking at +17 ms, drawn at +300 ms, down at the commit |
+| back from the background (staged while search was open) | **880 ms** | 880 ms | same; then 3 JS stalls right after the commit (327, 175, 52 ms) with the curtain already down |
+| cold start with a staged set | launch → set opened 1.3 s (JS up at +0.6 s, open 0.7 s) | the boot screen said "Opening the map…" | the boot screen says "Putting the new regulations in place…" (picture) |
+| safe moment, manifest held 4 s on purpose (pictures only) | 4723 / 4687 ms | — | the curtain stood the whole time |
+- **Commit → the map drawn:** in this bench the release has the same files: after the commit MapLibre drew no frame and
+  loaded no tile (`[pan]` frames 0, tiles 0, only React renders), so there is no reload stretch to cover and the curtain
+  ends at the commit. A release whose tiles / paint changed (a real atlas update) restyles the map: NOT measured.
+- **Finding (follow-up):** on the way back from the background the JS thread stalls ~550 ms just after the commit (327 +
+  175 + 52 ms; none after the safe-moment applies). It is not map drawing (no frames); likely the foreground return's
+  own work (feed checks, re-renders) landing with the commit. Bench: `ios-bench.mjs` case B (scratchpad `t746/`).
+- Staging each "newer release" copied the map assets (776 files) in ~35 s and rechecked the set (~50 s from Sync to
+  staged): background work, the map in use meanwhile.
 
-**Android**: not measured here (the main lane schedules the device step).
+**Android**: not measured (the main lane schedules the device step). To run there: `update-freeze` (the T287 bench:
+its "applied at the next pause" step is the back-from-background path; read `[swap] curtain up/down` beside `[swap]
+apply` / `committed`), `big-update`, `regs-open`, `tap-stalls`; and a look at the curtain on screen (the test channel,
+Sync, the map left still 3 s).
+
+### 5. Pictures (scratchpad `t746/`, JPEG)
+`web-applying-light.jpg`, `web-applying-dark.jpg`, `ios-applying-light.jpg`, `ios-applying-dark.jpg`,
+`ios-cold-start-applying-dark.jpg` (the boot screen of a cold start that applies). Android: with the device step.
+
+### 6. Not verified
+- A failed apply on a device (unit + render tests only: the message, the report, the old set kept).
+- Taps landing on the curtain on a device (react-native-web and RN both stop a touch at the top view; not driven by a
+  test bed tap during an apply).
+- A release with changed tiles / paint (the map's restyle after the commit), on any platform.
+- Android, any of it.
+
+### Tests
+`ApplyCurtain.render.test.tsx` (timing, no flash, the whole line, back held / closes the failure),
+`ApplyCurtain.flow.test.tsx` (every way in through the real hooks; the failure said + reported, old set kept),
+`ui/boot.render.test.tsx` (applying flag; warm-up throw = failure), `tools/release-boot.test.ts` (stage "apply" at a cold
+start that applies, and after the T403 install-over), `core/install.test.ts` (whole sentences). `pnpm -C app check:fast`
+exit 0; the four guard files pass unfiltered; whole vitest suite 634 files / 7658 tests passed.
