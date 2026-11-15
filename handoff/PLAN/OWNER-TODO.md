@@ -702,3 +702,10 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   (the split already in the river) we should fix the proposal and make sure we fix this existing split." Being looked
   at: which wording made the existing split, where the fence and the 75 m point are, and other "N m downstream of"
   places sitting on the landmark itself. Fix comes as a proposal; cut changes ride on the rebuild after marking.
+- MOUTH / TIDAL ENDS checked 2026-11-15 (report `handoff/PLAN/curation-review/mouth-tidal-ends-audit-2026-11-15.md`): no
+  place in force ends at a wrong mouth point (an open downstream end is trimmed at the stream's tidal boundary by the
+  build). Six PROPOSALS are bad: Chapman, Stave x2 (a new cut a few metres from the tidal boundary), Illiance, Kitsault,
+  Wilauks (a cut on the line's very end). Do not accept those; mark the stretch with an open downstream end instead.
+  Yours: Nass x2, Seymour, Illiance, Wilauks have no extent yet; Pallant Creek stops at "the bridge near the mouth",
+  57 m above the boundary (as DFO words it; your call). The proposal maker is being fixed to use the tidal boundary.
+- LOOK AND PICK (T752): desktop water map as a split, A map left / B map right / keep today's. Pictures sent in chat.
