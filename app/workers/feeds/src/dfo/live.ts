@@ -530,8 +530,9 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
     const xOf = (lid: string) => (words.get(lid)?.length ? { x: words.get(lid)! } : {});
     const [rules, held] = join(slug, ef, typed, found, rep, rowHolds);
     // T573 / T757: every closed area TODAY'S rows still name, its own rule (`closures.livePieceRules`, the Python's
-    // `live_piece_rules`); one DFO dropped is not in the feed, so its place answers there (never free-standing). A row the
-    // port cannot read THROWS, as the Python's run raises: the job fails, the last good feed stands.
+    // `live_piece_rules`); one DFO dropped is NOT in the feed. The feed says nothing for it: a release that still binds
+    // that piece is read by the app as "not known, check the DFO notice" (core `salmonFeed.ts`), never as the place's
+    // opening. A row the port cannot read THROWS, as the Python's run raises: the job fails, the last good feed stands.
     for (const [lid, rs] of livePieceRules(ef, found)) rules.set(lid, rs);
     if (aware) inputsOut[slug] = { page: sha, entries: contentHash((await rawEntries(slug)) ?? "") };
     const moved = new Set(rep.outcomes.filter((o) => o.status === "section_moved" && o.location_id).map((o) => o.location_id!));
