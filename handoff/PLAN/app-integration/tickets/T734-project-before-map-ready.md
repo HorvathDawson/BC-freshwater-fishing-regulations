@@ -1,6 +1,6 @@
 # T734 — The app closed when a water was opened before its map was ready
 
-Status: IN PROGRESS (before closed testing; code + tests done; left (Claude): the emulator loops on the fixed build, build 32)
+Status: IN PROGRESS (before closed testing; fixed and proven on the emulator; left (Claude): build 32 to Play internal once pipeline CI is green)
 
 Source: build 32's verify lane, 2026-11-14 (HEAD 59aaa4de8). The app closed twice with
 `java.lang.NullPointerException at org.maplibre.reactnative.components.mapview.MLRNMapView.project(MLRNMapView.kt:1653)`
@@ -52,3 +52,10 @@ The same NPE is in `app/tools/testbed/out/runs/t512-lean-a` (2026-11-08): the ra
 ## Acceptance
 - On the fixed build: `open-race` ≥ 60 cycles cold + warm and the `pane-open` hold × 40, no FATAL EXCEPTION in logcat.
 - `regs-open`, `tap-stalls`, `pane-open`, `back-flash` pass on build 32.
+
+## Result (2026-11-14)
+- Not reproduced before the fix: the build-32 verify APK (59aaa4de8) ran `open-race` 30 cold + ~25 warm opens in 30 min
+  with no crash. The fix is proven by the code path (above) and by the fixed build's loops.
+- Fixed build (3c2d0ab9f, test bed): `open-race` 35 cold + 35 warm, `pane-open` with the Fraser hold × 40, `back-flash`
+  (6 cases), `regs-open`, `tap-stalls`: all PASS, zero FATAL EXCEPTION / Fatal signal. Commits 514f2cc14, 2d5f64048.
+- Build 32 to Play is held by a pipeline CI failure outside this ticket (T678-progress, build 32 entry).

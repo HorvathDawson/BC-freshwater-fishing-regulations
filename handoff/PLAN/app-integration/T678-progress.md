@@ -937,3 +937,22 @@ Owner's phone report (build 29, the More tab). Done in code, not yet in a build:
   31 (~2.4 vs ~40 MB/s through the emulator from data-staging). Map assets (776 files) 52 s vs 36 s, now inside the
   download; the pipeline lane's slow pytest held the other heavy lock the whole time (host load on the emulator's network
   and CPU). Network/host, not app start.
+
+## 2026-11-14 (app build lane: build 32 = 0.7.10, Play internal) — NOT UPLOADED (pipeline CI red, not this build)
+- T734 (the crash that stopped build 32's first verify: `NullPointerException at MLRNMapView.project`): 514f2cc14
+  (binding patch `ReactTagResolver.runOrReject` + `readyMap`; `shiftMarks` asks only a mounted, styled, drawn map;
+  test bed `open-race`; Maestro driver-start retry), f621b6159 (restart page: build/release ids out, the docs guard),
+  2d5f64048 (CI: changelog order by semver for 0.7.10, Map.native FINE 6 -> 4; two fast-fail items).
+- 3c2d0ab9f: 0.7.10 bump (app.json, package.json), changelog draft (5 bullets: Back no longer flashes; the credits card
+  above the legend; search swipe-down / smaller recents / map stays; steps no longer redraw the bar and a Flow/Level pick
+  leaves the map alone; a rare crash when opening a water fixed), app_reads row. `scripts/fast-fail.sh` rc 0.
+- Pre-fix repro (build-32 verify APK 59aaa4de8, `open-race`, ~30 min): 30 cold + ~25 warm search → Open, NO crash
+  (the race did not show on demand, as the verify lane found).
+- Test-bed APK from 3c2d0ab9f (clean worktree, libmaplibre 7bf3dc29 patched; the patch's strings confirmed in the dex),
+  `--no-r2`: open-race 35 cold + 35 warm PASS (0 FATAL EXCEPTION / Fatal signal); pane-open 12/12 with the Fraser hold
+  × 40 (pid unchanged, no crash); back-flash 12/12 (6 cases); regs-open 26/26; tap-stalls 5/5. Only test files changed
+  under app/ from 3c2d0ab9f to 2d5f64048. Reports: ~/bcfish-session-backup-2026-11-12/build-32/t734/.
+- App CI GREEN on 2d5f64048 (run 43654912644). `build-apk.sh --play` stopped at its CI check: pipeline-ci RED on
+  2d5f64048 and 6da5e2565 (run 43654912628): `test_liveness.py::test_nothing_else_reads_liveness` names
+  `pipeline/tools/mini_release.py` (T667 slice 8, 4b62638da) — not this build's change. Nothing built or uploaded.
+  To go on once pipeline CI is green: `deploy/staging/build-apk.sh --play` (versionCode 32 is the next; Play's highest is 31).
