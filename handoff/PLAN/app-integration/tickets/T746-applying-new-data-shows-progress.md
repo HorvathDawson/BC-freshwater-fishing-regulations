@@ -78,7 +78,15 @@ character "…", as the boot screen's own lines ("Opening the map…").
 **Fit (one line on the narrowest phone):** measured with the app's face (Archivo 400, the TTF's advance widths) at the
 curtain's 15 px: 198–263 px; the longest ("Casting the new regulations into place…") 263 px against 272 px of room at
 a 320 px-wide window less the curtain's 24 px sides (the boot screen draws it at 13 px, smaller). None wraps at 320;
-larger system text sizes are not covered by this measure.
+larger system text sizes are not covered by this measure. Checked on the simulator (build 2a0ab83f9, iPhone 17, 2026-11-15):
+at the default text size every line seen sits on one line; at the largest standard Dynamic Type size
+(`content_size extra-extra-extra-large`) the longest, "Casting the new regulations into place…", WRAPS to two lines
+(picture `ios-applying-largest-text-casting.jpg`). Not fixed here: it goes to T726 (Dynamic Type).
+
+Pictures of the pun lines (scratchpad `t746/`, build 2a0ab83f9): `ios-applying-light-reeling.jpg` ("Reeling in…",
+release …-t746b12), `ios-applying-dark-landing.jpg` ("Landing…", …-t746b15), `ios-cold-start-netting-dark.jpg` (a cold
+start's boot screen, "Netting the latest regulations…" under the splash pun, …-t746b16), `web-applying-light-reeling.jpg`,
+`web-applying-dark-landing.jpg`.
 
 Failure line, unchanged and plain: "The new regulations could not be put in place. The app is still using the data it had."
 
