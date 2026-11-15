@@ -42,3 +42,16 @@ Owner: "can you just reset the fraser marks fully and I will redo them when app 
   `review.apply --check` passes; no Fraser DFO place is bound.
 - `dfo-suggestions.json` NOT regenerated: a full run also changes 37 non-Fraser rows (34 places bound since it was
   written). A Fraser-only merge (9 rows) is prepared in the lane's scratchpad; applying it is a copy.
+
+## Owner answers 2026-11-15 (on the triage of his overnight marks)
+- Alexandra Bridge stretches running 4.3 km into Region 3, as DFO's words say: "this is fine".
+- The 12 older group-saved labels (Nanaimo, Chilliwack-Vedder, Stave) being assessed by the data lane: "ok good".
+- Atnarko "downstream of the sign" marked twice: owner sees one extent in the app ("i only see one extent on app?"). Correct:
+  the later mark (2584, with tributaries) replaced the earlier (2582); only the one in force shows. Open only if he did
+  not mean to include the tributaries.
+- Seton mouth cut 250 m below the Hwy 99 bridge cut: owner asked "maybe iut is the way they are retired? … look at it
+  then reccommend what to do". Looked: the two are different real places, not an artefact. Hwy 99 bridge cut
+  (-121.92917, 50.68356, river km 329.4, a synopsis cut: BC's no-fishing stretch runs from it down ~1.2 km to the BC
+  Hydro tail race, km 327.9); Seton River mouth (-121.926856, 50.681805, km 329.1, the exact FWA mouth), 254 m
+  downstream of the bridge. Recommendation (main chat): keep the Seton mouth as its own cut; the 250 m piece between the
+  bridge and the mouth is real water where DFO's place does not apply. Awaiting his yes/no.
