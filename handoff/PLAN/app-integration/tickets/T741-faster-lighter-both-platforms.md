@@ -261,3 +261,29 @@ the first draw (~1,070 ms) the logged work is the release open and the paint dec
   the footprint by +1 to −8 MB against base and by −10 to +14 MB against branch: inside one run's noise. So no
   proposal to lower it, and closing connections when their screen closes (A5) is not worth a change for memory either:
   the page caches never fill on these screens. Recorded; nothing changes.
+
+### Round 3 A: where the launch's ~1.07 s goes (code + the app's own log; branch build, 6 launches, iPhone 17 sim)
+From one launch's log (49299, typical of the six; ms from the process's first log line):
+| step | at | takes | what (code) | skippable on an unchanged release? |
+|---|---|---|---|---|
+| native start, Expo modules made | 0 → 141 | ~140 ms | `Running "main"` at 131-198 ms in all 18 launches | no (native) |
+| JS start: App module top levels, stores opened, React's first mount, boot: held pointer + `heldManifest` (JSON parse), `readsRelease`, tiles compat check, loader made | 141 → ~347 | ~200 ms | `boot.ts` `openSet`; `App.tsx` | checks are cheap and must stay (they refuse a set this app cannot read) |
+| **paint read + decode, SLICED** | ~347 → 848 | **501 ms wall** (`[work] decode paint sliced 501 ms`; 437-501 ms over the 18 launches) | `loader.paint()` → `source.bytes("paint")` (2,311,087 B read from disk, no hash) → `decodePaintAsync` → `runSliced` with an **8 ms** budget, each turn a `setTimeout(0)` (React Native has no `MessageChannel`, so each turn waits for the next timer tick) | see below |
+| core opened | 848 → 851 | 3 ms | `loader.db("core")` | no |
+| Shell mount, map made, first frame | 851 → 1,093 | ~240 ms | the salmon slices 4/8/x decoded before the draw (12 ms), MapLibre's first frame | out of scope here |
+**The paint decode's CPU** (measured on the live release's paint, node `--jitless` as the Hermes stand-in): **~190 ms**
+(JIT: 25 ms), with 883 yield points. Sliced at 8 ms that is ~25 slices; the 501 ms wall is the CPU plus ~25 turns of
+~12 ms waiting (estimated from wall − CPU) plus whatever else the JS thread runs between them. Nothing is hashed at a start
+(the files were hashed when installed); the release is NOT re-verified at a start, and nothing here proposes to.
+
+Ranked options (gain estimated from the numbers above):
+1. **Bigger slices for the launch's paint decode only (40 ms instead of 8 ms) while the boot screen is the only thing
+   on screen** — est. −200 to −250 ms (25 turns → ~5). Nothing a reader sees changes: the boot screen's fish is a native-
+   driver animation (`FishSpinner.native.tsx`, `useNativeDriver: true`), so a busy JS thread does not stutter it, and a
+   40 ms hold stays under the 50 ms of a long task and far under the 300 ms stall limit. An update applied while the map
+   is on screen (`keepReplaced`) keeps the 8 ms slices. **Pick.**
+2. A decoded paint kept on disk beside the release (keyed by release id + the paint's sha256, its own checksum; a stale or
+   corrupt one detected, reported, rebuilt) — saves at most the CPU (~190 ms proxy) minus the cost of reading and
+   rebuilding the members' objects from it; more code and a new on-disk format to keep honest. Second; not built.
+3. Decoding paint without the slices at launch (`runNow`): ~−300 ms but one ~190 ms hold, and the boot line's own
+   updates wait for it; option 1 gets most of that without the hold.
