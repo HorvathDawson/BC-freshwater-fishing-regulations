@@ -667,3 +667,9 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   rather than set to off.)". Scope: those seven places only. The four blank ones are being set to off now (new marks
   appended, noted "saved by Claude at the owner's request"); Bella Coola and the two Bulkley follow once the app can
   record tributaries-only (T742).
+- ASKED 2026-11-15: "also we want to make sure all the mouth/ tidal splits are at the correct one (not the proposed one
+  but at the tidal ones we give every stream)". Audit running: every DFO place with a mouth or tidal end, the point it
+  uses against that stream's own tidal boundary; report `handoff/PLAN/curation-review/mouth-tidal-ends-audit-2026-11-15.md`.
+- OPEN, pick (T753, Sproat and 10 other waters): river pieces that loop out of a lake and back; take them out of the
+  river and give them to the lake (recommended), take out only, or leave. Rides on the next map rebuild.
+- OPEN, six questions (T754, one-bank places: Kitimat west bank, Nakina). On the To-Do page.
