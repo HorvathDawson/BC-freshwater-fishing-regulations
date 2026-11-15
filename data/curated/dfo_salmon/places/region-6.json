@@ -7419,7 +7419,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "shegunia_river__signs_above_the_shegunia_logging_road_bridge_u50m",
+              "shegunia_river__signs_below_the_shegunia_logging_road_bridge_d50m"
+            ],
+            "item_id": "gnis:22777"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
