@@ -38,3 +38,17 @@ are comments only. `pnpm -C app install --frozen-lockfile`: exit 0; `MLRNTapUpRe
 - Feeds worker suite (`npx vitest run --root .` in `app/workers/feeds`): 447 passed.
 - After the t719 merge (head below): `install --frozen-lockfile` exit 0, `check:fast` exit 0, whole vitest **exit 0: 645
   files passed, 5 skipped; 7707 tests passed, 27 skipped, 0 failed**.
+
+## Later commits
+- 90eb55685 audit G12 (`expo-notifications` `enableRemoteNotifications: false`): `expo prebuild -p ios` showed the
+  entitlements without `aps-environment`, associated-domains kept; `expo config --type introspect`: Android modResults
+  identical. Then **HELD by the main iOS chat** (the owner is weighing real push): reverted with a plain `git revert`
+  (3212f4936). Tree at 3212f4936 = tree at 107207143 (the iOS simulator build below), plus these notes.
+
+## Step 2: app CI on the branch
+- Run 43674353270 (107207143): **failed**, 2 tests: `WaterMode.test.tsx` ("▲ on the Vedder opens the Chilliwack's
+  map…", expected false to be true) and `WaterScreen.unnamed.test.tsx` (timed out at 30 s). Both pass locally alone and
+  in the whole local suite; no merged branch touches them. Re-run of the failed job was cancelled by the next push.
+- Run 43676645443 (90eb55685, G12): superseded.
+- Run 43677144021 (3212f4936, same tree as 107207143): **success**, every step (pnpm check, feeds worker, web bundle,
+  native bundles). So the two reds read as CI-load flakes, not fixed; worth watching.
