@@ -3715,7 +3715,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "fraser_river__highway_1_bridge_at_hope_bill_hartley_fraser_hope",
+              "fraser_river__alexandra_bridge_hwy_1"
+            ]
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
