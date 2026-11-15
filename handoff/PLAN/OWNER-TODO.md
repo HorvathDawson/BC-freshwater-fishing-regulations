@@ -194,6 +194,9 @@ with the default Claude uses until you answer). Newest first inside each section
   staging worker's daily limit (40 per address per day); the Mac's test beds used the 40 up, and your phone at home
   shares that address. Pick: give test-bed crashes their own limit of 200 a day on staging, production unchanged: yes
   (my pick) / no. On yes Claude deploys the feeds worker to staging from branch `ios/crash-send`.
+  **ANSWERED 2026-11-15 01:50**, owner, verbatim: "yes to this". The worker commit (441ec090e) goes onto the shared
+  branch and to staging at a time agreed with the Android chat (the owner is testing the staging site; the deploy also
+  re-runs every feed job).
 - **ANSWERED 2026-11-14 (iOS parity audit, T722/T723).** Owner, verbatim: "we want it to progress with app closed in both app
   and android" (the first install download); "need to just update text for ios" (the two promises that do not hold on
   iOS); "everything else looks like a good find should look for more things like that". So: a real iOS background

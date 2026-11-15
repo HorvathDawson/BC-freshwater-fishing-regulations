@@ -198,9 +198,8 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
     is read as your exception to "self-host everything" for push delivery only (Google's Firebase Cloud Messaging):
     right / not right.
 
-19. Crash reports on staging: give test-bed crashes their own daily limit (200 per address) so the Mac's test runs
-    cannot use up the 40 a real phone on the same line gets: yes (my pick; staging only, production unchanged) / no.
-    Then the feeds worker is deployed to staging from `ios/crash-send`.
+19. ANSWERED 2026-11-15 01:50 ("yes to this"): on staging, test-bed crashes get their own daily limit (200 per
+    address). Worker commit 441ec090e; landing and the staging deploy are being timed with the Android chat.
 
 Owner, 2026-11-14, verbatim: "Maybe we could make a handoff to start improving the ios versions? Making sure it is rock
 solid too?" This **reopens iOS**, which the owner benched on 2026-11-06 ("no iOS device work until DFO extents labelled +
