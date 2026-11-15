@@ -40,6 +40,10 @@ export const modalBackIos = {
       return note;
     };
     const words = () => d.screenText();
+    // a staging release published meanwhile is downloaded whole at the next start (~7 min): waited out, never restarted
+    await ctx.step('the app up (a release download waited out)', async () => {
+      await ctx.ios.appUp(ctx, { launch: !d.pidOf(), ms: 1_200_000 });
+    });
     const menu = (key, title) => ctx.step(`menu page: ${title}`, async () => {
       await home(ctx);
       await menuPage(ctx, key);
