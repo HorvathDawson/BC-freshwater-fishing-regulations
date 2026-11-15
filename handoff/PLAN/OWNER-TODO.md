@@ -751,3 +751,6 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
 - DONE 2026-11-15 (Exchamsiks, your permission): new mark line 2728, upstream of the Hwy 16 bridge point, tributaries
   on, saved by Claude at your request; it replaces the whole-river save and waits on the rebuild like your other new-cut
   saves. It shows as "unsure" because the app sets that for any extent using a not-yet-built cut.
+- READY 2026-11-15: the final marks audit is one command (branch review/marks-audit, commits d9f7045 + 88dec44, lands
+  with the other fixes after marking). Trial run on today's marks: 303 candidates in 11 sections; every finding from
+  today's hand audits is in it. Run by the main chat when you say the marks are fully done.
