@@ -183,3 +183,79 @@ def test_mutation_no_join_takes_them_out_of_the_river_only(monkeypatch):
     _, _, out, _ = _run()
     assert "P:898" not in out["gnis:1"].section_ids
     assert out["wbk:L"].section_ids == ("lake:L",)
+
+
+# ---- criterion 5: a loop never divides its lake (Kotcho Lake, 2026-11-15) ----------------------------------------
+
+AREA_DEFS = [{"id": "ecological_reserves", "cut": "clean", "rejoin_m": 1000},
+             {"id": "national_parks", "cut": "clean", "rejoin_m": 1000, "outside_items": {"np": ["wbk:L"]}},
+             {"id": "provincial_parks", "kind": "park", "cut": False},
+             {"id": "regions", "kind": "region", "cut": "first_last", "membership": "both_sides"}]
+ER, NP, PARK, R7 = ("area:ecological_reserves:er", "area:national_parks:np", "area:park:shore_park", "area:region:7b")
+
+
+def _areas(g, lake, *pieces_areas):
+    """Stamp `in_areas`: the lake L, then the Sproat pieces P:898 / P:1295 in that order."""
+    g.nodes["lake:L"] = replace(g.nodes["lake:L"], in_areas=tuple(lake))
+    for nid, a in zip(("P:898", "P:1295"), pieces_areas):
+        g.nodes[nid] = replace(g.nodes[nid], in_areas=tuple(a))
+
+
+def _run_areas(lake, *pieces, defs=AREA_DEFS):
+    g, reg = _world()
+    _areas(g, lake, *pieces)
+    rep: dict = {}
+    return LL.move_lake_loops(reg, g, rep, area_defs=defs), rep
+
+
+def test_a_loop_outside_its_lakes_reserve_stays_with_its_river():
+    out, rep = _run_areas([ER, R7], [R7], [R7])                     # the Kotcho shape
+    assert {"P:898", "P:1295"} <= set(out["gnis:1"].section_ids)
+    assert out["wbk:L"].section_ids == ("lake:L",)
+    row = next(r for r in rep["not_moved"] if r["blk"] == "P")
+    assert row["why"] == LL.AREAS_DIFFER
+    assert row["lake_areas"] == [ER, R7] and row["loop_areas"] == {"P:1295": [R7], "P:898": [R7]}
+    assert rep["areas_checked"] is True and "P" not in {r["blk"] for r in rep["moved"]}
+
+
+def test_one_piece_outside_holds_the_whole_loop():
+    out, rep = _run_areas([ER, R7], [ER, R7], [R7])
+    assert next(r for r in rep["not_moved"] if r["blk"] == "P")["loop_areas"] == {"P:1295": [R7]}
+    assert "P:898" in out["gnis:1"].section_ids
+
+
+def test_a_loop_in_its_lakes_areas_joins_it():
+    out, rep = _run_areas([ER, R7], [ER, R7], [ER, R7])
+    assert out["wbk:L"].section_ids == ("lake:L", "P:1295", "P:898")
+    assert "membership_only_areas_differ" not in next(r for r in rep["moved"] if r["blk"] == "P")
+
+
+def test_a_region_line_through_the_lake_holds_the_loop():
+    _, rep = _run_areas([R7, "area:region:7a"], [R7], [R7])          # a lake in two regions, the loop in one
+    assert next(r for r in rep["not_moved"] if r["blk"] == "P")["why"] == LL.AREAS_DIFFER
+
+
+def test_a_membership_only_area_does_not_hold_the_loop_and_is_listed():
+    out, rep = _run_areas([PARK, R7], [R7], [R7])                   # the Sproat shape: a shore park
+    assert out["wbk:L"].section_ids == ("lake:L", "P:1295", "P:898")
+    assert next(r for r in rep["moved"] if r["blk"] == "P")["membership_only_areas_differ"] == [PARK]
+
+
+def test_an_area_the_lake_is_outside_of_by_ruling_is_not_compared():
+    out, _ = _run_areas([NP, R7], [R7], [R7])                       # areas.json outside_items: wbk:L is outside np
+    assert out["wbk:L"].section_ids == ("lake:L", "P:1295", "P:898")
+
+
+def test_without_area_flags_the_pass_says_it_did_not_check():
+    out, rep = _run_areas([ER, R7], [R7], [R7], defs=None)
+    assert rep["areas_checked"] is False and "P:898" in out["wbk:L"].section_ids
+
+
+def test_mutation_loops_may_divide_a_lake(monkeypatch):
+    monkeypatch.setattr(LL, "LOOPS_NEVER_DIVIDE_A_LAKE", False)
+    out, _ = _run_areas([ER, R7], [R7], [R7])
+    assert "P:898" in out["wbk:L"].section_ids
+
+
+def test_the_membership_only_prefixes_come_from_the_cut_policy():
+    assert LL.membership_only_prefixes(AREA_DEFS) == ("area:park:",)

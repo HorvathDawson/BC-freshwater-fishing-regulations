@@ -301,3 +301,40 @@ def write_resolved(points: list[SplitPoint], path: str) -> None:
             row["confidence"] = p.confidence
         rows.append(row)
     Path(path).write_text(dump_resolved(rows))
+
+
+#: THE CUTS THE BUILD COULD NOT PLACE (T743, the Seton cut, 2026-11-15): every split def that resolved to no point,
+#: {split_id, anchor_type, source (curated | gauge), reason}, written by the atlas build beside `splits.resolved.json`
+#: (`[]` when none). A cut that drops is never silent: the build prints each one and `pipeline.atlas.promote` refuses a
+#: candidate holding an authored one (`--accept-unplaced-cuts` after reading the list).
+UNPLACED_FILE = "split_unplaced.json"
+
+
+def write_unplaced(rows: list[dict], out_dir, log=print) -> None:
+    """Print and write the unplaced split defs (`UNPLACED_FILE`)."""
+    import json as _json
+    from pathlib import Path as _Path
+    rows = sorted(rows, key=lambda r: (r["source"], r["split_id"]))
+    cur = [r for r in rows if r["source"] != "gauge"]
+    if rows:
+        log(f"  ** {len(cur)} curated cut(s) and {len(rows) - len(cur)} gauge cut(s) could NOT be placed "
+            f"-> {UNPLACED_FILE}:")
+        for r in rows[:40]:
+            log(f"      [{r['source']}/{r['anchor_type']}] {r['split_id']}: {r['reason']}")
+    else:
+        log(f"  every split def placed (no row in {UNPLACED_FILE})")
+    d = _Path(out_dir)
+    d.mkdir(parents=True, exist_ok=True)
+    (d / UNPLACED_FILE).write_text(_json.dumps(rows, indent=1) + "\n", encoding="utf-8")
+
+
+def read_unplaced(build_dir) -> list[dict]:
+    """The unplaced split defs an atlas build recorded. Raises when the build has no record (built before T743's
+    report, or not by the atlas build): "none recorded" is not "none"."""
+    import json as _json
+    from pathlib import Path as _Path
+    p = _Path(build_dir) / UNPLACED_FILE
+    if not p.exists():
+        raise FileNotFoundError(f"{p}: no record of the cuts this atlas could not place (built before T743's report) — "
+                                "rebuild it (python -m pipeline build --atlas)")
+    return _json.loads(p.read_text(encoding="utf-8"))
