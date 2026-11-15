@@ -122,9 +122,14 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
   export); the file check written in JS is 16 to 20 % faster (measured in node as a stand-in, not on a phone); the
   background checks for alerts, for new data and for a new app version ask "changed?" first (an unchanged answer is
   0 bytes; it was 24 KB and 6 KB each run). **Simulator, functional (01:40):** the branch passes first open, search,
-  edge-back and tap to page, and every face is drawn as before (by eye against the baseline shots). **Waiting for a
-  quiet machine:** cold start and stalls with and without "load code on first use" (one unexplained tap failure in two
-  runs with it on), memory base against branch, and a smaller database cache. **Looked at and left:** 35 KB of
+  edge-back and tap to page, and every face is drawn as before (by eye against the baseline shots). **Timed on a quiet simulator (03:00 to 04:39), base against
+  branch:** cold start the same (launch to first drawn frame 1,086 against 1,074 ms, spread 115 ms), stalls the same
+  (worst 225 / 240 ms, limit 300), memory the same within noise (240 / 241 MB on a water's page). So the branch is
+  lighter (3.9 MB) and uses less background data, and is neither faster nor slower. **Tried and not kept:** "load code
+  on first use" (24 ms gain inside a 115 ms spread, and a 153 KB bigger bundle); a smaller database cache (no
+  measurable memory saving, so closing database connections is not worth a change either). **Learned:** about 440 to
+  490 ms of the 1.07 s cold start is opening the release and decoding the map colours; that is the next thing to
+  look at for speed. **Looked at and left:** 35 KB of
   developer-only code comes in through Expo's own modules; nothing else in the bundle is dead. **Proposals:** photo
   thumbnails for the spots list (after T732), closing five kinds of database connection with their screen, Android's
   code shrinker (T749). The 44 s check after a first download on iPhone is already gone on `ios/t722-install`.

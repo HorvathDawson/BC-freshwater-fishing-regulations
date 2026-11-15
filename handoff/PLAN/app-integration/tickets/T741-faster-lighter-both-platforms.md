@@ -215,3 +215,49 @@ Builds, same script and signing: base 410564271 (the branch point), branch d2fd8
   shots for the notice too before keeping inline requires (it changes the order module top levels run).
 - **B3 functional (cache build, `PRAGMA cache_size=-256`):** `memory` 10 of 10 steps PASS; the rule book opens. Its
   numbers wait for the timed pair against the branch build (load 6-20 during this run).
+
+### Round 2, TIMED (2026-11-15 03:00-04:39, the quiet slot; t741-17, iPhone 17 sim, iOS 26.5; one heavy job, lane 2)
+Load average (1 min) written at each session start: 4.6-7.2 (the script waited up to 5 min for it to fall under 6; one
+editor process of the owner's uses about one core all night). At the very end of the last memory run the load jumped to
+35.9 (04:39): the cache run's last step only. Simulator numbers: the Mac's CPU, not a phone's.
+Cold start is read two ways: the scenario's screenshot poll (±0.3 s, too coarse to split these builds) and, finer, the
+app's own log per launch (ms from the process's first log line to `Running "main"`, `[setup] opened`, the first
+`[drawn]`; scratchpad `t741/scripts/launches.py`), 6 launches per build (3 `perf` cold starts + the other cold starts of
+that session).
+
+| measure | base 410564271 | branch d2fd851b7 | inline b1f4bb080 | verdict |
+|---|---|---|---|---|
+| `.app` size | 65,720 KB | 61,824 KB | — | −3,896 KB (fonts), measured |
+| cold start, screenshot poll (3 runs) | 712 / 583 / 607 ms | 714 / 603 / 586 ms | 708 / 597 / 612 ms | no difference at ±0.3 s |
+| launch → first `[drawn]`, median (min-max), 6 launches | 1,086 (1,049-1,137) ms | 1,074 (1,021-1,136) ms | 1,050 (1,006-1,072) ms | inline −24 ms against a 115 ms spread: NOT a win |
+| launch → `[setup] opened`, median | 860 ms | 843 ms | 817 ms | inside the spread |
+| `tap-stalls` (limit 300 ms) | PASS, worst 225 ms | PASS, worst 240 ms | PASS, worst 244 ms | all pass |
+| map tap → first frame (cold / warm) | 142 / 54 / 71 ms | 148 / 54 / 66 ms | — | same |
+| `tap-water` ×3 | 2 of 3 (run 2: edge-back) | — | 2 of 3 (run 2: edge-back) | the edge drag failed on BOTH builds in the same round: test bed; the notice failure seen once before did not come back |
+
+**B2 decision: inline requires NOT kept.** The cold start gain (−24 ms median) is inside the run-to-run spread, and
+tap-water was not 3 of 3 (the failure was on both builds, but the rule is the rule). The commit stays on the local side
+branch `perf/t741-inline` only; `perf/t741` never had it. It also makes the bytecode 153 KB bigger.
+**B4 (fonts embedded at build): not done.** No log line marks font loading; between `Running "main"` (~140 ms) and
+the first draw (~1,070 ms) the logged work is the release open and the paint decode (`[work] decode paint sliced`
+~440-490 ms). Nothing shows the 8 faces as a visible share, so the rule for B4 is not met.
+
+**B3 memory, footprint MB** (malloc in brackets; one run each; T725 measured ±30 MB between two runs of one build):
+| step | base | branch | cache_size 256 KiB |
+|---|---|---|---|
+| boot | 135 (46) | 129 (42) | 134 (44) |
+| 8 pans | 161 (51) | 149 (45) | 158 (49) |
+| satellite, 4 pans | 172 (52) | 159 (47) | 173 (53) |
+| a water's page | 240 (59) | 241 (55) | 235 (55) |
+| rule book open / closed | 307 / 251 | 309 / 252 | 299 / 245 |
+| second open / closed | 249 / 252 | 249 / 252 | 241 / 245 |
+| Conditions | 250 (66) | 241 (60) | 244 (61) |
+| Map after Conditions | 243 (63) | 236 (58) | 236 (58) |
+| Salmon | 245 (63) | 238 (58) | 237 (58) |
+| memory warning | 243 (63) | 235 (57) | 235 (58) |
+- Branch vs base: 0 to −12 MB, inside the noise; the fonts were never loaded beyond the 8, so no RAM saving was expected
+  (the saving is the app's size, above).
+- **SQLite cache_size: the ~28 MB ceiling is not real on this path.** 256 KiB per connection instead of 2,000 KiB moved
+  the footprint by +1 to −8 MB against base and by −10 to +14 MB against branch: inside one run's noise. So no
+  proposal to lower it, and closing connections when their screen closes (A5) is not worth a change for memory either:
+  the page caches never fill on these screens. Recorded; nothing changes.
