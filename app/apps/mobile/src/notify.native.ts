@@ -26,7 +26,7 @@ import * as TaskManager from "expo-task-manager";
 import { appUpdateChannel, appVersionFileUrl, NOTIFY_WORDS, now, reportFailure, versionHeaders } from "@app/core";
 import { createNotifySettings, fetchObs, parseManifest, runBackgroundCheck, versionedFetch,
          type Notice, type NotifyData } from "@app/data";
-import { openNotifyStore } from "@app/data/spots";
+import { openNotifyStore, openObsHeldStore } from "@app/data/spots";
 import type { NotifyControls, NotifyPermission } from "@app/ui";
 import { APP_VERSION, ENDPOINTS } from "./config";
 
@@ -49,6 +49,8 @@ const VERSION_FILE = OWN_CHANNEL === "play" ? null : OWN_VERSION_FILE && ENDPOIN
   ? `${ENDPOINTS.base}/test/app/android/${OWN_VERSION_FILE.split("/").pop()}` : OWN_VERSION_FILE;
 const FETCH = versionedFetch((u, i) => fetch(u, i),
                              versionHeaders(APP_VERSION, { platform: platformLine(), ua: true }));
+
+const OBS_HELD = openObsHeldStore();
 
 let channels: Promise<void> | null = null;
 function ensureChannels(): Promise<void> {
@@ -76,7 +78,8 @@ TaskManager.defineTask(TASK, async () => {
   try {
     await runBackgroundCheck({
       settings, now, appVersion: APP_VERSION, notify: raise,
-      obs: () => fetchObs(ENDPOINTS.alertFeed, FETCH),
+      // (T741) a conditional GET with the last copy kept: an unchanged obs.json costs a 304, not ~24 kB a run
+      obs: () => fetchObs(ENDPOINTS.alertFeed, FETCH, undefined, OBS_HELD),
       latestApp: VERSION_FILE ? async () => {
         const res = await FETCH(VERSION_FILE, { cache: "no-store" });
         if (!res.ok) throw new Error(`${VERSION_FILE}: HTTP ${res.status}`);

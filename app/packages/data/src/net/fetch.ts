@@ -173,11 +173,13 @@ export async function fetchResilient(url: string, o: ResilientOptions = {}): Pro
  * (T254) A SMALL JSON FILE over a bad line (the gauge feed's index and station files): the response and its body within
  * `limits.totalMs`, else the try is cut; tried `attempts` times with backoff. A 4xx answers at once (`{ status }`, not an
  * error: a 404 means "not transmitting"); a dead line throws `NetError`. The body is read with `res.json()`, so any
- * fetch that answers JSON will do.
+ * fetch that answers JSON will do. (T741) `headers` are sent as given (a conditional GET's `If-None-Match`: its 304 is a
+ * `{ ok: false, status: 304 }` answer); a 200 carries the origin's `ETag` (null when none was sent).
  */
 export async function fetchJsonResilient<T>(url: string, o: { fetchImpl?: typeof fetch; attempts?: number; limits?: Timeouts; cache?: RequestCache;
+                                                                headers?: Record<string, string>;
                                                                 sleep?: (ms: number) => Promise<void>; rand?: () => number } = {}):
-    Promise<{ ok: true; value: T } | { ok: false; status: number }> {
+    Promise<{ ok: true; value: T; etag: string | null } | { ok: false; status: number }> {
   const fetchImpl = o.fetchImpl ?? fetch;
   const attempts = o.attempts ?? 2;
   const lim = o.limits ?? timeoutsFor(null);
@@ -192,9 +194,10 @@ export async function fetchJsonResilient<T>(url: string, o: { fetchImpl?: typeof
         timer = setTimeout(() => { ctl.abort(); fail(new NetError(`${url}: no answer in ${lim.totalMs} ms`, "timeout")); }, lim.totalMs);
       });
       const got = await Promise.race([(async () => {
-        const res = await fetchImpl(url, { signal: ctl.signal, ...(o.cache ? { cache: o.cache } : {}) });
+        const res = await fetchImpl(url, { signal: ctl.signal, ...(o.cache ? { cache: o.cache } : {}),
+                                           ...(o.headers ? { headers: o.headers } : {}) });
         if (!res.ok) return { ok: false as const, status: res.status };
-        return { ok: true as const, value: (await res.json()) as T };
+        return { ok: true as const, value: (await res.json()) as T, etag: res.headers?.get?.("ETag") ?? null };
       })(), cut]);
       if (!got.ok && (got.status >= 500 || got.status === 408 || got.status === 429)) {
         last = new NetError(`${url}: HTTP ${got.status}`, "http", got.status, attempt);

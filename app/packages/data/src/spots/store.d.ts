@@ -61,3 +61,5 @@ export declare function openDataModeStore(): { read(): string | null; write(text
 export declare function openRunSpeciesStore(): { read(): string | null; write(text: string): void };
 /** (T234) The notification settings, alert rules and background-check log, as whole text; device-only. */
 export declare function openNotifyStore(): { read(): string | null; write(text: string): void; keepAside(text: string): void };
+/** (T741) The background check's last `obs.json` and its ETag (`fetchObs`'s `held`): a cache file on a phone. */
+export declare function openObsHeldStore(): { read(): string | null; write(text: string): void };

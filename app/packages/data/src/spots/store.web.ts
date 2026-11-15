@@ -186,6 +186,12 @@ export function openDataModeStore(): { read(): string | null; write(text: string
   return keyStore("canifishthis.lowData.v1");
 }
 
+/** (T741) The background check's last `obs.json` and its ETag; the web runs no background check, so it is never
+ *  written there — one key of its own, the same surface as the phone's. */
+export function openObsHeldStore(): { read(): string | null; write(text: string): void } {
+  return keyStore("canifishthis.obsHeld.v1");
+}
+
 function keyStore(LAYERS_KEY: string): { read(): string | null; write(text: string): void } {
   return {
     read: () => { try { return globalThis.localStorage?.getItem(LAYERS_KEY) ?? null; } catch { return null; } },
