@@ -224,6 +224,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T727 | iOS: store pack, everything except what needs the Apple account (IOS-10) | IN PROGRESS (iOS chat, docs lane; screenshots after T718) | — | owner 2026-11-14 (iOS reopened, simulator only); stub IOS-10 in handoff/PLAN/ios/START-HERE-ios.md |
 | T728 | A Flow / Level pick in the Conditions card no longer changes the Conditions map's layer | IN PROGRESS (before closed testing) | — | owner 2026-11-14 ("when you chang elvel/condition in the card it should not change cindition map layers too"); code + test done; left (Claude): an emulator look on the next APK |
 | T729 | Map attribution goes under the legends on every map tab | OPEN (before closed testing) | — | owner 2026-11-14 ("attribution on app goes under the legends on the different map tabs"); needs Shell.tsx (T717's) for the foot's credit row; left (Claude): code + test + emulator look |
+| T738 | The first-install bar counts every file that is downloading, not one at a time (it read 38.8 MB with 116 MB on disk after a relaunch; both platforms) | IN PROGRESS (code + tests on `ios/t738-bar`; left (Claude): gates, then the Android `bg-install` and iOS `first-open` device runs in the ticket) | — | T722 simulator proof 2026-11-14 (iOS chat); Android downloads the same way |
 
 ## Next after closed testing
 

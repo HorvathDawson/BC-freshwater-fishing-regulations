@@ -29,7 +29,7 @@ import { sha256Hex } from "../sha256";
 import type { WaterSource } from "../index";
 import type { SourceOptions } from "./source";
 import { bigFiles, heldFrom, heldManifest, heldPath, install, installBytes, pointerFor, POINTER as POINTER_PATH, prune, readHeld, sameSet,
-         synopsisPath, writeHeld, type Progress, type ReleaseFs } from "./install";
+         synopsisPath, writeHeld, type LookBytes, type Progress, type ReleaseFs } from "./install";
 import { rawFetch } from "./assets";
 import type { BackgroundNative, BgItem, BgJob } from "./bgDownload";
 import { withLiveSalmon, type SalmonFeedSource } from "../feed/salmon";
@@ -53,6 +53,8 @@ export interface ReleasePlatform {
     dirUri(path: string): string;
     fileUri(path: string): string;
     background?: { queue(items: BgItem[], metered: boolean): Promise<void> };
+    /** (T738) what the device holds of each big file now: the bar counts them from the first moment (`tally.ts`) */
+    look?: LookBytes;
     space?: DeviceSpace;
   } | null;
 }
@@ -369,7 +371,7 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
     }
     o.onStage?.("install");
     held = await install(latest, dev.fs, dev.download, o.releaseBase, old, (p) => o.onProgress?.(p), dev.toDisk,
-                         () => writeHeld(dev.fs, PREVIOUS, old), rawFetch(f));
+                         () => writeHeld(dev.fs, PREVIOUS, old), rawFetch(f), dev.look);
   }
   if (!held) {
     if (!latest) throw new BootError(`first run: the manifest could not be read (${unread ?? "no answer"})`, true);
@@ -402,7 +404,7 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
       if (!downAt && p.of > 0 && p.bytes >= p.of) { downAt = clockNow(); console.info(`[setup] downloaded in ${downAt - t0} ms`); }
       last = p;
       o.onProgress?.(p);
-    }, dev.toDisk, undefined, rawFetch(f));
+    }, dev.toDisk, undefined, rawFetch(f), dev.look);
     console.info(`[setup] installed ${clockNow() - (downAt || t0)} ms after the last byte`);
     // (T272) THE SECOND STAGE goes on through opening the set: the manifest, paint, core (the steps below)
     const p = last as Progress | null;    // set by the callback above
@@ -513,7 +515,7 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
       if (replaced) { await prune(dev.fs, replaced.h, replaced.m, now, set.m); replaced = null; }
       await checkRoom(next, now, dev.space, await jobsOf(o.background));
       const h = await install(next, dev.fs, dev.download, o.releaseBase, now, onProgress, dev.toDisk,
-                              () => writeHeld(dev.fs, PREVIOUS, now), rawFetch(f));
+                              () => writeHeld(dev.fs, PREVIOUS, now), rawFetch(f), dev.look);
       // (T722 F6) after each install: what it made (a new tile folder, the new rule book) is marked with the rest
       await outOfBackup(o.noBackup, dev, next);
       staged = h;
