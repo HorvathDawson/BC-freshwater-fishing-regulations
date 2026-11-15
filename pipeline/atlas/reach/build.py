@@ -876,6 +876,16 @@ DFO_JOINING_WATER_STAYS_OUT = True
 A_WORD_READ_THAT_STOPS_MATCHING_STOPS_THE_RUN = True
 #: the rule key a DFO place's rule carries (set by `reach.dfo_salmon`, never by the corpus)
 JOINING_WATER_STAYS_OUT_KEY = "_joining_water_stays_out"
+#: POLICY (T743, 2026-11-15; D5's reason applied to T468): A DFO LAKE PLACE'S THROUGH-RIVER ABOVE THE LAKE STAYS OUT
+#: unless DFO's words name it. T468 takes a lake row's through-river in when it has "no row of its own", and a DFO place
+#: is resolved with no table of rows (`owned` None), so EVERY through-river read as unrowed: "Redsand Lake, including
+#: tributaries" (a lake on the Kitsumkalum mainstem 2 km below Kitsumkalum Lake) took the Kitsumkalum River above it,
+#: Kitsumkalum Lake's whole basin with it — 2,635 of its 2,639 sections, 3,086 km — and "Kitsumkalum Lake, including
+#: tributaries" took the 1,643 sections of the river above the lake; the Kitsumkalum River has DFO places of its own on
+#: the same page. Keyed on the same rule key as D5 (`JOINING_WATER_STAYS_OUT_KEY`), so the reach run and the review app
+#: (both shape the rule in `dfo_salmon.entries.to_reach_input`) agree by construction. Reported in the `through_river`
+#: diagnostic (`stays_out`). False = every DFO through-river goes with the lake, as before (the mutation pin).
+DFO_THROUGH_RIVER_STAYS_OUT = True
 
 
 def _joiners_at(graph, registry, owned, entry, words, sid, kind, label, blk, m, done, *,
@@ -1167,6 +1177,8 @@ def _through_river_with_the_lake(graph, registry, owned, entry, rule, reach, own
     if not _tribs.A_LAKE_ROWS_UNROWED_THROUGH_RIVER_IS_A_TRIBUTARY:
         return set()
     words = " ".join(str(rule.get(k) or "") for k in ("verbatim", "extent_text"))
+    # T743: a DFO place has no rows to say which through-river is a water of its own — it stays out unless named
+    stays_out = bool(rule.get(JOINING_WATER_STAYS_OUT_KEY)) and DFO_THROUGH_RIVER_STAYS_OUT
     add: set[str] = set()
     for lake in sorted(s for s in reach if s in own_water):
         if _resolve._kind_of(graph, lake, registry) != "lake":
@@ -1177,8 +1189,9 @@ def _through_river_with_the_lake(graph, registry, owned, entry, rule, reach, own
             water = (graph.nodes[inlet].display_name or "").strip()
             own = own_rows(registry, owned, {inlet}, entry.get("entry_id"))
             negated = bool(water) and _rule_excludes(words, water)
+            held = stays_out and not (bool(water) and _rule_includes(words, water))
             joined = 0
-            if not own and not negated:
+            if not own and not negated and not held:
                 got = {s for s in _tribs.subtree(graph, {inlet})
                        if s not in blocked and s not in passed and s not in own_water
                        and s not in reach
@@ -1187,7 +1200,8 @@ def _through_river_with_the_lake(graph, registry, owned, entry, rule, reach, own
                 joined = len(got - add)
                 add |= got
             expand.through.append({"lake": lake, "inlet": inlet, "water": water or "(unnamed)",
-                                   "own_row": list(own), "negated": negated, "joined": joined})
+                                   "own_row": list(own), "negated": negated, "joined": joined,
+                                   **({"stays_out": True} if held else {})})
     return add
 
 

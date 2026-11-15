@@ -392,6 +392,7 @@ def test_policy_version_is_bumped_when_classify_changes():
         "a_failed_scope_unbinds_the_row": reach_build.A_FAILED_SCOPE_UNBINDS_THE_ROW,
         "a_line_the_atlas_lists_inside_is_tidal": outside.A_LINE_THE_ATLAS_LISTS_INSIDE_IS_TIDAL,
         "dfo_joining_water_stays_out": reach_build.DFO_JOINING_WATER_STAYS_OUT,
+        "dfo_through_river_stays_out": reach_build.DFO_THROUGH_RIVER_STAYS_OUT,
         "verbatim_reads_are_guarded": reach_build.A_WORD_READ_THAT_STOPS_MATCHING_STOPS_THE_RUN,
     })
     expected.update({"confluence_cut_excludes_the_joining_water": True,
@@ -414,8 +415,9 @@ def test_policy_version_is_bumped_when_classify_changes():
                      "a_failed_scope_unbinds_the_row": True,
                      "a_line_the_atlas_lists_inside_is_tidal": True,
                      "dfo_joining_water_stays_out": True,
+                     "dfo_through_river_stays_out": True,
                      "verbatim_reads_are_guarded": True})
-    assert cache.POLICY_VERSION == "38", "update this pin with the version it was taken at"
+    assert cache.POLICY_VERSION == "39", "update this pin with the version it was taken at"
     assert policy == expected, (
         f"classify.py policy changed to {policy} — bump cache.POLICY_VERSION "
         f"(currently {cache.POLICY_VERSION!r}) and update this test together")
