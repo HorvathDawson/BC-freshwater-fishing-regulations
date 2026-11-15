@@ -77,3 +77,27 @@ timed number; memory's trim step logs `MemoryTrim … N map view(s) told` with N
 "Failed to install surface view detach guard" (rule 4); the rule book opens in memory's viewer step (pdfium); the
 background task is registered (bg-install; WorkManager's DB opened = rule 1). A crash: read the stack, add the rule with
 its reason, rebuild; at most 4 rounds. Dex and APK sizes before/after in this ticket; R8's mapping.txt kept with the APK.
+
+## Phase 2, part A (2026-11-15 06:47–06:56, heavy lane 2): the two APKs, MEASURED
+Same commit 9fe5e2d6c (clean), both with the patched MapLibre (libmaplibre.so build id 7bf3dc29, T420 lean), arm64,
+test-bed env (staging, test channel, `--crash-stub` crash URL, cleartext + profileable patches), release build.
+
+| | flag off (`app-testbed-stub-nor8.apk`) | `CANIFISHTHIS_R8=1` (`app-testbed-stub-r8.apk`) | change |
+|---|---|---|---|
+| APK | 62,424,108 B | 54,970,637 B | −7,453,471 B (−11.9 %) |
+| dex, uncompressed (`classes*.dex`) | 30,358,616 B in 5 files | 7,892,984 B in 1 file | −74 % |
+| dex, as stored in the APK | 11,024,320 B | 3,577,539 B | −7.45 MB |
+| native libs (`lib/`, stored) | 39,662,720 B | 39,662,720 B | 0 |
+| assets | 5,009,184 B | 5,009,167 B | ~0 |
+
+Measured with `stat` and `unzip -lv` on the two APKs. Prebuild printed `android.enableMinifyInReleaseBuilds=false` / `=true`
+and the R8 build's proguard-rules.pro held the T749 block; R8's `mapping.txt` (65 MB) is kept beside the APK
+(`app/tools/testbed/out/mapping-r8.txt`, gitignored). The Play download is an ESTIMATE: bundletool is not installed, and
+Play compresses dex in its own way, so the stored-dex delta (~7.4 MB) is the best figure for the Play download saving. Not
+measured: an AAB.
+
+How built: a build-only copy of session.sh's step 1 (`--crash-stub`), the same prebuild, manifest patches, env, Gradle line,
+MapLibre build-id check and `build-stamp.mjs write`, without the emulator boot that session.sh always does after a build
+(part A was builds only, while the simulator lane ran). The APK names are session.sh's own (`--crash-stub` +
+`TESTBED_APK_TAG=nor8|r8`), so part B reuses them via session.sh with `--allow-stale` (this ticket commit moved HEAD; the
+app code is 9fe5e2d6c's). `pnpm -C app check:fast` green after the builds.
