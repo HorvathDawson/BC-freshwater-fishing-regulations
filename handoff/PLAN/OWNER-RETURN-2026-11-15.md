@@ -132,9 +132,12 @@ after the clean-up and the rebuild; the final list replaces these numbers here.
   the app mid-download restarts the big files from zero; fix written on a branch, not yet run on a device.
 - Feed server on staging now lists closed areas (17) and says so; the other chat's app half (a closed area missing from
   the feed reads "not known", never open) waits for the Android build, then merges.
-- NEW, being checked today: the live feed has no entry for DFO's seven "rest of the region" places (Regions 1, 2 x2, 3,
-  5A, 7, 8). Unknown yet what the app shows for a water under one of them; if it is wrong it must be fixed before
-  closed testing.
+- FOUND AND CHECKED 2026-11-15 (T758, the other chat): under live DFO data, a water covered only by a region's default
+  rule shows the right status (closed) but a generic line ("Not opened by DFO: closed to salmon fishing") instead of
+  DFO's own sentence; about 1.1 million stream sections in Regions 1, 2, 3, 5A, 7, 8. No case shows open today (all
+  seven default sentences are closures or zero limits; checked for 153 chains x 5 species x 366 days). It would be wrong
+  on a day a default sentence OPENS something. Fix in progress on the feed server only; no app update needed. The
+  production feed server has the same gap: that deploy is yours.
 - Staging release of all this: NOT DONE (needs the bundle checks and a working line).
 
 ## 7. What needs testing by you
