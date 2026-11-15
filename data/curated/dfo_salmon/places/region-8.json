@@ -362,7 +362,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "shuswap_river__signs_50_m_upstream_of_trinity_bridge",
+              "shuswap_river__signs_50_m_downstream_of_trinity_bridge"
+            ],
+            "item_id": "gnis:25478"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
