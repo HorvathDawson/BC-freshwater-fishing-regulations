@@ -3,7 +3,7 @@
 import { describe, expect, it } from "vitest";
 import worker from "../src/index";
 import { compose } from "../src/events";
-import { classifyCrash, crashEvents, crashHash, handleCrash, listCrashes, listCrashesCounted, parseClasses, purgeCrashes, validateCrash, CRASH_PER_DAY } from "../src/crashes";
+import { classifyCrash, crashEvents, crashHash, handleCrash, listCrashes, listCrashesCounted, parseClasses, purgeCrashes, validateCrash, CRASH_PER_DAY, CRASH_TEST_PER_DAY } from "../src/crashes";
 import type { R2BucketLike } from "../src/io";
 
 /** (T431) the required secret (a worker without it answers 503) */
@@ -139,6 +139,49 @@ describe("the test tag (T291)", () => {
     await handleCrash(post(crash({ test: true })), { BUCKET, REPORT_SALT: SALT, FEEDS_ENV: "production" }, at("2026-10-29T20:00:00Z"));
     expect([...BUCKET.m.keys()].filter((k) => k.includes("crashes-test"))).toEqual([]);
     expect(await crashEvents(BUCKET, () => false, at("2026-10-29T21:00:00Z"), "x")).toHaveLength(1);
+  });
+});
+
+// (iOS crash lane, 2026-11-15) the iPhone's exit record, as the 0.7.9 simulator build sent it (`exitPayload` of the Swift
+// record: CRASH_NATIVE, SIGSEGV, foreground; the `--testbed` build tags it `test`). Every send in the T718 runs was answered
+// 429 with a 45-byte body — exactly the per-address day limit's — and the one sent just after 00:00 UTC was taken (201).
+const IOS_EXIT = {
+  format: "crash/2", created: "2026-11-14T20:16:36.123Z", kind: "native", fatal: true, background: false,
+  route: "other", water: null, view: null, part: null, whole: false, sheet: null, install: "0123456789abcdef",
+  app: "0.7.9 (31)", env: "staging", platform: "ios 26.5", release: "r-f749475d0962",
+  name: "NativeExit", message: "CRASH_NATIVE while foreground, 274 MB in use, status 11: SIGSEGV", stack: "", test: true,
+};
+describe("the iPhone's exit record (iOS crash lane)", () => {
+  it("is taken: 201, stored apart as a test kind on staging", async () => {
+    const BUCKET = new MemBucket();
+    const r = await handleCrash(post(IOS_EXIT), { BUCKET, REPORT_SALT: SALT, FEEDS_ENV: "staging" }, at("2026-11-15T00:01:01Z"));
+    expect([r.status, await r.json()]).toEqual([201, { ok: true }]);
+    expect([...BUCKET.m.keys()].filter((k) => k.startsWith("private/crashes-test/"))).toHaveLength(1);
+  });
+  it("the refusal the simulator got is the per-address day limit: 429, body exactly 45 bytes", async () => {
+    const BUCKET = new MemBucket();
+    const untagged = { ...IOS_EXIT, test: undefined };
+    let t = Date.parse("2026-11-14T17:00:00Z");
+    for (let i = 0; i < CRASH_PER_DAY; i++) { await handleCrash(post(untagged), { BUCKET, REPORT_SALT: SALT, FEEDS_ENV: "staging" }, new Date(t)); t += 1500; }
+    const r = await handleCrash(post(untagged), { BUCKET, REPORT_SALT: SALT, FEEDS_ENV: "staging" }, new Date(t));
+    const body = await r.text();
+    expect([r.status, body, new TextEncoder().encode(body).length]).toEqual([429, '{"ok":false,"error":"too many reports today"}', 45]);
+    // a new UTC day takes it again
+    expect((await handleCrash(post(untagged), { BUCKET, REPORT_SALT: SALT, FEEDS_ENV: "staging" }, at("2026-11-15T00:00:30Z"))).status).toBe(201);
+  });
+  it("a tool's crash (`test`, staging) counts against its own per-address day, so test beds never spend a real phone's 40", async () => {
+    const BUCKET = new MemBucket();
+    const env = { BUCKET, REPORT_SALT: SALT, FEEDS_ENV: "staging" };
+    let t = Date.parse("2026-11-14T17:00:00Z");
+    const send = async (b: unknown) => { const s = (await handleCrash(post(b), env, new Date(t))).status; t += 1500; return s; };
+    for (let i = 0; i < CRASH_PER_DAY; i++) expect(await send(IOS_EXIT)).toBe(201);
+    expect(await send({ ...IOS_EXIT, test: undefined })).toBe(201);           // the same address's real report is still taken
+    for (let i = CRASH_PER_DAY; i < CRASH_TEST_PER_DAY; i++) await send(IOS_EXIT);
+    expect(await send(IOS_EXIT)).toBe(429);                                  // the tool's own day is bounded too
+    // on production the tag is not honoured: one counter, as before
+    const prod = { BUCKET: new MemBucket(), REPORT_SALT: SALT, FEEDS_ENV: "production" };
+    for (let i = 0; i < CRASH_PER_DAY; i++) { await handleCrash(post(IOS_EXIT), prod, new Date(t)); t += 1500; }
+    expect((await handleCrash(post(IOS_EXIT), prod, new Date(t))).status).toBe(429);
   });
 });
 
