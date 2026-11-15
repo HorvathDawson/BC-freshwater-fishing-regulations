@@ -660,7 +660,7 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   places at build time, and does it follow when one is added, removed or changed. Fixes, if needed, come as proposals.
 - ASKED 2026-11-15, on the audit's re-saved places (33 saved more than once, Thompson link, Fraser Region 3, Sheldens
   Creek): "please audit these and see if you see any issue". Second look running; report
-  `handoff/PLAN/curation-review/resaved-marks-second-look-2026-11-15.md`.
+  to come in handoff/PLAN/curation-review/ (resaved-marks-second-look, dated 2026-11-15).
 - PERMISSION 2026-11-15, verbatim: "i give you permission to fix these (Three places mean tributaries only and are wrong
   today: Bella Coola "all tributaries" also includes the mainstem. The two Bulkley places have tributaries off, while
   their proposals have them on.) and these too (Stave and three "mainstem" places have the tributary choice left blank
@@ -669,7 +669,10 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   record tributaries-only (T742).
 - ASKED 2026-11-15: "also we want to make sure all the mouth/ tidal splits are at the correct one (not the proposed one
   but at the tidal ones we give every stream)". Audit running: every DFO place with a mouth or tidal end, the point it
-  uses against that stream's own tidal boundary; report `handoff/PLAN/curation-review/mouth-tidal-ends-audit-2026-11-15.md`.
+  uses against that stream's own tidal boundary; report to come in handoff/PLAN/curation-review/ (mouth-tidal-ends-audit, dated 2026-11-15).
 - OPEN, pick (T753, Sproat and 10 other waters): river pieces that loop out of a lake and back; take them out of the
   river and give them to the lake (recommended), take out only, or leave. Rides on the next map rebuild.
 - OPEN, six questions (T754, one-bank places: Kitimat west bank, Nakina). On the To-Do page.
+- ANSWERED 2026-11-15 (T753, river pieces that loop out of a lake and back; Sproat): "yes do both steps but make sure it
+  is done in a clean way". Both steps = take the pieces out of the river, then give them to the lake. Code lane started;
+  it lands with the next map rebuild.

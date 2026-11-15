@@ -146,3 +146,8 @@ never meets the item's named line outside a lake.
   it is `354087683:898`, the side line. That only orders clash suffixes, but it goes away with either fix.
 - Scratch evidence (not committed): `/private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/51a6025f-10ca-4232-b730-e92b1263ce2f/scratchpad/D2.json`
   holds all 114 runs with distances, and `step2.py` to `step5.py` are the queries.
+
+## Owner answer 2026-11-15
+"yes do both steps but make sure it is done in a clean way" (both = option (b) take the pieces out of the river, then
+(a) give same-lake loops to the lake). Build lane started; the atlas rebuild that carries it is the one held for the
+owner's new cuts.
