@@ -55,6 +55,14 @@ tested against the Android chat's oracle file) and `app/t757-piece-not-known` (a
 reads "not known, check the DFO notice" and is reported, never open). No staging worker deploy without the Android
 chat's word. Its release step already refuses an upload that binds a piece when the worker does not say it emits them.
 
+**Added 14:58.** (1) T757 is written, both halves pushed, nothing merged: worker `feeds/t757-worker-pieces` 2523097a9
+(479 worker tests pass, equal to the Android chat's oracle), app `app/t757-piece-not-known` a5af25920 (the card reads
+"Not known: today's DFO check does not include this closed area. Check the DFO notice before you fish."). Left: the
+Android chat's read, a staging worker deploy with its word, merge after build 33, one emulator look. (2) The R8 branch
+`perf/r8-play` carries the new shared head (merge 6a2dc612d, pushed) and its shrinker-on test APK is built
+(`app-testbed-stub-r8play2.apk` in the R8 lane's worktree): tomorrow only the six runs remain. (3) T756's bench changes
+are written and unit-tested on `fix/t756-keep-running-job` c0ad16d62, not yet run on the emulator (needs the line).
+
 ## Morning summary, 2026-11-15 (written 07:32; the night's work in one place)
 
 **For you to do, in this order**
