@@ -143,3 +143,30 @@ describe("background (T298): the system's downloader carries the big files", () 
     expect(log).toEqual([]);
   });
 });
+
+describe("(T722) a relaunch re-attaches a job already part way down", () => {
+  it("the bar's first word is what the job already holds, not zero; nothing is queued again", async () => {
+    const fs = memFs(), URL = "https://r2.test/release/basemap.pmtiles";
+    const half = BODY.length >> 1;
+    let polls = 0;
+    const enqueue = vi.fn(async () => 99);
+    // iOS's module after a relaunch: the job is restored with the bytes it had (the record kept by the delegate's
+    // progress), running, then done on the next poll
+    const dm: BackgroundNative = {
+      // (fill asks once to find the job, then polls it)
+      jobs: async () => { const on = ++polls <= 2;
+        return [{ id: 7, url: URL, status: on ? "running" : "done", reason: 0, bytes: on ? half : BODY.length,
+                  total: BODY.length, metered: true, present: true }]; },
+      enqueue, remove: async () => {},
+      claim: async (_id, to) => { fs.files.set(to.replace("file:///doc/", ""), BODY); },
+      sha256: async (uri) => sha256Hex(fs.files.get(uri.replace("file:///doc/", ""))!),
+    };
+    const seen: number[] = [];
+    const bg = background(dm, fs, async () => { throw new Error("no fallback"); }, { pollMs: 1 });
+    await partDownload({ ...fs, hash: (p) => dm.sha256(fs.uri(p)) }, bg.fill)(URL, "f",
+      { bytes: BODY.length, sha256: sha256Hex(BODY) }, (n) => seen.push(n));
+    expect(seen[0]).toBe(half);
+    expect(enqueue).not.toHaveBeenCalled();
+    expect(fs.files.get("f")).toEqual(BODY);
+  });
+});

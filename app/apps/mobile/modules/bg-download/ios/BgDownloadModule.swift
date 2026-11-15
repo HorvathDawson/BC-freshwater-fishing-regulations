@@ -113,9 +113,12 @@ final class BgDownloader: NSObject, URLSessionDownloadDelegate {
           if j.status != "done" && j.status != "failed" {
             if let t = byId[j.id] {
               self.missingSince[j.id] = nil
-              j.bytes = t.countOfBytesReceived
-              j.total = t.countOfBytesExpectedToReceive > 0 ? t.countOfBytesExpectedToReceive : -1
-              j.status = t.state == .suspended ? "paused" : (t.countOfBytesReceived > 0 ? "running" : "pending")
+              // (T722) a task re-attached at launch reports 0 until its next network tick: the record's bytes (kept by
+              // `didWriteData`, on disk) are what it already holds, so the bar starts there, not low
+              j.bytes = max(t.countOfBytesReceived, rec.bytes)
+              let expected = t.countOfBytesExpectedToReceive
+              j.total = expected > 0 ? expected : (rec.total > 0 ? rec.total : -1)
+              j.status = t.state == .suspended ? "paused" : (j.bytes > 0 ? "running" : "pending")
             } else {
               let since = self.missingSince[j.id] ?? now
               self.missingSince[j.id] = since
@@ -182,6 +185,21 @@ final class BgDownloader: NSObject, URLSessionDownloadDelegate {
   }
 
   // MARK: the session's delegate (its own serial queue)
+
+  /** bytes the record had when it was last written to disk, per job: written again every 4 MB, not every tick */
+  private var savedAt: [Int: Int64] = [:]
+
+  func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64,
+                  totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
+    guard let id = Int(downloadTask.taskDescription ?? "") else { return }
+    q.sync {
+      guard var j = jobs[id], j.status != "done", j.status != "failed" else { return }
+      j.bytes = totalBytesWritten
+      if totalBytesExpectedToWrite > 0 { j.total = totalBytesExpectedToWrite }
+      jobs[id] = j
+      if totalBytesWritten - (savedAt[id] ?? 0) >= 4 << 20 { savedAt[id] = totalBytesWritten; save() }
+    }
+  }
 
   func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
     guard let id = Int(downloadTask.taskDescription ?? "") else { return }
