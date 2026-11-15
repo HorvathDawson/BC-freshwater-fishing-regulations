@@ -93,6 +93,11 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
   change nothing a reader sees, on the branch. Savings that would lose detail or change what is shown become
   proposals for the owner.
 
+- `ios/t746-apply-splash` (T746, **started 23:40**, from `ios/t722-install`): while new data is applied the app shows a
+  loading mark and a line of text, not a still screen (owner, relayed by the Android chat: "also when changes apply to
+  app we want to make it so that it has a loading icon with text like splash so it doesnt looking like it is frozen.
+  (applying changes as in new data regs)"). Android, iPhone and web. The wording will come to the owner with pictures.
+
 **What failed or was found**
 - **iOS background download refused on the simulator, then fixed:** the system service rejected every task ("does not
   have a bundle ID") in two runs. Cause: our simulator build skipped Xcode's signing step, which is what gives the app
