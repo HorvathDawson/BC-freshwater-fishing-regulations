@@ -136,3 +136,32 @@ left by run 1 (203 of 479.3 MB on screen): invalid. Wi-Fi this boot: CONNECTED.
 | spots | runs 1 and 2: FAIL in the test bed | PASS | test bed (run 1: shade + Wi-Fi; run 2: started on an app mid-install); re-run in the quiet window |
 | regs-open | run 1 under a TestFlight archive (load 13.3): Norrish cue 56/40/60 page 357/349/351; unnamed cue 39/**202/223** page 332/414/363; Coquitlam cue 49/72/75 page 343/350/355; Fraser cue 58/71/62 page 347/331/358; Skeena cue 131/67/77 page 586/375/373; Cultus cue 108/81/75 page 367/337/361; double tap PASS | cue 22-112, page 352-402 | not judged (taken under load); quiet re-run pending |
 | tap-stalls | not run | cold start worst 125 ms, Run timing 262 ms | quiet window |
+
+### Session 3 (not fresh, lane 2, 00:14-00:50; functional; other lanes ran jobs meanwhile)
+| step | result | branch alone (T723) | note |
+|---|---|---|---|
+| modal-back: About | PASS, closed at 300 ms | closes | |
+| modal-back: Help | PASS, closed | closes | |
+| modal-back: Layers sheet | PASS, closed | closes | |
+| modal-back: PDF viewer | PASS, closed | closes | |
+| modal-back: photo viewer | FAIL "the modal is not up before the swipe" | closes (300 ms) | the step's own shot shows the viewer up ("Photo 1 of 1", ×). The scenario reads ids `photo-viewer`/`photo-image`, both in the app: **test-bed misread**, not judged as app |
+| audit: arrow ↗ | PASS, U+FE0E present, crop 25x25 fill 0.16, colour gap 9 to the link text | PASS | |
+| audit: ⚠ / ↩ titles | SKIP (not on this water) | SKIP | |
+| audit: G7 location prompt | PASS, "…to centre the map on where you are and to pin a spot where you are standing…" | PASS | |
+| audit: G6 Spots line + Open Settings | PASS | PASS | |
+| audit: G6 map My-location line + Open Settings | PASS | PASS | |
+| audit: G6 Open Settings opens Settings | PASS | PASS | |
+| audit: G5 rough fix | SKIP (Settings gives no way to Precise Location) | SKIP | unit-tested |
+| audit: G8 Directions → Apple Maps | PASS | PASS | |
+| audit: G9 refused link | SKIP (no refusable link on the simulator) | SKIP | unit-tested |
+| audit: G11 What's new | PASS, 18 rows, none says Google Play/Android/APK; 0.6.5, 0.6.4, 0.6.0 not listed on iOS | PASS (17 rows then) | |
+| audit: G2 staged update | FAIL, apply lines 0 / 0 / 0 | not proven (0, 0, 0) | same as on the branch: no positive control, so neither proven nor refuted |
+
+**Found on a screen (not from the merge):** the photo viewer's "Photo 1 of 1" label lies under the iOS status-bar clock (no
+top safe-area inset in its header: `padding: 12` only, in the base too; t723 only wraps it in `ModalBack`). An iOS look
+fix for a later ticket.
+
+**Staging writes by scenarios (their own design):** audit-fixes G2 ran `deploy/staging/test-updates.mjs` reset → a
+synthetic release → reset on the STAGING `test/` channel; Android run 1's bg-install ran `resetChannel`. `test/` read
+after session 3 (`test-updates.mjs status`): `data_release r-f749475d0962`, gauges a live copy, i.e. the live release,
+as before.
