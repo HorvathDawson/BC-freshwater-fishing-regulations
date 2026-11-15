@@ -23,7 +23,30 @@ Desktop, Fraser River, by how long after the map painted the click came (staging
 | 6 s | 8.4 s | the same `water` download, then geo + access after it |
 | 12 s | 1.1 s | nothing big (the prefetch is on the other regions' regs) |
 
+Live staging, click 3 s after paint (fresh profile): desktop Fraser 3.3-10.5 s, Vedder 7.8 s, Elk Creek 7.0 s, an
+unnamed stream 10.8 s; phone Fraser 5.1-5.4 s, Elk Creek 5.8 s, unnamed 12.0 s; search → Open 4.6 s (desktop); a
+`/water/<slug>` link 2.0 s desktop / 3.2 s phone (SEO page, no map). A second click and a reload in the same browser:
+0.05 s (the release cache holds the files). In every slow run the whole `water` (often + `core`) was downloading.
 The full table (way in × cold/warm × desktop/phone) is in the results folder (`results.md`).
+
+## Before / after (local exports of b2dba0297 and b2dba0297 + this fix, both on data-staging, alternated)
+
+| click 3 s after paint | before | after |
+|---|---|---|
+| desktop Fraser (3 runs) | 3.6 / 0.8 / 4.3 s | 1.7 / 0.8 / 1.0 s |
+| desktop Fraser, 10 Mbit/40 ms | 3.6 s | 1.3 s |
+| phone Elk Creek | 4.9 s | 1.0 s |
+| phone Fraser, 10 Mbit/40 ms | 4.3 s | 1.0 s |
+| search → Open, desktop / phone | 3.3 / 5.4 s | 1.0 / 1.9 s |
+| unnamed stream, desktop (2) / phone (2) | 4.3, 4.0 / 4.2, 4.6 s | 5.6, 5.4 / 3.4, 4.5 s (unchanged: see Left) |
+
+## Left (not this fix; follow-up candidates)
+- An UNNAMED stream's first tap still takes 4-6 s: it needs `regs-sid` (1.2 MB), `down` (1.1 MB) and `lines` (1.3 MB),
+  whole files with no slices. Options: region slices of regs-sid/down/lines (pipeline `slices.py`), or put them first
+  in the background order.
+- A tap AT first paint (before the map's region settle calls `loader.focus`) reads the whole `core` (1.5 MB) and waits
+  for it (2-8 s measured, before and after). Option: focus from the start camera's region at boot (`startRegion` is
+  only a link's today).
 
 ## Cause
 After first paint the web starts two downloads nobody asked for: the idle open of the whole `core`
