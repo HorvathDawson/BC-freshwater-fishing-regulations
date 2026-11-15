@@ -6605,7 +6605,12 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:12684"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
