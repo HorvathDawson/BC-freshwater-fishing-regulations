@@ -24,14 +24,15 @@ vi.mock("expo-file-system", () => {
     async bytes() { return files.get(this.uri)!.bytes; }
   }
   class DownloadTask {
-    constructor(private url: string, private to: File, private o: { onProgress?: (p: { bytesWritten: number; totalBytes: number }) => void }) {}
-    async downloadAsync() { tasks++; urls.push(this.url); if (this.url.includes("/gone/")) throw Object.assign(new Error("rejected"), { cause: "HTTP 404" }); const b = new Uint8Array([1, 2, 3, 4]); this.to.put(b); this.o.onProgress?.({ bytesWritten: 4, totalBytes: 4 }); return this.to; }
+    constructor(private url: string, private to: File, private o: { onProgress?: (p: { bytesWritten: number | bigint; totalBytes: number | bigint }) => void }) {}
+    // (T722) a url with "/ios/" reports as iOS does: Int64s, BigInt in JS
+    async downloadAsync() { tasks++; urls.push(this.url); if (this.url.includes("/gone/")) throw Object.assign(new Error("rejected"), { cause: "HTTP 404" }); const b = new Uint8Array([1, 2, 3, 4]); this.to.put(b); this.o.onProgress?.(this.url.includes("/ios/") ? { bytesWritten: 4n, totalBytes: 4n } : { bytesWritten: 4, totalBytes: 4 }); return this.to; }
     release() {}
   }
   return { File, DownloadTask, Paths: { cache: "cache", document: "doc" } };
 });
 
-import { openHighlighted, synopsisHeld } from "./synopsisPdf.native";
+import { loadSynopsis, openHighlighted, synopsisHeld } from "./synopsisPdf.native";
 import { closePdf, getPdfView } from "./pdfView";
 
 /** an index for the 4-byte test book: 9 pages, page 9's /Annots array is object 20 and holds one link */
@@ -112,5 +113,15 @@ describe("synopsisPdf.native (T285, T354)", () => {
     await openHighlighted(gone, 9, BOX);
     expect(urls).toEqual([gone.url, "https://data.test/release/live/synopsis.pdf"]);
     expect(getPdfView()?.page).toBe(9);
+  });
+
+  it("(T722) iOS's Int64 progress (BigInt in JS) reaches the hooks as numbers; Android's numbers pass as they are", async () => {
+    for (const url of ["https://data.test/ios/synopsis.pdf", "https://data.test/android/synopsis.pdf"]) {
+      files.clear();
+      const seen: unknown[] = [];
+      await loadSynopsis({ ...S, url }, fetch, { onProgress: (n, of) => seen.push([n, of]) });
+      expect(seen[0]).toEqual([4, 4]);
+      expect(seen.flat().every((v) => typeof v === "number")).toBe(true);
+    }
   });
 });

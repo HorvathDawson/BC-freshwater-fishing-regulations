@@ -134,7 +134,10 @@ const nativeFill = (tries = 4): PartFill => async (url, part, _have, total, onBy
     // to a temp file moved into place only at the end (no `.part` to resume from), and whose JS side is lost when the
     // app is killed. Android ignores the option.
     const task = new DownloadTask(url, to, { headers: { Range: `bytes=${have}-` }, sessionType: "foreground",
-                                             onProgress: (p) => onBytes?.(have + p.bytesWritten) });
+                                             // (T722, T718) iOS hands `bytesWritten` as an Int64, a BigInt in JS:
+                                             // `have + BigInt` threw on every tick and the bar never moved there.
+                                             // Number() of Android's number is the number.
+                                             onProgress: (p) => onBytes?.(have + Number(p.bytesWritten)) });
     try {
       const done = await task.downloadAsync();
       if (!done) throw new Error(`${url}: the download stopped`);
