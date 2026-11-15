@@ -188,3 +188,30 @@ cache):
 Up to 17 connections; a typical session 6-9 (core, water, geo, 1-3 regs regions, conditions, climate, near). Sharing one
 connection (ATTACH) would change the SQL queue and every query's schema name: not proposed. Closing on screen close
 changes nothing a reader sees but needs the device measure (B3) to show the page cache is real memory first.
+
+### Round 2, device (iPhone 17 simulator `t741-17`, iOS 26.5, `--probes` builds from this worktree, lanes 2/3)
+Builds, same script and signing: base 410564271 (the branch point), branch d2fd851b7, inline b1f4bb080 (side branch
+`perf/t741-inline`, not on perf/t741), cache 0519af399 (side branch `perf/t741-cache`, never to merge).
+**Size, measured on the built apps:** `.app` 65,720 KB (base) → 61,824 KB (branch), −3,896 KB; fonts 41 → 8 (900,016 B);
+`main.jsbundle` 6,161,085 → 6,144,737 B. Inline requires makes the bytecode bigger: 6,297,876 B (+153,139 B on the branch).
+
+**B1 functional (FUNCTIONAL ONLY: the machine was loaded, load 7.5-21; no number below is a timed result):**
+- branch, fresh install: first-open PASS (513 s to the map); search Cultus → regulations PASS; edge-back PASS; tap on the
+  lake → page PASS; walkthrough PASS to step 27 of 41 when the 28-min session cap stopped it (Maestro ~45 s a step);
+  `perf` not reached. ONE FAIL: "the data is staging (More → About)": the More tab was hidden by the first-run notice.
+  Cause, from the app log: step 1 passed at ~00:28:56 while the install was still verifying (installed 00:29:37); the
+  notice then came up after the map opened. A test-bed race on a slow download, not the app: base, fresh install, same
+  device, same steps: all 5 PASS (478 s; there the install had ended before step 1 finished).
+- **Faces drawn as before:** compared by eye, side by side, the branch shots (`runs/b1-branch/002…`, `003…`) with
+  `handoff/PLAN/ios/shots/baseline/tap-water.jpg` / `first-open.jpg`: Bricolage on the headings ("Before you fish",
+  "Closed", "✓Open", "Let's find a water"), Archivo on the body and rows, JetBrains Mono on the month letters J F M …;
+  no system face anywhere. Shots in the session scratchpad `t741/runs/`.
+- Install hash after the last byte (from the app log, NOT like for like: different download speeds and load): branch
+  25,546 ms, base 23,253 ms (T718's 44,158 ms was another day's line). No claim on item 2 from this.
+- **B2 functional (inline build, not timed):** `tap-stalls` 5 of 5 PASS (numbers not counted: load 6-28). `tap-water`:
+  first run, 2 PASS + 1 FAIL — after a cold start the first-run notice ("Before you fish") was up over the map and the
+  tap opened nothing; the control re-run (same device, base then inline, back to back) passed all 3 on BOTH builds. So 1
+  failure in 2 inline runs, 0 in 3 base runs: not reproduced, not explained, and a reason to read the timed B2 runs'
+  shots for the notice too before keeping inline requires (it changes the order module top levels run).
+- **B3 functional (cache build, `PRAGMA cache_size=-256`):** `memory` 10 of 10 steps PASS; the rule book opens. Its
+  numbers wait for the timed pair against the branch build (load 6-20 during this run).
