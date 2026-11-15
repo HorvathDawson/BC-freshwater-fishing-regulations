@@ -143,7 +143,10 @@ with the default Claude uses until you answer). Newest first inside each section
   Associated Domains on (Push left off: Claude turns the unused push entitlement off in the build, audit G12), and the
   app record exists. The Apple side is complete. FIRST TESTFLIGHT RUN: owner 2026-11-14 late, verbatim: "you can do first
   ios release test for me". Claude started it 21:32: staging data, version 0.7.10 as iOS build 33, from f51870652 (last
-  green app CI, the same app code as Play build 32). Result in T88 / the iOS handoff summary. Later TestFlight runs: ask
+  green app CI, the same app code as Play build 32). RESULT 21:33: stopped in the signing step after 1 minute, nothing uploaded. Apple: "Your team has no devices
+  from which to generate a provisioning profile": Xcode's automatic signing needs one iPhone registered on the team
+  before it can archive. YOURS (2 minutes): register your iPhone under developer.apple.com → Devices (steps in chat),
+  then tell Claude, who runs it again. Later TestFlight runs: ask
   first unless you say otherwise (Claude's reading: the go-ahead was for the first one). History: ENROLLED 2026-11-14, waiting for Apple's approval (owner, verbatim: "okay i enrolled with
   apple developer I will tell you wne i get approved"). This answers decision 1 of `handoff/PLAN/ios/START-HERE-ios.md`
   (account now). ANSWERED 2026-11-14 evening, verbatim: "it is a individual evelper account" (so the App Store shows

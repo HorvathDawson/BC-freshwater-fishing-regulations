@@ -86,6 +86,13 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
   download carries on across a relaunch).
 - **The simulator was the bottleneck all day:** five lanes behind one lock, waits of up to three hours.
 
+**First TestFlight run (owner's go-ahead 21:30, "you can do first ios release test for me")**
+- Tried 21:32 from f51870652 (last green app CI, same app code as Play build 32), staging data, 0.7.10 as build 33.
+  Stopped after 1 minute in signing; nothing was uploaded. Cause: the team has no registered iPhone, and Xcode's
+  automatic signing needs one to archive. Waits for the owner to register his iPhone; then one re-run.
+- The Apple account side is otherwise complete (individual account, Team ID, App ID with Associated Domains, app
+  record, API key).
+
 **Not started**
 - T721 (edge-swipe back grid), T726 (screens on four iPhone sizes, light and dark, large text, VoiceOver), the store
   screenshots and video, the remaining test-bed ports (saved spots, photos, feeds, offline update), the simulator run of
