@@ -82,6 +82,14 @@ Report: `handoff/PLAN/curation-review/fraser-channels-2026-11-15.md` (no mark, c
   boundary moves to the "bridge near the mouth" (57 m upstream of today's boundary). Queued for the rebuild after the
   marks are done (curated tidal limit change + reach rerun); not applied yet.
 
+## Cut clean-up after labelling (2026-11-15)
+Report, rebuild input and 23 owner questions: `handoff/PLAN/curation-review/cut-cleanup-2026-11-15.md`. Done (fd78c0a6f +
+write-through 9652ef28f, e702daa70, 7ed7a57fa): Pallant tidal boundary at the bridge (owner row + authority `owner`);
+marks 2734-2739 (Illiance, Wilauks open mouth end; Gitnadoix unused m-0 cut dropped; Morice at the Bulkley confluence;
+Morice Gosnell put back as saved, Q8). 23 new cuts remain for the side rebuild, none a duplicate; the Skeena's Hell's Gate is
+`skeena_river__kitsumkalum_river_into_skeena_river_u1500m` (never renamed); the Skeena Lakelse / Babine confluence cuts do not
+exist (Q12, Q13).
+
 ## Before the release that carries the labels (added 2026-11-15)
 - Puntledge: weir cut added and the 75 m cut moved onto the right spot (bf1a29567, owner asked); takes effect at the
   atlas rebuild; owner re-ticks marks 1263, 2447, 2687 after it. The dormant "from the weir at the lower hatchery" place
