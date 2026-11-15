@@ -1,6 +1,6 @@
 # T757 — Feeds worker and app: closed areas inside a DFO place (T573's pieces) are live locations, never read as open
 
-Status: IN PROGRESS (iOS chat; started 2026-11-15 14:44 on the spec `T573-files/worker-handoff.md`; branches `feeds/t757-worker-pieces` and `app/t757-piece-not-known`, nothing merged).
+Status: IN PROGRESS (iOS chat; both halves written and pushed 2026-11-15, NOT merged: worker `feeds/t757-worker-pieces` 2523097a9, app `app/t757-piece-not-known` a5af25920; left: the Android chat reads them, staging worker deploy with its word, merge after build 33, one emulator look at the "not known" card).
 
 Source: Android chat 2026-11-15 (its pipeline lane's T573 build step), agreed between the two chats the same day.
 
@@ -33,3 +33,23 @@ area as OPEN, without a word. Nothing binds today (the owner has confirmed no pi
   are what is deployed there now). No release with bound pieces before that.
 
 Depends: the spec; T573's branch. Size: M. Production stays the owner's.
+
+## State 2026-11-15 14:57 (iOS chat; each lane's own Results section is on its branch)
+- **Worker, `feeds/t757-worker-pieces` 2523097a9:** `src/dfo/closures.ts` is the port of the read side of `closures.py`;
+  wired after the fingerprint join in `live.ts`; `/status.json` serves `"dfo": {"pieces": 1}` on the 200 and the 503.
+  Tested against the oracle's three cases (locs, verdicts, gears, rules), the id grammar, the two typing slips (values
+  from the Python), first-entry-wins, and the real pages through the regenerated vectors (17 pieces: region 3: 3,
+  region 6: 13, region 8: 1). Worker suite 31 files / 479 tests pass (re-run by the iOS chat); `check:fast` rc 0. The
+  lane broke each covered part by hand and saw its test fail. It changed `pipeline/tools/emit/dfo_vectors.py` (a
+  `pieces` entry per page) and bumped `DFO_REV`.
+- **App, `app/t757-piece-not-known` a5af25920:** in `core/salmonFeed.ts` `composeFeedPayload`, a chain naming a location
+  whose `p` entry has `piece: 1` and `bound: 1` and which `feed.locs` lacks reads "check" every species and day with
+  `SALMON_WORDS.pieceNotKnown` ("Not known: today's DFO check does not include this closed area. Check the DFO notice
+  before you fish."), `reportFailure` once per location per feed read. All readers go through that one function. 7 new
+  tests; core 121 files / 1568 pass. No fixture with the marker exists under app/, so the tests build the payload by hand.
+- **Open points:** (1) the worker's saved pages give 265 locs (248 places + 17), the spec's pin says 271 (254 + 17) from
+  the pipeline's own page fixtures; region 6 matches (137 -> 150). Not pinned by a worker test; asked the Android chat.
+  (2) No saved page has a piece under a region-header closure; that path is the same line as any place, untested.
+  (3) When DFO drops an item, a bound piece reads "not known" and reports every feed read until the release changes:
+  by the agreed rule. (4) The two branches conflict only in this ticket file (both append a Results section).
+  (5) No device or emulator look yet.
