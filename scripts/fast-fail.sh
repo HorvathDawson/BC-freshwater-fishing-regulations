@@ -210,6 +210,23 @@ source_scanners() {
 }
 step "every source scanner (a pipeline Python file changed)" source_scanners
 
+# caught 2026-11-15 (CI red on 189458c93 and 67c9b32f1): T742 B dropped `historic_only`'s groups argument and T742 C made
+# `search_splits` read the atlas registry; test_marks_never_orphaned still passed the groups and
+# test_review_checklist's cut-search test (data-free) now read the build. The lanes ran `test_review_*` / `test_dfo_*`
+# directly in the DATA tier, so the build was visible and the first file was not in the run at all. A changed review
+# module (pipeline/regs/review, the review app's backend) runs EVERY test file that reads review code (found by the
+# same grep each time, so a new one joins by itself) under CI's markers, which hide this machine's builds (tiers.py)
+review_tests() {
+  grep -qE '^(pipeline/regs/review|curation-review/backend)/.*\.py$' <<<"$CHANGED" \
+    || { echo "   (no review module changed)"; return 0; }
+  local files markers
+  files=$(git grep -l -E 'pipeline\.regs\.review|regs\.review import|curation-review' -- 'pipeline/tests/test_*.py')
+  markers=$(no_data_markers) || return 1
+  # shellcheck disable=SC2086
+  "$PY" -m pytest -q -p no:cacheprovider -m "$markers" $files
+}
+step "every review test, CI's tier (a review module changed)" review_tests
+
 # caught 2026-11-14 (CI red on b07996827): scripts/test-env.sh hard-coded .venv/bin/python, which a hosted runner has
 # not; nothing ran the contract's test before the push. A changed scripts/test-*.sh, test-env runner or tiers file runs
 # it (~1 s; it also proves the source stops naming PIPELINE_PY when no interpreter is found)

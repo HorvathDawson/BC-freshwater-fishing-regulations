@@ -596,6 +596,8 @@ def test_a_cut_search_lists_this_waters_cuts_before_any_other_waters(monkeypatch
     recs = {"t1": ("Deadman Creek", {"label": "bridge"}), "t2": ("Deadman Creek", {"label": "bridge two"}),
             "m1": ("Thompson River", {"label": "CNR bridge"}), "m2": ("Thompson River", {"label": "rail bridge"})}
     monkeypatch.setattr(R, "_split_records", lambda: recs)
+    # T742 C added the asker's region-line crossings, read from the atlas registry: none here (data-free, CI has no build)
+    monkeypatch.setattr(R, "_registry", lambda: {})
     assert [h["id"] for h in R.search_splits("bridge")] == ["t1", "t2", "m1", "m2"]                 # no water named: file order
     got = R.search_splits("bridge", first=["thompson river "])
     assert [(h["id"], h["own"]) for h in got] == [("m1", True), ("m2", True), ("t1", False), ("t2", False)]
