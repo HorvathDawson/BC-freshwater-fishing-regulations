@@ -165,3 +165,39 @@ fix for a later ticket.
 synthetic release → reset on the STAGING `test/` channel; Android run 1's bg-install ran `resetChannel`. `test/` read
 after session 3 (`test-updates.mjs status`): `data_release r-f749475d0962`, gauges a live copy, i.e. the live release,
 as before.
+
+## Quiet window (2026-11-15 02:06-02:59): final results (these rows replace the "pending" rows of the summary above)
+Other lanes held by the coordinator; `heavy.sh --status` showed only my job each time. Load averages are beside each run.
+
+### Android (n1_pixel, APK of 3212f4936, `--no-r2`: nothing written to the bucket; `test/` read `r-f749475d0962` = live)
+| scenario | load | result | base | verdict |
+|---|---|---|---|---|
+| bg-install | 4.4 | **7/7 PASS**: asks on mobile data ("Download about 479.3 MB using mobile data?", notifications asked), Wait for Wi-Fi saved and said, Wi-Fi back starts it (13.9 MB), app killed mid-download → system notification "2 files downloading", relaunch → map up 291 s later, Settings shows Wi-Fi only | PASS | same behaviour |
+| spots | 4.9-6.4 | 10 PASS, 2 FAIL, 1 SKIP. FAIL = the shared `spot-notes` flow's `takeScreenshot`: this Maestro refuses its absolute path ("resolves outside this run's takeScreenshot output folder"), both with `--out` and with the default folder; the spot page had opened and "Edit" was visible | PASS | **test bed** (flow + Maestro version, any build). The Android keyboard edit / "Save changes" step is **unverified**; every other step (create offline with a photo, stored, pending weather, cold start offline, weather fills in online, delete) passes |
+| regs-open | 4.2-6.1 | **all PASS**; per water cue / page (ms), taps 1/2/3: Norrish 46/29/54, 353/359/357 · unnamed 54/48/63, 344/348/345 · Coquitlam 49/74/68, 360/352/354 · Fraser 55/81/69, 344/359/344 · Skeena 49/85/100, 348/357/343 · Cultus 73/75/74, 339/340/346; double tap zooms, no page | T716 round 2: cue 22-112, page 352-402 | **unchanged** (cue 29-100, page 339-360). The run-1 unnamed 202/223 ms was load |
+| tap-stalls | 4.2-6.1 | **5/5 PASS**: cold start worst 121 ms (69, 61, 121), Salmon 0, Run timing 140, bell 0, back to Standard 0 | cold start 125, Run timing 262 | **unchanged or better**; under 300 ms |
+
+### iOS (integ-17, build of 107207143 with t719)
+| scenario | load | result | before (T719 / T720) | verdict |
+|---|---|---|---|---|
+| regs-open + t719 cue | 5.3-10.6 (Maestro's own Java and macOS mediaanalysisd; no other lane) | **all PASS**; cue / page (ms from the lift), taps 1/2/3: Norrish 7/9/8, 377/377/376 · unnamed 25/9/11, 375/374/375 · Coquitlam 20/68/64, 377/377/376 · Fraser 17/67/66, 376/374/374 · Skeena 31/90/89, 378/378/379 · Cultus 53/58/51, 389/372/375. Click (press) still 351-354 ms after the lift | cue 371-495 ms, page 401-553 ms; Coquitlam had no target | **cue within 150 ms on every tap (7-90 ms)**; page unchanged class; Coquitlam now measured |
+| double tap (Norrish) | same | **PASS**: 2 taps 217 ms apart, map changed 33 %, no page, cue lit then out, nothing reported | PASS | same |
+| tap-stalls | 6.9-8.4 | **5/5 PASS**: cold start worst 214 ms (214, 126, 132), Salmon 0, Run timing 168, bell 0, Standard 0 | cold start 227, Run timing 169 | unchanged; under 300 ms |
+
+### Every step that passed on a branch alone or in a baseline and fails here
+None that is the app's. Fails that remain, each a test-bed fault: iOS first-open's About step (still downloading on a slow
+line, false pass fixed in 51349c3bf), iOS tap-water search → page (same install), iOS modal-back photo viewer (misread;
+the viewer is up in its own shot), Android spots edit step (Maestro screenshot path). G2 is "not proven" as on its branch.
+
+### What did not run / is not proven
+- Android spots' keyboard edit and "Save changes" step (test bed, above).
+- iOS first-open on a good line (download speed not judged); a real phone for everything iOS.
+- iOS photo-viewer edge-back on this build (misread).
+- G5, G9 (simulator cannot reach them); G2 (no positive control).
+
+### End state
+- Emulator n1_pixel stopped. App data: the test-bed APK of 3212f4936 with the release installed. The spots runs deleted
+  their test spots. "Testbed czwb4" from run 1 was never saved (its save step failed), and run 2's never got that far.
+- Simulator integ-17 shut down, kept (iOS 26.5, our app installed with its release).
+- Staging `test/` channel: `r-f749475d0962` (the live release).
+- Untracked in my worktree: links `.venv` and `cache/maplibre` to the main checkout (not committed).
