@@ -3241,7 +3241,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "ksi_sii_aks_river__nass_road_bridge"
+            ],
+            "item_id": "gnis:3828"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
