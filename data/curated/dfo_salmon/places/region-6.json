@@ -4296,7 +4296,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "kitimat_river__hwy_37_bridge"
+            ],
+            "item_id": "gnis:3225"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
