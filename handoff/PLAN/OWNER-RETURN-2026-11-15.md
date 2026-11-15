@@ -7,7 +7,7 @@ rows on the To-Do page; reports named here are in `handoff/PLAN/curation-review/
 Status line (updated 14:50 by the system clock; earlier stamps on this page ran fast): review-app fixes and follow-ups,
 the closed-area build step and the desktop split map are landed and pushed; the side map rebuild passed its checks
 and is being promoted locally (marks landing, reach step, data bundle running); no staging release yet; the Android
-build with the code shrinker is tomorrow (the internet line here is down).
+build with the code shrinker may be today (its phone checks are re-running; the line is fine after all).
 
 ## 1. First thing to do
 1. Restart the review app once (Ctrl-C, then `bash curation-review/run.sh`). It has new code: tributaries only /
@@ -126,9 +126,15 @@ after the clean-up and the rebuild; the final list replaces these numbers here.
 - Desktop split map (text left, map right): DONE and pushed; visible on staging after the next site deploy.
 - Local only: one test fails in the main copy because two rows of your proposals file (Stave, Bella Coola "all
   tributaries") lack their split-hunt evidence; say so and the main chat regenerates those rows.
-- Android build with the code shrinker: TOMORROW. Five of six phone checks passed; the background-install check cannot
-  run on today's line. Found on the way (T756, the other chat): reopening the app mid-download restarts the big files
-  from zero; fix written on a branch, not yet run on a device.
+- Android build with the code shrinker: POSSIBLY TODAY. The "internet line is down" reports after 13:04 were wrong (the
+  other chat's probe asked for a wrong address); the line is fine. The six phone checks are re-running on today's head;
+  if all pass, the main chat builds and uploads to Play internal. Found on the way (T756, the other chat): reopening
+  the app mid-download restarts the big files from zero; fix written on a branch, not yet run on a device.
+- Feed server on staging now lists closed areas (17) and says so; the other chat's app half (a closed area missing from
+  the feed reads "not known", never open) waits for the Android build, then merges.
+- NEW, being checked today: the live feed has no entry for DFO's seven "rest of the region" places (Regions 1, 2 x2, 3,
+  5A, 7, 8). Unknown yet what the app shows for a water under one of them; if it is wrong it must be fixed before
+  closed testing.
 - Staging release of all this: NOT DONE (needs the bundle checks and a working line).
 
 ## 7. What needs testing by you
