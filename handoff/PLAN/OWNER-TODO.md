@@ -713,3 +713,18 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   marking (T743).
 - ANSWERED 2026-11-15 (T752 desktop split): "for the layout choose which ever you think is best practice". Main chat
   chose B (text left, map right), from 900 px wide on every platform; being built properly with tests.
+- PUNTLEDGE checked 2026-11-15 (report `handoff/PLAN/curation-review/puntledge-hatchery-fence-2026-11-15.md`): you are
+  right, and for every user of that cut. The cut "signs 75 m downstream of Puntledge River hatchery fence" sits on the
+  lower-hatchery weir itself: its anchor was placed on the hatchery grounds 74 m upstream of the weir, so the 75 m
+  offset lands on the fence. Fix (your words: "make sure we fix this existing split"): anchor moved onto the weir, 75 m
+  offset kept; the cut lands 75 m below. Queued for the rebuild after marking. Yours afterwards: re-tick the three marks
+  that use it (lines 1263, 2447, 2687). No other "N m downstream of" place has this fault.
+- ASKED 2026-11-15 (Shuswap River, middle): "need help representing this ((middle) between Shuswap Falls and Mabel Lake
+  except closed from the water survey station … to WTFB signs … one km down stream.) it has the except closed structure
+  we encountered before". Save the place as the whole stretch (Shuswap Falls to Mabel Lake); the closed part becomes a
+  second, no-fishing entry as on the Thompson. The reader of DFO's page did not pick up this "except closed from … to …"
+  wording; being fixed in a separate copy. The two printed coordinates do not match the words (second is south of the
+  first); being checked.
+- ASKED 2026-11-15: "there was one river i dropped highway 16 split near mouth in the skeena i shouldnt have done that
+  help me fix it please". Found: Exchamsiks River "upstream of Highway 16 bridge", mark 2674, saved as the whole river.
+  Fix: save it again as upstream of the proposed "Hwy 16 bridge over the Exchamsiks" point; the new save replaces it.
