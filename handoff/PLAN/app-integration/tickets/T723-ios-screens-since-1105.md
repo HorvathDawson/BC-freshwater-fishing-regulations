@@ -81,3 +81,8 @@ here: wrap the credits Modal in ModalBack after ios/t723-keyboard-back merges, a
   lake).
 - T730 again PASS: search reopens empty. The step's note "still says Cultus" was the test bed reading the recents chip;
   the shot shows an empty field.
+
+## Found on the combined build (ios/next d658f88ac, simulator, 2026-11-15 08:30)
+- **Conditions → Alert me: the decimal pad covers the value field** (field 780 to 821 pt, keyboard top 566 pt; shot in the
+  `next-ios-s2` session folder). The keyboard scenario records this step and marks it PASS; it is the "alert box on the
+  Conditions card" this ticket listed as not proven. To fix here with the same lift the Notifications fields got.

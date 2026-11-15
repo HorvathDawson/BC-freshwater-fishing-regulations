@@ -220,6 +220,25 @@ describe("releaseLoader", () => {
     await whole;
     expect(await L.dbFor("core", { items: ["gnis:1"] })).toBe(await whole);
   });
+  it("(T737, 2026-11-15) warmSlice opens the focus region's slice before any read names a key; nothing when the whole is here", async () => {
+    const ms = manifest({ core: "c", water: "w", "core-2": "c2", "water-2": "w2", "water-shared": "ws" });
+    const asked: string[] = [];
+    const base = fakeOpen();
+    const L = releaseLoader(ms, { bytes: async (n: string) => { asked.push(n); return new Uint8Array(); } },
+                            async (n: DbName, bytes: () => Promise<Uint8Array>) => { await bytes(); return base(n); });
+    await L.warmSlice!("water");                              // no region focused yet: nothing
+    expect(asked).toEqual([]);
+    L.focus("2");
+    await L.warmSlice!("water");
+    expect(asked).toEqual(["water-2"]);
+    const asked2: string[] = [];
+    const L2 = releaseLoader(ms, { bytes: async (n: string) => { asked2.push(n); return new Uint8Array(); } },
+                             async (n: DbName, bytes: () => Promise<Uint8Array>) => { await bytes(); return base(n); });
+    L2.focus("2");
+    await L2.db("water");                                     // the whole water here: a warm asks no slice
+    await L2.warmSlice!("water");
+    expect(asked2).toEqual(["water"]);
+  });
   it("refuses a file whose meta is not the manifest's, and does not cache the failure", async () => {
     const L = releaseLoader(m, src, fakeOpen("core/0"));
     await expect(L.db("core")).rejects.toBeInstanceOf(ReleaseError);

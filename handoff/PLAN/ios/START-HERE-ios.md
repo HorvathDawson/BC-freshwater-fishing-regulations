@@ -1,6 +1,69 @@
 # iOS hardening: start here (written 2026-11-14)
 
-## Summary of the unattended day, 2026-11-14 (state at 22:15; lanes still running are marked)
+## Morning summary, 2026-11-15 (written 07:32; the night's work in one place)
+
+**For you to do, in this order**
+1. **Install TestFlight build 36** (uploaded 07:32; it replaces 34 and 35: everything below is in it). App Store
+   Connect → TestFlight → your internal group → add build 36; on the iPhone, TestFlight → install.
+2. **Try on the phone what only a phone can show:** start the first download, lock the screen a few minutes, switch
+   apps, swipe the app away and reopen (it should carry on, and the bar should show what is already down); tap a
+   river (it should light at once); left-edge swipe on About, Help, Layers.
+3. **Push test:** More → Notifications → turn on "New regulations data", allow notifications, put the app in the
+   background, tell Claude; Claude sends one test push; then More → Notifications → "Last background checks" should
+   show a newest line starting "woken by our server".
+4. **Answer when you can** (also on the To-Do page): which fish-pun lines stay; merge timing of the iOS work into the
+   shared branch; the open picks further down (questions 2 to 5, 9 to 13, 15 to 18).
+
+**What build 36 carries (branch `ios/next`, app CI green, nothing merged into the shared branch)**
+| part | what it does | how well proven |
+|---|---|---|
+| iOS fixes (T719, T722, T723, audit) | background first download, early tap cue, keyboard and back-swipe fixes | iPhone simulator and Android emulator, quiet machine: pass; Android unchanged |
+| First-install bar (T738) | the number counts the big files from the start and after a relaunch | simulator: bar 325 MB with 362 MB on disk, never went down; Android not run |
+| "Applying new data" screen (T746) | fish and a pun line, no taps, a failed apply says so | simulator and web: seen, timed; Android not run |
+| Push wake-ups (T739) | the server wakes the phone for alerts and new data | registering proven on the simulator; the wake itself needs your phone (step 3) |
+| Crash reports (T718) | a refused report is logged and reported; test runs no longer use up the daily limit on staging | unit tests; staging worker deployed 02:05 |
+| Faster and lighter (T741) | cold start 786 ms against 1,030 ms (simulator); app 3.9 MB smaller (8 fonts, not 41); background checks ask "changed?" first | simulator, measured; Android not measured |
+
+**Checked on the combined build this morning (iPhone simulator):** walkthrough 41 of 41, tap a water 3 of 3, offline
+3 of 3, satellite; one first-open step failed on a test-bed timing fault (a notice covered the tabs). Second session
+(ended 08:33, quiet machine): rule book, keyboard and back swipes pass, the photo viewer included; tap to page: cue 7
+to 99 ms after the lift, page 372 to 388 ms on 15 of 18 taps (the 3 Cultus taps opened a test spot an earlier check
+had left on the lake: test bed); no long stalls, but the worst at cold start is now 268 ms against a limit of 300
+(214 ms on the build before the faster cold start: less room, to watch on Android and a real phone). **Found, app:**
+on Conditions → Alert me the number pad covers the value field (written into T723; in build 36 as before).
+
+**Android's code shrinker trial (T749, R8; branch `perf/r8`, behind a switch that is off by default; done 10:09)**
+- **It works on the emulator.** The shrunk app starts and passes all six checks with no keep-rule fix needed: install
+  4 of 4, crash reports 5 of 5, tap to page 26 of 26 (cue 31 to 86 ms, page 338 to 373 ms), background install 7 of 7
+  (the path that crashed the first attempt), no long stalls (worst 141 ms), memory and the rule book 14 of 14.
+- **Lighter:** test APK 55.0 MB against 62.4 MB (app code 7.9 MB against 30.4 MB); the Play download saving is
+  estimated at about 7.4 MB (no Play bundle was built). Memory at boot about 35 MB lower (248 MB against 282 MB, one
+  boot). **Speed:** cold start and tap to page the same within drift; the rule book opened 3 to 6 % slower in two
+  samples (unconfirmed).
+- **Android cold start today, for reference:** about 1.5 to 1.65 s on the emulator from process start to the first
+  drawn frame (the faster launch decode from T741 is not in that build).
+- **Not proven:** a real phone; Play's own processing; paths no check walks (the background task firing later, Play's
+  in-app update, a notification tap, the photo picker, location, the rule book's table of contents).
+- **Recommended next step, yours to decide:** one Play INTERNAL build with the switch on and a phone walk (update,
+  notifications, a spot photo, location, the rule book). Before it, the build script must keep R8's mapping file so
+  crash reports stay readable.
+
+**What went wrong overnight (mine unless said)**
+- A push from one of my lanes turned app CI red on the shared branch for about 40 minutes (a list test); fixed.
+- I first told you crash reports were not held back by the daily limit; they were (the limit's day turns at 17:00).
+- My noted clock times ran up to an hour fast from about 21:45; corrected against the logs.
+- The first TestFlight tries failed twice on setup (no registered iPhone; an API key without the Admin role, which my
+  own steps had asked for).
+- Three Android bench runs failed on the test bed's driver under load; they passed on a quiet machine.
+
+**Not done**
+- Android runs for T746, T738 and `perf/t741`; T721 (edge-swipe grid), T726 (four iPhone
+  sizes, large text: the pun line "Casting the new regulations into place…" wraps at the largest text size; the photo
+  viewer's "Photo 1 of 1" sits under the clock), T727 screenshots and video, the T731 step into the next water.
+- Nothing is merged into `redesign/stream-sections` except the crash-limit worker commit (your yes). No Play upload,
+  no production, no release.
+
+## Summary of the unattended day, 2026-11-14 (state at 03:20 on 2026-11-15; lanes still running are marked; times from 21:45 on were corrected against the logs at 03:20, earlier notes of mine ran up to an hour fast)
 
 Nothing here touched Play, production, the atlas or a release. The Apple account was used only for the owner's first TestFlight build in the evening (below). Every app
 fix sits on its own branch, not on `redesign/stream-sections`, until it is proven on the simulator and the Android
@@ -60,7 +123,7 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
   (227 KB with 3 photos; 20.4 MB with 29); after a wipe and restore the spots and photos are back and the app downloads
   the map data again by itself. The Spots tab says what the backup holds. A phone-to-phone transfer carries the photos at
   full size. Not shown on the device: photos left out when they do not fit (all 29 fit; unit-tested only).
-- The iOS look at today's five shared fixes (**done 22:40**, build 081d93f90, simulator, light and dark; write-up in
+- The iOS look at today's five shared fixes (**done 21:50**, build 081d93f90, simulator, light and dark; write-up in
   T723): the credits card (T729), search (T730) and Back from a page (T717) pass. The step bar (T731) passes for a
   step within one water; the step into the next water was not reached (Coquitlam has none; needs another water).
   Flow / Level (T728) **passes** on the Vedder (the card opened on Level 1.81 m, switched to Flow 29.7 m³/s, the map
@@ -73,12 +136,21 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
 - `ios/integration` (head 51349c3bf plus notes, app CI green, not merged; TestFlight build 34 was made from it): the
   four iOS branches (install, keyboard and back, audit fixes, tap cue) merged together. The whole app test suite
   passes (7,707 tests) and the feeds worker's (447). **iPhone simulator on the merged build, functional checks done
-  01:30:** offline 3 of 3, satellite, walkthrough 41 of 41, rule book, keyboard 7 of 7, edge-swipe back on About, Help,
+  00:50:** offline 3 of 3, satellite, walkthrough 41 of 41, rule book, keyboard 7 of 7, edge-swipe back on About, Help,
   Layers and the rule-book viewer, the audit fixes (arrow, Open Settings, Maps, What's new) pass. Not judged: the
   photo viewer's back swipe (the test misread a viewer that was up), the staged-update check (0 of 3 on the branch
   alone too; no control), first open (slow line that hour). **Found:** the photo viewer's "Photo 1 of 1" sits under
-  the status-bar clock (base too; written into T726). **Still owed, in a quiet window:** the four Android benches
-  (three tries failed on the test bed's Android driver not starting under load) and the timed iPhone runs.
+  the status-bar clock (base too; written into T726).
+  **Quiet window 02:06 to 02:59, both platforms done (head 639d54d0d; tables in `integration-2026-11-14.md`):**
+  Android on the emulator: background install 7 of 7 (asks on mobile data, waits for Wi-Fi, carries on with the app
+  killed, map up after relaunch); tap to page: cue 29 to 100 ms, page 339 to 360 ms (before: 22 to 112 and 352 to
+  402); no long stalls (worst 140 ms); spots 10 pass, 2 fail on a test-bed fault (a screenshot path the driver
+  refuses), so the Android keyboard edit of a spot is unverified. iPhone simulator, timed: the tap cue lights 7 to
+  90 ms after the lift on every tap (was 371 to 495), the page shows at 372 to 389 ms, a double tap zooms and opens
+  nothing, no long stalls (worst 214 ms at cold start). The 202 / 223 ms Android cue seen earlier was machine load
+  (48 / 63 ms quiet). **Verdict: nothing that passed on a branch alone fails on the merged branch because of the app,
+  and Android's behaviour did not change.** Not proven: iPhone first open on a good line, the Android spot edit, the
+  photo viewer's back swipe, the staged-update check, and everything that needs a real phone.
 - `ios/t739-push` (T739, head 1734a8429, app CI green, nothing deployed or merged): push wake-ups for iPhone and
   Android (owner: "okay i ticked push notifications for app yes build for iphone." and "for android too."), with a
   new-data wake-up (owner: "i guess if new data is there we could send a notification that the user needs to download
@@ -86,20 +158,24 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
   address, sends a silent wake after a feed run that changed and on a new release, and says on its status page when
   the keys are missing; the iPhone registers while alerts are on and withdraws when they are turned off; Android is
   switched off until the Firebase file exists (the Android build config is byte-identical before and after).
-  **Proven on the simulator 23:20:** registering and withdrawing. **Cannot be proven on the simulator:** that a silent
+  **Proven on the simulator about 22:55:** registering and withdrawing. **Cannot be proven on the simulator:** that a silent
   push runs the app's wake task. Settled from the library code and the logs (file and line in the ticket): the
   simulator hands a pushed file to the app as a "background fetch", a different call from the one a real phone gets
   from Apple, and our task only answers the real one. Nothing of ours was wrong. So the first real check is on a
   phone: one push, then the app's log says "woken by our server". That needs the Apple push key, the worker on
   staging and a TestFlight build from this branch: each one a step for the owner's go. The existing "new data ready"
   notice keeps its old words (Android unchanged); the push path has its own sentence. Head 650665c61, app CI green.
-  **02:10: the owner made the push key, stored the three secrets on the staging worker himself, and said yes**
+  **01:10: the owner made the push key, stored the three secrets on the staging worker himself, and said yes**
   ("yes i do i ran command") to the worker with the push code on staging and a TestFlight build 35 from this
-  branch. **Build 35 uploaded 02:35** (0.7.10 build 35 = build 34's app plus the push code; symbols in
+  branch. **Build 35 uploaded 01:24** (0.7.10 build 35 = build 34's app plus the push code; symbols in
   `data/sourcemaps/0.7.10-b35-650665c/ios/`). The worker deploy (branch `ios/staging-worker` = this branch plus the
   crash-limit commit, 467 worker tests pass) waits for the Android chat's site deploy (it re-runs every feed job);
   a staging release tonight would put the old worker back, then it is deployed again. The push worker commits stay
   off the shared branch tonight (production worker and privacy page first).
+  **Worker deployed to staging 02:05** (branch `ios/staging-worker` cc43d998c = this branch's head ca91889bb plus the
+  crash-limit commit; version 2733f1d2; the three feed jobs answered 200; /status: all feeds ok, push: iOS keys
+  complete, 0 phones registered, Android lacks its Firebase key). The phone now registers once per app start (fix
+  ca91889bb, not in build 35). Next: the owner installs build 35, turns on "New regulations data", one test push.
   Needs from the owner later: an Apple push key and three `wrangler secret put` commands (in the ticket), and for
   Android a Firebase project with its `google-services.json`.
 - `perf/t741` (T741, head f1938dd60, not merged): the standing pass to make the app faster and lighter on both
@@ -108,10 +184,15 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
   are shipped, not 41 (the built iPhone app went from 65.7 to 61.8 MB, measured; the same 3.9 MB on Android by the
   export); the file check written in JS is 16 to 20 % faster (measured in node as a stand-in, not on a phone); the
   background checks for alerts, for new data and for a new app version ask "changed?" first (an unchanged answer is
-  0 bytes; it was 24 KB and 6 KB each run). **Simulator, functional (03:20):** the branch passes first open, search,
-  edge-back and tap to page, and every face is drawn as before (by eye against the baseline shots). **Waiting for a
-  quiet machine:** cold start and stalls with and without "load code on first use" (one unexplained tap failure in two
-  runs with it on), memory base against branch, and a smaller database cache. **Looked at and left:** 35 KB of
+  0 bytes; it was 24 KB and 6 KB each run). **Simulator, functional (01:40):** the branch passes first open, search,
+  edge-back and tap to page, and every face is drawn as before (by eye against the baseline shots). **Timed on a quiet simulator (03:00 to 04:39), base against
+  branch:** cold start the same (launch to first drawn frame 1,086 against 1,074 ms, spread 115 ms), stalls the same
+  (worst 225 / 240 ms, limit 300), memory the same within noise (240 / 241 MB on a water's page). So the branch is
+  lighter (3.9 MB) and uses less background data, and is neither faster nor slower. **Tried and not kept:** "load code
+  on first use" (24 ms gain inside a 115 ms spread, and a 153 KB bigger bundle); a smaller database cache (no
+  measurable memory saving, so closing database connections is not worth a change either). **Learned:** about 440 to
+  490 ms of the 1.07 s cold start is opening the release and decoding the map colours; that is the next thing to
+  look at for speed. **Looked at and left:** 35 KB of
   developer-only code comes in through Expo's own modules; nothing else in the bundle is dead. **Proposals:** photo
   thumbnails for the spots list (after T732), closing five kinds of database connection with their screen, Android's
   code shrinker (T749). The 44 s check after a first download on iPhone is already gone on `ios/t722-install`.
@@ -126,6 +207,26 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
   tiles changed. **Found:** on the way back from the background the app stalls about 550 ms just after the swap.
   Wording options sent to the owner with pictures (question 20).
 
+- `ios/t738-bar` (T738, head 0be685b0c, from `ios/t722-install`, app CI green, no device run yet): the first-install
+  bar now counts the four big files from the first moment and after a relaunch. Cause: the bar counted only the small
+  data files (about 44 MB) while the big files were already downloading; the same on both platforms. Unit tests pin
+  the shown line (a relaunch with 104 MB held reads "104.0 of 482.0 MB downloaded", was "2.0 of 482.0").
+- `perf/t741`, cold start (head 571edb7b7, app CI green, **measured 06:45 on a quiet iPhone simulator: launch to the
+  first drawn frame 786 ms against 1,030 ms before, 6 launches each, the two ranges do not overlap (733 to 858 against
+  997 to 1,084); no long stalls, worst 233 ms; kept**; Android not measured yet): at launch the map colours
+  are decoded in 40 ms slices instead of 8. Found from the app's own log: of about 1.07 s from launch to the first
+  frame, about 440 to 500 ms was that decode, of which only about 190 ms is work; the rest was waiting between about
+  25 slices (each pause costs about 12 ms on a phone). The estimate was 200 to 250 ms; the measure gave 244 ms. Other places with the same cost are listed in T741 as proposals (install and update
+  about 1 s, the in-session apply 130 to 220 ms).
+- `perf/r8` (T749, head 9fe5e2d6c, **nothing built yet**): Android's code shrinker behind a switch that is off by
+  default (switch off = today's build, pinned by a test; refused in a production build). The old crash's cause is
+  found (the shrinker removed a constructor Android's background-work database is created through) and covered by
+  a keep rule, with six more, each with its reason. Next: two test APKs and six emulator checks.
+- `ios/next` (head d658f88ac, **what TestFlight build 36 will be made from**; notes in `next-2026-11-15.md` on the
+  branch): `ios/integration` + the shared branch + T746 + T738 + the crash-report app half + T739 push + `perf/t741`.
+  Six merges, every conflict resolved by keeping both sides. App CI green on the first five merges (run 43711925555);
+  the run on the full head was in progress at 05:25. Simulator checks on the combined build: not run yet.
+
 **What failed or was found**
 - **iOS background download refused on the simulator, then fixed:** the system service rejected every task ("does not
   have a bundle ID") in two runs. Cause: our simulator build skipped Xcode's signing step, which is what gives the app
@@ -133,7 +234,7 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
 - **First-open progress most likely does not move on iPhone today (0.7.9/0.7.10):** about 5,000 number-conversion
   errors from the progress callback during the download. Fixed on `ios/t722-install` (zero such lines in its run).
 - **Crash reports from the iPhone build were refused by the staging worker's own daily limit; the report itself is
-  fine** (cause found 01:10, branch `ios/crash-send`, code and tests only). 24 of 25 sends in today's iOS runs were
+  fine** (cause found 00:20, branch `ios/crash-send`, code and tests only). 24 of 25 sends in today's iOS runs were
   answered 429 "too many reports today": the worker takes 40 crash reports per address per UTC day, the test beds on
   this Mac share one address, and the UTC day turns at 17:00 here (the one send at 17:01 was taken), so the 23:30
   failure was not a new day; my earlier line that the limit was unlikely was wrong. A phone on the same home line
@@ -168,9 +269,9 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
   processing. `~/.canifishthis/testflight-last-build` reads 33; the debug symbols are in
   `data/sourcemaps/0.7.10-b33-f518706/ios/`. Not yet seen: the build on the owner's phone. Later TestFlight uploads:
   ask the owner first (his go-ahead was for the first test).
-- **Build 34, 23:36:** the owner asked why the iPhone build does not download in the background (build 33 is the shared
+- **Build 34, 23:30:** the owner asked why the iPhone build does not download in the background (build 33 is the shared
   branch's code); offered a build from `ios/integration` (51349c3bf: the four iOS fix branches merged, app CI green,
-  simulator: walkthrough 41 of 41, rule book, keyboard, offline, satellite pass); owner: "yes". **Uploaded 23:58**
+  simulator: walkthrough 41 of 41, rule book, keyboard, offline, satellite pass); owner: "yes". **Uploaded 23:39**
   (0.7.10 build 34, staging data, 363 s; a first try failed in setup when the engine download dropped on the bad
   line). Symbols in `data/sourcemaps/0.7.10-b34-51349c3/ios/`. Not yet seen on the phone.
 - The Apple account side is otherwise complete (individual account, Team ID, App ID with Associated Domains, app
@@ -214,11 +315,13 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
     is read as your exception to "self-host everything" for push delivery only (Google's Firebase Cloud Messaging):
     right / not right.
 
-19. ANSWERED 2026-11-15 01:50 ("yes to this"): on staging, test-bed crashes get their own daily limit (200 per
+19. ANSWERED 2026-11-15 01:05 ("yes to this"): on staging, test-bed crashes get their own daily limit (200 per
     address). Worker commit 441ec090e; landing and the staging deploy are being timed with the Android chat.
 
-20. The line on the "applying new data" screen (T746; pictures sent 03:00): "Putting the new regulations in place…"
-    (built) / "Applying the new regulations data…" / "Updating the regulations and map…".
+20. ANSWERED 02:09: the line on the "applying new data" screen (T746) becomes fish puns ("can we do more fish puns
+    here that are directed at this ?"); a small rotating set is built on the branch, candidates sent; the owner
+    strikes or adds. The failure message stays plain unless he says otherwise.
+21. ANSWERED 02:09 ("yes you can upload"): TestFlight build 36 in the morning with everything that passed overnight.
 
 Owner, 2026-11-14, verbatim: "Maybe we could make a handoff to start improving the ios versions? Making sure it is rock
 solid too?" This **reopens iOS**, which the owner benched on 2026-11-06 ("no iOS device work until DFO extents labelled +

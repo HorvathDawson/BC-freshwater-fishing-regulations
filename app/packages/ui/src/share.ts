@@ -177,7 +177,13 @@ export function useShare(port: SharePort | null, loader: ReleaseLoader | null, r
     const slug = item !== null && port.slugOf ? port.slugOf(item).catch((e: unknown) => { reportFailure(e); return null; })
       : Promise.resolve(null);
     noPage.current = false;
-    const p = Promise.all([placesOf(loader).catch((e: unknown) => { reportFailure(e); return null; }), slug])
+    // (T737, 2026-11-15) an unnamed reach's link needs its place from `lines` (1.3 MB whole): fetched AHEAD first, so
+    // on the web it waits in the source's lane until the page's own files are in (asked at the tap, it shared the line
+    // with regs-sid and down, which the page waits for). A failure is not kept: `shareLink`'s own read of the file asks
+    // again and reports it. A phone holds the file: nothing to fetch.
+    const lines = item === null && loader?.manifest.files.lines
+      ? loader.prefetch("lines").catch(() => { /* shareLink's own read says it */ }) : null;
+    const p = Promise.all([placesOf(loader).catch((e: unknown) => { reportFailure(e); return null; }), slug, lines])
       .then(([places, s]) => {
         noPage.current = item !== null && !!port.slugOf && s === null;   // a named water the site has no page for: the map's link, said
         return shareLink(places, route, extra, reportFailure, undefined, s);

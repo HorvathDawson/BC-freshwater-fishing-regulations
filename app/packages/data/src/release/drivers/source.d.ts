@@ -9,6 +9,7 @@ import type { ReleaseSource } from "../loader";
 import type { Held, Manifest } from "../../manifest";
 import type { ByteCache } from "./cache";
 import type { Net } from "../../net";
+import type { AheadLane } from "../lane";
 
 export interface SourceAt {
   /** The release root: every manifest url is relative to it (`ENDPOINTS.release`). */
@@ -23,6 +24,8 @@ export interface SourceAt {
    * verified fetch, as before.
    */
   net?: Net | null;
+  /** (T737) the web's lane for files fetched ahead (`release/lane.ts`); absent: the source makes its own. Native: unused. */
+  lane?: AheadLane;
 }
 
 export declare function releaseSource(m: Manifest, at: SourceAt): ReleaseSource;

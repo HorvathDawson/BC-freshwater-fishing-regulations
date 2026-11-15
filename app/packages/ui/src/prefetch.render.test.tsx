@@ -192,6 +192,28 @@ describe("(T253) the background tier", () => {
     expect(subs.size).toBe(0);
   });
 
+  it("(T737, 2026-11-15) and one file ahead at a time: another tier's file ahead on the network holds it (`others`)", () => {
+    const { loader } = fakeLoader();
+    (loader as unknown as { manifest: unknown }).manifest = { files: {} };
+    let snap = { downloads: [] as { key: string; priority: number }[] };
+    const subs = new Set<() => void>();
+    const activity = { snapshot: () => snap as never, subscribe: (on: () => void) => { subs.add(on); return () => { subs.delete(on); }; } };
+    function ActProbe({ out }: { out: { s?: ReturnType<typeof useBackgroundPrefetch> } }) {
+      out.s = useBackgroundPrefetch(loader, { activity });
+      return null;
+    }
+    const out: { s?: ReturnType<typeof useBackgroundPrefetch> } = {};
+    render(<ActProbe out={out} />);
+    const told: boolean[] = [];
+    const real = out.s!.scheduler!.others.bind(out.s!.scheduler);
+    out.s!.scheduler!.others = (b: boolean) => { told.push(b); real(b); };
+    const emit = (d: { key: string; priority: number }[]) => { snap = { downloads: d }; for (const f of [...subs]) f(); };
+    emit([{ key: "core", priority: 2 }]);              // the idle core
+    emit([{ key: "water-2", priority: 0 }]);           // the reader's: `reader`, not `others`
+    emit([]);
+    expect(told).toEqual([true, false, false]);
+  });
+
   it("webNetSignals: online, Save-Data, speed, cellular = metered (the web has no mobile-data setting), hidden", () => {
     expect(webNetSignals({} as never)).toEqual({ online: true, saveData: false, effectiveType: null, metered: false,
                                                   allowMetered: false, hidden: false });

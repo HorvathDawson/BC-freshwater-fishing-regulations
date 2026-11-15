@@ -26,6 +26,10 @@ data/release/r-*/ (R2 in production)
                    ├─ WaterSource (release/source.ts): core, near, paint, conditions, flow-area …
                    ├─ answer slices (T256, `release/focus.ts`): web only — core / water read ROUTED: a read the map's
                    │    region's `core-<r>` / `water-<r>` covers goes there, anything else to the whole file
+                   ├─ ahead lane (T737, `release/lane.ts`, in `drivers/source.web.ts`): web only — every file fetched
+                   │    ahead (idle tier, background tier `release/background.ts`, the address bar's `lines`) one at a
+                   │    time at fetch priority low; a reader's download goes out at once (high) and aborts the file
+                   │    ahead it does not need (it comes again after the reader, same promise)
                    ├─ salmon (T211, `loader.salmon`): the Salmon card (`@app/ui` `useSalmonCard`) and the map's
                    │    Standard / Salmon toggle (`useSalmonColour` → the colouring engine's `salmon` channel)
                    ├─ offline (T238, `release/offline.ts`): More → Offline maps — the regulations for all of B.C. (never

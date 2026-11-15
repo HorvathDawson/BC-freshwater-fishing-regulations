@@ -15,7 +15,7 @@
  * `BACKGROUND_DELAY_MS` after the idle tier and tells it each region the map settles in.
  */
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
-import { createBackgroundPrefetch, prefetchPlan, readerDownloading, regionOfTile, runPrefetch, LOW_BATTERY,
+import { createBackgroundPrefetch, othersAhead, prefetchPlan, readerDownloading, regionOfTile, runPrefetch, LOW_BATTERY,
          type BackgroundPrefetch, type NetSignals, type PrefetchSignals, type PrefetchSnapshot } from "@app/data/release";
 import type { ItemId, NetActivity } from "@app/data";
 import { waterRegionsOf } from "./regs";
@@ -38,8 +38,13 @@ export function connectionSignals(nav: { connection?: Connection } | undefined):
 /** How long a browser with no `requestIdleCallback` (Safari) waits after first paint before calling itself idle. */
 const IDLE_FALLBACK_MS = 2000;
 
-/** How long after the idle tier the background tier starts: core and the wasm go first, alone. */
-export const BACKGROUND_DELAY_MS = 4000;
+/**
+ * How long after the idle tier the background tier starts: core and the wasm go first, alone. (T737, 2026-11-15) 4 s →
+ * 1 s: "alone" is now the lane's (one file ahead at a time, `othersAhead`), and a tap no longer shares the line with a
+ * file ahead (the web source aborts it for the reader), so the tier may start as soon as the idle core is under way —
+ * an unnamed tap 3 s after paint then finds `regs-sid` / `down` on their way or in (they were not even asked before 5 s).
+ */
+export const BACKGROUND_DELAY_MS = 1000;
 
 export function useReleasePrefetch(loader: ReleaseLoader | null, onIdle?: () => void,
                                    background?: BackgroundPrefetch | null,
@@ -183,7 +188,12 @@ export function useBackgroundPrefetch(loader: ReleaseLoader | null,
   const activity = o.activity ?? null;
   useEffect(() => {
     if (!scheduler || !activity) return;
-    const read = () => scheduler.reader(readerDownloading(activity.snapshot()));
+    // (T737, 2026-11-15) and one file ahead at a time: another tier's (the idle core, the address bar's lines) holds it too
+    const read = () => {
+      const s = activity.snapshot();
+      scheduler.reader(readerDownloading(s));
+      scheduler.others(othersAhead(s, scheduler.snapshot().active));
+    };
     read();
     return activity.subscribe(read);
   }, [scheduler, activity]);

@@ -76,3 +76,5 @@ group saves refused, nothing written, logged; every wording its own place; group
 (new), `test_review_checklist.py` (no grouping; group filter; outcome overlay; cache staleness), `test_review_dfo.py`,
 `test_review_gate.py` (late warm); the `test_curation_review_*`, `test_review_*`, `test_dfo_*` groups run through
 scripts/heavy.sh.
+
+2026-11-15: pipeline CI red on 67c9b32f1 / 189458c93, two stale tests: `test_marks_never_orphaned` still passed B's removed groups argument to `historic_only` (now 2 args; a dormant rewording is its own place), and C's region-line crossings made `search_splits` read the registry in the data-free cut-search test (now stubbed). The groups above ran in the data tier, so the build hid it; fast-fail now runs every review test in CI's tier when a review module changes.

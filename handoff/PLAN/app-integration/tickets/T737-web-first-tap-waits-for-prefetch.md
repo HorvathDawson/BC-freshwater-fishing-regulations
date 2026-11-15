@@ -1,6 +1,6 @@
 # T737 — Web: the first river click waits for the background download of the whole release files
 
-Status: IN PROGRESS (lane: first-click investigation 2026-11-14; fix committed + unnamed-stream background order e974cabf7 (2026-11-14 night); multi-region water 673b1d8e3 (2026-11-15, unpushed); staging deploy is the main chat's; region slices left as an option)
+Status: IN PROGRESS (lane: first-click investigation 2026-11-14; fix committed + unnamed-stream background order e974cabf7 (2026-11-14 night); multi-region water 673b1d8e3 (2026-11-15); the ahead lane + unnamed reads together (2026-11-15 late, unpushed); staging deploy is the main chat's; region slices left as an option)
 
 Source: owner 2026-11-14 evening, verbatim: "On staging.canifishthis.ca  The first river click takes a very long time
 to open". Staging = b2dba0297 (app 0.7.10) on release r-f749475d0962. The staging smoke's "tap a named water" step said
@@ -211,3 +211,96 @@ LCP 7.87 → 7.86 s, TBT 864 → 881 ms, SI 7.71 → 6.96 s, SEO 92 → 92.
   --complete`).
 
 - 2026-11-15 (CI red on e0785054a): the two new swallowing catches were listed in tools/failures.test.ts FINE with their reasons, not reported: `warmWaterPage`'s geo warm (regs.ts; the loader forgets a failed open and the page's own `store.geo` read asks again and says it) and `useWaterRegionsAhead` (prefetch.ts; only the background order is lost, its store / akey_region reads are the page's own open). `pnpm check:fast` now runs the two inventories (`pnpm inventories`).
+
+## The unnamed tap behind three whole files; a reader never behind a file ahead (2026-11-15, late)
+Main chat on live staging (3d21000ad, fresh profile, quiet machine, a 17 Mbit/s line): named waters fixed (Fraser R2 part
+0.7-1.3 s), but the first tap on an UNNAMED stream 3 s after paint read 6.4 / 5.1 / 3.6 s desktop, 5.4 / 13.7 / 3.0 s
+phone (dff2c7a22: 0.7 / 0.8 s). Request list: `down`, `lines`, `regs-sid` (1.1-1.3 MB each) start at the tap, `water-2`
+(166 KB) only at 5.9 s, after `regs-sid`.
+
+**Cause (traced in the request lists and the code).**
+- Those three were NOT background downloads: they are the tap's own. The local runs with source-mapped initiators
+  (`multi-1115/b-`, `f-desk-unnamed-*`) flag them reader (the live run's minified stacks cannot say: `bg` false for all).
+  `regs-sid` = the page's inputs (`sectionAkey` / `sectionPlace`), `down` = "Tributary of …" (`useDownstreamWater`),
+  `lines` = the ADDRESS BAR's place for an unnamed reach (`systemBack.web.ts` → `linkSearch` → `placeOf`, 38 ms after the
+  tap; the page never waits for it). Nothing was fetched ahead at 3 s (the tier started idle + 4 s, the view's slice +
+  geo first since 673b1d8e3).
+- `water-2` waited on a DATA dependency, not a connection: the section's answer key comes out of `regs-sid`, and only a
+  read naming that key is routed to the slice; `access` then waited for the inputs (the page's subject). Serial:
+  regs-sid → water-2 → access. data-staging is HTTP/2 (h3 offered): no per-host connection limit.
+- Not a regression in the code: dff2c7a22's live 0.7 s run (`live-desk-unnamed-s3000.json`) has the SAME request shape
+  (down/lines/regs-sid at the tap, water-2 after regs-sid) — 3.7 MB in 0.52 s, a ~55 Mbit/s line that night. Tonight's
+  line moved it.
+- Whole files with no slice an unnamed page still needs: `regs-sid` (1.25 MB) and `down` (1.17 MB) — the floor at 3 s on
+  a cold profile is their 2.4 MB unless fetched ahead before the tap; `access` (0.2 MB, a whole bin file, no slices) for
+  both kinds of page; `lines` (1.3 MB) only for the address (unnamed) and a part-covering in-season notice (named).
+- Up to three files ahead could share the line at once (the idle tier's region file and core, the background's file,
+  now the address bar's lines): each tier had its own one-at-a-time, none a common one; and a file ahead in flight at a
+  tap kept its share of the line to the end (only nothing NEW started).
+
+**Change (web only; nothing on a page changes; commit below).**
+1. `release/lane.ts` (in `drivers/source.web.ts`): THE AHEAD LANE. Every file fetched ahead goes down one lane, one at a
+   time, `fetch` priority `low`; the reader's downloads go out at once at `high`. A reader download starting aborts the
+   file ahead on the network after `LANE_JOIN_MS` (150 ms) unless the reader asked for it (then it is the reader's, never
+   aborted); the aborted file waits at the head of the lane and starts again from scratch (release files are served
+   `Content-Encoding: gzip`: no Range offsets) once the line has been free of the reader for `LANE_GRACE_MS` (1.5 s) —
+   its promise is the same throughout, so no prefetch fails and nothing is lost for a tap. A reader asking for a file
+   still WAITING in the lane takes it out and starts it at once as its own. The gate is told of a raise only for a file
+   already on the network (a gate entry for one not yet started would wait on itself). An abort is not a failure in the
+   activity (`done`, not `failed`).
+2. `background.ts`: `others(busy)` (`othersAhead` over the net activity, wired in `useBackgroundPrefetch`): another tier's
+   file ahead on the network holds the background — one at a time whoever asked. A file the reader made wait is not
+   measured (`yielded`): a parked download never reads as a slow line. `BACKGROUND_DELAY_MS` 4 s → 1 s: "core first,
+   alone" is the lane's now, and a tap no longer shares the line with a file ahead, so the tier may start as soon as the
+   idle core is under way (an unnamed tap 3 s after paint finds regs-sid / down on their way or in). Holds unchanged
+   (Save-Data, slow, metered, low-data, hidden, battery).
+3. The unnamed tap's reads together: `OpenerOptions.unnamed` → `warmUnnamedPage` (regs-sid, down, `loader.warmSlice
+   ("water")` = the focus region's 0.17 MB slice, access), asked the moment the tap is known unnamed.
+4. The address bar's `lines` for an unnamed reach is fetched AHEAD first (`loader.prefetch("lines")`): it waits in the
+   lane until the page's files are in, then the place is written (the address only; opening a link with a place still
+   waits for `lines`, as before).
+
+Tests (each fails with its piece reverted, mutation-checked): `lane.test.ts` (one at a time; a tap's download aborts the
+file ahead, same promise, again after the grace; joined never aborted; waiting → started as the reader's; nothing in the
+grace; aborted then asked); `background.test.ts` "a reader's request never waits …" (the real web source + loader: the
+tap's request goes out at once at high, the background's aborted and refetched, no prefetch failure; at most one ahead;
+a waiting file the tap needs goes at once), "one file ahead at a time" (`others`, `othersAhead`, a yield not measured);
+`loader.test.ts` warmSlice; `warmWaterPage.test.ts` (the unnamed reads asked together; the opener tells it for an
+unnamed tap only); `prefetch.render.test.tsx` (the hook feeds `others`). Run: release + sql + net + prefetch + warm +
+openWater + place + inventories 256/256 + 67/67; `pnpm check:fast` clean.
+
+5. (found in the first after-run) the water header's Share control makes its link AHEAD at the tap (`useShare`) — the
+   second reader of `lines` (1.3 MB) at the tap. It now fetches `lines` ahead first too (`share.ts`), so it waits in the
+   lane; the phone's source answers an ahead ask on an installed file with nothing read (`source.native.ts`). Test:
+   `share.test.ts` (unnamed asks it, named never; mutation-checked).
+Tried and dropped (measured worse): the whole core moved after regs-sid/down and the in-season check's core through the
+lane — with neither, sql.js, `core-2` and `water-shared` were cold at the tap (named Fraser 3 s: 4.2 s).
+
+**Timing** (local exports of 3d21000ad (before, bundle = live staging's) vs the change, data-staging, release
+r-f749475d0962; alternated per run; page readable after the tap, s; line = a 6 MB Range of the synopsis from
+data-staging before and after every pair; load = 1-min uptime; macOS's own load (mediaanalysisd …) had fallen from ~16 to
+3-7 by the runs). Scripts + JSON: `~/bcfish-session-backup-2026-11-12/first-click-web/lane-1115/`.
+
+| tap | before | after | line Mbit/s | load |
+|---|---|---|---|---|
+| desktop unnamed 3 s | 3.6 / 5.3 / 5.0 | 2.4 / 4.0 / 2.5 | 14-17 | 3-5 |
+| desktop Fraser R2 3 s | 1.5 / 1.0 / 1.2 | 0.9 / 1.9 / 0.8 | 16-18 | 3-4 |
+| desktop Vedder 3 s | 1.2 / 12.6 / 0.7 | 2.3 / 0.8 / 0.9 | 0 (a dropped curl)-17 | 3-5 |
+| desktop Thompson after a pan, 3 s | 0.1 ×3 | 0.1 ×3 | 16-17 | 3-7 |
+| desktop, every water, 8 s | 0.1 ×12 | 0.1 ×11 (1 run lost) | 12-17 | 2-7 |
+| phone unnamed 3 s | 3.6 / 3.6 / 2.9 | 3.4 / 2.8 / 3.5 | 15-18 | 3-4 |
+| phone Fraser R2 3 s | 0.8 / 1.3 / 2.0 | 1.4 / 1.2 / 1.5 | 14-18 | 3-5 |
+| phone unnamed 8 s | 2.8 / 0.1 / 0.1 | 0.7 / 0.1 / 0.1 | 15-18 | 3 |
+| phone Fraser / Thompson 3 + 8 s | 0.1 ×9 (Fraser 8 s, Thompson) | 0.1 ×9 | 14-18 | 3-5 |
+
+(Phone Vedder: no tap, the point is off the phone's start view — the harness.) Reading: the unnamed tap at 3 s now
+fetches only what its page needs, together (regs-sid, down, water-2, access at once; `lines` after the page), so it is
+the two whole files' 2.4 MB on the line: ~2.5 s at ~16 Mbit/s, down from 3.6-5.3 s desktop; the phone barely moved
+(its CPU, not the line, after the files land). It is NOT ~1 s: at 3 s nothing is fetched ahead yet (the lane yields to
+the boot's own reads, incl. the in-season check's whole core, and their grace), so regs-sid + down are a cold 2.4 MB.
+Only their region slices (pipeline, owner's call) or fetching them before the boot reads would get it to ~1 s. Named
+taps and every 8 s tap: unchanged (0.8-1.9 s at 3 s, 0.1 s at 8 s).
+
+**Lighthouse 12.8.2 mobile on `/`, 3 alternated runs each, median:** Perf 52 → 54, LCP 7.81 → 7.82 s, TBT 602 → 536 ms,
+SI 5.38 → 5.22 s, CLS 0.010 → 0.010, SEO 92 → 92 (after: `regs-sid` lands inside Lighthouse's window, 6.2 vs 5.6 MiB
+of release files; last request ends 5.8 vs 6.8 s).
