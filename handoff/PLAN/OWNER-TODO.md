@@ -168,6 +168,9 @@ with the default Claude uses until you answer). Newest first inside each section
   `~/.canifishthis/ios-team-id`; create the app record (bundle id `ca.canifishthis.app`, name "Can I Fish This?", English
   (Canada)); make an App Store Connect API key (role Admin; corrected 2026-11-14 22:15, an App Manager key cannot sign for the store) and save `~/.canifishthis/asc-api-key.json`. TestFlight
   (T88) stays yours to start.
+  **DONE 2026-11-14 22:22:** first TestFlight upload, 0.7.10 build 33 (staging data), after the owner registered his
+  iPhone and made an Admin key. Yours now: App Store Connect → TestFlight → Internal Testing, make a group and add
+  yourself; install the TestFlight app on the iPhone; install the build and open it. Later uploads: Claude asks first.
 - **ANSWERED 2026-11-14 (iOS parity audit, T722/T723).** Owner, verbatim: "we want it to progress with app closed in both app
   and android" (the first install download); "need to just update text for ios" (the two promises that do not hold on
   iOS); "everything else looks like a good find should look for more things like that". So: a real iOS background

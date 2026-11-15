@@ -2,7 +2,7 @@
 
 ## Summary of the unattended day, 2026-11-14 (state at 22:15; lanes still running are marked)
 
-Nothing here touched Play, TestFlight, production, the atlas or a release, and nothing used an Apple account. Every app
+Nothing here touched Play, production, the atlas or a release. The Apple account was used only for the owner's first TestFlight build in the evening (below). Every app
 fix sits on its own branch, not on `redesign/stream-sections`, until it is proven on the simulator and the Android
 benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup proposal is T732.
 
@@ -106,7 +106,12 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
   the store failed; nothing was uploaded. Apple: "You haven't been given access to cloud-managed distribution
   certificates". Cause: the API key was made with the App Manager role, as our own steps said; signing for the store
   needs an Admin key (Apple offers no switch for it on a key). The steps now say Admin. Waits for the owner to make a
-  new key with the Admin role; then a third run. Not yet proven that the Admin key is enough.
+  new key with the Admin role; then a third run.
+- **Third try 22:17: uploaded.** With the owner's new Admin key the archive, the export and the upload passed in 296 s:
+  0.7.10 build 33 (commit f51870652, staging data) is in App Store Connect; TestFlight shows it after Apple's
+  processing. `~/.canifishthis/testflight-last-build` reads 33; the debug symbols are in
+  `data/sourcemaps/0.7.10-b33-f518706/ios/`. Not yet seen: the build on the owner's phone. Later TestFlight uploads:
+  ask the owner first (his go-ahead was for the first test).
 - The Apple account side is otherwise complete (individual account, Team ID, App ID with Associated Domains, app
   record, registered iPhone).
 
