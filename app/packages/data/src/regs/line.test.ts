@@ -1,17 +1,17 @@
 /**
  * (T369) A PLACE ON A STREAM: the `section_line` table read back — a section's line, and the section a place falls on —
- * on the committed regs fixture release with its stream lines added (`openRegsFixtureWithLines`), and the release
- * without the table (cut before it): no place, said by `hasLines`.
+ * on the mini release (T667 slice 8: the pipeline's own `lines` file over an invented world; it was the regs fixture
+ * with lines added by hand), and the release without the file: no place, said by `hasLines`.
  */
 import { describe, expect, it } from "vitest";
-import { openRegsFixture, openRegsFixtureWithLines, regsFixtureLines, sectionNames } from "../sql/drivers/releaseDir";
-import { decodeLineBlock, encodeLineBlock, lineMid, slotAt } from "./line";
+import { openMiniRelease, sectionNames } from "../sql/drivers/releaseDir";
+import { decodeLineBlock, encodeLineBlock, LINE_OPEN, lineMid, slotAt } from "./line";
 import { openLineReads } from "./place";
 
-const COQ = 356364584;   // the Coquitlam River's FWA stream key
-// (T369, T667) the Coquitlam's metres (cut at 101 m, 312 m, 6590 m) move with a new ATLAS, and then fail here by name;
-// its section NUMBERS move with every build and are never typed: `sectionNames` finds them by key + start metre.
-const COQ_LAKE = "wbk:-21";   // a lake of the fixture: its one section has no line
+const COQ = 356364584;   // a stream key, for the block round trip (no release)
+// (T667 slice 8) the mini world's invented stream keys and lake (pipeline/tests/fixtures/mini/world.json); section
+// NUMBERS are never typed: `sectionNames` finds them by key + start metre
+const FIX = 900000001, MOCK = 900000002, TRIB = 900000003, FIX_LAKE = "wbk:800000001";
 
 describe("section_line (T369)", () => {
   it("a block round-trips through the writer and the reader; slotAt finds the section that spans a measure", () => {
@@ -25,26 +25,33 @@ describe("section_line (T369)", () => {
     expect(lineMid(lines[2]!)).toEqual({ blk: COQ, m: 3451 });
   });
 
-  it("the fixture with lines: a section's line, the section a place falls on, a gap (the Coquitlam's lake) holds none", async () => {
-    const loader = openRegsFixtureWithLines(), st = openLineReads(loader), names = sectionNames(loader);
-    const { unnamed } = regsFixtureLines();
-    const [low, mid, high] = await names.streams([[COQ, 0], [COQ, 312], [COQ, 6590]]);
+  // (T667 slice 8) ON THE MINI RELEASE: the real pipeline's own `lines` file over the invented world — Fixture River
+  // (stream key 900000001) is cut at the coast (1 km), at Fixture Lake (16-19 km), at Twofold Lake (25-27 km), and runs
+  // to 46 km; Mock Creek (900000002) at its falls (5999 m); the unnamed trib (900000003) is one section, open-ended.
+  it("the mini release: a section's line, the section a place falls on, a lake's gap holds none, a one-section stream is open", async () => {
+    const loader = openMiniRelease(), st = openLineReads(loader), names = sectionNames(loader);
+    const [mouth, low, mid, high] = await names.streams([[FIX, 0], [FIX, 1000], [FIX, 19000], [FIX, 27000]]);
     expect(await st.hasLines()).toBe(true);
-    // (T369) the Coquitlam's metres (FWA measures): they move with a new ATLAS, not a new release — and then fail by name
-    expect(await st.sectionLine(mid!)).toEqual({ blk: COQ, from: 312, to: 6590 });
-    // (T369) the Coquitlam's metres (FWA measures): they move with a new ATLAS, not a new release — and then fail by name
-    expect(await Promise.all([st.sectionAt(COQ, 3451), st.sectionAt(COQ, 0), st.sectionAt(COQ, 6600),
-                              st.sectionAt(COQ, 20_000), st.sectionAt(COQ - 7, 0)]))
-      .toEqual([mid, low, high, null, null]);
-    const u = (await st.sectionLine(unnamed))!;
-    expect(await st.sectionAt(u.blk, lineMid(u).m)).toBe(unnamed);
+    expect(await st.sectionLine(mid!)).toEqual({ blk: FIX, from: 19000, to: 25000 });
+    expect(await Promise.all([st.sectionAt(FIX, 22000), st.sectionAt(FIX, 0), st.sectionAt(FIX, 999), st.sectionAt(FIX, 1000),
+                              st.sectionAt(FIX, 45_999), st.sectionAt(FIX, 26_000), st.sectionAt(FIX, 46_000),
+                              st.sectionAt(FIX - 7, 0)]))
+      .toEqual([mid, mouth, mouth, low, high, null, null, null]);      // under Twofold Lake: no stream line
+    const [above, below] = await Promise.all([st.sectionAt(MOCK, 6000), st.sectionAt(MOCK, 5998)]);
+    expect([await st.sectionLine(below!), await st.sectionLine(above!)])
+      .toEqual([{ blk: MOCK, from: 0, to: 5999 }, { blk: MOCK, from: 5999, to: 8000 }]);
+    const u = (await st.sectionAt(TRIB, 2500))!;
+    expect(await st.sectionLine(u)).toEqual({ blk: TRIB, from: 0, to: LINE_OPEN });
     // a lake's handle has no line
-    expect(await st.sectionLine(await names.lake(COQ_LAKE, 0))).toBeNull();
+    expect(await st.sectionLine(await names.lake(FIX_LAKE, 0))).toBeNull();
   }, 30_000);
 
   it("a release cut before the lines file: no lines, no place — never an error", async () => {
-    const st = openLineReads(openRegsFixture());
-    const mid = await sectionNames(openRegsFixtureWithLines()).stream(COQ, 312);   // the same release, asked where the lines are
-    expect([await st.hasLines(), await st.sectionLine(mid), await st.sectionAt(COQ, 3451)]).toEqual([false, null, null]);
+    const mid = await sectionNames(openMiniRelease()).stream(FIX, 19000);   // the same release, asked where the lines are
+    const st = openLineReads(openMiniRelease({ manifest: (m) => {
+      const { lines: _, ...files } = m.files;
+      return { ...m, files: files as typeof m.files };
+    } }));
+    expect([await st.hasLines(), await st.sectionLine(mid), await st.sectionAt(FIX, 22000)]).toEqual([false, null, null]);
   }, 30_000);
 });

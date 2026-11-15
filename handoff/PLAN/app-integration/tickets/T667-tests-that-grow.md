@@ -429,3 +429,24 @@ split/joined codes by hand (`test_wsc_relation`; now `pipeline.common.utils.wsc.
   `test_review_vintage::test_no_second_copy…` refused `mini_release.release_files` as a second newest-release picker
   (`glob("r-*")` + `st_mtime` in one file); fixed at the cause (it asks `manifest.releases` / `latest`), 4b62638da;
   re-run green. The slow / `needs_*` tier and a fresh-copy run of the mini tests are still queued (`t667-callers`).
+
+## Slice 8, step 3 committed + step 4 first batch (2026-11-14, evening)
+- STEP 3 PUSHED (c507c60a8 fast-fail scanners, c9f050557 the copy + shared pieces): `app/packages/data/dev/mini-release/`
+  (r-0266d965cfb6, 53 files, 396 KB, `--write`). `--check` compares BY CONTENT (gunzipped; SQLite by rows; the manifest
+  without its byte fields) so a runner's SQLite / zlib cannot fail a copy cut on a Mac — and pipeline CI's new step
+  "The committed mini release matches a rebuild" passed on Linux (run 43662207012, bbee2220f). Shared pieces:
+  `under_test.mini()` (no marker; fails naming `conftest.MINI_HINT`), a subprocess test that `ci_no_build` hides none
+  of it, app `openMiniRelease()` / `miniReleaseDir()` / `MINI_RELEASE_ROOT` (`@app/data/release/node`, the app's own
+  loader opens it: `miniRelease.test.ts`), `check-test-anchors` counts its id as a committed fixture and its helpers as
+  release-following (tested), smoke by rule (no list). Before the push: CI's whole no-data tier in one process, 6,296
+  passed (5 min); fast-fail; `pnpm -C app check:fast`.
+- STEP 4, FIRST BATCH (the smallest package, `@app/data`: its one test file on the regs fixture):
+  `packages/data/src/regs/line.test.ts` reads the pipeline's own `lines` file of the mini release (Fixture River's coast,
+  lake and region cuts, Mock Creek's falls, the unnamed trib's open-ended line, Fixture Lake's gap) by stream key +
+  metre, and drops the `lines` file through a manifest tamper for "a release cut before the lines file"; it no longer
+  needs the hand-added lines of `openRegsFixtureWithLines`. Mutations in the code it tests, each red: `slotAt`'s end
+  `<` -> `<=` (2 tests), its start `<=` -> `<` (3), `hasLines` always true (1). `@app/data` logic: 722 passed.
+- FOUND: a queued `heavy.sh` wrapper died with a syntax error when another lane's commit changed `scripts/heavy.sh` while
+  it waited (bash reads a script as it runs); the file itself is sound — re-queued. Not fixed (heavy.sh is not T667's).
+- LEFT: the remaining ~36 app test files on `openRegsFixture*` (ui, ui-native), one package per batch; the pipeline
+  logic tests that build toy bundles; the page oracle on the mini release; shrink the regs fixture to the D2 walks.
