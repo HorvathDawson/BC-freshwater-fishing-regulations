@@ -767,3 +767,11 @@ etc) we just really want to clean it all up and then have questions ready for me
 Main chat's plan: land the prepared fixes; run the full audit; clean the cuts (duplicates matched to one cut, confluence
 ends on the confluence cut, bad positions fixed where the evidence is clear, the rest as questions); side rebuild and
 checks; one page of questions for him. Nothing that changes what a wording means is decided for him.
+- TATSHENSHINI checked 2026-11-15 (report `handoff/PLAN/curation-review/tatshenshini-border-2026-11-15.md`). (A) The BC
+  border points exist in the data (the river leaves BC and comes back after 43 km in Yukon) but the app's picker cannot
+  show them; app fix proposed. The Kwatini / Stanley / Goat place does not need one: those creeks are wholly in BC, so
+  its whole-water extent is already right. (B) The Blanchard place cannot be edited because its extent carries a field
+  the editor cannot show, and the app hides the edit button without saying why; plain "whole" gives the same 15
+  sections. YOURS: on each of the two places, tick ✗ on rows 2 and 4, then "Confirm: the extent matches DFO's words"
+  (works today), or tell the main chat to save those two verified marks for you. 15 other unmarked places cannot be
+  edited in the app for the same kind of reason; listed in the report.
