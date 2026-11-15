@@ -28,7 +28,9 @@ one=$(find "$S/water" -name index.html.gz -print -quit)
 gunzip -c "$one" | grep -q "$js" || { echo "site.sh: $S's water pages were built against another app export (not $js): rebuild with --app $W" >&2; exit 1; }
 # (T304) the app focuses the region a water page names; a page without `cift:region` is from an older SEO build (every
 # landing would read the whole files AND report it): rebuild the pages, not just relink them
-gunzip -c "$one" | grep -q '<meta name="cift:region"' || { echo "site.sh: $S's water pages carry no cift:region (built before T304): run build-seo again" >&2; exit 1; }
+# grep -c, not -q: -q stops reading at the first hit, gunzip then dies on the closed pipe and `pipefail` turned a page that
+# HAS the tag into this failure at random (staging deploy 2026-11-14). -c reads to the end; the test is the same.
+gunzip -c "$one" | grep -c '<meta name="cift:region"' >/dev/null || { echo "site.sh: $S's water pages carry no cift:region (built before T304): run build-seo again" >&2; exit 1; }
 grep -q 'X-Robots-Tag' "$S/_headers" && { echo "site.sh: $S/_headers carries X-Robots-Tag: not a production build" >&2; exit 1; }
 grep -q '^Sitemap: https://canifishthis.ca/sitemap.xml' "$S/robots.txt" || { echo "site.sh: $S/robots.txt names no production sitemap" >&2; exit 1; }
 rm -rf "$O" "$K" "$H"; mkdir -p "$O" "$K" "$H"
