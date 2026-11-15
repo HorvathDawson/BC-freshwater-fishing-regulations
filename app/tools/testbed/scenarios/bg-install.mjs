@@ -1,11 +1,12 @@
 // (T298) THE FIRST INSTALL IN THE BACKGROUND: a clean app on mobile data asks before ~500 MB ("Wait for Wi-Fi" is kept
 // as the setting and said), waits, starts by itself on Wi-Fi, the fish sayings take turns; then the app is CLOSED
 // mid-download (its process killed) and the system's DownloadManager goes on with its notification; a tap on the
-// notification (or a launch) opens the app, which picks the files up, verifies them and opens the map; More → Settings
-// shows the saved choice. Clears the app's data (like `install`): run it on its own or before the others.
+// notification opens the app, which picks the files up WITHOUT stopping the running ones (T756), verifies them and opens
+// the map; More → Settings shows the saved choice. Clears the app's data (like `install`): run it on its own or before the others.
 import fs from 'node:fs';
 import path from 'node:path';
 import { appUp } from './common.mjs';
+import { cancelledByApp, diskBytes, stallWatch } from '../lib/download-watch.mjs';
 
 const SAYING = /…$|… of data$/;
 
@@ -21,6 +22,10 @@ export const bgInstall = {
     // what the system's downloader has on disk for us (its folder in the app's external files)
     const onDisk = () => { try { return d.sh('ls -l /sdcard/Android/data/ca.canifishthis.app/files/bg-download/ 2>&1').trim().split('\n')
       .map((l) => l.trim().split(/\s+/)).filter((c) => c.length > 5).map((c) => `${c.at(-1)} ${Math.round(Number(c[4]) / 1e6)} MB`).join(', '); } catch { return '?'; } };
+    const bytesOnDisk = () => { try { return diskBytes(d.sh('ls -l /sdcard/Android/data/ca.canifishthis.app/files/bg-download/ 2>&1')); } catch { return -1; } };
+    // the app is what the reader sees (its activity resumed), not merely a live process: a notification's broadcast
+    // starts the process without showing anything
+    const front = () => { try { return d.sh("dumpsys activity activities | grep -E 'ResumedActivity' || true").includes(d.APP_ID); } catch { return false; } };
     await ctx.step('test channel reset to the live release', async () => `test/ = ${(await ctx.resetChannel()).release.data_release}`,
                    { shot: false, stop: true });   // (T442) a stale test/ only 404s
     await ctx.step('clean app on MOBILE DATA: asked before the download', async () => {
@@ -92,35 +97,88 @@ export const bgInstall = {
       if (!notes.some((x) => /Downloading BC fishing rules|files? downloading/i.test(x))) throw new Error(`no download notification with the app closed (saw ${notes.join(' | ')})`);
       return `app ${how} at "${atKill}" (${killedAt}) · notification: ${notes.join(' | ')}`;
     });
-    await ctx.step('a tap on the notification opens the app; setup finishes and the map opens', async () => {
+    // (T756) the tap is its own step: before, a tap that opened nothing fell back to a launch and the step still passed
+    await ctx.step('a tap on the download notification opens the app', async () => {
       d.sh('cmd statusbar expand-notifications');
       await d.sleep(1500);
-      let opened = 'tap';
-      try { ctx.flow('tap-text', { TEXT: 'Downloading BC fishing rules' }); } catch { opened = 'launch'; }
-      await d.sleep(4000);
-      if (!alive()) { opened = 'launch (the tap did not open it)'; d.sh('cmd statusbar collapse'); d.launch(); }
+      let w = words();
+      const OURS = /^Downloading BC fishing rules/;
+      let how = 'the notification';
+      // several downloads are folded into the system's group ("2 files downloading"): a tap on the group only unfolds it
+      const group = w.find((x) => /files? downloading/i.test(x));
+      if (!w.some((x) => OURS.test(x)) && group) {
+        ctx.flow('tap-text', { TEXT: group });
+        await d.sleep(1500);
+        w = words();
+        how = `the group "${group}" unfolded, then its first notification`;
+      }
+      if (!w.some((x) => OURS.test(x))) {
+        d.sh('cmd statusbar collapse');
+        throw new Error(`no "Downloading BC fishing rules" notification to tap (the shade shows: ${w.slice(0, 12).join(' | ').slice(0, 300)}; on disk: ${onDisk()})`);
+      }
+      ctx.flow('tap-text', { TEXT: 'Downloading BC fishing rules.*' });
+      const end = Date.now() + 10_000;
+      while (Date.now() < end && !front()) await d.sleep(500);   // poll interval
+      if (!front()) {
+        d.sh('cmd statusbar collapse');
+        throw new Error(`a tap on ${how} did not bring the app to the front in 10 s (its process is ${alive() ? 'running' : 'not running'})`);
+      }
+      return `opened by a tap on ${how}`;
+    });
+    await ctx.step('reopened mid-download: no running download is thrown away; setup finishes and the map opens', async () => {
+      let opened = 'the notification tap';
+      if (!front()) { opened = 'a launch (the tap did not open it)'; d.sh('cmd statusbar collapse'); d.launch(); }
       const t0 = Date.now();
-      let setupShot = false;
-      while (Date.now() - t0 < 15 * 60_000) {
+      // (T756) the wait follows the bytes, not the clock: as long as the app's own line or the downloader's files move it
+      // goes on (a slow line is not a failure); no movement for STALL is, and it is said in the app's words
+      const STALL = 4 * 60_000, CAP = 45 * 60_000;
+      const watch = stallWatch(STALL);
+      const dmLines = new Set();
+      // read again and again: on a long run the first lines roll out of the log before the end
+      const readDm = () => { try { for (const l of d.adb(['logcat', '-d', '-s', 'DownloadManager:*']).toString().split('\n')) if (/DownloadManager:/.test(l)) dmLines.add(l.trim()); } catch { /* no log this time */ } };
+      const cancels = () => cancelledByApp([...dmLines]);
+      const saidCancels = () => (cancels().length ? ` The app also stopped ${cancels().length} running download(s) itself: ${cancels().map((c) => c.line.replace(/^.*DownloadManager: /, '')).join(' ; ')}` : '');
+      let setupShot = false, n = 0, line = '';
+      for (;;) {
         const w = words();
         if (w.includes('More') || w.includes('MORE') || w.some((x) => /^(Before you fish|I understand|Skip)$/.test(x))) break;
+        const dl = w.find((x) => /MB downloaded/.test(x));
+        line = dl ?? w.find((x) => /^Setting up|^Waiting for Wi-Fi|^Downloading the map/.test(x)) ?? line;
         if (!setupShot && w.some((x) => /^Setting up|MB downloaded/.test(x))) { shot('5-reopened'); setupShot = true; }
+        if (n++ % 10 === 0) readDm();
+        const disk = bytesOnDisk();
+        // only the download can stall here: once its line is gone the app is verifying and unpacking (the limit is CAP)
+        // (a line that reads full, "479.3 of 479.3 MB", is the same: every byte is down and being checked)
+        const full = (() => { const m = /^([\d,.]+) of ([\d,.]+) MB/.exec(dl ?? ''); return !!m && Number(m[1].replace(/,/g, '')) >= Number(m[2].replace(/,/g, '')); })();
+        const moving = dl && !full;
+        const still = watch.see(moving ? `${dl}|${disk}` : `setup ${Date.now()}`);
+        if (moving && watch.stalled()) {
+          readDm(); shot('5-stalled');
+          throw new Error(`the download stopped moving: the setup screen has read "${dl}" and the system's downloader has held ${onDisk() || 'nothing'} for ${Math.round(still / 1000)} s (${Math.round((Date.now() - t0) / 1000)} s after the app was reopened).${saidCancels()}`);
+        }
+        if (Date.now() - t0 > CAP) {
+          readDm(); shot('5-not-finished');
+          throw new Error(`setup not finished ${CAP / 60_000} min after the app was reopened, though it kept moving: the setup screen reads "${line}"; on disk: ${onDisk() || 'nothing'}.${saidCancels()}`);
+        }
         if (!alive()) d.launch();
-        await d.sleep(2000);
+        await d.sleep(2000);   // poll interval
       }
       await appUp(ctx, { launch: false, ms: 60_000 });
       ctx.flow('dismiss-first-run');
       shot('6-map');
       d.link('full', 'none');
+      readDm();
       let after = '';
       try {
         const js = d.logcatJs().split('\n').filter((l) => /\[download\]|\[setup\]/.test(l));
-        // the system's downloader's own lines: which jobs finished, and when (against the kill)
-        const dm = d.adb(['logcat', '-d', '-s', 'DownloadManager:*']).toString().split('\n').filter((l) => /Finished|Starting/.test(l));
+        // the system's downloader's own lines: which jobs started, finished or were stopped, and when (against the kill)
+        const dm = [...dmLines].filter((l) => /Finished|Starting|onStopJob/.test(l));
         fs.writeFileSync(path.join(ctx.dir, 'T298-install-timeline.txt'), [`app killed ${killedAt}`, ...dm, ...js].join('\n') + '\n');
         after = ` · system downloads finished: ${dm.filter((l) => /Finished/.test(l)).map((l) => l.slice(6, 14)).join(', ')} (app killed ${killedAt.slice(6)})`;
       } catch { /* no log */ }
-      return `opened by ${opened}; map up ${Math.round((Date.now() - t0) / 1000)} s later${after}`;
+      // (T756) "Wait for Wi-Fi", Wi-Fi back, the app reopened: both choices permit the running jobs, so none may be stopped
+      if (cancels().length) throw new Error(`reopening the app threw away ${cancels().length} running download(s); they began again from zero.${saidCancels()}`);
+      return `opened by ${opened}; map up ${Math.round((Date.now() - t0) / 1000)} s later; no running download stopped by the app${after}`;
     }, { stop: true });
     await ctx.step('More → Settings: "Download over mobile data" shows the saved Wi-Fi only', async () => {
       ctx.flow('tab', { TAB: 'More' });
