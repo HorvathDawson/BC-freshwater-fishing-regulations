@@ -52,3 +52,87 @@ are comments only. `pnpm -C app install --frozen-lockfile`: exit 0; `MLRNTapUpRe
 - Run 43676645443 (90eb55685, G12): superseded.
 - Run 43677144021 (3212f4936, same tree as 107207143): **success**, every step (pnpm check, feeds worker, web bundle,
   native bundles). So the two reds read as CI-load flakes, not fixed; worth watching.
+
+## Step 3: iOS simulator (build of 107207143 `--testbed`, same app code as the head; device integ-17, iPhone 17, iOS 26.5)
+Build: `build-ios-sim.sh --testbed` via heavy.sh lane 2, 146 s, signed to run locally.
+
+### Session 1 (fresh install, lane 3, 21:46-22:31, cap 45 min; another lane's simulator session ios-shared3 ran at the start)
+| scenario / step | result | baseline (T718) | note |
+|---|---|---|---|
+| first-open: up | false PASS "67 s" | PASS 397 s | its own shot shows the download screen (38.8 of 479.3 MB). **Test-bed fault, fixed in 51349c3bf** (appUp needs the tabs on two looks and no install screen). Why one tree read held "Map"/"More" is unproven (guess: cross-talk with the other simulator's Maestro session) |
+| first-open: About says staging | FAIL | PASS | "More" not found: the app was still downloading |
+| mid-download shot | the bar moving, "93.6 of 479.3 MB downloaded", iOS line "You can leave the app or lock the phone… Swiping the app away … stops it" | | `scratchpad/mid-download.png` (not committed) |
+| download speed | ~0.5-0.8 MB/s on the simulator | 1.7 MB/s | the owner's line was bad tonight (dropped connections; simulator DNS errors for clients3.google.com). Not judged as an app fault |
+| tap-water: search Cultus → page | FAIL (app not up in 180 s, still installing) | PASS | consequence of the slow install |
+| tap-water: edge-back | PASS (50 % / 400 ms went back) | PASS | |
+| tap-water: map tap on the lake → page | PASS | PASS | |
+| offline (3 steps) | 3/3 PASS | 2 of 3 | step 1 now passes |
+| satellite | PASS (light grey 9.4 % → 5.6 %) | PASS (10.6 → 5.6) | |
+| walkthrough | started (1 of 41), cut by the cap | 41/41 | re-run in session 2 |
+| pdf | not reached | PASS | session 2 |
+
+### Session 2 (not fresh, lane 2, 22:44-23:29, cap 45 min; functional only, other lanes ran jobs meanwhile)
+| scenario / step | result | branch alone / baseline | note |
+|---|---|---|---|
+| walkthrough | PASS 41 of 41 | 41/41 (T718) | |
+| pdf | PASS "Page 11 of 88" in PDFKit | PASS (T718) | |
+| keyboard: software keyboard on | PASS | | |
+| keyboard: report field | PASS, field 414-523 pt, keyboard top 540 → clear | clear (T723 after) | |
+| keyboard: glossary search | PASS, 173-215 pt → clear | clear | |
+| keyboard: notifications gauge search + pick | PASS, 497-538 pt → clear; one tap picked the gauge | clear | |
+| keyboard: alert value (decimal pad) | PASS, 472-513 pt, pad top 566 → clear; Done key present, closes the pad | as T723 | |
+| keyboard: spot title and notes | PASS, both clear; Save spot (774 pt) under the keyboard, not tappable with it up | same as T723 (the known "Save row" item, owner decision 15) | |
+| keyboard: Conditions → Alert me | PASS, "no keyboard drawn" | T723: not proven | as on the branch |
+| modal-back, audit-fixes | not reached (cap) | | session 3 |
+
+## Step 4: Android (test-bed APK of 3212f4936, patched MapLibre AAR fslean 13.6.1; emulator n1_pixel)
+APK built by `session.sh --build` through heavy.sh lane 2. Later sessions reuse it with `--allow-stale` (HEAD 51349c3bf differs only
+in `app/tools/testbed/run-ios.mjs`).
+
+### Run 1 (lane 2, 21:51-22:32; regs-open overlapped a TestFlight archive from 22:07, load avg 13.3 at 22:08)
+- spots: **FAIL, test bed**: setup "network did not reach WIFI" (the emulator's Wi-Fi stayed CONNECTING, only 3G), then the
+  quick-settings shade stayed open over the app and every read came back empty. Not an app result.
+- bg-install: its first step re-pointed the STAGING `test/` channel to the live release (`test/ = r-f749475d0962`; the same
+  release the channel already named when the run began, as far as the earlier runs read it). Then FAIL on every step (the same
+  broken Wi-Fi: "no progress on Wi-Fi in 120 s"). Test bed. Later runs use `--no-r2` (no bucket writes).
+- regs-open (timings taken under load: NOT counted; quiet re-run below). Android words on the first-install screen unchanged:
+  "You can close the app: the download carries on." (seen in run 2's screenshot).
+
+### Run 2 (lane 1, 23:46-23:52): stopped by me
+`run.mjs` runs scenarios in its own list order (spots before bg-install), so spots started on an app still in the first install
+left by run 1 (203 of 479.3 MB on screen): invalid. Wi-Fi this boot: CONNECTED.
+
+### Run 3 (lane 1, 23:54-00:10, `--no-r2`, bg-install alone; load avg 13.4 from other lanes): stopped by me
+- `test/` channel check (no write): `test/ = r-f749475d0962` before and after; nothing written to the bucket.
+- Android 13 asked "Allow Can I Fish? to send you notifications?" on the clean app. **That is expected**: bg-install answers
+  it on purpose (the system download's notification), and its own `expand-notifications` is the open shade seen in run 1.
+- The scenario's `tap-text "Allow"` flows started and ran **no command at all** (empty Maestro logs, no error). The same
+  failure as the "Maestro Android driver did not start" in T734, and the cause of the empty screen reads ("saw: ") in
+  runs 1 and 2. So the download never started and the remaining steps could only time out. **Test bed, not the app.**
+- Wi-Fi on this boot: CONNECTED (in run 1 it stayed CONNECTING: not seen again).
+- The Android first-install words are unchanged (run 2's screenshot): "You can close the app: the download carries on."
+
+## Summary tables (state at 00:17; the timed rows wait for the quiet window)
+
+### iOS (integ-17, iPhone 17, iOS 26.5; build of 107207143 = the head's app code)
+| scenario | integration | baseline T718 / branch alone | verdict |
+|---|---|---|---|
+| first-open | false PASS, then About step FAIL (still downloading) | PASS 397 s | test bed (fixed 51349c3bf); slow line tonight; mid-download bar moving (93.6 of 479.3 MB) |
+| tap-water | search → page FAIL (installing); edge-back PASS; map tap → page PASS | PASS | the FAIL follows the slow install |
+| offline | 3/3 PASS | 2 of 3 | better |
+| satellite | PASS 9.4 → 5.6 % | PASS 10.6 → 5.6 % | same |
+| walkthrough | 41/41 | 41/41 | same |
+| pdf | PASS Page 11 of 88 | PASS | same |
+| keyboard | 7/7 PASS | t723: clear on every field | same as the branch |
+| modal-back | session 3, running | t723: About/Layers/viewers close | pending |
+| audit-fixes | session 3, running | 5 of 8 proven on the branch | pending |
+| regs-open + t719 cue (≤ 150 ms every tap; double tap zooms, no page) | quiet window | T719 before: cue 371-495 ms; t719 branch: 8-121 ms | pending |
+| tap-stalls (worst stall < 300 ms) | quiet window | T720: worst 227 ms | pending |
+
+### Android (n1_pixel; test-bed APK of 3212f4936, patched MapLibre)
+| scenario | integration | base (T716 round 2 / T734 build 32) | verdict |
+|---|---|---|---|
+| bg-install | runs 1 and 3: FAIL in the test bed | PASS | test bed: Maestro driver did not start under load (and Wi-Fi stuck CONNECTING in run 1); re-run in the quiet window |
+| spots | runs 1 and 2: FAIL in the test bed | PASS | test bed (run 1: shade + Wi-Fi; run 2: started on an app mid-install); re-run in the quiet window |
+| regs-open | run 1 under a TestFlight archive (load 13.3): Norrish cue 56/40/60 page 357/349/351; unnamed cue 39/**202/223** page 332/414/363; Coquitlam cue 49/72/75 page 343/350/355; Fraser cue 58/71/62 page 347/331/358; Skeena cue 131/67/77 page 586/375/373; Cultus cue 108/81/75 page 367/337/361; double tap PASS | cue 22-112, page 352-402 | not judged (taken under load); quiet re-run pending |
+| tap-stalls | not run | cold start worst 125 ms, Run timing 262 ms | quiet window |
