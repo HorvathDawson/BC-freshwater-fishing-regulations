@@ -118,3 +118,53 @@ T716 "after" (emulator, with its `onTapUp` cue).
 - *Expected effect:* cue about 30-50 ms after the lift, as Android; page shown unchanged (the click still opens).
 - *Risk:* one more file to re-apply on a binding bump (the iOS half grows by about 45 lines), and the simulator and
   emulator pans to re-run (`app/deps.md`).
+
+### Phase 3: iOS onTapUp (proposal, branch ios/t719-tapup)
+**Built (95ef83d77, not merged):** the design above, in the Obj-C half of
+`app/patches/@maplibre__maplibre-react-native@11.5.0.patch` (edited with `pnpm patch` / `pnpm patch-commit`; lockfile:
+only the patch hash changed):
+- `MLRNMapView.m`: `MLRNTapUpRecognizer`, a plain `UIGestureRecognizer` (`cancelsTouchesInView`/`delaysTouchesBegan`/
+  `delaysTouchesEnded` = NO, its own delegate answering YES to simultaneous recognition). It never recognises: every
+  touch ends in `Failed`. A single-finger touch with `tapCount` 1 that lifts within 10 pt of where it went down and
+  under 0.5 s calls `reactOnTapUp` with `[MLRNMapTouchEvent makeTapEvent:…].toJSON` (the click's payload). Added after
+  the init loop, so the binding's `tap` does not wait on it. About 80 lines with the comment.
+- `MLRNMapView.h`: the `reactOnTapUp` block (1 property). `MLRNMapViewComponentView.mm`: `setReactOnTapUp` emits
+  `MLRNMapViewEventEmitter::onTapUp`, a copy of the `onPress` block.
+- The codegen spec already had `onTapUp` (T716): nothing added to it. JS: comments only (`Map.native.tsx`, `tapLift.ts`,
+  `BrowseHost.tsx`, the iOS scenario header, `app/deps.md`). The same `onTapUp` → `onPressStart` → `tapAhead` path
+  Android uses now runs on iOS; the double tap's "lit, then out after 700 ms with no click" is the same `pressCue` code.
+
+**Measured** (`regs-open`, build 294de8421 `--testbed`, iPhone 17 Pro Max sim, iOS 26.5; run
+`app/tools/testbed/out/runs/ios-2026-11-15T03-23-26`, 18/18 taps + double tap PASS). ms after the lift, cold / warm / warm:
+
+| water | before (phase 2): cue | after: cue | before: page shown | after: page shown | after: press (click) | Android cue (T716 r2) |
+|---|---|---|---|---|---|---|
+| small (Norrish) | 448 / 407 / 407 | 18 / 72 / 8 | 448 / 408 / 407 | 378 / 379 / 380 | 352 / 352 / 352 | 54 / 45 / 43 |
+| unnamed stream | 371 / 401 / 402 | 18 / 68 / 60 | 444 / 401 / 402 | 380 / 379 / 378 | 353 / 352 / 351 | 32 / 22 / 32 |
+| mid (Coquitlam) | (no target) | 22 / 19 / 19 | (no target) | 385 / 384 / 378 | 352 / 351 / 352 | 50 / 73 / 61 |
+| Fraser | 382 / 427 / 426 | 18 / 67 / 69 | 545 / 427 / 426 | 377 / 374 / 385 | 351 / 351 / 352 | 55 / 66 / 39 |
+| Skeena | 402 / 451 / 495 | 18 / 115 / 121 | 553 / 451 / 495 | 381 / 390 / 383 | 351 / 352 / 352 | 59 / 83 / 44 |
+| lake (Cultus) | 429 / 403 / 402 | 19 / 59 / 51 | 429 / 403 / 402 | 382 / 376 / 375 | 353 / 352 / 352 | 58 / 112 / 93 |
+
+- **Cue: 8-121 ms** after the lift (was 371-495); every tap within the 150 ms limit. Each tap opened its page once.
+- **Page shown: 374-390 ms** (was 401-553): the click still comes 351-353 ms after the lift (the double-tap wait is
+  kept), but the open now starts at the lift (`tapAhead`), so click → page is 22-38 ms (was 49-202 ms).
+- **Double tap (small): PASS**: UIKit saw 2 taps 217 ms apart, the map zoomed (32 % changed), no page, nothing
+  reported, cue lit then out (`1,0`), Android's pass condition.
+- **`tap-stalls`: PASS** on this build (run `…/ios-2026-11-15T02-18-02`): cold start worst 200 ms, Salmon 0, Run timing
+  160, bell 0, back to Standard 0.
+- Earlier runs of the same build failed only on the test bed's data: `--fresh` on a new simulator downloads 479 MB, and
+  each cold start of the scenario killed the download, which restarts every file from 0 (`attempt 1, 0 of N bytes on
+  disk` on every launch). Run 2 (`…/ios-2026-11-15T02-18-02`, `first-open regs-open tap-stalls`) let it finish; its
+  mid / Fraser / lake taps (cue 6-77 ms) agree with the table. Its `first-open` "More → About" step failed (the `More`
+  tab not found by text on the Pro Max; not looked into, not this change).
+
+**Not proven:** a real iPhone (the simulator runs on the Mac's CPU; touch timing is Maestro's XCTest synthesis, one
+finger, no drift); a real finger's drift between down and lift (the click's point must be within 2 dp of the lift's for
+the click to reuse its hit test, else it asks again, as before); a pinch / pan / long press starting on a water (the
+recogniser fails on a second finger, > 10 pt of movement and >= 0.5 s, by reading, not by a scenario); VoiceOver.
+
+**Android:** expected to see nothing different. The patch's Kotlin sections and every JS/TS section (the shared codegen
+specs, `lib/`, `src/`) are byte-identical to the T734 patch (checked file section by file section: only
+`ios/components/map-view/MLRNMapView.{h,m}` and `MLRNMapViewComponentView.mm` differ); the app's JS changed only in
+comments. The Android benches are the main lane's to run before any merge.
