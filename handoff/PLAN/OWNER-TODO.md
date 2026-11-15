@@ -691,3 +691,10 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
 - OWNER 2026-11-15: "we just want to prepared for how we will audit them". So the checks asked today (saved twice,
   tributaries, rest-of extents, mouth/tidal ends, side channels, one-bank) are being built into ONE repeatable audit
   command, run once when he says the marks are fully done; today's reports are the trial run, not the final audit.
+- SECOND LOOK at the 31 re-saved places, 2026-11-15 (report `handoff/PLAN/curation-review/resaved-marks-second-look-2026-11-15.md`):
+  18 look right, 3 look wrong, 1 wrong by your own note (Sproat), 9 cannot tell. Yours to decide: (1) a place whose last
+  save is "wrong" with no fix still ships its older extent, with no flag: hold such places out of a release until
+  re-marked? (2) Thompson, Kamloops Lake outlet: the live place has no cut-outs for the three year-round no-fishing
+  areas (Deadman, Juniper, Ashcroft). (3) Sheldens Creek: the Spur 19 cut leaves only the top ~290 m of a 3.69 km line;
+  a second road (SP 19H) was never located. (4) Fraser Region 3: the extent in force (Spuzzum to the Region 3/5 line)
+  looks right; your Seabird note fits the Region 2 places.
