@@ -133,3 +133,85 @@ needs the body's fields). Web: no background check, nothing changes.
 | rule book viewer | react-native-pdf (Android, pdfium), PDFKit (iOS) | ~70 MB while open; T740: only ~10 MB freed on close with a page up (iOS) | — | T740's pair (Android chat) |
 | decoded release files | JS external bytes, 33-67 MB (T360) | held for the session | slower first open of what was dropped | `memory` |
 | lists | `FlatList` in search, regs wide, glossary; other lists are short | — | — | nothing to do found |
+
+### Round 2 (2026-11-15, same branch)
+**A2 landed (c26cd9405):** the background check's release manifest and version file by conditional GET too
+(`notify/conditional.ts` `conditionalJson`; the obs.json rule: strong validator, only a 304 answers the kept copy, a
+200 is checked by the reader before it is kept, no ETag = whole read every run and said, a bad kept copy reported and
+read whole). Kept whole because the release check needs the manifest's fields. Saving per unchanged run: the manifest's
+body: staging's `/release/manifest.json` is 6,255 B on the wire (gzip; 25,131 B raw), weak ETag, `no-cache`; the same
+URL with the strong If-None-Match answered **304, 0 B** (measured 2026-11-15 with curl). The version file is small. Tests: 6
+cases.
+
+**A1 (item 8), no change, and why:** the ~35 KB of dev-only code in the store bundle is pulled in by Expo's own modules,
+not by the app: `expo/build/async-require/loadBundle.js` → `hmr.js` → `pretty-format` (12.4 KB with its plugins) +
+metro's `HMRClient` (2.6 KB); `expo-sqlite`'s `SQLiteDevToolsClient` → `expo/devtools` → `@expo/devtools` (12.6 KB).
+The app's own import (`@expo/metro-runtime` in `apps/mobile/index.js`) is 3.8 KB and installs the `location`
+polyfill on native. Removing the rest needs a patch to expo and expo-sqlite for under 1 % of a 3.55 MB bundle (0.04 %
+of the app). Not worth a patch to keep; recorded, not done.
+
+**A3, the JS bundle beyond fonts** (minified JS before bytecode, Android, from the source map):
+| what | bytes | verdict |
+|---|---:|---|
+| duplicate packages (two versions of one package) | 0 | none: no nested `node_modules` path in the bundle |
+| web-only app code (`*.web.*`, `src/web/`, react-dom, maplibre-gl, sql.js) | 0 | none reaches the native bundle (rule 34a pairs hold) |
+| test files, fixtures, `dev/` | 0 | none |
+| test-bed probes and the map lab (`panProbe` 2.4 K, `openProbe` 2.0 K, `labels`, `MapLab`, `lab`, `camProbe`, `imageryProbe`, `testbedFlag`) | ~13 K | shipped on purpose: switched by `EXPO_PUBLIC_PAN_PROBE` etc. in a test-bed build of the SAME bundle; dropping them would make the test bed measure another bundle |
+| generated tables: `fish-sprite.generated` 24.3 K (the loading fish, base64), `pack.generated` 23.4 K (the release codec's types/specs), `fish.generated` 16.2 K, `help.ts` 18.2 K, `changelog.ts` 8.8 K | ~91 K | all read on a phone (boot screen, decoder, fish sheet, Help, What's new); help and changelog could come from the release but are app words (core sentences), not data: no move |
+| `whatwg-url-minimum` 30.2 K, `whatwg-fetch` 10.0 K | 40 K | the URL / fetch polyfills Expo and RN install: needed |
+Nothing provably dead to remove; no change.
+
+**A4, spot photo thumbnails (PROPOSAL, not built; touches T732's files):** `origin/android/t732-backup` adds
+`expo-image-manipulator` 58.0.15 (`backupSet.native.ts`: 1600 px long edge, JPEG 70). The same module can write a
+thumbnail when a photo is added (`photoStore.native.ts`), e.g. 480 px long edge (2× the largest cell the Spots list
+and the spot's grid draw), kept beside the original and deleted with it; rows and the grid draw the thumbnail, the
+photo viewer the original. Memory per row, estimated (4 bytes a pixel): a 12 MP photo decoded whole is 48 MB; a
+480 × 360 thumbnail 0.69 MB. What each platform decodes today is NOT verified: iOS's image loader scales to the view and
+Fresco may downsample a large JPEG on Android, so today's real cost per row is somewhere between ~0.7 and 48 MB.
+Bench: `saved-spots` with 10 photos of 12 MP, then `memory` on the Spots tab, before/after. Also saves decode time on
+scroll. Old photos get thumbnails on first draw (or a one-time pass). Owner pick, after T732 merges.
+
+**A5, the SQLite connections on a phone** (`release/loader.ts`: one connection per file, opened on its FIRST read, held
+until a memory trim closes it idle 60 s or an update retires the set; each may grow to SQLite's default 2,000 KiB page
+cache):
+| file | first opened by | could close when its screen closes? |
+|---|---|---|
+| `core` | boot / first search / first tap | no: every screen |
+| `water` | a water's page | no: the map and pages |
+| `geo` | first tap (part boxes) | no: every tap |
+| `regs-<r>` (1-8, one per region visited) | a page in that region | yes after the page closes, all but the map's region (a reopen 0.1-0.3 ms, T360) |
+| `regs-sid`, `down` | a tap on an unnamed stream | rarely used: candidates |
+| `near` | town search | yes, when search closes |
+| `climate` | a gauge chart | yes, when Conditions closes |
+| `conditions` | the Conditions tab | yes, when Conditions closes |
+| `lines` | making / opening a link | yes, after the link |
+Up to 17 connections; a typical session 6-9 (core, water, geo, 1-3 regs regions, conditions, climate, near). Sharing one
+connection (ATTACH) would change the SQL queue and every query's schema name: not proposed. Closing on screen close
+changes nothing a reader sees but needs the device measure (B3) to show the page cache is real memory first.
+
+### Round 2, device (iPhone 17 simulator `t741-17`, iOS 26.5, `--probes` builds from this worktree, lanes 2/3)
+Builds, same script and signing: base 410564271 (the branch point), branch d2fd851b7, inline b1f4bb080 (side branch
+`perf/t741-inline`, not on perf/t741), cache 0519af399 (side branch `perf/t741-cache`, never to merge).
+**Size, measured on the built apps:** `.app` 65,720 KB (base) → 61,824 KB (branch), −3,896 KB; fonts 41 → 8 (900,016 B);
+`main.jsbundle` 6,161,085 → 6,144,737 B. Inline requires makes the bytecode bigger: 6,297,876 B (+153,139 B on the branch).
+
+**B1 functional (FUNCTIONAL ONLY: the machine was loaded, load 7.5-21; no number below is a timed result):**
+- branch, fresh install: first-open PASS (513 s to the map); search Cultus → regulations PASS; edge-back PASS; tap on the
+  lake → page PASS; walkthrough PASS to step 27 of 41 when the 28-min session cap stopped it (Maestro ~45 s a step);
+  `perf` not reached. ONE FAIL: "the data is staging (More → About)": the More tab was hidden by the first-run notice.
+  Cause, from the app log: step 1 passed at ~00:28:56 while the install was still verifying (installed 00:29:37); the
+  notice then came up after the map opened. A test-bed race on a slow download, not the app: base, fresh install, same
+  device, same steps: all 5 PASS (478 s; there the install had ended before step 1 finished).
+- **Faces drawn as before:** compared by eye, side by side, the branch shots (`runs/b1-branch/002…`, `003…`) with
+  `handoff/PLAN/ios/shots/baseline/tap-water.jpg` / `first-open.jpg`: Bricolage on the headings ("Before you fish",
+  "Closed", "✓Open", "Let's find a water"), Archivo on the body and rows, JetBrains Mono on the month letters J F M …;
+  no system face anywhere. Shots in the session scratchpad `t741/runs/`.
+- Install hash after the last byte (from the app log, NOT like for like: different download speeds and load): branch
+  25,546 ms, base 23,253 ms (T718's 44,158 ms was another day's line). No claim on item 2 from this.
+- **B2 functional (inline build, not timed):** `tap-stalls` 5 of 5 PASS (numbers not counted: load 6-28). `tap-water`:
+  first run, 2 PASS + 1 FAIL — after a cold start the first-run notice ("Before you fish") was up over the map and the
+  tap opened nothing; the control re-run (same device, base then inline, back to back) passed all 3 on BOTH builds. So 1
+  failure in 2 inline runs, 0 in 3 base runs: not reproduced, not explained, and a reason to read the timed B2 runs'
+  shots for the notice too before keeping inline requires (it changes the order module top levels run).
+- **B3 functional (cache build, `PRAGMA cache_size=-256`):** `memory` 10 of 10 steps PASS; the rule book opens. Its
+  numbers wait for the timed pair against the branch build (load 6-20 during this run).

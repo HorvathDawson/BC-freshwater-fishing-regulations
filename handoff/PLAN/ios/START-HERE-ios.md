@@ -102,16 +102,19 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
   off the shared branch tonight (production worker and privacy page first).
   Needs from the owner later: an Apple push key and three `wrangler secret put` commands (in the ticket), and for
   Android a Firebase project with its `google-services.json`.
-- `perf/t741` (T741, head e68b6ab93, not merged, nothing run on a device): the standing pass to make the app faster
-  and lighter on both platforms (owner: "can you make sure to keep working on optimizations? make app faster and
-  lighter for both ios and android"). Survey done (ranked table in the ticket). **Landed on the branch:** only the 8
-  type faces the app draws are shipped, not 41 (3.9 MB less installed on each platform, measured from the export);
-  the file check written in JS is 16 to 20 % faster (measured in node as a stand-in, not on a phone); the background
-  alert check asks "changed?" and no longer reads 24 KB every run. **Found:** the 44 s check after a first download
-  on iPhone is already gone on `ios/t722-install` (native check). **Waiting for a device run:** the three changes
-  above (every face drawn as before), loading code on first use, fonts built in, Android's code shrinker (R8: 6 to
-  10 MB estimated, high risk, own ticket to open). Proposals for the owner are in the ticket (photo thumbnails,
-  database cache size). Round 2 running.
+- `perf/t741` (T741, head f1938dd60, not merged): the standing pass to make the app faster and lighter on both
+  platforms (owner: "can you make sure to keep working on optimizations? make app faster and lighter for both ios and
+  android"). Survey done (ranked table in the ticket). **Landed on the branch:** only the 8 type faces the app draws
+  are shipped, not 41 (the built iPhone app went from 65.7 to 61.8 MB, measured; the same 3.9 MB on Android by the
+  export); the file check written in JS is 16 to 20 % faster (measured in node as a stand-in, not on a phone); the
+  background checks for alerts, for new data and for a new app version ask "changed?" first (an unchanged answer is
+  0 bytes; it was 24 KB and 6 KB each run). **Simulator, functional (03:20):** the branch passes first open, search,
+  edge-back and tap to page, and every face is drawn as before (by eye against the baseline shots). **Waiting for a
+  quiet machine:** cold start and stalls with and without "load code on first use" (one unexplained tap failure in two
+  runs with it on), memory base against branch, and a smaller database cache. **Looked at and left:** 35 KB of
+  developer-only code comes in through Expo's own modules; nothing else in the bundle is dead. **Proposals:** photo
+  thumbnails for the spots list (after T732), closing five kinds of database connection with their screen, Android's
+  code shrinker (T749). The 44 s check after a first download on iPhone is already gone on `ios/t722-install`.
 - `ios/t746-apply-splash` (T746, head 9975a07fe, from `ios/t722-install`, app CI green, not merged): while new data
   is applied the app shows the boot screen's fish and one line of text over everything, takes no taps, and a failed
   apply now says so with an OK button (before, a failure was reported but shown nowhere, and one kind hung the
