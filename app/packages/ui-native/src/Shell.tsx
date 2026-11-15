@@ -29,7 +29,7 @@ import { openProbe, type ItemId, type SectionId } from "@app/data";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Platform, View } from "react-native";
 import { bottomBarShown, spotPins, useDayFlow, useLikeVisit, useMapRail, useMyLocation, useOpenAtMe, opensAtMe, useShare, useGaugePageCheck, useMenu, useDataFacts, useSync, useAppUpdate,
-         BackLayerContext, InSeasonContext, InSeasonInboxContext, useIdleOnce, useInSeason, loadRegsStore, useInSeasonInbox, useDfoNotice, useDfoCheckedAt, useReleasePrefetch, useBackgroundPrefetch, useNet, useNetQuiet, useRegsPrefetch, holdsMapStatus, openWater, pressCueStore, tapAhead, useTapAwaiting, useHeldLookStore, type HeldLookStore, type RegsStart } from "@app/ui";
+         BackLayerContext, InSeasonContext, InSeasonInboxContext, useIdleOnce, useInSeason, loadRegsStore, useInSeasonInbox, useDfoNotice, useDfoCheckedAt, useReleasePrefetch, useBackgroundPrefetch, useWaterRegionsAhead, useNet, useNetQuiet, useRegsPrefetch, holdsMapStatus, openWater, pressCueStore, tapAhead, useTapAwaiting, useHeldLookStore, type HeldLookStore, type RegsStart } from "@app/ui";
 import type { Camera, MapSpots } from "@app/map";
 import { visitSpot } from "@app/data/spots";
 import { connectivity } from "./connectivity";
@@ -157,6 +157,10 @@ export function Shell(p: ShellProps) {
   const partsIdle = useIdleOnce(Platform.OS === "web" && quietLine);
   useEffect(() => { if (partsIdle) void preloadParts(); }, [partsIdle]);
   const { route, go, tab, frame, adding, openSpot, back, backLayers } = nav;
+  // (T737, 2026-11-15) the open water's other regions (a Fraser part in Region 2: 3, 5, 7A) go first in the background
+  // tier, behind what the reader is downloading — the page reads only its own part's region file
+  const openItem = frame?.item ?? null;
+  useWaterRegionsAhead(background.scheduler, loader, openItem);
   /*
    * EVERY SURFACE IS UNDER THE ONE BACK (app/HANDOFF-ui.md "Back, everywhere"): whatever the Shell returns — the spot,
    * the capture, the tabs and the water — is inside `BackLayerContext`, so a sheet, menu, confirm or step drawn

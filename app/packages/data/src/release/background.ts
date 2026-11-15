@@ -7,7 +7,9 @@
  *               down, salmon, salmon-<r>), per region; a file the manifest does not name is skipped, one already
  *               prefetched or opened costs nothing. A region is READY when every one of its files is held.
  *               (T737) Within a region: what a named tap reads, then regs-sid and down, then the whole water
- *               (`UNNAMED_ORDER`); and while the reader is downloading (`reader`) nothing new starts.
+ *               (`UNNAMED_ORDER`); and while the reader is downloading (`reader`) nothing new starts. The whole order
+ *               (`backgroundOrder`): the open water's other regions (`want`), the view with a named tap's slice + geo,
+ *               its neighbours, `lines`, then the province.
  *   ORDER       the region in view, then its neighbours (`REGION_NEAR`), then every other region (T238, owner
  *               2026-10-29: the regulations of ALL regions over time, the view's first; this replaces the 10-28 cap at
  *               view + neighbours). When the view moves to another region, that region and its neighbours go next. The shared files (water, regs-sid, down …) come with the first region, so the next costs
@@ -75,12 +77,48 @@ export function regionOrder(view: readonly Region[]): Region[] {
  * tap's page waits for (`regs-sid` 1.2 MB, `down` 1.2 MB gzip), and only then the whole `water` (2.6 MB). Since T737 a
  * tap reads its region's 0.17 MB water slice while the whole water is still coming, so the whole water first held the
  * unnamed files back ~4-8 s and helped no tap. A file not named here keeps the contract's order, after these.
- * `lines` (1.3 MB) is NOT fetched ahead: the unnamed tap asks for it (its link place) but its page does not wait for it
- * (measured 2026-11-14: readable in 0.07 s with `lines` still downloading), and fetched ahead it slowed a named tap at 8 s
- * (0.8 → 2.2 s on a phone, `lines` in flight).
+ * `lines` (1.3 MB) is not in a region's files: the unnamed page does not wait for it (measured 2026-11-14: readable in
+ * 0.07 s with `lines` still downloading), and fetched with the view's files it slowed a named tap at 8 s (0.8 → 2.2 s on
+ * a phone, `lines` in flight). (T737, 2026-11-15) It comes after the view's neighbours (`backgroundOrder`): a page with
+ * an in-season notice on part of its water (the Fraser) places the notice on it.
  */
 export const UNNAMED_ORDER: readonly string[] = ["core", "access", "regs-{region}", "salmon", "salmon-{region}",
   "regs-sid", "down", "water"];
+
+/**
+ * (T737, owner 2026-11-15: "it still feels slow", a Fraser part in Region 2) WHAT A NAMED TAP'S PAGE READS BESIDE A
+ * REGION'S OWN FILES, fetched FIRST for the region in view (before the whole 1.5 MB `core`, which a named tap does not
+ * read: its region's `core-<r>` slice answers it — measured: a tap 8 s after paint still waited 3.7 s for `geo` while the
+ * background was on `core`): the region's water slice (the tapped section's part) and `geo` (the water's parts and boxes:
+ * every named water's open asks it, 0.6 MB, and it came only after the slice — 0.9 + 2.4 s in series on staging). Only
+ * for the regions in view: a neighbour's tap reads the same `geo`.
+ */
+export const NAMED_EXTRA: readonly string[] = ["water-{region}", "geo"];
+
+/**
+ * (T737) The background's whole order, pure: (1) the regs file of every region the OPEN water's parts are in (`want`: a
+ * Fraser part in Region 2 opens a page whose other parts are in 3, 5, 7A — read when the reader steps or lists them,
+ * never by the page), (2) each region in view: a named tap's files with `NAMED_EXTRA`, then the unnamed page's (as
+ * `unnamedTapFiles`), (3) its neighbours' own files, (4) `lines` (1.3 MB: an in-season notice on part of a water is
+ * placed on it, and an unnamed page's link place; last of the near ones, so a named tap in the first seconds never shares
+ * the line with it), (5) every other region. A file the manifest does not name is skipped; each comes once.
+ */
+export function backgroundOrder(m: Pick<Manifest, "files">, view: readonly Region[], want: readonly Region[] = []): FileName[] {
+  const out: FileName[] = [];
+  const add = (f: string) => { if (m.files[f] && !out.includes(f as FileName)) out.push(f as FileName); };
+  for (const r of want) add(`regs-${r}`);
+  const regions = regionOrder(view);
+  const near = new Set<Region>([...view, ...view.flatMap((r) => REGION_NEAR[r])]);
+  let lines = false;
+  for (const r of regions) {
+    if (!lines && !near.has(r)) { add("lines"); lines = true; }
+    const files: string[] = unnamedTapFiles(m, r);
+    if (view.includes(r)) files.unshift(...NAMED_EXTRA.map((f) => f.replace("{region}", r)));
+    files.forEach(add);
+  }
+  if (!lines && regions.length) add("lines");
+  return out;
+}
 
 /** The files an unnamed tap in region `r` reads, as the contract lists them, that this manifest names, in fetch order. */
 export function unnamedTapFiles(m: Pick<Manifest, "files">, r: Region): FileName[] {
@@ -164,11 +202,17 @@ export interface BackgroundPrefetch {
   start(): void;
   /** The regions in view (the map's centre); re-orders what is fetched next. */
   view(regions: readonly Region[]): void;
+  /**
+   * (T737) The regions the OPEN water's parts are in (none: no water open): their regs files go first, behind what the
+   * reader is downloading (`reader`) — the page reads only its own part's; the others are for a step or the parts list.
+   */
+  want(regions: readonly Region[]): void;
   /** New network / device signals: a hold pauses, its end resumes. */
   signals(s: Partial<NetSignals>): void;
   /**
-   * (T737) The reader is downloading (`readerDownloading`): nothing new starts until it is not; the file in flight goes on
-   * (a tap that needs it has joined it). Not a hold: it is said nowhere, it only yields the line for a moment.
+   * (T737) The reader is downloading (`readerDownloading`): nothing new starts until it is not, and the line has stayed
+   * free of it for `READER_GRACE_MS`; the file in flight goes on (a tap that needs it has joined it). Not a hold: it is
+   * said nowhere, it only yields the line for a moment.
    */
   reader(busy: boolean): void;
   /** Stop for good (the loader changed, the app is closing). */
@@ -185,7 +229,17 @@ export interface BackgroundOptions {
   onEvent?: (e: UpdateEvent) => void;
   /** a performance mark before each file (the request walk's `release-prefetch` split) */
   mark?: (name: string) => void;
+  /** (T737) how long the line must stay free of the reader's downloads before a new file starts (`READER_GRACE_MS`) */
+  readerGraceMs?: number;
 }
+
+/**
+ * (T737, 2026-11-15) A tap's reads come in steps (the water slice and geo, THEN the page's lines and region files): the
+ * line is free for a moment between them. Measured on a slow line (~1.5 Mbit/s): a 1.2 MB `regs-sid` started in that
+ * gap (6 ms after geo landed, 24 ms before the page asked `lines`) and the page's `lines` took 14.6 s instead of ~7. So
+ * the background waits this long after the reader's last download before it starts anything.
+ */
+export const READER_GRACE_MS = 1500;
 
 const regionWord = (r: Region) => r.toUpperCase();
 
@@ -196,7 +250,10 @@ export function createBackgroundPrefetch(o: BackgroundOptions): BackgroundPrefet
   const cap = Math.max(1, o.concurrency ?? 1);
   let net: NetSignals = { ...NET_DEFAULT, ...o.signals };
   let view: Region[] = [];
+  let wanted: Region[] = [];
   let started = false, cancelled = false, readerBusy = false;
+  const grace = Math.max(0, o.readerGraceMs ?? READER_GRACE_MS);
+  let graceTimer: ReturnType<typeof setTimeout> | null = null;
   const active = new Set<FileName>();
   const failed = new Set<FileName>();
   const told = new Set<Region>();
@@ -213,12 +270,8 @@ export function createBackgroundPrefetch(o: BackgroundOptions): BackgroundPrefet
   // a region the release holds no regs file for is never "ready" (nothing to tap there)
   // every region the release holds that is held whole — a region from an earlier view stays ready
   const ready = () => [...new Set([...order(), ...REGIONS])].filter((r) => !!m.files[`regs-${r}`] && unnamedTapFiles(m, r).every(held));
-  const next = (): FileName | null => {
-    for (const r of order())
-      for (const f of unnamedTapFiles(m, r))
-        if (!loader.prefetched(f) && !active.has(f) && !failed.has(f)) return f;
-    return null;
-  };
+  const next = (): FileName | null =>
+    backgroundOrder(m, view, wanted).find((f) => !loader.prefetched(f) && !active.has(f) && !failed.has(f)) ?? null;
   const state = (): PrefetchState => {
     if (cancelled) return "cancelled";
     if (!started) return "waiting";
@@ -286,6 +339,13 @@ export function createBackgroundPrefetch(o: BackgroundOptions): BackgroundPrefet
       pump();
       changed();
     },
+    want(regions) {
+      const w = [...new Set(regions)];
+      if (w.join() === wanted.join()) return;
+      wanted = w;
+      pump();
+      changed();
+    },
     signals(s) {
       const was = prefetchHold(net);
       net = { ...net, ...s };
@@ -294,13 +354,20 @@ export function createBackgroundPrefetch(o: BackgroundOptions): BackgroundPrefet
       pump();
     },
     reader(busy) {
-      if (busy === readerBusy) return;
-      readerBusy = busy;
-      pump();
+      if (busy) {
+        if (graceTimer) { clearTimeout(graceTimer); graceTimer = null; }
+        if (!readerBusy) { readerBusy = true; pump(); }
+        return;
+      }
+      if (!readerBusy || graceTimer) return;
+      // the line free: only after `grace` with nothing new from the reader does a file start
+      const free = () => { graceTimer = null; readerBusy = false; pump(); };
+      if (grace === 0) free(); else graceTimer = setTimeout(free, grace);
     },
     cancel() {
       if (cancelled) return;
       cancelled = true;
+      if (graceTimer) { clearTimeout(graceTimer); graceTimer = null; }
       say({ kind: "paused", note: "cancelled" });
       changed();
     },

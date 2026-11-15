@@ -22,6 +22,8 @@ import { accessNeedsWeights, buildRegsPage, offlineAs, reported, headerOf, metho
          type Weekday, type Who, bcNow, now as clockNow } from "@app/core";
 import { downstreamWater, openProbe, type ItemId, type WaterSource, type SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
+/** a bundle region, as the loader names it */
+type Region = Awaited<ReturnType<ReleaseLoader["regionsOf"]>>[number];
 import { itemsOfSections, loadRegsInputs, loadWaterGroup, openRegsStore, RegsStoreError, siblingItems, targetFor, type RegsExpect, type RegsLoader,
          type RegsStore } from "@app/data/regs";
 import { useAsync, type Async } from "./async";
@@ -80,6 +82,44 @@ export async function prewarmRegs(loader: RegsLoader, { files = false }: { files
   if (!files) return;
   for (const name of Object.keys(loader.manifest.files))
     if (/^regs-(?!sid$)/.test(name)) await loader.db(name as never).catch(() => null);
+}
+
+/**
+ * (T737) `f` (an opener's question about a water: its part, whether it is solo), with `warm` told the water first — so
+ * what the page will read beside its rules is asked the moment the opener knows the water, beside the question's own
+ * reads. The answer is `f`'s, unchanged.
+ */
+export function warmedFirst<A extends readonly unknown[], R>(warm: ((item: ItemId) => void) | undefined,
+                                                             f: (item: ItemId, ...rest: A) => R): (item: ItemId, ...rest: A) => R {
+  return (item, ...rest) => { warm?.(item); return f(item, ...rest); };
+}
+
+/**
+ * (T737, owner 2026-11-15: "it still feels slow") WHAT A NAMED WATER'S OPEN WAITS ON BESIDE ITS PART, asked the moment
+ * the opener knows the water (its part / solo questions, `warmedFirst`): `geo` (its parts and boxes — the solo check and
+ * every view's parts read it). It was asked only after the water slice (0.9 + 2.4 s in series, measured on staging); now
+ * the two come together. Nothing else is asked here: on a slow line (~1 Mbit/s measured) `access` asked beside them
+ * held the readable page back by its share of the line, and the page asks it as before. The same loader open the page
+ * makes later, so nothing is fetched twice; a failure is not kept (the loader forgets it) and the page's own read of
+ * the same file asks again and says it — nothing is hidden by dropping it here. An unnamed reach (null): nothing.
+ */
+export function warmWaterPage(loader: Pick<ReleaseLoader, "manifest" | "db">): (item: ItemId | null) => void {
+  return (item) => {
+    if (item !== null && loader.manifest.files.geo) void loader.db("geo").catch(() => { /* the page's read says it */ });
+  };
+}
+
+/**
+ * (T737, 2026-11-15) THE REGIONS A WATER'S PARTS ARE IN (their answer keys' regions, `regionsOf`): what the background
+ * prefetch fetches next for an open water (`BackgroundPrefetch.want`) — a Fraser part in Region 2 opens a page whose
+ * other parts are in 3, 5 and 7A. The page reads only its own part's region file; these are for a step or the parts list.
+ */
+export async function waterRegionsOf(loader: RegsLoader & Pick<ReleaseLoader, "regionsOf">, item: ItemId): Promise<Region[]> {
+  const store = await loadRegsStore(loader);
+  const ord = await store.itemOrd(item);
+  if (ord === null) return [];
+  const akeys = [...new Set((await store.parts(ord)).map((p) => p.akey))].filter((a): a is number => a !== null);
+  return [...new Set((await Promise.all(akeys.map((a) => loader.regionsOf(a)))).flat())];
 }
 
 /**

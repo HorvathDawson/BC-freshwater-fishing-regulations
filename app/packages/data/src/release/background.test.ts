@@ -11,7 +11,7 @@ import { parseManifest, type Manifest } from "../manifest";
 import { REGIONS, WEB_BUDGET } from "../pack.generated";
 import type { Db } from "../sql/db";
 import { releaseLoader, type DbName, type FileName, type ReleaseLoader } from "./loader";
-import { createBackgroundPrefetch, FAST_BYTES_PER_S, NET_DEFAULT, prefetchHold, readerDownloading, REGION_NEAR, regionOrder,
+import { backgroundOrder, createBackgroundPrefetch, FAST_BYTES_PER_S, NET_DEFAULT, prefetchHold, readerDownloading, REGION_NEAR, regionOrder,
          unnamedTapFiles, type NetSignals } from "./background";
 import { releaseCache } from "./drivers/cache.web";
 import { releaseSource } from "./drivers/source.web";
@@ -288,17 +288,57 @@ describe("(T737, owner 2026-11-14) the unnamed tap's files early, behind the rea
     expect(f.pending.map((p) => p.name)).not.toContain("lines");
   });
 
+  it("(2026-11-15) the whole order: the open water's regions, the view with its slice + geo, neighbours, lines, the rest", () => {
+    const m = manifest([...ALL, "geo", "water-2", "water-3"]);
+    const o = backgroundOrder(m, ["2"], ["3", "5", "7a", "2"]);
+    // a Fraser part in Region 2: the other parts' regions first (the page reads only its own part's)
+    expect(o.slice(0, 4)).toEqual(["regs-3", "regs-5", "regs-7a", "regs-2"]);
+    // the view's named tap reads its water slice and geo: first of the view's files, before the whole core
+    expect(o.slice(4, 8)).toEqual(["water-2", "geo", "core", "access"]);
+    expect(o.indexOf("water-3")).toBe(-1);                      // a neighbour's slice: never (its tap reads geo too)
+    // lines: after the view and every neighbour (1, 3, 5, 8), before the far regions (4, 6, 7a, 7b)
+    const at = o.indexOf("lines");
+    expect(o.indexOf("salmon-8")).toBeLessThan(at);
+    expect(o.indexOf("regs-4")).toBeGreaterThan(at);
+    expect(o.indexOf("regs-sid")).toBeLessThan(o.indexOf("regs-1"));   // the unnamed files still before the neighbours
+    expect(new Set(o).size).toBe(o.length);
+    expect(backgroundOrder(m, [])).toEqual([]);                 // no view, no water: nothing
+  });
+
+  it("(2026-11-15) want: the open water's regions go next, behind the file in flight", async () => {
+    const f = fakeLoader();
+    const bg = createBackgroundPrefetch({ loader: f.loader, signals: { effectiveType: "4g" } });
+    bg.view(["2"]); bg.start();
+    bg.want(["3", "5"]);
+    expect(await f.finish()).toBe("core");                       // the one in flight lands
+    expect(f.pending.map((p) => p.name)).toEqual(["regs-3"]);
+    expect(await f.finish()).toBe("regs-3");
+    expect(f.pending.map((p) => p.name)).toEqual(["regs-5"]);
+    bg.want([]);                                                 // the water closed: the view's order again
+    await f.finish();
+    expect(f.pending.map((p) => p.name)).toEqual(["access"]);
+  });
+
   it("while the reader downloads nothing new starts (the file in flight goes on); after it, the next one does", async () => {
     const f = fakeLoader();
     const events: UpdateEvent[] = [];
-    const bg = createBackgroundPrefetch({ loader: f.loader, signals: { effectiveType: "4g" }, onEvent: (e) => events.push(e) });
+    const bg = createBackgroundPrefetch({ loader: f.loader, signals: { effectiveType: "4g" }, onEvent: (e) => events.push(e),
+                                         readerGraceMs: 40 });
     bg.view(["2"]); bg.start();
     bg.reader(true);                                // a tap's download is under way
     expect(await f.finish()).toBe("core");          // the one in flight lands
     expect(f.pending.length).toBe(0);
     bg.view(["3"]);                                 // a new view starts nothing either
     expect(f.pending.length).toBe(0);
+    // (2026-11-15) the line free for a moment between the tap's steps: nothing starts within the grace
     bg.reader(false);
+    await new Promise((r) => setTimeout(r, 20));
+    expect(f.pending.length).toBe(0);
+    bg.reader(true);                                // the page's next step: the grace starts again after it
+    bg.reader(false);
+    await new Promise((r) => setTimeout(r, 25));
+    expect(f.pending.length).toBe(0);
+    await new Promise((r) => setTimeout(r, 40));
     expect(f.pending.map((p) => p.name)).toEqual(["access"]);
     // a yield is not a hold: never said as paused
     expect(events.filter((e) => e.kind === "paused" || e.kind === "resumed")).toEqual([]);

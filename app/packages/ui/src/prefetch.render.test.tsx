@@ -6,7 +6,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render } from "@testing-library/react";
 import type { BackgroundPrefetch, PrefetchSnapshot, ReleaseLoader } from "@app/data/release";
-import { BACKGROUND_DELAY_MS, batteryLow, connectionSignals, useBackgroundPrefetch, useReleasePrefetch,
+import { BACKGROUND_DELAY_MS, batteryLow, connectionSignals, useBackgroundPrefetch, useReleasePrefetch, useWaterRegionsAhead,
          webNetSignals } from "./prefetch";
 
 afterEach(cleanup);
@@ -203,5 +203,27 @@ describe("(T253) the background tier", () => {
   it("batteryLow: at or under 20 % and not charging", () => {
     expect([batteryLow({ charging: false, level: 0.2 }), batteryLow({ charging: true, level: 0.05 }),
             batteryLow({ charging: false, level: 0.5 })]).toEqual([true, false, false]);
+  });
+});
+
+describe("(T737, 2026-11-15) the open water's other regions first", () => {
+  it("a water open: its regions handed to the background tier; another water: its own; closed: none", async () => {
+    const wanted: string[][] = [];
+    const sch = { want: (r: readonly string[]) => wanted.push([...r]) } as unknown as Pick<BackgroundPrefetch, "want">;
+    const loader = {} as never;
+    const regionsOf = async (_l: unknown, item: string) => (item === "gnis:39325" ? ["2", "3", "5", "7a"] : ["2"]) as never;
+    function W({ item }: { item: string | null }) { useWaterRegionsAhead(sch, loader, item as never, regionsOf as never); return null; }
+    const r = render(<W item="gnis:39325" />);
+    await new Promise((x) => setTimeout(x, 0));
+    expect(wanted).toEqual([["2", "3", "5", "7a"]]);
+    r.rerender(<W item="gnis:3062" />);
+    await new Promise((x) => setTimeout(x, 0));
+    r.rerender(<W item={null} />);
+    expect(wanted).toEqual([["2", "3", "5", "7a"], ["2"], []]);
+    render(<W item="gnis:1" />);     // no scheduler is a phone: nothing asked (below)
+    function N() { useWaterRegionsAhead(null, loader, "gnis:1" as never, regionsOf as never); return null; }
+    render(<N />);
+    await new Promise((x) => setTimeout(x, 0));
+    expect(wanted.length).toBe(4);
   });
 });

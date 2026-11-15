@@ -7,10 +7,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Platform } from "react-native";
 import type { ItemId, WaterSource } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
-import { carryRoute, frameViews, loadRegsStore, regsGroupOf, regsPartOf, regsSoloOf, reportFailure, useOpenWater, useRegsStore,
+import { carryRoute, frameViews, loadRegsStore, regsGroupOf, regsPartOf, regsSoloOf, reportFailure, useOpenWater, useRegsStore, warmedFirst, warmWaterPage,
          useRoute, useSalmonKey, useWaterGroup, waterFrame, type BrowseTab, type Route } from "@app/ui";
 import { backDepth, edgeBackDepth, useBack, useEdgeBack, useViewSwipe, type SystemBack } from "@app/ui";
-import { useRegulationKeys } from "@app/ui";
 import { placeReads } from "@app/ui/place";
 import { TABS, type TabKey } from "../TabBar";
 import type { WaterViews } from "../ViewSwipe";
@@ -35,9 +34,9 @@ export function useShellNav({ source, loader, systemBack, initialRoute, onRoute 
   const tab: TabKey = browse.tab;
   const frame = waterFrame(route);
   const item: ItemId | null = frame?.item ?? null;
-  // the water's regulations read (P11): on the release, opening it opens core, water and its region's file — a water in
-  // another region fetches that region's. The page that draws them is T01/T03's; until then the placeholder stands.
-  useRegulationKeys(source, item);
+  // (T737, 2026-11-15) no longer the P11 placeholder read (`useRegulationKeys`): it opened the region file of EVERY part
+  // of the open water one after another (a Fraser part in Region 2: regs-3, then regs-5, then regs-7a, ~1 MB in series
+  // beside the page). The page opens its own part's file; the others come ahead behind the reader (Shell: `want`).
   const adding = route.mode === "browse" ? route.adding : null;
   // a spot open over the browse map, or (T131) over a water, its pin tapped on the water's map
   const openSpot = route.mode === "browse" ? route.spot : route.spot ?? null;
@@ -64,9 +63,12 @@ export function useShellNav({ source, loader, systemBack, initialRoute, onRoute 
   routeNow.current = route;
   const now = useCallback(() => routeNow.current, []);
   const groupOf = useMemo(() => (loader ? regsGroupOf(loader) : undefined), [loader]);
-  const soloOf = useMemo(() => (loader ? regsSoloOf(loader) : undefined), [loader]);
+  // (T737, 2026-11-15) what a named water's open waits on beside its part (geo), asked as soon as the opener
+  // knows the water — with its part / solo question, not after it (geo came after the water slice: 0.9 + 2.4 s in series)
+  const warm = useMemo(() => (loader ? warmWaterPage(loader) : undefined), [loader]);
+  const soloOf = useMemo(() => (loader ? warmedFirst(warm, regsSoloOf(loader)) : undefined), [loader, warm]);
   // (T369 D3) a tapped water opens AT its part: the Regulations view's own answer, asked before the frame is made
-  const partOf = useMemo(() => (loader ? regsPartOf(loader) : undefined), [loader]);
+  const partOf = useMemo(() => (loader ? warmedFirst(warm, regsPartOf(loader)) : undefined), [loader, warm]);
   const opener = useOpenWater(source, go, { now, group: groupOf, solo: soloOf, partOf });
   /*
    * (T369 D8, owner 2026-11-04) A NEW RELEASE WITH A WATER OPEN is applied at once, and the open stack is CARRIED to the
