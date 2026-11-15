@@ -144,6 +144,25 @@ benches have run. Tickets: IOS-n is T(717+n), so T718 to T727; the backup propos
   tiles changed. **Found:** on the way back from the background the app stalls about 550 ms just after the swap.
   Wording options sent to the owner with pictures (question 20).
 
+- `ios/t738-bar` (T738, head 0be685b0c, from `ios/t722-install`, app CI green, no device run yet): the first-install
+  bar now counts the four big files from the first moment and after a relaunch. Cause: the bar counted only the small
+  data files (about 44 MB) while the big files were already downloading; the same on both platforms. Unit tests pin
+  the shown line (a relaunch with 104 MB held reads "104.0 of 482.0 MB downloaded", was "2.0 of 482.0").
+- `perf/t741`, cold start (head 571edb7b7, app CI green, **not measured on a build yet**): at launch the map colours
+  are decoded in 40 ms slices instead of 8. Found from the app's own log: of about 1.07 s from launch to the first
+  frame, about 440 to 500 ms was that decode, of which only about 190 ms is work; the rest was waiting between about
+  25 slices (each pause costs about 12 ms on a phone). Estimated gain 200 to 250 ms on both platforms; kept only if the
+  simulator measure shows it. Other places with the same cost are listed in T741 as proposals (install and update
+  about 1 s, the in-session apply 130 to 220 ms).
+- `perf/r8` (T749, head 9fe5e2d6c, **nothing built yet**): Android's code shrinker behind a switch that is off by
+  default (switch off = today's build, pinned by a test; refused in a production build). The old crash's cause is
+  found (the shrinker removed a constructor Android's background-work database is created through) and covered by
+  a keep rule, with six more, each with its reason. Next: two test APKs and six emulator checks.
+- `ios/next` (head d658f88ac, **what TestFlight build 36 will be made from**; notes in `next-2026-11-15.md` on the
+  branch): `ios/integration` + the shared branch + T746 + T738 + the crash-report app half + T739 push + `perf/t741`.
+  Six merges, every conflict resolved by keeping both sides. App CI green on the first five merges (run 43711925555);
+  the run on the full head was in progress at 05:25. Simulator checks on the combined build: not run yet.
+
 **What failed or was found**
 - **iOS background download refused on the simulator, then fixed:** the system service rejected every task ("does not
   have a bundle ID") in two runs. Cause: our simulator build skipped Xcode's signing step, which is what gives the app
