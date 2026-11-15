@@ -32,9 +32,21 @@ had left on the lake: test bed); no long stalls, but the worst at cold start is 
 (214 ms on the build before the faster cold start: less room, to watch on Android and a real phone). **Found, app:**
 on Conditions → Alert me the number pad covers the value field (written into T723; in build 36 as before).
 
-**Still running at 08:34**
-- Android's code shrinker trial (T749, R8): built; the test APK is 55.0 MB against 62.4 MB (app code 7.9 MB against
-  30.4 MB). Whether the shrunk app starts and passes the six emulator checks is not known yet.
+**Android's code shrinker trial (T749, R8; branch `perf/r8`, behind a switch that is off by default; done 10:09)**
+- **It works on the emulator.** The shrunk app starts and passes all six checks with no keep-rule fix needed: install
+  4 of 4, crash reports 5 of 5, tap to page 26 of 26 (cue 31 to 86 ms, page 338 to 373 ms), background install 7 of 7
+  (the path that crashed the first attempt), no long stalls (worst 141 ms), memory and the rule book 14 of 14.
+- **Lighter:** test APK 55.0 MB against 62.4 MB (app code 7.9 MB against 30.4 MB); the Play download saving is
+  estimated at about 7.4 MB (no Play bundle was built). Memory at boot about 35 MB lower (248 MB against 282 MB, one
+  boot). **Speed:** cold start and tap to page the same within drift; the rule book opened 3 to 6 % slower in two
+  samples (unconfirmed).
+- **Android cold start today, for reference:** about 1.5 to 1.65 s on the emulator from process start to the first
+  drawn frame (the faster launch decode from T741 is not in that build).
+- **Not proven:** a real phone; Play's own processing; paths no check walks (the background task firing later, Play's
+  in-app update, a notification tap, the photo picker, location, the rule book's table of contents).
+- **Recommended next step, yours to decide:** one Play INTERNAL build with the switch on and a phone walk (update,
+  notifications, a spot photo, location, the rule book). Before it, the build script must keep R8's mapping file so
+  crash reports stay readable.
 
 **What went wrong overnight (mine unless said)**
 - A push from one of my lanes turned app CI red on the shared branch for about 40 minutes (a list test); fixed.
@@ -45,7 +57,7 @@ on Conditions → Alert me the number pad covers the value field (written into T
 - Three Android bench runs failed on the test bed's driver under load; they passed on a quiet machine.
 
 **Not done**
-- Android runs for T746, T738 and `perf/t741`; the R8 emulator checks; T721 (edge-swipe grid), T726 (four iPhone
+- Android runs for T746, T738 and `perf/t741`; T721 (edge-swipe grid), T726 (four iPhone
   sizes, large text: the pun line "Casting the new regulations into place…" wraps at the largest text size; the photo
   viewer's "Photo 1 of 1" sits under the clock), T727 screenshots and video, the T731 step into the next water.
 - Nothing is merged into `redesign/stream-sections` except the crash-limit worker commit (your yes). No Play upload,
