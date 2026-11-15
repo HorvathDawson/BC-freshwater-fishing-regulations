@@ -1,6 +1,6 @@
 # T743 — The Fraser's DFO places: cuts checked, proposals fixed, a dossier to label from
 
-Status: DONE on the data side, 319a447a0, a9fbaa802 (Fraser data lane, 2026-11-14); the re-marks and cut acceptances wait on the owner
+Status: DONE on the data side, 319a447a0, a9fbaa802, eafa7b9f5 (Fraser data lane, 2026-11-14/15); the re-marks and cut acceptances wait on the owner
 
 Source: owner 2026-11-14: "also please try to fix up fraser and make sure all the cuts are good and fix proposals etc."
 
@@ -61,3 +61,20 @@ Owner: "can you just reset the fraser marks fully and I will redo them when app 
   leftovers of the replaced save and for bad marks. Running (read-only); report
   `handoff/PLAN/curation-review/resaved-marks-audit-2026-11-15.md`. Findings go to him as proposals.
 - Owner 2026-11-15: "can i keep reviewing while you work?" Yes (fix lane is in its own worktree; audit is read-only).
+
+## Channels, Redsand, spot checks, the nine cuts, group marks (2026-11-15, data lane)
+Report: `handoff/PLAN/curation-review/fraser-channels-2026-11-15.md` (no mark, curated file or suggestion touched).
+- Fraser channels Mission → Spuzzum: the 29 unnamed channels (57.8 km) are in `gnis:39325` and in every mark. Dropped
+  by every Fraser place: Herrling Island (12.2 km), Seabird Island North (4.7 km), Jeperson braids (3.3 km), split
+  out as `blk:` items with no gnis and not in the water record. Dropped by the item-restricted pair only: Maria Slough
+  (14.3 km, owner's call) + Jeperson's gazetted line (5.3 km) = the 9 sections / 19.5 km. Nicomen, Strawberry: separate.
+  Province-wide 4 waters; real gaps only Fraser and Squamish (Powerhouse Channel, 3.0 km, named in DFO's own water name).
+- Redsand: `wbk:-1` is a curated added lake and the mark is right; the tributary walk took the through-river
+  (T468 rule, no rows on a DFO place). Fixed eafa7b9f5 (POLICY_VERSION 39): Redsand 2,639 → 4 sections, Kitsumkalum
+  Lake 2,626 → 983; the other 259 DFO places identical; no shipped binding moves.
+- Spot checks right: Tahltan, Nakina, Tatsatua, Nitinat parts, Atnarko (by the cascade). Little Shuswap Lake and the
+  lower Atnarko wait on their cuts. Found wrong: Bella Coola "all tributaries" (2583) covers the mainstem and wins
+  the tie by id, so mainstem chinook reads no fishing (needs `tributaries_only`).
+- Nine cuts checked against OSM: eight ok (Alexandra per his 11-15 "fine"); second look: the Lillooet signs (which edge of town). Morice 2591/2592 sit
+  on the 100 m-off cuts of the other wordings (re-mark, no rebuild). Rebuild list in the report (not run).
+- Group marks: of 8 places only Nanaimo "500 m below the power line" (2442) is wrong (carries 2443's extent).
