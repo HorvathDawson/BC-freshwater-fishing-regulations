@@ -3,13 +3,17 @@
  * held for the loading screen. The app shell passes the platform half in (`@app/data/release/platform`), so this hook,
  * like every hook, runs under both renderers.
  */
-import { reportFailure, now } from "@app/core";
-import { useEffect, useRef, useState } from "react";
+import { applyLine, reportFailure, now } from "@app/core";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { bootRelease, BootError, SpaceError, warmLike, type BootOptions, type Booted, type Progress } from "@app/data/release";
 
 export type BootState =
-  | { state: "loading"; stage: string; progress: Progress | null }
-  | { state: "ready"; booted: Booted; generation: number; applyError?: Error }
+  | { state: "loading"; stage: string; progress: Progress | null;
+      /** (T746) with stage "apply": the id of the release being put in use (its line: core `applyLine`) */
+      release?: string | null }
+  | { state: "ready"; booted: Booted; generation: number; applyError?: Error;
+      /** (T746) an in-session apply is in flight: the set on screen stays until the new one commits (or fails) */
+      applying?: boolean }
   | { state: "failed"; error: Error; firstRunOffline: boolean; said: string | null };
 
 /**
@@ -46,21 +50,36 @@ export function useReleaseBoot(opts: BootOptions | null, generation = 0, attempt
     if (!opts) return;
     let live = true;
     const again = generation > 0;
-    let progress: Progress | null = null, stage = "manifest";
+    let progress: Progress | null = null, stage = "manifest", release: string | null = null;
     // (T272) the loading screen is redrawn at most every PROGRESS_MS: a native download reports far more often than a
     // screen can show, and every redraw is JS-thread time the follower hash (install.ts) does not get. A new stage of
     // the second bar is drawn at once.
     let drawn = 0, pending: ReturnType<typeof setTimeout> | null = null, lastStep: string | undefined;
-    const draw = () => { pending = null; drawn = now(); if (live && !again) set({ state: "loading", stage, progress }); };
+    const draw = () => { pending = null; drawn = now(); if (live && !again) set({ state: "loading", stage, progress, release }); };
     // (T262) a failed first start tried again (`attempt`): back to the loading screen; the download resumes
-    if (!again && attempt > 0) set({ state: "loading", stage, progress });
+    if (!again && attempt > 0) set({ state: "loading", stage, progress, release });
+    // (T746) an in-session apply: the set in use stays on screen, and the app draws its curtain over it until this ends
+    if (again) set((prev) => (prev.state === "ready" ? { ...prev, applying: true, applyError: undefined } : prev));
+    /** what a failed boot shows (the boot-failed page / the apply curtain's `applyError`); reported in the catch below */
+    const failed = (error: Error) => {
+      if (pending) clearTimeout(pending);
+      if (!live) return;
+      // (T272) a failed start names itself in the log (logcat / the Updates log): the screen says only the reader's words
+      console.error(`[boot] start failed: ${error.message}`);
+      // an apply that failed: the set in use stays (it never stopped working), and the failure is said (T746: on the
+      // curtain, until the reader closes it)
+      if (again) set((prev) => (prev.state === "ready" ? { ...prev, applying: false, applyError: error } : prev));
+      // (T722 F9) a failure in the reader's own words (a download that will not fit) is said as it is
+      else set({ state: "failed", error, firstRunOffline: error instanceof BootError && error.firstRunOffline,
+                 said: error instanceof SpaceError ? error.message : null });
+    };
     bootRelease({
       ...opts,
       ...(regsFirst ? { paintFirst: false } : {}),
       ...(startRegion ? { focus: startRegion } : {}),
       // (T418) an applied update: the set on screen stays whole (its tiles, mask and map assets) until the next launch
       ...(again ? { keepReplaced: true } : {}),
-      onStage: (st) => { stage = st; if (live && !again) set({ state: "loading", stage, progress }); },
+      onStage: (st, rel) => { stage = st; release = rel ?? null; if (live && !again) set({ state: "loading", stage, progress, release }); },
       onProgress: (p) => {
         progress = p;
         const step = p.setup?.step;
@@ -68,35 +87,42 @@ export function useReleaseBoot(opts: BootOptions | null, generation = 0, attempt
         if (pending) return;
         pending = setTimeout(draw, Math.max(0, PROGRESS_MS - (now() - drawn)));
       },
-    }).then(
-      async (booted) => {
-        if (pending) clearTimeout(pending);
-        // (T287) an applied update: decoded like the set on screen, in slices, before it is committed
-        const prev = inUse.current;
-        if (again && prev && prev.loader !== booted.loader) await warmLike(booted.loader, prev.loader);
-        if (!live) return;
-        inUse.current = booted;
-        set({ state: "ready", booted, generation });
-        // (T360) the replaced set is retired: each of its database connections closes once its last read is out (each
-        // was held open for the app's life). A screen not yet re-rendered onto the new set is still answered by the old
-        // one (no error, no report: an update is no failure). A failed close is reported.
-        if (prev && prev.loader !== booted.loader) prev.loader.retire(reportFailure).catch(reportFailure);
-      },
-      (e: unknown) => {
-        if (pending) clearTimeout(pending);
-        if (!live) return;
-        const error = e instanceof Error ? e : new Error(String(e));
-        // (T272) a failed start names itself in the log (logcat / the Updates log): the screen says only the reader's words
-        console.error(`[boot] start failed: ${error.message}`);
-        reportFailure(error);   // (T368) shown (the boot-failed page / applyError) and reported
-        // an apply that failed: the set in use stays (it never stopped working), and the failure is said
-        if (again) set((prev) => (prev.state === "ready" ? { ...prev, applyError: error } : prev));
-        // (T722 F9) a failure in the reader's own words (a download that will not fit) is said as it is
-        else set({ state: "failed", error, firstRunOffline: e instanceof BootError && e.firstRunOffline,
-                   said: e instanceof SpaceError ? e.message : null });
-      });
+    }).then(async (booted) => {
+      if (pending) clearTimeout(pending);
+      // (T287) an applied update: decoded like the set on screen, in slices, before it is committed. (T746) A throw
+      // here is the apply's failure like any other (it was an unhandled rejection that left the apply hanging)
+      const prev = inUse.current;
+      if (again && prev && prev.loader !== booted.loader) await warmLike(booted.loader, prev.loader);
+      if (!live) return;
+      inUse.current = booted;
+      set({ state: "ready", booted, generation });
+      // (T360) the replaced set is retired: each of its database connections closes once its last read is out (each
+      // was held open for the app's life). A screen not yet re-rendered onto the new set is still answered by the old
+      // one (no error, no report: an update is no failure). A failed close is reported.
+      if (prev && prev.loader !== booted.loader) prev.loader.retire(reportFailure).catch(reportFailure);
+    }).catch((e: unknown) => {
+      const error = e instanceof Error ? e : new Error(String(e));
+      reportFailure(error);   // (T368) shown (`failed`: the boot-failed page / the apply curtain) and reported
+      failed(error);
+    });
     return () => { live = false; };
     // once per mount and once per generation: a newer release is used at the next launch, or when the app applies it
   }, [on, generation, attempt]);
   return s;
+}
+
+/**
+ * (T746) WHAT THE APPLY CURTAIN SHOWS, read off the boot: `applying` while an in-session apply is in flight (every way in
+ * — the safe moment, "Apply now", the return from the background — is one generation bump, so one state), `failed` the
+ * apply that just failed until the reader closes it (`close`); it was reported where it was caught (`useReleaseBoot`).
+ * `line`: what it says, picked by `release` (the id being put in use: the update service's staged target) — core
+ * `applyLine`, the same pick a cold start's boot screen makes for the same release.
+ */
+export function useApplyCurtain(boot: BootState, release: string | null):
+    { applying: boolean; failed: Error | null; close: () => void; line: string } {
+  const applying = boot.state === "ready" && !!boot.applying;
+  const error = boot.state === "ready" ? boot.applyError ?? null : null;
+  const [closed, setClosed] = useState<Error | null>(null);
+  const close = useCallback(() => setClosed(error), [error]);
+  return { applying, failed: error && error !== closed ? error : null, close, line: applyLine(release) };
 }

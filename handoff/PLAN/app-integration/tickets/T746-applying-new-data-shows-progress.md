@@ -59,12 +59,31 @@ Depends: T722 (install branch). Size: M. Owner: wording pick.
 - No `Platform.OS`; no new dependency; tokens only. The JS thread: the fish turns on the native driver (phone) and in
   CSS (web), so a blocked JS commit does not freeze it; nothing had to be moved off the thread.
 
-### 3. Words (owner question)
-Default: **"Putting the new regulations in place…"**. Options (`APPLY_WORDS.options`, core `install.ts`):
-1. "Putting the new regulations in place…" (default)
-2. "Applying the new regulations data…" (the relayed example)
-3. "Updating the regulations and map…"
-Failure line: "The new regulations could not be put in place. The app is still using the data it had."
+### 3. Words
+**Owner 2026-11-15, verbatim:** "can we do more fish puns here that are directed at this ?" — so the line is now one of
+five fish puns that each still say what is happening (`APPLY_WORDS.lines`, core `install.ts`, whole-sentence tests):
+1. "Reeling in the new regulations…"
+2. "Netting the latest regulations…"
+3. "Landing the new regulations…"
+4. "Tying on the new regulations…"
+5. "Casting the new regulations into place…"
+
+**How one is chosen:** by the release being applied, never at random — core `applyLine(id)` hashes its `data_release`
+id (FNV-1a, 32-bit) to an index. The curtain gets the id from the update service's staged target when `apply()` runs;
+a cold start's boot screen gets the same id from the boot (`onStage("apply", id)`). So one apply says one line from
+start to end, the boot line and the curtain agree for the same release, and tests are deterministic. No id: line 1.
+The screen reader hears the line that is drawn (the fish's label is the same string). The ellipsis is the one
+character "…", as the boot screen's own lines ("Opening the map…").
+
+**Fit (one line on the narrowest phone):** measured with the app's face (Archivo 400, the TTF's advance widths) at the
+curtain's 15 px: 198–263 px; the longest ("Casting the new regulations into place…") 263 px against 272 px of room at
+a 320 px-wide window less the curtain's 24 px sides (the boot screen draws it at 13 px, smaller). None wraps at 320;
+larger system text sizes are not covered by this measure.
+
+Failure line, unchanged and plain: "The new regulations could not be put in place. The app is still using the data it had."
+
+History (the first proposal, 2026-11-14, before the owner's answer; not in the app): "Putting the new regulations in
+place…" (was the default), "Applying the new regulations data…", "Updating the regulations and map…".
 
 ### 4. Measured
 Bench: a local stand-in for the data origin (`127.0.0.1:39461`, forwards to data-staging, read-only) answers the
