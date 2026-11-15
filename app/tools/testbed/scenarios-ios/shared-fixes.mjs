@@ -7,7 +7,7 @@
 import path from 'node:path';
 
 const LOOKS = (process.env.SHARED_LOOKS ?? 'light,dark').split(',');
-const ITEMS = (process.env.SHARED_ITEMS ?? 't729,t728,t731,t717,t730').split(',');
+const ITEMS = (process.env.SHARED_ITEMS ?? 't729,t728,t731,t731x,t717,t730').split(',');
 // iOS search rows by their accessibility text (data names: kept out of the static check's literal scan, as regs-open's)
 const ROW = { vedder: 'Show Vedder River,.*', coquitlam: 'Show Coquitlam River,.*', cultus: 'Show Cultus Lake,.*Lindell Beach.*' };
 const has = (ctx, id) => (ctx.device.screenText().ids ?? []).includes(id);
@@ -153,6 +153,24 @@ export const sharedFixesIos = {
           await toMap(ctx);
           const moved = JSON.stringify([bar0, up0]) !== JSON.stringify([bar1, up1]);
           return `step buttons before ${JSON.stringify([bar0, up0])} after ${JSON.stringify([bar1, up1])}${moved ? ' (MOVED)' : ' (same place)'} · video ${path.basename(r.file)}`;
+        });
+      }
+
+      if (ITEMS.includes('t731x')) {
+        // (b40336850) the step that CROSSES into the next water: Coquitlam River's highest part (3 of 3), then Upstream
+        await ctx.step(`${look} T731: from Coquitlam River's top part, Upstream into the next water (recorded)`, async () => {
+          await openWater('Coquitlam River', ROW.coquitlam);
+          ctx.flow('tap-id', { ID: 'water-view-map' }); await sleep(3000);
+          for (let i = 0; i < 2; i++) { ctx.flow('tap-id', { ID: 'water-map-step-up' }); await sleep(2500); }
+          shot('t731x-before');
+          const w0 = d.screenText().filter((x) => /PART \d+ OF \d+|Part \d+ of \d+/i.test(x));
+          const b0 = [box(ctx, 'water-map-step-down'), box(ctx, 'water-map-step-up')];
+          const r = await record('t731x-cross', async () => { ctx.flow('tap-id', { ID: 'water-map-step-up' }); }, 4000);
+          shot('t731x-after');
+          const w1 = d.screenText().filter((x) => /PART \d+ OF \d+|Part \d+ of \d+/i.test(x));
+          const b1 = [box(ctx, 'water-map-step-down'), box(ctx, 'water-map-step-up')];
+          await toMap(ctx);
+          return `before ${w0.join(' | ') || '?'} → after ${w1.join(' | ') || '?'} · buttons ${JSON.stringify(b0) === JSON.stringify(b1) ? 'same place' : `MOVED ${JSON.stringify(b0)} → ${JSON.stringify(b1)}`} · video ${path.basename(r.file)}`;
         });
       }
 
