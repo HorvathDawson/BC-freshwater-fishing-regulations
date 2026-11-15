@@ -70,3 +70,14 @@ Test-bed flakes in these runs (not the app):
 **Follow-up (T729, Android chat 2026-11-14):** on Android, one tap on a tab with the credits card open closes the card
 and changes the tab. On iOS it takes two taps (the first lands on the Modal's scrim), a real difference. Not fixed
 here: wrap the credits Modal in ModalBack after ios/t723-keyboard-back merges, and let the tab bar take the tap.
+
+**Second pass (`ios-shared4`, build 081d93f90, iPhone 17, dark, 2026-11-14 23:30):**
+- **T728: PASS.** The Conditions layers were set to Level. Vedder River's card ("Chilliwack River at Vedder Crossing")
+  opens on Level (1.81 m). Switched to Flow (29.7 m³/s). Back on the map, the layers still say Level.
+  Shot: `t728-level-card-flow-level-dark.jpg` (layers before, card Level, card Flow, layers after).
+- **T731, the step that crosses into the next water: not reachable on Coquitlam River.** Its top part (3 of 3,
+  "Coquitlam Watershed boundary → Source") has a disabled "Highest part" button, so nothing crosses there. Still
+  unverified on iOS; needs a water whose end step crosses into another water (a split lake's other area, a river into a
+  lake).
+- T730 again PASS: search reopens empty. The step's note "still says Cultus" was the test bed reading the recents chip;
+  the shot shows an empty field.
