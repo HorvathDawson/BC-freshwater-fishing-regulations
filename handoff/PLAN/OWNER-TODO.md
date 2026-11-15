@@ -688,3 +688,6 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   nothing changes under him while he marks. So until he says he is done: no review-app update or restart, no change to
   the proposals file, no further marks saved for him, no rebuild. The fixes keep being built and tested in separate
   copies and land in one go afterwards.
+- OWNER 2026-11-15: "we just want to prepared for how we will audit them". So the checks asked today (saved twice,
+  tributaries, rest-of extents, mouth/tidal ends, side channels, one-bank) are being built into ONE repeatable audit
+  command, run once when he says the marks are fully done; today's reports are the trial run, not the final audit.
