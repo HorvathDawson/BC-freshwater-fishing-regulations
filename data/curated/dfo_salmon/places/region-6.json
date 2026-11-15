@@ -6360,7 +6360,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "bulkley_river__morice_river_into_bulkley_river"
+            ],
+            "item_id": "gnis:2195"
+          }
+        ],
         "tributaries": false,
         "tributaries_only": false,
         "tributary_excludes": [],
