@@ -20,8 +20,9 @@ for the hand rows of `dfo-rows.json` (the shared rows of T671's two tests). (T67
 (`entries/region-<slug>.json`) joined to it (`by_fingerprint`, `reconcile`), and the region header (`header.parse_header`,
 `digest`, `resolve`, `deliver.salmon.header_answers`, `quota.header_closure`); `joins` holds hand cases of the join (a
 page default, never dormant); (T757) per page `pieces`: the closed-area pieces its rows name
-(`closures.live_piece_rules`: piece id -> rules + calendar), and `live`: every location id `live.run` publishes over
-the saved pages with these entry files (-> its region); `dates` is the robust date reader (`dates.read_dates`) on every recorded cell, the named
+(`closures.live_piece_rules`: piece id -> rules + calendar), and `live`: every location `live.run` publishes over
+the saved pages with these entry files (-> its region and its year in words; T758: `cases`, the same on an edited
+page); the page locators include (T758) the default sentences' (`page:<slug>:<scope>`); `dates` is the robust date reader (`dates.read_dates`) on every recorded cell, the named
 shapes and a seeded fuzz.
 
 WHO READS IT. `app/workers/feeds/test/dfo.vectors.test.ts` (the worker must reproduce every value in its
@@ -189,6 +190,34 @@ def _calendar(rules: list) -> dict:
     return {**cal, "verdicts": verdicts.items, "gears": gears.items}
 
 
+#: (T758) the live run on an edited page: (name, region, the page's text, what replaces it)
+LIVE_CASES = [
+    # the page no longer prints its default sentence: no locator, the curated default place answers nothing (and is never
+    # called dormant: `entries.reconcile`), the water falls to NOT_LISTED
+    ("no_default_sentence", "3",
+     "<p>There is no fishing for salmon in Region 3 except for the opportunities listed in the table below.</p>", "<p></p>"),
+    # a default sentence for a scope no curated place carries (`page:3:areas-30-31`): not a new place, never unplaced
+    # (`live.join`: a `page:` fingerprint with no location is skipped)
+    ("sentence_without_a_place", "3",
+     "<p>There is no fishing for salmon in Region 3 except for the opportunities listed in the table below.</p>",
+     "<p>There is no fishing for salmon in Region 3 except for the opportunities listed in the table below.</p>"
+     "<p>There is no fishing for salmon in waters of Region 3 flowing into Areas 30 and 31 except for the opportunities "
+     "listed in the table below.</p>"),
+]
+
+
+def _live(pages_html: dict) -> dict:
+    """`live.run` (dry run) over `pages_html` (slug -> page) with the fixture entry files: the index's `locs` (each
+    {r, sp, g, x?}), `verdicts` and `gears` they index, and `unplaced` (a reader compares runs by the verdict / gear
+    itself: the worker numbers its tables its own way)."""
+    import tempfile
+    with tempfile.TemporaryDirectory() as tmp:
+        ix = L.run(Path(tmp), fetcher=lambda s: (pages_html[s], None), regions=list(pages_html), entries_dir=ENTRIES,
+                   now="2026-10-28T12:00:00Z", dry_run=True, with_marks=False)["index"]
+    return {"locs": dict(sorted(ix["locs"].items())), "verdicts": ix["verdicts"], "gears": ix["gears"],
+            "unplaced": ix["unplaced"]}
+
+
 def _dump(rules) -> list:
     return [r.model_dump(mode="json", exclude_defaults=True, by_alias=True) for r in rules]
 
@@ -204,7 +233,6 @@ def build() -> dict:
         slug = _slug(path)
         html = path.read_text(encoding="utf-8")
         typed, locs, structure = L.type_page(html, slug)
-        tables = {loc.fingerprint for loc in locs}
         for loc in locs:
             waters.update([loc.water, *loc.aliases])
         ef = _entry_file(slug)
@@ -225,10 +253,11 @@ def build() -> dict:
             "structure": structure,
             "locations": [{"fingerprint": loc.fingerprint, "section": loc.section, "water": loc.water,
                            "specific_area": loc.specific_area, "landmarks": loc.landmarks} for loc in locs],
-            # the table's locators (a page-default sentence is `cascade.statement_locators`' — Python only)
+            # every locator of the typed page: the table's, then (T758) the page's default sentences
+            # (`cascade.statement_locators`, `page:<slug>:<scope>`, ported to the worker's cascade.ts)
             "locators": [{"fingerprint": l["fingerprint"], "rows": l["rows"], "rules": l["rules"],
                           **({"words": l["words"]} if "words" in l else {}), "calendar": _calendar(l["rules"])}
-                         for l in typed["locators"] if l["fingerprint"] in tables],
+                         for l in typed["locators"]],
             # (T757) the closed-area pieces today's rows name (`closures.live_piece_rules`, as `live.run` adds them):
             # piece id -> its rule and its year on its own (the header closure, when the page has one, is `header.closure`)
             "pieces": {lid: {"rules": rs, "calendar": _calendar(rs)}
@@ -247,15 +276,17 @@ def build() -> dict:
                  for r in _dump(T.to_rules({"species": species, "dates": dates, "limits_gear": limits}, "rows", i))]
         rows[case["name"]] = {"rules": rules, "calendar": _calendar(rules)}
     names_in = sorted({*NAME_CASES, *(w for w in waters if w)})
-    # (T757) THE PYTHON LIVE FEED over the saved pages and the fixture entry files (`live.run`, dry run: nothing written,
-    # nothing sent): every location id it publishes -> its region, so the worker's run over the same inputs is pinned
-    # whole (places, page defaults, closed-area pieces), not by a count typed into a test
-    import tempfile
-    with tempfile.TemporaryDirectory() as tmp:
-        run = L.run(Path(tmp), fetcher=lambda s: ((PAGES / f"region{s}-eng.html").read_text(encoding="utf-8"), None),
-                    regions=[_slug(p) for p in files], entries_dir=ENTRIES, now="2026-10-28T12:00:00Z", dry_run=True,
-                    with_marks=False)["index"]
-    live = {"locs": {lid: c["r"] for lid, c in sorted(run["locs"].items())}, "unplaced": run["unplaced"]}
+    # (T757, T758) THE PYTHON LIVE FEED over the saved pages and the fixture entry files (`live.run`, dry run: nothing
+    # written, nothing sent): every location it publishes, with its region and its year in WORDS (each run's verdict and
+    # gear list itself, not an index), so the worker's run over the same inputs is pinned whole — places, page defaults,
+    # closed-area pieces, their calendars and verdict texts — not by a count typed into a test. `cases`: the same run on
+    # an edited page (`edit`: [old, new], one replacement), e.g. a page that no longer prints its default sentence.
+    pages_html = {_slug(p): p.read_text(encoding="utf-8") for p in files}
+    live = {**_live(pages_html), "cases": {}}
+    for name, slug, old, new in LIVE_CASES:
+        if pages_html[slug].count(old) != 1:
+            raise SystemExit(f"{_BY}: live case {name}: {old!r} is not on the region {slug} page exactly once")
+        live["cases"][name] = {"slug": slug, "edit": [old, new], **_live({slug: pages_html[slug].replace(old, new)})}
     return {
         "format": FORMAT,
         "_about": f"GENERATED by `{_BY}` from the saved DFO pages beside this file and dfo-rows.json: what the PYTHON "

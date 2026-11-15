@@ -87,7 +87,7 @@ export interface DfoDeps {
 }
 
 /** Bump when a code change alters what a region's page types to: unchanged pages are re-typed once after a deploy. */
-export const DFO_REV = "2026-11-15.1"; // T757: + one loc per closed-area piece today's row names; T521: an unplaced row carries its water's app items (`items`); T332 quota trees
+export const DFO_REV = "2026-11-15.2"; // T758: + the page-default places (cascade.ts statementLocators); T757: + one loc per closed-area piece today's row names; T521: an unplaced row carries its water's app items (`items`); T332 quota trees
 // (T549 items 7, 10) index.json is written by EVERY run that gets to the end, so its `at` is when DFO was last CHECKED.
 // It was skipped while unchanged and under a 20 h heartbeat: in season (a run every 6 h) `at` moved once a day and sat
 // exactly on the app's stale line, so the card said "checked 24 h ago" 6 h after a check. One small put a run.
@@ -214,6 +214,8 @@ function join(
       else rules.set(hit.location_id, [...marked]);
       continue;
     }
+    // T349 (live.join): a page default's sentence with no default location here is not a new place
+    if (fp.startsWith("page:")) continue;
     const src = byFp.get(fp);
     const o = outcome.get(fp);
     const water = src ? src.water : "";
