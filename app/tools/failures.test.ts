@@ -206,7 +206,7 @@ export const FINE: Record<string, { n: number; why: string }> = {
   "packages/ui/src/hooks/water.ts": { n: 2, why: `${UNCACHE}; ${WARM}` },
   "packages/ui/src/imagery.ts": { n: 1, why: `the imagery probe: shown as the imagery state (${ENV})` },
   "packages/ui/src/layerChoice.ts": { n: 2, why: PREF },
-  "packages/ui/src/mapRail.ts": { n: 2, why: `permission / locate: shown as a state (${ENV})` },
+  "packages/ui/src/mapRail.ts": { n: 1, why: `permission: shown as a state (${ENV}); (T723 G6) a locate failure is now reported` },
   "packages/ui/src/myLocation.ts": { n: 1, why: `location refused: said (refusedLine); ${ENV}` },
   "packages/ui/src/net.ts": { n: 1, why: PREF },
   "packages/ui/src/photos.ts": { n: 1, why: "an orphaned photo file, not a lost record" },

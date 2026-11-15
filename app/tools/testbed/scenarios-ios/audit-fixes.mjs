@@ -29,7 +29,7 @@ const [LON, LAT] = (process.env.LOCATE_AT ?? '-121.95,49.1').split(',').map(Numb
 const REPO = path.resolve(path.dirname(new URL(import.meta.url).pathname), '../../../..');
 
 /** the button's words (the first build exposed an accessibility label instead; both are accepted) */
-const OPEN_SETTINGS = /^Open (Settings|this app.s settings.*)$/;
+const OPEN_SETTINGS = /^Open Settings$/;
 const shotTo =(ctx, name) => ctx.device.screenshot(path.join(ctx.dir, `audit-${name}.png`));
 
 /** The screen size in iOS points (the largest box on it) and the pixel scale of a screenshot. */
@@ -209,7 +209,7 @@ export const auditFixes = {
       return `${JSON.stringify(line)} + "Open Settings"`;
     });
     await ctx.step('G6: tapping "Open Settings" brings the Settings app to the front', async () => {
-      ctx.flow('tap-text', { TEXT: 'Open (Settings|this app.s settings.*)' });
+      ctx.flow('tap-text', { TEXT: 'Open Settings' });
       let w = [];
       for (let i = 0; i < 8; i++) { await d.sleep(1500); w = d.screenText(); if (w.some((x) => /^(Location|Notifications|Cellular Data|Background App Refresh)$/.test(x))) break; }
       shotTo(ctx, 'g6-settings');

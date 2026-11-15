@@ -42,21 +42,24 @@ function Probe({ loader, out, onIdle }: { loader: ReleaseLoader | null; out: { c
 }
 
 describe("useReleasePrefetch", () => {
-  it("after first paint: the region's file now, core when idle; a new region's file as the view moves", () => {
+  it("after first paint: the region's file now, core when idle; a new region's file as the view moves", async () => {
     const idle: (() => void)[] = [];
+    const { loader, asked } = fakeLoader(), out: { cb?: (r: unknown) => void } = {};
     withGlobals(idle, { effectiveType: "4g", saveData: false }, () => {
-      const { loader, asked } = fakeLoader(), out: { cb?: (r: unknown) => void } = {};
       render(<Probe loader={loader} out={out} />);
       expect([asked, idle.length]).toEqual([[], 0]);         // nothing before the map's first report
       out.cb!("2");
       expect([asked, idle.length]).toEqual([["fetch regs-2"], 1]);
       idle[0]!();
-      expect(asked).toEqual(["fetch regs-2", "open core"]);
+      // (T737) the idle core is fetched AHEAD first, then opened once that fetch is done (data/release/prefetch.ts)
+      expect(asked).toEqual(["fetch regs-2", "fetch core"]);
       out.cb!(null);                                          // over the sea: nothing new, nothing forgotten
       out.cb!("7A");
       out.cb!("2");
-      expect(asked).toEqual(["fetch regs-2", "open core", "fetch regs-7a"]);
+      expect(asked).toEqual(["fetch regs-2", "fetch core", "fetch regs-7a"]);
     });
+    await new Promise((r) => setTimeout(r, 0));
+    expect(asked).toEqual(["fetch regs-2", "fetch core", "fetch regs-7a", "open core"]);
   });
 
   for (const [what, connection] of [["Save-Data", { saveData: true, effectiveType: "4g" }],
