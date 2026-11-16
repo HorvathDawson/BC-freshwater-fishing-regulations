@@ -77,6 +77,9 @@ class Ctx:
     #: ROUND20g 1: the origin rule said on the share's tier ("From streams, keep hatchery fish only — …"), where it holds
     #: on the share's kind of water only (`card.origin_place`)
     share_origin: Optional[str] = None
+    #: T793: the group's species × size table (`caps.system`, gate-proved cell by cell), whose cells say where one
+    #: origin keeps fewer than the other (`origin_clauses`)
+    table: Optional[dict] = None
 
 
 def _js(v) -> str:
@@ -144,6 +147,86 @@ def _kind_says(k: dict) -> str:
         return f"Any number may be {names}"
     wild_back = " — wild steelhead go back" if st and k.get("_origin") == "hatchery" else ""
     return f"Up to {_js(k['n'])} {names}{combined(k['species'])}{wild_back}"
+
+
+def _origin_states(table: dict, S: str) -> Tuple[tuple, ...]:
+    """T793: one species' table bands where ONE origin keeps fewer than the other here, neighbours alike merged —
+    (from, to, from_in, to_in, origin, n): `origin` the origin held to fewer, `n` its most alone (0: none of it). A band
+    keeping none, or read as another fish (`as`: a rainbow over the steelhead line), says nothing."""
+    out: List[list] = []
+    for bd, c in zip(table["bands"][S], table["cells"][S]):
+        st = None
+        if c.get("as") is None and c["n"]:
+            if c.get("origin"):
+                st = ("wild" if c["origin"] == "hatchery" else "hatchery", 0)
+            elif c.get("by_origin"):
+                h, w = c["by_origin"]["hatchery"], c["by_origin"]["wild"]
+                st = ("wild", w) if (INF if w is None else w) < (INF if h is None else h) else ("hatchery", h)
+        if st is not None and out and out[-1][4:] == list(st) and out[-1][1] == bd["from"]:
+            out[-1][1], out[-1][3] = bd["to"], bd["to_in"]
+        elif st is not None:
+            out.append([bd["from"], bd["to"], bd["from_in"], bd["to_in"], *st])
+    return tuple(tuple(x) for x in out)
+
+
+def origin_clauses(species: Sequence[str], table: Optional[dict]) -> List[dict]:
+    """T793 (audit A1/A2, 2026-11-16: "No wild rainbow trout over 50 cm" on Comox Lake and the Kitimat's wild 1 were in the
+    stored row's `caps` and conditions but nowhere on the card): what a kind keeping BOTH origins keeps less of in one
+    origin, from the group's table — [{origin, species, from, to, from_in, to_in, n, says}], fish whose bands read alike
+    said together. The caps' grammar (`caps._said`), lower-cased for the kind's line: "no wild rainbow trout over 50 cm
+    (20 in)", "up to 1 wild rainbow trout 30–50 cm (12–20 in)"; over more than one fish "combined" (T475), which the gate
+    proves of the fish together (`card_check.check_tree`). Sizes by the boundary standard (`common.band_words`)."""
+    if table is None:
+        return []
+    by: Dict[tuple, List[str]] = {}
+    for S in species:
+        if S in table["cells"]:
+            sig = _origin_states(table, S)
+            if sig:
+                by.setdefault(sig, []).append(S)
+    out: List[dict] = []
+    for sig, sp in by.items():
+        for a, b, fi, ti, o, n in sig:
+            names = kind_names(sp, origin=o)
+            band = common.band_words(a or 0, INF if b is None else b, fi, ti)
+            says = (f"no {names} {band}" if n == 0 else
+                    f"up to {_js(n)} {names}{combined(sp)}" + ("" if band == "any size" else f" {band}"))
+            out.append({"origin": o, "species": list(sp), "from": a, "to": b, "from_in": fi, "to_in": ti, "n": n,
+                        "says": says})
+    return out
+
+
+_ORIGIN_WORD = re.compile(r"\b(?:wild|hatchery)\b", re.I)
+
+
+def origin_unsaid(frame: dict) -> List[str]:
+    """T793 THE BUILD CHECK: every keep row of a rows frame with an origin condition (`conds` origin / origin2 — one origin
+    sent back, or held to another limit) whose card tree — its own group's, else its `parent` row's, which the card draws
+    for it — says neither "wild" nor "hatchery" for the condition's fish (the group's origin line, a tier's origin line, the
+    lines of the kinds naming those fish and their notes). A row the card draws with no tree is not asked."""
+    out: List[str] = []
+    rows = frame.get("rows") or []
+    for i, r in enumerate(rows):
+        conds = [x for x in r.get("conds") or [] if x.get("c") in ("origin", "origin2")]
+        if r.get("kind") != "keep" or not conds:
+            continue
+        g = r.get("group")
+        if g is None and r.get("parent") is not None:
+            g = rows[r["parent"]].get("group")
+        if not g or not g.get("tree"):
+            continue
+        fish = {S for x in conds for S in (x.get("who") or r.get("members") or [])}
+        said = [g.get("origin") or ""]
+        for n, _p in walk(g["tree"]):
+            if n["node"] == "tier":
+                said.append(n.get("origin") or "")
+            elif set(n["species"]) & fish:
+                said += [n["says"]] + [a["says"] for a in n.get("also_counts") or []]
+        if not any(_ORIGIN_WORD.search(s) for s in said):
+            out.append(f"row {i} ({', '.join(sorted(fish))}: {', '.join(sorted({x['o'] for x in conds}))} "
+                       f"{'/'.join(sorted({x['c'] for x in conds}))}) is drawn as "
+                       f"{' | '.join(s for s in said if s)!r}")
+    return out
 
 
 def _size_also(kn, n, cm, others: List[str], then: List[dict], some: Optional[str] = None) -> Optional[str]:
@@ -656,12 +739,15 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
     steel_cm = RD._steelhead_min_cm()
     kind_origin: Dict[int, Optional[str]] = {}
 
+    said_origin: set = set()                     # T793: the kinds whose line says what one origin keeps less of
     for x, _p in walk([root]):
         if x["node"] != "kind":
             continue
         # T475 (asks 3-4): one pattern, "Up to N <fish>"; the sentence is the line, its detail and its notes
         x["says"] = _kind_says(x)
         kind_origin[id(x)] = x.get("_origin")
+        # T793: a kind keeping both origins says where one keeps less ("— no wild rainbow trout over 50 cm (20 in)")
+        oc = origin_clauses(x["species"], c.table) if len(x["_origins"]) == 2 and x["n"] != 0 else []
         x["folded"] = False
         x["size_rule"] = size_rule(x, P.steelhead_water, steel_cm)     # ROUND20i 1
         for k_ in ("_hi", "_origins", "_origin"):
@@ -670,10 +756,13 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
         if x["detail"]:
             s += f", {x['detail']}"
         s += _w
-        notes = [a["says"] for a in x["also_counts"]]
+        notes = [o["says"] for o in oc] + [a["says"] for a in x["also_counts"]]
         if notes:
             s += " — " + "; ".join(notes)
         x["sentence"] = s
+        if oc:
+            x["says"] += " — " + "; ".join(o["says"] for o in oc)
+            said_origin.add(id(x))
     # ROUND20b C1 (owner: "This river’s rule: up to 4 a day" over "Up to 4 may be hatchery rainbow trout" says 4 twice):
     # an own tier whose ONLY child is one kind row at the tier's number names the fish itself — "This river’s rule: up to
     # 4 hatchery rainbow trout a day" — and the kind is FOLDED into it (`folded`: the page draws its size, notes and
@@ -681,8 +770,10 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
     # (the share too — Glenn Creek's "Only 2 of the 5 may be from this stream" over "Up to 2 may be brook, brown,
     # cutthroat or lake trout" — so a number is never said twice in a row on a tier and its only kind)
     for t, _p in walk([root]):
+        # (T793: never a kind whose line says an origin's smaller limit — a folded kind's line is not drawn)
         if t["node"] == "tier" and t["tier"] in ("own", "share") and t["n"] is not None and len(t["children"]) == 1 \
-                and t["children"][0]["node"] == "kind" and t["children"][0]["n"] == t["n"]:
+                and t["children"][0]["node"] == "kind" and t["children"][0]["n"] == t["n"] \
+                and id(t["children"][0]) not in said_origin:
             k = t["children"][0]
             names = kind_names(k["species"], k["name"] == "Steelhead", origin=kind_origin.get(id(k)))
             t["says"] = fold_words(t["says"], t["tier"], t["n"], names)

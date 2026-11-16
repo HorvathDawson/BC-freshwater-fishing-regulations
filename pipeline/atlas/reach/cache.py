@@ -165,5 +165,9 @@ from __future__ import annotations
 #:     above that cut", instead of walking through the lake to its far end
 #:     (`extent.A_PIECE_INTO_THE_CUT_LAKE_IS_JUST_ABOVE_ITS_CUT`). The Shuswap's delta side channel 355998688:691
 #:     into Mabel Lake is inside "between Shuswap Falls and Mabel Lake" (both DFO wordings), no longer straddling.
-POLICY_VERSION = "44"
+#: 45: (T798 item 1, owner 2026-11-16, RULINGS Li5a) A PART A DESIGNATION EXCEPTS AND WALKS PAST IS NO STOP: a water
+#:     named in a designation's `tributary_excludes` with `walk_past` does not stop that designation's walk under
+#:     Li5 (`licensing.A_WALKED_PAST_EXCEPTION_IS_NO_STOP`). Coal Creek above the old MF&M Railway bridge (190
+#:     sections) is the Elk's Class II again; Line and Grave creeks (rows of their own, no walk_past) still drop.
+POLICY_VERSION = "45"
 

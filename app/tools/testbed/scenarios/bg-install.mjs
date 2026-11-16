@@ -8,17 +8,29 @@ import path from 'node:path';
 import { appUp } from './common.mjs';
 import { stallWatch, thrownAway } from '../lib/download-watch.mjs';
 import { lineProbe } from '../lib/line-probe.mjs';
+import { downloadJobs, findNode } from '../lib/ui-nodes.mjs';
+import { startThrottleProxy } from '../lib/throttle-proxy.mjs';
 
 const SAYING = /…$|… of data$/;
+// (2026-11-16) the line the bench holds the phone to until the notification is tapped: 479 MB then take about 160 s, so
+// the system's download is still running minutes after the app is closed (on the full line it was over in 35 to 60 s)
+const SLOW_BPS = 3_000_000;
 
 export const bgInstall = {
   id: 'bg-install',
   title: 'First install: asks on mobile data, waits for Wi-Fi, keeps downloading with the app closed',
-  // the link is slowed for part of the run (see "Wi-Fi back"): whatever happens, the next scenario gets a full one
+  // (2026-11-16) TRIED AND DROPPED: slowing the link with the emulator's own shaping (`d.link('hsdpa')`, `adb emu network
+  // speed`). It does not reach its Wi-Fi: six runs showed no change (479 MB in 35 to 60 s). Do not try it again. What
+  // works: the phone's global HTTP proxy pointed at a proxy on this Mac that holds the bytes to SLOW_BPS
+  // (`lib/throttle-proxy.mjs`), from the clean install until the notification is tapped; then lifted and unset. The
+  // proxy is always unset when the scenario ends, however it ends.
   async run(ctx) {
-    try { await bgInstall.body(ctx); } finally { try { ctx.device.link('full'); } catch { /* the emulator is gone */ } }
+    const d = ctx.device;
+    const proxy = await startThrottleProxy({ rate: SLOW_BPS });
+    const unset = () => { try { d.sh('settings put global http_proxy :0'); } catch { /* the device is gone */ } };
+    try { await bgInstall.steps(ctx, proxy, unset); } finally { unset(); await proxy.close(); }
   },
-  async body(ctx) {
+  async steps(ctx, proxy, unset) {
     const d = ctx.device;
     const shot = (name) => { try { d.screenshot(path.join(ctx.dir, `T298-${name}.png`)); } catch { /* no shot */ } };
     const words = () => d.screenText();
@@ -31,6 +43,7 @@ export const bgInstall = {
                    { shot: false, stop: true });   // (T442) a stale test/ only 404s
     await ctx.step('clean app on MOBILE DATA: asked before the download', async () => {
       d.stop(); d.cleanApp();   // (T760) not `pm clear`: the system downloader's rows go too
+      d.sh(`settings put global http_proxy 10.0.2.2:${proxy.port}`);   // the slow line (SLOW_BPS), see the top
       try { d.adb(['logcat', '-G', '16M']); d.logcatClear(); } catch { /* none yet */ }
       await d.net('cellular'); d.link('full', 'none');
       d.launch();
@@ -76,12 +89,13 @@ export const bgInstall = {
     // (T760) a line probe taken at the moment of a stalled or unfinished step: Mac and emulator, raw text beside the logs,
     // and its one-line verdict in the failure text
     const probeLine = (name) => { try { const p = lineProbe(d); fs.writeFileSync(path.join(ctx.dir, name), p.raw + '\n'); return ` Line probe: ${p.verdict}.`; } catch (e) { return ` Line probe failed: ${e.message}.`; } };
+    let dlSince = '';   // the device's clock when Wi-Fi came back
     await ctx.step('Wi-Fi back: the download starts by itself', async () => {
-      // (2026-11-16) THE LINK IS SLOWED FROM HERE UNTIL THE NOTIFICATION HAS BEEN TAPPED (about 1.8 MB/s, `hsdpa`). On the
-      // Mac's full line the whole 479 MB landed in about a minute: the system's downloads finished 4 to 6 s after the
-      // app was closed, so three runs in a row had no notification left to tap, and the step failed on the bench's
-      // timing, not on the app. Slowed, the download outlasts the close and the tap; it goes back to full for the rest.
-      d.link('hsdpa');
+      // (2026-11-16) On the Mac's full line the whole 479 MB lands in 35 to 60 s, and the app's own byte line lags far
+      // behind the system downloader, so waiting for ">2 MB" there closed the app with the downloads nearly done. The
+      // step returns at the FIRST sign that the download is under way: the system downloader's "Starting" (its log)
+      // or the app's byte line, whichever comes first.
+      dlSince = d.deviceStamp();
       await d.net('wifi');
       // (T760, owner 2026-11-15 "keep trying by itself") a line dead for a while can end on the failure screen ("The map
       // data could not be loaded … Try again"); the app must then try again BY ITSELF (once a minute) and the download
@@ -95,9 +109,12 @@ export const bgInstall = {
         const line = w.find((x) => /MB downloaded/.test(x)) ?? '';
         const got = Number((/^([\d,.]+) of/.exec(line)?.[1] ?? '0').replace(/,/g, ''));
         // early, so the app is closed with most of the download still to come
-        if (got > 2) {
-          shot('3-downloading'); atKill = line;
-          return failedAt ? `${line} (the app had shown the failure screen ${Math.round((failedAt - t0) / 1000)} s after Wi-Fi came back, and recovered by itself ${Math.round((Date.now() - failedAt) / 1000)} s later, no tap)` : line;
+        const jobs = downloadJobs(d.logcatTag('DownloadManager'), dlSince);
+        const evidence = jobs.started.length ? `the system downloader started ${jobs.started.length} job(s) at ${jobs.startedAt}` : got > 2 ? line : '';
+        if (evidence) {
+          shot('3-downloading'); atKill = line || evidence;
+          const said = `${evidence}${jobs.started.length && line ? ` · app's line: ${line}` : ''} · line held to ${SLOW_BPS / 1e6} MB/s by the bench's proxy`;
+          return failedAt ? `${said} (the app had shown the failure screen ${Math.round((failedAt - t0) / 1000)} s after Wi-Fi came back, and recovered by itself ${Math.round((Date.now() - failedAt) / 1000)} s later, no tap)` : said;
         }
         if (!failedAt && w.some((x) => /^The map data could not be loaded/.test(x))) { failedAt = Date.now(); shot('3-failed-screen'); }
         if (Date.now() > Math.max(t0 + FIRST, failedAt ? failedAt + RECOVER : 0)) {
@@ -114,16 +131,17 @@ export const bgInstall = {
     await ctx.step('app CLOSED mid-download: the system download goes on, in the notification bar', async () => {
       d.background();
       // the process killed as the system kills a closed app (never force-stop: that also stops its receivers)
-      await d.sleep(2000);
+      await d.sleep(700);
       d.sh(`am kill ${d.APP_ID}`);
-      await d.sleep(1000);
+      await d.sleep(700);
       // the system may keep it a moment (a visible process is not killed): then stopped outright
       let how = 'killed';
       if (alive()) { d.stop(); how = 'force-stopped (am kill left it)'; await d.sleep(1000); }
-      killedAt = d.sh('date +%m-%d\\ %H:%M:%S').trim();
+      killedAt = d.deviceStamp();
       if (alive()) throw new Error('the app is still running after the kill');
+      if (proxy.bytes < 1e6) throw new Error(`BENCH: the phone did not use the bench's slow proxy (${proxy.bytes} bytes through it), so the download is not held back`);
       d.sh('cmd statusbar expand-notifications');
-      await d.sleep(1500);
+      await d.sleep(1200);
       notes = words().filter((x) => /Downloading BC fishing rules|files? downloading|·|\d+ ?%/i.test(x));
       shot('4-notification');
       // ours, or the system's group of them ("2 files downloading")
@@ -132,28 +150,39 @@ export const bgInstall = {
     });
     // (T756) the tap is its own step: before, a tap that opened nothing fell back to a launch and the step still passed
     await ctx.step('a tap on the download notification opens the app', async () => {
-      // closed first: `expand-notifications` on a shade that is already open turns it into the quick settings (seen
-      // 2026-11-15: "Internet | Bluetooth | Flashlight …" and no notification to tap)
-      d.sh('cmd statusbar collapse');
-      await d.sleep(800);
-      d.sh('cmd statusbar expand-notifications');
-      await d.sleep(1500);
-      let w = words();
-      const OURS = /^Downloading BC fishing rules/;
+      const OURS = /^Downloading BC fishing rules/, GROUP = /files? downloading/i;
+      const jobs = () => downloadJobs(d.logcatTag('DownloadManager'), dlSince);
+      // (2026-11-16) a bench race, not an app fault: the system's downloads were all done before this step began
+      const j0 = jobs();
+      if (j0.started.length && !j0.running.length) {
+        d.sh('cmd statusbar collapse');
+        throw new Error(`BENCH RACE, not the app: the system's ${j0.started.length} download(s) had all finished (last at ${j0.finishedAt}) before this step began, so no download notification can exist (downloads started ${j0.startedAt}, app closed ${killedAt.slice(6)}).`);
+      }
+      // the shade is still open from the step before; one dump, no Maestro flow. `expand-notifications` on an open shade
+      // turns it into the quick settings (seen 2026-11-15), so only when no notification is found is it closed and opened again
+      let nodes = d.screenNodes();
+      if (!findNode(nodes, OURS) && !findNode(nodes, GROUP)) {
+        d.sh('cmd statusbar collapse'); await d.sleep(500);
+        d.sh('cmd statusbar expand-notifications'); await d.sleep(1000);
+        nodes = d.screenNodes();
+      }
       let how = 'the notification';
       // several downloads are folded into the system's group ("2 files downloading"): a tap on the group only unfolds it
-      const group = w.find((x) => /files? downloading/i.test(x));
-      if (!w.some((x) => OURS.test(x)) && group) {
-        ctx.flow('tap-text', { TEXT: group });
-        await d.sleep(1500);
-        w = words();
-        how = `the group "${group}" unfolded, then its first notification`;
+      const group = findNode(nodes, GROUP);
+      if (!findNode(nodes, OURS) && group) {
+        d.tapAt(group.cx, group.cy);
+        await d.sleep(900);
+        nodes = d.screenNodes();
+        how = `the group "${group.text}" unfolded, then its first notification`;
       }
-      if (!w.some((x) => OURS.test(x))) {
+      const ours = findNode(nodes, OURS);
+      if (!ours) {
         d.sh('cmd statusbar collapse');
-        throw new Error(`no "Downloading BC fishing rules" notification to tap (the shade shows: ${w.slice(0, 12).join(' | ').slice(0, 300)})`);
+        const j = jobs();
+        const late = j.started.length && !j.running.length ? ` The system's downloads had finished by ${j.finishedAt} (downloads started ${j.startedAt}, app closed ${killedAt.slice(6)}): a bench race.` : '';
+        throw new Error(`no "Downloading BC fishing rules" notification to tap (the shade shows: ${nodes.map((n) => n.text).slice(0, 12).join(' | ').slice(0, 300)}).${late}`);
       }
-      ctx.flow('tap-text', { TEXT: 'Downloading BC fishing rules.*' });
+      d.tapAt(ours.cx, ours.cy);
       const end = Date.now() + 10_000;
       while (Date.now() < end && !front()) await d.sleep(500);   // poll interval
       if (!front()) {
@@ -161,8 +190,9 @@ export const bgInstall = {
         throw new Error(`a tap on ${how} did not bring the app to the front in 10 s (its process is ${alive() ? 'running' : 'not running'})`);
       }
       return `opened by a tap on ${how}`;
-    }).finally(() => d.link('full'));   // tapped or not: the rest of the download runs on the full line
+    });
     await ctx.step('reopened mid-download: no running download is thrown away; setup finishes and the map opens', async () => {
+      proxy.setRate(Infinity); unset();   // the tap is done: the rest at full speed (open tunnels too)
       let opened = 'the notification tap';
       if (!front()) { opened = 'a launch (the tap did not open it)'; d.sh('cmd statusbar collapse'); d.launch(); }
       const t0 = Date.now();

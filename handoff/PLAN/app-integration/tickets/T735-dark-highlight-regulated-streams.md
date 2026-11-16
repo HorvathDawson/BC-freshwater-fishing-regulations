@@ -1,6 +1,6 @@
 # T735 — The part you are on is hard to pick out in dark mode on a regulated stream
 
-Status: IN PROGRESS (before closed testing; measured, three looks built and shot, owner to pick one)
+Status: IN PROGRESS (before closed testing; OWNER PICKED LOOK C 2026-11-16 11:51, "C: dark edge + soft glow (Recommended)"; BUILT on branch `app/t735-dark-look-c` @ dfa9047d3 by a Sonnet lane, not reviewed by the app chat, no pictures yet, not merged)
 
 Source: owner 2026-11-14, phone, dark palette, build 31/32, verbatim: "The highlighting isn't very good in dark mode on regulated streams."
 His shot: the Fraser River's Map tab, "Part 3 of 19".
@@ -35,3 +35,25 @@ Shots and side-by-side sheets: `~/bcfish-session-backup-2026-11-12/dark-highligh
 - Owner picks a look (or says what is wrong); it is applied to dark only, through palette tokens, light unchanged.
 - Dark: the part you are on measures at least 3:1 against the ground and its own edge, for every status; the others at least 1.5:1.
 - `tools/status-colours-distinct.test.ts` and the map contrast checker (T470) pass; web shots on 3 waters, 6 statuses, plus satellite.
+
+## Owner's pick, 2026-11-16 11:51 (question dialog in the main chat, with the two sheets on screen)
+"C: dark edge + soft glow (Recommended)". To build (app chat): look c from `options.patch`, dark only, through palette
+tokens, light unchanged; then the acceptance lines above. An earlier note said the glow can be stronger if he asks.
+
+## Look C built on a branch, 2026-11-16 13:00 (Sonnet lane's report; NOT yet read or re-run by the app chat)
+Branch `app/t735-dark-look-c` @ dfa9047d3 (from the shared head a8caa4c4b), 12 files under `app/packages/map` and
+`app/tools/layer-order.test.ts`.
+- Five new palette tokens (dark / light and cvd): `width.selection.casing` 1.5 / 2.5; `flag.selection.edge` 1 / 0
+  (the switch; "flag." is a new prefix); `color.selection.edge` = `color.outside`; `opacity.selection.glow` 0.4 / 0;
+  `opacity.selection.casing.others` 0.35 / 1.
+- `paint.ts` `casingPaint` + new `glowPaint`; `runtime-style.ts` adds layer `selection-glow` directly under the
+  casing, in dark only; `adapters/contract.ts` carries the glow for the native map (same `part` / `selected` state).
+- Light unchanged, as reported: `style/style.json` has no diff; only `style.meta.json` and `style.sha256` changed.
+- Reported checks: `vitest run packages/map` 53 files, 403 tests pass; status-colours-distinct, map-contrast (T470),
+  layer-order, style-valid, style-spec pass; `tsc -b` clean. New `selection-look.test.ts`.
+- Reported contrast of each dark status colour against the new edge #0A0B0D: open 16.0, restricted 7.3, closed 5.7,
+  own 13.7, base 4.7, no_access 7.0 (all at least 3:1).
+STILL OWED: read the diff; web pictures before / after on 3 waters and satellite (kept script
+`~/bcfish-session-backup-2026-11-12/dark-highlight/shoot.mjs` + `looks.sh`; the `?dl=` switch is gone, compare the
+branch with the shared head), sent to the owner in chat; "the others at least 1.5:1" is not measured; the water-copy
+line and the lake / wetland rings were left as they are; an emulator look in dark; then the merge with benches.

@@ -192,3 +192,8 @@ branch's later T737 version kept) and this ticket (both sides kept).
   only docs and one test file (T751) changed.
 - **Not checked here:** nothing iOS was re-run for this merge (the simulator proofs above are the branch's own, on
   its commits); the first iPhone build from the shared branch will be the check.
+
+## Owner on the two picks, 2026-11-16 12:08
+(question dialog in the main chat, 2026-11-16 12:08, on the list of small behaviours left as built): "we should fix anything that doesnt seem desirable". The app chat's call: (1) a spot's Save row is LIFTED above the keyboard (a Save button
+hidden while typing is not what a user wants): to build, iOS, with the simulator proof; (2) the left-edge back strip
+stays 16 pt.

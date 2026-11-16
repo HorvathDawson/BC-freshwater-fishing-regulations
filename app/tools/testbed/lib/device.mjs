@@ -6,6 +6,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { KEPT_TAGS, keptLog } from './kept-log.mjs';
+import { parseNodes } from './ui-nodes.mjs';
 
 export const APP_ID = 'ca.canifishthis.app';
 const SDK = process.env.ANDROID_HOME ?? path.join(os.homedir(), 'Library/Android/sdk');
@@ -170,6 +171,19 @@ export function screenText() {
     return out;
   } catch { return hierarchyText(); }
 }
+/** (T760) The screen's nodes with their text and where to tap them (`{ text, x1, y1, x2, y2, cx, cy }`), from one
+ *  uiautomator dump: no Maestro flow (several seconds each). [] when the dump is refused (a screen never idle). */
+export function screenNodes() {
+  try {
+    const r = sh('uiautomator dump /sdcard/tb-ui.xml 2>&1');
+    if (!/dumped to/.test(r)) return [];
+    return parseNodes(sh('cat /sdcard/tb-ui.xml'));
+  } catch { return []; }
+}
+/** A tap at a screen position (pixels). */
+export const tapAt = (x, y) => sh(`input tap ${x} ${y}`);
+/** The device's clock as the log stamps it: "MM-DD HH:MM:SS". */
+export const deviceStamp = () => sh('date +%m-%d\\ %H:%M:%S').trim();
 const unxml = (s) => s.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>')
   .replace(/&#10;/g, '\n');
 
