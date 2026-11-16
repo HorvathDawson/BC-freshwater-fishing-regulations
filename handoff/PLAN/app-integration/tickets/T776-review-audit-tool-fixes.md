@@ -11,5 +11,13 @@ Source: the marks audit and second look, 2026-11-15 night.
    channels as missing that the build adds (Maria Slough on the six Mission-area places).
 3. `dfo.cannot_edit_words` says "above its point" for a `downstream_of` watershed extent.
 
+4. (second audit run, 2026-11-16 00:46, after the build) Section A `not_last_save` flags the five T761 rest-of saves
+   (marks 2790 to 2794): it renders the file's extent as "rest" without its bounds and so says the file is not what
+   the last save says. The files DO hold the bounds and listed places (checked: the Skeena place). The comparison is
+   not T761-aware.
+5. Section A `orphan_cut` lists the six closed-area cuts (Shuswap station point, Thompson Bonaparte mouth, Deadman
+   upper signs, Hwy 97C bridge, Juniper lower and upper signs) as named by nothing: it does not read
+   `data/curated/dfo_salmon/closed_areas.json`.
+
 ## What to build
 The three fixes, each with a test on built data; rerun the audit and attach the changed rows.
