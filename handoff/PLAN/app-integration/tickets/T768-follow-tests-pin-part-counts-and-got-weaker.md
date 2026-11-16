@@ -32,7 +32,7 @@ Source: `handoff/PLAN/audit-2026-11-16/guards.md` and `code.md`. Area: app tests
 A made-up extra part end on a fixture water fails exactly one test file (the content pin), and the three tests above
 fail when their subject is wrong (a mutation each).
 
-## Done so far, 2026-11-16 04:55 (app chat; test files and the node-only test driver, nothing the app bundles)
+## Done so far, 2026-11-16 04:50 (app chat; test files and the node-only test driver, nothing the app bundles)
 - The tests of 39918037e no longer type a part count or a cut-dependent name: `StepInPlace.shell.test.tsx` (the Skeena
   walk), `WaterMapView.test.tsx` (Skeena, Cowichan, Zymoetz) and the Cowichan bar in `ui/src/waterMap.test.ts` take
   "Part k of N" and the names from the water's group (`partWhere`, `partName`), finding parts by their ends; what
