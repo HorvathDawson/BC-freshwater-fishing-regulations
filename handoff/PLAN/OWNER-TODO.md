@@ -1928,3 +1928,8 @@ More questions (recommended answer first):
   as the book says / leave coho open / hold this row), typed: "how are both items worded let me double check but im
   pretty sure closed dis the right option". So: NOT yet decided; he gets the book's line and DFO's row word for word,
   then answers. The row does not ship before that.
+- 15:18, typed in chat (verbatim): "have another opus agent spec out what would be involved in transitioning the trout
+  portion of the app to the new table format. want it implemented clean from pythion up to front end. etc etc. use
+  opus agent". So: an Opus worker writes a spec (no code): what it takes to move the app's trout and char block to
+  the new table, built cleanly from the Python pipeline up to the app's screen. The spec comes back to him before
+  any build starts.
