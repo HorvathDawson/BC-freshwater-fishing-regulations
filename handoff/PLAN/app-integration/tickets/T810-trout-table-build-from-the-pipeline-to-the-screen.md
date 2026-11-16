@@ -46,3 +46,25 @@ a seperate quota to wild like 1 wild and 2 hatchery or something.... otherwise i
 same for both no mentiuon needed)". Rule for the table: same rule for both origins = no mention; keepable only when
 hatchery = one row per fish saying "hatchery only", no wild row under Release; wild shown apart only when wild fish
 have a quota of their own. The spec's row model (one row per fish and origin) changes accordingly.
+
+## The accepted design, as one list (owner, 2026-11-16, rounds 10 to 14; his words are in OWNER-TODO.md)
+1. Look: the round 8 tinted keep box with white rows and white boxes for tighter limits; NO outline or frame line.
+2. Text: the rule in force today is the bigger, bold text; the coming change is smaller and quieter on its own line
+   underneath. Row spacing between rounds 8 and 9.
+3. Beside a fish with no tighter limit: "up to the N" (the box's number).
+4. Dates: a coming closure says what closes ("then closed to trout and char" / "to all fishing" / for one fish) and
+   no reopening date; the reopening date shows only while it is closed today; a coming change that only loosens a
+   rule reads "rule changes <date>" with no details; otherwise the next stricter change is dated. A box's top line
+   carries a date only when every fish in it shares that date.
+5. Adams River: the stricter 80 cm on the row, the one-day rule in the fish's sheet.
+6. Wild and hatchery: same rule for both = no mention. Hatchery only = ONE row per fish with a filled "HATCHERY ONLY"
+   label beside the name, and no separate wild row; when it applies to every fish of a keep box, the box's top line
+   carries the same filled label once and the rows carry none. Wild is shown apart only where wild fish have a
+   quota or size of their own (Kitimat, Lois, Khartoum, Ruby, Cultus). Lois / Khartoum steelhead: hatchery only.
+7. Possession: the page keeps its own line; the table speaks only where a trout's possession differs.
+8. Place: under the existing Trout and char entry (folded line with the better words and the expand arrow); other
+   fish untouched.
+9. Fish sheet: "Here, today", "How to tell it", "Sources"; swipe down to close; no sideways swipe; no year bar except
+   an all-release table.
+Still open in the design (from the fourth attack): a build rule for dated number / size / wild / possession changes
+on the waters not hand-written in the mockup; Lois's "All together" line sitting outside both boxes.

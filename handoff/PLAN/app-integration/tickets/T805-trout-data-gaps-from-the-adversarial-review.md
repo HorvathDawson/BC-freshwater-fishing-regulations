@@ -28,3 +28,8 @@ François Lake) are its parts: `handoff/PLAN/design/trout-table-build-spec-2026-
 the page's own line ("Keep the page line"): the fish row carries possession only where a trout's differs. Every
 changed answer goes to him as a list (T809's tool) before it ships. Also from the fourth attack: the Bowron park
 possession limit that shows only on days lake trout cannot be kept (Istsi, Wolverine part 1, Sootheran part 1).
+
+## Owner, 2026-11-16 16:09: part C go
+Shown the part C changed-answers list (3 waters in Region 2, all toward closed: Lois and Khartoum one wild limit of 2
+across both cards; Lois and Windsor wild char hatchery only). Picked: "Go (Recommended)". Commit 0f6fe2868 lands with
+the full tier. Parts B and D: their own lists, their own go.
