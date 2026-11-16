@@ -21,20 +21,32 @@ owner's words tonight, verbatim). The owner is asleep or about to be; the overni
 - Trout display exploration (Fable): page https://claude.ai/artifact/EopBgDtf8eu4LGZpYixSkH, rounds 1 and 2
   published; round 3 running (owner's feedback in OWNER-TODO). Nothing waits on it (owner's word).
 
-## Running at 00:15 (Nov 16)
-- **T778 FIXED and merged (a2ba7396b, POLICY_VERSION 44)**: whole-province binding diff = the two Middle Shuswap
-  places gain piece `355998688:691`, nothing else moves (`<scratch>/t778/binding_diff.txt`). Side-check gap = T779.
-- `pipeline build --hold-latest` restarted 00:14 (lane 1, log `<scratch>/logs/build-3.log`).
-- Full pipeline CI tier on a2ba7396b (lane 3, log `<scratch>/logs/ci-tier-6.log`). The branch was pushed at
-  1855ecf39 (tier + whole app check green); T778 and later commits are not pushed yet.
-- Disk: filled at 23:38 (151 GB of app-test `release-open-*` temp folders); cleared; app chat fixed the cause (T764).
-- Trout display round 4 (design agent; owner 23:58: one design from the picks, one size wording, inches and cm on the
-  row, group size limits clearer, Dolly Varden named). ITERATION ONLY (owner 23:59), nothing built. Republish the
-  same scratch path when it reports.
-- App chat: R8 benches (one install bench rerun after the disk filled); it sends "benches done"; the staging release
-  waits for that and for the build.
+## Running at 01:15 (Nov 16)
+- **Build DONE 00:45**: release `r-46e4355a7277` (reach, tiles, deliver all ok; vintage agrees). T778 fixed
+  (a2ba7396b). Pushed up to 6e1993a9f; head 46c77737d (proposals rebuilt). `apply --check`: only the two T359 waits.
+- Second marks audit read (`<scratch>/audit/audit-after-build.md`): 15 rest-of and 11 not-landed findings resolved;
+  new rows are tool false positives (T776 items 4, 5) plus one owner question (Middle Shuswap place has no tributary
+  choice).
+- Data tests on the build: pass, except `test_curation_review_inseason.py` (10) and
+  `test_curation_review_screen.py::test_re_resolve…` (1), which resolve on LATEST and fail until the release promotes
+  the new one: RERUN BOTH AFTER THE RELEASE. Harness findings on T777 (forked children crash; run review test files
+  in small groups, never all in one process: the memory guard kills it at 48 GB).
+- **`python -m pipeline release --staging` STARTED 01:14** (lane 1, log `<scratch>/logs/release-staging-1.log`). The
+  app chat got BEFORE at 01:13 and its benches are done (all six pass, R8). It stops at gates that need a read
+  (`--accept-fixtures TOKEN`, `--accept-diff FILE`): read the diff, rerun with the token. Then a full staging site
+  build from a clean worktree, `node app/tools/smoke-staging.mjs`, then AFTER to the app chat with the head and the
+  list of app files the release re-cut.
+- Skeena cascade review part 2: the Fable agent was resumed at 01:15 on the built result; report to
+  `<scratch>/cascade/part2.md`, copy into `handoff/PLAN/curation-review/`.
+- Trout display round 5 (mockups only): three fresh designers; two reported (`<scratch>/trout-display/fresh-reader/`,
+  `fresh-calm/`), the third (`fresh-open/`) is running. When all three are in: send the three mocks and notes to the
+  ORIGINAL designer agent to fold into one round 5 in `<scratch>/trout-display/trout-display.html`, then republish the
+  same path. Owner asks (00:2x): the fish picture must not move when a row opens; a species identification
+  placeholder in the opened row; the big "Clipped fin only" note goes, a small "How to tell a hatchery fish" link at
+  the top instead; less clunky overall.
 
 ## Next, in order
+(Steps 1 to 3 are DONE; step 4 is running.)
 1. Build done → read it (deliver gates, size gates, part names); if it stops, fix the cause.
 2. Full pipeline CI tier on the head (T761 sweep commits + e3d6d5f26 are NOT yet covered by a green tier: the last
    tier ran before e3d6d5f26 and had the one size-shape failure it fixes), then the data-tier tests T761 / T763 listed
