@@ -17,3 +17,6 @@ Source: general audit 2026-11-16, answers checker A4, F1, F3, F5 (`handoff/PLAN/
 5. Noted, no question: Region 6 "1 trout from streams" read as excluding char (rulings C2 / C4), so brook and lake
    trout show keepable from streams in winter; the Cowichan below Mile 66 (book closed Sep 1-Nov 15, DFO opens salmon
    catch and release).
+
+## Owner, 2026-11-16 (question dialog; verbatim in `handoff/PLAN/OWNER-TODO.md`, "Answers by batch")
+Question 31: "Class II above the bridge (Recommended)". Question 33, typed: "If the river continues then yes it goes above" (carry fly-fishing-only and the summer-closure exemption onto the Puntledge above Comox Lake). Question 35: Section 4 runs all the way up, main river only (T801). Question 36: "Keep "Closed"" (add to `pipeline/docs/RULINGS.md` that the ruling covers dated rows).

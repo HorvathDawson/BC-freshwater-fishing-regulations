@@ -184,3 +184,12 @@ On `fix/t760-stuck-download` (worktree only, not pushed, not merged, NOT run on 
   step could be missed by the runner's crash check.
 - Left: three clean `bg-install` runs and one `install` on the emulator (lane 2, after tonight's Play build), the
   crash-buffer finding, then T756 + T760 merge together with the benches and a message to the main chat.
+
+## Merge 3 state, 2026-11-16 13:05 (the app chat, at its handover)
+`merge/t756-t760` @ a74ea4aa0 (T756 + T760 merged on the shared head, plus two bench commits): `pnpm check` passed;
+five of the six benches passed; `bg-install` passes every step except the two about the download notification with
+the app closed (6 sessions before the bench rework, 1 after it). Cause as read from the runs: today's line brings the
+479 MB in 35 to 60 s, so the system downloader's row is gone seconds after the app is closed and there is nothing
+left to tap; "reopened mid-download: no running download is thrown away" passes every time. With the rework
+(a74ea4aa0) the "closed" step passes and only the tap fails. Not merged: three fully passing `bg-install` sessions
+are owed first. Details and the command: `handoff/PLAN/ios/START-HERE-ios.md`, top section, "BENCH FIX RESULT".

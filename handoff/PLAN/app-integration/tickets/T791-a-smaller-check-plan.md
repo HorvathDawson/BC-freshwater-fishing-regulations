@@ -21,3 +21,6 @@ files and 276 slow tests have no automatic runner; the release runs 7 of those f
    whole app check on the candidate, the scanners, GitHub's runs.
 6. Update AGENTS' timings (the app check takes 3 to 4 minutes, not 17 seconds).
 Expected: about 10 minutes saved on a clean release; about 60 of last night's 105.
+
+## Owner, 2026-11-16 (question dialog; verbatim in `handoff/PLAN/OWNER-TODO.md`, "Answers by batch")
+Question 14: "Yes, as proposed (Recommended)" (section H's proposal; staging releases still wait for GitHub's run: he did not pick the skip).

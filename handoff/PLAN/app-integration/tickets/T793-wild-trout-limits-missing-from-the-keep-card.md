@@ -50,3 +50,6 @@ row's `conds` and `caps` hold it); `group.buckets`, which the card draws, holds 
   lakes carry "Wild trout/char daily quota = 2" and "no wild trout over 40 cm" (Khartoum and Lois: "40 cm or more"),
   the same lines as Dodd: their new card line is right. The Dolly Varden / lake trout line follows from reading "no
   wild trout over 40 cm" as trout AND char: owner question 38 (his Region 6 ruling C2 / C4 reads "trout" as not char).
+
+## Owner, 2026-11-16 (question dialog; verbatim in `handoff/PLAN/OWNER-TODO.md`, "Answers by batch")
+Question 37: "Go as worded (Recommended)". Question 38 (does "no wild trout over 40 cm" cover char): "Trout and char (Recommended)". Merge f672f4444, deliver, rehearse, staging release. Known after the adversarial trout review: on Lois and Khartoum lakes the new sentences read 2 wild + 2 wild where the book says 2 in all (T805 item 1); tell him plainly with the changed-answers list.

@@ -13,3 +13,6 @@ Source: general audit 2026-11-16, answers checker A3, A7, B5 (`handoff/PLAN/audi
    `wbk:-18`); Nation Arm and Davis Bay, parts of the same lake, read "any size" (errs OPEN). Owner question 32.
 3. **Bella Coola part 0** (side channels joining at km 55 to 59.1) carries the Atnarko's "No powered boats … from Goat
    Creek to the confluence with Talchako River" (the Talchako joins at km 62.6). Errs closed; geometry not checked.
+
+## Owner, 2026-11-16 (question dialog; verbatim in `handoff/PLAN/OWNER-TODO.md`, "Answers by batch")
+Go-ahead card: "Go on all (Recommended)". Question 32 (Williston Lake's 30 cm minimum): "All three parts (Recommended)".

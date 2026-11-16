@@ -73,13 +73,48 @@ drops a wild or hatchery condition). The owner's list now has 38 questions: 37 =
 Nothing is running. On his go for 37: cherry-pick f672f4444, `mini_release --check`, the changed tests, push, CI
 green, `pipeline build --hold-latest`, the rehearsal, BEFORE to the app chat, the release, the site, AFTER.
 
-## Next, in order
-1. With the owner: the morning list (re-ticks, questions).
-2. On his go: T793 first (wild-trout limits missing from the keep card: the app allows what the book forbids), then
-   T794 (Peace below Bennett Dam; Williston), T795 (the four lakes a reserve barely touches), T797 (powered boats),
-   and the small code fixes T783, T784, T785, T792 A. Each needs a deliver run and a staging release: rehearse first
-   (`python -m pipeline release --staging --dry-run --rehearse-follows`).
-3. The merge question (19), then the production order (the feeds worker before the data), then closed testing.
+## State at 12:14 on Nov 16: the owner answered EVERY question (13 dialog batches, 10:27 to 12:09)
+His answers, verbatim: `OWNER-TODO.md`, "Answers by batch" (end of the file). He wants questions asked IN CHAT, in
+multiple-choice batches ("i want questions in batches from you directly instead"); the page
+https://claude.ai/artifact/H8gtvpptCZLGLaPGCyNfaJ is only a reference now. Tickets T799 to T806 hold the new work; ten
+older tickets carry his answer in a section "Owner, 2026-11-16".
+
+### Running or owed right now
+- **T793 is cherry-picked locally (not pushed)**: full pipeline tier running (log `<scratch>/logs/t793-tier.log`);
+  then tell the app chat, push, CI green. It ships in ONE staging release with the other fixes he said go on.
+- **Pictures for the 34 live saves to re-check** (T806): an Opus helper draws them into `<scratch>/recheck-pics/`
+  (batch 1 = 13 urgent). When back: send them to him in chat in small batches (SendUserFile + question dialog, right /
+  wrong), save each answer through the review app with his words.
+- **Trout round 7** (mockups only): the original designer is resumed; when back, publish the same page
+  (`<scratch>/trout-display/trout-display.html` -> https://claude.ai/artifact/EopBgDtf8eu4LGZpYixSkH), then resume the
+  adversarial reviewer for a second attack; both reports to him.
+- **The app chat** (session `bc-freshwater-fishing-regulations-01`) is merging one at a time (his yes): merge 1
+  (T757 + T758 feed server) and merge 2 (iPhone fixes) are landed and green; merge 3 (T756 + T760) is on its benches.
+  It asks "ready to land", I answer "clear" or "wait"; it commits docs on the shared checkout only after I say T793 is
+  pushed. It took: T797 item 1 (done on a branch), T800, T686 (a), the pre-build check, T759 stripe wider, T735 look
+  C, T732 at 1280 px, the small defaults. It waits on me for: the T796 marker proposal (A5) and the vectors (A6).
+
+### The fix queue for the next staging release (all with his go; each lands with the full tier, then ONE release)
+1. T793 (landing now). Tell him with the changed-answers list that Lois and Khartoum read 2 wild + 2 wild (T805.1).
+2. Printed rules back on the page: T794 (Peace below Bennett Dam: map check, maybe a cut = next rebuild; Williston
+   all three parts; Bella Coola side channels), T795 (Fraser, Kotcho, Cold Fish lakes, 15 Mile Swamp, Westwick,
+   Priest: open with the note), T797 items 2 to 5, T798 (Coal Creek Class II above the bridge; Puntledge above Comox
+   Lake carries both), T801 (Section 4 wording).
+3. Salmon rules: T770 (show both gear lines; eulachon on every Region 6 water), T787 (hidden tables kept, marked
+   hidden, ignored: parser + the worker's twin), T796 (A5 static closed location; A6 finfish closes the page; examples
+   to him), T783.
+4. Small code: T784, T785, T792 A, T799.
+5. T804: the universal "a joining water with its own row is out" rule: the trigger sentence + the province-wide list
+   of changed answers go to HIM before it ships.
+6. T803: the label follow-ups (Cowichan mark off, Middle Shuswap, re-saves, gotchas, Mara cut name, Babine areas,
+   Gitnadoix, side channel name; Stamp Falls cut 60 m down waits for a map rebuild).
+7. T791 (fewer, later checks: yes as proposed), T790 (records), fresh production commands (T404).
+Release rule: rehearse first (`python -m pipeline release --staging --dry-run --rehearse-follows`), BEFORE to the app
+chat, release, site, AFTER.
+
+### Not asked / still his
+The 34 pictures (above); the build 33 phone walk; iPhone build 36 + push; T786 (ship DFO's words undrawn) unanswered;
+T802 (classified-water indicator) is an idea, looks first. No Firebase now ("we dont want this right now").
 
 ## Tickets filed tonight (main chat: T770 to T798; the app chat has T762-T769)
 T770 gear lines do not stack (owner's yes needed) · T771 chain size and the equal-places check · T772 lake takes its

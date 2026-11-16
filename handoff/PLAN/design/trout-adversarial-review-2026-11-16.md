@@ -145,3 +145,85 @@ is false for those anglers, so it depends on the note line above the table alway
   were not covered.
 - T793's branch was not built; its ticket sentences were used.
 - Not traced: whether François Lake's outlet-area char rule is bound to the whole lake.
+
+---
+
+# Second attack: round 7 (2026-11-16, about 12:40)
+
+The designer built round 7 against the report above; the owner's answers of about 12:00 shaped it (top line's second
+half back, swipe-down sheet, no "often mistaken for", sources in both places). The same reviewer attacked it again.
+Read from round 7's `stripped.html` (data and code) and the designer's notes; not opened in a browser.
+
+**Verdict:** round 7 still cannot carry every trout rule truthfully, even with the T805 data gaps fixed. Three of the
+eight findings are fixed, five partly, and the new grammar creates new faults. The worst: possession below the day's
+number, possession with a size, and wild sentences that reach fish the book leaves out.
+
+## The eight findings
+1. **Possession: PARTLY, two new faults.** Right where there is one plain number (Buckinghorse River, Bowron River)
+   [ran]. NEW: possession with a size: Tagish Lake, p.53 "Lake trout daily and possession quotas = 2 (only 1 over
+   90 cm, none between 60 cm and 90 cm)"; stored `tagish_lake.r2 possession LT take 2, lengths null`; round 7 shows
+   "only 2 · only 1 over 90 cm" and "only 2 in your possession": an angler reads one fish over 90 cm on each of two
+   days as fine; the book allows one over 90 cm in possession (also Morley, Bennett, Cheslatta). NEW: possession
+   smaller than the day's number: Cunningham Lake, lake trout daily 3 with "possession quota = 2 (only one over
+   50 cm)" (p.59): "only 3" with "only 2 in your possession" under it reads keep 3 today (five lakes: Cunningham,
+   Tchentlo, Tsayta, Indata, Nakinilerak). Smallest fix: when possession is below the day's number, the row's number
+   is the possession number. Data: Region 7's "one day's limit" is hand-written; on Bowron park streams the stored
+   possession members miss lake trout.
+2. **Stop fishing: FIXED**, one wording risk: the row says "stop fishing here today"; the book says "that water" and
+   the stored duty "this river"; on a river in stretches "here" can be read as this stretch. Use the stored noun.
+3. **Wild limit across two boxes: PARTLY.** Lois Lake's last line "All together: only 2 wild fish, each under 40 cm
+   (16 in)" matches p.24, but the top line "Up to 6 rainbow trout or steelhead and 4 other trout and char today"
+   promises 10 and the limit most likely to be broken is the table's last line. The two char are drawn "clipped fin"
+   on a guess: Lois stores an empty wild range for them (min 60, max 40), Khartoum stores none; on the Region 2
+   reading of "trout" (Cultus, Harrison p.23 "No wild trout over 50 cm, 1 bull trout over 60 cm") a wild bull trout
+   or lake trout of 60 cm or longer may be kept at Lois inside the wild 2. This is the owner's question 38 (answered
+   "Trout and char (Recommended)" on 2026-11-16).
+4. **A fish in two shared limits: FIXED** (Kamloops, Adams River part 3, Williston Lake B: the only three summed
+   tiers in the release, all gone). A build can detect them: the tier's number differs from the "take" of its rule.
+5. **Top line: PARTLY.** Glenn Creek, Vedder, Kaslo are true now. Madden Creek's three-number line is true but leads
+   with the tightest number and can be read as 5 plus 2.
+6. **Year bar: FIXED as a rule, two traps.** On a closed day the stored row year means something else (Kaslo and Elk
+   on Apr 1 store `[keep 90, closed 75, keep 200]`: a bar built from the day's row would show January as "keep"
+   where it is release). On Buckinghorse the bull trout has a bar while rainbow and lake trout flip with none: "no
+   bar" reads as "no change".
+7. **Wild limit inside one box: PARTLY, new fault in the defined words.** Dodd Lake's sentence matches. But the
+   size-only form "a wild fish must be 50 cm (20 in) or less" (six lakes: Chilliwack, Cultus, Harrison, Chehalis,
+   Pitt, Lillooet) forbids the bull trout over 60 cm the same printed line allows and reaches wild brook trout: it
+   must name the fish. Ruby Lake ("Wild cutthroat trout daily quota = 2 (none 40 cm or more)") has no defined form.
+8. **Angler-only rules: FIXED.**
+
+## Fresh sweep of the 12 classes
+Fit: never-keep; one box with own limits; one box with one shared inner box; two boxes counted apart; overlapping
+groups; hatchery-only; stepped sizes; slot sizes; Kitimat's hatchery and wild rows; the steelhead duty.
+New or remaining: possession below the day's number (5 lakes); possession with a size (Tagish x2, Morley, Bennett,
+Cheslatta, the same 5 lakes); "a wild fish must be…" over-reaching (6 lakes) and char drawn "hatchery" (Lois,
+Khartoum, Dodd and 4 like them); Lois and Khartoum top line of 10; a possession line repeated on several rows reads
+"each" (Bowron park streams); a bar on one fish beside fish that flip without one (every water among the 638 with a
+stored fish year that also has a dated put-back); "here" in the stop line.
+Looked for and not found [ran]: a possession line colliding with a box sentence; an "All together" line needing a
+wild limit and a size limit across boxes; a three-number top line whose third number is inside the first; a stop
+duty on release-only steelhead.
+
+## The designer's three questions, by "which choice misleads fewer anglers"
+1. Madden's top line: neither wording; say "Up to 5 today" (the stored maximum) and draw one box of 5 with a white
+   box "only 2 of these 4" around brook, brown, cutthroat and lake trout, and "only 2" on bull trout. (Owner the same
+   hour: "Yes, that wording (Recommended)" for the three-number line.)
+2. Sideways moves: the white-box group is right but misses rainbow / steelhead (one fish split at 50 cm). (Owner:
+   "No sideways at all".)
+3. Year bar only where stored: yes; but where a fish flips, say the date in words under the fish ("until Oct 14"):
+   461 retention rules store their dates. (Owner: drop the bar except an all-fish "through the year" line; "i dont
+   know why it needs year tho when it has dates".)
+
+## What still blocks it, ranked
+1. Possession below the day's number, and possession with a size (design: no rule or wording; data: the size clause
+   is not on Tagish's possession rule).
+2. Wild sentences must name their fish, and the char's origin must be settled (design; data: Lois, Khartoum and Dodd
+   store the char three different ways for the same printed words).
+3. Seasons per fish (data: no per-fish year; design: no line for "this changes on a date").
+4. Lois and Khartoum top line (design). 5. Madden-type top line (design). 6. "Here" in the stop line (design).
+7. Data only: wild quota stored per row, Region 7 possession on no row, Bowron park possession members missing lake
+   trout, Shamrock Creek's 20–30 cm steelhead, the cross-border quota, Echoes Lakes (T805).
+
+Not checked: rendering, swipes, text sizes; the 22 older waters beyond the round 7 patches; page images of the
+printed lines; the T793 branch's output.
+
