@@ -2169,9 +2169,17 @@
       "binding": {
         "extents": [
           {
-            "op": "downstream_of",
-            "splits": [
-              "nitinat_river__parker_creek_into_nitinat_river"
+            "op": "rest",
+            "bounds": {
+              "op": "downstream_of",
+              "splits": [
+                "nitinat_river__parker_creek_into_nitinat_river"
+              ]
+            },
+            "siblings": [
+              "1:nitinat-river:nitinat-river-from-50m-upstream-to",
+              "1:nitinat-river:from-the-powerline-crossing-upstre",
+              "1:nitinat-river:between-fishing-boundary-signs-loc"
             ]
           }
         ],
