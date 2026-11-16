@@ -264,6 +264,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T775 | Review app, rest-of places after T761: preview says "the build refuses it" (it does not), checklist empty until a preview, listed places not on the map, skipped listed places not named on the card | OPEN | — | T761 lane report and sweep, 2026-11-15 night |
 | T776 | Marks audit tool: last-row lookup reads a side line for 32 cut ids; section F does not model the build's channels; `dfo.cannot_edit_words` wording for a downstream watershed extent | OPEN | — | marks audit and second look, 2026-11-15 night |
 | T777 | The test-anchors scanner misses tests that read live curated state through app code (five tests went red on the owner's saves) | OPEN | — | full CI tier red on chat 13's head, 2026-11-15 night |
+| T778 | A river side channel that enters the bounding lake on its own "straddles the cut" and stops the reach run (Middle Shuswap places at Mabel Lake, piece `355998688:691`); blocks tonight's release | IN PROGRESS (left (Claude): fix lane, binding diff, then the build) | — | `pipeline build` 2026-11-15 23:26, reach run refused (T632 gate) |
 
 ## Next after closed testing
 
