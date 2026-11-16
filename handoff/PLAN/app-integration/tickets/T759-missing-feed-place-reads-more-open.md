@@ -40,3 +40,7 @@ app say "not known, check the DFO notice" for that stretch (recommended) or foll
 
 ## Who
 Python feed: main chat. Worker and app: the iOS chat (with T757/T758). Not part of Play build 33.
+
+## Owner, 2026-11-16 ~16:55 (app chat dialog, verbatim label)
+The wider stripe (picture `stripe-before-after.jpg`, sent 12:27, again 16:55): "Wider is right (Recommended)". The
+wider stripe ships as built on this branch.
