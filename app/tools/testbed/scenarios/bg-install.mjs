@@ -7,6 +7,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { appUp } from './common.mjs';
 import { stallWatch, thrownAway } from '../lib/download-watch.mjs';
+import { lineProbe } from '../lib/line-probe.mjs';
 
 const SAYING = /…$|… of data$/;
 
@@ -145,6 +146,9 @@ export const bgInstall = {
         const dmAll = d.adb(['logcat', '-d', '-s', 'DownloadManager:*']).toString().split('\n').filter((l) => /DownloadManager:/.test(l));
         fs.writeFileSync(path.join(ctx.dir, name), [`app killed ${killedAt}`, '=== the app (ReactNativeJS)', ...all, '=== the system downloader', ...dmAll].join('\n') + '\n');
       } catch { /* no log */ } };
+      // (T760) a line probe taken at the moment of a stalled or unfinished step: Mac and emulator, raw text beside the logs,
+      // and its one-line verdict in the failure text
+      const probeLine = (name) => { try { const p = lineProbe(d); fs.writeFileSync(path.join(ctx.dir, name), p.raw + '\n'); return ` Line probe: ${p.verdict}.`; } catch (e) { return ` Line probe failed: ${e.message}.`; } };
       const saidLost = () => (lost().length ? ` The app also queued ${lost().length} download(s) again from zero: ${lost().map((x) => `${x.url.split('/').pop()} (${x.was}, ${Math.round(x.bytes / 1e6)} of ${Math.round(x.total / 1e6)} MB: ${x.why})`).join(' ; ')}` : '');
       let setupShot = false, n = 0, line = '';
       for (;;) {
@@ -162,13 +166,13 @@ export const bgInstall = {
         const moving = !full && !w.some((x) => /^Setting up/.test(x));
         const still = watch.see(moving ? (dl ?? 'no byte line') : `setup ${Date.now()}`);
         if (moving && watch.stalled()) {
-          readJs(); shot('5-stalled'); keepLogs('T756-stalled-logs.txt');
+          readJs(); shot('5-stalled'); keepLogs('T756-stalled-logs.txt'); const probed = probeLine('T760-line-probe.txt');
           const last = [...jsLines].filter((l) => /\[download\]/.test(l)).slice(-2).map((l) => l.replace(/^.*ReactNativeJS: /, '')).join(' ; ');
-          throw new Error(`the download stopped moving: for ${Math.round(still / 1000)} s the setup screen has ${dl ? `read "${dl}"` : `shown no byte line at all (it reads: ${w.slice(0, 4).join(' | ')})`} (${Math.round((Date.now() - t0) / 1000)} s after the app was reopened). The app's last download lines: ${last || 'none'}.${saidLost()}`);
+          throw new Error(`the download stopped moving: for ${Math.round(still / 1000)} s the setup screen has ${dl ? `read "${dl}"` : `shown no byte line at all (it reads: ${w.slice(0, 4).join(' | ')})`} (${Math.round((Date.now() - t0) / 1000)} s after the app was reopened). The app's last download lines: ${last || 'none'}.${saidLost()}${probed}`);
         }
         if (Date.now() - t0 > CAP) {
-          readJs(); shot('5-not-finished'); keepLogs('T756-not-finished-logs.txt');
-          throw new Error(`setup not finished ${CAP / 60_000} min after the app was reopened, though it kept moving: the setup screen reads "${line}"; the app's log has ${[...jsLines].filter((l) => /\[download\]/.test(l)).length} download lines.${saidLost()}`);
+          readJs(); shot('5-not-finished'); keepLogs('T756-not-finished-logs.txt'); const probed = probeLine('T760-line-probe.txt');
+          throw new Error(`setup not finished ${CAP / 60_000} min after the app was reopened, though it kept moving: the setup screen reads "${line}"; the app's log has ${[...jsLines].filter((l) => /\[download\]/.test(l)).length} download lines.${saidLost()}${probed}`);
         }
         if (!alive()) d.launch();
         await d.sleep(2000);   // poll interval
