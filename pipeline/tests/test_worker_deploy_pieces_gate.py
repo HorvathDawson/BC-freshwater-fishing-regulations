@@ -156,6 +156,11 @@ def test_the_upload_mode_is_unchanged(tmp_path, monkeypatch):
 
 
 def _shape(entry: Path) -> subprocess.CompletedProcess:
+    # The reader bundles the module with the APP's esbuild (app/node_modules). Pipeline CI installs no app packages, so
+    # there these cases are SKIPPED, said by name (test_dfo_suggest.py's pattern) -- never run against a missing bundler,
+    # where the error cases would pass for the wrong reason. A deploy without it still refuses (worker-shape.mjs exits 1).
+    if not (ROOT / "app/node_modules/esbuild/package.json").exists():
+        pytest.skip("the app's esbuild is not installed (app/node_modules): the worker-shape reader cannot run here")
     node = shutil.which("node")
     assert node, "node is needed to read the worker's DFO_SHAPE (deploy/lib/worker-shape.mjs)"
     env = {"PATH": os.path.dirname(node), "HOME": str(entry.parent)}           # built per case, never the caller's

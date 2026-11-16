@@ -3,7 +3,7 @@
 Read with `NEXT-SESSION-after-chat13.md` (the order of work) and OWNER-TODO.md from "2026-11-15 night" to the end (the
 owner's words tonight, verbatim). The owner is asleep or about to be; the overnight plan was told to him.
 
-## READ THIS FIRST: handover at 15:10 on 2026-11-16 (the main chat continues on Opus)
+## READ THIS FIRST: handover at 15:10 on 2026-11-16 (the main chat continues on Opus; it moved to session -8c at 16:07)
 
 The owner, 15:08: "this chat will have to change to opus soon. out of fable credits could you make sure we are ready
 for when that happens?" This section is the whole current state, written so the main chat can carry on from it alone.
@@ -51,66 +51,57 @@ the file: "Answers by batch", "Re-check of saves", and the dated lines after the
     globs and `====` in zsh. Use absolute paths (a `cd` sticks). RULINGS is `pipeline/docs/RULINGS.md`.
 13. His name, email and the project name never go into requests to outside services. No reading `.env`.
 
-### C. Workers running now, and what to do when each hands back
-**UPDATE 15:21 (this block replaces items 1 to 3 below; item 4 still stands):**
-- The salmon lane handed back: head 91cf5e8fc (three limits raised, RULINGS O8); all 71 rows (71, split by the DFO
-  place that answered) close only the book's water on the book's days: 0 rows close more. Its files:
-  `<scratch>/t796/` (`book-closures-list.md`, `book-closures-raw.json`, `sections/row-NN.json`,
-  `nass-consequence.md`). The owner on the Nass row (15:19): "and yes the closure wins here." and "we need to make
-  sure it says where the closure is from though" (pass condition on T796; told to the app chat). The lane is NOT
-  merged: the app chat's twins (`app/salmon-twins-1116` @ 356dce001 + pack regenerated 0b50166d7) still need their
-  benches, the before / after map pictures and the owner seeing them; it will say "ready to land". Then section D.
-- A SONNET worker (`a584efcd7800efbc8`) is building the closures review page in `<scratch>/book-closures-page/`
-  (`index.html`, `img/row-NN.jpg`, three screenshots). When it hands back: look at the screenshots, load the
-  artifact-design skill, publish as a NEW artifact (`file_path` the index.html, `files` + `root` for `img/`), give him
-  the link, add it to OWNER-TODO and the Owner To-Do page.
-- Trout: the fourth attack is back and saved in the design review file ("yes, with conditions"). The owner picked
-  (15:16) the round 8 look with NO outline, today's rule in bigger text with the coming change smaller underneath,
-  row spacing between rounds 8 and 9. The designer (`ae176f25b522ddc16`) is building round 11 with that and the
-  attack's two word faults (closure scope on the Fraser; the strip's date at Andi Creek); it writes
-  `<scratch>/trout-display/trout-display.html` in place. When it hands back: publish that path to the trout page's
-  url, send him `shots/r11/skeena-before-after.png`, and ask round 9's three open questions with the reviewer's
-  advice (card line only when the whole water closes; looser-only changes undated but skipped past; Adams 80 cm on
-  the row: yes).
-- An OPUS worker (`aa228bfcc495d8a50`) is writing the build spec the owner asked for at 15:18 ("spec out what would
-  be involved in transitioning the trout portion of the app to the new table format … clean from pythion up to
-  front end"): ONE new file `handoff/PLAN/design/trout-table-build-spec-2026-11-16.md`, uncommitted. When it hands
-  back: commit that file by path, give him its one-page owner section in chat (plain words) with its questions as a
-  dialog; file tickets only after he says go (next free number T809; T808 is the app chat's).
-- The app chat asked (15:15) that docs pushes be batched so app-ci can finish a run: commit locally, push at most
-  every 20 minutes or with a real landing, and not while it says a run is in flight. It landed T797 at 15:16
-  (e3bd2be3e): `git fetch` + `git merge origin/redesign/stream-sections` before the next push (never stash).
+### C. Where everything stands at 16:10 on 2026-11-16 (ONE block; rewritten whole each time, trust only this)
+The main chat is now session `bc-freshwater-fishing-regulations-8c` (Opus), since 16:07. The old main chat
+(`bc-freshwater-fishing-regulations-17`, Fable) has stopped; it only forwards its three workers' reports, which also land as
+files in `<scratch>/handbacks/` (`T805-trout-data-gaps.md`, `T809-answers-diff.md`, `T796-map-closed-fix.md`). This session
+cannot SendMessage those workers; a follow-up goes through -17 or a fresh Opus worker. The app chat knows the new address.
 
-1. **Salmon lane** (Opus, id `a2becf9b4bea93daf`; branch `lane/salmon-rules-1116` in
-   `.claude/worktrees/agent-a2becf9b4bea93daf`; head 91cf5e8fc at 15:09 = the three limits raised). Still owed by it:
-   proof for each of the 70 book closures that it covers only the water and the days the book closes;
-   `<scratch>/t796/nass-consequence.md`; `<scratch>/t796/book-closures-raw.json` made regular (full section ids).
-   When it hands back:
-   a. Tell the app chat the new head commit and the limits (salmon-6 460,000; first_tap 4,400,000; first_tap_low
-      3,600,000). It builds its worker twins on `app/salmon-twins-1116` FROM this branch: never rebase the lane.
-   b. Tell the owner, plain words, BEFORE the fix ships: the per-row result (any row that closes more water or more
-      days than the book is a stop) and the real consequence of "Nass watershed side streams: coho Jan 1 to Jun 15".
-   c. Spawn a SONNET worker to build ONE page of all 70 closures, easy to read, a map per closure (data: the raw
-      json; map drawing tool to reuse: `<scratch>/recheck-pics/tool/`; work folder `<scratch>/book-closures-page/`;
-      images as supporting files, not inline). Publish it as a NEW artifact (load the artifact-design skill first)
-      and give him the link. The app chat adds before / after app pictures of three examples.
-2. **Trout attacker** (Opus, id `a402ba0a063c3ee4e`, read-only, on round 9's words). When it hands back: append its
-   report to `handoff/PLAN/design/trout-adversarial-review-2026-11-16.md`; send its word findings to the round 10
-   designer by SendMessage (same worker, round 11), not to a fresh one.
-3. **Trout round 10 designer** (Opus, id `ae176f25b522ddc16`). Builds `<scratch>/trout-display/trout-display.r10.html`
-   and `shots/r10/`. When it hands back: copy that file over `<scratch>/trout-display/trout-display.html`, publish
-   with the Artifact tool using that same path and `url` https://claude.ai/artifact/EopBgDtf8eu4LGZpYixSkH, send him
-   `shots/r10/skeena-three.png`, and ask in one dialog: which look (old look with the outline / old look without /
-   round 9), plus round 9's three open questions (one closure line above the table when every fish closes the same
-   day; a limit that only gets looser stays undated; Adams River shows the stricter 80 cm on the row with the
-   one-day rule in the sheet). Trout is MOCKUPS ONLY and never holds a fix or a release.
-4. **Picture answers saver** (Opus, id `aa310335a7fa07266`, in the MAIN checkout, makes no commits): saves each of his
-   34 picture answers through the review app's save path with his words; Kitimat outfall strip (mark 2786) takes side
-   streams. When it hands back: confirm `git diff` of marks.jsonl has no removed lines; commit
-   `data/curated/review/marks.jsonl` and the changed `data/curated/dfo_salmon/places/region-*.json` by explicit
-   path; run the tier (rule 7) before pushing; note it on T806.
-If a worker id no longer answers after the model change, do not guess its result: read its hand-back in the task
-notification, or start a fresh Opus worker with the brief rebuilt from this section.
+**1. Push state.** 7 local doc-only commits wait (notes, tickets, this page). Held while the app chat's CI runs on
+cefa78170 (app 43974821875, pipeline 43974821996) are in flight; it says when they finish. Then push; afterwards batch
+docs pushes (at most every 20 minutes, never while it says a run is in flight). A commit SUBJECT must not contain a
+ruling id like "T2".
+
+**2. Workers (all Opus, owned by session -17).**
+- T805 trout data gaps (`a26597e78169ffe90`, branch `lane/t805-trout-data-gaps`): part C done (0f6fe2868) and HAS HIS GO
+  (16:09, OWNER-TODO). Parts B and D still running. WHEN BACK: give him B's and D's lists, a go each; then land the
+  parts with a go TOGETHER (one mini-release re-cut), full tier, push; tell the app chat which generated files to refresh.
+- T809 changed-answers tool: LANDED locally (merge dac013480 + gate fix 42d0b6ecc; the first tier caught two pins);
+  push after the full tier AND the app chat's "push". Cross-atlas run still owed (ticket).
+- Read-only worker on the candidate's four extra differences: DONE, all intended, candidate right, nothing wrong.
+  Findings + the owner's plain sentences: `/private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/b8ddfca9-44eb-400e-a9bf-bd89b4b0f359/scratchpad/handbacks/T796-candidate-extra-diffs.md`
+  (use them in the changed-answers summary at the salmon landing).
+- Salmon lane worker (`a2becf9b4bea93daf`): DONE 16:1x. The payload is right (Skeena reserve chain 858, m = one closed run;
+  0 m-vs-sp misses over all 71 rows); the map fault is APP-SIDE; no candidate-release-2; the candidate stays
+  `<scratch>/t796/candidate-release/r-685b700b2802`. Relayed to the app chat at 16:10. Optional later: its scratch
+  `harness/mcheck.py` as a permanent m-vs-sp release check (would be a pipeline change; not asked).
+- Finished, resume only on need (via -17): trout designer `ae176f25b522ddc16`, closures page builder `a584efcd7800efbc8`
+  (Sonnet), spec writer `aa228bfcc495d8a50`.
+
+**3. Salmon fixes (T796 and the rest of `lane/salmon-rules-1116`, head 91cf5e8fc): built, NOT merged.** Waiting on the
+app chat: fix its map fault (single-run chain or a stale section-to-chain lookup), its own compact-card fix (book line
+and page on "Salmon closed"), retake the before / after pictures, "ready to land". Then show him the three pictures
+(not before the Skeena map one is right), then section D. His decisions stand: all 71 book closures (Nass side
+streams included, "the closure wins here"), the card says where the closure is from, three limits raised. Review page:
+https://claude.ai/artifact/2eGEuMG9cLe3SS69j63aTd (v3). Small open point at landing: who writes "(all year)".
+
+**4. Saves (T806): done (30 saves, marks 2795 to 2824).** Left for him: Deadman 2748 (why 495 m; show him), Morice
+Forks-to-Bymac 2738 (needs his plain "right"), Morice Gosnell-to-Lamprey 2739, Sheldens 2783, Babine 2784, Dean 2793,
+Thompson 2521, Morice 2596, Atnarko 2584, and NEW T811: re-tick Squamish "downstream of the powerline crossing" (marks
+2511). Cause found: commit 7102afb9b added the Powerhouse Channel to the shared Squamish water record; the channel is
+up by Ashlu Creek, above the powerline, so that place's drawing does not change; only its fingerprint moved.
+
+**5. Trout.** Design settled at round 15 (list at the end of T810; spec
+`handoff/PLAN/design/trout-table-build-spec-2026-11-16.md`). Only steps 1 and 2 (T805, T809) have his go. Before steps
+3 to 7: resume the spec writer to fold in his answers of 15:36, 15:42, 15:47 and the hatchery-only rule of 15:48.
+
+**6. The app chat (`bc-freshwater-fishing-regulations-9c`).** On the Skeena map fault and its compact card; T808 (web
+reads salmon files after first paint). My next free ticket number is T812.
+
+**7. Owed to him, in this order.** (a) Nothing on trout design. (b) T805 parts B and D lists, a go each (C has its go).
+(c) The app chat's before / after closure pictures, then the salmon landing. (d) T807's changed answers before it
+ships. (e) T804's universal rule + list. (f) The follow-up saves in 4 (now with T811). Then section E's queue to ONE
+staging release.
 
 ### D. Landing the salmon lane (the next real step; vectors move, so it lands WITH the app chat's twins)
 1. Agree the moment with the app chat ("the salmon lane lands now; your twins follow in the same push window").

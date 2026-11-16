@@ -26,3 +26,9 @@ open behind this: he chose to review now rather than answer it.
 Pictures per place (map, ends labelled, DFO's words, rule, side streams on / off) are drawn into the scratch folder
 `recheck-pics/`; sent to him in batches, most urgent first; each answer is saved through the review app as a new
 save carrying his words (never by editing `data/curated/review/marks.jsonl`).
+
+## 2026-11-16 16:18: Deadman (mark 2748) closed
+Why "495 m": the re-check drawing tool used the new cut's base measure (the bridge, 117,608) instead of the landed cut
+(116,608, 1,000 m below) and snapped to the gauge 08LF033 section edge (117,094). The build binds the landed cut
+(`closures._piece_location` via `landed_cut`). Redrawn: 999 m below the bridge, 3.6 km closed. Owner: "Right
+(Recommended)". Nothing changes.
