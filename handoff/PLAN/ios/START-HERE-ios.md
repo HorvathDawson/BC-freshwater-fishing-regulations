@@ -136,12 +136,15 @@ Sessions on the reworked bench (logs `S/m3b-bg1.log` to `m3b-bg3.log` = before a
 with a74ea4aa0 the steps "Wi-Fi back: the download starts by itself" and "app CLOSED mid-download: the system
 download goes on, in the notification bar" now PASS (the app is closed at 45 of 479 MB, the shade shows "2 files
 downloading"). The NEXT step still FAILS: "a tap on the download notification opens the app: a tap on the notification
-did not bring the app to the front in 10 s (its process is not running)". NOT YET KNOWN whether that is the bench (the
-tap by position misses, or 10 s is too short for a cold start) or the app (the system downloader's own grouped
-notification, "2 files downloading", may not open a dead app; the app's own "Downloading BC fishing rules"
-notification is gone once its process is killed). Last night's six R8 benches passed this step on a slower line, so
-compare with that run's screenshots (T749 ticket, last section) before calling it an app fault. If it is the app's,
-it is a finding for T756 / T760 and the owner hears it before merge 3 lands.
+did not bring the app to the front in 10 s (its process is not running)". MY READING OF THAT RUN'S SCREENSHOTS
+(`S/t760-merge-wt/app/tools/testbed/out/runs/2026-11-16T19-58-54/`, 004 and 005): at the "closed" step the shade
+shows the system downloader's row "2 files downloading"; one minute-tick later, at the tap step, that row is GONE and
+the shade is still open. The log agrees: app killed 12:01:49 (emulator clock), the last two downloads finished
+12:01:54 and 12:01:56. So the tap came after the row had vanished: still the bench's race (479 MB arrive in about
+30 s on this line), NOT evidence of an app fault. What would settle it: a tap within a second or two of the kill, or
+a really slower line (emulator speed shaping does not reach its Wi-Fi; a rate-limited local proxy in front of
+staging's files, or a bigger test file, would). Last night's six R8 benches passed this step on a slower line (T749
+ticket, last section).
 One more session: `cd S/t760-merge-wt && HEAVY_LOCK=$HOME/.claude/heavy-job-2.lock CANIFISHTHIS_R8=1 <main>/scripts/heavy.sh m3-bg 30 -- bash -c "cd S/t760-merge-wt && bash app/tools/testbed/session.sh --crash-stub --max-min 40 --allow-stale 'bench files only changed since the APK was built' -- node app/tools/testbed/run.mjs --no-r2 bg-install > <log> 2>&1"`
 (If the lane's own final report arrived before the old chat closed, it is appended under this block.)
 
