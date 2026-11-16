@@ -1,6 +1,6 @@
 # T800 — A weekend-only closure reads wrongly from Monday to Friday: the "at certain times" line is cut at the first bracket (Skeena Section 4 zones say no "who" or name no zone; Stellako, Suskwa)
 
-Status: OPEN (app core, the app chat's: `app/packages/core/src/regs/caveats.ts` about line 256).
+Status: OPEN (taken by the app chat 2026-11-16, not started; app core: `app/packages/core/src/regs/caveats.ts` about line 256).
 
 Source: the Skeena Section 4 licence check of 2026-11-16 on release r-46e4355a7277 (owner: "we should handle the weekend
 zones properly too. Make sure licensing info is done properly there").
