@@ -63,3 +63,23 @@ id vanishes and a new, unbound `#closed:` id appears in the feed. So `app/t757-p
 known: today's DFO check does not include this closed area…") is NOT merged; work item 3 above and the second
 acceptance line are superseded by T759. Asked of the Android chat for its rewrite: the feed's per-river `issues` must
 carry an unbound closed-area wording with its text and water. Work items 1 and 2 (worker) stand.
+
+## Ruling 2026-11-15 20:18 (Android chat, after the owner's T759 decision): what replaces the app half
+The upload gate checks the worker only at upload time; a worker can go backwards later (a rollback, a staging release
+that puts an older worker back). Then every bound piece would fall through and closed areas would read open, silently.
+That is a technical failure, not DFO removing words, and it gets a guard that needs no new status:
+5. **Feed shape in the feed itself.** `feeds/dfo/index.json` carries `"dfo": {"pieces": 1}` at top level (the value
+   `/status.json` serves; the Python writes it too, on the Android chat's T759 branch). Worker: write it; the vectors
+   hold worker == Python.
+6. **App (replaces item 3 and branch `app/t757-piece-not-known`'s guard):** a release that binds at least one piece
+   (`p[..].piece === 1 && bound === 1`), read with a feed whose index does not carry `dfo.pieces >= 1`, does not use
+   the live feed for salmon at all: it shows the release's own calendar (the offline reading, which has the closed
+   areas closed), says so the way a stale feed is said today, and reports once (`reportFailure`). Written as a named
+   MINIMUM FEED SHAPE the release requires, so the next feed-shape change reuses it. A single piece missing from a
+   feed that does carry the shape falls through, as the owner ruled (DFO removed the words); a reworded closed area is
+   T759's `closed_area_unbound` issue.
+7. **Deploy refusals:** the staging worker deploy (`deploy/staging/feeds.sh`, and whatever the site deploy uses to
+   put a worker back) refuses a worker whose code does not serve `dfo.pieces >= 1` while the live release binds a
+   piece; the same check in the production deploy script, as a refusal with words (edited by an agent, never run by
+   one; on the owner's code-review list).
+Merge timing unchanged: after build 33.
