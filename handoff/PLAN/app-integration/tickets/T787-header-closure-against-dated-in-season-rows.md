@@ -15,3 +15,6 @@ together, inside the opening's dates. No effect until next Aug 22.
 ## What to build (after the owner's answer)
 Recommended: a dated table row that carries a fishery notice answers on its own dates; the header closure answers
 every other day and fish. Python and the worker's reading change together (parity vectors).
+
+## Owner, 2026-11-16 (question dialog; verbatim in `handoff/PLAN/OWNER-TODO.md`, "Answers by batch")
+Question 15, typed: "can we look at when the rules got added to see if they are stale? what came first header or rules?" Found: DFO keeps both in the page and switches each season (off-season the table of openings is inside an HTML comment; FN0851 and FN0846 are from 2025-08-20); our parser reads the hidden table (Regions 7, 5A, one row in Region 4). Then, typed: "we should keep reading them for provenance but mark them hidden somehow so they are ignoired". BUILD: `pipeline/regs/dfo_salmon/parse.py` and the worker's `app/workers/feeds/src/dfo/parse.ts` keep a row from a commented-out table with a `hidden` mark; a hidden row answers nothing (deliver, feed, vectors); his "header wins" ruling stays as the net.

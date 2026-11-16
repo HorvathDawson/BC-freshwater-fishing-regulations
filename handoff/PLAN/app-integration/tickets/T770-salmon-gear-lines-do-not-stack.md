@@ -19,3 +19,6 @@ all-year hook rule does not. Both hold on the water.
 
 ## Owner question (on the morning list)
 Should a river-wide gear rule keep showing on a stretch that has its own gear rule that day? Recommended: yes.
+
+## Owner, 2026-11-16 (question dialog; verbatim in `handoff/PLAN/OWNER-TODO.md`, "Answers by batch")
+Question 13: "Show both (Recommended)". Build it; the diff of every card's gear lines is his review list. The eulachon line (Region 6-wide reminder) must never be displaced by a bait rule.
