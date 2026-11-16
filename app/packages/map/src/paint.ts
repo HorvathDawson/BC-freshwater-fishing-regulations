@@ -286,6 +286,44 @@ export function closedCuePaint(mode: string, tokens: Tokens, values: ChannelValu
     "line-opacity": shown === null ? 0 : ["case", shown, 1, 0],
   };
 }
+/**
+ * (T759, owner 2026-11-15: "I like the stripe option best for the ones with banners ... the stripes should only be on the
+ * salmon view") THE ISSUE STRIPE: dashes down the middle of a stream whose water has a DFO salmon rule the feed could not
+ * place (the rows that carry the river page's banner). The line keeps the colour it would have anyway; the stripe is an
+ * extra pair of layers over it, ONLY while the stream's mode is `salmon` (the view the banner belongs to) and ONLY on
+ * the sections the engine's `issue` channel labelled (feature-state `gi`) — never a second test of a rule.
+ *
+ * Two layers, one dash: the casing (the paper's colour, `color.issue.casing`) and the ink (`color.issue.stripe`) on it.
+ * The closed colour was tried for the dashes and fails (it is the closed line's own colour: ratio 1.00); and any one ink
+ * loses on one of the five lines a Salmon stream can wear. Dark ink on a paper dash leaves every line, and every ground
+ * under it, a contrast of its own (tools/issue-stripe.test.ts). It fades in with zoom as the gear marks do (`GEAR_RAMPS`),
+ * so a whole province is not speckled.
+ */
+export const ISSUE_LAYERS = { casing: "stream-issue-casing", stripe: "stream-issue-stripe" } as const;
+/** the stripe's ink and its casing, as a share of the stream line's own width */
+export const ISSUE_INK_SHARE = 0.4;
+export const ISSUE_CASING_SHARE = 0.85;
+/** the mode the stripe is drawn in: the Salmon view's */
+export const ISSUE_MODE = "salmon";
+
+/** Where the stripe is shown on a stream in `mode`, as a boolean expression; null: nowhere (any other view). */
+export function issueShown(mode: string): unknown | null {
+  return mode === ISSUE_MODE ? ["==", ["coalesce", ["feature-state", "gi"], ""], "1"] : null;
+}
+
+export function issuePaint(part: keyof typeof ISSUE_LAYERS, mode: string, tokens: Tokens, streamWidth?: unknown): Record<string, unknown> {
+  const w = streamWidth ?? ["interpolate", ["linear"], ["zoom"], 6, 1.2, 10, 2, 14, 3.2];
+  const shown = issueShown(mode);
+  const share = part === "casing" ? ISSUE_CASING_SHARE : ISSUE_INK_SHARE;
+  return {
+    "line-color": tokens[part === "casing" ? "color.issue.casing" : "color.issue.stripe"],
+    "line-width": withinZoomCurve(w, (v) => ["*", v, share]),
+    "line-dasharray": tokens["dash.issue.stripe"],
+    "line-opacity": shown === null ? 0
+      : ["interpolate", ["linear"], ["zoom"], ...GEAR_RAMPS[GEAR_RAMP].opacity.flatMap(([z, o]) => [z, ["case", shown, o, 0]])],
+  };
+}
+
 /** The MapLibre paint property that carries colour, per layer type. */
 // Module-private: an implementation detail of `paintFor`.
 function colourPropFor(type: string | undefined): string {

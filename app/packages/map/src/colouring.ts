@@ -72,7 +72,7 @@ export interface LakeFeed {
 }
 
 /** The colourings that label sections: one per question a release's data answers on the map. */
-export type Channel = "status" | "standing" | "stocked" | "survey" | "salmon" | "method" | "runs";
+export type Channel = "status" | "standing" | "stocked" | "survey" | "salmon" | "method" | "runs" | "issue";
 
 /**
  * (T211) THE SALMON COLOURING as the map is told it — ONLY on a proven pair: the release's DFO salmon (each section's
@@ -113,6 +113,24 @@ export function methodInput(s: MethodFeed): ChannelInput {
     labels: { key: "gm", of: f, label: (id) => methodLabel(f, id) },
     valuesKey: readingDayOf(s.day),
     values: () => methodDayProfiles(f, s.day),
+  };
+}
+
+/**
+ * (T759) THE ISSUE STRIPE as the map is told it: the sections of every water with a shown DFO issue (a rule the feed could
+ * not place; the river page's banner). Labels only (feature-state `gi`, "1"); the style (`paint.ts` `issuePaint`) draws it
+ * in the Salmon view alone and reads no values.
+ */
+export interface IssueFeed {
+  readonly sections: ReadonlySet<number>;
+}
+
+/** The issue channel: "1" in feature-state `gi` on every section of an issue water; nothing elsewhere. */
+export function issueInput(s: IssueFeed): ChannelInput {
+  return {
+    labels: { key: "gi", of: s.sections, label: (id) => (s.sections.has(id) ? "1" : undefined) },
+    valuesKey: "issue",
+    values: () => null,
   };
 }
 
@@ -398,7 +416,7 @@ export class Colouring {
  * Pushed through `data` they would be a second pathway beside the engine (owner 2026-10-21: "it should be a single
  * pathway"): both maps refuse them, and report it (tools/one-colouring-engine.test.ts).
  */
-export const ENGINE_KEYS: readonly string[] = ["p", "standing", "status", "stocked", "survey", "sp", "salmon", "gm", "rt"];
+export const ENGINE_KEYS: readonly string[] = ["p", "standing", "status", "stocked", "survey", "sp", "salmon", "gm", "rt", "gi"];
 
 type Pushed = Record<string, Record<string, Record<string, unknown>>>;
 

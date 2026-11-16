@@ -95,7 +95,7 @@ export function salmonIssueBanners(P: IssueFacts, item: string | null, undrawn: 
 export const issueLines = (b: SalmonIssueVM): string[] => [b.lead, b.area, ...b.rows, b.close];
 
 /**
- * (T759, for the map's "issue" line look — not drawn yet) THE REGISTRY ITEMS WITH A SHOWN ISSUE: every item of a water
+ * (T759) THE REGISTRY ITEMS WITH A SHOWN ISSUE (the map's issue stripe: `colouring.ts` `issueInput`): every item of a water
  * with an issue a stretch would show. An `undrawn` issue counts unless ANY chain of the release lists its place as not
  * drawn (the map has no page's chains to ask).
  */

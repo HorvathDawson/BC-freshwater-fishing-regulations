@@ -20,7 +20,7 @@ import { ATLAS_MAX_ZOOM, BASEMAP_MAX_ZOOM, GEAR_LEGEND } from "@app/core";
 import { MAP_STYLE, NO_VALUES, STYLE_META, defaultView, resolveTheme, withFollowers, type Tokens } from "./style";
 import { NO_ASSETS, type TileEndpoints } from "./endpoints";
 import { gaugeLayers, gaugeSource } from "./gaugeDots";
-import { CLOSED_CUE_LAYER, closedCuePaint, casingPaint, copyFillPaint, copyLinePaint, GEAR_LAYERS, gearPaint, NOACCESS_LAYER, noaccessPaint, nobaselineOpacity, paintFor, ringPaint, RUNS_PASS_LAYER, runsPassPaint, SELECTION_CASING, SELECTION_RINGS } from "./paint";
+import { ISSUE_LAYERS, issuePaint, CLOSED_CUE_LAYER, closedCuePaint, casingPaint, copyFillPaint, copyLinePaint, GEAR_LAYERS, gearPaint, NOACCESS_LAYER, noaccessPaint, nobaselineOpacity, paintFor, ringPaint, RUNS_PASS_LAYER, runsPassPaint, SELECTION_CASING, SELECTION_RINGS } from "./paint";
 import { traceLayers, traceSources } from "./trace-overlay";
 import { COPY_CASING, COPY_FILL, COPY_LINE, COPY_SOURCE, EMPTY_COPY, copyFilter } from "./water-copy";
 import { BASEMAP_LABELS, basemapLabelPaint, placesByImportance, WATER_NAMES } from "./labels";
@@ -302,7 +302,17 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
       layout: { "line-cap": "butt" as const, "line-join": "round" as const },
       paint: closedCuePaint(mode ?? "plain", resolveTheme(theme), NO_VALUES,
                             (painted as { paint?: Record<string, unknown> }).paint?.["line-width"]),
-    }];
+    },
+    /*
+     * (T759) THE ISSUE STRIPE (`issuePaint`): dashes down a stream whose water has a DFO rule the feed could not place,
+     * over the line and over closed's own stripe, in the Salmon view only. Casing first, ink on it. Built with no
+     * section labelled and, outside Salmon, no opacity: the first frame draws none.
+     */
+    ...(["casing", "stripe"] as const).map((part) => ({
+      id: ISSUE_LAYERS[part], type: "line" as const, source: "atlas", "source-layer": "stream",
+      layout: { "line-cap": "butt" as const, "line-join": "round" as const },
+      paint: issuePaint(part, mode ?? "plain", resolveTheme(theme), (painted as { paint?: Record<string, unknown> }).paint?.["line-width"]),
+    }))];
   }) as { id: string; type?: string }[];
 
   return {

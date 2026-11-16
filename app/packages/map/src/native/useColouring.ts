@@ -16,7 +16,7 @@
  */
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { DeviceEventEmitter } from "react-native";
-import { Colouring, LABEL_SOURCE_LAYERS, methodInput, runsInput, runsKeyOf, salmonInput, standingInput, statusInput, stockedInput, surveyInput,
+import { Colouring, LABEL_SOURCE_LAYERS, issueInput, methodInput, runsInput, runsKeyOf, salmonInput, standingInput, statusInput, stockedInput, surveyInput,
          type Channel, type ChannelInput, type LabelTarget, type TileRenderer } from "../colouring";
 import type { MapAdapter } from "../adapters/contract";
 import type { MapProps } from "../map-props";
@@ -35,7 +35,7 @@ export interface AtlasSource {
   nativeTag(): number;
 }
 
-type Channels = Pick<MapProps, "status" | "standing" | "lakes" | "salmon" | "method" | "runs">;
+type Channels = Pick<MapProps, "status" | "standing" | "lakes" | "salmon" | "method" | "issue" | "runs">;
 
 /**
  * (T369 D14) THE PHONE'S FEATURE-STATE QUEUE, per source-layer, in the order asked. A layer CLEARED is not sent as
@@ -272,7 +272,7 @@ export function useNativeColouring(o: {
    * old (or no) day profiles first and the values a render later — two style swaps, the first drawing the streams
    * without their colours (the flicker going to the Map tab).
    */
-  const { status, standing, lakes, salmon, method, runs } = o;
+  const { status, standing, lakes, salmon, method, issue, runs } = o;
   const statusDay = status ? readingDayOf(status.day) : 0;
   const statusIn = useMemo(() => (status ? statusInput(status) : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -294,6 +294,10 @@ export function useNativeColouring(o: {
   const methodIn = useMemo(() => (method ? methodInput(method) : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [method?.facts, methodDay, o.atlasUrl]);
+  // (T759) the issue stripe's labels: the sections of the waters with a shown DFO issue (the style draws them in Salmon only)
+  const issueIn = useMemo(() => (issue ? issueInput(issue) : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [issue?.sections, o.atlasUrl]);
   // (T199) the run timing: the state IS the label, a species or month change relabels
   const runsKey = runsKeyOf(runs);
   const runsIn = useMemo(() => (runs ? runsInput(runs) : null),
@@ -307,9 +311,11 @@ export function useNativeColouring(o: {
   useEffect(() => toChannel("stocked", stockedIn), [stockedIn]);     // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => toChannel("salmon", salmonIn), [salmonIn]);        // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => toChannel("method", methodIn), [methodIn]);        // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => toChannel("issue", issueIn), [issueIn]);          // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => toChannel("runs", runsIn), [runsIn]);              // eslint-disable-line react-hooks/exhaustive-deps
   /** What the engine's `setChannel` would write for each channel (`Colouring.set`: `input.values()`, or null). */
   const values = useMemo<ChannelValues>(() => ({
+    issue: null,   // (T759) the stripe is labels (`gi`) and a layer; the style reads no values
     status: (statusIn?.values() ?? null) as ChannelValues["status"],
     standing: (standingIn?.values() ?? null) as ChannelValues["standing"],
     survey: (surveyIn?.values() ?? null) as ChannelValues["survey"],

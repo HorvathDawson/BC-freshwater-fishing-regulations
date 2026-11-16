@@ -174,6 +174,12 @@
       2,
       1.5
     ],
+    "color.issue.stripe": "@color.gear.edge",
+    "color.issue.casing": "@color.outside",
+    "dash.issue.stripe": [
+      3,
+      2
+    ],
     "color.cue.closed": "@color.outside",
     "dash.cue.closed": [
       2,

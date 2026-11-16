@@ -3109,6 +3109,12 @@
         2,
         1.5
       ],
+      "color.issue.stripe": "#0A1116",
+      "color.issue.casing": "#F8F8F2",
+      "dash.issue.stripe": [
+        3,
+        2
+      ],
       "color.cue.closed": "#F8F8F2",
       "dash.cue.closed": [
         2,
@@ -3288,6 +3294,12 @@
         2,
         1.5
       ],
+      "color.issue.stripe": "#F4F8F5",
+      "color.issue.casing": "#0A0B0D",
+      "dash.issue.stripe": [
+        3,
+        2
+      ],
       "color.cue.closed": "#0A0B0D",
       "dash.cue.closed": [
         2,
@@ -3466,6 +3478,12 @@
       "dash.run.pass": [
         2,
         1.5
+      ],
+      "color.issue.stripe": "#0A1116",
+      "color.issue.casing": "#F8F8F2",
+      "dash.issue.stripe": [
+        3,
+        2
       ],
       "color.cue.closed": "#F8F8F2",
       "dash.cue.closed": [
@@ -4213,6 +4231,21 @@
       "type": "dash",
       "themeable": true,
       "$comment": "(T199) RUN TIMING (the Map tab's Run timing mode, owner 2026-10-28): the passing run's dash, in line widths: long dashes, so a thin line still reads as a broken one."
+    },
+    "color.issue.stripe": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T759, owner 2026-11-15: \"dash with closed color maybe? Or a better color what ever is best practice\") THE ISSUE STRIPE's ink: dashes down a stream whose water has a DFO salmon rule the feed could not place, Salmon view only. The closed colour was tried and fails (tools/issue-stripe.test.ts: it is the closed line's own colour, ratio 1.00); the gear ink (no hue, so it reads the same for every reader) rides on the casing below."
+    },
+    "color.issue.casing": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T759) the paper under the issue stripe's ink, so a dark line (closed, release, open) and a light one (check, no answer) both leave the dashes a ground of their own: the stripe is dark on paper, never ink on a line of its own darkness."
+    },
+    "dash.issue.stripe": {
+      "type": "dash",
+      "themeable": true,
+      "$comment": "(T759) the issue stripe's dashes, in the stripe's own widths: longer than the closed cue's ticks and the gear marks' edge dashes, so the three read apart."
     },
     "color.cue.closed": {
       "type": "color",
