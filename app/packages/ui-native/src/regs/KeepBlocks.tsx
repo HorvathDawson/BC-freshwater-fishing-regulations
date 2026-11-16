@@ -244,12 +244,16 @@ export interface GlanceFold { readonly key: string; readonly row: GlanceRowVM; r
 
 /**
  * (T759, owner 2026-11-15: "mark the folded row") THE FOLDED SALMON ROW'S MARK when its card holds a DFO issue banner: a small
- * square in the banner's own attention colour (the bar down the banner's edge), named by the banner's title, so the banner
+ * square badge in the banner's own attention colour (the bar down the banner's edge) with a "!", named by the banner's title, so the banner
  * is not missed while the card is folded. Square corners, no new words.
  */
 function IssueMark({ palette }: { palette: Palette }) {
-  return <View testID="glance-issue" accessible accessibilityRole="image" accessibilityLabel={SALMON_ISSUE_WORDS.title}
-               style={{ width: 10, height: 10, backgroundColor: palette.attention }} />;
+  return (
+    <View testID="glance-issue" accessible accessibilityRole="image" accessibilityLabel={SALMON_ISSUE_WORDS.title}
+          style={{ width: 18, height: 18, alignItems: "center", justifyContent: "center", backgroundColor: palette.attention }}>
+      <Text importantForAccessibility="no" style={[TYPE.metaBold, { color: palette.card, lineHeight: 16 }]}>!</Text>
+    </View>
+  );
 }
 
 /**

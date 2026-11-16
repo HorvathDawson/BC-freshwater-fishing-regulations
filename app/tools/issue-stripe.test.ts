@@ -83,3 +83,11 @@ describe("(T759) the stripe's ink on its paper, over every line, ground and read
     });
   }
 });
+
+describe("(T759) the folded Salmon row's mark: its \"!\" reads on the attention square", () => {
+  for (const { th, palette } of THEMES)
+    it(`${th}: the card's colour on the attention colour is ${4.5}:1 (text), and the square is 3:1 on the card`, () => {
+      expect(contrast(palette.card, palette.attention)).toBeGreaterThanOrEqual(4.5);
+      expect(contrast(palette.attention, palette.card)).toBeGreaterThanOrEqual(NON_TEXT);
+    });
+});
