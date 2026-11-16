@@ -1,6 +1,6 @@
 # T764 — App tests leave their temp folders behind (184 GB in three days; the disk filled on 2026-11-15)
 
-Status: IN PROGRESS (on the shared branch as e62331249 since 2026-11-15 23:54, `check:fast` clean; left (Claude): the whole app test suite with the run folder in place (the fast-fail before the Play build), clear the Maestro output after the benches).
+Status: IN PROGRESS (on the shared branch as e62331249 since 2026-11-15 23:54, `check:fast` clean; the whole app suite ran with it in the main chat's check at about 00:05 on 2026-11-16: 7,714 passed, as it reported; left (Claude): clear the Maestro output after the benches).
 
 Source: the main chat, 2026-11-15 23:50, after the Mac's disk filled at about 23:38 (1.3 GB free) and stopped a
 night's work for an hour. Area: the app chat (app tests and tools).
