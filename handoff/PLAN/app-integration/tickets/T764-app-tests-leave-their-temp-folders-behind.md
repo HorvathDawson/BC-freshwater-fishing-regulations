@@ -27,7 +27,16 @@ One mechanism for every app test, not thirty edits:
    A test pins that the workers really see the run's folder (a vitest upgrade that stops passing the variable on must
    fail, not leak again).
 2. `nodeOpener()` removes its folders when its process ends, for the node tools that open a release outside vitest.
-3. `cdp.mjs` `close()` removes the Chrome profile folder.
+(`cdp.mjs` `close()` already removes its Chrome profile folder; its 13 left-over folders are from runs that were
+killed, and under vitest they now lie in the run's folder.)
+
+## Built (branch `app-fix/t764-test-temp`), 2026-11-15 23:55
+- `app/tools/test-tmp.ts` + `test-tmp.test.ts` (3 tests), `globalSetup` in both vitest configs, `nodeOpener()` exit
+  clean-up.
+- Measured on this Mac: five test files that open the regs fixture (67 tests, both projects): loose `release-open-*`
+  folders 2,618 before and 2,618 after, `app-tests/` empty after. Two feeds worker test files (28 tests): `gauges-*`
+  871 before and after. A run killed with `kill -9` after 2.5 s left `app-tests/run-<pid>` (16 MB); the next run
+  removed it.
 
 ## Done when
 - A run of a test file that opens a release leaves no new folder in the system temp folder (counted before and after).

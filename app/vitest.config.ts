@@ -102,6 +102,8 @@ const extensions = [".web.tsx", ".web.ts", ".web.jsx", ".web.js",
 
 export default defineConfig({
   test: {
+    // (T764) the run's own temp folder, removed when the run ends: tests make temp folders and do not remove them
+    globalSetup: ["./tools/test-tmp.ts"],
     projects: [
       {
         // 30 s, not vitest's 5: the regs parity suites walk all 134 golden states over the live release in one test,

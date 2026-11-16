@@ -11,7 +11,7 @@
  * Lives in the drivers layer because it is a node:sqlite driver over files (layers.json); the temp folder comes from
  * $TMPDIR (node:os is not a driver import).
  */
-import { existsSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import type { Db, Row } from "../db";
@@ -79,9 +79,18 @@ export function miniReleaseDir(root: string = MINI_RELEASE_ROOT): string {
 /** The mini release as the app reads a release (`openReleaseDir`). */
 export const openMiniRelease = (tamper: ReleaseTamper = {}): ReleaseLoader => openReleaseDir(miniReleaseDir(), tamper);
 
-/** node:sqlite over a verified file: the bytes written to a temp file and opened read-only. */
+/** (T764) the temp folders this process's openers made; removed when the process ends */
+const opened: string[] = [];
+
+/**
+ * node:sqlite over a verified file: the bytes written to a temp file and opened read-only. (T764) The folder is removed
+ * when the process ends (a release is 15 MB and more, and three days of test runs once left 151 GB of these); a killed
+ * process leaves its folder, which under vitest lies in the run's own temp folder (`tools/test-tmp.ts`) and goes with it.
+ */
 export function nodeOpener(): Opener {
   const tmp = mkdtempSync(join(process.env.TMPDIR || "/tmp", "release-open-"));
+  if (opened.push(tmp) === 1)
+    process.once("exit", () => { for (const d of opened) rmSync(d, { recursive: true, force: true }); });
   return async (name, bytes) => {
     const p = join(tmp, `${name}.sqlite`);
     writeFileSync(p, await bytes());
