@@ -1112,3 +1112,18 @@ reopens Nov 1.
   neighbours)". CLOSED: it stays as drawn (its own waters, sharing none with the Blanchard place or the three creeks,
   so there is nothing to order). Not on the morning list. My reading for later sweeps: rest-of is only for a place
   that overlaps the stretches it lists; "all other" wording alone does not make one.
+
+- 2026-11-15 23:55, trout display ROUND 3 is on the same page (https://claude.ai/artifact/EopBgDtf8eu4LGZpYixSkH):
+  the folded row's answer for every case, five placements for the size on 20 waters, the shared answer box under
+  stress, nine more real waters with odd groupings (Kaslo, Kitimat, Williston Lake zones A and B, Ross Lake, Bella
+  Coola spring and summer, Tagish, Inkaneep). Still exploration; nothing in the app changes. Notes:
+  `handoff/PLAN/design/trout-display-review-2026-11-15.md`. Five questions for you (recommended answer first):
+  1. Size: a column that drops under the name when it does not fit (recommended), or always under the name?
+  2. May the trout table sort fish by their shared box, not the app's usual fish order? Recommended: yes.
+  3. Sizes in centimetres only on the row ("30 cm+"), inches behind the tap? Recommended: yes.
+  4. Hatchery and wild as two rows of one fish where their limits differ (Kitimat rainbow)? Recommended: yes, only there.
+  5. Store a top line for the 8 rule sets that have none ("Up to 5 today", "Up to 2 today, plus 2 bull trout")?
+     Recommended: yes.
+  Found on the way (to check, not design): the Kitimat's stored rows give wild rainbow a limit of 1 (30 to 50 cm);
+  today's card shows only "Up to 5 rainbow trout, 50 cm (20 in) or less". Ross Lake's stored headline says 2 and its
+  daily total says 4. Both go on a ticket after tonight's release.

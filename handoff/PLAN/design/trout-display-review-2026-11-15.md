@@ -175,3 +175,65 @@ One screen holds on 8 of 11; 12 numbers on 5 of 11; 60 words on 3 of 11 (the wor
 - `work/page2.tpl.html`, `work/build2.py` (round 1's template is spliced in under "Earlier options")
 - `work/rows.ts`, `work/shapes.json`, `work/grammar.py`, `work/coverage.json`
 - `shots/today-*.jpg`, `shots/r2/` (my checks of the page)
+
+---
+
+# Round 3 (2026-11-15): folded row, size placement, grouping under stress, 9 more waters
+
+Owner: likes the folded row's answer text, leans to the size as a second column, wants more complex examples with weird groupings.
+
+## Folded row (adopted)
+
+Text per top-line form: "N a day" (plain, only) · "N to M a day" (or) · "A <fish>, N others" (two; never "A + N") · "A <fish> a day" · "release" / "closed" with the date small under it · "none to keep" · "several limits" (no top line). The whole row is the press target; mark option 1 is a down arrow (neighbours use "›"), option 2 a plus. At 200% text the answer drops under the name; no overflow on any of 20 waters at 390 or 360 px wide.
+
+## Size placement
+
+Five placements drawn on every water: (e) under the name, (a) true column, (b) column that drops, (c) in the answer box, (d) tag.
+Short size forms: "30 cm+" (includes 30), "up to 50 cm" (includes 50), "30–50 cm" (both ends), "over / under N cm" (excludes N, only where the app says so), "not 60–90 cm" (slot), "any size" written out. Inches behind the tap.
+Rule for (b): whole table uses the column when every size is 12 characters or fewer and text is normal; else every size goes under its name. With the short forms all 20 waters pass at normal text.
+Measured, 390 px: at 100% no placement overflows on any of 20. At 200%: (a) overflows on 9 of 20; (e), (b), (c), (d) on none. Average height: (e) 576, (a)/(b) 547, (c) 576, (d) 550 px.
+Pick (b); runner-up (e).
+
+## Grouping device
+
+- One box per limit the top line names; a limit inside a limit is a small inner box ("only 1") spanning its fish; a single-fish limit is a bold line under the name; fish sorted so each box is one piece.
+- Round 2's three Skeena boxes (5, 3, 1) became one box of 5 with inner limits. No more two fish on one row.
+- At 200% the inner box becomes a bold line under each of its fish ("only 1 of these 2") with a rail.
+- Alternatives drawn: side bracket, heading row per group. Pick: the box, sorted. In the app's fish order the Fraser's box of 2 splits into three.
+
+## New waters (found in the scan; real)
+
+| Water | Item / part / date | Grouping |
+|---|---|---|
+| Kaslo River (= Keen Creek) | `gnis:11345` / 0 / Jul 15 | 2 from streams + river's own 2 bull trout outside the 2; no top line |
+| Kitimat River (= 2 more stretches, Humphrys Creek) | `gnis:3225` / 0 / Jul 15 | one box of 5 with five inner limits; stored rows split rainbow into hatchery 5 (to 50 cm) and wild 1 (30–50 cm); no top line |
+| Williston Lake, Zone B | `wbk:-19` / Nov 15 | 5; bull + lake trout "only 4"; inside that 1 and 3; no top line |
+| Williston Lake, Zone A | `wbk:-18` / Nov 15 | same fish, no shared char limit |
+| Ross Lake | `wbk:328961736` / Jul 15 | brook 5 apart; 1 trout (40 cm+); 1 lake trout (60 cm+); bull trout release; no top line |
+| Bella Coola River, spring | `gnis:11611` / 0 / Apr 15 | 2; only 1 a cutthroat or rainbow; cutthroat 25–33 cm; steelhead closed |
+| Bella Coola River, summer | same / Jul 15 | 1; cutthroat now release-only |
+| Tagish Lake | `wbk:328961735` / Jul 15 | 5; lake + bull trout only 3; lake trout only 2 with a 60–90 cm release slot and 1 over 90 |
+| Inkaneep Creek | `blk:356370187` / Jul 15 | 4 with a stepped group size limit (2 over 30 cm, 1 over 50 cm); brook trout 20 apart (in the other-fish list today) |
+
+Not found anywhere in the release: a keep row that mixes trout with kokanee, whitefish or burbot.
+
+## The 8 rule sets with no top line
+
+Kaslo River, Keen Creek (same shape); Kitimat River x3 stretches, Humphrys Creek (same shape); Williston Lake Zone B; Ross Lake. For Kitimat / Humphrys / Williston B the own rule is "part of the 5", so "Up to 5 today" would be true. Kaslo / Keen need a tenth form ("Up to 2 today, plus 2 bull trout"). Ross Lake: stored headline says 2, `real_daily.n` says 4.
+
+## Possible defect to check
+
+Kitimat River (and Humphrys Creek): the stored item `origins` for rainbow are hatchery n=5 (0–50 cm) and wild n=1 (30–50 cm); the card composed by core shows one line, "Up to 5 rainbow trout, 50 cm (20 in) or less". Not traced.
+
+## Budget now (height px · words · numbers; 390 px; pick (b))
+
+vedder 651·88·16 · little 604·70·13 · skeena 641·74·12 · skeena winter 554·51·8 · kootenay 461·52·7 · elk 416·42·8 · fraser 544·66·15 · harrison 633·77·17 · shuswap 629·76·16 · clayoquot 596·68·9 · premier 551·64·10 · kaslo 515·58·12 · kitimat 688·85·23 · williston B 436·43·10 · williston A 467·43·9 · ross 484·62·13 · bella spring 562·67·15 · bella summer 464·41·6 · tagish 502·62·11 · inkaneep 533·73·13.
+One screen holds on 17 of 20, 12 numbers on 11, 60 words on 7.
+
+## Checks after the last edit
+
+390 px wide, light and dark, 20 waters, 100% and 200% text, both folded sections open: 0 px page sideways scroll, no overflow inside the main mock or the folded rows, every button at least 44 px tall, no broken images, no script errors. At 360 px wide and 200% text, 4 of 20 tables are 6–10 px too wide inside the frame (said on the page). Phone mocks run the full screen width below 430 px so they are true to size.
+
+## Files (round 3)
+
+`trout-display.html` (2.66 MB) · `work/page3.tpl.html`, `work/build3.py` · `work/pages3.json`, `work/todaylines.json`, `work/meas3.json` · `shots/r3/`
