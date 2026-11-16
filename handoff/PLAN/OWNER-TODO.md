@@ -1876,3 +1876,34 @@ More questions (recommended answer first):
   included); Opus for data, pipeline, review and design work, Sonnet for interface and mechanical work; a worker gets
   Fable only after I name the task and the reason to him and he says yes. Nothing on Fable is running now (the
   trout designer and its attacker moved to Opus at his word earlier this hour).
+- 13:55, pushed: the book-rule fixes are on the shared branch (T795 six lakes, T794, T798, T801.1; full tier 6,499
+  pass). A reach-only rerun is going on lane 1 to show them on built data.
+- 13:56, T796 A5, the full list he asked for was sent to him in chat (file `book-closures-list.md`, 70 stretches,
+  71,046 sections, 25 rows flagged for a second look; the Nass side streams' coho Jan 1 to Jun 15 first). The map
+  follows: the three examples paint closed on their days in the rebuilt salmon data. NEW, for his decision: with the
+  book closure carried everywhere (his "Raise to 100 kB"), three OTHER size limits go over on today's numbers: the
+  Region 6 salmon file (about 432,600 against 420,000), the website's first-tap budget (about 4,312,000 against
+  4,200,000; it had 1,243 bytes of room before) and its low-data first-tap budget (about 3,472,600 against
+  3,400,000). The release would stop at its size check until he raises them or the data is shrunk first (T686).
+- About 14:55, his answer to the size-limit question, after reading the list of book closures (typed, verbatim): "for this
+  Sections: 7 The book closes it (p.9, National Parks and Ecological Reserves): "Fishing is prohibited in Ecological
+  Reserves in B.C." DFO's place there: Skeena River — mainstem waters downstream of CNR Railway Bridge at Terrace. it
+  should only close the part in the eco reserve how the entire place?? / but yes you can do the raise we just need
+  to make sure the closures only apply in the area actually closed e.i. above. / also we should look at the real
+  consequence of this (Nass watershed side streams (DFO section C): coho Jan 1 to Jun 15 ) / also previewing all the
+  closures. (again we assume we will close them but i want to be able to review them after) could we make the way it
+  is viewed an artifact with them all formatted in a way it is easier to read. (with mapos etc) use a smaller model
+  for this... / also why is this doubt (The salmon card said on those days (DFO's rows): open — "4 per day, only 1
+  over 50 cm (Apr 1–Mar 31)"; open — "4 per day, only 1 over 50 cm (Apr 1–Oct 31)") to (It now says: closed — "Closed
+  to all fishing by the rule book (p.19): No Fishing from Yakoun Lake downstream approximately 13 km to fishing
+  boundary signs, Oct 1-Apr 30 (Oct 1–Apr 30)") / the dates are opposite of each other the closed should only be
+  there on the days it is actually closed then the other days the salmon rules would still apply which isnt a
+  conflict?"
+  So: (1) YES to raising the three limits (Region 6 salmon file, first tap, low-data first tap). (2) A closure must
+  cover only the water the book actually closes: on the Skeena it is the 7 pieces inside the reserve, not DFO's whole
+  place (that is what was built; "DFO's place there" on the list only names which DFO row answered before): to be
+  proven for all 70 and said plainly on the page. (3) The Nass side streams' coho closure Jan 1 to Jun 15: look at
+  its real consequence before it ships. (4) He wants all the closures on ONE page (artifact) that is easy to read,
+  with maps, to review after; built by a smaller model (Sonnet). (5) The Yakoun row: the book closes Oct 1 to Apr 30
+  only; on the other days DFO's rows answer as before: that is how it works; the warning on that row was about the
+  side creeks along the 13 km, not the dates.
