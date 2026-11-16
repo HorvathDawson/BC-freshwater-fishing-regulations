@@ -109,3 +109,24 @@ Merge timing unchanged: after build 33.
   `RELEASES_DIR=/path/to/main/checkout/data/release`; never a fall back to the default. An unreadable worker shape
   stays refused even with no piece bound, and its words name `app/workers/feeds/src/status.ts`. `read_live` now also
   returns the refusal text (`pieces_gate.py`, for the Android chat's review). 22 tests in the file; seven mutations caught.
+
+## Results (worker lane)
+Branch `feeds/t757-worker-pieces` (not merged). Work items 1 and 2 done; item 3 (the app) is not this lane's.
+- **Port:** `app/workers/feeds/src/dfo/closures.ts`, a line-for-line twin of `closures.py`'s read side (`derive`,
+  `says_closed`, `areas`, `inline_items`, `closure_entry`, `piece_key`, `_inline_key`, `piece_id` (throws outside the
+  grammar), `piece_rule`, `OWNER_READINGS`, `live_piece_rules`); sha1 is the worker's own `hash.ts`; Python's
+  `f"{r:g}"` is `py.ts formatG`. Wired after the join in `live.ts` (`rules.set` per piece, so the header closure and the
+  calendar are the places' own path). `DFO_REV` bumped.
+- **`/status.json`:** top-level `"dfo": {"pieces": 1}` (`status.ts DFO_SHAPE`, from `closures.ts PIECES_SHAPE`), on the
+  503 too, as `inputs`; `pieces_gate.py` reads `dfo.pieces` (int >= 1).
+- **Tests:** `test/dfo.closures.test.ts` (the three oracle cases piece for piece; the id grammar against the Python's
+  answers; the two typing slips and `:g` with Python-computed values; first entry wins; runDfo over the saved pages:
+  17 pieces, region 6 = 150; `/status.json`); `dfo.vectors.test.ts` covers each page's `pieces`, which
+  `python -m pipeline.tools.emit.dfo_vectors` now writes (region 3: 3, region 6: 13, region 8: 1). Each new test was
+  mutation-checked (it fails with its piece of code removed or broken).
+- **Not covered by a dedicated test:** a piece on a page whose region header closes it (no saved page has both); it is
+  the same line every place takes.
+- **Follow-up (fixture refresh):** `test/fixtures/dfo/entries/region-*.json` are now the committed curated places of
+  `redesign/stream-sections` (they were T225 copies). The vectors carry `live`: every location id the Python's `live.run`
+  publishes over the saved pages (274), and the worker's run must equal it except ONE NAMED GAP: the worker types no
+  page-default sentence (T349 `cascade.statement_locators`), so the 7 `page_default` places are in the Python's feed only.
