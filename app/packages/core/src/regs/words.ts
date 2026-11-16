@@ -146,7 +146,6 @@ export const WORDS = Object.freeze({
   WHOLE_CLOSED: (r: string) => "The whole water is closed " + r + ".",
   CLOSED_RANGE: (r: string) => "Closed " + r + ".",
   NEXT_YEAR: " next year",
-  KEEP_UNTIL_THEN: (until: string, then: string, next: string) => "You can keep them until " + until + ". Then " + then + " from " + next + ".",
   NOW_UNTIL: (now: string, until: string) => now + " until " + until + ".",
   THEN_WHOLE: (r: string) => " Then the whole water is closed " + r + ".",
   THEN_RANGE: (then: string, r: string) => " Then " + then + " " + r + ".",
