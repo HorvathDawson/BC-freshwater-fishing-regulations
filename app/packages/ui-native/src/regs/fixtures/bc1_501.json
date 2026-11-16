@@ -1,6 +1,11 @@
 {
  "boats": [
   {
+   "kind": "in_boat",
+   "rule": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r11",
+   "text": "No angling (from a powered boat)"
+  },
+  {
    "kind": "unpowered",
    "rule": "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r12",
    "text": "No powered boats"
@@ -1013,12 +1018,14 @@
  "methods": {
   "boats": {
    "items": [
+    "No angling (from a powered boat)",
     "No powered boats — between the Goat Creek confluence and the Talchako River confluence"
    ],
    "label": "Boats",
    "src": {
     "aria": "Sources: This water’s",
     "keys": [
+     "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r11",
      "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r12"
     ],
     "open": "srcs:boats",
@@ -5415,6 +5422,37 @@
   },
   "srcs:boats": {
    "blocks": [
+    {
+     "applies": [
+      "This water’s own row in the 2025–2027 BC Freshwater Fishing Regulations Synopsis: Bella Coola River."
+     ],
+     "book": [
+      {
+       "box": [
+        {
+         "box": [
+          36,
+          126.72,
+          540,
+          228.96
+         ],
+         "pdf": 49,
+         "size": [
+          576,
+          756
+         ]
+        }
+       ],
+       "pdf": 49,
+       "printed": 43,
+       "t": "book"
+      }
+     ],
+     "k": "rule",
+     "level": "This water’s",
+     "open": "rule:r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r11",
+     "title": "No angling (from a powered boat)"
+    },
     {
      "applies": [
       "This water’s own row in the 2025–2027 BC Freshwater Fishing Regulations Synopsis: Bella Coola River.",
