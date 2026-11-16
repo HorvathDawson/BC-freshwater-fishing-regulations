@@ -205,7 +205,7 @@ with the default Claude uses until you answer). Newest first inside each section
   (proven on both platforms) first; (ii) the loading screen, first-install bar, crash-report app half and the
   faster-and-lighter branch after one Android run; (iii) push last, with the privacy-page line for his eyes. The R8
   Play internal build is taken before any of these, so it carries nothing else.
-- **NEW 2026-11-15 10:42 (iOS chat, T739, push: privacy wording; PROPOSAL).** With push the app sends our server one
+- **ANSWERED 2026-11-15 evening (round 6, verbatim: "Yes to both (Recommended by it)"): the push privacy-page line and the App Store privacy answer are approved AS WRITTEN below; and all the fish-pun lines stay (T746).** Next (Claude): the line goes into the privacy page's source on the push branch; putting the page live stays yours, with the production release. Was: NEW 2026-11-15 10:42 (iOS chat, T739, push: privacy wording; PROPOSAL). With push the app sends our server one
   new thing, a push token (an address Apple issues so a message can reach the app). The push code merges into the
   shared branch only after the privacy page and the store answers say so; the live privacy page changes only on your
   yes (production stays yours). Proposed privacy-page line, under what the app sends: "Push token. If you turn

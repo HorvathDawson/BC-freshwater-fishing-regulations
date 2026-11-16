@@ -57,3 +57,11 @@ the APNs key, the App ID box; for Android the Firebase project and the self-host
 
 ## Results
 (filled in as the work runs)
+
+## Owner answer, 2026-11-15 evening (OWNER-TODO.md "owner answers, round 6", verbatim: "Yes to both (Recommended by it)")
+The proposed privacy-page line ("Push token. If you turn notifications on, the app sends our server a push token for
+this phone …") and the App Store privacy answer (Identifiers → Device ID: collected, App Functionality, not linked to
+the user, not used for tracking) are approved as written (To-Do row `t739-privacy-wording`). Left (Claude): the line
+into the privacy page's source on the push branch; the Android / Firebase line and the Play Data safety answer still
+wait for the Firebase decision. Putting the page live is the owner's, with the production release. This removes the
+wording block on merging the push code; the merge order (push last) stands.

@@ -64,3 +64,9 @@ Depends: T756 (same file; land together or after). Size: M. On the list for the 
   the screen hides the byte line while everything is paused is NOT checked in the code yet; if it does, that is the
   silent screen of point 3.
 - First install on Android is the Android chat's area: works 2 and 3 wait for its word on N and the count.
+- **A second silent wait, seen 18:49–18:57 (T756 branch, run 2026-11-16T01-49-33):** after a reopen the app logged
+  `[download] mobile data: go` and then nothing for more than 284 s, the screen fixed at "36.7 of 479.3 MB downloaded".
+  The same stretch took 16 s and 46 s in two runs that went on to finish. In `boot.ts` it is `await queue(metered)`
+  followed by `install(...)` up to the first file's first log line. To find first: what in that stretch reads the
+  network or the downloader without a time limit. The bench now keeps the app's and the downloader's logs when this
+  happens (`T756-stalled-logs.txt` in the run folder).

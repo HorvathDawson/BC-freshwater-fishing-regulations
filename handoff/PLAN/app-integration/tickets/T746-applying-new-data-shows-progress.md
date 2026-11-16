@@ -117,3 +117,7 @@ Sync, the map left still 3 s).
 `ui/boot.render.test.tsx` (applying flag; warm-up throw = failure), `tools/release-boot.test.ts` (stage "apply" at a cold
 start that applies, and after the T403 install-over), `core/install.test.ts` (whole sentences). `pnpm -C app check:fast`
 exit 0; the four guard files pass unfiltered; whole vitest suite 634 files / 7658 tests passed.
+
+## Owner answer, 2026-11-15 evening (OWNER-TODO.md "owner answers, round 6", verbatim: "Yes to both (Recommended by it)")
+All the proposed fish-pun lines for the "applying new data" screen stay; none struck (To-Do row
+`t746-applying-words`). Nothing further is asked of the owner on this ticket.

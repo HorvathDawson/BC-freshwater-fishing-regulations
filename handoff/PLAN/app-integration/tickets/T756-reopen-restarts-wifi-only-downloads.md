@@ -109,7 +109,23 @@ that line, not the system downloader's), the T760 bench change (a clean app is a
   `expand-notifications` on an already open shade turns it into the quick settings; and the reopen step then waited to
   its cap because its progress measure was wrong (the downloader's files are full-size on disk from the first second,
   by `ls -l` and by `du`). Both fixed in 872cfe14e: the shade is closed first; progress is the app's own byte line,
-  and no byte line at all for 4 minutes is a stall. Re-run started 18:48; result below when it is in.
+  and no byte line at all for 4 minutes is a stall. Re-runs below.
 - The earlier `install` failure of the same build (17:22, 20 minutes, the setup screen with NO bar and NO byte line)
   is not explained by a run of mine; the log kept only "mobile data: go". It may be the same read timeouts lasting
   longer; a screen that shows nothing while every download is paused is T760's point 3.
+- **`bg-install` with the fixed bench, two runs of the same app code:**
+  - 18:49 (commit 872cfe14e, run 2026-11-16T01-49-33): steps 1–6 PASS, **the notification tap opens the app** ("opened
+    by a tap on the group "2 files downloading" unfolded, then its first notification"); the reopen step FAILED on
+    the new stall rule: 249 s at "36.7 of 479.3 MB downloaded", and the app logged nothing after
+    `[download] mobile data: go`. No log was kept (the bench now keeps both logs on a failure).
+  - 18:59 (run 2026-11-16T01-59-44): **8 of 8 PASS.** "opened by the notification tap; map up 282 s later; no download
+    queued again from zero". After the reopen both big files were found "running, 96918696 of 197196706 bytes" /
+    "39018496 of 225356297 bytes" and finished: the bytes down before the reopen were kept. This is the acceptance
+    case ("Wait for Wi-Fi", Wi-Fi back, app reopened mid-download), proven once.
+  - Not explained, and not T756's own: between `mobile data: go` and the first line of any file the app is silent for
+    16 s (by hand), 46 s (the passing run) and more than 284 s (the failed run). `boot.ts` does `await queue(metered)`
+    and then `install(...)` there. A lead for T760, not verified: something in that stretch waits on the network with
+    no time limit while the emulator's connections stall (the system downloader's own read timeouts fire in the same
+    minutes).
+- **State:** work 1–4 done and proven once on the emulator; the unexplained silent stretch is carried by T760. Not
+  merged; goes in with the iOS merges after build 33, after one more green `bg-install` + `install`.
