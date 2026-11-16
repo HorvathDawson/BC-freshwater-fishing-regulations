@@ -2052,3 +2052,8 @@ More questions (recommended answer first):
   trout redesign transition (T810 steps 3 to 7). My reading: that is his go to start the transition; first the spec
   takes in his answers of 15:36 to 15:48 and the app chat's check of the app half. François Lake outlet (part D
   question) NOT asked yet.
+- Before 16:42 (the app chat said ~16:45; my clock read 16:42), typed to the APP chat (relayed verbatim): "make sure you and the other chat collaborate on the prepping
+  for trout dredsign going in". So: the two chats prepare the trout table build together: one plan (the spec; the app
+  chat's app-half check merged into it), the payload contract agreed by both before either builds, one shared fixture
+  of hard waters the app builds against, one hard-cases list both re-run, the switch landed together like the salmon
+  twins (T810).
