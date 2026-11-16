@@ -1,6 +1,6 @@
 # T732 — The phone's backup carries saved spots first, photos second, never the downloaded release
 
-Status: IN PROGRESS (iOS chat; proven on the emulator 2026-11-14 with spots, settings and smaller photo copies, branch `android/t732-backup` head 56b6ea539, results in the ticket on that branch; not merged: a proposal that waits for the owner's look).
+Status: IN PROGRESS (iOS chat; proven on the emulator 2026-11-14 with spots, settings and smaller photo copies, branch `android/t732-backup` head 56b6ea539, results in the ticket on that branch; not merged; OWNER ANSWERED 2026-11-16 11:57: 1280 px copies, and he asks for stronger compression, see the last section).
 
 Source: audit finding G14 (`handoff/PLAN/ios/parity-audit.md`, pass 2, 2026-11-14): on Android, saved spots and photos
 are never in the Google backup, because the installed release (~480 MB) puts the app over Auto Backup's 25 MB limit and
@@ -33,3 +33,12 @@ lands clean and proven, otherwise first thing after (the Android chat tells the 
 
 ## Results
 (filled in as the work runs)
+
+## Owner's answer, 2026-11-16 11:57 (question dialog in the main chat)
+Asked the three picks together (screen lock: built NO; copy size 1600 px, about 54 fit, or 1280 px, about 81 fit; new
+photos stored at 2048 px, proposed YES), he typed: "1280 is probably enough also could we compress as jpeg or
+something which makes the size a lot smaller? ". Readings (the main chat's and mine): copies at 1280 px; no
+screen-lock rule and 2048 px for new photos stand as proposed (he did not object).
+On his question: the copies are already JPEG (quality 70; 0.37 MB at 1600 px, measured; about 0.25 MB at 1280 px
+from the "81 fit" figure). To do before changing the quality: measure JPEG 60 and WebP at 1280 px on the sample photo
+and show him one before / after pair; my estimate is 0.17 to 0.20 MB (about 100 to 115 photos), not measured.

@@ -1,6 +1,6 @@
 # T762 — The trout "Through the year" line stops at the next closure and never says when keeping returns ("…Then closed from Oct 1.")
 
-Status: IN PROGRESS (left (Claude): on the shared branch as 4e793d61f since 2026-11-15 23:07; left: the six Android benches on the Play build head, and the owner sees the new sentences on To-Do row `t762-year-line-words`).
+Status: DONE 2026-11-16 (on the shared branch as 4e793d61f, in Play internal build 33 after six green benches; the owner read the sentences 11:57: "Fine as it is (Recommended)").
 
 Owner 2026-11-15 about 22:48 (relayed word for word by the main chat): "Do not hold stuff for the trout redosgn. That is a separate
 exploration thing that might not go anywhere". So this is NOT held for the trout display pick.
@@ -68,3 +68,6 @@ Size: S to M. Area: app core (the app chat). No pipeline change.
   more than 4 runs, so nothing reads wrong today.
 - Not run on a device: the six benches run on the Play build head.
 
+
+## Owner's answer, 2026-11-16 11:57 (question dialog in the main chat, the three examples on screen)
+"Fine as it is (Recommended)". The middle dates stay without "next year". Closed.
