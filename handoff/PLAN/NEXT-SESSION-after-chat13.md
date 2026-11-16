@@ -48,7 +48,7 @@ sonnet docs/UI).
    (`node app/tools/smoke-staging.mjs`). Templates: `cut-cleanup-2026-11-15.md` section 5, `promote-2026-11-15.md`,
    `rebuild-finish-2026-11-15.md`, `stikine-part-names-2026-11-15.md` (rollback notes in each). Message the iOS chat
    BEFORE the staging release and after it (it redeploys its staging worker: `ios/staging-worker`). Locally now:
-   atlas, tiles and reach are on the new build; the bundle and data/release/LATEST are still r-f749475d0962.
+   atlas, tiles and reach are on the new build; the bundle and data/release/LATEST are still the release named in the STATUS top entry.
    Known stops already fixed: Kotcho Lake loop, Seton cut, six dead-end channels (Stikine/Taku), size gate (in the
    uncommitted build.py). Pallant tidal boundary at the bridge and T753 lake loops ride on it.
    A release that binds a closed-area piece is refused unless the worker serves `dfo.pieces` (staging does).
@@ -81,7 +81,7 @@ sonnet docs/UI).
 - T759 (lost closures): no "not known" status. Removal or exact replacement: nothing shown. A new wording we cannot
   match, a close (drifted) match he has not confirmed, or a reworded closed area: an ISSUE on that water: every stretch
   shows a banner in the salmon section quoting the row, the stream line gets a distinct look (same colour, like the
-  bait-ban variation), until he acts in the review app. Python half: branch `data/t759-missing-place-check`
+  bait-ban variation), until he acts in the review app. Python half: branch the branch named data/t759-missing-place-check on origin
   (5018cd328 / dfc95d971, worktree ~/bcfish-t759), not merged; 17 tests could not run in the worktree (run them in the
   main checkout before merge). Worker + app halves: iOS chat (`feeds/t759-issues`, `app/t759-issues`). The line look
   needs pictures to the owner first. Day-one banners on today's pages: 0.
@@ -107,7 +107,7 @@ sonnet docs/UI).
   (matches.json is FROZEN). Three gauge cuts never placed in any recent atlas: 08HD024, 08ME002, 08MH032.
 - T760 (iOS chat): first install waits for ever on a paused system download: main chat rules on "N minutes, how many
   tries". T756: reopen restarts downloads from zero; fix on a branch.
-- Review of the iOS chat's changes to `pipeline/deliver/release/pieces_gate.py` on `deploy/t757-worker-shape-refusal`
+- Review of the iOS chat's changes to `pipeline/deliver/release/pieces_gate.py` on the branch named deploy/t757-worker-shape-refusal on origin
   (owed by main).
 - Owner rule question, not asked yet: should fast-fail's review step read committed files instead of the working copy
   of his proposals file? Dark-mode highlight pick (T735; needs pictures). Unanswered rows on the To-Do page.
