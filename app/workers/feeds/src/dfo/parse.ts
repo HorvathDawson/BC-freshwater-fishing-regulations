@@ -1,6 +1,9 @@
 // T225 port of pipeline/regs/dfo_salmon/parse.py: one region page → sections + precedence-ranked rows.
 // The table is sliced out of the raw source by regex (Regions 4/7 carry an unterminated `<!--` that swallows the DOM),
 // then expanded into a dense 5-column grid honouring rowspan/colspan, exactly as the Python does.
+// (T787, owner 2026-11-16) A TABLE INSIDE A COMMENT IS HIDDEN: off-season DFO keeps its table of dated openings inside
+// `<!-- … </table>-->` (Regions 4, 5A, 7). Its rows are read (provenance) and each carries `hidden: true`; a hidden row
+// answers nothing (`salmon.ts` `inForce`). Hidden is per table, never per page (`tableHidden`).
 import { PAGES, normalizeSlug, pageUrl } from "./fetch";
 import { parseHtml, Str, Tag } from "./html";
 import { findall, finditer, match, pyInt, pyRe, search, strip, sub } from "./py";
@@ -63,6 +66,8 @@ export interface RegRow {
   fishery_notices: { text: string; href: string }[];
   see_also: string | null;
   source: string;
+  /** (T787) the row sits in a table DFO commented out (`tableHidden`): kept as provenance, answers nothing */
+  hidden: boolean;
 }
 
 export interface ParsedRegion {
@@ -78,6 +83,8 @@ export interface ParsedRegion {
   notes: { section: string; text: string }[];
   cross_references: { from: string; to: string; section: string }[];
   table_found: boolean;
+  /** (T787) the table sits inside an HTML comment (`tableHidden`): every row is `hidden` (present only when true) */
+  table_hidden?: true;
 }
 
 // ── cells ────────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -209,6 +216,30 @@ function stripComments(fragment: string): string {
   return sub(RE_ORPHAN_COMMENT, " ", sub(RE_COMMENT, " ", fragment));
 }
 
+/** (T787) Every HTML comment of the page as [start, end), in order, the way a browser tokenises them: from a `<!--` to
+ *  the next `-->`; an unterminated one runs to the end of the page (`parse.comment_spans`). */
+export function commentSpans(html: string): [number, number][] {
+  const out: [number, number][] = [];
+  let i = 0;
+  for (;;) {
+    const a = html.indexOf("<!--", i);
+    if (a < 0) return out;
+    const b = html.indexOf("-->", a + 4);
+    if (b < 0) {
+      out.push([a, html.length]);
+      return out;
+    }
+    out.push([a, b + 3]);
+    i = b + 3;
+  }
+}
+
+/** (T787) Does the table starting at `tableStart` sit inside a comment (balanced or not)? Then a browser shows none of
+ *  it: DFO's off-season table of openings (Regions 4, 5A, 7). `parse.table_hidden`. */
+export function tableHidden(html: string, tableStart: number): boolean {
+  return commentSpans(html).some(([a, b]) => a <= tableStart && tableStart < b);
+}
+
 export function contentSlice(html: string, tableStart: number | null): string {
   const h1 = search(RE_H1, html);
   const lo = h1 ? h1.index + h1[0].length : 0;
@@ -246,6 +277,7 @@ export function parseRegion(html: string, region: string, url = ""): ParsedRegio
   if (!tm) return { ...base, preamble, sections, rows, notes, cross_references: crossRefs, table_found: false };
 
   const table = parseHtml(stripComments(tm[0])).find("table")!;
+  const hidden = tableHidden(html, tm.index);
   let current: Section | null = null;
   let idx = 0;
   const note = (text: string) => notes.push({ section: current ? current.key : "", text });
@@ -329,6 +361,7 @@ export function parseRegion(html: string, region: string, url = ""): ParsedRegio
       fishery_notices: fns,
       see_also: see,
       source: "table",
+      hidden,
     });
     idx += 1;
   }
@@ -357,9 +390,10 @@ export function parseRegion(html: string, region: string, url = ""): ParsedRegio
       fishery_notices: [],
       see_also: null,
       source: "section_banner",
+      hidden,
     });
     idx += 1;
   }
 
-  return { ...base, preamble, sections, rows, notes, cross_references: crossRefs, table_found: true };
+  return { ...base, preamble, sections, rows, notes, cross_references: crossRefs, table_found: true, ...(hidden ? { table_hidden: true as const } : {}) };
 }

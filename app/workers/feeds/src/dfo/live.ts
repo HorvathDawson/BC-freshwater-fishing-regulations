@@ -35,7 +35,7 @@ import { parseRegion } from "./parse";
 import { cmpStr, cmpTuple, formatFixed, pyRe, pyStrOf, pyTypeName, repr, search } from "./py";
 import { feedText, loads, PyFloat } from "./pyjson";
 import { headerAnswers, headerClosure, markShared, poolOf } from "./quota";
-import { Interner, locationCalendar, NOT_LISTED, SPECIES } from "./salmon";
+import { inForce, Interner, locationCalendar, NOT_LISTED, SPECIES } from "./salmon";
 import { untangle, verify } from "./untangle";
 import { readRegistry, REGISTRY_PATH, template, type Registry } from "./wording";
 import { feedMap, readBaseline, rowChanges, rowsNotice, ROWS_KEY, type RowChange, type RowsBaseline } from "./rows";
@@ -202,13 +202,17 @@ function join(
   for (const loc of typed.locators || []) {
     const fp = loc.fingerprint;
     const hit = index.get(fp);
-    if (hit && loc.error !== undefined) {
+    // (T787) a locator whose every row is from a table DFO commented out answers nothing, typed or not (the Python's
+    // robust `feed.type_rows` marks its unread rule `hidden` too): it never holds its place
+    const allHidden = (loc.hidden?.length ?? 0) > 0 && loc.hidden!.length === loc.rows.length;
+    if (hit && loc.error !== undefined && !allHidden) {
       if (!holds.has(hit.location_id)) holds.set(hit.location_id, { fingerprint: fp, why: loc.error });
       continue;
     }
     if (hit) {
       // T349 / T358 (live.join): a quota pooled across areas — Region 5B's "in the aggregate" row (quota.markShared)
-      const marked = markShared(loc.rules, poolOf(hit));
+      // (T787, live.join) only the rows in force: a hidden row (a commented-out table) answers nothing
+      const marked = markShared(inForce(loc.rules), poolOf(hit));
       const l = rules.get(hit.location_id);
       if (l) l.push(...marked);
       else rules.set(hit.location_id, [...marked]);

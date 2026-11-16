@@ -461,6 +461,8 @@ export interface TypedRule {
   when_targeting?: string[];
   /** (T676) why this rule cannot be read on a day — "dates unparsed — check DFO" (salmon.ts: a `check` verdict) */
   check?: string;
+  /** (T787) the row sits in a table DFO commented out: provenance only, it answers nothing (`salmon.ts` `inForce`) */
+  hidden?: true;
 }
 
 /** The DFO date cell's unparsed state, as the rule and the verdict carry it. */
@@ -653,6 +655,16 @@ function stripDefaults<T extends object>(o: T): Partial<T> {
     out[k] = v;
   }
   return out as Partial<T>;
+}
+
+// ── the marks a typed DFO rule carries beside the catalogue's fields ────────────────────────────────────────────────
+
+/** typed.typed_rules: ONE scraped row -> its typed rules as the feed stores them: `toRules` with the DFO marks —
+ *  `hidden` on every rule of a row from a table DFO commented out (T787). The one way a row is typed (`feed.ts`
+ *  `build`, the vectors' hand rows). */
+export function typedRules(rec: ScrapedRule & { hidden?: boolean }, ruleBase: string, order: number, reg: Registry): TypedRule[] {
+  const rules = toRules(rec, ruleBase, order, reg);
+  return rec.hidden ? rules.map((r) => ({ ...r, hidden: true as const })) : rules;
 }
 
 /** typed.row_text */

@@ -24,7 +24,7 @@ import { key } from "../src/dfo/names";
 import { dumps } from "../src/dfo/pyjson";
 import { headerAnswers, headerClosure } from "../src/dfo/quota";
 import { Interner, locationCalendar, SPECIES } from "../src/dfo/salmon";
-import { toRules, type TypedRule } from "../src/dfo/typed";
+import { typedRules, type TypedRule } from "../src/dfo/typed";
 import { REG } from "./wording.fixture";
 import { runDfo } from "../src/dfo";
 import { MemStore, privStore } from "./dfo.scenario";
@@ -202,7 +202,12 @@ describe("(T676) the open-ended rows are in the vectors, read the same on both s
     expect(hit).toEqual(["1:7eab1584", "2:d367a8ea", "4:1d1c79cf", "8:afc9f631", "8:833f8748", "8:b70729bd"]);
     const typed = Object.values(V.pages).flatMap((p) => p.locators.filter(openEnded));
     expect(typed.every((l) => l.rules.some((r) => (r.when as { open_ended?: boolean } | undefined)?.open_ended))).toBe(true);
-    expect(typed.every((l) => l.calendar.verdicts.some((v) => / until further notice\)/.test(v.t)))).toBe(true);
+    // (T787) region 4's sits in the table DFO commented out: typed (provenance), every rule hidden, it answers nothing
+    const hidden = (l: PyLocator) => l.rules.every((r) => r.hidden === true);
+    expect(Object.entries(V.pages).flatMap(([slug, p]) => p.locators.filter((l) => openEnded(l) && hidden(l)).map((l) => `${slug}:${l.fingerprint.slice(0, 8)}`)))
+      .toEqual(["4:1d1c79cf"]);
+    expect(typed.filter(hidden).every((l) => l.calendar.verdicts.length === 0)).toBe(true);
+    expect(typed.filter((l) => !hidden(l)).every((l) => l.calendar.verdicts.some((v) => / until further notice\)/.test(v.t)))).toBe(true);
   });
 });
 
@@ -218,7 +223,7 @@ describe("the shared hand rows (dfo-rows.json): typed rules and calendar == Pyth
         expect([V.rows[name]!.calendar.verdicts.map((v) => v.s), ROW_HELD_VERDICT.s]).toEqual([["check"], "check"]);
         return;
       }
-      const rules = c.rows.flatMap(([species, dates, limits_gear], i) => toRules({ species, dates, limits_gear }, "rows", i, REG));
+      const rules = c.rows.flatMap(([species, dates, limits_gear], i) => typedRules({ species, dates, limits_gear }, "rows", i, REG));
       expect(plain(rules)).toEqual(V.rows[name]!.rules);
       expect(calendarOf(rules)).toEqual(V.rows[name]!.calendar);
     });

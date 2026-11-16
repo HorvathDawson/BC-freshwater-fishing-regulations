@@ -257,6 +257,12 @@ function gearOn(chain: Loc[], md: number): string[] {
   return [];
 }
 
+/** (T787, salmon.in_force; owner 2026-11-16: "keep reading them for provenance but mark them hidden somehow so they are
+ * ignored") THE ROWS THAT ANSWER: every typed rule but one from a table DFO commented out (`hidden`). Off-season DFO
+ * keeps its table of dated openings inside an HTML comment and shows only the header's "no fishing for salmon until
+ * further notice" (Regions 4, 5A, 7). `live.ts` `join` and `locationCalendar` read places through this. */
+export const inForce = <T extends { hidden?: unknown }>(rules: readonly T[]): T[] => rules.filter((r) => !r.hidden);
+
 export function mapStatus(verdicts: (Verdict | null)[]): string {
   const s = verdicts.map((v) => (v ? v.s : "closed"));
   if (!s.length) return "none";
@@ -304,9 +310,10 @@ export class Interner<T> {
   }
 }
 
-/** live.location_calendar: one location's year */
+/** live.location_calendar: one location's year. (T787) Only the rows in force: a row from a table DFO commented out
+ * says nothing (`inForce`). */
 export function locationCalendar(rules: R[], verdicts: Interner<unknown>, gears: Interner<unknown>): { sp: number[][]; g: number[] } {
-  const chain = [new Loc(rules)];
+  const chain = [new Loc(inForce(rules))];
   const perSp: number[][] = SPECIES.map(() => []);
   const gear: number[] = [];
   for (const md of DAYS) {
