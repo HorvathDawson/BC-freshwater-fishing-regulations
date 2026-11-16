@@ -154,3 +154,10 @@ that worker is up: each waited on the other.
   cases refused for three shapes without pieces, and one that fails if the release is read at all for a worker that
   serves pieces. Four mutations, each caught (the old order: 6 tests fail; `main` always reading: 1; `true` as a
   number: 1; a worker without the shape passing an unreadable release: 7).
+
+## Pipeline CI red after landing, fixed (2026-11-16 15:55, app chat)
+Landed at 1809e6a54; pipeline-ci failed 3 cases of `test_worker_deploy_pieces_gate.py`: the worker-shape reader bundles
+with the APP's esbuild, and pipeline CI installs no app packages ("Cannot find module 'esbuild'"). My pre-landing tier ran
+locally, where app/node_modules exists, so it could not see this. Fix: the six reader cases skip, said by name, when
+`app/node_modules/esbuild` is absent (test_dfo_suggest.py's pattern); with it they run (30 pass), without it 24 pass and
+6 skip. The deploy itself still refuses when the bundler is missing.
