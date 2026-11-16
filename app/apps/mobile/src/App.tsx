@@ -22,7 +22,7 @@ import {
   Archivo_400Regular, Archivo_500Medium, Archivo_600SemiBold, Archivo_700Bold, Archivo_800ExtraBold,
 } from "@expo-google-fonts/archivo";
 import { JetBrainsMono_500Medium } from "@expo-google-fonts/jetbrains-mono";
-import { DOWNLOAD_NOTE_WORDS, downloadFraction, failedStartLine, INSTALL_WORDS, stillLine, MAP_CREDITS, MOBILE_DATA_WORDS, mobileDataDecision, installLine, SETUP_WORDS, setupFraction, setupLine, netBanner, progressWords, rolledBackLine, splashLineFor, startStage, updatedToast, UPDATE_LOG_WORDS, UPDATE_WORDS, versionHeaders,
+import { DOWNLOAD_NOTE_WORDS, downloadFraction, failedStartLine, restartsByItself, INSTALL_WORDS, stillLine, MAP_CREDITS, MOBILE_DATA_WORDS, mobileDataDecision, installLine, SETUP_WORDS, setupFraction, setupLine, netBanner, progressWords, rolledBackLine, splashLineFor, startStage, updatedToast, UPDATE_LOG_WORDS, UPDATE_WORDS, versionHeaders,
          versionLine, dataProvenanceLine, now as clockNow } from "@app/core";
 import { createNet, shareFetch, createReportOutbox, createUpdateLog, createUpdateService, phoneNetwork, versionedFetch, httpFeed, gaugeHistory, httpInSeason, httpRunTiming, httpSalmonFeed, manifestDate, noteHeld, followSavedItems, openRunTimingStore,
          type Held, type UpdateService, type WaterSource } from "@app/data";
@@ -541,12 +541,14 @@ export default function App() {
   // (T262) what a failed start says: the reader's words (an app too old to read this release says so); the exception
   // and the dev server hint only in a local build
   const tooOld = boot.state === "failed" && boot.error.message === UPDATE_WORDS.row.appTooOld;
+  // (T760) a failure the app does not start over from by itself (a stuck download was already queued again): shown at once
+  const shownAtOnce = boot.state === "failed" && !restartsByItself(boot.error.message);
   useEffect(() => {
-    if (boot.state !== "failed" || tooOld || autoTries >= 2) return;
+    if (boot.state !== "failed" || tooOld || shownAtOnce || autoTries >= 2) return;
     const t = setTimeout(() => { setAutoTries((n) => n + 1); setAttempt((a) => a + 1); }, 2000 * (autoTries + 1));
     return () => clearTimeout(t);
-  }, [boot, tooOld, autoTries]);
-  const failed = boot.state === "failed" && (tooOld || autoTries >= 2) ? boot.error.message : null;
+  }, [boot, tooOld, shownAtOnce, autoTries]);
+  const failed = boot.state === "failed" && (tooOld || shownAtOnce || autoTries >= 2) ? boot.error.message : null;
   // (T390) a first start refused for an old app: the strong prompt and the same Update button as the bell's
   const bootUpdate = useAppUpdate(tooOld ? appUpdater : null, appUpdateStore, { offline: false, tooOld });
   const bootUpdateVM = tooOld ? bootUpdate?.vm ?? null : null;

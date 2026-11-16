@@ -39,6 +39,15 @@ export function failedStartLine(message: string, firstRunOffline: boolean): stri
   return firstRunOffline ? INSTALL_WORDS.firstRunOffline : INSTALL_WORDS.again;
 }
 
+/**
+ * (T760) Does a failed first start begin again by itself (the app does so twice before it shows the failure)? Not the
+ * stuck download: the download layer already queued that file again, and every automatic restart would begin its
+ * ten-minute waits over, so the reader's words would take an hour and a half to show instead of half an hour.
+ */
+export function restartsByItself(message: string): boolean {
+  return message !== INSTALL_WORDS.stuck;
+}
+
 const STAGES: Readonly<Record<string, string>> = {
   manifest: "Checking for the latest regulations…",
   wifi: "Waiting for Wi-Fi",
