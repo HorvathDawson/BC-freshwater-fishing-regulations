@@ -1019,3 +1019,11 @@ For you to re-tick after the rebuild (saved by Claude at your request, each note
   by wording. Open point for his combined review: tonight's Region 1 saves 2771-2773 turned three "except in those
   areas and times listed below" places from rest-of into the whole river (a listed stretch whose rule lasts only part
   of the year was cutting itself out for the whole year); he sees both and decides.
+- 22:45, typed in chat, right after: "all items wih same structure as that shoul duse rest of extent type too". So:
+  EVERY place worded as a leftover ("excluding the areas below", "except in those areas and times listed below", "all
+  waters unless indicated below", "except in the area described below", …) uses the REST-OF extent type. Consequences
+  the main chat draws: (1) tonight's saves 2771-2773 (Somass, Stamp, Little Qualicum turned into the whole river) are
+  NOT landed as whole; they go back to rest-of; (2) the rest-of type itself must then give DFO's "areas AND TIMES"
+  answer: on a day when a listed stretch has no rule of its own, the rest-of place's rule shows there (today a listed
+  stretch is cut out for the whole year, and a retired or undrawable listed stretch still takes water: his earlier
+  "Fix both"). That is a build change, ticketed tonight.
