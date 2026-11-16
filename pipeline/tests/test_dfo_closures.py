@@ -62,6 +62,10 @@ def test_the_review_app_serves_entry_b_and_says_when_it_is_not_placed(tmp_path, 
     import json
     import sys
     from pathlib import Path
+    from pipeline.tests.conftest import curated_root
+    # a curated tree this test builds, with a review that has nothing in it: "not placed" is proven with no confirmed
+    # closed area on file, never on the live `closed_areas.json` (which the owner's accepts fill: Thompson, 2026-11-15)
+    curated_root(monkeypatch, tmp_path / "curated")
     monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "curation-review" / "backend"))
     sys.modules.pop("dfo", None)
     import dfo as BD
