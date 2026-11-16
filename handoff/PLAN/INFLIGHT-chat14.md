@@ -66,6 +66,13 @@ owner's words tonight, verbatim). The owner is asleep or about to be; the overni
 `handoff/PLAN/audit-2026-11-16/{code,labels,decisions,guards,answers}.md`; tickets T783 to T798; the owner's morning
 list has sections A to I (36 questions); To-Do page rows `ml-*`. Nothing is running.
 
+## At 10:12: T793's fix is ready, not merged
+Branch `data/t793-wild-limits-on-card`, commit f672f4444 (22 answer keys change; the build now refuses a card that
+drops a wild or hatchery condition). The owner's list now has 38 questions: 37 = the new card sentences, go as worded?
+38 = does "no wild trout over 40 cm" cover char on Dodd and the six lakes like it? Head 13928d2d0, pushed, clean.
+Nothing is running. On his go for 37: cherry-pick f672f4444, `mini_release --check`, the changed tests, push, CI
+green, `pipeline build --hold-latest`, the rehearsal, BEFORE to the app chat, the release, the site, AFTER.
+
 ## Next, in order
 1. With the owner: the morning list (re-ticks, questions).
 2. On his go: T793 first (wild-trout limits missing from the keep card: the app allows what the book forbids), then
