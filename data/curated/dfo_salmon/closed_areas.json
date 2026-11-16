@@ -1,0 +1,44 @@
+{
+ "_about": "THE CLOSED AREAS THE OWNER CONFIRMED (T573): one record per closed area of a DFO row's entry B — a stretch between two cuts or a circle (centre + radius), `pipeline.regs.dfo_salmon.closures.PieceGeometry`. Written only by the review marks (scope closed_area, `python -m pipeline.regs.review.apply closed_areas`). A record whose item DFO no longer names stays here and is read as not live. The reach run binds the live ones (`pipeline.atlas.reach.dfo_salmon.resolve_closures`) and the bundle ships them (T573 build step).",
+ "pieces": [
+  {
+   "key": "200d03a74aaf",
+   "water_id": "8:shuswap-river",
+   "name": "the water survey station to WTFB signs",
+   "item": "closed from the water survey station (located at 50°19.105' N and 118°48.857' W) approximately 200 m down stream of Shuswap Falls Hatchery to WTFB signs (located at 50°18.181' N and 118°49.105' W) one km down stream",
+   "kind": "stretch",
+   "on_item": "gnis:25478",
+   "points": [
+    {
+     "kind": "split",
+     "split_id": "gauge__08LC003"
+    },
+    {
+     "kind": "new",
+     "split_id": "shuswap_closed_wtfb_as_printed"
+    }
+   ],
+   "new_splits": [
+    {
+     "ref": "shuswap_closed_wtfb_as_printed",
+     "anchor": "coord",
+     "on_item": "gnis:25478",
+     "name": "Shuswap closed stretch, the point DFO prints for the WTFB signs (50°18.181' N 118°49.105' W)",
+     "coord": [
+      -118.818314,
+      50.30304
+     ],
+     "confidence": "low",
+     "quote": "to WTFB signs (located at 50°18.181' N and 118°49.105' W) one km down stream",
+     "note": "DFO's coordinate as printed (50.3030167, -118.8184167), 8 m from the river line, km 135.13 — 27 m from WSC gauge 08LC003 (50.30278, -118.81861): this point is the station, not signs 1 km below it",
+     "blk": "356363194",
+     "measure": 135134.5
+    }
+   ],
+   "confidence": "low",
+   "note": "CHECK: DFO's printed points look SWAPPED against its words. The river flows north here (Shuswap Falls km 136.5 → Mabel Lake), so 'downstream' is north. The point printed for the water survey station (50°19.105' N) is the NORTH (downstream) one, at km 133.08; the point printed for the WTFB signs (50°18.181' N) is 27 m from WSC gauge 08LC003 'Shuswap River near Lumby' at km 135.13 — that is the water survey station. Between them is 2.05 km of river, not 'one km'. Stored as printed; the alternative end reads it as station → 1 km below.",
+   "confirmed_by": "Dawson",
+   "confirmed_on": "2026-11-15"
+  }
+ ]
+}
