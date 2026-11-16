@@ -1827,3 +1827,23 @@ More questions (recommended answer first):
   stream feeding Comox, Willemar and Forbush lakes) where it was 10; (2) T796 A5 changes 70 stretches (71,046 pieces),
   the largest the Skeena / Nass winter closure on coho Jan 1 to Jun 15; (3) T770 adds a gear line on 13 chains; the
   three T796 examples he asked for are in the lane's report. Trout round 8 is built (the box frame redrawn).
+- Pictures 27 and 30, and two results of the fix lanes, 13:28. Babine Lake's closed areas (7 circles match by name;
+  Tsezakwa's sits on Nilkitkwa Lake; Pendleton, Six Mile, Hazelwood, Sockeye and the Gullwing line are not found;
+  Pinkut has a circle but is not in DFO's list), typed: "confirm 7 lake open with note and please add as a thing for
+  me to do later". So: the 7 are confirmed, the lake reads open in August with "closed in part" and DFO's words for
+  the areas not drawn, and finding the missing five and the line is a LATER item on his list. Dean, Crag Creek to the
+  tidal boundary (2793), typed: "yes and that except should not include the canyon": right; the canyon stays out of
+  it as its own stretch. Puntledge "Fly fishing only upstream of the BC Hydro diversion dam …, including
+  tributaries" reaching every stream above the dam (10 pieces to 1,069): "Yes, as printed (Recommended)". T796 A5,
+  a book-closed stretch closes salmon too (three examples shown; 70 stretches change): "Go, and send me the full
+  list" (the list of all 70 with dates and a map picture before and after go to him before it ships).
+- 13:29, the heading audit is back (`handoff/PLAN/curation-review/dfo-side-streams-against-exact-headings-2026-11-16.md`):
+  239 live named-water places checked against the exact heading each row sits under: 225 agree, 14 disagree. The
+  Forks-to-Bymac stretch DOES sit under "Morice River (including tributaries)" (side streams on is right). The 14 go
+  to him as questions (Tatshenshini whole-river row; the three creeks and the Blanchard: do named side creeks take
+  their own side streams?; five Region 6 rivers whose blank row under a plain heading puts a bait ban on side
+  streams; the Kitimat outfall strip under "Kitimat River (including tributaries)"; five with no effect today).
+- 13:29, the reviewer's THIRD attack (trout round 8) is back: closer, still "not yet". The frame is better but the
+  grey still hooks onto the first row; "no limit of its own" can read as "unlimited"; the date words are right on 49
+  of 50 lines but say nothing when a fish goes to zero, when wild / hatchery changes, or when the water closes; wild
+  char at Dodd and Lois now look keepable on their rows. Appended to the design review file.

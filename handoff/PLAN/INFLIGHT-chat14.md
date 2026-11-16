@@ -79,20 +79,43 @@ multiple-choice batches ("i want questions in batches from you directly instead"
 https://claude.ai/artifact/H8gtvpptCZLGLaPGCyNfaJ is only a reference now. Tickets T799 to T806 hold the new work; ten
 older tickets carry his answer in a section "Owner, 2026-11-16".
 
-### Running or owed right now
-- **T793 is cherry-picked locally (not pushed)**: full pipeline tier running (log `<scratch>/logs/t793-tier.log`);
-  then tell the app chat, push, CI green. It ships in ONE staging release with the other fixes he said go on.
-- **Pictures for the 34 live saves to re-check** (T806): an Opus helper draws them into `<scratch>/recheck-pics/`
-  (batch 1 = 13 urgent). When back: send them to him in chat in small batches (SendUserFile + question dialog, right /
-  wrong), save each answer through the review app with his words.
-- **Trout round 7** (mockups only): the original designer is resumed; when back, publish the same page
-  (`<scratch>/trout-display/trout-display.html` -> https://claude.ai/artifact/EopBgDtf8eu4LGZpYixSkH), then resume the
-  adversarial reviewer for a second attack; both reports to him.
-- **The app chat** (session `bc-freshwater-fishing-regulations-01`) is merging one at a time (his yes): merge 1
-  (T757 + T758 feed server) and merge 2 (iPhone fixes) are landed and green; merge 3 (T756 + T760) is on its benches.
-  It asks "ready to land", I answer "clear" or "wait"; it commits docs on the shared checkout only after I say T793 is
-  pushed. It took: T797 item 1 (done on a branch), T800, T686 (a), the pre-build check, T759 stripe wider, T735 look
-  C, T732 at 1280 px, the small defaults. It waits on me for: the T796 marker proposal (A5) and the vectors (A6).
+### State at 13:31 (read this first after a compact)
+- **Pushed:** T793 (wild-trout card sentences) is on the shared branch, CI should be green. Head is on origin.
+- **Two fix lanes are DONE in worktrees, NOT merged** (cherry-pick each commit into the main checkout, then the full
+  pipeline tier, `mini_release --check`, `dfo_vectors --check`):
+  - `lane/salmon-rules-1116` in `.claude/worktrees/agent-a2becf9b4bea93daf`: T783 3f90138cf, T770 4e0feaca9 (gear
+    lines stack; eulachon never displaced; 13 chains gain a line), T787 178d52320 (hidden rows kept, marked, ignored;
+    `typed.FORMAT` 4: BEFORE the next build run `python -m pipeline.regs.dfo_salmon.locations && python -m
+    pipeline.regs.dfo_salmon.feed` in the main checkout, cached pages only), T796 A6 25f11159e (verdict field `f: 1`),
+    T796 A5 a4a8cc070 + cae652cba (book place `book:<entry>::<rule>`, payload `static`, 70 stretches change; the
+    full list is `<scratch>/t796-a5-changes.txt`; size gate `BOOK_ONLY_WHERE_DFO_LETS_FISH` keeps the salmon head
+    at 50 kB instead of 92 kB: my call or the app chat's, with an errs-open edge under a live feed). The notes for
+    the app chat (worker twins for T787, A6, T770; core for A5 static places and A6 page closing) are in each
+    ticket's "Lane result" section on that branch. The owner said GO on A5 and wants the full list of the 70 with a
+    map picture before and after, BEFORE it ships.
+  - `lane/book-rule-fixes-1116` in `.claude/worktrees/agent-aaab7188849edc942`: T795 07db8a6a8 (six lakes open with
+    the note), T794 56f4e4e91 (Williston) + 16f92dfcc (Peace part 9 closed, no new cut) + eae8241a3 (Bella Coola side
+    channels), T798 20b902f56 (Coal Creek; reach POLICY_VERSION 45) + b79a4513d (Puntledge: owner said "Yes, as
+    printed"), T801.1 186388445, rulings 865cbac37, ticket notes 8b2d83c17. After merging: a reach-only rerun, then
+    deliver, then the release.
+- **The app chat changed**: the new one is session `bc-freshwater-fishing-regulations-9c` (took over 13:09; lane 2).
+  Same protocol: it says "ready to land", I answer "clear" / "wait"; I tell it BEFORE a release and when the T796
+  marker note is ready (send it the lane's notes).
+- **Re-check of saves with pictures (T806)**: answered so far: 1 to 27 and 30 (see OWNER-TODO "Re-check of saves").
+  STILL TO SHOW HIM: 28 Kitimat hatchery, 29 Skeena sockeye rest-of, 31 to 34 the closed areas (pictures are JPGs in
+  `<scratch>/recheck-pics/`; `captions.json` has what the drawer noticed). Then save each answer through the review
+  app with his words. Follow-ups he asked for: Lamprey Creek confluence onto the Morice main channel; Sheldens: a
+  low-confidence cut at the road crossing near the mouth, also the tidal boundary; gotchas (Kanaka, Kispiox, Shuswap
+  one km, Stamp Falls Deer Creek, Somass Collins Farm, Bulkley / Suskwa, Sheldens); Babine: confirm the 7 matching
+  circles, lake open with note, the missing five + Gullwing line as a LATER item for him; Stamp Falls cut stays.
+- **Heading audit** (`curation-review/dfo-side-streams-against-exact-headings-2026-11-16.md`): 14 places disagree
+  with his rule; they go to him as questions (not asked yet), then the "derive from the exact heading" build.
+- **Trout** (mockups only): round 8 is published; the third attack says still "not yet" (design review file, last
+  section). The designer's three round 8 questions and the attack's findings are NOT yet put to him; round 9 would
+  fix: wild char rows at Dodd / Lois, dates for zero-fish / wild changes / closures, "no limit of its own", the grey
+  L. Designer agent `a0e6f69598b62e7f2`, reviewer `ab3f19d1c5cf2f5cf` (resume by SendMessage).
+- T804 (the universal "own row" rule) and the small code lane (T784, T785, T792 A, T799, T797 items 2 to 5, T801
+  items 2 to 4) are NOT started.
 
 ### The fix queue for the next staging release (all with his go; each lands with the full tier, then ONE release)
 1. T793 (landing now). Tell him with the changed-answers list that Lois and Khartoum read 2 wild + 2 wild (T805.1).
