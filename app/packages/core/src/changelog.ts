@@ -33,6 +33,7 @@ export const CHANGELOG: readonly ChangelogEntry[] = [
       "Upstream and Downstream follow one line through every part of a water, with no branch to pick",
       "Tapping an unnamed stretch opens its regulations sooner",
     ],
+    only: { "Android: code shrinker (R8) on for this build; also carries T737, T747, T750 from the shared branch.": "android" },
   },
   {
     version: "0.7.10", date: "2026-11-14", draft: true, notes: [
