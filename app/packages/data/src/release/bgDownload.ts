@@ -14,10 +14,12 @@
  *   fill      `PartFill` over a job: polls it (progress), and once it is done claims its file onto the `.part`. A job
  *             that failed is queued again (a few times); one waiting for Wi-Fi is waited on. A `.part` an older app
  *             left with no job is resumed the old way (`fallback`). (T756) A Wi-Fi-only job that was kept and then
- *             sits paused for `stuckMs` while mobile data is allowed is queued again under the allowed rule, and the
+ *             sits paused for `wifiWaitMs` while mobile data is allowed is queued again under the allowed rule, and the
  *             log says so: it would otherwise wait for a Wi-Fi the reader no longer asked it to wait for.
+ *             (T760) A job pending, or paused for anything but a wait for a network, with no new byte for `stuckMs` is
+ *             queued again (said in the log, its bytes lost); after `stuckTries` the install fails with words.
  */
-import { DOWNLOAD_NOTE_WORDS, now as clockNow } from "@app/core";
+import { DOWNLOAD_NOTE_WORDS, INSTALL_WORDS, now as clockNow } from "@app/core";
 import type { PartFill, PartFs } from "./install";
 
 /** One of this app's downloads, as the platform's downloader reports it. `total` is -1 until the server said. */
@@ -90,9 +92,40 @@ export interface Background {
   fill: PartFill;
 }
 
+/**
+ * (T760) Android's DownloadManager reasons for a PAUSED job that are honest waits for a network
+ * (`DownloadManager.PAUSED_WAITING_FOR_NETWORK` = 2, `PAUSED_QUEUED_FOR_WIFI` = 3; the module passes `COLUMN_REASON`
+ * through as is). Such a job is never "stuck": it starts by itself when the network it needs is up.
+ * `PAUSED_WAITING_TO_RETRY` (1) and `PAUSED_UNKNOWN` (4) are not.
+ */
+const NETWORK_WAITS: ReadonlySet<number> = new Set([2, 3]);
+
+/** (T760) How long a job may sit pending, or paused not waiting for a network, with no new byte before it is queued again. */
+const STUCK_MS = 10 * 60_000;
+/** (T760) How many times a file that does not move is queued again before the install fails (`INSTALL_WORDS.stuck`). */
+const STUCK_TRIES = 2;
+
+interface BackgroundOptions {
+  /** how often a job is polled */
+  pollMs?: number;
+  /** how often a FAILED job (or one of the wrong size, or gone) is queued again before the install fails */
+  tries?: number;
+  /** (T756) how long a kept Wi-Fi-only job may sit paused while mobile data is allowed before it is queued to use it */
+  wifiWaitMs?: number;
+  /**
+   * (T760) how long a job may sit pending, or paused for a reason that is not a wait for a network, with no new byte,
+   * before it is removed and queued again. Ten minutes: the downloader's own back-off after read errors is believed to
+   * wait up to ~8 minutes before a try, and a removed job's bytes are lost (it cannot be resumed).
+   */
+  stuckMs?: number;
+  /** (T760) how many such re-queues of one file before the install fails */
+  stuckTries?: number;
+}
+
 export function background(bg: BackgroundNative, fs: PartFs & { uri(path: string): string }, fallback: PartFill,
-                           o: { pollMs?: number; tries?: number; stuckMs?: number } = {}): Background {
-  const pollMs = o.pollMs ?? 500, tries = o.tries ?? 4, stuckMs = o.stuckMs ?? 20_000;
+                           o: BackgroundOptions = {}): Background {
+  const pollMs = o.pollMs ?? 500, tries = o.tries ?? 4, wifiWaitMs = o.wifiWaitMs ?? 20_000;
+  const stuckMs = o.stuckMs ?? STUCK_MS, stuckTries = o.stuckTries ?? STUCK_TRIES;
   /** what each url is (for a job started by `fill` itself: an update's file, or one whose job vanished) */
   const kinds = new Map<string, string>();
   /** the last mobile-data choice (`queue`'s); an update's job started by `fill` uses it too */
@@ -132,6 +165,9 @@ export function background(bg: BackgroundNative, fs: PartFs & { uri(path: string
       onRewrite?.();                                         // the job's file replaces whatever is in the .part
       let id = first?.id ?? await enqueue(url, total);
       let failures = 0, said = "", pausedAt = 0;
+      // (T760) when the job's byte count last changed (or it was queued, or stopped honestly waiting), and how often a
+      // job of this file that did not move was queued again (never reset: a file is never queued again for ever)
+      let movedAt = clockNow(), lastBytes = -1, requeued = 0;
       for (;;) {
         const job = (await bg.jobs()).find((j) => j.id === id) ?? null;
         const bad = !job ? "is gone" : job.status === "failed" ? `failed (reason ${job.reason})`
@@ -157,14 +193,32 @@ export function background(bg: BackgroundNative, fs: PartFs & { uri(path: string
         // (T756) a Wi-Fi-only job (kept by `queue` because it was running) that now waits, while mobile data is allowed
         if (job!.status === "paused" && !job!.metered && metered) {
           pausedAt ||= clockNow();
-          if (clockNow() - pausedAt >= stuckMs) {
+          if (clockNow() - pausedAt >= wifiWaitMs) {
             console.info(`[download] ${url}: a Wi-Fi-only download paused (reason ${job!.reason}) at ${job!.bytes} of ${total} bytes while mobile data is allowed; queued again to use it`);
             await bg.remove(job!.id);
             id = await enqueue(url, total);
-            pausedAt = 0; said = "";
+            pausedAt = 0; said = ""; movedAt = clockNow(); lastBytes = -1;
             continue;
           }
         } else pausedAt = 0;
+        // (T760) a job the system has parked and does not run again (a stale row a cleared app adopted, a deferred job,
+        // the downloader's own back-off gone quiet): pending, or paused for a reason that is not a wait for a network,
+        // with no new byte for `stuckMs`: removed and queued again (its bytes are lost: a removed job cannot be resumed);
+        // `stuckTries` times, then the install fails with the reader's words, never an endless wait (W46)
+        const parked = job!.status === "pending" || (job!.status === "paused" && !NETWORK_WAITS.has(job!.reason));
+        if (!parked || job!.bytes !== lastBytes) { lastBytes = job!.bytes; movedAt = clockNow(); }
+        else if (clockNow() - movedAt >= stuckMs) {
+          const still = `not moved for ${Math.round((clockNow() - movedAt) / 1000)} s (${job!.status}, reason ${job!.reason}, ${Math.max(0, job!.bytes)} of ${total} bytes)`;
+          if (++requeued > stuckTries) {
+            console.warn(`[download] ${url}: ${still} after ${stuckTries} times queued again; the install fails`);
+            throw new Error(INSTALL_WORDS.stuck);
+          }
+          console.info(`[download] ${url}: ${still}; removed and queued again from zero (${requeued} of ${stuckTries}): the system cannot resume a removed download, those bytes are lost`);
+          await bg.remove(job!.id);
+          id = await enqueue(url, total);
+          said = ""; movedAt = clockNow(); lastBytes = -1;
+          continue;
+        }
         const now = job!.status === "paused" ? `paused (reason ${job!.reason})` : job!.status;
         if (now !== said) { console.info(`[download] ${url}: ${now}, ${job!.bytes} of ${total} bytes`); said = now; }
         await wait(pollMs);

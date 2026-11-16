@@ -1,6 +1,6 @@
 /** P11: the start-up and first-run words, composed here and pinned whole (AGENTS 33). */
 import { describe, expect, it } from "vitest";
-import { downloadFraction, DOWNLOAD_NOTE_WORDS, DOWNLOAD_SAYINGS, INSTALL_WORDS, installLine, MOBILE_DATA_WORDS, mobileDataDecision, mobileDataFrom,
+import { downloadFraction, DOWNLOAD_NOTE_WORDS, failedStartLine, stillLine, DOWNLOAD_SAYINGS, INSTALL_WORDS, installLine, MOBILE_DATA_WORDS, mobileDataDecision, mobileDataFrom,
          rolledBackLine, SAYING_MS, sayingAt, SETUP_WORDS, setupFraction, setupLine, SMALL_DOWNLOAD_BYTES, startStage } from "./install";
 
 describe("the first-run download line", () => {
@@ -87,5 +87,18 @@ describe("(T298) the first download: mobile data, the notification, the fish say
       expect(s).not.toMatch(/\b(catch|caught|limit|guarantee|will bite|fish on)\b/i);
     }
     expect(SAYING_MS).toBeGreaterThanOrEqual(3000);
+  });
+});
+
+describe("(T760) a first-install download that does not move", () => {
+  it("under the bar after a minute with no new byte: the carry-on words, or the offline waiting words", () => {
+    expect(stillLine(false)).toBe("The download has not moved for a minute. It carries on by itself; if it stays stuck the app starts that file again.");
+    expect(stillLine(true)).toBe("Offline — this will load when you’re back online");
+  });
+  it("a start failed on a file that would not download says so above Try again; other failures keep their words", () => {
+    expect(failedStartLine(INSTALL_WORDS.stuck, false)).toBe("A file would not download after several tries. Check your connection, then tap Try again.");
+    expect(failedStartLine(INSTALL_WORDS.stuck, true)).toBe("A file would not download after several tries. Check your connection, then tap Try again.");
+    expect(failedStartLine("release: x does not match the manifest", false)).toBe("Check the connection and try again. What has downloaded is kept.");
+    expect(failedStartLine("first run: the manifest could not be read (no answer)", true)).toBe("The first start needs a connection: the map and regulations download once, then work offline.");
   });
 });

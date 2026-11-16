@@ -2,6 +2,7 @@
  * START-UP AND FIRST-RUN WORDS (P11): what the app says while it reads the manifest, installs a release (native, first
  * run) and decodes paint. Composed here so a test pins the finished string (AGENTS 33) and no screen types its own.
  */
+import { NET_WORDS } from "./net";
 
 export const INSTALL_WORDS = {
   failed: "The map data could not be loaded.",
@@ -12,7 +13,31 @@ export const INSTALL_WORDS = {
   retry: "Try again",
   /** (T180) under a failed start, for a developer: the local tile server serves the release */
   serve: "Run `pnpm tiles` to serve the release.",
+  /** (T760) the first install's download has not moved for a minute, a network up (under the bar, gone when bytes move) */
+  still: "The download has not moved for a minute. It carries on by itself; if it stays stuck the app starts that file again.",
+  /**
+   * (T760) a big file the system's downloader would not move, queued again and again: the first start fails with this
+   * (the error's message, so the failed screen says it with its Retry)
+   */
+  stuck: "A file would not download after several tries. Check your connection, then tap Try again.",
 } as const;
+
+/**
+ * (T760) The line under the first install's bar once nothing has moved for a minute: offline, the waiting words a page
+ * says when the line is gone (`NET_WORDS.waiting.offline`); otherwise that the download carries on by itself.
+ */
+export function stillLine(offline: boolean): string {
+  return offline ? NET_WORDS.waiting.offline : INSTALL_WORDS.still;
+}
+
+/**
+ * (T262 / T760) What a failed first start says above its Retry: the stuck download's own sentence, the first-run-offline
+ * words, or "check the connection". (An app too old for the release is the caller's: it shows its own prompt, no Retry.)
+ */
+export function failedStartLine(message: string, firstRunOffline: boolean): string {
+  if (message === INSTALL_WORDS.stuck) return INSTALL_WORDS.stuck;
+  return firstRunOffline ? INSTALL_WORDS.firstRunOffline : INSTALL_WORDS.again;
+}
 
 const STAGES: Readonly<Record<string, string>> = {
   manifest: "Checking for the latest regulations…",

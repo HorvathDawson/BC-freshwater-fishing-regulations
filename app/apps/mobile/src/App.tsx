@@ -22,7 +22,7 @@ import {
   Archivo_400Regular, Archivo_500Medium, Archivo_600SemiBold, Archivo_700Bold, Archivo_800ExtraBold,
 } from "@expo-google-fonts/archivo";
 import { JetBrainsMono_500Medium } from "@expo-google-fonts/jetbrains-mono";
-import { DOWNLOAD_NOTE_WORDS, downloadFraction, INSTALL_WORDS, MAP_CREDITS, MOBILE_DATA_WORDS, mobileDataDecision, installLine, SETUP_WORDS, setupFraction, setupLine, netBanner, progressWords, rolledBackLine, splashLineFor, startStage, updatedToast, UPDATE_LOG_WORDS, UPDATE_WORDS, versionHeaders,
+import { DOWNLOAD_NOTE_WORDS, downloadFraction, failedStartLine, INSTALL_WORDS, stillLine, MAP_CREDITS, MOBILE_DATA_WORDS, mobileDataDecision, installLine, SETUP_WORDS, setupFraction, setupLine, netBanner, progressWords, rolledBackLine, splashLineFor, startStage, updatedToast, UPDATE_LOG_WORDS, UPDATE_WORDS, versionHeaders,
          versionLine, dataProvenanceLine, now as clockNow } from "@app/core";
 import { createNet, shareFetch, createReportOutbox, createUpdateLog, createUpdateService, phoneNetwork, versionedFetch, httpFeed, gaugeHistory, httpInSeason, httpRunTiming, httpSalmonFeed, manifestDate, noteHeld, followSavedItems, openRunTimingStore,
          type Held, type UpdateService, type WaterSource } from "@app/data";
@@ -32,7 +32,7 @@ import { fillDayFlow, onVisit, visitIdOf, storedHydat, openLayerStore, openLikeS
          type DayFlowAnswer, type Spot } from "@app/data/spots";
 import { Button, connectivity, ErrorState, LoadingState, SayingLine, setSynopsisNet, setSynopsisSource, Shell, StageBar, THEMES, UpdateToast, type ThemeName,
          platformLine, type ShellProps, type UpdatesLogControls } from "@app/ui-native";
-import { LayoutWidthContext, liveFetch, NetRoot, useNet, useNetActivity, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, createCrashReporter, createCrashSetting, CrashSettingRoot, NotifyRoot, AlertLinesRefresh, installCrashHandlers, installId, reportPastExits, crashWhere, useRefreshOnReconnect, useReleaseBoot, useSpots, type MapTiles,
+import { LayoutWidthContext, liveFetch, NetRoot, useNet, useNetActivity, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, createCrashReporter, createCrashSetting, CrashSettingRoot, NotifyRoot, AlertLinesRefresh, installCrashHandlers, installId, reportPastExits, crashWhere, useRefreshOnReconnect, useDownloadStill, useReleaseBoot, useSpots, type MapTiles,
          DataProvenanceContext, loadRegsStore, reportFailure, startNeedsRelease, startNoticeLine,
          type AddressState, type PairingInput, type Route, type SpotPhotos, type StartLink, type StatusSource,
          useAppUpdate } from "@app/ui";
@@ -151,6 +151,20 @@ function BootNetLine({ colour }: { colour: string }) {
   return (
     <Text testID="boot-slow" style={{ color: colour, fontSize: 12, textAlign: "center", paddingHorizontal: 24 }}>
       {[said, progressWords(loaded, total)].filter(Boolean).join(" · ")}
+    </Text>
+  );
+}
+
+/**
+ * (T760) Under the first install's bar: said once the byte count has not moved for a minute (`useDownloadStill`), gone
+ * when it moves. `bytes` null: not downloading (no line).
+ */
+function BootStillLine({ bytes, colour }: { bytes: number | null; colour: string }) {
+  const { mode } = useNet();
+  if (!useDownloadStill(bytes)) return null;
+  return (
+    <Text testID="boot-still" style={{ color: colour, fontSize: 13, textAlign: "center", paddingHorizontal: 24 }}>
+      {stillLine(mode.offline)}
     </Text>
   );
 }
@@ -615,7 +629,7 @@ export default function App() {
                         retryLabel={bootUpdateVM.button?.label} retryTestID="boot-app-update-action" />
           ) : (
             <ErrorState palette={palette} size="body" align="center"
-                        message={tooOld ? failed : firstRunOffline ? INSTALL_WORDS.firstRunOffline : INSTALL_WORDS.again}
+                        message={tooOld ? failed : failedStartLine(failed, firstRunOffline)}
                         onRetry={tooOld ? undefined : retryBoot} retryLabel={INSTALL_WORDS.retry} retryTestID="boot-retry" />
           )}
           {APP_ENV.env === "local" && (
@@ -735,6 +749,8 @@ export default function App() {
                 {backgroundDownloads ? MOBILE_DATA_WORDS.closeOk : INSTALL_WORDS.wifi}</Text>}
             </>
           )}
+          {/* (T760) the download not moving for a minute: said (a start that never reported counts from 0 bytes) */}
+          <BootStillLine bytes={stage === "install" && !setup ? progress?.bytes ?? 0 : null} colour={palette.sub} />
           {setup && (
             <>
               <StageBar palette={palette} value={setupFraction(setup)} testID="boot-setup-bar" />

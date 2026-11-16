@@ -3,7 +3,8 @@
  * queued at once, kept across a relaunch (the app was closed), re-queued under the other mobile-data choice, a failed
  * job tried again, the finished file claimed onto the `.part` and verified (sha256) before it is renamed into place.
  */
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { INSTALL_WORDS, now as clockNow } from "@app/core";
 import { sha256Hex } from "../sha256";
 import { background, type BackgroundNative, type BgJob } from "./bgDownload";
 import { partDownload, type PartFill, type PartFs } from "./install";
@@ -23,19 +24,22 @@ function memFs(): PartFs & { files: Map<string, Uint8Array>; uri(p: string): str
 
 /**
  * A downloader whose jobs advance one step per `jobs()` poll: pending → running (half) → done (whole). `still()` true:
- * no job moves on this poll (a download caught mid-way, as a reopened app finds it).
+ * no job moves on this poll (a download caught mid-way, as a reopened app finds it). `hold(j)` true: the job is paused
+ * (the hook may set its reason and bytes); once it is false the job runs again. `tick`: each poll moves the clock on.
  */
 function fakeDm(fs: ReturnType<typeof memFs>, bodies: Record<string, Uint8Array>,
-                o: { failFirst?: boolean; hold?: (j: BgJob) => boolean; still?: () => boolean } = {}) {
+                o: { failFirst?: boolean; hold?: (j: BgJob) => boolean; still?: () => boolean; tick?: number } = {}) {
   const jobs = new Map<number, BgJob>();
   let next = 1, failed = 0;
   const log: string[] = [];
   const dm: BackgroundNative = {
     jobs: async () => {
+      if (o.tick) vi.setSystemTime(clockNow() + o.tick);           // (T760) each poll is `tick` ms later (a fake clock)
       for (const j of jobs.values()) {
         const body = bodies[j.url]!;
         if (o.still?.()) continue;
         if (o.hold?.(j)) { j.status = "paused"; continue; }
+        if (j.status === "paused") { j.status = "running"; continue; }   // a hold that ended: it runs again
         if (j.status === "pending") { j.status = "running"; j.total = body.length; j.bytes = body.length >> 1; }
         else if (j.status === "running") {
           if (o.failFirst && failed++ === 0) { j.status = "failed"; j.reason = 404; continue; }
@@ -153,7 +157,7 @@ describe("background (T298): the system's downloader carries the big files", () 
     await background(dm, fs, never).queue([{ url: URL, file: "basemap", bytes: BODY.length, path: "b" }], false);
     await dm.jobs();                                               // running on Wi-Fi
     still = true;
-    const again = background(dm, fs, never, { pollMs: 0, stuckMs: 0 });
+    const again = background(dm, fs, never, { pollMs: 0, wifiWaitMs: 0 });
     await again.queue([{ url: URL, file: "basemap", bytes: BODY.length, path: "b" }], true);   // kept (running)
     still = false; wifi = false;                                   // Wi-Fi drops: the kept job waits for it
     const said: string[] = [];
@@ -172,7 +176,7 @@ describe("background (T298): the system's downloader carries the big files", () 
     await background(dm, fs, never).queue([{ url: URL, file: "basemap", bytes: BODY.length, path: "b" }], false);
     await dm.jobs();
     still = true;
-    const again = background(dm, fs, never, { pollMs: 0, stuckMs: 60_000 });
+    const again = background(dm, fs, never, { pollMs: 0, wifiWaitMs: 60_000 });
     await again.queue([{ url: URL, file: "basemap", bytes: BODY.length, path: "b" }], true);
     still = false; held = 2;
     // the fake's paused job is set moving again by hand once the hold is over (it only advances pending / running)
@@ -226,5 +230,78 @@ describe("background (T298): the system's downloader carries the big files", () 
     await partDownload({ ...fs, hash: (p) => dm.sha256(fs.uri(p)) }, bg.fill)(URL, "f", want);
     expect(fs.files.get("f")).toEqual(BODY);
     expect(log).toEqual([]);
+  });
+});
+
+describe("background (T760): a system job that does not move is queued again, a few times, then the install fails", () => {
+  const MIN = 60_000;
+  const item = { url: URL, file: "basemap", bytes: BODY.length, path: "b" };
+  /** each poll a minute later on a fake clock; the fill's own waits are real (pollMs 0) */
+  const fakeClock = () => vi.useFakeTimers({ toFake: ["Date"], now: 0 });
+  afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); });
+  const run = async (o: Parameters<typeof fakeDm>[2], opts: Parameters<typeof background>[3] = {}) => {
+    fakeClock();
+    const fs = memFs(), f = fakeDm(fs, { [URL]: BODY }, { tick: MIN, ...o });
+    const said: string[] = [];
+    vi.spyOn(console, "info").mockImplementation((m: string) => { said.push(m); });
+    vi.spyOn(console, "warn").mockImplementation((m: string) => { said.push(m); });
+    const bg = background(f.dm, fs, never, { pollMs: 0, ...opts });
+    await bg.queue([item], true);
+    const done = partDownload({ ...fs, hash: (p) => f.dm.sha256(fs.uri(p)) }, bg.fill)(URL, "b", want);
+    return { ...f, fs, said, done };
+  };
+  const steps = (log: string[]) => log.map((l) => l.split(" ").slice(0, 2).join(" "));
+
+  it("a job paused 'waiting to retry' with no new byte for stuckMs is removed and queued again, said whole in the log", async () => {
+    // the first job sits paused (reason 1, PAUSED_WAITING_TO_RETRY) at 7 bytes; the one queued again runs
+    const r = await run({ hold: (j) => j.id === 1 && ((j.reason = 1), (j.bytes = 7), true) });
+    await r.done;
+    expect(r.fs.files.get("b")).toEqual(BODY);
+    expect(steps(r.log)).toEqual([`enqueue ${URL}`, "remove 1", `enqueue ${URL}`, "claim 2"]);
+    expect(r.said.filter((m) => m.includes("queued again"))).toEqual([
+      `[download] ${URL}: not moved for 600 s (paused, reason 1, 7 of ${BODY.length} bytes); removed and queued again from zero (1 of 2): the system cannot resume a removed download, those bytes are lost`]);
+  });
+
+  it("a job honestly waiting for a network (reason 2) or for Wi-Fi (reason 3) is never queued again, however long", async () => {
+    for (const reason of [2, 3]) {
+      let polls = 0;                                             // paused for two hours, then the network is back
+      const r = await run({ hold: (j) => polls++ < 120 && ((j.reason = reason), (j.bytes = 7), true) });
+      await r.done;
+      expect(r.fs.files.get("b")).toEqual(BODY);
+      expect(steps(r.log)).toEqual([`enqueue ${URL}`, "claim 1"]);
+      vi.useRealTimers(); vi.restoreAllMocks();
+    }
+  });
+
+  it("bytes that move start the clock again: a job that crawls is never queued again", async () => {
+    let polls = 0;                                               // paused between tries, a byte more every 5 minutes, 40 minutes long
+    const r = await run({ hold: (j) => polls++ < 40 && ((j.reason = 1), (j.bytes = Math.floor(polls / 5)), true) });
+    await r.done;
+    expect(steps(r.log)).toEqual([`enqueue ${URL}`, "claim 1"]);
+  });
+
+  it("a pending job the system never starts is treated the same", async () => {
+    // nothing moves until the job is queued a second time (then the fake starts it)
+    const box: { log?: string[] } = {};
+    const r = await run({ still: () => (box.log ?? []).filter((l) => l.startsWith("enqueue")).length < 2 });
+    box.log = r.log;
+    await r.done;
+    expect(steps(r.log)).toEqual([`enqueue ${URL}`, "remove 1", `enqueue ${URL}`, "claim 2"]);
+    expect(r.said.filter((m) => m.includes("queued again"))).toEqual([
+      `[download] ${URL}: not moved for 600 s (pending, reason 0, 0 of ${BODY.length} bytes); removed and queued again from zero (1 of 2): the system cannot resume a removed download, those bytes are lost`]);
+  });
+
+  it("after stuckTries re-queues that again do not move, the install fails with the reader's sentence (never an endless wait)", async () => {
+    const r = await run({ hold: (j) => ((j.reason = 1), true) });
+    await expect(r.done).rejects.toThrow(new Error(INSTALL_WORDS.stuck));
+    expect(INSTALL_WORDS.stuck).toBe("A file would not download after several tries. Check your connection, then tap Try again.");
+    expect(steps(r.log)).toEqual([`enqueue ${URL}`, "remove 1", `enqueue ${URL}`, "remove 2", `enqueue ${URL}`]);
+    expect(r.said.at(-1)).toBe(`[download] ${URL}: not moved for 600 s (paused, reason 1, 0 of ${BODY.length} bytes) after 2 times queued again; the install fails`);
+  }, 10_000);
+
+  it("both times are options: stuckMs and stuckTries", async () => {
+    const r = await run({ hold: (j) => ((j.reason = 4), true) }, { stuckMs: 3 * MIN, stuckTries: 0 });
+    await expect(r.done).rejects.toThrow(INSTALL_WORDS.stuck);
+    expect(r.said.at(-1)).toBe(`[download] ${URL}: not moved for 180 s (paused, reason 4, 0 of ${BODY.length} bytes) after 0 times queued again; the install fails`);
   });
 });

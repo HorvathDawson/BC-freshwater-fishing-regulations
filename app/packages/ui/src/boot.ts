@@ -37,6 +37,29 @@ export function setRegsFirstStart(on: boolean): void { regsFirst = on; }
 let startRegion: NonNullable<BootOptions["focus"]> | null = null;
 export function setStartRegion(r: NonNullable<BootOptions["focus"]> | null): void { startRegion = r; }
 
+/** (T760) After this long with the same byte count, the first install's screen says the download is not moving. */
+export const STILL_MS = 60_000;
+
+/**
+ * (T760) HAS THE DOWNLOAD STOPPED MOVING? True once `bytes` has been the same for `ms`; false again the moment it
+ * changes. `bytes` null: no download is being watched (another stage) — false, and the clock starts over when one is.
+ * The caller passes the install's byte count (0 before the first report: a start that never reported is not moving
+ * either). The progress callback fires on every poll with the same count while the system's jobs are paused, so the
+ * count, not the calls, is what is watched.
+ */
+export function useDownloadStill(bytes: number | null, ms = STILL_MS): boolean {
+  const mark = useRef<{ bytes: number; at: number } | null>(null);
+  const [still, setStill] = useState(false);
+  useEffect(() => {
+    if (bytes === null) { mark.current = null; setStill(false); return; }
+    let m = mark.current;
+    if (m?.bytes !== bytes) { m = mark.current = { bytes, at: now() }; setStill(false); }
+    const t = setTimeout(() => setStill(true), Math.max(0, m.at + ms - now()));
+    return () => clearTimeout(t);
+  }, [bytes, ms]);
+  return still;
+}
+
 export function useReleaseBoot(opts: BootOptions | null, generation = 0, attempt = 0): BootState {
   const [s, set] = useState<BootState>({ state: "loading", stage: "manifest", progress: null });
   const on = opts !== null;
