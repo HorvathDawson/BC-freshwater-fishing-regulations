@@ -109,7 +109,11 @@ async function mount(tab: "map" | "conditions", sid?: SectionId, loader?: Return
 const tapMap = async () => {
   await act(async () => { fireEvent.click(shownMap()!); });
 };
-const until = async (f: () => boolean) => waitFor(() => expect(f()).toBe(true));
+/** Waits for a LOAD (a tap or a step reads the release), so it carries this file's load deadline, as its twins in
+ *  apps/mobile do. (T751) It had testing-library's default 1 s: a step into another water holds the old view for up to
+ *  PANE_HOLD_MS (1.2 s) while the next loads, so a read slower than 1 s (a loaded CI runner) failed here with the old
+ *  view still up, "expected false to be true". The condition is what is waited for; the deadline only bounds a hang. */
+const until = async (f: () => boolean) => waitFor(() => expect(f()).toBe(true), { timeout: 20_000 });
 const titled = () => screen.queryByText("Chilliwack River") !== null;
 
 describe("one water screen, whichever map you tapped", () => {

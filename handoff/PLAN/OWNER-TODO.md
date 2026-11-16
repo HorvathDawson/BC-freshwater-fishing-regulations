@@ -1528,3 +1528,49 @@ More questions (recommended answer first):
   shown or would mislead, with a real water, the stored rows and the printed line for each; and, separately, printed
   rule shapes the data itself does not store. Its report goes to `handoff/PLAN/design/` and to him when it is back.
   Still mockups only: nothing is built.
+- Owner, 10:26, typed in chat (verbatim): "i want questions in batches from you directly instead". So: the questions
+  are asked in chat, as multiple-choice batches of up to four, most blocking first; the page stays as a reference
+  (pictures, background) and is not the way to answer. Each batch's answers are recorded below, verbatim.
+
+### Answers by batch (2026-11-16, question dialog in the main chat)
+- Batch 1, 10:27. Question 37 (wild-trout card sentences, T793): "Go as worded (Recommended)". Question 38 (does "no
+  wild trout over 40 cm" cover char on Dodd, Lois, Khartoum, Horseshoe, Nanton, Ireland, Windsor): "Trout and char
+  (Recommended)". Question 19 (the app chat's merge question): "Yes, one at a time (Recommended)" (the option read:
+  in the app chat's order: feed server first, then iPhone fixes, stuck download after an hour's emulator proof,
+  loading screen and speed work, backup, banner and stripe, push last; each with its own checks and a message to him
+  first). Question 14 (fewer, later checks; section H's proposal): "Yes, as proposed (Recommended)" (staging releases
+  still wait for GitHub's run; he did NOT pick "Yes, and skip the GitHub wait").
+- Batch 2, 10:33. Go-ahead for the fixes that put a printed rule back on the page (Peace below W.A.C. Bennett Dam;
+  Fraser, Kotcho and Cold Fish lakes and 15 Mile Swamp open with a note; powered boats; the smaller ones; four small
+  code fixes: T794, T795, T797, T783, T784, T785, T792 A): "Go on all (Recommended)" (shipped together with the
+  wild-trout fix in one staging release; the list of changed answers shown to him first). Question 6 (Cowichan
+  "including tributaries" mark): "Turn it off (Recommended)". Question 7 (Middle Shuswap): "Main river only
+  (Recommended)". Question 16 (Atnarko below the Tweedsmuir Park Lodge sign, side streams), typed: "this depends if
+  the name has tributraries included in it. if it doesnt then no tribs otrherwise yes tribs". My reading: a general
+  rule, not only this stretch: a DFO place takes its side streams when DFO's words for that place say tributaries,
+  and not otherwise.
+- Batch 3, 10:44. Atnarko follow-up (DFO's heading reads "Atnarko River including tributaries"; the stretch's own
+  line names only the sign: which words decide for a stretch?): "The heading counts". So the stretch below the
+  Tweedsmuir Park Lodge sign keeps its side streams, as saved (line 2584); and the rule for every DFO place: side
+  streams follow DFO's words, and a heading that says "including tributaries" counts for the stretches under it.
+  Question 2 (Fraser Region 3 mainstem), typed: "it is right if it is spuzzum to the 3/5 boundary now. ON THE
+  FRASER". Question 3 (Kanaka Creek, 112 Avenue bridge), typed: "keep it but add to gotcha". Question 4 (Kispiox, the
+  lodge at 13.7 km until DFO confirms), typed: "okay sounds good add to gotchas".
+- Batch 4, 10:50. Question 5 (Chemainus tidal boundary at 2.1 km), typed: "The tidal waters of the Chemainus River
+  and off the Chemainus River mouth, commencing at Bare Point on Vancouver Island to the light on North Reef, to
+  Sherard Point on Vancouver Island, thence following the shoreline northerly to a boundary sign on the Chemainus
+  River near the Bald Eagle Campground, thence across the river to the opposite bank, thence following the Vancouver
+  Island shoreline northerly to the point of commencement / check it agfainst this if it is wrong then let me
+  review". So: the main chat checks our 2.1 km point against "a boundary sign on the Chemainus River near the Bald
+  Eagle Campground"; if it does not match, it goes to him for review in the review app. Question 1 (Campbell River
+  near the mouth, three stretches): "They are right". Question 17 (Lower Shuswap, signs above Mara Bridge), typed:
+  "at the bridge but make sure the cut name has the fact signs are nearby". Question 27 (tell DFO the Shuswap closed
+  stretch's two points are 2,075 m apart where the words say one km), typed: "just add to gotchas that is all. might
+  be 1km as bird flies too". So: nothing goes to DFO; a gotcha entry, and the straight-line distance between the two
+  printed points is measured and noted.
+- 10:36, the adversarial trout review is back and saved: `handoff/PLAN/design/trout-adversarial-review-2026-11-16.md`.
+  Verdict "no, not yet": possession limits have no place in the design (at least 640 waters); the steelhead "stop
+  fishing this water" duty is hidden under "Licence rules" (2,957 waters); a wild limit shared across two boxes reads
+  as 4 where the book says 2 (Lois and Khartoum lakes; T793's sentences have the same split there, to check before
+  T793 ships); a fish in two shared limits (Kamloops Lake, Adams River) is drawn wrongly in the mock; the top line
+  understates on 89 waters; the year bar's gap touches 10,250 waters. Told to him in chat at 10:46.
