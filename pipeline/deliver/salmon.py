@@ -391,6 +391,25 @@ def rests_behind(placed: Iterable[dict], locs: Mapping[str, tuple], sid_of: Mapp
     return {k: frozenset(v) for k, v in after.items()}
 
 
+def dormant_listed(locations: Iterable) -> Dict[str, frozenset]:
+    """(T783, general audit 2026-11-16) A REST STANDS BEHIND ITS DORMANT LISTED PLACES TOO. A dormant place a rest
+    leaves out takes nothing out of it (`entries.rest_listing`, T761), so both cover the dormant place's stretch; the
+    reach row's `behind` names only the LIVE ones. The day DFO prints the dormant wording again the live feed gives it
+    rules, and it must answer before the rest there, as a live listed place does — so the release's chain puts it first
+    now (Stamp River chains 20, 55, 56: the 2-section rest sorted before the 7-section "upstream of signs at Girl
+    Guide"). Rest id -> its dormant listed places, among one region's `locations` (a place with no binding: none)."""
+    from pipeline.regs.dfo_salmon import entries as E
+    locs = [l for l in locations if getattr(l, "binding", None) is not None]
+    by_id = {l.location_id: l for l in locs}
+    out: Dict[str, frozenset] = {}
+    for l in locs:
+        if any(getattr(e.op, "value", e.op) == "rest" for e in l.binding.extents):
+            got = E.rest_listing(l, by_id)["dormant"]
+            if got:
+                out[l.location_id] = frozenset(got)
+    return out
+
+
 def rest_after(key: Sequence[str], after: Mapping[str, frozenset]) -> Tuple[str, ...]:
     """(T761) The chain with each rest-of place moved to just AFTER the last of its listed places in it — whatever the
     sizes or ids (a listed stretch with its side streams can be larger than the rest). Elsewhere (none of its listed
@@ -835,6 +854,11 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
             if binds(lid, sid):
                 covering[sid].append(lid)
     after = rests_behind(placed, locs, sid_of, covering, binds, missing)
+    # (T783) and behind its dormant listed places, where both cover a section (`dormant_listed`)
+    for _slug, ef in sorted(entry_files.items()):
+        for rest, dormant in dormant_listed(ef.locations).items():
+            if rest in locs:
+                after[rest] = after.get(rest, frozenset()) | frozenset(d for d in dormant if d in locs)
     if missing:
         raise SalmonError(f"salmon: {len(missing):,} placed sections are not in the handle table (e.g. {missing[:3]}) "
                           "— the reach run and this atlas are not the same build")
