@@ -1,6 +1,6 @@
 # T764 — App tests leave their temp folders behind (184 GB in three days; the disk filled on 2026-11-15)
 
-Status: IN PROGRESS (left (Claude): build on branch `app-fix/t764-test-temp`, prove with a before/after folder count, land).
+Status: IN PROGRESS (on the shared branch as e62331249 since 2026-11-15 23:54, `check:fast` clean; left (Claude): the whole app test suite with the run folder in place (the fast-fail before the Play build), clear the Maestro output after the benches).
 
 Source: the main chat, 2026-11-15 23:50, after the Mac's disk filled at about 23:38 (1.3 GB free) and stopped a
 night's work for an hour. Area: the app chat (app tests and tools).
@@ -30,7 +30,7 @@ One mechanism for every app test, not thirty edits:
 (`cdp.mjs` `close()` already removes its Chrome profile folder; its 13 left-over folders are from runs that were
 killed, and under vitest they now lie in the run's folder.)
 
-## Built (branch `app-fix/t764-test-temp`), 2026-11-15 23:55
+## Built (branch `app-fix/t764-test-temp`), 2026-11-15 23:52
 - `app/tools/test-tmp.ts` + `test-tmp.test.ts` (3 tests), `globalSetup` in both vitest configs, `nodeOpener()` exit
   clean-up.
 - Measured on this Mac: five test files that open the regs fixture (67 tests, both projects): loose `release-open-*`
