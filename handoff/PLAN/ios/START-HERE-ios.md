@@ -1,13 +1,26 @@
-# iOS hardening: start here (written 2026-11-14)
+# The app chat: start here (iOS hardening page, written 2026-11-14; since 2026-11-15 the page of THE APP CHAT)
 
 ## RESTART HERE (written 2026-11-15 20:47 for a NEW iOS chat; everything below this section is history, newest notes are NOT at the top there)
 
-**Who you talk to.** The main (Android + data) chat is session `bc-freshwater-fishing-regulations-17` (it took over
+**This chat is THE APP CHAT (owner 2026-11-15 about 21:55, relayed word for word by the main chat: "it is the andorid
+and ios chat now not just ios. it is just the app chat."):** the Android and iOS app, the feeds worker, the app-side
+tickets, Android bugs and phone fixes the owner reports, and the Play build. Data, pipeline, review app, releases and
+the audits stay with the main chat, which keeps out of the app folder except what the release command re-cuts. Where
+this page says "iOS chat" below, read "app chat". Session since 2026-11-15 21:27: `bc-freshwater-fishing-regulations-01`.
+
+**Who you talk to.** The main (data) chat is session `bc-freshwater-fishing-regulations-17` (it took over
 from chat 13 on 2026-11-15 evening; its page: `handoff/PLAN/NEXT-SESSION-after-chat13.md`). Tell it your session name
 first. It messages you BEFORE and AFTER any staging release.
 
-**Tonight's order of the main chat:** CI + push of three commits, a marks audit, a side rebuild + promote + staging
-release + site build, then the Play build 0.7.11 with R8, a Skeena review, an audit.
+**Tonight's order of the main chat (as of 21:50):** two fix lanes for the second-look findings and a re-check of every
+DFO extent, one more side atlas build, promote, `pipeline build`, the staging release + site build ("before" message
+expected about 00:50), then it names the Play build head. **The Play build 0.7.11 with R8 is now THIS chat's:** on the
+named head run the bench-diff check (section 1), fast-fail the way the build does
+(`FAST_FAIL_BASE=$(cat app/dist/apk/last-play-sha) FAST_FAIL_ALL=1 CANIFISHTHIS_R8=1 MLN_LOCAL_MAVEN=$PWD/cache/maplibre/fslean-m2 scripts/fast-fail.sh`),
+both CIs green (`scripts/ci_status.py`), then
+`HEAVY_LOCK=$HOME/.claude/heavy-job-3.lock CANIFISHTHIS_R8=1 deploy/staging/build-apk.sh --play` (never
+`--no-fast-fail` / `--no-ci-check`); report version code, AAB size and whether the R8 mapping file was kept to the main
+chat and onto the owner's row `t749-r8-phone-walk`.
 
 ### 1. What you may be asked for at any moment
 - **After a staging release: redeploy the staging feeds worker** from branch `ios/staging-worker` (173867c4c, on
