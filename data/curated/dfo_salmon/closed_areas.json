@@ -2,6 +2,156 @@
  "_about": "THE CLOSED AREAS THE OWNER CONFIRMED (T573): one record per closed area of a DFO row's entry B — a stretch between two cuts or a circle (centre + radius), `pipeline.regs.dfo_salmon.closures.PieceGeometry`. Written only by the review marks (scope closed_area, `python -m pipeline.regs.review.apply closed_areas`). A record whose item DFO no longer names stays here and is read as not live. The reach run binds the live ones (`pipeline.atlas.reach.dfo_salmon.resolve_closures`) and the bundle ships them (T573 build step).",
  "pieces": [
   {
+   "key": "00673ca0afe5",
+   "water_id": "3:thompson-river",
+   "name": "Deadman",
+   "item": "Deadman - from the fishing boundary signs approximately 1 km downstream of the Hwy No. 1 Bridge at Savona to the CN rail bridge approximately 500 m downstream of the confluence with Deadman Creek.",
+   "kind": "stretch",
+   "on_item": "gnis:39492",
+   "points": [
+    {
+     "kind": "new",
+     "split_id": "thompson_deadman_upper_signs"
+    },
+    {
+     "kind": "split",
+     "split_id": "thompson_river__cnr_bridge"
+    }
+   ],
+   "new_splits": [
+    {
+     "ref": "thompson_deadman_upper_signs",
+     "anchor": "bridge",
+     "name": "Deadman closed area, upper signs: 1 km downstream of the Hwy 1 bridge at Savona",
+     "on_item": "gnis:39492",
+     "coord": [
+      -120.872177,
+      50.75627
+     ],
+     "offset_m": -1000,
+     "confidence": "medium",
+     "quote": "Deadman - from the fishing boundary signs approximately 1 km downstream of the Hwy No. 1 Bridge at Savona",
+     "note": "bridge point: BC MoTI road structure 'SAVONA' (Hwy 1) over the Thompson, 50.75654,-120.87265; the cut is 1,000 m down the river from it ('approximately' is DFO's word)",
+     "blk": "356364690",
+     "measure": 117608.5
+    }
+   ],
+   "confidence": "medium",
+   "note": "",
+   "confirmed_by": "Claude (for Dawson)",
+   "confirmed_on": "2026-11-15"
+  },
+  {
+   "key": "5adc77c1f78d",
+   "water_id": "3:thompson-river",
+   "name": "Juniper",
+   "item": "Juniper - from the fishing boundary signs approximately 1.5 km downstream from Juniper Beach Park downstream approximately 4 km to the fishing boundary signs located at 50°46.893' N and 121°08.110' W.",
+   "kind": "stretch",
+   "on_item": "gnis:39492",
+   "points": [
+    {
+     "kind": "new",
+     "split_id": "thompson_juniper_upper_signs"
+    },
+    {
+     "kind": "new",
+     "split_id": "thompson_juniper_lower_signs"
+    }
+   ],
+   "new_splits": [
+    {
+     "ref": "thompson_juniper_upper_signs",
+     "anchor": "sign",
+     "name": "Juniper closed area, upper signs: 4 km upstream of its lower signs",
+     "on_item": "gnis:39492",
+     "coord": [
+      -121.133959,
+      50.780911
+     ],
+     "offset_m": 4000,
+     "confidence": "low",
+     "quote": "Juniper - from the fishing boundary signs approximately 1.5 km downstream from Juniper Beach Park downstream approximately 4 km to the fishing boundary signs located at 50°46.893' N and 121°08.110' W.",
+     "note": "placed 4,000 m up the river from DFO's own coordinate for the lower signs (owner 2026-11-15 night: \"if the book says 4km then we put it 4km\"); the other reading (1.5 km below Juniper Beach Park) is not used",
+     "blk": "356364690",
+     "measure": 93015.9
+    },
+    {
+     "ref": "thompson_juniper_lower_signs",
+     "anchor": "sign",
+     "name": "Juniper closed area, lower signs (50°46.893' N 121°08.110' W)",
+     "on_item": "gnis:39492",
+     "coord": [
+      -121.133959,
+      50.780911
+     ],
+     "confidence": "high",
+     "quote": "the fishing boundary signs located at 50°46.893' N and 121°08.110' W",
+     "note": "DFO's own coordinate (50.78155, -121.13517), 111 m from the river's line",
+     "blk": "356364690",
+     "measure": 93015.9
+    }
+   ],
+   "confidence": "low",
+   "note": "upper signs 4 km above DFO's printed lower signs: owner 2026-11-15 night, \"if the book says 4km then we put it 4km unless i had another split it already matched??\"; no cut exists at or near that spot (Thompson blk 356364690: lower signs m 93,016, upper m 97,016; nearest curated cuts m 81,551 and m 112,992; the atlas length break 'Battle Creek' at m 94,206 is a section break, not a sign), so a new cut",
+   "confirmed_by": "Claude (for Dawson)",
+   "confirmed_on": "2026-11-15"
+  },
+  {
+   "key": "c76883c57564",
+   "water_id": "3:thompson-river",
+   "name": "Ashcroft",
+   "item": "Ashcroft - from the fishing boundary sign at the upstream side of the mouth of the Bonaparte River to Hwy 97C bridge in Ashcroft.",
+   "kind": "stretch",
+   "on_item": "gnis:39492",
+   "points": [
+    {
+     "kind": "new",
+     "split_id": "thompson_bonaparte_mouth"
+    },
+    {
+     "kind": "new",
+     "split_id": "thompson_ashcroft_hwy_97c_bridge"
+    }
+   ],
+   "new_splits": [
+    {
+     "ref": "thompson_bonaparte_mouth",
+     "anchor": "confluence",
+     "name": "Bonaparte River",
+     "item_id": "gnis:38393",
+     "on_item": "gnis:39492",
+     "confidence": "high",
+     "quote": "Ashcroft - from the fishing boundary sign at the upstream side of the mouth of the Bonaparte River",
+     "note": "the Bonaparte's mouth on the Thompson (FWA)",
+     "blk": "356364690",
+     "measure": 80683.1,
+     "coord": [
+      -121.258053,
+      50.738875
+     ]
+    },
+    {
+     "ref": "thompson_ashcroft_hwy_97c_bridge",
+     "anchor": "bridge",
+     "name": "Hwy 97C bridge in Ashcroft",
+     "on_item": "gnis:39492",
+     "coord": [
+      -121.281673,
+      50.726878
+     ],
+     "confidence": "high",
+     "quote": "to Hwy 97C bridge in Ashcroft",
+     "note": "BC MoTI road structure 'ASHCROFT' (Hwy 97C) over the Thompson, 50.72701,-121.28188",
+     "blk": "356364690",
+     "measure": 78341.6
+    }
+   ],
+   "confidence": "medium",
+   "note": "",
+   "confirmed_by": "Claude (for Dawson)",
+   "confirmed_on": "2026-11-15"
+  },
+  {
    "key": "200d03a74aaf",
    "water_id": "8:shuswap-river",
    "name": "the water survey station to WTFB signs",
@@ -15,29 +165,29 @@
     },
     {
      "kind": "new",
-     "split_id": "shuswap_closed_wtfb_as_printed"
+     "split_id": "shuswap_closed_station_as_printed"
     }
    ],
    "new_splits": [
     {
-     "ref": "shuswap_closed_wtfb_as_printed",
+     "ref": "shuswap_closed_station_as_printed",
      "anchor": "coord",
      "on_item": "gnis:25478",
-     "name": "Shuswap closed stretch, the point DFO prints for the WTFB signs (50°18.181' N 118°49.105' W)",
+     "name": "Shuswap closed stretch, the point DFO prints for the water survey station (50°19.105' N 118°48.857' W)",
      "coord": [
-      -118.818314,
-      50.30304
+      -118.814453,
+      50.318456
      ],
      "confidence": "low",
-     "quote": "to WTFB signs (located at 50°18.181' N and 118°49.105' W) one km down stream",
-     "note": "DFO's coordinate as printed (50.3030167, -118.8184167), 8 m from the river line, km 135.13 — 27 m from WSC gauge 08LC003 (50.30278, -118.81861): this point is the station, not signs 1 km below it",
+     "quote": "the water survey station ( located at 50°19.105' N and 118°48.857' W) approximately 200 m down stream of Shuswap Falls Hatchery",
+     "note": "DFO's coordinate as printed (50.3184167, -118.8142833), 13 m from the river line, km 133.08. It is 2 km BELOW the real WSC station 08LC003 (km 135.13): see the piece's note",
      "blk": "356363194",
-     "measure": 135134.5
+     "measure": 133080.2
     }
    ],
    "confidence": "low",
    "note": "CHECK: DFO's printed points look SWAPPED against its words. The river flows north here (Shuswap Falls km 136.5 → Mabel Lake), so 'downstream' is north. The point printed for the water survey station (50°19.105' N) is the NORTH (downstream) one, at km 133.08; the point printed for the WTFB signs (50°18.181' N) is 27 m from WSC gauge 08LC003 'Shuswap River near Lumby' at km 135.13 — that is the water survey station. Between them is 2.05 km of river, not 'one km'. Stored as printed; the alternative end reads it as station → 1 km below.",
-   "confirmed_by": "Dawson",
+   "confirmed_by": "Claude (for Dawson)",
    "confirmed_on": "2026-11-15"
   }
  ]
