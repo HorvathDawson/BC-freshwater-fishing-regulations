@@ -11705,7 +11705,12 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "wbk:329026676"
+          }
+        ],
         "tributaries": false,
         "tributaries_only": false,
         "tributary_excludes": [],
