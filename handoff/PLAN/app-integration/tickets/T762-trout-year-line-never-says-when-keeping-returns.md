@@ -1,6 +1,9 @@
 # T762 — The trout "Through the year" line stops at the next closure and never says when keeping returns ("…Then closed from Oct 1.")
 
-Status: OPEN (app chat; core composition. The new wording is the owner's to confirm, and the trout display redesign under review may replace this line: build with or after his pick).
+Status: IN PROGRESS (left (Claude): the app chat's lane on branch `app-fix/t762-year-line`, started 2026-11-15 22:50; then the wording to the owner as a proposal, the Android benches, merge after the Play build of 0.7.11).
+
+Owner 2026-11-15 about 22:48 (relayed word for word by the main chat): "Do not hold stuff for the trout redosgn. That is a separate
+exploration thing that might not go anywhere". So this is NOT held for the trout display pick.
 
 Source: trout display review 2026-11-15, data note 2 (`handoff/PLAN/design/trout-display-review-2026-11-15.md`); traced
 read-only by the app chat on release r-f749475d0962, 2026-11-15 22:45.
