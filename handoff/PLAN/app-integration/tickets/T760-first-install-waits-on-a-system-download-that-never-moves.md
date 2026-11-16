@@ -70,3 +70,29 @@ Depends: T756 (same file; land together or after). Size: M. On the list for the 
   followed by `install(...)` up to the first file's first log line. To find first: what in that stretch reads the
   network or the downloader without a time limit. The bench now keeps the app's and the downloader's logs when this
   happens (`T756-stalled-logs.txt` in the run folder).
+
+## Added 2026-11-15 late (new iOS chat): the second silent wait is found and fixed on the branch
+- **Where it waited.** "36.7 of 479.3 MB" is exactly the small data files up to `salmon-4` (the phone's 31 files in
+  name order sum to 36.67 MB there; "10.5 MB", where the app was closed, is the sum through `core`). So after the
+  reopen the app was fetching `salmon-5` (116 kB on the wire) ITSELF: the small files are fetched one by one in
+  `installNow` before the big files' `fill` logs its first line. Not the system downloader, not `queue`.
+- **Why it never ended (read in the code, then proven by a test that hangs on the old code).** The app's fetch is
+  `shareFetch` (T265) over expo's fetch. `fetchResilient` cuts a try by aborting its own signal after 20 s without a
+  byte; `shareFetch` runs the request under its OWN signal and, once the headers arrive, drops the asker's abort
+  listener, so the abort reached nothing; React Native's OkHttp has no read timeout ("No timeouts by default"). A body
+  that stalled after its headers was read for ever, with no log line. The emulator's line stalls mid-body often (the
+  system downloader's "Failed reading response: SocketTimeoutException" of the same hour).
+- **Not proven:** that this is what happened in run 2026-11-16T01-49-33 (its logs were not kept). A second silent path
+  exists and would look the same for up to about 4.5 minutes: no answer at all, 4 tries of 20 s with no log line, then
+  the start fails and `App.tsx` starts it again twice without showing anything. The fix below makes both say so.
+- **Fix, branch `fix/t756-keep-running-job` d4eed7594 (not merged):** `net/fetch.ts` races every wait on the transport
+  against the try's abort and cancels a cut body's reader; `net/share.ts` hands the last asker the response itself
+  (the others a clone), so that cancel closes the connection (before, an unread original kept it open and buffered
+  each file twice); `install.native.ts` logs `[download] try N failed (why); trying again in X ms`. Six new tests, each
+  failing with its part removed; `check:fast` and the 2,279 related tests pass. This touches every release-file fetch
+  on phone and web (shared `packages/data`), so it needs the Android benches and the main chat's word before merging.
+- **Still open here:** works 2 and 3 (a paused system job with no new bytes is queued again after N minutes; the setup
+  screen says when nothing moves) wait for the Android chat's N and count. The two silent automatic restarts of a
+  failed start in `App.tsx` are untouched (they log `[boot] start failed`, the screen shows nothing until the third).
+- **Bench:** three `bg-install` runs of d4eed7594 on the emulator (lane 2) started 2026-11-15 21:54; result goes here.
+

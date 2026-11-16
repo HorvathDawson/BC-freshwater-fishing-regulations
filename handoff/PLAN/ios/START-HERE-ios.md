@@ -29,7 +29,7 @@ release + site build, then the Play build 0.7.11 with R8, a Skeena review, an au
 | Ticket | Branch @ head | State |
 |---|---|---|
 | T749 R8 | merged (35dce9bf3) + 0f32e4b0f | on the shared branch, flag off by default; Play build not made yet |
-| T756 reopen keeps downloads + T760 bench | `fix/t756-keep-running-job` @ 0a17e1fe5 | NOT ready: `bg-install` passed 8/8 once, failed once on the same code (app silent > 284 s after a reopen; cause not found) |
+| T756 reopen keeps downloads + T760 bench + T760 stalled-fetch fix | `fix/t756-keep-running-job` @ d4eed7594 | NOT ready: the silent wait after a reopen is found and fixed on the branch (a small file's fetch that stalls after its headers was never cut; T760 ticket, "Added 2026-11-15 late"); three `bg-install` runs of d4eed7594 started 21:54 on lane 2 |
 | T757 worker (closed areas emitted) | `feeds/t757-worker-pieces` @ 230ad909d | LIVE ON STAGING |
 | T757 app (minimum feed shape) | `app/t757-min-feed-shape` @ fa0c7a1c5 | written, tested |
 | T757 app, first try | `app/t757-piece-not-known` @ a5af25920 | ABANDONED (the owner ruled out "not known"); never merge |
@@ -70,8 +70,10 @@ benches where it touches shared app code and a message to the main chat first; e
    unchanged page (not re-typed by the worker) carries its issues from the last feed. NOT deployed to staging, and by the main
    chat's word of 2026-11-15 evening it is NOT to be deployed until T759 merges (after the Play build is uploaded and
    the owner has seen the banner pictures): across the staging release, redeploy only `ios/staging-worker` 173867c4c.
-2. T760: find what the app waits on between `[download] mobile data: go` and the first file's first line after a
-   reopen (`boot.ts`: `await queue(metered)` then `install(...)`). The bench keeps `T756-stalled-logs.txt` on a failure.
+2. (Found 21:50 by the new iOS chat, session `bc-freshwater-fishing-regulations-01`.) T760: the app waited on its own
+   fetch of a small data file (`salmon-5`), stalled after its headers and never cut: `shareFetch` drops the asker's
+   abort once headers arrive and Android's HTTP client has no read timeout. Fixed on `fix/t756-keep-running-job`
+   d4eed7594 with tests; the emulator bench is running. Left of T760: works 2 and 3 (need the main chat's N and count).
 3. The line looks and banner pictures for the owner (web build of the T759 app branch on a real river).
 
 ### 5. What went wrong today, so it is not repeated (also in memory)
