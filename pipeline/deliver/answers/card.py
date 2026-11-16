@@ -348,8 +348,14 @@ def _duty_band(r, lo: float, hi: float) -> str:
     if len(held) > 1:
         raise common.AnswersError(f"answers: {r.key} limits a yearly limit or record duty to {len(held)} bands; "
                                   "the duty words say one")
-    a, b = held[0].get("min_cm") or 0, held[0].get("max_cm")
-    b = INF if b is None else b
+    # the bound comes from THE ONE reader of a rule's size shape (`display.rule.size_shape`, `test_one_size_shape.py`):
+    # a duty's band is a keeping range with a bottom and no top ("over 50 cm"); any other shape is refused, never guessed
+    from pipeline.deliver.answers.display.rule import size_shape
+    a = size_shape(r.x.get("lengths"))["min"]
+    if a is None:
+        raise common.AnswersError(f"answers: {r.key} limits a yearly limit or record duty to a length band that is not "
+                                  "'over a size' (a bottom and no top); the duty words cannot say it")
+    b = INF
     if a <= lo and b >= hi:
         return ""
     sides: Dict[float, str] = {}
