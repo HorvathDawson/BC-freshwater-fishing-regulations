@@ -132,5 +132,5 @@ Depends: T756 (same file; land together or after). Size: M. On the list for the 
 - **Open, owner's pick (To-Do row `t760-download-words`, second pick):** on a line dead for minutes the app now stops
   on the failure screen and waits for a tap, while the system downloads carry on by themselves once the line is back.
   Proposal: for a failure that is the connection's, keep trying by itself (every minute) while showing the same words.
-- Round 2 (started 22:36): `install` x1 and `bg-install` x3 on `fix/t760-stuck-download` with the probe.
+- Round 2 (started 22:31): `install` x1 and `bg-install` x3 on `fix/t760-stuck-download` with the probe.
 

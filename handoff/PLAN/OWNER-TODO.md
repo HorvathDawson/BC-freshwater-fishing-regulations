@@ -278,7 +278,10 @@ with the default Claude uses until you answer). Newest first inside each section
   existing "Offline — this will load when you’re back online"; when it gives up, above Try again, "A file would not
   download after several tries. Check your connection, then tap Try again." Numbers are Claude's defaults (1 minute,
   10 minutes, 2 restarts: the give-up words after about 30 minutes). Unit-tested only; emulator runs before any merge.
-  Answer: yes as written / your changes.
+  SECOND PICK (added 22:31, from the first emulator runs): when the connection is dead for minutes the app now says
+  so and stops on its failure screen with Try again, and waits for the tap even after the connection is back. Pick:
+  (a) keep trying by itself about once a minute while showing the same words (Claude's suggestion) / (b) leave it.
+  Answer: the words (yes as written / your changes), and a or b.
 - **NEW 2026-11-15 16:08 (iOS chat; yours, later, no decision needed now): production feeds worker deploy.** Two
   worker fixes are live on STAGING only: T758 (waters covered only by a region's default salmon rule show DFO's own
   sentence under live data again, not a generic "Not opened by DFO" line; the status was right all along) and T757
