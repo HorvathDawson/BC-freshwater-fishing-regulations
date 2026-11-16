@@ -119,3 +119,18 @@ Depends: T756 (same file; land together or after). Size: M. On the list for the 
   case shows the same "carries on by itself" line (true, but not its own words); merge with T756 after the benches
   and a message to the main chat.
 
+## Bench round 1, 2026-11-15 21:54–22:29 (d4eed7594, `bg-install` x3, lane 2, `--crash-stub --no-r2`): 2 PASS (8/8), 1 FAIL at the reopen step
+- **The failed run (2026-11-16T04-55-15) is the fix working on a dead line, not a silent wait.** After the reopen the app
+  logged `[download] try 1 failed (…down-….sqlite.gz: no answer in 20000 ms); trying again in 972 ms`, try 2, try 3,
+  then `[boot] start failed`, two manifest tries (`no answer in 5000 ms`), and ended on the failure screen ("The first
+  start needs a connection… Try again"). The kept downloader log shows why: from 20:58:44 to at least 21:04:23
+  (emulator time) BOTH system downloads timed out on every try (SocketTimeoutException, WAITING_TO_RETRY, five rounds,
+  waits of 45, 58, 60 and 71 s between them). The line was dead for five and a half minutes or more.
+- Not known: whether the Mac's line was dead too or only the emulator's. Round 2 adds a line probe to the stalled step
+  (Mac and emulator, status code and bytes) so the bench says so itself.
+- The two passing runs logged no failed try (map up 481 s and 278 s after the reopen).
+- **Open, owner's pick (To-Do row `t760-download-words`, second pick):** on a line dead for minutes the app now stops
+  on the failure screen and waits for a tap, while the system downloads carry on by themselves once the line is back.
+  Proposal: for a failure that is the connection's, keep trying by itself (every minute) while showing the same words.
+- Round 2 (started 22:36): `install` x1 and `bg-install` x3 on `fix/t760-stuck-download` with the probe.
+
