@@ -45,6 +45,23 @@ would show such a closed area as open. Nothing binds today. I take it as T757 wh
 (`handoff/PLAN/app-integration/tickets/T573-files/worker-handoff.md`); I asked for a mechanical guard (the release
 refuses when the worker does not report the new feed shape) and for the app to say "not known" instead of "open".
 
+**Added later the same evening (about 20:50), after the owner's T759 decision was written up by the Android chat
+(`origin/data/t759-missing-place-check`, ticket rewritten there):**
+- T757's app half is replaced: `app/t757-min-feed-shape` fa0c7a1c5 (a release that binds a closed area + a feed that
+  does not say `dfo.pieces >= 1` → the release's own salmon calendar, said on the card, reported once);
+  `app/t757-piece-not-known` is abandoned. Deploy refusals: `deploy/t757-worker-shape-refusal` 05383894d (staging and
+  production feeds deploy refuse a worker going backwards; `RELEASES_DIR` names the release folder from another
+  checkout; `pieces_gate.py` additions wait for the Android chat's review).
+- T759 app half: `app/t759-issues` 478896b84 (on top of the branch above): `issues` parsed, one banner per issue on
+  every stretch of the water through its registry items, DFO's rows verbatim, no status or colour change; `undrawn`
+  already "not mapped", a region not read, and no feed all show nothing. Words are a proposal on the owner's row
+  `t759-banner-words`. NOT built: the stream line's "issue" look; `salmonIssueItems(payload)` gives the items for it.
+  OWED TO THE OWNER AS PICTURES: the banner on a real river and two or three line looks.
+- T759 worker half + T757 item 5: lane running on `feeds/t759-issues` when this was written (issues, drift applied,
+  feed shape in index.json, issue counts in `/status.json`, the old "check" verdict removed). Check its report first.
+- `no_water` issues (a water no entry knows): shown nowhere in the app, by the Android chat's ruling; the owner's
+  notice covers them.
+
 **State 20:02, 2026-11-15 (evening; the owner is back and reviewing in the review app). Newest first.**
 1. **Build 33 (R8, Play internal): NOT built yet; nothing is wrong, it waits for a quiet shared head.** The owner
    answered the blocking item ("Yes regenerate proposals if you need to"); two more stops followed and are fixed (an

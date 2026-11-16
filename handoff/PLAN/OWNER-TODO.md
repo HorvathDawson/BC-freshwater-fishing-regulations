@@ -250,6 +250,19 @@ with the default Claude uses until you answer). Newest first inside each section
   **State 2026-11-15 14:44: planned for tomorrow.** The line is still down (30–46 bytes a second since 13:04). The
   Android chat lands its desktop split (T752) on the shared branch first, so all six checks are re-run on that new
   head with the shrinker on before the build. If the line recovers today the sixth check is still re-run today.
+- **NEW 2026-11-15 evening (iOS chat, T759 + T757; PROPOSAL, words only; To-Do row `t759-banner-words`): the banner's
+  words for a DFO rule not matched on a river.** From your decision (no "not known" status; a banner on every stretch
+  quoting the unmatched rule; a different look for the line). Written on a branch (the app half of T759), not merged; no
+  status or colour changes; on today's pages it shows nowhere (all 8 cases are already "parts not mapped").
+  Title: "A DFO rule to check on this water". New rule not placed: "DFO lists a rule for this water that this app has
+  not placed on the map yet. It may apply here:". Close match not confirmed: "DFO reworded a rule for this water. The
+  app applies it where the earlier wording was; that has not been confirmed yet:". Reworded closed area: "DFO
+  reworded a closed area on this water. The app has not placed the new wording yet:". Closing line: "Check DFO's page
+  for where it applies before you fish." Between lead-in and closing: DFO's own area and rule, as printed. Sits above
+  the species table. Also new (T757), shown when the latest DFO check cannot be used with the app's data: "The latest
+  DFO check could not be used with this app's data, so the DFO rules this data was built with are shown. Check DFO's
+  page before you fish." OWED TO YOU AS PICTURES before anything ships: the banner on a real river, and two or three
+  looks for the stream line (a variation like the bait-ban one, same colour).
 - **NEW 2026-11-15 16:08 (iOS chat; yours, later, no decision needed now): production feeds worker deploy.** Two
   worker fixes are live on STAGING only: T758 (waters covered only by a region's default salmon rule show DFO's own
   sentence under live data again, not a generic "Not opened by DFO" line; the status was right all along) and T757
