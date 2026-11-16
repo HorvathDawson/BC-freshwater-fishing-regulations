@@ -3,7 +3,8 @@
 One page, one pointer (T437): a new chat reads, in order,
 
 1. `AGENTS.md` (every rule), then `CLAUDE.md`.
-2. The newest restart page: **`handoff/PLAN/NEXT-SESSION-after-chat12.md`** (it replaces `NEXT-SESSION-after-chat11.md`).
+2. The newest restart page: **`handoff/PLAN/NEXT-SESSION-after-chat13.md`** (it follows `NEXT-SESSION-after-chat12.md`, kept because
+   its code-review flag list is still cited).
 3. The top entry of `handoff/PLAN/STATUS.md` (what changed last), and `handoff/PLAN/OWNER-TODO.md` (what only the
    owner can do).
 4. The work list: `handoff/PLAN/app-integration/tickets/README.md` (the ledger; tickets are the sole source of work).

@@ -8,6 +8,17 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+
+## 2026-11-15 (chat 13 end): DFO labelling done; clean-up, side rebuild, review-app fixes; handed to a new chat
+- Owner finished labelling the DFO places (2,769 mark lines). Restart page: `NEXT-SESSION-after-chat13.md`.
+- Landed: review-app fixes and follow-ups (T755), marks audit command, closed-area build step (T573), lake loops
+  (T753), desktop split map (T752), Kotcho/Seton/dead-end walk fixes, 23 new cuts + cleaned duplicates; atlas, tiles
+  and reach promoted locally; bundle and LATEST still r-f749475d0962. Staging: worker serves closed-area pieces and
+  the region-default sentences (T757, T758).
+- Not done: final audit of the labels, one more rebuild with tonight's cuts, the staging release, Play build 33 (R8,
+  0.7.11; six benches passed, merged, build not run), Skeena cascade review, general audit, T759 / T754 / rest-of /
+  wrong-mark rule builds.
+
 ## 2026-11-14 — build 31 (0.7.9) on Play internal; five phone fixes waiting for the next build; privacy page reworded
 
 - **Out (11-12 to 11-14):** release r-f749475d0962 is live on staging (after r-adc4e248a163 and r-a9914d6b25b7 on 11-13:
