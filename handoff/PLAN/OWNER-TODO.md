@@ -1012,3 +1012,10 @@ For you to re-tick after the rebuild (saved by Claude at your request, each note
 - 22:15, typed in chat, after the Region 1 fix report: "ill review all regions together". So: no region-by-region
   review asks; one combined list of the saves to re-tick and the open questions for all regions, once the second fix
   lane is back and the rebuild has landed them.
+- 22:35, typed in chat, on the Skeena sockeye pair (CNR bridge at Terrace to above the Babine: the year-round closure
+  "excluding the areas below" and the in-season openings on the same stretch, the right one winning by name order
+  only): "this iss handled by rest of option in extents". So: the place worded "excluding the areas below" is saved
+  with the REST-OF extent (its stretch less the areas listed below it), so the two no longer overlap; no ordering rule
+  by wording. Open point for his combined review: tonight's Region 1 saves 2771-2773 turned three "except in those
+  areas and times listed below" places from rest-of into the whole river (a listed stretch whose rule lasts only part
+  of the year was cutting itself out for the whole year); he sees both and decides.
