@@ -1,6 +1,6 @@
 # T797 — Printed rules the page never shows: "No angling from powered boats" (7 rules), dead fin fish as sturgeon bait, the Shuswap pier exemptions, "wild" on the Pitt Lake caveat
 
-Status: OPEN (display: app core page / pipeline display model; the rules are parsed and stored).
+Status: IN PROGRESS (item 1, the powered-boats line, is fixed on branch `app-fix/t797-powered-boats`, 2026-11-16, not merged; items 2 to 5 are the pipeline's display model, the main chat's).
 
 Source: general audit 2026-11-16, answers checker D1, B2, B3, B4, E5, E6 (`handoff/PLAN/audit-2026-11-16/answers.md`).
 
@@ -24,3 +24,31 @@ boats line is empty. `app/packages/core/src/regs/boats.ts:108` `inBoatRules` kee
 includes exactly "in_boat". Fix (the app chat's, with the next app build; no data release): select both tokens, a test
 on a powered-boat water, and a check that no other `angler` token is dropped the same way (`alone_in_boat`,
 `from_shore`). Waits on the owner's go.
+
+## Item 1 fixed on a branch, 2026-11-16 11:31 (app chat; owner's go 10:36: "Go on all (Recommended)")
+Branch `app-fix/t797-powered-boats` (not merged; app code, so it lands as its own merge with the Android benches).
+- **Fix:** `core/src/regs/boats.ts` `inBoatRules` selects the circumstances in `BOAT_WHILE` (`in_boat`,
+  `in_powered_boat`). The chip is the stored label, as for a boat: "No angling (from a powered boat) — downstream of
+  Woodjam Bridge". It leads the boats line and the Methods "Boats" list and opens its rule sheet. No data release.
+- **How wide it was (r-46e4355a7277, every shown water, every part, five days of the year; 103,415 answers):** 47
+  parts of 35 waters hold a powered-boat rule and none drew it: "… upstream of dyke gates" 31 (the Nicomekl and
+  Serpentine with 27 side streams), "No angling (from a powered boat)" 11 (Atnarko 7 parts, Bella Coola 2, Chilcotin
+  2), "… downstream of the Falls Creek confluence" 3 (Clearwater), "…, Sep 11-Sep 30 — upstream of Henry Crossing
+  bridge" 1 (Chilko, shown on its dates only, as the Kispiox's dated rule is), "… downstream of Woodjam Bridge" 1
+  (Horsefly, the part below the bridge only).
+- **No other token is dropped:** the frames hold five `while` tokens: `in_boat` (106 parts, drawn), `in_powered_boat`
+  (47, now drawn), and `alone_in_boat`, `ice_fishing`, `set_lining` (rod counts and methods the Methods lines word;
+  listed as `OTHER_WHILE`). `from_shore` is in the catalogue's vocabulary and in no frame.
+- **Tests:** `boats.test.ts` (a powered-boat rule is a chip; the three other circumstances are not);
+  `t670.release.test.ts` on the live release: the Horsefly below Woodjam Bridge has the line and the part above has
+  none; the Chilko above Henry's Crossing has it on Sep 20 and not on Jul 15; and a province-wide walk: every rule
+  held for an angler in a boat, powered or not, is on its page's boats line, and no `while` token is one neither list
+  knows (so a new token fails the walk instead of vanishing). Two mutations, each caught: the old selection (3 tests
+  fail), a known token removed from the lists (the walk names it).
+- **A golden page moved, as intended:** `bc1_501` (Bella Coola, May 1) gains the chip, the Methods row and the rule
+  sheet (38 lines added, none removed); two Methods display tests that listed that page's boat rows now list the new
+  row first. `check:fast` rc 0; core, conformance, site builder, `ui-native/src/regs`, regs-web: all pass.
+- **For the main chat (data, not changed here):** the Nicomekl / Serpentine rule reaches 27 side streams (Anderson
+  Creek, Cloverdale Canal, …) with the words "upstream of dyke gates"; worth a look whether the book means the two
+  rivers only.
+- **Left:** the merge (benches + the full app suite); a "What's new" line with the next app version.
