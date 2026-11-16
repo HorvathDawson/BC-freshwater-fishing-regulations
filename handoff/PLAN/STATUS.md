@@ -9,6 +9,18 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 ---
 
 
+## 2026-11-15 night (chat 14, in flight at 23:26): labels double-checked and fixed, new map promoted, release not yet out
+- All 352 DFO places were read against DFO's words (273 clean, 79 flagged, 15 looked wrong); the fixes you asked for are
+  saved for your re-tick (mark lines 2770-2794) and landed. One of your Tatshenshini saves had stopped the build; fixed.
+- New map promoted locally with 13 new cuts (Skeena confluences and Ferry Island bridge, Nanaimo, Kasiks, Shuswap,
+  Thompson incl. Juniper). The rest-of extent was rebuilt (T761: own end points, listed places, "areas and times") and
+  every leftover-worded place uses it. Two display errors fixed for this build (T762 year line, T763 Kootenay rainbow).
+- Not done yet: the app data build is running; then the staging release, the Android build of 0.7.11 (the app chat),
+  Skeena cascade part 2, the general audit. Trout display mockups: https://claude.ai/artifact/EopBgDtf8eu4LGZpYixSkH
+  (round 3 running; exploration only).
+- State and next steps for a new or compacted chat: `NEXT-SESSION-chat14-inflight.md`. Your questions: OWNER-TODO.md
+  "2026-11-15 night" sections and the To-Do page rows starting `sl-`.
+
 ## 2026-11-15 (chat 13 end): DFO labelling done; clean-up, side rebuild, review-app fixes; handed to a new chat
 - Owner finished labelling the DFO places (2,769 mark lines). Restart page: `NEXT-SESSION-after-chat13.md`.
 - Landed: review-app fixes and follow-ups (T755), marks audit command, closed-area build step (T573), lake loops
