@@ -287,7 +287,7 @@ with the default Claude uses until you answer). Newest first inside each section
   or colour-blind check, a neutral ink that does not is used; he sees the final picture before it ships. Folded
   Salmon row: marked (the banner-place answer above).
 - **NEW 2026-11-16 00:31 (app chat, T759; To-Do row `t759-stripe-final`): the final stripe is built; look at the
-  pictures and confirm two small things.** Branch `app/t759-stripe` (6c24f94a6, from `app/t759-issues`; not pushed,
+  pictures and confirm two small things.** The stripe branch (6c24f94a6, cut from the T759 app branch; named in the T759 ticket; not pushed,
   not merged, NOT in the 0.7.11 build). Pictures sent in the app chat (contact sheet `final-stripe.jpg` + light and
   dark close-ups; Campbell River with one made-up unplaced DFO rule). Built: dashes down the middle of every stretch
   of a river with the banner, Salmon view only (web and phone style code), fading at far zoom like the bait-ban
