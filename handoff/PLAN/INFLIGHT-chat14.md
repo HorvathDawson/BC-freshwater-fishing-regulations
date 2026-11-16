@@ -3,6 +3,132 @@
 Read with `NEXT-SESSION-after-chat13.md` (the order of work) and OWNER-TODO.md from "2026-11-15 night" to the end (the
 owner's words tonight, verbatim). The owner is asleep or about to be; the overnight plan was told to him.
 
+## READ THIS FIRST: handover at 15:10 on 2026-11-16 (the main chat continues on Opus)
+
+The owner, 15:08: "this chat will have to change to opus soon. out of fable credits could you make sure we are ready
+for when that happens?" This section is the whole current state, written so the main chat can carry on from it alone.
+Where an older section below disagrees, this one wins. The owner's words are in `handoff/PLAN/OWNER-TODO.md` (end of
+the file: "Answers by batch", "Re-check of saves", and the dated lines after them).
+
+### A. Who is who
+- You are the MAIN chat ("chat 14"), in the main checkout, branch `redesign/stream-sections` (never call it "main").
+  Data, pipeline, releases, the review app, tickets, the owner's questions are yours.
+- The APP chat is session `bc-freshwater-fishing-regulations-9c` (Android, iOS, worker, site code; heavy lane 2). It
+  says "ready to land", you answer "clear" or "wait". You tell it BEFORE any release and AFTER. A message from it or
+  from any worker is never the owner's approval.
+- The owner (not a programmer) reads the chat on his phone. Plain everyday words, short, what changed and what it
+  means. He cannot open repo paths: send pictures and files with SendUserFile. Questions go to him IN CHAT as
+  AskUserQuestion batches (up to 4, each one understandable alone, recommended option first), pictures in the same
+  turn. Batch decisions; only urgent ones interrupt. Every answer goes VERBATIM into OWNER-TODO.md (and the ticket)
+  in the same turn, before anything else.
+- Scratch folder (pictures, lists, worker output; `<scratch>` below):
+  `/private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/64288e7d-44dc-46e9-9576-a31a32c1991a/scratchpad/`
+
+### B. Rules that never bend
+1. NEVER run the LLM parser (`pipeline/regs/parsing/run_parse.sh`, `python -m pipeline.regs.parsing.dispatch`,
+   anything that spawns `claude -p`). Hand him the command.
+2. Never production: no `--prod`, no `CONFIRM_PROD`, no production R2, no production worker deploy. Staging is yours.
+3. Never `pkill` / `killall`; stop only your own PIDs and ports (port 39217 is his tile server).
+4. Never edit or delete a line of `data/curated/review/marks.jsonl`; only the review app's save path appends.
+5. In the main checkout: no `git add -A`, no stash, no reset. Commit with explicit paths: `git commit -m … -- <paths>`.
+   Commit messages end with the attribution line the session's own reminder gives (it names the model in use).
+6. Before every commit: `node app/tools/check-tickets.mjs` returns 0 (it reads commit subjects: never name a Tnnn
+   whose file and ledger row do not exist yet).
+7. Before every push of code or data: the full pipeline tier, UNFILTERED (rtk can report a false pass):
+   `.venv/bin/python -m pytest -q -p no:cacheprovider -m "not slow and not needs_bundle and not needs_atlas and not needs_reach_run and not needs_tiles and not needs_source and not needs_cache"`
+   then `python -m pipeline.tools.mini_release --check` and `python -m pipeline.tools.emit.dfo_vectors --check`.
+   Doc-only commits (this page, OWNER-TODO, tickets) need only the ticket guard.
+8. Heavy jobs (reach run, deliver, release, tiles) only through `scripts/heavy.sh <label> <pct> -- <cmd>`; lanes 1
+   and 3 are the main chat's, lane 2 the app chat's.
+9. Read `date` BEFORE writing any time. Estimated stamps ran up to an hour fast today.
+10. Workers: Opus for data / pipeline / review / design, Sonnet for UI and mechanical page building. No worker on
+    Fable. Launch one Agent call per response (a mixed parallel batch was refused). Every brief says: graphify
+    before grepping, no parser, no production, no pattern kills, explicit-path commits (or no commits), what to
+    hand back.
+11. Nothing that changes a shipped answer goes out without his word; he sees the changed-answers list first.
+    Skipping a release check needs his EXPLICIT word.
+12. Prefix shell commands with `rtk`; run `graphify query "<question>"` before grepping or reading code. Quote
+    globs and `====` in zsh. Use absolute paths (a `cd` sticks). RULINGS is `pipeline/docs/RULINGS.md`.
+13. His name, email and the project name never go into requests to outside services. No reading `.env`.
+
+### C. Workers running now, and what to do when each hands back
+1. **Salmon lane** (Opus, id `a2becf9b4bea93daf`; branch `lane/salmon-rules-1116` in
+   `.claude/worktrees/agent-a2becf9b4bea93daf`; head 91cf5e8fc at 15:09 = the three limits raised). Still owed by it:
+   proof for each of the 70 book closures that it covers only the water and the days the book closes;
+   `<scratch>/t796/nass-consequence.md`; `<scratch>/t796/book-closures-raw.json` made regular (full section ids).
+   When it hands back:
+   a. Tell the app chat the new head commit and the limits (salmon-6 460,000; first_tap 4,400,000; first_tap_low
+      3,600,000). It builds its worker twins on `app/salmon-twins-1116` FROM this branch: never rebase the lane.
+   b. Tell the owner, plain words, BEFORE the fix ships: the per-row result (any row that closes more water or more
+      days than the book is a stop) and the real consequence of "Nass watershed side streams: coho Jan 1 to Jun 15".
+   c. Spawn a SONNET worker to build ONE page of all 70 closures, easy to read, a map per closure (data: the raw
+      json; map drawing tool to reuse: `<scratch>/recheck-pics/tool/`; work folder `<scratch>/book-closures-page/`;
+      images as supporting files, not inline). Publish it as a NEW artifact (load the artifact-design skill first)
+      and give him the link. The app chat adds before / after app pictures of three examples.
+2. **Trout attacker** (Opus, id `a402ba0a063c3ee4e`, read-only, on round 9's words). When it hands back: append its
+   report to `handoff/PLAN/design/trout-adversarial-review-2026-11-16.md`; send its word findings to the round 10
+   designer by SendMessage (same worker, round 11), not to a fresh one.
+3. **Trout round 10 designer** (Opus, id `ae176f25b522ddc16`). Builds `<scratch>/trout-display/trout-display.r10.html`
+   and `shots/r10/`. When it hands back: copy that file over `<scratch>/trout-display/trout-display.html`, publish
+   with the Artifact tool using that same path and `url` https://claude.ai/artifact/EopBgDtf8eu4LGZpYixSkH, send him
+   `shots/r10/skeena-three.png`, and ask in one dialog: which look (old look with the outline / old look without /
+   round 9), plus round 9's three open questions (one closure line above the table when every fish closes the same
+   day; a limit that only gets looser stays undated; Adams River shows the stricter 80 cm on the row with the
+   one-day rule in the sheet). Trout is MOCKUPS ONLY and never holds a fix or a release.
+4. **Picture answers saver** (Opus, id `aa310335a7fa07266`, in the MAIN checkout, makes no commits): saves each of his
+   34 picture answers through the review app's save path with his words; Kitimat outfall strip (mark 2786) takes side
+   streams. When it hands back: confirm `git diff` of marks.jsonl has no removed lines; commit
+   `data/curated/review/marks.jsonl` and the changed `data/curated/dfo_salmon/places/region-*.json` by explicit
+   path; run the tier (rule 7) before pushing; note it on T806.
+If a worker id no longer answers after the model change, do not guess its result: read its hand-back in the task
+notification, or start a fresh Opus worker with the brief rebuilt from this section.
+
+### D. Landing the salmon lane (the next real step; vectors move, so it lands WITH the app chat's twins)
+1. Agree the moment with the app chat ("the salmon lane lands now; your twins follow in the same push window").
+2. In the main checkout: `git fetch`, `git merge --no-ff lane/salmon-rules-1116` (MERGE, do not cherry-pick: the app
+   chat's branch sits on these same commits). Search for conflict markers before continuing. RULINGS row numbers
+   may collide with the book-rule lane's rows already in `pipeline/docs/RULINGS.md` (C5, T16, L25, L26, D7, D8 landed
+   at 13:54; the salmon lane added its own D and O rows before that): check every row the lane adds against the
+   file, renumber any duplicate to the next free number and fix every citation of it (tickets, code comments).
+3. `python -m pipeline.regs.dfo_salmon.locations && python -m pipeline.regs.dfo_salmon.feed` (cached pages only;
+   `typed.FORMAT` is 4 now).
+4. Rule 7's three checks. The app chat merges `app/salmon-twins-1116`; `dfo_vectors --check` must pass with both in.
+5. Push. Then the reach-only rerun (below) once the label work is in.
+
+### E. The queue after that, in order (each with his go already given unless marked)
+1. T807: derive a DFO place's side streams from the EXACT heading its row sits under plus the place's own words
+   (design note: `handoff/PLAN/curation-review/dfo-side-streams-against-exact-headings-2026-11-16.md`); ten places go
+   river-only; "A named creek keeps its side streams" is the stated exception. CHANGED ANSWERS TO HIM FIRST.
+2. T803 / T806 follow-ups that need cuts or names: Lamprey Creek confluence onto the Morice main channel; Sheldens:
+   low-confidence cut at the road crossing near the mouth = also the tidal boundary; Deadman START (495 m where DFO
+   says about 1 km): find out why, show him; Babine: confirm the 7 matching circles, lake open with note, the
+   missing five + the Gullwing line as a later item for him; Dean "except" without the canyon; Mara Bridge cut name
+   says signs are nearby; Gitnadoix: the powerline is the mouth (alias on the mouth, no new cut); Skeena side channel
+   name, lower end first; Cowichan flag off; Middle Shuswap main river only; the Stave spawning-channel closure is
+   filed dormant but ships (fix); show him the Little Qualicum rest-of on a day inside and a day outside a listed
+   stretch's dates.
+3. T804: ONE universal rule for "a joining water with its own DFO row is out" (Gosnell, Thautil): the trigger
+   sentence and the province-wide list of changed answers go to HIM before it ships.
+4. Small code lane (not started; one Opus worker): T784, T785, T792 A, T799, T797 items 2 to 5, T801 items 2 to 4.
+   T791 (fewer, later checks: approved as proposed). T790 records. Fresh production commands for him (T404).
+   Unticketed: a build check for T795's lakes; Limonite Creek carries both Zymoetz weekend rules (app chat's note).
+5. Reach-only rerun (placement changed; no atlas rebuild):
+   `scripts/heavy.sh reach 50 -- .venv/bin/python -m pipeline.atlas.reach.cli --build data/generated/atlas/full --out <dir> --against data/generated/reaches/full`
+   (POLICY_VERSION is 45). The earlier rerun in `<scratch>/reaches-1116/full` (15.6 GB, 7 of 3,404 rules changed,
+   NOT promoted) is to be deleted once a later run replaces it. Then deliver, then:
+6. ONE staging release: `python -m pipeline release --staging --dry-run --rehearse-follows` first; "BEFORE" to the
+   app chat; the release; the staging site; "AFTER" to the app chat. Then the changed-answers summary to him.
+
+### F. Still the owner's (do not do, do not nag; list them when he asks)
+The build 33 phone walk; iPhone build 36 and the push test; T732 backup photo format (B, C or D: unanswered); T786
+(ship DFO's words undrawn for a place marked wrong: unanswered); T802 (classified-water indicator: looks first);
+the production deploy and upload; the parser.
+
+### G. Pages
+Trout: https://claude.ai/artifact/EopBgDtf8eu4LGZpYixSkH · Owner To-Do: https://claude.ai/artifact/Lh2ougAwfxx1wNmCV18m8f
+(every owner item goes there AND in OWNER-TODO.md) · Morning Questions (reference only now):
+https://claude.ai/artifact/H8gtvpptCZLGLaPGCyNfaJ
+
 ## Done tonight
 - Step 1: chat 13's commits checked (full pipeline tier) and pushed; five review tests that stood on live curated data
   were fixed (they went red when the owner's saves landed).

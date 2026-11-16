@@ -1912,3 +1912,8 @@ More questions (recommended answer first):
   tinted box and the white boxes), round 9's words everywhere ("up to the 5", the dated lines, the strip on one
   line), and round 9's cleaner outline around the box. Round 10 is built as that blend, with the Skeena card shown
   both ways (with and without round 9's outline) so he can pick. Mockups only.
+- 15:08, typed in chat (verbatim): "this chat will have to change to opus soon. out of fable credits could you make
+  sure we are ready for when that happens?" Done 15:12: the state page (`handoff/PLAN/INFLIGHT-chat14.md`) opens with
+  a section "READ THIS FIRST: handover at 15:10" that holds the rules, the four running workers and what to do when
+  each hands back, the landing steps for the salmon lane, the queue to the next staging release, and what is still
+  his. The session notes point at it. Nothing of his is needed for the change.
