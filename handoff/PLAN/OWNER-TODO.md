@@ -1917,3 +1917,14 @@ More questions (recommended answer first):
   a section "READ THIS FIRST: handover at 15:10" that holds the rules, the four running workers and what to do when
   each hands back, the landing steps for the salmon lane, the queue to the next staging release, and what is still
   his. The session notes point at it. Nothing of his is needed for the change.
+- 15:16, one dialog with the round 10 trout picture (Skeena card three ways) and the salmon lane's Nass finding.
+  Trout look (A old look no outline / B old look + outline / round 9), typed, verbatim: "old look no outline because it
+  looks like the groups are subgrouped inside the over keep 5 card then... one thing is the words "only 1 of these 4
+  until oct 31, then release" should be changed to be "onlly 1 of these 4" being bigger it is the actual rule right
+  now then a smaller text for the change underneath. all current rules will have the bigger text. " So: A (the round 8
+  look, no outline); and in every white box and row the rule in force today is the bigger text, the coming change
+  ("until Oct 31, then release") smaller underneath. Trout row spacing (round 8's roomy rows, 23 of 42 cards fit one
+  screen / round 9's tighter rows, 34 fit), typed: "inbetween the 2". Nass side streams, coho Jan 1 to Jun 15 (closed
+  as the book says / leave coho open / hold this row), typed: "how are both items worded let me double check but im
+  pretty sure closed dis the right option". So: NOT yet decided; he gets the book's line and DFO's row word for word,
+  then answers. The row does not ship before that.
