@@ -113,6 +113,19 @@ interface Chain {
  *  name (absent on a region / section / area default) and its DFO section as the page prints it ("B(ii)"; absent where
  *  the page has no lettered sections) */
 export interface SalmonPlace { readonly r: string; readonly water?: string; readonly sec?: string }
+/** (T796 A5, owner 2026-11-16) THE RULE BOOK'S FULL CLOSURE AS A PLACE (`book:<entry_id>::<rule_id>`, `~2` … when one rule
+ *  closes different days on different sections): first in the chains of the stretches the book closes to all fishing,
+ *  so salmon read closed there too (book p.77). A release-side place (`static`): DFO's feed never carries it, so under a
+ *  live feed its year is the release's own (`Payload.static`, `withSalmonFeed`). `r` its region (none for a provincial
+ *  row), `water` the book row's name, `book` the rule and its printed pages — what the card names the row by. */
+export interface SalmonBookPlace {
+  readonly r?: string; readonly water?: string; readonly static: 1;
+  readonly book: { readonly rule: string; readonly pages: readonly number[] };
+}
+/** (T796 A5) a static place's year: per species runs of a RELEASE verdict index (-1: says nothing that day), gear runs —
+ *  the live feed's place shape (`live.location_calendar`) */
+export interface SalmonStaticYear { readonly sp: readonly (readonly number[])[]; readonly g: readonly number[] }
+const isBook = (p: SalmonPlace | SalmonBookPlace): p is SalmonBookPlace => (p as SalmonBookPlace).static === 1;
 /** (T549) why the release does not show a curated DFO place (`deliver.salmon.OFF_KIND`) */
 export const SALMON_OFF_KINDS = ["tidal", "unplaced", "no_section"] as const;
 export type SalmonOffKind = typeof SALMON_OFF_KINDS[number];
@@ -153,7 +166,10 @@ interface Payload {
    *  the water it names: shown on that water's page, never painted. Absent in a release's own file. */
   readonly feedUnplaced?: readonly SalmonUnplacedPlace[];
   /** (T668 fix 4) every place of a chain, by location id: what a row is named by. Absent before fix 4. */
-  readonly p?: Readonly<Record<string, SalmonPlace>>;
+  readonly p?: Readonly<Record<string, SalmonPlace | SalmonBookPlace>>;
+  /** (T796 A5) each static place's own year (`SalmonBookPlace`), by location id: composed into its chains under a live
+   *  feed. Absent: no static place. */
+  readonly static?: Readonly<Record<string, SalmonStaticYear>>;
   /** (T549) the curated places the release does not show, with why. Absent: none, or a release before T549. */
   readonly off?: Readonly<Record<string, SalmonOffPlace>>;
   /** (T549, the live feed's, `withSalmonFeed`) an `off` place's year composed from the feed, by location id */
@@ -237,6 +253,16 @@ function checkPayload(P: Payload): Payload {
     }
   });
   for (const u of P.unmapped) if (!P.chains[u.chain]) bad(`unmapped ${u.w}: chain ${u.chain}`);
+  // (T796 A5) a static place is in `p` marked so, with its year in `static` — or a live feed could not keep it
+  for (const [lid, y] of Object.entries(P.static ?? {})) {
+    const pl = P.p?.[lid];
+    if (!pl || !isBook(pl) || !pl.book || typeof pl.book.rule !== "string" || !Array.isArray(pl.book.pages))
+      bad(`static ${lid}: not a book place in p`);
+    if (!Array.isArray(y.sp) || y.sp.length !== 5) bad(`static ${lid}: ${y.sp?.length} species`);
+    y.sp.forEach((r, k) => runs(r, P.verdicts.length, `static ${lid} species ${k}`, true));
+    runs(y.g, P.gears.length, `static ${lid} gear`, true);
+  }
+  for (const [lid, pl] of Object.entries(P.p ?? {})) if (isBook(pl) && !P.static?.[lid]) bad(`static place ${lid} has no year in static`);
   for (const [lid, o] of Object.entries(P.off ?? {}))
     if (!o || !SALMON_OFF_KINDS.includes(o.k) || typeof o.w !== "string" || typeof o.r !== "string" || !Array.isArray(o.items))
       bad(`off ${lid}: not {why, k, r, w, items}`);
@@ -454,6 +480,10 @@ export const SALMON_WORDS = {
    *  printed (none where the page has no sections) */
   placeFrom: (region: string, water: string | undefined, sec: string | undefined) =>
     [`Region ${region.toUpperCase()}`, water, sec].filter(Boolean).join(" · "),
+  /** (T796 A5, owner 2026-11-16) where a row's answer is the rule book's full closure of the stretch (book p.77: a water
+   *  closed to fishing is closed for salmon too): "Rule book p.9 · Skeena River" — the book's printed page(s), its row */
+  placeFromBook: (pages: readonly number[], water: string | undefined) =>
+    [pages.length ? `Rule book p.${pages.join(", ")}` : "Rule book", water].filter(Boolean).join(" · "),
   /** (T668) a straddler's answer that is both regions' words together */
   bothRegions: (regions: readonly string[]) => `${regions.map((r) => `Region ${r.toUpperCase()}`).join(" and ")} together`,
   /** between two places on one row */
@@ -824,8 +854,12 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
       if (!ch.a) return null;                              // a release before fix 4 names no place: the card as it was
       for (const sp of species) {
         const v = at(ch.a[SALMON_SPECIES.indexOf(sp)]!, day);
-        if (v === -2) parts.add(SALMON_WORDS.bothRegions([...new Set(ch.l.map((l) => P.p![l]!.r))].sort()));
-        else if (v >= 0) { const p = P.p![ch.l[v]!]!; parts.add(SALMON_WORDS.placeFrom(p.r, p.water, p.sec)); }
+        if (v === -2) parts.add(SALMON_WORDS.bothRegions([...new Set(ch.l.flatMap((l) => { const p = P.p![l]!; return isBook(p) ? [] : [p.r]; }))].sort()));
+        else if (v >= 0) {
+          const p = P.p![ch.l[v]!]!;
+          // (T796 A5) the rule book's closure is named by the book's page, not a DFO region
+          parts.add(isBook(p) ? SALMON_WORDS.placeFromBook(p.book.pages, p.water) : SALMON_WORDS.placeFrom(p.r, p.water, p.sec));
+        }
       }
     }
     return parts.size ? [...parts].join(SALMON_WORDS.fromSep) : null;

@@ -10,6 +10,10 @@
  * opened by DFO: closed); (T770) gear every location's lines that day, narrowest first, a line once; the map status
  * open > release > check > closed. Nothing is decided here that the pipeline did not decide.
  *
+ * (T796 A5) THE RELEASE'S STATIC PLACES STAND UNDER A FEED: the rule book's full closure of a stretch is a place of its
+ * chains (first) that DFO's feed never carries; its year is the release's own (`payload.static`), its verdicts copied
+ * into the composed tables (`staticLocs`) — never dropped for being missing from the feed.
+ *
  * WHICH ONE (owner 2026-10-27): the last feed this device CAPTURED, whatever its age, with that capture's time on the
  * card — the release's own file only when no feed was ever captured, or when the release was built from pages newer
  * than the capture (`pickSalmon`).
@@ -395,13 +399,16 @@ function composeFeedPayload(P: Payload, feed: SalmonFeed): { payload: Payload; s
   }));
   // (T668) a two-region chain may add a merged verdict or gear list: to copies of the feed's tables, never the feed's
   const tables = feedTables(feed);
+  // (T796 A5) the release's static places (the rule book's closures) beside the feed's: their years from the release
+  const statics = staticLocs(P, feed, tables);
+  const withStatics: SalmonFeed = Object.keys(statics).length ? { ...feed, locs: { ...feed.locs, ...statics } } : feed;
   // the release's own closure (`c`) never outlives its verdicts: the feed's composition says whether one holds;
   // (T668 fix 4) `a` re-read from the feed where the release names places (absent before fix 4: none, as it was)
   // (T716, owner 2026-11-13: "Maybe a card builds its item when it needs it?") EACH CHAIN WHEN FIRST READ: a page reads
   // its own water's chains, the Salmon map the chains of the sections it draws; none is built for nobody
   const chains = lazyList(P.chains.length, (i) => {
     const { c: _c, n, a, ...c } = P.chains[i]!;
-    return { ...c, ...composeChain(c.l, feed, c.u ?? [], n !== undefined, c.s, tables, a !== undefined) };
+    return { ...c, ...composeChain(c.l, withStatics, c.u ?? [], n !== undefined, c.s, tables, a !== undefined) };
   });
   // (T549) the release's location set: what it shows (chains) and what it states it does not (`off`)
   const shown = new Set(P.chains.flatMap((c) => [...c.l, ...(c.u ?? [])]));
@@ -431,6 +438,36 @@ function composeFeedPayload(P: Payload, feed: SalmonFeed): { payload: Payload; s
   // (T521) the index counts places its unplaced.json was not read for: said on the card's feed line, never hidden
   const unread = feed.unplacedRows ? 0 : feed.unplaced ?? 0;
   return { payload, stale, unread };
+}
+
+/**
+ * (T796 A5) The release's static places as feed locations: each one's year (`payload.static`, release verdict and gear
+ * indices) re-indexed into the composed tables — a verdict the feed already holds keeps its index, another is added.
+ * A static place the feed itself names is an error (an id the release reserved: `book:`), never one silently winning.
+ */
+function staticLocs(P: Payload, feed: SalmonFeed, tables: SalmonFeedTables): Record<string, SalmonFeedLocation> {
+  const ids = Object.keys(P.static ?? {});
+  if (!ids.length) return {};
+  const named = ids.filter((l) => feed.locs[l]);
+  if (named.length) throw new Error(`salmon feed: names the release's static place(s) ${named.join(", ")}`);
+  const vIx = new Map(tables.verdicts.map((v, i) => [stable(v), i] as const));
+  const gIx = new Map(tables.gears.map((g, i) => [stable(g), i] as const));
+  const add = <T>(items: T[], ix: Map<string, number>, x: T): number => {
+    const k = stable(x);
+    let i = ix.get(k);
+    if (i === undefined) { i = items.push(x) - 1; ix.set(k, i); }
+    return i;
+  };
+  const out: Record<string, SalmonFeedLocation> = {};
+  for (const lid of ids) {
+    const y = P.static![lid]!;
+    out[lid] = {
+      r: P.p?.[lid]?.r ?? "",
+      sp: y.sp.map((runs) => runs.map((x, k) => (k % 2 && x >= 0 ? add(tables.verdicts, vIx, P.verdicts[x]!) : x))),
+      g: y.g.map((x, k) => (k % 2 && x >= 0 ? add(tables.gears, gIx, [...P.gears[x]!]) : x)),
+    };
+  }
+  return out;
 }
 
 /**
