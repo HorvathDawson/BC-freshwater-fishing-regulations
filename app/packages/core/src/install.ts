@@ -2,6 +2,7 @@
  * START-UP AND FIRST-RUN WORDS (P11): what the app says while it reads the manifest, installs a release (native, first
  * run) and decodes paint. Composed here so a test pins the finished string (AGENTS 33) and no screen types its own.
  */
+import { isEnvironment } from "./failure";
 import { NET_WORDS } from "./net";
 
 export const INSTALL_WORDS = {
@@ -46,6 +47,21 @@ export function failedStartLine(message: string, firstRunOffline: boolean): stri
  */
 export function restartsByItself(message: string): boolean {
   return message !== INSTALL_WORDS.stuck;
+}
+
+/**
+ * (T760, owner 2026-11-15 "keep trying by itself") Once a failed first start is ON SCREEN (its words and Try again), does
+ * the app also try again by itself, about once a minute, so the install finishes without a tap when the line is back?
+ * Only for a failure that is the CONNECTION's: the manifest could not be read on a first run (`firstRunOffline`), or the
+ * error is the environment's (core `isEnvironment`: offline, a dropped or timed-out line, as `@app/data`'s NetError marks
+ * every kind but an HTTP answer). Never the stuck download (`INSTALL_WORDS.stuck`: the download layer already queued that
+ * file again; the reader is asked to check and tap), never an app too old for the release, never a file that failed its
+ * check (a sha or size mismatch, a set that would not open), never an HTTP refusal, never an unknown error: those would
+ * fail the same way every minute.
+ */
+export function keepsTryingByItself(error: unknown, firstRunOffline: boolean): boolean {
+  if (error instanceof Error && error.message === INSTALL_WORDS.stuck) return false;
+  return firstRunOffline || isEnvironment(error);
 }
 
 const STAGES: Readonly<Record<string, string>> = {

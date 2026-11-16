@@ -32,7 +32,7 @@ import { fillDayFlow, onVisit, visitIdOf, storedHydat, openLayerStore, openLikeS
          type DayFlowAnswer, type Spot } from "@app/data/spots";
 import { Button, connectivity, ErrorState, LoadingState, SayingLine, setSynopsisNet, setSynopsisSource, Shell, StageBar, THEMES, UpdateToast, type ThemeName,
          platformLine, type ShellProps, type UpdatesLogControls } from "@app/ui-native";
-import { LayoutWidthContext, liveFetch, NetRoot, useNet, useNetActivity, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, createCrashReporter, createCrashSetting, CrashSettingRoot, NotifyRoot, AlertLinesRefresh, installCrashHandlers, installId, reportPastExits, crashWhere, useRefreshOnReconnect, useDownloadStill, useReleaseBoot, useSpots, type MapTiles,
+import { LayoutWidthContext, liveFetch, NetRoot, useNet, useNetActivity, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, createCrashReporter, createCrashSetting, CrashSettingRoot, NotifyRoot, AlertLinesRefresh, installCrashHandlers, installId, reportPastExits, crashWhere, useRefreshOnReconnect, useDownloadStill, useReleaseBoot, useBootTries, useRetryByItself, retriesByItselfNow, useSpots, type MapTiles,
          DataProvenanceContext, loadRegsStore, reportFailure, startNeedsRelease, startNoticeLine,
          type AddressState, type PairingInput, type Route, type SpotPhotos, type StartLink, type StatusSource,
          useAppUpdate } from "@app/ui";
@@ -264,8 +264,9 @@ export default function App() {
   // THE RELEASE: manifest → (native: install / update) → paint, then the Shell. (T231) The phone's background install
   // is the update service's (`deferUpdate`: it holds a large set for Wi-Fi); `generation` re-boots onto a staged update.
   const [generation, setGeneration] = useState(0);
-  // (T262) a failed first start is tried again: twice by itself (a DNS miss, a dropped line), then on the reader's Retry
-  const [attempt, setAttempt] = useState(0);
+  // (T262) a failed first start is tried again: twice by itself (a DNS miss, a dropped line), then on the reader's Retry;
+  // (T760) one try at a time, and a connection's failure also once a minute by itself behind its words (`useBootTries`)
+  const tries = useBootTries();
   const [autoTries, setAutoTries] = useState(0);
   /*
    * (T298) THE FIRST INSTALL ON MOBILE DATA: the reader's setting (the update service keeps it: Always / Ask / Wi-Fi
@@ -313,7 +314,9 @@ export default function App() {
     // (T251) a phone's requests name the app; its first install is gated by the release's minAppVersion (the web's app
     // ships with its data: never gated)
     ...(WEB ? {} : { fetch: DATA_FETCH, appVersion: APP_VERSION }),
-  }), [feed, salmonFeed, mobileGate, beforeBackground]), generation, attempt);
+  }), [feed, salmonFeed, mobileGate, beforeBackground]), generation, tries.attempt, tries.quiet);
+  const settleTries = tries.settle;
+  useEffect(() => settleTries(boot), [boot, settleTries]);
   const booted = boot.state === "ready" ? boot.booted : null;
   const bootedRef = useRef(booted);
   bootedRef.current = booted;
@@ -545,15 +548,28 @@ export default function App() {
   const shownAtOnce = boot.state === "failed" && !restartsByItself(boot.error.message);
   useEffect(() => {
     if (boot.state !== "failed" || tooOld || shownAtOnce || autoTries >= 2) return;
-    const t = setTimeout(() => { setAutoTries((n) => n + 1); setAttempt((a) => a + 1); }, 2000 * (autoTries + 1));
+    const t = setTimeout(() => { setAutoTries((n) => n + 1); tries.again(false); }, 2000 * (autoTries + 1));
     return () => clearTimeout(t);
-  }, [boot, tooOld, shownAtOnce, autoTries]);
-  const failed = boot.state === "failed" && (tooOld || shownAtOnce || autoTries >= 2) ? boot.error.message : null;
+  }, [boot, tooOld, shownAtOnce, autoTries, tries.again]);
+  // (T760) the reader is asked something by a try of the app's own (mobile data, the notification's leave): the loading
+  // screen shows the question; the failure would hide it
+  const failed = boot.state === "failed" && (tooOld || shownAtOnce || autoTries >= 2) && !mobileAsk && !askingNotify
+    ? boot.error.message : null;
+  // (T760, owner 2026-11-15 "keep trying by itself") a failure that is the connection's, on screen with its words and Try
+  // again, is also tried again by the app once a minute (in the foreground, one try at a time), so the install finishes
+  // without a tap when the line is back; the try stays behind the words until the line answers (`useReleaseBoot` quiet)
+  // ("unknown" before the first event on some starts counts as the foreground; only "background" stops the clock)
+  const [appActive, setAppActive] = useState(AppState.currentState !== "background");
+  useEffect(() => {
+    const sub = AppState.addEventListener("change", (st) => setAppActive(st !== "background"));
+    return () => sub.remove();
+  }, []);
+  useRetryByItself(retriesByItselfNow(boot, failed !== null, appActive), () => tries.again(true));
   // (T390) a first start refused for an old app: the strong prompt and the same Update button as the bell's
   const bootUpdate = useAppUpdate(tooOld ? appUpdater : null, appUpdateStore, { offline: false, tooOld });
   const bootUpdateVM = tooOld ? bootUpdate?.vm ?? null : null;
   const firstRunOffline = boot.state === "failed" && boot.firstRunOffline;
-  const retryBoot = useCallback(() => setAttempt((a) => a + 1), []);
+  const retryBoot = tries.tap;
   const stage = boot.state === "loading" ? boot.stage : boot.state === "failed" ? "manifest" : "paint";
   const progress = boot.state === "loading" ? boot.progress : null;
   // (T272) a first install's second stage: everything is down, and it is being set up on the device

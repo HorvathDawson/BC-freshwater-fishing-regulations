@@ -1,6 +1,7 @@
 /** P11: the start-up and first-run words, composed here and pinned whole (AGENTS 33). */
 import { describe, expect, it } from "vitest";
-import { downloadFraction, DOWNLOAD_NOTE_WORDS, failedStartLine, restartsByItself, stillLine, DOWNLOAD_SAYINGS, INSTALL_WORDS, installLine, MOBILE_DATA_WORDS, mobileDataDecision, mobileDataFrom,
+import { UPDATE_WORDS } from "./updates";
+import { downloadFraction, DOWNLOAD_NOTE_WORDS, failedStartLine, keepsTryingByItself, restartsByItself, stillLine, DOWNLOAD_SAYINGS, INSTALL_WORDS, installLine, MOBILE_DATA_WORDS, mobileDataDecision, mobileDataFrom,
          rolledBackLine, SAYING_MS, sayingAt, SETUP_WORDS, setupFraction, setupLine, SMALL_DOWNLOAD_BYTES, startStage } from "./install";
 
 describe("the first-run download line", () => {
@@ -105,5 +106,23 @@ describe("(T760) a first-install download that does not move", () => {
     expect(restartsByItself(INSTALL_WORDS.stuck)).toBe(false);
     expect(restartsByItself("release: x does not match the manifest")).toBe(true);
     expect(restartsByItself("first run: the manifest could not be read (no answer)")).toBe(true);
+  });
+  it("(T760) a failure that is the connection's keeps trying by itself once on screen; no other failure does", () => {
+    const line = Object.assign(new Error("down-x.sqlite.gz: no answer in 20000 ms"), { environment: true });
+    const noLine = Object.assign(new TypeError("Network request failed"), { name: "TypeError" });
+    const http = Object.assign(new Error("HTTP 503 for x"), { environment: false });
+    // the connection's: the first run's manifest unread, a dropped / timed-out line, the platform's "no connection"
+    expect(keepsTryingByItself(new Error("first run: the manifest could not be read (manifest: no answer in 5000 ms)"), true)).toBe(true);
+    expect(keepsTryingByItself(line, false)).toBe(true);
+    expect(keepsTryingByItself(noLine, false)).toBe(true);
+    // never: the stuck download (even with the manifest unread), an app too old, a file that failed its check, an HTTP
+    // refusal, the system downloader's own failure, an unknown error
+    expect(keepsTryingByItself(new Error(INSTALL_WORDS.stuck), false)).toBe(false);
+    expect(keepsTryingByItself(Object.assign(new Error(INSTALL_WORDS.stuck), { environment: true }), true)).toBe(false);
+    expect(keepsTryingByItself(new Error(UPDATE_WORDS.row.appTooOld), false)).toBe(false);
+    expect(keepsTryingByItself(new Error("release: r/x.sqlite does not match the manifest (the same size, other bytes)"), false)).toBe(false);
+    expect(keepsTryingByItself(http, false)).toBe(false);
+    expect(keepsTryingByItself(new Error("https://x/atlas.pmtiles: the download failed (reason 1008)"), false)).toBe(false);
+    expect(keepsTryingByItself(new Error("boom"), false)).toBe(false);
   });
 });
