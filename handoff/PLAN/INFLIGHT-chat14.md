@@ -52,6 +52,43 @@ the file: "Answers by batch", "Re-check of saves", and the dated lines after the
 13. His name, email and the project name never go into requests to outside services. No reading `.env`.
 
 ### C. Workers running now, and what to do when each hands back
+**UPDATE 15:48 (newest; read this block first, then the 15:21 block for detail still true):**
+- PUSH STATE: three local commits wait (T809 + T810 filed; T806 saves; T810 note). The app chat asked me to hold
+  pushes while its app-ci / pipeline-ci run on 1809e6a54 is in flight; push when it says finished (tier 6,499 pass,
+  mini release and DFO vectors checks clean on the saves, 15:44).
+- T806 saves are DONE and committed locally (e5d2f3cd1): 30 saves, marks.jsonl lines 2795 to 2824, Kitimat outfall
+  strip side streams on, three closed areas re-confirmed (the app's re-measure moved four cut measures by 0.1 m:
+  accepted). NOT saved, still to do: Deadman 2748 (find out why 495 m, show him), Morice Forks-to-Bymac 2738 (needs
+  his plain "right"), Morice Gosnell-to-Lamprey 2739 (Lamprey confluence cut), Sheldens 2783, Babine 2784, Dean 2793
+  (except without the canyon), Thompson 2521, Morice 2596, Atnarko 2584 (his "?" not answered), Kanaka 2534 / 2535
+  (already verified by him). OPEN FAULT to look at: the live test
+  `test_marks_never_orphaned.py::test_no_owner_mark_is_orphaned_or_dropped_live` fails on the owner's verified
+  Squamish mark (line 2511, "2:squamish-river-including-powerhous:downstream-of-the-powerline-crossi", "binding
+  moved"); not caused by the saves (a Region 2 place nobody touched today); not in the CI tier; find what moved it
+  (likely the 11-15 side build) and either re-show it to him or fix the cause. No ticket yet (next free T811).
+- CLOSURES PAGE is published, version 3: https://claude.ai/artifact/2eGEuMG9cLe3SS69j63aTd (on the Owner To-Do page
+  as `rv-book-closures-page-1116`). The owner: the Nass row closes ("and yes the closure wins here."), the card must
+  name the source (done in data; the app chat's twins show it on every surface @ d1b7cc7b2). An Opus audit of 17
+  rows with closed side streams: ALL RIGHT by ruling T2 (the book's ✱ beside the water's name). He reviews the page
+  when he likes; a row he calls wrong by number is held back.
+- CANDIDATE RELEASE for the app chat's before / after pictures: `r-685b700b2802` under
+  `<scratch>/t796/candidate-release/` (local only; only the ten salmon files differ from r-46e4355a7277). The app
+  chat makes the pictures, runs its benches, then says "ready to land" for the twins; then section D (merge the
+  lane, the twins follow). Open follow-up at landing: who writes "(all year)" for an every-day closure (the app
+  does today).
+- TROUT: round 12 is published (the design he accepted, with his wording answers). The build spec is committed
+  (`handoff/PLAN/design/trout-table-build-spec-2026-11-16.md`); umbrella ticket T810 holds his answers: start steps
+  1 and 2 only; possession stays the page's line; raise the first-tap limit if the switch does not fit; the table
+  sits under the existing Trout and char entry (folded line with the better words and the expand arrow), other fish
+  untouched. RUNNING: T805 data gaps (Opus, `a26597e78169ffe90`, worktree branch `lane/t805-trout-data-gaps`, parts
+  C then B then D, a changed-answers list per part under `<scratch>/t805/`: those lists go to HIM before anything
+  merges) and T809 the changed-answers tool (Opus, `a1d3e84d79ee0a6f5`, branch `lane/t809-answers-diff`; lands
+  after its tests + the tier; no answer changes). Steps 3 to 7 of the spec wait for his go. The spec still says
+  "other fish too" and "reopens": when the next trout build step is approved, have the spec worker
+  (`aa228bfcc495d8a50`) fold in his 15:36 and 15:50 answers first.
+- The app chat: T797 landed (e3bd2be3e), the deploy gate landed (1809e6a54), T808 is its ticket (the web reads every
+  salmon file after first paint; a fix would free first-tap room: it will send measured numbers).
+
 **UPDATE 15:21 (this block replaces items 1 to 3 below; item 4 still stands):**
 - The salmon lane handed back: head 91cf5e8fc (three limits raised, RULINGS O8); all 71 rows (71, split by the DFO
   place that answered) close only the book's water on the book's days: 0 rows close more. Its files:
