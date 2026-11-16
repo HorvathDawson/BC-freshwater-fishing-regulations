@@ -34,7 +34,13 @@ OLD = {"p": {"3:x-river:whole": {"r": "3"}}}
     (BINDS, {"pieces": 2}, False, ""),
     (CARRIED, None, False, ""),                               # a carried piece binds nothing
     (OLD, None, False, ""),                                   # today's truth: no piece bound, no shape: passes
-    (None, {"pieces": 1}, True, "could not be read"),          # unreadable live release
+    # (2026-11-16) a worker that serves the shape passes with NO release read: the first production deploy has none yet
+    (None, {"pieces": 1}, False, ""),
+    (None, {"pieces": 2}, False, ""),
+    (None, None, True, "could not be read"),                   # unreadable live release, a worker without the shape
+    (None, {"pieces": 0}, True, "could not be read"),
+    (None, {"pieces": True}, True, "could not be read"),       # true is not a shape number
+    (None, "unread", True, "the feeds worker's feed shape (DFO_SHAPE) could not be evaluated"),
     (OLD, "unread", True, "the feeds worker's feed shape (DFO_SHAPE) could not be evaluated from app/workers/feeds/src/status.ts"),
 ])
 def test_a_worker_that_does_not_emit_pieces_is_refused_beside_a_release_that_binds_one(payload, shape, refused, why):
@@ -73,20 +79,45 @@ def test_the_cli_reads_the_live_release_named_by_the_bucket_manifest(tmp_path, m
     assert G.main([*args, "--worker-shape", ""]) == 1                      # unreadable shape: refused, pieces or not
 
 
-def test_the_cli_refuses_a_live_release_it_cannot_read(tmp_path, capsys):
+def _unreadable(tmp_path):
+    """the four ways the live release cannot be read: [args]"""
     live = _release(tmp_path)
     rel = tmp_path / "releases"
-    shape = ["--worker-shape", '{"pieces":1}']
     empty = tmp_path / "empty.json"
-    empty.write_text("")                                                     # rclone cat failed
-    assert G.main(["--worker-deploy", "--live-manifest", str(empty), "--releases", str(rel), *shape]) == 1
+    empty.write_text("")                                                     # rclone cat failed, or no release yet
     other = tmp_path / "other.json"
     other.write_text(json.dumps({"data_release": "r-not-here"}))
-    assert G.main(["--worker-deploy", "--live-manifest", str(other), "--releases", str(rel), *shape]) == 1
-    # the folder is there but holds no salmon file the reader can open
-    assert G.main(["--worker-deploy", "--live-manifest", str(live), "--releases", str(rel), *shape]) == 1
-    assert G.main(["--worker-deploy", "--releases", str(rel), *shape]) == 1
+    return [["--worker-deploy", "--live-manifest", str(empty), "--releases", str(rel)],
+            ["--worker-deploy", "--live-manifest", str(other), "--releases", str(rel)],
+            # the folder is there but holds no salmon file the reader can open
+            ["--worker-deploy", "--live-manifest", str(live), "--releases", str(rel)],
+            ["--worker-deploy", "--releases", str(rel)]]
+
+
+@pytest.mark.parametrize("shape", ["null", "{}", '{"pieces":0}'])
+def test_the_cli_refuses_a_live_release_it_cannot_read_for_a_worker_without_the_shape(tmp_path, capsys, shape):
+    for args in _unreadable(tmp_path):
+        assert G.main([*args, "--worker-shape", shape]) == 1
     assert capsys.readouterr().err.count("feeds deploy: refused") == 4
+
+
+def test_a_worker_that_serves_pieces_is_deployed_without_the_live_release_being_read(tmp_path, monkeypatch, capsys):
+    """(2026-11-16) Mutation: read the live release first — production's FIRST worker deploy (no release in the bucket
+    yet, `rclone cat` writes nothing) is refused, and the upload gate refuses the release until that worker is up."""
+    from pipeline.deliver import salmon as S
+
+    def never(*a, **k):
+        raise AssertionError("the live release was read for a worker that serves pieces")
+    monkeypatch.setattr(S, "read_release", never)
+    monkeypatch.setattr(G, "read_live", never)
+    for args in _unreadable(tmp_path):
+        assert G.main([*args, "--worker-shape", '{"pieces":1}']) == 0
+    missing = ["--worker-deploy", "--live-manifest", str(tmp_path / "no.json"), "--releases", str(tmp_path / "no-such")]
+    assert G.main([*missing, "--worker-shape", '{"pieces":1}']) == 0
+    assert capsys.readouterr().err == ""
+    # an unreadable worker shape is refused always, and needs no release either
+    assert G.main([*missing, "--worker-shape", ""]) == 1
+    assert "DFO_SHAPE" in capsys.readouterr().err
 
 
 NAME_IT = ("A deploy from another checkout or a scratch worktree names the main checkout's folder: "

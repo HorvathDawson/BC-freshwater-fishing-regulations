@@ -33,7 +33,9 @@ DAILY_DAYS=$(printf '%s\n' "$LC" | awk '/^prefix:/ {p=$2} /^action:/ && p=="dail
   echo "promises would not hold in the backups. Set it: npx --prefix app wrangler r2 bucket lifecycle add $BK daily-30d daily/ --expire-days 30" >&2
   exit 1; }
 # (T757 item 7) the mirror of upload.sh's pieces gate: a worker whose code does not serve dfo.pieces is refused while
-# the LIVE release binds a closed-area piece (it would make the app drop the live feed); unreadable = refused
+# the LIVE release binds a closed-area piece (it would make the app drop the live feed). A worker that serves the shape passes
+# without the release being read (a first deploy has none yet); for one that does not, an unreadable release = refused;
+# an unreadable worker shape = refused always
 LIVE_M=$(mktemp); trap 'rm -f "$LIVE_M"' EXIT
 rclone cat "r2:bc-fishing-regulations-staging/release/manifest.json" --s3-no-check-bucket > "$LIVE_M" || : > "$LIVE_M"
 WSHAPE=$(node deploy/lib/worker-shape.mjs) || WSHAPE=

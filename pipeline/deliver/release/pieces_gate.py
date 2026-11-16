@@ -14,8 +14,11 @@ production, whoever runs them).
 THE MIRROR, ON A WORKER DEPLOY (T757 item 7): a worker can go backwards after the upload (a rollback, an older
 checkout deployed). `--worker-deploy` refuses deploying a feeds worker whose code does not serve `dfo.pieces >=
 PIECES_SHAPE` (its `DFO_SHAPE`, read by `deploy/lib/worker-shape.mjs`) while the environment's LIVE release binds a
-piece; an unreadable live release or worker shape refuses too. `deploy/staging/feeds.sh` and `deploy/prod/feeds.sh`
-call it before `wrangler deploy`:
+piece. A worker that DOES serve the shape is safe beside any release, so it passes WITHOUT the live release being read
+(2026-11-16: read first, a first production deploy was refused for having no live release yet, while the upload gate
+above refused the release until that worker was up: each waited on the other). The live release is read, and
+unreadable = refused, only for a worker that lacks the shape; an unreadable worker shape is refused always.
+`deploy/staging/feeds.sh` and `deploy/prod/feeds.sh` call it before `wrangler deploy`:
 
     python -m pipeline.deliver.release.pieces_gate --worker-deploy --live-manifest <the bucket's release/manifest.json> \
         --worker-shape "$(node deploy/lib/worker-shape.mjs)"
@@ -87,24 +90,31 @@ def problems(payload: dict, feeds_url: Optional[str],
 NAME_THE_RELEASES = ("A deploy from another checkout or a scratch worktree names the main checkout's folder: RELEASES_DIR=/path/to/main/checkout/data/release (deploy/staging/feeds.sh, deploy/prod/feeds.sh) or --releases <path> (the gate)")
 
 
+def serves_pieces(shape: object) -> bool:
+    """does a worker whose code serves `shape` (its `DFO_SHAPE`) emit closed-area pieces: `pieces` an int >= PIECES_SHAPE"""
+    pieces = shape.get("pieces") if isinstance(shape, dict) else None
+    return isinstance(pieces, int) and not isinstance(pieces, bool) and pieces >= PIECES_SHAPE
+
+
 def worker_problems(payload: Optional[dict], shape: object, release: str = "the live release",
                     unread: Optional[str] = None) -> list[str]:
     """(T757 item 7) why a feeds worker whose code serves `shape` (its `DFO_SHAPE`; None: it exports none) may not be
-    deployed beside the live release `payload`; [] when it may. `payload` None: the live release could not be read;
-    `shape` the string "unread": the worker's code could not be read. Neither is ever a pass. `unread`: the whole
-    refusal for an unread release when the reader knows why (`read_live`)."""
-    if payload is None:
-        return [unread] if unread else [f"{release} could not be read, so whether it binds closed-area pieces (T573) is not known: a worker "
-                "that does not emit them would show those closed areas open. Make the live release readable, then deploy again"]
+    deployed beside the live release `payload`; [] when it may. `shape` the string "unread": the worker's code could
+    not be read, never a pass. A worker that serves the pieces shape passes whatever the release (`serves_pieces`): it
+    cannot be the worker the gate exists to stop. Otherwise `payload` None (the live release could not be read) is
+    never a pass. `unread`: the whole refusal for an unread release when the reader knows why (`read_live`)."""
     if shape == "unread":
         return ["the feeds worker's feed shape (DFO_SHAPE) could not be evaluated from app/workers/feeds/src/status.ts "
                 "(deploy/lib/worker-shape.mjs), so whether it emits closed-area pieces is not known. Fix that, then deploy again"]
+    if serves_pieces(shape):
+        return []
+    if payload is None:
+        return [unread] if unread else [f"{release} could not be read, so whether it binds closed-area pieces (T573) is not known: a worker "
+                "that does not emit them would show those closed areas open. Make the live release readable, then deploy again"]
     got = bound_pieces(payload)
     if not got:
         return []
     pieces = shape.get("pieces") if isinstance(shape, dict) else None
-    if isinstance(pieces, int) and pieces >= PIECES_SHAPE:
-        return []
     return [f"{release} binds {len(got)} closed-area piece(s) (T573, e.g. {got[0]}), and this feeds worker's code does "
             f"not emit them (DFO_SHAPE.pieces is {pieces!r}, needs >= {PIECES_SHAPE}): the app would read the release's own "
             "salmon file instead of the live feed. Deploy the worker that emits closed-area pieces (T757)"]
@@ -148,14 +158,17 @@ def main(argv=None) -> int:
     ap.add_argument("--worker-shape", default="", help="--worker-deploy: deploy/lib/worker-shape.mjs's JSON line")
     a = ap.parse_args(argv)
     if a.worker_deploy:
-        if a.live_manifest is None:
-            payload, name, unread = None, "the live release (no --live-manifest given)", None
-        else:
-            payload, name, unread = read_live(a.live_manifest, a.releases)
         try:
             shape = json.loads(a.worker_shape) if a.worker_shape.strip() else "unread"
         except ValueError:
             shape = "unread"
+        if shape == "unread" or serves_pieces(shape):
+            # decided by the worker alone: the live release is not read (there may be none yet: a first deploy)
+            payload, name, unread = None, "the live release (not read)", None
+        elif a.live_manifest is None:
+            payload, name, unread = None, "the live release (no --live-manifest given)", None
+        else:
+            payload, name, unread = read_live(a.live_manifest, a.releases)
         bad = worker_problems(payload, shape, name, unread)
         for p in bad:
             print(f"feeds deploy: refused — {p}", file=sys.stderr)
