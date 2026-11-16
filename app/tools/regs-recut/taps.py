@@ -103,7 +103,14 @@ COLUMBIA_R11 = ('2026-10-27 (owner, decisions.md "needs a split"): columbia_rive
 PART_MOVED = {"x15p16_1010": 14,   # (T183) 15; then T278 FRASER_TIDAL: 14
               # (T278) FRASER_TIDAL: the golden part at old store part k (k > 3) is store part k - 1 (x15p9: closed all
               # year, held to the store's part being closed)
-              "x15p4_1010": 3, "x15p5_1010": 4, "x15p6_1010": 5, "x15p7_1010": 6, "x15p8_1010": 7, "x15p9_1010": 8,
+              "x15p4_1010": 3, "x15p5_1010": 4, "x15p6_1010": 5, "x15p7_1010": 6, "x15p8_1010": 7,
+              # (r-46e4355a7277, 2026-11-16) x15p9 names the part itself: 7, "From the signs 2800 m downstream of Hell's
+              # Gate up to Hell's Gate" (closed all year, 1 section, the 211.91 km mark; store part 5 before this release).
+              # Two more runs below it (the Hwy 1 bridge at Hope and the Alexandra Bridge are part ends now) moved every
+              # index up by two, and the old declared index 8 landed on the NEXT closed part (Hell's Gate -> the signs
+              # 6,500 m below Boston Bar): a closed part has no label to check, so nothing objected and the golden page
+              # was compared with the wrong stretch (fraser_river r3 / r12 in place of r2 / r11).
+              "x15p9_1010": 7,
               "x15p11_1010": 10, "x15p12_1010": 11, "x15p13_1010": 12,
               # (T278) CAMPBELL_TIDAL renumbers the two parts after the golden part 3
               "x16p4_1010": 3, "x16p5_1010": 4,
