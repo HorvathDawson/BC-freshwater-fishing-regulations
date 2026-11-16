@@ -2324,7 +2324,7 @@
    "splits": [
     {
      "id": "sproat_river__fishing_boundary_signs_300_m_downstream_of_hwy_4",
-     "label": "fishing boundary signs 300 m downstream of Hwy 4",
+     "label": "fishing boundary signs about 350 m downstream of Hwy 4 (downstream end of the pool below the rapids at the Sproat River Fishway)",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -2337,7 +2337,7 @@
       "offset_dir": "downstream"
      },
      "note": "",
-     "_note": "[auto-proposal L] signs ~300 m below Hwy 4 over Sproat River (from Sproat Lake) on Sproat River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Hwy 4 crossing of the Sproat River and the signs ~300 m downstream; map.. Reach = 'Sproat Lake to signs ~300 m downstream of Hwy 4' (Port Alberni). Public highway landmark -> map/OSM-confirmable; not in FWA. [structural-split 2026-08-05 from “from Sproat Lake to fishing boundary signs approximately 300 m downstream of Hwy 4”] boundary=fishing boundary signs approximately 300 m downstream of Hwy 4 [curated 2026-08-09 bridge+confl batch] [base=Hwy4 (Pacific Rim Hwy) bridge; +300m DOWNSTREAM. NOTE: FWA downstream = toward Somass mouth (49.28978,-124.90065); user flagged direction — verify at split time] [owner 2026-11-15, round 5: 1 of 'Four small ones' — \"Only one I'm not sure about is number 4\"] offset 300 -> 350 m downstream: the owner's own note on marks.jsonl:2468 ('need to add another 50m or so to the offset ... this will put it to bottom of pool ... (50m more downstream)', for every extent using the cut). Resolves ~1874 (was 1924.1) on blk 354153364. Same id.",
+     "_note": "[auto-proposal L] signs ~300 m below Hwy 4 over Sproat River (from Sproat Lake) on Sproat River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Hwy 4 crossing of the Sproat River and the signs ~300 m downstream; map.. Reach = 'Sproat Lake to signs ~300 m downstream of Hwy 4' (Port Alberni). Public highway landmark -> map/OSM-confirmable; not in FWA. [structural-split 2026-08-05 from “from Sproat Lake to fishing boundary signs approximately 300 m downstream of Hwy 4”] boundary=fishing boundary signs approximately 300 m downstream of Hwy 4 [curated 2026-08-09 bridge+confl batch] [base=Hwy4 (Pacific Rim Hwy) bridge; +300m DOWNSTREAM. NOTE: FWA downstream = toward Somass mouth (49.28978,-124.90065); user flagged direction — verify at split time] [owner 2026-11-15, round 5: 1 of 'Four small ones' — \"Only one I'm not sure about is number 4\"] offset 300 -> 350 m downstream: the owner's own note on marks.jsonl:2468 ('need to add another 50m or so to the offset ... this will put it to bottom of pool ... (50m more downstream)', for every extent using the cut). Resolves ~1874 (was 1924.1) on blk 354153364. Same id. [owner 2026-11-15 night, \"we want to fix items form other review\"; FIX LANE A] label: the offset is 350 m since the owner's +50 m (marks.jsonl:2453/2468, 'this will put it to bottom of pool'); DFO: \"at the downstream end of the pool that is below the rapids at the Sproat River Fishway\". Position and id unchanged.",
      "_coord": [
       -124.90442,
       49.29012
@@ -2354,7 +2354,7 @@
    "splits": [
     {
      "id": "stamp_river__fishing_boundary_signs_200_m_upstream_of_stamp_falls",
-     "label": "fishing boundary signs 200 m upstream of Stamp Falls",
+     "label": "fishing boundary signs 200 m upstream of Stamp Falls (50 m downstream of site 17 in Stamp River Provincial Park)",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -2367,7 +2367,7 @@
       "offset_dir": "upstream"
      },
      "note": "",
-     "_note": "[structural-split 2026-08-05 from \"between fishing boundary signs 200 m upstream of and 500 m d\"] boundary=fishing boundary signs 200 m upstream of [human-review 2026-08-06] anchor=Stamp Falls [-124.91864, 49.33224]; offset_m=200 offset_dir=upstream. [hint-fix 2026-08-06 falls_obstacle->boundary_signs]",
+     "_note": "[structural-split 2026-08-05 from \"between fishing boundary signs 200 m upstream of and 500 m d\"] boundary=fishing boundary signs 200 m upstream of [human-review 2026-08-06] anchor=Stamp Falls [-124.91864, 49.33224]; offset_m=200 offset_dir=upstream. [hint-fix 2026-08-06 falls_obstacle->boundary_signs] [owner 2026-11-15 night, \"we want to fix items form other review\"; FIX LANE A] label: the owner's words on marks.jsonl:2455/2469 (\"add this info to each split namer (50m downstream of site 17 in Stamp River Provincial Park)\"); DFO: \"approximately 200 m upstream of the Stamp Falls fishway (50 downstream of site 17 in Stamp River Provincial Park)\". Position and id unchanged.",
      "_coord": [
       -124.91864,
       49.33224
@@ -2376,7 +2376,7 @@
     },
     {
      "id": "stamp_river__signs_500_m_downstream_of_stamp_falls",
-     "label": "signs 500 m downstream of Stamp Falls",
+     "label": "signs 500 m downstream of Stamp Falls (225 m downstream of the confluence of Deer Creek)",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -2389,7 +2389,7 @@
       "offset_dir": "downstream"
      },
      "note": "",
-     "_note": "[structural-split 2026-08-05 from \"between fishing boundary signs 200 m upstream of and 500 m d\"] boundary=500 m downstream of Stamp Falls [human-review 2026-08-06] anchor=Stamp Falls [-124.91864, 49.33224]; offset_m=500 offset_dir=downstream.",
+     "_note": "[structural-split 2026-08-05 from \"between fishing boundary signs 200 m upstream of and 500 m d\"] boundary=500 m downstream of Stamp Falls [human-review 2026-08-06] anchor=Stamp Falls [-124.91864, 49.33224]; offset_m=500 offset_dir=downstream. [owner 2026-11-15 night, \"we want to fix items form other review\"; FIX LANE A] label: the owner's words on marks.jsonl:2455/2469 (\"(225m downstream of the confluence of Deer Creek)\"); DFO: \"500 m downstream of the Stamp Falls fishway (225m downstream of the confluence of Deer Creek)\". Position and id unchanged. Check asked by the owner: by the Deer Creek watershed-code position (~6,150 m) this cut (~5,988 m) is about 165 m below Deer Creek, not 225 m (about 60 m short; second look 2026-11-15, inferred, no map look).",
      "_coord": [
       -124.91864,
       49.33224
