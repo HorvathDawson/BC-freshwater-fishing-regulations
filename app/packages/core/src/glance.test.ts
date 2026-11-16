@@ -39,7 +39,7 @@ describe("(T531) a species sits only under its own source's calendar", () => {
   });
   it("the real constructors tag their rows: a group is B.C., the salmon card is DFO", () => {
     const g = group({});
-    const card = { title: SALMON_WORDS.title, rows: [], caveat: null, closedOnly: true } as unknown as SalmonCardVM;
+    const card = { title: SALMON_WORDS.title, rows: [], caveat: null, closedOnly: true, book: [] } as unknown as SalmonCardVM;
     expect([groupGlance(g).source, salmonGlance(card).source]).toEqual(["bc", "dfo"]);
   });
 });

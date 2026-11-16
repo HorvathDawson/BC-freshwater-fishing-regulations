@@ -263,6 +263,13 @@ function FoldRow({ f, palette, images, coach }: { f: GlanceFold; palette: Palett
         <Text style={[TYPE.regsBodySemi, { color: palette.ink, flex: 1 }]}>{f.row.name}</Text>
         {f.row.value && <Text testID={`st:${f.row.tone}`} style={[TYPE.regsBodyBold, { color: tone }]}>{f.row.value}</Text>}
       </View>
+      {/* (T796) a rule-book closure says where it is from under the row: its words (page, line, dates), then its place */}
+      {f.row.book?.map((b) => (
+        <View key={b.words} testID="glance-book" style={{ paddingBottom: 9 }}>
+          <Text selectable testID="glance-book-words" style={[TYPE.meta, { color: palette.ink }]}>{b.words}</Text>
+          <Text selectable testID="glance-book-from" style={[TYPE.meta, { color: palette.sub, marginTop: 2 }]}>{b.from}</Text>
+        </View>
+      ))}
     </View>
   );
   return (

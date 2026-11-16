@@ -6,12 +6,14 @@
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
-import { FISH, salmonCard, salmonRowTexts, type RegsPage, type SalmonFacts } from "@app/core";
+import { FISH, salmonCard, salmonGlance, salmonRowTexts, type RegsPage, type SalmonFacts } from "@app/core";
 import { LIGHT } from "../theme";
 import { SPINNER_TIMING } from "../LoadingState";
 import { hitArea } from "./hit";
 import { RegsScreen } from "./RegsScreen";
 import { SalmonCard } from "./SalmonCard";
+import { SpeciesRows } from "./KeepBlocks";
+import { NO_ACTIONS } from "./LineText";
 import { RegsLayerToggle } from "../shell/RegsLayerToggle";
 import type { MapColouring } from "../shell/useMapColouring";
 import vedder1010 from "./fixtures/vedder_1010.json";
@@ -357,5 +359,15 @@ describe("(T796, owner 2026-11-16 15:19) a book closure on the card says where i
         + "Elsewhere salmon are set by DFO, not the provincial regulations above. Both apply."]);
     // the book's lines come before DFO's source in the fold
     expect(screen.getByTestId("salmon-book-source").compareDocumentPosition(screen.getByTestId("salmon-source")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("(follow-up) closed all year, the Keep tab's plain Salmon row (no Details, no card) says the book's words and place", () => {
+    const card = salmonCard(facts, { sids: [1], item: null }, new Date(2026, 7, 15));
+    render(<SpeciesRows rows={[]} keys={[]} palette={LIGHT} actions={NO_ACTIONS}
+                        folds={[{ key: "salmon", row: salmonGlance(card), body: () => <SalmonCard card={card} palette={LIGHT} /> }]} />);
+    const row = screen.getByTestId("glance:salmon");
+    expect([within(row).queryByTestId("glance-toggle"), screen.queryByTestId("salmon-card")]).toEqual([null, null]);
+    expect([within(row).getByTestId("glance-book-words").textContent, within(row).getByTestId("glance-book-from").textContent])
+      .toEqual([`${BOOK} (all year)`, "Rule book p.9 · National Parks and Ecological Reserves"]);
   });
 });

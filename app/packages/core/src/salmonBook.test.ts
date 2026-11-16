@@ -236,7 +236,7 @@ const YAKOUN = stretch({
 });
 
 /** every surface a page shows for salmon, as its words: the card's head, its rows, the table's words and places, the
- *  source fold, the year bar's name and day, the folded Keep row, and the map's colour of the stretch */
+ *  source fold, the year bar's name and day, the folded Keep row (and what a plain one says under it), and the map's colour */
 function surfaces(F: SalmonFacts, day: Date) {
   const card = salmonCard(F, { sids: [2], item: null }, day);
   const t = salmonTable(card);
@@ -248,6 +248,8 @@ function surfaces(F: SalmonFacts, day: Date) {
     fold: { title: card.sourceTitle, book: card.book, source: card.source, note: card.note },
     bar: [strip.title, strip.word],
     glance: salmonGlance(card).value,
+    // (T796 follow-up) a plain closed row (closed all year: no Details, the card never drawn) says the book's closure itself
+    glanceRow: (({ fold, book }) => ({ fold: fold ?? true, book: book ?? null }))(salmonGlance(card)),
     map: salmonChainStatus(F, 2, salmonDayIndex(day)),
   };
 }
@@ -266,7 +268,7 @@ describe("(T796, owner 15:19) a book closure names the rule book — page, line,
         rows: [["Salmon", "Closed", [words], from]],
         table: { says: [words], from: [from] },
         fold: { ...FOLD_BOOK, book: [{ from, words }] },
-        bar: ["Salmon (DFO and rule book)", "Closed"], glance: "closed", map: "closed",
+        bar: ["Salmon (DFO and rule book)", "Closed"], glance: "closed", glanceRow: { fold: true, book: null }, map: "closed",
       });
     });
 
@@ -277,7 +279,9 @@ describe("(T796, owner 15:19) a book closure names the rule book — page, line,
         rows: [["Salmon", "Closed", [words], from]],
         table: { says: [words], from: [from] },
         fold: { ...FOLD_BOOK, book: [{ from, words }] },
-        bar: ["Salmon (rule book)", "Closed"], glance: "closed", map: "closed",
+        bar: ["Salmon (rule book)", "Closed"], glance: "closed",
+        // closed all year: the Keep tab's Salmon row is plain (nothing behind it), so it names the book, page, line, dates
+        glanceRow: { fold: false, book: [{ from, words }] }, map: "closed",
       });
     });
 
@@ -288,7 +292,7 @@ describe("(T796, owner 15:19) a book closure names the rule book — page, line,
         rows: [["Salmon", "Closed", [words], from]],
         table: { says: [words], from: [from] },
         fold: { ...FOLD_BOOK, book: [{ from, words }] },
-        bar: ["Salmon (DFO and rule book)", "Closed"], glance: "closed", map: "closed",
+        bar: ["Salmon (DFO and rule book)", "Closed"], glance: "closed", glanceRow: { fold: true, book: null }, map: "closed",
       });
       const dfo = "4 per day, only 1 over 50 cm (Apr 1–Oct 31)";
       expect(surfaces(of(YAKOUN), on(7, 15))).toEqual({
@@ -298,7 +302,7 @@ describe("(T796, owner 15:19) a book closure names the rule book — page, line,
         fold: { title: "Source (DFO)", book: [], source: FOLD_BOOK.source,
                 note: "Salmon are set by DFO, not the provincial regulations above. Both apply." },
         // the bar's year holds the book's days too: it is never named DFO's alone
-        bar: ["Salmon (DFO and rule book)", "Open"], glance: "open", map: "open",
+        bar: ["Salmon (DFO and rule book)", "Open"], glance: "open", glanceRow: { fold: true, book: null }, map: "open",
       });
     });
   }
