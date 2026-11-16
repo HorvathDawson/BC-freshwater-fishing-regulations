@@ -119,3 +119,7 @@ change); (e) nothing now: the release data is 3.8 % of the phone download and ti
 
 Depends: none (the T678 release ships first with the raised budgets). Size: M (survey + proposal). Owner: yes (the
 pick). Default: no shipped change until the owner picks.
+
+2026-11-15: `salmon-6` gate raised 320,000 → 420,000 (owner round 5, "Raise to 420 kB (Recommended)"; measured 379,295 B gz
+once the Stikine and Taku places bound, `pipeline/deliver/release/build.py` `SIZE_GATES`). Shrink it back with the rest:
+`salmon-6` is a candidate here (lower it again once the picked changes ship).
