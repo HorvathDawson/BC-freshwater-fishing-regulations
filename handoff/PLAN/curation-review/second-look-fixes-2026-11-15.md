@@ -138,4 +138,4 @@ Everything else: two-part places bind both parts, nothing outside BC, cut ends a
 
 ### Follow-ups asked of the lane after its report
 - Kitimat west bank: held undrawn (a card note in DFO's words) until T754, tributaries off. (result below)
-- Skeena sockeye pair, owner 22:35: "this iss handled by rest of option in extents". (result below)
+- Skeena sockeye pair, owner 22:12: "this iss handled by rest of option in extents". (result below)

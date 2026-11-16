@@ -2,7 +2,7 @@
 
 Status: IN PROGRESS (owner ruling 2026-11-15 night; pipeline + review app; before the next release if it lands clean)
 
-Source: owner, 2026-11-15 22:35 and 22:45 (OWNER-TODO "2026-11-15 night — owner answers"): "this iss handled by rest of
+Source: owner, 2026-11-15 22:12 and 22:14 (OWNER-TODO "2026-11-15 night — owner answers"): "this iss handled by rest of
 option in extents" (the Skeena sockeye pair) and "all items wih same structure as that shoul duse rest of extent type
 too"; his earlier "Rest-of extents: fix both (Recommended)" (round 4). Findings: `final-marks-second-look-2026-11-15.md`
 (Region 1 rows on Somass / Stamp / Little Qualicum; Region 6 Skeena pair), `second-look-fixes-2026-11-15.md`, the
