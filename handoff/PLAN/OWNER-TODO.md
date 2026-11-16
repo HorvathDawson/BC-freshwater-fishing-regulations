@@ -1043,3 +1043,13 @@ For you to re-tick after the rebuild (saved by Claude at your request, each note
   "Fix both"). That is a build change, ticketed tonight.
   (Times above are the commit times of each note, read from git; the first versions of these lines carried
   estimated times up to 30 minutes fast, and the notes of mark lines 2787-2789 say "owner 22:45" for the 22:14 answer.)
+
+## 2026-11-15 night — trout display: mockups for you to pick from
+Page (opens on the phone): https://claude.ai/artifact/EopBgDtf8eu4LGZpYixSkH . Six real waters hard in different ways
+(Vedder, Little River, Skeena in summer, Kootenay Lake, Elk, Fraser in two regions); today's display beside four other
+ways: A fish by fish, B the answer first, C the usual rule and what is different here, D check my fish. The reviewer's
+pick: A with B's one line on top, C's "this river's rule" tag, D later as a button. Five questions at the bottom of the
+page with a recommended answer each. Notes: `handoff/PLAN/design/trout-display-review-2026-11-15.md`. Nothing is built
+until you pick; the build is the app chat's. Two possible defects it saw in the data (to be checked): Kootenay Lake's
+rainbow line drops "over 50 cm" from "20 a year / record"; a Fraser stretch shows "closed from Oct 1" without saying it
+reopens Nov 1.
