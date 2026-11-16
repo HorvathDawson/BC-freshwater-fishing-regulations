@@ -161,3 +161,7 @@ with the APP's esbuild, and pipeline CI installs no app packages ("Cannot find m
 locally, where app/node_modules exists, so it could not see this. Fix: the six reader cases skip, said by name, when
 `app/node_modules/esbuild` is absent (test_dfo_suggest.py's pattern); with it they run (30 pass), without it 24 pass and
 6 skip. The deploy itself still refuses when the bundler is missing.
+
+Second red (cefa78170): `test_no_silent_skips.py` refuses a skip outside its allowlist. The esbuild skip is an optional
+tool, the same kind as `test_dfo_suggest.py`, so it is now listed there (count 1). The guard plus the deploy tests: 50 pass
+with esbuild; with it moved aside, 44 pass and 6 skip. The rest of that CI run passed (6521).
