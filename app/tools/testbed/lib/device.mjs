@@ -5,6 +5,7 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { KEPT_TAGS, keptLog } from './kept-log.mjs';
 
 export const APP_ID = 'ca.canifishthis.app';
 const SDK = process.env.ANDROID_HOME ?? path.join(os.homedir(), 'Library/Android/sdk');
@@ -107,6 +108,20 @@ export const clearData = () => sh(`pm clear ${APP_ID}`);
 export const background = () => sh('input keyevent KEYCODE_HOME');
 export const installed = () => /package:/.test(sh(`pm path ${APP_ID}`));
 export function install(apk) { adb(['install', '-r', apk], { timeout: 300_000 }); }
+/**
+ * (T760) A CLEAN APP FOR A FIRST-INSTALL SCENARIO: uninstalled and installed again, not `pm clear`. `pm clear` keeps the
+ * app's uid, and with it every row the SYSTEM's downloader holds for the app: a run cut short mid-download leaves rows
+ * that are "paused" and never run again, the cleared app adopts them (same address), and the next first install waits on
+ * them for ever (seen 2026-11-15: 20 minutes at "0.6 of 479.3 MB"). An uninstall drops the uid's rows. Needs the APK the
+ * session installed (`TESTBED_APK_FILE`, exported by session.sh): without it this throws, never a quiet `pm clear`.
+ */
+export function cleanApp() {
+  const apk = process.env.TESTBED_APK_FILE;
+  if (!apk || !fs.existsSync(apk)) throw new Error(`cleanApp: no APK to install again (TESTBED_APK_FILE=${apk ?? 'unset'}): run through session.sh`);
+  try { adb(['uninstall', APP_ID], { timeout: 60_000 }); } catch (e) { if (installed()) throw e; /* was not installed: nothing to drop */ }
+  install(apk);
+  if (!installed()) throw new Error(`cleanApp: ${APP_ID} is not installed after installing ${apk}`);
+}
 // `pidof` exits 1 when no process has the name: that is the answer "not running" (null), not a failed command
 // (the T542 wait for a stopped app threw exactly when it should have passed)
 export const pidOf = () => sh(`pidof ${APP_ID} || true`).trim() || null;
@@ -125,7 +140,14 @@ export function crashed(sinceIso) {
   const log = adb(['logcat', '-d', '-b', 'crash', ...(sinceIso ? ['-T', sinceIso] : [])]).toString();
   return log.split('\n').filter((l) => l.includes(APP_ID) || /FATAL EXCEPTION/.test(l));
 }
-export const logcatClear = () => adb(['logcat', '-c']);
+// (T760) Maestro clears the device's log at the start of every flow (lib/kept-log.mjs): the app's and the downloader's
+// lines are kept first (`keepLog`, run.mjs's `ctx.flow`). `logcatTag` reads across flows (the kept lines plus the log
+// now); `logcatJs` stays the log now (what came since the last flow or clear), as the scenarios that read it expect
+const kept = keptLog();
+export function keepLog() { kept.keep(adb(['logcat', '-d', '-s', ...KEPT_TAGS.map((t) => `${t}:*`)]).toString()); }
+export const logcatClear = () => { adb(['logcat', '-c']); kept.clear(); };
+/** One tag's lines (one of KEPT_TAGS) since the last `logcatClear`, across flows. */
+export const logcatTag = (tag) => kept.lines(tag, adb(['logcat', '-d', '-s', `${tag}:*`]).toString());
 export const logcatJs = () => adb(['logcat', '-d', '-s', 'ReactNativeJS:*']).toString();
 
 // ---------- the screen ----------
