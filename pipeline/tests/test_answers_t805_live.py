@@ -36,7 +36,8 @@ LOIS, KHARTOUM, DODD = "wbk:329197058", "wbk:329197063", "wbk:329197061"
 HORSESHOE, NANTON, WINDSOR, IRELAND = "wbk:329197066", "wbk:329197073", "wbk:329197074", "wbk:329197113"
 WILD_TWO = (LOIS, KHARTOUM, DODD, HORSESHOE, NANTON, WINDSOR, IRELAND)
 TAKLA, CUNNINGHAM, ISTSI, TAGISH = "wbk:328961757", "wbk:329537190", "gnis:10793", "wbk:328961735"
-WATERS = WILD_TWO + (TAKLA, CUNNINGHAM, ISTSI, TAGISH)
+SHAMROCK, LONZO, ECHOES = "blk:356196726", "gnis:1860", "wbk:329524034"
+WATERS = WILD_TWO + (TAKLA, CUNNINGHAM, ISTSI, TAGISH, SHAMROCK, LONZO, ECHOES)
 TROUT = {"RB", "ST", "CT", "GB", "EB", "DV", "LT"}
 CHAR = "Up to 1 hatchery Dolly Varden/bull trout or lake trout combined, 60 cm (24 in) or longer"
 
@@ -127,3 +128,21 @@ def test_tagish_lake_trout_possession_says_its_size(built):
     d = _duties(_frame(built, TAGISH, md=(7, 15)))
     assert d[("LT",)] == ["in your possession: no more than 2 lake trout, only 1 over 90 cm (35 in) "
                           "(fish at home don’t count)"]
+
+
+@pytest.mark.needs_bundle
+@pytest.mark.parametrize("stream", [SHAMROCK, LONZO])
+def test_lonzo_creeks_20_to_30_cm_keeps_no_steelhead(built, stream):
+    """Part D: p.24 "Trout/char 20-30 cm in length Jun 16-Jan 31"; p.80 a steelhead is over 50 cm."""
+    f = _frame(built, stream, md=(7, 15))
+    assert f["fish"]["ST"]["hatchery"]["status"] == "release"
+    assert not any("ST" in k for k in _kinds(f))
+
+
+@pytest.mark.needs_bundle
+def test_echoes_lakes_say_from_both_lakes_together(built):
+    f = _frame(built, ECHOES, md=(7, 15))
+    tiers = [n["says"] for r in f["rows"] if r.get("group") for n, _p in walk(r["group"]["tree"])
+             if n["node"] == "tier" and n["tier"] == "own"]
+    assert tiers == ["This lake’s rule: up to 1 brook trout, brown trout, cutthroat trout, Dolly Varden/bull trout, lake "
+                     "trout or rainbow trout a day from both lakes together (part of the 5)"]

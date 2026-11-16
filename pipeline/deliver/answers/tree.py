@@ -95,6 +95,13 @@ class Ctx:
 A_WILD_LIMIT_ACROSS_ROWS_SAID = True
 
 
+#: T805 part D: Echoes Lakes (p.36) "trout/char daily quota = 1 in the aggregate from both lakes" — the lake's own tier
+#: reads "This lake’s rule: up to 1 … a day from both lakes together". False = the mutation pin (the line says 1 a day
+#: and the two-lake count lives only in the kept-elsewhere sentence, as before).
+A_BOTH_LAKES_SAID = True
+_BOTH_LAKES = re.compile(r"(?i)\bin the aggregate from both lakes\b")
+
+
 def across_rows(rows: Sequence[dict], home: int, kinds: Sequence[str]) -> Tuple[dict, ...]:
     """T805: the count limits of ONE origin (an `origin2` condition: "Wild trout/char daily quota = 2") that hold fish of
     the card on row `home` (its group's `kinds`) AND fish of another keep row of the same reading — {r, o, n, mine,
@@ -507,7 +514,12 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
             # ROUND20b C2 (owner: fewer words; the panel read "Replaces Region 2’s 2-from-streams limit" against the
             # share's "not counting hatchery rainbow trout" as two different limits): the line is whose rule and why it
             # applies here; what it replaced stays in `replaces` (history, not a rule in force)
-            t = tier("own", b["cap"], f"{whose}: " + ("any number" if b["cap"] is None else f"up to {_js(b['cap'])} a day"),
+            # T805 part D: a water's quota the book counts over two waters ("in the aggregate from both lakes", Echoes
+            # Lakes p.36) says so on its line, not only in the kept-elsewhere sentence
+            both = (" from both lakes together" if A_BOTH_LAKES_SAID and _BOTH_LAKES.search(
+                P.by_key[b["by"]].f.get("verbatim") or "") else "")
+            t = tier("own", b["cap"], f"{whose}: " + ("any number" if b["cap"] is None
+                                                       else f"up to {_js(b['cap'])} a day{both}"),
                      b["by"], whose=whose, why_here=why_here, replaces=rep, relation=None,
                      line=whose + (f" ({why_here})" if why_here else ""))
             own_ts.append((t, b))

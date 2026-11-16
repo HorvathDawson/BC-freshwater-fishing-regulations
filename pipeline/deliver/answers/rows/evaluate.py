@@ -393,9 +393,17 @@ def fish_range(P: "Part", S: str) -> Tuple[float, float]:
     water (p.80; F5c), so there the rainbow's range ends at 50 cm and the steelhead's starts there."""
     if P.steelhead_water and S == "RB":
         return 0, 50
-    if P.steelhead_water and S == "ST":
+    if S == "ST" and (P.steelhead_water or A_STEELHEAD_IS_OVER_50_EVERYWHERE):
         return 50, INF
     return 0, INF
+
+
+#: T805 part D (adversarial review, Shamrock Creek blk:356196726): p.80 "steelhead: a rainbow trout longer than 50 cm in
+#: waters where anadromous rainbow trout are found" — a steelhead is over 50 cm WHEREVER one is answered, not only where a
+#: big rainbow is known to be one. Shamrock Creek (steelhead possible, Lonzo Creek's "Trout/char 20-30 cm in length Jun
+#: 16-Jan 31", p.24, by the walk) read "Up to 2 hatchery steelhead, 20–30 cm"; the 20-30 cm band now releases every
+#: steelhead there (decision F16), as on Lonzo Creek itself. False = the mutation pin (the impossible steelhead again).
+A_STEELHEAD_IS_OVER_50_EVERYWHERE = True
 
 
 #: T805 (RULINGS C5, owner 2026-11-16 q.38): a take-0 size clause of a quota (`within`) releases its band in decision F16
