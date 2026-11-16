@@ -123,3 +123,22 @@ describe("the feed's issues (T759)", () => {
     expect(salmonIssueItems(pickSalmon(issueRelease(), null).payload).size).toBe(0);
   });
 });
+
+describe("an undrawn place, per stretch (T759 ruling)", () => {
+  // a stretch that already shows the place as an unmapped row needs no second banner, and its neighbour whose chain does
+  // not list it gets the banner, so every stretch of the river sees the rule one way or the other
+  it("a stretch that already shows the place as an unmapped row needs no second banner, and its neighbour whose chain does not list it gets the banner, so every stretch of the river sees the rule one way or the other", () => {
+    const r = issueRelease();
+    const P = r.payload;
+    // a second Babine stretch (section 21) on its own chain, which does not list the undrawn place in `u`
+    const { u: _u, ...neighbour } = P.chains[3]!;
+    const two: SalmonFacts = { ...r, chains: P.chains.length + 1, payload: { ...P, chains: [...P.chains, neighbour] },
+                               chainOf: (sid) => (sid === 21 ? P.chains.length : r.chainOf(sid)) };
+    const f = pickSalmon(two, issueFeed());
+    const first = card(f, ISSUE_SIDS.babine, ISSUE_ITEMS.babine), second = card(f, 21, ISSUE_ITEMS.babine);
+    const unmappedRow = (c: typeof first) => (c.caveat?.items ?? []).some((i) => !!i.where?.includes("Babine Lake — the 400 m mouths"));
+    // each stretch shows the rule exactly one way
+    expect([unmappedRow(first), first.issues.map((b) => b.area)]).toEqual([true, []]);
+    expect([unmappedRow(second), second.issues.map((b) => b.area)]).toEqual([false, ["within 400 m of the mouths."]]);
+  });
+});
