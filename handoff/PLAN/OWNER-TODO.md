@@ -1105,3 +1105,10 @@ reopens Nov 1.
   groupings." Started: round 3 on the same page: the folded row's answer adopted and defined for every case; four or
   five placements for the size compared on the hard waters (he leans to a second column); at least six more real
   waters picked for odd groupings; the shared-answer box stressed. Still exploration: nothing in the app changes.
+
+- 2026-11-15 23:29, Tatshenshini "mainstem and all other tributaries" place, asked whether it should also become
+  rest-of (I recommended leaving it). Owner: "I don't see how this would be a rest of situation.. (mainstem and all
+  other tributaries" place should also become rest-of. Recommended: leave it; it already shares no water with its
+  neighbours)". CLOSED: it stays as drawn (its own waters, sharing none with the Blanchard place or the three creeks,
+  so there is nothing to order). Not on the morning list. My reading for later sweeps: rest-of is only for a place
+  that overlaps the stretches it lists; "all other" wording alone does not make one.
