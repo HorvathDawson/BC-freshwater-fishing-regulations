@@ -51,7 +51,7 @@ the file: "Answers by batch", "Re-check of saves", and the dated lines after the
     globs and `====` in zsh. Use absolute paths (a `cd` sticks). RULINGS is `pipeline/docs/RULINGS.md`.
 13. His name, email and the project name never go into requests to outside services. No reading `.env`.
 
-### C. Where everything stands at 16:55 on 2026-11-16 (ONE block; rewritten whole each time, trust only this)
+### C. Where everything stands at 16:45 on 2026-11-16 (ONE block; rewritten whole each time, trust only this)
 The main chat is session `bc-freshwater-fishing-regulations-8c` (Opus) since 16:07. The old main chat (-17, Fable) has
 no workers left; it only relays anything the owner types there. The app chat (`bc-freshwater-fishing-regulations-9c`)
 knows this address. This session's scratch: `/private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/b8ddfca9-44eb-400e-a9bf-bd89b4b0f359/scratchpad/`.
