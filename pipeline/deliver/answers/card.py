@@ -337,7 +337,28 @@ def _item_n(it: dict, total) -> Optional[float]:
     return None
 
 
-def _duties(P, model: dict, S: str, n) -> List[str]:
+def _duty_band(r, lo: float, hi: float) -> str:
+    """T763: the band of a yearly limit or record duty whose `lengths` narrow the kind's keep range [lo, hi], in the
+    boundary standard's words ("over 50 cm (20 in)", the caps' composer); "" where the rule holds the whole kind
+    (Shuswap's "5 a year" on a kind kept at 50 cm or longer) or has no lengths (steelhead's "10 a year")."""
+    from pipeline.deliver.answers.caps import edges, rule_sides
+    held = [x for x in r.x.get("lengths") or [] if x.get("take") != 0]
+    if not held:
+        return ""
+    if len(held) > 1:
+        raise common.AnswersError(f"answers: {r.key} limits a yearly limit or record duty to {len(held)} bands; "
+                                  "the duty words say one")
+    a, b = held[0].get("min_cm") or 0, held[0].get("max_cm")
+    b = INF if b is None else b
+    if a <= lo and b >= hi:
+        return ""
+    sides: Dict[float, str] = {}
+    for x, side, _w in sorted(rule_sides(r), key=lambda t: t[2]):
+        sides.setdefault(x, side)
+    return common.band_words(a, b, *edges(sides, a, b))
+
+
+def _duties(P, model: dict, S: str, n, lo: float, hi: float) -> List[str]:
     from pipeline.deliver.answers.rows import main_res
     R_ = model["R"].get(S) or {}
     m = main_res(R_.get("H"), R_.get("W"))
@@ -345,9 +366,13 @@ def _duties(P, model: dict, S: str, n) -> List[str]:
     for l in (m or {}).get("lines") or []:
         r = l["r"]
         if l["t"] == "annual" and isinstance(r.f.get("take"), (int, float)):
-            w = f"{_js(r.f['take'])} a year"
+            band = _duty_band(r, lo, hi)
+            w = f"{_js(r.f['take'])} {band} a year" if band else f"{_js(r.f['take'])} a year"
         elif l["t"] == "record" or (l["t"] == "duty" and r.f.get("record_retention")):
-            w = "record each on your licence right away"          # UR1 G; ROUND20g 2 (owner: fewer words)
+            band = _duty_band(r, lo, hi)
+            # UR1 G; ROUND20g 2 (owner: fewer words); T763: a banded duty names its band
+            w = (f"record each one {band} on your licence right away" if band
+                 else "record each on your licence right away")
         elif l["t"] == "duty" and r.type == "stop_fishing_after_quota":
             # UR2 5; ROUND20g 2 (owner: fewer words); ROUND20i 5 (UR4: "here" read as the whole Vedder?): the book's "stop
             # fishing that water", named by its noun ("this river")
@@ -929,7 +954,7 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
                     notes.append(f"counts toward the {_js(share['take'])} from {share['water']}s")
             else:
                 notes.append(f"counts toward the {_js(total)} a day")
-        duties = _duties(P, model, S, n)
+        duties = _duties(P, model, S, n, lo, hi)
         key = (id(b), said_by, n, name, detail, tuple(notes), tuple(duties))
         k = rows_by.get(key)
         if k is None:
