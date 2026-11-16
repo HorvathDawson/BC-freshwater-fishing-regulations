@@ -4883,6 +4883,22 @@
       -120.872177,
       50.75627
      ]
+    },
+    {
+     "id": "thompson_river__bonaparte_river",
+     "label": "Bonaparte River confluence",
+     "kind": "confluence",
+     "anchor": {
+      "type": "confluence",
+      "tributary_wsc": "100-190442-506118",
+      "_name": "Bonaparte River"
+     },
+     "note": "",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 3:thompson-river#c76883c57564 — \"Ashcroft - from the fishing boundary sign at the upstream side of the mouth of the Bonaparte River\"",
+     "_coord": [
+      -121.258053,
+      50.738875
+     ]
     }
    ]
   },
