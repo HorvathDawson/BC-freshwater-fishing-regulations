@@ -51,7 +51,7 @@ the file: "Answers by batch", "Re-check of saves", and the dated lines after the
     globs and `====` in zsh. Use absolute paths (a `cd` sticks). RULINGS is `pipeline/docs/RULINGS.md`.
 13. His name, email and the project name never go into requests to outside services. No reading `.env`.
 
-### C. Where everything stands at 16:04 on 2026-11-16 (ONE block; rewritten whole each time, trust only this)
+### C. Where everything stands at 16:06 on 2026-11-16 (ONE block; rewritten whole each time, trust only this)
 The owner, 15:49: "we will run out of credits soon... we should m,ake sure handoff is good for opusa to take over at
 anytime." If you are the main chat arriving on Opus: read A and B above, this block, then D to G. Do not re-ask him
 anything answered below; his words are at the end of OWNER-TODO.md under today's times.
@@ -79,6 +79,16 @@ reads it as a ticket.
   his later answers into the spec), the side-stream auditor.
 
 **3. Salmon fixes (T796 and the rest of `lane/salmon-rules-1116`, head 91cf5e8fc): built, NOT merged.**
+- FAULT FOUND 16:06 by the app chat's pictures (they are in ITS scratch folder, `…/699dcd1b-ff73-4ed1-a69c-69feb621d839/scratchpad/t796-shots/sheet-*.png`):
+  on the Salmon MAP the Skeena ecological reserve stretch (the all-year closure, row 41) is still blue on Aug 15 while
+  its card reads closed; the dated closures (Bell-Irving, Yakoun) do turn closed on the map. The owner's pass
+  condition is that the map colour shows the closure too, so the lane does NOT land until this is fixed. The salmon
+  lane worker (`a2becf9b4bea93daf`, Opus) was resumed at 16:06 to find the cause (the chain's map runs `m` against the
+  per-species verdicts `sp`), fix it with a permanent check, and build a second local candidate under
+  `<scratch>/t796/candidate-release-2/`. WHEN BACK: give the app chat the new path and id (it retakes the Skeena
+  picture and regenerates its files), then show the owner the three before / after pictures, then land (section D).
+  Do not send him the pictures while the Skeena map one is wrong. The app chat is also fixing its own gap (an
+  all-year book closure's compact card says "Salmon closed" without the book's line and page).
 - His decisions: all 71 book closures go ahead, the Nass side streams included ("and yes the closure wins here.");
   the card must say where the closure is from (done in the data and on every app surface: twins
   `app/salmon-twins-1116` @ d1b7cc7b2); three limits raised (in 91cf5e8fc).
