@@ -4899,6 +4899,25 @@
       -121.258053,
       50.738875
      ]
+    },
+    {
+     "id": "thompson_river__hwy_97c_bridge_in_ashcroft",
+     "label": "Hwy 97C bridge in Ashcroft",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -121.281673,
+       50.726878
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 3:thompson-river#c76883c57564 — \"to Hwy 97C bridge in Ashcroft\"",
+     "_coord": [
+      -121.281673,
+      50.726878
+     ]
     }
    ]
   },
