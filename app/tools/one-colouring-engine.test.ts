@@ -69,7 +69,7 @@ describe("one colouring engine", () => {
     expect(src).toContain('toChannel("runs", runs ? runsInput(runs) : null');
     expect(src).toContain('toChannel("method", method ? methodInput(method) : null');
     expect(src).toContain('toChannel("salmon", salmon ? salmonInput(salmon) : null');
-    expect(src).toContain('toChannel("status", status ? statusInput(status) : null');
+    expect(src).toContain('toChannel("status", status ? statusInput(status, salmon) : null');   // (T796 A6) the finfish closures over it
     expect(src).toContain('toChannel("standing", standing ? standingInput(standing) : null');
     expect(src).toContain('toChannel("survey", lakes ? surveyInput(lakes) : null');
     expect(src).toContain('toChannel("stocked", lakes ? stockedInput(lakes) : null');

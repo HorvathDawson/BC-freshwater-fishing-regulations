@@ -274,9 +274,10 @@ export function useNativeColouring(o: {
    */
   const { status, standing, lakes, salmon, method, runs } = o;
   const statusDay = status ? readingDayOf(status.day) : 0;
-  const statusIn = useMemo(() => (status ? statusInput(status) : null),
+  // (T796 A6) with the salmon handed over, the day's DFO finfish closures paint closed on Standard (`statusInput`)
+  const statusIn = useMemo(() => (status ? statusInput(status, salmon) : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [status?.index, statusDay, status?.only, o.atlasUrl]);
+    [status?.index, statusDay, status?.only, salmon?.facts, o.atlasUrl]);
   const standingIn = useMemo(() => (standing ? standingInput(standing) : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [standing?.labels, standing?.values, o.atlasUrl]);

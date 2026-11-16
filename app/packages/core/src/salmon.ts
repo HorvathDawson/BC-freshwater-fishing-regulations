@@ -396,6 +396,24 @@ export function salmonDayProfiles(f: SalmonFacts, on: Date): SalmonDay {
   return out;
 }
 
+/**
+ * (T796 A6, owner 2026-11-16: "Closes the whole page") THE DAY'S FINFISH CLOSURES ON THE MAP: the chain label (`s<chain>`,
+ * `salmonLabel`) of every chain with any species verdict carrying `f` that day — DFO's "Finfish closure", all fishing
+ * closed, trout included. The Standard map paints these closed ahead of their status profile (map `statusInput`). Read
+ * from the same per-species verdicts and day index as the card's `finfishToday` (the release's, or the live feed's
+ * composition); [] when none.
+ */
+export function finfishDayLabels(f: SalmonFacts, on: Date): string[] {
+  const P = f.payload, day = salmonDayIndex(on), out: string[] = [];
+  for (let c = 0; c < f.chains; c++) {
+    const ch = P.chains[c];
+    // (T549 item 11) a missing chain is said, as `salmonChainStatus` says it
+    if (!ch) throw new SalmonError(`salmon: chain ${c} is not in the salmon file`);
+    if (ch.sp.some((runs) => P.verdicts[at(runs, day)]?.f)) out.push(`s${c}`);
+  }
+  return out;
+}
+
 // ── the region header ────────────────────────────────────────────────────────────────────────────────────────────
 
 const inWindow = (day: number, on: readonly (readonly number[])[] | undefined) =>

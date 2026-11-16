@@ -6,7 +6,7 @@
 import { describe, expect, it } from "vitest";
 import { SALMON_FEED_GOLDEN } from "./salmonFeed.golden";
 import { salmonCard, salmonChainStatus, salmonNotes, type SalmonFacts } from "./salmon";
-import { composeChain, dfoNoticeRows, feedTables, parseDfoUnplaced, parseSalmonFeed, pickSalmon, salmonFeedLine, salmonCheckedLine, salmonFeedOf, withSalmonFeed } from "./salmonFeed";
+import { composeChain, dfoNoticeRows, feedFinfishOn, feedTables, parseDfoUnplaced, parseSalmonFeed, pickSalmon, salmonFeedLine, salmonCheckedLine, salmonFeedOf, withSalmonFeed } from "./salmonFeed";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- the golden is the pipeline's JSON, read as data
 const G = SALMON_FEED_GOLDEN as any;
@@ -286,5 +286,19 @@ describe("(T770) under a live feed a chain's gear lines are every place's, narro
       return v >= 0 ? t.gears[v] : null;
     };
     expect([lines(274), lines(152)]).toEqual([[FLY, HOOK, "No natural bait allowed"], [HOOK, "No natural bait allowed"]]);
+  });
+});
+
+describe("(T796 A6) the web's cue to read the salmon files for the Standard map", () => {
+  it("is any place's species verdict carrying `f` on the day, by the feed's own runs (-1: the place says nothing)", () => {
+    const base = feed();
+    const fin = { ...base,
+      verdicts: [{ s: "closed", t: "Not opened by DFO", d: 1 }, { s: "closed", t: "Finfish closure (Jul 20)", f: 1 }],
+      locs: { "6:x": { r: "6", sp: [[0, -1, 201, 1, 202, 0], [0, -1], [0, -1], [0, -1], [0, -1]], g: [0, -1] } } } as typeof base;
+    // Jul 20 is day 201; the day before says nothing, the day after is closed without `f`
+    expect([new Date(2026, 6, 19), new Date(2026, 6, 20), new Date(2026, 6, 21)].map((d) => feedFinfishOn(fin, d)))
+      .toEqual([false, true, false]);
+    // the pipeline's golden feed carries no finfish closure
+    expect(feedFinfishOn(base, new Date(2026, 6, 20))).toBe(false);
   });
 });

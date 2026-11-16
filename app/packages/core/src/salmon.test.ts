@@ -4,7 +4,7 @@
  * words — whole strings (AGENTS 33).
  */
 import { describe, expect, it } from "vitest";
-import { decodeSalmon, decodeSalmonHead, decodeSalmonShard, salmonCard, salmonChainStatus, salmonDayIndex, salmonDayProfiles, salmonLabel,
+import { decodeSalmon, decodeSalmonHead, decodeSalmonShard, finfishDayLabels, salmonCard, salmonChainStatus, salmonDayIndex, salmonDayProfiles, salmonLabel,
          SALMON_WORDS, SalmonError, salmonTable, salmonTableTexts, salmonRowTexts, salmonDayStatus, gearTabsFor, salmonStripOf, salmonTimelineKey, quotaLine } from "./salmon";
 import { tierWords } from "./regs/tree";
 import { text } from "./regs/line";
@@ -125,6 +125,18 @@ describe("the Salmon colouring's day", () => {
   it("a section paints its chain's answer: an unlisted section paints closed", () => {
     const f = facts(), day = salmonDayProfiles(f, JUL20);
     expect([day.open.includes(salmonLabel(f, 101)), day.closed.includes(salmonLabel(f, 7))]).toEqual([true, true]);
+  });
+
+  it("(T796 A6) the day's finfish closures: every chain with a species verdict carrying `f` that day, by its label", () => {
+    // the Kispiox's coho closure (FN0897, Aug 24 on) answered by DFO's "Finfish closure": all fishing closed then
+    const verdicts = PAYLOAD.verdicts.map((v, i) => (i === 3 ? { ...v, f: 1 } : v));
+    const f = decodeSalmon(encode({ ...PAYLOAD, verdicts }), HANDLES, SHARDS);
+    expect([finfishDayLabels(f, JUL20), finfishDayLabels(f, SEP15)]).toEqual([[], ["s1"]]);
+    expect(finfishDayLabels(f, SEP15)).toEqual([salmonLabel(f, 101)]);
+    // the same day indexing as the map's salmon day: Aug 24 (day 236) is the first, Aug 23 not yet
+    expect([finfishDayLabels(f, new Date(2026, 7, 23)), finfishDayLabels(f, new Date(2026, 7, 24))]).toEqual([[], ["s1"]]);
+    // a file without `f` closes nothing beyond salmon
+    expect(finfishDayLabels(facts(), SEP15)).toEqual([]);
   });
 });
 

@@ -249,7 +249,7 @@ export function Shell(p: ShellProps) {
   const col = useMapColouring({ source, feed, status: statusHeld ? null : p.status ?? null, pairing: p.pairing ?? null, tiles,
                                 layerStore: p.layerStore, attribution: p.attribution, mapTab: nav.mapTab, mapDay,
                                 epoch: syncState.epoch, settled, gearSettled: settled && quietLine,
-                                salmonOnDemand: !!(p.prefetch && loader),
+                                salmonOnDemand: !!(p.prefetch && loader), dfoFeed: p.salmonFeed ?? null,
                                 runTiming: p.runTiming ?? null, runSpeciesStore: p.runSpeciesStore ?? null,
                                 initialHorizon: p.initialHorizon ?? 0 });
   /*

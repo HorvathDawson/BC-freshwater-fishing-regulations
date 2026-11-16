@@ -22,7 +22,7 @@ import { MONTHS } from "./calendar.generated";
 import { BC_TIME_LABEL } from "./clock";
 import { bcFields } from "./day";
 import { FEED_FORMATS } from "./feedFormats.generated";
-import { dfoRow, salmonCard, type SalmonUnplacedPlace, type SalmonCardVM, type SalmonFacts, type SalmonGearInput, type SalmonMapStatus, type SalmonNote, type SalmonBucket, type SalmonHours, type SalmonShared, type SalmonSizes, type SalmonWords } from "./salmon";
+import { dfoRow, salmonCard, salmonDayIndex, type SalmonUnplacedPlace, type SalmonCardVM, type SalmonFacts, type SalmonGearInput, type SalmonMapStatus, type SalmonNote, type SalmonBucket, type SalmonHours, type SalmonShared, type SalmonSizes, type SalmonWords } from "./salmon";
 
 type Payload = SalmonFacts["payload"];
 type Chain = Payload["chains"][number];
@@ -493,6 +493,20 @@ export function pickSalmon(release: SalmonFacts, feed: SalmonFeed | null): Salmo
   const newest = Object.values(release.payload.regions).map((r) => r.asof).filter((x): x is string => !!x).sort().pop();
   if (feed && !(newest && newest > feed.at.slice(0, 10))) return withSalmonFeed(release, feed);
   return releaseOnly(release);
+}
+
+/**
+ * (T796 A6) DOES THE FEED CLOSE ANY PLACE TO ALL FISHING ON `on` — any place's species verdict that day carrying `f` (DFO's
+ * "Finfish closure")? The web's cue to read the release's salmon files for the Standard map (`useSalmonColour`'s
+ * `finfish`): asked of the feed index the app already holds, so a day with none costs no request. Province-wide, not the
+ * view: a place is tied to sections only by the release's chains, which are in the files this decides whether to read.
+ */
+export function feedFinfishOn(feed: SalmonFeed, on: Date): boolean {
+  const day = salmonDayIndex(on);
+  return Object.values(feed.locs).some((l) => l.sp.some((runs) => {
+    const v = at(runs, day);
+    return v >= 0 && !!feed.verdicts[v]?.f;
+  }));
 }
 
 /** The release's own file, its places that were dormant at build (`d: 1`) left off the card. */
