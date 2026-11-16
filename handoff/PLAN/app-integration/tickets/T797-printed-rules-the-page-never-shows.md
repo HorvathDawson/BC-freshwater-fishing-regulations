@@ -66,3 +66,8 @@ notification steps (the bench's own race, being fixed on `merge/t756-t760`); cra
 Android driver did not start up in time" (the tool, the app was up on the map). OWED before it lands: crash-bed and
 bg-install again on the same APK (tag `t797`, `--allow-stale`) once the bench fix is in, then it lands after merge 3.
 Data note sent to the main chat: the Nicomekl / Serpentine rule reaches 27 side streams.
+
+## Benches complete, 2026-11-16 15:12 (app chat, session -9c)
+`merge/t797-powered-boats` with merge 3 landed in (cfe83b679): crash-bed PASS (1/1, 21:58Z run) and bg-install PASS
+(1/1, 22:01Z run) on the same `t797` APK (`--allow-stale`: only bench files and the dev mini-release changed since it
+was built). With the 12:28 runs, all six benches pass. Ready to land after the main chat's clear.
