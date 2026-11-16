@@ -1,5 +1,5 @@
 /**
- * T796 A5 (owner 2026-11-16, question 29) in core, offline AND under a live feed.
+ * T796 (owner 2026-11-16, questions 29 and 30) in core, offline AND under a live feed.
  *
  * A5 — A STRETCH THE RULE BOOK CLOSES READS CLOSED FOR SALMON (book p.77). The release puts the book's full closure first
  * in the stretch's chains, a static place (`p[id].static`, `p[id].book`) whose year is in payload `static`. Owner 12:53:
@@ -9,9 +9,12 @@
  * `with_book_closures` over `pipeline/tests/test_t796_book_closures.py` `_built()` (Cowichan below the Mile 66 trestle,
  * DFO "catch and release" all year, the book closed Sep 1–Nov 15), values pasted from `.venv/bin/python`; the feed's
  * place year is `live.location_calendar` over the same DFO rule with the feed's own verdict table (other indices).
-
+ *
+ * A6 — A DFO "FINFISH CLOSURE" CLOSES THE WHOLE PAGE: a verdict's `f` (the pipeline's and the feeds worker's) on the
+ * page's drawn chains that day; `closeForFinfish` closes the provincial page from the card's `finfish`.
  */
 import { describe, expect, it } from "vitest";
+import { closeForFinfish, type RegsPage } from "./regs";
 import { decodeSalmonHead, salmonCard, salmonChainStatus, salmonDayProfiles, salmonStripOf, SalmonError, type SalmonFacts } from "./salmon";
 import { salmonGlance } from "./glance";
 import { composeChain, feedTables, parseSalmonFeed, withSalmonFeed, type SalmonFeed } from "./salmonFeed";
@@ -106,5 +109,53 @@ describe("(T796 A5) a stretch the rule book closes reads closed for salmon: map,
     expect(() => head({ ...PAYLOAD, static: { [BOOK]: { sp: five([0, 7]), g: [0, -1] } } })).toThrow(/static .* index 7 of 3/);
     const clash = FEED({ locs: { [DFO]: { r: "1", sp: five([0, 2]), g: [0, -1] }, [BOOK]: { r: "1", sp: five([0, 0]), g: [0, -1] } } });
     expect(() => withSalmonFeed(facts(), clash).payload.chains[2]).toThrow(/static place/);
+  });
+});
+
+// ── A6 ──────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+const FINFISH = "Finfish closure (Aug 25–Oct 15)";
+/** chain 1 (sid 1): DFO's finfish closure Aug 25–Oct 15 (its verdict `f: 1`), release only otherwise */
+const FIN_PAYLOAD = {
+  ...PAYLOAD, static: undefined, p: { [DFO]: { r: "1", water: "Stamp River" } },
+  verdicts: [...PAYLOAD.verdicts.slice(0, 2), { s: "closed", t: FINFISH, f: 1 }],
+  chains: [PAYLOAD.chains[0]!, { ...PAYLOAD.chains[1]!, sp: five([0, 1, 237, 2, 289, 1]), m: [0, 2, 237, 3, 289, 2], a: five([0, 0]) }],
+};
+const finFacts = (): SalmonFacts => ({ ...facts(FIN_PAYLOAD), chains: 2, chainOf: (sid) => (sid === 1 ? 1 : 0) });
+const finFeed = () => FEED({ verdicts: [{ s: "closed", t: "Not opened by DFO: closed to salmon fishing", d: 1 }, { s: "release", t: RELEASE_WORDS },
+                                        { s: "closed", t: FINFISH, f: 1 }] as never,
+                             locs: { [DFO]: { r: "1", sp: five([0, 1, 237, 2, 289, 1]), g: [0, -1] } } });
+
+/** an open provincial page, as `buildRegsPage` shapes the parts `closeForFinfish` reads */
+const OPEN_PAGE = {
+  status: "open", who: { age: "adult", residency: "resident" },
+  header: { name: "Stamp River", dot: "open", dayWord: "Today", date: "Oct 10", dateAria: "", place: null, tabs: [] },
+  keep: { order: ["strip", { group: 0 }, "otherFish", "possession"], inherited: null, banner: null, whereNot: null, outside: null,
+          strip: { status: "open", line: [{ kind: "status", text: "Open" }, { kind: "when", text: "today" }, { kind: "soon", text: "Closed from Nov 1" }],
+                   runs: [], todayAt: 0.77, months: [], legend: [] },
+          groups: [{ title: "Trout" }], plainRows: [], otherFish: [{}], otherFishKey: [], caveats: [], possession: {} },
+  licence: { any: 1 }, gear: null, methods: null,
+} as unknown as RegsPage;
+
+describe("(T796 A6) a DFO \"Finfish closure\" closes the whole page, trout included — offline and live", () => {
+  for (const [how, f] of [["offline (the release)", finFacts], ["under a live feed", () => withSalmonFeed(finFacts(), finFeed())]] as const) {
+    it(`${how}: Oct 10 the card carries DFO's words and the page is closed; Nov 1 the page is its own`, () => {
+      const F = f();
+      const card = salmonCard(F, { sids: [1], item: null }, OCT_10);
+      expect(card.finfish).toEqual([FINFISH]);
+      const page = closeForFinfish(OPEN_PAGE, card.finfish);
+      expect([page.status, page.header.dot, page.licence, page.keep.strip!.status, page.keep.strip!.line]).toEqual(
+        ["closed", "closed", null, "closed", [{ kind: "status", text: "Closed" }, { kind: "when", text: "today" }]]);
+      expect([page.keep.order, page.keep.groups, page.keep.otherFish, page.keep.possession]).toEqual([["strip", "banner"], [], null, null]);
+      expect(page.keep.banner!.paras).toEqual(
+        ["DFO closes this water to all fishing today (a finfish closure), trout and other fish included: Finfish closure (Aug 25–Oct 15)"]);
+      const nov = salmonCard(F, { sids: [1], item: null }, new Date(2026, 10, 1));
+      expect([nov.finfish, closeForFinfish(OPEN_PAGE, nov.finfish)]).toEqual([[], OPEN_PAGE]);
+    });
+  }
+  it("a plain DFO closure (no `f`) closes salmon only: the page stays open", () => {
+    const P = { ...FIN_PAYLOAD, verdicts: [...PAYLOAD.verdicts.slice(0, 2), { s: "closed", t: FINFISH }] };
+    const card = salmonCard({ ...facts(P), chains: 2, chainOf: () => 1 }, { sids: [1], item: null }, OCT_10);
+    expect([card.headline, card.finfish, closeForFinfish(OPEN_PAGE, card.finfish).status]).toEqual(["Closed today", [], "open"]);
   });
 });

@@ -47,3 +47,4 @@ export * from "./methods";
 export * from "./licence";
 export * from "./fish.generated";
 export * from "./credits";
+export * from "./finfish";

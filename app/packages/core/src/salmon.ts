@@ -82,8 +82,9 @@ export interface SalmonSizes {
   readonly min?: SalmonBand; readonly adult?: SalmonBand; readonly jack?: SalmonBand;
   readonly w?: readonly string[]; readonly on?: readonly (readonly number[])[];
 }
-/** `c` (T356): the region header note whose closure this verdict is */
-interface Verdict { readonly s: SalmonVerdictStatus; readonly t: string; readonly n?: string; readonly d?: 1; readonly tree?: TreeTier; readonly u?: 1; readonly c?: string }
+/** `c` (T356): the region header note whose closure this verdict is. `f` (T796 A6): a closure answered by DFO's "Finfish
+ *  closure" — ALL fishing is closed that day, trout included (`finfishToday`, the page closes) */
+interface Verdict { readonly s: SalmonVerdictStatus; readonly t: string; readonly n?: string; readonly d?: 1; readonly tree?: TreeTier; readonly u?: 1; readonly c?: string; readonly f?: 1 }
 interface Chain {
   readonly r: readonly string[]; readonly w: string; readonly l: readonly string[];
   /** (T356) the region header notes that close this chain every day (and its undrawn places): its card is the closure */
@@ -484,6 +485,10 @@ export const SALMON_WORDS = {
    *  closed to fishing is closed for salmon too): "Rule book p.9 · Skeena River" — the book's printed page(s), its row */
   placeFromBook: (pages: readonly number[], water: string | undefined) =>
     [pages.length ? `Rule book p.${pages.join(", ")}` : "Rule book", water].filter(Boolean).join(" · "),
+  /** (T796 A6, owner 2026-11-16: "Closes the whole page") DFO's "Finfish closure" closes ALL fishing on the stretch
+   *  that day, trout included: the page's closed banner, DFO's words after the colon */
+  finfishClosed: (dfo: readonly string[]) =>
+    `DFO closes this water to all fishing today (a finfish closure), trout and other fish included: ${dfo.join("; ")}`,
   /** (T668) a straddler's answer that is both regions' words together */
   bothRegions: (regions: readonly string[]) => `${regions.map((r) => `Region ${r.toUpperCase()}`).join(" and ")} together`,
   /** between two places on one row */
@@ -674,6 +679,9 @@ export interface SalmonCardVM extends SalmonBlockVM {
    *  before, or a number not read): no number is shown for them, read DFO's text; `notes` — rows whose words matter as
    *  printed ("in the aggregate", "see exception below"). Null when there are none. */
   readonly dfoWords?: SalmonWordsVM | null;
+  /** (T796 A6) DFO's words of a "Finfish closure" answering on the page's drawn chains that day (a verdict's `f`): ALL
+   *  fishing is closed, trout included (`closeForFinfish` closes the page); [] none */
+  readonly finfish: readonly string[];
 }
 /** (T321) one DFO row in DFO's words: its species and dates cells (dates "All year" when blank) and the limits cell */
 export interface SalmonWordsRowVM { readonly species: string; readonly dates: string; readonly words: string }
@@ -958,10 +966,24 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
     credit: SALMON_WORDS.credit(P.credit),
     note: SALMON_WORDS.noteTwoAuthorities,
     year: regionClosed ? { bars: [] } : salmonYear(f, chains, day),
+    finfish: finfishToday(f, chains, day),
     // one closed-all-year statement: the region's closure, or every place of the page closed every day, nothing undrawn
     closedOnly: regionClosed || (!undrawn.some((c) => speaks(f, c))
       && chains.every((c) => runsOf((i) => salmonDayStatus(f, c, i)).every((r) => r.status === "closed"))),
   };
+}
+
+/**
+ * (T796 A6, owner 2026-11-16: "Closes the whole page (Recommended)") DFO's words of every verdict on these chains that
+ * day carrying `f` — a "Finfish closure": all fishing closed, trout included. Read from the same per-species verdicts
+ * the card reads (the release's, or the live feed's composition); [] when none.
+ */
+function finfishToday(f: SalmonFacts, chains: readonly number[], day: number): string[] {
+  const P = f.payload;
+  return [...new Set(chains.flatMap((c) => P.chains[c]!.sp.flatMap((runs) => {
+    const v = P.verdicts[at(runs, day)]!;
+    return v.f ? [v.n && !v.t.includes(v.n) ? `${v.t} · ${v.n}` : v.t] : [];
+  })))];
 }
 
 /** The book's day i (0 = Jan 1 … 364 = Dec 31, no Feb 29) as the file's day (Feb 29 is 59). */
