@@ -1,6 +1,6 @@
 # T722 — iOS: downloads, offline, background and notices (IOS-5)
 
-Status: IN PROGRESS (iOS chat, install lane, branch `ios/t722-install`: background download, backup exclusion, free-space message, iOS wording; not merged).
+Status: IN PROGRESS (app chat; branch `ios/t722-install` (background download, backup exclusion, free-space message, iOS wording) is MERGED into `redesign/stream-sections` 2026-11-16, see the T723 ticket's "Merged" section; left: the owner's phone-only checks a to d on build 36).
 
 Source: owner 2026-11-14, verbatim: "Maybe we could make a handoff to start improving the ios versions? Making sure it is
 rock solid too?" and "We want to do as much work as possible without the Apple account". Stub IOS-5 in

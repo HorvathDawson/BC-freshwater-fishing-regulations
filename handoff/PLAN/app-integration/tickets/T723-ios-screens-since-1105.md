@@ -1,6 +1,6 @@
 # T723 — iOS: salmon, run timing, search, saved spots, photos work on the simulator (IOS-6)
 
-Status: IN PROGRESS (iOS chat: keyboard and back fixes on branch `ios/t723-keyboard-back`, small audit fixes on `ios/audit-fixes`; not merged; scenario ports not started).
+Status: IN PROGRESS (app chat; the keyboard and back fixes and the small audit fixes are MERGED into `redesign/stream-sections` 2026-11-16, see "Merged" at the end; left: the scenario ports, the Conditions alert field under the decimal pad, the owner's two picks (Save row, back strip width)).
 
 Source: owner 2026-11-14, verbatim: "Maybe we could make a handoff to start improving the ios versions? Making sure it is
 rock solid too?" and "We want to do as much work as possible without the Apple account". Stub IOS-6 in
@@ -175,3 +175,20 @@ Scenario `app/tools/testbed/scenarios-ios/audit-fixes.mjs` (`run-ios.mjs audit-f
 - **G5: not provable on the simulator.** "Open Settings" lands on Settings' root list and its search did not lead to the app's Precise Location switch in two tries; unit-tested (`approxFix.test.ts`, `mapRail.render.test.tsx`).
 - **G2: not proven.** A release was staged on the test channel; across a Notification Center pull-down and a background return the app logged no `[swap] apply` line at all (0, 0, 0), so there is no positive control: either it was not staged in time or the probe line is not reached by this method. Unit-tested only (`returnedFromBackground.test.ts`). A way to prove it: stage, read "Release, staged" in the Updates log, then the same two gestures.
 - The first step of the last run failed on an unrelated stray dialog (a leftover tap path); the earlier run's pass for the arrow, G7 and G6 stands (same build, same scenario code for those steps).
+
+## Merged, 2026-11-16 (app chat; owner's answer to question 19, 10:29: "Yes, one at a time (Recommended)")
+Merge 2 of the held app work: `ios/integration` 639d54d0d (T722 install, T723 keyboard and back, the audit fixes, T719
+tap-up) into `redesign/stream-sections`. 63 commits, 57 app code files, the MapLibre patch (iOS tap-up; the Android
+half is byte-identical) and the bg-download module's iOS side. Two conflicts: `prefetch.render.test.tsx` (the shared
+branch's later T737 version kept) and this ticket (both sides kept).
+- **One fix in the merge:** T723 G11's own test failed on the merged head: the 0.7.11 note "Android: code shrinker
+  (R8) on for this build…" (added on the shared branch after this branch was cut) would have shown on an iPhone. It
+  is now tagged Android-only (`changelog.ts` `only`); Android's notes are unchanged.
+- **Checks on the merged head:** `pnpm check`: 6,790 tests passed, that one failed, then it and `check:fast` green
+  after the tag; worker suite 487; the six Android benches on 43a489846 with R8 on and the patched MapLibre
+  (10:45 to 11:14, `--no-r2`): 6 of 6 scenarios. install (up 70 s after launch), crash-bed, bg-install (the
+  notification tap did not open the app, the bench launched it: the known old-bench behaviour), regs-open (cue 41 to
+  86 ms, page 337 to 371 ms), tap-stalls (worst 155 ms of 300), memory (boot 248.6 MB, peak 437 MB). After the bench
+  only docs and one test file (T751) changed.
+- **Not checked here:** nothing iOS was re-run for this merge (the simulator proofs above are the branch's own, on
+  its commits); the first iPhone build from the shared branch will be the check.

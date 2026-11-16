@@ -1,6 +1,6 @@
 # T719 — iOS: tap open speed and cue, T716 parity (IOS-2)
 
-Status: IN PROGRESS (iOS chat, test-bed lane: `regs-open` ported; the simulator numbers and the tap-up design are in the run).
+Status: IN PROGRESS (app chat; the tap-up patch `ios/t719-tapup` is MERGED into `redesign/stream-sections` 2026-11-16, see the T723 ticket's "Merged" section; `regs-open` ported; left: the owner's look on a real iPhone, build 36 check e).
 
 Source: owner 2026-11-14, verbatim: "Maybe we could make a handoff to start improving the ios versions? Making sure it is
 rock solid too?" and "We want to do as much work as possible without the Apple account". Stub IOS-2 in
