@@ -128,3 +128,21 @@ sonnet docs/UI).
 - Every owner answer goes verbatim into OWNER-TODO.md and the To-Do page the same turn. Decisions by question dialog,
   four per round, plain words; combine where one recommendation covers several.
 - Network drops killed eight lanes: resume them with SendMessage, and make mark-writers check for double appends first.
+
+## From the iOS chat at hand-over (2026-11-15 20:50): must not be lost
+1. The STAGING WORKER is deployed from a scratch branch, not the shared branch: branch ios/staging-worker at
+   173867c4c (push + crash limit + T757 worker + T758), version 92b74def. Any staging release or site/worker deploy
+   from the shared branch puts the OLD worker back (no closed-area pieces, no default sentences, no push). Until the
+   worker branches are merged: have the iOS chat re-deploy it right after, every time. Step 3 above bites on this.
+2. T756 is NOT ready to merge: bg-install passed 8/8 once and failed once on the same code; after a reopen the app is
+   silent for 16 s / 46 s / more than 284 s before any file reports, cause not found (T760).
+3. Build 33: the tested app tree is 6a2dc612d plus one test file (0f32e4b0f, the R8 config test). ANY app/ commit after
+   that means the six benches are re-run before the build. The ten-step phone walk is in the T749 ticket.
+4. Owed to the owner as PICTURES before T759 ships: the banner on a real river and two or three looks for the stream
+   line (banner words on his To-Do row t759-banner-words). The production feeds-worker deploy is his, after the merges.
+Branch heads (all on origin, none merged unless said): T749 merged (35dce9bf3) + 0f32e4b0f; T756/T760 bench work
+fix/t756-keep-running-job 0a17e1fe5; T757 worker feeds/t757-worker-pieces 230ad909d (on staging), app
+app/t757-min-feed-shape fa0c7a1c5 (app/t757-piece-not-known a5af25920 is ABANDONED, never merge), deploy refusals
+05383894d; T758 feeds/t758-page-defaults 179c6cba5 (on staging); T759 app 478896b84 stacked on fa0c7a1c5, worker lane
+was still running. iOS merge order after build 33: ios/integration; T746, T738, the crash-send app half, perf/t741,
+T756 when green; push (T739) last (privacy wording approved; the line still has to go into the page's source).
