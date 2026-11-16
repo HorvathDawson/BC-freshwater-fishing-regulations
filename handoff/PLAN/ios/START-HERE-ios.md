@@ -35,6 +35,16 @@ this page says "iOS chat" below, read "app chat". Session since 2026-11-15 21:27
    "after". Still to do before landing: `check:fast` on the branch. After the benches: clear the 13.5 GB of
    `maestro_xctestrunner_xcodebuild_output*` in the system temp folder (mine, no run uses them).
 
+7. T764 LANDED on the shared checkout as e62331249 (23:54; `check:fast` clean; the main chat was told). Its files are
+   test and tool files only, so the bench-diff check may also show `app/tools/test-tmp*.ts`, the two vitest configs
+   and `app/packages/data/src/sql/drivers/releaseDir.ts` (node-only, not in the app bundle).
+8. Two build lanes were started at 23:57 for the two things the owner answered at 23:00, each on its own branch,
+   nothing merged, no emulator: (a) T760 "keep trying by itself" + the probe at the "Wi-Fi back" step + why the
+   app-log capture was empty, Opus, worktree `t760-wt`, branch `fix/t760-stuck-download`; (b) the T759 stripe for
+   real (Salmon view only, both platforms, legend, the folded-row mark, tests, pictures into scratchpad
+   `t759-pictures/final/`), Sonnet, new worktree `t759-wt`, new branch `app/t759-stripe` from `app/t759-issues`.
+   When (b) reports: send the owner the contact sheet with row `t759-line-look`.
+
 **Who you talk to.** The main (data) chat is session `bc-freshwater-fishing-regulations-17` (it took over
 from chat 13 on 2026-11-15 evening; its page: `handoff/PLAN/NEXT-SESSION-after-chat13.md`). Tell it your session name
 first. It messages you BEFORE and AFTER any staging release.
