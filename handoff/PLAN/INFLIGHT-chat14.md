@@ -142,6 +142,27 @@ older tickets carry his answer in a section "Owner, 2026-11-16".
 - The book-rule lane (`lane/book-rule-fixes-1116`) can land now: nothing in it waits on anyone (Puntledge: "Yes, as
   printed").
 
+### Added 15:00
+- The book-rule lane is LANDED and pushed (13:54; full tier 6,499 pass). A reach-only rerun into
+  `<scratch>/reaches-1116/full` finished clean: exactly 7 of 3,404 rules changed (Puntledge r6 +1,059 and r1 +6,
+  Atnarko r12 -50, ecological reserves r3 -6 and the new r3p, Williston r1 +2, the new Dinosaur r1b). NOT promoted:
+  more reach changes are coming (T807, T803); delete that folder (15.6 GB) once a later run replaces it.
+- The app chat landed merge 3 (T756 + T760) at 14:57; next from it: T797, then the deploy gate; its salmon twins are
+  on `app/salmon-twins-1116`.
+- The owner read the book-closure list (about 14:55): yes to raising three more limits (salmon-6 460,000; web
+  first_tap 4,400,000; first_tap_low 3,600,000); closures must cover only the water and days the book closes (to be
+  PROVEN per row); the Nass side streams' coho closure Jan 1 to Jun 15 needs its real consequence looked at before it
+  ships; and he wants ONE artifact page of all 70 closures with maps, built by a SMALLER model (Sonnet). The salmon
+  lane agent (`a2becf9b4bea93daf`) is doing the limits, the per-row proof and `scratchpad/t796/nass-consequence.md`,
+  and making `scratchpad/t796/book-closures-raw.json` regular with full section ids. WHEN IT RETURNS: tell the app
+  chat the commit; spawn a SONNET worker to build the page (`<scratch>/book-closures-page/`, images as files; the map
+  drawing tool to reuse is `<scratch>/recheck-pics/tool/`), publish it as a new artifact, give him the link in chat.
+- Trout round 9 (Opus designer) is published on the same page; an OPUS attacker (`a402ba0a063c3ee4e`) is on it. When
+  it returns: append its report to the design review file, then put the verdict and the designer's three questions
+  to him in one dialog (one line above the table when every fish closes the same day: yes; a limit that only gets
+  looser stays undated: yes; Adams River shows the stricter 80 cm with the one-day rule in the sheet: yes).
+- No worker runs on Fable any more (his word 13:49): Opus or Sonnet; name the task and reason to him first otherwise.
+
 ### The fix queue for the next staging release (all with his go; each lands with the full tier, then ONE release)
 1. T793 (landing now). Tell him with the changed-answers list that Lois and Khartoum read 2 wild + 2 wild (T805.1).
 2. Printed rules back on the page: T794 (Peace below Bennett Dam: map check, maybe a cut = next rebuild; Williston
