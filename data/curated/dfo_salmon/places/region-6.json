@@ -4288,7 +4288,7 @@
             "item_id": "gnis:3225"
           }
         ],
-        "tributaries": false,
+        "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
