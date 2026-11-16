@@ -266,7 +266,8 @@ with the default Claude uses until you answer). Newest first inside each section
   for where it applies before you fish." Between lead-in and closing: DFO's own area and rule, as printed. Sits above
   the species table. Also new (T757), shown when the latest DFO check cannot be used with the app's data: "The latest
   DFO check could not be used with this app's data, so the DFO rules this data was built with are shown. Check DFO's
-  page before you fish." THE PICTURES ARE DONE (2026-11-15 22:53): the banner on the Campbell River and three looks
+  page before you fish." **ANSWERED 2026-11-15 23:00 (dialog): "Yes as written (Recommended)"**, and the banner's place:
+  "Above the table + mark the folded row (Recommended)". THE PICTURES ARE DONE (2026-11-15 22:53): the banner on the Campbell River and three looks
   for the line, on https://claude.ai/artifact/T5yS8HymzuhAXq8kYaLEwL (also sent in the app chat).
 - **NEW 2026-11-15 22:53 (app chat, T759; To-Do row `t759-line-look`): pick the look of the river's line, and two
   small picks.** Real renders of the app (web, phone width) on the Campbell River with one made-up unplaced DFO rule
@@ -277,6 +278,14 @@ with the default Claude uses until you answer). Newest first inside each section
   black like the bait-ban edges? PICK 3: the banner shows only once Salmon is opened: should the folded Salmon row
   carry a small mark too (Claude suggests yes)? Not shown: dark theme, the colour-blind check, the phone app (the
   look is built for the web only so far, on a prototype branch).
+  **ANSWERED 2026-11-15 22:56 to 23:00.** Typed in the app chat: "I like the stripe option best for the ones with
+  banners. Also the stripes should only be on the salmon view with this error mode right?" So: look C (dashes down
+  the middle), on rivers that have a banner, shown ONLY in the map's Salmon view (the prototype drew it in the Trout
+  view too: that is wrong and the build shows it in Salmon only). The dashes' colour, dialog answer, verbatim: "I
+  think it should dash with closed color maybe? Or a better color what ever is best practice". So the colour is
+  Claude's call by best practice: the closed colour is tried first; if it reads as "closed" or fails the dark-theme
+  or colour-blind check, a neutral ink that does not is used; he sees the final picture before it ships. Folded
+  Salmon row: marked (the banner-place answer above).
 - **NEW 2026-11-15 22:27 (app chat, T760; PROPOSAL, words and numbers; To-Do row `t760-download-words`): a first
   install that stops moving says so.** Two causes of a setup screen that sat for ever were found and fixed on
   branches (not merged, not in tonight's Play build): a small file the app fetches itself that stalled was never tried
@@ -287,6 +296,9 @@ with the default Claude uses until you answer). Newest first inside each section
   existing "Offline — this will load when you’re back online"; when it gives up, above Try again, "A file would not
   download after several tries. Check your connection, then tap Try again." Numbers are Claude's defaults (1 minute,
   10 minutes, 2 restarts: the give-up words after about 30 minutes). Unit-tested only; emulator runs before any merge.
+  **ANSWERED 2026-11-15 23:00 (question dialogs in the app chat).** The three lines and the numbers: "Yes, with
+  Claude's numbers (Recommended)" (1 minute, 10 minutes, 2 restarts). Dead connection: "Keep trying by itself
+  (Recommended)": same words and Try again button, and the app also tries again about once a minute.
   SECOND PICK (added 22:31, from the first emulator runs): when the connection is dead for minutes the app now says
   so and stops on its failure screen with Try again, and waits for the tap even after the connection is back. Pick:
   (a) keep trying by itself about once a minute while showing the same words (Claude's suggestion) / (b) leave it.

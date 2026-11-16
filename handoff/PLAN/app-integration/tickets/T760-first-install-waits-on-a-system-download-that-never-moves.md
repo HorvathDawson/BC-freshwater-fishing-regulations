@@ -134,3 +134,11 @@ Depends: T756 (same file; land together or after). Size: M. On the list for the 
   Proposal: for a failure that is the connection's, keep trying by itself (every minute) while showing the same words.
 - Round 2 (started 22:31): `install` x1 and `bg-install` x3 on `fix/t760-stuck-download` with the probe.
 
+## Owner's answers, 2026-11-15 23:00 (question dialogs in the app chat)
+- The three setup-screen lines and the numbers: "Yes, with Claude's numbers (Recommended)": the "not moved" line after
+  1 minute; a parked file restarted after 10 minutes without a byte, at most 2 times.
+- A connection dead for minutes: "Keep trying by itself (Recommended)": the failure screen keeps its words and its
+  Try again button, and the app also tries again about once a minute, so the install finishes without a tap when the
+  connection returns. TO BUILD on `fix/t760-stuck-download` (today the app restarts twice, then waits for the tap);
+  only for a failure that is the connection's (never for the stuck-download failure or an app too old).
+
