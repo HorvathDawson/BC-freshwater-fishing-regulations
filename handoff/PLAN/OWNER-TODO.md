@@ -1997,3 +1997,12 @@ More questions (recommended answer first):
 - 15:49, typed in chat (verbatim): "we will run out of credits soon... we should m,ake sure handoff is good for opusa to
   take over at anytime." Done 15:49: section C of the handover on the state page rewritten as ONE current block
   (what is running, what to do when each worker hands back, what is waiting to be pushed, what is his).
+- 15:56, trout round 13 (hatchery only), one dialog with two pictures. Is this the handling, typed, verbatim: "yes this
+  is good on fraser but the hatchery on steelhead on skeena doesnt stand out very well. should slightly improve that
+  oitherwise it is getting better." Lois and Khartoum steelhead row: "Hatchery only (Recommended)". So: the rule is
+  accepted; on a single fish's row (Skeena steelhead) "hatchery only" must stand out more (round 14, small); Lois and
+  Khartoum steelhead read "hatchery only" like everywhere else.
+- 15:56, typed in chat (verbatim): "you can continue just make sure handoff stays up to date, also what is prompt to
+  continue after if fabl;e runs out of tokens". The prompt given to him: "Continue as the main chat. Read
+  handoff/PLAN/INFLIGHT-chat14.md: the top section READ THIS FIRST, block C first. Carry on from its list 'Owed to
+  him, in this order'. Do not re-ask anything already answered at the end of handoff/PLAN/OWNER-TODO.md."
