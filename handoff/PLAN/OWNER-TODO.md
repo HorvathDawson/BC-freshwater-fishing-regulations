@@ -1717,3 +1717,17 @@ More questions (recommended answer first):
 - ALL THE QUESTION BATCHES ARE DONE (13 batches, 10:27 to 12:09). Still open with him: the map pictures of the 34 live
   saves to re-check (being drawn; in chat, most urgent first); trout round 7 and its re-attack; the build 33 phone
   walk and iPhone build 36; the Skeena Section 4 pictures are answered.
+
+### Re-check of saves, in chat with pictures (T806), 2026-11-16
+- Pictures 1 to 4, 12:20. Sproat (mark 2468; the END is now 349 m below the Hwy 4 bridge): "Right". Stamp Falls
+  (2469; DFO gives the lower end two ways that disagree on our line: 500 m below the fishway = our END at 498 m; 225 m
+  below Deer Creek = our END at 164 m): "Keep 500 m below the fishway". This REPLACES his earlier "Move it 60 m down
+  (Recommended)" of batch 9 (asked before the fishway measure was known); the Deer Creek mismatch goes into the
+  gotchas; no cut moves. Stave (2672), typed: "it looks right but just to confirm those are the items with the names
+  in name variants right?" Checked: yes, `data/curated/waters/name_variants.json` holds "Ruskin Spawning Channel"
+  (the unnamed side channels on the east bank below Ruskin Dam) and "Northrop Spawning Channel" (the added stream
+  OpenStreetMap calls Northrop Channel); those are the cyan pieces. Cowichan, Sandy Pool sign to the tidal boundary
+  (2774; the yellow runs about 2 km into the water the app tints as tidal), typed: "we want to use our tidal
+  boundaries defined with the mouth definition. these should already all be in so use existing tidasl boundary item
+  dont trim it to dfo polygon". So: the place ends at OUR tidal boundary cut (the mouth definition), as drawn; the
+  tinted polygon is not what trims a place. Right as drawn.
