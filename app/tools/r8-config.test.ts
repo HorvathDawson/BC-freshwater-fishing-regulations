@@ -19,11 +19,21 @@ const MOBILE = resolve(process.cwd(), "apps/mobile");      // vitest runs from a
 const EXPO = resolve(process.cwd(), "node_modules/.bin/expo");
 type Prop = { type: string; key?: string; value?: string };
 
+/**
+ * THE SPAWNED CONFIG SEES ONLY WHAT ITS CASE SETS, plus what a process needs to run at all. It must not inherit the
+ * caller's build variables: a real `deploy/staging/build-apk.sh --play` exports MLN_LOCAL_MAVEN, EXPO_PUBLIC_*, … before
+ * its quick tests run, and app.config.js reads every one of them. 2026-11-15: inside that build (and nowhere else) the
+ * production case was refused for MLN_LOCAL_MAVEN before it reached the R8 refusal, and the build stopped on this test.
+ */
+const RUNS_A_PROCESS = ["PATH", "HOME", "TMPDIR", "LANG", "LC_ALL", "USER", "SHELL"];
+function envFor(extra: Record<string, string | undefined>): NodeJS.ProcessEnv {
+  const env: NodeJS.ProcessEnv = {};
+  for (const k of RUNS_A_PROCESS) if (process.env[k] !== undefined) env[k] = process.env[k];
+  for (const [k, v] of Object.entries(extra)) if (v !== undefined) env[k] = v;
+  return env;
+}
 function introspect(extra: Record<string, string | undefined>) {
-  const env: NodeJS.ProcessEnv = { ...process.env, ...extra };
-  for (const k of ["CANIFISHTHIS_R8", "EXPO_PUBLIC_APP_ENV", "EAS_BUILD_PROFILE"]) if (!(k in extra)) delete env[k];
-  for (const [k, v] of Object.entries(extra)) if (v === undefined) delete env[k];
-  return execFileSync(EXPO, ["config", "--type", "introspect", "--json"], { cwd: MOBILE, env, encoding: "utf8" });
+  return execFileSync(EXPO, ["config", "--type", "introspect", "--json"], { cwd: MOBILE, env: envFor(extra), encoding: "utf8" });
 }
 const props = (json: string): Prop[] => JSON.parse(json)._internal.modResults.android.gradleProperties;
 const minify = (ps: Prop[]) => ps.filter((p) => p.type === "property" && p.key === plugin.KEY);
@@ -52,10 +62,26 @@ describe("T749: R8 is off unless CANIFISHTHIS_R8=1", () => {
     expect(() => plugin.r8Enabled({ CANIFISHTHIS_R8: "true" })).toThrow(/must be unset, "0" or "1"/);
     const prod = spawnSync(EXPO, ["config", "--type", "introspect", "--json"], {
       cwd: MOBILE, encoding: "utf8",
-      env: { ...process.env, CANIFISHTHIS_R8: "1", EXPO_PUBLIC_APP_ENV: "production", EXPO_PUBLIC_CONTACT: "support@canifishthis.ca" },
+      env: envFor({ CANIFISHTHIS_R8: "1", EXPO_PUBLIC_APP_ENV: "production", EXPO_PUBLIC_CONTACT: "support@canifishthis.ca" }),
     });
     expect(prod.status).not.toBe(0);
     expect(prod.stderr).toMatch(/CANIFISHTHIS_R8 \(R8 on, T749\) is a trial/);
+  });
+});
+
+describe("T749: the config runs see only their own variables", () => {
+  it("nothing a build exported reaches a spawned config (MLN_LOCAL_MAVEN, EXPO_PUBLIC_*, EAS_*, the flag itself)", () => {
+    const set = { MLN_LOCAL_MAVEN: "/a/local/maplibre", EXPO_PUBLIC_APP_ENV: "staging", EXPO_PUBLIC_MAP_LAB: "1",
+                  EXPO_PUBLIC_ENV_SWITCH: "1", EAS_BUILD_PROFILE: "production", CANIFISHTHIS_R8: "1" };
+    const was = Object.fromEntries(Object.keys(set).map((k) => [k, process.env[k]]));
+    try {
+      Object.assign(process.env, set);                       // as inside build-apk.sh --play
+      expect(Object.keys(envFor({})).filter((k) => !RUNS_A_PROCESS.includes(k))).toEqual([]);
+      expect(envFor({ CANIFISHTHIS_R8: "0", EXPO_PUBLIC_CONTACT: undefined })).toMatchObject({ CANIFISHTHIS_R8: "0" });
+      expect(Object.keys(envFor({ CANIFISHTHIS_R8: "0" })).filter((k) => !RUNS_A_PROCESS.includes(k))).toEqual(["CANIFISHTHIS_R8"]);
+    } finally {
+      for (const [k, v] of Object.entries(was)) { if (v === undefined) delete process.env[k]; else process.env[k] = v; }
+    }
   });
 });
 
