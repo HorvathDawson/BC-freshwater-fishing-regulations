@@ -1209,7 +1209,10 @@ BOOK_WORDS = "Closed to all fishing by the rule book"
 #: way (only the words would change), and carrying the book there too made the salmon head 92 kB gzipped against its
 #: 60 kB gate (620,930 sections, 736 new chains); with this, 50 kB. The cost: a chain DFO closes all year in the
 #: release and opens in season through the live feed has no book place under that feed. False = every listed chain.
-BOOK_ONLY_WHERE_DFO_LETS_FISH = True
+#: (Owner 2026-11-16, question dialog: "Raise to 100 kB (Recommended)"; RULINGS O5 "raise now, shrink later", O7) FALSE:
+#: the book place joins every DFO-listed chain it closes, so it holds under the live feed too; the head's gate is
+#: 100 kB (`release.build.SIZE_GATES["salmon"]`).
+BOOK_ONLY_WHERE_DFO_LETS_FISH = False
 
 
 def dfo_lets_fish(chain: Mapping, verdicts: Sequence[dict]) -> bool:

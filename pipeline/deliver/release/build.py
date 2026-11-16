@@ -82,8 +82,14 @@ FORMATS = {name: spec["format"] for name, spec in C.FILES.items()}
 #: 320,000 → 420,000: the Stikine and Taku "including tributaries" places bound (92,460 sections off the region
 #: default; no_extent in r-f749475d0962) measured 379,295 B gz on the 2026-11-15 hold-latest build (reach d8cefe97)
 #: against LATEST's 314,700. The other regions keep 320,000.
-SIZE_GATES = {"paint": 1_000_000, "access": 300_000, "core": 1_650_000, "lakes": 100_000, "salmon": 60_000,
-              **{f"salmon-{r}": 320_000 for r in (*SH.REGIONS, "x")}, "salmon-6": 420_000, "method": 600_000,
+#: (owner 2026-11-16, T796 A5, question dialog: "Raise to 100 kB (Recommended)"; RULINGS O5 "raise now, shrink later",
+#: O7; shrinking is T686) `salmon` 60,000 → 100,000: the rule book's full closures first in every DFO-listed chain they
+#: close (`deliver.salmon.with_book_closures`) — the head 31,847 → ~92,000 B gz on r-46e4355a7277's salmon step.
+#: (owner 2026-11-16 ~14:55, T796 A5: "but yes you can do the raise"; RULINGS O5, O8) `salmon-6` 420,000 → 460,000: the
+#: book places in every listed chain fragment Region 6's runs, +53,225 B gz on r-46e4355a7277's numbers (379,396 →
+#: ~432,600).
+SIZE_GATES = {"paint": 1_000_000, "access": 300_000, "core": 1_650_000, "lakes": 100_000, "salmon": 100_000,
+              **{f"salmon-{r}": 320_000 for r in (*SH.REGIONS, "x")}, "salmon-6": 460_000, "method": 600_000,
               # (T388) water + `part_line` (79,253 B gz measured alone on the 2026-11-04 bundle; water was 2,409,579 in
               # r-b86b60ca533b → ~2.49 MB, too close to 2.5 MB) → 2,650,000
               "water": 2_650_000, "near": 2_250_000, "climate": 1_650_000, "regs-sid": 1_400_000, "conditions": 1_060_000,

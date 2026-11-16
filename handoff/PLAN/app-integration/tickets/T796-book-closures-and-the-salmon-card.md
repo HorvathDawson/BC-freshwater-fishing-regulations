@@ -109,3 +109,15 @@ encodes the salmon files), because the stored verdicts are made after the bundle
   rule closing every game fish and never a closure open at some moment, the date ranges). Mutations: the book place never
   answering fails 2; the "every moment" check alone is backed by the per-moment rule intersection (no single
   mutation of it fails a test).
+
+## Follow-up (lane/salmon-rules-1116, 2026-11-16, owner: "Raise to 100 kB (Recommended)")
+- `BOOK_ONLY_WHERE_DFO_LETS_FISH` False: the book place joins every DFO-listed chain it closes (620,930 sections,
+  547 places, 1,084 chains). The ANSWERS are the same 70 stretches / 71,046 sections; everywhere else only the words
+  change (DFO's closure -> the book's). `SIZE_GATES["salmon"]` 60,000 -> 100,000 (head 91,788 B gz). RULINGS O7.
+- STILL OVER on the live release's numbers (deltas measured on the rebuilt salmon step, added to r-46e4355a7277's
+  manifest): `salmon-6` 379,396 -> ~432,600 (gate 420,000); web `first_tap` 4,198,757 -> ~4,311,950 (gate 4,200,000,
+  1,243 B of headroom today); `first_tap_low` 3,359,382 -> ~3,472,575 (gate 3,400,000). `first_tap_unnamed` holds
+  (~6,131,200 of 6,200,000). Not raised here: owner decisions before the next release.
+- The Salmon map paints from the chain's `m` (core `salmonChainStatus` / `salmonDayStatus`, label `s<chain>` per
+  section from the shard): on the three examples it reads closed on their days; province-wide 11,113,487 section-days
+  change colour (open/check/release -> closed), and on 0 section-days does `m` disagree with the chain's verdicts.

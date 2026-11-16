@@ -274,13 +274,18 @@ WEB_BUDGET = {
     # with nothing ahead of it.
     # (T370) + `water-shared`: the slice's region-wide tables, now one file (the same bytes, two fetches)
     "first_tap": {"files": ["core", "water-{region}", "water-shared", "geo", "access", "regs-{region}", "salmon", "salmon-{region}"],
-                  "gate": 4_200_000},
+                  # (owner 2026-11-16 ~14:55, T796 A5: "but yes you can do the raise"; RULINGS O5, O8) 4,200,000 →
+                  # 4,400,000: the book closures in the salmon head (+59,968) and salmon-6 (+53,225) on r-46e4355a7277's
+                  # 4,198,757 → ~4,312,000
+                  "gate": 4_400_000},
     # (T256) THE TAP WITH NOTHING AHEAD OF IT — Save-Data or the low-bandwidth mode (T254): no idle prefetch of core, the
     # Bait & fly marks (`method`) come with the tap; the tap reads its region's `core-{region}` + `water-{region}`, never the
     # whole files. Priced as the largest region (R6): ~3,090,000 (it was core + water + … ≈ 5,300,000)
     "first_tap_low": {"files": ["core-{region}", "water-{region}", "water-shared", "geo", "access", "regs-{region}", "salmon",
                                 "salmon-{region}", "method"],
-                      "gate": 3_400_000},
+                      # (owner 2026-11-16 ~14:55, T796 A5; RULINGS O5, O8) 3,400,000 → 3,600,000: the same +113 kB on
+                      # r-46e4355a7277's 3,359,382 → ~3,472,600
+                      "gate": 3_600_000},
     # the first tap on an UNNAMED stream (most streams): + its key (regs-sid) and the flow pointers (down) the header's
     # "Tributary of ..." walks — no longer all of conditions (8,590,503 → 5,892,308, regs-6)
     # (T182, 2026-10-28) + salmon for the page's Salmon card, as the named tap (6,282,328)
