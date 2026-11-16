@@ -32,7 +32,7 @@ PER CHAIN, FOR EVERY DAY OF THE YEAR (366: Feb 29 included; DFO's dates carry no
   * a VERDICT per species (chinook, coho, sockeye, pink, chum): `open` (a limit above zero), `release` (fish, keep
     none), `closed` (no fishing), `check` (DFO printed a season nobody can read, "to be determined") — or none: no rule
     of the chain holds that species that day, and the app says so rather than guessing;
-  * the GEAR lines that hold (bait bans, hook rules) — the first location with any that day;
+  * the GEAR lines that hold (bait bans, hook rules) — every location's, narrowest first, the same words once (T770);
   * the MAP STATUS the Salmon colouring paints: `open` if any species may be kept, else `release` if any may be fished,
     else `check` if DFO printed a season nobody can read, else `closed`.
 
@@ -308,17 +308,26 @@ def verdict_on(chain: Sequence[Sequence[dict]], sp: str, md: int) -> Optional[di
     return None
 
 
+def place_gear(rules: Sequence[dict], md: int) -> List[str]:
+    """ONE place's gear lines on day `md`, in its rows' order. A row about another fish ("No fishing for eulachon") is
+    one of its lines (`_other_fish`), read APART from the gear rows (T770: a bait row never decides whether it holds).
+    (T676) Per kind, dated lines first, open-ended ones only where none is (`_held`); a line whose date cell did not
+    read is shown every day, prefixed with its `check`."""
+    gear = [r for r in rules if _is_gear(r) and (not _species_of(r) or any(_covers(r, sp) for sp in SPECIES))]
+    other = [r for r in rules if _other_fish(r) and not _is_gear(r)]
+    held = {id(r) for r in (*_held(gear, md), *_held(other, md))}
+    lines = [r for r in rules if id(r) in held] + [r for r in (*gear, *other) if r.get("check")]
+    return list(dict.fromkeys((f"{r['check']}: " if r.get("check") else "") + _text([r], {}) for r in lines))
+
+
 def gear_on(chain: Sequence[Sequence[dict]], md: int) -> Tuple[str, ...]:
-    """The gear lines that hold on day `md`: the narrowest location with any that day. A row about another fish
-    ("No fishing for eulachon") is one of its lines (`_other_fish`). (T676) Dated lines first, open-ended ones only
-    where none is (`_held`); a line whose date cell did not read is shown every day, prefixed with its `check`."""
-    for rules in chain:
-        gear = [r for r in rules
-                if (_is_gear(r) and (not _species_of(r) or any(_covers(r, sp) for sp in SPECIES))) or _other_fish(r)]
-        held = _held(gear, md) + [r for r in gear if r.get("check")]
-        if held:
-            return tuple(dict.fromkeys((f"{r['check']}: " if r.get("check") else "") + _text([r], {}) for r in held))
-    return ()
+    """(T770, owner 2026-11-16: "Show both") THE GEAR LINES ON DAY `md`: every place's that hold that day
+    (`place_gear`), narrowest place first, the same words once (at the narrowest place). A wider place's line is never
+    hidden by a narrower one's — a different value of the same kind of rule shows both, as DFO prints both and both
+    bind (the ticket's "replaces": only the same line). It was the narrowest place with any line, which hid a
+    whole-river hook rule under a stretch's fly-only and B(ii)'s eulachon row under a tributary's bait line. The live
+    feed composes the same from each place's year (`live.compose`)."""
+    return tuple(dict.fromkeys(x for rules in chain for x in place_gear(rules, md)))
 
 
 def map_status(verdicts: Sequence[Optional[dict]]) -> str:

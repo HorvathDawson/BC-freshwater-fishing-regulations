@@ -114,7 +114,7 @@ def compose(lids: Sequence[str], locs: Mapping[str, dict], verdicts: Sequence[di
             intern: Optional[Callable[[dict], int]] = None, gears: Optional[Sequence[Sequence[str]]] = None,
             gear_intern: Optional[Callable[[list], int]] = None) -> dict:
     """A release chain's year from the feed: per species and day the FIRST location (narrowest first, the chain's own
-    order) with an answer, else `NOT_LISTED` (index 0); gear the first with any; the map status from the five. The
+    order) with an answer, else `NOT_LISTED` (index 0); gear every location's, narrowest first, a line once (T770); the map status from the five. The
     reference the app's `withSalmonFeed` is held to — equal to `deliver.salmon.chain_calendar` over the same rules.
     `undrawn`: the chain's `u` (DFO places on its water not drawn yet) — never the map's (T372, the trout way), only
     whether the header closure `c` holds for them too. `speaks`: an undrawn place's own chain carries `n`, the days DFO
@@ -145,11 +145,13 @@ def compose(lids: Sequence[str], locs: Mapping[str, dict], verdicts: Sequence[di
         return ix
 
     def gear_of(gs: List[int]) -> int:
+        """(T770) every place's gear lines that day, narrowest first, the same words once (`deliver.salmon.gear_on`);
+        two regions' groups the same way (`both_gear`): one list either way, added through `gear_intern` when new"""
         have = [g for g in gs if g >= 0]
         if len(have) <= 1:
             return have[0] if have else -1
         if gears is None or gear_intern is None:
-            raise S.SalmonError("live.compose: two regions' gear lines need `gears` and `gear_intern`")
+            raise S.SalmonError("live.compose: gear lines of two places need `gears` and `gear_intern`")
         merged = list(S.both_gear([gears[g] for g in have]))
         same = next((g for g in have if list(gears[g]) == merged), None)
         return same if same is not None else gear_intern(merged)
@@ -160,7 +162,7 @@ def compose(lids: Sequence[str], locs: Mapping[str, dict], verdicts: Sequence[di
             ix = one([first(_at(c["sp"][k], day) for c in cals) for cals in subs])
             per_sp[k].append(ix)
             vs.append(verdicts[ix])
-        gear.append(gear_of([first((_at(c["g"], day) for c in cals), -1) for cals in subs]))
+        gear.append(gear_of([gear_of([_at(c["g"], day) for c in cals]) for cals in subs]))
         mapc.append(S.MAP_CODES.index(S.map_status(vs)))
     sp = [S.runs_of(x) for x in per_sp]
     # T356: closed by the region header every day — and so is every undrawn place the feed lists — `c`
