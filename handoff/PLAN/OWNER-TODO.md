@@ -1676,3 +1676,44 @@ More questions (recommended answer first):
   (`pipeline/deliver/export/read.py` line 387); (3) zone b on weekends reads "the Zymoetz River confluence (1500 m
   upstream)" where the book says "1.5 km upstream of Zymoetz River confluence". One question for him: with the
   angler set to "From outside Canada", a zone part on a Saturday still says "Open", the closure only as a note.
+- Batch 10, 11:55 (pictures sent first: the stripe sheet of eight, the stripe close in on the light theme, the two
+  dark-highlight sheets). Skeena weekend zones, an angler set to "From outside Canada" still sees "Open" on a zone
+  Saturday with the closure as a note: "Note is enough (Recommended)". Question 20, the stripe's legend entry (T759):
+  ""Check rule" is fine (Recommended)". Question 20, the stripe's strength on the dark blue "Keep salmon" line: "Make
+  it wider". Question 21, the dark-mode highlight (T735): "C: dark edge + soft glow (Recommended)".
+- Batch 11, 11:58. The T762 trout "through the year" line (in build 33): "Fine as it is (Recommended)". Question 22
+  (Play "Data safety" location): "Change Play to precise (Recommended)". Question 24 (T686 data shrink): "(a) Three
+  lossless changes (Recommended)". Question 25 (T732 backup: screen lock no, copies 1600 px, new photos at 2048 px),
+  typed: "1280 is probably enough also could we compress as jpeg or something which makes the size a lot smaller? ".
+  So: backup copies at 1280 px (about 81 fit); the app chat answers whether the copies are already JPEG and what a
+  stronger compression would save; the screen-lock pick and the 2048 px pick were not objected to (defaults stand,
+  my reading).
+- 11:58, he asked in chat: "what is state of the trout redsign ?" Answered in chat (round 6 mockups published, nothing
+  built; the adversarial review says "not yet", four blockers; round 7 proposed to fix them).
+- Batch 12 (trout display, mockups only), 12:03. Next step after the adversarial review: "Round 7 fixes them, then
+  re-attack (Recommended)". Top line on the 89 waters where the short line understates: "Bring the second half back
+  (Recommended)". Previous / Next in the sheet, and sources in two places, typed: "i like the sources in both. ths
+  general all sources and the specific ones. then the sheet should be a swipe down to close style (we dont need
+  next/prev on it unless it is going in the same group like bull trout/dolly varden? then navigation should be more
+  obvious with what the next item is in the item at top of sheet and swipe over gestures etc) and the sheet needs to
+  be cleaned up a bit I think. " Who writes the "often mistaken for" lines, typed: "we should drop this for now I
+  think ". So round 7: the four blockers and the top line fixed; sources stay in both places (all sources under the
+  table, the specific ones in the sheet); the sheet closes by a swipe down, loses Previous / Next except between
+  fish of one group, shows plainly what the next item is where it does move, and is tidied; the "often mistaken for"
+  placeholder is dropped. Then the same reviewer attacks it again.
+- Batch 13, 12:09. Question 23 (production backup bucket name `bc-fishing-regulations-backup`): "That name is fine
+  (Recommended)". Android push through Google's Firebase as his exception to "self-host everything", typed: "we dont
+  want this right now". So: no Firebase now; Android push is not built for now (Android keeps its own background
+  checks); the iPhone push work is not touched by this answer. Question 28 (the pre-build check reads the committed
+  list of proposed cuts, not his working copy): "Read the committed list (Recommended)". The eleven small app
+  defaults (a to k), typed: "we should fix anything that doesnt seem desirable". So: the app chat judges each and
+  fixes the ones a user would not want; my reading of the likely ones, passed to it as a reading only: (a) the Save
+  row hidden under the keyboard, (g) the bottom bar jumping 122 px, (h) Back reopening search with the text still
+  typed, and (i) by his own "Flow leads" ruling, the Conditions card opening on Flow. It tells him what it changed.
+- 12:05, from the app chat, for his backup question: the backup copies are already JPEG (1600 px on the long edge,
+  quality 70, about 0.37 MB each against 4.6 MB as taken); at 1280 px about 0.25 MB (81 fit); a stronger setting
+  (JPEG 60 or WebP) is an estimated 0.17 to 0.20 MB (100 to 115 fit), to be measured and shown to him as a before /
+  after pair before the quality changes. It builds 1280 px now.
+- ALL THE QUESTION BATCHES ARE DONE (13 batches, 10:27 to 12:09). Still open with him: the map pictures of the 34 live
+  saves to re-check (being drawn; in chat, most urgent first); trout round 7 and its re-attack; the build 33 phone
+  walk and iPhone build 36; the Skeena Section 4 pictures are answered.
