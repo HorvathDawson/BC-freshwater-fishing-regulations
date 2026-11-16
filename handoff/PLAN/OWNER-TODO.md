@@ -2064,3 +2064,9 @@ More questions (recommended answer first):
   the app chat's app-half check is merged into the spec, a fresh Opus reviewer attacks the whole plan for every place
   the two sides could fight (two sources of a word, logic in both, duplicated helpers, a hand-kept type), and the plan
   is fixed before any build code starts.
+- About 16:55, six answers in the APP chat's dialog batch (relayed, labels picked verbatim): (1) T759 stripe: "Wider is
+  right (Recommended)". (2) T732 backup photo copies: "D: WebP 75" (not the recommended B; T732 answered). (3) T810
+  fold row: "All rows get arrow": every folded row, the other fish included, becomes words plus an expand arrow, not
+  only trout (widens the app scope a little; the app chat folds it into spec section 6). (4) T810 pinned trout top
+  line: "Drop it (Recommended)". (5) T810 a lone other fish beside trout: "Stays as today (Recommended)". (6) T810 the
+  year bar's "Trout: release until …" line: "Drop it (Recommended)".
