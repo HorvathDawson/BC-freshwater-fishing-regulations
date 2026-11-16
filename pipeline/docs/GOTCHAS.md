@@ -214,3 +214,43 @@ The point we propose is an inference, not a fact:
 So: a mismatch between the app and signs on the ground here is not a pipeline bug; it means the inference was wrong.
 What settles it is the sign position from DFO's Terrace or Prince Rupert office. Do not "correct" the point from
 another guess; replace it only with a stated position. (Same family as "Sheldens Creek is a name we assumed".)
+
+## DFO place words that do not fit the ground, kept as they are on the owner's word
+
+**2026-11-16 · owner re-checked each by map picture · DFO salmon places · answers verbatim in `handoff/PLAN/OWNER-TODO.md` ("Answers by batch", "Re-check of saves"), tickets T803 / T806**
+
+Each of these looks like a labelling mistake when measured or read closely. Each was shown to the owner and kept.
+Do not "fix" one from a measurement or a closer reading of DFO's words; a change needs a new source (a sign
+position, a corrected DFO page) and his word.
+
+- **Kanaka Creek, "112th Street bridge"** (Region 2). There is no 112th Street crossing; the only crossing is
+  112 Avenue, and the cut sits there. Owner: "keep it but add to gotcha".
+- **Kispiox, "signs near the Kispiox River Resort"** (Region 6). No resort has that name; the signs are placed at
+  the Kispiox River Lodge, 13.7 km up, low confidence, until DFO Smithers confirms. Owner: "okay sounds good add to
+  gotchas".
+- **Lower Shuswap closed stretch, "one km"** (Region 8). DFO's two printed points are 1,738 m apart in a straight
+  line and 2,075 m along the river; neither is near one km. The printed points stand ("Right: keep the printed
+  points"); nothing goes to DFO. Owner: "just add to gotchas that is all. might be 1km as bird flies too" (it is
+  not: 1,738 m).
+- **Stamp Falls, lower end given two ways** (Region 1). DFO says both "500 m below the fishway" and "225 m below
+  Deer Creek". On our line the first is the cut (498 m below the fishway) and that cut is only 164 m below Deer
+  Creek. The two do not agree; the fishway measure is kept. Owner: "Keep 500 m below the fishway" (this replaced an
+  earlier "Move it 60 m down", given before the fishway measure was known).
+- **Somass, "Paper Mill Dam upstream approximately 0.5 km to Collins Farm"** (Region 1). The stretch between the
+  two named ends is drawn about 1.3 km long, not 0.5 km. The named ends win over the distance. Owner: "right all of
+  it but add to gotchas please".
+- **Thompson closed area at Juniper Beach, upper end** (Region 3). DFO's words can be read two ways: "approximately
+  4 km" above the printed lower signs, or a point 1.5 km below Juniper Beach Park (which would make the area about
+  1.2 km long). The 4 km reading is used (it errs toward closed). Owner: "if the book says 4km then we put it 4km
+  unless i had another split it already matched??" and, on the picture, "Keep 4 km (errs closed)".
+- **Bulkley, two "all tributaries" rows with different exception lists** (Region 6). One row is "all tributaries …
+  other than the Suskwa River": only the Suskwa comes out; the Morice and Two Mile Creek stay in. Its sibling is
+  "… other than Morice River and tributaries, Suskwa River and tributaries, and Two Mile Creek": all three come out.
+  They look like one row entered twice with a slip; they are two places, read word for word. Owner: "right but add
+  to gotchas. it should only drop the blue suskwa river. rest are good." and "right only keep part that is purple.
+  rest get dropped here."
+- **Sheldens Creek, the bridge** (Region 6; see "Sheldens Creek is a name we assumed" above). The cut is a
+  low-confidence point where the road crosses near the mouth (the Spur 19 bridge site, by a camp site), the place
+  is the creek above it, and that same cut is the tidal boundary. Owner: "add as gotcha but i think you can see the
+  road in satellite that crosses neaar the mouth that should be the bridge i think (near a camp site etc) have it be
+  low confidence and set it top tidal too".

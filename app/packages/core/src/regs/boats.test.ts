@@ -3,7 +3,7 @@
  * and a water with no vessel rule (no line).
  */
 import { describe, expect, it } from "vitest";
-import { boatChips, boatKind, inBoatRules, inPartVessels } from "./boats";
+import { boatChips, boatKind, inBoatRules, inPartVessels, BOAT_WHILE, OTHER_WHILE } from "./boats";
 import type { ExportRule, GearAnswer, RuleFacts, RuleIndex, RuleView } from "./inputs";
 import { ruleView } from "./rules";
 import { BOOK } from "./testing/speciesBook";
@@ -77,6 +77,25 @@ describe("boats line", () => {
     expect(inBoatRules(ga, { rules: index(rs) }).map((r) => r.rix)).toEqual([7]);
     // mutation: the circumstance dropped from the frame, the chip is gone (the presenter reads the frame, never the rule)
     expect(boatChips({ ...ga, circumstantial: [] } as GearAnswer, { rules: index(rs) }).map((c) => c.kind)).toEqual(["unpowered"]);
+  });
+  it("(T797) a rule held for an angler in a POWERED boat is a chip too, in its stored label (Horsefly p.45); the other circumstances are not", () => {
+    const rule = (rix: number, label: string, angler: string): RuleView =>
+      ruleView(rix, { entry_id: `w:r${rix}`, rule_id: "r1", type: "method_rule", family: "gear_and_method", label, verbatim: label,
+        fields: { gear: [{ ban: ["angling"], slot: "method", when: { angler } }] }, prov: { rank: 0 } } as ExportRule,
+        { kind: "gear", title: "", book: [], applies: "" } as RuleFacts, BOOK, "reach");
+    const rs = [rule(3, "No angling (from a powered boat) — downstream of Woodjam Bridge", "in_powered_boat"),
+                rule(4, "No angling (from a boat)", "in_boat"), rule(5, "At most 2 lines (rods) per angler (lake, alone in a boat)", "alone_in_boat")];
+    const frame = (circumstantial: unknown[]) => ({ circumstantial, vessel: { active: [], timed: [] }, in_part: [] }) as unknown as GearAnswer;
+    const ga = frame([{ clause: [3, 0], while: ["in_powered_boat"] }, { clause: [4, 0], while: ["in_boat"] },
+                      { clause: [5, 0], while: ["alone_in_boat"] }, { clause: [5, 1], while: ["ice_fishing"] }, { clause: [5, 2], while: ["set_lining"] }]);
+    expect(boatChips(ga, { rules: index(rs) })).toEqual([
+      { kind: "in_boat", text: "No angling (from a powered boat) — downstream of Woodjam Bridge", rule: "w:r3::r1" },
+      { kind: "in_boat", text: "No angling (from a boat)", rule: "w:r4::r1" }]);
+    // the powered-boat rule alone (the Horsefly below Woodjam Bridge: the page showed no boats line at all)
+    expect(boatChips(frame([{ clause: [3, 0], while: ["in_powered_boat"] }]), { rules: index(rs) }).map((c) => c.text))
+      .toEqual(["No angling (from a powered boat) — downstream of Woodjam Bridge"]);
+    // the two lists of circumstance tokens share nothing: a token is the boats line's or another part's, never both
+    expect(BOAT_WHILE.filter((w) => OTHER_WHILE.includes(w))).toEqual([]);
   });
   it("(T209, owner 2026-11-12) a vessel rule of a part no map draws is in the vessel section with the book's locator words", () => {
     // the ten 'close wording' rules (on-parts.md): the gear frame lists them in `in_part`, never in `vessel`
