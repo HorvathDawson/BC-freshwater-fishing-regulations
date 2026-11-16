@@ -1947,3 +1947,14 @@ More questions (recommended answer first):
   picture (said on the card); the book's "[Includes Tributaries]" tag is not yet shown under the line (second
   version being built: Dean River row 12 is the example, the book does print it there). FOR HIM: review when he
   likes; any row he calls wrong by number is held back.
+- 15:36, trout round 11, one dialog with two pictures (Skeena before / after; a Fraser card where only trout and char
+  close). Is this the card to build, typed, verbatim: "it looks good but it is missing the general 30cm or bigger for
+  trout/char in region 2 fraser? ". Closure words ("until Sep 30, then closed to trout and char, reopens Nov 1"),
+  typed: "yes but drop reopen unless it is currently closed then reopen date matters then ". A limit that only gets
+  looser on a coming date (skip it and show the next stricter date?), typed: "could just mention a rule change
+  happens on that date not specifics". Adams River Dolly Varden / bull trout: "Yes, 80 cm on the row (Recommended)".
+  So: the look is accepted ("it looks good"); to check: why the Fraser card's brook, brown and cutthroat rows carry
+  no "30 cm or longer" line (is a general size rule missing from the data or the mock, or does it not apply on that
+  stretch); a coming closure says what closes without the reopening date, and the reopening date is shown only
+  while the water (or the fish) is closed today; a coming change that only loosens a rule is said as a plain "rule
+  changes <date>" with no details; Adams as recommended.
