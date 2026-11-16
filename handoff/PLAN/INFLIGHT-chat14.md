@@ -117,7 +117,7 @@ older tickets carry his answer in a section "Owner, 2026-11-16".
 - T804 (the universal "own row" rule) and the small code lane (T784, T785, T792 A, T799, T797 items 2 to 5, T801
   items 2 to 4) are NOT started.
 
-### Added 13:50: the owner's later answers (all in OWNER-TODO, end of file)
+### Added 13:48: the owner's later answers (all in OWNER-TODO, end of file)
 - ALL 34 re-check pictures are answered. Right as drawn: 1, 3 to 21, 23 to 26, 29, 30, 32, 33 (keep 4 km), 34 (keep
   the printed points). Changes he asked for: Stamp Falls cut STAYS (500 m below the fishway; gotcha); Lamprey Creek
   confluence onto the Morice main channel (22); Sheldens: low-confidence cut at the road crossing near the mouth,
