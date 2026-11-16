@@ -3501,10 +3501,7 @@
       "binding": {
         "extents": [
           {
-            "op": "upstream_of",
-            "splits": [
-              "sheldens_creek__spur_19_bridge_site"
-            ],
+            "op": "whole",
             "item_id": "blk:360846083"
           }
         ],
