@@ -163,6 +163,20 @@ older tickets carry his answer in a section "Owner, 2026-11-16".
   looser stays undated: yes; Adams River shows the stricter 80 cm with the one-day rule in the sheet: yes).
 - No worker runs on Fable any more (his word 13:49): Opus or Sonnet; name the task and reason to him first otherwise.
 
+### Added 15:07
+- Owner on trout round 9 (15:01): "for the trout view i liked the old look more but with the words of round 9 buyt
+  the frame look is a lot cleaner". Round 10 is being built by an Opus designer (`ae176f25b522ddc16`): round 8 look +
+  round 9 words + round 9 outline, as a three-way switch (A no outline, B with outline = default, Round 9). It writes
+  `<scratch>/trout-display/trout-display.r10.html` and `shots/r10/`, NOT the live file (the attacker is reading round
+  9). WHEN IT RETURNS: copy it over `trout-display.html`, publish to the same artifact url, send him
+  `shots/r10/skeena-three.png` with one question (A or B, or back to round 9). The attacker's word findings then go
+  to the same designer by message (round 11), not a fresh worker.
+- Gotchas written and pushed: eight DFO place wordings kept on his word (`pipeline/docs/GOTCHAS.md`, last section).
+- T806's last step is running (Opus, `aa310335a7fa07266`, in the MAIN checkout, no commits): each of his picture
+  answers saved through the review app's own save path with his words; Kitimat strip (2786) side streams on. WHEN IT
+  RETURNS: check marks.jsonl gained lines only, commit `data/curated/review/marks.jsonl` and the places files by
+  explicit path, tick T806. Do not merge anything into the main checkout that touches those files until then.
+
 ### The fix queue for the next staging release (all with his go; each lands with the full tier, then ONE release)
 1. T793 (landing now). Tell him with the changed-answers list that Lois and Khartoum read 2 wild + 2 wild (T805.1).
 2. Printed rules back on the page: T794 (Peace below Bennett Dam: map check, maybe a cut = next rebuild; Williston
