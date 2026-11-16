@@ -1137,5 +1137,5 @@ reopens Nov 1.
   (4) a size limit that belongs to a whole group ("only 1 over 50 cm") must read at a glance as the group's;
   (5) Dolly Varden: the round 3 rows said only "Bull trout"; the book and today's card say "Dolly Varden/bull trout"
   and the app has a Dolly Varden drawing. Being checked per region and fixed on the page.
-  Owner, 2026-11-16 00:01, right after: "We are iterating on it more not implementing". So: round 4 and any later
+  Owner, 2026-11-15 23:59, right after: "We are iterating on it more not implementing". So: round 4 and any later
   round are mockups only; nothing is built in the app or the pipeline for the trout display until he says so.
