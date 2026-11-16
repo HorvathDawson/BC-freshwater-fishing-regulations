@@ -6,8 +6,9 @@ import { getReviewer, isTyping, setReviewer } from "../review";
 import { cleared, failed } from "../failures";
 import { current as writeThrough, keyOf as wtKey, subscribe as onWriteThrough } from "../curatedSave";
 import { HOW_IT_WORKS, LEAVE_DRAFT, arrange, showsProposal, headline, closedCircles, closedPairs, nextAfterSave, nextWaterWithWork, placeState, waterLeft, checkBody, checkStatus, chipOf, hintWords, isDone, needWords, needsExtent, openRows,
-  pinsFc, progressWords, sameAsOptions, step, where } from "../checklist";
-import { offerProposal } from "../dfoExtent";
+  oldExtentWords, pinsFc, progressWords, sameAsOptions, step, where } from "../checklist";
+import { cannotEditOf, offerProposal } from "../dfoExtent";
+import { CannotEditNote } from "./CannotEditNote";
 import { statusLine } from "../dfoExtent";
 import { extentParts, fixParts, partsText, piecesParts } from "../extentWords";
 import { MapPanel } from "./MapPanel";
@@ -36,7 +37,7 @@ import { InputsSyncLine } from "./InputsSyncLine";
 export type CheckSource = "dfo" | "regs" | "all";
 const FILTERS: [string, string][] = [["", "all"], ["todo", "to check"], ["needs", "needs extent"],
   ["earlier", "verified earlier"], ["saved", "saved by you"], ["stale", "changed"], ["bad", "has ✗"],
-  ["group", "marked in a group"]];
+  ["group", "marked in a group"], ["old", "old extent in force"]];
 const KIND_WORDS: Record<string, string> = { unchecked: "words" };
 /** the rows about where the extent runs: a click on one (DFO) opens the inline editor */
 const EDIT_KINDS = ["where", "from", "to", "also", "tributaries"];
@@ -292,6 +293,7 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
         {water && <span data-testid="ck-water-progress"> · {water.water}: {water.done} of {water.total} done</span>}
         {place?.group_marked ? <span className="warn-text" data-testid="ck-group-marked-head"> · marked in a group ({place.group_marked.date}):
           {" "}re-check it on its own</span> : null}
+        {place?.old_extent ? <span className="warn-text" data-testid="ck-old-extent-head"> · {oldExtentWords(place.old_extent)}</span> : null}
       </span>
       <button type="button" className="btn small" data-testid="ck-next-water-any" disabled={!nextWater}
         title={nextWater ? `the first place still to do on ${nextWater.water}` : "no other water has work left in this list"}
@@ -327,7 +329,8 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
                 : progress && k === "unapplied" ? ` ${progress.by_check.unapplied ?? 0}`
                 : progress && k === "stale" ? ` ${progress.by_check.stale ?? 0}`
                 : progress && k === "bad" ? ` ${progress.by_worst.bad ?? 0}`
-                : progress && k === "group" ? ` ${progress.group_marked ?? 0}` : ""}
+                : progress && k === "group" ? ` ${progress.group_marked ?? 0}`
+                : progress && k === "old" ? ` ${progress.old_extent ?? 0}` : ""}
             </button>))}
         </span>
         <select aria-label="jump to a water" data-testid="ck-water" value={ridden?.water_key ?? ""}
@@ -669,6 +672,7 @@ function CheckPanel({ loaded, water, onSaved, onEdit, top, waterDone }: {
             {onEdit && !pc.held && <>{" "}<button type="button" className="btn small" data-testid="ck-edit-extent"
               title="opens a draft of this extent here; nothing is saved until you press Save this extent"
               onClick={() => onEdit(null)}>Edit this extent (draft, nothing saved)</button></>}
+            {!onEdit && cannotEditOf(d.extent_now) && <CannotEditNote why={cannotEditOf(d.extent_now)!} />}
           </div>)}
       </div>
       <div className="ck-rows" data-testid="ck-rows" onMouseLeave={() => pinTo(picked)}>
@@ -727,7 +731,8 @@ function CheckPanel({ loaded, water, onSaved, onEdit, top, waterDone }: {
               <div className="ck-btns">
                 <button data-testid="ck-set-extent" disabled={busy} onClick={() => onEdit(null)}>Draw the extent myself (opens a draft, nothing saved)</button>
               </div>
-            ) : <div className="warn-text">It cannot be changed here: {d.extent_now.cannot_change.join("; ")}</div>}
+            ) : cannotEditOf(d.extent_now) ? <CannotEditNote why={cannotEditOf(d.extent_now)!} />
+              : <div className="warn-text">It cannot be changed here.</div>}
             {onEdit && options.length > 0 && (
               <div className="ck-sameas" data-testid="ck-sameas">
                 <label>Copy the extent from another place on this river:{" "}
@@ -879,6 +884,8 @@ function WaterList({ view, selected, onOpen, onHover, undrawn, done: doneLine, h
                 <span className={`ck-chip ${chip.replace(/[^a-z]+/g, "-")}`}>{chip}</span>
                 {p.group_marked && <span className="ck-chip changed" data-testid="ck-group-marked"
                   title={`its mark in force (${p.group_marked.date}) was written by a group save: re-check it on its own`}>marked in a group</span>}
+                {p.old_extent && <span className="ck-chip changed" data-testid="ck-old-extent"
+                  title={oldExtentWords(p.old_extent)}>{p.old_extent.flag}</span>}
                 {p.ease && p.ease.word !== chip && <span className="ck-ease" data-testid="ck-ease" title="how much work it is: the easiest-first order goes by this">{p.ease.word}</span>}
                 <span className="t">{p.source === "regs" ? <i>{p.name ? `${p.name}: ` : ""}</i> : null}
                   {(p.text || "(the whole water)").slice(0, 110)}{(p.text || "").length > 110 ? "…" : ""}</span>

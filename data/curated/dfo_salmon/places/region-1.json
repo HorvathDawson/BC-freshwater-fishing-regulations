@@ -4416,8 +4416,17 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
-        "tributaries": null,
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "cowichan_river__cnr_bridge",
+              "cowichan_river__skutz_falls"
+            ],
+            "item_id": "gnis:12227"
+          }
+        ],
+        "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,

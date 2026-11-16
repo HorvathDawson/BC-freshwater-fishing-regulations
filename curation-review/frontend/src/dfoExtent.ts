@@ -6,7 +6,7 @@
    is. Change starts FROM the curated extent (`DfoExtentNow.pieces`), and its effect — keep (nothing differs), replace
    or add a piece — is said before the save. Every mark names the extent it was made on (`extent_before`); the server
    refuses one made on an extent that has moved since. */
-import type { CheckAnswer, DfoExtentNow, DfoSaved, ExtentFix, FixPoint, MarkPost, NewSplit } from "./types";
+import type { CannotEdit, CheckAnswer, DfoExtentNow, DfoSaved, ExtentFix, FixPoint, MarkPost, NewSplit } from "./types";
 import { OP_WORDS } from "./extentWords.ts";   // a runtime import: node runs this file too (tests/)
 
 export type DfoCall = "keep" | "change" | "unsure" | "wrong";
@@ -285,4 +285,14 @@ export function toTidalEnd(f: ExtentFix, i: number): ExtentFix | null {
   if (f.op === "between" && others.length === 1) return { ...f, op: "downstream_of", points: others };
   if (f.op === "upstream_of") return { ...f, op: "whole", points: [] };
   return null;
+}
+
+/** T755 follow-up (owner 2026-11-15, Blanchard: "i cant save or edit the extent"): WHY THIS EXTENT HAS NO EDIT BUTTON,
+ * in plain words, and what the owner can do — the backend's words (`cannot_edit`), else its raw reasons with the same
+ * advice; null when the extent can be edited. Never a hidden button with no reason. */
+export function cannotEditOf(now: Pick<DfoExtentNow, "cannot_change" | "cannot_edit"> | null | undefined): CannotEdit | null {
+  if (!now || !now.cannot_change?.length) return null;
+  if (now.cannot_edit && now.cannot_edit.why.length) return now.cannot_edit;
+  return { why: [...now.cannot_change], can: "You can still confirm it as it is, if it matches DFO's words. If it is "
+    + "wrong, mark it wrong and say in the note what should change: that change is made by hand, not here." };
 }

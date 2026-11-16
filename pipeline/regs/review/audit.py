@@ -97,6 +97,19 @@ SHIP_RULE = ("`pipeline/atlas/reach/dfo_salmon.py` `resolve_all` binds EVERY pla
              "`review.marks` out of every stage: a place ships the extent in its curated file whatever its last mark "
              "says. A 'wrong' or 'unsure' save with no landed fix changes nothing that ships.")
 
+#: (T755 follow-up) THE FLAG the review app shows on a checklist row and this audit's section B writes, one predicate
+#: (`old_extent_in_force`): the owner's last word is "wrong" / "unsure" with no fix, and an older extent still holds
+OLD_EXTENT_FLAG = "old extent still in force"
+
+
+def old_extent_in_force(m: Optional[Mapping], extents: Iterable[Mapping]) -> bool:
+    """Is the place's last save (`m`, the mark in force, as a dict) "wrong" or "unsure" with NO extent fix, while the
+    place still has an extent (`extents`: the curated extents it ships — its own, or the one it rides)? That extent
+    is older than the owner's last word on it. A flag only: what ships does not change (`SHIP_RULE`). Pure."""
+    return (m is not None and m.get("verdict") in ("wrong", "unsure") and not (m.get("extent_fix") or [])
+            and bool(list(extents or [])))
+
+
 SECTIONS: dict[str, tuple[str, str]] = {
     "A": ("Places saved more than once",
           "The last save is the one in force. Listed: a place whose file is not what its last save says, and anything an "
@@ -522,7 +535,8 @@ def check_B(inp: Inputs) -> list[Finding]:
         if fix_matches(m, ex):
             continue                                     # the save's own fix is what is in force
         src = next((n for n, e in reversed(saves[:-1]) if fix_matches(e, ex)), None)
-        how = ("with a fix that has not landed" if m.get("extent_fix") else "with no fix")
+        how = ("with a fix that has not landed" if m.get("extent_fix")
+               else f"with no fix ({OLD_EXTENT_FLAG})" if old_extent_in_force(m, ex) else "with no fix")
         via = "" if t is loc else f" (it rides {t['location_id']})"
         out.append(F_(inp, "B", m["verdict"], lid,
                       f"last save line {ln}: {m['verdict']} {how}; in force{via}: {words(ex)}, "

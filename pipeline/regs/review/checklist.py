@@ -452,8 +452,10 @@ def _trib_row(src: Source, trib: Optional[bool], only: bool, own: list[str], cla
     quote = ""
     for c in clauses:
         if _TRIB_ANY.search(c.text):
+            # every clause this row takes is in its quote ("… other than Morice River and tributaries, Suskwa River and
+            # tributaries …"): a clause marked checked is one the owner can read on the row
             c.used = True
-            quote = quote or c.text
+            quote = f"{quote} … {c.text}" if quote else c.text
     if not quote:
         m = _TRIB_ANY.search(src.water)
         quote = src.water if m else ""

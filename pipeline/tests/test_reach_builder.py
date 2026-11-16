@@ -368,6 +368,7 @@ def test_policy_version_is_bumped_when_classify_changes():
     from pipeline.atlas.reach import extent, licensing, outside, steelhead
     from pipeline.atlas.reach import build as reach_build
     from pipeline.atlas.registry import lake_loops, regions
+    from pipeline.atlas.splits import anchors
     policy.update({
         "confluence_cut_excludes_the_joining_water":
             tributaries.CONFLUENCE_CUT_EXCLUDES_THE_JOINING_WATER,
@@ -396,6 +397,8 @@ def test_policy_version_is_bumped_when_classify_changes():
         "verbatim_reads_are_guarded": reach_build.A_WORD_READ_THAT_STOPS_MATCHING_STOPS_THE_RUN,
         "lake_loops_leave_river_items": lake_loops.LAKE_LOOPS_LEAVE_RIVER_ITEMS,
         "lake_loops_join_their_lake": lake_loops.LAKE_LOOPS_JOIN_THEIR_LAKE,
+        "loops_never_divide_a_lake": lake_loops.LOOPS_NEVER_DIVIDE_A_LAKE,
+        "a_tributary_is_its_line_that_meets_the_parent": anchors.A_TRIBUTARY_IS_ITS_LINE_THAT_MEETS_THE_PARENT,
     })
     expected.update({"confluence_cut_excludes_the_joining_water": True,
                      "confluence_water_without_a_row_goes_with_the_cut": True,
@@ -420,8 +423,10 @@ def test_policy_version_is_bumped_when_classify_changes():
                      "dfo_through_river_stays_out": True,
                      "verbatim_reads_are_guarded": True,
                      "lake_loops_leave_river_items": True,
-                     "lake_loops_join_their_lake": True})
-    assert cache.POLICY_VERSION == "40", "update this pin with the version it was taken at"
+                     "lake_loops_join_their_lake": True,
+                     "loops_never_divide_a_lake": True,
+                     "a_tributary_is_its_line_that_meets_the_parent": True})
+    assert cache.POLICY_VERSION == "41", "update this pin with the version it was taken at"
     assert policy == expected, (
         f"classify.py policy changed to {policy} — bump cache.POLICY_VERSION "
         f"(currently {cache.POLICY_VERSION!r}) and update this test together")

@@ -161,14 +161,43 @@ def _apply_offset(d: float, length: float, anchor) -> tuple[float, str]:
     return m, ""
 
 
-def _tributary_chain(anchor, by_blk, by_wsc) -> Optional[BlkChain]:
+#: POLICY (T743, 2026-11-15, the Seton River): a confluence anchor given by the tributary's WSC takes, among the lines
+#: carrying that code, the one WHOSE MOUTH MEETS THE PARENT (within the split's `proximity_m` of a target line), then
+#: one that CARRIES A NAME (FWA gnis: the tributary's own line, not a nameless side channel sharing its code), then
+#: the largest (magnitude, length). The old pick was the largest alone: the Seton's code is also on a nameless line
+#: (blk 355995374, magnitude 3314) whose mouth is 654 m from the Fraser, so the cut was dropped, while the Seton
+#: River's own line (blk 356355483, magnitude 3192) ends on the Fraser. False is the mutation pin.
+A_TRIBUTARY_IS_ITS_LINE_THAT_MEETS_THE_PARENT = True
+
+
+def _mouth_gap(trib: BlkChain, targets) -> float:
+    """Metres from the tributary line's mouth (its first point) to the nearest target line (inf when none)."""
+    if trib.geometry is None or trib.geometry.is_empty:
+        return float("inf")
+    mouth = Point(trib.geometry.coords[0])
+    gaps = [c.geometry.distance(mouth) for _blk, c in targets if c.geometry is not None and not c.geometry.is_empty]
+    return min(gaps) if gaps else float("inf")
+
+
+def _tributary_chain(anchor, by_blk, by_wsc, targets=(), proximity_m: float | None = None) -> Optional[BlkChain]:
+    """The tributary line of a confluence anchor: `tributary_blk` as given, else the line of `tributary_wsc` that the
+    policy above picks (`targets`: the split's parent lines; `proximity_m`: the split's own limit)."""
     if anchor.tributary_blk:
         return by_blk.get(anchor.tributary_blk)
     if anchor.tributary_wsc:
         cands = by_wsc.get(_trim_wsc(anchor.tributary_wsc), [])
+        if not cands:
+            return None
+        if A_TRIBUTARY_IS_ITS_LINE_THAT_MEETS_THE_PARENT and targets and proximity_m is not None:
+            return max(cands, key=lambda c: (_mouth_gap(c, targets) <= proximity_m, bool(c.gnis_id),
+                                             c.stream_magnitude or 0, c.length_m, c.blk))
         # the main channel of that WSC (side channels share it) = the largest.
-        return max(cands, key=lambda c: (c.stream_magnitude or 0, c.length_m)) if cands else None
+        return max(cands, key=lambda c: (c.stream_magnitude or 0, c.length_m))
     return None
+
+
+def _targets(sd: SplitDef, chains, by_blk) -> list:
+    return [(blk, by_blk[blk]) for blk in _target_blks(sd, chains) if blk in by_blk]
 
 
 #: POLICY (T67, owner 2026-10-24 — a gauge still cuts its river): a point or gauge anchor is projected onto
@@ -182,9 +211,14 @@ def resolve_split_defs(split_defs: list[SplitDef], chains: list[BlkChain],
                        mu_polys: Optional[dict] = None,
                        area_polys: Optional[dict] = None,
                        live_blks: Optional[set] = None,
-                       border_cuts: Optional[dict] = None) -> list[SplitPoint]:
+                       border_cuts: Optional[dict] = None,
+                       unplaced: Optional[list] = None) -> list[SplitPoint]:
     """``border_cuts`` {blk: [absolute measures]} — the border pass's own cuts (`border.apply_border`
-    cuts_out), which a `border` anchor lands on exactly."""
+    cuts_out), which a `border` anchor lands on exactly.
+
+    NO SILENT SKIP (T743, the Seton cut): every split def that yields no point is appended to ``unplaced`` (when given)
+    as {split_id, anchor_type, source, reason} — the build lists them (`unplaced_report`) and promote refuses a candidate
+    with an authored one (`atlas.promote`)."""
     by_blk = {c.blk: c for c in chains}
     by_wsc: dict[str, list[BlkChain]] = defaultdict(list)   # keyed by TRIMMED wsc (authored form)
     for c in chains:
@@ -203,205 +237,220 @@ def resolve_split_defs(split_defs: list[SplitDef], chains: list[BlkChain],
                               confidence=sd.confidence))
 
     for sd in split_defs:
-        a = sd.anchor
-        targets = [(blk, by_blk[blk]) for blk in _target_blks(sd, chains) if blk in by_blk]
-
-        # A GAUGE ANCHOR IS A POINT ANCHOR WITH A PROVENANCE. Identical geometry — a
-        # published coordinate, projected onto the scoped channel — and a distinct `anchor_type` so
-        # a cut a curator wrote and a cut a station generated are told apart in
-        # splits.resolved.json and in the gpkg.
-        if a.type in (AnchorType.point, AnchorType.gauge) and a.coord is not None:
-            # The authored coordinate names ONE channel — the one it sits on — and that channel is
-            # cut by projection (exact). The side channels a cut must also cut are NOT decided here:
-            # the braid sweep (`braid_sweep`, T67) does it on the graph, for every split kind, and
-            # only for a channel that attaches to the host on both sides of the cut. The old
-            # perpendicular sweep here (gauges and points only, scoped by gnis/wsc, no topology) is
-            # gone: 4 of its gauge braid cuts were artefacts, one 3.1 km from 08KG001.
-            p = _pt(a.coord, a.is_lonlat)
-            host = None
-            for blk, c in targets:
-                g = c.geometry
-                if g is None or g.is_empty:
-                    continue
-                if POINTS_LAND_ON_LIVE_CHANNELS and live_blks is not None and blk not in live_blks:
-                    continue                   # pruned from the graph: nothing to cut there
-                d = g.project(p)
-                dist = g.interpolate(d).distance(p)
-                if dist <= sd.proximity_m and (host is None or dist < host[2]):
-                    host = (blk, c, dist, d)
-            if host is None:
-                continue
-            blk, c, _, d = host
-            m, oc = _apply_offset(d, c.geometry.length, a)
-            _emit(sd, blk, c.mouth_measure + m, concern=oc)
-
-        elif a.type == AnchorType.line and a.coords:
-            for blk, c in targets:
-                g = c.geometry
-                if g is None or g.is_empty:
-                    continue
-                for p in _points(g.intersection(_line(a.coords, a.is_lonlat))):
-                    _emit(sd, blk, c.mouth_measure + g.project(p))
-
-        elif a.type == AnchorType.confluence:
-            trib = _tributary_chain(a, by_blk, by_wsc)
-            if trib is None or trib.geometry is None:
-                continue
-            mouth = Point(trib.geometry.coords[0])
-            # A braided parent reach (main stem + side channels sharing the gnis/WSC) would otherwise
-            # yield one cut PER channel for a single confluence. Collect the candidate cuts, then emit
-            # ONE — on the main channel (largest stream_magnitude, then longest) — so a confluence is a
-            # single split point. (Single-channel targets are unaffected: one candidate in, one out.)
-            cands: list[tuple] = []                    # (magnitude, length, blk, route_measure, off, concern)
-            for blk, c in targets:
-                if c.geometry is None:
-                    continue
-                # WSC self-validation: the tributary's WSC must be a strict descendant of the
-                # parent's (a real confluence). If not, keep the split but flag it — the author
-                # likely picked the wrong tributary/parent.
-                pw, tw = _trim_wsc(c.fwa_watershed_code), _trim_wsc(trib.fwa_watershed_code)
-                # valid iff the tributary is a strict descendant of the parent, OR tw == pw (the river's
-                # OWN mouth into a larger river — "X to its confluence with Y", cut on X at measure 0).
-                concern = "" if (tw == pw or _wsc.is_at_or_below(tw, pw)) else (
-                    f"confluence WSC check failed: tributary {tw} is not a descendant of parent {pw}")
-                d = c.geometry.project(mouth)
-                off = c.geometry.interpolate(d).distance(mouth)
-                if off <= sd.proximity_m:
-                    m, oc = _apply_offset(d, c.geometry.length, a)
-                    concern = "; ".join(x for x in (concern, oc) if x)
-                    cands.append(((c.stream_magnitude or 0), c.length_m, blk,
-                                  c.mouth_measure + m, off, concern))
-            if cands:
-                cands.sort(key=lambda t: (t[0], t[1]), reverse=True)   # main channel first
-                _, _, blk, measure, off, concern = cands[0]
-                _emit(sd, blk, measure, concern=concern, offset=off)
-
-        elif a.type == AnchorType.lake:
-            for blk, c in targets:
-                # waterbody_runs are per-fid; consolidate to the lake's two boundaries on this
-                # BLK (downstream entry, upstream exit).
-                runs = [r for r in c.waterbody_runs if str(r.wbk) == a.wbk]
-                if not runs:
-                    continue
-                enters, leaves = min(r.down_m for r in runs), max(r.up_m for r in runs)
-                if not a.offset_m:
-                    # No offset: both boundaries, as no-op splits (the lake already split the BLK) —
-                    # emitted for matching / completeness.
-                    # `edge` picks one: the outlet is where the river enters the lake run going up.
-                    if a.edge != "inlet":
-                        _emit(sd, blk, enters)
-                    if a.edge != "outlet":
-                        _emit(sd, blk, leaves)
-                    continue
-                # OFFSET: one real cut, measured from the end of the lake the offset runs away from —
-                # "100 m upstream of Mitchell Lake" starts where the river LEAVES the lake, "500 m
-                # downstream" where it enters. This is what makes a cut that travels WITH the lake:
-                # authored as a bare split it landed on the lake boundary itself, `_cut_at` resolved
-                # both ids to that one boundary, and `between(lake, 100m_upstream)` collapsed to an
-                # empty range. Offsetting from the lake keeps the two cuts distinct by construction.
-                base = leaves if a.offset_dir == "upstream" else enters
-                m, concern = _apply_offset(base - c.mouth_measure, c.length_m, a)
-                _emit(sd, blk, c.mouth_measure + m, concern=concern, offset=a.offset_m)
-
-        elif a.type == AnchorType.border:
-            # THE BORDER IS ONE LINE (owner 2026-10-25): the B.C. outline is the outer edge of the
-            # region polygons, and the border pass has already cut every line crossing it. A curated
-            # "U.S. border" lands ON that cut — the same float — so placement makes one boundary of the
-            # curated name, the border and the region line (the Moyie's hand point stood 12 m off).
-            # With a `coord` the crossing nearest it is taken (one channel, like a point); without,
-            # every border cut of the target.
-            cands = [(blk, m) for blk, c in targets for m in (border_cuts or {}).get(blk, ())]
-            if not cands:
-                import logging
-                logging.getLogger(__name__).warning(
-                    "border split %s: no border cut on its target (border pass off, or the water never "
-                    "crosses the outline) — not cut", sd.id)
-                continue
-            if a.coord is not None:
-                p = _pt(a.coord, a.is_lonlat)
-
-                def _gap(bm):
-                    c = by_blk[bm[0]]
-                    return abs(c.mouth_measure + c.geometry.project(p) - bm[1]) + c.geometry.distance(p)
-
-                cands = [min(cands, key=lambda bm: (_gap(bm), bm))]
-            for blk, m in sorted(cands):
-                _emit(sd, blk, m)
-
-        elif a.type == AnchorType.mu_boundary:
-            if not mu_polys:
-                continue
-            pa, pb = mu_polys.get(a.mu_a), mu_polys.get(a.mu_b)
-            if pa is None or pb is None:
-                continue
-            shared = pa.boundary.intersection(pb.boundary)
-            if shared.is_empty:
-                continue                              # MUs are not adjacent -> nothing to cut
-            for blk, c in targets:
-                if c.geometry is None:
-                    continue
-                # A region boundary should divide the river ONCE. Where the river runs ALONG the
-                # boundary it may intersect several times; collapse to a single split: dedupe
-                # crossings closer than proximity_m, and if several distinct ones remain keep the
-                # median (deterministic) + flag a concern. Real data (Fraser 2-18/3-14) yields one.
-                measures = sorted(c.geometry.project(p) for p in _points(c.geometry.intersection(shared)))
-                if not measures:
-                    continue
-                deduped: list[float] = []
-                for m in measures:
-                    if not deduped or (m - deduped[-1]) > sd.proximity_m:
-                        deduped.append(m)
-                concern = ""
-                if len(deduped) > 1:
-                    concern = (f"MU boundary crossed the river {len(deduped)}x at measures "
-                               f"{[round(c.mouth_measure + m) for m in deduped]}; kept the median")
-                    chosen = deduped[len(deduped) // 2]
-                else:
-                    chosen = deduped[0]
-                _emit(sd, blk, c.mouth_measure + chosen, concern=concern)
-
-        elif a.type == AnchorType.area_boundary:
-            # Cut the target water + (optionally) its WSC descendants where they cross the admin/park
-            # polygon — but only at the FIRST entry and LAST exit (transition cutting), so a stream
-            # weaving along the boundary yields <=2 cuts, not hundreds. The between-reach is flagged
-            # inside later by border.mark_inside_area.
-            poly = (area_polys or {}).get(a.area_name)
-            if poly is None:
-                continue
-            boundary = poly.boundary
-            # A CUT THAT WOULD LEAVE A SLIVER IS NOT MADE (BOUND round, 2026-10-06), as for the
-            # blanket areas (`area_splits.resolve_area_splits`): one within `sliver_gate.SLIVER_M`
-            # of the line's own mouth or source, a lake edge, or another cut of this split — the
-            # Tweedsmuir split cut the Talchako 0.26 m and 3.7 m from its ends, Ape Creek 1.35 m.
-            from pipeline.atlas.splits.sliver_gate import SLIVER_M
-            scope = _target_blks(sd, chains, descendants=a.wsc_descendants)
-            # `side` picks ONE END of the park stretch on the NAMED line (the target's own blks): an
-            # "upstream boundary" split no longer also cuts the downstream end, where the entry's
-            # "downstream boundary" point stands (Baker Creek / Pinnacles: 0.03 m apart, T179). Each
-            # descendant keeps both ends — its inside flag needs the stretch closed at both.
-            named = set(_target_blks(sd, chains)) if a.side else set()
-            excluded = set(a.exclude_gnis)
-            for blk in scope:
-                c = by_blk.get(blk)
-                if c is None or c.geometry is None or c.geometry.is_empty:
-                    continue
-                if excluded and c.gnis_id in excluded:
-                    continue
-                crossings = _area_transition_ends(c.geometry, poly, boundary)
-                ms = [m for _end, m in crossings]
-                ends = [0.0, c.geometry.length]
-                ends += [e - c.mouth_measure for r in (c.waterbody_runs or ())
-                         for e in (r.down_m, r.up_m)]
-                for end, m in crossings:
-                    if blk in named and end != a.side:
-                        continue
-                    others = [x for x in ms if x != m]
-                    if any(abs(e - m) < SLIVER_M for e in ends + others):
-                        continue
-                    _emit(sd, blk, c.mouth_measure + m)
+        n_before = len(out)
+        why = _place(sd, chains, by_blk, by_wsc, mu_polys, area_polys, live_blks, border_cuts, _emit)
+        if unplaced is not None and len(out) == n_before:
+            unplaced.append({"split_id": sd.id, "anchor_type": str(getattr(sd.anchor.type, "value", sd.anchor.type)),
+                             "source": "gauge" if sd.anchor.type == AnchorType.gauge else "curated",
+                             "reason": why or "no point resolved"})
 
     same_entry_conflicts(split_defs, out)
     return out
+
+
+def _place(sd, chains, by_blk, by_wsc, mu_polys, area_polys, live_blks, border_cuts, _emit) -> str:
+    """Emit the points of one split def; returns why none was emitted ("" when it is not known or some were)."""
+    a = sd.anchor
+    targets = _targets(sd, chains, by_blk)
+    if not targets and a.type not in (AnchorType.mu_boundary, AnchorType.area_boundary):
+        return "its target water has no line in this build"
+
+    # A GAUGE ANCHOR IS A POINT ANCHOR WITH A PROVENANCE. Identical geometry — a
+    # published coordinate, projected onto the scoped channel — and a distinct `anchor_type` so
+    # a cut a curator wrote and a cut a station generated are told apart in
+    # splits.resolved.json and in the gpkg.
+    if a.type in (AnchorType.point, AnchorType.gauge) and a.coord is not None:
+        # The authored coordinate names ONE channel — the one it sits on — and that channel is
+        # cut by projection (exact). The side channels a cut must also cut are NOT decided here:
+        # the braid sweep (`braid_sweep`, T67) does it on the graph, for every split kind, and
+        # only for a channel that attaches to the host on both sides of the cut. The old
+        # perpendicular sweep here (gauges and points only, scoped by gnis/wsc, no topology) is
+        # gone: 4 of its gauge braid cuts were artefacts, one 3.1 km from 08KG001.
+        p = _pt(a.coord, a.is_lonlat)
+        host = None
+        for blk, c in targets:
+            g = c.geometry
+            if g is None or g.is_empty:
+                continue
+            if POINTS_LAND_ON_LIVE_CHANNELS and live_blks is not None and blk not in live_blks:
+                continue                   # pruned from the graph: nothing to cut there
+            d = g.project(p)
+            dist = g.interpolate(d).distance(p)
+            if dist <= sd.proximity_m and (host is None or dist < host[2]):
+                host = (blk, c, dist, d)
+        if host is None:
+            return f"its point is more than {sd.proximity_m:g} m from every target line the graph holds"
+        blk, c, _, d = host
+        m, oc = _apply_offset(d, c.geometry.length, a)
+        _emit(sd, blk, c.mouth_measure + m, concern=oc)
+
+    elif a.type == AnchorType.line and a.coords:
+        for blk, c in targets:
+            g = c.geometry
+            if g is None or g.is_empty:
+                continue
+            for p in _points(g.intersection(_line(a.coords, a.is_lonlat))):
+                _emit(sd, blk, c.mouth_measure + g.project(p))
+
+    elif a.type == AnchorType.confluence:
+        trib = _tributary_chain(a, by_blk, by_wsc, targets, sd.proximity_m)
+        if trib is None or trib.geometry is None:
+            return "the tributary line is not in this build"
+        mouth = Point(trib.geometry.coords[0])
+        # A braided parent reach (main stem + side channels sharing the gnis/WSC) would otherwise
+        # yield one cut PER channel for a single confluence. Collect the candidate cuts, then emit
+        # ONE — on the main channel (largest stream_magnitude, then longest) — so a confluence is a
+        # single split point. (Single-channel targets are unaffected: one candidate in, one out.)
+        cands: list[tuple] = []                    # (magnitude, length, blk, route_measure, off, concern)
+        for blk, c in targets:
+            if c.geometry is None:
+                continue
+            # WSC self-validation: the tributary's WSC must be a strict descendant of the
+            # parent's (a real confluence). If not, keep the split but flag it — the author
+            # likely picked the wrong tributary/parent.
+            pw, tw = _trim_wsc(c.fwa_watershed_code), _trim_wsc(trib.fwa_watershed_code)
+            # valid iff the tributary is a strict descendant of the parent, OR tw == pw (the river's
+            # OWN mouth into a larger river — "X to its confluence with Y", cut on X at measure 0).
+            concern = "" if (tw == pw or _wsc.is_at_or_below(tw, pw)) else (
+                f"confluence WSC check failed: tributary {tw} is not a descendant of parent {pw}")
+            d = c.geometry.project(mouth)
+            off = c.geometry.interpolate(d).distance(mouth)
+            if off <= sd.proximity_m:
+                m, oc = _apply_offset(d, c.geometry.length, a)
+                concern = "; ".join(x for x in (concern, oc) if x)
+                cands.append(((c.stream_magnitude or 0), c.length_m, blk,
+                              c.mouth_measure + m, off, concern))
+        if not cands:
+            return (f"the tributary line (blk {trib.blk}) ends {_mouth_gap(trib, targets):.0f} m from its parent, "
+                    f"beyond the split's {sd.proximity_m:g} m")
+        cands.sort(key=lambda t: (t[0], t[1]), reverse=True)   # main channel first
+        _, _, blk, measure, off, concern = cands[0]
+        _emit(sd, blk, measure, concern=concern, offset=off)
+
+    elif a.type == AnchorType.lake:
+        for blk, c in targets:
+            # waterbody_runs are per-fid; consolidate to the lake's two boundaries on this
+            # BLK (downstream entry, upstream exit).
+            runs = [r for r in c.waterbody_runs if str(r.wbk) == a.wbk]
+            if not runs:
+                continue
+            enters, leaves = min(r.down_m for r in runs), max(r.up_m for r in runs)
+            if not a.offset_m:
+                # No offset: both boundaries, as no-op splits (the lake already split the BLK) —
+                # emitted for matching / completeness.
+                # `edge` picks one: the outlet is where the river enters the lake run going up.
+                if a.edge != "inlet":
+                    _emit(sd, blk, enters)
+                if a.edge != "outlet":
+                    _emit(sd, blk, leaves)
+                continue
+            # OFFSET: one real cut, measured from the end of the lake the offset runs away from —
+            # "100 m upstream of Mitchell Lake" starts where the river LEAVES the lake, "500 m
+            # downstream" where it enters. This is what makes a cut that travels WITH the lake:
+            # authored as a bare split it landed on the lake boundary itself, `_cut_at` resolved
+            # both ids to that one boundary, and `between(lake, 100m_upstream)` collapsed to an
+            # empty range. Offsetting from the lake keeps the two cuts distinct by construction.
+            base = leaves if a.offset_dir == "upstream" else enters
+            m, concern = _apply_offset(base - c.mouth_measure, c.length_m, a)
+            _emit(sd, blk, c.mouth_measure + m, concern=concern, offset=a.offset_m)
+
+    elif a.type == AnchorType.border:
+        # THE BORDER IS ONE LINE (owner 2026-10-25): the B.C. outline is the outer edge of the
+        # region polygons, and the border pass has already cut every line crossing it. A curated
+        # "U.S. border" lands ON that cut — the same float — so placement makes one boundary of the
+        # curated name, the border and the region line (the Moyie's hand point stood 12 m off).
+        # With a `coord` the crossing nearest it is taken (one channel, like a point); without,
+        # every border cut of the target.
+        cands = [(blk, m) for blk, c in targets for m in (border_cuts or {}).get(blk, ())]
+        if not cands:
+            import logging
+            logging.getLogger(__name__).warning(
+                "border split %s: no border cut on its target (border pass off, or the water never "
+                "crosses the outline) — not cut", sd.id)
+            return "no border cut on its target"
+        if a.coord is not None:
+            p = _pt(a.coord, a.is_lonlat)
+
+            def _gap(bm):
+                c = by_blk[bm[0]]
+                return abs(c.mouth_measure + c.geometry.project(p) - bm[1]) + c.geometry.distance(p)
+
+            cands = [min(cands, key=lambda bm: (_gap(bm), bm))]
+        for blk, m in sorted(cands):
+            _emit(sd, blk, m)
+
+    elif a.type == AnchorType.mu_boundary:
+        if not mu_polys:
+            return "no MU polygons in this build"
+        pa, pb = mu_polys.get(a.mu_a), mu_polys.get(a.mu_b)
+        if pa is None or pb is None:
+            return f"MU {a.mu_a} or {a.mu_b} is not in this build"
+        shared = pa.boundary.intersection(pb.boundary)
+        if shared.is_empty:
+            return f"MUs {a.mu_a} and {a.mu_b} are not adjacent"
+        for blk, c in targets:
+            if c.geometry is None:
+                continue
+            # A region boundary should divide the river ONCE. Where the river runs ALONG the
+            # boundary it may intersect several times; collapse to a single split: dedupe
+            # crossings closer than proximity_m, and if several distinct ones remain keep the
+            # median (deterministic) + flag a concern. Real data (Fraser 2-18/3-14) yields one.
+            measures = sorted(c.geometry.project(p) for p in _points(c.geometry.intersection(shared)))
+            if not measures:
+                continue
+            deduped: list[float] = []
+            for m in measures:
+                if not deduped or (m - deduped[-1]) > sd.proximity_m:
+                    deduped.append(m)
+            concern = ""
+            if len(deduped) > 1:
+                concern = (f"MU boundary crossed the river {len(deduped)}x at measures "
+                           f"{[round(c.mouth_measure + m) for m in deduped]}; kept the median")
+                chosen = deduped[len(deduped) // 2]
+            else:
+                chosen = deduped[0]
+            _emit(sd, blk, c.mouth_measure + chosen, concern=concern)
+
+    elif a.type == AnchorType.area_boundary:
+        # Cut the target water + (optionally) its WSC descendants where they cross the admin/park
+        # polygon — but only at the FIRST entry and LAST exit (transition cutting), so a stream
+        # weaving along the boundary yields <=2 cuts, not hundreds. The between-reach is flagged
+        # inside later by border.mark_inside_area.
+        poly = (area_polys or {}).get(a.area_name)
+        if poly is None:
+            return f"area {a.area_name!r} is not in this build"
+        boundary = poly.boundary
+        # A CUT THAT WOULD LEAVE A SLIVER IS NOT MADE (BOUND round, 2026-10-06), as for the
+        # blanket areas (`area_splits.resolve_area_splits`): one within `sliver_gate.SLIVER_M`
+        # of the line's own mouth or source, a lake edge, or another cut of this split — the
+        # Tweedsmuir split cut the Talchako 0.26 m and 3.7 m from its ends, Ape Creek 1.35 m.
+        from pipeline.atlas.splits.sliver_gate import SLIVER_M
+        scope = _target_blks(sd, chains, descendants=a.wsc_descendants)
+        # `side` picks ONE END of the park stretch on the NAMED line (the target's own blks): an
+        # "upstream boundary" split no longer also cuts the downstream end, where the entry's
+        # "downstream boundary" point stands (Baker Creek / Pinnacles: 0.03 m apart, T179). Each
+        # descendant keeps both ends — its inside flag needs the stretch closed at both.
+        named = set(_target_blks(sd, chains)) if a.side else set()
+        excluded = set(a.exclude_gnis)
+        for blk in scope:
+            c = by_blk.get(blk)
+            if c is None or c.geometry is None or c.geometry.is_empty:
+                continue
+            if excluded and c.gnis_id in excluded:
+                continue
+            crossings = _area_transition_ends(c.geometry, poly, boundary)
+            ms = [m for _end, m in crossings]
+            ends = [0.0, c.geometry.length]
+            ends += [e - c.mouth_measure for r in (c.waterbody_runs or ())
+                     for e in (r.down_m, r.up_m)]
+            for end, m in crossings:
+                if blk in named and end != a.side:
+                    continue
+                others = [x for x in ms if x != m]
+                if any(abs(e - m) < SLIVER_M for e in ends + others):
+                    continue
+                _emit(sd, blk, c.mouth_measure + m)
+    return ""
 
 
 #: Two cuts of ONE splits.json entry closer than this on one line are one point (`SLIVER_M`, 5 m).
@@ -456,7 +505,7 @@ def confluence_mouths(split_defs: list[SplitDef], chains: list[BlkChain]) -> dic
         a = sd.anchor
         if a.type != AnchorType.confluence or a.offset_m:
             continue
-        trib = _tributary_chain(a, by_blk, by_wsc)
+        trib = _tributary_chain(a, by_blk, by_wsc, _targets(sd, chains, by_blk), sd.proximity_m)
         if trib is None or trib.geometry is None or trib.geometry.is_empty:
             continue
         x, y = trib.geometry.coords[0][:2]

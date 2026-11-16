@@ -75,7 +75,8 @@ def _proposals() -> list[dict]:
     from pipeline.regs.review import marks as M
     ov = CURATED.review.proposal_overrides
     # once per marks / overrides file (owner 2026-10-28: ~0.7 s, read by every DFO progress badge)
-    return _PROPOSALS_MEMO.get((reuse._stamp((reuse.MARKS_PATH, ov)), M.proposals, M.load),
+    # (T755 follow-up) keyed on the stamp the proposed cuts last changed at: a save that proposes no cut keeps them
+    return _PROPOSALS_MEMO.get((reuse.proposals_stamp(), reuse._stamp((ov,)), M.proposals, M.load),
                                lambda: M.proposals(M.load(reuse.MARKS_PATH), M.load_overrides(ov)))
 
 
@@ -89,7 +90,7 @@ def withdrawn_on(items: list[str]) -> list[dict]:
     from pipeline.common.curated import CURATED
     from pipeline.regs.review import marks as M
     ov = CURATED.review.proposal_overrides
-    rows = _WITHDRAWN_MEMO.get((reuse._stamp((reuse.MARKS_PATH, ov)), M.withdrawn_groups, M.load),
+    rows = _WITHDRAWN_MEMO.get((reuse.proposals_stamp(), reuse._stamp((ov,)), M.withdrawn_groups, M.load),
                                lambda: M.withdrawn_groups(M.proposal_groups(M.load(reuse.MARKS_PATH)),
                                                           M.load_overrides(ov)))
     blks = {str(n.blk) for _nid, n, _g in _line_sections(items)} if items else set()
@@ -225,6 +226,27 @@ def group_marked(m) -> dict | None:
     exactly what it says — the flag changes no state."""
     g = getattr(m, "group", None) if m is not None else None
     return {"group": g, "date": m.date} if g else None
+
+
+def old_extent(m, loc: dict) -> dict | None:
+    """(T755 follow-up) THE PLACE'S LAST SAVE IS "WRONG" OR "UNSURE" WITH NO FIX WHILE AN OLDER EXTENT IS STILL IN FORCE
+    (`audit.old_extent_in_force`, the audit's section B flag): {verdict, date, words} for the checklist's "old extent
+    still in force" flag; None otherwise. The extent is the place's own, or — with none of its own — the one it rides
+    (its confirmed or uncontested variant link, as `resolve_all` and the audit read it). A flag only: what ships does
+    not change, nothing is written."""
+    if m is None or getattr(getattr(m, "verdict", None), "value", getattr(m, "verdict", None)) not in ("wrong", "unsure"):
+        return None
+    from pipeline.regs.review import audit as A
+    ex = (loc.get("binding") or {}).get("extents") or []
+    d = loc.get("duplicate_of")
+    if not ex and d and loc.get("duplicate_confirmed") is not False:
+        got = _locations().get(d)
+        ex = ((got[1].get("binding") or {}).get("extents") or []) if got else []
+    md = json.loads(m.model_dump_json())
+    if not A.old_extent_in_force(md, ex):
+        return None
+    return {"verdict": md["verdict"], "date": md.get("date"), "flag": A.OLD_EXTENT_FLAG,
+            "rides": d if not (loc.get("binding") or {}).get("extents") else None}
 
 
 #: T449: THE TIDAL CONTEXT (tidal-limit rows by blk, cut labels) once per tidal_limits.json / cuts.json stamp
@@ -365,9 +387,59 @@ def extent_now(loc: dict, water: dict | None) -> dict:
                                      tributaries_only=bool(b.get("tributaries_only")),
                                      tributary_excludes=list(b.get("tributary_excludes") or []))
     return {"pieces": [f.model_dump(mode="json") for f in pieces], "cannot_change": why,
+            # (T755 follow-up) the same reason in plain words, with what the owner can do instead
+            "cannot_edit": cannot_edit_words(b.get("extents") or [], why),
             "tributaries": tributaries_now(loc, water), "seen": seen_extent(loc),
             # (T532 r10) what "tributaries as the place has them" MEANS here: does the builder walk them for this place
             "walks_tributaries": walks_now(loc, water)}
+
+
+def _area_words(aid: str) -> str:
+    """an atlas area by its plain name: "Region 6", "Skeena River — Kispiox confluence sign zone"; else its id"""
+    m = re.fullmatch(r"area:region:(\w+)", str(aid))
+    if m:
+        return f"Region {m.group(1).upper()}"
+    return reuse._area_name_map().get(str(aid)) or str(aid)
+
+
+#: what the owner can do with a place whose extent the editor cannot change (owner 2026-11-15, Blanchard)
+CANNOT_EDIT_CAN = ("You can still confirm it as it is, if it matches DFO's words (tick the rows, then Confirm). If it "
+                   "is wrong, mark it wrong and say in the note what should change: that change is made by hand in "
+                   "the place's curated file, not here.")
+
+
+def cannot_edit_words(extents: list[dict], why: list[str]) -> dict | None:
+    """(T755 follow-up, owner 2026-11-15: "i cant save or edit the extent") WHY THE EDITOR CANNOT CHANGE THIS EXTENT,
+    in plain words, and what the owner can do: {"why": [one line per field the editor has no word for], "can": …}.
+    None when it can be changed. The reasons are `proposals.unexpressed`'s (`why`), said per field; a reason this does
+    not know is shown as it is, never dropped. Read only: no place's data changes."""
+    if not why:
+        return None
+    from pipeline.regs.review import proposals as P
+    lines: list[str] = []
+    for i, ex in enumerate(extents):
+        n = f"Extent {i + 1}" if len(extents) > 1 else "The extent"
+        for f in sorted(set(ex) - P.EXPRESSIBLE):
+            v = ex.get(f)
+            if f == "within_area":
+                lines.append(f"{n} is held only inside {_area_words(v)}, and the editor has no way to say "
+                             "\"only inside an area\" on a water.")
+            elif f == "outside_areas":
+                names = ", ".join(_area_words(a) for a in v or [])
+                lines.append(f"{n} leaves out {names}, and the editor has no way to say \"leave out an area\".")
+            elif f == "watershed":
+                lines.append(f"{n} takes the whole watershed above its point, and the editor has no way to say "
+                             "\"the watershed\".")
+            elif f == "feature_types":
+                kinds = ", ".join(f"{k}s" for k in v or [])
+                lines.append(f"{n} holds only {kinds}, and the editor has no way to say \"only some kinds of "
+                             "water\".")
+            else:
+                lines.append(f"{n} holds {f}, which the editor has no word for.")
+    said = {f"extent {i + 1} ({ex.get('op')}) holds" for i, ex in enumerate(extents) if set(ex) - P.EXPRESSIBLE}
+    lines += [w for w in why if not any(w.startswith(x) for x in said)]          # any other reason, as it is
+    lines.append("A change made here would drop that part, so the edit button is off.")
+    return {"why": lines, "can": CANNOT_EDIT_CAN}
 
 
 def walks_now(loc: dict, water: dict | None) -> bool | None:
@@ -475,7 +547,9 @@ def _row(slug: str, loc: dict, water: dict | None, m, live_waters: set | None = 
             "new_splits": len(m.new_splits) if m is not None else 0,
             "historic_only": historic_only(loc, live_waters if live_waters is not None else _live_waters()),
             # T742: no grouping — a mark a group save wrote is flagged on its own place (`group_marked`)
-            "group_marked": group_marked(m)}
+            "group_marked": group_marked(m),
+            # T755 follow-up: last save wrong / unsure with no fix, an older extent still in force (a flag only)
+            "old_extent": old_extent(m, loc)}
 
 
 #: THE DFO ROWS, COMPUTED ONCE PER INPUT (owner 2026-10-28): the queue, its progress and the tab
@@ -486,16 +560,75 @@ _ROWS_MEMO = reuse._Memo()
 
 
 def _rows_inputs() -> tuple:
+    """[0] the marks store's stamp, [5] the marks whose fix landed — the two a save moves (`_patched_rows`)"""
     from pipeline.common.curated import CURATED
-    return (reuse._stamp((reuse.MARKS_PATH, SUGGESTIONS_PATH, preverify.FILES["dfo"], _fixes_path(),
+    return (reuse.marks_stamp(),
+            reuse._stamp((SUGGESTIONS_PATH, preverify.FILES["dfo"], _fixes_path(),
                           CURATED.review.proposal_overrides, CURATED.waters.tidal, CURATED.waters.cuts)),
             D.regions(reuse._dfo_dir()), D.typed(DFO_TYPED), reuse._registry(), reuse.applied_keys(),
             _locations, _states, _row)
 
 
+#: the last rows made and the inputs they were made from: a save rebuilds only the saved place's rows from these
+_ROWS_HELD: dict = {}
+
+
 def _rows() -> list[dict]:
     """Every DFO row in review order — SHARED: callers filter, never mutate."""
-    return _ROWS_MEMO.get(_rows_inputs(), _compute_rows)
+    inputs = _rows_inputs()
+    return _ROWS_MEMO.get(inputs, lambda: _rows_for(inputs))
+
+
+def _rows_for(inputs: tuple) -> list[dict]:
+    held = _ROWS_HELD.get("v")
+    rows = _patched_rows(held, inputs) if held else None
+    if rows is None:
+        rows = _compute_rows()
+    _ROWS_HELD["v"] = (inputs, rows)
+    return rows
+
+
+def _held_same(a: tuple, b: tuple, moving: tuple) -> bool:
+    """two memo inputs agree everywhere but at the `moving` positions (compared as `reuse._Memo` compares)"""
+    return len(a) == len(b) and all((x == y) if isinstance(x, tuple) else (x is y)
+                                    for i, (x, y) in enumerate(zip(a, b)) if i not in moving)
+
+
+def _patched_rows(held: tuple, inputs: tuple) -> list[dict] | None:
+    """(T755 follow-up: speed after a save) THE ROWS AFTER A SAVE, ONLY THE SAVED PLACE'S REBUILT: when nothing but the
+    marks store moved since `held` and it only GREW (`reuse.marks_delta`), by lines that propose no cut and clear
+    nothing, and the landed-fix set moved only on those lines' keys, the rows of the places those lines name — and of
+    every place on the same water or linked to one, whose rows read each other — are made again and the rest kept as
+    they were (the same objects: `checks._places` keeps their places too). None: rebuild everything."""
+    old_in, old_rows = held
+    if not _held_same(old_in, inputs, (0, 5)):
+        return None
+    d = reuse.marks_delta(old_in[0], inputs[0])
+    if d is None or d["new_splits"] or d["cleared"]:
+        return None
+    if any(k not in d["keys"] for k in set(old_in[5]) ^ set(inputs[5])):
+        return None
+    targets = {t for sc, t, _r in d["keys"] if sc == "dfo"}
+    if not targets:
+        return old_rows
+    locs = _locations()
+    if any(t not in locs for t in targets):
+        return None
+    waters = {locs[t][1].get("water_id") for t in targets} - {None}
+    linked = {locs[t][1].get("duplicate_of") for t in targets} - {None}
+    hit = {lid for lid, (_s, loc, _w) in locs.items()
+           if lid in targets or lid in linked or loc.get("water_id") in waters or loc.get("duplicate_of") in targets}
+    states, live = _states(), _live_waters()
+    out = [_row(*locs[r["id"]], states.get(r["id"]), live) if r["id"] in hit else r for r in old_rows]
+    out.sort(key=_row_order)
+    return out
+
+
+def _row_order(r: dict) -> tuple:
+    """the review order: the live page first, then what is missing a cut, then region and water (T449: a place
+    accepted as tidal water is missing nothing — last, with the bound ones)"""
+    rank = {"needs_cut": 0, "unbound": 1, "no_water": 2, "bound": 3, "tidal": 4}
+    return (r["status"] != "active", rank[r["state"]], reuse._region_key(r["region"]), r["water"], r["id"])
 
 
 def _compute_rows() -> list[dict]:
@@ -506,9 +639,7 @@ def _compute_rows() -> list[dict]:
            for lid, (slug, loc, water) in _locations().items() if loc.get("water_id")]
     # the review order: the live page first, then what is missing a cut, then region and water
     # (T449: a place accepted as tidal water is missing nothing — last, with the bound ones)
-    rank = {"needs_cut": 0, "unbound": 1, "no_water": 2, "bound": 3, "tidal": 4}
-    out.sort(key=lambda r: (r["status"] != "active", rank[r["state"]], reuse._region_key(r["region"]),
-                            r["water"], r["id"]))
+    out.sort(key=_row_order)
     return out
 
 
@@ -588,7 +719,7 @@ def _split_feature(sid: str, *, rules: list[str], to_verify: bool, item_id: str 
         water = reuse._registry()[on_item].name
     label = reuse.cut_name(sid, [item_id] if item_id else []) or sid
     geom = None
-    if sid in meta:
+    if sid in meta or reuse.border_end(sid) is not None:    # (T755 follow-up) a BC-border cut: its section bound
         f = reuse._geo(reuse._split_point(sid), "named_split", {})
         geom = f["geometry"] if f else None
     elif b is not None and getattr(b, "wbk", None):
@@ -1196,7 +1327,7 @@ def channels_in(entry: dict, rule: dict, bound: set) -> list[dict]:
     return out
 
 
-def reach(location_id: str, limit: int = 6000, tributaries: bool = False) -> dict | None:
+def reach(location_id: str, limit: int = 6000, tributaries: bool = False, size: bool = True) -> dict | None:
     """WHAT THE LOCATION'S EXTENT BINDS NOW — `build_reach` on the curated binding. The tributary
     walk is the slow, huge part (Bella Coola `whole`: 13 MB), so by default it is skipped and the
     water's own reach comes back; `tributaries=True` walks them as the binding says.
@@ -1208,8 +1339,14 @@ def reach(location_id: str, limit: int = 6000, tributaries: bool = False) -> dic
     entry, rule = _reach_input(loc, water, tributaries=None if tributaries else False)
     walks = _walks_tributaries(*_reach_input(loc, water)) if not tributaries else _walks_tributaries(entry, rule)
     out = _bind(entry, rule, limit, walks)
-    if out.get("resolvable"):
-        out["size"] = saved_size(location_id)
+    if out.get("resolvable") and size:
+        # (T755 follow-up) the size walk (Bella Coola 11.8 s cold) never holds the place up: it comes with the reach
+        # only when it is kept already; else `size_pending` and the screen asks `saved_size` after (`/size`)
+        got = saved_size(location_id, wait=False)
+        if got is _PENDING:
+            out["size_pending"] = True
+        else:
+            out["size"] = got
     return out
 
 
@@ -1218,27 +1355,39 @@ def reach(location_id: str, limit: int = 6000, tributaries: bool = False) -> dic
 #: the water's own length, and at least this many km. Warnings inform; they never block or change a save.
 SIZE_TIMES_THE_WATER = 4.0
 SIZE_MIN_KM = 40.0
-_SIZES: dict = {}                 # (location, places stamp, id(registry)) -> size; cleared when the stamp moves
+_SIZES: dict = {}                 # location -> (its reach input's digest, id(registry), size)
 _SIZES_LOCK = __import__("threading").Lock()
+#: `saved_size(wait=False)`'s answer when the size is not kept yet
+_PENDING = object()
 
 
-def saved_size(location_id: str) -> dict | None:
+def _size_key(loc: dict, water: dict | None) -> str:
+    """(T755 follow-up) what a place's size is a function of: its own reach input (its extent, tributary call, water),
+    so a save that rewrites one place's file walks again that place only — the whole cache went with the file's stamp"""
+    import hashlib
+    entry, rule = _reach_input(loc, water)
+    return hashlib.sha256(json.dumps([entry, rule], sort_keys=True, default=str).encode()).hexdigest()
+
+
+def saved_size(location_id: str, wait: bool = True):
     """HOW BIG THE PLACE'S SAVED EXTENT IS, its tributary walk included (the drawn reach may leave the walk out): sections,
     km, the km of it that are tributaries, the water's own length, and a plain warning line when it looks implausible —
-    it walks tributaries the DFO words never name, or it is several times the water itself. Kept per places-file stamp
-    (one walk per place and edit). Read only; informs, never blocks."""
+    it walks tributaries the DFO words never name, or it is several times the water itself. Kept per place and its
+    reach input (one walk per place and edit). `wait=False`: the kept size, or `_PENDING` when it would have to walk
+    (the caller asks again with wait). Read only; informs, never blocks."""
     got = _locations().get(location_id)
     if got is None:
         return None
-    stamp = (reuse._dir_stamp(reuse._dfo_dir()), id(reuse._registry()))
+    key = (_size_key(*got[1:]), id(reuse._registry()))
     with _SIZES_LOCK:
-        if any(k[1] != stamp for k in _SIZES):
-            _SIZES.clear()
-        if (location_id, stamp) in _SIZES:
-            return _SIZES[(location_id, stamp)]
+        held = _SIZES.get(location_id)
+        if held is not None and held[:2] == key:
+            return held[2]
+    if not wait:
+        return _PENDING
     val = _size_of(*got[1:])
     with _SIZES_LOCK:
-        _SIZES[(location_id, stamp)] = val
+        _SIZES[location_id] = (*key, val)
     return val
 
 
@@ -1645,8 +1794,8 @@ def real_ids(extra: tuple = (), *, tidal: bool = False, tidal_water: str | None 
     rows = [(p["id"], p["split"], False, None) for p in _proposals()]
     if not extra:
         from pipeline.common.curated import CURATED
-        return _REAL_IDS_MEMO.get((reuse._stamp((reuse.MARKS_PATH, reuse.SPLITS_JSON_PATH, reuse.REGISTRY_PATH,
-                                                 CURATED.review.proposal_overrides)),),
+        return _REAL_IDS_MEMO.get((reuse.proposals_stamp(), reuse._stamp((reuse.SPLITS_JSON_PATH, reuse.REGISTRY_PATH,
+                                                                          CURATED.review.proposal_overrides)),),
                                   lambda: {g: v["id"] for g, v in P.place_groups(rows, split_preview._sources()).items()})
     rows += [(k, n, tidal, tidal_water) for k, n in extra]
     return {g: v["id"] for g, v in P.place_groups(rows, split_preview._sources()).items()}

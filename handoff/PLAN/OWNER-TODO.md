@@ -232,6 +232,23 @@ with the default Claude uses until you answer). Newest first inside each section
   it does carry what the Android chat put on the shared branch since build 32: the web loader (T737), search opening
   the water map on its part (T747) and the one-line Upstream / Downstream (T750). Those were due for your next phone
   check anyway.
+  **State 2026-11-15 12:49: not uploaded.** Five of six checks passed on the exact build; the first-install-with-the-
+  app-closed check did not, and it fails the same way with the shrinker off: this Mac's internet line was crawling. No
+  merge and no upload until that check passes on a good line; I re-run it when the line recovers. If it is still bad
+  this evening the build slips to tomorrow. Found on the way, not from the shrinker: T756 (reopening mid-download
+  restarts the big files from zero after "Wait for Wi-Fi"); fix on a branch, not merged, not in this build.
+  **CORRECTION 2026-11-15 15:19: back on for today.** The line was not down; my probe was wrong (it timed a "not
+  found" answer). All six checks are running since 15:17 on the merged code (T752 included) with the shrinker on. If
+  all pass: merge, CI, then the Android chat's Play build today. The 14:44 note below is superseded.
+  **State 2026-11-15 14:44: planned for tomorrow.** The line is still down (30–46 bytes a second since 13:04). The
+  Android chat lands its desktop split (T752) on the shared branch first, so all six checks are re-run on that new
+  head with the shrinker on before the build. If the line recovers today the sixth check is still re-run today.
+- **NEW 2026-11-15 16:08 (iOS chat; yours, later, no decision needed now): production feeds worker deploy.** Two
+  worker fixes are live on STAGING only: T758 (waters covered only by a region's default salmon rule show DFO's own
+  sentence under live data again, not a generic "Not opened by DFO" line; the status was right all along) and T757
+  (closed areas inside a DFO place are emitted as their own live locations). Production's worker has the same gap
+  until it is deployed from the shared branch after these merge; that deploy is yours (`deploy/prod`, never an
+  agent's). I say when the branch is ready.
 - **DONE 2026-11-15 07:32.** TestFlight build 36 uploaded (0.7.10, branch `ios/next` d658f88ac, staging data): the
   iOS fixes, the first-install bar, the "applying new data" screen with fish puns, push, the crash-report fix, the
   faster cold start and lighter fonts. Yours: install 36 (not 34 or 35), then the phone checks and the push test;
@@ -778,3 +795,12 @@ checks; one page of questions for him. Nothing that changes what a wording means
 - ASKED 2026-11-15 as he left: "record everything i need to do for when i am back what i need to review with questions
   what was done etc etc. what needs testings etc etc". Kept in `handoff/PLAN/OWNER-RETURN-2026-11-15.md` (sent to him
   as a file when final) and as the first row of the To-Do page.
+- DONE 2026-11-15 (your permission): Bella Coola "all tributaries" = tributaries only, Atnarko excepted (line 2730);
+  Bella Coola whole "(not including Atnarko River)" = Atnarko excepted (2731, per your note "make sure this excludes
+  atnarko"); the two Bulkley "all tributaries" places (2732, 2733) = tributaries only. YOURS: the two Bulkley places had
+  no mark of yours, so they are saved as "unsure" from the proposal: confirm or change.
+- BLOCKED 2026-11-15, NEEDS YOU: the side map rebuild did not start. The permission check refused its first step
+  (`python -m pipeline.regs.review.proposals side … --out data/generated/side/dfo-cuts23`) twice for the rebuild job; the
+  main chat does not run a command a job was refused. Run it yourself or tell the main chat to. Details in
+  `handoff/PLAN/OWNER-RETURN-2026-11-15.md` section 6.
+- ANSWERED 2026-11-15, on the blocked side rebuild step: "You can run it". Run by the main chat; rebuild continuing.

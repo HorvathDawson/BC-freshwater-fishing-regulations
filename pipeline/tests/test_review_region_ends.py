@@ -142,3 +142,15 @@ def test_the_checklist_names_a_region_end_by_the_pieces_water():
     assert frm["ours"] == "from Region 3 boundary · km 453" and frm["anchor"]["coord"] == [-122.28, 51.52]
     assert frm["state"] == "ok" and to["ours"] == "to Spuzzum Creek → Fraser River"
     assert all("Region 8" not in r["ours"] for r in rows)
+
+
+def test_the_tributary_row_quotes_every_clause_it_takes():
+    """(CI 2026-11-15, Bulkley ~2) "… other than Morice River and tributaries, Suskwa River and tributaries, and Two Mile
+    Creek": the tributary row takes every clause that speaks of tributaries, so every one is on its quote"""
+    from pipeline.regs.review import checklist as C
+    src = C.Source(water="Bulkley River", place="all tributaries of the Bulkley River other than Morice River and "
+                   "tributaries, Suskwa River and tributaries, and Two Mile Creek")
+    rows = C.rows(src, [{"op": "whole", "item_id": "gnis:2195"}], own_items=["gnis:2195"], ctx=C.Context(),
+                  tributaries=True, tributaries_only=True)
+    [t] = [r for r in rows if r["kind"] == "tributaries"]
+    assert "Morice River and tributaries" in t["quote"] and "Suskwa River and tributaries" in t["quote"]

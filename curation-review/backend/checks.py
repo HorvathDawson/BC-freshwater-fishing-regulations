@@ -151,6 +151,8 @@ def _ctx_now() -> C.Context:
     # water ("Region 3 – Region 8 boundary" on the Fraser): read alone it is "Region N boundary", read on a water it is
     # that water's crossing (`on_water`, `reuse.cut_name` — the one namer)
     labels.update({sid: reuse.region_words(sid) for sid in list(labels) if reuse.REGION_CUT.match(sid)})
+    # (T755 follow-up) a BC-border cut by its own crossing ("BC–Yukon border · km 102 …"), never the bare "BC boundary"
+    labels.update({sid: n for sid in list(labels) if reuse.BORDER_CUT.match(sid) for n in [reuse.cut_name(sid)] if n})
     pending = frozenset((set(records) | set(proposed)) - built)
     reg = reuse._registry()
     items = _Lazy(lambda i: getattr(reg.get(i), "name", None) or None)
@@ -171,8 +173,10 @@ _CTX = reuse._Memo()
 
 def context() -> C.Context:
     from pipeline.common.curated import CURATED
-    return _CTX.get((reuse._stamp((reuse.MARKS_PATH, reuse.SPLITS_JSON_PATH, reuse.REGISTRY_PATH,
-                                   CURATED.review.proposal_overrides)), reuse._registry()), _ctx_now)
+    # (T755 follow-up) the marks reach the context only through the proposed cuts: keyed on when those last changed
+    return _CTX.get((reuse.proposals_stamp(), reuse._stamp((reuse.SPLITS_JSON_PATH, reuse.REGISTRY_PATH,
+                                                           CURATED.review.proposal_overrides)), reuse._registry()),
+                    _ctx_now)
 
 
 # --------------------------------------------------------------------------- the check state
@@ -486,8 +490,7 @@ def _dfo_places() -> list[dict]:
     under another; a place whose mark in force a group save wrote carries `group_marked` (a flag, no state change)"""
     import dfo
     states, locs, ctx = dfo._states(), dfo._locations(), context()
-    return [_dfo_place(r, locs, states, ctx) for r in dfo._rows()
-            if not (r["lake_area"] or (r["status"] != "active" and not r["historic_only"]))]
+    return [_dfo_place(r, locs, states, ctx) for r in dfo._rows() if _queued(r)]
 
 
 def _dfo_place(r: dict, locs: dict, states: dict, ctx) -> dict:
@@ -505,13 +508,17 @@ def _dfo_place(r: dict, locs: dict, states: dict, ctx) -> dict:
                                 bad=got["summary"]["bad"], proposal=_proposal_facts(r["id"]), twin=False),
                 "live": r["status"] == "active",
                 **({"group_marked": r["group_marked"]} if r.get("group_marked") else {}),
+                **({"old_extent": r["old_extent"]} if r.get("old_extent") else {}),
                 **({"earlier": got["earlier"]} if "earlier" in got else {})})
 
 
-def _regs_places() -> list[dict]:
+def _regs_places(only: set | None = None) -> list[dict]:
+    """every regulation rule with an extent, as a checklist place; `only`: just these entries' (T755 follow-up)"""
     marks, ctx = _rule_marks(), context()
     out = []
     for region, e in reuse._all_entries():
+        if only is not None and e["entry_id"] not in only:
+            continue
         for r in e.get("rules") or []:
             if not isinstance(r, dict) or not r.get("extents"):
                 continue
@@ -544,15 +551,76 @@ def _places() -> list[dict]:
     # (T532 r8) the key is by VALUE or by a held identity: `reuse.regions()` was a fresh list on every call, so this
     # memo never hit and every queue / progress / water read recomputed all 3,686 places (~0.5 s each)
     from pipeline.regs.review import recheck as RC
-    base = _PLACES.get((reuse._stamp((reuse.MARKS_PATH, RC.path())), dfo._rows(), context(),
-                        reuse._dir_stamp(reuse.ENTRIES_DIR)),
-                       lambda: by_water(one_water(_dfo_places() + _regs_places())))
+    inputs = (reuse.marks_stamp(), reuse._stamp((RC.path(),)), dfo._rows(), context(),
+              reuse._dir_stamp(reuse.ENTRIES_DIR))
+    base = _PLACES.get(inputs, lambda: _places_for(inputs))
     # T742 E4 (perf): the write-through's word on a save changes ONLY the places it holds an outcome for — those rows
     # are recomputed over the cached list (the whole list of 3,686 was rebuilt on every saving -> saved)
     stamp = tuple(apply_stamp())
     if not stamp:
         return base
     return _PLACES_WT.get((base, stamp), lambda: _with_outcomes(base))
+
+
+#: the last places made — (inputs, the DFO places by row identity, the rule places): a save rebuilds only its own
+_PLACES_HELD: dict = {}
+
+
+def _places_for(inputs: tuple) -> list[dict]:
+    """(T755 follow-up: speed after a save) the checklist's places, the saved place's rebuilt and the rest kept: a DFO
+    place is made again only when its row is a new object (`dfo._patched_rows` keeps every other row as it was), a
+    regulation rule's only when the save names its entry; anything `reuse.marks_delta` cannot prove — or a changed
+    recheck list, checklist context or catalogue — rebuilds all of them. The one-water pass and the order run on the
+    whole list as before (pure, a few ms)."""
+    import dfo
+    held = _PLACES_HELD.get("v")
+    got = _patched_places(held, inputs) if held else None
+    if got is None:
+        got = (_dfo_places(), _regs_places())
+        if held is None or not __import__("gc").get_freeze_count():
+            reuse.settle_gc()            # a first build, or the first after the caches were dropped
+    _PLACES_HELD["v"] = (inputs, *got)
+    dfo_ps, regs = got
+    return by_water(one_water(dfo_ps + regs))
+
+
+def _queued(r: dict) -> bool:
+    """a DFO row the checklist lists (`_dfo_places`)"""
+    return not (r["lake_area"] or (r["status"] != "active" and not r["historic_only"]))
+
+
+def _patched_places(held: tuple, inputs: tuple) -> tuple | None:
+    import dfo
+    old_in, old_dfo, old_regs = held
+    if not (old_in[1] == inputs[1] and old_in[3] is inputs[3] and old_in[4] == inputs[4]):
+        return None
+    d = reuse.marks_delta(old_in[0], inputs[0])
+    if d is None or d["new_splits"] or d["cleared"]:
+        return None
+    # a DFO place is kept when its row is the same object as before: the old rows are alive in `held` (its inputs),
+    # so no new row can share an old one's id
+    place_of = {p["id"]: p for p in old_dfo}
+    was = {id(r): place_of[r["id"]] for r in old_in[2] if r["id"] in place_of}
+    states, locs, ctx = dfo._states(), dfo._locations(), context()
+    dfo_ps = [was[id(r)] if id(r) in was else _dfo_place(r, locs, states, ctx) for r in inputs[2] if _queued(r)]
+    entries = {t for sc, t, _r in d["keys"] if sc in ("rule", "entry")}
+    if not entries:
+        return dfo_ps, old_regs
+    fresh = _regs_places(only=entries)
+    by_entry: dict[str, list[dict]] = {}
+    for p in fresh:
+        by_entry.setdefault(p["entry_id"], []).append(p)
+    regs, done = [], set()
+    for p in old_regs:
+        e = p["entry_id"]
+        if e not in entries:
+            regs.append(p)
+        elif e not in done:
+            done.add(e)
+            regs += by_entry.get(e, [])
+    if set(by_entry) - done:             # an entry with places now that had none: rebuild them all, in order
+        return None
+    return dfo_ps, regs
 
 
 def _with_outcomes(base: list[dict]) -> list[dict]:
@@ -615,11 +683,13 @@ def _matches(p: dict, want: str | None) -> bool:
         return p["check"] in ("unchecked", "stale")
     if want == "group":                      # T742: a mark in force written by a group save, to re-check on its own
         return bool(p.get("group_marked"))
+    if want == "old":                        # T755 follow-up: last save wrong / unsure, no fix, older extent in force
+        return bool(p.get("old_extent"))
     if want == "bad":
         return p["summary"]["bad"] > 0
     if want == "needs":                      # a DFO place with no extent yet, or waiting on a cut
         return p.get("state") in NEEDS_EXTENT
-    raise ValueError(f"filter is one of todo, bad, needs, group, {', '.join(CHECK_STATES)}")
+    raise ValueError(f"filter is one of todo, bad, needs, group, old, {', '.join(CHECK_STATES)}")
 
 
 def queue(source: str = "dfo", filter: str | None = None, q: str | None = None) -> list[dict]:
@@ -655,6 +725,7 @@ def progress_of(rows: list[dict]) -> dict:
             "by_worst": dict(Counter(p["summary"]["worst"] for p in rows)),
             "rows": dict(sum((Counter({s: p["summary"][s] for s in C.STATES}) for p in rows), Counter())),
             "group_marked": sum(1 for p in rows if p.get("group_marked")),
+            "old_extent": sum(1 for p in rows if p.get("old_extent")),
             "waters": waters}
 
 
@@ -743,6 +814,7 @@ def water(water_key: str, source: str = "dfo") -> dict | None:
                 "ease": ease_of(check=got["check"], has_extent=bool(exts), bad=got["summary"]["bad"],
                                 proposal=_proposal_facts(lid), twin=False),
                 **({"group_marked": r["group_marked"]} if r.get("group_marked") else {}),
+                **({"old_extent": r["old_extent"]} if r.get("old_extent") else {}),
                 **({"earlier": got["earlier"]} if "earlier" in got else {})}
     for p in mine:
         if p["source"] == "dfo":
@@ -796,7 +868,7 @@ def water_reach(water_key: str) -> dict | None:
     feats, failed = [], []
     for ids in by.values():
         try:
-            r = dfo.reach(ids[0], limit=WATER_REACH_LIMIT)
+            r = dfo.reach(ids[0], limit=WATER_REACH_LIMIT, size=False)     # the faint layer needs no size walk
         except Exception as ex:  # noqa: BLE001 — said on the screen (`failed`), the other extents still draw
             failed.append({"id": ids[0], "why": f"{type(ex).__name__}: {ex}"})
             continue

@@ -144,5 +144,10 @@ from __future__ import annotations
 #:     `LAKE_LOOPS_JOIN_THEIR_LAKE`; the build lists every move in `lake_loop_report.json`). Sproat's narrows take Sproat
 #:     Lake's rows, not the lower river's. Decided in the atlas registry, so no classify.py outcome changed; the bump
 #:     marks the binding diff.
-POLICY_VERSION = "40"
+#: 41: (T753/T743, 2026-11-15) A LOOP NEVER DIVIDES ITS LAKE: a lake loop joins its lake only when it is in exactly the
+#:     lake's cut areas (`registry.lake_loops.LOOPS_NEVER_DIVIDE_A_LAKE`): Kotcho Lake's loop, outside the ecological
+#:     reserve the lake is in, stays with the Kotcho River. A CONFLUENCE ANCHOR'S TRIBUTARY IS ITS LINE THAT MEETS THE
+#:     PARENT (`splits.anchors.A_TRIBUTARY_IS_ITS_LINE_THAT_MEETS_THE_PARENT`): the Fraser's Seton River cut is built. Both
+#:     decided in the atlas, so no classify.py outcome changed; the bump marks the binding diff.
+POLICY_VERSION = "41"
 

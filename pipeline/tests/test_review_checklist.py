@@ -571,6 +571,10 @@ def test_the_places_cache_goes_stale_on_each_thing_it_is_made_from_and_on_nothin
     monkeypatch.setattr(B, "_PLACES_WT", reuse._Memo())
     laid = []
     monkeypatch.setattr(B, "_with_outcomes", lambda base: laid.append(1) or base)
+    # T755 follow-up: a save the marks store only GREW by is patched (test_review_followup_1115); a change it cannot
+    # prove (`marks_delta` None) rebuilds everything — what this test pins
+    monkeypatch.setattr(reuse, "marks_delta", lambda a, b: None)
+    monkeypatch.setattr(reuse, "settle_gc", lambda: None)
     B._places()
     B._places()
     assert len(built) == 1, "nothing changed: one computation"

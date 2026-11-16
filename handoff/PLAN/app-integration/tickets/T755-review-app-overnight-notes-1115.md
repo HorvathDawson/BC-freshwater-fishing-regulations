@@ -78,3 +78,73 @@ T742. His notes, verbatim:
 - Speed (6): rebuilding only the saved place's derived results after a save was not started; the saved-size walk is
   cached per place and places-file stamp (Bella Coola 11.8 s cold once, then 0 s).
 - Nitinat 2619 ("all other parts but within an extent"): a rest limited to a stretch is not an op; not changed here.
+
+## Follow-up 2026-11-15 (worktree lane `review/followup-1115`)
+
+How it was checked: my own copy of the app on :8796/:5182 from `~/bcfish-review-followup`. It reads the main
+checkout's built data through symlinks, with `CURATED_ROOT` set to a scratch copy of `data/curated` (the owner's
+marks as of 19:2xZ). Write-through and inputs sync were OFF. `/api/ready` named the scratch marks file before any
+save. The main `marks.jsonl` holds no line of mine (the test marks carry reviewer `timing-test`), and the main
+`dfo-suggestions.json` md5 is the same before and after.
+
+1. **BC border as a pickable end.**
+   - `reuse.border_end` / `border_ends` read every `border:<blk>:<n>` cut from the atlas's own section bounds. That is
+     917 cuts, with no rebuild needed: the bound's `route_measure` gives the point, and the sections' `out_of_bc` give
+     the side.
+   - Each cut is named by the one namer (`cut_name`), for example "BC–Yukon border · km 102 — outside BC upstream
+     (to km 146)". The neighbour comes from where BC's outline runs (`border_neighbour`); every one of the 917 cuts
+     got one.
+   - Every picker offers them:
+     - the DFO map list (`_split_feature` / `_split_point`);
+     - the cut search (`search_splits`: "border", "bc", "yukon"…);
+     - the regs editor's boundaries (`with_region_ends`, `border_end`);
+     - the checklist's labels and pins;
+     - the regs side's `entry_split_points`.
+   - The atlas still writes no `border:` rows into `splits.resolved.json`. That is the longer-term fix, but it is not
+     needed now.
+2. **"Cannot edit" says why.**
+   - `dfo.cannot_edit_words` (in `extent_now.cannot_edit` and on the region-cascade scopes) gives one plain line per
+     field the editor cannot say, plus what to do: "confirm it as it is … or mark it wrong and say in the note what
+     should change".
+   - It shows where the edit button would be (CheckReview), in the needs-extent block, in the DFO tab and in the
+     Region cascade (`CannotEditNote`).
+   - All 15 places have a reason (test). No place's data changed.
+3. **Speed after a save.**
+   - Before: a save rebuilt every DFO row and every checklist place, re-grouped every proposed cut, and re-parsed every
+     region file once per place. A full garbage collection over the ~14 M loaded objects cost 2.1 s, landing on the
+     next request.
+   - Now:
+     - `reuse.marks_delta` proves what the store gained, and only the saved place's rows are rebuilt, with its
+       water's other places (`dfo._patched_rows`).
+     - Only its checklist place is rebuilt (`checks._patched_places`).
+     - A save that proposes no cut keeps the proposals, real ids and context (`proposals_stamp`).
+     - `gc.freeze()` runs after the warm (`settle_gc`).
+     - `proposals.Sources.parsed` gives the finders copies, and registry.json is read once per build.
+     - The size walk no longer holds a place up: the reach says `size_pending` and the screen asks `/size` after.
+       Sizes are kept per place's own reach input, so a write-through rewrite re-walks only that place.
+     - The water's faint layer takes no size walk at all.
+   - Patched rows and places equal a full rebuild, byte for byte, on real data (2 saves).
+   - Timings (API level, the requests the checklist's `afterSave` makes; warm; write-through off):
+
+     | | before | after |
+     |---|---|---|
+     | save request | 0.92 s | 0.43 s |
+     | click → list usable (queue + progress + water) | 2.0 s | 0.55 s |
+     | click → next place loaded | 2.5–3.9 s | 0.67 s |
+     | queue + water after a save, when a full GC hit | 4.4 s | 0.15 s |
+     | Bella Coola whole reach | waited on its size (1.1 s warm, 11.8 s cold) | 0.02 s, the size 1.1 s after |
+   - Not covered: with write-through ON, the apply rewrites the region file a moment later. That rebuilds the rows
+     once in full (the file is an input), but no longer re-walks every size.
+4. **"Old extent still in force".**
+   - The rule is one predicate, `audit.old_extent_in_force`: the last save is wrong or unsure, it has no fix, and
+     the place still has an extent (its own or the one it rides).
+   - It shows on the checklist header, as a chip in the water list, and as the filter "old extent in force". Audit
+     section B's text says the flag; its keys are unchanged.
+   - In the scratch copy it flags 4 places: Fraser R3 mainstem, Thompson (rides ~2), Morice, Sheldens.
+   - What ships is unchanged.
+
+Tests:
+- `pipeline/tests/test_review_followup_1115.py` (14 tests) and `curation-review/frontend/tests/followup1115.test.ts`.
+- `test_review_checklist`'s memo test pins the full-rebuild path.
+- Frontend node tests: 52 pass. tsc is clean.
+- The 63 review/curation/dfo/audit test files in CI's no-data tier, unfiltered: 886 passed.

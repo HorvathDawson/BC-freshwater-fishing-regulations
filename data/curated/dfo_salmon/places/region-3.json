@@ -408,7 +408,20 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "south_thompson_river__little_shuswap_lake",
+              "south_thompson_river__campbell_creek_d100m"
+            ],
+            "item_id": "gnis:8675"
+          },
+          {
+            "op": "whole",
+            "item_id": "wbk:329534136"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],

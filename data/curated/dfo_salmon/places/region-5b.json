@@ -373,7 +373,14 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "atnarko_river__signs_near_tweedsmuir_park_lodge_stuie"
+            ]
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -428,7 +435,12 @@
         ],
         "tributaries": true,
         "tributaries_only": false,
-        "tributary_excludes": [],
+        "tributary_excludes": [
+          {
+            "op": "whole",
+            "item_id": "gnis:17209"
+          }
+        ],
         "sections_cached": null,
         "notes": [],
         "spatial_caveat": false
@@ -482,8 +494,13 @@
           }
         ],
         "tributaries": true,
-        "tributaries_only": false,
-        "tributary_excludes": [],
+        "tributaries_only": true,
+        "tributary_excludes": [
+          {
+            "op": "whole",
+            "item_id": "gnis:17209"
+          }
+        ],
         "sections_cached": null,
         "notes": [],
         "spatial_caveat": false
