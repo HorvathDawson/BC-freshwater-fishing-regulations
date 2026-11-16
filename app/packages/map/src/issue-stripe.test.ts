@@ -24,7 +24,7 @@ function recorder() {
 const MODES = ["plain", "profile", "salmon", "standing", "stocked", "survey", "runs"];
 
 describe("(T759) the issue stripe's layers", () => {
-  it("in the Salmon view the expression is the label's test, faded in with zoom as the gear marks are; the ink is narrower than its casing", () => {
+  it("in the Salmon view the expression is the label's test, faded in with zoom as the gear marks are; both tones one width, the dark dash shorter than the pale one", () => {
     for (const theme of ["light", "dark", "cvd"]) {
       const t = resolveTheme(theme);
       const ink = issuePaint("stripe", "salmon", t), casing = issuePaint("casing", "salmon", t);
@@ -35,7 +35,7 @@ describe("(T759) the issue stripe's layers", () => {
       const sum = (a: unknown) => (a as number[]).reduce((x, y) => x + y, 0);
       // same period = in phase; the ink's dash is shorter than the casing's, so pale always shows after the dark
       expect(sum(ink["line-dasharray"])).toBe(sum(casing["line-dasharray"]));
-      expect((ink["line-dasharray"] as number[])[0]).toBeLessThan((casing["line-dasharray"] as number[])[0]);
+      expect((ink["line-dasharray"] as number[])[0]!).toBeLessThan((casing["line-dasharray"] as number[])[0]!);
       // one width share on both layers: the same floored width, the same period
       expect(JSON.stringify(ink["line-width"])).toBe(JSON.stringify(casing["line-width"]));
       expect(JSON.stringify(ink["line-width"])).toContain("0.6");
