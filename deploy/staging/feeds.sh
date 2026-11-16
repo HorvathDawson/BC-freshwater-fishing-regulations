@@ -37,7 +37,8 @@ DAILY_DAYS=$(printf '%s\n' "$LC" | awk '/^prefix:/ {p=$2} /^action:/ && p=="dail
 LIVE_M=$(mktemp); trap 'rm -f "$LIVE_M"' EXIT
 rclone cat "r2:bc-fishing-regulations-staging/release/manifest.json" --s3-no-check-bucket > "$LIVE_M" || : > "$LIVE_M"
 WSHAPE=$(node deploy/lib/worker-shape.mjs) || WSHAPE=
-.venv/bin/python -m pipeline.deliver.release.pieces_gate --worker-deploy --live-manifest "$LIVE_M" --worker-shape "$WSHAPE"
+.venv/bin/python -m pipeline.deliver.release.pieces_gate --worker-deploy --live-manifest "$LIVE_M" \
+  --releases "${RELEASES_DIR:-data/release}" --worker-shape "$WSHAPE"
 npx --prefix app wrangler deploy -c app/workers/feeds/wrangler.toml 2>&1 | grep -v "npm warn" | tail -4
 T=$(tr -d '\n' < app/workers/feeds/.run-token)
 sleep 10   # the new version reaches every location

@@ -35,7 +35,7 @@ OLD = {"p": {"3:x-river:whole": {"r": "3"}}}
     (CARRIED, None, False, ""),                               # a carried piece binds nothing
     (OLD, None, False, ""),                                   # today's truth: no piece bound, no shape: passes
     (None, {"pieces": 1}, True, "could not be read"),          # unreadable live release
-    (OLD, "unread", True, "worker's code could not be read"),  # unreadable worker shape, whatever the release
+    (OLD, "unread", True, "the feeds worker's feed shape (DFO_SHAPE) could not be evaluated from app/workers/feeds/src/status.ts"),
 ])
 def test_a_worker_that_does_not_emit_pieces_is_refused_beside_a_release_that_binds_one(payload, shape, refused, why):
     """Mutation: pass a worker without `dfo.pieces` beside a binding release, or an unreadable one — after a rollback
@@ -87,6 +87,35 @@ def test_the_cli_refuses_a_live_release_it_cannot_read(tmp_path, capsys):
     assert G.main(["--worker-deploy", "--live-manifest", str(live), "--releases", str(rel), *shape]) == 1
     assert G.main(["--worker-deploy", "--releases", str(rel), *shape]) == 1
     assert capsys.readouterr().err.count("feeds deploy: refused") == 4
+
+
+NAME_IT = ("A deploy from another checkout or a scratch worktree names the main checkout's folder: "
+           "RELEASES_DIR=/path/to/main/checkout/data/release (deploy/staging/feeds.sh, deploy/prod/feeds.sh) "
+           "or --releases <path> (the gate)")
+
+
+def test_a_live_release_not_under_the_folder_is_refused_saying_how_to_name_it(tmp_path, monkeypatch, capsys):
+    """Mutation: fall back to data/release, or refuse without saying where it looked and RELEASES_DIR — a deploy from a
+    scratch worktree (no data/release) is stuck with no way out but a workaround."""
+    from pipeline.deliver import salmon as S
+    monkeypatch.setattr(S, "read_release", lambda d: OLD)
+    live = tmp_path / "live.json"
+    live.write_text(json.dumps({"data_release": "r-live"}))
+    here, elsewhere = tmp_path / "scratch" / "data" / "release", tmp_path / "main" / "data" / "release"
+    here.mkdir(parents=True)
+    (elsewhere / "r-live").mkdir(parents=True)
+    (elsewhere / "r-live" / "manifest.json").write_text("{}")
+    args = ["--worker-deploy", "--live-manifest", str(live), "--worker-shape", "null"]
+    assert G.main([*args, "--releases", str(here)]) == 1
+    assert capsys.readouterr().err.strip() == (
+        f"feeds deploy: refused — the live release r-live was looked for under {here} and is not there "
+        f"({here}/r-live/manifest.json), so whether it binds closed-area pieces (T573) is not known. {NAME_IT}")
+    assert G.main([*args, "--releases", str(elsewhere)]) == 0                 # the main checkout's folder, named
+    missing = tmp_path / "no-such" / "release"
+    assert G.main([*args, "--releases", str(missing)]) == 1
+    assert capsys.readouterr().err.strip() == (
+        f"feeds deploy: refused — the release folder {missing} does not exist, so the live release cannot be read and "
+        f"whether it binds closed-area pieces (T573) is not known. {NAME_IT}")
 
 
 def test_the_upload_mode_is_unchanged(monkeypatch):
@@ -142,4 +171,7 @@ def test_both_feeds_deploys_ask_the_gate_before_wrangler_deploy(script, deploy):
     live = run.index("/release/manifest.json")
     assert shape < gate < at and live < gate
     assert len(re.findall(r"wrangler deploy -c (?!.*--dry-run)", run)) == 1      # no other real deploy to dodge it
+    # (T757) the folder the gate reads the live release from is the caller's to name, one variable
+    call = run[gate:run.index("\n", run.index("--worker-shape", gate))]
+    assert '--releases "${RELEASES_DIR:-data/release}"' in call
     assert subprocess.run(["bash", "-n", str(ROOT / script)], env={"PATH": "/bin:/usr/bin"}).returncode == 0

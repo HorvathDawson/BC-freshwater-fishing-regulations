@@ -45,7 +45,8 @@ TOKF=app/workers/feeds/.run-token.prod
 LIVE_M=$(mktemp); trap 'rm -f "$LIVE_M"' EXIT
 rclone cat "r2:bc-fishing-regulations/release/manifest.json" --s3-no-check-bucket > "$LIVE_M" || : > "$LIVE_M"
 WSHAPE=$(node deploy/lib/worker-shape.mjs) || WSHAPE=
-.venv/bin/python -m pipeline.deliver.release.pieces_gate --worker-deploy --live-manifest "$LIVE_M" --worker-shape "$WSHAPE"
+.venv/bin/python -m pipeline.deliver.release.pieces_gate --worker-deploy --live-manifest "$LIVE_M" \
+  --releases "${RELEASES_DIR:-data/release}" --worker-shape "$WSHAPE"
 npx --prefix app wrangler deploy -c "$C"
 T=$(tr -d '\n' < "$TOKF")
 sleep 10   # the new version reaches every location

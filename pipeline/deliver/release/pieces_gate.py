@@ -73,16 +73,22 @@ def problems(payload: dict, feeds_url: Optional[str],
     return []
 
 
-def worker_problems(payload: Optional[dict], shape: object, release: str = "the live release") -> list[str]:
+#: (T757) how a deploy names where the live release folder is (said in every refusal about finding it)
+NAME_THE_RELEASES = ("A deploy from another checkout or a scratch worktree names the main checkout's folder: RELEASES_DIR=/path/to/main/checkout/data/release (deploy/staging/feeds.sh, deploy/prod/feeds.sh) or --releases <path> (the gate)")
+
+
+def worker_problems(payload: Optional[dict], shape: object, release: str = "the live release",
+                    unread: Optional[str] = None) -> list[str]:
     """(T757 item 7) why a feeds worker whose code serves `shape` (its `DFO_SHAPE`; None: it exports none) may not be
     deployed beside the live release `payload`; [] when it may. `payload` None: the live release could not be read;
-    `shape` the string "unread": the worker's code could not be read. Neither is ever a pass."""
+    `shape` the string "unread": the worker's code could not be read. Neither is ever a pass. `unread`: the whole
+    refusal for an unread release when the reader knows why (`read_live`)."""
     if payload is None:
-        return [f"{release} could not be read, so whether it binds closed-area pieces (T573) is not known: a worker "
+        return [unread] if unread else [f"{release} could not be read, so whether it binds closed-area pieces (T573) is not known: a worker "
                 "that does not emit them would show those closed areas open. Make the live release readable, then deploy again"]
     if shape == "unread":
-        return ["the feeds worker's code could not be read (deploy/lib/worker-shape.mjs on app/workers/feeds/src/status.ts), "
-                "so what feed shape it serves is not known. Fix that, then deploy again"]
+        return ["the feeds worker's feed shape (DFO_SHAPE) could not be evaluated from app/workers/feeds/src/status.ts "
+                "(deploy/lib/worker-shape.mjs), so whether it emits closed-area pieces is not known. Fix that, then deploy again"]
     got = bound_pieces(payload)
     if not got:
         return []
@@ -94,20 +100,30 @@ def worker_problems(payload: Optional[dict], shape: object, release: str = "the 
             "salmon file instead of the live feed. Deploy the worker that emits closed-area pieces (T757)"]
 
 
-def read_live(manifest: Path, releases: Path) -> tuple[Optional[dict], str]:
+def read_live(manifest: Path, releases: Path) -> tuple[Optional[dict], str, Optional[str]]:
     """the live release's salmon payload, from the bucket's `release/manifest.json` (a local copy) and the release
-    folder it names under `releases`; (None, its name or why) when either cannot be read"""
+    folder it names under `releases`: (payload, its name, None), or (None, its name, the refusal in words) when either
+    cannot be read. A `releases` folder that is not there is refused as such, never read from the default instead."""
     from pipeline.deliver import salmon as S
+    unknown = "so whether it binds closed-area pieces (T573) is not known"
+    if not releases.is_dir():
+        return None, "the live release", (f"the release folder {releases} does not exist, so the live release cannot be "
+                                          f"read and {unknown.removeprefix('so ')}. {NAME_THE_RELEASES}")
     try:
         rel = json.loads(manifest.read_text(encoding="utf-8"))["data_release"]
         if not isinstance(rel, str) or not rel or "/" in rel or rel.startswith("."):
             raise ValueError(f"data_release is {rel!r}")
     except Exception as e:                               # noqa: BLE001 — unreadable is an answer: refused
-        return None, f"the live release manifest {manifest} ({type(e).__name__}: {e})"
+        return None, f"the live release manifest {manifest} ({type(e).__name__}: {e})", None
+    name = f"the live release {rel}"
+    if not (releases / rel / "manifest.json").is_file():
+        return None, name, (f"{name} was looked for under {releases} and is not there ({releases / rel}/manifest.json), "
+                            f"{unknown}. {NAME_THE_RELEASES}")
     try:
-        return S.read_release(releases / rel), f"the live release {rel}"
+        return S.read_release(releases / rel), name, None
     except (Exception, S.SalmonError) as e:              # noqa: BLE001 — SalmonError is a SystemExit
-        return None, f"the live release {rel} ({releases / rel}: {e})"
+        return None, name, (f"{name} under {releases} could not be read ({e}), {unknown}. "
+                            "Make it readable, then deploy again")
 
 
 def main(argv=None) -> int:
@@ -117,19 +133,20 @@ def main(argv=None) -> int:
     ap.add_argument("--feeds-url", default=os.environ.get("FEEDS_URL") or None)
     ap.add_argument("--worker-deploy", action="store_true", help="the worker-deploy mirror (T757 item 7)")
     ap.add_argument("--live-manifest", type=Path, help="--worker-deploy: the bucket's live release/manifest.json")
-    ap.add_argument("--releases", type=Path, default=Path("data/release"), help="--worker-deploy: the release folders")
+    ap.add_argument("--releases", type=Path, default=Path("data/release"),
+                    help="--worker-deploy: the release folders (the scripts pass RELEASES_DIR, default data/release)")
     ap.add_argument("--worker-shape", default="", help="--worker-deploy: deploy/lib/worker-shape.mjs's JSON line")
     a = ap.parse_args(argv)
     if a.worker_deploy:
         if a.live_manifest is None:
-            payload, name = None, "the live release (no --live-manifest given)"
+            payload, name, unread = None, "the live release (no --live-manifest given)", None
         else:
-            payload, name = read_live(a.live_manifest, a.releases)
+            payload, name, unread = read_live(a.live_manifest, a.releases)
         try:
             shape = json.loads(a.worker_shape) if a.worker_shape.strip() else "unread"
         except ValueError:
             shape = "unread"
-        bad = worker_problems(payload, shape, name)
+        bad = worker_problems(payload, shape, name, unread)
         for p in bad:
             print(f"feeds deploy: refused — {p}", file=sys.stderr)
         return 1 if bad else 0
