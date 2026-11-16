@@ -2057,3 +2057,10 @@ More questions (recommended answer first):
   chat's app-half check merged into it), the payload contract agreed by both before either builds, one shared fixture
   of hard waters the app builds against, one hard-cases list both re-run, the switch landed together like the salmon
   twins (T810).
+- 16:50, typed in chat (verbatim): "we want to make sure the plan is robust so that we change the data all the way in
+  python and the front end and it all just works withotu fighting it and makign sure everythign is streamlined etc".
+  So (T810): the contract rule is Python decides every word, number and date; the app only draws, with no rule logic
+  and no hand-written payload types (generated from the contract); no old and new trout paths left side by side. After
+  the app chat's app-half check is merged into the spec, a fresh Opus reviewer attacks the whole plan for every place
+  the two sides could fight (two sources of a word, logic in both, duplicated helpers, a hand-kept type), and the plan
+  is fixed before any build code starts.
