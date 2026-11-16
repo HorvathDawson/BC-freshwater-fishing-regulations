@@ -300,9 +300,12 @@ export function closedCuePaint(mode: string, tokens: Tokens, values: ChannelValu
  * so a whole province is not speckled.
  */
 export const ISSUE_LAYERS = { casing: "stream-issue-casing", stripe: "stream-issue-stripe" } as const;
-/** the stripe's ink and its casing, as a share of the stream line's own width */
-export const ISSUE_INK_SHARE = 0.4;
-export const ISSUE_CASING_SHARE = 0.85;
+/** the stripe's width, as a share of the stream line's own width: ONE share for both layers. (Owner 2026-11-16, on the dark
+ *  blue "Keep salmon" line: "Make it wider") it was 0.4 ink inside a 0.85 casing. MapLibre divides dash distance by
+ *  floor(line-width), so layers of different widths have different periods and drift out of phase (the casing then covers
+ *  the line). Same width, same period: the pale part lies ALONG the line (`dash.issue.casing` 5 on 3 off, under
+ *  `dash.issue.stripe` 3 on 5 off), so the line's own colour shows in the gaps and down both edges. */
+export const ISSUE_SHARE = 0.6;
 /** the mode the stripe is drawn in: the Salmon view's */
 export const ISSUE_MODE = "salmon";
 
@@ -314,11 +317,10 @@ export function issueShown(mode: string): unknown | null {
 export function issuePaint(part: keyof typeof ISSUE_LAYERS, mode: string, tokens: Tokens, streamWidth?: unknown): Record<string, unknown> {
   const w = streamWidth ?? ["interpolate", ["linear"], ["zoom"], 6, 1.2, 10, 2, 14, 3.2];
   const shown = issueShown(mode);
-  const share = part === "casing" ? ISSUE_CASING_SHARE : ISSUE_INK_SHARE;
   return {
     "line-color": tokens[part === "casing" ? "color.issue.casing" : "color.issue.stripe"],
-    "line-width": withinZoomCurve(w, (v) => ["*", v, share]),
-    "line-dasharray": tokens["dash.issue.stripe"],
+    "line-width": withinZoomCurve(w, (v) => ["*", v, ISSUE_SHARE]),
+    "line-dasharray": tokens[part === "casing" ? "dash.issue.casing" : "dash.issue.stripe"],
     "line-opacity": shown === null ? 0
       : ["interpolate", ["linear"], ["zoom"], ...GEAR_RAMPS[GEAR_RAMP].opacity.flatMap(([z, o]) => [z, ["case", shown, o, 0]])],
   };

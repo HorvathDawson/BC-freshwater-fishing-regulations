@@ -3113,7 +3113,11 @@
       "color.issue.casing": "#F8F8F2",
       "dash.issue.stripe": [
         3,
-        2
+        5
+      ],
+      "dash.issue.casing": [
+        5,
+        3
       ],
       "color.cue.closed": "#F8F8F2",
       "dash.cue.closed": [
@@ -3298,7 +3302,11 @@
       "color.issue.casing": "#0A0B0D",
       "dash.issue.stripe": [
         3,
-        2
+        5
+      ],
+      "dash.issue.casing": [
+        5,
+        3
       ],
       "color.cue.closed": "#0A0B0D",
       "dash.cue.closed": [
@@ -3483,7 +3491,11 @@
       "color.issue.casing": "#F8F8F2",
       "dash.issue.stripe": [
         3,
-        2
+        5
+      ],
+      "dash.issue.casing": [
+        5,
+        3
       ],
       "color.cue.closed": "#F8F8F2",
       "dash.cue.closed": [
@@ -4245,7 +4257,12 @@
     "dash.issue.stripe": {
       "type": "dash",
       "themeable": true,
-      "$comment": "(T759) the issue stripe's dashes, in the stripe's own widths: longer than the closed cue's ticks and the gear marks' edge dashes, so the three read apart."
+      "$comment": "(T759) the issue stripe's INK dashes (dark in the light theme), in the stripe's own widths: longer than the closed cue's ticks and the gear marks' edge dashes, so the three read apart. The ink and the casing (`dash.issue.casing`) are drawn at the SAME line width, so MapLibre (which divides dash distance by floor(line-width)) gives them the same period; the two arrays therefore sum to the same 8, which keeps them in phase: ink 3, then casing's pale 2, then a gap of 3 where the line's own colour shows."
+    },
+    "dash.issue.casing": {
+      "type": "dash",
+      "themeable": true,
+      "$comment": "(T759) the issue stripe's CASING dashes: 5 on, 3 off, a period of 8 like `dash.issue.stripe` (3 on, 5 off) and drawn from the same origin at the same width, so the ink sits on the first 3 of each 5 and the pale shows after it, along the line, never around it."
     },
     "color.cue.closed": {
       "type": "color",
