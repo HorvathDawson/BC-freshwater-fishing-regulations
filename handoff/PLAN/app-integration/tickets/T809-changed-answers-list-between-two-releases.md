@@ -23,3 +23,13 @@ changed-answers list he asks for before every shipment is put together by hand.
 ## Pass
 The tool run on the last two real releases gives a list the main chat can check against what was told to the owner
 for that release; the T805 fixes are then shown to him with it before they ship.
+
+## 2026-11-16 16:19: landed (merge dac013480; worker commit 9c033d495)
+`python -m pipeline.tools.audit.answers_diff <release A> <release B> [--out DIR]` writes `diff.json`, `diff.txt` and
+`owner.md`. Real pair r-46e4355a7277 → r-685b700b2802 (36.6 s, 3.28 GB peak): the 71 book-closure rows exactly (same
+fish, days and sections, 71,046 distinct). It also found four differences in that candidate beyond the hand list (gear
+lines on 3,745 sections; the finfish flag on 2,597; 698 same-answer groups now sourced from the rule book; Stamp River
+words and Quesnel Lake Horsefly Bay): explained by a separate read-only worker before the salmon landing. 21 tests.
+NOT YET DONE (left on this ticket): a cross-atlas pair (different section handles, e.g. r-a9914d6b25b7 →
+r-46e4355a7277) has never been run; the regs side is proven on the mini only; possession and gear-count directions
+read "unclear"; card rows and shared limits fall into the catch-all.

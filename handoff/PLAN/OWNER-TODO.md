@@ -2031,3 +2031,11 @@ More questions (recommended answer first):
   (117,608) and snapped it to the nearest section edge, the river gauge 08LF033 (117,094), so it drew 4.6 km and read
   "495 m". The built cut is at 116,608: 999 m below the Hwy 1 bridge; closed area 3.6 km to the CN rail bridge. The
   redrawn picture was sent. Answer, picked: "Right (Recommended)". So: mark 2748 stands; nothing changes.
+- About 16:20, typed in the OLD main chat (session -17) after its summary of the changed-answers tool's report
+  (verbatim, relayed): "Eulachon is a bait or a limit?" Answered there: neither; it is a closure. DFO's Region 6 line
+  "Reminder: There is no fishing for eulachon in Region 6" means no fishing for eulachon at all. The app carries it in
+  the salmon card's gear / bait lines, which is why the tool grouped it under "Gear and bait". The change is his T770
+  fix (a bait line no longer pushes it out). Open, NOT asked yet (for the end batch): should the eulachon line show as
+  a closure rather than among the gear and bait lines, on the card and in the tool's grouping? His earlier words
+  (batch 6): "general rule is (Reminder: There is no fishing for eulachon in Region 6. ) why would bait remove eulachon
+  rule?"

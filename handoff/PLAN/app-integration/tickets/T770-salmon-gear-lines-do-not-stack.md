@@ -22,3 +22,9 @@ Should a river-wide gear rule keep showing on a stretch that has its own gear ru
 
 ## Owner, 2026-11-16 (question dialog; verbatim in `handoff/PLAN/OWNER-TODO.md`, "Answers by batch")
 Question 13: "Show both (Recommended)". Build it; the diff of every card's gear lines is his review list. The eulachon line (Region 6-wide reminder) must never be displaced by a bait rule.
+
+## 2026-11-16 16:23: owner asked "Eulachon is a bait or a limit?"
+Answered (old main chat): neither, it is a closure carried in the gear / bait lines slot. Open for the end batch: show
+and classify it as a closure (card and `answers_diff` grouping) instead of a gear line. The candidate's gear lines
+differ on 3,745 sections (`answers_diff`); the read-only worker on the candidate's extra differences reconciles that
+with "13 chains".
