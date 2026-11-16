@@ -4918,6 +4918,28 @@
       -121.281673,
       50.726878
      ]
+    },
+    {
+     "id": "thompson_river__juniper_closed_area_upper_signs_4_km_upstream_of_its_lower_u4000m",
+     "label": "Juniper closed area, upper signs: 4 km upstream of its lower signs",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -121.133959,
+       50.780911
+      ],
+      "is_lonlat": true,
+      "offset_m": 4000.0,
+      "offset_dir": "upstream"
+     },
+     "note": "",
+     "confidence": "low",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 3:thompson-river#5adc77c1f78d — \"Juniper - from the fishing boundary signs approximately 1.5 km downstream from Juniper Beach Park downstream approximately 4 km to the fishing boundary signs located at 50°46.893' N and 121°08.110' W.\"",
+     "_coord": [
+      -121.133959,
+      50.780911
+     ]
     }
    ]
   },
