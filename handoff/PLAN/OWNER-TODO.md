@@ -1098,3 +1098,10 @@ reopens Nov 1.
   line, then one row per fish with the app's own drawing; four one-change variants; eleven waters. Five questions on
   the page (row per fish or per book group; plain backing behind the drawings; the long Vedder line; Kootenay one table
   or two; duties behind the tap). It is exploration only: nothing waits on it (your 22:49 word).
+- 23:25, typed in chat, on trout display round 2: "I am really liking the trout work so far but we need to develope it
+  even more. First I like the proposed 2 to 4 a day instead of details with arrow for collapsible button. Second we
+  need to work out the size location better maybe the second column idea is good. We just want to keep refining it.
+  This is a lot better though. I like the idea so far keep refining and add more complex examples with weird
+  groupings." Started: round 3 on the same page: the folded row's answer adopted and defined for every case; four or
+  five placements for the size compared on the hard waters (he leans to a second column); at least six more real
+  waters picked for odd groupings; the shared-answer box stressed. Still exploration: nothing in the app changes.
