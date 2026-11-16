@@ -58,3 +58,21 @@ Python feed: main chat. Worker and app: the iOS chat (with T757/T758). Not part 
 - Owner: pictures sent 00:31, To-Do row `t759-stripe-final` (legend words, strength on the dark blue line).
 - Left: his two confirms; an emulator look on Android; then it merges WITH the rest of T759's app half and the feeds
   half (`feeds/t759-issues`), benches and a message to the main chat first.
+
+## Owner's answers on the final stripe, 2026-11-16 11:51 (question dialog in the main chat, pictures on screen)
+- The legend entry: "\"Check rule\" is fine (Recommended)".
+- Is the stripe strong enough on the dark blue "Keep salmon" line: "Make it wider".
+To do (app chat, branch `app/t759-stripe` 6c24f94a6): widen the dashes on every Salmon line colour (not only the dark
+blue: one stripe, one width), re-run the contrast and colour-blind tests, draw it on the Android emulator (it has only
+been drawn on the web), send him the new pictures, then the T759 merge (app half + `feeds/t759-issues`).
+
+## The wider stripe is built, 2026-11-16 12:27 (app chat; branch `app/t759-stripe` 75c966f66, not merged)
+Owner: "Make it wider". Scaling both layers up (ink 0.4 and casing 0.85 of the line's width, times 1.5 or 2) was
+tried and rejected: the pale casing covered the line. Cause found by the lane: MapLibre measures dashes in units of
+floor(line-width), so two layers of different widths drift out of phase. Now ONE width for both tones (0.6 of the
+line's width) and the tones lie along the line: dark 3, pale 2, then a gap of 3 where the line's own colour shows at
+full width (`dash.issue.stripe` [3, 5] over the new `dash.issue.casing` [5, 3]; equal sums = always in phase). Five
+stripe and legend test files pass (36), `check:fast` passes. The before / after picture (light and dark) was sent to
+the owner in the app chat at 12:27. Note for readers of the pictures: the lower Campbell is a wide river drawn as a
+tinted area, pale in light and dark green in dark theme, before and after; that is not the stripe.
+Left: his word on the picture, the Android emulator look, then the merge (app half + `feeds/t759-issues`).

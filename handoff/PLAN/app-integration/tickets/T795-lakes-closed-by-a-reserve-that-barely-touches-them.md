@@ -15,3 +15,17 @@ lakes the rule closes are 97 to 100 % inside; all 77 lakes closed by the nationa
 - Take the four barely-touched waters out with `outside_items` (the reserve is carried as a part-closed caveat).
 - A build check: a `within` closure that holds a lake less than (say) 50 % inside the area is listed for a decision.
 - Westwick and Priest lakes: the owner's call (open with a part-closed caveat, or closed).
+
+## Owner, 2026-11-16 (question dialog; verbatim in `handoff/PLAN/OWNER-TODO.md`, "Answers by batch")
+Go-ahead card: "Go on all (Recommended)" for the four barely-touched waters. Question 34 (Westwick Lakes, Priest Lake): "Both open with the note".
+
+## Lane result (2026-11-16, branch `lane/book-rule-fixes-1116`, commit 07db8a6a8)
+- `zp:superior_closures.r3` takes six lakes back out (`outside_items`): Fraser (wbk:329148308), Kotcho (wbk:329203305),
+  Cold Fish (wbk:329529449), 15 Mile Swamp (wbk:328945575), Westwick Lakes (wbk:329370953), Priest (wbk:329101439).
+  New `superior_closures.r3p` holds the closure on the six as an undrawn part "inside the ecological reserve" (a note,
+  never a colour). Each lake now reads by its own rules all year (Fraser Lake: open, lake trout quota 1, none under 60 cm).
+- Proof: reach run on the built atlas (read-only): r3 -6 lakes, r3p binds the six, no other rule moved.
+  `test_t100_area_caveat.py` worklist +1 (`zp:superior_closures`).
+- LEFT OVER: the build check ("a `within` closure holding a lake less than half inside its area is listed for a
+  decision") needs lake-in-area shares measured in the atlas build; nothing stores them today. Not small: a ticket.
+- Main chat: reach run + bundle + release to see it on the card.

@@ -2465,10 +2465,44 @@
      "extents": [
       {
        "op": "within",
-       "area_kind": "ecological_reserves"
+       "area_kind": "ecological_reserves",
+       "outside_items": [
+        "wbk:328945575",
+        "wbk:329101439",
+        "wbk:329148308",
+        "wbk:329203305",
+        "wbk:329370953",
+        "wbk:329529449"
+       ]
       }
      ],
      "authority": "superior"
+    },
+    {
+     "rule_id": "superior_closures.r3p",
+     "type": "retention_limit",
+     "verbatim": "Fishing is prohibited in Ecological Reserves in B.C.",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "take": 0,
+     "may_target": false,
+     "extents": [
+      {
+       "op": "whole",
+       "item_ids": [
+        "wbk:328945575",
+        "wbk:329101439",
+        "wbk:329148308",
+        "wbk:329203305",
+        "wbk:329370953",
+        "wbk:329529449"
+       ]
+      }
+     ],
+     "authority": "superior",
+     "undrawn_part": "inside the ecological reserve",
+     "review_reason": "T795 (owner 2026-11-16, go-ahead card \"Go on all (Recommended)\"; question 34 \"Both open with the note\"): six lakes an ecological reserve's polygon only partly covers, taken out of superior_closures.r3 (`outside_items`, AGENTS 13) and held here as a part-closed note: Fraser Lake (wbk:329148308, 0.1 % inside Ellis Island ER), Kotcho Lake (wbk:329203305, 0.1 %), Cold Fish Lake (wbk:329529449, 0.1 %), 15 Mile Swamp (wbk:328945575, 3 %), Westwick Lakes (wbk:329370953, 26 %), Priest Lake (wbk:329101439, 59 %). Each reads open by its own rules; the reserve part is closed. Measured: handoff/PLAN/audit-2026-11-16/answers.md B1."
     },
     {
      "rule_id": "superior_closures.r1b",

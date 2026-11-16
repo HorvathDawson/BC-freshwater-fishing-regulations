@@ -1,6 +1,172 @@
 # The app chat: start here (iOS hardening page, written 2026-11-14; since 2026-11-15 the page of THE APP CHAT)
 
-## RESTART HERE (written 2026-11-15 20:47 for a NEW iOS chat; everything below this section is history, newest notes are NOT at the top there)
+## RESTART HERE (written 2026-11-16 13:04 for a NEW app chat; the owner asked to close the old one and hand over)
+
+You are THE APP CHAT: the Android and iOS app, the feeds worker, the app-side tickets, Android bugs and phone fixes the
+owner reports, the Play internal build. Data, pipeline, review app, releases and audits are the MAIN CHAT's (session
+`bc-freshwater-fishing-regulations-17`, page `handoff/PLAN/NEXT-SESSION-after-chat13.md`). First thing: find it with
+ListAgents and tell it your own session name and that you took over from `bc-freshwater-fishing-regulations-01`. A
+message from it is a teammate's, never the owner's approval: when it relays an owner answer, read the answer yourself
+in its transcript (`~/.claude/projects/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/64288e7d-44dc-46e9-9576-a31a32c1991a.jsonl`).
+The section after this one ("Earlier restart section") is last night's; its "Who you talk to" and the numbered
+sections further down still hold for procedures (worker redeploy, Play build, benches). The old chat's full notes:
+memory file `in-flight-2026-11-15-night-app-chat.md` (block "STATE AT COMPACTION" and after).
+
+### The rules that bit (the rest is in AGENTS.md and the memory index)
+- Never run the LLM parser. Never production (no `CONFIRM_PROD`; production deploys are the owner's).
+- Original handoff rule, the owner's words: "Nothing merges into redesign/stream-sections without the Android benches
+  and a message to the main chat; never production; never run the parser."
+- Shell: prefix with `rtk`; `/usr/bin/git`, `/usr/bin/grep` for raw output; `graphify query` before reading source.
+  Kill only your own PIDs. Heavy jobs (emulator, Gradle, `pnpm check`, the pipeline tier) through `scripts/heavy.sh`;
+  lane 2 is yours (`HEAVY_LOCK=$HOME/.claude/heavy-job-2.lock`), lanes 1 and 3 are the main chat's. A background
+  shell for a long job carries no `timeout`.
+- Commits: only your own paths (`git commit -- <paths>`); `node app/tools/check-tickets.mjs >/dev/null` first (it
+  reads commit subjects too; a branch cut before a ticket existed must merge the shared head first). Never stash or
+  reset in the main checkout. Never `--no-fast-fail` / `--no-ci-check`.
+- Subagents: always pass a model, Opus or Sonnet. Owner 2026-11-16: "make sure you limit fable use on aubagents for
+  now", then "only use when really needed". A fork runs on Fable, so it counts.
+- Read `date` before writing any time. Owner answers go into the ticket, `OWNER-TODO.md` and the To-Do page row the
+  same turn. He wants questions and pictures IN CHAT, in batches (dialog), with the picture in the same turn
+  (SendUserFile); he cannot open repo paths.
+- Your ticket numbers: T769 is free, then T820 onward (the main chat uses T799 to T806 and on).
+
+### The owner's go for the held merges (2026-11-16 10:29, dialog in the main chat): "Yes, one at a time (Recommended)"
+Each merge gets "its own checks and a message to you first". Order: (1) feed server T757 + T758: LANDED 10:42
+(44b9c25bf, both CIs green). (2) iPhone fixes `ios/integration` + T751: LANDED 11:21 (fced59823, app CI green on
+461c9532c). (3) T756 + T760 stuck download: READY EXCEPT ONE BENCH, see below. (4) T746 loading screen, T738 bar,
+crash-send, perf/t741. (5) T732 backup. (6) T759 banner + stripe. (7) T739 push, last, and with NO Android / Firebase
+path (owner 12:08: "we dont want this right now").
+How one merge runs (agreed with the main chat): a worktree on branch `merge/<name>` from the shared head; the checks
+there (`pnpm check` and the six benches through heavy lane 2; the pipeline tier when Python changed); a message to the
+owner in chat; a message to the main chat "ready to land"; wait for its "clear"; `git merge --ff-only` in the shared
+checkout; you push (`git push origin redesign/stream-sections`) while it holds its commits; watch both CIs
+(`scripts/ci_status.py`, `gh run watch <id> --exit-status`; a newer push cancels an app run in progress, so the newer
+head's run is the verdict); report to both. Never land while its release or a Play build runs; it tells you BEFORE a
+release.
+
+### Ready on branches, NOT merged (heads at 13:04; shared head a8caa4c4b + the main chat's local commits)
+Old scratchpad (worktrees still there unless the temp folder was cleared; the branches are in the repo either way):
+`S=/private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/29ad1860-f20e-4d2e-b208-b0decb7150f9/scratchpad`
+1. **`merge/t756-t760` (merge 3), worktree `S/t760-merge-wt`.** `pnpm check` passed; five of six benches passed;
+   `bg-install` failed 6 of 6 ONLY at "app closed mid-download: notification" and "tap the notification": on today's
+   fast line the downloads finish 35 to 60 s after they start, so nothing is left to tap. The reopen step passes and
+   no bytes are thrown away, so the app side is proven; the bench was the fault. Emulator speed shaping
+   (`adb emu network speed`) does not reach its Wi-Fi, so my commit 848920c8e did nothing. A Sonnet lane reworked the
+   bench: a74ea4aa0 "bg-install follows the system downloader, closes early and taps by position". ITS RESULT IS IN
+   THE BLOCK "BENCH FIX RESULT" BELOW (written last). Done = three fully passing `bg-install` sessions, then: message
+   to the owner, "ready to land" to the main chat, land, push, CI. T756 and T760 tickets get the results.
+2. **`merge/t797-powered-boats` @ 7c077fdef, worktree `S/t797-merge-wt`** (T797 item 1 on top of merge 3; lands right
+   after it). `pnpm check` passed. Benches: four pass; `bg-install` as above; `crash-bed` failed two steps on "Maestro
+   Android driver did not start up in time" (the tool). Owed: merge the fixed `merge/t756-t760` in, then `crash-bed`
+   and `bg-install` again on the same APK (tag `t797`, `--allow-stale "bench files only"`). Ticket T797, last section.
+3. **`merge/t757-deploy-refusal` @ 829c6bbdc, worktree `S/deploy-merge-wt`** (T757 item 7: the worker-deploy gate
+   `pipeline/deliver/release/pieces_gate.py` let no first production deploy through; now a worker that already serves
+   pieces passes without the live release being read; 30 gate tests). The main chat agreed to the rule and said: run
+   the full pipeline tier, then ask to land. THE TIER HAD NOT RUN when this was written (it sat queued on lane 2
+   behind the bench sessions and dies with the old chat). Run it again:
+   `cd S/deploy-merge-wt && HEAVY_LOCK=$HOME/.claude/heavy-job-2.lock <main>/scripts/heavy.sh deploy-tier 30 -- bash -c "cd S/deploy-merge-wt && .venv/bin/python -m pytest -q -p no:cacheprovider -m 'not slow and not needs_bundle and not needs_atlas and not needs_reach_run and not needs_tiles and not needs_source and not needs_cache' --deselect pipeline/tests/test_stepcache.py; .venv/bin/python -m pipeline.tools.emit --check; .venv/bin/python -m pipeline.tools.mini_release --check"`
+   (`test_stepcache.py` fails 10 tests in ANY worktree under the temp folder and passes in the main checkout: the main
+   chat's T799; run that file on its own and say so). Re-merge on the head first. No benches needed (no app file).
+4. **`app-fix/small-looks-1116` @ cec527747, worktree `S/small-looks-wt`** = the "small fixes" merge: T731 (the map's
+   bottom bar keeps its height), T730 (Back from a picked place closes search), T728 (Conditions card opens on Flow),
+   all three by a Sonnet lane with tests that failed first, and T800 (weekday wording of a weekend-only closure:
+   fix + live-release test, ticket T800). The shared head is merged in. Owed: `pnpm check`, six benches, an emulator
+   look at T731's bar, then the merge steps. The owner answered "we should fix anything that doesnt seem desirable"
+   for these small behaviours (12:08), so no further question, only the message before the merge.
+5. **`app/t759-stripe` @ 75c966f66, worktree `S/t759-wt`** (merge 6's app half; the feed half is `feeds/t759-issues`
+   @ 8bd68cce2). Owner picks today: legend word "Check rule"; stripe "Make it wider". Built: one width 0.6 of the
+   line for both layers, ink dashes [3,5] over a casing of [5,3] (two dashed layers of different widths drift out of
+   phase in MapLibre, so one width). The before / after picture went to him at 12:27; HE HAS NOT ANSWERED whether it
+   is strong enough now (To-Do row `t759-stripe-final`). Then: an emulator look, then merge 6.
+6. **`app/t735-dark-look-c` @ dfa9047d3, worktree `S/t735-wt`** (T735: the owner picked look C). Built by a Sonnet
+   lane at 13:00, NOT read by me. Owed: read the diff, pictures to the owner in chat, emulator look in dark, merge
+   with benches. Ticket T735, last section.
+7. Held for merges 4, 5, 7 (older lanes, each needs re-merge on head + checks + benches): `ios/t746-apply-splash`
+   9fc72384c, `ios/t738-bar` 0be685b0c, `ios/crash-send` 2daa9175d, `perf/t741` a02e09fb5; T732 = `t732-proof`
+   56b6ea539 (NOT `android/t732-backup`, which is behind); `ios/t739-push` ca91889bb; `app/t757-min-feed-shape`
+   fa0c7a1c5 (the app's minimum feed shape; I did not look at how far it is). STAGING'S FEEDS WORKER still runs
+   from `ios/staging-worker` @ 173867c4c (the shared worker + push + the crash limit; it is NOT contained in the
+   shared branch): redeploy from it after every staging release until the push merge lands, and merge the shared
+   head into it first when worker files changed there.
+
+### Waiting on the owner (all on the To-Do page https://claude.ai/artifact/Lh2ougAwfxx1wNmCV18m8f, collection `todo`)
+- The wider-stripe picture (row `t759-stripe-final`): strong enough?
+- Backup photo copies (row `t732-backup-words-confirm`, picture sent 12:59): B JPEG 70 (0.25 MB), C JPEG 60
+  (0.18 MB) or D WebP 75 (0.08 MB) at 1280 px. Recommended D if a restore on the emulator shows WebP, else C. The
+  line for `OWNER-TODO.md` was NOT written by me (the main chat had that file open with edits): add it.
+- His own: the phone walk of build 33 (row `t749-r8-phone-walk`); iPhone build 36 + push test; the production
+  feed-server deploy (row `t758-prod-feeds-worker`; the commands are in `OWNER-TODO.md`, "THE BRANCH IS READY").
+
+### Waiting on the main chat: T796 (a stretch the book closes still shows an open salmon card)
+Agreed split: A5 = it adds a release-side STATIC closed location at the head of a book-closed stretch's salmon
+chains; you make core `composeFeedPayload` keep a static location under a live feed, plus the card's words and
+before / after examples for the owner (Q29, his words: "yes we want to do this but can you bring the example changes
+to me so i can see why it happened etc? but yes we want it to do this"). A6 = its `typed.py` + deliver + vectors
+first, then your worker TS typing twin, then core closes the whole page (trout too) from the feed (Q30: "Closes the
+whole page (Recommended)"). Owner 12:53, typed in the main chat: "also we need to make sure the salmon closed
+because the river is clsoed in synopsis appllies to the map too. so the colors show it as well." So your half passes
+only when the Salmon view's line colour, the year bars and the alerts read closed on such a stretch, offline AND
+under a live feed, with a map picture before and after for the three examples. Do not start before its note with
+the marker's name and shape arrives.
+
+### Not started (yours), roughly in order
+- T732: after his pick, copies at 1280 px with the chosen format on `t732-proof`; restore check on the emulator.
+- T723: lift the spot's Save row above the keyboard (iOS). Pre-build check reads the committed proposals list
+  (T791; owner: "Read the committed list (Recommended)"; tell the main chat what changes in fast-fail / build-apk).
+- T686 option (a), "(a) Three lossless changes (Recommended)": an Opus lane; tell the main chat BEFORE touching an
+  emitter; full tier + `mini_release --check`.
+- T802: looks for marking classified waters on the map / card (owner's idea today), pictures to him in chat.
+- T765, T766, T767, the rest of T768, T751's 31 sibling default waits; the About page's "not affiliated" sentence;
+  the next app version with its "What's new" lines (stuck download, powered boats); Play Data safety: location set
+  to precise (owner: "Change Play to precise (Recommended)"): `handoff/PLAN/play/data-safety.md` and the Play Console
+  form (the form is the owner's hand); I did not check which of the two is already done.
+
+### Commands you will need
+- Six benches (R8), from a worktree W with `M=<main checkout>`:
+  `export HEAVY_LOCK=$HOME/.claude/heavy-job-2.lock CANIFISHTHIS_R8=1 TESTBED_APK_TAG=<tag> MLN_LOCAL_MAVEN=$M/cache/maplibre/fslean-m2; $M/scripts/heavy.sh <label> 30 -- bash -c "cd $W && bash app/tools/testbed/session.sh --build --crash-stub --max-min 80 -- node app/tools/testbed/run.mjs --no-r2 install crash-bed bg-install regs-open tap-stalls memory > <log> 2>&1"`
+  (drop `--build` and add `--allow-stale "<reason>"` to reuse the APK when only bench files changed). A worktree needs
+  `pnpm install` in `app/` and a `.venv` symlink to the main checkout's for the worker and pipeline tests.
+- Live-release app tests in a worktree: `RELEASE_DIR=$M/data/release/$(cat $M/data/release/LATEST) pnpm exec vitest run <file>`
+  (without it they are skipped, by name). Live staging release: r-46e4355a7277. Staging answers 429 when runs are
+  less than about 60 s apart.
+- App tests fill `$TMPDIR` over time (T764 fixed most): if the disk fills, look there first.
+
+### BENCH FIX RESULT (merge 3's `bg-install`; state at 13:04, the lane's last session was still running)
+Sessions on the reworked bench (logs `S/m3b-bg1.log` to `m3b-bg3.log` = before a74ea4aa0, `S/m3c-bg1.log` = with it):
+with a74ea4aa0 the steps "Wi-Fi back: the download starts by itself" and "app CLOSED mid-download: the system
+download goes on, in the notification bar" now PASS (the app is closed at 45 of 479 MB, the shade shows "2 files
+downloading"). The NEXT step still FAILS: "a tap on the download notification opens the app: a tap on the notification
+did not bring the app to the front in 10 s (its process is not running)". MY READING OF THAT RUN'S SCREENSHOTS
+(`S/t760-merge-wt/app/tools/testbed/out/runs/2026-11-16T19-58-54/`, 004 and 005): at the "closed" step the shade
+shows the system downloader's row "2 files downloading"; one minute-tick later, at the tap step, that row is GONE and
+the shade is still open. The log agrees: app killed 12:01:49 (emulator clock), the last two downloads finished
+12:01:54 and 12:01:56. So the tap came after the row had vanished: still the bench's race (479 MB arrive in about
+30 s on this line), NOT evidence of an app fault. What would settle it: a tap within a second or two of the kill, or
+a really slower line (emulator speed shaping does not reach its Wi-Fi; a rate-limited local proxy in front of
+staging's files, or a bigger test file, would). Last night's six R8 benches passed this step on a slower line (T749
+ticket, last section).
+THE LANE'S FINAL REPORT (13:05): the fix is NOT yet working; ONE session ran with it (`m3c-bg1`), the three passing
+sessions are all still owed. What a74ea4aa0 changed (bench files only, static checks pass): `scenarios/bg-install.mjs`
+drops the `d.link('hsdpa')` slowdown; "Wi-Fi back" returns at the first DownloadManager "Starting" log line newer
+than the step's start, or the app's byte line; the close step waits 0.7 s (was 2 s) each side of the kill; the tap
+step reads the notification's bounds from one uiautomator dump and taps with `input tap` (no Maestro), knows the
+"N files downloading" group, and says "BENCH RACE, not the app" when every system download had already finished when
+it started; `lib/device.mjs` gained `screenNodes()`, `tapAt()`, `deviceStamp()`; new `lib/ui-nodes.mjs` + its test.
+Its own next idea: wait for the BIG files' "Starting" line before closing (or tap sooner), since the close-to-tap
+window is about 5 s. Not yet read: `app-log-bg-install.txt` and `T298-4-notification.png` of that run.
+One more session (M = main checkout, W = `S/t760-merge-wt`; the APK tag is `m3`):
+`cd $W && export HEAVY_LOCK=$HOME/.claude/heavy-job-2.lock CANIFISHTHIS_R8=1 TESTBED_APK_TAG=m3 MLN_LOCAL_MAVEN=$M/cache/maplibre/fslean-m2 && $M/scripts/heavy.sh m3c-bg2 30 -- bash -c "cd $W && bash app/tools/testbed/session.sh --crash-stub --max-min 40 --allow-stale 'bench files only changed since the APK was built' -- node app/tools/testbed/run.mjs --no-r2 bg-install > $S/m3c-bg2.log 2>&1"`
+
+THE DEPLOY-GATE PIPELINE TIER (item 3 above) RAN 13:04 to 13:09, after item 3 was written: 6498 passed, 1 FAILED,
+`emit --check` rc 0, `mini_release --check` rc 0 (log `S/deploy-merge-pytest.log`); the step-cache file on its own:
+10 failed, 10 passed (the known T799 set under a temp folder). The one failure was real and the branch's own:
+`test_test_anchors.py::test_the_live_tree_has_no_offender` refused `test_worker_deploy_pieces_gate.py:155`, a repo
+path `data/release/r-x/manifest.json` in a test (never read: the reader is patched). Fixed at 13:10 as d6304d1ed
+(the test uses `tmp_path`); the gate file and the anchor guard then pass together (42 tests). So the branch head is
+now `merge/t757-deploy-refusal` @ d6304d1ed, NOT 829c6bbdc. The full tier was NOT run again after that one-line test
+change: run it once more after the re-merge onto the head (item 3's command), then ask the main chat to land.
+
+## Earlier restart section (written 2026-11-15 20:47, the night of 11-15 to 11-16; history, but its "Who you talk to" and the procedures below it still hold)
 
 **This chat is THE APP CHAT (owner 2026-11-15 about 21:55, relayed word for word by the main chat: "it is the andorid
 and ios chat now not just ios. it is just the app chat."):** the Android and iOS app, the feeds worker, the app-side

@@ -73,13 +73,96 @@ drops a wild or hatchery condition). The owner's list now has 38 questions: 37 =
 Nothing is running. On his go for 37: cherry-pick f672f4444, `mini_release --check`, the changed tests, push, CI
 green, `pipeline build --hold-latest`, the rehearsal, BEFORE to the app chat, the release, the site, AFTER.
 
-## Next, in order
-1. With the owner: the morning list (re-ticks, questions).
-2. On his go: T793 first (wild-trout limits missing from the keep card: the app allows what the book forbids), then
-   T794 (Peace below Bennett Dam; Williston), T795 (the four lakes a reserve barely touches), T797 (powered boats),
-   and the small code fixes T783, T784, T785, T792 A. Each needs a deliver run and a staging release: rehearse first
-   (`python -m pipeline release --staging --dry-run --rehearse-follows`).
-3. The merge question (19), then the production order (the feeds worker before the data), then closed testing.
+## State at 12:14 on Nov 16: the owner answered EVERY question (13 dialog batches, 10:27 to 12:09)
+His answers, verbatim: `OWNER-TODO.md`, "Answers by batch" (end of the file). He wants questions asked IN CHAT, in
+multiple-choice batches ("i want questions in batches from you directly instead"); the page
+https://claude.ai/artifact/H8gtvpptCZLGLaPGCyNfaJ is only a reference now. Tickets T799 to T806 hold the new work; ten
+older tickets carry his answer in a section "Owner, 2026-11-16".
+
+### State at 13:31 (read this first after a compact)
+- **Pushed:** T793 (wild-trout card sentences) is on the shared branch, CI should be green. Head is on origin.
+- **Two fix lanes are DONE in worktrees, NOT merged** (cherry-pick each commit into the main checkout, then the full
+  pipeline tier, `mini_release --check`, `dfo_vectors --check`):
+  - `lane/salmon-rules-1116` in `.claude/worktrees/agent-a2becf9b4bea93daf`: T783 3f90138cf, T770 4e0feaca9 (gear
+    lines stack; eulachon never displaced; 13 chains gain a line), T787 178d52320 (hidden rows kept, marked, ignored;
+    `typed.FORMAT` 4: BEFORE the next build run `python -m pipeline.regs.dfo_salmon.locations && python -m
+    pipeline.regs.dfo_salmon.feed` in the main checkout, cached pages only), T796 A6 25f11159e (verdict field `f: 1`),
+    T796 A5 a4a8cc070 + cae652cba (book place `book:<entry>::<rule>`, payload `static`, 70 stretches change; the
+    full list is `<scratch>/t796-a5-changes.txt`; size gate `BOOK_ONLY_WHERE_DFO_LETS_FISH` keeps the salmon head
+    at 50 kB instead of 92 kB: my call or the app chat's, with an errs-open edge under a live feed). The notes for
+    the app chat (worker twins for T787, A6, T770; core for A5 static places and A6 page closing) are in each
+    ticket's "Lane result" section on that branch. The owner said GO on A5 and wants the full list of the 70 with a
+    map picture before and after, BEFORE it ships.
+  - `lane/book-rule-fixes-1116` in `.claude/worktrees/agent-aaab7188849edc942`: T795 07db8a6a8 (six lakes open with
+    the note), T794 56f4e4e91 (Williston) + 16f92dfcc (Peace part 9 closed, no new cut) + eae8241a3 (Bella Coola side
+    channels), T798 20b902f56 (Coal Creek; reach POLICY_VERSION 45) + b79a4513d (Puntledge: owner said "Yes, as
+    printed"), T801.1 186388445, rulings 865cbac37, ticket notes 8b2d83c17. After merging: a reach-only rerun, then
+    deliver, then the release.
+- **The app chat changed**: the new one is session `bc-freshwater-fishing-regulations-9c` (took over 13:09; lane 2).
+  Same protocol: it says "ready to land", I answer "clear" / "wait"; I tell it BEFORE a release and when the T796
+  marker note is ready (send it the lane's notes).
+- **Re-check of saves with pictures (T806)**: answered so far: 1 to 27 and 30 (see OWNER-TODO "Re-check of saves").
+  STILL TO SHOW HIM: 28 Kitimat hatchery, 29 Skeena sockeye rest-of, 31 to 34 the closed areas (pictures are JPGs in
+  `<scratch>/recheck-pics/`; `captions.json` has what the drawer noticed). Then save each answer through the review
+  app with his words. Follow-ups he asked for: Lamprey Creek confluence onto the Morice main channel; Sheldens: a
+  low-confidence cut at the road crossing near the mouth, also the tidal boundary; gotchas (Kanaka, Kispiox, Shuswap
+  one km, Stamp Falls Deer Creek, Somass Collins Farm, Bulkley / Suskwa, Sheldens); Babine: confirm the 7 matching
+  circles, lake open with note, the missing five + Gullwing line as a LATER item for him; Stamp Falls cut stays.
+- **Heading audit** (`curation-review/dfo-side-streams-against-exact-headings-2026-11-16.md`): 14 places disagree
+  with his rule; they go to him as questions (not asked yet), then the "derive from the exact heading" build.
+- **Trout** (mockups only): round 8 is published; the third attack says still "not yet" (design review file, last
+  section). The designer's three round 8 questions and the attack's findings are NOT yet put to him; round 9 would
+  fix: wild char rows at Dodd / Lois, dates for zero-fish / wild changes / closures, "no limit of its own", the grey
+  L. Designer agent `a0e6f69598b62e7f2`, reviewer `ab3f19d1c5cf2f5cf` (resume by SendMessage).
+- T804 (the universal "own row" rule) and the small code lane (T784, T785, T792 A, T799, T797 items 2 to 5, T801
+  items 2 to 4) are NOT started.
+
+### Added 13:48: the owner's later answers (all in OWNER-TODO, end of file)
+- ALL 34 re-check pictures are answered. Right as drawn: 1, 3 to 21, 23 to 26, 29, 30, 32, 33 (keep 4 km), 34 (keep
+  the printed points). Changes he asked for: Stamp Falls cut STAYS (500 m below the fishway; gotcha); Lamprey Creek
+  confluence onto the Morice main channel (22); Sheldens: low-confidence cut at the road crossing near the mouth,
+  also the tidal boundary (26); Babine: confirm the 7 matching circles, lake open with note, the rest a later item
+  for him (27); Kitimat outfall strip TAKES its side streams ("Heading counts here too") (28); Deadman START: find
+  out why it is 495 m below the bridge, then show him (31). The Blanchard place is right (his "wrong" withdrawn).
+  NOT DONE YET: saving each answer through the review app with his words.
+- Heading rule: "Yes, river only for all ten" (Tatshenshini whole-river row, Kitseguecla, Sustut, Cranberry, Kiteen,
+  Meziadin, three Nanaimo places, Little Campbell, the Morice Forks); "A named creek keeps its side streams" (the
+  three creeks and the Blanchard stay as saved; an exception to write into RULINGS). Build: derive the setting from
+  the exact heading + the place's words, a saved value only as a stated exception (design note in the audit file);
+  changed answers to him before it ships. No ticket yet: file it (next free number T807).
+- Salmon head size gate: "Raise to 100 kB". The salmon lane agent (`a2becf9b4bea93daf`, resumed 13:43) is adding
+  commits on `lane/salmon-rules-1116`: carry the book place everywhere, gate 100 kB, the full list for the owner
+  (`<scratch>/t796/book-closures-list.md`), proof that the map's status data reads closed. The app chat (-9c) builds
+  its twins FROM that branch (never rebase it) and we land the vector-moving parts TOGETHER; T783 alone may land any
+  time (tell it first).
+- Trout: "up to the 5" in the grey band; Cunningham's possession line is the lake trout's only; "round 3 then attack
+  again but use opus": round 9 is running with an OPUS designer (agent `a2f408891ce214d38`); when it hands back:
+  publish the same page, then spawn an OPUS attacker (brief like the Fable one's: the review file's three sections +
+  `trout-adversarial/enum.json`, `rules.json`), report both to him. From now on trout agents are Opus.
+- The book-rule lane (`lane/book-rule-fixes-1116`) can land now: nothing in it waits on anyone (Puntledge: "Yes, as
+  printed").
+
+### The fix queue for the next staging release (all with his go; each lands with the full tier, then ONE release)
+1. T793 (landing now). Tell him with the changed-answers list that Lois and Khartoum read 2 wild + 2 wild (T805.1).
+2. Printed rules back on the page: T794 (Peace below Bennett Dam: map check, maybe a cut = next rebuild; Williston
+   all three parts; Bella Coola side channels), T795 (Fraser, Kotcho, Cold Fish lakes, 15 Mile Swamp, Westwick,
+   Priest: open with the note), T797 items 2 to 5, T798 (Coal Creek Class II above the bridge; Puntledge above Comox
+   Lake carries both), T801 (Section 4 wording).
+3. Salmon rules: T770 (show both gear lines; eulachon on every Region 6 water), T787 (hidden tables kept, marked
+   hidden, ignored: parser + the worker's twin), T796 (A5 static closed location; A6 finfish closes the page; examples
+   to him), T783.
+4. Small code: T784, T785, T792 A, T799.
+5. T804: the universal "a joining water with its own row is out" rule: the trigger sentence + the province-wide list
+   of changed answers go to HIM before it ships.
+6. T803: the label follow-ups (Cowichan mark off, Middle Shuswap, re-saves, gotchas, Mara cut name, Babine areas,
+   Gitnadoix, side channel name; Stamp Falls cut 60 m down waits for a map rebuild).
+7. T791 (fewer, later checks: yes as proposed), T790 (records), fresh production commands (T404).
+Release rule: rehearse first (`python -m pipeline release --staging --dry-run --rehearse-follows`), BEFORE to the app
+chat, release, site, AFTER.
+
+### Not asked / still his
+The 34 pictures (above); the build 33 phone walk; iPhone build 36 + push; T786 (ship DFO's words undrawn) unanswered;
+T802 (classified-water indicator) is an idea, looks first. No Firebase now ("we dont want this right now").
 
 ## Tickets filed tonight (main chat: T770 to T798; the app chat has T762-T769)
 T770 gear lines do not stack (owner's yes needed) · T771 chain size and the equal-places check · T772 lake takes its
