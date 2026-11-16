@@ -156,6 +156,8 @@ class Loc {
   limits: R[][]; // per species
   unreadable: R[];
   gear: R[];
+  /** (T770) the rows about another fish ("No fishing for eulachon"): lines of their own, read apart from the gear rows */
+  other: R[];
   checks: R[][]; // (T676) per species, the rules whose dates did not read (`check`)
   gearChecks: R[];
   memo = new Map<string, string>();
@@ -169,9 +171,10 @@ class Loc {
     }
     this.limits = SPECIES.map((sp) => rules.filter((r) => !r.within && !isGear(r) && covers(r, sp) && ("take" in r || "may_target" in r)));
     this.unreadable = rules.filter((r) => !r.within);
-    this.gear = rules.filter((r) => (isGear(r) && (!speciesOf(r).length || SPECIES.some((sp) => covers(r, sp)))) || otherFish(r));
+    this.gear = rules.filter((r) => isGear(r) && (!speciesOf(r).length || SPECIES.some((sp) => covers(r, sp))));
+    this.other = rules.filter((r) => otherFish(r) && !isGear(r));
     this.checks = SPECIES.map((sp) => rules.filter((r) => r.check && !r.within && !isGear(r) && (!speciesOf(r).length || covers(r, sp))));
-    this.gearChecks = this.gear.filter((r) => r.check);
+    this.gearChecks = [...this.gear, ...this.other].filter((r) => r.check);
   }
   text(rs: R[]): string {
     const k = rs.map((r) => this.rules.indexOf(r)).join(",");
@@ -248,18 +251,25 @@ function verdictOn(chain: Loc[], k: number, md: number): Verdict | null {
   return null;
 }
 
+/** salmon.place_gear: ONE place's gear lines on a day, in its rows' order. A row about another fish ("No fishing for
+ * eulachon") is one of its lines, read APART from the gear rows (T770: a bait row never decides whether it holds). Per
+ * kind, dated lines first, open-ended ones only where none is; a line whose dates did not read shows on every day,
+ * flagged by its text. */
+function placeGear(loc: Loc, md: number): string[] {
+  const held = new Set([...heldOn(loc.gear, md), ...heldOn(loc.other, md)]);
+  const lines = [...loc.rules.filter((r) => held.has(r)), ...loc.gearChecks];
+  if (!lines.length) return [];
+  const key = lines.map((r) => loc.rules.indexOf(r)).join(",");
+  let out = loc.gears.get(key);
+  if (!out) loc.gears.set(key, (out = [...new Set(lines.map((r) => (r.check ? `${r.check}: ` : "") + loc.text([r])))]));
+  return out;
+}
+
+/** salmon.gear_on (T770, owner 2026-11-16: "Show both"): every place's lines that hold that day, narrowest place first,
+ * the same words once (at the narrowest place) — a wider place's line is never hidden by a narrower one's. */
 function gearOn(chain: Loc[], md: number): string[] {
-  for (const loc of chain) {
-    // dated lines, else open-ended ones; a line whose dates did not read shows on every day, flagged by its text
-    const held = [...heldOn(loc.gear, md), ...loc.gearChecks];
-    if (held.length) {
-      const key = held.map((r) => loc.rules.indexOf(r)).join(",");
-      let out = loc.gears.get(key);
-      if (!out) loc.gears.set(key, (out = [...new Set(held.map((r) => (r.check ? `${r.check}: ` : "") + loc.text([r])))]));
-      return out;
-    }
-  }
-  return [];
+  if (chain.length === 1) return placeGear(chain[0]!, md);
+  return [...new Set(chain.flatMap((loc) => placeGear(loc, md)))];
 }
 
 /** (T787, salmon.in_force; owner 2026-11-16: "keep reading them for provenance but mark them hidden somehow so they are

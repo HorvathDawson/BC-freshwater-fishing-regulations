@@ -75159,6 +75159,93 @@
     }
    ]
   },
+  "eulachon beside a dated bait row (T770)": {
+   "calendar": {
+    "g": [
+     0,
+     0,
+     244,
+     1
+    ],
+    "gears": [
+     [
+      "No fishing for eulachon (from Nov 1 until further notice)"
+     ],
+     [
+      "Bait ban (Sep 1–Dec 31)",
+      "No fishing for eulachon (from Nov 1 until further notice)"
+     ]
+    ],
+    "sp": [
+     [
+      0,
+      -1
+     ],
+     [
+      0,
+      -1
+     ],
+     [
+      0,
+      -1
+     ],
+     [
+      0,
+      -1
+     ],
+     [
+      0,
+      -1
+     ]
+    ],
+    "verdicts": []
+   },
+   "rules": [
+    {
+     "gear": [
+      {
+       "ban": [
+        "any_bait"
+       ],
+       "slot": "bait"
+      }
+     ],
+     "rule_id": "rows.r0_bait",
+     "type": "bait_restriction",
+     "verbatim": "Bait ban",
+     "when": {
+      "dates": [
+       {
+        "from_day": 1,
+        "from_month": 9,
+        "to_day": 31,
+        "to_month": 12
+       }
+      ]
+     },
+     "when_targeting": [
+      "SA"
+     ]
+    },
+    {
+     "review_reason": "another fish, not salmon: eulachon",
+     "rule_id": "rows.r1",
+     "type": "advisory",
+     "verbatim": "No fishing for eulachon",
+     "when": {
+      "dates": [
+       {
+        "from_day": 1,
+        "from_month": 11,
+        "to_day": 31,
+        "to_month": 12
+       }
+      ],
+      "open_ended": true
+     }
+    }
+   ]
+  },
   "kokanee salmon": {
    "calendar": {
     "g": [
