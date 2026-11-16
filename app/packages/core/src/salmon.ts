@@ -39,6 +39,7 @@ import { kindWords, tierWords } from "./regs/tree";
 import { text, type Line } from "./regs/line";
 import type { TreeKind, TreeTier } from "./answers.generated";
 import { runNow, runSliced, YIELD_EVERY, type Steps } from "./sliced";
+import { salmonIssueBanners, type SalmonIssues, type SalmonIssueVM } from "./salmonIssues";
 
 export const SALMON_SPECIES = ["CH", "CO", "SK", "PK", "CM"] as const;
 export type SalmonSpecies = typeof SALMON_SPECIES[number];
@@ -157,6 +158,9 @@ interface Payload {
   /** (T521) the live feed's places no curated location knows (`feeds/dfo/unplaced.json`), each with the app items of
    *  the water it names: shown on that water's page, never painted. Absent in a release's own file. */
   readonly feedUnplaced?: readonly SalmonUnplacedPlace[];
+  /** (T759) the live feed's issues (`feeds/dfo/index.json` `issues`): banners on their waters' stretches, never a status.
+   *  Absent in a release's own file. */
+  readonly feedIssues?: SalmonIssues;
   /** (T668 fix 4) every place of a chain, by location id: what a row is named by. Absent before fix 4. */
   readonly p?: Readonly<Record<string, SalmonPlace>>;
   /** (T549) the curated places the release does not show, with why. Absent: none, or a release before T549. */
@@ -649,6 +653,8 @@ export interface SalmonCardVM extends SalmonBlockVM {
    *  before, or a number not read): no number is shown for them, read DFO's text; `notes` — rows whose words matter as
    *  printed ("in the aggregate", "see exception below"). Null when there are none. */
   readonly dfoWords?: SalmonWordsVM | null;
+  /** (T759) the live feed's issues on this water, one banner each quoting DFO's row; [] when none. Never a status. */
+  readonly issues: readonly SalmonIssueVM[];
 }
 /** (T321) one DFO row in DFO's words: its species and dates cells (dates "All year" when blank) and the limits cell */
 export interface SalmonWordsRowVM { readonly species: string; readonly dates: string; readonly words: string }
@@ -929,6 +935,9 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
     credit: SALMON_WORDS.credit(P.credit),
     note: SALMON_WORDS.noteTwoAuthorities,
     year: regionClosed ? { bars: [] } : salmonYear(f, chains, day),
+    // (T759) the feed's issues on this water: every stretch of it (its item), never its chains; a place its chains
+    // already list as not drawn is the in-part caveat's
+    issues: salmonIssueBanners(P, page.item, undrawnNamed),
     // one closed-all-year statement: the region's closure, or every place of the page closed every day, nothing undrawn
     closedOnly: regionClosed || (!undrawn.some((c) => speaks(f, c))
       && chains.every((c) => runsOf((i) => salmonDayStatus(f, c, i)).every((r) => r.status === "closed"))),

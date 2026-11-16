@@ -22,6 +22,7 @@ export * from "./access";
 export * from "./lakeFacts";
 export * from "./salmon";
 export * from "./salmonFeed";
+export * from "./salmonIssues";
 export * from "./runTiming";
 export * from "./inseason";
 export * from "./inseasonInbox";

@@ -18,7 +18,8 @@ import { MONTHS } from "./calendar.generated";
 import { BC_TIME_LABEL } from "./clock";
 import { bcFields } from "./day";
 import { FEED_FORMATS } from "./feedFormats.generated";
-import { reportFailure } from "./failure";
+import { reportFailure, reportOnce } from "./failure";
+import { isSalmonIssues, unknownIssueKinds, type SalmonIssues } from "./salmonIssues";
 import { dfoRow, salmonCard, type SalmonUnplacedPlace, type SalmonCardVM, type SalmonFacts, type SalmonGearInput, type SalmonMapStatus, type SalmonNote, type SalmonBucket, type SalmonHours, type SalmonShared, type SalmonSizes, type SalmonWords } from "./salmon";
 
 type Payload = SalmonFacts["payload"];
@@ -60,6 +61,9 @@ export interface SalmonFeed {
   readonly format: typeof SALMON_FEED_FORMAT;
   /** (T757) the feed's shape; absent: an older feed, which states nothing */
   readonly dfo?: SalmonFeedShape;
+  /** (T759) the rows DFO prints that the app has not placed or confirmed, by water (`salmonIssues.ts`); absent: an older
+   *  feed, no issues */
+  readonly issues?: SalmonIssues;
   /** when the feed was published (UTC ISO) — the capture's as-of */
   readonly at: string;
   readonly regions: Readonly<Record<string, SalmonFeedRegion>>;
@@ -105,6 +109,8 @@ export function parseSalmonFeed(x: unknown): SalmonFeed | null {
   // (T757) the shape, when it carries one, is whole: an object of numbers
   if (f.dfo !== undefined && (!f.dfo || typeof f.dfo !== "object" || Array.isArray(f.dfo)
       || Object.values(f.dfo).some((v) => typeof v !== "number" || !Number.isFinite(v)))) return null;
+  // (T759) the issues, when it carries them, are whole
+  if (f.issues !== undefined && !isSalmonIssues(f.issues)) return null;
   // (T356) a region's notes come with what they resolve to: never notes without their sizes and shared limits
   for (const r of Object.values(f.regions)) if (r.notes && (!Array.isArray(r.shared) || !Array.isArray(r.sizes))) return null;
   // (T549 item 5) a region's holds, when it carries them, are whole: every one a place id and how it was kept
@@ -434,7 +440,12 @@ function composeFeedPayload(P: Payload, feed: SalmonFeed): { payload: Payload; s
       .map(({ d: _d, ...u }) => u),
     // (T521) the feed's places no curated location knows, shown on their water's page
     ...(feed.unplacedRows?.length ? { feedUnplaced: feed.unplacedRows } : {}),
+    // (T759) the feed's issues, shown as banners on their waters' stretches (`salmonIssueBanners`)
+    ...(feed.issues ? { feedIssues: feed.issues } : {}),
   };
+  // (T759, W46) a kind this app has no words for is shown with the generic words, and reported (once a run, per kind)
+  for (const k of feed.issues ? unknownIssueKinds(feed.issues) : [])
+    reportOnce(`salmon-issue-kind:${k}`, new Error(`salmon feed: issue kind "${k}" has no words in this app; shown with the generic words`));
   const stale = Object.entries(feed.regions).filter(([, r]) => r.stale || r.held).map(([s]) => s).sort();
   // (T521) the index counts places its unplaced.json was not read for: said on the card's feed line, never hidden
   const unread = feed.unplacedRows ? 0 : feed.unplaced ?? 0;
