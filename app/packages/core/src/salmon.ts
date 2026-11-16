@@ -112,7 +112,12 @@ interface Chain {
 /** (T668 fix 4, owner 2026-11-11) a DFO place a row can come from, as the scrape holds it: its region slug, its water's
  *  name (absent on a region / section / area default) and its DFO section as the page prints it ("B(ii)"; absent where
  *  the page has no lettered sections) */
-export interface SalmonPlace { readonly r: string; readonly water?: string; readonly sec?: string }
+export interface SalmonPlace {
+  readonly r: string; readonly water?: string; readonly sec?: string;
+  /** (T573/T757) a closed area inside a DFO place, its own location (`deliver.salmon.build`); `bound`: it covers a section.
+   *  The app knows a piece by this marker only, never by its id. Absent on an ordinary place and in an older release. */
+  readonly piece?: 1; readonly bound?: 1;
+}
 /** (T549) why the release does not show a curated DFO place (`deliver.salmon.OFF_KIND`) */
 export const SALMON_OFF_KINDS = ["tidal", "unplaced", "no_section"] as const;
 export type SalmonOffKind = typeof SALMON_OFF_KINDS[number];
