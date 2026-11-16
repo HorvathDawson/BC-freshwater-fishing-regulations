@@ -1994,3 +1994,6 @@ More questions (recommended answer first):
   hatchery have the same rule: no mention at all; (2) only hatchery fish may be kept: ONE row per fish that says
   "hatchery only", and no separate wild rows under Release; (3) wild fish have a quota of their own (for example 1
   wild and 2 hatchery): only then are wild and hatchery shown apart. Round 13 (mockup) is being built on that.
+- 15:49, typed in chat (verbatim): "we will run out of credits soon... we should m,ake sure handoff is good for opusa to
+  take over at anytime." Done 15:49: section C of the handover on the state page rewritten as ONE current block
+  (what is running, what to do when each worker hands back, what is waiting to be pushed, what is his).
