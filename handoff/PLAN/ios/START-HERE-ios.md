@@ -36,7 +36,7 @@ release + site build, then the Play build 0.7.11 with R8, a Skeena review, an au
 | T757 deploy refusals | `deploy/t757-worker-shape-refusal` @ 05383894d | written; the main chat owes a review of `pieces_gate.py` |
 | T758 region-default sentences | `feeds/t758-page-defaults` @ 179c6cba5 | LIVE ON STAGING; production worker deploy is the owner's |
 | T759 app (issue banners) | `app/t759-issues` @ 1289d8c20 (stacked on fa0c7a1c5) | written, tested; line look NOT built |
-| T759 worker + T757 item 5 | `feeds/t759-issues` | LANE WAS STILL RUNNING at 20:47, no commit on origin yet: see point 4 |
+| T759 worker + T757 item 5 | `feeds/t759-issues` @ 8bd68cce2 (stacked on 179c6cba5 + the main chat's dfc95d971) | written 20:50, tested (506 worker tests, re-run by me); not deployed |
 | T759 Python (the main chat's) | `data/t759-missing-place-check` @ dfc95d971 | the rewritten ticket is on this branch |
 | iOS | `ios/integration` @ 639d54d0d, `ios/t746-apply-splash`, `ios/t738-bar`, `ios/crash-send`, `perf/t741` @ a02e09fb5, `ios/t739-push` @ ca91889bb, `ios/next` @ a2078ac33 | waiting for build 33 |
 
@@ -58,12 +58,17 @@ benches where it touches shared app code and a message to the main chat first; e
   on TestFlight build 36 and the push test.
 
 ### 4. First things to do
-1. Find the T759 worker lane's result: `git fetch origin && git log --oneline -3 origin/feeds/t759-issues`. If the
-   branch is there, read its commit message and the diff of `app/workers/feeds/src/dfo/` and
-   `test/dfo.vectors.test.ts`, run `pnpm -C app/workers/feeds test` on it, and tell the main chat (it must equal the
-   Python on every issue kind; `/status.json` gains `dfoIssues`; the worker's old "check" verdict is removed). If the
-   branch is NOT there, the lane died with the old chat: redo it from the brief in the rewritten ticket's "For the
-   worker and app" section (`git show origin/data/t759-missing-place-check:handoff/PLAN/app-integration/tickets/T759-missing-feed-place-reads-more-open.md`).
+1. (Done 20:51, kept for the record.) The T759 worker lane finished: `feeds/t759-issues` @ 8bd68cce2. The worker's
+   whole `index.json` equals the Python's on the saved pages and on 16 edited cases (every issue kind, the unread
+   kinds, `gone`, the two T758 cases); `index.json` carries `issues` and `dfo` (one constant shared with
+   `/status.json`); `/status.json` gains `dfoIssues`; the old "check" verdict for a reworded row is removed; notices
+   equal the Python's word for word except one named action line. 506 worker tests, `check:fast`, emitter `--check`,
+   48 pytest. Saved pages: 9 issues on 7 waters, all `unmatched`/`undrawn` (the main chat's live sweep: 8 on 6; the
+   extra one is Region 3's Fraser row, seeded but not drawn in the entry copies; why only it differs is not pinned
+   down). Two Python behaviours it mirrors that the ticket does not state: a confirmed or proposed variant also makes
+   its original place `gone`; a region not asked is listed `not asked` only when the last feed had it. Also: an
+   unchanged page (not re-typed by the worker) carries its issues from the last feed. NOT deployed to staging: that
+   needs the main chat's word, and it would go on top of `ios/staging-worker`.
 2. T760: find what the app waits on between `[download] mobile data: go` and the first file's first line after a
    reopen (`boot.ts`: `await queue(metered)` then `install(...)`). The bench keeps `T756-stalled-logs.txt` on a failure.
 3. The line looks and banner pictures for the owner (web build of the T759 app branch on a real river).
