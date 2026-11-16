@@ -7,8 +7,8 @@
  * verdict index (-1: the location says nothing that day) and the gear lines. A chain's year is re-composed from them
  * exactly as the pipeline composes it (`live.compose` == `deliver.salmon.chain_calendar`, pinned by
  * `salmonFeed.golden.ts`): per species and day the FIRST location of the chain with an answer, else verdict 0 (not
- * opened by DFO: closed); gear the first with any; the map status open > release > check > closed. Nothing is decided
- * here that the pipeline did not decide.
+ * opened by DFO: closed); (T770) gear every location's lines that day, narrowest first, a line once; the map status
+ * open > release > check > closed. Nothing is decided here that the pipeline did not decide.
  *
  * WHICH ONE (owner 2026-10-27): the last feed this device CAPTURED, whatever its age, with that capture's time on the
  * card — the release's own file only when no feed was ever captured, or when the release was built from pages newer
@@ -216,7 +216,8 @@ function strictestIx(ixs: readonly number[], t: SalmonFeedTables | undefined, V:
 }
 
 /** (T668) the gear lines of a two-region chain's groups that day: every region's, in region order, a line said once
- *  (`deliver.salmon.both_gear`) — DFO's words, not ranked */
+ *  (`deliver.salmon.both_gear`) — DFO's words, not ranked. (T770, owner 2026-11-16: "Show both") and the same within
+ *  a group: every place's lines, narrowest first (`deliver.salmon.gear_on`, `live.compose`) */
 function gearOf(gs: readonly number[], t: SalmonFeedTables | undefined, G: readonly (readonly string[])[]): number {
   const have = gs.filter((x) => x >= 0);
   if (have.length <= 1) return have[0] ?? -1;
@@ -290,7 +291,8 @@ function composeChainOn(daysOf: (runs: Iterable<readonly number[]>) => number[],
       sp[k]!.fill(ix, day, to);
       ss.push(V[ix]!.s);          // every feed index checked by parseSalmonFeed; a merged one is ours
     }
-    const gs = subs.map((cals) => first(cals.map((c) => at(c.g, day)), -1));
+    // (T770) every place's gear lines that day, narrowest first, a line once — then two regions' groups the same way
+    const gs = subs.map((cals) => gearOf(cals.map((c) => at(c.g, day)), tables, G));
     g.fill(gs.length === 1 ? gs[0]! : gearOf(gs, tables, G), day, to);
     m.fill(MAP_CODES.indexOf(mapStatus(ss)), day, to);
   }
