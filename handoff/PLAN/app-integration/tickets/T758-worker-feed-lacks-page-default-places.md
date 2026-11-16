@@ -1,6 +1,6 @@
 # T758 — The feeds worker's live salmon feed has no answer for the region-default places the Python feed publishes
 
-Status: IN PROGRESS (iOS chat; fixed on branch `feeds/t758-page-defaults` 179c6cba5 and LIVE ON STAGING since 2026-11-15 15:57; left: merge with the other worker branches after build 33; production's worker is the owner's deploy).
+Status: IN PROGRESS (app chat; MERGED into `redesign/stream-sections` 2026-11-16 with T757's worker half, the owner's answer to question 19; live on STAGING since 2026-11-15 15:57; left: production's worker, the owner's deploy, To-Do row `t758-prod-feeds-worker`).
 
 Source: found 2026-11-15 by the T757 worker lane when the worker's test copies of the curated DFO entries were
 refreshed; confirmed on the live staging feed the same day. The Android chat (DFO is its area) has no ticket or owner
@@ -98,3 +98,7 @@ the opportunities listed in the table below."; Region 1 "…the daily limit for 
 Row-digest notices: by the code (`rowDigest`) a region is compared only when its page's sha differs from the stored
 baseline, so the deploy itself sends none; the first time a DFO page changes, that region's default sentence will
 show as an "added" row once. Not checked on a device: the staging app reading the sentence on a card.
+
+## Merged, 2026-11-16
+On `redesign/stream-sections` with T757's worker half (one merge of `feeds/t758-page-defaults`); the checks are in the
+T757 ticket's "Merged" section. Left: the production worker deploy (owner).

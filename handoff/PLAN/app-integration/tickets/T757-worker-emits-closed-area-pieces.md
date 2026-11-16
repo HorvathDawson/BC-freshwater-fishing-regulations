@@ -1,6 +1,6 @@
 # T757 — Feeds worker and app: closed areas inside a DFO place (T573's pieces) are live locations, never read as open
 
-Status: IN PROGRESS (iOS chat; worker half live on STAGING since 2026-11-15, branch `feeds/t757-worker-pieces`, merges with the iOS merges after build 33; APP HALF HELD: the owner's T759 decision of 2026-11-15 evening (no "not known" status) contradicts it, it is reworked inside T759 once that ticket is rewritten).
+Status: IN PROGRESS (app chat; WORKER HALF MERGED into `redesign/stream-sections` 2026-11-16, see "Merged" at the end; production's worker is the owner's deploy. Still on branches, each its own merge: item 6, the app's minimum feed shape (`app/t757-min-feed-shape`); item 7, the deploy refusals (`deploy/t757-worker-shape-refusal`); item 5, the shape in `index.json`, with T759's feed half).
 
 Source: Android chat 2026-11-15 (its pipeline lane's T573 build step), agreed between the two chats the same day.
 
@@ -130,3 +130,13 @@ Branch `feeds/t757-worker-pieces` (not merged). Work items 1 and 2 done; item 3 
   `redesign/stream-sections` (they were T225 copies). The vectors carry `live`: every location id the Python's `live.run`
   publishes over the saved pages (274), and the worker's run must equal it except ONE NAMED GAP: the worker types no
   page-default sentence (T349 `cascade.statement_locators`), so the 7 `page_default` places are in the Python's feed only.
+
+## Merged, 2026-11-16 (app chat; owner's answer to question 19, 10:29: "Yes, one at a time (Recommended)")
+The worker half (items 1 and 2) is on `redesign/stream-sections`, merged from `feeds/t758-page-defaults` (which holds
+this branch and T758's). Checked on the merged head before landing: worker suite 31 files / 487 tests; `python -m
+pipeline.tools.emit.dfo_vectors --check` and `pipeline.tools.emit --check` current (the saved-page vectors did not
+move under the 181 commits the branch was behind); `pnpm run check:fast` rc 0; the mini release check; the pipeline CI tier 6,479
+passed, 10 failed, all ten in `test_stepcache.py` and not from this merge: the same ten fail in an untouched worktree
+under the system temp folder and all 20 pass in the main checkout (the recorder sees no reads there). No file the app bundles changed (the worker is outside the app's workspace), so the Android benches of
+build 33 stand. Staging keeps running `ios/staging-worker` (this + push + the crash limit) until push merges.
+Production: the owner's `deploy/prod/feeds.sh`, BEFORE or WITH the first release that binds a closed area.
