@@ -153,5 +153,12 @@ from __future__ import annotations
 #:     lake's second outlet that ends, a closed loop, an unconnected piece) whose watershed code a walk otherwise
 #:     collected wholly goes with that water, with what feeds it (`tributaries.A_DEAD_END_GOES_WITH_ITS_WATER`).
 #:     Buckley, Iskut, Chukachida, Mess (Stikine) and Horsefeed, Sutlahine (Taku) take their place's salmon whole.
-POLICY_VERSION = "42"
+#: 43: (T761, owner 2026-11-15) A DFO "REST OF" HAS ITS OWN BOUNDS AND ITS OWN LIST: a DFO place's rest is the rest of
+#:     its `bounds` (`Extent.bounds`; `build.DFO_REST_HAS_ITS_OWN_BOUNDS`) less its LIVE, drawn listed places (its own
+#:     `siblings`, else every other live place of the water: `entries.rest_listing`); a dormant listed place takes
+#:     nothing (Nanaimo, Somass, Stamp), one that does not bind is skipped and named, never the whole rest
+#:     `complement_unknown` (`build.DFO_REST_SKIPS_A_LISTED_PLACE_THAT_DOES_NOT_BIND`). A rule-book rest is unchanged.
+#:     The listed places' sections inside the bounds ride the reach row (`behind`): the salmon chain answers them
+#:     after the listed places ("areas and times", `deliver.salmon.rest_after`).
+POLICY_VERSION = "43"
 

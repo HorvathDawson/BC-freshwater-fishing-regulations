@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { api } from "../api";
 import type {
-  AreaHit, ExtentFix, ExtentOp, ExtentOpInfo, ExtentPreview, FixPoint, FixPointKind, ItemHit, NamedRef, SplitHit,
+  AreaHit, ExtentFix, ExtentOp, ExtentOpInfo, ExtentPreview, FixPoint, FixPointKind, ItemHit, NamedRef, RestBounds,
+  RestOf, SplitHit,
 } from "../types";
 import { failed } from "../failures";
 import { cutNamer, otherWaters, pointWords } from "../extentWords";
@@ -65,7 +66,15 @@ interface Props {
   /** (owner 2026-11-15) a DFO place: the tributary call in full — the water and its tributaries / tributaries only /
    *  the water only — and the tributaries it does not take */
   dfo?: boolean;
+  /** T761: the place's "rest of" as it is now (`extent_now.rest_of`): what answers first, the water's places */
+  restOf?: RestOf | null;
 }
+
+/** T761: the stretch a DFO "rest of" may be the rest of (`marks.REST_BOUNDS`), in the owner's words */
+const REST_BOUNDS: { v: RestBounds; words: string }[] = [
+  { v: "whole", words: "the whole water" }, { v: "upstream_of", words: "upstream of a point" },
+  { v: "downstream_of", words: "downstream of a point" }, { v: "between", words: "between two points" },
+];
 
 /* THE EXTENT-FIX EDITOR (T191). The reviewer proposes the extent — op, 1 or 2 split points, the
    items it holds on, tributaries — and it is recorded IN THE MARK (`Mark.extent_fix`); saving the mark
@@ -74,7 +83,7 @@ interface Props {
 export function ExtentFixEditor({ scope, entryId, currentOp, mapSplits, waters, value, onChange,
                                   onPreview, onPick, splitAt, newSplits = [], sources,
                                   previewFn, defaultOpen = false, piece, tributariesNow = "", cutLabels, itemNames,
-                                  tributariesDrawn = true, dfo = false }: Props) {
+                                  tributariesDrawn = true, dfo = false, restOf = null }: Props) {
   const tid = piece ? `${scope}-p${piece + 1}` : scope;
   const offered = SOURCES.filter((x) => (sources ? sources.includes(x.v) : x.v !== "new"));
   const [open, setOpen] = useState(!!value || defaultOpen);
@@ -92,7 +101,10 @@ export function ExtentFixEditor({ scope, entryId, currentOp, mapSplits, waters, 
     scope, op: (ops.some((o) => o.op === currentOp) ? currentOp : "whole") as ExtentOp,
     points: [], items: [], tributaries: null,
   };
-  const want = ops.find((o) => o.op === fix.op)?.points ?? 0;
+  // T761: a DFO "rest of" takes the points of its bounds' op
+  const rest = dfo && fix.op === "rest";
+  const want = ops.find((o) => o.op === (rest && fix.bounds ? fix.bounds : fix.op))?.points ?? 0;
+  const restNow = preview?.rest_of ?? restOf;
   const set = (patch: Partial<ExtentFix>) => { setPreview(null); onPreview(null); onChange({ ...fix, ...patch }); };
   const setPoint = (i: number, p: FixPoint) => {
     const pts = [...fix.points];
@@ -163,6 +175,44 @@ export function ExtentFixEditor({ scope, entryId, currentOp, mapSplits, waters, 
           <AreaSearch value={fix.area ?? null} onPick={(a) => set({ area: a })} scope={scope} />
         )}
       </div>
+      {rest && (
+        <div className="fix-row" data-testid={`fix-rest-bounds-${tid}`}>
+          <span className="k">of</span>
+          <select aria-label={`rest bounds ${scope}`} value={fix.bounds ?? "whole"}
+            onChange={(e) => set({ bounds: e.target.value === "whole" ? null : e.target.value as RestBounds, points: [] })}>
+            {REST_BOUNDS.map((b) => <option key={b.v} value={b.v}>{b.words}</option>)}
+          </select>
+          <span className="dim">the stretch this place is the rest of (its points below)</span>
+        </div>
+      )}
+      {rest && (
+        <div className="fix-row" data-testid={`fix-rest-leaves-${tid}`}>
+          <span className="k">leaves out</span>
+          <label className="fix-check">
+            <input type="checkbox" checked={fix.siblings == null}
+              onChange={(e) => set({ siblings: e.target.checked ? null
+                : (restNow?.places ?? []).filter((p) => p.listed).map((p) => p.id) })} />
+            every other live place of this water
+          </label>
+          {fix.siblings != null && (restNow?.places ?? []).map((p) => (
+            <label key={p.id} className="fix-check" title={p.id}>
+              <input type="checkbox" checked={fix.siblings!.includes(p.id)}
+                onChange={(e) => set({ siblings: e.target.checked ? [...fix.siblings!, p.id]
+                                                                   : fix.siblings!.filter((x) => x !== p.id) })} />
+              “{p.text.slice(0, 70)}” <span className="dim">({p.extent}{p.status !== "active" ? `, ${p.status}` : ""})</span>
+            </label>
+          ))}
+          {fix.siblings != null && !(restNow?.places ?? []).length &&
+            <span className="dim">preview on map to list this water's places</span>}
+        </div>
+      )}
+      {rest && (restNow?.answers_first.length ?? 0) > 0 && (
+        <div className="fix-row" data-testid={`fix-rest-first-${tid}`}>
+          <span className="k">answers first</span>
+          <span>{restNow!.answers_first.map((a) => <span key={a.id} style={{ display: "block" }}
+            className={a.state === "answers_first" ? "" : "dim"}>{a.words}</span>)}</span>
+        </div>
+      )}
       {Array.from({ length: want }, (_, i) => (
         <PointPicker key={`${fix.op}-${i}`} n={i + 1} of={want} point={fix.points[i]} mapSplits={mapSplits}
           onPoint={(p) => setPoint(i, p)} picking={pickAt === i} onPickMap={() => pick(i)}
@@ -263,7 +313,11 @@ export function ExtentFixEditor({ scope, entryId, currentOp, mapSplits, waters, 
                 {preview.others_unplaced?.length ? ` Not included until placed: ${preview.others_unplaced.map((o) => `“${o.text.slice(0, 60)}”`).join("; ")}.` : ""}
                 {" "}A place placed later joins by itself; it is never taken out of “the rest of the water”.
                 {preview.one_sibling && <span className="warn-text" style={{ display: "block" }} data-testid="fix-one-sibling">{preview.one_sibling}</span>}</span>}
-              {preview.dead_pieces?.length ? <span className="warn-text" data-testid={`fix-dead-pieces-${tid}`}>
+              {preview.rest_skipped && <span className="warn-text" style={{ display: "block" }} data-testid="fix-rest-skipped">
+                Left out of the subtraction (this place covers their water until they bind): {Object.entries(preview.rest_skipped).map(([k, v]) => `${k} — ${v}`).join("; ")}.</span>}
+              {preview.rest_dormant?.length ? <span className="dim" style={{ display: "block" }} data-testid="fix-rest-dormant">
+                Dormant, take nothing: {preview.rest_dormant.join(", ")}.</span> : null}
+              {preview.dead_pieces?.length ?<span className="warn-text" data-testid={`fix-dead-pieces-${tid}`}>
                 {" "}· piece {preview.dead_pieces.join(", ")} binds NOTHING alone — the build refuses it.
                 {(preview.dead_why ?? []).map((w, i) => <span key={i} style={{ display: "block" }} data-testid="fix-dead-why">{w}</span>)}</span> : null}
             </span>

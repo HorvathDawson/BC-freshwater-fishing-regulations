@@ -186,6 +186,8 @@ OP_WORDS: dict[str, str] = {"whole": "whole", "upstream_of": "upstream",
                             "steelhead_waters": "steelhead waters",
                             # T607: a wording with no stretch of its own ("all open portions of the river")
                             "other_places": "all the other placed places on this water (no stretch of its own)"}
+#: T761: the stretch a DFO "rest of" may be the rest of (`Extent.bounds`), by the ops' own names
+REST_BOUNDS: tuple[str, ...] = ("whole", "upstream_of", "downstream_of", "between")
 #: T191: what a proposed split point is anchored to. `split`: a curated split (splits.json id);
 #: the others are a NEW point, by the anchor types the atlas resolves (`AnchorType`, T164):
 #: `confluence` (a named tributary's mouth), `lake_inlet` / `lake_outlet` (a lake's edge where the
@@ -270,14 +272,29 @@ class ExtentFix(BaseModel):
     #: walk does NOT take, by registry item (each is the place's `tributary_excludes` `{op: whole, item_id}`); [] = none
     #: excepted (clears them); None = no call (the file's stay)
     tributary_excludes: Optional[list[str]] = None
+    #: T761 (owner 2026-11-15) a DFO "rest of" place's OWN BOUNDS: the stretch it is the rest of, by op (`REST_BOUNDS`);
+    #: its `points` are that op's. None = the rest of the whole water (a mark saved before this field reads unchanged)
+    bounds: Optional[str] = None
+    #: T761: the places a "rest of" leaves out ("the areas below"), by location id; None = no list (every other live
+    #: place of the water)
+    siblings: Optional[list[str]] = None
 
     @model_validator(mode="after")
     def _shape(self) -> "ExtentFix":
         if self.op not in OP_POINTS:
             raise ValueError(f"an extent fix's op is one of {list(OP_POINTS)}, not {self.op!r}")
-        want = OP_POINTS[self.op]
+        if (self.bounds is not None or self.siblings is not None) and self.op != "rest":
+            raise ValueError("bounds and the listed places belong to “the rest of the water” only")
+        if self.bounds is not None and self.bounds not in REST_BOUNDS:
+            raise ValueError(f"a rest's bounds are one of {list(REST_BOUNDS)}, not {self.bounds!r}")
+        if self.siblings is not None:
+            if not self.siblings:
+                raise ValueError("a rest lists at least one place it leaves out — or no list (every other live place)")
+            if len(set(self.siblings)) != len(self.siblings):
+                raise ValueError("a rest lists each place it leaves out once")
+        want = OP_POINTS[self.bounds] if self.bounds is not None else OP_POINTS[self.op]
         if len(self.points) != want:
-            raise ValueError(f"extent op {OP_WORDS[self.op]} takes {want} split point"
+            raise ValueError(f"extent op {OP_WORDS[self.bounds or self.op]} takes {want} split point"
                              f"{'' if want == 1 else 's'}, not {len(self.points)}")
         if (self.op == "within") != bool((self.area or "").strip()):
             raise ValueError("within names its area; no other op does")
@@ -775,7 +792,7 @@ class Mark(BaseModel):
 # --------------------------------------------------------------------------------------------
 
 #: ExtentFix fields a line leaves out while unset (2026-11-15), so a mark saved before them is the same line
-EXTENT_FIX_OPTIONAL = ("tributaries_only", "tributary_excludes")
+EXTENT_FIX_OPTIONAL = ("tributaries_only", "tributary_excludes", "bounds", "siblings")
 #: fields a line leaves out while they hold their default (T189 added them): a mark without them
 #: is the same line it was before they existed
 _OMIT_DEFAULT = {"tributaries": {}, "lake_split_later": False, "extent_fix": [],

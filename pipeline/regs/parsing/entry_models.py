@@ -170,6 +170,15 @@ class Extent(BaseModel):
         "`CatalogueEntry` checks each exists and draws its place.",
     )
 
+    bounds: Optional["Extent"] = Field(
+        default=None,
+        description="op=rest on a DFO PLACE only (T761): THE STRETCH THE REST IS THE REST OF — 'upstream of CNR "
+        "bridge at Terrace to a point above the Babine, excluding the areas below' is the rest of that stretch, "
+        "not of the whole Skeena. Its own op (whole / upstream_of / downstream_of / between) and `splits` (and "
+        "`cut_pick`), on the rest's own item scope and tributary walk. Absent: the whole water. A rule-book rest "
+        "takes none (`siblings` names that rule's other rules on its water).",
+    )
+
     @property
     def scope_ids(self) -> List[str]:
         """The registry items this extent is scoped to — [] meaning "every item the entry covers"."""
@@ -255,6 +264,8 @@ class Extent(BaseModel):
                 raise ValueError("watershed is the basin of ONE river — scope it with item_id")
             if self.area_id or self.area_kind:
                 raise ValueError("watershed takes its basin from the river's code, not an area_id")
+        if self.bounds is not None and self.op != Op.REST:
+            raise ValueError(f"bounds belong to op rest, not {self.op.value}")
         if self.op == Op.REST:
             # THE COMPLEMENT OF NAMED SIBLINGS, over the rule's water (or the items it scopes).
             # Everything that would add or cut water is refused: a complement of a cut or an area
@@ -272,6 +283,22 @@ class Extent(BaseModel):
             if extra:
                 raise ValueError(f"op rest is the rest of the rule's water after its siblings — "
                                  f"it takes no {extra}")
+            if self.bounds is not None:
+                # T761: a DFO place's rest of ITS OWN STRETCH — never a rule-book rest (AGENTS 13: unchanged)
+                if not (info.context or {}).get("rest_at_build"):
+                    raise ValueError("a rest's own `bounds` belong to a DFO place (T761); a rule-book rest is the "
+                                     "rest of its rule's water")
+                b = self.bounds
+                if b.op not in (Op.WHOLE, Op.UPSTREAM_OF, Op.DOWNSTREAM_OF, Op.BETWEEN):
+                    raise ValueError(f"a rest's bounds are a stretch (whole / upstream_of / downstream_of / "
+                                     f"between), not {b.op.value}")
+                inner = [k for k in ("item_id", "item_ids", "area_id", "area_kind", "within_area", "outside_area",
+                                     "outside_areas", "outside_area_kind", "outside_items", "watershed",
+                                     "feature_types", "siblings", "bounds", "walk_past")
+                         if getattr(b, k)]
+                if inner:
+                    raise ValueError(f"a rest's bounds take only an op and its cuts (the water is the rest's own "
+                                     f"item scope) — not {inner}")
         elif self.op == Op.OTHER_PLACES:
             # THE UNION OF NAMED SIBLINGS (T607): no water of its own — nothing that picks or cuts water. Like a
             # DFO rest, a DFO place's list is filled at BUILD time from the placements of the day.

@@ -104,7 +104,11 @@ A6. **Commit only your own paths: `git commit -- <paths>`.** Several agents shar
     (`includes_tributaries: false`). A COMPLEMENT ("other parts", "all other parts") is not an undrawn
     part: it is `Extent` op `rest` with its `siblings` named — the rule's water, with its own tributary
     scope, minus every section those rules bind (`build._build_rest`); a sibling that does not bind
-    leaves it `complement_unknown`, never the whole water (Bull, Elk, Findlay, 2026-09-28). What is left with no
+    leaves it `complement_unknown`, never the whole water (Bull, Elk, Findlay, 2026-09-28) — a rule-book rest only: a
+    DFO PLACE's rest (T761) may carry its own `bounds` and list of places it leaves out (`entries.rest_listing`; none =
+    every other live place of the water), a dormant listed place takes nothing, one that does not bind is skipped and
+    named (`complement` `skipped`), and on its listed places' sections inside the bounds it answers AFTER them in the
+    salmon chain ("areas and times", `deliver.salmon.rest_after`). What is left with no
     extents (14 rules) names a place that is not a part of the row's water, or a carve-out.
     An AREA rule (every extent `within`) with `unresolved_locators` is a carve-out no cut
     expresses ("No powered boats … except Gold, Upper Campbell and Buttle lakes") and stays
@@ -900,4 +904,6 @@ W46. **The guards the 2026-11 audits put in (T429–T442) stay in. A change that
     its cuts, a circle the sections wholly inside it. Anything else (unconfirmed, reworded, a lake line, a cut not built,
     a circle partly over a section) is CARRIED on its water (`carried`, the chain's `u`) — never widened, never dropped.
     An item no live row names builds nothing (`attach`); the live feed emits a piece only while today's row names it
-    (`closures.live_piece_rules`), and the feeds worker must do the same or its chains skip the piece.
+    (`closures.live_piece_rules`), and the feeds worker must do the same or its chains skip the piece. Not a "rest of"
+    (T761, rule 13): a rest leaves out other PLACES of its water ("the areas below", each a row of its own) and answers
+    after them; excepted closed areas (Thompson, Shuswap, Stave) stay this rule's pieces.

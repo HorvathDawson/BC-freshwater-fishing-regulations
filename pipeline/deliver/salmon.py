@@ -18,6 +18,11 @@ of its own (`regs.dfo_salmon.closures.build_pieces`, appended by `load_inputs`):
 fishing, year-round" + DFO's words for the area) and fewer sections, so `chain_order` puts it first on its sections —
 no new precedence. One the reach run could not bind (`carried`) rides its water as an undrawn part (`u`).
 
+A "REST OF" PLACE ANSWERS AFTER THE PLACES IT LEAVES OUT (T761, DFO's "except in those areas and times listed below"):
+on its listed places' sections inside its bounds (the reach row's `behind`) it is in the chain right after them
+(`rests_behind`, `rest_after`), so a listed stretch speaks on the days it has a rule for a fish and the rest's rule on
+the other days; elsewhere it sorts as any place. Its map binding stays the rest (bounds less the listed places).
+
 A DFO PLACE ANSWERS FOR ITS OWN REGION (T668, `SectionRegions`): an undrawn place rides only its own region's sections;
 a region-wide place binds only its region's members; on a section in TWO regions (the one membership) both regions'
 places hold — the chain's `s` names each region's places (indices into `l`), each cascades apart, and the MOST STRICT
@@ -357,6 +362,47 @@ def chain_order(precedence: Mapping[str, int], size: Mapping[str, int],
     place answer first and open what its sibling closes."""
     rides = frozenset(rides)
     return lambda lid: (-precedence.get(lid, 0), size.get(lid, 1 << 30), int(lid in rides), lid)
+
+
+def rests_behind(placed: Iterable[dict], locs: Mapping[str, tuple], sid_of: Mapping[str, int],
+                 covering: Dict[int, List[str]], binds: Callable[[str, int], bool],
+                 missing: List[str]) -> Dict[str, frozenset]:
+    """(T761, owner 2026-11-15: DFO's "except in those AREAS AND TIMES listed below") A "REST OF" PLACE STANDS IN THE
+    CHAIN BEHIND ITS LISTED PLACES on their sections inside its bounds (the reach row's `behind`,
+    `reach.build.REST_BEHIND`): a listed stretch answers on the days it has a rule for that fish, the rest's rule on the
+    others. Added to `covering` only where the listed place itself covers the section (its own tidal / region limits
+    hold). Returns rest id -> the listed places it answers after (`rest_after`). A section the handle table does not
+    know goes to `missing`, as the placed sections do."""
+    after: Dict[str, set] = defaultdict(set)
+    for row in placed:
+        lid = row["location_id"]
+        if lid not in locs or not row.get("behind"):
+            continue
+        for first, secs in sorted(row["behind"].items()):
+            for s in secs:
+                sid = sid_of.get(s)
+                if sid is None:
+                    missing.append(s)
+                    continue
+                if first in covering.get(sid, ()) and binds(lid, sid):
+                    after[lid].add(first)
+                    if lid not in covering[sid]:
+                        covering[sid].append(lid)
+    return {k: frozenset(v) for k, v in after.items()}
+
+
+def rest_after(key: Sequence[str], after: Mapping[str, frozenset]) -> Tuple[str, ...]:
+    """(T761) The chain with each rest-of place moved to just AFTER the last of its listed places in it — whatever the
+    sizes or ids (a listed stretch with its side streams can be larger than the rest). Elsewhere (none of its listed
+    places in the chain) it keeps the place `chain_order` gave it. The chain stays a plain ordered list of ids."""
+    out = list(key)
+    for r in [l for l in key if after.get(l)]:
+        if not any(l in after[r] for l in out):
+            continue
+        out.remove(r)
+        last = max(i for i, l in enumerate(out) if l in after[r])
+        out.insert(last + 1, r)
+    return tuple(out)
 
 
 def rides_on_others(locs: Iterable) -> frozenset:
@@ -776,7 +822,9 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
         if not row.get("mapped"):
             # T449: a place accepted as wholly in tidal water lies off the freshwater map — not a part of its water
             # still to draw, so it neither paints the water "check" nor rides the card as "not yet mapped"
-            if not locs[lid][1].tidal_water:
+            # T761: a rest-of whose listed places take all of its bounds still answers BEHIND them (`behind`): drawn
+            # nowhere of its own, but placed — never an undrawn part of its water
+            if not locs[lid][1].tidal_water and not row.get("behind"):
                 unmapped_locs.append(lid)
             continue
         for s in row["sections"]:
@@ -786,6 +834,7 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
                 continue
             if binds(lid, sid):
                 covering[sid].append(lid)
+    after = rests_behind(placed, locs, sid_of, covering, binds, missing)
     if missing:
         raise SalmonError(f"salmon: {len(missing):,} placed sections are not in the handle table (e.g. {missing[:3]}) "
                           "— the reach run and this atlas are not the same build")
@@ -807,7 +856,7 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
 
     def chain_for(lids: Sequence[str], u: Iterable[str] = (), speaks: bool = False, at=order,
                   grouped: bool = False) -> int:
-        key = tuple(sorted(set(lids), key=at))
+        key = rest_after(tuple(sorted(set(lids), key=at)), after)
         uk = tuple(sorted(set(u)))
         # (T668) a two-region chain: `s`, each region's places (indices into `l`, by region number) — they cascade
         # apart and the most strict answer per fish speaks

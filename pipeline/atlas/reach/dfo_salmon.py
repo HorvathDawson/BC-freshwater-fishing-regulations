@@ -29,6 +29,10 @@ out of each place after its walk, by the same `build_reach`. A place keeps its t
 subtraction EMPTIES stops the run (`drowned`): it lies wholly in tidal water, which is the owner's T449 call
 (`tidal_water`), never decided here.
 
+A "REST OF" PLACE (T761, `entries.rest_listing`): its own bounds less its LIVE, drawn listed places; a listed place that
+does not bind is skipped and named in the `complement` diagnostic (`skipped`, `dormant`); its listed places' sections
+inside the bounds ride in its row as `behind` ({listed id: [sections]}), where the salmon chain puts it after them.
+
 CLOSED AREAS INSIDE A PLACE (T573 entry B, `regs.dfo_salmon.closures`): each LIVE closed area of a place is a row of
 its own (`<water_id>#closed:<key>`, `resolve_closures`) — a confirmed stretch bound between its cuts, a confirmed
 circle on the sections wholly inside it; anything else `carried: true` with its `reason` (and a circle's `marked`
@@ -86,7 +90,7 @@ def resolve_all(registry, graph, *, entries_dir: Optional[Path] = None, outside=
     `tidal` (T632): the run's tidal sections (`ReachResult.tidal`, {section: owner}), taken out of every place but
     those `keep_tidal` ({location_id: reason}, `load_tidal_calls`) names. `None` takes nothing out (a caller that did
     not compute it). A `keep_tidal` id that is no place, and a place left with no water by the subtraction, stop it."""
-    from pipeline.atlas.reach.build import build_reach
+    from pipeline.atlas.reach.build import REST_BEHIND, build_reach
     from pipeline.atlas.reach.models import Outcome, Reason
     from pipeline.atlas.reach.outside import outside_bc
     from pipeline.regs.dfo_salmon import entries as E
@@ -122,9 +126,14 @@ def resolve_all(registry, graph, *, entries_dir: Optional[Path] = None, outside=
                 lim = None if (loc.location_id in keep_tidal or target.location_id in keep_tidal) else tidal
                 binding, diags = build_reach(entry, rules[0], registry, graph, outside=outside, regional=False,
                                              tidal=lim)
+                # T761 "areas and times": a rest-of's listed places' sections inside its bounds ride in its row
+                # (`behind`), where `deliver.salmon` puts it after them; not a diagnostic line (section lists)
+                behind = {k: v for d in diags if d.kind == REST_BEHIND for k, v in d.payload["behind"].items()}
+                if behind:
+                    row["behind"] = behind
                 if diagnostics is not None:
                     diagnostics.extend({"location_id": loc.location_id, "region": slug, "kind": d.kind,
-                                        "payload": d.payload} for d in diags)
+                                        "payload": d.payload} for d in diags if d.kind != REST_BEHIND)
                 if target.location_id not in checked:
                     checked.add(target.location_id)
                     dead += [_piece_words(slug, target.location_id, rules[0]["extents"], i)

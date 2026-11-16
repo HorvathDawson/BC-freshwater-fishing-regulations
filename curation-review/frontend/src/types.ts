@@ -982,6 +982,17 @@ export interface ExtentFix {
   tributaries_only?: boolean | null;
   /** (owner 2026-11-15) a DFO place: the tributaries the walk does not take (registry ids); absent / null = no call */
   tributary_excludes?: string[] | null;
+  /** T761 (op rest, a DFO place): the stretch it is the rest of; its `points` are that op's. absent / null = the water */
+  bounds?: RestBounds | null;
+  /** T761 (op rest): the places it leaves out, by location id; absent / null = every other live place of the water */
+  siblings?: string[] | null;
+}
+export type RestBounds = "whole" | "upstream_of" | "downstream_of" | "between";
+/** T761: a "rest of" place on the card and in its editor (`dfo.rest_of_card`) */
+export interface RestOf {
+  answers_first: { id: string; state: "answers_first" | "dormant" | "undrawn"; words: string }[];
+  places: { id: string; text: string; status: string; extent: string; listed: boolean }[];
+  named: boolean;
 }
 export interface ExtentOpInfo { op: ExtentOp; points: number; words: string }
 export interface SplitHit { id: string; label: string; water: string; kind?: string | null;
@@ -996,6 +1007,11 @@ export interface ExtentPreview {
   others_unplaced?: { id: string; text: string }[];
   /** T611: exactly one placed sibling — the chain's order between the two is by id; the warning, in words */
   one_sibling?: string;
+  /** T761 (op rest): what answers before it and where, and the water's places the form can list */
+  rest_of?: RestOf | null;
+  /** T761: listed places left out of the subtraction — {id: why} (no bind / not drawn), and the dormant ones */
+  rest_skipped?: Record<string, string>;
+  rest_dormant?: string[];
   resolvable: boolean;
   why: string | null;
   n_sections: number | null;
@@ -1351,6 +1367,8 @@ export interface DfoExtentNow {
   tributaries: boolean | null;
   /** does the builder walk tributaries for this place as it stands (`dfo.walks_now`); null: cannot be asked */
   walks_tributaries?: boolean | null;
+  /** T761: the place is a "rest of": which places answer before it, where; the water's places the form can list */
+  rest_of?: RestOf | null;
   /** what the mark sends back as `extent_before` */
   seen: DfoSeenExtent;
 }

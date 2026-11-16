@@ -391,7 +391,9 @@ def extent_now(loc: dict, water: dict | None) -> dict:
             "cannot_edit": cannot_edit_words(b.get("extents") or [], why),
             "tributaries": tributaries_now(loc, water), "seen": seen_extent(loc),
             # (T532 r10) what "tributaries as the place has them" MEANS here: does the builder walk them for this place
-            "walks_tributaries": walks_now(loc, water)}
+            "walks_tributaries": walks_now(loc, water),
+            # T761: a "rest of": which places answer before it, and where; the water's places the form can list
+            **({"rest_of": r} if (r := rest_of_card(loc)) is not None else {})}
 
 
 def _area_words(aid: str) -> str:
@@ -1240,12 +1242,46 @@ def _reach_input(loc: dict, water: dict | None, extents: list[dict] | None = Non
     if water:
         names = {f.name for f in fields(E.WaterBinding)}
         wb = E.WaterBinding(**{k: v for k, v in water.items() if k in names})
-    # a "rest" is the water minus every other PLACED extent on it, resolved now (`to_reach_input`)
-    sibs = ({lid: E.EntryLocation.from_dict(l) for lid, (_s, l, _w) in _locations().items()
-             if l.get("water_id") and l.get("water_id") == el.water_id}
-            if any(e.op in ("rest", "other_places") for e in el.binding.extents) else {})
+    # a "rest" is its bounds less the places it leaves out, resolved now (`to_reach_input`, T761 `rest_listing`)
+    sibs = _siblings_of(el) if any(e.op in ("rest", "other_places") for e in el.binding.extents) else {}
     entry, rules = E.to_reach_input(el, [{}], wb, siblings=sibs)
     return entry, rules[0]
+
+
+def _siblings_of(el) -> dict:
+    """the places a rest / "all the other places" place is computed from, as `EntryLocation`s: every place of its
+    water, and (T761) any place its rest lists by id on another water"""
+    from pipeline.regs.dfo_salmon import entries as E
+    named = {x for e in el.binding.extents if e.op == "rest" for x in e.siblings}
+    return {lid: E.EntryLocation.from_dict(l) for lid, (_s, l, _w) in _locations().items()
+            if (l.get("water_id") and l.get("water_id") == el.water_id) or lid in named}
+
+
+def rest_of_card(loc: dict, extents: list[dict] | None = None) -> dict | None:
+    """T761: A "REST OF" PLACE ON THE CARD AND IN ITS EDITOR — None for a place whose extent (or the draft's
+    `extents`) is no rest; else `{answers_first, places}`: `answers_first` the places that answer before it and where,
+    in plain words (`entries.answers_before`, the build's own listing), and `places` every other place of its water the
+    form can list (`{id, text, status, extent, listed}`; `listed`: it is one of the places this rest leaves out now)."""
+    import copy
+    from pipeline.regs.dfo_salmon import entries as E
+    loc = copy.deepcopy(loc)
+    if extents is not None:
+        loc.setdefault("binding", {})["extents"] = extents
+    if not any(e.get("op") == "rest" for e in (loc.get("binding") or {}).get("extents") or []):
+        return None
+    el = E.EntryLocation.from_dict(loc)
+    sibs = {**_siblings_of(el), el.location_id: el}
+    got = E.rest_listing(el, sibs)
+    leaves = set(got["listed"]) | set(got["dormant"]) | set(got["undrawn"])
+    places = []
+    for lid, x in sorted(sibs.items()):
+        if lid == el.location_id or x.water_id != el.water_id:
+            continue
+        places.append({"id": lid, "text": (x.source_text or {}).get("specific_area") or "(the whole water)",
+                       "status": x.status,
+                       "extent": ", ".join(M_OP_WORDS(getattr(e.op, "value", e.op)) for e in x.binding.extents)
+                       or "no extent yet", "listed": lid in leaves})
+    return {"answers_first": E.answers_before(el, sibs), "places": places, "named": got["named"]}
 
 
 def other_places_of(loc: dict) -> dict:
@@ -1293,7 +1329,11 @@ def _bind(entry: dict, rule: dict, limit: int, walks: bool = False) -> dict:
         return {"resolvable": False, "why": "no extent curated yet: nothing binds", "n_sections": 0}
     binding, _d = build_reach(entry, rule, reuse._registry(), reuse._graph())
     ids = sorted(binding.sections)
-    return reuse._json_safe({
+    # T761: a "rest of"'s listed places left out of the subtraction (no bind / dormant), named — never dropped unseen
+    comp = next((d.payload for d in _d if d.kind == "complement"), None) or {}
+    left = {**({"rest_skipped": comp["skipped"]} if comp.get("skipped") else {}),
+            **({"rest_dormant": comp["dormant"]} if comp.get("dormant") else {})}
+    return reuse._json_safe({**left,
         "resolvable": True, "why": None, "n_sections": len(ids), "walks_tributaries": walks,
         "km": section_km(ids), "channels": channels_in(entry, rule, set(ids)),
         "outcomes": {rule["rule_id"]: binding.outcome.value}, "truncated": len(ids) > limit,
@@ -1456,6 +1496,9 @@ def extent_preview(location_id: str, fix, limit: int = 6000, tributaries: bool =
     out = _bind(entry, rule, limit, walks)
     if any(f.op == "other_places" for f in fixes):
         out.update(other_places_of(loc))
+    if any(f.op == "rest" for f in fixes):
+        # T761: the draft's "rest of": what answers before it, where; the water's places the form can list
+        out["rest_of"] = rest_of_card(loc, exs)
     dead = DS.dead_pieces(entry, rule, reuse._registry(), reuse._graph())
     # a place of ONE piece that binds nothing is dead too (seen on screen 2026-11-10: "binds 0 section(s) · unresolved"
     # with no reason — `dead_pieces` speaks only of a piece among several): it gets the same plain-words why

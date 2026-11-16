@@ -855,7 +855,7 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
                     currentOp={i === 0 ? detail.need.op ?? undefined : "downstream_of"}
                     mapSplits={mapSplits} waters={items} value={pc}
                     onChange={(f) => setFixes((cur) => (f ? sameTribCall(withPiece(cur, i, f), f) : dropPiece(cur, i)))}
-                    dfo
+                    dfo restOf={detail.extent_now?.rest_of ?? null}
                     tributariesNow={tribNow} tributariesDrawn={showTribs} cutLabels={detail.cut_labels}
                     itemNames={detail.item_names}
                     onPreview={(fc) => setFixPreview(fc)}

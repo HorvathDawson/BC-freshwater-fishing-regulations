@@ -488,7 +488,16 @@ def extent_of(fix, split_of, rest_at_build: bool = False) -> tuple[Optional[dict
         if sid is None:
             problems.append(f"point {i + 1} ({p.kind}) names no split")
         sids.append(sid)
-    if sids:
+    bounds = getattr(fix, "bounds", None)
+    if bounds is not None or getattr(fix, "siblings", None) is not None:
+        # T761: a DFO "rest of" — its own stretch (the points are that op's cuts) and the places it leaves out
+        if not rest_at_build:
+            problems.append("a rest's own bounds and listed places belong to a DFO place: a hand edit")
+        if bounds is not None and bounds != "whole":     # bounds "whole" is the rest of the whole water: no bounds
+            ex["bounds"] = {"op": bounds, **({"splits": sids} if sids else {})}
+        if fix.siblings is not None:
+            ex["siblings"] = list(fix.siblings)
+    elif sids:
         ex["splits"] = sids
     if len(fix.items) == 1:
         ex["item_id"] = fix.items[0]
@@ -520,7 +529,9 @@ def excepted_items(excludes) -> tuple[list[str], list[str]]:
 
 
 #: T525: the fields of a curated extent an extent fix can say (`extent_of` writes exactly these)
-EXPRESSIBLE = frozenset({"op", "splits", "item_id", "item_ids", "area_id"})
+EXPRESSIBLE = frozenset({"op", "splits", "item_id", "item_ids", "area_id", "bounds", "siblings"})
+#: T761: the fields of a rest's `bounds` an extent fix can say (its op and cuts)
+BOUNDS_EXPRESSIBLE = frozenset({"op", "splits"})
 
 
 def unexpressed(extents: Iterable[Mapping]) -> list[str]:
@@ -530,6 +541,8 @@ def unexpressed(extents: Iterable[Mapping]) -> list[str]:
     out = []
     for i, ex in enumerate(extents):
         extra = sorted(set(ex) - EXPRESSIBLE)
+        if isinstance(ex.get("bounds"), Mapping):
+            extra += [f"bounds.{k}" for k in sorted(set(ex["bounds"]) - BOUNDS_EXPRESSIBLE)]
         if extra:
             out.append(f"extent {i + 1} ({ex.get('op')}) holds {', '.join(extra)}, which an extent fix cannot express: "
                        "a hand edit")
@@ -555,11 +568,16 @@ def fixes_of_extents(extents: Iterable[Mapping], tributaries: Optional[bool], *,
     fixes = []
     for i, ex in enumerate(extents):
         items = list(ex.get("item_ids") or ([ex["item_id"]] if ex.get("item_id") else []))
+        bounds = ex.get("bounds") if isinstance(ex.get("bounds"), Mapping) else None
+        cuts = bounds.get("splits") if bounds is not None else ex.get("splits")
         try:
             fixes.append(ExtentFix(scope="entry", op=ex["op"], items=items, tributaries=tributaries,
-                                   points=[{"kind": "split", "split_id": s} for s in ex.get("splits") or []],
+                                   points=[{"kind": "split", "split_id": s} for s in cuts or []],
                                    area=ex.get("area_id"), tributaries_only=tributaries_only,
-                                   tributary_excludes=excepted))
+                                   tributary_excludes=excepted,
+                                   # T761: a rest of its own stretch, and the places it leaves out
+                                   bounds=bounds.get("op") if bounds is not None else None,
+                                   siblings=list(ex["siblings"]) if ex.get("siblings") else None))
         except ValueError as e:
             why.append(f"extent {i + 1} ({ex.get('op')}): {e}")
     return ([], why) if why else (fixes, [])

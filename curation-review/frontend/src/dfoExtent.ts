@@ -49,7 +49,9 @@ export function sameTribCall(fixes: ExtentFix[], from: ExtentFix): ExtentFix[] {
 }
 /** "all the other places on this water" has no water of its own: the editor sends none (owner 2026-11-15, Qualicum) */
 export function withOp(f: ExtentFix, op: ExtentFix["op"]): ExtentFix {
-  return op === "other_places" ? { ...f, op, items: [] } : { ...f, op };
+  // T761: a rest's own bounds and listed places belong to the rest only
+  const base = op === "rest" ? f : { ...f, bounds: null, siblings: null };
+  return op === "other_places" ? { ...base, op, items: [] } : { ...base, op };
 }
 
 /* (owner 2026-11-15: Atnarko marked twice with different tributary calls) WHAT DIFFERS FROM THE EARLIER MARK, said before

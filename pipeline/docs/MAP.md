@@ -53,7 +53,9 @@ step's output; nothing is promoted unless every step and the vintage check pass)
 8. `release` — `deliver/release/` (`build.py`, `paint.py`, `shards.py`, `manifest.py`) → the shipped set: paint,
    access, core, near, water, `regs-<region>` ×9, `regs-sid`, conditions, flow-area, salmon (T211: DFO salmon per chain
    and day, `deliver/salmon.py`; placed by the reach run's `dfo_salmon.jsonl.gz`, `atlas/reach/dfo_salmon.py`; T573: a place's closed areas are
-   locations of their own, `regs/dfo_salmon/closures.build_pieces` / `resolve_closures`) (gzip,
+   locations of their own, `regs/dfo_salmon/closures.build_pieces` / `resolve_closures`; T761: a "rest of" place —
+   its bounds and listed places `regs/dfo_salmon/entries.rest_listing` / `answers_before`, bound by `atlas/reach/build._build_rest`,
+   answering after its listed places on their sections `deliver/salmon.rests_behind` / `rest_after`) (gzip,
    sha-named, one manifest).
    Readers rebuild the store from those files (`deliver/store/release.py province_store`).
 

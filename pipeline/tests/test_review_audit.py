@@ -164,8 +164,11 @@ def test_D_rest_with_a_dormant_and_an_undrawable_sibling():
           place("1:river:old", status="dormant", extents=[{"op": "upstream_of", "splits": ["c1"]}]),
           place("1:river:new", extents=[{"op": "downstream_of", "splits": ["gone"]}])]
     got = A.check_D(inputs(ps, [water()], cuts={"c1": {"id": "c1"}}))
-    assert ("dormant_sibling", "1:river:rest") in kinds(got) and ("undrawable_sibling", "1:river:rest") in kinds(got)
+    # T761: a rest's dormant listed place takes nothing — said on its line, never a finding
+    assert ("dormant_sibling", "1:river:rest") not in kinds(got) and ("undrawable_sibling", "1:river:rest") in kinds(got)
+    assert "dormant (takes nothing): 1:river:old" in next(f for f in got if f.kind == "listed_rest").found
     assert next(f for f in got if f.kind == "undrawable_sibling").what == "1:river:new"
+    assert "skips it and names it" in next(f for f in got if f.kind == "undrawable_sibling").found
     ok = [ps[0], place("1:river:new", extents=[{"op": "downstream_of", "splits": ["c1"]}])]
     assert kinds(A.check_D(inputs(ok, [water()], cuts={"c1": {"id": "c1"}}))) == [("listed_rest", "1:river:rest")]
 

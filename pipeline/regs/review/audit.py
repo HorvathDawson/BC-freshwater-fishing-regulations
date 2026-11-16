@@ -124,8 +124,9 @@ SECTIONS: dict[str, tuple[str, str]] = {
           "takes them in or leaves it blank; C4 the wording means the tributaries ONLY, the place is not that form; "
           "C5 the tributary choice is blank everywhere (place and water)."),
     "D": ("'Rest of the water' and 'all the other places' extents",
-          "Each such place with the places it is computed from. Flagged: a dormant sibling that still takes (or adds) "
-          "water, a sibling that cannot be drawn (a rest then goes unmapped entirely), two rests on one water."),
+          "Each such place with the places it is computed from. Flagged: a dormant sibling that still adds water to "
+          "an 'all the other places' (a rest's dormant listed place takes nothing, T761: said, not flagged), a "
+          "sibling that cannot be drawn (a rest skips it and names it), two rests on one water."),
     "E": ("Mouth / tidal ends",
           "A place's cut at or near a stream's mouth that is not the tidal boundary every stream gets (rank-1 split, "
           "coast cut, or the mouth), cuts from marks within NEAR_M of one, and pending mouth cuts not built yet."),
@@ -623,10 +624,18 @@ def check_D(inp: Inputs) -> list[Finding]:
             entry, _ = E.to_reach_input(loc, [{}], wb, siblings=objs)
             sibs = [r["rule_id"] for r in (entry.get("rules") or [])[1:]]
             desc = ", ".join(f"{s}{_status(inp.places[s])}" for s in sibs) or "none"
-            out.append(F_(inp, "D", f"listed_{kind}", lid, f"{kind}; {len(sibs)} sibling(s): {desc}"))
+            left = ""
+            if kind == "rest":
+                # T761: a rest's dormant / undrawn listed places take nothing and are named — said, never a finding
+                got = E.rest_listing(loc, objs)
+                left = "".join([f"; dormant (takes nothing): {', '.join(got['dormant'])}" if got["dormant"] else "",
+                                f"; not drawn (skipped): {', '.join(got['undrawn'])}" if got["undrawn"] else "",
+                                "; its own list" if got["named"] else "",
+                                "; its own bounds" if any(e.bounds for e in loc.binding.extents) else ""])
+            out.append(F_(inp, "D", f"listed_{kind}", lid, f"{kind}; {len(sibs)} sibling(s): {desc}{left}"))
             for s in sibs:
                 sp = inp.places[s]
-                if sp.get("status") != "active":
+                if sp.get("status") != "active" and kind != "rest":
                     out.append(F_(inp, "D", "dormant_sibling", lid, what=s,
                                   found=f"dormant sibling {s} still "
                                         + ("takes its water out of the rest" if kind == "rest" else "adds its water")))
@@ -637,7 +646,8 @@ def check_D(inp: Inputs) -> list[Finding]:
                            else "its water has no registry item")
                     out.append(F_(inp, "D", "undrawable_sibling", lid, what=s,
                                   found=f"sibling {s} cannot be drawn ({why})"
-                                        + ("; the whole rest goes unmapped (complement_unknown)" if kind == "rest"
+                                        + ("; the rest skips it and names it on the card (T761), covering its water "
+                                           "until it is drawn" if kind == "rest"
                                            else "; it adds nothing to the union")))
     for wid, ids in sorted(rests.items()):
         if len(ids) > 1:

@@ -400,6 +400,8 @@ def test_policy_version_is_bumped_when_classify_changes():
         "loops_never_divide_a_lake": lake_loops.LOOPS_NEVER_DIVIDE_A_LAKE,
         "a_tributary_is_its_line_that_meets_the_parent": anchors.A_TRIBUTARY_IS_ITS_LINE_THAT_MEETS_THE_PARENT,
         "a_dead_end_goes_with_its_water": tributaries.A_DEAD_END_GOES_WITH_ITS_WATER,
+        "dfo_rest_has_its_own_bounds": reach_build.DFO_REST_HAS_ITS_OWN_BOUNDS,
+        "dfo_rest_skips_a_listed_place_that_does_not_bind": reach_build.DFO_REST_SKIPS_A_LISTED_PLACE_THAT_DOES_NOT_BIND,
     })
     expected.update({"confluence_cut_excludes_the_joining_water": True,
                      "confluence_water_without_a_row_goes_with_the_cut": True,
@@ -427,8 +429,10 @@ def test_policy_version_is_bumped_when_classify_changes():
                      "lake_loops_join_their_lake": True,
                      "loops_never_divide_a_lake": True,
                      "a_tributary_is_its_line_that_meets_the_parent": True,
-                     "a_dead_end_goes_with_its_water": True})
-    assert cache.POLICY_VERSION == "42", "update this pin with the version it was taken at"
+                     "a_dead_end_goes_with_its_water": True,
+                     "dfo_rest_has_its_own_bounds": True,
+                     "dfo_rest_skips_a_listed_place_that_does_not_bind": True})
+    assert cache.POLICY_VERSION == "43", "update this pin with the version it was taken at"
     assert policy == expected, (
         f"classify.py policy changed to {policy} — bump cache.POLICY_VERSION "
         f"(currently {cache.POLICY_VERSION!r}) and update this test together")

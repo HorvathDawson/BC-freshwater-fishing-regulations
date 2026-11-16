@@ -30,6 +30,12 @@ test("“all the other places on this water” never carries a water (Qualicum, 
   assert.deepEqual(withOp(bella, "between").items, ["gnis:11611"]);
 });
 
+test("T761: a rest keeps its own bounds and listed places; any other op drops them", () => {
+  const rest = { ...bella, op: "rest" as const, bounds: "between" as const, siblings: ["6:a"] };
+  assert.deepEqual([withOp(rest, "rest").bounds, withOp(rest, "rest").siblings], ["between", ["6:a"]]);
+  assert.deepEqual([withOp(rest, "whole").bounds, withOp(rest, "whole").siblings], [null, null]);
+});
+
 test("the extent in words says tributaries only and what it leaves out", () => {
   const f = { ...bella, tributaries_only: true, tributary_excludes: ["gnis:17209"] };
   assert.equal(partsText(fixParts(f, () => null, (i) => (i === "gnis:17209" ? "Atnarko River" : "Bella Coola River"))),
