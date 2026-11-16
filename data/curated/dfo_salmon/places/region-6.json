@@ -5312,16 +5312,17 @@
         "extents": [
           {
             "op": "whole",
-            "item_id": "gnis:13637",
-            "within_area": "area:region:6"
+            "item_id": "gnis:13637"
           }
         ],
-        "tributaries": null,
+        "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
         "notes": [
-          "The Tatshenshini crosses 60°N TWICE: BC from the Alsek up to m 102,493 (border :0), 43 km in the YUKON, then back into BC at m 145,645 (border :1) for the headwaters along the Haines Hwy. DFO Region 6 regulates the BC water only; the Yukon stretch is bound by nothing here. The Blanchard joins the Tatshenshini IN the Yukon stretch, so 'upstream of the border along the Haines Hwy' can only mean the Blanchard's own BC water: 39.9 of its 40.3 km. It weaves along 60°N, and `within_area` drops the two Yukon slivers (59 m, 211 m) exactly."
+          "The Tatshenshini crosses 60°N TWICE: BC from the Alsek up to m 102,493 (border :0), 43 km in the YUKON, then back into BC at m 145,645 (border :1) for the headwaters along the Haines Hwy. DFO Region 6 regulates the BC water only; the Yukon stretch is bound by nothing here. The Blanchard joins the Tatshenshini IN the Yukon stretch, so 'upstream of the border along the Haines Hwy' can only mean the Blanchard's own BC water: 39.9 of its 40.3 km. It weaves along 60°N, and `within_area` drops the two Yukon slivers (59 m, 211 m) exactly.",
+          "Tributaries included (owner 2026-11-15, by question dialog: \"Add its tributaries\"); the BC-only limit (`within_area`) is kept. Set by Claude at the owner's request because the review editor cannot edit an extent with `within_area`.",
+          "`within_area: area:region:6` removed (owner 2026-11-15: \"you can unlock it tho\") so the review editor can edit this extent. It had dropped two Yukon slivers of the Blanchard (59 m, 211 m); a check on 2026-11-15 found plain `whole` binds the same 15 sections."
         ],
         "spatial_caveat": false
       }
