@@ -1907,3 +1907,8 @@ More questions (recommended answer first):
   with maps, to review after; built by a smaller model (Sonnet). (5) The Yakoun row: the book closes Oct 1 to Apr 30
   only; on the other days DFO's rows answer as before: that is how it works; the warning on that row was about the
   side creeks along the 13 km, not the dates.
+- 15:01, on trout round 9 (typed, verbatim): "for the trout view i liked the old look more but with the words of
+  round 9 buyt the frame look is a lot cleaner". My reading (mine, to be confirmed by picture): round 8's look (the
+  tinted box and the white boxes), round 9's words everywhere ("up to the 5", the dated lines, the strip on one
+  line), and round 9's cleaner outline around the box. Round 10 is built as that blend, with the Skeena card shown
+  both ways (with and without round 9's outline) so he can pick. Mockups only.
