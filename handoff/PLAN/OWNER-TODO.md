@@ -995,3 +995,7 @@ For you to re-tick after the rebuild (saved by Claude at your request, each note
 - Sheldens Creek (question 16 above), by dialog: "we shopuld find lower options. i think this is tidal bound maybe". So:
   look lower on the creek; his reading is that the signs are at the tidal boundary. Main chat's reading: the place
   becomes the whole creek above the tidal boundary (as Illiance and Wilauks), no new cut, saved as unsure for his tick.
+- 21:55, typed in chat: "also another fable agent should take a look at how trout are displayed in the app. it si very
+  complex. and we want fable to come up we a few other alterntives and give mockups (make sure it chooses a few
+  different complex examples)". Started: a Fable design review (read-only), today's trout display on 5-6 real complex
+  waters, 3-4 different alternatives, mockups as one page for his phone. No ticket until he picks a direction.
