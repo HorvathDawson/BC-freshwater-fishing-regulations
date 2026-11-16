@@ -1492,3 +1492,39 @@ More questions (recommended answer first):
     not listed (Khartoum, Horseshoe, Nanton, Ireland) carry the same printed lines as Dodd, so their new card line is
     right.
 
+
+## 2026-11-16 10:25 — all of last night's questions on ONE answer page (main chat + app chat)
+- Owner, 10:13, typed in chat (verbatim): "can you go through all questions to me from over night that youy haad? make sure
+  i have all info needed. also get any questions the app chat has too"
+  Done 10:24: one page, https://claude.ai/artifact/H8gtvpptCZLGLaPGCyNfaJ ("Morning Questions"), 55 cards in eight
+  sections: Start here (questions 37, 38, 19, 14, and one go-ahead for the fixes that put a printed rule back on the
+  page: T794, T795, T797 and the small code fixes T783, T784, T785, T792 A); Your DFO labels (1 to 7, 16, 17, 26, 27);
+  Skeena and the north (8 to 12, 35); How the rule book and DFO are read (13, 15, 18, 29 to 34, 36); The app: looks and
+  picks (20 in two parts with the stripe pictures, 21 with the highlight sheets, the T762 year line, 24, 25, ten small
+  defaults); Production and the stores (22, 23, the Firebase exception, the App Store privacy answers, 28); Trout
+  display mockups (round 6's four, round 5's three, and "what next"); Only you can do these (the re-tick list, the
+  build 33 walk, iPhone build 36 and the push test). Each card: the background in plain words, the printed line where
+  one exists, the choices with the recommended one marked, a note box. His taps and notes are stored in the page's
+  database (collection `answers`, one document per card id: q01 to q38, q20a, q20b, go-fixes, a-year, a-defaults,
+  a-push, a-store, t1 to t8, task-retick, task-walk, task-iphone). READ THEM FROM THERE and copy each answer, verbatim,
+  into this file and its ticket before acting on it.
+  Wording choices of mine on the page that differ from the morning list (mine, not his): question 17 recommends "keep
+  the bridge and ask DFO"; question 26 recommends rewording from the lower end up; question 34 recommends Westwick
+  open with a note and Priest closed; question 35 recommends "to the source, as now"; question 14 shows section H's
+  proposal, with "staging releases need not wait for GitHub" as a separate choice that needs his explicit pick.
+- The app chat's list (its message of 10:14; nothing of its own answered or changed since 04:37): the merge question
+  first (its order: the T757 + T758 feed-server halves, the four iOS fix branches, T756 + T760 after an emulator
+  proof, T746 / T738 / the crash sender / perf T741, T732 after its picks, T759 after the stripe confirms, T739 push
+  last); T759 stripe two confirms (pictures in its scratch folder, copied onto the page); T762 year line (a read);
+  T735 highlight A / B / C (recommended C; the To-Do page had lost its row, the page carries it now); Play location;
+  T732 three picks; T686; backup bucket; the iOS day defaults; keyboard and back picks; oldest iPhone; App Store
+  privacy; the 0.7.10 looks (T731, T730, T728); the Firebase exception and 200 registrations a day; the build 33 walk;
+  iPhone build 36 and push. Its view on questions 29 and 30: yes as recommended. T797 item 1 (powered boats) rides on
+  the merge question, in the next app build. `ios-links-no-team-id` is moot (his Team ID is saved): row to close.
+- Owner, about 10:19, typed in chat (verbatim): "also as a seperate thing can we get some final reviewing of the trout
+  rework we want the agent to have an adverserial attempt to trry and see if any regulations can not be represented."
+  Started 10:21: a fresh Fable reviewer (not the designer), read-only: it lists every distinct trout and char keep
+  structure in release r-46e4355a7277, tries to draw each in round 6's table and sheet, and reports what cannot be
+  shown or would mislead, with a real water, the stored rows and the printed line for each; and, separately, printed
+  rule shapes the data itself does not store. Its report goes to `handoff/PLAN/design/` and to him when it is back.
+  Still mockups only: nothing is built.
