@@ -66,8 +66,11 @@ ruling id like "T2".
 - T805 trout data gaps (`a26597e78169ffe90`, branch `lane/t805-trout-data-gaps`): part C done (0f6fe2868) and HAS HIS GO
   (16:09, OWNER-TODO). Parts B and D still running. WHEN BACK: give him B's and D's lists, a go each; then land the
   parts with a go TOGETHER (one mini-release re-cut), full tier, push; tell the app chat which generated files to refresh.
-- T809 changed-answers tool (`a1d3e84d79ee0a6f5`, branch `lane/t809-answers-diff`): running. WHEN BACK: check its run on
-  r-46e4355a7277 vs r-685b700b2802 matches the 71 book-closure rows; lands after its tests + the tier.
+- T809 changed-answers tool: LANDED locally (merge dac013480 + gate fix 42d0b6ecc; the first tier caught two pins);
+  push after the full tier AND the app chat's "push". Cross-atlas run still owed (ticket).
+- Read-only worker on the candidate's four extra differences: DONE, all intended, candidate right, nothing wrong.
+  Findings + the owner's plain sentences: `/private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/b8ddfca9-44eb-400e-a9bf-bd89b4b0f359/scratchpad/handbacks/T796-candidate-extra-diffs.md`
+  (use them in the changed-answers summary at the salmon landing).
 - Salmon lane worker (`a2becf9b4bea93daf`): DONE 16:1x. The payload is right (Skeena reserve chain 858, m = one closed run;
   0 m-vs-sp misses over all 71 rows); the map fault is APP-SIDE; no candidate-release-2; the candidate stays
   `<scratch>/t796/candidate-release/r-685b700b2802`. Relayed to the app chat at 16:10. Optional later: its scratch
