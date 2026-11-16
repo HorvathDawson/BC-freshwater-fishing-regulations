@@ -1622,3 +1622,57 @@ More questions (recommended answer first):
   Shegunia River confluence to Sedan Creek confluence, and Zone B, Chimdemash Creek confluence to 1.5 km upstream of
   the Zymoetz confluence), typed: "here are picutres please review them then ask more questions we can figure it out
   together".
+- Skeena Section 4 follow-up, 11:32 (after his two maps; the main chat had read the province's regulation, Schedule A
+  item 33: "Skeena River upstream of 1.5 km upstream of Zymoetz River (Skeena River 4)", Class II, July 1 to Dec 31,
+  no upper end). How far Section 4 runs, typed: "Should run all the way up but also we should handle the weekend
+  zones properly too. Make sure licensing info is done properly there. Also we might want to have a way to indicate
+  classified water types on the map/card?" What to check about the two weekend zones, typed: "Just make sure the info
+  is correct for them for licensing etc etc. also maybe we should have the classified waters indicator for the
+  different types?" So: question 35 is ANSWERED (Section 4 = the whole main river above the point 1.5 km upstream of
+  the Zymoetz; the "a curator must draw the upper bound" flag on the stored row is cleared); a checker reads the
+  licence, stamp and weekend-closure lines on every Skeena main-stem part of the release against the printed lines
+  (started 11:32); and a new idea of his, not a decision: an indicator of classified waters (Class I / Class II) on
+  the map and the card. It becomes a ticket with a few looks for him to pick from, for the app chat.
+- 11:32, from the app chat, a data note for the main chat: "No angling (from a powered boat) — upstream of dyke gates"
+  binds 31 parts: the Nicomekl and Serpentine plus 27 side streams (Anderson Creek, Best Creek, Cloverdale Canal,
+  Cub Creek, Elgin Creek, Glover Creek, …). To check against the book: the two rivers only, or their side streams too.
+- Batch 8, 11:35. Question 31 (Coal Creek above the old MF&M Railway bridge): "Class II above the bridge
+  (Recommended)". Question 32 (Williston Lake's 30 cm rainbow minimum): "All three parts (Recommended)". Question 33
+  (Puntledge above Comox Lake: fly fishing only above the diversion dam "including tributaries", and exempt from the
+  Jul 15 to Aug 31 closure), typed: "If the river continues then yes it goes above". So: both carry above the lake
+  on the parts that are the Puntledge. Question 34 (Westwick Lakes 26 % and Priest Lake 59 % inside an ecological
+  reserve): "Both open with the note".
+- 11:36, two checkers back (reports to be saved under `handoff/PLAN/curation-review/`; until then the full texts are
+  in this session's transcript and the scratch folders `header-history/` and `wrong-saves/`):
+  (1) Question 15, which came first: neither. DFO keeps BOTH texts in the page and switches each season: off-season
+  the header "no fishing for salmon until further notice" shows and the table of openings is hidden inside an HTML
+  comment; about Aug 20 it shows the table and hides the header; on Apr 1 it flips back. FN0851 (Nechako) and FN0846
+  (Quesnel River, Horsefly Bay) were issued 2025-08-20 for 2025 dates; today's pages (stamped 2026-04-01) show only
+  the header. Our parser reads the hidden table too (Regions 7, 5A and one row in Region 4), which is the only reason
+  a header and dated rows ever meet. Proposed fix: the parser (Python and the feed server's) ignores a table DFO has
+  hidden; then the header rule is never needed against dated rows.
+  (2) Question 18, the list to re-check: 40 saves. 5 are "wrong" in his hand (live: Sproat, fix is in, re-save as
+  right; Stamp Falls, labels done but the lower cut sits about 165 m below Deer Creek where his note says 225 m;
+  dormant: Fraser Region 3, Thompson, Morice). 35 were written by Claude for him (31 places, 4 closed areas): 11 of
+  them are live and answer open in Nov or Dec (Stave, Bella Coola, two Cowichan stretches, Nanaimo Cedar Road,
+  Tatshenshini Blanchard, Skeena pink, Stamp / Little Qualicum / Nitinat / Somass rest-of places). None of his own
+  "unsure" saves lacks a fix. The audit tool finds only 8 of the 40 (T776).
+- Batch 9, 11:46. Hidden tables on DFO's Region 7, 5A and 4 pages (ignore whatever DFO has hidden?), typed: "we
+  should keep reading them for provenance but mark them hidden somehow so they are ignoired". So: the reader keeps
+  the hidden rows, marks each as hidden, and a hidden row answers nothing (data build and feed server alike); this
+  settles question 15 (the header rule no longer meets dated rows). How to go through the 40 saves to re-check: "In
+  chat, with a picture each (Recommended)" (each place as a map picture with DFO's words and what is drawn, in
+  batches, most urgent first; he answers right / wrong and the main chat saves his answer with his words; the 6
+  retired ones are skipped). Stamp Falls lower cut (about 165 m below Deer Creek, DFO says 225 m): "Move it 60 m down
+  (Recommended)" (next map rebuild; picture to him before it ships). Question 36 (DFO "non-retention" reads
+  Closed): "Keep "Closed"" (RULINGS.md gets the line that the ruling covers dated rows).
+- 11:45, the Skeena Section 4 checker is back: the licence information is right on every main-stem part (Class II and
+  the named section, the dates, the steelhead stamp, no Classified Waters Licence on "Section 3", Section 4 from 1.5 km
+  above the Zymoetz to the source, both weekend zones on the right parts and days, a resident's status unchanged on a
+  Saturday). Three wording faults: (1) Monday to Friday the weekend closure's "at certain times" line is cut short
+  (zone b does not say who is closed out; zone a never names the zone); app core, `caveats.ts` line 256; it touches
+  every weekend-only closure in the province; (2) "non-residents and non-resident aliens require separate licences
+  describing which section they are fishing" is barely shown, and the stamp sentence quotes the wrong printed line
+  (`pipeline/deliver/export/read.py` line 387); (3) zone b on weekends reads "the Zymoetz River confluence (1500 m
+  upstream)" where the book says "1.5 km upstream of Zymoetz River confluence". One question for him: with the
+  angler set to "From outside Canada", a zone part on a Saturday still says "Open", the closure only as a note.
