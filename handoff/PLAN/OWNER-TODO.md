@@ -1933,3 +1933,9 @@ More questions (recommended answer first):
   opus agent". So: an Opus worker writes a spec (no code): what it takes to move the app's trout and char block to
   the new table, built cleanly from the Python pipeline up to the app's screen. The spec comes back to him before
   any build starts.
+- 15:19, typed in chat after reading the book's line and DFO's row for the Nass side streams (verbatim): "and yes the
+  closure wins here." and "we need to make sure it says where the closure is from though". So: the Nass row ships
+  with the other 70 (coho closed Jan 1 to Jun 15 on the side streams above the Kitsault Bridge); and a pass
+  condition for all 71: the salmon card says where the closure comes from (the rule book, its page, its line).
+  Checked on the lane's data 15:19: all 71 rows' card words open "Closed to all fishing by the rule book (p.NN):"
+  followed by the book's line and dates. Still to prove on the app's screen (the app chat's before / after pictures).
