@@ -49,7 +49,8 @@ chat and onto the owner's row `t749-r8-phone-walk`.
 | T757 app, first try | `app/t757-piece-not-known` @ a5af25920 | ABANDONED (the owner ruled out "not known"); never merge |
 | T757 deploy refusals | `deploy/t757-worker-shape-refusal` @ 05383894d | written; the main chat owes a review of `pieces_gate.py` |
 | T758 region-default sentences | `feeds/t758-page-defaults` @ 179c6cba5 | LIVE ON STAGING; production worker deploy is the owner's |
-| T759 app (issue banners) | `app/t759-issues` @ 1289d8c20 (stacked on fa0c7a1c5) | written, tested; line look NOT built |
+| T759 app (issue banners) | `app/t759-issues` @ 1289d8c20 (stacked on fa0c7a1c5) | written, tested; line look: see the next row |
+| T759 line look, PROTOTYPE for pictures | `app/t759-line-looks` @ 1bddb6181 (on 1289d8c20) | web only, three looks behind `?issuelook=A|B|C`; never merge as is: after the owner's pick (To-Do row `t759-line-look`) it needs the native half, a legend entry, tests, the theme and colour-blind checks |
 | T759 worker + T757 item 5 | `feeds/t759-issues` @ 8bd68cce2 (stacked on 179c6cba5 + the main chat's dfc95d971) | written 20:50, tested (506 worker tests, re-run by me); not deployed |
 | T759 Python (the main chat's) | `data/t759-missing-place-check` @ dfc95d971 | the rewritten ticket is on this branch |
 | iOS | `ios/integration` @ 639d54d0d, `ios/t746-apply-splash`, `ios/t738-bar`, `ios/crash-send`, `perf/t741` @ a02e09fb5, `ios/t739-push` @ ca91889bb, `ios/next` @ a2078ac33 | waiting for build 33 |
@@ -61,8 +62,9 @@ T759 halves when the main chat has reviewed its part; T756 only when green; push
 benches where it touches shared app code and a message to the main chat first; each green on CI.
 
 ### 3. Owed to the owner
-- **Pictures, before T759 ships:** the banner on a real river, and two or three looks for the stream line with an
-  issue ("a variation like bait ban … same color"). `salmonIssueItems(payload)` on the app branch gives the items.
+- **Pictures for T759: SENT 2026-11-15 22:53** (page https://claude.ai/artifact/T5yS8HymzuhAXq8kYaLEwL and in chat);
+  his picks are on To-Do row `t759-line-look` (A halo / B edges / C stripe; magenta or black; a mark on the folded
+  Salmon row). Files: this session's scratchpad `t759-pictures`.
 - **Rows on his To-Do page (claude.ai artifact, collection `todo`):** `t759-banner-words` (the banner's words and
   the T757 fallback sentence, proposals, open); `t758-prod-feeds-worker` (production worker deploy, his, later);
   `t749-r8-phone-walk` (gets the walk after the upload). Answered and ticked: privacy wording + fish puns ("Yes to

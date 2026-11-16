@@ -266,8 +266,17 @@ with the default Claude uses until you answer). Newest first inside each section
   for where it applies before you fish." Between lead-in and closing: DFO's own area and rule, as printed. Sits above
   the species table. Also new (T757), shown when the latest DFO check cannot be used with the app's data: "The latest
   DFO check could not be used with this app's data, so the DFO rules this data was built with are shown. Check DFO's
-  page before you fish." OWED TO YOU AS PICTURES before anything ships: the banner on a real river, and two or three
-  looks for the stream line (a variation like the bait-ban one, same colour).
+  page before you fish." THE PICTURES ARE DONE (2026-11-15 22:53): the banner on the Campbell River and three looks
+  for the line, on https://claude.ai/artifact/T5yS8HymzuhAXq8kYaLEwL (also sent in the app chat).
+- **NEW 2026-11-15 22:53 (app chat, T759; To-Do row `t759-line-look`): pick the look of the river's line, and two
+  small picks.** Real renders of the app (web, phone width) on the Campbell River with one made-up unplaced DFO rule
+  fed in; nothing shipped. The line keeps its own colour in every look. PICK 1: A = a soft glow under the line (halo)
+  / B = a thin solid edge each side / C = dashes down the middle; Claude suggests A (the only one still visible with
+  the whole river in view, and unlike the bait-ban edges; weak point: two such rivers close together). PICK 2: the
+  mark is a magenta the app uses nowhere else; your words were "a variation like bait ban, same color": magenta, or
+  black like the bait-ban edges? PICK 3: the banner shows only once Salmon is opened: should the folded Salmon row
+  carry a small mark too (Claude suggests yes)? Not shown: dark theme, the colour-blind check, the phone app (the
+  look is built for the web only so far, on a prototype branch).
 - **NEW 2026-11-15 22:27 (app chat, T760; PROPOSAL, words and numbers; To-Do row `t760-download-words`): a first
   install that stops moving says so.** Two causes of a setup screen that sat for ever were found and fixed on
   branches (not merged, not in tonight's Play build): a small file the app fetches itself that stalled was never tried
