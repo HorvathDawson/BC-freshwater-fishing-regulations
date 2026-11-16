@@ -71,7 +71,7 @@ from pipeline.common import calendar_spec as CAL
 DAYS = CAL.DAYS                                         # 366, the leap calendar (Jan 1 = 1, Feb 29 = 60)
 ALL_DAYS = ((1 << DAYS) - 1) << 1                       # bits 1..366
 ORIGINS = ("hatchery", "wild")
-WEEKDAYS = ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+WEEKDAYS = CAL.WEEKDAYS                                 # Monday first, the spec's one list
 ATOMS = tuple((w, inside) for w in WEEKDAYS for inside in (False, True))
 SECTION_NAMES = ("ladder", "rows", "gear", "licence", "display")
 
@@ -134,7 +134,7 @@ class DiffError(SystemExit):
 
 def _md(day: int) -> str:
     m, d = CAL.month_day(day)
-    return f"{('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')[m - 1]} {d}"
+    return f"{CAL.MONTHS[m - 1]} {d}"
 
 
 def mask_of(lo: int, hi: int) -> int:
@@ -528,7 +528,9 @@ def section_facets(rel: "Release", name: str, ref: int, resolve_refs: bool) -> d
         for f in ("hook", "fly", "bait_ban"):
             out[("gear", f)] = F("gear", fr.get(f), f"{f.replace('_', ' ')}: {fr.get(f)}", None, "gear")
         ves = fr.get("vessel") or {}
-        boats = sorted({rel.rid(r) for r in (ves.get("active") or []) if isinstance(r, int)}
+        # the answers' boat rule, read as the liveness pin's exempt `["vessel"]["active"]` (not a gauge's liveness)
+        on_boats = (fr["vessel"]["active"] if ves and "active" in ves else None) or []
+        boats = sorted({rel.rid(r) for r in on_boats if isinstance(r, int)}
                        | {rel.rid(r[0] if isinstance(r, list) else r) for r in (ves.get("timed") or [])
                           if isinstance(r, (int, list))})
         out[("boats",)] = F("boats", boats, "; ".join(rel.title(b) for b in boats) or "no boat rule",
