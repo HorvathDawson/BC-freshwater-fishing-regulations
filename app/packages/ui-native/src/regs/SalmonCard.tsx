@@ -9,7 +9,8 @@
  * open row carries the header's sizes, and (T227) any row that may be fished carries the region notes about its species
  * (DFO's words: what an "adult chinook" is …), which the region block then leaves out. (T482, owner 2026-11-07) Sizes sit on
  * each species' row (closed rows too), the daylight rule is one `hours` line, and DFO's source block is a fold, closed by
- * default. No logic and no words of its own: everything is core `salmonCard`'s.
+ * default. (T796) Where the rule book closes the page's salmon today the head's badge, the fold's title and its first
+ * lines name the book (page, row, its words and dates). No logic and no words of its own: everything is core `salmonCard`'s.
  */
 import { useState } from "react";
 import { Image, View } from "react-native";
@@ -165,12 +166,19 @@ function SourceFold({ card, shown, palette }: {
       <CoachSpot k="regs:both">
         <RegsPress testID="salmon-source-summary" accessibilityRole="button" aria-expanded={open} onPress={() => setOpen(!open)} box={{ w: 44, h: 44 }}
                    style={{ minHeight: 44, flexDirection: "row", alignItems: "center", columnGap: 8, paddingVertical: 6 }}>
-          <Text testID="kicker:salmon-source" style={[TYPE.kicker, { flex: 1, color: palette.sub }]}>{SALMON_WORDS.sourceFold}</Text>
+          <Text testID="kicker:salmon-source" style={[TYPE.kicker, { flex: 1, color: palette.sub }]}>{card.sourceTitle}</Text>
           <Icon name={open ? "collapse" : "expand"} colour={palette.sub} size={16} />
         </RegsPress>
       </CoachSpot>
       {open && (
         <View testID="salmon-source-body" style={{ paddingBottom: 4 }}>
+          {/* (T796, owner 2026-11-16) the rule book's closures answering today: the book's page and row, its words */}
+          {card.book.map((b) => (
+            <View key={b.words} testID="salmon-book-source" style={{ paddingBottom: SPACE.s2 }}>
+              <Text testID="salmon-book-from" style={{ ...TYPE.metaBold, color: palette.accent }}>{b.from}</Text>
+              <Text selectable testID="salmon-book-words" style={{ ...TYPE.meta, color: palette.ink }}>{b.words}</Text>
+            </View>
+          ))}
           <Text testID="salmon-source" style={{ ...TYPE.metaBold, color: palette.accent }}>{card.source}</Text>
           <Text testID="salmon-asof" style={{ ...TYPE.meta, color: palette.sub }}>{card.asOf}</Text>
           {card.checked && <Text testID="salmon-checked" style={{ ...TYPE.meta, color: palette.sub }}>{card.checked}</Text>}

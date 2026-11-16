@@ -15,7 +15,8 @@
  */
 import { describe, expect, it } from "vitest";
 import { closeForFinfish, type RegsPage } from "./regs";
-import { decodeSalmonHead, salmonCard, salmonChainStatus, salmonDayProfiles, salmonStripOf, SalmonError, type SalmonFacts } from "./salmon";
+import { decodeSalmonHead, salmonCard, salmonChainStatus, salmonDayIndex, salmonDayProfiles, salmonStripOf, salmonTable, SalmonError,
+         type SalmonFacts } from "./salmon";
 import { salmonGlance } from "./glance";
 import { composeChain, feedTables, parseSalmonFeed, withSalmonFeed, type SalmonFeed } from "./salmonFeed";
 
@@ -157,5 +158,155 @@ describe("(T796 A6) a DFO \"Finfish closure\" closes the whole page, trout inclu
     const P = { ...FIN_PAYLOAD, verdicts: [...PAYLOAD.verdicts.slice(0, 2), { s: "closed", t: FINFISH }] };
     const card = salmonCard({ ...facts(P), chains: 2, chainOf: () => 1 }, { sids: [1], item: null }, OCT_10);
     expect([card.headline, card.finfish, closeForFinfish(OPEN_PAGE, card.finfish).status]).toEqual(["Closed today", [], "open"]);
+  });
+});
+
+// ── (T796, owner 2026-11-16 15:19) EVERY SURFACE NAMES WHERE A BOOK CLOSURE IS FROM ─────────────────────────────────────
+// "we need to make sure it says where the closure is from though": wherever the app shows the rule book's closure for
+// salmon it names the rule book, the page, the book's own line and its dates — and never calls it DFO's. The stretches
+// are three of the owner's (lane change list on the rebuilt salmon step of r-46e4355a7277): the book's words as
+// `deliver.salmon.book_rule` + `live.location_calendar` write them, its row and pages as `with_book_closures` puts them in
+// `p`; DFO's answer is one verdict for every species (its coho row), for brevity. Offline AND under a live feed.
+
+type Span = readonly [Date, Date];
+const on = (m: number, d: number) => new Date(2026, m - 1, d);
+const inSpans = (spans: readonly Span[], i: number) => spans.some(([a, b]) => i >= salmonDayIndex(a) && i <= salmonDayIndex(b));
+/** runs [start, value, …] over the file's 366 days */
+const runsBy = (v: (i: number) => number): number[] => {
+  const r: number[] = [];
+  for (let i = 0; i < 366; i++) { const x = v(i); if (!r.length || r[r.length - 1] !== x) r.push(i, x); }
+  return r;
+};
+const NOT_OPENED = { s: "closed", t: "Not opened by DFO: closed to salmon fishing", d: 1 } as const;
+const MAP = { open: 1, release: 2, closed: 3 } as const;
+interface Stretch {
+  book: { rule: string; r?: string; water: string; pages: number[]; words: string; on: readonly Span[] };
+  dfo: { lid: string; r: string; water?: string; sec?: string; v: { s: "open" | "release"; t: string }; on: readonly Span[] };
+}
+/** sid 1: DFO's place only; sid 2: the book's closure first, then DFO's (`with_book_closures`' chain) */
+function stretch(o: Stretch): { facts: () => SalmonFacts; feed: () => SalmonFeed } {
+  const B = `book:${o.book.rule}`, isB = (i: number) => inSpans(o.book.on, i), isD = (i: number) => inSpans(o.dfo.on, i);
+  const payload = {
+    format: "salmon/4", credit: PAYLOAD.credit, default: 0, scopes: {}, unmapped: [], gears: [],
+    regions: { [o.dfo.r]: { name: "Skeena", asof: "2026-08-28", url: "https://www.pac.dfo-mpo.gc.ca/", notes: [], shared: [], sizes: [] } },
+    verdicts: [NOT_OPENED, o.dfo.v, { s: "closed", t: o.book.words }],
+    chains: [
+      { r: [], w: "", l: [], sp: five([0, 0]), g: [0, -1], m: [0, 3] },
+      { r: [o.dfo.r], w: "w", l: [o.dfo.lid], sp: five(runsBy((i) => (isD(i) ? 1 : 0))), g: [0, -1],
+        m: runsBy((i) => (isD(i) ? MAP[o.dfo.v.s] : 3)), a: five(runsBy((i) => (isD(i) ? 0 : -1))) },
+      { r: [o.dfo.r], w: "w", l: [B, o.dfo.lid], sp: five(runsBy((i) => (isB(i) ? 2 : isD(i) ? 1 : 0))), g: [0, -1],
+        m: runsBy((i) => (isB(i) ? 3 : isD(i) ? MAP[o.dfo.v.s] : 3)), a: five(runsBy((i) => (isB(i) ? 0 : isD(i) ? 1 : -1))) },
+    ],
+    p: { [o.dfo.lid]: { r: o.dfo.r, ...(o.dfo.water ? { water: o.dfo.water } : {}), ...(o.dfo.sec ? { sec: o.dfo.sec } : {}) },
+         [B]: { ...(o.book.r ? { r: o.book.r } : {}), water: o.book.water, static: 1, book: { rule: o.book.rule, pages: o.book.pages } } },
+    static: { [B]: { sp: five(runsBy((i) => (isB(i) ? 2 : -1))), g: [0, -1] } },
+  };
+  return {
+    facts: () => facts(payload),
+    // the live feed: DFO's place only, its own verdict table (other indices)
+    feed: () => FEED({ regions: { [o.dfo.r]: { name: "Skeena", url: "", asof: "2026-10-01", checked: null, stale: false, held: null } },
+                       verdicts: [NOT_OPENED, { s: "open", t: "padding" }, o.dfo.v] as never,
+                       locs: { [o.dfo.lid]: { r: o.dfo.r, sp: five(runsBy((i) => (isD(i) ? 2 : 0))), g: [0, -1] } } }),
+  };
+}
+
+const BOOK_HEAD = "Closed to all fishing by the rule book";
+// the Bell-Irving, a Nass side stream in DFO's section C: the Skeena/Nass winter closure, Jan 1–Jun 15 (book p.49)
+const NASS_LINE = "No fishing: in any stream in the watersheds of the Skeena River upstream of Cedarvale or Nass River upstream of "
+  + "Kitsault Bridge, Jan 1-June 15 (NOTE: Nass River mainstem is EXEMPT and Skeena River mainstem upstream of Cedarvale is only "
+  + "closed Jan 1-May 31). See tables for other exceptions.";
+const NASS = stretch({
+  book: { rule: "z6:skeena_nass_winter_closure::skeena_nass_winter_closure.r2", r: "6", water: "Skeena and Nass watersheds",
+          pages: [49], words: `${BOOK_HEAD} (p.49): ${NASS_LINE} (Jan 1–Jun 15)`, on: [[on(1, 1), on(6, 15)]] },
+  dfo: { lid: "6:nass:c", r: "6", sec: "C", v: { s: "open", t: "4 per day, only 2 over 50 cm (Jan 1–Oct 31)" }, on: [[on(1, 1), on(10, 31)]] },
+});
+// the Skeena below the CNR bridge at Terrace, in an ecological reserve: closed all year (book p.9); DFO 4 a day Jul 29–Aug 16
+const RESERVE_LINE = "Fishing is prohibited in Ecological Reserves in B.C.";
+const RESERVE = stretch({
+  book: { rule: "zp:superior_closures::superior_closures.r3", water: "National Parks and Ecological Reserves", pages: [9],
+          words: `${BOOK_HEAD} (p.9): ${RESERVE_LINE}`, on: [[on(1, 1), on(12, 31)]] },
+  dfo: { lid: "6:skeena:cnr", r: "6", water: "Skeena River", v: { s: "open", t: "4 per day (Jul 29–Aug 16)" }, on: [[on(7, 29), on(8, 16)]] },
+});
+// the Yakoun, Yakoun Lake down ~13 km: closed Oct 1–Apr 30 (book p.19); DFO's section D open Apr 1–Oct 31
+const YAKOUN_LINE = "No Fishing from Yakoun Lake downstream approximately 13 km to fishing boundary signs, Oct 1-Apr 30";
+const YAKOUN = stretch({
+  book: { rule: "r1:yakoun_river@6-13::yakoun_river.r1", r: "1", water: "Yakoun River", pages: [19],
+          words: `${BOOK_HEAD} (p.19): ${YAKOUN_LINE} (Oct 1–Apr 30)`, on: [[on(1, 1), on(4, 30)], [on(10, 1), on(12, 31)]] },
+  dfo: { lid: "6:qci:d", r: "6", sec: "D", v: { s: "open", t: "4 per day, only 1 over 50 cm (Apr 1–Oct 31)" }, on: [[on(4, 1), on(10, 31)]] },
+});
+
+/** every surface a page shows for salmon, as its words: the card's head, its rows, the table's words and places, the
+ *  source fold, the year bar's name and day, the folded Keep row, and the map's colour of the stretch */
+function surfaces(F: SalmonFacts, day: Date) {
+  const card = salmonCard(F, { sids: [2], item: null }, day);
+  const t = salmonTable(card);
+  const strip = salmonStripOf(card, { runs: [], line: [], todayAt: 0 })!;
+  return {
+    head: [card.title, card.badge, card.headline],
+    rows: card.rows.map((r) => [r.label, r.statusLabel, r.notes, r.from]),
+    table: { says: t.says.flatMap((x) => x.lines), from: [...new Set(t.species.map((r) => r.from))] },
+    fold: { title: card.sourceTitle, book: card.book, source: card.source, note: card.note },
+    bar: [strip.title, strip.word],
+    glance: salmonGlance(card).value,
+    map: salmonChainStatus(F, 2, salmonDayIndex(day)),
+  };
+}
+const FOLD_BOOK = { title: "Sources (rule book and DFO)", source: "Fisheries and Oceans Canada · Region 6 Skeena",
+                    note: "Where the rule book closes a water to all fishing, salmon are closed there too (rule book p.77). "
+                      + "Elsewhere salmon are set by DFO, not the provincial regulations above. Both apply." };
+
+describe("(T796, owner 15:19) a book closure names the rule book — page, line, dates — everywhere, never DFO", () => {
+  for (const [how, live] of [["offline (the release)", false], ["under a live feed", true]] as const) {
+    const of = (s: ReturnType<typeof stretch>) => (live ? withSalmonFeed(s.facts(), s.feed()) : s.facts());
+
+    it(`${how}: the Bell-Irving (Nass, section C) Feb 15 — the Skeena/Nass winter closure, p.49, Jan 1–Jun 15`, () => {
+      const words = `${BOOK_HEAD} (p.49): ${NASS_LINE} (Jan 1–Jun 15)`, from = "Rule book p.49 · Skeena and Nass watersheds";
+      expect(surfaces(of(NASS), on(2, 15))).toEqual({
+        head: ["Salmon", "Rule book", "Closed today"],
+        rows: [["Salmon", "Closed", [words], from]],
+        table: { says: [words], from: [from] },
+        fold: { ...FOLD_BOOK, book: [{ from, words }] },
+        bar: ["Salmon (DFO and rule book)", "Closed"], glance: "closed", map: "closed",
+      });
+    });
+
+    it(`${how}: the Skeena in the ecological reserve below Terrace Aug 15 — p.9, all year, though DFO opens sockeye`, () => {
+      const words = `${BOOK_HEAD} (p.9): ${RESERVE_LINE} (all year)`, from = "Rule book p.9 · National Parks and Ecological Reserves";
+      expect(surfaces(of(RESERVE), on(8, 15))).toEqual({
+        head: ["Salmon", "Rule book", "Closed today"],
+        rows: [["Salmon", "Closed", [words], from]],
+        table: { says: [words], from: [from] },
+        fold: { ...FOLD_BOOK, book: [{ from, words }] },
+        bar: ["Salmon (rule book)", "Closed"], glance: "closed", map: "closed",
+      });
+    });
+
+    it(`${how}: the Yakoun's closed stretch Nov 15 is the book's (p.19, Oct 1–Apr 30); Jul 15 DFO's own answer, named DFO's`, () => {
+      const words = `${BOOK_HEAD} (p.19): ${YAKOUN_LINE} (Oct 1–Apr 30)`, from = "Rule book p.19 · Yakoun River";
+      expect(surfaces(of(YAKOUN), on(11, 15))).toEqual({
+        head: ["Salmon", "Rule book", "Closed today"],
+        rows: [["Salmon", "Closed", [words], from]],
+        table: { says: [words], from: [from] },
+        fold: { ...FOLD_BOOK, book: [{ from, words }] },
+        bar: ["Salmon (DFO and rule book)", "Closed"], glance: "closed", map: "closed",
+      });
+      const dfo = "4 per day, only 1 over 50 cm (Apr 1–Oct 31)";
+      expect(surfaces(of(YAKOUN), on(7, 15))).toEqual({
+        head: ["Salmon", "DFO", "Open today"],
+        rows: [["Chinook · coho · sockeye · pink · chum", "Open", [dfo], "Region 6 · D"]],
+        table: { says: [dfo], from: ["Region 6 · D"] },
+        fold: { title: "Source (DFO)", book: [], source: FOLD_BOOK.source,
+                note: "Salmon are set by DFO, not the provincial regulations above. Both apply." },
+        // the bar's year holds the book's days too: it is never named DFO's alone
+        bar: ["Salmon (DFO and rule book)", "Open"], glance: "open", map: "open",
+      });
+    });
+  }
+
+  it("a stretch with no book closure keeps DFO's names: the badge, the fold, the bar", () => {
+    const s = surfaces(YAKOUN.facts(), on(7, 15));
+    const dfoOnly = salmonCard(YAKOUN.facts(), { sids: [1], item: null }, on(11, 15));
+    expect([s.head[1], dfoOnly.badge, dfoOnly.sourceTitle, dfoOnly.book, salmonStripOf(dfoOnly, null)!.title])
+      .toEqual(["DFO", "DFO", "Source (DFO)", [], "Salmon (DFO)"]);
   });
 });

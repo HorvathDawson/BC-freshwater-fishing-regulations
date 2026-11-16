@@ -278,7 +278,7 @@ describe("(T227) the salmon year at the top of the Keep tab", () => {
   it("every place mapped: ONE bar for the page, no label; a day no rule opens is closed", () => {
     const c = salmonCard(facts(), { sids: [101], item: null }, JUL20);
     expect(c.year).toEqual({ bars: [{ label: null, unmapped: false, today: "open", todayWord: "open",
-      runs: [{ status: "closed", days: 195 }, { status: "open", days: 40 }, { status: "closed", days: 130 }] }] });
+      runs: [{ status: "closed", days: 195 }, { status: "open", days: 40 }, { status: "closed", days: 130 }] }], by: "dfo" });
   });
 
   it("a page across places that differ: still one bar, `varies` on the days they differ", () => {
@@ -319,7 +319,7 @@ describe("(T227) the salmon year at the top of the Keep tab", () => {
 
   it("(owner 2026-11-13, Capilano) salmon closed all year beside a provincial bar closed all year: its own bar, like game fish's", () => {
     const card = { headlineStatus: "closed", year: {
-      bars: [{ label: null, unmapped: false, today: "closed", todayWord: "closed", runs: [{ status: "closed", days: 365 }] }] } } as never;
+      bars: [{ label: null, unmapped: false, today: "closed", todayWord: "closed", runs: [{ status: "closed", days: 365 }] }], by: "dfo" } } as never;
     for (const general of [{ runs: [{ bits: 1 }], line: [{ kind: "when", text: "today" }], todayAt: 316 / 365 },
                            { runs: [{ bits: 1 }, { bits: 0 }], line: [{ kind: "when", text: "today" }], todayAt: 316 / 365 }]) {
       const s = salmonStripOf(card, general)!;
