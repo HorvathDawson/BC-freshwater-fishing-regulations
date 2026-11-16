@@ -1113,7 +1113,7 @@ reopens Nov 1.
   so there is nothing to order). Not on the morning list. My reading for later sweeps: rest-of is only for a place
   that overlaps the stretches it lists; "all other" wording alone does not make one.
 
-- 2026-11-15 23:55, trout display ROUND 3 is on the same page (https://claude.ai/artifact/EopBgDtf8eu4LGZpYixSkH):
+- 2026-11-15 23:48, trout display ROUND 3 is on the same page (https://claude.ai/artifact/EopBgDtf8eu4LGZpYixSkH):
   the folded row's answer for every case, five placements for the size on 20 waters, the shared answer box under
   stress, nine more real waters with odd groupings (Kaslo, Kitimat, Williston Lake zones A and B, Ross Lake, Bella
   Coola spring and summer, Tagish, Inkaneep). Still exploration; nothing in the app changes. Notes:

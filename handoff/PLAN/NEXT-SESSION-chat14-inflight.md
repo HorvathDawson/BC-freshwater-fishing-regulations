@@ -21,11 +21,23 @@ owner's words tonight, verbatim). The owner is asleep or about to be; the overni
 - Trout display exploration (Fable): page https://claude.ai/artifact/EopBgDtf8eu4LGZpYixSkH, rounds 1 and 2
   published; round 3 running (owner's feedback in OWNER-TODO). Nothing waits on it (owner's word).
 
-## Running at 23:26
-- `pipeline build --hold-latest` (heavy lane 1, log `<scratch>/logs/build-2.log`): reach, tiles, deliver.
-- Trout display round 3 (the design agent; it updates `<scratch>/trout-display/trout-display.html`; republish that same
-  path with the Artifact tool, after reading it).
-- App chat (session `bc-freshwater-fishing-regulations-01`): six R8 benches on lane 2 until about 00:40.
+## Running at 23:50
+- **The 23:26 build STOPPED** (I stopped it at 23:42). Two causes, separate:
+  1. The reach run REFUSED (T632 gate): piece `355998688:691`, a 122 m Shuswap side-channel piece at the Mabel Lake
+     delta, "straddles the cut" for the two Middle Shuswap places whose saves landed tonight. Ticket **T778**; a fix
+     lane (Opus, worktree, branch `data/t778-delta-side-channel`) diagnoses, fixes, runs a full reach into
+     `<scratch>/t778/` and diffs bindings. I read its diff, merge, run the full tier, THEN restart
+     `pipeline build --hold-latest` (lane 1). If the fix is not clean: hold the two Shuswap places at their state before
+     tonight's apply (revert only their two T185 apply commits; the marks then show as "not landed") and say so.
+  2. The DISK FILLED (1.3 GB free at 23:38). The system temp folder held 184 GB: 151 GB in about 31,800
+     `release-open-*` folders left by app test runs (never removed; macOS purges after 3 days). I deleted those older
+     than 6 hours; 163 GB free at 23:48. The app chat was told (its tests make them; it files the ticket). If the
+     disk fills again: `du -k -d 1 $TMPDIR | sort -n | tail`.
+- Full pipeline CI tier on the head (lane 3, log `<scratch>/logs/ci-tier-5.log`).
+- Trout display round 3: DONE and republished (same link, version 3); five questions in OWNER-TODO and on the To-Do
+  row.
+- App chat (session `bc-freshwater-fishing-regulations-01`): R8 benches on lane 2 until about 00:40; told at 23:50
+  that the staging release will not start before about 01:30.
 
 ## Next, in order
 1. Build done → read it (deliver gates, size gates, part names); if it stops, fix the cause.
@@ -50,18 +62,12 @@ owner's words tonight, verbatim). The owner is asleep or about to be; the overni
    every open question, all regions; update the To-Do page rows (`sl-*`, `trout-display-options`), STATUS.md top
    entry, START-HERE pointer.
 
-## Tickets to file (numbers: main chat takes T770 onward; the app chat has T762-T769)
-- Gear lines do not stack across places (`salmon.gear_on`); chain size counts side-stream sections; a build check
-  for equal-tier equal-size places that disagree.
-- Kitsumkalum Lake "including tributaries" takes 16 side-channel pieces of its through-river.
-- Kitsault tidal boundary name (a mouth row's label is fixed in code).
-- Kitimat west bank: cannot be saved undrawn (no "no extent" form); still whole width until T754.
-- Review app: a rest-of with no sections of its own previews "binds NOTHING alone — the build refuses it" (it does
-  not); the rest-of checklist fills only after a preview; listed places not drawn on the map.
-- Audit tool: `audit.load` keeps the last `splits.resolved.json` row per cut id (32 ids read a side line); section F
-  does not model `reach/channels.py`.
-- `dfo.cannot_edit_words` says "above its point" for a `downstream_of` watershed extent.
-- The anchors scanner did not catch five tests that read live curated state through app code.
+## Tickets filed tonight (main chat: T770 to T778; the app chat has T762-T769)
+T770 gear lines do not stack (owner's yes needed) · T771 chain size and the equal-places check · T772 lake takes its
+through-river's side channels (Kitsumkalum) · T773 tidal boundary name (Kitsault) · T774 a place cannot be saved
+undrawn (Kitimat) · T775 review app rest-of leftovers · T776 audit tool faults · T777 anchors scanner gap · T778 the
+Shuswap delta piece (blocks the release). Still to file after the release: Kitimat wild rainbow limit 1 not on the
+card, and Ross Lake's headline 2 against a daily total of 4 (both from the trout review, round 3).
 
 ## Rules that bit tonight
 - Read `date` before writing a time: estimated stamps ran 30 minutes fast.
