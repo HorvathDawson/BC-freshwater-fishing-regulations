@@ -359,7 +359,10 @@
         "gnis:11481",
         "gnis:13499",
         "gnis:25152",
-        "gnis:8341"
+        "gnis:8341",
+        "blk:355992187",
+        "blk:355991777",
+        "blk:355994562"
       ],
       "tributaries": null,
       "match": {
@@ -374,7 +377,7 @@
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
-      "note": ""
+      "note": "owner 2026-11-15 (round 3, Fraser and Squamish side channels: \"Add all five (Recommended)\"): added blk:355992187, blk:355991777, blk:355994562, the river's own side channels its places dropped (handoff/PLAN/curation-review/fraser-channels-2026-11-15.md)"
     },
     {
       "water_id": "2:harrison-river",
@@ -863,7 +866,8 @@
       "aliases": [],
       "sections": [],
       "item_ids": [
-        "gnis:25671"
+        "gnis:25671",
+        "blk:360219234"
       ],
       "tributaries": null,
       "match": {
@@ -878,7 +882,7 @@
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
-      "note": ""
+      "note": "owner 2026-11-15 (round 3, Fraser and Squamish side channels: \"Add all five (Recommended)\"): added blk:360219234, the river's own side channels its places dropped (handoff/PLAN/curation-review/fraser-channels-2026-11-15.md)"
     },
     {
       "water_id": "2:stave-river",
