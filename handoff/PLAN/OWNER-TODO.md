@@ -2026,3 +2026,8 @@ More questions (recommended answer first):
   wild-2 lakes; 3 waters, Region 2, all stricter). Answer, picked: "Go (Recommended)". So: part C (commit 0f6fe2868 on
   `lane/t805-trout-data-gaps`) lands with the full tier and ships in the next staging release. Parts B and D still to
   come to him as their own lists.
+- 16:18, Thompson closed area Deadman (mark 2748; he had said "Find out why, then show
+  me"). Why: the APP'S DATA WAS RIGHT; the drawing tool behind picture 31 started the yellow at the bridge's own measure
+  (117,608) and snapped it to the nearest section edge, the river gauge 08LF033 (117,094), so it drew 4.6 km and read
+  "495 m". The built cut is at 116,608: 999 m below the Hwy 1 bridge; closed area 3.6 km to the CN rail bridge. The
+  redrawn picture was sent. Answer, picked: "Right (Recommended)". So: mark 2748 stands; nothing changes.
