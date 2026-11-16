@@ -1053,3 +1053,8 @@ page with a recommended answer each. Notes: `handoff/PLAN/design/trout-display-r
 until you pick; the build is the app chat's. Two possible defects it saw in the data (to be checked): Kootenay Lake's
 rainbow line drops "over 50 cm" from "20 a year / record"; a Fraser stretch shows "closed from Oct 1" without saying it
 reopens Nov 1.
+- 22:40, typed in chat, after reading the trout display page: "i accideenetly asked other chat to do this so coordiante
+  with them. but please expand and refine the a/b design idea. see if we can make it super simple and clean with the
+  fish icons in the table format?" Started: round 2 of the design review (same page, same link): options A and B
+  merged into one table of fish rows with the app's own fish drawings, a few close variants, more hard waters. The app
+  chat was told so the work is done once; the build of what he picks stays with the app chat.
