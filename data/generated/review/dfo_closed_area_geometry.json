@@ -39,7 +39,7 @@
     }
    ],
    "confidence": "low",
-   "note": "the Juniper upper signs are the owner's choice (two DFO descriptions 2.8 km apart)"
+   "note": "upper signs 4 km above DFO's printed lower signs: owner 2026-11-15 night, \"if the book says 4km then we put it 4km unless i had another split it already matched??\"; no cut exists at or near that spot (Thompson blk 356364690: lower signs m 93,016, upper m 97,016; nearest curated cuts m 81,551 and m 112,992; the atlas length break 'Battle Creek' at m 94,206 is a section break, not a sign), so a new cut"
   },
   {
    "key": "c76883c57564",
@@ -230,12 +230,12 @@
    "on_item": "gnis:25478",
    "points": [
     {
-     "kind": "new",
-     "split_id": "shuswap_closed_station_as_printed"
+     "kind": "split",
+     "split_id": "gauge__08LC003"
     },
     {
      "kind": "new",
-     "split_id": "shuswap_closed_wtfb_as_printed"
+     "split_id": "shuswap_closed_station_as_printed"
     }
    ],
    "confidence": "low",
@@ -269,7 +269,7 @@
    "offset_m": 4000,
    "confidence": "low",
    "quote": "Juniper - from the fishing boundary signs approximately 1.5 km downstream from Juniper Beach Park downstream approximately 4 km to the fishing boundary signs located at 50°46.893' N and 121°08.110' W.",
-   "note": "placed 4,000 m up the river from DFO's own coordinate for the lower signs. The other reading, 1.5 km below the park's downstream boundary, lands 2.8 km further down (the closed area would be 1.2 km long, not 'approximately 4 km'): the owner's call"
+   "note": "placed 4,000 m up the river from DFO's own coordinate for the lower signs (owner 2026-11-15 night: \"if the book says 4km then we put it 4km\"); the other reading (1.5 km below Juniper Beach Park) is not used"
   },
   {
    "ref": "thompson_juniper_lower_signs",
