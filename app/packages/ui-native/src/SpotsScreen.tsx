@@ -24,6 +24,7 @@ import { TYPE } from "./type";
 import { GUTTER, type Palette } from "./theme";
 import { hitProps } from "./regs/hit";
 import { CoachSpot } from "./CoachMarks";
+import { OpenSettings } from "./OpenSettings";
 
 export function SpotsScreen({ palette, vm, onOpen, onShow, onAdd, onRefresh, refreshing, error, photoStore }: {
   palette: Palette; vm: SpotsMenuVM;
@@ -65,6 +66,7 @@ export function SpotsScreen({ palette, vm, onOpen, onShow, onAdd, onRefresh, ref
         {error ? (
           <ErrorState palette={palette} message={error} style={{ paddingHorizontal: 20, paddingTop: 12 }} />
         ) : null}
+        <OpenSettings palette={palette} line={error} />
         {vm.adds.map((a, i) => (
           // (T466) the walkthrough's "Add one" rings Pick on the map
           <CoachSpot key={a.k} k={a.k === "pick" ? "spots:pick" : `spots:${a.k}`}>
@@ -88,6 +90,7 @@ export function SpotsScreen({ palette, vm, onOpen, onShow, onAdd, onRefresh, ref
           <Text testID="spots-note" style={{ ...TYPE.small, fontSize: 12, color: palette.sub, paddingHorizontal: 20,
                                              paddingTop: 10, paddingBottom: 16 }}>{vm.note}</Text>
         )}
+        <OpenSettings palette={palette} line={vm.note} />
       </ScrollView>
     </View>
   );

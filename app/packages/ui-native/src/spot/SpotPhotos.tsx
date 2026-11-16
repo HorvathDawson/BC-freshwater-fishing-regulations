@@ -11,6 +11,7 @@ import { TYPE } from "../type";
 import { round, type Palette } from "../theme";
 import { Button } from "../Button";
 import { Icon } from "../icons";
+import { OpenSettings } from "../OpenSettings";
 import { hitProps } from "../regs/hit";
 import { Block } from "./parts";
 import { PhotoViewer } from "./PhotoViewer";
@@ -71,6 +72,7 @@ export function SpotPhotos({ photos, uris, pe, palette }: {
       {pe?.error ? (
         <ErrorState palette={palette} message={pe.error} />
       ) : null}
+      <OpenSettings palette={palette} line={pe?.error} inset={0} />
     </Block>
   );
 }

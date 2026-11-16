@@ -48,5 +48,5 @@ export type { UpdatesLogControls, UpdateChannelKey } from "./menu/UpdatesLogPage
 export { ReportLink, WaterReportLink } from "./menu/ReportLink";
 export * from "./theme";
 export { preloadParts } from "./part";
-export { openLinkShown } from "./openLink";
+export { openLinkShown, setLinkFailedSink } from "./openLink";
 export { platformLine } from "./platformLine";

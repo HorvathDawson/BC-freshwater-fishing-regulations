@@ -86,3 +86,92 @@ here: wrap the credits Modal in ModalBack after ios/t723-keyboard-back merges, a
 - **Conditions → Alert me: the decimal pad covers the value field** (field 780 to 821 pt, keyboard top 566 pt; shot in the
   `next-ios-s2` session folder). The keyboard scenario records this step and marks it PASS; it is the "alert box on the
   Conditions card" this ticket listed as not proven. To fix here with the same lift the Notifications fields got.
+
+## Keyboard and modal back (branch ios/t723-keyboard-back, 2026-11-14)
+Simulator iPhone 17e (390 × 844 pt, iOS 26.5), software keyboard on, staging data. Scenarios `run-ios.mjs keyboard` and
+`modal-back` (by name only, `inAll: false`). The keyboard is not in the accessibility tree: its top is read off the
+screenshot's pixels (`lib/png.mjs keyboardTop`, checked by eye on shots with and without iOS 26's violet typing glow);
+the field's frame comes from `maestro hierarchy`. Before = build 541e5fd5f (no fix), runs b4–b6. After = keyboard on
+builds 9d24b7d44 / fc9b788d8 (runs a1, a2: same keyboard code as the head), modal back on build 8c8497669 (runs a4, a5).
+Shots (downscaled JPEG): `handoff/PLAN/ios/shots/t723/` (`before-*`, `after-*`).
+
+### F2: the keyboard over a field (keyboard top 510 pt; number pad 537 pt)
+Fix: `automaticallyAdjustKeyboardInsets` on the two scrolls that hold the fields, `menu/MenuPage.tsx` and
+`SpotScreen.tsx` (iOS only: Android resizes its window and ignores the prop). It insets the scroll by the keyboard's
+overlap and scrolls the focused field above it, measured natively in window coordinates, so it is right in a Modal and in
+a pane alike. The draft's `keyboardLift` hook + `useKeyboardLift` wrapper were dropped: a JS padding needs each host's
+distance to the window bottom and would double the native inset; no reproduced field sat in a host the prop cannot reach.
+| Field | Before | After |
+|---|---|---|
+| Report a problem, "what happened" | clear (399–508 pt, one line) | clear (399–508 pt) |
+| Glossary search | clear (top, 158–200 pt) | clear (shot; the tree read empty once in a2) |
+| Notifications → Add an alert, gauge search | **covered** (575–616 pt, wholly under the keyboard; its hits too) | clear (467–508 pt); the hits scroll up above it |
+| Notifications alert editor, value (decimal pad) | clear (Maestro scrolled it to 378–419 pt first) | clear (364–405 pt), with the Done bar |
+| New spot: title | clear (top of the page) | clear (117–151 pt) |
+| New spot: notes | **covered** (last on the page: nothing could scroll it above the keyboard) | clear (476–509 pt) |
+| New spot: the Save row (pinned under the scroll) | under the keyboard | still under it (744 pt): `keyboardDismissMode="interactive"` added (a drag down the page takes the keyboard with it, iOS only; Android treats it as "none"); not tried by the bed |
+| A water's Conditions → Alert me, value | not reached (the bed's scroll began on the page's small map) | not proven: the value box sat at the screen's bottom edge and the tap raised no keyboard (a1, a2) |
+
+### G10
+| Probe | Before | Fix | After |
+|---|---|---|---|
+| Number pads: a Done / return key | **absent**; a tap on the page head closes the pad | `DoneBar` (`DoneBar.native.tsx`: `InputAccessoryView`, returns null off iOS) on both `AlertMe` number fields (`inputAccessoryViewID`) | **Done shown, closes the pad** (a1) |
+| Gauge search autocorrect ("Coquihala " typed) | **not reproduced**: read back unchanged in b5, b6 (an earlier "TCoquihala" was the bed tapping the field under the keyboard: it hit the T key) | none | — |
+| One tap on a button with the keyboard up | not testable: every target (gauge hits, Save spot) lay under the keyboard | `keyboardShouldPersistTaps="handled"` on the MenuPage and SpotScreen scrolls (Android runs it too: there the same first tap also only dropped the keyboard) | **not proven**: the first hit sits at the keyboard's top edge and the bed's tap landed on the keyboard (a2). A thumb check. |
+
+### F7: left-edge swipe over a Modal (start 8 pt from the edge, mid height; 300 ms, then 1200 ms)
+Fix: `ModalBack` (`ModalBack.{d.ts,native.tsx,web.tsx}` + `modalEdge.ts`) around the content of `MenuPage`, `Sheet` (both
+its forms), `PdfViewer.native` and `PhotoViewer`, calling the Modal's own `useBackLayer` back (what Android's back calls
+through `onRequestClose`). It is a 16 pt strip down the left edge (the page gutter: no control under it loses a tap) with
+React Native's own responder; the drag decision is `@app/ui` `useEdgeBack` (80 pt or a flick), as the Shell's
+`EdgeBack`. Off iOS (`edgeBackEnabled`) the children are drawn untouched. Two earlier versions failed on the simulator:
+an RNGH recogniser (inside a Modal RNGH attached its root once to a 0 × 0 view; a1) and a responder on the whole content
+(a menu page's native scroll took the drag; a3).
+| Modal | Before | After (a4, a5) |
+|---|---|---|
+| About (menu page) | stays (300 and 1200 ms) | **closes** (300 ms), back on More |
+| Help (menu page) | no valid run: the bed took the screen from the tallest node (Help's content is 3374 pt) and its drag began off screen; same host as About | **closes** (300 ms) |
+| Layers (sheet) | stays (both) | **closes** (300 ms), the map under it untouched |
+| PDF viewer (Rule book link) | no valid run (same off-screen drag) | **closes** (300 ms), back on Cultus Lake's page (one step) |
+| Photo viewer (a spot's photo, enlarged) | not reached (no spot with a photo then) | **closes** (300 ms), back on the spot |
+
+### Android
+Inert by construction and by test: `edgeBackEnabled("android")` is false, so `ModalBack` draws its children as they are
+(`ModalBack.native.test.tsx`: no strip, a drag never taken); `DoneBar` returns null off iOS (test);
+`automaticallyAdjustKeyboardInsets` and `keyboardDismissMode="interactive"` have no Android implementation (RN
+`ScrollView.js`: "On Android this is not supported and it will have the same behavior as 'none'"; no Android reader of
+the inset prop). The one shared behaviour change is `keyboardShouldPersistTaps="handled"` (both platforms: a tap on a
+control with the keyboard up acts at once).
+
+### Lines proposed for other lanes' files (not edited here)
+- `ConditionsPanel.tsx` / the water pane's scroll (Shell lane): the same two props on the ScrollView that holds the
+  Conditions card, `automaticallyAdjustKeyboardInsets keyboardShouldPersistTaps="handled"`, so the Alert me value box
+  rises above the keyboard. Unproven which ScrollView that is from here (`WaterViews.tsx:124` mounts the panel).
+- `SpotCapture.tsx`: none needed (the draft is `SpotScreen`, fixed here).
+
+### Not proven
+A real thumb (all drags are Maestro's), keyboard heights on other models (only the 17e's 510 / 537 pt), iPad's floating
+keyboard, VoiceOver over the edge strip (it has no label and takes no focus), the Conditions alert box, the one-tap probe,
+and the Save row reached by the interactive dismiss.
+
+## Audit fixes (branch ios/audit-fixes, 2026-11-14)
+Each fixed on the branch, one commit each; tests per change; nothing built or run on a device. "Sim" = the one-line iOS simulator proof; "And" = the one-line Android check.
+- **G2 fixed.** `apps/mobile/src/App.tsx` (apply listener) + new `returnedFromBackground.ts` (pure, tested). A staged release is applied only on `background -> active`. The two other `!== "active"` listeners (update check, `useResumed`) are left: a check or a "today" re-read on `inactive -> active` swaps nothing under the reader. Sim: stage an update (`test-updates.mjs`), open regs, pull Control Center down and release: the page does not re-boot; send the app Home and return: it does. And: background and return applies as before (Android has no `inactive`).
+- **G8 fixed.** core `directionsUrl(os, lat, lon)` (`spotWords.ts`), `openDirections` in `ui-native/src/openLink.ts`, one line in `shell/SpotHost.tsx` (the only `shell/` line touched). iOS opens `http://maps.apple.com/?daddr=lat,lon`, others the same Google URL as before. Sim: a spot with parking, Directions: Maps opens. And: Directions still opens Google Maps (URL byte-identical, tested).
+- **G9 fixed.** core `linkFailedLine(url)`; `openLink` hands it to a sink the app sets (`setLinkFailedSink`, App.tsx -> the existing bottom toast) and still reports. Names the mail draft, directions, or the host. Sim: More > Report a problem > Email with no Mail account: toast "Could not open an email draft. Is a mail app set up on this phone?". And: airplane-free check: tap a link with no handler (e.g. a PDF with no viewer) shows "Could not open www2.gov.bc.ca."
+- **G6 fixed (camera, location; photo-library has no permission on either platform).** core `permissions.ts` (`needsSettings`, `CAMERA_REFUSED`, `OPEN_SETTINGS`), `ui-native/src/OpenSettings.{d.ts,native.tsx,web.tsx}` (web draws nothing), under the Spots note, the Spots add error, the My-location notice and the photo error. `pickPhoto.native.ts` now throws `environmentError` (shown, not reported). `ui/src/mapRail.ts` `addMine`: a refusal says location is off (was "could not be read"), and a non-refusal failure is now reported. Not done: the parking "Use my location" line in `shell/SpotHost.tsx` (stay-out file) still says "Could not find your location." with no button and reports nothing: proposed lines `locate.here().then(..., (e) => { reportFailure(e); setParkingNotice(refusedLine(e) === MY_LOCATION.denied ? MY_LOCATION.denied : SPOT_WORDS.parkingNoFix); })`, then render `<OpenSettings palette={palette} line={parkingNotice} />` under the notice in `SpotScreen`. Sim: `xcrun simctl privacy booted revoke location ca.canifishthis.app`, Spots tab: the note shows "Open Settings" and it opens the app's Settings page; deny the camera on a real phone: same under the photo error, no crash-inbox entry. And: revoke location in app info, Spots tab: same button opens App info.
+- **G5 fixed.** core `approxFix.ts`: `ROUGH_FIX_M = 100` (the bar `locate.native.ts` holds a recent fix to, `requiredAccuracy: 100`); `captureAtDetail(accuracy)` appends "Your phone placed you only to about 3.2 km, so this pin may not be where you are." to the capture's "Tap the stream or lake..." line. The fix's `accuracy` rides on the `addSpot` point (`route.ts`, `mapRail.ts` types) to `SpotCapture.tsx`. Never blocks. Not done: the parking pin "here" (`shell/SpotHost.tsx`, stay-out): it can pass `f.accuracy` to a notice the same way (`roughFixLine(f.accuracy)` in `@app/core`). Sim: Settings > Privacy > Location > the app > Precise off; Spots > At my location: the sentence shows under the title. And: Settings > Location > app > Use approximate: the same.
+- **G11 fixed.** `ChangelogEntry.only` (note text -> platform; `notes` unchanged so `build-apk.sh`, Play notes and `check-changelog.mjs` read it whole); `changelogVM(installed, log, os)`; `InfoPages.tsx` passes the platform. Four notes tagged android (0.7.8 pinch glide, 0.6.5 Google Play, 0.6.4 screen readers "on Android", 0.5.0 "on Android"); a version left empty for iOS is not listed. Tests: Android rows equal the file's notes byte for byte; iOS text never says Google Play, Android or APK. Sim: More > About > What's new has no Play or Android words. And: the same page is unchanged. Web also now omits the four Android-only notes (it is "web", not Android). Not covered: the update prompt's incoming notes come from the published version file (Android's pipeline).
+- **Arrow (item 7) fixed in one place.** `ui-native/src/textPresentation.ts` + `Text.tsx`: on iOS only (`Platform.select`), every string child gets U+FE0E after an emoji-capable symbol (arrows U+2194-2199, U+21A9/21AA, U+25B6, U+25C0, U+26A0, U+2714, U+2716, U+2139, U+2B05-2B07, U+27A1). Android and web get the very same children object back (tested), so their output is unchanged. In the app's strings that is `↗` (`LINK_OUT`, the book link), `↩ Release`, and three `⚠` titles (`core/src/regs/words.ts`). `✓ ⓘ ☰ ⊘` have no emoji form and are left. Could not judge without a simulator: whether FE0E fixes `↗` on the iOS font stack (the Apple font may still draw a tile), `↗` inside `accessibilityLabel` and the map's native text (credits, style labels: not through `Text`), `⚠` in `workers/feeds` strings (not app UI). Sim: Regs page, "Rule book p.7 ↗" is a plain arrow, not a blue tile. And: the same line is unchanged.
+
+### Simulator proof of the audit fixes (2026-11-14, iPhone 17, iOS 26.5, build of the branch `--testbed`)
+Scenario `app/tools/testbed/scenarios-ios/audit-fixes.mjs` (`run-ios.mjs audit-fixes`, by name). Shots in `handoff/PLAN/ios/shots/audit-fixes/`.
+- **Arrow: proven** (`arrow.jpg`). The link reads "This water in the rule book p.7 ↗" with U+FE0E after the arrow (read from the accessibility label); the arrow's pixel crop is 25x26 px, fill 0.17 (thin strokes), colour within 29 of the link text's. A plain arrow in the link colour, not a blue tile. `⚠` titles and `↩ Release` were not on the water reached (Cultus Lake): not looked at on a screen, unit-tested only.
+- **G7: proven** (`g7-prompt.jpg`). Prompt: "Allow “Can I Fish?” to use your location?" / "Allow Can I Fish This? to centre the map on where you are and to pin a spot where you are standing. It stays on this device." (The title carries the home-screen name "Can I Fish?", by design.)
+- **G6: failed, then fixed, then proven** (`g6-spots.jpg`, `g6-map.jpg`, `g6-settings.jpg`). First build: the button existed but its accessibility label hid its words and it sat flush left (shot read from the first run); fixed (own words as its name, inset like the line). Second build: "Open Settings" under the Spots refusal line and under the map's "Location is off for this app..." line; a tap brings the Settings app to the front (root Settings list on the simulator, with a "Can I Fish?" back link at the top left). Not provable here: the camera refusal (no simulator camera permission), tested in unit tests only.
+- **G8: proven** (`g8-spot.jpg`, `g8-after.jpg`). A seeded spot with a parking pin; Directions brought the Maps app to the front (Maps running, Safari not running), no Google Maps page. Maps then raised its own location prompts: answered by the scenario.
+- **G11: proven** (`g11-top.jpg`, `g11-bottom.jpg`). 17 version rows read down to 0.1.0 (175 lines), none says Google Play, Android or APK; 0.6.5 (its only note was Android's) is not listed.
+- **G9: not provable on the simulator.** This build's Contact page has no mail link, and no other link is refused on the simulator; the toast line and the report are unit-tested (`openLink.test.ts`, `linkFailed.test.ts`).
+- **G5: not provable on the simulator.** "Open Settings" lands on Settings' root list and its search did not lead to the app's Precise Location switch in two tries; unit-tested (`approxFix.test.ts`, `mapRail.render.test.tsx`).
+- **G2: not proven.** A release was staged on the test channel; across a Notification Center pull-down and a background return the app logged no `[swap] apply` line at all (0, 0, 0), so there is no positive control: either it was not staged in time or the probe line is not reached by this method. Unit-tested only (`returnedFromBackground.test.ts`). A way to prove it: stage, read "Release, staged" in the Updates log, then the same two gestures.
+- The first step of the last run failed on an unrelated stray dialog (a leftover tap path); the earlier run's pass for the arrow, G7 and G6 stands (same build, same scenario code for those steps).

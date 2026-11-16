@@ -41,7 +41,11 @@ async function downloadSynopsis(s: SynopsisSource, hooks: Partial<LoadHooks> = {
     if (net?.online && !net.online()) await net.waitOnline?.(hooks.signal);
     if (part.exists) part.delete();
     const task = new DownloadTask(url, part, { signal: hooks.signal, sessionType: "foreground",   // (T313) iOS: as install.native.ts
-      onProgress: (p) => hooks.onProgress?.(p.bytesWritten, p.totalBytes > 0 ? p.totalBytes : (s.bytes > 1 ? s.bytes : null)) });
+      // (T722, T718) iOS hands Int64s (BigInt in JS): numbers here, as Android's already are
+      onProgress: (p) => {
+        const written = Number(p.bytesWritten), total = Number(p.totalBytes);
+        hooks.onProgress?.(written, total > 0 ? total : (s.bytes > 1 ? s.bytes : null));
+      } });
     try {
       if (!(await task.downloadAsync())) throw new Error(`${url}: the download stopped`);
       if (s.bytes > 1 && part.size !== s.bytes) throw new Error(`${url}: ${part.size} bytes, expected ${s.bytes}`);

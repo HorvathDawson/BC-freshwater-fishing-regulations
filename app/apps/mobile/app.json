@@ -19,7 +19,7 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Allow Can I Fish This? to pin a spot where you are standing. It stays on this device.",
+          "locationWhenInUsePermission": "Allow Can I Fish This? to centre the map on where you are and to pin a spot where you are standing. It stays on this device.",
           "locationAlwaysAndWhenInUsePermission": false,
           "locationAlwaysPermission": false,
           "motionUsagePermission": false,

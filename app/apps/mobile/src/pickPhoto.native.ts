@@ -10,6 +10,7 @@
  * whole by the screen (`photoFailed`).
  */
 import * as ImagePicker from "expo-image-picker";
+import { CAMERA_REFUSED, environmentError } from "@app/core";
 import type { PhotoSource, PickedPhoto } from "@app/data/spots";
 
 /** What this platform can offer. */
@@ -22,7 +23,8 @@ export async function pickPhoto(from: PhotoSource): Promise<PickedPhoto | null> 
   };
   if (from === "camera") {
     const allowed = await ImagePicker.requestCameraPermissionsAsync();
-    if (!allowed.granted) throw new Error("the camera was not allowed");
+    // (T723 G6) a refusal is the environment's (shown with "Open Settings", never reported)
+    if (!allowed.granted) throw environmentError(new Error(CAMERA_REFUSED));
   }
   const got = from === "camera"
     ? await ImagePicker.launchCameraAsync(options)

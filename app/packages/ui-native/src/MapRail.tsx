@@ -17,6 +17,7 @@ import { TYPE } from "./type";
 import type { Palette } from "./theme";
 import { hitProps } from "./regs/hit";
 import { useCoachRefs } from "./CoachMarks";
+import { OpenSettings } from "./OpenSettings";
 
 /** One button of the stack: 44 px square (T258, owner 2026-10-29: grown from 40 so the web reaches the 44 target as drawn). */
 const SIZE = 44;
@@ -97,6 +98,7 @@ export function MapRail({ palette, onLayers, layersChanged = 0, top = 0, me, chi
         <Text style={{ ...TYPE.small, color: palette.ink }}>{me.notice}</Text>
       </Pressable>
     )}
+    <OpenSettings palette={palette} line={me?.notice} inset={0} />
     {children}
     </View>
   );

@@ -13,7 +13,7 @@
  * Draws `useNotifications` (@app/ui) in core's words; decides nothing. Every control a 44 px target with its label.
  */
 import { useState } from "react";
-import { TextInput, View } from "react-native";
+import { Platform, TextInput, View } from "react-native";
 import { alertListLine, NOTIFY_WORDS, runLine, type AlertQuantity, type GaugeAlertRule } from "@app/core";
 import type { StationId, WaterSource } from "@app/data";
 import { useAlertGauges, useGaugeParameters, type AlertGauge, type NotificationsVM } from "@app/ui";
@@ -171,7 +171,9 @@ export function NotificationsPage({ n, palette, source = null }: {
                   onPress={n.openSettings} />
         )}
         {n.error && <Text testID="notify-error" style={{ ...TYPE.small, color: palette.closed }}>{n.error}</Text>}
-        <Text style={{ ...TYPE.small, color: palette.sub }}>{W.intro}</Text>
+        {/* (T722 F3) a word per platform (AGENTS 34a: Platform.select): iOS promises no interval, the OS decides */}
+        <Text testID="notify-intro" style={{ ...TYPE.small, color: palette.sub }}>
+          {Platform.select({ ios: W.introIos, default: W.intro })}</Text>
       </Card>
 
       <View style={{ gap: SPACE.s2 }}>

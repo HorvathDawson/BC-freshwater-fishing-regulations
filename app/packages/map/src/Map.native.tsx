@@ -692,7 +692,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     const [x, y] = Array.isArray(ne.point) ? ne.point : [ne.point.x, ne.point.y];
     const [lon, lat] = ne.lngLat;
     // (T716) this tap's lift already asked what is under it (a spot, a mark, an obstacle, the water): its answer, if it
-    // decided, stands for the queries below; undecided (or no lift: iOS, a lift elsewhere) asks as before
+    // decided, stands for the queries below; undecided (or no lift, a lift elsewhere) asks as before
     const early = await (liftFor(lift.current, x, y, clockNow()) ?? Promise.resolve(null));
     lift.current = null;
     // (T145) a tap on a spot is the spot's: never ALSO the map's — no water opens under it, and the off-spot tap that
@@ -735,7 +735,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   }, [report, renderer]);
 
   /**
-   * (T716) A TAP'S LIFT (the patched binding's `onTapUp`, Android): what the tap would open, said at once
+   * (T716) A TAP'S LIFT (the patched binding's `onTapUp`, Android; iOS T719): what the tap would open, said at once
    * (`onPressStart`) — the click (`onPress`) comes once a double tap is ruled out, 300 ms after the finger went down. The
    * same precedence as the click: a spot, a boundary mark or a fish obstacle mark under the finger is theirs, and no
    * water is said. A failed query is reported and says nothing (the click still asks for itself).

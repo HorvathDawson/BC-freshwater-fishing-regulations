@@ -21,13 +21,14 @@
  *                                        opening gnis:3062 adds core + water + regs-2 (the loader's `opened()`), and a
  *                                        water in Region 5 then fetches regs-5 only. Without RELEASE_DIR it says so.
  */
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { megabytes, setFailureSink } from "@app/core";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { gunzipSync } from "node:zlib";
 import { fetchVerified, sha256Hex, type ItemId, type Manifest } from "@app/data";
-import { assetsDigest, bootRelease, bootSaid, heldPath, POINTER, releaseTiles, type ReleaseFs, type ReleasePlatform }
+import { assetsDigest, bootRelease, bootSaid, heldPath, POINTER, releaseTiles, SpaceError, type ReleaseFs, type ReleasePlatform }
   from "@app/data/release";
 import { releaseCache } from "../packages/data/src/release/drivers/cache.web";
 import { releaseSource } from "../packages/data/src/release/drivers/source.web";
@@ -766,5 +767,66 @@ describe.skipIf(!LIVE || !existsSync(LIVE!))("the Vedder on the live release (Ti
     expect(b.loader.opened()).toEqual(["paint", "core", "water", "regs-2", "regs-5"]);
     expect(log.length).toBe(6);
     expect(log.filter((u) => DEV_PATH.test(u))).toEqual([]);
+  });
+});
+
+describe("(T722) a phone's release download: the free-space check, and the release kept out of the backup", () => {
+  /** The phone of the tests above, with a free-space reader over the in-memory disk. */
+  const spaced = (fs: ReturnType<typeof memFs>, free: number): ReleasePlatform => {
+    const p = phone(fs);
+    return { ...p, device: (f) => ({ ...p.device(f)!, space: { free: async () => free,
+                                                               size: async (path) => fs.files.get(path)?.length ?? 0 } }) };
+  };
+  const quiet = () => { const s = vi.spyOn(console, "info").mockImplementation(() => {}); return () => s.mockRestore(); };
+
+  it("F9: a first install that will not fit downloads nothing and says how much it needs, whole; one that fits installs", async () => {
+    const un = quiet();
+    try {
+      const r1 = fixtureRelease("plain"), fs = memFs(), log: string[] = [];
+      const m = JSON.parse(readFileSync(join(r1.dir, "manifest.json"), "utf8")) as Manifest;
+      const need = Object.values(m.files).reduce((n, f) => n + f.bytes, 0);
+      const boot = (free: number, l: string[]) => bootRelease({ manifestUrl: `${BASE}manifest.json`, releaseBase: BASE, wasmBase: "",
+        platform: spaced(fs, free), fetch: releaseFetch(BASE, r1.dir, l), manifestTimeoutMs: 1000 });
+      const e = await boot(need - 1, log).catch((x: unknown) => x);
+      expect(e).toBeInstanceOf(SpaceError);
+      expect((e as Error).message).toBe(`Not enough free space: the download needs about ${megabytes(need)} and this phone `
+        + `has ${megabytes(need - 1)} free. Free up some space and try again.`);
+      expect(log).toEqual([`${BASE}manifest.json`]);                  // nothing downloaded
+      expect([...fs.files.keys()]).toEqual([]);
+      const b = await boot(need, []);
+      expect(b.held.release).toBe(m.data_release);
+    } finally { un(); }
+  });
+
+  it("F6: the release folder is marked after the first install, at every boot, and after an update's install; a failure is reported", async () => {
+    const r1 = fixtureRelease("plain"), r2 = fixtureRelease("lakeGauged"), fs = memFs();
+    const marked: string[] = [];
+    const boot = (f: typeof fetch, noBackup: (uri: string) => Promise<void>) => bootRelease({
+      manifestUrl: `${BASE}manifest.json`, releaseBase: BASE, wasmBase: "", platform: phone(fs), fetch: f,
+      manifestTimeoutMs: 1000, noBackup });
+    const mark = async (uri: string) => { marked.push(uri); };
+    await boot(releaseFetch(BASE, r1.dir, []), mark);
+    expect(marked).toEqual(["file:///doc/release"]);                  // the first install's boot
+    await boot(offline, mark);
+    expect(marked).toEqual(["file:///doc/release", "file:///doc/release"]);   // every boot (a set an older app installed)
+    marked.length = 0;
+    const third = await boot(releaseFetch(BASE, r2.dir, []), mark);
+    await third.update;
+    expect(marked).toEqual(["file:///doc/release", "file:///doc/release"]);   // this boot's, then the update's install
+    // the reader's own files stay in the backup: every other folder the phone writes under the document root, read
+    // from the drivers that write them, is outside `release/` (a store moved into it fails here)
+    const own = ["../packages/data/src/spots/store.native.ts", "../packages/data/src/spots/photoStore.native.ts",
+                 "../packages/data/src/spots/runTimingStore.native.ts", "../apps/mobile/src/envStore.native.ts"]
+      .flatMap((p) => [...readFileSync(new URL(p, import.meta.url), "utf8")
+        .matchAll(/new Directory\(Paths\.document, "([^"]+)"/g)].map((x) => x[1]!));
+    expect([...new Set(own)].sort()).toEqual(["feeds", "settings", "spots"]);
+    // a mark that fails is reported, and the boot goes on
+    const reported: unknown[] = [];
+    const unsink = setFailureSink((e) => reported.push(e));
+    try {
+      const b = await boot(offline, async () => { throw new Error("setResourceValues failed"); });
+      expect(b.held).toBeTruthy();
+      expect(reported.map(String)).toEqual(["Error: setResourceValues failed"]);
+    } finally { unsink(); }
   });
 });
