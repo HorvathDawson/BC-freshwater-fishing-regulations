@@ -733,10 +733,21 @@ def header_answers(notes: Sequence[dict]) -> dict:
 def location_rules(loc, by_fp: Mapping[str, Sequence[dict]], closure: Sequence[dict]) -> List[dict]:
     """A curated place's rules from the typed feed (`by_fp`: fingerprint -> rules), as the release reads them: T349 /
     T358 a quota pooled across areas (`quota.mark_shared`); T320 the region header's closure (`quota.header_closure`)
-    wins over the table's rows. `build` and the straddler pair table (`salmon_pairs`) read places so."""
+    wins over the table's rows. `build` and the straddler pair table (`salmon_pairs`) read places so. (T787) Only the
+    rows in force (`in_force`): a place whose rows are all hidden has no rule today — it stays in its chains, says
+    nothing, and the header (or a wider place) answers."""
     from pipeline.regs.dfo_salmon import quota as Q
-    rules = Q.mark_shared([r for fp in loc.fingerprints for r in by_fp.get(fp, [])], Q.pool_of(loc))
+    rules = Q.mark_shared(in_force(r for fp in loc.fingerprints for r in by_fp.get(fp, [])), Q.pool_of(loc))
     return list(closure) if closure and rules else rules
+
+
+def in_force(rules: Iterable[dict]) -> List[dict]:
+    """(T787, owner 2026-11-16: "keep reading them for provenance but mark them hidden somehow so they are ignored")
+    THE ROWS THAT ANSWER: every typed rule but one from a table DFO commented out (`hidden`, `parse.table_hidden`).
+    Off-season DFO keeps its table of dated openings inside an HTML comment and shows only the header's "no fishing for
+    salmon until further notice" (Regions 4, 5A, 7). The release (`location_rules`) and the live feed
+    (`live.location_calendar`, `live.run`) read places through this; the reviewer still sees the hidden rows."""
+    return [r for r in rules if not r.get("hidden")]
 
 
 def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: Iterable[dict],
@@ -1116,8 +1127,9 @@ def load_inputs(run_dir: Path, registry=None, *, entries_dir: Optional[Path] = N
         if feeds[s].get("typed_format") != TYPED_FORMAT:
             # (T671) rows typed by older code would ship the old reading with nothing saying so
             raise SalmonError(f"salmon: {p} was typed by older code (typed_format {feeds[s].get('typed_format')!r}, "
-                              f"today's is {TYPED_FORMAT}) — type its scraped rows again (no network, no credits):\n"
-                              "    python -m pipeline.regs.dfo_salmon.feed")
+                              f"today's is {TYPED_FORMAT}) — scrape the cached pages and type the rows again (no "
+                              "network, no credits):\n"
+                              "    python -m pipeline.regs.dfo_salmon.locations && python -m pipeline.regs.dfo_salmon.feed")
     return files, feeds, list(placed_io.read(run_dir))
 
 

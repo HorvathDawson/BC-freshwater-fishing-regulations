@@ -80,15 +80,21 @@ def type_rows(fp: str, recs: List[dict], robust: bool = True) -> Tuple[List[dict
     locator carries `error` ("<Type>: <first 200 characters>") and the one `unread_rule`, so the place reads "check" and
     the rest of the region stands; `build` logs it and `deliver.salmon` names it. `robust=False` raises, as before: the
     Mac's live run (`live.type_page`) keeps holding the region, the parity spec of the worker's `pythonParity` mode."""
-    rows = [row_text(r) for r in recs]
     try:
-        rules = [r for i, rec in enumerate(recs) for r in to_rules(rec, fp[:8], i)]
-        return [r.model_dump(mode="json", exclude_defaults=True, by_alias=True) for r in rules], None
+        # (T787) a row from a table DFO commented out keeps its typed rules, each marked `hidden` (provenance only)
+        return [{**r.model_dump(mode="json", exclude_defaults=True, by_alias=True), **_hidden(rec)}
+                for i, rec in enumerate(recs) for r in to_rules(rec, fp[:8], i)], None
     except Exception as e:                              # noqa: BLE001 — said: `error` on the locator, the place reads check
         if not robust:
             raise
         why = f"{type(e).__name__}: {str(e)[:200]}"
-        return [unread_rule(fp, recs, why)], why
+        return [{**unread_rule(fp, recs, why), **(_hidden(recs[0]) if all(r.get("hidden") for r in recs) else {})}], why
+
+
+def _hidden(rec: dict) -> dict:
+    """(T787) `{"hidden": True}` for a scraped row from a table DFO commented out (`parse.table_hidden`), else {}: the
+    mark a typed rule carries so no reader answers with it (`deliver.salmon.in_force`)."""
+    return {"hidden": True} if rec.get("hidden") else {}
 
 
 def build(scraped: dict, robust: bool = True) -> dict:
@@ -111,8 +117,12 @@ def build(scraped: dict, robust: bool = True) -> dict:
             "rows": [row_text(r) for r in recs],
             "rules": rules,
             **({"error": error} if error else {}),
-            # T321: the rows the card shows in DFO's words — new wording (unparsed), an unread number, or a note
-            **({"words": words} if (words := [w for w in map(row_words, recs) if w]) else {}),
+            # (T787) the rows (indices into `rows`) from a table DFO commented out: shown to a reviewer, answer nothing
+            **({"hidden": hid} if (hid := [i for i, r in enumerate(recs) if r.get("hidden")]) else {}),
+            # T321: the rows the card shows in DFO's words — new wording (unparsed), an unread number, or a note; never
+            # a hidden row's (T787: the page does not show it)
+            **({"words": words} if (words := [w for w in map(row_words, (r for r in recs if not r.get("hidden"))) if w])
+               else {}),
         })
 
     # T349: the page's default sentences ("There is no fishing for salmon in Region 3 except …"), each the one rule of
@@ -142,7 +152,14 @@ def emit(slug: str, *, rules_dir: Path = RULES_DIR, out_dir: Path = FEED_DIR) ->
     src = rules_dir / f"region-{slug}.json"
     if not src.exists():
         return 0, 0
-    feed = build(json.loads(src.read_text(encoding="utf-8")))
+    scraped = json.loads(src.read_text(encoding="utf-8"))
+    from pipeline.regs.dfo_salmon.locations import SCRAPE_FORMAT
+    if scraped.get("scrape_format") != SCRAPE_FORMAT:
+        # (T787) rows scraped before `hidden` existed carry a commented-out table's rows unmarked: typed, they answer
+        raise SystemExit(f"feed: {src} was scraped by older code (scrape_format {scraped.get('scrape_format')!r}, "
+                         f"today's is {SCRAPE_FORMAT}) — scrape the cached pages again first (no network, no credits):\n"
+                         "    python -m pipeline.regs.dfo_salmon.locations && python -m pipeline.regs.dfo_salmon.feed")
+    feed = build(scraped)
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / f"region-{slug}.json").write_text(
         json.dumps(feed, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")

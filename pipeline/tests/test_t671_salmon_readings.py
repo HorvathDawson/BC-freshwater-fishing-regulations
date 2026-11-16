@@ -100,4 +100,4 @@ def test_t676_until_further_notice_is_read_open_ended_and_said_since_when():
 
 
 def test_t676_the_typed_feed_says_it_was_typed_by_the_shared_reader():
-    assert T.FORMAT == 3
+    assert T.FORMAT == 4          # T676 made it 3; T787 (hidden rows) 4

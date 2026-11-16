@@ -25047,23 +25047,23 @@
     "sp": [
      [
       0,
-      106
+      -1
      ],
      [
       0,
-      106
+      -1
      ],
      [
       0,
-      106
+      -1
      ],
      [
       0,
-      106
+      -1
      ],
      [
       0,
-      106
+      -1
      ]
     ]
    },
@@ -25076,23 +25076,23 @@
     "sp": [
      [
       0,
-      106
+      -1
      ],
      [
       0,
-      106
+      -1
      ],
      [
       0,
-      106
+      -1
      ],
      [
       0,
-      106
+      -1
      ],
      [
       0,
-      106
+      -1
      ]
     ]
    },
@@ -30497,23 +30497,23 @@
     "sp": [
      [
       0,
-      228
+      -1
      ],
      [
       0,
-      228
+      -1
      ],
      [
       0,
-      228
+      -1
      ],
      [
       0,
-      228
+      -1
      ],
      [
       0,
-      228
+      -1
      ]
     ]
    },
@@ -50605,31 +50605,26 @@
       "sp": [
        [
         0,
-        0
+        -1
        ],
        [
         0,
-        0
+        -1
        ],
        [
         0,
-        0
+        -1
        ],
        [
         0,
-        0
+        -1
        ],
        [
         0,
-        0
+        -1
        ]
       ],
-      "verdicts": [
-       {
-        "s": "closed",
-        "t": "Non-retention (from Apr 1 until further notice)"
-       }
-      ]
+      "verdicts": []
      },
      "fingerprint": "1d1c79cfcd34d4c5",
      "rows": [
@@ -50637,6 +50632,7 @@
      ],
      "rules": [
       {
+       "hidden": true,
        "may_target": false,
        "rule_id": "1d1c79cf.r0",
        "species": [
@@ -50860,10 +50856,6 @@
        ],
        [
         0,
-        -1,
-        234,
-        0,
-        259,
         -1
        ],
        [
@@ -50875,25 +50867,7 @@
         -1
        ]
       ],
-      "verdicts": [
-       {
-        "n": "FN0846",
-        "s": "open",
-        "t": "2 per day (Aug 22–Sep 15)",
-        "tree": {
-         "by": 0,
-         "children": [],
-         "id": "t1",
-         "n": 2,
-         "node": "tier",
-         "says": "2 a day",
-         "species": [
-          "SK"
-         ],
-         "tier": "count"
-        }
-       }
-      ]
+      "verdicts": []
      },
      "fingerprint": "88e5238ca194a164",
      "rows": [
@@ -50901,6 +50875,7 @@
      ],
      "rules": [
       {
+       "hidden": true,
        "notice": "FN0846",
        "rule_id": "88e5238c.r0",
        "species": [
@@ -50926,23 +50901,9 @@
      "calendar": {
       "g": [
        0,
-       -1,
-       234,
-       0,
-       259,
-       1,
-       274,
        -1
       ],
-      "gears": [
-       [
-        "bait ban (Aug 22–Sep 15)",
-        "bait ban (Aug 22–Sep 30)"
-       ],
-       [
-        "bait ban (Aug 22–Sep 30)"
-       ]
-      ],
+      "gears": [],
       "sp": [
        [
         0,
@@ -50954,18 +50915,10 @@
        ],
        [
         0,
-        -1,
-        234,
-        0,
-        259,
         -1
        ],
        [
         0,
-        -1,
-        234,
-        1,
-        274,
         -1
        ],
        [
@@ -50973,42 +50926,7 @@
         -1
        ]
       ],
-      "verdicts": [
-       {
-        "n": "FN0846",
-        "s": "open",
-        "t": "2 per day (Aug 22–Sep 15)",
-        "tree": {
-         "by": 0,
-         "children": [],
-         "id": "t1",
-         "n": 2,
-         "node": "tier",
-         "says": "2 a day",
-         "species": [
-          "SK"
-         ],
-         "tier": "count"
-        }
-       },
-       {
-        "n": "FN0846",
-        "s": "open",
-        "t": "4 per day (Aug 22–Sep 30)",
-        "tree": {
-         "by": 0,
-         "children": [],
-         "id": "t1",
-         "n": 4,
-         "node": "tier",
-         "says": "4 a day",
-         "species": [
-          "PK"
-         ],
-         "tier": "count"
-        }
-       }
-      ]
+      "verdicts": []
      },
      "fingerprint": "47c91b93af6df33a",
      "rows": [
@@ -51017,6 +50935,7 @@
      ],
      "rules": [
       {
+       "hidden": true,
        "notice": "FN0846",
        "rule_id": "47c91b93.r0",
        "species": [
@@ -51045,6 +50964,7 @@
          "slot": "bait"
         }
        ],
+       "hidden": true,
        "notice": "FN0846",
        "rule_id": "47c91b93.r0_bait",
        "type": "bait_restriction",
@@ -51064,6 +50984,7 @@
        ]
       },
       {
+       "hidden": true,
        "notice": "FN0846",
        "rule_id": "47c91b93.r1",
        "species": [
@@ -51092,6 +51013,7 @@
          "slot": "bait"
         }
        ],
+       "hidden": true,
        "notice": "FN0846",
        "rule_id": "47c91b93.r1_bait",
        "type": "bait_restriction",
@@ -71990,17 +71912,9 @@
      "calendar": {
       "g": [
        0,
-       -1,
-       234,
-       0,
-       265,
        -1
       ],
-      "gears": [
-       [
-        "bait ban (Aug 22–Sep 21)"
-       ]
-      ],
+      "gears": [],
       "sp": [
        [
         0,
@@ -72012,18 +71926,10 @@
        ],
        [
         0,
-        -1,
-        234,
-        0,
-        265,
         -1
        ],
        [
         0,
-        -1,
-        234,
-        1,
-        265,
         -1
        ],
        [
@@ -72031,42 +71937,7 @@
         -1
        ]
       ],
-      "verdicts": [
-       {
-        "n": "FN0851",
-        "s": "open",
-        "t": "2 per day (Aug 22–Sep 21)",
-        "tree": {
-         "by": 0,
-         "children": [],
-         "id": "t1",
-         "n": 2,
-         "node": "tier",
-         "says": "2 a day",
-         "species": [
-          "SK"
-         ],
-         "tier": "count"
-        }
-       },
-       {
-        "n": "FN0851",
-        "s": "open",
-        "t": "4 per day (Aug 22–Sep 21)",
-        "tree": {
-         "by": 0,
-         "children": [],
-         "id": "t1",
-         "n": 4,
-         "node": "tier",
-         "says": "4 a day",
-         "species": [
-          "PK"
-         ],
-         "tier": "count"
-        }
-       }
-      ]
+      "verdicts": []
      },
      "fingerprint": "8e55a740643c4b5e",
      "rows": [
@@ -72075,6 +71946,7 @@
      ],
      "rules": [
       {
+       "hidden": true,
        "notice": "FN0851",
        "rule_id": "8e55a740.r0",
        "species": [
@@ -72103,6 +71975,7 @@
          "slot": "bait"
         }
        ],
+       "hidden": true,
        "notice": "FN0851",
        "rule_id": "8e55a740.r0_bait",
        "type": "bait_restriction",
@@ -72122,6 +71995,7 @@
        ]
       },
       {
+       "hidden": true,
        "notice": "FN0851",
        "rule_id": "8e55a740.r1",
        "species": [
@@ -72150,6 +72024,7 @@
          "slot": "bait"
         }
        ],
+       "hidden": true,
        "notice": "FN0851",
        "rule_id": "8e55a740.r1_bait",
        "type": "bait_restriction",
@@ -75918,5 +75793,5 @@
    "water": "R.V. Creek"
   }
  ],
- "typed_format": 3
+ "typed_format": 4
 }

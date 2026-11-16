@@ -21,12 +21,25 @@ amendments as `<a>` to a Fishery Notice (FN####). Both are kept structured — a
 exclusion list flattened into a sentence is unresolvable against a reach.
 
 **Do not hand the whole page to a DOM parser.** Measured 2026-08-29: Regions 4 and 7
-carry an *unterminated* `<!--` above the table (18 opens / 17 closes). html.parser
-therefore swallows the rest of the document and `soup.find("table")` returns None —
-silently, with no exception and no empty-table warning. Both regions parsed to zero
-rows until the table was sliced out of the raw HTML by regex instead. Any future
-rewrite that reintroduces `BeautifulSoup(page).find("table")` re-opens that hole, so
-`test_dfo_salmon.py` asserts Region 4 and 7 row counts specifically.
+carry a `<!--` above the table that html.parser read as unterminated (18 opens / 17
+closes). It therefore swallowed the rest of the document and `soup.find("table")`
+returned None — silently, with no exception and no empty-table warning. Both regions
+parsed to zero rows until the table was sliced out of the raw HTML by regex instead.
+Any future rewrite that reintroduces `BeautifulSoup(page).find("table")` re-opens that
+hole, so `test_dfo_salmon.py` asserts Region 4 and 7 row counts specifically.
+
+**A TABLE INSIDE A COMMENT IS HIDDEN (T787, owner 2026-11-16).** That comment is not a
+defect: in today's copies it is balanced and deliberate — off-season DFO keeps its table
+of dated openings inside `<!-- … </table>-->` (Regions 4, 5A, 7) and the page shows only
+its header ("There is no fishing for salmon … until further notice"). Its rows are read
+(provenance: the reviewer sees them) and each carries `hidden: true` (`RegRow.hidden`,
+then the scraped rule, the typed rule and the locator's `hidden`); a hidden row answers
+nothing (`deliver.salmon.in_force`). Balanced or unterminated, a comment the table
+STARTS inside hides the whole table (a browser shows nothing after an unclosed `<!--`
+either). Rows DFO comments out INSIDE a visible table are left out of the grid as before:
+their cells lean on a visible row's rowspan, so they cannot be read on their own, and the
+visible rows around them stay live (a 2022 Region 7 copy: hidden chinook / coho rows
+beside a visible sockeye row) — hidden is per table, never per page.
 
 CLI
 ---
@@ -170,6 +183,8 @@ class RegRow:
     #: banner that states its restriction in prose and publishes no rows beneath it
     #: (Region 6 section F). Prose-only rules are invisible to a resolver otherwise.
     source: str = "table"
+    #: (T787) the row sits in a table DFO commented out (`table_hidden`): kept as provenance, answers nothing
+    hidden: bool = False
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -193,6 +208,8 @@ class ParsedRegion:
     #: False for Region 5, which publishes prose only. Distinguishes "no table" from
     #: "table present but parsed to nothing" — the latter is a parser bug.
     table_found: bool = True
+    #: (T787) the table sits inside an HTML comment (`table_hidden`): every row is `hidden`
+    table_hidden: bool = False
 
     def to_dict(self) -> dict:
         return {
@@ -203,6 +220,7 @@ class ParsedRegion:
             "url": self.url,
             "date_modified": self.date_modified,
             "table_found": self.table_found,
+            **({"table_hidden": True} if self.table_hidden else {}),
             "preamble": self.preamble,
             "sections": [asdict(s) for s in self.sections],
             "cross_references": self.cross_references,
@@ -405,6 +423,29 @@ def _strip_comments(fragment: str) -> str:
     return _RE_ORPHAN_COMMENT.sub(" ", fragment)
 
 
+def comment_spans(html: str) -> List[Tuple[int, int]]:
+    """(T787) Every HTML comment of the page as (start, end), in order, the way a browser tokenises them: from a `<!--`
+    to the next `-->`; an unterminated one runs to the end of the page."""
+    out: List[Tuple[int, int]] = []
+    i = 0
+    while True:
+        a = html.find("<!--", i)
+        if a < 0:
+            return out
+        b = html.find("-->", a + 4)
+        if b < 0:
+            out.append((a, len(html)))
+            return out
+        out.append((a, b + 3))
+        i = b + 3
+
+
+def table_hidden(html: str, table_start: int) -> bool:
+    """(T787) Does the table starting at `table_start` sit inside a comment (balanced or not)? Then a browser shows
+    none of it: DFO's off-season table of openings (Regions 4, 5A, 7)."""
+    return any(a <= table_start < b for a, b in comment_spans(html))
+
+
 def _content_slice(html: str, table_start: Optional[int]) -> str:
     """The page prose: from the <h1> content anchor down to the table (or footer)."""
     h1 = _RE_H1.search(html)
@@ -458,6 +499,7 @@ def parse_region(
                             table_found=False)
 
     table = BeautifulSoup(_strip_comments(tm.group(0)), "html.parser").find("table")
+    hidden = table_hidden(html, tm.start())
 
     current: Optional[Section] = None
     idx = 0
@@ -566,6 +608,7 @@ def parse_region(
                 areas=areas,
                 fishery_notices=fns,
                 see_also=see,
+                hidden=hidden,
             )
         )
         idx += 1
@@ -595,12 +638,13 @@ def parse_region(
                 limits_gear=sec.title,
                 precedence=1,
                 source="section_banner",
+                hidden=hidden,
             )
         )
         idx += 1
 
     return ParsedRegion(slug, page.region, page.part, page.name, url, date_modified,
-                        preamble, sections, rows, notes, cross_refs, table_found=True)
+                        preamble, sections, rows, notes, cross_refs, table_found=True, table_hidden=hidden)
 
 
 def parse_cached(region, cache_dir: Path = DEFAULT_CACHE) -> ParsedRegion:

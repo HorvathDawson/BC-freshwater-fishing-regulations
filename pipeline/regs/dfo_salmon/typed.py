@@ -124,8 +124,9 @@ _RE_TBD = re.compile(r"to\s+be\s+determined", re.I)
 #: HOW THIS MODULE TYPES A ROW, as a number the typed feed carries (`feed.build` `typed_format`). Bump it when a row
 #: types differently: the release refuses typed files of another number (`deliver.salmon.load_inputs`), so rows typed by
 #: older code never ship. 2 (T671 D2): a row nobody could type keeps the species its cell names. 3 (T676): the date
-#: cell is read by `dates.read_dates` (open-ended rows, `check` on an unreadable cell).
-FORMAT = 3
+#: cell is read by `dates.read_dates` (open-ended rows, `check` on an unreadable cell). 4 (T787): a row from a table DFO
+#: commented out carries `hidden` (`feed.type_rows`) and answers nothing — a file typed before it reads those rows live.
+FORMAT = 4
 #: (T671 D2) the advisory's `review_reason` prefixes the bundle reads: a row DFO has not set, and a row that is a gear
 #: PERMISSION (it opens and closes no fish). Every other advisory that is not about another fish is a row nobody could
 #: type: `deliver.salmon.unread_row` shows it as "check DFO" for the species its cell names, on the days it holds.

@@ -87,8 +87,9 @@ def _now() -> str:
 # ── the calendar of one location, and the chain composed from them ───────────────────────────────────────────────────
 
 def location_calendar(rules: Sequence[dict], verdicts: S._Interner, gears: S._Interner) -> dict:
-    """One location's year: per species runs of a verdict index (-1: says nothing that day), gear runs (-1: none)."""
-    chain = [list(rules)]
+    """One location's year: per species runs of a verdict index (-1: says nothing that day), gear runs (-1: none).
+    (T787) Only the rows in force: a row from a table DFO commented out says nothing (`deliver.salmon.in_force`)."""
+    chain = [S.in_force(rules)]
     per_sp: List[List[int]] = [[] for _ in S.SPECIES]
     gear: List[int] = []
     for md in S.DAYS:
@@ -223,7 +224,8 @@ def join(slug: str, ef, typed: dict, locations: Sequence, report) -> Tuple[Dict[
         hit = index.get(fp)
         if hit is not None:
             from pipeline.regs.dfo_salmon.quota import mark_shared, pool_of
-            rules.setdefault(hit.location_id, []).extend(mark_shared(loc["rules"], pool_of(hit)))
+            # (T787) only the rows in force: a hidden row (a commented-out table) answers nothing
+            rules.setdefault(hit.location_id, []).extend(mark_shared(S.in_force(loc["rules"]), pool_of(hit)))
             continue
         if fp.startswith("page:"):
             continue                # T349: a page default's sentence with no default location here is not a new place
