@@ -10161,6 +10161,26 @@
       50.54386
      ],
      "_offset_m": 50
+    },
+    {
+     "id": "shuswap_river__shuswap_closed_stretch_the_point_dfo_prints_for_the_water",
+     "label": "Shuswap closed stretch, the point DFO prints for the water survey station (50°19.105' N 118°48.857' W)",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -118.814453,
+       50.318456
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "low",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 8:shuswap-river#200d03a74aaf — \"the water survey station ( located at 50°19.105' N and 118°48.857' W) approximately 200 m down stream of Shuswap Falls Hatchery\"",
+     "_coord": [
+      -118.814453,
+      50.318456
+     ]
     }
    ]
   },
