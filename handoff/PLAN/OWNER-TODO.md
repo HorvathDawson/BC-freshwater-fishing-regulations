@@ -873,3 +873,26 @@ checks; one page of questions for him. Nothing that changes what a wording means
 - Tributary readings (Nass x3 mainstem = no tributaries; Babine Lake x3 and Meziadin "excluding tributaries" win over
   the heading; Somass and Stamp "X River tributaries" = tributaries only): "All three are right (Recommended)".
 - One-bank places design (Kitimat west bank, Nakina): "Build it this way (Recommended)".
+
+## 2026-11-15 evening — owner answers, round 5 (verbatim)
+- T759 second trigger (a reworded row matched to a neighbouring place): "If it is reworded then it would unmatched
+  because it is not in our list of mapped locations?" NOT DECIDED: a question back. Answer owed: an exact-match reader
+  would leave it unmatched, but ours also accepts a close match (wording drift) and can attach it to a neighbour.
+- Sheldens Creek, Spur 19 Bridge: "You can hunt for it I think it should be close to tidal". So: hunt for the bridge
+  site / SP 19H road; his hint: close to the tidal boundary.
+- Four small ones (1 Sproat signs cut moved 50 m to the bottom of the pool; 2 Hell's Gate label renamed; 3 Ecstall at
+  the Johnston Creek confluence; 4 Illiance and Wilauks whole river from the tidal boundary): "Only one I'm not sure
+  about is number 4". So 1, 2 and 3 go ahead; Illiance and Wilauks stay open.
+- Region 6 salmon file over its size limit (379 kB vs 320 kB): "Raise to 420 kB (Recommended)".
+
+## 2026-11-15 evening — owner answers, round 6 (verbatim)
+- T759, close (drifted) matches: "Yes: close match needs confirming (Recommended)". A close match still applies its rule,
+  but the river shows the banner and the line indicator until he confirms it in the review app.
+- Illiance River and Wilauks Creek, "upstream of signs near the mouth": "Whole river is right".
+- Tatshenshini, two places: "I will do them myself".
+- Other chat's two (push privacy-page line + App Store privacy answer as written; keep all fish puns): "Yes to both
+  (Recommended by it)".
+- Then: "When can I do the remaining reviews?"
+- ASKED 2026-11-15 20:05: "Iook ofr other ones like he skeena one to make sure we have them all". Sweep widened to every
+  place (live, retired, older wordings) and every rule-book extent that names a confluence, mouth, outlet or forks, and
+  every existing confluence cut (on the main line? at the real mouth?); missing ones are added with the Skeena pair.
