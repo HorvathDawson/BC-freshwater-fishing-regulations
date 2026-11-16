@@ -1,5 +1,83 @@
 # iOS hardening: start here (written 2026-11-14)
 
+## RESTART HERE (written 2026-11-15 20:47 for a NEW iOS chat; everything below this section is history, newest notes are NOT at the top there)
+
+**Who you talk to.** The main (Android + data) chat is session `bc-freshwater-fishing-regulations-17` (it took over
+from chat 13 on 2026-11-15 evening; its page: `handoff/PLAN/NEXT-SESSION-after-chat13.md`). Tell it your session name
+first. It messages you BEFORE and AFTER any staging release.
+
+**Tonight's order of the main chat:** CI + push of three commits, a marks audit, a side rebuild + promote + staging
+release + site build, then the Play build 0.7.11 with R8, a Skeena review, an audit.
+
+### 1. What you may be asked for at any moment
+- **After a staging release: redeploy the staging feeds worker** from branch `ios/staging-worker` (173867c4c, on
+  origin: push + crash limit + T757 worker + T758). A release or worker deploy from the shared branch puts the OLD
+  worker back. How: a worktree of that branch with `app/node_modules`, `app/workers/feeds/.run-token` and a `.venv`
+  symlink (the last one lived at this session's scratchpad `worker-wt`, it may be gone: make a new one), then
+  `deploy/staging/feeds.sh` (staging only; it runs the worker tests, deploys, runs the three feed jobs). Then check
+  `https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/status.json` (`"dfo": {"pieces": 1}`) and
+  `https://data-staging.canifishthis.ca/feeds/dfo/index.json` (17 `#closed:` locations, 7 `:default:` places), and
+  tell the main chat. Never production.
+- **The CI watch for the Play build** when the main chat names the build head; then **the phone walk**: the ten steps
+  in `handoff/PLAN/app-integration/tickets/T749-android-r8-code-shrinker.md` ("Phone walk for the owner") go onto the
+  owner's To-Do row `t749-r8-phone-walk` once you have the version code. The tested app code is 6a2dc612d plus one
+  test file (0f32e4b0f); `git diff --stat 6a2dc612d <build head> -- app deploy/staging/build-apk.sh` must show only
+  `app/tools/r8-config.test.ts`, otherwise the six benches re-run first (install, crash-bed, bg-install, regs-open,
+  tap-stalls, memory; `--no-r2`; lane 2).
+
+### 2. Branches (all on origin; NONE merged into `redesign/stream-sections` unless said)
+| Ticket | Branch @ head | State |
+|---|---|---|
+| T749 R8 | merged (35dce9bf3) + 0f32e4b0f | on the shared branch, flag off by default; Play build not made yet |
+| T756 reopen keeps downloads + T760 bench | `fix/t756-keep-running-job` @ 0a17e1fe5 | NOT ready: `bg-install` passed 8/8 once, failed once on the same code (app silent > 284 s after a reopen; cause not found) |
+| T757 worker (closed areas emitted) | `feeds/t757-worker-pieces` @ 230ad909d | LIVE ON STAGING |
+| T757 app (minimum feed shape) | `app/t757-min-feed-shape` @ fa0c7a1c5 | written, tested |
+| T757 app, first try | `app/t757-piece-not-known` @ a5af25920 | ABANDONED (the owner ruled out "not known"); never merge |
+| T757 deploy refusals | `deploy/t757-worker-shape-refusal` @ 05383894d | written; the main chat owes a review of `pieces_gate.py` |
+| T758 region-default sentences | `feeds/t758-page-defaults` @ 179c6cba5 | LIVE ON STAGING; production worker deploy is the owner's |
+| T759 app (issue banners) | `app/t759-issues` @ 1289d8c20 (stacked on fa0c7a1c5) | written, tested; line look NOT built |
+| T759 worker + T757 item 5 | `feeds/t759-issues` | LANE WAS STILL RUNNING at 20:47, no commit on origin yet: see point 4 |
+| T759 Python (the main chat's) | `data/t759-missing-place-check` @ dfc95d971 | the rewritten ticket is on this branch |
+| iOS | `ios/integration` @ 639d54d0d, `ios/t746-apply-splash`, `ios/t738-bar`, `ios/crash-send`, `perf/t741` @ a02e09fb5, `ios/t739-push` @ ca91889bb, `ios/next` @ a2078ac33 | waiting for build 33 |
+
+**Merge order after build 33 is uploaded (agreed):** `ios/integration` (two small known conflicts: take the shared
+side's comments in `app/packages/ui/src/prefetch.render.test.tsx`, keep both sections in the T723 ticket); then T746,
+T738, the crash-send app half, `perf/t741`; the T757 worker + T758 + T757 app (min feed shape) + deploy refusals +
+T759 halves when the main chat has reviewed its part; T756 only when green; push (T739) LAST. Each needs the Android
+benches where it touches shared app code and a message to the main chat first; each green on CI.
+
+### 3. Owed to the owner
+- **Pictures, before T759 ships:** the banner on a real river, and two or three looks for the stream line with an
+  issue ("a variation like bait ban … same color"). `salmonIssueItems(payload)` on the app branch gives the items.
+- **Rows on his To-Do page (claude.ai artifact, collection `todo`):** `t759-banner-words` (the banner's words and
+  the T757 fallback sentence, proposals, open); `t758-prod-feeds-worker` (production worker deploy, his, later);
+  `t749-r8-phone-walk` (gets the walk after the upload). Answered and ticked: privacy wording + fish puns ("Yes to
+  both"). Still to do by Claude from that: the privacy line into the page's source on the push branch.
+- Open from 2026-11-14, unchanged: iOS day defaults, oldest iPhone + iPad, links without a Team ID, report email
+  "linked", T686 picks, backup words, keyboard/back picks, clean-up calls, Play location answer; and his phone checks
+  on TestFlight build 36 and the push test.
+
+### 4. First things to do
+1. Find the T759 worker lane's result: `git fetch origin && git log --oneline -3 origin/feeds/t759-issues`. If the
+   branch is there, read its commit message and the diff of `app/workers/feeds/src/dfo/` and
+   `test/dfo.vectors.test.ts`, run `pnpm -C app/workers/feeds test` on it, and tell the main chat (it must equal the
+   Python on every issue kind; `/status.json` gains `dfoIssues`; the worker's old "check" verdict is removed). If the
+   branch is NOT there, the lane died with the old chat: redo it from the brief in the rewritten ticket's "For the
+   worker and app" section (`git show origin/data/t759-missing-place-check:handoff/PLAN/app-integration/tickets/T759-missing-feed-place-reads-more-open.md`).
+2. T760: find what the app waits on between `[download] mobile data: go` and the first file's first line after a
+   reopen (`boot.ts`: `await queue(metered)` then `install(...)`). The bench keeps `T756-stalled-logs.txt` on a failure.
+3. The line looks and banner pictures for the owner (web build of the T759 app branch on a real river).
+
+### 5. What went wrong today, so it is not repeated (also in memory)
+- I reported "the internet line is down" for two hours from a probe that was timing a 404. A probe checks the status
+  code and is proven once against a known-good answer.
+- The emulator's system downloader kept half-finished rows from cut-short runs; `pm clear` does not remove them. The
+  bench on the T756 branch now uninstalls first; the shared branch's bench does NOT yet (T760).
+- A test that spawned `expo config` with the caller's environment passed everywhere except inside the real build.
+- I wrote clock times without reading the clock, several times. Read `date` first.
+- A branch name in backticks that looks like a path (`app/…`) fails the docs guard in OWNER-TODO.md.
+
+
 ## Midday update, 2026-11-15 (written 12:49)
 
 **The R8 build is NOT on Play yet.** You picked "R8 build to Play internal, if the checks pass on that exact build".
