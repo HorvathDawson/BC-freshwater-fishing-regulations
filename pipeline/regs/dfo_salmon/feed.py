@@ -41,7 +41,7 @@ from typing import Dict, List, Optional, Tuple
 
 from pipeline.common.curated import GENERATED
 from pipeline.regs.dfo_salmon.fetch import ALL_SLUGS, PAGES, normalize_slug
-from pipeline.regs.dfo_salmon.typed import FORMAT as TYPED_FORMAT, row_text, to_rules
+from pipeline.regs.dfo_salmon.typed import FORMAT as TYPED_FORMAT, row_text, typed_rules
 from pipeline.regs.dfo_salmon.wording import row_words
 
 logger = logging.getLogger(__name__)
@@ -81,9 +81,9 @@ def type_rows(fp: str, recs: List[dict], robust: bool = True) -> Tuple[List[dict
     the rest of the region stands; `build` logs it and `deliver.salmon` names it. `robust=False` raises, as before: the
     Mac's live run (`live.type_page`) keeps holding the region, the parity spec of the worker's `pythonParity` mode."""
     try:
-        # (T787) a row from a table DFO commented out keeps its typed rules, each marked `hidden` (provenance only)
-        return [{**r.model_dump(mode="json", exclude_defaults=True, by_alias=True), **_hidden(rec)}
-                for i, rec in enumerate(recs) for r in to_rules(rec, fp[:8], i)], None
+        # `typed_rules`: the row's rules with the DFO marks — (T787) `hidden` on a row from a table DFO commented out
+        # (provenance only), (T796 A6) `finfish` on the closure a "Finfish closure" row states
+        return [r for i, rec in enumerate(recs) for r in typed_rules(rec, fp[:8], i)], None
     except Exception as e:                              # noqa: BLE001 — said: `error` on the locator, the place reads check
         if not robust:
             raise

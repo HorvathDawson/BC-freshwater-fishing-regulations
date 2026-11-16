@@ -273,7 +273,7 @@ def build() -> dict:
             rows[case["name"]] = {"error": why.split(":")[0], "rules": rules, "calendar": _calendar(rules)}
             continue
         rules = [r for i, (species, dates, limits) in enumerate(case["rows"])
-                 for r in _dump(T.to_rules({"species": species, "dates": dates, "limits_gear": limits}, "rows", i))]
+                 for r in T.typed_rules({"species": species, "dates": dates, "limits_gear": limits}, "rows", i)]
         rows[case["name"]] = {"rules": rules, "calendar": _calendar(rules)}
     names_in = sorted({*NAME_CASES, *(w for w in waters if w)})
     # (T757, T758) THE PYTHON LIVE FEED over the saved pages and the fixture entry files (`live.run`, dry run: nothing

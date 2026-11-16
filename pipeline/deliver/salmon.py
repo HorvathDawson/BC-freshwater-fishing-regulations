@@ -31,7 +31,9 @@ answer per fish speaks (`strictest`; the live feed composes the same, `live.comp
 PER CHAIN, FOR EVERY DAY OF THE YEAR (366: Feb 29 included; DFO's dates carry no year), precomputed here:
   * a VERDICT per species (chinook, coho, sockeye, pink, chum): `open` (a limit above zero), `release` (fish, keep
     none), `closed` (no fishing), `check` (DFO printed a season nobody can read, "to be determined") — or none: no rule
-    of the chain holds that species that day, and the app says so rather than guessing;
+    of the chain holds that species that day, and the app says so rather than guessing. (T796 A6) A closed verdict
+    from DFO's "Finfish closure" carries `f: 1`: ALL fishing is closed there that day, trout included (the app closes
+    the page from it);
   * the GEAR lines that hold (bait bans, hook rules) — every location's, narrowest first, the same words once (T770);
   * the MAP STATUS the Salmon colouring paints: `open` if any species may be kept, else `release` if any may be fished,
     else `check` if DFO printed a season nobody can read, else `closed`.
@@ -297,6 +299,10 @@ def verdict_on(chain: Sequence[Sequence[dict]], sp: str, md: int) -> Optional[di
             n = _notice(why)
             if n:
                 out["n"] = n
+            if s == "closed" and any(r.get("finfish") for r in why):
+                # (T796 A6, owner 2026-11-16: "Closes the whole page") DFO's "Finfish closure" closes ALL fishing on
+                # this stretch today, not only salmon: `f: 1`, read by the app from this verdict to close the page
+                out["f"] = 1
             hc = sorted({r["header_note"] for r in why if r.get("header_note")})
             if hc:
                 # T356: the region header's closure (`quota.header_closure`) — its note id, so the app reads "closed by

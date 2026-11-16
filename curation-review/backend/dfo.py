@@ -851,12 +851,13 @@ def detail(location_id: str) -> dict | None:
     labels = []
     try:
         from pipeline.regs.parsing.catalogue import CatalogueRule, label
+        from pipeline.regs.dfo_salmon.typed import as_catalogue
         for r in rules:
             # (T787) a row from a table DFO commented out: shown, marked hidden (it answers nothing)
             hid = {"hidden": True} if r.get("hidden") else {}
             try:
                 labels.append({"rule_id": r.get("rule_id"),
-                               "label": label(CatalogueRule(**{k: v for k, v in r.items() if k != "hidden"})),
+                               "label": label(CatalogueRule(**as_catalogue(r))),
                                "verbatim": r.get("verbatim") or "", **hid})
             except Exception:  # noqa: BLE001 — a rule the catalogue model refuses still shows
                 labels.append({"rule_id": r.get("rule_id"), "label": r.get("verbatim") or "",
