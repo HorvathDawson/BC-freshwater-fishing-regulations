@@ -50,13 +50,25 @@ owner's words tonight, verbatim). The owner is asleep or about to be; the overni
   question: the 16 second-look ones, lanes A and B, the cascade's, T770, the Middle Shuswap tributary choice, the
   check-plan proposal, trout round 6's four), a plain summary, the STATUS.md top entry, the To-Do page rows.
 
-## Next, in order
-1. Read the five audit reports as they arrive; ticket; copy into `handoff/PLAN/audit-2026-11-16/`.
-2. Write the morning list (OWNER-TODO section "2026-11-16 morning list") and the To-Do page rows; STATUS top entry.
-3. Follow the app chat's worker redeploy and Play build; record the result.
-4. Then: closed-testing steps with the owner; production stays his.
+## Since 04:15
+- Play build DONE: 0.7.11 build 33 (R8) on Play internal, 04:37, from 0c9988033 (the app chat; its commits 88681f9f0
+  and 362c44e6b). Staging feeds worker redeployed 04:13.
+- Audit: four of five reports in (`handoff/PLAN/audit-2026-11-16/{code,labels,decisions,guards}.md`); tickets T783 to
+  T792; the morning list in OWNER-TODO carries sections A to H. The answers checker still runs: when it reports, save
+  `answers.md` beside the others, add its findings to the morning list, ticket (T793 onward).
+- The code checker was asked to send its full report as text (its file was never written); if it arrives, replace
+  `audit-2026-11-16/code.md` with it.
+- NOT DONE: the To-Do page rows for the morning list (update `sl-*` rows: done / answered, and add one row pointing at
+  the list); the fixes for T783, T784, T785, T792 A (small, clear; do after the owner has seen the list or when he
+  says go); nothing that changes an answer is fixed without him.
 
-## Tickets filed tonight (main chat: T770 to T778; the app chat has T762-T769)
+## Next, in order
+1. The answers checker's report → `audit-2026-11-16/answers.md`, the morning list, tickets.
+2. The To-Do page rows.
+3. With the owner: the morning list (re-ticks, questions), then the merge question, then production order (the
+   feeds worker before the data), then closed testing.
+
+## Tickets filed tonight (main chat: T770 to T792; the app chat has T762-T769)
 T770 gear lines do not stack (owner's yes needed) · T771 chain size and the equal-places check · T772 lake takes its
 through-river's side channels (Kitsumkalum) · T773 tidal boundary name (Kitsault) · T774 a place cannot be saved
 undrawn (Kitimat) · T775 review app rest-of leftovers · T776 audit tool faults · T777 anchors scanner gap · T778 the

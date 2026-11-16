@@ -9,6 +9,44 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 ---
 
 
+## 2026-11-16 morning (chat 14): your labels are on staging, build 33 is on Play internal, the audit is in
+
+**What changed.** Your DFO labels are built into the app data and released to staging (release r-46e4355a7277; the
+staging site is rebuilt on it; smoke check 19 pass, 0 fail). The app chat redeployed the staging feed server and put
+0.7.11 (build 33, code shrinker on) on Play internal testing at 04:37. Production is untouched.
+
+**What is in the release that an angler sees.** 194 DFO places moved since the last release; 13 new cuts; four closed
+areas drawn (Shuswap, Thompson at Deadman, Juniper and Ashcroft); "everything else" places now answer after the
+stretches they list, on the days those have no rule of their own (Skeena sockeye above Terrace, Somass, Stamp, Little
+Qualicum, Nitinat, Dean) [T761]; the trout "through the year" line says when keeping returns [T762]; Kootenay Lake's
+rainbow line says "over 50 cm" [T763].
+
+**What it means.** Everything on staging is for you to check. The saves I made for you overnight are marked "unsure"
+(four closed areas and four others stand as "verified" in my name): the list to re-tick, with the questions, is ONE
+list in `handoff/PLAN/OWNER-TODO.md`, section "2026-11-16 morning list" (also on the To-Do page).
+
+**The checks you asked for.**
+- Skeena cascade, on the built result: 11 of 13 checks pass. To decide: Babine Lake reads open in August inside 13
+  closed areas that are not confirmed yet; Gosnell Creek and the Thautil read closed by the Morice row; Gitnadoix coho
+  reads open below the powerline; the eulachon line is missing on the Lakelse [T781].
+- General audit (five checkers, read-only; `handoff/PLAN/audit-2026-11-16/`; the answers-against-the-printed-sources
+  checker is still running): no code defect that changes an answer today (97 commits read); all 309 labelled places
+  are stored as your last save says and no place reads open against its own DFO row; 13 of about 150 decisions were
+  lost, half-done or recorded wrongly (now ticketed, T786 to T790); the release took 105 minutes over nine attempts
+  and about 60 were repeat work (a smaller plan waits for your yes, T791).
+- PRODUCTION BLOCKER found by the audit: the production upload will refuse this release until the production feed
+  server serves closed areas; that code is on the app chat's side branch, which waits on a merge question you were
+  never shown (morning list, question 19).
+
+**What needs you.** The morning list: re-tick the saves, then 28 questions with a recommended answer each (labels
+first). The trout page (round 6, mockups only) has four more. The ten-step phone walk of build 33 is on the To-Do
+page.
+
+**Trout display.** Six rounds of mockups on one page; nothing is built. Round 6: one line above the table, a fish
+opens as a sheet, the app's year bar where dates change, sources under the table and in each sheet.
+
+**Running.** One audit checker (answers against the printed sources).
+
 ## 2026-11-15 night (chat 14, in flight at 23:26): labels double-checked and fixed, new map promoted, release not yet out
 - All 352 DFO places were read against DFO's words (273 clean, 79 flagged, 15 looked wrong); the fixes you asked for are
   saved for your re-tick (mark lines 2770-2794) and landed. One of your Tatshenshini saves had stopped the build; fixed.
