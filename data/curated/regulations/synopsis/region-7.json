@@ -3104,11 +3104,6 @@
       "matched": [
         "wbk:329657308"
       ],
-      "extents": [
-        {
-          "op": "whole"
-        }
-      ],
       "rules": [
         {
           "rule_id": "dinosaur_lake.r1",
@@ -3130,6 +3125,32 @@
           ],
           "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): no cut-point available on this water to bind the closure reach; item has no bindable boundaries",
           "undrawn_part": "from W.A.C. Bennett Dam to 100 m south of Gething Creek and between the anti-vortex dyke and Peace Canyon Dam"
+        },
+        {
+          "rule_id": "dinosaur_lake.r1b",
+          "type": "retention_limit",
+          "verbatim": "No Fishing from W.A.C. Bennett Dam to 100 m south of Gething Creek",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "take": 0,
+          "may_target": false,
+          "includes_tributaries": false,
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "peace_river__dinosaur_lake",
+                "peace_river__williston_lake_zone_b"
+              ],
+              "item_id": "gnis:14619",
+              "cut_pick": {
+                "peace_river__dinosaur_lake": "upper"
+              }
+            }
+          ],
+          "extent_text": "the Peace River from W.A.C. Bennett Dam (the Williston Lake outlet) to Dinosaur Lake",
+          "review_reason": "T794 item 1 (owner 2026-11-16, go-ahead card \"Go on all (Recommended)\"): the closure's river part. On the atlas (read 2026-11-16) the water below W.A.C. Bennett Dam is the Peace River's 628 m stretch from the Williston Lake — Zone B outlet (km 1706.74) to Dinosaur Lake's inlet (km 1706.11; Peace River part 9, 'From Dinosaur Lake up to the Williston Lake — Zone B outlet'), then Dinosaur Lake itself; Gething Creek's mouth is at Dinosaur Lake's west tip (56.0039 N, 122.2322 W), about 1.1 km south of the stretch's lower end (56.014 N). So the whole stretch lies between the dam and 100 m south of Gething Creek, and the two existing lake-edge cuts bound it: no new cut. The lake part stays dinosaur_lake.r1's undrawn part (a lake is never cut). Not walking tributaries: the stretch is a place on the Peace, not the row's water (RULINGS T10). The row's entry-level `extents: [whole]` was dropped: it clipped every rule of the row to the lake (each rule states its own extents, AGENTS 13)."
         },
         {
           "rule_id": "dinosaur_lake.r2",
