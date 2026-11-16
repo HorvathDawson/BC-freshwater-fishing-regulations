@@ -8,6 +8,21 @@ tickets, Android bugs and phone fixes the owner reports, and the Play build. Dat
 the audits stay with the main chat, which keeps out of the app folder except what the release command re-cuts. Where
 this page says "iOS chat" below, read "app chat". Session since 2026-11-15 21:27: `bc-freshwater-fishing-regulations-01`.
 
+**WHERE TONIGHT STANDS (written 2026-11-15 23:25; read this first after a compaction):**
+1. Owner 22:55: "The bad display oddities must be fixed on this build". T762 (the trout year line) is on the shared
+   checkout as 4e793d61f; T763 (Kootenay band) is the main chat's and is on the branch too. Both ride tonight's release.
+2. The six R8 benches run on lane 2 since 23:20 on the shared head with T762 (bench subagent, scratchpad worktree
+   `r8b-wt`, APK tag `r8n`); about 00:40. WHEN THEY ARE DONE, TELL THE MAIN CHAT: it holds its staging release until
+   then (the benches need staging's test channel on the live release). A bench that fails on a dead emulator line gets
+   one re-run.
+3. Then, on the main chat's "after" message: redeploy the staging worker (section 1), check the feed, tell it. On the
+   head it names: `git diff --stat <bench commit> <head> -- app deploy/staging/build-apk.sh` may show only the
+   release's fixture re-cuts and test files (else benches again), fast-fail under the build's environment, both CIs
+   green, the Play build, the phone walk onto row `t749-r8-phone-walk`.
+4. Owner's answers of 23:00 are in OWNER-TODO.md and the tickets. Held: every other merge (he did not answer the
+   merge question). Owed in the morning: a summary; later: T760 "keep trying by itself", the T759 stripe for real
+   (Salmon view only; colour is Claude's call), one picture of the final stripe.
+
 **Who you talk to.** The main (data) chat is session `bc-freshwater-fishing-regulations-17` (it took over
 from chat 13 on 2026-11-15 evening; its page: `handoff/PLAN/NEXT-SESSION-after-chat13.md`). Tell it your session name
 first. It messages you BEFORE and AFTER any staging release.
