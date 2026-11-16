@@ -1277,9 +1277,10 @@ def book_inputs(bundle: Path, sections: Sequence[Tuple[int, int]], verdicts: Opt
                              "WHERE r.entry_id = ? AND r.rule_id = ?", (entry_id, rule_id)).fetchone()
             if row is None:
                 raise SalmonError(f"salmon: the verdicts name book rule {rule}, which the bundle does not hold")
-            m = re.match(r"r(\d+[ab]?):", entry_id)
+            from pipeline.common import entry_id as EID
+            region = EID.region_of(entry_id)              # a water row's or a zone table's; none for `zp:`
             words[rule] = {"verbatim": row[0], "pages": json.loads(row[1] or "[]"), "name": row[2] or "",
-                           **({"region": m.group(1)} if m else {})}
+                           **({"region": region} if region else {})}
     finally:
         db.close()
     return closures, words
