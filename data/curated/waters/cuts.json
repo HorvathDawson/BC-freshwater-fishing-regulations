@@ -10181,6 +10181,26 @@
       -118.814453,
       50.318456
      ]
+    },
+    {
+     "id": "shuswap_river__shuswap_falls_wilsey_dam",
+     "label": "Shuswap Falls (Wilsey Dam)",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -118.811959,
+       50.295938
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 8:shuswap-river:middle-between-shuswap-falls-and-m, 8:shuswap-river:middle-between-shuswap-falls-and-m~2",
+     "_coord": [
+      -118.811959,
+      50.295938
+     ]
     }
    ]
   },
