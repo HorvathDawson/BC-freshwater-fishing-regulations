@@ -1958,3 +1958,51 @@ More questions (recommended answer first):
   stretch); a coming closure says what closes without the reopening date, and the reopening date is shown only
   while the water (or the fish) is closed today; a coming change that only loosens a rule is said as a plain "rule
   changes <date>" with no details; Adams as recommended.
+- 15:42, the trout build spec (`handoff/PLAN/design/trout-table-build-spec-2026-11-16.md`), its one-page summary given
+  in chat, four questions in one dialog. How to start: "Start steps 1 and 2" (step 1 = fill the data holes:
+  possession limits, the wild-fish limit at Lois and Khartoum, the odd lines; step 2 = a tool that lists every
+  answer that changed between two releases). Other fish in the same new table look, typed, verbatim: "what? we want
+  to migrate the new trout style into the current app not the other way around. " (my question was badly put; it is
+  NOT answered: the plan IS the new trout table inside the current app; whether kokanee, whitefish and the rest
+  also take the new look is asked again, plainly). Possession: "Keep the page line (Recommended)". Size, if the
+  switch does not fit the first-tap limit: "Raise the limit, shrink later (Recommended)".
+- 15:42, typed in chat (verbatim): "also the last fraser example you sent doesnt have hatchery bs wild along with the no
+  30cm minimum". Checked against the book text (`data/curated/regulations/reference/region-3.md`, Region 3 daily
+  quotas): that card is the Fraser in REGION 3 (Thompson confluence to about 4 km below Lillooet), whose regional
+  rules are "Trout/char: 5, but not more than 4 from streams, 1 over 50 cm, 1 bull trout (Dolly Varden) or lake
+  trout, none under 60 cm; release ALL STEELHEAD, bull trout from streams Aug 1-Oct 31, lake trout Oct 15-Jan 31":
+  no wild / hatchery split and no 30 cm minimum. Both belong to REGION 2 ("you must release wild trout/char from
+  streams … hatchery trout/char under 30 cm from streams"). Round 12 adds a Region 2 Fraser card beside it; if our
+  data does not show hatchery / wild and 30 cm there, that is a fault to report to him.
+- 15:47, trout round 12 published (same trout page; two pictures sent: the Fraser in Region 3 beside the Fraser in
+  Region 2 at Mission, which shows hatchery and wild rows and "30 cm or longer" from the data: no fault; and the
+  Region 3 stretch on a closed day with "reopens Nov 1"). The other-fish question asked again (leave them / redraw
+  them / decide later), typed, verbatim: "we should just have the trout table under the trout entry like it
+  currently is with the better text like 2 or 4 with expand arrow etc. " My reading: the page keeps its present
+  shape; the Trout and char entry stays where it is, folded to its short line ("Up to 2", "Up to 4") with the expand
+  arrow, and the new table is what opens under it; the other fish entries are not touched. So spec question 1 =
+  trout only; the old card code stays for the other fish.
+- 15:47, the 17 closure rows with side streams and "no tributary words" (closures review page): an Opus audit found
+  ALL RIGHT by ruling T2. On 12 of them the book prints the ✱ mark beside the water's name ("includes tributaries"
+  for every rule of that row); the page builder had only looked for the words. The other 5 close nothing but the
+  named creek itself. Dean River row 12 (control): the walk stops at both ends of the stretch. Nothing is placed too
+  wide; trout answers are unaffected. The page (version 3) now shows the ✱ note on 20 rows.
+- 15:48, typed in chat on round 12's Region 2 Fraser card (six hatchery rows in the keep box, six wild rows under
+  Release), verbatim: "i dont like the new wild and hatchewry option you sent we should jsut say hatchery only unless
+  specifically wild has a seperate quota to wild like 1 wild and 2 hatchery or something.... otherwise it is
+  hatrchery only or unspecified (the same for both no mentiuon needed)". So, three cases and no others: (1) wild and
+  hatchery have the same rule: no mention at all; (2) only hatchery fish may be kept: ONE row per fish that says
+  "hatchery only", and no separate wild rows under Release; (3) wild fish have a quota of their own (for example 1
+  wild and 2 hatchery): only then are wild and hatchery shown apart. Round 13 (mockup) is being built on that.
+- 15:49, typed in chat (verbatim): "we will run out of credits soon... we should m,ake sure handoff is good for opusa to
+  take over at anytime." Done 15:49: section C of the handover on the state page rewritten as ONE current block
+  (what is running, what to do when each worker hands back, what is waiting to be pushed, what is his).
+- 15:56, trout round 13 (hatchery only), one dialog with two pictures. Is this the handling, typed, verbatim: "yes this
+  is good on fraser but the hatchery on steelhead on skeena doesnt stand out very well. should slightly improve that
+  oitherwise it is getting better." Lois and Khartoum steelhead row: "Hatchery only (Recommended)". So: the rule is
+  accepted; on a single fish's row (Skeena steelhead) "hatchery only" must stand out more (round 14, small); Lois and
+  Khartoum steelhead read "hatchery only" like everywhere else.
+- 15:56, typed in chat (verbatim): "you can continue just make sure handoff stays up to date, also what is prompt to
+  continue after if fabl;e runs out of tokens". The prompt given to him: "Continue as the main chat. Read
+  handoff/PLAN/INFLIGHT-chat14.md: the top section READ THIS FIRST, block C first. Carry on from its list 'Owed to
+  him, in this order'. Do not re-ask anything already answered at the end of handoff/PLAN/OWNER-TODO.md."
