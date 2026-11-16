@@ -387,6 +387,113 @@ def _duties(P, model: dict, S: str, n, lo: float, hi: float) -> List[str]:
             continue
         if w not in out:
             out.append(w)
+    if n != 0:
+        w = possession_duty(P, model, S)
+        if w is not None and w not in out:
+            out.append(w)
+    return out
+
+
+#: T805 part B (owner 2026-11-16, "Keep the page line (Recommended)"): THE PAGE KEEPS ITS ONE POSSESSION LINE ("2 daily
+#: quotas"); a trout or char kind whose own possession differs says it on its row — Region 7's "Lake trout: possession
+#: quota = 1 daily quota" and the same for bull trout (p.58, p.64), a water's own possession quota with its size clause
+#: (Cunningham Lake p.59 "Lake trout possession quota = 2 (only one over 50 cm)"; Tagish Lake p.53), the Bowron Lake Park
+#: waters' "daily and possession quotas = 1" (p.43). The words come from the rules the reader says SPEAK for the fish
+#: (`possession_rules`); `card_check.check_tree` proves each line's numbers from those rules. False = the mutation pin:
+#: no possession line on any row (the page line alone, as before).
+A_POSSESSION_ON_THE_FISH_ROW = True
+
+#: the fish a possession line is said for (the trout and char of the book's p.80 table)
+POSSESSION_FISH = frozenset({"RB", "ST", "CT", "GB", "EB", "DV", "LT"})
+
+
+def page_possession(P, model: dict):
+    """The rule the page's one possession line states (the app's `possessionRules` lead): of every possession multiplier the
+    reader gives the role `possession` on this reading, the one written for every game fish, else the largest."""
+    got = {}
+    for v in model["R"].values():
+        for res in v.values():
+            for k, ro in ((res or {}).get("roles") or {}).items():
+                if ro.get("role") == "possession" and P.by_key[k].f.get("per_daily"):
+                    got[k] = P.by_key[k]
+    if not got:
+        return None
+    every = [r for r in got.values() if "ALL_GAME_FISH" in (r.f.get("species") or [])]
+    return sorted(every or got.values(), key=lambda r: (-float(r.f["per_daily"]), r.key))[0]
+
+
+def possession_rules(P, model: dict, S: str) -> Tuple[List, List]:
+    """(multipliers, counts): the possession rules the reader says SPEAK for the kept fish `S` (its leading origin's answer)
+    other than the page's own line — a per-daily-quota rule naming it (Region 7's lake trout "1 daily quota") and a water's
+    possession count with its clauses (`possession_cap` lines, the clause `within` its count)."""
+    from pipeline.deliver.answers.rows import main_res
+    R_ = model["R"].get(S) or {}
+    m = main_res(R_.get("H"), R_.get("W"))
+    if not m:
+        return [], []
+    page = page_possession(P, model)
+    per = sorted({P.by_key[k] for k, ro in m["roles"].items() if ro.get("role") == "possession"
+                  and P.by_key[k].f.get("per_daily") and P.by_key[k] is not page
+                  and "ALL_GAME_FISH" not in (P.by_key[k].f.get("species") or [])}, key=lambda r: r.key)
+    # (every game fish's multiplier is the page's line, a straddler's two regions' alike)
+    caps = []
+    for l in m["lines"]:
+        if l["t"] == "possession_cap" and l["r"] not in caps:
+            caps.append(l["r"])
+    return per, caps
+
+
+def possession_duty(P, model: dict, S: str) -> Optional[str]:
+    """T805 part B: a kept trout or char's own possession, in one line, where it differs from the page's: "in your possession:
+    1 day’s limit, not 2 (…)"; "in your possession: no more than 2 lake trout, only 1 over 50 cm (20 in) (…)"; a count over
+    several kinds "no more than 1 trout and char in all"; each with the home exception (`POSSESSION_HOME`, RULINGS Q15).
+    None where the page's line is the fish's."""
+    if not A_POSSESSION_ON_THE_FISH_ROW or S not in POSSESSION_FISH:
+        return None
+    from pipeline.deliver.answers.display.rule import POSSESSION_HOME
+    per, caps = possession_rules(P, model, S)
+    tops = [r for r in caps if not r.f.get("within")]
+    if len(tops) > 1:
+        raise common.AnswersError(f"answers: {S} has {len(tops)} possession counts here ({[r.key for r in tops]}); "
+                                  "the row says one")
+    if tops:
+        top = tops[0]
+        if not isinstance(top.f.get("take"), (int, float)):
+            raise common.AnswersError(f"answers: the possession count {top.key} has no number")
+        from pipeline.deliver.answers.rows import written_name_of
+        names = written_name_of(top)
+        many = len(common.expand(top.f.get("species"))) > 1
+        w = f"no more than {_js(top.f['take'])} {names}" + (" in all" if many else "")
+        for c in [r for r in caps if r.f.get("within") == top.rule_id and r.entry_id == top.entry_id]:
+            w += "".join(f", {clause}" for clause in _possession_clauses(c))
+        return f"in your possession: {w} ({POSSESSION_HOME})"
+    if per:
+        ks = {float(r.f["per_daily"]) for r in per}
+        if len(ks) > 1:
+            raise common.AnswersError(f"answers: {S} has possession rules of {sorted(ks)} daily quotas here")
+        k = ks.pop()
+        page = page_possession(P, model)
+        days = "1 day’s limit" if k == 1 else f"{_js(k)} days’ limits"
+        not_page = f", not {_js(page.f['per_daily'])}" if page is not None and float(page.f["per_daily"]) != k else ""
+        return f"in your possession: {days}{not_page} ({POSSESSION_HOME})"
+    return None
+
+
+def _possession_clauses(r) -> List[str]:
+    """A possession count's size clause in words: each band keeping a number ("only 1 over 50 cm (20 in)"); a band
+    keeping none says nothing here (no such fish may be kept at all, the day's rules say so)."""
+    from pipeline.deliver.answers.caps import edges, rule_sides
+    from pipeline.deliver.answers.rows import _bands
+    sides: Dict[float, str] = {}
+    for x, side, _w in sorted(rule_sides(r), key=lambda t: t[2]):
+        sides.setdefault(x, side)
+    out = []
+    for a, b, t in _bands(r):
+        t = r.f.get("take") if t is None else t
+        if t and a:
+            w = common.band_words(a, b, *edges(sides, a, b))
+            # "only 1 over 50 cm (20 in)"; a band said by its number first reads "only 1 measuring 90 cm (35 in) or longer"
+            out.append(f"only {_js(t)} {'measuring ' if w[:1].isdigit() else ''}{w}")
     return out
 
 

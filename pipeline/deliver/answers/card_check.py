@@ -47,6 +47,7 @@ tests hold the two equal on the fixture and on random cap systems).
 from __future__ import annotations
 
 import math
+import re
 import time
 from typing import Dict, List, Optional, Sequence, Tuple
 
@@ -248,6 +249,68 @@ def _numbers(text: str, strip: Sequence[str] = ()) -> List[float]:
             text = text.replace(s, " ")
     text = re.sub(r"\b(Region|Zone|MUs?|Management Unit)\s+[0-9A-Z][-0-9A-Z]*", " ", text)
     return [float(x) for x in re.findall(r"\d+(?:\.\d+)?", text)]
+
+
+_NUM = re.compile(r"(?<![\d.])(\d+(?:\.\d+)?)(?![\d.])")
+
+
+def possession_problems(P, x: dict, where: str) -> List[str]:
+    """T805 part B — a kept trout or char kind's possession line (`card.possession_duty`, one of its `duties`) against the
+    reader: the possession rules that SPEAK for each of its fish here (its verdicts, either origin), the page's own line
+    (the multiplier written for every game fish) set aside. Where a water's possession COUNT speaks, the line says that
+    count first and every number band of its clauses ("only 1 over 50 cm (20 in)": the number and the size); where only a
+    multiplier of another number speaks, "<k> day’s limit"; else no possession line. Every fish of the kind alike."""
+    from pipeline.deliver.answers.card import POSSESSION_FISH
+    from pipeline.deliver.answers.rows import _bands
+    from pipeline.deliver.answers import common
+    lines = [d for d in x.get("duties") or [] if d.startswith("in your possession:")]
+    fish = [S for S in x["species"] if S in POSSESSION_FISH]
+    if not fish or x["n"] == 0:
+        return [f"{where}: kind {x['species']} keeps none here but says {lines!r}"] if lines else []
+    if len(lines) > 1:
+        return [f"{where}: kind {x['species']} says possession {len(lines)} times: {lines!r}"]
+    speaks = {}
+    page = []
+    for r in P.cands:
+        if r.k not in ("possession", "possession_cap"):
+            continue
+        st = {S: any((P.verdict(S, o).get(r.key) or [None])[0] == "speaks" for o in ("hatchery", "wild"))
+              for S in fish}
+        if r.k == "possession" and "ALL_GAME_FISH" in (r.f.get("species") or []):
+            page.append(r)
+            continue
+        if any(st.values()):
+            # a count holds every fish of the kind; a multiplier each its own (Zone 7A's lake trout and bull trout lines
+            # say the same "1 day's limit" from two rules), checked fish by fish below
+            if r.k == "possession_cap" and not all(st.values()):
+                return [f"{where}: kind {x['species']}: {r.key} holds only some of its fish"]
+            speaks[r.key] = (r, {S for S, v in st.items() if v})
+    caps = [r for r, _f in speaks.values() if r.k == "possession_cap"]
+    tops = [r for r in caps if not r.f.get("within")]
+    page_k = {float(r.f["per_daily"]) for r in page}
+    per_k = {S: {float(r.f["per_daily"]) for r, fs in speaks.values() if r.k == "possession" and S in fs} for S in fish}
+    if not tops and len({frozenset(v) for v in per_k.values()}) > 1:
+        return [f"{where}: kind {x['species']}: its fish have different possession multipliers {per_k}"]
+    per = [r for r, _f in speaks.values() if r.k == "possession"]
+    want: Optional[List[float]] = None
+    if tops:
+        want = [float(tops[0].f["take"])]
+        for c in caps:
+            if c.f.get("within") == tops[0].rule_id:
+                for a, b, t in _bands(c):
+                    t = c.f.get("take") if t is None else t
+                    if t and a:
+                        want += [float(t), float(a), float(common.inches(a))]
+    elif per and {float(r.f["per_daily"]) for r in per} != page_k:
+        want = [float(per[0].f["per_daily"])] + sorted(page_k)
+    if want is None:
+        return [f"{where}: kind {x['species']} says {lines[0]!r}, but its possession is the page's"] if lines else []
+    if not lines:
+        return [f"{where}: kind {x['species']}: its own possession ({', '.join(sorted(speaks))}) is on no line"]
+    got = [float(v) for v in _NUM.findall(lines[0])]
+    if got != want:
+        return [f"{where}: kind {x['species']} says {lines[0]!r} (numbers {got}), the rules {sorted(speaks)} say {want}"]
+    return []
 
 
 def check_tree(P, g: dict) -> List[str]:
@@ -487,6 +550,7 @@ def check_tree(P, g: dict) -> List[str]:
                     probs.append(f"{where}: kind {x['species']} says {oc['says']!r}, but {other} fish are held to no "
                                  f"more there")
                 allowed |= {float(oc["n"])} | size_words([v for v in (oc["from"], oc["to"]) if v])
+            probs += possession_problems(P, x, where)                       # T805 part B
             # T128: a kind's line names the total it is part of ("Of your 2 trout and char a day in streams, …") — a
             # number of a total, share or own tier the kind sits in (each proved below); an own tier's name may print one
             allowed |= {float(t["n"]) for t in above(x) if t["tier"] in ("total", "share", "own") and t["n"] is not None}
