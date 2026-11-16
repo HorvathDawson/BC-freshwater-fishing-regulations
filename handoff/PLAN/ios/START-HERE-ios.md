@@ -23,7 +23,7 @@ this page says "iOS chat" below, read "app chat". Session since 2026-11-15 21:27
    merge question). Owed in the morning: a summary; later: T760 "keep trying by itself", the T759 stripe for real
    (Salmon view only; colour is Claude's call), one picture of the final stripe.
 
-**Added 23:58 (same night):**
+**Added 23:53 (same night):**
 5. The Mac's disk filled at about 23:38 (the main chat cleared 150 GB of test leftovers). The bench session
    `t749-r8-night` lost its first-install check to it (FAIL at 23:39, 0.6 of 479 MB); the bench subagent was told to
    rerun what failed in that window on the same APK. The main chat's build also stopped for its own reason (T778), so
