@@ -1939,3 +1939,11 @@ More questions (recommended answer first):
   condition for all 71: the salmon card says where the closure comes from (the rule book, its page, its line).
   Checked on the lane's data 15:19: all 71 rows' card words open "Closed to all fishing by the rule book (p.NN):"
   followed by the book's line and dates. Still to prove on the app's screen (the app chat's before / after pictures).
+- 15:22, the closures review page he asked for is published (built by a Sonnet worker, 71 cards, a map each):
+  https://claude.ai/artifact/2eGEuMG9cLe3SS69j63aTd ("Book Closures Review"). Also a row on the Owner To-Do page
+  (`rv-book-closures-page-1116`, group Review). Each card: row number, map (closed pieces in red), the book's line,
+  page and dates, what the salmon card said before, fish and days now closed, how much of DFO's place changes. Known
+  limits, told to him: no "rest of DFO's place" layer on the maps; rows 5, 6, 17, 19 miss 25 to 35 pieces on the
+  picture (said on the card); the book's "[Includes Tributaries]" tag is not yet shown under the line (second
+  version being built: Dean River row 12 is the example, the book does print it there). FOR HIM: review when he
+  likes; any row he calls wrong by number is held back.
