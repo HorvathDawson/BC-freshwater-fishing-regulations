@@ -11809,11 +11809,20 @@
       "binding": {
         "extents": [
           {
-            "op": "between",
-            "splits": [
-              "skeena_river__cnr_railway_bridge_terrace",
-              "gauge__08EB005"
-            ]
+            "op": "rest",
+            "bounds": {
+              "op": "between",
+              "splits": [
+                "skeena_river__cnr_railway_bridge_terrace",
+                "gauge__08EB005"
+              ]
+            },
+            "siblings": [
+              "6:skeena-river:mainstem-waters-only-upstream-of-c~2",
+              "6:skeena-river:all-waters-within-the-4-triangular",
+              "6:skeena-river:mainstem-waters-near-the-kitwanga"
+            ],
+            "item_id": "gnis:2936"
           }
         ],
         "tributaries": null,
