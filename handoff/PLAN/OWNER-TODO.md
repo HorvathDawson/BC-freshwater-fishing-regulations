@@ -1009,3 +1009,6 @@ For you to re-tick after the rebuild (saved by Claude at your request, each note
   CHAT: Android and iOS app work, the feeds worker, app tickets. Main chat's reading: the Play build of 0.7.11 moves to
   it (the main chat names the build head after the staging release); data, pipeline, review app, releases and the
   audits stay with the main chat.
+- 22:15, typed in chat, after the Region 1 fix report: "ill review all regions together". So: no region-by-region
+  review asks; one combined list of the saves to re-tick and the open questions for all regions, once the second fix
+  lane is back and the rebuild has landed them.
