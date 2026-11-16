@@ -4940,6 +4940,25 @@
       -121.133959,
       50.780911
      ]
+    },
+    {
+     "id": "thompson_river__juniper_closed_area_lower_signs_50_46_893_n_121_08_110_w",
+     "label": "Juniper closed area, lower signs (50°46.893' N 121°08.110' W)",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -121.133959,
+       50.780911
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 3:thompson-river#5adc77c1f78d — \"the fishing boundary signs located at 50°46.893' N and 121°08.110' W\"",
+     "_coord": [
+      -121.133959,
+      50.780911
+     ]
     }
    ]
   },
