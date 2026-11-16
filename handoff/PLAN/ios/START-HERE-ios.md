@@ -67,8 +67,9 @@ benches where it touches shared app code and a message to the main chat first; e
    extra one is Region 3's Fraser row, seeded but not drawn in the entry copies; why only it differs is not pinned
    down). Two Python behaviours it mirrors that the ticket does not state: a confirmed or proposed variant also makes
    its original place `gone`; a region not asked is listed `not asked` only when the last feed had it. Also: an
-   unchanged page (not re-typed by the worker) carries its issues from the last feed. NOT deployed to staging: that
-   needs the main chat's word, and it would go on top of `ios/staging-worker`.
+   unchanged page (not re-typed by the worker) carries its issues from the last feed. NOT deployed to staging, and by the main
+   chat's word of 2026-11-15 evening it is NOT to be deployed until T759 merges (after the Play build is uploaded and
+   the owner has seen the banner pictures): across the staging release, redeploy only `ios/staging-worker` 173867c4c.
 2. T760: find what the app waits on between `[download] mobile data: go` and the first file's first line after a
    reopen (`boot.ts`: `await queue(metered)` then `install(...)`). The bench keeps `T756-stalled-logs.txt` on a failure.
 3. The line looks and banner pictures for the owner (web build of the T759 app branch on a real river).
