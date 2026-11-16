@@ -33,6 +33,12 @@ candidate no longer has (`dead`), or has only as an absorbed alias (`absorbed`: 
 AGENTS 55). `--dry-run` lists them by file; resync the files first (`regs.parsing.backfill_matched`, the reference
 patches of the rebuild's runbook), or `--accept-dead-ids` after reading the list. The lost boundaries are listed by
 family (`lost_boundaries`), so an expected loss (a replaced shore rule) reads apart from a curated cut that vanished.
+
+(T743, the Seton cut) Refuses, too, a candidate whose build could not place an AUTHORED cut (`split_unplaced.json`,
+`splits.write_unplaced`: the cut is in cuts.json, the atlas has no boundary for it, and a rule or place naming it would
+read a place that does not exist). Every unplaced row is listed, in the dry run too; `--accept-unplaced-cuts` after
+reading it. A candidate with no such record (built before the report) is refused the same way: "none recorded" is not
+"none". Gauge cuts that did not place are listed, never refused (a station's point is generated, not authored).
 """
 from __future__ import annotations
 
@@ -182,7 +188,7 @@ def lost_boundaries(target: Path, candidate: Path) -> dict[str, list[str]]:
 def promote(candidate: Path, name: str | None = None, *, dry_run: bool = False,
             log=print, target: Path | None = None, tiles: Path | None = None,
             bundle: Path | None = None, accept_moved: bool = False, accept_loss: bool = False,
-            no_marker: str | None = None, accept_dead_ids: bool = False) -> dict:
+            no_marker: str | None = None, accept_dead_ids: bool = False, accept_unplaced: bool = False) -> dict:
     """Make `candidate` the build called `name` (default: the configured default build) — or the
     build directory `target` (T136: a scratch atlas a review rehearsal serves). `tiles` / `bundle`
     are the shipped artifacts whose atlas the `.prev` may still be (default: the live ones). Returns
@@ -237,9 +243,13 @@ def promote(candidate: Path, name: str | None = None, *, dry_run: bool = False,
         if absorbed:
             log(f"promote: {len(absorbed)} item id(s) curated files name were ABSORBED into another item (name the "
                 f"survivor; AGENTS 55):\n  " + "\n  ".join(absorbed))
+    unplaced = unplaced_cuts(candidate, log, made_another_way=no_marker is not None)
     if dry_run:
         return {"from": str(candidate), "to": str(target), "prev": str(prev), "parity": parity,
-                "moved": moved, "dead": dead, "absorbed": absorbed, "dry_run": True}
+                "moved": moved, "dead": dead, "absorbed": absorbed, "unplaced": unplaced, "dry_run": True}
+    if unplaced and not accept_unplaced:
+        raise SystemExit(f"promote: refused — {len(unplaced)} authored cut(s) the candidate could not place (listed above): "
+                         "fix the cut or its resolver and rebuild, or promote with --accept-unplaced-cuts after reading it")
     if (dead or absorbed) and not accept_dead_ids:
         raise SystemExit(f"promote: refused — {len(dead)} curated item id(s) are gone and {len(absorbed)} absorbed in the "
                          "candidate (listed above). Resync the curated files first (regs.parsing.backfill_matched, the "
@@ -277,6 +287,24 @@ def promote(candidate: Path, name: str | None = None, *, dry_run: bool = False,
         raise
     log(f"  {candidate.name} -> {target.name}")
     return {"from": str(candidate), "to": str(target), "prev": str(prev), "parity": parity, "moved": moved}
+
+
+def unplaced_cuts(candidate: Path, log=print, *, made_another_way: bool = False) -> list[str]:
+    """The AUTHORED cuts the candidate's build could not place, one readable line each (logged with the gauge ones);
+    one line saying so when the candidate has no record (`splits.read_unplaced` raises) — none for a candidate promoted
+    with `--no-marker` (not made by the atlas build: its reason is printed, and the missing record is logged)."""
+    from pipeline.atlas.splits.splits import UNPLACED_FILE, read_unplaced
+    try:
+        rows = read_unplaced(candidate)
+    except FileNotFoundError as e:
+        log(f"promote: {e}")
+        if made_another_way:
+            return []
+        return [f"(no {UNPLACED_FILE}: the candidate does not record which cuts it could not place)"]
+    lines = [f"{r['split_id']} [{r['source']}/{r['anchor_type']}]: {r['reason']}" for r in rows]
+    if lines:
+        log(f"promote: {len(lines)} split def(s) the candidate could not place (T743):\n  " + "\n  ".join(lines))
+    return [ln for r, ln in zip(rows, lines) if r["source"] != "gauge"]
 
 
 def boundary_loss(parity: str) -> int:
@@ -318,6 +346,8 @@ def main(argv=None) -> int:
                     help="(T547) promote although the candidate has fewer boundaries than the current atlas")
     ap.add_argument("--accept-dead-ids", action="store_true",
                     help="(T631) promote although curated files name item ids the candidate lost or absorbed")
+    ap.add_argument("--accept-unplaced-cuts", action="store_true",
+                    help="(T743) promote although the candidate's build could not place an authored cut")
     ap.add_argument("--no-marker", default=None, metavar="REASON",
                     help="(T547) promote a candidate with no COMPLETE.json (not made by the atlas build); printed")
     a = ap.parse_args(argv)
@@ -325,7 +355,7 @@ def main(argv=None) -> int:
         ap.error("--no-marker needs a reason, which is printed")
     promote(a.candidate, a.to, dry_run=a.dry_run, target=a.target, tiles=a.tiles, bundle=a.bundle,
             accept_moved=a.accept_moved_boundaries, accept_loss=a.accept_boundary_loss, no_marker=a.no_marker,
-            accept_dead_ids=a.accept_dead_ids)
+            accept_dead_ids=a.accept_dead_ids, accept_unplaced=a.accept_unplaced_cuts)
     return 0
 
 

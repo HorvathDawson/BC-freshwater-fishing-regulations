@@ -223,6 +223,12 @@ if [[ -z ${BUILD_APK_INNER:-} ]]; then
     else bad "wrangler is not logged in (npx --prefix app wrangler login): the R2 puts would fail AFTER the build"; fi
     if [[ -n $EMAIL ]]; then [[ -s $TOKF ]] && ok "run token ($TOKF)" || bad "no run token at $TOKF (the email); --no-email goes on"; fi
   fi
+  case ${CANIFISHTHIS_R8:-} in
+    ""|0) ;;   # R8 off: nothing said, as before T749
+    1) if [[ -n $PROD ]]; then bad "CANIFISHTHIS_R8=1 is a trial (T749), refused for --production (app.config.js refuses it too)"
+       else ok "R8 ON (CANIFISHTHIS_R8=1, T749): minified build, R8's mapping.txt kept beside the Hermes map"; fi ;;
+    *) bad "CANIFISHTHIS_R8 must be unset, 0 or 1 (got '${CANIFISHTHIS_R8}')" ;;
+  esac
   if [[ -n $MLN_AAR ]]; then
     [[ -n $READELF && -x $READELF ]] && ok "llvm-readelf ($READELF)" || bad "no llvm-readelf under $ANDROID_HOME/ndk: the MapLibre build id cannot be proved"
     MLN_WANT=$([[ -n $READELF ]] && mln_id "$MLN_AAR" jni/arm64-v8a/libmaplibre.so)
@@ -343,13 +349,21 @@ OUT=$REPO/app/dist/apk; [[ -n $DRY ]] || mkdir -p "$OUT"
 # uploaded) under the key a crash's `app` names ("0.5.0 (build 8, 9813980, …)" -> 0.5.0-b8-9813980):
 # `node app/tools/sourcemaps.mjs symbolicate <crash json>` reads a stack back with it. No map: the build stops here.
 HERMES_MAP=$M/android/app/build/generated/sourcemaps/react/release/index.android.bundle.map
-keep_map() { node "$REPO/app/tools/sourcemaps.mjs" keep-android "$HERMES_MAP" "$VER-b$CODE-${SHA:0:7}"; }
+# (T749) CANIFISHTHIS_R8=1 (R8 on, plugins/with-no-minify.js): R8's mapping.txt is kept beside the Hermes map as
+# r8-mapping.txt (it reads a crash's renamed Java/Kotlin frames back). No mapping with the flag on: the build stops here,
+# before the APK/AAB is copied, committed or uploaded.
+R8_MAP=$M/android/app/build/outputs/mapping/release/mapping.txt
+keep_map() {
+  node "$REPO/app/tools/sourcemaps.mjs" keep-android "$HERMES_MAP" "$VER-b$CODE-${SHA:0:7}"
+  if [[ ${CANIFISHTHIS_R8:-} == 1 ]]; then node "$REPO/app/tools/sourcemaps.mjs" keep-r8 "$R8_MAP" "$VER-b$CODE-${SHA:0:7}"; fi
+}
 NAME="canifishthis-staging-$VER-$SHA.apk"
 [[ -n $PLAY ]] && { OUT=$REPO/app/dist/aab; [[ -n $DRY ]] || mkdir -p "$OUT"; NAME="canifishthis-$VER-$CODE-$SHA.aab"; }
 if [[ -n $DRY && -n $PLAY ]]; then
   echo "[dry-run] (cd \$WT/app && pnpm install --offline --frozen-lockfile); expo prebuild (plugins/with-upload-signing.js)"
   echo "[dry-run] (cd \$WT/$M/android && CANIFISHTHIS_UPLOAD_PROPERTIES=$SECRETS/upload-keystore.properties ./gradlew bundleRelease)"
   echo "[dry-run] keep the Hermes map: data/sourcemaps/$VER-b$CODE-${SHA:0:7}/android/"
+  if [[ ${CANIFISHTHIS_R8:-} == 1 ]]; then echo "[dry-run] (T749) R8 ON: keep R8's mapping.txt there too (r8-mapping.txt), or stop"; fi
   echo "[dry-run] check the AAB is signed by $SECRETS/upload_certificate.pem; copy -> $OUT/$NAME"
   echo "[dry-run] check the AAB's libmaplibre.so build id: ${MLN_AAR:+the patched AAR ($MLN_AAR)}${STOCK_MLN:+stock (--stock-maplibre)}${PROD:+stock (production)}"
   echo "[dry-run] $ENVWORD build: EXPO_PUBLIC_APP_ENV=$EXPO_PUBLIC_APP_ENV, switch ${EXPO_PUBLIC_ENV_SWITCH:-off}, map lab ${EXPO_PUBLIC_MAP_LAB:-off}"
@@ -409,6 +423,8 @@ if [[ -n $PLAY ]]; then
   if [[ " $* " != *" --no-email "* ]]; then
     CH="$CH
 MapLibre build id $MLN_GOT ($MLN_WHAT)"
+    if [[ ${CANIFISHTHIS_R8:-} == 1 ]]; then CH="$CH
+Code shrinker (R8): on (T749)"; fi
     export V=$VER B=$CODE S=$SHA D=$DATE SZ="$MB MB" U="$TEST_URL" CH
     BODY=$(python3 -c 'import json,os;e=os.environ;print(json.dumps({"channel":"play","version":e["V"],"build":e["B"],"sha":e["S"],"date":e["D"],"size":e["SZ"],"url":e["U"],"changes":e["CH"].splitlines()}))')
     TOK=$(tr -d '\n' < "$REPO/$TOKF" 2>/dev/null || true)   # the REPO's: the build worktree has no gitignored token

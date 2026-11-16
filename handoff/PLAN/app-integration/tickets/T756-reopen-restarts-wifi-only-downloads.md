@@ -78,8 +78,38 @@ Branch `fix/t756-keep-running-job`, commit a03372ec5, off the shared head ff4463
   pause queued again once with its line; a short pause waited out). Each fails with its half of the change removed
   (checked by hand). The file: 11 passed. `pnpm -C app check:fast` exit 0; `tools/failures`, `tools/no-silent-skips`,
   `tools/release-boot` and `packages/data/src/release/` pass (24 files, 220 tests).
-- **Not done:** work 4 (the bench: fail on an app-side cancel, wait on bytes moving, the failure text, the
-  notification-group tap) and work 5 (no device run yet: Android `bg-install` + `install`; iPhone after T722 merges).
+- **Work 4, written 2026-11-15 14:50, NOT run on a device** (commit c0ad16d62 on the same branch; no internet line):
+  `scenarios/bg-install.mjs` (a) reads the system downloader's log every ~20 s through the reopen (it rolls on a long
+  run) and FAILS when the app stopped a running job ("onStopJob id=N, reason=cancel() called by app"), naming the jobs;
+  (b) waits for as long as the app's "X of Y MB downloaded" line or the bytes on disk move, fails after 4 minutes
+  without movement (45 minutes in all) and quotes the setup screen's own line and the bytes on disk; (c) the
+  notification tap is its own step: it unfolds the system's group ("2 files downloading") first, and a tap that does
+  not bring the app's activity to the front FAILS (before, it fell back to a launch and passed). Pure parts in
+  `lib/download-watch.mjs`, five node tests on the downloader lines captured from the defect
+  (`node --test app/tools/testbed/lib/download-watch.test.mjs`); `tools/testbed-static.test.ts` 20 pass.
+  To check on the first device run: that a group tap unfolds (not opens) on this Android image; that a finished file's
+  tidy-up never logs an onStopJob cancel; that verifying after "479.3 of 479.3 MB" is not read as a stall.
+- **Not done:** work 5 (no device run yet: Android `bg-install` + `install`; iPhone after T722 merges).
 - **Not verified:** that the iPhone downloader (T722) reports `running` and `metered` the way this rule needs; that
   DownloadManager reports a Wi-Fi-only job as `running` (not `paused`) for the whole time it moves on Wi-Fi.
 
+## Device runs, 2026-11-15 evening (emulator n1_pixel, branch `fix/t756-keep-running-job`, lane 2, `--no-r2`)
+Branch now: the shared head 35dce9bf3 merged in, plus 81591d974 (a paused Wi-Fi-only job that has bytes is kept; every
+restart from zero logs `[download] <url>: queued again from zero (was <status>, N of M bytes): <why>`; the bench reads
+that line, not the system downloader's), the T760 bench change (a clean app is an uninstall + install) and 872cfe14e.
+- **`install` PASS** (run 2026-11-16T01-29-07, commit 8ada197ac): map up 635 s. The system downloader hit read
+  timeouts for about seven minutes (both big files "paused (reason 1)" then "running" again every 20–60 s) and
+  finished by itself; the host's own line was steady at the time (120 MB twice at 1.7 MB/s), so the stalls are in the
+  emulator's network path or came and went.
+- **Reopen mid-download, by hand** (first launch on Wi-Fi, killed at 45 s, relaunched): after the relaunch the app
+  logged both big files "running, 30302145 of 197196706 bytes" / "76166400 of 225356297 bytes", no "queued again from
+  zero" line, and both finished and verified (basemap "fill 125426 ms"). Bytes kept. This is the both-rules-equal
+  case; the "Wait for Wi-Fi, then reopened" case is what `bg-install` drives.
+- **`bg-install`, first try, FAILED in the bench, not in the app:** the new tap step found no notification because
+  `expand-notifications` on an already open shade turns it into the quick settings; and the reopen step then waited to
+  its cap because its progress measure was wrong (the downloader's files are full-size on disk from the first second,
+  by `ls -l` and by `du`). Both fixed in 872cfe14e: the shade is closed first; progress is the app's own byte line,
+  and no byte line at all for 4 minutes is a stall. Re-run started 18:48; result below when it is in.
+- The earlier `install` failure of the same build (17:22, 20 minutes, the setup screen with NO bar and NO byte line)
+  is not explained by a run of mine; the log kept only "mobile data: go". It may be the same read timeouts lasting
+  longer; a screen that shows nothing while every download is paused is T760's point 3.

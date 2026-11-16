@@ -144,5 +144,14 @@ from __future__ import annotations
 #:     `LAKE_LOOPS_JOIN_THEIR_LAKE`; the build lists every move in `lake_loop_report.json`). Sproat's narrows take Sproat
 #:     Lake's rows, not the lower river's. Decided in the atlas registry, so no classify.py outcome changed; the bump
 #:     marks the binding diff.
-POLICY_VERSION = "40"
+#: 41: (T753/T743, 2026-11-15) A LOOP NEVER DIVIDES ITS LAKE: a lake loop joins its lake only when it is in exactly the
+#:     lake's cut areas (`registry.lake_loops.LOOPS_NEVER_DIVIDE_A_LAKE`): Kotcho Lake's loop, outside the ecological
+#:     reserve the lake is in, stays with the Kotcho River. A CONFLUENCE ANCHOR'S TRIBUTARY IS ITS LINE THAT MEETS THE
+#:     PARENT (`splits.anchors.A_TRIBUTARY_IS_ITS_LINE_THAT_MEETS_THE_PARENT`): the Fraser's Seton River cut is built. Both
+#:     decided in the atlas, so no classify.py outcome changed; the bump marks the binding diff.
+#: 42: (2026-11-15, the Stikine part-name stop) A DEAD END OF A COLLECTED WATER IS COLLECTED: an unreached sink (a
+#:     lake's second outlet that ends, a closed loop, an unconnected piece) whose watershed code a walk otherwise
+#:     collected wholly goes with that water, with what feeds it (`tributaries.A_DEAD_END_GOES_WITH_ITS_WATER`).
+#:     Buckley, Iskut, Chukachida, Mess (Stikine) and Horsefeed, Sutlahine (Taku) take their place's salmon whole.
+POLICY_VERSION = "42"
 

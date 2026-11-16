@@ -45,6 +45,77 @@ would show such a closed area as open. Nothing binds today. I take it as T757 wh
 (`handoff/PLAN/app-integration/tickets/T573-files/worker-handoff.md`); I asked for a mechanical guard (the release
 refuses when the worker does not report the new feed shape) and for the app to say "not known" instead of "open".
 
+**State 17:18, 2026-11-15: the R8 Play build (build 33) is ready on every side but one, and that one needs the owner.**
+- All six emulator checks passed on the shrinker-on build of the merged code (clean run 15:54–16:43: 61 steps pass,
+  none fail; install map up 481 s; tap to regulations page 344–360 ms). Report in the R8 lane's worktree:
+  `app/tools/testbed/out/runs/2026-11-15T22-54-45/index.html`.
+- Merged into `redesign/stream-sections` and pushed 16:50: head 35dce9bf3 (shrinker off by default; its app code is
+  byte-identical to the tested commit 6a2dc612d). Both GitHub runs green on it (app 43776985369, pipeline
+  43776985305).
+- **Not built:** the Android chat's `CANIFISHTHIS_R8=1 deploy/staging/build-apk.sh --play` stopped in its quick test
+  step: `pipeline/tests/test_dfo_suggest.py::test_the_hunt_file_covers_its_targets_and_names_real_cuts` fails in the
+  main checkout because it reads the owner's UNCOMMITTED `data/generated/review/dfo-suggestions.json`, where two rows
+  merged at midday lack their evidence. GitHub is green because it reads the committed copy. Nobody skips the test
+  (`--no-fast-fail` is forbidden). The fix is to regenerate those two rows; when a lane of the Android chat tried,
+  the automatic permission check refused it, so no agent does it: it is the first item on the owner's To-Do page and
+  on his return page ("regenerate the two proposal rows"). Nothing built, no version commit, nothing uploaded.
+  Build 33 follows his word: tonight if he answers, otherwise tomorrow. A CI re-run on the then head comes first
+  (the Android chat is pushing pipeline commits meanwhile; it leaves app/ and build-apk.sh untouched so the tested
+  app code stays the head's).
+
+**State 16:08, 2026-11-15 (newest first; the notes below it are older).**
+1. **R8 Play build (build 33): still possible tonight.** The 15:17 run of the six checks failed at the first one, and
+   I traced why on the emulator instead of guessing: the system's downloader still held half-finished atlas and
+   basemap downloads from the morning's cut-short runs; the freshly cleared app adopted them, and they never moved
+   ("paused, 18 of 197 MB", the same bytes for 35 minutes). That, not R8 and not the internet line, is very likely
+   what failed this morning's sixth check too. After an uninstall + install of the same APK the clean run started
+   15:54: install PASS (map up 481 s), crash reports PASS; four checks to go, due about 17:10. If all pass: merge,
+   CI, and the Android chat builds for Play internal tonight; if not, tomorrow.
+2. **A real bug came out of that (T760, open):** a first install waits for ever, without a word, on a system download
+   that is paused and never moves. On a phone a battery saver can do the same. Also in the ticket: the bench must
+   clear the downloader between runs.
+3. **Region-default salmon sentences were missing under live data (T758): fixed and live on STAGING 15:57.** With
+   the live feed, waters covered only by a region's default rule showed the right status (closed) but a generic line
+   instead of DFO's own sentence; about 1.1 M stream sections. The worker now publishes the seven default places
+   and equals the pipeline's feed on all 435 chains of the staging release. Production's worker has the same gap;
+   that deploy is the owner's, after the merge.
+4. **A wider question went to the owner from the Android chat (T759):** when DFO rewords or drops a restricting
+   place, the wider opening answers and a closed stretch can read open (worst example found: a Campbell River
+   closure). Proposal on branches only: such places read "not known, check the DFO notice". My parts (worker port,
+   app backstop using a new `known` list in the feed) start after build 33; nothing deploys before his answer.
+5. **T756 (reopen restarts downloads):** the fix now also keeps a paused download that already has bytes, every
+   restart from zero is written to the log, and the bench reads that line (branch `fix/t756-keep-running-job`
+   81591d974, not merged, not yet run on the emulator).
+6. **T757 (closed areas inside a DFO place):** worker half live on staging since 15:13; app half on its branch.
+
+**CORRECTION 15:19 (my error).** The internet line was NOT down all afternoon. My probe asked for the staging basemap
+without its `release/` prefix and timed a 9-byte "not found" answer from 13:04 on; "30-46 bytes a second" was that.
+Measured properly at 15:16: 8 MB in 4.7 s (1.77 MB/s). The failures up to 12:49 were real; when the line came back
+after that is not known. So the "still down" lines in the two notes below are wrong, and the R8 Play build (build 33)
+is back on for TODAY if the checks pass: all six are running since 15:17 on the shrinker-on APK of `perf/r8-play`
+6a2dc612d. Also at 15:13 the feeds worker with T757 went to STAGING (version f2b98bd4): its status says
+`"dfo": {"pieces": 1}` and the live feed carries the 17 closed areas. Found on the way: the worker's live feed has no
+answer for the 7 region-default places (`1:default:region` and six more) that the Python feed makes from the page's own
+sentence; older than T757; being ticketed, first step = what the app shows for such a water today.
+
+**Added 14:44.** (1) The internet line is still down (30–46 bytes a second on every probe from 13:04 to 14:39), so
+the sixth R8 check cannot be re-run. The Android chat now plans the R8 Play build (build 33) for TOMORROW. It is
+landing its desktop split (T752) on the shared branch first, so I re-run all six checks on that new head, not on
+164c928c2. Final word to it at 17:00 as promised; if the line recovers before then I still re-run the sixth check today.
+(2) T757 started: the spec landed with the Android chat's push (b58aa325a … 554558a12). Two lanes on branches, nothing
+merged: `feeds/t757-worker-pieces` (the worker emits the pieces and says `"dfo": {"pieces": 1}` in `/status.json`,
+tested against the Android chat's oracle file) and `app/t757-piece-not-known` (a bound piece missing from the feed
+reads "not known, check the DFO notice" and is reported, never open). No staging worker deploy without the Android
+chat's word. Its release step already refuses an upload that binds a piece when the worker does not say it emits them.
+
+**Added 14:58.** (1) T757 is written, both halves pushed, nothing merged: worker `feeds/t757-worker-pieces` 2523097a9
+(479 worker tests pass, equal to the Android chat's oracle), app `app/t757-piece-not-known` a5af25920 (the card reads
+"Not known: today's DFO check does not include this closed area. Check the DFO notice before you fish."). Left: the
+Android chat's read, a staging worker deploy with its word, merge after build 33, one emulator look. (2) The R8 branch
+`perf/r8-play` carries the new shared head (merge 6a2dc612d, pushed) and its shrinker-on test APK is built
+(`app-testbed-stub-r8play2.apk` in the R8 lane's worktree): tomorrow only the six runs remain. (3) T756's bench changes
+are written and unit-tested on `fix/t756-keep-running-job` c0ad16d62, not yet run on the emulator (needs the line).
+
 ## Morning summary, 2026-11-15 (written 07:32; the night's work in one place)
 
 **For you to do, in this order**

@@ -31,6 +31,11 @@ if (production && process.env.MLN_LOCAL_MAVEN) {
   throw new Error("app.config.js: MLN_LOCAL_MAVEN (a locally built MapLibre) is for test-bed builds only; unset it for production");
 }
 
+// (T749) R8 (CANIFISHTHIS_R8=1, plugins/with-no-minify.js) is a trial until its phone check is recorded: not in production
+if (production && require("./plugins/with-no-minify").r8Enabled()) {
+  throw new Error("app.config.js: CANIFISHTHIS_R8 (R8 on, T749) is a trial for test-bed and Play internal builds; unset it for production");
+}
+
 // (T420) with MLN_LOCAL_MAVEN set, MapLibre's own plugin is told the local SDK version (with-local-maplibre.js adds the repo)
 const localMaplibre = process.env.MLN_LOCAL_MAVEN ? require("./plugins/with-local-maplibre").localVersion(process.env.MLN_LOCAL_MAVEN) : null;
 const withLocalMaplibreVersion = (plugins) => !localMaplibre ? plugins : plugins.map((p) =>

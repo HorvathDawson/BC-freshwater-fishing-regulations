@@ -21,6 +21,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: "0.7.11", date: "2026-11-15", draft: true, notes: [
+      "Android: code shrinker (R8) on for this build; also carries T737, T747, T750 from the shared branch.",
+      "A water's map opened from search now frames the part you picked, not the whole water",
+      "Upstream and Downstream follow one line through every part of a water, with no branch to pick",
+      "Tapping an unnamed stretch opens its regulations sooner",
+    ],
+  },
+  {
     version: "0.7.10", date: "2026-11-14", draft: true, notes: [
       "Going back from a water's page no longer flashes while the map comes back",
       "The map's credits card opens above the legend, where it can be read",

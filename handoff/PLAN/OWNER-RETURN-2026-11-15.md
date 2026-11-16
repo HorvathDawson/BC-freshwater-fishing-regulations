@@ -4,15 +4,30 @@ Asked by you: "record everything i need to do for when i am back what i need to 
 etc etc. what needs testings etc etc". This page is kept current by the main chat until you return. The same items are
 rows on the To-Do page; reports named here are in `handoff/PLAN/curation-review/`.
 
-Status line (updated 13:40): fixes landed; cut clean-up and tributaries-only saves done; the side map rebuild is
-running; the Android build is on hold (the internet line here is too slow for one of its checks today).
+Status line (updated 14:50 by the system clock; earlier stamps on this page ran fast): review-app fixes and follow-ups,
+the closed-area build step and the desktop split map are landed and pushed; the side map rebuild passed its checks
+and is being promoted locally (marks landing, reach step, data bundle running); no staging release yet; the Android
+build with the code shrinker may be today (its phone checks are re-running; the line is fine after all).
 
 ## 1. First thing to do
+0. UNBLOCK THE ANDROID BUILD (one sentence to the main chat): "regenerate the two proposal rows". The build with the
+   code shrinker passed all six phone checks (61 steps) and both online checks, and was merged; the Play build then
+   refused to start because one local test fails: two rows of your proposals file (Stave "downstream of B.C. Hydro dam"
+   second wording, Bella Coola "all tributaries") lack their split-hunt evidence (my midday merge used the code from
+   before a later fix). An earlier attempt by a job to regenerate was denied by the automatic permission check, so the
+   main chat does not run it without your word. Nothing was built or uploaded; version 0.7.11 is merged.
 1. Restart the review app once (Ctrl-C, then `bash curation-review/run.sh`). It has new code: tributaries only /
    except a tributary, the tidal boundary as an end choice, warnings, clearer region-boundary names.
 2. Read section 2 (questions) and answer what you can; nothing in it blocks the others.
 
 ## 2. Questions for you (each also a To-Do row)
+MOST IMPORTANT (T759, found 2026-11-15, before closed testing)
+0. A restricting DFO place (a closed stretch inside an open river) can drop out of the live feed when DFO rewords its
+   row, and the app then shows the wider, more open rule: 68 of 435 rule chains could read looser; worst case found is a
+   Campbell River closure reading open on Sep 1. This is how the app has always worked; nothing shows wrong today that
+   we know of. Proposed: when our reader cannot tell "DFO removed it" from "DFO reworded it", the stretch reads "not
+   known, check the DFO notice" instead of the wider rule. Yes (recommended) / no? The fix is being built on branches
+   meanwhile, not shipped without your answer.
 Cuts and places
 1. Seton River mouth: its own cut 254 m below the Highway 99 bridge cut (recommended), or reuse the bridge cut?
 2. Shuswap closed stretch: DFO's two points are 2,054 m apart and look swapped. Use them as printed (2 km closed) or
@@ -108,11 +123,36 @@ after the clean-up and the rebuild; the final list replaces these numbers here.
   answered "You can run it" (2026-11-15) and the main chat ran that step; the build and its checks follow, in a side
   folder only (nothing live replaced; promotion decided after the checks). Disk: 65 GB free after 27.6 GB of old side
   builds, old atlases, old reach runs and 9 old releases were deleted (live + previous kept).
-- Build step that carries accepted closed areas (Thompson, Shuswap) into the app. NOT WRITTEN; needed before release.
-- App fix: BC border as a pickable point; reason shown when a place cannot be edited. NOT DONE.
-- Review app speed after a save (rebuild only the saved place). NOT DONE.
-- Android build with the code shrinker: ON HOLD. The other chat's background-install check failed three times; it is
-  finding out whether the shrinker or last night's loader change (mine) is the cause.
+- Side rebuild result (report `side-rebuild-2026-11-15.md`): every difference from the live map accounted for; 22 of
+  the 23 new cuts and the Puntledge weir built; no end cuts or slivers; gauges unmoved in the match file; 28 marks
+  land. HOLD: the Seton River mouth cut was NOT built and the build did not say so (it picked the wrong line for the
+  Seton); the Fraser place starting at the Seton stays unlanded until that is fixed and you have answered question 1.
+  New question: the Stamp River "everything else" place now covers nothing.
+- Promote of that build + reach step + data bundle: RUNNING (report will be `promote-2026-11-15.md`, with rollback).
+- Build step that carries accepted closed areas into the app: DONE in the pipeline (T573). A closed stretch's new cuts
+  now reach the cut proposals; a release with an accepted closed area is refused unless the feed server lists closed
+  areas; it edits BOTH upload scripts (staging and production) to add that check: for your code review. The feed-server
+  and app halves are with the other chat (T757), in progress.
+- Review app follow-ups: DONE (restart to get them): BC border as a pickable end (917 crossings), a reason on the 15
+  places that cannot be edited, saves about 4x faster (measured with write-through off; a save that rewrites a region
+  file still rebuilds the list once), an "old extent still in force" flag and filter (4 places).
+- Desktop split map (text left, map right): DONE and pushed; visible on staging after the next site deploy.
+- Local only: one test fails in the main copy because two rows of your proposals file (Stave, Bella Coola "all
+  tributaries") lack their split-hunt evidence; say so and the main chat regenerates those rows.
+- Android build with the code shrinker: POSSIBLY TODAY. The "internet line is down" reports after 13:04 were wrong (the
+  other chat's probe asked for a wrong address); the line is fine. The six phone checks are re-running on today's head;
+  if all pass, the main chat builds and uploads to Play internal. Found on the way (T756, the other chat): reopening
+  the app mid-download restarts the big files from zero; fix written on a branch, not yet run on a device.
+- Feed server on staging now lists closed areas (17) and says so; the other chat's app half (a closed area missing from
+  the feed reads "not known", never open) waits for the Android build, then merges.
+- FOUND AND CHECKED 2026-11-15 (T758, the other chat): under live DFO data, a water covered only by a region's default
+  rule shows the right status (closed) but a generic line ("Not opened by DFO: closed to salmon fishing") instead of
+  DFO's own sentence; about 1.1 million stream sections in Regions 1, 2, 3, 5A, 7, 8. No case shows open today (all
+  seven default sentences are closures or zero limits; checked for 153 chains x 5 species x 366 days). It would be wrong
+  on a day a default sentence OPENS something. FIXED ON STAGING 2026-11-15 (feed server only, no app update): the
+  seven regional defaults now carry DFO's own sentence; worker and pipeline agree on all 435 chains for the whole year.
+  The PRODUCTION feed server still has the gap: that deploy is yours.
+- Staging release of all this: NOT DONE (needs the bundle checks and a working line).
 
 ## 7. What needs testing by you
 - Review app after the restart: tributaries only / except; "to the tidal boundary" end; the warnings; the Shuswap
