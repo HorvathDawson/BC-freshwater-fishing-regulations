@@ -54,7 +54,7 @@ Python feed: main chat. Worker and app: the iOS chat (with T757/T758). Not part 
   release lines), so neutral ink on paper; `tools/issue-stripe.test.ts` (18 tests) holds it on every Salmon line
   colour, the basemap grounds and 17 greys for satellite, under protan, deutan and tritan.
 - Not proven: the native adapter never rendered (shared style code + a native style JSON test only); the lane's
-  `check:fast` could not finish for a missing `.venv` link (re-run by the app chat, result below when in); no emulator.
+  `check:fast` could not finish for a missing `.venv` link; re-run by the app chat with the link at 00:30: rc 0. No emulator.
 - Owner: pictures sent 00:31, To-Do row `t759-stripe-final` (legend words, strength on the dark blue line).
 - Left: his two confirms; an emulator look on Android; then it merges WITH the rest of T759's app half and the feeds
   half (`feeds/t759-issues`), benches and a message to the main chat first.
