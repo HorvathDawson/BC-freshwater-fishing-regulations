@@ -1907,3 +1907,54 @@ More questions (recommended answer first):
   with maps, to review after; built by a smaller model (Sonnet). (5) The Yakoun row: the book closes Oct 1 to Apr 30
   only; on the other days DFO's rows answer as before: that is how it works; the warning on that row was about the
   side creeks along the 13 km, not the dates.
+- 15:01, on trout round 9 (typed, verbatim): "for the trout view i liked the old look more but with the words of
+  round 9 buyt the frame look is a lot cleaner". My reading (mine, to be confirmed by picture): round 8's look (the
+  tinted box and the white boxes), round 9's words everywhere ("up to the 5", the dated lines, the strip on one
+  line), and round 9's cleaner outline around the box. Round 10 is built as that blend, with the Skeena card shown
+  both ways (with and without round 9's outline) so he can pick. Mockups only.
+- 15:08, typed in chat (verbatim): "this chat will have to change to opus soon. out of fable credits could you make
+  sure we are ready for when that happens?" Done 15:12: the state page (`handoff/PLAN/INFLIGHT-chat14.md`) opens with
+  a section "READ THIS FIRST: handover at 15:10" that holds the rules, the four running workers and what to do when
+  each hands back, the landing steps for the salmon lane, the queue to the next staging release, and what is still
+  his. The session notes point at it. Nothing of his is needed for the change.
+- 15:16, one dialog with the round 10 trout picture (Skeena card three ways) and the salmon lane's Nass finding.
+  Trout look (A old look no outline / B old look + outline / round 9), typed, verbatim: "old look no outline because it
+  looks like the groups are subgrouped inside the over keep 5 card then... one thing is the words "only 1 of these 4
+  until oct 31, then release" should be changed to be "onlly 1 of these 4" being bigger it is the actual rule right
+  now then a smaller text for the change underneath. all current rules will have the bigger text. " So: A (the round 8
+  look, no outline); and in every white box and row the rule in force today is the bigger text, the coming change
+  ("until Oct 31, then release") smaller underneath. Trout row spacing (round 8's roomy rows, 23 of 42 cards fit one
+  screen / round 9's tighter rows, 34 fit), typed: "inbetween the 2". Nass side streams, coho Jan 1 to Jun 15 (closed
+  as the book says / leave coho open / hold this row), typed: "how are both items worded let me double check but im
+  pretty sure closed dis the right option". So: NOT yet decided; he gets the book's line and DFO's row word for word,
+  then answers. The row does not ship before that.
+- 15:18, typed in chat (verbatim): "have another opus agent spec out what would be involved in transitioning the trout
+  portion of the app to the new table format. want it implemented clean from pythion up to front end. etc etc. use
+  opus agent". So: an Opus worker writes a spec (no code): what it takes to move the app's trout and char block to
+  the new table, built cleanly from the Python pipeline up to the app's screen. The spec comes back to him before
+  any build starts.
+- 15:19, typed in chat after reading the book's line and DFO's row for the Nass side streams (verbatim): "and yes the
+  closure wins here." and "we need to make sure it says where the closure is from though". So: the Nass row ships
+  with the other 70 (coho closed Jan 1 to Jun 15 on the side streams above the Kitsault Bridge); and a pass
+  condition for all 71: the salmon card says where the closure comes from (the rule book, its page, its line).
+  Checked on the lane's data 15:19: all 71 rows' card words open "Closed to all fishing by the rule book (p.NN):"
+  followed by the book's line and dates. Still to prove on the app's screen (the app chat's before / after pictures).
+- 15:22, the closures review page he asked for is published (built by a Sonnet worker, 71 cards, a map each):
+  https://claude.ai/artifact/2eGEuMG9cLe3SS69j63aTd ("Book Closures Review"). Also a row on the Owner To-Do page
+  (`rv-book-closures-page-1116`, group Review). Each card: row number, map (closed pieces in red), the book's line,
+  page and dates, what the salmon card said before, fish and days now closed, how much of DFO's place changes. Known
+  limits, told to him: no "rest of DFO's place" layer on the maps; rows 5, 6, 17, 19 miss 25 to 35 pieces on the
+  picture (said on the card); the book's "[Includes Tributaries]" tag is not yet shown under the line (second
+  version being built: Dean River row 12 is the example, the book does print it there). FOR HIM: review when he
+  likes; any row he calls wrong by number is held back.
+- 15:36, trout round 11, one dialog with two pictures (Skeena before / after; a Fraser card where only trout and char
+  close). Is this the card to build, typed, verbatim: "it looks good but it is missing the general 30cm or bigger for
+  trout/char in region 2 fraser? ". Closure words ("until Sep 30, then closed to trout and char, reopens Nov 1"),
+  typed: "yes but drop reopen unless it is currently closed then reopen date matters then ". A limit that only gets
+  looser on a coming date (skip it and show the next stricter date?), typed: "could just mention a rule change
+  happens on that date not specifics". Adams River Dolly Varden / bull trout: "Yes, 80 cm on the row (Recommended)".
+  So: the look is accepted ("it looks good"); to check: why the Fraser card's brook, brown and cutthroat rows carry
+  no "30 cm or longer" line (is a general size rule missing from the data or the mock, or does it not apply on that
+  stretch); a coming closure says what closes without the reopening date, and the reopening date is shown only
+  while the water (or the fish) is closed today; a coming change that only loosens a rule is said as a plain "rule
+  changes <date>" with no details; Adams as recommended.

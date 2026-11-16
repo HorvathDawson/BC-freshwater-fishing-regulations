@@ -61,7 +61,8 @@ describe("<MethodsTab>", () => {
       "✓ Spear or bow — not for trout or other game fish not for game fish, salmon or protected species · burbot allowed",
       "✓ Crayfish traps release anything in the trap that isn’t a crayfish", "Not allowed", "✕ Set lines", "✕ Nets", "✕ Snagging", "✕ Chumming",
       "Province › Rule book p.8 ↗"]);
-    expect(domLines(screen.getByTestId("methods-boats"))).toEqual(["Boats",
+    // (T797) the Bella Coola's "No angling from powered boats" (p.43) leads the list: it was held and never drawn
+    expect(domLines(screen.getByTestId("methods-boats"))).toEqual(["Boats", "No angling (from a powered boat)",
       "No powered boats — between the Goat Creek confluence and the Talchako River confluence", "This water’s › Rule book p.43 ↗"]);
     fireEvent.click(within(screen.getByTestId("methods-boats")).getByRole("button", { name: "Sources: This water’s" }));
     expect(sheets).toEqual(["srcs:boats"]);
@@ -75,6 +76,7 @@ describe("<MethodsTab>", () => {
     render(<MethodsTab vm={vm} palette={LIGHT} actions={a.actions} boats={boats} />);
     const section = screen.getByTestId("methods-vessels");
     expect(domLines(section)).toEqual([METHODS.VESSELS, "No powered boats (in part)", "Speed limit 8 km/h", "Boats",
+      "No angling (from a powered boat)",
       "No powered boats — between the Goat Creek confluence and the Talchako River confluence", "This water’s › Rule book p.43 ↗"]);
     // under Methods: after its Ways to fish
     const ways = screen.getByTestId("methods-ways");

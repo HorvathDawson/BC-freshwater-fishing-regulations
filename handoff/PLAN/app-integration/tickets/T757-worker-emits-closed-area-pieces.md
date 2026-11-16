@@ -140,3 +140,17 @@ passed, 10 failed, all ten in `test_stepcache.py` and not from this merge: the s
 under the system temp folder and all 20 pass in the main checkout (the recorder sees no reads there). No file the app bundles changed (the worker is outside the app's workspace), so the Android benches of
 build 33 stand. Staging keeps running `ios/staging-worker` (this + push + the crash limit) until push merges.
 Production: the owner's `deploy/prod/feeds.sh`, BEFORE or WITH the first release that binds a closed area.
+
+## Item 7 changed before landing, 2026-11-16 (app chat; rule agreed by the main chat, whose file the gate is)
+As written, the worker-deploy gate read the environment's live release first and refused when it could not. Tried by
+hand: a worker that serves `{"pieces":1}` beside an empty live manifest was refused. Production has no release yet, so
+the owner's first production worker deploy would have been refused, while the upload gate refuses the release until
+that worker is up: each waited on the other.
+- **Rule now:** a worker whose code serves `dfo.pieces >= PIECES_SHAPE` is safe beside any release and passes without
+  the live release being read (`serves_pieces`; `main` does not call `read_live` for it). The live release is read,
+  and unreadable = refused, only for a worker that lacks the shape. An unreadable worker shape is refused always.
+  `true` is not a shape number.
+- **Tests:** `test_worker_deploy_pieces_gate.py` 30 pass (was 22): the pinned case turned round, the four unreadable
+  cases refused for three shapes without pieces, and one that fails if the release is read at all for a worker that
+  serves pieces. Four mutations, each caught (the old order: 6 tests fail; `main` always reading: 1; `true` as a
+  number: 1; a worker without the shape passing an unreadable release: 7).
