@@ -23,6 +23,18 @@ this page says "iOS chat" below, read "app chat". Session since 2026-11-15 21:27
    merge question). Owed in the morning: a summary; later: T760 "keep trying by itself", the T759 stripe for real
    (Salmon view only; colour is Claude's call), one picture of the final stripe.
 
+**Added 23:58 (same night):**
+5. The Mac's disk filled at about 23:38 (the main chat cleared 150 GB of test leftovers). The bench session
+   `t749-r8-night` lost its first-install check to it (FAIL at 23:39, 0.6 of 479 MB); the bench subagent was told to
+   rerun what failed in that window on the same APK. The main chat's build also stopped for its own reason (T778), so
+   its "before the release" message will not come before about 01:30. It still waits for "benches done".
+6. T764 (app tests leave their temp folders behind) is this chat's: ticket on the shared checkout (c5a53aaff), fix on
+   branch `app-fix/t764-test-temp` @ 5d3f8e426 (scratchpad worktree `t762-wt`): every vitest run gets its own temp
+   folder, removed at the end. Test and tool files only (not in the app bundle), so it does not void the benches. The
+   main chat said: land it on the shared checkout any time BEFORE its "before" message, never between "before" and
+   "after". Still to do before landing: `check:fast` on the branch. After the benches: clear the 13.5 GB of
+   `maestro_xctestrunner_xcodebuild_output*` in the system temp folder (mine, no run uses them).
+
 **Who you talk to.** The main (data) chat is session `bc-freshwater-fishing-regulations-17` (it took over
 from chat 13 on 2026-11-15 evening; its page: `handoff/PLAN/NEXT-SESSION-after-chat13.md`). Tell it your session name
 first. It messages you BEFORE and AFTER any staging release.
