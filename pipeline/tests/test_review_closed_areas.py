@@ -25,6 +25,7 @@ from pipeline.regs.review import export as E
 from pipeline.regs.review import marks as M
 from pipeline.tests.test_review_write_through import wt  # noqa: F401  (the app over a sandbox, write-through on)
 from pipeline.tests import under_test
+from pipeline.tests.conftest import curated_root
 
 SHA = "0" * 64
 BABINE = "6:babine-lake"
@@ -121,15 +122,22 @@ def test_the_file_holds_only_what_is_confirmed_and_a_later_wrong_takes_it_out(tm
     assert (r["centre"], r["radius_m"]) == ([-126.28, 55.15], 250.0)
 
 
-def test_the_writer_writes_its_own_file_and_nothing_else(tmp_path):
+def test_the_writer_writes_its_own_file_and_nothing_else(tmp_path, monkeypatch):
     assert E.DOMAINS["closed_areas"] == ("closed_area",) and "closed_areas" in AP.WRITERS
+    # a curated tree this test builds, with a review that has nothing in it: the live file (which his saves fill) is
+    # never what "no file" is proven on
+    root = curated_root(monkeypatch, tmp_path / "curated")
+    assert CA.path().is_relative_to(root), "the writer follows the curated root it is given"
     out = AP.WRITERS["closed_areas"](_decided(tmp_path, [_mark(CIRCLE)]))
     assert list(out) == [CA.path()] and CA.path().name == "closed_areas.json"
     assert CA.path().parent == Path(under_test.curated().dfo_salmon.places).parent
+    assert not CA.path().is_relative_to(Path(under_test.curated().dfo_salmon.places)), "never inside the places files"
     # the file is born with his first confirm: nothing confirmed and no file = nothing to write (the landed check
     # must not read a missing file as "marks not landed")
     assert not CA.path().exists() and AP.WRITERS["closed_areas"](_decided(tmp_path, [])) == {}
-    assert not CA.path().is_relative_to(Path(under_test.curated().dfo_salmon.places)), "never inside the places files"
+    # once born, a store with nothing confirmed (his later "wrong") writes it empty, never leaves the old rows
+    CA.path().write_text(out[CA.path()], encoding="utf-8")
+    assert AP.WRITERS["closed_areas"](_decided(tmp_path, [])) == {CA.path(): CA.document([])}
 
 
 # --------------------------------------------------------------------------- the app (sandbox, write-through on)

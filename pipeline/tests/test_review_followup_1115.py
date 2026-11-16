@@ -4,7 +4,8 @@
              back at km 146) are read from the atlas's own section bounds, named by the one namer (`reuse.cut_name`)
              and offered by every picker — the map list, the name search, the regs editor's boundaries
   cannot     a place whose extent the editor cannot say again (Blanchard's `within_area`) says why in plain words and
-             what the owner can do; the 15 unmarked places in that state each get a reason
+             what the owner can do; each shape the 15 unmarked places of the T742 scan held gets a reason, and every
+             stored place either opens in the editor or says why
   speed      a save rebuilds only the saved place's rows and checklist place (`reuse.marks_delta`,
              `dfo._patched_rows`, `checks._patched_places`); a save that proposes no cut keeps the proposed cuts
   old        "old extent still in force": the last save is wrong / unsure with no fix while an older extent holds —
@@ -150,34 +151,102 @@ def test_each_field_the_editor_cannot_say_has_its_words():
     assert "something else" in text                     # a reason it does not know is shown as it is, never dropped
 
 
-#: the 15 unmarked places the editor cannot change (T742 scan, 2026-11-15)
-CANNOT = ["1:default:region", "2:default:areas-28-29", "2:default:areas-13-15-16", "5a:default:region",
-          "6:e:section", "6:f:closure", "6:tatshenshini-river:upstream-of-the-bc-yukon-border-al",
-          "6:e:area:areas-5~2", "6:e:area:areas-6~2", "6:b(i):section", "6:b(ii):section",
-          "6:skeena-river:mainstem-waters-within-3-white-tri", "6:e:area:areas-3-4-5-6~2",
-          "6:skeena-river:all-waters-within-the-4-triangular", "6:skeena-river:mainstem-waters-within-three-white"]
+#: THE SHAPES THE 15 UNMARKED PLACES OF THE T742 SCAN (2026-11-15) HELD, built here (which live places are in that state
+#: moves with every save of his): (the place's extents, the plain words each must show). `area:mu:x` / `area:sz:k`
+#: are named by the stand-in area names below.
+SHAPES = {
+    "a region default leaving out an area (1:default:region)":
+        ([{"op": "within", "area_id": "area:region:1", "outside_areas": ["area:mu:x"]}],
+         ["The extent leaves out MU 6-12 and 6-13"]),
+    "two extents held inside a region (2:default:areas-28-29)":
+        ([{"op": "within", "area_id": "area:pfma:28", "within_area": "area:region:2"},
+          {"op": "within", "area_id": "area:pfma:29", "within_area": "area:region:2"}],
+         ["Extent 1 is held only inside Region 2", "Extent 2 is held only inside Region 2"]),
+    "a water held inside a sign zone (6:skeena-river:all-waters-within-the-4-triangular)":
+        ([{"op": "whole", "item_id": "gnis:1", "within_area": "area:sz:k"}],
+         ["The extent is held only inside Kispiox confluence sign zone"]),
+    "streams only, leaving out areas (6:e:area:areas-5~2)":
+        ([{"op": "within", "area_id": "area:pfma:5", "feature_types": ["stream"], "outside_areas": ["area:mu:x"]}],
+         ["The extent holds only streams", "The extent leaves out MU 6-12 and 6-13"]),
+    "a watershed above a point (6:b(i):section)":
+        ([{"op": "upstream_of", "item_id": "gnis:1", "splits": ["c"], "watershed": True}],
+         ["The extent takes the whole watershed above its point"]),
+    "a watershed below a point (6:b(ii):section)":
+        ([{"op": "downstream_of", "item_id": "gnis:1", "splits": ["c"], "watershed": True}],
+         ["The extent takes the whole watershed"]),
+}
 
 
-def test_the_fifteen_places_each_show_their_reason():
-    """read from the curated place files: each of the 15 still holds a field the editor has no word for, and each gets
-    a plain reason with what to do — through `extent_now` (the checklist, the DFO tab) and the region cascade's words"""
+def _why(loc: dict) -> list[str]:
+    from pipeline.regs.review import proposals as P
+    b = loc.get("binding") or {}
+    return P.fixes_of_extents(b.get("extents") or [], b.get("tributaries"),
+                              tributaries_only=bool(b.get("tributaries_only")),
+                              tributary_excludes=list(b.get("tributary_excludes") or []))[1]
+
+
+def _shown(loc: dict) -> tuple[dict, dict | None]:
+    """the place's extent as the checklist / DFO tab open on it (`extent_now`), and the region cascade's words"""
     import dfo
     import region_cascade
+    return dfo.extent_now(loc, None), region_cascade._cannot_edit(loc)
+
+
+def _plain(why: list[str], got: dict | None, at) -> None:
+    """a place the editor cannot change gets a plain reason and what to do, the same on every screen"""
+    assert got and got["can"] and "confirm it as it is" in got["can"] and len(got["why"]) >= 2, at
+    assert "edit button is off" in got["why"][-1], at
+    assert not any("hand edit" in w for w in got["why"]), at                  # plain words, not the model's
+    assert len(got["why"]) > len(why), at                                     # every reason said, plus the button
+
+
+@pytest.fixture()
+def no_walk(monkeypatch):
+    """`extent_now`'s tributary-walk answer reads the atlas; it is no part of the reason"""
+    import dfo
+    monkeypatch.setattr(dfo, "walks_now", lambda loc, water: None)
+    monkeypatch.setattr(dfo.reuse, "_area_name_map", lambda: {"area:mu:x": "MU 6-12 and 6-13",
+                                                              "area:sz:k": "Kispiox confluence sign zone"})
+
+
+@pytest.mark.parametrize("shape", list(SHAPES))
+def test_each_shape_the_editor_cannot_say_shows_its_reason(shape, no_walk):
+    """each shape the 15 held gets its plain reason with what to do — through `extent_now` (the checklist, the DFO
+    tab) and the region cascade's words, the same; the same place without the field converts"""
     from pipeline.regs.review import proposals as P
-    locs = {}
+    extents, words = SHAPES[shape]
+    loc = {"location_id": "x", "binding": {"extents": extents}}
+    why = _why(loc)
+    assert why, shape
+    now, got = _shown(loc)
+    assert now["pieces"] == [] and now["cannot_change"] == why and now["cannot_edit"] == got, shape
+    _plain(why, got, shape)
+    text = " ".join(got["why"])
+    for w in words:
+        assert w in text, (shape, w, text)
+    plain = [{k: v for k, v in ex.items() if k in P.EXPRESSIBLE} for ex in extents]
+    loc = {"location_id": "x", "binding": {"extents": plain}}
+    now, got = _shown(loc)
+    assert _why(loc) == [] and now["pieces"] and now["cannot_edit"] is None and got is None, shape
+
+
+def test_every_stored_place_converts_or_says_why(no_walk):
+    """THE DATA UNDER TEST, whatever he has saved: every curated place either opens in the editor (no reason, no
+    words) or shows a plain reason with what to do, the same through `extent_now` and the region cascade"""
     from pipeline.tests import under_test
+    n = 0
     for f in sorted(Path(under_test.curated().dfo_salmon.places).glob("region-*.json")):
         for loc in json.loads(f.read_text(encoding="utf-8")).get("locations") or ():
-            locs[loc["location_id"]] = loc
-    for lid in CANNOT:
-        b = locs[lid].get("binding") or {}
-        _p, why = P.fixes_of_extents(b.get("extents") or [], b.get("tributaries"),
-                                     tributaries_only=bool(b.get("tributaries_only")),
-                                     tributary_excludes=list(b.get("tributary_excludes") or []))
-        assert why, lid
-        got = region_cascade._cannot_edit(locs[lid])
-        assert got and got["can"] and len(got["why"]) >= 2, lid
-        assert not any("hand edit" in w for w in got["why"]), lid            # plain words, not the model's
+            lid, why = loc["location_id"], _why(loc)
+            now, got = _shown(loc)
+            assert now["cannot_change"] == why and now["cannot_edit"] == got, lid
+            if why:
+                _plain(why, got, lid)
+                assert now["pieces"] == [], lid
+            else:
+                assert got is None, lid
+            n += 1
+    assert n, "the curated place files hold places"
 
 
 def test_the_editor_and_the_checklist_show_it(tmp_path):
