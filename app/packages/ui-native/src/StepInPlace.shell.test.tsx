@@ -118,14 +118,15 @@ describe("(T731) a step on a water's map changes the bar in place", () => {
   it("(T750) ▲ up the Skeena past its fork and ▼ back: one part per press, no chooser", async () => {
     const out = await stepsDraw(reduce(HOME, openWater({ item: "gnis:2936" as ItemId, part: 1, view: "map" })),
                                 ["up", "up", "up", "up", "down", "down", "down", "down"]);
-    const W = (n: number) => `Part ${n} of 18 · Skeena River`;
+    // (r-46e4355a7277) 21 parts (it was 18), and the run above the Exchamsiks ends at the Lakelse confluence
+    const W = (n: number) => `Part ${n} of 21 · Skeena River`;
     expect(out).toEqual({
       wheres: [W(2), W(3), W(4), W(5), W(4), W(3), W(2), W(1)],
       names: [
         "Skeena River Ecological Reserve boundary (km 63.5) → Skeena River Ecological Reserve boundary near the Exchamsiks River confluence",
         "Skeena River Ecological Reserve boundary near the Exchamsiks River confluence → Exchamsiks River confluence",
         "Skeena River",
-        "Exchamsiks River confluence → Zymagotitz (Zymachord) River confluence",
+        "Exchamsiks River confluence → Lakelse River confluence",
         "Skeena River",
         "Skeena River Ecological Reserve boundary near the Exchamsiks River confluence → Exchamsiks River confluence",
         "Skeena River Ecological Reserve boundary (km 63.5) → Skeena River Ecological Reserve boundary near the Exchamsiks River confluence",

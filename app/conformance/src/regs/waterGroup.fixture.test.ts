@@ -17,6 +17,8 @@ const names = (g: WaterGroup) => g.parts.map((_, i) => partName(g, i));
 const marks = (g: WaterGroup) => g.marks.map((m) => `${markLabel(g, m) ?? "—"}: ${m.down} → ${m.up.join(",")}`);
 const steps = (g: WaterGroup) =>
   g.parts.map((_, i) => `${stepDown(g, i) ?? "-"}|${stepUp(g, i) ?? "-"}`);
+/** A name without the note a cut placed approximately carries in its stored words (the data side's T780). */
+const plain = (s: string) => s.replace(/, approximate location \([a-z]+ confidence\)/g, "");
 
 describe("the water map's group from the fixture release", () => {
   // (T517, regs fixture r-fc17c4373686) a part is one connected run of one rule set AND one DFO salmon chain, part_ix in
@@ -64,12 +66,16 @@ describe("the water map's group from the fixture release", () => {
 
   // (T517) the Cowichan's lowest rule set is cut by the salmon chain at the Sandy Pool sign (placed approximately: the
   // release's end words say so, and the mark says it once)
-  it("Cowichan: five parts in a line", async () => {
+  // (r-46e4355a7277) and at Skutz Falls, a new part end inside "CNR Mile 66 Trestle → CNR Bridge (mile 70.2)": six parts.
+  // Skutz Falls is placed approximately too; its words are read here without the cut's stored note (the data side's T780)
+  it("Cowichan: six parts in a line", async () => {
     const g = await loadWaterGroup(st, "gnis:12227");
-    expect(marks(g)).toEqual([
-      "White triangle boundary sign located in Sandy Pool Regional Park, approximate location (medium confidence): 0 → 1",
-      "CNR Mile 66 Trestle: 1 → 2", "CNR Bridge (mile 70.2): 2 → 3", "Greendale Trestle: 3 → 4"]);
-    expect([steps(g), g.exit]).toEqual([["-|1", "0|2", "1|3", "2|4", "3|-"], null]);
+    expect(marks(g).map(plain)).toEqual([
+      "White triangle boundary sign located in Sandy Pool Regional Park: 0 → 1",
+      "CNR Mile 66 Trestle: 1 → 2", "Skutz Falls: 2 → 3", "CNR Bridge (mile 70.2): 3 → 4", "Greendale Trestle: 4 → 5"]);
+    expect(marks(g)[0]).toBe(
+      "White triangle boundary sign located in Sandy Pool Regional Park, approximate location (medium confidence): 0 → 1");
+    expect([steps(g), g.exit]).toEqual([["-|1", "0|2", "1|3", "2|4", "3|5", "4|-"], null]);
   });
 
   it("KLWA: opened from any closure area, the lake's three items in the prototype's order", async () => {
@@ -82,12 +88,15 @@ describe("the water map's group from the fixture release", () => {
     }
   });
 
-  it("Zymoetz: six parts in a line, the lake part reached by the steps both ways", async () => {
+  it("Zymoetz: seven parts in a line, the lake part reached by the steps both ways", async () => {
     const g = await loadWaterGroup(st, "gnis:3137");
     // (T67, r-0ed3c2b2a0a7) no "Side channel" part: E15's spurious mark at the canyon is gone and the channel joins
     // the part above the canyon
-    expect(names(g)).toEqual([
-      "Mouth → Zymoetz Canyon lower entrance = transmission-line sign",
+    expect(names(g).map(plain)).toEqual([
+      // (r-46e4355a7277) a new part end at the Hwy 16 bridge, 0.59 km above the mouth (one rule set, cut by the salmon
+      // chain; placed approximately, read here without the cut's stored note)
+      "Mouth → Hwy 16 bridge over the Zymoetz (Copper)",
+      "Hwy 16 bridge over the Zymoetz (Copper) → Zymoetz Canyon lower entrance = transmission-line sign",
       "Zymoetz Canyon lower entrance = transmission-line sign → Zymoetz Canyon upper entrance",
       "Zymoetz Canyon upper entrance → Limonite Creek confluence",
       // (T179) the cut 3000 m below McDonell Lake is an authored lake-offset split: it names its end (it read "A lake")
@@ -96,7 +105,7 @@ describe("the water map's group from the fixture release", () => {
       "Limonite Creek confluence → McDonell Lake (3000 m downstream)",
       "McDonell Lake (3000 m downstream) → McDonell Lake outlet",
       "McDonell Lake → Source"]);
-    expect(steps(g)).toEqual(["-|1", "0|2", "1|3", "2|4", "3|5", "4|-"]);
+    expect(steps(g)).toEqual(["-|1", "0|2", "1|3", "2|4", "3|5", "4|6", "5|-"]);
     expect(names(g).filter((n) => /stretch/.test(n))).toEqual([]);
   });
 

@@ -38,6 +38,7 @@ const PARTS = {
     "area:SKEENA RIVER ECOLOGICAL RESERVE@near:skeena_river__exchamsiks_river_into_skeena_river"],
   vedderUpper: ["gnis:3062", "chilliwack_vedder_rivers__vedder_crossing_bridge_200_m_downstream", "chilliwack_vedder_rivers__vedder_crossing_bridge"],
   zymoetzLake: ["gnis:3137", "zymoetz__mcdonell_lake_3000_m_downstream", "lake_outlet:wbk:329682393"],
+  zymoetzSource: ["gnis:3137", "lake_inlet:wbk:329682393", "source"],
 } as const;
 const partOf = (k: keyof typeof PARTS) => { const [item, lo, hi] = PARTS[k]; return sections.part(item, lo, hi); };
 const CHW0_LIT = [[380887781, 0]] as const;
@@ -234,6 +235,7 @@ describe("<WaterMapView>", () => {
   // that access all components") the Skeena's Ecological Reserve forks upstream in the marks (the main stem, and the
   // km-less side channel beside it): ▲ steps straight to the next part in the water's one line, the main stem, and the
   // next ▲ to the side channel. No dialog opens.
+  // (r-46e4355a7277) 21 parts: the Lakelse confluence and two more part ends above it (it was 18)
   it("(T750) no fork: ▲ on the Skeena's Ecological Reserve steps to the main stem, then the side channel; no chooser", async () => {
     mount("gnis:2936", await partOf("skeenaReserve"));
     await ready();
@@ -241,15 +243,15 @@ describe("<WaterMapView>", () => {
     const where = () => screen.getByTestId("water-map-where").textContent;
     expect(name()).toBe(
       "Skeena River Ecological Reserve boundary (km 63.5) → Skeena River Ecological Reserve boundary near the Exchamsiks River confluence");
-    expect(where()).toBe("Part 2 of 18 · Skeena River");
+    expect(where()).toBe("Part 2 of 21 · Skeena River");
     fireEvent.click(screen.getByRole("button", { name: "Upstream" }));
     expect([screen.queryByRole("dialog"), name(), where()]).toEqual([null,
-      "Skeena River Ecological Reserve boundary near the Exchamsiks River confluence → Exchamsiks River confluence", "Part 3 of 18 · Skeena River"]);
+      "Skeena River Ecological Reserve boundary near the Exchamsiks River confluence → Exchamsiks River confluence", "Part 3 of 21 · Skeena River"]);
     fireEvent.click(screen.getByRole("button", { name: "Upstream" }));
-    expect([screen.queryByRole("dialog"), name(), where()]).toEqual([null, "Skeena River", "Part 4 of 18 · Skeena River"]);
+    expect([screen.queryByRole("dialog"), name(), where()]).toEqual([null, "Skeena River", "Part 4 of 21 · Skeena River"]);
     fireEvent.click(screen.getByRole("button", { name: "Downstream" }));
     fireEvent.click(screen.getByRole("button", { name: "Downstream" }));
-    expect([screen.queryByRole("dialog"), where()]).toEqual([null, "Part 2 of 18 · Skeena River"]);
+    expect([screen.queryByRole("dialog"), where()]).toEqual([null, "Part 2 of 21 · Skeena River"]);
   }, 30_000);
 
   it("Android's back closes an open mark before it leaves the water (back, everywhere)", async () => {
@@ -339,14 +341,15 @@ describe("<WaterMapView>", () => {
     expect(screen.getByTestId("water-map-name").textContent).toBe("McDonell Lake (3000 m downstream) → McDonell Lake outlet");
     fireEvent.click(screen.getByRole("button", { name: "Upstream" }));
     expect([screen.queryByRole("dialog"), screen.getByTestId("water-map-name").textContent, calls]).toEqual([
-      null, "McDonell Lake → Source", ["part gnis:3137 5"]]);
+      null, "McDonell Lake → Source", [`part gnis:3137 ${await partOf("zymoetzSource")}`]]);
   }, 30_000);
 
   it("opened by a tap: starts on the tapped section's part (the Regulations view's part)", async () => {
     const CNR_TO_GREENDALE = await sections.stream(354155148, 41391);
     mount("gnis:12227", null, CNR_TO_GREENDALE);   // (T289 r-ce76b4ed3624: -> 59247; T278 r-62e2f3a8c81e: same section, -> 59249) CNR Bridge -> Greendale (354155148:41391; T206, r-f6918815ca78; T185 r-ea426985a467: two cuts ahead, +2; T220 r-46be3c135e68: 59296 -> 59304; T222 r-445850b69ae1: -> 59305)
     await ready();
-    expect(bar()).toBe("Part 4 of 5 · Cowichan River | CNR Bridge (mile 70.2) → Greendale Trestle | Downstream | Upstream");
+    // (r-46e4355a7277) part 5 of 6: the new part end at Skutz Falls is below it
+    expect(bar()).toBe("Part 5 of 6 · Cowichan River | CNR Bridge (mile 70.2) → Greendale Trestle | Downstream | Upstream");
     expect(lit().highlight).toEqual([CNR_TO_GREENDALE]);   // the tapped section given to mount()
   }, 30_000);
 
@@ -575,9 +578,10 @@ describe("<WaterMapView>", () => {
 
     it("(T517) the Zymoetz's source part above its lake part: ▲ into it and its URL reloaded draw the same", async () => {
       const Z = "gnis:3137" as ItemId;
-      // part_ix 4 is "McDonell Lake (3000 m downstream) → McDonell Lake outlet"; ▲ is the source part (part_ix 5)
-      const [stepped, reloaded] = await wayIn(open({ item: Z, part: 4, view: "map" }), [up]);
-      expect(JSON.parse(stepped)).toMatchObject({ where: "Part 6 of 6 · Zymoetz River", name: "McDonell Lake → Source" });
+      // the lake part is "McDonell Lake (3000 m downstream) → McDonell Lake outlet", by its ends; ▲ is the source part,
+      // the highest (r-46e4355a7277: 7 of 7, a new part end at the Hwy 16 bridge just above the mouth)
+      const [stepped, reloaded] = await wayIn(open({ item: Z, part: await partOf("zymoetzLake"), view: "map" }), [up]);
+      expect(JSON.parse(stepped)).toMatchObject({ where: "Part 7 of 7 · Zymoetz River", name: "McDonell Lake → Source" });
       expect(reloaded).toEqual(stepped);
     }, 60_000);
   });

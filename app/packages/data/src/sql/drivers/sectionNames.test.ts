@@ -65,6 +65,16 @@ describe("T667 section names: a renumbering is absorbed, a move fails by name", 
     expect(await cut.partAt(VEDDER, VEDDER_KEY, 5000)).toBe(low + 1);
   });
 
+  it("the unnamed streams: each has a stream line and is in no water's part; a water's own section is never one", async () => {
+    const loader = openRegsFixtureWithLines(), names = sectionNames(loader);
+    const unnamed = await names.unnamedStreams();
+    const named = new Set((await (await loader.db("water")).all("SELECT sid FROM part_section")).map((r) => Number(r.sid)));
+    const lined = new Set(regsFixtureLines().lines.map((l) => l[0]));
+    expect(unnamed.length).toBeGreaterThan(0);
+    expect(unnamed.filter((h) => named.has(h) || !lined.has(h))).toEqual([]);
+    expect([...unnamed].sort((a, b) => a - b)).toEqual(unnamed);
+  });
+
   it("a part whose end moved to another boundary, or a place off the water, is refused by name", async () => {
     const loader = openRegsFixtureWithLines(), names = sectionNames(loader);
     await expect(names.part(VEDDER, "mouth", "chilliwack_vedder_rivers__vedder_crossing_bridge")).rejects.toThrow(

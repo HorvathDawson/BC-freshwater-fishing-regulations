@@ -226,6 +226,14 @@ export interface SectionNames {
    * `item` whose lines (`part_line`) hold stream key `blk` at metre `m`.
    */
   partAt(item: string, blk: number, m: number): Promise<number>;
+  /**
+   * THE RELEASE'S UNNAMED STREAM SECTIONS, ascending: every handle with a rule key (`regs-sid` `section_akey`) that no
+   * water's part holds and that has a stream line. A committed fixture keeps only a SAMPLE of them (taps.json's evenly
+   * spaced `unnamed`), and the sample MOVES with every re-cut, so a test chooses one by the PROPERTY it needs (bound by
+   * a tributary rule, the region's base alone, …), never by a stream key the sample happened to hold: 354088147:0 left
+   * the sample on r-46e4355a7277 and three tests that named it stopped a release. For a fixture (it reads every block).
+   */
+  unnamedStreams(): Promise<number[]>;
 }
 
 /** `loader`'s section names; it must carry a `lines` file for `stream` (`openRegsFixtureWithLines`, a live release). */
@@ -269,6 +277,19 @@ export function sectionNames(loader: ReleaseLoader): SectionNames {
       if (rows.length !== 1)
         throw new Error(`section names: ${item} has ${rows.length} parts at ${blk}:${m}, not 1, in release ${loader.manifest.data_release}`);
       return Number(rows[0]!.part_ix);
+    },
+    async unnamedStreams() {
+      const [water, sid] = await Promise.all([loader.db("water"), loader.db("regs-sid")]);
+      const named = new Set((await water.all("SELECT sid FROM part_section")).map((r) => Number(r.sid)));
+      const out: number[] = [];
+      for (const r of await sid.all("SELECT block, b FROM section_akey ORDER BY block")) {
+        const b = r.b as Uint8Array, dv = new DataView(b.buffer, b.byteOffset, b.byteLength);
+        for (let i = 0; i < b.byteLength / 2; i += 1) {
+          const h = (Number(r.block) << BLOCK_BITS) + i;
+          if (dv.getUint16(2 * i, true) && !named.has(h) && await lines.sectionLine(h)) out.push(h);
+        }
+      }
+      return out;
     },
   };
 }

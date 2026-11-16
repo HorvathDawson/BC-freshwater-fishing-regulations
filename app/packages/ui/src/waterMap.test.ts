@@ -36,8 +36,9 @@ beforeAll(async () => {
     "area:SKEENA RIVER ECOLOGICAL RESERVE@near:skeena_river__exchamsiks_river_into_skeena_river");
   SK_RESERVE_UP = await sec.part("gnis:2936", "area:SKEENA RIVER ECOLOGICAL RESERVE@near:skeena_river__exchamsiks_river_into_skeena_river",
     "skeena_river__exchamsiks_river_into_skeena_river");
+  // (r-46e4355a7277) the run above the Exchamsiks ends at the Lakelse confluence now (a new part end; it ran to the Zymagotitz)
   SK_EXCHAMSIKS_UP = await sec.part("gnis:2936", "skeena_river__exchamsiks_river_into_skeena_river",
-    "skeena_river__zymagotitz_river_into_skeena_river");
+    "skeena_river__lakelse_river_into_skeena_river");
   SK_SIDE = await sec.partAt("gnis:2936", SKEENA_HOST_CHANNEL, 1017);   // the Exchamsiks host channel above the cut: a part with no ends
 });
 
@@ -215,7 +216,7 @@ describe("(T750) no fork: the Skeena's Ecological Reserve steps up one line", ()
     expect(ups).toEqual([waterMapStart(ix(SK_RESERVE_UP)), waterMapStart(ix(SK_SIDE)), waterMapStart(ix(SK_EXCHAMSIKS_UP))]);
     expect(ups.map((s) => view(g, s).current.name)).toEqual([
       "Skeena River Ecological Reserve boundary near the Exchamsiks River confluence → Exchamsiks River confluence",
-      "Skeena River", "Exchamsiks River confluence → Zymagotitz (Zymachord) River confluence"]);
+      "Skeena River", "Exchamsiks River confluence → Lakelse River confluence"]);
     // and back down the same line
     expect(run(g, ups[2]!, { type: "down" }, { type: "down" }, { type: "down" })).toEqual(reserve);
     // the line IS the parts list's order (one order, every screen)
@@ -336,14 +337,19 @@ describe("across waters: the Vedder goes on from the Chilliwack (`water_continue
 });
 
 describe("Cowichan, Vedder and the Kootenay Lake West Arm", () => {
-  it("Cowichan: five parts in a line (T517: its lowest rule set cut by the salmon chain at Sandy Pool); at the mouth no exit (the sea)", async () => {
+  // (r-46e4355a7277) six: a new part end at Skutz Falls divides "CNR Mile 66 Trestle → CNR Bridge (mile 70.2)" (one rule
+  // set, cut by the salmon chain). The ends placed approximately carry the cut's stored note in their words (the data
+  // side's T780); the list is read without it, and the one pin below says where it stands today.
+  it("Cowichan: six parts in a line (T517: its rule sets cut by the salmon chain at Sandy Pool and at Skutz Falls); at the mouth no exit (the sea)", async () => {
     const g = await loadWaterGroup(st, "gnis:12227");
-    expect(g.parts.map((_, i) => bar(g, waterMapStart(i)))).toEqual([
-      "Part 1 of 5 · Cowichan River | Mouth → White triangle boundary sign located in Sandy Pool Regional Park, approximate location (medium confidence) | Lowest part (off) | Upstream",
-      "Part 2 of 5 · Cowichan River | White triangle boundary sign located in Sandy Pool Regional Park, approximate location (medium confidence) → CNR Mile 66 Trestle | Downstream | Upstream",
-      "Part 3 of 5 · Cowichan River | CNR Mile 66 Trestle → CNR Bridge (mile 70.2) | Downstream | Upstream",
-      "Part 4 of 5 · Cowichan River | CNR Bridge (mile 70.2) → Greendale Trestle | Downstream | Upstream",
-      "Part 5 of 5 · Cowichan River | Greendale Trestle → Cowichan Lake outlet | Downstream | Highest part (off)"]);
+    const SANDY = "White triangle boundary sign located in Sandy Pool Regional Park";
+    expect(g.parts.map((_, i) => bar(g, waterMapStart(i)).replace(/, approximate location \([a-z]+ confidence\)/g, ""))).toEqual([
+      `Part 1 of 6 · Cowichan River | Mouth → ${SANDY} | Lowest part (off) | Upstream`,
+      `Part 2 of 6 · Cowichan River | ${SANDY} → CNR Mile 66 Trestle | Downstream | Upstream`,
+      "Part 3 of 6 · Cowichan River | CNR Mile 66 Trestle → Skutz Falls | Downstream | Upstream",
+      "Part 4 of 6 · Cowichan River | Skutz Falls → CNR Bridge (mile 70.2) | Downstream | Upstream",
+      "Part 5 of 6 · Cowichan River | CNR Bridge (mile 70.2) → Greendale Trestle | Downstream | Upstream",
+      "Part 6 of 6 · Cowichan River | Greendale Trestle → Cowichan Lake outlet | Downstream | Highest part (off)"]);
     // the cut placed approximately says so once on its mark (T207; the release's words already carry it)
     expect(view(g, waterMapStart(0)).marks[0]!.label).toBe("White triangle boundary sign located in Sandy Pool Regional Park, approximate location (medium confidence)");
   });

@@ -212,9 +212,11 @@ describe("one water screen, whichever map you tapped", () => {
 // fixture release (its sections are named, never numbered)
 describe("one water screen, on the regs fixture release", () => {
   it("(T53) on the regs fixture release: an unnamed reach is titled with the store's name on both its views", async () => {
-    // (T667) the unnamed reach by NAME — stream key 354088147 from its mouth — never by its handle (578, 576, 638, …:
-    // it moved with four of the last five builds); a build that moves the section fails here saying so
-    const unnamed = await sectionNames(openRegsFixtureWithLines()).stream(354088147, 0);
+    // (T667) never by its handle (578, 576, 638, …: it moved with four of the last five builds), and (r-46e4355a7277)
+    // not by a stream key either: the fixture keeps a SAMPLE of unnamed reaches that moves with every re-cut (stream
+    // 354088147:0, named here until then, left it). Any unnamed stream of the fixture will do: its first
+    const [unnamed] = await sectionNames(openRegsFixtureWithLines()).unnamedStreams();
+    expect(unnamed).toBeDefined();
     await mount("conditions", unnamed as SectionId, openRegsFixture());
     await tapMap();
     const title = () => screen.queryAllByTestId("water-title").map((t) => t.textContent).join(" | ");
@@ -223,9 +225,10 @@ describe("one water screen, on the regs fixture release", () => {
     swipe("view-swipe-conditions", 120);
     await waitFor(() => expect(screen.getByTestId("keep-tab")).toBeTruthy(), { timeout: 20_000 });
     // the Regulations view's name row carries its date pill too: the heading is the name
+    expect(cond[0]).toMatch(/^Unnamed stream · Regions? \d/);
     expect([cond, within(screen.getByTestId("regs-header")).getByRole("heading").textContent,
             screen.getByTestId("regs-on").textContent]).toEqual([
-      ["Unnamed stream · Region 1", `panel for ${unnamed} at 49.1`], "Unnamed stream · Region 1", "regs on null part null"]);
+      [cond[0], `panel for ${unnamed} at 49.1`], cond[0], "regs on null part null"]);
   }, 40_000);
 });
 
