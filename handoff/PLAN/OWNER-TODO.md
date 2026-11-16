@@ -1871,3 +1871,8 @@ More questions (recommended answer first):
   the lake trout row only and must say so; the wording is left to my judgement (the possession number leads on that
   row, the day's 3 as a quiet line). What next for the trout work, typed: "round 3 then attack again but use opus".
   My reading: one more round (round 9) and one more attack, both done by Opus agents, not Fable. Mockups only.
+- 13:49, typed in chat: "Can we reduce how much fable we use for our workers a little bit too? Just want to save fable
+  for the things we need it for". So: from now no worker runs on Fable by default (reviews, audits and design
+  included); Opus for data, pipeline, review and design work, Sonnet for interface and mechanical work; a worker gets
+  Fable only after I name the task and the reason to him and he says yes. Nothing on Fable is running now (the
+  trout designer and its attacker moved to Opus at his word earlier this hour).
