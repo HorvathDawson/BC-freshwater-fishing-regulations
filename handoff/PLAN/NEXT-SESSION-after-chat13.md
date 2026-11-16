@@ -5,6 +5,8 @@ OWNER-TODO.md from "## 2026-11-15 evening" to the end (the owner's answers, verb
 `handoff/PLAN/OWNER-RETURN-2026-11-15.md`. The second chat ("iOS chat", session name
 `bc-freshwater-fishing-regulations-8f`, reach it with SendMessage) owns iOS, the feeds worker and the Android R8 build
 work; its page is `handoff/PLAN/ios/START-HERE-ios.md`. Tell it you have taken over.
+Owner 2026-11-15 night: the second chat is now THE APP CHAT (Android and iOS, feeds worker, app tickets), session
+`bc-freshwater-fishing-regulations-01`; the Play build in step 4 is run by it once the main chat names the head.
 
 ## What the owner asked for last (verbatim, 2026-11-15 20:38)
 "okay i think all dfo items are labelled now? can you please go through them all and double check there is nothing

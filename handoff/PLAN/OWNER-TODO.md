@@ -999,3 +999,8 @@ For you to re-tick after the rebuild (saved by Claude at your request, each note
   complex. and we want fable to come up we a few other alterntives and give mockups (make sure it chooses a few
   different complex examples)". Started: a Fable design review (read-only), today's trout display on 5-6 real complex
   waters, 3-4 different alternatives, mockups as one page for his phone. No ticket until he picks a direction.
+- 22:00, typed in chat: "also coordinate with other running chat to let it know it is the andorid and ios chat now not
+  just ios. it is just the app chat." Done: the second chat (session bc-freshwater-fishing-regulations-01) is THE APP
+  CHAT: Android and iOS app work, the feeds worker, app tickets. Main chat's reading: the Play build of 0.7.11 moves to
+  it (the main chat names the build head after the staging release); data, pipeline, review app, releases and the
+  audits stay with the main chat.
