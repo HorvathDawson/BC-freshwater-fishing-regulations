@@ -1166,3 +1166,14 @@ reopens Nov 1.
      one place the designer did NOT fully unify, against "unify over x size and x+": making them look alike would
      make one of them wrong by a fish.)
   3. Dolly Varden/bull trout: one drawing with the full name (recommended), or both drawings on the row?
+
+- 2026-11-16 00:34, trout display, the owner's reply to round 4 (verbatim): "In the redesign we need to make the fish
+  expansion better the fish inage moves around and we should put the place holder of what will be there into it.
+  Like species identification stuff.. And we also need to make the clip note at top go away. It is too big and we
+  should add the how to tell hatchery link up there instead... Then we should refine it even more. It still has a
+  little bit of a clunky feel but it is better then original one. Maybe get more fresh agents to give refinement a
+  stab then bring it back to original afent"
+  Started (mockups only): three fresh designers, each with a different angle (calmer table; the opened fish row with
+  a steady picture and a species identification placeholder; a first-time reader's restructure), all with his fixed
+  asks (no big "Clipped fin only" note on top, a "how to tell a hatchery fish" link there instead). Their mocks go
+  back to the original designer, who folds the best into round 5 on the same page.
