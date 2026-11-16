@@ -1,6 +1,6 @@
 # T793 — Wild-trout limits are missing from the keep card on at least 15 lakes and on the Kitimat and 23 streams under it (the app allows what the book forbids)
 
-Status: OPEN (pipeline display model: the stored `group.buckets` the card draws; first to fix).
+Status: IN REVIEW (fix ready on branch `data/t793-wild-limits-on-card`, f672f4444, not merged; owner: OWNER-TODO "2026-11-16 morning list" question 37, the new sentences and his go; then left (Claude): merge, deliver, rehearse, staging release).
 
 Source: general audit 2026-11-16, answers checker A1 and A2 (`handoff/PLAN/audit-2026-11-16/answers.md`); the same fault as T782 item 1.
 
@@ -20,3 +20,28 @@ row's `conds` and `caps` hold it); `group.buckets`, which the card draws, holds 
   with an origin condition whose card tree says neither "wild" nor "hatchery" stops the answers build.
 - The sweep found 14 lakes plus Dodd by hand and the Kitimat set; it is a floor (it misses cards that say
   "hatchery" for another fish). List every answer key the fix changes; that list is the review.
+
+## Lane result (05:28, 2026-11-16): fixed on `data/t793-wild-limits-on-card`, commit f672f4444 (based on 0d61db3c5)
+- Where it was lost: the pipeline's `group.tree` (the tree the card draws), not the app. `card.py` named an origin on a
+  kind only when exactly ONE origin keeps; when both keep with different limits the kind line said nothing. The
+  Kitimat rows have no group of their own and are drawn through their parent row's group.
+- Fix: `pipeline/deliver/answers/tree.py` (`origin_clauses`, `tree_of`: a kind that keeps both origins gets the clauses
+  on its line and is never folded; `origin_unsaid` is the build check), `card.py`, `card_check.py` (each clause proved
+  against the engine), `answers.py` (the build stops on a keep row with an origin condition whose drawn tree says
+  neither "wild" nor "hatchery"). No app change; format version unchanged. Mini release re-cut in the same commit.
+- Tests: 6 new (whole sentences, on data the tests build); 535 answers tests and 45 bundle-backed tests pass.
+- Proof rebuild into scratch: ladder, gear, licence and display sections identical; 22 answer keys change, every
+  change "an origin condition is now said", 0 unexplained.
+
+| Waters | Before | After |
+|---|---|---|
+| Kitimat River (4 parts) and the 23 streams under it, Jul 1 to Oct 31 | "Up to 5 rainbow trout" | "Up to 5 rainbow trout — no wild rainbow trout under 30 cm (12 in); up to 1 wild rainbow trout 30–50 cm (12–20 in)" |
+| Comox, Great Central, Sproat | "Up to 4 brown, cutthroat or rainbow trout combined" | "… combined — no wild rainbow trout over 50 cm (20 in)" |
+| Makii | "Up to 4 brown or rainbow trout combined" | "… combined — no wild rainbow trout over 50 cm (20 in)" |
+| Chilliwack, Cultus, Harrison, Chehalis, Pitt, Lillooet | "Up to 4 brook, brown, cutthroat or rainbow trout combined" | "… combined — no wild brown, cutthroat or rainbow trout over 50 cm (20 in)" |
+| Dodd, Lois, Ruby, Windsor, Khartoum, Horseshoe, Nanton, Ireland | "Up to 4 brook, brown, cutthroat or rainbow trout combined" | "… combined — up to 2 wild brook, brown, cutthroat or rainbow trout combined 40 cm (16 in) or less; no wild brook, brown, cutthroat or rainbow trout over 40 cm (16 in)" |
+| the same set, other fish groupings (5 keys) | "Up to 6 rainbow trout"; "Up to 1 Dolly Varden/bull trout or lake trout combined"; … | "… — up to 2 wild rainbow trout under 40 cm (16 in); no wild rainbow trout 40 cm (16 in) or longer"; "… combined — no wild Dolly Varden/bull trout or lake trout 60 cm (24 in) or longer"; … |
+
+- To check before the merge: Khartoum, Horseshoe, Nanton and Ireland lakes were not in the audit's list (read their
+  rows in the book); the Dolly Varden / lake trout line comes from `dodd_lake.r2` parsed as all trout and char where
+  the book says "no wild trout over 40 cm" (a parse question); the sentences have had no owner read.

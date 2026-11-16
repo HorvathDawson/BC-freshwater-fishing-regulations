@@ -1474,4 +1474,13 @@ More questions (recommended answer first):
     closed? (Fraser, Kotcho, Cold Fish and 15 Mile Swamp, barely touched, are a plain fix: open.)
 35. Skeena "Section 4" has no printed upper end; the app runs it to the river's source. Right?
 36. DFO "non-retention" reads Closed (your earlier ruling; 20 rows). Keep, or show "release only"?
+37. **The wild-trout fix is ready on a side branch (05:28); 22 answer keys change, nothing else.** New card lines, for
+    your read: Comox, Great Central, Sproat: "Up to 4 brown, cutthroat or rainbow trout combined — no wild rainbow
+    trout over 50 cm (20 in)". Chilliwack, Cultus, Harrison, Chehalis, Pitt, Lillooet: "Up to 4 brook, brown,
+    cutthroat or rainbow trout combined — no wild brown, cutthroat or rainbow trout over 50 cm (20 in)". Dodd, Lois,
+    Ruby, Windsor, Khartoum, Horseshoe, Nanton, Ireland: "… combined — up to 2 wild brook, brown, cutthroat or rainbow
+    trout combined 40 cm (16 in) or less; no wild … over 40 cm (16 in)". Kitimat and 23 streams, Jul 1 to Oct 31: "Up
+    to 5 rainbow trout — no wild rainbow trout under 30 cm (12 in); up to 1 wild rainbow trout 30–50 cm (12–20 in)".
+    They are long but true. Go as worded (recommended), or tell me how to shorten? On your go: merge, rebuild the
+    answers, a staging release [T793].
 
