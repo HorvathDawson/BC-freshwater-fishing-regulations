@@ -149,10 +149,10 @@ def test_a_live_release_not_under_the_folder_is_refused_saying_how_to_name_it(tm
         f"whether it binds closed-area pieces (T573) is not known. {NAME_IT}")
 
 
-def test_the_upload_mode_is_unchanged(monkeypatch):
+def test_the_upload_mode_is_unchanged(tmp_path, monkeypatch):
     from pipeline.deliver import salmon as S
     monkeypatch.setattr(S, "read_release", lambda d: OLD)
-    assert G.main([str(ROOT / "data/release/r-x/manifest.json")]) == 0
+    assert G.main([str(tmp_path / "r-x" / "manifest.json")]) == 0
 
 
 def _shape(entry: Path) -> subprocess.CompletedProcess:
