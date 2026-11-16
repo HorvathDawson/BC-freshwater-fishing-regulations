@@ -399,6 +399,7 @@ def test_policy_version_is_bumped_when_classify_changes():
         "lake_loops_join_their_lake": lake_loops.LAKE_LOOPS_JOIN_THEIR_LAKE,
         "loops_never_divide_a_lake": lake_loops.LOOPS_NEVER_DIVIDE_A_LAKE,
         "a_tributary_is_its_line_that_meets_the_parent": anchors.A_TRIBUTARY_IS_ITS_LINE_THAT_MEETS_THE_PARENT,
+        "a_dead_end_goes_with_its_water": tributaries.A_DEAD_END_GOES_WITH_ITS_WATER,
     })
     expected.update({"confluence_cut_excludes_the_joining_water": True,
                      "confluence_water_without_a_row_goes_with_the_cut": True,
@@ -425,8 +426,9 @@ def test_policy_version_is_bumped_when_classify_changes():
                      "lake_loops_leave_river_items": True,
                      "lake_loops_join_their_lake": True,
                      "loops_never_divide_a_lake": True,
-                     "a_tributary_is_its_line_that_meets_the_parent": True})
-    assert cache.POLICY_VERSION == "41", "update this pin with the version it was taken at"
+                     "a_tributary_is_its_line_that_meets_the_parent": True,
+                     "a_dead_end_goes_with_its_water": True})
+    assert cache.POLICY_VERSION == "42", "update this pin with the version it was taken at"
     assert policy == expected, (
         f"classify.py policy changed to {policy} — bump cache.POLICY_VERSION "
         f"(currently {cache.POLICY_VERSION!r}) and update this test together")

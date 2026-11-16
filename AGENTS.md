@@ -842,6 +842,9 @@ W46. **The guards the 2026-11 audits put in (T429–T442) stay in. A change that
     onto Vedder Crossing, the Vedder's downstream-of-the-crossing rules walked up the whole Chilliwack, 1,805 sections).
     A piece on the reach's own watershed code is a side channel, not own water (Old Kootenay River Channel). Before
     promoting any split or name change, DIFF THE REACH RUN'S PER-RULE BINDINGS against live — atlas parity cannot see this.
+    A DEAD END of a water the walk collected wholly (a lake's second outlet that stops, a closed loop, an unconnected
+    piece: a graph sink the walk never reaches by climbing) goes with that water (`tributaries.A_DEAD_END_GOES_WITH_ITS_WATER`,
+    2026-11-15; the six Stikine/Taku tributaries' part-name stop). Never on the reach's own code, never past a carve-out.
 
 ## Runbook: upstream updates the owner runs
 

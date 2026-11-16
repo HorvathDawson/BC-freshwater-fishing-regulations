@@ -149,5 +149,9 @@ from __future__ import annotations
 #:     reserve the lake is in, stays with the Kotcho River. A CONFLUENCE ANCHOR'S TRIBUTARY IS ITS LINE THAT MEETS THE
 #:     PARENT (`splits.anchors.A_TRIBUTARY_IS_ITS_LINE_THAT_MEETS_THE_PARENT`): the Fraser's Seton River cut is built. Both
 #:     decided in the atlas, so no classify.py outcome changed; the bump marks the binding diff.
-POLICY_VERSION = "41"
+#: 42: (2026-11-15, the Stikine part-name stop) A DEAD END OF A COLLECTED WATER IS COLLECTED: an unreached sink (a
+#:     lake's second outlet that ends, a closed loop, an unconnected piece) whose watershed code a walk otherwise
+#:     collected wholly goes with that water, with what feeds it (`tributaries.A_DEAD_END_GOES_WITH_ITS_WATER`).
+#:     Buckley, Iskut, Chukachida, Mess (Stikine) and Horsefeed, Sutlahine (Taku) take their place's salmon whole.
+POLICY_VERSION = "42"
 
