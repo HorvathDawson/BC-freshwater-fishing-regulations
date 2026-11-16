@@ -52,6 +52,35 @@ the file: "Answers by batch", "Re-check of saves", and the dated lines after the
 13. His name, email and the project name never go into requests to outside services. No reading `.env`.
 
 ### C. Workers running now, and what to do when each hands back
+**UPDATE 15:21 (this block replaces items 1 to 3 below; item 4 still stands):**
+- The salmon lane handed back: head 91cf5e8fc (three limits raised, RULINGS O8); all 71 rows (71, split by the DFO
+  place that answered) close only the book's water on the book's days: 0 rows close more. Its files:
+  `<scratch>/t796/` (`book-closures-list.md`, `book-closures-raw.json`, `sections/row-NN.json`,
+  `nass-consequence.md`). The owner on the Nass row (15:19): "and yes the closure wins here." and "we need to make
+  sure it says where the closure is from though" (pass condition on T796; told to the app chat). The lane is NOT
+  merged: the app chat's twins (`app/salmon-twins-1116` @ 356dce001 + pack regenerated 0b50166d7) still need their
+  benches, the before / after map pictures and the owner seeing them; it will say "ready to land". Then section D.
+- A SONNET worker (`a584efcd7800efbc8`) is building the closures review page in `<scratch>/book-closures-page/`
+  (`index.html`, `img/row-NN.jpg`, three screenshots). When it hands back: look at the screenshots, load the
+  artifact-design skill, publish as a NEW artifact (`file_path` the index.html, `files` + `root` for `img/`), give him
+  the link, add it to OWNER-TODO and the Owner To-Do page.
+- Trout: the fourth attack is back and saved in the design review file ("yes, with conditions"). The owner picked
+  (15:16) the round 8 look with NO outline, today's rule in bigger text with the coming change smaller underneath,
+  row spacing between rounds 8 and 9. The designer (`ae176f25b522ddc16`) is building round 11 with that and the
+  attack's two word faults (closure scope on the Fraser; the strip's date at Andi Creek); it writes
+  `<scratch>/trout-display/trout-display.html` in place. When it hands back: publish that path to the trout page's
+  url, send him `shots/r11/skeena-before-after.png`, and ask round 9's three open questions with the reviewer's
+  advice (card line only when the whole water closes; looser-only changes undated but skipped past; Adams 80 cm on
+  the row: yes).
+- An OPUS worker (`aa228bfcc495d8a50`) is writing the build spec the owner asked for at 15:18 ("spec out what would
+  be involved in transitioning the trout portion of the app to the new table format … clean from pythion up to
+  front end"): ONE new file `handoff/PLAN/design/trout-table-build-spec-2026-11-16.md`, uncommitted. When it hands
+  back: commit that file by path, give him its one-page owner section in chat (plain words) with its questions as a
+  dialog; file tickets only after he says go (next free number T809; T808 is the app chat's).
+- The app chat asked (15:15) that docs pushes be batched so app-ci can finish a run: commit locally, push at most
+  every 20 minutes or with a real landing, and not while it says a run is in flight. It landed T797 at 15:16
+  (e3bd2be3e): `git fetch` + `git merge origin/redesign/stream-sections` before the next push (never stash).
+
 1. **Salmon lane** (Opus, id `a2becf9b4bea93daf`; branch `lane/salmon-rules-1116` in
    `.claude/worktrees/agent-a2becf9b4bea93daf`; head 91cf5e8fc at 15:09 = the three limits raised). Still owed by it:
    proof for each of the 70 book closures that it covers only the water and the days the book closes;
