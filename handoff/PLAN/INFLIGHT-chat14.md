@@ -21,23 +21,18 @@ owner's words tonight, verbatim). The owner is asleep or about to be; the overni
 - Trout display exploration (Fable): page https://claude.ai/artifact/EopBgDtf8eu4LGZpYixSkH, rounds 1 and 2
   published; round 3 running (owner's feedback in OWNER-TODO). Nothing waits on it (owner's word).
 
-## Running at 23:50
-- **The 23:26 build STOPPED** (I stopped it at 23:42). Two causes, separate:
-  1. The reach run REFUSED (T632 gate): piece `355998688:691`, a 122 m Shuswap side-channel piece at the Mabel Lake
-     delta, "straddles the cut" for the two Middle Shuswap places whose saves landed tonight. Ticket **T778**; a fix
-     lane (Opus, worktree, branch `data/t778-delta-side-channel`) diagnoses, fixes, runs a full reach into
-     `<scratch>/t778/` and diffs bindings. I read its diff, merge, run the full tier, THEN restart
-     `pipeline build --hold-latest` (lane 1). If the fix is not clean: hold the two Shuswap places at their state before
-     tonight's apply (revert only their two T185 apply commits; the marks then show as "not landed") and say so.
-  2. The DISK FILLED (1.3 GB free at 23:38). The system temp folder held 184 GB: 151 GB in about 31,800
-     `release-open-*` folders left by app test runs (never removed; macOS purges after 3 days). I deleted those older
-     than 6 hours; 163 GB free at 23:48. The app chat was told (its tests make them; it files the ticket). If the
-     disk fills again: `du -k -d 1 $TMPDIR | sort -n | tail`.
-- Full pipeline CI tier on the head (lane 3, log `<scratch>/logs/ci-tier-5.log`).
-- Trout display round 3: DONE and republished (same link, version 3); five questions in OWNER-TODO and on the To-Do
-  row.
-- App chat (session `bc-freshwater-fishing-regulations-01`): R8 benches on lane 2 until about 00:40; told at 23:50
-  that the staging release will not start before about 01:30.
+## Running at 00:15 (Nov 16)
+- **T778 FIXED and merged (a2ba7396b, POLICY_VERSION 44)**: whole-province binding diff = the two Middle Shuswap
+  places gain piece `355998688:691`, nothing else moves (`<scratch>/t778/binding_diff.txt`). Side-check gap = T779.
+- `pipeline build --hold-latest` restarted 00:14 (lane 1, log `<scratch>/logs/build-3.log`).
+- Full pipeline CI tier on a2ba7396b (lane 3, log `<scratch>/logs/ci-tier-6.log`). The branch was pushed at
+  1855ecf39 (tier + whole app check green); T778 and later commits are not pushed yet.
+- Disk: filled at 23:38 (151 GB of app-test `release-open-*` temp folders); cleared; app chat fixed the cause (T764).
+- Trout display round 4 (design agent; owner 23:58: one design from the picks, one size wording, inches and cm on the
+  row, group size limits clearer, Dolly Varden named). ITERATION ONLY (owner 23:59), nothing built. Republish the
+  same scratch path when it reports.
+- App chat: R8 benches (one install bench rerun after the disk filled); it sends "benches done"; the staging release
+  waits for that and for the build.
 
 ## Next, in order
 1. Build done → read it (deliver gates, size gates, part names); if it stops, fix the cause.
