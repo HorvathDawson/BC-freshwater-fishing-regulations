@@ -11666,6 +11666,26 @@
       -129.400445,
       54.293822
      ]
+    },
+    {
+     "id": "kasiks_river__signs_below_the_kasiks_upper_pool_foot_of_the_canyon_falls",
+     "label": "signs below the Kasiks Upper Pool (foot of the canyon falls)",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -129.536291,
+       54.353432
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 6:kasiks-river:downstream-of-fishing-boundary-sig, 6:kasiks-river:upstream-of-fishing-boundary-signs",
+     "_coord": [
+      -129.536291,
+      54.353432
+     ]
     }
    ]
   }
