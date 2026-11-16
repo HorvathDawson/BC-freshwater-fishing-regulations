@@ -5379,11 +5379,15 @@
       "binding": {
         "extents": [
           {
-            "op": "whole",
+            "op": "upstream_of",
+            "splits": [
+              "border:360886456:1"
+            ],
             "item_ids": [
               "gnis:14159",
               "gnis:14551",
-              "gnis:37919"
+              "gnis:37919",
+              "gnis:25410"
             ]
           }
         ],
