@@ -9499,7 +9499,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "skeena_river__lakelse_river_into_skeena_river",
+              "skeena_river__highway_16_bridge_at_ferry_island"
+            ],
+            "item_id": "gnis:2936"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
