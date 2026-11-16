@@ -982,3 +982,16 @@ For you to re-tick after the rebuild (saved by Claude at your request, each note
 - Thompson Deadman and Ashcroft closed areas (2748, 2749); Nanaimo 500 m (2746); the two Bulkley "all tributaries"
   places (2732, 2733); the two Skeena places on the new confluence cuts (2751, 2752); Puntledge 1263 / 2447 / 2687;
   the Sproat places; Fraser Region 2 places and Squamish (they gain side channels).
+
+## 2026-11-15 night — owner answers (verbatim), new main chat
+- 21:40, typed in chat: "you should also double check all the extents for dfo and make sure they all look sane (match to
+  proper bound with proper tributary logic or second part etc etc....) build on other review and we want to fix items
+  form other review". Main chat's reading: (1) a second pass over what every DFO place actually BINDS (ends, tributary
+  logic, second parts), on the built result, building on the second look; (2) the second look's findings are to be
+  fixed, not only listed: the recommended answer of each question above is applied, saved for his re-tick.
+- Thompson Juniper closed area, upper end (question 5 above), by dialog: "if the book says 4km then we put it 4km unless
+  i had another split it already matched??" So: 4 km above the printed lower signs, unless a cut already exists at that
+  spot, then that cut is reused.
+- Sheldens Creek (question 16 above), by dialog: "we shopuld find lower options. i think this is tidal bound maybe". So:
+  look lower on the creek; his reading is that the signs are at the tidal boundary. Main chat's reading: the place
+  becomes the whole creek above the tidal boundary (as Illiance and Wilauks), no new cut, saved as unsure for his tick.
