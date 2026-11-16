@@ -84,3 +84,94 @@ Pick: A with B's one line on top; a "this river's rule" tag from C on rows; D la
 - Template and build inputs: `work/page.tpl.html`, `shots/today-*.jpg`
 - View-model dumps: `work/pages1.json`, `work/pages2.json`, `work/scan.json`
 - Preview shots of the page: `shots/own/`
+
+---
+
+# Round 2 (2026-11-15): one refined design, A + B as a fish table
+
+Owner: "expand and refine the a/b design idea ... super simple and clean with the fish icons in the table format".
+
+## The design
+
+- One top line (the most trout and char you can take home today), an optional "Clipped fin only" line, the shared limits as "Also counts" lines, then a table: one row per fish = the app's drawing (64 x 32, as the species list draws it), the name, one condition under the name, and the answer in a right-hand column.
+- Fish that share one number share ONE answer box (a merged cell). Release and closed fish are rows of the same table; the box edge is solid / dashed / double and the words carry a mark, so colour is not needed.
+- Fish that share a smaller limit inside a group share a row ("Bull trout or lake trout: 60 cm or longer · 1 only").
+- Dates go in the answer box with both ends, the whole year where the answer changes (Elk: until Mar 31 / closed Apr 1-Jun 14 / keep 1 Jun 15-Oct 31 / release from Nov 1; Fraser: "except Oct 1-31: closed").
+- Part and hours rules are note rows at the top of the same table.
+- Everything else (whose rule, page, yearly limits and duties, kept-elsewhere examples) is behind a tap on the row; the page lists it per water.
+
+## Fish drawings
+
+- `app/apps/mobile/assets/fish/thumbs/*.webp` (240 x 120, transparent), first picture per species from `app/packages/core/src/regs/fish.generated.ts`. Drawn by `KeepBlocks.tsx` `Thumb` at 64 x 32; a fish with no picture gets the silhouette SVG there (Protected species).
+- All seven trout and char have a picture: RB, ST, CT, EB studio photos (Freshwater Fisheries Society of BC), DV studio photo (Joel Sartore), GB painting (Duane Raver), LT colour plate (Denton). Not one set; all face left on clear backgrounds. CT shows the coastal fish everywhere.
+
+## Top line grammar (work/grammar.py over work/shapes.json)
+
+`work/rows.ts` reads the stored trout rows for one part per answer key (2,121 keys) on 11 dates (the 15th of every month but February): 23,331 answers.
+
+| form | answers |
+|---|---|
+| Up to N today | 13,265 |
+| (water closed that day: no trout line) | 7,339 |
+| Release every one until <date> | 1,434 |
+| Up to N today, only K of them <fish> (`real_daily.shared_count`) | 718 |
+| Up to A <fish> and N other trout and char today (a separate keep row) | 426 |
+| Up to N today, or M if they're <fish> (`headline.also`, a stored phrase) | 77 |
+| Closed for trout and char until <date> | 9 |
+| Up to A <fish> today | 8 |
+| Nothing to keep today | 5 |
+| tidal (no rows) | 11 |
+| NO FORM | 39 (8 keys) |
+
+No form: 35 answers / 7 keys where a tier is flagged looser than the region (`over_region`) but `headline.also` is empty (Kaslo River, Keen Creek, Humphrys Creek, Kitimat River ...), and Ross Lake (4 answers: three keep rows, stored headline 2 vs `real_daily.n` 4). Both worth a look by the pipeline lane.
+
+Fields read: `group.headline.n`, `group.headline.also[].says`, `real_daily.shared_count`, `scope.apart`, `parent`, `kind`, `year`.
+
+## Waters
+
+Round 1's six, plus Skeena in winter, plus four new (Nov 15, staging screenshots):
+- Harrison River `gnis:15333` / 0: hours rule (daylight only), hatchery only. Staging labels the stretch "Mouth -> Harrison Lake outlet"; the local release labels part 0 "Mouth -> Hwy 7 bridge ...". Trout card text identical.
+- Shuswap Lake `wbk:329518145`: a lake in parts (one closed today, one release-only part, three spring closures), lake trout with its own dates.
+- Clayoquot River `gnis:10431`: "Trout" card plus a separate "Char" release row.
+- Premier Lake `wbk:329523945`: brook trout counted apart (20), a lake rule for rainbow inside the 5, a part that closes in spring.
+
+## Budget (set before measuring): one screen 640 px, 12 numbers, 60 words, one condition per row
+
+height px · words · numbers, 390 px wide, nothing opened
+
+| Water | Today | Table | Plain A | Plain B |
+|---|---|---|---|---|
+| Vedder | 1157 · 209 · 25 | 653 · 101 · 18 | 696 · 157 · 20 | 660 · 142 · 15 |
+| Little River | 1337 · 196 · 25 | 629 · 88 · 15 | 849 · 170 · 25 | 726 · 155 · 16 |
+| Skeena summer | ? · 205 · 29 | 647 · 86 · 14 | 825 · 151 · 24 | 760 · 138 · 15 |
+| Skeena winter | 690 · 103 · 12 | 557 · 53 · 8 | | |
+| Kootenay Lake | 1147 · 140 · 13 | 482 · 56 · 7 | 492 · 87 · 12 | 535 · 103 · 13 |
+| Elk | ~430 · 77 · 4 | 362 · 38 · 8 | 309 · 81 · 11 | 413 · 69 · 13 |
+| Fraser | 1182 · 170 · 22 | 551 · 72 · 15 | 661 · 125 · 17 | 584 · 98 · 13 |
+| Harrison | 1072 · 181 · 24 | 635 · 90 · 19 | | |
+| Shuswap Lake | 1156 · 165 · 24 | 654 · 93 · 18 | | |
+| Clayoquot | ~1260 · 183 · 16 | 599 · 70 · 9 | | |
+| Premier Lake | 1233 · 170 · 20 | 562 · 68 · 10 | | |
+
+One screen holds on 8 of 11; 12 numbers on 5 of 11; 60 words on 3 of 11 (the word budget was too tight for a named row per fish). At 200% text the base table has no sideways overflow on any of the 11 (713 to 1,573 px tall); the size-column variant overflows on 6 of 11.
+
+## Variants (one change each)
+
+1. answer as a mark (filled / dashed / hatched square) 2. size in its own column 3. drawings on a plain backing 4. shared limits under the table. Pick: base + 3.
+
+## Known facts shown corrected
+
+- Kootenay Lake rainbow: "over 50 cm: 20 a year, record each" (T763).
+- Fraser: closure with both dates (T762).
+
+## Checks
+
+- Last edit, then: 390 px wide, light and dark, all 11 waters, 100% and 200% text, round 1 section open: 0 px sideways scroll, no script errors, no broken images. Rows open on tap. Every button in the base mock is at least 44 px tall.
+- Not checked: a real device, a screen reader, or text scaling done by the phone itself (the 200% switch doubles the mock's text only).
+
+## Files (round 2)
+
+- `trout-display.html` (2.6 MB: ten staging screenshots and 18 fish thumbnails embedded)
+- `work/page2.tpl.html`, `work/build2.py` (round 1's template is spliced in under "Earlier options")
+- `work/rows.ts`, `work/shapes.json`, `work/grammar.py`, `work/coverage.json`
+- `shots/today-*.jpg`, `shots/r2/` (my checks of the page)

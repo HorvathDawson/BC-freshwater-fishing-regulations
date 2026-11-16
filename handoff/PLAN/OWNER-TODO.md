@@ -1083,3 +1083,7 @@ reopens Nov 1.
   trout redosgn. That is a separate exploration thing that might not go anywhere". So: nothing waits on the trout
   display exploration. T762 (the "through the year" line that stops after the next change; app chat) and T763
   (Kootenay Lake rainbow "20 a year" without its over-50-cm band; main chat) are fixed on their normal paths.
+- 23:04: round 2 of the trout display is on the same page (https://claude.ai/artifact/EopBgDtf8eu4LGZpYixSkH): one top
+  line, then one row per fish with the app's own drawing; four one-change variants; eleven waters. Five questions on
+  the page (row per fish or per book group; plain backing behind the drawings; the long Vedder line; Kootenay one table
+  or two; duties behind the tap). It is exploration only: nothing waits on it (your 22:49 word).
