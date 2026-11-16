@@ -45,3 +45,8 @@ row's `conds` and `caps` hold it); `group.buckets`, which the card draws, holds 
 - To check before the merge: Khartoum, Horseshoe, Nanton and Ireland lakes were not in the audit's list (read their
   rows in the book); the Dolly Varden / lake trout line comes from `dodd_lake.r2` parsed as all trout and char where
   the book says "no wild trout over 40 cm" (a parse question); the sentences have had no owner read.
+
+- Checked 2026-11-16 (main chat, on the parsed quotes, not the page images): Khartoum, Horseshoe, Nanton and Ireland
+  lakes carry "Wild trout/char daily quota = 2" and "no wild trout over 40 cm" (Khartoum and Lois: "40 cm or more"),
+  the same lines as Dodd: their new card line is right. The Dolly Varden / lake trout line follows from reading "no
+  wild trout over 40 cm" as trout AND char: owner question 38 (his Region 6 ruling C2 / C4 reads "trout" as not char).

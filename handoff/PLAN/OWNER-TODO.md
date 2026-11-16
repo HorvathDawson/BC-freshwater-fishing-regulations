@@ -1483,4 +1483,12 @@ More questions (recommended answer first):
     to 5 rainbow trout — no wild rainbow trout under 30 cm (12 in); up to 1 wild rainbow trout 30–50 cm (12–20 in)".
     They are long but true. Go as worded (recommended), or tell me how to shorten? On your go: merge, rebuild the
     answers, a staging release [T793].
+38. **Dodd, Lois, Khartoum, Horseshoe, Nanton, Ireland, Windsor lakes: does "no wild trout over 40 cm" cover char?**
+    The book prints "Wild trout/char daily quota = 2" and then "no wild trout over 40 cm" (Lois and Khartoum: "40 cm
+    or more"). We read the second line as trout AND char, so a wild Dolly Varden/bull trout or lake trout of 60 cm or
+    more cannot be kept there (the card will say so once the fix lands). Your Region 6 ruling reads "trout" as NOT
+    char. Trout only here too (a wild char over 60 cm may be kept inside the 2), or trout and char as now (stricter)?
+    Recommended: keep trout and char until you say otherwise (it errs closed). Checked: the four lakes the audit had
+    not listed (Khartoum, Horseshoe, Nanton, Ireland) carry the same printed lines as Dodd, so their new card line is
+    right.
 
