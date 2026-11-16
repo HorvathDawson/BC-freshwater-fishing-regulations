@@ -18,7 +18,7 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 - Not done yet: the app data build is running; then the staging release, the Android build of 0.7.11 (the app chat),
   Skeena cascade part 2, the general audit. Trout display mockups: https://claude.ai/artifact/EopBgDtf8eu4LGZpYixSkH
   (round 3 running; exploration only).
-- State and next steps for a new or compacted chat: `NEXT-SESSION-chat14-inflight.md`. Your questions: OWNER-TODO.md
+- State and next steps for a new or compacted chat: `INFLIGHT-chat14.md`. Your questions: OWNER-TODO.md
   "2026-11-15 night" sections and the To-Do page rows starting `sl-`.
 
 ## 2026-11-15 (chat 13 end): DFO labelling done; clean-up, side rebuild, review-app fixes; handed to a new chat

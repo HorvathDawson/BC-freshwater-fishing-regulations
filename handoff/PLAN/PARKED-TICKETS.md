@@ -115,7 +115,7 @@ The full table with commits is in the ledger; I did not list its POSTPONED and D
 Between steps, pick items from D marked "left (Claude)" if you are waiting on something.
 
 ## The first message the owner can paste into the new chat
-> Read `handoff/PLAN/NEXT-SESSION-parked-tickets.md` and start work. The main chat owns the build train and the app
+> Read `handoff/PLAN/PARKED-TICKETS.md` and start work. The main chat owns the build train and the app
 > tap/back path; ask me before any app build, Play upload or atlas promote.
 
 ## Added 2026-11-14 (from the iOS chat's read-only audit, `handoff/PLAN/ios/parity-audit.md`)

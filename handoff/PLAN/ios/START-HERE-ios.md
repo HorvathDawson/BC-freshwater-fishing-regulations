@@ -660,7 +660,7 @@ real ticket in the ledger (next free number) when you start it. IOS-11 is not ap
   are answered (above).
 - **Parallel lanes** (disjoint files; at most 2 heavy jobs via `scripts/heavy.sh`, the second on `HEAVY_LOCK=~/.claude/heavy-job-2.lock`):
   1. iOS lane(s) in `app/` and the iOS test bed (this document).
-  2. **Pipeline/tests lane** works `handoff/PLAN/NEXT-SESSION-parked-tickets.md` in this order: T667 4c, T667 7, T667 6,
+  2. **Pipeline/tests lane** works `handoff/PLAN/PARKED-TICKETS.md` in this order: T667 4c, T667 7, T667 6,
      T686 survey + prototypes + ranking (**stop before the owner's pick**), then T667 slice 8. **T602 is NOT started**
      (needs a full build and the owner).
   3. **Docs lane when idle:** iOS store pack drafts (IOS-10): review notes, age-rating answers, App Privacy answers checked
