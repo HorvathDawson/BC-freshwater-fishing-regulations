@@ -1770,11 +1770,11 @@ More questions (recommended answer first):
   START is 495 m below the Hwy 1 bridge where DFO says about 1 km; Babine: 7 circles match by name (Morrison, Pierre,
   Twain, Tachek, Five Mile, Four Mile, Big Loon), Tsezakwa's circle sits on Nilkitkwa Lake, Pendleton has no match,
   Six Mile / Hazelwood / Sockeye and the Gullwing line are not drawn, Pinkut has a circle but is not in DFO's list.
-- 12:48, trout round 7, he sent a screenshot of the Skeena card (Sedan Creek to Mill Creek, Jul 15), typed: "it is
+- 12:44, trout round 7, he sent a screenshot of the Skeena card (Sedan Creek to Mill Creek, Jul 15), typed: "it is
   hard to tell 1 of 5 is over 50cm here applies to all instead of just brook trout also the brook trou limit feels
   like the full limit makes it seem like the 5 doesnt apply to all?" What the picture shows: the grey "Keep 5 in all"
   cell runs only beside the top strip and the brook trout row, so it reads as brook trout's own limit and the white
   cells below as separate limits; the "Of the 5, only 1 over 50 cm (20 in)." strip is tied to nothing. Round 8
-  started 12:49 with the original designer: the whole-box number must visibly hold every row of its box and the
+  started 12:45 with the original designer: the whole-box number must visibly hold every row of its box and the
   box-wide size sentence must be tied to it; plus his round 7 answers (no sideways, the bar dropped, dates in words)
   and the second attack's faults. Mockups only. The reviewer attacks round 8 after.
