@@ -1,6 +1,6 @@
 # T756 — Reopening the app mid-download throws away a first install's big files when they were queued "Wait for Wi-Fi"
 
-Status: IN PROGRESS (iOS chat; the fix is in shared code, so it needs the Android bench and a word to the Android chat before it merges).
+Status: IN PROGRESS (bench settled 2026-11-16 with T760: three fully passing bg-install sessions; landing in merge 3 `merge/t756-t760`)
 
 Source: found 2026-11-15 by the R8 lane (T749) while the `bg-install` bench hung on a slow line; mechanism read from the
 code by the iOS chat the same day. The Android chat (first install on Android is its area) found no decision that
@@ -129,3 +129,17 @@ that line, not the system downloader's), the T760 bench change (a clean app is a
     minutes).
 - **State:** work 1–4 done and proven once on the emulator; the unexplained silent stretch is carried by T760. Not
   merged; goes in with the iOS merges after build 33, after one more green `bg-install` + `install`.
+
+## Bench settled, 2026-11-16 13:20–14:00 (new app chat, session -9c)
+The bench was at fault, not the app: on the Mac's full line the 479 MB were down 35 to 60 s after they started, so the
+tap came after the system's notification had gone. The emulator's speed shaping does not reach its Wi-Fi. Now
+`scenarios/bg-install.mjs` points the phone's global HTTP proxy at `lib/throttle-proxy.mjs` (a proxy on the Mac, one
+shared budget of 3 MB/s, CONNECT tunnels relayed unread; its own test) from the clean install until the tap, then lifts
+it; it is always unset at the end, and `session.sh` unsets one a cut-off run left (b4c1a72d9).
+Three sessions on that (APK tag `m3`, R8, `--no-r2`, lane 2): `m3d-bg1` 8/8, `m3d-bg2` 8/8, `m3d-bg3` 8/8. Each: the
+app closed at under 3 MB of 479, the shade showing "3 files downloading", the tap on the group's first notification
+opened the app, nothing queued again from zero, the map opened. With `pnpm check` and the other five benches from before,
+merge 3 is ready to land.
+Left for later (bench time only, no result depends on it): unsetting the proxy at the reopen step seems to make the
+system downloader drop and retry its connections, so the rest took about 4 min; lifting the rate without unsetting
+until the end would shorten a session.
