@@ -36,7 +36,7 @@
       "bundleIdentifier": "ca.canifishthis.app",
       "associatedDomains": ["applinks:canifishthis.ca", "applinks:staging.canifishthis.ca"],
       "supportsTablet": false,
-      "buildNumber": "32",
+      "buildNumber": "33",
       "config": {
         "usesNonExemptEncryption": false
       },
@@ -131,7 +131,7 @@
     },
     "android": {
       "package": "ca.canifishthis.app",
-      "versionCode": 32,
+      "versionCode": 33,
       "intentFilters": [
         {
           "action": "VIEW",
