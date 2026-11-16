@@ -42,3 +42,70 @@ Question 29, typed: "yes we want to do this but can you bring the example change
   Somass below the gravel pit signs (1, Aug 25-Nov 15), Sproat below the lake (1, Jun 15-Nov 15), Nitinat Red Rock
   Pool (1, Aug 25-Dec 31), hatchery intake to the Little Nitinat (1, all year), bridge (1, Aug 25-Oct 15).
 - Tests: `pipeline/tests/test_t796_finfish_closure.py` (3; mutations: no `f` fails 2, no `finfish` fails 3).
+
+## A5 proposal, written before the code (lane/salmon-rules-1116, 2026-11-16)
+THE MARKER (the `piece` / `bound` pattern: a flag on the place's entry in payload `p`, read without parsing the id):
+- A book closure is a salmon place of its own, id `book:<entry_id>::<rule_id>` (a `~2`, `~3` suffix when the same rule
+  closes different days on different sections, e.g. lifted on some), put FIRST in the chain of every section it
+  closes. Its entry in `p`: `{"r": <region slug, absent for a provincial row>, "water": <the book row's name>,
+  "static": 1, "book": {"rule": "<entry_id>::<rule_id>", "pages": [<printed pages>]}}`. `static: 1` = the release's own
+  place: DFO's feed never carries it, so under a live feed the app keeps it from the release file.
+- Its year, for the app to compose under a live feed: payload `static`: `{<id>: {"sp": [5 runs of release verdict
+  indexes, -1 = says nothing that day], "g": [0, -1]}}` (the live feed's place shape, `live.location_calendar`).
+- Its verdict: `{"s": "closed", "t": "Closed to all fishing by the rule book (p.N): <the book's line> (<dates>)"}`
+  on every salmon species on the days it closes; nothing on other days, where the rest of the chain answers as before.
+  The chain's `a` names it (index 0) on those days; `s` groups each gain it as their first member.
+WHICH CLOSURES: exactly the status index's CLOSED test, taken from the stored verdicts (`verdicts.project.closing`), and
+only a rule that BY ITSELF closes every game fish: a full closure ("No Fishing", a park or ecological reserve closure,
+`closure_grade` full: take 0, may not fish, no length / origin / while / target / side condition, drawn), in force that
+day after every lift the reference reader applies, and at every moment of the day (an hours or weekday closure never
+closes the day). Never a gear rule, a species closure (steelhead), an angler closure or a mix of species closures.
+Only on sections DFO lists (a section in no DFO chain is closed to salmon already); never tidal or outside B.C.
+WHERE: release side (`deliver.salmon.book_closures` + `with_book_closures`, called by the release build before it
+encodes the salmon files), because the stored verdicts are made after the bundle.
+
+## Lane result A5 (lane/salmon-rules-1116, 2026-11-16)
+- Built as proposed: `deliver.salmon.book_closures` (the stored verdicts: per section, each rule that by itself
+  closes every game fish, and its days), `book_inputs` (the release's listed sections, tidal / outside B.C. left out,
+  each rule's words and pages from the bundle), `with_book_closures` (the book places first; `p[id]` with `static: 1`
+  and `book: {rule, pages}`; payload `static[id]` = `{sp, g}`), called in `release.build` before the salmon files are
+  encoded. RULINGS D9.
+- ONE CHANGE TO THE PROPOSAL, for size: `BOOK_ONLY_WHERE_DFO_LETS_FISH`. Carried on every DFO-listed section the book
+  closes (620,930 sections, 543 rules) the salmon head is 92 kB gzipped against its 60 kB gate (736 new chains, 547
+  places). Carried only on chains where DFO lets some salmon be fished on some day: 50 kB (139 new chains, 106 places,
+  76,924 sections). Elsewhere DFO closes every salmon every day, so the answer is closed either way and only the words
+  differ. The cost: a chain DFO closes all year in the release and opens in season through the live feed carries no
+  book place under that feed. Raising the gate (owner) and setting the constant False carries it everywhere.
+- What changes (salmon step of r-46e4355a7277 rebuilt with fixes 1-4 under it): 70 stretches (book rule x DFO
+  chain), 71,046 sections, 55 book rules; on those days DFO had said open (16,932 species-days summed over stretches),
+  check (1,905) or release (408). The full list: the lane's scratch file `t796-a5-changes.txt` (path in the lane
+  report). Largest: the Skeena/Nass winter closure on DFO's Nass section C (23,338 sections, coho Jan 1-Jun 15), the
+  Iskut closure on the Stikine (11,870, coho Apr 1-Jun 30), the Klinaklini (7,672, chinook and coho Apr 1-Jun 30), the
+  Iskut below Forest Kerr Canyon (4,322), the national park reserves on Haida Gwaii (2,795, coho all year), the
+  Kitimat tributaries Mar 16-May 31 (2,594), the Atnarko and Bella Coola closures (1,757 + 1,718 + 149), ecological
+  reserves (section E 1,032, Stikine 1,024, section D 342, Areas 3-6 77, Skeena below the CNR bridge 7).
+- The three examples for the owner (each [ran] on the rebuilt salmon step):
+  1. Skeena below the CNR bridge at Terrace, inside an ecological reserve (7 sections, e.g.
+     `360216952:0`), Aug 15, sockeye. Book p.9: "Fishing is prohibited in Ecological Reserves in B.C." DFO's row
+     (Skeena mainstem waters downstream of CNR Railway Bridge): "4 per day (Jul 29-Aug 16), FN0787". Before: open, 4 a
+     day. After: closed, "Closed to all fishing by the rule book (p.9): Fishing is prohibited in Ecological Reserves in
+     B.C." The page said "Closed all year" and the salmon card "Open today"; now both say closed.
+  2. Atnarko River from Tenas Lake to the signs near the Atnarko Park campsite (1,718 sections with the tributaries the
+     row includes), Jul 15, chinook. Book p.43: "No Fishing from Tenas Lake to fishing boundary signs near Atnarko Park
+     campsite" (all year). DFO's row (Atnarko River, whole): "4 per day, only 1 over 65 cm (Jan 1-Jul 22)". Before:
+     open. After: closed by the book; chum and pink (DFO 2 and 1 a day all year) closed all year there too.
+  3. Cowichan below the CNR Mile 66 Trestle (2 sections, `354088123:0`, `354155148:20036`), Oct 10, coho. Book p.15:
+     "No Fishing downstream of the CNR Mile 66 Trestle between Sept 1-Nov 15". DFO's row (66 Mile Trestle downstream
+     to Sandy Pool): "All | Sep 1 to July 14 | Open for salmon catch and release". Before: release only. After: closed
+     by the book Sep 1-Nov 15 (and Jul 4-14 by "No Fishing July 4-July 14"); from Nov 16 DFO's answer is back.
+- THE NOTE FOR THE APP CHAT: payload `p[id].static: 1` (+ `book: {rule: "<entry_id>::<rule_id>", pages: [n]}`, `r`,
+  `water`); payload `static: {id: {sp: [5 runs, release verdict indexes, -1 = nothing], g: [0, -1]}}`. Under a live
+  feed, `composeChain` must take a static place's year from `static` (its verdicts copied from the release's
+  `verdicts` into the composed tables), never drop it for missing from the feed; a two-region chain's `s` already
+  lists the book places in every group. The card can name the row from `p[id].book` (the book's page) instead of a
+  DFO region / section. The contract line in `release/contract.py` (`pack.generated.ts`) does not yet mention
+  `static` or the verdict's `f` (left for the app chat's regeneration, so this lane did not touch `app/`).
+- Tests: `pipeline/tests/test_t796_book_closures.py` (5: first on its days, the policy, the live composition, only a
+  rule closing every game fish and never a closure open at some moment, the date ranges). Mutations: the book place never
+  answering fails 2; the "every moment" check alone is backed by the per-moment rule intersection (no single
+  mutation of it fails a test).

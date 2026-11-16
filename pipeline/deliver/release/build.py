@@ -494,7 +494,11 @@ def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, ou
         # bundle region (owner 2026-10-28: a water page's card fetches its own region's slice), cut by the store's places
         from pipeline.deliver import salmon as SALMON
         _sid_regions = SH.sid_regions(st)
-        for name, blob in SALMON.encode_files(*SALMON.read_bundle(b), base["section_handles"],
+        # (T796 A5) the rule book's full closures, FIRST in the chains of the stretches they close (a static place:
+        # the stored verdicts beside the bundle say which rule closes which section on which days)
+        _payload, _secs = SALMON.read_bundle(b)
+        _payload, _secs = SALMON.with_book_closures(_payload, _secs, *SALMON.book_inputs(bundle, _secs))
+        for name, blob in SALMON.encode_files(_payload, _secs, base["section_handles"],
                                                lambda sid: _sid_regions.get(sid, ())).items():
             (work / f"{name}.bin").write_bytes(blob)
             files[name] = work / f"{name}.bin"
