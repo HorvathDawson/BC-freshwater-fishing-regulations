@@ -765,6 +765,7 @@
       "LT"
      ],
      "take": 1,
+     "period": "possession",
      "within": "bennett_lake.r3",
      "lengths": [
       {
@@ -6049,6 +6050,7 @@
       "LT"
      ],
      "take": 1,
+     "period": "possession",
      "within": "morley_lake.r13",
      "lengths": [
       {
@@ -8591,6 +8593,7 @@
       "LT"
      ],
      "take": 1,
+     "period": "possession",
      "within": "tagish_lake.r2",
      "lengths": [
       {

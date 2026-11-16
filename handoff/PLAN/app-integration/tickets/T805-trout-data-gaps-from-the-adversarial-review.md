@@ -33,3 +33,9 @@ possession limit that shows only on days lake trout cannot be kept (Istsi, Wolve
 Shown the part C changed-answers list (3 waters in Region 2, all toward closed: Lois and Khartoum one wild limit of 2
 across both cards; Lois and Windsor wild char hatchery only). Picked: "Go (Recommended)". Commit 0f6fe2868 lands with
 the full tier. Parts B and D: their own lists, their own go.
+
+## Owner, 2026-11-16 16:37: parts B and D go; Bowron keep today's; Nation Lakes as printed
+Part B "Go (Recommended)"; part D "Go (Recommended)"; Bowron lake trout "Keep today's"; Nation Lakes, typed: "i feel
+like this possession stuff is just kind of broken but fixed in the new trout format? so maybe we can just work on the
+transisiton to the new trout redisgn?" (both lines stay as printed; no more possession patching here). François Lake
+outlet (part D question 3): not asked yet; it needs a placement rebuild and its own list.

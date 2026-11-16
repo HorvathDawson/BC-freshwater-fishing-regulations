@@ -68,3 +68,10 @@ have a quota of their own. The spec's row model (one row per fish and origin) ch
    an all-release table.
 Still open in the design (from the fourth attack): a build rule for dated number / size / wild / possession changes
 on the waters not hand-written in the mockup; Lois's "All together" line sitting outside both boxes.
+
+## Owner, 2026-11-16 16:37: work on the transition
+Typed (on the Nation Lakes possession question): "i feel like this possession stuff is just kind of broken but fixed in
+the new trout format? so maybe we can just work on the transisiton to the new trout redisgn?" Read as his go to move on
+to steps 3 to 7. First: the spec takes in his answers of 15:36, 15:42, 15:47, 15:48 (trout only, the folded entry with
+the expand arrow, no "reopens" unless closed today, "rule changes <date>" for a loosening, hatchery only), and the app
+chat's read-only check of the app half (tickets M to S against the real app code; its worker started ~16:30).
