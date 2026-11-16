@@ -10,7 +10,7 @@
 //
 // Only the read side the feed needs is here: no geometry (`PieceGeometry`, `attach`, `build_pieces` stay Python).
 // Anything outside the id grammar THROWS (`pieceId`), as the Python raises: the run fails, the last good feed stands.
-import { byFingerprint, type EntryFile } from "./entries";
+import { byFingerprint, type EntryFile, type EntryLocation } from "./entries";
 import { sha1 } from "./hash";
 import type { Location } from "./locations";
 import { cmpStr, finditer, formatG, match, pyRe, PyError, pyRound, repr, search, split, strip, sub } from "./py";
@@ -283,20 +283,31 @@ function activeEntries(locations: Iterable<Json>): Json[] {
 /** THE LIVE FEED'S PIECES (`live.ts` after the join, as `live.run`): piece id -> [its rule], for every item TODAY'S page
  *  names — read from the live rows (`found`, the page's scraped locations, joined to their curated place by fingerprint),
  *  so a piece DFO dropped leaves the feed on the run it goes. The feed carries every live one, confirmed or not. */
-export function livePieceRules(ef: EntryFile, found: Iterable<Pick<Location, "fingerprint" | "specific_area" | "excludes">>): Map<string, Json[]> {
-  const index = byFingerprint(ef);
+export function livePieceRules<F extends LiveRow>(ef: EntryFile, found: Iterable<F>, close?: ReadonlyMap<string, EntryLocation>): Map<string, Json[]> {
+  return new Map([...livePieces(ef, found, close)].map(([lid, [rule]]) => [lid, [rule]]));
+}
+
+type LiveRow = Pick<Location, "fingerprint" | "specific_area" | "excludes"> & Partial<Pick<Location, "water">>;
+
+/** piece id -> [its rule, the live row (`found` item) whose words name it, the area] — `livePieceRules`' source, and
+ *  (T759) what the feed's `closed_area_unbound` issue quotes. `close` (T759, `live.closeMatches`): fingerprint -> the
+ *  place a drift row is read as; an exact fingerprint wins over it. */
+export function livePieces<F extends LiveRow>(ef: EntryFile, found: Iterable<F>, close?: ReadonlyMap<string, EntryLocation>): Map<string, [Json, F | undefined, Area]> {
+  const index = new Map<string, EntryLocation>([...(close ?? new Map()), ...byFingerprint(ef)]);
   const rows: Json[] = [];
+  const src = new Map<string, F>();
   for (const f of found) {
     const hit = index.get(f.fingerprint);
     if (hit === undefined || !hit.water_id) continue;
+    if (!src.has(hit.location_id)) src.set(hit.location_id, f);
     rows.push({ location_id: hit.location_id, water_id: hit.water_id, water: hit.water, region: hit.region,
                 status: "active", source_text: { specific_area: f.specific_area, excludes: [...(f.excludes || [])] } });
   }
-  const out = new Map<string, Json[]>();
+  const out = new Map<string, [Json, F | undefined, Area]>();
   for (const e of activeEntries(rows))
     for (const a of e.areas as Area[]) {
       const lid = pieceId(e.water_id, a.key);
-      if (!out.has(lid)) out.set(lid, [pieceRule(e, a, lid)]);
+      if (!out.has(lid)) out.set(lid, [pieceRule(e, a, lid), src.get(e.derived_from), a]);
     }
   return out;
 }

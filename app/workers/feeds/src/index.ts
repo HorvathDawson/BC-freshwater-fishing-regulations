@@ -18,11 +18,11 @@
 import { meteredFetch, meteredStore, newMeter, r2Store, readStored, setDeployId, writeMerged, type Meter, type R2BucketLike } from "./io";
 import { runGauges } from "./gauges";
 import { runDfo } from "./dfo";
-import { QUEUE_ACTION } from "./dfo/live";
+import { QUEUE_ACTION, SHAPE } from "./dfo/live";
 import { runInSeason } from "./inseason";
 import { channelOf, compose, deliver, readState, sendApk, sendTest, type FeedEvent, type NotifyConfig } from "./events";
 import { parseApk, sampleDfoEvents } from "./email";
-import { checkStatus, DFO_SHAPE, INPUT_FORMATS, readStatus, readStatusAt, record, recordHealth, refresh, servedStatus, statusHtml, STATUS_KEY, type Alert, type Held, type Job } from "./status";
+import { checkStatus, dfoIssueCounts, INPUT_FORMATS, readStatus, readStatusAt, record, recordHealth, refresh, servedStatus, statusHtml, STATUS_KEY, type Alert, type Held, type Job } from "./status";
 import { classOfError, fmtErrors, resilientFetch, RunHealth, SourceError, summarize } from "./health";
 import { pageUrl } from "./dfo/fetch";
 import { limited, routeClass, bearerOk, type RateLimiter } from "./guard";
@@ -277,6 +277,8 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
   let summary: Record<string, unknown> = {};
   let counts: Record<string, number> = {};
   let held: Held[] = [];
+  // (T759) a DFO run that published its index: its issue counts, for /status.json `dfoIssues`
+  let dfoIssues: ReturnType<typeof dfoIssueCounts> | undefined;
   let error: string | null = null;
   const events: FeedEvent[] = [];
   try {
@@ -404,6 +406,7 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
         notices: s.notices.length, unchangedRegions: (s.skipped ?? []).length,
       };
       summary = { ...counts, skipped: s.skipped };
+      dfoIssues = dfoIssueCounts(s.index as any); // eslint-disable-line @typescript-eslint/no-explicit-any
       events.push(...dfoEvents(s.notices, at));
     } else {
       const s = await runInSeason({
@@ -455,7 +458,8 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
     if (r.ok === 0 && r.fail > 0 && !held.some((h) => h.where === `source ${n}`))
       held.push({ where: `source ${n}`, why: `nothing usable this run (${fmtErrors(r.errors)}); last good data kept` });
   let alerts: Alert[] = [];
-  const runRecord = { at, ok: error === null, wallMs, cpuMs: null, counts, held, error, meter: { ...m }, sources: health.sources };
+  const runRecord = { at, ok: error === null, wallMs, cpuMs: null, counts, held, error, meter: { ...m }, sources: health.sources,
+                      ...(dfoIssues !== undefined ? { dfoIssues } : {}) };
   if (st) {
     alerts = record(st, job, runRecord, new Date());
     const down = recordHealth(st, job, health, at);
@@ -708,7 +712,7 @@ export default {
         const error = `the feeds' status could not be read: ${e instanceof Error ? e.message : String(e)}`;
         console.error(JSON.stringify({ job: "status", error }));
         return url.pathname === "/status.json"
-          ? Response.json({ ok: false, error, inputs: INPUT_FORMATS, dfo: DFO_SHAPE }, { status: 503, headers: { "Cache-Control": "no-store" } })
+          ? Response.json({ ok: false, error, inputs: INPUT_FORMATS, dfo: SHAPE }, { status: 503, headers: { "Cache-Control": "no-store" } })
           : new Response(error, { status: 503, headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" } });
       }
       // (T246) the last backup run beside the feeds (null: none yet)
@@ -723,7 +727,8 @@ export default {
       // (T558) how owner messages go out: "log" means nobody is told
       const nc = notifyConfig(env);
       const notifyInfo = { channel: channelOf(nc), digest: !!nc.digest };
-      if (url.pathname === "/status.json") return Response.json({ ...servedStatus(st, now), notify: notifyInfo, backup: bk, reportRetention: rt, skill: sk, inputs: INPUT_FORMATS, dfo: DFO_SHAPE }, { headers: { "Cache-Control": "no-store", ...SAFE_HEADERS } });
+      if (url.pathname === "/status.json") return Response.json({ ...servedStatus(st, now), notify: notifyInfo, backup: bk, reportRetention: rt, skill: sk, inputs: INPUT_FORMATS, dfo: SHAPE,
+                                                                       dfoIssues: st.feeds.dfo?.dfoIssues ?? null }, { headers: { "Cache-Control": "no-store", ...SAFE_HEADERS } });
       return new Response(statusHtml(st, now, sk, notifyInfo, { backup: bk, purge: rt }), { headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store", ...SAFE_HEADERS,
         "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'" } });
     }
