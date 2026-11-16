@@ -24,3 +24,10 @@ Source: the main chat, 2026-11-16 03:08. Area: the app chat (`app/tools/regs-rec
 ## Done when
 - Moving x15p9's declared index by one fails the tool, naming the state (a mutation test).
 - Every closed golden state in taps.py is checked by ends or km mark.
+
+## Added 2026-11-16 04:44 (the general audit, `handoff/PLAN/audit-2026-11-16/guards.md`)
+- Four closed golden states are held only to "the part at that index is closed": x15p9, x16p7, chw0, x17p5.
+- `taps.py` stops at the FIRST stale declaration; on r-46e4355a7277 that cost three release attempts. It must list
+  every stale declaration in one run.
+- Five comments still cite the removed `exclusions.ts`: `app/tools/regs-recut/taps.py` (about lines 41 and 47),
+  `app/packages/core/src/regs/testing/golden.ts` (30 and 37), `app/packages/core/src/regs/tree.ts` (54).
