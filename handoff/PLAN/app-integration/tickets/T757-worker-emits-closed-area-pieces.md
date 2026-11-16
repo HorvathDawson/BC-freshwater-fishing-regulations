@@ -64,7 +64,7 @@ known: today's DFO check does not include this closed area…") is NOT merged; w
 acceptance line are superseded by T759. Asked of the Android chat for its rewrite: the feed's per-river `issues` must
 carry an unbound closed-area wording with its text and water. Work items 1 and 2 (worker) stand.
 
-## Ruling 2026-11-15 20:18 (Android chat, after the owner's T759 decision): what replaces the app half
+## Ruling 2026-11-15 evening (Android chat, after the owner's T759 decision): what replaces the app half
 The upload gate checks the worker only at upload time; a worker can go backwards later (a rollback, a staging release
 that puts an older worker back). Then every bound piece would fall through and closed areas would read open, silently.
 That is a technical failure, not DFO removing words, and it gets a guard that needs no new status:
@@ -83,3 +83,23 @@ That is a technical failure, not DFO removing words, and it gets a guard that ne
    piece; the same check in the production deploy script, as a refusal with words (edited by an agent, never run by
    one; on the owner's code-review list).
 Merge timing unchanged: after build 33.
+
+## Results, items 6 and 7 (2026-11-15 evening; both pushed, neither merged)
+- **Item 6, app, `app/t757-min-feed-shape` fa0c7a1c5** (off shared head b0f5c10b5; replaces `app/t757-piece-not-known`,
+  which is abandoned): `requiredFeedShape(payload)` (`{pieces: 1}` when a chain names a location with `piece` and
+  `bound`) and `feedMeets(feed, need)` in `core/salmonFeed.ts`; `parseSalmonFeed` reads the feed's top-level `dfo`
+  (absent = an older feed; malformed = the feed is refused like any bad field). In `pickSalmon`, a feed that does not
+  meet the shape is not used: the release's own file for every chain, one `reportFailure` per release head and feed
+  read, and the card's feed line reads: "The latest DFO check could not be used with this app's data, so the DFO rules
+  this data was built with are shown. Check DFO's page before you fish." (new words; for the owner's eye with the
+  next batch). A piece missing from a feed that HAS the shape falls through with no words and no report (pinned).
+  6 new tests, core 1567 pass, `check:fast` passes; seven mutations, each caught.
+- **Item 7, deploy, `deploy/t757-worker-shape-refusal` 0382f0f5d:** `deploy/lib/worker-shape.mjs` bundles the worker's
+  `status.ts` and prints `DFO_SHAPE` (today's shared head: `null`; the T757 worker branch: `{"pieces":1}`);
+  `pieces_gate.py` gains `worker_problems`, `read_live` and a `--worker-deploy` mode (additive; the Android chat's
+  file, for its review); `deploy/staging/feeds.sh` and `deploy/prod/feeds.sh` run it before `wrangler deploy` (the
+  bucket's `release/manifest.json` by rclone, the shape, the gate; anything unreadable refuses). 21 new pytest tests;
+  eight mutations, each caught. Nothing under `deploy/prod` was run. Known limits: the gate reads the live release
+  from the local `data/release` (a deploy from a worktree without it is refused), and it refuses an unreadable worker
+  shape even when no piece is bound.
+- **Item 5 (worker writes the shape into index.json):** waits for the Python on the Android chat's T759 branch.
