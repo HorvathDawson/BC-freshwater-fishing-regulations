@@ -484,16 +484,17 @@ describe("Android's back, surface by surface (HANDOFF-ui 'Back, everywhere')", (
       "search · tab Map", "water Chilliwack River on Map · no bar", "handled -> tab Map", "ANDROID -> tab Map"]);
   });
 
-  it("(T48) search over the Conditions map: a town's list steps back to all results, then search closes, then the tab " +
-     "goes to the Map tab, then Android leaves", async () => {
+  it("(T48, T730) search over the Conditions map: back from a town's list closes search (owner 2026-11-16: one back " +
+     "returns to the map), then the tab goes to the Map tab, then Android leaves", async () => {
     await mount({ ...HOME, tab: "conditions" });
     act(() => { fireEvent.focus(screen.getByLabelText("Search waters and towns")); });
     fireEvent.change(screen.getByLabelText("Search waters and towns"), { target: { value: "chilliwack" } });
     await until(() => screen.queryByLabelText("Show Chilliwack on the map") !== null);
     await click("Show Chilliwack on the map");
     await until(() => screen.queryByLabelText("Back to all results") !== null);
-    expect(backs(4)).toEqual(["water near a town · search · tab Conditions", "handled -> search · tab Conditions",
-                              "handled -> tab Conditions", "handled -> tab Map", "ANDROID -> tab Map"]);
+    // (T730) it used to step to all results first; the on-screen "← All results" row still does (Search.shell.test.tsx)
+    expect(backs(3)).toEqual(["water near a town · search · tab Conditions", "handled -> tab Conditions",
+                              "handled -> tab Map", "ANDROID -> tab Map"]);
   });
 
   it("(T48) a More page closes first, then the More tab goes to the Map tab", async () => {
