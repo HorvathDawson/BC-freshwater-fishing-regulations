@@ -157,10 +157,14 @@ window is about 5 s. Not yet read: `app-log-bg-install.txt` and `T298-4-notifica
 One more session (M = main checkout, W = `S/t760-merge-wt`; the APK tag is `m3`):
 `cd $W && export HEAVY_LOCK=$HOME/.claude/heavy-job-2.lock CANIFISHTHIS_R8=1 TESTBED_APK_TAG=m3 MLN_LOCAL_MAVEN=$M/cache/maplibre/fslean-m2 && $M/scripts/heavy.sh m3c-bg2 30 -- bash -c "cd $W && bash app/tools/testbed/session.sh --crash-stub --max-min 40 --allow-stale 'bench files only changed since the APK was built' -- node app/tools/testbed/run.mjs --no-r2 bg-install > $S/m3c-bg2.log 2>&1"`
 
-THE DEPLOY-GATE PIPELINE TIER (item 3 above) got lane 2 at about 13:05, as the old chat was closing. Before running
-it again, read the last line of `S/deploy-merge-pytest.log`: "tier rc=0 emit rc=0 mini rc=0" means it finished clean
-(then only `S/deploy-merge-stepcache.log` is left to read: ten known failures there are T799). No such line: it was
-cut off, run it again.
+THE DEPLOY-GATE PIPELINE TIER (item 3 above) RAN 13:04 to 13:09, after item 3 was written: 6498 passed, 1 FAILED,
+`emit --check` rc 0, `mini_release --check` rc 0 (log `S/deploy-merge-pytest.log`); the step-cache file on its own:
+10 failed, 10 passed (the known T799 set under a temp folder). The one failure was real and the branch's own:
+`test_test_anchors.py::test_the_live_tree_has_no_offender` refused `test_worker_deploy_pieces_gate.py:155`, a repo
+path `data/release/r-x/manifest.json` in a test (never read: the reader is patched). Fixed at 13:10 as d6304d1ed
+(the test uses `tmp_path`); the gate file and the anchor guard then pass together (42 tests). So the branch head is
+now `merge/t757-deploy-refusal` @ d6304d1ed, NOT 829c6bbdc. The full tier was NOT run again after that one-line test
+change: run it once more after the re-merge onto the head (item 3's command), then ask the main chat to land.
 
 ## Earlier restart section (written 2026-11-15 20:47, the night of 11-15 to 11-16; history, but its "Who you talk to" and the procedures below it still hold)
 
