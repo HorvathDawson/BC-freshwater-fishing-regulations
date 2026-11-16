@@ -504,9 +504,14 @@ def _by_measure(g, universe: set[str], blk: str, lo: float, hi: float,
         # pieces are re-judged, so no placement made above can change.
         reach: dict[str, set[str]] = {}
         flags: dict[str, set[str]] = {}
+        # T778: the lakes that are ONE end of the window (a lake-end cut), each with that end's measure
+        lake_cuts = ({x: c for ids, c in ((lo_ids, lo), (hi_ids, hi))
+                      for x in ids - (lo_ids & hi_ids) if x.startswith("lake:")}
+                     if A_PIECE_INTO_THE_CUT_LAKE_IS_JUST_ABOVE_ITS_CUT else {})
         for nid in sorted(lost):
             reach[nid], flags[nid] = _flow_reach(g, nid, universe, blk, lo, hi,
-                                                 cut_ids=frozenset(cut_ids), principal=blk)
+                                                 cut_ids=frozenset(cut_ids), principal=blk,
+                                                 lake_cuts=lake_cuts)
         inside.add(_JUST_ABOVE_IN)                         # the window's side of "just above a cut"
         outside.add(_JUST_ABOVE_OUT)
 
@@ -581,6 +586,17 @@ def _between_the_windows_cuts(g, comp: set[str], principal: str, lo_ids: set[str
         return set() if b is None else {str(b.boundary_id), *(b.aliases or ())}
     return bool(_names(nodes[0].lower_bound) & lo_only) and bool(_names(nodes[-1].upper_bound) & hi_only)
 
+
+#: T778 (2026-11-15): A PIECE WHOSE WATER ENTERS THE WINDOW'S CUT LAKE IS JUST ABOVE THAT CUT. A window that ends
+#: at a lake (a lake-end cut: `lake:{wbk}` among the ids of ONE of its two cuts) bounds the river there; a piece of
+#: the water that reaches its water only through that lake (a delta side channel draining into the lake on its own)
+#: drains into the lake, so it lies just above the cut — the same position `_JUST_ABOVE_IN` / `_OUT` give a path
+#: reaching the line through a lake's outlet at a cut. The flow path stops at the lake (`_flow_reach`, `lake_cuts`)
+#: instead of walking through it and out of its far end: the Shuswap's side channel 355998688:691 into Mabel Lake
+#: reached the river BELOW the lake that way, outside "between Shuswap Falls and Mabel Lake", and read as
+#: straddling. Only pieces the flow path re-judges are touched; a path reaching a section of the water first never
+#: gets to the lake. False is the mutation pin. POLICY_VERSION 44.
+A_PIECE_INTO_THE_CUT_LAKE_IS_JUST_ABOVE_ITS_CUT = True
 
 #: D5 (owner 2026-10-12): a piece the direct neighbour pass cannot place is placed by its FLOW PATH —
 #: through lakes, ponds, wetlands, other named waters and water outside B.C. (T11) — to the first
@@ -692,7 +708,7 @@ def _severed(g, a: str, b: str, principal: str, cut_ids) -> bool:
 
 
 def _flow_reach(g, nid: str, universe: set[str], blk: str, lo: float, hi: float,
-                cut_ids: frozenset = frozenset(), principal: str = ""):
+                cut_ids: frozenset = frozenset(), principal: str = "", lake_cuts=None):
     """(sections of the scoped water `nid`'s WATER reaches, flags) — the flow path through water
     that is not the scoped water's own.
 
@@ -710,9 +726,14 @@ def _flow_reach(g, nid: str, universe: set[str], blk: str, lo: float, hi: float,
     Chowade's 26 m piece below Horseshoe Road Bridge climbed back over its own cut), and the upstream walk
     never climbs through the LAKE the cut is the edge of (`cut_ids` holds `lake:{wbk}`): a channel
     draining the window's cut lake is on that lake's downstream side (the Ash River's second outlet of
-    Elsie Lake, outside "between Elsie Lake and Dickson Lake")."""
+    Elsie Lake, outside "between Elsie Lake and Dickson Lake").
+
+    THE DOWNSTREAM WALK STOPS AT THE WINDOW'S CUT LAKE (T778, `A_PIECE_INTO_THE_CUT_LAKE_IS_JUST_ABOVE_ITS_CUT`):
+    `lake_cuts` ({`lake:{wbk}`: the measure of the window's end it bounds}) — a path entering that lake is just
+    above that cut (`_JUST_ABOVE_IN` / `_OUT`), never walked on through the lake to its far end."""
     if not A_CUT_SEVERS_EVERY_LINE_IT_CROSSES:
         cut_ids = frozenset()
+    lake_cuts = lake_cuts or {}
     cuts = [c for c in (lo, hi) if 0.0 < c < float("inf")]
     from pipeline.atlas.registry.basins import node_basin_code
     hits: set[str] = set()
@@ -742,6 +763,10 @@ def _flow_reach(g, nid: str, universe: set[str], blk: str, lo: float, hi: float,
                         flags.add("at_cut")
                 else:
                     hits.add(y)
+            elif y in lake_cuts:                           # T778: drains into the window's cut lake
+                c = lake_cuts[y]
+                hits.add(_JUST_ABOVE_IN if lo - WATERSHED_AT_CUT_M <= c < hi - WATERSHED_AT_CUT_M
+                         else _JUST_ABOVE_OUT)
             elif y not in seen:
                 seen.add(y)
                 stack.append(y)

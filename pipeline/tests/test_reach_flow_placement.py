@@ -135,6 +135,57 @@ def test_a_piece_draining_into_the_lake_at_the_cut_is_above_its_outlet():
     assert "X:0" in up and not unplaced
 
 
+# ------------------------------------------------------------------- T778: into the window's cut lake
+def _delta_into_the_cut_lake():
+    """The Shuswap at Mabel Lake: M runs out of lake K at 500 (outlet) and into it at 900 (inlet), and is cut at
+    2000 (Shuswap Falls). A side channel D leaves M:900 at 1500, runs through an unnamed pond P, and its last
+    piece D:0 drains into K on its own: D:0 touches only the pond and the lake."""
+    k_out = SectionBoundary(boundary_id="lake:K", kind=BoundaryKind("lake"), route_measure=500)
+    k_in = SectionBoundary(boundary_id="lake:K", kind=BoundaryKind("lake"), route_measure=900)
+    top = SectionBoundary(boundary_id="split:cut", kind=BoundaryKind("split"), route_measure=2000)
+    nodes = [_s("M:0", "M", 0, 500, upper_bound=k_out), _lake("K"),
+             _s("M:900", "M", 900, 2000, lower_bound=k_in, upper_bound=top),
+             _s("M:2000", "M", 2000, 3000, lower_bound=top),
+             _s("D:200", "D", 200, 400), _lake("P"), _s("D:0", "D", 0, 100)]
+    edges = [("M:2000", "M:900", "continuation", 2000), ("M:900", "lake:K", "lake_in", 900),
+             ("lake:K", "M:0", "lake_out", 500), ("M:900", "D:200", "confluence", 1500),
+             ("D:200", "lake:P", "lake_in", 200), ("lake:P", "D:0", "lake_out", 100),
+             ("D:0", "lake:K", "lake_in", 0)]
+    return _graph(nodes, edges)
+
+
+def _resolve_lake(g, op, splits):
+    secs = sorted(n for n in g.nodes if not n.startswith("lake:"))
+    reg = {"gnis:1": RegistryItem(id="gnis:1", name="River", kind="stream", section_ids=tuple(secs),
+                                  boundaries=(RegistryBoundary(id="lake", label="K Lake", kind="lake", ref="lake:K"),
+                                              RegistryBoundary(id="cut", label="cut", kind="split",
+                                                               ref="split:cut")))}
+    got = X.resolve_extent(reg, g, ["gnis:1"], {"op": op, "splits": list(splits)})
+    return set(got["sections"]), set(got["unclassified"]), dict(got.get("unclassified_why") or {})
+
+
+def test_a_side_channel_into_the_lake_at_the_windows_lower_end_is_inside_the_window():
+    """T778: "between Shuswap Falls and Mabel Lake" (lake inlet 900 to the cut at 2000) holds D:0. Its water enters
+    the window's own cut lake, so it is just above that cut; it is not walked on through K to M:0 below the lake."""
+    got, unplaced, why = _resolve_lake(_delta_into_the_cut_lake(), "between", ["lake", "cut"])
+    assert got == {"M:900", "D:200", "D:0"} and not unplaced, (got, why)
+
+
+def test_a_side_channel_into_the_lake_at_the_windows_upper_end_is_outside_the_window():
+    """The other way round: "downstream of K Lake" ends at the lake's outlet (500); D:0 drains into the lake, which
+    lies above its outlet, so D:0 is outside with the river above the lake."""
+    got, unplaced, why = _resolve_lake(_delta_into_the_cut_lake(), "downstream_of", ["lake"])
+    assert got == {"M:0"} and not unplaced, (got, why)
+
+
+def test_mutation_without_the_cut_lake_rule_the_side_channel_straddles(monkeypatch):
+    """MUTATION (the defect T778 pins): walked through K, D:0 reaches M:0 below the lake while its upstream piece
+    D:200 is inside, so it reads as straddling and the run's gate refuses it."""
+    monkeypatch.setattr(X, "A_PIECE_INTO_THE_CUT_LAKE_IS_JUST_ABOVE_ITS_CUT", False)
+    got, unplaced, why = _resolve_lake(_delta_into_the_cut_lake(), "between", ["lake", "cut"])
+    assert "D:0" not in got and why == {"D:0": "straddles_the_cut"}
+
+
 # ------------------------------------------------------------------------- the sea, the border
 def test_a_piece_whose_water_reaches_the_sea_without_meeting_its_water_stays_unplaced():
     """Z flows to the sea and only a creek (a tributary basin, never a way back) flows into it."""

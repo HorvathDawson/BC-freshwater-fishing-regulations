@@ -402,6 +402,7 @@ def test_policy_version_is_bumped_when_classify_changes():
         "a_dead_end_goes_with_its_water": tributaries.A_DEAD_END_GOES_WITH_ITS_WATER,
         "dfo_rest_has_its_own_bounds": reach_build.DFO_REST_HAS_ITS_OWN_BOUNDS,
         "dfo_rest_skips_a_listed_place_that_does_not_bind": reach_build.DFO_REST_SKIPS_A_LISTED_PLACE_THAT_DOES_NOT_BIND,
+        "a_piece_into_the_cut_lake_is_just_above_its_cut": extent.A_PIECE_INTO_THE_CUT_LAKE_IS_JUST_ABOVE_ITS_CUT,
     })
     expected.update({"confluence_cut_excludes_the_joining_water": True,
                      "confluence_water_without_a_row_goes_with_the_cut": True,
@@ -431,8 +432,9 @@ def test_policy_version_is_bumped_when_classify_changes():
                      "a_tributary_is_its_line_that_meets_the_parent": True,
                      "a_dead_end_goes_with_its_water": True,
                      "dfo_rest_has_its_own_bounds": True,
-                     "dfo_rest_skips_a_listed_place_that_does_not_bind": True})
-    assert cache.POLICY_VERSION == "43", "update this pin with the version it was taken at"
+                     "dfo_rest_skips_a_listed_place_that_does_not_bind": True,
+                     "a_piece_into_the_cut_lake_is_just_above_its_cut": True})
+    assert cache.POLICY_VERSION == "44", "update this pin with the version it was taken at"
     assert policy == expected, (
         f"classify.py policy changed to {policy} — bump cache.POLICY_VERSION "
         f"(currently {cache.POLICY_VERSION!r}) and update this test together")

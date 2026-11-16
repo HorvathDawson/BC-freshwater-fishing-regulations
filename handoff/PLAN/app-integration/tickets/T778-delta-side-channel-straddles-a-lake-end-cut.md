@@ -29,3 +29,20 @@ it would be wrong anyway.
   with its changelog line if the reach policy changes.
 - Proof: the piece binds to both places; a binding diff of the whole reach run before and after, every difference
   attributed (expected: these two places gain one section each and nothing else moves); a test on built data.
+
+## Lane result (2026-11-16)
+- Cause: the piece touches no section of the water (both neighbours are lakes) and has no placed piece of its own line
+  below it, so it reaches the flow-path stage (`extent._flow_reach`). Upstream it finds `355998688:895` (inside).
+  Downstream it walked INTO Mabel Lake (the window's own cut lake, `lake:329663955` in `cut_ids`) and on OUT of the lake's
+  outlet to `356363194:87250` (m 87,250 to 93,619, below the lake: outside). The outlet (93,618.86) is not the window's
+  cut, so no "at the cut" rule applied: one hit inside, one outside, `straddles_the_cut`.
+- Why the side check missed it: a DFO place's check is the in-memory `build_reach` binding (`proposals.side_commands`:
+  "the in-memory check above IS its binding"), which reports sections and outcome ("0 -> 17 sections, bound") but not
+  the `unclassified` diagnostic; only the full reach run's gate (T632) refuses a withheld piece.
+- Fix (POLICY_VERSION 44, `extent.A_PIECE_INTO_THE_CUT_LAKE_IS_JUST_ABOVE_ITS_CUT`): the downstream flow walk stops at a
+  lake that is ONE end of the window and takes "just above that cut" (`_JUST_ABOVE_IN` / `_OUT`), never walking through
+  the lake to its far end. Only pieces the flow path re-judges are touched.
+- Proof: the two places bind 18 sections (17 + `355998688:691`), no unplaced piece. Full reach run on the built atlas vs
+  the refused run's tables: 0 rules, 0 licensing records, 0 tidal/outside tables changed; 2 DFO places +1 -0 (this
+  piece), 2 diagnostics gone (its two `straddles_the_cut` rows). Unit tests in `test_reach_flow_placement.py` (lake at
+  the window's lower end: inside; at its upper end: outside; mutation: straddles).

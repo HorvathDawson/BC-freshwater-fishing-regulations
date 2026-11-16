@@ -160,5 +160,10 @@ from __future__ import annotations
 #:     `complement_unknown` (`build.DFO_REST_SKIPS_A_LISTED_PLACE_THAT_DOES_NOT_BIND`). A rule-book rest is unchanged.
 #:     The listed places' sections inside the bounds ride the reach row (`behind`): the salmon chain answers them
 #:     after the listed places ("areas and times", `deliver.salmon.rest_after`).
-POLICY_VERSION = "43"
+#: 44: (T778, 2026-11-15) A PIECE WHOSE WATER ENTERS THE WINDOW'S CUT LAKE IS JUST ABOVE THAT CUT: the flow path of
+#:     a piece no neighbour places stops at a lake that is one end of the window (a lake-end cut) and takes "just
+#:     above that cut", instead of walking through the lake to its far end
+#:     (`extent.A_PIECE_INTO_THE_CUT_LAKE_IS_JUST_ABOVE_ITS_CUT`). The Shuswap's delta side channel 355998688:691
+#:     into Mabel Lake is inside "between Shuswap Falls and Mabel Lake" (both DFO wordings), no longer straddling.
+POLICY_VERSION = "44"
 
