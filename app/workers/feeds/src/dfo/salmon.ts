@@ -146,6 +146,8 @@ export interface Verdict {
   u?: 1;
   /** (T356) the region header note whose closure this is */
   c?: string;
+  /** (T796 A6) a closure answered by DFO's "Finfish closure": ALL fishing is closed that day, trout included */
+  f?: 1;
 }
 
 /** One location's rules, read once: what verdict_on / gear_on look at for every day. */
@@ -224,6 +226,9 @@ function verdictOn(chain: Loc[], k: number, md: number): Verdict | null {
         }
         const n = notice(why);
         if (n) out.n = n;
+        // (T796 A6, owner 2026-11-16: "Closes the whole page", salmon.verdict_on) DFO's "Finfish closure" closes ALL
+        // fishing on this stretch today, not only salmon: `f: 1`, read by the app from this verdict to close the page
+        if (s === "closed" && why.some((r) => r.finfish)) out.f = 1;
         // T356 (salmon.verdict_on): the region header's closure carries its note id
         const hc = [...new Set(why.map((r) => r.header_note).filter((x): x is string => typeof x === "string"))].sort();
         if (hc.length) out.c = hc[0];
