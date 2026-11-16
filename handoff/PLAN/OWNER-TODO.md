@@ -1885,7 +1885,7 @@ More questions (recommended answer first):
   Region 6 salmon file (about 432,600 against 420,000), the website's first-tap budget (about 4,312,000 against
   4,200,000; it had 1,243 bytes of room before) and its low-data first-tap budget (about 3,472,600 against
   3,400,000). The release would stop at its size check until he raises them or the data is shrunk first (T686).
-- 14:05, his answer to the size-limit question, after reading the list of book closures (typed, verbatim): "for this
+- About 14:55, his answer to the size-limit question, after reading the list of book closures (typed, verbatim): "for this
   Sections: 7 The book closes it (p.9, National Parks and Ecological Reserves): "Fishing is prohibited in Ecological
   Reserves in B.C." DFO's place there: Skeena River — mainstem waters downstream of CNR Railway Bridge at Terrace. it
   should only close the part in the eco reserve how the entire place?? / but yes you can do the raise we just need
