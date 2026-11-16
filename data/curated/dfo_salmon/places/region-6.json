@@ -7626,7 +7626,11 @@
       "binding": {
         "extents": [
           {
-            "op": "whole"
+            "op": "upstream_of",
+            "splits": [
+              "skeena_river__cnr_railway_bridge_terrace"
+            ],
+            "item_id": "gnis:2936"
           }
         ],
         "tributaries": false,
