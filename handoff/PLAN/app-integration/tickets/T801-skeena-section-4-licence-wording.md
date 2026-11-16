@@ -24,3 +24,9 @@ resident's status unchanged on a Saturday, no side stream carrying either licenc
 5. Cosmetic: the "Mainstem only" tag shows on parts 11 and 14 to 18 only; the Reserve side channel (part 4) carries
    the Skeena River 2 unit internally (closed all year, nothing shows).
 The weekday wording of the weekend closure is the app chat's ticket T800.
+
+## Lane result (2026-11-16, branch `lane/book-rule-fixes-1116`, commit 186388445)
+Item 1 done: the Section 4 designation's `review_reason` now records the owner's ruling and Schedule A item 33's words
+("Skeena River upstream of 1.5 km upstream of Zymoetz River (Skeena River 4)"). Binding unchanged (already right).
+Designation records forbid extra fields, so the note lives in `review_reason` (as Skeena River 2's provenance does);
+the review app's tiers still count a designation with any review_reason as flagged. Items 2-5 not in this lane.

@@ -227,3 +227,64 @@ duty on release-only steelhead.
 Not checked: rendering, swipes, text sizes; the 22 older waters beyond the round 7 patches; page images of the
 printed lines; the T793 branch's output.
 
+---
+
+# Third attack: round 8 (2026-11-16, about 13:25)
+
+Round 8 answered the owner's screenshot note on the Skeena card ("it is hard to tell 1 of 5 is over 50cm here applies
+to all instead of just brook trout also the brook trou limit feels like the full limit makes it seem like the 5 doesnt
+apply to all?"), his round 7 answers (no sideways, the bar dropped, dates in words) and the second attack.
+
+**Verdict:** closer, still not. The frame is better and the possession, stop-line and Cultus / Ruby fixes hold. The
+date words are right on 49 of 50 lines checked, but miss three kinds of change and are silent on closures. One fix
+made things worse: wild char at Dodd and Lois now look keepable on their rows.
+
+## A. The frame: PARTLY
+- Works: on the Skeena the strip "Keep 5 in all / Of the 5, only 1 over 50 cm (20 in)" runs the full width with a
+  closed frame round all six fish; the size sentence no longer reads as the brook trout's. Kootenay Lake's two boxes
+  read as two.
+- Still fails the shapes-only test: the strip and the grey cell beside the first row are the same tint with no line
+  between them, so the grey makes an upside-down L hooked onto the brook trout row (the owner's second complaint).
+  Smallest fix: a hairline between the strip and the rows, or a lighter tint for the "no tighter limit" cell.
+- "No limit of its own" risks reading as "unlimited" (worst on Lois, Dodd, Cultus; Buckinghorse lake trout beside
+  "in your possession: one day's limit"; Kitimat's hatchery rainbow beside its wild twin's "only 1"). Say it the
+  positive way with the box's number ("up to the 5"); if one of the two, empty grey is safer.
+- A box-wide size sentence plus a white box with its own size on one fish (Hummingbird Creek, Tagish): reads as
+  nested; no fault.
+
+## B. Sheet, year bar, date words
+- Sheet (three blocks, no sideways) and the bar (Elk only, never on a closed day): FIXED.
+- Date words: PARTLY. 49 of 50 lines on 21 waters match the rule's dates [ran]. One wrong by a day: Adams River part
+  3, bull trout "until Jul 30, then release" (the rule starts Aug 1; a one-day season on Jul 31; 25 answer keys have
+  one: a real build must read each day).
+- Changes the date words MISS: (1) a fish that goes back as a "zero" line (Bella Coola part 0, Apr 15: the 2-a-day
+  rule is dated Apr 1 to May 31; from Jun 1 the box is 1 and cutthroat reads "No cutthroat trout may be kept"; the
+  card shows no date on cutthroat or on "Keep 2 in all"); (2) a hatchery / wild change (Kitimat and 25 waters: wild
+  rainbow goes to release on Nov 1 with no date while its neighbours say "until Oct 31, then release"); (3) a number
+  or size that changes with no flip (Coquitlam River part 1: 20 to 30 cm only Jul 1 to Oct 15, then 30 cm or longer:
+  a 25 cm trout is legal Oct 15 and not Oct 16); (4) closures: a change to "closed" is never said on the trout card;
+  now that some fish carry dates, a fish without one reads as "no change" (Andi Creek, Hummingbird, Bowron,
+  Cunningham). Smallest fix: treat a closure as a date too ("until Dec 31, then closed"), once in the strip.
+
+## C. Second-attack fixes
+Cunningham: FIXED. Tagish: FIXED (the size is still not on the stored possession rule). Cultus: FIXED. Ruby: FIXED.
+**Dodd and Lois: NEW FAULT**: by the owner's ruling a wild char can never be kept there; round 8 took "clipped fin"
+off the two char rows and moved the consequence into the sheet, so the row reads "Dolly Varden/bull trout · 60 cm or
+longer · only 1 of these 2": keep a wild 65 cm bull trout. The row needs "hatchery only" back, or "wild ones go
+back" (seven lakes; the stored rows also disagree with the ruling). Lois top line: FIXED (make the two wordings
+identical). Stop line: FIXED (use the stored noun: "this creek", "this slough", "this channel" exist). Bowron: FIXED.
+
+## The designer's three questions
+1. "No limit of its own" or empty grey: neither; "up to the 5"; else empty grey.
+2. Cunningham, the box says 2 with the day's 3 quiet: yes.
+3. Lois wild limit said twice: yes, in identical words, with the row mark for the char.
+
+## What still blocks it, ranked
+1. Design: wild char rows at Dodd, Lois and five lakes like them read as keepable.
+2. Design: date words miss zero-number fish, hatchery / wild changes and number or size changes (about 31 waters),
+   and closures are silent on the card.
+3. Design: "no limit of its own". 4. Design: the grey L in the frame. 5. Design: eleven cards over one screen.
+6. Data: per-fish dates are computed, not stored; possession is not on the fish row; Tagish's possession size is not
+   on its possession rule; Dodd, Khartoum and Lois store the char three ways against one ruling; "trout" covers char
+   at Dodd but not at Cultus in the same table; the T805 list.
+

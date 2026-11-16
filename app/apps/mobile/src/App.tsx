@@ -22,7 +22,7 @@ import {
   Archivo_400Regular, Archivo_500Medium, Archivo_600SemiBold, Archivo_700Bold, Archivo_800ExtraBold,
 } from "@expo-google-fonts/archivo";
 import { JetBrainsMono_500Medium } from "@expo-google-fonts/jetbrains-mono";
-import { DOWNLOAD_NOTE_WORDS, downloadFraction, INSTALL_WORDS, MAP_CREDITS, MOBILE_DATA_WORDS, mobileDataDecision, installLine, SETUP_WORDS, setupFraction, setupLine, netBanner, progressWords, rolledBackLine, splashLineFor, startStage, updatedToast, UPDATE_LOG_WORDS, UPDATE_WORDS, versionHeaders,
+import { DOWNLOAD_NOTE_WORDS, downloadFraction, failedStartLine, restartsByItself, INSTALL_WORDS, stillLine, MAP_CREDITS, MOBILE_DATA_WORDS, mobileDataDecision, installLine, SETUP_WORDS, setupFraction, setupLine, netBanner, progressWords, rolledBackLine, splashLineFor, startStage, updatedToast, UPDATE_LOG_WORDS, UPDATE_WORDS, versionHeaders,
          versionLine, dataProvenanceLine, now as clockNow } from "@app/core";
 import { createNet, shareFetch, createReportOutbox, createUpdateLog, createUpdateService, phoneNetwork, versionedFetch, httpFeed, gaugeHistory, httpInSeason, httpRunTiming, httpSalmonFeed, manifestDate, noteHeld, followSavedItems, openRunTimingStore,
          type Held, type UpdateService, type WaterSource } from "@app/data";
@@ -32,7 +32,7 @@ import { fillDayFlow, onVisit, visitIdOf, storedHydat, openLayerStore, openLikeS
          type DayFlowAnswer, type Spot } from "@app/data/spots";
 import { Button, connectivity, ErrorState, LoadingState, SayingLine, setSynopsisNet, setSynopsisSource, Shell, StageBar, THEMES, UpdateToast, setLinkFailedSink, type ThemeName,
          platformLine, type ShellProps, type UpdatesLogControls } from "@app/ui-native";
-import { LayoutWidthContext, liveFetch, NetRoot, useNet, useNetActivity, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, createCrashReporter, createCrashSetting, CrashSettingRoot, NotifyRoot, AlertLinesRefresh, installCrashHandlers, installId, reportPastExits, crashWhere, useRefreshOnReconnect, useReleaseBoot, useSpots, type MapTiles,
+import { LayoutWidthContext, liveFetch, NetRoot, useNet, useNetActivity, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, createCrashReporter, createCrashSetting, CrashSettingRoot, NotifyRoot, AlertLinesRefresh, installCrashHandlers, installId, reportPastExits, crashWhere, useRefreshOnReconnect, useDownloadStill, useReleaseBoot, useBootTries, useRetryByItself, retriesByItselfNow, useSpots, type MapTiles,
          DataProvenanceContext, loadRegsStore, reportFailure, startNeedsRelease, startNoticeLine,
          type AddressState, type PairingInput, type Route, type SpotPhotos, type StartLink, type StatusSource,
          useAppUpdate } from "@app/ui";
@@ -157,6 +157,20 @@ function BootNetLine({ colour }: { colour: string }) {
 }
 
 /**
+ * (T760) Under the first install's bar: said once the byte count has not moved for a minute (`useDownloadStill`), gone
+ * when it moves. `bytes` null: not downloading (no line).
+ */
+function BootStillLine({ bytes, colour }: { bytes: number | null; colour: string }) {
+  const { mode } = useNet();
+  if (!useDownloadStill(bytes)) return null;
+  return (
+    <Text testID="boot-still" style={{ color: colour, fontSize: 13, textAlign: "center", paddingHorizontal: 24 }}>
+      {stillLine(mode.offline)}
+    </Text>
+  );
+}
+
+/**
  * (T244) THE LOADING SCREEN: the loading fish at the centre of the WINDOW, its pun beneath, then the step and the
  * progress. The fish is drawn at once (`immediate`: no 300 ms hold) at the size and centre of the native splash picture
  * (`pnpm splash`, 110 dp), so the native splash can hand off to it with nothing to jump: the centre is the window's, not
@@ -251,8 +265,9 @@ export default function App() {
   // THE RELEASE: manifest → (native: install / update) → paint, then the Shell. (T231) The phone's background install
   // is the update service's (`deferUpdate`: it holds a large set for Wi-Fi); `generation` re-boots onto a staged update.
   const [generation, setGeneration] = useState(0);
-  // (T262) a failed first start is tried again: twice by itself (a DNS miss, a dropped line), then on the reader's Retry
-  const [attempt, setAttempt] = useState(0);
+  // (T262) a failed first start is tried again: twice by itself (a DNS miss, a dropped line), then on the reader's Retry;
+  // (T760) one try at a time, and a connection's failure also once a minute by itself behind its words (`useBootTries`)
+  const tries = useBootTries();
   const [autoTries, setAutoTries] = useState(0);
   /*
    * (T298) THE FIRST INSTALL ON MOBILE DATA: the reader's setting (the update service keeps it: Always / Ask / Wi-Fi
@@ -302,7 +317,9 @@ export default function App() {
     // (T251) a phone's requests name the app; its first install is gated by the release's minAppVersion (the web's app
     // ships with its data: never gated)
     ...(WEB ? {} : { fetch: DATA_FETCH, appVersion: APP_VERSION }),
-  }), [feed, salmonFeed, mobileGate, beforeBackground]), generation, attempt);
+  }), [feed, salmonFeed, mobileGate, beforeBackground]), generation, tries.attempt, tries.quiet);
+  const settleTries = tries.settle;
+  useEffect(() => settleTries(boot), [boot, settleTries]);
   const booted = boot.state === "ready" ? boot.booted : null;
   const bootedRef = useRef(booted);
   bootedRef.current = booted;
@@ -533,19 +550,34 @@ export default function App() {
   // (T262) what a failed start says: the reader's words (an app too old to read this release says so); the exception
   // and the dev server hint only in a local build
   const tooOld = boot.state === "failed" && boot.error.message === UPDATE_WORDS.row.appTooOld;
+  // (T760) a failure the app does not start over from by itself (a stuck download was already queued again): shown at once
+  const shownAtOnce = boot.state === "failed" && !restartsByItself(boot.error.message);
   useEffect(() => {
-    if (boot.state !== "failed" || tooOld || autoTries >= 2) return;
-    const t = setTimeout(() => { setAutoTries((n) => n + 1); setAttempt((a) => a + 1); }, 2000 * (autoTries + 1));
+    if (boot.state !== "failed" || tooOld || shownAtOnce || autoTries >= 2) return;
+    const t = setTimeout(() => { setAutoTries((n) => n + 1); tries.again(false); }, 2000 * (autoTries + 1));
     return () => clearTimeout(t);
-  }, [boot, tooOld, autoTries]);
-  const failed = boot.state === "failed" && (tooOld || autoTries >= 2) ? boot.error.message : null;
+  }, [boot, tooOld, shownAtOnce, autoTries, tries.again]);
+  // (T760) the reader is asked something by a try of the app's own (mobile data, the notification's leave): the loading
+  // screen shows the question; the failure would hide it
+  const failed = boot.state === "failed" && (tooOld || shownAtOnce || autoTries >= 2) && !mobileAsk && !askingNotify
+    ? boot.error.message : null;
+  // (T760, owner 2026-11-15 "keep trying by itself") a failure that is the connection's, on screen with its words and Try
+  // again, is also tried again by the app once a minute (in the foreground, one try at a time), so the install finishes
+  // without a tap when the line is back; the try stays behind the words until the line answers (`useReleaseBoot` quiet)
+  // ("unknown" before the first event on some starts counts as the foreground; only "background" stops the clock)
+  const [appActive, setAppActive] = useState(AppState.currentState !== "background");
+  useEffect(() => {
+    const sub = AppState.addEventListener("change", (st) => setAppActive(st !== "background"));
+    return () => sub.remove();
+  }, []);
+  useRetryByItself(retriesByItselfNow(boot, failed !== null, appActive), () => tries.again(true));
   // (T390) a first start refused for an old app: the strong prompt and the same Update button as the bell's
   const bootUpdate = useAppUpdate(tooOld ? appUpdater : null, appUpdateStore, { offline: false, tooOld });
   const bootUpdateVM = tooOld ? bootUpdate?.vm ?? null : null;
   const firstRunOffline = boot.state === "failed" && boot.firstRunOffline;
   // (T722 F9) a download that will not fit says how much space it needs (not "Check the connection")
   const bootSaidWords = boot.state === "failed" ? boot.said : null;
-  const retryBoot = useCallback(() => setAttempt((a) => a + 1), []);
+  const retryBoot = tries.tap;
   const stage = boot.state === "loading" ? boot.stage : boot.state === "failed" ? "manifest" : "paint";
   const progress = boot.state === "loading" ? boot.progress : null;
   // (T272) a first install's second stage: everything is down, and it is being set up on the device
@@ -623,7 +655,7 @@ export default function App() {
                         retryLabel={bootUpdateVM.button?.label} retryTestID="boot-app-update-action" />
           ) : (
             <ErrorState palette={palette} size="body" align="center"
-                        message={tooOld ? failed : bootSaidWords ?? (firstRunOffline ? INSTALL_WORDS.firstRunOffline : INSTALL_WORDS.again)}
+                        message={tooOld ? failed : bootSaidWords ?? failedStartLine(failed, firstRunOffline)}
                         onRetry={tooOld ? undefined : retryBoot} retryLabel={INSTALL_WORDS.retry} retryTestID="boot-retry" />
           )}
           {APP_ENV.env === "local" && (
@@ -746,6 +778,8 @@ export default function App() {
                   : INSTALL_WORDS.wifi}</Text>}
             </>
           )}
+          {/* (T760) the download not moving for a minute: said (a start that never reported counts from 0 bytes) */}
+          <BootStillLine bytes={stage === "install" && !setup ? progress?.bytes ?? 0 : null} colour={palette.sub} />
           {setup && (
             <>
               <StageBar palette={palette} value={setupFraction(setup)} testID="boot-setup-bar" />

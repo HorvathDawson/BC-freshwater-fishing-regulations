@@ -83,6 +83,9 @@ WIDENED = {
     "r7:wolverine_lake@7-52": 1, "r8:christina_lake@8-15": 1, "r8:kalamalka_lake@8-22": 2, "r8:mabel_lake@8-24": 1,
     "r8:mara_lake@8-26": 1, "r8:okanagan_lake@8-10": 2, "r8:osoyoos_lake@8-1": 1, "r8:rosemond_lake@8-26": 1,
     "r8:skaha_lake@8-9": 2, "z7b:peace_river_navigation": 1,
+    # superior_closures.r3p (T795, owner 2026-11-16): six lakes an ecological reserve only partly covers, closed
+    # "inside the ecological reserve" as a note; p.9 prints no map of the reserves
+    "zp:superior_closures": 1,
 }
 
 #: The widened rules whose part the book draws on a map, and the map each cites (printed pages;
@@ -119,7 +122,8 @@ def test_the_widened_rules_are_counted():
     # T209 follow-up (owner 2026-11-12): the Harrison's no-powered-boats alternative, r4, beside r3 in the same bays
     # T708 (owner 2026-11-13): Pitt r2 "speed restriction at Grant Narrows" is an undrawn part again (84, 55 -> 85, 56)
     # T708 (a) (owner 2026-11-13): McArthur Island Slough's "No powered boats" keeps its place words "in part" (85, 56 -> 86, 57)
-    assert (sum(per.values()), len(per)) == (86, 57)
+    # T795 (owner 2026-11-16): superior_closures.r3p, six lakes closed only inside their ecological reserve (86, 57 -> 87, 58)
+    assert (sum(per.values()), len(per)) == (87, 58)
     lic = sorted(e["entry_id"] for f in sorted(under_test.curated().regulations.synopsis.glob("region-*.json"))
                  for e in json.loads(f.read_text(encoding="utf-8"))["entries"]
                  for x in e.get("licensing") or [] if str(x.get("undrawn_part") or "").strip())
