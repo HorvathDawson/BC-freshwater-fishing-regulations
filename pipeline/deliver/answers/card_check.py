@@ -451,9 +451,21 @@ def check_tree(P, g: dict) -> List[str]:
                         probs.append(f"{where}: kind {x['species']} says none over {cm} cm after one of "
                                      f"{others} over it, which the rules do not hold")
                 else:
-                    if most(E.fish(mine + others), ac["n"]) > ac["n"]:
+                    # T805: a count of ONE origin (its rule's own `origin`: Lois Lake's "Wild trout/char daily quota =
+                    # 2") is proved over that origin's fish, and, naming another row's fish, it must BIND after them
+                    byr = P.by_key.get(ac["by"]) if ac.get("by") is not None else None
+                    ors = (byr.f["origin"],) if byr is not None and byr.f.get("origin") else ("hatchery", "wild")
+                    if most(E.fish(mine + others, origins=ors), ac["n"]) > ac["n"]:
                         probs.append(f"{where}: kind {x['species']} also counts toward {ac['n']} with {others}, "
                                      f"but more may be kept together")
+                    if len(ors) == 1 and others and ac["n"]:
+                        base = []
+                        for f in E.fish(others, origins=ors):
+                            while len(base) < ac["n"] and E.can_keep(base, f):
+                                base.append(f)
+                        if len(base) < ac["n"] or E.most(E.fish(mine, origins=ors), base, cap=1) > 0:
+                            probs.append(f"{where}: kind {x['species']} says no more than {ac['n']} {ors[0]} counting "
+                                         f"{others}, which the rules do not hold")
             # T793: a kind keeping both origins says, from the group's table, where one origin keeps less — every such
             # clause on its line, each proved here: the most of that origin's fish in the band, together and each
             # alone, is its number, and the other origin keeps more there

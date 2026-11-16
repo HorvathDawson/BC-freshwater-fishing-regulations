@@ -1081,7 +1081,8 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
     tree, header = TR.tree_of(P, model, TR.Ctx(
         grp=grp, buckets=buckets, info=info, side=side, share=share, unlimited=unlimited, head=head,
         origin_one=(os_.pop()[0] if one_origin else None), lifting=[b for b in lift_bucket.values() if b in buckets],
-        what=what, share_origin=share_origin, table=sysm["table"]))
+        what=what, share_origin=share_origin, table=sysm["table"],
+        across=TR.across_rows(rows_out, home, kinds)))          # T805: a wild limit two rows share
     return {"headline": head, "origin": origin, "lifts": lifts, "total_line": total_line,
             "buckets": buckets, "not_kept": not_kept, "worked": worked, "states": states,
             "table": table, "cap_kinds": sysm["kinds"], "caps": sysm["caps"], "tree": tree, "header": header,

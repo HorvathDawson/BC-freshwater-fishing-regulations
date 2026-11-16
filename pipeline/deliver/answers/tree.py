@@ -80,6 +80,73 @@ class Ctx:
     #: T793: the group's species × size table (`caps.system`, gate-proved cell by cell), whose cells say where one
     #: origin keeps fewer than the other (`origin_clauses`)
     table: Optional[dict] = None
+    #: T805: one origin's count rule holding fish of this card AND of another keep row of the same water (`across_rows`)
+    across: Tuple[dict, ...] = ()
+
+
+#: T805 (adversarial review finding 3, 2026-11-16): ONE WILD LIMIT ACROSS ROWS. Lois and Khartoum lakes (p.24, p.23):
+#: "Wild trout/char daily quota = 2 (no wild trout 40 cm or more), hatchery rainbow trout = 6 / Rainbow trout/hatchery
+#: steelhead quota = 6 in the aggregate". The rainbow trout are counted apart (their own row of 6) from the region's 4
+#: brook, brown, cutthroat and char, but the wild 2 holds every wild trout and char of both rows: 2 wild fish in all,
+#: never 2 on each card. Each card says it on the kinds it holds, naming the other row's fish ("no more than 2 wild trout
+#: and char in all, counting any wild rainbow trout you keep"); the gate proves the number with the other row's fish and
+#: that it binds after them (`card_check.check_tree`); the build stops on a card that leaves it out (`across_unsaid`).
+#: False = the mutation pin: each card says its own 2 again (2 + 2).
+A_WILD_LIMIT_ACROSS_ROWS_SAID = True
+
+
+def across_rows(rows: Sequence[dict], home: int, kinds: Sequence[str]) -> Tuple[dict, ...]:
+    """T805: the count limits of ONE origin (an `origin2` condition: "Wild trout/char daily quota = 2") that hold fish of
+    the card on row `home` (its group's `kinds`) AND fish of another keep row of the same reading — {r, o, n, mine,
+    others}: `mine` the card's fish it holds, `others` the other rows' (each keeping that origin: the condition exists
+    only where it does). Read off the stored conditions, one per (rule, origin, number)."""
+    held: Dict[tuple, Dict[int, List[str]]] = {}
+    for i, r in enumerate(rows):
+        if r.get("kind") != "keep":
+            continue
+        for x in r.get("conds") or []:
+            if x.get("c") != "origin2" or not x.get("daily") or x.get("r") is None:
+                continue
+            fish = list(x.get("who") or r.get("members") or [])
+            got = held.setdefault((x["r"], x["o"], x["daily"]), {}).setdefault(i, [])
+            got += [S for S in fish if S not in got]
+    out = []
+    for (r, o, n), by_row in sorted(held.items(), key=lambda kv: repr(kv[0])):
+        mine = [S for S in kinds if any(S in fs for fs in by_row.values())]
+        others = [S for i, fs in sorted(by_row.items()) for S in fs if S not in kinds]
+        if mine and others and len(by_row) > 1:
+            out.append({"r": r, "o": o, "n": n, "mine": mine, "others": list(dict.fromkeys(others))})
+    return tuple(out)
+
+
+def across_says(a: dict, species: Sequence[str]) -> str:
+    """T805: the cross-row limit on a kind's line, in the count grammar of `_count_also` ("no more than 3 counting any
+    lake trout you keep"): "no more than 2 wild trout and char in all, counting any wild rainbow trout you keep"."""
+    every = book_order_(list(dict.fromkeys(list(species) + list(a["others"]))))
+    names = sorted(a["others"], key=lambda S: common.sp_name(S).lower())      # as a kind row names its fish
+    return (f"no more than {_js(a['n'])} {a['o']} {group_words(every)} in all, counting any "
+            f"{kind_names(names, origin=a['o'])} you keep")
+
+
+def across_unsaid(frame: dict) -> List[str]:
+    """T805 THE BUILD CHECK: every card of a rows frame holding fish of a one-origin count limit that another keep row also
+    holds (`across_rows`) says it on each kind of those fish — an `also_counts` by that rule with its number, naming
+    the other row's fish. A card that says its own number alone reads 2 + 2 where the book allows 2."""
+    out: List[str] = []
+    rows = frame.get("rows") or []
+    for i, r in enumerate(rows):
+        g = r.get("group")
+        if not g or not g.get("tree") or r.get("kind") != "keep":
+            continue
+        for a in across_rows(rows, i, g.get("kinds") or r.get("members") or []):
+            for n, _p in walk(g["tree"]):
+                if n["node"] != "kind" or not set(n["species"]) & set(a["mine"]) or n["n"] == 0:
+                    continue
+                if not any(x.get("by") == a["r"] and x["n"] == a["n"] and set(a["others"]) <= set(x["species"])
+                           for x in n.get("also_counts") or []):
+                    out.append(f"row {i} kind {n['species']}: the {a['o']} {_js(a['n'])} of {a['r']} also holds "
+                               f"{a['others']} on another row, and the card says {n['sentence']!r}")
+    return out
 
 
 def _js(v) -> str:
@@ -748,6 +815,14 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
         kind_origin[id(x)] = x.get("_origin")
         # T793: a kind keeping both origins says where one keeps less ("— no wild rainbow trout over 50 cm (20 in)")
         oc = origin_clauses(x["species"], c.table) if len(x["_origins"]) == 2 and x["n"] != 0 else []
+        # T805: a one-origin count another row's fish share (Lois Lake's wild 2): said once on the line, naming them
+        if A_WILD_LIMIT_ACROSS_ROWS_SAID and x["n"] != 0 and x["_origins"]:
+            for a in c.across:
+                mine = [S for S in x["species"] if S in a["mine"]]
+                if mine and a["o"] in x["_origins"]:
+                    x["also_counts"].append({"tier": None, "by": a["r"], "n": a["n"], "over_cm": 0, "then": [],
+                                             "species": book_order_(mine + list(a["others"])),
+                                             "says": across_says(a, mine)})
         x["folded"] = False
         x["size_rule"] = size_rule(x, P.steelhead_water, steel_cm)     # ROUND20i 1
         for k_ in ("_hi", "_origins", "_origin"):
