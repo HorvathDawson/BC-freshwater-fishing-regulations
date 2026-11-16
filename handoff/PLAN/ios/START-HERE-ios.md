@@ -45,6 +45,40 @@ would show such a closed area as open. Nothing binds today. I take it as T757 wh
 (`handoff/PLAN/app-integration/tickets/T573-files/worker-handoff.md`); I asked for a mechanical guard (the release
 refuses when the worker does not report the new feed shape) and for the app to say "not known" instead of "open".
 
+**State 20:02, 2026-11-15 (evening; the owner is back and reviewing in the review app). Newest first.**
+1. **Build 33 (R8, Play internal): NOT built yet; nothing is wrong, it waits for a quiet shared head.** The owner
+   answered the blocking item ("Yes regenerate proposals if you need to"); two more stops followed and are fixed (an
+   unlanded review mark, the Android chat's; and a test of mine, `app/tools/r8-config.test.ts`, that passed
+   everywhere except inside the real `--play` build because it let the spawned Expo config inherit the build's
+   variables: fixed in 0f32e4b0f, test-only). The Android chat ran the build's whole quick-test step under the build's
+   own environment: all passed. Every save in the review app makes a commit on the shared checkout, so the head
+   cannot hold still for CI + build tonight: **the Android chat builds when the owner stops reviewing; it names the
+   build head, I watch both CIs, it builds.** Then I put the ten-step phone walk (in the T749 ticket) on the To-Do
+   row `t749-r8-phone-walk`. The tested app code: only that one test file differs from the benched 6a2dc612d.
+2. **Owner answers tonight that are mine (OWNER-TODO.md "owner answers, round 6"): "Yes to both".** Push privacy-page
+   line and App Store answer approved as written (T739; left: the line into the privacy page's source on the push
+   branch; putting it live is his); all fish puns stay (T746). Both To-Do rows ticked.
+3. **T759 is decided by the owner, differently from the proposal: NO "not known" status** (rounds 2, 3, 5, 6). A place
+   DFO removed, or replaced by a row we match exactly: no change, the remaining rule answers. A NEW wording we cannot
+   match on a river, or a close match he has not confirmed: the status colour stays, the stream line gets an "issue"
+   look, and every stretch of that river shows a banner in the salmon section quoting the unmatched rule, until he
+   re-matches or confirms it. The Android chat rewrites the ticket and the Python half tomorrow. **I hold: the worker
+   and app halves of T759, and `app/t757-piece-not-known`** (T757's app half reads a missing closed-area piece as
+   "not known", which his rule now contradicts; it is reworked inside T759's model). T757's worker half and T758 stay
+   live on staging and are unaffected.
+4. **T756 / T760 (first install), branch `fix/t756-keep-running-job` 0a17e1fe5, not merged:** install passes; a reopen
+   mid-download keeps its bytes; `bg-install` passed 8 of 8 once (the notification tap opens the app) and failed once
+   on the same code: after the reopen the app was silent for more than 284 s (16 s and 46 s in the runs that
+   finished). What it waits on there is NOT found: first thing to chase (T760). The bench now does a real
+   uninstall + install, reads the app's own byte line, and keeps both logs on a failure.
+5. **Lessons written to memory tonight:** a probe must check the status code (my "line is down" was a 404); a test
+   that spawns a process gets a minimal environment and is run under the build's variables.
+6. **Next session, in order:** (a) the build 33 lap when the Android chat calls it; (b) the phone walk onto the row;
+   (c) the iOS merges in the agreed order (`ios/integration`; then T746, T738, the crash-send app half, `perf/t741`,
+   the T756 fix after one more green `bg-install` + `install`; push last, now unblocked on wording); the T757 worker
+   branch and T758 go in with them, the T757 app branch does NOT; (d) T760's silent stretch; (e) T759's worker and
+   app halves once its ticket is rewritten; (f) the privacy line on the push branch.
+
 **State 17:18, 2026-11-15: the R8 Play build (build 33) is ready on every side but one, and that one needs the owner.**
 - All six emulator checks passed on the shrinker-on build of the merged code (clean run 15:54–16:43: 61 steps pass,
   none fail; install map up 481 s; tap to regulations page 344–360 ms). Report in the R8 lane's worktree:

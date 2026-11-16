@@ -1,6 +1,6 @@
 # T757 — Feeds worker and app: closed areas inside a DFO place (T573's pieces) are live locations, never read as open
 
-Status: IN PROGRESS (iOS chat; both halves written and pushed 2026-11-15, NOT merged: worker `feeds/t757-worker-pieces` 2523097a9, app `app/t757-piece-not-known` a5af25920; left: the Android chat reads them, staging worker deploy with its word, merge after build 33, one emulator look at the "not known" card).
+Status: IN PROGRESS (iOS chat; worker half live on STAGING since 2026-11-15, branch `feeds/t757-worker-pieces`, merges with the iOS merges after build 33; APP HALF HELD: the owner's T759 decision of 2026-11-15 evening (no "not known" status) contradicts it, it is reworked inside T759 once that ticket is rewritten).
 
 Source: Android chat 2026-11-15 (its pipeline lane's T573 build step), agreed between the two chats the same day.
 
@@ -53,3 +53,13 @@ Depends: the spec; T573's branch. Size: M. Production stays the owner's.
   (3) When DFO drops an item, a bound piece reads "not known" and reports every feed read until the release changes:
   by the agreed rule. (4) The two branches conflict only in this ticket file (both append a Results section).
   (5) No device or emulator look yet.
+
+## Held, 2026-11-15 evening: the app half no longer matches the owner's rule
+Owner, T759, rounds 2–6 in OWNER-TODO.md: no "not known" status. A place (or closed area) DFO removed: no status
+change, the remaining rule answers. A new wording that is not matched on the river: the colour stays, the stream line
+gets an "issue" look and every stretch of the river shows a banner quoting the unmatched rule until it is re-matched.
+A closed-area piece's id is a hash of DFO's words, so a reworded closed area is exactly that second case: the bound
+id vanishes and a new, unbound `#closed:` id appears in the feed. So `app/t757-piece-not-known` (a5af25920: "Not
+known: today's DFO check does not include this closed area…") is NOT merged; work item 3 above and the second
+acceptance line are superseded by T759. Asked of the Android chat for its rewrite: the feed's per-river `issues` must
+carry an unbound closed-area wording with its text and water. Work items 1 and 2 (worker) stand.
