@@ -51,7 +51,7 @@ the file: "Answers by batch", "Re-check of saves", and the dated lines after the
     globs and `====` in zsh. Use absolute paths (a `cd` sticks). RULINGS is `pipeline/docs/RULINGS.md`.
 13. His name, email and the project name never go into requests to outside services. No reading `.env`.
 
-### C. Where everything stands at 16:01 on 2026-11-16 (ONE block; rewritten whole each time, trust only this)
+### C. Where everything stands at 16:03 on 2026-11-16 (ONE block; rewritten whole each time, trust only this)
 The owner, 15:49: "we will run out of credits soon... we should m,ake sure handoff is good for opusa to take over at
 anytime." If you are the main chat arriving on Opus: read A and B above, this block, then D to G. Do not re-ask him
 anything answered below; his words are at the end of OWNER-TODO.md under today's times.
@@ -70,14 +70,8 @@ chase that red. A commit SUBJECT must not contain a ruling id like "T2": the tic
 - `a1d3e84d79ee0a6f5`: T809 changed-answers tool (`pipeline/tools/audit/answers_diff.py`), worktree branch
   `lane/t809-answers-diff`. WHEN BACK: check its run on r-46e4355a7277 vs the candidate r-685b700b2802 matches the 71
   book-closure rows; it changes no answer, so it can land after its tests + the tier (tell the app chat first).
-- `ae176f25b522ddc16`: trout designer, round 15 (mockup, tiny, the LAST design round): he picked the filled
-  "HATCHERY ONLY" label ("A filled label then if it applies to all fish in category use same fill for where that is
-  located."); round 15 puts the same label in a keep box's top line when it applies to every fish. WHEN BACK:
-  publish `<scratch>/trout-display/trout-display.html` to https://claude.ai/artifact/EopBgDtf8eu4LGZpYixSkH (Artifact
-  tool, that `file_path` plus `url`), send him `shots/r15/fraser-r2.png` and `skeena.png`, and tell him the design is
-  settled (no question needed unless the picture looks wrong). The accepted design is written as ONE list at the end
-  of T810.
-- Finished and not to restart: the salmon lane worker (`a2becf9b4bea93daf`), the saver, the closures page builder
+- Finished and not to restart: the trout designer (`ae176f25b522ddc16`; resume it only for a mockup change he asks
+  for), the salmon lane worker (`a2becf9b4bea93daf`), the saver, the closures page builder
   (`a584efcd7800efbc8`, Sonnet; resume it for page edits), the spec writer (`aa228bfcc495d8a50`; resume it to fold
   his later answers into the spec), the side-stream auditor.
 
@@ -100,7 +94,7 @@ him), Morice Forks-to-Bymac 2738 (needs his plain "right"), Morice Gosnell-to-La
 Squamish mark (marks line 2511, "downstream of the powerline crossing", "binding moved"); not caused by today's saves,
 not in the CI tier; find what moved it, then fix the cause or show him the place again.
 
-**5. Trout.** Mockup page at round 14 (15 running: the filled hatchery label in a box's top line; then settled). Accepted design: the round 8 look with no outline; today's rule
+**5. Trout.** Mockup page at round 15, published, pictures sent: THE DESIGN IS SETTLED (one list at the end of T810). Accepted design: the round 8 look with no outline; today's rule
 bigger, the coming change smaller underneath; a coming closure says what closes, no reopening date; the reopening
 date only while closed today; "rule changes <date>" for a change that only loosens; Adams 80 cm on the row; hatchery
 only on one row. Build: T810 (umbrella) and the spec `handoff/PLAN/design/trout-table-build-spec-2026-11-16.md`. He
@@ -114,7 +108,7 @@ and one row per origin).
 T808 = the web reads every salmon file after first paint (a fix frees first-tap room; it sends numbers). My next free
 ticket number is T811.
 
-**7. Owed to him, in this order.** (a) Round 15 pictures (no question; the design is settled, list in T810). (b) T805's changed-answers lists, a go per
+**7. Owed to him, in this order.** (a) Nothing pending on the trout design. (b) T805's changed-answers lists, a go per
 part. (c) The app chat's before / after closure pictures, then the salmon landing. (d) T807's changed answers (ten
 places river-only) before it ships. (e) T804's universal rule + list. (f) The follow-up saves in 4. Then section E's
 queue to ONE staging release.

@@ -2010,3 +2010,7 @@ More questions (recommended answer first):
   words in the name), typed, verbatim: "A filled label then if it applies to all fish in category use same fill for
   where that is located." So: A; and where "hatchery only" applies to every fish of a keep box, the box's top line
   carries the SAME filled label in place of the plain words. Round 15 (tiny) applies it; then the design is settled.
+- 16:03, trout round 15 published (same trout page) and two pictures sent: the filled HATCHERY ONLY label in a keep
+  box's top line when it covers every fish (Fraser Region 2: "Keep 2 in all [HATCHERY ONLY] only 1 over 50 cm (20
+  in)") and beside the name for one fish (Skeena steelhead). The design is settled unless he says otherwise; the
+  accepted design is one list at the end of T810. No question pending on trout.
