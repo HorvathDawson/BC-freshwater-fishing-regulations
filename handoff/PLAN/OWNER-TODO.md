@@ -226,7 +226,12 @@ with the default Claude uses until you answer). Newest first inside each section
   asked which build and which release, he picked "R8 build to Play internal": the Android app with the code shrinker
   on, built from the shared branch as it is today, the six emulator checks re-run on that exact build, and if all
   pass an upload to Play INTERNAL testing for his phone walk. Production stays his. Nothing else rides along.
-  **How it runs (agreed with the Android chat, 10:37).** I build the test APK and re-run the six checks; the Android
+  **State 2026-11-15 21:56 (newest; the states that follow are older): nothing needed from the owner.** The later
+  stops are fixed (the build's quick test step passes under its own settings). The build waits only for tonight's
+  staging data release (the main chat's), so it is built on a shared branch that holds still. The second chat is now
+  THE APP CHAT (Android and iOS; owner 2026-11-15 evening) and makes the Play INTERNAL build 0.7.11 with the shrinker
+  on; the ten-step phone walk then goes onto his To-Do row `t749-r8-phone-walk` with the build number.
+  **How it runs (agreed with the Android chat, 10:37; superseded by the state above for who builds).** I build the test APK and re-run the six checks; the Android
   chat makes the Play build and uploads it, because that step uses the Play sign-in and its version counter. It will
   be build 33, version 0.7.11. To be plain about "nothing else rides along": none of my other branches are in it, but
   it does carry what the Android chat put on the shared branch since build 32: the web loader (T737), search opening
