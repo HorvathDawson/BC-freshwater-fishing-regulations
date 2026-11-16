@@ -308,3 +308,119 @@ Node runs used TMPDIR inside the scratch folder (work/tmp), removed. Browser scr
 ## Files (round 4)
 
 `trout-display.html` (2.69 MB) · `work/page4.tpl.html`, `work/build4.py` · `work/sizes.ts`, `work/sizes.json` · `work/pages4.json`, `work/meas4.json` · `shots/r4/`
+
+---
+
+# Round 5 (2026-11-16): one table from three fresh takes. Mockups only.
+
+Owner on round 4: the fish picture moves when a row opens; the opened part should hold species identification; the big "Clipped fin only" note should go, with a "how to tell hatchery" link at the top instead; still a little clunky. Three fresh designers each refined round 4 on five waters (`fresh-calm/`, `fresh-reader/`, `fresh-open/`). Round 5 is one table on all 22.
+
+## The design
+
+- Top: kicker line with "How to tell a hatchery fish ›" (only on waters with a hatchery rule; opens the app's existing "Hatchery or wild?" sheet); headline; plain small lines with a grey label ("Hatchery fish only:", "Also counts:", "Across both columns:", "Through the year:").
+- Table: one row per fish (picture tile top-aligned, name, grey word "hatchery"/"wild" where only some rows need it, size in the app's wording with both units). A pale filled column on the right is one limit: "Keep N in all" at its top. A white box in that column is a tighter limit level with its fish: "only 3" (one fish), "only 1 of these 2" (shared). A whole-column size limit is one sentence along the top: "Of the 5, only 1 over 50 cm (20 in)". Put-back and closed fish: no fill, faded picture, "↩ Release" / "✕ Closed".
+- A fish that sits in a shared white box and has its own limit keeps its own limit as a bold line under its name (Kamloops Lake, Williston Lake B, Tagish Lake, Premier Lake, Hummingbird Creek).
+- At 200% text the right-hand column folds away: each group gets a heading line and every "only" becomes a line under its fish (rail on the left for a shared one).
+- Type: four sizes (1.6, 1.53 number, 1, .87 em), three weights.
+
+## Calls on the three disagreements
+
+(a) Total: side column (calm), not a box around the fish with "Keep" on every row (reader). (b) "only N": white boxes level with the fish, worded "only N of these M"; no bracket (cannot nest or overlap). (c) A fish opens as a bottom sheet (fresh-open's pick); in place kept as the one switch on the page.
+
+## Opening a fish
+
+- Sheet: fixed bottom panel, Done / tap outside / Escape; the table is not touched.
+- In place: the opened block is inside the name cell, pulled left under the picture, with `width:0; min-width:calc(100% + picture)` so it adds nothing to the table's column widths; every cell is top-aligned. Measured: 292 opens (every fish, 22 waters, 100% and 200% text) at 390 and 360 px, light and dark: 0 px change in picture top, picture left, name top or right-hand cell top, on open and again after close. (The first build failed this by up to 228 px because the opened block widened the name column; fixed.)
+- Inside, in order: where the fish sits in the table (sheet only); licence rules; the app's pictures (both for Dolly Varden/bull trout); "What to look for" = the real `FISH_TIPS` lines from `app/packages/core/src/regs/fish.generated.ts`; the clipped-fin drawing and a link to "Hatchery or wild?" on hatchery rows; a dashed PLACEHOLDER for "often mistaken for"; fine print.
+- Hatchery sheet: the app's own title, captions and paragraph (from the `hatch` sheet in `ui-native/src/regs/fixtures/vedder_1010.json`) and its two drawings (`assets/fish/adipose-*.webp`), plus one line about this water.
+
+## New wording, needs the data side's agreement
+
+1. "only N of these M" (shared tighter limit). 2. "Of the N, only K over X cm (Y in)" (the app says "Only 1 of all your trout and char may be over…"). 3. "uses the 1 over 50 cm (20 in)" on a fish whose smallest keep size is above the mark, or a steelhead under a plain 1-over-50 limit (derived, not stored). 4. "Hatchery fish only: wild trout and char go back" as a plain top line. 5. A put-back row "Steelhead wild" on Skeena summer and Kitimat (the app says it inside the steelhead line). 6. "Through the year:" lines for Elk and Fraser (whole-year form; relates to T762). 7. "only Oct 15–Jan 31" under a dated put-back fish. Proposed top lines for the 8 rule sets stay as in round 4.
+
+## Data touches for round 5 (facts unchanged)
+
+Wild steelhead row added to the release group of Skeena summer and Kitimat; Skeena winter's brook trout "only 1 over 50 cm" moved from the row to the column sentence; `uses` flags: Vedder DV, LT; Little River DV, EB; Harrison DV, LT; Shuswap DV, EB; Fraser DV; Ross LT; Kamloops DV; Hummingbird LT; Skeena summer ST.
+
+## What was taken and left
+
+- calm: took the filled column, hairlines, one right-hand column for every "only", the top sentence, plain top lines, quiet release rows, four sizes. Left "hatchery" after every name on hatchery-only waters, and dropping ↩ ✕.
+- reader: took the diagnosis (loudest number was the loosest; "only 1" needs a noun; join the 60 cm fish to the 50 cm limit), the wild steelhead row, the year line, dates with a word. Left the box around the fish with "Keep" per row, and the bracket.
+- open: took the sheet, the chevron on the picture tile, the order inside, the existing marks and hatchery sheet, the top link. Left "clipped fin only" in each box, and the measured-pinning lane.
+
+## Budget (height px · words · numbers; 390 px; nothing opened)
+
+vedder 711·151·32 · little 708·108·25 · skeena 744·120·26 · skeena winter 574·61·11 · kootenay 522·61·6 · elk 464·52·9 · fraser 641·97·22 · harrison 725·141·36 · shuswap 720·112·28 · clayoquot 611·85·12 · premier 574·72·10 · kaslo 597·92·14 · kitimat 750·144·35 · williston B 554·74·17 · williston A 490·57·15 · ross 630·121·22 · bella spring 634·104·29 · bella summer 513·67·15 · tagish 540·76·16 · inkaneep 585·78·13 · kamloops 553·71·18 · hummingbird 619·86·22.
+Taller than round 4 on 20 of 22, about 40 px on average; one screen holds on 15 of 22 (16 in round 4). Calmer, not smaller. (Numbers above are from before the last cosmetic edit, which removed one blank line in single-fish boxes: Vedder, Kootenay, Premier, Kaslo, Ross, Inkaneep are a few px shorter than listed.)
+
+## Embedding the fresh mocks
+
+Each `mock.html` is embedded as a string and shown in an `<iframe srcdoc>` created when its fold opens; a JPEG picture of each sits under it in case the host blocks frames. In the string, `</`, `<!--` and `<script` are escaped so the page's own script element is not cut. Works in local preview; NOT verified on claude.ai (the page contract does not say whether srcdoc frames are allowed).
+
+## Checks after the last edit
+
+390 and 360 px, light and dark, 22 waters, 100% and 200% text, every fold open: 0 px page sideways scroll; no overflow in the table or the folded row; every press target (rows, top link, Done, chips, switches, water list) at least 44 px; 0 of 292 in-place opens move anything; the sheet opens with marks and placeholder, leaves the table's height unchanged, and closes; the three fresh frames load; no broken images; no script errors. Page 3.9 MB.
+Not checked: a real phone, a screen reader, the phone's own text scaling, widths under 360 px, whether claude.ai shows the three framed mocks (pictures are there as a fallback), the sheet's focus trap (focus moves to the title and back; Tab is not held inside), the fresh mocks' own claims beyond opening them, and round 4/3/2 fold mocks at 200% (they scroll inside their frames).
+
+## Temp
+
+Preview server stopped by PID; `work/preview.html` and `work/tmp` removed; browser screenshots moved out of `.playwright-mcp/` (none of mine left). No browser profile was created by me (the shared tool's own contexts were closed).
+
+## Files (round 5)
+
+`trout-display.html` (3.9 MB) · `work/page5.tpl.html`, `work/build5.py` · `work/r5res.json`, `work/meas5.json` · `shots/r5/`
+
+---
+
+# Round 6 (2026-11-16): less on top, the sheet, the year bar, sources. Mockups only.
+
+Owner on round 5: reduce the text above the table; the sheet is the better option, refine it; could reuse the calendar element; likes the binning look; where do the sources go.
+
+## Kept
+
+The table (pale column per limit, white "only N" boxes), sizes in the app's wording with both units, "Dolly Varden/bull trout" in full, all 22 waters with their "what you should read" lines. The "in place" opening is gone from the lead and lives in the folded round 5.
+
+## Text above the table (measured at 390 px, 22 waters)
+
+Average: 134 px, 5 lines, 29 words -> 87 px, 2 lines, 13 words. Whole card average 609 -> 591 px; one 640 px screen holds on 16 of 22 (round 5: 15 by the same measure). Vedder 193 px / 61 words -> 73 px / 13 words, card 696 -> 632 px.
+Where each cut thing lives now:
+- second half of the answer line ("or 4 if…", "only 1 of them…") -> the table (the rainbow's own column; the white box "only 1 of these 4"). Vedder's column of 2 is drawn first to match the line. Kept on the proposed Kaslo line ("Up to 2 today, plus 2 Dolly Varden/bull trout") because there it is the answer.
+- "Hatchery fish only: …" -> the first-line link "Hatchery fish only · how to tell ›" (hatchery-only waters); the sentence is on the hatchery sheet and in every fish sheet ("Must be a hatchery fish…").
+- "Also counts: N a day across Region X" -> the "Fished elsewhere today?" sheet; on the Vedder (4 + 2 > 4) it is in the table's last line "All together".
+- "Across both columns: only 1 over 50 cm…" (Vedder, Ross) -> the table's last line.
+- "Through the year" -> the year bar.
+- part / hours notes -> those in force on the day stay above, one line each (Shuswap x2, Little River, Harrison, Skeena winter); the rest are one line under the table.
+- "Proposed line…" -> under the mock, off the card.
+
+## The sheet
+
+Header: picture, full name, origin word, today's answer for this fish ("Keep · only 1 · counts toward the 5", "↩ Put it back · only Oct 15–Jan 31", "✕ Closed · do not fish for it"), Done. Then "Here, today" (size; hatchery/wild; "Counts toward the N in all, together with …"; "Only K of these M: this fish and …"; "This fish: only N"; the column's size limit with "A kept one is always over 50 cm (20 in), so it is that one" where true; the all-together line), "Licence rules", "When" (year bar, only if this fish has its own stored year), "How to tell it" (app pictures, both for Dolly Varden/bull trout; `FISH_TIPS`; clipped-fin drawing and link; a link to the hatchery/wild sibling row), the look-alike placeholder, "Sources" (this fish's rules first, up to 4, and a link to all), Previous / Next with "3 of 8".
+Measured on 390 x 780: 639 px visible; header + "Here, today" + licence rules are above the fold on the four hardest fish; pictures start at 271 to 345 px; Vedder steelhead's sheet is the longest (1,201 px).
+Closes by Done, tap outside, Escape. Not in the mock: swipe down, swipe between fish.
+
+## Year bar
+
+Modelled on the app's strip (months, today mark with its date, legend, hatched closed); states keep / release / closed. Drawn under the table only where the trout answer changes while the water stays open: Elk, Kaslo, Kitimat, Fraser (4 of 22). In the sheet for fish with their own stored year: Vedder rainbow (release in May), lake trout on Shuswap / Kamloops / Fraser (release Oct 15 to Jan 31), Williston B's two char.
+Limit found: the stored `year` is per table ROW, not per fish. Skeena's trout row is "closed Jan 1 to May 31, keep Jun 1 to Dec 31" and Bella Coola's is "keep all year", so the bar cannot show the Skeena's winter put-backs or the Bella Coola cutthroat leaving the box. Needs a per-fish year from the pipeline.
+I did not read `YearStrip.tsx` again this round; the look is from the round 1 staging screenshots and the round 1 `.calbar` styles. Marks ✓ / ✕ are the app's; "↩ Release" in the legend is the app's release mark from its rows.
+
+## Sources
+
+Both: "Sources ›" under the table (one sheet: whose rules, every rule with its title, the book's quoted words, "Rule book p.N ↗"), and a "Sources" section in each fish sheet. Real lines from the app's own "every regulation line" sheets (`work/src6.json`, 2 to 12 rules per water). In-season / DFO: an empty dashed slot at the top of the sources sheet; how it would look is a proposal. Matches the Gear / Methods tabs' source line in purpose; I did not re-read `SourceLine.tsx` this round (its shape is in round 1's notes of `model.ts`: who, pages, a `srcs:` sheet).
+
+## New wording this round (needs the data side's agreement)
+
+"Hatchery fish only · how to tell ›" · "All together: no more than 4 a day across Region 2" · "Counts toward the N in all, together with …" · "Only K of these M: this fish and …" · "This fish: only N" · "A kept one is always over 50 cm (20 in), so it is that one" · "↩ Put it back" (sheet header) · the year bar's "✓ Keep" legend word.
+
+## Checks after the last edit
+
+390 and 360 px, light and dark, 22 waters, 100% and 200% text, every fold open: 0 px page sideways scroll; no overflow in the table or the folded row; every press target at least 44 px (rows, top link, links under the table, chips, switches, Done, Previous / Next); all 146 fish sheets open with "Here, today" and "Sources", none wider than the screen, the table's height unchanged while open; Next works; the sources sheet opens; no broken images; no script errors. Page 4.0 MB.
+Not checked: a real phone; a screen reader; the phone's own text scaling; widths under 360 px; whether claude.ai shows the framed fresh takes (picture fallback kept); the sheet at 200% text by eye (measured for width only); swipe gestures; the focus trap inside the sheet; the dark sheet by eye this round.
+
+## Temp
+
+Preview server stopped by PID; preview file removed; browser screenshots moved out of `.playwright-mcp/`.
+
+## Files (round 6)
+
+`trout-display.html` (4.0 MB) · `work/make6.py` (derives `page6.tpl.html` from round 5's template), `work/r6.css`, `work/r6.js`, `work/build6.py` · `work/src6.json`, `work/meas6.json` · `shots/r6/`

@@ -1,6 +1,6 @@
 # T763 — Kootenay Lake's rainbow card says "20 a year · Record each on your licence right away" without "over 50 cm"
 
-Status: IN PROGRESS (built, 7958b3c60 + e3d6d5f26; left (Claude): full CI tier, then it shows with the staging release).
+Status: DONE (7958b3c60, e3d6d5f26; on staging in r-46e4355a7277, 2026-11-16).
 
 Source: trout display review 2026-11-15, data note 1 (`handoff/PLAN/design/trout-display-review-2026-11-15.md`); traced
 read-only by the app chat on release r-f749475d0962, 2026-11-15 22:45.
