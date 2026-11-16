@@ -1974,3 +1974,16 @@ More questions (recommended answer first):
   no wild / hatchery split and no 30 cm minimum. Both belong to REGION 2 ("you must release wild trout/char from
   streams … hatchery trout/char under 30 cm from streams"). Round 12 adds a Region 2 Fraser card beside it; if our
   data does not show hatchery / wild and 30 cm there, that is a fault to report to him.
+- 15:47, trout round 12 published (same trout page; two pictures sent: the Fraser in Region 3 beside the Fraser in
+  Region 2 at Mission, which shows hatchery and wild rows and "30 cm or longer" from the data: no fault; and the
+  Region 3 stretch on a closed day with "reopens Nov 1"). The other-fish question asked again (leave them / redraw
+  them / decide later), typed, verbatim: "we should just have the trout table under the trout entry like it
+  currently is with the better text like 2 or 4 with expand arrow etc. " My reading: the page keeps its present
+  shape; the Trout and char entry stays where it is, folded to its short line ("Up to 2", "Up to 4") with the expand
+  arrow, and the new table is what opens under it; the other fish entries are not touched. So spec question 1 =
+  trout only; the old card code stays for the other fish.
+- 15:47, the 17 closure rows with side streams and "no tributary words" (closures review page): an Opus audit found
+  ALL RIGHT by ruling T2. On 12 of them the book prints the ✱ mark beside the water's name ("includes tributaries"
+  for every rule of that row); the page builder had only looked for the words. The other 5 close nothing but the
+  named creek itself. Dean River row 12 (control): the walk stops at both ends of the stretch. Nothing is placed too
+  wide; trout answers are unaffected. The page (version 3) now shows the ✱ note on 20 rows.

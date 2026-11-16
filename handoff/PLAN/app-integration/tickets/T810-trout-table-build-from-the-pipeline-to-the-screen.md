@@ -29,3 +29,13 @@ the row. Design record: `handoff/PLAN/design/trout-adversarial-review-2026-11-16
 Rules resolved in Python, the app only lays out; one load path; no silent fallbacks; built behind the current block
 and switched in ONE release that drops the old card data (the first tap has almost no room for both); the old path
 deleted after; every changed answer shown to him first (T809).
+
+## Owner, 2026-11-16 15:47 (the other-fish question, asked again)
+"we should just have the trout table under the trout entry like it currently is with the better text like 2 or 4 with
+expand arrow etc. " Reading (main chat's): the page keeps its present shape. The Trout and char entry stays where it
+is, folded to its short line with the better words ("Up to 2", "Up to 4") and the expand arrow; the new table opens
+under it. The other fish entries are NOT redrawn: trout only. Consequences for the spec: its ticket Q (other fish on
+the same table) is dropped; its ticket S cannot delete the old card code outright (it stays for the other fish; only
+its trout path goes); the folded line of ticket O is the entry's own row, not a new block. Round 12's design answers
+(15:36) are also his: a coming closure without the reopening date; the reopening date only while closed today;
+"rule changes <date>" for a change that only loosens.
