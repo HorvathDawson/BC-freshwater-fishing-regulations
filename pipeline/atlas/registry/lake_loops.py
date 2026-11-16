@@ -25,6 +25,20 @@ THE CRITERIA (mechanical, name-agnostic; `loop_lines` decides per blue line, `mo
      Every OTHER lake on the loop (a pond it passes through) must be held by no item or by X's own item; one held by
      another water -> LEFT (which water's loop it is cannot be decided).
   4. A stream item made of nothing but such pieces keeps them (its id would vanish; the ditch rule's exception).
+  5. A LOOP NEVER DIVIDES ITS LAKE (Kotcho Lake, 2026-11-15; `LOOPS_NEVER_DIVIDE_A_LAKE`). A lake is never cut, so it
+     holds every area it touches (its outline test) while a line is in an area only where it lies inside it. A loop
+     that JOINS a lake item must therefore be in exactly the lake's CUT AREAS (`node.in_areas`, every area whose
+     `areas.json` def cuts lines at its edge — `cut: clean | first_last` — and any curated area-boundary label; the
+     lake's `outside_items` taken out of both sides): Kotcho Lake's 51.8 m loop lies outside the Kotcho Lake
+     Ecological Reserve the lake's polygon is in, so joining would give the lake two answers ("No fishing in
+     ecological reserves" on the polygon only) — a lake divided into areas, which this repo defers (lake splits are
+     not made). Such a loop STAYS with its river (`AREAS_DIFFER`, listed with both area sets). A MEMBERSHIP-ONLY area
+     (`cut: false`: provincial parks, WMAs, watersheds, indigenous and permit land) is not a place where a line's
+     answer changes — the build never cuts there — so a difference in one does not hold the loop; it is listed on
+     the moved row (`membership_only_areas_differ`: Sproat Lake's two shore parks) so it is never silent. The test
+     reads the area flags, so it runs only where they are stamped (`area_defs` given): the registry built before the
+     shore cuts (`atlas.build.water_registry(areas=False)`, read only for the tidal answer) has none, decides by
+     topology alone and says so (`areas_checked: false`).
 
 THE PONDS STAY AS THEY ARE: a pond the loop passes through is its own (unnamed) water; only the line pieces move.
 Moving a polygon into another lake would change the rules on the pond itself, which the owner has not decided.
@@ -56,6 +70,10 @@ LAKE_LOOPS_LEAVE_RIVER_ITEMS = True
 #: POLICY (owner 2026-11-15, T753, option a): ...and it is the lake's, so the lake's rules apply on it. False is the
 #: mutation pin: the pieces still leave the river (option b alone) and join no item.
 LAKE_LOOPS_JOIN_THEIR_LAKE = True
+#: POLICY (2026-11-15, T753 follow-up on Kotcho Lake; owner: "make sure it is done in a clean way"): a loop joins its
+#: lake only when it is in exactly the lake's cut areas (criterion 5), so a lake never takes a second answer. False is
+#: the mutation pin: Kotcho's loop joins its lake again (and the answers step refuses the two-part lake).
+LOOPS_NEVER_DIVIDE_A_LAKE = True
 
 _STILL = ("lake", "wetland")
 
@@ -69,6 +87,44 @@ CHAIN_BROKEN = "consecutive pieces of the line do not meet in the same lake"
 LAKE_IS_A_STREAM = "its lake is held by a stream item (the river's own polygon or widening): a braid of that river"
 OTHER_WATER_ON_LOOP = "a lake the loop passes through is another water's"
 ITEM_WOULD_VANISH = "the stream item has no other piece (its id would vanish)"
+AREAS_DIFFER = ("the loop's line is not in the same cut areas as its lake: joining would divide the lake into two "
+                "answers (a lake divided into areas is deferred), so it stays with its river")
+
+
+def membership_only_prefixes(area_defs) -> tuple[str, ...]:
+    """The `in_areas` label prefixes (`area:<kind>:`) of every MEMBERSHIP-ONLY area def (`cut: false`): the areas whose
+    edge the build never cuts a line at (criterion 5)."""
+    from pipeline.atlas.splits.area_catalog import area_id
+    from pipeline.atlas.splits.area_splits import cut_mode
+    return tuple(sorted({area_id(ad.get("kind", ad["id"]), "x")[:-1] for ad in area_defs or () if cut_mode(ad) is None}))
+
+
+def outside_of(area_defs) -> dict[str, set[str]]:
+    """{item id: the area ids `areas.json` `outside_items` puts it outside} (`registry.outside_area_items`)."""
+    out: dict[str, set[str]] = defaultdict(set)
+    for ad in area_defs or ():
+        for slug, items in (ad.get("outside_items") or {}).items():
+            for it in items:
+                out[it].add(f"area:{ad['id']}:{slug}")
+    return out
+
+
+def area_check(graph, lake_node: str, pieces, lake_item: str, area_defs) -> dict:
+    """Criterion 5 for one loop: {"lake_areas": the lake's cut areas, "loop_areas": {piece: its cut areas} for every
+    piece whose cut areas differ from the lake's, "membership_only_areas_differ": the membership-only areas the lake
+    and any piece do not share}. The loop may join only when `loop_areas` is empty."""
+    mo = membership_only_prefixes(area_defs)
+    gone = outside_of(area_defs).get(lake_item, set())
+    lake = set(graph.nodes[lake_node].in_areas) - gone
+    cut_lake = {a for a in lake if not a.startswith(mo)}
+    differ: dict[str, list[str]] = {}
+    mo_differ: set[str] = set()
+    for p in pieces:
+        mine = set(graph.nodes[p].in_areas) - gone
+        if {a for a in mine if not a.startswith(mo)} != cut_lake:
+            differ[p] = sorted(a for a in mine if not a.startswith(mo))
+        mo_differ |= {a for a in lake ^ mine if a.startswith(mo)}
+    return {"lake_areas": sorted(cut_lake), "loop_areas": differ, "membership_only_areas_differ": sorted(mo_differ)}
 
 
 def _neighbours(graph, nid: str) -> tuple[set[str], set[str]]:
@@ -139,9 +195,12 @@ def loop_lines(graph, blks=None) -> dict[str, dict]:
     return out
 
 
-def move_lake_loops(registry: dict[str, RegistryItem], graph, report: dict | None = None) -> dict[str, RegistryItem]:
+def move_lake_loops(registry: dict[str, RegistryItem], graph, report: dict | None = None, *,
+                    area_defs: list[dict] | None = None) -> dict[str, RegistryItem]:
     """Take every lake-loop piece (`loop_lines`) out of the stream item holding it and give it to its lake's item
-    (module doc). Returns a NEW dict; fills `report` with `moved`, `not_moved` and `counts`."""
+    (module doc). `area_defs` (`areas.json` `areas`) is criterion 5's input; None = the area flags are not stamped yet
+    (the pre-shore registry): topology alone, reported as `areas_checked: false`. Returns a NEW dict; fills `report`
+    with `moved`, `not_moved`, `counts` and `areas_checked`."""
     rep = report if report is not None else {}
     nodes = graph.nodes
     owner: dict[str, str] = {}
@@ -188,6 +247,13 @@ def move_lake_loops(registry: dict[str, RegistryItem], graph, report: dict | Non
             not_moved.append({**base, "why": OTHER_WATER_ON_LOOP, "other_items": others})
             continue
         join = lake_item if (lake_item and LAKE_LOOPS_JOIN_THEIR_LAKE) else ""
+        if join and area_defs is not None:                       # criterion 5: never divide the lake
+            chk = area_check(graph, f"lake:{x}", in_streams, join, area_defs)
+            if chk["loop_areas"] and LOOPS_NEVER_DIVIDE_A_LAKE:
+                not_moved.append({**base, "why": AREAS_DIFFER, **chk})
+                continue
+            if chk["membership_only_areas_differ"]:
+                base["membership_only_areas_differ"] = chk["membership_only_areas_differ"]
         row = {**base, "joined": join, "joined_name": registry[join].name if join else ""}
         for p in in_streams:
             take[owner[p]].add(p)
@@ -239,6 +305,7 @@ def move_lake_loops(registry: dict[str, RegistryItem], graph, report: dict | Non
                               "why": "LAKE_LOOPS_LEAVE_RIVER_ITEMS is off"})
         moved = []
     rep.update(moved=moved, not_moved=sorted(not_moved, key=lambda r: (r["why"], r["blk"])),
+               areas_checked=area_defs is not None,
                counts={"lines_moved": len(moved),
                        "pieces_moved": sum(len(r["moved_sections"]) for r in moved),
                        "items_left": len({i for r in moved for i in r["left_items"]}),

@@ -249,6 +249,7 @@ def _reg(d: Path, bounds: dict[str, str]) -> Path:
     (d / FILENAME).write_text(d.name)
     (d / "registry.json").write_text(json.dumps({"items": [
         {"id": "gnis:1", "boundaries": [{"id": i, "ref": r} for i, r in bounds.items()]}]}))
+    (d / "split_unplaced.json").write_text("[]")           # T743: every cut placed
     I.write_complete(d, {})
     return d
 

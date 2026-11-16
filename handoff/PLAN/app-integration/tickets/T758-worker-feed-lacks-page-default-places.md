@@ -1,6 +1,6 @@
 # T758 — The feeds worker's live salmon feed has no answer for the region-default places the Python feed publishes
 
-Status: IN PROGRESS (iOS chat; step 1 answered 2026-11-15: the status is right, DFO's sentence is lost; the worker fix is being written on branch `feeds/t758-page-defaults`).
+Status: IN PROGRESS (iOS chat; fixed on branch `feeds/t758-page-defaults` 179c6cba5 and LIVE ON STAGING since 2026-11-15 15:57; left: merge with the other worker branches after build 33; production's worker is the owner's deploy).
 
 Source: found 2026-11-15 by the T757 worker lane when the worker's test copies of the curated DFO entries were
 refreshed; confirmed on the live staging feed the same day. The Android chat (DFO is its area) has no ticket or owner
@@ -78,3 +78,23 @@ instead? Candidates to check in the code before they go to the owner (NOT verifi
    place that no longer joins (held row, "missing" report, unplaced list) decides whether this can happen.
 2. A two-region section (`s` groups): one region's places missing from the feed leaves the other region's answer
    alone, where the strictest of both was meant.
+
+## Results (worker lane), 2026-11-15
+Branch `feeds/t758-page-defaults` (179c6cba5, off the T757 worker branch). `src/dfo/cascade.ts` ports
+`cascade.statement_locators` (and `statements`, `page_scope`, `page_fingerprint`); `feed.ts build` appends the page's
+default-sentence locators; `live.ts join` skips a `page:` fingerprint no place carries. The vectors' `live` is the
+Python `live.run` index over the saved pages plus two edited-page cases (`no_default_sentence`,
+`sentence_without_a_place`). `dfo.vectors.test.ts` holds the worker's `runDfo` equal to it, every place with its year,
+274 places, no exception list. End to end on release r-f749475d0962: the 153 default chains (279,990 species-days) and
+all 435 chains: 0 differences between the worker feed and the Python feed in status, words, map code or gear. 487
+worker tests, emitter `--check`, `check:fast` rc 0; six mutation checks, each fails a test. The Android chat read the
+two pipeline files the lane changed (`pipeline/tools/emit/dfo_vectors.py`, `pipeline/tests/test_dfo_vectors.py`).
+
+## Staging, 2026-11-15 15:57
+Deployed with the Android chat's word: `ios/staging-worker` 173867c4c (push + crash limit + T757 + this), version
+92b74def; gauges, dfo, inseason answered 200. Live feed of 22:58:18Z: 275 locations = 251 places + 17 closed-area
+pieces + the 7 defaults, each default with DFO's own sentence ("There is no fishing for salmon in Region 3 except for
+the opportunities listed in the table below."; Region 1 "…the daily limit for all waters in Region 1 is zero (0)."; …).
+Row-digest notices: by the code (`rowDigest`) a region is compared only when its page's sha differs from the stored
+baseline, so the deploy itself sends none; the first time a DFO page changes, that region's default sentence will
+show as an "added" row once. Not checked on a device: the staging app reading the sentence on a card.

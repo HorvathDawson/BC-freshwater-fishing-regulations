@@ -237,12 +237,25 @@ with the default Claude uses until you answer). Newest first inside each section
   merge and no upload until that check passes on a good line; I re-run it when the line recovers. If it is still bad
   this evening the build slips to tomorrow. Found on the way, not from the shrinker: T756 (reopening mid-download
   restarts the big files from zero after "Wait for Wi-Fi"); fix on a branch, not merged, not in this build.
+  **State 2026-11-15 17:18: ready except one thing that needs you.** All six checks passed, the code is merged
+  (shrinker off by default), both GitHub checks are green. The build did not run: the build script's quick test step
+  fails on one test that reads your uncommitted `data/generated/review/dfo-suggestions.json` (two rows merged at
+  midday lack their evidence). The agents will not skip the test or edit your file: regenerating the two rows was
+  refused by the automatic permission check, so it is yours; the Android chat's item "regenerate the two proposal
+  rows" (first on your To-Do page and on OWNER-RETURN-2026-11-15.md) has the command. Nothing built or uploaded
+  until then.
   **CORRECTION 2026-11-15 15:19: back on for today.** The line was not down; my probe was wrong (it timed a "not
   found" answer). All six checks are running since 15:17 on the merged code (T752 included) with the shrinker on. If
   all pass: merge, CI, then the Android chat's Play build today. The 14:44 note below is superseded.
   **State 2026-11-15 14:44: planned for tomorrow.** The line is still down (30–46 bytes a second since 13:04). The
   Android chat lands its desktop split (T752) on the shared branch first, so all six checks are re-run on that new
   head with the shrinker on before the build. If the line recovers today the sixth check is still re-run today.
+- **NEW 2026-11-15 16:08 (iOS chat; yours, later, no decision needed now): production feeds worker deploy.** Two
+  worker fixes are live on STAGING only: T758 (waters covered only by a region's default salmon rule show DFO's own
+  sentence under live data again, not a generic "Not opened by DFO" line; the status was right all along) and T757
+  (closed areas inside a DFO place are emitted as their own live locations). Production's worker has the same gap
+  until it is deployed from the shared branch after these merge; that deploy is yours (`deploy/prod`, never an
+  agent's). I say when the branch is ready.
 - **DONE 2026-11-15 07:32.** TestFlight build 36 uploaded (0.7.10, branch `ios/next` d658f88ac, staging data): the
   iOS fixes, the first-install bar, the "applying new data" screen with fish puns, push, the crash-report fix, the
   faster cold start and lighter fonts. Yours: install 36 (not 34 or 35), then the phone checks and the push test;
@@ -798,3 +811,88 @@ checks; one page of questions for him. Nothing that changes what a wording means
   main chat does not run a command a job was refused. Run it yourself or tell the main chat to. Details in
   `handoff/PLAN/OWNER-RETURN-2026-11-15.md` section 6.
 - ANSWERED 2026-11-15, on the blocked side rebuild step: "You can run it". Run by the main chat; rebuild continuing.
+- BLOCKED 2026-11-15 17:20, NEEDS YOU: Play build 33 (0.7.11, code shrinker on; 6 of 6 phone checks, both CIs green,
+  merged 35dce9bf3) refused to start: fast-fail fails on two rows of the proposals file lacking split-hunt evidence
+  (my midday merge). Regenerating was denied to a job by the permission check; the main chat will not run it without
+  your word. Say "regenerate the two proposal rows" (or run the suggester yourself); then the build runs.
+- ANSWERED 2026-11-15 18:40: "Yes regenerate proposals if you need to." Done by the main chat: a fresh suggester run
+  into a scratch folder; the two rows the test named (Stave "downstream of B.C. Hydro dam" second wording, Bella Coola
+  "all tributaries") have no row in a fresh run because both places are placed now, so those two rows were removed from
+  the proposals file (backup taken; no other row changed). The test passes; Play build 33 started.
+- ASKED 2026-11-15 18:40 about T759: "What u mean ? should the app say "not known" instead of showing the wider open
+  rule? I recommend yes." Explained in chat with an example; answer still open.
+
+## 2026-11-15 evening — owner answers by question dialog, round 1 (verbatim)
+- T759, what the app shows when DFO rewords a closed stretch and the reader loses it: "How would we know a reword vs a
+  removal? I'm not sure safest way to handle thing. Probably have it in a banner for all sections in that river (banner
+  meaning in salmon drop down) but I want your opinion". NOT DECIDED: he asks for the main chat's opinion; his idea: a
+  banner in the salmon drop-down on every section of that river.
+- A place last marked "wrong" with no fix shipping its older extent: "I want you to for it to be redrawn. We will finish
+  these tonight so not a big deal... Just be safe". Main chat's reading: he re-marks them tonight; until then be safe =
+  such a place does not ship its disputed extent.
+- Six cuts recommended to keep (Lillooet signs, Seton mouth own cut, Atnarko lodge sign, Gitnadoix whole river,
+  Kitsumkalum 22 m piece, Little Campbell and Babine sign cuts): "Only one I'm not sure about is gotnadoix one." So five
+  are kept as built, incl. the Seton River mouth as its own cut; Gitnadoix stays open.
+- Three fixes (Puntledge tailrace cut moved 27 m up; Nanaimo new cut 500 m below the lower power line; Thompson three
+  year-round no-fishing areas carved out): "I thought we already had all these?? They were accepted? Okay please fix
+  them I guess". Go for all three.
+
+## 2026-11-15 evening — owner answers, round 2 (verbatim)
+- T759 lost closure, offered "Banner + not known (recommended)" / banner only / not known only: "That sounds good but can
+  you make not known a variation like bait ban where it has a loot change but with same color?" So: river-wide banner in
+  the salmon drop-down AND the stretch reads not known when a clue says reword; and the map shows "not known" as a
+  variation in look (as the bait-ban variation does) with the same colour. Which colour is "the same" is asked next.
+- Gitnadoix "upstream of powerline crossing near river mouth": "Whole river (Recommended)".
+- Morice "from Gosnell Creek to Lamprey Creek": "Keep the signs point (Recommended)".
+- Skeena confluence cuts (Lakelse-to-Skeena, Babine-to-Skeena, Highway 16 bridge at Ferry Island): "Make them
+  (Recommended)".
+
+## 2026-11-15 evening — owner answers, round 3 (verbatim)
+- T759, the look and the rule: "I think what ever still applies there should be the color so say there is a whole river
+  rule and a section rule section rule is removed we should have no status change because that is fine same with if a
+  rule gets replace with another one we have a mapping for. However a new wording being there would then mean we have a
+  different indicator on the stream line that there is an issue with the rule. Then every stretch in the river will get
+  the banner in the salmon section saying the new unmatched rule until we rematch it". Main chat's reading: (1) a place
+  DFO removed, or replaced by a row we can match: no status change, the remaining rule's colour; (2) a NEW wording we
+  cannot match on that river: the status colour stays what still applies, the stream line gets a distinct "issue" look,
+  and every stretch of that river shows a banner in the salmon section quoting the unmatched rule, until it is
+  re-matched. So no "not known" status; the trigger is an unmatched new row on the river. Open point to raise with him:
+  a reworded row that our reader matches to a NEIGHBOURING place leaves no unmatched row, so this trigger misses it.
+- Fraser and Squamish side channels: "Add all five (Recommended)" (Herrling Island, Seabird Island North, Jeperson
+  braids, Maria Slough; Squamish Powerhouse channel).
+- Shuswap closed stretch reading: "Can you give me words? What are the words are we sure we have right spts?" NOT
+  DECIDED: wants DFO's words and how sure the points are.
+- Lake rules (lake never takes its through-river unless named; Sproat pond stays its own water; creek-fed loops stay
+  with the river): "Keep all three (Recommended)".
+
+## 2026-11-15 evening — owner answers, round 4 (verbatim)
+- Shuswap closed stretch, after DFO's words and what is sure about the points: "Use the real gauge point so we don't
+  duplicate it and the other coord as the other point even tho it is 2km use as printed". So: closed from the real
+  Water Survey gauge (reuse that point, no duplicate cut) to DFO's other printed coordinate, about 2 km.
+- Rest-of extents, two weak spots: "Fix both (Recommended)".
+- Tributary readings (Nass x3 mainstem = no tributaries; Babine Lake x3 and Meziadin "excluding tributaries" win over
+  the heading; Somass and Stamp "X River tributaries" = tributaries only): "All three are right (Recommended)".
+- One-bank places design (Kitimat west bank, Nakina): "Build it this way (Recommended)".
+
+## 2026-11-15 evening — owner answers, round 5 (verbatim)
+- T759 second trigger (a reworded row matched to a neighbouring place): "If it is reworded then it would unmatched
+  because it is not in our list of mapped locations?" NOT DECIDED: a question back. Answer owed: an exact-match reader
+  would leave it unmatched, but ours also accepts a close match (wording drift) and can attach it to a neighbour.
+- Sheldens Creek, Spur 19 Bridge: "You can hunt for it I think it should be close to tidal". So: hunt for the bridge
+  site / SP 19H road; his hint: close to the tidal boundary.
+- Four small ones (1 Sproat signs cut moved 50 m to the bottom of the pool; 2 Hell's Gate label renamed; 3 Ecstall at
+  the Johnston Creek confluence; 4 Illiance and Wilauks whole river from the tidal boundary): "Only one I'm not sure
+  about is number 4". So 1, 2 and 3 go ahead; Illiance and Wilauks stay open.
+- Region 6 salmon file over its size limit (379 kB vs 320 kB): "Raise to 420 kB (Recommended)".
+
+## 2026-11-15 evening — owner answers, round 6 (verbatim)
+- T759, close (drifted) matches: "Yes: close match needs confirming (Recommended)". A close match still applies its rule,
+  but the river shows the banner and the line indicator until he confirms it in the review app.
+- Illiance River and Wilauks Creek, "upstream of signs near the mouth": "Whole river is right".
+- Tatshenshini, two places: "I will do them myself".
+- Other chat's two (push privacy-page line + App Store privacy answer as written; keep all fish puns): "Yes to both
+  (Recommended by it)".
+- Then: "When can I do the remaining reviews?"
+- ASKED 2026-11-15 20:05: "Iook ofr other ones like he skeena one to make sure we have them all". Sweep widened to every
+  place (live, retired, older wordings) and every rule-book extent that names a confluence, mouth, outlet or forks, and
+  every existing confluence cut (on the main line? at the real mouth?); missing ones are added with the Skeena pair.

@@ -86,7 +86,10 @@ A6. **Commit only your own paths: `git commit -- <paths>`.** Several agents shar
     acceptances); a braid piece cut at BOTH ends by a `between`'s own two cuts is inside it (RULINGS
     E18, T187, `extent.A_PIECE_BETWEEN_THE_WINDOWS_CUTS_IS_INSIDE`). Length cuts never take a junction a braid spans. A 2300-only ditch with no gnis
     of its own is in no river item (`registry.build.DITCHES_LEAVE_RIVER_ITEMS`). A nameless line that leaves a lake and comes back into the SAME lake is that lake's, never its
-    river's (T753, `registry.lake_loops`; every move and near miss listed in `lake_loop_report.json`).
+    river's (T753, `registry.lake_loops`; every move and near miss listed in `lake_loop_report.json`) — unless it is not in
+    exactly its lake's CUT areas (`areas.json` `cut` clean / first_last): then it stays the river's, since a lake is never
+    divided into areas (Kotcho Lake's loop outside its ecological reserve, `LOOPS_NEVER_DIVIDE_A_LAKE`). A curated cut the
+    atlas cannot place is listed in `split_unplaced.json` with its reason and promote refuses it (T743, the Seton cut).
 13. **A rule's extents are its own — never inherited from its entry. Never widen a rule
     that names a place it could not bind.** No reader (reach builder, bundle,
     `pipeline/deliver/bundle/read/source.py` `source_of`) hands a rule its entry's `extents`; the entry's only clip.
@@ -839,6 +842,9 @@ W46. **The guards the 2026-11 audits put in (T429–T442) stay in. A change that
     onto Vedder Crossing, the Vedder's downstream-of-the-crossing rules walked up the whole Chilliwack, 1,805 sections).
     A piece on the reach's own watershed code is a side channel, not own water (Old Kootenay River Channel). Before
     promoting any split or name change, DIFF THE REACH RUN'S PER-RULE BINDINGS against live — atlas parity cannot see this.
+    A DEAD END of a water the walk collected wholly (a lake's second outlet that stops, a closed loop, an unconnected
+    piece: a graph sink the walk never reaches by climbing) goes with that water (`tributaries.A_DEAD_END_GOES_WITH_ITS_WATER`,
+    2026-11-15; the six Stikine/Taku tributaries' part-name stop). Never on the reach's own code, never past a carve-out.
 
 ## Runbook: upstream updates the owner runs
 

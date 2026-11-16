@@ -6,7 +6,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 // A plain .mjs tool (run under node), imported for its functions.
-import { decodeMappings, frameOf, keepAndroid, keepWeb, keyOf, symbolicate } from "./sourcemaps.mjs";
+import { decodeMappings, frameOf, keepAndroid, keepR8, keepWeb, keyOf, symbolicate } from "./sourcemaps.mjs";
 
 // line 1: col 0 → a.ts 1:1; col 5 → a.ts 1:6 named f. line 2: col 0 → a.ts 2:1
 const MAP = { version: 3, sources: ["a.ts"], names: ["f"], mappings: "AAAA,KAAKA;AACL" };
@@ -54,5 +54,16 @@ describe("sourcemaps", () => {
     expect(readFileSync(join(exp, "_expo", "index-1.js"), "utf8")).toBe("code\n//# debugId=x");
     expect(() => keepWeb(exp, "k", root)).toThrow("no .map under");
     expect(() => keepAndroid(join(exp, "none.map"), "k", root)).toThrow("no Hermes map");
+  });
+
+  it("(T749) keeps R8's mapping beside the Hermes map, and refuses a missing or empty one", () => {
+    const dir = mkdtempSync(join(tmpdir(), "r8-")), root = mkdtempSync(join(tmpdir(), "sm-"));
+    expect(() => keepR8(join(dir, "mapping.txt"), "k", root)).toThrow("no R8 mapping at");
+    writeFileSync(join(dir, "mapping.txt"), "");
+    expect(() => keepR8(join(dir, "mapping.txt"), "k", root)).toThrow("is empty");
+    expect(existsSync(join(root, "k"))).toBe(false);
+    writeFileSync(join(dir, "mapping.txt"), "a.B -> c:\n");
+    expect(keepR8(join(dir, "mapping.txt"), "k", root)).toBe(join(root, "k", "android", "r8-mapping.txt"));
+    expect(readFileSync(join(root, "k", "android", "r8-mapping.txt"), "utf8")).toBe("a.B -> c:\n");
   });
 });

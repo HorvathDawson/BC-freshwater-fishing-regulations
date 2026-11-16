@@ -450,6 +450,155 @@ def _nodes_on(graph: StreamGraph, blk: str) -> tuple[str, ...]:
     return cached[1].get(blk, ())
 
 
+#: A DEAD END OF A COLLECTED WATER IS COLLECTED (2026-11-15, the Stikine part-name stop). FWA draws some
+#: pieces of a water with NO way on: a lake's second outlet that ends after 74-138 m (Buckley, Mess,
+#: Chukachida, Horsefeed), a channel flowing into a lake with no outlet (Sutlahine), a lake and a channel
+#: draining into each other and nowhere else (the Iskut), or a piece of the line drawn with no connection
+#: at all. The walk climbs UP from the reach, so it never meets one: every such piece of a tributary was
+#: left under the region default while the rest of its water took the walk's rules, and the release's part
+#: names could not join the two (T517 "run gap"). Such an end — a SINK of the graph: a node with no flow
+#: out, or a closed loop with none (`dead_ends`) — that the walk did not reach is collected, with what
+#: feeds it (climbed by the walk's own `may_enter`), when EVERY OTHER piece of its watershed code was
+#: collected: the water it is a piece of is wholly the rule's, so where along that water the end lies
+#: cannot matter. Never for the reach's own code (a stretch's river: the end may lie outside the
+#: stretch), never past a carve-out (a blocked piece of the code leaves it uncollected), and a river's
+#: real mouth never qualifies (the walk climbs from below it, so a water collected anywhere has its
+#: mouth collected). False = the mutation pin.
+A_DEAD_END_GOES_WITH_ITS_WATER = True
+
+
+def dead_ends(graph: StreamGraph) -> tuple[dict[str, tuple[tuple[str, ...], ...]], dict[str, tuple[str, ...]]]:
+    """`({code: the sinks carrying it}, {code: every node carrying it})` — a SINK is a node with no flow
+    out, or a closed loop with none (a terminal strongly connected set: the Iskut's lake and channel that
+    drain into each other). Every river's mouth is one; `A_DEAD_END_GOES_WITH_ITS_WATER` says which a walk
+    takes. Computed once per graph object and kept on it."""
+    cached = getattr(graph, "_dead_ends_cache", None)
+    if cached is not None and cached[0] is graph.edges:
+        return cached[1]
+    downs = {nid: sorted({graph.edges[ei].to_node for ei in graph.down_adj.get(nid, [])} - {nid})
+             for nid in graph.nodes}
+    sinks: list[tuple[str, ...]] = [(nid,) for nid in sorted(graph.nodes) if not downs[nid]]
+    # The nodes that reach no outflow-free node drain only into closed loops: find those loops' terminal
+    # strongly connected sets (iterative Tarjan on that small remainder).
+    reach_out: set[str] = set(s for (s,) in sinks)
+    stack = list(reach_out)
+    while stack:
+        x = stack.pop()
+        for ei in graph.up_adj.get(x, []):
+            u = graph.edges[ei].from_node
+            if u not in reach_out and u in graph.nodes:
+                reach_out.add(u)
+                stack.append(u)
+    rest = sorted(n for n in graph.nodes if n not in reach_out)
+    if rest:
+        rs = set(rest)
+        index: dict[str, int] = {}
+        low: dict[str, int] = {}
+        on: set[str] = set()
+        st: list[str] = []
+        comps: list[list[str]] = []
+        counter = 0
+        for root in rest:
+            if root in index:
+                continue
+            work = [(root, iter([d for d in downs[root] if d in rs]))]
+            index[root] = low[root] = counter
+            counter += 1
+            st.append(root)
+            on.add(root)
+            while work:
+                v, it = work[-1]
+                nxt = next(it, None)
+                if nxt is not None:
+                    if nxt not in index:
+                        index[nxt] = low[nxt] = counter
+                        counter += 1
+                        st.append(nxt)
+                        on.add(nxt)
+                        work.append((nxt, iter([d for d in downs[nxt] if d in rs])))
+                    elif nxt in on:
+                        low[v] = min(low[v], index[nxt])
+                    continue
+                work.pop()
+                if work:
+                    low[work[-1][0]] = min(low[work[-1][0]], low[v])
+                if low[v] == index[v]:
+                    comp = []
+                    while True:
+                        w = st.pop()
+                        on.discard(w)
+                        comp.append(w)
+                        if w == v:
+                            break
+                    comps.append(comp)
+        for comp in comps:
+            cs = set(comp)
+            if all(d in cs for n in comp for d in downs[n]):
+                sinks.append(tuple(sorted(comp)))
+    by_code: dict[str, list[tuple[str, ...]]] = {}
+    for s in sinks:
+        for c in sorted({graph.nodes[n].wsc for n in s if graph.nodes[n].wsc}):
+            by_code.setdefault(c, []).append(s)
+    nodes_of: dict[str, list[str]] = {}
+    for nid, n in graph.nodes.items():
+        if n.wsc and n.wsc in by_code:
+            nodes_of.setdefault(n.wsc, []).append(nid)
+    got = ({c: tuple(v) for c, v in by_code.items()}, {c: tuple(sorted(v)) for c, v in nodes_of.items()})
+    try:
+        setattr(graph, "_dead_ends_cache", (graph.edges, got))
+    except (AttributeError, TypeError):
+        pass
+    return got
+
+
+def _feeders(ctx: "Reach", start, seen) -> set[str]:
+    """`start` and every node the walk would climb to from it (each step `may_enter`'s), never entering `seen` —
+    what a dead end would bring. A piece the walk refuses (a carve-out, own water, a bigger river) is not one."""
+    g = ctx.graph
+    out = set(start)
+    stack = list(start)
+    while stack:
+        x = stack.pop()
+        for ei in g.up_adj.get(x, []):
+            e = g.edges[ei]
+            u = e.from_node
+            if u not in out and u not in seen and may_enter(ctx, u, x, e) in (None, PASSING_THROUGH):
+                out.add(u)
+                stack.append(u)
+    return out
+
+
+def _dead_end_seeds(ctx: "Reach", seen: set[str], kept: set[str], refused: set[str]) -> list[str]:
+    """`A_DEAD_END_GOES_WITH_ITS_WATER`: the nodes of every unreached sink whose code(s) the walk otherwise
+    collected wholly (`kept`: what it collects, less carve-outs passed and own water). A piece of the code the
+    walk REFUSED (`refused`: a lake its secondary outlet may not climb into, a bigger river) is not collected,
+    so its code never qualifies: the dead end is no way round a refusal."""
+    g = ctx.graph
+    by_code, nodes_of = dead_ends(g)
+    codes = {n.wsc for s in kept if (n := g.nodes.get(s)) is not None and n.wsc} - ctx.codes
+    ok: dict[str, bool] = {}
+    cands: dict[tuple[str, ...], None] = {}
+    for c in sorted(codes):
+        ends = [s for s in by_code.get(c, ()) if not any(x in seen for x in s)]
+        if not ends:
+            continue
+        allowed: set[str] = set()
+        for s in ends:
+            allowed |= _feeders(ctx, s, seen)
+        ok[c] = all(x in kept or (x in allowed and x not in refused) for x in nodes_of.get(c, ()))
+        if ok[c]:
+            cands.update((s, None) for s in ends)
+    out: list[str] = []
+    for s in cands:
+        cs = {g.nodes[x].wsc for x in s}
+        if not all(ok.get(c) for c in cs):
+            continue                            # a loop of several codes: every one must qualify
+        if any(x in ctx.blocked or x in ctx.own or g.nodes[x].is_barrier for x in s):
+            continue
+        out.extend(s)
+    return sorted(set(out))
+
+
 # --------------------------------------------------------------------------------------- #
 # ONE ENTRY CHECK (T102 part B, owner 2026-10-22: "make the check logic (with the edge type check
 # etc) a single function used in multiple spots"). Every rule that decides whether a walk may step
@@ -711,6 +860,7 @@ def tributaries_of_reach(
     seen: set[str] = set(ctx.reach)
     stack: list[str] = sorted(ctx.reach)      # sorted: determinism, not correctness
     runs = code_runs(graph)[0] if BIFURCATIONS_FOLLOW_THE_CODE else {}
+    refused: set[str] = set()                 # what a step was refused into (`A_DEAD_END_GOES_WITH_ITS_WATER`)
 
     # A stream joining EXACTLY at the reach's lower cut belongs to the reach. When a
     # curator anchors a cut on a confluence — "upstream of the confluence with Slesse
@@ -750,6 +900,15 @@ def tributaries_of_reach(
                 seen.add(src)
                 out.add(src)
                 stack.append(src)
+            else:
+                refused.add(src)
+        # The walk is done: a dead end of a water it collected wholly goes with that water, and the walk
+        # climbs on from it (what feeds it may bring more codes, so this repeats until nothing joins).
+        if not stack and A_DEAD_END_GOES_WITH_ITS_WATER and out:
+            for x in _dead_end_seeds(ctx, seen, out - frozenset(passed) - ctx.own, refused):
+                seen.add(x)
+                out.add(x)
+                stack.append(x)
 
     return frozenset(out - frozenset(passed) - ctx.own)
 

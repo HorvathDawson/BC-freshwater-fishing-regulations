@@ -612,7 +612,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "fraser_river__seton_river",
+              "fraser_river__signs_4_km_below_lillooet"
+            ],
+            "item_id": "gnis:39325"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
