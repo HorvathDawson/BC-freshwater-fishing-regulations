@@ -188,3 +188,29 @@ this line. The DFO salmon rule and its cut (Spur 19 road crossing, 53.12968,-131
 If a source ever names a different stream "Sheldens Creek" (BC Geographical Names, a DFO map, a local), or DFO's
 wording points elsewhere, this is the first thing to recheck: drop its `found_name_calls.json` row (and rerun `pipeline.tools.mined_names`) and the rule unbinds on the next
 build. Don't treat it as a confirmed name in audits or when matching other sources.
+
+## The Kasiks "Upper Pool" is a place we inferred
+
+**2026-11-15 · owner asked for the proposal · DFO salmon Region 6 · `data/generated/review/dfo-split-hunt.json` cut `kasiks_upper_pool_signs`, report `handoff/PLAN/curation-review/kasiks-upper-pool-2026-11-15.md`**
+
+DFO splits the Kasiks River for coho at "fishing boundary signs located below the Upper Pool" (closed all year above,
+Sep 1 to Oct 31 open below). No public source names or locates "the Upper Pool": the wording is the same in the
+2009-2011 supplement, notice FN0717 (2018) and every saved Region 6 page from 2017 to 2026, with no distance, canyon,
+falls or coordinate; no guide page, forum or report names pools on the river.
+
+The point we propose is an inference, not a fact:
+
+- The lower Kasiks has exactly one barrier: a short canyon with falls at FWA km 17.6-18.4 (the river climbs from 31 m
+  to 72 m over about 600 m and is flat below and above; FISS / RAB record cascades and a 5 m rock obstacle there; the
+  1983 DFO stream catalogue says "impassable cascade type falls"; the 2007 Skeena Fisheries Commission report says a
+  1 km reach "with falls and cascades" and "navigable for 18.5 km").
+- "The Upper Pool" is taken as the pool at the foot of those falls (about 54.3554 N, 129.5361 W) and the signs as its
+  tail-out (about 54.3535 N, 129.5360 W, km 17.65 on blk 360879632). Confidence: medium.
+- A weaker alternative is the confluence pool at the canyon mouth (about 54.3518 N, 129.5350 W), which would put the
+  signs about 300 m lower.
+- The 1983 catalogue's "22.5 km from mouth" is read as the same canyon measured from another starting point: the map
+  profile has no step near 22.5 km. That reading is ours.
+
+So: a mismatch between the app and signs on the ground here is not a pipeline bug; it means the inference was wrong.
+What settles it is the sign position from DFO's Terrace or Prince Rupert office. Do not "correct" the point from
+another guess; replace it only with a stated position. (Same family as "Sheldens Creek is a name we assumed".)

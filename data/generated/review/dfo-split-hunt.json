@@ -681,6 +681,19 @@
     "data/curated/waters/splits.json#nanaimo_river__cedar_road_bridge"
    ],
    "notes": "(T164 2026-10-29) the bridge is the curated, OSM-confirmed cut (tidal: true); the signs' distance is the notice's 'approximately 400 m'."
+  },
+  "kasiks_upper_pool_signs": {
+   "anchor": "sign",
+   "name": "signs below the Kasiks Upper Pool (foot of the canyon falls)",
+   "lat": 54.3535,
+   "lon": -129.536,
+   "confidence": "medium",
+   "description": "fishing boundary signs below the Upper Pool, taken as the tail-out of the pool at the foot of the canyon falls about 17.7 km up the Kasiks",
+   "sources": [
+    "https://psf.ca/wp-content/uploads/2021/10/Download-PDF700-1.pdf",
+    "https://waves-vagues.dfo-mpo.gc.ca/Library/327687.pdf"
+   ],
+   "notes": "INFERRED, not stated by any source: 'the Upper Pool' is named nowhere public. The lower Kasiks has one barrier, a canyon with falls at FWA km 17.6-18.4 (elevation 31 m to 72 m over ~600 m; FISS/RAB cascades and a 5 m rock obstacle; 1983 DFO catalogue 'impassable cascade type falls'; 2007 Skeena Fisheries Commission 'navigable for 18.5 km'); the pool at its foot is about 54.3554 N, 129.5361 W. Owner asked for this proposal 2026-11-15 ('can you add the pool proposal?'). A sign position from DFO Terrace or Prince Rupert would settle it. See handoff/PLAN/curation-review/kasiks-upper-pool-2026-11-15.md."
   }
  },
  "locations": {
@@ -1320,12 +1333,22 @@
    "notes": "'upstream of powerline crossing near river mouth'."
   },
   "6:kasiks-river:upstream-of-fishing-boundary-signs": {
-   "not_found": "'the Upper Pool' is named nowhere public (DFO pages, FWA, FISS: no lake or falls in the lower 12 km). Ask DFO Terrace or a local guide.",
-   "category": "unknown_landmark"
+   "op": "upstream_of",
+   "ends": [
+    {
+     "cut": "kasiks_upper_pool_signs"
+    }
+   ],
+   "notes": "'upstream of fishing boundary signs located below the Upper Pool' (position inferred: see the cut's notes)."
   },
   "6:kasiks-river:downstream-of-fishing-boundary-sig": {
-   "not_found": "the Kasiks 'Upper Pool' — not found (as above).",
-   "category": "unknown_landmark"
+   "op": "downstream_of",
+   "ends": [
+    {
+     "cut": "kasiks_upper_pool_signs"
+    }
+   ],
+   "notes": "'downstream of fishing boundary signs located below the Upper Pool' (position inferred: see the cut's notes)."
   },
   "6:kasiks-river:upstream-of-highway-16-bridge": {
    "op": "upstream_of",
