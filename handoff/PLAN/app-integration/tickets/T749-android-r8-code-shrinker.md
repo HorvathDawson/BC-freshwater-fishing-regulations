@@ -288,3 +288,21 @@ flag on before the build; the 164c928c2 results above stand only for that commit
   deploy/staging/build-apk.sh` shows only the release's fixture re-cuts, test files and T764's files.
 - Not verified: no minified stack frame was decoded in this round.
 
+
+## The Play internal build is MADE: 0.7.11, versionCode 33, 2026-11-16 04:21 to 04:37 (app chat, lane 3, R8 on)
+- Command: `HEAVY_LOCK=$HOME/.claude/heavy-job-3.lock CANIFISHTHIS_R8=1 deploy/staging/build-apk.sh --play`, no escape
+  flag. Built from 0c9988033 (the shared branch after staging release r-46e4355a7277; last app code change 4e793d61f,
+  the same as the benched APK's). Precheck ok ("R8 ON"), CI ok (both newest finished runs green), fast-fail ok.
+- Result: `app/dist/aab/canifishthis-0.7.11-33-0c9988033.aab`, 35.0 MB, signed by the upload key; Gradle ran
+  `:app:minifyReleaseWithR8`; uploaded to Play track `internal` as completed; `play.json` on staging says version
+  0.7.11, build 33; the owner's email was sent (HTTP 200). The bump commit is 88681f9f0 (app.json only).
+- R8's mapping file is KEPT: `data/sourcemaps/0.7.11-b33-0c99880/android/r8-mapping.txt` (62.1 MB), beside the Hermes
+  map (13.4 MB). A crash from this build needs that file to be read.
+- One stop on the way, not the app's: the first launch (04:16) stopped in fast-fail on the docs guard, which read an
+  uncommitted owner-list edit of the main chat's citing a file by a short path. Fixed by the main chat; relaunched 04:21.
+- Bench-diff before the build: `git diff --name-only 5aac6932e d0d584159 -- app deploy/staging/build-apk.sh` outside the
+  re-cut fixtures and test files = `releaseDir.ts` (node-only test driver), `section-lines.json` (read only by that
+  driver, two tools and a test), `app/tools/regs-recut/taps.py`, `app/tools/test-tmp.ts`, the two vitest configs. So
+  the six benches of the section above stand for this build.
+- Left: the owner's ten-step phone walk (the section "Phone walk for the owner"; To-Do row `t749-r8-phone-walk`).
+  Not verified by anyone yet: the build on a real phone.

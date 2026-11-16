@@ -52,6 +52,17 @@ this page says "iOS chat" below, read "app chat". Session since 2026-11-15 21:27
    free. NEXT: wait for the main chat's "before" then "after" message; then item 3 above (worker redeploy, bench-diff
    against 5aac6932e, fast-fail, both CIs, Play build on lane 3, phone walk row).
 
+10. 04:37 on 11-16: **THE PLAY BUILD IS UP: 0.7.11, versionCode 33, R8 on, Play internal** (T749 ticket, last section;
+   AAB 35.0 MB from 0c9988033, bump commit 88681f9f0, R8 mapping kept under `data/sourcemaps/0.7.11-b33-0c99880/`).
+   The night before it: the staging release (r-46e4355a7277, now LATEST and on staging) stopped three times and each
+   stop was cleared: a stale mini release (the main chat's), twelve app follow tests on the old shape of four waters
+   (mine, 39918037e: `sectionNames.unnamedStreams()`, tests pick an unnamed reach by property), and the upload gate's
+   fetch refused by the host for its default user agent (found here, fixed by the main chat, 5c5078b2a). The staging
+   feeds worker was redeployed from `ios/staging-worker` at 04:13 (version beab0214; the four new closed-area pieces
+   are in the live DFO index). New ticket T765 (golden taps do not check a closed part). The owner's phone walk is on
+   To-Do row `t749-r8-phone-walk`. NEXT (nothing tonight needs more): the morning summary; then, with the owner's go,
+   the T760 emulator proof and the held merges (the list under "After tonight" in the memory file and section 2).
+
 **Who you talk to.** The main (data) chat is session `bc-freshwater-fishing-regulations-17` (it took over
 from chat 13 on 2026-11-15 evening; its page: `handoff/PLAN/NEXT-SESSION-after-chat13.md`). Tell it your session name
 first. It messages you BEFORE and AFTER any staging release.
