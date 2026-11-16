@@ -6,7 +6,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { appUp } from './common.mjs';
-import { diskBytes, stallWatch, thrownAway } from '../lib/download-watch.mjs';
+import { stallWatch, thrownAway } from '../lib/download-watch.mjs';
 
 const SAYING = /…$|… of data$/;
 
@@ -19,10 +19,6 @@ export const bgInstall = {
     const words = () => d.screenText();
     // `pidof` exits 1 when the app is not running: that is a no, not a failure
     const alive = () => { try { return !!d.pidOf(); } catch { return false; } };
-    // what the system's downloader has on disk for us (its folder in the app's external files)
-    const onDisk = () => { try { return d.sh('ls -l /sdcard/Android/data/ca.canifishthis.app/files/bg-download/ 2>&1').trim().split('\n')
-      .map((l) => l.trim().split(/\s+/)).filter((c) => c.length > 5).map((c) => `${c.at(-1)} ${Math.round(Number(c[4]) / 1e6)} MB`).join(', '); } catch { return '?'; } };
-    const bytesOnDisk = () => { try { return diskBytes(d.sh('ls -l /sdcard/Android/data/ca.canifishthis.app/files/bg-download/ 2>&1')); } catch { return -1; } };
     // the app is what the reader sees (its activity resumed), not merely a live process: a notification's broadcast
     // starts the process without showing anything
     const front = () => { try { return d.sh("dumpsys activity activities | grep -E 'ResumedActivity' || true").includes(d.APP_ID); } catch { return false; } };
@@ -99,6 +95,10 @@ export const bgInstall = {
     });
     // (T756) the tap is its own step: before, a tap that opened nothing fell back to a launch and the step still passed
     await ctx.step('a tap on the download notification opens the app', async () => {
+      // closed first: `expand-notifications` on a shade that is already open turns it into the quick settings (seen
+      // 2026-11-15: "Internet | Bluetooth | Flashlight …" and no notification to tap)
+      d.sh('cmd statusbar collapse');
+      await d.sleep(800);
       d.sh('cmd statusbar expand-notifications');
       await d.sleep(1500);
       let w = words();
@@ -114,7 +114,7 @@ export const bgInstall = {
       }
       if (!w.some((x) => OURS.test(x))) {
         d.sh('cmd statusbar collapse');
-        throw new Error(`no "Downloading BC fishing rules" notification to tap (the shade shows: ${w.slice(0, 12).join(' | ').slice(0, 300)}; on disk: ${onDisk()})`);
+        throw new Error(`no "Downloading BC fishing rules" notification to tap (the shade shows: ${w.slice(0, 12).join(' | ').slice(0, 300)})`);
       }
       ctx.flow('tap-text', { TEXT: 'Downloading BC fishing rules.*' });
       const end = Date.now() + 10_000;
@@ -147,19 +147,21 @@ export const bgInstall = {
         line = dl ?? w.find((x) => /^Setting up|^Waiting for Wi-Fi|^Downloading the map/.test(x)) ?? line;
         if (!setupShot && w.some((x) => /^Setting up|MB downloaded/.test(x))) { shot('5-reopened'); setupShot = true; }
         if (n++ % 10 === 0) readJs();
-        const disk = bytesOnDisk();
-        // only the download can stall here: once its line is gone the app is verifying and unpacking (the limit is CAP)
-        // (a line that reads full, "479.3 of 479.3 MB", is the same: every byte is down and being checked)
+        // the measure is the APP's byte line. The downloader's files are no measure: it reserves each at its full size
+        // from the first second (`ls -l` and `du` both read 424 MB twenty seconds in). A line that reads full, or the
+        // "Setting up" stage, is the app checking and unpacking (CAP is its limit); otherwise a line that does not
+        // change, or no byte line at all, for STALL is a download that is not moving
         const full = (() => { const m = /^([\d,.]+) of ([\d,.]+) MB/.exec(dl ?? ''); return !!m && Number(m[1].replace(/,/g, '')) >= Number(m[2].replace(/,/g, '')); })();
-        const moving = dl && !full;
-        const still = watch.see(moving ? `${dl}|${disk}` : `setup ${Date.now()}`);
+        const moving = !full && !w.some((x) => /^Setting up/.test(x));
+        const still = watch.see(moving ? (dl ?? 'no byte line') : `setup ${Date.now()}`);
         if (moving && watch.stalled()) {
           readJs(); shot('5-stalled');
-          throw new Error(`the download stopped moving: the setup screen has read "${dl}" and the system's downloader has held ${onDisk() || 'nothing'} for ${Math.round(still / 1000)} s (${Math.round((Date.now() - t0) / 1000)} s after the app was reopened).${saidLost()}`);
+          const last = [...jsLines].filter((l) => /\[download\]/.test(l)).slice(-2).map((l) => l.replace(/^.*ReactNativeJS: /, '')).join(' ; ');
+          throw new Error(`the download stopped moving: for ${Math.round(still / 1000)} s the setup screen has ${dl ? `read "${dl}"` : `shown no byte line at all (it reads: ${w.slice(0, 4).join(' | ')})`} (${Math.round((Date.now() - t0) / 1000)} s after the app was reopened). The app's last download lines: ${last || 'none'}.${saidLost()}`);
         }
         if (Date.now() - t0 > CAP) {
           readJs(); shot('5-not-finished');
-          throw new Error(`setup not finished ${CAP / 60_000} min after the app was reopened, though it kept moving: the setup screen reads "${line}"; on disk: ${onDisk() || 'nothing'}.${saidLost()}`);
+          throw new Error(`setup not finished ${CAP / 60_000} min after the app was reopened, though it kept moving: the setup screen reads "${line}"; the app's log has ${[...jsLines].filter((l) => /\[download\]/.test(l)).length} download lines.${saidLost()}`);
         }
         if (!alive()) d.launch();
         await d.sleep(2000);   // poll interval

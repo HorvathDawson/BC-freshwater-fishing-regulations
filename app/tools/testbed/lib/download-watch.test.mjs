@@ -1,7 +1,7 @@
 // (T756) node --test app/tools/testbed/lib/download-watch.test.mjs
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { diskBytes, stallWatch, thrownAway } from './download-watch.mjs';
+import { stallWatch, thrownAway } from './download-watch.mjs';
 
 const U = 'https://data-staging.canifishthis.ca/release/basemap/basemap-6960ed933a82/basemap-6960ed933a82.pmtiles';
 const js = (t) => `11-15 14:48:19.490 26400 26422 I ReactNativeJS: ${t}`;
@@ -24,17 +24,6 @@ test('queued again with nothing down, a failed-job retry line and the system dow
     '11-15 14:18:25.779  1926  1926 D DownloadManager: onStopJob id=454, reason=cancel() called by app, callingUid=10094 uid=10094 jobId=454',
   ];
   assert.deepEqual(thrownAway(lines), []);
-});
-
-test('the bytes on disk are the files\' sizes, not the header or a folder', () => {
-  const ls = [
-    'total 412660',
-    'drwxrwx--- 2 u0_a94 ext_data_rw      4096 2026-11-15 11:02 sub',
-    '-rw-rw---- 1 u0_a94 ext_data_rw 197196706 2026-11-15 11:02 atlas-b9de120e9ee60b6b.6441dc020a6d.pmtiles',
-    '-rw-rw---- 1 u0_a94 ext_data_rw     62563 2026-11-15 11:01 bc_outside.geojson',
-  ].join('\n');
-  assert.equal(diskBytes(ls), 197196706 + 62563);
-  assert.equal(diskBytes('ls: /sdcard/Android/data/ca.canifishthis.app/files/bg-download/: No such file or directory'), 0);
 });
 
 test('a stall is no change for the whole limit; any change starts the count again', () => {
