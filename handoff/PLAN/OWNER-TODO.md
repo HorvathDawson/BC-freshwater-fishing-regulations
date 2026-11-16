@@ -1439,3 +1439,39 @@ Also from that checker, to be fixed (ticketed): the review app can crash when se
 page pictures are freed outside the lock); test crashes on this Mac come from a map library's database handle in
 child processes; four fixture states for closed river parts are still checked only for "is closed"; 5 of your 17
 reviewed continuation links quietly stopped shipping and 4 new ones wait with no row for you.
+
+### I. The fifth audit report: the app's answers against the printed rule book and DFO's pages
+(`handoff/PLAN/audit-2026-11-16/answers.md`; about 98 waters, about 1,060 answers, three days each, all regions.)
+No wrong number, size or date was found. Province-wide rules matched on all 18 waters with no entry of their own.
+**Seven things the app allows that the sources forbid** (none is new in this release; tickets T793 to T798):
+- Wild-trout limits are missing from the keep card on at least 15 lakes (Comox, Sproat, Great Central, Cultus,
+  Harrison, Pitt, Chilliwack, Chehalis, Lillooet, Lois, Ruby, Windsor, Makii, Dodd): the book says "No wild rainbow
+  trout over 50 cm"; the card says "any size; up to 1 over 50 cm". And the Kitimat with 23 streams, Jul to Oct: "Up to
+  5 rainbow trout" without "hatchery". The data is right; the card drops it. FIRST TO FIX [T793].
+- The Peace River just below W.A.C. Bennett Dam reads open; the book closes it (the rule sits on Dinosaur Lake only)
+  [T794].
+- Williston Lake's "No rainbow trout under 30 cm" is missing on Nation Arm and Davis Bay [T794].
+- "No angling from powered boats" is never shown (Atnarko / Bella Coola, Horsefly, Chilcotin, Chilko, Clearwater,
+  Nicomekl, Serpentine) [T797].
+- A stretch the book closes can still show an open salmon card (Skeena Ecological Reserve, the Atnarko's closed
+  stretch, the Cowichan below Mile 66) [T796]. Question 29.
+- A DFO "Finfish closure" closes only salmon; trout stay open (Stamp, Somass, Sproat, Nitinat, Tahltan) [T796].
+  Question 30.
+- Coal Creek above the old railway bridge asks for no Classified Waters Licence [T798]. Question 31.
+**Things the app forbids that the sources allow:** Fraser Lake, Kotcho Lake and Cold Fish Lake read closed all year
+because an ecological reserve touches 0.1 % of the lake [T795]; dead fin fish as sturgeon bait is not shown on the
+Region 2 Fraser and lower Harrison; the Shuswap Lake pier exemptions; the Pitt Lake head caveat says "release all"
+where the book says wild only [T797].
+More questions (recommended answer first):
+29. A stretch the rule book closes: the salmon card reads closed too, with DFO's row kept as text? Recommended: yes
+    (the book, p.77, says its closures apply to salmon as well).
+30. A DFO "Finfish closure" closes the whole page, trout included, on its dates? Recommended: yes.
+31. Coal Creek above the old MF&M bridge: Class II when open? Recommended: yes.
+32. Williston Lake's 30 cm rainbow minimum on all three Zone A parts (Nation Arm and Davis Bay too)? Recommended: yes.
+33. Puntledge above Comox Lake: the book says fly fishing only above the diversion dam "including tributaries" and
+    exempts the river from the summer closure; we stop both at the lake. Carry both above the lake? Recommended: yes.
+34. Westwick Lakes (26 % inside an ecological reserve) and Priest Lake (59 %): open with a part-closed note, or
+    closed? (Fraser, Kotcho, Cold Fish and 15 Mile Swamp, barely touched, are a plain fix: open.)
+35. Skeena "Section 4" has no printed upper end; the app runs it to the river's source. Right?
+36. DFO "non-retention" reads Closed (your earlier ruling; 20 rows). Keep, or show "release only"?
+

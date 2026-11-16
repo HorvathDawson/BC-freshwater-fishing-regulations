@@ -62,13 +62,19 @@ owner's words tonight, verbatim). The owner is asleep or about to be; the overni
   the list); the fixes for T783, T784, T785, T792 A (small, clear; do after the owner has seen the list or when he
   says go); nothing that changes an answer is fixed without him.
 
-## Next, in order
-1. The answers checker's report → `audit-2026-11-16/answers.md`, the morning list, tickets.
-2. The To-Do page rows.
-3. With the owner: the morning list (re-ticks, questions), then the merge question, then production order (the
-   feeds worker before the data), then closed testing.
+## At 05:00: all five audit reports are in
+`handoff/PLAN/audit-2026-11-16/{code,labels,decisions,guards,answers}.md`; tickets T783 to T798; the owner's morning
+list has sections A to I (36 questions); To-Do page rows `ml-*`. Nothing is running.
 
-## Tickets filed tonight (main chat: T770 to T792; the app chat has T762-T769)
+## Next, in order
+1. With the owner: the morning list (re-ticks, questions).
+2. On his go: T793 first (wild-trout limits missing from the keep card: the app allows what the book forbids), then
+   T794 (Peace below Bennett Dam; Williston), T795 (the four lakes a reserve barely touches), T797 (powered boats),
+   and the small code fixes T783, T784, T785, T792 A. Each needs a deliver run and a staging release: rehearse first
+   (`python -m pipeline release --staging --dry-run --rehearse-follows`).
+3. The merge question (19), then the production order (the feeds worker before the data), then closed testing.
+
+## Tickets filed tonight (main chat: T770 to T798; the app chat has T762-T769)
 T770 gear lines do not stack (owner's yes needed) · T771 chain size and the equal-places check · T772 lake takes its
 through-river's side channels (Kitsumkalum) · T773 tidal boundary name (Kitsault) · T774 a place cannot be saved
 undrawn (Kitimat) · T775 review app rest-of leftovers · T776 audit tool faults · T777 anchors scanner gap · T778 the

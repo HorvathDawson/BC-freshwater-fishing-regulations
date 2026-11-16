@@ -29,8 +29,7 @@ list in `handoff/PLAN/OWNER-TODO.md`, section "2026-11-16 morning list" (also on
 - Skeena cascade, on the built result: 11 of 13 checks pass. To decide: Babine Lake reads open in August inside 13
   closed areas that are not confirmed yet; Gosnell Creek and the Thautil read closed by the Morice row; Gitnadoix coho
   reads open below the powerline; the eulachon line is missing on the Lakelse [T781].
-- General audit (five checkers, read-only; `handoff/PLAN/audit-2026-11-16/`; the answers-against-the-printed-sources
-  checker is still running): no code defect that changes an answer today (97 commits read); all 309 labelled places
+- General audit (five checkers, read-only; `handoff/PLAN/audit-2026-11-16/`): no code defect that changes an answer today (97 commits read); all 309 labelled places
   are stored as your last save says and no place reads open against its own DFO row; 13 of about 150 decisions were
   lost, half-done or recorded wrongly (now ticketed, T786 to T790); the release took 105 minutes over nine attempts
   and about 60 were repeat work (a smaller plan waits for your yes, T791).
@@ -45,7 +44,14 @@ page.
 **Trout display.** Six rounds of mockups on one page; nothing is built. Round 6: one line above the table, a fish
 opens as a sheet, the app's year bar where dates change, sources under the table and in each sheet.
 
-**Running.** One audit checker (answers against the printed sources).
+**The audit's most important finding (answers against the printed rule book, about 98 waters).** No wrong number,
+size or date. But seven things the app allows that the sources forbid, none new in this release: wild-trout limits
+missing from the keep card on at least 15 lakes and on the Kitimat (first to fix, T793); the Peace just below
+W.A.C. Bennett Dam reads open (T794); "No angling from powered boats" is never shown (T797); a stretch the book
+closes can still show an open salmon card, and a DFO "Finfish closure" closes salmon only (T796, your call); Coal
+Creek's licence class (T798). And Fraser Lake reads closed all year because a reserve touches 0.1 % of it (T795).
+
+**Running.** Nothing. Everything is committed and pushed.
 
 ## 2026-11-15 night (chat 14, in flight at 23:26): labels double-checked and fixed, new map promoted, release not yet out
 - All 352 DFO places were read against DFO's words (273 clean, 79 flagged, 15 looked wrong); the fixes you asked for are
