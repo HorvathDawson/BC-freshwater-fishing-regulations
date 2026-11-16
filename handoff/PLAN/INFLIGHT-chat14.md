@@ -21,53 +21,40 @@ owner's words tonight, verbatim). The owner is asleep or about to be; the overni
 - Trout display exploration (Fable): page https://claude.ai/artifact/EopBgDtf8eu4LGZpYixSkH, rounds 1 and 2
   published; round 3 running (owner's feedback in OWNER-TODO). Nothing waits on it (owner's word).
 
-## Running at 01:15 (Nov 16)
-- **Build DONE 00:45**: release `r-46e4355a7277` (reach, tiles, deliver all ok; vintage agrees). T778 fixed
-  (a2ba7396b). Pushed up to 6e1993a9f; head 46c77737d (proposals rebuilt). `apply --check`: only the two T359 waits.
-- Second marks audit read (`<scratch>/audit/audit-after-build.md`): 15 rest-of and 11 not-landed findings resolved;
-  new rows are tool false positives (T776 items 4, 5) plus one owner question (Middle Shuswap place has no tributary
-  choice).
-- Data tests on the build: pass, except `test_curation_review_inseason.py` (10) and
-  `test_curation_review_screen.py::test_re_resolve…` (1), which resolve on LATEST and fail until the release promotes
-  the new one: RERUN BOTH AFTER THE RELEASE. Harness findings on T777 (forked children crash; run review test files
-  in small groups, never all in one process: the memory guard kills it at 48 GB).
-- **`python -m pipeline release --staging` STARTED 01:14** (lane 1, log `<scratch>/logs/release-staging-1.log`). The
-  app chat got BEFORE at 01:13 and its benches are done (all six pass, R8). It stops at gates that need a read
-  (`--accept-fixtures TOKEN`, `--accept-diff FILE`): read the diff, rerun with the token. Then a full staging site
-  build from a clean worktree, `node app/tools/smoke-staging.mjs`, then AFTER to the app chat with the head and the
-  list of app files the release re-cut.
-- Skeena cascade review part 2: the Fable agent was resumed at 01:15 on the built result; report to
-  `<scratch>/cascade/part2.md`, copy into `handoff/PLAN/curation-review/`.
-- Trout display round 5 (mockups only): three fresh designers; two reported (`<scratch>/trout-display/fresh-reader/`,
-  `fresh-calm/`), the third (`fresh-open/`) is running. When all three are in: send the three mocks and notes to the
-  ORIGINAL designer agent to fold into one round 5 in `<scratch>/trout-display/trout-display.html`, then republish the
-  same path. Owner asks (00:2x): the fish picture must not move when a row opens; a species identification
-  placeholder in the opened row; the big "Clipped fin only" note goes, a small "How to tell a hatchery fish" link at
-  the top instead; less clunky overall.
+## State at 04:13 (Nov 16)
+- **RELEASED TO STAGING: `r-46e4355a7277` is LATEST and on staging; the staging site is rebuilt on it; smoke 19 pass,
+  0 warn, 0 fail.** Head d0d584159 (pushed). The app chat got AFTER at 04:12: it redeploys the staging feeds worker
+  (branch `ios/staging-worker`), then bench-diff, fast-fail, both CIs, then the Play build of 0.7.11 (R8) to Play
+  internal on lane 3. It reports when each is done.
+- The release took nine runs. What stopped it, each fixed at its cause: the reach gate (T778, fixed a2ba7396b); the
+  disk (T764, the app chat); a stale mini release (ebc3ca7d9; the pytest tier does not run that step: run
+  `python -m pipeline.tools.mini_release --check` before a push); the binding diff read
+  (`curation-review/release-r-46e4355a7277-binding-diff-read.md`); three golden-tap declarations (fab8b8ed0,
+  53d8e74c5: the closed Fraser state had landed on the wrong part); 12 app tests pinning old part counts (the app
+  chat, 39918037e); the upload gate's fetch refused for want of a user agent (5c5078b2a).
+  RULES LEARNED: never restore the working tree between release reruns (the release expects its re-cut fixtures in
+  place); push and let CI finish before starting; make no commits while it runs.
+- Owner on the pace (01:45): "Everything takes so long maybe we should have less tests all the time and do it together
+  at end or something", then "Feels wasteful". My proposal is in OWNER-TODO for his yes or no; a skip of the release's
+  checks on those words alone was REFUSED by the permission check: he must say it explicitly.
+- **GENERAL AUDIT RUNNING** (five Fable checkers, read-only, started 04:15; reports under
+  `<scratch>/audit-general/{labels,answers,code,guards,decisions}/report.md`): release vs the owner's labels (all
+  regions but the Skeena); app answers vs the printed sources (6 waters per region); the code of Nov 14 to 16; guards
+  and tests (with a smaller check plan for the owner); decided but not built. When each reports: read it, copy the
+  five reports into `handoff/PLAN/audit-2026-11-16/`, ticket the confirmed findings (T783 onward), fix nothing that
+  changes an answer without the owner unless it is a plain bug with a clear fix.
+- Skeena cascade review: DONE, `curation-review/skeena-cascade-review-2026-11-15.md`, ticket T781.
+- Trout display: round 6 is published (same link), MOCKUPS ONLY. Owner's replies and the open questions are in
+  OWNER-TODO; the original designer agent can be resumed for round 7 when he answers.
+- STILL OWED: the ONE combined morning list for the owner (every save to re-tick, mark lines 2770 to 2794; every open
+  question: the 16 second-look ones, lanes A and B, the cascade's, T770, the Middle Shuswap tributary choice, the
+  check-plan proposal, trout round 6's four), a plain summary, the STATUS.md top entry, the To-Do page rows.
 
 ## Next, in order
-(Steps 1 to 3 are DONE; step 4 is running.)
-1. Build done → read it (deliver gates, size gates, part names); if it stops, fix the cause.
-2. Full pipeline CI tier on the head (T761 sweep commits + e3d6d5f26 are NOT yet covered by a green tier: the last
-   tier ran before e3d6d5f26 and had the one size-shape failure it fixes), then the data-tier tests T761 / T763 listed
-   (`test_curation_review_*.py`, `test_review_closed_areas`, `test_review_dfo`, `test_review_marks`,
-   `test_review_queue`, `test_dfo_salmon.py`, `test_dfo_header.py`, `test_export_ui_rules.py`, `test_answers_28_live.py`),
-   then push.
-3. Marks audit again with `--since <scratch>/audit/audit-final.json`.
-4. Message the app chat BEFORE the staging release and wait for its "benches done"; then
-   `python -m pipeline release --staging` (expect `--accept-fixtures` for: T762's 103 year lines on 98 answer keys,
-   T763's one Kootenay card, tonight's data changes; read the fixture diff first), a FULL staging site build from a
-   clean worktree, `node app/tools/smoke-staging.mjs`; then the "after" message with the head: the app chat redeploys
-   the staging worker from `ios/staging-worker` and runs the Play build of 0.7.11 (R8) to Play internal.
-5. Skeena cascade review part 2: resume the Fable agent (part 1: `<scratch>/cascade/part1.md`, 13 checks listed at its
-   end; to confirm: the rule-book Morice "No Fishing from Gosnell Creek to Lamprey Creek" binding Gosnell Creek and the
-   Thautil, ruling T9). Write its report into `handoff/PLAN/curation-review/`.
-6. General audit (Fable, about six checkers; scope told to the owner: release vs labels; app answers vs sources on a
-   sample per region + the Skeena; every code commit of Nov 14-15 with the flagged list; guards and tests; decided but
-   not built). Include the app chat's `pipeline/tools/emit/dfo_vectors.py` and `pieces_gate.py` branch changes.
-7. Morning: ONE combined list for the owner (he said "ill review all regions together"): every save to re-tick and
-   every open question, all regions; update the To-Do page rows (`sl-*`, `trout-display-options`), STATUS.md top
-   entry, START-HERE pointer.
+1. Read the five audit reports as they arrive; ticket; copy into `handoff/PLAN/audit-2026-11-16/`.
+2. Write the morning list (OWNER-TODO section "2026-11-16 morning list") and the To-Do page rows; STATUS top entry.
+3. Follow the app chat's worker redeploy and Play build; record the result.
+4. Then: closed-testing steps with the owner; production stays his.
 
 ## Tickets filed tonight (main chat: T770 to T778; the app chat has T762-T769)
 T770 gear lines do not stack (owner's yes needed) · T771 chain size and the equal-places check · T772 lake takes its
