@@ -148,7 +148,7 @@ def _t517_at(ix, group):
 
 
 PART_GROWN = {
-    "x15p0_1010": (19, f"{T183}: a Fraser piece at the Region 5 / 7A line carries both regions' rules and joined part 16 (109 -> 108 sections); then T678 D1 (owner 2026-11-11, r-0a9930fb8826): two ponds on the upper Fraser are the river now (3 -> 1 lakes, 108 -> 112 sections; same rows), and river order numbers it part 19; then the T678 junction fix (owner 2026-11-13, r-adc4e248a163): a corrected junction measure re-cuts one Fraser piece (112 -> 113 sections; same part, same ends, same 1,407.21 km, same rows)"),
+    "x15p0_1010": (23, f"{T183}: a Fraser piece at the Region 5 / 7A line carries both regions' rules and joined part 16 (109 -> 108 sections); then T678 D1 (owner 2026-11-11, r-0a9930fb8826): two ponds on the upper Fraser are the river now (3 -> 1 lakes, 108 -> 112 sections; same rows), and river order numbers it part 19; then the T678 junction fix (owner 2026-11-13, r-adc4e248a163): a corrected junction measure re-cuts one Fraser piece (112 -> 113 sections; same part, same ends, same 1,407.21 km, same rows); then r-46e4355a7277 (2026-11-16): the release has 24 Fraser parts where r-f749475d0962 had 20 — four more stretches in Region 3 between the Thompson confluence and the Bridge River Rapids (parts 12 to 16), where two Region 3 DFO places went from no extent to bound (3:fraser-river:in-that-portion… 3 sections, 3:fraser-river:mainstem-waters… 31; the owner's saves landed 2026-11-15) — so the golden part, unchanged (same label, 113 sections), is part 23, not 19"),
     "x14p0_1010": (3, f"{T220}: braid pieces that close a kept side channel were restored (26 -> 27 sections); then T678 D1 (owner 2026-11-11, r-0a9930fb8826): the Kitimat's pond lake:329233923 is the river now (27 -> 28 sections, no lake; same rows), and river order numbers it part 3"),
     "x13p4_1010": (7, "T322 (owner 2026-10-29 slough calls, folded 2026-11-03): a lake on this water is a slough of its stream now, so the part runs through one lake fewer (35 -> 42 sections; same rows); then T678 D1 (owner 2026-11-11, r-0a9930fb8826): 21 ponds on the Dean are the river now (24 -> 3 lakes, 17 -> 27 sections; same rows)"
                    + _t517_at(7, "parts 7, 8 and 9")),
@@ -175,7 +175,13 @@ PART_GROWN = {
                      "group and rows), and the below-Reserve stretch of group 0 (old part 2, 46 sections) is now two runs "
                      "either side of the Reserve (parts 1 and 3, 44 + 2 sections, same key), so this group is store parts 4 and 5"
                      "; then T710 (owner 2026-11-13 'List it where it sits', r-a9914d6b25b7): the Reserve side channel "
-                     "(old part 18) is listed after part 3, so this group is store parts 5 and 6 (order only, no binding)"),
+                     "(old part 18) is listed after part 3, so this group is store parts 5 and 6 (order only, no binding)"
+                     "; then r-46e4355a7277 (2026-11-16): the confluence cut skeena_river__lakelse_river_into_skeena_river "
+                     "(the owner's cut answers of 2026-11-15) divides this group's first run at the Lakelse — Exchamsiks "
+                     "-> Lakelse, 55 sections to the 108.51 km mark (store part 5, tapped), then Lakelse -> Zymagotitz, 8 "
+                     "sections to the same 115.77 km mark (part 6), then part 7 (4 sections) as before: 60 -> 55 + 8, same "
+                     "key, same group, same rows; and the group's upper cut is labelled as the owner named it, 'the top of "
+                     "Hell's Gate (1.5 km above the Kitsumkalum)' (label only)"),
     "x17p7_1010": (5, "T697 part ends (owner 2026-11-12, RULINGS P55 follow-up 'Yes, read the real boundary', 040b79d16, "
                       "r-adc4e248a163): the Babine's juvenile counting weir cut is aliased onto Nilkitkwa Lake's outlet edge "
                       "and now keeps its own name (bundle.spans.end_token), so the part's top end reads 'the juvenile "
@@ -195,7 +201,7 @@ PART_GROWN_IS: dict = {
     'x14p0_1010': ('From the Hwy 37 bridge up to the top of the river', 28),
     'x27p0_1010': ('Two stretches: from Region 7A boundary up to Region 6 boundary (through 4 lakes), and from Region 6 boundary up to the top of the river (through 1 lake)', 72),
     'x27p2_1010': ('From the mouth up to Region 5 boundary', 3),
-    'x19p1_1010': ('From the Exchamsiks River confluence up to 1.5 km upstream of the Kitsumkalum River confluence', 60),
+    'x19p1_1010': ("From the Exchamsiks River confluence up to the top of Hell's Gate (1.5 km above the Kitsumkalum)", 55),
     'x13p4_1010': ('From Anahim Lake up to the top of the river (through 3 lakes)', 27),
     'x9p1_1010': ('Upstream of Koocanusa Reservoir · From the Koocanusa Reservoir upstream end up to the White River confluence', 56),
     'x9p0_1010': ('From the B.C. border up to the Lake Koocanusa outlet', 1),
