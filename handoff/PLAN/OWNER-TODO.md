@@ -1127,3 +1127,13 @@ reopens Nov 1.
   Found on the way (to check, not design): the Kitimat's stored rows give wild rainbow a limit of 1 (30 to 50 cm);
   today's card shows only "Up to 5 rainbow trout, 50 cm (20 in) or less". Ross Lake's stored headline says 2 and its
   daily total says 4. Both go on a ticket after tonight's release.
+
+- 2026-11-15 23:58, trout display, the owner's reply to round 3 (verbatim): "For the trout design. Please take the
+  stuff you like best then we need to ujify over x size and x+ also we want both in and cm. And we want to make the
+  stuff like 1 over 50cm on group easier to tell. Also dolly are not in list?"
+  Round 4 started on the same page. My reading: (1) the reviewer's picks become the one design, comparisons fold away
+  (answers round 3 questions 1, 2, 4, 5 as "your pick"); (2) one way of writing a size everywhere ("over 50 cm" and
+  "50 cm+" unified, true at the edge); (3) inches AND centimetres on the row (answers question 3: both shown);
+  (4) a size limit that belongs to a whole group ("only 1 over 50 cm") must read at a glance as the group's;
+  (5) Dolly Varden: the round 3 rows said only "Bull trout"; the book and today's card say "Dolly Varden/bull trout"
+  and the app has a Dolly Varden drawing. Being checked per region and fixed on the page.
