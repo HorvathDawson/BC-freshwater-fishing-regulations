@@ -1847,3 +1847,27 @@ More questions (recommended answer first):
   grey still hooks onto the first row; "no limit of its own" can read as "unlimited"; the date words are right on 49
   of 50 lines but say nothing when a fish goes to zero, when wild / hatchery changes, or when the water closes; wild
   char at Dodd and Lois now look keepable on their rows. Appended to the design review file.
+- Pictures 28, 29, 31, 32 (answered about 13:38). Kitimat "on west bank between signs at Kitimat hatchery outfall"
+  (2786; drawn river only), asked whether DFO's heading "Kitimat River (including tributaries)" makes the strip take
+  the side streams that join there: "Heading counts here too". So my save 2786 (side streams off) is reversed: the
+  strip takes its side streams (about 12 pieces), both banks still closed until one-bank places exist. Skeena
+  sockeye leftover place, CNR bridge to above the Babine (2790): "Right". Thompson closed area Deadman (2748; START
+  measures 495 m below the Hwy 1 bridge where DFO says about 1 km): "Find out why, then show me". Thompson closed
+  area Ashcroft (2749; starts at the Bonaparte mouth itself): "Right".
+- Pictures 33 and 34, the heading rule, the size limit (answered about 13:42). Thompson closed area Juniper (2785):
+  "Keep 4 km (errs closed)". Shuswap closed stretch (2770): "Right: keep the printed points". ALL 34 PICTURES ARE
+  ANSWERED. The ten places that take side streams only through the old water-wide switch (the Tatshenshini
+  whole-river row, Kitseguecla, Sustut, Cranberry, Kiteen, Meziadin, three Nanaimo places, Little Campbell, the
+  Morice Forks): "Yes, river only for all ten (Recommended)" (changed answers shown to him before it ships; the
+  water-wide switch is retired; the setting is derived from the exact heading and the place's words). The salmon
+  head file's size limit, 60 kB, so that a book-closed stretch closes salmon everywhere (about 92 kB): "Raise to
+  100 kB (Recommended)".
+- Named side creeks and trout round 8 (answered about 13:48). A DFO row that names a creek without the word
+  "tributaries" (Tatshenshini: "Kwatini Creek, Stanley Creek and Goat Creek"; "Blanchard River"): "A named creek
+  keeps its side streams". So: naming a creek means its whole small system; saves 2779 and 2780 stand; this is a
+  stated exception to the heading rule (a ruling). Trout round 8, the grey band beside a fish with no tighter limit:
+  ""up to the 5" (Recommended)". A possession limit smaller than the day's limit (Cunningham Lake), typed: "it is
+  only possession of one type of trout fo rcunningham. use best judgement here". So: the possession line belongs to
+  the lake trout row only and must say so; the wording is left to my judgement (the possession number leads on that
+  row, the day's 3 as a quiet line). What next for the trout work, typed: "round 3 then attack again but use opus".
+  My reading: one more round (round 9) and one more attack, both done by Opus agents, not Fable. Mockups only.

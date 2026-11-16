@@ -117,6 +117,31 @@ older tickets carry his answer in a section "Owner, 2026-11-16".
 - T804 (the universal "own row" rule) and the small code lane (T784, T785, T792 A, T799, T797 items 2 to 5, T801
   items 2 to 4) are NOT started.
 
+### Added 13:50: the owner's later answers (all in OWNER-TODO, end of file)
+- ALL 34 re-check pictures are answered. Right as drawn: 1, 3 to 21, 23 to 26, 29, 30, 32, 33 (keep 4 km), 34 (keep
+  the printed points). Changes he asked for: Stamp Falls cut STAYS (500 m below the fishway; gotcha); Lamprey Creek
+  confluence onto the Morice main channel (22); Sheldens: low-confidence cut at the road crossing near the mouth,
+  also the tidal boundary (26); Babine: confirm the 7 matching circles, lake open with note, the rest a later item
+  for him (27); Kitimat outfall strip TAKES its side streams ("Heading counts here too") (28); Deadman START: find
+  out why it is 495 m below the bridge, then show him (31). The Blanchard place is right (his "wrong" withdrawn).
+  NOT DONE YET: saving each answer through the review app with his words.
+- Heading rule: "Yes, river only for all ten" (Tatshenshini whole-river row, Kitseguecla, Sustut, Cranberry, Kiteen,
+  Meziadin, three Nanaimo places, Little Campbell, the Morice Forks); "A named creek keeps its side streams" (the
+  three creeks and the Blanchard stay as saved; an exception to write into RULINGS). Build: derive the setting from
+  the exact heading + the place's words, a saved value only as a stated exception (design note in the audit file);
+  changed answers to him before it ships. No ticket yet: file it (next free number T807).
+- Salmon head size gate: "Raise to 100 kB". The salmon lane agent (`a2becf9b4bea93daf`, resumed 13:43) is adding
+  commits on `lane/salmon-rules-1116`: carry the book place everywhere, gate 100 kB, the full list for the owner
+  (`<scratch>/t796/book-closures-list.md`), proof that the map's status data reads closed. The app chat (-9c) builds
+  its twins FROM that branch (never rebase it) and we land the vector-moving parts TOGETHER; T783 alone may land any
+  time (tell it first).
+- Trout: "up to the 5" in the grey band; Cunningham's possession line is the lake trout's only; "round 3 then attack
+  again but use opus": round 9 is running with an OPUS designer (agent `a2f408891ce214d38`); when it hands back:
+  publish the same page, then spawn an OPUS attacker (brief like the Fable one's: the review file's three sections +
+  `trout-adversarial/enum.json`, `rules.json`), report both to him. From now on trout agents are Opus.
+- The book-rule lane (`lane/book-rule-fixes-1116`) can land now: nothing in it waits on anyone (Puntledge: "Yes, as
+  printed").
+
 ### The fix queue for the next staging release (all with his go; each lands with the full tier, then ONE release)
 1. T793 (landing now). Tell him with the changed-answers list that Lois and Khartoum read 2 wild + 2 wild (T805.1).
 2. Printed rules back on the page: T794 (Peace below Bennett Dam: map check, maybe a cut = next rebuild; Williston
