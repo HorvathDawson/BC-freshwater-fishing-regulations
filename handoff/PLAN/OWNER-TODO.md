@@ -2016,3 +2016,13 @@ More questions (recommended answer first):
   accepted design is one list at the end of T810. No question pending on trout.
 - 16:04, typed in chat (verbatim): "can we move over to opus agent now?" Answered: yes; he switches the model himself
   (the /model command, pick Opus) and pastes the continue prompt; the state page's block C says what to do first.
+- 16:07, typed in chat (verbatim): "okay i created a new chat please coordinate with it for any new info etc as we ramp
+  this chat down". The new main chat is session `bc-freshwater-fishing-regulations-8c`. This chat (session
+  `bc-freshwater-fishing-regulations-17`) keeps only one job while it ramps down: its three workers hand their
+  reports back HERE, so each also writes its report to a file under the scratch folder `handbacks/`, and this chat
+  relays each to the new chat when it arrives.
+- 16:09, T805 part C (one dialog; the list `changed-answers-C.md`: Lois and Khartoum cards add "No more than 2 wild
+  trout and char in all"; Lois and Windsor wild Dolly Varden / lake trout go back, hatchery only like the other five
+  wild-2 lakes; 3 waters, Region 2, all stricter). Answer, picked: "Go (Recommended)". So: part C (commit 0f6fe2868 on
+  `lane/t805-trout-data-gaps`) lands with the full tier and ships in the next staging release. Parts B and D still to
+  come to him as their own lists.
