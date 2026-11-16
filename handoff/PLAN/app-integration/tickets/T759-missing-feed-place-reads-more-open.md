@@ -40,3 +40,21 @@ app say "not known, check the DFO notice" for that stretch (recommended) or foll
 
 ## Who
 Python feed: main chat. Worker and app: the iOS chat (with T757/T758). Not part of Play build 33.
+
+## Added 2026-11-16 00:31 (app chat): the river line's stripe is built (owner's pick C), not merged
+- Branch `app/t759-stripe` @ 6c24f94a6 (from `app/t759-issues` 1289d8c20; worktree only, not pushed). Sonnet lane.
+  The prototype branch `app/t759-line-looks` is superseded and must never be merged.
+- Built: two runtime layers (a paper dash under an ink dash, pattern [3, 2]) down the middle of every section of a
+  river with a banner, drawn only in the Salmon view (opacity 0 in every other view), same zoom fade as the bait-ban
+  edges, both adapters through the shared style code; tokens `color.issue.stripe`, `color.issue.casing`,
+  `dash.issue.stripe`; legend entry "Check rule" (`MAP_KEY.issue`; only wording that fits the two-row legend at
+  390 dp); a square "!" badge on the folded Salmon row, label "A DFO rule to check on this water"; a closed-all-year
+  Salmon row with a banner now folds open to it.
+- Colour: the closed colour fails (contrast 1.00 on a closed line in all three themes; under 3:1 on the open and
+  release lines), so neutral ink on paper; `tools/issue-stripe.test.ts` (18 tests) holds it on every Salmon line
+  colour, the basemap grounds and 17 greys for satellite, under protan, deutan and tritan.
+- Not proven: the native adapter never rendered (shared style code + a native style JSON test only); the lane's
+  `check:fast` could not finish for a missing `.venv` link (re-run by the app chat, result below when in); no emulator.
+- Owner: pictures sent 00:31, To-Do row `t759-stripe-final` (legend words, strength on the dark blue line).
+- Left: his two confirms; an emulator look on Android; then it merges WITH the rest of T759's app half and the feeds
+  half (`feeds/t759-issues`), benches and a message to the main chat first.

@@ -286,6 +286,18 @@ with the default Claude uses until you answer). Newest first inside each section
   Claude's call by best practice: the closed colour is tried first; if it reads as "closed" or fails the dark-theme
   or colour-blind check, a neutral ink that does not is used; he sees the final picture before it ships. Folded
   Salmon row: marked (the banner-place answer above).
+- **NEW 2026-11-16 00:31 (app chat, T759; To-Do row `t759-stripe-final`): the final stripe is built; look at the
+  pictures and confirm two small things.** Branch `app/t759-stripe` (6c24f94a6, from `app/t759-issues`; not pushed,
+  not merged, NOT in the 0.7.11 build). Pictures sent in the app chat (contact sheet `final-stripe.jpg` + light and
+  dark close-ups; Campbell River with one made-up unplaced DFO rule). Built: dashes down the middle of every stretch
+  of a river with the banner, Salmon view only (web and phone style code), fading at far zoom like the bait-ban
+  edges; a square "!" mark on the folded Salmon row; a legend entry. Colour (his words left it to Claude): the closed
+  colour FAILED (same red on a closed stretch = invisible, contrast 1.00; and a red dash on a blue line reads as
+  "closed"), so black ink on a pale edge (white on dark in the dark theme), held by contrast and colour-blind tests
+  on every Salmon line colour. CONFIRM 1: the legend entry reads "Check rule" ("DFO rule to check", "Rule to check"
+  and "Check a rule" do not fit the two-row legend at phone width); OK or other words of about ten letters?
+  CONFIRM 2: is the stripe strong enough on the dark blue "Keep salmon" line? Not proven: no phone or emulator has
+  drawn it yet (web pictures + style tests only).
 - **NEW 2026-11-15 22:27 (app chat, T760; PROPOSAL, words and numbers; To-Do row `t760-download-words`): a first
   install that stops moving says so.** Two causes of a setup screen that sat for ever were found and fixed on
   branches (not merged, not in tonight's Play build): a small file the app fetches itself that stalled was never tried
