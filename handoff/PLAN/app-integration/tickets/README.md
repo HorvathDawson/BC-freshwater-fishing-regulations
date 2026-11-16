@@ -298,6 +298,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T804 | One stated rule, applied everywhere: a joining water with a row of its own is not inside its neighbour's stretch rule (Gosnell Creek and the Thautil River come out of the Morice closure; Lamprey Creek stays in) | OPEN | — | owner answers 2026-11-16 (`handoff/PLAN/OWNER-TODO.md`, "Answers by batch"), question 9 |
 | T805 | Trout data gaps found by the adversarial review of the trout redesign: a wild quota stored per row reads 2 + 2 (Lois, Khartoum), Region 7 possession exceptions on no row, Shamrock Creek's impossible steelhead line, the cross-border quota, Echoes Lakes | OPEN | — | adversarial review of the trout display, 2026-11-16 (`handoff/PLAN/design/trout-adversarial-review-2026-11-16.md`) |
 | T806 | The 40 saves to re-check with the owner, in chat with a picture each: 5 he marked wrong, 35 written by Claude for him (11 live and open in Nov or Dec) | OPEN | — | owner answers 2026-11-16 (`handoff/PLAN/OWNER-TODO.md`, "Answers by batch"), question 18 |
+| T807 | A DFO place's side streams are derived from the exact heading its row sits under and its own words; a saved value is only a stated exception (ten places go river-only; a named creek keeps its side streams; the Kitimat outfall strip takes them) | OPEN | — | owner answers 2026-11-16; heading audit (`handoff/PLAN/curation-review/dfo-side-streams-against-exact-headings-2026-11-16.md`) |
 
 ## Next after closed testing
 
