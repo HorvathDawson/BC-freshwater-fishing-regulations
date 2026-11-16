@@ -51,17 +51,16 @@ the file: "Answers by batch", "Re-check of saves", and the dated lines after the
     globs and `====` in zsh. Use absolute paths (a `cd` sticks). RULINGS is `pipeline/docs/RULINGS.md`.
 13. His name, email and the project name never go into requests to outside services. No reading `.env`.
 
-### C. Where everything stands at 15:49 on 2026-11-16 (ONE block; rewritten whole each time, trust only this)
+### C. Where everything stands at 15:56 on 2026-11-16 (ONE block; rewritten whole each time, trust only this)
 The owner, 15:49: "we will run out of credits soon... we should m,ake sure handoff is good for opusa to take over at
 anytime." If you are the main chat arriving on Opus: read A and B above, this block, then D to G. Do not re-ask him
 anything answered below; his words are at the end of OWNER-TODO.md under today's times.
 
-**1. Push state.** Local commits may be ahead of origin (`git rev-list --left-right --count
-HEAD...origin/redesign/stream-sections`). The app chat asked for docs pushes to be BATCHED (at most every 20 minutes,
-never while it says a CI run is in flight; it tells me "finished"). At 15:49 it had runs in flight on 1809e6a54 and I
-hold five local commits (T809 + T810 filed; the T806 saves; T810 notes; this page). All are safe to push once it
-says go: the saves were proven by the full tier (6,499 pass), `mini_release --check` and `dfo_vectors --check`.
-A commit SUBJECT must not contain a ruling id like "T2": the ticket guard reads it as a ticket (it cost a reword).
+**1. Push state (15:56).** Everything up to the T806 saves, T809 / T810 and this page's earlier version is PUSHED
+(seven commits, about 15:56). The app chat asked for docs pushes to be BATCHED (at most every 20 minutes, never while
+it says a CI run is in flight). pipeline-ci on 1809e6a54 was RED for three of the app chat's own tests ("Cannot find
+module 'esbuild'"); it is landing a test-only fix (abed0f550) on my "clear" and will report green or red: do not
+chase that red. A commit SUBJECT must not contain a ruling id like "T2": the ticket guard reads it as a ticket.
 
 **2. Workers out now (all Opus; ids for SendMessage).**
 - `a26597e78169ffe90`: T805 trout data gaps, worktree branch `lane/t805-trout-data-gaps`, parts C (Lois / Khartoum
@@ -71,11 +70,12 @@ A commit SUBJECT must not contain a ruling id like "T2": the ticket guard reads 
 - `a1d3e84d79ee0a6f5`: T809 changed-answers tool (`pipeline/tools/audit/answers_diff.py`), worktree branch
   `lane/t809-answers-diff`. WHEN BACK: check its run on r-46e4355a7277 vs the candidate r-685b700b2802 matches the 71
   book-closure rows; it changes no answer, so it can land after its tests + the tier (tell the app chat first).
-- `ae176f25b522ddc16`: trout designer, round 13 (mockup): "hatchery only" on ONE row, no separate wild rows, wild
-  shown apart only when wild has its own quota (his words, in OWNER-TODO and T810). WHEN BACK: publish
-  `<scratch>/trout-display/trout-display.html` to https://claude.ai/artifact/EopBgDtf8eu4LGZpYixSkH (Artifact tool,
-  that `file_path` plus `url`), send him `shots/r13/fraser-r2-before-after.png` and `skeena-before-after.png`, ask
-  one question: is this right.
+- `ae176f25b522ddc16`: trout designer, round 14 (mockup, small): he accepted round 13's hatchery rule ("yes this is
+  good on fraser but the hatchery on steelhead on skeena doesnt stand out very well. should slightly improve that")
+  and "Hatchery only" for the Lois / Khartoum steelhead row. Round 14 shows the Skeena steelhead row two ways (A, B).
+  WHEN BACK: publish `<scratch>/trout-display/trout-display.html` to https://claude.ai/artifact/EopBgDtf8eu4LGZpYixSkH
+  (Artifact tool, that `file_path` plus `url`), send him `shots/r14/skeena-two-ways.png`, ask ONE question: A or B.
+  After his pick the design is settled: write the accepted design rules into T810 in one list.
 - Finished and not to restart: the salmon lane worker (`a2becf9b4bea93daf`), the saver, the closures page builder
   (`a584efcd7800efbc8`, Sonnet; resume it for page edits), the spec writer (`aa228bfcc495d8a50`; resume it to fold
   his later answers into the spec), the side-stream auditor.
@@ -99,7 +99,7 @@ him), Morice Forks-to-Bymac 2738 (needs his plain "right"), Morice Gosnell-to-La
 Squamish mark (marks line 2511, "downstream of the powerline crossing", "binding moved"); not caused by today's saves,
 not in the CI tier; find what moved it, then fix the cause or show him the place again.
 
-**5. Trout.** Mockup page at round 12 (13 running). Accepted design: the round 8 look with no outline; today's rule
+**5. Trout.** Mockup page at round 13 (14 running: only how "hatchery only" stands out on one fish's row). Accepted design: the round 8 look with no outline; today's rule
 bigger, the coming change smaller underneath; a coming closure says what closes, no reopening date; the reopening
 date only while closed today; "rule changes <date>" for a change that only loosens; Adams 80 cm on the row; hatchery
 only on one row. Build: T810 (umbrella) and the spec `handoff/PLAN/design/trout-table-build-spec-2026-11-16.md`. He
@@ -113,7 +113,7 @@ and one row per origin).
 T808 = the web reads every salmon file after first paint (a fix frees first-tap room; it sends numbers). My next free
 ticket number is T811.
 
-**7. Owed to him, in this order.** (a) Round 13 picture + one question. (b) T805's changed-answers lists, a go per
+**7. Owed to him, in this order.** (a) Round 14 picture + one question (A or B). (b) T805's changed-answers lists, a go per
 part. (c) The app chat's before / after closure pictures, then the salmon landing. (d) T807's changed answers (ten
 places river-only) before it ships. (e) T804's universal rule + list. (f) The follow-up saves in 4. Then section E's
 queue to ONE staging release.
