@@ -2014,3 +2014,5 @@ More questions (recommended answer first):
   box's top line when it covers every fish (Fraser Region 2: "Keep 2 in all [HATCHERY ONLY] only 1 over 50 cm (20
   in)") and beside the name for one fish (Skeena steelhead). The design is settled unless he says otherwise; the
   accepted design is one list at the end of T810. No question pending on trout.
+- 16:04, typed in chat (verbatim): "can we move over to opus agent now?" Answered: yes; he switches the model himself
+  (the /model command, pick Opus) and pastes the continue prompt; the state page's block C says what to do first.

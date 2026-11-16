@@ -51,16 +51,19 @@ the file: "Answers by batch", "Re-check of saves", and the dated lines after the
     globs and `====` in zsh. Use absolute paths (a `cd` sticks). RULINGS is `pipeline/docs/RULINGS.md`.
 13. His name, email and the project name never go into requests to outside services. No reading `.env`.
 
-### C. Where everything stands at 16:03 on 2026-11-16 (ONE block; rewritten whole each time, trust only this)
+### C. Where everything stands at 16:04 on 2026-11-16 (ONE block; rewritten whole each time, trust only this)
 The owner, 15:49: "we will run out of credits soon... we should m,ake sure handoff is good for opusa to take over at
 anytime." If you are the main chat arriving on Opus: read A and B above, this block, then D to G. Do not re-ask him
 anything answered below; his words are at the end of OWNER-TODO.md under today's times.
 
-**1. Push state (15:56).** Everything up to the T806 saves, T809 / T810 and this page's earlier version is PUSHED
-(seven commits, about 15:56). The app chat asked for docs pushes to be BATCHED (at most every 20 minutes, never while
-it says a CI run is in flight). pipeline-ci on 1809e6a54 was RED for three of the app chat's own tests ("Cannot find
-module 'esbuild'"); it is landing a test-only fix (abed0f550) on my "clear" and will report green or red: do not
-chase that red. A commit SUBJECT must not contain a ruling id like "T2": the ticket guard reads it as a ticket.
+**1. Push state (16:04).** The owner asked at 16:04 to move this chat to Opus now. FIRST THING TO DO: run
+`git rev-list --left-right --count HEAD...origin/redesign/stream-sections`; at 16:04 it read "5 0": five local
+commits (notes, tickets and this page only; no code, no data) wait to be pushed. The app chat's two CI runs on its
+test-only fix (app 43974821875, pipeline 43974821996) were still in flight; push once it says they finished
+(`gh run list --branch redesign/stream-sections --limit 3` shows them), then go back to batching docs pushes (at
+most every 20 minutes, never while it says a run is in flight). Everything else (the T806 saves, T809 / T810, the
+earlier notes) is already on origin. A commit SUBJECT must not contain a ruling id like "T2": the ticket guard
+reads it as a ticket.
 
 **2. Workers out now (all Opus; ids for SendMessage).**
 - `a26597e78169ffe90`: T805 trout data gaps, worktree branch `lane/t805-trout-data-gaps`, parts C (Lois / Khartoum
