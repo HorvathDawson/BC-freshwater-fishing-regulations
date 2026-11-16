@@ -1987,3 +1987,10 @@ More questions (recommended answer first):
   for every rule of that row); the page builder had only looked for the words. The other 5 close nothing but the
   named creek itself. Dean River row 12 (control): the walk stops at both ends of the stretch. Nothing is placed too
   wide; trout answers are unaffected. The page (version 3) now shows the ✱ note on 20 rows.
+- 15:48, typed in chat on round 12's Region 2 Fraser card (six hatchery rows in the keep box, six wild rows under
+  Release), verbatim: "i dont like the new wild and hatchewry option you sent we should jsut say hatchery only unless
+  specifically wild has a seperate quota to wild like 1 wild and 2 hatchery or something.... otherwise it is
+  hatrchery only or unspecified (the same for both no mentiuon needed)". So, three cases and no others: (1) wild and
+  hatchery have the same rule: no mention at all; (2) only hatchery fish may be kept: ONE row per fish that says
+  "hatchery only", and no separate wild rows under Release; (3) wild fish have a quota of their own (for example 1
+  wild and 2 hatchery): only then are wild and hatchery shown apart. Round 13 (mockup) is being built on that.

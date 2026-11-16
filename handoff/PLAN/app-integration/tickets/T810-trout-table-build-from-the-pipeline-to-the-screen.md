@@ -39,3 +39,10 @@ the same table) is dropped; its ticket S cannot delete the old card code outrigh
 its trout path goes); the folded line of ticket O is the entry's own row, not a new block. Round 12's design answers
 (15:36) are also his: a coming closure without the reopening date; the reopening date only while closed today;
 "rule changes <date>" for a change that only loosens.
+
+## Owner, 2026-11-16 15:48 (wild and hatchery rows)
+"i dont like the new wild and hatchewry option you sent we should jsut say hatchery only unless specifically wild has
+a seperate quota to wild like 1 wild and 2 hatchery or something.... otherwise it is hatrchery only or unspecified (the
+same for both no mentiuon needed)". Rule for the table: same rule for both origins = no mention; keepable only when
+hatchery = one row per fish saying "hatchery only", no wild row under Release; wild shown apart only when wild fish
+have a quota of their own. The spec's row model (one row per fish and origin) changes accordingly.
