@@ -279,3 +279,7 @@ image: the local transport stands in for it, same rules engine, same 25 MB quota
 `fullBackupContent` path (this image is API 35, which reads `dataExtractionRules` only; the file is pinned by the test
 and in the APK). Not built: the backup-set worker, the line in the app, the stored-photo resize (all wait on the
 `expo-image-manipulator` decision). The privacy and data-safety texts are untouched (other chat's files).
+
+## Owner, 2026-11-16 ~16:55 (app chat dialog, verbatim label)
+Photo copies in a backup, 1280 px (picture `photo-copies-compare.jpg`, sent 12:59, again 16:55): "D: WebP 75" (the
+recommendation was B, JPEG 70). OWED before T732 lands: the photo copy step encodes WebP at quality 75.
