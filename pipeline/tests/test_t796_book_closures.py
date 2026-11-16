@@ -58,21 +58,28 @@ def test_the_book_closure_answers_first_on_its_days():
     assert out["p"][lid] == {"r": "1", "water": "COWICHAN RIVER", "static": 1, "book": {"rule": RULE, "pages": [15]}}
 
 
-def test_a_chain_dfo_closes_every_day_takes_no_book_place(monkeypatch):
-    """`BOOK_ONLY_WHERE_DFO_LETS_FISH` (the salmon head's size gate): where DFO closes every salmon every day the answer
-    is closed either way, so the book place is left out; with the policy off it joins. MUTATION: the policy off and the
-    shut chain gains the book place."""
+def test_a_chain_dfo_closes_every_day_takes_the_book_place_too(monkeypatch):
+    """(Owner 2026-11-16: "Raise to 100 kB") the book place joins EVERY DFO-listed chain it closes, a chain DFO closes
+    every day included — so it still answers when the live feed opens that chain in season. The old size policy
+    (`BOOK_ONLY_WHERE_DFO_LETS_FISH` True) left such a chain out. MUTATION: the policy back to True and the shut chain
+    has no book place."""
     (payload, sections), _ = _built()
     shut = {"s": "closed", "t": "No fishing for salmon"}
     payload = {**payload, "verdicts": [*payload["verdicts"], shut]}
     ix = len(payload["verdicts"]) - 1
     payload["chains"] = [*payload["chains"][:1],
                          *({**c, "sp": [[0, ix]] * len(S.SPECIES)} for c in payload["chains"][1:])]
-    out, secs = S.with_book_closures(payload, sections, {2: {RULE: CLOSED_DAYS}}, WORDS)
-    assert dict(secs) == dict(sections) and "static" not in out
-    monkeypatch.setattr(S, "BOOK_ONLY_WHERE_DFO_LETS_FISH", False)
+    assert S.BOOK_ONLY_WHERE_DFO_LETS_FISH is False
     out, secs = S.with_book_closures(payload, sections, {2: {RULE: CLOSED_DAYS}}, WORDS)
     assert out["chains"][dict(secs)[2]]["l"][0] == f"book:{RULE}"
+    monkeypatch.setattr(S, "BOOK_ONLY_WHERE_DFO_LETS_FISH", True)
+    out, secs = S.with_book_closures(payload, sections, {2: {RULE: CLOSED_DAYS}}, WORDS)
+    assert dict(secs) == dict(sections) and "static" not in out
+
+
+def test_the_salmon_head_gate_is_the_owners_100_kb():
+    from pipeline.deliver.release.build import SIZE_GATES
+    assert SIZE_GATES["salmon"] == 100_000
 
 
 def test_the_static_year_composes_like_the_live_feed():
