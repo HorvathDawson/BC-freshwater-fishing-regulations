@@ -551,25 +551,33 @@ def with_pieces(ef, confirmed: Iterable[Mapping]):
     return out
 
 
-def live_piece_rules(ef, found: Iterable) -> dict[str, list[dict]]:
+def live_piece_rules(ef, found: Iterable, close: Optional[Mapping] = None) -> dict[str, list[dict]]:
     """THE LIVE FEED'S PIECES (`live.run`): piece id -> [its rule], for every item TODAY'S page names — read from the
-    live rows (`found`, the page's scraped locations, joined to their curated place by fingerprint), so a piece DFO
-    dropped leaves the feed on the run it goes (the release's piece is still in the chain, the feed says nothing for
-    it: the place answers). Confirmation is the release's matter (bound or carried); the feed carries every live one."""
-    index = ef.by_fingerprint()
-    rows = []
+    live rows (`found`, the page's scraped locations, joined to their curated place by fingerprint, or — T759 — to
+    their close match, `close`: fingerprint -> place), so a piece DFO dropped leaves the feed on the run it goes (the
+    release's piece is still in the chain, the feed says nothing for it: the place answers). Confirmation is the
+    release's matter (bound or carried); the feed carries every live one."""
+    return {lid: [rule] for lid, (rule, _f, _a) in live_pieces(ef, found, close).items()}
+
+
+def live_pieces(ef, found: Iterable, close: Optional[Mapping] = None) -> dict[str, tuple]:
+    """piece id -> (its rule, the live row (`found` item) whose words name it, the area) — `live_piece_rules`' source,
+    and (T759) what the feed's `closed_area_unbound` issue quotes"""
+    index = {**(close or {}), **ef.by_fingerprint()}
+    rows, src = [], {}
     for f in found:
         hit = index.get(f.fingerprint)
         if hit is None or not hit.water_id:
             continue
+        src.setdefault(hit.location_id, f)
         rows.append({"location_id": hit.location_id, "water_id": hit.water_id, "water": hit.water,
                      "region": hit.region, "status": "active",
                      "source_text": {"specific_area": f.specific_area, "excludes": list(f.excludes or [])}})
-    out: dict[str, list[dict]] = {}
+    out: dict[str, tuple] = {}
     for e in _active_entries(rows):
         for a in e["areas"]:
             lid = piece_id(e["water_id"], a["key"])
-            out.setdefault(lid, [piece_rule(e, a, lid)])
+            out.setdefault(lid, (piece_rule(e, a, lid), src.get(e["derived_from"]), a))
     return out
 
 

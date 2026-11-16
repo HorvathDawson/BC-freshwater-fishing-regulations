@@ -85,9 +85,9 @@ def test_todays_pages_join_every_location(tmp_path):
     assert not any(r["stale"] or r["held"] for r in ix["regions"].values())
     assert json.loads((tmp_path / "index.json").read_text()) == ix
     # T332: the quota trees (game-fish TreeTier nodes) add ~22 kB to the ~74 kB of T320; gzip on the wire
-    # T343: + each note's `fold`; T573: + 17 closed areas (~1.4 kB); T759: + `known`, every entry id per region (~14.7 kB
-    # raw, ids repeat `locs`' so gzip takes most of it) and an empty `holds` / `gone` per region
-    assert (tmp_path / "index.json").stat().st_size < 124_000
+    # T343: + each note's `fold`; T573: + 17 closed areas (~1.4 kB); T759: + `issues` (the 8 undrawn places' rows,
+    # ~2 kB) and an empty `gone` per region
+    assert (tmp_path / "index.json").stat().st_size < 112_000
 
 
 def _unseen() -> str:
@@ -109,18 +109,17 @@ def test_an_unseen_location_is_held_and_told_once(tmp_path):
     held = json.loads((tmp_path / "b" / "unplaced.json").read_text())
     assert {u["kind"] for u in held} == {"drift", "new_water"} and all(u["rules"] for u in held)
     assert any("Invented Creek" in t and "rule" in t for t in s.sent)
-    assert any("new wording" in t and "likely 6:" in t for t in s.sent)
-    # T759: + 1, the reworded place's own `dfo-missing` notice (it reads "check", the place id and the reason)
-    assert len(s.sent) == 3
-    assert any(t.startswith("DFO Region 6: 6:") and L.REWORDED_WHY in t for t in s.sent)
-    # every location publishes: the others with today's answers, and (T759, was: the reworded place LEFT `locs`, the
-    # fail-open this asserted as intended) the reworded place reads "check" like the worker's, listed in `holds`
+    assert any("new wording" in t and "read as 6:" in t for t in s.sent)       # T759: its close match answers
+    assert len(s.sent) == 2
+    # every location publishes (T759, was: the reworded place LEFT `locs`, a fail-open this asserted as intended): the
+    # reworded place's close match gives the reworded row's answer, and its water carries a `drift` issue
     ix = got["index"]
-    reworded = {c["location_id"] for u in got["unplaced"] for c in u["candidates"][:1]}
-    assert set(base["locs"]) <= set(ix["locs"]) and len(reworded) == 1
-    check = ix["verdicts"].index(L.REWORDED_VERDICT)
-    assert all(ix["locs"][lid]["sp"] == [[0, check]] * len(S.SPECIES) for lid in reworded)
-    assert [h["location_id"] for h in ix["regions"]["6"]["holds"]] == sorted(reworded)
+    (drift,) = [u for u in got["unplaced"] if u["kind"] == "drift"]
+    close = drift["candidates"][0]["location_id"]
+    assert set(base["locs"]) <= set(ix["locs"]) and close in ix["locs"]
+    assert [(i["kind"], i["place"]) for v in ix["issues"]["waters"].values() for i in v["list"]
+            if i["fingerprint"] == drift["fingerprint"]] == [("drift", close)]
+    assert [i["water"] for i in ix["issues"]["no_water"]] == ["Invented Creek"]
     # the next run tells nobody again, and keeps when it was first seen
     s2 = Sender()
     again = L.run(tmp_path / "b", fetcher=_pages({"6": _unseen()}), now="2026-10-28T00:00:00Z",
@@ -414,11 +413,11 @@ def test_queue_with_nothing_unplaced_here_fails_and_says_where_it_read(tmp_path,
     assert str(tmp_path / "unplaced.json") in err and "live run --regions 6" in err
 
 
-# ── T759: a curated place the page no longer shows never lets a looser wider place answer ──────────────────────────
-# Doctored copies of the region 1 fixture page (built here, nothing saved); the chains are written out by hand in the
-# release's shape (`chains[].l`, narrowest first) — the two the trace found (handoff/PLAN/curation-review/
-# feed-missing-location-2026-11-15.md): the Quatse weir closure inside the Quatse, and the Campbell River "Maple Street
-# to the cement block" closure inside the stretch below the Quinsam confluence.
+# ── T759: issues — a rule on today's page we cannot stand behind yet (owner 2026-11-15) ───────────────────────────────
+# Doctored copies of the region 1 fixture page (built here, nothing saved). An issue changes NO answer; it is listed
+# under its water (`index.issues.waters[water_id].list`) and told once. Kinds: unmatched (a new wording we cannot match
+# to a drawn place), drift (a close match: its rule applies, until the owner confirms it), closed_area_unbound (a closed
+# area no curated wording names). A place DFO removed, or a row replaced by one that matches exactly: no issue.
 
 QUATSE_WEIR = "100m upstream and downstream of the Quatse River Hatchery weir"
 QUATSE = ["1:quatse-river:100m-upstream-and-downstream-of-th", "1:quatse-river:whole", "1:default:region"]
@@ -426,9 +425,9 @@ MAPLE = ("from a fishing boundary sign at the end of Maple Street downstream to 
          "block.")
 CAMPBELL = ["1:campbell-river:from-a-fishing-boundary-sign-at-th", "1:campbell-river:downstream-of-the-confluence-with",
             "1:default:region"]
+SIBLING = "1:campbell-river:downstream-of-the-confluence-with~2"
 CAYEGHLE = "1:cayeghle-river:including-colonial-river"
-CHAINS = [{"l": QUATSE}, {"l": QUATSE[1:]}, {"l": CAMPBELL}, {"l": [CAYEGHLE, "1:default:region"]}]
-CO, SEP1 = S.SPECIES.index("CO"), S.DAYS.index(901)
+CO, SEP1, OCT1 = S.SPECIES.index("CO"), S.DAYS.index(901), S.DAYS.index(1001)
 
 
 def _r1(replace: dict | None = None, drop: str | None = None, water: tuple | None = None) -> str:
@@ -448,145 +447,239 @@ def _r1(replace: dict | None = None, drop: str | None = None, water: tuple | Non
     return html
 
 
-def _run1(out, html=None, chains=CHAINS, s=None):
+def _run1(out, html=None, s=None, entries=None):
     return L.run(out, fetcher=_pages({"1": html} if html else None), regions=["1"], now=AT, notify_url="http://n",
-                 sender=s if s is not None else Sender(), chains=chains)
+                 sender=s if s is not None else Sender(), entries_dir=entries)
 
 
 def _on(ix, chain, sp=CO, day=SEP1) -> dict:
     return ix["verdicts"][L._at(L.compose(chain, ix["locs"], ix["verdicts"])["sp"][sp], day)]
 
 
-def _hold(ix, lid) -> dict:
-    (h,) = [h for h in ix["regions"]["1"]["holds"] if h["location_id"] == lid]
-    return h
+def _issues(ix, water=None) -> list:
+    w = ix["issues"]["waters"]
+    return [i for wid, v in sorted(w.items()) if water in (None, wid) for i in v["list"]]
 
 
-def _never_more_open(base, ix, chain):
-    """Over the whole year, every fish: the chain never reads OPEN where today's full page does not read the same."""
-    b, d = L.compose(chain, base["locs"], base["verdicts"]), L.compose(chain, ix["locs"], ix["verdicts"])
-    for k in range(len(S.SPECIES)):
-        for day in range(len(S.DAYS)):
-            was, now = base["verdicts"][L._at(b["sp"][k], day)], ix["verdicts"][L._at(d["sp"][k], day)]
-            assert now["s"] != "open" or now == was, (chain[0], S.SPECIES[k], S.DAYS[day], was, now)
+def _answers(ix) -> dict:
+    """every place's answers in DFO's words (verdicts, not indices): what "statuses unchanged" compares"""
+    vv = ix["verdicts"]
+    return {lid: [[c["sp"][k][j] if j % 2 == 0 else (vv[c["sp"][k][j]] if c["sp"][k][j] >= 0 else None)
+                   for j in range(len(c["sp"][k]))] for k in range(len(S.SPECIES))] for lid, c in ix["locs"].items()}
 
 
-def test_t759_a_close_reword_reads_check_as_the_worker(tmp_path):
-    """The top candidate of a drift row stays in `locs` reading the worker's REWORDED_VERDICT (live.ts:570-582), listed
-    in `holds` with the worker's RowHold fields; with a last feed, the hold carries that place's last answer."""
+def _entries(tmp_path, edit) -> Path:
+    """region 1's curated places copied into the test's own dir, `edit(dict)` applied"""
+    from pipeline.regs.dfo_salmon import entries as E
+    d = json.loads(E.path_for("1").read_text(encoding="utf-8"))
+    edit(d)
+    out = tmp_path / "entries"
+    out.mkdir(parents=True, exist_ok=True)
+    (out / "region-1.json").write_text(json.dumps(d), encoding="utf-8")
+    return out
+
+
+def _fp(html: str, area: str) -> str:
+    """the fingerprint today's page gives the row printing `area`"""
+    (f,) = [f for f in L.type_page(html, "1")[1] if f.specific_area.startswith(area[:40])]
+    return f.fingerprint
+
+
+def test_t759_todays_pages_carry_the_feed_shape_and_one_issue_block():
+    """`dfo: {pieces: 1}` (the worker's /status.json `dfo`; a release binding a closed-area piece needs >= 1) and
+    `issues` at top level; the first design's `known` and per-region `holds` are gone."""
+    got = L.run(Path("/nonexistent-never-written"), fetcher=_pages(), now=AT, dry_run=True, with_marks=False)["index"]
+    assert got["dfo"] == {"pieces": 1} == L.SHAPE
+    assert set(got["issues"]) == {"waters", "no_water", "unread"} and got["issues"]["unread"] == {}
+    assert "known" not in got and not any("holds" in r for r in got["regions"].values())
+    assert all(i["kind"] in L.ISSUE_KINDS for i in _issues(got))
+    assert all(i.get("why") in L.UNMATCHED_WHY for i in _issues(got) if i["kind"] == "unmatched")
+
+
+def test_t759_an_unmatched_new_row_is_one_issue_on_its_water_and_changes_no_answer(tmp_path):
+    """A NEW row on the Quatse (a wording no curated place has; every other row still prints): one `unmatched` issue on
+    the Quatse quoting DFO's words, its rules held, told once — and every place's answers are today's full page's."""
     base = _run1(tmp_path / "a")["index"]
+    assert _issues(base, "1:quatse-river") == []
+    row = ('<tr><td>Quatse River</td><td>within signed boundaries at the hatchery fence</td><td>Coho</td>'
+           '<td>Sep 1 to Oct 31</td><td>No fishing</td></tr>\n')
+    html = (FIX / "region1-eng.html").read_text(encoding="utf-8")
+    i = html.rindex("<tr>", 0, html.index(QUATSE_WEIR))
+    i = html.rindex("<tr>", 0, i)
+    page = html[:i] + row + html[i:]
     s = Sender()
-    got = _run1(tmp_path / "a", _r1({QUATSE_WEIR: "100 m upstream and downstream of the Quatse River hatchery weir"}),
-                s=s)
-    ix = got["index"]
-    (u,) = got["unplaced"]
-    assert u["kind"] == "drift" and u["candidates"][0]["location_id"] == QUATSE[0]
-    assert ix["locs"][QUATSE[0]] == {"r": "1", "sp": [[0, ix["verdicts"].index(L.REWORDED_VERDICT)]] * 5, "g": [0, -1]}
-    h = _hold(ix, QUATSE[0])
-    assert {k: h[k] for k in ("location_id", "fingerprint", "why", "kept")} == \
-        {"location_id": QUATSE[0], "fingerprint": u["fingerprint"], "why": L.REWORDED_WHY, "kept": "check"}
-    # the last answer, the same verdicts on the same days, in this feed's table
-    assert [r[0::2] for r in h["last"]["sp"]] == [r[0::2] for r in base["locs"][QUATSE[0]]["sp"]]
-    assert [ix["verdicts"][x] for r in h["last"]["sp"] for x in r[1::2] if x >= 0] == \
-        [base["verdicts"][x] for r in base["locs"][QUATSE[0]]["sp"] for x in r[1::2] if x >= 0]
-    assert _on(ix, QUATSE)["s"] == "check" and _on(base, QUATSE)["s"] == "closed"
-    assert any(f"{QUATSE[0]} (" in t and L.REWORDED_WHY in t for t in s.sent)
-    _never_more_open(base, ix, QUATSE)
+    ix = _run1(tmp_path / "a", page, s=s)["index"]
+    (u,) = _issues(ix, "1:quatse-river")
+    assert {k: u[k] for k in ("kind", "why", "water", "area")} == \
+        {"kind": "unmatched", "why": "new", "water": "Quatse River",
+         "area": "within signed boundaries at the hatchery fence"}
+    assert u["rows"] == ["Coho | Sep 1 to Oct 31 | No fishing"] and u["key"] == f"unmatched:{u['fingerprint']}"
+    assert ix["issues"]["waters"]["1:quatse-river"]["items"] and ix["issues"]["waters"]["1:quatse-river"]["r"] == "1"
+    assert _answers(ix) == _answers(base)
+    (t,) = [t for t in s.sent if "Quatse River" in t]
+    assert "every stretch of Quatse River shows a banner" in t
+    s2 = Sender()
+    _run1(tmp_path / "a", page, s=s2)
+    assert s2.sent == []                                       # told once
 
 
-def test_t759_a_far_reword_on_a_water_with_an_unplaced_row_reads_check(tmp_path):
-    """Rule (i): no candidate scores (a `new` row on the Quatse), the place would go — its water has an unplaced row,
-    so it reads "check" (MISSING_VERDICT), with no last feed at all, told with its id and the reason."""
-    s = Sender()
-    got = _run1(tmp_path / "a", _r1({QUATSE_WEIR: "Within signed boundaries at the hatchery fence"}), s=s)
-    ix = got["index"]
-    (u,) = got["unplaced"]
-    assert u["kind"] == "new" and u["water"] == "Quatse River" and not u["candidates"]
-    assert ix["locs"][QUATSE[0]]["sp"] == [[0, ix["verdicts"].index(L.MISSING_VERDICT)]] * 5
-    h = _hold(ix, QUATSE[0])
-    assert h["why"] == L.MISSING_UNPLACED and h["fingerprint"] == u["fingerprint"] and h["kept"] == "check"
-    assert "last" not in h                                     # nothing was published before
-    assert _on(ix, QUATSE)["s"] == "check"
-    assert any(f"{QUATSE[0]} (" in t and L.MISSING_UNPLACED in t for t in s.sent)
-
-
-def test_t759_campbell_maple_street_closure_reworded_toward_its_sibling_no_longer_reads_open(tmp_path):
-    """The trace's worst case: the "Maple Street to the cement block" closure reworded so its SIBLING (`~2`, still on
-    the page) is the better match. Before T759 the place went and the stretch read open with the wider place's limit;
-    now rule (i) holds it at "check", every day it closed."""
+def test_t759_a_close_reword_applies_its_rule_and_is_a_drift_issue_until_confirmed(tmp_path):
+    """The Quatse weir row reworded a little: its close match is the weir place itself, free today — its rule APPLIES
+    there (the chain reads as before), and the Quatse carries a `drift` issue naming the place. It clears only when the
+    curated place carries the new fingerprint: as a PROPOSED variant (what `live queue` + `entries group` leave) it is
+    still an issue; confirmed by the owner (`duplicate_confirmed` true) it is none."""
+    from pipeline.regs.dfo_salmon import entries as E
     base = _run1(tmp_path / "a")["index"]
-    assert _on(base, CAMPBELL, day=S.DAYS.index(1001))["s"] == "closed"      # the closure, inside the coho opening
-    got = _run1(tmp_path / "a", _r1({MAPLE: "from the end of Maple Street downstream to the confluence with the "
-                                            "Quinsam River."}))
-    ix = got["index"]
-    (u,) = got["unplaced"]
-    assert u["candidates"][0]["location_id"] == "1:campbell-river:downstream-of-the-confluence-with~2"
-    assert _hold(ix, CAMPBELL[0])["why"] == L.MISSING_UNPLACED
-    assert _on(ix, CAMPBELL, day=S.DAYS.index(1001))["s"] == "check"
-    _never_more_open(base, ix, CAMPBELL)
-
-
-def test_t759_a_dropped_stricter_place_reads_check_until_the_owner_confirms(tmp_path):
-    """Rule (ii): DFO's page no longer prints the Maple Street row and nothing on the Campbell is unplaced. Its last
-    answer (closed) is stricter than what answers in its stead (the coho opening below the Quinsam), so it reads
-    "check" — and the next run compares with that LAST answer, never with the check it wrote. Without chains the rule
-    cannot run: the place goes, and the gone notice says the check did not run."""
-    base = _run1(tmp_path / "a")["index"]
-    page = _r1(drop=MAPLE, water=("Campbell River", 4))
+    new = "100 m upstream and downstream of the Quatse River hatchery weir"
+    page = _r1({QUATSE_WEIR: new})
     s = Sender()
     got = _run1(tmp_path / "a", page, s=s)
     ix = got["index"]
-    assert got["unplaced"] == [] and ix["regions"]["1"]["gone"] == []
-    h = _hold(ix, CAMPBELL[0])
-    assert h["why"].startswith(L.MISSING_STRICTER) and "closed -> open" in h["why"] and h["last"]
-    assert _on(ix, CAMPBELL, day=S.DAYS.index(1001))["s"] == "check"
-    _never_more_open(base, ix, CAMPBELL)
-    assert any(t.startswith(f"DFO Region 1: {CAMPBELL[0]} (") and L.MISSING_STRICTER in t for t in s.sent)
-    s2 = Sender()
-    again = _run1(tmp_path / "a", page, s=s2)["index"]                       # the third run: still check, nobody told
-    assert _hold(again, CAMPBELL[0])["why"] == h["why"] and s2.sent == []
-    assert _on(again, CAMPBELL, day=S.DAYS.index(1001))["s"] == "check"
-    off = _run1(tmp_path / "b", None)
-    off = _run1(tmp_path / "b", page, chains=None)
-    assert CAMPBELL[0] not in off["index"]["locs"]
-    assert [g["location_id"] for g in off["index"]["regions"]["1"]["gone"]] == [CAMPBELL[0]]
-    assert any("the stricter-answer check did not run" in n["text"] for n in off["notices"])
+    (d,) = _issues(ix, "1:quatse-river")
+    assert d["kind"] == "drift" and d["place"] == QUATSE[0] and d["area"] == new
+    assert ix["locs"][QUATSE[0]]["sp"] == [[r[j] if j % 2 == 0 else ix["verdicts"].index(base["verdicts"][r[j]])
+                                            if r[j] >= 0 else -1 for j in range(len(r))]
+                                           for r in base["locs"][QUATSE[0]]["sp"]]
+    assert _on(ix, QUATSE) == _on(base, QUATSE) and _answers(ix) == _answers(base)
+    assert ix["regions"]["1"]["gone"] == []
+    (u,) = got["unplaced"]                                     # still seeded by `live queue` for review
+    assert u["kind"] == "drift"
+    assert any("read as " + QUATSE[0] in t and "until you confirm it in DFO review" in t for t in s.sent)
+    fp = _fp(page, new)
+    assert d["fingerprint"] == fp
+    variant = {"location_id": QUATSE[0] + "~9", "fingerprints": [fp], "duplicate_of": QUATSE[0],
+               "duplicate_confirmed": None, "status": "active"}
+
+    def seed(confirmed):
+        def edit(doc):
+            src = next(l for l in doc["locations"] if l["location_id"] == QUATSE[0])
+            doc["locations"].append({**src, **variant, "duplicate_confirmed": confirmed,
+                                     "source_text": {**src["source_text"], "specific_area": new}})
+        return edit
+    proposed = _run1(tmp_path / "p", page, entries=_entries(tmp_path / "p", seed(None)))["index"]
+    (d2,) = _issues(proposed, "1:quatse-river")
+    assert d2["kind"] == "drift" and d2["place"] == QUATSE[0] and d2["location_id"] == QUATSE[0] + "~9"
+    ok = _run1(tmp_path / "c", page, entries=_entries(tmp_path / "c", seed(True)))["index"]
+    assert _issues(ok, "1:quatse-river") == []
+    # or the wording appended to the place itself: an exact match, no issue
+    own = _entries(tmp_path / "o", lambda doc: next(l for l in doc["locations"]
+                                                     if l["location_id"] == QUATSE[0])["fingerprints"].append(fp))
+    assert _issues(_run1(tmp_path / "o", page, entries=own)["index"], "1:quatse-river") == []
+    assert E.load("1").by_fingerprint().get(fp) is None        # the real entry file was not touched
 
 
-def test_t759_a_plainly_removed_place_goes(tmp_path):
-    """A place DFO dropped with no unplaced row on its water, whose last answer is not stricter than what answers
-    instead (the Cayeghle's coho limit against the region's): it leaves `locs`, is listed in `gone` and told once —
-    the worker's case (a), unchanged."""
+def test_t759_a_plainly_removed_place_is_no_issue_and_the_wider_rule_answers(tmp_path):
+    """DFO drops the Cayeghle row: no unmatched row, no drift — no issue; the place leaves the feed (`gone`, told once,
+    the worker's case a) and the region's rule answers on its chain."""
     base = _run1(tmp_path / "a")["index"]
     assert CAYEGHLE in base["locs"]
     s = Sender()
     got = _run1(tmp_path / "a", _r1(drop="including Colonial River."), s=s)
     ix = got["index"]
-    assert CAYEGHLE not in ix["locs"] and ix["regions"]["1"]["holds"] == []
+    assert CAYEGHLE not in ix["locs"] and _issues(ix, "1:cayeghle-river") == []
     (g,) = ix["regions"]["1"]["gone"]
     assert g["location_id"] == CAYEGHLE and g["water"] == "Cayeghle River"
     assert [n["key"].split(":")[0] for n in got["notices"]] == ["dfo-gone"] and len(s.sent) == 1
+    assert _on(ix, [CAYEGHLE, "1:default:region"]) == _on(ix, ["1:default:region"])
 
 
-def test_t759_known_lists_every_place_the_run_had_an_entry_for(tmp_path):
-    """`known[slug]`: every place id the run had an entry for — dormant ones too (the fixture page is older than the
-    entries, so region 2 has places it no longer prints) and the closed pieces it derived. A held region has no key.
-    THE CONTRACT: an id absent from `known` of a region that has the key is the only kind the app's backstop fires on
-    (renamed between release and feed, or a release newer than the feed's entries)."""
-    from pipeline.regs.dfo_salmon import entries as E
-    got = L.run(tmp_path / "a", fetcher=_pages(), now=AT, notify_url="http://n", sender=Sender())["index"]
-    ef = E.load("2")
-    dormant = [l.location_id for l in ef.locations if l.location_id not in got["locs"]]
-    assert dormant and set(dormant) <= set(got["known"]["2"])
-    assert got["known"]["2"] == sorted({l.location_id for l in ef.locations})
-    assert {k for k in got["locs"] if "#closed:" in k} <= {i for ids in got["known"].values() for i in ids}
-    assert all(got["locs"][k]["r"] == s for s, ids in got["known"].items() for k in ids if k in got["locs"])
-    held = L.run(tmp_path / "a", fetcher=_pages({"6": "<html>nothing</html>"}), now=AT, notify_url="http://n",
+def test_t759_a_row_replaced_by_one_we_match_exactly_is_no_issue(tmp_path):
+    """The Maple Street wording replaced by a wording the curated place already holds (a second fingerprint on the
+    same place): it joins exactly — no unplaced row, no issue, the same answers."""
+    base = _run1(tmp_path / "a")["index"]
+    new = "from the end of Maple Street downstream to the cement block."
+    page = _r1({MAPLE: new})
+    fp = _fp(page, new)
+    ents = _entries(tmp_path, lambda doc: next(l for l in doc["locations"]
+                                                if l["location_id"] == CAMPBELL[0])["fingerprints"].append(fp))
+    got = _run1(tmp_path / "b", page, entries=ents)
+    assert got["unplaced"] == [] and _issues(got["index"], "1:campbell-river") == []
+    assert _on(got["index"], CAMPBELL, day=OCT1) == _on(base, CAMPBELL, day=OCT1)
+
+
+def test_t759_a_reworded_closed_area_is_closed_area_unbound(tmp_path):
+    """A closed area DFO rewords INSIDE its place (Babine Lake's list of 400 m mouths: "Pierre Creek" printed
+    "Pierre Ck."; the place's own wording, and so its fingerprint, unchanged): the curated wording's piece leaves the
+    feed and the new piece id binds nothing in the release — one `closed_area_unbound` issue on Babine Lake quoting the
+    new area, told once. Every other answer stands."""
+    page6 = (FIX / "region6-eng.html").read_text(encoding="utf-8")
+    base = L.run(tmp_path / "a", fetcher=_pages(), regions=["6"], now=AT, notify_url="http://n",
                  sender=Sender())["index"]
-    assert held["regions"]["6"]["held"] and "6" not in held["known"] and "2" in held["known"]
-    failed = L.run(tmp_path / "b", fetcher=_pages({"6": OSError("down")}), now=AT, notify_url="http://n",
-                   sender=Sender())["index"]
-    assert "6" not in failed["known"]
-    # a region not asked this run keeps the known of the run that read it, with its answers
-    one = L.run(tmp_path / "a", fetcher=_pages(), regions=["1"], now=AT, notify_url="http://n", sender=Sender())
-    assert one["index"]["known"]["2"] == got["known"]["2"] and "6" not in one["index"]["known"]
+    assert [i for i in _issues(base) if i["kind"] == "closed_area_unbound"] == []
+    assert "<li>Pierre Creek</li>" in page6
+    s = Sender()
+    ix = L.run(tmp_path / "a", fetcher=_pages({"6": page6.replace("<li>Pierre Creek</li>", "<li>Pierre Ck.</li>", 1)}),
+               regions=["6"], now=AT, notify_url="http://n", sender=s)["index"]
+    (i,) = [i for i in _issues(ix) if i["kind"] == "closed_area_unbound"]
+    assert ix["issues"]["waters"]["6:babine-lake"]["list"].count(i) == 1 and i["area"] == "Pierre Ck."
+    assert i["piece"].startswith("6:babine-lake#closed:") and i["piece"] in ix["locs"]
+    assert i["piece"] not in base["locs"] and i["key"] == f"closed_area_unbound:{i['piece']}"
+    assert sorted(set(base["locs"]) - set(ix["locs"])) != [] and len(set(base["locs"]) - set(ix["locs"])) == 1
+    assert any("a closed area no curated wording names" in t and "Pierre Ck." in t for t in s.sent)
+    s2 = Sender()
+    L.run(tmp_path / "a", fetcher=_pages({"6": page6.replace("<li>Pierre Creek</li>", "<li>Pierre Ck.</li>", 1)}),
+          regions=["6"], now=AT, notify_url="http://n", sender=s2)
+    assert not any("Pierre Ck." in t for t in s2.sent)          # told once
+
+
+def test_t759_a_region_not_read_carries_no_issues_and_says_why(tmp_path):
+    """A held page, a failed fetch, or a region not asked: no issues for it (none carried) — `issues.unread` says
+    why; the regions read this run list theirs."""
+    row = ('<tr><td>Quatse River</td><td>within signed boundaries at the hatchery fence</td><td>Coho</td>'
+           '<td>Sep 1 to Oct 31</td><td>No fishing</td></tr>\n')
+    html = (FIX / "region1-eng.html").read_text(encoding="utf-8")
+    i = html.rindex("<tr>", 0, html.rindex("<tr>", 0, html.index(QUATSE_WEIR)))
+    page = html[:i] + row + html[i:]
+    first = L.run(tmp_path, fetcher=_pages({"1": page}), now=AT, notify_url="http://n", sender=Sender())["index"]
+    assert _issues(first, "1:quatse-river")
+    held = L.run(tmp_path, fetcher=_pages({"1": "<html>nothing</html>", "6": OSError("down")}), now=AT,
+                 notify_url="http://n", sender=Sender())["index"]
+    assert held["regions"]["1"]["held"] and held["issues"]["unread"] == {"1": "held", "6": "stale"}
+    assert not any(v["r"] in ("1", "6") for v in held["issues"]["waters"].values())
+    one = L.run(tmp_path, fetcher=_pages(), regions=["2"], now=AT, notify_url="http://n", sender=Sender())["index"]
+    assert set(one["issues"]["unread"]) == {s for s in one["regions"] if s != "2"}
+    assert set(one["issues"]["unread"].values()) == {"not asked"}
+
+
+# ── the Campbell River "Maple Street to the cement block" closure, in each way DFO could reword it ──────────────────
+
+def test_t759_campbell_maple_street_reworded_far_is_an_unmatched_issue(tmp_path):
+    """Reworded past any close match: a `new` row on the Campbell. The Maple Street place leaves the feed and the wider
+    place answers (the owner's rule: the colour is what still applies) — and the Campbell carries the issue, quoting
+    DFO's new words and rule, on every stretch."""
+    base = _run1(tmp_path / "a")["index"]
+    assert _on(base, CAMPBELL, day=OCT1)["s"] == "closed"
+    new = "within signed boundaries at the Tyee Spit"
+    ix = _run1(tmp_path / "a", _r1({MAPLE: new}))["index"]
+    (u,) = _issues(ix, "1:campbell-river")
+    assert (u["kind"], u["why"], u["area"]) == ("unmatched", "new", new)
+    assert u["rows"] == ["All | Aug 1 to Oct 31 | No fishing"]
+    assert _on(ix, CAMPBELL, day=OCT1) == _on(ix, CAMPBELL[1:], day=OCT1)
+
+
+def test_t759_campbell_maple_street_reworded_close_to_itself_still_closes_and_is_a_drift_issue(tmp_path):
+    """Reworded a little: the close match is the Maple Street place itself — its rule applies (closed on Oct 1, as
+    before) and the Campbell carries a `drift` issue naming the place until the owner confirms it."""
+    base = _run1(tmp_path / "a")["index"]
+    new = "from the fishing boundary sign at the end of Maple Street downstream to the fishing boundary sign at the " \
+          "cement block."
+    ix = _run1(tmp_path / "a", _r1({MAPLE: new}))["index"]
+    (d,) = _issues(ix, "1:campbell-river")
+    assert (d["kind"], d["place"], d["area"]) == ("drift", CAMPBELL[0], new)
+    assert _on(ix, CAMPBELL, day=OCT1) == _on(base, CAMPBELL, day=OCT1) and _on(ix, CAMPBELL, day=OCT1)["s"] == "closed"
+
+
+def test_t759_campbell_maple_street_reworded_toward_its_sibling_is_an_unmatched_issue(tmp_path):
+    """The trace's worst case: reworded so its close match is the SIBLING (`~2`), which today's page still prints. The
+    sibling is never given a second rule; the row stays unplaced and the Campbell carries an `unmatched` issue
+    (`near_place_taken`, naming the sibling). The wider place answers, with the banner."""
+    new = "from the end of Maple Street downstream to the confluence with the Quinsam River."
+    got = _run1(tmp_path / "a", _r1({MAPLE: new}))
+    ix = got["index"]
+    (u,) = _issues(ix, "1:campbell-river")
+    assert (u["kind"], u["why"], u["place"], u["area"]) == ("unmatched", "near_place_taken", SIBLING, new)
+    (h,) = got["unplaced"]
+    assert h["candidates"][0]["location_id"] == SIBLING
+    base = _run1(tmp_path / "b")["index"]
+    assert ix["locs"][SIBLING] == {**base["locs"][SIBLING], "sp": ix["locs"][SIBLING]["sp"]}
+    assert _answers(ix)[SIBLING] == _answers(base)[SIBLING]
