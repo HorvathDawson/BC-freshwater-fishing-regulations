@@ -158,3 +158,29 @@ Depends: T756 (same file; land together or after). Size: M. On the list for the 
 - Left: build "keep trying by itself"; the probe at the earlier step; find why the app-log capture was empty; then
   three clean runs before T756 + T760 merge.
 
+
+## Built 2026-11-16 00:13 (app chat, Opus lane): "keep trying by itself", the earlier probe, the empty app log
+On `fix/t760-stuck-download` (worktree only, not pushed, not merged, NOT run on the emulator):
+- e600c5dc1, the owner's answer of 23:00: a failed first start that is the connection's tries again by itself every
+  60 s (`RETRY_BY_ITSELF_MS`), behind the failure words and the Try again button. The decision is core
+  `keepsTryingByItself(error, firstRunOffline)`: yes when the first run's manifest could not be read or the error is
+  the environment's (`isEnvironment`); no for the stuck-download failure (checked first), an app too old, a size or
+  sha failure, an HTTP refusal, the system downloader's own "failed (reason N)", anything unknown. The words stay up
+  until a quiet try gets past the manifest stage (the first proof bytes move again). One try at a time: a tap during
+  the app's own try shows that try, it does not start a second. The timer stops in the background and starts a fresh
+  minute on return. Every failed try is reported as a tapped one is. No new on-screen words.
+  Tests: `install.test.ts`, `bootRetry.render.test.tsx` (9); six mutations each caught, one survivor closed with a
+  new test. Re-run by the app chat: 22 passed.
+- Not covered, by design: when a dead line makes Android's system downloader END a file as failed (not paused), or
+  iOS's native fill errors, the error is a plain one and waits for a tap. Whether a dead line ever ends that way is
+  not known; the bench will show.
+- 4e3bfffe9, bench: the "Wi-Fi back" step now passes when bytes move within 120 s of Wi-Fi returning or of the
+  failure screen, without a tap, and on failure writes the line probe's verdict.
+- The empty app log, cause found: Maestro 2.12.0 clears the device log at the start of every flow (`logcat -c`), and
+  the bench driver read the log once after the run, so it only saw lines after the last flow. Fix in the same
+  commit: the runner keeps the app's and the downloader's lines before each flow and writes
+  `<run dir>/app-log-<scenario>.txt`. The scratchpad driver must copy that file, not `adb logcat -d`.
+- Side finding, NOT fixed: `logcat -c` also clears the crash buffer, so a crash followed by a flow inside one bench
+  step could be missed by the runner's crash check.
+- Left: three clean `bg-install` runs and one `install` on the emulator (lane 2, after tonight's Play build), the
+  crash-buffer finding, then T756 + T760 merge together with the benches and a message to the main chat.
