@@ -83,7 +83,7 @@ sonnet docs/UI).
   shows a banner in the salmon section quoting the row, the stream line gets a distinct look (same colour, like the
   bait-ban variation), until he acts in the review app. Python half: branch the branch named data/t759-missing-place-check on origin
   (5018cd328 / dfc95d971, worktree ~/bcfish-t759), not merged; 17 tests could not run in the worktree (run them in the
-  main checkout before merge). Worker + app halves: iOS chat (`feeds/t759-issues`, `app/t759-issues`). The line look
+  main checkout before merge). Worker + app halves: iOS chat (branches feeds/t759-issues and app/t759-issues on origin). The line look
   needs pictures to the owner first. Day-one banners on today's pages: 0.
 - A place whose last save is "wrong" with no fix: "I want you to for it to be redrawn … Just be safe". He re-marks
   them; until then such a place must not ship its disputed extent (4 flagged "old extent in force"). NOT BUILT.
