@@ -1058,3 +1058,7 @@ reopens Nov 1.
   fish icons in the table format?" Started: round 2 of the design review (same page, same link): options A and B
   merged into one table of fish rows with the app's own fish drawings, a few close variants, more hard waters. The app
   chat was told so the work is done once; the build of what he picks stays with the app chat.
+- 22:49, typed in chat, on the app chat holding a display fix until he picks a trout design: "Do not hold stuff for the
+  trout redosgn. That is a separate exploration thing that might not go anywhere". So: nothing waits on the trout
+  display exploration. T762 (the "through the year" line that stops after the next change; app chat) and T763
+  (Kootenay Lake rainbow "20 a year" without its over-50-cm band; main chat) are fixed on their normal paths.
