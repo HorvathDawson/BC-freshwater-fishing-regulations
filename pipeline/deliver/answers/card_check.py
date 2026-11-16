@@ -270,7 +270,7 @@ def check_tree(P, g: dict) -> List[str]:
       * every number in a tier's `says`, a kind's `says` / `sentence` and the header is one those fields prove
         (or a size in inches)."""
     from pipeline.deliver.answers import common
-    from pipeline.deliver.answers.tree import walk
+    from pipeline.deliver.answers.tree import origin_clauses, walk
     probs: List[str] = []
     where = f"total {g['pool']} tree"
     tree = g.get("tree")
@@ -454,6 +454,27 @@ def check_tree(P, g: dict) -> List[str]:
                     if most(E.fish(mine + others), ac["n"]) > ac["n"]:
                         probs.append(f"{where}: kind {x['species']} also counts toward {ac['n']} with {others}, "
                                      f"but more may be kept together")
+            # T793: a kind keeping both origins says, from the group's table, where one origin keeps less — every such
+            # clause on its line, each proved here: the most of that origin's fish in the band, together and each
+            # alone, is its number, and the other origin keeps more there
+            both = x["n"] != 0 and all(E.fish(x["species"], origins=(o,)) for o in ("hatchery", "wild"))
+            ocs = origin_clauses(x["species"], g.get("table")) if both else []
+            tail = (" — " + "; ".join(o["says"] for o in ocs)) if ocs else ""
+            if ocs and not x["says"].endswith(tail):
+                probs.append(f"{where}: kind {x['species']} says {x['says']!r}, not what one origin keeps less of "
+                             f"({tail[3:]!r})")
+            for oc in ocs:
+                a_, b_ = oc["from"] or 0, INF if oc["to"] is None else oc["to"]
+                other = "wild" if oc["origin"] == "hatchery" else "hatchery"
+                band = [f for f in E.fish(oc["species"], origins=(oc["origin"],)) if a_ < f[2] < b_]
+                alone = [[f for f in band if f[0] == S] for S in oc["species"]]
+                if most(band, oc["n"]) != oc["n"] or any(most(fs, oc["n"]) != oc["n"] for fs in alone):
+                    probs.append(f"{where}: kind {x['species']} says {oc['says']!r}, which the rules do not hold")
+                more = [f for f in E.fish(oc["species"], origins=(other,)) if a_ < f[2] < b_]
+                if most(more, oc["n"]) <= oc["n"]:
+                    probs.append(f"{where}: kind {x['species']} says {oc['says']!r}, but {other} fish are held to no "
+                                 f"more there")
+                allowed |= {float(oc["n"])} | size_words([v for v in (oc["from"], oc["to"]) if v])
             # T128: a kind's line names the total it is part of ("Of your 2 trout and char a day in streams, …") — a
             # number of a total, share or own tier the kind sits in (each proved below); an own tier's name may print one
             allowed |= {float(t["n"]) for t in above(x) if t["tier"] in ("total", "share", "own") and t["n"] is not None}

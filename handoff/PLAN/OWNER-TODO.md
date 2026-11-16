@@ -1717,3 +1717,75 @@ More questions (recommended answer first):
 - ALL THE QUESTION BATCHES ARE DONE (13 batches, 10:27 to 12:09). Still open with him: the map pictures of the 34 live
   saves to re-check (being drawn; in chat, most urgent first); trout round 7 and its re-attack; the build 33 phone
   walk and iPhone build 36; the Skeena Section 4 pictures are answered.
+
+### Re-check of saves, in chat with pictures (T806), 2026-11-16
+- Pictures 1 to 4, 12:20. Sproat (mark 2468; the END is now 349 m below the Hwy 4 bridge): "Right". Stamp Falls
+  (2469; DFO gives the lower end two ways that disagree on our line: 500 m below the fishway = our END at 498 m; 225 m
+  below Deer Creek = our END at 164 m): "Keep 500 m below the fishway". This REPLACES his earlier "Move it 60 m down
+  (Recommended)" of batch 9 (asked before the fishway measure was known); the Deer Creek mismatch goes into the
+  gotchas; no cut moves. Stave (2672), typed: "it looks right but just to confirm those are the items with the names
+  in name variants right?" Checked: yes, `data/curated/waters/name_variants.json` holds "Ruskin Spawning Channel"
+  (the unnamed side channels on the east bank below Ruskin Dam) and "Northrop Spawning Channel" (the added stream
+  OpenStreetMap calls Northrop Channel); those are the cyan pieces. Cowichan, Sandy Pool sign to the tidal boundary
+  (2774; the yellow runs about 2 km into the water the app tints as tidal), typed: "we want to use our tidal
+  boundaries defined with the mouth definition. these should already all be in so use existing tidasl boundary item
+  dont trim it to dfo polygon". So: the place ends at OUR tidal boundary cut (the mouth definition), as drawn; the
+  tinted polygon is not what trims a place. Right as drawn.
+- Pictures 5 to 8, 12:27. Cowichan, 66 Mile Trestle to the Sandy Pool sign (2775): "Right". Nanaimo, Cedar Road
+  Bridge to the Highway 1 overpass (2776): "Right". Tatshenshini, the Blanchard (2779), typed: "wrong iut should
+  have the tatshenshini river too it is just saying that plus the blanchard". So DFO's "upstream of the BC/ Yukon
+  border – along the Haines Hwy.; Blanchard River." = the Tatshenshini River above the BC / Yukon border AND the
+  Blanchard; my save 2779 (the Blanchard alone) is wrong and is redone, with a new picture for him. Bella Coola
+  whole water, Atnarko out (2731): "Right".
+- Pictures 9 to 12, 12:31. Skeena "mainstem waters only", pink (2782): "Right". Stamp "Except in those areas and
+  times listed below" (2788), with the listed "Ash River confluence to Great Central Lake" place taking the Robertson
+  Creek system's side streams and lakes: "Right, all of it". Little Qualicum "all waters unless indicated below"
+  (2789), typed: "all looks good jsut make sure all waters unless indicated takes onyl the part not CURRENTLY
+  regulated on that day (if it is active)". So: right (the listed stretch starting at the park's downstream boundary
+  included); and the rest-of rule must cover, on any day, only the water where no listed stretch has a rule IN FORCE
+  that day: to be shown to him on the Little Qualicum for a day inside and a day outside a listed stretch's dates.
+  Nitinat "downstream of Parker Creek, except…" (2792; the last 4 km inside the tinted tidal polygon): "Right: our
+  tidal boundary stands".
+- Picture 13 and trout round 7, 12:42. Somass "Except in those areas and times listed below" (2787; the listed
+  "Paper Mill Dam upstream approximately 0.5 km to Collins Farm" stretch is drawn about 1.3 km long), typed: "right
+  all of it but add to gotchas please". ALL 13 URGENT PICTURES ARE ANSWERED: right = Sproat, Stave, Cowichan x2,
+  Nanaimo, Bella Coola, Skeena pink, Stamp, Little Qualicum, Nitinat, Somass; Stamp Falls kept at 500 m below the
+  fishway; WRONG = the Tatshenshini / Blanchard place (it must include the Tatshenshini above the border too).
+  Trout round 7 (published 12:33, same page, mockups only). Three-number top line on Madden Creek ("Up to 2 today,
+  or 5 if they're rainbow trout and no more than 2 Dolly Varden/bull trout"): "Yes, that wording (Recommended)".
+  Moving sideways between fish in the sheet: "No sideways at all". The year bar, typed: "i like it on the elk where
+  it says trout and char through the year when they are all release (or all closed etc) if some are open it seems
+  silly maybe. but in general dropping it seems fine.  .. i dont know why it needs year tho when it has dates.." So:
+  no sideways moves in the sheet; the year bar is dropped except the "through the year" line on a water where every
+  fish shares one state (the Elk); dates in words do the rest.
+- 12:42, the reviewer's SECOND attack (round 7) is back: still "not yet". Fixed: stop-fishing on the row, the summed
+  "only 3", the angler-only note. Partly: possession, the wild limit across boxes, the top line, the year bar, the
+  wild limit in one box. New faults: possession smaller than the day's number (Cunningham and four lakes: "only 3"
+  with "only 2 in your possession" reads keep 3); possession with a size (Tagish: one over 90 cm a day reads fine,
+  the book allows one in possession); "a wild fish must be 50 cm or less" forbids the bull trout over 60 cm the same
+  printed line allows (six Region 2 lakes); Lois Lake's top line promises 10 against a wild limit of 2; "stop fishing
+  here" can be read as this stretch. Report appended to `handoff/PLAN/design/trout-adversarial-review-2026-11-16.md`.
+- 12:43, the rest of the re-check pictures are drawn (places 14 to 30 and the four closed areas, as JPGs). The
+  drawer's findings: Morice Gosnell-to-Lamprey END dot sits on a side channel 2 km off the Morice; Thompson Deadman
+  START is 495 m below the Hwy 1 bridge where DFO says about 1 km; Babine: 7 circles match by name (Morrison, Pierre,
+  Twain, Tachek, Five Mile, Four Mile, Big Loon), Tsezakwa's circle sits on Nilkitkwa Lake, Pendleton has no match,
+  Six Mile / Hazelwood / Sockeye and the Gullwing line are not drawn, Pinkut has a circle but is not in DFO's list.
+- 12:44, trout round 7, he sent a screenshot of the Skeena card (Sedan Creek to Mill Creek, Jul 15), typed: "it is
+  hard to tell 1 of 5 is over 50cm here applies to all instead of just brook trout also the brook trou limit feels
+  like the full limit makes it seem like the 5 doesnt apply to all?" What the picture shows: the grey "Keep 5 in all"
+  cell runs only beside the top strip and the brook trout row, so it reads as brook trout's own limit and the white
+  cells below as separate limits; the "Of the 5, only 1 over 50 cm (20 in)." strip is tied to nothing. Round 8
+  started 12:45 with the original designer: the whole-box number must visibly hold every row of its box and the
+  box-wide size sentence must be tied to it; plus his round 7 answers (no sideways, the bar dropped, dates in words)
+  and the second attack's faults. Mockups only. The reviewer attacks round 8 after.
+- Pictures 14 to 17, 12:53. Exchamsiks above the Hwy 16 bridge (2728): "Right". Bella Coola "All tributaries"
+  (2730), typed: "purple is right " (the purple / pink lines are the side streams in the place; the main river and
+  the Atnarko are out): right. Bulkley "all tributaries … other than the Suskwa River" (2732), typed: "right but add
+  to gotchas. it should only drop the blue suskwa river. rest are good. ": right (Suskwa out, Morice and Two Mile
+  Creek in); gotcha entry. Bulkley "… other than Morice River and tributaries, Suskwa River and tributaries, and Two
+  Mile Creek" (2733), typed: "right only keep part that is purple. rest get dropped here. ": right.
+- 12:53, typed in chat: "also we need to make sure the salmon closed because the river is clsoed in synopsis appllies
+  to the map too. so the colors show it as well." So for T796 A5: the Salmon view's line colour (and the year bars
+  and alerts) must show a book-closed stretch as closed, not only the card. That is what the agreed two-half fix does
+  (the book's closure becomes the first member of the stretch's salmon chains); it is now a pass condition on the
+  ticket, with a picture of the map before and after for him.

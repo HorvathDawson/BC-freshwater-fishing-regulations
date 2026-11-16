@@ -585,6 +585,20 @@ def build(bundle: str, export_dir: Path, *, workers: int = 0, items: Optional[It
         pix = _lic.profile_index(DEFAULT_PROFILE)
         for ki in range(len(keys)):
             out["rows"][ki] = stamp_licence_documents(out["rows"][ki], out["licence"][ki], doc_names, pix)
+    # T793 (audit A1/A2, 2026-11-16): A ROW WITH AN ORIGIN CONDITION SAYS ITS ORIGIN ON THE CARD — "No wild rainbow trout
+    # over 50 cm" on Comox Lake was in the row's conditions and caps but not in the tree the card draws
+    if "rows" in out:
+        from pipeline.deliver.answers.tree import origin_unsaid
+        unsaid = []
+        for ki in range(len(keys)):
+            for j, frame in enumerate(out["rows"][ki]):
+                for p in origin_unsaid(frame):
+                    named = sorted(i for i, ks in parts.items() if ki in ks)
+                    unsaid.append(f"key {ki} {dict(zip(PART_KEY_FIELDS, keys[ki]))} (waters {named[:3]}"
+                                  f"{' …' if len(named) > 3 else ''}), segment {j} from day {segs[ki][j]}: {p}")
+        if unsaid:
+            raise AnswersError(f"answers: {len(unsaid)} card(s) leave out the origin a row's condition names "
+                               f"(T793):\n  " + "\n  ".join(unsaid[:20]))
     # licence 7: THE STEELHEAD STAMP WHERE STEELHEAD ARE CLOSED — the licence answer at a key and segment whose card says
     # steelhead are closed there leaves the stamp out of its documents (`stamps.drop_closed_steelhead_stamp`, the
     # prototype's round 20i O3 render-time drop). After the stamps above: the card's fish documents are the full answer's.

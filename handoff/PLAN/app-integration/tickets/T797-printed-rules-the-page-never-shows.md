@@ -24,3 +24,6 @@ boats line is empty. `app/packages/core/src/regs/boats.ts:108` `inBoatRules` kee
 includes exactly "in_boat". Fix (the app chat's, with the next app build; no data release): select both tokens, a test
 on a powered-boat water, and a check that no other `angler` token is dropped the same way (`alone_in_boat`,
 `from_shore`). Waits on the owner's go.
+
+## Owner, 2026-11-16 (question dialog; verbatim in `handoff/PLAN/OWNER-TODO.md`, "Answers by batch")
+Go-ahead card: "Go on all (Recommended)" (item 1 is fixed by the app chat on branch app-fix/t797-powered-boats; items 2 to 5 are pipeline display).

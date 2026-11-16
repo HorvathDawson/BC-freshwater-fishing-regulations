@@ -16,3 +16,6 @@ Fraser mainstem ships against a "wrong" mark; Sproat and Stamp Falls end on "wro
   still binds; a live one ships DFO's words undrawn (carried on the water) until it is re-saved; a dormant one is
   listed only.
 - The morning list names those places each release.
+
+## Owner, 2026-11-16 (question dialog; verbatim in `handoff/PLAN/OWNER-TODO.md`, "Answers by batch")
+Question 18, typed: "can we sort this out now i want to review it and make it correct for sure". He reviews the saves now, in chat with pictures (T806); the "ship DFO's words undrawn" build stays unanswered.
