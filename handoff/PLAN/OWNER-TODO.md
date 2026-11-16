@@ -342,6 +342,14 @@ with the default Claude uses until you answer). Newest first inside each section
   (closed areas inside a DFO place are emitted as their own live locations). Production's worker has the same gap
   until it is deployed from the shared branch after these merge; that deploy is yours (`deploy/prod`, never an
   agent's). I say when the branch is ready.
+  **THE BRANCH IS READY, 2026-11-16 11:15 (app chat).** Both fixes are on `redesign/stream-sections` since 44b9c25bf
+  (merge 1 after your "Yes, one at a time"; both GitHub checks green). Yours, in the main folder at the shared
+  branch's head, BEFORE or WITH the production data release (the upload refuses r-46e4355a7277 until production's
+  feed server serves closed areas): `deploy/prod/feeds.sh --dry-run` (tests + a local bundle, deploys nothing), then
+  `CONFIRM_PROD=bc-fishing-feeds deploy/prod/feeds.sh`. The script stops with words if a prerequisite is missing:
+  the backup bucket and its 30-day expiry (question 23), `NOTIFY_EMAIL_TO`, `REPORT_SALT`, and the production run
+  token in `app/workers/feeds/.run-token.prod` (`handoff/PLAN/release/PRODUCTION.md`, step 2). Check after:
+  `https://feeds.canifishthis.ca/status.json` shows `"dfo": {"pieces": 1}`. To-Do row `t758-prod-feeds-worker`.
 - **DONE 2026-11-15 07:32.** TestFlight build 36 uploaded (0.7.10, branch `ios/next` d658f88ac, staging data): the
   iOS fixes, the first-install bar, the "applying new data" screen with fish puns, push, the crash-report fix, the
   faster cold start and lighter fonts. Yours: install 36 (not 34 or 35), then the phone checks and the push test;
@@ -1574,3 +1582,43 @@ More questions (recommended answer first):
   as 4 where the book says 2 (Lois and Khartoum lakes; T793's sentences have the same split there, to check before
   T793 ships); a fish in two shared limits (Kamloops Lake, Adams River) is drawn wrongly in the mock; the top line
   understates on 89 waters; the year bar's gap touches 10,250 waters. Told to him in chat at 10:46.
+- Batch 5, 11:03. Question 8 (Babine Lake in August, the 13 closed areas not confirmed), typed: "i think you can
+  confirm them. it is just confluences and unless the names dont match they are easy to auto confirm". So: the main
+  chat confirms the 12 creek-mouth circles where the creek's name matches DFO's words (and the Gullwing Creek line);
+  any whose name does not match goes to him. Question 9 (Gosnell Creek and the Thautil River inside the Morice
+  closure), typed: "yes they are out but please make sure this rule doesnt break other stuff. we need a trigger for
+  why they are out? why does this tributary rule not apply? what is the condition just so it is a universal rule."
+  So: they come out, but as ONE stated rule applied everywhere, not a special case: the condition is written down,
+  run across the province, and every water whose answer changes is listed for him before it ships. Question 10
+  (Gitnadoix, coho "upstream of powerline"), typed: "the powerline is. the mouth essentially so maybe you could add
+  the cut for powerline to the mouth then it is all good?" My reading: the powerline is treated as the river's mouth
+  (the mouth carries the powerline as its name for this place), the whole river stays open for coho as he answered on
+  Nov 15, and no new cut or map rebuild is needed. Question 26 (the Skeena side channel's name): "Reword, lower end
+  first (Recommended)".
+- 11:02, checker's result on question 5 (Chemainus): our tidal point (48.886806 N, 123.686629 W, 2,091 m up the river)
+  is beside the Bald Eagle Riverside Campground: 0 to 135 m from it along the river, depending on which map point is
+  taken for the campground. It matches DFO's "boundary sign on the Chemainus River near the Bald Eagle Campground";
+  it stays, still low confidence because the sign itself is not pinned. Nothing for him to review. And on question
+  27: the Shuswap closed stretch's two printed points are 1,738 m apart in a straight line (2,075 m along the river);
+  neither is near "one km". Goes into the gotchas file as he asked.
+- Batch 6, 11:19. Question 11 (eulachon line below Terrace), typed: "general rule is (Reminder: There is no fishing
+  for eulachon in Region 6. ) why would bait remove eulachon rule?" So: it is DFO's Region 6-wide reminder and shows
+  on every Region 6 water; a bait rule must never take its place (the cause is T770: the card treats the eulachon row
+  as a gear line and shows only the narrowest place's gear lines). Question 12 (Kitimat hatchery outfall, east bank):
+  "Both banks closed (Recommended)". Question 35 (Skeena "Section 4" has no printed upper end), typed: "i want to
+  include pictures for you to look at this needs more thought." HELD: he sends pictures; nothing changes until then.
+  Question 13 (a stretch's gear rule hides the river's, T770): "Show both (Recommended)".
+- Batch 7, 11:27. Question 15 (Regions 7 and 5A: the page header "no fishing for salmon until further notice"
+  against the dated openings in the table), typed: "can we look at when the rules got added to see if they are
+  stale? what came first header or rules? once we have that info we caqn make a decision". HELD: the main chat finds
+  when the header and each dated row (FN0851 Nechako, FN0846 Quesnel) appeared, then asks again. Question 18 (a
+  place marked wrong with no fix still ships its older drawing), typed: "can we sort this out now i want to review it
+  and make it correct for sure". So: the list of every such place goes to him now, to review and re-save in the
+  review app. Question 29 (a stretch the book closes shows an open salmon card, T796), typed: "yes we want to do this
+  but can you bring the example changes to me so i can see why it happened etc? but yes we want it to do this". So:
+  YES, build it; and the examples (before, after, and why) go to him. Question 30 (DFO "Finfish closure"): "Closes
+  the whole page (Recommended)".
+- 11:28, on question 35 (Skeena Section 4), he sent two pictures from the rule book (the maps of Section 4 Zone A,
+  Shegunia River confluence to Sedan Creek confluence, and Zone B, Chimdemash Creek confluence to 1.5 km upstream of
+  the Zymoetz confluence), typed: "here are picutres please review them then ask more questions we can figure it out
+  together".
