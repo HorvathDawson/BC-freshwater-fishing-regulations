@@ -103,3 +103,9 @@ Merge timing unchanged: after build 33.
   from the local `data/release` (a deploy from a worktree without it is refused), and it refuses an unreadable worker
   shape even when no piece is bound.
 - **Item 5 (worker writes the shape into index.json):** waits for the Python on the Android chat's T759 branch.
+- **Item 7, follow-up (Android chat's ruling on the two limits), 05383894d on the same branch:** both feeds scripts
+  pass `--releases "${RELEASES_DIR:-data/release}"`; a folder that does not exist, or that lacks the live release, is
+  refused with words that name the path and say a deploy from another checkout sets
+  `RELEASES_DIR=/path/to/main/checkout/data/release`; never a fall back to the default. An unreadable worker shape
+  stays refused even with no piece bound, and its words name `app/workers/feeds/src/status.ts`. `read_live` now also
+  returns the refusal text (`pieces_gate.py`, for the Android chat's review). 22 tests in the file; seven mutations caught.
