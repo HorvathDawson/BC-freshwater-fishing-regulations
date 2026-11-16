@@ -29,7 +29,7 @@ export const bgInstall = {
     await ctx.step('test channel reset to the live release', async () => `test/ = ${(await ctx.resetChannel()).release.data_release}`,
                    { shot: false, stop: true });   // (T442) a stale test/ only 404s
     await ctx.step('clean app on MOBILE DATA: asked before the download', async () => {
-      d.stop(); d.clearData();
+      d.stop(); d.cleanApp();   // (T760) not `pm clear`: the system downloader's rows go too
       try { d.adb(['logcat', '-G', '16M']); d.logcatClear(); } catch { /* none yet */ }
       await d.net('cellular'); d.link('full', 'none');
       d.launch();

@@ -159,6 +159,9 @@ until [[ "$(adb -s "$SERIAL" shell getprop sys.boot_completed 2>/dev/null | tr -
 log "booted"
 adb -s "$SERIAL" shell cmd connectivity airplane-mode disable >/dev/null 2>&1   # the AVD was left in airplane mode by N1
 adb -s "$SERIAL" shell svc wifi enable; adb -s "$SERIAL" shell svc data enable
+# (T760) uninstall first: the uid's rows in the system downloader go with it (a batch cut short mid-download left
+# "paused" rows that the next batch's cleared app adopted and waited on for ever)
+adb -s "$SERIAL" uninstall ca.canifishthis.app >/dev/null 2>&1 && log "uninstalled the app left by the last batch (its system downloads with it)"
 adb -s "$SERIAL" install -r "$APK" >/dev/null && log "installed $APK"
 # (T242) the stub APK's crash address is the phone's localhost:<port>, carried to this machine's stub
 if [[ -n $STUB ]]; then adb -s "$SERIAL" reverse "tcp:$STUB_PORT" "tcp:$STUB_PORT" >/dev/null && log "crash stub: phone localhost:$STUB_PORT → this machine"; fi
