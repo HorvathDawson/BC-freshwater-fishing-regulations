@@ -303,6 +303,17 @@ with the default Claude uses until you answer). Newest first inside each section
   so and stops on its failure screen with Try again, and waits for the tap even after the connection is back. Pick:
   (a) keep trying by itself about once a minute while showing the same words (Claude's suggestion) / (b) leave it.
   Answer: the words (yes as written / your changes), and a or b.
+- **NEW 2026-11-15 23:17 (app chat, T762; a review, nothing to decide unless you want other words; To-Do row
+  `t762-year-line-words`): the trout "through the year" line says the whole year, in tonight's build.** Owner
+  2026-11-15 about 22:55: "The bad display oddities must be fixed on this build". On a keep day the line stopped after
+  the next change ("You can keep them until Sep 30. Then closed from Oct 1." on a Fraser stretch closed only in
+  October). Now, same water on Nov 15: "You can keep them until Sep 30 next year. Then closed Oct 1–31. You can keep
+  them from Nov 1 next year." Boardman Creek on Jul 15: "You can keep them until Aug 31. Then the whole water is
+  closed Sep 1–Oct 31. Then release only Nov 1–Mar 31. Then the whole water is closed Apr 1–Jun 14. You can keep them
+  from Jun 15 next year." The words are the ones the closed and release days already used. 103 lines on 98 answers
+  changed, each checked against the stored year. One choice he could reverse: dates in the middle of the line carry
+  no "next year". The other oddity (Kootenay Lake's rainbow line dropping "over 50 cm", T763) is the main chat's and
+  goes into the same release.
 - **NEW 2026-11-15 16:08 (iOS chat; yours, later, no decision needed now): production feeds worker deploy.** Two
   worker fixes are live on STAGING only: T758 (waters covered only by a region's default salmon rule show DFO's own
   sentence under live data again, not a generic "Not opened by DFO" line; the status was right all along) and T757

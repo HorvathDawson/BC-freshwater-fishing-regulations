@@ -1,6 +1,6 @@
 # T762 — The trout "Through the year" line stops at the next closure and never says when keeping returns ("…Then closed from Oct 1.")
 
-Status: IN PROGRESS (left (Claude): the app chat's lane on branch `app-fix/t762-year-line`, started 2026-11-15 22:50; then the wording to the owner as a proposal, the Android benches, merge after the Play build of 0.7.11).
+Status: IN PROGRESS (left (Claude): on the shared branch as 4e793d61f since 2026-11-15 23:07; left: the six Android benches on the Play build head, and the owner sees the new sentences on To-Do row `t762-year-line-words`).
 
 Owner 2026-11-15 about 22:48 (relayed word for word by the main chat): "Do not hold stuff for the trout redosgn. That is a separate
 exploration thing that might not go anywhere". So this is NOT held for the trout display pick.
@@ -44,3 +44,27 @@ read-only by the app chat on release r-f749475d0962, 2026-11-15 22:45.
 - Whole-sentence tests: keep, closed, keep; keep, release, closed, keep; a run that wraps the New Year.
 
 Size: S to M. Area: app core (the app chat). No pipeline change.
+
+## Built 2026-11-15 23:07 (owner: "The bad display oddities must be fixed on this build")
+- On the shared branch: 4e793d61f (cherry-pick of branch `app-fix/t762-year-line` 5d2c69989). `YearWords.runTxt` has a
+  keep branch that names every other run of the stored year in order, each with its range, and ends with when keeping
+  returns; both branches share `thenTxt`. No new words: it uses the non-keep branch's (`NOW_UNTIL`, `THEN_RANGE`,
+  `THEN_WHOLE`, `KEEP_FROM`); `KEEP_UNTIL_THEN` is removed.
+- Sentences: "You can keep them until <date>[ next year]." then per run "Then closed <range>." / "Then the whole water
+  is closed <range>." / "Then release only <range>." / "Then you can keep them <range>." and last "You can keep them
+  from <date>[ next year]." Dates inside the ranges carry no " next year" (they read in order; the owner may reverse).
+- Proof on release r-f749475d0962: a sweep on each key's first keep day, rows collected on the 1st of every month:
+  103 lines on 98 answer keys (the first count of 94 read one day per key), all changed, 0 mismatches against the
+  stored years (run boundaries, order, each run once, the return last, " next year"; a second pass on every keep run's
+  first and last day and Dec 31 / Jan 1, 218 lines, 0 mismatches). At most 4 runs a year; the longest line is 194
+  characters (Boardman Creek). Fraser part 14, Nov 15: "You can keep them until Sep 30 next year. Then closed Oct 1–31.
+  You can keep them from Nov 1 next year."
+- Tests: five new whole-sentence cases in `plainrow.test.ts` (four fail on the old code, plus the updated pinned one);
+  `KeepTab.test.tsx` and the two glenn fixtures re-cut by the harness (one line each). In the shared checkout against
+  the live release: `check:fast` passes, 1,719 regs tests pass, 6,488 related tests pass.
+- Correction to the text above: Glenn Creek has no spring closure (release, keep Apr 1 to Oct 31, release); the Jun 15
+  cases are Meadow Creek Diversion and Boardman Creek.
+- Noticed, not changed: the NON-keep branch stops after 3 following runs without a word. No year in this release has
+  more than 4 runs, so nothing reads wrong today.
+- Not run on a device: the six benches run on the Play build head.
+

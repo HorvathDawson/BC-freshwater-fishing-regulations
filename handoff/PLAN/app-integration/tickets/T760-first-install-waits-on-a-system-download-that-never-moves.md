@@ -142,3 +142,19 @@ Depends: T756 (same file; land together or after). Size: M. On the list for the 
   connection returns. TO BUILD on `fix/t760-stuck-download` (today the app restarts twice, then waits for the tap);
   only for a failure that is the connection's (never for the stuck-download failure or an app too old).
 
+## Bench round 2, 2026-11-15 22:33–23:15 (`fix/t760-stuck-download` 6f043b450: both T760 fixes + a line probe in the bench)
+- `install` PASS (4/4, up in 632 s); `bg-install` PASS 8/8, FAIL 7/8, PASS 8/8 (map up 304, 215 and 279 s after the reopen).
+- The one failure is at the EARLIER step "Wi-Fi back: the download starts by itself": no progress in 120 s, the screen
+  on "The map data could not be loaded. The first start needs a connection… Try again" (the app had given up on a dead
+  line; the reopen step after it then passed). Whether the Mac's line or only the emulator's was dead is NOT known: the
+  probe sits in the reopen step and did not run, and the app-log capture came back empty for all four runs (cause not
+  looked into). This is the case the owner's "keep trying by itself" answer covers; it is not built yet.
+- The probe: 6f043b450, `app/tools/testbed/lib/line-probe.mjs` (+ three `node --test` tests): a Mac fetch of the release
+  manifest (status code and bytes; proven by hand: 200, 25,131 bytes), an emulator half (ping, the connectivity
+  service's VALIDATED lines, a fetch if the image has a tool) that has NEVER run yet, and a one-line verdict in the
+  step's failure text. To do: the same probe at the "Wi-Fi back" step.
+- Tonight's tally for `bg-install` on the fixed code: 5 PASS, 2 FAIL in 7 runs, both failures with the app saying the
+  connection was gone rather than sitting silent.
+- Left: build "keep trying by itself"; the probe at the earlier step; find why the app-log capture was empty; then
+  three clean runs before T756 + T760 merge.
+
