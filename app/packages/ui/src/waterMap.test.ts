@@ -4,7 +4,7 @@
  * release r-1bb06fa28daf wrote them (`part_geo`, `part_mark`, `part_section`, `water_exit`).
  */
 import { beforeAll, describe, expect, it } from "vitest";
-import { markLabel, type WaterGroup } from "@app/core";
+import { markLabel, partName, type WaterGroup } from "@app/core";
 import { loadWaterGroup, openRegsStore, type RegsStore } from "@app/data/regs";
 import { openRegsFixtureWithLines, sectionNames, type SectionNames } from "@app/data/release/node";
 import type { ItemId } from "@app/data";
@@ -216,7 +216,9 @@ describe("(T750) no fork: the Skeena's Ecological Reserve steps up one line", ()
     expect(ups).toEqual([waterMapStart(ix(SK_RESERVE_UP)), waterMapStart(ix(SK_SIDE)), waterMapStart(ix(SK_EXCHAMSIKS_UP))]);
     expect(ups.map((s) => view(g, s).current.name)).toEqual([
       "Skeena River Ecological Reserve boundary near the Exchamsiks River confluence → Exchamsiks River confluence",
-      "Skeena River", "Exchamsiks River confluence → Lakelse River confluence"]);
+      // (T768) the third is the run above the Exchamsiks, whatever part end it runs up to in this release
+      "Skeena River", partName(g, ix(SK_EXCHAMSIKS_UP))]);
+    expect(partName(g, ix(SK_EXCHAMSIKS_UP))).toMatch(/^Exchamsiks River confluence → /);
     // and back down the same line
     expect(run(g, ups[2]!, { type: "down" }, { type: "down" }, { type: "down" })).toEqual(reserve);
     // the line IS the parts list's order (one order, every screen)
@@ -337,19 +339,18 @@ describe("across waters: the Vedder goes on from the Chilliwack (`water_continue
 });
 
 describe("Cowichan, Vedder and the Kootenay Lake West Arm", () => {
-  // (r-46e4355a7277) six: a new part end at Skutz Falls divides "CNR Mile 66 Trestle → CNR Bridge (mile 70.2)" (one rule
-  // set, cut by the salmon chain). The ends placed approximately carry the cut's stored note in their words (the data
-  // side's T780); the list is read without it, and the one pin below says where it stands today.
-  it("Cowichan: six parts in a line (T517: its rule sets cut by the salmon chain at Sandy Pool and at Skutz Falls); at the mouth no exit (the sea)", async () => {
-    const g = await loadWaterGroup(st, "gnis:12227");
-    const SANDY = "White triangle boundary sign located in Sandy Pool Regional Park";
-    expect(g.parts.map((_, i) => bar(g, waterMapStart(i)).replace(/, approximate location \([a-z]+ confidence\)/g, ""))).toEqual([
-      `Part 1 of 6 · Cowichan River | Mouth → ${SANDY} | Lowest part (off) | Upstream`,
-      `Part 2 of 6 · Cowichan River | ${SANDY} → CNR Mile 66 Trestle | Downstream | Upstream`,
-      "Part 3 of 6 · Cowichan River | CNR Mile 66 Trestle → Skutz Falls | Downstream | Upstream",
-      "Part 4 of 6 · Cowichan River | Skutz Falls → CNR Bridge (mile 70.2) | Downstream | Upstream",
-      "Part 5 of 6 · Cowichan River | CNR Bridge (mile 70.2) → Greendale Trestle | Downstream | Upstream",
-      "Part 6 of 6 · Cowichan River | Greendale Trestle → Cowichan Lake outlet | Downstream | Highest part (off)"]);
+  // (T768) HOW MANY parts and what each is called is pinned in ONE place (`conformance/src/regs/waterGroup.fixture.test.ts`,
+  // where a new part end is seen and attributed once: r-46e4355a7277 added Skutz Falls). Here: what the bar SAYS for
+  // every part, composed from the group, and that the parts are one line from the mouth to the lake outlet
+  it("Cowichan: its parts in one line from the mouth to the lake outlet (T517: cut by the salmon chain); at the mouth no exit (the sea)", async () => {
+    const g = await loadWaterGroup(st, "gnis:12227"), n = g.parts.length;
+    expect(n).toBeGreaterThanOrEqual(5);
+    expect(g.parts.map((_, i) => bar(g, waterMapStart(i)))).toEqual(g.parts.map((_, i) =>
+      `Part ${i + 1} of ${n} · Cowichan River | ${partName(g, i)} | ${i === 0 ? "Lowest part (off)" : "Downstream"} | `
+      + (i === n - 1 ? "Highest part (off)" : "Upstream")));
+    expect([g.parts[0]!.lo, g.parts[n - 1]!.hi, g.parts.slice(1).map((p, i) => p.lo === g.parts[i]!.hi)])
+      .toEqual(["mouth", "lake_outlet:wbk:329101302", g.parts.slice(1).map(() => true)]);
+    expect(new Set(g.parts.map((_, i) => partName(g, i))).size).toBe(n);   // every part by its own name
     // the cut placed approximately says so once on its mark (T207; the release's words already carry it)
     expect(view(g, waterMapStart(0)).marks[0]!.label).toBe("White triangle boundary sign located in Sandy Pool Regional Park, approximate location (medium confidence)");
   });

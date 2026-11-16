@@ -31,3 +31,24 @@ Source: `handoff/PLAN/audit-2026-11-16/guards.md` and `code.md`. Area: app tests
 ## Done when
 A made-up extra part end on a fixture water fails exactly one test file (the content pin), and the three tests above
 fail when their subject is wrong (a mutation each).
+
+## Done so far, 2026-11-16 04:55 (app chat; test files and the node-only test driver, nothing the app bundles)
+- The tests of 39918037e no longer type a part count or a cut-dependent name: `StepInPlace.shell.test.tsx` (the Skeena
+  walk), `WaterMapView.test.tsx` (Skeena, Cowichan, Zymoetz) and the Cowichan bar in `ui/src/waterMap.test.ts` take
+  "Part k of N" and the names from the water's group (`partWhere`, `partName`), finding parts by their ends; what
+  makes each case what it is stays held by ends (the Ecological Reserve, the km-less side channel, the mouth and
+  lake outlet). The content pin stays in `conformance/src/regs/waterGroup.fixture.test.ts` alone.
+- The three weaker tests: the unnamed reach's name is the golden taps' name for that handle (new reader
+  `regsFixtureUnnamedTaps()`); the closure's rules are tied to the one named water of the store that owns their
+  entry, and the page says "Tributary of" that water (the two lines that asserted the pick's own property are gone);
+  `unnamedStreams()` is compared whole with the golden unnamed taps that have a stream line.
+- A real fault found by that last test's mutation: `unnamedStreams()` took any slot with a line, and a slot no row
+  names is a filler (a line spanning nothing) wherever its block has other rows. It now needs a line that spans
+  something. Proven by removing one tap's line: the list loses exactly that tap.
+- Checked: the seven files 95 tests pass on the fixture; `pnpm run check:fast` rc 0.
+
+## Still open
+- Older typed counts in the same files ("of 5" Chilliwack, "of 3" Coquitlam, "of 2" Vedder; about 60 places), and
+  `core/src/waterNav.test.ts`.
+- The proof asked for under "Done when": a made-up extra part end on a fixture water fails exactly one file.
+- Fix item 3 (the tests that never run where they should).

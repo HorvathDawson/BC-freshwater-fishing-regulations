@@ -145,6 +145,17 @@ export function regsFixtureLines(): { unnamed: number; lines: LineRow[] } {
 }
 
 /**
+ * (T768) The golden UNNAMED taps the regs fixture is cut around (`app/fixtures/golden/taps.json` `unnamed`, written by
+ * the pipeline with the fixture): each sampled section's handle and the name the PIPELINE gives it. A test that picks
+ * an unnamed reach compares the app's name for it with this one, an answer the app did not compute.
+ */
+export function regsFixtureUnnamedTaps(): { handle: number; name: string }[] {
+  const d = JSON.parse(readFileSync(join(REGS_FIXTURE_ROOT, "..", "..", "..", "..", "fixtures", "golden", "taps.json"), "utf8")) as
+    { unnamed: { handle: number; name: string }[] };
+  return d.unnamed.map((u) => ({ handle: u.handle, name: u.name }));
+}
+
+/**
  * (T369) A `lines` file (`@app/data` line.ts's format, its own writer) over `rows`, in memory, its meta `lines/1` on
  * `handles`. Only the blocks the rows touch are written; a slot no row names is a filler that keeps the block sorted and
  * spans nothing (the slot before it's line, empty) — a fixture's handles are a sample of the atlas, a release's table
@@ -228,7 +239,8 @@ export interface SectionNames {
   partAt(item: string, blk: number, m: number): Promise<number>;
   /**
    * THE RELEASE'S UNNAMED STREAM SECTIONS, ascending: every handle with a rule key (`regs-sid` `section_akey`) that no
-   * water's part holds and that has a stream line. A committed fixture keeps only a SAMPLE of them (taps.json's evenly
+   * water's part holds and that has a stream line of its own (a line that spans something: a slot no row names is a
+   * filler spanning nothing, `sectionLineDb`). A committed fixture keeps only a SAMPLE of them (taps.json's evenly
    * spaced `unnamed`), and the sample MOVES with every re-cut, so a test chooses one by the PROPERTY it needs (bound by
    * a tributary rule, the region's base alone, …), never by a stream key the sample happened to hold: 354088147:0 left
    * the sample on r-46e4355a7277 and three tests that named it stopped a release. For a fixture (it reads every block).
@@ -286,7 +298,9 @@ export function sectionNames(loader: ReleaseLoader): SectionNames {
         const b = r.b as Uint8Array, dv = new DataView(b.buffer, b.byteOffset, b.byteLength);
         for (let i = 0; i < b.byteLength / 2; i += 1) {
           const h = (Number(r.block) << BLOCK_BITS) + i;
-          if (dv.getUint16(2 * i, true) && !named.has(h) && await lines.sectionLine(h)) out.push(h);
+          if (!dv.getUint16(2 * i, true) || named.has(h)) continue;
+          const l = await lines.sectionLine(h);
+          if (l && l.to !== l.from) out.push(h);
         }
       }
       return out;

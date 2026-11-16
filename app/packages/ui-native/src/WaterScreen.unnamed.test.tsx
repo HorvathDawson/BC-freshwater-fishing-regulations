@@ -18,7 +18,7 @@ import { buildRegsPage, plain, WORDS, type RegsPage } from "@app/core";
 import { makeFixtureSource } from "@app/data/fixture";
 import type { ItemId, WaterSource, SectionId } from "@app/data";
 import { BLOCK_BITS, loadRegsInputs, type RegsStore } from "@app/data/regs";
-import { openRegsFixture, openRegsFixtureWithLines, sectionNames } from "@app/data/release/node";
+import { openRegsFixture, openRegsFixtureWithLines, regsFixtureUnnamedTaps, sectionNames } from "@app/data/release/node";
 import { DEFAULT_WHO, LayoutWidthContext, loadRegsStore } from "@app/ui";
 import { WaterScreen } from "./WaterScreen";
 import { LIGHT } from "./theme";
@@ -26,9 +26,6 @@ import { LIGHT } from "./theme";
 afterEach(cleanup);
 
 const DAY = new Date(2026, 9, 10, 12);   // Sat Oct 10
-/** the named water the fixture SOURCE says the tapped reach flows into (invented here, `sourceFlowing`: the page says
- *  what the source answers; the closure is the store's own tributary rule, whatever water it is of) */
-const HARRIS = "Harris Creek";
 /** The fixture source, with flow pointers for the tapped reach (`TRIB`, below): it → HOP (unnamed) → END (a named water). */
 const NAMES = sectionNames(openRegsFixtureWithLines());
 // (T667) the two sections downstream of it are the fixture's own, by name: an unnamed hop (Kootenay Lake's Upper West Arm,
@@ -38,7 +35,7 @@ function sourceFlowing(): WaterSource {
   const base = makeFixtureSource();
   return { ...base,
     traceToGauge: async (from: SectionId) => (from === TRIB ? [TRIB, HOP, END] as SectionId[] : [from]),
-    waterFor: async (s: SectionId) => (s === END ? { item: "gnis:9" as ItemId, name: HARRIS, kind: "stream" } : base.waterFor(s)),
+    waterFor: async (s: SectionId) => (s === END ? { item: "gnis:9" as ItemId, name: DOWN, kind: "stream" } : base.waterFor(s)),
   };
 }
 
@@ -73,7 +70,7 @@ async function baseOnlyUnnamed(): Promise<number> {
  *  rule of the banner's chain is one of the section's own tributary rules. */
 async function tribClosedUnnamed(): Promise<number> {
   for (const h of await NAMES.unnamedStreams()) {
-    const { page, trib } = await storePage(h, HARRIS);
+    const { page, trib } = await storePage(h, null);
     const b = page.keep.banner;
     if (b && b.big.join("|") === "Closed all year" && b.chain.length > 0 && b.chain.every((c) => trib.includes(c.rule))) return h;
   }
@@ -81,6 +78,21 @@ async function tribClosedUnnamed(): Promise<number> {
 }
 /** the tapped reach, by what it IS (never by an id or a stream key: the fixture's sample moves) */
 const TRIB = await tribClosedUnnamed();
+
+/** (T768) The named water of the store that OWNS rule `key`'s entry (the one shown water whose `entries` hold it); a
+ *  zone's or the province's rule has no such water, and throws. */
+async function ownerOf(key: string): Promise<string> {
+  const w = await (await loadRegsStore(openRegsFixture())).water();
+  const e = await w.get("SELECT e FROM entry WHERE id = ?", key.split("::")[0]!);
+  const own = (await w.all("SELECT name, entries FROM item WHERE shown = 1"))
+    .filter((r) => e !== undefined && (JSON.parse(String(r.entries)) as number[]).includes(Number(e.e)));
+  if (own.length !== 1) throw new Error(`rule ${key}: its entry is ${own.length} named waters', not one`);
+  return String(own[0]!.name);
+}
+/** The water the tapped reach is a tributary OF: the named water whose own rule closes it (the store's tie between
+ *  the rule and its water, not a name typed here). The fixture SOURCE answers the trace with this water
+ *  (`sourceFlowing`), so the page says "Tributary of" it. */
+const DOWN = await ownerOf((await storePage(TRIB, null)).page.keep.banner!.chain[0]!.rule);
 
 async function open(handle: number, source: WaterSource = makeFixtureSource(), width: number | null = null) {
   render(<LayoutWidthContext.Provider value={width}>
@@ -93,7 +105,7 @@ async function open(handle: number, source: WaterSource = makeFixtureSource(), w
 
 describe("(T53) <WaterScreen> for an unnamed reach: the store's page for the tapped section", () => {
   it("an unnamed stream bound by tributary rules: the store's name, \"Tributary of …\", and the closure the tributary rule makes", async () => {
-    const { page, trib } = await storePage(TRIB, HARRIS);
+    const { page } = await storePage(TRIB, DOWN);
     await open(TRIB, sourceFlowing());
     await waitFor(() => expect(screen.getByTestId("regs-place").textContent).not.toBe(""));
     const header = screen.getByTestId("regs-header");
@@ -101,14 +113,16 @@ describe("(T53) <WaterScreen> for an unnamed reach: the store's page for the tap
     expect([within(header).getByRole("heading").textContent, screen.getByTestId("regs-place").textContent,
             screen.queryByTestId("regs-action")])
       .toEqual([page.header.name, page.header.place!.full, null]);
-    expect(page.header.name).toMatch(/^Unnamed stream · Regions? \d/);
-    expect(page.header.place).toEqual({ full: WORDS.TRIBUTARY_OF(HARRIS), short: WORDS.TRIBUTARY_OF(HARRIS) });
+    // (T768) the name is the PIPELINE's for this section (the golden taps), an answer the app did not compute
+    expect(page.header.name).toBe(regsFixtureUnnamedTaps().find((u) => u.handle === TRIB)!.name);
+    expect(page.header.place).toEqual({ full: WORDS.TRIBUTARY_OF(DOWN), short: WORDS.TRIBUTARY_OF(DOWN) });
     // the banner, whole, as the store's page has it; its closure is one of the store's TRIBUTARY rules for this section
     const b = page.keep.banner!;
     expect(screen.getByTestId("keep-banner").textContent).toBe(
       b.big.join("") + b.paras.join("") + b.chain.map((c) => `${c.text} ${c.scope}${WORDS.SOURCE}${plain(c.book)}`).join(""));
-    expect(b.chain.map((c) => trib.includes(c.rule))).toEqual(b.chain.map(() => true));
-    expect([b.big, b.chain.length > 0]).toEqual([["Closed all year"], true]);
+    // (T768) every rule of the chain is the receiving water's OWN rule (the reach was picked for being closed by
+    // tributary rules; that they are all the one named water's, the water the page names, is not part of the pick)
+    expect(await Promise.all(b.chain.map((c) => ownerOf(c.rule)))).toEqual(b.chain.map(() => DOWN));
     // the sections of the page, as for any water — (T227) closed all year with no salmon: no Gear / Methods
     expect(within(screen.getByRole("tablist", { name: "Section" })).getAllByRole("tab").map((t) => t.textContent))
       .toEqual(page.header.tabs.filter((t) => t.tab !== "gear" && t.tab !== "methods").map((t) => t.label));
@@ -141,7 +155,7 @@ describe("(T53) <WaterScreen> for an unnamed reach: the store's page for the tap
   }, 30_000);
 
   it("the same reach on a desktop window: the same name and \"Tributary of …\" over the side column and the page", async () => {
-    const { page } = await storePage(TRIB, HARRIS);
+    const { page } = await storePage(TRIB, DOWN);
     await open(TRIB, sourceFlowing(), 1400);
     await waitFor(() => expect(screen.getByTestId("regs-place").textContent).not.toBe(""));
     const side = screen.getByTestId("regs-side");
@@ -149,6 +163,6 @@ describe("(T53) <WaterScreen> for an unnamed reach: the store's page for the tap
             screen.queryByTestId("regs-action"), !!within(screen.getByTestId("regs-columns")).getByTestId("regs-reading"),
             page.header.tabs.map((t) => within(side).queryAllByText(t.label).length > 0)])
       // (T227) closed all year with no salmon: the side list offers no Gear / Methods; (owner 2026-11-04) nor Licence
-      .toEqual([page.header.name, WORDS.TRIBUTARY_OF(HARRIS), null, true, [true, false, false]]);
+      .toEqual([page.header.name, WORDS.TRIBUTARY_OF(DOWN), null, true, [true, false, false]]);
   }, 30_000);
 });

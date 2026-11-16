@@ -9,8 +9,8 @@ import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testi
 import type { ItemId, SectionId } from "@app/data";
 import type { MapProps } from "@app/map";
 import { openRegsFixture, openRegsFixtureWithLines, regsFixtureLines, sectionNames } from "@app/data/release/node";
-import { openRegsStore } from "@app/data/regs";
-import { setFailureSink } from "@app/core";
+import { loadWaterGroup, openRegsStore } from "@app/data/regs";
+import { partName, partWhere, setFailureSink } from "@app/core";
 import { BackLayerContext, HOME, openWater, parseStartLink, partAction, partOfTap, reduce, useBack, useRoute,
          waterFrame, type Route, type StartLink, type SystemBack } from "@app/ui";
 import { linkSearch, placeReads, resolveStartLink } from "@app/ui/place";
@@ -39,8 +39,18 @@ const PARTS = {
   vedderUpper: ["gnis:3062", "chilliwack_vedder_rivers__vedder_crossing_bridge_200_m_downstream", "chilliwack_vedder_rivers__vedder_crossing_bridge"],
   zymoetzLake: ["gnis:3137", "zymoetz__mcdonell_lake_3000_m_downstream", "lake_outlet:wbk:329682393"],
   zymoetzSource: ["gnis:3137", "lake_inlet:wbk:329682393", "source"],
+  cowichanCnrGreendale: ["gnis:12227", "cowichan_river__cnr_bridge", "cowichan_river__greendale_trestle"],
 } as const;
 const partOf = (k: keyof typeof PARTS) => { const [item, lo, hi] = PARTS[k]; return sections.part(item, lo, hi); };
+/** (T768) What the bar says for a named part, or for the entry `up` steps above it: read from the water's own group, so
+ *  no test types "Part 2 of 21" (a new part end anywhere on the water moved every such line in seven files). */
+const GROUPS = openRegsStore(openRegsFixtureWithLines());
+async function said(k: keyof typeof PARTS, up = 0): Promise<{ where: string; name: string; partIx: number }> {
+  const [item, lo, hi] = PARTS[k], g = await loadWaterGroup(await GROUPS, item);
+  const at = g.parts.findIndex((p) => p.lo === lo && p.hi === hi), i = at + up;
+  if (at < 0 || !g.parts[i]) throw new Error(`${item} has no part from ${lo} to ${hi} (+${up}) in its group`);
+  return { where: partWhere(g, i), name: partName(g, i), partIx: g.parts[i]!.partIx };
+}
 const CHW0_LIT = [[380887781, 0]] as const;
 const CHW0_WATER = [[355993454, 0], [355993455, 0], [355993456, 0], [355998527, 0], [355999283, 0], [355999620, 0],
                     [356000264, 0], [380887781, 200], [380887817, 0],
@@ -235,7 +245,6 @@ describe("<WaterMapView>", () => {
   // that access all components") the Skeena's Ecological Reserve forks upstream in the marks (the main stem, and the
   // km-less side channel beside it): ▲ steps straight to the next part in the water's one line, the main stem, and the
   // next ▲ to the side channel. No dialog opens.
-  // (r-46e4355a7277) 21 parts: the Lakelse confluence and two more part ends above it (it was 18)
   it("(T750) no fork: ▲ on the Skeena's Ecological Reserve steps to the main stem, then the side channel; no chooser", async () => {
     mount("gnis:2936", await partOf("skeenaReserve"));
     await ready();
@@ -243,15 +252,18 @@ describe("<WaterMapView>", () => {
     const where = () => screen.getByTestId("water-map-where").textContent;
     expect(name()).toBe(
       "Skeena River Ecological Reserve boundary (km 63.5) → Skeena River Ecological Reserve boundary near the Exchamsiks River confluence");
-    expect(where()).toBe("Part 2 of 21 · Skeena River");
+    // (T768) "Part k of N" is the group's own for the Reserve and the entries one and two steps above it
+    const [reserve, stem, side] = await Promise.all([said("skeenaReserve"), said("skeenaReserve", 1), said("skeenaReserve", 2)]);
+    expect(where()).toBe(reserve.where);
     fireEvent.click(screen.getByRole("button", { name: "Upstream" }));
     expect([screen.queryByRole("dialog"), name(), where()]).toEqual([null,
-      "Skeena River Ecological Reserve boundary near the Exchamsiks River confluence → Exchamsiks River confluence", "Part 3 of 21 · Skeena River"]);
+      "Skeena River Ecological Reserve boundary near the Exchamsiks River confluence → Exchamsiks River confluence", stem.where]);
     fireEvent.click(screen.getByRole("button", { name: "Upstream" }));
-    expect([screen.queryByRole("dialog"), name(), where()]).toEqual([null, "Skeena River", "Part 4 of 21 · Skeena River"]);
+    expect([screen.queryByRole("dialog"), name(), where()]).toEqual([null, "Skeena River", side.where]);
     fireEvent.click(screen.getByRole("button", { name: "Downstream" }));
     fireEvent.click(screen.getByRole("button", { name: "Downstream" }));
-    expect([screen.queryByRole("dialog"), where()]).toEqual([null, "Part 2 of 21 · Skeena River"]);
+    expect([screen.queryByRole("dialog"), where()]).toEqual([null, reserve.where]);
+    expect(new Set([reserve.where, stem.where, side.where]).size).toBe(3);   // three different parts, one per press
   }, 30_000);
 
   it("Android's back closes an open mark before it leaves the water (back, everywhere)", async () => {
@@ -342,14 +354,15 @@ describe("<WaterMapView>", () => {
     fireEvent.click(screen.getByRole("button", { name: "Upstream" }));
     expect([screen.queryByRole("dialog"), screen.getByTestId("water-map-name").textContent, calls]).toEqual([
       null, "McDonell Lake → Source", [`part gnis:3137 ${await partOf("zymoetzSource")}`]]);
+    expect((await said("zymoetzLake", 1)).partIx).toBe(await partOf("zymoetzSource"));   // the source part is the next entry up
   }, 30_000);
 
   it("opened by a tap: starts on the tapped section's part (the Regulations view's part)", async () => {
     const CNR_TO_GREENDALE = await sections.stream(354155148, 41391);
     mount("gnis:12227", null, CNR_TO_GREENDALE);   // (T289 r-ce76b4ed3624: -> 59247; T278 r-62e2f3a8c81e: same section, -> 59249) CNR Bridge -> Greendale (354155148:41391; T206, r-f6918815ca78; T185 r-ea426985a467: two cuts ahead, +2; T220 r-46be3c135e68: 59296 -> 59304; T222 r-445850b69ae1: -> 59305)
     await ready();
-    // (r-46e4355a7277) part 5 of 6: the new part end at Skutz Falls is below it
-    expect(bar()).toBe("Part 5 of 6 · Cowichan River | CNR Bridge (mile 70.2) → Greendale Trestle | Downstream | Upstream");
+    // (T768) its place in the water is the group's (r-46e4355a7277 put a new part end, Skutz Falls, below it: 5 of 6)
+    expect(bar()).toBe(`${(await said("cowichanCnrGreendale")).where} | CNR Bridge (mile 70.2) → Greendale Trestle | Downstream | Upstream`);
     expect(lit().highlight).toEqual([CNR_TO_GREENDALE]);   // the tapped section given to mount()
   }, 30_000);
 
@@ -579,9 +592,11 @@ describe("<WaterMapView>", () => {
     it("(T517) the Zymoetz's source part above its lake part: ▲ into it and its URL reloaded draw the same", async () => {
       const Z = "gnis:3137" as ItemId;
       // the lake part is "McDonell Lake (3000 m downstream) → McDonell Lake outlet", by its ends; ▲ is the source part,
-      // the highest (r-46e4355a7277: 7 of 7, a new part end at the Hwy 16 bridge just above the mouth)
+      // the highest: (T768) its "Part N of N" is the group's
       const [stepped, reloaded] = await wayIn(open({ item: Z, part: await partOf("zymoetzLake"), view: "map" }), [up]);
-      expect(JSON.parse(stepped)).toMatchObject({ where: "Part 7 of 7 · Zymoetz River", name: "McDonell Lake → Source" });
+      const source = await said("zymoetzSource");
+      expect(source.where).toMatch(/^Part (\d+) of \1 · Zymoetz River$/);
+      expect(JSON.parse(stepped)).toMatchObject({ where: source.where, name: "McDonell Lake → Source" });
       expect(reloaded).toEqual(stepped);
     }, 60_000);
   });

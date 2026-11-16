@@ -19,6 +19,8 @@ import { Text } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { makeFixtureSource } from "@app/data/fixture";
 import type { ItemId } from "@app/data";
+import { partName, partWhere } from "@app/core";
+import { loadWaterGroup, openRegsStore } from "@app/data/regs";
 import { HOME, openWater, reduce, type Route } from "@app/ui";
 import { LIGHT } from "./theme";
 
@@ -116,21 +118,19 @@ describe("(T731) a step on a water's map changes the bar in place", () => {
   // marks fork (the main stem and the km-less side channel), and back: one part per press, the parts list's order, and
   // no chooser ever opens
   it("(T750) ▲ up the Skeena past its fork and ▼ back: one part per press, no chooser", async () => {
-    const out = await stepsDraw(reduce(HOME, openWater({ item: "gnis:2936" as ItemId, part: 1, view: "map" })),
+    // (T768) no part count and no part name typed (r-46e4355a7277 made it 21 parts from 18 and ended the run above
+    // the Exchamsiks at the Lakelse; the next cut moves them again): the walk is the water's own group, from its lowest
+    // part four entries up and back. What makes it THE FORK is held by the ends: the second entry is the Ecological
+    // Reserve, the fourth the km-less side channel (no ends, said by the water's name)
+    const g = await loadWaterGroup(await openRegsStore(openRegsFixtureWithLines()), "gnis:2936");
+    expect([g.parts[1]!.lo, g.parts[3]!.lo, partName(g, 3), g.parts.length > 5])
+      .toEqual(["area:SKEENA RIVER ECOLOGICAL RESERVE@km63.5", null, "Skeena River", true]);
+    const out = await stepsDraw(reduce(HOME, openWater({ item: "gnis:2936" as ItemId, part: g.parts[0]!.partIx, view: "map" })),
                                 ["up", "up", "up", "up", "down", "down", "down", "down"]);
-    // (r-46e4355a7277) 21 parts (it was 18), and the run above the Exchamsiks ends at the Lakelse confluence
-    const W = (n: number) => `Part ${n} of 21 · Skeena River`;
+    const walk = [1, 2, 3, 4, 3, 2, 1, 0];
     expect(out).toEqual({
-      wheres: [W(2), W(3), W(4), W(5), W(4), W(3), W(2), W(1)],
-      names: [
-        "Skeena River Ecological Reserve boundary (km 63.5) → Skeena River Ecological Reserve boundary near the Exchamsiks River confluence",
-        "Skeena River Ecological Reserve boundary near the Exchamsiks River confluence → Exchamsiks River confluence",
-        "Skeena River",
-        "Exchamsiks River confluence → Lakelse River confluence",
-        "Skeena River",
-        "Skeena River Ecological Reserve boundary near the Exchamsiks River confluence → Exchamsiks River confluence",
-        "Skeena River Ecological Reserve boundary (km 63.5) → Skeena River Ecological Reserve boundary near the Exchamsiks River confluence",
-        "Tidal boundary → Skeena River Ecological Reserve boundary (km 63.5)"],
+      wheres: walk.map((i) => partWhere(g, i)),
+      names: walk.map((i) => partName(g, i)),
       lost: [], loadingDrawn: false, dialogs: 0, sameNodes: [], remounted: { mounts: 0, unmounts: 0 }, unlit: 0,
       insets: [out.insets[0]],
     });

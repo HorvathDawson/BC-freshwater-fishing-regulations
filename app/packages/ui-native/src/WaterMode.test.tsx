@@ -54,7 +54,7 @@ vi.mock("./WaterScreen", async (importOriginal) => {
     <><real.WaterScreen {...p} /><Text testID="regs-on">{`regs on ${p.item} part ${p.part}`}</Text></> };
 });
 const { Shell } = await import("./Shell");
-const { openRegsFixture, openRegsFixtureWithLines, sectionNames } = await import("@app/data/release/node");
+const { openRegsFixture, openRegsFixtureWithLines, regsFixtureUnnamedTaps, sectionNames } = await import("@app/data/release/node");
 
 afterEach(cleanup);
 beforeAll(() => {
@@ -216,7 +216,10 @@ describe("one water screen, on the regs fixture release", () => {
     // not by a stream key either: the fixture keeps a SAMPLE of unnamed reaches that moves with every re-cut (stream
     // 354088147:0, named here until then, left it). Any unnamed stream of the fixture will do: its first
     const [unnamed] = await sectionNames(openRegsFixtureWithLines()).unnamedStreams();
-    expect(unnamed).toBeDefined();
+    // (T768) its name is the PIPELINE's for that section (the golden taps' `unnamed`), not a pattern the app could
+    // satisfy with any name
+    const golden = regsFixtureUnnamedTaps().find((u) => u.handle === unnamed)?.name;
+    expect(golden).toMatch(/^Unnamed stream · Regions? \d/);
     await mount("conditions", unnamed as SectionId, openRegsFixture());
     await tapMap();
     const title = () => screen.queryAllByTestId("water-title").map((t) => t.textContent).join(" | ");
@@ -225,10 +228,9 @@ describe("one water screen, on the regs fixture release", () => {
     swipe("view-swipe-conditions", 120);
     await waitFor(() => expect(screen.getByTestId("keep-tab")).toBeTruthy(), { timeout: 20_000 });
     // the Regulations view's name row carries its date pill too: the heading is the name
-    expect(cond[0]).toMatch(/^Unnamed stream · Regions? \d/);
     expect([cond, within(screen.getByTestId("regs-header")).getByRole("heading").textContent,
             screen.getByTestId("regs-on").textContent]).toEqual([
-      [cond[0], `panel for ${unnamed} at 49.1`], cond[0], "regs on null part null"]);
+      [golden, `panel for ${unnamed} at 49.1`], golden, "regs on null part null"]);
   }, 40_000);
 });
 
