@@ -2039,3 +2039,16 @@ More questions (recommended answer first):
   a closure rather than among the gear and bait lines, on the card and in the tool's grouping? His earlier words
   (batch 6): "general rule is (Reminder: There is no fishing for eulachon in Region 6. ) why would bait remove eulachon
   rule?"
+- 16:37, T805 parts B and D plus two of the worker's questions, one dialog (lists `changed-answers-B.md`,
+  `changed-answers-D.md`). Part B (possession on the fish row: Region 7 lake trout / bull trout "1 day's limit, not 2"
+  on ~3,100 waters, ~20 lakes' own possession numbers, Bowron Park's 1 every day; words only), picked: "Go
+  (Recommended)". Part D (Shamrock and Kilgard creeks: no 20-30 cm steelhead; Echoes Lakes "from both lakes
+  together"), picked: "Go (Recommended)". Bowron Lake Park lake trout (park's 1 in all / keep today's), picked: "Keep
+  today's" (lake trout follow Region 7's "1 day's limit" on their own row, apart from the park's 1 for the other
+  trout; this is what part B builds). Nation Lakes ("Up to 3 lake trout" a day, possession 2: both as printed /
+  lower the day to 2), typed, verbatim: "i feel like this possession stuff is just kind of broken but fixed in the new
+  trout format? so maybe we can just work on the transisiton to the new trout redisgn?" So: Nation Lakes stay as part
+  B builds them (both lines as printed); no further possession patching outside the redesign; he asks to work on the
+  trout redesign transition (T810 steps 3 to 7). My reading: that is his go to start the transition; first the spec
+  takes in his answers of 15:36 to 15:48 and the app chat's check of the app half. François Lake outlet (part D
+  question) NOT asked yet.
