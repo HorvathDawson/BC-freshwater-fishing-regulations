@@ -145,8 +145,22 @@ the shade is still open. The log agrees: app killed 12:01:49 (emulator clock), t
 a really slower line (emulator speed shaping does not reach its Wi-Fi; a rate-limited local proxy in front of
 staging's files, or a bigger test file, would). Last night's six R8 benches passed this step on a slower line (T749
 ticket, last section).
-One more session: `cd S/t760-merge-wt && HEAVY_LOCK=$HOME/.claude/heavy-job-2.lock CANIFISHTHIS_R8=1 <main>/scripts/heavy.sh m3-bg 30 -- bash -c "cd S/t760-merge-wt && bash app/tools/testbed/session.sh --crash-stub --max-min 40 --allow-stale 'bench files only changed since the APK was built' -- node app/tools/testbed/run.mjs --no-r2 bg-install > <log> 2>&1"`
-(If the lane's own final report arrived before the old chat closed, it is appended under this block.)
+THE LANE'S FINAL REPORT (13:05): the fix is NOT yet working; ONE session ran with it (`m3c-bg1`), the three passing
+sessions are all still owed. What a74ea4aa0 changed (bench files only, static checks pass): `scenarios/bg-install.mjs`
+drops the `d.link('hsdpa')` slowdown; "Wi-Fi back" returns at the first DownloadManager "Starting" log line newer
+than the step's start, or the app's byte line; the close step waits 0.7 s (was 2 s) each side of the kill; the tap
+step reads the notification's bounds from one uiautomator dump and taps with `input tap` (no Maestro), knows the
+"N files downloading" group, and says "BENCH RACE, not the app" when every system download had already finished when
+it started; `lib/device.mjs` gained `screenNodes()`, `tapAt()`, `deviceStamp()`; new `lib/ui-nodes.mjs` + its test.
+Its own next idea: wait for the BIG files' "Starting" line before closing (or tap sooner), since the close-to-tap
+window is about 5 s. Not yet read: `app-log-bg-install.txt` and `T298-4-notification.png` of that run.
+One more session (M = main checkout, W = `S/t760-merge-wt`; the APK tag is `m3`):
+`cd $W && export HEAVY_LOCK=$HOME/.claude/heavy-job-2.lock CANIFISHTHIS_R8=1 TESTBED_APK_TAG=m3 MLN_LOCAL_MAVEN=$M/cache/maplibre/fslean-m2 && $M/scripts/heavy.sh m3c-bg2 30 -- bash -c "cd $W && bash app/tools/testbed/session.sh --crash-stub --max-min 40 --allow-stale 'bench files only changed since the APK was built' -- node app/tools/testbed/run.mjs --no-r2 bg-install > $S/m3c-bg2.log 2>&1"`
+
+THE DEPLOY-GATE PIPELINE TIER (item 3 above) got lane 2 at about 13:05, as the old chat was closing. Before running
+it again, read the last line of `S/deploy-merge-pytest.log`: "tier rc=0 emit rc=0 mini rc=0" means it finished clean
+(then only `S/deploy-merge-stepcache.log` is left to read: ten known failures there are T799). No such line: it was
+cut off, run it again.
 
 ## Earlier restart section (written 2026-11-15 20:47, the night of 11-15 to 11-16; history, but its "Who you talk to" and the procedures below it still hold)
 
