@@ -10,6 +10,12 @@ and is being promoted locally (marks landing, reach step, data bundle running); 
 build with the code shrinker may be today (its phone checks are re-running; the line is fine after all).
 
 ## 1. First thing to do
+0. UNBLOCK THE ANDROID BUILD (one sentence to the main chat): "regenerate the two proposal rows". The build with the
+   code shrinker passed all six phone checks (61 steps) and both online checks, and was merged; the Play build then
+   refused to start because one local test fails: two rows of your proposals file (Stave "downstream of B.C. Hydro dam"
+   second wording, Bella Coola "all tributaries") lack their split-hunt evidence (my midday merge used the code from
+   before a later fix). An earlier attempt by a job to regenerate was denied by the automatic permission check, so the
+   main chat does not run it without your word. Nothing was built or uploaded; version 0.7.11 is merged.
 1. Restart the review app once (Ctrl-C, then `bash curation-review/run.sh`). It has new code: tributaries only /
    except a tributary, the tidal boundary as an end choice, warnings, clearer region-boundary names.
 2. Read section 2 (questions) and answer what you can; nothing in it blocks the others.

@@ -238,3 +238,15 @@ in `test_reach_builder.py`.
 - Should the pond a loop passes through (Sproat's 4.2 ha pond, Moat's, Tatlatui's) also go to the lake?
 - Should a loop that a nameless creek flows into (Stalk, Iverson, Jennings) move too? The rule leaves it because the
   creek's receiving water would change.
+
+## Kotcho Lake follow-up (2026-11-15, 3bbb200)
+
+The first promoted build gave Kotcho Lake its 51.8 m loop (`359013342:6118`). The lake's polygon is in the Kotcho Lake
+Ecological Reserve and the loop is not, so the lake fell into two parts with different rules and the answers step
+refused it (`promote-2026-11-15.md` §6). Fixed in the general rule, criterion 5 (`LOOPS_NEVER_DIVIDE_A_LAKE`): a loop
+joins its lake only when every piece is in exactly the lake's CUT areas (`areas.json` `cut` clean / first_last, the
+lake's `outside_items` taken out). Otherwise it stays with its river, listed as `AREAS_DIFFER` with both area sets. A
+lake is never divided into areas, so this follows the repo's lake-split deferral. Membership-only areas (`cut: false`,
+provincial parks and the like) do not hold a loop. They are listed on the moved row: Sproat Lake's two shore parks.
+Built and promoted locally: 7 lines move (Sproat, Moat/Cruickshank, Tatlatui/Firesteel, Nanika, Tsintsunko, Isintok,
+Garnet/Eneas), and Kotcho is not moved (`rebuild-finish-2026-11-15.md`).
