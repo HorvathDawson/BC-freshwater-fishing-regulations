@@ -45,6 +45,24 @@ would show such a closed area as open. Nothing binds today. I take it as T757 wh
 (`handoff/PLAN/app-integration/tickets/T573-files/worker-handoff.md`); I asked for a mechanical guard (the release
 refuses when the worker does not report the new feed shape) and for the app to say "not known" instead of "open".
 
+**State 17:18, 2026-11-15: the R8 Play build (build 33) is ready on every side but one, and that one needs the owner.**
+- All six emulator checks passed on the shrinker-on build of the merged code (clean run 15:54–16:43: 61 steps pass,
+  none fail; install map up 481 s; tap to regulations page 344–360 ms). Report in the R8 lane's worktree:
+  `app/tools/testbed/out/runs/2026-11-15T22-54-45/index.html`.
+- Merged into `redesign/stream-sections` and pushed 16:50: head 35dce9bf3 (shrinker off by default; its app code is
+  byte-identical to the tested commit 6a2dc612d). Both GitHub runs green on it (app 43776985369, pipeline
+  43776985305).
+- **Not built:** the Android chat's `CANIFISHTHIS_R8=1 deploy/staging/build-apk.sh --play` stopped in its quick test
+  step: `pipeline/tests/test_dfo_suggest.py::test_the_hunt_file_covers_its_targets_and_names_real_cuts` fails in the
+  main checkout because it reads the owner's UNCOMMITTED `data/generated/review/dfo-suggestions.json`, where two rows
+  merged at midday lack their evidence. GitHub is green because it reads the committed copy. Nobody skips the test
+  (`--no-fast-fail` is forbidden). The fix is to regenerate those two rows; when a lane of the Android chat tried,
+  the automatic permission check refused it, so no agent does it: it is the first item on the owner's To-Do page and
+  on his return page ("regenerate the two proposal rows"). Nothing built, no version commit, nothing uploaded.
+  Build 33 follows his word: tonight if he answers, otherwise tomorrow. A CI re-run on the then head comes first
+  (the Android chat is pushing pipeline commits meanwhile; it leaves app/ and build-apk.sh untouched so the tested
+  app code stays the head's).
+
 **State 16:08, 2026-11-15 (newest first; the notes below it are older).**
 1. **R8 Play build (build 33): still possible tonight.** The 15:17 run of the six checks failed at the first one, and
    I traced why on the emulator instead of guessing: the system's downloader still held half-finished atlas and

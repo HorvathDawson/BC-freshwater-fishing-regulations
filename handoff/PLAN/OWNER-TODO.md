@@ -237,6 +237,13 @@ with the default Claude uses until you answer). Newest first inside each section
   merge and no upload until that check passes on a good line; I re-run it when the line recovers. If it is still bad
   this evening the build slips to tomorrow. Found on the way, not from the shrinker: T756 (reopening mid-download
   restarts the big files from zero after "Wait for Wi-Fi"); fix on a branch, not merged, not in this build.
+  **State 2026-11-15 17:18: ready except one thing that needs you.** All six checks passed, the code is merged
+  (shrinker off by default), both GitHub checks are green. The build did not run: the build script's quick test step
+  fails on one test that reads your uncommitted `data/generated/review/dfo-suggestions.json` (two rows merged at
+  midday lack their evidence). The agents will not skip the test or edit your file: regenerating the two rows was
+  refused by the automatic permission check, so it is yours; the Android chat's item "regenerate the two proposal
+  rows" (first on your To-Do page and on OWNER-RETURN-2026-11-15.md) has the command. Nothing built or uploaded
+  until then.
   **CORRECTION 2026-11-15 15:19: back on for today.** The line was not down; my probe was wrong (it timed a "not
   found" answer). All six checks are running since 15:17 on the merged code (T752 included) with the shrinker on. If
   all pass: merge, CI, then the Android chat's Play build today. The 14:44 note below is superseded.
@@ -804,3 +811,13 @@ checks; one page of questions for him. Nothing that changes what a wording means
   main chat does not run a command a job was refused. Run it yourself or tell the main chat to. Details in
   `handoff/PLAN/OWNER-RETURN-2026-11-15.md` section 6.
 - ANSWERED 2026-11-15, on the blocked side rebuild step: "You can run it". Run by the main chat; rebuild continuing.
+- BLOCKED 2026-11-15 17:20, NEEDS YOU: Play build 33 (0.7.11, code shrinker on; 6 of 6 phone checks, both CIs green,
+  merged 35dce9bf3) refused to start: fast-fail fails on two rows of the proposals file lacking split-hunt evidence
+  (my midday merge). Regenerating was denied to a job by the permission check; the main chat will not run it without
+  your word. Say "regenerate the two proposal rows" (or run the suggester yourself); then the build runs.
+- ANSWERED 2026-11-15 18:40: "Yes regenerate proposals if you need to." Done by the main chat: a fresh suggester run
+  into a scratch folder; the two rows the test named (Stave "downstream of B.C. Hydro dam" second wording, Bella Coola
+  "all tributaries") have no row in a fresh run because both places are placed now, so those two rows were removed from
+  the proposals file (backup taken; no other row changed). The test passes; Play build 33 started.
+- ASKED 2026-11-15 18:40 about T759: "What u mean ? should the app say "not known" instead of showing the wider open
+  rule? I recommend yes." Explained in chat with an example; answer still open.

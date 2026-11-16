@@ -93,3 +93,23 @@ Branch `fix/t756-keep-running-job`, commit a03372ec5, off the shared head ff4463
 - **Not verified:** that the iPhone downloader (T722) reports `running` and `metered` the way this rule needs; that
   DownloadManager reports a Wi-Fi-only job as `running` (not `paused`) for the whole time it moves on Wi-Fi.
 
+## Device runs, 2026-11-15 evening (emulator n1_pixel, branch `fix/t756-keep-running-job`, lane 2, `--no-r2`)
+Branch now: the shared head 35dce9bf3 merged in, plus 81591d974 (a paused Wi-Fi-only job that has bytes is kept; every
+restart from zero logs `[download] <url>: queued again from zero (was <status>, N of M bytes): <why>`; the bench reads
+that line, not the system downloader's), the T760 bench change (a clean app is an uninstall + install) and 872cfe14e.
+- **`install` PASS** (run 2026-11-16T01-29-07, commit 8ada197ac): map up 635 s. The system downloader hit read
+  timeouts for about seven minutes (both big files "paused (reason 1)" then "running" again every 20–60 s) and
+  finished by itself; the host's own line was steady at the time (120 MB twice at 1.7 MB/s), so the stalls are in the
+  emulator's network path or came and went.
+- **Reopen mid-download, by hand** (first launch on Wi-Fi, killed at 45 s, relaunched): after the relaunch the app
+  logged both big files "running, 30302145 of 197196706 bytes" / "76166400 of 225356297 bytes", no "queued again from
+  zero" line, and both finished and verified (basemap "fill 125426 ms"). Bytes kept. This is the both-rules-equal
+  case; the "Wait for Wi-Fi, then reopened" case is what `bg-install` drives.
+- **`bg-install`, first try, FAILED in the bench, not in the app:** the new tap step found no notification because
+  `expand-notifications` on an already open shade turns it into the quick settings; and the reopen step then waited to
+  its cap because its progress measure was wrong (the downloader's files are full-size on disk from the first second,
+  by `ls -l` and by `du`). Both fixed in 872cfe14e: the shade is closed first; progress is the app's own byte line,
+  and no byte line at all for 4 minutes is a stall. Re-run started 18:48; result below when it is in.
+- The earlier `install` failure of the same build (17:22, 20 minutes, the setup screen with NO bar and NO byte line)
+  is not explained by a run of mine; the log kept only "mobile data: go". It may be the same read timeouts lasting
+  longer; a screen that shows nothing while every download is paused is T760's point 3.

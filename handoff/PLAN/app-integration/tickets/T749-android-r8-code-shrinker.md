@@ -1,6 +1,6 @@
 # T749 — Android: turn the code shrinker (R8) back on, with keep rules, behind a device proof
 
-Status: IN REVIEW (2026-11-15: trial on branch `perf/r8` passes all six emulator benches behind `CANIFISHTHIS_R8=1`, off by default; left (Claude): the build script keeps mapping.txt; owner: OWNER-TODO "T749, Android's code shrinker R8")
+Status: IN REVIEW (2026-11-15: merged into `redesign/stream-sections` 35dce9bf3 behind `CANIFISHTHIS_R8=1`, off by default; six benches pass on the merged code; both CIs green; left (Claude): after the Android chat's Play internal build (it waits for the owner's "regenerate the two proposal rows"), put the phone walk on the owner's row and record his result; owner: OWNER-TODO "T749, Android's code shrinker R8")
 
 Source: T741 survey 2026-11-14 (owner, verbatim: "can you make sure to keep working on optimizations? make app faster
 and lighter for both ios and android"). History: T250, where the first APK built with R8 died at start and R8 was
@@ -253,3 +253,25 @@ The line stayed down all afternoon (30–46 B/s, 13:04–14:39). The Android cha
 on the shared branch, so `perf/r8-play` now has that head merged in. App code since the 164c928c2 bench: T752 (five
 files under `app/packages/ui-native`) and one worker test fixture. ALL SIX benches are re-run on this merge with the
 flag on before the build; the 164c928c2 results above stand only for that commit.
+
+### CORRECTION and result, 2026-11-15 (written 17:24)
+- **The line was not down.** The "30–46 B/s" above was my probe timing a 9-byte 404 (its address lacked `release/`).
+  Measured properly at 15:16: 8 MB in 4.7 s. The failures up to 12:49 were real, but their cause was very likely not
+  the line either: see the next point.
+- **Why bg-install failed in the morning, and the 15:17 run at `install`:** the system downloader on the emulator held
+  half-finished atlas and basemap rows from runs cut short by their time cap; `pm clear` keeps them (same uid), the
+  cleared app adopts them and waits for ever ("paused (reason 1), 18436761 of 197196706 bytes", no job scheduled).
+  Not R8. Ticket T760 (the app must not wait silently; the bench must clear the downloader).
+- **Clean run, flag-ON test-bed APK `app-testbed-stub-r8play2.apk` of 6a2dc612d (= 164c928c2 + the shared head with
+  T752), after an uninstall + install, `--no-r2`, 15:54–16:43, lane 2: 6 of 6 scenarios, 61 steps pass, 0 fail.**
+  install (map up 481 s; peak total PSS 125 MB during the download), crash-bed 5/5, regs-open (cue 36–71 ms, page
+  344–360 ms), bg-install (every step, with the app closed mid-download and the reopen), memory, tap-stalls. Report:
+  the R8 lane's worktree, `app/tools/testbed/out/runs/2026-11-15T22-54-45/index.html`.
+- **Merged 16:50:** `redesign/stream-sections` 35dce9bf3 (merge of `perf/r8-play`; `app/` and
+  `deploy/staging/build-apk.sh` byte-identical to 6a2dc612d). App CI 43776985369 and pipeline CI 43776985305 green
+  (GitHub's app run on 6a2dc612d itself had failed once on the flaky T751 test).
+- **Play build: not made.** `CANIFISHTHIS_R8=1 deploy/staging/build-apk.sh --play` (Android chat, 17:20) passed its
+  precheck and stopped in `scripts/fast-fail.sh`: `test_dfo_suggest.py::test_the_hunt_file_covers_its_targets_and_
+  names_real_cuts` reads the owner's uncommitted `data/generated/review/dfo-suggestions.json` in the main checkout,
+  where two rows lack their evidence. No skip (`--no-fast-fail` is forbidden); regenerating the rows was refused by the
+  automatic permission check, so it is the owner's (his To-Do row "regenerate the two proposal rows"). Build 33 follows.

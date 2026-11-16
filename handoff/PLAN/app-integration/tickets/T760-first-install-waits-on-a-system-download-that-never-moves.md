@@ -51,3 +51,16 @@ the download carries on", for ever. Nothing is shown and nothing is reported (ru
 - The setup screen never sits silent on a download that does not move.
 
 Depends: T756 (same file; land together or after). Size: M. On the list for the owner's code review.
+
+## Added 2026-11-15 evening
+- **Work 1 (bench) is written** on branch `fix/t756-keep-running-job`: `device.cleanApp()` (uninstall + install of
+  `TESTBED_APK_FILE`; throws without it) replaces `pm clear` in `install`, `bg-install` and `memory`, and `session.sh`
+  uninstalls before it installs. Seen working: "uninstalled the app left by the last batch", new uid, downloads start
+  at once.
+- **Work 5 is done there too** (the bench reads the app's own "queued again from zero" line).
+- **Seen on the emulator, for work 2 and 3:** the system downloader's read timeouts ("Failed reading response:
+  SocketTimeoutException", then WAITING_TO_RETRY) pause both big files together, again and again, for minutes; the app
+  logs "paused (reason 1)" and waits. One run sat 20 minutes on a setup screen with no bar and no byte line. Whether
+  the screen hides the byte line while everything is paused is NOT checked in the code yet; if it does, that is the
+  silent screen of point 3.
+- First install on Android is the Android chat's area: works 2 and 3 wait for its word on N and the count.
