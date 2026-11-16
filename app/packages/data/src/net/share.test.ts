@@ -1,6 +1,7 @@
 // (T265) one network request per URL in the air: the update service's check and the feed loader's read of the same index.
 import { describe, expect, it, vi } from "vitest";
 import { shareFetch } from "./share";
+import { fetchResilient } from "./fetch";
 import { httpFeed } from "../feed/http";
 import type { StationId } from "../index";
 
@@ -63,6 +64,51 @@ describe("shareFetch", () => {
     // and a fresh ask after that is a new request
     g.go(); await f(U);
     expect(g.calls).toHaveLength(2);
+  });
+  /** a request whose body sends 8 bytes and then stalls for ever; `cancelled` counts the cancels that reached it */
+  function stalling() {
+    const at = { cancelled: 0, calls: [] as (string | null)[] };
+    const all = new TextEncoder().encode("%PDF-0123456789abcdef");
+    const fn = (async (_u: RequestInfo | URL, init?: RequestInit) => {
+      const range = new Headers(init?.headers).get("range");
+      at.calls.push(range);
+      if (range) return new Response(all.subarray(8), { status: 206 });
+      let sent = false;
+      return new Response(new ReadableStream<Uint8Array>({
+        pull(c) { if (!sent) { sent = true; c.enqueue(all.subarray(0, 8)); return; } return new Promise<void>(() => {}); },
+        cancel() { at.cancelled++; },
+      }));
+    }) as unknown as typeof fetch;
+    return { fn, at };
+  }
+  it("(T760) a lone asker is handed the response itself: cancelling its body cancels the request's", async () => {
+    const s = stalling(), f = shareFetch(s.fn);
+    const r = (await f(U)).body!.getReader();
+    expect((await r.read()).value).toHaveLength(8);
+    await r.cancel();
+    expect(s.at.cancelled).toBe(1);
+  });
+  it("(T760) several askers: the request's body is let go when every one has cancelled its copy, not before", async () => {
+    const s = stalling(), f = shareFetch(s.fn);
+    const [a, b] = await Promise.all([f(U), f(U)]);
+    expect(s.at.calls).toHaveLength(1);
+    const ra = a.body!.getReader(), rb = b.body!.getReader();
+    expect((await ra.read()).value).toHaveLength(8);
+    expect((await rb.read()).value).toHaveLength(8);
+    const gone = ra.cancel();                                 // a tee'd copy's cancel settles when both have gone
+    await new Promise((r) => setTimeout(r, 0));
+    expect(s.at.cancelled).toBe(0);                           // the other asker is still reading
+    await rb.cancel(); await gone;
+    expect(s.at.cancelled).toBe(1);
+  });
+  it("(T760) a release file whose body stalls after the headers is cut and resumed THROUGH the shared fetch", async () => {
+    // the first-install hang: the stall timer aborted the asker's signal, which the shared request no longer hears
+    const s = stalling(), f = shareFetch(s.fn);
+    const out = await fetchResilient(U, { fetchImpl: f, limits: { firstByteMs: 200, stallMs: 100, totalMs: 5000 },
+                                          sleep: () => Promise.resolve(), resumable: () => true });
+    expect(new TextDecoder().decode(out)).toBe("%PDF-0123456789abcdef");
+    expect(s.at.calls).toEqual([null, "bytes=8-"]);
+    expect(s.at.cancelled).toBe(1);                           // the stalled connection was closed
   });
   it("an error reaches every asker", async () => {
     const f = shareFetch((async () => { throw new TypeError("offline"); }) as unknown as typeof fetch);

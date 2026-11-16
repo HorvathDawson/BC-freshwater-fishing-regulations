@@ -169,7 +169,9 @@ export function device(fetchImpl: typeof fetch = fetch, bg?: BackgroundNative | 
     fs,
     // (T256 item 4) the data files of a first install over a poor line: timeouts by size, retries, resume (the big
     // files are the native transport's, `nativeFill`, which already retries and resumes)
-    download: (url, expect) => fetchVerifiedResilient(url, expect, { fetchImpl }),
+    // (T760, W46) a try that was cut is SAID: four silent tries of one stalled file read as an app that stopped
+    download: (url, expect) => fetchVerifiedResilient(url, expect, { fetchImpl, onRetry: (e) => console.warn(
+      `[download] try ${e.attempt - 1} failed (${e.why}); trying again in ${e.waitMs} ms${e.resumeAt ? `, from byte ${e.resumeAt}` : ""}`) }),
     toDisk: partDownload(partFs, sys ? sys.fill : nativeFill()),
     ...(sys ? { background: { queue: sys.queue } } : {}),
     dirUri: (path) => dirAt(path).uri,
