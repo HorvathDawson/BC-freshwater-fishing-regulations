@@ -16,3 +16,11 @@ Source: general audit 2026-11-16, answers checker D1, B2, B3, B4, E5, E6 (`hando
 5. Smaller: other-fish rows with a size sub-limit (Region 4 kokanee "no more than 5 over 30 cm"; Zone B pike and
    walleye) show no hint on the row (it is one tap away); the Cowichan boats line drops "on parts" from the speed
    limit; part labels on the Halfway and Stellako.
+
+## Item 1 traced (the app chat, 2026-11-16 05:00): it is the app's core, the stored model is right
+On r-46e4355a7277 the stored gear answer holds `{"while": ["in_powered_boat"]}` with its label ("No angling (from a
+powered boat) — downstream of Woodjam Bridge" on the Horsefly; "… upstream of dyke gates" on the Nicomekl); the page's
+boats line is empty. `app/packages/core/src/regs/boats.ts:108` `inBoatRules` keeps a clause only when its `while`
+includes exactly "in_boat". Fix (the app chat's, with the next app build; no data release): select both tokens, a test
+on a powered-boat water, and a check that no other `angler` token is dropped the same way (`alone_in_boat`,
+`from_shore`). Waits on the owner's go.

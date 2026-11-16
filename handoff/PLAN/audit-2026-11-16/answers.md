@@ -1,6 +1,6 @@
 # General audit, checker "answers": the app's answers against the printed sources (release r-46e4355a7277)
 
-Saved by the main chat from the checker's hand-back (the checker could not write files). Evidence: the session scratch folder .
+Saved by the main chat from the checker's hand-back (the checker could not write files). Evidence: the session scratch folder, under audit-general/answers.
 
 ## Answers audit: 7 things the app allows that the sources forbid, 6 it forbids that they allow, no wrong numbers or dates
 
