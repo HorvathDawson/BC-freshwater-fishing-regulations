@@ -9,16 +9,28 @@ import { appUp } from './common.mjs';
 import { stallWatch, thrownAway } from '../lib/download-watch.mjs';
 import { lineProbe } from '../lib/line-probe.mjs';
 import { downloadJobs, findNode } from '../lib/ui-nodes.mjs';
+import { startThrottleProxy } from '../lib/throttle-proxy.mjs';
 
 const SAYING = /…$|… of data$/;
+// (2026-11-16) the line the bench holds the phone to until the notification is tapped: 479 MB then take about 160 s, so
+// the system's download is still running minutes after the app is closed (on the full line it was over in 35 to 60 s)
+const SLOW_BPS = 3_000_000;
 
 export const bgInstall = {
   id: 'bg-install',
   title: 'First install: asks on mobile data, waits for Wi-Fi, keeps downloading with the app closed',
-  // (2026-11-16) TRIED AND DROPPED: slowing the link (`d.link('hsdpa')`, `adb emu network speed`) so the download outlasts
-  // the close and the tap. The emulator's speed shaping does not reach its Wi-Fi: six runs showed no change (479 MB in
-  // 35 to 60 s). Do not try it again. The bench instead follows the SYSTEM downloader (see "Wi-Fi back") and acts fast.
+  // (2026-11-16) TRIED AND DROPPED: slowing the link with the emulator's own shaping (`d.link('hsdpa')`, `adb emu network
+  // speed`). It does not reach its Wi-Fi: six runs showed no change (479 MB in 35 to 60 s). Do not try it again. What
+  // works: the phone's global HTTP proxy pointed at a proxy on this Mac that holds the bytes to SLOW_BPS
+  // (`lib/throttle-proxy.mjs`), from the clean install until the notification is tapped; then lifted and unset. The
+  // proxy is always unset when the scenario ends, however it ends.
   async run(ctx) {
+    const d = ctx.device;
+    const proxy = await startThrottleProxy({ rate: SLOW_BPS });
+    const unset = () => { try { d.sh('settings put global http_proxy :0'); } catch { /* the device is gone */ } };
+    try { await bgInstall.steps(ctx, proxy, unset); } finally { unset(); await proxy.close(); }
+  },
+  async steps(ctx, proxy, unset) {
     const d = ctx.device;
     const shot = (name) => { try { d.screenshot(path.join(ctx.dir, `T298-${name}.png`)); } catch { /* no shot */ } };
     const words = () => d.screenText();
@@ -31,6 +43,7 @@ export const bgInstall = {
                    { shot: false, stop: true });   // (T442) a stale test/ only 404s
     await ctx.step('clean app on MOBILE DATA: asked before the download', async () => {
       d.stop(); d.cleanApp();   // (T760) not `pm clear`: the system downloader's rows go too
+      d.sh(`settings put global http_proxy 10.0.2.2:${proxy.port}`);   // the slow line (SLOW_BPS), see the top
       try { d.adb(['logcat', '-G', '16M']); d.logcatClear(); } catch { /* none yet */ }
       await d.net('cellular'); d.link('full', 'none');
       d.launch();
@@ -100,7 +113,7 @@ export const bgInstall = {
         const evidence = jobs.started.length ? `the system downloader started ${jobs.started.length} job(s) at ${jobs.startedAt}` : got > 2 ? line : '';
         if (evidence) {
           shot('3-downloading'); atKill = line || evidence;
-          const said = `${evidence}${jobs.started.length && line ? ` · app's line: ${line}` : ''}`;
+          const said = `${evidence}${jobs.started.length && line ? ` · app's line: ${line}` : ''} · line held to ${SLOW_BPS / 1e6} MB/s by the bench's proxy`;
           return failedAt ? `${said} (the app had shown the failure screen ${Math.round((failedAt - t0) / 1000)} s after Wi-Fi came back, and recovered by itself ${Math.round((Date.now() - failedAt) / 1000)} s later, no tap)` : said;
         }
         if (!failedAt && w.some((x) => /^The map data could not be loaded/.test(x))) { failedAt = Date.now(); shot('3-failed-screen'); }
@@ -126,6 +139,7 @@ export const bgInstall = {
       if (alive()) { d.stop(); how = 'force-stopped (am kill left it)'; await d.sleep(1000); }
       killedAt = d.deviceStamp();
       if (alive()) throw new Error('the app is still running after the kill');
+      if (proxy.bytes < 1e6) throw new Error(`BENCH: the phone did not use the bench's slow proxy (${proxy.bytes} bytes through it), so the download is not held back`);
       d.sh('cmd statusbar expand-notifications');
       await d.sleep(1200);
       notes = words().filter((x) => /Downloading BC fishing rules|files? downloading|·|\d+ ?%/i.test(x));
@@ -178,6 +192,7 @@ export const bgInstall = {
       return `opened by a tap on ${how}`;
     });
     await ctx.step('reopened mid-download: no running download is thrown away; setup finishes and the map opens', async () => {
+      proxy.setRate(Infinity); unset();   // the tap is done: the rest at full speed (open tunnels too)
       let opened = 'the notification tap';
       if (!front()) { opened = 'a launch (the tap did not open it)'; d.sh('cmd statusbar collapse'); d.launch(); }
       const t0 = Date.now();
