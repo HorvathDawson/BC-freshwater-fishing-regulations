@@ -275,3 +275,16 @@ flag on before the build; the 164c928c2 results above stand only for that commit
   names_real_cuts` reads the owner's uncommitted `data/generated/review/dfo-suggestions.json` in the main checkout,
   where two rows lack their evidence. No skip (`--no-fast-fail` is forbidden); regenerating the rows was refused by the
   automatic permission check, so it is the owner's (his To-Do row "regenerate the two proposal rows"). Build 33 follows.
+
+## Benches for the 0.7.11 Play build head, 2026-11-15 23:19 to 2026-11-16 00:38 (app chat, lane 2, R8 on)
+- APK built 23:21 from 5aac6932e (last app code change 4e793d61f, T762) with `CANIFISHTHIS_R8=1`; the build wrote
+  R8's `mapping.txt` (65 MB), `usage.txt`, `seeds.txt`; one 7.9 MB `classes.dex`. `--crash-stub`, `run.mjs --no-r2`.
+- Run 1 (23:19 to 00:27): crash-bed 5/5, regs-open 26/26 (worst tap: cue 87 ms, page 414 ms), bg-install 7/7 (the
+  notification tap did not open the app, the bench launched it: the known old-bench behaviour), memory 14/14 (boot
+  249.8 MB, peak 439.5 MB with the rule book), tap-stalls 5/5 (worst 169 ms of 300). install FAILED at 23:39, 0.6 of
+  479.3 MB: the Mac's disk was full from about 23:38 (T764), so not an app verdict; no probe verdict exists for it.
+- Run 2 (00:28 to 00:38, same APK): install 3/3 (up in 389 s), crash-bed 5/5.
+- All six pass. They stand for the Play build head if `git diff --stat 5aac6932e <head> -- app
+  deploy/staging/build-apk.sh` shows only the release's fixture re-cuts, test files and T764's files.
+- Not verified: no minified stack frame was decoded in this round.
+

@@ -45,6 +45,13 @@ this page says "iOS chat" below, read "app chat". Session since 2026-11-15 21:27
    `t759-pictures/final/`), Sonnet, new worktree `t759-wt`, new branch `app/t759-stripe` from `app/t759-issues`.
    When (b) reports: send the owner the contact sheet with row `t759-line-look`.
 
+9. 00:39: ALL SIX R8 BENCHES PASS (T749 ticket, last section; APK from 5aac6932e) and the main chat was TOLD
+   "benches done". T764 is done (Maestro output cleared). Both build lanes reported: T760 keep-trying is on
+   `fix/t760-stuck-download` @ 4e3bfffe9 (unit-tested, NOT benched); the T759 stripe is on a new branch (T759 ticket,
+   last section; `check:fast` rc 0) and its pictures went to the owner with To-Do row `t759-stripe-final`. Lane 2 is
+   free. NEXT: wait for the main chat's "before" then "after" message; then item 3 above (worker redeploy, bench-diff
+   against 5aac6932e, fast-fail, both CIs, Play build on lane 3, phone walk row).
+
 **Who you talk to.** The main (data) chat is session `bc-freshwater-fishing-regulations-17` (it took over
 from chat 13 on 2026-11-15 evening; its page: `handoff/PLAN/NEXT-SESSION-after-chat13.md`). Tell it your session name
 first. It messages you BEFORE and AFTER any staging release.

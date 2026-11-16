@@ -1,6 +1,6 @@
 # T764 — App tests leave their temp folders behind (184 GB in three days; the disk filled on 2026-11-15)
 
-Status: IN PROGRESS (on the shared branch as e62331249 since 2026-11-15 23:54, `check:fast` clean; the whole app suite ran with it in the main chat's check at about 00:05 on 2026-11-16: 7,714 passed, as it reported; left (Claude): clear the Maestro output after the benches).
+Status: DONE 2026-11-16 00:39 (e62331249 on the shared branch; the whole app suite ran green with it, 7,714 passed, in the main chat's check; the 13 GB of Maestro output cleared at 00:39, 177 GB free. `fixture-release-*` is the pipeline's and goes with the main chat's T777).
 
 Source: the main chat, 2026-11-15 23:50, after the Mac's disk filled at about 23:38 (1.3 GB free) and stopped a
 night's work for an hour. Area: the app chat (app tests and tools).
