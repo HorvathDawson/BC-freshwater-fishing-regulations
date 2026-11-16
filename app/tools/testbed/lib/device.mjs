@@ -5,6 +5,7 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { KEPT_TAGS, keptLog } from './kept-log.mjs';
 
 export const APP_ID = 'ca.canifishthis.app';
 const SDK = process.env.ANDROID_HOME ?? path.join(os.homedir(), 'Library/Android/sdk');
@@ -139,7 +140,14 @@ export function crashed(sinceIso) {
   const log = adb(['logcat', '-d', '-b', 'crash', ...(sinceIso ? ['-T', sinceIso] : [])]).toString();
   return log.split('\n').filter((l) => l.includes(APP_ID) || /FATAL EXCEPTION/.test(l));
 }
-export const logcatClear = () => adb(['logcat', '-c']);
+// (T760) Maestro clears the device's log at the start of every flow (lib/kept-log.mjs): the app's and the downloader's
+// lines are kept first (`keepLog`, run.mjs's `ctx.flow`). `logcatTag` reads across flows (the kept lines plus the log
+// now); `logcatJs` stays the log now (what came since the last flow or clear), as the scenarios that read it expect
+const kept = keptLog();
+export function keepLog() { kept.keep(adb(['logcat', '-d', '-s', ...KEPT_TAGS.map((t) => `${t}:*`)]).toString()); }
+export const logcatClear = () => { adb(['logcat', '-c']); kept.clear(); };
+/** One tag's lines (one of KEPT_TAGS) since the last `logcatClear`, across flows. */
+export const logcatTag = (tag) => kept.lines(tag, adb(['logcat', '-d', '-s', `${tag}:*`]).toString());
 export const logcatJs = () => adb(['logcat', '-d', '-s', 'ReactNativeJS:*']).toString();
 
 // ---------- the screen ----------

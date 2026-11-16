@@ -62,15 +62,42 @@ export const bgInstall = {
       return `${a} → ${b}`;
     });
     let atKill = '', killedAt = '';
+    // what a failed step leaves for whoever reads it: the app's whole log since the scenario began (without the test
+    // bed's heap and stall ticks) and the system downloader's, beside the screenshots
+    const keepLogs = (name) => { try {
+      const all = d.logcatTag('ReactNativeJS').join('\n').split('\n').filter((l) => l.trim() && !/\[heap\]|\[stall\]/.test(l));
+      const dmAll = d.logcatTag('DownloadManager');
+      fs.writeFileSync(path.join(ctx.dir, name), [`app killed ${killedAt || '(not yet)'}`, '=== the app (ReactNativeJS)', ...all, '=== the system downloader', ...dmAll].join('\n') + '\n');
+    } catch { /* no log */ } };
+    // (T760) a line probe taken at the moment of a stalled or unfinished step: Mac and emulator, raw text beside the logs,
+    // and its one-line verdict in the failure text
+    const probeLine = (name) => { try { const p = lineProbe(d); fs.writeFileSync(path.join(ctx.dir, name), p.raw + '\n'); return ` Line probe: ${p.verdict}.`; } catch (e) { return ` Line probe failed: ${e.message}.`; } };
     await ctx.step('Wi-Fi back: the download starts by itself', async () => {
       await d.net('wifi');
-      const end = Date.now() + 120_000;
+      // (T760, owner 2026-11-15 "keep trying by itself") a line dead for a while can end on the failure screen ("The map
+      // data could not be loaded … Try again"); the app must then try again BY ITSELF (once a minute) and the download
+      // start without a tap: RECOVER ms after the failure was first seen (never tapped here), or FIRST ms after Wi-Fi,
+      // whichever is later
+      const FIRST = 120_000, RECOVER = 120_000;
+      const t0 = Date.now();
+      let failedAt = 0;
       for (;;) {
-        const line = words().find((x) => /MB downloaded/.test(x)) ?? '';
+        const w = words();
+        const line = w.find((x) => /MB downloaded/.test(x)) ?? '';
         const got = Number((/^([\d,.]+) of/.exec(line)?.[1] ?? '0').replace(/,/g, ''));
         // early: the emulator's Wi-Fi is not throttled (the whole set lands in about a minute)
-        if (got > 2) { shot('3-downloading'); atKill = line; return line; }
-        if (Date.now() > end) throw new Error(`no progress on Wi-Fi in 120 s (${line || words().slice(0, 6).join(' | ')})`);
+        if (got > 2) {
+          shot('3-downloading'); atKill = line;
+          return failedAt ? `${line} (the app had shown the failure screen ${Math.round((failedAt - t0) / 1000)} s after Wi-Fi came back, and recovered by itself ${Math.round((Date.now() - failedAt) / 1000)} s later, no tap)` : line;
+        }
+        if (!failedAt && w.some((x) => /^The map data could not be loaded/.test(x))) { failedAt = Date.now(); shot('3-failed-screen'); }
+        if (Date.now() > Math.max(t0 + FIRST, failedAt ? failedAt + RECOVER : 0)) {
+          shot('3-no-progress'); keepLogs('T760-wifi-back-logs.txt'); const probed = probeLine('T760-wifi-back-line-probe.txt');
+          const seen = line || w.slice(0, 6).join(' | ');
+          throw new Error(failedAt
+            ? `the app showed the failure screen ${Math.round((failedAt - t0) / 1000)} s after Wi-Fi came back and did not recover by itself in ${RECOVER / 1000} s (${seen}).${probed}`
+            : `no progress on Wi-Fi in ${FIRST / 1000} s (${seen}).${probed}`);
+        }
         await d.sleep(500);
       }
     });
@@ -137,18 +164,8 @@ export const bgInstall = {
       const jsLines = new Set();
       // read again and again: on a long run the first lines roll out of the log before the end. The APP's own lines
       // (`[download] …: queued again from zero (was …, N of M bytes)`), never the system downloader's (T760)
-      const readJs = () => { try { for (const l of d.logcatJs().split('\n')) if (/\[download\]|\[setup\]/.test(l)) jsLines.add(l.trim()); } catch { /* no log this time */ } };
+      const readJs = () => { try { for (const l of d.logcatTag('ReactNativeJS').join('\n').split('\n')) if (/\[download\]|\[setup\]/.test(l)) jsLines.add(l.trim()); } catch { /* no log this time */ } };
       const lost = () => thrownAway([...jsLines]);
-      // what a failed step leaves for whoever reads it: the app's whole log since the scenario began (without the test
-      // bed's heap and stall ticks) and the system downloader's, beside the screenshots
-      const keepLogs = (name) => { try {
-        const all = d.logcatJs().split('\n').filter((l) => l.trim() && !/\[heap\]|\[stall\]/.test(l));
-        const dmAll = d.adb(['logcat', '-d', '-s', 'DownloadManager:*']).toString().split('\n').filter((l) => /DownloadManager:/.test(l));
-        fs.writeFileSync(path.join(ctx.dir, name), [`app killed ${killedAt}`, '=== the app (ReactNativeJS)', ...all, '=== the system downloader', ...dmAll].join('\n') + '\n');
-      } catch { /* no log */ } };
-      // (T760) a line probe taken at the moment of a stalled or unfinished step: Mac and emulator, raw text beside the logs,
-      // and its one-line verdict in the failure text
-      const probeLine = (name) => { try { const p = lineProbe(d); fs.writeFileSync(path.join(ctx.dir, name), p.raw + '\n'); return ` Line probe: ${p.verdict}.`; } catch (e) { return ` Line probe failed: ${e.message}.`; } };
       const saidLost = () => (lost().length ? ` The app also queued ${lost().length} download(s) again from zero: ${lost().map((x) => `${x.url.split('/').pop()} (${x.was}, ${Math.round(x.bytes / 1e6)} of ${Math.round(x.total / 1e6)} MB: ${x.why})`).join(' ; ')}` : '');
       let setupShot = false, n = 0, line = '';
       for (;;) {
@@ -185,7 +202,7 @@ export const bgInstall = {
       let after = '';
       try {
         // the system's downloader's own lines: which jobs started and finished, and when (against the kill)
-        const dm = d.adb(['logcat', '-d', '-s', 'DownloadManager:*']).toString().split('\n').filter((l) => /Finished|Starting/.test(l));
+        const dm = d.logcatTag('DownloadManager').filter((l) => /Finished|Starting/.test(l));
         fs.writeFileSync(path.join(ctx.dir, 'T298-install-timeline.txt'), [`app killed ${killedAt}`, ...dm, ...jsLines].join('\n') + '\n');
         after = ` · system downloads finished: ${dm.filter((l) => /Finished/.test(l)).map((l) => l.slice(6, 14)).join(', ')} (app killed ${killedAt.slice(6)})`;
       } catch { /* no log */ }
