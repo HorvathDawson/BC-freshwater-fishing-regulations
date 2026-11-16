@@ -5311,8 +5311,14 @@
       "binding": {
         "extents": [
           {
-            "op": "whole",
-            "item_id": "gnis:13637"
+            "op": "upstream_of",
+            "splits": [
+              "border:360886456:1"
+            ],
+            "item_ids": [
+              "gnis:13637",
+              "gnis:25410"
+            ]
           }
         ],
         "tributaries": true,
