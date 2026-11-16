@@ -1,130 +1,8 @@
 {
  "_about": "T185 proposed edits from the review marks, waiting to apply — written by `python -m pipeline.regs.review.proposals build`; the marks are the decisions; `python -m pipeline.regs.review.apply_proposals` (Claude) lands each, one commit",
- "made": "2026-10-27T13:56:50",
- "marks": "data/curated/regulations/review/marks.jsonl",
+ "made": "2026-11-16T01:13:32",
+ "marks": "data/curated/review/marks.jsonl",
  "proposals": [
-  {
-   "id": "mark-entry-r2_hatzic_lake_and_slough_2_8",
-   "kind": "extent",
-   "target": "r2:hatzic_lake_and_slough@2-8",
-   "scope": "entry",
-   "rule_id": null,
-   "title": "r2:hatzic_lake_and_slough@2-8: rule hatzic_lake_and_slough.r2: tributaries included; rule hatzic_lake_and_slough.r3: tributaries included",
-   "marks": [
-    {
-     "scope": "entry",
-     "target": "r2:hatzic_lake_and_slough@2-8",
-     "rule_id": null,
-     "verdict": "verified",
-     "answers": {
-      "T": "y",
-      "R": "y",
-      "P": "y",
-      "A": "y"
-     },
-     "reviewer": "dawson",
-     "date": "2026-10-24",
-     "note": ""
-    }
-   ],
-   "edits": [
-    {
-     "file": "data/curated/regulations/entries/catalogue/region-2.json",
-     "kind": "catalogue",
-     "entry_id": "r2:hatzic_lake_and_slough@2-8",
-     "scope": "hatzic_lake_and_slough.r2",
-     "field": "includes_tributaries",
-     "before": false,
-     "after": true
-    },
-    {
-     "file": "data/curated/regulations/entries/catalogue/region-2.json",
-     "kind": "catalogue",
-     "entry_id": "r2:hatzic_lake_and_slough@2-8",
-     "scope": "hatzic_lake_and_slough.r3",
-     "field": "includes_tributaries",
-     "before": false,
-     "after": true
-    }
-   ],
-   "depends_on": [],
-   "problems": [],
-   "notes": [],
-   "split_id": null,
-   "confidence": null,
-   "applicable": true,
-   "digest": "a6d6c2914b4c05c1",
-   "severity": {
-    "level": "low",
-    "reasons": [
-     "low: several waters"
-    ]
-   },
-   "check": {
-    "cheap": true,
-    "why": null,
-    "rules": {
-     "hatzic_lake_and_slough.r1": {
-      "n_before": 19,
-      "n_after": 19,
-      "gained": 0,
-      "lost": 0,
-      "km_before": 27.5,
-      "km_after": 27.5,
-      "outcome_before": "bound",
-      "outcome_after": "bound",
-      "sample_gained": [],
-      "sample_lost": []
-     },
-     "hatzic_lake_and_slough.r2": {
-      "n_before": 4,
-      "n_after": 92,
-      "gained": 88,
-      "lost": 0,
-      "km_before": 7.99,
-      "km_after": 124.35,
-      "outcome_before": "bound",
-      "outcome_after": "bound",
-      "sample_gained": [
-       "356008064:0",
-       "356008521:0",
-       "356010737:0",
-       "356012327:0",
-       "356017490:0"
-      ],
-      "sample_lost": []
-     },
-     "hatzic_lake_and_slough.r3": {
-      "n_before": 4,
-      "n_after": 92,
-      "gained": 88,
-      "lost": 0,
-      "km_before": 7.99,
-      "km_after": 124.35,
-      "outcome_before": "bound",
-      "outcome_after": "bound",
-      "sample_gained": [
-       "356008064:0",
-       "356008521:0",
-       "356010737:0",
-       "356012327:0",
-       "356017490:0"
-      ],
-      "sample_lost": []
-     }
-    },
-    "changed": [
-     "hatzic_lake_and_slough.r2",
-     "hatzic_lake_and_slough.r3"
-    ]
-   },
-   "side_commands": [
-    "python -m pipeline.regs.review.proposals side mark-entry-r2_hatzic_lake_and_slough_2_8 --out data/generated/side/t185-mark_entry_r2_hatzic_lake_and_slough_2_8-a6d6c2",
-    "scripts/heavy.sh reach 30 -- python -m pipeline.atlas.reach.cli --build data/generated/atlas/full --entries data/generated/side/t185-mark_entry_r2_hatzic_lake_and_slough_2_8-a6d6c2/catalogue --out data/generated/side/t185-mark_entry_r2_hatzic_lake_and_slough_2_8-a6d6c2/reach",
-    "python -m pipeline.atlas.reach.binding_diff data/generated/reaches/full data/generated/side/t185-mark_entry_r2_hatzic_lake_and_slough_2_8-a6d6c2/reach   # per-rule bindings, live vs side — read it before applying (AGENTS 63)"
-   ],
-   "patch": "mark_entry_r2_hatzic_lake_and_slough_2_8.patch"
-  },
   {
    "id": "mark-entry-r5_dragon_lake_5_2-lake-split",
    "kind": "lake_split_later",
@@ -159,11 +37,228 @@
    "confidence": null,
    "applicable": false,
    "digest": "d2ca3cb5608901e5",
-   "severity": null,
-   "check": {
-    "cheap": false,
-    "why": "not applicable: no edit"
-   },
+   "side_commands": [],
+   "patch": null
+  },
+  {
+   "id": "mark-entry-r3_shuswap_lake_see_maps_on_page_28_includes_little_shuswap_lak_3_26-lake-split",
+   "kind": "lake_split_later",
+   "target": "r3:shuswap_lake_see_maps_on_page_28_includes_little_shuswap_lak@3-26",
+   "scope": "entry",
+   "rule_id": null,
+   "title": "r3:shuswap_lake_see_maps_on_page_28_includes_little_shuswap_lak@3-26: needs a lake split later (deferred, RULINGS K5)",
+   "marks": [
+    {
+     "scope": "entry",
+     "target": "r3:shuswap_lake_see_maps_on_page_28_includes_little_shuswap_lak@3-26",
+     "rule_id": null,
+     "verdict": "verified",
+     "answers": {
+      "T": "y",
+      "R": "y",
+      "P": "y",
+      "A": "y"
+     },
+     "reviewer": "dawson",
+     "date": "2026-10-28",
+     "note": "just needs lake splits "
+    }
+   ],
+   "edits": [],
+   "depends_on": [],
+   "problems": [],
+   "notes": [
+    "listed by `python -m pipeline.regs.review.tickets --lake-splits`; no curated edit until lake splits are taken up"
+   ],
+   "split_id": null,
+   "confidence": null,
+   "applicable": false,
+   "digest": "11d68fc2b971ad4b",
+   "side_commands": [],
+   "patch": null
+  },
+  {
+   "id": "mark-entry-r3_mahood_lake_see_map_on_page_28_for_area_closure_3_46-lake-split",
+   "kind": "lake_split_later",
+   "target": "r3:mahood_lake_see_map_on_page_28_for_area_closure@3-46",
+   "scope": "entry",
+   "rule_id": null,
+   "title": "r3:mahood_lake_see_map_on_page_28_for_area_closure@3-46: needs a lake split later (deferred, RULINGS K5)",
+   "marks": [
+    {
+     "scope": "entry",
+     "target": "r3:mahood_lake_see_map_on_page_28_for_area_closure@3-46",
+     "rule_id": null,
+     "verdict": "verified",
+     "answers": {
+      "T": "y",
+      "R": "y",
+      "P": "y",
+      "A": "y"
+     },
+     "reviewer": "dawson",
+     "date": "2026-10-28",
+     "note": ""
+    }
+   ],
+   "edits": [],
+   "depends_on": [],
+   "problems": [],
+   "notes": [
+    "listed by `python -m pipeline.regs.review.tickets --lake-splits`; no curated edit until lake splits are taken up"
+   ],
+   "split_id": null,
+   "confidence": null,
+   "applicable": false,
+   "digest": "7c9320013fe15647",
+   "side_commands": [],
+   "patch": null
+  },
+  {
+   "id": "mark-entry-r4_premier_lake_4_21-lake-split",
+   "kind": "lake_split_later",
+   "target": "r4:premier_lake@4-21",
+   "scope": "entry",
+   "rule_id": null,
+   "title": "r4:premier_lake@4-21: needs a lake split later (deferred, RULINGS K5)",
+   "marks": [
+    {
+     "scope": "entry",
+     "target": "r4:premier_lake@4-21",
+     "rule_id": null,
+     "verdict": "verified",
+     "answers": {
+      "T": "y",
+      "R": "y",
+      "P": "y",
+      "A": "y"
+     },
+     "reviewer": "dawson",
+     "date": "2026-10-28",
+     "note": ""
+    }
+   ],
+   "edits": [],
+   "depends_on": [],
+   "problems": [],
+   "notes": [
+    "listed by `python -m pipeline.regs.review.tickets --lake-splits`; no curated edit until lake splits are taken up"
+   ],
+   "split_id": null,
+   "confidence": null,
+   "applicable": false,
+   "digest": "5f3faa85ab85067b",
+   "side_commands": [],
+   "patch": null
+  },
+  {
+   "id": "mark-entry-r2_sakinaw_lake_2_5-lake-split",
+   "kind": "lake_split_later",
+   "target": "r2:sakinaw_lake@2-5",
+   "scope": "entry",
+   "rule_id": null,
+   "title": "r2:sakinaw_lake@2-5: needs a lake split later (deferred, RULINGS K5)",
+   "marks": [
+    {
+     "scope": "entry",
+     "target": "r2:sakinaw_lake@2-5",
+     "rule_id": null,
+     "verdict": "verified",
+     "answers": {
+      "T": "y",
+      "R": "y",
+      "P": "y",
+      "A": "y"
+     },
+     "reviewer": "dawson",
+     "date": "2026-10-28",
+     "note": ""
+    }
+   ],
+   "edits": [],
+   "depends_on": [],
+   "problems": [],
+   "notes": [
+    "listed by `python -m pipeline.regs.review.tickets --lake-splits`; no curated edit until lake splits are taken up"
+   ],
+   "split_id": null,
+   "confidence": null,
+   "applicable": false,
+   "digest": "4b69089e3c53658b",
+   "side_commands": [],
+   "patch": null
+  },
+  {
+   "id": "mark-entry-r3_leighton_lake_3_18-lake-split",
+   "kind": "lake_split_later",
+   "target": "r3:leighton_lake@3-18",
+   "scope": "entry",
+   "rule_id": null,
+   "title": "r3:leighton_lake@3-18: needs a lake split later (deferred, RULINGS K5)",
+   "marks": [
+    {
+     "scope": "entry",
+     "target": "r3:leighton_lake@3-18",
+     "rule_id": null,
+     "verdict": "verified",
+     "answers": {
+      "T": "y",
+      "R": "y",
+      "P": "y",
+      "A": "y"
+     },
+     "reviewer": "dawson",
+     "date": "2026-10-28",
+     "note": ""
+    }
+   ],
+   "edits": [],
+   "depends_on": [],
+   "problems": [],
+   "notes": [
+    "listed by `python -m pipeline.regs.review.tickets --lake-splits`; no curated edit until lake splits are taken up"
+   ],
+   "split_id": null,
+   "confidence": null,
+   "applicable": false,
+   "digest": "f2156dea485ba8b5",
+   "side_commands": [],
+   "patch": null
+  },
+  {
+   "id": "mark-entry-r3_loon_lake_3_30-lake-split",
+   "kind": "lake_split_later",
+   "target": "r3:loon_lake@3-30",
+   "scope": "entry",
+   "rule_id": null,
+   "title": "r3:loon_lake@3-30: needs a lake split later (deferred, RULINGS K5)",
+   "marks": [
+    {
+     "scope": "entry",
+     "target": "r3:loon_lake@3-30",
+     "rule_id": null,
+     "verdict": "verified",
+     "answers": {
+      "T": "y",
+      "R": "y",
+      "P": "y",
+      "A": "y"
+     },
+     "reviewer": "dawson",
+     "date": "2026-10-28",
+     "note": ""
+    }
+   ],
+   "edits": [],
+   "depends_on": [],
+   "problems": [],
+   "notes": [
+    "listed by `python -m pipeline.regs.review.tickets --lake-splits`; no curated edit until lake splits are taken up"
+   ],
+   "split_id": null,
+   "confidence": null,
+   "applicable": false,
+   "digest": "abd6fdca0cfc3432",
    "side_commands": [],
    "patch": null
   }
