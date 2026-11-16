@@ -58,3 +58,10 @@ Python feed: main chat. Worker and app: the iOS chat (with T757/T758). Not part 
 - Owner: pictures sent 00:31, To-Do row `t759-stripe-final` (legend words, strength on the dark blue line).
 - Left: his two confirms; an emulator look on Android; then it merges WITH the rest of T759's app half and the feeds
   half (`feeds/t759-issues`), benches and a message to the main chat first.
+
+## Owner's answers on the final stripe, 2026-11-16 11:51 (question dialog in the main chat, pictures on screen)
+- The legend entry: "\"Check rule\" is fine (Recommended)".
+- Is the stripe strong enough on the dark blue "Keep salmon" line: "Make it wider".
+To do (app chat, branch `app/t759-stripe` 6c24f94a6): widen the dashes on every Salmon line colour (not only the dark
+blue: one stripe, one width), re-run the contrast and colour-blind tests, draw it on the Android emulator (it has only
+been drawn on the web), send him the new pictures, then the T759 merge (app half + `feeds/t759-issues`).

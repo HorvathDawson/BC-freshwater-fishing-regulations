@@ -1,6 +1,6 @@
 # T735 — The part you are on is hard to pick out in dark mode on a regulated stream
 
-Status: IN PROGRESS (before closed testing; measured, three looks built and shot, owner to pick one)
+Status: IN PROGRESS (before closed testing; OWNER PICKED LOOK C 2026-11-16 11:51, "C: dark edge + soft glow (Recommended)"; to build from the kept patch, dark only, through palette tokens)
 
 Source: owner 2026-11-14, phone, dark palette, build 31/32, verbatim: "The highlighting isn't very good in dark mode on regulated streams."
 His shot: the Fraser River's Map tab, "Part 3 of 19".
@@ -35,3 +35,7 @@ Shots and side-by-side sheets: `~/bcfish-session-backup-2026-11-12/dark-highligh
 - Owner picks a look (or says what is wrong); it is applied to dark only, through palette tokens, light unchanged.
 - Dark: the part you are on measures at least 3:1 against the ground and its own edge, for every status; the others at least 1.5:1.
 - `tools/status-colours-distinct.test.ts` and the map contrast checker (T470) pass; web shots on 3 waters, 6 statuses, plus satellite.
+
+## Owner's pick, 2026-11-16 11:51 (question dialog in the main chat, with the two sheets on screen)
+"C: dark edge + soft glow (Recommended)". To build (app chat): look c from `options.patch`, dark only, through palette
+tokens, light unchanged; then the acceptance lines above. An earlier note said the glow can be stronger if he asks.
