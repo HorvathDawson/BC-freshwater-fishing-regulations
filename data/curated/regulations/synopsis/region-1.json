@@ -9700,12 +9700,10 @@
      ],
      "extents": [
       {
-       "op": "downstream_of",
-       "splits": [
-        "puntledge_river__comox_lake"
-       ]
+       "op": "whole"
       }
      ],
+     "review_reason": "T798 item 2 (owner 2026-11-16, question 33: \"If the river continues then yes it goes above\"): the row's exemption names no part, so it holds on the whole Puntledge River, above Comox Lake too (parts 8 and 9, Comox Lake to Puntledge Lake). Comox, Willemar and Forbush lakes are not the river (rows and waters of their own); the row prints no tributaries star, so the exemption stays on the river.",
      "exempts": [
       {
        "default_id": "summer_stream_closure"
@@ -9803,13 +9801,13 @@
      "includes_tributaries": true,
      "extents": [
       {
-       "op": "between",
+       "op": "upstream_of",
        "splits": [
-        "puntledge_river__bc_hydro_diversion_dam",
-        "puntledge_river__comox_lake"
+        "puntledge_river__bc_hydro_diversion_dam"
        ]
       }
-     ]
+     ],
+     "review_reason": "T798 item 2 (owner 2026-11-16, question 33: \"If the river continues then yes it goes above\"): \"upstream of the BC Hydro diversion dam ..., including tributaries\" is read as printed: the whole Puntledge River above the dam, past Comox Lake to Puntledge Lake (parts 7, 8 and 9), and every STREAM above the dam (RULINGS T1), the feeders of Comox, Willemar and Forbush lakes included (the reach run of 2026-11-16: 1,069 sections, up from 10; Cumberland, Perseverance, Comox, Rees, Capes, Beech creeks ...). The lakes themselves are not bound (Comox Lake has its own row, p.15; tributaries are streams). Binding the river's stretches between its lakes gives the same 1,069 (the walk seeds at each lake-end cut), so the narrower reading 'only streams joining the river itself' cannot be drawn today: an owner check, not a curator's choice."
     }
    ]
   },
