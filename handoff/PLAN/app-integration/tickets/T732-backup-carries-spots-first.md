@@ -42,3 +42,15 @@ screen-lock rule and 2048 px for new photos stand as proposed (he did not object
 On his question: the copies are already JPEG (quality 70; 0.37 MB at 1600 px, measured; about 0.25 MB at 1280 px
 from the "81 fit" figure). To do before changing the quality: measure JPEG 60 and WebP at 1280 px on the sample photo
 and show him one before / after pair; my estimate is 0.17 to 0.20 MB (about 100 to 115 photos), not measured.
+
+## Measured for his question, 2026-11-16 12:57 (the app chat; the comparison picture went to him in chat at 12:59)
+The same stand-in photo, copies at 1280×960 (`sips` for JPEG, `cwebp` for WebP; a phone's encoder will differ a little):
+JPEG 70 = 245,946 B (about 81 fit in 20 MB); JPEG 60 = 179,946 B (about 110); JPEG 50 = 134,821 B (about 148);
+WebP 75 = 81,444 B (about 245); WebP 60 = 65,438 B; WebP 50 = 56,386 B. At full size the app chat sees no difference
+between JPEG 70, JPEG 60 and WebP 75 on this photo. Files: scratchpad `t732-pair/` of session 29ad1860 (regenerate
+with the two tools). ASKED, NOT ANSWERED: B (JPEG 70), C (JPEG 60) or D (WebP 75); recommended D if a restore on
+the emulator shows WebP copies (the copies are Android-only; `expo-image-manipulator` has `SaveFormat.WEBP`; the
+copy's file name ends `.jpg` today, so the name or the restore mapping in `photoStore.native.ts` needs a look),
+otherwise C. To-Do row `t732-backup-words-confirm` carries the question. Nothing is changed on the branch yet: the
+built code is on `t732-proof` @ 56b6ea539 (`app/packages/data/src/spots/backupSet.native.ts`, 1600 px, JPEG 0.7);
+`android/t732-backup` is now at fa562f0d6 (the rules commit only), so merge from `t732-proof`.
