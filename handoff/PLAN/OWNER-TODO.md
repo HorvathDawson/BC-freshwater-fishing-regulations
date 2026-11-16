@@ -1958,3 +1958,19 @@ More questions (recommended answer first):
   stretch); a coming closure says what closes without the reopening date, and the reopening date is shown only
   while the water (or the fish) is closed today; a coming change that only loosens a rule is said as a plain "rule
   changes <date>" with no details; Adams as recommended.
+- 15:42, the trout build spec (`handoff/PLAN/design/trout-table-build-spec-2026-11-16.md`), its one-page summary given
+  in chat, four questions in one dialog. How to start: "Start steps 1 and 2" (step 1 = fill the data holes:
+  possession limits, the wild-fish limit at Lois and Khartoum, the odd lines; step 2 = a tool that lists every
+  answer that changed between two releases). Other fish in the same new table look, typed, verbatim: "what? we want
+  to migrate the new trout style into the current app not the other way around. " (my question was badly put; it is
+  NOT answered: the plan IS the new trout table inside the current app; whether kokanee, whitefish and the rest
+  also take the new look is asked again, plainly). Possession: "Keep the page line (Recommended)". Size, if the
+  switch does not fit the first-tap limit: "Raise the limit, shrink later (Recommended)".
+- 15:42, typed in chat (verbatim): "also the last fraser example you sent doesnt have hatchery bs wild along with the no
+  30cm minimum". Checked against the book text (`data/curated/regulations/reference/region-3.md`, Region 3 daily
+  quotas): that card is the Fraser in REGION 3 (Thompson confluence to about 4 km below Lillooet), whose regional
+  rules are "Trout/char: 5, but not more than 4 from streams, 1 over 50 cm, 1 bull trout (Dolly Varden) or lake
+  trout, none under 60 cm; release ALL STEELHEAD, bull trout from streams Aug 1-Oct 31, lake trout Oct 15-Jan 31":
+  no wild / hatchery split and no 30 cm minimum. Both belong to REGION 2 ("you must release wild trout/char from
+  streams … hatchery trout/char under 30 cm from streams"). Round 12 adds a Region 2 Fraser card beside it; if our
+  data does not show hatchery / wild and 30 cm there, that is a fault to report to him.
