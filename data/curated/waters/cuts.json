@@ -11543,6 +11543,34 @@
      ]
     }
    ]
+  },
+  {
+   "name": "KASIKS RIVER",
+   "applies_to": {
+    "gnis_id": "4078"
+   },
+   "splits": [
+    {
+     "id": "kasiks_river__hwy_16_bridge_over_the_kasiks",
+     "label": "Hwy 16 bridge over the Kasiks",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -129.400445,
+       54.293822
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 6:kasiks-river:upstream-of-highway-16-bridge",
+     "_coord": [
+      -129.400445,
+      54.293822
+     ]
+    }
+   ]
   }
  ]
 }
