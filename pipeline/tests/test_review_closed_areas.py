@@ -228,8 +228,11 @@ def test_a_stretch_end_placed_by_hand_is_resolved_on_the_water_and_stamped(wt): 
     pv = client.get(f"/api/dfo/locations/{THOMPSON_ROW}/closed-area-preview", params={"piece": json.dumps(piece)}).json()
     assert pv["ok"] and pv["metres"] and pv["ends"][0]["new"] and pv["ends"][1]["new"] is False
     # owner 2026-11-10 (T590): every new cut says its nearest existing cut on the same line, and whether it is near
+    # T777: the Deadman proposal's own upper cut was BUILT on 2026-11-15 (it is now an existing cut at this very
+    # point), so "far from every cut" no longer holds for this coordinate on the live tree. What must hold either
+    # way: the nearest cut is named, and `near` says exactly "within 200 m".
     near = pv["ends"][0]["nearest"]
-    assert near["split_id"] and near["metres"] > 200 and near["near"] is False, near
+    assert near["split_id"] and near["near"] is (near["metres"] <= 200), near
     hit = client.get(f"/api/dfo/locations/{THOMPSON_ROW}/anchor", params={"split": json.dumps(
         {"ref": "x", "anchor": "coord", "on_item": a["piece"]["on_item"], "coord": a["ends"][1]["coord"]})}).json()
     assert hit["ok"] and hit["nearest"]["near"] is True and hit["nearest"]["metres"] <= 200, \
