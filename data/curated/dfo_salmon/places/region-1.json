@@ -2490,18 +2490,17 @@
       "binding": {
         "extents": [
           {
-            "op": "between",
-            "splits": [
-              "puntledge_river__signs_75_m_downstream_of_puntledge_river_hatchery_fence",
-              "puntledge_river__morrison_creek_into_puntledge_river_u100m"
+            "op": "rest",
+            "bounds": {
+              "op": "downstream_of",
+              "splits": [
+                "puntledge_river__signs_75_m_downstream_of_puntledge_river_hatchery_fence"
+              ]
+            },
+            "siblings": [
+              "1:puntledge-river:morrison-creek-closure-between-fis"
             ],
             "item_id": "gnis:27060"
-          },
-          {
-            "op": "downstream_of",
-            "splits": [
-              "puntledge_river__morrison_creek_into_puntledge_river_d100m"
-            ]
           }
         ],
         "tributaries": null,
