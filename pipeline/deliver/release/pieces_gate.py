@@ -31,11 +31,21 @@ def bound_pieces(payload: dict) -> list[str]:
     return sorted(lid for lid, v in (payload.get("p") or {}).items() if v.get("piece") and v.get("bound"))
 
 
+def status_request(url: str):
+    """the request for `<url>/status.json`. It NAMES ITS CLIENT: the worker's host (Cloudflare) answers Python's
+    default `Python-urllib` user agent with 403 "error code: 1010", which `fetch_status` reads as "cannot be asked"
+    — on 2026-11-16 that refused the staging upload of r-46e4355a7277 while the worker was up and emitting pieces
+    (`site_gate.fetch` names its client for the same reason)."""
+    import urllib.request
+    return urllib.request.Request(f"{url.rstrip('/')}/status.json",
+                                  headers={"User-Agent": "bc-fishing-pieces-gate", "Cache-Control": "no-cache"})
+
+
 def fetch_status(url: str, timeout: float = 20.0) -> Optional[dict]:
     """`<url>/status.json` as JSON, or None when the worker gives no answer that reads (never raises)."""
     import urllib.request
     try:
-        with urllib.request.urlopen(f"{url.rstrip('/')}/status.json", timeout=timeout) as r:   # noqa: S310
+        with urllib.request.urlopen(status_request(url), timeout=timeout) as r:   # noqa: S310
             return json.loads(r.read().decode("utf-8"))
     except Exception:                                    # noqa: BLE001 — unreachable is an answer: "cannot be asked"
         return None

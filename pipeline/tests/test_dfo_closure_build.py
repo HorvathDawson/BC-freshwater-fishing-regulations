@@ -377,6 +377,26 @@ def test_the_release_gate_refuses_bound_pieces_to_a_worker_that_does_not_emit_th
         assert why in got[0] and "T757" in got[0] and "upload again" in got[0] and PIECE in got[0]
 
 
+def test_the_release_gate_names_its_client_when_it_asks_the_worker(monkeypatch):
+    """2026-11-16: the worker's host answered Python's default user agent with 403 (error code 1010), the gate read
+    that as "cannot be asked" and refused a staging upload while the worker was up. The request names its client, and
+    a refused request is still "no answer", never a raise."""
+    import urllib.error
+    import urllib.request
+    from pipeline.deliver.release import pieces_gate as G
+    req = G.status_request("https://feeds.example/")
+    assert req.full_url == "https://feeds.example/status.json"
+    assert (req.get_header("User-agent") or "").strip() and "urllib" not in req.get_header("User-agent").lower()
+    seen = []
+
+    def refuse(r, timeout=None):
+        seen.append(r)
+        raise urllib.error.HTTPError(r.full_url, 403, "error code: 1010", None, None)
+    monkeypatch.setattr(urllib.request, "urlopen", refuse)
+    assert G.fetch_status("https://feeds.example") is None
+    assert seen and seen[0].get_header("User-agent") == req.get_header("User-agent"), "the fetch sends that request"
+
+
 def test_the_release_gate_asks_nothing_without_bound_pieces_and_refuses_with_no_worker_named():
     from pipeline.deliver.release import pieces_gate as G
     boom = lambda url: (_ for _ in ()).throw(AssertionError("asked"))     # noqa: E731
