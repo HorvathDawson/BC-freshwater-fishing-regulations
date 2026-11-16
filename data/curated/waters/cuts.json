@@ -4861,6 +4861,28 @@
       -121.515205,
       50.25673
      ]
+    },
+    {
+     "id": "thompson_river__deadman_closed_area_upper_signs_1_km_downstream_of_the_hwy_1_d1000m",
+     "label": "Deadman closed area, upper signs: 1 km downstream of the Hwy 1 bridge at Savona",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -120.872177,
+       50.75627
+      ],
+      "is_lonlat": true,
+      "offset_m": 1000.0,
+      "offset_dir": "downstream"
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 3:thompson-river#00673ca0afe5 — \"Deadman - from the fishing boundary signs approximately 1 km downstream of the Hwy No. 1 Bridge at Savona\"",
+     "_coord": [
+      -120.872177,
+      50.75627
+     ]
     }
    ]
   },
