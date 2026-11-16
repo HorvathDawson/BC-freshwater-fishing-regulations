@@ -202,6 +202,55 @@ def test_a_tributaries_only_designation_keeps_its_own_river_as_no_stop(world):
                                     lambda s: "lake" if s.startswith("lake:") else "stream")
 
 
+def _excepting_gosnell(walk_past: bool) -> Designation:
+    """The Bulkley's designation printing "(EXCEPT Gosnell Creek downstream of X)": the Elk's
+    "ALL tributaries (EXCEPT Coal Creek downstream of old MF&M Railway Bridge …) are Class II"."""
+    return Designation.model_validate({
+        "kind": "designation", "id": "d", "classified": "II", "verbatim": "Class II water",
+        "unit": "bulkley", "unit_name": "bulkley",
+        "tributary_excludes": [{"op": "downstream_of", "item_id": "gnis:g", "splits": ["g_bridge"],
+                                **({"walk_past": True} if walk_past else {})}]})
+
+
+def _coal_creek_run(world, walk_past: bool):
+    """G is Gosnell below the bridge (carved out of the walk), G_up above it. Gosnell's own row
+    ("Part described is NOT a Classified Water") prints no designation."""
+    g, reg = world
+    recs = {(BULKLEY, "d"): _excepting_gosnell(walk_past)}
+    placements = [LicensingPlacement(BULKLEY, "d", "designation", "sections",
+                                     sections=("B", "M", "G_up"), via_tributary=("M", "G_up"))]
+    out, diags = first_classified_downstream(
+        placements, recs, g, reg, {"gnis:b": ((BULKLEY, ()),), "gnis:g": ((GOSNELL, ()),)},
+        lambda s: "lake" if s.startswith("lake:") else "stream")
+    return {s for p in out for s in p.sections}, diags
+
+
+def test_a_part_the_designation_excepts_and_walks_past_is_no_stop(world):
+    """T798 item 1 (owner 2026-11-16, question 31: "Class II above the bridge"): the Elk's
+    designation excepts ONLY Coal Creek below the old MF&M Railway bridge and walks past it
+    (`walk_past`); Coal Creek's row un-classifies "the part described". Above the bridge Coal
+    Creek is still an Elk tributary and Class II — Li5's "a rowed tributary printing no
+    designation, and everything above it" does not reach past a part the designation itself
+    carves out and walks past. 190 sections were dropped (`own_row_not_classified`)."""
+    got, diags = _coal_creek_run(world, walk_past=True)
+    assert "G_up" in got
+    assert not any(d.kind == "own_row_not_classified" for d in diags)
+
+
+def test_without_walk_past_the_rowed_water_still_stops_the_walk(world):
+    """MUTATION GUARD for the exception's narrowness: a carve-out that does not walk past (or no
+    carve-out at all) leaves Li5 as it was — the rowed creek and everything above it drop."""
+    got, diags = _coal_creek_run(world, walk_past=False)
+    assert "G_up" not in got
+    assert any(d.kind == "own_row_not_classified" and d.payload["rows"] == [GOSNELL] for d in diags)
+
+
+def test_mutation_switching_the_walk_past_exception_off_drops_it(world, monkeypatch):
+    monkeypatch.setattr(L, "A_WALKED_PAST_EXCEPTION_IS_NO_STOP", False)
+    got, _ = _coal_creek_run(world, walk_past=True)
+    assert "G_up" not in got
+
+
 def test_one_entry_two_designations_each_section_takes_the_reach_it_joins(world):
     """F1 (the Zymoetz): ONE entry prints unit A on the lower stretch (B) and unit B above it
     (B_hi), and both designations walk the same tributaries. The entry's water is each walker's

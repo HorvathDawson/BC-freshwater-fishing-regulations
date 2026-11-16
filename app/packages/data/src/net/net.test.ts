@@ -248,6 +248,40 @@ describe("fetchResilient", () => {
     up = true; listeners.forEach((f) => f(true));
     expect(new TextDecoder().decode(await p)).toBe("back");
   });
+  it("(T760) a body that stalls is cut and resumed even when the transport never hears the abort", async () => {
+    // the request runs under another signal (shareFetch, after the headers) on a client with no read timeout
+    const all = bytes("%PDF-0123456789abcdef");
+    let cancelled = 0;
+    const ranges: (string | null)[] = [];
+    const deaf = (async (_u: string, init?: RequestInit) => {
+      const range = ((init?.headers ?? {}) as Record<string, string>).Range ?? null;
+      ranges.push(range);
+      if (range) return new Response(all.subarray(8), { status: 206 });
+      let sent = false;
+      return new Response(new ReadableStream<Uint8Array>({
+        pull(c) {
+          if (!sent) { sent = true; c.enqueue(all.subarray(0, 8)); return; }
+          return new Promise<void>(() => {});                 // the line dies and says nothing, whatever is aborted
+        },
+        cancel() { cancelled++; },
+      }));
+    }) as typeof fetch;
+    const whys: string[] = [];
+    const out = await fetchResilient("u", { fetchImpl: deaf, limits: FAST, sleep: noSleep, resumable: () => true,
+                                            onRetry: (e) => whys.push(e.why) });
+    expect(new TextDecoder().decode(out)).toBe("%PDF-0123456789abcdef");
+    expect(ranges).toEqual([null, "bytes=8-"]);
+    expect(whys).toEqual(["u: stalled (no byte in 100 ms)"]);
+    expect(cancelled).toBe(1);                                // the stalled body was let go, not left open
+  });
+  it("(T760) no answer from a transport that never hears the abort: cut, tried again, and given up in words", async () => {
+    let calls = 0;
+    const deaf = (() => { calls++; return new Promise<Response>(() => {}); }) as unknown as typeof fetch;
+    const e = await fetchResilient("u", { fetchImpl: deaf, limits: FAST, sleep: noSleep, attempts: 2 }).catch((x: unknown) => x);
+    expect(e).toBeInstanceOf(NetError);
+    expect(e).toMatchObject({ kind: "timeout", attempts: 2, message: "u: no answer in 200 ms" });
+    expect(calls).toBe(2);
+  });
   it("an abort stops it at once", async () => {
     const s = server([{ hang: true }]);
     const c = new AbortController();

@@ -1827,3 +1827,83 @@ More questions (recommended answer first):
   stream feeding Comox, Willemar and Forbush lakes) where it was 10; (2) T796 A5 changes 70 stretches (71,046 pieces),
   the largest the Skeena / Nass winter closure on coho Jan 1 to Jun 15; (3) T770 adds a gear line on 13 chains; the
   three T796 examples he asked for are in the lane's report. Trout round 8 is built (the box frame redrawn).
+- Pictures 27 and 30, and two results of the fix lanes, 13:28. Babine Lake's closed areas (7 circles match by name;
+  Tsezakwa's sits on Nilkitkwa Lake; Pendleton, Six Mile, Hazelwood, Sockeye and the Gullwing line are not found;
+  Pinkut has a circle but is not in DFO's list), typed: "confirm 7 lake open with note and please add as a thing for
+  me to do later". So: the 7 are confirmed, the lake reads open in August with "closed in part" and DFO's words for
+  the areas not drawn, and finding the missing five and the line is a LATER item on his list. Dean, Crag Creek to the
+  tidal boundary (2793), typed: "yes and that except should not include the canyon": right; the canyon stays out of
+  it as its own stretch. Puntledge "Fly fishing only upstream of the BC Hydro diversion dam …, including
+  tributaries" reaching every stream above the dam (10 pieces to 1,069): "Yes, as printed (Recommended)". T796 A5,
+  a book-closed stretch closes salmon too (three examples shown; 70 stretches change): "Go, and send me the full
+  list" (the list of all 70 with dates and a map picture before and after go to him before it ships).
+- 13:29, the heading audit is back (`handoff/PLAN/curation-review/dfo-side-streams-against-exact-headings-2026-11-16.md`):
+  239 live named-water places checked against the exact heading each row sits under: 225 agree, 14 disagree. The
+  Forks-to-Bymac stretch DOES sit under "Morice River (including tributaries)" (side streams on is right). The 14 go
+  to him as questions (Tatshenshini whole-river row; the three creeks and the Blanchard: do named side creeks take
+  their own side streams?; five Region 6 rivers whose blank row under a plain heading puts a bait ban on side
+  streams; the Kitimat outfall strip under "Kitimat River (including tributaries)"; five with no effect today).
+- 13:29, the reviewer's THIRD attack (trout round 8) is back: closer, still "not yet". The frame is better but the
+  grey still hooks onto the first row; "no limit of its own" can read as "unlimited"; the date words are right on 49
+  of 50 lines but say nothing when a fish goes to zero, when wild / hatchery changes, or when the water closes; wild
+  char at Dodd and Lois now look keepable on their rows. Appended to the design review file.
+- Pictures 28, 29, 31, 32 (answered about 13:38). Kitimat "on west bank between signs at Kitimat hatchery outfall"
+  (2786; drawn river only), asked whether DFO's heading "Kitimat River (including tributaries)" makes the strip take
+  the side streams that join there: "Heading counts here too". So my save 2786 (side streams off) is reversed: the
+  strip takes its side streams (about 12 pieces), both banks still closed until one-bank places exist. Skeena
+  sockeye leftover place, CNR bridge to above the Babine (2790): "Right". Thompson closed area Deadman (2748; START
+  measures 495 m below the Hwy 1 bridge where DFO says about 1 km): "Find out why, then show me". Thompson closed
+  area Ashcroft (2749; starts at the Bonaparte mouth itself): "Right".
+- Pictures 33 and 34, the heading rule, the size limit (answered about 13:42). Thompson closed area Juniper (2785):
+  "Keep 4 km (errs closed)". Shuswap closed stretch (2770): "Right: keep the printed points". ALL 34 PICTURES ARE
+  ANSWERED. The ten places that take side streams only through the old water-wide switch (the Tatshenshini
+  whole-river row, Kitseguecla, Sustut, Cranberry, Kiteen, Meziadin, three Nanaimo places, Little Campbell, the
+  Morice Forks): "Yes, river only for all ten (Recommended)" (changed answers shown to him before it ships; the
+  water-wide switch is retired; the setting is derived from the exact heading and the place's words). The salmon
+  head file's size limit, 60 kB, so that a book-closed stretch closes salmon everywhere (about 92 kB): "Raise to
+  100 kB (Recommended)".
+- Named side creeks and trout round 8 (answered about 13:48). A DFO row that names a creek without the word
+  "tributaries" (Tatshenshini: "Kwatini Creek, Stanley Creek and Goat Creek"; "Blanchard River"): "A named creek
+  keeps its side streams". So: naming a creek means its whole small system; saves 2779 and 2780 stand; this is a
+  stated exception to the heading rule (a ruling). Trout round 8, the grey band beside a fish with no tighter limit:
+  ""up to the 5" (Recommended)". A possession limit smaller than the day's limit (Cunningham Lake), typed: "it is
+  only possession of one type of trout fo rcunningham. use best judgement here". So: the possession line belongs to
+  the lake trout row only and must say so; the wording is left to my judgement (the possession number leads on that
+  row, the day's 3 as a quiet line). What next for the trout work, typed: "round 3 then attack again but use opus".
+  My reading: one more round (round 9) and one more attack, both done by Opus agents, not Fable. Mockups only.
+- 13:49, typed in chat: "Can we reduce how much fable we use for our workers a little bit too? Just want to save fable
+  for the things we need it for". So: from now no worker runs on Fable by default (reviews, audits and design
+  included); Opus for data, pipeline, review and design work, Sonnet for interface and mechanical work; a worker gets
+  Fable only after I name the task and the reason to him and he says yes. Nothing on Fable is running now (the
+  trout designer and its attacker moved to Opus at his word earlier this hour).
+- 13:55, pushed: the book-rule fixes are on the shared branch (T795 six lakes, T794, T798, T801.1; full tier 6,499
+  pass). A reach-only rerun is going on lane 1 to show them on built data.
+- 13:56, T796 A5, the full list he asked for was sent to him in chat (file `book-closures-list.md`, 70 stretches,
+  71,046 sections, 25 rows flagged for a second look; the Nass side streams' coho Jan 1 to Jun 15 first). The map
+  follows: the three examples paint closed on their days in the rebuilt salmon data. NEW, for his decision: with the
+  book closure carried everywhere (his "Raise to 100 kB"), three OTHER size limits go over on today's numbers: the
+  Region 6 salmon file (about 432,600 against 420,000), the website's first-tap budget (about 4,312,000 against
+  4,200,000; it had 1,243 bytes of room before) and its low-data first-tap budget (about 3,472,600 against
+  3,400,000). The release would stop at its size check until he raises them or the data is shrunk first (T686).
+- About 14:55, his answer to the size-limit question, after reading the list of book closures (typed, verbatim): "for this
+  Sections: 7 The book closes it (p.9, National Parks and Ecological Reserves): "Fishing is prohibited in Ecological
+  Reserves in B.C." DFO's place there: Skeena River — mainstem waters downstream of CNR Railway Bridge at Terrace. it
+  should only close the part in the eco reserve how the entire place?? / but yes you can do the raise we just need
+  to make sure the closures only apply in the area actually closed e.i. above. / also we should look at the real
+  consequence of this (Nass watershed side streams (DFO section C): coho Jan 1 to Jun 15 ) / also previewing all the
+  closures. (again we assume we will close them but i want to be able to review them after) could we make the way it
+  is viewed an artifact with them all formatted in a way it is easier to read. (with mapos etc) use a smaller model
+  for this... / also why is this doubt (The salmon card said on those days (DFO's rows): open — "4 per day, only 1
+  over 50 cm (Apr 1–Mar 31)"; open — "4 per day, only 1 over 50 cm (Apr 1–Oct 31)") to (It now says: closed — "Closed
+  to all fishing by the rule book (p.19): No Fishing from Yakoun Lake downstream approximately 13 km to fishing
+  boundary signs, Oct 1-Apr 30 (Oct 1–Apr 30)") / the dates are opposite of each other the closed should only be
+  there on the days it is actually closed then the other days the salmon rules would still apply which isnt a
+  conflict?"
+  So: (1) YES to raising the three limits (Region 6 salmon file, first tap, low-data first tap). (2) A closure must
+  cover only the water the book actually closes: on the Skeena it is the 7 pieces inside the reserve, not DFO's whole
+  place (that is what was built; "DFO's place there" on the list only names which DFO row answered before): to be
+  proven for all 70 and said plainly on the page. (3) The Nass side streams' coho closure Jan 1 to Jun 15: look at
+  its real consequence before it ships. (4) He wants all the closures on ONE page (artifact) that is easy to read,
+  with maps, to review after; built by a smaller model (Sonnet). (5) The Yakoun row: the book closes Oct 1 to Apr 30
+  only; on the other days DFO's rows answer as before: that is how it works; the warning on that row was about the
+  side creeks along the 13 km, not the dates.

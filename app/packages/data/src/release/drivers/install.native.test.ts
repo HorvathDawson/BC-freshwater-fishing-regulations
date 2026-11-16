@@ -97,3 +97,22 @@ describe("install.native (T446): writes and renames are whole before the next st
     expect([...(await fs.read("release/current"))]).toEqual([2, 2]);
   });
 });
+
+describe("install.native (T760): a data file's cut try is said", () => {
+  it("one line per failed try: which, why, and when the next one goes", async () => {
+    const raw = new TextEncoder().encode("core file bytes ".repeat(50));     // served as it is: no gzip magic, so not decoded
+    let n = 0;
+    const f = (async () => {
+      if (n++ === 0) throw new TypeError("network dropped");
+      return new Response(new Uint8Array(raw) as unknown as BodyInit, { status: 200 });
+    }) as unknown as typeof fetch;
+    const said: string[] = [];
+    const warn = vi.spyOn(console, "warn").mockImplementation((m: string) => { said.push(m); });
+    const rand = vi.spyOn(Math, "random").mockReturnValue(0.5);              // the backoff's jitter: 1000 ms exactly
+    try {
+      const got = await device(f)!.download("https://x.test/r/core.sqlite.gz", { bytes: raw.length, sha256: sha256Hex(raw) });
+      expect(got).toEqual(raw);
+    } finally { warn.mockRestore(); rand.mockRestore(); }
+    expect(said).toEqual(["[download] try 1 failed (https://x.test/r/core.sqlite.gz: network dropped); trying again in 1000 ms"]);
+  });
+});

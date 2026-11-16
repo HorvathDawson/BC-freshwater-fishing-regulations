@@ -14,12 +14,17 @@
  *                sends the whole file: the kept bytes are dropped. The caller verifies the result (sha256, P10): a
  *                resumed file that is wrong is never accepted.
  *   NOT BLOCKING every wait is a timer and every try is abortable (`signal`): nothing here holds the UI.
+ *   THE CUT IS THIS FILE'S OWN (T760): every wait on the transport (the response, a chunk, the whole body) is raced
+ *                against the try's abort, and a cut body's reader is cancelled. A cut used to rely on the transport
+ *                honouring the signal it was handed; `shareFetch` runs the request under its own, and React Native's
+ *                HTTP client has no read timeout, so a body that stalled after its headers was never cut: the timers
+ *                fired, nothing moved, and a first install sat on one small file for ever, without a word.
  *
  * The meter (`meter.ts`) is told every chunk, scaled to the wire (`wireScale`), so the app's measured rate is the link's.
  */
 import { MAX_ATTEMPTS, backoffMs, timeoutsFor, type Timeouts } from "./policy";
 import type { NetMeter } from "./meter";
-import { now } from "@app/core";
+import { now, reportFailure } from "@app/core";
 
 export class NetError extends Error {
   /** (T368) the line, not a defect — offline, dropped, timed out — is shown, never reported (core `isEnvironment`); an
@@ -112,10 +117,14 @@ export async function fetchResilient(url: string, o: ResilientOptions = {}): Pro
     const arm = (ms: number, e: NetError) => { if (timer) clearTimeout(timer); timer = setTimeout(() => { why = e; ctl.abort(); }, ms); };
     const total = setTimeout(() => { why = new NetError(`${url}: no whole file in ${lim.totalMs} ms`, "timeout"); ctl.abort(); }, lim.totalMs);
     const h = o.meter?.start() ?? 0;
+    // (T760) the try's abort as a promise: whatever is awaited below loses to it, whether or not the transport listens
+    // (it is raced on the next line, before anything can abort, so its rejection always has a taker)
+    const cut = new Promise<never>((_, fail) => { ctl.signal.addEventListener("abort", () => fail(abortError()), { once: true }); });
+    let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
     try {
       arm(lim.firstByteMs, new NetError(`${url}: no answer in ${lim.firstByteMs} ms`, "timeout"));
       const headers = { ...(o.headers ?? {}), ...(from > 0 ? { Range: `bytes=${from}-` } : {}) };
-      const res = await fetchImpl(url, { ...(o.init ?? {}), headers, signal: ctl.signal });
+      const res = await Promise.race([fetchImpl(url, { ...(o.init ?? {}), headers, signal: ctl.signal }), cut]);
       if (from > 0 && res.status === 200) { parts = []; got = 0; }           // the server sent it whole
       else if (from > 0 && res.status !== 206 && res.ok) { parts = []; got = 0; }
       if (!res.ok) {
@@ -126,11 +135,11 @@ export async function fetchResilient(url: string, o: ResilientOptions = {}): Pro
       arm(lim.stallMs, new NetError(`${url}: stalled (no byte in ${lim.stallMs} ms)`, "stalled"));
       const len = Number(res.headers?.get?.("content-length"));
       const expect = len > 0 ? got + len : o.wireBytes ?? null;
-      const reader = res.body?.getReader?.();
+      reader = res.body?.getReader?.();
       let scale = 1;
       if (!reader) {
         // no stream (an older runtime): the whole body at once, under the whole-file limit
-        const all = new Uint8Array(await res.arrayBuffer());
+        const all = new Uint8Array(await Promise.race([res.arrayBuffer(), cut]));
         if (got === 0) { resumable = !!o.resumable?.(all.subarray(0, 8)); scale = o.wireScale?.(res, all.subarray(0, 8)) ?? 1; }
         parts.push(all); got += all.length;
         o.meter?.chunk(h, all.length * scale);
@@ -138,7 +147,7 @@ export async function fetchResilient(url: string, o: ResilientOptions = {}): Pro
       } else {
         let first = got === 0;
         for (;;) {
-          const { done, value } = await reader.read();
+          const { done, value } = await Promise.race([reader.read(), cut]);
           if (done) break;
           if (!value?.length) continue;
           if (first) {
@@ -156,6 +165,10 @@ export async function fetchResilient(url: string, o: ResilientOptions = {}): Pro
       return concat(parts, got);
     } catch (e) {
       o.meter?.end(h);
+      // (T760) the body is let go: the cancel reaches the network (`shareFetch` hands a lone asker the response itself),
+      // so a stalled connection is closed, not left open behind the next try. A body that already failed answers the
+      // cancel with that same failure, which is this try's (kept as `last`); any other is reported.
+      reader?.cancel().catch((x: unknown) => { if (x !== e) reportFailure(x); });
       if (o.signal?.aborted) throw abortError();
       if (e instanceof NetError && e.kind === "http" && (!retryable(e.status ?? 0) || e.status === 416)) throw e;
       last = why ?? (e instanceof NetError ? e : new NetError(`${url}: ${e instanceof Error ? e.message : String(e)}`,
