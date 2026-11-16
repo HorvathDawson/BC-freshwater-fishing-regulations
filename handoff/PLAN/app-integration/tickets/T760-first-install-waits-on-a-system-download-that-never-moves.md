@@ -96,3 +96,26 @@ Depends: T756 (same file; land together or after). Size: M. On the list for the 
   failed start in `App.tsx` are untouched (they log `[boot] start failed`, the screen shows nothing until the third).
 - **Bench:** three `bg-install` runs of d4eed7594 on the emulator (lane 2) started 2026-11-15 21:54; result goes here.
 
+## Added 2026-11-15 22:27 (app chat): works 2 and 3 are written, on `fix/t760-stuck-download` 53d9610d4 (stacked on d4eed7594; not merged)
+- The second chat is the app chat since tonight, so N and the count are its call: **10 minutes, 2 re-queues** (owner
+  may change them: To-Do row `t760-download-words`).
+- **Work 2 (`bgDownload.ts` `fill`):** a job `pending`, or `paused` for a reason that is not a wait for a network
+  (Android's PAUSED_WAITING_FOR_NETWORK 2 and PAUSED_QUEUED_FOR_WIFI 3 are honest waits; 1 WAITING_TO_RETRY and 4
+  UNKNOWN are not; read from the SDK's `DownloadManager.java`, the Kotlin module passes the reason through), with no
+  new byte for `stuckMs` is removed and queued again with a `[download]` line (file, seconds, status, reason, bytes
+  lost). After `stuckTries` the install throws core's `INSTALL_WORDS.stuck`. T756's option is renamed `wifiWaitMs`
+  (same 20 s, same meaning). Why 10 minutes: the downloader's own back-off is believed to wait up to about 8 minutes
+  between tries (NOT verified: DownloadProvider's constants are not in the SDK sources on this machine).
+- **Work 3:** `useDownloadStill` (`packages/ui/src/boot.ts`): true once the byte count has been the same for 60 s; the
+  setup screen then shows core's `stillLine` under the bar. Checked in the code: while every job is paused the bar and
+  the byte line STAY on screen, frozen; the "no bar, no byte line" screen is the stretch before the first small file
+  finishes (the stalled fetch d4eed7594 fixes), and the line covers it too (it counts from 0 bytes).
+- **A stuck failure is shown at once** (53d9610d4): `App.tsx` restarts a failed start twice before showing it; each
+  restart kept the parked job and began the 10-minute waits over (about 90 minutes to the words). core
+  `restartsByItself` excludes the stuck failure. The other failures still restart twice in silence (untouched).
+- Tests: six in `bgDownload.test.ts`, the hook on a fake clock, the sentences whole; each part's removal fails a test
+  (proven by the lane). `check:fast` passes; 4,843 related tests pass. **Not run on a device or the emulator.**
+- Left: the Android `install` and `bg-install` benches on this branch; the owner's yes on the words; the Wi-Fi-wait
+  case shows the same "carries on by itself" line (true, but not its own words); merge with T756 after the benches
+  and a message to the main chat.
+

@@ -43,6 +43,7 @@ chat and onto the owner's row `t749-r8-phone-walk`.
 |---|---|---|
 | T749 R8 | merged (35dce9bf3) + 0f32e4b0f | on the shared branch, flag off by default; Play build not made yet |
 | T756 reopen keeps downloads + T760 bench + T760 stalled-fetch fix | `fix/t756-keep-running-job` @ d4eed7594 | NOT ready: the silent wait after a reopen is found and fixed on the branch (a small file's fetch that stalls after its headers was never cut; T760 ticket, "Added 2026-11-15 late"); three `bg-install` runs of d4eed7594 started 21:54 on lane 2 |
+| T760 works 2 + 3 (stuck system download restarted; setup screen says when nothing moves) | `fix/t760-stuck-download` @ 53d9610d4 (stacked on d4eed7594) | written, unit-tested, NOT run on the emulator; words are a proposal (To-Do row `t760-download-words`) |
 | T757 worker (closed areas emitted) | `feeds/t757-worker-pieces` @ 230ad909d | LIVE ON STAGING |
 | T757 app (minimum feed shape) | `app/t757-min-feed-shape` @ fa0c7a1c5 | written, tested |
 | T757 app, first try | `app/t757-piece-not-known` @ a5af25920 | ABANDONED (the owner ruled out "not known"); never merge |

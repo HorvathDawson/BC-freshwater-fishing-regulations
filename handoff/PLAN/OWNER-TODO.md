@@ -268,6 +268,17 @@ with the default Claude uses until you answer). Newest first inside each section
   DFO check could not be used with this app's data, so the DFO rules this data was built with are shown. Check DFO's
   page before you fish." OWED TO YOU AS PICTURES before anything ships: the banner on a real river, and two or three
   looks for the stream line (a variation like the bait-ban one, same colour).
+- **NEW 2026-11-15 22:27 (app chat, T760; PROPOSAL, words and numbers; To-Do row `t760-download-words`): a first
+  install that stops moving says so.** Two causes of a setup screen that sat for ever were found and fixed on
+  branches (not merged, not in tonight's Play build): a small file the app fetches itself that stalled was never tried
+  again (now cut after 20 s without a byte); a big file parked by Android's downloader was never restarted (now
+  restarted after 10 minutes without a byte unless it is waiting for a network or Wi-Fi, at most twice, then the
+  install stops with words). Proposed words: under the bar after one minute without a byte, "The download has not
+  moved for a minute. It carries on by itself; if it stays stuck the app starts that file again."; offline, the
+  existing "Offline — this will load when you’re back online"; when it gives up, above Try again, "A file would not
+  download after several tries. Check your connection, then tap Try again." Numbers are Claude's defaults (1 minute,
+  10 minutes, 2 restarts: the give-up words after about 30 minutes). Unit-tested only; emulator runs before any merge.
+  Answer: yes as written / your changes.
 - **NEW 2026-11-15 16:08 (iOS chat; yours, later, no decision needed now): production feeds worker deploy.** Two
   worker fixes are live on STAGING only: T758 (waters covered only by a region's default salmon rule show DFO's own
   sentence under live data again, not a generic "Not opened by DFO" line; the status was right all along) and T757
