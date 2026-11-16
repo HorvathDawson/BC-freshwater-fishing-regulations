@@ -1139,3 +1139,18 @@ reopens Nov 1.
   and the app has a Dolly Varden drawing. Being checked per region and fixed on the page.
   Owner, 2026-11-15 23:59, right after: "We are iterating on it more not implementing". So: round 4 and any later
   round are mockups only; nothing is built in the app or the pipeline for the trout display until he says so.
+
+- 2026-11-16 00:18, trout display ROUND 4 is on the same page (https://claude.ai/artifact/EopBgDtf8eu4LGZpYixSkH),
+  mockups only. One design leads the page; rounds 1 to 3 are folded under "How we got here". Sizes use the app's own
+  standard everywhere with both units ("30 cm (12 in) or longer", "50 cm (20 in) or less", "30–50 cm (12–20 in)");
+  the size sits under the fish name; a size limit of a whole box is written in the box under the number; 22 real
+  waters, each with a "what you should read" line. Dolly Varden: the app has ONE fish, named "Dolly Varden/bull
+  trout" in every sentence (568 rule sets), no water treats the two differently; round 3's "Bull trout" was the
+  designer's shortening and is fixed. Real app gap found: the drawing on that row is captioned only "Bull trout"
+  (ticket after the release). Three questions (recommended first):
+  1. A size limit on a whole box: written in the box (recommended), or as a band above the fish?
+  2. "Over 50 cm" and "30 cm or longer" both stay, because they differ for a fish exactly on the mark ("over 50"
+     does not include a 50 cm fish; "30 cm or longer" includes a 30 cm fish). Agreed? Recommended: yes. (This is the
+     one place the designer did NOT fully unify, against "unify over x size and x+": making them look alike would
+     make one of them wrong by a fish.)
+  3. Dolly Varden/bull trout: one drawing with the full name (recommended), or both drawings on the row?

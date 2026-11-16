@@ -237,3 +237,74 @@ One screen holds on 17 of 20, 12 numbers on 11, 60 words on 7.
 ## Files (round 3)
 
 `trout-display.html` (2.66 MB) · `work/page3.tpl.html`, `work/build3.py` · `work/pages3.json`, `work/todaylines.json`, `work/meas3.json` · `shots/r3/`
+
+---
+
+# Round 4 (2026-11-16): one design; sizes unified with cm and inches; group size limits; Dolly Varden
+
+Owner: "take the stuff you like best then we need to unify over x size and x+ also we want both in and cm. And we want to make the stuff like 1 over 50cm on group easier to tell. Also dolly are not in list?"
+
+## Adopted as THE design (no more options side by side)
+
+Top line · one row per fish (drawing on a plain backing, name as the book prints it, size under the name in cm and inches) · one box per number, sorted by box · small inner box for a limit inside a box · a size limit on a whole box written in the box · release and closed fish in the same table · hatchery and wild as two rows only where limits differ · folded row with its answer and a down arrow · a proposed top line for the 8 rule sets that had none (Kaslo/Keen "Up to 2 today, plus 2 Dolly Varden/bull trout"; Kitimat x3, Humphrys, Williston B "Up to 5 today"; Ross Lake "Up to 5 brook trout and 2 other trout and char today"), marked "proposed" on the page. Rounds 1 to 3 are folded under "How we got here".
+
+## Size grammar
+
+The app already has one standard: `pipeline/deliver/answers/common.py` `band_words` (ROUND19 5, RULINGS P37): "X or less" / "X or longer" include X; "under X" / "over X" exclude X; "A–B" holds both ends; "between A and B" (a slot) holds neither. Inches: `inches()` = nearest whole inch, half up; `cm_in()` = "50 cm (20 in)"; ranges "25–33 cm (10–13 in)". Round 3's "30 cm+", "up to 50 cm", "not 60–90 cm" were my own short forms and are gone.
+
+Every size text the app's Keep view model says (work/sizes.ts over 2,121 rule sets x 4 dates = 8,484 pages; work/sizes.json): 27 distinct texts in 11 patterns.
+
+| case | app wording | occurrences |
+|---|---|---|
+| no limit | "any size" (+ "any length", 23, 4 rule sets) | 5,727 |
+| floor, mark included | "N cm (N in) or longer" (3,531 as "must be …; release any shorter", 192 bare) | 3,723 |
+| ceiling, mark included | "N cm (N in) or less" (217 as "must be …; release any longer", 468 bare) | 685 |
+| band, both ends | "N–N cm (N–N in)" | 868 |
+| slot that goes back | "release any between N cm and N cm" | 16 (4 rule sets) |
+| steelhead definition | "rainbow trout over 50 cm (20 in)" | 846 |
+| "under N" as a keep size | never | 0 |
+
+Finding: a fish's own keep size is always the inclusive kind. "Over" appears only in big-fish limits and the steelhead definition.
+
+Big-fish / group limits (tier lines and "also" lines): "Only 1 of all your trout and char may be over 50 cm" 2,464 (+789 with "2 if one is a hatchery steelhead"); subset forms 23; "Up to N over N cm" 997; "Up to N cutthroat or rainbow trout over N cm" 450; stepped "Up to N over N cm, and up to N over N cm" 88 (27 rule sets); cross-conditional forms ("…if you haven't already kept a …") on Salmo River, Premier Lake, Williston B, Kamloops Lake; "counting any lake trout over N cm" on Hummingbird Creek.
+
+## Both units on the row: placement re-measured (22 waters, 390 px)
+
+Under the name: no overflow at 100% or 200%; narrowest name cell 113 px; average height 571 px. Middle column: no overflow at 100% but the narrowest name cell is 50 px; overflows at 200% on 6 of 22; average height 564 px. Pick: under the name.
+
+## Group size limits
+
+Placement by scope: whole box -> in the answer box under the number; some fish of a box -> small inner box; one fish -> bold line under the name; several boxes -> a framed line across the top of the table (Vedder, Ross Lake). "Also counts" now holds only the region's daily total.
+Three ways drawn for a whole-box limit: in the box (picked), a band across the top of the box, a ladder of dots. At 200% text the box limit becomes the band (automatic), which removed the three overflows the box text caused.
+A row hides "any size" when its box carries a size limit.
+
+## Dolly Varden: facts
+
+- One species entry, code `DV`, named "Dolly Varden/bull trout" in every sentence the app composes: 1,574 kind lines across 568 rule sets, never "bull trout" alone. AGENTS rule 45: `BT` is refused; the book (p.80) counts a bull trout in the Dolly Varden quota.
+- No water has different rules for the two (one code; checked all 2,121 rule sets).
+- Regional wordings of the same fish in the quotes: R3 "bull trout (Dolly Varden)", R2 "char (bull trout, Dolly Varden, or lake trout)", R5/R6 "Dolly Varden/bull trout". One stored sentence says "Dolly Varden or bull trout".
+- `fish.generated.ts` `DV` has two pictures: `bull-trout.webp` (first: the one every row shows, caption "Bull trout") and `dolly-varden.webp` (caption "Dolly Varden"). So today's picture caption drops "Dolly Varden" even though the name line has it.
+- "Bull trout" alone on the round 3 rows was my shortening. Fixed on every row.
+
+## New waters (round 4)
+
+- Kamloops Lake `wbk:329563838`, Jan 15: 5; only 1 over 50 cm; Dolly Varden/bull trout (60 cm or longer, only 1) and rainbow (50 cm or less, only 2) share "only 3"; lake trout release.
+- Hummingbird Creek `gnis:21657` / 0, Jul 15: 4 from streams; only 1 over 50 cm (whole box); only 2 over 30 cm among brown, cutthroat, rainbow and lake trout (not brook).
+
+## Budget now (height px · words · numbers; 390 px; both units)
+
+vedder 734·129·27 · little 672·86·18 · skeena 655·100·22 · skeena winter 531·59·11 · kootenay 519·63·8 · elk 416·43·8 · fraser 538·76·19 · harrison 654·114·29 · shuswap 672·90·21 · clayoquot 572·77·12 · premier 554·71·11 · kaslo 588·88·15 · kitimat 755·130·34 · williston B 499·69·16 · williston A 464·55·15 · ross 602·113·22 · bella spring 571·99·28 · bella summer 483·68·16 · tagish 497·71·15 · inkaneep 517·73·14 · kamloops 499·57·14 · hummingbird 572·70·18.
+One screen holds on 16 of 22, 60 words on 4, 12 numbers on 5. Against round 3 the Vedder grew 83 px, 41 words, 11 numbers.
+
+## Checks after the last edit
+
+390 px and 360 px wide, light and dark, 22 waters, 100% and 200% text, all three history folds open: 0 px page sideways scroll; no script errors; no broken images; every button (rows, folded rows, chips, controls, water list) at least 44 px tall; taps open. At 390 px no table or folded row overflows its frame at either text size. At 360 px and 200% text, 5 of 22 tables (Vedder, Skeena summer, Kaslo, Bella Coola x2) are 6 to 11 px too wide inside the frame (said on the page).
+Not checked: a real phone, a screen reader, the phone's own text scaling (the 200% switch doubles the mock's text only), widths under 360 px, and the not-picked variants at 200% (they scroll inside their frame). The "what you should read" lines are my reading of the app's answer, not a second source.
+
+## Temp
+
+Node runs used TMPDIR inside the scratch folder (work/tmp), removed. Browser screenshots went to the tool's `.playwright-mcp/` and were moved here; none left there. Preview server stopped by PID.
+
+## Files (round 4)
+
+`trout-display.html` (2.69 MB) · `work/page4.tpl.html`, `work/build4.py` · `work/sizes.ts`, `work/sizes.json` · `work/pages4.json`, `work/meas4.json` · `shots/r4/`
