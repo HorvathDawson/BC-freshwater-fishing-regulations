@@ -2953,6 +2953,11 @@
       "opacity.imagery.edge": 1,
       "opacity.imagery.fill": 0.2,
       "opacity.water.others": 0.25,
+      "width.selection.casing": 2.5,
+      "flag.selection.edge": 0,
+      "color.selection.edge": "#F8F8F2",
+      "opacity.selection.glow": 0,
+      "opacity.selection.casing.others": 1,
       "color.water.context": "#D5D5D5",
       "opacity.water.context": 0.55,
       "opacity.water.near": 0.7,
@@ -3128,6 +3133,11 @@
       "opacity.imagery.edge": 1,
       "opacity.imagery.fill": 0.2,
       "opacity.water.others": 0.25,
+      "width.selection.casing": 1.5,
+      "flag.selection.edge": 1,
+      "color.selection.edge": "#0A0B0D",
+      "opacity.selection.glow": 0.4,
+      "opacity.selection.casing.others": 0.35,
       "color.water.context": "#39434B",
       "opacity.water.context": 0.55,
       "opacity.water.near": 0.7,
@@ -3311,6 +3321,11 @@
       "opacity.imagery.edge": 1,
       "opacity.imagery.fill": 0.2,
       "opacity.water.others": 0.25,
+      "width.selection.casing": 2.5,
+      "flag.selection.edge": 0,
+      "color.selection.edge": "#F8F8F2",
+      "opacity.selection.glow": 0,
+      "opacity.selection.casing.others": 1,
       "color.water.context": "#D5D5D5",
       "opacity.water.context": 0.55,
       "opacity.water.near": 0.7,
@@ -4223,6 +4238,31 @@
       "type": "dash",
       "themeable": true,
       "$comment": "(T377) closed's stripe, in the stripe's own widths: short dashes with long gaps, so it reads as ticks along the line and never as the no-access dots (which replace the line) or a bait ban's dashed edge (which rides outside it)."
+    },
+    "width.selection.casing": {
+      "type": "number",
+      "themeable": true,
+      "$comment": "(T735, owner 2026-11-16: look C) the outline each side of the part you are on (a water's Map view) and of a selected stream, px. Light 2.5; dark 1.5 (a thin dark edge)."
+    },
+    "flag.selection.edge": {
+      "type": "number",
+      "themeable": true,
+      "$comment": "(T735, owner 2026-11-16: look C) 1: the part you are on has a casing in `color.selection.edge` (the status colour carries; the in-season casing stays only on the water's other parts); 0: the casing is the highlight ring (`color.highlight`, or `color.ui.attention` under an in-season change). Dark 1, every other theme 0."
+    },
+    "color.selection.edge": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T735, owner 2026-11-16: look C) the casing of the part you are on when `flag.selection.edge` is 1: the ground's own colour, so the line's status colour is what is read."
+    },
+    "opacity.selection.glow": {
+      "type": "number",
+      "themeable": true,
+      "$comment": "(T735, owner 2026-11-16: look C) the soft light glow (layer `selection-glow`, `color.ui.attention`) outside the part's casing. 0 draws no glow layer at all. Dark 0.4."
+    },
+    "opacity.selection.casing.others": {
+      "type": "number",
+      "themeable": true,
+      "$comment": "(T735, owner 2026-11-16: look C) the in-season casing's opacity on the water's OTHER parts when `flag.selection.edge` is 1, so it does not compete with the part you are on. Dark 0.35; the other themes 1 (today's)."
     }
   },
   "enums": {

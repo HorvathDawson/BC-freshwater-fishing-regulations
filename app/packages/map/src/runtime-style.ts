@@ -20,7 +20,7 @@ import { ATLAS_MAX_ZOOM, BASEMAP_MAX_ZOOM, GEAR_LEGEND } from "@app/core";
 import { MAP_STYLE, NO_VALUES, STYLE_META, defaultView, resolveTheme, withFollowers, type Tokens } from "./style";
 import { NO_ASSETS, type TileEndpoints } from "./endpoints";
 import { gaugeLayers, gaugeSource } from "./gaugeDots";
-import { CLOSED_CUE_LAYER, closedCuePaint, casingPaint, copyFillPaint, copyLinePaint, GEAR_LAYERS, gearPaint, NOACCESS_LAYER, noaccessPaint, nobaselineOpacity, paintFor, ringPaint, RUNS_PASS_LAYER, runsPassPaint, SELECTION_CASING, SELECTION_RINGS } from "./paint";
+import { CLOSED_CUE_LAYER, closedCuePaint, casingPaint, glowPaint, hasGlow, copyFillPaint, copyLinePaint, GEAR_LAYERS, gearPaint, NOACCESS_LAYER, noaccessPaint, nobaselineOpacity, paintFor, ringPaint, RUNS_PASS_LAYER, runsPassPaint, SELECTION_CASING, SELECTION_GLOW, SELECTION_RINGS } from "./paint";
 import { traceLayers, traceSources } from "./trace-overlay";
 import { COPY_CASING, COPY_FILL, COPY_LINE, COPY_SOURCE, EMPTY_COPY, copyFilter } from "./water-copy";
 import { BASEMAP_LABELS, basemapLabelPaint, placesByImportance, WATER_NAMES } from "./labels";
@@ -231,7 +231,12 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
      * the stream's own mode (`nobaselineOpacity`): every flow mode reads the number its
      * colour reads, every other mode is 0 — so nothing can leak, and nothing is missing.
      */
-    return [...copied, casing,
+    // (T735) look C's glow, directly under the casing; a theme with no glow (opacity 0) has no such layer
+    const glow = { id: SELECTION_GLOW, type: "line" as const, source: "atlas", "source-layer": "stream",
+      layout: { "line-cap": "round" as const, "line-join": "round" as const },
+      paint: glowPaint((painted as { paint?: Record<string, unknown> }).paint?.["line-width"]
+                       ?? paintFor("stream", "plain", tk)["line-width"], tk) };
+    return [...copied, ...(hasGlow(tk) ? [glow] : []), casing,
       // (T213) the gear edges: under the line (its colour stays the read), over the selection casing
       ...gear("stream", (painted as { paint?: Record<string, unknown> }).paint?.["line-width"]
                         ?? paintFor("stream", "plain", tk)["line-width"]),
