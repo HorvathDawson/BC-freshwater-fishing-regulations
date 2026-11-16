@@ -1789,3 +1789,41 @@ More questions (recommended answer first):
   and alerts) must show a book-closed stretch as closed, not only the card. That is what the agreed two-half fix does
   (the book's closure becomes the first member of the stretch's salmon chains); it is now a pass condition on the
   ticket, with a picture of the map before and after for him.
+- Pictures 18 to 22, 12:58. Illiance and Wilauks Creek (2734, 2735; the whole water from its mouth, side streams
+  in): "Right, both". Gitnadoix (2736; whole river from the mouth, no powerline to be seen): "Right". Morice, the
+  Forks to the Bymac Bridge (2738; side streams on), typed: "i think side streams are off but it depends on the name
+  and if it says includes tributaries?" Checked: DFO's heading for the water is "Morice, including tributaries", so
+  by his rule ("The heading counts") the side streams stay ON; right as drawn. Morice, Gosnell Creek to Lamprey
+  Creek (2739; the END dot sits on a side-channel line about 2 km off the main channel), typed: "i thought we already
+  fixed the lamprey creek confluence issue. yes the confluence should be on the main channel... fix it". So: the
+  Lamprey Creek confluence cut goes onto the Morice's main channel; picture to him after (T803).
+- Pictures 23 to 26, 13:05. Nanaimo, 500 m below Bore Hole to Boulder Creek (2777; side streams off), typed: "right
+  assuming that the name didnt say to include tributaries. (i think all the items like this we need to set to no call
+  then the name will say include tributaries? im not sure tho because if they are linked to a name tat says includes
+  tributraries then it couldnt link to a different name without that? the locations should be matched only to their
+  exact naming then". Checked on DFO's page: the headings are "Nanaimo River" and "Cowichan River" (no tributaries),
+  so side streams off is right there. His rule, sharpened: a place takes its side streams from the EXACT heading it
+  sits under on DFO's page; a saved on / off is only for an exception. DFO has TWO Morice headings, "Morice River
+  (including tributaries)" and "Morice River": which one each Morice stretch sits under must be read from the page
+  (my answer to him on picture 21, "the heading is Morice, including tributaries", is not yet proven for the Forks to
+  Bymac row). An audit of every DFO place's side-stream setting against its exact heading is started; the list of
+  disagreements goes to him. Tatshenshini, Kwatini / Stanley / Goat creeks (2780), typed: "wait this is right and
+  blanchard was also suppsoed to be only blanchard i was confused on formatting. made more sense when i looked at
+  page". So: 2780 is right, AND 2779 (the Blanchard alone, picture 7) is RIGHT: his "wrong" of 12:27 is withdrawn;
+  nothing is redone. Morice, lake outlet to Gosnell Creek (2781): "Right". Sheldens Creek (2783), typed: "add as
+  gotcha but i think you can see the road in satellite that crosses neaar the mouth that should be the bridge i
+  think (near a camp site etc) have it be low confidence and set it top tidal too ". So: a low-confidence cut where
+  the road crosses near the mouth (the Spur 19 bridge site, by a camp site), the place is the creek above it, the cut
+  is also the tidal boundary; gotcha entry; picture to him (needs the next map rebuild).
+- 13:04, from the app chat (it is closing; a new app chat takes over from the top section of
+  `handoff/PLAN/ios/START-HERE-ios.md`), for his backup question (T732): "Backup photo copies at 1280 px, measured
+  2026-11-16 12:57, picture sent in the app chat 12:59: B JPEG 70 = 0.25 MB (about 81 fit), C JPEG 60 = 0.18 MB (about
+  110), D WebP 75 = 0.08 MB (about 245). Pick B, C or D; recommended D if a restore on the emulator shows WebP copies,
+  else C. Not answered."
+- 13:06, two fix lanes are back (branches in worktrees, not merged): `lane/salmon-rules-1116` (T783, T770 with the
+  eulachon line, T787 hidden rows, T796 A6 and A5 Python halves) and `lane/book-rule-fixes-1116` (T795 six lakes,
+  T794 Williston / Peace / Bella Coola, T798 Coal Creek and the Puntledge, T801.1, rulings). For him: (1) the
+  Puntledge "fly fishing only upstream of the diversion dam, including tributaries" now reaches 1,069 pieces (every
+  stream feeding Comox, Willemar and Forbush lakes) where it was 10; (2) T796 A5 changes 70 stretches (71,046 pieces),
+  the largest the Skeena / Nass winter closure on coho Jan 1 to Jun 15; (3) T770 adds a gear line on 13 chains; the
+  three T796 examples he asked for are in the lane's report. Trout round 8 is built (the box frame redrawn).

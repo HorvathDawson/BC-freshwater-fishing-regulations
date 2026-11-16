@@ -27,3 +27,14 @@ on a powered-boat water, and a check that no other `angler` token is dropped the
 
 ## Owner, 2026-11-16 (question dialog; verbatim in `handoff/PLAN/OWNER-TODO.md`, "Answers by batch")
 Go-ahead card: "Go on all (Recommended)" (item 1 is fixed by the app chat on branch app-fix/t797-powered-boats; items 2 to 5 are pipeline display).
+
+## Item 1 fixed on a branch, 2026-11-16 (the app chat; NOT merged)
+`app-fix/t797-powered-boats` @ e39bcfed6 (core `regs/boats.ts`: `BOAT_WHILE` = in_boat, in_powered_boat;
+`OTHER_WHILE` = alone_in_boat, ice_fishing, set_lining; tests on the Horsefly and the Chilko and a province-wide
+walk in `conformance/src/regs/t670.release.test.ts` that fails on a token no list knows; golden `bc1_501.json`
+re-cut). Stacked on merge 3 as `merge/t797-powered-boats` @ 7c077fdef: `pnpm check` passed there (645 files,
+6823 tests, 11:25). Six benches 12:28: regs-open, install, memory, tap-stalls PASS; bg-install failed at the
+notification steps (the bench's own race, being fixed on `merge/t756-t760`); crash-bed failed two steps on "Maestro
+Android driver did not start up in time" (the tool, the app was up on the map). OWED before it lands: crash-bed and
+bg-install again on the same APK (tag `t797`, `--allow-stale`) once the bench fix is in, then it lands after merge 3.
+Data note sent to the main chat: the Nicomekl / Serpentine rule reaches 27 side streams.
