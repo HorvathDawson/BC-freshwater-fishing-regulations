@@ -14,7 +14,11 @@ const SAYING = /…$|… of data$/;
 export const bgInstall = {
   id: 'bg-install',
   title: 'First install: asks on mobile data, waits for Wi-Fi, keeps downloading with the app closed',
+  // the link is slowed for part of the run (see "Wi-Fi back"): whatever happens, the next scenario gets a full one
   async run(ctx) {
+    try { await bgInstall.body(ctx); } finally { try { ctx.device.link('full'); } catch { /* the emulator is gone */ } }
+  },
+  async body(ctx) {
     const d = ctx.device;
     const shot = (name) => { try { d.screenshot(path.join(ctx.dir, `T298-${name}.png`)); } catch { /* no shot */ } };
     const words = () => d.screenText();
@@ -73,6 +77,11 @@ export const bgInstall = {
     // and its one-line verdict in the failure text
     const probeLine = (name) => { try { const p = lineProbe(d); fs.writeFileSync(path.join(ctx.dir, name), p.raw + '\n'); return ` Line probe: ${p.verdict}.`; } catch (e) { return ` Line probe failed: ${e.message}.`; } };
     await ctx.step('Wi-Fi back: the download starts by itself', async () => {
+      // (2026-11-16) THE LINK IS SLOWED FROM HERE UNTIL THE NOTIFICATION HAS BEEN TAPPED (about 1.8 MB/s, `hsdpa`). On the
+      // Mac's full line the whole 479 MB landed in about a minute: the system's downloads finished 4 to 6 s after the
+      // app was closed, so three runs in a row had no notification left to tap, and the step failed on the bench's
+      // timing, not on the app. Slowed, the download outlasts the close and the tap; it goes back to full for the rest.
+      d.link('hsdpa');
       await d.net('wifi');
       // (T760, owner 2026-11-15 "keep trying by itself") a line dead for a while can end on the failure screen ("The map
       // data could not be loaded … Try again"); the app must then try again BY ITSELF (once a minute) and the download
@@ -85,7 +94,7 @@ export const bgInstall = {
         const w = words();
         const line = w.find((x) => /MB downloaded/.test(x)) ?? '';
         const got = Number((/^([\d,.]+) of/.exec(line)?.[1] ?? '0').replace(/,/g, ''));
-        // early: the emulator's Wi-Fi is not throttled (the whole set lands in about a minute)
+        // early, so the app is closed with most of the download still to come
         if (got > 2) {
           shot('3-downloading'); atKill = line;
           return failedAt ? `${line} (the app had shown the failure screen ${Math.round((failedAt - t0) / 1000)} s after Wi-Fi came back, and recovered by itself ${Math.round((Date.now() - failedAt) / 1000)} s later, no tap)` : line;
@@ -152,7 +161,7 @@ export const bgInstall = {
         throw new Error(`a tap on ${how} did not bring the app to the front in 10 s (its process is ${alive() ? 'running' : 'not running'})`);
       }
       return `opened by a tap on ${how}`;
-    });
+    }).finally(() => d.link('full'));   // tapped or not: the rest of the download runs on the full line
     await ctx.step('reopened mid-download: no running download is thrown away; setup finishes and the map opens', async () => {
       let opened = 'the notification tap';
       if (!front()) { opened = 'a launch (the tap did not open it)'; d.sh('cmd statusbar collapse'); d.launch(); }
