@@ -1778,3 +1778,14 @@ More questions (recommended answer first):
   started 12:45 with the original designer: the whole-box number must visibly hold every row of its box and the
   box-wide size sentence must be tied to it; plus his round 7 answers (no sideways, the bar dropped, dates in words)
   and the second attack's faults. Mockups only. The reviewer attacks round 8 after.
+- Pictures 14 to 17, 12:53. Exchamsiks above the Hwy 16 bridge (2728): "Right". Bella Coola "All tributaries"
+  (2730), typed: "purple is right " (the purple / pink lines are the side streams in the place; the main river and
+  the Atnarko are out): right. Bulkley "all tributaries … other than the Suskwa River" (2732), typed: "right but add
+  to gotchas. it should only drop the blue suskwa river. rest are good. ": right (Suskwa out, Morice and Two Mile
+  Creek in); gotcha entry. Bulkley "… other than Morice River and tributaries, Suskwa River and tributaries, and Two
+  Mile Creek" (2733), typed: "right only keep part that is purple. rest get dropped here. ": right.
+- 12:53, typed in chat: "also we need to make sure the salmon closed because the river is clsoed in synopsis appllies
+  to the map too. so the colors show it as well." So for T796 A5: the Salmon view's line colour (and the year bars
+  and alerts) must show a book-closed stretch as closed, not only the card. That is what the agreed two-half fix does
+  (the book's closure becomes the first member of the stretch's salmon chains); it is now a pass condition on the
+  ticket, with a picture of the map before and after for him.

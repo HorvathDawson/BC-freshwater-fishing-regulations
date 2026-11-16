@@ -19,3 +19,9 @@ Recommended: a finfish closure closes the whole page, trout included, on its dat
 
 ## Owner, 2026-11-16 (question dialog; verbatim in `handoff/PLAN/OWNER-TODO.md`, "Answers by batch")
 Question 29, typed: "yes we want to do this but can you bring the example changes to me so i can see why it happened etc? but yes we want it to do this". Question 30: "Closes the whole page (Recommended)". Split agreed with the app chat (11:55): A5 = pipeline adds the book's full closure as the first member of the stretch's salmon chains (a release-side location marked static), the app keeps a static location under a live feed and words the card; A6 = pipeline `typed.py` + deliver + vectors first, then the worker's twin, then core closes the page from the feed. The before / after examples (Skeena reserve sockeye Aug 15, Atnarko chinook Jul 15, Cowichan below the trestle Oct 10) go to him with the why.
+
+## Owner, 2026-11-16 12:53 (typed in chat)
+"also we need to make sure the salmon closed because the river is clsoed in synopsis appllies to the map too. so the
+colors show it as well." PASS CONDITION for A5: on a book-closed stretch the Salmon view's line colour, the year bars
+and the alerts read closed (offline and under a live feed), not only the card. A map picture before and after goes
+to him with the three examples.
