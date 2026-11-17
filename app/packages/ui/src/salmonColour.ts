@@ -11,8 +11,8 @@
  * The answer per chain and day was decided at deliver time (`pipeline/deliver/salmon.py`); nothing here reads a rule.
  */
 import { useMemo, useState } from "react";
-import type { MethodFacts, SalmonFacts } from "@app/core";
-import type { WaterSource } from "@app/data";
+import { feedFinfishOn, salmonIssueItems, type MethodFacts, type SalmonFacts } from "@app/core";
+import type { SalmonFeedSource, WaterSource } from "@app/data";
 import { useAsync } from "./async";
 import { useFeedVersion } from "./feedVersion";
 import { sameFacts, sourceKey } from "./conditionsColour";
@@ -66,6 +66,24 @@ export function useSalmonColour(i: { source: WaterSource; paired: boolean; statu
   return { feed, facts: f, loading, offered };
 }
 
+/**
+ * (T796 A6, owner 2026-11-16: "Closes the whole page") THE WEB'S CUE TO READ THE SALMON FILES FOR THE STANDARD MAP. A DFO
+ * "Finfish closure" closes all fishing, so the Standard map paints its stretch closed (map `statusInput`) — which needs
+ * the salmon chains on the tiles, and the web reads the salmon files only on the first press of Salmon (`onDemand`). They
+ * are read for Standard too (`useSalmonColour`'s `wanted`) only when this is true: the live DFO feed the app already
+ * holds (`SalmonFeedSource.latest()`, the same capture the bell and the More tab's Data line read — no request of its
+ * own) closes some place to all fishing on the map's day (@app/core `feedFinfishOn`). A day with none reads nothing
+ * more. `latest()` never rejects (a failed fetch is reported there and the last capture answers); no feed ever read is
+ * no cue — the release's own build day is the status index's to answer.
+ */
+export function useFinfishCue(i: { feed: SalmonFeedSource | null | undefined; day: Date | null; enabled: boolean }): boolean {
+  const dfo = useFeedVersion("dfo");   // a feed the update service took is asked again
+  const on = i.enabled && !!i.feed;
+  const a = useAsync(() => i.feed!.latest(), `finfish-cue:${dfo}:${i.feed?.version?.() ?? 0}`, on);
+  const today = useBcToday();
+  return on && a.state === "ready" && a.value !== null && feedFinfishOn(a.value, i.day ?? today);
+}
+
 /** (T213) What the map is handed (`MapProps.method`): the release's bait ban / fly only profiles and the day — the
  *  Standard map's gear marks. */
 export interface MethodFeedVM {
@@ -94,6 +112,24 @@ export function useMethodColour(i: { source: WaterSource; paired: boolean; statu
   const day = useMemo(() => i.day ?? today, [dayKey]);
   const feed = useMemo(() => (f && i.paired ? { facts: f, day } : null), [f, day, i.paired]);
   return { feed };
+}
+
+/**
+ * (T759) THE ISSUE STRIPE's feed: the sections of every water the salmon feed carries a shown issue for
+ * (`salmonIssueItems`: the rows behind the river page's banner), from the salmon facts the map already holds, so no
+ * file is read for it. Handed to the map whatever the toggle says (the toggle is a mode change and nothing else); the
+ * map's style draws the stripe in the Salmon view alone (`paint.ts` `issuePaint`). Null: no issue water, or no facts.
+ */
+export interface IssueFeedVM { readonly sections: ReadonlySet<number> }
+export function useIssueColour(i: { source: WaterSource; facts: SalmonFacts | null; mapTab: boolean }): IssueFeedVM | null {
+  const items = useMemo(() => (i.facts ? [...salmonIssueItems(i.facts.payload)] : []), [i.facts]);
+  const key = `issuesections:${sourceKey(i.source)}:${items.join(",")}`;
+  const read = useAsync(async () => {
+    const waters = await Promise.all(items.map((it) => i.source.water(it as never)));
+    return new Set(waters.flatMap((w) => (w ? w.sections.map((s) => Number(s)) : [])));
+  }, key, i.mapTab && items.length > 0);
+  const sections = read.state === "ready" ? read.value : null;
+  return useMemo(() => (i.mapTab && sections && sections.size ? { sections } : null), [i.mapTab, sections]);
 }
 
 /** The toggle's choice, kept for the session (Standard by default). */

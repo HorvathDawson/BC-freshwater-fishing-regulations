@@ -263,8 +263,9 @@ const PLATFORMS = {
  * value a feature holds is not sent twice: `onceSink`).
  */
 const unset = (sl: string, id: number, key: string) => (platform === "native"
-  // (T345) a phone unsets a key by writing it null (`adapters/native.ts` `raw.remove`: MapLibre Native's removals)
-  ? `set atlas/${sl} number:${id} {"${key}":null}` : `remove atlas/${sl} number:${id} ${key}`);
+  // (T345) a phone unsets a key by writing it (`adapters/native.ts` `raw.remove`: MapLibre Native's removals); (T826) a
+  // highlight key is written false, never null: iOS's bridge drops a null-valued key (`unsetValue`)
+  ? `set atlas/${sl} number:${id} {"${key}":false}` : `remove atlas/${sl} number:${id} ${key}`);
 let platform = "";
 const selected = (id: number, on: boolean) => ["wetland", "lake", "stream"]
   .map((sl) => (on ? `set atlas/${sl} number:${id} {"selected":true}` : unset(sl, id, "selected")));
@@ -510,9 +511,9 @@ it("the lift that ends a long press is cancelled, so the browser makes no click 
     expect(log).toEqual(['set atlas/stream number:311274 {"other":3}']);
     const why = "the map colours sections through the colouring engine only "
       + "(MapProps.status, MapProps.standing, MapProps.lakes, MapProps.salmon, MapProps.method, MapProps.runs)";
-    expect(errors).toEqual([`pushed p/standing/status/stocked/survey/sp/salmon/gm/rt on "stream" refused: ${why}`,
-                            `pushed p/standing/status/stocked/survey/sp/salmon/gm/rt on "lake" refused: ${why}`,
-                            `pushed p/standing/status/stocked/survey/sp/salmon/gm/rt on "basin" refused: ${why}`]);
+    expect(errors).toEqual([`pushed p/standing/status/stocked/survey/sp/salmon/gm/rt/gi on "stream" refused: ${why}`,
+                            `pushed p/standing/status/stocked/survey/sp/salmon/gm/rt/gi on "lake" refused: ${why}`,
+                            `pushed p/standing/status/stocked/survey/sp/salmon/gm/rt/gi on "basin" refused: ${why}`]);
   });
 
   it("T317: the marks are map layers — a ring each, a label each labelled one — and no DOM marker moves with the map", async () => {
@@ -926,6 +927,24 @@ it("no listener, no long press: the binding is handed no handler (its long press
     PLATFORMS.native.settle();
     await waitFor(() => expect(seen.mock.calls).toEqual([[[5, 6]], [[7]]]));
     expect(queries()).toBe(before + 1);
+  });
+  it("(T826) a NEW listener is told what is on screen, though the set is the one the last listener heard (Map → Conditions)", async () => {
+    // the Map tab zoomed in hands the map its read-ahead (`regsPrefetch.onVisible`); the Conditions tab its legend's
+    // (`noteVisible`). Same camera, same sections: the legend was never told, and the bar under the Conditions map had no
+    // marks and no count until a pan (iPhone, owner 2026-11-16: "the current conditions view doesnt show the bar")
+    const prefetch = vi.fn(), legend = vi.fn();
+    answer = () => [{ id: "5" }, { id: "6" }];
+    const r = render(<NativeMap {...base({ data: undefined, highlight: undefined, onVisible: prefetch })} />);
+    await waitFor(() => expect(prefetch.mock.calls).toEqual([[[5, 6]]]));
+    r.rerender(<NativeMap {...base({ data: undefined, highlight: undefined, onVisible: legend })} />);
+    await waitFor(() => expect(legend.mock.calls).toEqual([[[5, 6]]]));
+    // and the same listener again (a re-render) asks nothing more
+    const queries = () => log.filter((l) => l.startsWith("query viewport")).length;
+    const before = queries();
+    r.rerender(<NativeMap {...base({ data: undefined, highlight: undefined, onVisible: legend })} />);
+    await act(async () => {});
+    expect(queries()).toBe(before);
+    expect(legend.mock.calls).toEqual([[[5, 6]]]);
   });
   it("(T348) a settle with no full render after it still asks, once: the legend's count follows a pan over held tiles", async () => {
     const seen = vi.fn();

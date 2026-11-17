@@ -117,3 +117,74 @@ the day's number: band "only 2 in your possession" + quiet line (Cunningham). Ch
 correctly (book p.43: Bowron Lake's own row says 2; the 1 is for the other park waters). Left for H: `elsewhere`, the
 fish sheet's licence/stamp line, "today" wording in sheet lines. Left for I: wire models, FRAMES["trout"]; I must
 compose before L drops `group` from covered rows.
+
+## 2026-11-16 23:30: J built (lane/trout-j): the proof, inside the card gate
+`answers/trout/check.py` reads every shipped table back with G's grammar (extended in `words.py` to every text the
+table, its dates and sheets say, the card's reused size / also / kept-elsewhere / possession / weekday words included)
+and proves it against today's answers and the keeping engine, every key and segment: NULL per Q-D3, `covers`, every
+fish once, state and origin words, each fish alone at every length (engine), the joint limits through the engine's
+basket proof (`check_caps`' method), possession vs F0's lead (`card_check.possession_problems(lead=…)`), T793 / T805
+re-aimed, top line and fold numbers, every date against the following segments (and the sheet's), the sheets, the year
+bar, rule refs, kept-elsewhere numbers. Runs in `card_check --all` whenever the answers hold the trout section; the
+stamp gains `trout_check` and the store refuses a stamp that checked fewer tables than non-NULL trout cells.
+Full flagged side build over the live bundle: 5,950 tables of 5,950 non-NULL cells. It first found ~630 keys with
+faults in F's builder, fixed on the lane (each pinned): a kind's number drawn as each fish's own ("only 4" each in a
+box of 5), a kind's size cap drawn per fish ("up to 1 over 50 cm" on each row), "uses the 1" on a steelhead of a
+non-steelhead water, a twin wild row missing its own quota, "only 2 wild" in a strip that holds only some wild fish,
+boxes-apart top lines saying the region's total instead of the box's most. LEFT (5 keys, the proof fails them):
+(1) Kaslo River and Keen Creek from Jun 15: "Up to 2 {day}, plus 2 Dolly Varden/bull trout" with DV outside the
+"2 of these 5" band; the engine keeps 2 in all (DV counts toward the 2 from streams) — F's question 5; (2) Kitimat
+River (2 keys) and Humphrys / Iron Mine / Tetlock Creeks from Jul 1: the wild rainbow's "only 1 wild" is not joined
+with brown and cutthroat's "only 1 of these 2"; the engine holds the three to 1 together.
+
+## 2026-11-17 00:24: J's 5 keys fixed in the builder (lane/trout-vpy)
+Full flagged side build over the live bundle again (answers `--trout-table` + `card_check --all`): 5,950 tables of
+5,950 non-NULL cells, 0 problems (card gate 0). Six keys changed, nothing else: the five J listed plus a third Kitimat
+River part the random baskets had missed. Both fixes pinned in `test_trout_check.py` FOUND (flag off: the live water
+fails the proof).
+- `A_SHARE_HOLDS_ITS_UNLIFTED_FISH` (Kaslo River, Keen Creek, from Jun 15): the stream share's band holds every fish
+  its rule holds that no lift takes out (`group.subcaps[].of`). Words chosen: top line "Up to 2 {day}" (no plus form at
+  all), fold "Up to 2", one band "only 2 of these 6" over the five trout and the Dolly Varden; the Dolly Varden's own 2
+  is not said (it is not tighter). F's open question 5 (the plus-form fold) stays for G2: the plus form still exists
+  where a fish IS lifted out of the share.
+  FOR THE OWNER (data, not the table): Kaslo and Keen print "Bull trout daily quota = 2 (any size)", the same words as
+  the Lardeau and the Duncan, but only the Lardeau's and the Duncan's rows carry the lift out of Region 4's "2 from
+  streams" (T3a names them). So today the engine keeps 2 in all on Kaslo and Keen, while today's shipped card says
+  "Not part of the 2 from streams" there (`tree.py` nests a water's own tier by its number only). If the owner reads
+  Kaslo and Keen like the Lardeau, it is a corpus edit (an `exempts` on `kaslo_river.r1` / `keen_creek.r1`) and a
+  rebuild; the table follows by itself (it reads the lift).
+- `A_WILD_QUOTA_JOINS_ITS_COUNT` (Kitimat River, its tributaries Humphrys / Iron Mine / Tetlock and the rest, Jul 1 to
+  Oct 31): Region 6's "1 trout from streams" holds brown, cutthroat and WILD rainbow trout together (Kitimat's hatchery
+  rainbow quota lifts hatchery fish only). Words: one band "only 1 of these 3" over brown, cutthroat and the wild
+  rainbow row; the wild row's "only 1 wild" is no longer said; the twin rainbow rows stay side by side (wild, then
+  hatchery).
+
+## 2026-11-17 01:51: V-py built (lane/trout-vpy): the shared fixture, Python half
+- `python -m pipeline.tools.emit.trout_vectors` (registered in `pipeline.tools.emit --check` and fast-fail) writes
+  `app/fixtures/trout/trout-vectors.generated.json`: 53 cases (the contract 2.8 list: Skeena x3, Lois, Khartoum,
+  Windsor, Dodd, Horseshoe, Nanton, Ireland, Shamrock, Kilgard, Echoes, Bowron, Istsi, Nation Lakes, Cunningham, Tagish,
+  Takla, Buckinghorse, Fraser R2 Mission, Fraser R3 Sep/Oct/Nov 15, Bish, Adams Jul 15/31, Kamloops Lake Jan/Jul, Elk
+  Nov/Apr/Jul, Kootenay main, Glenn, Madden, Kaslo, Keen, Vedder, Ross, Kitimat Jul 15/Nov 1, Humphrys Jul 15/Nov 1,
+  Ruby, Cultus, Bella Coola, Andi, Denetiah, Shuswap, Bruer, Mat, Burnt, Nitinat tidal), each anchored by stream key +
+  start metre or by its lake, with `s`, the decoded frame (null only for Elk Apr 15 and tidal Nitinat) and `composed`.
+  `drafts` is empty (the builder exists).
+- The vectors decode from a TROUT FIXTURE of their own, `app/fixtures/trout/regs-release/` + `section-lines.json`
+  (1.7 MB), cut by `regs_fixture --trout-cases` from side release r-6a81c322c649 (the live bundle, `--trout-table`):
+  until the app's M0 the app's own regs fixture and goldens must stay the normal release's (contract 2.8 amended, "As
+  built").
+- `app/fixtures/trout/trout-hand.json`: 14 hand cases on one valid base frame; the model refuses 13 for their own
+  reason, the dangling rule index is refused by the rule table (`rule_count`).
+- `scripts/trout-refresh.sh` (via heavy.sh): side release -> fixture -> vectors -> golden sync (skipped and said until
+  `versions.ts` lists `trout`) -> every `--check` + the cut again byte for byte. Run twice on r-6a81c322c649: no change.
+  The side release is over the web first-tap size gate (4,273,307 > 4,200,000 B; low 3,433,932 > 3,400,000): the script
+  passes those two gates only, said, for a side release.
+- `deploy/staging/test-updates.mjs side <release dir>`: the app reads every release file relative to `<origin>/release/`
+  on the test channel too, so the scenario names its files `../test/release/<id>/…`; the staging data worker resolves
+  the dot segment itself (`deploy/staging/test-updates.test.mjs`). Nothing uploaded; not walked on a device.
+- Not in the case list yet: an unnamed Region 6 stream and one of the 8 rule sets with no stored headline (both need a
+  handle or a find step the cut does not have).
+
+2026-11-17 08:50, owner on Kaslo/Keen (verbatim): "Dollys and bulls always have same quota per the book.  Why would they
+not count towards the regions 2? That seems wrong". Kaslo and Keen: B (count toward the 2 from streams; the table as
+built is right; the shipped card's "Not part of the 2 from streams" line there is wrong and goes at the cutover).
+Follow-up asked: does T3a (Lardeau, Duncan lift) stand.

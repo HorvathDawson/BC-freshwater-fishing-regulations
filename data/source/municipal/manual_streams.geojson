@@ -1,0 +1,136 @@
+{
+ "type": "FeatureCollection",
+ "_about": "Stream lines drawn BY HAND for the added-streams batch (source key 'manual'): a channel no FWA line, city layer or OpenStreetMap way draws, traced by Claude on Esri World Imagery for a recorded owner decision. Vertex order is the flow (head first, mouth last: `build_dataset.RELIABLE_SOURCES`). Every feature is a PROPOSAL until the owner ticks it on its picture; its `note` quotes his words and says how sure the trace is.",
+ "features": [
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "manual-1",
+    "name": "Sheldens Creek",
+    "note": "Owner 2026-11-16 20:01 (T806, Sheldens Creek, mark 2783), picked on the picture: \"Extend to the bridge\" (draw the creek on down to the SPUR 14 road bridge and put the low-confidence tidal boundary there); earlier: \"have it be low confidence and set it top tidal too\". The FWA line (blk 360846083) stops at the head of the salt marsh; this trace follows the main marsh channel from there (SW, round the west loop, east along the big channel, then north) to the road bridge (53.14746 N 131.76003 W, FTEN SPUR 14, beside the OSM camp site) and ~65 m on, to the open flats of Sheldens Bay. LOW CONFIDENCE: traced by eye on Esri World Imagery at z18; the marsh has many channels and which one carries the creek is a reading, not a survey. The first vertex is the FWA line's own mouth vertex (615733.858, 920150.919 in BC Albers), so the graph joins the two lines at one node.",
+    "confidence": "low"
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -131.7638884075,
+      53.1476585345
+     ],
+     [
+      -131.764,
+      53.14745
+     ],
+     [
+      -131.76425,
+      53.14718
+     ],
+     [
+      -131.7645,
+      53.14705
+     ],
+     [
+      -131.765,
+      53.14685
+     ],
+     [
+      -131.76515,
+      53.14665
+     ],
+     [
+      -131.76505,
+      53.1464
+     ],
+     [
+      -131.76488,
+      53.1461
+     ],
+     [
+      -131.765,
+      53.14585
+     ],
+     [
+      -131.7654,
+      53.14565
+     ],
+     [
+      -131.7659,
+      53.14545
+     ],
+     [
+      -131.76575,
+      53.14515
+     ],
+     [
+      -131.76565,
+      53.1449
+     ],
+     [
+      -131.76555,
+      53.14472
+     ],
+     [
+      -131.7651,
+      53.14465
+     ],
+     [
+      -131.7645,
+      53.14462
+     ],
+     [
+      -131.764,
+      53.14465
+     ],
+     [
+      -131.7633,
+      53.1447
+     ],
+     [
+      -131.7625,
+      53.14475
+     ],
+     [
+      -131.7618,
+      53.14488
+     ],
+     [
+      -131.7613,
+      53.14505
+     ],
+     [
+      -131.7609,
+      53.14535
+     ],
+     [
+      -131.76065,
+      53.1457
+     ],
+     [
+      -131.76045,
+      53.146
+     ],
+     [
+      -131.76025,
+      53.1463
+     ],
+     [
+      -131.76005,
+      53.1468
+     ],
+     [
+      -131.76003,
+      53.14746
+     ],
+     [
+      -131.75995,
+      53.14775
+     ],
+     [
+      -131.75982,
+      53.148
+     ]
+    ]
+   }
+  }
+ ]
+}

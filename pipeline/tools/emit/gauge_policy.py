@@ -61,6 +61,7 @@ from pathlib import Path
 
 from pipeline.gauges.consume.panel import MIN_TOTAL_WEIGHT, THROUGH_LAKE_FACTOR
 from pipeline.gauges.consume.shed import DIST_STEP, GAUGE_RELS, TRUST_BANDS
+from pipeline.gauges.consume import small_water as _small
 from pipeline.gauges.feed import change as _change
 from pipeline.gauges.feed import skill as _skill
 from pipeline.gauges.feed.climatology import PCTILES
@@ -213,6 +214,16 @@ export const FORECAST_HOLIDAYS: readonly string[] = [
 
 /** What a vote whose path crosses a lake keeps of its weight while a vote with no lake on its path reports. */
 export const THROUGH_LAKE_FACTOR = {_num(THROUGH_LAKE_FACTOR)};
+
+// (T823) Small next to its gauge, from pipeline/gauges/consume/small_water.py. Python decides, per paint section, which
+// of its panel's members drain much more than it (`flow-small`: bit i = member ord i) and writes the sentence; the app
+// shows the conditions meta's text beside a reading from a member whose bit is set, word for word.
+
+/** The conditions file's meta key holding the warning shown beside a much bigger member's reading. */
+export const SMALL_WATER_TEXT_KEY = "{_small.META_TEXT_KEY}";
+/** The conditions file's meta key holding the threshold the bits were decided at (the member drains at least this many
+ *  times the section's target area). For audit; the app compares nothing. */
+export const SMALL_WATER_RATIO_KEY = "{_small.META_RATIO_KEY}";
 '''
 
 
@@ -283,6 +294,7 @@ def main(argv=None) -> int:
                   "pipeline/gauges/feed/change.py / "
                   "pipeline/gauges/feed/record.py / climatology.py PCTILES / "
                   "pipeline/gauges/consume/panel.py MIN_TOTAL_WEIGHT, THROUGH_LAKE_FACTOR / publish.py HORIZONS / "
+                  "pipeline/gauges/consume/small_water.py META_*_KEY / "
                   "pipeline/gauges/feed/skill.py (worker)", file=sys.stderr)
         print("  run: python -m pipeline.tools.emit.gauge_policy", file=sys.stderr)
         return 1

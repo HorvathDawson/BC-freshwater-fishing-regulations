@@ -44,7 +44,9 @@ def test_eulachon_is_not_a_salmon_closure_but_its_own_line():
     d = r.model_dump(mode="json", exclude_defaults=True, by_alias=True)
     assert d["type"] == "advisory" and "species" not in d
     assert all(S.verdict_on([[d]], sp, JUL_20) is None for sp in S.SPECIES)
-    assert S.gear_on([[d]], JUL_20) == ("No fishing for eulachon (Apr 1–Mar 31)",)
+    # (T770, owner 2026-11-16 19:09: "As a closure line") its own closure line, not a gear line
+    assert S.gear_on([[d]], JUL_20) == ()
+    assert S.closures_on([[d]], JUL_20) == ("Eulachon closed all year: No fishing for eulachon",)
     # "All | No fishing for salmon" is still every salmon
     [s] = T.to_rules({"species": "All", "dates": "Jan 1 to Jun 15", "limits_gear": "No fishing for salmon"}, "x", 1)
     assert s.species == ["SA"] and s.take == 0

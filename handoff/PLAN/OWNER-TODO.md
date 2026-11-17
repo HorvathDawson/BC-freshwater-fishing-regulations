@@ -2168,3 +2168,132 @@ More questions (recommended answer first):
   closed day draws empty, not the closed stripe); "when i swiper to close on apple it flashes the menu back for a
   second before it goes back." (T821: iOS back-swipe flash); "allowed notifications in app and settings restarted app
   and it still doesnt show up" (T822 if a bug: push registration; the staging worker holds 0 iOS tokens).
+- Before 21:41 (the app chat said ~21:45), typed in the APP chat (relayed verbatim): "in the tutorial it says on first slide each step rings what to
+  tap (should say something like highlight instead? the tutorial is really glitchy too with keyboard and the
+  highlighting following the items with a delay etc etc". The app chat files it (its next reserved number).
+- Shortly before 21:48, typed in the APP chat (relayed verbatim): "also the condition panel is very glitchy on apple. it
+  doesnt show the info the same as android the mao doesnt have gauge markers the current conditions view doesnt show
+  the bar and when i click on chehalis it doesnt show conditions for it? also the highlights dont let go when you go
+  back the highlight of where you clicked stays and doesnt disspear". Filed by the app chat (its own number). If the
+  Chehalis showing no conditions is data (no gauge match), it sends me the section ids.
+- 21:50, typed in chat (verbatim): "it used to match the chehalis gauge though?????". Checked: it still does. The shipped
+  release r-46e4355a7277 (conditions-18da9a4cead9) has gauge 08MG001 Chehalis River near Harrison Mills leading 634
+  Chehalis sections (matches.json unchanged; 08MG023 below Statlu Creek auxiliary). So the iPhone showing no Chehalis
+  conditions is app-side (with the missing gauge markers and bar on Apple); sent to the app chat for its conditions
+  ticket.
+- Shortly before 21:54, the spots cleanup (the app chat's T819; relayed verbatim): picked all four bundles, "B: readable
+  spot page (Recommended)", "A: fix wrong bits (Recommended)", "C: list + adding", "D: fit & finish". On a small creek
+  (1.4 km²) shown "Below normal" from a gauge 676× bigger, typed: "Could we just use our gauge network that colors stuff
+  wtc to determine if it is significant enough? It would drop that in theory. Then ofr small ones still give a warning
+  if used." So: a spot takes its gauge from the same section → lead-gauge network the Conditions map colours with
+  (drainage gate applied); no lead = no estimate; a lead on a small water = the estimate with a plain warning. The
+  "small next to its gauge" decision is Python's (T823), the app reads it.
+- 22:18, T823 small water next to its lead gauge (table sent: examples, counts at 50/100/200×). Cut-off, picked: "50×
+  (Recommended)". Wording, picked: "Much smaller stream (Recommended)" ("This stream is much smaller than the river its
+  gauge measures: the reading may not match it."). Built on `lane/t823-small-water` (edc097013), default already 50×;
+  reaches a release with the next bundle rebuild. Found with it: T825 (251 side channels led by a gauge far upstream,
+  e.g. lower Fraser side channels reading Red Pass).
+- Shortly before 22:19, in the APP chat (relayed; label picked verbatim), after its correction that the Conditions MAP
+  colours from the paint PANELS (249k sections; your 1.4 km² creek is coloured "Below normal" by 08MH001, 676× bigger),
+  not from section_gauge (114k): "Should a gauge that much bigger be allowed to speak for a small water at all, on the
+  map AND in spots (they always match)?", picked: "Allow, with a warning (Recommended)" (keep colouring and estimating;
+  say plainly the gauge drains a far bigger area once it is small enough to matter; Python picks the cut-off). So
+  T823's flag and sentence hang on the SPEAKER's gauge (the panel the map colours from), the same on the map, the
+  spot and the sheet; 50× and the wording stand (owner, just before).
+- Shortly before 22:49, in the APP chat (relayed verbatim), on the 0.7.12 draft "What's new": "you can do what changed."
+  So: the app chat writes and keeps the release notes current and clears the draft when the next build goes out. His
+  next question there, "so what is next?", is being answered by the app chat (both chats' plan: salmon landing first,
+  then the one map rebuild + staging release, the trout build in parallel).
+- 22:52, the salmon landing look (T796): five before/after sheets (Skeena reserve, Yakoun, Bell-Irving, Kitsumkalum
+  eulachon line, Cold Fish Lake note; from r-1603e71cc92c) and the changed-answers list since his 71-row review. Land
+  it, picked: "Land it (Recommended)". Kennedy Lake's note (already ruled outside Pacific Rim, Z11), picked: "Keep the
+  note (Recommended)". So: lane/salmon-rules-1116 + lane/salmon-hardcases-1116 + the app's twins land together
+  (section D), then ship with the next staging release.
+- 22:55, on the Yakoun before/after sheet, typed (verbatim): "The calendar shows open always but it closes after coho
+  closes?" Answered: DFO's coho row "Apr 1–Mar 31" is the whole year (DFO's year runs Apr 1 to Mar 31), so before the
+  change salmon was open every day; after it the book's "No Fishing from Yakoun Lake downstream approximately 13 km …,
+  Oct 1-Apr 30" closes the stretch Oct 1 to Apr 30 and coho shows through May to Sep.
+- 22:55, on the Skeena before sheet (circling the DFO-words block under the species table), typed (verbatim): "We want to
+  create a future ticket to do a similar check of all salmon regulations to the webpages with a fresh agent that tries
+  to break it and look for issues in the regulations also why do we have this section in salmon". Filed T827 (the
+  break-it audit of every salmon rule against DFO's pages, later). Answered why (T321, Oct 31: DFO's rows as printed so
+  the reading can be checked). The block (fold into Source / keep only extras / keep), picked: "Fold into Source
+  (Recommended)" (T828: under the 'Source (DFO)' expander, closed by default; unread new wording stays visible).
+- 22:56, typed in chat (verbatim): "Can we also clean up the format for the salmon rows to make it look more consistent
+  with the other table and the new trout table just a formatting thing same data tho". Filed T829 (app side; same
+  data): mockups first in the settled trout table look (the trout page's round-15 design), his pick, then the build
+  after the salmon landing and T828.
+- Shortly before 23:17, in the APP chat (relayed; label picked verbatim), T829 salmon rows after three mockups on real
+  data (Kitsumkalum Jul 15 with its eulachon line, Skeena below Terrace Aug 15 mixed), each above its trout table:
+  "B: trout keep box (Recommended)" (open species in the trout tint box, each species' limit in the white box at the
+  right with its dates small under it; closed species, the eulachon line and rule-book closures in the trout
+  "✕ Closed" group; badge, year bar and bait-ban line stay; the T828 fold as mocked). Built after the salmon landing and
+  T828, as ONE box component the trout table (ticket O) reuses.
+- 2026-11-17 about 00:10 to 00:14, in the APP chat (verbatim), T814: "it had reduce motion on." (the second iPhone, so
+  the still fish was by design); "we dont want a full still item for reduce motion on.. i am making a new loader icon
+  that will replace the loading circle on the splash page or curtain (it will still be used for all other loading."
+  He sent the loader as a Python generator (`fish_loader.py`: a linocut coho, 80-frame sprite sheet, 4 s loop). Then:
+  "we will ignore reduced motion for this". So: no still icon; the coho loader on the splash / first-download /
+  curtain screens, the circling fish everywhere else; both always move, Reduce Motion or not. The app chat builds it
+  (T814) and brings him pictures in both themes.
+- 2026-11-17 about 00:35, in the APP chat, before sleeping ("questions should wait unless there are urgent ones now
+  bertween 2 chats"), two picks: overnight landing of the app fixes that pass their benches (T817, T823, T824, the iOS
+  fixes, T819, T826, T822, one by one after salmon and T759, each with the main chat's clear), picked "Yes, land what
+  passes (Recommended)"; then a 0.7.12 upload to TestFlight and Play internal overnight, picked "Yes, upload overnight
+  (Recommended)" (the coho loader goes in only once he has seen and picked its look). Anything that fails waits for him.
+- 2026-11-17 about 00:50, in the APP chat (verbatim): "also for gauges should look into why capilano river at canyon
+  gauge doesnt have level but i can find level for it online like here
+  https://metrovancouver.org/services/water/seymour-and-capilano-river-levels with 2023 - 2026 Flow & Level Continuous
+  Recorder here https://wateroffice.ec.gc.ca/report/real_time_e.html?stn=08GA031" and "other gauges might have same
+  issue as that". Filed T830: EC reports Capilano's level live, but HYDAT has only 2 years of its level (3 needed for a
+  band), so no Level is offered, and with the map on Level the row wrongly says "flow only". 16 stations are like it
+  (Nazko 985 sections, Beatton 327, Witches Brook 131, Capilano 72 …). **Yours (morning batch):** with no band, show
+  the raw level in metres unranked (recommended), or keep it hidden? The wrong "flow only" wording gets fixed either way.
+- 2026-11-17 overnight, the app chat (T814): **yours (morning batch):** your coho loader is built (branch
+  app-fix/t814-loader, not merged) on the splash / first-download / applying-data screens, your colours exactly in light
+  mode. In dark mode your dark ink nearly disappears. Pick **A** (paper-coloured ink #f2e8d5 on the dark screen, red
+  kept) or **B** (your colours on a paper tile behind the fish). Pictures sent in the app chat. It joins a build after
+  the pick; the overnight 0.7.12 goes without it.
+- 2026-11-17 overnight, the main chat (T810 trout table): **yours (morning batch):** Kaslo River and Keen Creek (Region 4) print
+  "Bull trout daily quota = 2 (any size)", the same words as the Lardeau and the Duncan, but only the Lardeau and Duncan
+  rows say the Dolly Varden don't count toward Region 4's "2 from streams". So today the rules engine lets you keep
+  2 fish in total on Kaslo and Keen, and the new trout table now says the same ("Up to 2"). The card that ships today
+  says "Not part of the 2 from streams" there, which disagrees with the engine. Pick: **A** read Kaslo and Keen like
+  the Lardeau (Dolly Varden on top of the 2; a small corpus edit plus a rebuild, and the table follows), or **B** keep
+  them as written (2 in total; the old card's line is then the wrong one, and it goes when the trout table replaces it).
+- 2026-11-17 overnight, the main chat (pre-staging map rebuild; nothing from it has shipped): **yours (morning batch),
+  what changes on the map:**
+  1. **Babine Lake east of the Gullwing Creek line** is now its own part, closed all year to all fishing (book p.50
+     "No Fishing east of a line from Gullwing Creek"), including the Aug 1-27 sockeye opening. The main body is unchanged
+     apart from the Pinkut radius note. OK?
+  2. **Hazelwood Creek's 4 ponds** (named by your T796 save) now count as widenings of the creek, not lakes. They lose
+     the lake rules and take the creek's: they close Jan 1 to Jun 15 under the Skeena winter closure. OK, or keep them as
+     lakes? (A worker is checking how the FWA and the book treat them.)
+  3. Fixed overnight (06:13): Sheldens Creek is one water in search; the Gitnadoix "upstream of the powerline" place
+     binds the whole river again (1,000 stretches) with your powerline label kept (T833: a rules-engine fault at a
+     line's end, fixed in code; the whole-province check moved nothing else).
+  4. **Sheldens Creek** is now one water. Its small unnamed 3.47 ha pond on the creek now counts as part of the creek
+     (same rule as the Hazelwood ponds), so kokanee there goes from "keep 10 a day" to release.
+  5. **Re-tick in the review app** (your saved places whose area moved with this rebuild, so their tick is stale):
+     Cowichan x3 (66-mile trestle, white triangle, whole), Sheldens (upstream of the white triangular sign), Babine
+     Lake x2 (including tributaries; excluding tributaries). Your marks file is not edited.
+  Full list of changed answers vs the salmon release (168 groups): scratchpad/rebuild3b/answers-diff/
+  vs-salmon-r-1603e71cc92c/owner.md, sent to you as a file. Nothing ships or merges until you say OK.
+- 2026-11-17 08:37, in the main chat (verbatim): "Yes still show gauge data." (T830: show the raw live level, unranked,
+  where there is no band.) And on the re-tick list: "Why would we have to do this (Re-tick in the review app: 6 of your
+  saved places whose area moved with this rebuild: Cowichan ×3, Sheldens ×1, Babine ×2.) they should all be good?"
+  So: no re-tick from him; the marks are carried by the main chat (fix, not a review item).
+- 2026-11-17 ~08:45, in the APP chat, T814 coho loader dark mode: picked "A: paper-coloured ink" (ink #f2e8d5 on the
+  dark screen, red kept; light mode is his colours as drawn). The app chat finishes it and it joins the next build.
+- 2026-11-17 08:50, main chat dialog (verbatim):
+  - Babine east of the Gullwing Creek line closed all year: "Closed all year but only for salmon?" (follow-up asked)
+  - Hazelwood Creek's 4 ponds: "Part of the creek (Recommended)". Kept as built (same rule for Sheldens' pond).
+  - Kaslo / Keen Dolly Varden: "Dollys and bulls always have same quota per the book.  Why would they not count towards
+    the regions 2? That seems wrong". Read as B for Kaslo and Keen (they count toward the 2 from streams); follow-up
+    asked on whether his 2026-10-10 ruling T3a (Lardeau and Duncan rows lift bull trout out of the 2) still stands.
+- 2026-11-17 ~08:58, main chat follow-up (verbatim):
+  - Babine east part: "Closed all year then. Also just double checking this was done the same way as other split lakes right?"
+  - Lardeau / Duncan (T3a): "It would just make the same limit tho. That is fine I guess but the kasko and keen should be
+    the same. Also lardeau and duncan should also do that for rainbow right? I'm confused why it is like this seems like
+    it would auto be handled". So Kaslo and Keen read LIKE the Lardeau (A), reversing the 08:50 reading; he wants it
+    automatic, not a per-water edit.

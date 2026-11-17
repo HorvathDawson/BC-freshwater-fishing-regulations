@@ -120,11 +120,15 @@ class _Mini:
         finally:
             st.close()
         self.rules = T.Rules({i: T.rule_of(sub["rules"][rid]) for i, rid in enumerate(self.R.rule_ids)})
-        rows, disp = self.R.sections["rows"], self.R.sections["display"]
+        rows, disp, lic = self.R.sections["rows"], self.R.sections["display"], self.R.sections["licence"]
         self.keys = []
+        #: per key, its post-pass licence frames (the fish sheets' stamps, ticket H)
+        self.lics = {}
         for k, starts, moms in TT._keys(self.R):
             fs = [self.R.codecs["rows"].decode_frame(rows, ref, self.R.rule_ids, self.R.fish) for ref in rows["at"][k]]
             ds = [disp["frames"][i] for i in disp["at"][k]]
+            self.lics[k] = [self.R.codecs["licence"].decode_frame(lic, ref, self.R.rule_ids, self.R.fish)
+                            for ref in lic["at"][k]]
             self.keys.append((k, starts, moms, fs, ds))
 
 
@@ -136,7 +140,7 @@ def mini():
 def test_every_key_of_the_mini_release_holds_the_properties(mini):
     n = Counter()
     for k, starts, moms, fs, ds in mini.keys:
-        got = T.compose_key(fs, ds, starts, moms, mini.rules)
+        got = T.compose_key(fs, ds, starts, moms, mini.rules, licences=mini.lics[k])
         assert check_key(fs, ds, got) == [], k
         n["tables"] += sum(1 for x in got if x is not None)
         n["null"] += sum(1 for x in got if x is None)
@@ -146,7 +150,7 @@ def test_every_key_of_the_mini_release_holds_the_properties(mini):
 def _keep_key(mini):
     """A mini-release key whose first segment holds a keep box (the planting ground)."""
     for k, starts, moms, fs, ds in mini.keys:
-        got = T.compose_key(fs, ds, starts, moms, mini.rules)
+        got = T.compose_key(fs, ds, starts, moms, mini.rules, licences=mini.lics[k])
         for j, x in enumerate(got):
             if x is not None and x["table"]["boxes"][0]["kind"] == "keep":
                 return k, starts, moms, fs, ds, j, got
@@ -180,7 +184,7 @@ def test_a_mixed_trout_and_kokanee_closed_row_is_split(mini):
     assert 0 in covers and 1 not in covers
     assert all(split["rows"][i]["parent"] == fs[j]["rows"][i - 2]["parent"] + 2
                for i in range(2, len(split["rows"])) if split["rows"][i].get("parent") is not None)
-    fr = T.compose_key([f], [ds[j]], [1], None, mini.rules)[0]
+    fr = T.compose_key([f], [ds[j]], [1], None, mini.rules, licences=[mini.lics[k][j]])[0]
     assert check_key([f], [ds[j]], [fr]) == []
     closed_box = [b for b in fr["table"]["boxes"] if b["kind"] == "closed"]
     assert [r["key"] for r in closed_box[0]["rows"]] == [other]
@@ -197,7 +201,7 @@ def test_the_weekday_words_reach_the_table_from_the_post_pass_rows(mini):
     home = next(i for i, r in enumerate(f["rows"]) if S in (r.get("all_members") or ()))
     says = "Keep up to 2 on Saturdays and Sundays; release Monday to Friday"
     f["rows"][home]["week"] = {"species": [S], "says": says, "status": None, "parts": []}
-    fr = T.compose_key([f], [ds[j]], [1], None, mini.rules)[0]
+    fr = T.compose_key([f], [ds[j]], [1], None, mini.rules, licences=[mini.lics[k][j]])[0]
     row = next(r for b in fr["table"]["boxes"] for r in b["rows"] if r["fish"] == S)
     assert says in row["lines"]
 
@@ -215,8 +219,9 @@ def test_an_hours_window_that_changes_a_trout_answer_stops_the_build(mini):
     hours = {"start": {"solar": "sunset", "offset_min": 60}, "end": {"solar": "sunrise", "offset_min": -60}}
     moments = [{"weekdays": every, "hours": {**hours, "in": False}}, {"weekdays": every, "hours": {**hours, "in": True}}]
     with pytest.raises(T.TableError, match="hours window"):
-        T.compose_key([f, g], [ds[j], ds[j]], [1, 1], moments, mini.rules)
-    assert T.compose_key([f, copy.deepcopy(f)], [ds[j], ds[j]], [1, 1], moments, mini.rules)[0] is not None
+        T.compose_key([f, g], [ds[j], ds[j]], [1, 1], moments, mini.rules, licences=[mini.lics[k][j]] * 2)
+    assert T.compose_key([f, copy.deepcopy(f)], [ds[j], ds[j]], [1, 1], moments, mini.rules,
+                         licences=[mini.lics[k][j]] * 2)[0] is not None
 
 
 def _hand(fr, how):
@@ -283,7 +288,7 @@ def test_the_model_refuses_each_hand_case(mini, how):
 
 def test_every_table_rule_index_resolves_over_the_mini_release(mini):
     for k, starts, moms, fs, ds in mini.keys:
-        for fr in T.compose_key(fs, ds, starts, moms, mini.rules):
+        for fr in T.compose_key(fs, ds, starts, moms, mini.rules, licences=mini.lics[k]):
             if fr is None:
                 continue
             for ref in fr["table"]["src"]:
@@ -348,9 +353,13 @@ class _Live:
         m = self.model
         return m.sections["rows"][k], m.sections["display"][k], m.segments[k], m.moments[k]
 
+    def licences(self, name):
+        item, part, _md = CASES[name]
+        return self.model.sections["licence"][self.model.parts[item][part]]
+
     def frame(self, name):
         rows, ds, starts, moms = self.key(name)
-        got = T.compose_key(rows, ds, starts, moms, self.rules)
+        got = T.compose_key(rows, ds, starts, moms, self.rules, licences=self.licences(name))
         j = E.segment_index(starts, CAL.day_of(CASES[name][2]), moms, "Wednesday", inside=False)
         return got[j]
 
@@ -440,12 +449,12 @@ EXPECTED.update({
         'top: Up to 1 {day} // only 1 from both lakes together\n'
         'fold: Up to 1 (keep)\n'
         '[Keep 5 in all]\n'
-        '  Brook trout: 50 cm (20 in) or longer  <only 1>\n'
-        '  Brown trout: 50 cm (20 in) or longer  <only 1>\n'
-        '  Cutthroat trout: 50 cm (20 in) or longer  <only 1>\n'
-        '  Dolly Varden/bull trout: 50 cm (20 in) or longer  <only 1>\n'
-        '  Lake trout: 50 cm (20 in) or longer  <only 1>\n'
-        '  Rainbow trout: 50 cm (20 in) or longer  <only 1>\n'
+        '  Brook trout: 50 cm (20 in) or longer  <only 1 of these 6>\n'
+        '  Brown trout: 50 cm (20 in) or longer  <only 1 of these 6>\n'
+        '  Cutthroat trout: 50 cm (20 in) or longer  <only 1 of these 6>\n'
+        '  Dolly Varden/bull trout: 50 cm (20 in) or longer  <only 1 of these 6>\n'
+        '  Lake trout: 50 cm (20 in) or longer  <only 1 of these 6>\n'
+        '  Rainbow trout: 50 cm (20 in) or longer  <only 1 of these 6>\n'
         'together: only 1 from both lakes together'
     ),
     'elk-apr15': (
@@ -518,11 +527,11 @@ EXPECTED.update({
     'fraser-r3-sep15': (
         'top: Up to 2 {day}\n'
         'fold: Up to 2 (keep)\n'
-        '[Keep 5 in all]  (until Sep 30, then closed to trout and char)\n'
-        '  Brook trout: any size | up to 1 over 50 cm (20 in)  <only 2 of these 5>\n'
-        '  Brown trout: any size | up to 1 over 50 cm (20 in)  <only 2 of these 5>\n'
-        '  Cutthroat trout: any size | up to 1 over 50 cm (20 in)  <only 2 of these 5>\n'
-        '  Lake trout: any size | up to 1 over 50 cm (20 in)  <only 2 of these 5>\n'
+        '[Keep 5 in all · only 1 over 50 cm (20 in)]  (until Sep 30, then closed to trout and char)\n'
+        '  Brook trout:   <only 2 of these 5>\n'
+        '  Brown trout:   <only 2 of these 5>\n'
+        '  Cutthroat trout:   <only 2 of these 5>\n'
+        '  Lake trout:   <only 2 of these 5>\n'
         '  Rainbow trout: 50 cm (20 in) or less  <only 2 of these 5>\n'
         '[Release]\n'
         '  Dolly Varden/bull trout:   (until Sep 30, then closed to trout and char)\n'
@@ -544,13 +553,13 @@ EXPECTED.update({
     'kamloops-lake-jul15': (
         'top: Up to 5 {day}\n'
         'fold: Up to 5 (keep)\n'
-        '[Keep 5 in all]\n'
-        '  Dolly Varden/bull trout: 60 cm (24 in) or longer | none over 50 cm (20 in) if you’ve already kept a cutthroat, brown, lake or brook trout over 50 cm (20 in)  <only 1 of these 2>\n'
-        '  Lake trout: 60 cm (24 in) or longer | none over 50 cm (20 in) if you’ve already kept a cutthroat trout, brown trout, Dolly Varden/bull trout or brook trout over 50 cm (20 in)  <only 1 of these 2>  (until Oct 14, then release)\n'
+        '[Keep 5 in all · only 1 over 50 cm (20 in)]\n'
+        '  Dolly Varden/bull trout: 60 cm (24 in) or longer | uses the 1 over 50 cm (20 in)  <only 1 of these 2>\n'
+        '  Lake trout: 60 cm (24 in) or longer | uses the 1 over 50 cm (20 in)  <only 1 of these 2>  (until Oct 14, then release)\n'
         '  Rainbow trout: 50 cm (20 in) or less  <only 2>\n'
-        '  Brook trout: any size | up to 1 over 50 cm (20 in), if you haven’t already kept a Dolly Varden/bull trout or lake trout over 50 cm (20 in)  <up to the 5>\n'
-        '  Brown trout: any size | up to 1 over 50 cm (20 in), if you haven’t already kept a Dolly Varden/bull trout or lake trout over 50 cm (20 in)  <up to the 5>\n'
-        '  Cutthroat trout: any size | up to 1 over 50 cm (20 in), if you haven’t already kept a Dolly Varden/bull trout or lake trout over 50 cm (20 in)  <up to the 5>'
+        '  Brook trout:   <up to the 5>\n'
+        '  Brown trout:   <up to the 5>\n'
+        '  Cutthroat trout:   <up to the 5>'
     ),
     'khartoum-jul15': (
         'top: Up to 6 rainbow trout or steelhead and 4 other trout and char {day} // only 2 wild trout and char in all, each under 40 cm (16 in)\n'
@@ -562,8 +571,8 @@ EXPECTED.update({
         '  Brown trout wild: under 40 cm (16 in)  <up to the 4>\n'
         '  Cutthroat trout hatchery:   <up to the 4>\n'
         '  Cutthroat trout wild: under 40 cm (16 in)  <up to the 4>\n'
-        '  Dolly Varden/bull trout [HATCHERY ONLY]: 60 cm (24 in) or longer | uses the 1 over 50 cm (20 in)  <only 1>\n'
-        '  Lake trout [HATCHERY ONLY]: 60 cm (24 in) or longer | uses the 1 over 50 cm (20 in)  <only 1>\n'
+        '  Dolly Varden/bull trout [HATCHERY ONLY]: 60 cm (24 in) or longer | uses the 1 over 50 cm (20 in)  <only 1 of these 2>\n'
+        '  Lake trout [HATCHERY ONLY]: 60 cm (24 in) or longer | uses the 1 over 50 cm (20 in)  <only 1 of these 2>\n'
         '[Keep 6 in all · Lake’s rule]\n'
         '  Rainbow trout hatchery: any size  <up to the 6>\n'
         '  Rainbow trout wild: under 40 cm (16 in)  <up to the 6>\n'
@@ -592,8 +601,8 @@ EXPECTED.update({
         '  Brown trout wild: under 40 cm (16 in)  <up to the 4>\n'
         '  Cutthroat trout hatchery:   <up to the 4>\n'
         '  Cutthroat trout wild: under 40 cm (16 in)  <up to the 4>\n'
-        '  Dolly Varden/bull trout [HATCHERY ONLY]: 60 cm (24 in) or longer | uses the 1 over 50 cm (20 in)  <only 1>\n'
-        '  Lake trout [HATCHERY ONLY]: 60 cm (24 in) or longer | uses the 1 over 50 cm (20 in)  <only 1>\n'
+        '  Dolly Varden/bull trout [HATCHERY ONLY]: 60 cm (24 in) or longer | uses the 1 over 50 cm (20 in)  <only 1 of these 2>\n'
+        '  Lake trout [HATCHERY ONLY]: 60 cm (24 in) or longer | uses the 1 over 50 cm (20 in)  <only 1 of these 2>\n'
         '[Keep 6 in all · Lake’s rule]\n'
         '  Rainbow trout hatchery: any size  <up to the 6>\n'
         '  Rainbow trout wild: under 40 cm (16 in)  <up to the 6>\n'
@@ -616,10 +625,10 @@ EXPECTED.update({
         'fold: Up to 2 (keep)\n'
         'card: Until Jan 31, then closed to all fishing\n'
         '[Keep 4 in all · HATCHERY ONLY]\n'
-        '  Brook trout: 20–30 cm (8–12 in)  <only 2>\n'
-        '  Brown trout: 20–30 cm (8–12 in)  <only 2>\n'
-        '  Cutthroat trout: 20–30 cm (8–12 in)  <only 2>\n'
-        '  Rainbow trout: 20–30 cm (8–12 in)  <only 2>\n'
+        '  Brook trout: 20–30 cm (8–12 in)  <only 2 of these 4>\n'
+        '  Brown trout: 20–30 cm (8–12 in)  <only 2 of these 4>\n'
+        '  Cutthroat trout: 20–30 cm (8–12 in)  <only 2 of these 4>\n'
+        '  Rainbow trout: 20–30 cm (8–12 in)  <only 2 of these 4>\n'
         '[Release]\n'
         '  Steelhead: ~Steelhead rules apply here; steelhead may not be present in this water.\n'
         '  Dolly Varden/bull trout: \n'
@@ -684,8 +693,8 @@ EXPECTED.update({
         '  Cutthroat trout wild: 40 cm (16 in) or less  <up to the 4>\n'
         '  Rainbow trout hatchery:   <up to the 4>\n'
         '  Rainbow trout wild: 40 cm (16 in) or less  <up to the 4>\n'
-        '  Dolly Varden/bull trout [HATCHERY ONLY]: 60 cm (24 in) or longer | uses the 1 over 50 cm (20 in)  <only 1>\n'
-        '  Lake trout [HATCHERY ONLY]: 60 cm (24 in) or longer | uses the 1 over 50 cm (20 in)  <only 1>'
+        '  Dolly Varden/bull trout [HATCHERY ONLY]: 60 cm (24 in) or longer | uses the 1 over 50 cm (20 in)  <only 1 of these 2>\n'
+        '  Lake trout [HATCHERY ONLY]: 60 cm (24 in) or longer | uses the 1 over 50 cm (20 in)  <only 1 of these 2>'
     ),
 })
 
@@ -701,7 +710,7 @@ def test_the_named_waters_whole(live, name):
 @pytest.mark.parametrize("name", sorted(CASES))
 def test_every_segment_of_the_named_waters_holds_the_properties(live, name):
     rows, ds, starts, moms = live.key(name)
-    assert check_key(rows, ds, T.compose_key(rows, ds, starts, moms, live.rules)) == []
+    assert check_key(rows, ds, T.compose_key(rows, ds, starts, moms, live.rules, licences=live.licences(name))) == []
 
 
 @pytest.mark.needs_bundle
@@ -757,4 +766,5 @@ def test_each_rule_broken_fails_its_case(live, monkeypatch, flag, name):
 def test_the_mixed_row_split_broken_fails_its_case(live, monkeypatch):
     monkeypatch.setattr(T, "A_MIXED_ROWS_SPLIT", False)
     rows, ds, starts, moms = live.key("burnt-jan15")
-    assert check_key(rows, ds, T.compose_key(rows, ds, starts, moms, live.rules)) != []
+    assert check_key(rows, ds, T.compose_key(rows, ds, starts, moms, live.rules,
+                                             licences=live.licences("burnt-jan15"))) != []

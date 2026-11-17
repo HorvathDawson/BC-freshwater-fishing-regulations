@@ -67,7 +67,7 @@ async function keyed(store: InputsStore, key: AkeyRow, day: Day, weekday: Weekda
  *  refused / damaged store, a `TapError` for a date that does not exist. */
 export async function loadRegsInputs(store: InputsStore, target: RegsTarget, day: Day, weekday: Weekday,
                                      calendarYear: number): Promise<RegsInputs> {
-  const [st, stored, lics] = await Promise.all([store.statics(), store.rules(), store.lics()]);
+  const [st, stored, lics, allNotes] = await Promise.all([store.statics(), store.rules(), store.lics(), store.sectionNotes()]);
   const statics = staticsOf(st), sp = st.exportSpecies;
   const base = { target, day, weekday, calendarYear, lics, statics };
   const outside = (rules: RuleIndex) =>
@@ -75,9 +75,10 @@ export async function loadRegsInputs(store: InputsStore, target: RegsTarget, day
 
   if (target.kind === "section") {
     const a = await store.sectionAkey(target.handle);
+    const notes = notesOfSections(allNotes, [target.handle]);              // (T796) a section handle is its sid
     // (T672 1b) a key-less section is outside B.C., or tidal water: regs-sid `section_tidal` says which (a release cut
     // before the table cannot say, and reads as outside, as it always did)
-    if (a === 0) return { ...base, item: null, partIx: 0, place: null, ...outside(ruleIndex(stored, new Map(), sp)),
+    if (a === 0) return { ...base, notes, item: null, partIx: 0, place: null, ...outside(ruleIndex(stored, new Map(), sp)),
                           tidalPart: (await store.sectionTidal(target.handle)) === true };
     const pl = await store.sectionPlace(target.handle);
     if (pl === null) throw new RegsInputsError(`regs: section ${target.handle} has a key (${a}) but no place`);
@@ -85,7 +86,7 @@ export async function loadRegsInputs(store: InputsStore, target: RegsTarget, day
     const name = (placeRow.names as Readonly<Record<string, string>>)[key.kind];
     if (name === undefined) throw new RegsInputsError(`regs: place ${pl} has no name for a ${key.kind}`);
     const k = await keyed(store, key, day, weekday, calendarYear);
-    return { ...base, item: null, partIx: 0, place: { label: placeRow.label, name }, key, s: k.s, cell: k.cell,
+    return { ...base, notes, item: null, partIx: 0, place: { label: placeRow.label, name }, key, s: k.s, cell: k.cell,
              frames: k.frames, year: k.year, ruleset: k.ruleset, rules: ruleIndex(stored, viaOf(k.ruleset), sp), mergedParts: null };
   }
 
@@ -99,15 +100,22 @@ export async function loadRegsInputs(store: InputsStore, target: RegsTarget, day
   const item = { id: it.id, ord: it.ord, name: it.name, kind: it.kind, sections: it.sections,
                  parts: parts.map((p) => p.facts), partSections: parts.map((p) => p.sections), picker, steelhead: it.steelhead };
   const part = parts[partIx]!;
+  // (T796) a part's notes are its sections' (water `part_section`): read only when the release has any note
+  const notes = allNotes.size ? notesOfSections(allNotes, [...(await store.partLengths(ord, partIx)).keys()]) : [];
   if (part.akey === null)
     // (T672) a key-less part is outside B.C., or the release's tidal piece: the store says which (`part.tidal`)
-    return { ...base, item, partIx, place: null, ...outside(ruleIndex(stored, new Map(), sp)), tidalPart: part.tidal };
+    return { ...base, notes, item, partIx, place: null, ...outside(ruleIndex(stored, new Map(), sp)), tidalPart: part.tidal };
 
   const key = await store.akey(part.akey);
   const k = await keyed(store, key, day, weekday, calendarYear);
-  return { ...base, item, partIx, place: null, key, s: k.s, cell: k.cell, frames: k.frames, year: k.year, ruleset: k.ruleset,
+  return { ...base, notes, item, partIx, place: null, key, s: k.s, cell: k.cell, frames: k.frames, year: k.year, ruleset: k.ruleset,
            rules: ruleIndex(stored, viaOf(k.ruleset), sp),
            mergedParts: await mergedParts(store, stored, sp, parts, picker, partIx, day, weekday, calendarYear) };
+}
+
+/** (T796) The notes of these sections (core `section_note`), each sentence once, in section order. */
+export function notesOfSections(all: ReadonlyMap<number, string>, sids: readonly number[]): readonly string[] {
+  return [...new Set([...sids].sort((x, y) => x - y).flatMap((s) => { const t = all.get(s); return t === undefined ? [] : [t]; }))];
 }
 
 /** page mergedHtml's reads: only when the part's picker group is closed and holds ≥ 2 parts — each part's index, sections

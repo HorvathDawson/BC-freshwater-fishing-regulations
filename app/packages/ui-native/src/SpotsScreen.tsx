@@ -27,7 +27,7 @@ import { hitProps } from "./regs/hit";
 import { CoachSpot } from "./CoachMarks";
 import { OpenSettings } from "./OpenSettings";
 
-export function SpotsScreen({ palette, vm, onOpen, onShow, onAdd, onRefresh, refreshing, error, photoStore }: {
+export function SpotsScreen({ palette, vm, onOpen, onShow, onAdd, onRefresh, refreshing, error, photoStore, backupLine }: {
   palette: Palette; vm: SpotsMenuVM;
   onOpen: (id: string) => void;
   /** The Map tab, framed on the spot with its pin. */
@@ -39,6 +39,8 @@ export function SpotsScreen({ palette, vm, onOpen, onShow, onAdd, onRefresh, ref
   error?: string | null;
   /** S1: where a spot's first photo is drawn from. Absent -> the row says NO PHOTO. */
   photoStore?: Pick<PhotoStore, "uri">;
+  /** (T732) What the phone's backup holds (core `backupLine`): said under the list, so nothing is left out silently. */
+  backupLine?: string | null;
 }) {
   // (T302) the web keeps no spots: they live in the phone app, said in the list's place (spots saved here earlier stay, unshown)
   const [addOpen, setAddOpen] = useState(false);
@@ -54,8 +56,6 @@ export function SpotsScreen({ palette, vm, onOpen, onShow, onAdd, onRefresh, ref
         {/* (T819 item 11) ADD, ALWAYS IN SIGHT: a square in the header (it sank to the end of a long list); it opens the
             ways to add at the top of the list, and back closes them */}
         {vm.adds.length > 0 && vm.rows.length > 0 && (
-          // (T466) while the ways are folded, the walkthrough's "Add one" rings the header's Add (it opens them)
-          <CoachSpot k={addOpen ? "spots:add" : "spots:pick"}>
           <Pressable {...hitProps({ w: 44, h: 44 })} onPress={() => setAddOpen(!addOpen)} accessibilityRole="button"
                      accessibilityLabel={addOpen ? SPOTS_MENU.addClose : SPOTS_MENU.addLabel} aria-expanded={addOpen}
                      testID="spots-add"
@@ -66,7 +66,6 @@ export function SpotsScreen({ palette, vm, onOpen, onShow, onAdd, onRefresh, ref
             <Icon name={addOpen ? "close" : "spots"} colour={palette.accent} size={16} />
             <Text style={{ ...TYPE.bodyStrong, color: palette.accent }}>{SPOTS_MENU.add}</Text>
           </Pressable>
-          </CoachSpot>
         )}
       </View>
       <ScrollView>
@@ -112,6 +111,10 @@ export function SpotsScreen({ palette, vm, onOpen, onShow, onAdd, onRefresh, ref
           <SpotRow key={r.id} row={r} palette={palette} photoStore={photoStore}
                    onOpen={() => onOpen(r.id)} onShow={() => onShow(r.id)} />
         ))}
+        {backupLine && vm.rows.length > 0 ? (
+          <Text testID="spots-backup" style={{ ...TYPE.small, fontSize: 12, color: palette.sub, paddingHorizontal: 20,
+                                               paddingTop: 10, paddingBottom: 6 }}>{backupLine}</Text>
+        ) : null}
         {error ? (
           <ErrorState palette={palette} message={error} style={{ paddingHorizontal: 20, paddingTop: 12 }} />
         ) : null}
@@ -124,6 +127,8 @@ export function SpotsScreen({ palette, vm, onOpen, onShow, onAdd, onRefresh, ref
 function SpotRow({ row, palette, onOpen, onShow, photoStore }: {
   row: SpotsMenuRow; palette: Palette; onOpen: () => void; onShow: () => void;
   photoStore?: Pick<PhotoStore, "uri">;
+  /** (T732) What the phone's backup holds (core `backupLine`): said under the list, so nothing is left out silently. */
+  backupLine?: string | null;
 }) {
   const first = row.photo === null ? [] : [row.photo];
   const thumb = usePhotoUris(photoStore, first).get(row.photo ?? "") ?? null;

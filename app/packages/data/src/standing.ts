@@ -99,15 +99,26 @@ export function leadOver(speaker: Speaker | null,
 }
 
 /**
- * (T819 item 3 → T823, owner 2026-11-16: "Allow, with a warning") IS THIS WATER SMALL NEXT TO THE GAUGE THAT SPEAKS FOR
- * IT? A gauge far bigger than the water may still speak (the map colours by it, and so does a spot), and then a plain
- * warning goes with its answer. WHEN to warn is Python's decision, shipped in the release for the speaker's lead; the
- * app computes no ratio and no threshold.
- * TODO(T823): read the release's flag for this speaker and lead (not `section_gauge.small`: the flag must follow the
- * speaker's lead, the panel's); until it ships, never small. The sentence is the release's meta `small_water_text`.
+ * (T823, owner 2026-11-16: "Allow, with a warning") IS THIS WATER SMALL NEXT TO THE GAUGE THAT SPEAKS FOR IT? A gauge far
+ * bigger than the water may still speak (the map colours by it, the sheet and a spot read it), and then the release's
+ * plain warning goes with its reading. WHEN is Python's: `flow-small` flags, per section, each panel member that drains
+ * much more than the section (`Panel.small`, read by `panelsFor` and the map's classes alike); the app computes no ratio
+ * and no threshold. `lead` is the station actually shown — `leadOver`'s lead or the reader's pick. A lake speaker (its
+ * own station, a level) is never small; a station the speaker does not hold is never flagged.
  */
-export function smallNextToGauge(_speaker: Speaker | null, _lead: StationId | null): boolean {
-  return false;
+export function smallNextToGauge(speaker: Speaker | null, lead: StationId | null): boolean {
+  return smallWaterText(speaker, lead) !== null;
+}
+
+/**
+ * (T823) THE WARNING ITSELF for that speaker and lead: the release's sentence (the conditions meta's
+ * `SMALL_WATER_TEXT_KEY`, word for word) where `smallNextToGauge`, else null. Every surface that names a speaker's
+ * reading (the Conditions sheet's gauge card, a spot's frozen estimate) shows this, never a sentence of its own.
+ */
+export function smallWaterText(speaker: Speaker | null, lead: StationId | null): string | null {
+  if (speaker?.kind !== "panel" || lead === null) return null;
+  const small = speaker.panel.small;
+  return small && small.stations.includes(lead) ? small.text : null;
 }
 
 /**
@@ -188,7 +199,11 @@ export function basinStandings(basins: ReadonlyMap<string, readonly BasinMember[
 }
 
 /** One section of a release, as a source reads it: its panel's id, the members, and the section's target area. */
-export interface PanelledSection { sid: number; panel: number; areaKm2: number | null }
+export interface PanelledSection {
+  sid: number; panel: number; areaKm2: number | null;
+  /** (T823) its flagged members (`Panel.small`), one object per (panel, flags) so it can key the class */
+  small?: Panel["small"];
+}
 
 /**
  * THE CLASSES, from what a source holds: every panelled section (any order), the panels' members, the lake sections'
@@ -202,19 +217,23 @@ export function buildStandingClasses(release: string, sections: Iterable<Panelle
                                      lakes: ReadonlyMap<SectionId | number, StationId>,
                                      basins: ReadonlyMap<string, readonly BasinMember[]>): StandingClasses {
   const classes: StandingClass[] = [];
-  /** panel -> target area (none as NaN: a Map key compares NaN equal to itself) -> class */
-  const byPanel = new Map<number, Map<number, number>>();
+  /** panel -> target area (none as NaN: a Map key compares NaN equal to itself) -> (T823) its `small` (one shared object
+   *  per panel and flags, or undefined) -> class */
+  const byPanel = new Map<number, Map<number, Map<Panel["small"], number>>>();
   let sids: number[] = [], cls: number[] = [];
   let sorted = true;
   for (const s of sections) {
     const area = s.areaKm2 ?? NaN;
     let byArea = byPanel.get(s.panel);
     if (!byArea) byPanel.set(s.panel, (byArea = new Map()));
-    let k = byArea.get(area);
+    let bySmall = byArea.get(area);
+    if (!bySmall) byArea.set(area, (bySmall = new Map()));
+    let k = bySmall.get(s.small);
     if (k === undefined) {
       k = classes.length;
-      byArea.set(area, k);
-      classes.push(speakerFor({ areaKm2: s.areaKm2, members: members.get(s.panel) ?? [] }, undefined)!);
+      bySmall.set(s.small, k);
+      classes.push(speakerFor({ areaKm2: s.areaKm2, members: members.get(s.panel) ?? [],
+                               ...(s.small ? { small: s.small } : {}) }, undefined)!);
     }
     if (sids.length && s.sid <= sids[sids.length - 1]!) sorted = false;
     sids.push(s.sid);

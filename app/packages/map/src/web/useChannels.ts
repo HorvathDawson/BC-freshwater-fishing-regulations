@@ -9,7 +9,7 @@ import { readingDayOf, salmonDayIndex } from "@app/core";
 import { useEffect, useRef } from "react";
 import type * as maplibregl from "maplibre-gl";
 import type { WebRenderer } from "../adapters/web";
-import { LABEL_SOURCE_LAYERS, methodInput, runsInput, runsKeyOf, salmonInput, standingInput, statusInput, stockedInput, surveyInput, withoutEngineKeys,
+import { LABEL_SOURCE_LAYERS, issueInput, methodInput, runsInput, runsKeyOf, salmonInput, standingInput, statusInput, stockedInput, surveyInput, withoutEngineKeys,
          type Channel, type ChannelInput, type TileRenderer, type TileSections } from "../colouring";
 import type { MapProps } from "../map-props";
 import { sourceTiles, tileIds } from "./tileIds";
@@ -18,10 +18,10 @@ import { devCost, forcePublic, whenAtlas } from "./ready";
 import type { WebMapRefs } from "./refs";
 import type { Lit } from "./useHighlight";
 
-type Channels = Pick<MapProps, "at" | "theme" | "data" | "status" | "standing" | "lakes" | "salmon" | "method" | "runs">;
+type Channels = Pick<MapProps, "at" | "theme" | "data" | "status" | "standing" | "lakes" | "salmon" | "method" | "issue" | "runs">;
 
 export function useChannels(refs: WebMapRefs, { wasLit, wasWater, wasCue, wasNear, wasInSeason }: Lit,
-                            { at, theme, data, status, standing, lakes, salmon, method, runs }: Channels) {
+                            { at, theme, data, status, standing, lakes, salmon, method, issue, runs }: Channels) {
   const { map, renderer, adapter, copy, colouring } = refs;
   const latestData = useRef(data);
   latestData.current = data;
@@ -52,8 +52,9 @@ export function useChannels(refs: WebMapRefs, { wasLit, wasWater, wasCue, wasNea
     });
   };
   const statusDay = status ? readingDayOf(status.day) : 0;
-  useEffect(() => toChannel("status", status ? statusInput(status) : null, `status:${statusDay}`),
-            [status?.index, statusDay, status?.only, at.atlas]);
+  // (T796 A6) with the salmon handed over, the day's DFO finfish closures paint closed on Standard (`statusInput`)
+  useEffect(() => toChannel("status", status ? statusInput(status, salmon) : null, `status:${statusDay}`),
+            [status?.index, statusDay, status?.only, salmon?.facts, at.atlas]);
   useEffect(() => toChannel("standing", standing ? standingInput(standing) : null, "standing"),
             [standing?.labels, standing?.values, at.atlas]);
   // the lake modes (Depth, Stocked): the release's lake facts — a new release relabels both, a new day the stocked bands
@@ -68,6 +69,8 @@ export function useChannels(refs: WebMapRefs, { wasLit, wasWater, wasCue, wasNea
   const methodDay = method ? readingDayOf(method.day) : -1;
   useEffect(() => toChannel("method", method ? methodInput(method) : null, `method:${methodDay}`),
             [method?.facts, methodDay, at.atlas]);
+  // (T759) the issue stripe: the issue waters' sections labelled once (the style draws them in the Salmon view only)
+  useEffect(() => toChannel("issue", issue ? issueInput(issue) : null, "issue"), [issue?.sections, at.atlas]);
   // (T199) the run timing: the state for the species and pentad IS the label — a change relabels the loaded tiles
   const runsKey = runsKeyOf(runs);
   useEffect(() => toChannel("runs", runs ? runsInput(runs) : null, `runs:${runsKey}`), [runs?.facts, runsKey, at.atlas]);

@@ -142,15 +142,14 @@ const STATES_T258: [string, (width: number) => Promise<void>, RegExp][] = [
       failed={[{ k: "gauges", checkedAt: Date.now() - 60_000, updatedAt: null, error: "HTTP 503", failedAt: Date.now() - 60_000, offline: false }]} />);
     await settle();
   }, /Retry/],
-  ["(T293) the guided walkthrough's card, its control ringed", async () => {
+  ["(T293) the guided walkthrough's card, its control highlighted", async () => {
     const { GuideCard } = await import("./Walkthrough");
     const reg = await coachRegistry();
     reg.set("search", { measureInWindow: (cb: (...n: number[]) => void) => cb(14, 10, 362, 46) } as never);
     const noop = () => {};
     render(<GuideCard guide={{ open: true, pending: true, at: 1, paused: false, reopen: noop, finish: noop, next: noop, back: noop, resume: noop, pass: noop }}
-      facts={{ water: { item: "w", name: "Vedder River" }, searching: false, query: "", selected: null, open: null, adding: false, viewing: null, spots: 0 }}
-      acts={{ search: noop, select: noop, openWater: noop, view: noop, addSpot: noop, cancelAdd: noop, toSpots: noop, openSpot: noop,
-              openLayers: noop, otherGround: noop, obstaclesOn: noop, restoreLayers: noop }}
+      facts={{ water: { item: "w", name: "Vedder River" }, searching: false, query: "", selected: null, open: null }}
+      acts={{ search: noop, select: noop, openWater: noop, view: noop }}
       palette={LIGHT} registry={reg} top={60} bottom={64} />);
     await screen.findByTestId("guide-ring", {}, { timeout: 3000 });
   }, /Show me/],

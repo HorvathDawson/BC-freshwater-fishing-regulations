@@ -55,6 +55,7 @@ from typing import Callable, Dict, Iterable, List, Mapping, Optional, Sequence, 
 
 from pipeline.deliver.answers import common
 from pipeline.deliver.answers.common import AnswersError
+from pipeline.deliver.answers.trout import sheets as S
 from pipeline.deliver.answers.trout import timeline as TL
 from pipeline.deliver.answers.trout import words as W
 
@@ -82,6 +83,33 @@ A_YEAR_BAR_ONE_STATE = True
 #: neighbours (Adams River's Jul 31, 60 cm for one day) keeps the neighbours' stricter row; its sheet says the day.
 #: False = the one day's looser words on the row
 A_ONE_DAY_STRICTER_ON_ROW = True
+# Found by the proof (ticket J, `trout/check.py`) over the whole side build; each pin's False is the old wording:
+#: a kind's number holds its fish TOGETHER ("4 brook, brown, cutthroat or rainbow trout combined"): drawn as a shared
+#: band "only 4 of these 4", never as each fish's own "only 4" (the summed-tier rule was dropping it)
+A_KIND_NUMBER_IS_SHARED = True
+#: a kind's size cap holds its fish together ("up to 1 over 50 cm" on a kind of four fish): the box's strip when it holds
+#: every fish of the box that can pass it, else each row's "only 1 over 50 cm (20 in), counting any … you keep"
+A_KIND_SIZE_CAP_IS_SHARED = True
+#: a rainbow over the steelhead size is a steelhead where the definition holds (its decided answer carries the `steel`
+#: line): a rainbow row never passes a size cap above it, and "uses the 1" is said only of a fish kept only over the cap
+A_RAINBOW_STOPS_AT_THE_STEELHEAD_SIZE = True
+#: a wild quota is read off every keep row of the frame holding the box's fish (a fish's own row: Kitimat's rainbow),
+#: and stands in the strip only when it holds every row of the box that may keep wild fish
+A_WILD_QUOTA_FROM_EVERY_ROW = True
+#: boxes counted apart: the top line says each box's most here (its card's headline: a share inside the total), never
+#: the region's total the box head says ("Up to 8 brook trout and 2 other trout and char", not "… 5 other …")
+A_APART_SAYS_THE_BOX_MOST = True
+#: a stream share holds every fish its rule holds that no water's rule lifts out of it (the group's `subcaps[].of`), a
+#: fish under its water's own number beside the share included: Kaslo River and Keen Creek's "Bull trout daily quota = 2"
+#: lifts nothing (Lardeau's and the Duncan's same words do: their rows print the lift), so Dolly Varden count toward the
+#: 2 from streams — one band "only 2 of these 6" and the top line "Up to 2 {day}". False = the fish gets its own band
+#: beside the share and the top line adds ", plus 2 Dolly Varden/bull trout" (the engine keeps 2 in all)
+A_SHARE_HOLDS_ITS_UNLIFTED_FISH = True
+#: a one-origin quota that is a count the box's other fish share (its rule is one of the group's `subcaps`, same number:
+#: Region 6's "1 trout from streams Jul 1-Oct 31", which Kitimat's hatchery rainbow quota lifts for hatchery fish only)
+#: joins that count's band: "only 1 of these 3" over brown, cutthroat and the wild rainbow row, the twin rows kept side
+#: by side. False = the wild row's own "only 1 wild" beside "only 1 of these 2" (the engine holds the three to 1)
+A_WILD_QUOTA_JOINS_ITS_COUNT = True
 
 
 class TableError(AnswersError):
@@ -257,7 +285,7 @@ def law_size(dec: dict, rules: Rules) -> str:
 class _Row:
     """A table row while the body is built."""
     __slots__ = ("key", "fish", "origin", "label", "sub", "lines", "quiet", "src", "kind_n", "kind_ix", "chain",
-                 "detail", "duties", "also", "band", "state", "poss", "sizes")
+                 "detail", "duties", "also", "band", "state", "poss", "sizes", "size_text", "size")
 
     def __init__(self, key, fish, origin=None):
         self.key, self.fish, self.origin = key, fish, origin
@@ -275,6 +303,8 @@ class _Row:
         self.state = "keep"
         self.poss = None               # (line, count) from possession_duty / possession_rules
         self.sizes = None              # the kind's keep ranges as the card states them (`tree` kind `sizes.cm`)
+        self.size_text = None          # the size line the row says first (the sheet's "Size: …")
+        self.size = None               # the row's size, said or not ("any size" under a box's size strip)
 
     def add(self, text: Optional[str], where: str = "lines"):
         lst = getattr(self, where)
@@ -316,8 +346,11 @@ def _row_src(fa: dict, key: str, extra: Iterable = ()) -> List[int]:
 class Body:
     """One segment's table body, built from the post-pass rows frame (`split_mixed` already applied)."""
 
-    def __init__(self, frame: dict, rules: Rules):
+    def __init__(self, frame: dict, rules: Rules, licence: Optional[dict] = None):
         self.frame, self.rules = frame, rules
+        #: the licence answer at the same key and segment, post-pass (`drop_closed_steelhead_stamp` ran): the sheet's
+        #: stamps are read from it (ticket H, contract 2.2)
+        self.docs = S.documents(licence)
         self.fish = frame.get("fish") or {}
         self.states = fish_states(frame)
         self.P, self.model = reading(frame, rules)
@@ -419,6 +452,7 @@ class Body:
         for r in rows:
             self.placed[r.fish] = bi
         strip: List[str] = []
+        parts: List[tuple] = []                # the strip's parts as the sheet reads them: (kind, text, cm)
         lines_of: Dict[str, List[str]] = {}
         # -- bands: groups of rows sharing a count tighter than the box's ---------------------------------
         groups: "OrderedDict[tuple, dict]" = OrderedDict()
@@ -427,6 +461,15 @@ class Body:
                 if t["tier"] in ("count", "own", "share") and t["n"] is not None and t["n"] < box_n:
                     groups.setdefault(("tier", t["id"]), {"n": t["n"], "rows": [], "by": t["by"], "depth": 0,
                                                           "say": None})["rows"].append(r)
+        if A_SHARE_HOLDS_ITS_UNLIFTED_FISH:
+            for r in rows:
+                for t in r.chain:
+                    if t["tier"] != "share" or ("tier", t["id"]) not in groups:
+                        continue
+                    gd = groups[("tier", t["id"])]
+                    for x in rows:
+                        if x.fish in _share_of(g, t) and x not in gd["rows"]:
+                            gd["rows"].append(x)
         tier_by = {gd["by"]: gk for gk, gd in groups.items()}
         across = self._across(home, species)
         across_rules = {a["r"] for a in across}
@@ -454,7 +497,31 @@ class Body:
             n = ks[0].kind_n
             if len({r.fish for r in ks}) > 1 and n is not None and n < box_n:
                 groups.setdefault(("kind", kix), {"n": n, "rows": ks, "by": None, "depth": 2, "say": None})
-        for gk in [gk for gk, gd in groups.items() if A_SUMMED_TIER_NEVER_DRAWN and gd["n"] >= self._most(gd["rows"])]:
+        joined_wild: Dict[tuple, tuple] = {}   # a one-origin quota -> the count's group holding it (drawn: not said again)
+        if A_WILD_QUOTA_JOINS_ITS_COUNT:
+            subs = {s["r"]: s for s in g.get("subcaps") or ()}
+            for x in self._wild_holders(row, rows):
+                for c in x.get("conds") or []:
+                    s = subs.get(c.get("r")) if c.get("c") == "origin2" and c.get("daily") else None
+                    if s is None or s.get("take") != c["daily"] or s.get("over_cm") is not None \
+                            or s.get("under_cm") is not None or c["daily"] >= box_n:
+                        continue
+                    who = set(c.get("who") or x.get("members") or ())
+                    mine = [r for r in rows if r.origin == c["o"] and r.fish in who]
+                    held = [r for r in rows if r.fish in set(s.get("of") or ()) and r.fish not in who]
+                    if not mine or not held:
+                        continue
+                    ids = {id(r) for r in held}
+                    gk = next((k for k, gd in groups.items() if gd["n"] == c["daily"]
+                               and {id(r) for r in gd["rows"]} == ids), None)
+                    if gk is None:
+                        gk = ("sub", c["r"])
+                        groups.setdefault(gk, {"n": c["daily"], "rows": list(held), "by": c["r"], "depth": 0,
+                                               "say": None})
+                    groups[gk]["rows"] += [r for r in mine if r not in groups[gk]["rows"]]
+                    joined_wild[(c["r"], c["o"], c["daily"])] = gk
+        for gk in [gk for gk, gd in groups.items() if A_SUMMED_TIER_NEVER_DRAWN and gd["n"] >= self._most(gd["rows"])
+                   and not (A_KIND_NUMBER_IS_SHARED and gk[0] == "kind")]:
             del groups[gk]                     # a count its fish cannot reach (a summed tier by the numbers): no limit
         drawn: List[tuple] = []
         taken: set = set()
@@ -470,7 +537,13 @@ class Body:
             if r in order:
                 continue
             gk = next((k for k in drawn if r in groups[k]["rows"]), None)
-            order += [x for x in rows if x in groups[gk]["rows"] and x not in order] if gk else [r]
+            piece = [x for x in rows if x in groups[gk]["rows"] and x not in order] if gk else [r]
+            order += piece
+            if gk is not None and gk in joined_wild.values():
+                # a wild row a count's band joined (A_WILD_QUOTA_JOINS_ITS_COUNT): its twin follows the band
+                order += [x for x in rows if x not in order and x.origin is not None
+                          and not any(x in groups[k]["rows"] for k in drawn)
+                          and any(y.fish == x.fish and y.origin is not None for y in piece)]
         rows = order
         for gk in drawn:
             gd = groups[gk]
@@ -502,10 +575,12 @@ class Body:
             passing = {r.fish for r in rows if self._passes(r, cm)}
             if passing <= holds:
                 strip.append(W.strip_size(t["n"], cm, extra.get("n")))
+                parts.append(("size", strip[-1], cm))
                 has_size_strip = True
                 for r in rows:
                     if r.fish in (t.get("species") or ()) and (self._min_keep(r) >= cm or
-                                                               (r.fish == "ST" and not extra)):
+                                                               (r.fish == "ST" and not extra
+                                                                and not A_RAINBOW_STOPS_AT_THE_STEELHEAD_SIZE)):
                         lines_of.setdefault(r.key, []).insert(0, W.uses_the(t["n"], cm))
             else:
                 under = [r for r in rows if any(x["id"] == tid for x in r.chain)]
@@ -513,16 +588,25 @@ class Body:
                     others = [x.fish for x in under if x.fish != r.fish]
                     lines_of.setdefault(r.key, []).append(W.size_count_line(t["n"], cm, others))
         # -- the wild quota of the box's own; the one across boxes is `together` --------------------------
-        for c in row.get("conds") or []:
-            if c.get("c") != "origin2" or not c.get("daily") or c["r"] in across_rules:
+        holders = self._wild_holders(row, rows)
+        seen_c: set = set()
+        for x, c in [(x, c) for x in holders for c in x.get("conds") or []]:
+            if c.get("c") != "origin2" or not c.get("daily") or c["r"] in across_rules \
+                    or joined_wild.get((c["r"], c["o"], c["daily"])) in drawn:
                 continue
-            who = set(c.get("who") or row.get("members") or ())
+            if (c["r"], c["o"], c["daily"]) in seen_c:
+                continue
+            seen_c.add((c["r"], c["o"], c["daily"]))
+            who = set(c.get("who") or x.get("members") or ())
             mine = [r for r in rows if r.origin == c["o"] and r.fish in who]
             if not mine:
                 continue
-            every = [r for r in rows if r.origin == c["o"]]
+            every = [r for r in rows if r.origin == c["o"]] if not A_WILD_QUOTA_FROM_EVERY_ROW else \
+                [r for r in rows if r.origin == c["o"] or (r.origin is None and not r.label and
+                                                           TL._keeps(TL.law_of(self.fish[r.fish].get(c["o"]))))]
             if len(mine) == len(every) and c["o"] == "wild":
                 strip.append(W.strip_wild(c["daily"], self._origin_size([r.fish for r in mine], c["o"])))
+                parts.append(("wild", strip[-1], None))
             else:
                 for r in mine:
                     lines_of.setdefault(r.key, []).append(W.strip_wild(c["daily"], None))
@@ -530,13 +614,46 @@ class Body:
             if self.together is not None and self.together["src"] != [a["r"]]:
                 raise TableError("trout table: two limits across boxes; `together` holds one")
             size = self._origin_size(list(a["mine"]) + list(a["others"]), a["o"])
-            self.together = {"text": W.together_origin(a["n"], a["o"], size), "src": [a["r"]]}
+            self.together = {"text": W.together_origin(a["n"], a["o"], size), "src": [a["r"]], "origin": a["o"]}
         from pipeline.deliver.answers.tree import A_BOTH_LAKES_SAID
         for t in OrderedDict((t["id"], t) for r in rows for t in r.chain).values():
             if A_BOTH_LAKES_SAID and t["tier"] == "own" and "from both lakes together" in t["says"]:
                 if self.together is not None and self.together["src"] != [t["by"]]:
                     raise TableError("trout table: two limits across waters; `together` holds one")
-                self.together = {"text": W.together_lakes(t["n"]), "src": [t["by"]]}
+                self.together = {"text": W.together_lakes(t["n"]), "src": [t["by"]], "origin": None}
+        # -- a kind's size cap over several fish holds them together (the proof found it said as each fish's own) ---
+        said_also: set = set()
+        if A_KIND_SIZE_CAP_IS_SHARED:
+            caps: "OrderedDict[tuple, list]" = OrderedDict()
+            for r in rows:
+                for a in r.also:
+                    sp = set(a.get("species") or ())
+                    if not a.get("over_cm") or a["by"] in across_rules or (id(r), a["says"]) in consumed_also \
+                            or r.fish not in sp:
+                        continue
+                    held = [x for x in rows if x.fish in sp]
+                    if len({x.fish for x in held}) < 2:
+                        continue                       # one fish: its own line says it
+                    then = tuple((t["n"], t["over_cm"]) for t in a.get("then") or ())
+                    caps.setdefault((a["by"], a["n"], a["over_cm"], tuple(sorted(sp)), then), held)
+                    said_also.add((id(r), a["says"]))
+            for (_by, n, cm, sp, then), held in caps.items():
+                levels = [(n, cm), *then]
+                if {x.fish for x in rows if self._passes(x, cm)} <= set(sp):
+                    for n_, cm_ in levels:
+                        t_ = W.strip_size(n_, cm_)
+                        if t_ not in strip:
+                            strip.append(t_)
+                            parts.append(("size", t_, cm_))
+                            for x in held:
+                                if self._min_keep(x) >= cm_:
+                                    lines_of.setdefault(x.key, []).insert(0, W.uses_the(n_, cm_))
+                    has_size_strip = True
+                else:
+                    for x in held:
+                        others = list(dict.fromkeys(y.fish for y in held if y.fish != x.fish))
+                        for n_, cm_ in levels:
+                            lines_of.setdefault(x.key, []).append(W.size_count_line(n_, cm_, others))
         # -- each row's words --------------------------------------------------------------------------------
         for r in rows:
             fa = self.fish[r.fish]
@@ -544,15 +661,17 @@ class Body:
                 size = law_size(fa[r.origin], self.rules)
             else:
                 size = r.detail
+            r.size = size
             sub = W.steelhead_sub(size) if r.fish == "ST" else None
             if sub is not None:
                 r.sub = sub
             elif not (size == "any size" and has_size_strip):
-                r.add(W.size_line(size))
+                r.size_text = W.size_line(size)
+                r.add(r.size_text)
             for x in lines_of.get(r.key, []):
                 r.add(x)
             for a in r.also:
-                if a["by"] in across_rules or (id(r), a["says"]) in consumed_also:
+                if a["by"] in across_rules or (id(r), a["says"]) in consumed_also or (id(r), a["says"]) in said_also:
                     continue
                 if a.get("species") and r.fish not in a["species"] and set(a["species"]) & {x.fish for x in rows if x.kind_ix == r.kind_ix}:
                     continue
@@ -607,7 +726,25 @@ class Body:
         for r in rows:
             r.src = list(dict.fromkeys(_row_src(self.fish[r.fish], r.key, [t["by"] for t in r.chain]) + r.src))
         self.boxes.append({"kind": "keep", "head": W.head_keep(box_n), "label": label, "strip": W.strip(strip),
-                           "tag": tag, "rows": rows, "bands": bands, "n": box_n, "home": home, "group": g})
+                           "tag": tag, "rows": rows, "bands": bands, "n": box_n, "home": home, "group": g,
+                           "parts": parts, "passes": self._passes})
+
+    def _wild_holders(self, home: dict, rows: Sequence[_Row]) -> List[dict]:
+        """The keep rows of the frame whose conditions may hold a wild quota of the box's fish (A_WILD_QUOTA_FROM_EVERY_ROW:
+        every keep row holding one of them, a fish's own row included: Kitimat's rainbow), else the box's home row."""
+        if not A_WILD_QUOTA_FROM_EVERY_ROW:
+            return [home]
+        box_fish = {r.fish for r in rows}
+        return [x for x in self.rows_out if x.get("kind") in common.KEEPS and set(x.get("members") or ()) & box_fish]
+
+    def _licence_duties(self, r: _Row) -> List[str]:
+        """The row's yearly limit and record duties (`card.licence_duty`), from the decided answer the row says (its
+        origin's on a twin row, else the leading one's), banded over the lengths it keeps."""
+        fa = self.fish[r.fish]
+        dec = self.model["R"][r.fish]["H" if (r.origin or common.lead_name(fa.get("hatchery"), fa.get("wild")))
+                                      == "hatchery" else "W"]
+        a, b = _keep_range(self._law(r))
+        return S.licence_duties(dec, a, b)
 
     def _most(self, rows: Sequence[_Row]) -> float:
         """The most the rows can hold together: each kind's own number once (the 2nd attack's arithmetic)."""
@@ -642,10 +779,18 @@ class Body:
 
     def _ranges(self, r: _Row) -> List[Tuple[float, float]]:
         """The lengths a row keeps: the kind's ranges as the card states them (a steelhead's "rainbow trout over 50 cm"
-        and a rainbow's 30-50 cm are the card's, not the bare decided lines'), a twin row's from its origin's law."""
+        and a rainbow's 30-50 cm are the card's, not the bare decided lines'), a twin row's from its origin's law — a
+        rainbow's stopping at the steelhead size where a rainbow over it is a steelhead (its answer's `steel` line)."""
         if r.sizes:
             return r.sizes
-        return [(x, y) for x, y, n in TL.pieces([self._law(r)], self._law(r)) if n > 0]
+        got = [(x, y) for x, y, n in TL.pieces([self._law(r)], self._law(r)) if n > 0]
+        if A_RAINBOW_STOPS_AT_THE_STEELHEAD_SIZE and r.fish == "RB" and any(
+                ln["t"] == "steel" for d in (self.fish["RB"].get("hatchery"), self.fish["RB"].get("wild")) if d
+                for ln in d.get("lines") or ()):
+            from pipeline.deliver.bundle import read as RD
+            st = RD._steelhead_min_cm()
+            got = [(x, min(y, st)) for x, y in got if x < st]
+        return got
 
     def _passes(self, r: _Row, cm: float) -> bool:
         return any(y > cm for _x, y in self._ranges(r))
@@ -693,10 +838,13 @@ class Body:
                 fa = self.fish[r.fish]
                 if r.origin is not None:
                     r.detail = law_size(fa[r.origin], self.rules)
+                r.size = r.detail
                 if r.detail != "any size":
-                    r.add(W.size_line(r.detail))
+                    r.size_text = W.size_line(r.detail)
+                    r.add(r.size_text)
                 got = self.possession(r.fish)
                 if got is not None:
+                    r.poss = (got[0], got[1])
                     r.add(W.possession_row(got[0]))
                 self._week_and_steel(r)
                 r.src = _row_src(fa, r.key, [row["pool"]] if row.get("pool") is not None else [])
@@ -709,7 +857,8 @@ class Body:
                       "text": W.band_upto(n) if r.band[0] == "upto" else W.band_own(r.band[1])}
                      for k, r in enumerate(rows)]
             self.boxes.append({"kind": "keep", "head": W.head_keep(n), "label": label, "strip": None, "tag": None,
-                               "rows": rows, "bands": bands, "n": n, "home": i, "group": None})
+                               "rows": rows, "bands": bands, "n": n, "home": i, "group": None, "parts": [],
+                               "passes": self._passes})
 
     def _out_boxes(self) -> None:
         for kind, head in (("release", W.HEAD_RELEASE), ("closed", W.HEAD_CLOSED)):
@@ -732,7 +881,7 @@ class Body:
             for r in rows:
                 self.placed.setdefault(r.fish, bi)
             self.boxes.append({"kind": kind, "head": head, "label": None, "strip": None, "tag": None, "rows": rows,
-                               "bands": [], "n": None, "home": None, "group": None})
+                               "bands": [], "n": None, "home": None, "group": None, "parts": [], "passes": None})
 
     # -- the whole table ------------------------------------------------------------------------------
     def _top(self) -> Tuple[str, dict]:
@@ -758,12 +907,14 @@ class Body:
                 # the headline is a share (Region 4's "2 from streams"): a water's own rule BESIDE it (not inside it)
                 # adds its fish to the top line — "or 5 if they’re rainbow trout" (the stored `also`), then each fish
                 # under its own number "and no more than 2 Dolly Varden/bull trout", or with no `also` ", plus 2 …"
+                share = next(t for t in g["tree"][0]["children"] if t["node"] == "tier" and t["tier"] == "share")
                 for t in g["tree"][0]["children"]:
                     if t["node"] != "tier" or t["tier"] != "own" or t["n"] is None:
                         continue
                     for node, _c in _walk(t["children"]):
                         k = t["n"] if node["n"] is None else min(node["n"], t["n"])
-                        fish = [S for S in node["species"] if self.states.get(S) == "keep"]
+                        fish = [S for S in node["species"] if self.states.get(S) == "keep"
+                                and S not in _share_of(g, share)]
                         if fish and k not in also_ns:
                             rest.append((k, W.fish_words(fish)))
             rest = list(dict.fromkeys(rest))
@@ -777,29 +928,30 @@ class Body:
             named += others[:-1]
             others = others[-1:]
         fish = lambda b: list(dict.fromkeys(r.fish for r in b["rows"]))
-        lead = W.top_apart([(b["n"], W.fish_words(fish(b))) for b in named], others[0]["n"] if others else None)
-        fold = W.fold_apart([(b["n"], W.short_fish(fish(b)[0])) for b in named], others[0]["n"] if others else None)
+        n_of = lambda b: _headline_n(b) if A_APART_SAYS_THE_BOX_MOST else b["n"]
+        lead = W.top_apart([(n_of(b), W.fish_words(fish(b))) for b in named], n_of(others[0]) if others else None)
+        fold = W.fold_apart([(n_of(b), W.short_fish(fish(b)[0])) for b in named], n_of(others[0]) if others else None)
         return lead, {"value": fold, "tone": "keep"}
 
     def _table(self) -> dict:
         lead, fold = self._top()
-        # `elsewhere` ("Fished elsewhere today? ›", from `group.worked`) is ticket H's move (spec H): empty here, the link
-        # hidden, until H words its lines (their "today" is the angler's day, like the stop duty: G2 lists the pair)
-        elsewhere: List[str] = []
+        # `elsewhere` (ticket H): the card's kept-elsewhere lines (`group.worked`, `rows/groups.py elsewhere_of`) of every
+        # keep box's group, in box order, under the app's "Fished elsewhere today? ›" (empty: no link). A line about
+        # keeping HERE ("If you keep 4 hatchery rainbow trout here", `at` "here": a lifted kind past the stream share) is
+        # not a kept-elsewhere line and is not under that link (G2 lists it for the owner)
+        elsewhere: List[str] = [W.elsewhere_line(w["q"], w["a"]) for b in self.boxes if b["group"] is not None
+                                for w in b["group"].get("worked") or () if w["at"] != "here"]
         boxes = []
         src: List[int] = []
         for b in self.boxes:
             rows = []
             for ri, r in enumerate(b["rows"]):
-                if b["kind"] == "keep":
-                    band = next(x for x in b["bands"] if x["from"] <= ri <= x["to"])
-                    head = W.sheet_keep(band["text"], b["n"])
-                else:
-                    head = W.SHEET_RELEASE if b["kind"] == "release" else W.SHEET_CLOSED
-                here = [{"t": t, "bold": t.startswith("after keeping ")} for t in r.lines + r.quiet]
+                sheet = S.fish_sheet(b, ri, r, stamps=S.stamps_for(self.frame, r.fish, self.docs),
+                                     duties=self._licence_duties(r) if b["kind"] == "keep" else (),
+                                     together=self.together)
                 rows.append({"key": r.key, "fish": r.fish, "name": W.fish_name(r.fish), "origin": r.origin,
                              "label": r.label, "sub": r.sub, "lines": tuple(r.lines), "quiet": tuple(r.quiet),
-                             "src": tuple(r.src), "sheet": {"head": head, "here": tuple(here), "src": tuple(r.src[:4])}})
+                             "src": tuple(r.src), "sheet": sheet})
                 src += r.src
             boxes.append({"kind": b["kind"], "head": b["head"], "label": b["label"], "strip": b["strip"],
                           "tag": b["tag"], "rows": tuple(rows), "bands": tuple(b["bands"])})
@@ -811,6 +963,22 @@ class Body:
         return {"top": {"lead": lead, "second": together["text"] if together else None}, "fold": fold,
                 "hatch_link": marked, "boxes": tuple(boxes), "together": together, "year": None,
                 "elsewhere": tuple(dict.fromkeys(elsewhere)), "src": tuple(dict.fromkeys(src))}
+
+
+def _share_of(g: dict, t: dict) -> frozenset:
+    """The fish a share tier's rule holds, every lift taken out (the group's `subcaps[].of` for the tier's rule); none
+    where the flag is off or the group names no such sub-cap."""
+    if not A_SHARE_HOLDS_ITS_UNLIFTED_FISH:
+        return frozenset()
+    s = next((s for s in g.get("subcaps") or () if s["r"] == t["by"]), None)
+    return frozenset(s.get("of") or ()) if s is not None else frozenset()
+
+
+def _headline_n(b: dict):
+    """A keep box's most here as its card's headline states it (the share inside the region's total: Region 4's "2 a
+    day from streams" in a box of the 5), else the box's own number."""
+    h = (b.get("group") or {}).get("headline") or {}
+    return h["n"] if h.get("n") is not None and h["n"] < b["n"] else b["n"]
 
 
 def _book_order(S: str) -> int:
@@ -862,14 +1030,17 @@ def _hours_guard(frames, displays, starts, moments) -> None:
 
 
 def compose_key(rows: Sequence[dict], displays: Sequence[dict], starts: Sequence[int],
-                moments: Optional[Sequence[dict]], rules: Rules, *, validate: bool = True) -> List[Optional[dict]]:
-    """THE WHOLE-KEY COMPOSE (contract 2.2): one answer key's post-pass rows frames and display frames (one per
+                moments: Optional[Sequence[dict]], rules: Rules, *, licences: Sequence[dict],
+                validate: bool = True) -> List[Optional[dict]]:
+    """THE WHOLE-KEY COMPOSE (contract 2.2): one answer key's post-pass rows, display and licence frames (one per
     segment), its segment starts and moments -> per segment the `TroutFrame` (as a dict, validated by
-    `model.trout.TroutFrame`) or None (Q-D3). Adds no day cut: its value is a function of the rows and display values."""
+    `model.trout.TroutFrame`) or None (Q-D3). Adds no day cut: its value is a function of the rows, display and licence
+    values (the licence answer's only for the fish sheets' stamps, ticket H)."""
     from pipeline.deliver.answers.model.trout import TroutFrame
     n = len(starts)
-    if not (len(rows) == len(displays) == n):
-        raise TableError(f"trout table: {len(rows)} rows and {len(displays)} display frames for {n} segments")
+    if not (len(rows) == len(displays) == len(licences) == n):
+        raise TableError(f"trout table: {len(rows)} rows, {len(displays)} display and {len(licences)} licence frames "
+                         f"for {n} segments")
     _hours_guard(rows, displays, starts, moments)
     split = [split_mixed(f) for f in rows]
     bodies: List[Optional[Body]] = []
@@ -879,7 +1050,7 @@ def compose_key(rows: Sequence[dict], displays: Sequence[dict], starts: Sequence
             bodies.append(None)
             tables.append(None)
             continue
-        b = Body(split[j][0], rules)
+        b = Body(split[j][0], rules, licences[j])
         tables.append(b.build())
         bodies.append(b)
     year = TL.KeyYear(starts, rows, moments, water_closed=[d.get("status") == "closed" for d in displays],

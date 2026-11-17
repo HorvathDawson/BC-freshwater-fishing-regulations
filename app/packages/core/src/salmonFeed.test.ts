@@ -6,7 +6,7 @@
 import { describe, expect, it } from "vitest";
 import { SALMON_FEED_GOLDEN } from "./salmonFeed.golden";
 import { salmonCard, salmonChainStatus, salmonNotes, type SalmonFacts } from "./salmon";
-import { composeChain, dfoNoticeRows, parseDfoUnplaced, parseSalmonFeed, pickSalmon, salmonFeedLine, salmonCheckedLine, salmonFeedOf, withSalmonFeed } from "./salmonFeed";
+import { composeChain, dfoNoticeRows, feedFinfishOn, feedTables, parseDfoUnplaced, parseSalmonFeed, pickSalmon, salmonFeedLine, salmonCheckedLine, salmonFeedOf, withSalmonFeed } from "./salmonFeed";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- the golden is the pipeline's JSON, read as data
 const G = SALMON_FEED_GOLDEN as any;
@@ -266,5 +266,39 @@ describe("(T521) the feed's unplaced places", () => {
     const { items: _i, ...old } = matched;
     expect(() => parseDfoUnplaced([old])).toThrow("dfo unplaced.json: row 0 is not a place with fingerprint, region, water, rows and items");
     expect(() => parseDfoUnplaced({})).toThrow("dfo unplaced.json: not a list");
+  });
+});
+
+// (T770) the gear lines of a chain under a live feed (`live.compose`, `deliver.salmon.gear_on`)
+const five = <T>(x: T) => [x, x, x, x, x];
+describe("(T770) under a live feed a chain's gear lines are every place's, narrowest first, a line once", () => {
+  it("Little Qualicum, Oct 1: the stretch's fly-only and the river's hook rule; Jun 1 the hook rule alone", () => {
+    const FLY = "Fly-fishing only (Sep 1–Nov 30)", HOOK = "single barbless hook less than 15mm from point to shank";
+    const feed = parseSalmonFeed({ ...G.feed, gears: [[FLY], [HOOK], [HOOK, "No natural bait allowed"]],
+                        locs: { stretch: { r: "1", sp: five([0, 0]), g: [0, -1, 244, 0, 335, -1] },
+                                river: { r: "1", sp: five([0, 0]), g: [0, 1] }, river2: { r: "1", sp: five([0, 0]), g: [0, 2] } } })!;
+    const t = feedTables(feed);
+    // (owner 2026-11-16, question 13: "Show both") MUTATION: the first place with any line shows the fly-only alone
+    const got = composeChain(["stretch", "river", "river2"], feed, [], false, undefined, t);
+    const lines = (day: number) => {
+      let v = -1;
+      for (let k = 0; k < got.g.length; k += 2) if (got.g[k]! <= day) v = got.g[k + 1]!;
+      return v >= 0 ? t.gears[v] : null;
+    };
+    expect([lines(274), lines(152)]).toEqual([[FLY, HOOK, "No natural bait allowed"], [HOOK, "No natural bait allowed"]]);
+  });
+});
+
+describe("(T796 A6) the web's cue to read the salmon files for the Standard map", () => {
+  it("is any place's species verdict carrying `f` on the day, by the feed's own runs (-1: the place says nothing)", () => {
+    const base = feed();
+    const fin = { ...base,
+      verdicts: [{ s: "closed", t: "Not opened by DFO", d: 1 }, { s: "closed", t: "Finfish closure (Jul 20)", f: 1 }],
+      locs: { "6:x": { r: "6", sp: [[0, -1, 201, 1, 202, 0], [0, -1], [0, -1], [0, -1], [0, -1]], g: [0, -1] } } } as typeof base;
+    // Jul 20 is day 201; the day before says nothing, the day after is closed without `f`
+    expect([new Date(2026, 6, 19), new Date(2026, 6, 20), new Date(2026, 6, 21)].map((d) => feedFinfishOn(fin, d)))
+      .toEqual([false, true, false]);
+    // the pipeline's golden feed carries no finfish closure
+    expect(feedFinfishOn(base, new Date(2026, 6, 20))).toBe(false);
   });
 });

@@ -198,8 +198,11 @@ accepted it on 2026-10-29 knowing it is **low confidence and an assumption** —
 this line. The DFO salmon rule and its cut (Spur 19 road crossing, 53.12968,-131.78224) bind to it through that name.
 
 If a source ever names a different stream "Sheldens Creek" (BC Geographical Names, a DFO map, a local), or DFO's
-wording points elsewhere, this is the first thing to recheck: drop its `found_name_calls.json` row (and rerun `pipeline.tools.mined_names`) and the rule unbinds on the next
-build. Don't treat it as a confirmed name in audits or when matching other sources.
+wording points elsewhere, this is the first thing to recheck. Since 2026-11-17 (T806) the name is a `name_variants.json`
+record on blue line 360846083 (a graph name, so the line and the hand-drawn estuary channel are ONE item,
+`wsc:950-016367`), not a found name: drop that record (the `found_name_calls.json` accept stays, and
+`pipeline.tools.mined_names` writes it back as a found name) and re-point the DFO place on the next build. Don't treat
+it as a confirmed name in audits or when matching other sources.
 
 ## The Kasiks "Upper Pool" is a place we inferred
 
@@ -261,8 +264,15 @@ position, a corrected DFO page) and his word.
   They look like one row entered twice with a slip; they are two places, read word for word. Owner: "right but add
   to gotchas. it should only drop the blue suskwa river. rest are good." and "right only keep part that is purple.
   rest get dropped here."
-- **Sheldens Creek, the bridge** (Region 6; see "Sheldens Creek is a name we assumed" above). The cut is a
-  low-confidence point where the road crosses near the mouth (the Spur 19 bridge site, by a camp site), the place
-  is the creek above it, and that same cut is the tidal boundary. Owner: "add as gotcha but i think you can see the
-  road in satellite that crosses neaar the mouth that should be the bridge i think (near a camp site etc) have it be
-  low confidence and set it top tidal too".
+- **Sheldens Creek, the bridge** (Region 6; see "Sheldens Creek is a name we assumed" above). Owner: "add as gotcha
+  but i think you can see the road in satellite that crosses neaar the mouth that should be the bridge i think (near
+  a camp site etc) have it be low confidence and set it top tidal too", then on the picture (2026-11-16 20:01):
+  "Extend to the bridge". The road crossing near the sea, beside the OpenStreetMap camp site, is the FTEN road SPUR 14
+  over the estuary channel (53.14746 N 131.76003 W); the FWA line stops ~1 km of channel above it, at the head of the
+  salt marsh. So the creek is DRAWN ON by hand (added stream `-2400000001`, source `manual`,
+  `data/source/municipal/manual_streams.geojson`: head = the FWA line's mouth vertex, same code 950-016367, the
+  creek's order carried) through the marsh to the bridge and ~65 m on to the flats, and the tidal limit is a `cut`
+  row at the bridge on it (`waters/tidal_limits.json`, LOW CONFIDENCE in its `why`). Which marsh channel carries the
+  creek is a reading of Esri imagery, not a survey. The literal Spur 19 road ("SP 19(1) TO SHELDONS") crosses the
+  FWA line 3.4 km up, at the old cut `sheldens_creek__spur_19_bridge_site`, which nothing binds now; if DFO ever
+  places the signs there, that is the cut to use.

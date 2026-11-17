@@ -70,3 +70,14 @@ export function revealBy(ring: Rect, view: Rect, win: { w: number; h: number }, 
   if (vTop + ring.h + CARD_GAP + card.h <= win.h - room.bottom) return ring.y - vTop;
   return ring.y + ring.h - vBottom;
 }
+
+/**
+ * (T824, owner on iPhone: "really glitchy too with keyboard") THE ROOM KEPT AT THE FOOT WITH THE KEYBOARD UP: the card's
+ * layer spans `layer` (its top and height in the window); a keyboard whose top edge is at `keyboardTop` covers what of
+ * it lies below that edge, so the foot keeps that much (or the tab bar's `bottom`, whichever is more). Where the window
+ * already shrank for the keyboard (Android's resize), the layer ends at the keyboard and nothing more is kept.
+ */
+export function footRoom(bottom: number, keyboardTop: number | null, layer: { y: number; h: number }): number {
+  if (keyboardTop === null) return bottom;
+  return Math.max(bottom, layer.y + layer.h - keyboardTop);
+}

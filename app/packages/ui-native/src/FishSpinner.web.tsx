@@ -14,6 +14,7 @@
  */
 import { useEffect, useState } from "react";
 import { FISH_SPRITE } from "./fish-sprite.generated";
+import { STILL_ICON } from "./stillIcon";
 import { SPINNER_WORDS } from "@app/core";
 import type { Palette } from "./theme";
 
@@ -60,6 +61,16 @@ export function FishSpinner({ palette, size = 96, label = SPINNER_WORDS.loading,
            style={{ position: "absolute", left: "50%", top: "50%", width: ring, height: ring,
                     marginLeft: -ring / 2, marginTop: -ring / 2, borderRadius: "50%",
                     border: `${Math.max(size * FISH_SPRITE.ring.width, 1)}px solid ${palette.line}` }} />
+      {/* (T814) still, the owner's still icon in the fish's place once it exists (`./stillIcon`); until then the fish's
+          first frame. (The T814 loop restarts are the native half's: a CSS animation resumes by itself.) */}
+      {still && STILL_ICON !== null ? (
+        <div data-testid="fish-still" style={{
+          position: "absolute", inset: 0, backgroundColor: colour ?? palette.live,
+          WebkitMaskImage: `url("${STILL_ICON}")`, maskImage: `url("${STILL_ICON}")`,
+          WebkitMaskSize: "contain", maskSize: "contain", WebkitMaskPosition: "center", maskPosition: "center",
+          WebkitMaskRepeat: "no-repeat", maskRepeat: "no-repeat",
+        }} />
+      ) : (
       <div style={{ position: "absolute", inset: 0, overflow: "hidden",
                     animation: `fish-orbit ${FISH_SPRITE.orbitMs}ms linear infinite`,
                     animationPlayState: play }}>
@@ -77,6 +88,7 @@ export function FishSpinner({ palette, size = 96, label = SPINNER_WORDS.loading,
           animationPlayState: play,
         }} />
       </div>
+      )}
     </div>
   );
 }

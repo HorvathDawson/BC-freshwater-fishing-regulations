@@ -270,7 +270,7 @@
             "item_id": "gnis:25478"
           }
         ],
-        "tributaries": null,
+        "tributaries": false,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -516,7 +516,7 @@
             "item_id": "gnis:25478"
           }
         ],
-        "tributaries": null,
+        "tributaries": false,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,

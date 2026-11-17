@@ -23,13 +23,23 @@ describe.skipIf(!LIVE)(`(T716) the salmon feed built per chain on the live relea
     const P = facts.payload;
     const live = withSalmonFeed(facts, FEED).payload;
     const ref = feedTables(FEED);
-    const want = P.chains.map(({ c: _c, n, a, ...c }) =>
-      ({ ...c, ...composeChainEveryDay(c.l, FEED, c.u ?? [], n !== undefined, c.s, ref, a !== undefined) }));
+    // (T796 A5) the release's static places (the rule book's closures) stand under the feed with the release's year:
+    // added to the reference feed the same way, their verdicts and gear lines appended to its tables (compared by content)
+    const add = <T>(items: T[], x: T) => items.push(x) - 1;
+    const statics = Object.fromEntries(Object.entries(P.static ?? {}).map(([lid, y]) => [lid, {
+      r: P.p?.[lid]?.r ?? "",
+      sp: y.sp.map((runs) => runs.map((x, k) => (k % 2 && x >= 0 ? add(ref.verdicts, P.verdicts[x]!) : x))),
+      g: y.g.map((x, k) => (k % 2 && x >= 0 ? add(ref.gears, [...P.gears[x]!]) : x)) }]));
+    const feed = { ...FEED, locs: { ...FEED.locs, ...statics } };
+    // (T770) the release's `o` as its `c`: the feed's composition says whether another fish's closure stands
+    const want = P.chains.map(({ c: _c, o: _o, n, a, ...c }) =>
+      ({ ...c, ...composeChainEveryDay(c.l, feed, c.u ?? [], n !== undefined, c.s, ref, a !== undefined) }));
     /** a chain with its verdict and gear indexes read out: the content, whatever order they were interned in */
     const said = (c: (typeof want)[number], V: readonly unknown[], G: readonly unknown[]) => ({
       ...c,
       sp: c.sp.map((runs) => runs.map((v, i) => (i % 2 ? V[v] : v))),
       g: c.g.map((v, i) => (i % 2 ? (v >= 0 ? G[v] : null) : v)),
+      ...(c.o ? { o: c.o.map((v, i) => (i % 2 ? (v >= 0 ? G[v] : null) : v)) } : {}),
     });
     const n = P.chains.length;
     const got: unknown[] = new Array(n);

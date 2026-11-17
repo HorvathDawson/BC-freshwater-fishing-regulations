@@ -216,6 +216,38 @@ def decode_area(b: bytes, n: int) -> List[float]:
     return out
 
 
+SMALL_MAGIC, SMALL_FORMAT = b"BCFS", "flow-small/1"
+SMALL_VERSION = 1
+
+
+def encode_small(bundle: sqlite3.Connection, ratio: float) -> bytes:
+    """(T823) `flow-small/1`: "BCFS", u8 1, then one LEB128 varint per section_panel row in paint's sid order (as
+    flow-area) = the bitmask over its panel's members by `ord`: bit i set where member i drains at least `ratio` times
+    the section's target area (`pipeline.gauges.consume.small_water`)."""
+    from pipeline.gauges.consume.small_water import masks
+    members: Dict[int, List[float]] = {}
+    for pid, o, a in bundle.execute("SELECT panel_id, ord, area_km2 FROM panel_member ORDER BY panel_id, ord"):
+        ms = members.setdefault(pid, [])
+        if o != len(ms):
+            raise ValueError(f"flow-small: panel {pid} member ords are not 0..n-1 (got {o} after {len(ms)})")
+        ms.append(a)
+    out = bytearray(SMALL_MAGIC)
+    out.append(SMALL_VERSION)
+    for m in masks(bundle.execute("SELECT sid, panel_id, area_km2 FROM section_panel ORDER BY sid"), members, ratio):
+        _uv(out, m)
+    return bytes(out)
+
+
+def decode_small(b: bytes, n: int) -> List[int]:
+    if b[:4] != SMALL_MAGIC or b[4] != SMALL_VERSION:
+        raise ValueError(f"flow-small: not a {SMALL_FORMAT} file")
+    r = _Reader(b, 5)
+    out = [r.uv() for _ in range(n)]
+    if r.i != len(b):
+        raise ValueError(f"flow-small: {len(b) - r.i} trailing bytes (or the paint it pairs with has other sections)")
+    return out
+
+
 def decode(b: bytes) -> Dict[str, object]:
     """{status: bytes, stations, section_panel: [(sid, panel_id)], panel_member: [...], basin_member: [...],
     access: {areas: [(tier, name)], rows: [(sid, area, permille)]}}"""

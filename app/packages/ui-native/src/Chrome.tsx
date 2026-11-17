@@ -83,11 +83,20 @@ export function DottedSwatch({ colour, width = 14, thick = 3 }: { colour: string
  * (T377) A STRIPED line swatch, the same box as a solid one: the line's colour with short dashes of `stripe` down its
  * middle, closed's stripe at legend size (Views, so it draws the same on web and native).
  */
-export function StripedSwatch({ colour, stripe, width = 14, thick = 4 }: { colour: string; stripe: string; width?: number; thick?: number }) {
+export function StripedSwatch({ colour, stripe, width = 14, thick = 4, casing }:
+    { colour: string; stripe: string; width?: number; thick?: number;
+      /** (T759) the paper under each dash, as the map draws the issue stripe (`issuePaint`): ink on `casing` on the line */
+      casing?: string }) {
+  const ink = Math.max(1, Math.round(thick * 0.4));
+  const base = Math.max(ink, Math.round(thick * 0.85));
   return (
-    <View testID="swatch-striped" style={{ width, height: thick, backgroundColor: colour, flexDirection: "row",
+    <View testID={casing ? "swatch-issue" : "swatch-striped"} style={{ width, height: thick, backgroundColor: colour, flexDirection: "row",
                                             alignItems: "center", justifyContent: "space-evenly" }}>
-      {[0, 1].map((i) => <View key={i} style={{ width: 2, height: Math.max(1, Math.round(thick * 0.4)), backgroundColor: stripe }} />)}
+      {[0, 1].map((i) => casing ? (
+        <View key={i} style={{ width: 4, height: base, backgroundColor: casing, alignItems: "center", justifyContent: "center" }}>
+          <View style={{ width: 3, height: ink, backgroundColor: stripe }} />
+        </View>
+      ) : <View key={i} style={{ width: 2, height: ink, backgroundColor: stripe }} />)}
     </View>
   );
 }
@@ -125,7 +134,7 @@ export function LegendRows({ rows }: { rows: readonly React.ReactNode[] }) {
 }
 
 /** One "29 closed" entry. The count is the point — it says how much map is that colour. */
-export function LegendCount({ palette, colour, n, label, line, dotted, striped, edge, rim, ring, tight, onPress, alone, faded }:
+export function LegendCount({ palette, colour, n, label, line, dotted, striped, issue, edge, rim, ring, tight, onPress, alone, faded }:
   { palette: Palette; colour: string; n?: number; label: string;
     /**
      * Draw the swatch as a LINE instead of a square — for a key to lines. Every line swatch is
@@ -136,6 +145,8 @@ export function LegendCount({ palette, colour, n, label, line, dotted, striped, 
     dotted?: boolean;
     /** (T377) the line STRIPED down its middle with dashes in this colour, as the map draws closed (`closedCuePaint`) */
     striped?: string;
+    /** (T759) the line with the ISSUE STRIPE: ink dashes on paper dashes down it, as the map draws a water with a DFO rule to check */
+    issue?: { stripe: string; casing: string };
     /**
      * (T213) a GEAR MARK's key: the edge the map draws round a line of any status colour, in `colour` (the gear ink) —
      * a hollow line, solid for fly fishing only, dashed for a bait ban. No fill: the mark rides on every status.
@@ -159,6 +170,7 @@ export function LegendCount({ palette, colour, n, label, line, dotted, striped, 
                     style={{ width: tight ? LEGEND_ROWS.edge : 22, height: 10, borderWidth: 1.5, borderColor: colour,
                              borderStyle: edge }} />
         : line && dotted ? <DottedSwatch colour={colour} width={lineW} thick={4} />
+        : line && issue ? <StripedSwatch colour={colour} stripe={issue.stripe} casing={issue.casing} width={lineW} thick={6} />
         : line && striped ? <StripedSwatch colour={colour} stripe={striped} width={lineW} />
         : ring ? <View testID="legend-ring" style={{ width: 12, height: 12, borderRadius: round(12), backgroundColor: colour,
                                                      borderWidth: 2.5, borderColor: ring }} /> : <View style={line
