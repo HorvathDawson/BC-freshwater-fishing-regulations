@@ -12,7 +12,7 @@ import type { PinLine } from "./pins";
 import type { RegsInputs } from "./inputs";
 import type { Weekday } from "../calendar.generated";
 import type { KeepEnv } from "./keep";
-import type { BookBox } from "../answers.generated";
+import type { BookBox, FishSheet, Together, YearBar } from "../answers.generated";
 
 export type { Weekday } from "../calendar.generated";
 /** The spec's weekday names, Monday first (THE CALENDAR SPEC). */
@@ -77,9 +77,51 @@ export interface KeepVM {
   readonly possession: PossessionVM | null; // (T15)
   readonly whereNot: WhereNotVM | null;
   readonly outside: string | null;          // words.OUTSIDE_BC (page v36 renderCard foot) (T42)
+  /** (T810 N, behind the dev switch `RegsPageOpts.troutTable`) the trout and char table (`trout.ts` `troutOf`), or its
+   *  refusal; null: the cell has none. ABSENT with the switch off or a release without the trout section: the old card. */
+  readonly trout?: TroutVM | TroutRefusedVM | null;
 }
 export type KeepBlock = "strip" | "inherited" | "banner" | { caveat: number } | { group: number } | { plain: number } | "otherFish" | "possession" | "whereNot"
-  | "outside";
+  | "outside" | "trout";
+
+// ── (T810 N) the trout and char table (trout-table-contract.md 2.3, 2.12): every text the payload's, drawn unchanged ──
+/** One band of a keep box's right column ("up to the 5", "only 3", "only 1 of these 4"), over rows `from`..`to`; `date`:
+ *  the small line under its white box (`DateSet.band`). */
+export interface TroutBandVM { readonly from: number; readonly to: number; readonly text: string;
+  readonly kind: "upto" | "own" | "shared" | "possession"; readonly date: string | null }
+/** One fish row. `date`: its own last line (`DateSet.row`); `coming`: its sheet's coming-change sentences
+ *  (`DateSet.sheet`); `a11y`: its screen-reader label (payload texts in payload order, joined by ". "). */
+export interface TroutRowVM {
+  readonly key: string; readonly fish: string; readonly name: string; readonly origin: "hatchery" | "wild" | null;
+  readonly label: string | null; readonly sub: string | null; readonly lines: readonly string[]; readonly quiet: readonly string[];
+  readonly src: readonly number[]; readonly sheet: FishSheet; readonly coming: readonly string[]; readonly date: string | null;
+  readonly a11y: string;
+}
+/** A keep box, or the Release / Closed group under them; `date`: the strip date, or the column date under the word. */
+export interface TroutBoxVM {
+  readonly kind: "keep" | "release" | "closed"; readonly head: string; readonly label: string | null; readonly strip: string | null;
+  readonly tag: string | null; readonly date: string | null; readonly rows: readonly TroutRowVM[]; readonly bands: readonly TroutBandVM[];
+}
+/** The table under the Trout and char entry. `top.lead` has its day slot filled; `card`: the line above the table; `fold`:
+ *  the entry's folded row (`name` the app's entry word); the links are the app's navigation words, null where hidden. */
+export interface TroutVM {
+  readonly kind: "table";
+  readonly top: { readonly lead: string; readonly second: string | null; readonly date: string | null };
+  readonly card: string | null;
+  readonly fold: { readonly name: string; readonly value: string; readonly tone: "keep" | "release" | "closed" | "none"; readonly date: string | null };
+  readonly hatchLink: string | null;
+  readonly boxes: readonly TroutBoxVM[];
+  readonly together: Together | null;
+  readonly year: YearBar | null;
+  readonly elsewhere: readonly string[]; readonly elsewhereLink: string | null;
+  readonly sourcesLink: string;
+  readonly src: readonly number[];
+  /** the rows-frame rows the table replaces (Q-D4): drawn nowhere else */
+  readonly covers: readonly number[];
+}
+/** A trout frame that broke the contract (`trout.ts` `checkTrout`): reported, no table drawn; `covers` still names the rows
+ *  it would have replaced (never drawn by the old card instead). */
+export interface TroutRefusedVM { readonly kind: "refused"; readonly why: string; readonly covers: readonly number[] }
 /** `also` (T670 K1): the sentences after the lead — fish whose possession differs, then the water's own possession limits —
  *  drawn under the row; `value` is "" when the water's own limits are the only possession rules. */
 export interface PossessionVM { readonly label: string; readonly value: string; readonly says: string; readonly also: readonly string[];

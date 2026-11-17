@@ -108,6 +108,8 @@ export function KeepTab({ keep, dateLabel, palette, actions, images, glance = nu
         if (b === "possession") return <PossessionRow key={i} possession={keep.possession!} palette={palette} actions={actions} />;
         if (b === "whereNot") return <WhereNot key={i} whereNot={keep.whereNot!} palette={palette} actions={actions} />;
         if (b === "outside") return <OutsideFoot key={i} text={keep.outside!} palette={palette} />;
+        if (b === "trout") return null;   // (T810 N, the dev switch) the trout table: drawn by ticket O
+
         if ("caveat" in b && i === timedAt && timed) return null;
         if ("caveat" in b) return <CaveatBlock key={caveatKey(keep.caveats[b.caveat]!, i)} caveat={keep.caveats[b.caveat]!} palette={palette} actions={actions} />;
         if ("group" in b) return <GroupCard key={i} g={keep.groups[b.group]!} palette={palette} actions={actions} images={images} />;

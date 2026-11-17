@@ -20,7 +20,7 @@ afterEach(cleanup);
 
 const keepOf = (f: unknown) => (f as RegsPage).keep as KeepVM;
 const TEST_ID = { strip: "keep-strip", inherited: "keep-inherited", banner: "keep-banner", otherFish: "keep-otherfish",
-  possession: "keep-possession", whereNot: "keep-wherenot", outside: "keep-outside" } as const;
+  possession: "keep-possession", whereNot: "keep-wherenot", outside: "keep-outside", trout: "keep-trout" } as const;
 const idOf = (b: KeepVM["order"][number]) => typeof b === "string" ? TEST_ID[b] : "group" in b ? "keep-group" : "plain" in b ? "keep-plain" : "keep-caveat";
 
 function mount(keep: KeepVM) {

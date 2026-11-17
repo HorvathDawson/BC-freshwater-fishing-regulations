@@ -410,6 +410,18 @@ function deepWords(t: object): string[] {
     : v && typeof v === "object" && !(v instanceof RegExp) ? deepWords(v) : []);
 }
 
+/**
+ * (T810 N, trout-table-contract.md 2.4) THE TROUT TABLE'S NAVIGATION WORDS: the only app words the table draws (beside
+ * the day phrase in its top line's slot). None states a rule; every rule word is the payload's.
+ */
+export const TROUT_NAV = Object.freeze({
+  /** the folded entry's name (the entry exists today) */
+  ENTRY: "Trout and char",
+  HATCH: "How to tell a hatchery fish ›",
+  SOURCES: "Sources ›",
+  ELSEWHERE: "Fished elsewhere today? ›",
+} as const);
+
 /** "Mon" … "Sun" (Monday first, as the calendar). */
 export const WD3: readonly string[] = WEEKDAYS.map((w) => w.slice(0, 3));
 /** "J", "F", … — the strip's month initials. */
@@ -526,6 +538,8 @@ export const ALL_WORDS: ReadonlySet<string> = new Set([
   ...deepWords(METHODS),
   // (T33) the licence words
   ...licWords(),
+  // (T810 N) the trout table's navigation words
+  ...deepWords(TROUT_NAV),
 ]);
 
 /** The words of a Line that are not data: text and link words, and the fixed words of term and book runs. Numbers are

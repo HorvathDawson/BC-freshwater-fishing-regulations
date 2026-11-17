@@ -20,7 +20,7 @@ import { drawnRows, rowTitle, scopeBadge, scopeOf } from "../grouphead";
 import type { RegsInputs } from "../inputs";
 import { plain, text, type Line, type Run } from "../line";
 import type { LadderStepVM, LadderVM, SheetBlock, SheetCtx, SheetVM } from "../model";
-import { listRows } from "../others";
+import { listRows, tableCovers } from "../others";
 import { plainRowOf, shortWindowsOf } from "../plainrow";
 import type { SheetKey } from "../sheetKey";
 import { fishNames, pictures } from "../tree";
@@ -85,7 +85,7 @@ function sheetLadder(l: LadderVM, row: HydRow, inp: RegsInputs): SheetBlock[] {
 export function otherSheet(ctx: SheetCtx, key: SheetKey, i: number): SheetVM | null {
   const env = ctx.env, inp = ctx.inp;
   if (!env) return null;
-  const card = env.card, ix = listRows(card)?.[i];
+  const card = env.card, ix = listRows(card, tableCovers(inp, env.troutTable))?.[i];   // (T810 N) the list Keep drew
   if (ix === undefined) return null;
   const row = card.rows[ix]!, seams = plainRowSeams(inp, env.fish), title = rowTitle(row, inp);
   const blocks: SheetBlock[] = [];

@@ -23,16 +23,37 @@ import { WORDS } from "./words";
 /** page v36 TROUTISH: trout and char first, in full; every other fish folds into one short list. */
 export const TROUTISH: readonly string[] = Object.freeze(["RB", "CT", "EB", "GB", "LT", "DV", "ST", "BT", "CT_ws", "CT_c"]);
 
+/** (T810 N) The rows-frame rows a trout table replaces (its `covers`, contract Q-D4). */
+export type TableCovers = readonly number[];
+
+/**
+ * (T810 N) THE DEV SWITCH'S SPLIT: with the switch on (`troutTable`) and a release that holds the trout section, the rows
+ * today's trout cell replaces (`inp.trout.covers`; [] where the cell has none: no trout or char fish here). Undefined:
+ * the switch is off or the release holds no section, and the old split (`TROUTISH`) stands, unchanged, until S.
+ */
+export function tableCovers(inp: RegsInputs, troutTable: boolean | undefined): TableCovers | undefined {
+  if (!troutTable || inp.trout === undefined) return undefined;
+  return inp.trout?.covers ?? [];
+}
+
 /** page v36 renderCard: rows are drawn only on a day the store does not call closed (and that has its rows frame). */
 export const rowsDrawn = (card: CardModel): boolean => card.status !== "closed" && !!card.ctx.status && !card.missingRows;
 
 /**
  * page v36 rowsHtml: `main` = the rows with a trout or char (all members), `rest` = the others. With no trout row, or
  * fewer than two others, every row is drawn in order and `rest` is null (no Other fish list). No rows on a closed day.
+ *
+ * (T810 N, behind the dev switch) `covers` given (the trout table's rows, `TableCovers`): those rows are the table's,
+ * never `main` or `rest`; the other fish are every row NOT in `covers`, never `TROUTISH`. Two or more others: the list
+ * (`rest`); fewer: drawn in full, as today (owner 2026-11-16 "Stays as today"). Absent: the old split, unchanged.
  */
-export function splitRows(card: CardModel): { main: readonly number[]; rest: readonly number[] | null } {
+export function splitRows(card: CardModel, covers?: TableCovers): { main: readonly number[]; rest: readonly number[] | null } {
   if (!rowsDrawn(card)) return { main: [], rest: null };
   const all = card.rows.map((_, i) => i);
+  if (covers !== undefined) {
+    const cov = new Set(covers), others = all.filter((i) => !cov.has(i));
+    return others.length < 2 || others.length === all.length ? { main: others, rest: null } : { main: [], rest: others };
+  }
   const main = all.filter((i) => card.rows[i]!.allMembers.some((S) => TROUTISH.includes(S)));   // page `allMembers || members`: always set
   const rest = all.filter((i) => !main.includes(i));
   return !main.length || rest.length < 2 ? { main: all, rest: null } : { main, rest };
@@ -45,8 +66,8 @@ export function splitRows(card: CardModel): { main: readonly number[]; rest: rea
  * the Duncan River's "bull trout daily quota = 2" (p.36) on its tributaries. Such a row is drawn as a line of the compact
  * list, its stored answer in one word and its full article one tap down (`other:oN`), like every row of `rest`.
  */
-export function looseRows(card: CardModel): readonly number[] {
-  return splitRows(card).main.filter((i) => {
+export function looseRows(card: CardModel, covers?: TableCovers): readonly number[] {
+  return splitRows(card, covers).main.filter((i) => {
     const r = card.rows[i]!;
     return !parentRow(card, r) && !r.raw.group?.headline && !!r.pool;
   });
@@ -54,8 +75,8 @@ export function looseRows(card: CardModel): readonly number[] {
 
 /** The rows of the compact list, in the order drawn: the loose full rows (trout and char first), then `rest`. Null: no list.
  *  `other:oN` is the N-th of these (sheets/other.ts reads the same list). */
-export function listRows(card: CardModel): readonly number[] | null {
-  const loose = looseRows(card), { rest } = splitRows(card);
+export function listRows(card: CardModel, covers?: TableCovers): readonly number[] | null {
+  const loose = looseRows(card, covers), { rest } = splitRows(card, covers);
   return loose.length || rest ? [...loose, ...(rest ?? [])] : null;
 }
 
@@ -87,8 +108,8 @@ export function backOf(r: HydRow): OtherFishRowVM["back"] {
 }
 
 /** prototype Other fish: one compact row per list row (`listRows`), opening its full row as a sheet; null when there is no list. */
-export function otherFishOf(card: CardModel, inp: RegsInputs, fish: FishManifest): readonly OtherFishRowVM[] | null {
-  const list = listRows(card);
+export function otherFishOf(card: CardModel, inp: RegsInputs, fish: FishManifest, covers?: TableCovers): readonly OtherFishRowVM[] | null {
+  const list = listRows(card, covers);
   if (!list) return null;
   return list.map((ix, i): OtherFishRowVM => {
     const r = card.rows[ix]!, g = r.raw.group;
@@ -122,6 +143,6 @@ export function otherFishKeyOf(rows: readonly OtherFishRowVM[] | null, inp: Regs
 
 /** The rows drawn as groups (T21's `KeepVM.groups`): the drawn full rows (`splitRows.main`, minus page v36's parent rows)
  *  whose stored group has a headline. */
-export function groupRows(card: CardModel, drawn: ReadonlySet<number>): readonly number[] {
-  return splitRows(card).main.filter((i) => drawn.has(i) && !!card.rows[i]!.raw.group?.headline);
+export function groupRows(card: CardModel, drawn: ReadonlySet<number>, covers?: TableCovers): readonly number[] {
+  return splitRows(card, covers).main.filter((i) => drawn.has(i) && !!card.rows[i]!.raw.group?.headline);
 }

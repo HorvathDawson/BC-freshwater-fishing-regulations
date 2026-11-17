@@ -21,7 +21,7 @@ import type { FishManifest } from "./fish.generated";
 import { drawnRows, groupHeadOf, headCtx, originOf, rowTitle, scopeOf } from "./grouphead";
 import type { RegsInputs } from "./inputs";
 import type { CaveatVM, Day, GroupVM, KeepBlock, KeepVM, PlainRowVM, StripVM } from "./model";
-import { otherFishKeyOf, otherFishOf, splitRows } from "./others";
+import { otherFishKeyOf, otherFishOf, splitRows, tableCovers } from "./others";
 import type { RegsPlace } from "./place";
 import { isPlainRow, plainRowOf, yearWindowOf, type PlainRowSeams } from "./plainrow";
 import { groupLine } from "./pins";
@@ -32,11 +32,16 @@ import { bannerOf } from "./banner";
 import { edgeKind, outsideKeep, tidalKeep } from "./edge";
 import { MORE, moreOf, notKeptOf, quietOf, workedOf } from "./tail";
 import { fishNames, pictures, treeEnv, treeOf } from "./tree";
+import { TroutRefused, troutOf } from "./trout";
+import { reportFailure } from "../failure";
 
 /** What the Keep composition reads besides the inputs (page.ts builds it once per page). */
 export interface KeepEnv {
   readonly place: RegsPlace; readonly settled: Settled; readonly card: CardModel;
   readonly fish: FishManifest; readonly today: Day; readonly tot: "a" | "b";
+  /** (T810 N) THE DEV SWITCH: the trout and char table (`trout.ts`) in place of the old trout card, where the release
+   *  holds the trout section. Off or absent: the old path, unchanged. O wires it to a dev-only toggle; S removes it. */
+  readonly troutTable?: boolean;
 }
 
 /** The sibling seams T19b's plain rows read (plainrow.ts `PlainRowSeams`), bound to the merged presenters: T17 rowTitle /
@@ -80,6 +85,8 @@ export function keepOrder(has: {
   readonly strip: boolean; readonly inherited: boolean; readonly banner: boolean;
   readonly caveats: readonly { readonly kind: CaveatVM["kind"] }[]; readonly rows: readonly KeepRowBlock[];
   readonly otherFish: boolean; readonly possession: boolean; readonly whereNot: boolean;
+  /** (T810 N) the trout and char table: one block, where the trout rows stood (before the full rows) */
+  readonly trout?: boolean;
 }): KeepBlock[] {
   const order: KeepBlock[] = [];
   // (T796) a section's note, then (T623 F4) the part-closed warning, lead the tab, above the year strip
@@ -90,6 +97,7 @@ export function keepOrder(has: {
   if (has.inherited) order.push("inherited");
   if (has.banner) order.push("banner");
   has.caveats.forEach((c, i) => { if (!lead(c.kind)) order.push({ caveat: i }); });
+  if (has.trout) order.push("trout");
   order.push(...has.rows);
   if (has.otherFish) order.push("otherFish");
   if (has.possession) order.push("possession");
@@ -127,13 +135,19 @@ export function keepOf(inp: RegsInputs, env: KeepEnv): KeepVM {
   const open = !!settled.status && settled.status.status !== "closed";
   // (T623 F4) a closure of an undrawn part is warned of above the strip, on every open day
   const partClosed = partClosedOf(settled, inp, env.today);
+  // (T810 N, the dev switch) the trout table's rows (undefined: the old split) and the fish they hold, which the timed
+  // caveat (b) leaves to the table; a table on a day the store calls closed contradicts Q-D3: reported, not drawn
+  const covers = tableCovers(inp, env.troutTable);
+  const covered = new Set((covers ?? []).flatMap((i) => card.rows[i]?.allMembers ?? []));
+  if (covers !== undefined && !open && inp.trout) reportFailure(new TroutRefused("a table on a day the store calls closed (Q-D3)"));
+  const trout = covers === undefined ? undefined : open ? troutOf(inp, settled.day, env.today) : null;
   const caveats = [...sectionNotesOf(inp), ...(partClosed ? [partClosed] : []),
-                   ...(open ? caveatsOf(inp, settled, (j) => settleAt(inp, env.place, j, settled.day)) : [])];
+                   ...(open ? caveatsOf(inp, settled, (j) => settleAt(inp, env.place, j, settled.day), covered) : [])];
 
   const groups: GroupVM[] = [], plainRows: PlainRowVM[] = [], rows: KeepRowBlock[] = [];
   if (open) {
     const drawn = drawnRows(card), seams = plainRowSeams(inp, env.fish);
-    for (const i of splitRows(card).main) {
+    for (const i of splitRows(card, covers).main) {
       if (!drawn.has(i)) continue;                                  // page v36 draws no article for a parent row
       const row = card.rows[i]!;
       if (row.raw.group?.headline) { rows.push({ group: groups.length }); groups.push(groupOf(i, inp, env, drawn, seams)); }
@@ -142,11 +156,11 @@ export function keepOf(inp: RegsInputs, env: KeepEnv): KeepVM {
       // the compact list (others.ts `looseRows`): Region 8's "20 brook trout from streams", a water's one-kind quota
     }
   }
-  const otherFish = open ? otherFishOf(card, inp, env.fish) : null;
+  const otherFish = open ? otherFishOf(card, inp, env.fish, covers) : null;
   const possession = open ? possessionOf(card, inp, settled) : null;
   const whereNot = whereNotOf(settled);
   const order = keepOrder({ strip: !!strip, inherited: !!inherited, banner: !!banner, caveats, rows,
-    otherFish: !!otherFish, possession: !!possession, whereNot: !!whereNot });
+    otherFish: !!otherFish, possession: !!possession, whereNot: !!whereNot, ...(trout ? { trout: true } : {}) });
   return { order, strip, inherited, banner, groups, plainRows, otherFish, otherFishKey: otherFishKeyOf(otherFish, inp), caveats,
-           possession, whereNot, outside: null };
+           possession, whereNot, outside: null, ...(trout !== undefined ? { trout } : {}) };
 }

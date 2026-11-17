@@ -210,3 +210,34 @@ Follow-up asked: does T3a (Lardeau, Duncan lift) stand.
   `inp.s` and `inp.trout` equal Python's. 10 mutations of the new guards each fail a test.
 - Next for the main chat: `scripts/trout-refresh.sh` step 4 (the golden sync) now RUNS, because `versions.ts` lists
   `trout`. The conformance checks of the golden versions now accept an optional section at `OPTIONAL_VERSIONS`.
+
+## 2026-11-17 14:40: N built (app chat, branch app/t810-n, on M0 + M)
+- `core/src/regs/trout.ts`: `troutOf(inputs, day, today)` gives `TroutVM` (model.ts), or a `refused` block, or null
+  (no section, or a NULL cell). It composes two things only: the `{day}` slot, through `dayPhrase` (strip.ts; the
+  strip's "when" line and the part-closed warning now use it too), and each row's a11y label (payload texts in payload
+  order, joined by ". "; "its date" read as the row's own date, else its band's). Every other string is the payload's.
+  `checkTrout` mirrors `model/trout.py`'s validators, then refuses a rule index the store lacks and a `covers` index
+  past the rows frame. A refusal goes through `reportFailure`, and no table is drawn. trout.ts imports only payload
+  types, `reportFailure`, `dayPhrase` and the new `TROUT_NAV` navigation words (words.ts).
+- THE DEV SWITCH: `RegsPageOpts.troutTable` / `KeepEnv.troutTable`, default off. With it off the page is unchanged
+  (`KeepVM.trout` absent; every existing suite and VM fixture passes untouched). With it on, and the release holding
+  the section: `KeepVM.trout` and one `"trout"` block in `keepOrder` (before the full rows; KeepTab draws nothing for
+  it until O). `splitRows` / `looseRows` / `listRows` / `otherFishOf` / `groupRows` take the frame's `covers`
+  (`others.ts` `tableCovers`): covered rows are the table's; other fish are every row not in `covers`. Two or more
+  others go in the list. Fewer are drawn in full, as today. The `other:oN` sheet reads the same list. Caveat (b)
+  (`caveats.ts` `timedOf`) skips a member of a covered row. `glance.ts` `troutGlance` takes `fold.value`, `fold.tone`
+  ("none" added to the tone type) and `DateSet.fold` as shipped. `TROUTISH` stays for the switch-off path until S.
+- Tests: `conformance/src/regs/trout.release.test.ts` covers 53 vectors. Each lead equals `lead_today` / `lead_on`,
+  and every drawn string is in the frame. All 14 hand cases are refused through `reportFailure`, and the base frame
+  draws. A refused table on a page draws its rows nowhere. A new golden, `app/fixtures/golden/trout-a11y.json`, covers
+  every vector row. It is written only by `UPDATE_TROUT_A11Y=1`, which is the new step 5 of `regs-recut/sync.mjs`.
+  "Drawn exactly once" runs over every vector cell and every cell of the trout fixture (each key, each segment). The
+  list lines open their own rows. No fish is spoken twice. Two cases are PLANTED because the fixture has none: a lone
+  other fish, and a weekday trout answer for caveat (b). The imports test has mutations. `core/src/regs/trout.test.ts`
+  covers the split, Nahwitti's shape, `dayPhrase`, `keepOrder` and the fold. 9 guard mutations each failed a test.
+- Nahwitti (`lane/trout-nahwitti` 3e07b5f5d, not on this branch): run against its fixture, every vector and
+  drawn-once test passes, and its pool-less "Release all char" row is the table's. When it lands, run
+  `UPDATE_TROUT_A11Y=1` (or `sync.mjs`) once to add its rows to the a11y golden.
+- For the main chat: a payload text that ends in a full stop doubles it in the a11y join. The steelhead quiet line
+  "Steelhead are known to be in this water." reads "…water.. only 1 of these 4". Either Python drops the stop on
+  table texts, or the contract lets the join skip the separator after one.

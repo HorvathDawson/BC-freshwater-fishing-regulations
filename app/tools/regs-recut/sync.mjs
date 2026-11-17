@@ -12,6 +12,9 @@
 //   3. regs-fixture the committed fixture release app/packages/data/dev/regs-release/ (the waters taps.json names) AND
 //                   app/packages/data/dev/section-lines.json, cut from the same release's own `lines` file
 //   4. VM fixtures  app/packages/ui-native/src/regs/fixtures/*.json (UPDATE_REGS_FIXTURES=1, the conformance harness)
+//   5. trout a11y   app/fixtures/golden/trout-a11y.json (UPDATE_TROUT_A11Y=1, T810 N): each trout table row's screen-reader
+//                   label over the committed trout vectors (app/fixtures/trout/, which scripts/trout-refresh.sh writes
+//                   before it runs this), so the golden follows the vectors and is never edited by hand
 // Each step reads what the one before it wrote. Then `pnpm check`; commit the regenerated files with the release id in
 // the message. Nothing else is frozen: golden.json, pins.json, tokens.json and inventory.json were retired in T439.
 import { execFileSync } from 'node:child_process';
@@ -41,11 +44,14 @@ if (!fs.existsSync(py) || release === null) {
 // every step reads THIS release: the Python steps by --release, the vitest step by the suites' own variable
 const run = (cmd, a, env = {}) =>
   execFileSync(cmd, a, { cwd: REPO, stdio: ['ignore', 'inherit', 'inherit'], env: { ...process.env, RELEASE_DIR: release, ...env } });
-const step = (n, what) => console.log(`\nregs-recut ${n}/4: ${what} (${path.basename(release)})`);
+const step = (n, what) => console.log(`\nregs-recut ${n}/5: ${what} (${path.basename(release)})`);
 step(1, 'taps.json'); run(py, [path.join(HERE, 'taps.py'), '--release', release]);
 step(2, 'page-oracle.json'); run('node', [path.join(HERE, 'page-oracle.mjs'), '--release', release]);
 step(3, 'the fixture release + section-lines.json');
 run(py, ['-m', 'pipeline.deliver.release.regs_fixture', '--release', release]);
 step(4, 'the regs VM fixtures');
 run('pnpm', ['-C', APP, 'exec', 'vitest', 'run', 'conformance/src/regs/harness'], { UPDATE_REGS_FIXTURES: '1' });
+step(5, 'the trout a11y golden (from the trout vectors)');
+run('pnpm', ['-C', APP, 'exec', 'vitest', 'run', 'conformance/src/regs/trout.release.test.ts', '-t', 'screen-reader golden'],
+  { UPDATE_TROUT_A11Y: '1' });
 console.log('\nregs-recut: done. Next: pnpm -C app check, then commit the fixtures with the release id.');

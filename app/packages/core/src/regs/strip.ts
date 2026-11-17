@@ -36,6 +36,10 @@ export function bookIndex(d: Day): number {
 /** "Jun 15" (page fmtMd over a Day). */
 export const fmtDay = (d: Day): string => `${MONTHS[d.month - 1]} ${d.day}`;
 
+/** (T810 N) THE DAY PHRASE, one helper: "today" when the page's day is today, else "on Jul 15". The strip's "when"
+ *  line, the part-closed warning and the trout table's `{day}` slot all say the day with it (contract Q-D2). */
+export const dayPhrase = (day: Day, today: Day): string => (sameDay(day, today) ? WORDS.TODAY_LC : WORDS.ON_DAY(fmtDay(day)));
+
 /** The display frame of book day i: `inp.year.displayByDay` at the day's leap-calendar index (Feb 29 never asked). */
 export function displayOnBookDay(inp: RegsInputs, i: number): DisplayFrame | null {
   const d = BOOK_DAYS[((i % BOOK_YEAR) + BOOK_YEAR) % BOOK_YEAR]!;
@@ -150,7 +154,7 @@ export function stripOf(inp: RegsInputs, settled: Settled, card: CardModel, toda
 
   const line: { kind: "status" | "when" | "soon" | "soonOpen"; text: string }[] = [
     { kind: "status", text: !openNow ? WORDS.STRIP_CLOSED : partShut ? WORDS.STRIP_OPEN_EXCEPT : WORDS.STRIP_OPEN },
-    { kind: "when", text: (sameDay(day, today) ? WORDS.TODAY_LC : WORDS.ON_DAY(fmtDay(day)))
+    { kind: "when", text: dayPhrase(day, today)
       + (inp.year?.moments && daySegCount(inp.year.segStarts, day) > 1 ? WORDS.WEEKDAY_TAG(WD3[WEEKDAYS.indexOf(inp.weekday)]!) : "") },
   ];
   if (!openNow) {

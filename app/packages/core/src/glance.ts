@@ -7,7 +7,7 @@
  * (T227, owner 2026-10-28) A card that is one closed-all-year statement (Region 4's "no fishing for salmon … until
  * further notice") is a plain "closed" row with no Details: there is nothing more to see.
  */
-import type { GroupVM, TreeNodeVM } from "./regs/model";
+import type { GroupVM, TreeNodeVM, TroutVM } from "./regs/model";
 import { SALMON_WORDS, type SalmonBookVM, type SalmonCardVM } from "./salmon";
 
 export const GLANCE_WORDS = {
@@ -28,7 +28,10 @@ export interface GlanceRowVM {
   readonly thumb: string | null;
   readonly name: string;
   readonly value: string | null;
-  readonly tone: "keep" | "release" | "closed" | "nolimit";
+  /** (T810 N) "none": the trout table's fold tone as shipped (`Fold.tone`, nothing to keep), taken with no mapping */
+  readonly tone: "keep" | "release" | "closed" | "nolimit" | "none";
+  /** (T810 N) the trout fold's small date beside its value (`DateSet.fold`, "until Mar 31"), drawn as shipped. Absent: none. */
+  readonly date?: string;
   /** (T227) false: nothing more to see — a plain row, no "Details" (a water whose salmon are one closed-all-year line) */
   readonly fold?: boolean;
   /** (T759, owner 2026-11-15: "mark the folded row") the card carries a DFO issue banner: the folded row wears a small mark, so a banner inside is not missed. Absent: none. */
@@ -55,6 +58,19 @@ function thumbOf(nodes: readonly TreeNodeVM[]): string | null {
 /** A quota group's folded row: its title and picture, no count (owner 2026-10-28: a group's number misleads). */
 export function groupGlance(g: GroupVM): GlanceRowVM {
   return { source: "bc", thumb: thumbOf(g.tree ?? []), name: g.title, value: null, tone: "keep" };
+}
+
+/**
+ * (T810 N, behind the dev switch) THE TROUT AND CHAR ENTRY'S FOLDED ROW, from the trout table: its value, tone and date
+ * exactly as Python ships them (`Fold.value` "Up to 5", `Fold.tone`, `DateSet.fold`). The 2026-10-28 "a folded row says
+ * no count" rule is lifted for the trout fold only (owner 2026-11-16 15:47: "the better text like 2 or 4 with expand
+ * arrow"): the count is the table's own words, not a group's number. The picture: a rainbow trout where the table holds
+ * one, else its first fish.
+ */
+export function troutGlance(t: TroutVM): GlanceRowVM {
+  const fish = t.boxes.flatMap((b) => b.rows.map((r) => r.fish));
+  return { source: "bc", thumb: fish.includes("RB") ? "RB" : fish[0] ?? null, name: t.fold.name, value: t.fold.value, tone: t.fold.tone,
+           ...(t.fold.date !== null ? { date: t.fold.date } : {}) };
 }
 
 /**

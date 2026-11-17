@@ -368,6 +368,15 @@ waits for; the contract's list says where each landed, and its new 2.12 sums up 
 plus `trout` only when `meta.optional` holds it. `reads.trout` decodes the four families into `TroutValue`, and
 `RegsInputs.trout` carries it (null for a NULL cell, absent with no section). Details are in the T810 ticket.
 
+**Built 2026-11-17 (app chat, branch `app/t810-n`): N (contract items 6 and 9 behind the dev switch, and 10).**
+`core/src/regs/trout.ts` `troutOf` gives `TroutVM` or a reported refusal. It composes only the `{day}` slot (through
+`dayPhrase`, which the strip shares) and the a11y join. Its shape check refuses all 14 hand cases. The dev switch is
+`RegsPageOpts.troutTable`, off by default, so the page is unchanged. With it on: `KeepVM.trout`, one `"trout"` block,
+the other-fish split by `covers`, caveat (b) skipping covered fish, and the trout fold from `fold` / `DateSet.fold`.
+The tests are in `conformance/src/regs/trout.release.test.ts` (vectors, hand cases, a11y golden, drawn exactly once
+over every fixture cell, imports). Details, and one contract gap (a text ending in "." doubles the stop in the a11y
+join), are in the T810 ticket.
+
 **Owner answers this section is written to** (verbatim labels):
 - About 16:55 (app chat dialog): fold row "All rows get arrow"; pinned top line "Drop it (Recommended)" (S removes the
   trout pin line); a lone other fish beside trout "Stays as today (Recommended)"; the year bar's "Trout: release

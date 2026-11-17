@@ -39,13 +39,17 @@ export interface RegsPageOpts {
   readonly names?: PartNames | null;
   /** test-harness page id only — sheet keys never embed it (contracts §6 #1) */
   readonly pid?: string;
+  /** (T810 N) THE DEV SWITCH: draw the trout and char table (`KeepVM.trout`) in place of the old trout card where the
+   *  release holds the trout section. Default off: the page is today's, unchanged. Removed at the cutover (S). */
+  readonly troutTable?: boolean;
 }
 
 
 /** The whole page for one tap (T21: header + Keep). */
 export function buildRegsPage(inp: RegsInputs, opts: RegsPageOpts): RegsPage {
   const place = makePlace(inp), settled = settle(inp, place), card = buildModel(inp, place, settled);
-  const env = { place, settled, card, fish: opts.fish ?? FISH, today: opts.today, tot: opts.tot ?? "a" } as const;
+  const env = { place, settled, card, fish: opts.fish ?? FISH, today: opts.today, tot: opts.tot ?? "a",
+                ...(opts.troutTable ? { troutTable: true } : {}) } as const;
   const keep = keepOf(inp, env);
   // (T42) the edge decides the status word: outside / tidal from the stored key and frame, else the strip's reading
   const edge = edgeKind(inp);
