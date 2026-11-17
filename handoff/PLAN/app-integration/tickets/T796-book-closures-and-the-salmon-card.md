@@ -171,3 +171,29 @@ on r-685b700b2802's own inputs (bundle + stored verdicts), the salmon step alone
     unless opened under the National Parks Fishing Regulations (p.9): …  Where open, anglers require a National Park
     Fishing Permit." — words only. (2) keep as now. (3) not on the salmon card: DFO's words return (0 answers today; an
     in-season DFO opening in a park would read open beside a closed page).
+
+## Owner answers built (lane/salmon-hardcases-1116, 2026-11-16 evening)
+Owner (OWNER-TODO 17:44, 17:46): W1 Campbell "Keep it closed" (no change); S1 Thompson June kept closed (GOTCHAS, no
+change); S3 "take out the lakes but add a note", streams "Keep E8 as is (Recommended)"; X2 "Closed, book's wording
+(Recommended)".
+- S3: `area_closures.json` `outside_items` names the nine (Cold Fish Lake `wbk:329529449`; the eight with no item of
+  their own by section handle `lake:<wbk>`, which `registry.outside_area_items` now takes — never a creek's item).
+  `bundle.outside_note` writes `section_note` (one sentence per section, said once, Python's words: "Mostly outside
+  Gladys Lake Ecological Reserve: its closure (rule book p.9) does not apply here."); the release ships it in `core`
+  (additive, core/1). Kennedy Lake (Pacific Rim, Z11) carries the note too. FOR THE APP CHAT: show `core.section_note`
+  on the section's page (both cards); regenerate `pack.generated.ts` (`python -m pipeline.tools.emit.pack`).
+- Rebuild: no atlas rebuild — the live atlas with only registry.json rewritten by `outside_area_items` (the full
+  sidecars step on the lane also refolded 40 ponds into 21 unnamed `blk:` items, unrelated, so it was not used), then
+  reach (5 of 3,402 rules changed: the 9 lakes leave superior_closures r1/r1b/r3, national_park_reserves r1, Chilkoot
+  r1), then `pipeline.deliver all` into scratch (DFO typed feed retyped at format 4, equal to the candidate's).
+- X2: a closure "unless opened under …" heads "Closed by the rule book unless opened under the National Parks Fishing
+  Regulations (p.9)" and keeps "Where open, anglers require a National Park Fishing Permit."
+- Tests: `test_t796_outside_lakes.py` (4), `test_t796_book_lines.py::test_a_conditional_closure_says_its_proviso`.
+- Built in scratch (not promoted): r-5f164411716e, candidate-2 against r-685b700b2802 (`pipeline.tools.audit.answers_diff`):
+  93 groups. OPENS (33 groups, 69 section-changes): the 9 lakes and ponds open for trout (whole-water closure lifted,
+  zone quotas apply) and for salmon where DFO opens (coho/chinook on Cold Fish Lake, the Cormier and Will Creek ponds,
+  the Gwaii Haanas, Tow Hill, Drizzle and Chilkoot ponds); 3 size and 2 licence groups follow from the same lakes (the
+  Gwaii Haanas ponds need a provincial licence, no national park permit). WORDING ONLY (47 groups): the book lines
+  (S2/S4/X3/S1 lifts, as listed earlier) and X2 on 6,934 sections, plus one group NOT from this lane's changes: 4,762
+  Kitimat-area sections' quota-tree sentences (T793's words; the candidate's regs files were the live build's, this
+  release's are the lane code's). Notes: 10 sections in `core.section_note` (the 9 + Kennedy Lake).
