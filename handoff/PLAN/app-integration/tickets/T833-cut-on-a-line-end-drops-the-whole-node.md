@@ -31,3 +31,10 @@ end before promoting (memory: split-fix-changes-trib-walk). Then restore the cut
   r4-r9 (downstream of Vedder Crossing) 32 -> 1,816. NOT shippable. Candidate: a junction within `tolerances.STUB_M`
   (100 m, the continuation rule's "B's line may go on this far above A's mouth") counts as at the cut's point;
   the Gitnadoix's nearest non-mouth junction is 520 m.
+- 2026-11-17 06:02 (main chat call, dad1dea26): STUB_M adopted — a junction within `tolerances.STUB_M` (100 m, as
+  `bundle.continuation`) of an end cut is at its point; POLICY_VERSION stays 46. Reach-only rerun on rebuild3's atlas
+  (scratch rebuild3b): province binding diff vs rebuild2 is EMPTY (rules, DFO places, licensing; unresolved identical);
+  Chilliwack-Vedder r3-r9 back to 284 / 32; the Gitnadoix coho place binds 1,000 = its `whole` place.
+  Deliver r-e5b7b1527bbf: card check 0, vintage agrees, paint sync + name check pass, size gates clean. Answers diff vs
+  rebuild2 r-101acd988438: 0 groups, one release-wide wording (gnis:3508 part name now reads from the powerline
+  crossing); vs live and vs salmon: the same 966 / 168 groups as rebuild2. Not promoted.
