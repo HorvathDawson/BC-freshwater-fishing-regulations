@@ -38,6 +38,7 @@ export * from "./waterbook";
 export * from "./edge";
 export * from "./pins";
 export * from "./sheets";
+export * from "./sheets/trout";
 export * from "./page";
 export * from "./level";
 export * from "./gear";

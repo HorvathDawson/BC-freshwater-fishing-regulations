@@ -17,6 +17,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import {
   buildModel, buildRegsPage, drawnRows, listRows, makePlace, segmentIndex, setFailureSink, settle, tableCovers, tapDay, troutOf,
   TROUT_NAV, TroutRefused, type RegsInputs, type RegsPage, type RuleIndex, type TroutValue, type TroutVM,
+  FISH, FISH_TIPS, TROUT_SHEET, TROUT_SOURCES_KEY, troutFishSheet, TroutLooksMissing, type SheetBlock, type SheetVM,
 } from "@app/core";
 import { openTroutFixture, TROUT_FIXTURE_ROOT } from "@app/data/release/node";
 import { loadRegsInputs, openRegsStore, targetFor, type RegsStore } from "@app/data/regs";
@@ -336,5 +337,86 @@ describe("T810 N: trout.ts imports no rule logic", () => {
       `import * as G from "./grouphead";`,
       `import "./tree";`,
     ]) expect(importProblems(`${planted}\n${src}`), planted).not.toEqual([]);
+  });
+});
+
+// ── (T810 P) the fish sheet ─────────────────────────────────────────────────────────────────────────────────────────────
+
+/** A sheet's blocks between the head `from` and the next head (the section's body). */
+function section(vm: SheetVM, from: string): SheetBlock[] {
+  const i = vm.blocks.findIndex((b) => b.k === "head" && b.text === from);
+  if (i < 0) return [];
+  const j = vm.blocks.findIndex((b, k) => k > i && b.k === "head");
+  return vm.blocks.slice(i + 1, j < 0 ? undefined : j);
+}
+const lineOf = (b: SheetBlock): string => ("text" in b && Array.isArray(b.text) ? b.text.map((r) => ("s" in r ? r.s : "")).join("") : "");
+/** The rule keys a sheet's Sources block lists, in its order. */
+const sourceKeys = (bs: readonly SheetBlock[]): (string | null)[] =>
+  bs.flatMap((b) => (b.k === "sources" ? b.groups.flatMap((g) => g.rows.map((r) => r.key)) : []));
+const linksOf = (vm: SheetVM): string[] =>
+  vm.blocks.flatMap((b) => (b.k === "source" ? b.line.flatMap((r) => (r.t === "link" && typeof r.open === "string" ? [r.open] : [])) : []));
+const ascending = (xs: readonly number[]) => xs.every((x, i) => i === 0 || xs[i - 1]! < x);
+
+describe("T810 P: the trout fish sheet over every vector (dev switch on)", () => {
+  it("every fish of every vector opens its sheet, built only from the payload, every rule list in Python's order", async () => {
+    let rows = 0, unsortedSheet = 0, unsortedTable = 0, twins = 0;
+    for (const c of V.cases) {
+      if (!c.frame) continue;
+      const inp = await inputsOfCase(c), page = pageOf(inp, true);
+      expect(page.keep.trout?.kind, c.name).toBe("table");
+      const f = c.frame.table, keyOf = (ix: number) => inp.rules.get(ix).key;
+      for (const b of f.boxes) for (const r of b.rows) {
+        const at = `${c.name} ${r.key}`, vm = page.sheet(`tf:${r.key}`);
+        expect(vm, at).not.toBeNull();
+        if (!vm) continue;
+        rows++; if (r.key.includes("/")) twins++;
+        // the header: the row's name, its label or origin word as on the row, the sheet's head (bold, first)
+        expect([vm.key, vm.title, vm.sub, vm.blocks[0]], at).toEqual([`tf:${r.key}`, r.name, r.label ?? b.label ?? r.origin,
+          { k: "value", text: [{ t: "text", s: r.sheet.head }] }]);
+        // Here, today: `here` in order, bold where bold, then the coming change (DateSet.sheet); nothing else
+        const here = section(vm, TROUT_SHEET.HERE).map((x) => [lineOf(x), x.k === "value"]);
+        expect(here, at).toEqual([...r.sheet.here.map((l) => [l.t, l.bold]), ...(c.frame.dates?.sheet[r.key] ?? []).map((s) => [s, false])]);
+        // How to tell it: the manifest's pictures (Dolly Varden: both), the tips, the hatchery link where the row says so
+        const tell = section(vm, TROUT_SHEET.TELL);
+        expect(tell.filter((x) => x.k === "image").length, at).toBe(FISH[r.fish]!.length);
+        expect(tell.flatMap((x) => (x.k === "list" ? x.items.map((i) => lineOf({ k: "para", text: i.line })) : [])), at).toEqual(FISH_TIPS[r.fish]);
+        expect(linksOf(vm).includes("hatch"), at).toBe(r.origin !== null || r.label !== null || b.label !== null);
+        // Sources: `FishSheet.src` exactly, then "All sources ›" (the table's every rule)
+        expect(sourceKeys(section(vm, TROUT_SHEET.SOURCES)), at).toEqual(r.sheet.src.map(keyOf));
+        expect(r.sheet.src.length, at).toBeLessThanOrEqual(4);
+        expect(linksOf(vm).at(-1), at).toBe(TROUT_SOURCES_KEY);
+        if (!ascending(r.sheet.src)) unsortedSheet++;
+      }
+      const all = page.sheet(TROUT_SOURCES_KEY);
+      expect([all?.title, sourceKeys(all?.blocks ?? [])], c.name).toEqual([TROUT_SHEET.SOURCES, f.src.map(keyOf)]);
+      if (!ascending(f.src)) unsortedTable++;
+      // a key the table does not hold opens nothing; the switch off opens no trout sheet
+      const held = new Set(f.boxes.flatMap((b) => b.rows.map((r) => r.key)));
+      const absent = ["CT", "DV", "EB", "GB", "LT", "RB", "ST"].flatMap((x) => [x, `${x}/wild`, `${x}/hatchery`]).find((k) => !held.has(k))!;
+      expect(page.sheet(`tf:${absent}`), c.name).toBeNull();
+      const off = pageOf(inp, false);
+      expect([off.sheet(`tf:${f.boxes[0]!.rows[0]!.key}`), off.sheet(TROUT_SOURCES_KEY)], c.name).toEqual([null, null]);
+    }
+    expect(rows).toBeGreaterThan(100);
+    expect(twins).toBeGreaterThan(0);
+    // the order guard bites: Python's order is not ascending somewhere, so an app that sorted would fail above
+    expect([unsortedSheet > 0, unsortedTable > 0]).toEqual([true, true]);
+    expect(reports).toEqual([]);
+  });
+
+  it("every fish code of the vectors has a picture and tips (a missing one is listed here, and reported on the sheet)", () => {
+    const codes = new Set(V.cases.flatMap((c) => c.frame?.table.boxes.flatMap((b) => b.rows.map((r) => r.fish)) ?? []));
+    expect(codes.size).toBeGreaterThan(4);
+    expect([...codes].filter((x) => !FISH[x]?.length).map((x) => `${x}: no picture`)).toEqual([]);
+    expect([...codes].filter((x) => !FISH_TIPS[x]?.length).map((x) => `${x}: no tips`)).toEqual([]);
+    expect(FISH.DV!.length).toBe(2);   // Dolly Varden and bull trout, both drawn
+  });
+
+  it("a fish the manifest lacks is reported, never drawn as a blank section", async () => {
+    const c = V.cases.find((x) => x.frame)!, inp = await inputsOfCase(c), t = pageOf(inp, true).keep.trout as TroutVM;
+    const r = t.boxes[0]!.rows[0]!;
+    const vm = troutFishSheet(`tf:${r.key}`, t, r.key, inp.rules, {});
+    expect(vm!.blocks.some((b) => b.k === "image")).toBe(false);
+    expect(reports.map((e) => [(e as TroutLooksMissing).fish, (e as TroutLooksMissing).what])).toEqual([[r.fish, "picture"]]);
   });
 });

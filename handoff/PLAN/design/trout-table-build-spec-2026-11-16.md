@@ -386,6 +386,14 @@ The switch is `EXPO_PUBLIC_TROUT_TABLE=1`. Off, the tab is today's. The a11y joi
 amended). `help.ts` is left to T842. Item 12 (notes): none, per Q-D7. Until P, a row's picture opens `sp:<fish>`.
 Details are in the T810 ticket.
 
+**Built 2026-11-17 (app chat, branch `app/t810-p`): P (the fish sheet, behind the dev switch).** Keys `tf:<row key>`
+(the "/" parses) and `src:trout`; a `tf:` key has no state id in the golden bridge. `core/src/regs/sheets/trout.ts`
+builds both from the payload only: title = `name`, sub = the label or origin word as on the row, then `FishSheet.head`;
+"Here, today" = `here` (bold where `bold`) then `DateSet.sheet[key]`; "How to tell it" = the manifest's pictures (both
+for DV), `FISH_TIPS`, the hatchery link on a row with an origin or a label; "Sources" = `FishSheet.src` in its order,
+then "All sources ›" = `table.src`. No list is sorted, merged or cut. TroutCard's row picture opens `tf:<row key>` and
+"Sources ›" opens `src:trout`. No new sheet block kind. Details are in the T810 ticket.
+
 **Owner answers this section is written to** (verbatim labels):
 - About 16:55 (app chat dialog): fold row "All rows get arrow"; pinned top line "Drop it (Recommended)" (S removes the
   trout pin line); a lone other fish beside trout "Stays as today (Recommended)"; the year bar's "Trout: release

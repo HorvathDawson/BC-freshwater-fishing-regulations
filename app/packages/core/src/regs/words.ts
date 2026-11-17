@@ -426,6 +426,14 @@ export const TROUT_NAV = Object.freeze({
   MORE: "›",
 } as const);
 
+/** (T810 P) the trout fish sheet's section heads and its link to the table's every rule (app words; none states a rule). */
+export const TROUT_SHEET = Object.freeze({
+  HERE: "Here, today",
+  TELL: "How to tell it",
+  SOURCES: "Sources",
+  ALL_SOURCES: "All sources ›",
+} as const);
+
 /** "Mon" … "Sun" (Monday first, as the calendar). */
 export const WD3: readonly string[] = WEEKDAYS.map((w) => w.slice(0, 3));
 /** "J", "F", … — the strip's month initials. */
@@ -544,6 +552,8 @@ export const ALL_WORDS: ReadonlySet<string> = new Set([
   ...licWords(),
   // (T810 N) the trout table's navigation words
   ...deepWords(TROUT_NAV),
+  // (T810 P) the trout fish sheet's heads
+  ...deepWords(TROUT_SHEET),
 ]);
 
 /** The words of a Line that are not data: text and link words, and the fixed words of term and book runs. Numbers are

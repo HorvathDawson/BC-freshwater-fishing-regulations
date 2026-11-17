@@ -11,7 +11,7 @@
  *
  * Built: `rule:`, `gl:` (one term or several), `pos:pos`, `hatch` (part 1), `share:` (T475: the headline's ⓘ — like `src:`,
  * a row's own sheet, no golden key); `srcs:`, `src:`, `sp:`, `other:`
- * (part 2: sheets/sources.ts, sheets/fish.ts, sheets/other.ts). No `parts`: the Parts sheet is removed (T698, owner
+ * (part 2: sheets/sources.ts, sheets/fish.ts, sheets/other.ts); (T810 P) `tf:` and `src:trout` (sheets/trout.ts). No `parts`: the Parts sheet is removed (T698, owner
  * 2026-11-12 "Remove the screen"; the water's Map view lists its parts by name).
  */
 import { ruleBook, ruleBookLine } from "./book";
@@ -27,6 +27,8 @@ import type { TreeTier } from "../answers.generated";
 import { srcSheet, srcsSheet } from "./sheets/sources";
 import { fishSheet } from "./sheets/fish";
 import { otherSheet } from "./sheets/other";
+import { TROUT_SOURCES_KEY, troutFishSheet, troutSourcesSheet } from "./sheets/trout";
+import { fmtDay } from "./strip";
 
 const para = (s: string, tone?: "small" | "note" | "mono"): SheetBlock => (tone ? { k: "para", text: [text(s)], tone } : { k: "para", text: [text(s)] });
 
@@ -163,6 +165,13 @@ export function sheetOf(ctx: SheetCtx, key: SheetKey): SheetVM | null {
   if (key === "pos:pos") return possessionSheet(key, ctx);
   if (key === "hatch") return hatchSheet(key, ctx.inp);
   if (key.startsWith("srcs:")) return srcsSheet(ctx, key);
+  if (key.startsWith("tf:") || key === TROUT_SOURCES_KEY) {
+    // (T810 P) the trout table's sheets: only where today's table is drawn (the dev switch on, a table, not refused)
+    const t = ctx.page.keep.trout;
+    if (t?.kind !== "table") return null;
+    if (key === TROUT_SOURCES_KEY) return troutSourcesSheet(key, t, ctx.inp.rules, `${ctx.page.header.name}${WORDS.DOT}${fmtDay(ctx.page.day)}`);
+    return troutFishSheet(key, t, key.slice(3), ctx.inp.rules, ctx.env?.fish);
+  }
   if (key.startsWith("src:r")) return srcSheet(ctx, key, +key.slice(5));
   if (key.startsWith("share:r")) return shareSheet(key, ctx, +key.slice(7));
   if (key.startsWith("multi:r")) return multiSheet(key, ctx, +key.slice(7));

@@ -115,7 +115,15 @@ describe("(T810 O) the links and the presses", () => {
     fireEvent.click(screen.getByTestId("trout-hatch"));
     fireEvent.click(screen.getByTestId("trout-sources"));
     fireEvent.click(screen.getByTestId("pic:ST"));
-    expect(sheets).toEqual(["hatch", `src:r${t.covers[0]}`, "sp:ST"]);
+    fireEvent.click(screen.getByTestId("pic:RB"));
+    // (T810 P) a row opens its own fish sheet (the row key, "/" and all); Sources the table's every rule
+    expect(sheets).toEqual(["hatch", "src:trout", "tf:ST", "tf:RB"]);
+    cleanup();
+    const twin = CASES.map(vmOf).find((x) => x.boxes.some((b) => b.rows.some((r) => r.key.includes("/"))))!;
+    const tk = twin.boxes.flatMap((b) => b.rows).find((r) => r.key.includes("/"))!.key;
+    const m = mount(twin);
+    fireEvent.click(screen.getByTestId(`pic:${tk}`));
+    expect(m.sheets).toEqual([`tf:${tk}`]);
   });
 
   it("every press reaches 44 × 44: the links and each row's picture", () => {

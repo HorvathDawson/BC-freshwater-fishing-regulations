@@ -293,3 +293,31 @@ Follow-up asked: does T3a (Lardeau, Duncan lift) stand.
   (`GROUPS`) would count the table's box as a group, so R must re-aim them. (3) The table has no kicker of its own
   (spec 3.1). O draws the entry's navigation name only when no fold heads the table.
 - Shots (web export, switch on, 390, light and dark), from side release r-82ee8b53bdcd: scratch `t810-o-shots/`.
+
+## 2026-11-17 16:00: P built (app chat, branch app/t810-p, on O)
+- Keys: `tf:<row key>` (`tf:ST`, `tf:ST/hatchery`: `sheetKey.ts` parses the "/" by trout.ts's RowKey pattern) and
+  `src:trout` (the table's every rule). The golden bridge: a `tf:` key carries no state id, as `sp:` (`appKeyOf` passes it
+  through); `src:trout` is `src:<sid>|trout`, as a row's `src:r<i>`.
+- `core/src/regs/sheets/trout.ts` builds both from the payload only (`sheets.ts` routes them; null unless today's table is
+  drawn, so the switch off opens none). The fish sheet: title = the row's `name`; sub = its label, else the box's label,
+  else its origin word, as on the row; first block = `FishSheet.head` (bold). "Here, today": `here` in order, bold where
+  `bold` (a `value` block, else `para`), then `DateSet.sheet[key]` (small). "How to tell it": the manifest's pictures
+  (both for Dolly Varden / bull trout), `FISH_TIPS`, and "How to tell a hatchery fish ›" (`hatch`) on a row with an origin
+  or a label (its own or its box's). "Sources": `FishSheet.src`, one row per index in Python's order (title, the book's
+  words, Rule book pages; opens `rule:`), then "All sources ›" (`src:trout`: `TroutTable.src` in its order). Nothing is
+  sorted, merged or cut. A fish with no picture or no tips is reported (`TroutLooksMissing` through `reportFailure`).
+  No new block kind: `SheetBody` is unchanged. The app words are `TROUT_SHEET` (words.ts): "Here, today", "How to tell
+  it", "Sources", "All sources ›". `sheets/fish.ts` shares its picture blocks (`imageBlocks`).
+- TroutCard: a row's picture now opens `tf:<row key>`; "Sources ›" opens `src:trout`.
+- Tests: `conformance/src/regs/trout.release.test.ts` "T810 P" (every fish of every vector opens through the page; the
+  header, here + coming, pictures, tips, hatch link, `src` keys in order and `table.src` in order, each against the frame;
+  Python's order is not ascending somewhere, so a sorting app fails; the switch off and an absent key open nothing; every
+  vector fish code has a picture and tips; a missing picture is reported). `SheetHost.test.tsx` (a hatchery-only steelhead
+  sheet: heading, sub, bold only where bold, sources order, the three links, the `src:trout` sheet, Done / scrim / flick
+  close). `sheetKey.test.ts` (keys, refusals, bridge). `TroutCard.test.tsx` (the re-aimed presses, a twin key). 14
+  mutants (key "/", `src:trout`, sorted, cut, wrong list, bold, coming, head, sub, hatch link, one picture, unreported
+  picture, both TroutCard presses), each killed.
+- Choices to confirm: the pictures sit under "How to tell it" (the brief), not in the header (spec 3.4 lists a picture in
+  the header). The hatchery sheet is a link, not the clipped-fin drawing inline. The row picture's spoken name is still
+  "<name> — what it looks like" though it now opens the whole fish sheet.
+- Shots (web export, switch on, 390, light and dark), from side release r-82ee8b53bdcd: scratch `t810-p/`.

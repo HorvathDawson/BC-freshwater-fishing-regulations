@@ -11,14 +11,13 @@
  * word (`ShutGroup`), the all-together line, the year bar when `year` is set, then "Sources ›" and, only when `elsewhere`
  * holds lines, "Fished elsewhere today? ›", which unfolds them in place.
  *
- * Presses (until ticket P's fish sheet): a row's picture opens the fish's existing sheet (`sp:<fish>`, its looks and
- * tips); the hatchery link opens the existing "Hatchery or wild?" sheet (`hatch`); "Sources ›" opens the existing
- * every-rule sheet of today's trout row (`src:r<first covered row>`). P re-aims the row at `tf:<row key>` and Sources at
- * the table's `src`.
+ * Presses (T810 P): a row's picture opens the row's fish sheet (`tf:<row key>`: its answer, "Here, today", how to tell it,
+ * its sources); the hatchery link opens the existing "Hatchery or wild?" sheet (`hatch`); "Sources ›" opens the table's
+ * every rule (`src:trout`, `TroutTable.src` in Python's order).
  */
 import { useState } from "react";
 import { PixelRatio, View, useWindowDimensions } from "react-native";
-import { TROUT_NAV, WORDS, type TroutBoxVM, type TroutRowVM, type TroutVM } from "@app/core";
+import { TROUT_NAV, TROUT_SOURCES_KEY, WORDS, type TroutBoxVM, type TroutRowVM, type TroutVM } from "@app/core";
 import { Text } from "../Text";
 import { TYPE } from "../type";
 import { GUTTER, type Palette } from "../theme";
@@ -37,7 +36,7 @@ function rowOf(r: TroutRowVM, actions: KeepActions, images: FishImages | undefin
   return {
     key: r.key, name: r.name, label: r.label, sub: r.sub, lines: r.lines, quiet: r.quiet, date: r.date, origin: r.origin, a11y: r.a11y,
     pic: { source: images?.[r.fish]?.[0]?.thumb, more: TROUT_NAV.MORE, label: WORDS.LOOKS_LIKE(r.name), testID: `pic:${r.key}`,
-           onPress: () => actions.onSheet(`sp:${r.fish}`) },
+           onPress: () => actions.onSheet(`tf:${r.key}`) },
   };
 }
 
@@ -84,7 +83,7 @@ export function TroutCard({ t, palette, actions, images, kicker = false, todayAt
       {t.together && <Text selectable testID="trout-together" style={[TYPE.regsBodyBold, { color: palette.ink, marginTop: 10 }]}>{t.together.text}</Text>}
       {t.year && <TroutYearBar year={t.year} palette={palette} todayAt={todayAt} months={months} />}
       <View testID="trout-links" style={{ marginTop: 8, flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", columnGap: 16 }}>
-        {link(t.sourcesLink, "trout-sources", () => { if (t.covers[0] !== undefined) actions.onSheet(`src:r${t.covers[0]}`); })}
+        {link(t.sourcesLink, "trout-sources", () => actions.onSheet(TROUT_SOURCES_KEY))}
         {t.elsewhereLink && link(t.elsewhereLink, "trout-elsewhere", () => setAway(!away), away)}
       </View>
       {t.elsewhereLink && away && (
