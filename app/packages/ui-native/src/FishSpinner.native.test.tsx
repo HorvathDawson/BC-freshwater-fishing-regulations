@@ -4,9 +4,8 @@
  * comes to the front, on the view's first layout, and when a loop ends that nothing here stopped (a dropped loop).
  *
  * The native animation driver does not exist under jsdom, so `Animated.timing` and `AppState` are stand-ins that record
- * what was started, stopped and listened for; the view's `onLayout` is taken off the spinner's own view. Under Reduce
- * Motion nothing is started, and the owner's still icon (`./stillIcon`, null until it arrives) takes the fish's place on
- * both halves.
+ * what was started, stopped and listened for; the view's `onLayout` is taken off the spinner's own view. (Owner
+ * 2026-11-17) Reduce Motion stops nothing: the fish swims whatever it says.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, render } from "@testing-library/react";
@@ -19,10 +18,8 @@ const h = vi.hoisted(() => ({
   runs: [] as Run[],
   app: { state: "active", on: null as ((s: string) => void) | null },
   layouts: [] as (() => void)[],
-  icon: null as string | null,
 }));
 
-vi.mock("./stillIcon", () => ({ get STILL_ICON() { return h.icon; } }));
 vi.mock("react-native", async (orig) => {
   const rn = await orig<typeof import("react-native")>();
   const { createElement, forwardRef } = await import("react");
@@ -48,7 +45,6 @@ vi.mock("react-native", async (orig) => {
 });
 
 const { FishSpinner } = await import("./FishSpinner.native");
-const { FishSpinner: FishSpinnerWeb } = await import("./FishSpinner.web");
 
 declare const setReduceMotion: (on: boolean) => void;
 
@@ -57,7 +53,7 @@ const flush = () => act(async () => { await Promise.resolve(); });
 const app = (s: string) => act(() => { h.app.state = s; h.app.on?.(s); });
 
 beforeEach(() => {
-  h.runs.length = 0; h.layouts.length = 0; h.app.state = "active"; h.app.on = null; h.icon = null;
+  h.runs.length = 0; h.layouts.length = 0; h.app.state = "active"; h.app.on = null;
   vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
 });
 afterEach(() => { cleanup(); setReduceMotion(false); vi.useRealTimers(); });
@@ -123,29 +119,13 @@ describe("<FishSpinner> native (T814)", () => {
     expect([h.runs.length, live().length, h.app.on]).toEqual([2, 0, null]);
   });
 
-  it("under Reduce Motion nothing runs, on layout or in front, and the fish's frame stands in for the still icon", async () => {
+  it("under Reduce Motion it swims all the same (owner 2026-11-17: \"we will ignore reduced motion for this\")", async () => {
     setReduceMotion(true);
     const { container } = render(<FishSpinner palette={LIGHT} />);
     await flush();
-    act(() => h.layouts.at(-1)?.());
+    expect([live().length, !!container.querySelector("[data-testid='fish-sprite']")]).toEqual([2, true]);
+    act(() => h.layouts.at(-1)!());
     app("active");
-    expect(live().length).toBe(0);
-    expect([!!container.querySelector("[data-testid='fish-sprite']"), !!container.querySelector("[data-testid='fish-still']")])
-      .toEqual([true, false]);
-  });
-
-  it("the owner's still icon, once it exists, takes the still fish's place on both halves; a moving fish is the fish", async () => {
-    h.icon = "data:image/png;base64,AAAA";
-    setReduceMotion(true);
-    const still = [render(<FishSpinner palette={LIGHT} />), render(<FishSpinnerWeb palette={LIGHT} />)];
-    await flush();
-    expect(still.map(({ container: c }) => [!!c.querySelector("[data-testid='fish-still']"),
-                                            !!c.querySelector("[data-testid='fish-sprite']")]))
-      .toEqual([[true, false], [true, false]]);
-    cleanup();
-    setReduceMotion(false);
-    const moving = [render(<FishSpinner palette={LIGHT} />), render(<FishSpinnerWeb palette={LIGHT} />)];
-    await flush();
-    expect(moving.map(({ container: c }) => !!c.querySelector("[data-testid='fish-still']"))).toEqual([false, false]);
+    expect(live().length).toBe(2);
   });
 });

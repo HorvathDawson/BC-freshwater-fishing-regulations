@@ -10,10 +10,15 @@
  *
  * `tools/one-spinner.test.ts` fails on a `FishSpinner` used anywhere but here, an `ActivityIndicator`, or a hand-made
  * turning loop.
+ *
+ * (T814, owner 2026-11-17) `coho`: the owner's linocut coho (`CohoLoader`) in the circling fish's place — on the start,
+ * download and setup screen and the applying curtain only ("it will still be used for all other loading").
  */
 import { useEffect, useRef, useState } from "react";
 import { View, type ViewStyle } from "react-native";
 import { FishSpinner } from "./FishSpinner";
+import { CohoLoader } from "./CohoLoader";
+import { cohoHeight } from "./coho";
 import type { Palette } from "./theme";
 import { now } from "@app/core";
 
@@ -58,8 +63,9 @@ export function useDelayedShow(busy: boolean, { immediate = false }: { immediate
  * The spinner (and what goes beside it: a caption, a progress line) in a box of the caller's style. `shown` from the
  * caller's `useDelayedShow` (its hold); absent, it times its own delay from when it mounted.
  */
-export function LoadingState({ palette, size = 96, label, colour, style, shown, immediate = false, children }: {
+export function LoadingState({ palette, size = 96, label, colour, style, shown, immediate = false, coho = false, children }: {
   palette: Palette;
+  /** the circling fish's side; the coho's width (its height follows) */
   size?: number;
   /** said aloud */
   label?: string;
@@ -68,14 +74,19 @@ export function LoadingState({ palette, size = 96, label, colour, style, shown, 
   style?: ViewStyle;
   shown?: boolean;
   immediate?: boolean;
+  /** (T814) the coho loader instead of the circling fish: the start screen and the curtain only */
+  coho?: boolean;
   /** drawn after the spinner, with it: a caption */
   children?: React.ReactNode;
 }) {
   const own = useDelayedShow(true, { immediate });
   const on = shown ?? own.shown;
+  const said = label !== undefined ? { label } : {};
   const spinner = on
-    ? <FishSpinner palette={palette} size={size} {...(label !== undefined ? { label } : {})} {...(colour ? { colour } : {})} />
-    : <View testID="loading-held" style={{ width: size, height: size }} />;
+    ? coho
+      ? <CohoLoader palette={palette} width={size} {...said} />
+      : <FishSpinner palette={palette} size={size} {...said} {...(colour ? { colour } : {})} />
+    : <View testID="loading-held" style={{ width: size, height: coho ? cohoHeight(size) : size }} />;
   if (!style && children === undefined) return spinner;
   return <View testID={on ? "loading-state" : undefined} style={style}>{spinner}{on ? children : null}</View>;
 }

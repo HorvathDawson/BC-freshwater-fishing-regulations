@@ -69,7 +69,7 @@ One app, one component set — and where the two platforms really differ, the di
   refused except in `INLINE_ALLOWED` (each file, its count and why). A new branch is a new pair, not a new line there.
 
 Where it lives today: `ui-native/src` (`escapeBack`, `escapeCloses`, `searchFocus`, `touchDevice`, `connectivity`,
-`chartInput`, `windowSize`, `announce`, `swipeActivation`, `partAsk`, `FishSpinner`, `WindowInset`; `regs/` `PdfViewer`,
+`chartInput`, `windowSize`, `announce`, `swipeActivation`, `partAsk`, `FishSpinner`, `CohoLoader`, `WindowInset`; `regs/` `PdfViewer`,
 `synopsisPdf`; `menu/openOfficial`; `shell/prewarm`), `map/src` (`Map`, `tile-ids`), `data/src` (the
 release drivers, the spots stores), `apps/mobile/src` (`appUpdater`, `envStore`, `locate`, `memoryTrim`, `notify`,
 `pickPhoto`, `share`, `startLink`, `systemBack`). The SEO site's own tools are `tools/seo/` (web only by nature).

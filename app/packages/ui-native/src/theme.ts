@@ -40,6 +40,11 @@ export interface Palette {
   /** Live-feed accent. Distinct from `accent`, which means "you chose this". */
   live: string;
   /**
+   * (T814) THE COHO LOADER (start screen, curtain): `color.ui.coho.*`. `ink` and `red` are printed into its sprite sheet
+   * (`pnpm coho:build`), never tinted, and pick which sheet (`cohoSheet`); `ground` is drawn behind it.
+   */
+  coho: { ink: string; red: string; ground: string };
+  /**
    * ATTENTION, NOT A WATER'S STATUS — `color.ui.attention`: the sync icon's needs-a-refresh dot and a source's
    * "likely out of date" badge. It sits a few pixels from water drawn in the status colours, so it is none of them
    * (it was `closed`, and a red dot over the map read as "closed"); `theme.test.ts` holds it ΔE-clear of every status.
@@ -277,6 +282,7 @@ export function paletteFor(theme: string): Palette {
     ...statusColours(theme),
     quiet: c("color.ui.quiet"), accent: c("color.ui.accent"), onAccent: c("color.ui.on-accent"),
     live: c("color.ui.live"), attention: c("color.ui.attention"),
+    coho: { ink: c("color.ui.coho.ink"), red: c("color.ui.coho.red"), ground: c("color.ui.coho.ground") },
     spot: { mark: c("color.ui.spot"), ground: c("color.ui.spot-ground") },
     place: c("color.label.place"), placeBand: c("color.ui.place-band"),
     warning: c("color.ui.warning"),
