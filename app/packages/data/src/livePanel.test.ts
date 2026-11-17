@@ -23,7 +23,8 @@ const m = (station: string, areaKm2: number, years: number, extra: { lead?: numb
 const PANEL: Panel = { areaKm2: 100, members: [m("A", 100, 40), m("B", 2000, 40), m("C", 20, 40, { sameRiver: false })] };
 const W = { A: weightFor(1, "up", 40), B: weightFor(100 / 2000, "up", 40), C: weightFor(20 / 100, "up", 40, false) };
 
-type Row = { percentile: number; parameter?: "discharge" | "level"; discharge?: number; level?: number };
+type Row = { percentile: number; parameter?: "discharge" | "level"; discharge?: number; level?: number;
+             reports?: ("discharge" | "level")[] };
 const flow = (p: number): Row => ({ percentile: p, parameter: "discharge", discharge: p });
 const feed = (stations: Record<string, Row>) => ({ stations });
 
@@ -119,6 +120,18 @@ describe("a panel whose members are all silent", () => {
     const mixed = answerFrom(PANEL, feed({ A: mission, B: flow(0.5) }), "discharge");
     expect(mixed.answer.ok).toBe(true);
     expect(mixed.rows.find((r) => r.station === "A")?.otherOnly).toBe("level");
+  });
+
+  it("(T830) never says flow only of a gauge the publisher says reports a level it cannot rank (Capilano at Canyon)", () => {
+    // 08GA031 on the 2026-11-17 staging feed: a ranked flow, a level on every row, no level band (two years of record)
+    const capilano = { ...flow(0.54), reports: ["discharge", "level"] as ("discharge" | "level")[] };
+    const lv = answerFrom(PANEL, feed({ A: capilano }), "level");
+    expect(lv.answer).toEqual({ ok: false, why: "no-record" });
+    expect(lv.rows.find((r) => r.station === "A")?.otherOnly).toBeUndefined();
+    // a feed from before `reports`, and one that says the level was not read (T550: another datum): flow only, as before
+    expect(answerFrom(PANEL, feed({ A: flow(0.54) }), "level").answer).toEqual({ ok: false, why: "flow-only" });
+    const offDatum = { ...flow(0.54), reports: ["discharge"] as ("discharge" | "level")[] };
+    expect(answerFrom(PANEL, feed({ A: offDatum }), "level").rows.find((r) => r.station === "A")?.otherOnly).toBe("discharge");
   });
 
   it("still says no-station where there is no panel at all", () => {

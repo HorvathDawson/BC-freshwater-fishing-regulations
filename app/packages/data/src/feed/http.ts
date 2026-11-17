@@ -96,6 +96,11 @@ interface IndexFile {
     /** Which quantity `percentile` above is about — the station's own default. */
     parameter?: Parameter;
     /**
+     * (T830) WHAT THE READING CARRIES, ranked or not (publish.py `live_quantities`): a level with no band (Capilano at
+     * Canyon) is listed, a level on another datum (T550) is not. Absent on a feed from before it: nothing is known.
+     */
+    reports?: Parameter[];
+    /**
      * DEGREES, NOT A RANKING — and that asymmetry against every other value in this file
      * is deliberate. There is no historical water-temperature record anywhere to rank
      * against: HYDAT carries level, flow and sediment and nothing else. And a ranking
@@ -478,6 +483,8 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch,
           standing: standing(percentile),
           parameter: f.now.parameter ?? null,
           ...(same ? {} : { rankedAt: row!.observedAt ?? null }),
+          // (T830) the quantities the publisher says this station reports live (the index row's; none without an index)
+          ...(row?.reports ? { reports: row.reports } : {}),
         },
       };
     },

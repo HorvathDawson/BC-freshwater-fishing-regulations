@@ -334,6 +334,7 @@ describe("the gauge reading under the estimate", () => {
 
   it("gives the stage beside the flow", () => {
     expect(stageLine(1.23)).toBe("1.23 m stage");
+    expect(stageLine(1)).toBe("1.00 m stage");                  // (T830) a level to two decimals
   });
 
   it("refuses in words when no gauge may speak", () => {
@@ -444,18 +445,26 @@ describe("the chart's read-out and controls", () => {
   });
   it("says a reading with its time, unit and the median, whole", () => {
     expect(chartReadoutLine({ t: Date.parse("2026-10-20T21:00:00Z"), value: 4.123, unit: "m³/s",
-                              kind: "reading", daily: false, median: 10.61 }, VAN))
+                              quantity: "discharge", kind: "reading", daily: false, median: 10.61 }, VAN))
       .toBe("2026-10-20 at 14:00 PDT · 4.12 m³/s · median 10.6");
   });
   it("marks a forecast step as a forecast, and leaves a missing median out", () => {
     expect(chartReadoutLine({ t: Date.parse("2026-10-22T07:00:00Z"), value: 13.9, unit: "m³/s",
-                              kind: "forecast", daily: false, median: null }, VAN))
+                              quantity: "discharge", kind: "forecast", daily: false, median: null }, VAN))
       .toBe("2026-10-22 at 00:00 PDT · 13.9 m³/s forecast");
   });
   it("says a daily mean's own calendar day, never the evening before", () => {
-    expect(chartReadoutLine({ t: Date.parse("2026-03-05"), value: 0.335, unit: "m", kind: "reading",
-                              daily: true }, VAN))
+    expect(chartReadoutLine({ t: Date.parse("2026-03-05"), value: 0.335, unit: "m", quantity: "level",
+                              kind: "reading", daily: true }, VAN))
       .toBe("2026-03-05 · 0.34 m");
+  });
+  it("(T830) says a level to two decimals, its median too; a flow keeps its three figures", () => {
+    expect(chartReadoutLine({ t: Date.parse("2026-10-20T21:00:00Z"), value: 1, unit: "m", quantity: "level",
+                              kind: "reading", daily: false, median: 1.5 }, VAN))
+      .toBe("2026-10-20 at 14:00 PDT · 1.00 m · median 1.50");
+    expect(chartReadoutLine({ t: Date.parse("2026-10-20T21:00:00Z"), value: 25, unit: "m³/s", quantity: "discharge",
+                              kind: "reading", daily: false, median: 1.5 }, VAN))
+      .toBe("2026-10-20 at 14:00 PDT · 25 m³/s · median 1.5");
   });
   it("names the zoom controls and the gauge switcher in one table", () => {
     expect(CONDITIONS_WORDS.zoom).toEqual({ in: "Zoom in", out: "Zoom out", fit: "Whole chart", group: "Chart zoom" });

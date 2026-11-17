@@ -21,7 +21,7 @@ import { CONDITIONS_WORDS } from "../../../../../packages/core/src/conditions";
 import { localDate, localStamp } from "../../../../../packages/core/src/day";
 import { standing } from "../../../../../packages/core/src/flow";
 import { freshness, MAY_BE_OLD, readingCurrent } from "../../../../../packages/core/src/freshness";
-import { figure, standingLong } from "../../../../../packages/core/src/standing";
+import { figure, figureIn, standingLong } from "../../../../../packages/core/src/standing";
 import { byWeekdays, forecastDueBy, STALE_AFTER } from "../../../../../packages/core/src/staleness";
 import { ATTRIBUTION } from "../forecast";
 import { bandFor, PCTILES } from "../publish";
@@ -157,7 +157,7 @@ export function cardModel(station: string, name: string, f: CardStation | null, 
     station, name, now, parameter,
     unit,
     reading: v,
-    value: v === null ? null : `${figure(v)} ${parameter === "level" ? "m" : "m³/s"}`,
+    value: v === null ? null : `${figureIn(v, parameter ?? "discharge")} ${parameter === "level" ? "m" : "m³/s"}`,
     // the app's own line for a reading's standing (G28: the same words for "no record" too)
     // (T550) a reading past core's age line (`readingCurrent`) is not today's: no standing, the card's age line says when
     standing: v === null || !readingCurrent(nowRow?.at, now) ? null : standingLong(nowRow?.percentile ?? null, nowRow?.percentile == null ? null : standing(nowRow.percentile)),

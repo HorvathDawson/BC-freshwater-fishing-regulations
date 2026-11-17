@@ -77,14 +77,14 @@ async function firstView(source: WaterSource) {
 describe("a water's Conditions view opens on what is measured there (T817)", () => {
   it("LEVEL ONLY (a lake gauge with a level record alone): opens on Level, says so at the top, offers only Level", async () => {
     expect(await firstView(speaking("lake", ["level"], LEVEL_NOW))).toEqual({
-      note: LEVEL_ONLY_WATER, figure: "10.3", switch: "none", leadNote: null });
+      note: LEVEL_ONLY_WATER, figure: "10.30", switch: "none", leadNote: null });
     expect(screen.getByText("m")).toBeTruthy();
     expect(LEVEL_ONLY_WATER).toBe("Level only: no flow is measured here.");
   });
 
   it("a panel whose gauges have a level record only: the same", async () => {
     expect(await firstView(speaking("panel", ["level"], LEVEL_NOW))).toEqual({
-      note: LEVEL_ONLY_WATER, figure: "10.3", switch: "none", leadNote: null });
+      note: LEVEL_ONLY_WATER, figure: "10.30", switch: "none", leadNote: null });
   });
 
   it("FLOW LEADS where flow is measured (T728 unchanged): opens on Flow, no line, the switch offers Flow and Level", async () => {
@@ -161,6 +161,6 @@ describe("Flow -> Level -> Flow keeps the gauge and the switch (T817)", () => {
     render(<WaterConditions source={speaking("lake", ["level"], LEVEL_NOW)} item={WATER} tapSid={SEC} palette={LIGHT}
                             opening="discharge" from={AT} />);
     await waitFor(() => expect(screen.queryByTestId("reading-figure")).not.toBeNull());
-    expect(card()).toEqual(["Lake Near Town", "no switch", "10.3"]);
+    expect(card()).toEqual(["Lake Near Town", "no switch", "10.30"]);
   });
 });

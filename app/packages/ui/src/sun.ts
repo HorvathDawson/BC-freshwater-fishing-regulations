@@ -21,7 +21,7 @@ export function useSunPoint(source: Pick<WaterSource, "waterPoint">, item: ItemI
   return at ?? own.value ?? null;
 }
 
-/** The day's sun line at the water ("Sunrise 07:44 PT · sunset 17:41 PT"), or null with no point (or no rise/set). */
+/** The day's sun line at the water ("Sunrise 07:44 PT · Sunset 17:41 PT"), or null with no point (or no rise/set). */
 export function useSunLine(source: Pick<WaterSource, "waterPoint">, item: ItemId | null, at: LatLon | null,
                            day: { y: number; m: number; d: number }): string | null {
   const p = useSunPoint(source, item, at);

@@ -17,7 +17,7 @@ export const INDEX_KEYS = ["format", "fetchedAt", "forecastIssuedAt", "hydat", "
                            "stations", "listed"] as const;
 /** One station's entry in the index (`IndexFile.stations`): what colours a dot and when it was read. `temperature` is the
  *  temperature's place in its own envelope, written by the publisher and not read by the app yet. */
-export const INDEX_STATION_KEYS = ["percentile", "parameter", "discharge", "level", "observedAt", "stale", "staleSince",
+export const INDEX_STATION_KEYS = ["percentile", "parameter", "reports", "discharge", "level", "observedAt", "stale", "staleSince",
                                    "forecast", "ahead", "aheadDays", "change", "temperatureC", "temperatureAt",
                                    "temperatureBand", "temperature"] as const;
 /** What the bundle owns (the `gauge` table): never re-shipped by a feed. */
@@ -68,6 +68,10 @@ export function gaugeFeedContract(files: Record<string, unknown>): string[] {
         for (const k of ["percentile", "discharge", "level", "temperature"])
           if (k in e && !isRank(e[k])) bad.push(`${name} ${st}: ${k} ${JSON.stringify(e[k])} is not a percentile`);
         if ("forecast" in e && typeof e.forecast !== "boolean") bad.push(`${name} ${st}: forecast is not a boolean`);
+        // (T830) what the reading carries: a list of quantities, each once
+        if ("reports" in e && !(Array.isArray(e.reports) && e.reports.every((q) => q === "discharge" || q === "level")
+                                && new Set(e.reports).size === e.reports.length))
+          bad.push(`${name} ${st}: reports ${JSON.stringify(e.reports)} is not a list of quantities`);
         if (e.ahead !== undefined) {
           if (!isObj(e.ahead)) { bad.push(`${name} ${st}: ahead is not an object`); continue; }
           for (const [day, at] of Object.entries(e.ahead)) {

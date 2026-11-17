@@ -366,6 +366,23 @@ def level_on_rating(rating: list | None, discharge: float | None, level: float |
     return lo - pad <= level <= hi + pad
 
 
+def live_quantities(discharge: float | None, level: float | None, *, level_off_datum: bool) -> list[str]:
+    """(T830) WHICH QUANTITIES THE STATION REPORTED LIVE THIS RUN that the feed stands behind: the index's `reports`.
+
+    A rank says how a reading compares with the record; this says what the reading IS, so the app never reads "no
+    level rank" as "no level". Capilano at Canyon (08GA031) reports a level on every row but has two years of HYDAT
+    level (`record.MIN_RECORD_YEARS` is three), so no level band and no level rank: the app said "Reports flow only
+    today, not water level" (16 stations on 2026-11-17). A level off the record's rating (T550, `level_on_rating`:
+    another datum) is left out on purpose: its number is not the river's level on any datum the app shows.
+    """
+    out = []
+    if discharge is not None:
+        out.append("discharge")
+    if level is not None and not level_off_datum:
+        out.append("level")
+    return out
+
+
 def age_gate(entry: dict, now: datetime) -> dict:
     """An index entry whose reading is past `READING_MAX_AGE_HOURS`: no rank (`percentile` null, no `discharge`/`level`)."""
     if reading_current(entry.get("observedAt"), now):
@@ -885,8 +902,9 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
         have = envelope.get(r["station"]) or {}
         # (T550 item 2) a live level off the record's rating is on another datum: no level is ranked for this station
         # this run (today, ahead, or as its default), exactly as if it had no level envelope
-        if "level" in have and not level_on_rating((clim or {}).get("ratings", {}).get(r["station"]), r["discharge"],
-                                                   r["level"], (clim or {}).get("ratingPadM")):
+        off_datum = "level" in have and not level_on_rating((clim or {}).get("ratings", {}).get(r["station"]),
+                                                            r["discharge"], r["level"], (clim or {}).get("ratingPadM"))
+        if off_datum:
             have = {k: v for k, v in have.items() if k != "level"}
         param = shown_parameter(have, r["discharge"], r["level"])
         ranked_at = rank_when(today_of[r["station"]])
@@ -936,6 +954,8 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
             "percentile": percentile_of(observed, band),
             # Which quantity `percentile` above is about — the station's own default.
             "parameter": param,
+            # (T830) what the reading carries, ranked or not (`live_quantities`): a level with no band is still a level
+            "reports": live_quantities(r["discharge"], r["level"], level_off_datum=off_datum),
             **per,
             "observedAt": r["at"],
             # THE DEGREES THEMSELVES, not only their percentile — and this is the one
