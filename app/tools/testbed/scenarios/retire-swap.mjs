@@ -7,13 +7,11 @@
 //   node app/tools/testbed/run.mjs retire-swap        (stub APK; writes the STAGING test/ channel, reset at the end)
 import fs from 'node:fs';
 import path from 'node:path';
-import { spawn } from 'node:child_process';
+import { startCrashStub, stubPosts as posts } from '../lib/crash-stub.mjs';
 import { coldStart, openLog, toMap } from './common.mjs';
 
-const HERE = path.dirname(new URL(import.meta.url).pathname);
 const PORT = Number(process.env.TESTBED_STUB_PORT ?? 39256);
 const BAD = /could ?n.t|could not|went wrong|failed|error|refused|was replaced/i;
-const posts = (log) => { try { return fs.readFileSync(log, 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l)); } catch { return []; } };
 
 /** The screen's words, none of them a failure. */
 function clean(ctx, what) {
@@ -28,9 +26,8 @@ export const retireSwap = {
   title: 'An update applied with a water page open: no error card, no failure report (T360 retire)',
   async run(ctx) {
     if (!process.env.TESTBED_STUB) ctx.skip('needs the stub APK: session.sh --crash-stub');
-    const log = path.join(ctx.dir, 'T360-stub.jsonl');
-    fs.rmSync(log, { force: true });
-    const stub = spawn('node', [path.join(HERE, '../crash-stub/server.mjs'), '--port', String(PORT), '--log', log], { stdio: 'ignore' });
+    const stub = await startCrashStub({ dir: ctx.dir, port: PORT, name: 'T360-stub' });
+    const { log } = stub;
     let id = null;
     try {
       await ctx.step('the map up (Wi-Fi), the test channel = live staging', async () => {
@@ -83,7 +80,7 @@ export const retireSwap = {
       });
     } finally {
       try { ctx.updates('reset'); } catch (e) { console.log(`[retire-swap] reset failed: ${e.message}`); }
-      stub.kill();
+      stub.stop();
     }
   },
 };

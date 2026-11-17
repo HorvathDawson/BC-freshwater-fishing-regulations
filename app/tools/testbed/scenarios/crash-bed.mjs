@@ -10,15 +10,13 @@
 // Each passes when the worker handler answered 201 AND the in-memory bucket holds that kind under crashes-test/.
 //
 //   node app/tools/testbed/run.mjs --no-r2 crash-bed
-import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
+import { startCrashStub, stubPosts as posts } from '../lib/crash-stub.mjs';
 import { appUp, coldStart, openLog } from './common.mjs';
 
-const HERE = path.dirname(new URL(import.meta.url).pathname);
 const PORT = Number(process.env.TESTBED_STUB_PORT ?? 39256);
 
-const posts = (log) => { try { return fs.readFileSync(log, 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l)); } catch { return []; } };
 async function kinds() { return (await fetch(`http://localhost:${PORT}/__stub/kinds`)).json(); }
 async function waitPost(ctx, log, kind, from, ms) {
   const end = Date.now() + ms;
@@ -48,14 +46,10 @@ export const crashBed = {
   title: 'Crash test bed (T242): a JS error, an unhandled promise and a native crash each reach the worker handler (local stub)',
   async run(ctx) {
     if (!process.env.TESTBED_STUB) ctx.skip('needs the stub APK: session.sh --crash-stub');
-    const log = path.join(ctx.dir, 'T242-stub.jsonl');
-    fs.rmSync(log, { force: true });
-    const stub = spawn('node', [path.join(HERE, '../crash-stub/server.mjs'), '--port', String(PORT), '--log', log], { stdio: ['ignore', 'pipe', 'pipe'] });
-    stub.stdout.on('data', (b) => fs.appendFileSync(path.join(ctx.dir, 'T242-stub.out'), b));
-    stub.stderr.on('data', (b) => fs.appendFileSync(path.join(ctx.dir, 'T242-stub.out'), b));
+    const stub = await startCrashStub({ dir: ctx.dir, port: PORT, name: 'T242-stub' });
+    const { log } = stub;
     try {
       await ctx.step('stub up (the worker\'s handler, in memory), app up online', async () => {
-        await ctx.device.sleep(1500);
         await kinds();
         await ctx.device.net('wifi'); ctx.device.link('full', 'none');
         await coldStart(ctx, { ms: 90_000 });
@@ -127,7 +121,7 @@ export const crashBed = {
         await ctx.device.sleep(2000);
       }
       try { ctx.device.adb(['reverse', `tcp:${PORT}`, `tcp:${PORT}`]); } catch { /* the next run sets it again */ }
-      stub.kill();
+      stub.stop();
     }
   },
 };
