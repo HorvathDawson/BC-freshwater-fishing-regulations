@@ -2328,3 +2328,8 @@ More questions (recommended answer first):
   row says otherwise or cannot work under it: Lardeau/Duncan 5 in all (bull + other trout 2 of them), Kootenay Lake main
   body 10, Thompson below Kamloops Lake stays closed in June, Kaslo/Keen 2, Adams 4, Buckley 1. Replaces the ~10:50
   "7" reading. GOTCHAS entry rewritten to match.
+- 2026-11-17 ~11:20, owner (verbatim): "what are all the streams that would be effected by the change? i want the list in
+  gotchas" and "but make sure they dont have exempt from whatever closure in the item becasuse then that makes it
+  unambiguous". Done: GOTCHAS, under the Thompson question, a table of the 17 waters whose own "No Fishing" dates sit
+  against a regional closure with no printed exemption (plus Duck Lake's dated bass rows), with the days the loose
+  reading would open. Fraser (exemption covers only above the Thompson), Shuswap (pier) and West Road checked.
