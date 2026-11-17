@@ -27,6 +27,8 @@ its own.
 
 from __future__ import annotations
 
+import math
+
 from pipeline.atlas.graph import widenings as _widen
 from pipeline.atlas.graph.windows import polygon_window
 from pipeline.atlas.registry import regions as _regions
@@ -969,10 +971,16 @@ def _half(g, universe: set[str], blk: str, m: float, upper: bool, why: dict | No
 #: Gitnadoix's lowest piece, 360887399:0, runs 0 to 23.6 km: the coho place "upstream of the powerline crossing near
 #: the mouth" (a cut aliased onto the river's own mouth, m 0) lost its six dead-end side channels, the distributary
 #: at the mouth (360215450, with 360215474) and the creek 360742973 — 991 of the river's 1,000 sections. Now only an
-#: edge whose junction IS the cut's point counts: an incoming edge by its measure on this line (`at_cut`), an
-#: outgoing one by its coordinate (`_points_at`). False is the mutation pin (the whole end piece's neighbours again).
-#: POLICY_VERSION 46.
+#: edge whose junction IS the cut's point counts: an incoming edge by its measure on this line, an outgoing one by its
+#: coordinate against the line's end point (`_points_at`). "At the point" is within `END_CUT_JUNCTION_M` — the same
+#: allowance `bundle.continuation` makes (`STUB_M`, "B's line may go on this far above A's mouth and A's mouth still
+#: be B's top"): the Vedder's blue line runs on 25.4 m above the Chilliwack's mouth, and the Vedder Crossing Bridge cut
+#: sits on that line's top, so the Chilliwack is across it; the Gitnadoix's nearest junction but the mouth is 520 m up.
+#: False is the mutation pin (the whole end piece's neighbours again). POLICY_VERSION 46.
 A_CUT_ON_A_LINE_END_IS_ACROSS_ONLY_AT_ITS_POINT = True
+
+#: How close to an end cut a junction is AT it (T833): `tolerances.STUB_M`, 100 m, as `bundle.continuation`.
+END_CUT_JUNCTION_M = _tol.STUB_M
 
 
 def _points_at(g, blk: str, m: float, upper: bool, end_nodes) -> list[tuple[float, float]]:
@@ -1013,9 +1021,11 @@ def _across_the_junction(g, universe: set[str], blk: str, m: float, upper: bool)
     sits on this line’s end. Seeding them as `outside` is what stops the braid fixpoint walking up
     the next river and calling it downstream.
 
-    EXACTLY AT `m` (T833, `A_CUT_ON_A_LINE_END_IS_ACROSS_ONLY_AT_ITS_POINT`): the end piece may run for
-    kilometres, and what joins or leaves it along the way is on the cut's own side — a tributary, a side
-    channel — so only an edge whose junction is the cut's point is across it."""
+    AT `m` (T833, `A_CUT_ON_A_LINE_END_IS_ACROSS_ONLY_AT_ITS_POINT`): the end piece may run for kilometres, and
+    what joins or leaves it along the way is on the cut's own side — a tributary, a side channel — so only an edge
+    whose junction is the cut's point is across it. "At" allows `END_CUT_JUNCTION_M` (`tolerances.STUB_M`, 100 m),
+    the allowance `bundle.continuation` makes for a line that goes on a stub above a joining river's mouth: the
+    Vedder's line runs 25.4 m past the Chilliwack's mouth to the Vedder Crossing Bridge cut on its top."""
     out: set[str] = set()
     for nid in universe:
         n = g.nodes.get(nid)
@@ -1031,7 +1041,7 @@ def _across_the_junction(g, universe: set[str], blk: str, m: float, upper: bool)
             continue
         for i in g.up_adj.get(nid, []):
             e = g.edges[i]
-            if _tol.at_cut(e.at_measure, m):
+            if abs(e.at_measure - m) < END_CUT_JUNCTION_M:
                 out.add(e.from_node)
         pts = None
         for i in g.down_adj.get(nid, []):
@@ -1040,7 +1050,7 @@ def _across_the_junction(g, universe: set[str], blk: str, m: float, upper: bool)
                 continue                                    # no coordinate: where it leaves is unknown
             if pts is None:
                 pts = _points_at(g, blk, m, upper, [nid])
-            if any(_tol.at_cut(e.x, x) and _tol.at_cut(e.y, y) for x, y in pts):
+            if any(math.hypot(e.x - x, e.y - y) < END_CUT_JUNCTION_M for x, y in pts):
                 out.add(e.to_node)
     return frozenset(x for x in (out & universe) if g.nodes.get(x) and g.nodes[x].blk != blk)
 

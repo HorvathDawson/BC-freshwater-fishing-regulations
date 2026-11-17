@@ -171,8 +171,9 @@ from __future__ import annotations
 #:     sections) is the Elk's Class II again; Line and Grave creeks (rows of their own, no walk_past) still drop.
 #: 46: (T833, 2026-11-17) A CUT ON A LINE'S END IS ACROSS ONLY FROM THE LINES MEETING AT ITS POINT: the junction seed
 #:     takes an edge of the end piece only when its junction is the cut's point (`extent.A_CUT_ON_A_LINE_END_IS_ACROSS_
-#:     ONLY_AT_ITS_POINT`), not every tributary and side channel along the piece. The Gitnadoix coho place upstream of
-#:     the mouth alias binds the river's 1,000 sections, not 991. No classify.py outcome changed; the bump marks the
-#:     binding diff.
+#:     ONLY_AT_ITS_POINT`; "at" within `tolerances.STUB_M`, 100 m, as `bundle.continuation`), not every tributary and
+#:     side channel along the piece. The Gitnadoix coho place upstream of the mouth alias binds the river's 1,000
+#:     sections, not 991; the Chilliwack, joining 25.4 m below the Vedder Crossing Bridge cut on the Vedder line's top,
+#:     stays across it. No classify.py outcome changed; the bump marks the binding diff.
 POLICY_VERSION = "46"
 
