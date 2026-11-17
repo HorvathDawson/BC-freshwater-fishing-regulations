@@ -401,6 +401,30 @@ def add_stamp_waivers(licensing: dict, names: dict) -> None:
                              "verbatim": w["verbatim"], "says": says}
 
 
+#: THE BOOK'S SEPARATE-LICENCE LINE (p.53, the Skeena River's two Class II waters): "(non-residents and non-resident
+#: aliens require separate licences describing which section they are fishing)". Printed once, in the line naming the
+#: first section; it holds for every classified section of that entry (T801 item 2).
+_SEPARATE_LICENCES = re.compile(r"\(?\s*(non-residents\s+and\s+non-resident\s+aliens\s+require\s+separate\s+licences"
+                                r"\s+describing\s+which\s+section\s+they\s+are\s+fishing)\s*\)?", re.I)
+
+
+def add_non_resident_notes(licensing: dict) -> None:
+    """THE SEPARATE-LICENCE NOTE, on every classified designation of an entry whose designations print it (T801
+    item 2, owner 2026-11-16 "Make sure licensing info is done properly there"): `non_resident_note: {says}` — one
+    whole sentence in the book's words, said in each section's box (the Skeena River 2 and Section 4). Derived from
+    the records' own verbatims, never authored; absent where the book prints no such line."""
+    found: dict[str, str] = {}
+    for x in licensing.values():
+        if x["kind"] == "designation":
+            m = _SEPARATE_LICENCES.search(re.sub(r"\s+", " ", x.get("verbatim") or ""))
+            if m:
+                words = m.group(1)
+                found[x["entry_id"]] = words[0].upper() + words[1:] + "."
+    for x in licensing.values():
+        if x["kind"] == "designation" and x["entry_id"] in found and x["fields"].get("classified"):
+            x["non_resident_note"] = {"says": found[x["entry_id"]]}
+
+
 def recorded_rules(rules: dict) -> list[str]:
     """Every rule carrying `record_retention: true` (`entry_id::rule_id`), sorted — the fish you
     must record."""
@@ -605,6 +629,7 @@ def read(bundle: Path) -> dict:
     for e in entries.values():
         e["licensing"].sort()
     add_stamp_waivers(licensing, names)
+    add_non_resident_notes(licensing)
     add_recorded(licensing, rules)
 
     licences = {d: {"name": n, "provincial": bool(p)}

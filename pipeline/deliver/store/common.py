@@ -179,7 +179,7 @@ RULE_KEEP = ("entry_id", "rule_id", "type", "family", "dimension", "label", "par
              "fields", "binds", "not_yet_mapped")
 RULE_PROV_KEEP = ("rank", "who", "authority", "binds_to", "uncertain", "why", "entry_name", "region")
 LIC_KEEP = ("entry_id", "record_id", "kind", "label", "verbatim", "fields", "placement", "period",
-            "stamp_waiver", "records", "not_yet_mapped", "parts")
+            "stamp_waiver", "non_resident_note", "records", "not_yet_mapped", "parts")
 LIC_PROV_KEEP = ("entry_name", "uncertain", "why")
 ENTRY_KEEP = ("kind", "name", "full_name", "pages", "scope_note", "mus")
 WATER_KEEP = ("name", "kind", "sections", "outside_bc", "part_of", "entries", "steelhead",
