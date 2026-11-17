@@ -2236,3 +2236,8 @@ More questions (recommended answer first):
   "we will ignore reduced motion for this". So: no still icon; the coho loader on the splash / first-download /
   curtain screens, the circling fish everywhere else; both always move, Reduce Motion or not. The app chat builds it
   (T814) and brings him pictures in both themes.
+- 2026-11-17 about 00:36, in the APP chat, before sleeping ("questions should wait unless there are urgent ones now
+  bertween 2 chats"), two picks: overnight landing of the app fixes that pass their benches (T817, T823, T824, the iOS
+  fixes, T819, T826, T822, one by one after salmon and T759, each with the main chat's clear), picked "Yes, land what
+  passes (Recommended)"; then a 0.7.12 upload to TestFlight and Play internal overnight, picked "Yes, upload overnight
+  (Recommended)" (the coho loader goes in only once he has seen and picked its look). Anything that fails waits for him.
