@@ -609,9 +609,17 @@ def bundle_files(work: Path, bundle: Path, b: sqlite3.Connection, base: Dict[str
                               extra=_core_flags if _has_ns else _core_flags_empty_name_source)
     files["near"] = copy_file(work / "near.sqlite", {"b": bundle}, [("b", t, None) for t in NEAR_TABLES],
                               {**base, "format": FORMATS["near"]})
+    # (T823) THE SMALL-WATER WARNING: `section_gauge.small` rides in the table as the bundle decided it; the sentence the
+    # app shows beside such a reading, and the threshold it was decided at, ride in the meta. A bundle built before it
+    # has neither, and stops here (no silent fallback: a release without the flag would warn nowhere).
+    from pipeline.gauges.consume.small_water import META_RATIO_KEY, META_TEXT_KEY, SMALL_WATER_TEXT
+    _small_ratio = b.execute("SELECT v FROM meta WHERE k = 'small_water_ratio'").fetchone()
+    if _small_ratio is None:
+        raise SystemExit("conditions: the bundle states no `small_water_ratio` (built before T823) — rebuild the bundle")
     files["conditions"] = copy_file(work / "conditions.sqlite", {"b": bundle},
                                     [("b", t, None) for t in COND_TABLES],
-                                    {**base, "format": FORMATS["conditions"]}, extra=lake_section)
+                                    {**base, "format": FORMATS["conditions"], META_TEXT_KEY: SMALL_WATER_TEXT,
+                                     META_RATIO_KEY: _small_ratio[0]}, extra=lake_section)
     files["down"] = copy_file(work / "down.sqlite", {"b": bundle}, [("b", t, None) for t in DOWN_TABLES],
                               {**base, "format": FORMATS["down"]})
     files["climate"] = copy_file(work / "climate.sqlite", {"b": bundle}, [("b", t, None) for t in CLIMATE_TABLES],

@@ -423,6 +423,14 @@ def write(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_item
                        panels.member_rows())
         cov.filled("section_panel", len(panels.by_section))
         cov.filled("panel_member", sum(len(v) for v in panels.members.values()))
+        # (T823) SMALL NEXT TO ITS GAUGE: of the sections the network leads, those whose lead drains at least the
+        # policy's ratio times their own area (`small_water`: both areas by this model, the section's panel area first)
+        from pipeline.gauges.consume.small_water import SMALL_WATER_POLICY, ratio_for, small_sections
+        _small = small_sections(links, graph, model, at_river, {s: a for s, (_p, a) in panels.by_section.items()},
+                                ratio_for())
+        db.executemany("UPDATE section_gauge SET small = 1 WHERE sid = ?", sorted((sid[s],) for s in _small))
+        print(f"     small water ('{SMALL_WATER_POLICY}', {ratio_for():g}x): {len(_small):,} of {len(links):,} led "
+              f"sections are small next to their gauge")
         print(f"     panels: {len(panels.by_section):,} sections share "
               f"{len(panels.members):,} donor sets "
               f"({len(panels.by_section)/max(len(panels.members),1):.0f}x), "

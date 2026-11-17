@@ -84,8 +84,11 @@ FILES = {
         "meta": ["k", "v"],
         # `rel`, `dist_b` (T93): where the station stands to the reach (a GAUGE_RELS index) and a channel-distance bucket
         # (shed.DIST_STEP). ADDITIVE, last, nullable — still conditions/1; an older release has neither and the app says
-        # no distance
-        "section_gauge": ["sid", "station", "trust", "mag", "rel", "dist_b"],
+        # no distance.
+        # `small` (T823): 1 where the lead gauge drains at least the meta's `small_water_ratio` times this section's own
+        # area — the app shows the meta's `small_water_text` beside the reading (pipeline/gauges/consume/small_water.py).
+        # ADDITIVE, last, defaulted 0 — still conditions/1; an older release has none and warns nowhere
+        "section_gauge": ["sid", "station", "trust", "mag", "rel", "dist_b", "small"],
         # (T376) the watershed groups by name and by place (pipeline/deliver/bundle/basin_grid.py): ADDITIVE — still
         # conditions/1; a release cut before them answers no basin, and the app says so (`basinAt` throws)
         "basin": ["ix", "basin_id", "name"],

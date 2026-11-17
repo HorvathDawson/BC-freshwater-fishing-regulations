@@ -793,6 +793,7 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
     # browser cannot import shed.py, and a union type has to exist before the bundle is
     # opened — and `pipeline.tools.emit.gauge_policy --check` is what keeps THAT honest.
     from pipeline.gauges.consume.shed import TRUST_BANDS
+    from pipeline.gauges.consume.small_water import ratio_for as _small_ratio
 
     # The edition this bundle is: the atlas build it came from, and the last day its
     # regulations are in force — the synopsis period's end, READ OFF THE BOOK'S COVER
@@ -821,6 +822,8 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
         ("build", _repo_relative(build_dir)),
         ("generated_by", "python -m pipeline.deliver.bundle"),
         ("trust_bands", json.dumps({b: f for b, f in TRUST_BANDS})),
+        # (T823) the threshold `section_gauge.small` was decided at; the release ships it beside the sentence
+        ("small_water_ratio", f"{_small_ratio():g}"),
         # THE VINTAGE THE TILE MUST MATCH. Every `sid` in this bundle is an index into the
         # atlas's section_handles.txt; the tile carries handles from the same table and
         # publishes this digest in its sidecar. If the two differ, a lookup does not miss —

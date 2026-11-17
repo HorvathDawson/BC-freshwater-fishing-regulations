@@ -113,3 +113,12 @@ export const FORECAST_HOLIDAYS: readonly string[] = [
 
 /** What a vote whose path crosses a lake keeps of its weight while a vote with no lake on its path reports. */
 export const THROUGH_LAKE_FACTOR = 0.05;
+
+// (T823) Small next to its gauge, from pipeline/gauges/consume/small_water.py. Python decides which led sections are
+// small (`section_gauge.small` = 1) and writes the sentence; the app shows the conditions meta's text, word for word.
+
+/** The conditions file's meta key holding the warning shown beside a small water's lead-gauge reading. */
+export const SMALL_WATER_TEXT_KEY = "small_water_text";
+/** The conditions file's meta key holding the threshold the flag was decided at (the gauge drains at least this many
+ *  times the section's area). For audit; the app compares nothing. */
+export const SMALL_WATER_RATIO_KEY = "small_water_ratio";
