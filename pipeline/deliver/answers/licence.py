@@ -132,6 +132,52 @@ def under_16_summary(answers: Sequence[dict], names: Dict[str, str]) -> List[dic
     return out
 
 
+#: T789 G8 (owner 2026-11-17: "yes add to 0.8.0 we can add as banners?"): THE BOOK'S SENTENCE for the weekend closures
+#: to non-guided non-resident aliens, as it prints it on the Region 6 water rows (printed p.50 Babine and Bulkley, p.51
+#: Kispiox, p.52 Kitseguecla, Kitwanga and Morice, p.53 Suskwa; Skeena p.53 "... in Skeena River Section 4 on Saturdays
+#: and Sundays"). The book prints no province-wide sentence for them; each water's own rule says its days and dates
+#: (Kitsumkalum: Saturdays on a part, Sundays the whole river; Zymoetz: Fridays too).
+ALIEN_WEEKEND_SAYS = "Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays"
+#: the printed pages `ALIEN_WEEKEND_SAYS` is quoted from (`test_answers_licence_alien_weekend.py` reads them)
+ALIEN_WEEKEND_PAGES = (50, 51, 52, 53)
+_WEEKEND = frozenset({"Saturday", "Sunday"})
+
+
+def alien_weekend(db) -> Optional[dict]:
+    """T789 G8: EVERY WATER IN THE PROVINCE WITH A WEEKEND CLOSURE TO NON-GUIDED NON-RESIDENT ALIENS, read off the
+    bundle's rules: an `angler_closure` whose `closed_to` names the non-resident alien and whose `when` holds on a
+    Saturday or a Sunday. Each water by its book entry's matched items (`entry.matched`, else `entry.item_id`): {name,
+    key} with `key` the item_id, the durable handle the app opens a water by (AGENTS 5; the answers' `display.waters`
+    and the store's `item` table are keyed by it). {says, waters} by name, or None when no water has one.
+
+    Every day closure (Lakelse's part, Telkwa Sep 1-Oct 31) is not a weekend closure and is not listed. A weekend
+    closure to the alien that is not the non-guided one would make `says` wrong: it stops the build, as does one whose
+    entry names no water (nothing to link)."""
+    from pipeline.deliver.answers.common import AnswersError
+    names = dict(db.execute("SELECT item_id, name FROM item"))
+    entries = {e: (i, json.loads(m or "[]")) for e, i, m in db.execute("SELECT entry_id, item_id, matched FROM entry")}
+    waters: Dict[str, str] = {}
+    for e, rid, cond, when in db.execute("SELECT entry_id, rule_id, conditions, when_ FROM rule "
+                                         "WHERE type = 'angler_closure' ORDER BY entry_id, rule_id"):
+        to = (json.loads(cond or "{}").get("closed_to") or {})
+        days = set((json.loads(when) if when else {}).get("weekdays") or ())
+        if "non_resident_alien" not in (to.get("residency") or ()) or not days & _WEEKEND:
+            continue
+        if to.get("guidance") != ["non_guided"] or set(to) != {"residency", "guidance"}:
+            raise AnswersError(f"licence: {e} {rid} closes weekends to {to}, which the alien weekend sentence "
+                               f"({ALIEN_WEEKEND_SAYS!r}) does not say")
+        item, matched = entries.get(e, (None, []))
+        items = [i for i in (matched or ([item] if item else [])) if i in names]
+        if not items:
+            raise AnswersError(f"licence: {e} {rid} is an alien weekend closure on no water of the bundle")
+        for i in items:
+            waters[i] = names[i]
+    if not waters:
+        return None
+    return {"says": ALIEN_WEEKEND_SAYS,
+            "waters": [{"name": n, "key": k} for k, n in sorted(waters.items(), key=lambda kv: (kv[1], kv[0]))]}
+
+
 def document_names(bundle_path: str) -> Dict[str, str]:
     """Every licence document's name, by id (the bundle's `licence` table: the export's `licences[].name`, the page's
     DOC) — the words a stamp line names its document by (`stamps.py`)."""
@@ -551,8 +597,13 @@ def key_year(db, C: Corpus, key: LicenceKey, sid: int, days: Sequence[int],
         names = memo.get("_names")
         if names is None:
             names = memo["_names"] = dict(db.execute("SELECT doc_id, name FROM licence"))
+        if "_alien_weekend" not in memo:
+            memo["_alien_weekend"] = alien_weekend(db)
         # ROUND15 2: the under-16 summary per residency, read off the profiles' answers
         ans = {"holds": wire, "profiles": memo[mk], "under_16": under_16_summary(memo[mk], names)}
+        if memo["_alien_weekend"] is not None:
+            ans["alien_weekend"] = memo["_alien_weekend"]          # T789 G8: the same on every frame
+
         s = dumps(wire)
         if s != last:
             year[d] = ans

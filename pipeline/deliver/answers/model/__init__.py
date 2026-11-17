@@ -41,7 +41,7 @@ from pipeline.deliver.answers.model.gear import (
 from pipeline.deliver.answers.model.licence import (
     Length, When, Prices, DocumentOr, DocumentNeed, Accompanied, Path_, RequirementPath, Exempt,
     PrintedRequirement, ProfileAnswer, TidalProfile, Holds, TidalHolds, WithAdult, BuyOr, BuyDoc,
-    UnderSixteen, LicenceFrame,
+    UnderSixteen, AlienWater, AlienWeekend, LicenceFrame,
 )
 from pipeline.deliver.answers.model.display import (
     InheritedLift, StatusFrame, StripState, ReasonWords, TidalStatus, DisplayFrame, SubsetSay, RuleFacts,
