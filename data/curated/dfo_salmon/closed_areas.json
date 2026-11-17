@@ -330,10 +330,11 @@
      54.454902
     ]
    ],
+   "closes_item": "wbk:-25",
    "confidence": "high",
-   "note": "the owner's reading, 2026-11-16 (T796): \"Due south\". From Gullwing Creek's mouth on the north shore (FWA blue line 360886655, BC Geographic Names 4122; the same point as the Six Mile Creek circle) due south to the south shore at 54.45490, -125.36625 (3,356 m). DFO names no point on the south shore; the reading not taken was the shortest crossing (bearing 167, 2,975 m, to 54.45896, -125.35615, about 0.8 km east of this end). East of it: Gullwing Island, Four Mile Creek, Telzato Creek and the Sutherland River's mouth.",
+   "note": "the owner's reading, 2026-11-16 (T796): \"Due south\". From Gullwing Creek's mouth on the north shore (FWA blue line 360886655, BC Geographic Names 4122; the same point as the Six Mile Creek circle) due south to the south shore at 54.45490, -125.36625 (3,356 m). DFO names no point on the south shore; the reading not taken was the shortest crossing (bearing 167, 2,975 m, to 54.45896, -125.35615, about 0.8 km east of this end). East of it: Gullwing Island, Four Mile Creek, Telzato Creek and the Sutherland River's mouth. T812: the lake is split on this line (added_lakes.geojson ids 24 / 25); the line closes the part east of it, Babine Lake — East of Gullwing Creek (wbk:-25).",
    "confirmed_by": "Claude (for Dawson)",
-   "confirmed_on": "2026-11-16"
+   "confirmed_on": "2026-11-17"
   },
   {
    "key": "f3116ad57dbe",
