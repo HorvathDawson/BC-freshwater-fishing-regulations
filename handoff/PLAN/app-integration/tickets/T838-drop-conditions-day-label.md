@@ -1,6 +1,6 @@
 # T838 — Drop the loose "Conditions: today" line above the estimate card
 
-Status: IN PROGRESS (built on branch app-fix/t838-day-label, not merged)
+Status: DONE e40851285 (landed 2026-11-17, CI green; 4/4 Android benches; was: IN PROGRESS (built on branch app-fix/t838-day-label, not merged))
 
 Source: owner 2026-11-17 ~11:46, app chat, with a web screenshot of a spot's "Estimate for this spot" card (verbatim):
 "having random conditions today text here is weird too". Dialog 11:48: "Drop it (Recommended)".
