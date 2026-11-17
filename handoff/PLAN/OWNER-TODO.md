@@ -2188,3 +2188,8 @@ More questions (recommended answer first):
   if used." So: a spot takes its gauge from the same section → lead-gauge network the Conditions map colours with
   (drainage gate applied); no lead = no estimate; a lead on a small water = the estimate with a plain warning. The
   "small next to its gauge" decision is Python's (T823), the app reads it.
+- 22:18, T823 small water next to its lead gauge (table sent: examples, counts at 50/100/200×). Cut-off, picked: "50×
+  (Recommended)". Wording, picked: "Much smaller stream (Recommended)" ("This stream is much smaller than the river its
+  gauge measures: the reading may not match it."). Built on `lane/t823-small-water` (edc097013), default already 50×;
+  reaches a release with the next bundle rebuild. Found with it: T825 (251 side channels led by a gauge far upstream,
+  e.g. lower Fraser side channels reading Red Pass).

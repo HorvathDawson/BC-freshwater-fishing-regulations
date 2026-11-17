@@ -15,3 +15,7 @@ enough? It would drop that in theory. Then ofr small ones still give a warning i
   and number).
 - The threshold is policy (memory: gauge representativeness is policy): propose it from the drainage areas
   (`gauge.area_km2`, the section's own drainage) with examples, for the owner's word before it ships.
+
+## Owner, 2026-11-16 22:18
+Cut-off "50× (Recommended)"; wording "Much smaller stream (Recommended)". The pending-owner marks on the branch are
+now decided.
