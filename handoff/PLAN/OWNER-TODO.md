@@ -2351,3 +2351,14 @@ More questions (recommended answer first):
   Cowichan). Missed before, now added: Campbell River MU 1-6/1-10 summer closure (T796 W1) and the Duncan's exemptions
   reaching Trout Lake's creeks (RULINGS T15). Left out: Lower Shuswap "one km" (his word: nothing goes to DFO).
   Correction: the page numbers in the 11:15 version were wrong (the corpus already stores printed pages); fixed.
+- 2026-11-17 ~11:45-11:48, app chat:
+  - "sun set is not capitalised (Sunrise 08:50 PT · sunset 17:43 PT) too" -> T837, fixed ("· Sunset"), lands with T830.
+  - "having random conditions today text here is weird too" (web spot estimate card). Dialog 11:48: "Drop it
+    (Recommended)" -> T838: the loose "Conditions: today" line goes; the regulations-day link line stays when that day is
+    not today.
+  - "desktop mode on webapp should maybe move the bottom map.conditions. spots, more bar somewhere more standard for
+    desktop. maybe on side or top please choose the most standard spot" -> T839: Claude chose a left navigation rail at
+    desktop width (Material's rule for wide screens; Google Maps / AllTrails / onX); top stays search + day. Shots
+    before it lands.
+  - Nahwitti River: char sit on their own under the other-fish table instead of in the trout tab; checking whether the new
+    trout table (T810) repeats it. Answer owed.
