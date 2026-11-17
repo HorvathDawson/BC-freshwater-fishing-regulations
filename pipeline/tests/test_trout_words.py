@@ -140,3 +140,63 @@ def test_mutation_the_round_trip_catches_a_composer_drift(monkeypatch):
     line = W.date_line(ch("tighter", D(11, 1), D(10, 31), [("release",)]))
     with pytest.raises(W.WordsError):
         W.parse_date_line(line)
+
+
+# ------------------------------------------------------------------------------- the table's NOW words (ticket F)
+
+#: every NOW form the table builder writes, whole, with what the grammar reads back
+NOW = [
+    (W.top_up_to(5), "Up to 5 {day}", W.parse_top, ("up_to", (5,))),
+    (W.top_up_to(2, ["5 if they’re rainbow trout"], [(2, "Dolly Varden/bull trout")]),
+     "Up to 2 {day}, or 5 if they’re rainbow trout and no more than 2 Dolly Varden/bull trout", W.parse_top,
+     ("up_to", (2, 5, 2))),
+    (W.top_up_to(2, plus=[(2, "Dolly Varden/bull trout")]), "Up to 2 {day}, plus 2 Dolly Varden/bull trout", W.parse_top,
+     ("up_to", (2, 2))),
+    (W.top_apart([(6, W.fish_words(["RB", "ST"]))], 4),
+     "Up to 6 rainbow trout or steelhead and 4 other trout and char {day}", W.parse_top, ("apart", (6, 4))),
+    (W.TOP_RELEASE, "Release every one {day}", W.parse_top, ("release", ())),
+    (W.TOP_CLOSED, "Closed for trout and char {day}", W.parse_top, ("closed", ())),
+    (W.TOP_NONE, "Nothing to keep {day}", W.parse_top, ("none", ())),
+    (W.head_keep(5), "Keep 5 in all", W.parse_head, ("keep", 5)),
+    (W.HEAD_RELEASE, "Release", W.parse_head, ("release", None)),
+    (W.band_upto(5), "up to the 5", W.parse_band, ("upto", 5, None)),
+    (W.band_own(3), "only 3", W.parse_band, ("own", 3, None)),
+    (W.band_shared(1, 4), "only 1 of these 4", W.parse_band, ("shared", 1, 4)),
+    (W.band_shared(3, 2), "only 3 from these 2 together", W.parse_band, ("shared", 3, 2)),
+    (W.band_possession(2), "only 2 in your possession", W.parse_band, ("possession", 2, None)),
+    (W.strip_size(1, 50), "only 1 over 50 cm (20 in)", W.parse_strip_size, (1, 50, None)),
+    (W.strip_size(1, 50, 1), "only 1 over 50 cm (20 in), 2 if one is a hatchery steelhead", W.parse_strip_size,
+     (1, 50, 2)),
+    (W.stop_duty("stop fishing this river after 1 a day"), "after keeping 1, stop fishing this river today",
+     W.parse_stop_duty, (1, "river")),
+]
+
+
+@pytest.mark.parametrize("got,whole,parse,back", NOW, ids=[x[1] for x in NOW])
+def test_every_now_form_whole_and_read_back(got, whole, parse, back):
+    assert got == whole
+    assert parse(whole) == back
+
+
+def test_the_other_now_words_whole():
+    assert W.fold_up_to(2, [5]) == "Up to 2 or 5"
+    assert W.fold_apart([(6, W.short_fish("RB"))], 4) == "Up to 6 rainbow, 4 others"
+    assert W.tag_of("This lake’s rule") == "Lake’s rule"
+    assert W.strip_wild(2, "40 cm (16 in) or less") == "only 2 wild, each 40 cm (16 in) or less"
+    assert W.uses_the(1, 50) == "uses the 1 over 50 cm (20 in)"
+    assert W.count_line(1, ["LT"]) == "only 1, counting any lake trout you keep"
+    assert W.size_count_line(1, 50, ["EB", "LT"]) == "only 1 over 50 cm (20 in), counting any brook or lake trout you keep"
+    assert W.steelhead_sub("rainbow trout over 50 cm (20 in)") == "a rainbow over 50 cm (20 in)"
+    from pipeline.deliver.answers.display.rule import POSSESSION_HOME
+    assert W.possession_row(f"in your possession: 1 day’s limit, not 2 ({POSSESSION_HOME})") == \
+        "in your possession: 1 day’s limit, not 2"
+    assert W.possession_quiet(3, 2, W.fish_words(["LT"])) == "3 a day, but never more than 2 lake trout with you"
+    assert W.together_origin(2, "wild", "under 40 cm (16 in)") == \
+        "only 2 wild trout and char in all, each under 40 cm (16 in)"
+    assert W.together_lakes(1) == "only 1 from both lakes together"
+    assert W.sheet_keep("only 1 of these 4", 5) == "Keep · only 1 of these 4 · counts toward the 5"
+    assert W.one_day(D(7, 31), ["60 cm (24 in) or longer"]) == "On Jul 31 only: 60 cm (24 in) or longer."
+    with pytest.raises(W.WordsError):
+        W.parse_band("up to 5")
+    with pytest.raises(W.WordsError):
+        W.possession_row("in your possession: 2")

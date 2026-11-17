@@ -8,7 +8,7 @@ import type { NotFishingKind, SectionKey, SpotPoint } from "@app/core";
 import type { ViewStyle } from "react-native";
 import type { TileEndpoints } from "./endpoints";
 import type { TraceProp } from "./trace-overlay";
-import type { LakeFeed, MethodFeed, ProfileStatus, RunsFeed, SalmonFeed, StandingFeed } from "./colouring";
+import type { IssueFeed, LakeFeed, MethodFeed, ProfileStatus, RunsFeed, SalmonFeed, StandingFeed } from "./colouring";
 import type { SelectionCue } from "./paint";
 
 /** A boundary mark on a water (`MapProps.marks`). `a11y`: what a screen reader says for it. */
@@ -214,6 +214,8 @@ export interface MapProps {
    * solid fly only, dashed bait ban), none where `status` closes the section. ONLY ON A PROVEN PAIR.
    */
   method?: MethodFeed | null;
+  /** (T759) the issue stripe: the sections of waters with a shown DFO issue, labelled per tile (`gi`); drawn in the Salmon view only. */
+  issue?: IssueFeed | null;
   /**
    * (T199) THE RUN TIMING, for every layer in the `runs` mode — the same engine (`colouring.ts`, the `runs` channel):
    * each section's state for the chosen species and month as its tile arrives (a passing run dashed: `stream-runs-pass`).

@@ -22,14 +22,46 @@ _REGION_TABLES = {
     "meta": ["k", "v"],
 }
 
+#: (T810 ticket I, trout table contract 2.1) THE OPTIONAL ANSWERS SECTIONS' TABLES: a section a release may carry or not,
+#: ALL OR NOTHING — its version in the water file's layout (`meta.layout.versions`) and the manifest's
+#: `regulations.versions`, its `cell` column (LAST, nullable: no value at that key and segment) and its tables in EVERY
+#: `regs-<region>` file; or none of the three. A release without it is exactly the release before it existed (an
+#: all-NULL column is never shipped: "absent" and "nothing here" must not look the same). Emitted for the app as
+#: `PACK_OPTIONAL_SECTION_TABLES` (pack.py), held by `test_release.py`; the store's and the shards' lists
+#: (`store.build.OPTIONAL_SECTIONS` / `FAMILIES`, `shards.OPTIONAL_TOP` / `OPTIONAL_SHARD_TABLES`) are held equal to it by
+#: `test_trout_section.py`. At the cutover (ticket L) `trout` moves into `_REGION_TABLES` and this is empty again.
+#: Kept apart from `OPTIONAL` below (optional FILES).
+OPTIONAL_SECTION_TABLES = {
+    "trout": {"cell": ["trout"],
+              "tables": {t: _FRAME for t in ("trout_dates", "trout_frame", "trout_sheet", "trout_table")}},
+}
+
+
+def region_tables(sections=()) -> dict:
+    """A `regs-<region>` file's tables and columns with the optional sections `sections` (`OPTIONAL_SECTION_TABLES`):
+    `_REGION_TABLES`, each section's `cell` columns appended and its tables added."""
+    out = {t: list(cols) for t, cols in _REGION_TABLES.items()}
+    for n in sections:
+        spec = OPTIONAL_SECTION_TABLES[n]
+        out["cell"] += spec["cell"]
+        out.update({t: list(cols) for t, cols in spec["tables"].items()})
+    return out
+
+
 #: the files a release may omit. `lakes` is the lake modes' slot, prepared and not fed (owner 2026-10-21): no producer
 #: makes one, `deliver all` ships none, and the app greys Stocked / Depth until a release carries it.
-OPTIONAL = frozenset({"lakes"})
+#: (T823) `flow-small` is BUILT into every release from now, and optional only so an app built from this contract still
+#: reads a release cut before it (staging, 2026-11-16): the app reads its absence as "no warning bits", by the file's
+#: presence in the manifest, never by catching an error. Required once a release carrying it is live and the app reads it.
+OPTIONAL = frozenset({"lakes", "flow-small"})
 
 #: {file: {"format", "kind": "sqlite" | "bin", "tables": {table: [columns]}}}
 FILES = {
     "paint": {"format": PAINT.FORMAT, "kind": "bin", "tables": {}},
     "flow-area": {"format": PAINT.AREA_FORMAT, "kind": "bin", "tables": {}},
+    # (T823) per paint section, which of its panel's members drain so much more than it that their reading carries the
+    # small-water warning (the conditions meta's `small_water_text`): pipeline/gauges/consume/small_water.py
+    "flow-small": {"format": PAINT.SMALL_FORMAT, "kind": "bin", "tables": {}},
     # (T54) the gentler access tiers (permit / reserve / private) a Regulations page notes; paint carries the no-access rows
     "access": {"format": PAINT.ACCESS_FORMAT, "kind": "bin", "tables": {}},
     "lakes": {"format": LF.FORMAT, "kind": "bin", "tables": {}},
@@ -66,7 +98,11 @@ FILES = {
         # (T247) the regions a water lies in and the management units it touches (build.core_area), comma-joined: search
         # by "2-8" / "Region 2" and the "Region 2 · MU 2-8" that tells two waters of one name apart. ADDITIVE, so still
         # core/1: a core without it searches by name and town only (the app asks `HAS_ITEM_AREA` first)
-        "item_area": ["ord", "regions", "mus"]}},
+        "item_area": ["ord", "regions", "mus"],
+        # (T796, owner 2026-11-16) a section's note, one sentence said once on its page ("Mostly outside Gladys Lake
+        # Ecological Reserve: its closure (rule book p.9) does not apply here.", `bundle.outside_note`). ADDITIVE, so
+        # still core/1: a core without it has no notes
+        "section_note": ["sid", "note"]}},
     "near": {"format": "near/1", "kind": "sqlite", "tables": {
         "meta": ["k", "v"], "place_water": ["place_id", "ckm", "ord"]}},
     # (T182) the tables T129 measured riding in a file a moment did not otherwise need moved into files of their own:
@@ -148,7 +184,9 @@ FILES = {
                  "pieces"],
         "item_area": ["ord", "regions", "mus"], "item_near": ["ord", "place_id", "ckm"],
         "item_section": ["sid", "ord"], "meta": ["k", "v"], "name_source": ["item_id", "name", "src", "label"],
-        "place": ["place_id", "osm", "name", "kind", "pop", "lat", "lon"]}} for r in SH.REGIONS},
+        "place": ["place_id", "osm", "name", "kind", "pop", "lat", "lon"],
+        # (T796) ADDITIVE, still core-slice/1: the whole core's `section_note`, in every slice (slices.py)
+        "section_note": ["sid", "note"]}} for r in SH.REGIONS},
     # (T370) a water slice holds only its region's own rows; the tables every region reads whole are `water-shared`
     **{f"water-{r}": {"format": "water-slice/4", "kind": "sqlite", "tables": {
         "item": ["item_ord", "item_id", "shown", "picker", "unresolved", "name", "kind", "sections", "outside_bc",
@@ -199,6 +237,9 @@ UNITS = {
     "water.part_mark.lon": "microdegrees", "water.part_mark.lat": "microdegrees",
     "climate.gauge_clim.bands": "clim/2: [u8 pentad, 5 x float16 LE] records",
     "flow-area": "flow-area/1: 'BCFA', u8 1, one LEB128 varint per paint section (sid order) = round(km2 x 1000)",
+    "flow-small": "flow-small/1: 'BCFS', u8 1, one LEB128 varint per paint section (sid order) = bitmask over its panel's "
+                  "members by ord: bit i set where member i drains at least the conditions meta's small_water_ratio times "
+                  "the section's target area (show small_water_text beside that member's reading)",
     "paint": "paint/5: see pipeline/deliver/release/paint.py",
     "access": "access/1: 'BCAX', u8 1, 8 bytes section_handles, then an access half (pipeline/deliver/release/paint.py)",
     "lakes": "lakes/1: 'BCLK', u8 1, 8 bytes section_handles, LEB128 asof+1, LEB128 count, then per section "
@@ -206,13 +247,19 @@ UNITS = {
              "(0 never); days since 1900-01-01 (pipeline/deliver/lake_facts.py)",
     "salmon": "salmon/4: 'BCSA', u8 4, 8 bytes section_handles, u32le JSON length + UTF-8 JSON (credit, default, "
               "regions (+ the header notes, the bucket's quota tree, T356 shared + sizes), verdicts (+ T332 an open day's "
-              "quota tree, T356 c a header closure; u 1: both regions' words, no number), gears, chains (r, w, l the "
-              "places narrowest first, sp, g, m, + T356 c; u the places on its water not drawn yet; T668 s on a section "
+              "quota tree, T356 c a header closure; u 1: both regions' words, no number; T796 f 1 on a closed verdict from "
+              "DFO's Finfish closure: all fishing closed, trout included), gears, chains (r, w, l the "
+              "places narrowest first, sp, g, m, + T356 c; T770 o another fish's closure lines (\"Eulachon closed all "
+              "year: No fishing for eulachon\"), day runs of an index into gears (-1 none), apart from the gear lines g, "
+              "absent where none; u the places on its water not drawn yet; T668 s on a section "
               "in two DFO regions: each region's places as indices into l, the most strict answer per fish speaks, and "
               "h the region slugs whose fishing-hours line shows; a per species day runs of the index into l of the "
               "place that answers), unmapped, scopes, x, shards; T549 off: every curated place no chain names, id -> "
               "{why, k, r, w, items}, shown as a text row on its water's page; p: each chain place's {r, water, sec}, "
-              "what a row is named by) (pipeline/deliver/salmon.py, salmon_who.py)",
+              "what a row is named by; T796 a rule book closure is a place book:<entry_id>::<rule_id>[~n], first in "
+              "the chains it closes, its p {r?, water?, static 1, book {rule, pages}}; static: each such place's year "
+              "{sp: 5 runs of verdict indexes (-1 nothing), g}, kept by the app under a live feed) "
+              "(pipeline/deliver/salmon.py, salmon_who.py)",
     **{SALMON.shard_name(r): "salmon-shard/1: 'BCSR', u8 1, 8 bytes section_handles, u8 region length + region, LEB128 "
                              "run count, then per run LEB128 sid gap, count, chain (pipeline/deliver/salmon.py)"
        for r in (*SH.REGIONS, SALMON.NO_REGION)},
@@ -270,13 +317,18 @@ WEB_BUDGET = {
     # with nothing ahead of it.
     # (T370) + `water-shared`: the slice's region-wide tables, now one file (the same bytes, two fetches)
     "first_tap": {"files": ["core", "water-{region}", "water-shared", "geo", "access", "regs-{region}", "salmon", "salmon-{region}"],
-                  "gate": 4_200_000},
+                  # (owner 2026-11-16 ~14:55, T796 A5: "but yes you can do the raise"; RULINGS O5, O10) 4,200,000 →
+                  # 4,400,000: the book closures in the salmon head (+59,968) and salmon-6 (+53,225) on r-46e4355a7277's
+                  # 4,198,757 → ~4,312,000
+                  "gate": 4_400_000},
     # (T256) THE TAP WITH NOTHING AHEAD OF IT — Save-Data or the low-bandwidth mode (T254): no idle prefetch of core, the
     # Bait & fly marks (`method`) come with the tap; the tap reads its region's `core-{region}` + `water-{region}`, never the
     # whole files. Priced as the largest region (R6): ~3,090,000 (it was core + water + … ≈ 5,300,000)
     "first_tap_low": {"files": ["core-{region}", "water-{region}", "water-shared", "geo", "access", "regs-{region}", "salmon",
                                 "salmon-{region}", "method"],
-                      "gate": 3_400_000},
+                      # (owner 2026-11-16 ~14:55, T796 A5; RULINGS O5, O10) 3,400,000 → 3,600,000: the same +113 kB on
+                      # r-46e4355a7277's 3,359,382 → ~3,472,600
+                      "gate": 3_600_000},
     # the first tap on an UNNAMED stream (most streams): + its key (regs-sid) and the flow pointers (down) the header's
     # "Tributary of ..." walks — no longer all of conditions (8,590,503 → 5,892,308, regs-6)
     # (T182, 2026-10-28) + salmon for the page's Salmon card, as the named tap (6,282,328)
@@ -291,5 +343,7 @@ WEB_BUDGET = {
                           "gate": 6_200_000},
     # the Conditions tab: gauges and the lake road (conditions' `lake_section`, so no core), the panels' areas; the
     # climatology (climate) waits for a chart (4,151,534 → 997,511)
+    # (T823) `flow-small` (21,396 B gz on the 2026-11-16 bundle, ~1,095,000 with it) joins this list WITH the app's reader
+    # and the walk's re-cut pin (`app/tools/release-budget.test.ts` holds the pin to this list), not before
     "conditions_open": {"files": ["flow-area", "conditions"], "gate": 1_150_000},
 }

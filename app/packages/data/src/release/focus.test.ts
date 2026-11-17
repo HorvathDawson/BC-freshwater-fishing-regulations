@@ -42,6 +42,10 @@ describe("sliceKeys", () => {
     expect(sliceKeys("water", "SELECT j FROM static WHERE k = ?", ["rows.strips"])).toEqual({ shared: true });
     expect(sliceKeys("water", "SELECT akey, region FROM akey_region ORDER BY akey, region", [])).toEqual({ shared: true });
     expect(sliceKeys("water", "SELECT k, v FROM meta", [])).toEqual({});
+    // (T796) core `section_note` is whole in every core slice, and so is the question whether the release holds it
+    expect(sliceKeys("core", CROSS.SECTION_NOTES.sql, [])).toEqual({});
+    expect(sliceKeys("core", CROSS.HAS_SECTION_NOTE.sql, [])).toEqual({});
+    expect(sliceKeys("core", CROSS.HAS_NAME_SOURCE.sql, [])).toEqual({});
     // MUTATION PIN: a region-wide table read beside a keyed one is in no one web file — the whole water's
     expect(sliceKeys("water", "SELECT p.akey, a.kind FROM part p JOIN akey a ON a.akey = p.akey WHERE p.item_ord = ?", [3]))
       .toBeNull();
@@ -59,6 +63,10 @@ describe("sliceKeys", () => {
     expect(sliceKeys("core", "SELECT ord FROM item WHERE name = ?", ["x"])).toBeNull();
     expect(sliceKeys("water", "SELECT j FROM xpart WHERE id = ?", [1])).toBeNull();      // follows a part, never alone
     expect(sliceKeys("core", B.ITEM, [null])).toBeNull();
+    // (T796) whether the release holds a table no slice carries is the whole file's: a slice would say "absent"
+    // (MUTATION PIN: answered by a slice, a web page with a region in view lost every absorbed id's alias)
+    expect(sliceKeys("core", CROSS.HAS_ITEM_ALIAS.sql, [])).toBeNull();
+    expect(sliceKeys("core", "SELECT 1 AS x FROM sqlite_master WHERE type = 'table' AND name = 'see_pointer'", [])).toBeNull();
   });
 });
 

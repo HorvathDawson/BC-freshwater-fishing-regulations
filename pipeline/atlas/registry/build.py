@@ -717,9 +717,15 @@ def outside_area_items(registry: dict[str, RegistryItem],
     touched", so the old "the exclusion names nothing" refusal broke every second run; the
     geometry that could tell them apart is not this pass's input.)
 
-    REFUSED when the file and this build disagree: an area or item the registry does not have.
+    (T796, owner 2026-11-16: "take out the lakes but add a note") A LAKE WITH NO ITEM OF ITS OWN is named by its
+    section handle, `lake:<waterbody id>` (a lake is never cut, so its one section IS the lake): an unnamed pond, or a
+    widening pond folded into its creek (the Cormier Creek pond in the Blue/Dease Rivers reserve) — naming the creek's
+    item would take the whole creek out. Only that section leaves the area.
+
+    REFUSED when the file and this build disagree: an area, item or lake section the registry does not have.
     Mutates + returns."""
     bad: list[str] = []
+    known: set[str] | None = None
     for ad in area_defs or []:
         for slug, items in sorted((ad.get("outside_items") or {}).items()):
             aid = f"area:{ad['id']}:{slug}"
@@ -731,6 +737,14 @@ def outside_area_items(registry: dict[str, RegistryItem],
             gone: set[str] = set()
             for item in items:
                 it = registry.get(item)
+                if it is None and str(item).startswith("lake:"):
+                    if known is None:
+                        known = {s for x in registry.values() for s in x.section_ids}
+                    if item not in known:
+                        bad.append(f"{aid}: outside lake section {item} is no section of this build")
+                        continue
+                    gone |= {item} & held               # none: already outside (idempotent)
+                    continue
                 if it is None:
                     bad.append(f"{aid}: outside item {item} is not in this build's registry")
                     continue

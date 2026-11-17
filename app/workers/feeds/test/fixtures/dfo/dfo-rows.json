@@ -379,6 +379,34 @@
    ]
   },
   {
+   "name": "eulachon beside a dated bait row (T770)",
+   "about": "(owner 2026-11-16: the eulachon line must never be displaced by a bait rule) an 'until further notice' row about another fish is read apart from the place's gear rows: a dated bait row no longer hides it before its start (Sep 1 to Oct 31 both lines show)",
+   "rows": [
+    [
+     "All",
+     "Sep 1 to Dec 31",
+     "Bait ban"
+    ],
+    [
+     "All",
+     "Nov 1 until further notice",
+     "No fishing for eulachon"
+    ]
+   ],
+   "own": [
+    [
+     "CO",
+     1001,
+     null
+    ],
+    [
+     "CH",
+     1115,
+     null
+    ]
+   ]
+  },
+  {
    "name": "natural bait allowed",
    "about": "a gear permission is not an unread row",
    "rows": [

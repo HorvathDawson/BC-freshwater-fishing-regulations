@@ -59,7 +59,7 @@ function SeenMap({ at, theme, view, modes, groups, hide, show, initial, data, on
                       onError, onMoved, onMapPoint, onLongPress, onOpenLab, highlight, inSeason, water, waterLine, selection = "outline", marker,
                       style,
                       gauges, onVisible, pins, bare, fit, basemap, trace, onImageryError,
-                      zoomControls, status, standing, lakes, salmon, method, runs, marks, onPressMark, spots, me, insetTop = 0, insetBottom = 0, onRegion, onOpenLink, useBackLayer, focus, near, onDrawn, lookKey, onLookDrawn }: MapProps) {
+                      zoomControls, status, standing, lakes, salmon, method, issue, runs, marks, onPressMark, spots, me, insetTop = 0, insetBottom = 0, onRegion, onOpenLink, useBackLayer, focus, near, onDrawn, lookKey, onLookDrawn }: MapProps) {
   const refs = useWebMapRefs(onError);
   // (T243) the camera's own glides jump while the OS asks for reduced motion (`motion.ts`)
   useEffect(() => {
@@ -89,7 +89,7 @@ function SeenMap({ at, theme, view, modes, groups, hide, show, initial, data, on
   const lit = useHighlight(refs, { highlight, water, selection, near, inSeason });
   useMarks(refs, marks, onPressMark, furniture);
   const spotLayer = useSpots(refs, spots, at);
-  useChannels(refs, lit, { at, theme, data, status, standing, lakes, salmon, method, runs });
+  useChannels(refs, lit, { at, theme, data, status, standing, lakes, salmon, method, issue, runs });
   const traceBox = useFit(refs, fit, highlight);
   useGauges(refs, gauges);
   useTrace(refs, { trace, at, onError }, traceBox);

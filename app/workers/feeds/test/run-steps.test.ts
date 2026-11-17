@@ -6,6 +6,7 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import worker from "../src/index";
 import type { R2BucketLike } from "../src/io";
+import { REGISTRY_TEXT } from "./dfo.scenario";
 
 /** an R2 bucket in memory, with etags and `onlyIf` like R2's (a failed condition answers null) */
 class MemBucket implements R2BucketLike {
@@ -119,6 +120,30 @@ describe("state written only over what was read (T558 W13)", () => {
     const after = JSON.parse(b.m.get("private/feeds/status.json")!);
     expect(raced).toBe(true);
     expect(Object.keys(after.feeds).sort()).toEqual(["dfo", "inseason"]);
+  });
+});
+
+// (T759, the Android chat's ruling) a DFO run records the issue counts of the index it published; /status.json serves them
+describe("a DFO run's issues on /status.json (T759)", () => {
+  afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
+  it("dfoIssues are the counts of the published index.json — null before any DFO run", async () => {
+    const FIX = join(__dirname, "fixtures/dfo");
+    const b = new MemBucket();
+    b.m.set("private/feeds/dfo/wording.json", REGISTRY_TEXT);
+    b.m.set("private/feeds/dfo/entries/region-8.json", readFileSync(join(FIX, "entries/region-8.json"), "utf-8"));
+    const env = { BUCKET: b, RUN_TOKEN: "t" } as never;
+    const status = async () => (await (await worker.fetch(new Request("https://w/status.json"), env)).json()).dfoIssues;
+    b.m.set("private/feeds/status.json", JSON.stringify({ format: "feeds-status/1", updated: "", feeds: {} }));
+    expect(await status()).toBeNull();
+    vi.stubGlobal("fetch", async () => new Response(readFileSync(join(FIX, "pages/region8-eng.html"), "utf-8")));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    await worker.fetch(new Request("https://w/run/dfo?regions=8", { method: "POST", headers: { Authorization: "Bearer t" } }), env);
+    const ix = JSON.parse(b.m.get("feeds/dfo/index.json")!);
+    const ws = Object.values<{ list: unknown[] }>(ix.issues.waters);
+    expect(ws.length).toBeGreaterThan(0);                                    // the saved region 8 page's undrawn places
+    expect(await status()).toEqual({ waters: ws.length, issues: ws.reduce((n, w) => n + w.list.length, 0),
+                                     no_water: ix.issues.no_water.length, unread: Object.keys(ix.issues.unread).length });
   });
 });
 

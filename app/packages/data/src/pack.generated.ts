@@ -153,6 +153,10 @@ export const PACK_FILES: Record<string, PackFile> = {
         "lat",
         "lon"
       ],
+      "section_note": [
+        "sid",
+        "note"
+      ],
       "see_pointer": [
         "entry_id",
         "name",
@@ -216,6 +220,10 @@ export const PACK_FILES: Record<string, PackFile> = {
         "pop",
         "lat",
         "lon"
+      ],
+      "section_note": [
+        "sid",
+        "note"
       ]
     }
   },
@@ -272,6 +280,10 @@ export const PACK_FILES: Record<string, PackFile> = {
         "pop",
         "lat",
         "lon"
+      ],
+      "section_note": [
+        "sid",
+        "note"
       ]
     }
   },
@@ -328,6 +340,10 @@ export const PACK_FILES: Record<string, PackFile> = {
         "pop",
         "lat",
         "lon"
+      ],
+      "section_note": [
+        "sid",
+        "note"
       ]
     }
   },
@@ -384,6 +400,10 @@ export const PACK_FILES: Record<string, PackFile> = {
         "pop",
         "lat",
         "lon"
+      ],
+      "section_note": [
+        "sid",
+        "note"
       ]
     }
   },
@@ -440,6 +460,10 @@ export const PACK_FILES: Record<string, PackFile> = {
         "pop",
         "lat",
         "lon"
+      ],
+      "section_note": [
+        "sid",
+        "note"
       ]
     }
   },
@@ -496,6 +520,10 @@ export const PACK_FILES: Record<string, PackFile> = {
         "pop",
         "lat",
         "lon"
+      ],
+      "section_note": [
+        "sid",
+        "note"
       ]
     }
   },
@@ -552,6 +580,10 @@ export const PACK_FILES: Record<string, PackFile> = {
         "pop",
         "lat",
         "lon"
+      ],
+      "section_note": [
+        "sid",
+        "note"
       ]
     }
   },
@@ -608,6 +640,10 @@ export const PACK_FILES: Record<string, PackFile> = {
         "pop",
         "lat",
         "lon"
+      ],
+      "section_note": [
+        "sid",
+        "note"
       ]
     }
   },
@@ -664,6 +700,10 @@ export const PACK_FILES: Record<string, PackFile> = {
         "pop",
         "lat",
         "lon"
+      ],
+      "section_note": [
+        "sid",
+        "note"
       ]
     }
   },
@@ -685,6 +725,11 @@ export const PACK_FILES: Record<string, PackFile> = {
   },
   "flow-area": {
     "format": "flow-area/1",
+    "kind": "bin",
+    "tables": {}
+  },
+  "flow-small": {
+    "format": "flow-small/1",
     "kind": "bin",
     "tables": {}
   },
@@ -2480,7 +2525,39 @@ export const PACK_FILES: Record<string, PackFile> = {
 };
 
 /** (T403) The files a release may omit (contract OPTIONAL); every other file is in every published release. */
-export const PACK_OPTIONAL: readonly string[] = ["lakes"];
+export const PACK_OPTIONAL: readonly string[] = ["flow-small", "lakes"];
+
+/**
+ * (T810 ticket I, trout table contract 2.1) THE OPTIONAL ANSWERS SECTIONS: per section, the `cell` columns and the tables
+ * every regs-<region> file carries when the release carries the section (its version in the manifest's
+ * `regulations.versions`), and none of them when it does not — all or nothing. The app's reader takes the names from
+ * here; the version it was written for stays hand-typed (`OPTIONAL_VERSIONS`, core/src/regs/versions.ts).
+ */
+export const PACK_OPTIONAL_SECTION_TABLES: Record<string, { cell: readonly string[]; tables: Record<string, readonly string[]> }> = {
+  "trout": {
+    "cell": [
+      "trout"
+    ],
+    "tables": {
+      "trout_dates": [
+        "id",
+        "j"
+      ],
+      "trout_frame": [
+        "id",
+        "j"
+      ],
+      "trout_sheet": [
+        "id",
+        "j"
+      ],
+      "trout_table": [
+        "id",
+        "j"
+      ]
+    }
+  }
+};
 
 /** (T403) The files only the web fetches (the answer slices and contract WEB_ONLY): a phone never installs or holds one. */
 export const PACK_WEB_ONLY: readonly string[] = ["core-1", "core-2", "core-3", "core-4", "core-5", "core-6", "core-7a", "core-7b", "core-8", "water-1", "water-2", "water-3", "water-4", "water-5", "water-6", "water-7a", "water-7b", "water-8", "water-shared"];
@@ -2528,7 +2605,7 @@ export const WEB_BUDGET: Record<string, { files: readonly string[]; gate: number
       "salmon",
       "salmon-{region}"
     ],
-    "gate": 4200000
+    "gate": 4400000
   },
   "first_tap_low": {
     "files": [
@@ -2542,7 +2619,7 @@ export const WEB_BUDGET: Record<string, { files: readonly string[]; gate: number
       "salmon-{region}",
       "method"
     ],
-    "gate": 3400000
+    "gate": 3600000
   },
   "first_tap_unnamed": {
     "files": [
@@ -2579,6 +2656,7 @@ export const PACK_UNITS: Record<string, string> = {
   "access": "access/1: 'BCAX', u8 1, 8 bytes section_handles, then an access half (pipeline/deliver/release/paint.py)",
   "climate.gauge_clim.bands": "clim/2: [u8 pentad, 5 x float16 LE] records",
   "flow-area": "flow-area/1: 'BCFA', u8 1, one LEB128 varint per paint section (sid order) = round(km2 x 1000)",
+  "flow-small": "flow-small/1: 'BCFS', u8 1, one LEB128 varint per paint section (sid order) = bitmask over its panel's members by ord: bit i set where member i drains at least the conditions meta's small_water_ratio times the section's target area (show small_water_text beside that member's reading)",
   "geo.part_geo.e": "microdegrees",
   "geo.part_geo.mid_lat": "microdegrees",
   "geo.part_geo.mid_lon": "microdegrees",
@@ -2588,7 +2666,7 @@ export const PACK_UNITS: Record<string, string> = {
   "lakes": "lakes/1: 'BCLK', u8 1, 8 bytes section_handles, LEB128 asof+1, LEB128 count, then per section (sid ascending) LEB128 sid delta, u8 survey (0 none, 1 sheet, 2 digitised), LEB128 stocked day+1 (0 never); days since 1900-01-01 (pipeline/deliver/lake_facts.py)",
   "method": "method/1: 'BCMT', u8 1, 8 bytes section_handles, LEB128 profile count, then per profile LEB128 run count + runs (length << 2 | code: 0 none or closed, 1 bait ban, 2 fly only; 366 days), then LEB128 run count and three columns sid gap[], count[], profile[] (pipeline/deliver/method.py)",
   "paint": "paint/5: see pipeline/deliver/release/paint.py",
-  "salmon": "salmon/4: 'BCSA', u8 4, 8 bytes section_handles, u32le JSON length + UTF-8 JSON (credit, default, regions (+ the header notes, the bucket's quota tree, T356 shared + sizes), verdicts (+ T332 an open day's quota tree, T356 c a header closure; u 1: both regions' words, no number), gears, chains (r, w, l the places narrowest first, sp, g, m, + T356 c; u the places on its water not drawn yet; T668 s on a section in two DFO regions: each region's places as indices into l, the most strict answer per fish speaks, and h the region slugs whose fishing-hours line shows; a per species day runs of the index into l of the place that answers), unmapped, scopes, x, shards; T549 off: every curated place no chain names, id -> {why, k, r, w, items}, shown as a text row on its water's page; p: each chain place's {r, water, sec}, what a row is named by) (pipeline/deliver/salmon.py, salmon_who.py)",
+  "salmon": "salmon/4: 'BCSA', u8 4, 8 bytes section_handles, u32le JSON length + UTF-8 JSON (credit, default, regions (+ the header notes, the bucket's quota tree, T356 shared + sizes), verdicts (+ T332 an open day's quota tree, T356 c a header closure; u 1: both regions' words, no number; T796 f 1 on a closed verdict from DFO's Finfish closure: all fishing closed, trout included), gears, chains (r, w, l the places narrowest first, sp, g, m, + T356 c; T770 o another fish's closure lines (\"Eulachon closed all year: No fishing for eulachon\"), day runs of an index into gears (-1 none), apart from the gear lines g, absent where none; u the places on its water not drawn yet; T668 s on a section in two DFO regions: each region's places as indices into l, the most strict answer per fish speaks, and h the region slugs whose fishing-hours line shows; a per species day runs of the index into l of the place that answers), unmapped, scopes, x, shards; T549 off: every curated place no chain names, id -> {why, k, r, w, items}, shown as a text row on its water's page; p: each chain place's {r, water, sec}, what a row is named by; T796 a rule book closure is a place book:<entry_id>::<rule_id>[~n], first in the chains it closes, its p {r?, water?, static 1, book {rule, pages}}; static: each such place's year {sp: 5 runs of verdict indexes (-1 nothing), g}, kept by the app under a live feed) (pipeline/deliver/salmon.py, salmon_who.py)",
   "salmon-1": "salmon-shard/1: 'BCSR', u8 1, 8 bytes section_handles, u8 region length + region, LEB128 run count, then per run LEB128 sid gap, count, chain (pipeline/deliver/salmon.py)",
   "salmon-2": "salmon-shard/1: 'BCSR', u8 1, 8 bytes section_handles, u8 region length + region, LEB128 run count, then per run LEB128 sid gap, count, chain (pipeline/deliver/salmon.py)",
   "salmon-3": "salmon-shard/1: 'BCSR', u8 1, 8 bytes section_handles, u8 region length + region, LEB128 run count, then per run LEB128 sid gap, count, chain (pipeline/deliver/salmon.py)",

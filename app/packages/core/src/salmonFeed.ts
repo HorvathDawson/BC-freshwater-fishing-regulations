@@ -7,8 +7,12 @@
  * verdict index (-1: the location says nothing that day) and the gear lines. A chain's year is re-composed from them
  * exactly as the pipeline composes it (`live.compose` == `deliver.salmon.chain_calendar`, pinned by
  * `salmonFeed.golden.ts`): per species and day the FIRST location of the chain with an answer, else verdict 0 (not
- * opened by DFO: closed); gear the first with any; the map status open > release > check > closed. Nothing is decided
- * here that the pipeline did not decide.
+ * opened by DFO: closed); (T770) gear every location's lines that day, narrowest first, a line once; the map status
+ * open > release > check > closed. Nothing is decided here that the pipeline did not decide.
+ *
+ * (T796 A5) THE RELEASE'S STATIC PLACES STAND UNDER A FEED: the rule book's full closure of a stretch is a place of its
+ * chains (first) that DFO's feed never carries; its year is the release's own (`payload.static`), its verdicts copied
+ * into the composed tables (`staticLocs`) — never dropped for being missing from the feed.
  *
  * WHICH ONE (owner 2026-10-27): the last feed this device CAPTURED, whatever its age, with that capture's time on the
  * card — the release's own file only when no feed was ever captured, or when the release was built from pages newer
@@ -18,7 +22,9 @@ import { MONTHS } from "./calendar.generated";
 import { BC_TIME_LABEL } from "./clock";
 import { bcFields } from "./day";
 import { FEED_FORMATS } from "./feedFormats.generated";
-import { dfoRow, salmonCard, type SalmonUnplacedPlace, type SalmonCardVM, type SalmonFacts, type SalmonGearInput, type SalmonMapStatus, type SalmonNote, type SalmonBucket, type SalmonHours, type SalmonShared, type SalmonSizes, type SalmonWords } from "./salmon";
+import { reportFailure, reportOnce } from "./failure";
+import { isSalmonIssues, unknownIssueKinds, type SalmonIssues } from "./salmonIssues";
+import { closedByHeader, dfoRow, salmonCard, salmonDayIndex, type SalmonUnplacedPlace, type SalmonCardVM, type SalmonFacts, type SalmonGearInput, type SalmonMapStatus, type SalmonNote, type SalmonBucket, type SalmonHours, type SalmonShared, type SalmonSizes, type SalmonWords } from "./salmon";
 
 type Payload = SalmonFacts["payload"];
 type Chain = Payload["chains"][number];
@@ -48,11 +54,22 @@ export interface SalmonFeedRegion {
 }
 export interface SalmonFeedLocation {
   readonly r: string; readonly sp: readonly (readonly number[])[]; readonly g: readonly number[];
+  /** (T770) the place's closure lines of another fish (`live.location_calendar` `o`), runs into `gears`; absent: none */
+  readonly o?: readonly number[];
   /** (T321) the location's rows in DFO's words (new wording, an unread number, a note) */
   readonly x?: readonly SalmonWords[];
 }
+/** (T757 item 6) WHAT A FEED STATES IT CARRIES (`index.json` `dfo`, the worker's `/status.json` value): `pieces` >= 1 —
+ *  it emits T573's closed-area pieces as locations. Absent on an older feed. The next shape field is one more key here. */
+export interface SalmonFeedShape { readonly pieces?: number }
+
 export interface SalmonFeed {
   readonly format: typeof SALMON_FEED_FORMAT;
+  /** (T757) the feed's shape; absent: an older feed, which states nothing */
+  readonly dfo?: SalmonFeedShape;
+  /** (T759) the rows DFO prints that the app has not placed or confirmed, by water (`salmonIssues.ts`); absent: an older
+   *  feed, no issues */
+  readonly issues?: SalmonIssues;
   /** when the feed was published (UTC ISO) — the capture's as-of */
   readonly at: string;
   readonly regions: Readonly<Record<string, SalmonFeedRegion>>;
@@ -95,6 +112,11 @@ export function parseSalmonFeed(x: unknown): SalmonFeed | null {
   if (!f || typeof f !== "object" || f.format !== SALMON_FEED_FORMAT || typeof f.at !== "string") return null;
   if (!Array.isArray(f.verdicts) || !f.verdicts.length || !Array.isArray(f.gears)) return null;
   if (!f.locs || typeof f.locs !== "object" || !f.regions || typeof f.regions !== "object") return null;
+  // (T757) the shape, when it carries one, is whole: an object of numbers
+  if (f.dfo !== undefined && (!f.dfo || typeof f.dfo !== "object" || Array.isArray(f.dfo)
+      || Object.values(f.dfo).some((v) => typeof v !== "number" || !Number.isFinite(v)))) return null;
+  // (T759) the issues, when it carries them, are whole
+  if (f.issues !== undefined && !isSalmonIssues(f.issues)) return null;
   // (T356) a region's notes come with what they resolve to: never notes without their sizes and shared limits
   for (const r of Object.values(f.regions)) if (r.notes && (!Array.isArray(r.shared) || !Array.isArray(r.sizes))) return null;
   // (T549 item 5) a region's holds, when it carries them, are whole: every one a place id and how it was kept
@@ -109,10 +131,11 @@ export function parseSalmonFeed(x: unknown): SalmonFeed | null {
         || !p.pairs.every((x) => Array.isArray(x) && x.length === 3 && x.every(verdict) && x[0]!.s === "open" && x[1]!.s === "open")) return null;
   }
   for (const l of Object.values(f.locs)) {
-    if (!l || !Array.isArray(l.sp) || l.sp.length !== 5 || !Array.isArray(l.g)) return null;
-    for (const runs of [...l.sp, l.g]) for (let k = 1; k < runs.length; k += 2) {
+    if (!l || !Array.isArray(l.sp) || l.sp.length !== 5 || !Array.isArray(l.g) || (l.o !== undefined && !Array.isArray(l.o))) return null;
+    const lines = l.o ? [l.g, l.o] : [l.g];
+    for (const runs of [...l.sp, ...lines]) for (let k = 1; k < runs.length; k += 2) {
       const v = runs[k]!;
-      if (!Number.isInteger(v) || v >= (runs === l.g ? f.gears.length : f.verdicts.length)) return null;
+      if (!Number.isInteger(v) || v >= (lines.includes(runs) ? f.gears.length : f.verdicts.length)) return null;
     }
   }
   return f as SalmonFeed;
@@ -216,7 +239,8 @@ function strictestIx(ixs: readonly number[], t: SalmonFeedTables | undefined, V:
 }
 
 /** (T668) the gear lines of a two-region chain's groups that day: every region's, in region order, a line said once
- *  (`deliver.salmon.both_gear`) — DFO's words, not ranked */
+ *  (`deliver.salmon.both_gear`) — DFO's words, not ranked. (T770, owner 2026-11-16: "Show both") and the same within
+ *  a group: every place's lines, narrowest first (`deliver.salmon.gear_on`, `live.compose`) */
 function gearOf(gs: readonly number[], t: SalmonFeedTables | undefined, G: readonly (readonly string[])[]): number {
   const have = gs.filter((x) => x >= 0);
   if (have.length <= 1) return have[0] ?? -1;
@@ -260,7 +284,7 @@ function byChangeDay(days: readonly number[], f: (day: number) => number): numbe
  *  `who`: also `a`, the answering place per species and day (a release with fix 4). */
 export function composeChain(lids: readonly string[], feed: SalmonFeed, undrawn: readonly string[] = [], speaks = false,
                              groups?: readonly (readonly number[])[], tables?: SalmonFeedTables,
-                             who = false): Pick<Chain, "sp" | "g" | "m" | "c" | "n" | "a"> {
+                             who = false): Pick<Chain, "sp" | "g" | "o" | "m" | "c" | "n" | "a"> {
   return composeChainOn(changeDays, lids, feed, undrawn, speaks, groups, tables, who);
 }
 
@@ -274,14 +298,14 @@ const EVERY_DAY = Array.from({ length: DAYS }, (_, d) => d);
 function composeChainOn(daysOf: (runs: Iterable<readonly number[]>) => number[],
                         lids: readonly string[], feed: SalmonFeed, undrawn: readonly string[] = [], speaks = false,
                         groups?: readonly (readonly number[])[], tables?: SalmonFeedTables,
-                        who = false): Pick<Chain, "sp" | "g" | "m" | "c" | "n" | "a"> {
+                        who = false): Pick<Chain, "sp" | "g" | "o" | "m" | "c" | "n" | "a"> {
   const V = tables?.verdicts ?? feed.verdicts, G = tables?.gears ?? feed.gears;
   const subs = (groups ?? [lids.map((_, i) => i)]).map((g) => g.map((i) => feed.locs[lids[i]!]).filter((c): c is SalmonFeedLocation => !!c));
   const first = (xs: Iterable<number>, none: number) => { for (const v of xs) if (v >= 0) return v; return none; };
   const sp: number[][] = [[], [], [], [], []].map(() => new Array<number>(DAYS)), g = new Array<number>(DAYS),
-        m = new Array<number>(DAYS);
+        o = new Array<number>(DAYS), m = new Array<number>(DAYS);
   // (T716) asked on the days the places' calendars can change on, held to the next: the same arrays as day by day
-  const days = daysOf(subs.flatMap((cals) => cals.flatMap((c) => [...c.sp, c.g])));
+  const days = daysOf(subs.flatMap((cals) => cals.flatMap((c) => [...c.sp, c.g, ...(c.o ? [c.o] : [])])));
   for (const [day, to] of spans(days)) {
     const ss: string[] = [];
     for (let k = 0; k < 5; k++) {
@@ -290,8 +314,12 @@ function composeChainOn(daysOf: (runs: Iterable<readonly number[]>) => number[],
       sp[k]!.fill(ix, day, to);
       ss.push(V[ix]!.s);          // every feed index checked by parseSalmonFeed; a merged one is ours
     }
-    const gs = subs.map((cals) => first(cals.map((c) => at(c.g, day)), -1));
+    // (T770) every place's gear lines that day, narrowest first, a line once — then two regions' groups the same way
+    const gs = subs.map((cals) => gearOf(cals.map((c) => at(c.g, day)), tables, G));
     g.fill(gs.length === 1 ? gs[0]! : gearOf(gs, tables, G), day, to);
+    // (T770, `live.compose` `o`) another fish's closure lines: every place's, then every group's, exactly as the gear
+    const os = subs.map((cals) => gearOf(cals.map((c) => (c.o ? at(c.o, day) : -1)), tables, G));
+    o.fill(os.length === 1 ? os[0]! : gearOf(os, tables, G), day, to);
     m.fill(MAP_CODES.indexOf(mapStatus(ss)), day, to);
   }
   const spr = sp.map(runsOf);
@@ -302,18 +330,8 @@ function composeChainOn(daysOf: (runs: Iterable<readonly number[]>) => number[],
   // pipeline's `speaks_runs`, a day some species has DFO's own verdict
   const n = speaks ? runsOf(sp[0]!.map((_, day) => (sp.some((x) => !V[x[day]!]!.d) ? 1 : 0))) : null;
   const a = who ? answeringPlaces(spr, lids.map((l) => feed.locs[l]), groups, daysOf) : null;
-  return { sp: spr, g: runsOf(g), m: runsOf(m), ...(c.length ? { c } : {}), ...(n ? { n } : {}), ...(a ? { a } : {}) };
-}
-
-/** (T356) the pipeline's `deliver.salmon.closed_by_header`: the header notes answering every species every day, else [] */
-function closedByHeader(sp: readonly (readonly number[])[], V: readonly Verdict[]): string[] {
-  const ids = new Set<string>();
-  for (const runs of sp) for (let k = 1; k < runs.length; k += 2) {
-    const c = runs[k]! >= 0 ? V[runs[k]!]!.c : undefined;
-    if (!c) return [];
-    ids.add(c);
-  }
-  return [...ids].sort();
+  return { sp: spr, g: runsOf(g), ...(o.some((x) => x >= 0) ? { o: runsOf(o) } : {}), m: runsOf(m),
+           ...(c.length ? { c } : {}), ...(n ? { n } : {}), ...(a ? { a } : {}) };
 }
 
 function wordsWithFeed(release: Readonly<Record<string, readonly SalmonWords[]>>, feed: SalmonFeed): Record<string, readonly SalmonWords[]> {
@@ -393,13 +411,17 @@ function composeFeedPayload(P: Payload, feed: SalmonFeed): { payload: Payload; s
   }));
   // (T668) a two-region chain may add a merged verdict or gear list: to copies of the feed's tables, never the feed's
   const tables = feedTables(feed);
+  // (T796 A5) the release's static places (the rule book's closures) beside the feed's: their years from the release
+  const statics = staticLocs(P, feed, tables);
+  const withStatics: SalmonFeed = Object.keys(statics).length ? { ...feed, locs: { ...feed.locs, ...statics } } : feed;
   // the release's own closure (`c`) never outlives its verdicts: the feed's composition says whether one holds;
   // (T668 fix 4) `a` re-read from the feed where the release names places (absent before fix 4: none, as it was)
   // (T716, owner 2026-11-13: "Maybe a card builds its item when it needs it?") EACH CHAIN WHEN FIRST READ: a page reads
   // its own water's chains, the Salmon map the chains of the sections it draws; none is built for nobody
   const chains = lazyList(P.chains.length, (i) => {
-    const { c: _c, n, a, ...c } = P.chains[i]!;
-    return { ...c, ...composeChain(c.l, feed, c.u ?? [], n !== undefined, c.s, tables, a !== undefined) };
+    // (T770) the release's `o` too: the feed's composition says whether another fish's closure stands (absent: none)
+    const { c: _c, o: _o, n, a, ...c } = P.chains[i]!;
+    return { ...c, ...composeChain(c.l, withStatics, c.u ?? [], n !== undefined, c.s, tables, a !== undefined) };
   });
   // (T549) the release's location set: what it shows (chains) and what it states it does not (`off`)
   const shown = new Set(P.chains.flatMap((c) => [...c.l, ...(c.u ?? [])]));
@@ -424,11 +446,46 @@ function composeFeedPayload(P: Payload, feed: SalmonFeed): { payload: Payload; s
       .map(({ d: _d, ...u }) => u),
     // (T521) the feed's places no curated location knows, shown on their water's page
     ...(feed.unplacedRows?.length ? { feedUnplaced: feed.unplacedRows } : {}),
+    // (T759) the feed's issues, shown as banners on their waters' stretches (`salmonIssueBanners`)
+    ...(feed.issues ? { feedIssues: feed.issues } : {}),
   };
+  // (T759, W46) a kind this app has no words for is shown with the generic words, and reported (once a run, per kind)
+  for (const k of feed.issues ? unknownIssueKinds(feed.issues) : [])
+    reportOnce(`salmon-issue-kind:${k}`, new Error(`salmon feed: issue kind "${k}" has no words in this app; shown with the generic words`));
   const stale = Object.entries(feed.regions).filter(([, r]) => r.stale || r.held).map(([s]) => s).sort();
   // (T521) the index counts places its unplaced.json was not read for: said on the card's feed line, never hidden
   const unread = feed.unplacedRows ? 0 : feed.unplaced ?? 0;
   return { payload, stale, unread };
+}
+
+/**
+ * (T796 A5) The release's static places as feed locations: each one's year (`payload.static`, release verdict and gear
+ * indices) re-indexed into the composed tables — a verdict the feed already holds keeps its index, another is added.
+ * A static place the feed itself names is an error (an id the release reserved: `book:`), never one silently winning.
+ */
+function staticLocs(P: Payload, feed: SalmonFeed, tables: SalmonFeedTables): Record<string, SalmonFeedLocation> {
+  const ids = Object.keys(P.static ?? {});
+  if (!ids.length) return {};
+  const named = ids.filter((l) => feed.locs[l]);
+  if (named.length) throw new Error(`salmon feed: names the release's static place(s) ${named.join(", ")}`);
+  const vIx = new Map(tables.verdicts.map((v, i) => [stable(v), i] as const));
+  const gIx = new Map(tables.gears.map((g, i) => [stable(g), i] as const));
+  const add = <T>(items: T[], ix: Map<string, number>, x: T): number => {
+    const k = stable(x);
+    let i = ix.get(k);
+    if (i === undefined) { i = items.push(x) - 1; ix.set(k, i); }
+    return i;
+  };
+  const out: Record<string, SalmonFeedLocation> = {};
+  for (const lid of ids) {
+    const y = P.static![lid]!;
+    out[lid] = {
+      r: P.p?.[lid]?.r ?? "",
+      sp: y.sp.map((runs) => runs.map((x, k) => (k % 2 && x >= 0 ? add(tables.verdicts, vIx, P.verdicts[x]!) : x))),
+      g: y.g.map((x, k) => (k % 2 && x >= 0 ? add(tables.gears, gIx, [...P.gears[x]!]) : x)),
+    };
+  }
+  return out;
 }
 
 /**
@@ -447,13 +504,61 @@ export function salmonCheckedLine(f: SalmonFacts | null): string | null {
 export const salmonFeedOf = (f: SalmonFacts | null): SalmonFeedFacts | null => (f as WithFeed | null)?.[FEED] ?? null;
 
 /**
+ * (T757 item 6) THE MINIMUM FEED SHAPE A RELEASE REQUIRES: `pieces: 1` when some chain names a closed-area piece that
+ * covers a section (`p[l].piece` and `bound`, T573) — a feed that does not emit pieces would let each one fall through
+ * to the place around it, open. Null: the release requires nothing of the feed.
+ */
+export function requiredFeedShape(P: Payload): Required<SalmonFeedShape> | null {
+  // (T796 A5) a rule-book place (`static`) is never a piece
+  const pieces = P.chains.some((c) => c.l.some((l) => { const p = P.p?.[l]; return !!p && "piece" in p && p.piece === 1 && p.bound === 1; }));
+  return pieces ? { pieces: 1 } : null;
+}
+
+/** (T757) Does the feed state at least the shape required (`requiredFeedShape`)? Nothing required: yes. */
+export function feedMeets(feed: SalmonFeed, need: SalmonFeedShape | null): boolean {
+  return !need || (Object.entries(need) as [keyof SalmonFeedShape, number][]).every(([k, v]) => (feed.dfo?.[k] ?? 0) >= v);
+}
+
+/** (T757) a feed too old for its release: reported once per head and feed read, never per render */
+const SHORT_REPORTED = new WeakMap<Payload, WeakSet<SalmonFeed>>();
+const SHORT = Symbol("salmonFeedShort");
+
+/**
  * THE ONE CHOICE: the captured feed, unless there is none or the release was cut from pages newer than the capture
- * (its newest page date after the capture's day) — then the release's own file.
+ * (its newest page date after the capture's day) — then the release's own file. (T757 item 6) So too when the feed
+ * does not carry the shape the release requires (`requiredFeedShape`): the release's own file for EVERY chain, said on
+ * the card's feed line (`salmonFeedLine`) and reported.
  */
 export function pickSalmon(release: SalmonFacts, feed: SalmonFeed | null): SalmonFacts {
   const newest = Object.values(release.payload.regions).map((r) => r.asof).filter((x): x is string => !!x).sort().pop();
-  if (feed && !(newest && newest > feed.at.slice(0, 10))) return withSalmonFeed(release, feed);
-  return releaseOnly(release);
+  if (!feed || (newest && newest > feed.at.slice(0, 10))) return releaseOnly(release);
+  const need = requiredFeedShape(release.payload);
+  if (feedMeets(feed, need)) return withSalmonFeed(release, feed);
+  let seen = SHORT_REPORTED.get(release.payload);
+  if (!seen) { seen = new WeakSet(); SHORT_REPORTED.set(release.payload, seen); }
+  if (!seen.has(feed)) {
+    seen.add(feed);
+    reportFailure(new Error(`salmon feed: the release requires feed shape ${JSON.stringify(need)}, the feed of ${feed.at} `
+                            + `states ${JSON.stringify(feed.dfo ?? {})}; the release's own salmon file is shown`));
+  }
+  const own = releaseOnly(release);
+  const out: SalmonFacts & { readonly [SHORT]?: true } = { handles: own.handles, chains: own.chains, chainOf: (sid) => own.chainOf(sid),
+                                                           payload: own.payload, loaded: own.loaded, [SHORT]: true };
+  return out;
+}
+
+/**
+ * (T796 A6) DOES THE FEED CLOSE ANY PLACE TO ALL FISHING ON `on` — any place's species verdict that day carrying `f` (DFO's
+ * "Finfish closure")? The web's cue to read the release's salmon files for the Standard map (`useSalmonColour`'s
+ * `finfish`): asked of the feed index the app already holds, so a day with none costs no request. Province-wide, not the
+ * view: a place is tied to sections only by the release's chains, which are in the files this decides whether to read.
+ */
+export function feedFinfishOn(feed: SalmonFeed, on: Date): boolean {
+  const day = salmonDayIndex(on);
+  return Object.values(feed.locs).some((l) => l.sp.some((runs) => {
+    const v = at(runs, day);
+    return v >= 0 && !!feed.verdicts[v]?.f;
+  }));
 }
 
 /** The release's own file, its places that were dormant at build (`d: 1`) left off the card. */
@@ -464,8 +569,13 @@ function releaseOnly(f: SalmonFacts): SalmonFacts {
   return { handles: f.handles, chains: f.chains, chainOf: (sid) => f.chainOf(sid), payload: { ...P, unmapped }, loaded: f.loaded };
 }
 
+/** (T757) the card's feed line when the latest feed could not be used with this release (`pickSalmon`) */
+const SHORT_FEED_LINE = "The latest DFO check could not be used with this app’s data, so the DFO rules this data was built with are shown. Check DFO’s page before you fish.";
+
 /** The card's line for the feed: "Checked with DFO Oct 27, 2026, 11:04 am" (B.C. clock, labelled), the stale regions said. */
 export function salmonFeedLine(f: SalmonFacts | null): string | null {
+  // (T757) a feed the release could not use (`pickSalmon`): said where the feed's line goes, as its stale regions are
+  if ((f as { readonly [SHORT]?: true } | null)?.[SHORT]) return SHORT_FEED_LINE;
   const live = salmonFeedOf(f);
   if (!live) return null;
   const t = new Date(live.at);

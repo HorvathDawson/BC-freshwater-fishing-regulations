@@ -82,7 +82,7 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
   tap: TapAhead;
 }) {
   const { route, go, browse, tab, back } = nav;
-  const { flowParam, mm, layers, imagery, cond, gauges, lakeFeed, salmonFeed, methodFeed, mapStatus, noteVisible, setZoomedOut,
+  const { flowParam, mm, layers, imagery, cond, gauges, lakeFeed, salmonFeed, methodFeed, issueFeed, mapStatus, noteVisible, setZoomedOut,
           horizonChipsShown, pickDay, vintage } = col;
   const { searching, session, arrive, wideSearch, closeSearch } = search;
   /**
@@ -221,6 +221,7 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
                      lakes={lakeFeed}
                      salmon={salmonFeed}
                      method={methodFeed}
+                     issue={issueFeed}
                      runs={col.runsFeed}
                      status={mapStatus}
                      // The dots belong to the Conditions tab — AND to the temperature

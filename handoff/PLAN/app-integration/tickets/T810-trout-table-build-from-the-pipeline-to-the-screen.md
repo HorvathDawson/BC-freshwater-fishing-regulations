@@ -102,3 +102,37 @@ I0: `pipeline/tests/test_answers_versions.py` pins every answers section version
 whichever of M0 or I lands second; `app/packages/core/src/regsCell.generated.ts` (CellIds, CELL_COLUMNS) emitted by
 pack.py under --check. A0: 622 mixed trout+other rows (Python splits them at rows 34; contract amended), 0 angler-only
 trout closures, 0 hours-window trout changes; cutover regs-5 largest, 22-51 kB over first-tap (raised at the switch).
+
+## 2026-11-16 21:02: F built (lane/trout-f, merged locally; 5,950 tables over r-46e4355a7277, 0 refused)
+Questions F leaves for G2 (the owner's sentence catalogue; NOT asked yet): (1) Echoes: box head "Keep 5 in all" with
+"only 1 of these 6" under the top line "Up to 1 {day} // only 1 from both lakes together"; (2) the band form "only 3
+from these 2 together" (Tagish); (3) some row size caps reuse the tree's sentences J cannot parse ("up to 1 cutthroat
+trout over 50 cm (20 in)", Kamloops' "none over 50 cm (20 in) if you've already kept …"): word them through G; (4)
+strip parts joined by "; " with "in your possession: …" lower-case (contract showed "In your possession: …"); (5)
+plus-form fold says only "Up to 2" (Kaslo "Up to 2 {day}, plus 2 Dolly Varden/bull trout"); (6) "any size" on a row
+unless the box has a size strip; (7) stop-duty noun from the stored duty ("this stream" vs "this river"); (8) Fraser
+R3 Oct 15: "reopens Nov 1" per row, not under the top line (steelhead closed all year never reopen); (9) twin wild
+rows "up to the 4" with the strip "only 2 wild, each 40 cm (16 in) or less" (Windsor, Dodd); (10) possession below
+the day's number: band "only 2 in your possession" + quiet line (Cunningham). Checked: Bowron LAKE reads 2 a day
+correctly (book p.43: Bowron Lake's own row says 2; the 1 is for the other park waters). Left for H: `elsewhere`, the
+fish sheet's licence/stamp line, "today" wording in sheet lines. Left for I: wire models, FRAMES["trout"]; I must
+compose before L drops `group` from covered rows.
+
+## 2026-11-16 23:30: J built (lane/trout-j): the proof, inside the card gate
+`answers/trout/check.py` reads every shipped table back with G's grammar (extended in `words.py` to every text the
+table, its dates and sheets say, the card's reused size / also / kept-elsewhere / possession / weekday words included)
+and proves it against today's answers and the keeping engine, every key and segment: NULL per Q-D3, `covers`, every
+fish once, state and origin words, each fish alone at every length (engine), the joint limits through the engine's
+basket proof (`check_caps`' method), possession vs F0's lead (`card_check.possession_problems(lead=…)`), T793 / T805
+re-aimed, top line and fold numbers, every date against the following segments (and the sheet's), the sheets, the year
+bar, rule refs, kept-elsewhere numbers. Runs in `card_check --all` whenever the answers hold the trout section; the
+stamp gains `trout_check` and the store refuses a stamp that checked fewer tables than non-NULL trout cells.
+Full flagged side build over the live bundle: 5,950 tables of 5,950 non-NULL cells. It first found ~630 keys with
+faults in F's builder, fixed on the lane (each pinned): a kind's number drawn as each fish's own ("only 4" each in a
+box of 5), a kind's size cap drawn per fish ("up to 1 over 50 cm" on each row), "uses the 1" on a steelhead of a
+non-steelhead water, a twin wild row missing its own quota, "only 2 wild" in a strip that holds only some wild fish,
+boxes-apart top lines saying the region's total instead of the box's most. LEFT (5 keys, the proof fails them):
+(1) Kaslo River and Keen Creek from Jun 15: "Up to 2 {day}, plus 2 Dolly Varden/bull trout" with DV outside the
+"2 of these 5" band; the engine keeps 2 in all (DV counts toward the 2 from streams) — F's question 5; (2) Kitimat
+River (2 keys) and Humphrys / Iron Mine / Tetlock Creeks from Jul 1: the wild rainbow's "only 1 wild" is not joined
+with brown and cutthroat's "only 1 of these 2"; the engine holds the three to 1 together.

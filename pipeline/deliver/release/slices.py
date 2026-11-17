@@ -20,6 +20,8 @@ what it COVERS, and the app reads a slice only for keys it covers (`app/packages
             (the store reads rules / lics / statics whole) and the `str` rows their columns name. They were byte-
             identical in all nine water slices (623 of ~780 kB gz each, measured 2026-11-04); a second region now costs
             only its own rows. A water slice holds none of them.
+  whole     (T796) core `section_note`: a section's note said once on its page (a few rows, `bundle.outside_note`) — in
+            every slice whole, so a page reads its notes from its region's slice and never fetches the whole core for them.
   not held  core alias / item_alias / see_pointer (search reads the whole core); water entry / lset / runs (no app
             read: the seo build and the pipeline's store re-assembly read the whole water).
 
@@ -47,7 +49,9 @@ WATER_SHARED = "water-shared"
 
 #: core tables a slice carries; keyed by ord (`ord`) or by item_id (`item_id`), `None` = whole
 CORE_SLICE_TABLES: Dict[str, str | None] = {"item": "ord", "item_section": "ord", "item_near": "ord",
-                                            "item_area": "ord", "name_source": "item_id", "place": "place_id"}
+                                            "item_area": "ord", "name_source": "item_id", "place": "place_id",
+                                            # (T796) a few rows: whole in every slice (module doc)
+                                            "section_note": None}
 #: water tables a slice carries; the column a covered water is keyed by, "*" = special (below)
 WATER_SLICE_TABLES: Dict[str, str] = {
     "item": "item_ord", "part": "item_ord", "part_section": "ord", "part_line": "ord", "part_mark": "ord",
