@@ -24,6 +24,7 @@ import { sharedFixesIos } from './scenarios-ios/shared-fixes.mjs';
 import { keyboardIos } from './scenarios-ios/keyboard.mjs';
 import { modalBackIos } from './scenarios-ios/modal-back.mjs';
 import { auditFixes } from './scenarios-ios/audit-fixes.mjs';
+import { build36Ios, t814BgIos } from './scenarios-ios/build36.mjs';
 
 process.env.TESTBED_PLATFORM = 'ios';
 const HERE = path.dirname(new URL(import.meta.url).pathname);
@@ -623,6 +624,9 @@ const SCENARIOS = [
   modalBackIos,
   // (T723) the iOS audit fixes' proof, by name only
   auditFixes,
+  // (T814 T815 T816 T821) the owner's iPhone build 36 findings, by name only, on a fresh install
+  build36Ios,
+  t814BgIos,
 ];
 
 // ---------- the runner (as run.mjs, without the Android-only crash buffer and test channel) ----------
