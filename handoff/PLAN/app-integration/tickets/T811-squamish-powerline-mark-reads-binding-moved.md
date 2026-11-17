@@ -22,3 +22,6 @@ place draws should not change; only the fingerprint moved. Not a data fault.
 ## To close
 The owner re-ticks the place in the review app (its picture shown with the other follow-up saves). Then the live
 test passes again.
+
+## Owner, 2026-11-16 19:09
+"Re-tick as right (Recommended)". To save through the review app with his words (reviewer "Claude (for Dawson)").

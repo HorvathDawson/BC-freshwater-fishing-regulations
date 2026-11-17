@@ -28,3 +28,7 @@ Answered (old main chat): neither, it is a closure carried in the gear / bait li
 and classify it as a closure (card and `answers_diff` grouping) instead of a gear line. The candidate's gear lines
 differ on 3,745 sections (`answers_diff`); the read-only worker on the candidate's extra differences reconciles that
 with "13 chains".
+
+## Owner, 2026-11-16 19:09: eulachon as a closure
+"As a closure line (Recommended)": eulachon shows as its own closure line (closed all year in Region 6), apart from
+the gear and bait lines; data writes it as a closure, the app draws it.

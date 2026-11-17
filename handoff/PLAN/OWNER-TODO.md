@@ -2130,3 +2130,14 @@ More questions (recommended answer first):
 - 19:01, typed in chat (verbatim): "We could skip some tests to get multiple items done then merge after and test
   together? Or is that too risky?" Answered: batch the merges (each lane already ran its own tests), then ONE full
   tier and ONE push for the batch; never push without the full tier (the 11-15 red landings). Adopted from now.
+- 19:09, he asked whether he still has saves to do and to take the two end-batch questions now ("make sure i didnt
+  already answer these things"). Checked: the "leftover saves" in my 19:0x summary were MY fixes, all already answered
+  by him (Morice 2738 by the heading rule; Morice 2739 "fix it" = the Lamprey cut onto the main channel; Sheldens 2783
+  = low-confidence road cut + tidal; Babine 2784 = done 19:07, marks 2825-2836; Dean 2793 = the except without the
+  canyon; Thompson 2521 = the three closed areas; Morice 2596 retired; Atnarko 2584 "The heading counts"). Told him so.
+  One dialog of three. Squamish "downstream of the powerline crossing" re-tick (T811, mark 2511), picked: "Re-tick as
+  right (Recommended)". François Lake outlet lines (T805 D question 3; book p.51 "for the area at the outlet of
+  François Lake described on map 1"), picked: "Outlet area only (Recommended)" (all seven lines on the outlet area;
+  the main lake reads Region 6's rules; map rebuild; changed answers to him first). Eulachon (T770), picked: "As a
+  closure line (Recommended)" (its own line that eulachon is closed all year in Region 6, apart from the gear and bait
+  lines).
