@@ -5,10 +5,17 @@ import { isVersioned, readStored, type Fetch, type Meter, type Store } from "./i
 import { body as notifyBody } from "./notify";
 import { fmtErrors, foldHealth, summarize, type FeedHealth, type RunHealth, type SourceRun } from "./health";
 import { FORMAT as WORDING_FORMAT } from "./dfo/wording";
+import { PIECES_SHAPE } from "./dfo/closures";
 import { FEED_FORMATS } from "../../../packages/core/src/feedFormats.generated";
 import { INSEASON_LINKS_FORMAT } from "../../../packages/core/src/inseason";
 
 export type Job = "gauges" | "dfo" | "inseason";
+
+/** (T757 item 7) THE FEED SHAPE THIS WORKER'S CODE SERVES, read before a deploy by `deploy/lib/worker-shape.mjs` (which
+ *  bundles this module) for `pipeline/deliver/release/pieces_gate.py`: a release binding a closed-area piece is refused
+ *  a worker without it. The same value as `dfo/live.ts SHAPE` (served on /status.json); `test/status.shape.test.ts`
+ *  holds the two together and runs the deploy's reader. */
+export const DFO_SHAPE = { pieces: PIECES_SHAPE } as const;
 export type FeedState = "ok" | "degraded" | "failing" | "stale" | "never";
 
 export interface Held {
