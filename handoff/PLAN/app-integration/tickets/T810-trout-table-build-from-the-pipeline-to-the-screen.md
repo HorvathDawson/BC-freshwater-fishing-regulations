@@ -95,3 +95,10 @@ folded entries; the Other fish list stays as it is.
 ## Owner, 2026-11-16 17:40: the two open plan questions
 Ship early: "No, only at the switch" (the section appears only in the switch release; previews through side
 releases). Angler-only notes: "Page's notes block (Recommended)" (Q-D7: the table carries none).
+
+## 2026-11-16 18:12: step 1 landed locally (I0 + A0, merge 1b9cce5d2)
+I0: `pipeline/tests/test_answers_versions.py` pins every answers section version + glossary against the app's
+`KNOWN_VERSIONS` / `OPTIONAL_VERSIONS` (8 mutations fail it); `AWAITING_ONE_SIDE = {trout: 1}` must be deleted by
+whichever of M0 or I lands second; `app/packages/core/src/regsCell.generated.ts` (CellIds, CELL_COLUMNS) emitted by
+pack.py under --check. A0: 622 mixed trout+other rows (Python splits them at rows 34; contract amended), 0 angler-only
+trout closures, 0 hours-window trout changes; cutover regs-5 largest, 22-51 kB over first-tap (raised at the switch).
