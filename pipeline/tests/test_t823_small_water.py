@@ -1,39 +1,27 @@
-"""T823 — "small next to its gauge": Python flags the led sections whose lead gauge drains far more than they do, and
-writes the warning the app shows (owner 2026-11-16; pipeline/gauges/consume/small_water.py).
+"""T823 — "small next to its gauge", on the SPEAKER: per paint section, one bit per member of the panel the map colours
+it from, set where that member drains at least 50x the section (owner 2026-11-16 22:18-22:19;
+pipeline/gauges/consume/small_water.py, the `flow-small` file in paint.py).
 
 MUTATION PINS — each mutation and the test it fails:
   * `>=` -> `>` at the threshold                          -> test_the_threshold_is_inclusive
-  * flag a section BIGGER than its gauge (abs ratio)      -> test_a_section_bigger_than_its_gauge_is_never_small
-  * read the line's magnitude before the panel area       -> test_a_side_channel_is_judged_by_its_panel_area
-  * read the gauge where it is matched, not where it reads -> test_a_diversion_gauge_is_sized_at_its_intake
+  * flag a section BIGGER than its gauge (symmetric)      -> test_a_section_bigger_than_its_gauge_is_never_small
+  * bit i for some other member than ord i (reversed)     -> test_the_bits_follow_the_member_ord
   * a missing area read as small / not small              -> test_a_missing_area_is_refused
-  * the switch ignored (one hard-coded ratio)             -> test_the_switch_moves_the_owners_creek
-  * the column dropped from the contract or not last      -> test_the_conditions_contract_carries_small_last
+  * the switch ignored (one hard-coded ratio)             -> test_the_switch_moves_the_slesse_neighbour
+  * one mask too few or too many for paint's sections     -> test_flow_small_pairs_with_flow_area_row_for_row
+  * a gap in a panel's ords packed as if dense             -> test_a_gap_in_the_member_ords_is_refused
+  * the file dropped from the contract                    -> test_the_contract_ships_flow_small
 """
 
 from __future__ import annotations
 
 import sqlite3
-from types import SimpleNamespace
 
 import pytest
 
-from pipeline.atlas.graph.drainage import AreaModel
-from pipeline.deliver.bundle.build import SCHEMA
 from pipeline.deliver.release import contract as C
+from pipeline.deliver.release import paint as P
 from pipeline.gauges.consume import small_water as SW
-from pipeline.gauges.consume.shed import GaugeLink
-
-#: area_km2 == magnitude, so every fixture area is readable as it is written
-UNIT = AreaModel(b=1.0, c_default=1.0, c_by_basin={})
-
-
-def _graph(**mags: int):
-    return SimpleNamespace(nodes={n: SimpleNamespace(stream_magnitude=m, wsc="100-000000") for n, m in mags.items()})
-
-
-def _link(sec: str, station: str) -> GaugeLink:
-    return GaugeLink(sec, station, "weak", 0.0, 1)
 
 
 def test_the_sentence_is_the_one_the_app_shows_word_for_word():
@@ -42,7 +30,7 @@ def test_the_sentence_is_the_one_the_app_shows_word_for_word():
     assert (SW.META_TEXT_KEY, SW.META_RATIO_KEY) == ("small_water_text", "small_water_ratio")
 
 
-def test_the_default_is_the_recommended_value_pending_the_owner():
+def test_the_owners_threshold_is_the_default():
     assert SW.SMALL_WATER_RATIOS == {"x50": 50.0, "x100": 100.0, "x200": 200.0}
     assert SW.SMALL_WATER_POLICY == "x50"
     assert SW.ratio_for() == 50.0
@@ -61,7 +49,6 @@ def test_the_threshold_is_inclusive(ratio):
 
 
 def test_a_section_bigger_than_its_gauge_is_never_small():
-    # the lower Fraser's side channels led by Red Pass (08KA007): the gauge sees part of the water, the other question
     assert not SW.is_small(64_706.0, 1_121.0, 50.0)
     assert not SW.is_small(100.0, 100.0, 50.0)
 
@@ -74,50 +61,66 @@ def test_a_missing_area_is_refused():
         SW.is_small(1.0, 100.0, 1.0)
 
 
-def test_the_switch_moves_the_owners_creek():
-    # the owner's 1.4 km² creek beside the Chilliwack (sid 63923 on the live bundle): led by Slesse Creek (08MH056),
-    # modelled 186.075 km² against its 1.421 — 131x. Warned at x50 and x100, not at x200.
-    assert SW.is_small(1.421, 186.075, SW.ratio_for("x50"))
-    assert SW.is_small(1.421, 186.075, SW.ratio_for("x100"))
-    assert not SW.is_small(1.421, 186.075, SW.ratio_for("x200"))
+def test_the_owners_creek_is_warned_for_every_gauge_that_paints_it():
+    # sid 63623 on the 2026-11-16 bundle: 1.421 km², panel 08MH016 / 08MH103 (643.989) and 08MH001 (960.016, 676x)
+    assert SW.member_mask(1.421, [643.989, 643.989, 960.016], 50.0) == 0b111
 
 
-def test_small_sections_reads_the_model_at_both_ends():
-    g = _graph(GAUGE=1000, CREEK=10, TRIB=30, MAIN=900)
-    links = [_link(s, "08ZZ001") for s in ("CREEK", "TRIB", "MAIN")]
-    # 1000 / 10 = 100x small; 1000 / 30 = 33x not; 1000 / 900 not
-    assert SW.small_sections(links, g, UNIT, {"08ZZ001": "GAUGE"}, {}, 50.0) == {"CREEK"}
-    assert SW.small_sections(links, g, UNIT, {"08ZZ001": "GAUGE"}, {}, 20.0) == {"CREEK", "TRIB"}
+def test_the_switch_moves_the_slesse_neighbour():
+    # sid 63923: 1.421 km², panel 08MH056 Slesse (186.075, 131x) and 08MH001 (960.016, 676x)
+    members = [186.075, 960.016]
+    assert SW.member_mask(1.421, members, SW.ratio_for("x50")) == 0b11
+    assert SW.member_mask(1.421, members, SW.ratio_for("x100")) == 0b11
+    assert SW.member_mask(1.421, members, SW.ratio_for("x200")) == 0b10    # only Vedder Crossing past 200x
 
 
-def test_a_side_channel_is_judged_by_its_panel_area():
-    # a side channel's own line magnitude is 3; its panel adopted its river's 900 km²: not small next to a 1000 gauge
-    g = _graph(GAUGE=1000, SIDE=3)
-    links = [_link("SIDE", "08ZZ001")]
-    assert SW.small_sections(links, g, UNIT, {"08ZZ001": "GAUGE"}, {"SIDE": 900.0}, 50.0) == set()
-    # a panel with no area (None) falls to the model at its own magnitude: 3 against 1000 is small
-    assert SW.small_sections(links, g, UNIT, {"08ZZ001": "GAUGE"}, {"SIDE": None}, 50.0) == {"SIDE"}
+def test_the_bits_follow_the_member_ord():
+    # the North Thompson at Birch Island's section (111.4 km²): ord 0 Birch Island 2,335 (21x), ord 1 McLure 8,829
+    # (79x), ord 2 Kamloops 13,387 (120x) — the two far ones, not the near one
+    assert SW.member_mask(111.4, [2334.795, 8829.022, 13387.317], 50.0) == 0b110
+    assert SW.member_mask(111.4, [8829.022, 2334.795, 13387.317], 50.0) == 0b101
 
 
-def test_a_diversion_gauge_is_sized_at_its_intake():
-    # matched on its canal (mag 1) but reading the river at its intake (mag 5000): the creek of 40 is 125x the intake
-    g = _graph(CANAL=1, INTAKE=5000, CREEK=40)
-    links = [_link("CREEK", "08GC005")]
-    assert SW.small_sections(links, g, UNIT, {"08GC005": "INTAKE"}, {}, 50.0) == {"CREEK"}
-    assert SW.small_sections(links, g, UNIT, {"08GC005": "CANAL"}, {}, 50.0) == set()
+def test_a_panel_wider_than_the_mask_is_refused():
+    with pytest.raises(ValueError, match="the mask holds"):
+        SW.member_mask(1.0, [100.0] * (SW.MAX_MEMBERS + 1), 50.0)
 
 
-def test_the_conditions_contract_carries_small_last():
-    assert C.FILES["conditions"]["tables"]["section_gauge"] == ["sid", "station", "trust", "mag", "rel", "dist_b",
-                                                                "small"]
-    assert C.FILES["conditions"]["format"] == "conditions/1"          # additive: no format bump
-
-
-def test_the_bundle_schema_defaults_small_to_zero():
+def _bundle(sections, members) -> sqlite3.Connection:
     db = sqlite3.connect(":memory:")
-    db.executescript(SCHEMA.read_text())
-    cols = {r[1]: r for r in db.execute("PRAGMA table_info(section_gauge)")}
-    assert list(cols)[-1] == "small"
-    assert cols["small"][3] == 1 and cols["small"][4] == "0"         # NOT NULL DEFAULT 0
-    db.execute("INSERT INTO section_gauge (sid, station, trust, mag, rel, dist_b) VALUES (1, 'X', 'weak', 1, 0, 0)")
-    assert db.execute("SELECT small FROM section_gauge").fetchone() == (0,)
+    db.execute("CREATE TABLE section_panel (sid INTEGER PRIMARY KEY, panel_id INTEGER NOT NULL, area_km2 REAL)")
+    db.execute("CREATE TABLE panel_member (panel_id INTEGER, ord INTEGER, area_km2 REAL, PRIMARY KEY (panel_id, ord))")
+    db.executemany("INSERT INTO section_panel VALUES (?,?,?)", sections)
+    db.executemany("INSERT INTO panel_member VALUES (?,?,?)", members)
+    return db
+
+
+def test_flow_small_pairs_with_flow_area_row_for_row():
+    # inserted out of sid order: both files are in section_panel's sid order, the order paint's runs are cut in
+    db = _bundle([(9, 1, 1.421), (2, 0, 100.0), (5, 1, 19.0)],
+                 [(0, 0, 150.0), (1, 0, 186.075), (1, 1, 960.016)])
+    small = P.decode_small(P.encode_small(db, 50.0), 3)
+    assert small == [0b00, 0b10, 0b11]                       # sid 2: 1.5x; sid 5: 10x / 51x; sid 9: 131x / 676x
+    assert P.decode_area(P.encode_area(db), 3) == [100.0, 19.0, 1.421]
+    with pytest.raises(ValueError, match="trailing bytes"):
+        P.decode_small(P.encode_small(db, 50.0), 2)          # paired with a paint of other sections: refused
+    with pytest.raises(ValueError, match="not a flow-small/1"):
+        P.decode_small(P.encode_area(db), 3)
+
+
+def test_a_gap_in_the_member_ords_is_refused():
+    db = _bundle([(1, 0, 1.0)], [(0, 0, 100.0), (0, 2, 100.0)])
+    with pytest.raises(ValueError, match="ords are not 0..n-1"):
+        P.encode_small(db, 50.0)
+
+
+def test_a_section_naming_a_panel_with_no_members_is_refused():
+    db = _bundle([(1, 7, 1.0)], [(0, 0, 100.0)])
+    with pytest.raises(ValueError, match="has no members"):
+        P.encode_small(db, 50.0)
+
+
+def test_the_contract_ships_flow_small():
+    assert C.FILES["flow-small"] == {"format": "flow-small/1", "kind": "bin", "tables": {}}
+    assert "flow-small" not in C.OPTIONAL
+    assert C.FILES["conditions"]["tables"]["section_gauge"] == ["sid", "station", "trust", "mag", "rel", "dist_b"]

@@ -215,13 +215,14 @@ export const FORECAST_HOLIDAYS: readonly string[] = [
 /** What a vote whose path crosses a lake keeps of its weight while a vote with no lake on its path reports. */
 export const THROUGH_LAKE_FACTOR = {_num(THROUGH_LAKE_FACTOR)};
 
-// (T823) Small next to its gauge, from pipeline/gauges/consume/small_water.py. Python decides which led sections are
-// small (`section_gauge.small` = 1) and writes the sentence; the app shows the conditions meta's text, word for word.
+// (T823) Small next to its gauge, from pipeline/gauges/consume/small_water.py. Python decides, per paint section, which
+// of its panel's members drain much more than it (`flow-small`: bit i = member ord i) and writes the sentence; the app
+// shows the conditions meta's text beside a reading from a member whose bit is set, word for word.
 
-/** The conditions file's meta key holding the warning shown beside a small water's lead-gauge reading. */
+/** The conditions file's meta key holding the warning shown beside a much bigger member's reading. */
 export const SMALL_WATER_TEXT_KEY = "{_small.META_TEXT_KEY}";
-/** The conditions file's meta key holding the threshold the flag was decided at (the gauge drains at least this many
- *  times the section's area). For audit; the app compares nothing. */
+/** The conditions file's meta key holding the threshold the bits were decided at (the member drains at least this many
+ *  times the section's target area). For audit; the app compares nothing. */
 export const SMALL_WATER_RATIO_KEY = "{_small.META_RATIO_KEY}";
 '''
 

@@ -1,52 +1,46 @@
-"""(T823) SMALL NEXT TO ITS GAUGE: which led sections carry a warning beside their lead gauge's reading.
+"""(T823) SMALL NEXT TO ITS GAUGE: for every section a donor panel speaks for, which of the panel's gauges drain so much
+more than the section that their reading needs a warning.
 
-THE NETWORK DECIDES WHO SPEAKS (owner 2026-11-16, on a 1.4 km² creek shown "Below normal" from a gauge 676x bigger:
-"Could we just use our gauge network that colors stuff wtc to determine if it is significant enough? It would drop that
-in theory. Then ofr small ones still give a warning if used."). `section_gauge` is that network: the drainage gate and
-the trust floor already applied (shed.py), one lead per section. A section with no row has no lead and no estimate —
-the owner's creek: the Chilliwack at Vedder Crossing drains 2,110 headwater links against its one, below the `weak`
-floor, so it never leads there. This module answers the second half: of the sections that DO have a lead, which are
-small next to it. The flag ships as `section_gauge.small` (conditions file), the sentence as the conditions meta
-`small_water_text`; the app computes no ratio and no threshold (owner 16:50: Python decides every word and number).
+THE SPEAKER IS THE PANEL (owner 2026-11-16 22:19, "Allow, with a warning (Recommended)"). The Conditions map colours a
+section from its donor panel (the app's `speakerFor` / `buildStandingClasses`), and the sheet and a spot lead with one of
+that panel's members, chosen LIVE from the feed (the heaviest reporting donor, flow first: `sheetLead` / `leadOver`).
+So the warning cannot hang on `section_gauge` (a match record the map does not colour by), and Python cannot name the
+leading station ahead of the feed. What Python CAN decide is, per section, every member it might lead with: the release
+ships one bit per member (`flow-small/1`, paint.py), set where that member drains at least `ratio_for()` times the
+section's own target area. The app shows `small_water_text` (conditions meta) when the member it leads with has its bit
+set — no ratio and no threshold in the app (owner 16:50: Python decides every word and number). A big gauge still
+speaks for a small water (the owner's 1.4 km² Chilliwack-valley creek, coloured by 08MH001 at 676x): it speaks with
+the warning.
 
-BOTH DRAINAGES ARE MODELLED, BY THE PANELS' OWN MODEL (`pipeline.atlas.graph.drainage.AreaModel`):
-  * the section's: its panel target area where it has a panel (`section_panel.area_km2`, the km² the app shows from
-    `flow-area`) — that number carries a side channel's adoption by its river, which the line's own magnitude does not:
-    the lower Fraser's side channels have magnitude 3 and drain 64,000 km² — else the model at its own magnitude;
-  * the gauge's: the model at the node it reads (`at_river`: a diversion gauge's intake), as its panel members carry it
-    (`panel_member.area_km2`).
-  A ratio inside one model cancels the bias both ends share (`drainage.fit_area_model`); the app's "676x bigger" is the
-  same pair. The published catchment (`gauge.area_km2`) is not used: the model runs low on big rivers (panels.build),
-  and a published area over a modelled one would read a big river's creeks as smaller than they are.
+BOTH AREAS ARE THE ONES THE APP ALREADY SHOWS: the section's target area (`section_panel.area_km2`, the `flow-area`
+file) and the member's (`panel_member.area_km2`, in paint) — the panels' own model at both ends, so the app's "676x"
+and this decision are the same pair of numbers. A side channel's target area is its river's (panels.build adopts it).
 
-ONE DIRECTION. Only a section SMALLER than its gauge is flagged: the reading is a big river's, the water is not. A section
-bigger than its lead (the gauge sees part of it) is another question, not this warning.
+A LAKE SPEAKER (a station standing in the section's lake, no panel) reads a level, not a share of a river: no bit.
 
-THE THRESHOLD IS POLICY (memory: gauge representativeness is policy) and the OWNER'S CALL — PENDING (T823). Measured on
-the live bundle 2026-11-16 (114,428 led sections, 24,667 on a named water across 5,216 waters):
-  x50   the network's own `weak` band, measured in area (`weak` = under 1/100 of the gauge's magnitude ~ 50x its area):
-        93,115 sections (81%), 12,332 named (50%) on 3,750 waters                                  <- RECOMMENDED
-  x100  the app's trust ladder turns `distant` past 100x (trust.ts ERROR_BY_RATIO, 9,495 measured gauge pairs):
-        76,284 sections (67%), 8,543 named (35%) on 2,938 waters
-  x200  only the extremes: 44,053 sections (38%), 4,128 named (17%) on 1,690 waters
-The network's floor caps every lead at ~357x (`TRUST_BANDS` weak 0.001 in magnitude), so nothing above is ever led.
+THE THRESHOLD (owner 2026-11-16 22:18: "50x (Recommended)") is policy (memory: gauge representativeness is policy):
+`SMALL_WATER_POLICY` names one of `SMALL_WATER_RATIOS`; a change is a release re-cut, not a bundle rebuild.
 """
 from __future__ import annotations
 
-from typing import Iterable, Mapping, Optional
+from typing import Iterable, Optional, Sequence
 
-#: The thresholds the owner chooses between: the gauge drains AT LEAST this many times the section's own area.
+#: The thresholds measured for the owner: the member drains AT LEAST this many times the section's target area.
 SMALL_WATER_RATIOS: dict[str, float] = {"x50": 50.0, "x100": 100.0, "x200": 200.0}
 
-#: THE SWITCH. PENDING OWNER (T823): the recommended value until he picks; one edit and a bundle rebuild moves it.
+#: THE SWITCH — owner 2026-11-16 22:18: "50x (Recommended)".
 SMALL_WATER_POLICY = "x50"
 
-#: The warning beside the lead gauge's reading on a small water, word for word as the app shows it (PENDING OWNER).
+#: The warning beside a reading from a member whose bit is set, word for word as the app shows it (owner 2026-11-16
+#: 22:18: "Much smaller stream (Recommended)").
 SMALL_WATER_TEXT = "This stream is much smaller than the river its gauge measures: the reading may not match it."
 
 #: The conditions file's meta keys the sentence and the threshold ride in (emitted to the app by gauge_policy).
 META_TEXT_KEY = "small_water_text"
 META_RATIO_KEY = "small_water_ratio"
+
+#: A panel holds at most this many members (the bitmask's width the app may rely on); more stops the release.
+MAX_MEMBERS = 31
 
 
 def ratio_for(policy: Optional[str] = None) -> float:
@@ -58,8 +52,8 @@ def ratio_for(policy: Optional[str] = None) -> float:
 
 
 def is_small(section_km2: Optional[float], gauge_km2: Optional[float], ratio: float) -> bool:
-    """The gauge drains at least `ratio` times the section's area. A missing or non-positive area raises: a led
-    section always has a magnitude (shed.trust_for), so an absent area is a bug upstream, never a small water."""
+    """The gauge drains at least `ratio` times the section's area. A missing or non-positive area raises: every panel
+    section and member carries one (panels.build), so an absent area is a bug upstream, never a small water."""
     if not section_km2 or section_km2 <= 0 or not gauge_km2 or gauge_km2 <= 0:
         raise ValueError(f"small water: no drainage to compare (section {section_km2!r}, gauge {gauge_km2!r} km²)")
     if ratio <= 1:
@@ -67,27 +61,20 @@ def is_small(section_km2: Optional[float], gauge_km2: Optional[float], ratio: fl
     return gauge_km2 >= ratio * section_km2
 
 
-def section_area(section_id: str, graph, model, panel_area: Mapping[str, Optional[float]]) -> Optional[float]:
-    """The section's own drainage: its panel target area where it has one, else the model at its own magnitude."""
-    a = panel_area.get(section_id)
-    if a:
-        return a
-    n = graph.nodes[section_id]
-    return model.area_km2(getattr(n, "stream_magnitude", None), getattr(n, "wsc", ""))
+def member_mask(section_km2: float, member_km2: Sequence[float], ratio: float) -> int:
+    """Bit i set where member i (its `panel_member.ord`) drains at least `ratio` times the section's target area."""
+    if len(member_km2) > MAX_MEMBERS:
+        raise ValueError(f"small water: a panel of {len(member_km2)} members (the mask holds {MAX_MEMBERS})")
+    return sum(1 << i for i, a in enumerate(member_km2) if is_small(section_km2, a, ratio))
 
 
-def small_sections(links: Iterable, graph, model, at_river: Mapping[str, str],
-                   panel_area: Mapping[str, Optional[float]], ratio: float) -> set[str]:
-    """The section ids among `links` (`shed.GaugeLink`, one per led section) that are small next to their lead gauge.
-
-    `at_river`: station -> the node it reads (bundle_tables: a diversion gauge's intake). `panel_area`: section id ->
-    its panel target area (`Panels.by_section`)."""
-    gauge_area: dict[str, Optional[float]] = {}
-    out: set[str] = set()
-    for l in links:
-        if l.station not in gauge_area:
-            g = graph.nodes[at_river[l.station]]
-            gauge_area[l.station] = model.area_km2(getattr(g, "stream_magnitude", None), getattr(g, "wsc", ""))
-        if is_small(section_area(l.section_id, graph, model, panel_area), gauge_area[l.station], ratio):
-            out.add(l.section_id)
+def masks(sections: Iterable[tuple[int, int, float]], members: dict[int, Sequence[float]],
+          ratio: float) -> list[int]:
+    """One mask per `(sid, panel_id, area_km2)` row, in the order given; `members`: panel_id -> member areas by ord.
+    A row naming a panel with no members raises (paint would carry a panel the map cannot read)."""
+    out = []
+    for sid, pid, area in sections:
+        if pid not in members:
+            raise ValueError(f"small water: section {sid} names panel {pid}, which has no members")
+        out.append(member_mask(area, members[pid], ratio))
     return out

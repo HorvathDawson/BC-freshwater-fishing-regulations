@@ -30,6 +30,9 @@ OPTIONAL = frozenset({"lakes"})
 FILES = {
     "paint": {"format": PAINT.FORMAT, "kind": "bin", "tables": {}},
     "flow-area": {"format": PAINT.AREA_FORMAT, "kind": "bin", "tables": {}},
+    # (T823) per paint section, which of its panel's members drain so much more than it that their reading carries the
+    # small-water warning (the conditions meta's `small_water_text`): pipeline/gauges/consume/small_water.py
+    "flow-small": {"format": PAINT.SMALL_FORMAT, "kind": "bin", "tables": {}},
     # (T54) the gentler access tiers (permit / reserve / private) a Regulations page notes; paint carries the no-access rows
     "access": {"format": PAINT.ACCESS_FORMAT, "kind": "bin", "tables": {}},
     "lakes": {"format": LF.FORMAT, "kind": "bin", "tables": {}},
@@ -84,11 +87,8 @@ FILES = {
         "meta": ["k", "v"],
         # `rel`, `dist_b` (T93): where the station stands to the reach (a GAUGE_RELS index) and a channel-distance bucket
         # (shed.DIST_STEP). ADDITIVE, last, nullable — still conditions/1; an older release has neither and the app says
-        # no distance.
-        # `small` (T823): 1 where the lead gauge drains at least the meta's `small_water_ratio` times this section's own
-        # area — the app shows the meta's `small_water_text` beside the reading (pipeline/gauges/consume/small_water.py).
-        # ADDITIVE, last, defaulted 0 — still conditions/1; an older release has none and warns nowhere
-        "section_gauge": ["sid", "station", "trust", "mag", "rel", "dist_b", "small"],
+        # no distance
+        "section_gauge": ["sid", "station", "trust", "mag", "rel", "dist_b"],
         # (T376) the watershed groups by name and by place (pipeline/deliver/bundle/basin_grid.py): ADDITIVE — still
         # conditions/1; a release cut before them answers no basin, and the app says so (`basinAt` throws)
         "basin": ["ix", "basin_id", "name"],
@@ -202,6 +202,9 @@ UNITS = {
     "water.part_mark.lon": "microdegrees", "water.part_mark.lat": "microdegrees",
     "climate.gauge_clim.bands": "clim/2: [u8 pentad, 5 x float16 LE] records",
     "flow-area": "flow-area/1: 'BCFA', u8 1, one LEB128 varint per paint section (sid order) = round(km2 x 1000)",
+    "flow-small": "flow-small/1: 'BCFS', u8 1, one LEB128 varint per paint section (sid order) = bitmask over its panel's "
+                  "members by ord: bit i set where member i drains at least the conditions meta's small_water_ratio times "
+                  "the section's target area (show small_water_text beside that member's reading)",
     "paint": "paint/5: see pipeline/deliver/release/paint.py",
     "access": "access/1: 'BCAX', u8 1, 8 bytes section_handles, then an access half (pipeline/deliver/release/paint.py)",
     "lakes": "lakes/1: 'BCLK', u8 1, 8 bytes section_handles, LEB128 asof+1, LEB128 count, then per section "
@@ -294,5 +297,7 @@ WEB_BUDGET = {
                           "gate": 6_200_000},
     # the Conditions tab: gauges and the lake road (conditions' `lake_section`, so no core), the panels' areas; the
     # climatology (climate) waits for a chart (4,151,534 → 997,511)
+    # (T823) `flow-small` (21,396 B gz on the 2026-11-16 bundle, ~1,095,000 with it) joins this list WITH the app's reader
+    # and the walk's re-cut pin (`app/tools/release-budget.test.ts` holds the pin to this list), not before
     "conditions_open": {"files": ["flow-area", "conditions"], "gate": 1_150_000},
 }

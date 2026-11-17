@@ -28,6 +28,7 @@ writes paint, derives three per-water flags for search, converts the climatology
   climate        gauge_clim, bands float16: clim/2 (T182: off the Conditions map) bundle
   geo            part_geo (T182: "show on the map" without the whole water file), bundle
   flow-area      the panel target areas, one varint per paint section (paint.py)  bundle
+  flow-small     (T823) per paint section, the panel members much bigger than it  bundle
   lakes          OPTIONAL, absent today: per lake section, surveyed / last        a lakes/1 file, only when
                  stocked — the Depth and Stocked modes' values (lakes/1)          handed one (`lakes=`); no feed
                                                                                   makes one yet (lake_facts.py)
@@ -88,6 +89,9 @@ SIZE_GATES = {"paint": 1_000_000, "access": 300_000, "core": 1_650_000, "lakes":
               # r-b86b60ca533b → ~2.49 MB, too close to 2.5 MB) → 2,650,000
               "water": 2_650_000, "near": 2_250_000, "climate": 1_650_000, "regs-sid": 1_400_000, "conditions": 1_060_000,
               "down": 1_250_000, "geo": 700_000, "flow-area": 220_000,
+              # (T823) `flow-small`: one bitmask varint per paint section, measured 2026-11-16 on the live bundle (141,189
+              # sections): 21,396 B gz at x50 (x200: 27,444)
+              "flow-small": 32_000,
               # (T369) `lines`: ~0.99-1.08 MB gz estimated 2026-11-03 on the atlas's handles (ends proxied from the FWA
               # stream extents; the build measures the real one); (T386) phone-held too since 2026-11-04 (in the offline
               # total), fetched once a page is drawn (its place in the address) or when a link with a place is opened
@@ -609,17 +613,16 @@ def bundle_files(work: Path, bundle: Path, b: sqlite3.Connection, base: Dict[str
                               extra=_core_flags if _has_ns else _core_flags_empty_name_source)
     files["near"] = copy_file(work / "near.sqlite", {"b": bundle}, [("b", t, None) for t in NEAR_TABLES],
                               {**base, "format": FORMATS["near"]})
-    # (T823) THE SMALL-WATER WARNING: `section_gauge.small` rides in the table as the bundle decided it; the sentence the
-    # app shows beside such a reading, and the threshold it was decided at, ride in the meta. A bundle built before it
-    # has neither, and stops here (no silent fallback: a release without the flag would warn nowhere).
-    from pipeline.gauges.consume.small_water import META_RATIO_KEY, META_TEXT_KEY, SMALL_WATER_TEXT
-    _small_ratio = b.execute("SELECT v FROM meta WHERE k = 'small_water_ratio'").fetchone()
-    if _small_ratio is None:
-        raise SystemExit("conditions: the bundle states no `small_water_ratio` (built before T823) — rebuild the bundle")
+    # (T823) THE SMALL-WATER WARNING follows the speaker: one bit per panel member per paint section (`flow-small`,
+    # paint.py), the sentence and the threshold in the conditions meta (pipeline/gauges/consume/small_water.py)
+    from pipeline.gauges.consume.small_water import META_RATIO_KEY, META_TEXT_KEY, SMALL_WATER_TEXT, ratio_for
+    p = work / "flow-small.bin"
+    p.write_bytes(PAINT.encode_small(b, ratio_for()))
+    files["flow-small"] = p
     files["conditions"] = copy_file(work / "conditions.sqlite", {"b": bundle},
                                     [("b", t, None) for t in COND_TABLES],
                                     {**base, "format": FORMATS["conditions"], META_TEXT_KEY: SMALL_WATER_TEXT,
-                                     META_RATIO_KEY: _small_ratio[0]}, extra=lake_section)
+                                     META_RATIO_KEY: f"{ratio_for():g}"}, extra=lake_section)
     files["down"] = copy_file(work / "down.sqlite", {"b": bundle}, [("b", t, None) for t in DOWN_TABLES],
                               {**base, "format": FORMATS["down"]})
     files["climate"] = copy_file(work / "climate.sqlite", {"b": bundle}, [("b", t, None) for t in CLIMATE_TABLES],

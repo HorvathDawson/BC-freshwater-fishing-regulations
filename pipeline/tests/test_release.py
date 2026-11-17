@@ -187,6 +187,15 @@ def test_paint_reproduces_the_status_index_and_the_flow_tables(rel):
     sp = b.execute("SELECT sid, panel_id, area_km2 FROM section_panel ORDER BY sid").fetchall()
     area = P.decode_area(gzip.decompress((d.parent / m["files"]["flow-area"]["url"]).read_bytes()), len(sp))
     assert [(s, p, a) for (s, p), a in zip(paint["section_panel"], area)] == sp
+    # (T823) flow-small, re-derived from what the app holds (paint's members, flow-area's targets): bit i where member
+    # ord i drains at least the threshold times the section
+    from pipeline.gauges.consume import small_water as SW
+    small = P.decode_small(gzip.decompress((d.parent / m["files"]["flow-small"]["url"]).read_bytes()), len(sp))
+    held: dict = {}
+    for r in paint["panel_member"]:
+        held.setdefault(r[0], []).append(r[4])
+    assert small == [sum(1 << i for i, x in enumerate(held[p]) if x >= SW.ratio_for() * a)
+                     for (_s, p), a in zip(paint["section_panel"], area)]
     # (T54) paint's access half is exactly the bundle's no-access rows; the access file exactly the gentler tiers
     def rows_of(tiers, got):
         names = [(t, n) for t, n in got["areas"]]
@@ -278,6 +287,10 @@ def test_a_built_release_is_exactly_the_contract(rel, tmp_path):
             got = {t: [r[1] for r in con.execute(f"PRAGMA table_info({t})")]
                    for (t,) in con.execute("SELECT name FROM sqlite_master WHERE type='table'")}
             assert got == spec["tables"], name
+    # (T823) the small-water sentence and its threshold ride in the conditions meta, word for word
+    from pipeline.gauges.consume import small_water as SW
+    meta = dict(_open(d, "conditions", tmp_path).execute("SELECT k, v FROM meta"))
+    assert (meta[SW.META_TEXT_KEY], meta[SW.META_RATIO_KEY]) == (SW.SMALL_WATER_TEXT, f"{SW.ratio_for():g}")
 
 
 @pytest.mark.needs_bundle
