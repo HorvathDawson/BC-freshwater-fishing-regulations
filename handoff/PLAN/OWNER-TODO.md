@@ -2279,3 +2279,7 @@ More questions (recommended answer first):
      Lake x2 (including tributaries; excluding tributaries). Your marks file is not edited.
   Full list of changed answers vs the salmon release (168 groups): scratchpad/rebuild3b/answers-diff/
   vs-salmon-r-1603e71cc92c/owner.md, sent to you as a file. Nothing ships or merges until you say OK.
+- 2026-11-17 08:37, in the main chat (verbatim): "Yes still show gauge data." (T830: show the raw live level, unranked,
+  where there is no band.) And on the re-tick list: "Why would we have to do this (Re-tick in the review app: 6 of your
+  saved places whose area moved with this rebuild: Cowichan ×3, Sheldens ×1, Babine ×2.) they should all be good?"
+  So: no re-tick from him; the marks are carried by the main chat (fix, not a review item).
