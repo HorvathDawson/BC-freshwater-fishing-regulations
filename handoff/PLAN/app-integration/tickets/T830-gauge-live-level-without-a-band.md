@@ -36,3 +36,6 @@ Full list: app chat scratch `gauge-level/stations_no_level.csv` (copy into this 
 
 2026-11-17 08:37, owner (main chat, verbatim): "Yes still show gauge data." So pick 2 = the recommended: the raw live
 level in metres, unranked, Level offered when the station reports level live, the 30-day line without a band.
+
+2026-11-17 11:41, owner (app chat dialog, after the before/after pictures of the space cost): "Keep 2 decimals". Built on
+`app-fix/t830-level-no-band` (15c9a3c34); lands after its Android benches.

@@ -2299,6 +2299,8 @@ More questions (recommended answer first):
     automatic, not a per-water edit.
 - 2026-11-17 ~09:57, in the APP chat, T830 after the Capilano pictures: the unranked line picked "Plainer" ("Too new to
   say if this is high or low."); levels to 2 decimals: "Depends how much space this adds. But yes". Built with pictures.
+  11:41, after the before/after pictures (Capilano 1 m -> 1.00 m, Harrison 10.30 m; the tap read-out was already cut at
+  phone width): "Keep 2 decimals". DONE; lands next.
 - 2026-11-17 ~10:38, main chat dialog on the T834 side build (verbatim):
   - The 3 changed waters (Kaslo/Keen +2 bull trout outside the share; Buckley rainbow its own 1): "I think this is right
     but you didn't explain well".
