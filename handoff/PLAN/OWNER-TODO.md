@@ -2105,5 +2105,5 @@ More questions (recommended answer first):
   placed yet (from the 11-16 re-check: Pendleton has no match; Six Mile, Hazelwood, Sockeye and the Gullwing line are
   not drawn; Tsezakwa's circle sits on Nilkitkwa Lake; Pinkut has a circle but is not in DFO's list), and proposes
   each for his review (everything added is a proposal).
-- 18:41, typed in chat (verbatim): "this is fine (Tsezakwa: its circle sits on Nilkitkwa Lake instead of Babine. )".
+- 18:38, typed in chat (verbatim): "this is fine (Tsezakwa: its circle sits on Nilkitkwa Lake instead of Babine. )".
   So: Tsezakwa's circle on Nilkitkwa Lake stays as it is; the Babine worker leaves it alone.
