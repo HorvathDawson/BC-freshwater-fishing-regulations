@@ -65,3 +65,8 @@ So:
   used.)
 - The restart fix (loops start again on app-active, first layout, a dropped loop) stays.
 - The generator is committed under `app/tools/` and run to make the sheet, like `pnpm spinner`.
+
+## Owner, 2026-11-17 ~08:45 (app chat), the dark-mode look, verbatim pick
+Shown: light as built, dark as it was (ink lost on the dark screen), A (paper-coloured ink #f2e8d5 on the dark screen,
+red kept) and B (his colours on a paper tile). Picked "A: paper-coloured ink". So dark.json `color.ui.coho.ink`
+#F2E8D5, ground `@color.ui.card`; light unchanged.

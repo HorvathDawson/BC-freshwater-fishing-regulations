@@ -2269,7 +2269,31 @@ More questions (recommended answer first):
   2. **Hazelwood Creek's 4 ponds** (named by your T796 save) now count as widenings of the creek, not lakes. They lose
      the lake rules and take the creek's: they close Jan 1 to Jun 15 under the Skeena winter closure. OK, or keep them as
      lakes? (A worker is checking how the FWA and the book treat them.)
-  3. Being fixed overnight before you see it: Sheldens Creek showed as two waters in search, and the Gitnadoix
-     "upstream of the powerline" place had lost 4 side channels and one creek (that creek's coho went closed); the place
-     is meant to be the whole river.
-  Full list of changed answers: shown to you in the morning, after the fix rebuild.
+  3. Fixed overnight (06:13): Sheldens Creek is one water in search; the Gitnadoix "upstream of the powerline" place
+     binds the whole river again (1,000 stretches) with your powerline label kept (T833: a rules-engine fault at a
+     line's end, fixed in code; the whole-province check moved nothing else).
+  4. **Sheldens Creek** is now one water. Its small unnamed 3.47 ha pond on the creek now counts as part of the creek
+     (same rule as the Hazelwood ponds), so kokanee there goes from "keep 10 a day" to release.
+  5. **Re-tick in the review app** (your saved places whose area moved with this rebuild, so their tick is stale):
+     Cowichan x3 (66-mile trestle, white triangle, whole), Sheldens (upstream of the white triangular sign), Babine
+     Lake x2 (including tributaries; excluding tributaries). Your marks file is not edited.
+  Full list of changed answers vs the salmon release (168 groups): scratchpad/rebuild3b/answers-diff/
+  vs-salmon-r-1603e71cc92c/owner.md, sent to you as a file. Nothing ships or merges until you say OK.
+- 2026-11-17 08:37, in the main chat (verbatim): "Yes still show gauge data." (T830: show the raw live level, unranked,
+  where there is no band.) And on the re-tick list: "Why would we have to do this (Re-tick in the review app: 6 of your
+  saved places whose area moved with this rebuild: Cowichan ×3, Sheldens ×1, Babine ×2.) they should all be good?"
+  So: no re-tick from him; the marks are carried by the main chat (fix, not a review item).
+- 2026-11-17 ~08:45, in the APP chat, T814 coho loader dark mode: picked "A: paper-coloured ink" (ink #f2e8d5 on the
+  dark screen, red kept; light mode is his colours as drawn). The app chat finishes it and it joins the next build.
+- 2026-11-17 08:50, main chat dialog (verbatim):
+  - Babine east of the Gullwing Creek line closed all year: "Closed all year but only for salmon?" (follow-up asked)
+  - Hazelwood Creek's 4 ponds: "Part of the creek (Recommended)". Kept as built (same rule for Sheldens' pond).
+  - Kaslo / Keen Dolly Varden: "Dollys and bulls always have same quota per the book.  Why would they not count towards
+    the regions 2? That seems wrong". Read as B for Kaslo and Keen (they count toward the 2 from streams); follow-up
+    asked on whether his 2026-10-10 ruling T3a (Lardeau and Duncan rows lift bull trout out of the 2) still stands.
+- 2026-11-17 ~08:58, main chat follow-up (verbatim):
+  - Babine east part: "Closed all year then. Also just double checking this was done the same way as other split lakes right?"
+  - Lardeau / Duncan (T3a): "It would just make the same limit tho. That is fine I guess but the kasko and keen should be
+    the same. Also lardeau and duncan should also do that for rainbow right? I'm confused why it is like this seems like
+    it would auto be handled". So Kaslo and Keen read LIKE the Lardeau (A), reversing the 08:50 reading; he wants it
+    automatic, not a per-water edit.

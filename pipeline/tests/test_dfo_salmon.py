@@ -2657,7 +2657,10 @@ def test_a_watershed_walk_passes_through_its_lakes_but_collects_streams():
         ids = [k for k, v in reg.items()
                if getattr(v, "kind", "") == "lake" and (v.name or "").lower() == name.lower()]
         assert ids, f"no registry lake named {name}"
-        secs = set(reg[ids[0]].section_ids)
+        # a lake divided into parts (T812: Babine Lake's main body and its east part, `part_of`) holds no section
+        # itself; its water is its parts'
+        secs = set(reg[ids[0]].section_ids) | {s for k, v in reg.items() if getattr(v, "part_of", "") == ids[0]
+                                               for s in v.section_ids}
         feeders = {g.edges[ei].from_node for s in secs for ei in g.up_adj.get(s, [])
                    if str(g.nodes[g.edges[ei].from_node].kind).endswith("stream")}
         assert feeders & skeena, f"the walk stopped at {name}: none of its inflows is in it"

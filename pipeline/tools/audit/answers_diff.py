@@ -200,7 +200,7 @@ def _file_bytes(d: Path, manifest: dict, name: str) -> bytes:
 class Release:
     """One built release, decoded: the regs answers, the salmon chains, where each section lies."""
 
-    def __init__(self, d):
+    def __init__(self, d, handles_file=None):
         from pipeline.deliver import salmon as SAL
         from pipeline.deliver.answers.encode import CODECS
         from pipeline.deliver.store.release import province_store
@@ -211,6 +211,16 @@ class Release:
         if len(hs) != 1:
             raise DiffError(f"answers_diff: {self.name}: its files name {len(hs)} section-handle digests ({sorted(hs)})")
         self.handles = hs.pop()
+        # (2026-11-17) the atlas's handle table, when given (`--handles-a/-b`): handle -> section id, checked by digest
+        self.ids: Optional[List[str]] = None
+        if handles_file is not None:
+            from pipeline.common import section_handles as SH
+            hf = Path(handles_file)
+            hf = hf / SH.FILENAME if hf.is_dir() else hf
+            if SH.digest(hf) != self.handles:
+                raise DiffError(f"answers_diff: {hf} is handle table {SH.digest(hf)}, {self.name} is {self.handles}")
+            ids = hf.read_text(encoding="utf-8").split("\n")
+            self.ids = ids[:-1] if ids and ids[-1] == "" else ids
         try:
             store = province_store(self.dir)
             self.wire = store.answers()
@@ -312,7 +322,10 @@ class Release:
 
     def section_name(self, h: int) -> str:
         """The section's id as the atlas spells it: `{stream key}:{start m}` (`lines`), `lake:{waterbody key}` for a
-        lake that is one section of a water; else `#{handle}`."""
+        lake that is one section of a water; else `#{handle}`. With the atlas's handle table (`--handles-a/-b`), the id
+        the table gives."""
+        if self.ids is not None and 0 < h <= len(self.ids):
+            return self.ids[h - 1]
         ln = self.lines().get(h)
         if ln:
             return f"{ln[0]}:{ln[1]}"
@@ -899,6 +912,8 @@ def match_sections(A: Release, B: Release) -> Tuple[List[Tuple[Optional[int], Op
         return [(h if h in ua else None, h if h in ub else None) for h in sorted(ua | ub)], "same section handles"
     la, lb = A.lines(), B.lines()
     pairs: List[Tuple[Optional[int], Optional[int]]] = []
+    if getattr(A, "ids", None) is not None and getattr(B, "ids", None) is not None:
+        return _match_by_id(A, B, ua, ub, la, lb), "matched by section id (the atlases' handle tables)"
     exact_a = {v[:2]: h for h, v in la.items()}
     by_blk_a: Dict[int, List[Tuple[int, int]]] = defaultdict(list)
     by_blk_b: Dict[int, List[Tuple[int, int]]] = defaultdict(list)
@@ -948,11 +963,58 @@ def match_sections(A: Release, B: Release) -> Tuple[List[Tuple[Optional[int], Op
     return pairs, "matched by stream key and metre, lakes by water and part"
 
 
+def _match_by_id(A: Release, B: Release, ua: set, ub: set, la: dict, lb: dict) -> List[Tuple[Optional[int], Optional[int]]]:
+    """(2026-11-17) Cross-atlas matching when both atlases' handle tables are given (`--handles-a/-b`): a section is the
+    same section when its id is (`354087681:0`, `lake:329026676`), which covers the unnamed lakes and wetlands the
+    release alone cannot place (they are in no water and no line, so the stream/lake matching above lists ~700,000
+    of them as removed and new). A section whose id is in one atlas only falls back to the stream holder (the other
+    atlas's section holding its midpoint on the same line) or, for a lake, to its water and part; else it is new /
+    removed."""
+    by_id_a = {A.ids[h - 1]: h for h in ua if 0 < h <= len(A.ids)}
+    by_id_b = {B.ids[h - 1]: h for h in ub if 0 < h <= len(B.ids)}
+    by_blk_a: Dict[int, List[Tuple[int, int]]] = defaultdict(list)
+    by_blk_b: Dict[int, List[Tuple[int, int]]] = defaultdict(list)
+    for h, (blk, m0, _) in la.items():
+        by_blk_a[blk].append((m0, h))
+    for h, (blk, m0, _) in lb.items():
+        by_blk_b[blk].append((m0, h))
+    for v in (*by_blk_a.values(), *by_blk_b.values()):
+        v.sort()
+
+    def holder(by, ln):
+        lst = by.get(ln[0])
+        if not lst:
+            return None
+        m = ln[1] if ln[2] == 0xFFFFFFFF else (ln[1] + ln[2]) // 2
+        j = bisect_right(lst, (m, float("inf"))) - 1
+        return lst[j][1] if j >= 0 else lst[0][1]
+
+    def by_water(rel_from, rel_to, h):
+        w = rel_from.water.get(h)
+        if not w:
+            return None
+        cands = sorted(x for x, v in rel_to.water.items() if v == w)
+        return cands[0] if cands else None
+
+    pairs: List[Tuple[Optional[int], Optional[int]]] = []
+    for sid in sorted(set(by_id_a) & set(by_id_b)):
+        pairs.append((by_id_a[sid], by_id_b[sid]))
+    for sid in sorted(set(by_id_b) - set(by_id_a)):
+        hb = by_id_b[sid]
+        ha = holder(by_blk_a, lb[hb]) if hb in lb else by_water(B, A, hb)
+        pairs.append((ha, hb))
+    for sid in sorted(set(by_id_a) - set(by_id_b)):
+        ha = by_id_a[sid]
+        hb = holder(by_blk_b, la[ha]) if ha in la else by_water(A, B, ha)
+        pairs.append((ha, hb))
+    return pairs
+
+
 # ------------------------------------------------------------------------------------------------------- the run
 
-def run(dir_a, dir_b, log=print) -> dict:
+def run(dir_a, dir_b, log=print, handles_a=None, handles_b=None) -> dict:
     t0 = time.time()
-    A, B = Release(dir_a), Release(dir_b)
+    A, B = Release(dir_a, handles_a), Release(dir_b, handles_b)
     resolve_refs = not (A.rule_ids == B.rule_ids and A.lic_ids == B.lic_ids)
     pairs, how = match_sections(A, B)
     # 1. the distinct (key A, key B) and (chain A, chain B) pairs, with their sections
@@ -1294,9 +1356,14 @@ def main(argv: Optional[List[str]] = None) -> int:
     ap.add_argument("b", type=Path, help="release folder after")
     ap.add_argument("--out", type=Path, help="where to write diff.json, diff.txt, owner.md "
                                              "(default <generated scratch>/answers-diff/<A>-vs-<B>)")
+    ap.add_argument("--handles-a", type=Path, help="(cross-atlas pairs) A's atlas dir or its section_handles.txt: "
+                                                   "every section is matched by its id, unnamed lakes included")
+    ap.add_argument("--handles-b", type=Path, help="B's atlas dir or its section_handles.txt (with --handles-a)")
     args = ap.parse_args(argv)
+    if (args.handles_a is None) != (args.handles_b is None):
+        ap.error("--handles-a and --handles-b go together")
     try:
-        r = run(args.a, args.b)
+        r = run(args.a, args.b, handles_a=args.handles_a, handles_b=args.handles_b)
     except DiffError as e:
         print(str(e), file=sys.stderr)
         return 2

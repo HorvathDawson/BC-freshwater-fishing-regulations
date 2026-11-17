@@ -84,6 +84,31 @@ its `_reindex`), dfo_vectors --check with both in.
   closed all year (book p.50). Follow-up worker a86de8e705336ff07 on the same branch: Sheldens one item (stopgap
   e8ffdf96d binds both), Gitnadoix powerline place back to the whole river (991 -> 1,000; creek 360742973 coho), then
   ONE more rebuild + diffs. Merge to main only after that and after the owner has seen the list.
+  **04:15 11-17: follow-up back** (df08a776a, 2194158a5; release r-101acd988438 in scratchpad/rebuild2/): Sheldens is ONE item
+  wsc:950-016367 (name moved to name_variants.json; new writer rule CURATED_NAME_IS_THE_ONE_SOURCE); its 3.47 ha pond
+  lake:329381266 now folds in as stream (kokanee 10/day -> release) and trib 360394715:41 appears. Gitnadoix: cause is a
+  REACH CODE defect (`_across_the_junction` drops the whole end node) -> T833 filed (b8b2dcbad, pushed); the worker's
+  stopgap removed the owner's powerline cut. **04:28: T833 worker a14407ad140033abd**: fix the code + POLICY_VERSION,
+  restore the cut, rebuild 3 (scratchpad/rebuild3/), province-wide binding diff vs rebuild2 (stop if anything else moves),
+  diffs, and triage the 37 worktree lane-test failures against land/salmon-1116. Marks on old Sheldens id blk:360846083
+  (marks.jsonl lines 2470, 2516, 2517, 2783) need a surgical id rename at merge (marks rule: diff-proven renames only).
+  **05:48: T833 rebuild3 (r-ffb9d7191e4f) STOPPED on its diff:** Gitnadoix back to 1,000 with the powerline label, but
+  the 1 m rule broke Chilliwack-Vedder r3-r9 (the Chilliwack joins 25.4 m below the Vedder Crossing cut). Told the worker
+  to use tolerances.STUB_M (100 m, bundle.continuation's allowance), reach-only rerun, diff again (same stop rule), then
+  the answers diffs. Lane-test triage: 35/37 also fail at land/salmon-1116 (worktree setup); the T812 one fixed
+  (5a4585f7e); marks_never_orphaned is mine at merge (Cowichan x3, Sheldens, Babine x2 bindings moved).
+  **06:13: DONE, rebuild3b r-e5b7b1527bbf** (land/rebuild-1116 @ 61410c70d; STUB_M tolerance dad1dea26, POLICY_VERSION
+  46): binding diff vs rebuild2 = 0 moved; Chilliwack-Vedder back; Gitnadoix 1,000 with the label; card check 0, gates
+  pass. Diffs: scratchpad/rebuild3b/answers-diff/{vs-live (966), vs-salmon (168), vs-rebuild2 (0)}. Marks NOT edited:
+  the moved-binding marks go on the owner's re-tick list (OWNER-TODO). NEXT when he OKs the list: merge
+  land/rebuild-1116 into main (full tier), then Babine line re-save, DFO Babine re-mark, T807/T804, staging release.
+  **09:02 11-17: owner answered** (OWNER-TODO 08:37-08:58): Babine east closed all year (split done like Williston /
+  Kootenay / Shannon); Hazelwood ponds part of the creek; T830 raw level; Kaslo/Keen read like the Lardeau AND
+  automatic -> T834 (worker aefa9ff1e764c0ea2, lane/t834-share-lift, inventory + one Python rule + answers diff).
+  Re-tick: none; marks carried (02f0fedca, data/curated/review/owner_carries.json for Cowichan whole + Gitnadoix).
+  land/rebuild-1116 MERGED as a5638c5e7; Babine line re-saved + closed_areas applied (aa69b89d6); full tier b9650jdf6
+  running (scratchpad/tier-rebuild.log), then push. NEXT: T834 lands -> ONE rebuild (deliver; atlas only if needed)
+  -> staging release (`--staging --dry-run --rehearse-follows` first). DFO Babine re-mark: not needed (marks carried).
 - trout J back 00:05 11-17, merged locally as 02e51cfdc (mini release re-cut on merge); tier running, then push.
   01:53 11-17: worker done; lane/trout-vpy merged locally as 5d6ac8283 (6 keys fixed, proof 5,950/5,950, 0 problems; V-py:
   trout_vectors 53 cases, trout-hand 14, own trout fixture app/fixtures/trout/, scripts/trout-refresh.sh). Tier b806pz7n9

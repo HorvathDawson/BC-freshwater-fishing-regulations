@@ -33,3 +33,6 @@ Full list: app chat scratch `gauge-level/stations_no_level.csv` (copy into this 
    words from Python), the Level toggle offered when the station reports level live, the 30-day line drawn without a
    band. Rejected: lowering MIN_RECORD_YEARS to 2 (not a normal; it also gates which gauges a panel admits); a band
    from the 30-day record (not a climatology); mapping the flow band onto level via the rating (adds nothing, datum risk).
+
+2026-11-17 08:37, owner (main chat, verbatim): "Yes still show gauge data." So pick 2 = the recommended: the raw live
+level in metres, unranked, Level offered when the station reports level live, the 30-day line without a band.
