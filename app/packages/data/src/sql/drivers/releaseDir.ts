@@ -132,7 +132,19 @@ export function openReleaseDir(dir: string, tamper: ReleaseTamper = {}): Release
 }
 
 /** The regs fixture release, opened as the app opens a release. */
-export const openRegsFixture = (): ReleaseLoader => openReleaseDir(regsFixtureDir());
+export const openRegsFixture = (tamper: ReleaseTamper = {}): ReleaseLoader => openReleaseDir(regsFixtureDir(), tamper);
+
+/**
+ * (T810) THE TROUT FIXTURE (`app/fixtures/trout/`, written by the pipeline's `scripts/trout-refresh.sh`, never by hand):
+ * a regs fixture cut from a side release built with `--trout-table`, so it holds the optional `trout` section; beside it
+ * `trout-vectors.generated.json` (per case the cell the reader must decode) and `section-lines.json`. Until the cutover
+ * it is apart from the normal regs fixture above, which holds no trout section.
+ */
+export const TROUT_FIXTURE_ROOT = resolve(__dirname, "../../../../../fixtures/trout");
+
+/** The trout fixture release, opened as the app opens a release. */
+export const openTroutFixture = (tamper: ReleaseTamper = {}): ReleaseLoader =>
+  openReleaseDir(regsFixtureDir(join(TROUT_FIXTURE_ROOT, "regs-release")), tamper);
 
 /** (T369) One stream section's line as the fixture lists it: [handle, stream key, from m, to m). */
 export type LineRow = readonly [number, number, number, number];

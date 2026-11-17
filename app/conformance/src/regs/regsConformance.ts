@@ -65,7 +65,8 @@ export function runRegsConformance(label: string, open: () => Promise<RegsStore 
       const layout = JSON.parse(cases.store.layout) as { top: string[]; sections: Record<string, string[]>; versions: Record<string, number> };
       expect({ handles: st.meta.sectionHandles, reach: st.meta.reachDigest, rules: st.meta.ruleIdsSha256 })
         .toEqual({ handles: cases.store.section_handles, reach: cases.store.reach_digest, rules: cases.store.rule_ids_sha256 });
-      expect(st.meta.versions).toEqual(layout.versions);
+      // (T810 M0) the golden's versions are the required sections' plus the optional ones its store holds
+      expect({ ...st.meta.versions, ...st.meta.optional }).toEqual(layout.versions);
       expect(st.meta.versions).toEqual(Object.fromEntries(SECTION_NAMES.map((n) => [n, KNOWN_VERSIONS[n]])));
       expect(st.meta.layout).toEqual({ top: layout.top, sections: layout.sections });
       expect(st.meta.glossaryVersion).toBe(KNOWN_VERSIONS.glossary);

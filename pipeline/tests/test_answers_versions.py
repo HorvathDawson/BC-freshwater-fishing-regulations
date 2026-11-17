@@ -34,11 +34,9 @@ CELL_KEYS = ("akey", "s")
 
 #: {section: (version, why)}: an OPTIONAL section allowed on one side only while the other side's ticket lands. Never
 #: a skip: the side that has it must have it at this version, and once both sides list it this line must be deleted.
-AWAITING_ONE_SIDE: Dict[str, Tuple[int, str]] = {
-    "trout": (1, "the trout table (T810): the app's M0 lists `trout: 1` in OPTIONAL_VERSIONS and the pipeline's "
-                 "ticket I adds Section('trout', 1) behind --trout-table; whichever lands first waits here for the "
-                 "other, and the second one deletes this line"),
-}
+#: (T810) empty since the app's M0 listed `trout: 1` in OPTIONAL_VERSIONS beside ticket I's Section('trout', 1): both
+#: sides list it, so its allowance went (the mechanism stays pinned below on `_TROUT_WAITING`, the case it was made for).
+AWAITING_ONE_SIDE: Dict[str, Tuple[int, str]] = {}
 
 Versions = Dict[str, int]
 
@@ -213,6 +211,10 @@ def test_mutation_a_cell_column_no_section_writes_fails():
 
 M0_LINE = "export const OPTIONAL_VERSIONS = Object.freeze({ trout: 1 } as const);\n"
 
+#: the allowance `trout` held while one side listed it (T810: the app's M0 and the pipeline's ticket I landed apart);
+#: the mutation pins below hold the mechanism on it, now that both sides list `trout` and AWAITING_ONE_SIDE is empty
+_TROUT_WAITING: Dict[str, Tuple[int, str]] = {"trout": (1, "the trout table (T810): one side listed it first")}
+
 
 def _with_m0(src: str, line: str = M0_LINE) -> str:
     return src.replace("/** The blob codecs", line + "/** The blob codecs", 1)
@@ -231,8 +233,9 @@ def _no_trout(sections):
 
 def test_ticket_i_lists_trout_optional_whether_built_or_not():
     """Ticket I: `Section("trout", 1)` is in `answers.SECTIONS` (optional: no `cell` column), built only with
-    `--trout-table` — so the pipeline's side of the allowance is held at its version until the app's M0 lists it."""
-    assert writer_versions()[1] == {"trout": 1} == {n: v for n, (v, _why) in AWAITING_ONE_SIDE.items()}
+    `--trout-table`; the app's M0 lists it at the same version in OPTIONAL_VERSIONS, so no allowance is left."""
+    assert writer_versions()[1] == {"trout": 1} == app_optional_versions()
+    assert "trout" not in AWAITING_ONE_SIDE
     assert [s.optional for s in A.SECTIONS if s.name == "trout"] == [True]
 
 
@@ -256,9 +259,9 @@ def _no_m0(src: str) -> str:
 def test_the_trout_allowance_holds_either_side_alone_at_its_version():
     base = _no_m0(_src())
     # the app's M0 first: the app lists trout 1, the pipeline does not write it yet
-    assert pin_problems(writer_versions(_no_trout(A.SECTIONS)), _reader(_with_m0(base))) == []
+    assert pin_problems(writer_versions(_no_trout(A.SECTIONS)), _reader(_with_m0(base)), _TROUT_WAITING) == []
     # the pipeline's ticket I first: trout 1 written (optional: no `cell` column), the app does not list it yet
-    assert pin_problems(writer_versions(_trout(A.SECTIONS)), _reader(base)) == []
+    assert pin_problems(writer_versions(_trout(A.SECTIONS)), _reader(base), _TROUT_WAITING) == []
 
 
 def test_mutation_trout_bumped_on_one_side_alone_fails():
@@ -266,16 +269,16 @@ def test_mutation_trout_bumped_on_one_side_alone_fails():
     two = M0_LINE.replace("trout: 1", "trout: 2")
     # app alone at 2 (pipeline not yet); pipeline alone at 2 (app not yet); both listed, one at 2
     assert any("trout (optional) is v2 in the app" in p
-               for p in pin_problems(writer_versions(_no_trout(A.SECTIONS)), _reader(_with_m0(base, two))))
+               for p in pin_problems(writer_versions(_no_trout(A.SECTIONS)), _reader(_with_m0(base, two)), _TROUT_WAITING))
     assert any("trout (optional) is v2 in the pipeline" in p
-               for p in pin_problems(writer_versions(_trout(A.SECTIONS, 2)), _reader(base)))
+               for p in pin_problems(writer_versions(_trout(A.SECTIONS, 2)), _reader(base), _TROUT_WAITING))
     assert any("trout (optional): the pipeline writes v2, the app reads v1" in p
                for p in pin_problems(writer_versions(_trout(A.SECTIONS, 2)), _reader(_with_m0(base))))
 
 
 def test_mutation_the_allowance_goes_stale_once_both_sides_list_trout():
     base = _no_m0(_src())
-    assert pin_problems(writer_versions(_trout(A.SECTIONS)), _reader(_with_m0(base))) == [
+    assert pin_problems(writer_versions(_trout(A.SECTIONS)), _reader(_with_m0(base)), _TROUT_WAITING) == [
         "trout: both sides list it now; delete its AWAITING_ONE_SIDE line"]
     assert pin_problems(writer_versions(_trout(A.SECTIONS)), _reader(_with_m0(base)), awaiting={}) == []
 

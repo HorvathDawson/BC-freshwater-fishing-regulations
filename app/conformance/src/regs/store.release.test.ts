@@ -5,7 +5,7 @@
  * oracles were cut from), never typed here — so this also proves the release is the build the goldens describe.
  */
 import { describe, expect, it } from "vitest";
-import { KNOWN_VERSIONS, SECTION_NAMES } from "@app/core";
+import { KNOWN_VERSIONS, OPTIONAL_VERSIONS, SECTION_NAMES } from "@app/core";
 import { openRegsStore, RegsStoreError } from "@app/data/regs";
 import { liveRelease, openReleaseDir } from "../fixtureRelease";
 import { taps } from "./oracles";
@@ -15,8 +15,13 @@ const T = taps();
 const golden = T.meta.store;
 
 describe("the port's versions are the golden store's", () => {
-  it("KNOWN_VERSIONS = taps.json meta.store.layout.versions (+ glossary 5)", () => {
-    expect({ ...KNOWN_VERSIONS }).toEqual({ ...JSON.parse(golden.layout).versions, glossary: 5 });
+  it("KNOWN_VERSIONS = taps.json meta.store.layout.versions (+ glossary 5); an optional section there at OPTIONAL_VERSIONS", () => {
+    // (T810 M0) a golden cut from a release holding an optional section (trout) lists it too: at the version this app reads
+    const all = JSON.parse(golden.layout).versions as Record<string, number>;
+    const optional = Object.fromEntries(Object.entries(all).filter(([n]) => n in OPTIONAL_VERSIONS));
+    const required = Object.fromEntries(Object.entries(all).filter(([n]) => !(n in OPTIONAL_VERSIONS)));
+    expect({ ...KNOWN_VERSIONS }).toEqual({ ...required, glossary: 5 });
+    for (const [n, v] of Object.entries(optional)) expect(v, n).toBe(OPTIONAL_VERSIONS[n as keyof typeof OPTIONAL_VERSIONS]);
   });
 });
 
