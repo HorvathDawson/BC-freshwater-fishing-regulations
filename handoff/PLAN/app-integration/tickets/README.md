@@ -324,6 +324,8 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T832 | iOS: a river can keep an old colour after a horizon change or a feed refresh (null feature-state writes dropped) | OPEN | — | T826 agent 2026-11-17 |
 | T833 | A cut on a line's end drops every line touching that node, not just the lines meeting at the cut (Gitnadoix powerline) | OPEN | — | rebuild follow-up 2026-11-17 |
 | T834 | A water row's own printed quota takes that fish out of the region's stream share automatically (Kaslo, Keen like the Lardeau) | OPEN | — | owner 2026-11-17 |
+| T835 | The step cache reuses stale outputs in a worktree under /tmp (`_trace.install` skips /tmp) | OPEN | — | T834 worker 2026-11-17 |
+| T836 | The spot photo viewer behaves like the standard phone photo viewers (swipe down to close, tap to hide, counter, opens from its thumbnail) | OPEN | — | owner 2026-11-17 (app) |
 
 ## Next after closed testing
 

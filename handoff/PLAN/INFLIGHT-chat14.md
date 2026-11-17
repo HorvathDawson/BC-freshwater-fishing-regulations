@@ -109,6 +109,12 @@ its `_reindex`), dfo_vectors --check with both in.
   land/rebuild-1116 MERGED as a5638c5e7; Babine line re-saved + closed_areas applied (aa69b89d6); full tier b9650jdf6
   running (scratchpad/tier-rebuild.log), then push. NEXT: T834 lands -> ONE rebuild (deliver; atlas only if needed)
   -> staging release (`--staging --dry-run --rehearse-follows` first). DFO Babine re-mark: not needed (marks carried).
+  **10:55 11-17: T834 REWORK.** Side build 916965dc7 (lift model) REJECTED by the owner (OWNER-TODO ~10:38-10:50):
+  Kaslo/Keen stay 2 in all; Lardeau 7 (5 rainbow + 2 bull). New model = day pool max(region cap, sum of own quotas),
+  replacing the region total there. Worker aefa9ff1e764c0ea2 resumed on the same lane/worktree; owner page with
+  "was X, now Y" per water comes back first. 3f440729a pushed; app chat pushed f7b41c208 on top (CI running, hold push
+  until its "CI green"). Local unpushed: 42d8212d7 (answers + T835 step-cache /tmp ticket). Plan unchanged: T834 ->
+  ONE data build (also carries Babine closes_item) -> staging release.
 - trout J back 00:05 11-17, merged locally as 02e51cfdc (mini release re-cut on merge); tier running, then push.
   01:53 11-17: worker done; lane/trout-vpy merged locally as 5d6ac8283 (6 keys fixed, proof 5,950/5,950, 0 problems; V-py:
   trout_vectors 53 cases, trout-hand 14, own trout fixture app/fixtures/trout/, scripts/trout-refresh.sh). Tier b806pz7n9
