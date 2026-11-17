@@ -2386,3 +2386,7 @@ More questions (recommended answer first):
   a single exemption but changing the total to accommodate that is confusing. So it should say something like 5 with
   exception to 20 brook trout which also uses up your 5 quota." So the card leads with the region's 5, not the 20.
   Confirming the catch (does 15 brook + 5 cutthroat stay allowed?) before the card is built.
+- 2026-11-17 12:32, owner (verbatim), on "15 brook trout + 5 cutthroat at a brook trout 20 lake: legal?": "For now say
+  legal ( need to ask about this with co tho)". Built as legal (others at most 5, all at most 20; brook trout count
+  toward the 5). Card: "5 trout a day / Exception: brook trout up to 20 (count toward the 5; past 5, brook trout
+  only)". Question added to GOTCHAS (T834 entry + Region 4 office Q1).

@@ -75,6 +75,13 @@ code now handles belong in the code's comments, not here.
   - **The 12 rows that carried a hand-written lift out of the share** (Lardeau, Duncan, Beaver, Lavington, Perry,
     Whiteswan, Chilliwack, Kitimat ×2, Peace in 7B): under the strict reading a number equal to the share no longer
     lifts (the Lardeau and Duncan bull trout 2, revising RULINGS T3a for those rows).
+  - **Lakes with their own brook trout quota above the region's 5** (Region 4 p.35-40: Big Fish, Botts, Box, North
+    Star, Premier, Twin, Whitetail "Brook trout daily quota = 20"; Region 8 p.70 Jewel; Region 7 p.59-61 Bow,
+    Butterfly, Camp, Kathie, Kinglet, Redstart "= 10"): the region's 5 stands, brook trout may go to 20, and they count
+    toward the 5. Owner 2026-11-17 12:29: "the total is 5 not 20 or 25 ... 5 with exception to 20 brook trout which
+    also uses up your 5 quota". Built: 15 brook trout + 5 cutthroat is legal (the cutthroat fill the 5, the extra slots
+    are brook trout only), 6 cutthroat is not. Owner 12:32: "For now say legal (need to ask about this with co tho)".
+    Stricter: brook trout fill the 5 first, so 5 brook trout + 1 cutthroat is not legal.
 
 ### Questions for each office (the book's words, printed pages of the 2025-2027 synopsis)
 
@@ -127,6 +134,10 @@ Dala (p.50), Ksi Hlginx (p.52), Triumph (p.54), and the West Road mainstem (Regi
      = 2 (any size)". 5 fish in all, or 7? Do the bull trout count toward the 2 from streams?
    - Kootenay Lake main body (p.37): "Bull trout daily quota = 1; rainbow trout daily quota = 10 (any size)". 10 fish
      in all, or 11? Are other trout still limited to 5?
+   - Big Fish, Botts, Box, North Star, Premier, Twin and Whitetail lakes (p.35-40): "Brook trout daily quota = 20".
+     Do brook trout count toward the 5? Is 15 brook trout + 5 cutthroat legal, or only 5 other trout less the brook
+     trout kept? (The same question for Region 7's "Brook trout daily quota = 10" lakes, p.59-61, and Region 8's
+     Jewel Lake, p.70.)
 2. Spring closure (p.34): "No Fishing: in any stream in Region 4 from Apr 1-June 14". Duck Lake (p.36): "bass catch
    and release, May 15-June 15". Are its streams open for bass catch and release from May 15, or closed to June 14?
 3. Glenn Creek flows by Wilkie Creek into Trout Lake, which drains down the Lardeau to the Duncan. The Duncan

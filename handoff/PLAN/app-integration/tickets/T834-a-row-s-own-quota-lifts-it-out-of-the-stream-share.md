@@ -43,3 +43,5 @@ regional number so we should only use that but then the exemption overrides it o
 fill up the trout total quota ... the total is 5 not 20 or 25 ... it should say something like 5 with exception to 20
 brook trout which also uses up your 5 quota." Card leads with the region's cap; the own number shows as an exception
 for that fish that counts toward the cap. Catch confirmation pending (see OWNER-TODO 12:29).
+
+2026-11-17 12:32, owner: "For now say legal ( need to ask about this with co tho)" (15 brook + 5 cutthroat). Engine unchanged; card leads with the region cap and shows the own number as an exception counting toward it.
