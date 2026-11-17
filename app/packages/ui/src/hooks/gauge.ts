@@ -36,6 +36,8 @@ export interface Conditions {
   rankedAt?: string | null;
   /** (T585 F14) Answered from the phone's kept copy (offline): the card's age line says so. */
   kept?: true;
+  /** (T830) The quantities the publisher says the station reports live, ranked or not (`Reading.reports`). */
+  reports?: readonly Parameter[];
 }
 
 // NO `useConditions` (T105): it read the station `section_gauge` matched to a reach for the sheet's reading, a second
@@ -98,6 +100,7 @@ export async function stationReading(source: WaterSource, station: StationId | n
     percentile: now.value.percentile, standing: now.value.standing,
     fetchedAt: now.fetchedAt, observedAt: now.value.at || null,
     ...(now.value.rankedAt !== undefined ? { rankedAt: now.value.rankedAt } : {}),
+    ...(now.value.reports ? { reports: now.value.reports } : {}),
     ...(now.kept ? { kept: true as const } : {}),
   };
 }

@@ -35,3 +35,10 @@ Size: M. Owner look: shots before landing.
   the app its width, so the T243 desktop rows draw the rail, plus a rail-in-the-gate case.
 - The walkthrough card (`GuideCard` `left`) starts right of the rail at desktop; a test holds it.
 - Shots: web 1440 x 900 light and dark, each tab, plus phone 390.
+
+2026-11-17 12:30, owner (app chat dialog, after the shots of Map light, Conditions dark and a phone): "Land it
+(Recommended)". Built on `app-fix/t839-desktop-rail`: rail at the desktop class (1280 px and up, all five tabs, 92 wide,
+current tab filled ink), tablet and phone keep the bar, hidden in regs mode and while adding a spot. Before landing: the
+walkthrough card must not sit over the rail.
+
+2026-11-17 13:06: Android benches 6/6 (install, walkthrough, spots, saved-spots, regs-open, crash-bed) on 71222a2bd.

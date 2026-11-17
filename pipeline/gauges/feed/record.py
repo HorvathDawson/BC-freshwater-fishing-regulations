@@ -28,6 +28,18 @@ QUANTITIES: tuple[str, ...] = ("discharge", "level")
 #: record makes a percentile coarse, not wrong, and the record factor already prices that (3/20 of a full weight).
 MIN_RECORD_YEARS = 3
 
+#: (T830) WHAT THE GAUGE CARD SAYS IN PLACE OF A STANDING under a quantity the station reads live but has no band for —
+#: fewer than `MIN_RECORD_YEARS` of HYDAT in it, or none (Capilano at Canyon: two years of level; Nazko: no level record
+#: at all). The raw reading is shown with this line: never high, low or normal, since nothing ranks it. Owner's pick
+#: ("Plainer", 2026-11-17 09:57). Mirrored to TypeScript by `pipeline.tools.emit.gauge_policy`.
+NO_RECORD_LINE = "Too new to say if this is high or low."
+
+#: (T830) HOW MANY DECIMALS A WATER LEVEL IS SHOWN TO, in metres, everywhere the app or its pages show one: the card's
+#: figure, the stage beside a flow, the chart's read-out, a pin's label, an alert's words, a spot's lines ("1.00 m",
+#: "0.85 m"). Owner 2026-11-17 09:57. A flow keeps its three significant figures (`figure`); a chart's axis ticks are
+#: round values and keep their shortest form ("1.5"). Mirrored by `pipeline.tools.emit.gauge_policy`.
+LEVEL_DECIMALS = 2
+
 #: `{station: {quantity: {"years": n, ...}}}` — `clim.json`'s `stats`, which `gauge_stats` is a copy of.
 Stats = Mapping[str, Mapping[str, Mapping[str, object]]]
 

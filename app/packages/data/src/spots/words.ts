@@ -4,7 +4,7 @@
  * They were composed inside `SpotScreen` and `SpotsScreen`, where a test could only match a fragment it had itself
  * supplied (AGENTS 33). Here each one is a whole string a test pins, and the screens draw it.
  */
-import { bandWord, bcMidnight, CONDITIONS_WORDS, spotDay, standing, traceSentence, type FrozenTrace, latLon, weatherFigure, figure, daysInTen, placeChip, placeSaid,
+import { bandWord, bcMidnight, CONDITIONS_WORDS, spotDay, standing, traceSentence, type FrozenTrace, latLon, weatherFigure, figure, figureIn, daysInTen, placeChip, placeSaid,
          readingIn, shownParameter, spotIsoDay, spotStamp, type DeclaresQuantity, type ShownQuantity } from "@app/core";
 import { spotLabel, type DailyGauge, type DailyWeather, type DayPlace, type Spot, type SpotReading, type WeatherWindow } from "./model";
 import { OPEN_METEO_ATTRIBUTION } from "./weather";
@@ -135,7 +135,7 @@ const stillToCome = (d: DailyGauge) => d.discharge === null && d.level === null 
 /** A lead-up gauge day as the strip draws it; a day still to come says so under its dash. */
 export function leadUpGaugeCells(d: DailyGauge, q: "discharge" | "level"): { value: string; place: string } {
   const v = valueOf(d, q);
-  return { value: v === null ? DASH : figure(v),
+  return { value: v === null ? DASH : figureIn(v, q),
            place: v === null ? (stillToCome(d) ? "not yet" : "") : chipOf(placeOf(d, q)) };
 }
 
@@ -147,7 +147,7 @@ export function leadUpGaugeSentence(d: DailyGauge, q: "discharge" | "level"): st
   if (v === null) return `${day}: no daily mean recorded`;
   const at = placeOf(d, q);
   const where = at === null ? "no record to compare it with" : placeSaid(at, "day");
-  return `${day}: ${figure(v)} ${UNIT[q]}, ${where}`;
+  return `${day}: ${figureIn(v, q)} ${UNIT[q]}, ${where}`;
 }
 
 /**
@@ -163,7 +163,7 @@ export function leadUpGaugeTrend(days: readonly DailyGauge[], q: "discharge" | "
   const moved = q === "level" ? b - a : a === 0 ? (b > 0 ? 1 : 0) : b / a - 1;
   const step = q === "level" ? 0.05 : 0.1;
   const verb = moved >= step ? "rose" : moved <= -step ? "fell" : "held steady";
-  return `${q === "level" ? "Level" : "Flow"} ${verb} over the week: ${figure(a)} → ${figure(b)} ${UNIT[q]}`;
+  return `${q === "level" ? "Level" : "Flow"} ${verb} over the week: ${figureIn(a, q)} → ${figureIn(b, q)} ${UNIT[q]}`;
 }
 
 /** Under the gauge row: whose means they are (named, T819), and whether they were filled in afterwards. */
@@ -406,7 +406,8 @@ function gaugePart(spot: Spot): string {
   const g = spot.reading, f = spotReadingFigure(g);
   return isBackdated(spot) && !readingIsTheDays(spot) ? tripDayGauge(spot)
     : g && f
-    ? `${f.figure} ${f.unit}${g.percentile != null ? ` · ${daysInTen(g.percentile)}` : ""}`
+    // (T830) a level to LEVEL_DECIMALS places (`figureIn`); a flow as it was saved
+    ? `${f.quantity === "level" ? figureIn(f.figure, "level") : f.figure} ${f.unit}${g.percentile != null ? ` · ${daysInTen(g.percentile)}` : ""}`
     : "no gauge";
 }
 
@@ -440,7 +441,7 @@ function conditionWord(spot: Spot): string {
   }
   const g = spot.reading, f = spotReadingFigure(g);
   if (!g || !f) return ROW_WORDS.noGauge;
-  return rankedWord(g.percentile, `${f.figure} ${f.unit}`);
+  return rankedWord(g.percentile, `${f.quantity === "level" ? figureIn(f.figure, "level") : f.figure} ${f.unit}`);
 }
 
 /** A spot's own reading said in one word: its band where it was ranked, else its figure (a record, not a donor's state). */

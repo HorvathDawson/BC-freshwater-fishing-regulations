@@ -16,7 +16,7 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import { TextInput, View } from "react-native";
 import {
-  ALERT_DIRECTIONS, alertContextLine, alertSummary, CONDITIONS_WORDS, figure, NOTIFY_WORDS, now, parseAlertValue, percentileByDay,
+  ALERT_DIRECTIONS, alertContextLine, alertSummary, CONDITIONS_WORDS, figureIn, NOTIFY_WORDS, now, parseAlertValue, percentileByDay,
   percentileOk, PERCENTILE_PRESETS, reportOnce, type AlertDirection, type AlertQuantity, type AlertThreshold, type GaugeAlertRule,
 } from "@app/core";
 import type { WaterSource } from "@app/data";
@@ -150,7 +150,7 @@ export function AlertEditor({ palette, source, gauge, onSave, onCancel }: {
   const [quantity, setQuantity] = useState<AlertQuantity>(gauge.quantity);
   const [direction, setDirection] = useState<AlertDirection>("above");
   const [lineKind, setLineKind] = useState<AlertThreshold["kind"]>("value");
-  const [text, setText] = useState(gauge.current !== null ? figure(gauge.current) : "");
+  const [text, setText] = useState(gauge.current !== null ? figureIn(gauge.current, gauge.quantity) : "");
   const [pct, setPct] = useState<number | "custom">(75);
   const [pctText, setPctText] = useState("");
   const [bad, setBad] = useState(false);
@@ -161,7 +161,7 @@ export function AlertEditor({ palette, source, gauge, onSave, onCancel }: {
   const nowIs = alertNow(quantity, gauge, ctx);
   const typedByReader = useRef(gauge.current !== null);   // a card's figure is already in the box
   useEffect(() => {
-    if (!typedByReader.current && nowIs !== null) { typedByReader.current = true; setText(figure(nowIs.value)); }
+    if (!typedByReader.current && nowIs !== null) { typedByReader.current = true; setText(figureIn(nowIs.value, quantity)); }
   }, [nowIs]);
   const why = recordWhy(rec, quantity);
   // percentile picked but this quantity has no record (another quantity picked): nothing to save, the reason said
@@ -199,7 +199,7 @@ export function AlertEditor({ palette, source, gauge, onSave, onCancel }: {
                       // the number typed was in the other quantity's units: start again from this one's reading
                       if (q !== quantity) {
                         const card = q === gauge.quantity && gauge.current !== null;
-                        setText(card ? figure(gauge.current!) : "");
+                        setText(card ? figureIn(gauge.current!, q) : "");
                         typedByReader.current = card;   // another quantity: its own reading fills the box once the series is in
                       }
                       setQuantity(q); setBad(false);

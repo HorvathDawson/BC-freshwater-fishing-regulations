@@ -121,11 +121,20 @@ describe("useChartView", () => {
     const { result } = draw(590);
     const v = await ready(result);
     act(() => v().probeAt(40 + 7.5 * 10));                 // ten hours in
-    expect(v().readout?.line).toBe(chartReadoutLine({ t: T0 + 10 * H, value: 4.1, unit: "m³/s", kind: "reading",
+    expect(v().readout?.line).toBe(chartReadoutLine({ t: T0 + 10 * H, value: 4.1, unit: "m³/s", quantity: "discharge", kind: "reading",
                                                       daily: false, median: 6 }));
     expect(v().readout?.x).toBeCloseTo(115, 6);
     act(() => v().probeAt(null));
     expect(v().readout).toBeNull();
+  });
+
+  it("(T830) reads a level series to two decimals", async () => {
+    const lv = { gaugeSeries: async () => ({ fetchedAt: 0, value: { ...SERIES, parameter: "level" as const,
+                 values: Array.from({ length: N }, () => 1) } }) } as unknown as WaterSource;
+    const { result } = renderHook(() => useChartView(lv, "08GA031" as StationId, "72h", "level", undefined, 590));
+    const v = await ready(result);
+    act(() => v().probeAt(40 + 7.5 * 10));
+    expect(v().readout?.line).toMatch(/ · 1\.00 m · median 6\.00$/);
   });
 });
 

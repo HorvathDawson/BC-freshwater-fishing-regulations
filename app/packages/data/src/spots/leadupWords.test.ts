@@ -147,9 +147,9 @@ describe("the station's daily means", () => {
     expect(leadUpGaugeTrend([g("2026-08-23", 41.2, null), g("2026-08-29", 42, null)], "discharge"))
       .toBe("Flow held steady over the week: 41.2 → 42 m³/s");
     expect(leadUpGaugeTrend([g("2026-08-23", null, null, 1.2), g("2026-08-29", null, null, 1.21)], "level"))
-      .toBe("Level held steady over the week: 1.2 → 1.21 m");
+      .toBe("Level held steady over the week: 1.20 → 1.21 m");
     expect(leadUpGaugeTrend([g("2026-08-23", null, null, 1.2), g("2026-08-29", null, null, 1.35)], "level"))
-      .toBe("Level rose over the week: 1.2 → 1.35 m");
+      .toBe("Level rose over the week: 1.20 → 1.35 m");
   });
 
   it("claims no direction from fewer than two days", () => {

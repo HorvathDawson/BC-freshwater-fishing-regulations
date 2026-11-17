@@ -170,6 +170,8 @@ type Index = { stations: Record<string, { percentile: number | null;
                                           discharge?: number | null;
                                           level?: number | null;
                                           parameter?: "discharge" | "level";
+                                          /** (T830) The quantities the reading carries, ranked or not (publish `live_quantities`). */
+                                          reports?: readonly ("discharge" | "level")[];
                                           /** The station's last observation (ISO), from the feed. */
                                           observedAt?: string | null;
                                           /** Forecast percentiles, keyed by days ahead. */
@@ -387,6 +389,9 @@ export function silentWhy(panel: Panel, index: NonNullable<Index>, quantity: Qua
 export function otherOnly(row: NonNullable<Index>["stations"][string] | null | undefined, quantity: Quantity,
                           horizon: Asked): Quantity | undefined {
   if (!row || horizon !== 0 || reading(row, quantity, 0) !== null) return undefined;
+  // (T830) a station the publisher says reports the asked quantity reports it, ranked or not: Capilano at Canyon has no
+  // level band (two years of record), so no level rank, and was said to report "flow only" under Level
+  if (row.reports?.includes(quantity)) return undefined;
   const other: Quantity = quantity === "discharge" ? "level" : "discharge";
   return reading(row, other, 0) !== null ? other : undefined;
 }

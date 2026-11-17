@@ -59,7 +59,7 @@ export function RegsHeader({ header: h, palette, tabs, onDate, onTab, side = fal
    * keeps the name row and the place label. false (a phone, a tablet): the header as it always was.
    */
   side?: boolean;
-  /** (T471) the day's sun line at the water ("Sunrise 08:04 PT · sunset 17:37 PT", `useSunLine`), a small secondary line
+  /** (T471) the day's sun line at the water ("Sunrise 08:04 PT · Sunset 17:37 PT", `useSunLine`), a small secondary line
    *  under the place label; null: nothing drawn */
   sun?: string | null;
 }) {

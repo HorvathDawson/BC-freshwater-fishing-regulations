@@ -19,19 +19,19 @@ describe("useSunLine", () => {
   it("the tapped point, never asking the water's", () => {
     asked.length = 0;
     const { result } = renderHook(() => useSunLine(source, "gnis:1" as ItemId, { lat: 49.2827, lon: -123.1207 }, NOV4));
-    expect(result.current).toBe("Sunrise 08:05 PT · sunset 17:46 PT");
+    expect(result.current).toBe("Sunrise 08:05 PT · Sunset 17:46 PT");
     expect(asked).toEqual([]);
   });
   it("no tap: the water's own point, on the chosen day", async () => {
     asked.length = 0;
     const { result, rerender } = renderHook(({ day }) => useSunLine(source, "gnis:1" as ItemId, null, day), { initialProps: { day: NOV4 } });
-    await waitFor(() => expect(result.current).toBe("Sunrise 08:00 PT · sunset 17:42 PT"));
+    await waitFor(() => expect(result.current).toBe("Sunrise 08:00 PT · Sunset 17:42 PT"));
     rerender({ day: { y: 2026, m: 6, d: 21 } });
-    expect(result.current).toBe("Sunrise 05:03 PT · sunset 21:16 PT");
+    expect(result.current).toBe("Sunrise 05:03 PT · Sunset 21:16 PT");
     expect(asked).toEqual(["gnis:1"]);
   });
   it("an unnamed reach takes its tap; with no point known there is no line", async () => {
-    expect(renderHook(() => useSunLine(source, null, VEDDER, NOV4)).result.current).toBe("Sunrise 08:00 PT · sunset 17:42 PT");
+    expect(renderHook(() => useSunLine(source, null, VEDDER, NOV4)).result.current).toBe("Sunrise 08:00 PT · Sunset 17:42 PT");
     expect(renderHook(() => useSunLine(source, null, null, NOV4)).result.current).toBeNull();
     expect(renderHook(() => useSunLine({}, "gnis:1" as ItemId, null, NOV4)).result.current).toBeNull();
     const none = renderHook(() => useSunLine(source, "gnis:2" as ItemId, null, NOV4));
