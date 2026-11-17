@@ -136,3 +136,25 @@ boxes-apart top lines saying the region's total instead of the box's most. LEFT 
 "2 of these 5" band; the engine keeps 2 in all (DV counts toward the 2 from streams) — F's question 5; (2) Kitimat
 River (2 keys) and Humphrys / Iron Mine / Tetlock Creeks from Jul 1: the wild rainbow's "only 1 wild" is not joined
 with brown and cutthroat's "only 1 of these 2"; the engine holds the three to 1 together.
+
+## 2026-11-17 00:24: J's 5 keys fixed in the builder (lane/trout-vpy)
+Full flagged side build over the live bundle again (answers `--trout-table` + `card_check --all`): 5,950 tables of
+5,950 non-NULL cells, 0 problems (card gate 0). Six keys changed, nothing else: the five J listed plus a third Kitimat
+River part the random baskets had missed. Both fixes pinned in `test_trout_check.py` FOUND (flag off: the live water
+fails the proof).
+- `A_SHARE_HOLDS_ITS_UNLIFTED_FISH` (Kaslo River, Keen Creek, from Jun 15): the stream share's band holds every fish
+  its rule holds that no lift takes out (`group.subcaps[].of`). Words chosen: top line "Up to 2 {day}" (no plus form at
+  all), fold "Up to 2", one band "only 2 of these 6" over the five trout and the Dolly Varden; the Dolly Varden's own 2
+  is not said (it is not tighter). F's open question 5 (the plus-form fold) stays for G2: the plus form still exists
+  where a fish IS lifted out of the share.
+  FOR THE OWNER (data, not the table): Kaslo and Keen print "Bull trout daily quota = 2 (any size)", the same words as
+  the Lardeau and the Duncan, but only the Lardeau's and the Duncan's rows carry the lift out of Region 4's "2 from
+  streams" (T3a names them). So today the engine keeps 2 in all on Kaslo and Keen, while today's shipped card says
+  "Not part of the 2 from streams" there (`tree.py` nests a water's own tier by its number only). If the owner reads
+  Kaslo and Keen like the Lardeau, it is a corpus edit (an `exempts` on `kaslo_river.r1` / `keen_creek.r1`) and a
+  rebuild; the table follows by itself (it reads the lift).
+- `A_WILD_QUOTA_JOINS_ITS_COUNT` (Kitimat River, its tributaries Humphrys / Iron Mine / Tetlock and the rest, Jul 1 to
+  Oct 31): Region 6's "1 trout from streams" holds brown, cutthroat and WILD rainbow trout together (Kitimat's hatchery
+  rainbow quota lifts hatchery fish only). Words: one band "only 1 of these 3" over brown, cutthroat and the wild
+  rainbow row; the wild row's "only 1 wild" is no longer said; the twin rainbow rows stay side by side (wild, then
+  hatchery).
