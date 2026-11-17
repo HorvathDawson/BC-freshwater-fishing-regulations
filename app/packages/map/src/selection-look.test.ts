@@ -18,9 +18,9 @@ describe("(T735) look C: dark only, through tokens", () => {
   it("dark casing: 1.5 px each side, the ground's colour on the part, attention on the others, in-season others at 0.35", () => {
     const t = resolveTheme("dark");
     expect([t["width.selection.casing"], t["flag.selection.edge"], t["color.selection.edge"], t["opacity.selection.glow"],
-            t["opacity.selection.casing.others"]]).toEqual([1.5, 1, "#0A0B0D", 0.4, 0.35]);
+            t["opacity.selection.casing.others"]]).toEqual([1.5, 1, t["color.ui.page"], 0.4, 0.35]);
     const p = casingPaint(2, t);
-    expect(p["line-color"]).toEqual(["case", ON, "#0A0B0D", t["color.ui.attention"]]);
+    expect(p["line-color"]).toEqual(["case", ON, t["color.ui.page"], t["color.ui.attention"]]);
     expect(p["line-opacity"]).toEqual(["case", ON, 1, ["all", FS("inseason"), FS("water")], 0.35,
       ["case", FS("selected"), 1, FS("part"), 1, FS("inseason"), 1, 0]]);
     expect(p["line-width"]).toEqual(["+", 2, 3]);                      // 2 + 2 * 1.5
