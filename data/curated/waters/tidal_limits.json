@@ -815,6 +815,7 @@
 {"blk": "360844984", "name": "George Creek", "limit": "mouth", "decided": "2026-10-28", "mark": "aeaef2ca3f41", "why": "the mouth"},
 {"blk": "360845071", "name": "Potlatch Creek", "limit": "mouth", "decided": "2026-10-28", "mark": "c570f8ee56ab", "why": "the mouth"},
 {"blk": "360845267", "name": "Caponero Creek", "limit": "mouth", "decided": "2026-10-28", "mark": "9ee9006bf282", "why": "the mouth"},
+{"blk": "360846083", "name": "Sheldens Creek", "limit": "mouth", "decided": "2026-11-16", "why": "owner 2026-11-16 (T806 picture 26, mark 2783): \"have it be low confidence and set it top tidal too\" — the tidal boundary is DFO's Spur 19 Bridge site, read (LOW CONFIDENCE) as the road bridge nearest the sea: the FTEN road SPUR 14 crossing the estuary channel beside the OSM camp site (53.14746 N 131.76003 W), about 260 m below the lower end of the FWA line (the line ends at the head of the salt marsh, 53.14766 N 131.76389 W). That bridge is below the whole line, so on our map the boundary is the line's own mouth: no cut; the place (above the signs) is the whole creek, as saved."},
 {"blk": "360846153", "name": "Shannon Creek", "limit": "mouth", "decided": "2026-10-28", "mark": "f564e199e3b7", "why": "the mouth"},
 {"blk": "360846187", "name": "Klekane River", "limit": "mouth", "decided": "2026-10-28", "mark": "6d9e1e665d8e", "why": "the mouth"},
 {"blk": "360846332", "name": "Ellis Creek", "limit": "mouth", "decided": "2026-10-28", "mark": "532736181ea1", "why": "the mouth"},

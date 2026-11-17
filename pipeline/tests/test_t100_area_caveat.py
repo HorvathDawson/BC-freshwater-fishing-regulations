@@ -74,7 +74,7 @@ WIDENED = {
     "r4:trout_lake@4-30": 1, "r4:upper_arrow_lake_drawdown_area@4-31+4-32": 3,
     "r5:canim_lake_see_map_on_page_42@5-1": 1, "r5:chilko_lake@5-4": 1, "r5:dragon_lake@5-2": 1,
     "r5:green_lake@5-1": 1, "r5:mitchell_lake@5-15": 1, "r5:quesnel_lake@5-15": 2, "r6:babine_lake@6-6": 2,
-    "r6:buckinghorse_lake@6-20": 1, "r6:fran_ois_lake@6-4": 1, "r6:helene_lake@6-6": 1, "r6:klahowya_lake@6-20": 1,
+    "r6:buckinghorse_lake@6-20": 1, "r6:fran_ois_lake@6-4": 7, "r6:helene_lake@6-6": 1, "r6:klahowya_lake@6-20": 1,
     "r6:silverthorne_erickson_lake@6-9": 1, "r6:takysie_lake@6-4": 1,
     "r7:davis_bay_in_finlay_reach_of_williston_lake@7-37": 1,
     "r7:dinosaur_lake_reservoir_downstream_of_w_a_c_bennett_dam@7-31": 1, "r7:letain_lake@7-52": 1,
@@ -102,7 +102,7 @@ MAPS = {
     f"{SHUSWAP}.r5": "the map on p.28",                       # Salmon Arm Bay, "(see map on page 28)"
     f"{SHUSWAP}.r5x": "the maps on p.28", f"{SHUSWAP}.r11x": "the maps on p.28",   # the pier: the row's maps
     "r5:canim_lake_see_map_on_page_42@5-1::canim_lake.r1": "the map on p.42",
-    **{f"r6:fran_ois_lake@6-4::francois_lake.r{i}": "map 1 on p.51" for i in range(1, 2)},
+    **{f"r6:fran_ois_lake@6-4::francois_lake.r{i}": "map 1 on p.51" for i in range(1, 8)},
 }
 
 
@@ -123,7 +123,9 @@ def test_the_widened_rules_are_counted():
     # T708 (owner 2026-11-13): Pitt r2 "speed restriction at Grant Narrows" is an undrawn part again (84, 55 -> 85, 56)
     # T708 (a) (owner 2026-11-13): McArthur Island Slough's "No powered boats" keeps its place words "in part" (85, 56 -> 86, 57)
     # T795 (owner 2026-11-16): superior_closures.r3p, six lakes closed only inside their ecological reserve (86, 57 -> 87, 58)
-    assert (sum(per.values()), len(per)) == (87, 58)
+    # T805 D (owner 2026-11-16 19:09, "Outlet area only (Recommended)"): François Lake r2-r7 are held on the outlet
+    # area like r1 again (p.51 prints the whole row "for the area at the outlet ... described on map 1") (87, 58 -> 93, 58)
+    assert (sum(per.values()), len(per)) == (93, 58)
     lic = sorted(e["entry_id"] for f in sorted(under_test.curated().regulations.synopsis.glob("region-*.json"))
                  for e in json.loads(f.read_text(encoding="utf-8"))["entries"]
                  for x in e.get("licensing") or [] if str(x.get("undrawn_part") or "").strip())
