@@ -6,7 +6,8 @@ Source: general audit 2026-11-16, decisions checker item 7 (`handoff/PLAN/audit-
 
 - K6: the Skeena weekend caveat is cut at the colon (`app/packages/core/src/regs/caveats.ts` line 193).
 - K7: "Open, except some parts" when nothing is closed (`core/src/regs/strip.ts` line 148).
-- K8: the Shuswap pier exemption is dropped.
+- K8: the Shuswap pier exemption is dropped. **FIXED dbaa009b9** (lane/bugs-080b, 2026-11-17): the Salmon Arm Bay closure and the bait ban
+  each say the book's bracket (p.32) on their own line (`labels.exempted_on_an_undrawn_part`); 2 of 3,404 lines moved.
 - G8: non-resident-alien weekend closures are not on the Licence tab.
 - G9: fly-only waters say "One hook or fly". **FIXED ee9fb62ff** (lane/bugs-080, 2026-11-17): `gear.summary_parts` keeps the fly
   alone in both fly modes (p.80: an artificial fly is a dressed hook); every artificial-fly-only reading now says "one fly"
