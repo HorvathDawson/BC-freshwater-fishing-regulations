@@ -2416,7 +2416,7 @@ More questions (recommended answer first):
   Creston channels read Corra Linn). T752 desktop split "Keep it (Recommended)". T789 G9 "one fly" (36 rules / 35
   waters) and T801 item 4 confluence wording "Yes, ship both (Recommended)". T772 Kitsumkalum Lake side channels "Yes,
   show me the list (Recommended)" (the 16 as was/now before anything lands).
-- 2026-11-17 ~15:12, owner: T740 kept-map memory "After 0.8.0 (Recommended)". T789 K8/G8/G10 (Shuswap pier exemption,
+- 2026-11-17 ~15:11, owner: T740 kept-map memory "After 0.8.0 (Recommended)". T789 K8/G8/G10 (Shuswap pier exemption,
   non-resident-alien weekend closures on the Licence tab, under-16 non-resident price line), verbatim: "yes add to 0.8.0
   we can add as banners? i thought we already had these as banners" (app chat to check what banners exist; book's
   words; owner sees the wording before it ships). T801 item 3 Skeena River 2 stamp line: "Trim to this water's part

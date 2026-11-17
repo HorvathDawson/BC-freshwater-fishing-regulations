@@ -33,4 +33,4 @@ Measured only after T717, no before/after pair: 354-411 MB with a page up over 1
   here with the owner's call.
 - `back-flash` still 0 flash frames.
 
-2026-11-17 ~15:12, owner: see OWNER-TODO 15:12 (verbatim there).
+2026-11-17 ~15:11, owner: see OWNER-TODO 15:11 (verbatim there).
