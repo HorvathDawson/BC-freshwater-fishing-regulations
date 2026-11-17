@@ -1,6 +1,6 @@
 # T732 — The phone's backup carries saved spots first, photos second, never the downloaded release
 
-Status: IN PROGRESS (iOS chat; proven on the emulator 2026-11-14 with spots, settings and smaller photo copies, branch `android/t732-backup` head 56b6ea539, results in the ticket on that branch; not merged; OWNER ANSWERED 2026-11-16 11:57: 1280 px copies, and he asks for stronger compression, see the last section).
+Status: IN PROGRESS (built to every owner pick, 2026-11-16 20:11: copies 1280 px, WebP 75, on branch `t732-proof` merged with origin b60d6436e; proven on the emulator 2026-11-14 at 1600 px / JPEG 70; not merged: waits for the app chat's Android bench of the WebP copy, see the last section).
 
 Source: audit finding G14 (`handoff/PLAN/ios/parity-audit.md`, pass 2, 2026-11-14): on Android, saved spots and photos
 are never in the Google backup, because the installed release (~480 MB) puts the app over Auto Backup's 25 MB limit and
@@ -304,3 +304,37 @@ built code is on `t732-proof` @ 56b6ea539 (`app/packages/data/src/spots/backupSe
 ## Owner, 2026-11-16 ~16:55 (app chat dialog, verbatim label)
 Photo copies in a backup, 1280 px (picture `photo-copies-compare.jpg`, sent 12:59, again 16:55): "D: WebP 75" (the
 recommendation was B, JPEG 70). OWED before T732 lands: the photo copy step encodes WebP at quality 75.
+
+## Built to "D: WebP 75", 2026-11-16 20:11 (branch `t732-proof`, merged with origin `redesign/stream-sections` b60d6436e)
+- **Branches**: `android/t732-backup` fa562f0d6 is the rules commit alone (the same patch as `t732-proof`'s da37d03e1, on
+  the older base); `t732-proof` holds the whole of T732 (rules, photo set, both proofs, the owner's answers, this change).
+  Land `t732-proof`; `android/t732-backup` adds nothing.
+- **Encoding** (core `backupSet.ts`): `BACKUP_PHOTO_EDGE` 1600 -> **1280** (the 11:57 answer, not yet in the code),
+  `BACKUP_PHOTO_FORMAT` **"webp"** (new), `BACKUP_PHOTO_QUALITY` 0.7 -> **0.75**. `backupSet.native.ts` saves with
+  `SaveFormat.WEBP` (Android `Bitmap.CompressFormat.WEBP`: lossy below 100 on every API level, minSdk 24 included; iOS
+  `SDWebImageWebPCoder`, a dependency of the manipulator's pod, though the app runs the set on Android only).
+- **Names**: a copy is `<original>.webp` (`backupSync.ts` `backupCopyName`: `s1-1-ab.jpg` -> `s1-1-ab.jpg.webp`), so
+  it can never be another photo's. A restore copies it back under the spot's own reference (`photos/s1-1-ab.jpg`, WebP
+  bytes): the spot's data is not rewritten, and the image views decode by content, not by name. No mime type is stored
+  or sent anywhere on this path; the backup rules (`with-backup-rules.js`) name the folder, not file types, so they are
+  unchanged.
+- **Before WebP**: a JPEG copy named as its original could exist only on the emulator (the 2026-11-14 test-bed APK from
+  76b828cb3; T732 was never on the dev branch, so no staging or Play build made one). It still restores (the WebP copy
+  wins when both exist), then a WebP copy is made from the restored photo and the old copy is deleted.
+- **Tests**: new `packages/data/src/spots/backupSet.native.test.ts` (fake file system + fake manipulator): the encode
+  call pinned as the native module gets it (`resize {width: 1280}` / `{height: 1280}`, `save {format: "webp",
+  compress: 0.75}`, none for a photo already smaller), a round trip (copies made, the phone wiped to what the cloud set
+  carries, the next start puts each photo back from its WebP copy under its own reference, nothing re-made), and the
+  pre-WebP restore. `backupSync.test.ts`: the new names, the pre-WebP restore and replacement, WebP winning over JPEG.
+  `CANIFISHTHIS_R8=1 pnpm check`: see the commit.
+- **Size** (`cwebp -q 75`, libwebp as Android's encoder; a phone differs a little): the 12 MP stand-in (4,608,757 B)
+  -> 1280×960 **82,740 B** (about 250 in 20 MB; JPEG 70 at 1600 px was 373,736 B); the test bed's own photo
+  (`app/tools/testbed/media/testbed-photo.jpg`, 800×300, 28,295 B, not resized) -> 8,104 B.
+- **Bench owed (the app chat; no backup scenario exists in `app/tools/testbed/scenarios`)**: `spots` and `photo-zoom`
+  (a photo picked, shown and zoomed: the store's seam changed), then the manual walk of §10 on a test-bed APK from this
+  branch: three spots with a photo each through the app -> `run-as ca.canifishthis.app ls -l files/spots/backup-photos`
+  shows `*.jpg.webp` files, `file`/the first bytes say `RIFF....WEBP`, sizes ~60–100 KB for a 12 MP photo; cloud
+  `bmgr backupnow` -> `Success`, `tar tvf` lists the `.webp` copies; `pm clear` + `bmgr restore 1` -> the app's next
+  start puts them back in `spots/photos/` under their `.jpg` names and the Spots tab and the photo viewer draw them
+  (screenshot). Start from a fresh local-transport set (the emulator still holds the 2026-11-14 JPEG set; restoring it
+  instead is the pre-WebP path, worth one run too).
