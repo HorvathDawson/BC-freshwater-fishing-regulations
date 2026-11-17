@@ -115,6 +115,11 @@ its `_reindex`), dfo_vectors --check with both in.
   "was X, now Y" per water comes back first. 3f440729a pushed; app chat pushed f7b41c208 on top (CI running, hold push
   until its "CI green"). Local unpushed: 42d8212d7 (answers + T835 step-cache /tmp ticket). Plan unchanged: T834 ->
   ONE data build (also carries Babine closes_item) -> staging release.
+  **14:02 11-17: 0.8.0 stock-take** (scratchpad/release-080-scope.md). Bug lane a0653d0ad43fe742a (lane/bugs-080):
+  triage T771-T775/T782/T788/T686, fix T784, T785, T792A, T799, T797 2-5, T801 2-4, T835, T790, T791, T823 data, T803
+  follow-ups. App-side extras sent to the app chat (T808 branch-only ticket, T765-T768/T751/T789/T740 triage, stale
+  rows). 15:00 OWNER BATCH: T804/T807 was/now, T825 list, T810 G2 wording (pictures; after T834 lands), T806 (40
+  saves, pictures), T786 (wrong-with-no-fix list), bug-lane owner questions, app chat's questions.
   **13:55 11-17: OWNER AWAY UNTIL 15:00** ("save questions for then please and work while i am away"). Questions batch
   at 15:00: T804/T807 was/now page, T825 list, T810 G2 sentence questions, anything new. Workers: T804+T807
   aa78c06015861b949 (lane/t804-t807), T813+T825 ab8c0795e01658ad2 (lane/t813-t825), T834 fix aefa9ff1e764c0ea2,
