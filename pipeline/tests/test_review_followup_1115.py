@@ -304,6 +304,26 @@ def test_a_save_that_proposes_no_cut_keeps_the_proposals(tmp_path, monkeypatch, 
     assert moved != first and moved == reuse._stamp((p,))       # a cut proposed: they are made again
 
 
+def test_a_confirmed_closed_area_s_new_cuts_move_the_proposals(tmp_path, monkeypatch, R):
+    """T785: a closed-area mark carries its new cuts in `piece.new_splits`, not at the top; `marks.cut_proposals_of`
+    proposes them, so the save that confirms it must move the proposals stamp (it stood still: 1215 groups -> 1216,
+    same stamp)."""
+    reuse = R
+    p = tmp_path / "marks.jsonl"
+    p.write_text(_line("1:a"), encoding="utf-8")
+    monkeypatch.setattr(reuse, "MARKS_PATH", p)
+    monkeypatch.setattr(reuse, "_PROPOSALS_AT", {})
+    monkeypatch.setattr(reuse, "_PROPOSALS_LAST", [])
+    first = reuse.proposals_stamp()
+    s0 = reuse.marks_stamp()
+    piece = {"points": [{"kind": "new", "split_id": "n9"}], "new_splits": [{"ref": "n9"}]}
+    with p.open("a", encoding="utf-8") as fh:
+        fh.write(_line("3:area:x", scope="closed_area", piece=piece))
+    assert reuse.marks_delta(s0, reuse._stamp((p,)))["new_splits"]
+    moved = reuse.proposals_stamp()
+    assert moved != first and moved == reuse._stamp((p,))
+
+
 def test_a_save_rebuilds_only_the_saved_places_rows(tmp_path, monkeypatch, R):
     reuse = R
     import dfo
