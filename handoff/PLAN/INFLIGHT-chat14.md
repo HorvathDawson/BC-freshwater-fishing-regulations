@@ -97,6 +97,11 @@ its `_reindex`), dfo_vectors --check with both in.
   to use tolerances.STUB_M (100 m, bundle.continuation's allowance), reach-only rerun, diff again (same stop rule), then
   the answers diffs. Lane-test triage: 35/37 also fail at land/salmon-1116 (worktree setup); the T812 one fixed
   (5a4585f7e); marks_never_orphaned is mine at merge (Cowichan x3, Sheldens, Babine x2 bindings moved).
+  **06:13: DONE, rebuild3b r-e5b7b1527bbf** (land/rebuild-1116 @ 61410c70d; STUB_M tolerance dad1dea26, POLICY_VERSION
+  46): binding diff vs rebuild2 = 0 moved; Chilliwack-Vedder back; Gitnadoix 1,000 with the label; card check 0, gates
+  pass. Diffs: scratchpad/rebuild3b/answers-diff/{vs-live (966), vs-salmon (168), vs-rebuild2 (0)}. Marks NOT edited:
+  the moved-binding marks go on the owner's re-tick list (OWNER-TODO). NEXT when he OKs the list: merge
+  land/rebuild-1116 into main (full tier), then Babine line re-save, DFO Babine re-mark, T807/T804, staging release.
 - trout J back 00:05 11-17, merged locally as 02e51cfdc (mini release re-cut on merge); tier running, then push.
   01:53 11-17: worker done; lane/trout-vpy merged locally as 5d6ac8283 (6 keys fixed, proof 5,950/5,950, 0 problems; V-py:
   trout_vectors 53 cases, trout-hand 14, own trout fixture app/fixtures/trout/, scripts/trout-refresh.sh). Tier b806pz7n9

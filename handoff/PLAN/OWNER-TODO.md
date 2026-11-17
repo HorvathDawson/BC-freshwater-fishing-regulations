@@ -2269,9 +2269,13 @@ More questions (recommended answer first):
   2. **Hazelwood Creek's 4 ponds** (named by your T796 save) now count as widenings of the creek, not lakes. They lose
      the lake rules and take the creek's: they close Jan 1 to Jun 15 under the Skeena winter closure. OK, or keep them as
      lakes? (A worker is checking how the FWA and the book treat them.)
-  3. Being fixed overnight before you see it: Sheldens Creek showed as two waters in search, and the Gitnadoix
-     "upstream of the powerline" place had lost 4 side channels and one creek (that creek's coho went closed); the place
-     is meant to be the whole river.
+  3. Fixed overnight (06:13): Sheldens Creek is one water in search; the Gitnadoix "upstream of the powerline" place
+     binds the whole river again (1,000 stretches) with your powerline label kept (T833: a rules-engine fault at a
+     line's end, fixed in code; the whole-province check moved nothing else).
   4. **Sheldens Creek** is now one water. Its small unnamed 3.47 ha pond on the creek now counts as part of the creek
      (same rule as the Hazelwood ponds), so kokanee there goes from "keep 10 a day" to release.
-  Full list of changed answers: shown to you in the morning, after the fix rebuild.
+  5. **Re-tick in the review app** (your saved places whose area moved with this rebuild, so their tick is stale):
+     Cowichan x3 (66-mile trestle, white triangle, whole), Sheldens (upstream of the white triangular sign), Babine
+     Lake x2 (including tributaries; excluding tributaries). Your marks file is not edited.
+  Full list of changed answers vs the salmon release (168 groups): scratchpad/rebuild3b/answers-diff/
+  vs-salmon-r-1603e71cc92c/owner.md, sent to you as a file. Nothing ships or merges until you say OK.
