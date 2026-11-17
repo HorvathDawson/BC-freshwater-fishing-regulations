@@ -17,7 +17,7 @@ export { openSpots, openLayerStore, openLikeStore, openSalmonFeedStore, openGaug
 export { openSpotsWith, type SpotsFs } from "./core";
 export { openMeteo } from "./weather";
 export { needsRefresh, refreshReason, refreshSpot } from "./refresh";
-export { observedLine, spotHeadline, spotReadingFigure, spotRowLines, weatherTrend, LEAD_UP_WORDS, leadUpDayLabel,
+export { observedLine, spotHeadline, spotRecordSummary, spotPlaceLine, spotTraceLine, spotWaterLine, spotReadingFigure, spotRowLines, weatherTrend, LEAD_UP_WORDS, leadUpDayLabel,
          leadUpGaugeCells, leadUpGaugeMeta, leadUpGaugeSentence, leadUpGaugeTrend, leadUpGaugePending, leadUpQuantity,
          leadUpUnit, leadUpRainLine, leadUpWeatherCells, leadUpWeatherPending, leadUpWeatherSentence, PHOTO_WORDS,
          photoFailed, photoLabel, removePhotoLabel, staleSpotsLine } from "./words";

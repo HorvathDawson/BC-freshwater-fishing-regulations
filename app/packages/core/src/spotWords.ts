@@ -30,6 +30,9 @@ export const SPOT_WORDS = {
   save: "Save spot", saveChanges: "Save changes",
   /** (T284) the page's three headed blocks: the day as it was, what the person added, how the next days compare */
   thatDay: "That day", added: "What you added", nextDays: "The next few days",
+  /** (T819 item 5) the draft's record, folded to one card: its open and close, and what the card says it holds */
+  showRecord: "Show the record", hideRecord: "Hide the record",
+  recordDetail: "The flow, the weather and the week before, as recorded for this moment.",
   /** where a spot has nothing added yet */
   nothingAdded: "No notes or photos yet.",
   /** (T310) where to park: a fact of the spot (every visit's), shown on the page and as a P on the map */

@@ -160,14 +160,14 @@ const STATES_T258: [string, (width: number) => Promise<void>, RegExp][] = [
     render(<ConditionsPanel source={GAUGE_SOURCE} section={SEC} palette={LIGHT} feed={GAUGE_FEED} scroll={false} day={new Date(2026, 8, 4, 12)} />);
     await screen.findByTestId("reading-figure");
   }, /Lead Creek/],
-  ["(T284) a spot's three blocks: that day, what you added, the next few days", async (w) => {
+  ["(T284, T819 item 5) a spot's three blocks: what you added, that day, the next few days", async (w) => {
     Object.defineProperty(document.documentElement, "clientWidth", { configurable: true, value: w });
     Object.defineProperty(document.documentElement, "clientHeight", { configurable: true, value: 900 });
     Object.defineProperty(window, "innerWidth", { configurable: true, value: w });
     act(() => { window.dispatchEvent(new Event("resize")); });
     const { SpotScreen } = await import("./SpotScreen");
     const day = (date: string, best: boolean) => ({ date, top: "Sat", sub: "31 Oct", score: "72%", read: "Similar",
-      basis: "weather only", best, reasons: ["Air temperature: 4° cooler", "Wind: 3 km/h calmer"], label: "Sat, 31 Oct: 72%, similar to your visit.", why: [] });
+      basis: "weather only", best, reasons: ["Air temperature: 4° cooler", "Wind: 3 km/h calmer"], label: "Sat, 31 Oct: 72%, similar to your visit.", why: [], lead: "Air temperature: 4° cooler" });
     const photo = "data:image/gif;base64,R0lGODlhAQABAAAAACw=";
     render(<SpotScreen spot={{ ...TAMIHI, notes: "Three rainbow below the bridge.", photos: ["photos/s1-1.png", "photos/s1-2.png"] }}
       palette={LIGHT} onBack={() => {}} onEdit={() => {}} onDelete={() => {}} onShowOnMap={() => {}}
@@ -191,7 +191,7 @@ const STATES_T258: [string, (width: number) => Promise<void>, RegExp][] = [
     press("Close photo"); await settle();
     expect(screen.queryByTestId("photo-viewer")).toBeNull();
     press("Photo 2 of 2"); await settle();   // left open: the audit below sees the viewer too
-  }, /That day[\s\S]*What you added[\s\S]*The next few days/],
+  }, /What you added[\s\S]*That day[\s\S]*The next few days/],
   ["(T294) a spot's visits, the shown visit's rating, and the days predicted from rated visits", async (w) => {
     Object.defineProperty(document.documentElement, "clientWidth", { configurable: true, value: w });
     Object.defineProperty(window, "innerWidth", { configurable: true, value: w });
@@ -205,7 +205,7 @@ const STATES_T258: [string, (width: number) => Promise<void>, RegExp][] = [
     const spot = addVisit(addVisit({ ...TAMIHI, rating: 5 }, v("v1", 86400e3 * 10, 2)), v("v2", 86400e3 * 20, 4));
     const day = (date: string, best: boolean) => ({ date, top: "Sat", sub: "31 Oct", score: "4.2★", read: "Good",
       basis: "From 3 rated visits", best, reasons: ["Most like your 5★ visit on 30 Aug (84% alike)", "Flow: the same"],
-      label: "Sat, 31 Oct: about 4.2 of 5, good, from 3 rated visits.", why: [] });
+      label: "Sat, 31 Oct: about 4.2 of 5, good, from 3 rated visits.", why: [], lead: "Flow: the same" });
     let rated: number | null = null;
     render(<SpotScreen spot={{ ...TAMIHI, rating: 5 }} palette={LIGHT} onBack={() => {}} onEdit={() => {}} onDelete={() => {}}
       visits={visitsView(spot, TAMIHI.id, Date.now())} onPickVisit={() => {}} onRate={(n) => { rated = n; }}

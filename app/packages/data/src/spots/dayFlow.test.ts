@@ -167,7 +167,7 @@ describe("the visit day's flow on a spot", () => {
                                   percentile: percentileInBand(19.6, BAND), place: 0.244, source: "hydat",
                                   filledAt: got.dayFlow!.state === "filled" ? got.dayFlow!.filledAt : 0 });
     expect(dayFlowLine(got.dayFlow)).toBe("19.6 m³/s, lower than 8 days in 10 for the date — filled in from the day's "
-      + "record (HYDAT daily mean, 15 Aug 2024).");
+      + "record (HYDAT daily mean, Thu 15 Aug 2024).");
     // Q161: the refresh also refills the panel for the trip day (its member asked the same one read)
     expect([visitConditions(got).flow, needsRefresh(got), dayFlowAskable(got), h.asked])
       .toEqual([percentileInBand(19.6, BAND), false, false, ["08MH001 2024-08-15", "08MH001 2024-08-15"]]);
@@ -195,7 +195,7 @@ describe("the visit day's flow on a spot", () => {
     expect(got.spot.dayFlow).toEqual({ state: "filled", station: "08MH001", date: "2026-10-20", discharge: 30,
                                        percentile: 0.375, place: 0.375, source: "feed", filledAt: SAVED });
     expect(dayFlowLine(got.spot.dayFlow)).toBe("30 m³/s, lower than 6 days in 10 for the date — filled in from the day's "
-      + "record (ECCC's daily mean, provisional, 20 Oct 2026).");
+      + "record (ECCC's daily mean, provisional, Tue 20 Oct 2026).");
   });
 
   it("a level-only station settles as no flow, said; the strip compares no flow", async () => {
@@ -203,7 +203,7 @@ describe("the visit day's flow on a spot", () => {
     expect(got.spot.dayFlow).toEqual({ state: "none", station: "08MH001", date: "2024-08-15", why: "no-discharge",
                                        askedAt: SAVED });
     expect([dayFlowLine(got.spot.dayFlow), visitConditions(got.spot).flow, dayFlowAskable(got.spot)]).toEqual([
-      "The record for 15 Aug 2024 holds no flow for station 08MH001: it measures water level, and a level never "
+      "The record for Thu 15 Aug 2024 holds no flow for station 08MH001: it measures water level, and a level never "
         + "stands in for a flow.", null, false]);
   });
 
@@ -211,7 +211,7 @@ describe("the visit day's flow on a spot", () => {
     const np = await fillDayFlow(backdated(), { source: source(), hydat: hydat({ kind: "none" }) }, SAVED);
     expect([np.spot.dayFlow, dayFlowLine(np.spot.dayFlow), dayFlowAskable(np.spot), needsRefresh(np.spot)]).toEqual([
       { state: "not-published", station: "08MH001", date: "2024-08-15", askedAt: SAVED },
-      "The flow for 15 Aug 2024 is not published yet: it is older than ECCC's recent record and not in HYDAT yet. "
+      "The flow for Thu 15 Aug 2024 is not published yet: it is older than ECCC's recent record and not in HYDAT yet. "
         + "Try again later.", true, true]);    // still due a refresh: its save-day panel is not the trip day's (Q161)
     const later = await refreshSpot(np.spot, sky, source(), undefined, { hydat: hydat({ kind: "day", discharge: 19.6,
                                                                                           level: null }) });

@@ -99,6 +99,18 @@ export function leadOver(speaker: Speaker | null,
 }
 
 /**
+ * (T819 item 3 → T823, owner 2026-11-16: "Allow, with a warning") IS THIS WATER SMALL NEXT TO THE GAUGE THAT SPEAKS FOR
+ * IT? A gauge far bigger than the water may still speak (the map colours by it, and so does a spot), and then a plain
+ * warning goes with its answer. WHEN to warn is Python's decision, shipped in the release for the speaker's lead; the
+ * app computes no ratio and no threshold.
+ * TODO(T823): read the release's flag for this speaker and lead (not `section_gauge.small`: the flag must follow the
+ * speaker's lead, the panel's); until it ships, never small. The sentence is the release's meta `small_water_text`.
+ */
+export function smallNextToGauge(_speaker: Speaker | null, _lead: StationId | null): boolean {
+  return false;
+}
+
+/**
  * THE STATIC HALF, for one release: each section's class, the classes, and the basins' stations. Built once per release
  * (`WaterSource.standingClasses`); the map labels a section with `classOf` as its tile arrives.
  */

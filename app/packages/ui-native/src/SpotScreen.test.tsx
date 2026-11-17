@@ -6,7 +6,7 @@
  * mistake a record for a reading? A stale discharge shown bare is worse than no discharge,
  * because the reader will wade on it.
  */
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render } from "@testing-library/react";
 import type { PhotoEdit } from "@app/ui";
 import { SpotScreen } from "./SpotScreen";
@@ -14,6 +14,9 @@ import type { Spot } from "@app/data/spots";
 import { LIGHT } from "./theme";
 
 afterEach(cleanup);
+// (T819 item 10) the spots' one date style names the year only when it is not this one: the clock is held in 2026
+beforeEach(() => { vi.useFakeTimers({ now: Date.parse("2026-11-16T12:00:00Z"), toFake: ["Date"] }); });
+afterEach(() => { vi.useRealTimers(); });
 
 // LOCAL parts, so the dated lines below read the same in any time zone the suite runs in.
 const VISIT = new Date(2026, 7, 30, 9).getTime();
@@ -28,7 +31,7 @@ describe("<SpotScreen>", () => {
   it("dates every spot, because a spot is a record and not a reading", () => {
     const { getByTestId } = render(
       <SpotScreen spot={spot()} palette={LIGHT} onBack={() => {}} />);
-    expect(getByTestId("spot-when").textContent).toBe("2026-08-30 at 09:00 · 49.0974, -121.9675");
+    expect(getByTestId("spot-when").textContent).toBe("Sun 30 Aug, 9 am");
   });
 
   it("says WHY there is no discharge instead of showing a dash", () => {
@@ -48,7 +51,7 @@ describe("<SpotScreen>", () => {
                    at: "2026-08-30T09:00", backfilled: true },
       })} />);
     expect(getByTestId("spot-observed").textContent)
-      .toBe("08MH016 · observed 2026-08-30 at 02:00 PT · filled in afterwards");
+      .toBe("08MH016 · observed Sun 30 Aug, 2 am · filled in afterwards");
     expect(getByText("41.2")).toBeTruthy();
   });
 
@@ -58,7 +61,7 @@ describe("<SpotScreen>", () => {
         reading: { station: "08MH016", discharge: 41.2, level: null, percentile: null,
                    at: "2026-08-30T09:00", backfilled: false },
       })} />);
-    expect(getByTestId("spot-observed").textContent).toBe("08MH016 · observed 2026-08-30 at 02:00 PT");
+    expect(getByTestId("spot-observed").textContent).toBe("08MH016 · observed Sun 30 Aug, 2 am");
   });
 
   it("offers a refresh only when something is actually stale", () => {
@@ -164,7 +167,7 @@ describe("<SpotScreen> cloud window", () => {
         createdAt: new Date(2026, 8, 1, 20).getTime(),
         visitedAt: new Date(2026, 7, 30, 9).getTime(),
       })} />);
-    expect(getByTestId("spot-when").textContent).toBe("2026-08-30 at 09:00 · 49.0974, -121.9675");
+    expect(getByTestId("spot-when").textContent).toBe("Sun 30 Aug, 9 am");
   });
 });
 
@@ -281,6 +284,8 @@ describe("<SpotScreen> draft mode shows what the saved spot will show", () => {
       <SpotScreen spot={rich} palette={LIGHT} mode={mode}
                   title="t" notes="n" onTitle={() => {}} onNotes={() => {}}
                   onSave={() => {}} onBack={() => {}} />);
+    // (T819 item 5) the draft folds its record into one card: opened, it is the saved spot's record exactly
+    if (mode === "draft") fireEvent.click(r.getByLabelText("Show the record"));
     const grab = (l: string) => r.queryByLabelText(l)?.textContent ?? null;
     const out = {
       cloud: grab("Cloud visit"), pressure: grab("Pressure visit"),
@@ -307,7 +312,7 @@ describe("<SpotScreen> draft mode shows what the saved spot will show", () => {
     expect(d.wind && d.rain && d.pctile).toBe(true);
     // Two observation times: one for the gauge reading, one for the weather. Both are
     // separately dated on purpose — they come from different services at different hours.
-    expect(d.observed).toEqual(["08MH016 · observed 2026-08-30 at 02:00 PT", "observed 2026-08-30 at 02:00 PT"]);
+    expect(d.observed).toEqual(["08MH016 · observed Sun 30 Aug, 2 am", "observed Sun 30 Aug, 2 am"]);
   });
 });
 
@@ -429,8 +434,10 @@ describe("<SpotScreen> the week before (S1)", () => {
   it("draws seven days of weather, each said whole, with the week's rain and its source", () => {
     const { getByLabelText, getByTestId } = render(
       <SpotScreen palette={LIGHT} onBack={() => {}} spot={spot({ leadUp })} />);
-    expect(getByLabelText("Mon Aug 24: rain, high 17°C, low 8°C, 6 mm of rain, wind up to 10 km/h").textContent)
-      .toBe("Mon 2417° / 8°6 mm10 km/h");
+    expect(getByLabelText("Mon 24 Aug: rain, high 17°C, low 8°C, 6 mm of rain, wind up to 10 km/h").textContent)
+      .toBe("Mon24 Aug17°8°610");
+    // (T819 item 8) seven columns, no sideways scroll; the units said once, in the row labels
+    expect(getByTestId("leadup-rows").textContent).toBe("DaySkyHigh / low °CRain mmWind km/h");
     expect(getByTestId("leadup-rain").textContent).toBe("6 mm of rain in the week before, on 1 day.");
     expect(getByTestId("leadup-weather-source").textContent).toBe("Weather from Open-Meteo.com (CC BY 4.0)");
   });
@@ -438,10 +445,10 @@ describe("<SpotScreen> the week before (S1)", () => {
   it("draws the station's daily means with their place, a gap as a dash, and the week's direction", () => {
     const { getByLabelText, getByTestId } = render(
       <SpotScreen palette={LIGHT} onBack={() => {}} spot={spot({ leadUp })} />);
-    expect(getByLabelText("Sun Aug 23: 50 m³/s, lower than 5 days in 10 for the day").textContent).toBe("Sun 23505 in 10 days higher");
-    expect(getByLabelText("Tue Aug 25: no daily mean recorded").textContent).toBe("Tue 25—");
-    expect(getByLabelText("Sat Aug 29: 20 m³/s, lower than at least 9 days in 10 for the day").textContent)
-      .toBe("Sat 29209+ in 10 days higher");
+    expect(getByLabelText("Sun 23 Aug: 50 m³/s, lower than 5 days in 10 for the day").textContent).toBe("Sun 23 Aug505 in 10 days higher");
+    expect(getByLabelText("Tue 25 Aug: no daily mean recorded").textContent).toBe("Tue 25 Aug—");
+    expect(getByLabelText("Sat 29 Aug: 20 m³/s, lower than at least 9 days in 10 for the day").textContent)
+      .toBe("Sat 29 Aug209+ in 10 days higher");
     expect(getByTestId("leadup-unit").textContent).toBe("m³/s");
     expect(getByTestId("leadup-trend").textContent).toBe("Flow fell over the week: 50 → 20 m³/s");
     expect(getByTestId("leadup-gauge-meta").textContent).toBe("08MH001 · daily means");
@@ -490,7 +497,7 @@ describe("<SpotScreen> the week before (S1)", () => {
       .toBe("1 day had no weather from Open-Meteo yet. Refresh fills it in.");
     expect(getByTestId("leadup-gauge-pending").textContent)
       .toBe("The station had not published 2 of these days yet. Refresh fills them in.");
-    expect(getByLabelText("Sat Aug 29: no daily mean published yet").textContent).toBe("Sat 29—not yet");
+    expect(getByLabelText("Sat 29 Aug: no daily mean published yet").textContent).toBe("Sat 29 Aug—not yet");
     fireEvent.click(getByLabelText("Refresh this spot"));
     expect(onRefresh).toHaveBeenCalledTimes(1);
   });
@@ -579,5 +586,63 @@ describe("<SpotScreen> the reach to the gauge (T819)", () => {
     const { queryByText } = render(<SpotScreen spot={spot({ trace: none })} palette={LIGHT} onBack={() => {}} />);
     expect(queryByText("not known")).toBeNull();
     expect(queryByText(/No station drains enough of this water/)).toBeNull();
+  });
+});
+
+/* (T819 bundle B) a short, readable spot page */
+describe("<SpotScreen> a readable page (T819 B)", () => {
+  const trace = { station: "08MH001", stationName: "Chilliwack River at Vedder Crossing", trust: "good" as const,
+                  reaches: 13, metres: 17_000, rel: "down" as const, reachMagnitude: 2110, gaugeMagnitude: 2110,
+                  lon: null, lat: null };
+  const rich = spot({ notes: "Two on a bead.", trace, waterName: "Chilliwack River",
+    reading: { station: "08MH016", discharge: 41.2, level: null, percentile: 0.62, at: "2026-08-30T09:00" },
+    weather: { tempC: 14, windKph: 8, windDir: 210, rain3h: 0, pressureHpa: 1013, code: 3, window: null,
+               at: "2026-08-30T09:00" } });
+  const names = new Map([["08MH016", "Chilliwack River above Slesse Creek"]]);
+
+  it("item 5: notes and photos come before the record of the day", () => {
+    const { getByTestId } = render(<SpotScreen spot={rich} palette={LIGHT} onBack={() => {}} />);
+    const text = document.body.textContent!;
+    expect(text.indexOf("Two on a bead.")).toBeLessThan(text.indexOf("What the water was doing".toUpperCase()));
+    expect(getByTestId("spot-added").compareDocumentPosition(getByTestId("spot-that-day")) & Node.DOCUMENT_POSITION_FOLLOWING)
+      .toBeTruthy();
+  });
+
+  it("item 5: the draft folds its record into one card with its summary, opened on a tap", () => {
+    const { getByTestId, getByLabelText, queryByTestId } = render(
+      <SpotScreen spot={rich} palette={LIGHT} mode="draft" title="" notes="" onTitle={() => {}} onNotes={() => {}}
+                  onSave={() => {}} onBack={() => {}} />);
+    expect(queryByTestId("spot-that-day")).toBeNull();
+    expect(getByTestId("spot-record-summary").textContent).toBe("41.2 m³/s · higher than 6 days in 10 · 14°C");
+    const open = getByLabelText("Show the record");
+    expect(open.getAttribute("aria-expanded")).toBe("false");
+    fireEvent.click(open);
+    expect(getByTestId("spot-that-day")).toBeTruthy();
+    expect(getByLabelText("Hide the record").getAttribute("aria-expanded")).toBe("true");
+  });
+
+  it("item 6: the reach to the gauge is one plain sentence, no table of magnitudes and shares", () => {
+    const { getByTestId, queryByText } = render(<SpotScreen spot={rich} palette={LIGHT} onBack={() => {}} />);
+    expect(getByTestId("spot-trace").textContent)
+      .toBe("Water here flows about 17 km down to Chilliwack River at Vedder Crossing (08MH001).");
+    expect(queryByText(/magnitude/i)).toBeNull();
+    expect(queryByText("SHARE")).toBeNull();
+  });
+
+  it("item 7: the reading's gauge is named, its code after it", () => {
+    const { getAllByTestId } = render(<SpotScreen spot={rich} palette={LIGHT} onBack={() => {}} names={names} />);
+    expect(getAllByTestId("spot-observed")[0]!.textContent)
+      .toBe("Chilliwack River above Slesse Creek (08MH016) · observed Sun 30 Aug, 2 am");
+  });
+
+  it("item 10: one date style, no coordinates in the header, the water only when it is not the title", () => {
+    const named = render(<SpotScreen spot={rich} palette={LIGHT} onBack={() => {}} onShowOnMap={() => {}} />);
+    expect(named.getByTestId("spot-when").textContent).toBe("Sun 30 Aug, 9 am");
+    expect(named.getByTestId("spot-water").textContent).toBe("on Chilliwack River");
+    expect(named.getByTestId("spot-place").textContent).toBe("49.0974, -121.9675");
+    cleanup();
+    const same = render(<SpotScreen spot={{ ...rich, title: "" }} palette={LIGHT} onBack={() => {}} />);
+    expect(same.queryByTestId("spot-water")).toBeNull();
+    expect(same.queryByTestId("spot-place")).toBeNull();
   });
 });

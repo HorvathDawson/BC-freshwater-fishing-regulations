@@ -10,12 +10,14 @@ import { IconText, type IconName } from "../icons";
 import { hitProps } from "../regs/hit";
 
 /** When a value was observed, and whether it was filled in after the fact. */
-export function Meta({ palette, at, backfilled, station }: {
+export function Meta({ palette, at, backfilled, station, names }: {
   palette: Palette; at: string | null; backfilled?: boolean; station?: string | null;
+  /** (T819 item 7) the release's station names: the station is named, its code after it */
+  names?: ReadonlyMap<string, string>;
 }) {
   return (
     <Text testID="spot-observed" style={{ ...TYPE.caption, color: palette.faint }}>
-      {observedLine(at, backfilled, station)}
+      {observedLine(at, backfilled, station, names)}
     </Text>
   );
 }

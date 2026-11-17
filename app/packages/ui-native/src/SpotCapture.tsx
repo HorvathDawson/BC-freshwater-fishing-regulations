@@ -31,7 +31,7 @@ import { Pressable } from "./Pressable";
 import { WebSpotsNotice, webSpotsNotice } from "./WebSpotsNotice";
 import type { WaterSource, SectionId } from "@app/data";
 import type { HydatDaily, Spot, WeatherSource } from "@app/data/spots";
-import { dayFlowView, useBackLayer, useCaptureSpot, type CaptureWater, type SpotPhotos } from "@app/ui";
+import { dayFlowView, useBackLayer, useCaptureSpot, useStationNames, type CaptureWater, type SpotPhotos } from "@app/ui";
 import type { Camera, TileEndpoints } from "@app/map";
 import { LoadingState } from "./LoadingState";
 import { MapScreen } from "./MapScreen";
@@ -98,6 +98,7 @@ function SpotCaptureFlow(props: SpotCaptureProps) {
   const preset = props.at != null;
   // The visit's day and hour, the capture and the save: `useCaptureSpot` (P12b).
   const cap = useCaptureSpot({ source, weather: props.weather, feed, photos: props.photos, history: props.history });
+  const names = useStationNames(source);                     // (T819 item 7) gauges named, codes after
   // Leaving without saving deletes the photos the draft added (S1): nothing else would ever hold them.
   const cancel = () => { void cap.cancel(); props.onCancel(); };
   const draft = cap.draft;
@@ -170,7 +171,7 @@ function SpotCaptureFlow(props: SpotCaptureProps) {
     // exactly what you get afterwards — which was not true when this screen had its own
     // renderer and quietly showed less.
     return (
-      <SpotScreen spot={draft} palette={palette} mode="draft"
+      <SpotScreen spot={draft} palette={palette} mode="draft" names={names}
                   // an earlier trip day: the day's flow as read from its record, said before it is saved (Q161)
                   dayFlow={{ view: dayFlowView(draft, "idle"), onAsk: null }}
                   photoStore={props.photos?.store} photoEdit={cap.photos}
