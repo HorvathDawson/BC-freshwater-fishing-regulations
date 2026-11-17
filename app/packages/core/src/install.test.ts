@@ -1,7 +1,7 @@
 /** P11: the start-up and first-run words, composed here and pinned whole (AGENTS 33). */
 import { describe, expect, it } from "vitest";
 import { UPDATE_WORDS } from "./updates";
-import { downloadFraction, DOWNLOAD_NOTE_WORDS, failedStartLine, keepsTryingByItself, restartsByItself, stillLine, DOWNLOAD_SAYINGS, INSTALL_WORDS, installLine, MOBILE_DATA_WORDS, mobileDataDecision, mobileDataFrom,
+import { APPLY_WORDS, applyLine, downloadFraction, DOWNLOAD_NOTE_WORDS, failedStartLine, keepsTryingByItself, restartsByItself, stillLine, DOWNLOAD_SAYINGS, INSTALL_WORDS, installLine, MOBILE_DATA_WORDS, mobileDataDecision, mobileDataFrom,
          rolledBackLine, SAYING_MS, sayingAt, SETUP_WORDS, setupFraction, setupLine, SMALL_DOWNLOAD_BYTES, spaceLine, startStage } from "./install";
 
 describe("the first-run download line", () => {
@@ -39,6 +39,43 @@ describe("the rollback line (a new set would not open, so the one it replaced is
   it("leaves out a name it does not have rather than making one up", () => {
     expect(rolledBackLine({ refused: null, using: null }))
       .toBe("The newest map data would not open, so the app is using the data it had before.");
+  });
+});
+
+describe("(T746) a downloaded release put in use", () => {
+  it("has five whole fish-pun lines, each saying the new regulations are being put in place, with the one-character ellipsis", () => {
+    expect(APPLY_WORDS.lines).toEqual([
+      "Reeling in the new regulations…",
+      "Netting the latest regulations…",
+      "Landing the new regulations…",
+      "Tying on the new regulations…",
+      "Casting the new regulations into place…",
+    ]);
+    for (const l of APPLY_WORDS.lines) {
+      expect(l).toMatch(/regulations/);
+      expect(l.endsWith("…")).toBe(true);
+      expect(l).not.toMatch(/\.\.\./);
+    }
+    // the boot screen's own waiting lines use the same one character
+    expect(startStage("paint").endsWith("…")).toBe(true);
+  });
+
+  it("picks one line per release, by its id: the same release always says the same line; no id, the first", () => {
+    expect(applyLine("release-four")).toBe(applyLine("release-four"));
+    expect(applyLine(null)).toBe("Reeling in the new regulations…");
+    expect(applyLine(undefined)).toBe("Reeling in the new regulations…");
+    expect(applyLine("")).toBe("Reeling in the new regulations…");
+    // every line is reachable, and a handful of ids spread over more than one
+    const seen = new Set(Array.from({ length: 200 }, (_, i) => applyLine(`r-${i.toString(16).padStart(12, "0")}`)));
+    expect([...seen].sort()).toEqual([...APPLY_WORDS.lines].sort());
+    // pinned whole for two ids (a change to the pick moves these on purpose)
+    expect([applyLine("release-two"), applyLine("release-four")])
+      .toEqual(["Netting the latest regulations…", "Casting the new regulations into place…"]);
+  });
+
+  it("a failed apply is said plainly, unchanged", () => {
+    expect(APPLY_WORDS.failed).toBe("The new regulations could not be put in place. The app is still using the data it had.");
+    expect(APPLY_WORDS.ok).toBe("OK");
   });
 });
 
