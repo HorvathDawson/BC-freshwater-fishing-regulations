@@ -3,6 +3,7 @@
     python -m pipeline.tools.mini_release --build DIR            # inputs -> atlas -> reach -> ... into DIR (scratch)
     python -m pipeline.tools.mini_release --build DIR --twice    # ... twice, and refuse unless both digests agree
     python -m pipeline.tools.mini_release --inputs DIR           # only the FWA-shaped GeoPackages (seconds)
+    python -m pipeline.tools.mini_release --build DIR --trout-table   # a SIDE release: + the optional trout section (T810 I)
 
 WHAT GOES IN (committed, `pipeline/tests/fixtures/mini/`): `world.json` — a dozen invented waters as lines and boxes
 in a local frame — and `curated/`, a whole curated tree in the layout of `data/curated` holding only invented rows.
@@ -461,14 +462,15 @@ def _env() -> dict:
     return env
 
 
-def stage_commands(out: Path, fwa: Path, coast: Path) -> list[tuple[str, list[str]]]:
+def stage_commands(out: Path, fwa: Path, coast: Path, trout_table: bool = False) -> list[tuple[str, list[str]]]:
     """Every stage, as the production command it is, pointed at `out` (ORDER IS THE BUILD). The deliver steps are
     `pipeline.deliver all`'s own, in its order, each named its inputs (`write_source`); `all` itself is not the driver:
     it promotes into canonical homes, keeps a step cache beside its out-dir and reads the released tiles + basemap
     (route (a), T667 slice 8: this release ships no tiles and no basemap). The tile step writes only its layer files
     (`--no-archive`): the bundle measures section access against them (T54).
     The export and the answers are held to the mini corpus's own claims (`fixtures/mini/claims.json`,
-    `pipeline.deliver.export.claims`); the release ships no basemap and no synopsis.
+    `pipeline.deliver.export.claims`); the release ships no basemap and no synopsis. `trout_table` (T810 ticket I): the
+    answers step builds the optional trout section too (a side release; the committed copy is built without it).
     """
     py = [sys.executable, "-m"]
     atlas, reaches, tiles, d, fed = out / "atlas", out / "reaches", out / "tiles", out / "deliver", out / "fed"
@@ -492,7 +494,7 @@ def stage_commands(out: Path, fwa: Path, coast: Path) -> list[tuple[str, list[st
         ("export", dlv + ["export", "--bundle", b, "--out", str(d / "ui-rules-export.json"),
                           "--claims", str(fed / "claims.json")]),
         ("answers", dlv + ["answers", "--bundle", b, "--export-dir", str(d), "--workers", "1",
-                           "--claims", str(fed / "claims.json")]),
+                           "--claims", str(fed / "claims.json"), *(["--trout-table"] if trout_table else [])]),
         ("card_check", dlv + ["card_check", "--bundle", b, "--export-dir", str(d)]),
         ("store", dlv + ["store", "--bundle", b, "--export-dir", str(d), "--out", str(d / "regs.sqlite")]),
         ("release", dlv + ["release", "--bundle", b, "--store", str(d / "regs.sqlite"), "--status-index",
@@ -503,7 +505,7 @@ def stage_commands(out: Path, fwa: Path, coast: Path) -> list[tuple[str, list[st
     ]
 
 
-def build(out: Path, stop_after: str | None = None) -> dict:
+def build(out: Path, stop_after: str | None = None, trout_table: bool = False) -> dict:
     """Inputs then every stage into `out` (emptied first). Each stage's log is `out/logs/<stage>.log`; a failed stage
     stops the build and raises naming it and its log's last lines. Returns {stage: seconds}."""
     out = Path(out).resolve()
@@ -520,7 +522,7 @@ def build(out: Path, stop_after: str | None = None) -> dict:
     # either way, so with no cut it died writing coast_owner.json. A writer may create its directory (AGENTS 41).
     (out / "atlas").mkdir()
     took = {"inputs": round(time.perf_counter() - t0, 1)}
-    for name, cmd in stage_commands(out, fwa, coast):
+    for name, cmd in stage_commands(out, fwa, coast, trout_table):
         log = out / "logs" / f"{name}.log"
         t = time.perf_counter()
         with log.open("w", encoding="utf-8") as fh:
@@ -819,9 +821,13 @@ def main(argv: list[str] | None = None) -> int:
                     help="rebuild in a temp dir and compare with the committed copy (or --release-dir); exit 1 on drift")
     ap.add_argument("--write", action="store_true",
                     help="rebuild in a temp dir and replace the committed copy (or --release-dir) with it")
+    ap.add_argument("--trout-table", action="store_true",
+                    help="(T810) --build a side release with the optional trout section (never the committed copy)")
     ap.add_argument("--release-dir", type=Path, default=COMMITTED,
                     help="the release copy --check / --write compare / replace (default: the committed one)")
     a = ap.parse_args(argv)
+    if (a.check or a.write) and a.trout_table:
+        ap.error("--trout-table builds a side release (--build DIR); the committed copy is built without it")
     if a.check or a.write:
         import tempfile
         with tempfile.TemporaryDirectory(prefix="mini-release-") as t:
@@ -837,7 +843,7 @@ def main(argv: list[str] | None = None) -> int:
     runs = [a.build / "a", a.build / "b"] if a.twice else [a.build]
     results = []
     for r in runs:
-        took = build(r, a.stop_after)
+        took = build(r, a.stop_after, a.trout_table)
         d = digests(r)
         (r.parent / f"{r.name}.digests.json").write_text(json.dumps(d, indent=1, sort_keys=True) + "\n")
         results.append((r, took, d))
