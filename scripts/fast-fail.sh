@@ -297,6 +297,11 @@ step "goldens cut from LATEST" "$PY" scripts/check-goldens-paired.py
 # in its curated file, or is on the dated allow-list (`pipeline/regs/review/apply.py` NOT_LANDED_OK)
 step "review marks have landed in their curated files" "$PY" -m pipeline.regs.review.apply --check --waiting-ok
 
+# (T786, owner 2026-11-17: "do not ship \"wrong\" places") a place whose latest review save is "wrong" / "unsure" with no
+# extent fix shipped its older drawing (Sproat, Stamp Falls, the Region 3 Fraser on staging 11-16). Read-only, instant:
+# refuses while one is listed, live or dormant; only a dated WRONG_SAVE_OK row (pipeline/regs/review/wrong_saves.py) passes
+step "no place ships on a wrong save with no fix" "$PY" -m pipeline.regs.review.wrong_saves --check
+
 # caught (2026-11-10, T546/T632): OKANAGAN RIVER OXBOWS pinned 26 wsc ids no registry item carries; the row bound the
 # rest with nothing said. Owner 2026-11-11: no build runs with a dead override id (the reach run refuses it too).
 # Reads the live atlas's registry.json (~2 s); a missing build raises naming the command that makes it
