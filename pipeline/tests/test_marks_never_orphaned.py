@@ -276,6 +276,49 @@ def test_the_waters_flag_moves_only_a_place_that_reads_it(tmp_path, own, held):
     assert (_status(m, ent, typed, src)["status"] == "verified") is held
 
 
+def _carry_of(m, ent, typed, **over):
+    from pipeline.regs.review.recheck import mark_digest
+    now = D.prints_of(PLACE, ent, typed)["records"][0]["binding"]
+    return {"scope": "dfo", "target": PLACE, "mark_date": m.date, "mark": mark_digest(m), "binding": now,
+            "decision": {"ticket": "T803", "item": 1, "commit": "a5990dd7b", "owner": "Turn it off (Recommended)"},
+            "words": "they should all be good?", **over}
+
+
+def test_an_owner_carry_holds_only_while_the_place_is_as_his_decision_left_it(tmp_path):
+    """Owner 2026-11-17 08:37 (Cowichan `whole`, Gitnadoix): a mark moved by his OWN later decision is held by a listed
+    carry (owner_carries.json) — never by a rule — and only while the place's binding is the one that decision made."""
+    ent, typed, src = _place_world(tmp_path, items=["gnis:1"], extent={"op": "whole"}, own=None, water_tribs=True)
+    m = _place_mark(D.prints_of(PLACE, ent, typed))
+    ent, typed, src = _place_world(tmp_path, items=["gnis:1"], extent={"op": "whole"}, own=None, water_tribs=False)
+    now = D.prints_of(PLACE, ent, typed)
+    carry = _carry_of(m, ent, typed)
+    assert M.status(m, now, applied=P.applied_keys([m], src, carries=[]))["status"] == "stale"
+    st = M.status(m, now, applied=P.applied_keys([m], src, carries=[carry]))
+    assert st["status"] == "verified" and st.get("landed"), st
+    # a later real move of the place: the carry no longer holds it
+    ent, typed, src = _place_world(tmp_path, items=["gnis:1"], own=None, water_tribs=False,
+                                   extent={"op": "upstream_of", "splits": ["test_creek__bridge"], "item_id": "gnis:1"})
+    assert M.status(m, D.prints_of(PLACE, ent, typed),
+                    applied=P.applied_keys([m], src, carries=[carry]))["status"] == "stale"
+
+
+def test_an_owner_carry_is_for_one_mark_only(tmp_path):
+    """A carry names the mark (digest + date): another mark in force on the place is not held by it."""
+    ent, typed, src = _place_world(tmp_path, items=["gnis:1"], extent={"op": "whole"}, own=None, water_tribs=True)
+    m = _place_mark(D.prints_of(PLACE, ent, typed))
+    ent, typed, src = _place_world(tmp_path, items=["gnis:1"], extent={"op": "whole"}, own=None, water_tribs=False)
+    for carry in (_carry_of(m, ent, typed, mark="0" * 12), _carry_of(m, ent, typed, mark_date="2026-11-14")):
+        assert M.status(m, D.prints_of(PLACE, ent, typed),
+                        applied=P.applied_keys([m], src, carries=[carry]))["status"] == "stale"
+
+
+def test_the_curated_owner_carries_are_whole():
+    """Every listed carry names its mark, the decision (ticket, item, commit) and the owner's words (refused if not)."""
+    from pipeline.regs.review import owner_carry as OC
+    rows = OC.load(Path(under_test.curated().review.marks).parent / "owner_carries.json")
+    assert rows and all({"ticket", "item", "commit"} <= set(r["decision"]) for r in rows)
+
+
 # ------------------------------------------------------------------ historic groups, auto-approve
 
 def _loc(lid, text, *, status="active", dup=None, water="Test River", wid="1:test-river"):

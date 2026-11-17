@@ -1427,15 +1427,17 @@ def build(decided, src: Sources, *, applied: Optional[set] = None) -> list[dict]
     return out
 
 
-def applied_keys(marks: Iterable, src: Sources) -> set:
+def applied_keys(marks: Iterable, src: Sources, carries: Optional[list] = None) -> set:
     """THE MARKS WHOSE OWN FIX HAS LANDED (owner 2026-10-28): the key of every mark in force whose
     extent fix / tributary call the curated files now say exactly (`build` makes no proposal for it
     — new points resolved to the split that landed for them, by anchor, never by proposal content).
     Landing a mark moves its target's binding fingerprint; `marks.status(applied=...)` holds such a
     mark instead of calling it stale, so applying the owner's work never undoes it. Cheap: only the
-    scopes that propose extents are built, without the tidal decisions."""
+    scopes that propose extents are built, without the tidal decisions. `carries`: the owner's carries
+    (`owner_carry`; default the curated list) — a mark held over his own later decision, while the place is as it left it."""
     import dataclasses
     from pipeline.regs.review import dfo as D
+    from pipeline.regs.review import owner_carry as OC
     from pipeline.regs.review import marks as M
     marks = list(marks)
     keep = [m for m in marks if m.scope in ("entry", "rule", "dfo")]
@@ -1445,7 +1447,13 @@ def applied_keys(marks: Iterable, src: Sources) -> set:
     # a DFO place whose geography moved only where it does not read (`dfo.same_place_bindings`: the water's tributary
     # flag under a place with its own) holds as a landing does; a fix that named a merged / parted id lands in `build`
     places = D.locations(src.dfo_dir)
-    for m in M.latest(m for m in marks if m.scope == "dfo").values():
+    inforce = M.latest(m for m in marks if m.scope == "dfo")
+    entries = OC.load() if carries is None else carries
+    if entries:
+        now_of = {e["target"]: (D._h(D.geography(places[e["target"]][1], places[e["target"]][2]))
+                                if e["target"] in places else None) for e in entries}
+        out |= OC.held(entries, {(m.scope, m.target): m for m in inforce.values()}, now_of)
+    for m in inforce.values():
         got = places.get(m.target)
         if m.key in out or got is None:
             continue
