@@ -8,7 +8,7 @@ code now handles belong in the code's comments, not here.
 
 ## Questions the owner will put to BC Fish and Wildlife (the book can be read two ways; we keep the stricter reading)
 
-- **Thompson River below Kamloops Lake in June** (Region 3, p.28 and p.32). The spring closure: "No Fishing in any
+- **Thompson River below Kamloops Lake in June** (Region 3, printed p.26 and p.30). The spring closure: "No Fishing in any
   stream in Region 3 from Jan 1-June 30 (see tables for exceptions)". The Thompson's own row: "No Fishing Oct 1-May
   31 … Additional opening from the CNR Bridge downstream of Deadman River to CNR Bridge upstream of Bonaparte River,
   May 1-31", with no "Exempt from spring closure" (the upstream Thompson row prints one). Read either way: June
@@ -52,7 +52,7 @@ code now handles belong in the code's comments, not here.
   park waters, the West Road's tributaries, Station, Hevenor and Two Mile creeks, Creston Valley, French and Lewis
   sloughs, Okanagan River, Christina Creek), because a quota with no dates says nothing about the season.
 - **A stream's own daily quota against the region's "from streams" share and the region's total** (T834; Region 4
-  p.33-38, the same shape in every region with a stream share). Region 4 prints "Trout/char: 5 … 2 from streams, 1 bull
+  printed p.32-36, the same shape in every region with a stream share). Region 4 prints "Trout/char: 5 … 2 from streams, 1 bull
   trout"; the book (p.3) says to follow the provincial, regional AND water-specific rules, and never says how a water's
   own quota sits against the share or the total. Owner 2026-11-17: ONE reading for every water, the strict one (as for
   the Thompson above): the region's cap stands unless the water's row says otherwise or cannot work under it. A water's
@@ -75,6 +75,85 @@ code now handles belong in the code's comments, not here.
   - **The 12 rows that carried a hand-written lift out of the share** (Lardeau, Duncan, Beaver, Lavington, Perry,
     Whiteswan, Chilliwack, Kitimat ×2, Peace in 7B): under the strict reading a number equal to the share no longer
     lifts (the Lardeau and Duncan bull trout 2, revising RULINGS T3a for those rows).
+
+### The exact words, by regional office (for drafting a message to each)
+
+Page numbers are the PRINTED ones (the repo PDF's page minus 2 up to p.40, minus 6 after). The words are the book's,
+as printed (bold markers dropped). For each office there are two questions. (A) **Closures:** when a water's own row
+prints its own "No Fishing" dates and no exemption, does the regional closure still hold outside those dates? (B)
+**Quotas:** when a water prints its own daily quota for a fish, does it count inside the region's "from streams" limit
+and the region's total, or does it replace them? What the app does today (strict, owner 2026-11-17) is given first.
+
+**Region 1, Vancouver Island (A).** Region (p.11): "Summer closure: No Fishing in any stream in Management Units 1-1
+to 1-6 from July 15-Aug 31 (see water specific regulations table for exceptions)."
+- Campbell River (p.12): "No Fishing from the boundary sign at the end of Maple Street downstream to the boundary sign
+  at the cement block, Aug 1-Oct 31". App: that spot closed Jul 15-Oct 31. Other reading: open Jul 15-31.
+- Campbell Lake's tributaries (p.12): "No Fishing Feb 1-July 15 including Campbell River between Strathcona Dam and
+  (Lower) Campbell Lake". App: closed Feb 1-Aug 31. Other reading: open from Jul 16.
+- John Hart Lake's tributaries (p.14): "No Fishing Apr 15-July 15 (includes channel downstream of Ladore Dam)". App:
+  closed Apr 15-Aug 31. Other reading: open from Jul 16.
+
+**Region 3, Thompson-Nicola (A and B).** Region (p.26): "Spring closure: No Fishing in any stream in Region 3 from
+Jan 1-June 30 (see tables for exceptions)." Quotas (p.26): "Trout/char: 5, but not more than: 4 from streams, 1 over
+50 cm, 1 bull trout (Dolly Varden) or lake trout, none under 60 cm."
+- Thompson River below Kamloops Lake (p.30): "No Fishing Oct 1-May 31 … Additional opening from the CNR Bridge
+  downstream of Deadman River to CNR Bridge upstream of Bonaparte River, May 1-31". App: closed in June. Other
+  reading: open in June.
+- Stein River (p.30): "No Fishing Jan 1-May 31; no trout under 25 cm". App: closed to Jun 30. Other: open in June.
+- Guichon Creek (p.28): "No Fishing Jan 1-May 31". App: closed to Jun 30. Other: open in June.
+- Nahatlatch River (p.29): "Downstream of Nahatlatch Lake … open until Dec 31; No Fishing Jan 1-May 31 … No Fishing
+  downstream of Nahatlatch Lake, Jan 1-May 31". App: closed to Jun 30. Other: open in June.
+- Fraser River (p.28): "Exempt from spring closure upstream of Thompson River … From the confluence with Thompson
+  River to the CNR Bridge approximately 1 km downstream: No Fishing, Oct 1-May 31". The exemption is printed for the
+  part ABOVE the Thompson only. App: this spot closed to Jun 30. Other: open in June.
+- Bridge River (p.27): "No Fishing downstream of Hwy 40 bridge (approximately 6 km north of Lillooet), Mar 31-June 20".
+  App: closed Jan 1-Jun 30. Other: open Jan 1-Mar 30 and Jun 21-30.
+- Nicola River (p.29): "No Fishing downstream of Nicola Lake, Mar 1-Sept 30 … Trout catch and release downstream of
+  Nicola Lake, Jan 1-Feb 28". App: trout catch and release Jan 1-Feb 28, every other fish closed. Other: other fish
+  open Jan 1-Feb 28.
+- Shuswap Lake (p.30): "No Fishing Mar 15-May 14, and rainbow trout and char catch and release, May 15-Mar 14, in the
+  waters lying west of a line between signs at Henstridge Road and Wharf Road …". On its stream part, app: closed Jan
+  1-Jun 30. Other: open Jan 1-Mar 14 and May 15-Jun 30.
+- (B) Adams River upstream of Adams Lake (p.27): "Rainbow trout daily quota = 2 (none under 30 cm)". App: 4 from the
+  stream in all, at most 2 rainbow. Other: 2 rainbow on top of the 4.
+
+**Region 4, Kootenay (B, and one A).** Quotas (p.32): "Trout/char: 5, but not more than 1 rainbow trout or cutthroat
+trout over 50 cm, 2 from streams, 1 bull trout (Dolly Varden) of any size." Closure (p.32): "No Fishing: in any
+stream in Region 4 from Apr 1-June 14 (see tables for additional closed times or exceptions)."
+- Kaslo River (p.35): "Bull trout daily quota = 2 (any size) Bait ban"; Keen Creek (p.35): "Bull trout daily quota =
+  2 (any size)". App: 2 from the stream in all, both may be bull trout. Other: 2 bull trout plus 2 other trout.
+- Lardeau River (p.36): "Exempt from spring closure (Apr 1-Jun 14), exempt from trout/char release (Nov 1-Mar 31)
+  Rainbow trout daily quota = 5 (any size), bull trout daily quota = 2 (any size)"; Duncan River (p.34): "Exempt from
+  spring closure, exempt from regional Nov 1-Mar 31 bull trout catch and release, bait ban Rainbow trout daily quota =
+  5 (any size), bull trout daily quota = 2 (any size)". Both print exemptions from closures, none from the "2 from
+  streams" or the 5. App (after T834): 5 in all, bull trout and other trout 2 of them. Other: 7 (5 rainbow + 2 bull).
+- Kootenay Lake main body (p.35): "Bull trout daily quota = 1; rainbow trout daily quota = 10 (any size)". App (after
+  T834): 10 in all, other kinds 5 at most. Other: 11.
+- (A) Duck Lake (p.34): "Bass daily quota = 3 (only 1 over 40 cm), June 16-May 14; bass catch and release, May
+  15-June 15". On its stream parts, app: closed to Jun 14. Other: bass catch and release from May 15.
+
+**Region 5, Cariboo, and Region 6, Skeena (A).** West Road (Blackwater) River (Region 5 table, p.41): "No Fishing in
+mainstem (only) Nov 1-June 14; tributaries subject to spring closure". Region 6 (p.43): "No fishing: in all rivers
+and streams for steelhead, May 15 – June 15. Exemptions include mainstem portions of the Skeena, Nass, Iskut, Stikine
+and Taku Rivers …". App: steelhead closed Jun 15 too on its Region 6 stretches. Other: open Jun 15.
+
+**Region 6, Skeena (A and B).** Steelhead closure as above (p.43). Fraser watershed (p.43): "No fishing: in any
+stream in the Iskut River watershed (upstream of Forest Kerr Canyon), Apr 1-June 30; and in the Fraser River
+watershed in Region 6, Apr 1-June 30." Quotas (p.43): "Trout/char: 5, but not more than 1 over 50 cm (quota includes
+hatchery steelhead), 3 Dolly Varden/bull trout and/or lake trout combined, 1 trout from streams July 1-Oct 31."
+- Kitimat River (p.45): "No Fishing in tributaries and upstream of Hwy 37 bridge, Mar 16-May 31". App: steelhead
+  closed Jun 1-15 too. Other: steelhead open Jun 1-15.
+- Dala River (p.44): "No Fishing June 15-Aug 1". App: steelhead closed May 15-Jun 14 too. Other: steelhead open then.
+- Ksi Hlginx River (p.46): "No Fishing June 15-Sept 1; bait ban". Same as the Dala.
+- Triumph River (p.48): "No Fishing Nov 1-May 31". App: steelhead closed Jun 1-15 too. Other: open Jun 1-15.
+- Stellako River (p.47; also Region 7A p.55): "No Fishing Nov 15-May 14". App: closed May 15-Jun 30 too (Fraser
+  watershed closure). Other: open from May 15.
+- (B) Buckley Creek (p.44): "No Fishing Nov 1-Apr 30; rainbow trout daily quota = 1 (none over 50 cm; bait ban". App:
+  1 trout from the stream in all. Other: 1 rainbow plus 1 other trout.
+
+**Region 7A, Omineca (A).** Region (p.52): "No fishing (spring closure): in any stream of Zone A, Apr 1-June 30. (See
+tables for exceptions)." Stellako River (p.55): "No Fishing Nov 15-May 14". App: closed to Jun 30. Other: open from
+May 15.
 
 ---
 

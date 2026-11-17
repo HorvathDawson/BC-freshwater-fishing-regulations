@@ -2333,3 +2333,7 @@ More questions (recommended answer first):
   unambiguous". Done: GOTCHAS, under the Thompson question, a table of the 17 waters whose own "No Fishing" dates sit
   against a regional closure with no printed exemption (plus Duck Lake's dated bass rows), with the days the loose
   reading would open. Fraser (exemption covers only above the Thompson), Shuswap (pier) and West Road checked.
+- 2026-11-17 11:15, owner (verbatim): "did you add the text to the gotchas for each too? want to be able to draft a message
+  to each regional office for how to tinterpret in future". Done: GOTCHAS "The exact words, by regional office": per
+  office (1, 3, 4, 5/6, 6, 7A) the region's rule and each water's row as printed, printed page numbers, what the app
+  does and the other reading; closures (A) and quotas (B). Thompson/T834 page cites corrected to printed pages.
