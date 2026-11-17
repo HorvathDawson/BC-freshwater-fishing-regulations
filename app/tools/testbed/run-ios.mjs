@@ -42,7 +42,7 @@ const SEARCH_BACK = '9%,11%', PAGE_BACK = '10%,10%';
 // the Map tab, by place: the text "Map" is also a water page's back link and a Layers tile, and Maestro took the first
 // one it found (ios-t313g: the page reopened and every later scenario started on it)
 const MAP_TAB = '10%,92%';
-/** the walkthrough card's count line ("FIND A WATER · 1 OF 25") */
+/** the walkthrough card's count line ("FIND A WATER · 1 OF 10") */
 const GUIDE = /\d+ of \d+$/i;
 /** a water's page is up: its back link by id (iOS reads "‹ Map" as the label "Back"; the tab bar can stay in the tree) */
 const onPage = (w) => (w.ids ?? []).includes('water-back') || (w.includes('Regulations') && w.includes('Conditions') && !hasTabs(w));
