@@ -14,7 +14,7 @@
             a release where it is not)
  *   places    core `place.place_id` present (the towns the held `item_near` rows name)
  *   strs      water `str.id` present; pickers: water `picker.id` present
- *   (none)    a read of tables every region reads WHOLE (rules, statics, akeys, …): `water-shared` (T370: one web
+ *   (none)    (T796) core `section_note`, a few rows, whole in every core slice; a read of tables every region reads WHOLE (rules, statics, akeys, …): `water-shared` (T370: one web
  *             file, cut beside the slices; they were byte-identical in all nine water slices). `meta` and `sqlite_master`
  *             are in every one. A release cut before it holds them in each slice, and any slice answers.
  *
@@ -45,6 +45,8 @@ const TABLES: Readonly<Record<Sliced, Readonly<Record<string, "whole" | "shared"
   core: {
     item: { ord: "ords", item_id: "items" }, item_section: { sid: "sids", ord: "ords" }, item_near: { ord: "ords" },
     item_area: { ord: "ords" }, name_source: { item_id: "items" }, place: { place_id: "places" },
+    // (T796) a section's note (`bundle.outside_note`): a few rows, whole in every slice (pipeline `slices.py`)
+    section_note: "whole",
     meta: "whole", sqlite_master: "whole",
   },
   water: {
@@ -60,6 +62,8 @@ const TABLES: Readonly<Record<Sliced, Readonly<Record<string, "whole" | "shared"
 };
 
 const TABLE_RE = /\b(?:FROM|JOIN)\s+([A-Za-z_][A-Za-z0-9_]*)/gi;
+/** A presence check: `sqlite_master … name = '<table>'` (the release reader's `HAS_*` reads). */
+const MASTER_NAME_RE = /\bname\s*=\s*'([A-Za-z_][A-Za-z0-9_]*)'/i;
 /** The first WHERE predicate: `[alias.]column = ?[n]` or `[alias.]column IN (?…)`. */
 const PRED_RE = /\bWHERE\s+(?:[A-Za-z_][A-Za-z0-9_]*\.)?([A-Za-z_][A-Za-z0-9_]*)\s*(=\s*\?(\d*)|IN\s*\(([^)]*)\))/i;
 
@@ -71,6 +75,12 @@ export function sliceKeys(file: Sliced, sql: string, params: readonly (string | 
   const spec = TABLES[file];
   const tables = [...sql.matchAll(TABLE_RE)].map((m) => m[1]!.toLowerCase());
   if (!tables.length || tables.some((t) => !(t in spec))) return null;
+  // (T796) whether the release holds a table is the slice's answer only for a table the slice carries: of one no slice
+  // holds (core `item_alias`, `see_pointer`), a slice would say "absent" for a release that has it — the whole file's
+  if (tables.length === 1 && tables[0] === "sqlite_master") {
+    const named = MASTER_NAME_RE.exec(sql)?.[1]?.toLowerCase();
+    if (named && !(named in spec)) return null;
+  }
   const keyed = tables.filter((t) => typeof spec[t] === "object");
   const shared = tables.some((t) => spec[t] === "shared");
   // (T370) a read beside a region-wide table and a keyed one: no one web file holds both — the whole file's

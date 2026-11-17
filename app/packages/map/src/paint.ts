@@ -4,8 +4,17 @@
  * share. One module, so the first frame and every frame after it are painted the same way.
  */
 import type { GearMark } from "@app/core";
-import { MAP_STYLE, NO_VALUES, STYLE_META, colorExpression, profileChannel, profileDay, type ChannelValues, type Tokens }
-  from "./style";
+import { MAP_STYLE, NO_VALUES, STYLE_META, colorExpression, finfishOver, profileChannel, profileDay, salmonLabelIn,
+         type ChannelValues, type Tokens } from "./style";
+
+/**
+ * (T796 A6) `shown` held off the sections DFO's finfish closures paint (`finfishOver`: closed, or isolated away) on a
+ * status profile mode — a closed section has no access dots, gear marks or order fade. `shown` itself on every other day.
+ */
+function offFinfish(m: Parameters<typeof finfishOver>[0], values: ChannelValues | null, shown: unknown): unknown {
+  const fin = finfishOver(m, values);
+  return fin ? ["all", shown, ["!", salmonLabelIn([...fin.closed, ...fin.none])]] : shown;
+}
 
 /**
  * "MEASURED HERE, BUT NOTHING TO COMPARE IT TO" — the dashed line over a stream whose standing is the -1 sentinel
@@ -133,7 +142,7 @@ export function noAccessShown(layerId: string, mode: string, values: ChannelValu
   if (!m || !("categories" in m) || !m.categories["no_access"]) return null;
   if (m.scale === "profile") {
     const labels = (values ?? NO_VALUES).status?.no_access ?? [];
-    return labels.length ? ["in", ["coalesce", ["feature-state", m.property], ""], ["literal", [...labels]]] : null;
+    return labels.length ? offFinfish(m, values, ["in", ["coalesce", ["feature-state", m.property], ""], ["literal", [...labels]]]) : null;
   }
   if (m.scale === "categorical") return ["==", ["feature-state", m.property], "no_access"];
   return null;
@@ -232,9 +241,10 @@ export function gearShown(layerId: "stream" | "lake", mode: string, mark: GearMa
   const off = mode === "salmon" ? [...(v.salmon?.closed ?? []), ...(v.salmon?.none ?? [])]
     : [...(v.status?.closed ?? []), ...(v.status?.no_access ?? []), ...(v.status?.none ?? [])];
   const marked = ["in", ["coalesce", ["feature-state", "gm"], ""], ["literal", [...labels]]];
-  return off.length
+  // (T796 A6) and a section DFO's finfish closure closes on Standard (`offFinfish`) — the Salmon day closes it already
+  return offFinfish(m, v, off.length
     ? ["all", marked, ["!", ["in", ["coalesce", ["feature-state", m.property], ""], ["literal", off]]]]
-    : marked;
+    : marked);
 }
 
 /** One mark's paint on a stream (an edge round the line, `streamWidth` its own) or a lake (a ring). */
@@ -290,7 +300,11 @@ export function closedShown(layerId: string, mode: string, values: ChannelValues
   if (!m || !("categories" in m) || !m.categories["closed"]) return null;
   if (m.scale === "profile") {
     const labels = profileDay(m, values)?.["closed"] ?? [];
-    return labels.length ? ["in", ["coalesce", ["feature-state", m.property], ""], ["literal", [...labels]]] : null;
+    const byDay = labels.length ? ["in", ["coalesce", ["feature-state", m.property], ""], ["literal", [...labels]]] : null;
+    // (T796 A6) a section DFO's finfish closure paints closed is closed: its stripe, its width
+    const fin = finfishOver(m, values)?.closed ?? [];
+    if (!fin.length) return byDay;
+    return byDay === null ? salmonLabelIn(fin) : ["any", salmonLabelIn(fin), byDay];
   }
   if (m.scale === "categorical") return ["==", ["feature-state", m.property], "closed"];
   return null;
@@ -475,7 +489,8 @@ export function paintFor(layerId: string, mode: string, tokens: Tokens,
     // (`interpolationFactor is not a function`, entering Conditions or Runs from the Map tab)
     out["line-opacity"] = labels.length
       ? fadeByOrder(out["line-opacity"] ?? 1, fade,
-          ["in", ["coalesce", ["feature-state", (m as { property: string }).property], ""], ["literal", labels]])
+          // (T796 A6) closed is never faded: nor is a section DFO's finfish closure paints closed
+          offFinfish(m, values, ["in", ["coalesce", ["feature-state", (m as { property: string }).property], ""], ["literal", labels]]))
       : fadeByOrder(out["line-opacity"] ?? 1, { ...fade, stops: fade.stops.map(([z, ks]) => [z, ks.map(() => 1)]) }, false);
   }
 

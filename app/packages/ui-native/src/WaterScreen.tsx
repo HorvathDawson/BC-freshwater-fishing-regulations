@@ -25,7 +25,7 @@
 import { ErrorState } from "./ErrorState";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { ScrollView } from "react-native";
-import { NET_WORDS, asOfLine, dayRange, gearIfFished, gearTabsFor, licenceIfFished, licenceTabFor, regsLapsedNote, waterBookOf, salmonGlance, salmonStripOf, WATER_BACK, WATER_SCREEN_WORDS, WORDS, type RegsTarget, bcNow, now as clockNow } from "@app/core";
+import { NET_WORDS, asOfLine, closeForFinfish, dayRange, gearIfFished, gearTabsFor, licenceIfFished, licenceTabFor, regsLapsedNote, waterBookOf, salmonGlance, salmonStripOf, WATER_BACK, WATER_SCREEN_WORDS, WORDS, type RegsTarget, bcNow, now as clockNow } from "@app/core";
 import { openProbe, type ItemId, type WaterSource, type SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { InSeasonContext, mapDayOf, regsDay, useAccessNotices, useInSeasonBanners, useReleaseLines, useAnglerProfile, useDownstreamWater, useLayoutClass, useRegsPage, useRegsStore,
@@ -242,16 +242,18 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
 
   // THE REGULATIONS PAGE (T23): the regs header (its name row is the frame's WaterTitle) fixed above ONE scroll
   if (loader && regs && !regsError && !regsWait.pending) {
+    // (T796 A6) a DFO "Finfish closure" on the page's stretch that day closes the whole page, trout included (core)
+    const page = salmon.value ? closeForFinfish(regs, salmon.value.finfish) : regs;
     // (T227) DFO's salmon year under the provincial bar, at the top (none where DFO has no salmon rules here); the Gear /
     // Methods tabs' closed line names its exception
-    const salmonStrip = salmon.value ? salmonStripOf(salmon.value, regs.keep.strip) : null;
+    const salmonStrip = salmon.value ? salmonStripOf(salmon.value, page.keep.strip) : null;
     // (T227, owner 2026-10-28) Gear / Methods state no closure: shown only where game fish or salmon may be fished
-    const tabs = gearTabsFor(regs, gearAnyway, salmonStrip, salmon.value ?? null);
-    const licence = licenceTabFor(regs, licenceAnyway, salmonStrip);
+    const tabs = gearTabsFor(page, gearAnyway, salmonStrip, salmon.value ?? null);
+    const licence = licenceTabFor(page, licenceAnyway, salmonStrip);
     return (
       <>
       {frame(null, (
-      <RegsScreen page={regs} palette={palette} nameSource={s?.nameSource ?? null} images={fishImages} adipose={adiposeImages} onDate={() => setDayOpen(true)} layout={layout} sun={sun} daylight={daylight} waterBook={waterBook}
+      <RegsScreen page={page} palette={palette} nameSource={s?.nameSource ?? null} images={fishImages} adipose={adiposeImages} onDate={() => setDayOpen(true)} layout={layout} sun={sun} daylight={daylight} waterBook={waterBook}
                   start={start} onStarted={onStarted} scrollKey={regsScrollKey(item, part, section)}
                   // past the release's last day in force, the page leads with core's out-of-date sentence (none unstamped)
                   lapsed={regsLapsedNote(loader.manifest?.regulations?.valid_until, clockNow())}
@@ -280,8 +282,8 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
                   // Gear / Methods / Licence (T34/T35); each is null only outside B.C. (T42: no key, so the page has
                   // none and the Keep tab's foot line is the page)
                   gear={tabs.gear ? (a) => <GearTab vm={tabs.gear!} palette={palette} actions={a} salmonGear={tabs.salmonGear} /> : undefined}
-                  methods={tabs.methods ? (a) => <MethodsTab vm={tabs.methods!} palette={palette} actions={a} boats={regs.boats} /> : undefined}
-                  licence={licence ? (a) => <LicenceTab vm={licence} who={regs.who} palette={palette} actions={a} onWho={setWho} />
+                  methods={tabs.methods ? (a) => <MethodsTab vm={tabs.methods!} palette={palette} actions={a} boats={page.boats} /> : undefined}
+                  licence={licence ? (a) => <LicenceTab vm={licence} who={page.who} palette={palette} actions={a} onWho={setWho} />
                     : undefined} />
       ))}
       {daySheet}

@@ -8,7 +8,7 @@
  * further notice") is a plain "closed" row with no Details: there is nothing more to see.
  */
 import type { GroupVM, TreeNodeVM } from "./regs/model";
-import { SALMON_WORDS, type SalmonCardVM } from "./salmon";
+import { SALMON_WORDS, type SalmonBookVM, type SalmonCardVM } from "./salmon";
 
 export const GLANCE_WORDS = {
   /** the table's head once it holds more than the other fish */
@@ -31,6 +31,10 @@ export interface GlanceRowVM {
   readonly tone: "keep" | "release" | "closed" | "nolimit";
   /** (T227) false: nothing more to see — a plain row, no "Details" (a water whose salmon are one closed-all-year line) */
   readonly fold?: boolean;
+  /** (T796, owner 2026-11-16 15:19: "we need to make sure it says where the closure is from") on a plain closed row
+   *  (`fold` false) that is the rule book's closure: each closure's words (page, line, dates) and where it is from,
+   *  said under the row — the card behind it is never drawn there */
+  readonly book?: readonly SalmonBookVM[];
 }
 
 /** The first picture a group's tree shows — a rainbow trout where the group has one (the picture anglers know it by). */
@@ -56,7 +60,8 @@ export function groupGlance(g: GroupVM): GlanceRowVM {
  * card has that status; else none. (T372, the trout way) an undrawn DFO place is the card's caveat, not its answer.
  */
 export function salmonGlance(card: SalmonCardVM): GlanceRowVM {
-  if (card.closedOnly) return { source: "dfo", thumb: "CO", name: card.title, value: SALMON_WORDS.status.closed.toLowerCase(), tone: "closed", fold: false };
+  if (card.closedOnly) return { source: "dfo", thumb: "CO", name: card.title, value: SALMON_WORDS.status.closed.toLowerCase(), tone: "closed", fold: false,
+                                 ...(card.book.length ? { book: card.book } : {}) };
   const all = card.rows.map((r) => r.status);
   const s = all.length && all.every((x) => x === all[0]) ? all[0]! : null;
   if (s === null || s === "varies") return { source: "dfo", thumb: "CO", name: card.title, value: null, tone: "keep" };

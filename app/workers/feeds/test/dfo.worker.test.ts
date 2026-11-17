@@ -368,7 +368,9 @@ describe("(T668) the feed answers per place and carries the Python's straddler p
     expect(Object.keys(ix).sort()).toEqual(["at", "format", "gears", "locs", "regions", "unplaced", "verdicts"]);
     expect(logs.some((l) => l.startsWith("dfo: no pairs.json"))).toBe(true);
     const locKeys = new Set(Object.values<Record<string, unknown>>(ix.locs).flatMap((l) => Object.keys(l)));
-    expect([...locKeys].sort().filter((k) => !["g", "r", "sp", "x"].includes(k))).toEqual([]);
+    // (T770) `o`: a place's own closure line of another fish (Region 6 B(ii)'s eulachon), not a composition
+    expect([...locKeys].sort().filter((k) => !["g", "o", "r", "sp", "x"].includes(k))).toEqual([]);
+    expect(Object.entries<Record<string, unknown>>(ix.locs).filter(([, l]) => "o" in l).map(([lid]) => lid)).toEqual(["6:b(ii):section"]);
     // every place is ONE region's
     expect(new Set(Object.values<{ r: string }>(ix.locs).map((l) => l.r))).toEqual(new Set(["6", "7"]));
   });

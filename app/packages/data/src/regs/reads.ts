@@ -5,7 +5,8 @@
  * and page v36 see. The per-family interning is undone here, never in core (rows 30: a row's year strip, held once
  * per distinct strip in the static `rows.strips` and named by the rows frame's fifth slot, goes back on its row here).
  *
- *   core       itemOrd (core `item.item_id` is UNIQUE: one indexed read — core's ord IS water's item_ord, P08)
+ *   core       itemOrd (core `item.item_id` is UNIQUE: one indexed read — core's ord IS water's item_ord, P08); sectionNotes
+ *              (T796, `section_note`: ADDITIVE in core/1, so asked for first — a core cut before it has no notes)
  *   water      item, parts, picker, akey, segStarts, segMoments, ruleset, rules, lics, statics, str, place, sectionPart,
  *              partLines (T388)
  *   regs-<r>   cell, cells and the five frame families, in the file water's `akey_region` names for the KEY — a frame
@@ -104,6 +105,10 @@ export interface RegsReads {
    *  tidal section is tidal water, not outside B.C. null: the release was cut before the table (it cannot say). */
   sectionTidal(handle: number): Promise<boolean | null>;
   place(ix: number): Promise<PlaceRow>;
+  /** (T796) Every section's note (core `section_note`, Python's own sentence: "Mostly outside <reserve>: its closure (rule
+   *  book p.9) does not apply here."), read whole once. Empty: none — or a core cut before the table (ADDITIVE in core/1),
+   *  asked of the file's own `sqlite_master`, never inferred from a failed read. */
+  sectionNotes(): Promise<ReadonlyMap<number, string>>;
   /** An unnamed section's whole name ("Unnamed stream · Region 5"); null outside B.C. */
   unnamedName(handle: number): Promise<string | null>;
   /** The part of item `itemOrd` section `sid` belongs to (water `part_section`, P09; its `ord` is the item_ord);
@@ -546,6 +551,16 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
       const r = await row(base.water(), "SELECT place, regions, label, names FROM place WHERE place = ?", ix, "place");
       return { place: n(r.place), regions: json<PlaceRow["regions"]>(r.regions), label: await reads.str(n(r.label)),
                names: json<PlaceRow["names"]>(r.names) };
+    }),
+
+    sectionNotes: () => once("sectionNotes", 0, async () => {
+      const core = await base.core();
+      if (!(await core.get(CROSS.HAS_SECTION_NOTE.sql))) return new Map<number, string>();
+      const rows = await core.all(CROSS.SECTION_NOTES.sql);
+      return new Map(rows.map((r) => {
+        if (typeof r.note !== "string" || !r.note) throw damaged(`core section_note ${String(r.sid)} has no note`);
+        return [n(r.sid), r.note] as const;
+      }));
     }),
 
     sectionPart: (ord, sid) => once("sectionPart", `${ord}:${sid}`, async () => {
