@@ -133,9 +133,8 @@ code now handles belong in the code's comments, not here.
 **BC Fish and Wildlife, Region 5 (Cariboo)**
 1. West Road (Blackwater) River (p.47): "No Fishing in mainstem (only) Nov 1-June 14". Region 6 (p.49): "No fishing:
    in all rivers and streams for steelhead, May 15 – June 15". Is the mainstem closed for steelhead on June 15?
-2. These lakes cannot be found on the map in the MU printed: Frog Lake and Hidden Lake (MU 5-6, p.45), Secret Lake (MU
-   5-6, p.46), Redfern Lake (MU 5-15, p.46), Square Lake (MU 5-6, p.47), and Chipmunk Lake (MU 6-1, in the Region 5
-   table, p.44). Where are they?
+2. Frog Lake (MU 5-6, p.45) and Redfern Lake (MU 5-15, p.46): no lake of that name exists in that MU (Frog Lakes
+   are in MUs 1-10, 3-29 and 7-30; a Redfern Lake is in MU 7-42). Where are they?
 
 **BC Fish and Wildlife, Region 6 (Skeena)**
 1. Steelhead closure (p.49): "No fishing: in all rivers and streams for steelhead, May 15 – June 15". These rows print
@@ -150,7 +149,9 @@ code now handles belong in the code's comments, not here.
    14". Closed May 15-June 30?
 3. Daily quota (p.49): "1 trout from streams July 1-Oct 31". Buckley Creek (p.50): "rainbow trout daily quota = 1".
    1 trout in all, or 1 rainbow plus 1 other trout?
-4. Kitimat River (p.51): "Hatchery steelhead (adipose clipped, >50 cm) daily quota = 2", with no dates. Region 6
+4. Squirrel Lake (MU 6-1, p.53): no lake of that name exists in MU 6-1 (the only Squirrel Lake is in MU 5-1). Where
+   is it?
+5. Kitimat River (p.51): "Hatchery steelhead (adipose clipped, >50 cm) daily quota = 2", with no dates. Region 6
    (p.49): "you must release: … Trout of any size from streams, Nov 1-June 30". May hatchery steelhead be kept on the
    Kitimat from Nov 1 to June 30?
 
@@ -235,9 +236,10 @@ The fix is an ordinary override keyed on the row AS PRINTED (`name_verbatim` + t
 naming the right item; the entry id keeps the printed MU (`@4-21`) because it is minted from the row,
 not the item. Do not "correct" the id or the MU in the corpus.
 
-Known book errata (add new ones here): **Mackenzie Creek MU 4-21 → 4-31.** The Region 5 placeholders
-(Redfern, Secret, Frog, Hidden, Square, Chipmunk lakes) are `not_found` overrides whose notes say "may
-be a typo" — unconfirmed, not errata.
+Known book errata (add new ones here): **Mackenzie Creek MU 4-21 → 4-31.** Still not found (2026-11-17), `not_found` overrides,
+unconfirmed, not errata: Frog Lake (MU 5-6), Redfern Lake (MU 5-15), Squirrel Lake (MU 6-1). Hidden, Secret and
+Square lakes (MU 5-6) were found since and bind; Chipmunk, Toms, Basalt, Gatcho, Naglico and Pettry (MU 6-1) are
+printed in both the Region 5 and Region 6 tables with the same words, and the Region 6 row binds them.
 
 ---
 

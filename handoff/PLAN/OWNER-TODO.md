@@ -2364,3 +2364,7 @@ More questions (recommended answer first):
     Region 1's "Release all char" (trout_quota.r7) is a row with no pool, drawn after the table (289 waters have the shape).
     The new trout table (T810) puts DV/lake trout/brook trout in its Release box (0 of 513 such keys left out); Nahwitti
     added to the trout hard cases (main chat) and the app's drawn-once gate. Answered in chat.
+- 2026-11-17 11:51, owner (verbatim): "i thought we already found some of these??" (the Region 5 lakes). Right: Hidden,
+  Secret and Square bind now; Chipmunk (and Toms, Basalt, Gatcho, Naglico, Pettry) is printed in both the Region 5 and
+  Region 6 tables with the same words and the Region 6 row binds it. Still not found: Frog Lake (5-6), Redfern Lake
+  (5-15), Squirrel Lake (6-1). Questions and the GOTCHAS errata note narrowed to those three.
