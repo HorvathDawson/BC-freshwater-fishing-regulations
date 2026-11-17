@@ -33,3 +33,10 @@ to make sure it is clean and not buggy".
 the dot says low / normal / high, the old "reading" step folded in) · 6 You're all set (back to the map, the Trout /
 Salmon switch and Spots / Help under More said in words, no taps). WALKTHROUGH_VERSION bumps so a phone that finished
 the 10-step tour is not asked again; one that stopped part-way restarts at step 1.
+
+2026-11-17 15:02, owner (app chat, verbatim): "Use industry standard ideas" / "Should be in 0.8". So the standard
+coach-mark / product-tour pattern (Intro.js, Shepherd, react-native-copilot, Material feature discovery, Apple TipKit):
+scrim with a spotlight cutout that moves with the target; the card anchored to the target with a pointer, auto-placed
+(flips to the side with room, never over the target or under the keyboard); step indicator, Back / Next, Skip always
+shown; taps pass through to the spotlighted target only; a short transition between steps (a fade under Reduce Motion);
+the target scrolled into view before its step. In 0.8.0.

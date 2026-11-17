@@ -2409,3 +2409,5 @@ More questions (recommended answer first):
   The interactive walk through just isn't perfect. The Qp steps are good otherwise. But could reduce steps even more.
   This is a user first look so we need to make sure it is clean and not buggy" -> T842 (both glitches fixed). 15:00
   dialog: "6 steps (Recommended)" (search, open, open/closed, pick a day, how is the river, all set). Answered.
+  15:02: "Use industry standard ideas" / "Should be in 0.8" -> the standard coach-mark pattern (spotlight, anchored
+  card that flips, Skip always shown); in 0.8.0.
