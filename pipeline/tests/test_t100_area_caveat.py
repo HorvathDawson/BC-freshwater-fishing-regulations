@@ -73,7 +73,7 @@ WIDENED = {
     "r4:kinbasket_mcnaughton_lake@4-36": 1, "r4:lake_revelstoke@4-38+4-39": 1, "r4:premier_lake@4-21": 3,
     "r4:trout_lake@4-30": 1, "r4:upper_arrow_lake_drawdown_area@4-31+4-32": 3,
     "r5:canim_lake_see_map_on_page_42@5-1": 1, "r5:chilko_lake@5-4": 1, "r5:dragon_lake@5-2": 1,
-    "r5:green_lake@5-1": 1, "r5:mitchell_lake@5-15": 1, "r5:quesnel_lake@5-15": 2, "r6:babine_lake@6-6": 2,
+    "r5:green_lake@5-1": 1, "r5:mitchell_lake@5-15": 1, "r5:quesnel_lake@5-15": 2, "r6:babine_lake@6-6": 1,
     "r6:buckinghorse_lake@6-20": 1, "r6:fran_ois_lake@6-4": 7, "r6:helene_lake@6-6": 1, "r6:klahowya_lake@6-20": 1,
     "r6:silverthorne_erickson_lake@6-9": 1, "r6:takysie_lake@6-4": 1,
     "r7:davis_bay_in_finlay_reach_of_williston_lake@7-37": 1,
@@ -125,7 +125,9 @@ def test_the_widened_rules_are_counted():
     # T795 (owner 2026-11-16): superior_closures.r3p, six lakes closed only inside their ecological reserve (86, 57 -> 87, 58)
     # T805 D (owner 2026-11-16 19:09, "Outlet area only (Recommended)"): François Lake r2-r7 are held on the outlet
     # area like r1 again (p.51 prints the whole row "for the area at the outlet ... described on map 1") (87, 58 -> 93, 58)
-    assert (sum(per.values()), len(per)) == (93, 58)
+    # T812 (owner 2026-11-16): Babine Lake r1 ("east of a line from Gullwing Creek") binds the lake's east part
+    # wbk:-25, drawn now (93, 58 -> 92, 58)
+    assert (sum(per.values()), len(per)) == (92, 58)
     lic = sorted(e["entry_id"] for f in sorted(under_test.curated().regulations.synopsis.glob("region-*.json"))
                  for e in json.loads(f.read_text(encoding="utf-8"))["entries"]
                  for x in e.get("licensing") or [] if str(x.get("undrawn_part") or "").strip())
