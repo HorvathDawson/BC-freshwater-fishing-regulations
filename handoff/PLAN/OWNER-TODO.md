@@ -2430,3 +2430,9 @@ More questions (recommended answer first):
 - 2026-11-17 ~15:19, owner (verbatim): "The safety net should be a build warning I think then we fix it and do not ship
   "wrong" places..". So T786 is REOPENED as a release gate: the build lists every place whose latest save is "wrong"
   (no fix drawn) and the release refuses to ship until each is fixed and re-saved. Not "ship undrawn".
+- 2026-11-17 ~15:24, owner (verbatim): "We should only ship not wrong items", then on "leave out what": "The build should
+  fail but Unmatched items ( from feed say it matches stream but no place exists yet because it is a new entry) should
+  have the dfos words added to the dfo rule section with the stream having the check rule style that we implemented
+  before. This should already be how it works?". So: T786 gate FAILS the build on a "wrong" save (as being built);
+  a new DFO feed entry with no drawn place yet ships DFO's words in the water's DFO rule section, the stream in the
+  "check rule" style. Verify that second part already works (he believes it does).

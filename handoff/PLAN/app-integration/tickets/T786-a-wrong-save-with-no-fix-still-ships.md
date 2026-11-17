@@ -25,3 +25,5 @@ All 34 re-check places answered from pictures 2026-11-16 and re-saved (marks 279
 
 ## 2026-11-17 ~15:19: REOPENED as a release gate (owner)
 "The safety net should be a build warning I think then we fix it and do not ship \"wrong\" places..". Build: the release preflight (and fast-fail) lists every place whose latest save is "wrong" with no extent fix, live or dormant, and REFUSES to ship while any is listed (a dated, reasoned allowance like NOT_LANDED_OK is the only way past). We fix and re-save, then ship. Pinned with a test and a mutation. Today the list should be empty (all re-saved 11-16).
+
+2026-11-17 ~15:24, owner: the build FAILS on a "wrong" save; separately, a new DFO feed entry with no place yet ships DFO's words in the DFO rule section with the stream in the "check rule" style (verify it already works). Verbatim in OWNER-TODO 15:24.
