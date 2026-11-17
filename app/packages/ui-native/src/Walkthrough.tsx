@@ -578,7 +578,7 @@ export function GuideCard({ guide, facts, acts, palette, registry, top, bottom, 
             .map((p, i) => (
               <View key={i} testID="guide-dim" onStartShouldSetResponder={() => true} aria-hidden
                     importantForAccessibility="no-hide-descendants" accessibilityElementsHidden
-                    style={{ position: "absolute", ...p, backgroundColor: palette.scrim }} />
+                    style={{ position: "absolute", ...p, backgroundColor: palette.coachScrim }} />
             ))}
           {dim === "cut" && ring && (
             <Animated.View testID="guide-ring" pointerEvents="none"
