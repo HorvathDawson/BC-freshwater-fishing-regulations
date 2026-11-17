@@ -8,7 +8,7 @@ from typing import Dict, Optional, Tuple
 from pydantic import StrictStr, TypeAdapter
 from pipeline.deliver import types as T
 from pipeline.deliver.answers.model.base import _enum
-from pipeline.deliver.answers.model.rows import RowsFrame
+from pipeline.deliver.answers.model.rows import rows_frame_model
 from pipeline.deliver.answers.model.gear import GearFrame
 from pipeline.deliver.answers.model.licence import LicenceFrame
 from pipeline.deliver.answers.model.display import (
@@ -19,7 +19,7 @@ from pipeline.deliver.answers.model.top import Glossary, Moment, Place, Unnamed
 
 #: One adapter per section's frame (per (key, segment) value), and per static table.
 FRAMES: Dict[str, TypeAdapter] = {
-    "rows": TypeAdapter(RowsFrame),
+    "rows": TypeAdapter(rows_frame_model()),        # F0: RowsFrame34 from rows 34
     "gear": TypeAdapter(GearFrame),
     "licence": TypeAdapter(LicenceFrame),
     "display": TypeAdapter(DisplayFrame),
