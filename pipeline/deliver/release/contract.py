@@ -326,7 +326,8 @@ WEB_BUDGET = {
                           "gate": 6_200_000},
     # the Conditions tab: gauges and the lake road (conditions' `lake_section`, so no core), the panels' areas; the
     # climatology (climate) waits for a chart (4,151,534 → 997,511)
-    # (T823) `flow-small` (21,396 B gz on the 2026-11-16 bundle, ~1,095,000 with it) joins this list WITH the app's reader
-    # and the walk's re-cut pin (`app/tools/release-budget.test.ts` holds the pin to this list), not before
-    "conditions_open": {"files": ["flow-area", "conditions"], "gate": 1_150_000},
+    # (T823) + `flow-small` (21,396 B gz on the 2026-11-16 bundle, ~1,095,000 with it): the app reads it with flow-area
+    # (the map's classes and the sheet's panel carry the small-water warning), and the walk's pin says so
+    # (`app/tools/release-budget.test.ts` holds the pin to this list); under the 1,150,000 gate as it stands
+    "conditions_open": {"files": ["flow-area", "flow-small", "conditions"], "gate": 1_150_000},
 }

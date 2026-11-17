@@ -17,7 +17,7 @@ import { DatabaseSync } from "node:sqlite";
 import type { Db, Row } from "../db";
 import { verify } from "../../fetchVerified";
 import { parseManifest, type Manifest } from "../../manifest";
-import { releaseLoader, type DbName, type Opener, type ReleaseLoader, type ReleaseSource } from "../../release/loader";
+import { releaseLoader, type DbName, type FileName, type Opener, type ReleaseLoader, type ReleaseSource } from "../../release/loader";
 import { encodeLineBlock, LINE_OPEN, type SectionLine } from "../../regs/line";
 import { openLineReads } from "../../regs/place";
 import { BLOCK_BITS } from "../../regs/reads";
@@ -107,6 +107,8 @@ export interface ReleaseTamper {
   db?(name: DbName, d: Db): Db;
   /** (T369) a file the folder lacks, served in place of its bytes (the manifest must name it: `manifest`) */
   files?: Partial<Record<DbName, Db>>;
+  /** (T823) a file's bytes as the loader receives them, after they were held to the manifest (a corrupt binary file) */
+  bytes?(name: FileName, b: Uint8Array): Uint8Array;
 }
 
 /**
@@ -120,7 +122,8 @@ export function openReleaseDir(dir: string, tamper: ReleaseTamper = {}): Release
     async bytes(name) {
       const f = m.files[name];
       if (!f) throw new Error(`release ${m.data_release} has no file ${name}`);
-      return verify(f.url, new Uint8Array(readFileSync(join(dir, "..", f.url))), f);
+      const b = await verify(f.url, new Uint8Array(readFileSync(join(dir, "..", f.url))), f);
+      return tamper.bytes ? tamper.bytes(name, b) : b;
     },
   };
   const disk = nodeOpener(), wrap = tamper.db, given = tamper.files ?? {};

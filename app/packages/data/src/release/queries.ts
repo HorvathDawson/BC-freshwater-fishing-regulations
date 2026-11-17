@@ -186,6 +186,8 @@ export const CROSS = {
  * every open).
  */
 export const META = { file: "core", sql: B.META } as const;
+/** (T823) One key of the conditions file's own meta (the small-water sentence, `SMALL_WATER_TEXT_KEY`). */
+export const CONDITIONS_META = { file: "conditions", sql: "SELECT v FROM meta WHERE k = ?" } as const;
 
 /** Every single-file read, by its bundle name. Same SQL where the tables moved whole. */
 export const RELEASE_QUERIES: Record<string, ReleaseQuery> = {

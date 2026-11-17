@@ -2598,6 +2598,7 @@ export const WEB_BUDGET: Record<string, { files: readonly string[]; gate: number
   "conditions_open": {
     "files": [
       "flow-area",
+      "flow-small",
       "conditions"
     ],
     "gate": 1150000

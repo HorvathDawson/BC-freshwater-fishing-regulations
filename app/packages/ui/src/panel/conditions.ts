@@ -3,7 +3,7 @@
  * its routes, the route map's colouring, the lead gauge's reading or its quiet head, and the gauge switcher.
  */
 import { useCallback, useMemo, useRef, useState } from "react";
-import { speaks, leadOver, throughLakeStations, type DonorRow, type Horizon, type PanelAnswer, type Parameter, type Quantity,
+import { speaks, leadOver, smallWaterText, throughLakeStations, type DonorRow, type Horizon, type PanelAnswer, type Parameter, type Quantity,
          type WaterSource, type SectionId, type StationId } from "@app/data";
 import { aheadDays, CONDITIONS_WORDS, donorLastReport, FORECAST_DAY_WORDS, forecastDayMark, forecastDayName,
          forecastFigureLine, donorReads, donorSilent, donorState, leadGapLine, LEVEL_ONLY_LEAD, freshness, gaugeCountLine, noGaugeSentence,
@@ -112,6 +112,11 @@ export interface ConditionsVM {
   ahead: { at: number; label: string } | null;
   /** (owner 2026-11-10) No gauge of this water answers in flow that day: the lead was chosen on level; the card says so. */
   leadNote: string | null;
+  /**
+   * (T823, owner 2026-11-16: "Allow, with a warning") The gauge shown (the lead or the reader's pick) is one the release
+   * flags as much bigger than this water: its sentence, word for word (`smallWaterText`); null otherwise.
+   */
+  smallWater: string | null;
   /** (T168) Each station's side, for the donor panel; null until read. */
   sides: GaugeSides;
   /** (T168) "2 gauges on this water · 5 estimating from other waters · 6 not reporting" (core `gaugeCountLine`). */
@@ -261,5 +266,6 @@ export function useConditionsView(
     gauges: gaugeChoices(panel.rows, lead, { ref, horizon }),
     gaugeGroups: gaugeChoiceGroups(panel.rows, lead, ask, sides),
     ahead, sides, count, leadNote: levelOnly ? LEVEL_ONLY_LEAD : null,
+    smallWater: smallWaterText(speaker, lead),
   };
 }
