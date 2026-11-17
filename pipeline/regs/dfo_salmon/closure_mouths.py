@@ -31,6 +31,8 @@ import re
 from pathlib import Path
 from typing import Iterable, Mapping, Optional
 
+from pipeline.common.utils import wsc
+
 #: how far from the lake a named creek may end on another lake and still be proposed (metres)
 REACH_M = 5000.0
 #: a channel "touches" an outline within this (the network's own snapping)
@@ -91,8 +93,9 @@ def shore_mouth(lake, lake_key: int, segs: Iterable[tuple[Mapping, object]], nam
         if hint.get("as"):
             under = [(q, g) for q, g in own if _norm(q.get("GNIS_NAME")) == _norm(hint["as"])]
         else:       # the stream itself, never its own tributaries (their codes go on past its three levels)
-            want = str(hint["fwa_code"]).rstrip("-") + "-000000"
-            under = [(q, g) for q, g in own if str(q.get("FWA_WATERSHED_CODE") or "").startswith(want)]
+            want = wsc.trim_wsc(str(hint["fwa_code"]))
+            under = [(q, g) for q, g in own
+                     if wsc.relation(wsc.trim_wsc(str(q.get("FWA_WATERSHED_CODE") or "")), want) == wsc.SAME]
         touch = [(q, g) for q, g in under if g.distance(shore) <= TOUCH_M]
         if touch:
             q, g = max(touch, key=lambda t: t[0].get("STREAM_ORDER") or 0)
