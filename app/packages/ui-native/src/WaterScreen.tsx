@@ -36,6 +36,7 @@ import { ViewSwipe, WaterViewsContext } from "./ViewSwipe";
 import type { AdiposeImages, FishImages } from "./regs/types";
 import { DaySheet } from "./regs/DaySheet";
 import { RegsScreen } from "./regs/RegsScreen";
+import { troutTableOn } from "./troutSwitch";
 import { regsScrollKey } from "./regs/scrollMemory";
 import { SalmonCard } from "./regs/SalmonCard";
 import { GearTab } from "./regs/GearTab";
@@ -116,7 +117,7 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
   const daylight = useDaylight(source, item, sunAt, sunDay);   // (T473) the hours a daylight-only closure leaves open
   // (T517) the header and the Parts sheet name a part as the water's map does: the same group, the same live salmon
   const entries = useMapEntries(loader, store.value ?? null, item);
-  const regs = useRegsPage(inputs.value ?? null, who, d.today, down.value?.name ?? null, entries?.names ?? null);
+  const regs = useRegsPage(inputs.value ?? null, who, d.today, down.value?.name ?? null, entries?.names ?? null, troutTableOn());
   const waterBook = useMemo(() => (inputs.value ? waterBookOf(inputs.value, regs) : undefined), [inputs.value, regs]);   // (T474; T60: not a page the lines already link)
   const regsError = store.error ?? found.error ?? inputs.error;
   // (T254) a refusal (a release that cannot answer) is not a dead line: no Try again for it
@@ -253,7 +254,7 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
     return (
       <>
       {frame(null, (
-      <RegsScreen page={page} palette={palette} nameSource={s?.nameSource ?? null} images={fishImages} adipose={adiposeImages} onDate={() => setDayOpen(true)} layout={layout} sun={sun} daylight={daylight} waterBook={waterBook}
+      <RegsScreen troutTable={troutTableOn()} page={page} palette={palette} nameSource={s?.nameSource ?? null} images={fishImages} adipose={adiposeImages} onDate={() => setDayOpen(true)} layout={layout} sun={sun} daylight={daylight} waterBook={waterBook}
                   start={start} onStarted={onStarted} scrollKey={regsScrollKey(item, part, section)}
                   // past the release's last day in force, the page leads with core's out-of-date sentence (none unstamped)
                   lapsed={regsLapsedNote(loader.manifest?.regulations?.valid_until, clockNow())}

@@ -360,17 +360,19 @@ export function useRegulations(store: RegsStore | null, target: RegsTarget | nul
  * screen uses this; nobody calls buildRegsPage in a component.
  */
 export function useRegsPage(inputs: RegsInputs | null, who: Who, today: Day, downstream: string | null = null,
-                            names: ReadonlyMap<number, string> | null = null): RegsPage | null {
+                            names: ReadonlyMap<number, string> | null = null,
+                            /** (T810 O) the trout table's dev switch (`RegsPageOpts.troutTable`); off: today's page */
+                            troutTable = false): RegsPage | null {
   // (T53) `downstream`: an unnamed reach's named water down its flow — the header's label slot (core `downstreamLabel`);
   // (T517) `names`: the parts as the water's map names them (`useMapEntries`) — the header's and the Parts sheet's
   return useMemo(() => {
     if (!inputs) return null;
     const t = openProbe.on() ? performance.now() : 0;
-    const page = buildRegsPage(inputs, { today, who, downstream, names });
+    const page = buildRegsPage(inputs, { today, who, downstream, names, ...(troutTable ? { troutTable: true } : {}) });
     if (t) openProbe.span("build", performance.now() - t);
     return page;
   },
-    [inputs, who, today.month, today.day, downstream, names]);
+    [inputs, who, today.month, today.day, downstream, names, troutTable]);
 }
 
 // ── (T286) the waters on screen, read before they are tapped ─────────────────────────────────────────────────────────────

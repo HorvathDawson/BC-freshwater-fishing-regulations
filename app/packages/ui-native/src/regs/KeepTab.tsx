@@ -19,30 +19,43 @@
  * under is its rule source (core `speciesBlocks`), and the separate "Species and limits" list is drawn only where no
  * game-fish calendar is (a water the strip does not govern).
  */
-import type { ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
 import { View } from "react-native";
-import { daylightOffsets, groupGlance, speciesBlocks, dfoBlockStatus, SALMON_WORDS, WORDS, type CaveatVM, type GlanceRowVM, type KeepVM, type SalmonStripVM } from "@app/core";
+import { daylightOffsets, groupGlance, speciesBlocks, troutGlance, dfoBlockStatus, SALMON_WORDS, WORDS, type CaveatVM, type GlanceRowVM, type KeepVM, type SalmonStripVM } from "@app/core";
 import { GUTTER, type Palette } from "../theme";
 import { Text } from "../Text";
 import { TYPE } from "../type";
 import { ClosedBanner, CaveatBlock, TimedLines, InheritedLine, OtherFish, SpeciesRows, OutsideFoot, PossessionRow, WhereNot, type GlanceFold } from "./KeepBlocks";
 import { GroupCard } from "./GroupCard";
 import { PlainRow } from "./PlainRow";
+import { TroutCard } from "./TroutCard";
 import { SalmonYearStrip, YearStrip } from "./YearStrip";
 import { CoachSpot } from "../CoachMarks";
 import type { KeepActions } from "./LineText";
 import type { FishImages } from "./types";
 
-export function KeepTab({ keep, dateLabel, palette, actions, images, glance = null, salmonStrip = null, daylight = null }: {
+export function KeepTab({ keep, dateLabel, palette, actions, images, glance = null, salmonStrip = null, daylight = null, troutTable = false }: {
   keep: KeepVM; dateLabel: string; palette: Palette; actions: KeepActions; images?: FishImages;
   salmonStrip?: SalmonStripVM | null;
   /** (T473) the open hours of a daylight-only closure on the day at the water, from the rule's own offsets; null: no point */
   daylight?: ((after: number, before: number) => string | null) | null;
   glance?: { salmon: { row: GlanceRowVM; card: () => ReactNode } | null } | null;
+  /** (T810 O) THE DEV SWITCH (`RegsPageOpts.troutTable`, off by default): the salmon fold's end is the arrow, not "Details".
+   *  The trout table itself is drawn from `keep.trout`, which only the switch fills. Off: the tab is today's. */
+  troutTable?: boolean;
 }) {
+  // (T810 O) the trout and char table, as N built it (null: none drawn: no section, no cell, or a refused frame)
+  const trout = keep.trout?.kind === "table" ? keep.trout : null;
+  const troutCard = (kicker: boolean) => trout && (
+    <TroutCard t={trout} palette={palette} actions={actions} images={images} kicker={kicker}
+               todayAt={keep.strip?.todayAt ?? null} months={keep.strip?.months ?? []} />
+  );
   const folds: GlanceFold[] = !glance ? [] : [
-    ...(glance.salmon ? [{ key: "salmon", row: glance.salmon.row, body: glance.salmon.card }] : []),
-    ...keep.order.flatMap((b) => typeof b === "object" && "group" in b ? [{
+    ...(glance.salmon ? [{ key: "salmon", row: glance.salmon.row, body: glance.salmon.card, ...(troutTable ? { arrow: true } : {}) }] : []),
+    // (T810 O) ONE trout fold for the table (owner 15:47: the existing entry, its short line, the expand arrow); the other
+    // fish's quota groups keep their own folds, unchanged
+    ...keep.order.flatMap((b): GlanceFold[] => b === "trout" && trout ? [{ key: "trout", row: troutGlance(trout), body: () => troutCard(false), arrow: true }]
+      : typeof b === "object" && "group" in b ? [{
       key: `group:${b.group}`, row: groupGlance(keep.groups[b.group]!),
       body: () => <GroupCard g={keep.groups[b.group]!} palette={palette} actions={actions} images={images} />,
     }] : []),
@@ -50,7 +63,7 @@ export function KeepTab({ keep, dateLabel, palette, actions, images, glance = nu
   const home = !!(glance && keep.strip && keep.order.includes("strip"));   // a game-fish calendar to hang the B.C. species under
   const salmonHome = !!(glance && glance.salmon);   // a DFO block (with or without a calendar) to hang the DFO row under
   const split = speciesBlocks(folds, salmonHome);
-  const at = keep.order.findIndex((b) => b === "otherFish" || (typeof b === "object" && "group" in b));
+  const at = keep.order.findIndex((b) => b === "otherFish" || (b === "trout" && !!trout) || (typeof b === "object" && "group" in b));
   // (T293) the walkthrough's "what you can keep" points at the species table
   const table = (key: number) => (
     <CoachSpot key={key} k="regs:keep">
@@ -99,7 +112,7 @@ export function KeepTab({ keep, dateLabel, palette, actions, images, glance = nu
       {keep.order.map((b, i) => {
         const before = glance && !home && at < 0 && split.rest.length > 0 && i === tableAt ? table(-1) : null;
         const block = ((): ReactNode => {
-        if (glance && (b === "otherFish" || (typeof b === "object" && "group" in b))) return i === at && !home ? table(i) : null;
+        if (glance && (b === "otherFish" || b === "trout" || (typeof b === "object" && "group" in b))) return i === at && !home ? table(i) : null;
         if (b === "strip") return [salmonBar, <YearStrip key={i} strip={keep.strip!} dateLabel={dateLabel} palette={palette} title={salmonStrip ? salmonStrip.generalTitle : glance ? SALMON_WORDS.barGeneral : null} hours={hours} />,
           timed && <TimedLines key="timed" caveat={timed} palette={palette} actions={actions} hoursSaid={!!hours} />, gameRows];
         if (b === "inherited") return <InheritedLine key={i} inherited={keep.inherited!} palette={palette} actions={actions} />;
@@ -108,7 +121,8 @@ export function KeepTab({ keep, dateLabel, palette, actions, images, glance = nu
         if (b === "possession") return <PossessionRow key={i} possession={keep.possession!} palette={palette} actions={actions} />;
         if (b === "whereNot") return <WhereNot key={i} whereNot={keep.whereNot!} palette={palette} actions={actions} />;
         if (b === "outside") return <OutsideFoot key={i} text={keep.outside!} palette={palette} />;
-        if (b === "trout") return null;   // (T810 N, the dev switch) the trout table: drawn by ticket O
+        // (T810 O, the dev switch) no at-a-glance table: the trout table in full where its block is, named by its kicker
+        if (b === "trout") return trout ? <Fragment key={i}>{troutCard(true)}</Fragment> : null;
 
         if ("caveat" in b && i === timedAt && timed) return null;
         if ("caveat" in b) return <CaveatBlock key={caveatKey(keep.caveats[b.caveat]!, i)} caveat={keep.caveats[b.caveat]!} palette={palette} actions={actions} />;

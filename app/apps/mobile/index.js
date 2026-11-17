@@ -52,6 +52,9 @@ if (process.env.EXPO_PUBLIC_TB_NO_TILE_EVENTS === "1") globalThis.__tbNoTileEven
 if (process.env.EXPO_PUBLIC_T287_BEFORE === "1") globalThis.__hashOneShot = true;
 // (T286) The benchmark's "before": regulations read one row per call and no page held (EXPO_PUBLIC_REGS_ONE_BY_ONE=1).
 if (process.env.EXPO_PUBLIC_REGS_ONE_BY_ONE === "1") globalThis.__regsOneByOne = true;
+// (T810 O) The trout table's dev switch: the new table under Trout and char, the arrow folds (EXPO_PUBLIC_TROUT_TABLE=1). Never a
+// store build; removed at T810 S.
+if (process.env.EXPO_PUBLIC_TROUT_TABLE === "1") globalThis.__troutTable = true;
 
 import App from "./src/App";
 import { holdSplash } from "./src/splash";

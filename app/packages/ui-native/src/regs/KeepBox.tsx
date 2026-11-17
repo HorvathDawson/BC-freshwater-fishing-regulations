@@ -50,6 +50,10 @@ export interface KeepPic {
 export type KeepRowVM = Pick<TroutRow, "key" | "name" | "label" | "sub" | "lines" | "quiet"> & {
   readonly date?: string | null;
   readonly pic: KeepPic | null;
+  /** (T810 O) a twin row's origin (`TRow.origin`), drawn as the word itself beside the name; absent or null: none */
+  readonly origin?: string | null;
+  /** (T810 O) the row's screen-reader label as core joined it (`TroutRowVM.a11y`, N's golden); absent: joined here */
+  readonly a11y?: string;
 };
 /** One band of the right column, with its DateSet band text. */
 export type KeepBandVM = Pick<TroutBand, "from" | "to" | "text" | "kind"> & { readonly date?: string | null };
@@ -103,9 +107,10 @@ function Row({ r, palette, faded, mark, first, under, band, testID }: {
     <View testID={testID} style={{ flexDirection: "row", columnGap: 6, paddingVertical: 4, paddingLeft: 4, minHeight: 44,
                                    ...(first ? {} : { borderTopWidth: 1, borderTopColor: palette.line }) }}>
       <Tile pic={r.pic} mark={mark} faded={faded} palette={palette} />
-      <View role="group" accessible aria-label={rowLabel(r, band)} style={{ flex: 1, minWidth: 0, paddingVertical: 2, paddingRight: 8 }}>
+      <View role="group" accessible aria-label={r.a11y ?? rowLabel(r, band)} style={{ flex: 1, minWidth: 0, paddingVertical: 2, paddingRight: 8 }}>
         <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", columnGap: 6, rowGap: 2 }}>
           <Text testID="keep-name" style={{ ...NAME, ...(faded ? { fontFamily: TYPE.regsBody.fontFamily } : {}), color: palette.ink }}>{r.name}</Text>
+          {r.origin && <Text testID="keep-origin" style={{ ...NEXT, color: palette.sub }}>{r.origin}</Text>}
           {r.label && <Label text={r.label} palette={palette} />}
         </View>
         {r.sub && <Text selectable testID="keep-sub" style={{ ...NEXT, color: palette.sub }}>{r.sub}</Text>}

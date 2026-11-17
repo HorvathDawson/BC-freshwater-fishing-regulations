@@ -422,6 +422,8 @@ export const TROUT_NAV = Object.freeze({
   HATCH: "How to tell a hatchery fish ›",
   SOURCES: "Sources ›",
   ELSEWHERE: "Fished elsewhere today? ›",
+  /** (T810 O) the small mark in a row picture's corner: the picture opens the fish's sheet */
+  MORE: "›",
 } as const);
 
 /** "Mon" … "Sun" (Monday first, as the calendar). */
