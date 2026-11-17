@@ -1,6 +1,6 @@
 # T786 — A place whose last save is "wrong" with no fix still ships its older drawing (the owner: "I want you to for it to be redrawn… Just be safe")
 
-Status: OPEN (owner: OWNER-TODO "2026-11-16 morning list" question 18; pipeline + release check).
+Status: DROPPED (owner 2026-11-17 15:18: not needed; the saves were re-checked 11-16).
 
 Source: owner 2026-11-15 evening, round 1; general audit 2026-11-16, decisions checker item 1 (`handoff/PLAN/audit-2026-11-16/decisions.md`).
 
@@ -19,3 +19,6 @@ Fraser mainstem ships against a "wrong" mark; Sproat and Stamp Falls end on "wro
 
 ## Owner, 2026-11-16 (question dialog; verbatim in `handoff/PLAN/OWNER-TODO.md`, "Answers by batch")
 Question 18, typed: "can we sort this out now i want to review it and make it correct for sure". He reviews the saves now, in chat with pictures (T806); the "ship DFO's words undrawn" build stays unanswered.
+
+## 2026-11-17 ~15:18: closed (owner, OWNER-TODO 15:18)
+All 34 re-check places answered from pictures 2026-11-16 and re-saved (marks 2795-2839). Owner: "I feel like we have done these like 3 times already so it should be good???". No safety net built. Owed later: pictures for 2739 (Morice Gosnell-Lamprey, after its fix) and 2783 (Sheldens, after the map rebuild).

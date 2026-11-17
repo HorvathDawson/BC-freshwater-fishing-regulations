@@ -2421,3 +2421,9 @@ More questions (recommended answer first):
   we can add as banners? i thought we already had these as banners" (app chat to check what banners exist; book's
   words; owner sees the wording before it ships). T801 item 3 Skeena River 2 stamp line: "Trim to this water's part
   (Recommended)" (quote only its (a) part; other waters' stamp lines unchanged).
+- 2026-11-17 ~15:18, owner on T786/T806 (wrong saves): "I never changed it so it must have never been updated if it
+  was ones we fixed can you check?" Checked: all 34 re-check places were answered from pictures 11-16 12:20-12:42 and
+  re-saved (marks 2795-2839); Sproat 2795, Stamp Falls 2796 ("Keep 500 m below the fishway"; T803 item 13's "60 m
+  down" marked superseded). Then: "I feel like we have done these like 3 times already so it should be good???" So no
+  safety net (T786 dropped) and T806 done; owed later only: pictures for Morice Gosnell-Lamprey (2739, after its fix)
+  and Sheldens (2783, after the map rebuild). Don't ask him about these saves again.
