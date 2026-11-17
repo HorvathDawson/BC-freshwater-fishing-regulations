@@ -373,7 +373,12 @@ STEEL_QUIET = {
     "known_no_rules": "Steelhead have been recorded here, but no steelhead rule applies: treat any rainbow, however "
                       "big, as a rainbow trout.",
 }
-_HOME = " (fish at home don’t count)"
+
+
+def _home() -> str:
+    """The home exception `card.possession_duty` closes its line with (`display.rule.POSSESSION_HOME`, its one source)."""
+    from pipeline.deliver.answers.display.rule import POSSESSION_HOME
+    return f" ({POSSESSION_HOME})"
 
 
 def _now(text: str) -> str:
@@ -537,9 +542,10 @@ def also_line(says: str) -> str:
 
 def possession_row(line: str) -> str:
     """`card.possession_duty`'s line on the row: the home exception stays in the sheet."""
-    if not line.startswith("in your possession: ") or not line.endswith(_HOME):
+    home = _home()
+    if not line.startswith("in your possession: ") or not line.endswith(home):
         raise WordsError(f"trout words: not a possession duty: {line!r}")
-    return _now(line[:-len(_HOME)])
+    return _now(line[:-len(home)])
 
 
 def possession_sheet(line: str) -> str:

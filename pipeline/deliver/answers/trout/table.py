@@ -338,7 +338,8 @@ class Body:
             lead = CD.page_possession(self.P, self.model)
             if lead is None:
                 return None
-            return (f"in your possession: {lead.f['per_daily']} days’ limits (fish at home don’t count)", None, [])
+            from pipeline.deliver.answers.display.rule import POSSESSION_HOME
+            return (f"in your possession: {lead.f['per_daily']} days’ limits ({POSSESSION_HOME})", None, [])
         per, caps = CD.possession_rules(self.P, self.model, S)
         tops = [r for r in caps if not r.f.get("within")]
         count = tops[0].f.get("take") if tops else None

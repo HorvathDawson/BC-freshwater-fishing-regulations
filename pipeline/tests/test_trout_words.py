@@ -187,7 +187,8 @@ def test_the_other_now_words_whole():
     assert W.count_line(1, ["LT"]) == "only 1, counting any lake trout you keep"
     assert W.size_count_line(1, 50, ["EB", "LT"]) == "only 1 over 50 cm (20 in), counting any brook or lake trout you keep"
     assert W.steelhead_sub("rainbow trout over 50 cm (20 in)") == "a rainbow over 50 cm (20 in)"
-    assert W.possession_row("in your possession: 1 day’s limit, not 2 (fish at home don’t count)") == \
+    from pipeline.deliver.answers.display.rule import POSSESSION_HOME
+    assert W.possession_row(f"in your possession: 1 day’s limit, not 2 ({POSSESSION_HOME})") == \
         "in your possession: 1 day’s limit, not 2"
     assert W.possession_quiet(3, 2, W.fish_words(["LT"])) == "3 a day, but never more than 2 lake trout with you"
     assert W.together_origin(2, "wild", "under 40 cm (16 in)") == \
