@@ -312,6 +312,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T820 | The salmon year bar is empty on a closed day instead of the full red closed stripe | OPEN | — | owner iPhone build 36, 2026-11-16 |
 | T821 | iOS: the back swipe flashes the previous menu for a moment | OPEN | — | owner iPhone build 36, 2026-11-16 |
 | T822 | iPhone push: the phone never registers with the staging worker | OPEN | — | owner iPhone build 36, 2026-11-16 |
+| T824 | The walkthrough: "rings what to tap" wording; glitches with the keyboard and a lagging highlight | OPEN | — | owner iPhone build 36, 2026-11-16 |
 
 ## Next after closed testing
 
