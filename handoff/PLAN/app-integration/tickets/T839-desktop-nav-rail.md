@@ -22,3 +22,8 @@ The phone layout is unchanged.
 - Tests: the rail at desktop width, the bar at phone width, every press named and 44 × 44 (the T243 gate).
 
 Size: M. Owner look: shots before landing.
+
+2026-11-17 12:30, owner (app chat dialog, after the shots of Map light, Conditions dark and a phone): "Land it
+(Recommended)". Built on `app-fix/t839-desktop-rail`: rail at the desktop class (1280 px and up, all five tabs, 92 wide,
+current tab filled ink), tablet and phone keep the bar, hidden in regs mode and while adding a spot. Before landing: the
+walkthrough card must not sit over the rail.
