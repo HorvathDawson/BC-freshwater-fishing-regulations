@@ -590,7 +590,9 @@ with the payload above, and nothing more. Each line names the spec 6 ticket that
   are pinned: the first by the vectors' `composed`, the second by an app golden over every vector row.
 - **Draw (O, P).** Every `Txt` drawn unchanged. Layout only: boxes in order, bands beside their rows, the label as a
   filled tag, the date at the one level the frame names, the year bar from `table.year` (drawn only when set; `runs`
-  used only as lengths, with the page strip's own fills). The folded entry shows `fold.value` and its arrow; the
+  used only as lengths, with the page strip's own fills; a `none` run is drawn neutral, the strip's empty fill:
+  main chat 2026-11-17, from O). The table has no kicker of its own: the entry's name shows above it only when no fold
+  row heads it (O). The folded entry shows `fold.value` and its arrow; the
   arrow replaces "Details" on the salmon and trout folds only (owner about 17:15). The fish sheet draws `FishSheet`
   and `DateSet.sheet`; its Sources are `src` as given.
 - **Split (N behind the dev switch, then S).** Other fish = the rows-frame rows **not in `covers`**. Each row is drawn
