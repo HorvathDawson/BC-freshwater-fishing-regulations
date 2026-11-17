@@ -18,3 +18,16 @@ Fix: `_across_the_junction` excludes only the lines that meet the cut's own poin
 whole node; pin with the Gitnadoix case (the cut back, the place binds the same 1,000 sections as `whole`) and a
 synthetic node test; bump POLICY_VERSION; diff rule bindings across the whole province for every other cut on a line
 end before promoting (memory: split-fix-changes-trib-walk). Then restore the cut and the T803 label.
+
+## Progress 2026-11-17 05:47 (worker, land/rebuild-1116)
+
+- 20ccb1cd8: `_across_the_junction` takes an edge only when its junction is the cut's point (incoming by measure,
+  `at_cut` 1 m; outgoing by coordinate against the line's end point), `A_CUT_ON_A_LINE_END_IS_ACROSS_ONLY_AT_ITS_POINT`,
+  POLICY_VERSION 46. 5debac3ef: the Gitnadoix cut and the upstream_of place are back (Sheldens part of df08a776a kept).
+- Rebuild (scratch rebuild3, r-ffb9d7191e4f): Gitnadoix coho place binds 1,000 = `6:gitnadoix-river:whole`; the
+  label is back in the bundle. BUT the province diff vs rebuild2 moved the Chilliwack-Vedder row: the Vedder Crossing
+  Bridge cut sits on the Vedder line's top (356363467, m 12950.7) and the Chilliwack joins 25.4 m below it (m 12925.3),
+  so the 1 m rule finds nothing across: r3 (between Tamihi and Vedder Crossing) 284 -> unresolved `parallel_branches`,
+  r4-r9 (downstream of Vedder Crossing) 32 -> 1,816. NOT shippable. Candidate: a junction within `tolerances.STUB_M`
+  (100 m, the continuation rule's "B's line may go on this far above A's mouth") counts as at the cut's point;
+  the Gitnadoix's nearest non-mouth junction is 520 m.
