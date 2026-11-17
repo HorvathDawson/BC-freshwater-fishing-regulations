@@ -140,7 +140,7 @@ describe("<RegsHeader>", () => {
 });
 
 describe("the sun line in the header (T471)", () => {
-  const LINE = "Sunrise 08:04 PT · sunset 17:37 PT";
+  const LINE = "Sunrise 08:04 PT · Sunset 17:37 PT";
   const mountSun = (sun: string | null, side = false) =>
     render(<RegsHeader header={headerOf("vedder_1010")} palette={LIGHT} tabs={createPinStore()} onDate={() => {}} onTab={() => {}}
                        side={side} sun={sun} />);
