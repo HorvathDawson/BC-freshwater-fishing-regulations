@@ -2462,3 +2462,5 @@ More questions (recommended answer first):
 - 2026-11-17 ~15:52, owner: the 0.8.0 new-words page (Skeena non-resident line in both boxes, Skeena River 2 stamp sentence
   trimmed, Salmon Arm pier exemption on the Shuswap closure and bait ban; book p.53, p.32) "Yes, ship them
   (Recommended)". T797 item 2 sturgeon dead-fin-fish bait line "Show it (Recommended)" (reverses the app's D18 a).
+- 2026-11-17 ~16:30, owner (app chat dialog, T797 item 2): the bait-ban allowance field also holds set lining (Region 6 /
+  7A lakes). Picked "Show both (Recommended)": sturgeon on the Fraser/Harrison and set lining on its lakes. Answered.
