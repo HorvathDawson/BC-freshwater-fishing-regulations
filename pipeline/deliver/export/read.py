@@ -408,18 +408,18 @@ _SEPARATE_LICENCES = re.compile(r"\(?\s*(non-residents\s+and\s+non-resident\s+al
                                 r"\s+describing\s+which\s+section\s+they\s+are\s+fishing)\s*\)?", re.I)
 
 
-def add_non_resident_notes(licensing: dict) -> None:
-    """THE SEPARATE-LICENCE NOTE, on every classified designation of an entry whose designations print it (T801
-    item 2, owner 2026-11-16 "Make sure licensing info is done properly there"): `non_resident_note: {says}` — one
-    whole sentence in the book's words, said in each section's box (the Skeena River 2 and Section 4). Derived from
-    the records' own verbatims, never authored; absent where the book prints no such line."""
+def add_non_resident_notes(licensing: dict, entries: dict) -> None:
+    """THE SEPARATE-LICENCE NOTE, on every classified designation of an entry whose printed row carries it (T801 item 2,
+    owner 2026-11-16 "Make sure licensing info is done properly there"): `non_resident_note: {says}` — one whole
+    sentence in the book's words, said in each section's box (the Skeena River 2 and Section 4). Read from the ENTRY's
+    printed row (`entries[*].printed`), not a record's quote: each designation quotes only its own part of the row (owner
+    2026-11-17, T801 item 3, "Trim to this water's part"). Never authored; absent where the book prints no such line."""
     found: dict[str, str] = {}
-    for x in licensing.values():
-        if x["kind"] == "designation":
-            m = _SEPARATE_LICENCES.search(re.sub(r"\s+", " ", x.get("verbatim") or ""))
-            if m:
-                words = m.group(1)
-                found[x["entry_id"]] = words[0].upper() + words[1:] + "."
+    for eid, e in entries.items():
+        m = _SEPARATE_LICENCES.search(re.sub(r"\s+", " ", _MARKUP.sub("", e.get("printed") or "")))
+        if m:
+            words = m.group(1)
+            found[eid] = words[0].upper() + words[1:] + "."
     for x in licensing.values():
         if x["kind"] == "designation" and x["entry_id"] in found and x["fields"].get("classified"):
             x["non_resident_note"] = {"says": found[x["entry_id"]]}
@@ -629,7 +629,7 @@ def read(bundle: Path) -> dict:
     for e in entries.values():
         e["licensing"].sort()
     add_stamp_waivers(licensing, names)
-    add_non_resident_notes(licensing)
+    add_non_resident_notes(licensing, entries)
     add_recorded(licensing, rules)
 
     licences = {d: {"name": n, "provincial": bool(p)}
