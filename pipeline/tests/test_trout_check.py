@@ -505,7 +505,9 @@ def test_each_fix_the_proof_found_turned_off_fails_the_side_release(side, monkey
 
 @pytest.mark.needs_bundle
 def test_every_segment_of_the_named_waters_is_proved(request):
-    from pipeline.tests.test_trout_table import BUNDLE, CASES, _Live
+    from pipeline.tests.test_trout_table import CASES, _Live
+    from pipeline.tests import under_test
+    BUNDLE = under_test.path("bundle")
     live = _Live(request)
     m = live.model
     keys = sorted({m.parts[item][part] for item, part, _md in CASES.values()})
@@ -514,8 +516,7 @@ def test_every_segment_of_the_named_waters_is_proved(request):
         got = T.compose_key(m.sections["rows"][k], m.sections["display"][k], m.segments[k], m.moments[k], live.rules,
                             licences=m.sections["licence"][k])
         m.sections["trout"][k] = [None if f is None else json.loads(json.dumps(f, ensure_ascii=False)) for f in got]
-    from pipeline.tests.test_trout_table import EXPORT_DIR
-    data, _g = C.load_export(EXPORT_DIR)
+    data, _g = C.load_export(under_test.path("export_dir"))
     got = J.check_model(m, str(BUNDLE), data, keys=keys, log=lambda *_: None)
     assert got["tables"] == got["cells"] > 50
     assert got["problems"] == [], got["problems"][:10]
@@ -540,7 +541,8 @@ def found(request):
     from pipeline.deliver.answers import answers as A
     from pipeline.deliver.export.codec import expand
     from pipeline.tests.conftest import BUNDLE_HINT, EXPORT_HINT, need
-    from pipeline.tests.test_trout_table import BUNDLE, EXPORT_DIR
+    from pipeline.tests import under_test
+    BUNDLE, EXPORT_DIR = under_test.path("bundle"), under_test.path("export_dir")
     need(request, "bundle", BUNDLE, BUNDLE_HINT)
     need(request, "bundle", EXPORT_DIR / "ui-rules-export.json", EXPORT_HINT)
     data, guide = C.load_export(EXPORT_DIR)

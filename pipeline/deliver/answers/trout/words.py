@@ -944,11 +944,10 @@ def parse_week(text: str) -> Tuple[Tuple[Optional[Tuple[str, ...]], Tuple[Tuple[
     to Friday" -> ((fish | None, ((status, n, weekdays), …)), …); several fish of a row each named ("Rainbow trout:
     keep up to 5 …")."""
     from pipeline.deliver.answers.rows.weekdays import weekdays_words
-    days = list(common.WEEKDAYS)
     inv = {}
-    for k in range(1, len(days) + 1):
-        for c in combinations(days, k):
-            inv[weekdays_words(list(c))] = frozenset(c)
+    for mask in range(1, K.ALL_WEEK + 1):                 # every set of weekdays, said by `when_words` (its one home)
+        names = K.weekday_names(mask)
+        inv[weekdays_words(names)] = frozenset(names)
     verbs = [("keep any number", "no_limit"), ("release", "release"), ("no fishing for them", "closed")]
     out = []
     for chunk in re.split(r"; (?=[A-Z])", text):
