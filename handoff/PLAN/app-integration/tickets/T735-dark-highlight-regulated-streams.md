@@ -57,3 +57,11 @@ STILL OWED: read the diff; web pictures before / after on 3 waters and satellite
 `~/bcfish-session-backup-2026-11-12/dark-highlight/shoot.mjs` + `looks.sh`; the `?dl=` switch is gone, compare the
 branch with the shared head), sent to the owner in chat; "the others at least 1.5:1" is not measured; the water-copy
 line and the lake / wetland rings were left as they are; an emulator look in dark; then the merge with benches.
+
+## Checks and benches, 2026-11-16 18:05 (app chat)
+Branch `app/t735-dark-look-c`, merged with the head. Two fixes for the full check: the look-C test reads the casing colour
+from the palette (1bf670eb9); the style tests the dark glow layer moved, updated on purpose (fd0b004e6: the mid-zoom
+fixture's dark `selection-casing` colour and width only, hand-carried, nothing else; 7f1da560a: handover gains
+`selection-glow`, the profile-style count is 21 in dark and 20 in light and cvd). `pnpm check` rc 0. Benches on the
+`t735` APK: install, memory, tap-stalls, regs-open (twice; first taps 33-85 ms), bg-install, crash-bed: all PASS.
+Pictures sent to the owner 2026-11-16 ~13:31 (four before/after sheets).
