@@ -186,6 +186,8 @@ OP_WORDS: dict[str, str] = {"whole": "whole", "upstream_of": "upstream",
                             "steelhead_waters": "steelhead waters",
                             # T607: a wording with no stretch of its own ("all open portions of the river")
                             "other_places": "all the other placed places on this water (no stretch of its own)"}
+#: T761: the stretch a DFO "rest of" may be the rest of (`Extent.bounds`), by the ops' own names
+REST_BOUNDS: tuple[str, ...] = ("whole", "upstream_of", "downstream_of", "between")
 #: T191: what a proposed split point is anchored to. `split`: a curated split (splits.json id);
 #: the others are a NEW point, by the anchor types the atlas resolves (`AnchorType`, T164):
 #: `confluence` (a named tributary's mouth), `lake_inlet` / `lake_outlet` (a lake's edge where the
@@ -262,20 +264,63 @@ class ExtentFix(BaseModel):
     items: list[str] = Field(default_factory=list)
     tributaries: Optional[bool] = None
     area: Optional[str] = Field(default=None, description="op within: the area (id or name)")
+    #: (owner 2026-11-15, Bella Coola "All tributaries": "this one should be tributaries only?") a DFO place's tributary
+    #: call in full: True = the tributaries ONLY (the water itself not), False = the water too; None = no call (the
+    #: place's `tributaries_only` stays as the file has it — a mark saved before this field reads unchanged)
+    tributaries_only: Optional[bool] = None
+    #: (owner 2026-11-15, Bella Coola "(not including Atnarko)": "make sure this excludes atnarko") the tributaries the
+    #: walk does NOT take, by registry item (each is the place's `tributary_excludes` `{op: whole, item_id}`); [] = none
+    #: excepted (clears them); None = no call (the file's stay)
+    tributary_excludes: Optional[list[str]] = None
+    #: T761 (owner 2026-11-15) a DFO "rest of" place's OWN BOUNDS: the stretch it is the rest of, by op (`REST_BOUNDS`);
+    #: its `points` are that op's. None = the rest of the whole water (a mark saved before this field reads unchanged)
+    bounds: Optional[str] = None
+    #: T761: the places a "rest of" leaves out ("the areas below"), by location id; None = no list (every other live
+    #: place of the water)
+    siblings: Optional[list[str]] = None
 
     @model_validator(mode="after")
     def _shape(self) -> "ExtentFix":
         if self.op not in OP_POINTS:
             raise ValueError(f"an extent fix's op is one of {list(OP_POINTS)}, not {self.op!r}")
-        want = OP_POINTS[self.op]
+        if (self.bounds is not None or self.siblings is not None) and self.op != "rest":
+            raise ValueError("bounds and the listed places belong to “the rest of the water” only")
+        if self.bounds is not None and self.bounds not in REST_BOUNDS:
+            raise ValueError(f"a rest's bounds are one of {list(REST_BOUNDS)}, not {self.bounds!r}")
+        if self.siblings is not None:
+            if not self.siblings:
+                raise ValueError("a rest lists at least one place it leaves out — or no list (every other live place)")
+            if len(set(self.siblings)) != len(self.siblings):
+                raise ValueError("a rest lists each place it leaves out once")
+        want = OP_POINTS[self.bounds] if self.bounds is not None else OP_POINTS[self.op]
         if len(self.points) != want:
-            raise ValueError(f"extent op {OP_WORDS[self.op]} takes {want} split point"
+            raise ValueError(f"extent op {OP_WORDS[self.bounds or self.op]} takes {want} split point"
                              f"{'' if want == 1 else 's'}, not {len(self.points)}")
         if (self.op == "within") != bool((self.area or "").strip()):
             raise ValueError("within names its area; no other op does")
         if len(set(self.items)) != len(self.items):
             raise ValueError("an extent fix lists each item once")
+        if self.tributaries_only and self.tributaries is False:
+            raise ValueError("“tributaries only” walks the tributaries: it cannot also leave them out")
+        if self.tributary_excludes:
+            if len(set(self.tributary_excludes)) != len(self.tributary_excludes):
+                raise ValueError("an extent fix excepts each tributary once")
+            if self.tributaries is False:
+                raise ValueError("tributaries are excepted only from a walk that takes tributaries in")
+            if set(self.tributary_excludes) & set(self.items):
+                raise ValueError("a water the extent holds on cannot also be an excepted tributary")
         return self
+
+
+def new_fix_problems(f: "ExtentFix") -> list[str]:
+    """WHAT A NEW SAVE MAY NOT SAY, though a saved mark is read as written (owner 2026-11-15, Qualicum mark 2651: saved,
+    then refused minutes later by the write-through — "op other_places has no water of its own"). The review route
+    refuses these AT THE SAVE (422, the reason and what to change); `load` never does, so the store still reads."""
+    out = []
+    if f.op == "other_places" and f.items:
+        out.append("“all the other places on this water” takes no water of its own: it is always the place's own "
+                   "water's other places. Untick the water(s) (" + ", ".join(f.items) + ") and save again.")
+    return out
 
 
 def pieces_ok(fixes) -> None:
@@ -293,12 +338,17 @@ def pieces_ok(fixes) -> None:
         raise ValueError("“all the other places on this water” has no stretch of its own: it is the place's only piece")
     # a piece is its op, its cuts in order and the SET of waters it holds on (the order they were ticked in is no
     # difference) — as `dfo.fix_vs_current` compares an extent
-    seen = [{**f.model_dump(mode="json", exclude={"tributaries"}), "items": sorted(f.items)} for f in fixes]
+    seen = [{**f.model_dump(mode="json", exclude={"tributaries", "tributaries_only", "tributary_excludes"}),
+             "items": sorted(f.items)} for f in fixes]
     if any(a == b for i, a in enumerate(seen) for b in seen[i + 1:]):
         raise ValueError("a DFO place lists each piece once")
     calls = {f.tributaries for f in fixes if f.tributaries is not None}
     if len(calls) > 1:
         raise ValueError("a DFO place's pieces make one tributary call (include or exclude), not both")
+    if len({f.tributaries_only for f in fixes if f.tributaries_only is not None}) > 1:
+        raise ValueError("a DFO place's pieces make one tributary call (tributaries only or not), not both")
+    if len({tuple(sorted(f.tributary_excludes)) for f in fixes if f.tributary_excludes is not None}) > 1:
+        raise ValueError("a DFO place's pieces except the same tributaries (the place has one list)")
 
 
 #: T164: WHAT A NEW SPLIT IS ANCHORED TO — every anchor a DFO notice names a place by. `confluence`
@@ -688,6 +738,10 @@ class Mark(BaseModel):
                     only_existing and self.verdict == "verified"):
                 raise ValueError("an extent fix is proposed on a wrong or unsure mark")
             scopes = [f.scope for f in self.extent_fix]
+            if self.scope != "dfo" and any(f.tributaries_only is not None or f.tributary_excludes is not None
+                                           for f in self.extent_fix):
+                raise ValueError("“tributaries only” and excepted tributaries are a DFO place's call; a regulation's "
+                                 "are its rule's own fields (a hand edit)")
             if self.scope == "dfo":
                 # T524: A DFO PLACE'S EXTENT IS ITS PIECES — several fixes on the place's one scope, each an op on
                 # its own water(s) ("the Chilliwack below the Slesse line, and the Sumas below Barrow Town Pump
@@ -737,6 +791,8 @@ class Mark(BaseModel):
 # The store
 # --------------------------------------------------------------------------------------------
 
+#: ExtentFix fields a line leaves out while unset (2026-11-15), so a mark saved before them is the same line
+EXTENT_FIX_OPTIONAL = ("tributaries_only", "tributary_excludes", "bounds", "siblings")
 #: fields a line leaves out while they hold their default (T189 added them): a mark without them
 #: is the same line it was before they existed
 _OMIT_DEFAULT = {"tributaries": {}, "lake_split_later": False, "extent_fix": [],
@@ -751,6 +807,10 @@ def line(mark: Mark) -> str:
     for k, v in _OMIT_DEFAULT.items():
         if got.get(k) == v:
             got.pop(k)
+    for f in got.get("extent_fix") or ():       # owner 2026-11-15: unset tributary-only / excepted: the line it was
+        for k in EXTENT_FIX_OPTIONAL:
+            if f.get(k) is None:
+                f.pop(k, None)
     for n in got.get("new_splits") or ():       # a new split's unset confidence: the line it was
         if n.get("confidence") is None:
             n.pop("confidence", None)
@@ -1253,6 +1313,16 @@ def confidence_of(group: Sequence[NewSplit], overrides: Sequence[ConfidenceOverr
     return default_confidence(group[0].anchor)
 
 
+def cut_proposals_of(m: Mark) -> list[NewSplit]:
+    """EVERY NEW CUT A MARK PROPOSES: its own `new_splits`, and (T573) the new ends of a CONFIRMED closed area's stretch
+    (`piece.new_splits`, only those its two ends name) — a proposal or a wrong mark proposes none."""
+    out = list(m.new_splits)
+    if m.scope == "closed_area" and getattr(m.verdict, "value", m.verdict) == "verified" and m.piece:
+        ends = {p.get("split_id") for p in m.piece.get("points") or () if p.get("kind") == "new"}
+        out += [NewSplit.model_validate(n) for n in m.piece.get("new_splits") or () if n.get("ref") in ends]
+    return out
+
+
 def proposal_groups(marks: Iterable[Mark]) -> list[dict]:
     """THE PROPOSED SPLITS, SHARED AND DEDUPED, before any confidence: every `new_splits` entry of
     EVERY mark (superseded ones too — the store is the history), one group per distinct cut
@@ -1262,7 +1332,7 @@ def proposal_groups(marks: Iterable[Mark]) -> list[dict]:
     `review.export.decide` holds (T266); `proposals` adds the confidence."""
     out: list[dict] = []
     for m in uncleared(marks):              # a cleared mark's proposals are taken back with it
-        for n in m.new_splits:
+        for n in cut_proposals_of(m):       # T573: a confirmed closed area's new ends too
             # T355: an EDIT of a proposed cut takes that cut's place — the group keeps its id, every
             # member that named it, and this split is what it now is
             i = next((k for k, p in enumerate(out) if n.amends is not None

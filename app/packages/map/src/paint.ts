@@ -58,11 +58,36 @@ const OUTLINE_SHOWN = ["case", SELECTED, 1, PART, 1, INSEASON, 1, 0];
  *  else the highlight's */
 const outlineColour = (tokens: Tokens) => ["case", INSEASON, tokens["color.ui.attention"], tokens["color.highlight"]];
 
+/** (T735) the part you are on, or a selected stream */
+const ON = ["any", SELECTED, PART];
+/** (T735) the casing's px each side (`width.selection.casing`: light 2.5, dark 1.5) */
+const casingPx = (tokens: Tokens): number => Number(tokens["width.selection.casing"]);
+/** (T735, look C) `flag.selection.edge` 1: the part's casing is the ground's colour, the status carries; 0: the highlight ring */
+const edgeLook = (tokens: Tokens): boolean => Number(tokens["flag.selection.edge"]) === 1;
+/** (T735) the soft glow layer outside the part's casing — drawn by a theme with `opacity.selection.glow` above 0 only */
+export const SELECTION_GLOW = "selection-glow";
+export const hasGlow = (tokens: Tokens): boolean => Number(tokens["opacity.selection.glow"]) > 0;
+
 /** The stream casing's paint: the stream's own width (`streamWidth`, with its floors) plus the outline each side. */
 export function casingPaint(streamWidth: unknown, tokens: Tokens): Record<string, unknown> {
-  return { "line-color": outlineColour(tokens),
-           "line-width": withinZoomCurve(streamWidth, (v) => ["+", v, 2 * CASING_PX]),
+  const px = casingPx(tokens);
+  const paint: Record<string, unknown> = { "line-color": outlineColour(tokens),
+           "line-width": withinZoomCurve(streamWidth, (v) => ["+", v, 2 * px]),
            "line-opacity": OUTLINE_SHOWN };
+  if (edgeLook(tokens)) {
+    // look C: the part is edged in the ground's colour; an in-season casing stays on the OTHER parts, lowered
+    paint["line-color"] = ["case", ON, tokens["color.selection.edge"], tokens["color.ui.attention"]];
+    paint["line-opacity"] = ["case", ON, 1, ["all", INSEASON, WATER], Number(tokens["opacity.selection.casing.others"]), OUTLINE_SHOWN];
+  }
+  return paint;
+}
+
+/** (T735, look C) the soft glow outside the part's casing; opacity 0 elsewhere */
+export function glowPaint(streamWidth: unknown, tokens: Tokens): Record<string, unknown> {
+  const px = casingPx(tokens);
+  return { "line-color": tokens["color.ui.attention"], "line-blur": 6,
+           "line-width": withinZoomCurve(streamWidth, (v) => ["+", v, 2 * px + 12]),
+           "line-opacity": ["case", ON, Number(tokens["opacity.selection.glow"]), 0] };
 }
 
 /** A selected lake's or wetland's ring. */

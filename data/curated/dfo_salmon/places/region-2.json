@@ -359,7 +359,10 @@
         "gnis:11481",
         "gnis:13499",
         "gnis:25152",
-        "gnis:8341"
+        "gnis:8341",
+        "blk:355992187",
+        "blk:355991777",
+        "blk:355994562"
       ],
       "tributaries": null,
       "match": {
@@ -374,7 +377,7 @@
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
-      "note": ""
+      "note": "owner 2026-11-15 (round 3, Fraser and Squamish side channels: \"Add all five (Recommended)\"): added blk:355992187, blk:355991777, blk:355994562, the river's own side channels its places dropped (handoff/PLAN/curation-review/fraser-channels-2026-11-15.md)"
     },
     {
       "water_id": "2:harrison-river",
@@ -863,7 +866,8 @@
       "aliases": [],
       "sections": [],
       "item_ids": [
-        "gnis:25671"
+        "gnis:25671",
+        "blk:360219234"
       ],
       "tributaries": null,
       "match": {
@@ -878,7 +882,7 @@
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
-      "note": ""
+      "note": "owner 2026-11-15 (round 3, Fraser and Squamish side channels: \"Add all five (Recommended)\"): added blk:360219234, the river's own side channels its places dropped (handoff/PLAN/curation-review/fraser-channels-2026-11-15.md)"
     },
     {
       "water_id": "2:stave-river",
@@ -1264,7 +1268,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "capilano_river__cable_pool_bridge_footbridge"
+            ],
+            "item_id": "gnis:5922"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -1805,7 +1817,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "fraser_river__the_cpr_bridge_at_mission",
+              "fraser_river__highway_1_bridge_at_hope_bill_hartley_fraser_hope"
+            ]
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -1854,7 +1874,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "fraser_river__highway_1_bridge_at_hope_bill_hartley_fraser_hope",
+              "fraser_river__spuzzum_creek_into_fraser_river"
+            ],
+            "item_id": "gnis:39325"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -3690,7 +3719,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "fraser_river__highway_1_bridge_at_hope_bill_hartley_fraser_hope",
+              "fraser_river__alexandra_bridge_hwy_1"
+            ]
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -4203,8 +4240,17 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
-        "tributaries": null,
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "fraser_river__the_cpr_bridge_at_mission",
+              "fraser_river__highway_1_bridge_at_hope_bill_hartley_fraser_hope"
+            ],
+            "item_id": "gnis:39325"
+          }
+        ],
+        "tributaries": false,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -4433,8 +4479,17 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
-        "tributaries": null,
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "fraser_river__the_cpr_bridge_at_mission",
+              "fraser_river__spuzzum_creek_into_fraser_river"
+            ],
+            "item_id": "gnis:39325"
+          }
+        ],
+        "tributaries": false,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -4486,7 +4541,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "fraser_river__the_cpr_bridge_at_mission",
+              "fraser_river__alexandra_bridge_hwy_1"
+            ]
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -4724,7 +4787,7 @@
             "item_id": "gnis:14589"
           }
         ],
-        "tributaries": null,
+        "tributaries": false,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -4887,7 +4950,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "fraser_river__the_cpr_bridge_at_mission",
+              "fraser_river__spuzzum_creek_into_fraser_river"
+            ]
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -4940,8 +5011,17 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
-        "tributaries": null,
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "fraser_river__the_cpr_bridge_at_mission",
+              "fraser_river__highway_1_bridge_at_hope_bill_hartley_fraser_hope"
+            ],
+            "item_id": "gnis:39325"
+          }
+        ],
+        "tributaries": false,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,

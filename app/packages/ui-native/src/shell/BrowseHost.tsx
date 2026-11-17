@@ -127,7 +127,7 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
     // The tile's feature id IS the section handle — converted, not cast (see noteVisible).
     openProbe.start(`sid ${featureId}`);
     regsPrefetch?.stop();
-    // (T716) the lift's open shown, or (no lift: iOS, the web) opened now — through the one opener either way; nothing
+    // (T716) the lift's open shown, or (no lift) opened now — through the one opener either way; nothing
     // opened (overtaken, stale) puts the cue out (`tapAhead`)
     await tap.click(featureId, where(lat, lon), conditions ? "conditions" : "regs");
   }, [tab, flowParam, picking, col.runsFeed, onRuns, regsPrefetch, tap]);

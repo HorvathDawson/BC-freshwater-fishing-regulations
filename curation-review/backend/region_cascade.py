@@ -95,7 +95,19 @@ def _code_default(loc: dict) -> dict:
     st = loc.get("source_text") or {}
     return {"id": loc["location_id"], "status": loc.get("status"), "precedence": loc.get("precedence", 0),
             "tier": TIERS.get(loc.get("precedence", 0)), "scope": st.get("specific_area") or st.get("waters") or "",
-            "extents": [_ext(e) for e in (loc.get("binding") or {}).get("extents") or []], "rows": rows}
+            "extents": [_ext(e) for e in (loc.get("binding") or {}).get("extents") or []], "rows": rows,
+            # (T755 follow-up) a scope's extent the review editor cannot change, said why in plain words
+            "cannot_edit": _cannot_edit(loc)}
+
+
+def _cannot_edit(loc: dict) -> dict | None:
+    import dfo
+    from pipeline.regs.review import proposals as P
+    b = loc.get("binding") or {}
+    _pieces, why = P.fixes_of_extents(b.get("extents") or [], b.get("tributaries"),
+                                      tributaries_only=bool(b.get("tributaries_only")),
+                                      tributary_excludes=list(b.get("tributary_excludes") or []))
+    return dfo.cannot_edit_words(list(b.get("extents") or []), why)
 
 
 def _region(slug: str, locs: dict) -> dict:

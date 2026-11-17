@@ -38,16 +38,19 @@ export function WaterModeHost({ frame, nav, col, source, palette, loader, tiles,
 }) {
   const { go, back, opener } = nav;
   const item: ItemId | null = nav.item;
-  const { flowParam, credits, horizon, pickDay, mm, mapStatus } = col;
+  const { credits, horizon, pickDay, mm, mapStatus } = col;
   return frame.view === "conditions"
     // THE ONE CONDITIONS PANEL OF A SECTION, from either map (a frame with no item is an unnamed reach).
     ? <WaterConditions source={source} item={item} tapSid={frame.tapSid} palette={palette} loader={loader}
                        // (T369 D1) the frame's part: the reach shown is the frame's (`frameView.ts`)
                        part={frame.part}
                        tiles={tiles} theme={theme}
-                       // The card OPENS on the map's Flow or Level (Temperature is not a hydrograph: the station's own).
                        // (T728, owner 2026-11-14) a Flow / Level pick in the card is the card's: it never sets the map's Show.
-                       opening={flowParam === "temperature" ? undefined : flowParam}
+                       // (T728, owner 2026-11-16 "fix anything that doesnt seem desirable"; 2026-11-10 "Flow leads, Level
+                       // auxiliary") and the map's Show never sets the card's: it OPENS on Flow, whatever the map shows. A
+                       // water whose station reads only level: the card says Flow is not measured and offers Level (as before
+                       // for a map on Flow)
+                       opening="discharge"
                        from={frame.at}
                        feed={feed}
                        credits={credits} horizon={horizon}

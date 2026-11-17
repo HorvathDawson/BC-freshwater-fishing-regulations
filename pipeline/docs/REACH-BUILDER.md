@@ -30,6 +30,7 @@ pipeline/atlas/reach/
   licensing.py     licensing records and designations                    (place_record, first classified downstream)
   steelhead.py     book-known steelhead water and presence               (AGENTS 54)
   dfo_salmon.py    the DFO salmon chain per section
+  channels.py      a DFO place's named water holds its own side channels  (leave-and-rejoin items of its water, T755)
   water_kind.py    the water kind every filter reads                     (the registry's, AGENTS 55)
   position.py      each piece's nearest placed pieces on its line       (geometry the placement reads)
   io.py            read entries · write the run's tables + report.json

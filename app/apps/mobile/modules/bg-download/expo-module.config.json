@@ -1,4 +1,5 @@
 {
-  "platforms": ["android"],
-  "android": { "modules": ["ca.canifishthis.bgdownload.BgDownloadModule"] }
+  "platforms": ["android", "apple"],
+  "android": { "modules": ["ca.canifishthis.bgdownload.BgDownloadModule"] },
+  "apple": { "modules": ["BgDownloadModule"], "appDelegateSubscribers": ["BgDownloadAppDelegate"] }
 }

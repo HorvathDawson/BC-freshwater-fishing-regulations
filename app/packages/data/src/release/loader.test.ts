@@ -172,6 +172,73 @@ describe("releaseLoader", () => {
     // a fake loader (no decodes of its own) adopts nothing
     expect(adoptDecoded({} as typeof next, prev)).toEqual([]);
   });
+  it("(T737) a whole file still fetched ahead does not hold a tap: its region's slice answers, the whole once it is in", async () => {
+    const ms = manifest({ core: "c", water: "w", "core-2": "c2", "water-2": "w2", "water-shared": "ws" });
+    let release!: () => void;
+    const late = new Promise<Uint8Array>((r) => { release = () => r(new Uint8Array()); });
+    const s = { bytes: async (n: string) => (n === "water" || n === "core" ? late : new Uint8Array()) };
+    const base = fakeOpen();
+    // a slice holds the water asked for (`covers`: its count is the keys'); the whole files hold everything
+    const open = async (n: DbName, bytes: () => Promise<Uint8Array>): Promise<Db> => {
+      await bytes();
+      const d = await base(n);
+      return { ...d, get: async (sql: string) => (sql.startsWith("SELECT count(*)") ? { n: 1 } : undefined) };
+    };
+    const L = releaseLoader(ms, s, open);
+    L.focus("2");
+    void L.prefetch("water"); void L.prefetch("core");      // the background prefetch, under way
+    const NOT_YET = Symbol("waiting");
+    const now = <T>(p: Promise<T>) => Promise.race([p, new Promise<typeof NOT_YET>((r) => setTimeout(() => r(NOT_YET), 50))]);
+    expect(await now(L.dbFor("water", { ords: [5] }))).not.toBe(NOT_YET);
+    expect(await now(L.dbFor("core", { items: ["gnis:1"] }))).not.toBe(NOT_YET);
+    expect(L.opened()).toEqual(["water-2", "core-2"]);
+    release();
+    await L.prefetch("water"); await L.prefetch("core");
+    await L.dbFor("water", { ords: [5] });
+    await L.dbFor("core", { items: ["gnis:1"] });
+    expect(L.opened()).toEqual(["water-2", "core-2", "water", "core"]);
+  });
+  it("(T737, 2026-11-15) a whole file still being OPENED does not hold a tap either: the slice answers; once open, the whole", async () => {
+    const ms = manifest({ core: "c", water: "w", "core-2": "c2", "water-2": "w2", "water-shared": "ws" });
+    let release!: () => void;
+    const late = new Promise<Uint8Array>((r) => { release = () => r(new Uint8Array()); });
+    const s = { bytes: async (n: string) => (n === "core" ? late : new Uint8Array()) };
+    const base = fakeOpen();
+    const open = async (n: DbName, bytes: () => Promise<Uint8Array>): Promise<Db> => {
+      await bytes();
+      const d = await base(n);
+      return { ...d, get: async (sql: string) => (sql.startsWith("SELECT count(*)") ? { n: 1 } : undefined) };
+    };
+    const L = releaseLoader(ms, s, open);
+    L.focus("2");
+    const whole = L.db("core");                               // the in-season check's itemOrd of a water in Region 3
+    const NOT_YET = Symbol("waiting");
+    const now = <T>(p: Promise<T>) => Promise.race([p, new Promise<typeof NOT_YET>((r) => setTimeout(() => r(NOT_YET), 50))]);
+    expect(await now(L.dbFor("core", { items: ["gnis:1"] }))).not.toBe(NOT_YET);
+    expect(L.opened()).toEqual(["core", "core-2"]);
+    release();
+    await whole;
+    expect(await L.dbFor("core", { items: ["gnis:1"] })).toBe(await whole);
+  });
+  it("(T737, 2026-11-15) warmSlice opens the focus region's slice before any read names a key; nothing when the whole is here", async () => {
+    const ms = manifest({ core: "c", water: "w", "core-2": "c2", "water-2": "w2", "water-shared": "ws" });
+    const asked: string[] = [];
+    const base = fakeOpen();
+    const L = releaseLoader(ms, { bytes: async (n: string) => { asked.push(n); return new Uint8Array(); } },
+                            async (n: DbName, bytes: () => Promise<Uint8Array>) => { await bytes(); return base(n); });
+    await L.warmSlice!("water");                              // no region focused yet: nothing
+    expect(asked).toEqual([]);
+    L.focus("2");
+    await L.warmSlice!("water");
+    expect(asked).toEqual(["water-2"]);
+    const asked2: string[] = [];
+    const L2 = releaseLoader(ms, { bytes: async (n: string) => { asked2.push(n); return new Uint8Array(); } },
+                             async (n: DbName, bytes: () => Promise<Uint8Array>) => { await bytes(); return base(n); });
+    L2.focus("2");
+    await L2.db("water");                                     // the whole water here: a warm asks no slice
+    await L2.warmSlice!("water");
+    expect(asked2).toEqual(["water"]);
+  });
   it("refuses a file whose meta is not the manifest's, and does not cache the failure", async () => {
     const L = releaseLoader(m, src, fakeOpen("core/0"));
     await expect(L.db("core")).rejects.toBeInstanceOf(ReleaseError);

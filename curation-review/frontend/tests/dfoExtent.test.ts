@@ -81,13 +81,10 @@ test("a change carries its pieces only when it changes the extent", () => {
   assert.equal(deferred.extent_fix, undefined);
   assert.equal(deferred.verdict, "deferred");
   assert.deepEqual(deferred.answers, { T: "y", R: "y" });
-  const seenB = { extents: [], tributaries: null };
-  const group = markBody({ ...base, call: "keep", fixes: [], now: now([COWICHAN]),
-                           group: { targets: ["a", "b"], members: { b: { extent_before: seenB } } } });
-  assert.deepEqual(group.targets, ["a", "b"]);
-  assert.deepEqual(group.members, { b: { extent_before: seenB } });
-  assert.equal(markBody({ ...base, call: "keep", fixes: [], now: now([COWICHAN]),
-                          group: { targets: ["a"], members: {} } }).targets, undefined);
+  // T742: one place per mark — a DFO mark never names several targets
+  const one = markBody({ ...base, call: "keep", fixes: [], now: now([COWICHAN]) });
+  assert.equal(one.targets, undefined);
+  assert.equal((one as Record<string, unknown>).members, undefined);
 });
 
 test("the save is held, in words, until it can be made", () => {

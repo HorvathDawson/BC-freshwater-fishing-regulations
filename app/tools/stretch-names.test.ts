@@ -27,13 +27,23 @@ describe.skipIf(!at.dir)("(T517) every part is one connected run, named by its o
   let store: RegsStore;
   const open = async () => (store ??= await openRegsStore(openReleaseDir(at.dir!)));
 
-  it("the Fraser's lowest part: Mission → Landstrom Bar, then Landstrom Bar → Spuzzum Creek", async () => {
+  it("the Fraser's lowest part: Mission → Landstrom Bar, then Landstrom Bar → the Hope bridge → Spuzzum Creek", async () => {
     const g = await loadWaterGroup(await open(), "gnis:39325");
     const n = names(g);
     // (T517) the split's raw wording is cleaned ("The CPR Bridge…" → "CPR Bridge at Mission"); the zone's two ends are
     // one boundary said at its place (owner 2026-11-09: no "(n)", no "Within")
     expect(n[0]).toBe("CPR Bridge at Mission → Landstrom Bar sign zone boundary (km 156.4)");
-    expect(n).toContain("Landstrom Bar sign zone boundary (km 156.5) → Spuzzum Creek confluence");
+    // (r-46e4355a7277) the Highway 1 bridge at Hope is a part end now (the owner's cut answers): the run from the sign
+    // zone up to Spuzzum Creek is two parts of one run, each by its own ends, and the run's name is the old part's.
+    // The bridge's words are the cut's stored label (it carries a review note today, the data side's T780), so the two
+    // parts are found by their end tokens and only the ends this test is about are spelled
+    const HOPE = "fraser_river__highway_1_bridge_at_hope_bill_hartley_fraser_hope";
+    const below = g.parts.findIndex((p) => p.hi === HOPE), above = g.parts.findIndex((p) => p.lo === HOPE);
+    expect([below > 0, above]).toEqual([true, below + 1]);
+    expect([n[below]!.startsWith("Landstrom Bar sign zone boundary (km 156.5) → "), n[above]!.endsWith(" → Spuzzum Creek confluence")])
+      .toEqual([true, true]);
+    expect(spanName(g.ends, "Fraser River", g.parts[below]!, g.parts[above]!))
+      .toBe("Landstrom Bar sign zone boundary (km 156.5) → Spuzzum Creek confluence");
   }, 60_000);
 
   it("formerly bare or counted stretches are parts with their own ends: the Fort Nelson, Kanaka Creek", async () => {
@@ -81,8 +91,10 @@ describe.skipIf(!at.dir)("(T517) every part is one connected run, named by its o
       const dup = n.filter((x, i) => n.indexOf(x) !== i && g.parts[i]!.lo !== null);
       if (dup.length) bad.push(`${it.id} two entries named ${dup[0]}`);
     }
-    // r-0a9930fb8826: 562 waters of several entries
-    expect(waters).toBeGreaterThan(500);
+    // r-0a9930fb8826: 562 waters of several entries. r-46e4355a7277: 483 — 86 waters whose second entry was only
+    // "Side channel (…)" / "N side channels" are one part again (a named water takes its own channels' rules now, so
+    // the channels joined the main part), and 6 waters are newly cut by DFO salmon place ends. The floor keeps room
+    expect(waters).toBeGreaterThan(450);
     expect(bad).toEqual([]);
   }, 600_000);
 

@@ -995,7 +995,7 @@
 {"blk": "360874718", "name": "Kingcome River", "limit": "mouth", "decided": "2026-10-28", "mark": "e30d470d5b18", "why": "the mouth"},
 {"blk": "360874781", "name": "McClinton Creek", "limit": "mouth", "decided": "2026-10-28", "mark": "0aa46afa2746", "why": "the mouth"},
 {"blk": "360874836", "name": "Canoona River", "limit": "mouth", "decided": "2026-10-28", "mark": "8643e5b47766", "why": "the mouth"},
-{"blk": "360874940", "name": "Pallant Creek", "limit": "mouth", "decided": "2026-10-28", "mark": "1bd55132ebb0", "why": "the mouth"},
+{"blk": "360874940", "name": "Pallant Creek", "limit": "split", "split": "pallant_creek__bridge_near_mouth", "decided": "2026-11-15", "why": "owner 2026-11-15: \"Pallant Creek we can make the bridge the tidal boudnary i think\" (T743). The bridge near the mouth (curated cut, OSM way 50783550, 56.6 m above the FWA mouth) is the tidal boundary; was the 2026-10-28 auto mouth row"},
 {"blk": "360875108", "name": "Slane Creek", "limit": "mouth", "decided": "2026-10-28", "mark": "1e9920db5b5a", "why": "the mouth"},
 {"blk": "360875133", "name": "Kumowdah River", "limit": "mouth", "decided": "2026-10-28", "mark": "ef8aabe90af2", "why": "the mouth"},
 {"blk": "360875244", "name": "Wahgilah Creek", "limit": "mouth", "decided": "2026-10-28", "mark": "ea21a803e851", "why": "the mouth"},

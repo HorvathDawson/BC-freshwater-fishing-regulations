@@ -1376,8 +1376,21 @@ index d12c0cf0a05fef42b8b6def84add771e60741e63..b1dc01fa5474775e583324c2e2e98921
 +}
 +
  @end
+diff --git a/ios/components/map-view/MLRNMapView.h b/ios/components/map-view/MLRNMapView.h
+index f24e51034fa9ec7f8eeff2595e8bbe193b594e9c..315737b1d37fd06222da642f45f33bb5792695be 100644
+--- a/ios/components/map-view/MLRNMapView.h
++++ b/ios/components/map-view/MLRNMapView.h
+@@ -71,6 +71,8 @@ typedef void (^StyleLoadedBlock)(MLNStyle *__nonnull style);
+ 
+ @property (nonatomic, copy, nullable) RCTBubblingEventBlock reactOnPress;
+ @property (nonatomic, copy, nullable) RCTBubblingEventBlock reactOnLongPress;
++// (canifishthis T719 patch) a still single-finger tap at its lift, before `reactOnPress` (which waits out a double tap)
++@property (nonatomic, copy, nullable) RCTBubblingEventBlock reactOnTapUp;
+ 
+ @property (nonatomic, copy, nullable) RCTDirectEventBlock reactOnRegionWillChange;
+ @property (nonatomic, copy, nullable) RCTDirectEventBlock reactOnRegionIsChanging;
 diff --git a/ios/components/map-view/MLRNMapView.m b/ios/components/map-view/MLRNMapView.m
-index 22212748b1f1ca2eb73b5a1688ddb848b5c8ab0c..9bb885af2b7d8ff782405ee369fc2b05910f481e 100644
+index 22212748b1f1ca2eb73b5a1688ddb848b5c8ab0c..9ec6f87e9b5e8ba74a38076f8e5d9411df49b25a 100644
 --- a/ios/components/map-view/MLRNMapView.m
 +++ b/ios/components/map-view/MLRNMapView.m
 @@ -1,4 +1,5 @@
@@ -1386,7 +1399,105 @@ index 22212748b1f1ca2eb73b5a1688ddb848b5c8ab0c..9bb885af2b7d8ff782405ee369fc2b05
  
  #import "CameraUpdateQueue.h"
  #import "MLRNGeoJSONSource.h"
-@@ -671,6 +672,26 @@ - (void)didChangeUserTrackingMode:(MLNUserTrackingMode)mode animated:(BOOL)anima
+@@ -11,6 +12,88 @@
+ #import "MLRNUserLocation.h"
+ #import "MLRNUtils.h"
+ 
++#import <UIKit/UIGestureRecognizerSubclass.h>
++
++/**
++ * (canifishthis T719 patch) A TAP IS SAID AT ITS LIFT, as on Android (T716). The map's click (`didTapMap:`) waits for
++ * MapLibre's double-tap recogniser to fail, ~350 ms after the lift, so for that long nothing on screen answered the
++ * finger. This recogniser only watches: it never recognises (it fails at the end of every touch), never cancels or
++ * delays touches, and runs beside every other recogniser, so no gesture changes. A still (within `kTapUpSlop`),
++ * single-finger touch that lifts before a long press is sent as `onTapUp` with the click's payload; not the second tap
++ * of a double tap (MapLibre zooms), a drag, a pinch or a long press. The click still decides what opens.
++ */
++static CGFloat const kTapUpSlop = 10;
++static NSTimeInterval const kTapUpLongPress = 0.5;
++
++@interface MLRNTapUpRecognizer : UIGestureRecognizer <UIGestureRecognizerDelegate>
++@end
++
++@implementation MLRNTapUpRecognizer {
++  BOOL _down;
++  CGPoint _downAt;
++  NSTimeInterval _downTime;
++}
++
++- (instancetype)init {
++  if (self = [super initWithTarget:nil action:nil]) {
++    self.cancelsTouchesInView = NO;
++    self.delaysTouchesBegan = NO;
++    self.delaysTouchesEnded = NO;
++    self.delegate = self;
++  }
++  return self;
++}
++
++- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer
++    shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)other {
++  return YES;
++}
++
++- (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
++  [super touchesBegan:touches withEvent:event];
++  UITouch *touch = touches.anyObject;
++  if (_down || touches.count != 1 || touch.tapCount > 1) {
++    self.state = UIGestureRecognizerStateFailed;
++    return;
++  }
++  _down = YES;
++  _downAt = [touch locationInView:self.view];
++  _downTime = touch.timestamp;
++}
++
++- (void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
++  [super touchesMoved:touches withEvent:event];
++  CGPoint p = [touches.anyObject locationInView:self.view];
++  if (hypot(p.x - _downAt.x, p.y - _downAt.y) > kTapUpSlop) {
++    self.state = UIGestureRecognizerStateFailed;
++  }
++}
++
++- (void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
++  [super touchesEnded:touches withEvent:event];
++  UITouch *touch = touches.anyObject;
++  MLRNMapView *map = (MLRNMapView *)self.view;
++  CGPoint p = [touch locationInView:map];
++  if (touch.timestamp - _downTime < kTapUpLongPress &&
++      hypot(p.x - _downAt.x, p.y - _downAt.y) <= kTapUpSlop && map.reactOnTapUp != nil &&
++      map.window != nil) {
++    map.reactOnTapUp([MLRNMapTouchEvent makeTapEvent:map withPoint:p].toJSON);
++  }
++  self.state = UIGestureRecognizerStateFailed;
++}
++
++- (void)touchesCancelled:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
++  [super touchesCancelled:touches withEvent:event];
++  self.state = UIGestureRecognizerStateFailed;
++}
++
++- (void)reset {
++  [super reset];
++  _down = NO;
++}
++
++@end
++
+ @implementation MLRNMapView {
+   BOOL _pendingInitialLayout;
+   CGPoint _lastTapPoint;
+@@ -66,6 +149,8 @@ - (instancetype)initWithFrame:(CGRect)frame {
+ 
+     [self addGestureRecognizer:tap];
+     [self addGestureRecognizer:longPress];
++    // (canifishthis T719 patch) after the loop above: it is no UITapGestureRecognizer, nothing waits on it
++    [self addGestureRecognizer:[[MLRNTapUpRecognizer alloc] init]];
+   }
+   return self;
+ }
+@@ -671,6 +756,26 @@ - (void)didChangeUserTrackingMode:(MLNUserTrackingMode)mode animated:(BOOL)anima
  
  #pragma mark - MLNMapViewDelegate
  
@@ -1413,6 +1524,33 @@ index 22212748b1f1ca2eb73b5a1688ddb848b5c8ab0c..9bb885af2b7d8ff782405ee369fc2b05
  - (MLNAnnotationView *)mapView:(MLNMapView *)mapView
               viewForAnnotation:(id<MLNAnnotation>)annotation {
    if ([annotation isKindOfClass:[MLNUserLocation class]] && mapView.userLocation != nil) {
+diff --git a/ios/components/map-view/MLRNMapViewComponentView.mm b/ios/components/map-view/MLRNMapViewComponentView.mm
+index f354c7b06786c0383dc64200aa40bd673ac5f785..a09f1a4ed4274b10c9bf58d31619d42b5b7547f9 100644
+--- a/ios/components/map-view/MLRNMapViewComponentView.mm
++++ b/ios/components/map-view/MLRNMapViewComponentView.mm
+@@ -120,6 +120,22 @@ - (void)prepareView {
+     }
+   }];
+ 
++  // (canifishthis T719 patch) the tap's lift, before the click (`onPress`)
++  [_view setReactOnTapUp:^(NSDictionary *event) {
++    __typeof__(self) strongSelf = weakSelf;
++
++    if (strongSelf != nullptr && strongSelf->_eventEmitter != nullptr) {
++      PressEvent pressEvent = createPressEvent(event);
++
++      facebook::react::MLRNMapViewEventEmitter::OnTapUp eventStruct{pressEvent.lngLat,
++                                                                    pressEvent.point};
++
++      std::dynamic_pointer_cast<const facebook::react::MLRNMapViewEventEmitter>(
++          strongSelf->_eventEmitter)
++          ->onTapUp(eventStruct);
++    }
++  }];
++
+   [_view setReactOnRegionWillChange:^(NSDictionary *event) {
+     __typeof__(self) strongSelf = weakSelf;
+ 
 diff --git a/ios/components/sources/tile-sources/vector-source/MLRNPmTilesIds.h b/ios/components/sources/tile-sources/vector-source/MLRNPmTilesIds.h
 new file mode 100644
 index 0000000000000000000000000000000000000000..305f92d01d3fbe8d87261d5ad91dba4d8c2f73b7

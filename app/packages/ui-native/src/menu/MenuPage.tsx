@@ -14,6 +14,7 @@ import { IconText } from "../icons";
 import { TYPE } from "../type";
 import { GUTTER, MORE_WIDE, SPACE, type Palette } from "../theme";
 import { hitProps } from "../regs/hit";
+import { ModalBack } from "../ModalBack";
 
 export function MenuPage({ open, title, onBack, palette, children, scroll = true, testID, backLabel }: {
   open: boolean; title: string; onBack: () => void; palette: Palette; children: React.ReactNode;
@@ -30,19 +31,25 @@ export function MenuPage({ open, title, onBack, palette, children, scroll = true
   return (
     <Modal visible={open} animationType="slide" onRequestClose={requestClose} aria-label={title}>
       {/* (T50) its own window: clear of the bars on every edge (RN's SafeAreaView padded iOS only) */}
+      {/* (T723 F7) iOS: the left-edge swipe is the back here, as Android's back is (the Modal is its own window) */}
+      <ModalBack onBack={requestClose}>
       <WindowInsets style={{ flex: 1, backgroundColor: palette.card }}>
         <View testID={testID} style={{ flex: 1 }}>
           <MenuPageHead title={title} onBack={onBack} palette={palette} backLabel={backLabel} column={column} />
           {scroll
             // (T243) focusable: a page with nothing to press (the web's Offline maps) still scrolls from the keyboard (axe
             // scrollable-region-focusable)
-            ? <ScrollView focusable contentContainerStyle={{ paddingHorizontal: GUTTER, paddingTop: SPACE.s4, paddingBottom: 40, gap: SPACE.s4,
+            // (T723 F2, G10) iOS lays its keyboard over the window: the scroll keeps the focused field above it
+            // (`automaticallyAdjustKeyboardInsets`, iOS-only: Android resizes its window and ignores it), and a tap on a
+            // button with the keyboard up acts at once instead of only closing the keyboard ("handled")
+            ? <ScrollView focusable automaticallyAdjustKeyboardInsets keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: GUTTER, paddingTop: SPACE.s4, paddingBottom: 40, gap: SPACE.s4,
                                                    ...column }}>
                 <Selectable>{children}</Selectable>
               </ScrollView>
             : <View style={{ flex: 1, ...column }}><Selectable>{children}</Selectable></View>}
         </View>
       </WindowInsets>
+      </ModalBack>
     </Modal>
   );
 }

@@ -342,3 +342,88 @@ def test_mutation_without_the_live_set_the_gauge_lands_on_the_pruned_loop(monkey
     monkeypatch.setattr(A, "POINTS_LAND_ON_LIVE_CHANNELS", False)
     chains, sd = _two_channels()
     assert [p.blk for p in A.resolve_split_defs([sd], chains, live_blks={"X"})] == ["P"]
+
+
+# ---- T743 (the Seton River): the tributary's line is the one that meets the parent; no silent skip ----------------
+
+def _seton_world():
+    """X (the Fraser) on y=0. The tributary's code 100-3 is on TWO lines: S, the named river, ending ON X at x=200, and
+    N, a nameless line of LARGER magnitude whose mouth is 654 m off X (the old pick)."""
+    from dataclasses import replace as _r
+    fids = [_fid("X1", "X", "100", [(0, 0), (1000, 0)], 0, 1000, gnis_name="X River"),
+            _fid("S1", "S", "100-3", [(200, 0), (200, 900)], 0, 900, gnis_name="S River"),
+            _fid("N1", "N", "100-3", [(600, 654), (600, 2000)], 0, 1346)]
+    chains = build_blk_chains(fids, {})
+    mag = {"X": 9000, "S": 3192, "N": 3314}
+    return [_r(c, stream_magnitude=mag[c.blk]) for c in chains]
+
+
+def _seton_def():
+    return SplitDef(id="x__s", label="S River confluence", blk="X",
+                    anchor=SplitAnchor(type=AnchorType.confluence, tributary_wsc="100-3"))
+
+
+def test_the_tributary_is_its_line_that_meets_the_parent():
+    unplaced: list = []
+    pts = resolve_split_defs([_seton_def()], _seton_world(), unplaced=unplaced)
+    assert [(p.blk, round(p.route_measure)) for p in pts] == [("X", 200)] and unplaced == []
+
+
+def test_a_named_line_beats_a_nameless_one_when_both_meet_the_parent():
+    from dataclasses import replace as _r
+    from pipeline.atlas.splits.anchors import _tributary_chain
+    chains = _seton_world()
+    by_blk = {c.blk: c for c in chains}
+    near = _r(by_blk["N"], geometry=LineString([(600, 0), (600, 2000)]))     # the nameless line now meets X too
+    got = _tributary_chain(_seton_def().anchor, by_blk, {"100-3": [by_blk["S"], near]}, [("X", by_blk["X"])], 500)
+    assert got.blk == "S"
+
+
+def test_mutation_the_largest_line_is_picked_and_the_cut_is_listed_not_dropped(monkeypatch):
+    from pipeline.atlas.splits import anchors
+    monkeypatch.setattr(anchors, "A_TRIBUTARY_IS_ITS_LINE_THAT_MEETS_THE_PARENT", False)
+    unplaced: list = []
+    assert resolve_split_defs([_seton_def()], _seton_world(), unplaced=unplaced) == []
+    assert unplaced == [{"split_id": "x__s", "anchor_type": "confluence", "source": "curated",
+                         "reason": "the tributary line (blk N) ends 654 m from its parent, beyond the split's 500 m"}]
+
+
+def test_every_unplaced_def_is_listed_with_its_reason():
+    chains, _ = _mainstem_chain()
+    defs = [SplitDef(id="far", blk="X", anchor=SplitAnchor(type=AnchorType.point, coord=(120.0, 900.0))),
+            SplitDef(id="nowater", blk="Q", anchor=SplitAnchor(type=AnchorType.point, coord=(120.0, 0.0))),
+            SplitDef(id="ok", blk="X", anchor=SplitAnchor(type=AnchorType.point, coord=(120.0, 0.0)))]
+    unplaced: list = []
+    pts = resolve_split_defs(defs, chains, unplaced=unplaced)
+    assert [p.split_id for p in pts] == ["ok"]
+    assert [(r["split_id"], r["reason"]) for r in unplaced] == [
+        ("far", "its point is more than 500 m from every target line the graph holds"),
+        ("nowater", "its target water has no line in this build")]
+
+
+def test_the_unplaced_record_is_written_and_a_missing_one_is_refused(tmp_path):
+    from pipeline.atlas.splits.splits import read_unplaced, write_unplaced
+    with pytest.raises(FileNotFoundError, match="rebuild it"):
+        read_unplaced(tmp_path)
+    rows = [{"split_id": "x__s", "anchor_type": "confluence", "source": "curated", "reason": "r"}]
+    said: list = []
+    write_unplaced(rows, tmp_path, log=said.append)
+    assert read_unplaced(tmp_path) == rows and "1 curated cut(s)" in said[0]
+
+
+def test_promote_refuses_an_unplaced_authored_cut_and_lists_gauges_only(tmp_path):
+    import json as _json
+    from pipeline.atlas import promote as PR
+    from pipeline.atlas.splits.splits import write_unplaced
+    write_unplaced([{"split_id": "x__s", "anchor_type": "confluence", "source": "curated", "reason": "r"},
+                    {"split_id": "gauge__1", "anchor_type": "gauge", "source": "gauge", "reason": "g"}],
+                   tmp_path, log=lambda *_: None)
+    said: list = []
+    assert PR.unplaced_cuts(tmp_path, said.append) == ["x__s [curated/confluence]: r"]
+    assert "gauge__1" in said[0]
+    (tmp_path / "split_unplaced.json").write_text(_json.dumps([{"split_id": "gauge__1", "anchor_type": "gauge",
+                                                                 "source": "gauge", "reason": "g"}]))
+    assert PR.unplaced_cuts(tmp_path, lambda *_: None) == []
+    (tmp_path / "split_unplaced.json").unlink()
+    assert PR.unplaced_cuts(tmp_path, lambda *_: None)                       # no record: refused
+    assert PR.unplaced_cuts(tmp_path, lambda *_: None, made_another_way=True) == []

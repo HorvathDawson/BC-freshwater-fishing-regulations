@@ -46,6 +46,7 @@ from pipeline.deliver.calendar import (DAYS, day_of, month_day, per_day,  # noqa
                                        rule_vectors, segments, segments_of)
 from pipeline.deliver import types as T
 from pipeline.deliver.bundle import read
+from pipeline.deliver.answers.model.rows import ROWS_VERSION
 
 #: The origins every question is asked for: "none" is the reader's default (origin not known,
 #: `origin=None`); "hatchery" / "wild" are `read.ASKABLE_ORIGINS`.
@@ -300,7 +301,9 @@ def _sections() -> Tuple[Section, ...]:
         # rows 32 (owner rule 2026-10-21): every row's `stamps` — the licence documents the row's fish need by the row's
         # answer (the prototype's round UR7 stampsFor on an Other fish row and a page-v36 keep-line row, `stamps.row_stamps`)
         # rows 33 (T161, decision Q66): every fish carries its leading origin, `FishAnswer.lead` (`common.lead_name`)
-        Section("rows", 33, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
+        # rows 34 (the trout cutover, ticket L; F0): every frame's `page_possession` (`card.page_line`) — the version is
+        # `model.rows.ROWS_VERSION`, the one number
+        Section("rows", ROWS_VERSION, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
         # answers 2.6: gear 5 (static `count_nouns`: "1 line (rod)")
         # ROUND10 W4: gear 6 (`counts[slot].cites`, the Lines row's `says`)
         # ROUND11 A2: gear 7 (`summary` {says, parts, terms, cites, changes}; a stream's Lines row
@@ -585,6 +588,21 @@ def build(bundle: str, export_dir: Path, *, workers: int = 0, items: Optional[It
         pix = _lic.profile_index(DEFAULT_PROFILE)
         for ki in range(len(keys)):
             out["rows"][ki] = stamp_licence_documents(out["rows"][ki], out["licence"][ki], doc_names, pix)
+    # T793 (audit A1/A2, 2026-11-16): A ROW WITH AN ORIGIN CONDITION SAYS ITS ORIGIN ON THE CARD — "No wild rainbow trout
+    # over 50 cm" on Comox Lake was in the row's conditions and caps but not in the tree the card draws
+    if "rows" in out:
+        from pipeline.deliver.answers.tree import across_unsaid, origin_unsaid
+        unsaid = []
+        for ki in range(len(keys)):
+            for j, frame in enumerate(out["rows"][ki]):
+                # T805: and a one-origin limit two rows share is said on both cards (Lois Lake's wild 2, never 2 + 2)
+                for p in origin_unsaid(frame) + across_unsaid(frame):
+                    named = sorted(i for i, ks in parts.items() if ki in ks)
+                    unsaid.append(f"key {ki} {dict(zip(PART_KEY_FIELDS, keys[ki]))} (waters {named[:3]}"
+                                  f"{' …' if len(named) > 3 else ''}), segment {j} from day {segs[ki][j]}: {p}")
+        if unsaid:
+            raise AnswersError(f"answers: {len(unsaid)} card(s) leave out the origin a row's condition names "
+                               f"(T793) or a one-origin limit another row shares (T805):\n  " + "\n  ".join(unsaid[:20]))
     # licence 7: THE STEELHEAD STAMP WHERE STEELHEAD ARE CLOSED — the licence answer at a key and segment whose card says
     # steelhead are closed there leaves the stamp out of its documents (`stamps.drop_closed_steelhead_stamp`, the
     # prototype's round 20i O3 render-time drop). After the stamps above: the card's fish documents are the full answer's.

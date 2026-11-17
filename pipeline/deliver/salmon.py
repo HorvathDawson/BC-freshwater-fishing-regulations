@@ -13,6 +13,16 @@ section A opens coho on the Kispiox while B(i) closes it and the water reopens a
 (`test_the_skeena_cascade_resolves_through_the_join`) — so per species and day the FIRST location of the chain with a
 rule for that species on that day answers, never a wider one.
 
+A CLOSED AREA INSIDE A PLACE (T573 entry B: the Thompson's Deadman / Juniper / Ashcroft, Babine's mouths) is a location
+of its own (`regs.dfo_salmon.closures.build_pieces`, appended by `load_inputs`): its place's tier, its own rule ("No
+fishing, year-round" + DFO's words for the area) and fewer sections, so `chain_order` puts it first on its sections —
+no new precedence. One the reach run could not bind (`carried`) rides its water as an undrawn part (`u`).
+
+A "REST OF" PLACE ANSWERS AFTER THE PLACES IT LEAVES OUT (T761, DFO's "except in those areas and times listed below"):
+on its listed places' sections inside its bounds (the reach row's `behind`) it is in the chain right after them
+(`rests_behind`, `rest_after`), so a listed stretch speaks on the days it has a rule for a fish and the rest's rule on
+the other days; elsewhere it sorts as any place. Its map binding stays the rest (bounds less the listed places).
+
 A DFO PLACE ANSWERS FOR ITS OWN REGION (T668, `SectionRegions`): an undrawn place rides only its own region's sections;
 a region-wide place binds only its region's members; on a section in TWO regions (the one membership) both regions'
 places hold — the chain's `s` names each region's places (indices into `l`), each cascades apart, and the MOST STRICT
@@ -352,6 +362,47 @@ def chain_order(precedence: Mapping[str, int], size: Mapping[str, int],
     place answer first and open what its sibling closes."""
     rides = frozenset(rides)
     return lambda lid: (-precedence.get(lid, 0), size.get(lid, 1 << 30), int(lid in rides), lid)
+
+
+def rests_behind(placed: Iterable[dict], locs: Mapping[str, tuple], sid_of: Mapping[str, int],
+                 covering: Dict[int, List[str]], binds: Callable[[str, int], bool],
+                 missing: List[str]) -> Dict[str, frozenset]:
+    """(T761, owner 2026-11-15: DFO's "except in those AREAS AND TIMES listed below") A "REST OF" PLACE STANDS IN THE
+    CHAIN BEHIND ITS LISTED PLACES on their sections inside its bounds (the reach row's `behind`,
+    `reach.build.REST_BEHIND`): a listed stretch answers on the days it has a rule for that fish, the rest's rule on the
+    others. Added to `covering` only where the listed place itself covers the section (its own tidal / region limits
+    hold). Returns rest id -> the listed places it answers after (`rest_after`). A section the handle table does not
+    know goes to `missing`, as the placed sections do."""
+    after: Dict[str, set] = defaultdict(set)
+    for row in placed:
+        lid = row["location_id"]
+        if lid not in locs or not row.get("behind"):
+            continue
+        for first, secs in sorted(row["behind"].items()):
+            for s in secs:
+                sid = sid_of.get(s)
+                if sid is None:
+                    missing.append(s)
+                    continue
+                if first in covering.get(sid, ()) and binds(lid, sid):
+                    after[lid].add(first)
+                    if lid not in covering[sid]:
+                        covering[sid].append(lid)
+    return {k: frozenset(v) for k, v in after.items()}
+
+
+def rest_after(key: Sequence[str], after: Mapping[str, frozenset]) -> Tuple[str, ...]:
+    """(T761) The chain with each rest-of place moved to just AFTER the last of its listed places in it — whatever the
+    sizes or ids (a listed stretch with its side streams can be larger than the rest). Elsewhere (none of its listed
+    places in the chain) it keeps the place `chain_order` gave it. The chain stays a plain ordered list of ids."""
+    out = list(key)
+    for r in [l for l in key if after.get(l)]:
+        if not any(l in after[r] for l in out):
+            continue
+        out.remove(r)
+        last = max(i for i, l in enumerate(out) if l in after[r])
+        out.insert(last + 1, r)
+    return tuple(out)
 
 
 def rides_on_others(locs: Iterable) -> frozenset:
@@ -715,7 +766,10 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
             # EVERY location, ruled today or not (T211 part 2): a dormant one says nothing today (no rules, so it never
             # answers in its chain), but it is IN its chains, so the live feed (`regs.dfo_salmon.live`) can paint it
             # the day DFO lists it again — without a rebuild.
-            rules_of[loc.location_id] = location_rules(loc, by_fp, closure)
+            own = getattr(loc, "closure_rule", None)
+            # T573: a closed area of a place (`closures.ClosureLocation`) carries its own rule, never a wording's
+            rules_of[loc.location_id] = ((list(closure) if closure else [own]) if own
+                                         else location_rules(loc, by_fp, closure))
             # T321: the rows the card shows in DFO's words (new wording, an unread number, a note) — not under a closure
             ws = [] if closure else [{k: w[k] for k in ("k", "sp", "d", "t")}
                                      for fp in loc.fingerprints for w in words_fp.get(fp, [])]
@@ -754,14 +808,23 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
     covering: Dict[int, List[str]] = defaultdict(list)
     unmapped_locs: List[str] = []
     missing: List[str] = []
+    #: T573: a CARRIED closed area (`reach.dfo_salmon.resolve_closures` `carried`) rides its water as an undrawn part —
+    #: on the sections a circle only touches (`marked`) when the run knew them, else its water's, never its own bound ones
+    carried_on: Dict[str, Optional[set]] = {}
     for row in placed:
         lid = row["location_id"]
         if lid not in locs:
             continue
+        if row.get("carried"):
+            carried_on[lid] = {sid_of[h] for h in row["marked"] if h in sid_of} if row.get("marked") else None
+            if row.get("mapped"):
+                unmapped_locs.append(lid)
         if not row.get("mapped"):
             # T449: a place accepted as wholly in tidal water lies off the freshwater map — not a part of its water
             # still to draw, so it neither paints the water "check" nor rides the card as "not yet mapped"
-            if not locs[lid][1].tidal_water:
+            # T761: a rest-of whose listed places take all of its bounds still answers BEHIND them (`behind`): drawn
+            # nowhere of its own, but placed — never an undrawn part of its water
+            if not locs[lid][1].tidal_water and not row.get("behind"):
                 unmapped_locs.append(lid)
             continue
         for s in row["sections"]:
@@ -771,6 +834,7 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
                 continue
             if binds(lid, sid):
                 covering[sid].append(lid)
+    after = rests_behind(placed, locs, sid_of, covering, binds, missing)
     if missing:
         raise SalmonError(f"salmon: {len(missing):,} placed sections are not in the handle table (e.g. {missing[:3]}) "
                           "— the reach run and this atlas are not the same build")
@@ -792,7 +856,7 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
 
     def chain_for(lids: Sequence[str], u: Iterable[str] = (), speaks: bool = False, at=order,
                   grouped: bool = False) -> int:
-        key = tuple(sorted(set(lids), key=at))
+        key = rest_after(tuple(sorted(set(lids), key=at)), after)
         uk = tuple(sorted(set(u)))
         # (T668) a two-region chain: `s`, each region's places (indices into `l`, by region number) — they cascade
         # apart and the most strict answer per fish speaks
@@ -820,9 +884,16 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
     undrawn_on: Dict[int, set] = defaultdict(set)
     for lid in unmapped_locs:
         slug, loc, ef = locs[lid]
+        if carried_on.get(lid) is not None:           # T573: a circle's marked sections, exactly
+            for sid in carried_on[lid]:
+                if lid not in covering.get(sid, ()):
+                    undrawn_on[sid].add(lid)
+            continue
         water = ef.water(loc.water_id) if loc.water_id else None
         for it in (water.item_ids if water else ()):
             for sid in (item_sections or {}).get(it, ()):
+                if lid in covering.get(sid, ()):          # T573: a carried closed area's own bound sections
+                    continue
                 if section_regions is None or loc.region_number in section_regions.numbers(sid):
                     undrawn_on[sid].add(lid)
     sections = []
@@ -865,6 +936,15 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
                "gears": gears.items, "chains": chains, "unmapped": unmapped, "scopes": scopes,
                **({"x": dict(sorted(words_of.items()))} if words_of else {}), **({"off": off} if off else {}),
                "p": places_named(locs, (l for c in chains for l in c["l"]))}
+    # T573: a closed-area piece says so (`piece: 1`; `bound: 1` when it covers a section), so the app reads it without
+    # parsing its id: where the live feed lacks a bound one, the answer is "not known, check the notice", never the
+    # place's opening (T757)
+    bound = {l for ls in covering.values() for l in ls}
+    for lid, v in payload["p"].items():
+        if getattr(locs[lid][1], "closure_rule", None):
+            v["piece"] = 1
+            if lid in bound:
+                v["bound"] = 1
     return payload, sections
 
 
@@ -989,7 +1069,11 @@ def load_inputs(run_dir: Path, registry=None, *, entries_dir: Optional[Path] = N
     from pipeline.regs.dfo_salmon.typed import FORMAT as TYPED_FORMAT
     feed_dir = Path(feed_dir or Path(GENERATED.regs.dfo_salmon) / "typed")
     slugs = [s for s in ALL_SLUGS if not PAGES[s].is_stub]
-    files = {s: E.load(s, entries_dir or E.ENTRIES_DIR, registry=registry) for s in slugs}
+    # T573: each region's live CLOSED AREAS (entry B) join its places as locations of their own, with their own rule —
+    # the same pieces the reach run placed (`reach.dfo_salmon.resolve_closures`, the same confirmed file)
+    from pipeline.regs.dfo_salmon import closures as K
+    confirmed = placed_io.load_closed_areas()
+    files = {s: K.with_pieces(E.load(s, entries_dir or E.ENTRIES_DIR, registry=registry), confirmed) for s in slugs}
     feeds = {}
     for s in slugs:
         p = feed_dir / f"region-{s}.json"

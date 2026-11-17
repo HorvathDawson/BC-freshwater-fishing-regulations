@@ -19,6 +19,8 @@ import { Text } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { makeFixtureSource } from "@app/data/fixture";
 import type { ItemId } from "@app/data";
+import { partName, partWhere } from "@app/core";
+import { loadWaterGroup, openRegsStore } from "@app/data/regs";
 import { HOME, openWater, reduce, type Route } from "@app/ui";
 import { LIGHT } from "./theme";
 
@@ -58,24 +60,32 @@ async function stepsDraw(init: Route, steps: readonly ("up" | "down")[]) {
   map.handed.length = 0;
   const lost: string[] = [];
   let loadingDrawn = false;
+  // (T750) a chooser (or any card over the map) opened by a step: never
+  let dialogs = 0;
   const ids = (n: Node) => (n instanceof Element
     ? [n.getAttribute("data-testid"), ...[...n.querySelectorAll("[data-testid]")].map((e) => e.getAttribute("data-testid"))] : []);
   const seen = new MutationObserver((recs) => {
     for (const r of recs) {
       for (const n of r.removedNodes) lost.push(...ids(n).filter((i): i is string => !!i && (KEPT as readonly string[]).includes(i)));
-      for (const n of r.addedNodes) if (ids(n).includes("water-map-status")) loadingDrawn = true;
+      for (const n of r.addedNodes) {
+        if (ids(n).includes("water-map-status")) loadingDrawn = true;
+        if (n instanceof Element && (n.matches("[role=dialog]") || n.querySelector("[role=dialog]"))) dialogs += 1;
+      }
     }
   });
   seen.observe(document.body, { childList: true, subtree: true });
   const wheres: string[] = [];
+  const names: string[] = [];
   for (const dir of steps) {
     await act(async () => { fireEvent.click(screen.getByTestId(`water-map-step-${dir}`)); });
     await settle();
     wheres.push(screen.getByTestId("water-map-where").textContent ?? "");
+    names.push(screen.getByTestId("water-map-name").textContent ?? "");
   }
+  dialogs += screen.queryAllByRole("dialog").length;
   seen.disconnect();
   return {
-    wheres, lost, loadingDrawn,
+    wheres, names, lost, loadingDrawn, dialogs,
     sameNodes: KEPT.filter((id, i) => screen.getByTestId(id) !== nodes[i]),
     remounted: { mounts: map.mounts - mounted, unmounts: map.unmounts },
     // every render of the map during the steps: always a part framed and lit, the insets never moved
@@ -89,7 +99,7 @@ describe("(T731) a step on a water's map changes the bar in place", () => {
     const out = await stepsDraw(reduce(HOME, openWater({ item: "gnis:8634" as ItemId, part: 0, view: "map" })), ["down", "up"]);
     expect(out).toEqual({
       wheres: ["Part 2 of 2 · Vedder River", "Part 1 of 5 · Chilliwack River"],
-      lost: [], loadingDrawn: false, sameNodes: [], remounted: { mounts: 0, unmounts: 0 }, unlit: 0,
+      names: out.names, lost: [], loadingDrawn: false, dialogs: 0, sameNodes: [], remounted: { mounts: 0, unmounts: 0 }, unlit: 0,
       insets: [out.insets[0]],
     });
   });
@@ -98,8 +108,31 @@ describe("(T731) a step on a water's map changes the bar in place", () => {
     const out = await stepsDraw(reduce(HOME, openWater({ item: "gnis:19986" as ItemId, part: 1, view: "map" })), ["up", "down"]);
     expect(out).toEqual({
       wheres: ["Part 2 of 3 · Coquitlam River", "Part 1 of 3 · Coquitlam River"],
-      lost: [], loadingDrawn: false, sameNodes: [], remounted: { mounts: 0, unmounts: 0 }, unlit: 0,
+      names: out.names, lost: [], loadingDrawn: false, dialogs: 0, sameNodes: [], remounted: { mounts: 0, unmounts: 0 }, unlit: 0,
       insets: [out.insets[0]],
     });
   });
+
+  // (T750, owner 2026-11-14 on the Skeena's part 2 of 18: "it gives a branching option. we should only have up or
+  // downastream that access all components") ▲ from the Skeena's lowest part past the Ecological Reserve, where the
+  // marks fork (the main stem and the km-less side channel), and back: one part per press, the parts list's order, and
+  // no chooser ever opens
+  it("(T750) ▲ up the Skeena past its fork and ▼ back: one part per press, no chooser", async () => {
+    // (T768) no part count and no part name typed (r-46e4355a7277 made it 21 parts from 18 and ended the run above
+    // the Exchamsiks at the Lakelse; the next cut moves them again): the walk is the water's own group, from its lowest
+    // part four entries up and back. What makes it THE FORK is held by the ends: the second entry is the Ecological
+    // Reserve, the fourth the km-less side channel (no ends, said by the water's name)
+    const g = await loadWaterGroup(await openRegsStore(openRegsFixtureWithLines()), "gnis:2936");
+    expect([g.parts[1]!.lo, g.parts[3]!.lo, partName(g, 3), g.parts.length > 5])
+      .toEqual(["area:SKEENA RIVER ECOLOGICAL RESERVE@km63.5", null, "Skeena River", true]);
+    const out = await stepsDraw(reduce(HOME, openWater({ item: "gnis:2936" as ItemId, part: g.parts[0]!.partIx, view: "map" })),
+                                ["up", "up", "up", "up", "down", "down", "down", "down"]);
+    const walk = [1, 2, 3, 4, 3, 2, 1, 0];
+    expect(out).toEqual({
+      wheres: walk.map((i) => partWhere(g, i)),
+      names: walk.map((i) => partName(g, i)),
+      lost: [], loadingDrawn: false, dialogs: 0, sameNodes: [], remounted: { mounts: 0, unmounts: 0 }, unlit: 0,
+      insets: [out.insets[0]],
+    });
+  }, 60_000);
 });

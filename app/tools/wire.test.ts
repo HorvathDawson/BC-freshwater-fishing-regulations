@@ -5,7 +5,7 @@
 // would lose every report for good. This pins the two halves together: every enum list compared as a set, every value
 // sent through the worker's own validator, and a payload with every field filled accepted and inside the byte limit.
 import { describe, expect, it } from "vitest";
-import { CRASH_FORMAT, CRASH_KINDS, CRASH_LIMITS, CRASH_SHEETS, ROUTE_KINDS, crashPayload, type CrashContext } from "@app/ui";
+import { CRASH_FORMAT, CRASH_KINDS, CRASH_LIMITS, CRASH_SHEETS, ROUTE_KINDS, crashPayload, exitPayload, type CrashContext } from "@app/ui";
 import { REPORT_FORMAT, REPORT_LIMITS, REPORT_REASONS, WATER_VIEWS, reportPayload, type Diagnostics, type ReportContext } from "@app/core";
 import * as worker from "../workers/feeds/src/crashes";
 import * as reports from "../workers/feeds/src/reports";
@@ -53,6 +53,16 @@ describe("crash/2: the app's payload is one the worker takes", () => {
     const v = worker.validateCrash(JSON.parse(JSON.stringify({ ...p, water: "fwa:1" })));
     expect(v).toMatchObject({ ok: true });
     expect(new TextEncoder().encode(JSON.stringify(p)).length).toBeLessThanOrEqual(worker.CRASH_LIMITS.bytes);
+  });
+
+  it("(iOS crash lane) an exit record, iOS's own (modules/exit-info Swift) and Android's, is a payload the worker takes", () => {
+    const ios = { timestamp: 1794687396123, reason: "CRASH_NATIVE", importance: "FOREGROUND", status: 11, rssKb: 280576, description: "SIGSEGV" };
+    const exc = { ...ios, reason: "CRASH", status: 0, description: "NSInvalidArgumentException: -[NSNull length]: unrecognized selector" };
+    const android = { timestamp: 1794687396123, reason: "LOW_MEMORY", importance: "BACKGROUND", status: 0, rssKb: 524288, description: "" };
+    for (const [r, platform] of [[ios, "ios 26.5"], [exc, "ios 26.5"], [android, "android 34"]] as const) {
+      const p = { ...exitPayload(r, ctx({ platform })), test: true };
+      expect([r.reason, worker.validateCrash(JSON.parse(JSON.stringify(p)))]).toMatchObject([r.reason, { ok: true }]);
+    }
   });
 });
 

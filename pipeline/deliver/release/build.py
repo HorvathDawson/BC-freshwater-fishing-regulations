@@ -78,8 +78,12 @@ FORMATS = {name: spec["format"] for name, spec in C.FILES.items()}
 #: candidate (atlas b5cb0aa4345a6af0) against r-483b295de57c — core 1,388,309 → 1,508,127 gz (`item_section` 65,237 →
 #: 81,357 rows), conditions 916,049 → 963,726 gz (`section_gauge` 108,075 → 114,140 rows: a folded pond takes its river's
 #: gauge). Each gate ~10 % over the measurement, as T182 set them.
+#: (owner 2026-11-15, round 5: "Raise to 420 kB (Recommended)"; RULINGS O5 again, shrinking is T686) `salmon-6`
+#: 320,000 → 420,000: the Stikine and Taku "including tributaries" places bound (92,460 sections off the region
+#: default; no_extent in r-f749475d0962) measured 379,295 B gz on the 2026-11-15 hold-latest build (reach d8cefe97)
+#: against LATEST's 314,700. The other regions keep 320,000.
 SIZE_GATES = {"paint": 1_000_000, "access": 300_000, "core": 1_650_000, "lakes": 100_000, "salmon": 60_000,
-              **{f"salmon-{r}": 320_000 for r in (*SH.REGIONS, "x")}, "method": 600_000,
+              **{f"salmon-{r}": 320_000 for r in (*SH.REGIONS, "x")}, "salmon-6": 420_000, "method": 600_000,
               # (T388) water + `part_line` (79,253 B gz measured alone on the 2026-11-04 bundle; water was 2,409,579 in
               # r-b86b60ca533b → ~2.49 MB, too close to 2.5 MB) → 2,650,000
               "water": 2_650_000, "near": 2_250_000, "climate": 1_650_000, "regs-sid": 1_400_000, "conditions": 1_060_000,

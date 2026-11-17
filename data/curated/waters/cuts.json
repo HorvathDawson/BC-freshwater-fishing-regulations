@@ -1,6 +1,71 @@
 {
  "_about": "THE CURATED CUTS (was splits.json; T324): every authored cut point on a water, organized by waterbody (`waterbodies[].splits[]`: an id, a label, an anchor). AUTHORED by hand and by the review app's write-through (`pipeline.regs.review.apply_proposals`, from the owner's saved marks); never regenerated. Read by the atlas build (`pipeline.atlas.splits.splits.load_split_defs`, CURATED.waters.cuts), which cuts the blue lines there; the review app reads it for split labels. Which cut is a tidal limit lives in tidal_limits.json, never here.",
- "_licence": {"spdx": "ODbL-1.0", "attribution": "© OpenStreetMap contributors", "applies_to": "the anchor `coord` of the splits listed in `ids`: each was placed on an OpenStreetMap feature (a bridge, dam, weir, falls, rail line or road crossing, named by its OSM way/node in the split's `_note`, or an `[osm-candidate]` OSM-road-by-river intersection). Every other split is anchored on the Freshwater Atlas (OGL-BC) or the curator's own reading; an `OSM: https://www.openstreetmap.org/?mlat=` link in a note is a map view for checking, not data taken.", "url": "https://opendatacommons.org/licenses/odbl/1-0/", "source": "https://www.openstreetmap.org/copyright", "notice": "data/LICENSE-ODbL.md", "ids": ["adam_river__hwy_19_bridge", "alexander_creek__easternmost_hwy_3", "babine_river__adult_counting_fence", "babine_river__fort_babine_bridge", "burton_creek__hwy_6_bridge", "campbell_river__maple_street_boundary_sign", "campbell_river__pedestrian_bridge_at_the_foot_of_stayte_road", "capilano_river__cable_pool_bridge_footbridge", "chehalis_river__hatchery_outlet", "chilko_river__henry_crossing_bridge", "clearwater_river__old_north_thompson_highway_bridge", "crooked_river__200_road_bridge", "elk_river__elko_dam", "findlay_creek__lavington_creek_bridge", "keogh_river__lower_fish_counting_fence", "ksi_sii_aks_river__nass_road_bridge", "lakelse_river__power_line_crossing", "little_qualicum_river__upper_waterfall", "lodgepole_creek__falls", "lynn_creek__sign_150_m_downstream_of_twin_falls_bridge", "lynn_creek__sign_200_m_upstream_of_twin_falls_bridge", "michel_creek__easternmost_hwy_3", "moyie_river__bridge_at_south_end_of_moyie_lake", "nahatlatch_river__signs_at_logging_bridge", "nass_river__hwy_37_bridge", "nathan__272_street", "nechako_river__hwy_27_bridge", "pallant_creek__bridge_near_mouth", "peace_river__peace_canyon_dam", "peace_river__site_c_dam", "pend_d_oreille_river__waneta_dam", "pitt_river__cpr_bridge", "puntledge_river__base_of_stotan_falls", "puntledge_river__bc_hydro_diversion_dam", "qualicum_river__hwy_19a_bridge", "qualicum_river__upper_hatchery_weir_125_m_downstream", "quinsam_river__falls_d_s_of_middle_quinsam_lake", "quinsam_river__fishing_boundary_signs_300_m_downstream_of_quinsam_hatchery_weir", "quinsam_river__signs_at_power_line_crossing", "salmon_river__232_street", "salmon_river__hwy_97_bridge_at_falkland", "sand_creek__hwy_3", "silverhope__bailey_bridge", "skookumchuck_creek__point_on_skookumchuck_ck_closest_to_km38_fsr", "somass_river__somass_park_north", "squamish_river__powerline_crossing_at_9_mile", "st_leon_creek__st_leon_falls", "sustut_river__bcr_bridge_at_bear_river_mouth", "tahltan_river__boundary_signs_400_m_upstream_of_tahltan_river_bridge", "toquart_river__toquart_mainline", "trepanier_river__hwy_97c_bridge", "trout_creek__rail_trestle_trout_creek_canyon", "yakoun_river__6_mile_bridge"]},
+ "_licence": {
+  "spdx": "ODbL-1.0",
+  "attribution": "© OpenStreetMap contributors",
+  "applies_to": "the anchor `coord` of the splits listed in `ids`: each was placed on an OpenStreetMap feature (a bridge, dam, weir, falls, rail line or road crossing, named by its OSM way/node in the split's `_note`, or an `[osm-candidate]` OSM-road-by-river intersection). Every other split is anchored on the Freshwater Atlas (OGL-BC) or the curator's own reading; an `OSM: https://www.openstreetmap.org/?mlat=` link in a note is a map view for checking, not data taken.",
+  "url": "https://opendatacommons.org/licenses/odbl/1-0/",
+  "source": "https://www.openstreetmap.org/copyright",
+  "notice": "data/LICENSE-ODbL.md",
+  "ids": [
+   "adam_river__hwy_19_bridge",
+   "alexander_creek__easternmost_hwy_3",
+   "babine_river__adult_counting_fence",
+   "babine_river__fort_babine_bridge",
+   "burton_creek__hwy_6_bridge",
+   "campbell_river__maple_street_boundary_sign",
+   "campbell_river__pedestrian_bridge_at_the_foot_of_stayte_road",
+   "capilano_river__cable_pool_bridge_footbridge",
+   "chehalis_river__hatchery_outlet",
+   "chilko_river__henry_crossing_bridge",
+   "clearwater_river__old_north_thompson_highway_bridge",
+   "crooked_river__200_road_bridge",
+   "elk_river__elko_dam",
+   "findlay_creek__lavington_creek_bridge",
+   "keogh_river__lower_fish_counting_fence",
+   "ksi_sii_aks_river__nass_road_bridge",
+   "lakelse_river__power_line_crossing",
+   "little_qualicum_river__upper_waterfall",
+   "lodgepole_creek__falls",
+   "lynn_creek__sign_150_m_downstream_of_twin_falls_bridge",
+   "lynn_creek__sign_200_m_upstream_of_twin_falls_bridge",
+   "michel_creek__easternmost_hwy_3",
+   "moyie_river__bridge_at_south_end_of_moyie_lake",
+   "nahatlatch_river__signs_at_logging_bridge",
+   "nass_river__hwy_37_bridge",
+   "nathan__272_street",
+   "nechako_river__hwy_27_bridge",
+   "pallant_creek__bridge_near_mouth",
+   "peace_river__peace_canyon_dam",
+   "peace_river__site_c_dam",
+   "pend_d_oreille_river__waneta_dam",
+   "pitt_river__cpr_bridge",
+   "puntledge_river__base_of_stotan_falls",
+   "puntledge_river__bc_hydro_diversion_dam",
+   "puntledge_river__fishing_boundary_signs_50_m_upstream_of_bc_hydro_puntledge_generating_station_tailrace",
+   "puntledge_river__puntledge_lower_hatchery_weir",
+   "puntledge_river__signs_75_m_downstream_of_puntledge_river_hatchery_fence",
+   "qualicum_river__hwy_19a_bridge",
+   "qualicum_river__upper_hatchery_weir_125_m_downstream",
+   "quinsam_river__falls_d_s_of_middle_quinsam_lake",
+   "quinsam_river__fishing_boundary_signs_300_m_downstream_of_quinsam_hatchery_weir",
+   "quinsam_river__signs_at_power_line_crossing",
+   "salmon_river__232_street",
+   "salmon_river__hwy_97_bridge_at_falkland",
+   "sand_creek__hwy_3",
+   "silverhope__bailey_bridge",
+   "skookumchuck_creek__point_on_skookumchuck_ck_closest_to_km38_fsr",
+   "somass_river__somass_park_north",
+   "squamish_river__powerline_crossing_at_9_mile",
+   "st_leon_creek__st_leon_falls",
+   "sustut_river__bcr_bridge_at_bear_river_mouth",
+   "tahltan_river__boundary_signs_400_m_upstream_of_tahltan_river_bridge",
+   "toquart_river__toquart_mainline",
+   "trepanier_river__hwy_97c_bridge",
+   "trout_creek__rail_trestle_trout_creek_canyon",
+   "yakoun_river__6_mile_bridge"
+  ]
+ },
  "waterbodies": [
   {
    "name": "ADAM RIVER (except Eve River)",
@@ -641,6 +706,26 @@
      "_coord": [
       -123.835989,
       48.757157
+     ]
+    },
+    {
+     "id": "cowichan_river__skutz_falls",
+     "label": "Skutz Falls",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -123.955626,
+       48.783139
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 1:cowichan-river:from-cnr-trestle-at-mile-70-2-to-s",
+     "_coord": [
+      -123.955626,
+      48.783139
      ]
     }
    ]
@@ -1328,6 +1413,28 @@
       -123.8806,
       49.07089
      ]
+    },
+    {
+     "id": "nanaimo_river__500_m_below_power_line_at_bore_hole",
+     "label": "500 m below the lower power line at Bore Hole",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -123.90653,
+       49.07297
+      ],
+      "is_lonlat": true,
+      "offset_m": 500,
+      "offset_dir": "downstream"
+     },
+     "note": "",
+     "_note": "[2026-11-15] DFO r1 'from 500 meters below the lower power line crossing at \"Bore Hole\" upstream to the fishing boundary signs at the mouth of Boulder Creek'. owner 2026-11-15 (round 1: \"Okay please fix them\"). The split hunt's `nanaimo_borehole_d500`: the curated nanaimo_river__power_line_at_bore_hole point (m ~12,985) moved 500 m downstream (~12,485), the notice's own distance.",
+     "_coord": [
+      -123.90653,
+      49.07297
+     ],
+     "_offset_m": 500
     }
    ]
   },
@@ -1661,20 +1768,39 @@
      "anchor": {
       "type": "point",
       "coord": [
-       -125.03397,
-       49.68837
+       -125.0342327,
+       49.6885474
       ],
       "is_lonlat": true,
       "offset_m": 50,
       "offset_dir": "upstream"
      },
      "note": "",
-     "_note": "[auto-proposal L] BC Hydro Puntledge generating-station tailrace + signs (50 m up / 75 m down) on Puntledge River (Courtenay, at powerhouse tailrace). Candidate coord [-125.0, 49.686]. OSM: https://www.openstreetmap.org/?mlat=49.68600&mlon=-125.00000#map=15/49.68600/-125.00000. Verify: Locate the Puntledge generating-station tailrace in Courtenay; set signs 50 m upstream and 75 m downstream of it.. Closure between signs 50 m above and 75 m below the BC Hydro Puntledge generating-station tailrace on the lower Puntledge River (Courtenay). Powerhouse not in FWA; candidate is an approximate lower-Puntledge location - verify on map. [structural-split 2026-08-05 from \"from fishing boundary signs located 50 m upstream of the BC \"] boundary=fishing boundary signs located 50 m upstream of the BC Hydro generating station tailrace [hint-fix 2026-08-06 dam_weir_fence->boundary_signs] [curated 2026-08-08 manual-review batch=puntledge-1-6] [base=Puntledge Generating Station OSM rel 15937988; +50m u/s -> 49.68871,-125.03442]",
+     "_note": "[auto-proposal L] BC Hydro Puntledge generating-station tailrace + signs (50 m up / 75 m down) on Puntledge River (Courtenay, at powerhouse tailrace). Candidate coord [-125.0, 49.686]. OSM: https://www.openstreetmap.org/?mlat=49.68600&mlon=-125.00000#map=15/49.68600/-125.00000. Verify: Locate the Puntledge generating-station tailrace in Courtenay; set signs 50 m upstream and 75 m downstream of it.. Closure between signs 50 m above and 75 m below the BC Hydro Puntledge generating-station tailrace on the lower Puntledge River (Courtenay). Powerhouse not in FWA; candidate is an approximate lower-Puntledge location - verify on map. [structural-split 2026-08-05 from \"from fishing boundary signs located 50 m upstream of the BC \"] boundary=fishing boundary signs located 50 m upstream of the BC Hydro generating station tailrace [hint-fix 2026-08-06 dam_weir_fence->boundary_signs] [curated 2026-08-08 manual-review batch=puntledge-1-6] [base=Puntledge Generating Station OSM rel 15937988; +50m u/s -> 49.68871,-125.03442] [owner 2026-11-15, round 1: \"Okay please fix them\"] anchor moved from the generating-station polygon centre (OSM rel 15937988, measure ~4401.9) onto the tailrace outlet: OSM way 1178621508 (waterway=canal, usage=tailrace) meets the river at 49.6885474,-125.0342327 (measure ~4429.3, 0.9 m off the line); the 50 m upstream offset is kept -> ~4479 (was 4451.9, ~27 m lower). Same id.",
      "_coord": [
-      -125.03397,
-      49.68837
+      -125.0342327,
+      49.6885474
      ],
      "_offset_m": 50
+    },
+    {
+     "id": "puntledge_river__puntledge_lower_hatchery_weir",
+     "label": "Puntledge lower hatchery weir",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -125.0323,
+       49.685118
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "_note": "[owner 2026-11-15, T743: \"please add both cut on weir and one downstream\"] promoted from the DFO split hunt (data/generated/review/dfo-split-hunt.json `puntledge_lower_weir`, high: the weir across the Puntledge beside the Puntledge River Hatchery, lower hatchery; OSM way 152588484, rel 9443986; hunt point 49.68512,-125.03234) for 1:puntledge-river:from-the-weir-at-the-lower-hatcher — \"from the weir at the lower hatchery to fishing boundary signs approximately 75m downstream of the weir\". Snapped to the FWA line: blk 354154204 measure 4001. The 75 m signs are puntledge_river__signs_75_m_downstream_of_puntledge_river_hatchery_fence (the hunt's puntledge_lower_weir_d75 would duplicate it).",
+     "_coord": [
+      -125.0323,
+      49.685118
+     ]
     },
     {
      "id": "puntledge_river__signs_75_m_downstream_of_puntledge_river_hatchery_fence",
@@ -1683,18 +1809,18 @@
      "anchor": {
       "type": "point",
       "coord": [
-       -125.03217,
-       49.68578
+       -125.0323,
+       49.685118
       ],
       "is_lonlat": true,
       "offset_m": 75,
       "offset_dir": "downstream"
      },
      "note": "",
-     "_note": "[auto-proposal L] BC Hydro Puntledge generating-station tailrace + signs (50 m up / 75 m down) on Puntledge River (Courtenay, at powerhouse tailrace). Candidate coord [-125.0, 49.686]. OSM: https://www.openstreetmap.org/?mlat=49.68600&mlon=-125.00000#map=15/49.68600/-125.00000. Verify: Locate the Puntledge generating-station tailrace in Courtenay; set signs 50 m upstream and 75 m downstream of it.. Closure between signs 50 m above and 75 m below the BC Hydro Puntledge generating-station tailrace on the lower Puntledge River (Courtenay). Powerhouse not in FWA; candidate is an approximate lower-Puntledge location - verify on map. [structural-split 2026-08-05 from \"from fishing boundary signs located 50 m upstream of the BC \"] boundary=signs located 75 m down [hint-fix 2026-08-06 dam_weir_fence->boundary_signs] [curated 2026-08-08 manual-review batch=puntledge-1-6] [base=Puntledge River Hatchery OSM rel 9443986; +75m d/s -> 49.68512,-125.0323; reach ~451m matches ~500m]",
+     "_note": "[auto-proposal L] BC Hydro Puntledge generating-station tailrace + signs (50 m up / 75 m down) on Puntledge River (Courtenay, at powerhouse tailrace). Candidate coord [-125.0, 49.686]. OSM: https://www.openstreetmap.org/?mlat=49.68600&mlon=-125.00000#map=15/49.68600/-125.00000. Verify: Locate the Puntledge generating-station tailrace in Courtenay; set signs 50 m upstream and 75 m downstream of it.. Closure between signs 50 m above and 75 m below the BC Hydro Puntledge generating-station tailrace on the lower Puntledge River (Courtenay). Powerhouse not in FWA; candidate is an approximate lower-Puntledge location - verify on map. [structural-split 2026-08-05 from \"from fishing boundary signs located 50 m upstream of the BC \"] boundary=signs located 75 m down [hint-fix 2026-08-06 dam_weir_fence->boundary_signs] [curated 2026-08-08 manual-review batch=puntledge-1-6] [owner 2026-11-15, T743: base moved off the hatchery grounds (old coord [-125.03217, 49.68578], FWA measure 4075 on blk 354154204, which with the 75 m offset put this cut ON the weir at 4000) onto the lower-hatchery weir / fish fence (OSM way 152588484, snapped to the FWA line at [-125.0323, 49.685118], measure 4001); +75m d/s -> measure ~3926, 49.684467,-125.03216; r4 reach ~527m matches ~500m. The weir itself is puntledge_river__puntledge_lower_hatchery_weir. Report: handoff/PLAN/curation-review/puntledge-hatchery-fence-2026-11-15.md]",
      "_coord": [
-      -125.03217,
-      49.68578
+      -125.0323,
+      49.685118
      ],
      "_offset_m": 75
     }
@@ -2198,7 +2324,7 @@
    "splits": [
     {
      "id": "sproat_river__fishing_boundary_signs_300_m_downstream_of_hwy_4",
-     "label": "fishing boundary signs 300 m downstream of Hwy 4",
+     "label": "fishing boundary signs about 350 m downstream of Hwy 4 (downstream end of the pool below the rapids at the Sproat River Fishway)",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -2207,16 +2333,16 @@
        49.29012
       ],
       "is_lonlat": true,
-      "offset_m": 300,
+      "offset_m": 350,
       "offset_dir": "downstream"
      },
      "note": "",
-     "_note": "[auto-proposal L] signs ~300 m below Hwy 4 over Sproat River (from Sproat Lake) on Sproat River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Hwy 4 crossing of the Sproat River and the signs ~300 m downstream; map.. Reach = 'Sproat Lake to signs ~300 m downstream of Hwy 4' (Port Alberni). Public highway landmark -> map/OSM-confirmable; not in FWA. [structural-split 2026-08-05 from “from Sproat Lake to fishing boundary signs approximately 300 m downstream of Hwy 4”] boundary=fishing boundary signs approximately 300 m downstream of Hwy 4 [curated 2026-08-09 bridge+confl batch] [base=Hwy4 (Pacific Rim Hwy) bridge; +300m DOWNSTREAM. NOTE: FWA downstream = toward Somass mouth (49.28978,-124.90065); user flagged direction — verify at split time]",
+     "_note": "[auto-proposal L] signs ~300 m below Hwy 4 over Sproat River (from Sproat Lake) on Sproat River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Hwy 4 crossing of the Sproat River and the signs ~300 m downstream; map.. Reach = 'Sproat Lake to signs ~300 m downstream of Hwy 4' (Port Alberni). Public highway landmark -> map/OSM-confirmable; not in FWA. [structural-split 2026-08-05 from “from Sproat Lake to fishing boundary signs approximately 300 m downstream of Hwy 4”] boundary=fishing boundary signs approximately 300 m downstream of Hwy 4 [curated 2026-08-09 bridge+confl batch] [base=Hwy4 (Pacific Rim Hwy) bridge; +300m DOWNSTREAM. NOTE: FWA downstream = toward Somass mouth (49.28978,-124.90065); user flagged direction — verify at split time] [owner 2026-11-15, round 5: 1 of 'Four small ones' — \"Only one I'm not sure about is number 4\"] offset 300 -> 350 m downstream: the owner's own note on marks.jsonl:2468 ('need to add another 50m or so to the offset ... this will put it to bottom of pool ... (50m more downstream)', for every extent using the cut). Resolves ~1874 (was 1924.1) on blk 354153364. Same id. [owner 2026-11-15 night, \"we want to fix items form other review\"; FIX LANE A] label: the offset is 350 m since the owner's +50 m (marks.jsonl:2453/2468, 'this will put it to bottom of pool'); DFO: \"at the downstream end of the pool that is below the rapids at the Sproat River Fishway\". Position and id unchanged.",
      "_coord": [
       -124.90442,
       49.29012
      ],
-     "_offset_m": 300
+     "_offset_m": 350
     }
    ]
   },
@@ -2228,7 +2354,7 @@
    "splits": [
     {
      "id": "stamp_river__fishing_boundary_signs_200_m_upstream_of_stamp_falls",
-     "label": "fishing boundary signs 200 m upstream of Stamp Falls",
+     "label": "fishing boundary signs 200 m upstream of Stamp Falls (50 m downstream of site 17 in Stamp River Provincial Park)",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -2241,7 +2367,7 @@
       "offset_dir": "upstream"
      },
      "note": "",
-     "_note": "[structural-split 2026-08-05 from \"between fishing boundary signs 200 m upstream of and 500 m d\"] boundary=fishing boundary signs 200 m upstream of [human-review 2026-08-06] anchor=Stamp Falls [-124.91864, 49.33224]; offset_m=200 offset_dir=upstream. [hint-fix 2026-08-06 falls_obstacle->boundary_signs]",
+     "_note": "[structural-split 2026-08-05 from \"between fishing boundary signs 200 m upstream of and 500 m d\"] boundary=fishing boundary signs 200 m upstream of [human-review 2026-08-06] anchor=Stamp Falls [-124.91864, 49.33224]; offset_m=200 offset_dir=upstream. [hint-fix 2026-08-06 falls_obstacle->boundary_signs] [owner 2026-11-15 night, \"we want to fix items form other review\"; FIX LANE A] label: the owner's words on marks.jsonl:2455/2469 (\"add this info to each split namer (50m downstream of site 17 in Stamp River Provincial Park)\"); DFO: \"approximately 200 m upstream of the Stamp Falls fishway (50 downstream of site 17 in Stamp River Provincial Park)\". Position and id unchanged.",
      "_coord": [
       -124.91864,
       49.33224
@@ -2250,7 +2376,7 @@
     },
     {
      "id": "stamp_river__signs_500_m_downstream_of_stamp_falls",
-     "label": "signs 500 m downstream of Stamp Falls",
+     "label": "signs 500 m downstream of Stamp Falls (225 m downstream of the confluence of Deer Creek)",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -2263,7 +2389,7 @@
       "offset_dir": "downstream"
      },
      "note": "",
-     "_note": "[structural-split 2026-08-05 from \"between fishing boundary signs 200 m upstream of and 500 m d\"] boundary=500 m downstream of Stamp Falls [human-review 2026-08-06] anchor=Stamp Falls [-124.91864, 49.33224]; offset_m=500 offset_dir=downstream.",
+     "_note": "[structural-split 2026-08-05 from \"between fishing boundary signs 200 m upstream of and 500 m d\"] boundary=500 m downstream of Stamp Falls [human-review 2026-08-06] anchor=Stamp Falls [-124.91864, 49.33224]; offset_m=500 offset_dir=downstream. [owner 2026-11-15 night, \"we want to fix items form other review\"; FIX LANE A] label: the owner's words on marks.jsonl:2455/2469 (\"(225m downstream of the confluence of Deer Creek)\"); DFO: \"500 m downstream of the Stamp Falls fishway (225m downstream of the confluence of Deer Creek)\". Position and id unchanged. Check asked by the owner: by the Deer Creek watershed-code position (~6,150 m) this cut (~5,988 m) is about 165 m below Deer Creek, not 225 m (about 60 m short; second look 2026-11-15, inferred, no map look).",
      "_coord": [
       -124.91864,
       49.33224
@@ -4427,6 +4553,82 @@
      "applies_to": {
       "wsc": "100"
      }
+    },
+    {
+     "id": "fraser_river__highway_1_bridge_at_hope_bill_hartley_fraser_hope",
+     "label": "Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope)",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -121.452186,
+       49.386489
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 2:fraser-river:from-the-downstream-side-of-the-cp, 2:fraser-river:from-the-highway-1-bridge-at-hope, 2:fraser-river:mainstem-waters-downstream-of-the, 2:fraser-river:mainstem-waters-from-the-downstrea, 2:fraser-river:upstream-from-the-highway-1-bridge",
+     "_coord": [
+      -121.452186,
+      49.386489
+     ]
+    },
+    {
+     "id": "fraser_river__alexandra_bridge_hwy_1",
+     "label": "Alexandra Bridge (Hwy 1)",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -121.409692,
+       49.701209
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 2:fraser-river:from-the-downstream-side-of-the-cp~2, 2:fraser-river:from-the-highway-1-bridge-at-hope",
+     "_coord": [
+      -121.409692,
+      49.701209
+     ]
+    },
+    {
+     "id": "fraser_river__seton_river",
+     "label": "Seton River confluence",
+     "kind": "confluence",
+     "anchor": {
+      "type": "confluence",
+      "tributary_wsc": "100-233886",
+      "_name": "Seton River"
+     },
+     "note": "",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 3:fraser-river:in-that-portion-of-the-fraser-rive — \"In that portion of the Fraser River from the confluence with the Seton River\"",
+     "_coord": [
+      -121.926856,
+      50.681805
+     ]
+    },
+    {
+     "id": "fraser_river__signs_4_km_below_lillooet",
+     "label": "signs ~4 km below Lillooet",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -121.904312,
+       50.655955
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 3:fraser-river:in-that-portion-of-the-fraser-rive",
+     "_coord": [
+      -121.904312,
+      50.655955
+     ]
     }
    ]
   },
@@ -4659,6 +4861,104 @@
       -121.515205,
       50.25673
      ]
+    },
+    {
+     "id": "thompson_river__deadman_closed_area_upper_signs_1_km_downstream_of_the_hwy_1_d1000m",
+     "label": "Deadman closed area, upper signs: 1 km downstream of the Hwy 1 bridge at Savona",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -120.872177,
+       50.75627
+      ],
+      "is_lonlat": true,
+      "offset_m": 1000.0,
+      "offset_dir": "downstream"
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 3:thompson-river#00673ca0afe5 — \"Deadman - from the fishing boundary signs approximately 1 km downstream of the Hwy No. 1 Bridge at Savona\"",
+     "_coord": [
+      -120.872177,
+      50.75627
+     ]
+    },
+    {
+     "id": "thompson_river__bonaparte_river",
+     "label": "Bonaparte River confluence",
+     "kind": "confluence",
+     "anchor": {
+      "type": "confluence",
+      "tributary_wsc": "100-190442-506118",
+      "_name": "Bonaparte River"
+     },
+     "note": "",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 3:thompson-river#c76883c57564 — \"Ashcroft - from the fishing boundary sign at the upstream side of the mouth of the Bonaparte River\"",
+     "_coord": [
+      -121.258053,
+      50.738875
+     ]
+    },
+    {
+     "id": "thompson_river__hwy_97c_bridge_in_ashcroft",
+     "label": "Hwy 97C bridge in Ashcroft",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -121.281673,
+       50.726878
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 3:thompson-river#c76883c57564 — \"to Hwy 97C bridge in Ashcroft\"",
+     "_coord": [
+      -121.281673,
+      50.726878
+     ]
+    },
+    {
+     "id": "thompson_river__juniper_closed_area_upper_signs_4_km_upstream_of_its_lower_u4000m",
+     "label": "Juniper closed area, upper signs: 4 km upstream of its lower signs",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -121.133959,
+       50.780911
+      ],
+      "is_lonlat": true,
+      "offset_m": 4000.0,
+      "offset_dir": "upstream"
+     },
+     "note": "",
+     "confidence": "low",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 3:thompson-river#5adc77c1f78d — \"Juniper - from the fishing boundary signs approximately 1.5 km downstream from Juniper Beach Park downstream approximately 4 km to the fishing boundary signs located at 50°46.893' N and 121°08.110' W.\"",
+     "_coord": [
+      -121.133959,
+      50.780911
+     ]
+    },
+    {
+     "id": "thompson_river__juniper_closed_area_lower_signs_50_46_893_n_121_08_110_w",
+     "label": "Juniper closed area, lower signs (50°46.893' N 121°08.110' W)",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -121.133959,
+       50.780911
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 3:thompson-river#5adc77c1f78d — \"the fishing boundary signs located at 50°46.893' N and 121°08.110' W\"",
+     "_coord": [
+      -121.133959,
+      50.780911
+     ]
     }
    ]
   },
@@ -4745,7 +5045,10 @@
      "id": "burton_creek__hwy_6_bridge",
      "label": "Hwy 6 bridge",
      "kind": "lake",
-     "anchor": {"type": "lake", "wbk": "329262655"},
+     "anchor": {
+      "type": "lake",
+      "wbk": "329262655"
+     },
      "note": "",
      "_note": "[owner 2026-10-26] the Hwy 6 bridge is at Burton Creek's mouth into the Caribou Creek slough (wbk 329262655): bound to that edge; old coord [-117.88905, 49.98135]. [auto-proposal L] Hwy 6 bridge over Burton Creek on Burton Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Hwy 6 bridge over Burton Creek; VERIFY correct Burton Creek (FWA name collision).. Reach = 'from Woden Creek to Hwy 6 bridge'. The FWA 'Burton Creek' match (51.48N,-119.46, Adams Lake area) is likely the wrong creek; the reg creek is on Hwy 6 (Arrow Lakes / Nakusp corridor). Public highway -> map-only. [structural-split 2026-08-05 from “from Woden Creek to Hwy 6 bridge”] boundary=Hwy 6 bridge [curated 2026-08-11 needs-pin batch5] [OSM way 66745479; downstream of Burton->Caribou confl; = reg terminus. Reach from Woden Ck ~6.6km]",
      "_coord": [
@@ -7187,6 +7490,44 @@
      "applies_to": {
       "wsc": "100-458399"
      }
+    },
+    {
+     "id": "quesnel_river__johnson_subdivision_bridge",
+     "label": "Johnson Subdivision Bridge",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -122.489466,
+       52.973025
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 5a:quesnel-river:between-the-johnson-subdivision-br, 5a:quesnel-river:that-portion-of-the-quesnel-river — \"the Johnson Subdivision Bridge (52°58.373'N; 122°29.349'W)\"",
+     "_coord": [
+      -122.489466,
+      52.973025
+     ]
+    },
+    {
+     "id": "quesnel_river__powerlines",
+     "label": "powerlines",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -122.496669,
+       52.996503
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 5a:quesnel-river:between-the-johnson-subdivision-br, 5a:quesnel-river:that-portion-of-the-quesnel-river — \"powerlines (52°59.788'N; 122°29.826'W ) located just upstream of Highway 97 Bridge near Quesnel, British Columbia (BC)\"",
+     "_coord": [
+      -122.496669,
+      52.996503
+     ]
     }
    ]
   },
@@ -7668,6 +8009,46 @@
      "applies_to": {
       "wsc": "400-195432"
      }
+    },
+    {
+     "id": "kitsumkalum__signs_below_the_kitsumkalum_lower_canyon",
+     "label": "signs below the Kitsumkalum lower canyon",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -128.678234,
+       54.604005
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 6:kitsumkalum-river:downstream-of-fishing-boundary-sig, 6:kitsumkalum-river:upstream-of-fishing-boundary-signs",
+     "_coord": [
+      -128.678234,
+      54.604005
+     ]
+    },
+    {
+     "id": "kitsumkalum__cn_railway_bridge_over_the_kitsumkalum",
+     "label": "CN railway bridge over the Kitsumkalum",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -128.661401,
+       54.520277
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 6:kitsumkalum-river:downstream-of-railway-bridge",
+     "_coord": [
+      -128.661401,
+      54.520277
+     ]
     }
    ]
   },
@@ -8032,6 +8413,26 @@
       -129.951193,
       54.979542
      ]
+    },
+    {
+     "id": "nass_river__canyon_city_gitwinksihlkw_bridge",
+     "label": "Canyon City (Gitwinksihlkw) bridge",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -129.210037,
+       55.195211
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 6:nass-river:portions-from-the-canyon-city-brid",
+     "_coord": [
+      -129.210037,
+      55.195211
+     ]
     }
    ]
   },
@@ -8058,6 +8459,27 @@
      "_coord": [
       -125.45955,
       54.44574
+     ]
+    },
+    {
+     "id": "pinkut_creek__signs_25_m_below_the_pinkut_fish_fence_d25m",
+     "label": "signs 25 m below the Pinkut fish fence",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -125.45955,
+       54.44574
+      ],
+      "is_lonlat": true,
+      "offset_m": 25.0,
+      "offset_dir": "downstream"
+     },
+     "note": "",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 6:pinkut-creek:downstream-of-fishing-boundary-sig",
+     "_coord": [
+      -125.459485,
+      54.445762
      ]
     }
    ]
@@ -8114,7 +8536,7 @@
     },
     {
      "id": "skeena_river__kitsumkalum_river_into_skeena_river_u1500m",
-     "label": "Kitsumkalum River → Skeena River (1500 m upstream)",
+     "label": "top of Hell's Gate (1.5 km above the Kitsumkalum)",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
@@ -8124,7 +8546,7 @@
       "_name": "Kitsumkalum River"
      },
      "note": "",
-     "_note": "1500 m upstream of the Kitsumkalum River confluence. Author as confluence anchor tributary_wsc=400-195432-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 + offset_m 1500, offset_dir upstream. OSM: https://www.openstreetmap.org/?mlat=54.51296&mlon=-128.64193#map=15/54.51296/-128.64193",
+     "_note": "1500 m upstream of the Kitsumkalum River confluence. Author as confluence anchor tributary_wsc=400-195432-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 + offset_m 1500, offset_dir upstream. OSM: https://www.openstreetmap.org/?mlat=54.51296&mlon=-128.64193#map=15/54.51296/-128.64193 [owner 2026-11-15, round 5: 2 of 'Four small ones'] label renamed (was 'Kitsumkalum River → Skeena River (1500 m upstream)'): the Classified Waters boundary at the top of Hell's Gate. Id unchanged.",
      "_coord": [
       -128.65979,
       54.51768
@@ -8311,6 +8733,66 @@
       -130.021513,
       54.158412
      ]
+    },
+    {
+     "id": "skeena_river__lakelse_river_into_skeena_river",
+     "label": "Lakelse River → Skeena River",
+     "kind": "confluence",
+     "anchor": {
+      "type": "confluence",
+      "tributary_wsc": "400-174068",
+      "_name": "Lakelse River"
+     },
+     "note": "",
+     "_note": "[confluence sweep 2026-11-15] DFO r6 'from Lakelse River mouth upstream to the Skeena River Overpass (New Hwy Bridge) at Ferry Island'. owner 2026-11-15 (round 2, Skeena confluence cuts): \"Make them (Recommended)\". The Lakelse (blk 360879877) ends on a Skeena side channel (blk 360223771, m 532; mouth -128.78223, 54.443161), 428 m from the Skeena main line (blk 360887278); this cut is on the MAIN line, abreast of the mouth (projection m ~108,507, -128.78878, 54.443694): the confluence resolver takes the main channel among the parent lines within proximity_m 500. The DFO suggestion's side-line confluence (blk 360223771) is NOT used. Anchor written exactly as the owner's own mark proposes it (marks.jsonl:2751/2752, saved 2026-11-15 evening), so `proposals build` reuses this cut instead of proposing a second one.",
+     "_coord": [
+      -128.78878,
+      54.443694
+     ],
+     "applies_to": {
+      "wsc": "400"
+     }
+    },
+    {
+     "id": "skeena_river__babine_river_into_skeena_river",
+     "label": "Babine River → Skeena River",
+     "kind": "confluence",
+     "anchor": {
+      "type": "confluence",
+      "tributary_wsc": "400-536025",
+      "_name": "Babine River"
+     },
+     "note": "",
+     "_note": "[confluence sweep 2026-11-15] DFO r6 'from the confluence with the Babine River downstream to the CNR Railway Bridge at Terrace'. owner 2026-11-15 (round 2): \"Make them (Recommended)\". Mouth of the Babine (blk 360886970) on the Skeena main line (blk 360887278, m ~335,400, 0 m off). Not the gauge 08EB005 / skeena_river__above_babine_river (m 337,743, 2.3 km above): that is the other wording's 'a point above the confluence'. Anchor written exactly as the owner's own mark proposes it (marks.jsonl:2751/2752, saved 2026-11-15 evening), so `proposals build` reuses this cut instead of proposing a second one.",
+     "_coord": [
+      -127.694583,
+      55.698129
+     ],
+     "applies_to": {
+      "wsc": "400"
+     }
+    },
+    {
+     "id": "skeena_river__highway_16_bridge_at_ferry_island",
+     "label": "Skeena River Overpass (new Hwy 16 bridge, Dudley Little Bridge) at Ferry Island",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -128.565054,
+       54.512035
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "_note": "[confluence sweep 2026-11-15] DFO r6 'to the Skeena River Overpass (New Hwy Bridge) at Ferry Island'. owner 2026-11-15 (round 2): \"Make them (Recommended)\". Point = the split hunt's `skeena_dudley_little` snapped onto the FWA main line (-128.565054, 54.512035; the hunt's own point -128.56288, 54.51179 is (BC MoT road structures, MOT_ROAD_STRUCTURE_SP 'DUDLEY LITTLE MAIN', main span) 143 m off it); pinned to the main line (applies_to blk) so it cannot land on a Ferry Island side channel. At m ~131,651, 514 m below the CNR/old Skeena bridge cut. Anchor written exactly as the owner's own mark proposes it (marks.jsonl:2751/2752, saved 2026-11-15 evening), so `proposals build` reuses this cut instead of proposing a second one.",
+     "_coord": [
+      -128.565054,
+      54.512035
+     ],
+     "applies_to": {
+      "blk": "360887278"
+     }
     }
    ]
   },
@@ -8544,6 +9026,26 @@
      "applies_to": {
       "wsc": "400-221484"
      }
+    },
+    {
+     "id": "zymoetz__hwy_16_bridge_over_the_zymoetz_copper",
+     "label": "Hwy 16 bridge over the Zymoetz (Copper)",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -128.476985,
+       54.542222
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 6:zymoetz-river:note-section-of-river-from-highway, 6:zymoetz-river:upstream-of-highway-16-bridge",
+     "_coord": [
+      -128.476985,
+      54.542222
+     ]
     }
    ]
   },
@@ -9757,6 +10259,46 @@
       50.54386
      ],
      "_offset_m": 50
+    },
+    {
+     "id": "shuswap_river__shuswap_closed_stretch_the_point_dfo_prints_for_the_water",
+     "label": "Shuswap closed stretch, the point DFO prints for the water survey station (50°19.105' N 118°48.857' W)",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -118.814453,
+       50.318456
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "low",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 8:shuswap-river#200d03a74aaf — \"the water survey station ( located at 50°19.105' N and 118°48.857' W) approximately 200 m down stream of Shuswap Falls Hatchery\"",
+     "_coord": [
+      -118.814453,
+      50.318456
+     ]
+    },
+    {
+     "id": "shuswap_river__shuswap_falls_wilsey_dam",
+     "label": "Shuswap Falls (Wilsey Dam)",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -118.811959,
+       50.295938
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 8:shuswap-river:middle-between-shuswap-falls-and-m, 8:shuswap-river:middle-between-shuswap-falls-and-m~2",
+     "_coord": [
+      -118.811959,
+      50.295938
+     ]
     }
    ]
   },
@@ -10071,11 +10613,17 @@
      "kind": "point",
      "anchor": {
       "type": "point",
-      "coord": [-123.185859, 49.785773],
+      "coord": [
+       -123.185859,
+       49.785773
+      ],
       "is_lonlat": true
      },
      "note": "",
-     "_coord": [-123.185859, 49.785773],
+     "_coord": [
+      -123.185859,
+      49.785773
+     ],
      "_note": "[T523 2026-11-09, owner] Re-anchored on the real crossing: OSM 500 kV line 5L32 (49.785773, -123.185859), the DOWNSTREAM of the two lines under one cleared corridor (5L30 at 49.786527, -123.186332), since the DFO area is 'downstream of the powerline crossing'. The old anchor, the Cheakamus confluence + 1,500 m upstream (DFO's 'approximately 1.5 km'), landed a little above the real crossing. Before: [dfo-salmon 2026-09-02] DFO r2: 'downstream of the powerline crossing at 9 mile (approximately 1.5 km upstream of the confluence with the Cheakamus River)'. DFO gives the crossing's position as a DISTANCE FROM the Cheakamus confluence, not a coordinate — so the anchor is that confluence with a 1,500 m upstream offset along the Squamish, exactly as chilliwack_vedder_rivers__vedder_crossing_bridge_200_m_* do from the bridge. Derived from FWA topology, not a coordinate: Cheakamus River's wsc 900-105574-143635 is a child of the mainstem's, which is the test that distinguished it from same-named creeks in other watersheds."
     },
     {
@@ -10831,6 +11379,353 @@
      "_coord": [
       -122.193194,
       49.16313
+     ]
+    }
+   ]
+  },
+  {
+   "name": "SOUTH THOMPSON RIVER",
+   "applies_to": {
+    "gnis_id": "8675"
+   },
+   "splits": [
+    {
+     "id": "south_thompson_river__campbell_creek_d100m",
+     "label": "Campbell Creek confluence",
+     "kind": "confluence",
+     "anchor": {
+      "type": "confluence",
+      "tributary_wsc": "100-190442-999098-290548",
+      "_name": "Campbell Creek",
+      "offset_m": 100.0,
+      "offset_dir": "downstream"
+     },
+     "note": "",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 3:south-thompson-river:from-the-green-can-buoy-near-outle — \"the fishing white triangle fishing boundary approximately 100 m downstream of Campbell Creek\"",
+     "_coord": [
+      -120.078674,
+      50.660036
+     ]
+    }
+   ]
+  },
+  {
+   "name": "ATNARKO RIVER",
+   "applies_to": {
+    "gnis_id": "17209"
+   },
+   "splits": [
+    {
+     "id": "atnarko_river__signs_near_tweedsmuir_park_lodge_stuie",
+     "label": "signs near Tweedsmuir Park Lodge (Stuie)",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -126.073265,
+       52.370657
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 5b:atnarko-river:downstream-of-the-fishing-boundary",
+     "_coord": [
+      -126.073265,
+      52.370657
+     ]
+    }
+   ]
+  },
+  {
+   "name": "ZYMAGOTITZ RIVER",
+   "applies_to": {
+    "gnis_id": "3812"
+   },
+   "splits": [
+    {
+     "id": "zymagotitz_river__hwy_16_bridge_over_the_zymagotitz",
+     "label": "Hwy 16 bridge over the Zymagotitz",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -128.732915,
+       54.487079
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 6:zymagotitz-river:upstream-of-highway-16-bridge",
+     "_coord": [
+      -128.732915,
+      54.487079
+     ]
+    }
+   ]
+  },
+  {
+   "name": "KHYEX RIVER",
+   "applies_to": {
+    "gnis_id": "4076"
+   },
+   "splits": [
+    {
+     "id": "khyex_river__hwy_16_bridge_over_the_khyex",
+     "label": "Hwy 16 bridge over the Khyex",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -129.804703,
+       54.232242
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 6:khyex-river:upstream-of-highway-16-bridge",
+     "_coord": [
+      -129.804703,
+      54.232242
+     ]
+    }
+   ]
+  },
+  {
+   "name": "SHEGUNIA RIVER",
+   "applies_to": {
+    "gnis_id": "22777"
+   },
+   "splits": [
+    {
+     "id": "shegunia_river__signs_above_the_shegunia_logging_road_bridge_u50m",
+     "label": "signs above the Shegunia logging road bridge",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -127.6321,
+       55.347395
+      ],
+      "is_lonlat": true,
+      "offset_m": 50.0,
+      "offset_dir": "upstream"
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 6:shegunia-river:between-fishing-boundary-signs-loc",
+     "_coord": [
+      -127.6321,
+      55.347395
+     ]
+    },
+    {
+     "id": "shegunia_river__signs_below_the_shegunia_logging_road_bridge_d50m",
+     "label": "signs below the Shegunia logging road bridge",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -127.6321,
+       55.347395
+      ],
+      "is_lonlat": true,
+      "offset_m": 50.0,
+      "offset_dir": "downstream"
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 6:shegunia-river:between-fishing-boundary-signs-loc",
+     "_coord": [
+      -127.6321,
+      55.347395
+     ]
+    }
+   ]
+  },
+  {
+   "name": "ECSTALL RIVER",
+   "applies_to": {
+    "gnis_id": "3986"
+   },
+   "splits": [
+    {
+     "id": "ecstall_river__johnston_creek",
+     "label": "Johnston Creek confluence",
+     "kind": "confluence",
+     "anchor": {
+      "type": "confluence",
+      "tributary_wsc": "400-014636-509207",
+      "_name": "Johnston Creek"
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 6:ecstall-river:upstream-of-fishing-boundary-signs — \"upstream of fishing boundary signs near confluence with Johnston Creek\"",
+     "_coord": [
+      -129.491288,
+      53.857346
+     ]
+    }
+   ]
+  },
+  {
+   "name": "EXCHAMSIKS RIVER",
+   "applies_to": {
+    "gnis_id": "3499"
+   },
+   "splits": [
+    {
+     "id": "exchamsiks_river__hwy_16_bridge_over_the_exchamsiks",
+     "label": "Hwy 16 bridge over the Exchamsiks",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -129.29687,
+       54.332696
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 6:exchamsiks-river:upstream-of-highway-16-bridge",
+     "_coord": [
+      -129.29687,
+      54.332696
+     ]
+    }
+   ]
+  },
+  {
+   "name": "EXSTEW RIVER",
+   "applies_to": {
+    "gnis_id": "3498"
+   },
+   "splits": [
+    {
+     "id": "exstew_river__hwy_16_bridge_over_the_exstew",
+     "label": "Hwy 16 bridge over the Exstew",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -129.056405,
+       54.400377
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 6:exstew-river:upstream-of-highway-16-bridge",
+     "_coord": [
+      -129.056405,
+      54.400377
+     ]
+    }
+   ]
+  },
+  {
+   "name": "KISPIOX RIVER",
+   "applies_to": {
+    "gnis_id": "2308"
+   },
+   "splits": [
+    {
+     "id": "kispiox_river__signs_near_kispiox_river_resort",
+     "label": "signs near Kispiox River Resort",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -127.716805,
+       55.434224
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 6:kispiox-river:downstream-of-fishing-boundary-sig",
+     "_coord": [
+      -127.716805,
+      55.434224
+     ]
+    }
+   ]
+  },
+  {
+   "name": "LAKELSE RIVER",
+   "applies_to": {
+    "gnis_id": "4903"
+   },
+   "splits": [
+    {
+     "id": "lakelse_river__whitebottom_rd_bridge_lakelse_near_the_mouth",
+     "label": "Whitebottom Rd bridge (Lakelse, near the mouth)",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -128.762699,
+       54.444371
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 6:lakelse-river:above-logging-road-bridge-near-the, 6:lakelse-river:below-logging-road-bridge-near-the",
+     "_coord": [
+      -128.762699,
+      54.444371
+     ]
+    }
+   ]
+  },
+  {
+   "name": "KASIKS RIVER",
+   "applies_to": {
+    "gnis_id": "4078"
+   },
+   "splits": [
+    {
+     "id": "kasiks_river__hwy_16_bridge_over_the_kasiks",
+     "label": "Hwy 16 bridge over the Kasiks",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -129.400445,
+       54.293822
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 6:kasiks-river:upstream-of-highway-16-bridge",
+     "_coord": [
+      -129.400445,
+      54.293822
+     ]
+    },
+    {
+     "id": "kasiks_river__signs_below_the_kasiks_upper_pool_foot_of_the_canyon_falls",
+     "label": "signs below the Kasiks Upper Pool (foot of the canyon falls)",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -129.536291,
+       54.353432
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-11-15] proposed in review marks on 6:kasiks-river:downstream-of-fishing-boundary-sig, 6:kasiks-river:upstream-of-fishing-boundary-signs",
+     "_coord": [
+      -129.536291,
+      54.353432
      ]
     }
    ]

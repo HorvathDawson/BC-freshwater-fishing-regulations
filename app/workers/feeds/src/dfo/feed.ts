@@ -3,6 +3,7 @@
 // `robust` (the Worker's default; false = the Python, for the parity tests): a row whose rules the catalogue refuses (a ValidationError) no longer raises out of the page — Python's one bad row
 // held the WHOLE region. Its locator carries `error` and no rules; live.ts holds only the location it binds to (its
 // last good answers carried forward, flagged in the region's `holds`) and publishes the rest of the region.
+import { statementLocators } from "./cascade";
 import type { RuleRecord } from "./locations";
 import { pyStrOf, pyTypeName } from "./py";
 import { rowText, toRules, type TypedRule } from "./typed";
@@ -53,5 +54,8 @@ export function build(
       locators.push({ fingerprint: fp, rows, rules: [], ...w, error: `${pyTypeName(e)}: ${[...pyStrOf(e)].slice(0, 200).join("")}` });
     }
   }
+  // T349 / T758: the page's default sentences ("There is no fishing for salmon in Region 3 except …"), each the one rule
+  // of its page-default location (`cascade.ts statementLocators`, keyed `page:<slug>:<scope>`) — as the Python's `build`
+  locators.push(...statementLocators(String(scraped.region || ""), scraped.preamble || []));
   return { region: scraped.region, date_modified: scraped.date_modified, preamble: scraped.preamble || [], locators };
 }

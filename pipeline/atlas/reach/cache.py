@@ -135,5 +135,39 @@ from __future__ import annotations
 #:     D4: a word read that matched before and no longer matches stops the run (`build.A_WORD_READ_THAT_STOPS_MATCHING_
 #:     STOPS_THE_RUN`, `reach.word_reads`). D1 (the river's widening pond is the river) is decided in the atlas registry
 #:     (`registry.flowing.fold_widening_ponds`), so no classify.py outcome changed for it; the bump marks the diff.
-POLICY_VERSION = "38"
+#: 39: (T743, 2026-11-15) A DFO LAKE PLACE'S THROUGH-RIVER ABOVE THE LAKE STAYS OUT unless DFO's words name it
+#:     (`build.DFO_THROUGH_RIVER_STAYS_OUT`; D5's reason applied to T468: a DFO place has no rows, so every through-river
+#:     read as unrowed). Redsand Lake 2,639 -> 4 sections, Kitsumkalum Lake loses the 1,643 of the river above it; no
+#:     place of the 11-13 reach run changes. No classify.py outcome changed; the bump marks the binding diff.
+#: 40: (T753, owner 2026-11-15) A LAKE'S LOOP IS THE LAKE'S: a nameless line that leaves a lake and comes back into the
+#:     same lake leaves its river's item and joins the lake's (`registry.lake_loops`, `LAKE_LOOPS_LEAVE_RIVER_ITEMS`,
+#:     `LAKE_LOOPS_JOIN_THEIR_LAKE`; the build lists every move in `lake_loop_report.json`). Sproat's narrows take Sproat
+#:     Lake's rows, not the lower river's. Decided in the atlas registry, so no classify.py outcome changed; the bump
+#:     marks the binding diff.
+#: 41: (T753/T743, 2026-11-15) A LOOP NEVER DIVIDES ITS LAKE: a lake loop joins its lake only when it is in exactly the
+#:     lake's cut areas (`registry.lake_loops.LOOPS_NEVER_DIVIDE_A_LAKE`): Kotcho Lake's loop, outside the ecological
+#:     reserve the lake is in, stays with the Kotcho River. A CONFLUENCE ANCHOR'S TRIBUTARY IS ITS LINE THAT MEETS THE
+#:     PARENT (`splits.anchors.A_TRIBUTARY_IS_ITS_LINE_THAT_MEETS_THE_PARENT`): the Fraser's Seton River cut is built. Both
+#:     decided in the atlas, so no classify.py outcome changed; the bump marks the binding diff.
+#: 42: (2026-11-15, the Stikine part-name stop) A DEAD END OF A COLLECTED WATER IS COLLECTED: an unreached sink (a
+#:     lake's second outlet that ends, a closed loop, an unconnected piece) whose watershed code a walk otherwise
+#:     collected wholly goes with that water, with what feeds it (`tributaries.A_DEAD_END_GOES_WITH_ITS_WATER`).
+#:     Buckley, Iskut, Chukachida, Mess (Stikine) and Horsefeed, Sutlahine (Taku) take their place's salmon whole.
+#: 43: (T761, owner 2026-11-15) A DFO "REST OF" HAS ITS OWN BOUNDS AND ITS OWN LIST: a DFO place's rest is the rest of
+#:     its `bounds` (`Extent.bounds`; `build.DFO_REST_HAS_ITS_OWN_BOUNDS`) less its LIVE, drawn listed places (its own
+#:     `siblings`, else every other live place of the water: `entries.rest_listing`); a dormant listed place takes
+#:     nothing (Nanaimo, Somass, Stamp), one that does not bind is skipped and named, never the whole rest
+#:     `complement_unknown` (`build.DFO_REST_SKIPS_A_LISTED_PLACE_THAT_DOES_NOT_BIND`). A rule-book rest is unchanged.
+#:     The listed places' sections inside the bounds ride the reach row (`behind`): the salmon chain answers them
+#:     after the listed places ("areas and times", `deliver.salmon.rest_after`).
+#: 44: (T778, 2026-11-15) A PIECE WHOSE WATER ENTERS THE WINDOW'S CUT LAKE IS JUST ABOVE THAT CUT: the flow path of
+#:     a piece no neighbour places stops at a lake that is one end of the window (a lake-end cut) and takes "just
+#:     above that cut", instead of walking through the lake to its far end
+#:     (`extent.A_PIECE_INTO_THE_CUT_LAKE_IS_JUST_ABOVE_ITS_CUT`). The Shuswap's delta side channel 355998688:691
+#:     into Mabel Lake is inside "between Shuswap Falls and Mabel Lake" (both DFO wordings), no longer straddling.
+#: 45: (T798 item 1, owner 2026-11-16, RULINGS Li5a) A PART A DESIGNATION EXCEPTS AND WALKS PAST IS NO STOP: a water
+#:     named in a designation's `tributary_excludes` with `walk_past` does not stop that designation's walk under
+#:     Li5 (`licensing.A_WALKED_PAST_EXCEPTION_IS_NO_STOP`). Coal Creek above the old MF&M Railway bridge (190
+#:     sections) is the Elk's Class II again; Line and Grave creeks (rows of their own, no walk_past) still drop.
+POLICY_VERSION = "45"
 

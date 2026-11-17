@@ -15,8 +15,10 @@
  * `BACKGROUND_DELAY_MS` after the idle tier and tells it each region the map settles in.
  */
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
-import { createBackgroundPrefetch, prefetchPlan, regionOfTile, runPrefetch, LOW_BATTERY,
+import { createBackgroundPrefetch, othersAhead, prefetchPlan, readerDownloading, regionOfTile, runPrefetch, LOW_BATTERY,
          type BackgroundPrefetch, type NetSignals, type PrefetchSignals, type PrefetchSnapshot } from "@app/data/release";
+import type { ItemId, NetActivity } from "@app/data";
+import { waterRegionsOf } from "./regs";
 import type { ReleaseLoader } from "@app/data/release";
 import type { UpdateEvent } from "@app/core";
 
@@ -36,8 +38,13 @@ export function connectionSignals(nav: { connection?: Connection } | undefined):
 /** How long a browser with no `requestIdleCallback` (Safari) waits after first paint before calling itself idle. */
 const IDLE_FALLBACK_MS = 2000;
 
-/** How long after the idle tier the background tier starts: core and the wasm go first, alone. */
-export const BACKGROUND_DELAY_MS = 4000;
+/**
+ * How long after the idle tier the background tier starts: core and the wasm go first, alone. (T737, 2026-11-15) 4 s →
+ * 1 s: "alone" is now the lane's (one file ahead at a time, `othersAhead`), and a tap no longer shares the line with a
+ * file ahead (the web source aborts it for the reader), so the tier may start as soon as the idle core is under way —
+ * an unnamed tap 3 s after paint then finds `regs-sid` / `down` on their way or in (they were not even asked before 5 s).
+ */
+export const BACKGROUND_DELAY_MS = 1000;
 
 export function useReleasePrefetch(loader: ReleaseLoader | null, onIdle?: () => void,
                                    background?: BackgroundPrefetch | null,
@@ -132,7 +139,11 @@ const NONE: PrefetchSnapshot = { state: "waiting", hold: null, ready: [], total:
  * (T253) The web's background prefetch for a loader: the scheduler (null: no loader, or the walk turned it off) and its
  * state, re-read on every change. Cancelled when the loader changes (a new release) or the screen goes.
  */
-export function useBackgroundPrefetch(loader: ReleaseLoader | null, o: { onEvent?: (e: UpdateEvent) => void } = {}):
+export function useBackgroundPrefetch(loader: ReleaseLoader | null,
+                                      o: { onEvent?: (e: UpdateEvent) => void;
+                                           /** (T737) the app's download activity: while the reader downloads, nothing new
+                                            *  starts (`readerDownloading`); null: no app `Net` */
+                                           activity?: Pick<NetActivity, "snapshot" | "subscribe"> | null } = {}):
     { scheduler: BackgroundPrefetch | null; status: PrefetchSnapshot } {
   const onEvent = useRef(o.onEvent);
   onEvent.current = o.onEvent;
@@ -173,10 +184,42 @@ export function useBackgroundPrefetch(loader: ReleaseLoader | null, o: { onEvent
       scheduler.cancel();
     };
   }, [scheduler]);
+  // (T737) a tap's downloads go first: the background starts nothing new while any is under way
+  const activity = o.activity ?? null;
+  useEffect(() => {
+    if (!scheduler || !activity) return;
+    // (T737, 2026-11-15) and one file ahead at a time: another tier's (the idle core, the address bar's lines) holds it too
+    const read = () => {
+      const s = activity.snapshot();
+      scheduler.reader(readerDownloading(s));
+      scheduler.others(othersAhead(s, scheduler.snapshot().active));
+    };
+    read();
+    return activity.subscribe(read);
+  }, [scheduler, activity]);
   const subscribe = useCallback((on: () => void) => scheduler?.subscribe(on) ?? (() => {}), [scheduler]);
   const read = useCallback(() => scheduler?.snapshot() ?? NONE, [scheduler]);
   const status = useSyncExternalStore(subscribe, read, read);
   return { scheduler, status };
+}
+
+/**
+ * (T737, 2026-11-15) THE OPEN WATER'S OTHER REGIONS FIRST IN THE BACKGROUND TIER (`BackgroundPrefetch.want`): a Fraser
+ * part in Region 2 opens a page whose other parts are in 3, 5 and 7A (`waterRegionsOf`); their regs files come next,
+ * behind what the reader is downloading — the page reads only its own part's. No water open (or none known): none.
+ * A failed read is the page's too (the same store reads, which say it); here only the order is lost.
+ */
+export function useWaterRegionsAhead(scheduler: Pick<BackgroundPrefetch, "want"> | null,
+                                     loader: Parameters<typeof waterRegionsOf>[0] | null, item: ItemId | null,
+                                     /** a test's own; the app reads the release's store */
+                                     regionsOf: typeof waterRegionsOf = waterRegionsOf): void {
+  useEffect(() => {
+    if (!scheduler) return;
+    if (!item || !loader) { scheduler.want([]); return; }
+    let live = true;
+    void regionsOf(loader, item).then((rs) => { if (live) scheduler.want(rs); }, () => { /* the page's reads say it */ });
+    return () => { live = false; };
+  }, [scheduler, loader, item, regionsOf]);
 }
 
 /**

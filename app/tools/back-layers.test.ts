@@ -148,7 +148,7 @@ const COVERED: Record<string, string> = {
   "packages/ui-native/src/TopBar.tsx#TopBar: takes onClose (TopBarProps)": "T48: the field's ‹ and Escape; search open is ROUTE state (route `search`), so system back closes it through the Shell's route layer, first",
   "packages/ui-native/src/Faces.tsx#FaceBar: takes onBack": "the water header's ‹ button; system back is the Shell's route layer",
   "packages/ui-native/src/ViewSwipe.tsx#WaterViewsContext: takes onBack (WaterViews)": "carries the Shell's back to the header's ‹ and the edge swipe; not a surface",
-  "packages/ui-native/src/water/WaterMapView.tsx#Head: takes onClose": "a header's × button; MarkPop and Chooser, which draw it, register",
+  "packages/ui-native/src/water/WaterMapView.tsx#Head: takes onClose": "a header's × button; MarkPop, which draws it, registers (T750: the Chooser that also drew it is gone)",
   "packages/ui-native/src/spot/Confirm.tsx#Confirm: takes onCancel": "SpotScreen's layer answers back while a confirm is shown (keep)",
   "packages/ui-native/src/SpotCapture.tsx#WhenScreen: takes onBack": "a capture step; SpotCapture's layer steps back from it",
   "packages/ui-native/src/SpotCapture.tsx#Coach: takes onCancel": "the capture's banner; SpotCapture's layer is its back",
@@ -165,6 +165,8 @@ const COVERED: Record<string, string> = {
   "packages/ui-native/src/menu/SettingsPage.tsx#SettingsPage: draws SettingsPage": "(T703) a menu page opened by More: it draws <MenuPage>, which registers (useBackLayer)",
   "packages/ui-native/src/menu/ReportPage.tsx#ReportPage: draws ReportPage": "a menu page's CONTENT: MenuHost draws it inside <MenuPage>, which registers (useBackLayer)",
   "packages/ui-native/src/menu/UpdatesLogPage.tsx#UpdatesLogPage: draws UpdatesLogPage": "(T251) a menu page's CONTENT: MenuHost draws it inside <MenuPage>, which registers (useBackLayer)",
+  "packages/ui-native/src/ModalBack.native.tsx#ModalBack: takes onBack": "(T723 F7) not a surface: the iOS left-edge strip inside a Modal that registers; every user hands it that Modal's own useBackLayer requestClose (Sheet, MenuPage, PdfViewer, PhotoViewer)",
+  "packages/ui-native/src/ModalBack.web.tsx#ModalBack: takes onBack": "(T723 F7) the web's half draws its children untouched (the browser owns that edge); the Modal it sits in registers",
   "packages/ui-native/src/menu/MenuPage.tsx#MenuPageHead: takes onBack": "the page header's ‹ button; its MenuPage registers (useBackLayer)",
   "packages/ui-native/src/menu/MoreScreen.tsx#MoreScreen: takes onBack (MoreScreenProps)": "owner 2026-10-22: the More TAB's ‹ to the tab it came from — a route tab (`prev`), not a layer: the Shell hands it the ONE back (`useBack`), which the system back also takes",
   "packages/ui-native/src/menu/MoreScreen.tsx#Head: takes onBack": "the More tab's ‹ button; MoreScreen hands it the Shell's one back",
@@ -223,6 +225,8 @@ describe("back, everywhere: every surface registers a back layer", () => {
       "packages/map/src/MapCredits.tsx#MapCredits: a Modal",
       // (T234) the "Alert me" form, inline in the gauge card (COVERED)
       "packages/ui-native/src/AlertMe.tsx#AlertEditor: takes onCancel",
+      // (T746) the apply curtain: a back layer while it is up (back closes a failed apply's message, and is held mid-apply)
+      "packages/ui-native/src/ApplyCurtain.tsx#ApplyCurtain: a dialog",
       // (T476) the Developer card, open: its own Modal, registered (useBackLayer); MapScreen hands it devOpen
       "packages/ui-native/src/DeveloperCard.tsx#DeveloperCard: takes onClose",
       "packages/ui-native/src/DeveloperModal.tsx#DeveloperModal: a Modal",
@@ -236,6 +240,9 @@ describe("back, everywhere: every surface registers a back layer", () => {
       // (T303) the rail's one-line location notice (why there is no dot): a tap puts it away; not a surface (COVERED)
       "packages/ui-native/src/MapRail.tsx#MapRail: takes dismiss",
       "packages/ui-native/src/MapScreen.tsx#MapScreen: opens devOpen",
+      // (T723 F7) the iOS edge-back strip inside a registered Modal, handed that Modal's back; not a surface (COVERED)
+      "packages/ui-native/src/ModalBack.native.tsx#ModalBack: takes onBack",
+      "packages/ui-native/src/ModalBack.web.tsx#ModalBack: takes onBack",
       // (T292) a tapped not-fished water's sheet (sewage lagoon, tailings pond, dump): a <Sheet>, so it registers
       "packages/ui-native/src/NotFishingSheet.tsx#NotFishingSheet: takes onClose",
       // (T173) a tapped fish obstacle mark's sheet, drawn by the Shell over the map: a <Sheet>, so it registers
@@ -283,7 +290,6 @@ describe("back, everywhere: every surface registers a back layer", () => {
     "packages/ui-native/src/spot/PhotoViewer.tsx#PhotoViewer: a Modal",
       "packages/ui-native/src/water/WaterMapView.tsx#Head: takes onClose",
       "packages/ui-native/src/water/WaterMapView.tsx#MarkPop: a dialog",
-      "packages/ui-native/src/water/WaterMapView.tsx#Chooser: a dialog",
     ]);
   });
 

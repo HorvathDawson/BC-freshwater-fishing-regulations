@@ -354,6 +354,27 @@ def own_beats_inherited(placements: list[LicensingPlacement], records: dict
 #: and a tributary with a row of its own that prints no designation is not classified at all.
 FIRST_CLASSIFIED_WATER_DOWNSTREAM = True
 
+#: POLICY (owner 2026-11-16, T798 item 1, RULINGS Li5a): a water a designation EXCEPTS BY PART and walks past
+#: (`tributary_excludes` with `walk_past`) is no stop for that designation's own walk. The Elk's "ALL tributaries
+#: (EXCEPT Coal Creek downstream of old MF&M Railway Bridge …) are Class II"; Coal Creek's row un-classifies only
+#: "the part described", so Coal Creek above the bridge stays the Elk's Class II (190 sections were dropped).
+A_WALKED_PAST_EXCEPTION_IS_NO_STOP = True
+
+
+def _walked_past_sections(record, registry) -> set[str]:
+    """The sections of every water `record` excepts by part and walks past (`walk_past`)."""
+    if not A_WALKED_PAST_EXCEPTION_IS_NO_STOP or record is None:
+        return set()
+    out: set[str] = set()
+    for ex in getattr(record, "tributary_excludes", None) or ():
+        ex = ex if isinstance(ex, dict) else getattr(ex, "model_dump", lambda: {})()
+        if not ex.get("walk_past"):
+            continue
+        for item in ([ex["item_id"]] if ex.get("item_id") else []) + list(ex.get("item_ids") or []):
+            if item in registry:
+                out |= set(registry[item].section_ids)
+    return out
+
 
 def first_classified_downstream(placements: list[LicensingPlacement], records: dict, graph,
                                 registry, owned, kind_of, matched_of: dict | None = None
@@ -507,6 +528,8 @@ def first_classified_downstream(placements: list[LicensingPlacement], records: d
         siblings = set().union(*(secs for rid, secs in reach_of.get(p.entry_id, {}).items()
                                  if rid != p.record_id))
         mine = reach | (water_of.get(p.entry_id, set()) - (siblings - reach))
+        # a water this designation excepts by part and walks past: its row is no stop (Li5a)
+        past = _walked_past_sections(records.get(me), registry)
         rehomed: dict[tuple[str, str], set[str]] = {}
         dropped: dict[str, set[str]] = {}
         for s in p.via_tributary:
@@ -520,6 +543,9 @@ def first_classified_downstream(placements: list[LicensingPlacement], records: d
                 if others:
                     rehomed.setdefault(min(others), set()).add(s)
                     break
+                if t in past:                             # walked past: keep going down (Li5a)
+                    t = stop_at_or_below(next_down(t))
+                    continue
                 rows = own_rows(registry, owned, {t}, p.entry_id)
                 if rows:
                     # a rowed water: with a designation of its own (its row prints one, though

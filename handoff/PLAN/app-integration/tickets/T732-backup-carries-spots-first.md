@@ -1,6 +1,6 @@
 # T732 — The phone's backup carries saved spots first, photos second, never the downloaded release
 
-Status: IN PROGRESS (iOS chat; proven on the emulator 2026-11-14, branch `android/t732-backup` head c95ea31c5, results in the ticket on that branch; not merged: a proposal that waits for the owner's look and three picks).
+Status: IN PROGRESS (iOS chat; proven on the emulator 2026-11-14 with spots, settings and smaller photo copies, branch `android/t732-backup` head 56b6ea539, results in the ticket on that branch; not merged; OWNER ANSWERED 2026-11-16 11:57: 1280 px copies, and he asks for stronger compression, see the last section).
 
 Source: audit finding G14 (`handoff/PLAN/ios/parity-audit.md`, pass 2, 2026-11-14): on Android, saved spots and photos
 are never in the Google backup, because the installed release (~480 MB) puts the app over Auto Backup's 25 MB limit and
@@ -279,6 +279,27 @@ image: the local transport stands in for it, same rules engine, same 25 MB quota
 `fullBackupContent` path (this image is API 35, which reads `dataExtractionRules` only; the file is pinned by the test
 and in the APK). Not built: the backup-set worker, the line in the app, the stored-photo resize (all wait on the
 `expo-image-manipulator` decision). The privacy and data-safety texts are untouched (other chat's files).
+
+## Owner's answer, 2026-11-16 11:57 (question dialog in the main chat)
+Asked the three picks together (screen lock: built NO; copy size 1600 px, about 54 fit, or 1280 px, about 81 fit; new
+photos stored at 2048 px, proposed YES), he typed: "1280 is probably enough also could we compress as jpeg or
+something which makes the size a lot smaller? ". Readings (the main chat's and mine): copies at 1280 px; no
+screen-lock rule and 2048 px for new photos stand as proposed (he did not object).
+On his question: the copies are already JPEG (quality 70; 0.37 MB at 1600 px, measured; about 0.25 MB at 1280 px
+from the "81 fit" figure). To do before changing the quality: measure JPEG 60 and WebP at 1280 px on the sample photo
+and show him one before / after pair; my estimate is 0.17 to 0.20 MB (about 100 to 115 photos), not measured.
+
+## Measured for his question, 2026-11-16 12:57 (the app chat; the comparison picture went to him in chat at 12:59)
+The same stand-in photo, copies at 1280×960 (`sips` for JPEG, `cwebp` for WebP; a phone's encoder will differ a little):
+JPEG 70 = 245,946 B (about 81 fit in 20 MB); JPEG 60 = 179,946 B (about 110); JPEG 50 = 134,821 B (about 148);
+WebP 75 = 81,444 B (about 245); WebP 60 = 65,438 B; WebP 50 = 56,386 B. At full size the app chat sees no difference
+between JPEG 70, JPEG 60 and WebP 75 on this photo. Files: scratchpad `t732-pair/` of session 29ad1860 (regenerate
+with the two tools). ASKED, NOT ANSWERED: B (JPEG 70), C (JPEG 60) or D (WebP 75); recommended D if a restore on
+the emulator shows WebP copies (the copies are Android-only; `expo-image-manipulator` has `SaveFormat.WEBP`; the
+copy's file name ends `.jpg` today, so the name or the restore mapping in `photoStore.native.ts` needs a look),
+otherwise C. To-Do row `t732-backup-words-confirm` carries the question. Nothing is changed on the branch yet: the
+built code is on `t732-proof` @ 56b6ea539 (`app/packages/data/src/spots/backupSet.native.ts`, 1600 px, JPEG 0.7);
+`android/t732-backup` is now at fa562f0d6 (the rules commit only), so merge from `t732-proof`.
 
 ## Owner, 2026-11-16 ~16:55 (app chat dialog, verbatim label)
 Photo copies in a backup, 1280 px (picture `photo-copies-compare.jpg`, sent 12:59, again 16:55): "D: WebP 75" (the

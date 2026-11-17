@@ -173,15 +173,16 @@ describe("(T58) the opener: a split lake's areas, and a late lookup dropped", ()
   });
 });
 
-describe("(T203) a search result ALWAYS lands on the water's Map, the whole water shown", () => {
-  it("from the Map tab and from Conditions alike: the Map view, `whole`, search consumed; a part step drops `whole`", () => {
+describe("(T203, T747) a search result ALWAYS lands on the water's Map, on the part its bar names", () => {
+  it("from the Map tab and from Conditions alike: the Map view, NOT whole (the frame's part), search consumed", () => {
     const sent: RouteAction[] = [];
     waterOpener(source, (a) => sent.push(a)).searched(VEDDER);
-    expect(sent).toEqual([{ type: "openWater", item: VEDDER, tapSid: null, at: null, part: null, view: "map", whole: true,
+    // (T747, owner 2026-11-14) never `whole`: the bar names a part, the camera frames that part
+    expect(sent).toEqual([{ type: "openWater", item: VEDDER, tapSid: null, at: null, part: null, view: "map",
                             fromSearch: true }]);
     for (const base of [mapTab, condMap]) {
       const r = reduce({ ...base, search: true } as Route, sent[0]!);
-      expect([waterFrame(r)?.view, waterFrame(r)?.whole]).toEqual(["map", true]);
+      expect([waterFrame(r)?.view, waterFrame(r)?.whole]).toEqual(["map", undefined]);
       // back lands on the map searched over, search closed
       expect(reduce(r, { type: "back" })).toEqual({ ...base, search: false });
       const stepped = reduce(r, { type: "part", part: 1 });
@@ -195,7 +196,7 @@ describe("(T203) a search result ALWAYS lands on the water's Map, the whole wate
 });
 
 describe("(T221) a SOLO water from search opens on its Regulations, its Map view gone", () => {
-  it("solo: Regulations in front, no Map view; not solo, or the read failing: the whole Map as before", async () => {
+  it("solo: Regulations in front, no Map view; not solo, or the read failing: the Map as before", async () => {
     const sent: RouteAction[] = [];
     const ask = (answer: boolean | Error) => waterOpener(source, (a) => sent.push(a), {
       solo: async () => { if (answer instanceof Error) throw answer; return answer; } });

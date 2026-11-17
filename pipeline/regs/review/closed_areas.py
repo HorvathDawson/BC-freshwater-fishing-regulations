@@ -25,7 +25,8 @@ from pipeline.regs.dfo_salmon import closures as K
 ABOUT = ("THE CLOSED AREAS THE OWNER CONFIRMED (T573): one record per closed area of a DFO row's entry B — a stretch "
          "between two cuts or a circle (centre + radius), `pipeline.regs.dfo_salmon.closures.PieceGeometry`. Written only "
          "by the review marks (scope closed_area, `python -m pipeline.regs.review.apply closed_areas`). A record whose "
-         "item DFO no longer names stays here and is read as not live. Nothing in the atlas or the feed reads this yet.")
+         "item DFO no longer names stays here and is read as not live. The reach run binds the live ones "
+         "(`pipeline.atlas.reach.dfo_salmon.resolve_closures`) and the bundle ships them (T573 build step).")
 
 
 def path() -> Path:

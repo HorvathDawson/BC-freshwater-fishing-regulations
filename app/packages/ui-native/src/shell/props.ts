@@ -150,6 +150,11 @@ export interface ShellProps {
    */
   onSafeToApply?: () => void;
   /**
+   * (T746) The apply in flight and the failed one (`@app/ui` `useApplyCurtain`): drawn over everything as the curtain
+   * (`ApplyCurtain`), a back layer while it is up. Null / absent: none.
+   */
+  applyCurtain?: { applying: boolean; failed: Error | null; close: () => void; line: string } | null;
+  /**
    * (T186, Q164) Fetch ahead after first paint: the regs file of the region in view, and core + sql-wasm when the
    * browser is idle and not on Save-Data / a slow connection (`@app/ui` `useReleasePrefetch`). The WEB only (App passes
    * it there): a phone holds the release installed.

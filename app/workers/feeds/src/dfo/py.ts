@@ -354,6 +354,42 @@ export function formatFixed(x: number, nd: number): string {
   return (sign < 0 && q !== 0n ? "-" : sign < 0 ? "-" : "") + s;
 }
 
+/** f"{x:g}" (precision 6): the exact binary value rounded half-even to 6 significant digits, fixed for an exponent in
+ *  [-4, 6), else "d.ddddde+XX"; trailing zeros (and a bare point) dropped. */
+export function formatG(x: number): string {
+  if (Number.isNaN(x)) return "nan";
+  if (!Number.isFinite(x)) return x > 0 ? "inf" : "-inf";
+  const neg = x < 0 || Object.is(x, -0);
+  if (x === 0) return neg ? "-0" : "0";
+  const P = 6;
+  const [, digits, scale] = exactDecimal(x);
+  const s = digits.toString();
+  let e = s.length - 1 - scale;
+  let q: bigint;
+  if (s.length > P) {
+    q = BigInt(s.slice(0, P));
+    const rest = s.slice(P);
+    const half = "5" + "0".repeat(rest.length - 1);
+    if (rest > half || (rest === half && q % 2n === 1n)) q += 1n;
+    if (q.toString().length > P) {
+      q /= 10n;
+      e += 1;
+    }
+  } else q = BigInt(s.padEnd(P, "0"));
+  const d = q.toString();
+  const trim = (f: string) => f.replace(/0+$/, "");
+  let body: string;
+  if (e >= -4 && e < P) {
+    const [int, frac] = e >= 0 ? [d.slice(0, e + 1), d.slice(e + 1)] : ["0", "0".repeat(-e - 1) + d];
+    const f = trim(frac);
+    body = f ? `${int}.${f}` : int;
+  } else {
+    const f = trim(d.slice(1));
+    body = `${d[0]}${f ? "." + f : ""}e${e < 0 ? "-" : "+"}${String(Math.abs(e)).padStart(2, "0")}`;
+  }
+  return (neg ? "-" : "") + body;
+}
+
 /** f"{x:+.0%}" / f"{x:.0%}" */
 export function formatPercent(x: number, plus = false): string {
   const s = formatFixed(x * 100, 0);

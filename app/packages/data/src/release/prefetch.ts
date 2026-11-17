@@ -64,8 +64,14 @@ export function runPrefetch(loader: ReleaseLoader, plan: PrefetchPlan, mark: (na
     mark(`${PREFETCH_MARK}:regs-${plan.regs}`);
     void loader.prefetch(`regs-${plan.regs}`).catch(() => {});
   }
-  if (plan.core && !loader.opened().includes("core")) {
+  if (plan.core && !loader.opened().includes("core") && !coreAsked.has(loader)) {
+    coreAsked.add(loader);
     mark(`${PREFETCH_MARK}:core`);
-    void loader.db("core").catch(() => {});
+    // (T737) fetched AHEAD first, then opened: an open in flight counts as the whole file here, so a tap in the 1-2 s
+    // the 1.5 MB core takes waited for it; a prefetch in flight does not (the tap reads its region's slice meanwhile)
+    void loader.prefetch("core").then(() => loader.db("core")).catch(() => { coreAsked.delete(loader); });
   }
 }
+
+/** (T737) The loaders whose idle core open is under way (asked once, until it fails). */
+const coreAsked = new WeakSet<ReleaseLoader>();

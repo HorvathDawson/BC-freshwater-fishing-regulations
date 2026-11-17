@@ -6,7 +6,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render } from "@testing-library/react";
 import type { BackgroundPrefetch, PrefetchSnapshot, ReleaseLoader } from "@app/data/release";
-import { BACKGROUND_DELAY_MS, batteryLow, connectionSignals, useBackgroundPrefetch, useReleasePrefetch,
+import { BACKGROUND_DELAY_MS, batteryLow, connectionSignals, useBackgroundPrefetch, useReleasePrefetch, useWaterRegionsAhead,
          webNetSignals } from "./prefetch";
 
 afterEach(cleanup);
@@ -42,21 +42,26 @@ function Probe({ loader, out, onIdle }: { loader: ReleaseLoader | null; out: { c
 }
 
 describe("useReleasePrefetch", () => {
-  it("after first paint: the region's file now, core when idle; a new region's file as the view moves", () => {
+  it("after first paint: the region's file now, core when idle; a new region's file as the view moves", async () => {
     const idle: (() => void)[] = [];
+    const { loader, asked } = fakeLoader();
     withGlobals(idle, { effectiveType: "4g", saveData: false }, () => {
-      const { loader, asked } = fakeLoader(), out: { cb?: (r: unknown) => void } = {};
+      const out: { cb?: (r: unknown) => void } = {};
       render(<Probe loader={loader} out={out} />);
       expect([asked, idle.length]).toEqual([[], 0]);         // nothing before the map's first report
       out.cb!("2");
       expect([asked, idle.length]).toEqual([["fetch regs-2"], 1]);
       idle[0]!();
-      expect(asked).toEqual(["fetch regs-2", "open core"]);
+      // (T737) core is fetched AHEAD first (a tap meanwhile reads its slice), opened once it is in
+      expect(asked).toEqual(["fetch regs-2", "fetch core"]);
       out.cb!(null);                                          // over the sea: nothing new, nothing forgotten
       out.cb!("7A");
       out.cb!("2");
-      expect(asked).toEqual(["fetch regs-2", "open core", "fetch regs-7a"]);
+      expect(asked).toEqual(["fetch regs-2", "fetch core", "fetch regs-7a"]);
     });
+    // (T737) and opened only once its fetch has settled
+    await new Promise((r) => setTimeout(r, 0));
+    expect(asked).toEqual(["fetch regs-2", "fetch core", "fetch regs-7a", "open core"]);
   });
 
   for (const [what, connection] of [["Save-Data", { saveData: true, effectiveType: "4g" }],
@@ -163,6 +168,52 @@ describe("(T253) the background tier", () => {
     } finally { delete g.__releasePrefetchBackground; }
   });
 
+  it("(T737) useBackgroundPrefetch yields to the reader: told on every activity change, stopped with the screen", () => {
+    const { loader } = fakeLoader();
+    (loader as unknown as { manifest: unknown }).manifest = { files: {} };
+    let snap = { downloads: [] as { priority: number }[] };
+    const subs = new Set<() => void>();
+    const activity = { snapshot: () => snap as never, subscribe: (on: () => void) => { subs.add(on); return () => { subs.delete(on); }; } };
+    function ActProbe({ out }: { out: { s?: ReturnType<typeof useBackgroundPrefetch> } }) {
+      out.s = useBackgroundPrefetch(loader, { activity });
+      return null;
+    }
+    const out: { s?: ReturnType<typeof useBackgroundPrefetch> } = {};
+    const r = render(<ActProbe out={out} />);
+    const told: boolean[] = [];
+    const real = out.s!.scheduler!.reader.bind(out.s!.scheduler);
+    out.s!.scheduler!.reader = (b: boolean) => { told.push(b); real(b); };
+    const emit = (d: { priority: number }[]) => { snap = { downloads: d }; for (const f of [...subs]) f(); };
+    emit([{ priority: 2 }]);
+    emit([{ priority: 2 }, { priority: 0 }]);
+    emit([]);
+    expect(told).toEqual([false, true, false]);
+    r.unmount();
+    expect(subs.size).toBe(0);
+  });
+
+  it("(T737, 2026-11-15) and one file ahead at a time: another tier's file ahead on the network holds it (`others`)", () => {
+    const { loader } = fakeLoader();
+    (loader as unknown as { manifest: unknown }).manifest = { files: {} };
+    let snap = { downloads: [] as { key: string; priority: number }[] };
+    const subs = new Set<() => void>();
+    const activity = { snapshot: () => snap as never, subscribe: (on: () => void) => { subs.add(on); return () => { subs.delete(on); }; } };
+    function ActProbe({ out }: { out: { s?: ReturnType<typeof useBackgroundPrefetch> } }) {
+      out.s = useBackgroundPrefetch(loader, { activity });
+      return null;
+    }
+    const out: { s?: ReturnType<typeof useBackgroundPrefetch> } = {};
+    render(<ActProbe out={out} />);
+    const told: boolean[] = [];
+    const real = out.s!.scheduler!.others.bind(out.s!.scheduler);
+    out.s!.scheduler!.others = (b: boolean) => { told.push(b); real(b); };
+    const emit = (d: { key: string; priority: number }[]) => { snap = { downloads: d }; for (const f of [...subs]) f(); };
+    emit([{ key: "core", priority: 2 }]);              // the idle core
+    emit([{ key: "water-2", priority: 0 }]);           // the reader's: `reader`, not `others`
+    emit([]);
+    expect(told).toEqual([true, false, false]);
+  });
+
   it("webNetSignals: online, Save-Data, speed, cellular = metered (the web has no mobile-data setting), hidden", () => {
     expect(webNetSignals({} as never)).toEqual({ online: true, saveData: false, effectiveType: null, metered: false,
                                                   allowMetered: false, hidden: false });
@@ -174,5 +225,27 @@ describe("(T253) the background tier", () => {
   it("batteryLow: at or under 20 % and not charging", () => {
     expect([batteryLow({ charging: false, level: 0.2 }), batteryLow({ charging: true, level: 0.05 }),
             batteryLow({ charging: false, level: 0.5 })]).toEqual([true, false, false]);
+  });
+});
+
+describe("(T737, 2026-11-15) the open water's other regions first", () => {
+  it("a water open: its regions handed to the background tier; another water: its own; closed: none", async () => {
+    const wanted: string[][] = [];
+    const sch = { want: (r: readonly string[]) => wanted.push([...r]) } as unknown as Pick<BackgroundPrefetch, "want">;
+    const loader = {} as never;
+    const regionsOf = async (_l: unknown, item: string) => (item === "gnis:39325" ? ["2", "3", "5", "7a"] : ["2"]) as never;
+    function W({ item }: { item: string | null }) { useWaterRegionsAhead(sch, loader, item as never, regionsOf as never); return null; }
+    const r = render(<W item="gnis:39325" />);
+    await new Promise((x) => setTimeout(x, 0));
+    expect(wanted).toEqual([["2", "3", "5", "7a"]]);
+    r.rerender(<W item="gnis:3062" />);
+    await new Promise((x) => setTimeout(x, 0));
+    r.rerender(<W item={null} />);
+    expect(wanted).toEqual([["2", "3", "5", "7a"], ["2"], []]);
+    render(<W item="gnis:1" />);     // no scheduler is a phone: nothing asked (below)
+    function N() { useWaterRegionsAhead(null, loader, "gnis:1" as never, regionsOf as never); return null; }
+    render(<N />);
+    await new Promise((x) => setTimeout(x, 0));
+    expect(wanted.length).toBe(4);
   });
 });

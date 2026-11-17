@@ -16,6 +16,10 @@ q() { python3 -c "import json,sys;m=json.load(open('$M'));print(eval(sys.argv[1]
 # it (MIN_APP_VERSION, or the manifest's stamp). The table and the rule: pipeline/deliver/release/app_gate.py (one copy:
 # `pipeline release` runs the same check before it promotes).
 MIN_APP_VERSION=${MIN_APP_VERSION-} .venv/bin/python -m pipeline.deliver.release.app_gate "$M"
+# (T573/T757) a release that BINDS a closed-area piece goes only to a bucket whose feeds worker emits pieces
+# (/status.json dfo.pieces): else the app's chains skip the piece and its year-round closure reads open
+FEEDS_URL=${FEEDS_URL:-https://bc-fishing-feeds-staging.horvath-dawson.workers.dev} \
+  .venv/bin/python -m pipeline.deliver.release.pieces_gate "$M"
 # (T483 fast-fail; caught 2026-11-09: r-d14bdb180f55 went up with minAppVersion 0.7.0 while the live staging site was
 # 0.6.9, so the smoke test failed only AFTER the upload) the live site must be at least the oldest app this release lets
 # apply it — checked before anything is sent; it names the site redeploy. SITE_CHECK_SKIP=<reason> skips it (printed).

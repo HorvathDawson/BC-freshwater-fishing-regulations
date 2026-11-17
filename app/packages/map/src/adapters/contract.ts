@@ -16,8 +16,8 @@ import {
   MAP_STYLE, NO_VALUES, STYLE_META, followerMode, followersOf, isRuntimeLayer, profileChannel,
   resolveTheme, type ChannelValues, type Tokens,
 } from "../style";
-import { CLOSED_CUE_LAYER, closedCuePaint, casingPaint, focusTheOthers, hideTheOthers, copyFillPaint, copyLinePaint, GEAR_LAYERS, gearPaint, NOACCESS_LAYER, noaccessPaint, NOBASELINE_LAYER, nobaselineOpacity, RUNS_PASS_LAYER, runsPassPaint,
-         paintFor, ringPaint, SELECTION_CASING, SELECTION_RINGS, type SelectionCue } from "../paint";
+import { CLOSED_CUE_LAYER, closedCuePaint, casingPaint, glowPaint, focusTheOthers, hideTheOthers, copyFillPaint, copyLinePaint, GEAR_LAYERS, gearPaint, NOACCESS_LAYER, noaccessPaint, NOBASELINE_LAYER, nobaselineOpacity, RUNS_PASS_LAYER, runsPassPaint,
+         paintFor, ringPaint, SELECTION_CASING, SELECTION_GLOW, SELECTION_RINGS, type SelectionCue } from "../paint";
 import { openedPaint, waterOnImagery } from "../on-imagery";
 
 export type { ChannelValues } from "../style";
@@ -174,7 +174,10 @@ function zoomFor(h: MapHandle, layerId: string, mode: string | undefined, fieldO
   const floor = Math.max(byMode?.[mode ?? ""] ?? base, covered && fieldOn ? field.handover : 0);
   h.setZoomRange(layerId, floor);
   // the selection's casing is drawn where its stream is, never as an outline round nothing
-  if (layerId === "stream") h.setZoomRange(SELECTION_CASING, floor);
+  if (layerId === "stream") {
+    h.setZoomRange(SELECTION_CASING, floor);
+    h.setZoomRange(SELECTION_GLOW, floor);      // (T735) absent from a theme with no glow: harmless, like every runtime layer
+  }
 }
 
 /** Is the field drawn in this mode (`field.drawnIn`)? */
@@ -243,6 +246,10 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
       // the selection's outline goes with the stream: its width is the stream's, its colour the theme's (full strength)
       for (const [prop, value] of Object.entries(onGround(casingPaint(w, tokens), w, tokens, false)))
         h.setPaint(SELECTION_CASING, prop, value);
+      // (T735) look C's glow under it. A theme with no glow has no such layer (harmless, like every runtime layer here), and
+      // a live map that moves from a glow theme to one without is told opacity 0 by the same call: no state kept
+      for (const [prop, value] of Object.entries(onGround(glowPaint(w, tokens), w, tokens, false)))
+        h.setPaint(SELECTION_GLOW, prop, value);
       for (const ring of Object.values(SELECTION_RINGS))
         for (const [prop, value] of Object.entries(ringPaint(tokens))) h.setPaint(ring, prop, value);
       // (T175) THE WATER COPY'S LINE takes the stream's own paint in the same call — the one colouring pathway

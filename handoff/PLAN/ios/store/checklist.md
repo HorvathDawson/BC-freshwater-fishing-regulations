@@ -9,7 +9,7 @@ T86 = needs production data and hosting live; OTHER LANE = being made by another
 |---|---|---|---|
 | 1 | Enrol in the Apple Developer Program, pay, accept agreements | individual or organization is open question 1 in `handoff/PLAN/ios/START-HERE-ios.md` (an organization needs a D-U-N-S number and changes the seller name) | OWNER (Apple ID + 2FA) |
 | 2 | Create the app record | Bundle ID `ca.canifishthis.app` (`app.json:36`), Platform iOS, Primary language English (Canada) (START-HERE-ios.md), SKU: your choice, proposal `canifishthis-ios` | OWNER, ACCOUNT |
-| 3 | Team ID and API key to `~/.canifishthis/ios-team-id`, `~/.canifishthis/asc-api-key.json` (.p8, App Manager) | START-HERE-ios.md "What needs the owner physically" | OWNER, ACCOUNT |
+| 3 | Team ID and API key to `~/.canifishthis/ios-team-id`, `~/.canifishthis/asc-api-key.json` (.p8, role Admin; App Manager cannot sign for the store) | START-HERE-ios.md "What needs the owner physically" | OWNER, ACCOUNT |
 
 ## B. App information
 | # | Field | Value or page | Who |

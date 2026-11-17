@@ -294,7 +294,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "area:3",
+              "fraser_river__spuzzum_creek_into_fraser_river"
+            ]
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -400,7 +408,20 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "south_thompson_river__little_shuswap_lake",
+              "south_thompson_river__campbell_creek_d100m"
+            ],
+            "item_id": "gnis:8675"
+          },
+          {
+            "op": "whole",
+            "item_id": "wbk:329534136"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -591,7 +612,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "fraser_river__seton_river",
+              "fraser_river__signs_4_km_below_lillooet"
+            ],
+            "item_id": "gnis:39325"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],

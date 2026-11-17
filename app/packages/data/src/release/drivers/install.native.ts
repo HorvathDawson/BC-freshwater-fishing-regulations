@@ -134,7 +134,10 @@ const nativeFill = (tries = 4): PartFill => async (url, part, _have, total, onBy
     // to a temp file moved into place only at the end (no `.part` to resume from), and whose JS side is lost when the
     // app is killed. Android ignores the option.
     const task = new DownloadTask(url, to, { headers: { Range: `bytes=${have}-` }, sessionType: "foreground",
-                                             onProgress: (p) => onBytes?.(have + p.bytesWritten) });
+                                             // (T722, T718) iOS hands `bytesWritten` as an Int64, a BigInt in JS:
+                                             // `have + BigInt` threw on every tick and the bar never moved there.
+                                             // Number() of Android's number is the number.
+                                             onProgress: (p) => onBytes?.(have + Number(p.bytesWritten)) });
     try {
       const done = await task.downloadAsync();
       if (!done) throw new Error(`${url}: the download stopped`);
@@ -158,9 +161,10 @@ const nativeFill = (tries = 4): PartFill => async (url, part, _have, total, onBy
 };
 
 /**
- * `bg`: (T298) the system's downloader (Android's DownloadManager, `apps/mobile/modules/bg-download`) — the big files
- * download in its process (on with the app closed, its own notification) and are hashed natively. Absent (iOS, a client
- * built before the module): `nativeFill` as before, which stops when the app does and resumes from the `.part`.
+ * `bg`: (T298) the system's downloader (`apps/mobile/modules/bg-download`: Android's DownloadManager; (T722) iOS's
+ * background URLSession) — the big files download out of the app's process (on with the app in the background) and
+ * are hashed natively. Absent (a client built before the module): `nativeFill` as before, which stops when the app does
+ * and resumes from the `.part`; also the resume of a `.part` an older app left with no job.
  */
 export function device(fetchImpl: typeof fetch = fetch, bg?: BackgroundNative | null): Device | null {
   const sys = bg ? background(bg, { ...fs, uri: (p) => fileAt(p).uri }, nativeFill()) : null;
@@ -169,10 +173,22 @@ export function device(fetchImpl: typeof fetch = fetch, bg?: BackgroundNative | 
     fs,
     // (T256 item 4) the data files of a first install over a poor line: timeouts by size, retries, resume (the big
     // files are the native transport's, `nativeFill`, which already retries and resumes)
-    download: (url, expect) => fetchVerifiedResilient(url, expect, { fetchImpl }),
+    // (T760, W46) a try that was cut is SAID: four silent tries of one stalled file read as an app that stopped
+    download: (url, expect) => fetchVerifiedResilient(url, expect, { fetchImpl, onRetry: (e) => console.warn(
+      `[download] try ${e.attempt - 1} failed (${e.why}); trying again in ${e.waitMs} ms${e.resumeAt ? `, from byte ${e.resumeAt}` : ""}`) }),
     toDisk: partDownload(partFs, sys ? sys.fill : nativeFill()),
     ...(sys ? { background: { queue: sys.queue } } : {}),
+    // (T738) the facts only — what each big file holds on disk and in the system's downloader (one `jobs()` for all);
+    // what they add up to is `tally.ts`'s, shared with every platform. Without the module: the `.part`s alone.
+    look: async (files) => {
+      const jobs = bg ? await bg.jobs() : [];
+      return Promise.all(files.map(async (f) => ({ file: await fs.size(f.path), part: await fs.size(`${f.path}.part`),
+                                                    job: jobs.find((j) => j.url === f.url) ?? null })));
+    },
     dirUri: (path) => dirAt(path).uri,
     fileUri: (path) => fileAt(path).uri,
+    // (T722 F9) the volume's free bytes (iOS: systemFreeSize; Android: usableSpace; null when it will not say) and what
+    // a file already holds, for the space check before a release download (`checkRoom`)
+    space: { free: async () => Paths.availableDiskSpace, size: fs.size },
   };
 }

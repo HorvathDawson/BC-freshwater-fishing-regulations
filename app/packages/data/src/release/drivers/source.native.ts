@@ -14,12 +14,14 @@ export type { SourceAt } from "./source";
 
 export function releaseSource(m: Manifest, at: SourceAt): ReleaseSource {
   return {
-    async bytes(name) {
+    async bytes(name, o) {
       const spec = m.files[name];
       if (!spec) throw new Error(`release ${m.data_release} has no file ${name}`);
       if (at.held?.release === m.data_release) {
         const f = new File(Paths.document, heldPath(at.held, spec.url));
-        if (f.exists) return f.bytes();
+        // (T737) a file asked AHEAD that is installed is here already: nothing read (the loader's `prefetch` keeps no
+        // bytes; the web's lane is the web's own)
+        if (f.exists) return o?.ahead ? new Uint8Array(0) : f.bytes();
       }
       return fetchVerified(`${at.base}${spec.url}`, spec, undefined, at.fetch ?? fetch);
     },

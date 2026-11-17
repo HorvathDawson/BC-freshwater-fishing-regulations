@@ -8,6 +8,7 @@
  */
 import { createContext, forwardRef, useContext, type ForwardRefExoticComponent, type ReactNode, type RefAttributes } from "react";
 import { Text as RNText, type TextProps, type TextInstance } from "react-native";
+import { guardChildren } from "./textPresentation";
 
 /** undefined outside any pane: no opinion, the platform's own default (and unchanged markup) */
 const SelectableContext = createContext<boolean | undefined>(undefined);
@@ -19,5 +20,6 @@ export function Selectable({ on = true, children }: { on?: boolean; children?: R
 
 export const Text: ForwardRefExoticComponent<TextProps & RefAttributes<TextInstance>> = forwardRef<TextInstance, TextProps>(function Text(p, ref) {
   const on = useContext(SelectableContext);
-  return <RNText ref={ref} {...p} selectable={p.selectable ?? on} />;
+  // (T723 item 7) on an iPhone a "↗" or "↩" is asked to draw as text, not as an emoji tile; elsewhere nothing changes
+  return <RNText ref={ref} {...p} selectable={p.selectable ?? on}>{guardChildren(p.children)}</RNText>;
 });

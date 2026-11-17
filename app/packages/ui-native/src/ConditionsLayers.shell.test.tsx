@@ -82,6 +82,8 @@ vi.mock("./ConditionsPanel", async (importOriginal) => {
       <Text testID="chart">{`chart ${parameter ?? "its own"}`}</Text>
       <Pressable accessibilityRole="button" accessibilityLabel="chart Flow"
                  onPress={() => onParameter?.("discharge")}><Text>Flow</Text></Pressable>
+      <Pressable accessibilityRole="button" accessibilityLabel="chart Level"
+                 onPress={() => onParameter?.("level")}><Text>Level</Text></Pressable>
     </View> };
 });
 vi.mock("./FishSpinner", () => ({ FishSpinner: () => null }));
@@ -193,21 +195,23 @@ describe("Level as its own view, in the Conditions map's Layers", () => {
    * the map's Level is where the card starts; the card's Flow is the card's alone. Mutation: hand the panel the map's
    * `setFlowParam` as `onParameter` again (`WaterModeHost` -> `WaterConditions`) -> the sheet comes back Flow*.
    */
-  it("THE CARD'S PICK IS THE CARD'S: Level on the map opens a Level chart; Flow in the chart leaves the map on Level", async () => {
+  it("THE CARD'S PICK IS THE CARD'S: Level on the map still opens a Flow chart; Level in the chart leaves the map on Level", async () => {
     await mount("conditions");
     press("Choose layers");
     pick("Level");
     press("Done");
     await act(async () => { fireEvent.click(screen.getByLabelText("tap the map")); });
     await waitFor(() => expect(screen.queryByTestId("chart")).not.toBeNull());
+    // (T728, owner 2026-11-16: "we should fix anything that doesnt seem desirable"; 2026-11-10 "Flow leads, Level
+    // auxiliary") the card OPENS on Flow whatever the map shows; a pick inside the card is the card's
     const chart = screen.getByTestId("chart").textContent;
-    press("chart Flow");
+    press("chart Level");
     const after = screen.getByTestId("chart").textContent;
     act(() => { fireEvent.click(screen.getAllByLabelText(BACK)[0]!); });
     await waitFor(() => expect(screen.queryByTestId("map-look")).not.toBeNull());
     press("Choose layers");
     expect([chart, after, asked.standing, sheet()]).toEqual([
-      "chart level", "chart discharge", "level",
+      "chart discharge", "chart level", "level",
       "SHOW · MAP · ON THE MAP | Flow Level* Temperature Map* Satellite | Spots+ Gauges+ Flow arrows+",
     ]);
   });

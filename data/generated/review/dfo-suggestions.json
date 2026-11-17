@@ -328,8 +328,8 @@
     "op": "between",
     "points": [
      {
-      "kind": "new",
-      "split_id": "puntledge_lower_weir"
+      "kind": "split",
+      "split_id": "puntledge_river__signs_75_m_downstream_of_puntledge_river_hatchery_fence"
      },
      {
       "kind": "new",
@@ -341,19 +341,6 @@
     ],
     "tributaries": null,
     "new_splits": [
-     {
-      "ref": "puntledge_lower_weir",
-      "anchor": "dam",
-      "name": "Puntledge lower hatchery weir",
-      "on_item": "gnis:27060",
-      "coord": [
-       -125.0323,
-       49.685118
-      ],
-      "blk": "354154204",
-      "measure": 4001.1,
-      "note": "[split hunt high] the weir across the Puntledge beside the Puntledge River Hatchery (lower hatchery). Sources: https://www.openstreetmap.org/way/152588484 ; https://www.openstreetmap.org/relation/9443986. OSM maps the weir (waterway=weir) spanning the river 49.68522,-125.03265 to 49.68501,-125.03203, next to the hatchery."
-     },
      {
       "ref": "puntledge_lower_weir_d75",
       "anchor": "sign",
@@ -369,11 +356,11 @@
       "note": "[split hunt medium] boundary signs ~75 m downstream of the lower hatchery weir (75 m downstream of the anchor, as the split's offset). Sources: https://www.openstreetmap.org/way/152588484. the weir (exact) moved 75 m downstream along the FWA line, the notice's own approximate distance."
      }
     ],
-    "words": "between Puntledge lower hatchery weir and signs 75 m below the Puntledge lower hatchery weir"
+    "words": "between signs 75 m downstream of Puntledge River hatchery fence and signs 75 m below the Puntledge lower hatchery weir"
    },
    "confidence": "medium",
    "matched": "new",
-   "reason": "split hunt: 'from the weir at the lower hatchery to signs ~75 m downstream': the weir, then 75 m below it. (T164 2026-10-29) MAYBE an existing cut: the curated `puntledge_river__signs_75_m_downstream_of_puntledge_river_hatchery_fence` (synopsis) sits at FWA measure 4075 m — 74 m ABOVE the OSM weir (4001 m), so it cannot be '75 m below the weir' as placed. If the synopsis' fence is this weir, one of the two is misplaced: confirm the weir on the map, then either reuse/move the curated cut or keep the two new ones.; high: the weir across the Puntledge beside the Puntledge River Hatchery (lower hatchery); medium: boundary signs ~75 m downstream of the lower hatchery weir",
+   "reason": "split hunt: 'from the weir at the lower hatchery to signs ~75 m downstream': the weir, then 75 m below it. (T164 2026-10-29) MAYBE an existing cut: the curated `puntledge_river__signs_75_m_downstream_of_puntledge_river_hatchery_fence` (synopsis) sits at FWA measure 4075 m — 74 m ABOVE the OSM weir (4001 m), so it cannot be '75 m below the weir' as placed. If the synopsis' fence is this weir, one of the two is misplaced: confirm the weir on the map, then either reuse/move the curated cut or keep the two new ones.; high: Puntledge lower hatchery weir is the existing cut `puntledge_river__signs_75_m_downstream_of_puntledge_river_hatchery_fence` (0.8 m away) — no new cut; medium: boundary signs ~75 m downstream of the lower hatchery weir",
    "endpoints": [
     {
      "phrase": "the weir at the lower hatchery",
@@ -390,13 +377,10 @@
    ],
    "points": [
     {
-     "label": "Puntledge lower hatchery weir",
-     "coord": [
-      -125.0323,
-      49.685118
-     ],
-     "kind": "new",
-     "split_id": "puntledge_lower_weir"
+     "label": "puntledge_river__signs_75_m_downstream_of_puntledge_river_hatchery_fence",
+     "coord": null,
+     "kind": "split",
+     "split_id": "puntledge_river__signs_75_m_downstream_of_puntledge_river_hatchery_fence"
     },
     {
      "label": "signs 75 m below the Puntledge lower hatchery weir",
@@ -412,29 +396,6 @@
     "status": "found",
     "notes": "'from the weir at the lower hatchery to signs ~75 m downstream': the weir, then 75 m below it. (T164 2026-10-29) MAYBE an existing cut: the curated `puntledge_river__signs_75_m_downstream_of_puntledge_river_hatchery_fence` (synopsis) sits at FWA measure 4075 m — 74 m ABOVE the OSM weir (4001 m), so it cannot be '75 m below the weir' as placed. If the synopsis' fence is this weir, one of the two is misplaced: confirm the weir on the map, then either reuse/move the curated cut or keep the two new ones.",
     "proposals": [
-     {
-      "ref": "puntledge_lower_weir",
-      "anchor": "dam",
-      "name": "Puntledge lower hatchery weir",
-      "confidence": "high",
-      "description": "the weir across the Puntledge beside the Puntledge River Hatchery (lower hatchery)",
-      "sources": [
-       "https://www.openstreetmap.org/way/152588484",
-       "https://www.openstreetmap.org/relation/9443986"
-      ],
-      "notes": "OSM maps the weir (waterway=weir) spanning the river 49.68522,-125.03265 to 49.68501,-125.03203, next to the hatchery.",
-      "lat": 49.68512,
-      "lon": -125.03234,
-      "coord": [
-       -125.0323,
-       49.685118
-      ],
-      "offset_m": null,
-      "split_id": null,
-      "snap_m": 2.9,
-      "blk": "354154204",
-      "measure": 4001.1
-     },
      {
       "ref": "puntledge_lower_weir_d75",
       "anchor": "sign",
@@ -619,7 +580,7 @@
      "label": "Quatse River Hatchery weir (100 m upstream)",
      "fix": {
       "kind": "split",
-      "split_id": "quatse_river__quatse_river_hatchery_weir_100_m_2"
+      "split_id": "quatse_river__quatse_river_hatchery_weir_u100m"
      },
      "item_id": "gnis:32101"
     },
@@ -631,7 +592,7 @@
      "label": "Quatse River Hatchery weir (100 m downstream)",
      "fix": {
       "kind": "split",
-      "split_id": "quatse_river__quatse_river_hatchery_weir_100_m"
+      "split_id": "quatse_river__quatse_river_hatchery_weir_d100m"
      },
      "item_id": "gnis:32101"
     }
@@ -1214,8 +1175,8 @@
     "op": "between",
     "points": [
      {
-      "kind": "new",
-      "split_id": "stamp_lagoon_inlet"
+      "kind": "split",
+      "split_id": "stamp_river__robertson_creek_hatchery_lagoon_inlet"
      },
      {
       "kind": "new",
@@ -1227,19 +1188,6 @@
     ],
     "tributaries": null,
     "new_splits": [
-     {
-      "ref": "stamp_lagoon_inlet",
-      "anchor": "sign",
-      "name": "Robertson Creek Hatchery lagoon inlet",
-      "on_item": "gnis:14533",
-      "coord": [
-       -124.987101,
-       49.339393
-      ],
-      "blk": "354154793",
-      "measure": 18376.3,
-      "note": "[split hunt low] boundary signs at the inlet of the Robertson Creek Hatchery lagoon. Sources: https://www.openstreetmap.org/way/650430279. the powerline crossing moved ~500 m downstream (the notice: 'powerline crossing downstream approximately 500m to the inlet'); the lagoon itself is not mapped."
-     },
      {
       "ref": "stamp_cable_car",
       "anchor": "coord",
@@ -1258,7 +1206,7 @@
    },
    "confidence": "low",
    "matched": "new",
-   "reason": "split hunt: lagoon inlet signs, then ~250 m down to the cable car crossing.; low: boundary signs at the inlet of the Robertson Creek Hatchery lagoon; low: the cable car crossing ~250 m below the lagoon inlet",
+   "reason": "split hunt: lagoon inlet signs, then ~250 m down to the cable car crossing.; low: Robertson Creek Hatchery lagoon inlet is the existing cut `stamp_river__robertson_creek_hatchery_lagoon_inlet` (0.0 m away) — no new cut; low: the cable car crossing ~250 m below the lagoon inlet",
    "endpoints": [
     {
      "phrase": "boundary signs on either side of the Stamp River located at the inlet of the Stamp River hatchery lagoon continuing",
@@ -1275,13 +1223,10 @@
    ],
    "points": [
     {
-     "label": "Robertson Creek Hatchery lagoon inlet",
-     "coord": [
-      -124.987101,
-      49.339393
-     ],
-     "kind": "new",
-     "split_id": "stamp_lagoon_inlet"
+     "label": "stamp_river__robertson_creek_hatchery_lagoon_inlet",
+     "coord": null,
+     "kind": "split",
+     "split_id": "stamp_river__robertson_creek_hatchery_lagoon_inlet"
     },
     {
      "label": "Stamp River cable car crossing",
@@ -1297,28 +1242,6 @@
     "status": "found",
     "notes": "lagoon inlet signs, then ~250 m down to the cable car crossing.",
     "proposals": [
-     {
-      "ref": "stamp_lagoon_inlet",
-      "anchor": "sign",
-      "name": "Robertson Creek Hatchery lagoon inlet",
-      "confidence": "low",
-      "description": "boundary signs at the inlet of the Robertson Creek Hatchery lagoon",
-      "sources": [
-       "https://www.openstreetmap.org/way/650430279"
-      ],
-      "notes": "the powerline crossing moved ~500 m downstream (the notice: 'powerline crossing downstream approximately 500m to the inlet'); the lagoon itself is not mapped.",
-      "lat": 49.3394,
-      "lon": -124.9871,
-      "coord": [
-       -124.987101,
-       49.339393
-      ],
-      "offset_m": null,
-      "split_id": null,
-      "snap_m": 0.8,
-      "blk": "354154793",
-      "measure": 18376.3
-     },
      {
       "ref": "stamp_cable_car",
       "anchor": "coord",
@@ -1367,8 +1290,8 @@
     "op": "between",
     "points": [
      {
-      "kind": "new",
-      "split_id": "stamp_lagoon_inlet"
+      "kind": "split",
+      "split_id": "stamp_river__robertson_creek_hatchery_lagoon_inlet"
      },
      {
       "kind": "new",
@@ -1380,19 +1303,6 @@
     ],
     "tributaries": null,
     "new_splits": [
-     {
-      "ref": "stamp_lagoon_inlet",
-      "anchor": "sign",
-      "name": "Robertson Creek Hatchery lagoon inlet",
-      "on_item": "gnis:14533",
-      "coord": [
-       -124.987101,
-       49.339393
-      ],
-      "blk": "354154793",
-      "measure": 18376.3,
-      "note": "[split hunt low] boundary signs at the inlet of the Robertson Creek Hatchery lagoon. Sources: https://www.openstreetmap.org/way/650430279. the powerline crossing moved ~500 m downstream (the notice: 'powerline crossing downstream approximately 500m to the inlet'); the lagoon itself is not mapped."
-     },
      {
       "ref": "stamp_lagoon_outlet",
       "anchor": "sign",
@@ -1411,7 +1321,7 @@
    },
    "confidence": "low",
    "matched": "new",
-   "reason": "split hunt: the lagoon's inlet signs down to the marker at its outlet.; low: boundary signs at the inlet of the Robertson Creek Hatchery lagoon; low: the marker at the outlet of the hatchery lagoon, taken near where Robertson Creek enters",
+   "reason": "split hunt: the lagoon's inlet signs down to the marker at its outlet.; low: Robertson Creek Hatchery lagoon inlet is the existing cut `stamp_river__robertson_creek_hatchery_lagoon_inlet` (0.0 m away) — no new cut; low: the marker at the outlet of the hatchery lagoon, taken near where Robertson Creek enters",
    "endpoints": [
     {
      "phrase": "fishing boundary signs on either side of the Stamp River located at the inlet",
@@ -1428,13 +1338,10 @@
    ],
    "points": [
     {
-     "label": "Robertson Creek Hatchery lagoon inlet",
-     "coord": [
-      -124.987101,
-      49.339393
-     ],
-     "kind": "new",
-     "split_id": "stamp_lagoon_inlet"
+     "label": "stamp_river__robertson_creek_hatchery_lagoon_inlet",
+     "coord": null,
+     "kind": "split",
+     "split_id": "stamp_river__robertson_creek_hatchery_lagoon_inlet"
     },
     {
      "label": "Robertson Creek Hatchery lagoon outlet",
@@ -1450,28 +1357,6 @@
     "status": "found",
     "notes": "the lagoon's inlet signs down to the marker at its outlet.",
     "proposals": [
-     {
-      "ref": "stamp_lagoon_inlet",
-      "anchor": "sign",
-      "name": "Robertson Creek Hatchery lagoon inlet",
-      "confidence": "low",
-      "description": "boundary signs at the inlet of the Robertson Creek Hatchery lagoon",
-      "sources": [
-       "https://www.openstreetmap.org/way/650430279"
-      ],
-      "notes": "the powerline crossing moved ~500 m downstream (the notice: 'powerline crossing downstream approximately 500m to the inlet'); the lagoon itself is not mapped.",
-      "lat": 49.3394,
-      "lon": -124.9871,
-      "coord": [
-       -124.987101,
-       49.339393
-      ],
-      "offset_m": null,
-      "split_id": null,
-      "snap_m": 0.8,
-      "blk": "354154793",
-      "measure": 18376.3
-     },
      {
       "ref": "stamp_lagoon_outlet",
       "anchor": "sign",
@@ -1520,51 +1405,24 @@
     "op": "between",
     "points": [
      {
-      "kind": "new",
-      "split_id": "stamp_powerline"
+      "kind": "split",
+      "split_id": "stamp_river__stamp_river_powerline_crossing_b"
      },
      {
-      "kind": "new",
-      "split_id": "stamp_lagoon_inlet"
+      "kind": "split",
+      "split_id": "stamp_river__robertson_creek_hatchery_lagoon_inlet"
      }
     ],
     "items": [
      "gnis:14533"
     ],
     "tributaries": null,
-    "new_splits": [
-     {
-      "ref": "stamp_powerline",
-      "anchor": "coord",
-      "name": "Stamp River powerline crossing (BC Hydro 1L127)",
-      "on_item": "gnis:14533",
-      "coord": [
-       -124.991707,
-       49.337999
-      ],
-      "blk": "354154793",
-      "measure": 18870.8,
-      "note": "[split hunt medium] where BC Hydro line 1L127 crosses the Stamp above Robertson Creek Hatchery. Sources: https://www.openstreetmap.org/way/204089495 ; https://www.openstreetmap.org/way/156725624 ; https://www.openstreetmap.org/way/650430279. exact OSM crossing of the river and the power line; medium because the notice's line could be another span."
-     },
-     {
-      "ref": "stamp_lagoon_inlet",
-      "anchor": "sign",
-      "name": "Robertson Creek Hatchery lagoon inlet",
-      "on_item": "gnis:14533",
-      "coord": [
-       -124.987101,
-       49.339393
-      ],
-      "blk": "354154793",
-      "measure": 18376.3,
-      "note": "[split hunt low] boundary signs at the inlet of the Robertson Creek Hatchery lagoon. Sources: https://www.openstreetmap.org/way/650430279. the powerline crossing moved ~500 m downstream (the notice: 'powerline crossing downstream approximately 500m to the inlet'); the lagoon itself is not mapped."
-     }
-    ],
+    "new_splits": [],
     "words": "between Stamp River powerline crossing (BC Hydro 1L127) and Robertson Creek Hatchery lagoon inlet"
    },
-   "confidence": "low",
-   "matched": "new",
-   "reason": "split hunt: the powerline crossing down ~500 m to the lagoon inlet.; medium: where BC Hydro line 1L127 crosses the Stamp above Robertson Creek Hatchery; low: boundary signs at the inlet of the Robertson Creek Hatchery lagoon",
+   "confidence": "medium",
+   "matched": "existing",
+   "reason": "medium: the same place as `1:stamp-river:from-the-powerline-crossing-downst` — its CURATED extent (\"From the powerline crossing downstream approximately 500m to the inlet of Roberston Creek Hatchery Lagoon. Square bounda\"; place words 64% alike)",
    "endpoints": [
     {
      "phrase": "boundary signs on either side of the Stamp River at the powerline crossing",
@@ -1581,75 +1439,22 @@
    ],
    "points": [
     {
-     "label": "Stamp River powerline crossing (BC Hydro 1L127)",
-     "coord": [
-      -124.991707,
-      49.337999
-     ],
-     "kind": "new",
-     "split_id": "stamp_powerline"
+     "label": "stamp_river__stamp_river_powerline_crossing_b",
+     "coord": null,
+     "kind": "split",
+     "split_id": "stamp_river__stamp_river_powerline_crossing_b"
     },
     {
-     "label": "Robertson Creek Hatchery lagoon inlet",
-     "coord": [
-      -124.987101,
-      49.339393
-     ],
-     "kind": "new",
-     "split_id": "stamp_lagoon_inlet"
+     "label": "stamp_river__robertson_creek_hatchery_lagoon_inlet",
+     "coord": null,
+     "kind": "split",
+     "split_id": "stamp_river__robertson_creek_hatchery_lagoon_inlet"
     }
    ],
    "hunt": {
     "status": "found",
     "notes": "the powerline crossing down ~500 m to the lagoon inlet.",
-    "proposals": [
-     {
-      "ref": "stamp_powerline",
-      "anchor": "coord",
-      "name": "Stamp River powerline crossing (BC Hydro 1L127)",
-      "confidence": "medium",
-      "description": "where BC Hydro line 1L127 crosses the Stamp above Robertson Creek Hatchery",
-      "sources": [
-       "https://www.openstreetmap.org/way/204089495",
-       "https://www.openstreetmap.org/way/156725624",
-       "https://www.openstreetmap.org/way/650430279"
-      ],
-      "notes": "exact OSM crossing of the river and the power line; medium because the notice's line could be another span.",
-      "lat": 49.338,
-      "lon": -124.9917,
-      "coord": [
-       -124.991707,
-       49.337999
-      ],
-      "offset_m": null,
-      "split_id": null,
-      "snap_m": 0.5,
-      "blk": "354154793",
-      "measure": 18870.8
-     },
-     {
-      "ref": "stamp_lagoon_inlet",
-      "anchor": "sign",
-      "name": "Robertson Creek Hatchery lagoon inlet",
-      "confidence": "low",
-      "description": "boundary signs at the inlet of the Robertson Creek Hatchery lagoon",
-      "sources": [
-       "https://www.openstreetmap.org/way/650430279"
-      ],
-      "notes": "the powerline crossing moved ~500 m downstream (the notice: 'powerline crossing downstream approximately 500m to the inlet'); the lagoon itself is not mapped.",
-      "lat": 49.3394,
-      "lon": -124.9871,
-      "coord": [
-       -124.987101,
-       49.339393
-      ],
-      "offset_m": null,
-      "split_id": null,
-      "snap_m": 0.8,
-      "blk": "354154793",
-      "measure": 18376.3
-     }
-    ],
+    "proposals": [],
     "sources": [
      "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region1-eng.html"
     ],
@@ -1660,8 +1465,23 @@
    },
    "state": "needs_cut",
    "status": "dormant",
-   "why": "needs_split",
-   "outcome": "new_low"
+   "cluster": {
+    "id": "1:stamp-river#7",
+    "members": [
+     "1:stamp-river:from-the-powerline-crossing-downst",
+     "1:stamp-river:powerline-crossing-from-boundary-s"
+    ],
+    "placed": [
+     "1:stamp-river:from-the-powerline-crossing-downst"
+    ],
+    "canonical": "1:stamp-river:from-the-powerline-crossing-downst",
+    "role": "inherits",
+    "links": {
+     "1:stamp-river:from-the-powerline-crossing-downst": "same extent 0.64"
+    }
+   },
+   "why": "variant_of_placed",
+   "outcome": "existing_medium"
   },
   "1:stamp-river:upstream-of-signs-located-at-girl": {
    "location_id": "1:stamp-river:upstream-of-signs-located-at-girl",
@@ -1807,7 +1627,7 @@
     "items": [
      "gnis:12227"
     ],
-    "tributaries": null,
+    "tributaries": true,
     "new_splits": [
      {
       "ref": "cowichan_skutz_falls",
@@ -1843,31 +1663,14 @@
     },
     {
      "phrase": "Skutz Falls",
-     "kind": "new",
-     "confidence": "medium",
-     "reason": "Skutz Falls: the OSM waterfall 0 m from the water",
-     "label": "Skutz Falls",
+     "kind": "proposed",
+     "confidence": "high",
+     "reason": "\"falls, skutz\" -> the proposed cut `cowichan_river__skutz_falls` (Skutz Falls (medium confidence))",
+     "label": "Skutz Falls (medium confidence)",
      "fix": {
       "kind": "new",
-      "split_id": "sg2"
+      "split_id": "cowichan_river__skutz_falls"
      },
-     "new_split": {
-      "ref": "sg2",
-      "anchor": "coord",
-      "name": "Skutz Falls",
-      "coord": [
-       -123.955626,
-       48.783139
-      ],
-      "on_item": "gnis:12227",
-      "blk": "354155148",
-      "measure": 34212.6,
-      "quote": "Skutz Falls"
-     },
-     "coord": [
-      -123.955626,
-      48.783139
-     ],
      "item_id": "gnis:12227"
     }
    ],
@@ -1920,8 +1723,8 @@
      "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region1-eng.html"
     ],
     "matcher": {
-     "matched": "new",
-     "reason": "medium: \"70.2, cnr, mile\" -> the curated cut `cowichan_river__cnr_bridge` (CNR Bridge (mile 70.2)); medium: Skutz Falls: the OSM waterfall 0 m from the water"
+     "matched": "existing",
+     "reason": "medium: \"70.2, cnr, mile\" -> the curated cut `cowichan_river__cnr_bridge` (CNR Bridge (mile 70.2)); high: \"falls, skutz\" -> the proposed cut `cowichan_river__skutz_falls` (Skutz Falls (medium confidence)); DFO's words take the tributaries in"
     }
    },
    "state": "needs_cut",
@@ -1941,8 +1744,8 @@
     "op": "between",
     "points": [
      {
-      "kind": "new",
-      "split_id": "stamp_lagoon_inlet"
+      "kind": "split",
+      "split_id": "stamp_river__robertson_creek_hatchery_lagoon_inlet"
      },
      {
       "kind": "new",
@@ -1954,19 +1757,6 @@
     ],
     "tributaries": null,
     "new_splits": [
-     {
-      "ref": "stamp_lagoon_inlet",
-      "anchor": "sign",
-      "name": "Robertson Creek Hatchery lagoon inlet",
-      "on_item": "gnis:14533",
-      "coord": [
-       -124.987101,
-       49.339393
-      ],
-      "blk": "354154793",
-      "measure": 18376.3,
-      "note": "[split hunt low] boundary signs at the inlet of the Robertson Creek Hatchery lagoon. Sources: https://www.openstreetmap.org/way/650430279. the powerline crossing moved ~500 m downstream (the notice: 'powerline crossing downstream approximately 500m to the inlet'); the lagoon itself is not mapped."
-     },
      {
       "ref": "stamp_lagoon_outlet",
       "anchor": "sign",
@@ -1985,17 +1775,17 @@
    },
    "confidence": "low",
    "matched": "new",
-   "reason": "split hunt: a polygon inside the hatchery lagoon (lines between its shorelines): approximated by the river between the lagoon's inlet and outlet. The matcher's Robertson Creek confluence was a misread ('the Hatchery Lagoon').; low: boundary signs at the inlet of the Robertson Creek Hatchery lagoon; low: the marker at the outlet of the hatchery lagoon, taken near where Robertson Creek enters",
+   "reason": "split hunt: a polygon inside the hatchery lagoon (lines between its shorelines): approximated by the river between the lagoon's inlet and outlet. The matcher's Robertson Creek confluence was a misread ('the Hatchery Lagoon').; low: Robertson Creek Hatchery lagoon inlet is the existing cut `stamp_river__robertson_creek_hatchery_lagoon_inlet` (0.0 m away) — no new cut; low: the marker at the outlet of the hatchery lagoon, taken near where Robertson Creek enters",
    "endpoints": [
     {
      "phrase": "the southern portion of the Robertson Creek Hatchery Lagoon, east of a line drawn from the southern shoreline at the inlet",
      "kind": "split",
      "confidence": "low",
-     "reason": "\"hatchery, inlet, lagoon, robertson\" -> the curated cut `stamp_river__robertson_creek_hatchery_lagoon_2` (Robertson Creek Hatchery lagoon inlet); as close: `stamp_lagoon_inlet` (Robertson Creek Hatchery lagoon inlet (medium confidence))",
+     "reason": "\"hatchery, inlet, lagoon, robertson\" -> the curated cut `stamp_river__robertson_creek_hatchery_lagoon_inlet` (Robertson Creek Hatchery lagoon inlet); as close: `stamp_lagoon_inlet` (Robertson Creek Hatchery lagoon inlet (medium confidence))",
      "label": "Robertson Creek Hatchery lagoon inlet",
      "fix": {
       "kind": "split",
-      "split_id": "stamp_river__robertson_creek_hatchery_lagoon_2"
+      "split_id": "stamp_river__robertson_creek_hatchery_lagoon_inlet"
      },
      "item_id": "gnis:14533"
     },
@@ -2009,12 +1799,9 @@
    "points": [
     {
      "label": "Robertson Creek Hatchery lagoon inlet",
-     "coord": [
-      -124.987101,
-      49.339393
-     ],
-     "kind": "new",
-     "split_id": "stamp_lagoon_inlet"
+     "coord": null,
+     "kind": "split",
+     "split_id": "stamp_river__robertson_creek_hatchery_lagoon_inlet"
     },
     {
      "label": "Robertson Creek Hatchery lagoon outlet",
@@ -2030,28 +1817,6 @@
     "status": "found",
     "notes": "a polygon inside the hatchery lagoon (lines between its shorelines): approximated by the river between the lagoon's inlet and outlet. The matcher's Robertson Creek confluence was a misread ('the Hatchery Lagoon').",
     "proposals": [
-     {
-      "ref": "stamp_lagoon_inlet",
-      "anchor": "sign",
-      "name": "Robertson Creek Hatchery lagoon inlet",
-      "confidence": "low",
-      "description": "boundary signs at the inlet of the Robertson Creek Hatchery lagoon",
-      "sources": [
-       "https://www.openstreetmap.org/way/650430279"
-      ],
-      "notes": "the powerline crossing moved ~500 m downstream (the notice: 'powerline crossing downstream approximately 500m to the inlet'); the lagoon itself is not mapped.",
-      "lat": 49.3394,
-      "lon": -124.9871,
-      "coord": [
-       -124.987101,
-       49.339393
-      ],
-      "offset_m": null,
-      "split_id": null,
-      "snap_m": 0.8,
-      "blk": "354154793",
-      "measure": 18376.3
-     },
      {
       "ref": "stamp_lagoon_outlet",
       "anchor": "sign",
@@ -2080,7 +1845,7 @@
     ],
     "matcher": {
      "matched": "partial",
-     "reason": "low: \"hatchery, inlet, lagoon, robertson\" -> the curated cut `stamp_river__robertson_creek_hatchery_lagoon_2` (Robertson Creek Hatchery lagoon inlet); as close: `stamp_lagoon_inlet` (Robertson Creek Hatchery lagoon inlet (medium confidence)); none: no curated cut, proposal or data point names this place"
+     "reason": "low: \"hatchery, inlet, lagoon, robertson\" -> the curated cut `stamp_river__robertson_creek_hatchery_lagoon_inlet` (Robertson Creek Hatchery lagoon inlet); as close: `stamp_lagoon_inlet` (Robertson Creek Hatchery lagoon inlet (medium confidence)); none: no curated cut, proposal or data point names this place"
     }
    },
    "state": "needs_cut",
@@ -2298,58 +2063,6 @@
    "why": "needs_split",
    "outcome": "new_medium"
   },
-  "2:alouette-river-and-tributaries:above-216th-street-including-the-n": {
-   "location_id": "2:alouette-river-and-tributaries:above-216th-street-including-the-n",
-   "water": "Alouette River and tributaries",
-   "text": "above 216th Street, including the North Alouette River and tributaries to that part",
-   "notice_op": "upstream_of",
-   "items": [
-    "gnis:9630",
-    "gnis:39404"
-   ],
-   "suggestion": {
-    "op": "upstream_of",
-    "points": [
-     {
-      "kind": "split",
-      "split_id": "alouette_river__216_street_bridge"
-     }
-    ],
-    "items": [],
-    "tributaries": true,
-    "new_splits": [],
-    "words": "upstream of 216 Street bridge"
-   },
-   "confidence": "low",
-   "matched": "existing",
-   "reason": "low: \"216, street\" -> the curated cut `alouette_river__216_street_bridge` (216 Street bridge); as close: `alouette_river__216th_street` (216th Street)",
-   "endpoints": [
-    {
-     "phrase": "above 216th Street",
-     "kind": "split",
-     "confidence": "low",
-     "reason": "\"216, street\" -> the curated cut `alouette_river__216_street_bridge` (216 Street bridge); as close: `alouette_river__216th_street` (216th Street)",
-     "label": "216 Street bridge",
-     "fix": {
-      "kind": "split",
-      "split_id": "alouette_river__216_street_bridge"
-     },
-     "item_id": "gnis:9630"
-    }
-   ],
-   "points": [
-    {
-     "label": "216 Street bridge",
-     "coord": null,
-     "kind": "split",
-     "split_id": "alouette_river__216_street_bridge"
-    }
-   ],
-   "state": "needs_cut",
-   "status": "dormant",
-   "why": "review_pending",
-   "outcome": "existing_low"
-  },
   "2:alouette-river-and-tributaries:downstream-of-a-line-between-2-fis": {
    "location_id": "2:alouette-river-and-tributaries:downstream-of-a-line-between-2-fis",
    "water": "Alouette River and tributaries",
@@ -2363,106 +2076,91 @@
     "op": "downstream_of",
     "points": [
      {
-      "kind": "new",
-      "split_id": "allco_fence"
+      "kind": "split",
+      "split_id": "alouette_river__alouette_boundary_signs"
      }
     ],
-    "items": [],
+    "items": [
+     "gnis:9630"
+    ],
     "tributaries": null,
-    "new_splits": [
-     {
-      "ref": "allco_fence",
-      "anchor": "sign",
-      "name": "Allco Park boundary signs (Allco hatchery fence)",
-      "on_item": "gnis:9630",
-      "coord": [
-       -122.533526,
-       49.246954
-      ],
-      "blk": "356356440",
-      "measure": 18295.8,
-      "note": "[split hunt medium] the line of fishing boundary signs in Allco Park, taken at the Allco hatchery fish fence at the park's upstream end. Sources: https://www.openstreetmap.org/way/1154159739 ; https://www.openstreetmap.org/way/1154159759 ; https://www.openstreetmap.org/way/1057532557. Allco Park runs along the river 49.2465–49.2414; the signs' spot is unpublished. The fence is the likeliest line; the other candidate is the park's downstream end ≈ 49.2423,-122.5347.",
-      "side": "downstream"
-     }
-    ],
-    "words": "downstream of Allco Park boundary signs (Allco hatchery fence)"
+    "new_splits": [],
+    "words": "downstream of Alouette boundary signs"
    },
-   "confidence": "medium",
-   "matched": "new",
-   "reason": "split hunt: 'downstream of a line between 2 signs in Allco Park'.; medium: the line of fishing boundary signs in Allco Park, taken at the Allco hatchery fish fence at the park's upstream end",
+   "confidence": "high",
+   "matched": "existing",
+   "reason": "high: the same place as `2:alouette-river-and-tributaries:downstream-of-a-line-between-two-f` — its CURATED extent (\"downstream of a line between two fishing boundary signs in Allco Park\"; place words 100% alike, DFO's own duplicate link)",
    "endpoints": [
     {
      "phrase": "downstream of signs in Allco Park",
-     "kind": "none",
-     "confidence": "none",
-     "reason": "no curated cut, proposal or data point names this place"
+     "kind": "proposed",
+     "confidence": "high",
+     "reason": "\"allco, park\" -> the proposed cut `alouette_river__allco_park_boundary_signs_allco_hatchery_fence` (Allco Park boundary signs (Allco hatchery fence) (medium confidence))",
+     "label": "Allco Park boundary signs (Allco hatchery fence) (medium confidence)",
+     "fix": {
+      "kind": "new",
+      "split_id": "alouette_river__allco_park_boundary_signs_allco_hatchery_fence"
+     },
+     "item_id": "gnis:9630"
     }
    ],
    "points": [
     {
-     "label": "Allco Park boundary signs (Allco hatchery fence)",
-     "coord": [
-      -122.533526,
-      49.246954
-     ],
-     "kind": "new",
-     "split_id": "allco_fence"
+     "label": "alouette_river__alouette_boundary_signs",
+     "coord": null,
+     "kind": "split",
+     "split_id": "alouette_river__alouette_boundary_signs"
     }
    ],
    "hunt": {
     "status": "found",
     "notes": "'downstream of a line between 2 signs in Allco Park'.",
-    "proposals": [
-     {
-      "ref": "allco_fence",
-      "anchor": "sign",
-      "name": "Allco Park boundary signs (Allco hatchery fence)",
-      "confidence": "medium",
-      "description": "the line of fishing boundary signs in Allco Park, taken at the Allco hatchery fish fence at the park's upstream end",
-      "sources": [
-       "https://www.openstreetmap.org/way/1154159739",
-       "https://www.openstreetmap.org/way/1154159759",
-       "https://www.openstreetmap.org/way/1057532557"
-      ],
-      "notes": "Allco Park runs along the river 49.2465–49.2414; the signs' spot is unpublished. The fence is the likeliest line; the other candidate is the park's downstream end ≈ 49.2423,-122.5347.",
-      "lat": 49.247,
-      "lon": -122.5336,
-      "coord": [
-       -122.533526,
-       49.246954
-      ],
-      "offset_m": null,
-      "split_id": null,
-      "snap_m": 7.4,
-      "blk": "356356440",
-      "measure": 18295.8
-     }
-    ],
+    "proposals": [],
     "sources": [
      "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region2-eng.html"
     ],
     "matcher": {
-     "matched": "none",
-     "reason": "none: no curated cut, proposal or data point names this place"
+     "matched": "existing",
+     "reason": "high: \"allco, park\" -> the proposed cut `alouette_river__allco_park_boundary_signs_allco_hatchery_fence` (Allco Park boundary signs (Allco hatchery fence) (medium confidence))"
     }
    },
    "state": "needs_cut",
    "status": "dormant",
+   "before": {
+    "suggestion": {
+     "op": "downstream_of",
+     "points": [
+      {
+       "kind": "split",
+       "split_id": "alouette_river__alouette_boundary_signs"
+      }
+     ],
+     "items": [],
+     "tributaries": null,
+     "new_splits": [],
+     "words": "downstream of Alouette boundary signs"
+    },
+    "confidence": "high",
+    "matched": "existing",
+    "reason": "split hunt: 'downstream of a line between 2 signs in Allco Park'.; high: the curated cut `alouette_river__alouette_boundary_signs` — owner 2026-11-09: the curated Alouette boundary signs cut (49.2465,-122.53467, the synopsis' own point) IS the line of signs in Allco Park; the hunted hatchery-fence cut was not needed and is withdrawn"
+   },
    "cluster": {
     "id": "2:alouette-river-and-tributaries#2",
     "members": [
      "2:alouette-river-and-tributaries:downstream-of-a-line-between-2-fis",
      "2:alouette-river-and-tributaries:downstream-of-a-line-between-two-f"
     ],
-    "placed": [],
+    "placed": [
+     "2:alouette-river-and-tributaries:downstream-of-a-line-between-two-f"
+    ],
     "canonical": "2:alouette-river-and-tributaries:downstream-of-a-line-between-two-f",
-    "role": "agrees",
+    "role": "inherits",
     "links": {
      "2:alouette-river-and-tributaries:downstream-of-a-line-between-two-f": "dup 1.00"
     }
    },
-   "why": "variant",
-   "outcome": "new_medium"
+   "why": "variant_of_placed",
+   "outcome": "existing_high"
   },
   "2:birkenhead-river:from-the-birkenhead-bridge-located": {
    "location_id": "2:birkenhead-river:from-the-birkenhead-bridge-located",
@@ -3160,15 +2858,15 @@
     ],
     "words": "between the CPR Bridge at Mission and Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope)"
    },
-   "confidence": "low",
+   "confidence": "high",
    "matched": "new",
-   "reason": "split hunt: CPR bridge at Mission (curated) up to the Hwy 1 bridge at Hope.; low: \"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission); as close: `tidal-356364114` (Fraser River: the CPR Bridge at Mission); high: the Hwy 1 bridge over the Fraser at Hope",
+   "reason": "split hunt: CPR bridge at Mission (curated) up to the Hwy 1 bridge at Hope.; high: \"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission); high: the Hwy 1 bridge over the Fraser at Hope",
    "endpoints": [
     {
      "phrase": "the downstream side of the CPR Bridge at Mission",
      "kind": "split",
-     "confidence": "low",
-     "reason": "\"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission); as close: `tidal-356364114` (Fraser River: the CPR Bridge at Mission)",
+     "confidence": "high",
+     "reason": "\"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission)",
      "label": "the CPR Bridge at Mission",
      "fix": {
       "kind": "split",
@@ -3232,7 +2930,7 @@
     ],
     "matcher": {
      "matched": "partial",
-     "reason": "low: \"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission); as close: `tidal-356364114` (Fraser River: the CPR Bridge at Mission); none: no curated cut, proposal or data point names this place"
+     "reason": "high: \"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission); none: no curated cut, proposal or data point names this place"
     }
    },
    "state": "needs_cut",
@@ -3241,7 +2939,6 @@
     "id": "2:fraser-river#1",
     "members": [
      "2:fraser-river:from-the-downstream-side-of-the-cp",
-     "2:fraser-river:from-the-downstream-side-of-the-cp~2",
      "2:fraser-river:mainstem-waters-downstream-of-the",
      "2:fraser-river:mainstem-waters-from-the-downstrea"
     ],
@@ -3249,13 +2946,12 @@
     "canonical": "2:fraser-river:mainstem-waters-from-the-downstrea",
     "role": "member",
     "links": {
-     "2:fraser-river:from-the-downstream-side-of-the-cp~2": "text 0.80",
      "2:fraser-river:mainstem-waters-downstream-of-the": "text 1.00",
      "2:fraser-river:mainstem-waters-from-the-downstrea": "text 1.00"
     }
    },
    "why": "needs_split",
-   "outcome": "new_low"
+   "outcome": "new_high"
   },
   "2:fraser-river:upstream-from-the-highway-1-bridge": {
    "location_id": "2:fraser-river:upstream-from-the-highway-1-bridge",
@@ -3278,11 +2974,15 @@
     "gnis:8341"
    ],
    "suggestion": {
-    "op": "upstream_of",
+    "op": "between",
     "points": [
      {
       "kind": "new",
       "split_id": "fraser_hope_bridge"
+     },
+     {
+      "kind": "split",
+      "split_id": "fraser_river__spuzzum_creek_into_fraser_river"
      }
     ],
     "items": [],
@@ -3303,11 +3003,11 @@
       "side": "upstream"
      }
     ],
-    "words": "upstream of Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope)"
+    "words": "upstream of Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope) (to Region 2's line)"
    },
-   "confidence": "high",
+   "confidence": "medium",
    "matched": "new",
-   "reason": "split hunt: 'upstream from the Highway 1 Bridge at Hope'.; high: the Hwy 1 bridge over the Fraser at Hope",
+   "reason": "split hunt: 'upstream from the Highway 1 Bridge at Hope'.; high: the Hwy 1 bridge over the Fraser at Hope — DFO's Region 2 page: the water runs on into Region 3, Region 5, Region 7, so it stops at Region 2's line, the cut `fraser_river__spuzzum_creek_into_fraser_river` (Spuzzum Creek → Fraser River, km 197.0)",
    "endpoints": [
     {
      "phrase": "upstream from the Highway 1 Bridge at Hope",
@@ -3362,10 +3062,44 @@
      "reason": "none: no curated cut, proposal or data point names this place"
     }
    },
+   "before": {
+    "suggestion": {
+     "op": "upstream_of",
+     "points": [
+      {
+       "kind": "new",
+       "split_id": "fraser_hope_bridge"
+      }
+     ],
+     "items": [],
+     "tributaries": null,
+     "new_splits": [
+      {
+       "ref": "fraser_hope_bridge",
+       "anchor": "bridge",
+       "name": "Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope)",
+       "on_item": "gnis:39325",
+       "coord": [
+        -121.452186,
+        49.386489
+       ],
+       "blk": "356364114",
+       "measure": 158750.9,
+       "note": "[split hunt high] the Hwy 1 bridge over the Fraser at Hope. Sources: https://openmaps.gov.bc.ca/geo/pub/wfs?service=WFS&version=2.0.0&request=GetFeature&typeName=pub:WHSE_IMAGERY_AND_BASE_MAPS.MOT_ROAD_STRUCTURE_SP&outputFormat=json&CQL_FILTER=BMIS_STRUCTURE_NAME%20LIKE%20%27%25FRASER-HOPE%25%27. BC MoTI structure 'BILL HARTLEY/FRASER-HOPE', highway 1 — the only Hwy 1 Fraser crossing at Hope.",
+       "side": "upstream"
+      }
+     ],
+     "words": "upstream of Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope)"
+    },
+    "confidence": "high",
+    "matched": "new",
+    "reason": "split hunt: 'upstream from the Highway 1 Bridge at Hope'.; high: the Hwy 1 bridge over the Fraser at Hope"
+   },
+   "region_note": "DFO's Region 2 page: the water runs on into Region 3, Region 5, Region 7, so it stops at Region 2's line, the cut `fraser_river__spuzzum_creek_into_fraser_river` (Spuzzum Creek → Fraser River, km 197.0)",
    "state": "needs_cut",
    "status": "dormant",
    "why": "needs_split",
-   "outcome": "new_high"
+   "outcome": "new_medium"
   },
   "2:harrison-river:from-the-outlet-of-harrison-lake-d": {
    "location_id": "2:harrison-river:from-the-outlet-of-harrison-lake-d",
@@ -4677,120 +4411,6 @@
    "why": "side_channel",
    "outcome": "unresolvable"
   },
-  "2:alouette-river-and-tributaries:downstream-of-a-line-between-two-f": {
-   "location_id": "2:alouette-river-and-tributaries:downstream-of-a-line-between-two-f",
-   "water": "Alouette River and tributaries",
-   "text": "downstream of a line between two fishing boundary signs in Allco Park",
-   "notice_op": "downstream_of",
-   "items": [
-    "gnis:9630",
-    "gnis:39404"
-   ],
-   "suggestion": {
-    "op": "downstream_of",
-    "points": [
-     {
-      "kind": "new",
-      "split_id": "allco_fence"
-     }
-    ],
-    "items": [],
-    "tributaries": null,
-    "new_splits": [
-     {
-      "ref": "allco_fence",
-      "anchor": "sign",
-      "name": "Allco Park boundary signs (Allco hatchery fence)",
-      "on_item": "gnis:9630",
-      "coord": [
-       -122.533526,
-       49.246954
-      ],
-      "blk": "356356440",
-      "measure": 18295.8,
-      "note": "[split hunt medium] the line of fishing boundary signs in Allco Park, taken at the Allco hatchery fish fence at the park's upstream end. Sources: https://www.openstreetmap.org/way/1154159739 ; https://www.openstreetmap.org/way/1154159759 ; https://www.openstreetmap.org/way/1057532557. Allco Park runs along the river 49.2465–49.2414; the signs' spot is unpublished. The fence is the likeliest line; the other candidate is the park's downstream end ≈ 49.2423,-122.5347.",
-      "side": "downstream"
-     }
-    ],
-    "words": "downstream of Allco Park boundary signs (Allco hatchery fence)"
-   },
-   "confidence": "medium",
-   "matched": "new",
-   "reason": "split hunt: 'downstream of a line between two signs in Allco Park'.; medium: the line of fishing boundary signs in Allco Park, taken at the Allco hatchery fish fence at the park's upstream end",
-   "endpoints": [
-    {
-     "phrase": "downstream of signs in Allco Park",
-     "kind": "none",
-     "confidence": "none",
-     "reason": "no curated cut, proposal or data point names this place"
-    }
-   ],
-   "points": [
-    {
-     "label": "Allco Park boundary signs (Allco hatchery fence)",
-     "coord": [
-      -122.533526,
-      49.246954
-     ],
-     "kind": "new",
-     "split_id": "allco_fence"
-    }
-   ],
-   "hunt": {
-    "status": "found",
-    "notes": "'downstream of a line between two signs in Allco Park'.",
-    "proposals": [
-     {
-      "ref": "allco_fence",
-      "anchor": "sign",
-      "name": "Allco Park boundary signs (Allco hatchery fence)",
-      "confidence": "medium",
-      "description": "the line of fishing boundary signs in Allco Park, taken at the Allco hatchery fish fence at the park's upstream end",
-      "sources": [
-       "https://www.openstreetmap.org/way/1154159739",
-       "https://www.openstreetmap.org/way/1154159759",
-       "https://www.openstreetmap.org/way/1057532557"
-      ],
-      "notes": "Allco Park runs along the river 49.2465–49.2414; the signs' spot is unpublished. The fence is the likeliest line; the other candidate is the park's downstream end ≈ 49.2423,-122.5347.",
-      "lat": 49.247,
-      "lon": -122.5336,
-      "coord": [
-       -122.533526,
-       49.246954
-      ],
-      "offset_m": null,
-      "split_id": null,
-      "snap_m": 7.4,
-      "blk": "356356440",
-      "measure": 18295.8
-     }
-    ],
-    "sources": [
-     "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region2-eng.html"
-    ],
-    "matcher": {
-     "matched": "none",
-     "reason": "none: no curated cut, proposal or data point names this place"
-    }
-   },
-   "state": "needs_cut",
-   "status": "dormant",
-   "cluster": {
-    "id": "2:alouette-river-and-tributaries#2",
-    "members": [
-     "2:alouette-river-and-tributaries:downstream-of-a-line-between-2-fis",
-     "2:alouette-river-and-tributaries:downstream-of-a-line-between-two-f"
-    ],
-    "placed": [],
-    "canonical": "2:alouette-river-and-tributaries:downstream-of-a-line-between-two-f",
-    "role": "canonical",
-    "links": {
-     "2:alouette-river-and-tributaries:downstream-of-a-line-between-2-fis": "dup 1.00"
-    }
-   },
-   "why": "needs_split",
-   "outcome": "new_medium"
-  },
   "2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun~2": {
    "location_id": "2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun~2",
    "water": "Chilliwack/Vedder River (including Sumas River)",
@@ -4945,7 +4565,7 @@
    },
    "confidence": "medium",
    "matched": "new",
-   "reason": "split hunt: Hope bridge up to the downstream side of the Alexandra Bridge.; high: the Hwy 1 bridge over the Fraser at Hope; medium: the downstream side of the Alexandra Bridge (Hwy 1) in the Fraser Canyon",
+   "reason": "split hunt: Hope bridge up to the downstream side of the Alexandra Bridge.; high: the Hwy 1 bridge over the Fraser at Hope; medium: the downstream side of the Alexandra Bridge (Hwy 1) in the Fraser Canyon — the end `fraser_alexandra_bridge` (km 201.2) is 4.3 km past Region 2's line (km 197.0): DFO's words or the region — the owner's call",
    "endpoints": [
     {
      "phrase": "the Highway 1 Bridge at Hope",
@@ -5037,51 +4657,11 @@
      "reason": "none: no curated cut, proposal or data point names this place; none: no curated cut, proposal or data point names this place"
     }
    },
+   "region_note": "the end `fraser_alexandra_bridge` (km 201.2) is 4.3 km past Region 2's line (km 197.0): DFO's words or the region — the owner's call",
    "state": "needs_cut",
    "status": "dormant",
    "why": "needs_split",
    "outcome": "new_medium"
-  },
-  "2:alouette-river-and-tributaries:north-alouette-and-tributaries": {
-   "location_id": "2:alouette-river-and-tributaries:north-alouette-and-tributaries",
-   "water": "Alouette River and tributaries",
-   "text": "North Alouette and tributaries",
-   "notice_op": "described",
-   "items": [
-    "gnis:9630",
-    "gnis:39404"
-   ],
-   "matched": "whole",
-   "confidence": "high",
-   "endpoints": [],
-   "reason": "split hunt: 'North Alouette and tributaries': the North Alouette item only (gnis:39404), with its tributaries — the matcher's 'whole water' held both arms.",
-   "suggestion": {
-    "op": "whole",
-    "points": [],
-    "items": [
-     "gnis:39404"
-    ],
-    "tributaries": true,
-    "new_splits": [],
-    "words": "the whole water"
-   },
-   "points": [],
-   "hunt": {
-    "status": "found",
-    "notes": "'North Alouette and tributaries': the North Alouette item only (gnis:39404), with its tributaries — the matcher's 'whole water' held both arms.",
-    "proposals": [],
-    "sources": [
-     "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region2-eng.html"
-    ],
-    "matcher": {
-     "matched": "whole",
-     "reason": "\"North Alouette and tributaries\": North Alouette River with its tributaries"
-    }
-   },
-   "state": "unbound",
-   "status": "active",
-   "why": "review_pending",
-   "outcome": "whole"
   },
   "2:chilliwack-vedder-river-including:upstream-from-a-line-between-2-fis~2": {
    "location_id": "2:chilliwack-vedder-river-including:upstream-from-a-line-between-2-fis~2",
@@ -5338,15 +4918,15 @@
     ],
     "words": "between the CPR Bridge at Mission and Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope)"
    },
-   "confidence": "low",
+   "confidence": "high",
    "matched": "new",
-   "reason": "split hunt: 'mainstem waters' CPR Mission to Hope: no tributaries.; low: \"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission); as close: `tidal-356364114` (Fraser River: the CPR Bridge at Mission); high: the Hwy 1 bridge over the Fraser at Hope",
+   "reason": "split hunt: 'mainstem waters' CPR Mission to Hope: no tributaries.; high: \"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission); high: the Hwy 1 bridge over the Fraser at Hope",
    "endpoints": [
     {
      "phrase": "the downstream side of the CPR Bridge at Mission, BC",
      "kind": "split",
-     "confidence": "low",
-     "reason": "\"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission); as close: `tidal-356364114` (Fraser River: the CPR Bridge at Mission)",
+     "confidence": "high",
+     "reason": "\"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission)",
      "label": "the CPR Bridge at Mission",
      "fix": {
       "kind": "split",
@@ -5356,9 +4936,15 @@
     },
     {
      "phrase": "the Highway 1 Bridge at Hope, BC",
-     "kind": "none",
-     "confidence": "none",
-     "reason": "no curated cut, proposal or data point names this place"
+     "kind": "proposed",
+     "confidence": "medium",
+     "reason": "\"1, bridge, hope, hwy\" -> the proposed cut `fraser_river__highway_1_bridge_at_hope_bill_hartley_fraser_hope` (Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope) (medium confidence))",
+     "label": "Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope) (medium confidence)",
+     "fix": {
+      "kind": "new",
+      "split_id": "fraser_river__highway_1_bridge_at_hope_bill_hartley_fraser_hope"
+     },
+     "item_id": "gnis:39325"
     }
    ],
    "points": [
@@ -5409,8 +4995,8 @@
      "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region2-eng.html"
     ],
     "matcher": {
-     "matched": "partial",
-     "reason": "low: \"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission); as close: `tidal-356364114` (Fraser River: the CPR Bridge at Mission); none: no curated cut, proposal or data point names this place"
+     "matched": "existing",
+     "reason": "high: \"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission); medium: \"1, bridge, hope, hwy\" -> the proposed cut `fraser_river__highway_1_bridge_at_hope_bill_hartley_fraser_hope` (Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope) (medium confidence)); DFO's words leave the tributaries out"
     }
    },
    "state": "needs_cut",
@@ -5419,7 +5005,6 @@
     "id": "2:fraser-river#1",
     "members": [
      "2:fraser-river:from-the-downstream-side-of-the-cp",
-     "2:fraser-river:from-the-downstream-side-of-the-cp~2",
      "2:fraser-river:mainstem-waters-downstream-of-the",
      "2:fraser-river:mainstem-waters-from-the-downstrea"
     ],
@@ -5428,12 +5013,11 @@
     "role": "canonical",
     "links": {
      "2:fraser-river:from-the-downstream-side-of-the-cp": "text 1.00",
-     "2:fraser-river:from-the-downstream-side-of-the-cp~2": "text 0.80",
      "2:fraser-river:mainstem-waters-downstream-of-the": "dup 1.00"
     }
    },
    "why": "needs_split",
-   "outcome": "new_low"
+   "outcome": "new_high"
   },
   "2:nicomekl-river:within-23-m-downstream-of-the-floo": {
    "location_id": "2:nicomekl-river:within-23-m-downstream-of-the-floo",
@@ -5721,27 +5305,31 @@
     "gnis:8341"
    ],
    "suggestion": {
-    "op": "upstream_of",
+    "op": "between",
     "points": [
      {
       "kind": "split",
       "split_id": "fraser_river__the_cpr_bridge_at_mission"
+     },
+     {
+      "kind": "split",
+      "split_id": "fraser_river__spuzzum_creek_into_fraser_river"
      }
     ],
     "items": [],
     "tributaries": null,
     "new_splits": [],
-    "words": "upstream of the CPR Bridge at Mission"
+    "words": "upstream of the CPR Bridge at Mission (to Region 2's line)"
    },
-   "confidence": "low",
+   "confidence": "medium",
    "matched": "existing",
-   "reason": "low: \"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission); as close: `tidal-356364114` (Fraser River: the CPR Bridge at Mission)",
+   "reason": "high: \"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission) — DFO's Region 2 page: the water runs on into Region 3, Region 5, Region 7, so it stops at Region 2's line, the cut `fraser_river__spuzzum_creek_into_fraser_river` (Spuzzum Creek → Fraser River, km 197.0)",
    "endpoints": [
     {
      "phrase": "upstream of the CPR Bridge at Mission, BC",
      "kind": "split",
-     "confidence": "low",
-     "reason": "\"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission); as close: `tidal-356364114` (Fraser River: the CPR Bridge at Mission)",
+     "confidence": "high",
+     "reason": "\"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission)",
      "label": "the CPR Bridge at Mission",
      "fix": {
       "kind": "split",
@@ -5758,10 +5346,29 @@
      "split_id": "fraser_river__the_cpr_bridge_at_mission"
     }
    ],
+   "before": {
+    "suggestion": {
+     "op": "upstream_of",
+     "points": [
+      {
+       "kind": "split",
+       "split_id": "fraser_river__the_cpr_bridge_at_mission"
+      }
+     ],
+     "items": [],
+     "tributaries": null,
+     "new_splits": [],
+     "words": "upstream of the CPR Bridge at Mission"
+    },
+    "confidence": "high",
+    "matched": "existing",
+    "reason": "high: \"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission)"
+   },
+   "region_note": "DFO's Region 2 page: the water runs on into Region 3, Region 5, Region 7, so it stops at Region 2's line, the cut `fraser_river__spuzzum_creek_into_fraser_river` (Spuzzum Creek → Fraser River, km 197.0)",
    "state": "needs_cut",
    "status": "dormant",
    "cluster": {
-    "id": "2:fraser-river#3",
+    "id": "2:fraser-river#4",
     "members": [
      "2:fraser-river:mainstem-waters-upstream-of-the-cp",
      "2:fraser-river:mainstem-waters-upstream-of-the-cp~2"
@@ -5774,7 +5381,7 @@
     }
    },
    "why": "variant",
-   "outcome": "existing_low"
+   "outcome": "existing_medium"
   },
   "2:fraser-river:from-the-downstream-side-of-the-cp~2": {
    "location_id": "2:fraser-river:from-the-downstream-side-of-the-cp~2",
@@ -5827,15 +5434,15 @@
     ],
     "words": "between the CPR Bridge at Mission and Alexandra Bridge (Hwy 1)"
    },
-   "confidence": "low",
+   "confidence": "medium",
    "matched": "new",
-   "reason": "split hunt: two reaches back to back (Mission–Hope, Hope–Alexandra) = Mission to the Alexandra Bridge.; low: \"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission); as close: `tidal-356364114` (Fraser River: the CPR Bridge at Mission); medium: the downstream side of the Alexandra Bridge (Hwy 1) in the Fraser Canyon",
+   "reason": "split hunt: two reaches back to back (Mission–Hope, Hope–Alexandra) = Mission to the Alexandra Bridge.; high: \"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission); medium: the downstream side of the Alexandra Bridge (Hwy 1) in the Fraser Canyon — the end `fraser_alexandra_bridge` (km 201.2) is 4.3 km past Region 2's line (km 197.0): DFO's words or the region — the owner's call",
    "endpoints": [
     {
      "phrase": "the downstream side of the CPR Bridge at Mission",
      "kind": "split",
-     "confidence": "low",
-     "reason": "\"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission); as close: `tidal-356364114` (Fraser River: the CPR Bridge at Mission)",
+     "confidence": "high",
+     "reason": "\"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission)",
      "label": "the CPR Bridge at Mission",
      "fix": {
       "kind": "split",
@@ -5844,7 +5451,7 @@
      "item_id": "gnis:39325"
     },
     {
-     "phrase": "the Highway 1 Bridge at Hope and from the Highway 1 Bridge at Hope to the downstream side of the Alexandra Bridge",
+     "phrase": "the downstream side of the Alexandra Bridge",
      "kind": "none",
      "confidence": "none",
      "reason": "no curated cut, proposal or data point names this place"
@@ -5899,30 +5506,14 @@
     ],
     "matcher": {
      "matched": "partial",
-     "reason": "low: \"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission); as close: `tidal-356364114` (Fraser River: the CPR Bridge at Mission); none: no curated cut, proposal or data point names this place"
+     "reason": "high: \"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission); none: no curated cut, proposal or data point names this place"
     }
    },
+   "region_note": "the end `fraser_alexandra_bridge` (km 201.2) is 4.3 km past Region 2's line (km 197.0): DFO's words or the region — the owner's call",
    "state": "needs_cut",
    "status": "dormant",
-   "cluster": {
-    "id": "2:fraser-river#1",
-    "members": [
-     "2:fraser-river:from-the-downstream-side-of-the-cp",
-     "2:fraser-river:from-the-downstream-side-of-the-cp~2",
-     "2:fraser-river:mainstem-waters-downstream-of-the",
-     "2:fraser-river:mainstem-waters-from-the-downstrea"
-    ],
-    "placed": [],
-    "canonical": "2:fraser-river:mainstem-waters-from-the-downstrea",
-    "role": "member",
-    "links": {
-     "2:fraser-river:from-the-downstream-side-of-the-cp": "text 0.80",
-     "2:fraser-river:mainstem-waters-downstream-of-the": "text 0.80",
-     "2:fraser-river:mainstem-waters-from-the-downstrea": "text 0.80"
-    }
-   },
    "why": "needs_split",
-   "outcome": "new_low"
+   "outcome": "new_medium"
   },
   "2:harrison-river:from-the-outlet-of-harrison-lake-d~2": {
    "location_id": "2:harrison-river:from-the-outlet-of-harrison-lake-d~2",
@@ -6032,135 +5623,6 @@
    "why": "side_channel",
    "outcome": "unresolvable"
   },
-  "2:stave-river:downstream-of-b-c-hydro-dam-to-the~2": {
-   "location_id": "2:stave-river:downstream-of-b-c-hydro-dam-to-the~2",
-   "water": "Stave River",
-   "text": "downstream of B.C. Hydro Dam to the CPR Railway Bridge; except you shall not fish for salmon in that portion on the east side of the Stave River, known as the Ruskin Spawning Channel on the east bank of the BC Hydro park from the inlet near the dam, downstream to the boat ramp crossing; and you shall not fish for salmon in that portion on the west side of the Stave River known as the Northrop Spawning Channel from the intake downstream to where the channel joins the Stave River mainstem, including its tributary containing the fishway",
-   "notice_op": "between",
-   "items": [
-    "gnis:14589"
-   ],
-   "suggestion": {
-    "op": "between",
-    "points": [
-     {
-      "kind": "split",
-      "split_id": "stave_river__hayward_lake"
-     },
-     {
-      "kind": "new",
-      "split_id": "stave_cpr_bridge"
-     }
-    ],
-    "items": [
-     "gnis:14589"
-    ],
-    "tributaries": null,
-    "new_splits": [
-     {
-      "ref": "stave_cpr_bridge",
-      "anchor": "bridge",
-      "name": "CPR railway bridge over the Stave (Ruskin)",
-      "on_item": "gnis:14589",
-      "coord": [
-       -122.423617,
-       49.171974
-      ],
-      "blk": "356362384",
-      "measure": 384.0,
-      "note": "[split hunt high] the CPR Cascade Subdivision bridge over the Stave near its Fraser mouth. Sources: https://www.openstreetmap.org/way/25542350 ; https://www.openstreetmap.org/way/191990465. exact OSM railway bridge."
-     }
-    ],
-    "words": "between Hayward Lake and CPR railway bridge over the Stave (Ruskin)"
-   },
-   "confidence": "high",
-   "matched": "new",
-   "reason": "split hunt: Ruskin Dam down to the CPR railway bridge; the spawning-channel exceptions are their own locations.; high: the curated cut `stave_river__hayward_lake` — Ruskin Dam is Hayward Lake's outlet: the curated lake cut is the dam; high: the CPR Cascade Subdivision bridge over the Stave near its Fraser mouth",
-   "endpoints": [
-    {
-     "phrase": "downstream of B.C. Hydro Dam",
-     "kind": "none",
-     "confidence": "none",
-     "reason": "no curated cut, proposal or data point names this place"
-    },
-    {
-     "phrase": "the CPR Railway Bridge",
-     "kind": "none",
-     "confidence": "none",
-     "reason": "no curated cut, proposal or data point names this place"
-    }
-   ],
-   "points": [
-    {
-     "label": "stave_river__hayward_lake",
-     "coord": null,
-     "kind": "split",
-     "split_id": "stave_river__hayward_lake"
-    },
-    {
-     "label": "CPR railway bridge over the Stave (Ruskin)",
-     "coord": [
-      -122.423617,
-      49.171974
-     ],
-     "kind": "new",
-     "split_id": "stave_cpr_bridge"
-    }
-   ],
-   "hunt": {
-    "status": "found",
-    "notes": "Ruskin Dam down to the CPR railway bridge; the spawning-channel exceptions are their own locations.",
-    "proposals": [
-     {
-      "ref": "stave_cpr_bridge",
-      "anchor": "bridge",
-      "name": "CPR railway bridge over the Stave (Ruskin)",
-      "confidence": "high",
-      "description": "the CPR Cascade Subdivision bridge over the Stave near its Fraser mouth",
-      "sources": [
-       "https://www.openstreetmap.org/way/25542350",
-       "https://www.openstreetmap.org/way/191990465"
-      ],
-      "notes": "exact OSM railway bridge.",
-      "lat": 49.172,
-      "lon": -122.4237,
-      "coord": [
-       -122.423617,
-       49.171974
-      ],
-      "offset_m": null,
-      "split_id": null,
-      "snap_m": 6.7,
-      "blk": "356362384",
-      "measure": 384.0
-     }
-    ],
-    "sources": [
-     "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region2-eng.html"
-    ],
-    "matcher": {
-     "matched": "none",
-     "reason": "none: no curated cut, proposal or data point names this place; none: no curated cut, proposal or data point names this place"
-    }
-   },
-   "state": "needs_cut",
-   "status": "active",
-   "cluster": {
-    "id": "2:stave-river#1",
-    "members": [
-     "2:stave-river:downstream-of-b-c-hydro-dam-to-the",
-     "2:stave-river:downstream-of-b-c-hydro-dam-to-the~2"
-    ],
-    "placed": [],
-    "canonical": "2:stave-river:downstream-of-b-c-hydro-dam-to-the~2",
-    "role": "canonical",
-    "links": {
-     "2:stave-river:downstream-of-b-c-hydro-dam-to-the": "text 1.00"
-    }
-   },
-   "why": "needs_split",
-   "outcome": "new_high"
-  },
   "2:fraser-river:mainstem-waters-upstream-of-the-cp~2": {
    "location_id": "2:fraser-river:mainstem-waters-upstream-of-the-cp~2",
    "water": "Fraser River",
@@ -6182,27 +5644,31 @@
     "gnis:8341"
    ],
    "suggestion": {
-    "op": "upstream_of",
+    "op": "between",
     "points": [
      {
       "kind": "split",
       "split_id": "fraser_river__the_cpr_bridge_at_mission"
+     },
+     {
+      "kind": "split",
+      "split_id": "fraser_river__spuzzum_creek_into_fraser_river"
      }
     ],
     "items": [],
     "tributaries": null,
     "new_splits": [],
-    "words": "upstream of the CPR Bridge at Mission"
+    "words": "upstream of the CPR Bridge at Mission (to Region 2's line)"
    },
-   "confidence": "low",
+   "confidence": "medium",
    "matched": "existing",
-   "reason": "low: \"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission); as close: `tidal-356364114` (Fraser River: the CPR Bridge at Mission)",
+   "reason": "high: \"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission) — DFO's Region 2 page: the water runs on into Region 3, Region 5, Region 7, so it stops at Region 2's line, the cut `fraser_river__spuzzum_creek_into_fraser_river` (Spuzzum Creek → Fraser River, km 197.0)",
    "endpoints": [
     {
      "phrase": "upstream of the CPR Bridge at Mission",
      "kind": "split",
-     "confidence": "low",
-     "reason": "\"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission); as close: `tidal-356364114` (Fraser River: the CPR Bridge at Mission)",
+     "confidence": "high",
+     "reason": "\"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission)",
      "label": "the CPR Bridge at Mission",
      "fix": {
       "kind": "split",
@@ -6219,10 +5685,29 @@
      "split_id": "fraser_river__the_cpr_bridge_at_mission"
     }
    ],
+   "before": {
+    "suggestion": {
+     "op": "upstream_of",
+     "points": [
+      {
+       "kind": "split",
+       "split_id": "fraser_river__the_cpr_bridge_at_mission"
+      }
+     ],
+     "items": [],
+     "tributaries": null,
+     "new_splits": [],
+     "words": "upstream of the CPR Bridge at Mission"
+    },
+    "confidence": "high",
+    "matched": "existing",
+    "reason": "high: \"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission)"
+   },
+   "region_note": "DFO's Region 2 page: the water runs on into Region 3, Region 5, Region 7, so it stops at Region 2's line, the cut `fraser_river__spuzzum_creek_into_fraser_river` (Spuzzum Creek → Fraser River, km 197.0)",
    "state": "needs_cut",
    "status": "active",
    "cluster": {
-    "id": "2:fraser-river#3",
+    "id": "2:fraser-river#4",
     "members": [
      "2:fraser-river:mainstem-waters-upstream-of-the-cp",
      "2:fraser-river:mainstem-waters-upstream-of-the-cp~2"
@@ -6235,7 +5720,7 @@
     }
    },
    "why": "review_pending",
-   "outcome": "existing_low"
+   "outcome": "existing_medium"
   },
   "2:fraser-river:mainstem-waters-downstream-of-the": {
    "location_id": "2:fraser-river:mainstem-waters-downstream-of-the",
@@ -6288,15 +5773,15 @@
     ],
     "words": "between the CPR Bridge at Mission and Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope)"
    },
-   "confidence": "low",
+   "confidence": "high",
    "matched": "new",
-   "reason": "a rewording of `2:fraser-river:mainstem-waters-from-the-downstrea` (100% alike) — its suggestion: split hunt: 'mainstem waters' CPR Mission to Hope: no tributaries.; low: \"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission); as close: `tidal-356364114` (Fraser River: the CPR Bridge at Mission); high: the Hwy 1 bridge over the Fraser at Hope",
+   "reason": "a rewording of `2:fraser-river:mainstem-waters-from-the-downstrea` (100% alike) — its suggestion: split hunt: 'mainstem waters' CPR Mission to Hope: no tributaries.; high: \"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission); high: the Hwy 1 bridge over the Fraser at Hope",
    "endpoints": [
     {
      "phrase": "downstream of the CPR Bridge at Mission",
      "kind": "split",
-     "confidence": "low",
-     "reason": "\"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission); as close: `tidal-356364114` (Fraser River: the CPR Bridge at Mission)",
+     "confidence": "high",
+     "reason": "\"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission)",
      "label": "the CPR Bridge at Mission",
      "fix": {
       "kind": "split",
@@ -6306,9 +5791,15 @@
     },
     {
      "phrase": "the Highway 1 Bridge at Hope",
-     "kind": "none",
-     "confidence": "none",
-     "reason": "no curated cut, proposal or data point names this place"
+     "kind": "proposed",
+     "confidence": "medium",
+     "reason": "\"1, bridge, hope, hwy\" -> the proposed cut `fraser_river__highway_1_bridge_at_hope_bill_hartley_fraser_hope` (Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope) (medium confidence))",
+     "label": "Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope) (medium confidence)",
+     "fix": {
+      "kind": "new",
+      "split_id": "fraser_river__highway_1_bridge_at_hope_bill_hartley_fraser_hope"
+     },
+     "item_id": "gnis:39325"
     }
    ],
    "points": [
@@ -6337,16 +5828,20 @@
       {
        "kind": "split",
        "split_id": "fraser_river__the_cpr_bridge_at_mission"
+      },
+      {
+       "kind": "new",
+       "split_id": "fraser_river__highway_1_bridge_at_hope_bill_hartley_fraser_hope"
       }
      ],
      "items": [],
-     "tributaries": null,
+     "tributaries": false,
      "new_splits": [],
-     "words": "between the CPR Bridge at Mission and the Highway 1 Bridge at Hope"
+     "words": "between the CPR Bridge at Mission and Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope) (medium confidence)"
     },
-    "confidence": "none",
-    "matched": "partial",
-    "reason": "low: \"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission); as close: `tidal-356364114` (Fraser River: the CPR Bridge at Mission); none: no curated cut, proposal or data point names this place"
+    "confidence": "medium",
+    "matched": "existing",
+    "reason": "high: \"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission); medium: \"1, bridge, hope, hwy\" -> the proposed cut `fraser_river__highway_1_bridge_at_hope_bill_hartley_fraser_hope` (Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope) (medium confidence)); DFO's words leave the tributaries out"
    },
    "hunt": {
     "status": "found",
@@ -6379,15 +5874,14 @@
      "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region2-eng.html"
     ],
     "matcher": {
-     "matched": "partial",
-     "reason": "low: \"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission); as close: `tidal-356364114` (Fraser River: the CPR Bridge at Mission); none: no curated cut, proposal or data point names this place"
+     "matched": "existing",
+     "reason": "high: \"bridge, cpr, mission\" -> the curated cut `fraser_river__the_cpr_bridge_at_mission` (the CPR Bridge at Mission); medium: \"1, bridge, hope, hwy\" -> the proposed cut `fraser_river__highway_1_bridge_at_hope_bill_hartley_fraser_hope` (Highway 1 bridge at Hope (Bill Hartley / Fraser-Hope) (medium confidence)); DFO's words leave the tributaries out"
     }
    },
    "cluster": {
     "id": "2:fraser-river#1",
     "members": [
      "2:fraser-river:from-the-downstream-side-of-the-cp",
-     "2:fraser-river:from-the-downstream-side-of-the-cp~2",
      "2:fraser-river:mainstem-waters-downstream-of-the",
      "2:fraser-river:mainstem-waters-from-the-downstrea"
     ],
@@ -6396,12 +5890,11 @@
     "role": "adopts",
     "links": {
      "2:fraser-river:from-the-downstream-side-of-the-cp": "text 1.00",
-     "2:fraser-river:from-the-downstream-side-of-the-cp~2": "text 0.80",
      "2:fraser-river:mainstem-waters-from-the-downstrea": "dup 1.00"
     }
    },
    "why": "variant",
-   "outcome": "new_low"
+   "outcome": "new_high"
   },
   "3:fraser-river:mainstem-waters-of-the-fraser-rive": {
    "location_id": "3:fraser-river:mainstem-waters-of-the-fraser-rive",
@@ -6411,24 +5904,31 @@
    "items": [
     "gnis:39325"
    ],
-   "matched": "whole",
-   "confidence": "medium",
+   "matched": "none",
+   "confidence": "none",
    "endpoints": [],
-   "reason": "the mainstem only: the whole water without its tributaries",
-   "suggestion": {
-    "op": "whole",
-    "points": [],
-    "items": [
-     "gnis:39325"
-    ],
-    "tributaries": false,
-    "new_splits": [],
-    "words": "the whole water without its tributaries"
+   "reason": "the mainstem only: the whole water without its tributaries — DFO's Region 3 page names the whole water, but it runs through Region 2, Region 5, Region 7 and Region 3's line at km 452.7 is an area boundary, not a cut: drawn whole it would bind every region — leave it undrawn (T668: an undrawn place rides only Region 3's sections, km 197.0 to km 452.7) or cut at the line",
+   "suggestion": null,
+   "before": {
+    "suggestion": {
+     "op": "whole",
+     "points": [],
+     "items": [
+      "gnis:39325"
+     ],
+     "tributaries": false,
+     "new_splits": [],
+     "words": "the whole water without its tributaries"
+    },
+    "confidence": "medium",
+    "matched": "whole",
+    "reason": "the mainstem only: the whole water without its tributaries"
    },
+   "region_note": "DFO's Region 3 page names the whole water, but it runs through Region 2, Region 5, Region 7 and Region 3's line at km 452.7 is an area boundary, not a cut: drawn whole it would bind every region — leave it undrawn (T668: an undrawn place rides only Region 3's sections, km 197.0 to km 452.7) or cut at the line",
    "state": "unbound",
    "status": "dormant",
-   "why": "review_pending",
-   "outcome": "whole"
+   "why": "other",
+   "outcome": "unresolvable"
   },
   "3:south-thompson-river:from-the-green-can-buoy-near-outle": {
    "location_id": "3:south-thompson-river:from-the-green-can-buoy-near-outle",
@@ -6565,34 +6065,20 @@
       "split_id": "thompson_river__kamloops_lake"
      },
      {
-      "kind": "new",
-      "split_id": "thompson_goldpan_signs"
+      "kind": "split",
+      "split_id": "thompson_river__signs_just_below_goldpan_provincial_park"
      }
     ],
     "items": [
      "gnis:39492"
     ],
     "tributaries": null,
-    "new_splits": [
-     {
-      "ref": "thompson_goldpan_signs",
-      "anchor": "sign",
-      "name": "signs just below Goldpan Provincial Park",
-      "on_item": "gnis:39492",
-      "coord": [
-       -121.392281,
-       50.344684
-      ],
-      "blk": "356364690",
-      "measure": 26051.6,
-      "note": "[split hunt medium] the white triangle signs just downstream of Goldpan Provincial Park. Sources: https://www.openstreetmap.org/way/167273355 ; https://www.openstreetmap.org/way/25202728. 'just downstream' read as the river directly below the park's south (downstream) tip at 50.3453,-121.3902."
-     }
-    ],
-    "words": "between Kamloops Lake and signs just below Goldpan Provincial Park"
+    "new_splits": [],
+    "words": "between thompson_river__kamloops_lake and signs just below Goldpan Provincial Park"
    },
-   "confidence": "medium",
-   "matched": "new",
-   "reason": "split hunt: Kamloops Lake outlet (curated) down to the signs below Goldpan Park.; high: Kamloops Lake: the curated cut `thompson_river__kamloops_lake` (Kamloops Lake); medium: the white triangle signs just downstream of Goldpan Provincial Park",
+   "confidence": "high",
+   "matched": "existing",
+   "reason": "high: the same place as `3:thompson-river:from-kamloops-lake-outlet-downstre~2` — its CURATED extent (\"From Kamloops Lake outlet downstream to the fishing boundary signs just downstream of Gold Pan Provincial Park Please no\"; place words 100% alike, DFO's own duplicate link)",
    "endpoints": [
     {
      "phrase": "Kamloops Lake outlet",
@@ -6608,9 +6094,15 @@
     },
     {
      "phrase": "the fishing boundary signs just downstream of Gold Pan Provincial Park",
-     "kind": "none",
-     "confidence": "none",
-     "reason": "no curated cut, proposal or data point names this place"
+     "kind": "split",
+     "confidence": "low",
+     "reason": "only \"park, provincial\" in common with `thompson_river__signs_just_below_goldpan_provincial_park` (signs just below Goldpan Provincial Park)",
+     "label": "signs just below Goldpan Provincial Park",
+     "fix": {
+      "kind": "split",
+      "split_id": "thompson_river__signs_just_below_goldpan_provincial_park"
+     },
+     "item_id": "gnis:39492"
     }
    ],
    "points": [
@@ -6622,48 +6114,21 @@
     },
     {
      "label": "signs just below Goldpan Provincial Park",
-     "coord": [
-      -121.392281,
-      50.344684
-     ],
-     "kind": "new",
-     "split_id": "thompson_goldpan_signs"
+     "coord": null,
+     "kind": "split",
+     "split_id": "thompson_river__signs_just_below_goldpan_provincial_park"
     }
    ],
    "hunt": {
     "status": "found",
     "notes": "Kamloops Lake outlet (curated) down to the signs below Goldpan Park.",
-    "proposals": [
-     {
-      "ref": "thompson_goldpan_signs",
-      "anchor": "sign",
-      "name": "signs just below Goldpan Provincial Park",
-      "confidence": "medium",
-      "description": "the white triangle signs just downstream of Goldpan Provincial Park",
-      "sources": [
-       "https://www.openstreetmap.org/way/167273355",
-       "https://www.openstreetmap.org/way/25202728"
-      ],
-      "notes": "'just downstream' read as the river directly below the park's south (downstream) tip at 50.3453,-121.3902.",
-      "lat": 50.3445,
-      "lon": -121.392,
-      "coord": [
-       -121.392281,
-       50.344684
-      ],
-      "offset_m": null,
-      "split_id": null,
-      "snap_m": 28.6,
-      "blk": "356364690",
-      "measure": 26051.6
-     }
-    ],
+    "proposals": [],
     "sources": [
      "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region3-eng.html"
     ],
     "matcher": {
-     "matched": "partial",
-     "reason": "high: Kamloops Lake: the curated cut `thompson_river__kamloops_lake` (Kamloops Lake); none: no curated cut, proposal or data point names this place"
+     "matched": "existing",
+     "reason": "high: Kamloops Lake: the curated cut `thompson_river__kamloops_lake` (Kamloops Lake); low: only \"park, provincial\" in common with `thompson_river__signs_just_below_goldpan_provincial_park` (signs just below Goldpan Provincial Park)"
     }
    },
    "state": "needs_cut",
@@ -6674,15 +6139,17 @@
      "3:thompson-river:from-kamloops-lake-outlet-downstre",
      "3:thompson-river:from-kamloops-lake-outlet-downstre~2"
     ],
-    "placed": [],
+    "placed": [
+     "3:thompson-river:from-kamloops-lake-outlet-downstre~2"
+    ],
     "canonical": "3:thompson-river:from-kamloops-lake-outlet-downstre~2",
-    "role": "agrees",
+    "role": "inherits",
     "links": {
-     "3:thompson-river:from-kamloops-lake-outlet-downstre~2": "text 1.00"
+     "3:thompson-river:from-kamloops-lake-outlet-downstre~2": "dup 1.00"
     }
    },
-   "why": "variant",
-   "outcome": "new_medium"
+   "why": "variant_of_placed",
+   "outcome": "existing_high"
   },
   "3:thompson-river:from-the-white-triangle-fishing-bo": {
    "location_id": "3:thompson-river:from-the-white-triangle-fishing-bo",
@@ -7542,7 +7009,7 @@
     "items": [
      "gnis:17209"
     ],
-    "tributaries": null,
+    "tributaries": true,
     "new_splits": [
      {
       "ref": "atnarko_lodge_sign",
@@ -7567,13 +7034,13 @@
    "endpoints": [
     {
      "phrase": "downstream of the fishing boundary sign located near Tweedsmuir Park Lodge",
-     "kind": "split",
-     "confidence": "low",
-     "reason": "only \"park, tweedsmuir\" in common with `atnarko_bella_coola_rivers_includes_tributaries_exce__tweedsmuir_park_eastern_boundary` (Tweedsmuir Park eastern boundary)",
-     "label": "Tweedsmuir Park eastern boundary",
+     "kind": "proposed",
+     "confidence": "high",
+     "reason": "\"lodge, park, tweedsmuir\" -> the proposed cut `atnarko_river__signs_near_tweedsmuir_park_lodge_stuie` (signs near Tweedsmuir Park Lodge (Stuie) (medium confidence))",
+     "label": "signs near Tweedsmuir Park Lodge (Stuie) (medium confidence)",
      "fix": {
-      "kind": "split",
-      "split_id": "atnarko_bella_coola_rivers_includes_tributaries_exce__tweedsmuir_park_eastern_boundary"
+      "kind": "new",
+      "split_id": "atnarko_river__signs_near_tweedsmuir_park_lodge_stuie"
      },
      "item_id": "gnis:17209"
     }
@@ -7623,55 +7090,13 @@
     ],
     "matcher": {
      "matched": "existing",
-     "reason": "low: only \"park, tweedsmuir\" in common with `atnarko_bella_coola_rivers_includes_tributaries_exce__tweedsmuir_park_eastern_boundary` (Tweedsmuir Park eastern boundary)"
+     "reason": "high: \"lodge, park, tweedsmuir\" -> the proposed cut `atnarko_river__signs_near_tweedsmuir_park_lodge_stuie` (signs near Tweedsmuir Park Lodge (Stuie) (medium confidence)); DFO's words take the tributaries in"
     }
    },
    "state": "needs_cut",
    "status": "active",
    "why": "needs_split",
    "outcome": "new_medium"
-  },
-  "5b:bella-coola-river-not-including-at:all-tributaries-to-the-bella-coola": {
-   "location_id": "5b:bella-coola-river-not-including-at:all-tributaries-to-the-bella-coola",
-   "water": "Bella Coola River (not including Atnarko River)",
-   "text": "All tributaries to the Bella Coola River.",
-   "notice_op": "tributary_set",
-   "items": [
-    "gnis:11611"
-   ],
-   "suggestion": {
-    "op": "whole",
-    "points": [],
-    "items": [
-     "gnis:11611"
-    ],
-    "tributaries": true,
-    "new_splits": [],
-    "words": "the whole water"
-   },
-   "confidence": "medium",
-   "matched": "whole",
-   "endpoints": [],
-   "reason": "split hunt: 'All tributaries to the Bella Coola River'.",
-   "points": [],
-   "caveat": "TRIBUTARIES ONLY (not the Bella Coola mainstem; the water excludes the Atnarko). A mark can only say whole + tributaries — on save, note tributaries_only.",
-   "hunt": {
-    "status": "found",
-    "notes": "'All tributaries to the Bella Coola River'.",
-    "proposals": [],
-    "category": "tributary_set",
-    "sources": [
-     "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region5b-eng.html"
-    ],
-    "matcher": {
-     "matched": "none",
-     "reason": "tributaries only (not the mainstem): an extent fix cannot say it — curate by hand"
-    }
-   },
-   "state": "unbound",
-   "status": "active",
-   "why": "tributary_set",
-   "outcome": "whole"
   },
   "5b:dean-river:from-the-confluence-with-crag-cree": {
    "location_id": "5b:dean-river:from-the-confluence-with-crag-cree",
@@ -8238,13 +7663,13 @@
     "items": [
      "gnis:3206"
     ],
-    "tributaries": null,
+    "tributaries": false,
     "new_splits": [],
     "words": "downstream of Meziadin River → Nass River"
    },
    "confidence": "high",
    "matched": "existing",
-   "reason": "high: confluence of Meziadin River: the curated cut `meziadin_river__meziadin_river_into_nass_river` (Meziadin River → Nass River)",
+   "reason": "high: confluence of Meziadin River: the curated cut `meziadin_river__meziadin_river_into_nass_river` (Meziadin River → Nass River); DFO's words leave the tributaries out",
    "endpoints": [
     {
      "phrase": "downstream of the confluence with the Meziadin River",
@@ -8493,38 +7918,18 @@
     "gnis:4205"
    ],
    "suggestion": {
-    "op": "upstream_of",
-    "points": [
-     {
-      "kind": "new",
-      "split_id": "mouth_signs_illiance"
-     }
-    ],
+    "op": "whole",
+    "points": [],
     "items": [
      "gnis:4205"
     ],
-    "tributaries": null,
-    "new_splits": [
-     {
-      "ref": "mouth_signs_illiance",
-      "anchor": "sign",
-      "name": "signs near the Illiance mouth",
-      "on_item": "gnis:4205",
-      "coord": [
-       -129.461319,
-       55.4752
-      ],
-      "blk": "360867921",
-      "measure": 0.0,
-      "note": "[split hunt low] white triangle signs near the river mouth (Alice Arm) — placed AT the FWA mouth. Sources: https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region6-eng.html. nothing places the signs; at the mouth the extent is ~the whole river. Move it up if the signs are known.",
-      "side": "upstream"
-     }
-    ],
-    "words": "upstream of signs near the Illiance mouth"
+    "tributaries": true,
+    "new_splits": [],
+    "words": "the whole water"
    },
-   "confidence": "low",
-   "matched": "new",
-   "reason": "split hunt: 'upstream of signs near the mouth': with no position, the signs sit at the mouth (≈ the whole river).; low: white triangle signs near the river mouth (Alice Arm) — placed AT the FWA mouth",
+   "confidence": "medium",
+   "matched": "whole",
+   "reason": "split hunt: 'upstream of signs near the mouth': with no position, the signs sit at the mouth (≈ the whole river).; low: signs near the Illiance mouth is the mouth (m 0.0): an open end, trimmed at the stream's tidal boundary — no new cut; DFO's words take the tributaries in",
    "endpoints": [
     {
      "phrase": "upstream of white triangular fishing boundary signs located near mouth of river",
@@ -8533,44 +7938,11 @@
      "reason": "no curated cut, proposal or data point names this place"
     }
    ],
-   "points": [
-    {
-     "label": "signs near the Illiance mouth",
-     "coord": [
-      -129.461319,
-      55.4752
-     ],
-     "kind": "new",
-     "split_id": "mouth_signs_illiance"
-    }
-   ],
+   "points": [],
    "hunt": {
     "status": "found",
     "notes": "'upstream of signs near the mouth': with no position, the signs sit at the mouth (≈ the whole river).",
-    "proposals": [
-     {
-      "ref": "mouth_signs_illiance",
-      "anchor": "sign",
-      "name": "signs near the Illiance mouth",
-      "confidence": "low",
-      "description": "white triangle signs near the river mouth (Alice Arm) — placed AT the FWA mouth",
-      "sources": [
-       "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region6-eng.html"
-      ],
-      "notes": "nothing places the signs; at the mouth the extent is ~the whole river. Move it up if the signs are known.",
-      "lat": 55.4752,
-      "lon": -129.46132,
-      "coord": [
-       -129.461319,
-       55.4752
-      ],
-      "offset_m": null,
-      "split_id": null,
-      "snap_m": 0.1,
-      "blk": "360867921",
-      "measure": 0.0
-     }
-    ],
+    "proposals": [],
     "sources": [
      "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region6-eng.html"
     ],
@@ -8581,8 +7953,8 @@
    },
    "state": "needs_cut",
    "status": "active",
-   "why": "needs_split",
-   "outcome": "new_low"
+   "why": "review_pending",
+   "outcome": "whole"
   },
   "6:khutze:including-tributaries": {
    "location_id": "6:khutze:including-tributaries",
@@ -9277,38 +8649,18 @@
     "gnis:3787"
    ],
    "suggestion": {
-    "op": "upstream_of",
-    "points": [
-     {
-      "kind": "new",
-      "split_id": "mouth_signs_wilauks"
-     }
-    ],
+    "op": "whole",
+    "points": [],
     "items": [
      "gnis:3787"
     ],
-    "tributaries": null,
-    "new_splits": [
-     {
-      "ref": "mouth_signs_wilauks",
-      "anchor": "sign",
-      "name": "signs near the Wilauks mouth",
-      "on_item": "gnis:3787",
-      "coord": [
-       -129.46232,
-       55.47826
-      ],
-      "blk": "360886670",
-      "measure": 0.0,
-      "note": "[split hunt low] white triangle signs near the creek mouth (Alice Arm) — placed AT the FWA mouth. Sources: https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region6-eng.html. nothing places the signs; at the mouth the extent is ~the whole creek.",
-      "side": "upstream"
-     }
-    ],
-    "words": "upstream of signs near the Wilauks mouth"
+    "tributaries": true,
+    "new_splits": [],
+    "words": "the whole water"
    },
-   "confidence": "low",
-   "matched": "new",
-   "reason": "split hunt: 'upstream of signs near the mouth': placed at the mouth (≈ the whole creek).; low: white triangle signs near the creek mouth (Alice Arm) — placed AT the FWA mouth",
+   "confidence": "medium",
+   "matched": "whole",
+   "reason": "split hunt: 'upstream of signs near the mouth': placed at the mouth (≈ the whole creek).; low: signs near the Wilauks mouth is the mouth (m 0.0): an open end, trimmed at the stream's tidal boundary — no new cut; DFO's words take the tributaries in",
    "endpoints": [
     {
      "phrase": "upstream of white triangular fishing boundary signs located near mouth of creek",
@@ -9317,44 +8669,11 @@
      "reason": "no curated cut, proposal or data point names this place"
     }
    ],
-   "points": [
-    {
-     "label": "signs near the Wilauks mouth",
-     "coord": [
-      -129.46232,
-      55.47826
-     ],
-     "kind": "new",
-     "split_id": "mouth_signs_wilauks"
-    }
-   ],
+   "points": [],
    "hunt": {
     "status": "found",
     "notes": "'upstream of signs near the mouth': placed at the mouth (≈ the whole creek).",
-    "proposals": [
-     {
-      "ref": "mouth_signs_wilauks",
-      "anchor": "sign",
-      "name": "signs near the Wilauks mouth",
-      "confidence": "low",
-      "description": "white triangle signs near the creek mouth (Alice Arm) — placed AT the FWA mouth",
-      "sources": [
-       "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region6-eng.html"
-      ],
-      "notes": "nothing places the signs; at the mouth the extent is ~the whole creek.",
-      "lat": 55.47826,
-      "lon": -129.46232,
-      "coord": [
-       -129.46232,
-       55.47826
-      ],
-      "offset_m": null,
-      "split_id": null,
-      "snap_m": 0.0,
-      "blk": "360886670",
-      "measure": 0.0
-     }
-    ],
+    "proposals": [],
     "sources": [
      "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region6-eng.html"
     ],
@@ -9365,8 +8684,8 @@
    },
    "state": "needs_cut",
    "status": "active",
-   "why": "needs_split",
-   "outcome": "new_low"
+   "why": "review_pending",
+   "outcome": "whole"
   },
   "6:swift-river:including-tributaries-anglers-may": {
    "location_id": "6:swift-river:including-tributaries-anglers-may",
@@ -9443,7 +8762,7 @@
    "confidence": "medium",
    "matched": "whole",
    "endpoints": [],
-   "reason": "split hunt: 'Babine Lake excluding tributaries and those waters within a 400 m radius of …': the whole lake without tributaries; the radii are text.",
+   "reason": "split hunt: 'Babine Lake excluding tributaries and those waters within a 400 m radius of …': the whole lake without tributaries; the radii are text.; CONFLICT for the owner: the water's heading takes the tributaries in; this place's own words say main stem / no tributaries",
    "points": [],
    "caveat": "the lake LESS 400 m radii around the named creek mouths — those carve-outs are not geometry: keep them as the binding's notes / spatial_caveat (DFO doc 19 §3.1), the map shows the whole lake.",
    "hunt": {
@@ -9459,6 +8778,7 @@
      "reason": "a part of a lake (a line across it / a radius): not a cut on a line — curate by hand"
     }
    },
+   "tributary_conflict": "the water's heading takes the tributaries in; this place's own words say main stem / no tributaries",
    "state": "needs_cut",
    "status": "dormant",
    "cluster": {
@@ -9606,6 +8926,10 @@
    "items": [
     "gnis:2195"
    ],
+   "matched": "whole",
+   "confidence": "medium",
+   "endpoints": [],
+   "reason": "split hunt: 'all tributaries of the Bulkley River other than the Suskwa River': the Bulkley's tributary set less the Suskwa.; DFO's words are on the tributaries only (not the water itself); left out: gnis:2637",
    "suggestion": {
     "op": "whole",
     "points": [],
@@ -9614,12 +8938,12 @@
     ],
     "tributaries": true,
     "new_splits": [],
-    "words": "the whole water"
+    "words": "the whole water — the tributaries only; not Suskwa River",
+    "tributaries_only": true,
+    "tributary_excludes": [
+     "gnis:2637"
+    ]
    },
-   "confidence": "medium",
-   "matched": "whole",
-   "endpoints": [],
-   "reason": "split hunt: 'all tributaries of the Bulkley River other than the Suskwa River': the Bulkley's tributary set less the Suskwa.",
    "points": [],
    "caveat": "TRIBUTARIES ONLY, not the Bulkley mainstem, and not the Suskwa. A mark can only say whole + tributaries — on save, note 'tributaries_only, exclude Suskwa' (the binding's tributaries_only / tributary_excludes).",
    "hunt": {
@@ -9631,8 +8955,8 @@
      "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region6-eng.html"
     ],
     "matcher": {
-     "matched": "none",
-     "reason": "tributaries only (not the mainstem): an extent fix cannot say it — curate by hand"
+     "matched": "whole",
+     "reason": "tributaries only (not the mainstem): the water's tributaries, the water itself left out; DFO's words are on the tributaries only (not the water itself); left out: gnis:2637"
     }
    },
    "state": "unbound",
@@ -9672,7 +8996,7 @@
     "items": [
      "gnis:2308"
     ],
-    "tributaries": null,
+    "tributaries": true,
     "new_splits": [
      {
       "ref": "kispiox_resort_signs",
@@ -9697,9 +9021,15 @@
    "endpoints": [
     {
      "phrase": "downstream of fishing boundary signs near Kispiox River Resort",
-     "kind": "none",
-     "confidence": "none",
-     "reason": "no curated cut, proposal or data point names this place"
+     "kind": "proposed",
+     "confidence": "medium",
+     "reason": "\"kispiox, resort\" -> the proposed cut `kispiox_river__signs_near_kispiox_river_resort` (signs near Kispiox River Resort (medium confidence))",
+     "label": "signs near Kispiox River Resort (medium confidence)",
+     "fix": {
+      "kind": "new",
+      "split_id": "kispiox_river__signs_near_kispiox_river_resort"
+     },
+     "item_id": "gnis:2308"
     }
    ],
    "points": [
@@ -9745,8 +9075,8 @@
      "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region6-eng.html"
     ],
     "matcher": {
-     "matched": "none",
-     "reason": "none: no curated cut, proposal or data point names this place"
+     "matched": "existing",
+     "reason": "medium: \"kispiox, resort\" -> the proposed cut `kispiox_river__signs_near_kispiox_river_resort` (signs near Kispiox River Resort (medium confidence)); DFO's words take the tributaries in"
     }
    },
    "state": "needs_cut",
@@ -10453,83 +9783,45 @@
     "points": [
      {
       "kind": "new",
-      "split_id": "sg1"
+      "split_id": "ecstall_river__johnston_creek"
      }
     ],
     "items": [
      "gnis:3986"
     ],
-    "tributaries": null,
-    "new_splits": [
-     {
-      "ref": "sg1",
-      "anchor": "confluence",
-      "name": "Johnston Creek",
-      "item_id": "gnis:2031",
-      "on_item": "gnis:3986",
-      "quote": "upstream of fishing boundary signs near confluence with Johnston Creek",
-      "blk": "360876170",
-      "measure": 57302.8,
-      "coord": [
-       -129.491288,
-       53.857346
-      ],
-      "confidence": "medium",
-      "side": "upstream"
-     }
-    ],
-    "words": "upstream of confluence of Johnston Creek"
+    "tributaries": true,
+    "new_splits": [],
+    "words": "upstream of Johnston Creek → (proposed) (medium confidence)"
    },
    "confidence": "medium",
-   "matched": "new",
-   "reason": "medium: Johnston Creek (gnis:2031) flows straight into Ecstall River (FWA watershed code); the notice's place is NEAR the confluence; its mouth 0 m from the water's line",
+   "matched": "existing",
+   "reason": "medium: confluence of Johnston Creek: the proposed cut `ecstall_river__johnston_creek` (Johnston Creek → (proposed) (medium confidence)) — the notice's signs are NEAR it; DFO's words take the tributaries in",
    "endpoints": [
     {
      "phrase": "upstream of fishing boundary signs near confluence with Johnston Creek",
-     "kind": "new",
+     "kind": "proposed",
      "confidence": "medium",
-     "reason": "Johnston Creek (gnis:2031) flows straight into Ecstall River (FWA watershed code); the notice's place is NEAR the confluence; its mouth 0 m from the water's line",
-     "label": "confluence of Johnston Creek",
+     "reason": "confluence of Johnston Creek: the proposed cut `ecstall_river__johnston_creek` (Johnston Creek → (proposed) (medium confidence)) — the notice's signs are NEAR it",
+     "label": "Johnston Creek → (proposed) (medium confidence)",
      "fix": {
       "kind": "new",
-      "split_id": "sg1"
+      "split_id": "ecstall_river__johnston_creek"
      },
-     "new_split": {
-      "ref": "sg1",
-      "anchor": "confluence",
-      "name": "Johnston Creek",
-      "item_id": "gnis:2031",
-      "on_item": "gnis:3986",
-      "quote": "upstream of fishing boundary signs near confluence with Johnston Creek",
-      "blk": "360876170",
-      "measure": 57302.8,
-      "coord": [
-       -129.491288,
-       53.857346
-      ]
-     },
-     "coord": [
-      -129.491288,
-      53.857346
-     ],
      "item_id": "gnis:3986"
     }
    ],
    "points": [
     {
-     "label": "confluence of Johnston Creek",
-     "coord": [
-      -129.491288,
-      53.857346
-     ],
-     "kind": "new",
-     "split_id": "sg1"
+     "label": "Johnston Creek → (proposed) (medium confidence)",
+     "coord": null,
+     "kind": "proposed",
+     "split_id": "ecstall_river__johnston_creek"
     }
    ],
    "state": "needs_cut",
    "status": "active",
-   "why": "needs_split",
-   "outcome": "new_medium"
+   "why": "review_pending",
+   "outcome": "existing_medium"
   },
   "6:exchamsiks-river:upstream-of-highway-16-bridge": {
    "location_id": "6:exchamsiks-river:upstream-of-highway-16-bridge",
@@ -10650,7 +9942,7 @@
     "items": [
      "gnis:3498"
     ],
-    "tributaries": null,
+    "tributaries": true,
     "new_splits": [
      {
       "ref": "exstew_hwy16",
@@ -10675,9 +9967,15 @@
    "endpoints": [
     {
      "phrase": "upstream of Hwy #16 bridge",
-     "kind": "none",
-     "confidence": "none",
-     "reason": "no curated cut, proposal or data point names this place"
+     "kind": "proposed",
+     "confidence": "medium",
+     "reason": "\"16, bridge, hwy\" -> the proposed cut `exstew_river__hwy_16_bridge_over_the_exstew` (Hwy 16 bridge over the Exstew (medium confidence))",
+     "label": "Hwy 16 bridge over the Exstew (medium confidence)",
+     "fix": {
+      "kind": "new",
+      "split_id": "exstew_river__hwy_16_bridge_over_the_exstew"
+     },
+     "item_id": "gnis:3498"
     }
    ],
    "points": [
@@ -10722,8 +10020,8 @@
      "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region6-eng.html"
     ],
     "matcher": {
-     "matched": "none",
-     "reason": "none: no curated cut, proposal or data point names this place"
+     "matched": "existing",
+     "reason": "medium: \"16, bridge, hwy\" -> the proposed cut `exstew_river__hwy_16_bridge_over_the_exstew` (Hwy 16 bridge over the Exstew (medium confidence)); DFO's words take the tributaries in"
     }
    },
    "state": "needs_cut",
@@ -10840,10 +10138,39 @@
    "items": [
     "gnis:4078"
    ],
-   "suggestion": null,
-   "confidence": "none",
-   "matched": "none",
-   "reason": "none: no curated cut, proposal or data point names this place",
+   "suggestion": {
+    "op": "upstream_of",
+    "points": [
+     {
+      "kind": "new",
+      "split_id": "kasiks_upper_pool_signs"
+     }
+    ],
+    "items": [
+     "gnis:4078"
+    ],
+    "tributaries": true,
+    "new_splits": [
+     {
+      "ref": "kasiks_upper_pool_signs",
+      "anchor": "sign",
+      "name": "signs below the Kasiks Upper Pool (foot of the canyon falls)",
+      "on_item": "gnis:4078",
+      "coord": [
+       -129.536291,
+       54.353432
+      ],
+      "blk": "360879632",
+      "measure": 17652.7,
+      "note": "[split hunt medium] fishing boundary signs below the Upper Pool, taken as the tail-out of the pool at the foot of the canyon falls about 17.7 km up the Kasiks. Sources: https://psf.ca/wp-content/uploads/2021/10/Download-PDF700-1.pdf ; https://waves-vagues.dfo-mpo.gc.ca/Library/327687.pdf. INFERRED, not stated by any source: 'the Upper Pool' is named nowhere public. The lower Kasiks has one barrier, a canyon with falls at FWA km 17.6-18.4 (elevation 31 m to 72 m over ~600 m; FISS/RAB cascades and a 5 m rock obstacle; 1983 DFO catalogue 'impassable cascade type falls'; 2007 Skeena Fisheries Commission 'navigable for 18.5 km'); the pool at its foot is about 54.3554 N, 129.5361 W. Owner asked for this proposal 2026-11-15 ('can you add the pool proposal?'). A sign position from DFO Terrace or Prince Rupert would settle it. See handoff/PLAN/curation-review/kasiks-upper-pool-2026-11-15.md.",
+      "side": "upstream"
+     }
+    ],
+    "words": "upstream of signs below the Kasiks Upper Pool (foot of the canyon falls)"
+   },
+   "confidence": "medium",
+   "matched": "new",
+   "reason": "split hunt: 'upstream of fishing boundary signs located below the Upper Pool' (position inferred: see the cut's notes).; medium: fishing boundary signs below the Upper Pool, taken as the tail-out of the pool at the foot of the canyon falls about 17.7 km up the Kasiks; DFO's words take the tributaries in",
    "endpoints": [
     {
      "phrase": "upstream of fishing boundary signs located below the Upper Pool",
@@ -10852,19 +10179,57 @@
      "reason": "no curated cut, proposal or data point names this place"
     }
    ],
-   "points": [],
+   "points": [
+    {
+     "label": "signs below the Kasiks Upper Pool (foot of the canyon falls)",
+     "coord": [
+      -129.536291,
+      54.353432
+     ],
+     "kind": "new",
+     "split_id": "kasiks_upper_pool_signs"
+    }
+   ],
    "hunt": {
-    "status": "not_found",
-    "why": "'the Upper Pool' is named nowhere public (DFO pages, FWA, FISS: no lake or falls in the lower 12 km). Ask DFO Terrace or a local guide.",
+    "status": "found",
+    "notes": "'upstream of fishing boundary signs located below the Upper Pool' (position inferred: see the cut's notes).",
+    "proposals": [
+     {
+      "ref": "kasiks_upper_pool_signs",
+      "anchor": "sign",
+      "name": "signs below the Kasiks Upper Pool (foot of the canyon falls)",
+      "confidence": "medium",
+      "description": "fishing boundary signs below the Upper Pool, taken as the tail-out of the pool at the foot of the canyon falls about 17.7 km up the Kasiks",
+      "sources": [
+       "https://psf.ca/wp-content/uploads/2021/10/Download-PDF700-1.pdf",
+       "https://waves-vagues.dfo-mpo.gc.ca/Library/327687.pdf"
+      ],
+      "notes": "INFERRED, not stated by any source: 'the Upper Pool' is named nowhere public. The lower Kasiks has one barrier, a canyon with falls at FWA km 17.6-18.4 (elevation 31 m to 72 m over ~600 m; FISS/RAB cascades and a 5 m rock obstacle; 1983 DFO catalogue 'impassable cascade type falls'; 2007 Skeena Fisheries Commission 'navigable for 18.5 km'); the pool at its foot is about 54.3554 N, 129.5361 W. Owner asked for this proposal 2026-11-15 ('can you add the pool proposal?'). A sign position from DFO Terrace or Prince Rupert would settle it. See handoff/PLAN/curation-review/kasiks-upper-pool-2026-11-15.md.",
+      "lat": 54.3535,
+      "lon": -129.536,
+      "coord": [
+       -129.536291,
+       54.353432
+      ],
+      "offset_m": null,
+      "split_id": null,
+      "snap_m": 20.4,
+      "blk": "360879632",
+      "measure": 17652.7
+     }
+    ],
     "sources": [
      "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region6-eng.html"
     ],
-    "category": "unknown_landmark"
+    "matcher": {
+     "matched": "none",
+     "reason": "none: no curated cut, proposal or data point names this place"
+    }
    },
    "state": "needs_cut",
    "status": "active",
-   "why": "unknown_landmark",
-   "outcome": "unresolvable"
+   "why": "needs_split",
+   "outcome": "new_medium"
   },
   "6:kasiks-river:downstream-of-fishing-boundary-sig": {
    "location_id": "6:kasiks-river:downstream-of-fishing-boundary-sig",
@@ -10874,10 +10239,39 @@
    "items": [
     "gnis:4078"
    ],
-   "suggestion": null,
-   "confidence": "none",
-   "matched": "none",
-   "reason": "none: no curated cut, proposal or data point names this place",
+   "suggestion": {
+    "op": "downstream_of",
+    "points": [
+     {
+      "kind": "new",
+      "split_id": "kasiks_upper_pool_signs"
+     }
+    ],
+    "items": [
+     "gnis:4078"
+    ],
+    "tributaries": true,
+    "new_splits": [
+     {
+      "ref": "kasiks_upper_pool_signs",
+      "anchor": "sign",
+      "name": "signs below the Kasiks Upper Pool (foot of the canyon falls)",
+      "on_item": "gnis:4078",
+      "coord": [
+       -129.536291,
+       54.353432
+      ],
+      "blk": "360879632",
+      "measure": 17652.7,
+      "note": "[split hunt medium] fishing boundary signs below the Upper Pool, taken as the tail-out of the pool at the foot of the canyon falls about 17.7 km up the Kasiks. Sources: https://psf.ca/wp-content/uploads/2021/10/Download-PDF700-1.pdf ; https://waves-vagues.dfo-mpo.gc.ca/Library/327687.pdf. INFERRED, not stated by any source: 'the Upper Pool' is named nowhere public. The lower Kasiks has one barrier, a canyon with falls at FWA km 17.6-18.4 (elevation 31 m to 72 m over ~600 m; FISS/RAB cascades and a 5 m rock obstacle; 1983 DFO catalogue 'impassable cascade type falls'; 2007 Skeena Fisheries Commission 'navigable for 18.5 km'); the pool at its foot is about 54.3554 N, 129.5361 W. Owner asked for this proposal 2026-11-15 ('can you add the pool proposal?'). A sign position from DFO Terrace or Prince Rupert would settle it. See handoff/PLAN/curation-review/kasiks-upper-pool-2026-11-15.md.",
+      "side": "downstream"
+     }
+    ],
+    "words": "downstream of signs below the Kasiks Upper Pool (foot of the canyon falls)"
+   },
+   "confidence": "medium",
+   "matched": "new",
+   "reason": "split hunt: 'downstream of fishing boundary signs located below the Upper Pool' (position inferred: see the cut's notes).; medium: fishing boundary signs below the Upper Pool, taken as the tail-out of the pool at the foot of the canyon falls about 17.7 km up the Kasiks; DFO's words take the tributaries in",
    "endpoints": [
     {
      "phrase": "downstream of fishing boundary signs located below the Upper Pool",
@@ -10886,19 +10280,57 @@
      "reason": "no curated cut, proposal or data point names this place"
     }
    ],
-   "points": [],
+   "points": [
+    {
+     "label": "signs below the Kasiks Upper Pool (foot of the canyon falls)",
+     "coord": [
+      -129.536291,
+      54.353432
+     ],
+     "kind": "new",
+     "split_id": "kasiks_upper_pool_signs"
+    }
+   ],
    "hunt": {
-    "status": "not_found",
-    "why": "the Kasiks 'Upper Pool' — not found (as above).",
+    "status": "found",
+    "notes": "'downstream of fishing boundary signs located below the Upper Pool' (position inferred: see the cut's notes).",
+    "proposals": [
+     {
+      "ref": "kasiks_upper_pool_signs",
+      "anchor": "sign",
+      "name": "signs below the Kasiks Upper Pool (foot of the canyon falls)",
+      "confidence": "medium",
+      "description": "fishing boundary signs below the Upper Pool, taken as the tail-out of the pool at the foot of the canyon falls about 17.7 km up the Kasiks",
+      "sources": [
+       "https://psf.ca/wp-content/uploads/2021/10/Download-PDF700-1.pdf",
+       "https://waves-vagues.dfo-mpo.gc.ca/Library/327687.pdf"
+      ],
+      "notes": "INFERRED, not stated by any source: 'the Upper Pool' is named nowhere public. The lower Kasiks has one barrier, a canyon with falls at FWA km 17.6-18.4 (elevation 31 m to 72 m over ~600 m; FISS/RAB cascades and a 5 m rock obstacle; 1983 DFO catalogue 'impassable cascade type falls'; 2007 Skeena Fisheries Commission 'navigable for 18.5 km'); the pool at its foot is about 54.3554 N, 129.5361 W. Owner asked for this proposal 2026-11-15 ('can you add the pool proposal?'). A sign position from DFO Terrace or Prince Rupert would settle it. See handoff/PLAN/curation-review/kasiks-upper-pool-2026-11-15.md.",
+      "lat": 54.3535,
+      "lon": -129.536,
+      "coord": [
+       -129.536291,
+       54.353432
+      ],
+      "offset_m": null,
+      "split_id": null,
+      "snap_m": 20.4,
+      "blk": "360879632",
+      "measure": 17652.7
+     }
+    ],
     "sources": [
      "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region6-eng.html"
     ],
-    "category": "unknown_landmark"
+    "matcher": {
+     "matched": "none",
+     "reason": "none: no curated cut, proposal or data point names this place"
+    }
    },
    "state": "needs_cut",
    "status": "active",
-   "why": "unknown_landmark",
-   "outcome": "unresolvable"
+   "why": "needs_split",
+   "outcome": "new_medium"
   },
   "6:kasiks-river:upstream-of-highway-16-bridge": {
    "location_id": "6:kasiks-river:upstream-of-highway-16-bridge",
@@ -10919,7 +10351,7 @@
     "items": [
      "gnis:4078"
     ],
-    "tributaries": null,
+    "tributaries": true,
     "new_splits": [
      {
       "ref": "kasiks_hwy16",
@@ -10940,7 +10372,7 @@
    },
    "confidence": "high",
    "matched": "new",
-   "reason": "split hunt: 'upstream of Hwy #16 bridge'.; high: the Hwy 16 bridge over the Kasiks (at its mouth)",
+   "reason": "split hunt: 'upstream of Hwy #16 bridge'.; high: the Hwy 16 bridge over the Kasiks (at its mouth); DFO's words take the tributaries in",
    "endpoints": [
     {
      "phrase": "upstream of Hwy #16 bridge",
@@ -11019,7 +10451,7 @@
     "items": [
      "gnis:4076"
     ],
-    "tributaries": null,
+    "tributaries": true,
     "new_splits": [
      {
       "ref": "khyex_hwy16",
@@ -11044,9 +10476,15 @@
    "endpoints": [
     {
      "phrase": "upstream of Hwy #16 bridge",
-     "kind": "none",
-     "confidence": "none",
-     "reason": "no curated cut, proposal or data point names this place"
+     "kind": "proposed",
+     "confidence": "medium",
+     "reason": "\"16, bridge, hwy\" -> the proposed cut `khyex_river__hwy_16_bridge_over_the_khyex` (Hwy 16 bridge over the Khyex (medium confidence))",
+     "label": "Hwy 16 bridge over the Khyex (medium confidence)",
+     "fix": {
+      "kind": "new",
+      "split_id": "khyex_river__hwy_16_bridge_over_the_khyex"
+     },
+     "item_id": "gnis:4076"
     }
    ],
    "points": [
@@ -11091,8 +10529,8 @@
      "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region6-eng.html"
     ],
     "matcher": {
-     "matched": "none",
-     "reason": "none: no curated cut, proposal or data point names this place"
+     "matched": "existing",
+     "reason": "medium: \"16, bridge, hwy\" -> the proposed cut `khyex_river__hwy_16_bridge_over_the_khyex` (Hwy 16 bridge over the Khyex (medium confidence)); DFO's words take the tributaries in"
     }
    },
    "state": "needs_cut",
@@ -11146,7 +10584,7 @@
     "items": [
      "gnis:3942"
     ],
-    "tributaries": null,
+    "tributaries": true,
     "new_splits": [
      {
       "ref": "kitsumkalum_lower_canyon",
@@ -11167,7 +10605,7 @@
    },
    "confidence": "medium",
    "matched": "new",
-   "reason": "split hunt: 'upstream of signs below lower canyon'.; medium: fishing boundary signs just below the lower canyon (old Robin Town)",
+   "reason": "split hunt: 'upstream of signs below lower canyon'.; medium: fishing boundary signs just below the lower canyon (old Robin Town); DFO's words take the tributaries in",
    "endpoints": [
     {
      "phrase": "upstream of fishing boundary signs below lower canyon",
@@ -11246,7 +10684,7 @@
     "items": [
      "gnis:3942"
     ],
-    "tributaries": null,
+    "tributaries": true,
     "new_splits": [
      {
       "ref": "kitsumkalum_lower_canyon",
@@ -11267,7 +10705,7 @@
    },
    "confidence": "medium",
    "matched": "new",
-   "reason": "split hunt: 'downstream of signs below lower canyon'.; medium: fishing boundary signs just below the lower canyon (old Robin Town)",
+   "reason": "split hunt: 'downstream of signs below lower canyon'.; medium: fishing boundary signs just below the lower canyon (old Robin Town); DFO's words take the tributaries in",
    "endpoints": [
     {
      "phrase": "downstream of fishing boundary signs below lower canyon",
@@ -11346,7 +10784,7 @@
     "items": [
      "gnis:3942"
     ],
-    "tributaries": null,
+    "tributaries": true,
     "new_splits": [
      {
       "ref": "kitsumkalum_cn_bridge",
@@ -11367,7 +10805,7 @@
    },
    "confidence": "high",
    "matched": "new",
-   "reason": "split hunt: 'downstream of railway bridge'.; high: the CN (Skeena Subdivision) bridge near the Kitsumkalum mouth",
+   "reason": "split hunt: 'downstream of railway bridge'.; high: the CN (Skeena Subdivision) bridge near the Kitsumkalum mouth; DFO's words take the tributaries in",
    "endpoints": [
     {
      "phrase": "downstream of railway bridge",
@@ -11499,7 +10937,7 @@
     "items": [
      "gnis:4903"
     ],
-    "tributaries": null,
+    "tributaries": true,
     "new_splits": [
      {
       "ref": "lakelse_whitebottom_bridge",
@@ -11520,7 +10958,7 @@
    },
    "confidence": "medium",
    "matched": "new",
-   "reason": "split hunt: 'below logging road bridge near the mouth'.; medium: the logging road (Whitebottom Rd) bridge ~2 km above the Lakelse mouth at the Lakelse River rec site",
+   "reason": "split hunt: 'below logging road bridge near the mouth'.; medium: the logging road (Whitebottom Rd) bridge ~2 km above the Lakelse mouth at the Lakelse River rec site; DFO's words take the tributaries in",
    "endpoints": [
     {
      "phrase": "below logging road bridge near the mouth",
@@ -11600,7 +11038,7 @@
     "items": [
      "gnis:4903"
     ],
-    "tributaries": null,
+    "tributaries": true,
     "new_splits": [
      {
       "ref": "lakelse_whitebottom_bridge",
@@ -11621,7 +11059,7 @@
    },
    "confidence": "medium",
    "matched": "new",
-   "reason": "split hunt: 'above logging road bridge near the mouth'.; medium: the logging road (Whitebottom Rd) bridge ~2 km above the Lakelse mouth at the Lakelse River rec site",
+   "reason": "split hunt: 'above logging road bridge near the mouth'.; medium: the logging road (Whitebottom Rd) bridge ~2 km above the Lakelse mouth at the Lakelse River rec site; DFO's words take the tributaries in",
    "endpoints": [
     {
      "phrase": "above logging road bridge near the mouth",
@@ -11911,7 +11349,7 @@
     "items": [
      "gnis:3812"
     ],
-    "tributaries": null,
+    "tributaries": true,
     "new_splits": [
      {
       "ref": "zymagotitz_hwy16",
@@ -11936,9 +11374,15 @@
    "endpoints": [
     {
      "phrase": "upstream of Highway #16 bridge",
-     "kind": "none",
-     "confidence": "none",
-     "reason": "no curated cut, proposal or data point names this place"
+     "kind": "proposed",
+     "confidence": "medium",
+     "reason": "\"16, bridge, hwy\" -> the proposed cut `zymagotitz_river__hwy_16_bridge_over_the_zymagotitz` (Hwy 16 bridge over the Zymagotitz (medium confidence))",
+     "label": "Hwy 16 bridge over the Zymagotitz (medium confidence)",
+     "fix": {
+      "kind": "new",
+      "split_id": "zymagotitz_river__hwy_16_bridge_over_the_zymagotitz"
+     },
+     "item_id": "gnis:3812"
     }
    ],
    "points": [
@@ -11983,8 +11427,8 @@
      "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region6-eng.html"
     ],
     "matcher": {
-     "matched": "none",
-     "reason": "none: no curated cut, proposal or data point names this place"
+     "matched": "existing",
+     "reason": "medium: \"16, bridge, hwy\" -> the proposed cut `zymagotitz_river__hwy_16_bridge_over_the_zymagotitz` (Hwy 16 bridge over the Zymagotitz (medium confidence)); DFO's words take the tributaries in"
     }
    },
    "state": "needs_cut",
@@ -12011,13 +11455,13 @@
     "items": [
      "gnis:3206"
     ],
-    "tributaries": null,
+    "tributaries": false,
     "new_splits": [],
     "words": "downstream of Meziadin River → Nass River"
    },
    "confidence": "high",
    "matched": "existing",
-   "reason": "high (raised from medium): the same binding as `6:nass-river:mainstem-waters-downstream-of-the`, a clearer wording of this place — medium: confluence of Meziadin River: the curated cut `meziadin_river__meziadin_river_into_nass_river` (Meziadin River → Nass River) — the notice's signs are NEAR it",
+   "reason": "high (raised from medium): the same binding as `6:nass-river:mainstem-waters-downstream-of-the`, a clearer wording of this place — medium: confluence of Meziadin River: the curated cut `meziadin_river__meziadin_river_into_nass_river` (Meziadin River → Nass River) — the notice's signs are NEAR it; DFO's words leave the tributaries out",
    "endpoints": [
     {
      "phrase": "downstream of the fishing boundary signs near the confluence with the Meziadin River",
@@ -12054,13 +11498,13 @@
      "items": [
       "gnis:3206"
      ],
-     "tributaries": null,
+     "tributaries": false,
      "new_splits": [],
      "words": "downstream of Meziadin River → Nass River"
     },
     "confidence": "medium",
     "matched": "existing",
-    "reason": "medium: confluence of Meziadin River: the curated cut `meziadin_river__meziadin_river_into_nass_river` (Meziadin River → Nass River) — the notice's signs are NEAR it"
+    "reason": "medium: confluence of Meziadin River: the curated cut `meziadin_river__meziadin_river_into_nass_river` (Meziadin River → Nass River) — the notice's signs are NEAR it; DFO's words leave the tributaries out"
    },
    "cluster": {
     "id": "6:nass-river#1",
@@ -12099,7 +11543,7 @@
    "confidence": "medium",
    "matched": "whole",
    "endpoints": [],
-   "reason": "split hunt: 'Babine Lake excluding tributaries and those waters within a 400 m radius of …': the whole lake without tributaries; the radii are text.",
+   "reason": "split hunt: 'Babine Lake excluding tributaries and those waters within a 400 m radius of …': the whole lake without tributaries; the radii are text.; CONFLICT for the owner: the water's heading takes the tributaries in; this place's own words say main stem / no tributaries",
    "points": [],
    "caveat": "the lake LESS 400 m radii around the named creek mouths and the part east of a line from Gullwing Creek to the south shore — those carve-outs are not geometry: keep them as the binding's notes / spatial_caveat (DFO doc 19 §3.1), the map shows the whole lake.",
    "hunt": {
@@ -12115,6 +11559,7 @@
      "reason": "a part of a lake (a line across it / a radius): not a cut on a line — curate by hand"
     }
    },
+   "tributary_conflict": "the water's heading takes the tributaries in; this place's own words say main stem / no tributaries",
    "state": "needs_cut",
    "status": "dormant",
    "cluster": {
@@ -12312,13 +11757,13 @@
     "items": [
      "gnis:3206"
     ],
-    "tributaries": null,
+    "tributaries": false,
     "new_splits": [],
     "words": "between Meziadin River → Nass River and Hwy 37 bridge"
    },
    "confidence": "medium",
    "matched": "existing",
-   "reason": "medium: confluence of Meziadin River: the curated cut `meziadin_river__meziadin_river_into_nass_river` (Meziadin River → Nass River) — the notice's signs are NEAR it; high: \"37, bridge, hwy\" -> the curated cut `nass_river__hwy_37_bridge` (Hwy 37 bridge)",
+   "reason": "medium: confluence of Meziadin River: the curated cut `meziadin_river__meziadin_river_into_nass_river` (Meziadin River → Nass River) — the notice's signs are NEAR it; high: \"37, bridge, hwy\" -> the curated cut `nass_river__hwy_37_bridge` (Hwy 37 bridge); DFO's words leave the tributaries out",
    "endpoints": [
     {
      "phrase": "near the Meziadin River confluence, from white triangular fishing boundary signs located downstream of the Meziadin River confluence,and",
@@ -12529,6 +11974,10 @@
    "items": [
     "gnis:2195"
    ],
+   "matched": "whole",
+   "confidence": "medium",
+   "endpoints": [],
+   "reason": "split hunt: 'all tributaries other than Morice River and tributaries, Suskwa River and tributaries, and Two Mile Creek'.; DFO's words are on the tributaries only (not the water itself); left out: gnis:14918, gnis:2637, gnis:30327",
    "suggestion": {
     "op": "whole",
     "points": [],
@@ -12537,12 +11986,14 @@
     ],
     "tributaries": true,
     "new_splits": [],
-    "words": "the whole water"
+    "words": "the whole water — the tributaries only; not Morice River, Suskwa River, Two Mile Creek",
+    "tributaries_only": true,
+    "tributary_excludes": [
+     "gnis:14918",
+     "gnis:2637",
+     "gnis:30327"
+    ]
    },
-   "confidence": "medium",
-   "matched": "whole",
-   "endpoints": [],
-   "reason": "split hunt: 'all tributaries other than Morice River and tributaries, Suskwa River and tributaries, and Two Mile Creek'.",
    "points": [],
    "caveat": "TRIBUTARIES ONLY, less the Morice (and its tributaries), the Suskwa (and its tributaries) and Two Mile Creek. A mark can only say whole + tributaries — on save, note tributaries_only + those three excludes.",
    "hunt": {
@@ -12554,8 +12005,8 @@
      "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region6-eng.html"
     ],
     "matcher": {
-     "matched": "none",
-     "reason": "tributaries only (not the mainstem): an extent fix cannot say it — curate by hand"
+     "matched": "whole",
+     "reason": "tributaries only (not the mainstem): the water's tributaries, the water itself left out; DFO's words are on the tributaries only (not the water itself); left out: gnis:14918, gnis:2637, gnis:30327"
     }
    },
    "state": "unbound",
@@ -12797,7 +12248,7 @@
    "confidence": "medium",
    "matched": "whole",
    "endpoints": [],
-   "reason": "split hunt: 'Babine Lake excluding tributaries and those waters within a 400 m radius of …': the whole lake without tributaries; the radii are text.",
+   "reason": "split hunt: 'Babine Lake excluding tributaries and those waters within a 400 m radius of …': the whole lake without tributaries; the radii are text.; CONFLICT for the owner: the water's heading takes the tributaries in; this place's own words say main stem / no tributaries",
    "points": [],
    "caveat": "the lake LESS 400 m radii around the named creek mouths and the part east of a line from Gullwing Creek to the south shore — those carve-outs are not geometry: keep them as the binding's notes / spatial_caveat (DFO doc 19 §3.1), the map shows the whole lake.",
    "hunt": {
@@ -12813,6 +12264,7 @@
      "reason": "a part of a lake (a line across it / a radius): not a cut on a line — curate by hand"
     }
    },
+   "tributary_conflict": "the water's heading takes the tributaries in; this place's own words say main stem / no tributaries",
    "state": "needs_cut",
    "status": "active",
    "cluster": {
@@ -13601,25 +13053,16 @@
   },
   "5b:bella-coola-river-not-including-at:whole": {
    "location_id": "5b:bella-coola-river-not-including-at:whole",
-   "water": "Atnarko River",
-   "text": "Bella Coola River (not including Atnarko River)",
-   "state": "edge_gap",
-   "why": "covers_excluded_water",
-   "outcome": "extent_fix",
-   "matched": "whole",
-   "confidence": "high",
+   "water": "Bella Coola River (not including Atnarko River)",
+   "text": "",
+   "notice_op": "whole_water",
    "items": [
-    "gnis:17209"
+    "gnis:11611"
    ],
-   "status": "active",
-   "edge_gap": {
-    "water": "Atnarko River",
-    "item_id": "gnis:17209",
-    "sections": 41,
-    "of": 41,
-    "cause": "the place's tributary walk covers Atnarko River, which its own words exclude"
-   },
-   "reason": "Bella Coola River (not including Atnarko River) covers 41 of 41 sections of Atnarko River (gnis:17209) — add gnis:17209 to its tributary_excludes",
+   "matched": "existing",
+   "confidence": "medium",
+   "endpoints": [],
+   "reason": "the place's curated extent, with DFO's own tributary call; left out: gnis:17209",
    "suggestion": {
     "op": "whole",
     "points": [],
@@ -13628,17 +13071,76 @@
     ],
     "tributaries": true,
     "new_splits": [],
-    "words": "the whole water and its tributaries, NOT Atnarko River: add gnis:17209 to tributary_excludes"
+    "words": "the extent as curated — not Atnarko River",
+    "tributary_excludes": [
+     "gnis:17209"
+    ]
    },
+   "state": "tributary_call",
+   "status": "active",
+   "why": "review_pending",
+   "outcome": "existing_medium",
    "edge_gaps": [
     {
      "water": "Atnarko River",
      "item_id": "gnis:17209",
-     "sections": 41,
-     "of": 41,
+     "sections": 42,
+     "of": 42,
      "cause": "the place's tributary walk covers Atnarko River, which its own words exclude"
     }
    ]
+  },
+  "1:somass-river-tributaries:whole": {
+   "location_id": "1:somass-river-tributaries:whole",
+   "water": "Somass River tributaries",
+   "text": "",
+   "notice_op": "whole_water",
+   "items": [
+    "gnis:25707"
+   ],
+   "matched": "existing",
+   "confidence": "medium",
+   "endpoints": [],
+   "reason": "the place's curated extent, with DFO's own tributary call; DFO's words are on the tributaries only (not the water itself)",
+   "suggestion": {
+    "op": "whole",
+    "points": [],
+    "items": [],
+    "tributaries": true,
+    "new_splits": [],
+    "words": "the extent as curated — the tributaries only",
+    "tributaries_only": true
+   },
+   "state": "tributary_call",
+   "status": "dormant",
+   "why": "review_pending",
+   "outcome": "existing_medium"
+  },
+  "1:stamp-river-tributaries:whole": {
+   "location_id": "1:stamp-river-tributaries:whole",
+   "water": "Stamp River tributaries",
+   "text": "",
+   "notice_op": "whole_water",
+   "items": [
+    "gnis:14533"
+   ],
+   "matched": "existing",
+   "confidence": "medium",
+   "endpoints": [],
+   "reason": "the place's curated extent, with DFO's own tributary call; DFO's words are on the tributaries only (not the water itself)",
+   "suggestion": {
+    "op": "whole",
+    "points": [],
+    "items": [],
+    "tributaries": true,
+    "new_splits": [],
+    "words": "the extent as curated — the tributaries only",
+    "tributaries_only": true
+   },
+   "state": "tributary_call",
+   "status": "dormant",
+   "why": "review_pending",
+   "outcome": "existing_medium"
   }
  },
  "edge_gaps": 2

@@ -987,6 +987,9 @@ def cut_curated(b: _Build) -> None:
     _tick = b.tick
     area_polys = None
     applied_splits: list = []
+    if not splits:                      # --no-splits: nothing to place, and the record says so (T743)
+        from pipeline.atlas.splits.splits import write_unplaced
+        write_unplaced([], Path(args.out))
     if splits:
         from pipeline.atlas.splits.anchors import resolve_split_defs
         from pipeline.common.models import AnchorType
@@ -996,9 +999,15 @@ def cut_curated(b: _Build) -> None:
         area_specs = [(s.anchor.area_layer, s.anchor.area_name_field, s.anchor.area_name)
                       for s in splits if s.anchor.type == AnchorType.area_boundary]
         area_polys = get_area_polys(fwa, area_specs, bbox=bbox) if area_specs else None
+        _unplaced: list = []
         pts = resolve_split_defs(splits, chains, mu_polys=mu_polys, area_polys=area_polys,
                                  live_blks={n.blk for n in graph.nodes.values() if n.blk},
-                                 border_cuts=border_cuts)
+                                 border_cuts=border_cuts, unplaced=_unplaced)
+        # NO SILENT SKIP (T743, the Seton cut): every split def that resolved to no point is listed and written
+        # (`split_unplaced.json`, `[]` when none). A report, as split_conflicts is — the build goes on, so every other
+        # finding of the run is seen — and `pipeline.atlas.promote` refuses a candidate with an authored one.
+        from pipeline.atlas.splits.splits import write_unplaced
+        write_unplaced(_unplaced, Path(args.out))
         # ONE PLACEMENT (T179): where every curated + gauge point will stand, decided together and
         # before anything is cut, so the braid sweep below judges each cut where it is made.
         _conflicts: list = []
@@ -1576,6 +1585,14 @@ def water_registry(b: _Build, graph, *, areas: bool = True) -> tuple[dict, dict]
     _wrep: dict = {}
     registry = _flowing.fold_widening_ponds(registry, graph, _wrep, kept_lakes=_flowing.load_pond_calls())
     info["widening_report"] = _wrep
+    # T753 (owner 2026-11-15): a nameless line that leaves a lake and comes back into the same lake is the lake's, not
+    # its river's (`registry.lake_loops`). After every fold, so the lake's holder is final (a river's own polygon or
+    # widening keeps its loop as a braid). A loop that would divide its lake by a cut area stays with its river
+    # (criterion 5, Kotcho Lake); the area flags exist only after `mark_membership`, so the pre-shore call has none.
+    from pipeline.atlas.registry.lake_loops import move_lake_loops
+    _lrep: dict = {}
+    registry = move_lake_loops(registry, graph, _lrep, area_defs=b.area_defs if areas else None)
+    info["lake_loop_report"] = _lrep
     # T224 mined names: labels on the item that already owns the feature, after every grouping pass
     from pipeline.atlas.registry.mined import add_mined_names
     _mined_rep: dict = {}
@@ -1624,6 +1641,9 @@ def build_registry(b: _Build) -> None:
     _wrep = _info["widening_report"]
     print(f"  widening ponds (T679 #5): {_wrep['counts']} (held: two streams / a cut on its edge)")
     (out / "widening_fold_report.json").write_text(json.dumps(_wrep, indent=1) + "\n", encoding="utf-8")
+    _lrep = _info["lake_loop_report"]
+    print(f"  lake loops (T753): {_lrep['counts']} -> lake_loop_report.json")
+    (out / "lake_loop_report.json").write_text(json.dumps(_lrep, indent=1) + "\n", encoding="utf-8")
     _mined_rep = _info["mined_report"]
     print(f"  mined names: {_mined_rep['labelled']} on an existing item, {_mined_rep['own_items']} item(s) of "
           f"their own, {_mined_rep['absent']} on a feature not in the atlas (pruned or absent)")

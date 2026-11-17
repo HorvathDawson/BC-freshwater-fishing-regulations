@@ -42,7 +42,7 @@ from pipeline.common.curated import CURATED, GENERATED
 from pipeline.atlas.splits.splits import dump_resolved, order_resolved
 
 SIDECARS = ("region_home.json", "registry.json", "item_points.json", "merge_report.json", "slough_fold_report.json",
-            "one_water_report.json", "splits.resolved.json")
+            "one_water_report.json", "splits.resolved.json", "lake_loop_report.json")
 
 
 def enrich_resolved(rows: list[dict], curated_defs, *, strict: bool = True) -> list[dict]:
@@ -135,6 +135,12 @@ def write_sidecars(build: Path, out: Path | None = None, *, log=print) -> Path:
     registry = _flowing.fold_widening_ponds(registry, graph, wrep, kept_lakes=_flowing.load_pond_calls())
     (dest / "widening_fold_report.json").write_text(json.dumps(wrep, indent=1) + "\n", encoding="utf-8")
     log(f"  widening ponds (T679 #5): {wrep['counts']} -> widening_fold_report.json")
+    from pipeline.atlas.registry.lake_loops import move_lake_loops     # T753: the same pass the atlas build runs
+    from pipeline.atlas.splits.area_splits import load_area_split_defs
+    lrep: dict = {}
+    registry = move_lake_loops(registry, graph, lrep, area_defs=load_area_split_defs())
+    (dest / "lake_loop_report.json").write_text(json.dumps(lrep, indent=1) + "\n", encoding="utf-8")
+    log(f"  lake loops (T753): {lrep['counts']} -> lake_loop_report.json")
     registry = add_lake_parts(registry, lake_parts(load_added_lakes()))
     n_parts = sum(1 for it in registry.values() if it.part_of)
     # A water outside an area its polygon touches (`areas.json` `outside_items`): the same pass

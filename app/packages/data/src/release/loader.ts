@@ -55,7 +55,11 @@ export interface ReleaseLoader {
   readonly manifest: Manifest;
   readonly handles: string;
   db(name: DbName): Promise<Db>;
-  paint(): Promise<Paint>;
+  /**
+   * The release's paint, decoded once (the first caller's `sliceMs` decides the decode's slice: (T741) a launch passes
+   * `LAUNCH_SLICE_MS`, everything else the default `SLICE_MS`).
+   */
+  paint(o?: { sliceMs?: number }): Promise<Paint>;
   /** The target areas, in paint section order (opened with Conditions). */
   flowArea(): Promise<Float64Array>;
   /** The lake modes' values (`lakes`), checked against the release's handles; null when the manifest names none. */
@@ -86,6 +90,13 @@ export interface ReleaseLoader {
   routed(name: Sliced): Db;
   /** (T256) The file a read naming `keys` goes to: the whole file when it is here or no slice covers the keys. */
   dbFor(name: Sliced, keys: SliceKeys | null): Promise<Db>;
+  /**
+   * (T737, 2026-11-15) Open the FOCUS region's slice of `name` now, before any read names its keys: an unnamed tap's
+   * answer key comes out of `regs-sid` (1.2 MB), and only then did its water read go to the 0.17 MB `water-<r>` — in
+   * series. Nothing when no region is focused, the whole file is here, or the release cuts no such slice. Optional: a
+   * fake loader has none.
+   */
+  warmSlice?(name: Sliced): Promise<void>;
   /** Which files have been opened so far (the web's lazy-load test reads this). */
   opened(): readonly FileName[];
   /**
@@ -147,15 +158,27 @@ export function releaseLoader(m: Manifest, source: ReleaseSource, open: Opener,
   let regions: Promise<Map<number, Region[]>> | null = null;
   const touch = (n: FileName) => { if (!order.includes(n)) order.push(n); };
   const ahead = new Map<FileName, Promise<void>>();
+  /** (T737) the files a prefetch has finished: in the release cache, so an open reads them without waiting */
+  const aheadDone = new Set<FileName>();
+  /** (T737) the files whose open has FINISHED (a whole file still opening does not hold a read its slice answers) */
+  const openDone = new Set<DbName>();
   let focused: Region | null = null;
   /** (T256) the slices opened so far, per file, in the order opened (a slice once read keeps answering what it covers) */
   const slicesOpen: Record<Sliced, Region[]> = { core: [], water: [] };
   const sliceOf = (name: Sliced, r: Region) => `${name}-${r}` as DbName;
 /** (T370) the web file of the region-wide water tables, cut beside the slices (pipeline `slices.WATER_SHARED`) */
 const WATER_SHARED: DbName = "water-shared";
-  /** Whether the whole file is here or on its way (opened, asked ahead, or kept in this browser): then it is read. */
+  /**
+   * Whether the whole file is here (opened, prefetched to the end, or kept in this browser): then it is read.
+   * (T737) A whole file still being fetched AHEAD (the background prefetch) is NOT here: a tap read it, so the first tap
+   * a few seconds after the map painted waited for the whole 2.5 MB `water` (8-9 s on staging, measured) instead of its
+   * region's 0.17 MB slice. The slice answers now, the prefetch goes on beside it, and once it is in the whole file reads.
+   * (T737, 2026-11-15) Nor is a whole file still being OPENED: the in-season check (`itemOrd` of every water a notice
+   * names, province-wide) opens the whole 1.5 MB `core` a few seconds after paint, and a Region 2 tap then waited for it
+   * (9.4 s on staging, measured) though `core-2` held its answer. Only a finished open counts.
+   */
   const wholeHere = async (name: Sliced): Promise<boolean> =>
-    dbs.has(name) || ahead.has(name) || (source.stored ? await source.stored(name).catch(() => false) : false);
+    openDone.has(name) || aheadDone.has(name) || (source.stored ? await source.stored(name).catch(() => false) : false);
 
   /**
    * (T360) A file's ONE handle: what `db()` hands out and every reader keeps. Its connection may be closed while idle
@@ -242,7 +265,7 @@ const WATER_SHARED: DbName = "water-shared";
         if (retired) shut(conns.get(name)!).catch(retired);
         return h;
       });
-      p.catch(() => dbs.delete(name));          // a failure is not cached: the next ask tries again
+      p.then(() => { if (dbs.get(name) === p) openDone.add(name); }, () => dbs.delete(name));   // a failure is not cached: the next ask tries again
       dbs.set(name, p);
     }
     return p;
@@ -253,10 +276,11 @@ const WATER_SHARED: DbName = "water-shared";
     manifest: m,
     handles,
     db,
-    paint() {
+    paint(o) {
       if (!paint) {
         touch("paint");
-        paint = source.bytes("paint").then((b) => decoded("decode paint", () => decodePaint(b, handles), () => decodePaintAsync(b, handles)));
+        paint = source.bytes("paint").then((b) => decoded("decode paint", () => decodePaint(b, handles),
+                                                          () => decodePaintAsync(b, handles, null, o?.sliceMs)));
         paint.catch(() => { paint = null; });
       }
       return paint;
@@ -349,6 +373,11 @@ const WATER_SHARED: DbName = "water-shared";
       return db(`regs-${held ?? rs[0]!}`);
     },
     focus(region) { focused = region; },
+    async warmSlice(name) {
+      const r = focused;
+      if (!r || !m.files[sliceOf(name, r)] || await wholeHere(name)) return;
+      await db(sliceOf(name, r));
+    },
     routed(name) { return routedDb((sql, p) => loader.dbFor(name, sliceKeys(name, sql, p))); },
     async dbFor(name, keys) {
       if (keys === null || await wholeHere(name)) return db(name);
@@ -403,7 +432,7 @@ const WATER_SHARED: DbName = "water-shared";
       if (!m.files[name]) return Promise.reject(new ReleaseError(`release ${m.data_release} has no file ${name}`));
       let p = ahead.get(name);
       if (!p) {
-        p = source.bytes(name, { ahead: true }).then(() => {});
+        p = source.bytes(name, { ahead: true }).then(() => { aheadDone.add(name); });
         p.catch(() => ahead.delete(name));        // a failure is not kept: the next ask (or the open) tries again
         ahead.set(name, p);
       }

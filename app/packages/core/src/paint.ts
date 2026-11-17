@@ -14,7 +14,7 @@
  */
 import { accessOf, ACCESS_TIERS, type AccessArea, type SectionAccess } from "./access";
 import { statusIndexSteps, type StatusIndex } from "./statusIndex";
-import { runNow, runSliced, YIELD_EVERY, type Steps } from "./sliced";
+import { runNow, runSliced, SLICE_MS, YIELD_EVERY, type Steps } from "./sliced";
 
 const YM = YIELD_EVERY - 1;
 import type { RecordYears } from "./trust";
@@ -110,8 +110,10 @@ export function decodePaint(bytes: Uint8Array, expectHandles: string | null, exp
  * (T287) `decodePaint` in slices (`sliced.ts`): ~150 ms in one piece on a phone, the freeze felt when a downloaded
  * release is swapped in or a first install opens. Same answer.
  */
-export function decodePaintAsync(bytes: Uint8Array, expectHandles: string | null, expectReach: string | null = null): Promise<Paint> {
-  return runSliced(paintSteps(bytes, expectHandles, expectReach));
+export function decodePaintAsync(bytes: Uint8Array, expectHandles: string | null, expectReach: string | null = null,
+                                 sliceMs: number = SLICE_MS): Promise<Paint> {
+  // (T741) `sliceMs`: `LAUNCH_SLICE_MS` for a launch's decode (boot screen only), `SLICE_MS` otherwise
+  return runSliced(paintSteps(bytes, expectHandles, expectReach), sliceMs);
 }
 
 /** (T403) The paint formats this decoder reads: a release naming another is refused before it is opened. */

@@ -92,13 +92,20 @@ export interface ChangelogRowVM {
 }
 
 /** Every version, NEWEST FIRST (by semver, whatever order the file is in); the installed one marked. */
-export function changelogVM(installed: string | null, log: readonly ChangelogEntry[] = CHANGELOG): readonly ChangelogRowVM[] {
+export function changelogVM(installed: string | null, log: readonly ChangelogEntry[] = CHANGELOG,
+                            os: "android" | "ios" | "web" = "android"): readonly ChangelogRowVM[] {
   const W = CHANGELOG_WORDS;
-  return [...log].filter((e) => parseSemver(e.version)).sort((a, b) => compareSemver(b.version, a.version)).map((e) => ({
-    version: e.version, title: W.version(e.version), when: e.date ? W.date(e.date) : W.notCut,
-    installed: installed !== null && compareSemver(e.version, installed) === 0,
-    notes: e.notes, missing: e.notes.length ? null : W.noNotes,
-  }));
+  // (T723 G11) a note tagged for the other platform is not shown; a version whose every note was the other's is not listed
+  const mine = (e: ChangelogEntry): readonly string[] => e.notes.filter((n) => { const o = e.only?.[n]; return !o || o === os; });
+  return [...log].filter((e) => parseSemver(e.version) && (e.notes.length === 0 || mine(e).length > 0))
+    .sort((a, b) => compareSemver(b.version, a.version)).map((e) => {
+      const notes = mine(e);
+      return {
+        version: e.version, title: W.version(e.version), when: e.date ? W.date(e.date) : W.notCut,
+        installed: installed !== null && compareSemver(e.version, installed) === 0,
+        notes, missing: notes.length ? null : W.noNotes,
+      };
+    });
 }
 
 /**

@@ -25,6 +25,7 @@ from pipeline.regs.review import export as E
 from pipeline.regs.review import marks as M
 from pipeline.tests.test_review_write_through import wt  # noqa: F401  (the app over a sandbox, write-through on)
 from pipeline.tests import under_test
+from pipeline.tests.conftest import curated_root
 
 SHA = "0" * 64
 BABINE = "6:babine-lake"
@@ -121,15 +122,22 @@ def test_the_file_holds_only_what_is_confirmed_and_a_later_wrong_takes_it_out(tm
     assert (r["centre"], r["radius_m"]) == ([-126.28, 55.15], 250.0)
 
 
-def test_the_writer_writes_its_own_file_and_nothing_else(tmp_path):
+def test_the_writer_writes_its_own_file_and_nothing_else(tmp_path, monkeypatch):
     assert E.DOMAINS["closed_areas"] == ("closed_area",) and "closed_areas" in AP.WRITERS
+    # a curated tree this test builds, with a review that has nothing in it: the live file (which his saves fill) is
+    # never what "no file" is proven on
+    root = curated_root(monkeypatch, tmp_path / "curated")
+    assert CA.path().is_relative_to(root), "the writer follows the curated root it is given"
     out = AP.WRITERS["closed_areas"](_decided(tmp_path, [_mark(CIRCLE)]))
     assert list(out) == [CA.path()] and CA.path().name == "closed_areas.json"
     assert CA.path().parent == Path(under_test.curated().dfo_salmon.places).parent
+    assert not CA.path().is_relative_to(Path(under_test.curated().dfo_salmon.places)), "never inside the places files"
     # the file is born with his first confirm: nothing confirmed and no file = nothing to write (the landed check
     # must not read a missing file as "marks not landed")
     assert not CA.path().exists() and AP.WRITERS["closed_areas"](_decided(tmp_path, [])) == {}
-    assert not CA.path().is_relative_to(Path(under_test.curated().dfo_salmon.places)), "never inside the places files"
+    # once born, a store with nothing confirmed (his later "wrong") writes it empty, never leaves the old rows
+    CA.path().write_text(out[CA.path()], encoding="utf-8")
+    assert AP.WRITERS["closed_areas"](_decided(tmp_path, [])) == {CA.path(): CA.document([])}
 
 
 # --------------------------------------------------------------------------- the app (sandbox, write-through on)
@@ -220,8 +228,11 @@ def test_a_stretch_end_placed_by_hand_is_resolved_on_the_water_and_stamped(wt): 
     pv = client.get(f"/api/dfo/locations/{THOMPSON_ROW}/closed-area-preview", params={"piece": json.dumps(piece)}).json()
     assert pv["ok"] and pv["metres"] and pv["ends"][0]["new"] and pv["ends"][1]["new"] is False
     # owner 2026-11-10 (T590): every new cut says its nearest existing cut on the same line, and whether it is near
+    # T777: the Deadman proposal's own upper cut was BUILT on 2026-11-15 (it is now an existing cut at this very
+    # point), so "far from every cut" no longer holds for this coordinate on the live tree. What must hold either
+    # way: the nearest cut is named, and `near` says exactly "within 200 m".
     near = pv["ends"][0]["nearest"]
-    assert near["split_id"] and near["metres"] > 200 and near["near"] is False, near
+    assert near["split_id"] and near["near"] is (near["metres"] <= 200), near
     hit = client.get(f"/api/dfo/locations/{THOMPSON_ROW}/anchor", params={"split": json.dumps(
         {"ref": "x", "anchor": "coord", "on_item": a["piece"]["on_item"], "coord": a["ends"][1]["coord"]})}).json()
     assert hit["ok"] and hit["nearest"]["near"] is True and hit["nearest"]["metres"] <= 200, \

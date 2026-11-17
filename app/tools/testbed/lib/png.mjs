@@ -62,3 +62,30 @@ export function count(img, r, test) {
   }
   return n;
 }
+
+/**
+ * (T723) The iOS software keyboard's top edge in a simulator screenshot (pixel row), or null when no keyboard is drawn.
+ * The accessibility tree does not list the keyboard, so it is read off the pixels: its material is a light grey with a
+ * blue cast (iOS 26 light: about 223,224,228), keys are white with grey gaps between rows. From the bottom up, a row is
+ * "keyboard" when 30% or more of its middle is that grey; key rows (mostly white) are crossed as gaps up to 7% of the
+ * height. Checked against shots by eye (T723-kb-glossary.png, T723-kb-spot-notes.png with the violet typing glow: the
+ * row found is the keyboard's rounded top).
+ */
+export function keyboardTop(img) {
+  // the grey (B a little over R), and the violet glow iOS 26 lays over the keyboard's lower rows while typing
+  const kb = (r, g, b) => r >= 180 && r <= 240 && b >= 200 && b - r >= 1 && b - r <= 80 && g <= r + 6;
+  const x0 = Math.round(img.w * 0.1), x1 = Math.round(img.w * 0.9);
+  const rowIn = (y) => {
+    let n = 0, k = 0;
+    for (let x = x0; x < x1; x += 4) { n++; const i = (y * img.w + x) * img.ch; if (kb(img.px[i], img.px[i + 1], img.px[i + 2])) k++; }
+    return k / n >= 0.3;
+  };
+  let start = -1;
+  for (let y = img.h - 1; y > img.h * 0.9; y--) if (rowIn(y)) { start = y; break; }
+  if (start < 0) return null;
+  let top = start, gap = 0;
+  for (let y = start; y > img.h * 0.2; y--) {
+    if (rowIn(y)) { top = y; gap = 0; } else if (++gap > img.h * 0.07) break;
+  }
+  return img.h - top < img.h * 0.15 ? null : top;   // under 15% of the screen is the home bar or a grey footer, not a keyboard
+}

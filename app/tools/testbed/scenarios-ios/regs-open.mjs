@@ -11,8 +11,8 @@
 //     numbers are taken FROM THE LIFT (the last touches event before the press) to compare; `pressFromDown` is beside it.
 //   * WHY iOS MAY WAIT: the binding's single tap (`MLRNMapView.m` init: a UITapGestureRecognizer → `didTapMap:`)
 //     `requireGestureRecognizerToFail:` every UITapGestureRecognizer MLNMapView already has, which includes MapLibre's
-//     double-tap zoom recogniser: so the click can only fire once UIKit has given up on a second tap. The T716 Android
-//     `onTapUp` has no iOS half (the patch's Obj-C part has no tap code), so on iOS the cue comes with the click.
+//     double-tap zoom recogniser: so the click can only fire once UIKit has given up on a second tap. Before T719's
+//     iOS `onTapUp` (patch, `MLRNTapUpRecognizer`) the cue came with the click; with it, at the lift, as Android.
 //     `gestureMs` lists UIKit's "send gesture actions" lines after the lift: the recogniser firing, independent of JS.
 //
 //   node app/tools/testbed/run-ios.mjs regs-open    (OPEN_TAPS, OPEN_CASES, OPEN_COLD, OPEN_CUE_MAX as Android's)

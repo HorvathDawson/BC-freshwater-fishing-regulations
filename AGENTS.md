@@ -85,7 +85,11 @@ A6. **Commit only your own paths: `git commit -- <paths>`.** Several agents shar
     accepted that piece in `waters/unplaced_piece_calls.json` `accepted` (`build.unplaced_gate`, T632; `proposed` rows are not
     acceptances); a braid piece cut at BOTH ends by a `between`'s own two cuts is inside it (RULINGS
     E18, T187, `extent.A_PIECE_BETWEEN_THE_WINDOWS_CUTS_IS_INSIDE`). Length cuts never take a junction a braid spans. A 2300-only ditch with no gnis
-    of its own is in no river item (`registry.build.DITCHES_LEAVE_RIVER_ITEMS`).
+    of its own is in no river item (`registry.build.DITCHES_LEAVE_RIVER_ITEMS`). A nameless line that leaves a lake and comes back into the SAME lake is that lake's, never its
+    river's (T753, `registry.lake_loops`; every move and near miss listed in `lake_loop_report.json`) — unless it is not in
+    exactly its lake's CUT areas (`areas.json` `cut` clean / first_last): then it stays the river's, since a lake is never
+    divided into areas (Kotcho Lake's loop outside its ecological reserve, `LOOPS_NEVER_DIVIDE_A_LAKE`). A curated cut the
+    atlas cannot place is listed in `split_unplaced.json` with its reason and promote refuses it (T743, the Seton cut).
 13. **A rule's extents are its own — never inherited from its entry. Never widen a rule
     that names a place it could not bind.** No reader (reach builder, bundle,
     `pipeline/deliver/bundle/read/source.py` `source_of`) hands a rule its entry's `extents`; the entry's only clip.
@@ -100,7 +104,11 @@ A6. **Commit only your own paths: `git commit -- <paths>`.** Several agents shar
     (`includes_tributaries: false`). A COMPLEMENT ("other parts", "all other parts") is not an undrawn
     part: it is `Extent` op `rest` with its `siblings` named — the rule's water, with its own tributary
     scope, minus every section those rules bind (`build._build_rest`); a sibling that does not bind
-    leaves it `complement_unknown`, never the whole water (Bull, Elk, Findlay, 2026-09-28). What is left with no
+    leaves it `complement_unknown`, never the whole water (Bull, Elk, Findlay, 2026-09-28) — a rule-book rest only: a
+    DFO PLACE's rest (T761) may carry its own `bounds` and list of places it leaves out (`entries.rest_listing`; none =
+    every other live place of the water), a dormant listed place takes nothing, one that does not bind is skipped and
+    named (`complement` `skipped`), and on its listed places' sections inside the bounds it answers AFTER them in the
+    salmon chain ("areas and times", `deliver.salmon.rest_after`). What is left with no
     extents (14 rules) names a place that is not a part of the row's water, or a carve-out.
     An AREA rule (every extent `within`) with `unresolved_locators` is a carve-out no cut
     expresses ("No powered boats … except Gold, Upper Campbell and Buttle lakes") and stays
@@ -838,6 +846,9 @@ W46. **The guards the 2026-11 audits put in (T429–T442) stay in. A change that
     onto Vedder Crossing, the Vedder's downstream-of-the-crossing rules walked up the whole Chilliwack, 1,805 sections).
     A piece on the reach's own watershed code is a side channel, not own water (Old Kootenay River Channel). Before
     promoting any split or name change, DIFF THE REACH RUN'S PER-RULE BINDINGS against live — atlas parity cannot see this.
+    A DEAD END of a water the walk collected wholly (a lake's second outlet that stops, a closed loop, an unconnected
+    piece: a graph sink the walk never reaches by climbing) goes with that water (`tributaries.A_DEAD_END_GOES_WITH_ITS_WATER`,
+    2026-11-15; the six Stikine/Taku tributaries' part-name stop). Never on the reach's own code, never past a carve-out.
 
 ## Runbook: upstream updates the owner runs
 
@@ -886,3 +897,13 @@ W46. **The guards the 2026-11 audits put in (T429–T442) stay in. A change that
     The splits still to verify are `tiers.splits_to_verify` (the `split_to_verify` pre-check); a cut decided by hand is `runfacts.is_curated_pick` (a hint, never the
     `ambiguous cut` risk); a CLI that judges marks reads the vintage through `fingerprint.Context.on_disk` and
     the corpus through `io.read_entryfile` with the registry — as the review app does.
+68. **A closed area inside a DFO place is a location of its own, never a precedence rule** (T573, entry B). Each LIVE
+    excluded item becomes `<water_id>#closed:<key>` (`regs/dfo_salmon/closures.build_pieces`) with its place's tier and
+    its own rule; it wins on its sections because it is narrower (`deliver.salmon.chain_order`). It BINDS only when the
+    owner confirmed it (`closed_area` mark -> `dfo_salmon/closed_areas.json`) for the live words: a stretch `between`
+    its cuts, a circle the sections wholly inside it. Anything else (unconfirmed, reworded, a lake line, a cut not built,
+    a circle partly over a section) is CARRIED on its water (`carried`, the chain's `u`) — never widened, never dropped.
+    An item no live row names builds nothing (`attach`); the live feed emits a piece only while today's row names it
+    (`closures.live_piece_rules`), and the feeds worker must do the same or its chains skip the piece. Not a "rest of"
+    (T761, rule 13): a rest leaves out other PLACES of its water ("the areas below", each a row of its own) and answers
+    after them; excepted closed areas (Thompson, Shuswap, Stave) stay this rule's pieces.

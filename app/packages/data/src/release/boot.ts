@@ -21,7 +21,8 @@
  *            with no manifest the start fails and says so. No set this app cannot read is installed, opened or rolled
  *            back to.
  */
-import { PaintError, releaseAllowed, reportFailure, StatusIndexError, UPDATE_WORDS, type AppVersion, type Paint, now as clockNow } from "@app/core";
+import { LAUNCH_SLICE_MS, PaintError, releaseAllowed, reportFailure, SLICE_MS, spaceLine, StatusIndexError, UPDATE_WORDS, type AppVersion, type Paint,
+         now as clockNow } from "@app/core";
 import { VerifyError } from "../fetchVerified";
 import { fetchResilient, NetError, type Net } from "../net";
 import { compatible, loadManifest, ManifestError, parseManifest, readsRelease, type Held, type Manifest, type StageOutcome } from "../manifest";
@@ -29,9 +30,9 @@ import { sha256Hex } from "../sha256";
 import type { WaterSource } from "../index";
 import type { SourceOptions } from "./source";
 import { bigFiles, heldFrom, heldManifest, heldPath, install, installBytes, pointerFor, POINTER as POINTER_PATH, prune, readHeld, sameSet,
-         writeHeld, type Progress, type ReleaseFs } from "./install";
+         synopsisPath, writeHeld, type LookBytes, type Progress, type ReleaseFs } from "./install";
 import { rawFetch } from "./assets";
-import type { BackgroundNative, BgItem } from "./bgDownload";
+import type { BackgroundNative, BgItem, BgJob } from "./bgDownload";
 import { withLiveSalmon, type SalmonFeedSource } from "../feed/salmon";
 import { releaseLoader, ReleaseError, type DbName, type Opener, type ReleaseLoader,
          type ReleaseSource } from "./loader";
@@ -53,11 +54,18 @@ export interface ReleasePlatform {
     dirUri(path: string): string;
     fileUri(path: string): string;
     background?: { queue(items: BgItem[], metered: boolean): Promise<void> };
+    /** (T738) what the device holds of each big file now: the bar counts them from the first moment (`tally.ts`) */
+    look?: LookBytes;
+    space?: DeviceSpace;
   } | null;
 }
 
+/** (T722 F9) The phone's free bytes (NaN: it would not say) and the bytes a file under the install root holds (0: none). */
+export interface DeviceSpace { free(): Promise<number>; size(path: string): Promise<number> }
+
 /** (T298) "wifi": a first install held for Wi-Fi by the reader's mobile-data choice. */
-export type BootStage = "manifest" | "wifi" | "install" | "paint";
+/** (T746) "apply": the set opening is one this device has not opened before (downloaded earlier, put in use now). */
+export type BootStage = "manifest" | "wifi" | "install" | "paint" | "apply";
 
 /**
  * (T298) THE FIRST INSTALL'S MOBILE-DATA GATE, the app's (it asks the reader and keeps the answer as the setting).
@@ -83,7 +91,8 @@ export interface BootOptions {
   fetch?: typeof fetch;
   /** (T254) the app's bad-connection kit: the web source's fetches take their turn, survive cuts, say how far they got */
   net?: Net | null;
-  onStage?: (s: BootStage) => void;
+  /** `release`: (T746) with "apply", the id of the release being put in use (its line is picked by it, core `applyLine`) */
+  onStage?: (s: BootStage, release?: string | null) => void;
   onProgress?: (p: Progress) => void;
   /** (T298) a phone's system downloader (Android's DownloadManager): the first install's big files go on with the app closed */
   background?: BackgroundNative | null;
@@ -129,6 +138,11 @@ export interface BootOptions {
    * held set. The web passes none: its app code is deployed with its data.
    */
   appVersion?: AppVersion | null;
+  /**
+   * (T722 F6) Mark a file or folder (its file:// uri) as not for the device's backup: iOS (`isExcludedFromBackup`, the
+   * iOS half of `modules/bg-download`). Absent (Android, the web): nothing is marked.
+   */
+  noBackup?: ((uri: string) => Promise<void>) | null;
 }
 
 export interface Booted {
@@ -177,6 +191,54 @@ export interface RolledBack { refused: string | null; using: string | null; reas
 
 export class BootError extends Error {
   constructor(message: string, readonly firstRunOffline = false) { super(message); }
+}
+
+/** (T722 F9) A release download that will not fit on the phone: its message is the reader's words (`spaceLine`). */
+export class SpaceError extends BootError {}
+
+/**
+ * (T722 F9) WILL THE DOWNLOAD FIT? Before a release download (the first install, an update), on both platforms: what
+ * installing `m` beside `held` downloads (`installBytes`, the manifest's sizes) less what of its big files is on disk
+ * already (a `.part` or the finished file at its path, or on Android the bytes its system download holds), against the
+ * phone's free bytes. Too little: a `SpaceError` naming both, before anything is queued or downloaded (shown by the boot
+ * screen or as the update's error, reported by both). A phone that will not say its free space is reported, and the
+ * download goes on (a full disk then fails the write).
+ */
+export async function checkRoom(m: Manifest, held: Held | null, space: DeviceSpace | undefined,
+                                jobs: readonly BgJob[] = []): Promise<void> {
+  if (!space) return;
+  let have = 0;
+  for (const b of bigFiles(m, held)) {
+    const job = jobs.find((j) => j.url.endsWith(`/${b.url}`));
+    const on = Math.max(await space.size(b.path), await space.size(`${b.path}.part`), job?.bytes ?? 0);
+    have += Math.min(b.e.bytes, Math.max(0, on));
+  }
+  const need = installBytes(m, held) - have;
+  const free = await space.free();
+  if (typeof free !== "number" || !Number.isFinite(free) || free < 0) {
+    reportFailure(new Error(`[space] the phone did not say its free space (${String(free)}); ${need} bytes to download`));
+    return;
+  }
+  console.info(`[space] ${need} bytes to download, ${free} free`);
+  if (free < need) throw new SpaceError(spaceLine(need, free));
+}
+
+/** (T722 F9) The system downloader's jobs (Android, iOS), for what of a big file it holds already; none without one. */
+const jobsOf = async (bg: BackgroundNative | null | undefined): Promise<BgJob[]> => (bg ? bg.jobs() : []);
+
+/**
+ * (T722 F6) THE RELEASE OUT OF THE DEVICE'S BACKUP (iOS `isExcludedFromBackup`, a flag per item, so it is set again after
+ * each install and at each boot: a folder made again loses it). `release/` holds every set, tile folder and pointer; the
+ * rule book sits beside it at the document root (`synopsisPath`). Saved spots and their photos (`spots/`), the settings
+ * (`settings/`) and the run-timing cache (`feeds/`) are outside both and stay in the backup. A failure is reported and
+ * the boot goes on.
+ */
+async function outOfBackup(noBackup: BootOptions["noBackup"], dev: NonNullable<ReturnType<ReleasePlatform["device"]>>,
+                           m: Manifest): Promise<void> {
+  if (!noBackup) return;
+  const book = m.synopsis?.sha256 ? synopsisPath(m.synopsis.sha256) : null;
+  const uris = [dev.dirUri("release"), ...(book && await dev.fs.exists(book) ? [dev.fileUri(book)] : [])];
+  for (const uri of uris) await noBackup(uri).catch((e: unknown) => { reportFailure(e); });
 }
 
 /** The set an update replaced, kept until the new one has opened and paired (written just before the swap). */
@@ -229,6 +291,14 @@ export async function provenDefect(e: unknown, fs: ReleaseFs, h: Held): Promise<
   } catch (err) {
     return err instanceof VerifyError;
   }
+}
+
+/**
+ * (T741) The slice a held set's paint is decoded in: a LAUNCH (nothing but the boot screen up) takes the long one; an
+ * update applied in the session (`keepReplaced`: the replaced set's map is on screen, a finger may be on it) the short.
+ */
+export function paintSliceFor(o: Pick<BootOptions, "keepReplaced">): { sliceMs: number } {
+  return { sliceMs: o.keepReplaced ? SLICE_MS : LAUNCH_SLICE_MS };
 }
 
 export async function bootRelease(o: BootOptions): Promise<Booted> {
@@ -305,19 +375,22 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
     const fresh = readsRelease(latest, "phone");
     if (!fresh.ok) throw new BootError(`${stale.reason}; and the manifest's ${fresh.reason}`);
     const old = held;
+    await checkRoom(latest, old, dev.space, await jobsOf(o.background));
     if (o.mobileData && await o.mobileData.decide(installBytes(latest, old)) === "wifi") {
       o.onStage?.("wifi");
       await o.mobileData.untilAllowed();
     }
     o.onStage?.("install");
     held = await install(latest, dev.fs, dev.download, o.releaseBase, old, (p) => o.onProgress?.(p), dev.toDisk,
-                         () => writeHeld(dev.fs, PREVIOUS, old), rawFetch(f));
+                         () => writeHeld(dev.fs, PREVIOUS, old), rawFetch(f), dev.look);
   }
   if (!held) {
     if (!latest) throw new BootError(`first run: the manifest could not be read (${unread ?? "no answer"})`, true);
     if (!allowed(latest)) throw new BootError(UPDATE_WORDS.row.appTooOld);
     const fresh = readsRelease(latest, "phone");
     if (!fresh.ok) throw new BootError(fresh.reason);
+    // (T722 F9) before anything is queued or downloaded: a download that will not fit says so
+    await checkRoom(latest, null, dev.space, await jobsOf(o.background));
     // (T298) every big file handed to the system's downloader BEFORE anything else downloads, so closing the app a moment
     // later still fetches all of them; on mobile data the reader's setting decides first (ask / go / wait for Wi-Fi)
     const big: BgItem[] = bigFiles(latest, null).map((b) => ({ url: `${o.releaseBase}${b.url}`, file: b.file,
@@ -342,7 +415,7 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
       if (!downAt && p.of > 0 && p.bytes >= p.of) { downAt = clockNow(); console.info(`[setup] downloaded in ${downAt - t0} ms`); }
       last = p;
       o.onProgress?.(p);
-    }, dev.toDisk, undefined, rawFetch(f));
+    }, dev.toDisk, undefined, rawFetch(f), dev.look);
     console.info(`[setup] installed ${clockNow() - (downAt || t0)} ms after the last byte`);
     // (T272) THE SECOND STAGE goes on through opening the set: the manifest, paint, core (the steps below)
     const p = last as Progress | null;    // set by the callback above
@@ -350,6 +423,11 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
   }
   /** Open a held set: its manifest, paint decoded against its handles, core opened and checked, its tiles paired. */
   const cache = await o.platform.releaseCache();
+  // (T585 F12) the set this device opened last — read BEFORE opening, so (T746) a start that applies a set downloaded
+  // earlier says so while it opens ("apply"); unreadable, it is reported and the boot goes on (worst case a later launch
+  // says "Updated to" again)
+  const openedBefore = await readHeld(dev.fs, OPENED).catch((e: unknown) => { reportFailure(e); return null; });
+  const firstOpen = (h: Held) => openedBefore !== null && !sameSet(openedBefore, h);
   const openSet = async (h: Held) => {
     const t0 = clockNow();
     openStep(0);
@@ -370,8 +448,10 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
           return spec ? { dir: dev.dirUri(dir), file: heldPath(h, spec.url).split("/").pop()! } : null;
         },
       }));
-    o.onStage?.("paint");
-    const paint = await loader.paint();
+    if (firstOpen(h)) o.onStage?.("apply", h.release ?? null); else o.onStage?.("paint");
+    // (T741) a launch decodes paint in long slices (the boot screen is all there is); an update applied in the session
+    // (`keepReplaced`: the map is on screen) keeps the short ones
+    const paint = await loader.paint(paintSliceFor(o));
     openStep(2);
     const tPaint = clockNow();
     await loader.db("core");                      // opened in place on a phone: the first file any question needs
@@ -423,9 +503,10 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
   }
 
   const now = held;
-  // (T585 F12) is this the boot that APPLIES the set (the first to open it)? The record is this device's own small file;
-  // unreadable or unwritable, it is reported and the boot goes on (worst case a later launch says "Updated to" again)
-  const openedBefore = await readHeld(dev.fs, OPENED).catch((e: unknown) => { reportFailure(e); return null; });
+  // (T722 F6) at every boot, so a set an older app installed is covered too (a first install's is this call)
+  await outOfBackup(o.noBackup, dev, set.m);
+  // (T585 F12) is this the boot that APPLIES the set (the first to open it)? The record (read above) is this device's own
+  // small file; unwritable, it is reported and the boot goes on
   const applied = openedBefore && !sameSet(openedBefore, now) ? { from: openedBefore.release ?? null } : null;
   if (!openedBefore || applied) await writeHeld(dev.fs, OPENED, now).catch((e: unknown) => { reportFailure(e); });
   const refused = await readHeld(dev.fs, REFUSED);
@@ -449,8 +530,11 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
       if (retrying) { await prune(dev.fs, retrying.h, retrying.m, now, set.m); retrying = null; }
       // (T418) the set an in-session apply kept for the map that was on screen: this set has been drawn since
       if (replaced) { await prune(dev.fs, replaced.h, replaced.m, now, set.m); replaced = null; }
+      await checkRoom(next, now, dev.space, await jobsOf(o.background));
       const h = await install(next, dev.fs, dev.download, o.releaseBase, now, onProgress, dev.toDisk,
-                              () => writeHeld(dev.fs, PREVIOUS, now), rawFetch(f));
+                              () => writeHeld(dev.fs, PREVIOUS, now), rawFetch(f), dev.look);
+      // (T722 F6) after each install: what it made (a new tile folder, the new rule book) is marked with the rest
+      await outOfBackup(o.noBackup, dev, next);
       staged = h;
       return h;
     })();

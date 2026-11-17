@@ -6,6 +6,18 @@ code now handles belong in the code's comments, not here.
 
 ---
 
+## Questions the owner will put to BC Fish and Wildlife (the book can be read two ways; we keep the stricter reading)
+
+- **Thompson River below Kamloops Lake in June** (Region 3, p.28 and p.32). The spring closure: "No Fishing in any
+  stream in Region 3 from Jan 1-June 30 (see tables for exceptions)". The Thompson's own row: "No Fishing Oct 1-May
+  31 … Additional opening from the CNR Bridge downstream of Deadman River to CNR Bridge upstream of Bonaparte River,
+  May 1-31", with no "Exempt from spring closure" (the upstream Thompson row prints one). Read either way: June
+  closed by the region (kept; rulings L1, L20) or the row's own dates replacing it (June open: 26 trout sections;
+  22 salmon sections chinook and sockeye "check"). Owner 2026-11-16: "keep closed but add to gotchas as one i need to
+  ask fish and wildlife about".
+
+---
+
 ## An "All" closure against a species row on the same DFO place (the Tatshenshini, the Cowichan)
 
 **2026-11-12 · owner ruling T671 D1 · DFO salmon · `pipeline/deliver/salmon.py` `_all_closure_wins`, RULINGS L24**
@@ -188,3 +200,69 @@ this line. The DFO salmon rule and its cut (Spur 19 road crossing, 53.12968,-131
 If a source ever names a different stream "Sheldens Creek" (BC Geographical Names, a DFO map, a local), or DFO's
 wording points elsewhere, this is the first thing to recheck: drop its `found_name_calls.json` row (and rerun `pipeline.tools.mined_names`) and the rule unbinds on the next
 build. Don't treat it as a confirmed name in audits or when matching other sources.
+
+## The Kasiks "Upper Pool" is a place we inferred
+
+**2026-11-15 · owner asked for the proposal · DFO salmon Region 6 · `data/generated/review/dfo-split-hunt.json` cut `kasiks_upper_pool_signs`, report `handoff/PLAN/curation-review/kasiks-upper-pool-2026-11-15.md`**
+
+DFO splits the Kasiks River for coho at "fishing boundary signs located below the Upper Pool" (closed all year above,
+Sep 1 to Oct 31 open below). No public source names or locates "the Upper Pool": the wording is the same in the
+2009-2011 supplement, notice FN0717 (2018) and every saved Region 6 page from 2017 to 2026, with no distance, canyon,
+falls or coordinate; no guide page, forum or report names pools on the river.
+
+The point we propose is an inference, not a fact:
+
+- The lower Kasiks has exactly one barrier: a short canyon with falls at FWA km 17.6-18.4 (the river climbs from 31 m
+  to 72 m over about 600 m and is flat below and above; FISS / RAB record cascades and a 5 m rock obstacle there; the
+  1983 DFO stream catalogue says "impassable cascade type falls"; the 2007 Skeena Fisheries Commission report says a
+  1 km reach "with falls and cascades" and "navigable for 18.5 km").
+- "The Upper Pool" is taken as the pool at the foot of those falls (about 54.3554 N, 129.5361 W) and the signs as its
+  tail-out (about 54.3535 N, 129.5360 W, km 17.65 on blk 360879632). Confidence: medium.
+- A weaker alternative is the confluence pool at the canyon mouth (about 54.3518 N, 129.5350 W), which would put the
+  signs about 300 m lower.
+- The 1983 catalogue's "22.5 km from mouth" is read as the same canyon measured from another starting point: the map
+  profile has no step near 22.5 km. That reading is ours.
+
+So: a mismatch between the app and signs on the ground here is not a pipeline bug; it means the inference was wrong.
+What settles it is the sign position from DFO's Terrace or Prince Rupert office. Do not "correct" the point from
+another guess; replace it only with a stated position. (Same family as "Sheldens Creek is a name we assumed".)
+
+## DFO place words that do not fit the ground, kept as they are on the owner's word
+
+**2026-11-16 · owner re-checked each by map picture · DFO salmon places · answers verbatim in `handoff/PLAN/OWNER-TODO.md` ("Answers by batch", "Re-check of saves"), tickets T803 / T806**
+
+Each of these looks like a labelling mistake when measured or read closely. Each was shown to the owner and kept.
+Do not "fix" one from a measurement or a closer reading of DFO's words; a change needs a new source (a sign
+position, a corrected DFO page) and his word.
+
+- **Kanaka Creek, "112th Street bridge"** (Region 2). There is no 112th Street crossing; the only crossing is
+  112 Avenue, and the cut sits there. Owner: "keep it but add to gotcha".
+- **Kispiox, "signs near the Kispiox River Resort"** (Region 6). No resort has that name; the signs are placed at
+  the Kispiox River Lodge, 13.7 km up, low confidence, until DFO Smithers confirms. Owner: "okay sounds good add to
+  gotchas".
+- **Lower Shuswap closed stretch, "one km"** (Region 8). DFO's two printed points are 1,738 m apart in a straight
+  line and 2,075 m along the river; neither is near one km. The printed points stand ("Right: keep the printed
+  points"); nothing goes to DFO. Owner: "just add to gotchas that is all. might be 1km as bird flies too" (it is
+  not: 1,738 m).
+- **Stamp Falls, lower end given two ways** (Region 1). DFO says both "500 m below the fishway" and "225 m below
+  Deer Creek". On our line the first is the cut (498 m below the fishway) and that cut is only 164 m below Deer
+  Creek. The two do not agree; the fishway measure is kept. Owner: "Keep 500 m below the fishway" (this replaced an
+  earlier "Move it 60 m down", given before the fishway measure was known).
+- **Somass, "Paper Mill Dam upstream approximately 0.5 km to Collins Farm"** (Region 1). The stretch between the
+  two named ends is drawn about 1.3 km long, not 0.5 km. The named ends win over the distance. Owner: "right all of
+  it but add to gotchas please".
+- **Thompson closed area at Juniper Beach, upper end** (Region 3). DFO's words can be read two ways: "approximately
+  4 km" above the printed lower signs, or a point 1.5 km below Juniper Beach Park (which would make the area about
+  1.2 km long). The 4 km reading is used (it errs toward closed). Owner: "if the book says 4km then we put it 4km
+  unless i had another split it already matched??" and, on the picture, "Keep 4 km (errs closed)".
+- **Bulkley, two "all tributaries" rows with different exception lists** (Region 6). One row is "all tributaries …
+  other than the Suskwa River": only the Suskwa comes out; the Morice and Two Mile Creek stay in. Its sibling is
+  "… other than Morice River and tributaries, Suskwa River and tributaries, and Two Mile Creek": all three come out.
+  They look like one row entered twice with a slip; they are two places, read word for word. Owner: "right but add
+  to gotchas. it should only drop the blue suskwa river. rest are good." and "right only keep part that is purple.
+  rest get dropped here."
+- **Sheldens Creek, the bridge** (Region 6; see "Sheldens Creek is a name we assumed" above). The cut is a
+  low-confidence point where the road crosses near the mouth (the Spur 19 bridge site, by a camp site), the place
+  is the creek above it, and that same cut is the tidal boundary. Owner: "add as gotcha but i think you can see the
+  road in satellite that crosses neaar the mouth that should be the bridge i think (near a camp site etc) have it be
+  low confidence and set it top tidal too".

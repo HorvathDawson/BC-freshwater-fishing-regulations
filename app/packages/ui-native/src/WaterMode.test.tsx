@@ -54,7 +54,7 @@ vi.mock("./WaterScreen", async (importOriginal) => {
     <><real.WaterScreen {...p} /><Text testID="regs-on">{`regs on ${p.item} part ${p.part}`}</Text></> };
 });
 const { Shell } = await import("./Shell");
-const { openRegsFixture, openRegsFixtureWithLines, sectionNames } = await import("@app/data/release/node");
+const { openRegsFixture, openRegsFixtureWithLines, regsFixtureUnnamedTaps, sectionNames } = await import("@app/data/release/node");
 
 afterEach(cleanup);
 beforeAll(() => {
@@ -109,7 +109,11 @@ async function mount(tab: "map" | "conditions", sid?: SectionId, loader?: Return
 const tapMap = async () => {
   await act(async () => { fireEvent.click(shownMap()!); });
 };
-const until = async (f: () => boolean) => waitFor(() => expect(f()).toBe(true));
+/** Waits for a LOAD (a tap or a step reads the release), so it carries this file's load deadline, as its twins in
+ *  apps/mobile do. (T751) It had testing-library's default 1 s: a step into another water holds the old view for up to
+ *  PANE_HOLD_MS (1.2 s) while the next loads, so a read slower than 1 s (a loaded CI runner) failed here with the old
+ *  view still up, "expected false to be true". The condition is what is waited for; the deadline only bounds a hang. */
+const until = async (f: () => boolean) => waitFor(() => expect(f()).toBe(true), { timeout: 20_000 });
 const titled = () => screen.queryByText("Chilliwack River") !== null;
 
 describe("one water screen, whichever map you tapped", () => {
@@ -212,9 +216,14 @@ describe("one water screen, whichever map you tapped", () => {
 // fixture release (its sections are named, never numbered)
 describe("one water screen, on the regs fixture release", () => {
   it("(T53) on the regs fixture release: an unnamed reach is titled with the store's name on both its views", async () => {
-    // (T667) the unnamed reach by NAME — stream key 354088147 from its mouth — never by its handle (578, 576, 638, …:
-    // it moved with four of the last five builds); a build that moves the section fails here saying so
-    const unnamed = await sectionNames(openRegsFixtureWithLines()).stream(354088147, 0);
+    // (T667) never by its handle (578, 576, 638, …: it moved with four of the last five builds), and (r-46e4355a7277)
+    // not by a stream key either: the fixture keeps a SAMPLE of unnamed reaches that moves with every re-cut (stream
+    // 354088147:0, named here until then, left it). Any unnamed stream of the fixture will do: its first
+    const [unnamed] = await sectionNames(openRegsFixtureWithLines()).unnamedStreams();
+    // (T768) its name is the PIPELINE's for that section (the golden taps' `unnamed`), not a pattern the app could
+    // satisfy with any name
+    const golden = regsFixtureUnnamedTaps().find((u) => u.handle === unnamed)?.name;
+    expect(golden).toMatch(/^Unnamed stream · Regions? \d/);
     await mount("conditions", unnamed as SectionId, openRegsFixture());
     await tapMap();
     const title = () => screen.queryAllByTestId("water-title").map((t) => t.textContent).join(" | ");
@@ -225,7 +234,7 @@ describe("one water screen, on the regs fixture release", () => {
     // the Regulations view's name row carries its date pill too: the heading is the name
     expect([cond, within(screen.getByTestId("regs-header")).getByRole("heading").textContent,
             screen.getByTestId("regs-on").textContent]).toEqual([
-      ["Unnamed stream · Region 1", `panel for ${unnamed} at 49.1`], "Unnamed stream · Region 1", "regs on null part null"]);
+      [golden, `panel for ${unnamed} at 49.1`], golden, "regs on null part null"]);
   }, 40_000);
 });
 

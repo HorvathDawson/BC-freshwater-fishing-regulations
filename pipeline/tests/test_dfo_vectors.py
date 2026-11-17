@@ -33,9 +33,13 @@ def test_the_file_holds_every_saved_page_and_every_shared_row():
     assert sum(len(p["locators"]) for p in doc["pages"].values()) > 200
     assert all(p["locators"] and p["locations"] for p in doc["pages"].values())
     assert sorted(doc["rows"]) == sorted(c["name"] for c in json.loads(E.ROWS.read_text(encoding="utf-8"))["cases"])
-    # every table locator is a location of its page, by fingerprint
-    for page in doc["pages"].values():
-        assert {l["fingerprint"] for l in page["locators"]} <= {l["fingerprint"] for l in page["locations"]}
+    # every table locator is a location of its page, by fingerprint; (T758) the rest are the page's default sentences
+    # (`cascade.statement_locators`, `page:<slug>:<scope>`), one at least on every saved page
+    for slug, page in doc["pages"].items():
+        fps = {l["fingerprint"] for l in page["locators"]}
+        table = {f for f in fps if not f.startswith(f"page:{slug}:")}
+        assert table <= {l["fingerprint"] for l in page["locations"]}
+        assert fps - table
 
 
 def test_a_synonym_added_on_the_python_side_only_fails_the_check(monkeypatch, capsys):

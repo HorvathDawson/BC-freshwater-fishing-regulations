@@ -68,8 +68,8 @@ describe("<KeepTab> over the frozen pages", () => {
     const keep = keepOf(glenn501);
     mount(keep);
     const y = screen.getByTestId("keep-group-year");
-    expect(y.textContent).toBe("Through the yearYou can keep them until Oct 31. Then release only from Nov 1.");
-    expect(keep.groups[0]!.year).toEqual({ label: "Through the year", says: "You can keep them until Oct 31. Then release only from Nov 1." });
+    expect(y.textContent).toBe("Through the yearYou can keep them until Oct 31. Then release only Nov 1–Mar 31. You can keep them from Apr 1 next year.");
+    expect(keep.groups[0]!.year).toEqual({ label: "Through the year", says: "You can keep them until Oct 31. Then release only Nov 1–Mar 31. You can keep them from Apr 1 next year." });
     const vedder = keepOf(vedder1010);
     mount(vedder);
     expect(vedder.groups[0]!.year).toBeNull();
