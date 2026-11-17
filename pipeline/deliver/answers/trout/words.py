@@ -28,7 +28,7 @@ from __future__ import annotations
 import re
 from functools import lru_cache
 from itertools import combinations
-from typing import Dict, NamedTuple, Optional, Tuple
+from typing import Dict, List, NamedTuple, Optional, Tuple
 
 from pipeline.common import calendar_spec as SPEC
 from pipeline.deliver import calendar as K
@@ -775,3 +775,493 @@ def one_day(day: int, says) -> str:
     """Spec 3.3 rule 6 (Adams River, owner 15:36 "80 cm on the row"): the fish's sheet says the one looser day: "On Jul 31
     only: 60 cm (24 in) or longer."."""
     return f"On {day_words(day)} only: {', '.join(says)}."
+
+
+# ============================================================================================
+# THE GRAMMAR OF EVERY TABLE TEXT (ticket J, contract 2.10): the proof reads each text back with it
+# ============================================================================================
+# Every text the table, its date set and its sheets say has a reader here. A text none of them reads raises
+# `WordsError`, and the proof (`trout/check.py`) fails the build on it: no text is "free". The texts the table reuses
+# from the card (a kind's size words, `tree` kinds' `also_counts`, the kept-elsewhere lines, the possession duty, the
+# weekday words) are read here too, in the forms their composers write (F's question 3: "word them through G or extend
+# G, never let J skip them").
+#
+# Each reader returns a small tuple J turns into law. Sizes are ranges [(from cm, to cm)] with `INF` for no top; a
+# range's ends (which side of a cut it holds) are not carried: J checks lengths inside the cuts.
+
+INF = float("inf")
+
+
+def _codes_by_name() -> Dict[str, Tuple[str, ...]]:
+    out: Dict[str, Tuple[str, ...]] = {}
+    for c in common.trout_char():
+        out[common.lc(common.sp_name(c))] = (c,)
+    for g, members in common._closed_groups():
+        if members <= common.trout_char():
+            out[common.lc(common.sp_name(g))] = tuple(sorted(members))
+    return out
+
+
+def parse_fish(text: str, loose: bool = False) -> Tuple[str, ...]:
+    """A phrase naming trout and char fish (`tree.kind_names`, `common.lc_names` / `each_name`, a closed group by its
+    name) -> their codes, in the phrase's order: "brown, cutthroat or rainbow trout" -> (GB, CT, RB). `loose`: the
+    kept-elsewhere lines' "trout" (the trout fish, char left out). Any other phrase raises WordsError."""
+    names = _codes_by_name()
+    t = text
+    if t != t.strip() or "  " in t:
+        raise WordsError(f"trout words: cannot read the fish {text!r}")
+    if t in names:
+        return names[t]
+    if loose and t == "trout":
+        return ("CT", "GB", "RB", "ST")
+    if loose and t == "trout or char":
+        return names["trout and char"]
+    toks = [x for x in re.split(r", | or | and ", t) if x]
+    if not toks or ", , " in t:
+        raise WordsError(f"trout words: cannot read the fish {text!r}")
+    if toks[-1].endswith(" trout") and "/" not in toks[-1]:
+        toks = [x if (" " in x or x == "steelhead") else f"{x} trout" for x in toks[:-1]] + [toks[-1]]
+    out: List[str] = []
+    for x in toks:
+        got = names.get(x)
+        if got is None or len(got) != 1:
+            raise WordsError(f"trout words: cannot read the fish {text!r} (at {x!r})")
+        out.append(got[0])
+    if len(out) != len(set(out)):
+        raise WordsError(f"trout words: a fish twice in {text!r}")
+    return tuple(out)
+
+
+def _range_one(s: str) -> Tuple[float, float]:
+    pats = [
+        (r"any size|any length", lambda m: (0, INF)),
+        (rf"{_RANGE}", lambda m: (_cm(m[1], m[3]), _cm(m[2], m[4]))),
+        (rf"between {_CM} and {_CM}", lambda m: (_cm(m[1], m[2]), _cm(m[3], m[4]))),
+        (rf"over {_CM}, (?:up to|under) {_CM}", lambda m: (_cm(m[1], m[2]), _cm(m[3], m[4]))),
+        (rf"{_CM} to (?:up to|under) {_CM}", lambda m: (_cm(m[1], m[2]), _cm(m[3], m[4]))),
+        (rf"{_CM} or less|under {_CM}", lambda m: (0, _cm(m[1], m[2]) if m[1] else _cm(m[3], m[4]))),
+        (rf"{_CM} or longer|over {_CM}", lambda m: (_cm(m[1], m[2]) if m[1] else _cm(m[3], m[4]), INF)),
+    ]
+    for pat, make in pats:
+        m = re.fullmatch(pat, s)
+        if m:
+            return make(m)
+    raise WordsError(f"trout words: cannot read the size {s!r}")
+
+
+def parse_size(text: str) -> Tuple[Tuple[float, float], ...]:
+    """A size as the card and the table word it (`card._detail_words`, `common.band_words`, `law_size`) -> its ranges:
+    "30 cm (12 in) or longer" -> ((30, inf),); "60 cm (24 in) or less, or 90 cm (35 in) or longer" -> two;
+    "any length, 50 cm (20 in) or less" (a lifted floor) -> ((0, 50),); "catch and release" -> () (keeps none)."""
+    if text == "catch and release":
+        return ()
+    m = re.fullmatch(rf"any length, ({_CM} or less)", text)
+    if m:
+        return (_range_one(m[1]),)
+    m = re.fullmatch(rf"({_CM} or longer), any length", text)
+    if m:
+        return (_range_one(m[1]),)
+    return tuple(_range_one(p) for p in text.split(", or "))
+
+
+def parse_possession(text: str) -> tuple:
+    """A possession line on a row or a strip (`possession_row`, `card.possession_duty` less its home exception) ->
+    ("count", n, fish, clauses [(k, ranges)]) — "in your possession: no more than 2 lake trout, only 1 over 50 cm
+    (20 in)" — or ("days", k, the page's k | None) — "in your possession: 1 day’s limit, not 2"."""
+    m = re.fullmatch(r"in your possession: (.+)", text)
+    if not m:
+        raise WordsError(f"trout words: not a possession line {text!r}")
+    s = m[1]
+    m = re.fullmatch(rf"(?:1 day’s limit|{_NUM} days’ limits)(?:, not {_NUM})?", s)
+    if m:
+        return ("days", _num(m[1]) if m[1] else 1, _num(m[2]) if m[2] else None)
+    m = re.fullmatch(rf"no more than {_NUM} (.+?)( in all)?((?:, only {_NUM} (?:measuring )?[^,]+(?:, or [^,]+)*)*)", s)
+    if not m:
+        raise WordsError(f"trout words: cannot read the possession line {text!r}")
+    fish = parse_fish(m[2])
+    clauses = []
+    for c in re.findall(rf", only {_NUM} ((?:measuring )?.+?)(?=, only |$)", m[4] or ""):
+        k, w = c
+        clauses.append((_num(k), parse_size(w[len("measuring "):] if w.startswith("measuring ") else w)))
+    if bool(m[3]) != (len(fish) > 1):
+        raise WordsError(f"trout words: 'in all' is said over several fish only: {text!r}")
+    return ("count", _num(m[1]), fish, tuple(clauses))
+
+
+def parse_also(text: str) -> tuple:
+    """A cap the card says on a kind (`tree._size_also`, `tree._count_also`, `tree.across_says`), the table's row line:
+      ("size", n, cm, mine | None, others, then [(n, cm)])   "up to 1 over 50 cm (20 in)[, and up to 2 over 60 cm …]
+                                                              [, if you haven’t already kept a X over 50 cm (20 in) |
+                                                              , counting any X over 50 cm (20 in)]", "up to 1
+                                                              cutthroat trout over 50 cm (20 in)", "none over …";
+                                                              "none over C if you’ve already kept a X over C" (n 1:
+                                                              this fish and X together hold 1); "no more than 2 over C,
+                                                              counting any X over C"
+      ("count", n, mine | None, others)                       "up to 2 may be X[, counting any Y you keep]", "no more
+                                                              than 3 counting any X you keep"
+      ("across", n, origin, others)                           "no more than 2 wild trout and char in all, counting any
+                                                              wild rainbow trout you keep\""""
+    m = re.fullmatch(rf"none over {_CM} if you’ve already kept a (.+) over {_CM}", text)
+    if m:
+        if (m[1], m[2]) != (m[4], m[5]):
+            raise WordsError(f"trout words: two sizes in {text!r}")
+        return ("size", 1, _cm(m[1], m[2]), None, parse_fish(m[3]), ())
+    m = re.fullmatch(rf"no more than {_NUM} over {_CM}, counting any (.+) over {_CM}", text)
+    if m:
+        return ("size", _num(m[1]), _cm(m[2], m[3]), None, parse_fish(m[4]), ())
+    m = re.fullmatch(rf"no more than {_NUM} (wild|hatchery) (.+) in all, counting any (?:wild |hatchery )?(.+) you keep",
+                     text)
+    if m:
+        return ("across", _num(m[1]), m[2], parse_fish(m[4]))
+    m = re.fullmatch(rf"no more than {_NUM} counting any (.+) you keep", text)
+    if m:
+        return ("count", _num(m[1]), None, parse_fish(m[2]))
+    m = re.fullmatch(rf"up to {_NUM} may be (.+?)(?:, counting any (.+) you keep)?", text)
+    if m:
+        return ("count", _num(m[1]), parse_fish(m[2]), parse_fish(m[3]) if m[3] else ())
+    m = re.fullmatch(rf"(none|up to {_NUM}) (?:([A-Za-z][A-Za-z/ ,]*?) )?over {_CM}((?:, and (?:none|up to {_NUM}) over {_CM})*)"
+                     rf"(?:, if you haven’t already kept a (.+) over {_CM}|, counting any (.+) over {_CM})?", text)
+    if m:
+        n = 0 if m[1] == "none" else _num(m[2])
+        cm = _cm(m[4], m[5])
+        then = tuple((0 if a == "none" else _num(b), _cm(c, d))
+                     for a, b, c, d in re.findall(rf", and (none|up to {_NUM}) over {_CM}", m[6] or ""))
+        others: Tuple[str, ...] = ()
+        if m[10]:
+            if _cm(m[11], m[12]) != cm or n != 1:
+                raise WordsError(f"trout words: cannot read {text!r}")
+            others = parse_fish(m[10])
+        elif m[13]:
+            if _cm(m[14], m[15]) != cm:
+                raise WordsError(f"trout words: cannot read {text!r}")
+            others = parse_fish(m[13])
+        return ("size", n, cm, parse_fish(m[3]) if m[3] else None, others, then)
+    raise WordsError(f"trout words: cannot read the kind's cap {text!r}")
+
+
+def parse_week(text: str) -> Tuple[Tuple[Optional[Tuple[str, ...]], Tuple[Tuple[str, Optional[float], frozenset], ...]], ...]:
+    """The rows post-pass's weekday words (`rows.say_weekdays`): "Keep up to 5 on Saturdays and Sundays; release Monday
+    to Friday" -> ((fish | None, ((status, n, weekdays), …)), …); several fish of a row each named ("Rainbow trout:
+    keep up to 5 …")."""
+    from pipeline.deliver.answers.rows.weekdays import weekdays_words
+    days = list(common.WEEKDAYS)
+    inv = {}
+    for k in range(1, len(days) + 1):
+        for c in combinations(days, k):
+            inv[weekdays_words(list(c))] = frozenset(c)
+    verbs = [("keep any number", "no_limit"), ("release", "release"), ("no fishing for them", "closed")]
+    out = []
+    for chunk in re.split(r"; (?=[A-Z])", text):
+        m = re.fullmatch(r"([A-Z][^:]*): (.+)", chunk)
+        fish, body = (parse_fish(common.lc(m[1]) if not m[1].startswith("Dolly") else m[1]), m[2]) if m \
+            else (None, chunk)
+        parts = []
+        for p in re.split(r"; ", body[:1].lower() + body[1:]):
+            mm = re.fullmatch(rf"keep up to {_NUM} (.+)", p)
+            if mm and mm[2] in inv:
+                parts.append(("keep", _num(mm[1]), inv[mm[2]]))
+                continue
+            for w, st in verbs:
+                if p.startswith(w + " ") and p[len(w) + 1:] in inv:
+                    parts.append((st, None, inv[p[len(w) + 1:]]))
+                    break
+            else:
+                raise WordsError(f"trout words: cannot read the weekday words {text!r}")
+        out.append((fish, tuple(parts)))
+    return tuple(out)
+
+
+def parse_row_line(text: str) -> tuple:
+    """One of a keep row's `lines` -> what it says:
+      ("size", ranges) · ("uses", n, cm) · ("only", k) · ("count", k, others) "only 1, counting any lake trout you
+      keep" · ("size_count", n, cm, others) "only 1 over 50 cm (20 in)[, counting any … you keep]" · ("wild", n, ranges
+      | None) "only 2 wild[, each …]" · ("possession", …) · ("stop", n, noun) · ("week", …) · ("also", …) a kind's cap."""
+    for kind, f in (("possession", parse_possession), ("stop", parse_stop_duty)):
+        try:
+            got = f(text)
+        except WordsError:
+            continue
+        return (kind, *got) if kind == "stop" else ("possession", got)
+    u = parse_uses(text)
+    if u is not None:
+        return ("uses", *u)
+    m = re.fullmatch(rf"only {_NUM}", text)
+    if m:
+        return ("only", _num(m[1]))
+    m = re.fullmatch(rf"only {_NUM}, counting any (.+) you keep", text)
+    if m:
+        return ("count", _num(m[1]), parse_fish(m[2]))
+    m = re.fullmatch(rf"only {_NUM} over {_CM}(?:, counting any (.+) you keep)?", text)
+    if m:
+        return ("size_count", _num(m[1]), _cm(m[2], m[3]), parse_fish(m[4]) if m[4] else ())
+    m = re.fullmatch(rf"only {_NUM} wild(?:, each (.+))?", text)
+    if m:
+        return ("wild", _num(m[1]), parse_size(m[2]) if m[2] else None)
+    try:
+        return ("size", parse_size(text))
+    except WordsError:
+        pass
+    try:
+        return ("also", parse_also(text))
+    except WordsError:
+        pass
+    try:
+        return ("week", parse_week(text))
+    except WordsError:
+        pass
+    raise WordsError(f"trout words: cannot read the row line {text!r}")
+
+
+def parse_strip(text: str) -> Tuple[tuple, ...]:
+    """A box's strip (its parts joined by "; ") -> each part: ("size", n, cm, n with a hatchery steelhead | None),
+    ("wild", n, ranges | None), ("possession", …)."""
+    out = []
+    for p in text.split("; "):
+        if p.startswith("in your possession: "):
+            out.append(("possession", parse_possession(p)))
+            continue
+        m = re.fullmatch(rf"only {_NUM} wild(?:, each (.+))?", p)
+        if m:
+            out.append(("wild", _num(m[1]), parse_size(m[2]) if m[2] else None))
+            continue
+        out.append(("size", *parse_strip_size(p)))
+    return tuple(out)
+
+
+def parse_together(text: str) -> tuple:
+    """`together` / `top.second`: ("origin", n, origin, ranges | None) or ("lakes", n)."""
+    m = re.fullmatch(rf"only {_NUM} (wild|hatchery) trout and char in all(?:, each (.+))?", text)
+    if m:
+        return ("origin", _num(m[1]), m[2], parse_size(m[3]) if m[3] else None)
+    m = re.fullmatch(rf"only {_NUM} from both lakes together", text)
+    if m:
+        return ("lakes", _num(m[1]))
+    raise WordsError(f"trout words: cannot read the limit across boxes {text!r}")
+
+
+def parse_quiet(text: str) -> tuple:
+    """A row's quiet line: ("steel", kind) or ("possession", the day's number, the possession count, fish)."""
+    for k, v in STEEL_QUIET.items():
+        if text == v:
+            return ("steel", k)
+    m = re.fullmatch(rf"{_NUM} a day, but never more than {_NUM} (.+) with you", text)
+    if m:
+        return ("possession", _num(m[1]), _num(m[2]), parse_fish(m[3]))
+    raise WordsError(f"trout words: cannot read the quiet line {text!r}")
+
+
+def parse_fold(text: str) -> Tuple[str, Tuple]:
+    """The folded entry's value -> (form, numbers): ("up_to", (2, 5)), ("apart", (6, 4)), ("release" | "closed" |
+    "none", ())."""
+    fixed = {FOLD_RELEASE: "release", FOLD_CLOSED: "closed", FOLD_NONE: "none"}
+    if text in fixed:
+        return fixed[text], ()
+    m = re.fullmatch(rf"Up to {_NUM}((?: or {_NUM})*)", text)
+    if m:
+        return "up_to", (_num(m[1]), *(_num(x) for x in re.findall(_NUM, m[2])))
+    m = re.fullmatch(r"Up to (.+)", text)
+    if m:
+        parts = m[1].split(", ")
+        nums = []
+        for i, p in enumerate(parts):
+            mm = re.fullmatch(rf"{_NUM} (.+)", p)
+            if not mm or (mm[2] == "others" and i != len(parts) - 1):
+                raise WordsError(f"trout words: cannot read the fold {text!r}")
+            nums.append(_num(mm[1]))
+        if len(parts) > 1:
+            return "apart", tuple(nums)
+    raise WordsError(f"trout words: cannot read the fold {text!r}")
+
+
+def parse_top_full(lead: str) -> tuple:
+    """A top line, whole: ("up_to", n, alsos [(n, fish, ranges | None, origin | None)], more [(n, fish)], plus [(n,
+    fish)]) — `top_up_to`'s parts — or ("apart", [(n, fish)], others n | None), or ("release" | "closed" | "none",)."""
+    fixed = {TOP_RELEASE: "release", TOP_CLOSED: "closed", TOP_NONE: "none"}
+    if lead in fixed:
+        return (fixed[lead],)
+    m = re.fullmatch(rf"Up to {_NUM} \{{day\}}(.*)", lead)
+    if m:
+        n, rest = _num(m[1]), m[2]
+        alsos, more, plus = [], [], []
+        mm = re.fullmatch(r", plus (.+)", rest)
+        if mm:
+            for p in re.split(r", | and (?=\d)", mm[1]):
+                q = re.fullmatch(rf"{_NUM} (.+)", p)
+                if not q:
+                    raise WordsError(f"trout words: cannot read the top line {lead!r}")
+                plus.append((_num(q[1]), parse_fish(q[2])))
+            return ("up_to", n, (), (), tuple(plus))
+        mm = re.fullmatch(r", or (.+?)((?: and no more than \d+(?:\.\d+)? [^,]+?)*)", rest) if rest else None
+        if rest and not mm:
+            raise WordsError(f"trout words: cannot read the top line {lead!r}")
+        if mm:
+            for a in re.split(r" or (?=\d)", mm[1]):
+                q = re.fullmatch(rf"{_NUM} if they’re (?:(wild|hatchery) )?(.+?)(?: ({_CM} or less|{_CM} or longer|"
+                                 rf"under {_CM}|over {_CM}))?", a)
+                if not q:
+                    raise WordsError(f"trout words: cannot read the top line {lead!r}")
+                alsos.append((_num(q[1]), parse_fish(q[3]), parse_size(q[4]) if q[4] else None, q[2]))
+            for k, w in re.findall(rf" and no more than {_NUM} ([^,]+?)(?= and no more than|$)", mm[2] or ""):
+                more.append((_num(k), parse_fish(w)))
+        return ("up_to", n, tuple(alsos), tuple(more), ())
+    m = re.fullmatch(r"Up to (.+) \{day\}", lead)
+    if m:
+        body = m[1]
+        others = None
+        mm = re.fullmatch(rf"(.+) and {_NUM} other trout and char", body)
+        if mm:
+            body, others = mm[1], _num(mm[2])
+        named = []
+        for p in re.split(r", (?=\d)| and (?=\d)", body):
+            q = re.fullmatch(rf"{_NUM} (.+)", p)
+            if not q:
+                raise WordsError(f"trout words: cannot read the top line {lead!r}")
+            named.append((_num(q[1]), parse_fish(q[2])))
+        return ("apart", tuple(named), others)
+    raise WordsError(f"trout words: cannot read the top line {lead!r}")
+
+
+_SAY_ANSWER = (
+    (rf"Keep {_NUM} more here\.", lambda m: ("more", _num(m[1]))),
+    (r"None more here\.", lambda m: ("more", 0)),
+    (rf"Keep {_NUM} more here, but no more than {_NUM} (.+) from (stream|lake)s in all(?: \((.+) may go past it here\))?\.",
+     lambda m: ("more_but", _num(m[1]), _num(m[2]), m[3], m[4], m[5])),
+    (rf"Keep {_NUM} more here\. Fish from (stream|lake)s count toward the {_NUM} a day, not toward the {_NUM} from "
+     rf"(stream|lake)s\.", lambda m: ("more_tally", _num(m[1]), m[2], _num(m[3]), _num(m[4]), m[5])),
+    (rf"It counts here too: at most {_NUM} over {_CM} a day in all(?: — only {_NUM} of them may be anything other than "
+     rf"a (hatchery )?steelhead)?\.", lambda m: ("over", _num(m[1]), _cm(m[2], m[3]), _num(m[4]) if m[4] else None,
+                                                 bool(m[5]))),
+)
+
+
+def parse_elsewhere(text: str) -> tuple:
+    """A kept-elsewhere line (`elsewhere_line`) -> (question, answer): the question ("kept", n, place) — "Kept 2
+    elsewhere?", "Kept 2 on another stream?", "Kept 1 at a lake?" — or ("over", fish, cm) — "Kept trout or char over
+    50 cm (20 in) elsewhere?"; the answer one of `_SAY_ANSWER`'s forms."""
+    m = re.fullmatch(r"(Kept [^?]+\?) (.+)", text)
+    if not m:
+        raise WordsError(f"trout words: not a kept-elsewhere line {text!r}")
+    q, a = m[1], m[2]
+    mm = re.fullmatch(rf"Kept {_NUM} (elsewhere|on another (stream|lake)|at a (stream|lake))\?", q)
+    if mm:
+        place = mm[3] or mm[4] or "elsewhere"
+        question = ("kept", _num(mm[1]), place)
+    else:
+        mm = re.fullmatch(rf"Kept (.+) over {_CM} elsewhere\?", q)
+        if not mm:
+            raise WordsError(f"trout words: cannot read the kept-elsewhere question {q!r}")
+        fish = parse_fish(common.lc(mm[1]) if not mm[1].startswith("Dolly") else mm[1], loose=True)
+        question = ("over", fish, _cm(mm[2], mm[3]))
+    for pat, make in _SAY_ANSWER:
+        mm = re.fullmatch(pat, a)
+        if mm:
+            return question, make(mm)
+    raise WordsError(f"trout words: cannot read the kept-elsewhere answer {a!r}")
+
+
+def parse_sheet_head(text: str) -> tuple:
+    """A sheet's head -> ("keep", band text | None, box n) | ("release",) | ("closed",)."""
+    if text == SHEET_RELEASE:
+        return ("release",)
+    if text == SHEET_CLOSED:
+        return ("closed",)
+    m = re.fullmatch(rf"Keep · (?:(.+) · )?counts toward the {_NUM}", text)
+    if m:
+        if m[1] is not None:
+            parse_band(m[1])
+        return ("keep", m[1], _num(m[2]))
+    raise WordsError(f"trout words: cannot read the sheet head {text!r}")
+
+
+def _decap(t: str) -> str:
+    return t[:1].lower() + t[1:]
+
+
+def parse_licence_part(text: str) -> tuple:
+    """A part of the sheet's licence line: ("annual", n, band words | None), ("record", band words | None),
+    ("stamp", name, when) — the name the licence table gives its document (J holds it to the post-pass licence answer)."""
+    if text != text.strip() or "  " in text:
+        raise WordsError(f"trout words: cannot read the licence part {text!r}")
+    m = re.fullmatch(rf"{_NUM} (?:(.+) )?a year", text)
+    if m:
+        return ("annual", _num(m[1]), m[2])
+    m = re.fullmatch(r"record each(?: one (.+))? on your licence right away", text)
+    if m:
+        return ("record", m[1])
+    m = re.fullmatch(r"(.+?), (only if .+)", text)
+    if m:
+        return ("stamp", m[1], m[2])
+    raise WordsError(f"trout words: cannot read the licence part {text!r}")
+
+
+def parse_sheet_line(text: str) -> tuple:
+    """One "Here" line of a fish sheet -> what it says:
+      ("size", ranges) "Size: …." / "Any size." · ("sub", cm) "Here a steelhead is a rainbow over 50 cm (20 in)." ·
+      ("hatchery",) · ("box", n, others | ()) · ("own", k) · ("shared", band text, others) · ("uses", cm) ·
+      ("possession", …) the duty whole, with its home exception · ("stop", n, fish, noun) · ("licence", parts) ·
+      ("one_day", day, the day's lines read as row lines) · ("line", what) any other row, strip, together or quiet
+      line as a sentence."""
+    _sheet(text)
+    if text in ("Any size.",):
+        return ("size", ((0, INF),))
+    m = re.fullmatch(r"Size: (.+)\.", text)
+    if m:
+        return ("size", parse_size(m[1]))
+    m = re.fullmatch(rf"Here a steelhead is a rainbow over {_CM}\.", text)
+    if m:
+        return ("sub", _cm(m[1], m[2]))
+    if text == SHEET_HATCHERY_ONLY:
+        return ("hatchery",)
+    m = re.fullmatch(rf"Counts toward the {_NUM} in all(?:, together with (.+))?\.", text)
+    if m:
+        return ("box", _num(m[1]), _parse_named(m[2]) if m[2] else ())
+    m = re.fullmatch(rf"This fish: only {_NUM}\.", text)
+    if m:
+        return ("own", _num(m[1]))
+    m = re.fullmatch(r"(Only .+?): this fish and (.+)\.", text)
+    if m:
+        band = _decap(m[1])
+        if parse_band(band)[0] != "shared":
+            raise WordsError(f"trout words: cannot read the sheet line {text!r}")
+        return ("shared", band, _parse_named(m[2]))
+    m = re.fullmatch(rf"A kept one is always over {_CM}, so it is that one\.", text)
+    if m:
+        return ("uses", _cm(m[1], m[2]))
+    m = re.fullmatch(r"In your possession: (.+) \((.+)\)\.", text)
+    if m:
+        if f" ({m[2]})" != _home():
+            raise WordsError(f"trout words: a possession sentence without its home exception {text!r}")
+        return ("possession", parse_possession(f"in your possession: {m[1]}"))
+    m = re.fullmatch(r"Once you have kept (\d+) (.+) here, stop fishing this (\w+) for the rest of the day: the whole "
+                     r"(\w+), not only this stretch\.", text)
+    if m:
+        if m[3] != m[4]:
+            raise WordsError(f"trout words: the stop duty names two waters {text!r}")
+        return ("stop", int(m[1]), parse_fish(m[2]), m[3])
+    m = re.fullmatch(r"Licence: (.+)\.", text)
+    if m:
+        return ("licence", tuple(parse_licence_part(p) for p in m[1].split(" · ")))
+    m = re.fullmatch(rf"On {_DAY} only: (.+)\.", text)
+    if m:
+        return ("one_day", _day_of(m[1], m[2]), tuple(parse_row_line(x) for x in m[3].split(", ")))
+    inner = text[:-1]
+    for kind, f, t in (("quiet", parse_quiet, text), ("quiet", parse_quiet, inner), ("row", parse_row_line, _decap(inner)),
+                       ("strip", parse_strip, _decap(inner)), ("together", parse_together, _decap(inner))):
+        try:
+            return ("line", kind, t, f(t))
+        except WordsError:
+            continue
+    raise WordsError(f"trout words: cannot read the sheet line {text!r}")
+
+
+def _parse_named(text: str) -> Tuple[Tuple[str, Optional[str]], ...]:
+    """The other fish a sheet line names ("brook trout, wild rainbow trout and lake trout") -> ((code, origin |
+    None), …)."""
+    out = []
+    for x in re.split(r", | and ", text):
+        o = None
+        for org in common.ORIGINS:
+            if x.startswith(org + " "):
+                o, x = org, x[len(org) + 1:]
+        out += [(c, o) for c in parse_fish(x)]
+    return tuple(out)

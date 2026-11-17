@@ -165,11 +165,11 @@ EXPECTED = {
         'Licence: 10 a year · record each on your licence right away · Steelhead Conservation Surcharge Stamp, only if you fish for steelhead, even to release them.'
     ),
     ('lois-jul15', 'LT'): (
-        'Keep · only 1 · counts toward the 4\n'
+        'Keep · only 1 of these 2 · counts toward the 4\n'
         'Size: 60 cm (24 in) or longer.\n'
         'Hatchery only: wild ones go back.\n'
         'Counts toward the 4 in all, together with brook trout, brown trout, cutthroat trout and Dolly Varden/bull trout.\n'
-        'This fish: only 1.\n'
+        'Only 1 of these 2: this fish and Dolly Varden/bull trout.\n'
         'Only 1 over 50 cm (20 in).\n'
         'A kept one is always over 50 cm (20 in), so it is that one.'
     ),

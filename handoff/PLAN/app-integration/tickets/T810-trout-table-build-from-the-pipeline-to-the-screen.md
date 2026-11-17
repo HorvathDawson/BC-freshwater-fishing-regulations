@@ -117,3 +117,22 @@ the day's number: band "only 2 in your possession" + quiet line (Cunningham). Ch
 correctly (book p.43: Bowron Lake's own row says 2; the 1 is for the other park waters). Left for H: `elsewhere`, the
 fish sheet's licence/stamp line, "today" wording in sheet lines. Left for I: wire models, FRAMES["trout"]; I must
 compose before L drops `group` from covered rows.
+
+## 2026-11-16 23:30: J built (lane/trout-j): the proof, inside the card gate
+`answers/trout/check.py` reads every shipped table back with G's grammar (extended in `words.py` to every text the
+table, its dates and sheets say, the card's reused size / also / kept-elsewhere / possession / weekday words included)
+and proves it against today's answers and the keeping engine, every key and segment: NULL per Q-D3, `covers`, every
+fish once, state and origin words, each fish alone at every length (engine), the joint limits through the engine's
+basket proof (`check_caps`' method), possession vs F0's lead (`card_check.possession_problems(lead=…)`), T793 / T805
+re-aimed, top line and fold numbers, every date against the following segments (and the sheet's), the sheets, the year
+bar, rule refs, kept-elsewhere numbers. Runs in `card_check --all` whenever the answers hold the trout section; the
+stamp gains `trout_check` and the store refuses a stamp that checked fewer tables than non-NULL trout cells.
+Full flagged side build over the live bundle: 5,950 tables of 5,950 non-NULL cells. It first found ~630 keys with
+faults in F's builder, fixed on the lane (each pinned): a kind's number drawn as each fish's own ("only 4" each in a
+box of 5), a kind's size cap drawn per fish ("up to 1 over 50 cm" on each row), "uses the 1" on a steelhead of a
+non-steelhead water, a twin wild row missing its own quota, "only 2 wild" in a strip that holds only some wild fish,
+boxes-apart top lines saying the region's total instead of the box's most. LEFT (5 keys, the proof fails them):
+(1) Kaslo River and Keen Creek from Jun 15: "Up to 2 {day}, plus 2 Dolly Varden/bull trout" with DV outside the
+"2 of these 5" band; the engine keeps 2 in all (DV counts toward the 2 from streams) — F's question 5; (2) Kitimat
+River (2 keys) and Humphrys / Iron Mine / Tetlock Creeks from Jul 1: the wild rainbow's "only 1 wild" is not joined
+with brown and cutthroat's "only 1 of these 2"; the engine holds the three to 1 together.
