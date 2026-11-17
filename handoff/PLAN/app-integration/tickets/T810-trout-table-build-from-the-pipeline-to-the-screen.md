@@ -241,3 +241,55 @@ Follow-up asked: does T3a (Lardeau, Duncan lift) stand.
 - For the main chat: a payload text that ends in a full stop doubles it in the a11y join. The steelhead quiet line
   "Steelhead are known to be in this water." reads "…water.. only 1 of these 4". Either Python drops the stop on
   table texts, or the contract lets the join skip the separator after one.
+
+## 2026-11-17 15:20: O built (app chat, branch app/t810-o, on N + T829's KeepBox + origin fb4273a72)
+- The a11y join (contract 2.8 as amended): ". " only after a text that does not end in ".", "!" or "?"
+  (`core/src/regs/trout.ts` `a11yOf`). The golden was rewritten with `UPDATE_TROUT_A11Y=1`, then again after the merge
+  of fb4273a72 so that Nahwitti's rows joined it. It holds no "..". Both are pinned by a core unit test and a golden
+  guard, and both failed under the old join.
+- `ui-native/src/regs/TroutCard.tsx` draws N's `TroutVM`. Every string is drawn unchanged. The parts, in order: the
+  kicker line (the entry's name only when no folded row heads the table, and "How to tell a hatchery fish ›" when
+  `hatchLink` is set), then the top line (the bigger size) with its second half and its date (the smaller size), then
+  the card line. Then the keep boxes through T829's `KeepBox` (one component). Bands are drawn as groups: a shared
+  white box spans its rows, and an `upto` band is one cell per row. Then the release and closed groups through
+  `ShutGroup`, then the together line, then the year bar (`TroutYearBar.tsx`, drawn only when `year` is set), then
+  "Sources ›", and "Fished elsewhere today? ›" only when `elsewhere` holds lines. That link unfolds the lines in place
+  (aria-expanded). `KeepBox` gained two optional row fields: `origin` (the word itself) and `a11y` (core's label, N's
+  golden). The salmon card is unchanged.
+  `YearStrip` exports `RunRect` / `Patterns` (and `GAP`, `H`, `useBarWidth`): keep = the open fill, release = stripes,
+  closed = the hatch. A `none` run is a plain neutral fill.
+- Presses until P. A row's picture opens the existing fish sheet (`sp:<fish>`). The hatchery link opens `hatch`.
+  "Sources ›" opens the existing every-rule sheet of today's trout row (`src:r<covers[0]>`). P re-aims these at
+  `tf:<row key>` and at `table.src`.
+- The fold row (`KeepBlocks` `ArrowFold`, behind the switch). On the salmon and trout folds only, the "Details" / "Hide"
+  button gives way to an expand / collapse arrow beside the value words. The trout fold's `DateSet.fold` is drawn small
+  under the value. The whole row is one 44 px press with `aria-expanded`, and its accessible name is exactly its
+  visible words ("Trout and char Up to 2"). At 2× text the value moves under the name. `KeepTab` builds the salmon fold
+  and ONE trout fold (`troutGlance`). The other fish's quota-group folds and the Other fish rows are unchanged. With no
+  at-a-glance table, the trout table is drawn in full where its block is, under its kicker. The walkthrough's "regs:trout"
+  key follows the trout fold.
+- THE DEV SWITCH, end to end. A build with `EXPO_PUBLIC_TROUT_TABLE=1` sets `globalThis.__troutTable` (apps/mobile
+  index.js), which `ui-native/src/troutSwitch.ts` reads. `WaterScreen` passes it to `useRegsPage` (which adds
+  `troutTable` to `RegsPageOpts`) and to `RegsScreen` → `KeepTab`. Off (the default), the tab is today's; a test
+  holds the render byte for byte.
+- Walkthrough: `core/src/help.ts` is NOT touched (T842 owns the steps). The fold arrow needs no new word. Wording for
+  T842: "Tap Trout and char to open its table" / "Tap Salmon to open its rules". The press is the whole row (its name,
+  value and arrow), and its spoken name is the row's visible words. The walk's controls are `regs:salmon` /
+  `regs:trout`; `Show me` sets the fold open.
+- Tests: `TroutCard.test.tsx` covers the 52 vectors with a frame. On every one: each payload text is on screen
+  unchanged, no brace, the row labels equal N's golden, the year bar is drawn exactly when `year` is set (Elk Nov yes,
+  Elk Jul no), and the links appear when they should. It also checks presses and 44 px, the two text sizes, the filled
+  label (on the box for Fraser R2, on the row for Windsor's char), the origin words, the groups' marks, the together
+  line, large text, and light / dark / cvd contrast. `KeepTab.test.tsx` checks the arrow on salmon and trout (and no
+  "Details" there), that the group fold keeps Details, the press, its name and aria-expanded, 2×, that the switch off is
+  identical to today (and the switch on changes only the salmon fold's end), and the full table without the glance.
+  `Walkthrough.test.tsx`: the walk sees and sets the arrow folds. `tools/trout-table-layout.test.ts`: 6 of the widest
+  vectors at 360 / 390, 1× / 2×, in headless Chrome. Nothing scrolls sideways, is cut, or overlaps; a never-fold mutant
+  fails. 18 guard mutants (16 in the drawing and the fold, the a11y join, the never-fold layout), each killed by a test.
+  The hatchery link's mutant first survived because the tests never drew the kicker without the link; a test now pins
+  that case.
+- Contract gaps. (1) `YearRun` state `none` has no drawn form in the spec; it is drawn neutral. (2) `KeepBox` reuses the
+  ids `keep-strip` / `keep-group`, which `YearStrip` / `GroupCard` also use (T829). Selectors in `regs-walk.mjs`
+  (`GROUPS`) would count the table's box as a group, so R must re-aim them. (3) The table has no kicker of its own
+  (spec 3.1). O draws the entry's navigation name only when no fold heads the table.
+- Shots (web export, switch on, 390, light and dark), from side release r-82ee8b53bdcd: scratch `t810-o-shots/`.

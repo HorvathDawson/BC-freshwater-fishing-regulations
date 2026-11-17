@@ -130,6 +130,7 @@ describe("(T810 O) the links and the presses", () => {
   it("the kicker: the entry's name only where no folded row heads the table", () => {
     mount(byName("elk-nov15"), LIGHT, true);
     expect(screen.getByTestId("trout-kicker").textContent).toBe(TROUT_NAV.ENTRY);
+    expect(screen.queryByTestId("trout-hatch")).toBeNull();   // the kicker's line holds the hatchery link only where hatch_link
     cleanup();
     mount(byName("elk-nov15"));
     expect(screen.queryByTestId("trout-kicker")).toBeNull();

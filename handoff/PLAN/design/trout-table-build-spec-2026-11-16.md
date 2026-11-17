@@ -377,6 +377,15 @@ The tests are in `conformance/src/regs/trout.release.test.ts` (vectors, hand cas
 over every fixture cell, imports). Details, and one contract gap (a text ending in "." doubles the stop in the a11y
 join), are in the T810 ticket.
 
+**Built 2026-11-17 (app chat, branch `app/t810-o`): O (contract items 11, 12, 13 behind the dev switch).**
+`ui-native/src/regs/TroutCard.tsx` draws N's `TroutVM` through T829's `KeepBox` / `ShutGroup` (one component),
+with `TroutYearBar.tsx` on `YearStrip`'s exported `RunRect` / `Patterns`. Every string is drawn unchanged. The salmon
+and trout folds end in the arrow (`KeepBlocks` `ArrowFold`): the whole row is one 44 px press, `aria-expanded`, and is
+named by its visible words. `KeepTab` builds the salmon fold and one trout fold, and leaves the other fish unchanged.
+The switch is `EXPO_PUBLIC_TROUT_TABLE=1`. Off, the tab is today's. The a11y join adds no second stop (contract 2.8 as
+amended). `help.ts` is left to T842. Item 12 (notes): none, per Q-D7. Until P, a row's picture opens `sp:<fish>`.
+Details are in the T810 ticket.
+
 **Owner answers this section is written to** (verbatim labels):
 - About 16:55 (app chat dialog): fold row "All rows get arrow"; pinned top line "Drop it (Recommended)" (S removes the
   trout pin line); a lone other fish beside trout "Stays as today (Recommended)"; the year bar's "Trout: release

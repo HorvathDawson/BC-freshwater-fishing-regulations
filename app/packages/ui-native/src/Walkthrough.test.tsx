@@ -531,10 +531,7 @@ describe("(T456) the words name only controls drawn inside the highlight", { tim
     expect(host.result.current.values["regs:salmon"]).toBe(true);
     expect(screen.getByText(GLANCE_WORDS.hide)).toBeTruthy();             // the fold opened, as a tap opens it
   });
-  it("(T810 O) the arrow folds (dev switch): no step says \"Details\", and the walk still sees and sets the salmon and trout folds", () => {
-    // T824 cut the "Tap Details" steps; no step names the button the arrow replaces, so no wording (and no version) changes
-    expect(GUIDE_STEPS.filter((s) => /details/i.test(`${s.title} ${s.body}`)).map((s) => s.key)).toEqual([]);
-    expect(WALKTHROUGH_VERSION).toBe("walkthrough-6");
+  it("(T810 O) the arrow folds (dev switch): the walk still sees and sets the salmon and trout folds (the steps' words are T842's)", () => {
     const host = renderHook(() => useGuideControlHost());
     const reg = renderHook(() => useCoachRegistry()).result.current;
     const arrow = (key: string, name: string) => ({ ...fold(key, name), arrow: true });
