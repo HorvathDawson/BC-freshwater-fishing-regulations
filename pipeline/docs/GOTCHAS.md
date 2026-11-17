@@ -263,11 +263,13 @@ position, a corrected DFO page) and his word.
   rest get dropped here."
 - **Sheldens Creek, the bridge** (Region 6; see "Sheldens Creek is a name we assumed" above). Owner: "add as gotcha
   but i think you can see the road in satellite that crosses neaar the mouth that should be the bridge i think (near
-  a camp site etc) have it be low confidence and set it top tidal too". The road crossing near the sea, beside the
-  OpenStreetMap camp site, is the FTEN road SPUR 14 over the estuary channel (53.14746 N 131.76003 W), about 260 m
-  BELOW the lower end of the FWA line (the line stops at the head of the salt marsh). So on our map that bridge is
-  the creek's own mouth: no cut; the tidal limit is a `mouth` row (`waters/tidal_limits.json`, an owner row, LOW
-  CONFIDENCE in its `why`) and the place, "upstream of the signs at the Spur 19 Bridge site", is the whole creek.
-  The literal Spur 19 road ("SP 19(1) TO SHELDONS") crosses the line 3.4 km up, at the old cut
-  `sheldens_creek__spur_19_bridge_site`, which nothing binds now; if DFO ever places the signs there, that is the
-  cut to use.
+  a camp site etc) have it be low confidence and set it top tidal too", then on the picture (2026-11-16 20:01):
+  "Extend to the bridge". The road crossing near the sea, beside the OpenStreetMap camp site, is the FTEN road SPUR 14
+  over the estuary channel (53.14746 N 131.76003 W); the FWA line stops ~1 km of channel above it, at the head of the
+  salt marsh. So the creek is DRAWN ON by hand (added stream `-2400000001`, source `manual`,
+  `data/source/municipal/manual_streams.geojson`: head = the FWA line's mouth vertex, same code 950-016367, the
+  creek's order carried) through the marsh to the bridge and ~65 m on to the flats, and the tidal limit is a `cut`
+  row at the bridge on it (`waters/tidal_limits.json`, LOW CONFIDENCE in its `why`). Which marsh channel carries the
+  creek is a reading of Esri imagery, not a survey. The literal Spur 19 road ("SP 19(1) TO SHELDONS") crosses the
+  FWA line 3.4 km up, at the old cut `sheldens_creek__spur_19_bridge_site`, which nothing binds now; if DFO ever
+  places the signs there, that is the cut to use.

@@ -3,8 +3,8 @@ reads (each read through the loader the build uses, not as raw JSON where a load
 
   Gitnadoix   "the powerline is. the mouth essentially": the powerline cut lands ON the river's own mouth (an alias on
               the mouth boundary, `at_edge`), never a new cut; the coho place is upstream of it (= the whole river)
-  Sheldens    "have it be low confidence and set it top tidal too": the Spur 19 bridge sits below the whole FWA line,
-              so the tidal limit is the line's mouth (an owner row, no mark) and the place stays the whole creek
+  Sheldens    "Extend to the bridge": the creek runs on down a hand-drawn estuary channel to the road bridge, the
+              low-confidence tidal cut (`test_sheldens_estuary_channel.py`); the place stays the creek
   Mara Bridge "at the bridge but make sure the cut name has the fact signs are nearby"
   Shuswap     Middle Shuswap (Shuswap Falls to Mabel Lake): "Main river only"
   Cowichan    the water's "including tributaries" flag: "Turn it off"; no live place changes with it
@@ -68,13 +68,9 @@ def test_gitnadoix_coho_place_is_upstream_of_the_mouth_alias():
 
 
 # --------------------------------------------------------------------------------------------- Sheldens
-def test_sheldens_tidal_limit_is_the_lines_mouth_as_the_owners_low_confidence_call():
-    from pipeline.atlas.splits import tidal as T
-    rows = [r for r in T.load() if r.blk == "360846083"]
-    assert len(rows) == 1
-    r = rows[0]
-    assert (r.limit, r.mark, r.split, r.at) == ("mouth", None, None, None)      # an owner row: no mark, no cut
-    assert "LOW CONFIDENCE" in r.why and "set it top tidal too" in r.why
+def test_sheldens_place_is_the_creek_above_the_bridge():
+    """The tidal boundary is a cut at the bridge on the hand-drawn estuary channel (`test_sheldens_estuary_channel`);
+    the place stays the creek, and the tidal subtraction leaves only the water above the bridge in it."""
     loc = _place(_places("6"), "6:sheldens-creek:upstream-of-white-triangular-fishi")
     assert _dump(loc.binding.extents) == [{"op": "whole", "item_id": "blk:360846083"}]
 
