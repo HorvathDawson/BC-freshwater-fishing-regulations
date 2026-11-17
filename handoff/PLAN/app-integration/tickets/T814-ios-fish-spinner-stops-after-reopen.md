@@ -17,3 +17,9 @@ first download at all, not only after a reopen. Simulator (app chat, iOS worker)
 mid-download kill and after a background launch, so not reproduced there. Lead: `FishSpinner.native.tsx` stands still by
 design under Reduce Motion (`AccessibilityInfo.isReduceMotionEnabled`), and a still fish with no other progress sign reads as
 hung. Asked the owner whether Reduce Motion or Low Power Mode is on on that phone.
+
+## Owner, 2026-11-16 ~23:50 (app chat), verbatim
+"loading icons seem like they can exist still maybe instead we make a second loading icon i will make it then send it here".
+So a still loading icon is fine; the owner designs a second, still icon and sends it in the app chat. The app keeps one slot
+for it (used where the fish cannot move, e.g. Reduce Motion); today's still fish frame stands in until it arrives. The
+restart of the animation on app-active and first layout goes ahead.
