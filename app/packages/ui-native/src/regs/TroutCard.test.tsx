@@ -48,7 +48,8 @@ function payloadTexts(t: TroutVM): string[] {
     .filter((x): x is string => !!x);
 }
 
-describe("(T810 O) every vector drawn", () => {
+// every vector mounted in turn: ~3 s alone, past the 5 s default when the whole suite shares the machine
+describe("(T810 O) every vector drawn", { timeout: 30_000 }, () => {
   it(`${CASES.length} vectors: every payload text on screen, unchanged; no slot or brace left`, () => {
     expect(CASES.length).toBeGreaterThanOrEqual(52);
     for (const c of CASES) {
@@ -94,7 +95,7 @@ describe("(T810 O) every vector drawn", () => {
   });
 });
 
-describe("(T810 O) the links and the presses", () => {
+describe("(T810 O) the links and the presses", { timeout: 30_000 }, () => {
   it("the hatchery link only where hatch_link; Sources always; 'Fished elsewhere today?' only with lines, unfolding them", () => {
     for (const c of CASES) {
       const t = vmOf(c);
@@ -172,6 +173,35 @@ describe("(T810 O) the look: two text sizes, the filled label, the origin word, 
     expect(within(dv).getByTestId("keep-label").textContent).toBe("Hatchery only");
     // the twin rows: the origin word itself beside the name, never a label
     expect(screen.getAllByTestId("keep-origin").map((e) => e.textContent).slice(0, 2)).toEqual(["hatchery", "wild"]);
+  });
+
+  it("(G2 Q9) a twin row's origin is a badge: hatchery FILLED as the Hatchery only label, wild OUTLINED; the word as is, the row's label unchanged", () => {
+    for (const [name, p] of [["light", LIGHT], ["dark", DARK], ["cvd", CVD]] as const) {
+      const t = byName("dodd-jul15");
+      mount(t, p);
+      const twins = t.boxes.flatMap((b) => b.rows).filter((r) => r.origin !== null);
+      const badges = screen.getAllByTestId("keep-origin");
+      expect(badges.map((e) => e.textContent), name).toEqual(twins.map((r) => r.origin));
+      expect(new Set(twins.map((r) => r.origin)), name).toEqual(new Set(["hatchery", "wild"]));
+      const label = screen.getAllByTestId("keep-label")[0]!, ls = getComputedStyle(label);
+      for (const b of badges) {
+        const s = getComputedStyle(b), word = getComputedStyle(b.firstElementChild!);
+        const filled = b.textContent === "hatchery";
+        // filled: the label's own look (ink ground, card word); outlined: no ground, an ink border and an ink word
+        const clear = /, 0\)$/.test(s.backgroundColor);   // no ground: a fully transparent fill
+        expect([clear ? "none" : s.backgroundColor, s.borderTopColor, s.borderTopWidth, word.color, word.textTransform], `${name} ${b.textContent}`).toEqual(filled
+          ? [ls.backgroundColor, rgb(p.ink), "1px", getComputedStyle(label.firstElementChild!).color, "uppercase"]
+          : ["none", rgb(p.ink), "1px", rgb(p.ink), "uppercase"]);
+        // one size: the same padding and border as the label
+        expect([s.paddingLeft, s.paddingTop, s.borderTopWidth], name).toEqual([ls.paddingLeft, ls.paddingTop, ls.borderTopWidth]);
+      }
+      // the row still reads as N's golden label (the word as is), and its picture is still a 44 × 44 press
+      const row = screen.getAllByTestId("keep-row").find((r) => within(r).queryByTestId("keep-origin"))!;
+      expect(row.querySelector("[role=group][aria-label]")!.getAttribute("aria-label"), name).toBe(A11Y["dodd-jul15"]![twins[0]!.key]);
+      const pic = screen.getByTestId(`pic:${twins[0]!.key}`);
+      expect([hitArea(pic.getAttribute("data-hitslop")!)!.h >= 44, hitArea(pic.getAttribute("data-hitslop")!)!.w >= 44], name).toEqual([true, true]);
+      cleanup();
+    }
   });
 
   it("release and closed groups under their head word, with the shape marks; the together line under the boxes", () => {

@@ -50,7 +50,8 @@ export interface KeepPic {
 export type KeepRowVM = Pick<TroutRow, "key" | "name" | "label" | "sub" | "lines" | "quiet"> & {
   readonly date?: string | null;
   readonly pic: KeepPic | null;
-  /** (T810 O) a twin row's origin (`TRow.origin`), drawn as the word itself beside the name; absent or null: none */
+  /** (T810 O) a twin row's origin (`TRow.origin`), the word itself beside the name, as a badge (G2 Q9: "hatchery"
+   *  filled, "wild" outlined); absent or null: none */
   readonly origin?: string | null;
   /** (T810 O) the row's screen-reader label as core joined it (`TroutRowVM.a11y`, N's golden); absent: joined here */
   readonly a11y?: string;
@@ -70,13 +71,21 @@ const rowLabel = (r: KeepRowVM, band: readonly string[]) =>
   [r.name, r.label, r.sub, ...r.lines, ...r.quiet, ...band, r.date].filter((x): x is string => !!x)
     .reduce((out, x) => (out ? `${out}${/[.!?]$/.test(out) ? " " : ". "}${x}` : x), "");
 
-function Label({ text, palette }: { text: string; palette: Palette }) {
+/** The filled label ("Hatchery only"), or (`outline`) the same badge drawn as an outline. Both carry a 1 px border in
+ *  the ink, so the two are one size; the word is the payload's, drawn as is (the pill face sets it in capitals). */
+function Label({ text, palette, outline = false, testID = "keep-label" }: { text: string; palette: Palette; outline?: boolean; testID?: string }) {
   return (
-    <View testID="keep-label" style={{ backgroundColor: palette.ink, paddingHorizontal: 6, paddingVertical: 2, alignSelf: "center" }}>
-      <Text style={{ ...TYPE.pill, fontSize: 11, color: palette.card }}>{text}</Text>
+    <View testID={testID} style={{ backgroundColor: outline ? "transparent" : palette.ink, borderWidth: 1, borderColor: palette.ink,
+                                   paddingHorizontal: 5, paddingVertical: 1, alignSelf: "center" }}>
+      <Text style={{ ...TYPE.pill, fontSize: 11, color: outline ? palette.ink : palette.card }}>{text}</Text>
     </View>
   );
 }
+
+/** (T810, owner G2 Q9) a twin row's origin word as a badge: "hatchery" FILLED, as the Hatchery only label; "wild"
+ *  OUTLINED. The word is the row's `origin`, unchanged; only its look follows it. */
+const OriginBadge = ({ origin, palette }: { origin: string; palette: Palette }) =>
+  <Label text={origin} palette={palette} outline={origin !== "hatchery"} testID="keep-origin" />;
 
 function Tile({ pic, mark, faded, palette }: { pic: KeepPic | null; mark: { s: string; colour: string } | null; faded: boolean; palette: Palette }) {
   const ground = (
@@ -110,7 +119,7 @@ function Row({ r, palette, faded, mark, first, under, band, testID }: {
       <View role="group" accessible aria-label={r.a11y ?? rowLabel(r, band)} style={{ flex: 1, minWidth: 0, paddingVertical: 2, paddingRight: 8 }}>
         <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", columnGap: 6, rowGap: 2 }}>
           <Text testID="keep-name" style={{ ...NAME, ...(faded ? { fontFamily: TYPE.regsBody.fontFamily } : {}), color: palette.ink }}>{r.name}</Text>
-          {r.origin && <Text testID="keep-origin" style={{ ...NEXT, color: palette.sub }}>{r.origin}</Text>}
+          {r.origin && <OriginBadge origin={r.origin} palette={palette} />}
           {r.label && <Label text={r.label} palette={palette} />}
         </View>
         {r.sub && <Text selectable testID="keep-sub" style={{ ...NEXT, color: palette.sub }}>{r.sub}</Text>}

@@ -321,3 +321,13 @@ Follow-up asked: does T3a (Lardeau, Duncan lift) stand.
   the header). The hatchery sheet is a link, not the clipped-fin drawing inline. The row picture's spoken name is still
   "<name> — what it looks like" though it now opens the whole fish sheet.
 - Shots (web export, switch on, 390, light and dark), from side release r-82ee8b53bdcd: scratch `t810-p/`.
+
+## 2026-11-17 16:30: origin badge (owner G2 Q9, app chat, branch app/t810-p)
+- A twin row's origin word (`TRow.origin`, drawn as is) is now a badge in `KeepBox`: "hatchery" FILLED (the Hatchery
+  only label's look: ink ground, card word), "wild" OUTLINED (an ink border and an ink word, no ground). Both badges and
+  the label carry a 1 px ink border, so they are one size. Tokens only (light, dark, cvd). The row's spoken label is
+  unchanged (N's golden), and the picture stays a 44 × 44 press. Row order and the "only 2 wild in all" box are G2's
+  (pipeline), not built here.
+- Test: `TroutCard.test.tsx` "(G2 Q9)" on Dodd in light, dark and cvd (filled vs outlined by origin, the word as is, one
+  size, the golden label, 44 px). 4 mutants (wild filled, hatchery outlined, outline word in sub, back to the plain
+  word), each killed. Shot: scratch `t810-p/shots/badge-dodd-jul15-{light,dark}-*.png`.
