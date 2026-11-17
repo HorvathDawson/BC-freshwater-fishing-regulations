@@ -2150,3 +2150,13 @@ More questions (recommended answer first):
 - 20:25, Sheldens Creek extended (picture `sheldens-extended.jpg`; `lane/cuts-1116` 998b4e6ab: a hand-traced marsh
   channel from the FWA line's end to the SPUR 14 road bridge, low-confidence tidal boundary at the bridge), picked:
   "Right (Recommended)". Goes into the next atlas rebuild; redrawn from the built map after.
+- About 21:22, typed in the APP chat after "Install build 36 and try a–f" (relayed verbatim): "a-d worked good except
+  after closing app and opening again the fish icon stopped moving.... yes to (E) and (f) .. the picture viewer for
+  spots has the x under the notification bar. text is cut off weird. also opening harrison lake then going to
+  conditions should default to level only because there is no other data (the map looks super weird and not visible
+  because of it) then when you switch to level the empty flow option disappers so if only level data exists it
+  should show level data. just mention at top it is level data maybe... have an agent look at this... how do i test
+  the push stuff now?" Filed by the app chat: T814 (iOS fish spinner stops after reopening mid-download), T815 (spots
+  photo viewer ✕ under the status bar), T816 (clipped text: the "When were you there?" hour, the weather icons), T817
+  (Harrison Lake: a water with only level data opens on Level with a line saying so; the gauge rule "Flow leads"
+  refined, not broken). iPhone build 36 test (a–f) done; push test under way with the app chat.
