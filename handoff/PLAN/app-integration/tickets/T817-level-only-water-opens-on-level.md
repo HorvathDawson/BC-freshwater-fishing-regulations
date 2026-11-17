@@ -16,3 +16,8 @@ disappears, so the choice was never real.
 A water whose station(s) read level only opens on Level, with a short line at the top that this is level data (no flow
 is measured here). Flow still leads wherever flow exists (unchanged). The map on such a water shows the level reading
 instead of an empty flow. The Flow / Level switch only offers what exists.
+
+## Owner addition, 2026-11-16 ~21:52 (app chat), verbatim
+"when you click level on chehalis then you can never go back to flow because it moves to harrison level gauge". So
+choosing Level must never change the gauge (owner 2026-11-10: "Flow leads, Level auxiliary"; Level never picks its
+own); Flow must stay reachable wherever flow exists. Likely the same cause as the Harrison case.
