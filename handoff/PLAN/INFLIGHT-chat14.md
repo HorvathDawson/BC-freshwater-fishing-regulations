@@ -88,6 +88,8 @@ the cutover (ship only at the switch). The app chat's T824 drops the walkthrough
 **5. Queued data tickets.** T825 (251 side channels led by a far-upstream gauge, list to him first), T813 (Schoolhouse
 Creek North), T827 (salmon break-it audit, later), T807, T804, the small code lane (section E item 4).
 
+**Overnight 11-17 (owner to bed ~00:35, said in the app chat): questions wait for the morning; the salmon landing still goes on the app chat's "go" (his 22:52 "Land it"); the rebuild's changed answers are shown to him in the morning and nothing from it ships before. Morning summary owed.**
+
 **6. Owed to him.** The rebuild's changed answers (after the worker); T807 / T804 lists; later the trout sentence
 list and picture pack; the T829 salmon-row mockups come from the app chat. No saves are his.
 
