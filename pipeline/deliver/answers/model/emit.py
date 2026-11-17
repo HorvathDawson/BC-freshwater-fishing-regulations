@@ -54,6 +54,10 @@ def _ts(node: dict, defs: dict) -> str:
                 key = " | ".join(json.dumps(v) for v in node["propertyNames"]["enum"])
                 return f"{{ [K in {key}]?: {_ts(extra, defs)} }}"
             return f"Record<{key}, {_ts(extra, defs)}>"
+        pat = node.get("patternProperties")
+        if isinstance(pat, dict) and len(pat) == 1:
+            # a dict keyed by a pattern (the trout table's `DateSet.sheet`, keyed by row key): its values' type
+            return f"Record<string, {_ts(next(iter(pat.values())), defs)}>"
         return "Record<string, unknown>"
     return {"string": "string", "integer": "number", "number": "number", "boolean": "boolean",
             "null": "null"}.get(t, "unknown")

@@ -14,8 +14,8 @@
  * so one rated visit predicts its own rating, two equally alike visits predict their mean, and a visit twice as alike
  * counts 2³ = 8 times as much. It is how YOUR RATED VISITS compare, never a claim about fish: the words say so.
  */
-import { monthAbbr } from "./flow";
-import { LIKE_READS, likeDayHead, type LikeDay } from "./likeVisit";
+import { spotDay } from "./day";
+import { LIKE_READS, likeDayHeadSaid, type LikeDay } from "./likeVisit";
 
 /**
  * THE RATING SCALE (owner: default 1–5 stars). A rating is a whole number 1 … `max`, stored as that number; `words[n-1]`
@@ -129,11 +129,9 @@ export function predictDay(date: string, scored: readonly RatedLike[]): DayPredi
   return { date, value, rests: counted.length, top, far: top.day.score! < LIKE_READS.similar * 100 };
 }
 
-/** A visit's date, short: "12 Oct", with the year when it is not this year: "30 Aug 2025". */
+/** A visit's date: "Sun 15 Nov", with the year when it is not this year: "Thu 20 Aug 2025". */
 export function visitDateText(visitedAt: number, now: number): string {
-  const v = new Date(visitedAt);
-  const year = v.getFullYear() === new Date(now).getFullYear() ? "" : ` ${v.getFullYear()}`;
-  return `${v.getDate()} ${monthAbbr(v.getMonth())}${year}`;
+  return spotDay(visitedAt, now);           // (T819 item 10) the spots' one style: "Sun 15 Nov", "Thu 20 Aug 2025"
 }
 
 /** The prediction's number: "4.2★", or a dash. */
@@ -141,8 +139,7 @@ export const predictText = (p: DayPrediction): string => (p.value === null ? "�
 
 /** The day said whole, for a screen reader and a test: "Today, 24 Oct: about 4.2 of 5, good, from 3 rated visits." */
 export function predictLabel(p: DayPrediction, now: number): string {
-  const h = likeDayHead(p.date, now);
-  const head = `${h.top}, ${h.sub}`;
+  const head = likeDayHeadSaid(p.date, now);
   if (p.value === null) return `${head}: ${PREDICT_WORDS.noScore}`;
   return `${head}: about ${p.value.toFixed(1)} of ${RATING.max}, ${ratingWord(p.value).toLowerCase()}, `
     + `${PREDICT_WORDS.restsOn(p.rests).toLowerCase()}.`;

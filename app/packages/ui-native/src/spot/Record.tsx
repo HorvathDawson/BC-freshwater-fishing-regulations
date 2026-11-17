@@ -7,13 +7,17 @@ import { Text } from "../Text";
 import { DAY_PANEL_WORDS, savedGauges, spotReadingFigure, visitDay, type Spot } from "@app/data/spots";
 import { SPOT_RECORD_WORDS, weatherFigure } from "@app/core";
 import { DonorPanel } from "../DonorPanel";
-import { TYPE } from "../type";
+import { TYPE, typeAt } from "../type";
 import type { Palette } from "../theme";
 import { Block, Meta } from "./parts";
 import { Window } from "./WeatherWindow";
 
 /** "What the water was doing": the frozen donor panel, the day's own gauges, or the spot's own reading. */
-export function WaterRecord({ spot, palette }: { spot: Spot; palette: Palette }) {
+export function WaterRecord({ spot, palette, names }: {
+  spot: Spot; palette: Palette;
+  /** (T819 item 7) the release's station names: the reading's station is named, its code after it */
+  names?: ReadonlyMap<string, string>;
+}) {
   const r = spot.reading;
   const fig = spotReadingFigure(r);   // the quantity the reading shows (T106), never whichever value is present
   // Q161: a trip on an earlier day than the save shows that day's gauges, never the save day's (`savedGauges`)
@@ -46,12 +50,17 @@ export function WaterRecord({ spot, palette }: { spot: Spot; palette: Palette })
         <>
           <DonorPanel palette={palette} value={spot.panel}
                       day={new Date(spot.visitedAt)} />
+          {/* (T819 item 3 → T823) the release's "small next to its gauge" sentence, frozen with the estimate: Python
+              decides when and words it */}
+          {spot.smallWater ? (
+            <Text selectable testID="spot-small-water" style={{ ...TYPE.small, color: palette.ink }}>{spot.smallWater}</Text>
+          ) : null}
           {gauges === "day" ? (
             <Text selectable testID="spot-gauges-day" style={{ ...TYPE.small, color: palette.sub }}>
               {DAY_PANEL_WORDS.ofTheDay(visitDay(spot))}
             </Text>
           ) : r && <Meta palette={palette} at={r.at} backfilled={r.backfilled}
-                         station={r.station} />}
+                         station={r.station} names={names} />}
         </>
       ) : r && fig ? (
         // A spot saved before the estimate was frozen. Its own reading is all there is,
@@ -59,7 +68,7 @@ export function WaterRecord({ spot, palette }: { spot: Spot; palette: Palette })
         <>
           <View style={{ flexDirection: "row", alignItems: "baseline", gap: 8,
                          flexWrap: "wrap" }}>
-            <Text selectable style={{ ...TYPE.figureBig, fontSize: 32, color: palette.live }}>
+            <Text selectable style={{ ...typeAt("figureBig", 32), color: palette.live }}>
               {fig.figure}
             </Text>
             <Text selectable style={{ ...TYPE.figure, color: palette.sub }}>{fig.unit}</Text>
@@ -69,7 +78,7 @@ export function WaterRecord({ spot, palette }: { spot: Spot; palette: Palette })
               </Text>
             )}
           </View>
-          <Meta palette={palette} at={r.at} backfilled={r.backfilled} station={r.station} />
+          <Meta palette={palette} at={r.at} backfilled={r.backfilled} station={r.station} names={names} />
         </>
       ) : (
         <Text selectable style={{ ...TYPE.small, color: palette.sub }}>
@@ -89,7 +98,7 @@ export function WeatherRecord({ spot, palette }: { spot: Spot; palette: Palette 
         <>
           <View style={{ flexDirection: "row", alignItems: "baseline", gap: 12,
                          flexWrap: "wrap" }}>
-            <Text selectable style={{ ...TYPE.figureBig, fontSize: 32, color: palette.ink }}>
+            <Text selectable style={{ ...typeAt("figureBig", 32), color: palette.ink }}>
               {weatherFigure("temp", w.tempC)}
             </Text>
             {w.windKph != null && (

@@ -147,6 +147,7 @@ const ALLOW: Record<string, { n: number; why: string }> = {
   "tools/search-golden.test.ts": { n: 2, why: `${LIVE}; the area half needs a release with the area tables` },
   "tools/testbed/run-ios.mjs": { n: 2, why: TESTBED },
   "tools/testbed/scenarios-ios/audit-fixes.mjs": { n: 4, why: `${TESTBED} (T723: ⚠/↩ not on the water reached; G5 Precise switch and G9 refused link not reachable on the simulator, unit-tested)` },
+  "tools/testbed/scenarios-ios/build36.mjs": { n: 5, why: `${TESTBED} (T814/T815: no first-download screen on a device that already holds the release, the app already up or no longer on the download screen, no saved spot for the photo step)` },
   "tools/testbed/scenarios-ios/keyboard.mjs": { n: 1, why: `${TESTBED} (T723: the alert editor follows the gauge-pick step, whose own failure already failed the run)` },
   "tools/testbed/scenarios-ios/modal-back.mjs": { n: 2, why: `${TESTBED} (T723: the "kb probe" spot is the keyboard scenario's; the iOS photo picker cannot always be driven)` },
   "tools/testbed/scenarios/crash-bed.mjs": { n: 1, why: `${TESTBED} (needs the stub APK, session.sh --crash-stub)` },

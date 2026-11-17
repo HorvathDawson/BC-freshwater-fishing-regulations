@@ -3071,10 +3071,15 @@
       "color.ui.accent": "#5F26E0",
       "color.ui.on-accent": "#FFFFFF",
       "color.ui.live": "#027486",
+      "color.ui.coho.ink": "#1F2E3B",
+      "color.ui.coho.red": "#CF5A3C",
+      "color.ui.coho.ground": "#FFFFFF",
       "color.ui.attention": "#15181C",
       "color.ui.warning": "#D08404",
       "color.ui.spot": "#15181C",
       "color.ui.spot-ground": "#FFFFFF",
+      "color.ui.photo.ground": "#15181C",
+      "color.ui.photo.ink": "#FFFFFF",
       "color.ui.me": "#1A73E8",
       "color.ui.me-ring": "#FFFFFF",
       "color.ui.place-band": "#FBF0E6",
@@ -3113,6 +3118,16 @@
       "dash.run.pass": [
         2,
         1.5
+      ],
+      "color.issue.stripe": "#0A1116",
+      "color.issue.casing": "#F8F8F2",
+      "dash.issue.stripe": [
+        3,
+        5
+      ],
+      "dash.issue.casing": [
+        5,
+        3
       ],
       "color.cue.closed": "#F8F8F2",
       "dash.cue.closed": [
@@ -3255,10 +3270,15 @@
       "color.ui.accent": "#A97CFF",
       "color.ui.on-accent": "#100A22",
       "color.ui.live": "#37D6EA",
+      "color.ui.coho.ink": "#F2E8D5",
+      "color.ui.coho.red": "#CF5A3C",
+      "color.ui.coho.ground": "#15181B",
       "color.ui.attention": "#F0F2F0",
       "color.ui.warning": "#FFD307",
       "color.ui.spot": "#F0F2F0",
       "color.ui.spot-ground": "#15181B",
+      "color.ui.photo.ground": "#000000",
+      "color.ui.photo.ink": "#F0F2F0",
       "color.ui.me": "#1A73E8",
       "color.ui.me-ring": "#FFFFFF",
       "color.ui.place-band": "#231A12",
@@ -3297,6 +3317,16 @@
       "dash.run.pass": [
         2,
         1.5
+      ],
+      "color.issue.stripe": "#F4F8F5",
+      "color.issue.casing": "#0A0B0D",
+      "dash.issue.stripe": [
+        3,
+        5
+      ],
+      "dash.issue.casing": [
+        5,
+        3
       ],
       "color.cue.closed": "#0A0B0D",
       "dash.cue.closed": [
@@ -3439,10 +3469,15 @@
       "color.ui.accent": "#5F26E0",
       "color.ui.on-accent": "#FFFFFF",
       "color.ui.live": "#027486",
+      "color.ui.coho.ink": "#1F2E3B",
+      "color.ui.coho.red": "#CF5A3C",
+      "color.ui.coho.ground": "#FFFFFF",
       "color.ui.attention": "#15181C",
       "color.ui.warning": "#D08404",
       "color.ui.spot": "#15181C",
       "color.ui.spot-ground": "#FFFFFF",
+      "color.ui.photo.ground": "#15181C",
+      "color.ui.photo.ink": "#FFFFFF",
       "color.ui.me": "#1A73E8",
       "color.ui.me-ring": "#FFFFFF",
       "color.ui.place-band": "#FBF0E6",
@@ -3481,6 +3516,16 @@
       "dash.run.pass": [
         2,
         1.5
+      ],
+      "color.issue.stripe": "#0A1116",
+      "color.issue.casing": "#F8F8F2",
+      "dash.issue.stripe": [
+        3,
+        5
+      ],
+      "dash.issue.casing": [
+        5,
+        3
       ],
       "color.cue.closed": "#F8F8F2",
       "dash.cue.closed": [
@@ -4049,6 +4094,21 @@
       "themeable": true,
       "$comment": "a live feed — the gauge, the fish spinner. Distinct from `accent`, which means 'you chose this'"
     },
+    "color.ui.coho.ink": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T814, owner 2026-11-17) THE COHO LOADER's ink block: the owner's two-block linocut spawning coho (app/tools/fish-loader/fish_loader.py) on the start, download and setup screen and the applying curtain. Baked into its sprite sheet by `pnpm coho:build` (one sheet per distinct ink + red pair), never tinted at run time; `pnpm coho` fails when a sheet no longer wears these values."
+    },
+    "color.ui.coho.red": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T814) the coho loader's second block, the spawning coho's red side and belly; baked like `color.ui.coho.ink`"
+    },
+    "color.ui.coho.ground": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T814) the ground drawn behind the coho loader, a little past its frame; the card where the loader needs no ground of its own"
+    },
     "color.ui.attention": {
       "type": "color",
       "themeable": true,
@@ -4068,6 +4128,16 @@
       "type": "color",
       "themeable": true,
       "$comment": "T131 the ground of a saved spot's pin and of its name: the card, so a pin reads as the app's own object on the map (the selected pin swaps mark and ground)."
+    },
+    "color.ui.photo.ground": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T819 item 4) A SPOT'S PHOTOGRAPH, FULL SCREEN: the ground the picture sits on. Black or near it in every theme, as a photo viewer is: the light theme's ink, the dark theme's shadow (the viewer drew on `ink`, which in the dark theme is light grey). References, never a second hex."
+    },
+    "color.ui.photo.ink": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T819 item 4) the viewer's words and controls on `color.ui.photo.ground`: white or near it in every theme (the light theme's card, the dark theme's ink)"
     },
     "color.ui.me": {
       "type": "color",
@@ -4228,6 +4298,26 @@
       "type": "dash",
       "themeable": true,
       "$comment": "(T199) RUN TIMING (the Map tab's Run timing mode, owner 2026-10-28): the passing run's dash, in line widths: long dashes, so a thin line still reads as a broken one."
+    },
+    "color.issue.stripe": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T759, owner 2026-11-15: \"dash with closed color maybe? Or a better color what ever is best practice\") THE ISSUE STRIPE's ink: dashes down a stream whose water has a DFO salmon rule the feed could not place, Salmon view only. The closed colour was tried and fails (tools/issue-stripe.test.ts: it is the closed line's own colour, ratio 1.00); the gear ink (no hue, so it reads the same for every reader) rides on the casing below."
+    },
+    "color.issue.casing": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T759) the paper under the issue stripe's ink, so a dark line (closed, release, open) and a light one (check, no answer) both leave the dashes a ground of their own: the stripe is dark on paper, never ink on a line of its own darkness."
+    },
+    "dash.issue.stripe": {
+      "type": "dash",
+      "themeable": true,
+      "$comment": "(T759) the issue stripe's INK dashes (dark in the light theme), in the stripe's own widths: longer than the closed cue's ticks and the gear marks' edge dashes, so the three read apart. The ink and the casing (`dash.issue.casing`) are drawn at the SAME line width, so MapLibre (which divides dash distance by floor(line-width)) gives them the same period; the two arrays therefore sum to the same 8, which keeps them in phase: ink 3, then casing's pale 2, then a gap of 3 where the line's own colour shows."
+    },
+    "dash.issue.casing": {
+      "type": "dash",
+      "themeable": true,
+      "$comment": "(T759) the issue stripe's CASING dashes: 5 on, 3 off, a period of 8 like `dash.issue.stripe` (3 on, 5 off) and drawn from the same origin at the same width, so the ink sits on the first 3 of each 5 and the pale shows after it, along the line, never around it."
     },
     "color.cue.closed": {
       "type": "color",

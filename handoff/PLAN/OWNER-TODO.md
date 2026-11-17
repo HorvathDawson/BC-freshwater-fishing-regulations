@@ -2099,3 +2099,300 @@ More questions (recommended answer first):
   and last exit; a straddling piece or a wander outside under 1 km stays inside; the 4 pieces 10-50% inside sit
   between the cuts). Keep E8 / cut exactly at the line, picked: "Keep E8 as is (Recommended)". So: streams unchanged;
   only the 9 lakes and ponds mostly outside come out by name (ruling Z10), each with a note on the card.
+- 18:37, typed in chat (verbatim): "We also want to start another agent that works on finding the missing river
+  confluences on the babine lake dfo place closures. We want to find the other rivers and have an agent dedicated to
+  it". So: a dedicated Opus worker finds the creek mouths DFO names in its Babine Lake closures that we have not
+  placed yet (from the 11-16 re-check: Pendleton has no match; Six Mile, Hazelwood, Sockeye and the Gullwing line are
+  not drawn; Tsezakwa's circle sits on Nilkitkwa Lake; Pinkut has a circle but is not in DFO's list), and proposes
+  each for his review (everything added is a proposal).
+- 18:38, typed in chat (verbatim): "this is fine (Tsezakwa: its circle sits on Nilkitkwa Lake instead of Babine. )".
+  So: Tsezakwa's circle on Nilkitkwa Lake stays as it is; the Babine worker leaves it alone.
+- 18:54, Babine Lake (five pictures sent; worker branch `lane/babine-mouths` 6b1aa369d, proposals only). The four
+  missing circles ('Six Mile Creek' = Gullwing Creek; 'Pendleton Creek' = Cross Creek at Pendleton Bay; Hazelwood and
+  Sockeye = the unnamed creeks at DFO's own census sites), typed, verbatim: "That sounds good can we add name variants?
+  With source?" The Gullwing Creek line, picked: "Due south" (straight south from Gullwing Creek's mouth, 3,356 m, not
+  the shortest crossing). So: the four circles are accepted; each creek gets a NAME VARIANT with its source (Gullwing
+  Creek also "Six Mile Creek"; Cross Creek also "Pendleton Creek"; the two unnamed creeks "Hazelwood Creek" and
+  "Sockeye Creek"; source = DFO NuSEDS census sites + SkeenaWild 2011, cited on each), as name variants are recorded
+  today; the line is the due-south reading. Also found: his 7 circle confirmations of 13:28 were never saved (no
+  Babine closed-area marks; `closed_areas.json` holds only Thompson and Shuswap): they are saved with these 4 and the
+  line through the review app's save path. Effect today: none on the map (a circle binds only sections wholly inside
+  it; the lake is one section; the line across a lake is deferred): notes on the card until a lake-split ticket.
+- 18:56, typed in chat (verbatim): "We want to split babine lake on the line like our other split lakes. Then we want
+  the circles to just be circles on the map not separate sections of the lake. Otherwise it will be overboard." So
+  (T812): Babine Lake is split on the due-south Gullwing Creek line the way other lakes are split (east part = its
+  own piece, closed as DFO says); the 400 m creek-mouth circles are NOT cut out of the lake: they are drawn as circles
+  on the map (an overlay) with the card's note, no extra lake sections.
+- 18:57, the Babine circles' look (T812; the app chat's three questions, one dialog). Which map, picked: "Salmon map only
+  (Recommended)". Follow the picked day, picked: "Follow the day (Recommended)" (closed colour on DFO's closure days,
+  outlined or hidden otherwise). Tap, picked: "Opens the lake's card (Recommended)" (Babine Lake's salmon card, whose
+  note says which creek mouths close and when).
+- 19:01, typed in chat (verbatim): "We could skip some tests to get multiple items done then merge after and test
+  together? Or is that too risky?" Answered: batch the merges (each lane already ran its own tests), then ONE full
+  tier and ONE push for the batch; never push without the full tier (the 11-15 red landings). Adopted from now.
+- 19:09, he asked whether he still has saves to do and to take the two end-batch questions now ("make sure i didnt
+  already answer these things"). Checked: the "leftover saves" in my 19:0x summary were MY fixes, all already answered
+  by him (Morice 2738 by the heading rule; Morice 2739 "fix it" = the Lamprey cut onto the main channel; Sheldens 2783
+  = low-confidence road cut + tidal; Babine 2784 = done 19:07, marks 2825-2836; Dean 2793 = the except without the
+  canyon; Thompson 2521 = the three closed areas; Morice 2596 retired; Atnarko 2584 "The heading counts"). Told him so.
+  One dialog of three. Squamish "downstream of the powerline crossing" re-tick (T811, mark 2511), picked: "Re-tick as
+  right (Recommended)". François Lake outlet lines (T805 D question 3; book p.51 "for the area at the outlet of
+  François Lake described on map 1"), picked: "Outlet area only (Recommended)" (all seven lines on the outlet area;
+  the main lake reads Region 6's rules; map rebuild; changed answers to him first). Eulachon (T770), picked: "As a
+  closure line (Recommended)" (its own line that eulachon is closed all year in Region 6, apart from the gear and bait
+  lines).
+- 20:01, two pictures (cut-fixes lane `lane/cuts-1116` a5990dd7b). Sheldens Creek (the SPUR 14 road bridge by the camp
+  site crosses the estuary channel ~260 m BELOW our FWA line's end at the top of the salt marsh; proposed: mouth =
+  tidal boundary, low confidence, whole creek above), picked: "Extend to the bridge" (draw the creek on down to the
+  road bridge and put the low-confidence tidal boundary there; needs an added stream piece). Morice, Gosnell Creek to
+  Lamprey Creek (mark 2739; END on the main channel at Lamprey's mouth; the earlier picture was a drawing-tool fault),
+  picked: "Right (Recommended)".
+- 20:25, Sheldens Creek extended (picture `sheldens-extended.jpg`; `lane/cuts-1116` 998b4e6ab: a hand-traced marsh
+  channel from the FWA line's end to the SPUR 14 road bridge, low-confidence tidal boundary at the bridge), picked:
+  "Right (Recommended)". Goes into the next atlas rebuild; redrawn from the built map after.
+- About 21:22, typed in the APP chat after "Install build 36 and try a–f" (relayed verbatim): "a-d worked good except
+  after closing app and opening again the fish icon stopped moving.... yes to (E) and (f) .. the picture viewer for
+  spots has the x under the notification bar. text is cut off weird. also opening harrison lake then going to
+  conditions should default to level only because there is no other data (the map looks super weird and not visible
+  because of it) then when you switch to level the empty flow option disappers so if only level data exists it
+  should show level data. just mention at top it is level data maybe... have an agent look at this... how do i test
+  the push stuff now?" Filed by the app chat: T814 (iOS fish spinner stops after reopening mid-download), T815 (spots
+  photo viewer ✕ under the status bar), T816 (clipped text: the "When were you there?" hour, the weather icons), T817
+  (Harrison Lake: a water with only level data opens on Level with a line saying so; the gauge rule "Flow leads"
+  refined, not broken). iPhone build 36 test (a–f) done; push test under way with the app chat.
+- About 21:32, typed in the APP chat (relayed verbatim): "the spots view also needs a lot of work to be cleaned up maybe
+  put a fresh agent on it?". The app chat's T819: a fresh Opus worker reviews the spots area and brings him pictures
+  and a cleanup list to pick from before anything is built.
+- About 21:37 to 21:40, typed in the APP chat (relayed verbatim): "also the calendar bar doesnt have a full red line for
+  salmon when closed but instead it is empty with no color on the calendar bar.." (T820: the salmon year bar on a
+  closed day draws empty, not the closed stripe); "when i swiper to close on apple it flashes the menu back for a
+  second before it goes back." (T821: iOS back-swipe flash); "allowed notifications in app and settings restarted app
+  and it still doesnt show up" (T822 if a bug: push registration; the staging worker holds 0 iOS tokens).
+- Before 21:41 (the app chat said ~21:45), typed in the APP chat (relayed verbatim): "in the tutorial it says on first slide each step rings what to
+  tap (should say something like highlight instead? the tutorial is really glitchy too with keyboard and the
+  highlighting following the items with a delay etc etc". The app chat files it (its next reserved number).
+- Shortly before 21:48, typed in the APP chat (relayed verbatim): "also the condition panel is very glitchy on apple. it
+  doesnt show the info the same as android the mao doesnt have gauge markers the current conditions view doesnt show
+  the bar and when i click on chehalis it doesnt show conditions for it? also the highlights dont let go when you go
+  back the highlight of where you clicked stays and doesnt disspear". Filed by the app chat (its own number). If the
+  Chehalis showing no conditions is data (no gauge match), it sends me the section ids.
+- 21:50, typed in chat (verbatim): "it used to match the chehalis gauge though?????". Checked: it still does. The shipped
+  release r-46e4355a7277 (conditions-18da9a4cead9) has gauge 08MG001 Chehalis River near Harrison Mills leading 634
+  Chehalis sections (matches.json unchanged; 08MG023 below Statlu Creek auxiliary). So the iPhone showing no Chehalis
+  conditions is app-side (with the missing gauge markers and bar on Apple); sent to the app chat for its conditions
+  ticket.
+- Shortly before 21:54, the spots cleanup (the app chat's T819; relayed verbatim): picked all four bundles, "B: readable
+  spot page (Recommended)", "A: fix wrong bits (Recommended)", "C: list + adding", "D: fit & finish". On a small creek
+  (1.4 km²) shown "Below normal" from a gauge 676× bigger, typed: "Could we just use our gauge network that colors stuff
+  wtc to determine if it is significant enough? It would drop that in theory. Then ofr small ones still give a warning
+  if used." So: a spot takes its gauge from the same section → lead-gauge network the Conditions map colours with
+  (drainage gate applied); no lead = no estimate; a lead on a small water = the estimate with a plain warning. The
+  "small next to its gauge" decision is Python's (T823), the app reads it.
+- 22:18, T823 small water next to its lead gauge (table sent: examples, counts at 50/100/200×). Cut-off, picked: "50×
+  (Recommended)". Wording, picked: "Much smaller stream (Recommended)" ("This stream is much smaller than the river its
+  gauge measures: the reading may not match it."). Built on `lane/t823-small-water` (edc097013), default already 50×;
+  reaches a release with the next bundle rebuild. Found with it: T825 (251 side channels led by a gauge far upstream,
+  e.g. lower Fraser side channels reading Red Pass).
+- Shortly before 22:19, in the APP chat (relayed; label picked verbatim), after its correction that the Conditions MAP
+  colours from the paint PANELS (249k sections; your 1.4 km² creek is coloured "Below normal" by 08MH001, 676× bigger),
+  not from section_gauge (114k): "Should a gauge that much bigger be allowed to speak for a small water at all, on the
+  map AND in spots (they always match)?", picked: "Allow, with a warning (Recommended)" (keep colouring and estimating;
+  say plainly the gauge drains a far bigger area once it is small enough to matter; Python picks the cut-off). So
+  T823's flag and sentence hang on the SPEAKER's gauge (the panel the map colours from), the same on the map, the
+  spot and the sheet; 50× and the wording stand (owner, just before).
+- Shortly before 22:49, in the APP chat (relayed verbatim), on the 0.7.12 draft "What's new": "you can do what changed."
+  So: the app chat writes and keeps the release notes current and clears the draft when the next build goes out. His
+  next question there, "so what is next?", is being answered by the app chat (both chats' plan: salmon landing first,
+  then the one map rebuild + staging release, the trout build in parallel).
+- 22:52, the salmon landing look (T796): five before/after sheets (Skeena reserve, Yakoun, Bell-Irving, Kitsumkalum
+  eulachon line, Cold Fish Lake note; from r-1603e71cc92c) and the changed-answers list since his 71-row review. Land
+  it, picked: "Land it (Recommended)". Kennedy Lake's note (already ruled outside Pacific Rim, Z11), picked: "Keep the
+  note (Recommended)". So: lane/salmon-rules-1116 + lane/salmon-hardcases-1116 + the app's twins land together
+  (section D), then ship with the next staging release.
+- 22:55, on the Yakoun before/after sheet, typed (verbatim): "The calendar shows open always but it closes after coho
+  closes?" Answered: DFO's coho row "Apr 1–Mar 31" is the whole year (DFO's year runs Apr 1 to Mar 31), so before the
+  change salmon was open every day; after it the book's "No Fishing from Yakoun Lake downstream approximately 13 km …,
+  Oct 1-Apr 30" closes the stretch Oct 1 to Apr 30 and coho shows through May to Sep.
+- 22:55, on the Skeena before sheet (circling the DFO-words block under the species table), typed (verbatim): "We want to
+  create a future ticket to do a similar check of all salmon regulations to the webpages with a fresh agent that tries
+  to break it and look for issues in the regulations also why do we have this section in salmon". Filed T827 (the
+  break-it audit of every salmon rule against DFO's pages, later). Answered why (T321, Oct 31: DFO's rows as printed so
+  the reading can be checked). The block (fold into Source / keep only extras / keep), picked: "Fold into Source
+  (Recommended)" (T828: under the 'Source (DFO)' expander, closed by default; unread new wording stays visible).
+- 22:56, typed in chat (verbatim): "Can we also clean up the format for the salmon rows to make it look more consistent
+  with the other table and the new trout table just a formatting thing same data tho". Filed T829 (app side; same
+  data): mockups first in the settled trout table look (the trout page's round-15 design), his pick, then the build
+  after the salmon landing and T828.
+- Shortly before 23:17, in the APP chat (relayed; label picked verbatim), T829 salmon rows after three mockups on real
+  data (Kitsumkalum Jul 15 with its eulachon line, Skeena below Terrace Aug 15 mixed), each above its trout table:
+  "B: trout keep box (Recommended)" (open species in the trout tint box, each species' limit in the white box at the
+  right with its dates small under it; closed species, the eulachon line and rule-book closures in the trout
+  "✕ Closed" group; badge, year bar and bait-ban line stay; the T828 fold as mocked). Built after the salmon landing and
+  T828, as ONE box component the trout table (ticket O) reuses.
+- 2026-11-17 about 00:10 to 00:14, in the APP chat (verbatim), T814: "it had reduce motion on." (the second iPhone, so
+  the still fish was by design); "we dont want a full still item for reduce motion on.. i am making a new loader icon
+  that will replace the loading circle on the splash page or curtain (it will still be used for all other loading."
+  He sent the loader as a Python generator (`fish_loader.py`: a linocut coho, 80-frame sprite sheet, 4 s loop). Then:
+  "we will ignore reduced motion for this". So: no still icon; the coho loader on the splash / first-download /
+  curtain screens, the circling fish everywhere else; both always move, Reduce Motion or not. The app chat builds it
+  (T814) and brings him pictures in both themes.
+- 2026-11-17 about 00:35, in the APP chat, before sleeping ("questions should wait unless there are urgent ones now
+  bertween 2 chats"), two picks: overnight landing of the app fixes that pass their benches (T817, T823, T824, the iOS
+  fixes, T819, T826, T822, one by one after salmon and T759, each with the main chat's clear), picked "Yes, land what
+  passes (Recommended)"; then a 0.7.12 upload to TestFlight and Play internal overnight, picked "Yes, upload overnight
+  (Recommended)" (the coho loader goes in only once he has seen and picked its look). Anything that fails waits for him.
+- 2026-11-17 about 00:50, in the APP chat (verbatim): "also for gauges should look into why capilano river at canyon
+  gauge doesnt have level but i can find level for it online like here
+  https://metrovancouver.org/services/water/seymour-and-capilano-river-levels with 2023 - 2026 Flow & Level Continuous
+  Recorder here https://wateroffice.ec.gc.ca/report/real_time_e.html?stn=08GA031" and "other gauges might have same
+  issue as that". Filed T830: EC reports Capilano's level live, but HYDAT has only 2 years of its level (3 needed for a
+  band), so no Level is offered, and with the map on Level the row wrongly says "flow only". 16 stations are like it
+  (Nazko 985 sections, Beatton 327, Witches Brook 131, Capilano 72 …). **Yours (morning batch):** with no band, show
+  the raw level in metres unranked (recommended), or keep it hidden? The wrong "flow only" wording gets fixed either way.
+- 2026-11-17 overnight, the app chat (T814): **yours (morning batch):** your coho loader is built (branch
+  app-fix/t814-loader, not merged) on the splash / first-download / applying-data screens, your colours exactly in light
+  mode. In dark mode your dark ink nearly disappears. Pick **A** (paper-coloured ink #f2e8d5 on the dark screen, red
+  kept) or **B** (your colours on a paper tile behind the fish). Pictures sent in the app chat. It joins a build after
+  the pick; the overnight 0.7.12 goes without it.
+- 2026-11-17 overnight, the main chat (T810 trout table): **yours (morning batch):** Kaslo River and Keen Creek (Region 4) print
+  "Bull trout daily quota = 2 (any size)", the same words as the Lardeau and the Duncan, but only the Lardeau and Duncan
+  rows say the Dolly Varden don't count toward Region 4's "2 from streams". So today the rules engine lets you keep
+  2 fish in total on Kaslo and Keen, and the new trout table now says the same ("Up to 2"). The card that ships today
+  says "Not part of the 2 from streams" there, which disagrees with the engine. Pick: **A** read Kaslo and Keen like
+  the Lardeau (Dolly Varden on top of the 2; a small corpus edit plus a rebuild, and the table follows), or **B** keep
+  them as written (2 in total; the old card's line is then the wrong one, and it goes when the trout table replaces it).
+- 2026-11-17 overnight, the main chat (pre-staging map rebuild; nothing from it has shipped): **yours (morning batch),
+  what changes on the map:**
+  1. **Babine Lake east of the Gullwing Creek line** is now its own part, closed all year to all fishing (book p.50
+     "No Fishing east of a line from Gullwing Creek"), including the Aug 1-27 sockeye opening. The main body is unchanged
+     apart from the Pinkut radius note. OK?
+  2. **Hazelwood Creek's 4 ponds** (named by your T796 save) now count as widenings of the creek, not lakes. They lose
+     the lake rules and take the creek's: they close Jan 1 to Jun 15 under the Skeena winter closure. OK, or keep them as
+     lakes? (A worker is checking how the FWA and the book treat them.)
+  3. Fixed overnight (06:13): Sheldens Creek is one water in search; the Gitnadoix "upstream of the powerline" place
+     binds the whole river again (1,000 stretches) with your powerline label kept (T833: a rules-engine fault at a
+     line's end, fixed in code; the whole-province check moved nothing else).
+  4. **Sheldens Creek** is now one water. Its small unnamed 3.47 ha pond on the creek now counts as part of the creek
+     (same rule as the Hazelwood ponds), so kokanee there goes from "keep 10 a day" to release.
+  5. **Re-tick in the review app** (your saved places whose area moved with this rebuild, so their tick is stale):
+     Cowichan x3 (66-mile trestle, white triangle, whole), Sheldens (upstream of the white triangular sign), Babine
+     Lake x2 (including tributaries; excluding tributaries). Your marks file is not edited.
+  Full list of changed answers vs the salmon release (168 groups): scratchpad/rebuild3b/answers-diff/
+  vs-salmon-r-1603e71cc92c/owner.md, sent to you as a file. Nothing ships or merges until you say OK.
+- 2026-11-17 08:37, in the main chat (verbatim): "Yes still show gauge data." (T830: show the raw live level, unranked,
+  where there is no band.) And on the re-tick list: "Why would we have to do this (Re-tick in the review app: 6 of your
+  saved places whose area moved with this rebuild: Cowichan ×3, Sheldens ×1, Babine ×2.) they should all be good?"
+  So: no re-tick from him; the marks are carried by the main chat (fix, not a review item).
+- 2026-11-17 ~08:45, in the APP chat, T814 coho loader dark mode: picked "A: paper-coloured ink" (ink #f2e8d5 on the
+  dark screen, red kept; light mode is his colours as drawn). The app chat finishes it and it joins the next build.
+- 2026-11-17 08:50, main chat dialog (verbatim):
+  - Babine east of the Gullwing Creek line closed all year: "Closed all year but only for salmon?" (follow-up asked)
+  - Hazelwood Creek's 4 ponds: "Part of the creek (Recommended)". Kept as built (same rule for Sheldens' pond).
+  - Kaslo / Keen Dolly Varden: "Dollys and bulls always have same quota per the book.  Why would they not count towards
+    the regions 2? That seems wrong". Read as B for Kaslo and Keen (they count toward the 2 from streams); follow-up
+    asked on whether his 2026-10-10 ruling T3a (Lardeau and Duncan rows lift bull trout out of the 2) still stands.
+- 2026-11-17 ~08:58, main chat follow-up (verbatim):
+  - Babine east part: "Closed all year then. Also just double checking this was done the same way as other split lakes right?"
+  - Lardeau / Duncan (T3a): "It would just make the same limit tho. That is fine I guess but the kasko and keen should be
+    the same. Also lardeau and duncan should also do that for rainbow right? I'm confused why it is like this seems like
+    it would auto be handled". So Kaslo and Keen read LIKE the Lardeau (A), reversing the 08:50 reading; he wants it
+    automatic, not a per-water edit.
+- 2026-11-17 ~09:57, in the APP chat, T830 after the Capilano pictures: the unranked line picked "Plainer" ("Too new to
+  say if this is high or low."); levels to 2 decimals: "Depends how much space this adds. But yes". Built with pictures.
+  11:41, after the before/after pictures (Capilano 1 m -> 1.00 m, Harrison 10.30 m; the tap read-out was already cut at
+  phone width): "Keep 2 decimals". DONE; lands next.
+- 2026-11-17 ~10:38, main chat dialog on the T834 side build (verbatim):
+  - The 3 changed waters (Kaslo/Keen +2 bull trout outside the share; Buckley rainbow its own 1): "I think this is right
+    but you didn't explain well".
+  - Rows smaller than the share (Adams rainbow 2 under Region 3's 4 from streams): "How the fuck would it read that it is
+    just 2 of the 4 and nothing should be different then that unless it lists a value bigger then regional quota in which
+    case it will fill it up then add a couple additional slots after being filled up regional".
+  Reading: a row's own number counts INSIDE the stream share; only a number BIGGER than the share adds slots on top
+  (fill the share, then extra slots for that fish). Equal numbers change nothing. That is NOT what the T834 build does
+  for Kaslo/Keen (it gives 2 bull trout + 2 others = 4); follow-up asked with numbers before anything merges.
+- 2026-11-17 ~10:50, main chat follow-ups on T834 (verbatim):
+  - Kaslo: "Yes: 2 in all (Recommended)" (Kaslo/Keen stay 2 fish from the stream in all; both may be bull trout).
+  - Lardeau: "the lardeau would allow 5 rainbows and 2 bull in a day buit then you have used up trout quota so no other
+    types may be caught. or you could catch 2 other trout like cuttroat then you could have the 5+2 with any 2 removed. so
+    like 3 rainbow 2 bulls for example or 4 rainbows 1 bull. make sense?"
+  - Lardeau day total, region's 5 or 7: "i would say 7 because we have other ones like one of the kootenay lakes having a
+    10 a day quota for rainbows ".
+  Reading (main chat): a water that prints its own daily quotas gets a day pool = the larger of the region's cap that
+  applies there (stream share on streams) and the SUM of its own quotas; each fish stays under its own quota, fish with no
+  own quota stay under the region's cap, and all of them count inside the pool, which replaces the region's total there.
+  Lardeau/Duncan 7, Kaslo/Keen 2, Adams 4 (2 rainbow of the 4). T834 reworked to this; the changed waters go to him first.
+- 2026-11-17 ~11:00, owner: "can we add all these examples to gotcha as a thing to ask about". Done:
+  pipeline/docs/GOTCHAS.md, "Questions the owner will put to BC Fish and Wildlife" (beside the Thompson): Kaslo/Keen,
+  Lardeau/Duncan, Kootenay Lake main body, Adams, Buckley, and the 12 rows that carried a hand-written lift, each with
+  the reading built and the other reading. TO ASK Fish and Wildlife (owner).
+- 2026-11-17 ~11:10, owner on "unlike the Thompson": "unlike the thompson? everything should use same reading...". Then,
+  by dialog, ONE reading for every water: "Strict everywhere (Recommended)". The region's rule stands unless the water's
+  row says otherwise or cannot work under it: Lardeau/Duncan 5 in all (bull + other trout 2 of them), Kootenay Lake main
+  body 10, Thompson below Kamloops Lake stays closed in June, Kaslo/Keen 2, Adams 4, Buckley 1. Replaces the ~10:50
+  "7" reading. GOTCHAS entry rewritten to match.
+- 2026-11-17 ~11:08, owner (verbatim): "what are all the streams that would be effected by the change? i want the list in
+  gotchas" and "but make sure they dont have exempt from whatever closure in the item becasuse then that makes it
+  unambiguous". Done: GOTCHAS, under the Thompson question, a table of the 17 waters whose own "No Fishing" dates sit
+  against a regional closure with no printed exemption (plus Duck Lake's dated bass rows), with the days the loose
+  reading would open. Fraser (exemption covers only above the Thompson), Shuswap (pier) and West Road checked.
+- 2026-11-17 11:15, owner (verbatim): "did you add the text to the gotchas for each too? want to be able to draft a message
+  to each regional office for how to tinterpret in future". Done: GOTCHAS "The exact words, by regional office": per
+  office (1, 3, 4, 5/6, 6, 7A) the region's rule and each water's row as printed, printed page numbers, what the app
+  does and the other reading; closures (A) and quotas (B). Thompson/T834 page cites corrected to printed pages.
+- 2026-11-17 ~11:15, in the APP chat: "the photo viewer could also use a little improvement to make it industry
+  standard". Picked all four at 11:17: swipe down to close, tap to hide the buttons, counter + smooth motion, opens from
+  its thumbnail. Filed T836; built after T819 lands, with pictures and clips.
+- 2026-11-17 11:18, owner (verbatim): "the regional office questions should include oither questions form gotchas too",
+  "also if there are any gotchas we missed?", "dont mention the app just have the question as super concise questiuons
+  on how to interpret and what the problem is". Done: GOTCHAS "Questions for each office": BC Fish and Wildlife
+  Regions 1, 3, 4, 5, 6, 7A and DFO (salmon), each a short question with the book's words and printed page. Added from
+  the gotchas: Region 1 dated bait bans, Kitimat hatchery steelhead, Mackenzie Creek MU, Region 5 lakes not found, and
+  the DFO place wordings (Kispiox, Kasiks, Kanaka, Stamp, Somass, Juniper Beach, Bulkley, Sheldens, Tatshenshini,
+  Cowichan). Missed before, now added: Campbell River MU 1-6/1-10 summer closure (T796 W1) and the Duncan's exemptions
+  reaching Trout Lake's creeks (RULINGS T15). Left out: Lower Shuswap "one km" (his word: nothing goes to DFO).
+  Correction: the page numbers in the 11:15 version were wrong (the corpus already stores printed pages); fixed.
+- 2026-11-17 ~11:45-11:48, app chat:
+  - "sun set is not capitalised (Sunrise 08:50 PT · sunset 17:43 PT) too" -> T837, fixed ("· Sunset"), lands with T830.
+  - "having random conditions today text here is weird too" (web spot estimate card). Dialog 11:48: "Drop it
+    (Recommended)" -> T838: the loose "Conditions: today" line goes; the regulations-day link line stays when that day is
+    not today.
+  - "desktop mode on webapp should maybe move the bottom map.conditions. spots, more bar somewhere more standard for
+    desktop. maybe on side or top please choose the most standard spot" -> T839: Claude chose a left navigation rail at
+    desktop width (Material's rule for wide screens; Google Maps / AllTrails / onX); top stays search + day. Shots
+    before it lands. 12:30 dialog after the shots (Map light, Conditions dark, phone): "Land it (Recommended)"; the
+    walkthrough card is kept off the rail before landing.
+  - Nahwitti River: char sit on their own under the other-fish table instead of in the trout tab. Checked 11:51: today
+    Region 1's "Release all char" (trout_quota.r7) is a row with no pool, drawn after the table (289 waters have the shape).
+    The new trout table (T810) puts DV/lake trout/brook trout in its Release box (0 of 513 such keys left out); Nahwitti
+    added to the trout hard cases (main chat) and the app's drawn-once gate. Answered in chat.
+- 2026-11-17 11:51, owner (verbatim): "i thought we already found some of these??" (the Region 5 lakes). Right: Hidden,
+  Secret and Square bind now; Chipmunk (and Toms, Basalt, Gatcho, Naglico, Pettry) is printed in both the Region 5 and
+  Region 6 tables with the same words and the Region 6 row binds it. Still not found: Frog Lake (5-6), Redfern Lake
+  (5-15), Squirrel Lake (6-1). Questions and the GOTCHAS errata note narrowed to those three.
+- 2026-11-17 11:55, owner (verbatim) on the Region 6 steelhead closure question (Kitimat, Dala, Ksi Hlginx, Triumph): "i can
+  answer thhis one that the no steelhead is different then a full closure so the no steelhead definitely holds here".
+  So the steelhead closure holds on those rows (as built; no change). The West Road mainstem (same shape) taken as
+  answered the same way. Both removed from the office questions; recorded as answered in GOTCHAS.
+- 2026-11-17 11:57, owner (verbatim): "for the missing lakes we should say a little about what we have found on them too"
+  and "please update the regional office questions". Done: Frog, Redfern and Squirrel questions now say which lakes of
+  that name exist and where, and what the row's words match (Frog = Hidden/Secret's words; Squirrel = the MU 6-1 lakes
+  printed in both tables). Questions file re-sent.
+- 2026-11-17 12:29, owner, on T834's "was X, now Y" page (brook trout 20 lakes 25->20, R7 brook trout 10 lakes 15->10,
+  Tranquille 13->8, Khartoum/Lois 10->6, Peace 5->3, Lavington 22->20, Perry 21->20, Beaver 10->8): "Yes, ship all
+  (Recommended)". On the card (two boxes "20 brook trout" + "5 trout/char" read as 25; proposed one box "Up to 20 a
+  day: brook trout up to 20, other trout up to 5"), verbatim: "This is weird because the total is still the regional
+  number so we should only use that but then the exemption overrides it only for that species but will still fill up
+  the trout total quota. Please look at it more closely. Basically I mean the total is 5 not 20 or 25. Just 20 trout is
+  a single exemption but changing the total to accommodate that is confusing. So it should say something like 5 with
+  exception to 20 brook trout which also uses up your 5 quota." So the card leads with the region's 5, not the 20.
+  Confirming the catch (does 15 brook + 5 cutthroat stay allowed?) before the card is built.
+- 2026-11-17 12:32, owner (verbatim), on "15 brook trout + 5 cutthroat at a brook trout 20 lake: legal?": "For now say
+  legal ( need to ask about this with co tho)". Built as legal (others at most 5, all at most 20; brook trout count
+  toward the 5). Card: "5 trout a day / Exception: brook trout up to 20 (count toward the 5; past 5, brook trout
+  only)". Question added to GOTCHAS (T834 entry + Region 4 office Q1).
+- 2026-11-17 12:43, for the owner: re-tick Sheldens Creek (DFO Region 6, "upstream of white triangular fishing boundary
+  signs … Spur 19 Bridge site") in the review app. The 11-15 night mark (saved by Claude, unsure, whole creek) was
+  overtaken by your 11-16 20:01 "Extend to the bridge"; it now waits on NOT_LANDED_OK until you mark the place again.
+- 2026-11-17 13:15, owner, on T834's cards as built (Jewel, Kootenay, Peace, Lardeau): box head "Lead with 5
+  (Recommended)" (box reads "Keep 5, brook trout up to 20 / brook trout count toward the 5; past 5, brook trout only",
+  not "Keep 20 in all"); the other three cards "Yes, they read right".

@@ -157,3 +157,32 @@ def test_a_human_review_is_dated_and_never_half_written():
             elif not re.fullmatch(r"\d{4}-\d{2}-\d{2}", at):
                 bad.append(f"{where}: reviewed_at={at!r} is not YYYY-MM-DD")
     assert not bad, "half-written review provenance:\n  " + "\n  ".join(bad)
+
+
+#: T796 (owner 2026-11-16: "can we add name variants? With source?"): DFO's names for four Babine Lake creeks, each on the
+#: FWA blue line its closed-area circle is drawn at — (blue line, the FWA name or None, DFO's name, the label shown)
+BABINE_DFO_NAMES = (("360886655", "Gullwing Creek", "Six Mile Creek", "Gullwing Creek"),
+                    ("360810067", "Cross Creek", "Pendleton Creek", "Cross Creek"),
+                    ("360852175", "", "Hazelwood Creek", "Hazelwood Creek"),
+                    ("360800595", "", "Sockeye Creek", "Sockeye Creek"))
+
+
+def test_dfos_babine_creek_names_resolve_on_their_blue_lines_searchable_sourced_and_never_official():
+    """each curated entry lands on its creek: a gazetted creek keeps its label and answers to DFO's name too; an unnamed
+    one is labelled by it. Each says its source (DFO's census site / SkeenaWild's alias) and is not official"""
+    import json
+    from pipeline.tests import under_test
+    from pipeline.common.models import NameSource
+    entries = json.loads(under_test.curated().waters.name_variants.read_text())
+    fids = [_fid(f"F{i}", blk, "400", [(i * 1000, 0), (i * 1000 + 500, 0)], 0, 500, gnis_name=gn)
+            for i, (blk, gn, _d, _l) in enumerate(BABINE_DFO_NAMES)]
+    g = build_stream_graph(build_blk_chains(fids, {}), fids, lake_kind={}, lake_names={})
+    mine = [e for e in entries if set(e["target"].get("blks") or ()) & {b for b, *_ in BABINE_DFO_NAMES}]
+    assert len(mine) == 4, "one entry per creek"
+    apply_name_variants(g, mine)
+    for blk, _gn, dfo, label in BABINE_DFO_NAMES:
+        node = next(n for n in g.nodes.values() if n.blk == blk)
+        assert node.display_name == label, f"blue line {blk}: shows {node.display_name!r}"
+        t = next((t for t in node.name_tuples if t.name == dfo), None)
+        assert t is not None, f"blue line {blk} does not answer to {dfo!r}"
+        assert t.source == NameSource.dfo and not t.official and t.label and t.ref.startswith("https://"), (blk, t)

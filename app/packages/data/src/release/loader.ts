@@ -12,7 +12,7 @@
  */
 import { openProbe } from "../openProbe";
 import { oneShot } from "../sha256";
-import { decodeAccessFile, decodeLakeFacts, decodeMethod, decodeMethodAsync, decodePaint, decodePaintAsync, decodeFlowArea,
+import { decodeAccessFile, decodeLakeFacts, decodeMethod, decodeMethodAsync, decodePaint, decodePaintAsync, decodeFlowArea, decodeFlowSmall,
          decodeSalmonHead, decodeSalmonShard, decodeSalmonShardAsync, salmonFacts, type LakeFacts, type MethodFacts, type Paint, type SalmonFacts, type SalmonShard,
          type SectionAccess, now } from "@app/core";
 import type { Db } from "../sql/db";
@@ -25,11 +25,11 @@ import { covers, routedDb, sliceKeys, type SliceKeys, type Sliced } from "./focu
 export type SalmonSlice = `salmon-${Region}` | "salmon-x";
 type BinName = "salmon" | SalmonSlice | "method";
 
-export type FileName = "paint" | "flow-area" | "lakes" | "access" | "core" | "near" | "water" | `regs-${Region}` | "regs-sid"
+export type FileName = "paint" | "flow-area" | "flow-small" | "lakes" | "access" | "core" | "near" | "water" | `regs-${Region}` | "regs-sid"
   | `core-${Region}` | `water-${Region}` | "water-shared"
   | BinName
   | "conditions" | "down" | "climate" | "geo" | "lines";
-export type DbName = Exclude<FileName, "paint" | "flow-area" | "lakes" | "access" | BinName>;
+export type DbName = Exclude<FileName, "paint" | "flow-area" | "flow-small" | "lakes" | "access" | BinName>;
 
 export interface ReleaseSource {
   /**
@@ -55,9 +55,19 @@ export interface ReleaseLoader {
   readonly manifest: Manifest;
   readonly handles: string;
   db(name: DbName): Promise<Db>;
-  paint(): Promise<Paint>;
+  /**
+   * The release's paint, decoded once (the first caller's `sliceMs` decides the decode's slice: (T741) a launch passes
+   * `LAUNCH_SLICE_MS`, everything else the default `SLICE_MS`).
+   */
+  paint(o?: { sliceMs?: number }): Promise<Paint>;
   /** The target areas, in paint section order (opened with Conditions). */
   flowArea(): Promise<Float64Array>;
+  /**
+   * (T823) Per paint section (flow-area's order), the bitmask over its panel's members by `ord` whose reading carries the
+   * small-water sentence (`flow-small`). Null when the manifest names no such file (a release cut before T823: no bits,
+   * said by the manifest, never by a failed read); a file that is there and does not decode fails, as flow-area does.
+   */
+  flowSmall(): Promise<Uint32Array | null>;
   /** The lake modes' values (`lakes`), checked against the release's handles; null when the manifest names none. */
   lakes(): Promise<LakeFacts | null>;
   /** (T211) The DFO salmon (`salmon` + slices), checked against the release's handles; null when the manifest names none.
@@ -145,6 +155,7 @@ export function releaseLoader(m: Manifest, source: ReleaseSource, open: Opener,
   const dbs = new Map<DbName, Promise<Db>>();
   const order: FileName[] = [];
   let paint: Promise<Paint> | null = null, area: Promise<Float64Array> | null = null;
+  let small: Promise<Uint32Array | null> | null = null;
   let lakes: Promise<LakeFacts | null> | null = null;
   let salmonHead: Promise<SalmonFacts["payload"]> | null = null;
   const slices = new Map<string, Promise<SalmonShard>>();
@@ -272,10 +283,11 @@ const WATER_SHARED: DbName = "water-shared";
     manifest: m,
     handles,
     db,
-    paint() {
+    paint(o) {
       if (!paint) {
         touch("paint");
-        paint = source.bytes("paint").then((b) => decoded("decode paint", () => decodePaint(b, handles), () => decodePaintAsync(b, handles)));
+        paint = source.bytes("paint").then((b) => decoded("decode paint", () => decodePaint(b, handles),
+                                                          () => decodePaintAsync(b, handles, null, o?.sliceMs)));
         paint.catch(() => { paint = null; });
       }
       return paint;
@@ -287,6 +299,16 @@ const WATER_SHARED: DbName = "water-shared";
         area.catch(() => { area = null; });
       }
       return area;
+    },
+    flowSmall() {
+      if (!small) {
+        if (!m.files["flow-small"]) return Promise.resolve(null);
+        touch("flow-small");
+        small = Promise.all([loader.paint(), source.bytes("flow-small")])
+          .then(([p, b]) => openProbe.work("decode flow-small", () => decodeFlowSmall(b, p.sectionCount)));
+        small.catch(() => { small = null; });
+      }
+      return small;
     },
     lakes() {
       if (!lakes) {
@@ -441,7 +463,8 @@ const WATER_SHARED: DbName = "water-shared";
   };
   /*
    * (T287) THE DECODES ANOTHER SET OF THE SAME FILES MAY TAKE OVER (`adoptDecoded`): a file is the same when its
-   * manifest entry is (sha256 and section numbering); flow-area also needs the same paint (its length is paint's).
+   * manifest entry is (sha256 and section numbering); flow-area and flow-small also need the same paint (their length is
+ * paint's).
    */
   HELD.set(loader, {
     m,
@@ -452,6 +475,7 @@ const WATER_SHARED: DbName = "water-shared";
       const p = prev.slots();
       if (p.paint && same("paint")) { paint = p.paint; took.push("paint"); }
       if (p.area && same("flow-area") && took.includes("paint")) { area = p.area; took.push("flow-area"); }
+      if (p.small && same("flow-small") && took.includes("paint")) { small = p.small; took.push("flow-small"); }
       if (p.lakes && same("lakes")) { lakes = p.lakes; took.push("lakes"); }
       if (p.method && same("method")) { method = p.method; took.push("method"); }
       if (p.access && same("access")) { access = p.access; took.push("access"); }
@@ -463,7 +487,7 @@ const WATER_SHARED: DbName = "water-shared";
       for (const n of took) touch(n);
       return took;
     },
-    slots: () => ({ paint, area, lakes, method, access, salmonHead, slices, salmonMemo }),
+    slots: () => ({ paint, area, small, lakes, method, access, salmonHead, slices, salmonMemo }),
   });
   return loader;
 }
@@ -472,7 +496,8 @@ const WATER_SHARED: DbName = "water-shared";
 interface Held {
   m: Manifest;
   take(prev: Held): FileName[];
-  slots(): { paint: Promise<Paint> | null; area: Promise<Float64Array> | null; lakes: Promise<LakeFacts | null> | null;
+  slots(): { paint: Promise<Paint> | null; area: Promise<Float64Array> | null; small: Promise<Uint32Array | null> | null;
+             lakes: Promise<LakeFacts | null> | null;
              method: Promise<MethodFacts | null> | null; access: Promise<SectionAccess | null> | null;
              salmonHead: Promise<SalmonFacts["payload"]> | null; slices: ReadonlyMap<string, Promise<SalmonShard>>;
              salmonMemo: ReadonlyMap<string, { head: SalmonFacts["payload"]; read: SalmonShard[]; facts: SalmonFacts }> };
@@ -489,7 +514,7 @@ function heldOf(l: ReleaseLoader): Held | undefined {
 
 /**
  * (T287) AN APPLIED UPDATE KEEPS WHAT DID NOT CHANGE: every decoded file of the set on screen (paint, method, lakes,
- * access, flow-area, the salmon head and slices) whose manifest entry the new set repeats — same sha256, same section
+ * access, flow-area, flow-small, the salmon head and slices) whose manifest entry the new set repeats — same sha256, same section
  * numbering — is handed over as it is, the same objects. The screens then re-key onto the very answers they were
  * drawing, and the map relabels nothing for them. Returns the files taken.
  */
@@ -516,5 +541,6 @@ export async function warmLike(next: ReleaseLoader, prev: ReleaseLoader): Promis
   if (had.has("lakes")) steps.push(() => next.lakes());
   if (had.has("access")) steps.push(() => next.access());
   if (had.has("flow-area")) steps.push(() => next.flowArea());
+  if (had.has("flow-small")) steps.push(() => next.flowSmall());
   for (const s of steps) await s().catch(() => undefined);
 }

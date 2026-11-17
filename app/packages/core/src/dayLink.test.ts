@@ -26,8 +26,6 @@ describe("T582: the regulations day against the Conditions window", () => {
     if (l.kind === "past") expect(l.line).toBe("Sat 21 Nov is past the forecast.");
   });
   it("each tab names its own day", () => {
-    expect(DAY_LABELS.conditions(0, NOW)).toBe("Conditions: today");
-    expect(DAY_LABELS.conditions(3, NOW)).toBe("Conditions: Fri 13 Nov");
     expect(DAY_LABELS.regulations(plus(20), NOW)).toBe("Regulations: Mon 30 Nov");
     expect(DAY_LABELS.map(null, NOW)).toBe("Map: today's rules");
     // Runs names its own pentad, and "(today)" only when it holds B.C.'s today (T624)

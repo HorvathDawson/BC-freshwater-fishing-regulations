@@ -4,6 +4,7 @@
  * `Sheet` can provide it without importing `CoachMarks` (which imports the sheet's title face).
  */
 import { createContext, useMemo, useRef } from "react";
+import { windowRect } from "./windowRect";
 
 export interface Rect { x: number; y: number; w: number; h: number }
 
@@ -17,6 +18,11 @@ export interface CoachScroller {
   by(dy: number): void;
   /** the page's own box in the window (null: not laid out) */
   view(): Promise<Rect | null>;
+  /**
+   * (T824) Told on each of the page's scroll events (the scroll view's own, ~60 a second while it moves), so a highlight
+   * on a control in the page moves with it as it scrolls; the answer stops telling.
+   */
+  onScroll?(f: () => void): () => void;
 }
 export const CoachScrollContext = createContext<CoachScroller | null>(null);
 
@@ -29,12 +35,16 @@ export function useCoachScroller(): {
 } {
   const node = useRef<(Measurable & { scrollTo?: (o: { y: number; animated?: boolean }) => void }) | null>(null);
   const y = useRef(0);
-  return useMemo(() => ({
-    scroller: { by: (dy: number) => { y.current = Math.max(0, y.current + dy); node.current?.scrollTo?.({ y: y.current, animated: true }); },
-                view: () => measure(node.current) },
-    ref: (n: unknown) => { node.current = n as typeof node.current; },
-    track: (at: number) => { y.current = at; },
-  }), []);
+  return useMemo(() => {
+    const told = new Set<() => void>();
+    return {
+      scroller: { by: (dy: number) => { y.current = Math.max(0, y.current + dy); node.current?.scrollTo?.({ y: y.current, animated: true }); },
+                  view: () => measure(node.current),
+                  onScroll: (f: () => void) => { told.add(f); return () => { told.delete(f); }; } },
+      ref: (n: unknown) => { node.current = n as typeof node.current; },
+      track: (at: number) => { y.current = at; for (const f of told) f(); },
+    };
+  }, []);
 }
 
 /** (T674) The room kept between a revealed block and its page's edge, px. */
@@ -65,6 +75,9 @@ export async function bringIntoView(node: Measurable | null, page: CoachScroller
 }
 
 export function measure(node: Measurable | null): Promise<Rect | null> {
+  // (T824) the browser's box at once (react-native-web's measureInWindow waits a task); a phone asks the native side
+  const now = windowRect(node);
+  if (now !== undefined) return Promise.resolve(now);
   return new Promise((res) => {
     if (!node?.measureInWindow) { res(null); return; }
     let done = false;

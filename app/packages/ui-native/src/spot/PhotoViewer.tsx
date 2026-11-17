@@ -20,6 +20,7 @@ import { hitProps } from "../regs/hit";
 import { withWebProps } from "../gestureWeb";
 import { usePhotoWheel } from "../photoInput";
 import { ModalBack } from "../ModalBack";
+import { WindowInsets } from "../WindowInset";
 
 const SWIPE = 50;
 /** the browser keeps no touch scrolling over the photo: every touch is the viewer's */
@@ -76,7 +77,7 @@ function ZoomPhoto({ uri, label, photoKey, go, palette, missing }: {
                             transform: [{ translateX: z.view.x }, { translateY: z.view.y }, { scale: z.view.scale }] }}
                    resizeMode="contain" />
           ) : (
-            <Text style={{ ...TYPE.small, color: palette.card }}>{missing}</Text>
+            <Text style={{ ...TYPE.small, color: palette.photo.ink }}>{missing}</Text>
           )}
         </View>
       </GestureDetector>
@@ -100,7 +101,7 @@ export function PhotoViewer({ uris, index, onIndex, onClose, palette }: {
     return off ? <View style={{ width: 48 }} /> : (
       <Pressable {...hitProps({ w: 48, h: 48 })} onPress={() => go(d)} accessibilityRole="button" accessibilityLabel={label}
                  style={{ width: 48, height: 48, alignItems: "center", justifyContent: "center" }}>
-        <Icon name={icon} colour={palette.card} size={26} />
+        <Icon name={icon} colour={palette.photo.ink} size={26} />
       </Pressable>
     );
   };
@@ -108,13 +109,16 @@ export function PhotoViewer({ uris, index, onIndex, onClose, palette }: {
     <Modal visible transparent animationType="fade" onRequestClose={requestClose} aria-label={photoLabel(index + 1, n)}>
       {/* (T723 F7) iOS: the left-edge swipe is the back here, as Android's back is */}
       <ModalBack onBack={requestClose}>
-      <GestureHandlerRootView testID="photo-viewer" style={{ flex: 1, backgroundColor: palette.ink }}>
+      <GestureHandlerRootView testID="photo-viewer" style={{ flex: 1, backgroundColor: palette.photo.ground }}>
+        {/* (T815) its own window, drawn under the bars: the close and the arrows kept clear of the status bar / notch
+            (iPhone build 36 had the ✕ under the clock) and the home indicator, as a menu page is (T50) */}
+        <WindowInsets style={{ flex: 1 }}>
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 12 }}>
-          <Text style={{ ...TYPE.small, color: palette.card }}>{photoLabel(index + 1, n)}</Text>
+          <Text style={{ ...TYPE.small, color: palette.photo.ink }}>{photoLabel(index + 1, n)}</Text>
           <Pressable {...hitProps({ w: 48, h: 48 })} onPress={onClose} accessibilityRole="button"
                      accessibilityLabel={PHOTO_WORDS.close}
                      style={{ width: 48, height: 48, alignItems: "center", justifyContent: "center" }}>
-            <Icon name="close" colour={palette.card} size={24} />
+            <Icon name="close" colour={palette.photo.ink} size={24} />
           </Pressable>
         </View>
         <View style={{ flex: 1, flexDirection: "row", alignItems: "center" }}>
@@ -123,6 +127,7 @@ export function PhotoViewer({ uris, index, onIndex, onClose, palette }: {
                      missing={PHOTO_WORDS.missing} />
           {arrow(1, PHOTO_WORDS.next, "next")}
         </View>
+        </WindowInsets>
       </GestureHandlerRootView>
       </ModalBack>
     </Modal>

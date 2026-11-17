@@ -204,7 +204,8 @@
     50
    ],
    "matched": [
-    "wbk:329026676"
+    "wbk:-24",
+    "wbk:-25"
    ],
    "extents": [
     {
@@ -223,11 +224,10 @@
      "may_target": false,
      "extents": [
       {
-       "op": "whole"
+       "op": "whole",
+       "item_id": "wbk:-25"
       }
-     ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): line-boundary closure has no cut-point — item has no bindable boundaries besides op:whole",
-     "undrawn_part": "east of a line from Gullwing Creek to the south shore of Babine Lake"
+     ]
     },
     {
      "rule_id": "babine_lake.r2",
@@ -250,7 +250,8 @@
      "may_target": false,
      "extents": [
       {
-       "op": "whole"
+       "op": "whole",
+       "item_id": "wbk:-24"
       }
      ],
      "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): radius closure has no cut-point — item has no bindable boundaries besides op:whole",
@@ -365,7 +366,7 @@
       {
        "op": "between",
        "splits": [
-        "babine_river__babine_lake",
+        "babine_river__babine_lake_main_body",
         "babine_river__nilkitkwa_lake"
        ]
       }
@@ -2577,7 +2578,12 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "unresolved_locators": [
+      "the area at the outlet of François Lake described on map 1"
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): rule applies only to a mapped outlet area with no matching cut-point on this item",
+     "undrawn_part": "the area at the outlet of François Lake described on map 1"
     },
     {
      "rule_id": "francois_lake.r3",
@@ -2597,7 +2603,12 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "unresolved_locators": [
+      "the area at the outlet of François Lake described on map 1"
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): rule applies only to a mapped outlet area with no matching cut-point on this item",
+     "undrawn_part": "the area at the outlet of François Lake described on map 1"
     },
     {
      "rule_id": "francois_lake.r4",
@@ -2612,7 +2623,12 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "unresolved_locators": [
+      "the area at the outlet of François Lake described on map 1"
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): rule applies only to a mapped outlet area with no matching cut-point on this item",
+     "undrawn_part": "the area at the outlet of François Lake described on map 1"
     },
     {
      "rule_id": "francois_lake.r5",
@@ -2630,7 +2646,12 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "unresolved_locators": [
+      "the area at the outlet of François Lake described on map 1"
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): rule applies only to a mapped outlet area with no matching cut-point on this item",
+     "undrawn_part": "the area at the outlet of François Lake described on map 1"
     },
     {
      "rule_id": "francois_lake.r6",
@@ -2652,7 +2673,12 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "unresolved_locators": [
+      "the area at the outlet of François Lake described on map 1"
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): rule applies only to a mapped outlet area with no matching cut-point on this item",
+     "undrawn_part": "the area at the outlet of François Lake described on map 1"
     },
     {
      "rule_id": "francois_lake.r7",
@@ -2670,7 +2696,12 @@
       {
        "op": "whole"
       }
-     ]
+     ],
+     "unresolved_locators": [
+      "the area at the outlet of François Lake described on map 1"
+     ],
+     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): rule applies only to a mapped outlet area with no matching cut-point on this item",
+     "undrawn_part": "the area at the outlet of François Lake described on map 1"
     }
    ]
   },
@@ -6773,7 +6804,7 @@
      "op": "between",
      "item_id": "gnis:17687",
      "splits": [
-      "babine_river__babine_lake",
+      "babine_river__babine_lake_main_body",
       "babine_river__nilkitkwa_lake"
      ]
     }
@@ -6850,7 +6881,7 @@
        "op": "between",
        "item_id": "gnis:17687",
        "splits": [
-        "babine_river__babine_lake",
+        "babine_river__babine_lake_main_body",
         "babine_river__nilkitkwa_lake"
        ]
       }

@@ -282,6 +282,9 @@ step "every curated cut label names a place" "$PY" -m pytest -q -p no:cacheprovi
 # reproduce: a stale generated file or vector file fails here; 0.2 s + 1.5 s (also in `python -m pipeline.tools.emit --check`)
 step "feed formats generated from the one table" "$PY" -m pipeline.tools.emit.feed_formats --check
 step "DFO parity vectors are what the Python reads (the worker's test reproduces them)" "$PY" -m pipeline.tools.emit.dfo_vectors --check
+# (T810 V-py) the same pin for the trout table: the committed vectors are the committed trout fixture's cells (a vector
+# edited by hand, or a fixture re-cut without them, fails here; scripts/trout-refresh.sh writes both)
+step "trout table vectors are the trout fixture's cells (the app's reader reproduces them)" "$PY" -m pipeline.tools.emit.trout_vectors --check
 
 # caught (2026-11-09): after LATEST moved, `pnpm check` failed in conformance until regs-recut/sync.mjs re-cut the goldens;
 # taps.json meta.store must be the store of LATEST's water file, or this names the sync command

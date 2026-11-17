@@ -5,3 +5,4 @@ export {
   type NotifySettings, type NotifyState,
 } from "./settings";
 export { runBackgroundCheck, type Notice, type NotifyData } from "./check";
+export { conditionalJson } from "./conditional";

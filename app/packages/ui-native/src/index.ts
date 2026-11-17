@@ -19,6 +19,7 @@ export { MapRail } from "./MapRail";
 export { FaceBar, ViewTabs, type Face } from "./Faces";
 export { WaterFrame, WaterInset, WaterTitle } from "./WaterFrame";
 export { TabBar, TABS, TAB_BAR, type TabKey } from "./TabBar";
+export { NavRail, NAV_RAIL } from "./NavRail";
 export { LegendStrip, LegendCount, LegendRamp } from "./Chrome";
 export { Sheet, Choice } from "./Sheet";
 export { EdgeBack } from "./EdgeBack";
@@ -37,8 +38,11 @@ export { SheetHost, type SheetHostProps } from "./regs/SheetHost";
 export { StripWidthHint } from "./regs/YearStrip";
 export { Credits } from "./Credits";
 export { LoadingState, useDelayedShow, SPINNER_TIMING } from "./LoadingState";
+export { COHO_WIDTH, cohoHeight } from "./coho";
 export { StageBar } from "./StageBar";
 export { ErrorState } from "./ErrorState";
+// (T746) the curtain over the app while a downloaded data release is put in use
+export { ApplyCurtain } from "./ApplyCurtain";
 // (T231) the "Updated to …" toast and the device's word on its network (online, metered) for the update service
 export { UpdateToast } from "./UpdateToast";
 export { connectivity } from "./connectivity";

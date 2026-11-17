@@ -208,3 +208,15 @@ def test_every_dfo_wsc_name_variant_is_confined_to_streams():
            and any((n.get("source") or "") == "dfo" for n in e["names"])
            and "stream" not in {str(k).lower() for k in (e["target"].get("kinds") or [])}]
     assert not bad, f"DFO wsc variants missing kinds=['stream']: {bad}"
+
+
+def test_no_added_lake_is_named_like_a_flowing_water():
+    """T812 (merge, 2026-11-17): the registry's flowing-polygon fold reads a polygon's kind off its name's head noun
+    (`common.water_kind.flows`), so "Babine Lake — East of Gullwing Creek" was folded as a STREAM and took the creek
+    rules (stream quotas, the steelhead stream closure, the Skeena winter closure) instead of the lake's. A curated lake
+    or lake part must read as still water."""
+    from pipeline.common.water_kind import flows
+    named = [lk["name"] for lk in ingest.load(under_test.curated().waters.added_lakes) if lk.get("name")]
+    assert named
+    assert [n for n in named if flows("lake", n)] == []
+    assert flows("lake", "Babine Lake — East of Gullwing Creek")      # the name that was folded as a stream

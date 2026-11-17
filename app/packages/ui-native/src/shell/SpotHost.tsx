@@ -8,7 +8,7 @@ import type { MutableRefObject } from "react";
 import { useState } from "react";
 import { View } from "react-native";
 import { nextRating, spotSaveFailed, useAddVisit, useBackLayer, useDayFlow, useLikeVisit, visitsView,
-         reportFailure, type AddVisitOptions, type SpotPhotos } from "@app/ui";
+         reportFailure, tabsAsRail, useLayoutClass, type AddVisitOptions, type SpotPhotos } from "@app/ui";
 import { photoOwner, rateVisit, removeVisit, visitSpot, withVisit, type Spot } from "@app/data/spots";
 import { VISIT_WORDS } from "@app/core";
 import { Busy, WhenScreen } from "../SpotCapture";
@@ -17,6 +17,7 @@ import { ParkingPick } from "../spot/ParkingPick";
 import type { Locate } from "@app/ui";
 import { SpotScreen } from "../SpotScreen";
 import { TABS, TabBar, type TabKey } from "../TabBar";
+import { NavRail } from "../NavRail";
 import type { Palette } from "../theme";
 import type { ShellNav } from "./useShellNav";
 import type { useSpotEdit } from "./useSpotEdit";
@@ -26,7 +27,7 @@ import { openDirections } from "../openLink";
 type DayFlowBlock = ReturnType<typeof useDayFlow>;
 
 export function SpotHost({ viewing, spotEdit, nav, palette, camera, like, dayFlow, photos, onSaveSpot, onDeleteSpot,
-                           onRefreshSpots, refreshing, show, visitSources, tiles, theme, locate }: {
+                           onRefreshSpots, refreshing, show, visitSources, tiles, theme, locate, names }: {
   viewing: Spot; spotEdit: ReturnType<typeof useSpotEdit>; nav: ShellNav; palette: Palette;
   camera: MutableRefObject<Camera>;
   like: ReturnType<typeof useLikeVisit>; dayFlow: DayFlowBlock;
@@ -41,10 +42,13 @@ export function SpotHost({ viewing, spotEdit, nav, palette, camera, like, dayFlo
   visitSources?: AddVisitOptions | null;
   /** (T310) the parking picker's map, and the phone's location for "Use my location" */
   tiles?: TileEndpoints; theme?: string; locate?: Locate | null;
+  /** (T819 item 7) the release's station names, so the page names its gauges */
+  names?: ReadonlyMap<string, string>;
 }) {
   const { edit, setEdit, photoEdit, spotError, setSpotError, pendingTab, setPendingTab, shownVisit, setShownVisit,
           addingVisit, setAddingVisit } = spotEdit;
   const { route, tab, back, toTab } = nav;
+  const tabsRail = tabsAsRail(useLayoutClass());
   // (T294) the page shows ONE visit: the spot read as it (its record, notes, photos, rating); the spot's place and name
   // are every visit's. An edit or a rating is written back to that visit alone (`withVisit`).
   const shown = visitSpot(viewing, shownVisit);
@@ -89,9 +93,12 @@ export function SpotHost({ viewing, spotEdit, nav, palette, camera, like, dayFlo
   const close = () => { endEdit(); setSpotError(null); setPendingTab(null); back(); };
   const goTab = (k: TabKey) => { endEdit(); setSpotError(null); setPendingTab(null); toTab(k); };
   return (
-    <View style={{ flex: 1, backgroundColor: palette.card }}>
+    <View style={{ flex: 1, backgroundColor: palette.card, flexDirection: tabsRail ? "row" : "column" }}>
+      {/* (T839) a desktop window: the four tabs are the left rail here too, the spot to its right */}
+      {tabsRail && <NavRail active={tab} palette={palette}
+                            onChange={(k) => (dirty ? setPendingTab(k) : goTab(k))} />}
       <View style={{ flex: 1 }}>
-        <SpotScreen spot={shown} palette={palette}
+        <SpotScreen spot={shown} palette={palette} names={names}
                     visits={visits}
                     onPickVisit={(id) => { if (!edit) setShownVisit(id); }}
                     onRate={onSaveSpot && ((n) => void saveOr(rateVisit(viewing, shown.visitId, nextRating(visits.rate.value, n))))}
@@ -159,9 +166,9 @@ export function SpotHost({ viewing, spotEdit, nav, palette, camera, like, dayFlo
                     onRefresh={onRefreshSpots && (() => onRefreshSpots())}
                     refreshing={refreshing} />
       </View>
-      <TabBar active={tab} palette={palette}
+      {!tabsRail && <TabBar active={tab} palette={palette}
               // an unsaved edit is never dropped by a tab change without asking (P01)
-              onChange={(k) => (dirty ? setPendingTab(k) : goTab(k))} />
+              onChange={(k) => (dirty ? setPendingTab(k) : goTab(k))} />}
     </View>
   );
 }

@@ -66,6 +66,9 @@ export interface RuleRecord {
   fishery_notices: { text: string; href: string }[];
   source: string;
   order: number;
+  /** (T787) from a table DFO commented out (`parse.ts` `tableHidden`): kept for the reviewer, answers nothing. Present
+   *  only when true, so a page with no hidden table scrapes as before (`locations.RuleRecord.to_dict`) */
+  hidden?: true;
 }
 
 export interface Structure {
@@ -119,7 +122,7 @@ export function extract(u: Untangled): [Location[], RuleRecord[], Structure] {
   const rules: RuleRecord[] = [];
   const seen = new Set<string>();
   let order = 0;
-  const add = (loc: Location, ruleRows: { species: string; dates: string; limits_gear: string; fishery_notices: RuleRecord["fishery_notices"]; source: string }[]) => {
+  const add = (loc: Location, ruleRows: { species: string; dates: string; limits_gear: string; fishery_notices: RuleRecord["fishery_notices"]; source: string; hidden: boolean }[]) => {
     if (!seen.has(loc.fingerprint)) {
       seen.add(loc.fingerprint);
       locations.push(loc);
@@ -133,6 +136,7 @@ export function extract(u: Untangled): [Location[], RuleRecord[], Structure] {
         fishery_notices: r.fishery_notices,
         source: r.source,
         order,
+        ...(r.hidden ? { hidden: true as const } : {}),
       });
       order += 1;
     }

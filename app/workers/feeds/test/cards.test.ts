@@ -105,6 +105,9 @@ describe("what a card shows (cardModel)", () => {
     expect(cardModel("x", "X", station({ fetchedAt: iso(NOW - 5 * H) }), NOW).stale).toBe(true);
     const lv = cardModel("x", "X", station({ now: { discharge: null, level: 1.647, at: iso(NOW - H), percentile: 0.5, parameter: "level" } }), NOW);
     expect([lv.value, lv.forecast]).toEqual(["1.65 m", null]);
+    // (T830) a level to two decimals on the public card too ("1.00 m", never "1 m")
+    const one = cardModel("x", "X", station({ now: { discharge: null, level: 0.998, at: iso(NOW - H), percentile: 0.5, parameter: "level" } }), NOW);
+    expect(one.value).toBe("1.00 m");
   });
   it("a run past its working-day line is said, not drawn; no file at all is no reading", () => {
     const old = cardModel("x", "X", station({ forecasts: { CLEVER: { issuedAt: "2026-11-02T10:00:00", series: { at: [iso(NOW)], mid: [3] } } } }), NOW);

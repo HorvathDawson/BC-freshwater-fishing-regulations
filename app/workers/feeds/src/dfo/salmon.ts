@@ -55,8 +55,13 @@ function heldOn(rules: R[], md: number): R[] {
   return dated.length ? dated : kinds.filter(([, h]) => h === "open").map(([r]) => r);
 }
 const isGear = (r: R): boolean => !!(r.gear && r.gear.length) || GEAR_TYPES.has(r.type);
-/** T229: a row about another fish (eulachon) — never a salmon verdict, one of the gear lines (salmon.py `_other_fish`) */
+/** T229: a row about another fish (eulachon) — never a salmon verdict (salmon.py `_other_fish`) */
 const otherFish = (r: R): boolean => r.type === "advisory" && String(r.review_reason ?? "").startsWith(OTHER_FISH);
+/** (T770, owner 2026-11-16 19:09: "As a closure line (Recommended)"; salmon.py `_RE_FISH_CLOSED`, `_fish_closure`) a row
+ * about another fish that CLOSES it ("All | No fishing for eulachon", Region 6 B(ii)) is the place's closure line, chain
+ * `o` — never a gear line */
+const RE_FISH_CLOSED = /^\s*no fishing for\b/i;
+const fishClosure = (r: R): boolean => otherFish(r) && RE_FISH_CLOSED.test(r.verbatim || "");
 
 /** (T671 D2, salmon.py `unread_row`) a row nobody could type: an advisory that is not about another fish and not a gear
  * permission. Never dropped: on the days it holds it reads "check DFO" for the species its cell names. */
@@ -146,6 +151,8 @@ export interface Verdict {
   u?: 1;
   /** (T356) the region header note whose closure this is */
   c?: string;
+  /** (T796 A6) a closure answered by DFO's "Finfish closure": ALL fishing is closed that day, trout included */
+  f?: 1;
 }
 
 /** One location's rules, read once: what verdict_on / gear_on look at for every day. */
@@ -154,6 +161,10 @@ class Loc {
   limits: R[][]; // per species
   unreadable: R[];
   gear: R[];
+  /** (T770) the rows about another fish that are no closure of it: lines of their own, read apart from the gear rows */
+  other: R[];
+  /** (T770, salmon.py `place_closures`) the rows closing another fish ("No fishing for eulachon"): the closure line `o` */
+  closures: R[];
   checks: R[][]; // (T676) per species, the rules whose dates did not read (`check`)
   gearChecks: R[];
   memo = new Map<string, string>();
@@ -167,9 +178,11 @@ class Loc {
     }
     this.limits = SPECIES.map((sp) => rules.filter((r) => !r.within && !isGear(r) && covers(r, sp) && ("take" in r || "may_target" in r)));
     this.unreadable = rules.filter((r) => !r.within);
-    this.gear = rules.filter((r) => (isGear(r) && (!speciesOf(r).length || SPECIES.some((sp) => covers(r, sp)))) || otherFish(r));
+    this.gear = rules.filter((r) => isGear(r) && (!speciesOf(r).length || SPECIES.some((sp) => covers(r, sp))));
+    this.other = rules.filter((r) => otherFish(r) && !isGear(r) && !fishClosure(r));
+    this.closures = rules.filter((r) => fishClosure(r) && !isGear(r));
     this.checks = SPECIES.map((sp) => rules.filter((r) => r.check && !r.within && !isGear(r) && (!speciesOf(r).length || covers(r, sp))));
-    this.gearChecks = this.gear.filter((r) => r.check);
+    this.gearChecks = [...this.gear, ...this.other].filter((r) => r.check);
   }
   text(rs: R[]): string {
     const k = rs.map((r) => this.rules.indexOf(r)).join(",");
@@ -224,6 +237,9 @@ function verdictOn(chain: Loc[], k: number, md: number): Verdict | null {
         }
         const n = notice(why);
         if (n) out.n = n;
+        // (T796 A6, owner 2026-11-16: "Closes the whole page", salmon.verdict_on) DFO's "Finfish closure" closes ALL
+        // fishing on this stretch today, not only salmon: `f: 1`, read by the app from this verdict to close the page
+        if (s === "closed" && why.some((r) => r.finfish)) out.f = 1;
         // T356 (salmon.verdict_on): the region header's closure carries its note id
         const hc = [...new Set(why.map((r) => r.header_note).filter((x): x is string => typeof x === "string"))].sort();
         if (hc.length) out.c = hc[0];
@@ -243,19 +259,55 @@ function verdictOn(chain: Loc[], k: number, md: number): Verdict | null {
   return null;
 }
 
-function gearOn(chain: Loc[], md: number): string[] {
-  for (const loc of chain) {
-    // dated lines, else open-ended ones; a line whose dates did not read shows on every day, flagged by its text
-    const held = [...heldOn(loc.gear, md), ...loc.gearChecks];
-    if (held.length) {
-      const key = held.map((r) => loc.rules.indexOf(r)).join(",");
-      let out = loc.gears.get(key);
-      if (!out) loc.gears.set(key, (out = [...new Set(held.map((r) => (r.check ? `${r.check}: ` : "") + loc.text([r])))]));
-      return out;
-    }
-  }
-  return [];
+/** salmon.place_gear: ONE place's gear lines on a day, in its rows' order. A row closing another fish ("No fishing for
+ * eulachon") is NOT one of them (`placeClosures`); another fish's row that is no closure stays a line here, read APART
+ * from the gear rows (T770: a bait row never decides whether it holds). Per kind, dated lines first, open-ended ones only
+ * where none is; a line whose dates did not read shows on every day, flagged by its text. */
+function placeGear(loc: Loc, md: number): string[] {
+  const held = new Set([...heldOn(loc.gear, md), ...heldOn(loc.other, md)]);
+  const lines = [...loc.rules.filter((r) => held.has(r)), ...loc.gearChecks];
+  if (!lines.length) return [];
+  const key = lines.map((r) => loc.rules.indexOf(r)).join(",");
+  let out = loc.gears.get(key);
+  if (!out) loc.gears.set(key, (out = [...new Set(lines.map((r) => (r.check ? `${r.check}: ` : "") + loc.text([r])))]));
+  return out;
 }
+
+/** salmon.gear_on (T770, owner 2026-11-16: "Show both"): every place's lines that hold that day, narrowest place first,
+ * the same words once (at the narrowest place) — a wider place's line is never hidden by a narrower one's. */
+function gearOn(chain: Loc[], md: number): string[] {
+  if (chain.length === 1) return placeGear(chain[0]!, md);
+  return [...new Set(chain.flatMap((loc) => placeGear(loc, md)))];
+}
+
+/** salmon.closure_line: a fish closure in words, the fish and its days first, then DFO's row: "Eulachon closed all year:
+ * No fishing for eulachon" ("all year" when the row holds every day, else its dates). */
+function closureLine(r: R): string {
+  const fish = String(r.review_reason ?? "").slice(OTHER_FISH.length).trim() || "this fish";
+  const when = DAYS.every((md) => holdsOn(r, md)) ? "all year" : whenWords(r.when) || "all year";
+  return `${fish.slice(0, 1).toUpperCase()}${fish.slice(1)} closed ${when}: ${r.verbatim || ""}`.replace(/[: ]+$/, "");
+}
+
+/** salmon.place_closures: ONE place's closure lines of other fish on a day, read apart from every other row (its own
+ * kind: a dated bait row never hides it); a row whose dates did not read shows every day with its `check`. */
+function placeClosures(loc: Loc, md: number): string[] {
+  if (!loc.closures.length) return [];
+  const held = new Set(heldOn(loc.closures, md));
+  const lines = [...loc.closures.filter((r) => held.has(r)), ...loc.closures.filter((r) => r.check)];
+  return [...new Set(lines.map((r) => (r.check ? `${r.check}: ` : "") + closureLine(r)))];
+}
+
+/** salmon.closures_on (T770): every place's closure lines of other fish that day, narrowest first, the same words once —
+ * never displaced by another place's line, a gear line or another closure. */
+function closuresOn(chain: Loc[], md: number): string[] {
+  return [...new Set(chain.flatMap((loc) => placeClosures(loc, md)))];
+}
+
+/** (T787, salmon.in_force; owner 2026-11-16: "keep reading them for provenance but mark them hidden somehow so they are
+ * ignored") THE ROWS THAT ANSWER: every typed rule but one from a table DFO commented out (`hidden`). Off-season DFO
+ * keeps its table of dated openings inside an HTML comment and shows only the header's "no fishing for salmon until
+ * further notice" (Regions 4, 5A, 7). `live.ts` `join` and `locationCalendar` read places through this. */
+export const inForce = <T extends { hidden?: unknown }>(rules: readonly T[]): T[] => rules.filter((r) => !r.hidden);
 
 export function mapStatus(verdicts: (Verdict | null)[]): string {
   const s = verdicts.map((v) => (v ? v.s : "closed"));
@@ -304,11 +356,14 @@ export class Interner<T> {
   }
 }
 
-/** live.location_calendar: one location's year */
-export function locationCalendar(rules: R[], verdicts: Interner<unknown>, gears: Interner<unknown>): { sp: number[][]; g: number[] } {
-  const chain = [new Loc(rules)];
+/** live.location_calendar: one location's year. (T787) Only the rows in force: a row from a table DFO commented out
+ * says nothing (`inForce`). (T770) `o`: another fish's closure lines per day (`closuresOn`), runs of an index into the
+ * gear table (-1 none), absent where none. */
+export function locationCalendar(rules: R[], verdicts: Interner<unknown>, gears: Interner<unknown>): { sp: number[][]; g: number[]; o?: number[] } {
+  const chain = [new Loc(inForce(rules))];
   const perSp: number[][] = SPECIES.map(() => []);
   const gear: number[] = [];
+  const shut: number[] = [];
   for (const md of DAYS) {
     for (let k = 0; k < SPECIES.length; k++) {
       const v = verdictOn(chain, k, md);
@@ -316,6 +371,8 @@ export function locationCalendar(rules: R[], verdicts: Interner<unknown>, gears:
     }
     const g = gearOn(chain, md);
     gear.push(g.length ? gears.add(g) : -1);
+    const o = closuresOn(chain, md);
+    shut.push(o.length ? gears.add(o) : -1);
   }
-  return { sp: perSp.map(runsOf), g: runsOf(gear) };
+  return { sp: perSp.map(runsOf), g: runsOf(gear), ...(shut.some((x) => x >= 0) ? { o: runsOf(shut) } : {}) };
 }

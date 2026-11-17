@@ -22,6 +22,7 @@ export * from "./access";
 export * from "./lakeFacts";
 export * from "./salmon";
 export * from "./salmonFeed";
+export * from "./salmonIssues";
 export * from "./runTiming";
 export * from "./inseason";
 export * from "./inseasonInbox";
@@ -106,3 +107,5 @@ export * from "./chartTicks";
 // (T234 v1.1) the app's changelog: one source, bundled; the incoming version's bullets travel in the version file
 export * from "./changelog";
 export * from "./chartMarks";
+// (T732) Android's phone backup: which photos fit beside the spots under the 25 MB quota, and the line that says so
+export * from "./backupSet";

@@ -82,17 +82,28 @@ export function keepOrder(has: {
   readonly otherFish: boolean; readonly possession: boolean; readonly whereNot: boolean;
 }): KeepBlock[] {
   const order: KeepBlock[] = [];
-  // (T623 F4) the part-closed warning leads the tab, above the year strip
+  // (T796) a section's note, then (T623 F4) the part-closed warning, lead the tab, above the year strip
+  const lead = (k: CaveatVM["kind"]) => k === "note" || k === "partclosed";
+  has.caveats.forEach((c, i) => { if (c.kind === "note") order.push({ caveat: i }); });
   has.caveats.forEach((c, i) => { if (c.kind === "partclosed") order.push({ caveat: i }); });
   if (has.strip) order.push("strip");
   if (has.inherited) order.push("inherited");
   if (has.banner) order.push("banner");
-  has.caveats.forEach((c, i) => { if (c.kind !== "partclosed") order.push({ caveat: i }); });
+  has.caveats.forEach((c, i) => { if (!lead(c.kind)) order.push({ caveat: i }); });
   order.push(...has.rows);
   if (has.otherFish) order.push("otherFish");
   if (has.possession) order.push("possession");
   if (has.whereNot) order.push("whereNot");
   return order;
+}
+
+/**
+ * (T796, owner 2026-11-16) THE SECTION'S NOTES (`inp.notes`, core `section_note`): each Python's own sentence, drawn as it
+ * is above the year strip on every day, open or closed ("Mostly outside Gladys Lake Ecological Reserve: its closure (rule
+ * book p.9) does not apply here."). Said once; no rule, no items: the words are the note.
+ */
+export function sectionNotesOf(inp: RegsInputs): CaveatVM[] {
+  return inp.notes.map((title) => ({ kind: "note", hot: false, title, calm: null, items: [], later: null }));
 }
 
 /**
@@ -102,7 +113,7 @@ export function keepOrder(has: {
  * - an unnamed section is built like any water (edge.ts `edgeKind` "unnamed": only the header differs);
  * - otherwise every block its presenter draws, in `keepOrder`; a drawn row is a group when its stored group has a
  *   headline, else a plain row. A closed day (the stored display status) draws no caveats, rows, Other fish or Possession —
- *   (T623 F4) the part-closed warning leads the tab on every open day.
+ *   (T623 F4) the part-closed warning leads the tab on every open day; (T796) the section's notes lead it on every day.
  */
 export function keepOf(inp: RegsInputs, env: KeepEnv): KeepVM {
   const edge = edgeKind(inp);                                       // (T42) the two edges with no card
@@ -116,7 +127,7 @@ export function keepOf(inp: RegsInputs, env: KeepEnv): KeepVM {
   const open = !!settled.status && settled.status.status !== "closed";
   // (T623 F4) a closure of an undrawn part is warned of above the strip, on every open day
   const partClosed = partClosedOf(settled, inp, env.today);
-  const caveats = [...(partClosed ? [partClosed] : []),
+  const caveats = [...sectionNotesOf(inp), ...(partClosed ? [partClosed] : []),
                    ...(open ? caveatsOf(inp, settled, (j) => settleAt(inp, env.place, j, settled.day)) : [])];
 
   const groups: GroupVM[] = [], plainRows: PlainRowVM[] = [], rows: KeepRowBlock[] = [];

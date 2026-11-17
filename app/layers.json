@@ -149,7 +149,8 @@
       "purpose": "The user's own records, and the only writable store in the app.",
       "mayImport": [
         "@app/core",
-        "expo-file-system"
+        "expo-file-system",
+        "expo-image-manipulator"
       ],
       "banned": [
         "react",
@@ -158,7 +159,7 @@
         "node:sqlite",
         "sql.js"
       ],
-      "why": "A spot is the one thing here that cannot be re-downloaded, and it lives in a store of its own because the regulation bundle is replaced wholesale on every update. This layer may name a FILE system (that is its job) and may never touch the bundle's database — the two must not be able to share a file by accident."
+      "why": "expo-image-manipulator is here only for the phone backup's photo copies (T732, `backupSet.native.ts`): a copy of a spot's photo, made smaller, is part of the user's own records' backup, never the bundle's. A spot is the one thing here that cannot be re-downloaded, and it lives in a store of its own because the regulation bundle is replaced wholesale on every update. This layer may name a FILE system (that is its job) and may never touch the bundle's database — the two must not be able to share a file by accident."
     }
   },
   "testOnlyImports": [

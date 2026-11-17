@@ -31,8 +31,10 @@ answer per fish speaks (`strictest`; the live feed composes the same, `live.comp
 PER CHAIN, FOR EVERY DAY OF THE YEAR (366: Feb 29 included; DFO's dates carry no year), precomputed here:
   * a VERDICT per species (chinook, coho, sockeye, pink, chum): `open` (a limit above zero), `release` (fish, keep
     none), `closed` (no fishing), `check` (DFO printed a season nobody can read, "to be determined") — or none: no rule
-    of the chain holds that species that day, and the app says so rather than guessing;
-  * the GEAR lines that hold (bait bans, hook rules) — the first location with any that day;
+    of the chain holds that species that day, and the app says so rather than guessing. (T796 A6) A closed verdict
+    from DFO's "Finfish closure" carries `f: 1`: ALL fishing is closed there that day, trout included (the app closes
+    the page from it);
+  * the GEAR lines that hold (bait bans, hook rules) — every location's, narrowest first, the same words once (T770);
   * the MAP STATUS the Salmon colouring paints: `open` if any species may be kept, else `release` if any may be fished,
     else `check` if DFO printed a season nobody can read, else `closed`.
 
@@ -297,6 +299,10 @@ def verdict_on(chain: Sequence[Sequence[dict]], sp: str, md: int) -> Optional[di
             n = _notice(why)
             if n:
                 out["n"] = n
+            if s == "closed" and any(r.get("finfish") for r in why):
+                # (T796 A6, owner 2026-11-16: "Closes the whole page") DFO's "Finfish closure" closes ALL fishing on
+                # this stretch today, not only salmon: `f: 1`, read by the app from this verdict to close the page
+                out["f"] = 1
             hc = sorted({r["header_note"] for r in why if r.get("header_note")})
             if hc:
                 # T356: the region header's closure (`quota.header_closure`) — its note id, so the app reads "closed by
@@ -308,17 +314,62 @@ def verdict_on(chain: Sequence[Sequence[dict]], sp: str, md: int) -> Optional[di
     return None
 
 
+def place_gear(rules: Sequence[dict], md: int) -> List[str]:
+    """ONE place's gear lines on day `md`, in its rows' order. A row about another fish that is its closure ("No fishing
+    for eulachon") is NOT one of them: it is the place's closure line (`place_closures`). Another fish's row that is no
+    closure stays a line here, read APART from the gear rows (T770: a bait row never decides whether it holds).
+    (T676) Per kind, dated lines first, open-ended ones only where none is (`_held`); a line whose date cell did not
+    read is shown every day, prefixed with its `check`."""
+    gear = [r for r in rules if _is_gear(r) and (not _species_of(r) or any(_covers(r, sp) for sp in SPECIES))]
+    other = [r for r in rules if _other_fish(r) and not _is_gear(r) and not _fish_closure(r)]
+    held = {id(r) for r in (*_held(gear, md), *_held(other, md))}
+    lines = [r for r in rules if id(r) in held] + [r for r in (*gear, *other) if r.get("check")]
+    return list(dict.fromkeys((f"{r['check']}: " if r.get("check") else "") + _text([r], {}) for r in lines))
+
+
+#: (T770, owner 2026-11-16 19:09: "As a closure line (Recommended)") a row CLOSING another fish ("All | No fishing for
+#: eulachon", Region 6 B(ii)) is its own closure line, apart from the gear and bait lines: chain `o`.
+_RE_FISH_CLOSED = re.compile(r"^\s*no fishing for\b", re.I)
+
+
+def _fish_closure(rule: dict) -> bool:
+    """Is the row about another fish the CLOSURE of that fish ("No fishing for eulachon")?"""
+    return _other_fish(rule) and bool(_RE_FISH_CLOSED.match(rule.get("verbatim") or ""))
+
+
+def closure_line(rule: dict) -> str:
+    """A fish closure in words, the fish and its days first, then DFO's row: "Eulachon closed all year: No fishing for
+    eulachon" ("all year" when the row holds every day, else its dates: "Eulachon closed Apr 1–Jun 30: …")."""
+    from pipeline.regs.dfo_salmon.typed import OTHER_FISH
+    fish = str(rule.get("review_reason") or "")[len(OTHER_FISH):].strip() or "this fish"
+    every = all(holds_on(rule, md) for md in DAYS)
+    when = "all year" if every else (_when_words(rule) or "all year")
+    return f"{fish[:1].upper()}{fish[1:]} closed {when}: {rule.get('verbatim') or ''}".rstrip(": ")
+
+
+def place_closures(rules: Sequence[dict], md: int) -> List[str]:
+    """ONE place's closure lines of other fish on day `md` (`closure_line`), read apart from every other row (its own
+    kind: a dated bait row never hides it); a row whose date cell did not read shows every day with its `check`."""
+    fish = [r for r in rules if _fish_closure(r) and not _is_gear(r)]
+    held = {id(r) for r in _held(fish, md)}
+    lines = [r for r in fish if id(r) in held] + [r for r in fish if r.get("check")]
+    return list(dict.fromkeys((f"{r['check']}: " if r.get("check") else "") + closure_line(r) for r in lines))
+
+
+def closures_on(chain: Sequence[Sequence[dict]], md: int) -> Tuple[str, ...]:
+    """(T770) THE CLOSURE LINES OF OTHER FISH ON DAY `md`: every place's (`place_closures`), narrowest first, the same
+    words once — never displaced by another place's line, a gear line or another closure (the T770 guarantee)."""
+    return tuple(dict.fromkeys(x for rules in chain for x in place_closures(rules, md)))
+
+
 def gear_on(chain: Sequence[Sequence[dict]], md: int) -> Tuple[str, ...]:
-    """The gear lines that hold on day `md`: the narrowest location with any that day. A row about another fish
-    ("No fishing for eulachon") is one of its lines (`_other_fish`). (T676) Dated lines first, open-ended ones only
-    where none is (`_held`); a line whose date cell did not read is shown every day, prefixed with its `check`."""
-    for rules in chain:
-        gear = [r for r in rules
-                if (_is_gear(r) and (not _species_of(r) or any(_covers(r, sp) for sp in SPECIES))) or _other_fish(r)]
-        held = _held(gear, md) + [r for r in gear if r.get("check")]
-        if held:
-            return tuple(dict.fromkeys((f"{r['check']}: " if r.get("check") else "") + _text([r], {}) for r in held))
-    return ()
+    """(T770, owner 2026-11-16: "Show both") THE GEAR LINES ON DAY `md`: every place's that hold that day
+    (`place_gear`), narrowest place first, the same words once (at the narrowest place). A wider place's line is never
+    hidden by a narrower one's — a different value of the same kind of rule shows both, as DFO prints both and both
+    bind (the ticket's "replaces": only the same line). It was the narrowest place with any line, which hid a
+    whole-river hook rule under a stretch's fly-only. The live feed composes the same from each place's year
+    (`live.compose`). Another fish's closure is not a gear line (`closures_on`)."""
+    return tuple(dict.fromkeys(x for rules in chain for x in place_gear(rules, md)))
 
 
 def map_status(verdicts: Sequence[Optional[dict]]) -> str:
@@ -389,6 +440,25 @@ def rests_behind(placed: Iterable[dict], locs: Mapping[str, tuple], sid_of: Mapp
                     if lid not in covering[sid]:
                         covering[sid].append(lid)
     return {k: frozenset(v) for k, v in after.items()}
+
+
+def dormant_listed(locations: Iterable) -> Dict[str, frozenset]:
+    """(T783, general audit 2026-11-16) A REST STANDS BEHIND ITS DORMANT LISTED PLACES TOO. A dormant place a rest
+    leaves out takes nothing out of it (`entries.rest_listing`, T761), so both cover the dormant place's stretch; the
+    reach row's `behind` names only the LIVE ones. The day DFO prints the dormant wording again the live feed gives it
+    rules, and it must answer before the rest there, as a live listed place does — so the release's chain puts it first
+    now (Stamp River chains 20, 55, 56: the 2-section rest sorted before the 7-section "upstream of signs at Girl
+    Guide"). Rest id -> its dormant listed places, among one region's `locations` (a place with no binding: none)."""
+    from pipeline.regs.dfo_salmon import entries as E
+    locs = [l for l in locations if getattr(l, "binding", None) is not None]
+    by_id = {l.location_id: l for l in locs}
+    out: Dict[str, frozenset] = {}
+    for l in locs:
+        if any(getattr(e.op, "value", e.op) == "rest" for e in l.binding.extents):
+            got = E.rest_listing(l, by_id)["dormant"]
+            if got:
+                out[l.location_id] = frozenset(got)
+    return out
 
 
 def rest_after(key: Sequence[str], after: Mapping[str, frozenset]) -> Tuple[str, ...]:
@@ -636,23 +706,30 @@ def chain_calendar(chain: Sequence[Sequence[dict]], verdicts: _Interner, gears: 
     (`both_gear`) — as the live feed composes them (`live.compose`)."""
     per_sp: List[List[int]] = [[] for _ in SPECIES]
     gear: List[int] = []
+    shut: List[int] = []
     mapc: List[int] = []
     subs = [[chain[i] for i in g] for g in groups] if groups else None
     for md in DAYS:
         if subs:
             vs = [strictest([verdict_on(c, sp, md) for c in subs]) for sp in SPECIES]
             g = both_gear([gear_on(c, md) for c in subs])
+            o = both_gear([closures_on(c, md) for c in subs])
         else:
             vs = [verdict_on(chain, sp, md) for sp in SPECIES]
             g = gear_on(chain, md)
+            o = closures_on(chain, md)
         for k, v in enumerate(vs):
             per_sp[k].append(verdicts(v or NOT_LISTED))
         gear.append(gears(list(g)) if g else -1)
+        shut.append(gears(list(o)) if o else -1)
         mapc.append(MAP_CODES.index(map_status(vs)))
     sp = [runs_of(x) for x in per_sp]
     c = closed_by_header(sp, verdicts.items) if undrawn_closed else []
     n = speaks_runs(per_sp, verdicts.items) if speaks else None
-    return {"sp": sp, "g": runs_of(gear), "m": runs_of(mapc), **({"c": c} if c else {}), **({"n": n} if n else {})}
+    # (T770, owner 2026-11-16 19:09) `o`: another fish's closure lines per day, runs of an index into `gears` (-1 none);
+    # absent on a chain with none
+    return {"sp": sp, "g": runs_of(gear), "m": runs_of(mapc), **({"o": runs_of(shut)} if any(x >= 0 for x in shut) else {}),
+            **({"c": c} if c else {}), **({"n": n} if n else {})}
 
 
 def speaks_runs(per_sp: Sequence[Sequence[int]], verdicts: Sequence[dict]) -> List[int]:
@@ -705,10 +782,21 @@ def header_answers(notes: Sequence[dict]) -> dict:
 def location_rules(loc, by_fp: Mapping[str, Sequence[dict]], closure: Sequence[dict]) -> List[dict]:
     """A curated place's rules from the typed feed (`by_fp`: fingerprint -> rules), as the release reads them: T349 /
     T358 a quota pooled across areas (`quota.mark_shared`); T320 the region header's closure (`quota.header_closure`)
-    wins over the table's rows. `build` and the straddler pair table (`salmon_pairs`) read places so."""
+    wins over the table's rows. `build` and the straddler pair table (`salmon_pairs`) read places so. (T787) Only the
+    rows in force (`in_force`): a place whose rows are all hidden has no rule today — it stays in its chains, says
+    nothing, and the header (or a wider place) answers."""
     from pipeline.regs.dfo_salmon import quota as Q
-    rules = Q.mark_shared([r for fp in loc.fingerprints for r in by_fp.get(fp, [])], Q.pool_of(loc))
+    rules = Q.mark_shared(in_force(r for fp in loc.fingerprints for r in by_fp.get(fp, [])), Q.pool_of(loc))
     return list(closure) if closure and rules else rules
+
+
+def in_force(rules: Iterable[dict]) -> List[dict]:
+    """(T787, owner 2026-11-16: "keep reading them for provenance but mark them hidden somehow so they are ignored")
+    THE ROWS THAT ANSWER: every typed rule but one from a table DFO commented out (`hidden`, `parse.table_hidden`).
+    Off-season DFO keeps its table of dated openings inside an HTML comment and shows only the header's "no fishing for
+    salmon until further notice" (Regions 4, 5A, 7). The release (`location_rules`) and the live feed
+    (`live.location_calendar`, `live.run`) read places through this; the reviewer still sees the hidden rows."""
+    return [r for r in rules if not r.get("hidden")]
 
 
 def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: Iterable[dict],
@@ -835,6 +923,11 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
             if binds(lid, sid):
                 covering[sid].append(lid)
     after = rests_behind(placed, locs, sid_of, covering, binds, missing)
+    # (T783) and behind its dormant listed places, where both cover a section (`dormant_listed`)
+    for _slug, ef in sorted(entry_files.items()):
+        for rest, dormant in dormant_listed(ef.locations).items():
+            if rest in locs:
+                after[rest] = after.get(rest, frozenset()) | frozenset(d for d in dormant if d in locs)
     if missing:
         raise SalmonError(f"salmon: {len(missing):,} placed sections are not in the handle table (e.g. {missing[:3]}) "
                           "— the reach run and this atlas are not the same build")
@@ -1083,8 +1176,9 @@ def load_inputs(run_dir: Path, registry=None, *, entries_dir: Optional[Path] = N
         if feeds[s].get("typed_format") != TYPED_FORMAT:
             # (T671) rows typed by older code would ship the old reading with nothing saying so
             raise SalmonError(f"salmon: {p} was typed by older code (typed_format {feeds[s].get('typed_format')!r}, "
-                              f"today's is {TYPED_FORMAT}) — type its scraped rows again (no network, no credits):\n"
-                              "    python -m pipeline.regs.dfo_salmon.feed")
+                              f"today's is {TYPED_FORMAT}) — scrape the cached pages and type the rows again (no "
+                              "network, no credits):\n"
+                              "    python -m pipeline.regs.dfo_salmon.locations && python -m pipeline.regs.dfo_salmon.feed")
     return files, feeds, list(placed_io.read(run_dir))
 
 
@@ -1136,6 +1230,392 @@ def load_current_headers(slugs: Iterable[str], cache_dir: Optional[Path] = None)
         if p.exists():
             out[slug] = H.parse_header(p.read_text(encoding="utf-8", errors="replace"), slug)
     return out
+
+
+# ── the rule book's full closures, first in the salmon chain (T796 A5) ───────────────────────────────────────────────
+#
+# (Owner 2026-11-16, question 29; the design agreed with the app chat the same day) THE BOOK p.77: "when fresh waters
+# are closed to fishing, or have gear restrictions outlined in this Synopsis, the regulations apply to fishing for
+# salmon as well as for non-salmon species." A stretch the book closes to ALL fishing reads closed for salmon too: the
+# book's closure is the FIRST place of that stretch's salmon chains, a release-side place marked static (DFO's feed
+# never carries it; under a live feed the app keeps it from the release). WHICH CLOSURES: the status index's CLOSED
+# test from the stored verdicts, and only a rule that BY ITSELF closes every game fish (`verdicts.project.closing`): a
+# full closure ("No Fishing", a park or an ecological reserve), on the days it is in force after every lift, at every
+# moment of the day; never a gear, species or angler rule, never a mix of species closures. Only on sections DFO
+# lists (a section in no DFO chain is closed already), never tidal or outside B.C. Release side, because the stored
+# verdicts are made after the bundle: `book_inputs` + `with_book_closures`, called by `release.build`.
+
+BOOK_PREFIX = "book:"
+BOOK_WORDS = "Closed to all fishing by the rule book"
+#: (T796 X2) the head of a closure the book makes conditional: "Closed by the rule book unless opened under …"
+BOOK_UNLESS_WORDS = "Closed by the rule book unless"
+#: POLICY (size, measured on r-46e4355a7277 2026-11-16): a book place joins only a chain where DFO lets some salmon be
+#: fished on some day (a verdict open, release or check). On a chain DFO closes every day the answer is closed either
+#: way (only the words would change), and carrying the book there too made the salmon head 92 kB gzipped against its
+#: 60 kB gate (620,930 sections, 736 new chains); with this, 50 kB. The cost: a chain DFO closes all year in the
+#: release and opens in season through the live feed has no book place under that feed. False = every listed chain.
+#: (Owner 2026-11-16, question dialog: "Raise to 100 kB (Recommended)"; RULINGS O5 "raise now, shrink later", O9) FALSE:
+#: the book place joins every DFO-listed chain it closes, so it holds under the live feed too; the head's gate is
+#: 100 kB (`release.build.SIZE_GATES["salmon"]`).
+BOOK_ONLY_WHERE_DFO_LETS_FISH = False
+
+
+def dfo_lets_fish(chain: Mapping, verdicts: Sequence[dict]) -> bool:
+    """Does the chain answer anything but closed for some salmon on some day (`BOOK_ONLY_WHERE_DFO_LETS_FISH`)?"""
+    return any(verdicts[r[k + 1]]["s"] != "closed" for r in chain["sp"] for k in range(0, len(r), 2))
+
+
+def book_closures(store, keyed: Mapping[int, int]) -> Dict[int, Dict[str, frozenset]]:
+    """sid -> {book rule ("entry::rule") -> the day indexes (0..365, `DAYS`) it closes the section to all fishing}.
+    `store`: the bundle's `VerdictStore`; `keyed`: sid -> rule key (`section_ruleset`). A day counts when the key is
+    closed at EVERY moment (`reading.closed`, the status index's CLOSED) and the rule closes every game fish in each
+    moment's reading."""
+    from pipeline.deliver import types as T
+    from pipeline.deliver.verdicts.project import closing
+    game = frozenset(T.GAME_FISH)
+    by_key: Dict[int, Dict[str, frozenset]] = {}
+    memo: Dict[Tuple[int, int], frozenset] = {}
+
+    def closers(key: int, reading: int) -> frozenset:
+        if (key, reading) not in memo:
+            got = closing(lambda f: store.rows(store.verdict_id(key, reading, f, "none")), store.grade)
+            memo[(key, reading)] = frozenset(store.rule_ids[r] for r, fish in got.items() if game <= set(fish))
+        return memo[(key, reading)]
+
+    out: Dict[int, Dict[str, frozenset]] = {}
+    for sid, key in sorted(keyed.items()):
+        if key not in by_key:
+            n = len(store.moments(key))
+            days: Dict[str, set] = defaultdict(set)
+            for d in range(1, len(DAYS) + 1):
+                rs = [store.reading_of(key, d, m if n > 1 else None) for m in range(n)]
+                if not all(store.closed(key, r) for r in rs):
+                    continue
+                rules = frozenset.intersection(*(closers(key, r) for r in rs))
+                for rule in rules:
+                    days[rule].add(d - 1)
+            by_key[key] = {r: frozenset(v) for r, v in sorted(days.items())}
+        if by_key[key]:
+            out[sid] = by_key[key]
+    return out
+
+
+def book_inputs(bundle: Path, sections: Sequence[Tuple[int, int]], verdicts: Optional[Path] = None) \
+        -> Tuple[Dict[int, Dict[str, frozenset]], Dict[str, dict], Dict[int, Dict[str, str]]]:
+    """The book closures of the sections DFO lists (`sections`: (sid, chain), chain 0 left out), tidal and outside
+    B.C. left out, each closing rule's words: {rule: {verbatim, pages, name, region}} — `verbatim` is THE BOOK'S LINE
+    (`book_line`: the rule's words where the book printed them, whole), and each section's LIFTS: {sid: {rule: words}}
+    where a rule closes fewer days than it prints (`book_lifts`). `verdicts`: the stored verdicts (default beside the
+    bundle, as the status index reads them); a missing or foreign file raises (`VerdictStore.open`)."""
+    import sqlite3
+
+    from pipeline.deliver.status_index import special_sections
+    from pipeline.deliver.verdicts.store import VerdictStore
+    from pipeline.common import entry_id as EID
+    store = VerdictStore.open(verdicts or Path(bundle).with_name("verdicts.sqlite"), bundle)
+    db = sqlite3.connect(f"file:{bundle}?mode=ro", uri=True)
+    try:
+        tidal, outside = special_sections(db)
+        listed = {sid for sid, c in sections if c != UNLISTED_CHAIN} - tidal - outside
+        keyed = {sid: k for sid, k in db.execute("SELECT sid, key_ix FROM section_ruleset") if sid in listed}
+        closures = book_closures(store, keyed)
+        rules = sorted({r for v in closures.values() for r in v})
+        words: Dict[str, dict] = {}
+        for rule in rules:
+            entry_id, rule_id = rule.split("::", 1)
+            w = _entry_line(db, entry_id, rule_id)
+            if w is None:
+                raise SalmonError(f"salmon: the verdicts name book rule {rule}, which the bundle does not hold")
+            region = EID.region_of(entry_id)              # a water row's or a zone table's; none for `zp:`
+            words[rule] = {**w, **({"region": region} if region else {})}
+        lifts = book_lifts(db, closures)
+    finally:
+        db.close()
+    return closures, words, lifts
+
+
+def _entry_line(db, entry_id: str, rule_id: str) -> Optional[dict]:
+    """{verbatim: the book's line (`book_line`), pages, name} of one rule of the bundle; None: no such rule."""
+    row = db.execute("SELECT r.verbatim, e.verbatim, e.pages, e.name FROM rule r JOIN entry e USING (entry_id) "
+                     "WHERE r.entry_id = ? AND r.rule_id = ?", (entry_id, rule_id)).fetchone()
+    if row is None:
+        return None
+    sibs = [v for (v,) in db.execute("SELECT verbatim FROM rule WHERE entry_id = ? AND rule_id != ?",
+                                     (entry_id, rule_id)) if v]
+    return {"verbatim": book_line(row[0] or "", row[1] or "", sibs), "pages": json.loads(row[2] or "[]"),
+            "name": row[3] or ""}
+
+
+# (T796 hard cases S2, S4, X3, 2026-11-16) THE BOOK'S LINE, as the card quotes it. A rule's `verbatim` is the
+# parser's cut of its row's text, and three cuts are not the book's line: the ✱ tributary mark (the bundle's
+# "[Includes Tributaries]") ended the rule before its dates ("No Fishing downstream of Forest Kerr Canyon✱, Apr 1-Apr
+# 30" quoted as "… Forest Kerr Canyon"); the PDF's line break stays inside the words ("… power line crossing⏎
+# (approximately …"); a rule after a ";" is a fragment ("except Thelwood Creek is closed all year" of "Fly fishing
+# only; except Thelwood Creek is closed all year"). The line is read back from the row's own text (`entry.verbatim`):
+# the rule's words found there, then the rest of ITS clause (to the next ";", line, sentence or the next rule of the
+# row), a fragment from the start of its line; the bold marks and the tributary mark dropped, line breaks joined.
+_BOOK_MARK = re.compile(r"\[[^\]\n]*\]")
+_FRAGMENT = re.compile(r"^(?:except|and|or|but|including|unless)\b")
+#: (T796 X2, owner 2026-11-16: "Closed, book's wording (Recommended)") a closure the book makes CONDITIONAL — "Freshwater
+#: fishing is prohibited in National Parks unless opened under the National Parks Fishing Regulations" (p.9, RULINGS
+#: Z12: closed by default) — is never "closed to all fishing" outright: its head says the proviso (`book_rule`).
+_UNLESS = re.compile(r"\bunless (opened under [^.;]+?)\s*(?:[.;]|$)")
+
+
+def _book_norm(text: str) -> str:
+    """`text` without bold marks (`**`) and tributary marks (`[…]`), each run of white space one character: a line
+    break where the run breaks the line and the next starts a new line of the row (a capital or a figure, outside
+    brackets), else a space (the PDF's wrap)."""
+    out: List[str] = []
+    i, n = 0, len(text)
+    depth = 0
+    while i < n:
+        if text.startswith("**", i):
+            i += 2
+            continue
+        m = _BOOK_MARK.match(text, i)
+        if m:
+            i = m.end()
+            continue
+        c = text[i]
+        if c.isspace():
+            j = i
+            while j < n and (text[j].isspace() or text.startswith("**", j)):
+                j += 2 if text.startswith("**", j) else 1
+            brk = "\n" in text[i:j] and depth <= 0 and j < n and (text[j].isupper() or text[j].isdigit())
+            if out and j < n:
+                out.append("\n" if brk else " ")
+            i = j
+            continue
+        depth += (c == "(") - (c == ")")
+        out.append(c)
+        i += 1
+    return "".join(out)
+
+
+def book_line(rule_verbatim: str, entry_verbatim: str, siblings: Sequence[str] = ()) -> str:
+    """THE BOOK'S LINE for one rule (see above): `rule_verbatim` found in its row's `entry_verbatim` and taken to the
+    end of its clause — never into a sibling rule of the row (`siblings`, their verbatims) — and from the start of
+    its line when it is a fragment ("except …", "and …"). Not found once (exactly), or no row text: the rule's own
+    words with line breaks joined."""
+    rule = " ".join((rule_verbatim or "").replace("**", "").split())
+    rule = " ".join(_BOOK_MARK.sub("", rule).split())
+    norm = _book_norm(entry_verbatim or "")
+    flat = norm.replace("\n", " ")
+    if not rule or flat.count(rule) != 1:
+        return rule
+    i = flat.index(rule)
+    j = i + len(rule)
+    if _FRAGMENT.match(rule):
+        i = norm.rfind("\n", 0, i) + 1
+    tail = norm[j:]
+    if rule.endswith(".") and re.match(r"\s+[A-Z]", tail):
+        tail = ""
+    cut = len(tail)
+    for m in (re.search(r"[;\n]", tail), re.search(r"(?<=\.)\s+(?=[A-Z])", tail)):
+        if m:
+            cut = min(cut, m.start())
+    tail = tail[:cut]
+    low = tail.lower()
+    for sib in siblings:
+        s = " ".join(_BOOK_MARK.sub("", sib.replace("**", "")).split()).lower()
+        k = low.find(s[:24]) if len(s) >= 6 else -1
+        if k >= 0:
+            tail, low = tail[:k], low[:k]
+    tail = tail.rstrip(" ,;")
+    if not tail and _UNLESS.search(rule):
+        # (T796 X2) a closure "unless opened under …" keeps the book's next sentence when it says what holds where
+        # open ("Where open, anglers require a National Park Fishing Permit.")
+        m = re.match(r"\s+(Where open\b[^.;\n]*\.)", norm[j:])
+        if m:
+            tail = " " + m.group(1)
+    return (norm[i:j] + tail).replace("\n", " ")
+
+
+def book_lifts(db, closures: Mapping[int, Mapping[str, frozenset]]) -> Dict[int, Dict[str, str]]:
+    """(T796 hard case S1, 2026-11-16) sid -> {rule: the words of what lifts it}, for a book closure that closes the
+    section on FEWER days than its own printed dates (`book_closures` reads the days after every lift): the card's
+    dates would contradict the line it quotes ("No Fishing Oct 1-May 31 (Oct 1–Apr 30)"). The lifting rules are the
+    section's rules whose `exempts` name the closure on a missing day; their words: "lifted <days> by <water> (p.N):
+    <its line>". A closure missing days that no rule of its section lifts STOPS the build (never a silent gap)."""
+    from pipeline.deliver.answers.common import when_words
+    own_memo: Dict[str, Optional[frozenset]] = {}
+    lifter_memo: Dict[int, List[Tuple[str, str, dict, Optional[str]]]] = {}
+    line_memo: Dict[Tuple[str, str], Optional[dict]] = {}
+
+    def own(rule: str) -> Optional[frozenset]:
+        if rule not in own_memo:
+            e, r = rule.split("::", 1)
+            row = db.execute("SELECT when_ FROM rule WHERE entry_id = ? AND rule_id = ?", (e, r)).fetchone()
+            w = json.loads(row[0]) if row and row[0] else {}
+            hs = [holds_on({"when": w}, md) for md in DAYS]
+            own_memo[rule] = None if None in hs else frozenset(d for d, h in enumerate(hs) if h)
+        return own_memo[rule]
+
+    def lifters(set_id: int):
+        if set_id not in lifter_memo:
+            lifter_memo[set_id] = [
+                (e, r, x, w) for e, r, ex, w in db.execute(
+                    "SELECT r.entry_id, r.rule_id, r.exempts, r.when_ FROM ruleset s JOIN rule r USING (entry_id, rule_id) "
+                    "WHERE s.set_id = ? AND r.exempts IS NOT NULL ORDER BY r.entry_id, r.rule_id", (set_id,))
+                for x in json.loads(ex)]
+        return lifter_memo[set_id]
+
+    feb29 = DAYS.index(229)
+    out: Dict[int, Dict[str, str]] = {}
+    for sid, v in sorted(closures.items()):
+        for rule, days in sorted(v.items()):
+            mine = own(rule)
+            if mine is None:
+                continue
+            missing = mine - days
+            if not missing - {feb29}:          # "to Feb 28" closes Feb 29 too, as the verdicts read it
+                continue
+            got = db.execute("SELECT set_id FROM section_ruleset WHERE sid = ?", (sid,)).fetchone()
+            e0, r0 = rule.split("::", 1)
+            said = []
+            for e, r, x, w in lifters(got[0] if got else -1):
+                if x.get("entry_id") != e0 or x.get("rule_id") != r0:
+                    continue
+                when = x.get("when") or (json.loads(w) if w else {})
+                lifted = frozenset(d for d, md in enumerate(DAYS) if holds_on({"when": when}, md))
+                if not lifted & missing:
+                    continue
+                if (e, r) not in line_memo:
+                    line_memo[(e, r)] = _entry_line(db, e, r)
+                ln = line_memo[(e, r)]
+                pages = ", ".join(str(p) for p in ln["pages"])
+                said.append(f"{ln['name']} (p.{pages}): {ln['verbatim']}" if pages else f"{ln['name']}: {ln['verbatim']}")
+            if not said:
+                raise SalmonError(f"salmon: book closure {rule} closes section {sid} on fewer days than it prints "
+                                  f"({when_words({'dates': _day_ranges(missing)}, 'plain')} missing) and no rule "
+                                  f"of the section lifts it there — its card would contradict its line")
+            out.setdefault(sid, {})[rule] = \
+                f"lifted {when_words({'dates': _day_ranges(missing)}, 'plain')} by {'; '.join(dict.fromkeys(said))}"
+    return out
+
+
+def _day_ranges(days: Iterable[int]) -> List[dict]:
+    """Day indexes (0..365) -> `when.dates` ranges; a run over the year end is one wrapped range."""
+    ds = sorted(set(days))
+    runs: List[List[int]] = []
+    for d in ds:
+        if runs and runs[-1][1] == d - 1:
+            runs[-1][1] = d
+        else:
+            runs.append([d, d])
+    if len(runs) > 1 and runs[0][0] == 0 and runs[-1][1] == len(DAYS) - 1:
+        runs = [[runs[-1][0], runs[0][1]], *runs[1:-1]]
+    out = []
+    for a, b in runs:
+        (fm, fd), (tm, td) = divmod(DAYS[a], 100), divmod(DAYS[b], 100)
+        out.append({"from_month": fm, "from_day": fd, "to_month": tm, "to_day": td})
+    return out
+
+
+def book_rule(lid: str, rule: str, days: Iterable[int], words: Mapping[str, dict], lift: str = "") -> dict:
+    """The static place's one rule, as a DFO row reads: every salmon closed on the book's days, in the book's words;
+    `lift` (`book_lifts`): what lifts it on the printed days it does not close, said after the line."""
+    w = words[rule]
+    pages = ", ".join(str(p) for p in w.get("pages") or ())
+    line = w["verbatim"]
+    unless = _UNLESS.search(line)
+    words = f"{BOOK_UNLESS_WORDS} {unless.group(1)}" if unless else BOOK_WORDS
+    head = f"{words} (p.{pages})" if pages else words
+    if lift:
+        line = f"{line} {lift[0].upper()}{lift[1:]}" if line.endswith(".") else f"{line}; {lift}"
+    return {"rule_id": lid, "type": "retention_limit", "species": [ALL_SALMON], "take": 0, "may_target": False,
+            "verbatim": f"{head}: {line}",
+            **({"when": {"dates": _day_ranges(days)}} if len(set(days)) < len(DAYS) else {})}
+
+
+def with_book_closures(payload: dict, sections: Sequence[Tuple[int, int]], closures: Mapping[int, Mapping[str, frozenset]],
+                       words: Mapping[str, dict], lifts: Optional[Mapping[int, Mapping[str, str]]] = None) \
+        -> Tuple[dict, List[Tuple[int, int]]]:
+    """(T796 A5) The release's salmon with each book closure FIRST in the chains of the sections it closes. A new chain
+    per (old chain, its book places): per species and day the first book place that closes it answers, else the old
+    chain's answer — DFO's places keep their order and answers behind it; gear lines as before (a book place has none);
+    the map status from the five; `a` names the book place on its days (the old indices shifted); a two-region chain's
+    groups each gain the book places first. Payload `p[id]` marks it (`static: 1`, `book: {rule, pages}`) and payload
+    `static[id]` holds its own year (the live feed's place shape) for the app to compose under a live feed.
+    `lifts` (`book_lifts`): per section, what lifts a closure on printed days it does not close — said in its words, so
+    a place is one (rule, days, lift)."""
+    from pipeline.regs.dfo_salmon import live as _live
+    lifts = lifts or {}
+    if BOOK_ONLY_WHERE_DFO_LETS_FISH:
+        chain_of = dict(sections)
+        lets = {c: dfo_lets_fish(payload["chains"][c], payload["verdicts"]) for c in set(chain_of.values())}
+        closures = {sid: v for sid, v in closures.items() if lets.get(chain_of.get(sid, UNLISTED_CHAIN))}
+    if not closures:
+        return payload, list(sections)
+    out = {**payload, "chains": list(payload["chains"]), "p": dict(payload.get("p") or {}),
+           "static": dict(payload.get("static") or {})}
+    verdicts, gears = _Interner(), _Interner()
+    for v in payload["verdicts"]:
+        verdicts(v)
+    for g in payload["gears"]:
+        gears(g)
+    if len(verdicts.items) != len(payload["verdicts"]) or len(gears.items) != len(payload["gears"]):
+        raise SalmonError("salmon: the payload's verdicts / gears are not unique — not a built payload")
+    # one static place per (rule, days, lift): the rule's commonest day set takes the plain id, the others `~2` ...
+    seen: Dict[str, Dict[Tuple[frozenset, str], int]] = defaultdict(lambda: defaultdict(int))
+    for sid, v in closures.items():
+        for rule, days in v.items():
+            seen[rule][(days, (lifts.get(sid) or {}).get(rule, ""))] += 1
+    lid_of: Dict[Tuple[str, frozenset, str], str] = {}
+    for rule in sorted(seen):
+        for i, (days, lift) in enumerate(sorted(seen[rule], key=lambda k: (-seen[rule][k], sorted(k[0]), k[1]))):
+            lid = f"{BOOK_PREFIX}{rule}" + (f"~{i + 1}" if i else "")
+            lid_of[(rule, days, lift)] = lid
+            cal = _live.location_calendar([book_rule(lid, rule, days, words, lift)], verdicts, gears)
+            out["static"][lid] = cal
+            w = words[rule]
+            out["p"][lid] = {**({"r": w["region"]} if w.get("region") else {}),
+                             **({"water": w["name"]} if w.get("name") else {}),
+                             "static": 1, "book": {"rule": rule, "pages": list(w.get("pages") or [])}}
+    memo: Dict[Tuple[int, Tuple[str, ...]], int] = {}
+    new_sections: List[Tuple[int, int]] = []
+    for sid, c in sections:
+        cl = closures.get(sid)
+        if not cl or c == UNLISTED_CHAIN:
+            new_sections.append((sid, c))
+            continue
+        statics = tuple(sorted(lid_of[(r, d, (lifts.get(sid) or {}).get(r, ""))] for r, d in cl.items()))
+        if (c, statics) not in memo:
+            memo[(c, statics)] = len(out["chains"])
+            out["chains"].append(_book_chain(payload["chains"][c], statics, out["static"], verdicts))
+        new_sections.append((sid, memo[(c, statics)]))
+    out["verdicts"], out["gears"] = verdicts.items, gears.items
+    return out, new_sections
+
+
+def _book_chain(old: Mapping, statics: Sequence[str], cals: Mapping[str, dict], verdicts: _Interner) -> dict:
+    from pipeline.deliver.salmon_who import _run_at, _runs_of
+    k = len(statics)
+    sp, who = [], []
+    for s in range(len(SPECIES)):
+        vals, names = [], []
+        for d in range(len(DAYS)):
+            j = next((i for i, l in enumerate(statics) if _run_at(cals[l]["sp"][s], d) >= 0), None)
+            if j is not None:
+                vals.append(_run_at(cals[statics[j]]["sp"][s], d))
+                names.append(j)
+            else:
+                vals.append(_run_at(old["sp"][s], d))
+                a = _run_at(old["a"][s], d) if old.get("a") else -1
+                names.append(a + k if a >= 0 else a)
+        sp.append(_runs_of(vals))
+        who.append(_runs_of(names))
+    mapc = [MAP_CODES.index(map_status([verdicts.items[_run_at(r, d)] for r in sp])) for d in range(len(DAYS))]
+    new = {**old, "l": [*statics, *old["l"]], "sp": sp, "m": runs_of(mapc), "a": who}
+    if old.get("s"):
+        new["s"] = [[*range(k), *(i + k for i in g)] for g in old["s"]]
+    new.pop("c", None)
+    if old.get("c"):
+        c = closed_by_header(sp, verdicts.items)
+        if c:
+            new["c"] = c
+    return new
 
 
 # ── the bundle's tables and the shipped file ─────────────────────────────────────────────────────────────────────────

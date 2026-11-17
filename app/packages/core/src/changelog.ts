@@ -27,6 +27,15 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: "0.7.12", date: "2026-11-16", draft: true, notes: [
+      "A swimming coho while data loads; the first download resumes in the background",
+      "Applying new data shows progress; the bar never goes backwards",
+      "Salmon: a stretch the book closes shows closed; a DFO rule we cannot place stays on its river with a note",
+      "Level-only waters open Conditions on Level; a small stream on a big river's gauge is flagged",
+      "Dark mode: the part of a river you are on stands out",
+    ],
+  },
+  {
     version: "0.7.11", date: "2026-11-15", draft: true, notes: [
       "Android: code shrinker (R8) on for this build; also carries T737, T747, T750 from the shared branch.",
       "A water's map opened from search now frames the part you picked, not the whole water",

@@ -36,7 +36,7 @@ const DICT = Buffer.from(JSON.stringify(RULE));
 /** Two regions; akey 1 → region 1, akey 2 → region 2. Frame id 5 exists in BOTH region files with DIFFERENT content,
  *  so a read routed to the wrong file is seen. regs-sid: handle 4097 (block 1, slot 1) → akey 2, place 0. */
 function seed(o: { noTidal?: boolean; badCells?: boolean; ruleGap?: boolean; noDict?: boolean; badStrip?: boolean; tidalPart?: boolean; lengths?: boolean;
-                   partLine?: boolean; alias?: boolean } = {}) {
+                   partLine?: boolean; alias?: boolean; notes?: "rows" | "badShape" | "noWords" } = {}) {
   const asked: string[] = [];
   const spy = (name: string, d: Db): Db => ({
     all: (q, ...p) => { asked.push(`${name}: ${q.split(" FROM ")[1]?.split(" ")[0]}`); return d.all(q, ...p); },
@@ -133,7 +133,15 @@ function seed(o: { noTidal?: boolean; badCells?: boolean; ruleGap?: boolean; noD
     CREATE TABLE section_tidal (block INTEGER PRIMARY KEY, b BLOB);
     INSERT INTO section_tidal VALUES (1, X'${tidalBlock.toString("hex")}');`));
   const core = openInMemory("", "CREATE TABLE item (ord INTEGER PRIMARY KEY, item_id TEXT UNIQUE); INSERT INTO item VALUES (3, 'gnis:1');"
-    + (o.alias ? "CREATE TABLE item_alias (alias TEXT PRIMARY KEY, item_id TEXT NOT NULL); INSERT INTO item_alias VALUES ('wbk:9', 'gnis:1');" : ""));
+    + (o.alias ? "CREATE TABLE item_alias (alias TEXT PRIMARY KEY, item_id TEXT NOT NULL); INSERT INTO item_alias VALUES ('wbk:9', 'gnis:1');" : "")
+    // (T796) core section_note: the release's own DDL (`rows`); present but not the contract's shape, or a note with no
+    // words — a damaged release, said, never read as "no notes"
+    + (o.notes === "rows" ? "CREATE TABLE section_note (sid INTEGER PRIMARY KEY, note TEXT NOT NULL) WITHOUT ROWID; "
+         + "INSERT INTO section_note VALUES (4098, 'Mostly outside Gladys Lake Ecological Reserve: its closure (rule book p.9) does not apply here.'), "
+         + "(20, 'Mostly outside Tow Hill Ecological Reserve: its closure (rule book p.9) does not apply here.');"
+       : o.notes === "badShape" ? "CREATE TABLE section_note (sid INTEGER PRIMARY KEY, words TEXT);"
+       : o.notes === "noWords" ? "CREATE TABLE section_note (sid INTEGER PRIMARY KEY, note TEXT); INSERT INTO section_note VALUES (20, NULL);"
+       : ""));
   const dbs: Record<string, Db> = { water: spy("water", water), "regs-1": spy("regs-1", regs1), "regs-2": spy("regs-2", regs2),
                                     "regs-sid": spy("regs-sid", sid), core: spy("core", core) };
   const regionOf: Record<number, string> = { 1: "1", 2: "2" };
@@ -216,6 +224,28 @@ describe("reads over water", () => {
     expect(await st.itemOrd("nope")).toBeNull();
     // (T555) an id core does not hold asks once more: does this core carry item_alias (this one, cut before it, does not)
     expect(asked).toEqual(["core: item", "core: item", "core: sqlite_master"]);
+  });
+
+  it("(T796) sectionNotes: core section_note whole, by sid, once; a core cut before the table (asked of sqlite_master) has none", async () => {
+    const { loader, asked } = seed({ notes: "rows" });
+    const st = await openRegsStore(loader);
+    asked.length = 0;
+    expect([...(await st.sectionNotes())]).toEqual([
+      [20, "Mostly outside Tow Hill Ecological Reserve: its closure (rule book p.9) does not apply here."],
+      [4098, "Mostly outside Gladys Lake Ecological Reserve: its closure (rule book p.9) does not apply here."]]);
+    await st.sectionNotes();
+    expect(asked).toEqual(["core: sqlite_master", "core: section_note"]);          // read once
+    const old = seed();
+    const none = await openRegsStore(old.loader);
+    old.asked.length = 0;
+    expect((await none.sectionNotes()).size).toBe(0);
+    expect(old.asked).toEqual(["core: sqlite_master"]);                             // absent: never read, never caught
+  });
+
+  it("(T796) sectionNotes: a table that IS there but cannot be read, or a note with no words, fails said — never no notes", async () => {
+    await expect((await openRegsStore(seed({ notes: "badShape" }).loader)).sectionNotes()).rejects.toThrow(/note/);
+    await expect((await openRegsStore(seed({ notes: "noWords" }).loader)).sectionNotes())
+      .rejects.toThrow(new RegsStoreError("damaged", "regs store: core section_note 20 has no note"));
   });
 
   it("(T555) itemOrd follows core.item_alias: an absorbed id is the ord of the water it became; a gone id is still null", async () => {

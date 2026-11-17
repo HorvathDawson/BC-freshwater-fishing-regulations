@@ -142,6 +142,20 @@ def geography(loc: Mapping, water: Optional[Mapping]) -> dict:
             "water_tributaries": (water or {}).get("tributaries"), "binding": b}
 
 
+def same_place_bindings(loc: Mapping, water: Optional[Mapping]) -> set[str]:
+    """Every binding print that reads THE SAME PLACE as the geography now (`geography`): the water's tributaries flag
+    is read only when the place has none of its own (`dfo_salmon.entries` `includes_tributaries`: the place's flag,
+    else its water's) and no `rest` extent (a rest's listed places inherit it). A place with its own flag reads the
+    same whatever the water's says (T803 item 1, owner 2026-11-16: the Cowichan's water flag turned off under two
+    places that already said off). Anything else in the geography moved is a move."""
+    g = geography(loc, water)
+    b = loc.get("binding") or {}
+    out = {_h(g)}
+    if b.get("tributaries") is not None and not any(e.get("op") == "rest" for e in b.get("extents") or []):
+        out |= {_h({**g, "water_tributaries": v}) for v in (True, False, None)}
+    return out
+
+
 def prints(loc: Mapping, water: Optional[Mapping], typed_dir: Path | None = None,
            feed: Mapping[str, dict] | None = None) -> dict:
     """THE PRINTS of a DFO location NOW (`marks.Prints` shape): text, and one `entry` record whose

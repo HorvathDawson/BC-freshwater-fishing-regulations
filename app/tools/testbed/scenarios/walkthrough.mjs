@@ -9,10 +9,9 @@
 // GUARDRAIL (T456 item 4): on a Regulations step, Android back leaves the water page; the walk must pause behind
 // "Resume walkthrough", and Resume must put the page back with the same step up.
 //
-// (T466) The walk goes on up the river to a part closed all year (the water's Map, ▲ until its part, its rules: Show me
-// presses ▲ once per tap), puts down a real spot (Spots → Pick on the map → the pin → Continue → the water → the day → a
-// name → Save → Show on map → Spots → the spot), and the last card removes that example spot and says so: checked at the
-// end (the Spots list holds no "Example spot"). Shots: out/t466/step-NN.png.
+// (T824, owner 2026-11-16: "41 is way to many") TEN STEPS: search, open, the answer, a day, Conditions, back to the map,
+// Trout / Salmon, where Spots and Help are. The closed stretch, Layers and the spot-making steps were cut. Shots:
+// out/t466/step-NN.png.
 //
 // The walk is screen-recorded (adb screenrecord, chunks of at most 3 minutes) into out/t466/walk-N.mp4.
 //
@@ -22,12 +21,10 @@ import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { coldStart, toMap } from './common.mjs';
 
-/** the card's count line: "Find a water · 3 of 25" (upper-cased on screen) */
+/** the card's count line: "Find a water · 3 of 10" (upper-cased on screen) */
 const COUNT = /(\d+) of (\d+)$/i;
 const HERE = path.dirname(new URL(import.meta.url).pathname);
 const OUT = path.join(HERE, '..', 'out', 't466');
-/** (T466) the name "Show me" gives the example spot (`WALKTHROUGH_WORDS.exampleName`) */
-const EXAMPLE = 'Example spot';
 const CHUNK_S = 170;
 
 /** uiautomator's bounds for each resource-id we ask for: { id: {x, y, w, h} } (first match) */
@@ -47,7 +44,7 @@ const meets = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h &&
 
 export const walkthrough = {
   id: 'walkthrough',
-  title: 'The guided walkthrough (T293, T456, T466) replayed from Help: every step, the card never over its ring, ‹ Map moves it on, back pauses it, the closed part, a real spot made and removed',
+  title: 'The guided walkthrough (T293, T456, T824) replayed from Help: its ten steps, the card never over its highlight, ‹ Map moves it on, back pauses it',
   async run(ctx) {
     const d = ctx.device;
     fs.mkdirSync(OUT, { recursive: true });
@@ -96,7 +93,7 @@ export const walkthrough = {
     let pausedChecked = false, mapChecked = false;
     await ctx.step('every step: the reader\'s tap (‹ Map on its step), never a card over its ring, until the card closes', async () => {
       const seen = [];
-      let last = null, same = 0, total = 0, reached = 0, closed = false, lastCard = '';
+      let last = null, same = 0, total = 0, reached = 0, closed = false;
       for (let i = 0; i < 90; i++) {
         await rotate();
         const w = d.screenText();
@@ -109,8 +106,7 @@ export const walkthrough = {
         total = n; reached = Math.max(reached, n0);
         const title = w.slice(w.indexOf(c) + 1).find((x) => !/^Skip/i.test(x)) ?? '';
         if (c !== last) {
-          await d.sleep(900);                                                  // the ring is measured every 400 ms
-          if (n0 === n) { await d.sleep(1500); lastCard = d.screenText().join(' | '); }   // (T466) the example spot removed by now
+          await d.sleep(600);                                                  // (T824) the highlight is measured every frame
           seen.push(`${c} ${title}`);
           d.screenshot(path.join(OUT, `step-${String(n0).padStart(2, '0')}.png`));
           const b = boundsOf(d, [/^guide-step-/, 'guide-ring']);
@@ -153,20 +149,8 @@ export const walkthrough = {
       if (!pausedChecked || !mapChecked) throw new Error(`a guardrail step was not reached (paused ${pausedChecked}, ‹ Map ${mapChecked})`);
       const covers = checks.filter((l) => l.includes('COVERS'));
       if (covers.length) throw new Error(`the card covers its ring on ${covers.length} step(s): ${covers.join(' / ').slice(0, 600)}`);
-      // (T466) the closed part was reached and read; the last card said the example spot is removed
-      if (!seen.some((s) => /Closed all year/i.test(s))) throw new Error(`the closed part was never reached: ${seen.join(' / ').slice(0, 600)}`);
-      if (!/example spot you made is removed/i.test(lastCard)) throw new Error(`the last card did not say the example spot was removed (saw ${lastCard.slice(0, 300)})`);
+      if (total !== 10) throw new Error(`the walk has ${total} steps, not the ten of T824`);
       return `${reached} of ${total} · ${seen.join(' / ').slice(0, 1400)}`;
-    });
-    await ctx.step('(T466) the example spot is gone from Spots', async () => {
-      ctx.flow('tab', { TAB: 'Spots' });
-      await d.sleep(2500);
-      const w = d.screenText();
-      d.screenshot(path.join(OUT, 'spots-after.png'));
-      if (w.some((x) => x.includes(EXAMPLE))) throw new Error(`"${EXAMPLE}" is still in Spots (saw ${w.slice(0, 12).join(' | ')})`);
-      ctx.flow('tab', { TAB: 'Map' });
-      await d.sleep(1500);
-      return `Spots: ${w.slice(0, 8).join(' | ').slice(0, 200)}`;
     });
     await ctx.step('back on the map; nothing left over (no card, no sheet); the recording pulled', async () => {
       await d.sleep(1500);

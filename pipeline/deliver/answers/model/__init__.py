@@ -10,7 +10,7 @@ JSON Schema of each model ships in the file's `spec` (`json_schemas`) and is emi
 
 Field sets are the measured ones of the shipped file (every key, every optional key), not a guess.
 
-THE MODULES: `base` (Model, aliases, vocabularies), one per section — `rows`, `gear`, `licence`, `display` —
+THE MODULES: `base` (Model, aliases, vocabularies), one per section — `rows`, `gear`, `licence`, `display`, `trout` —
 `top` (moment, glossary, unnamed water), `frames` (FRAMES, TOP, STATICS and the validation), `emit` (the app's
 generated copy; `python -m pipeline.deliver.answers.model [--check]`).
 """
@@ -31,6 +31,8 @@ from pipeline.deliver.answers.model.rows import (
     TableBand, WhyLit, TableCell, CardTable, CapKind, CapPlaces, Cap, TreeThen, TreeExtra, TreeSizes,
     AlsoCounts, TreeKind, TreeTier, GroupPossession, Header, GroupTotal, _trout_char, Elsewhere, Week,
     WeekPart, Restated, YearStatus, YearRun, BOOK_YEAR_DAYS, Row, FishAnswer, RowsFrame,
+    ROWS_VERSION, PAGE_POSSESSION_SINCE, page_possession_written, PossessionLead, PossessionAlso, PagePossession,
+    RowsFrame34, rows_frame_model,
 )
 from pipeline.deliver.answers.model.gear import (
     Circumstance, CountPick, ElementPick, ExceptedFrom, BaitPick, Device, Way, Vessel, Overruled,
@@ -49,8 +51,12 @@ from pipeline.deliver.answers.model.top import (
     WeekdayLit, ClockTime, MomentHours, Moment, GlossaryTerm, Glossary, RegionLit, PlaceNames, Place,
     Unnamed,
 )
+from pipeline.deliver.answers.model.trout import (
+    TopLine, Fold, Band, SheetLine, FishSheet, TRow, TRowWire, Box, BoxWire, YearBar, Together, TroutTable,
+    TroutTableWire, DateSet, TroutFrame, TroutFrameWire,
+)
 from pipeline.deliver.answers.model.frames import (
-    FRAMES, TOP, STATICS, ShapeError, _wire, validate_section, json_schemas, validate_top,
+    FRAMES, OPTIONAL_FRAMES, TROUT_WIRE, TOP, STATICS, ShapeError, _wire, validate_section, json_schemas, validate_top,
 )
 from pipeline.deliver.answers.model.emit import (
     _CORE, SCHEMA_OUT, TS_OUT, emitted_schema, _ts, emitted_ts, main,

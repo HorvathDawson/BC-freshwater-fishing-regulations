@@ -235,6 +235,7 @@ describe("spots and the rail, through the Shell (T48)", () => {
      async () => {
     const saved = mount();
     tab("Spots");
+    press("Add a spot");          // (T819 item 11) with spots in the list, the ways to add open from the header's Add
     press("Pick on the map");
     const picking = [look(), screen.getByTestId("spot-pick-banner").textContent];
     press("tap a water");
@@ -262,7 +263,7 @@ describe("spots and the rail, through the Shell (T48)", () => {
   it("pick mode is a back layer: Android's back leaves it one step (the Map tab as it was), the next leaves the app; " +
      "the banner's Cancel, Escape, a tab, and the drop sheet's Cancel all leave nothing", () => {
     const saved = mount();
-    const enter = () => { tab("Spots"); press("Pick on the map"); };
+    const enter = () => { tab("Spots"); press("Add a spot"); press("Pick on the map"); };
     enter();
     let handled = false, left = true;
     act(() => { handled = androidBack(); });

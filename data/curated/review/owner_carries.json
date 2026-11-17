@@ -1,0 +1,39 @@
+{
+ "_about": "OWNER CARRIES (pipeline.regs.review.owner_carry): DFO marks held over a move the owner himself decided after making them. An entry holds only while the mark in force is the one it names (`mark`: recheck.mark_digest, `mark_date`) AND the place's binding print is the one his decision produced (`binding`: dfo.prints); any later move reads stale again. Added on the owner's word only; marks.jsonl is never edited.",
+ "carries": [
+  {
+   "scope": "dfo",
+   "target": "1:cowichan-river:whole",
+   "mark_date": "2026-11-15",
+   "mark": "5817f3fb7244",
+   "binding": "ee91bd39f90fbcc1",
+   "decision": {
+    "ticket": "T803",
+    "item": 1,
+    "commit": "a5990dd7b",
+    "what": "the Cowichan River water's tributaries flag off; this dormant place has no flag of its own, so it reads the water's: the whole river without side streams (720 -> 16 sections)",
+    "owner": "Turn it off (Recommended)"
+   },
+   "words": "Why would we have to do this ... they should all be good?",
+   "by": "owner",
+   "date": "2026-11-17"
+  },
+  {
+   "scope": "dfo",
+   "target": "6:gitnadoix-river:upstream-of-powerline-crossing-nea",
+   "mark_date": "2026-11-16",
+   "mark": "3ed477d5aedf",
+   "binding": "f5430b29199b4c86",
+   "decision": {
+    "ticket": "T803",
+    "item": 11,
+    "commit": "5debac3ef",
+    "what": "the place reads upstream_of gitnadoix_river__powerline_crossing_near_the_mouth, a cut aliased on the river's own mouth (added a5990dd7b, restored 5debac3ef); binds the same 1,000 sections as 6:gitnadoix-river:whole",
+    "owner": "the powerline is. the mouth essentially so maybe you could add the cut for powerline to the mouth then it is all good?"
+   },
+   "words": "Why would we have to do this ... they should all be good?",
+   "by": "owner",
+   "date": "2026-11-17"
+  }
+ ]
+}

@@ -15,24 +15,27 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AppState, Platform, Share, StatusBar, Text, View, useColorScheme, useWindowDimensions } from "react-native";
 import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useFonts } from "expo-font";
-import {
-  BricolageGrotesque_700Bold, BricolageGrotesque_800ExtraBold,
-} from "@expo-google-fonts/bricolage-grotesque";
-import {
-  Archivo_400Regular, Archivo_500Medium, Archivo_600SemiBold, Archivo_700Bold, Archivo_800ExtraBold,
-} from "@expo-google-fonts/archivo";
-import { JetBrainsMono_500Medium } from "@expo-google-fonts/jetbrains-mono";
-import { DOWNLOAD_NOTE_WORDS, downloadFraction, failedStartLine, restartsByItself, INSTALL_WORDS, stillLine, MAP_CREDITS, MOBILE_DATA_WORDS, mobileDataDecision, installLine, SETUP_WORDS, setupFraction, setupLine, netBanner, progressWords, rolledBackLine, splashLineFor, startStage, updatedToast, UPDATE_LOG_WORDS, UPDATE_WORDS, versionHeaders,
+// (T741) each face from its own weight's folder: a family's index `require`s every face it has, and Metro ships every
+// one required (41 faces, 3.9 MB, where these 8 are drawn). `tools/font-imports.test.ts` holds it.
+import { BricolageGrotesque_700Bold } from "@expo-google-fonts/bricolage-grotesque/700Bold";
+import { BricolageGrotesque_800ExtraBold } from "@expo-google-fonts/bricolage-grotesque/800ExtraBold";
+import { Archivo_400Regular } from "@expo-google-fonts/archivo/400Regular";
+import { Archivo_500Medium } from "@expo-google-fonts/archivo/500Medium";
+import { Archivo_600SemiBold } from "@expo-google-fonts/archivo/600SemiBold";
+import { Archivo_700Bold } from "@expo-google-fonts/archivo/700Bold";
+import { Archivo_800ExtraBold } from "@expo-google-fonts/archivo/800ExtraBold";
+import { JetBrainsMono_500Medium } from "@expo-google-fonts/jetbrains-mono/500Medium";
+import { applyLine, DOWNLOAD_NOTE_WORDS, downloadFraction, failedStartLine, restartsByItself, INSTALL_WORDS, stillLine, MAP_CREDITS, MOBILE_DATA_WORDS, mobileDataDecision, installLine, SETUP_WORDS, setupFraction, setupLine, netBanner, progressWords, rolledBackLine, splashLineFor, startStage, updatedToast, UPDATE_LOG_WORDS, UPDATE_WORDS, versionHeaders,
          versionLine, dataProvenanceLine, now as clockNow } from "@app/core";
 import { createNet, shareFetch, createReportOutbox, createUpdateLog, createUpdateService, phoneNetwork, versionedFetch, httpFeed, gaugeHistory, httpInSeason, httpRunTiming, httpSalmonFeed, manifestDate, noteHeld, followSavedItems, openRunTimingStore,
          type Held, type UpdateService, type WaterSource } from "@app/data";
 import { bootSaid, type MobileDataGate, type ReleaseLoader } from "@app/data/release";
 import * as platform from "@app/data/release/platform";
-import { fillDayFlow, onVisit, visitIdOf, storedHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openGaugeHistoryStore, openInSeasonStore, openInSeasonSeenStore, openInSeasonInboxStore, openFirstRunStore, openDataModeStore, openWalkthroughStore, openLocationAskStore, openAppUpdateStore, openRecentSearchStore, openRunSpeciesStore, openUpdateStore, openUpdateLogStore, openReportOutboxStore, openCrashSettingStore, openCrashPendingStore, openCrashExitStore, openInstallIdStore, openMeteo, openPhotos, openSpots, needsRefresh, refreshSpot,
+import { fillDayFlow, onVisit, visitIdOf, storedHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openGaugeHistoryStore, openInSeasonStore, openInSeasonSeenStore, openInSeasonInboxStore, openFirstRunStore, openDataModeStore, openWalkthroughStore, openLocationAskStore, openAppUpdateStore, openRecentSearchStore, openRunSpeciesStore, openUpdateStore, openUpdateLogStore, openReportOutboxStore, openCrashSettingStore, openCrashPendingStore, openCrashExitStore, openInstallIdStore, openMeteo, openPhotos, openSpots, needsRefresh, refreshSpot, syncBackupSet,
          type DayFlowAnswer, type Spot } from "@app/data/spots";
-import { Button, connectivity, ErrorState, LoadingState, SayingLine, setSynopsisNet, setSynopsisSource, Shell, StageBar, THEMES, UpdateToast, setLinkFailedSink, type ThemeName,
+import { Button, COHO_WIDTH, cohoHeight, connectivity, ErrorState, LoadingState, SayingLine, setSynopsisNet, setSynopsisSource, Shell, StageBar, THEMES, UpdateToast, setLinkFailedSink, type ThemeName,
          platformLine, type ShellProps, type UpdatesLogControls } from "@app/ui-native";
-import { LayoutWidthContext, liveFetch, NetRoot, useNet, useNetActivity, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, createCrashReporter, createCrashSetting, CrashSettingRoot, NotifyRoot, AlertLinesRefresh, installCrashHandlers, installId, reportPastExits, crashWhere, useRefreshOnReconnect, useDownloadStill, useReleaseBoot, useBootTries, useRetryByItself, retriesByItselfNow, useSpots, type MapTiles,
+import { LayoutWidthContext, liveFetch, NetRoot, useNet, useNetActivity, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, createCrashReporter, createCrashSetting, CrashSettingRoot, NotifyRoot, AlertLinesRefresh, installCrashHandlers, installId, reportPastExits, crashWhere, useRefreshOnReconnect, useApplyCurtain, useDownloadStill, useReleaseBoot, useBootTries, useRetryByItself, retriesByItselfNow, useSpots, type MapTiles,
          DataProvenanceContext, loadRegsStore, reportFailure, startNeedsRelease, startNoticeLine,
          type AddressState, type PairingInput, type Route, type SpotPhotos, type StartLink, type StatusSource,
          useAppUpdate } from "@app/ui";
@@ -95,6 +98,8 @@ const FEED = ENDPOINTS.feed;
  * workers allow it, the local dev server's `serve-tiles` too once restarted), and the browser's own User-Agent.
  */
 const WEB = Platform.OS === "web";
+/** (T732) The phone backup's photo set: Android's cloud backup only (25 MB quota; see `@app/data` `syncBackupSet`). */
+const BACKUP_SET = Platform.select({ android: true, default: false });
 const VERSION_HEADERS = WEB
   ? (APP_ENV.env === "local" ? {} : versionHeaders(APP_VERSION, { platform: "web", ua: false }))
   : versionHeaders(APP_VERSION, { platform: platformLine(), ua: true });
@@ -158,7 +163,8 @@ function BootNetLine({ colour }: { colour: string }) {
 
 /**
  * (T760) Under the first install's bar: said once the byte count has not moved for a minute (`useDownloadStill`), gone
- * when it moves. `bytes` null: not downloading (no line).
+ * when it moves. `bytes` null: not downloading (no line). (T738) The count is the bytes had as they are (`Progress.had`),
+ * not the bar's held-up figure: a file queued again from zero is moving while the bar holds.
  */
 function BootStillLine({ bytes, colour }: { bytes: number | null; colour: string }) {
   const { mode } = useNet();
@@ -170,30 +176,32 @@ function BootStillLine({ bytes, colour }: { bytes: number | null; colour: string
   );
 }
 
+/** The loader's height (its width is `COHO_WIDTH`): what the words hang below. */
+const BOOT_LOADER_H = cohoHeight(COHO_WIDTH);
 /**
- * (T244) THE LOADING SCREEN: the loading fish at the centre of the WINDOW, its pun beneath, then the step and the
- * progress. The fish is drawn at once (`immediate`: no 300 ms hold) at the size and centre of the native splash picture
- * (`pnpm splash`, 110 dp), so the native splash can hand off to it with nothing to jump: the centre is the window's, not
- * the safe area's (the native splash is centred in the window), so the insets' difference is taken back out. Everything
- * else hangs below the fish, so what arrives late (the step, a download bar) never moves it. The native splash is let go
- * once the fish is laid out.
+ * (T244) THE LOADING SCREEN: the loader at the centre of the WINDOW, its pun beneath, then the step and the progress.
+ * (T814, owner 2026-11-17) the loader is the owner's linocut coho (`LoadingState coho`, `COHO_WIDTH` wide), no longer the
+ * circling fish; the native splash picture (`pnpm splash`) is still the circling fish's first frame — a launch image
+ * cannot move — so the hand-off now changes picture. The loader is drawn at once (`immediate`: no 300 ms hold) at the
+ * centre of the window, not of the safe area (the native splash is centred in the window), so the insets' difference is
+ * taken back out. Everything else hangs below it, so what arrives late (the step, a download bar) never moves it. The
+ * native splash is let go once the loader is laid out.
  */
-const BOOT_FISH = 110;
 function BootScreen({ palette, line, words, saying = false, children }: {
   palette: (typeof THEMES)[ThemeName]; line: string; words: string; saying?: boolean; children?: React.ReactNode;
 }) {
   const insets = useSafeAreaInsets();
   const onLayout = useCallback(() => {
-    // two frames: the fish's strip is drawn on the first one after layout
+    // two frames: the loader's sheet is drawn on the first one after layout
     requestAnimationFrame(() => requestAnimationFrame(releaseSplash));
   }, []);
   return (
     <View testID="boot-screen" style={{ flex: 1, transform: [{ translateY: (insets.bottom - insets.top) / 2 }] }}>
-      <View style={{ position: "absolute", top: "50%", marginTop: -BOOT_FISH / 2, left: 0, right: 0, alignItems: "center" }}
+      <View style={{ position: "absolute", top: "50%", marginTop: -BOOT_LOADER_H / 2, left: 0, right: 0, alignItems: "center" }}
             onLayout={onLayout}>
-        <LoadingState palette={palette} size={BOOT_FISH} label={words} immediate />
+        <LoadingState palette={palette} size={COHO_WIDTH} label={words} immediate coho />
       </View>
-      <View style={{ position: "absolute", top: "50%", marginTop: BOOT_FISH / 2 + 8, left: 0, right: 0, alignItems: "center", gap: 10 }}>
+      <View style={{ position: "absolute", top: "50%", marginTop: BOOT_LOADER_H / 2 + 8, left: 0, right: 0, alignItems: "center", gap: 10 }}>
         {saying
           ? <SayingLine style={{ color: palette.ink, fontSize: 15, textAlign: "center", paddingHorizontal: 24 }} />
           : <Text testID="boot-line" style={{ color: palette.ink, fontSize: 15, textAlign: "center", paddingHorizontal: 24 }}>{line}</Text>}
@@ -223,12 +231,30 @@ export default function App() {
   const hydat = useMemo(() => storedHydat(ENDPOINTS.hydat), []);
   // S1: a spot's photographs — files beside the spots file on a phone, IndexedDB in a browser — and the platform's
   // picker (`./pickPhoto.native.ts` / `.web.ts`). The user's own: never in a release, never uploaded.
+  // (T732) `photoEpoch`: a new store when photos were put back from the backup set (a restored phone), so every tile
+  // that drew "no photo" asks again; `backupLine`: what the Spots tab says the phone's backup holds (Android only)
+  const [photoEpoch, setPhotoEpoch] = useState(0);
+  const [backupLine, setBackupLine] = useState<string | null>(null);
+  const photoStore = useMemo(() => openPhotos(), [photoEpoch]);   // eslint-disable-line react-hooks/exhaustive-deps
   const photos = useMemo<SpotPhotos>(
-    () => ({ store: openPhotos(), pick: pickPhoto, sources: PHOTO_SOURCES }), []);
+    () => ({ store: photoStore, pick: pickPhoto, sources: PHOTO_SOURCES, backupLine }), [photoStore, backupLine]);
   const [refreshing, setRefreshing] = useState(false);
   // P01: every write awaited and serialised; a failure reaches the screen that asked
   const spotsHook = useSpots(spotStore);
   const spots: Spot[] = spotsHook.spots.state === "ready" ? spotsHook.spots.value : [];
+  // (T732) THE PHONE BACKUP'S PHOTO SET, in step with the spots: at the start and after every save or delete (the list
+  // changes). Android only: its cloud backup has a 25 MB quota; iCloud carries the photos as kept (no set, no line).
+  const spotsReady = spotsHook.spots.state === "ready";
+  useEffect(() => {
+    if (!BACKUP_SET || !spotsReady) return;
+    let live = true;
+    syncBackupSet(spots).then((r) => {
+      if (!live || !r) return;
+      setBackupLine(r.line);
+      if (r.restored.length) setPhotoEpoch((n) => n + 1);
+    }, reportFailure);
+    return () => { live = false; };
+  }, [spots, spotsReady]);
   // (T231) the gauge index is the update service's to renew: once read it is held until the service offers a newer one
   // (T315) and every station's last week kept on the phone (each station file read, and the publisher's feed-wide
   // newest rows on each feed update): offline, a Conditions chart still draws its measured line, "as of" its age
@@ -399,9 +425,12 @@ export default function App() {
   useEffect(() => () => updates.stop(), [updates]);
   /** Apply a staged update: boot onto it, the set in use on screen until the new one is ready. */
   const applying = useRef<{ before: Held | null; at: number } | null>(null);
+  const [applyTarget, setApplyTarget] = useState<string | null>(null);
   const apply = useCallback(() => {
     if (updates.snapshot().release?.phase !== "ready") return;
     applying.current = { before: bootedRef.current?.held ?? null, at: clockNow() };
+    // (T746) the release being put in use: its curtain line is picked by it (the cold start's boot screen picks the same)
+    setApplyTarget(updates.snapshot().release?.target ?? null);
     if ((globalThis as { __openProbe?: boolean }).__openProbe) console.log("[swap] apply");
     setGeneration((g) => g + 1);
   }, [updates]);
@@ -436,6 +465,13 @@ export default function App() {
   const clearToast = useCallback(() => setToast(null), []);
   // (T723 G9) a link the phone would not open is said on the same toast (and was reported by `openLink`)
   useEffect(() => setLinkFailedSink(setToast), []);
+  // (T746) the apply in flight, and the failed one until the reader closes it (it was reported where it was caught)
+  const curtain = useApplyCurtain(boot, applyTarget);
+  const applyingNow = curtain.applying;
+  useEffect(() => {
+    // (T287) the test bed's stall log reads the curtain off these lines
+    if ((globalThis as { __openProbe?: boolean }).__openProbe) console.log(`[swap] curtain ${applyingNow ? "up" : "down"}`);
+  }, [applyingNow]);
   // (T585 F12, F13) a development or staging build says which data release it answers from on the Conditions card (and
   // the data source / channel when they are not this build's own); null in a production build
   const provenance = useMemo(() => dataProvenanceLine({
@@ -624,7 +660,7 @@ export default function App() {
   const ready = fontsIn || !!fontError || fontWaitOver;
   // (T244) the native splash is let go when the boot screen's fish is up (BootScreen); a start that skips that screen lets it go here
   useEffect(() => { if (failed || (ready && data)) releaseSplash(); }, [failed, ready, data]);
-  const bootWords = setup ? SETUP_WORDS.title : startStage(!ready && data ? "fonts" : stage);
+  const bootWords = setup ? SETUP_WORDS.title : (stage === "apply" ? applyLine(boot.state === "loading" ? boot.release : null) : startStage(!ready && data ? "fonts" : stage));
 
   // (T45) THE WINDOW'S WIDTH, read here and nowhere else in the app: every screen takes its layout class from it
   // (@app/ui `useLayoutClass`), so a component arranges itself for a phone, a tablet or a desktop without reading the window
@@ -682,6 +718,9 @@ export default function App() {
         <Shell source={data.source} palette={palette} loader={data.loader} menuInfo={menuInfo}
                // (T231) the sync icon reads the update service; a ready update is applied at the Shell's safe moment
                updates={updates} onSafeToApply={apply}
+               // (T746) while it is put in use: the curtain (loading fish + one line) over the app, taking every tap and
+               // the back; a failed apply said on it until closed
+               applyCurtain={curtain}
                // T129: the boot's manifest read seeds the service's first release check (`seedRelease`): no second request
                // (T186, Q164) the web fetches ahead after first paint; a phone holds the release installed
                prefetch={Platform.OS === "web"}
@@ -779,7 +818,7 @@ export default function App() {
             </>
           )}
           {/* (T760) the download not moving for a minute: said (a start that never reported counts from 0 bytes) */}
-          <BootStillLine bytes={stage === "install" && !setup ? progress?.bytes ?? 0 : null} colour={palette.sub} />
+          <BootStillLine bytes={stage === "install" && !setup ? progress?.had ?? progress?.bytes ?? 0 : null} colour={palette.sub} />
           {setup && (
             <>
               <StageBar palette={palette} value={setupFraction(setup)} testID="boot-setup-bar" />

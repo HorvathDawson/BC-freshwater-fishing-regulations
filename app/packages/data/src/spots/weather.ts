@@ -25,6 +25,14 @@ const day = (d: Date) => d.toISOString().slice(0, 10);
 /** Yesterday, in UTC. The archive lags real time; asking it for today returns nothing. */
 const isHistoric = (when: Date) => now() - when.getTime() > 36 * 3600_000;
 
+/**
+ * (T819 item 1) THE VISIT IS NOW: within the hour of the clock, so the forecast's `current` reading is the visit's own.
+ * Any earlier visit — a spot added at 21:30 for 17:00 — takes ITS hour from the hourly series: `current` was 6 °C at
+ * 21:30 while the visit's hour had been 8 °C, and the record said the 6.
+ */
+const VISIT_IS_NOW_MS = 3600_000;
+const isNow = (when: Date) => Math.abs(now() - when.getTime()) < VISIT_IS_NOW_MS;
+
 /** S1: the week before a visit, one row per day. */
 const DAILY = "temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max,weather_code";
 
@@ -145,6 +153,7 @@ export function openMeteo(fetchImpl: typeof fetch = fetch): WeatherSource {
     async at(lat, lon, when): Promise<SpotWeather | null> {
       try {
         const historic = isHistoric(when);
+        const live = !historic && isNow(when);
         // BOTH ENDPOINTS ARE ASKED FOR `hourly`, not just the archive. The cloud window
         // needs the hour either side of the visit, and `current` is a single instant — so
         // a spot pinned this morning could carry a temperature but no window, which is the
@@ -153,7 +162,7 @@ export function openMeteo(fetchImpl: typeof fetch = fetch): WeatherSource {
         const range = `&start_date=${day(when)}&end_date=${day(when)}&hourly=${FIELDS}`;
         const url = historic
           ? `${ARCHIVE}?${weatherPlace(lat, lon)}${range}`
-          : `${CURRENT}?${weatherPlace(lat, lon)}${range}&current=${FIELDS}`;
+          : `${CURRENT}?${weatherPlace(lat, lon)}${range}${live ? `&current=${FIELDS}` : ""}`;
 
         const res = await fetchImpl(url);
         if (!res.ok) return null;
@@ -184,8 +193,9 @@ export function openMeteo(fetchImpl: typeof fetch = fetch): WeatherSource {
           : { before: sample(i - 1), at: sample(i), after: sample(i + 1) };
         const cloud = { window: win };
 
-        // A live spot: `current` is the better instant, the window comes from the hours.
-        if (!historic && body.current) return { ...read(body.current, String(body.current.time ?? ""), false), ...cloud };
+        // A spot made at the water: `current` is the better instant, the window comes from the hours. Only then (T819).
+        if (live && body.current)
+          return { ...read(body.current, String(body.current.time ?? ""), false), ...cloud };
 
         if (!h || i < 0) return null;
         const pick = (k: string) => col(k)?.[i] ?? null;

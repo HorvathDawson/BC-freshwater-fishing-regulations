@@ -291,12 +291,15 @@ def _rules_for(location_id: str) -> list:
     regulations if its cut is wrong; one carrying none costs nothing."""
     if not _RULES_CACHE:
         from pipeline.regs.parsing.catalogue import CatalogueRule, label
+        from pipeline.regs.dfo_salmon.typed import as_catalogue
         feed = GENERATED.regs.dfo_salmon / "typed"
         by_fp: dict = {}
         if feed.exists():
             for fd in sorted(feed.glob("region-*.json")):
                 for l in json.loads(fd.read_text(encoding="utf-8"))["locators"]:
-                    by_fp[l["fingerprint"]] = [label(CatalogueRule(**r)) for r in l["rules"]]
+                    # (T787) a hidden row's rule costs nothing: it answers nothing (`deliver.salmon.in_force`)
+                    by_fp[l["fingerprint"]] = [label(CatalogueRule(**as_catalogue(r))) for r in l["rules"]
+                                               if not r.get("hidden")]
         for f in sorted(ENTRIES.glob("region-*.json")):
             for loc in json.loads(f.read_text(encoding="utf-8")).get("locations", []):
                 _RULES_CACHE[loc["location_id"]] = [

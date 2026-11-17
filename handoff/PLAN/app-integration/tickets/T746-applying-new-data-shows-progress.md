@@ -1,6 +1,6 @@
 # T746 — While new data is applied the app shows a loading mark and a line of text, not a still screen
 
-Status: IN PROGRESS (iOS chat; on a branch from `ios/t722-install`, merges with T722).
+Status: IN PROGRESS (merged onto `redesign/stream-sections` 2026-11-16 via `merge/held-group1`; left (Claude): the Android benches and a look at the curtain, §4).
 
 Source: owner 2026-11-14 (evening), relayed by the Android chat, verbatim: "also when changes apply to app we want to make
 it so that it has a loading icon with text like splash so it doesnt looking like it is frozen. (applying changes as in
@@ -59,12 +59,39 @@ Depends: T722 (install branch). Size: M. Owner: wording pick.
 - No `Platform.OS`; no new dependency; tokens only. The JS thread: the fish turns on the native driver (phone) and in
   CSS (web), so a blocked JS commit does not freeze it; nothing had to be moved off the thread.
 
-### 3. Words (owner question)
-Default: **"Putting the new regulations in place…"**. Options (`APPLY_WORDS.options`, core `install.ts`):
-1. "Putting the new regulations in place…" (default)
-2. "Applying the new regulations data…" (the relayed example)
-3. "Updating the regulations and map…"
-Failure line: "The new regulations could not be put in place. The app is still using the data it had."
+### 3. Words
+**Owner 2026-11-15, verbatim:** "can we do more fish puns here that are directed at this ?" — so the line is now one of
+five fish puns that each still say what is happening (`APPLY_WORDS.lines`, core `install.ts`, whole-sentence tests):
+1. "Reeling in the new regulations…"
+2. "Netting the latest regulations…"
+3. "Landing the new regulations…"
+4. "Tying on the new regulations…"
+5. "Casting the new regulations into place…"
+
+**How one is chosen:** by the release being applied, never at random — core `applyLine(id)` hashes its `data_release`
+id (FNV-1a, 32-bit) to an index. The curtain gets the id from the update service's staged target when `apply()` runs;
+a cold start's boot screen gets the same id from the boot (`onStage("apply", id)`). So one apply says one line from
+start to end, the boot line and the curtain agree for the same release, and tests are deterministic. No id: line 1.
+The screen reader hears the line that is drawn (the fish's label is the same string). The ellipsis is the one
+character "…", as the boot screen's own lines ("Opening the map…").
+
+**Fit (one line on the narrowest phone):** measured with the app's face (Archivo 400, the TTF's advance widths) at the
+curtain's 15 px: 198–263 px; the longest ("Casting the new regulations into place…") 263 px against 272 px of room at
+a 320 px-wide window less the curtain's 24 px sides (the boot screen draws it at 13 px, smaller). None wraps at 320;
+larger system text sizes are not covered by this measure. Checked on the simulator (build 2a0ab83f9, iPhone 17, 2026-11-15):
+at the default text size every line seen sits on one line; at the largest standard Dynamic Type size
+(`content_size extra-extra-extra-large`) the longest, "Casting the new regulations into place…", WRAPS to two lines
+(picture `ios-applying-largest-text-casting.jpg`). Not fixed here: it goes to T726 (Dynamic Type).
+
+Pictures of the pun lines (scratchpad `t746/`, build 2a0ab83f9): `ios-applying-light-reeling.jpg` ("Reeling in…",
+release …-t746b12), `ios-applying-dark-landing.jpg` ("Landing…", …-t746b15), `ios-cold-start-netting-dark.jpg` (a cold
+start's boot screen, "Netting the latest regulations…" under the splash pun, …-t746b16), `web-applying-light-reeling.jpg`,
+`web-applying-dark-landing.jpg`.
+
+Failure line, unchanged and plain: "The new regulations could not be put in place. The app is still using the data it had."
+
+History (the first proposal, 2026-11-14, before the owner's answer; not in the app): "Putting the new regulations in
+place…" (was the default), "Applying the new regulations data…", "Updating the regulations and map…".
 
 ### 4. Measured
 Bench: a local stand-in for the data origin (`127.0.0.1:39461`, forwards to data-staging, read-only) answers the
@@ -121,3 +148,22 @@ exit 0; the four guard files pass unfiltered; whole vitest suite 634 files / 765
 ## Owner answer, 2026-11-15 evening (OWNER-TODO.md "owner answers, round 6", verbatim: "Yes to both (Recommended by it)")
 All the proposed fish-pun lines for the "applying new data" screen stay; none struck (To-Do row
 `t746-applying-words`). Nothing further is asked of the owner on this ticket.
+
+## Merged, 2026-11-16 (`merge/held-group1`, onto 465eea07d)
+The branch was 776 commits behind. Conflicts: `ui/boot.ts`, `apps/mobile/App.tsx`, `core/install.test.ts` (imports), the
+ledger and this file. In `useReleaseBoot` both models kept: the head's T760 quiet try (`hidden` / `surface` / `trying`)
+and this ticket's `release` on the loading state, `applying` on the ready state and the single `.catch` (a `warmLike`
+throw is the apply's failure); the failure path clears `hidden` and sets `trying: false`. A failure is now reported
+even when its boot was already superseded (it was dropped unreported before). The cold start's "apply" stage
+(`data/release/boot.ts`, the opened record read before the set opens) merged cleanly beside T756's background install.
+Nothing of the branch was superseded by the head.
+
+
+## Held group 1 merge (T746, T738, crash-send, T741), benches 2026-11-16 20:01 (app chat)
+`merge/held-group1`: the four branches merged in the owner's order onto the head (conflicts on boot.ts / App.tsx /
+install.test.ts resolved onto merge 3's install model; T738's never-down bar now leaves T760's "not moving" line on the
+actual bytes, `Progress.had`, with a test; crash-send's worker half was already on the head). `CANIFISHTHIS_R8=1 pnpm
+check` rc 0. Android benches on the `g1` APK, all PASS: install, memory, tap-stalls, regs-open (twice), perf,
+bg-install, crash-bed, update-freeze and big-update (staging test channel, reset after), crash. The `crash` scenario had
+never started its stub (a bench gap, also failing on the head APK; fixed in 2d615838f, cherry-picked here); `crash` then
+`crash-bed` in one session counts the first's leftover cached-process exit record, so they run in separate sessions.

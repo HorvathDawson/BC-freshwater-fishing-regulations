@@ -24,6 +24,8 @@ import { sharedFixesIos } from './scenarios-ios/shared-fixes.mjs';
 import { keyboardIos } from './scenarios-ios/keyboard.mjs';
 import { modalBackIos } from './scenarios-ios/modal-back.mjs';
 import { auditFixes } from './scenarios-ios/audit-fixes.mjs';
+import { build36Ios, t814BgIos } from './scenarios-ios/build36.mjs';
+import { conditionsIos } from './scenarios-ios/conditions.mjs';
 
 process.env.TESTBED_PLATFORM = 'ios';
 const HERE = path.dirname(new URL(import.meta.url).pathname);
@@ -42,7 +44,7 @@ const SEARCH_BACK = '9%,11%', PAGE_BACK = '10%,10%';
 // the Map tab, by place: the text "Map" is also a water page's back link and a Layers tile, and Maestro took the first
 // one it found (ios-t313g: the page reopened and every later scenario started on it)
 const MAP_TAB = '10%,92%';
-/** the walkthrough card's count line ("FIND A WATER · 1 OF 25") */
+/** the walkthrough card's count line ("FIND A WATER · 1 OF 10") */
 const GUIDE = /\d+ of \d+$/i;
 /** a water's page is up: its back link by id (iOS reads "‹ Map" as the label "Back"; the tab bar can stay in the tree) */
 const onPage = (w) => (w.ids ?? []).includes('water-back') || (w.includes('Regulations') && w.includes('Conditions') && !hasTabs(w));
@@ -623,6 +625,11 @@ const SCENARIOS = [
   modalBackIos,
   // (T723) the iOS audit fixes' proof, by name only
   auditFixes,
+  // (T814 T815 T816 T821) the owner's iPhone build 36 findings, by name only, on a fresh install
+  build36Ios,
+  t814BgIos,
+  // (T826) the Conditions tab on iOS: gauge markers, the flow bar, the Chehalis, the highlight after back
+  conditionsIos,
 ];
 
 // ---------- the runner (as run.mjs, without the Android-only crash buffer and test channel) ----------

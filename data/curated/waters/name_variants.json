@@ -73132,5 +73132,90 @@
   "_gnis": [
    "39187"
   ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360886655"
+   ]
+  },
+  "names": [
+   {
+    "name": "Six Mile Creek",
+    "source": "dfo",
+    "display": false,
+    "source_label": "SkeenaWild Conservation Trust, Status of Wild Sockeye Stocks of the Babine Watershed (M. Price, 2011)",
+    "source_ref": "https://psf.ca/wp-content/uploads/2021/10/Download-PDF557-1.pdf",
+    "note": "DFO's name for Gullwing Creek (gnis 12258, blue line 360886655, wsc 400-536025-954455; mouth on Babine Lake's north shore at 54.48497, -125.36625). DFO's Region 6 Babine Lake sockeye place closes 'within a 400 m radius of ... Six Mile Creek'; no FWA stream or BC Geographic Names creek at the lake is called Six Mile. SkeenaWild's 2011 Babine sockeye status report (from DFO's escapement database) lists the stock as 'Six Mile Creek (Gullwing Creek)'; DFO NuSEDS census site 615 is GULLWING CREEK at this mouth. Not official: the gazetted 'Gullwing Creek' stays the label (display:false). Owner accepted 2026-11-16 (T796: \"That sounds good can we add name variants? With source?\")."
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360810067"
+   ]
+  },
+  "names": [
+   {
+    "name": "Pendleton Creek",
+    "source": "dfo",
+    "display": false,
+    "source_label": "SkeenaWild Conservation Trust, Status of Wild Sockeye Stocks of the Babine Watershed (M. Price, 2011)",
+    "source_ref": "https://psf.ca/wp-content/uploads/2021/10/Download-PDF557-1.pdf",
+    "note": "DFO's name for Cross Creek (gnis 36194, blue line 360810067, wsc 400-536025-866462), which enters Babine Lake at Pendleton Bay (BC Geographic Names 6951; mouth 54.51266, -125.70006). DFO's Region 6 Babine Lake sockeye place closes 'within a 400 m radius of ... Pendleton Creek'; BC Geographic Names' only Pendleton Creek is near Kamloops. SkeenaWild's 2011 Babine sockeye status report (from DFO's escapement database) lists the stock as 'Pendleton Creek (Cross Creek)'; DFO NuSEDS census site 612 is CROSS CREEK at this mouth. Not official: the gazetted 'Cross Creek' stays the label (display:false). Owner accepted 2026-11-16 (T796: \"That sounds good can we add name variants? With source?\")."
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360852175"
+   ]
+  },
+  "names": [
+   {
+    "name": "Hazelwood Creek",
+    "source": "dfo",
+    "display": true,
+    "source_label": "DFO NuSEDS Conservation Unit Census Sites (2025-05-28), site 604",
+    "source_ref": "https://open.canada.ca/data/en/dataset/c48669a3-045b-400d-b730-48aafe8c5ee6",
+    "note": "DFO's name for a stream FWA leaves UNNAMED (blue line 360852175, wsc 400-536025-597418), entering Babine Lake 3.4 km south of Morrison Creek at 55.12344, -126.26799. DFO's Region 6 Babine Lake sockeye place closes 'within a 400 m radius of ... Hazelwood Creek'; DFO NuSEDS census site 604 HAZELWOOD CREEK (Babine sockeye) is at 55.12344, -126.26801 with FWA code 400-536025-597418, this stream's mouth. Not official (no gazetted name); display:true so the stream carries a name. Owner accepted 2026-11-16 (T796: \"That sounds good can we add name variants? With source?\")."
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360800595"
+   ]
+  },
+  "names": [
+   {
+    "name": "Sockeye Creek",
+    "source": "dfo",
+    "display": true,
+    "source_label": "DFO NuSEDS Conservation Unit Census Sites (2025-05-28), site 608",
+    "source_ref": "https://open.canada.ca/data/en/dataset/c48669a3-045b-400d-b730-48aafe8c5ee6",
+    "note": "DFO's name for a stream FWA leaves UNNAMED (blue line 360800595, wsc 400-536025-743170, order 5), entering Babine Lake's south-west shore at 54.73624, -126.01321. DFO's Region 6 Babine Lake sockeye place closes 'within a 400 m radius of ... Sockeye Creek'; DFO NuSEDS census site 608 SOCKEYE CREEK (Babine sockeye) is at 54.73625, -126.01323 with FWA code 400-536025-743170, this stream's mouth; BC fish observations record sockeye spawning on it (old watershed code 480-742900). BC Geographic Names' Sockeye Creeks are elsewhere (Lakelse, Lillooet). Not official (no gazetted name); display:true so the stream carries a name. Owner accepted 2026-11-16 (T796: \"That sounds good can we add name variants? With source?\")."
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360846083"
+   ]
+  },
+  "names": [
+   {
+    "name": "Sheldens Creek",
+    "source": "dfo",
+    "display": true,
+    "source_label": "DFO salmon regulations",
+    "source_ref": "data/curated/regulations/entries/dfo_salmon",
+    "note": "DFO's Region 6 name for the FWA-UNNAMED line into Sheldens Bay (blue line 360846083, wsc 950-016367, Moresby Island); an ASSUMPTION the owner accepted 2026-10-29 at low confidence (pipeline/docs/GOTCHAS.md, 'Sheldens Creek is a name we assumed'). Moved here from found_names.json 2026-11-17 (T806): a found name is a label and never groups lines (registry.mined), so the line was item blk:360846083 beside the hand-drawn estuary channel (added stream -2400000001, same code), which carries its own name and was item wsc:950-016367 — two 'Sheldens Creek' items. As a name variant the line and the channel are ONE item, wsc:950-016367, the way an FWA line and an added channel sharing a code already are (Squatters Creek wsc:900-053687, Kask's Camp Creek wsc:900-053873: the FWA line named by a graph name, the channel by its own). display:true so the stream carries the name."
+   }
+  ]
  }
 ]

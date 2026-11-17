@@ -16,30 +16,33 @@ const g = (date: string, discharge: number | null, place: DailyGauge["dischargeP
   ({ date, discharge, level, dischargePlace: place, levelPlace });
 
 describe("a lead-up weather day", () => {
-  it("heads its column with the local weekday and day", () => {
-    expect(leadUpDayLabel("2026-08-23")).toBe("Sun 23");
+  it("heads its column with the local weekday and date, in the spots' one style (T819)", () => {
+    expect(leadUpDayLabel("2026-08-23")).toBe("Sun 23 Aug");
   });
 
-  it("is drawn as whole cells", () => {
+  it("is drawn as whole cells: high over low, the units in the row labels (T819 item 8)", () => {
     expect(leadUpWeatherCells(w("2026-08-23"))).toEqual(
-      { day: "Sun 23", sky: "Rain", temps: "18° / 9°", rain: "4.2 mm", wind: "22 km/h", icon: "cloudRain", band: 2 });
+      { day: "Sun 23 Aug", weekday: "Sun", date: "23 Aug", sky: "Rain", high: "18°", low: "9°", rain: "4.2", wind: "22",
+        icon: "cloudRain", band: 2 });
+    expect(LEAD_UP_WORDS.rows).toEqual({ day: "Day", sky: "Sky", temp: "High / low °C", rain: "Rain mm", wind: "Wind km/h" });
   });
 
   it("draws a day with nothing recorded as dashes, never as a neighbour's values", () => {
     expect(leadUpWeatherCells({ date: "2026-08-26", maxC: null, minC: null, precipMm: null, windMaxKph: null,
                                 code: null })).toEqual(
-      { day: "Wed 26", sky: "—", temps: "— / —", rain: "—", wind: "—", icon: null, band: 0 });
+      { day: "Wed 26 Aug", weekday: "Wed", date: "26 Aug", sky: "—", high: "—", low: "—", rain: "—", wind: "—",
+        icon: null, band: 0 });
   });
 
   it("is said whole, for a screen reader", () => {
     expect(leadUpWeatherSentence(w("2026-08-23")))
-      .toBe("Sun Aug 23: rain, high 18°C, low 9°C, 4.2 mm of rain, wind up to 22 km/h");
+      .toBe("Sun 23 Aug: rain, high 18°C, low 9°C, 4.2 mm of rain, wind up to 22 km/h");
     expect(leadUpWeatherSentence(w("2026-08-24", { precipMm: 0, code: 0, minC: null })))
-      .toBe("Mon Aug 24: clear, high 18°C, no rain, wind up to 22 km/h");
+      .toBe("Mon 24 Aug: clear, high 18°C, no rain, wind up to 22 km/h");
     expect(leadUpWeatherSentence({ date: "2026-08-26", maxC: null, minC: null, precipMm: null,
                                    windMaxKph: null, code: null }))
       // a day with nothing at all is one the service had not sent yet: a refresh asks for it again
-      .toBe("Wed Aug 26: no weather for this day yet");
+      .toBe("Wed 26 Aug: no weather for this day yet");
   });
 
   it("names the sky by the WMO code's group", () => {
@@ -105,14 +108,14 @@ describe("the station's daily means", () => {
 
   it("says each day whole", () => {
     expect(week.map((d) => leadUpGaugeSentence(d, "discharge"))).toEqual([
-      "Sun Aug 23: 50 m³/s, higher than 6 days in 10 for the day",
-      "Mon Aug 24: no daily mean recorded",
-      "Tue Aug 25: 9.14 m³/s, lower than at least 9 days in 10 for the day",
-      "Wed Aug 26: 120 m³/s, higher than at least 9 days in 10 for the day",
-      "Thu Aug 27: 20 m³/s, lower than 8 days in 10 for the day",
+      "Sun 23 Aug: 50 m³/s, higher than 6 days in 10 for the day",
+      "Mon 24 Aug: no daily mean recorded",
+      "Tue 25 Aug: 9.14 m³/s, lower than at least 9 days in 10 for the day",
+      "Wed 26 Aug: 120 m³/s, higher than at least 9 days in 10 for the day",
+      "Thu 27 Aug: 20 m³/s, lower than 8 days in 10 for the day",
     ]);
     expect(leadUpGaugeSentence(g("2026-08-23", 3.2, null), "discharge"))
-      .toBe("Sun Aug 23: 3.2 m³/s, no record to compare it with");
+      .toBe("Sun 23 Aug: 3.2 m³/s, no record to compare it with");
   });
 
   it("says a value ON p10 / p90 truthfully: the ranking clamps at the edge, so the words say 'at or' (T107 review)", () => {
@@ -120,15 +123,15 @@ describe("the station's daily means", () => {
     const onEdge = [g("2026-08-23", 0, placeInBand(0, [0, 0, 0, 0.4, 1.7])),
                     g("2026-08-24", 1.7, placeInBand(1.7, [0, 0, 0, 0.4, 1.7]))];
     expect(onEdge.map((d) => [leadUpGaugeSentence(d, "discharge"), leadUpGaugeCells(d, "discharge").place])).toEqual([
-      ["Sun Aug 23: 0 m³/s, lower than at least 9 days in 10 for the day", "9+ in 10 days higher"],
-      ["Mon Aug 24: 1.7 m³/s, higher than at least 9 days in 10 for the day", "9+ in 10 days lower"],
+      ["Sun 23 Aug: 0 m³/s, lower than at least 9 days in 10 for the day", "9+ in 10 days higher"],
+      ["Mon 24 Aug: 1.7 m³/s, higher than at least 9 days in 10 for the day", "9+ in 10 days lower"],
     ]);
   });
 
   it("says a day the station had not published yet apart from a day with nothing in it (owner bug 2026-10-22)", () => {
     const later = g("2026-08-28", null, null);                     // no `none`: still to come
     expect(leadUpGaugeCells(later, "discharge")).toEqual({ value: "—", place: "not yet" });
-    expect(leadUpGaugeSentence(later, "discharge")).toBe("Fri Aug 28: no daily mean published yet");
+    expect(leadUpGaugeSentence(later, "discharge")).toBe("Fri 28 Aug: no daily mean published yet");
     expect([1, 3].map(leadUpGaugePending)).toEqual([
       "The station had not published 1 of these days yet. Refresh fills it in.",
       "The station had not published 3 of these days yet. Refresh fills them in."]);
@@ -144,9 +147,9 @@ describe("the station's daily means", () => {
     expect(leadUpGaugeTrend([g("2026-08-23", 41.2, null), g("2026-08-29", 42, null)], "discharge"))
       .toBe("Flow held steady over the week: 41.2 → 42 m³/s");
     expect(leadUpGaugeTrend([g("2026-08-23", null, null, 1.2), g("2026-08-29", null, null, 1.21)], "level"))
-      .toBe("Level held steady over the week: 1.2 → 1.21 m");
+      .toBe("Level held steady over the week: 1.20 → 1.21 m");
     expect(leadUpGaugeTrend([g("2026-08-23", null, null, 1.2), g("2026-08-29", null, null, 1.35)], "level"))
-      .toBe("Level rose over the week: 1.2 → 1.35 m");
+      .toBe("Level rose over the week: 1.20 → 1.35 m");
   });
 
   it("claims no direction from fewer than two days", () => {
@@ -169,7 +172,7 @@ describe("the fixed words", () => {
       gaugeEmpty: "The station has no daily means for that week.",
       weatherFilledIn: "Weather from Open-Meteo.com (CC BY 4.0) · filled in afterwards",
       weatherSource: "Weather from Open-Meteo.com (CC BY 4.0)",
-      rows: { day: "Day", sky: "Sky", temp: "High / low", rain: "Rain", wind: "Wind" },
+      rows: { day: "Day", sky: "Sky", temp: "High / low °C", rain: "Rain mm", wind: "Wind km/h" },
       notRecorded: "The week before this visit was not recorded — it can be filled in from the days themselves.",
       someDaysPending:
         "Some days of the week before were not available yet when this was saved — they'll fill in once published.",

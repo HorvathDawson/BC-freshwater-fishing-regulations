@@ -4,6 +4,8 @@ conformance runs in `pnpm check` (and CI) with no live data. Committed under `ap
 
     python -m pipeline.deliver.release.regs_fixture [--release <data/release/r-…>] [--taps <taps.json>] [--item ID …]
                                                   [--out app/packages/data/dev/regs-release]
+    python -m pipeline.deliver.release.regs_fixture --release <side release> --trout-cases   (T810 V-py: the trout
+                                                  fixture, app/fixtures/trout/: the waters of trout_vectors.CASES)
 
 It decides nothing and derives nothing: every row is the release's, copied byte for byte (blobs keep their codec and
 the water file keeps every dictionary), by the release builder's own `copy_file` / `ship`, so the fixture is the same
@@ -97,11 +99,11 @@ def unnamed_at(lines_out: Path) -> List[int]:
     return [row[1], row[2]]
 
 
-def fixture_lines(release: Path, sids: Iterable[int], unnamed_at: Sequence[int], out: Path) -> int:
+def fixture_lines(release: Path, sids: Iterable[int], unnamed_at: Optional[Sequence[int]], out: Path) -> int:
     """(T441) THE FIXTURE'S STREAM LINES, cut from the release's own `lines` file (`lines.py`, the atlas graph's exact
     lines): `[handle, blue_line_key, from_m, to_m)` of every stream section among `sids`, plus the one unnamed reach the
     tests walk — named by its line and start (`unnamed_at` = [blk, from_m], stable across a renumbering), its handle
-    looked up here. A slot that spans nothing (a filler: not a stream section) is left out; an open end stays open
+    looked up here (None: no unnamed reach; the trout fixture's `--trout-cases` cut). A slot that spans nothing (a filler: not a stream section) is left out; an open end stays open
     (0xFFFFFFFF, `LINE_OPEN`). Returns the rows written. Was a hand re-map through section_handles.txt."""
     man = json.loads((release / "manifest.json").read_text())
     e = man["files"].get("lines")
@@ -126,9 +128,9 @@ def fixture_lines(release: Path, sids: Iterable[int], unnamed_at: Sequence[int],
             ln = line(s)
             if ln is not None and ln[1] != ln[2]:
                 rows.append([s, ln[0], ln[1], ln[2]])
-        blk, m = unnamed_at
-        hit = con.execute("SELECT block, n, b FROM section_line WHERE blk0 <= ? ORDER BY blk0 DESC, m0 DESC LIMIT 64",
-                          (blk,)).fetchall()
+        blk, m = unnamed_at if unnamed_at is not None else (None, None)
+        hit = [] if blk is None else con.execute(
+            "SELECT block, n, b FROM section_line WHERE blk0 <= ? ORDER BY blk0 DESC, m0 DESC LIMIT 64", (blk,)).fetchall()
         unnamed = None
         for k, n, b in hit:
             for i, (lb, lo, hi) in enumerate(L.decode_block(b, n)):
@@ -139,20 +141,23 @@ def fixture_lines(release: Path, sids: Iterable[int], unnamed_at: Sequence[int],
             if unnamed is not None:
                 break
         con.close()
-    if unnamed is None:
+    if unnamed is None and unnamed_at is not None:
         raise FixtureError(f"regs fixture: no section starts at {m} m on line {blk} (the unnamed reach)")
     rows = sorted({r[0]: r for r in rows}.values())
     doc = {"about": ("(T369, T441) TEST FIXTURE, WRITTEN by pipeline.deliver.release.regs_fixture: the stream line "
                      "[handle, blue_line_key, from_m, to_m) of every stream section of the regs fixture's waters "
                      "(dev/regs-release), plus one unnamed reach (`unnamed`, found by `unnamed_at` = [blue_line_key, "
                      "from_m]), cut from the release's own `lines` file. 4294967295 = open end. Never hand-edited."),
-           "release": man["data_release"], "unnamed": unnamed, "unnamed_at": [blk, m], "lines": rows}
+           "release": man["data_release"], "unnamed": unnamed, "unnamed_at": None if blk is None else [blk, m],
+           "lines": rows}
     out.write_text(json.dumps(doc, separators=(",", ":")).replace("],[", "],\n[") + "\n")
     return len(rows)
 
 
 def build(release: Path, items: Sequence[str], handles: Sequence[int], out_root: Path,
-          lines_out: Optional[Path] = None) -> Path:
+          lines_out: Optional[Path] = None, unnamed: Optional[Sequence[int]] = ()) -> Path:
+    """The fixture release under `out_root`. `lines_out`: also write the kept stream lines there, with the unnamed
+    reach `unnamed` names ([blk, from_m]; `()` = the one `lines_out` already names; None = none)."""
     man = json.loads((release / "manifest.json").read_text())
     src_id = man["data_release"]
     for need in ("water", "core", "regs-sid"):
@@ -243,7 +248,8 @@ def build(release: Path, items: Sequence[str], handles: Sequence[int], out_root:
             if name not in con:
                 raise FixtureError(f"regs fixture: release {src_id} has no {name} file")
             ids = _shard_ids(con[name], zd, regions[r])
-            plan = [("s", t, f"WHERE {'akey' if t == 'cell' else 'id'} IN ({_ids(ids[t])})") for t in SH.SHARD_TABLES]
+            plan = [("s", t, f"WHERE {'akey' if t == 'cell' else 'id'} IN ({_ids(ids[t])})")
+                    for t in SH.shard_tables(con[name])]
             files[name] = B.copy_file(work / f"{name}.sqlite", {"s": src[name]}, plan, {**meta[name], **fix})
 
         def sid_extra(c: sqlite3.Connection) -> None:
@@ -280,7 +286,7 @@ def build(release: Path, items: Sequence[str], handles: Sequence[int], out_root:
             if old != final:
                 shutil.rmtree(old)
         if lines_out is not None:
-            fixture_lines(release, sids, unnamed_at(lines_out), lines_out)
+            fixture_lines(release, sids, unnamed_at(lines_out) if unnamed == () else unnamed, lines_out)
         return final
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
@@ -290,21 +296,7 @@ def build(release: Path, items: Sequence[str], handles: Sequence[int], out_root:
 
 def _shard_ids(con: sqlite3.Connection, zd: Dict[str, bytes], akeys: Set[int]) -> Dict[str, Set[int]]:
     """{table: the ids a shard of `akeys` holds}: `shards.shard_rows`' rule, read from a region file."""
-    val = lambda t, b: json.loads(unpack(b, zd.get(t)))  # noqa: E731
-    out: Dict[str, Set[int]] = {t: set() for t in SH.SHARD_TABLES}
-    out["cell"] = set(akeys)
-    tops: Dict[str, Set[int]] = {}
-    for row in con.execute(f"SELECT {', '.join(SH.TOP)} FROM cell WHERE akey IN ({_ids(akeys)})"):
-        for col, i in zip(SH.TOP, row):
-            tops.setdefault(SH.TOP[col], set()).add(i)
-    for tbl, ids in tops.items():
-        out[tbl] |= ids
-        for _i, blob in con.execute(f"SELECT id, j FROM {tbl} WHERE id IN ({_ids(ids)})"):
-            for sub, refs in SH.frame_refs(tbl, val(tbl, blob)).items():
-                out[sub].update(refs)
-    for _i, blob in con.execute(f"SELECT id, j FROM licence_doc WHERE id IN ({_ids(out['licence_doc'])})"):
-        out["licence_answer"].update(val("licence_doc", blob))
-    return out
+    return SH.reach_rows(con, akeys, lambda t, b: json.loads(unpack(b, zd.get(t))))
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
@@ -313,6 +305,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     ap.add_argument("--taps", type=Path, default=TAPS)
     ap.add_argument("--item", action="append", default=[], help="another water to keep (item id); repeatable")
     ap.add_argument("--out", type=Path, default=OUT)
+    ap.add_argument("--trout-cases", action="store_true",
+                    help="(T810 V-py) THE TROUT FIXTURE: keep exactly the waters of `trout_vectors.CASES` (no golden "
+                         "waters, no unnamed reach), into app/fixtures/trout/ unless --out names another root; the "
+                         "release must be a side release built with --trout-table")
     a = ap.parse_args(argv)
     rel = a.release
     if rel is None:
@@ -320,8 +316,18 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         rel = newest_release(GENERATED.release)
     if rel is None or not (rel / "manifest.json").exists():
         raise FixtureError(f"regs fixture: no release at {rel or 'data/release/r-*'}")
-    d = build(rel, sorted(set(golden_items(a.taps)) | set(a.item)), golden_handles(a.taps), a.out,
-              lines_out=LINES_OUT if a.out == OUT else None)
+    if a.trout_cases:
+        from pipeline.tools.emit import trout_vectors as TV
+        if "trout" not in ((json.loads((rel / "manifest.json").read_text()).get("regulations") or {})
+                           .get("versions") or {}):
+            raise FixtureError(f"regs fixture: {rel} holds no trout section (a side release is built with "
+                               "--trout-table)")
+        out = TV.FIXTURE if a.out == OUT else a.out
+        d = build(rel, sorted(set(TV.case_items()) | set(a.item)), [], out,
+                  lines_out=TV.LINES if out == TV.FIXTURE else out.parent / "section-lines.json", unnamed=None)
+    else:
+        d = build(rel, sorted(set(golden_items(a.taps)) | set(a.item)), golden_handles(a.taps), a.out,
+                  lines_out=LINES_OUT if a.out == OUT else None)
     sz = B.sizes(d)
     print(json.dumps({"release": str(d), "gz_total": sum(v["gz"] for v in sz.values()), "files": sz}, indent=1))
     return 0

@@ -406,6 +406,19 @@ def run(domains: Optional[list[str]] = None, *, marks: Optional[Path] = None,
 NOT_LANDED_OK: dict[str, dict] = {
     "tidal|tidal:354151091|": {"date": "2026-11-09", "why": "T359: does a confirmed DEM point become a cut? (owner)"},
     "tidal|tidal:360848786|": {"date": "2026-11-09", "why": "T359: does a confirmed DEM point become a cut? (owner)"},
+    # T812 (owner 2026-11-16: "split babine lake on the line like our other split lakes"): the lake is two parts
+    # (added_lakes.geojson ids 24 / 25) and both Babine Lake places now name the parts; the marks name the whole lake
+    # (wbk:329026676, now a split parent). On an atlas with the parts the marks land by themselves (the registry's
+    # `part_of`: `proposals.carried_item`, owner 2026-11-17: no re-mark); these rows cover the atlas before it.
+    "dfo|6:babine-lake:including-tributaries|": {
+        "date": "2026-11-16", "why": "T812: the place names Babine Lake's parts (wbk:-24, wbk:-25); lands by itself on the rebuilt atlas — take out at its promote"},
+    "dfo|6:babine-lake:babine-lake-excluding-tributaries~3|": {
+        "date": "2026-11-16", "why": "T812: the place names Babine Lake's parts (wbk:-24, wbk:-25); lands by itself on the rebuilt atlas — take out at its promote"},
+    # The 2026-11-15 night mark (saved by Claude, verdict unsure: the whole creek) was overtaken by the owner's
+    # 2026-11-16 20:01 "Extend to the bridge" (GOTCHAS "Sheldens Creek, the bridge"), built by hand (manual stream,
+    # tidal cut at the SPUR 14 bridge), so the extent it saw is gone. The owner re-ticks the place in the review app.
+    "dfo|6:sheldens-creek:upstream-of-white-triangular-fishi|": {
+        "date": "2026-11-17", "why": "overtaken by the owner's 11-16 20:01 bridge ruling (built by hand); owner re-ticks the place"},
 }
 
 

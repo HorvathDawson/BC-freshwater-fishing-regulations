@@ -114,9 +114,17 @@ def refs(out: dict, ix) -> dict:
                           "possession": None if g.get("possession") is None else
                           {**g["possession"], "by": ix(g["possession"]["by"])}}
         return o
-    return {**out, "fish": {S: {"hatchery": res(v["hatchery"]), "wild": res(v["wild"]), "lead": v["lead"]}
-                            for S, v in out["fish"].items()},
-            "rows": [row(r) for r in out["rows"]]}
+    def page(p):                                       # F0 (rows 34): the page's possession row
+        if p is None:
+            return None
+        return {"lead": None if p["lead"] is None else {**p["lead"], "src": ix(p["lead"]["src"])},
+                "also": [{**a, "src": ix(a["src"])} for a in p["also"]]}
+    got = {**out, "fish": {S: {"hatchery": res(v["hatchery"]), "wild": res(v["wild"]), "lead": v["lead"]}
+                           for S, v in out["fish"].items()},
+           "rows": [row(r) for r in out["rows"]]}
+    if "page_possession" in out:
+        got["page_possession"] = page(out["page_possession"])
+    return got
 
 
 def section_derive(ladder_value: dict, scope, ctx, first_day: int, at=None) -> dict:

@@ -28,8 +28,8 @@ import { GUIDE_WATER, WATER_SCREEN_WORDS, bellLabel, releaseNoticeVM, dayRange, 
 import { openProbe, type ItemId, type SectionId } from "@app/data";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Platform, View } from "react-native";
-import { bottomBarShown, spotPins, useDayFlow, useLikeVisit, useMapRail, useMyLocation, useOpenAtMe, opensAtMe, useShare, useGaugePageCheck, useMenu, useDataFacts, useSync, useAppUpdate,
-         BackLayerContext, InSeasonContext, InSeasonInboxContext, useIdleOnce, useInSeason, loadRegsStore, useInSeasonInbox, useDfoNotice, useDfoCheckedAt, useReleasePrefetch, useBackgroundPrefetch, useWaterRegionsAhead, useNet, useNetQuiet, useRegsPrefetch, holdsMapStatus, openWater, pressCueStore, tapAhead, useTapAwaiting, useHeldLookStore, type HeldLookStore, type RegsStart } from "@app/ui";
+import { bottomBarShown, tabsAsRail, useLayoutClass, spotPins, useDayFlow, useLikeVisit, useMapRail, useStationNames, useMyLocation, useOpenAtMe, opensAtMe, useShare, useGaugePageCheck, useMenu, useDataFacts, useSync, useAppUpdate,
+         BackLayerContext, InSeasonContext, InSeasonInboxContext, useIdleOnce, useInSeason, loadRegsStore, useInSeasonInbox, useDfoNotice, useDfoCheckedAt, useReleasePrefetch, useBackgroundPrefetch, useWaterRegionsAhead, useNet, useNetQuiet, useRegsPrefetch, holdsMapStatus, pressCueStore, tapAhead, useTapAwaiting, useHeldLookStore, type HeldLookStore, type RegsStart } from "@app/ui";
 import type { Camera, MapSpots } from "@app/map";
 import { visitSpot } from "@app/data/spots";
 import { connectivity } from "./connectivity";
@@ -39,9 +39,11 @@ import { SpotPickBanner } from "./SpotPickBanner";
 import { SynopsisLoading } from "./regs/SynopsisLoading";
 import { PdfViewer } from "./regs/PdfViewer";
 import { TabBar } from "./TabBar";
+import { NavRail, NAV_RAIL } from "./NavRail";
 import { EdgeBack } from "./EdgeBack";
 import { LayersSheet } from "./LayersSheet";
 import { InSeasonNotice } from "./InSeasonNotice";
+import { ApplyCurtain } from "./ApplyCurtain";
 import { DaySheet } from "./regs/DaySheet";
 import { WaterViewsContext } from "./ViewSwipe";
 import { SharePortContext } from "./SharePortContext";
@@ -62,10 +64,9 @@ import { useResumed } from "./shell/useResumed";
 import { useEscapeBack } from "./escapeBack";
 import { useShellSearch } from "./shell/useShellSearch";
 import { FirstRunNotice, useFirstRun } from "./FirstRunNotice";
-import { GUIDE_STEPS, GuideCard, useGuide, type GuideActs, type GuideFacts } from "./Walkthrough";
+import { GuideCard, useGuide, type GuideActs, type GuideFacts } from "./Walkthrough";
 import { CoachContext, CoachItemContext, useCoachRegistry } from "./CoachMarks";
 import { GuideControlContext, useGuideControlHost } from "./guideControls";
-import { useGuideClosed } from "./guideClosed";
 import { part, preloadParts } from "./part";
 import { LoadingState } from "./LoadingState";
 
@@ -95,8 +96,6 @@ const heldStyle = (tabsH: number) => ({ ...BEHIND, bottom: -tabsH, transform: [{
  */
 const keptStyle = (tabsH: number) => ({ ...BEHIND, bottom: tabsH }) as const;
 
-/** (T293) The fish obstacles' switch in the Layers sheet (`@app/core` layers). */
-const OBSTACLES = "overlay.obstacles";
 
 /** (T293) The room the bottom tab bar takes, kept clear by the walkthrough's card docked at the foot. */
 const TAB_BAR_ROOM = 64;
@@ -185,7 +184,10 @@ export function Shell(p: ShellProps) {
   // (T275) the foot block's height, for the credits and scale above it
   const [footH, setFootH] = useState(0);
   /** (T508) the tab bar's height, last measured: the row a held pane will grow into once shown (`heldStyle`) */
-  const [tabsH, setTabsH] = useState(0);
+  const [tabsRowH, setTabsH] = useState(0);
+  /** (T839) at the desktop breakpoint the four tabs are a left rail (`NavRail`), not a bottom bar: no row under the body */
+  const tabsRail = tabsAsRail(useLayoutClass());
+  const tabsH = tabsRail ? 0 : tabsRowH;
   const [runsAt, setRunsAt] = useState<number | null>(null);
   /** (T369 D15) where on that section the Runs tap landed: the water it opens is that tap's */
   const [runsPoint, setRunsPoint] = useState<{ lat: number; lon: number } | null>(null);
@@ -249,7 +251,7 @@ export function Shell(p: ShellProps) {
   const col = useMapColouring({ source, feed, status: statusHeld ? null : p.status ?? null, pairing: p.pairing ?? null, tiles,
                                 layerStore: p.layerStore, attribution: p.attribution, mapTab: nav.mapTab, mapDay,
                                 epoch: syncState.epoch, settled, gearSettled: settled && quietLine,
-                                salmonOnDemand: !!(p.prefetch && loader),
+                                salmonOnDemand: !!(p.prefetch && loader), dfoFeed: p.salmonFeed ?? null,
                                 runTiming: p.runTiming ?? null, runSpeciesStore: p.runSpeciesStore ?? null,
                                 initialHorizon: p.initialHorizon ?? 0 });
   /*
@@ -375,50 +377,23 @@ export function Shell(p: ShellProps) {
   /*
    * (T293) THE GUIDED WALKTHROUGH comes SECOND: held while the notice is up, and the in-season notice waits for it. It
    * starts on the Map tab (where its first step, search, is) and, once started, follows the reader wherever its steps
-   * take them — a water, its Conditions, the spot capture, a spot. It reads what is on screen (`guideFacts`) and does a
-   * step on request ("Show me", `guideActs`) through the route, search and the opener: nothing of its own. More → Help
-   * replays it from the Map tab.
+   * take them — a water, its Conditions, back to the map. It reads what is on screen (`guideFacts`) and does a step on
+   * request ("Show me", `guideActs`) through the route, search and the opener: nothing of its own. More → Help replays it
+   * from the Map tab. (T824) Ten steps: the closed stretch, Layers and the spot-making steps were cut, with their acts.
    */
   const coach = useCoachRegistry();
   const onMapTab = route.mode === "browse" && tab === "map" && !rail.picking;
   const [guideWanted, setGuideWanted] = useState(false);
   const guideWater = useGuideWater(source, guideWanted);
-  // (T466) the part closed all year the walk walks up to (none in this release: the walk says so), and the walk's pin
-  const guideClosed = useGuideClosed(source, loader, guideWanted);
-  const [guidePin, setGuidePin] = useState<{ lat: number; lon: number; sid?: number } | null>(null);
-  useEffect(() => {
-    if (!guideWater || !source.waterPoint) return;
-    let live = true;
-    void source.waterPoint(guideWater.item as ItemId).then((at) => { if (live) setGuidePin(at); }).catch(reportFailure);
-    return () => { live = false; };
-  }, [source, guideWater]);
-  // (T466) the example spot the walk made (its id), and what became of it at the end: removed, or kept (it could not be)
-  const [example, setExample] = useState<{ id: string; state: "removed" | "kept" | null } | null>(null);
   const picked = searchMemory.pick.selected;
-  // the layers as the reader had them when the walk reached its Layers steps: put back at the last of them (or a skip)
-  const groundNow = col.layers.ground.tiles.find((t) => t.chosen)?.id ?? "";
-  const obstaclesNow = !!col.layers.overlays.rows.find((r) => r.id === OBSTACLES)?.chosen;
-  const [layersWas, setLayersWas] = useState<{ ground: string; obstacles: boolean } | null>(null);
   // (T456) the controls a screen keeps to itself (a fold's Details, the chart's toggles, the panel's forecast day)
   const guideCtl = useGuideControlHost();
   const guideFacts: GuideFacts = {
     water: guideWater, searching, query: searchMemory.q,
     selected: picked?.kind === "water" ? picked.item : null,
     open: frame ? { item: frame.item, view: frame.view, part: frame.part } : null,
-    adding: adding !== null, viewing: openSpot, spots: spots.length,
-    closed: guideClosed, example: example?.state ?? null,
-    spotsTab: route.mode === "browse" && tab === "spots" && adding === null && openSpot === null && !searching,
-    picking: rail.picking, dropped: route.mode === "browse" && rail.drop !== null,
-    layersOpen, ground: groundNow, obstacles: obstaclesNow, layersWas,
     onMap: tab === "map" && frame === null && !searching && adding === null && openSpot === null && !rail.picking,
-    dayPicked: mapDay !== null, controls: guideCtl.values,
-  };
-  const restoreLayers = () => {
-    if (layersWas) {
-      if (groundNow !== layersWas.ground) col.onChooseLayer(layersWas.ground);
-      if (obstaclesNow !== layersWas.obstacles) col.onChooseLayer(OBSTACLES);
-    }
-    setLayersWas(null); setLayersOpen(false);
+    dayPicked: mapDay !== null, controls: guideCtl.values, regsLayer: col.regsLayer,
   };
   // (T234) A NOTIFICATION'S TAP: a gauge alert opens its water's Conditions (an unnamed reach's: the Conditions map)
   const openReq = p.openRequest ?? null;
@@ -449,51 +424,6 @@ export function Shell(p: ShellProps) {
       nav.opener.item(guideWater.item as ItemId, v);
     },
     view: (v) => go({ type: "view", view: v }),
-    addSpot: () => {
-      go({ type: "close" });
-      // the pin ON the water: its own line's point nearest the middle of it (`waterPoint`); none known, no pin
-      go({ type: "addSpot", at: guidePin ? { lat: guidePin.lat, lon: guidePin.lon } : null });
-    },
-    cancelAdd: () => { if (adding) go({ type: "back" }); },
-    toSpots: () => go({ type: "tab", tab: "spots" }),
-    openSpot: () => {
-      const newest = [...spots].sort((a, b) => b.createdAt - a.createdAt)[0];
-      if (newest) go({ type: "openSpot", id: newest.id as never });
-    },
-    openClosed: (v) => {
-      if (!guideClosed) return;
-      if (searching) { go({ type: "search", open: false }); search.searchType(""); }
-      go(openWater({ item: guideClosed.item as ItemId, part: guideClosed.part, view: v }));   // the one builder (one water screen)
-    },
-    // (T466) adding a spot, the reader's way: the Spots tab's Pick on the map, the pin on the walk's water, Continue
-    pickOnMap: () => rail.pick(),
-    dropPin: () => { if (guidePin) rail.pressLong(guidePin.lat, guidePin.lon); },
-    continueDrop: () => rail.continueDrop(),
-    capturePick: () => { if (guidePin?.sid !== undefined) guideCtl.set("capture", { pick: guidePin.sid }); },
-    showSpot: () => {
-      const s = spots.find((x) => x.id === openSpot);
-      if (!s) return;
-      camera.current = { lon: s.lon, lat: s.lat, zoom: 14 };
-      rail.show(s);
-    },
-    removeExample: () => {
-      const ex = example;
-      if (!ex || ex.state !== null || !p.onDeleteSpot) return;
-      if (openSpot === ex.id) go({ type: "back" });
-      void Promise.resolve(p.onDeleteSpot(ex.id)).then(() => setExample({ ...ex, state: "removed" }),
-        (e: unknown) => { reportFailure(e); setExample({ ...ex, state: "kept" }); });
-    },
-    openLayers: () => {
-      go({ type: "close" }); if (tab !== "map") nav.toTab("map");
-      if (!layersWas) setLayersWas({ ground: groundNow, obstacles: obstaclesNow });
-      setLayersOpen(true);
-    },
-    otherGround: () => {
-      const other = col.layers.ground.tiles.find((t) => !t.chosen && t.enabled);
-      if (other) col.onChooseLayer(other.id);
-    },
-    obstaclesOn: () => { if (!obstaclesNow) col.onChooseLayer(OBSTACLES); },
-    restoreLayers,
     toMap: () => { setLayersOpen(false); go({ type: "close" }); if (searching) { go({ type: "search", open: false }); search.searchType(""); }
                    if (tab !== "map") nav.toTab("map"); },
     leaveWater: () => { if (frame) back(); },
@@ -501,26 +431,21 @@ export function Shell(p: ShellProps) {
       const d = stepDay(mapDay, 1, bcNow(), dayRange(bcNow(), loader?.manifest?.regulations?.valid_until ?? null));
       if (d !== undefined) setMapDay(d);
     },
+    regsLayer: (k) => col.setRegsLayer(k),
     control: guideCtl.set,
   };
   const guide = useGuide(p.walkthrough ?? null, firstRun.open || !onMapTab, guideFacts, guideActs);
   useEffect(() => { if (guide.open || guide.pending) setGuideWanted(true); }, [guide.open, guide.pending]);
-  // the Layers sheet opened by the reader at the walk's Layers step: what they had is kept from that moment
-  const atKey = guide.open ? GUIDE_STEPS[guide.at]?.key : undefined;
-  useEffect(() => {
-    if (atKey === "layers" && layersOpen && !layersWas) setLayersWas({ ground: groundNow, obstacles: obstaclesNow });
-  }, [atKey, layersOpen]);   // eslint-disable-line react-hooks/exhaustive-deps -- at the moment it opens
-  // the walk left (skipped, or Back out of it) mid-Layers: the layers go back as they were
-  useEffect(() => { if (!guide.open && layersWas) restoreLayers(); }, [guide.open]);   // eslint-disable-line react-hooks/exhaustive-deps
   // from the start, on the Map tab, with no water open and nothing typed in search
-  const replayTour = () => { go({ type: "close" }); nav.toTab("map"); search.searchType(""); setExample(null); guide.reopen(); };
-  /** (T466) the drop sheet (a pin down, Continue to come) is up: the card goes in its window */
+  const replayTour = () => { go({ type: "close" }); nav.toTab("map"); search.searchType(""); guide.reopen(); };
+  /** (T466) the drop sheet (a pin down, Continue to come) is its own window: the card (its Resume chip) goes in it */
   const dropUp = route.mode === "browse" && rail.drop !== null;
   /** the walkthrough's card, over whatever is on screen (a spot and the capture included) */
   const guideCard = (
     <GuideCard guide={guide} facts={guideFacts} acts={guideActs} palette={palette} registry={coach}
                top={(route.mode === "browse" && !adding && !openSpot ? topBarBottom() : 0) + 8}
-               bottom={bottomBarShown(route) ? TAB_BAR_ROOM : 0} />
+               bottom={bottomBarShown(route) && !tabsRail ? TAB_BAR_ROOM : 0}
+               left={tabsRail && bottomBarShown(route) ? NAV_RAIL.width : 0} />
   );
   /** (T293, T456) what the walk reads from the screens: the controls' places, their own state, and which water is its */
   const coached = (n: React.ReactNode) => (
@@ -539,6 +464,8 @@ export function Shell(p: ShellProps) {
   // day's flow is that visit's
   const shownVisit = viewing ? visitSpot(viewing, spotEdit.shownVisit) : null;
   const like = useLikeVisit(viewing, { weather, feed }, p.likeStore, Date.now, connectivity, shownVisit?.visitId ?? null);
+  // (T819 item 7) the open spot names its gauges from the release's stations (read once; codes until they arrive)
+  const stationNames = useStationNames(viewing ? source : null);
   // T170: the visit day's own flow, and the action that asks for it (waits offline, asks again when back)
   const dayFlow = useDayFlow(shownVisit, p.onDayFlow, connectivity);
   const withInSeason = (n: React.ReactNode) => (
@@ -593,7 +520,7 @@ export function Shell(p: ShellProps) {
       <SpotHost viewing={viewing} spotEdit={spotEdit} nav={nav} palette={palette} camera={camera} like={like}
                 dayFlow={dayFlow} photos={photos} onSaveSpot={onSaveSpot} onDeleteSpot={p.onDeleteSpot}
                 onRefreshSpots={p.onRefreshSpots} refreshing={p.refreshing} show={rail.show}
-                tiles={tiles} theme={theme} locate={locate}
+                tiles={tiles} theme={theme} locate={locate} names={stationNames}
                 // (T294) "Add a visit" reads the water the way adding a spot does
                 visitSources={{ source, weather, feed,
                                 history: { ...(hydat ? { hydat } : {}),
@@ -613,12 +540,10 @@ export function Shell(p: ShellProps) {
                    theme={theme} camera={camera.current}
                    onCancel={back}
                    // awaited: a rejection reaches SpotCapture, which shows it and stays open (P01)
-                   // saved: the spot itself, over the map it was added from (back returns to that map)
+                   // saved: the spot itself, on the Spots tab (T819 item 12: back is the list it is in, not the map)
                    onSaved={async (s) => {
                      await onSaveSpot(s);
-                     // (T466) made on the walk's spot steps: the example spot, removed as the walk ends (and said)
-                     if (guide.open && GUIDE_STEPS[guide.at]?.phase === "spot") setExample({ id: s.id, state: null });
-                     go({ type: "openSpot", id: s.id });
+                     go({ type: "savedSpot", id: s.id });
                    }} />
     ));
 
@@ -717,7 +642,10 @@ export function Shell(p: ShellProps) {
           </>}</HeldKey>
       </>
     ),
-    tabs: bottomBarShown(route) ? <TabBar active={tab} palette={palette} onChange={nav.toTab} /> : null,
+    tabs: bottomBarShown(route)
+      ? (tabsRail ? <NavRail active={tab} palette={palette} onChange={nav.toTab} />
+                  : <TabBar active={tab} palette={palette} onChange={nav.toTab} />)
+      : null,
   };
   if (frame === null) lastBrowse.current = { map: browseLive, ...chromeLive };
   const held = pane.holding ? lastBrowse.current : null;
@@ -744,7 +672,10 @@ export function Shell(p: ShellProps) {
     {/* a regulations tab's "Report a problem with this page" reads the menu from here (menu/ReportLink) */}
     <MenuContext.Provider value={menu}>
     <SharePortContext.Provider value={sharePorts}>
-    <View style={{ flex: 1, backgroundColor: palette.card }}>
+    <View style={{ flex: 1, backgroundColor: palette.card, flexDirection: tabsRail ? "row" : "column" }}>
+      {/* (T839) the desktop's left rail: the map and its bars start to its right; held with the rest while a pane is held */}
+      {tabsRail && <View collapsable={false} pointerEvents={held ? "none" : "auto"} style={{ flexDirection: "row" }}>{chrome.tabs}</View>}
+      <View style={{ flex: 1 }}>
       <PairBanner col={col} palette={palette} />
       {/* (T254) a slow or missing line, said once over everything: "Slow connection — showing what we have" */}
       <NetBanner palette={palette} onPress={() => nav.toTab("more")} />
@@ -782,8 +713,9 @@ export function Shell(p: ShellProps) {
           {chrome.foot}
         </View>
       </View>
+      </View>
       {/* A tab change is a change of subject: the remembered reach goes with it. Hidden in water mode (P13/P14). */}
-      {chrome.tabs && <View collapsable={false} pointerEvents={held ? "none" : "auto"}
+      {chrome.tabs && !tabsRail && <View collapsable={false} pointerEvents={held ? "none" : "auto"}
                             onLayout={(e) => setTabsH(Math.round(e.nativeEvent.layout.height))}>{chrome.tabs}</View>}
       {/* (T215) the synopsis PDF is loading / failed: progress, Cancel, Retry */}
       <SynopsisLoading palette={palette} floating />
@@ -838,6 +770,9 @@ export function Shell(p: ShellProps) {
       {/* (T231) the sync icon's red badge: what could not be updated, when each last succeeded, Retry */}
       <SyncErrorSheet open={syncErrorOpen && syncState.failed.length > 0} failed={syncState.failed} palette={palette}
                       checking={syncState.checking} onRetry={syncState.refresh} onClose={() => setSyncErrorOpen(false)} />
+      {/* (T746) a downloaded release being put in use: the curtain over everything, taking every tap and the back */}
+      {p.applyCurtain && <ApplyCurtain palette={palette} applying={p.applyCurtain.applying} failed={p.applyCurtain.failed}
+                                       onClose={p.applyCurtain.close} line={p.applyCurtain.line} />}
     </View>
     </SharePortContext.Provider>
     </MenuContext.Provider>

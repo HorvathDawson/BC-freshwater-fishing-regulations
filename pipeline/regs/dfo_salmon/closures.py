@@ -30,7 +30,8 @@ an excluded area is a PIECE of entry B, keyed to its own item in the row's exclu
     stretch   between two cuts on a stream         the Thompson: "Deadman - from … to …"
     circle    a centre + a radius in metres        Babine Lake: "within a 400 m radius of … Morrison Creek, …"
     line      a line across a lake                 Babine: "closed east of a line from Gullwing Creek to south shore"
-                                                   (named and listed; not placed — a lake divided by a line is deferred)
+                                                   (placed by hand; it binds only where the lake is SPLIT on it:
+                                                   `closes_item` names the lake part on its closed side, T812)
 
 ENTRY B IS NEVER FREE-STANDING (owner 2026-11-10: "circles should only show up when that entry is in the dfo page too
 (if they remove it circles should go away)"): `attach` joins the curated / proposed geometry to the LIVE row's items —
@@ -275,6 +276,10 @@ class PieceGeometry(BaseModel):
     radius_m: Optional[float] = Field(default=None, gt=0, le=20000)
     #: a LINE across a lake ("closed east of a line from … to …"): its two ends, [lon, lat] each — placed by hand
     line: Optional[list[tuple[float, float]]] = None
+    #: T812 (owner 2026-11-16: "split babine lake on the line like our other split lakes"): the lake PART on the line's
+    #: closed side, where the lake is split on the line (`waters/added_lakes.geojson`, `part_of`). The line binds that
+    #: part whole; without it a line binds nothing (a lake not split on it), carried on its water
+    closes_item: Optional[str] = None
     centre_from: Optional[str] = None
     confidence: Optional[Literal["high", "medium", "low"]] = None
     note: str = ""
@@ -297,7 +302,9 @@ class PieceGeometry(BaseModel):
             if self.centre is None or self.radius_m is None or self.points or self.line is not None or self.new_splits:
                 raise ValueError("a circle has a centre and a radius and no ends")
             in_bc(self.centre)
-        else:
+        if self.closes_item is not None and self.kind != "line":
+            raise ValueError("only a line closes a lake part (`closes_item`)")
+        if self.kind == "line":
             if (not self.line or len(self.line) != 2 or self.points or self.centre is not None
                     or self.radius_m is not None or self.new_splits):
                 raise ValueError("a line has exactly two ends [lon, lat] and nothing else")
@@ -429,7 +436,7 @@ WHY_UNBOUND = {
     "unplaced": "not confirmed (no verified closed_area mark): carried on its water",
     "changed": "DFO's words changed since it was confirmed: carried on its water until confirmed again",
     "radius": "the stored circle's radius is not the one DFO's words give: carried on its water",
-    "line": "a line across a lake is deferred (T573): carried on its water",
+    "line": "a line across a lake binds only where the lake is split on it (T812 `closes_item`): carried on its water",
     "unknown": "DFO's words for it are of no known shape: carried on its water",
 }
 
@@ -513,7 +520,11 @@ def _piece_location(parent, entry: Mapping, row: Mapping, landed=None) -> Closur
     if row["state"] != "placed":
         why = WHY_UNBOUND.get(row["state"], WHY_UNBOUND["unplaced"])
     elif kind == "line":
-        why = WHY_UNBOUND["line"]
+        # T812: a line binds the lake PART on its closed side, whole — only where the lake is split on it
+        if g.get("closes_item"):
+            extents = [Extent(op="whole", item_id=g["closes_item"])]
+        else:
+            why = WHY_UNBOUND["line"]
     elif kind == "stretch":
         ends = []
         for pt in g["points"]:
@@ -551,25 +562,33 @@ def with_pieces(ef, confirmed: Iterable[Mapping]):
     return out
 
 
-def live_piece_rules(ef, found: Iterable) -> dict[str, list[dict]]:
+def live_piece_rules(ef, found: Iterable, close: Optional[Mapping] = None) -> dict[str, list[dict]]:
     """THE LIVE FEED'S PIECES (`live.run`): piece id -> [its rule], for every item TODAY'S page names — read from the
-    live rows (`found`, the page's scraped locations, joined to their curated place by fingerprint), so a piece DFO
-    dropped leaves the feed on the run it goes (the release's piece is still in the chain, the feed says nothing for
-    it: the place answers). Confirmation is the release's matter (bound or carried); the feed carries every live one."""
-    index = ef.by_fingerprint()
-    rows = []
+    live rows (`found`, the page's scraped locations, joined to their curated place by fingerprint, or — T759 — to
+    their close match, `close`: fingerprint -> place), so a piece DFO dropped leaves the feed on the run it goes (the
+    release's piece is still in the chain, the feed says nothing for it: the place answers). Confirmation is the
+    release's matter (bound or carried); the feed carries every live one."""
+    return {lid: [rule] for lid, (rule, _f, _a) in live_pieces(ef, found, close).items()}
+
+
+def live_pieces(ef, found: Iterable, close: Optional[Mapping] = None) -> dict[str, tuple]:
+    """piece id -> (its rule, the live row (`found` item) whose words name it, the area) — `live_piece_rules`' source,
+    and (T759) what the feed's `closed_area_unbound` issue quotes"""
+    index = {**(close or {}), **ef.by_fingerprint()}
+    rows, src = [], {}
     for f in found:
         hit = index.get(f.fingerprint)
         if hit is None or not hit.water_id:
             continue
+        src.setdefault(hit.location_id, f)
         rows.append({"location_id": hit.location_id, "water_id": hit.water_id, "water": hit.water,
                      "region": hit.region, "status": "active",
                      "source_text": {"specific_area": f.specific_area, "excludes": list(f.excludes or [])}})
-    out: dict[str, list[dict]] = {}
+    out: dict[str, tuple] = {}
     for e in _active_entries(rows):
         for a in e["areas"]:
             lid = piece_id(e["water_id"], a["key"])
-            out.setdefault(lid, [piece_rule(e, a, lid)])
+            out.setdefault(lid, (piece_rule(e, a, lid), src.get(e["derived_from"]), a))
     return out
 
 

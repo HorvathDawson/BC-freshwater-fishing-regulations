@@ -22,7 +22,7 @@ import type { Palette } from "./theme";
 
 export function MapScreen({ at, palette, theme, view, modes, groups, hide, show, camera,
                             onLayers, layersChanged = 0, onLongPress, onPressFeature, onPressStart, onPressObstacle, onPressNotFishing, onMoved, onMapPoint, horizons,
-                            highlight, inSeason, marker, pins, status, standing, lakes, salmon, method, runs, gauges, onVisible, onError,
+                            highlight, inSeason, marker, pins, status, standing, lakes, salmon, method, issue, runs, gauges, onVisible, onError,
                             fit, basemap, onImageryError, water, waterLine, selection, focus, near, marks, onPressMark, spots,
                             insetTop = 0, insetBottom = 0, onRegion, corner, railExtra, me = null, developer, onDrawn, lookKey, onLookDrawn }: {
   at: TileEndpoints; palette: Palette; theme: string; view: string;
@@ -71,6 +71,8 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
   runs?: MapProps["runs"];
   /** (T213) The Bait & fly colouring's profiles and day, labelled per tile, on a proven pair only — see MapProps.method. */
   method?: MapProps["method"];
+  /** (T759 prototype) the issue look's sections */
+  issue?: MapProps["issue"];
   /** Gauge points as GeoJSON. Only the Conditions view draws them. */
   gauges?: string;
   onVisible?: (sections: readonly SectionKey[]) => void;
@@ -130,7 +132,7 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
       <Map at={at} theme={theme} me={me ? { on: me.on, fix: me.fix, following: me.following, centre: me.centre, zoom: me.zoom, onRelease: me.release } : null} view={view} modes={modes} groups={groups} hide={hide} show={show}
            initial={camera}
            onPressFeature={onPressFeature} onPressStart={onPressStart} onPressObstacle={onPressObstacle} onPressNotFishing={onPressNotFishing} onMoved={onMoved} onMapPoint={onMapPoint} onLongPress={onLongPress}
-           highlight={highlight} inSeason={inSeason} pins={pins} spots={spots} insetTop={insetTop} insetBottom={insetBottom} onOpenLink={openLink} useBackLayer={useBackLayer} water={water} waterLine={waterLine} selection={selection} focus={focus} near={near} marks={marks} onPressMark={onPressMark} marker={marker} status={status} standing={standing} lakes={lakes} salmon={salmon} method={method} runs={runs}
+           highlight={highlight} inSeason={inSeason} pins={pins} spots={spots} insetTop={insetTop} insetBottom={insetBottom} onOpenLink={openLink} useBackLayer={useBackLayer} water={water} waterLine={waterLine} selection={selection} focus={focus} near={near} marks={marks} onPressMark={onPressMark} marker={marker} status={status} standing={standing} lakes={lakes} salmon={salmon} method={method} issue={issue} runs={runs}
            gauges={gauges}
            onVisible={onVisible} onError={onError ?? mapError} fit={fit} basemap={basemap} onImageryError={onImageryError}
            onRegion={onRegion} onDrawn={onDrawn} lookKey={lookKey} onLookDrawn={onLookDrawn} onOpenLab={LAB_ON && developer ? () => setDevOpen(true) : undefined} />

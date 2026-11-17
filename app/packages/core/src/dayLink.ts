@@ -9,7 +9,6 @@
  */
 import { FORECAST_DAYS } from "./gauge-policy.generated";
 import { monthAbbr, weekdayAbbr } from "./flow";
-import type { Horizon } from "./conditions";
 import { pentadLabel } from "./runTiming";
 
 /** The last day of the forecast window (days from today). */
@@ -54,10 +53,6 @@ export function regsDayLink(regsDay: Date | null, now: Date): RegsDayLink {
 
 /** What each tab says about the day it shows (a tab switch never changes the day silently). */
 export const DAY_LABELS = {
-  /** Conditions: the horizon it is on (Change is the next ten days, no one day). */
-  conditions: (horizon: Horizon, now: Date): string =>
-    horizon === "change" ? "Conditions: expected change, next 10 days"
-    : horizon === 0 ? "Conditions: today" : `Conditions: ${dayWords(noon(now, horizon))}`,
   /** Regulations and the water's Map: the regulations day. */
   regulations: (regsDay: Date | null, now: Date): string =>
     regsDay === null || daysFromToday(regsDay, now) <= 0 ? "Regulations: today" : `Regulations: ${dayWords(regsDay)}`,

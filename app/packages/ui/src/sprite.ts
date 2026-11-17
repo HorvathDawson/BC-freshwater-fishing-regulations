@@ -31,5 +31,32 @@ export function spriteStaircase(frames: number, width: number):
   return { inputRange, outputRange };
 }
 
+/**
+ * (T814) A SHEET, not a strip: `frames` laid row-major in `columns` (frame i at column i % columns, row
+ * floor(i / columns)), each `width` x `height`. Two staircases off ONE value, so the column and the row can never
+ * disagree about the frame: `x` steps every frame and wraps each row, `y` steps once a row. A strip of the coho loader's
+ * 80 frames would be 80 frames wide, past a phone's texture limit; a grid keeps the sheet near square.
+ */
+export function spriteGridStaircase(frames: number, columns: number, width: number, height: number): {
+  x: { inputRange: number[]; outputRange: number[] }; y: { inputRange: number[]; outputRange: number[] };
+} {
+  if (frames < 1) throw new Error(`a sprite sheet needs at least one frame, got ${frames}`);
+  if (columns < 1) throw new Error(`a sprite sheet needs at least one column, got ${columns}`);
+  const inputRange: number[] = [];
+  const xs: number[] = [];
+  const ys: number[] = [];
+  const at = (n: number) => (n === 0 ? 0 : -n);   // not -0
+  for (let i = 0; i < frames; i++) {
+    inputRange.push(i / frames, (i + 1) / frames - EPS);
+    const x = at((i % columns) * width), y = at(Math.floor(i / columns) * height);
+    xs.push(x, x);
+    ys.push(y, y);
+  }
+  inputRange.push(1);
+  xs.push(0);
+  ys.push(0);
+  return { x: { inputRange, outputRange: xs }, y: { inputRange: [...inputRange], outputRange: ys } };
+}
+
 /** Small enough to be invisible at any frame rate, large enough to keep the range strict. */
 const EPS = 1e-6;

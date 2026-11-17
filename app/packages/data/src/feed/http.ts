@@ -96,6 +96,11 @@ interface IndexFile {
     /** Which quantity `percentile` above is about — the station's own default. */
     parameter?: Parameter;
     /**
+     * (T830) WHAT THE READING CARRIES, ranked or not (publish.py `live_quantities`): a level with no band (Capilano at
+     * Canyon) is listed, a level on another datum (T550) is not. Absent on a feed from before it: nothing is known.
+     */
+    reports?: Parameter[];
+    /**
      * DEGREES, NOT A RANKING — and that asymmetry against every other value in this file
      * is deliberate. There is no historical water-temperature record anywhere to rank
      * against: HYDAT carries level, flow and sediment and nothing else. And a ranking
@@ -272,13 +277,47 @@ const FEED_LIMITS = { firstByteMs: 45_000, stallMs: 45_000, totalMs: 45_000 };
  * is not the feed's.
  */
 export async function fetchObs(base: string, fetchImpl: typeof fetch = fetch,
-                               limits: typeof FEED_LIMITS = FEED_LIMITS): Promise<ObsFile> {
+                               limits: typeof FEED_LIMITS = FEED_LIMITS, held?: ObsHeld): Promise<ObsFile> {
   const url = `${base.replace(/\/+$/, "")}/obs.json`;
-  const got = await fetchJsonResilient<ObsFile>(url, { fetchImpl, attempts: 1, limits, cache: "no-store" });
+  const kept = held ? readHeldObs(held, url) : null;
+  // (T741) a conditional GET when a copy and its validator are kept: an unchanged file costs a 304 and no body. Sent
+  // STRONG, as the update service's (`update/check.ts`): the edge gzips and weakens the R2 ETag, the data worker
+  // compares strong validators against the R2 object, so a 304 is the origin's proof that the object has not moved.
+  const headers = kept ? { "If-None-Match": kept.etag.replace(/^W\//, "") } : undefined;
+  const got = await fetchJsonResilient<ObsFile>(url, { fetchImpl, attempts: 1, limits, cache: "no-store", ...(headers ? { headers } : {}) });
+  if (!got.ok && got.status === 304 && kept) return kept.value;
   if (!got.ok) throw new Error(`${url}: HTTP ${got.status}`);
   const why = gaugeFeedRefusal(got.value, "obs");    // (T557)
   if (why) throw new Error(`${url}: ${why}`);
+  if (held) {
+    if (got.etag) held.write(JSON.stringify({ url, etag: got.etag, value: got.value }));
+    else {
+      // no validator from the origin: nothing to ask with next time, so every run is a whole read (said, not hidden)
+      held.write("");
+      console.info(`[obs] ${url}: no ETag in the answer; the next check reads the whole file again`);
+    }
+  }
   return got.value;
+}
+
+/** (T741) Where the background check keeps the last `obs.json` it read and its ETag (a cache: losing it costs one whole read). */
+export interface ObsHeld { read(): string | null; write(text: string): void }
+
+/** The kept copy for `url`, or null (none, another url, or unreadable: a whole read follows, and a bad copy is said). */
+function readHeldObs(held: ObsHeld, url: string): { etag: string; value: ObsFile } | null {
+  const text = held.read();
+  if (!text) return null;
+  let k: { url?: unknown; etag?: unknown; value?: unknown };
+  try { k = JSON.parse(text) as typeof k; } catch (e) {
+    reportFailure(new Error(`kept obs.json is not JSON (${e instanceof Error ? e.message : String(e)}); reading it whole`));
+    return null;
+  }
+  if (k.url !== url || typeof k.etag !== "string" || !k.etag) return null;
+  if (gaugeFeedRefusal(k.value, "obs")) {
+    reportFailure(new Error(`kept obs.json is not the feed's (${gaugeFeedRefusal(k.value, "obs")}); reading it whole`));
+    return null;
+  }
+  return { etag: k.etag, value: k.value as ObsFile };
 }
 
 export function httpFeed(base: string, fetchImpl: typeof fetch = fetch,
@@ -444,6 +483,8 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch,
           standing: standing(percentile),
           parameter: f.now.parameter ?? null,
           ...(same ? {} : { rankedAt: row!.observedAt ?? null }),
+          // (T830) the quantities the publisher says this station reports live (the index row's; none without an index)
+          ...(row?.reports ? { reports: row.reports } : {}),
         },
       };
     },

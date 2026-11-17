@@ -56,16 +56,18 @@ quantity (`recordYears` in core) and holds it to the same floor rather than typi
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
 from pipeline.gauges.consume.panel import MIN_TOTAL_WEIGHT, THROUGH_LAKE_FACTOR
 from pipeline.gauges.consume.shed import DIST_STEP, GAUGE_RELS, TRUST_BANDS
+from pipeline.gauges.consume import small_water as _small
 from pipeline.gauges.feed import change as _change
 from pipeline.gauges.feed import skill as _skill
 from pipeline.gauges.feed.climatology import PCTILES
 from pipeline.gauges.feed.publish import HORIZONS, READING_MAX_AGE_HOURS, _TEMP_BANDS
-from pipeline.gauges.feed.record import MIN_RECORD_YEARS, QUANTITIES
+from pipeline.gauges.feed.record import LEVEL_DECIMALS, MIN_RECORD_YEARS, NO_RECORD_LINE, QUANTITIES
 from pipeline.common.curated import REPO_ROOT
 
 ROOT = REPO_ROOT
@@ -183,6 +185,12 @@ export const RECORD_QUANTITIES: readonly RecordQuantity[] = [{quantities}];
 /** The shortest record, in years, that may rank a reading: the climatology's floor and the donor panel's gate. */
 export const MIN_RECORD_YEARS = {MIN_RECORD_YEARS};
 
+/** (T830) The gauge card's line under a quantity the station reads live with no band to rank it (record.NO_RECORD_LINE). */
+export const NO_RECORD_LINE = {json.dumps(NO_RECORD_LINE)};
+
+/** (T830) Decimals a water level is shown to, in metres, wherever one is shown (record.LEVEL_DECIMALS). */
+export const LEVEL_DECIMALS = {LEVEL_DECIMALS};
+
 // The envelope and the panel (T125 item 6). PCTILES in pipeline/gauges/feed/climatology.py, as fractions: every envelope
 // is built at these knots, a reading is ranked between them (`percentileInBand`), the standing words break at them
 // (`standing`) and the map's percentile ramp stops at them. MIN_TOTAL_WEIGHT in pipeline/gauges/consume/panel.py: below it
@@ -213,6 +221,16 @@ export const FORECAST_HOLIDAYS: readonly string[] = [
 
 /** What a vote whose path crosses a lake keeps of its weight while a vote with no lake on its path reports. */
 export const THROUGH_LAKE_FACTOR = {_num(THROUGH_LAKE_FACTOR)};
+
+// (T823) Small next to its gauge, from pipeline/gauges/consume/small_water.py. Python decides, per paint section, which
+// of its panel's members drain much more than it (`flow-small`: bit i = member ord i) and writes the sentence; the app
+// shows the conditions meta's text beside a reading from a member whose bit is set, word for word.
+
+/** The conditions file's meta key holding the warning shown beside a much bigger member's reading. */
+export const SMALL_WATER_TEXT_KEY = "{_small.META_TEXT_KEY}";
+/** The conditions file's meta key holding the threshold the bits were decided at (the member drains at least this many
+ *  times the section's target area). For audit; the app compares nothing. */
+export const SMALL_WATER_RATIO_KEY = "{_small.META_RATIO_KEY}";
 '''
 
 
@@ -283,6 +301,7 @@ def main(argv=None) -> int:
                   "pipeline/gauges/feed/change.py / "
                   "pipeline/gauges/feed/record.py / climatology.py PCTILES / "
                   "pipeline/gauges/consume/panel.py MIN_TOTAL_WEIGHT, THROUGH_LAKE_FACTOR / publish.py HORIZONS / "
+                  "pipeline/gauges/consume/small_water.py META_*_KEY / "
                   "pipeline/gauges/feed/skill.py (worker)", file=sys.stderr)
         print("  run: python -m pipeline.tools.emit.gauge_policy", file=sys.stderr)
         return 1

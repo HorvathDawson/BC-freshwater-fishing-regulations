@@ -364,6 +364,22 @@ def _duty_band(r, lo: float, hi: float) -> str:
     return common.band_words(a, b, *edges(sides, a, b))
 
 
+def licence_duty(l: dict, lo: float, hi: float) -> Optional[str]:
+    """A decided line's yearly limit or record duty in the card's words ("10 a year", "record each on your licence right
+    away", a banded one naming its band); None for any other line. `_duties` and the trout table's fish sheet (T810 H)
+    both say them from here."""
+    r = l["r"]
+    if l["t"] == "annual" and isinstance(r.f.get("take"), (int, float)):
+        band = _duty_band(r, lo, hi)
+        return f"{_js(r.f['take'])} {band} a year" if band else f"{_js(r.f['take'])} a year"
+    if l["t"] == "record" or (l["t"] == "duty" and r.f.get("record_retention")):
+        band = _duty_band(r, lo, hi)
+        # UR1 G; ROUND20g 2 (owner: fewer words); T763: a banded duty names its band
+        return (f"record each one {band} on your licence right away" if band
+                else "record each on your licence right away")
+    return None
+
+
 def _duties(P, model: dict, S: str, n, lo: float, hi: float) -> List[str]:
     from pipeline.deliver.answers.rows import main_res
     R_ = model["R"].get(S) or {}
@@ -371,14 +387,9 @@ def _duties(P, model: dict, S: str, n, lo: float, hi: float) -> List[str]:
     out: List[str] = []
     for l in (m or {}).get("lines") or []:
         r = l["r"]
-        if l["t"] == "annual" and isinstance(r.f.get("take"), (int, float)):
-            band = _duty_band(r, lo, hi)
-            w = f"{_js(r.f['take'])} {band} a year" if band else f"{_js(r.f['take'])} a year"
-        elif l["t"] == "record" or (l["t"] == "duty" and r.f.get("record_retention")):
-            band = _duty_band(r, lo, hi)
-            # UR1 G; ROUND20g 2 (owner: fewer words); T763: a banded duty names its band
-            w = (f"record each one {band} on your licence right away" if band
-                 else "record each on your licence right away")
+        lic = licence_duty(l, lo, hi)
+        if lic is not None:
+            w = lic
         elif l["t"] == "duty" and r.type == "stop_fishing_after_quota":
             # UR2 5; ROUND20g 2 (owner: fewer words); ROUND20i 5 (UR4: "here" read as the whole Vedder?): the book's "stop
             # fishing that water", named by its noun ("this river")
@@ -407,19 +418,88 @@ A_POSSESSION_ON_THE_FISH_ROW = True
 POSSESSION_FISH = frozenset({"RB", "ST", "CT", "GB", "EB", "DV", "LT"})
 
 
-def page_possession(P, model: dict):
-    """The rule the page's one possession line states (the app's `possessionRules` lead): of every possession multiplier the
-    reader gives the role `possession` on this reading, the one written for every game fish, else the largest."""
-    got = {}
-    for v in model["R"].values():
-        for res in v.values():
-            for k, ro in ((res or {}).get("roles") or {}).items():
-                if ro.get("role") == "possession" and P.by_key[k].f.get("per_daily"):
-                    got[k] = P.by_key[k]
+def possession_lead(rules: Sequence):
+    """THE ONE CHOICE OF THE PAGE'S POSSESSION LEAD (trout plan F0, contract 2.11; fight #2): of the possession multipliers
+    `rules` (each with `.f` and `.key`: every rule the reader gives the role `possession` on this reading, with a
+    `per_daily`), the one written for every game fish, else the largest (ties by key). None when there is none. The page
+    reads this choice (`RowsFrame.page_possession`, rows 34); `possession_duty` measures a fish against it; J and the
+    frame-level test call it on decoded frames. Nothing else picks a lead."""
+    got = [r for r in rules if r.f.get("per_daily")]
     if not got:
         return None
-    every = [r for r in got.values() if "ALL_GAME_FISH" in (r.f.get("species") or [])]
-    return sorted(every or got.values(), key=lambda r: (-float(r.f["per_daily"]), r.key))[0]
+    every = [r for r in got if "ALL_GAME_FISH" in (r.f.get("species") or [])]
+    return sorted(every or got, key=lambda r: (-float(r.f["per_daily"]), r.key))[0]
+
+
+def possession_role_rules(P, model: dict, role: str = "possession") -> List:
+    """Every rule the reader gives `role` on this reading, once each, in the frame's order: fish by fish, hatchery then
+    wild, each answer's roles in stored order (page v36 possessionHtml's walk, the app's `rulesOfRole`)."""
+    out: Dict[str, object] = {}
+    for v in model["R"].values():
+        for o in ("H", "W"):
+            for k, ro in ((v.get(o) or {}).get("roles") or {}).items():
+                if ro.get("role") == role and k not in out:
+                    out[k] = P.by_key[k]
+    return list(out.values())
+
+
+def page_possession(P, model: dict):
+    """The rule the page's one possession line states (`possession_lead` over this reading's possession multipliers)."""
+    return possession_lead(possession_role_rules(P, model))
+
+
+def lead_covers(lead, S: str) -> bool:
+    """The page's lead speaks for the fish `S`: it is written for every game fish, or names `S` (its closed groups
+    expanded). A lead naming other fish only ("Possession: the daily quota for lake trout") says nothing of `S`."""
+    if lead is None:
+        return False
+    sp = lead.f.get("species") or []
+    return "ALL_GAME_FISH" in sp or S in common.expand(sp)
+
+
+def trout_only(r) -> bool:
+    """A rule whose fish are all trout or char (`common.trout_char()`, the table's fish) once its groups are expanded; an
+    open subject (no members) or any other fish makes it not."""
+    sp = common.expand(r.f.get("species"))
+    return bool(sp) and set(sp) <= common.trout_char()
+
+
+def page_line(P, model: dict) -> Optional[dict]:
+    """THE PAGE'S POSSESSION ROW, CHOSEN ONCE IN PYTHON (trout plan F0, contract 2.11; `RowsFrame.page_possession`, rows 34
+    only): {lead, also}; None where nothing is left for it to say (no rule has the role `possession` or
+    `possession_cap` here, or only trout- or char-only counts do: the fish rows say those).
+
+    `lead` {says, value, src}: the rule `page_possession` picks — its whole sentence (`display.rule_facts` `plain`, the
+    same words the display section ships for the rule: "Possession: 2 days’ quota." and the home exception), the value
+    words the page row shows ("2 days’ quota", `display.rule.possession_value`, so the app's `possessionValue` regex
+    goes) and the rule; null where no multiplier speaks (a water whose only possession rule is its own count: its line
+    says it). `also` [{says, src}]: the lines the page row keeps under the lead — every other multiplier of another
+    number of days, then the water's own possession counts (`possession_cap`), in the frame's order — LESS every rule
+    whose fish are all trout or char (`trout_only`): those are said on the table's rows (`possession_duty`; fight #3).
+    A rule with no sentence is refused (the app drew no row there: a silent gap)."""
+    from pipeline.deliver.answers.display.rule import possession_value, rule_facts
+    per = possession_role_rules(P, model)
+    caps = possession_role_rules(P, model, "possession_cap")
+    lead = possession_lead(per)
+    if lead is None and not caps:
+        if per:
+            raise common.AnswersError(f"answers: possession rules {[r.key for r in per]} speak here with no multiplier")
+        return None
+
+    def says(r) -> str:
+        w = rule_facts(r.f).get("plain")
+        if not w:
+            raise common.AnswersError(f"answers: the possession rule {r.key} has no sentence; the page's row needs one")
+        return w
+    out_lead = None
+    if lead is not None:
+        out_lead = {"says": says(lead), "value": possession_value(lead.f), "src": lead.key}
+    also = [r for r in per if r is not lead and float(r.f.get("per_daily") or 0) != float(lead.f["per_daily"])] \
+        if lead is not None else []
+    also = [{"says": says(r), "src": r.key} for r in also + caps if not trout_only(r)]
+    if out_lead is None and not also:
+        return None                             # only trout- or char-only counts: the table's rows say them
+    return {"lead": out_lead, "also": also}
 
 
 def possession_rules(P, model: dict, S: str) -> Tuple[List, List]:
@@ -473,6 +553,8 @@ def possession_duty(P, model: dict, S: str) -> Optional[str]:
             raise common.AnswersError(f"answers: {S} has possession rules of {sorted(ks)} daily quotas here")
         k = ks.pop()
         page = page_possession(P, model)
+        if page is not None and float(page.f["per_daily"]) == k and lead_covers(page, S):
+            return None                         # F0: the page's lead says this very number for this fish
         days = "1 day’s limit" if k == 1 else f"{_js(k)} days’ limits"
         not_page = f", not {_js(page.f['per_daily'])}" if page is not None and float(page.f["per_daily"]) != k else ""
         return f"in your possession: {days}{not_page} ({POSSESSION_HOME})"

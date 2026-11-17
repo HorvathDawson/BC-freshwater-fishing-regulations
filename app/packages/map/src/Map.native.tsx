@@ -54,7 +54,7 @@ import { nativeMapGestures } from "./gestures";
 import { areaLayer, nativeStyle } from "./native-style";
 import { NativeLookTracker } from "./look-drawn";
 import { liftFor, type Lift, type LiftAnswer } from "./tapLift";
-import { isTapTarget, litKey, spreadSections, TAP_GROUPS, tapBox, VISIBLE_LAYERS, visibleSections } from "./sections";
+import { isTapTarget, litKey, spreadSections, TAP_GROUPS, tapBox, unsetValue, VISIBLE_LAYERS, visibleSections } from "./sections";
 import { withoutEngineKeys } from "./colouring";
 import { nativeImages } from "./images";
 import { useNativeColouring, type AtlasSource } from "./native/useColouring";
@@ -110,7 +110,7 @@ const SETTLE_ASK_MS = 700;
 
 export function Map({ at, theme, view, modes, groups, hide, show, initial, data, onPressFeature, onPressStart, onPressObstacle, onPressNotFishing, chrome, onError,
                       onMoved, onMapPoint, onLongPress, onOpenLab, highlight, inSeason, water, waterLine, selection = "outline", marker, style, gauges,
-                      onVisible, pins, bare, fit, status, standing, lakes, salmon, method, runs, focus, near,
+                      onVisible, pins, bare, fit, status, standing, lakes, salmon, method, issue, runs, focus, near,
                       basemap, marks, onPressMark, spots, me, onImageryError: _noTileErrors,
                       onRegion: _noPrefetch, insetBottom = 0, insetTop = 0, zoomControls, trace: _noTrace, onOpenLink, useBackLayer, onDrawn, lookKey, onLookDrawn }: MapProps) {
   // `onRegion` is accepted and never called: it feeds the WEB's prefetch, and a phone holds the release installed.
@@ -171,10 +171,11 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     const toCopy: CopyTarget = {
       set: (id, s) => { void copyRef.current?.setFeatureState({ id }, s as never).catch(report); },
       // (T345) a key is unset by a null write, as on the atlas (`adapters/native.ts` `raw.remove`): MapLibre Native drops
-      // all but a frame's first per-feature removal in a source and applies removals after sets
+      // all but a frame's first per-feature removal in a source and applies removals after sets; (T826) a highlight key
+      // is written `false` (`unsetValue`: iOS's bridge drops a null-valued key)
       remove: (id, key) => {
         const src = copyRef.current;
-        if (src) void (key === undefined ? src.removeFeatureState({ id }) : src.setFeatureState({ id }, { [key]: null } as never)).catch(report);
+        if (src) void (key === undefined ? src.removeFeatureState({ id }) : src.setFeatureState({ id }, { [key]: unsetValue(key) } as never)).catch(report);
       },
     };
     return nativeRenderer({
@@ -202,10 +203,10 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     copy: () => copy.current,
     toCopy: { set: (id, s) => { void copyRef.current?.setFeatureState({ id }, s as never).catch(report); },
               remove: (id, key) => { void (key === undefined ? copyRef.current?.removeFeatureState({ id })
-                : copyRef.current?.setFeatureState({ id }, { [key]: null } as never))?.catch(report); } },
+                : copyRef.current?.setFeatureState({ id }, { [key]: unsetValue(key) } as never))?.catch(report); } },
     // what a clear took that was not the engine's (the highlight, pushed data) is sent again by the effects below
     restore: () => { renderer.forget(); setGen((g) => g + 1); },
-    ready: styled && drawn, theme, atlasUrl: at.atlas, report, status, standing, lakes, salmon, method, runs,
+    ready: styled && drawn, theme, atlasUrl: at.atlas, report, status, standing, lakes, salmon, method, issue, runs,
   });
   const cv = colouring.values;
   /*
@@ -376,9 +377,12 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
       if (seen.length && key !== lastSeen.current) { lastSeen.current = key; cb.current.onVisible?.(seen); }
     } catch (e) { report(e); }
   }, [report, renderer]);
-  // asked again as soon as someone (new) listens: a settled map does not draw again by itself (a tab switch)
+  // asked again as soon as someone (new) listens: a settled map does not draw again by itself (a tab switch). (T826) BY
+  // WHO LISTENS, not only whether anyone does: the Map tab zoomed in listens too (its read-ahead), so a switch to the
+  // Conditions tab handed the legend's listener a map whose set it had "already said" — the bar under the Conditions map
+  // had no marks and no count until a pan (iPhone, owner 2026-11-16). Both listeners are stable callbacks.
   useEffect(() => { lastSeen.current = ""; stale.current = true; void reportVisible(); },
-            [onVisible !== undefined, reportVisible]);
+            [onVisible, reportVisible]);
   /**
    * (T348, problem report 98935871: "the number of reaches coloured doesn't change when zoom or scroll changes") A
    * settle over tiles the map already holds need not render "fully" again, so nothing asked and the legend's count and

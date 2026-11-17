@@ -99,6 +99,11 @@ export interface Reading {
    * and the map show belongs to that other reading — and the card says both times.
    */
   rankedAt?: string | null;
+  /**
+   * (T830) The quantities the station reports live, ranked or not, as the publisher listed them (the index's `reports`).
+   * A level with no band is in it, so the card offers Level for it unranked. Absent: a feed from before it, or no index.
+   */
+  reports?: readonly Parameter[];
 }
 
 export interface GaugeLink {
@@ -223,6 +228,13 @@ export interface Panel {
    * sheet reads it from here as the map does and never from a route (`withThroughLake`). Absent on a paint/4 release.
    */
   lakeKnown?: true;
+  /**
+   * (T823, owner 2026-11-16: "Allow, with a warning") THE MEMBERS MUCH BIGGER THAN THIS WATER: the stations whose reading
+   * carries the release's small-water sentence (`text`, the conditions meta's `SMALL_WATER_TEXT_KEY`), from `flow-small`
+   * (Python's decision, per section and member; the app compares no areas). Absent where no member is flagged, or the
+   * release ships no `flow-small`. Read it through `smallNextToGauge` / `smallWaterText` (standing.ts), never here.
+   */
+  small?: { readonly stations: readonly StationId[]; readonly text: string };
 }
 
 /**

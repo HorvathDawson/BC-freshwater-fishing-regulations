@@ -135,10 +135,15 @@
     "color.ui.accent": "#A97CFF",
     "color.ui.on-accent": "#100A22",
     "color.ui.live": "#37D6EA",
+    "color.ui.coho.ink": "#F2E8D5",
+    "color.ui.coho.red": "#CF5A3C",
+    "color.ui.coho.ground": "@color.ui.card",
     "color.ui.attention": "@color.ui.ink",
     "color.ui.warning": "@color.status.own",
     "color.ui.spot": "@color.ui.ink",
     "color.ui.spot-ground": "@color.ui.card",
+    "color.ui.photo.ground": "@color.ui.shadow",
+    "color.ui.photo.ink": "@color.ui.ink",
     "color.ui.me": "#1A73E8",
     "color.ui.me-ring": "#FFFFFF",
     "color.ui.place-band": "#231A12",
@@ -177,6 +182,16 @@
     "dash.run.pass": [
       2,
       1.5
+    ],
+    "color.issue.stripe": "@color.gear.edge",
+    "color.issue.casing": "@color.outside",
+    "dash.issue.stripe": [
+      3,
+      5
+    ],
+    "dash.issue.casing": [
+      5,
+      3
     ],
     "color.cue.closed": "@color.outside",
     "dash.cue.closed": [
