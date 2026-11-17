@@ -21,7 +21,7 @@ export function closeForFinfish(page: RegsPage, finfish: readonly string[]): Reg
   const strip = k.strip && { ...k.strip, status: "closed" as const,
     line: [{ kind: "status" as const, text: WORDS.STRIP_CLOSED }, ...k.strip.line.filter((l) => l.kind === "when")] };
   const banner = { kind: "closed" as const, big: [], paras: [SALMON_WORDS.finfishClosed(finfish)], chain: [], reopen: null, merged: null };
-  const caveats = k.caveats.filter((c) => c.kind === "partclosed");
+  const caveats = k.caveats.filter((c) => c.kind === "note" || c.kind === "partclosed");   // (T796) the notes stay
   const keep = { ...k, strip, banner, caveats, groups: [], plainRows: [], otherFish: null, otherFishKey: [], possession: null,
                  order: keepOrder({ strip: !!strip, inherited: !!k.inherited, banner: true, caveats, rows: [],
                                     otherFish: false, possession: false, whereNot: !!k.whereNot }) };

@@ -123,6 +123,13 @@ export function CaveatBlock({ caveat, palette, actions, inset = true }: { caveat
     );
   };
   const head = (caveat.kind === "inpart" ? WORDS.INPART_IC : "") + caveat.title;
+  // (T796) a section's note: Python's sentence, said as it is — body text under a quiet rule, no label, nothing to open
+  if (caveat.kind === "note") return (
+    <View testID="keep-caveat" style={{ marginTop: 8, marginHorizontal: gutter, paddingTop: 6, paddingBottom: 6, paddingLeft: 10,
+                                        borderLeftWidth: 3, borderLeftColor: palette.line2 }}>
+      <Text selectable testID="kicker:note" style={[TYPE.meta, { color: palette.ink }]}>{caveat.title}</Text>
+    </View>
+  );
   const body = (
     <>
       {caveat.calm && <Text style={[TYPE.meta, { color: palette.sub, marginBottom: 4 }]}>{caveat.calm}</Text>}
