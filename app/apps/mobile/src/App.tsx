@@ -158,7 +158,8 @@ function BootNetLine({ colour }: { colour: string }) {
 
 /**
  * (T760) Under the first install's bar: said once the byte count has not moved for a minute (`useDownloadStill`), gone
- * when it moves. `bytes` null: not downloading (no line).
+ * when it moves. `bytes` null: not downloading (no line). (T738) The count is the bytes had as they are (`Progress.had`),
+ * not the bar's held-up figure: a file queued again from zero is moving while the bar holds.
  */
 function BootStillLine({ bytes, colour }: { bytes: number | null; colour: string }) {
   const { mode } = useNet();
@@ -792,7 +793,7 @@ export default function App() {
             </>
           )}
           {/* (T760) the download not moving for a minute: said (a start that never reported counts from 0 bytes) */}
-          <BootStillLine bytes={stage === "install" && !setup ? progress?.bytes ?? 0 : null} colour={palette.sub} />
+          <BootStillLine bytes={stage === "install" && !setup ? progress?.had ?? progress?.bytes ?? 0 : null} colour={palette.sub} />
           {setup && (
             <>
               <StageBar palette={palette} value={setupFraction(setup)} testID="boot-setup-bar" />
