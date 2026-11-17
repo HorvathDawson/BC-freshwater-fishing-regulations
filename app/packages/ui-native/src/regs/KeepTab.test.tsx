@@ -3,9 +3,12 @@
  * buildRegsPage over the parity store — never hand-edited). The blocks draw in `keep.order`; every block's words are the
  * VM's; links say where they go. jsdom cannot open a store, so these are the frozen VMs.
  */
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
-import { SALMON_WORDS, type KeepVM, type RegsPage, type SheetKey } from "@app/core";
+import { PixelRatio } from "react-native";
+import { GLANCE_WORDS, SALMON_WORDS, troutOf, type KeepVM, type RegsInputs, type RegsPage, type SheetKey, type TroutValue } from "@app/core";
+import vectors from "../../../../fixtures/trout/trout-vectors.generated.json";
+import { hitArea } from "./hit";
 import { KeepTab } from "./KeepTab";
 import { LIGHT } from "../theme";
 import type { KeepActions } from "./LineText";
@@ -16,7 +19,7 @@ import klwa1010 from "./fixtures/klwa_1010.json";
 import bc1501 from "./fixtures/bc1_501.json";
 import x35p1010 from "./fixtures/x35p_1010.json";
 
-afterEach(cleanup);
+afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 
 const keepOf = (f: unknown) => (f as RegsPage).keep as KeepVM;
 const TEST_ID = { strip: "keep-strip", inherited: "keep-inherited", banner: "keep-banner", otherFish: "keep-otherfish",
@@ -236,5 +239,85 @@ describe("(T531, owner 2026-11-09) each calendar owns its species", () => {
     expect(screen.getAllByTestId("strip-legend-item").map((e) => e.textContent)).toEqual(keep.strip!.legend.map((l) =>
       (l.mark ? `${l.mark} ` : "") + l.label[0]!.toUpperCase() + l.label.slice(1)));
     expect(screen.getAllByTestId("strip-legend-item")[0]!.textContent).toBe("✓ Open");
+  });
+});
+
+describe("(T810 O, owner about 17:15 \"Salmon + trout folds\") the dev switch: the trout table's one fold, and the arrow", () => {
+  const actions: KeepActions = { onSheet() {}, onDay() {}, onTab() {}, onBook() {} };
+  const salmon = { row: { source: "dfo", thumb: "CO", name: SALMON_WORDS.title, value: "closed", tone: "closed" }, card: () => <span>salmon card</span> } as const;
+  /** Vedder's page with the switch's trout table (a vector's frame, through N's troutOf), its block before the group */
+  const withTrout = (name = "fraser-r2-mission-jul15"): KeepVM => {
+    const c = (vectors as unknown as { cases: { name: string; day: string; frame: TroutValue | null }[] }).cases.find((x) => x.name === name)!;
+    const [month, day] = c.day.split("-").map(Number) as [number, number];
+    const inp = { trout: c.frame, rules: { has: () => true }, frames: { rows: { rows: { length: 1e6 } } } } as unknown as RegsInputs;
+    const keep = keepOf(vedder1010);
+    return { ...keep, trout: troutOf(inp, { month, day }, { month, day }), order: ["strip", "trout", ...keep.order.slice(1)] };
+  };
+  const tab = (keep: KeepVM, troutTable?: boolean, glance = true) =>
+    render(<KeepTab keep={keep} dateLabel="Jul 15" palette={LIGHT} actions={actions} {...(glance ? { glance: { salmon } } : {})}
+                    {...(troutTable === undefined ? {} : { troutTable })} />);
+
+  it("switch on: the salmon and trout folds end in the arrow, no 'Details'; the other fish's group fold keeps its Details", () => {
+    tab(withTrout(), true);
+    for (const k of ["salmon", "trout"]) {
+      const f = screen.getByTestId(`glance:${k}`);
+      expect([within(f).queryByTestId("glance-arrow") !== null, within(f).queryByTestId("glance-toggle"), within(f).queryByText(GLANCE_WORDS.show)], k)
+        .toEqual([true, null, null]);
+    }
+    const g = screen.getByTestId("glance:group:0");
+    expect([within(g).getByTestId("glance-toggle").textContent, within(g).queryByTestId("glance-arrow")]).toEqual([GLANCE_WORDS.show, null]);
+    expect(screen.getAllByTestId("glance:trout")).toHaveLength(1);   // ONE trout fold, the table's
+  });
+
+  it("the whole row is one 44 px press, open or folded by aria-expanded, named by exactly its visible words", () => {
+    tab(withTrout(), true);
+    const press = within(screen.getByTestId("glance:trout")).getByRole("button");
+    expect([press.getAttribute("aria-label"), press.getAttribute("aria-expanded"), hitArea(press.getAttribute("data-hitslop")!)!.h >= 44])
+      .toEqual(["Trout and char Up to 2", "false", true]);
+    expect(press.textContent).toBe("Trout and charUp to 2");
+    fireEvent.click(press);
+    expect(press.getAttribute("aria-expanded")).toBe("true");
+    expect(within(screen.getByTestId("glance-body:trout")).getByTestId("keep-trout")).toBeTruthy();
+    expect(within(screen.getByTestId("glance-body:trout")).queryByTestId("trout-kicker")).toBeNull();   // the fold names it
+    cleanup();
+    // a fold's date (the Elk in winter) is a visible word, so in the name too
+    tab(withTrout("elk-nov15"), true);
+    const elk = within(screen.getByTestId("glance:trout")).getByRole("button");
+    expect(elk.getAttribute("aria-label")).toBe("Trout and char Release until Mar 31, then closed to all fishing");
+    expect(within(elk).getByTestId("glance-date").textContent).toBe("until Mar 31, then closed to all fishing");
+    const s = within(screen.getByTestId("glance:salmon")).getByRole("button");
+    expect([s.getAttribute("aria-label"), s.getAttribute("aria-expanded")]).toEqual(["Salmon closed", "false"]);
+  });
+
+  it("(2× text) the value goes under the name, the arrow stays at the end", () => {
+    vi.spyOn(PixelRatio, "getFontScale").mockReturnValue(2);
+    tab(withTrout(), true);
+    const press = within(screen.getByTestId("glance:trout")).getByRole("button");
+    expect(within(press).getByTestId("glance-value").parentElement!.textContent).toBe("Trout and charUp to 2");   // the name's column
+    expect(press.lastElementChild!.getAttribute("data-testid")).toBe("glance-arrow");
+  });
+
+  it("switch off: the folds are today's (salmon's Details); switch on changes only the salmon fold's end, never the Other fish", () => {
+    const plain = keepOf(vedder1010);
+    const before = tab(plain).container.innerHTML;
+    cleanup();
+    expect(tab(plain, false).container.innerHTML).toBe(before);
+    expect(within(screen.getByTestId("glance:salmon")).getByTestId("glance-toggle").textContent).toBe(GLANCE_WORDS.show);
+    cleanup();
+    const rest = (root: HTMLElement) => [within(root).getByTestId("glance:group:0").innerHTML,
+      ...[...root.querySelectorAll("[data-testid='species-rows'] > div:last-child")].map((e) => e.innerHTML)];
+    const on = rest(tab(plain, true).container as HTMLElement);
+    cleanup();
+    const off = rest(tab(plain).container as HTMLElement);
+    expect(on).toEqual(off);
+    expect(off.join("")).toContain("Kokanee");
+  });
+
+  it("no at-a-glance table: the trout table in full where its block is, named by its kicker", () => {
+    const { r } = mount(withTrout());
+    // the tab's own blocks (the keep box inside the table carries T829's `keep-strip` / `keep-group` ids of its own)
+    expect([...r.container.querySelector("[data-testid='keep-tab']")!.children].map((e) => e.getAttribute("data-testid")).slice(0, 4))
+      .toEqual(["keep-strip", "keep-trout", "keep-group", "keep-otherfish"]);
+    expect(screen.getByTestId("trout-kicker").textContent).toBe("Trout and char");
   });
 });

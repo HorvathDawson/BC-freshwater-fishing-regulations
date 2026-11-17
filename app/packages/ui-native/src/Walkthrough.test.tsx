@@ -13,7 +13,7 @@
  */
 import { afterEach, describe, expect, it } from "vitest";
 import { useState, type ReactNode } from "react";
-import { act, cleanup, fireEvent, render, renderHook, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, renderHook, screen, waitFor, within } from "@testing-library/react";
 import { GLANCE_WORDS, GUIDE_WATER, HELP_WORDS, WALKTHROUGH_VERSION, WALKTHROUGH_WORDS, guideResumeAt, helpVM, type GlanceRowVM } from "@app/core";
 import { BackLayerContext } from "@app/ui";
 import { notFishingColours, tidalColours } from "@app/map";
@@ -530,6 +530,24 @@ describe("(T456) the words name only controls drawn inside the highlight", { tim
     host.rerender();
     expect(host.result.current.values["regs:salmon"]).toBe(true);
     expect(screen.getByText(GLANCE_WORDS.hide)).toBeTruthy();             // the fold opened, as a tap opens it
+  });
+  it("(T810 O) the arrow folds (dev switch): no step says \"Details\", and the walk still sees and sets the salmon and trout folds", () => {
+    // T824 cut the "Tap Details" steps; no step names the button the arrow replaces, so no wording (and no version) changes
+    expect(GUIDE_STEPS.filter((s) => /details/i.test(`${s.title} ${s.body}`)).map((s) => s.key)).toEqual([]);
+    expect(WALKTHROUGH_VERSION).toBe("walkthrough-6");
+    const host = renderHook(() => useGuideControlHost());
+    const reg = renderHook(() => useCoachRegistry()).result.current;
+    const arrow = (key: string, name: string) => ({ ...fold(key, name), arrow: true });
+    render(<GuideControlContext.Provider value={host.result.current.sink}><Coached reg={reg}>
+      <OtherFish rows={[]} keys={[]} palette={LIGHT} actions={{} as never} folds={[arrow("salmon", "Salmon"), arrow("trout", "Trout and char")]} />
+    </Coached></GuideControlContext.Provider>);
+    host.rerender();
+    expect([host.result.current.values["regs:salmon"], host.result.current.values["regs:trout"]]).toEqual([false, false]);
+    act(() => { host.result.current.set("regs:trout", true); });
+    host.rerender();
+    expect([host.result.current.values["regs:trout"], screen.queryByText(GLANCE_WORDS.show), screen.queryByText(GLANCE_WORDS.hide)])
+      .toEqual([true, null, null]);
+    expect(within(screen.getByTestId("glance:trout")).getByRole("button").getAttribute("aria-expanded")).toBe("true");
   });
 });
 
