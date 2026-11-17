@@ -2163,3 +2163,8 @@ More questions (recommended answer first):
 - About 21:32, typed in the APP chat (relayed verbatim): "the spots view also needs a lot of work to be cleaned up maybe
   put a fresh agent on it?". The app chat's T819: a fresh Opus worker reviews the spots area and brings him pictures
   and a cleanup list to pick from before anything is built.
+- About 21:37 to 21:40, typed in the APP chat (relayed verbatim): "also the calendar bar doesnt have a full red line for
+  salmon when closed but instead it is empty with no color on the calendar bar.." (T820: the salmon year bar on a
+  closed day draws empty, not the closed stripe); "when i swiper to close on apple it flashes the menu back for a
+  second before it goes back." (T821: iOS back-swipe flash); "allowed notifications in app and settings restarted app
+  and it still doesnt show up" (T822 if a bug: push registration; the staging worker holds 0 iOS tokens).
