@@ -315,6 +315,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T824 | The walkthrough: "rings what to tap" wording; glitches with the keyboard and a lagging highlight | OPEN | — | owner iPhone build 36, 2026-11-16 |
 | T826 | iOS: the Conditions panel and map differ from Android (no gauge markers, no bar, Chehalis empty); the tap highlight stays after going back | OPEN | — | owner iPhone build 36, 2026-11-16 |
 | T823 | "Small next to its gauge": Python decides when a section's lead gauge reading needs a warning; the release ships it | OPEN | — | owner 2026-11-16 (spots) |
+| T825 | 251 side-channel sections are led by a gauge far upstream (lower Fraser side channels read Red Pass) | OPEN | — | T823 measurement 2026-11-16 |
 
 ## Next after closed testing
 
