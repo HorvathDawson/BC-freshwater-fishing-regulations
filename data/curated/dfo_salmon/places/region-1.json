@@ -197,7 +197,7 @@
       "item_ids": [
         "gnis:12227"
       ],
-      "tributaries": true,
+      "tributaries": false,
       "match": {
         "status": "matched",
         "via": "override",

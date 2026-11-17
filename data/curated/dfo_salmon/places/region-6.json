@@ -495,7 +495,7 @@
         "D"
       ],
       "item_ids": [
-        "blk:360846083"
+        "wsc:950-016367"
       ],
       "tributaries": null,
       "match": {
@@ -1359,7 +1359,8 @@
         "B(i)"
       ],
       "item_ids": [
-        "wbk:329026676"
+        "wbk:-24",
+        "wbk:-25"
       ],
       "tributaries": true,
       "match": {
@@ -3502,7 +3503,7 @@
         "extents": [
           {
             "op": "whole",
-            "item_id": "blk:360846083"
+            "item_id": "wsc:950-016367"
           }
         ],
         "tributaries": null,
@@ -6148,7 +6149,10 @@
         "extents": [
           {
             "op": "whole",
-            "item_id": "wbk:329026676"
+            "item_ids": [
+              "wbk:-24",
+              "wbk:-25"
+            ]
           }
         ],
         "tributaries": true,
@@ -8541,7 +8545,11 @@
       "binding": {
         "extents": [
           {
-            "op": "whole"
+            "op": "upstream_of",
+            "splits": [
+              "gitnadoix_river__powerline_crossing_near_the_mouth"
+            ],
+            "item_id": "gnis:3508"
           }
         ],
         "tributaries": true,
@@ -11741,7 +11749,10 @@
         "extents": [
           {
             "op": "whole",
-            "item_id": "wbk:329026676"
+            "item_ids": [
+              "wbk:-24",
+              "wbk:-25"
+            ]
           }
         ],
         "tributaries": false,

@@ -81,7 +81,7 @@ def parse(doc: Mapping, where: str = "tidal.json") -> list[Limit]:
     out, seen = [], set()
     for r in doc.get("waters") or ():
         blk, lim = str(r.get("blk") or ""), r.get("limit")
-        if not blk.isdigit():
+        if not blk.removeprefix("-").isdigit():           # an added stream's blk is negative (T806: Sheldens)
             raise ValueError(f"{where}: a row with no blue line: {r}")
         if lim not in LIMITS:
             raise ValueError(f"{where}: {blk}: limit {lim!r} is not one of {', '.join(LIMITS)}")

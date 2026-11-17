@@ -3,7 +3,7 @@
  "_licence": {
   "spdx": "ODbL-1.0",
   "attribution": "\u00a9 OpenStreetMap contributors",
-  "applies_to": "the `streams[]` and `name_variants[]` entries whose `source` is \"osm\" (geometry, name, segments; today Northrop Channel, blk -2300000000, from data/source/municipal/osm_streams.geojson). Every other entry is from a city stream layer under that city's open government licence (Abbotsford, Burnaby, Port Moody, Squamish: see pipeline/atlas/waters/added_streams/SOURCES.md).",
+  "applies_to": "the `streams[]` and `name_variants[]` entries whose `source` is \"osm\" (geometry, name, segments; today Northrop Channel, blk -2300000000, from data/source/municipal/osm_streams.geojson). The `manual` entries are drawn by hand for this project (today the Sheldens Creek estuary channel, blk -2400000001, from data/source/municipal/manual_streams.geojson). Every other entry is from a city stream layer under that city's open government licence (Abbotsford, Burnaby, Port Moody, Squamish: see pipeline/atlas/waters/added_streams/SOURCES.md).",
   "url": "https://opendatacommons.org/licenses/odbl/1-0/",
   "source": "https://www.openstreetmap.org/copyright",
   "notice": "data/LICENSE-ODbL.md"
@@ -2725,6 +2725,13 @@
    "target_blk": "-2300000000",
    "target_gnis": "",
    "source": "osm"
+  },
+  {
+   "kind": "added",
+   "name": "Sheldens Creek",
+   "target_blk": "-2400000001",
+   "target_gnis": "",
+   "source": "manual"
   }
  ],
  "streams": [
@@ -74660,6 +74667,147 @@
     ],
     "gap_m": 111.4
    }
+  },
+  {
+   "blk": "-2400000001",
+   "wsc": "950-016367",
+   "name": "Sheldens Creek",
+   "source": "manual",
+   "src_id": "manual-1",
+   "klass": "novel",
+   "ftype": "stream",
+   "fish": "",
+   "species": "",
+   "stream_order": 2,
+   "stream_magnitude": 7,
+   "receiver_kind": "tidal",
+   "receiver_blk": "",
+   "receiver_wsc": "",
+   "base_measure": 0.0,
+   "connector": null,
+   "segments": [
+    {
+     "coords3005": [
+      [
+       616007.5872490519,
+       920166.8130661766
+      ],
+      [
+       615996.6727282781,
+       920139.7188800544
+      ],
+      [
+       615988.7214512136,
+       920107.9056012825
+      ],
+      [
+       615981.4063439469,
+       920034.6238561185
+      ],
+      [
+       615963.5679123139,
+       919980.1101657802
+      ],
+      [
+       615947.5428363356,
+       919947.8359939982
+      ],
+      [
+       615931.5175753804,
+       919915.5618807048
+      ],
+      [
+       615911.7124648527,
+       919877.99924904
+      ],
+      [
+       615882.3818384858,
+       919846.8104508306
+      ],
+      [
+       615847.5774839555,
+       919830.6200919001
+      ],
+      [
+       615799.8306979195,
+       919819.9632848854
+      ],
+      [
+       615746.156957141,
+       919818.7454938209
+      ],
+      [
+       615699.1356592834,
+       919816.9854493538
+      ],
+      [
+       615665.6008289814,
+       919816.363971394
+      ],
+      [
+       615625.9579869837,
+       919822.9574837604
+      ],
+      [
+       615596.6570364991,
+       919833.184669486
+      ],
+      [
+       615591.6383080664,
+       919853.7430434364
+      ],
+      [
+       615587.2550025067,
+       919882.085177225
+      ],
+      [
+       615579.999427005,
+       919916.2586550205
+      ],
+      [
+       615615.0765550253,
+       919935.7829371633
+      ],
+      [
+       615643.501064166,
+       919955.8504167576
+      ],
+      [
+       615653.752674753,
+       919982.9980557754
+      ],
+      [
+       615645.1664571309,
+       920017.280030818
+      ],
+      [
+       615640.7831488533,
+       920045.6221312891
+      ],
+      [
+       615652.5765408147,
+       920067.0470612316
+      ],
+      [
+       615687.652322489,
+       920086.5718962669
+      ],
+      [
+       615705.4623318645,
+       920099.6703161389
+      ],
+      [
+       615724.5425915661,
+       920128.3363611469
+      ],
+      [
+       615733.8580016315,
+       920150.9189972164
+      ]
+     ],
+     "wbk": ""
+    }
+   ]
   }
  ]
 }
