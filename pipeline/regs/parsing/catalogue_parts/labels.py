@@ -522,8 +522,10 @@ def _lift_name(x: "Exempts", siblings: Optional[dict] = None,
 
 def _lifted_names(r: CatalogueRule, siblings: Optional[dict] = None,
                   entries: Optional[dict] = None) -> list:
-    """The names of what `r` lifts (`_lift_name`), each once."""
-    return list(dict.fromkeys(n for n in (_lift_name(x, siblings, entries) for x in r.exempts)
+    """The names of what `r` lifts (`_lift_name`), each once. The lifted rule is named WITHOUT `r` among its siblings:
+    a lift never quotes itself back (T789 K8, `exempted_on_an_undrawn_part`)."""
+    others = {k: v for k, v in siblings.items() if k != r.rule_id} if siblings else siblings
+    return list(dict.fromkeys(n for n in (_lift_name(x, others, entries) for x in r.exempts)
                               if n))
 
 
@@ -601,6 +603,20 @@ def on_parts_words(r: CatalogueRule) -> str:
         return ""
     m = _ON_PARTS.search(r.verbatim or "")
     return f"on {m.group('n').lower()}" if m else ""
+
+
+def exempted_on_an_undrawn_part(r: CatalogueRule, siblings: Optional[dict]) -> str:
+    """(T789 K8, owner-approved for 0.8.0) THE BOOK'S EXEMPTION, SAID WITH THE RULE IT EXEMPTS, when the exemption holds
+    on a part no map draws: Shuswap Lake p.32, "(anglers fishing from the community pier in the city of Salmon Arm are
+    exempt from the closure)" after the Salmon Arm Bay closure, and the same "… exempt from the bait ban" after the bait
+    ban. The lift (`shuswap_lake.r5x`, `r11x`) is an undrawn part and has no verdict, so no reader drew it: the
+    exempted rule's own line carries the sentence, in brackets as printed. "" when no undrawn sibling lifts it."""
+    for s in (siblings or {}).values():
+        if s.rule_id == r.rule_id or not s.undrawn_part:
+            continue
+        if any(x.target == r.rule_id and not x.entry_id for x in s.exempts or ()):
+            return re.sub(r"[\s.;]+$", "", s.verbatim or "")
+    return ""
 
 
 def label_parts(r: CatalogueRule, siblings: Optional[dict] = None, place_of=None,
@@ -759,6 +775,9 @@ def label_parts(r: CatalogueRule, siblings: Optional[dict] = None, place_of=None
     # rule, and the reader shows the verbatim.
     p["conditions"] = ", ".join(cond)
     p["duty"] = "; ".join(d[:1].lower() + d[1:] for d in duty)
+    note = exempted_on_an_undrawn_part(r, siblings)
+    if note and p.get("what"):
+        p["what"] = f"{p['what']} ({note})"
     out = {}
     for k in LABEL_PARTS:
         v = re.sub(r"\s+", " ", _EMPHASIS.sub("", p.get(k) or "")).strip()
