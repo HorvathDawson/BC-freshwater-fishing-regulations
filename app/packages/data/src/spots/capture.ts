@@ -10,7 +10,7 @@
  */
 import { freezeTrace, leadUpDays, localDate, reported, reportFailure, type FrozenTrace, now as clockNow } from "@app/core";
 import { answerFrom } from "../panel";
-import { leadOver, speakerFor, speaks, type Speaker } from "../standing";
+import { leadOver, smallWaterText, speakerFor, speaks, type Speaker } from "../standing";
 import type { ItemId, WaterSource, SectionId, StationId } from "../index";
 import type { DailyWeather, Spot, SpotReading, SpotWeather } from "./model";
 import { leadUpFor } from "./leadup";
@@ -133,6 +133,11 @@ export async function captureSpot(raw: CaptureInput): Promise<Spot> {
   // (T586, T580 F9) ONE LEAD per water and day, chosen in FLOW as the sheet chooses it (`leadOver`): what the angler was looking
   // at (Flow or Level) never picks it, so the frozen flow estimate and the lead agree; the level ranking only where no gauge answers in flow.
   const lead = leadOver(speaker, { discharge: panel?.rows ?? [], level: levelRows ?? [] }, null).lead;
+  // (T819 item 3, owner 2026-11-16) THE SPOT'S GAUGE IS THE NETWORK THE MAP COLOURS WITH: this speaker's lead, as the
+  // sheet's, so a spot never says what the map and the sheet do not. A lead far bigger than the water still speaks, with
+  // a warning (owner: "Allow, with a warning"); WHEN and the sentence are Python's (T823: `Panel.small`, the release's
+  // `small_water_text`, through `smallWaterText`), frozen below; no ratio or threshold in TS.
+  const smallText = smallWaterText(speaker, lead);
   const [reading, trace, weather, leadUp] = await Promise.all([
     // an earlier trip day holds no live reading: its flow is that day's record (`dayFlow`, below)
     earlier ? Promise.resolve(lead ? { station: lead, discharge: null, level: null, percentile: null, at: null } : null)
@@ -156,6 +161,8 @@ export async function captureSpot(raw: CaptureInput): Promise<Spot> {
     title: input.title || waterName || "",
     notes: "", photos: [],
     reading, weather, trace, leadUp,
+    // the warning, frozen with the estimate it is about (T823)
+    ...(smallText ? { smallWater: smallText } : {}),
   };
   // the trip day's own flow, through the one fill a refresh and "Get the flow for that day" use; offline: asked later
   return earlier ? (await fillDayFlow(spot, ports, now)).spot : spot;

@@ -89,7 +89,10 @@ export const spots = {
     });
     let editing = false;
     await ctx.step('edit offline: notes typed (keyboard up: is "Save changes" above it?)', async () => {
-      ctx.flow('spot-notes', { TITLE: spot.title, NOTES: 'edited offline by the test bed', SHOT: path.join(ctx.dir, 'spots-notes') });
+      // (T819) SHOT is RELATIVE: Maestro (2.x) refuses a takeScreenshot path outside its own --test-output-dir, so an
+      // absolute path into the run folder failed the flow at its first screenshot (the edit was never reached); the
+      // shots now land beside the flow's own log, in maestro/spots/<run>/
+      ctx.flow('spot-notes', { TITLE: spot.title, NOTES: 'edited offline by the test bed', SHOT: 'spots-notes' });
       await d.sleep(1500);
       const w = d.screenText();
       editing = w.some((x) => /edited offline by the test bed/.test(x));

@@ -39,15 +39,15 @@ describe("useCaptureSpot", () => {
   it("opens on now, and will not step to a later day", () => {
     const { out, r } = mount();
     act(() => out.api!.shiftDay(1));
-    expect(r.container.textContent).toBe(`${new Date(NOW).toDateString()} 14:00|0||`);
+    expect(r.container.textContent).toBe(`Sun 30 Aug 2 pm|0||`);
   });
 
   it("steps back a day, and a quick chip goes to that day from wherever it is", () => {
     const { out, r } = mount();
     act(() => out.api!.shiftDay(-1));
-    expect(r.container.textContent).toBe(`${new Date(2026, 7, 29).toDateString()} 14:00|-1||`);
+    expect(r.container.textContent).toBe(`Sat 29 Aug 2 pm|-1||`);
     act(() => out.api!.toDay(-2));
-    expect(r.container.textContent).toBe(`${new Date(2026, 7, 28).toDateString()} 14:00|-2||`);
+    expect(r.container.textContent).toBe(`Fri 28 Aug 2 pm|-2||`);
   });
 
   it("clamps an hour later than now to now", () => {
@@ -65,7 +65,7 @@ describe("useCaptureSpot", () => {
     expect(ok).toBe(true);
     expect(out.api!.draft!.visitedAt).toBe(new Date(2026, 7, 29, 14, 20).getTime());
     expect("section" in out.api!.draft!).toBe(false);
-    expect(r.container.textContent).toBe(`${new Date(2026, 7, 29).toDateString()} 14:00|-1|Chilliwack River|`);
+    expect(r.container.textContent).toBe(`Sat 29 Aug 2 pm|-1|Chilliwack River|`);
   });
 
   it("a capture that fails says why, whole, and leaves no draft", async () => {
@@ -74,7 +74,7 @@ describe("useCaptureSpot", () => {
     await act(async () => { ok = await out.api!.capture(water, point, ""); });
     expect(ok).toBe(false);
     expect(r.container.textContent)
-      .toBe(`${new Date(NOW).toDateString()} 14:00|0||This spot was not saved (offline). It is still on screen; try again.`);
+      .toBe(`Sun 30 Aug 2 pm|0||This spot was not saved (offline). It is still on screen; try again.`);
   });
 
   it("saves the draft with the title and notes typed, and a failed save is said whole", async () => {
@@ -85,7 +85,7 @@ describe("useCaptureSpot", () => {
     expect([saved[0]!.title, saved[0]!.notes, saved[0]!.updatedAt]).toEqual(["Tamihi run", "two on a bead", NOW]);
     await act(async () => { await out.api!.save("", "", async () => { throw new Error("disk full"); }); });
     expect(r.container.textContent).toBe(
-      `${new Date(NOW).toDateString()} 14:00|0|Chilliwack River|This spot was not saved (disk full). It is still on screen; try again.`);
+      `Sun 30 Aug 2 pm|0|Chilliwack River|This spot was not saved (disk full). It is still on screen; try again.`);
   });
 });
 

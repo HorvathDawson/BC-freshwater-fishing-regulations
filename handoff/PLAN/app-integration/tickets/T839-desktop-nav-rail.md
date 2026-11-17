@@ -1,6 +1,6 @@
 # T839 — Web on a desktop: the Map / Conditions / Spots / More bar moves to a left navigation rail
 
-Status: IN PROGRESS (built on branch app-fix/t839-desktop-rail; owner look owed)
+Status: IN PROGRESS (built on branch app-fix/t839-desktop-rail; owner picked "Land it" 12:30)
 
 Source: owner 2026-11-17 ~11:48, app chat (verbatim): "also desktop mode on webapp should maybe move the bottom
 map.conditions. spots, more bar somewhere more standard for desktop. maybe on side or top please choose the most
@@ -33,4 +33,5 @@ Size: M. Owner look: shots before landing.
 - Note: the app has FIVE tabs (Runs between Conditions and Spots), not four; the rail draws all of them.
 - Tests: `NavRail.shell.test.tsx` (rail at 1280; bar at 390 / 899 / 1279; none in regs mode); `a11y.shell.test.tsx` now tells
   the app its width, so the T243 desktop rows draw the rail, plus a rail-in-the-gate case.
+- The walkthrough card (`GuideCard` `left`) starts right of the rail at desktop; a test holds it.
 - Shots: web 1440 x 900 light and dark, each tab, plus phone 390.

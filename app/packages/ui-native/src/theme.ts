@@ -57,6 +57,11 @@ export interface Palette {
    */
   spot: { mark: string; ground: string };
   /**
+   * (T819 item 4) A SPOT'S PHOTOGRAPH FULL SCREEN — `color.ui.photo.ground` / `color.ui.photo.ink`: the viewer's black
+   * ground and its white words and controls, the same look in every theme (it drew on `ink`, light grey in dark mode).
+   */
+  photo: { ground: string; ink: string };
+  /**
    * A TOWN, not a water — `color.label.place`. The search results put places in their own
    * group above the waters, and the pin that marks a town on the map wears the same colour,
    * so "this row is that pin" reads without a legend. Neutral, like the basemap's own town
@@ -284,6 +289,7 @@ export function paletteFor(theme: string): Palette {
     live: c("color.ui.live"), attention: c("color.ui.attention"),
     coho: { ink: c("color.ui.coho.ink"), red: c("color.ui.coho.red"), ground: c("color.ui.coho.ground") },
     spot: { mark: c("color.ui.spot"), ground: c("color.ui.spot-ground") },
+    photo: { ground: c("color.ui.photo.ground"), ink: c("color.ui.photo.ink") },
     place: c("color.label.place"), placeBand: c("color.ui.place-band"),
     warning: c("color.ui.warning"),
     noAccessBand: laid(c("color.ui.warning"), c("color.ui.card"), NO_ACCESS_BAND),

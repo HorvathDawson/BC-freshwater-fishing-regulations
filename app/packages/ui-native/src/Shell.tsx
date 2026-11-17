@@ -28,7 +28,7 @@ import { GUIDE_WATER, WATER_SCREEN_WORDS, bellLabel, releaseNoticeVM, dayRange, 
 import { openProbe, type ItemId, type SectionId } from "@app/data";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Platform, View } from "react-native";
-import { bottomBarShown, tabsAsRail, useLayoutClass, spotPins, useDayFlow, useLikeVisit, useMapRail, useMyLocation, useOpenAtMe, opensAtMe, useShare, useGaugePageCheck, useMenu, useDataFacts, useSync, useAppUpdate,
+import { bottomBarShown, tabsAsRail, useLayoutClass, spotPins, useDayFlow, useLikeVisit, useMapRail, useStationNames, useMyLocation, useOpenAtMe, opensAtMe, useShare, useGaugePageCheck, useMenu, useDataFacts, useSync, useAppUpdate,
          BackLayerContext, InSeasonContext, InSeasonInboxContext, useIdleOnce, useInSeason, loadRegsStore, useInSeasonInbox, useDfoNotice, useDfoCheckedAt, useReleasePrefetch, useBackgroundPrefetch, useWaterRegionsAhead, useNet, useNetQuiet, useRegsPrefetch, holdsMapStatus, pressCueStore, tapAhead, useTapAwaiting, useHeldLookStore, type HeldLookStore, type RegsStart } from "@app/ui";
 import type { Camera, MapSpots } from "@app/map";
 import { visitSpot } from "@app/data/spots";
@@ -464,6 +464,8 @@ export function Shell(p: ShellProps) {
   // day's flow is that visit's
   const shownVisit = viewing ? visitSpot(viewing, spotEdit.shownVisit) : null;
   const like = useLikeVisit(viewing, { weather, feed }, p.likeStore, Date.now, connectivity, shownVisit?.visitId ?? null);
+  // (T819 item 7) the open spot names its gauges from the release's stations (read once; codes until they arrive)
+  const stationNames = useStationNames(viewing ? source : null);
   // T170: the visit day's own flow, and the action that asks for it (waits offline, asks again when back)
   const dayFlow = useDayFlow(shownVisit, p.onDayFlow, connectivity);
   const withInSeason = (n: React.ReactNode) => (
@@ -518,7 +520,7 @@ export function Shell(p: ShellProps) {
       <SpotHost viewing={viewing} spotEdit={spotEdit} nav={nav} palette={palette} camera={camera} like={like}
                 dayFlow={dayFlow} photos={photos} onSaveSpot={onSaveSpot} onDeleteSpot={p.onDeleteSpot}
                 onRefreshSpots={p.onRefreshSpots} refreshing={p.refreshing} show={rail.show}
-                tiles={tiles} theme={theme} locate={locate}
+                tiles={tiles} theme={theme} locate={locate} names={stationNames}
                 // (T294) "Add a visit" reads the water the way adding a spot does
                 visitSources={{ source, weather, feed,
                                 history: { ...(hydat ? { hydat } : {}),
@@ -538,10 +540,10 @@ export function Shell(p: ShellProps) {
                    theme={theme} camera={camera.current}
                    onCancel={back}
                    // awaited: a rejection reaches SpotCapture, which shows it and stays open (P01)
-                   // saved: the spot itself, over the map it was added from (back returns to that map)
+                   // saved: the spot itself, on the Spots tab (T819 item 12: back is the list it is in, not the map)
                    onSaved={async (s) => {
                      await onSaveSpot(s);
-                     go({ type: "openSpot", id: s.id });
+                     go({ type: "savedSpot", id: s.id });
                    }} />
     ));
 

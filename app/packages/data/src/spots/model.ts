@@ -254,6 +254,12 @@ export interface Spot {
    */
   panel: PanelAnswer | null;
   /**
+   * (T819 item 3 → T823) THE "SMALL NEXT TO ITS GAUGE" WARNING, frozen with the estimate: the release's sentence (meta
+   * `small_water_text`) when Python marked the speaker's lead small for this water (`smallNextToGauge`). Absent: no
+   * warning. Never composed by the app.
+   */
+  smallWater?: string;
+  /**
    * The week before the visit: daily weather and the station's daily means (S1). Absent on a spot saved before this
    * existed, which reads exactly as null — not recorded — and a refresh fills it in.
    */

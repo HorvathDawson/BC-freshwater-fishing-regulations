@@ -305,7 +305,9 @@ export const TRACE_WORDS = {
  * Says what is true, including when that is "we cannot tell you" — the sentence a person
  * needs is different in each case, and a generic one would be wrong in all of them.
  */
-export function traceSentence(t: AnyTrace): string {
+export function traceSentence(t: AnyTrace,
+                              /** (T819 item 7) how the station is said: a saved spot names it; the code by default */
+                              said: string | null = t.station): string {
   if (t.station === null)
     return "No station drains enough of this water to speak for it. One that did not " +
            "would still give you a number, and the number would be wrong.";
@@ -316,10 +318,10 @@ export function traceSentence(t: AnyTrace): string {
   if (t.rel === "up" || t.rel === "up_branch") {
     const on = t.rel === "up" ? "on this water" : "on a tributary of this water";
     return d === null || (t.metres ?? 0) < 500
-      ? `${t.station} is just upstream, ${on}: water here has already passed it.`
-      : `${t.station} is ${d} upstream, ${on}: water here has already passed it.`;
+      ? `${said} is just upstream, ${on}: water here has already passed it.`
+      : `${said} is ${d} upstream, ${on}: water here has already passed it.`;
   }
   return d === null
-    ? `This reach drains through ${t.station}.`
-    : `Water here flows ${d} down to ${t.station}.`;
+    ? `This reach drains through ${said}.`
+    : `Water here flows ${d} down to ${said}.`;
 }

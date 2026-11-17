@@ -166,6 +166,11 @@ export type RouteAction =
    */
   | { type: "close" }
   | { type: "openSpot"; id: SpotId }
+  /**
+   * (T819 item 12) A SPOT JUST SAVED opens on the Spots tab, whichever map it was picked on: its ‹ says Spots and back
+   * goes to the list it is now in (it opened over the Map tab, with back to the map).
+   */
+  | { type: "savedSpot"; id: SpotId }
   /** Start adding a spot, at a point when one was given (a long press, a tap in pick mode, the reader's location). */
   | { type: "addSpot"; at?: (LatLon & { accuracy?: number }) | null };
 
@@ -236,6 +241,7 @@ export function reduce(r: Route, a: RouteAction): Route {
       }
       // a spot opens over the map it was picked on (the rail's menu); back returns to that map
       case "openSpot": return { ...r, spot: a.id, adding: null, search: false };
+      case "savedSpot": return { mode: "browse", tab: "spots", spot: a.id, adding: null, search: false };
       case "addSpot": return { ...r, adding: { at: a.at ?? null }, spot: null, search: false };
       case "back":
         if (r.adding !== null) return { ...r, adding: null };

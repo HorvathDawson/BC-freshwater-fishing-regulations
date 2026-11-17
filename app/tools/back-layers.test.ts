@@ -152,6 +152,7 @@ const COVERED: Record<string, string> = {
   "packages/ui-native/src/spot/Confirm.tsx#Confirm: takes onCancel": "SpotScreen's layer answers back while a confirm is shown (keep)",
   "packages/ui-native/src/SpotCapture.tsx#WhenScreen: takes onBack": "a capture step; SpotCapture's layer steps back from it",
   "packages/ui-native/src/SpotCapture.tsx#Coach: takes onCancel": "the capture's banner; SpotCapture's layer is its back",
+  "packages/ui-native/src/SpotScreen.tsx#SpotScreen: opens recordOpen": "(T819 item 5) an inline disclosure on the draft (its record folded to one card), not an overlay: the card's own tap folds it; back is SpotCapture's step back",
   "packages/ui-native/src/menu/InfoPages.tsx#AboutPage: draws AboutPage": "a menu page's CONTENT: MenuHost draws it inside <MenuPage>, which registers (useBackLayer)",
   "packages/ui-native/src/menu/InfoPages.tsx#SourcesPage: draws SourcesPage": "a menu page's CONTENT: MenuHost draws it inside <MenuPage>, which registers (useBackLayer)",
   "packages/ui-native/src/menu/HelpPage.tsx#HelpPage: draws HelpPage": "(T248) a menu page's CONTENT: MenuHost draws it inside <MenuPage>, which registers (useBackLayer)",
@@ -258,6 +259,8 @@ describe("back, everywhere: every surface registers a back layer", () => {
       "packages/ui-native/src/SpotCapture.tsx#Coach: takes onCancel",
       "packages/ui-native/src/SpotDropSheet.tsx#SpotDropSheet: takes onCancel",
       "packages/ui-native/src/SpotPickBanner.tsx#SpotPickBanner: takes onCancel",
+    "packages/ui-native/src/SpotScreen.tsx#SpotScreen: opens recordOpen",
+    "packages/ui-native/src/SpotsScreen.tsx#SpotsScreen: opens addOpen",
       "packages/ui-native/src/SyncErrorSheet.tsx#SyncErrorSheet: takes onClose",
       // (T60) SpotScreen read "takes onBack" only from its bottom row's `? p.onBack : leaveEdit` ternary; that second
       // Back button is gone (one surface per action). It still registers (`useBackLayer`) and back.test drives it.

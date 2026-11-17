@@ -123,6 +123,20 @@ export function tap(device, n) {
 }
 
 /**
+ * Which way to drag for a node that is in the tree but not inside the band: 1 = further down the page, -1 = back up,
+ * null = not known (not in the tree). A node cut by an edge goes its way. A node wholly OUTSIDE its scroll view comes
+ * back with its box clipped to the view and so inside out (y1 ≤ y0): above the view it keeps the view's top as y0 and
+ * its own bottom as y1; BELOW it keeps its own top as y0 and the view's bottom as y1 (seen T819: the week-before
+ * caption at [2285][2193] under a view ending at 2193). Read as "above" it sent the drag up, away from it.
+ */
+export function wayTo(hit, { top, bottom }) {
+  if (!hit) return null;
+  if (shown(hit)) return hit.box.y1 > bottom ? 1 : -1;
+  if (hit.box.y1 <= hit.box.y0) return hit.box.y0 > (top + bottom) / 2 ? 1 : -1;
+  return null;
+}
+
+/**
  * Scroll the page until the selector's node sits whole between `top` and `bottom` (px: under the screen's fixed header,
  * above its foot), then return it. A drag of `step` px a time, slow enough not to fling; it turns round once at the
  * page's end. Throws naming the id when it never shows. The drag runs down the screen's LEFT EDGE (`x`), in the page's
@@ -135,10 +149,7 @@ export async function scrollTo(device, sel, { prefix = false, top = 720, bottom 
   for (let i = 0; i < max; i++) {
     const { ns, hit } = await get();
     if (hit && shown(hit) && hit.box.y0 >= top && hit.box.y1 <= bottom) return hit;
-    // the node is in the tree above the band (scrolled under the header) or cut by an edge: go its way
-    let d = dir;
-    if (hit && shown(hit)) d = hit.box.y1 > bottom ? 1 : -1;
-    else if (hit && hit.box.y1 <= hit.box.y0) d = -1;
+    let d = wayTo(hit, { top, bottom }) ?? dir;
     const sig = ns.filter(shown).map((n) => `${n.id}${n.text}${n.box.y0}`).join('|');
     if (sig === prev) { if (turned) break; turned = true; dir = -dir; d = dir; }   // the page's end: once, the other way
     prev = sig;

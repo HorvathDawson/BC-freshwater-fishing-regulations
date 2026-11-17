@@ -38,7 +38,7 @@ describe("likeVisitView", () => {
       "Like your visit?",
       "How alike each of the next five days looks to the day you were here. The river's flow and the rain in the "
         + "three days before count most, then cloud and air pressure, then air temperature and wind.",
-      { top: "Your visit", sub: "30 Aug", label: "Your visit, 30 Aug: the day the others are compared with." },
+      { top: "Your visit", sub: "Sun 30 Aug", label: "Your visit, Sun 30 Aug: the day the others are compared with." },
       "Forecast checked 2h ago.", null]);
     const ALL = ["Flow: the same", "Rain in the 3 days before: the same", "Cloud: the same", "Pressure: the same",
                  "Air temperature: the same", "Wind: the same"];
@@ -152,5 +152,21 @@ describe("useLikeVisit", () => {
     // flow 12 points lower now: 1 − 0.25 × 0.24 = 0.94
     expect(container.textContent).toBe("Forecast checked just now.|94%");
     expect(JSON.parse(text!).s1.flow["2026-10-22"]).toBe(0.3);
+  });
+});
+
+/*
+ * (T819 item 9) A VISIT MADE TODAY HAS NO "TODAY" ROW: it compared the visit with itself ("100%, everything the same").
+ * Each day keeps one line, its single biggest difference. Mutation: keeping today fails the dates.
+ */
+describe("likeVisitView, a visit made today (T819)", () => {
+  it("leaves today out and leads each day with its biggest difference", () => {
+    const today = new Date(2026, 9, 22, 8).getTime();
+    const v = likeVisitView({ ...spot, visitedAt: today, createdAt: today }, FETCHED, false, NOW);
+    expect(v.days!.map((d) => d.date)).toEqual(["2026-10-23", "2026-10-24", "2026-10-25", "2026-10-26"]);
+    expect(v.days!.map((d) => [d.top, d.sub])[0]).toEqual(["Tomorrow", "Fri 23 Oct"]);
+    expect(likeVisitView(spot, FETCHED, false, NOW).days!.map((d) => d.date)[0]).toBe("2026-10-22");
+    expect(v.days!.every((d) => d.lead === null || d.reasons.includes(d.lead) || d.lead === "Much the same as your visit"))
+      .toBe(true);
   });
 });

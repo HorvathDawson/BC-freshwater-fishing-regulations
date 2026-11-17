@@ -20,7 +20,7 @@ describe("the B.C. day of an instant, on a device in another zone", () => {
   });
   it("a visit's day steps, hours and lead-up days are B.C.'s", () => {
     const now = T + 3_600_000;
-    expect(visitSteps(T, now)).toMatchObject({ dayOffset: 0, hour: 22, hourLabel: "22:00", dayText: "Wed Nov 04 2026" });
+    expect(visitSteps(T, now)).toMatchObject({ dayOffset: 0, hour: 22, hourLabel: "10 pm", dayText: "Wed 4 Nov" });
     expect(localDate(shiftVisitDay(T, -1, now))).toBe("2026-11-03");
     expect(localDateTime(setVisitHour(T, 7, now))).toBe("2026-11-04 at 07:00");
     expect(leadUpDays(T, 2)).toEqual(["2026-11-02", "2026-11-03"]);

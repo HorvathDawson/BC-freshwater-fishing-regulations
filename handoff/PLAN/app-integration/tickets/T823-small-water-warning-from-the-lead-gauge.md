@@ -1,6 +1,6 @@
 # T823 — "Small next to its gauge": Python decides when a section's lead gauge reading needs a warning; the release ships it
 
-Status: OPEN (owner 2026-11-16; data half of the app chat's spots cleanup).
+Status: IN PROGRESS (f7b41c208; app half landed 2026-11-17 in land/app-1117; the pipeline half and the release that ships it are the main chat's).
 
 Source: owner 2026-11-16 (relayed by the app chat, spots cleanup), on a 1.4 km² creek shown "Below normal" from a
 gauge 676× bigger: "Could we just use our gauge network that colors stuff wtc to determine if it is significant

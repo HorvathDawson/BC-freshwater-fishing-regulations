@@ -6,8 +6,7 @@
  * carries its day said whole as its label, so a screen reader hears "Mon Aug 24: rain, high 17°C …" rather than a
  * grid of numbers.
  */
-import { useRef } from "react";
-import { ScrollView, View, type ScrollViewInstance } from "react-native";
+import { View } from "react-native";
 import { Text } from "./Text";
 import { LEAD_UP_WORDS } from "@app/data/spots";
 import type { LeadUpView } from "@app/ui";
@@ -43,7 +42,7 @@ export function LeadUpStrip({ view, palette }: { view: LeadUpView; palette: Pale
               <View key={d.day} accessible accessibilityLabel={d.label}
                     style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 6,
                              borderTopWidth: i === 0 ? 0 : 1, borderTopColor: palette.line }}>
-                <Text style={{ ...TYPE.small, width: 64, color: palette.faint }}>{d.day}</Text>
+                <Text style={{ ...TYPE.small, width: 84, color: palette.faint }}>{d.day}</Text>
                 <Text style={{ ...TYPE.figure, color: palette.live }}>{d.value}</Text>
                 <Text style={{ ...TYPE.small, flex: 1, minWidth: 0, textAlign: "right", color: palette.faint }}>{d.place}</Text>
               </View>
@@ -60,45 +59,48 @@ export function LeadUpStrip({ view, palette }: { view: LeadUpView; palette: Pale
 
 /** How much of the water colour each rain band lays over the card (the number is printed too: colour is not the only cue). */
 const RAIN_ALPHA = [0, 0.14, 0.28, 0.44] as const;
-const COL = 64, LABEL = 58, ROW = 34;
+const LABEL = 54, DAY = 44, ROW = 32, TEMP = 44;
 
 /**
- * (T284) The week's weather as a forecast table: a column a day, rows stacked — day, sky, high / low, rain (tinted by how
- * much), wind — with the row names said once at the left and held there while the days scroll. The scroll opens on the
- * last day, the one next to the visit. Wide enough, it shows every day without scrolling.
+ * (T284; T819 item 8) The week's weather as a forecast table: a column a day, rows stacked — day (its weekday over its
+ * date), sky, high over low, rain (tinted by how much), wind — with the row names and their units said once at the
+ * left. SEVEN COLUMNS FIT A PHONE: no sideways scroll (on the web it opened scrolled to the end, the first day cut off),
+ * each column a seventh of what is left beside the labels, every value a bare number so it fits a 40 px column.
  */
 function WeatherTable({ days, palette }: { days: NonNullable<LeadUpView["weather"]>["days"]; palette: Palette }) {
   const R = LEAD_UP_WORDS.rows;
-  const scroller = useRef<ScrollViewInstance>(null);
   const cell = (h: number) => ({ height: h, justifyContent: "center", alignItems: "center" } as const);
   const rowLine = { borderTopWidth: 1, borderTopColor: palette.line } as const;
+  const num = { ...TYPE.figure, fontSize: 11.5, color: palette.ink } as const;
   return (
-    <View style={{ flexDirection: "row" }}>
+    <View testID="leadup-table" style={{ flexDirection: "row" }}>
       <View testID="leadup-rows" style={{ width: LABEL }}>
-        {[[R.day, 40], [R.sky, ROW], [R.temp, ROW], [R.rain, ROW], [R.wind, ROW]].map(([t, h], i) => (
+        {[[R.day, DAY], [R.sky, ROW], [R.temp, TEMP], [R.rain, ROW], [R.wind, ROW]].map(([t, h], i) => (
           <View key={String(t)} style={{ height: h as number, justifyContent: "center", ...(i ? rowLine : {}) }}>
-            <Text style={{ ...TYPE.micro, color: palette.faint }}>{t}</Text>
+            <Text style={{ ...TYPE.micro, fontSize: 10, color: palette.faint }}>{t}</Text>
           </View>
         ))}
       </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flex: 1 }}
-                  contentContainerStyle={{ flexGrow: 1 }}
-                  ref={scroller}
-                  onContentSizeChange={() => { try { scroller.current?.scrollToEnd({ animated: false }); } catch { /* not laid out */ } }}>
-        {days.map((d) => (
-          <View key={d.day} accessible role="group" accessibilityLabel={d.label} style={{ flex: 1, minWidth: COL }}>
-            <View style={cell(40)}><Text style={{ ...TYPE.small, color: palette.ink }}>{d.day}</Text></View>
-            <View style={{ ...cell(ROW), ...rowLine }}>
-              {d.icon ? <Icon name={d.icon} colour={palette.ink} size={20} /> : <Text style={{ ...TYPE.small, color: palette.faint }}>{d.sky}</Text>}
-            </View>
-            <View style={{ ...cell(ROW), ...rowLine }}><Text style={{ ...TYPE.figure, fontSize: 11.5, color: palette.ink }}>{d.temps}</Text></View>
-            <View style={{ ...cell(ROW), ...rowLine, backgroundColor: laid(palette.live, palette.card, RAIN_ALPHA[d.band]) }}>
-              <Text style={{ ...TYPE.figure, fontSize: 11.5, color: palette.ink }}>{d.rain}</Text>
-            </View>
-            <View style={{ ...cell(ROW), ...rowLine }}><Text style={{ ...TYPE.figure, fontSize: 11.5, color: palette.sub }}>{d.wind}</Text></View>
+      {days.map((d) => (
+        <View key={d.day} testID="leadup-day" accessible role="group" accessibilityLabel={d.label}
+              style={{ flex: 1, minWidth: 0 }}>
+          <View style={cell(DAY)}>
+            <Text style={{ ...TYPE.small, fontSize: 12, color: palette.ink }}>{d.weekday}</Text>
+            <Text style={{ ...TYPE.small, fontSize: 10, color: palette.faint }}>{d.date}</Text>
           </View>
-        ))}
-      </ScrollView>
+          <View style={{ ...cell(ROW), ...rowLine }}>
+            {d.icon ? <Icon name={d.icon} colour={palette.ink} size={18} /> : <Text style={{ ...TYPE.small, color: palette.faint }}>{d.sky}</Text>}
+          </View>
+          <View style={{ ...cell(TEMP), ...rowLine }}>
+            <Text style={num}>{d.high}</Text>
+            <Text style={{ ...num, color: palette.sub }}>{d.low}</Text>
+          </View>
+          <View style={{ ...cell(ROW), ...rowLine, backgroundColor: laid(palette.live, palette.card, RAIN_ALPHA[d.band]) }}>
+            <Text style={num}>{d.rain}</Text>
+          </View>
+          <View style={{ ...cell(ROW), ...rowLine }}><Text style={{ ...num, color: palette.sub }}>{d.wind}</Text></View>
+        </View>
+      ))}
     </View>
   );
 }

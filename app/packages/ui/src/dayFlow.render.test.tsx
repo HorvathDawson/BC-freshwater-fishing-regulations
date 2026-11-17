@@ -33,7 +33,7 @@ describe("dayFlowView", () => {
     expect(dayFlowView(s, "idle")).toEqual({
       heading: "Flow that day", status: null, action: null, error: null,
       line: "19.6 m³/s, lower than 8 days in 10 for the date — filled in from the day's record (HYDAT daily mean, "
-        + "15 Aug 2024).",
+        + "Thu 15 Aug 2024).",
     });
   });
 
@@ -42,7 +42,7 @@ describe("dayFlowView", () => {
                                                askedAt: SAVED } };
     const v = dayFlowView(s, "offline")!;
     expect([v.line, v.action, v.status]).toEqual([
-      "The flow for 15 Aug 2024 is not published yet: it is older than ECCC's recent record and not in HYDAT yet. "
+      "The flow for Thu 15 Aug 2024 is not published yet: it is older than ECCC's recent record and not in HYDAT yet. "
         + "Try again later.",
       { label: "Get the flow for that day", busy: false },
       "Offline: the flow for that day will be asked for when you are back online."]);

@@ -3,7 +3,7 @@
  * water is an ordinary row, the row dates the visit and shows what was recorded then, the first photo is drawn through
  * the store, stale spots can be refreshed. And the new ones: Show sends the map, the ways to add, a failure said.
  */
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import type { Spot } from "@app/data/spots";
@@ -14,6 +14,9 @@ import { SpotPickBanner } from "./SpotPickBanner";
 import { LIGHT } from "./theme";
 
 afterEach(cleanup);
+// (T819) the list's day names its year only when it is not this one: the clock is held in 2026
+beforeEach(() => { vi.useFakeTimers({ now: Date.parse("2026-11-16T12:00:00Z"), toFake: ["Date"] }); });
+afterEach(() => { vi.useRealTimers(); });
 
 // LOCAL parts: the list dates a spot by the reader's own day (P12b), so the test must not depend on the zone it runs in.
 const VISIT = new Date(2026, 7, 30, 23, 30).getTime();
@@ -63,9 +66,10 @@ describe("<SpotsScreen>", () => {
   it("none yet: what a spot is, how to drop one, and the two ways to add", () => {
     mount([], { permission: "prompt" });
     expect(screen.getByText("No spots yet")).toBeTruthy();
-    expect(screen.getByText("Pin an exact point on a stream and the app records the gauge, its standing against the " +
-                            "record and the weather that day. Notes and photographs go on top. Press and hold the map " +
-                            "to drop one.")).toBeTruthy();
+    // (T819 item 15) two plain lines, and where spots are kept
+    expect(screen.getByText("Save the places you fish: the water, the day, how the river and the weather were, and your "
+                            + "notes and photos.\nAdd one below, or press and hold the map.\nSaved on this phone and in "
+                            + "its backup. Not on the website yet.", { normalizer: (t) => t })).toBeTruthy();
     expect(buttons()).toEqual(["At my location", "Pick on the map"]);
     expect([screen.getByText("Asks for your location first").textContent,
             screen.getByText("Go to the map and tap the place").textContent])
@@ -74,12 +78,17 @@ describe("<SpotsScreen>", () => {
 
   it("a spot with no photo, no gauge and no water is a normal row; tap opens it, Show sends the map", () => {
     const calls = mount([spot()]);
-    expect(screen.getByTestId("spot-row-s1").textContent).toBe("2026-08-30 · no gauge · no weather\n49.0974, -121.9675");
+    // (T819 item 11) the water and the day, then one condition word; no coordinates
+    expect(screen.getByTestId("spot-row-s1").textContent).toBe("Sun 30 Aug\nNo gauge");
     expect(screen.getByText("NO PHOTO")).toBeTruthy();
-    expect(buttons()).toEqual(["Tamihi run", "Show Tamihi run on the map", "Pick on the map"]);
+    // (T819 item 11) Add is a square in the header, before the list; it opens the ways to add at the top
+    expect(buttons()).toEqual(["Add a spot", "Tamihi run", "Show Tamihi run on the map"]);
     fireEvent.click(screen.getByRole("button", { name: "Tamihi run" }));
     fireEvent.click(screen.getByRole("button", { name: "Show Tamihi run on the map" }));
+    fireEvent.click(screen.getByRole("button", { name: "Add a spot" }));
+    expect(buttons()).toEqual(["Close the ways to add", "Pick on the map", "Tamihi run", "Show Tamihi run on the map"]);
     fireEvent.click(screen.getByRole("button", { name: "Pick on the map" }));
+    expect(buttons()).toEqual(["Add a spot", "Tamihi run", "Show Tamihi run on the map"]);
     expect(calls).toEqual(["open s1", "show s1", "add pick"]);
   });
 
@@ -87,7 +96,7 @@ describe("<SpotsScreen>", () => {
     mount([spot({ reading: { station: "08MH001", discharge: 15.7, level: null, percentile: 0.038, at: null },
                   weather: { window: null, tempC: 14, windKph: null, windDir: null, rain3h: null, pressureHpa: null,
                              code: null, at: null } })]);
-    expect(screen.getByTestId("spot-row-s1").textContent).toBe("2026-08-30 · 15.7 m³/s · lower than almost every day on record · 14°C\n49.0974, -121.9675");
+    expect(screen.getByTestId("spot-row-s1").textContent).toBe("Sun 30 Aug\nMuch below normal");
   });
 
   it("draws a spot's first photo from its reference, through the photo store", async () => {
