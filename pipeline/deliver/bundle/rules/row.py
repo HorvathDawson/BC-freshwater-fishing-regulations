@@ -92,7 +92,7 @@ _NOT_CONDITIONS = frozenset({
 
 def _rule_row(entry_id: str, raw: dict, uncertain: bool, siblings=None, zones=None,
               rules_of=None, unresolved: str | None = None, place_of=None, entries=None,
-              closures=None, regions=None, blankets=None):
+              closures=None, regions=None, blankets=None, caps=None):
     """One `rule` row from one catalogue rule.
 
     Validated through `CatalogueRule` rather than read off the dict, because `family`,
@@ -163,7 +163,7 @@ def _rule_row(entry_id: str, raw: dict, uncertain: bool, siblings=None, zones=No
         1 if r.standing else 0,
         json.dumps(list(r.species), separators=(",", ":")),
         json.dumps(list(r.species_except), separators=(",", ":")),
-        _exempts(entry_id, r, zones or {}, rules_of or {}, closures, regions, blankets),
+        _exempts(entry_id, r, zones or {}, rules_of or {}, closures, regions, blankets, caps),
         r.take,
         None if r.may_target is None else int(r.may_target),
         json.dumps(conditions, separators=(",", ":"), sort_keys=True) or None,

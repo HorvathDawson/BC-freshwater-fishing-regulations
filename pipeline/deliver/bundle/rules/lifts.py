@@ -1,7 +1,8 @@
 """What a rule lifts: the `exempts` column, each lift resolved to the entry it reaches (`_exempts`).
 
 A lift the book prints, one derived from a row NAMING a fish its region closes (`_named_lifts`), one derived
-from "(any size)" (`_any_size_lifts`), and one carried to the same kind of closure in another region the
+from "(any size)" (`_any_size_lifts`), one derived from a water row's own daily quota above a region cap (`_cap_lifts`,
+T834: the answers raise the cap to it), and one carried to the same kind of closure in another region the
 water lies in (`_equivalent_closures`); `LIFT_KEYS` are the only keys a lift may carry."""
 from __future__ import annotations
 
@@ -401,6 +402,102 @@ def _any_size_lifts(entry_id: str, r, rules_of: dict[str, dict]) -> list[dict]:
     return out
 
 
+#: POLICY (T834; owner 2026-11-17 11:06 "Strict everywhere"; RULINGS T17, T3a revised; GOTCHAS "Questions the owner
+#: will put to BC Fish and Wildlife"): A WATER'S OWN DAILY QUOTA ABOVE A REGION CAP RAISES THAT CAP. For each region cap C
+#: counting fish X (the region's trout/char total; on a stream also its "from streams" share) and the water's own daily
+#: quota N for X: N <= C — X sits inside C, nothing changes (Kaslo / Keen's bull trout 2 under "2 from streams"; Adams's
+#: rainbow 2 under "4 from streams"; the Lardeau's and Duncan's bull trout 2). N > C — C becomes N for X only: X leaves C
+#: (the lift, derived here, `_cap_lifts`, `basis: own_quota`), the other kinds stay at or under C, and everything C holds
+#: together stays at or under N (the answers raise C to N, `answers.rows.conds.pools`; two own numbers above C: the
+#: larger). Lardeau / Duncan: 5 in all, bull trout and the other trout 2 at most; Kootenay Lake main body (rainbow 10):
+#: 10 in all, the other kinds 5 at most, bull trout 1. A printed lift of a cap by a water's own quota is read the same
+#: way (the 22 lifts of a total and 10 of a share, "counted apart" before: now the raised cap). False = printed lifts
+#: only, and the answers raise none (the mutation pin, `test_t834_share_lift.py`).
+OWN_QUOTA_ABOVE_A_CAP_RAISES_IT = True
+#: `basis` on a lift derived from a water row's own daily quota above a region cap (`_cap_lifts`).
+OWN_QUOTA_BASIS = "own_quota"
+
+
+def is_stream_share(lifted_eid: str, z, parent) -> bool:
+    """A REGION'S STREAM SHARE: a clause of a region's own table (`z<region>:`) that counts, inside the region's
+    total (`within` a quota with no `water`), the fish kept FROM STREAMS — "2 from streams", "4 from streams", "1 trout
+    from streams July 1-Oct 31". A clause of the share itself (Region 8's "only 2 over 30 cm", `within` the share) is
+    not one: it is the share's own size clause."""
+    if not EID.is_zone(lifted_eid) or parent is None:
+        return False
+    return (z.type.value == "retention_limit" and bool(z.within) and z.water is not None
+            and z.water.value == "stream" and (z.take or 0) > 0 and parent.water is None)
+
+
+def is_region_total(lifted_eid: str, z) -> bool:
+    """A REGION'S TROUT/CHAR TOTAL: the top quota of a region's own table over trout/char ("Trout/char: 5"), not a
+    clause of another, on every kind of water, every day."""
+    return (EID.is_zone(lifted_eid) and z.type.value == "retention_limit" and not z.within and z.water is None
+            and (z.take or 0) > 0 and "TROUT_CHAR" in (z.species or []) and z.when is None)
+
+
+def region_caps(docs) -> dict[str, list[tuple[str, object, bool]]]:
+    """`{region: [(entry_id, rule, stream_only), …]}` — every region's trout/char total (`is_region_total`) and stream
+    share (`is_stream_share`, `stream_only`), for `row_caps`."""
+    out: dict[str, list] = {}
+    for ce in docs:
+        if not EID.is_zone(ce.entry_id):
+            continue
+        mine = {r.rule_id: r for r in ce.rules}
+        for r in ce.rules:
+            share = is_stream_share(ce.entry_id, r, mine.get(r.within) if r.within else None)
+            if share or is_region_total(ce.entry_id, r):
+                out.setdefault(_zone_region(ce.entry_id), []).append((ce.entry_id, r, share))
+    return out
+
+
+def row_on_a_stream(ce, registry) -> bool:
+    """Is a water row's OWN water a stream (or does it include one)? Its matched items' kind, decided once in the
+    registry (AGENTS 55). Only such a row's quotas meet a stream share; a row matching no item (an area row, an
+    unplaced lake) meets none (`row_caps`)."""
+    return any(registry[i].kind == "stream" for i in ce.matched if i in registry)
+
+
+def own_daily_quota(r) -> bool:
+    """A water row's OWN DAILY QUOTA (T834): a keeping count (above zero, or unlimited) on the daily clock, not a clause
+    of another (`within`), not lift-only, standing, a record duty or an undrawn part (`_cap_lifts` checks `water`)."""
+    return (r.type.value == "retention_limit" and r.may_target is not False
+            and (r.unlimited or (r.take or 0) > 0) and r.clock.value == "daily" and not r.within
+            and not r.lift_only and not r.standing and not r.record_retention and not r.undrawn_part)
+
+
+def row_caps(ce, caps: dict[str, list], on_stream: bool) -> list[tuple[str, object]]:
+    """THE REGION CAPS A WATER ROW'S OWN QUOTAS MEET: every trout/char total and (only on a stream's row) "from streams"
+    share of the row's region (Region 7's rows: 7A's and 7B's), for `_cap_lifts`. [] for a table, or the flag off."""
+    if not OWN_QUOTA_ABOVE_A_CAP_RAISES_IT or not EID.is_water_row(ce.entry_id):
+        return []
+    region = _zone_region(ce.entry_id)
+    return [(eid, z) for zr in sorted(caps) if region in (zr, EID.book_region(zr))
+            for eid, z, share in caps[zr] if on_stream or not share]
+
+
+def _cap_lifts(entry_id: str, r, caps: list | None) -> list[dict]:
+    """A water row's own daily quota N (`own_daily_quota`) LIFTS each region cap C of its row (`row_caps`) it is LARGER
+    than, for its fish: C stays for the other fish, and the answers raise C to N over them all
+    (`answers.rows.conds.pools`). N no larger than C lifts nothing: the fish sit inside C. Not a quota over every fish
+    C holds (no `species` / `origin` term, any dates): on that key the water's number already replaces C (RULINGS Q4;
+    Region 5's "Trout/char daily quota = 8" lakes; Bella Coola's two alternatives). How far it lifts is `_lift_terms`
+    (the fish, origin, dates)."""
+    if not caps or not EID.is_water_row(entry_id) or not own_daily_quota(r):
+        return []
+    out: list[dict] = []
+    for eid, z in caps:
+        if z.water is not None and r.water is not None and r.water != z.water:
+            continue
+        if not r.unlimited and (r.take or 0) <= (z.take or 0):
+            continue
+        terms = _lift_terms(r, z)
+        if terms is None or not ({"species", "origin"} & set(terms)):
+            continue
+        out.append({"entry_id": eid, "rule_id": z.rule_id, **terms, "basis": OWN_QUOTA_BASIS})
+    return out
+
+
 def is_blanket_closure(r) -> bool:
     """A region's BLANKET closure of a kind of water: "No fishing in any stream in Region 8, Apr
     1-June 30". `take: 0`, `may_target: false`, over every game fish (no species, or the aggregate
@@ -507,7 +604,7 @@ def _equivalent_closures(lifted_eid: str, lifted, regions, blankets: dict[str, l
 
 def _exempts(entry_id: str, r, zones: dict[str, list[str]], rules_of: dict[str, dict],
              closures: dict[str, list] | None = None, regions=None,
-             blankets: dict[str, list] | None = None):
+             blankets: dict[str, list] | None = None, caps: list | None = None):
     """The rule's `exempts`, RESOLVED to the rules it lifts and how far — the `exempts` column.
 
     EXEMPTIONS WERE APPLIED NOWHERE. 88 rules carry one, 63 of them "Exempt from spring
@@ -600,6 +697,10 @@ def _exempts(entry_id: str, r, zones: dict[str, list[str]], rules_of: dict[str, 
                if (x["entry_id"], x["rule_id"]) not in printed]
     have = printed | {(x["entry_id"], x["rule_id"]) for x in derived}
     derived += [x for x in _any_size_lifts(entry_id, r, rules_of)
+                if (x["entry_id"], x["rule_id"]) not in have]
+    # T834: each region cap of the row (`caps`, `row_caps`) this own quota is larger than lifts for its fish
+    have |= {(x["entry_id"], x["rule_id"]) for x in derived}
+    derived += [x for x in _cap_lifts(entry_id, r, caps)
                 if (x["entry_id"], x["rule_id"]) not in have]
     if derived and r.water is not None:
         own = r.extents or []
