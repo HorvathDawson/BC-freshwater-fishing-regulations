@@ -2080,3 +2080,18 @@ More questions (recommended answer first):
   table), picked: "Page's notes block (Recommended)". So (T810): the trout section appears only in the switch
   release; previews before it use side releases (ticket V-py's side scenario); the cutover = flag on + rows 34 +
   format bump + deletions. Q-D7 decided: angler-only notes stay in the page's caveat block; the table carries none.
+- 17:44, salmon book closures, the data side of the break-it review (T796 hard cases; worker branch
+  `lane/salmon-hardcases-1116`), one dialog of four. Campbell River summer closure (MU 1-1 to 1-6 vs the book's MU
+  1-10), picked: "Keep it closed". Thompson below Kamloops Lake in June (spring closure vs its own row, no printed
+  exemption), typed, verbatim: "keep closed but add to gotchas as one i need to ask fish and wildlife about". Waters
+  partly inside a reserve or park, typed, verbatim: "take out the lakes but add a note. also for streams i thought we
+  cut on all eco reserves so should everypiece be in the eco resevre or is it anti cross over we added for areas? in
+  that case we decided on a cut which defines in versus out. so in that case if it rides the boudnary (straddling) it
+  should get the part intended to be in to have thge closure versus the part out. ask more questions if needed".
+  National parks wording, picked: "Closed, book's wording (Recommended)". So: Campbell unchanged; Thompson June stays
+  closed AND goes on his list of questions for BC Fish and Wildlife; the 9 lakes and ponds mostly outside a reserve
+  or park come out by name, each with a note on the card; for STREAMS he wants the closure on the part inside the
+  reserve only (a straddling section split at the boundary, inside part closed, outside part open): to be checked
+  against how area boundaries work today (cuts vs the straddle rule E8) and put back to him if it needs a decision;
+  national parks read "Closed by the rule book unless opened under the National Parks Fishing Regulations (p.9)" with
+  the permit sentence.

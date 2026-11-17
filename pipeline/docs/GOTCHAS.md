@@ -6,6 +6,18 @@ code now handles belong in the code's comments, not here.
 
 ---
 
+## Questions the owner will put to BC Fish and Wildlife (the book can be read two ways; we keep the stricter reading)
+
+- **Thompson River below Kamloops Lake in June** (Region 3, p.28 and p.32). The spring closure: "No Fishing in any
+  stream in Region 3 from Jan 1-June 30 (see tables for exceptions)". The Thompson's own row: "No Fishing Oct 1-May
+  31 … Additional opening from the CNR Bridge downstream of Deadman River to CNR Bridge upstream of Bonaparte River,
+  May 1-31", with no "Exempt from spring closure" (the upstream Thompson row prints one). Read either way: June
+  closed by the region (kept; rulings L1, L20) or the row's own dates replacing it (June open: 26 trout sections;
+  22 salmon sections chinook and sockeye "check"). Owner 2026-11-16: "keep closed but add to gotchas as one i need to
+  ask fish and wildlife about".
+
+---
+
 ## An "All" closure against a species row on the same DFO place (the Tatshenshini, the Cowichan)
 
 **2026-11-12 · owner ruling T671 D1 · DFO salmon · `pipeline/deliver/salmon.py` `_all_closure_wins`, RULINGS L24**
