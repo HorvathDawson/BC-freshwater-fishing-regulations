@@ -77,9 +77,11 @@ its `_reindex`), dfo_vectors --check with both in.
   landing; Babine line re-save (`PYTHONPATH=$PWD .venv/bin/python -I /private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/b8ddfca9-44eb-400e-a9bf-bd89b4b0f359/scratchpad/babine/save/save_line.py` then
   `apply closed_areas --no-commit`), re-mark the two DFO Babine places on the parts; then T807 / T804 lists; staging
   release (`--staging --dry-run --rehearse-follows` first; BEFORE/AFTER to the app chat).
-- `a769935b617ecd6f2`: trout J (the same-law proof), `lane/trout-j`.
+- trout J back 00:05 11-17, merged locally as 02e51cfdc (mini release re-cut on merge); tier running, then push.
+  Worker a4085d0519fdf0daf (lane/trout-vpy, worktree scratchpad/trout-vpy-wt): fix the 5 keys J still fails (Kaslo/Keen DV inside the band; Kitimat/Humphrys/Iron Mine/Tetlock
+  wild-rainbow joined with brown+cutthroat), then V-py.
 
-**4. Trout (T810).** Done: I0, A0, F0, E, G, F, H, I. Running: J. Next: V-py (side release + fixture + refresh
+**4. Trout (T810).** Done: I0, A0, F0, E, G, F, H, I, J (5 keys left). Next: the 5-key fix + V-py (side release + fixture + refresh
 script), G2 (his sentence list; F's 10 questions are in T810's 21:02 note), A1, then the app's M0+M, the picture pack,
 the cutover (ship only at the switch). The app chat's T824 drops the walkthrough's trout "Tap Details" step.
 
