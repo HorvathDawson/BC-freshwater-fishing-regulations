@@ -2168,3 +2168,6 @@ More questions (recommended answer first):
   closed day draws empty, not the closed stripe); "when i swiper to close on apple it flashes the menu back for a
   second before it goes back." (T821: iOS back-swipe flash); "allowed notifications in app and settings restarted app
   and it still doesnt show up" (T822 if a bug: push registration; the staging worker holds 0 iOS tokens).
+- About 21:45, typed in the APP chat (relayed verbatim): "in the tutorial it says on first slide each step rings what to
+  tap (should say something like highlight instead? the tutorial is really glitchy too with keyboard and the
+  highlighting following the items with a delay etc etc". The app chat files it (its next reserved number).
