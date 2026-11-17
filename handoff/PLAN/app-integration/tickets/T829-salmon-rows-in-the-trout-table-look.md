@@ -13,3 +13,10 @@ design list at the end of T810) and the other-fish list: same row rhythm, the sa
 word composed in the app (owner 16:50 rule), no pipeline change. First: mockups of two real cards (e.g. the
 Kitsumkalum with its eulachon closure line, and a mixed open/closed water like the Skeena below Terrace) beside the
 trout table, for his pick. Build after the salmon landing and T828 (they touch the same SalmonCard code).
+
+## Owner pick, 2026-11-16 (app chat dialog, after the mockups)
+Three options were mocked on real data (Kitsumkalum Jul 15, Skeena below Terrace Aug 15, each above its trout table;
+scratch t829/sheet-A/B/C.png). He picked, verbatim label: "B: trout keep box (Recommended)": open species in the tint
+box with each limit in the white box on the right, closed species, the eulachon line and rule-book closures in the trout
+"✕ Closed" group under the box; the badge, year bar and bait-ban line stay; T828 fold as mocked. Build after the salmon
+landing and T828, sharing the trout table components (ticket O).
