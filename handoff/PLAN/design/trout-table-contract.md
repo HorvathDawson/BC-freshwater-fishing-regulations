@@ -274,7 +274,8 @@ emitted beside it: `TroutFrameWire` (the triple), `TroutTableWire` / `BoxWire` /
 reads from the wire with these, so no wire type is hand-kept.
 
 **`CellIds` and the table names are emitted too, now.** `CellIds` (`core/src/regs/inputs.ts:24`, hand-typed today)
-is emitted from `contract._REGION_TABLES["cell"]` by `pack.py` (in I0, before the trout column exists, so the
+is emitted from `contract._REGION_TABLES["cell"]` into a generated file inside `@app/core` (core imports nothing,
+so NOT into `pack.generated.ts`, which lives in `@app/data`; agreed with the app chat 17:34) by `pack.py` (in I0, before the trout column exists, so the
 column joins it by generation). The other hand lists of region table names are derived in ticket I from one
 registry beside `_REGION_TABLES`, or held equal to it by a test where a list must stay: `store/build.py:37-43`
 `FAMILIES` (and its refusal of an unknown section, `:282`), `store/common.py:58-62` (codec per table),
@@ -516,7 +517,8 @@ table** and the law from the engine, never the builder's inputs.
 ### 2.11 The page's possession line (ticket F0)
 
 The page's possession lead is chosen once, in Python. F0 ships, in `RowsFrame.page_possession` (new at rows 34, so
-**inside the cutover bump**): the lead sentence and its `src`, and the also-lines the page row keeps, which after the
+**inside the cutover bump**): the lead sentence and its `src`, the possession VALUE words the page row shows (so the app's `possessionValue`
+regex, `standing.ts:117-120`, is deleted; agreed with the app chat 17:34), and the also-lines the page row keeps, which after the
 switch are the non-trout fish only (the trout ones are on the table's rows; fight list #3). The rule is
 `card.page_possession` (`card.py:410-422`). F0's code and tests land before F (the field is written only at rows
 34): a pytest that `possession_duty` and the shipped lead use the same rule (a fish line exists ⇔ it differs from
