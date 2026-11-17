@@ -328,7 +328,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T836 | The spot photo viewer behaves like the standard phone photo viewers (swipe down to close, tap to hide, counter, opens from its thumbnail) | OPEN | — | owner 2026-11-17 (app) |
 | T837 | The sun line writes "sunset" in lower case after the dot ("Sunrise 08:50 PT · Sunset 17:43 PT") | DONE | 745d59ae8 | owner 2026-11-17 (app) |
 | T838 | Drop the loose "Conditions: today" line above the estimate card (the switch names the day) | IN PROGRESS | — | owner 2026-11-17 (app) |
-| T839 | Web on a desktop: the Map / Conditions / Spots / More bar becomes a left navigation rail | IN PROGRESS (built on branch; owner look owed) | — | owner 2026-11-17 (app) |
+| T839 | Web on a desktop: the Map / Conditions / Spots / More bar becomes a left navigation rail | DONE | 6046669c2 | owner 2026-11-17 (app) |
 
 ## Next after closed testing
 
