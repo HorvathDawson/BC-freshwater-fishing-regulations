@@ -304,6 +304,10 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T811 | The owner's Squamish "downstream of the powerline crossing" tick reads "binding moved" (a side channel added to the shared water record; owner re-tick) | DONE | d647a301e | live orphan test; commit 7102afb9b |
 | T812 | Babine Lake: split on the Gullwing Creek line; creek-mouth closures drawn as circles, not lake sections | OPEN | — | owner 2026-11-16 |
 | T813 | An added stream that continues an FWA line past its mouth is minted at the top measure (Port Moody's Schoolhouse Creek North) | OPEN | — | cut-fixes lane 2026-11-16 |
+| T814 | iOS: after closing and reopening mid-download, the fish spinner stops moving | OPEN | — | owner iPhone build 36, 2026-11-16 |
+| T815 | iOS: the spots photo viewer's close ✕ sits under the status bar | OPEN | — | owner iPhone build 36, 2026-11-16 |
+| T816 | iOS: text cut off (the hour on "When were you there?", the weather icons) | OPEN | — | owner iPhone build 36, 2026-11-16 |
+| T817 | A water with only level data (Harrison Lake) opens its Conditions on Level, and says so | OPEN | — | owner 2026-11-16 (refines T728) |
 
 ## Next after closed testing
 
