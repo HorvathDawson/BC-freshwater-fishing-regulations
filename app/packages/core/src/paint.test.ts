@@ -1,6 +1,6 @@
 /** core paint decoder = the pipeline's (pipeline/deliver/release/paint.py), on bytes the pipeline wrote. */
 import { describe, expect, it } from "vitest";
-import { decodeAccessFile, decodeFlowArea, decodePaint, PaintError } from "./paint";
+import { decodeAccessFile, decodeFlowArea, decodeFlowSmall, decodePaint, PaintError } from "./paint";
 import { PAINT_FIXTURE as F } from "./paint.fixture";
 
 const b64 = (s: string) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
@@ -26,6 +26,21 @@ describe("decodePaint", () => {
   it("reads flow-area in the paint's section order, and refuses another paint's", () => {
     expect(Array.from(decodeFlowArea(b64(F.area), p.sectionCount))).toEqual(F.areas);
     expect(() => decodeFlowArea(b64(F.area), p.sectionCount - 1)).toThrow(PaintError);
+  });
+  it("(T823) reads flow-small as the pipeline wrote it: one mask per paint section, in flow-area's order", () => {
+    expect(Array.from(decodeFlowSmall(b64(F.small), p.sectionCount))).toEqual(F.smalls);
+    expect(F.smalls.some((m) => m > 0) && F.smalls.some((m) => m === 0)).toBe(true);     // the fixture flags some, not all
+    // another paint's (one section short, one over), another format, a truncated file: refused, never read as no bits
+    expect(() => decodeFlowSmall(b64(F.small), p.sectionCount - 1))
+      .toThrow(new PaintError("flow-small: its sections are not the paint's"));
+    expect(() => decodeFlowSmall(b64(F.small), p.sectionCount + 1)).toThrow(PaintError);
+    expect(() => decodeFlowSmall(b64(F.area), p.sectionCount)).toThrow(new PaintError("flow-small: not a flow-small/1 file"));
+    expect(() => decodeFlowSmall(b64(F.small).subarray(0, 5), p.sectionCount)).toThrow(PaintError);
+    // a mask wider than a panel's 31 members (bit 31): corrupt
+    const wide = Uint8Array.from([0x42, 0x43, 0x46, 0x53, 1, 0x80, 0x80, 0x80, 0x80, 0x08]);
+    expect(() => decodeFlowSmall(wide, 1)).toThrow(PaintError);
+    expect(Array.from(decodeFlowSmall(Uint8Array.from([0x42, 0x43, 0x46, 0x53, 1, 0xff, 0xff, 0xff, 0xff, 0x07]), 1)))
+      .toEqual([2 ** 31 - 1]);
   });
   it("refuses a paint/3 file, which carries one record length for both quantities", () => {
     const old = b64(F.paint).slice();

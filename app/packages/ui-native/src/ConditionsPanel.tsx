@@ -325,6 +325,8 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
                   </>} />
       {readingRows}
       {vm.leadNote && !note && <Text testID="lead-note" style={{ ...TYPE.meta, color: palette.sub }}>{vm.leadNote}</Text>}
+      {/* (T823) a gauge much bigger than this water still speaks for it, with the release's own warning */}
+      {vm.smallWater && <Text testID="small-water" style={{ ...TYPE.meta, color: palette.sub }}>{vm.smallWater}</Text>}
       {change && <ChangeBlock palette={palette} change={change} colour={tint} />}
       {chart.state === "loading" && charts && (
         <LoadingState palette={palette} size={72} label={W.loadingRecord} style={{ alignItems: "center", paddingVertical: SPACE.s4 }} />

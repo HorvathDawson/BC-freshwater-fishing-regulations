@@ -210,3 +210,25 @@ export function decodeFlowArea(bytes: Uint8Array, n: number): Float64Array {
   if (r.i !== bytes.length) throw new PaintError("flow-area: its sections are not the paint's");
   return out;
 }
+
+/** (T823) The conditions meta key holding the sentence a flagged member's reading carries (Python's words, never TS's). */
+export { SMALL_WATER_TEXT_KEY } from "./gauge-policy.generated";
+
+/**
+ * (T823) `flow-small/1` ("BCFS", u8 1, written by paint.py `encode_small`): per paint section in sid order (flow-area's
+ * rows), the bitmask over its panel's members by `ord` — bit i set where member i drains so much more than the section
+ * that its reading carries the release's small-water sentence (Python decides; the app compares no areas). A panel holds
+ * at most 31 members (`small_water.MAX_MEMBERS`), so a mask is a non-negative 31-bit integer. `n` = paint.sectionCount.
+ */
+export function decodeFlowSmall(bytes: Uint8Array, n: number): Uint32Array {
+  if (bytes[0] !== 0x42 || bytes[1] !== 0x43 || bytes[2] !== 0x46 || bytes[3] !== 0x53 || bytes[4] !== 1)
+    throw new PaintError("flow-small: not a flow-small/1 file");
+  const r = new Reader(bytes, 5), out = new Uint32Array(n);
+  for (let i = 0; i < n; i++) {
+    const m = r.uv();
+    if (m >= 2 ** 31) throw new PaintError(`flow-small: section ${i}'s mask ${m} is wider than a panel's 31 members`);
+    out[i] = m;
+  }
+  if (r.i !== bytes.length) throw new PaintError("flow-small: its sections are not the paint's");
+  return out;
+}
