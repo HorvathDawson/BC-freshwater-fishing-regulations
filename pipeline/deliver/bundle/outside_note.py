@@ -54,13 +54,15 @@ def tile_names(area_defs: Iterable[dict], layers: Path, wanted: Iterable[str]) -
 
 
 def closing_pages(db: sqlite3.Connection, def_id: str, key: str) -> List[int]:
-    """The printed pages of the book's rows that close this area: an entry with a `within` extent naming the area
-    (`area_id`) or its family (`area_kind`), holding a full closure (`rule.closure_grade`)."""
+    """The printed pages of the book's rows that close this area: a full closure (`rule.closure_grade`) whose own
+    extents (`rule.conditions`) or its row's (`entry.extents`) are `within` the area (`area_id`) or its family
+    (`area_kind`) — the Chilkoot row's closure carries its extent on the rule, the zone tables' on the row."""
     from pipeline.common.registry_kinds import area_key
     pages: set = set()
-    for ex, pg in db.execute("SELECT e.extents, e.pages FROM entry e WHERE EXISTS (SELECT 1 FROM rule r WHERE "
-                             "r.entry_id = e.entry_id AND r.closure_grade = 'full')"):
-        for x in json.loads(ex or "[]"):
+    for cond, ex, pg in db.execute("SELECT r.conditions, e.extents, e.pages FROM rule r JOIN entry e USING (entry_id) "
+                                   "WHERE r.closure_grade = 'full'"):
+        extents = [*json.loads(ex or "[]"), *(json.loads(cond or "{}").get("extents") or [])]
+        for x in extents:
             if x.get("op") != "within":
                 continue
             if x.get("area_kind") == def_id or (x.get("area_id") and area_key(x["area_id"]) == key):

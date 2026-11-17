@@ -50,7 +50,7 @@ def _bundle(tmp_path):
     db = sqlite3.connect(":memory:")
     db.executescript("CREATE TABLE item (ord INTEGER, item_id TEXT); CREATE TABLE item_section (ord INTEGER, sid INTEGER);"
                      "CREATE TABLE entry (entry_id TEXT, extents TEXT, pages TEXT);"
-                     "CREATE TABLE rule (entry_id TEXT, rule_id TEXT, closure_grade TEXT);"
+                     "CREATE TABLE rule (entry_id TEXT, rule_id TEXT, closure_grade TEXT, conditions TEXT);"
                      "CREATE TABLE section_note (sid INTEGER PRIMARY KEY, note TEXT NOT NULL);")
     db.executemany("INSERT INTO item VALUES (?, ?)", [(1, "wbk:329529449"), (2, "gnis:20010")])
     db.executemany("INSERT INTO item_section VALUES (?, ?)", [(1, 1804040), (2, 739996), (2, 1912509)])
@@ -59,8 +59,12 @@ def _bundle(tmp_path):
                             {"op": "within", "area_kind": "ecological_reserves"}]),))
     db.execute("INSERT INTO entry VALUES ('r6:somewhere', ?, '[55]')",
                (json.dumps([{"op": "within", "area_kind": "ecological_reserves"}]),))
-    db.execute("INSERT INTO rule VALUES ('zp:superior_closures', 'superior_closures.r3', 'full')")
-    db.execute("INSERT INTO rule VALUES ('r6:somewhere', 'somewhere.r1', NULL)")   # no closure: not its page
+    db.execute("INSERT INTO rule VALUES ('zp:superior_closures', 'superior_closures.r3', 'full', NULL)")
+    db.execute("INSERT INTO rule VALUES ('r6:somewhere', 'somewhere.r1', NULL, NULL)")   # no closure: not its page
+    # a closure whose extent is on the RULE (the Chilkoot row's): its page counts
+    db.execute("INSERT INTO entry VALUES ('r6:dease', '[]', '[50]')")
+    db.execute("INSERT INTO rule VALUES ('r6:dease', 'dease.r1', 'full', ?)", (json.dumps({"extents": [
+        {"op": "within", "area_id": "area:ecological_reserves:blue_dease_rivers_ecological_reserve"}]}),))
     layers = tmp_path / "layers"
     layers.mkdir()
     (layers / "eco_reserve.geojsonl").write_text("".join(json.dumps({"type": "Feature", "properties": p}) + "\n" for p in (
@@ -71,13 +75,14 @@ def _bundle(tmp_path):
 
 def test_each_lake_taken_out_carries_one_note_written_here(tmp_path):
     """Cold Fish Lake's section and the Cormier pond's section each get one sentence naming the reserve by its map
-    name and the closing row's page; the creek's other sections get none. MUTATION: no note and the page says nothing
+    name and the closing rows' pages (a rule's own extent counts: p.50 here); the creek's other sections get none.
+    MUTATION: no note and the page says nothing
     of the reserve beside it."""
     db, layers = _bundle(tmp_path)
     got = N.write(db, DEFS, layers, {"lake:329638447": 1912509})
     assert got == {
         1804040: "Mostly outside Gladys Lake Ecological Reserve: its closure (rule book p.9) does not apply here.",
-        1912509: "Mostly outside Blue/Dease Rivers Ecological Reserve: its closure (rule book p.9) does not apply "
+        1912509: "Mostly outside Blue/Dease Rivers Ecological Reserve: its closure (rule book p.9, 50) does not apply "
                  "here."}
     assert dict(db.execute("SELECT sid, note FROM section_note")) == got
 
