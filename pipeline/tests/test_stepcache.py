@@ -472,6 +472,18 @@ def test_a_checkout_under_the_temp_dir_is_traced_and_its_scratch_is_not(mini_rep
     assert real(outside) not in {real(r) for r in t.reads}               # the temp dir outside the repo: still skipped
 
 
+def test_a_checkout_under_the_temp_dir_reruns_when_its_code_changes(mini_repo):
+    root, outside = mini_repo
+    cache = SC.StepCache(root / "cache")
+    for n in ("d1", "d2", "d3"):
+        (root / n).mkdir()
+    assert _mini_step(cache, root, outside, root / "d1")[0] == "ran"
+    assert _mini_step(cache, root, outside, root / "d2")[0] == "reused"
+    (root / "pipeline" / "mod.py").write_text('WORD = "three"\n')          # the code moved: the step must run again
+    state, _ = _mini_step(cache, root, outside, root / "d3")
+    assert state == "ran" and (root / "d3" / "out.txt").read_text() == "athree"
+
+
 def test_split_roots_keeps_a_root_that_holds_the_repo_for_outside_paths_only(tmp_path):
     """A root holds the repo as written or through a symlink (macOS: `/var` is `/private/var`)."""
     from pipeline import _trace
@@ -485,3 +497,15 @@ def test_split_roots_keeps_a_root_that_holds_the_repo_for_outside_paths_only(tmp
     assert always == tuple(sorted([os.path.join(rp, "x", ".venv", ""), "/usr/"]))
     assert outside == (os.path.join(str(alias), ""),)
     assert os.path.join(str(alias), "x", "") in repos and os.path.join(rp, "x", "") in repos
+
+
+def test_a_trace_with_no_repo_module_is_never_kept(scratch):
+    """The recorder seeing nothing is not a step with no inputs: a record keyed on nothing would be reused whatever the
+    code says (T835's stale bundle)."""
+    tr = scratch / "tr"
+    tr.mkdir()
+    (tr / "1.trace").write_text(f"V\t{sys.version.replace(chr(10), ' ')}\t{os.path.realpath(sys.executable)}\n")
+    d = scratch / "d"
+    d.mkdir()
+    msg = SC.StepCache(scratch / "cache").record("s", ["x"], d, {}, {}, SC.Trace(tr))
+    assert msg.startswith("not kept: the recorder saw no module of this repo"), msg
