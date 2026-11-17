@@ -31,8 +31,9 @@ function inputs(o: { day?: Day; byDay?: (DisplayFrame | null)[]; moments?: boole
     year: { segStarts: o.starts ?? [1], moments: o.moments ? [{}, {}] : null, displayByDay: o.byDay ?? year() },
   } as unknown as RegsInputs;
 }
-const settled = (status: DisplayFrame | null, inpart: { family: string; now: boolean }[] = []): Settled =>
-  ({ status, inpart: inpart.map((x) => ({ now: x.now, rule: { export: { family: x.family } } as unknown as RuleView })) }) as unknown as Settled;
+const settled = (status: DisplayFrame | null, inpart: { family: string; now: boolean; closure?: boolean }[] = []): Settled =>
+  ({ status, inpart: inpart.map((x) => ({ now: x.now,
+    rule: { export: { family: x.family }, kind: "gate", facts: { closure: x.closure ?? true } } as unknown as RuleView })) }) as unknown as Settled;
 const row = (kind: HydRow["kind"], members: string[], yr: [string, number][] = [["release", 365]], pool = false): HydRow =>
   ({ kind, members, pool: pool ? ({} as RuleView) : null, year: yr }) as unknown as HydRow;
 const card = (rows: HydRow[] = []): CardModel => ({ rows }) as unknown as CardModel;
@@ -121,6 +122,9 @@ describe("stripOf: the status line", () => {
     expect(texts(inputs({ day: D(10, 10) }), settled(OPEN, [{ family: "retention", now: true }]))).toEqual(["Open, except some parts", "today"]);
     expect(texts(inputs({ day: D(10, 10) }), settled(OPEN, [{ family: "retention", now: false }, { family: "gear", now: true }])))
       .toEqual(["Open", "today"]);
+  });
+  it("T789 K7: a retention rule of an undrawn part that closes nothing (a release/limit gate) leaves it plain 'Open'", () => {
+    expect(texts(inputs({ day: D(10, 10) }), settled(OPEN, [{ family: "retention", now: true, closure: false }]))).toEqual(["Open", "today"]);
   });
   it("the weekday only when the key has moments and the day has more than one segment", () => {
     expect(texts(inputs({ day: D(10, 12), weekday: "Monday", moments: true, starts: [1, 1] }), settled(OPEN))).toEqual(["Open", "on Oct 12 (Mon)"]);

@@ -1,6 +1,6 @@
 # T789 — Seven wording findings of the T462 audit have no ticket (the owner's gate 1 for closed testing: each fixed or ticketed with his OK)
 
-Status: OPEN (app core wording; before closed testing; the app chat's area for the fixes).
+Status: IN PROGRESS (K6, K7 done; G9, D6 stopped as pipeline work; K8, G8, G10 wait for the owner) (app core wording; before closed testing; the app chat's area for the fixes).
 
 Source: general audit 2026-11-16, decisions checker item 7 (`handoff/PLAN/audit-2026-11-16/decisions.md`); T462 is DONE, T495 gate 1.
 
@@ -12,3 +12,11 @@ Source: general audit 2026-11-16, decisions checker item 7 (`handoff/PLAN/audit-
 - G10: the under-16 non-resident price line.
 - D6: a Region 6 gear line is cut mid-word.
 Each changes words an angler reads. Fix or get the owner's OK to leave, one by one.
+
+## Built (K6, K7, G9, D6)
+
+- K6: already fixed by T800 (8b6bad68c, in this branch): the "at certain times" angler line now says the rule's own label, not `describeShort`'s cut at the first bracket; pinned by the T800 test in `caveats.test.ts`. No change here.
+- K7: `strip.ts` counts an undrawn-part retention rule as "except some parts" only when it is a closure (`closedGate`); a release/limit gate leaves "Open". Test in `strip.test.ts` ("T789 K7"); mutation-checked (dropping the `closedGate` term fails it).
+- G9: STOPPED, not app. The words "One hook or fly" come from the answers payload (`pipeline/deliver/answers/gear.py`) and the curated data (the audit says: curated data only); the app only draws them. Needs a Python/data change ("one fly" for artificial-fly-only waters, p.80); owner/pipeline lane.
+- D6: STOPPED, not app. The Region 6 DFO gear line is cut in the pipeline's typing of the verbatim (`pipeline/regs/dfo_salmon/typed.py` ~175, the comma in "Single, barbless hook in tidal and non-tidal portions"); the audit's fix is "re-type the line", a pipeline change.
+- K8, G8, G10: untouched, waiting for the owner.
