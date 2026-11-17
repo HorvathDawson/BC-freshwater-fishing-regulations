@@ -22,7 +22,7 @@
  */
 import { ErrorState } from "./ErrorState";
 import { useState } from "react";
-import { ScrollView, TextInput, View, useWindowDimensions } from "react-native";
+import { KeyboardAvoidingView, Platform, ScrollView, TextInput, View, useWindowDimensions } from "react-native";
 import { Selectable, Text } from "./Text";
 import { Pressable } from "./Pressable";
 import { isUntitled, needsRefresh, refreshReason, spotHeadline, spotLabel, spotPlaceLine, spotRecordSummary, spotTraceLine,
@@ -248,7 +248,12 @@ export function SpotScreen(p: SpotScreenProps) {
   // (T342) the spot screen is a pane: its reading text copies with the phone's own long-press
   return (
     <Selectable>
-    <View style={{ flex: 1, backgroundColor: palette.card }}>
+    {/* (T819, the owner's Android spots) ANDROID 15 IS EDGE-TO-EDGE: the window no longer shrinks for the keyboard, so
+        the Save row at the foot sat under it while the notes were typed (the test bed's "is Save changes above it?").
+        The page is padded by the keyboard's overlap on Android; iOS keeps its own (the scroll view's keyboard insets,
+        T723) and the web has no soft keyboard to avoid: one value, so `Platform.select`. */}
+    <KeyboardAvoidingView behavior={Platform.select({ android: "padding" as const, default: undefined })}
+                          style={{ flex: 1, backgroundColor: palette.card }}>
       <View style={{ flexDirection: "row", alignItems: "center",
                      justifyContent: "space-between",
                      paddingHorizontal: 18, paddingTop: 14, paddingBottom: 6, ...MEASURE_NOW }}>
@@ -370,7 +375,7 @@ export function SpotScreen(p: SpotScreenProps) {
           </CoachSpot>
         </View>
       )}
-    </View>
+    </KeyboardAvoidingView>
     </Selectable>
   );
 }
