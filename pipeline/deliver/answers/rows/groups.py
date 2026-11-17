@@ -9,7 +9,7 @@ from pipeline.deliver.answers import common
 from pipeline.deliver.answers.rows.rule import INF, R, _bands, _covers, _js, _keep_range, _keepish
 from pipeline.deliver.answers.rows.evaluate import counts_toward, main_res
 from pipeline.deliver.answers.rows.card_model import _icu_key
-from pipeline.deliver.answers.rows.conds import _raise_of
+from pipeline.deliver.answers.rows.conds import _raise_of, pools
 from pipeline.deliver.answers.rows.wire import _num, badge_of
 
 
@@ -28,7 +28,26 @@ def total_of(P: "Part", model: dict, row: dict) -> R:
         m = _kept(model, S)
         ks = [k for k in m["roles"] if k != m["win"].key and counts_toward(m, k)] if m else []
         outs = ks if outs is None else [k for k in outs if k in ks]
+    if not outs and A_RAISED_TOTAL_IS_ONE_BOX and row.get("pool") is not None:
+        # T834 (owner 2026-11-17 12:29): a water's own quota that RAISED its region's total (`conds.pools`) is drawn in
+        # that total's group — "5 trout a day; brook trout up to 20" — never as a box of its own beside it (20 + 5)
+        up = _raised_total_by(P, row["pool"].key)
+        if up is not None:
+            return up.clause
     return P.by_key[outs[0]] if outs else row["pool"]
+
+
+#: T834 (owner 2026-11-17 12:29, the one box): a region total a water's own quota RAISED (`conds.pools`: Jewel Lake's
+#: brook trout 20 over Region 8's "Trout/char: 5") is ONE card group: the region's number is its headline ("5 trout/char a
+#: day", a share-like cap over the fish no lift took out, with no water), the lifted fish its exception ("or 20 if they’re
+#: brook trout"), the raised number the group's total. False = two groups that read as 25 (the trout check refuses it).
+A_RAISED_TOTAL_IS_ONE_BOX = True
+
+
+def _raised_total_by(P: "Part", lifter_key: str):
+    """The raise (`conds.pools`) of a region TOTAL (not a share) by `lifter_key`, or None."""
+    return next((x for x in pools(P) if x.lifter.key == lifter_key and x.clause.k == "pool"
+                 and x.f.get("take") is not None), None)
 
 
 def _names(codes: Sequence[str], conj: str = " or ") -> str:
@@ -137,6 +156,19 @@ def group_of(P: "Part", model: dict, T: R, own_row: bool = False) -> Optional[di
     THE DECISION ONLY: how the card SAYS it is `card.card_of` (answers 2.8 — the lead sentence
     and the items of 2.6/2.7 are gone: they restated the kind rows)."""
     kinds = [S for S in model["spp"] if counts_toward(_kept(model, S), T.key)]          # T127: the one predicate
+    # T834 (`A_RAISED_TOTAL_IS_ONE_BOX`): the fish a water's own quota lifted out of this total and raised it for
+    up = max((x for x in pools(P) if x.clause.key == T.key and x.f.get("take") is not None), default=None,
+             key=lambda x: x.f["take"]) if A_RAISED_TOTAL_IS_ONE_BOX and not T.f.get("unlimited") else None
+    up_fish = []
+    if up is not None:
+        for S in model["spp"]:
+            m = _kept(model, S)
+            if S not in kinds and m is not None and S in {F for F, _o in up.lifted} \
+                    and (m["win"].key == up.lifter.key or m["win"].entry_id == up.lifter.entry_id):
+                up_fish.append(S)
+        if not up_fish:
+            up = None
+        kinds += up_fish
     kinds.sort(key=lambda S: _icu_key(P.sp_name(S)))
     if not kinds:
         return None
@@ -152,6 +184,8 @@ def group_of(P: "Part", model: dict, T: R, own_row: bool = False) -> Optional[di
     unlimited = bool(T.f.get("unlimited"))
     total = "unlimited" if unlimited else _num(T.f.get("take"))
     subcaps = []
+    if up is not None:
+        total = _num(up.f["take"])
     for c in chain:
         held, lifted = [], {}
         for S in kinds:
@@ -210,11 +244,42 @@ def group_of(P: "Part", model: dict, T: R, own_row: bool = False) -> Optional[di
                 if set(fish) - set(held):
                     subcaps.append({"r": x.lifter.key, "take": _num(x.f["take"]), "water": None,
                                     "over_cm": sc["over_cm"], "under_cm": None, "of": fish, "lifted": []})
+    if up is not None:
+        # the raised total's own number holds the fish no lift took out: on a stream the share already does (its lift
+        # names the fish), else a share-like cap with no water — the region's "5 a day" with the lifted fish past it
+        share = next((x for x in subcaps if x["water"] and x["over_cm"] is None and x["under_cm"] is None
+                      and set(x["of"]) | {S for L in x["lifted"] for S in L["members"]} == set(kinds)), None)
+        if share is None:
+            subcaps.insert(0, {"r": T.key, "take": _num(T.f.get("take")), "water": None, "over_cm": None,
+                               "under_cm": None, "of": [S for S in kinds if S not in up_fish],
+                               "lifted": [{"members": [S for S in kinds if S in up_fish], "by": up.lifter.key}]})
+    # T834: a stream share a water's own quota RAISED below the total (the Peace River's lake trout 3 over Zone 7's "2
+    # from streams") holds every kind of the card to the raised number: a count clause of the group, as that quota's
+    for x in pools(P):
+        if len(kinds) > 1 and not unlimited and x.f.get("take") is not None and x.clause.k == "subcap" \
+                and x.clause.key in {c["r"] for c in subcaps if c["water"]} and x.f["take"] < (_num(T.f.get("take")) or INF):
+            subcaps.append({"r": x.lifter.key, "take": _num(x.f["take"]), "water": None, "over_cm": None,
+                            "under_cm": None, "of": [S for S in kinds if _covers(x, S)], "lifted": []})
+    if A_ONE_KIND_INSIDE_ITS_SHARE_IS_ITS_ROW and len(kinds) == 1 and subcaps \
+            and all(set(x["of"]) == set(kinds) and not x["lifted"] for x in subcaps):
+        m = _kept(model, kinds[0])
+        W = m["win"] if m else None
+        if W is not None and W.key != T.key and EID.is_water_row(W.entry_id) \
+                and isinstance(W.f.get("take"), (int, float)) and not W.f.get("unlimited") \
+                and all(W.f["take"] <= x["take"] for x in subcaps):
+            return None
     if len(kinds) < 2 and not subcaps \
             and not (A_TROUT_CHAR_TOTAL_OF_ONE_KIND_IS_A_GROUP and own_row and not T.f.get("water")
                      and set(kinds) <= _trout_char()):
         return None
     return {"pool": T.key, "total": total, "kinds": kinds, "subcaps": subcaps}
+
+
+#: T834 (RULINGS T17): ONE KIND inside a share no larger than its water's own number is that row's, never a group of the
+#: region's total — the Duncan River on Jan 15 (bull trout 2 under Region 4's "2 from streams", every other trout under
+#: the winter release): a group would say "5 a day across Region 4" over one kind that can never reach it (the card gate
+#: refuses it). Before T834 the bull trout's lift emptied the share, so no group formed. False = the group (the pin).
+A_ONE_KIND_INSIDE_ITS_SHARE_IS_ITS_ROW = True
 
 
 #: D19 (a), T80 3 (owner call 11, Q11: the backend answers, the app only reads): a TROUT/CHAR total of ONE kind with
@@ -304,11 +369,18 @@ def elsewhere_of(P: "Part", model: dict, row: dict, sc: dict, T: R,
         # RULINGS Q23b: the stream tally counts every trout/char kept from ANY
         # stream today; a kind THIS water lifts may still go past it here, to its own quota and the
         # total — after n kept on another stream, up to min(its own, total - n) more of it here
+        # T834 (RULINGS T17): a water's own quota that RAISED the share (`conds.pools`, below the total: the Peace
+        # River's lake trout 3 over Zone 7's 2 from streams) holds every fish of the share here to its number — the fish
+        # kept on another stream count toward it, those kept on a lake do not
+        up = next((x.f["take"] for x in pools(P) if x.clause.key == nw.key and x.f.get("take") is not None
+                   and tot != "unlimited" and x.f["take"] < tot), None)
         ex = []
         for L in (mine or {}).get("lifted", []):
             own = P.by_key[L["by"]].f.get("take")
             more = (tot - n) if own is None or tot == "unlimited" else min(own, tot - n) \
                 if tot != "unlimited" else own
+            if up is not None and more is not None:
+                more = min(more, max(0, up - n))
             ex.append((_lift_words(P, L["by"], L["members"]), more))
         # RULINGS P24: no bare "0" in an answer (it reads as a count): "None more here"
         a1 = "None more here"
@@ -321,7 +393,7 @@ def elsewhere_of(P: "Part", model: dict, row: dict, sc: dict, T: R,
         lifted_own = [P.by_key[L["by"]].f.get("take") for L in (mine or {}).get("lifted", [])]
         unl = tot == "unlimited" or any(x is None for x in lifted_own)
         here1 = None if unl else min(tot - n, sum(m for _w, m in ex)) if ex else 0
-        here2 = None if unl else min(tot - 1, n + sum(lifted_own))
+        here2 = None if unl else min(tot - 1, n + sum(lifted_own), INF if up is None else up)
         # RULINGS P41: the lake line says how many are left here after 1 kept there (the gate
         # proves `here`), then why: "Keep 2 more here. Fish from lakes count toward the 4 a day, not
         # toward the 2 from streams."

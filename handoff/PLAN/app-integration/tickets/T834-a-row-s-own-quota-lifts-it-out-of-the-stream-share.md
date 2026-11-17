@@ -47,3 +47,23 @@ for that fish that counts toward the cap. Catch confirmation pending (see OWNER-
 2026-11-17 12:32, owner: "For now say legal ( need to ask about this with co tho)" (15 brook + 5 cutthroat). Engine unchanged; card leads with the region cap and shows the own number as an exception counting toward it.
 
 2026-11-17 13:15, owner: box head "Lead with 5 (Recommended)" ("Keep 5, brook trout up to 20 ..." not "Keep 20 in all"); Kootenay, Peace and Lardeau cards "Yes, they read right". Then merge with the Nahwitti vector.
+
+## 2026-11-17 13:30: built, merge-ready on lane/t834-share-lift (worker; not merged, not released)
+- RULE ("Strict everywhere", owner 11:06; RULINGS T17, T3a revised): a water row's own daily quota N above a region cap
+  C (the trout/char total; on a stream also the "from streams" share) lifts its fish out of C and C is raised to N over
+  every fish it holds; N <= C changes nothing. Bundle: `bundle.rules.lifts._cap_lifts` / `row_caps` (`basis:
+  own_quota`, flag `OWN_QUOTA_ABOVE_A_CAP_RAISES_IT`); answers: `rows.conds.pools` (the F17 raise, in force only while
+  the lifting quota is), read by the keeping engine. Corpus: the share lifts on `lardeau_river.r5` / `duncan_river.r5`
+  dropped (bull trout 2 = the share's 2).
+- CARD (owner 12:29 / 13:15): one box per raised cap, leading with the region's number — top line "Up to 5 today, or 20
+  if they’re brook trout", box head "Keep 5, brook trout up to 20", card "they count toward the 5; past 5, brook trout
+  only" (`rows.groups.A_RAISED_TOTAL_IS_ONE_BOX`, `trout.table.A_HEAD_LEADS_WITH_THE_REGION`, `A_RAISED_SHARE_IS_A_BAND`,
+  `A_TOP_SAYS_WHAT_THE_OTHER_FISH_COME_TO`, `A_WILD_QUOTA_HOLDS_EVERY_FISH_OF_ITS_RULE`); Kaslo / Keen's bull trout inside
+  the 2 from streams (`tree.AN_EQUAL_OWN_TIER_SITS_IN_THE_SHARE`); a lone kind inside its share is its row
+  (`rows.groups.A_ONE_KIND_INSIDE_ITS_SHARE_IS_ITS_ROW`: the Duncan on Jan 15). No worked keep-N / kept-elsewhere lines on
+  a raised total (the other-waters question is the owner's to BC Fish and Wildlife); the trout check proves the head's
+  first number against what the other fish come to, the card gate a raised total as the water's number.
+- PROOF (side build over the live atlas, a reach-only rerun for the corpus edit): card gate 0; `card_check --all` with the
+  trout table 5,947 / 5,947, 0 problems; `test_t834_share_lift.py`, `test_t834_strict_baskets.py` (mutation-pinned).
+- Also: `test_trout_check.py` FOUND no longer pins `A_SHARE_HOLDS_ITS_UNLIFTED_FISH` on Kaslo (no live case left) and
+  builds one model per water.

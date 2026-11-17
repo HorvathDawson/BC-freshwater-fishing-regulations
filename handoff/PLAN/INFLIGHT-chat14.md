@@ -115,6 +115,24 @@ its `_reindex`), dfo_vectors --check with both in.
   "was X, now Y" per water comes back first. 3f440729a pushed; app chat pushed f7b41c208 on top (CI running, hold push
   until its "CI green"). Local unpushed: 42d8212d7 (answers + T835 step-cache /tmp ticket). Plan unchanged: T834 ->
   ONE data build (also carries Babine closes_item) -> staging release.
+  **13:57 11-17: 0.8.0 stock-take** (scratchpad/release-080-scope.md). Bug lane a0653d0ad43fe742a (lane/bugs-080):
+  triage T771-T775/T782/T788/T686, fix T784, T785, T792A, T799, T797 2-5, T801 2-4, T835, T790, T791, T823 data, T803
+  follow-ups. App-side extras sent to the app chat (T808 branch-only ticket, T765-T768/T751/T789/T740 triage, stale
+  rows). 15:00 OWNER BATCH: T804/T807 was/now, T825 list, T810 G2 wording (pictures; after T834 lands), T806 (40
+  saves, pictures), T786 (wrong-with-no-fix list), bug-lane owner questions, app chat's questions.
+  **13:55 11-17: OWNER AWAY UNTIL 15:00** ("save questions for then please and work while i am away"). Questions batch
+  at 15:00: T804/T807 was/now page, T825 list, T810 G2 sentence questions, anything new. Workers: T804+T807
+  aa78c06015861b949 (lane/t804-t807), T813+T825 ab8c0795e01658ad2 (lane/t813-t825), T834 fix aefa9ff1e764c0ea2,
+  inventory afca318f2ba6dbb57. T834 lands without asking (owner already OK'd it) once the whole tier is clean.
+  **13:52 11-17: RELEASE HELD FOR EVERYTHING (owner 13:49, OWNER-TODO).** No data build / staging release / Play-TF
+  build for him until EVERYTHING lands: T804, T807, T813, T825, the T810 trout table switch, salmon + table rework, all
+  bug fixes; then ONE data release with app 0.8.0 (app chat owns the bump; its app list: T810 M0+M, T829, T828, T836,
+  T831, T832, T808, T822/T739 last). State: T834 + Nahwitti merged LOCALLY (596a677c7, 3e07b5f5d; mini re-cut
+  6cbfd9bd6), NOT pushed: 3 failures in test_answers_t805_wild_limit (Lois wild 2 dropped on the raised-cap card) sent
+  back to worker aefa9ff1e764c0ea2 (fix on top of its lane, whole no-data tier). App vitest 8127 pass. Pushed through
+  2269673a8; app chat pushed e40851285 (hold until its CI green). Inventory agent afca318f2ba6dbb57 writing
+  scratchpad/release-080-scope.md. Data build script ready: scratchpad/rebuild4/chain.sh (rebuild3 atlas not behind;
+  reach-only + deliver) — run it LAST, once everything has landed. Sheldens mark on NOT_LANDED_OK (owner re-ticks).
   **11:58 11-17: FOCUS = RELEASE (owner: gotchas/regional questions are "a later thing").** T834 FINAL MODEL = STRICT
   (owner 11:06): own quota N vs regional cap C: N<=C inside; N>C raises that cap to N for that fish only. Lardeau/Duncan
   5 (T3a bull lifts go), Kootenay Lake main 10, Kaslo/Keen 2, Adams 4, Buckley 1. Worker aefa9ff1e764c0ea2 reworking on

@@ -58,6 +58,8 @@ class Engine:
         from pipeline.deliver.answers import rows as RW
         here = {id(r) for r in self.rules}
         self.rules += [x for x in RW.raises(P) if id(x.clause) in here and x.clause.key not in self.unlift]
+        # T834: the day pool a water's own daily quotas raise a region cap to (`rows.pools`), over every fish it holds
+        self.rules += [x for x in RW.pools(P) if id(x.clause) in here and x.clause.key not in self.unlift]
         self._state: Dict[Tuple[str, str, str], str] = {}
         self._bands_of: Dict[int, list] = {}
         self._needs: Dict[Fish, Optional[frozenset]] = {}
