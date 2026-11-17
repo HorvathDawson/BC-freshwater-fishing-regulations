@@ -541,7 +541,10 @@ def dfo_heading(loc: Mapping, water: Optional[Mapping]) -> str:
     """DFO'S WATER HEADING WITH ITS TRIBUTARY QUALIFIER (owner 2026-11-09: "Morice River (including tributaries) in dfo
     page but in review app it isnt showing the includes tributary part"). The scrape keeps the name without it and the
     qualifier as the water's `tributaries` flag (true: "(including tributaries)", false: "(excluding tributaries)"),
-    so the heading is put back from the flag — DFO's meaning, not its bytes."""
+    so the heading is put back from the flag — DFO's meaning, not its bytes. T807: a named water's place carries the
+    EXACT heading its row sits under (`heading`, stamped from DFO's page), which is shown as printed."""
+    if loc.get("heading"):
+        return str(loc["heading"])
     st = loc.get("source_text") or {}
     name = str(st.get("waters") or loc.get("water") or "")
     call = (water or {}).get("tributaries")

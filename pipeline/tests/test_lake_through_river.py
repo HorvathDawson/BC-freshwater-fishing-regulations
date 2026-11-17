@@ -148,3 +148,63 @@ def test_dfo_through_river_mutation_pin(powell, monkeypatch):
     g, reg = powell
     b, _ = build_reach(DFO_ROW, _dfo_rule(), reg, g)
     assert {"R:up", "RT"} <= set(b.sections), "False = every DFO through-river goes with the lake, as before"
+
+
+# ---------------------------------------------------------------- T772: the through-river's side channels stay out too
+# "Kitsumkalum Lake, including tributaries" (DFO Region 6) took 16 side-channel pieces (14.6 km) of the Kitsumkalum
+# River above the lake: the walk refused the river's main line, but a side channel of the river — the river's own
+# watershed code — reaching the lake by a mouth of its own came in as a lake tributary, with the creek feeding it.
+
+@pytest.fixture
+def braided(powell):
+    g, reg = powell
+    extra = [_n("R:ch", blk="RC", lo=0, hi=400, name="Powell River", wsc="900-1", order=5),
+             _n("CT", blk="CT", name="", wsc="900-1-000900", order=1)]
+    for n in extra:
+        g.nodes[n.node_id] = n
+    for a, b, k, m in [("R:up", "R:ch", "confluence", 50000), ("R:ch", "lake:L", "lake_in", 49800),
+                       ("CT", "R:ch", "confluence", 200)]:
+        g.edges.append(FlowEdge(from_node=a, to_node=b, kind=k, at_measure=m))
+        i = len(g.edges) - 1
+        g.up_adj.setdefault(b, []).append(i)
+        g.down_adj.setdefault(a, []).append(i)
+    return g, reg
+
+
+def test_a_through_river_that_stays_out_stays_out_with_its_side_channels(braided):
+    got, diags = _bind(braided, owned={"gnis:R": ("r2:powell_river@2-12",)})
+    assert got == {"lake:L", "C"}, "the side channel R:ch and the creek CT feeding it are the river's, not the lake's"
+    assert diags[0]["channels_out"] == 1
+
+
+def test_an_unrowed_through_river_still_comes_in_whole(braided):
+    got, _ = _bind(braided)
+    assert {"R:up", "RT", "R:ch", "CT"} <= got
+
+
+def test_t772_mutation_pin(braided, monkeypatch):
+    from pipeline.atlas.reach import build as B
+    monkeypatch.setattr(B, "A_THROUGH_RIVER_STAYS_OUT_WITH_ITS_SIDE_CHANNELS", False)
+    got, _ = _bind(braided, owned={"gnis:R": ("r2:powell_river@2-12",)})
+    assert {"R:ch", "CT"} <= got
+
+
+@pytest.mark.needs_reach_run
+@pytest.mark.needs_atlas
+def test_kitsumkalum_lake_takes_no_piece_of_the_kitsumkalum_river(request):
+    """On the built run (T772): "Kitsumkalum Lake, including tributaries" (DFO Region 6) binds no piece of the
+    Kitsumkalum River (gnis:3942) — not its main line above the lake (T743) and not its 16 side channels (14.6 km)."""
+    import gzip
+    import json
+    from pipeline.tests import under_test
+    from pipeline.tests.conftest import ATLAS_HINT, REACH_HINT, need
+    run = need(request, "reach_run", under_test.reach_run(request) / "dfo_salmon.jsonl.gz", REACH_HINT)
+    reg = need(request, "atlas", under_test.atlas(request) / "registry.json", ATLAS_HINT)
+    items = json.loads(reg.read_text(encoding="utf-8"))["items"]
+    items = items.values() if isinstance(items, dict) else items
+    river = {s for it in items if it["id"] == "gnis:3942" for s in it["section_ids"]}
+    assert river
+    with gzip.open(run, "rt", encoding="utf-8") as f:
+        lake = next(set(r["sections"]) for r in map(json.loads, f)
+                    if r["location_id"] == "6:kitsumkalum-lake:including-tributaries")
+    assert lake and not lake & river, sorted(lake & river)

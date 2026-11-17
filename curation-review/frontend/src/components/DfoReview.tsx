@@ -16,6 +16,7 @@ import { current as writeThrough, keyOf as wtKey, subscribe as onWriteThrough } 
 import {
   CONFIRMED_AS_IS, addPiece, cannotEditOf, dropPiece, effectOf, heldBy, incompletePieces, inlineAction, markBody, newCutsOf, offerProposal, oneProposal, previewOf,
   proposesCuts, saveWords, statusLine, withPiece, type DfoCall, type DfoEffect, earlierDiff, sameTribCall, tribWords, tribWarnings,
+  sideStreamsWhy,
 } from "../dfoExtent";
 import { CannotEditNote } from "./CannotEditNote";
 
@@ -705,6 +706,7 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
                 : <span className="warn-text">none yet</span>}
               <div className="dim" style={{ fontSize: 12 }}>
                 {tribNow && <>{tribNow} · </>}
+                {detail.side_streams && <span data-testid="dfo-side-streams-why">{sideStreamsWhy(detail.side_streams)} · </span>}
                 {reach ? (reach.resolvable ? `${reach.n_sections} section(s), magenta on the map` : reach.why) : "drawing…"}
                 {" · "}
                 <label className="dim" data-testid="dfo-show-tribs" title="also draw its tributaries (slow)">

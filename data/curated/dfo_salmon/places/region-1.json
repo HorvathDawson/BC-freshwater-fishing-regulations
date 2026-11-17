@@ -832,6 +832,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Campbell River",
       "binding": {
         "extents": [
           {
@@ -890,6 +891,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Campbell River",
       "binding": {
         "extents": [
           {
@@ -952,6 +954,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Campbell River",
       "binding": {
         "extents": [
           {
@@ -1008,6 +1011,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Cayeghle River",
       "binding": {
         "extents": [
           {
@@ -1060,6 +1064,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Chemainus River",
       "binding": {
         "extents": [
           {
@@ -1108,6 +1113,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Cluxewe River",
       "binding": {
         "extents": [
           {
@@ -1156,6 +1162,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Comox Lake",
       "binding": {
         "extents": [
           {
@@ -1204,6 +1211,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Conuma River",
       "binding": {
         "extents": [
           {
@@ -1256,6 +1264,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Courtenay River (the waters below the confluence of the Puntledge and Tsolum Rivers)",
       "binding": {
         "extents": [
           {
@@ -1306,6 +1315,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Cowichan River",
       "binding": {
         "extents": [
           {
@@ -1316,7 +1326,7 @@
             ]
           }
         ],
-        "tributaries": true,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -1369,6 +1379,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Cowichan River",
       "binding": {
         "extents": [
           {
@@ -1380,7 +1391,7 @@
             "item_id": "gnis:12227"
           }
         ],
-        "tributaries": false,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -1432,6 +1443,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Cowichan River",
       "binding": {
         "extents": [
           {
@@ -1442,7 +1454,7 @@
             "item_id": "gnis:12227"
           }
         ],
-        "tributaries": false,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -1491,6 +1503,11 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Cowichan River",
+      "tributaries_exception": {
+        "reason": "the owner saved side streams in (Dawson 2026-11-15 (verified)) before the 2026-11-16 rule; DFO's words say river only (nothing said); a dormant place, so nothing ships from it — kept until the owner confirms or drops it",
+        "save": "Dawson 2026-11-15 (verified), marks line 2599"
+      },
       "binding": {
         "extents": [
           {
@@ -1544,6 +1561,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Goldstream River",
       "binding": {
         "extents": [
           {
@@ -1592,6 +1610,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Koksilah River",
       "binding": {
         "extents": [
           {
@@ -1599,7 +1618,7 @@
             "item_id": "gnis:14076"
           }
         ],
-        "tributaries": true,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -1645,6 +1664,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Little Qualicum River",
       "binding": {
         "extents": [
           {
@@ -1699,6 +1719,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Little Qualicum River",
       "binding": {
         "extents": [
           {
@@ -1762,6 +1783,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Little Qualicum River",
       "binding": {
         "extents": [
           {
@@ -1815,6 +1837,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Nahwitti River",
       "binding": {
         "extents": [
           {
@@ -1866,6 +1889,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Nanaimo River",
       "binding": {
         "extents": [
           {
@@ -1873,7 +1897,7 @@
             "item_id": "gnis:16505"
           }
         ],
-        "tributaries": true,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -1926,6 +1950,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Nanaimo River",
       "binding": {
         "extents": [
           {
@@ -1937,7 +1962,7 @@
             "item_id": "gnis:16505"
           }
         ],
-        "tributaries": false,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -1989,6 +2014,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Nanaimo River",
       "binding": {
         "extents": [
           {
@@ -2050,6 +2076,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Nanaimo River",
       "binding": {
         "extents": [
           {
@@ -2061,7 +2088,7 @@
             "item_id": "gnis:16505"
           }
         ],
-        "tributaries": false,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -2106,6 +2133,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Nitinat River",
       "binding": {
         "extents": [
           {
@@ -2166,6 +2194,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Nitinat River",
       "binding": {
         "extents": [
           {
@@ -2231,6 +2260,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Nitinat River",
       "binding": {
         "extents": [
           {
@@ -2303,6 +2333,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Nitinat River",
       "binding": {
         "extents": [
           {
@@ -2364,6 +2395,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Nitinat River",
       "binding": {
         "extents": [
           {
@@ -2425,6 +2457,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Puntledge River",
       "binding": {
         "extents": [
           {
@@ -2487,6 +2520,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Puntledge River",
       "binding": {
         "extents": [
           {
@@ -2553,6 +2587,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Puntledge River",
       "binding": {
         "extents": [
           {
@@ -2616,6 +2651,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Qualicum River",
       "binding": {
         "extents": [
           {
@@ -2680,6 +2716,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Qualicum River",
       "binding": {
         "extents": [
           {
@@ -2740,6 +2777,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Qualicum River",
       "binding": {
         "extents": [
           {
@@ -2798,6 +2836,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Qualicum River",
       "binding": {
         "extents": [
           {
@@ -2846,6 +2885,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Quatse River",
       "binding": {
         "extents": [
           {
@@ -2901,6 +2941,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Quatse River",
       "binding": {
         "extents": [
           {
@@ -2954,6 +2995,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Quinsam River",
       "binding": {
         "extents": [
           {
@@ -3002,6 +3044,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Reay Creek",
       "binding": {
         "extents": [
           {
@@ -3060,6 +3103,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "San Juan River",
       "binding": {
         "extents": [],
         "tributaries": null,
@@ -3123,6 +3167,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "San Juan River",
       "binding": {
         "extents": [],
         "tributaries": null,
@@ -3167,6 +3212,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Seymour River",
       "binding": {
         "extents": [
           {
@@ -3215,6 +3261,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Shawnigan Creek",
       "binding": {
         "extents": [
           {
@@ -3263,6 +3310,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Somass River",
       "binding": {
         "extents": [
           {
@@ -3316,6 +3364,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Somass River",
       "binding": {
         "extents": [
           {
@@ -3388,6 +3437,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Somass River",
       "binding": {
         "extents": [
           {
@@ -3457,6 +3507,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Somass River",
       "binding": {
         "extents": [
           {
@@ -3511,6 +3562,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Somass River tributaries",
       "binding": {
         "extents": [
           {
@@ -3559,6 +3611,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Sproat River",
       "binding": {
         "extents": [
           {
@@ -3613,6 +3666,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Sproat River",
       "binding": {
         "extents": [
           {
@@ -3671,6 +3725,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Stamp River",
       "binding": {
         "extents": [
           {
@@ -3728,6 +3783,11 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Stamp River",
+      "tributaries_exception": {
+        "reason": "the owner saved side streams in (Dawson 2026-11-15 (verified)) before the 2026-11-16 rule; DFO's words say river only (nothing said); a dormant place, so nothing ships from it — kept until the owner confirms or drops it",
+        "save": "Dawson 2026-11-15 (verified), marks line 2707"
+      },
       "binding": {
         "extents": [
           {
@@ -3786,6 +3846,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Stamp River",
       "binding": {
         "extents": [
           {
@@ -3854,6 +3915,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Stamp River",
       "binding": {
         "extents": [
           {
@@ -3919,6 +3981,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Stamp River",
       "binding": {
         "extents": [
           {
@@ -3986,6 +4049,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Stamp River",
       "binding": {
         "extents": [
           {
@@ -4049,6 +4113,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Stamp River",
       "binding": {
         "extents": [
           {
@@ -4111,6 +4176,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Stamp River",
       "binding": {
         "extents": [
           {
@@ -4163,6 +4229,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Stamp River tributaries",
       "binding": {
         "extents": [
           {
@@ -4211,6 +4278,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Tsitika River",
       "binding": {
         "extents": [
           {
@@ -4259,6 +4327,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Washlawlis River",
       "binding": {
         "extents": [
           {
@@ -4307,6 +4376,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Waukwaas River",
       "binding": {
         "extents": [
           {
@@ -4368,6 +4438,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Somass River",
       "binding": {
         "extents": [
           {
@@ -4430,6 +4501,11 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Cowichan River",
+      "tributaries_exception": {
+        "reason": "the owner saved side streams in (Dawson 2026-11-15 (unsure)) before the 2026-11-16 rule; DFO's words say river only (nothing said); a dormant place, so nothing ships from it — kept until the owner confirms or drops it",
+        "save": "Dawson 2026-11-15 (unsure), marks line 2600"
+      },
       "binding": {
         "extents": [
           {
@@ -4489,6 +4565,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Little Qualicum River",
       "binding": {
         "extents": [
           {
@@ -4544,6 +4621,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Nanaimo River",
       "binding": {
         "extents": [
           {
@@ -4617,6 +4695,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Somass River",
       "binding": {
         "extents": [
           {
@@ -4685,6 +4764,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Somass River",
       "binding": {
         "extents": [
           {
@@ -4755,6 +4835,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Sproat River",
       "binding": {
         "extents": [
           {
@@ -4816,6 +4897,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Stamp River",
       "binding": {
         "extents": [
           {
@@ -4826,7 +4908,7 @@
             "item_id": "gnis:14533"
           }
         ],
-        "tributaries": true,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -4890,6 +4972,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Stamp River",
       "binding": {
         "extents": [
           {
@@ -4959,6 +5042,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Stamp River",
       "binding": {
         "extents": [
           {
@@ -5029,6 +5113,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Stamp River",
       "binding": {
         "extents": [
           {
@@ -5097,6 +5182,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Stamp River",
       "binding": {
         "extents": [
           {
@@ -5165,6 +5251,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Puntledge River",
       "binding": {
         "extents": [
           {
@@ -5231,6 +5318,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Puntledge River",
       "binding": {
         "extents": [
           {
@@ -5309,6 +5397,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Stamp River",
       "binding": {
         "extents": [
           {
@@ -5362,6 +5451,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Cowichan River",
       "binding": {
         "extents": [
           {
@@ -5423,6 +5513,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Nanaimo River",
       "binding": {
         "extents": [
           {
@@ -5434,7 +5525,7 @@
             "item_id": "gnis:16505"
           }
         ],
-        "tributaries": false,
+        "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -5507,6 +5598,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Somass River",
       "binding": {
         "extents": [
           {
@@ -5561,6 +5653,7 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "heading": "Adam and Eve Rivers",
       "binding": {
         "extents": [
           {
@@ -5616,6 +5709,8 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "tidal_water": true,
+      "heading": "Nanaimo River",
       "binding": {
         "extents": [],
         "tributaries": null,
@@ -5624,8 +5719,7 @@
         "sections_cached": null,
         "notes": [],
         "spatial_caveat": false
-      },
-      "tidal_water": true
+      }
     },
     {
       "location_id": "1:nanaimo-river:in-subarea-17-14-tidal-portions-of~2",
@@ -5673,6 +5767,8 @@
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
+      "tidal_water": true,
+      "heading": "Nanaimo River",
       "binding": {
         "extents": [],
         "tributaries": null,
@@ -5681,8 +5777,7 @@
         "sections_cached": null,
         "notes": [],
         "spatial_caveat": false
-      },
-      "tidal_water": true
+      }
     },
     {
       "location_id": "1:default:region",

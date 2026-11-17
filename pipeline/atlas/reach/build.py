@@ -537,6 +537,8 @@ def build_reach(entry: dict, rule: dict, registry, graph, *, covered=None,
             "in_reach": bool(row.get("in_reach")), "kept_out": len(row["sections"]),
             "own_row": list(row.get("own_row") or ()), "with_cut": bool(row.get("with_cut")),
             "joined": row.get("joined", 0),
+            # T804: how the joining water was found when it was not at the cut itself
+            **({"found": row["found"]} if row.get("found") not in (None, "at the cut") else {}),
             **({"bounded_at_lake": True, "stem": len(row.get("stem") or ())}
                if row.get("bounded_at_lake") else {})}))
     seen_through: set[tuple[str, str]] = set()
@@ -942,11 +944,14 @@ def _joiners_at(graph, registry, owned, entry, words, sid, kind, label, blk, m, 
     side channel (`principal=False`) only a joiner the label NAMES is taken: the unnamed fallback of
     a curated confluence cut is its principal line's alone."""
     rows: list[dict] = []
+    found = "at the cut"
     if kind == "confluence":
         head = name_key(label.split("\u2192")[0])          # the one name key (T61 2.8)
         joiners = _tribs.confluence_joiners(graph, blk, m, names=(head,)) if head else ()
         if principal:
             joiners = joiners or _tribs.confluence_joiners(graph, blk, m)
+            if not joiners and head and THE_WATER_AT_A_CONFLUENCE_CUT_IS_THE_ONE_THAT_BRINGS_ITS_NAMED_WATER:
+                joiners, found = _bringer(graph, blk, m, head)
     else:
         near = _tribs.confluence_joiners(graph, blk, m,
                                          near=_tribs.CONFLUENCE_NEAR_M)
@@ -973,9 +978,55 @@ def _joiners_at(graph, registry, owned, entry, words, sid, kind, label, blk, m, 
                      "negated": negated, "own_row": own, "with_cut": with_cut,
                      "signs_below": _signs_below(words, water),
                      "signs_above": _signs_above(words, water),
+                     "found": found,
                      "blk": blk, "m": m, "subtree": subtree,
                      "sections": [] if (included or with_cut) else subtree})
     return rows
+
+
+#: POLICY (T804, owner 2026-11-16 question 9: "we need a trigger for why they are out? … what is the condition just so it
+#: is a universal rule"): THE WATER JOINING AT A CONFLUENCE CUT IS THE ONE THAT BRINGS THE CUT'S NAMED WATER TO THE
+#: LINE. Ruling T9 (a joining water with a row of its own stays out of the stretch rule; one with none goes with the
+#: cut) asks which water joins AT the cut, and the lookup asked only for the named stream's own mouth within 1 m of the
+#: cut. The Morice's "from Gosnell Creek to Lamprey Creek" cut is named for Gosnell Creek, which never meets the Morice:
+#: it joins the Thautil River 222 m above the Thautil's mouth, and the Thautil meets the Morice 20 m below the cut. No
+#: joiner was found, T9 never ran, and the closure walked up the Thautil and Gosnell Creek (both with rows of their own)
+#: and every stream feeding them: 1,827 sections. When neither the named stream nor any stream joins within 1 m, the
+#: joining water is the one meeting the line within `CONFLUENCE_NEAR_M` that is the named stream or carries it (the named
+#: stream lies in its subtree), the nearest such — and T9 decides it as before (`found` in the `confluence_cut`
+#: diagnostic says how it was found). False = the mutation pin (no joiner, the walk takes it all, as before).
+THE_WATER_AT_A_CONFLUENCE_CUT_IS_THE_ONE_THAT_BRINGS_ITS_NAMED_WATER = True
+
+
+def _bringer(graph, blk: str, m: float, head: str) -> tuple[frozenset, str]:
+    """(mouths, how found) of the water that brings the stream named `head` to line `blk` near `m`
+    (`THE_WATER_AT_A_CONFLUENCE_CUT_IS_THE_ONE_THAT_BRINGS_ITS_NAMED_WATER`): the named stream's own mouth within
+    `CONFLUENCE_NEAR_M`, else the nearest stream meeting the line there whose subtree holds a stream of that name.
+    (frozenset(), "") when none does."""
+    near = _tribs.CONFLUENCE_NEAR_M
+    named = _tribs.confluence_joiners(graph, blk, m, near=near, names=(head,))
+    if named:
+        return named, "the named water joins near the cut"
+    by_dist: dict[str, float] = {}
+    for nid in _tribs.confluence_joiners(graph, blk, m, near=near):
+        for ei in graph.down_adj.get(nid, []):
+            e = graph.edges[ei]
+            if e.at_measure is not None and getattr(graph.nodes.get(e.to_node), "blk", None) == blk:
+                by_dist[nid] = min(by_dist.get(nid, float("inf")), abs(e.at_measure - m))
+        by_dist.setdefault(nid, float("inf"))
+    # one water may meet the line by several mouths (a braid): group by name, nearest water first
+    groups: dict[str, set[str]] = {}
+    for nid in by_dist:
+        groups.setdefault((graph.nodes[nid].display_name or "").strip(), set()).add(nid)
+    for water, mouths in sorted(groups.items(), key=lambda kv: (min(by_dist[n] for n in kv[1]), kv[0])):
+        if not water:
+            continue
+        if any(name_key(graph.nodes[s].display_name or "") == head for s in _tribs.subtree(graph, mouths)
+               if s in graph.nodes):
+            d = min(by_dist[n] for n in mouths)
+            return frozenset(mouths), ("it carries the named water" + (f", {d:.0f} m from the cut" if d != float("inf")
+                                                                         else ""))
+    return frozenset(), ""
 
 
 _OWN_INDEX: dict = {}
@@ -1200,8 +1251,10 @@ def _expander(graph, registry, covered, rule, entry, *, cuts=None, region=None, 
                 with_cut |= add
             elif row.get("with_cut"):
                 row["joined"] = len(set(row["subtree"]) & got)
-        got = frozenset(got | with_cut | _through_river_with_the_lake(
-            graph, registry, owned, entry, rule, reach, own_water, blocked, passed, expand))
+        drop: set[str] = set()
+        got = frozenset((got | with_cut | _through_river_with_the_lake(
+            graph, registry, owned, entry, rule, reach, own_water, blocked, passed, expand, drop=drop))
+            - (drop - set(reach) - own_water))
         if region is None:
             return got
         kept = {s for s in got if s in region}
@@ -1214,8 +1267,19 @@ def _expander(graph, registry, covered, rule, entry, *, cuts=None, region=None, 
     return expand
 
 
+#: POLICY (T772, owner 2026-11-17 "Yes, show me the list"): A THROUGH-RIVER THAT STAYS OUT OF A LAKE'S WALK STAYS OUT
+#: WITH ITS SIDE CHANNELS. The walk refuses the river entering the lake on its outlet line (`through_inlets`), but a side
+#: channel of that river — a piece carrying the RIVER'S OWN watershed code — that enters the lake by a mouth of its own
+#: came in as a lake tributary, with what feeds it: "Kitsumkalum Lake, including tributaries" took 16 side-channel
+#: pieces (14.6 km) of the Kitsumkalum River above the lake. When the through-river stays out (a row of its own, the
+#: rule's words, or a DFO place's T743), the river and its side channels entering the lake, and everything above them,
+#: are taken out of the walk (`drop`; never the lake's own water or the reach). Reported as `channels_out` on the
+#: `through_river` diagnostic. False = the mutation pin.
+A_THROUGH_RIVER_STAYS_OUT_WITH_ITS_SIDE_CHANNELS = True
+
+
 def _through_river_with_the_lake(graph, registry, owned, entry, rule, reach, own_water, blocked,
-                                 passed, expand) -> set[str]:
+                                 passed, expand, drop: set | None = None) -> set[str]:
     """A LAKE ROW'S THROUGH-RIVER ABOVE THE LAKE, when it has no row of its own
     (`tributaries.A_LAKE_ROWS_UNROWED_THROUGH_RIVER_IS_A_TRIBUTARY`, T468): the river entering each
     of the entry's own lakes on the lake's outlet line, and everything above it — streams only, never
@@ -1247,9 +1311,20 @@ def _through_river_with_the_lake(graph, registry, owned, entry, rule, reach, own
                             or _resolve._kind_of(graph, s, registry) == "stream")}
                 joined = len(got - add)
                 add |= got
+            channels: set[str] = set()
+            if (own or negated or held) and drop is not None and A_THROUGH_RIVER_STAYS_OUT_WITH_ITS_SIDE_CHANNELS:
+                # the river's side channels entering the lake by mouths of their own: the river's own code, a stream
+                code = graph.nodes[inlet].wsc
+                channels = {e.from_node for e in (graph.edges[i] for i in graph.up_adj.get(lake, []))
+                            if code and e.from_node not in reach and e.from_node != inlet
+                            and e.from_node in graph.nodes and graph.nodes[e.from_node].wsc == code
+                            and e.from_node not in own_water} if code else set()
+                if channels:
+                    drop |= set(_tribs.subtree(graph, channels)) - set(reach) - own_water
             expand.through.append({"lake": lake, "inlet": inlet, "water": water or "(unnamed)",
                                    "own_row": list(own), "negated": negated, "joined": joined,
-                                   **({"stays_out": True} if held else {})})
+                                   **({"stays_out": True} if held else {}),
+                                   **({"channels_out": len(channels)} if channels else {})})
     return add
 
 

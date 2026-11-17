@@ -40,6 +40,7 @@ Five stages, deliberately separate:
 | `fetch.py` | snapshot the page, validate it, hash it, never overwrite good with bad |
 | `parse.py` | faithful transcription — every `<tr>` becomes one row, nothing read |
 | `untangle.py` | regroup into waters → reaches → rules + the defaults, for consumption |
+| `side_streams.py` | (T807) a named-water place's side streams, DERIVED from DFO's words: its own line, else the EXACT heading its row sits under (stamped on the place, `stamp`), else river only; a stored value is a stated exception; `check` flags a heading DFO changed |
 | `typed.py` | **the whole decode** — limits and dates read once, then typed rules |
 | `feed.py` | write those rules as a feed, keyed by the locator fingerprint |
 | `quota.py` | (T320) the salmon bucket: per-species numbers per place (`q` on each open verdict), the region total, the header closure that wins, every cell read fully or flagged with a named reason |

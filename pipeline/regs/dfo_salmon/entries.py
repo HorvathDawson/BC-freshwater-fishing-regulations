@@ -42,6 +42,7 @@ from pipeline.regs.dfo_salmon.fetch import ALL_SLUGS, PAGES, normalize_slug
 from pipeline.regs.dfo_salmon.cascade import Scope, build_scopes, resolution_chain
 from pipeline.regs.parsing.entry_models import Extent
 from pipeline.regs.dfo_salmon.locations import Location, normalize
+from pipeline.regs.dfo_salmon import side_streams as _side_streams
 from pipeline.common.names import key
 from pipeline.common.curated import CURATED, GENERATED, SOURCE
 
@@ -82,8 +83,11 @@ class Binding:
     """
 
     extents: List[Extent] = field(default_factory=list)
-    #: Three-valued, reach-level. `None` inherits the water's own setting; this becomes
-    #: the rule's `includes_tributaries` (AGENTS rule 9).
+    #: Three-valued, reach-level. On a NAMED-WATER place (T807, owner 2026-11-16) `None` means DFO's words decide
+    #: (`side_streams.derive`: the place's own line, else the exact heading it sits under, else river only) and a value
+    #: is a STATED EXCEPTION, which `EntryLocation.tributaries_exception` gives the reason for; the water's flag never
+    #: decides. On a default / scope place `None` inherits the water's setting, as before. The effective value
+    #: (`side_streams.effective`) becomes the rule's `includes_tributaries` (AGENTS rule 9).
     tributaries: Optional[bool] = None
     tributaries_only: bool = False
     #: Carve-outs subtracted from the tributary set — "other than Morice River and
@@ -150,7 +154,10 @@ class WaterBinding:
     sections: List[str] = field(default_factory=list)
     #: THE BINDING. Empty means unbound — no rule on this water can resolve.
     item_ids: List[str] = field(default_factory=list)
-    #: Entry-wide tributary scope, when the NAME says so ("… and tributaries").
+    #: Entry-wide tributary scope, when the MERGED name said so ("… and tributaries"). T807 (owner 2026-11-16): it NEVER
+    #: decides a named-water place's side streams — one cleaned name merges headings that disagree ("Morice River
+    #: (including tributaries)" and "Morice River"), which is how nine places went wrong; the place's exact heading
+    #: (`EntryLocation.heading`) decides (`side_streams`). Kept for the record and for a default / scope place.
     tributaries: Optional[bool] = None
     #: {status, via, reason, candidates} — what the matcher found. Informational.
     match: dict = field(default_factory=dict)
@@ -218,6 +225,19 @@ class EntryLocation:
     #: here. Such a place binds nothing (no extent) and is not missing: the reach row says `tidal_water`, and the
     #: bundle does not paint its water "parts not mapped" for it. Absent from the file when False.
     tidal_water: bool = False
+    #: T807 (owner 2026-11-16, "The heading counts"): THE EXACT WATERS HEADING this place's row sits under on DFO's page
+    #: ("Morice River (including tributaries)", "Morice River"), whitespace-normalised — stamped from the cached pages
+    #: (`side_streams stamp`; the live page, else the newest archive holding the place). With the place's own words it
+    #: decides the side streams (`side_streams.derive`). Absent from the file when None (a default / scope place).
+    heading: Optional[str] = None
+    #: T807: why a named-water place's STORED side-stream setting (`binding.tributaries`) differs from what DFO's words
+    #: say: {"reason": …, "save": the save it came from}. A stored setting with no reason is refused by
+    #: `side_streams check`. Absent when empty.
+    tributaries_exception: dict = field(default_factory=dict)
+    #: T807: the owner OVERRULED this place's earlier side-stream saves with the rule ("Yes, river only for all ten",
+    #: 2026-11-16): {"through": the last save date overruled, "owner": his words}. A review mark of the place dated on or
+    #: before `through` no longer sets its side streams (`review.proposals`); a later save does. Absent when empty.
+    side_streams_overruled: dict = field(default_factory=dict)
 
     @property
     def is_variant(self) -> bool:
@@ -229,6 +249,9 @@ class EntryLocation:
         d["binding"] = self.binding.to_dict()
         if not self.tidal_water:
             d.pop("tidal_water")
+        for k in ("heading", "tributaries_exception", "side_streams_overruled"):
+            if not d.get(k):
+                d.pop(k)
         return d
 
     @classmethod
@@ -504,7 +527,7 @@ def propose_groups(ef: EntryFile, threshold: float = DUPLICATE_THRESHOLD) -> Lis
         # the section, the directional op, and whether tributaries are in or out.
         # Two scopes that differ on any of those are never the same reach.
         by_water.setdefault(
-            (loc.water, loc.section, st.get("op"), loc.binding.tributaries), []
+            (loc.water, loc.section, st.get("op"), _side_streams.effective(loc).tributaries), []
         ).append(loc)
 
     changed = []
@@ -868,8 +891,10 @@ def apply_seed(ef: EntryFile, locations: List[Location], structure: dict, *,
                          "landmarks": loc.landmarks, "op": loc.op,
                          "anchor_types": loc.anchor_types, "excludes": loc.excludes,
                          "areas": loc.areas},
-            binding=Binding(tributaries=loc.tributaries, notes=list(loc.notes),
+            # T807: a named water's place stores NO side-stream setting — DFO's words decide (`side_streams`)
+            binding=Binding(tributaries=None if loc.kind == "water" else loc.tributaries, notes=list(loc.notes),
                             spatial_caveat=loc.narrows_extent),
+            heading=getattr(loc, "heading", None) if loc.kind == "water" else None,
         ))
         added += 1
 
@@ -917,6 +942,7 @@ def to_reach_input(loc: EntryLocation, rules: List[dict],
     # The registry item lives on the WATER — one answer serves all of a river's
     # reaches — so a location with no water record binds nothing.
     item_ids = list(water.item_ids) if water else []
+    eff = _side_streams.effective(loc, water)
     # THE CATALOGUE SHAPE, the one the builder reads: the entry's tributary flag flat on the
     # entry, and everything that differs per rule — its extents, `tributaries_only`, its carve-
     # outs — on the rule. `build_reach` consumes plain dicts; the models are what we STORE, so
@@ -926,10 +952,9 @@ def to_reach_input(loc: EntryLocation, rules: List[dict],
         "matched": item_ids,
         # owner 2026-11-15: an extent naming the water holds on its own channels too (`reach.channels`)
         "_named_water_takes_its_channels": True,
-        # The location's own flag, else its water's. A rule's `None` inherits this (AGENTS 9).
-        "includes_tributaries": bool(loc.binding.tributaries
-                                     if loc.binding.tributaries is not None
-                                     else (water.tributaries if water else False)),
+        # T807: the place's side streams as DFO's words say them (a named water: its stated exception, else its own
+        # line, else its exact heading, else river only; a default: its own flag, else its water's)
+        "includes_tributaries": eff.tributaries,
     }
     extents = [e.model_dump(mode="json") for e in loc.binding.extents]
     excludes = [e.model_dump(mode="json") for e in loc.binding.tributary_excludes]
@@ -939,8 +964,8 @@ def to_reach_input(loc: EntryLocation, rules: List[dict],
     out = [{
         "rule_id": f"{loc.location_id}#{i}",
         "extents": list(extents),
-        "includes_tributaries": loc.binding.tributaries,
-        "tributaries_only": loc.binding.tributaries_only,
+        "includes_tributaries": eff.tributaries,
+        "tributaries_only": eff.only,
         "tributary_excludes": list(excludes),
         # T679 D5 (owner 2026-11-12): at a confluence cut the joining water stays out unless DFO's words add it
         # (`reach.build.DFO_JOINING_WATER_STAYS_OUT`): every caller (reach run, review app) shapes it here
@@ -977,11 +1002,11 @@ def to_reach_input(loc: EntryLocation, rules: List[dict],
 
     def rule_of(sib) -> dict:
         ex = [e.model_dump(mode="json") for e in sib.binding.extents]
+        se = _side_streams.effective(sib, water)
         return {"rule_id": sib.location_id, "extents": ex,
                 # explicit, never inherited: a sibling rides in ANOTHER place's entry, whose own flag is not its own
-                "includes_tributaries": (sib.binding.tributaries if sib.binding.tributaries is not None
-                                         else bool(water.tributaries if water else False)),
-                "tributaries_only": sib.binding.tributaries_only,
+                "includes_tributaries": se.tributaries,
+                "tributaries_only": se.only,
                 "tributary_excludes": [e.model_dump(mode="json") for e in sib.binding.tributary_excludes]}
 
     def rest_ex(of, e: dict) -> dict:
@@ -994,7 +1019,11 @@ def to_reach_input(loc: EntryLocation, rules: List[dict],
         for r in out:
             r["extents"] = [(rest_ex(loc, e) if e.get("op") == "rest" else e) for e in r["extents"]]
         placed = [siblings[x] for x in rest_listing(loc, siblings)["listed"]]
-        entry["rules"] = out + [{**rule_of(sib), "includes_tributaries": sib.binding.tributaries} for sib in placed]
+        # a listed DEFAULT place with no flag of its own inherits the rest's; a listed named water reads its own words
+        # (T807: its side streams are what DFO says of that place, `side_streams.effective`)
+        entry["rules"] = out + [{**rule_of(sib), **({} if _side_streams.applies(sib)
+                                                    else {"includes_tributaries": sib.binding.tributaries})}
+                                for sib in placed]
     elif kind(loc, "other_places"):
         placed = on_water(loc)
         ids = [x.location_id for x in placed]
