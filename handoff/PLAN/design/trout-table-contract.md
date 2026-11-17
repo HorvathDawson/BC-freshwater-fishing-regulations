@@ -423,6 +423,9 @@ full rebuild.
 `s` pins the app's `segmentIndex`. `composed` pins the `{day}` slot (a single token replace). **The screen-reader
 label is not in the vectors.** Its rule is fixed here instead: a row's label is its payload texts **in payload
 order** (name, origin, label, sub, `lines`, `quiet`, the band text that covers it, then its date), joined by ". ".
+"Its date" is the row's own date line, else the date of the band that covers it; a box's or the card's date is never
+in a row's label (main chat 2026-11-17, app chat's N). The join adds ". " only after a text that does not already end
+in ".", "!" or "?" (presentation, not words: Python's texts keep their own stops).
 Python writes no composer for it; the app pins its own output in a golden over every vector row. Anchors follow
 AGENTS W46 (stream key and metre, or a lake's wbk; never a part number).
 
