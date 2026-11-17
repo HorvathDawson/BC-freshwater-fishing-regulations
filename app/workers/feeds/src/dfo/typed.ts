@@ -220,7 +220,10 @@ const RE_BAIT_ALLOWED = pyRe("\\bnatural\\s+bait\\s+allowed\\b", "i");
 const RE_BARBLESS = pyRe("\\bsingle,?\\s+barbless\\s+hook\\b", "i");
 const RE_QUOTA_SPAN = pyRe("\\b\\d+\\s+(?:hatchery[- ]marked\\s+)?per\\s+day", "i");
 const RE_BAIT_SPAN = pyRe("no\\s+natural\\s+bait[\\w\\s]*|bait\\s+ban|natural\\s+bait\\s+not\\s+allowed", "i");
-const RE_HOOK_SPAN = pyRe("single,?\\s+barbless\\s+hook[\\w\\s,.]*", "i");
+/** (T789 D6) the hook rule's quoted span runs through a hyphenated word ("non-tidal"), never cut at the hyphen (Region 6's
+ *  line read "Single, barbless hook in tidal and non" on 25,787 sections); a free-standing dash still ends it
+ *  (typed.py `_RE_HOOK_SPAN`) */
+const RE_HOOK_SPAN = pyRe("single,?\\s+barbless\\s+hook(?:[\\w\\s,.]|-(?=\\w))*", "i");
 
 interface Says {
   no_fishing: boolean;

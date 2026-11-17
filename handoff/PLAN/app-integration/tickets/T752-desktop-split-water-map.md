@@ -49,3 +49,5 @@ map on the right). Reason: it is the common pattern for a detail panel beside a 
 map and listing sites do), and reading starts at the left with the part's name and steps. Defaults also chosen by the
 main chat, his to change: starts at the existing 900 px breakpoint on every platform, so app tablets get it too; phone
 unchanged. Build lane started in a worktree; lands after Play build 33 is uploaded (app/ pushes are held until then).
+
+2026-11-17 ~15:04, owner: see OWNER-TODO 15:04 (answer recorded verbatim there).

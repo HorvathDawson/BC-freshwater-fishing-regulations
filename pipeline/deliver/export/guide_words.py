@@ -952,7 +952,11 @@ LIFT_TEXT = {
              "row's quota printing '(any size)', which drops EVERY size constraint of its region for "
              "its fish — the 'only 1 over 50 cm' clauses and the 'none under/over X cm' rules (Robb "
              "Lake's 'Bull trout daily quota = 1 (any size)' lifts Zone 7A's 1 over 50 cm for bull "
-             "trout). Derived when the bundle is built — never infer it. "
+             "trout). own_quota (owner 2026-11-17, RULINGS T17): the lifter is a water row's own daily "
+             "quota LARGER than a region cap counting its fish (the trout/char total; on a stream the 'from "
+             "streams' share): the fish leaves the cap, and the cap is raised to the quota's number for every "
+             "fish it holds (Peace River's lake trout 3 above Zone 7A's '2 from streams': 3 in all, the other "
+             "trout 2 at most). Derived when the bundle is built — never infer it. "
              "Absent = the lifter's own printed exemption",
     "equivalent": "'<entry_id>::<rule_id>' — the lifter's printed exemption names that blanket "
                   "closure of its own region, and this item is the SAME KIND of closure in "
