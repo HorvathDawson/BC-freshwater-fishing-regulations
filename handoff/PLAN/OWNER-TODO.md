@@ -2368,3 +2368,7 @@ More questions (recommended answer first):
   Secret and Square bind now; Chipmunk (and Toms, Basalt, Gatcho, Naglico, Pettry) is printed in both the Region 5 and
   Region 6 tables with the same words and the Region 6 row binds it. Still not found: Frog Lake (5-6), Redfern Lake
   (5-15), Squirrel Lake (6-1). Questions and the GOTCHAS errata note narrowed to those three.
+- 2026-11-17 11:55, owner (verbatim) on the Region 6 steelhead closure question (Kitimat, Dala, Ksi Hlginx, Triumph): "i can
+  answer thhis one that the no steelhead is different then a full closure so the no steelhead definitely holds here".
+  So the steelhead closure holds on those rows (as built; no change). The West Road mainstem (same shape) taken as
+  answered the same way. Both removed from the office questions; recorded as answered in GOTCHAS.

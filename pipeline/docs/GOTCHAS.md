@@ -78,6 +78,11 @@ code now handles belong in the code's comments, not here.
 
 ### Questions for each office (the book's words, printed pages of the 2025-2027 synopsis)
 
+**Answered by the owner (not to ask):** Region 6's steelhead closure (p.49, "No fishing: in all rivers and streams for
+steelhead, May 15 – June 15") holds on every stream whose own row prints other "No Fishing" dates: the Kitimat (p.51),
+Dala (p.50), Ksi Hlginx (p.52), Triumph (p.54), and the West Road mainstem (Region 5, p.47) by the same reading. Owner
+2026-11-17: "the no steelhead is different then a full closure so the no steelhead definitely holds here".
+
 **BC Fish and Wildlife, Region 1 (Vancouver Island)**
 1. Summer closure (p.13): "No Fishing in any stream in Management Units 1-1 to 1-6 from July 15-Aug 31 (see water
    specific regulations table for exceptions)". These rows print their own "No Fishing" dates and no exemption. Does
@@ -131,31 +136,22 @@ code now handles belong in the code's comments, not here.
 4. Mackenzie Creek (p.38, "No Fishing") is listed under MU 4-21. The only Mackenzie Creek is in MU 4-31. Is it a typo?
 
 **BC Fish and Wildlife, Region 5 (Cariboo)**
-1. West Road (Blackwater) River (p.47): "No Fishing in mainstem (only) Nov 1-June 14". Region 6 (p.49): "No fishing:
-   in all rivers and streams for steelhead, May 15 – June 15". Is the mainstem closed for steelhead on June 15?
-2. Frog Lake (MU 5-6, p.45) and Redfern Lake (MU 5-15, p.46): no lake of that name exists in that MU (Frog Lakes
+1. Frog Lake (MU 5-6, p.45) and Redfern Lake (MU 5-15, p.46): no lake of that name exists in that MU (Frog Lakes
    are in MUs 1-10, 3-29 and 7-30; a Redfern Lake is in MU 7-42). Where are they?
 
 **BC Fish and Wildlife, Region 6 (Skeena)**
-1. Steelhead closure (p.49): "No fishing: in all rivers and streams for steelhead, May 15 – June 15". These rows print
-   their own "No Fishing" dates and no exemption. Does the steelhead closure still apply outside them?
-   - Kitimat River (p.51): "No Fishing in tributaries and upstream of Hwy 37 bridge, Mar 16-May 31". Closed for
-     steelhead June 1-15?
-   - Dala River (p.50): "No Fishing June 15-Aug 1". Closed for steelhead May 15-June 14?
-   - Ksi Hlginx River (p.52): "No Fishing June 15-Sept 1". Closed for steelhead May 15-June 14?
-   - Triumph River (p.54): "No Fishing Nov 1-May 31". Closed for steelhead June 1-15?
-2. Fraser watershed closure (p.49): "in the Fraser River watershed in Region 6, Apr 1-June 30", and Region 7A's spring
+1. Fraser watershed closure (p.49): "in the Fraser River watershed in Region 6, Apr 1-June 30", and Region 7A's spring
    closure (p.58), "in any stream of Zone A, Apr 1-June 30". Stellako River (p.53 and p.61): "No Fishing Nov 15-May
    14". Closed May 15-June 30?
-3. Daily quota (p.49): "1 trout from streams July 1-Oct 31". Buckley Creek (p.50): "rainbow trout daily quota = 1".
+2. Daily quota (p.49): "1 trout from streams July 1-Oct 31". Buckley Creek (p.50): "rainbow trout daily quota = 1".
    1 trout in all, or 1 rainbow plus 1 other trout?
-4. Squirrel Lake (MU 6-1, p.53): no lake of that name exists in MU 6-1 (the only Squirrel Lake is in MU 5-1). Where
+3. Squirrel Lake (MU 6-1, p.53): no lake of that name exists in MU 6-1 (the only Squirrel Lake is in MU 5-1). Where
    is it?
-5. Kitimat River (p.51): "Hatchery steelhead (adipose clipped, >50 cm) daily quota = 2", with no dates. Region 6
+4. Kitimat River (p.51): "Hatchery steelhead (adipose clipped, >50 cm) daily quota = 2", with no dates. Region 6
    (p.49): "you must release: … Trout of any size from streams, Nov 1-June 30". May hatchery steelhead be kept on the
    Kitimat from Nov 1 to June 30?
 
-**BC Fish and Wildlife, Region 7A (Omineca)**: Stellako River, see Region 6 question 2.
+**BC Fish and Wildlife, Region 7A (Omineca)**: Stellako River, see Region 6 question 1.
 
 **DFO (salmon)**
 1. Tatshenshini below the border: "All | Jul 24 to Aug 14 | No fishing for salmon" beside "Coho | Apr 1 to Mar 31 | 2
