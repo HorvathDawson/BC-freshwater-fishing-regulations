@@ -10,6 +10,21 @@
 > (2) Q-D7 angler-only notes: **"Page's notes block (Recommended)"**: they stay in the page's caveat block; the table
 > carries none (the conditional branch for notes inside the table is dead).
 
+> **A0 RESULTS 2026-11-16 18:04 (r-46e4355a7277; `python -m pipeline.tools.audit.trout_size`; report in the main chat's
+> scratch `a0/live/report.txt`).** (1) Q-D4 is NOT empty: **622 rows mix trout/char with other fish** (1,878 frames,
+> 1,193 keys, 577 waters; 602 closed, 20 release, none keep; kokanee in all 622, then white sturgeon, whitefish, bass,
+> …; e.g. Amor De Cosmos Creek, Alouette River, Babine River closed; Burnt River, Skagit River release). AMENDMENT:
+> "a mixed covered row stops the build" is replaced by: **at rows 34 Python SPLITS every mixed row** into its trout
+> members (covered by the table) and a remainder row holding the other fish with Python's own words for them, so
+> `covers` stays whole rows and the app never splits or rewords a row (F builds the split; L ships it; J checks every
+> fish of the original row is said exactly once; a test plants a mixed row). (2) Q-D7: 0 angler-only rules close trout
+> alone (all 34 close all angling to a class of angler), so the page block holds them all (owner 17:40). (3) 0 trout
+> answers change inside an hours window with the water open on both sides (20 keys close the whole water inside the
+> window: the banner's job), so F's hours-window words are a guard, not a feature. SIZE: the cutover makes **regs-5 the
+> largest region file** (430,300 lean / 458,809 full gz vs regs-6 419,298 / 454,548); first-tap goes over today's
+> 1,243 B of room by about 22 kB (lean) to 51 kB (full): the limit is raised at the switch (owner 15:42 "Raise the
+> limit, shrink later"); A1 re-measures the real builder on every region. New zdicts on water-shared: about 6-7 kB gz.
+
 Revised 2026-11-16 after the fresh review (trout-table-review-2026-11-16.md). Every D finding is applied here or in
 the spec's tickets; the app changes that follow from them are listed in section 6, "For the app chat". Two owner
 decisions are still open and are marked **DECIDED 17:40 (see top)** (section 3).

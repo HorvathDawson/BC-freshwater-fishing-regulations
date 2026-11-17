@@ -39,3 +39,7 @@ Part B "Go (Recommended)"; part D "Go (Recommended)"; Bowron lake trout "Keep to
 like this possession stuff is just kind of broken but fixed in the new trout format? so maybe we can just work on the
 transisiton to the new trout redisgn?" (both lines stay as printed; no more possession patching here). François Lake
 outlet (part D question 3): not asked yet; it needs a placement rebuild and its own list.
+
+## Owner, 2026-11-16 19:09: François Lake
+"Outlet area only (Recommended)": all seven lines of the p.51 row sit on the outlet area (map 1); the main lake reads
+Region 6's rules. Needs a placement rebuild; changed answers to him first.
