@@ -21462,7 +21462,7 @@
     "Single barbless hook (Apr 1–Mar 31)"
    ],
    [
-    "No fishing for eulachon (Apr 1–Mar 31)"
+    "Eulachon closed all year: No fishing for eulachon"
    ],
    [
     "No natural bait allowed (Jan 1–Dec 31)"
@@ -25599,6 +25599,10 @@
    },
    "6:b(ii):section": {
     "g": [
+     0,
+     -1
+    ],
+    "o": [
      0,
      7
     ],
@@ -57473,12 +57477,16 @@
      "calendar": {
       "g": [
        0,
-       0
+       -1
       ],
       "gears": [
        [
-        "No fishing for eulachon (Apr 1–Mar 31)"
+        "Eulachon closed all year: No fishing for eulachon"
        ]
+      ],
+      "o": [
+       0,
+       0
       ],
       "sp": [
        [
@@ -75109,12 +75117,16 @@
    "calendar": {
     "g": [
      0,
-     0
+     -1
     ],
     "gears": [
      [
-      "No fishing for eulachon (Apr 1–Mar 31)"
+      "Eulachon closed all year: No fishing for eulachon"
      ]
+    ],
+    "o": [
+     0,
+     0
     ],
     "sp": [
      [
@@ -75163,18 +75175,21 @@
    "calendar": {
     "g": [
      0,
-     0,
+     -1,
      244,
      1
     ],
     "gears": [
      [
-      "No fishing for eulachon (from Nov 1 until further notice)"
+      "Eulachon closed from Nov 1 until further notice: No fishing for eulachon"
      ],
      [
-      "Bait ban (Sep 1–Dec 31)",
-      "No fishing for eulachon (from Nov 1 until further notice)"
+      "Bait ban (Sep 1–Dec 31)"
      ]
+    ],
+    "o": [
+     0,
+     0
     ],
     "sp": [
      [

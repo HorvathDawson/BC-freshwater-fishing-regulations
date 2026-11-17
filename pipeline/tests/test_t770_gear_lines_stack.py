@@ -43,23 +43,53 @@ def test_a_wider_places_line_shows_beside_a_narrower_ones():
     assert S.gear_on([[FLY], [HOOK]], JUN_1) == ("single barbless hook less than 15mm from point to shank",)
 
 
-def test_a_bait_line_never_displaces_the_eulachon_line():
-    """Lakelse: its own bait line all year, B(ii)'s eulachon row behind it — both, every day."""
-    assert S.gear_on([[BAIT], [_eulachon()]], OCT_1) == ("No natural bait allowed", "No fishing for eulachon (Apr 1–Mar 31)")
+EULACHON = "Eulachon closed all year: No fishing for eulachon"
 
 
-def test_the_same_words_show_once_at_the_narrowest_place():
-    assert S.gear_on([[BAIT], [_eulachon()], [BAIT]], OCT_1) == ("No natural bait allowed",
-                                                                  "No fishing for eulachon (Apr 1–Mar 31)")
+def test_the_eulachon_row_is_its_own_closure_line_never_a_gear_line():
+    """(Owner 2026-11-16 19:09, "As a closure line (Recommended)") Lakelse: its own bait line all year and B(ii)'s
+    "No fishing for eulachon" behind it. The bait line is the gear line; the eulachon row is the chain's CLOSURE line
+    (`o`), whole: "Eulachon closed all year: No fishing for eulachon". MUTATION: count the eulachon row as gear again
+    and it is back under "No natural bait allowed"."""
+    assert S.gear_on([[BAIT], [_eulachon()]], OCT_1) == ("No natural bait allowed",)
+    assert S.closures_on([[BAIT], [_eulachon()]], OCT_1) == (EULACHON,)
+
+
+def test_no_line_ever_displaces_the_eulachon_closure_line():
+    """(T770's guarantee) a narrower place's bait line, a second bait line and a dated closure of the same fish beside
+    it: the all-year closure line stays, every day, once."""
+    chain = [[BAIT], [_eulachon()], [BAIT, _eulachon((4, 1), (6, 30))]]
+    for md in (OCT_1, JUN_1, 101, 229):
+        got = S.closures_on(chain, md)
+        assert got[0] == EULACHON, (md, got)
+    assert S.closures_on(chain, JUN_1) == (EULACHON, "Eulachon closed Apr 1–Jun 30: No fishing for eulachon")
+    # one place printing both: neither hides the other
+    assert S.closures_on([[_eulachon((4, 1), (6, 30)), BAIT, _eulachon()]], JUN_1) == \
+        ("Eulachon closed Apr 1–Jun 30: No fishing for eulachon", EULACHON)
 
 
 def test_in_one_place_the_eulachon_row_is_read_apart_from_the_gear_rows():
-    """An "until further notice" eulachon row and a dated bait row of ONE place: the dated bait row no longer hides it
-    (a place's open-ended rows speak only where none of ITS KIND is dated). MUTATION: read them together and the
-    eulachon line goes."""
+    """An "until further notice" eulachon row and a dated bait row of ONE place: the dated bait row never hides it.
+    MUTATION: read them together and the eulachon line goes."""
     place = [_gear("Bait ban", (9, 1), (12, 31)), _eulachon((11, 1), (11, 30), open_ended=True)]
-    got = S.gear_on([place], OCT_1)
-    assert got[0] == "Bait ban (Sep 1–Dec 31)" and len(got) == 2 and got[1].startswith("No fishing for eulachon"), got
+    assert S.gear_on([place], OCT_1) == ("Bait ban (Sep 1–Dec 31)",)
+    got = S.closures_on([place], OCT_1)
+    assert len(got) == 1 and got[0].startswith("Eulachon closed ") and got[0].endswith(": No fishing for eulachon"), got
+
+
+def test_the_chain_carries_the_closure_line_in_o_apart_from_g():
+    """The release's chain: `g` the gear lines, `o` the closure lines (an index into `gears`), the live feed's
+    composition the same (`live.compose`). MUTATION: drop `o` and the closure line is gone from the file."""
+    chain = [[BAIT], [_eulachon()]]
+    v, g = S._Interner(), S._Interner()
+    v(S.NOT_LISTED)
+    cal = S.chain_calendar(chain, v, g)
+    assert [g.items[i] for i in cal["g"][1::2]] == [["No natural bait allowed"]]
+    assert [g.items[i] for i in cal["o"][1::2]] == [[EULACHON]]
+    locs = {str(i): L.location_calendar(c, v, g) for i, c in enumerate(chain)}
+    got = L.compose(["0", "1"], locs, v.items, gears=g.items, gear_intern=g)
+    assert got["o"] == cal["o"] and got["g"] == cal["g"]
+    assert "o" not in S.chain_calendar([[BAIT]], v, g)
 
 
 def test_the_live_feed_composes_the_same_gear():
@@ -74,3 +104,4 @@ def test_the_live_feed_composes_the_same_gear():
     assert [g.items[i] if i >= 0 else None for i in got["g"][1::2]] == \
         [g.items[i] if i >= 0 else None for i in want["g"][1::2]]
     assert got["g"][::2] == want["g"][::2]
+    assert got.get("o") == want.get("o")

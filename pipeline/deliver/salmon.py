@@ -315,15 +315,51 @@ def verdict_on(chain: Sequence[Sequence[dict]], sp: str, md: int) -> Optional[di
 
 
 def place_gear(rules: Sequence[dict], md: int) -> List[str]:
-    """ONE place's gear lines on day `md`, in its rows' order. A row about another fish ("No fishing for eulachon") is
-    one of its lines (`_other_fish`), read APART from the gear rows (T770: a bait row never decides whether it holds).
+    """ONE place's gear lines on day `md`, in its rows' order. A row about another fish that is its closure ("No fishing
+    for eulachon") is NOT one of them: it is the place's closure line (`place_closures`). Another fish's row that is no
+    closure stays a line here, read APART from the gear rows (T770: a bait row never decides whether it holds).
     (T676) Per kind, dated lines first, open-ended ones only where none is (`_held`); a line whose date cell did not
     read is shown every day, prefixed with its `check`."""
     gear = [r for r in rules if _is_gear(r) and (not _species_of(r) or any(_covers(r, sp) for sp in SPECIES))]
-    other = [r for r in rules if _other_fish(r) and not _is_gear(r)]
+    other = [r for r in rules if _other_fish(r) and not _is_gear(r) and not _fish_closure(r)]
     held = {id(r) for r in (*_held(gear, md), *_held(other, md))}
     lines = [r for r in rules if id(r) in held] + [r for r in (*gear, *other) if r.get("check")]
     return list(dict.fromkeys((f"{r['check']}: " if r.get("check") else "") + _text([r], {}) for r in lines))
+
+
+#: (T770, owner 2026-11-16 19:09: "As a closure line (Recommended)") a row CLOSING another fish ("All | No fishing for
+#: eulachon", Region 6 B(ii)) is its own closure line, apart from the gear and bait lines: chain `o`.
+_RE_FISH_CLOSED = re.compile(r"^\s*no fishing for\b", re.I)
+
+
+def _fish_closure(rule: dict) -> bool:
+    """Is the row about another fish the CLOSURE of that fish ("No fishing for eulachon")?"""
+    return _other_fish(rule) and bool(_RE_FISH_CLOSED.match(rule.get("verbatim") or ""))
+
+
+def closure_line(rule: dict) -> str:
+    """A fish closure in words, the fish and its days first, then DFO's row: "Eulachon closed all year: No fishing for
+    eulachon" ("all year" when the row holds every day, else its dates: "Eulachon closed Apr 1–Jun 30: …")."""
+    from pipeline.regs.dfo_salmon.typed import OTHER_FISH
+    fish = str(rule.get("review_reason") or "")[len(OTHER_FISH):].strip() or "this fish"
+    every = all(holds_on(rule, md) for md in DAYS)
+    when = "all year" if every else (_when_words(rule) or "all year")
+    return f"{fish[:1].upper()}{fish[1:]} closed {when}: {rule.get('verbatim') or ''}".rstrip(": ")
+
+
+def place_closures(rules: Sequence[dict], md: int) -> List[str]:
+    """ONE place's closure lines of other fish on day `md` (`closure_line`), read apart from every other row (its own
+    kind: a dated bait row never hides it); a row whose date cell did not read shows every day with its `check`."""
+    fish = [r for r in rules if _fish_closure(r) and not _is_gear(r)]
+    held = {id(r) for r in _held(fish, md)}
+    lines = [r for r in fish if id(r) in held] + [r for r in fish if r.get("check")]
+    return list(dict.fromkeys((f"{r['check']}: " if r.get("check") else "") + closure_line(r) for r in lines))
+
+
+def closures_on(chain: Sequence[Sequence[dict]], md: int) -> Tuple[str, ...]:
+    """(T770) THE CLOSURE LINES OF OTHER FISH ON DAY `md`: every place's (`place_closures`), narrowest first, the same
+    words once — never displaced by another place's line, a gear line or another closure (the T770 guarantee)."""
+    return tuple(dict.fromkeys(x for rules in chain for x in place_closures(rules, md)))
 
 
 def gear_on(chain: Sequence[Sequence[dict]], md: int) -> Tuple[str, ...]:
@@ -331,8 +367,8 @@ def gear_on(chain: Sequence[Sequence[dict]], md: int) -> Tuple[str, ...]:
     (`place_gear`), narrowest place first, the same words once (at the narrowest place). A wider place's line is never
     hidden by a narrower one's — a different value of the same kind of rule shows both, as DFO prints both and both
     bind (the ticket's "replaces": only the same line). It was the narrowest place with any line, which hid a
-    whole-river hook rule under a stretch's fly-only and B(ii)'s eulachon row under a tributary's bait line. The live
-    feed composes the same from each place's year (`live.compose`)."""
+    whole-river hook rule under a stretch's fly-only. The live feed composes the same from each place's year
+    (`live.compose`). Another fish's closure is not a gear line (`closures_on`)."""
     return tuple(dict.fromkeys(x for rules in chain for x in place_gear(rules, md)))
 
 
@@ -670,23 +706,30 @@ def chain_calendar(chain: Sequence[Sequence[dict]], verdicts: _Interner, gears: 
     (`both_gear`) — as the live feed composes them (`live.compose`)."""
     per_sp: List[List[int]] = [[] for _ in SPECIES]
     gear: List[int] = []
+    shut: List[int] = []
     mapc: List[int] = []
     subs = [[chain[i] for i in g] for g in groups] if groups else None
     for md in DAYS:
         if subs:
             vs = [strictest([verdict_on(c, sp, md) for c in subs]) for sp in SPECIES]
             g = both_gear([gear_on(c, md) for c in subs])
+            o = both_gear([closures_on(c, md) for c in subs])
         else:
             vs = [verdict_on(chain, sp, md) for sp in SPECIES]
             g = gear_on(chain, md)
+            o = closures_on(chain, md)
         for k, v in enumerate(vs):
             per_sp[k].append(verdicts(v or NOT_LISTED))
         gear.append(gears(list(g)) if g else -1)
+        shut.append(gears(list(o)) if o else -1)
         mapc.append(MAP_CODES.index(map_status(vs)))
     sp = [runs_of(x) for x in per_sp]
     c = closed_by_header(sp, verdicts.items) if undrawn_closed else []
     n = speaks_runs(per_sp, verdicts.items) if speaks else None
-    return {"sp": sp, "g": runs_of(gear), "m": runs_of(mapc), **({"c": c} if c else {}), **({"n": n} if n else {})}
+    # (T770, owner 2026-11-16 19:09) `o`: another fish's closure lines per day, runs of an index into `gears` (-1 none);
+    # absent on a chain with none
+    return {"sp": sp, "g": runs_of(gear), "m": runs_of(mapc), **({"o": runs_of(shut)} if any(x >= 0 for x in shut) else {}),
+            **({"c": c} if c else {}), **({"n": n} if n else {})}
 
 
 def speaks_runs(per_sp: Sequence[Sequence[int]], verdicts: Sequence[dict]) -> List[int]:
