@@ -30,7 +30,7 @@ import { runDfo } from "../src/dfo";
 import { MemStore, privStore } from "./dfo.scenario";
 
 const FIX = join(__dirname, "fixtures/dfo");
-interface Calendar { sp: number[][]; g: number[]; verdicts: { s: string; t: string }[]; gears: unknown[] }
+interface Calendar { sp: number[][]; g: number[]; o?: number[]; verdicts: { s: string; t: string }[]; gears: unknown[] }
 interface PyLocator { fingerprint: string; rows: string[]; rules: Record<string, unknown>[]; words?: unknown; calendar: Calendar }
 interface Vectors {
   format: string;
@@ -234,10 +234,12 @@ describe("the shared hand rows (dfo-rows.json): typed rules and calendar == Pyth
 // sentence, cascade.ts), the closed-area pieces — in its region, each species' year and the gear lines compared by the
 // verdict / gear itself (each feed numbers its tables its own way), and the rows shown in DFO's words. No exception list.
 describe("the live feed: the worker's runDfo == the Python's live.run", () => {
-  type Feed = { locs: Record<string, { r: string; sp: number[][]; g: number[]; x?: unknown }>; verdicts: unknown[]; gears: unknown[]; unplaced: number };
+  type Feed = { locs: Record<string, { r: string; sp: number[][]; g: number[]; o?: number[]; x?: unknown }>; verdicts: unknown[]; gears: unknown[]; unplaced: number };
+  const lines = (f: Feed, runs: number[]) => runs.map((x, k) => (k % 2 ? (x >= 0 ? f.gears[x] : null) : x));
+  // (T770) `o`, another fish's closure lines, by the lines themselves too (absent where none, on both sides)
   const named = (f: Feed) => Object.fromEntries(Object.entries(f.locs).map(([lid, c]) => [lid, {
     r: c.r, sp: c.sp.map((runs) => runs.map((x, k) => (k % 2 ? (x >= 0 ? f.verdicts[x] : null) : x))),
-    g: c.g.map((x, k) => (k % 2 ? (x >= 0 ? f.gears[x] : null) : x)), ...(c.x ? { x: c.x } : {}) }]));
+    g: lines(f, c.g), ...(c.o ? { o: lines(f, c.o) } : {}), ...(c.x ? { x: c.x } : {}) }]));
   const run = async (pages: Record<string, string>): Promise<Feed> => {
     const feed = new MemStore();
     await runDfo({ fetch: async () => new Response(""), feed, priv: privStore(), now: "2026-10-28T12:00:00Z", regions: Object.keys(pages),

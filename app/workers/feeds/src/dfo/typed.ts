@@ -174,7 +174,8 @@ const SPECIES: Record<string, string[]> = {
   eulachon: ["EU"],
 };
 /** T229: the salmon codes; a row about any other fish ("All | No fishing for eulachon", Region 6 B(ii)) is never a
- * salmon rule — typed as an advisory whose review_reason starts OTHER_FISH, shown as its own line (salmon.ts gearOn). */
+ * salmon rule — typed as an advisory whose review_reason starts OTHER_FISH: one that closes it ("No fishing for eulachon") is
+ * the chain's closure line `o` (salmon.ts `closuresOn`, T770), never a gear line. */
 const SALMON_CODES = new Set(["SA", "CH", "CO", "SK", "PK", "CM"]);
 export const OTHER_FISH = "another fish, not salmon: ";
 /** (T671 D2, typed.py) the advisory `review_reason` prefixes salmon.ts reads: a row DFO has not set, a gear permission */
