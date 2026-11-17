@@ -91,7 +91,7 @@ changed answers to him (cut fixes, François, Babine split) → T807 (changed an
 **6. Owed to him.** Salmon pictures + list at landing; the trout picture pack and sentence list later. NO saves are his
 (checked 19:09). 20 stale book (entry) ticks in the review app ("binding moved" since late Oct: Iskut, Sproat, Secret,
 Hidden …): find why each moved, bring him only the real ones. His other items: build 33 phone walk, iPhone push
-test, T786, T802, production. Next free ticket: T813.
+test, T786, T802, production. Next free ticket: T823 (T814-T822 and T824 are the app chat's), then T825.
 
 ### D. Landing the salmon lane (the next real step; vectors move, so it lands WITH the app chat's twins)
 1. Agree the moment with the app chat ("the salmon lane lands now; your twins follow in the same push window").
