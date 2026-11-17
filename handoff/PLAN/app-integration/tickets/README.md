@@ -318,7 +318,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T825 | 251 side-channel sections are led by a gauge far upstream (lower Fraser side channels read Red Pass) | OPEN | — | T823 measurement 2026-11-16 |
 | T827 | A fresh agent tries to break every salmon rule against DFO's own pages | OPEN | — | owner 2026-11-16 (future) |
 | T828 | Salmon card: DFO's rows as printed fold into "Source (DFO)" | IN PROGRESS (built on branch `app-fix/t828-t829-salmon-card`, not merged; Android bench owed) | — | owner 2026-11-16 (app) |
-| T829 | Salmon species rows in the same look as the other fish table and the new trout table (formatting only) | OPEN | — | owner 2026-11-16 (app) |
+| T829 | Salmon species rows in the same look as the other fish table and the new trout table (formatting only) | IN PROGRESS (built on branch `app-fix/t828-t829-salmon-card`, not merged; Android bench owed; `KeepBox` for ticket O) | — | owner 2026-11-16 (app) |
 | T830 | A gauge that reports a live level but has no level history shows no Level (Capilano at Canyon, 15 more) | DONE | 3eb8a4e28 | owner 2026-11-17 (gauges) |
 | T831 | The route map inside a water's Conditions view draws no gauge dots and no "you are here" pin on the phones | OPEN | — | T826 agent 2026-11-17 |
 | T832 | iOS: a river can keep an old colour after a horizon change or a feed refresh (null feature-state writes dropped) | OPEN | — | T826 agent 2026-11-17 |

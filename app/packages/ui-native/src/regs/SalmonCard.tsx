@@ -12,10 +12,13 @@
  * default. (T796) Where the rule book closes the page's salmon today the head's badge, the fold's title and its first
  * lines name the book (page, row, its words and dates). (T828, owner 2026-11-16) DFO's rows as printed — the species' row
  * words, DFO's words for this water, the region rules — sit in that fold under the book's lines; the "DFO changed the
- * wording" warning stays above the table. No logic and no words of its own: everything is core `salmonCard`'s.
+ * wording" warning stays above the table. (T829, owner 2026-11-16 "B: trout keep box") The species rows in the trout
+ * table's look (`KeepBox`): the species open today in the tint box, each one's number in the white box on the right;
+ * release only, then closed species and another fish's closure (the eulachon line) in the "✕ Closed" group under it.
+ * No logic and no words of its own: everything is core `salmonCard`'s.
  */
 import { useState } from "react";
-import { Image, View } from "react-native";
+import { View } from "react-native";
 import { Text } from "../Text";
 import { FISH, SALMON_WORDS, WORDS, salmonTable, type SalmonCardVM, type SalmonIssueVM, type SalmonRowVM, type SalmonSaysVM, type SalmonSpecies, type SalmonTableRowVM, type SalmonWordsRowVM } from "@app/core";
 import { TYPE } from "../type";
@@ -23,7 +26,8 @@ import { RADIUS, SPACE, type Palette } from "../theme";
 import { WaterInset } from "../WaterFrame";
 import { RegsPress } from "./RegsPress";
 import { RegionRules } from "./RegionRules";
-import { LineText, NO_ACTIONS, type KeepActions } from "./LineText";
+import { NO_ACTIONS, type KeepActions } from "./LineText";
+import { KeepBox, ShutGroup, type KeepBandVM, type KeepRowVM } from "./KeepBox";
 import { CaveatBlock } from "./KeepBlocks";
 import type { FishImages } from "./types";
 import { CoachSpot } from "../CoachMarks";
@@ -49,38 +53,24 @@ function spawningOf(code: SalmonSpecies, images?: FishImages) {
   return { look: looks[i], src: images?.[code]?.[i]?.thumb, name: looks[i]?.caption ?? code };
 }
 
-/** One species of the table: its spawning picture (opens its fish sheet, both looks), its name, today's status, its sizes. */
-function SpeciesRow({ r, palette, actions, images, pictures }: {
-  r: SalmonTableRowVM; palette: Palette; actions?: KeepActions; images?: FishImages; pictures: boolean }) {
+/**
+ * (T829) One species as a keep-box row: its spawning picture (opens its fish sheet, both looks), its name, then its quiet
+ * lines — a number DFO's words would not give (`quotaUnread`), its sizes, where today's answer comes from (T668 fix 4,
+ * core `placeFrom`). Its number today is the row's band (`speciesBand`), never a line.
+ */
+function speciesRow(r: SalmonTableRowVM, actions?: KeepActions, images?: FishImages): KeepRowVM {
   const o = spawningOf(r.code, images);
-  const body = (
-    <View style={{ flexDirection: "row", alignItems: "center", columnGap: 10, flex: 1 }}>
-      {pictures && (o.src ? <Image source={o.src} testID="salmon-look" style={{ width: 56, height: 30 }} resizeMode="contain" accessibilityIgnoresInvertColors />
-        : <View testID="salmon-look" style={{ width: 56, height: 30, backgroundColor: palette.line2 }} />)}
-      <View style={{ flex: 1 }}>
-        <Text style={{ ...TYPE.regsBodySemi, color: palette.ink }}>{r.name}{pictures && <Text style={{ ...TYPE.metaSemi, color: palette.accent }}>{` ${SALMON_WORDS.more}`}</Text>}</Text>
-        {/* (T332) the quota tree drawn as the trout card draws its tiers (core quotaLine: tierWords / kindWords) */}
-        {r.quotaRuns && <LineText testID="salmon-quota" line={r.quotaRuns} style={TYPE.metaSemi} color={palette.ink} palette={palette}
-                                  actions={actions ?? NO_ACTIONS} num={TYPE.metaBold} />}
-        {r.window && <Text selectable testID="salmon-window" style={{ ...TYPE.meta, color: palette.sub }}>{r.window}</Text>}
-        {r.quotaUnread && <Text testID="salmon-quota-unread" style={{ ...TYPE.meta, color: palette.sub }}>{SALMON_WORDS.quotaUnread}</Text>}
-        {r.limit && <Text selectable testID="salmon-limit" style={{ ...TYPE.meta, color: palette.sub }}>{r.limit}</Text>}
-        {/* (T668 fix 4) where today's answer comes from: "Region 6 · Skeena River · B(ii)" (core `placeFrom`) */}
-        {r.from && <Text selectable testID="salmon-from" style={{ ...TYPE.meta, color: palette.sub }}>{r.from}</Text>}
-      </View>
-    </View>
-  );
-  return (
-    <View testID="salmon-species-row" style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10, minHeight: 44,
-                                               paddingVertical: 4, borderTopWidth: 1, borderTopColor: palette.line2 }}>
-      {pictures ? (
-        <RegsPress testID={`pic:${r.code}`} accessibilityRole="button" accessibilityLabel={WORDS.LOOKS_LIKE(o.name)} box={{ w: 120, h: 44 }}
-                   onPress={() => actions?.onSheet(`sp:${r.code}`)} style={{ flex: 1, minHeight: 44, justifyContent: "center" }}>{body}</RegsPress>
-      ) : body}
-      <Text testID="salmon-species-status" style={{ ...TYPE.metaBold, color: chipColour(palette, r.status) }}>{r.statusLabel}</Text>
-    </View>
-  );
+  return { key: r.code, name: r.name, label: null, sub: null, lines: [],
+           quiet: [...(r.quotaUnread ? [SALMON_WORDS.quotaUnread] : []), ...(r.limit ? [r.limit] : []), ...(r.from ? [r.from] : [])],
+           pic: { source: o.src, more: SALMON_WORDS.more, label: WORDS.LOOKS_LIKE(o.name), testID: `pic:${r.code}`,
+                  onPress: () => actions?.onSheet(`sp:${r.code}`) } };
 }
+
+/** (T829) an open species' cell in the box's right band: its numbers today in the white box ("4 a day · only 2 over 50
+ *  cm", the quota tree's words) with the dates they run small under them; no number of its own: its status word, free */
+const speciesBand = (r: SalmonTableRowVM, i: number): KeepBandVM =>
+  r.quota ? { from: i, to: i, kind: "own", text: r.quota, date: r.window ?? null }
+    : { from: i, to: i, kind: "upto", text: r.statusLabel };
 
 /** DFO's own words for a group of species, once each. */
 function Says({ says, palette }: { says: readonly SalmonSaysVM[]; palette: Palette }) {
@@ -117,43 +107,44 @@ function Words({ head, rows, palette, strong, testID }: {
 }
 
 /**
- * (T318, owner 2026-10-31) THE TABLE: one row per species (its spawning picture (T394), today's status, sizes), DFO's words said once
- * under it, the blocks' gear lines, then the places not drawn yet each folded to one line. Core `salmonTable`'s. (T770)
- * Another fish's closure (core `closures`) is a closed row under the species rows, never one of the gear lines.
+ * (T318, owner 2026-10-31) THE TABLE: one row per species (its spawning picture (T394), today's status, sizes), the
+ * blocks' gear lines. Core `salmonTable`'s. (T829) Laid out as the trout table: open species in the keep box, the others
+ * in their groups under it by status. (T770) Another fish's closure (core `closures`) is a closed row, never a gear line.
  */
 function Table({ card, palette, actions, images }: { card: SalmonCardVM; palette: Palette; actions?: KeepActions; images?: FishImages }) {
   const t = salmonTable(card);
+  const open = t.species.filter((r) => r.status === "open");
+  const release = t.species.filter((r) => r.status === "release");
+  const closed = t.species.filter((r) => r.status === "closed");
+  const others = [...new Set(t.species.filter((r) => r.status === "check" || r.status === "varies").map((r) => r.statusLabel))]
+    .map((label) => [label, t.species.filter((r) => r.statusLabel === label)] as const);
   return (
     <View testID="salmon-card-block">
-      <Text accessibilityRole="header" style={{ ...TYPE.kicker, color: palette.sub, marginTop: 10, marginBottom: 2 }}>{SALMON_WORDS.tableSpecies}</Text>
-      {t.bucket && (
-        <View testID="salmon-bucket" style={{ paddingVertical: 6 }}>
-          {/* (T332) the bucket is the quota tree's total tier: drawn by the trout presenter (core tierWords) */}
-          <LineText testID="salmon-bucket-line" line={t.bucket.runs ?? [{ t: "text", s: t.bucket.line }]} style={TYPE.regsBodySemi}
-                    color={palette.ink} palette={palette} actions={actions ?? NO_ACTIONS} num={TYPE.regsBodyBold} />
-          {/* (T671 D3) the bucket's period limits (the chinook annual 10 over 50 cm, Region 8's monthly 4), DFO's words */}
-          {(t.bucket.tiers ?? []).map((x) => (
-            <LineText key={x.line} testID="salmon-bucket-tier" line={x.runs} style={TYPE.metaSemi}
-                      color={palette.ink} palette={palette} actions={actions ?? NO_ACTIONS} num={TYPE.metaBold} />
-          ))}
-        </View>
+      {/* (T829, owner 2026-11-16 "B: trout keep box") the species open today in the trout table's keep box: DFO's day
+          total (the quota tree's total tier, T320/T332), its period limits (T671 D3) and a water system's own limit
+          across the top, each species' number in the white box on the right */}
+      {open.length > 0 && (
+        <KeepBox testID="salmon-keep-box" head={t.bucket?.line ?? null} label={null} strip={null} tag={null}
+                 notes={[...(t.bucket?.tiers ?? []).map((x) => x.line), ...(t.waterBuckets ?? []).map((w) => w.line)]}
+                 rows={open.map((r) => speciesRow(r, actions, images))} bands={open.map(speciesBand)} palette={palette} />
       )}
-      {(t.waterBuckets ?? []).map((w) => (
-        <View key={w.line} style={{ paddingBottom: 4 }}>
-          <LineText testID="salmon-water-bucket" line={w.runs ?? [{ t: "text", s: w.line }]} style={TYPE.metaSemi}
-                    color={palette.ink} palette={palette} actions={actions ?? NO_ACTIONS} num={TYPE.metaBold} />
-        </View>
+      {/* the species that may be fished another way today ("Check DFO", "Varies along this water"), then release only */}
+      {others.map(([label, rs]) => (
+        <ShutGroup key={label} kind="other" head={label} testID="salmon-other-group" palette={palette}
+                   rows={rs.map((r) => speciesRow(r, actions, images))} />
       ))}
-      {t.species.map((r) => <SpeciesRow key={r.code} r={r} palette={palette} actions={actions} images={images} pictures />)}
-      {/* (T770, owner 2026-11-16 19:09: "As a closure line") another fish's closure ("Eulachon closed all year: No fishing
-          for eulachon", Python's words) is a CLOSURE ROW: right under the species rows, the card's other closures, with
-          their closed rail — what may not be fished here, read before how (the hours, the words, the gear lines) */}
-      {card.closures.map((l) => (
-        <View key={l} testID="salmon-closure-line" style={{ borderTopWidth: 1, borderTopColor: palette.line2, borderLeftWidth: 3,
-                                                           borderLeftColor: palette.closed, paddingLeft: 8, paddingVertical: 6 }}>
-          <Text selectable style={{ ...TYPE.metaSemi, color: palette.ink }}>{l}</Text>
-        </View>
-      ))}
+      {release.length > 0 && (
+        <ShutGroup kind="release" head={release[0]!.statusLabel} testID="salmon-release-group" palette={palette}
+                   rows={release.map((r) => speciesRow(r, actions, images))} />
+      )}
+      {/* the trout table's "✕ Closed" group: the species closed today, then (T770, owner 2026-11-16 19:09: "As a closure
+          line") another fish's closure ("Eulachon closed all year: No fishing for eulachon", Python's words) — what may
+          not be fished here, read before how (the hours, the gear lines) */}
+      {(closed.length > 0 || card.closures.length > 0) && (
+        <ShutGroup kind="closed" head={closed[0]?.statusLabel ?? SALMON_WORDS.status.closed} testID="salmon-closed-group" palette={palette}
+                   rows={[...closed.map((r) => speciesRow(r, actions, images)),
+                          ...card.closures.map((l): KeepRowVM => ({ key: `closure:${l}`, name: l, label: null, sub: null, lines: [], quiet: [], pic: null }))]} />
+      )}
       {/* (T343, T482) the page's salmon hours, one line (the daylight note folds into it) */}
       {card.hours && <Text selectable testID="salmon-hours" style={{ ...TYPE.metaSemi, color: palette.ink, paddingTop: 8 }}>{card.hours}</Text>}
       {/* (T828) DFO's rows as printed sit in the source fold; where every species is closed they ARE the card's one

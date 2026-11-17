@@ -18,6 +18,9 @@ import type { Md } from "./time";
 
 export type { RowsValue, Row, Decided, GearAnswer, GearValue, StatusFrame, LicenceValue, ProfileAnswer, Holds,
               RuleFacts, PartFacts, Picker, Choice, Moment, GlossaryTerm, StripState, Place as AnswersPlace } from "../answers.generated";
+/** (T829) the trout table's keep box, as the contract types it (handoff/PLAN/design/trout-table-contract.md 2.3): the
+ *  ui-native KeepBox takes its props from these fields, so ticket O hands a Box straight to it */
+export type { Band as TroutBand, Box as TroutBox, TRow as TroutRow } from "../answers.generated";
 
 /** A tidal key's frame is {status:"tidal", tidal, note, see, licence}. */
 export type DisplayFrame = StatusFrame | TidalStatus;

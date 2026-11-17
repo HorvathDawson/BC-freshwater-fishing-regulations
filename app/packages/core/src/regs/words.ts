@@ -217,6 +217,8 @@ export const WORDS = Object.freeze({
   STEEL_KNOWN: "Steelhead are known to be in this water.",
   STEEL_NO_RULES: "Steelhead have been recorded here, but no steelhead rule applies: treat any rainbow, however big, as a rainbow trout.",
   CLOSED_MARK: "✕",
+  /** (T829) the release group's shape mark (trout-table contract 2.4: the app draws the marks ↩ and ✕, never a rule) */
+  RELEASE_MARK: "↩",
   // page v36 levelTag (level.ts): the level a rule speaks at, by the part's rank (Region N from the rule's own entry id)
   LEVEL_TAG_BC: "B.C. rule", LEVEL_TAG_REGION: (n: string) => `Region ${n} rule`, LEVEL_TAG_REGION_ANY: "Region rule",
   LEVEL_TAG_AREA: "Named area rule", LEVEL_TAG_DOWN: "Downstream rule", LEVEL_TAG_FED: "Federal or park rule",
