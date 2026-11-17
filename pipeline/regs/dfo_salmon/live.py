@@ -345,7 +345,9 @@ def _carry(prev: dict, slug: str, verdicts: S._Interner, gears: S._Interner, onl
             continue
         sp = [[x if k % 2 == 0 or x < 0 else verdicts(pv[x]) for k, x in enumerate(runs)] for runs in c["sp"]]
         g = [x if k % 2 == 0 or x < 0 else gears(pg[x]) for k, x in enumerate(c["g"])]
-        out[lid] = {"r": slug, "sp": sp, "g": g, **({"x": c["x"]} if c.get("x") else {})}
+        # (T770) another fish's closure lines are carried as the gear lines are (an index into `gears`)
+        o = [x if k % 2 == 0 or x < 0 else gears(pg[x]) for k, x in enumerate(c["o"])] if c.get("o") else None
+        out[lid] = {"r": slug, "sp": sp, "g": g, **({"o": o} if o else {}), **({"x": c["x"]} if c.get("x") else {})}
     return out
 
 

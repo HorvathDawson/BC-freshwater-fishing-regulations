@@ -105,3 +105,18 @@ def test_the_live_feed_composes_the_same_gear():
         [g.items[i] if i >= 0 else None for i in want["g"][1::2]]
     assert got["g"][::2] == want["g"][::2]
     assert got.get("o") == want.get("o")
+
+
+def test_a_carried_place_keeps_its_closure_line():
+    """A place whose rows the feed could not read this run keeps the last feed's year (`live._carry`) — its closure
+    line `o` too, re-indexed into this run's tables, as the worker keeps it. MUTATION: carry `g` only and the eulachon
+    line is gone from the place."""
+    prev = {"verdicts": [{"s": "closed", "t": "Not opened by DFO", "d": 1}],
+            "gears": [["No natural bait allowed"], [EULACHON]],
+            "locs": {"6:a": {"r": "6", "sp": [[0, 0]] * 5, "g": [0, 0], "o": [0, 1]},
+                     "6:b": {"r": "6", "sp": [[0, 0]] * 5, "g": [0, -1]}}}
+    v, g = S._Interner(), S._Interner()
+    g(["something else"])                                       # this run's tables already hold a list
+    got = L._carry(prev, "6", v, g)
+    assert g.items[got["6:a"]["o"][1]] == [EULACHON] and g.items[got["6:a"]["g"][1]] == ["No natural bait allowed"]
+    assert "o" not in got["6:b"]

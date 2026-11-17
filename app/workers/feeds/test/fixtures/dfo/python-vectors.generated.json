@@ -20490,6 +20490,168 @@
   }
  },
  "live": {
+  "carry": {
+   "locs": {
+    "6:lakelse:whole": {
+     "g": [
+      0,
+      [
+       "No natural bait allowed"
+      ]
+     ],
+     "o": [
+      0,
+      [
+       "Eulachon closed all year: No fishing for eulachon"
+      ]
+     ],
+     "r": "6",
+     "sp": [
+      [
+       0,
+       {
+        "d": 1,
+        "s": "closed",
+        "t": "Not opened by DFO"
+       }
+      ],
+      [
+       0,
+       {
+        "d": 1,
+        "s": "closed",
+        "t": "Not opened by DFO"
+       },
+       182,
+       {
+        "s": "open",
+        "t": "2 per day (Jul 1–Aug 31)"
+       },
+       244,
+       {
+        "d": 1,
+        "s": "closed",
+        "t": "Not opened by DFO"
+       }
+      ],
+      [
+       0,
+       {
+        "d": 1,
+        "s": "closed",
+        "t": "Not opened by DFO"
+       }
+      ],
+      [
+       0,
+       {
+        "d": 1,
+        "s": "closed",
+        "t": "Not opened by DFO"
+       }
+      ],
+      [
+       0,
+       {
+        "d": 1,
+        "s": "closed",
+        "t": "Not opened by DFO"
+       }
+      ]
+     ]
+    }
+   },
+   "prev": {
+    "gears": [
+     [
+      "No natural bait allowed"
+     ],
+     [
+      "Eulachon closed all year: No fishing for eulachon"
+     ]
+    ],
+    "locs": {
+     "5b:other:whole": {
+      "g": [
+       0,
+       -1
+      ],
+      "r": "5b",
+      "sp": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ]
+      ]
+     },
+     "6:lakelse:whole": {
+      "g": [
+       0,
+       0
+      ],
+      "o": [
+       0,
+       1
+      ],
+      "r": "6",
+      "sp": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0,
+        182,
+        1,
+        244,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        0
+       ]
+      ]
+     }
+    },
+    "verdicts": [
+     {
+      "d": 1,
+      "s": "closed",
+      "t": "Not opened by DFO"
+     },
+     {
+      "s": "open",
+      "t": "2 per day (Jul 1–Aug 31)"
+     }
+    ]
+   },
+   "slug": "6"
+  },
   "cases": {
    "no_default_sentence": {
     "edit": [
