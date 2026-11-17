@@ -183,3 +183,8 @@ fails the proof).
   the dot segment itself (`deploy/staging/test-updates.test.mjs`). Nothing uploaded; not walked on a device.
 - Not in the case list yet: an unnamed Region 6 stream and one of the 8 rule sets with no stored headline (both need a
   handle or a find step the cut does not have).
+
+2026-11-17 08:50, owner on Kaslo/Keen (verbatim): "Dollys and bulls always have same quota per the book.  Why would they
+not count towards the regions 2? That seems wrong". Kaslo and Keen: B (count toward the 2 from streams; the table as
+built is right; the shipped card's "Not part of the 2 from streams" line there is wrong and goes at the cutover).
+Follow-up asked: does T3a (Lardeau, Duncan lift) stand.

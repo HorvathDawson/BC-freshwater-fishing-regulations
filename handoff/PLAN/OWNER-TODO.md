@@ -2285,3 +2285,9 @@ More questions (recommended answer first):
   So: no re-tick from him; the marks are carried by the main chat (fix, not a review item).
 - 2026-11-17 ~08:45, in the APP chat, T814 coho loader dark mode: picked "A: paper-coloured ink" (ink #f2e8d5 on the
   dark screen, red kept; light mode is his colours as drawn). The app chat finishes it and it joins the next build.
+- 2026-11-17 08:50, main chat dialog (verbatim):
+  - Babine east of the Gullwing Creek line closed all year: "Closed all year but only for salmon?" (follow-up asked)
+  - Hazelwood Creek's 4 ponds: "Part of the creek (Recommended)". Kept as built (same rule for Sheldens' pond).
+  - Kaslo / Keen Dolly Varden: "Dollys and bulls always have same quota per the book.  Why would they not count towards
+    the regions 2? That seems wrong". Read as B for Kaslo and Keen (they count toward the 2 from streams); follow-up
+    asked on whether his 2026-10-10 ruling T3a (Lardeau and Duncan rows lift bull trout out of the 2) still stands.
