@@ -6,7 +6,7 @@
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { Animated, Keyboard, Platform, Text } from "react-native";
+import { Animated, Dimensions, Keyboard, Platform, Text } from "react-native";
 import { useEdgeBack } from "@app/ui";
 import { ModalBack } from "./ModalBack.native";
 import { modalEdgeResponder } from "./modalEdge";
@@ -41,6 +41,24 @@ describe("<ModalBack> (T723 F7)", () => {
   it("iOS: a drag from the edge past 80 px, or flicked, closes the modal once; short and slow it does not; a press past the edge zone is not taken", () => {
     expect([drag("ios", 5, 100), drag("ios", 5, 40, 0, 0.6), drag("ios", 5, 40), drag("ios", 30, 200)])
       .toEqual([[true, 1], [true, 1], [true, 0], [false, 0]]);
+  });
+
+  it("(T821) a drag that closes the modal carries the content on off the right edge: never back to 0 first", () => {
+    // build 36 set it to 0 when the back was decided, so the page just swiped away stood whole until the Modal's close ran
+    let decided: ReturnType<typeof useEdgeBack> | null = null;
+    function Probe() { decided = useEdgeBack(() => true, "ios", 1); return null; }
+    render(<Probe />);
+    // an iPhone 17 Pro's window (jsdom's is 0 wide)
+    const dims = vi.spyOn(Dimensions, "get").mockReturnValue({ width: 402, height: 874, scale: 3, fontScale: 1 });
+    const x = new Animated.Value(0);
+    const seen: number[] = [];
+    x.addListener(({ value }) => seen.push(value));
+    const r = modalEdgeResponder(decided!, x);
+    r.onStartShouldSetPanResponder!({ nativeEvent: { pageX: 5 } } as never, g(5, 0));
+    r.onPanResponderMove!(ev, g(5, 120));
+    r.onPanResponderRelease!(ev, g(5, 120));
+    expect([seen[0], seen.slice(1).every((v) => v >= 120)]).toEqual([120, true]);
+    dims.mockRestore();
   });
 
   it("Android and the web: never taken (Android's system back closes the Modal through onRequestClose)", () => {
