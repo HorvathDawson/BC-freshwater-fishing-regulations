@@ -2458,3 +2458,6 @@ More questions (recommended answer first):
   examples too" (follow-up mockup owed; Dodd/Windsor/Horseshoe/Nanton/Ireland into the hard vector cases). Q10 "Box +
   one quiet line (Recommended)". Q5 gone (T834). Also fix without asking: Echoes says "only 1 from both lakes
   together" twice; Fraser R3's closed table shows the year bar.
+- 2026-11-17 ~15:47, owner (verbatim): "the up to the x per day text is a little misleading whaty is the 5 we should word it
+  a little better i think." Picked "'any of the 5' (Recommended)": a row with no limit of its own says "any of the 5"
+  (the box's shared day total), replacing "up to the 5" everywhere (including G2 Q2's box-number case).
