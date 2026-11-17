@@ -48,11 +48,12 @@ def test_a_lake_with_no_item_leaves_the_area_by_its_section_only():
 
 def _bundle(tmp_path):
     db = sqlite3.connect(":memory:")
-    db.executescript("CREATE TABLE item (ord INTEGER, item_id TEXT); CREATE TABLE item_section (ord INTEGER, sid INTEGER);"
+    db.executescript("CREATE TABLE item (ord INTEGER, item_id TEXT, name TEXT, kind TEXT); CREATE TABLE item_section (ord INTEGER, sid INTEGER);"
                      "CREATE TABLE entry (entry_id TEXT, extents TEXT, pages TEXT);"
                      "CREATE TABLE rule (entry_id TEXT, rule_id TEXT, closure_grade TEXT, conditions TEXT);"
                      "CREATE TABLE section_note (sid INTEGER PRIMARY KEY, note TEXT NOT NULL);")
-    db.executemany("INSERT INTO item VALUES (?, ?)", [(1, "wbk:329529449"), (2, "gnis:20010")])
+    db.executemany("INSERT INTO item VALUES (?, ?, ?, ?)", [(1, "wbk:329529449", "Cold Fish Lake", "lake"),
+                                                         (2, "gnis:20010", "Cormier Creek", "stream")])
     db.executemany("INSERT INTO item_section VALUES (?, ?)", [(1, 1804040), (2, 739996), (2, 1912509)])
     db.execute("INSERT INTO entry VALUES ('zp:superior_closures', ?, '[9]')",
                (json.dumps([{"op": "within", "area_kind": "national_parks"},
@@ -75,15 +76,16 @@ def _bundle(tmp_path):
 
 def test_each_lake_taken_out_carries_one_note_written_here(tmp_path):
     """Cold Fish Lake's section and the Cormier pond's section each get one sentence naming the reserve by its map
-    name and the closing rows' pages (a rule's own extent counts: p.50 here); the creek's other sections get none.
-    MUTATION: no note and the page says nothing
+    name and the closing rows' pages (a rule's own extent counts: p.50 here); the creek's other sections get none. The
+    Cormier pond is held by its creek's item, whose page shows the note on a stretch longer than the pond: the note
+    names the pond. MUTATION: no note and the page says nothing
     of the reserve beside it."""
     db, layers = _bundle(tmp_path)
     got = N.write(db, DEFS, layers, {"lake:329638447": 1912509})
     assert got == {
         1804040: "Mostly outside Gladys Lake Ecological Reserve: its closure (rule book p.9) does not apply here.",
-        1912509: "Mostly outside Blue/Dease Rivers Ecological Reserve: its closure (rule book p.9, 50) does not apply "
-                 "here."}
+        1912509: "The pond on Cormier Creek here lies mostly outside Blue/Dease Rivers Ecological Reserve: its "
+                 "closure (rule book p.9, 50) does not apply to the pond."}
     assert dict(db.execute("SELECT sid, note FROM section_note")) == got
 
 

@@ -22,6 +22,11 @@ from pathlib import Path
 from typing import Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 
 NOTE = "Mostly outside {area}: its closure ({pages}) does not apply here."
+#: A POND FOLDED INTO A STREAM (the Cormier Creek and Will Creek ponds, named by their section handle): the creek's
+#: page shows the note on a stretch that may run well past the pond (Cormier: 62 sections, the B.C. border to the
+#: reserve boundary — a part is a maximal run of one key and one paint, T517, so the pond cannot be a part of its own),
+#: so the note names the pond and never speaks for more water than it.
+NOTE_POND = "The pond on {water} here lies mostly outside {area}: its closure ({pages}) does not apply to the pond."
 
 
 def outside_listed(area_defs: Iterable[dict]) -> List[tuple]:
@@ -77,8 +82,10 @@ def closing_pages(db: sqlite3.Connection, def_id: str, key: str,
 
 
 def notes(listed: Sequence[tuple], names: Mapping[str, str], pages: Mapping[str, Sequence[int]],
-          sids_of: Mapping[str, Sequence[int]]) -> Dict[int, str]:
-    """{sid: note}: every section of every listed water, one sentence per area it is taken out of (said once)."""
+          sids_of: Mapping[str, Sequence[int]], ponds: Optional[Mapping[str, str]] = None) -> Dict[int, str]:
+    """{sid: note}: every section of every listed water, one sentence per area it is taken out of (said once).
+    `ponds`: a `lake:` id held by a stream's item -> that stream's name (`NOTE_POND`)."""
+    ponds = ponds or {}
     out: Dict[int, List[str]] = {}
     bad = []
     for def_id, key, slug, items in listed:
@@ -86,9 +93,10 @@ def notes(listed: Sequence[tuple], names: Mapping[str, str], pages: Mapping[str,
             bad.append(f"{key}: no tile names this area")
             continue
         pg = pages.get(key) or []
-        said = NOTE.format(area=names[key], pages=("rule book p." + ", ".join(str(p) for p in pg)) if pg
-                           else "rule book")
+        where = ("rule book p." + ", ".join(str(p) for p in pg)) if pg else "rule book"
         for item in items:
+            said = NOTE_POND.format(water=ponds[item], area=names[key], pages=where) if item in ponds \
+                else NOTE.format(area=names[key], pages=where)
             sids = sids_of.get(item) or []
             if not sids:
                 bad.append(f"{key}: outside water {item} has no section in this bundle")
@@ -103,22 +111,27 @@ def notes(listed: Sequence[tuple], names: Mapping[str, str], pages: Mapping[str,
 def write(db: sqlite3.Connection, area_defs: Sequence[dict], layers: Path, handle_by_id: Mapping[str, int],
           cov=None, grades: Optional[Mapping[Tuple[str, str], Optional[str]]] = None) -> Dict[int, str]:
     """Writes `section_note` from the area defs' `outside_items` (see the module doc). `handle_by_id`: the build's
-    section handles (a `lake:` id's section). Written BEFORE the parts (`derived.part_rows`): a noted section is a part
-    of its own, so a note shown on a part never speaks for more water than the lake (the Cormier Creek pond sat in a
-    62-section run of its creek); `grades` the closure grades, which `derived.write` stores only after."""
+    section handles (a `lake:` id's section; one a stream's item holds is a pond on it: `NOTE_POND`). `grades`: the
+    closure grades when the bundle has not stored them yet (written before the derived step)."""
     listed = outside_listed(area_defs)
     sids_of: Dict[str, List[int]] = {}
+    ponds: Dict[str, str] = {}
     for *_x, items in listed:
         for item in items:
             if item.startswith("lake:"):
                 sids_of[item] = [handle_by_id[item]] if item in handle_by_id else []
+                held = [n for (n,) in db.execute(
+                    "SELECT i.name FROM item_section x JOIN item i USING (ord) WHERE x.sid = ? "
+                    "AND COALESCE(i.kind, '') NOT IN ('lake', 'wetland') ORDER BY i.name", (sids_of[item] or [0])[:1])]
+                if held:
+                    ponds[item] = held[0]
             else:
                 sids_of[item] = [s for (s,) in db.execute(
                     "SELECT x.sid FROM item_section x JOIN item i USING (ord) WHERE i.item_id = ? ORDER BY x.sid",
                     (item,))]
     names = tile_names(area_defs, layers, [k for _d, k, *_r in listed])
     pages = {k: closing_pages(db, d, k, grades) for d, k, *_r in listed}
-    got = notes(listed, names, pages, sids_of)
+    got = notes(listed, names, pages, sids_of, ponds)
     db.executemany("INSERT INTO section_note VALUES (?, ?)", sorted(got.items()))
     if cov is not None:
         cov.filled("section_note", len(got))

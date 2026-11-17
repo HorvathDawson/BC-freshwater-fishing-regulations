@@ -275,9 +275,6 @@ def part_rows(db: sqlite3.Connection) -> List[tuple]:
     outside = {s for (s,) in db.execute("SELECT sid FROM outside_bc")}
     from pipeline.deliver.bundle.access import mostly_inside
     closed_land = mostly_inside(db)
-    # (T796, owner 2026-11-16) A SECTION WITH A NOTE IS A PART OF ITS OWN (`section_note`, `outside_note`: a lake taken
-    # out of a reserve it only reaches into): a note shown on a part never speaks for water beside the lake it names
-    noted = {s for (s,) in db.execute("SELECT sid FROM section_note")}
 
     # T517: each section's DFO salmon chain is IN THE KEY (0: a section in no chain — the unlisted chain, as the salmon
     # file says it), so every part is uniform for the salmon paint too, by construction. The schema always holds the
@@ -286,7 +283,7 @@ def part_rows(db: sqlite3.Connection) -> List[tuple]:
     groups: Dict[tuple, List[int]] = defaultdict(list)
     for o, sid in db.execute("SELECT ord, sid FROM item_section ORDER BY ord, sid"):
         groups[(o, rset.get(sid), lset.get(sid), ",".join(pe.get(sid, ())), sid in sw,
-                st.get(sid), sid in closed_land, sid in noted, chain_of.get(sid, 0))].append(sid)
+                st.get(sid), sid in closed_land, chain_of.get(sid, 0))].append(sid)
 
     def order(g):
         o, rs, ls, p, w, s, na = g[:7]
@@ -306,7 +303,7 @@ def part_rows(db: sqlite3.Connection) -> List[tuple]:
         runs = split(o, by_ord[o])
         free: Dict[tuple, List[int]] = defaultdict(list)
         for g, ss in by_ord[o].items():
-            free[g[:8]] += ss
+            free[g[:7]] += ss
         grp_of = {g: i for i, g in enumerate(sorted(free, key=order))}
         free_runs = split(o, free)
         run_of: Dict[int, int] = {}
@@ -327,12 +324,12 @@ def part_rows(db: sqlite3.Connection) -> List[tuple]:
             ks = {run_of[x] for x in ss}
             if len(ks) != 1:
                 raise DerivedError(f"part: {item_id[o]}: a salmon-chain run straddles two runs of its rule set")
-            pieces.append((g, sorted(ss), grp_of[g[:8]], ks.pop()))
+            pieces.append((g, sorted(ss), grp_of[g[:7]], ks.pop()))
 
     out: List[tuple] = []
     n_of: Dict[int, int] = defaultdict(int)
     for g, sids, grp, run in pieces:
-        o, rs, ls, p, w, s, na, _noted, ch = g
+        o, rs, ls, p, w, s, na, ch = g
         name = f"{item_id[o]} part {n_of[o]}"
         rules_apply = {x in sr for x in sids}
         tides = {x in tidal for x in sids}
