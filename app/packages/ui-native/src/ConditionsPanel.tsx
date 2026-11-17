@@ -61,7 +61,8 @@ const W = CONDITIONS_WORDS;
 
 export function ConditionsPanel({ source, section, palette, tiles, theme, colour,
                                   parameter, onParameter, from, feed, scroll = true,
-                                  footer, credits, horizon = 0, onHorizon, day = null, regsDay, waterLine, waterBox, alertWater, reportAbout = null }: {
+                                  footer, credits, horizon = 0, onHorizon, day = null, regsDay, waterLine, waterBox, alertWater, reportAbout = null,
+                                  note = null, offer = null, holding = false }: {
   source: WaterSource; section: SectionId | null; palette: Palette;
   /** The live index, for the donor panel. Absent offline — it then says so. */
   feed?: PanelFeed;
@@ -100,6 +101,18 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
   alertWater?: { item: string | null; name: string } | null;
   /** (T569) A water's sheet: the facts its "Report a problem" link sends with the gauge, quantity and span (its item id, name, part). */
   reportAbout?: { water: string | null; place: string | null; part: number | null; partLabel: string | null } | null;
+  /**
+   * (T817) The view's opening line, at the top of the page: a level-only water's "Level only: no flow is measured here."
+   * (core `conditionsOpening`, decided by the caller with the quantity it opens on). It says what the lead note would.
+   */
+  note?: string | null;
+  /**
+   * (T817) The Flow / Level switch's choices for the WATER (core `conditionsOpening` `offer`), the same whichever is shown;
+   * null: what the charted gauge measures (a sheet, or the water's gauges not yet read).
+   */
+  offer?: readonly Parameter[] | null;
+  /** (T817) The caller has not yet decided where the view opens: the first look stays the spinner (never Flow, then Level). */
+  holding?: boolean;
 }) {
   /*
    * THE CARD'S QUANTITY (T728: the caller's pick, which opens on the map's Flow or Level). `parameter` is undefined
@@ -135,7 +148,7 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
   // and then the picked one a moment later — two loads, and the flicker between them.
   const known = params.state !== "loading";
   // (T581, F1) the card is about the quantity ASKED, always; a station silent in it says so (`silent`), never draws the other
-  const { shown, silent, options } = cardQuantity(picked, available, known, vm.reading?.quantity);
+  const { shown, silent, options } = cardQuantity(picked, available, known, vm.reading?.quantity, offer);
   const charts = known && !silent;
   // WHICH MODEL. Left alone the freshest run is chosen — a UI default, not a judgement.
   // (T377) and the other models drawn beside it, and the forecast switch, as one pick (`pickModel`)
@@ -197,13 +210,13 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
   // (T508) DRAWN WHOLE: every first answer in (who speaks, the panel and its routes, the reading), and the chart's —
   // its quantities known, its record drawn (not loading, not the last chart dimmed while the next loads). What a pane
   // held over the browse map waits for (`shell/paneReveal.ts`), beside the route map's own draw (`MiniMap`).
-  usePaneReady(vm.settled && (station === null || (known && (silent || (chart.state !== "loading" && !(chart.state === "ready" && chart.value?.pending))))));
+  usePaneReady(!holding && vm.settled && (station === null || (known && (silent || (chart.state !== "loading" && !(chart.state === "ready" && chart.value?.pending))))));
 
   // (T584, T580 F11) A PART STEP KEEPS THE LAST BODY, DIMMED, while who speaks for the new part is looked up: this panel
   // stays mounted across a step on one water, and its body (estimate, chart, day strip, scroll place) is not swapped for a
   // spinner and back. The first look at a water, with no body yet, is the spinner.
   const kept = useRef<ReactNode>(null);
-  if (vm.loading && kept.current === null)
+  if ((vm.loading || holding) && kept.current === null)
     return (
       <LoadingState palette={palette} size={110} label={W.readingWater} style={{ paddingVertical: 48, alignItems: "center" }} />
     );
@@ -311,7 +324,9 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
                                                    ["year", W.spanShort.year, W.span.year]] as const} />
                   </>} />
       {readingRows}
-      {vm.leadNote && <Text testID="lead-note" style={{ ...TYPE.meta, color: palette.sub }}>{vm.leadNote}</Text>}
+      {vm.leadNote && !note && <Text testID="lead-note" style={{ ...TYPE.meta, color: palette.sub }}>{vm.leadNote}</Text>}
+      {/* (T823) a gauge much bigger than this water still speaks for it, with the release's own warning */}
+      {vm.smallWater && <Text testID="small-water" style={{ ...TYPE.meta, color: palette.sub }}>{vm.smallWater}</Text>}
       {change && <ChangeBlock palette={palette} change={change} colour={tint} />}
       {chart.state === "loading" && charts && (
         <LoadingState palette={palette} size={72} label={W.loadingRecord} style={{ alignItems: "center", paddingVertical: SPACE.s4 }} />
@@ -389,6 +404,7 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
      donors → the day strip (`footer`, T506) → the fold, last (Sources and notes: the credits, the disclaimer). */
   const body = (
     <>
+      {note && <Text testID="conditions-note" style={{ ...TYPE.bodyStrong, color: palette.ink }}>{note}</Text>}
       {regsDay !== undefined && (
         <View testID="conditions-day" style={{ gap: SPACE.s1 }}>
           <Text testID="conditions-day-label" style={{ ...TYPE.metaBold, color: palette.ink }}>{DAY_LABELS.conditions(horizon, bcNow())}</Text>
@@ -402,7 +418,8 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
                   chain={vm.chain} standing={vm.route.standing}
                   onHorizon={onHorizon} quantity={parameter ?? "discharge"}
                   detail={detail} chart={graph}
-                  foot={small} after={footer} holdKey={`${section ?? ""}:${String(horizon)}:${vm.day.toDateString()}`} sides={vm.sides} count={vm.count} waterLine={waterLine} place={waterBox} />
+                  foot={small} after={footer} holdKey={`${section ?? ""}:${String(horizon)}:${vm.day.toDateString()}`} sides={vm.sides} count={vm.count} waterLine={waterLine} place={waterBox}
+                  own={vm.own} />
       {/* (T569) the way to report a problem from here, with the gauge charted, its quantity and span filled in */}
       {reportAbout && (
         <WaterReportLink where={waterReportWhere({ view: "conditions", ...reportAbout, day: dayLabel(vm.day), station,
@@ -429,7 +446,7 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
       : <ScrollView {...follow} contentContainerStyle={pad}>{scrolled}</ScrollView>
     : <View style={{ gap: SPACE.s4 }}>{body}</View>;
   // the wrapper is the same node whether the body is fresh or kept, so the scroll place survives the step
-  if (vm.loading)
+  if (vm.loading || holding)
     return <View style={{ ...KEPT_STYLE, opacity: 0.45 }} pointerEvents="none" aria-busy testID="conditions-kept" accessibilityElementsHidden>{kept.current}</View>;
   kept.current = page;
   return <View style={KEPT_STYLE}>{page}</View>;

@@ -3,29 +3,29 @@
  * it was left, re-openable; DO steps move on when the app gets there and "Show me" does them; Back steps back and out;
  * and (T248) the Help page drawn from the legend tokens, with its short pages.
  *
- * (T456) The rework: the ringed control moves the walk on (the page's own "‹ Map" included, never a back of the walk's),
- * the card never meets the ring (phone and desktop, a ring that moves), every way off a step's screen pauses the walk
- * behind a chip that puts the app back, and the words name only controls drawn inside the ring.
+ * (T456) The rework: the highlighted control moves the walk on (the page's own "‹ Map" included, never a back of the
+ * walk's), the card never meets the highlight (phone and desktop, a highlight that moves), every way off a step's screen
+ * pauses the walk behind a chip that puts the app back, and the words name only controls drawn inside the highlight.
+ *
+ * (T824, owner on iPhone 2026-11-16) Ten steps, not 41 (the tests that walked the closed stretch, Layers and the spot
+ * steps went with them); the highlight follows its control every frame, not every 400 ms; the card keeps above the
+ * keyboard.
  */
 import { afterEach, describe, expect, it } from "vitest";
 import { useState, type ReactNode } from "react";
 import { act, cleanup, fireEvent, render, renderHook, screen, waitFor } from "@testing-library/react";
-import { GLANCE_WORDS, GUIDE_WATER, HELP_WORDS, WALKTHROUGH_VERSION, WALKTHROUGH_WORDS, guideResumeAt, helpVM, layersVM,
-         LAYER_DEFAULTS, type GlanceRowVM } from "@app/core";
-import { BackLayerContext, horizonChips } from "@app/ui";
+import { GLANCE_WORDS, GUIDE_WATER, HELP_WORDS, WALKTHROUGH_VERSION, WALKTHROUGH_WORDS, guideResumeAt, helpVM, type GlanceRowVM } from "@app/core";
+import { BackLayerContext } from "@app/ui";
 import { notFishingColours, tidalColours } from "@app/map";
 import { HelpPage } from "./menu/HelpPage";
 import { GUIDE_STEPS, GuideCard, PAUSE_AFTER_MS, useGuide, type Guide, type GuideActs, type GuideFacts,
          type WalkthroughStore } from "./Walkthrough";
 import { CoachContext, insideWindow, unionRect, useCoachRegistry, type CoachRegistry, type Rect } from "./CoachMarks";
-import { CARD_GAP, placeGuideCard, revealBy } from "./guideLayout";
+import { CARD_GAP, footRoom, placeGuideCard, revealBy } from "./guideLayout";
 import { GuideControlContext, useGuideControlHost } from "./guideControls";
 import { ViewTabs, FaceBar } from "./Faces";
-import { HorizonPicker } from "./HorizonPicker";
-import { ChartControls } from "./ChartControls";
 import { TabBar } from "./TabBar";
-import { MapRail } from "./MapRail";
-import { LayersSheet } from "./LayersSheet";
+import { RegsLayerToggle } from "./shell/RegsLayerToggle";
 import { OtherFish } from "./regs/KeepBlocks";
 import { makeReleaseSource } from "@app/data/release";
 import { openRegsFixtureWithLines, sectionNames } from "@app/data/release/node";
@@ -34,7 +34,7 @@ import type { ItemId } from "@app/data";
 const { WaterScreen } = await import("./WaterScreen");
 // (T402) a ceiling, not a delay: waitFor returns as soon as it holds; 2 s ran out under the full parallel check
 const WAIT = 10_000;
-import { DARK, LIGHT } from "./theme";
+import { DARK, LIGHT, SPACE } from "./theme";
 
 afterEach(cleanup);
 const memory = (v: string | null = null): WalkthroughStore & { v: string | null } => {
@@ -43,25 +43,23 @@ const memory = (v: string | null = null): WalkthroughStore & { v: string | null 
 };
 const w = WALKTHROUGH_WORDS;
 const WATER = { item: "w-vedder", name: "Vedder River" };
-/** (T466) the closed example as `findGuideClosed` answers it (its own test reads it from the release fixture) */
-const CLOSED = { item: "w-chilliwack", name: "Chilliwack River", part: 0, label: "Slesse Creek → Ecological Reserve" };
 /** the pretend app: `away` is another tab in front (the walk's screens are the Map tab's and a water's) */
 interface Pretend extends GuideFacts { readonly away?: boolean }
-const BROWSE: Pretend = { water: WATER, searching: false, query: "", selected: null, open: null, adding: false, viewing: null, spots: 0,
-                          layersOpen: false, ground: "ground.map", obstacles: false, layersWas: null, dayPicked: false, controls: {},
-                          closed: CLOSED };
+const BROWSE: Pretend = { water: WATER, searching: false, query: "", selected: null, open: null, dayPicked: false, controls: {},
+                          regsLayer: "standard" };
 const REGS: Pretend = { ...BROWSE, open: { item: WATER.item, view: "regs" } };
 const COND: Pretend = { ...BROWSE, open: { item: WATER.item, view: "conditions" } };
 const keyAt = () => screen.getByTestId(/^guide-step-/).getAttribute("data-testid")!.slice("guide-step-".length);
 const press = (label: string) => act(() => { fireEvent.click(screen.getByText(label)); });
 const stepOf = (k: string) => GUIDE_STEPS.find((s) => s.key === k)!;
+const sleep = (ms: number) => act(() => new Promise<void>((d) => setTimeout(d, ms)));
 
 function useRegistry(at: Record<string, [number, number, number, number]> = {}): CoachRegistry {
   const reg = renderHook(() => useCoachRegistry()).result.current;
   for (const [k, r] of Object.entries(at)) reg.set(k, { measureInWindow: (cb) => cb(...r) });
   return reg;
 }
-/** every control a step rings, drawn somewhere (a phone's places, roughly) */
+/** every control a step highlights, drawn somewhere (a phone's places, roughly) */
 const EVERY: Record<string, [number, number, number, number]> = Object.fromEntries(
   [...new Set(GUIDE_STEPS.flatMap((s) => s.targets))].map((k, i) => [k, [16, 120 + (i % 8) * 60, 200, 40]]));
 
@@ -76,45 +74,29 @@ function Harness({ store, start = BROWSE, blocked = false, reg, log, out }: {
     select: () => { log.push("select"); setF((x) => ({ ...x, selected: WATER.item })); },
     openWater: (v) => { log.push(`open:${v}`); setF((x) => ({ ...x, away: false, searching: false, open: { item: WATER.item, view: v } })); },
     view: (v) => { log.push(`view:${v}`); setF((x) => ({ ...x, open: x.open && { ...x.open, view: v } })); },
-    addSpot: () => { log.push("add"); setF((x) => ({ ...x, open: null, adding: true })); },
-    cancelAdd: () => { log.push("cancel"); setF((x) => ({ ...x, adding: false })); },
-    toSpots: () => { log.push("spots"); setF((x) => ({ ...x, viewing: null })); },
-    openSpot: () => { log.push("openSpot"); setF((x) => ({ ...x, viewing: "s1" })); },
-    openLayers: () => { log.push("layers"); setF((x) => ({ ...x, away: false, open: null, layersOpen: true, layersWas: x.layersWas ?? { ground: x.ground!, obstacles: !!x.obstacles } })); },
-    otherGround: () => { log.push("ground"); setF((x) => ({ ...x, ground: x.ground === "ground.map" ? "ground.satellite" : "ground.map" })); },
-    obstaclesOn: () => { log.push("obstacles"); setF((x) => ({ ...x, obstacles: true })); },
-    restoreLayers: () => { log.push("restore"); setF((x) => ({ ...x, layersOpen: false, ground: x.layersWas?.ground ?? x.ground, obstacles: x.layersWas?.obstacles ?? x.obstacles, layersWas: null })); },
-    toMap: () => { log.push("toMap"); setF((x) => ({ ...x, away: false, open: null, searching: false, layersOpen: false })); },
+    toMap: () => { log.push("toMap"); setF((x) => ({ ...x, away: false, open: null, searching: false })); },
     leaveWater: () => { log.push("leave"); setF((x) => ({ ...x, open: null })); },
     pickDay: () => { log.push("day"); setF((x) => ({ ...x, dayPicked: true })); },
-    control: (k, v) => {
-      log.push(`${k}=${String(v)}`);
-      // (T466) the water map's ▲ (here: straight to the closed example's part) and its "Show regulations"
-      if (k === "map:up") setF((x) => ({ ...x, open: { item: CLOSED.item, view: "map", part: CLOSED.part } }));
-      else if (k === "map:regs") setF((x) => ({ ...x, open: x.open && { ...x.open, view: "regs" } }));
-      else setF((x) => ({ ...x, controls: { ...x.controls, [k]: v } }));
-      return true;
-    },
-    openClosed: (v) => { log.push(`closed:${v}`); setF((x) => ({ ...x, away: false, open: { item: CLOSED.item, view: v, part: CLOSED.part } })); },
+    regsLayer: (k) => { log.push(`colour:${k}`); setF((x) => ({ ...x, regsLayer: k })); },
+    control: (k, v) => { log.push(`${k}=${String(v)}`); setF((x) => ({ ...x, controls: { ...x.controls, [k]: v } })); return true; },
   };
-  const facts: GuideFacts = { ...f, onMap: !f.away && !f.open && !f.searching && !f.adding && f.viewing === null };
+  const facts: GuideFacts = { ...f, onMap: !f.away && !f.open && !f.searching };
   const guide = useGuide(store, blocked, facts, acts);
   out.guide = guide; out.set = setF;
   return <GuideCard guide={guide} facts={facts} acts={acts} palette={LIGHT} registry={reg} top={60} bottom={64} />;
 }
 
-describe("the guided walkthrough (T293, T456)", { timeout: 30_000 }, () => {
-  it("is the owner's walk, in his order: find it, read its rules and its conditions, back to the map, its layers", () => {
-    // (T302) this is the web's walk (jsdom is the web): no spot steps — spots live in the phone app
-    expect([...new Set(GUIDE_STEPS.map((s) => s.phase))]).toEqual(["find", "rules", "conditions", "closed", "layers", "end"]);
-    expect(GUIDE_STEPS.map((s) => s.key)).toEqual(["welcome", "search", "pick", "map", "regs", "answer", "day", "trout", "rule",
-      "salmon", "both", "part", "conditions", "reading", "forecast", "gauge", "quantity", "span", "change",
-      "partsmap", "upstream", "closedregs", "closed", "leave", "layers", "ground", "obstacles", "restore", "done"]);
+describe("the guided walkthrough (T293, T456, T824)", { timeout: 30_000 }, () => {
+  it("(T824) is the owner's short walk, in his order: find it, its answer and a day, its conditions, the map, where help is", () => {
+    // (T824, owner 2026-11-16: "41 is way to many cut it down to like 8 or 10 items") was 29 steps here (the web's), 41 on a phone
+    expect([...new Set(GUIDE_STEPS.map((s) => s.phase))]).toEqual(["find", "rules", "conditions", "map", "end"]);
+    expect(GUIDE_STEPS.map((s) => s.key)).toEqual(["welcome", "search", "pick", "answer", "day", "conditions", "reading",
+                                                   "leave", "modes", "done"]);
   });
 
-  it("(T456) no step only describes a control: a step that rings a control asks for its tap, or reads a line", () => {
-    // the reading steps ring lines, not controls; every other ringed step is a DO step the reader's tap moves on
-    const reading = ["answer", "rule", "both", "part", "reading", "gauge", "change", "closed", "done"];
+  it("(T456) no step only describes a control: a step that highlights a control asks for its tap, or reads a line", () => {
+    // the reading steps highlight lines, not controls; every other highlighted step is a DO step the reader's tap moves on
+    const reading = ["answer", "reading", "done"];
     for (const s of GUIDE_STEPS.filter((x) => x.targets.length > 0 && !reading.includes(x.key))) expect(s.kind, s.key).toBe("do");
     // a step that names a control by its label says that label
     for (const s of GUIDE_STEPS) for (const n of s.names ?? []) expect(s.body, `${s.key}: ${n}`).toContain(n);
@@ -123,15 +105,18 @@ describe("the guided walkthrough (T293, T456)", { timeout: 30_000 }, () => {
   it("opens on a new device once nothing blocks it, names the water, and walks to the end with real taps and Show me", async () => {
     const store = memory(), log: string[] = [], out: { guide?: Guide } = {};
     const reg = useRegistry(EVERY);
-    const { rerender } = render(<Harness store={store} blocked reg={reg} log={log} out={out} start={{ ...BROWSE, spots: 1 }} />);
+    const { rerender } = render(<Harness store={store} blocked reg={reg} log={log} out={out} />);
     expect(screen.queryByTestId("guide")).toBeNull();                 // the first-run notice is up
-    rerender(<Harness store={store} reg={reg} log={log} out={out} start={{ ...BROWSE, spots: 1 }} />);
+    rerender(<Harness store={store} reg={reg} log={log} out={out} />);
     expect(keyAt()).toBe("welcome");
     expect(screen.getByTestId("guide-body").textContent).toContain("the Vedder River");
+    expect(screen.getByTestId("guide-body").textContent).toContain("highlights what to tap");
     expect(screen.getByTestId("guide-count").textContent).toBe(`${w.phases.find} · ${w.step(1, GUIDE_STEPS.length)}`);
-    for (let k = 0; k < 60 && screen.queryByTestId("guide"); k++) {
+    const seen: string[] = [];
+    for (let k = 0; k < 30 && screen.queryByTestId("guide"); k++) {
       await act(async () => {});                                          // settle the last move's effects first: under load a DO step read early offers Next, not Show me
       const key = keyAt(), s = stepOf(key);
+      seen.push(key);
       const label = screen.queryByText(w.showMe) ? w.showMe : screen.queryByText(w.done) ? w.done : w.next;
       press(label);
       if (label === w.showMe) await waitFor(() => expect(keyAt()).not.toBe(key), { timeout: WAIT });
@@ -139,46 +124,10 @@ describe("the guided walkthrough (T293, T456)", { timeout: 30_000 }, () => {
     }
     expect(screen.queryByTestId("guide")).toBeNull();
     expect(store.v).toBe(WALKTHROUGH_VERSION);                           // seen, and no resume line left
-    // each DO step done by Show me, through the app's own moves; "regs" was passed (the water opened on its Regulations)
-    expect(log).toEqual(["search", "select", "open:regs", "day", "regs:trout=true", "regs:salmon=true", "view:conditions",
-      "cond:horizons=1", "cond:quantity=level", "cond:span=year",
-      // (T466) up the river to the part closed all year, the reader's way: the water's Map, ▲, Show regulations
-      "view:map", "map:up=true", "map:regs=true",
-      "leave", "layers", "ground", "obstacles", "restore"]);
+    expect(seen).toEqual(GUIDE_STEPS.map((s) => s.key));                 // every one of the ten, none passed
+    // each DO step done by Show me, through the app's own moves
+    expect(log).toEqual(["search", "open:regs", "day", "view:conditions", "leave", "colour:salmon"]);
   }, 40_000);
-
-  it("(T466) the closed example: ▲ is pressed until its part is on screen, then its rules, then it is read", async () => {
-    const out: { set?: (f: (x: Pretend) => Pretend) => void } = {};
-    const at = (part: number) => ({ item: CLOSED.item, view: "map", part });
-    render(<Harness store={memory("guide-at:upstream")} reg={useRegistry(EVERY)} log={[]} out={out}
-                    start={{ ...BROWSE, open: { item: WATER.item, view: "map", part: 0 } }} />);
-    expect(screen.getByTestId("guide-body").textContent).toContain(`until you reach “${CLOSED.label}”.`);
-    act(() => out.set!((x) => ({ ...x, open: at(1) })));                   // a ▲ into the Chilliwack: not there yet
-    act(() => out.set!((x) => ({ ...x, open: at(2) })));
-    await act(() => new Promise((d) => setTimeout(d, 900)));
-    expect(keyAt()).toBe("upstream");
-    act(() => out.set!((x) => ({ ...x, open: at(CLOSED.part) })));         // the part closed all year
-    await waitFor(() => expect(keyAt()).toBe("closedregs"), { timeout: WAIT });
-    act(() => out.set!((x) => ({ ...x, open: { ...at(CLOSED.part), view: "regs" } })));
-    await waitFor(() => expect(keyAt()).toBe("closed"), { timeout: WAIT });
-  });
-
-  it("(T466) no closed example in the release: the first closed step says so and rings nothing; the rest are passed, both ways", async () => {
-    const log: string[] = [];
-    render(<Harness store={memory("guide-at:change")} reg={useRegistry(EVERY)} log={log} out={{}} start={{ ...COND, closed: null }} />);
-    press(w.next);
-    expect(keyAt()).toBe("partsmap");
-    expect(screen.getByText(w.closedNone.title)).toBeTruthy();
-    expect(screen.getByTestId("guide-body").textContent).toBe(
-      "This copy of the rules has no stretch near the Vedder River that is closed all year, so this bit of the tour is skipped.");
-    await act(() => new Promise((d) => setTimeout(d, 900)));
-    expect([screen.queryByTestId("guide-ring"), screen.queryByText(w.showMe)]).toEqual([null, null]);   // a card to read
-    press(w.next);
-    expect(keyAt()).toBe("leave");                                        // upstream, its rules and the reading: passed
-    press(w.back);
-    expect(keyAt()).toBe("partsmap");                                     // back onto the card that said so
-    expect(log).toEqual([]);                                              // nothing was opened for an example there is not
-  });
 
   it("a DO step done by the reader ticks, then moves on by itself", async () => {
     const out: { guide?: Guide; set?: (f: (x: Pretend) => Pretend) => void } = {};
@@ -189,12 +138,15 @@ describe("the guided walkthrough (T293, T456)", { timeout: 30_000 }, () => {
     await waitFor(() => expect(keyAt()).toBe("pick"), { timeout: WAIT });
   });
 
-  it("(T456) the forecast step moves on when the reader picks a day in the panel's own control", async () => {
-    const out: { set?: (f: (x: Pretend) => Pretend) => void } = {};
-    render(<Harness store={memory("guide-at:forecast")} reg={useRegistry(EVERY)} log={[]} out={out} start={{ ...COND, controls: { "cond:horizons": 0 } }} />);
-    expect(keyAt()).toBe("forecast");
-    act(() => out.set!((x) => ({ ...x, controls: { ...x.controls, "cond:horizons": 3 } })));
-    await waitFor(() => expect(keyAt()).toBe("gauge"), { timeout: WAIT });
+  it("(T824) the rail's Salmon, tapped by the reader, moves the walk on to its last card", async () => {
+    const log: string[] = [], out: { set?: (f: (x: Pretend) => Pretend) => void } = {};
+    render(<Harness store={memory("guide-at:modes")} reg={useRegistry(EVERY)} log={log} out={out} />);
+    expect(keyAt()).toBe("modes");
+    expect(log).toEqual(["toMap"]);                                       // resumed on it: the map put in front for it
+    log.length = 0;
+    act(() => out.set!((x) => ({ ...x, regsLayer: "salmon" })));
+    await waitFor(() => expect(keyAt()).toBe("done"), { timeout: WAIT });
+    expect(log).toEqual([]);                                              // the reader's own tap; nothing run behind it
   });
 
   it("is skippable at any step; a skip counts as seen and forgets the step", () => {
@@ -204,6 +156,11 @@ describe("the guided walkthrough (T293, T456)", { timeout: 30_000 }, () => {
     act(() => { fireEvent.click(screen.getByTestId("guide-skip")); });
     expect(screen.queryByTestId("guide")).toBeNull();
     expect([store.v, guideResumeAt(store.v)]).toEqual([WALKTHROUGH_VERSION, null]);
+  });
+
+  it("a step kept from the long walk (an old device's resume line) starts the short walk from the top", () => {
+    render(<Harness store={memory("walkthrough-5\nguide-at:obstacles")} reg={useRegistry()} log={[]} out={{}} />);
+    expect(keyAt()).toBe("welcome");
   });
 
   it("keeps the step it is on, so a walk left when the app closed resumes there", () => {
@@ -221,7 +178,7 @@ describe("the guided walkthrough (T293, T456)", { timeout: 30_000 }, () => {
     expect(keyAt()).toBe("conditions");
     expect(screen.getByText(`${w.tick} ${stepOf("conditions").title}`)).toBeTruthy();   // done already
     press(w.back);
-    expect(keyAt()).toBe("part");
+    expect(keyAt()).toBe("day");
     expect(log).toEqual(["view:regs"]);                                 // its Regulations back in front
     cleanup();
     const first = memory();
@@ -245,34 +202,25 @@ describe("the guided walkthrough (T293, T456)", { timeout: 30_000 }, () => {
     // the reader presses "‹ Map": the page closes itself (its own move, once)
     act(() => { log.push("page:close"); out.set!((x) => ({ ...x, open: null })); });
     expect(screen.getByText(`${w.tick} ${stepOf("leave").title}`)).toBeTruthy();
-    await waitFor(() => expect(keyAt()).toBe("layers"), { timeout: WAIT });
+    await waitFor(() => expect(keyAt()).toBe("modes"), { timeout: WAIT });
     expect(log).toEqual(["page:close"]);                                  // the walk ran nothing behind the reader's back
   });
 
-  it("(owner 2026-10-29) Layers: open, switch the ground, fish obstacles on — then Next puts them back as they were", async () => {
-    const log: string[] = [], out: { set?: (f: (x: Pretend) => Pretend) => void } = {};
-    render(<Harness store={memory("guide-at:layers")} reg={useRegistry(EVERY)} log={log} out={out} start={{ ...BROWSE, obstacles: false }} />);
-    expect(log).toEqual(["layers"]);                                     // resumed on it: the sheet is opened for it
-    await waitFor(() => expect(keyAt()).toBe("ground"), { timeout: WAIT });
-    press(w.showMe);
-    await waitFor(() => expect(keyAt()).toBe("obstacles"), { timeout: WAIT });
-    press(w.showMe);
-    await waitFor(() => expect(keyAt()).toBe("restore"), { timeout: WAIT });
-    press(w.next);
-    expect(keyAt()).toBe("done");
-    expect(log).toEqual(["layers", "ground", "obstacles", "restore"]);
+  it("(T824) a step whose control is not drawn shows its card with nothing highlighted, never passed unseen", async () => {
+    const drawn = Object.fromEntries(Object.entries(EVERY).filter(([k]) => !k.startsWith("tab:")));
+    render(<Harness store={memory("guide-at:done")} reg={useRegistry(drawn)} log={[]} out={{}} />);
+    await sleep(2400);                                                    // past the wait an optional step gets
+    expect([keyAt(), screen.queryByTestId("guide-ring")]).toEqual(["done", null]);
   });
 
-  it("(T456) an optional step whose control this water does not draw is passed, never shown pointing at nothing", async () => {
-    // "trout" and "rule" ring nothing here (no regs:trout / regs:rule drawn): passed on to "salmon"
-    const drawn = Object.fromEntries(Object.entries(EVERY).filter(([k]) => !["regs:trout", "regs:rule", "regs:ruleline"].includes(k)));
-    render(<Harness store={memory("guide-at:day")} reg={useRegistry(drawn)} log={[]} out={{}} start={{ ...REGS, dayPicked: true }} />);
-    expect(keyAt()).toBe("day");
-    press(w.doneStep);
-    await waitFor(() => expect(keyAt()).toBe("salmon"), { timeout: WAIT });
+  it("(T456) an optional step whose line is not drawn (no live reading arrived) is passed, never shown pointing at nothing", async () => {
+    const drawn = Object.fromEntries(Object.entries(EVERY).filter(([k]) => k !== "cond:headline"));
+    render(<Harness store={memory("guide-at:reading")} reg={useRegistry(drawn)} log={[]} out={{}} start={COND} />);
+    expect(keyAt()).toBe("reading");
+    await waitFor(() => expect(keyAt()).toBe("leave"), { timeout: WAIT });
   });
 
-  it("rings the control a step is about, and keeps the card beside it", async () => {
+  it("highlights the control a step is about, and keeps the card beside it", async () => {
     const reg = useRegistry({ search: [14, 10, 362, 46] });
     render(<Harness store={memory("guide-at:search")} reg={reg} log={[]} out={{}} />);
     const ring = await screen.findByTestId("guide-ring", {}, { timeout: WAIT });
@@ -280,8 +228,39 @@ describe("the guided walkthrough (T293, T456)", { timeout: 30_000 }, () => {
     expect(parseFloat(screen.getByTestId("guide-step-search").style.top)).toBeGreaterThan(10 + 46);
   });
 
-  it("(T466) a ring inside a scrolled sheet at phone size (Layers → Falls and dams): the sheet is scrolled first, then it is ringed", async () => {
-    // a 390 × 844 phone: the obstacles row is laid out below the sheet's visible body (the sheet is scrolled to its top)
+  it("(T824, owner: \"the highlighting following the items with a delay\") the highlight moves with each of its page's scroll events", async () => {
+    // it was looked at every 400 ms: a page that scrolled left it behind that long
+    const at = { y: 10 }, told = new Set<() => void>();
+    const page = { by: () => {}, view: async () => null,
+                   onScroll: (f: () => void) => { told.add(f); return () => { told.delete(f); }; } };
+    const reg = renderHook(() => useCoachRegistry()).result.current;
+    reg.set("search", { measureInWindow: (cb) => cb(14, at.y, 362, 46) }, null, page);
+    render(<Harness store={memory("guide-at:search")} reg={reg} log={[]} out={{}} />);
+    const ring = await screen.findByTestId("guide-ring", {}, { timeout: 2000 });
+    expect(ring.style.top).toBe("2px");
+    await sleep(1200);                                                    // the quick second after the step came up is over
+    expect(told.size).toBe(1);                                            // the walk hears the page's scroll
+    for (const y of [140, 260, 90]) {
+      at.y = y;
+      await act(async () => { for (const f of told) f(); });            // one scroll event: no timer waited on
+      await act(async () => {});
+      expect(screen.getByTestId("guide-ring").style.top, `moved to ${y}`).toBe(`${y - 6 - 2}px`);
+    }
+  });
+
+  it("(T824) after the keyboard (or anything that moves things), a second of quick looks: the highlight is on its control within frames", async () => {
+    const at = { y: 10 };
+    const reg = useRegistry();
+    reg.set("search", { measureInWindow: (cb) => cb(14, at.y, 362, 46) });
+    render(<Harness store={memory("guide-at:search")} reg={reg} log={[]} out={{}} />);
+    await screen.findByTestId("guide-ring", {}, { timeout: 2000 });
+    at.y = 300;                                                           // the step just came up: a sliding page moves it
+    await sleep(100);
+    expect(screen.getByTestId("guide-ring").style.top).toBe(`${300 - 8}px`);
+  });
+
+  it("(T466) a highlight inside a scrolled page at phone size: the page is scrolled once, and the highlight follows it there", async () => {
+    // a 390 × 844 phone: the gauge's headline is laid out below the page's visible body
     const win = { w: 390, h: 844 };
     const saved = [window.innerWidth, window.innerHeight];
     Object.assign(window, { innerWidth: win.w, innerHeight: win.h });
@@ -289,53 +268,67 @@ describe("the guided walkthrough (T293, T456)", { timeout: 30_000 }, () => {
     try {
       const scroll = { y: 0 }, asked: number[] = [];
       const page = { by: (dy: number) => { asked.push(dy); scroll.y = Math.max(0, scroll.y + dy); },
-                     view: async () => ({ x: 0, y: 300, w: 390, h: 480 }) };          // the sheet's body, under its title row
+                     view: async () => ({ x: 0, y: 300, w: 390, h: 480 }) };          // the page, under its header
       const reg = renderHook(() => useCoachRegistry()).result.current;
-      reg.set("layers:obstacles", { measureInWindow: (cb) => cb(16, 1010 - scroll.y, 358, 96) }, null, page);
-      render(<Harness store={memory("guide-at:obstacles")} reg={reg} log={[]} out={{}}
-                      start={{ ...BROWSE, layersOpen: true, layersWas: { ground: "ground.map", obstacles: false } }} />);
-      expect(screen.getByTestId("guide-step-obstacles")).toBeTruthy();
+      reg.set("cond:headline", { measureInWindow: (cb) => cb(16, 1010 - scroll.y, 358, 96) }, null, page);
+      render(<Harness store={memory("guide-at:reading")} reg={reg} log={[]} out={{}} start={COND} />);
+      expect(screen.getByTestId("guide-step-reading")).toBeTruthy();
       await waitFor(() => expect(asked.length).toBeGreaterThan(0), { timeout: WAIT });
       const ring = await screen.findByTestId("guide-ring", {}, { timeout: WAIT });
+      await waitFor(() => expect(parseFloat(ring.style.top)).toBeGreaterThanOrEqual(300 - 8), { timeout: WAIT });
       const top = parseFloat(ring.style.top), h = parseFloat(ring.style.height);
-      expect(top, "the row is in the sheet's view once it is ringed").toBeGreaterThanOrEqual(300 - 8);
       expect(top + h).toBeLessThanOrEqual(300 + 480 + 8);
       expect(scroll.y).toBeGreaterThan(0);                                   // scrolled DOWN to it, never left off-screen
+      await sleep(600);
+      expect(asked.length, "one scroll, not one a frame").toBe(1);
     } finally {
       Object.assign(window, { innerWidth: saved[0], innerHeight: saved[1] });
       act(() => { window.dispatchEvent(new Event("resize")); });
     }
   });
 
-  it("(T466) the Layers sheet's body is a page the walk can scroll: its Falls and dams row is registered with it", () => {
-    const reg = renderHook(() => useCoachRegistry()).result.current;
-    render(<CoachContext.Provider value={reg}>
-      <LayersSheet open onClose={() => {}} palette={LIGHT} onChoose={() => {}}
-                   vm={layersVM("map", LAYER_DEFAULTS, { carries: { stocked: false, surveyed: false }, online: true })} />
-    </CoachContext.Provider>);
-    expect(reg.get("layers:obstacles")).not.toBeNull();
-    expect(reg.scrollerOf!("layers:obstacles")).not.toBeNull();             // before T466: null, so it was never scrolled to
-  });
-
-  it("(T456) the card follows a ring that moves (a sheet sliding, the page scrolling) and stays off it", async () => {
+  it("(T456) the card follows a highlight that moves (a sheet sliding, the page scrolling) and stays off it", async () => {
     const at = { y: 120 };
     const reg = useRegistry();
-    reg.set("cond:horizons", { measureInWindow: (cb) => cb(16, at.y, 300, 120) });
-    render(<Harness store={memory("guide-at:forecast")} reg={reg} log={[]} out={{}} start={COND} />);
+    reg.set("cond:headline", { measureInWindow: (cb) => cb(16, at.y, 300, 120) });
+    render(<Harness store={memory("guide-at:reading")} reg={reg} log={[]} out={{}} start={COND} />);
     await screen.findByTestId("guide-ring", {}, { timeout: WAIT });
     /** the card's box (jsdom lays out nothing: its height is 0, so its top-left corner is what can land in the ring) */
     const apart = () => {
-      const c = screen.getByTestId("guide-step-forecast").style, r = screen.getByTestId("guide-ring").style;
+      const c = screen.getByTestId("guide-step-reading").style, r = screen.getByTestId("guide-ring").style;
       const [cl, ct, cw] = [parseFloat(c.left), parseFloat(c.top), parseFloat(c.width)];
       const [rl, rt, rw, rh] = [parseFloat(r.left), parseFloat(r.top), parseFloat(r.width), parseFloat(r.height)];
       return cl >= rl + rw || cl + cw <= rl || ct >= rt + rh || ct <= rt;
     };
     expect(apart()).toBe(true);
-    const was = screen.getByTestId("guide-step-forecast").style.top;
+    const was = screen.getByTestId("guide-step-reading").style.top;
     at.y = 520;                                                            // scrolled: the control is now low on the screen
     await waitFor(() => expect(parseFloat(screen.getByTestId("guide-ring").style.top)).toBeGreaterThan(500), { timeout: WAIT });
     expect(apart()).toBe(true);
-    expect(screen.getByTestId("guide-step-forecast").style.top).not.toBe(was);   // it moved with the ring
+    expect(screen.getByTestId("guide-step-reading").style.top).not.toBe(was);   // it moved with the ring
+  });
+
+  it("(T824, owner: \"glitchy with keyboard\") a phone browser's keyboard: the card keeps above it, and goes back down after", async () => {
+    // iOS Safari's keyboard shrinks the visual viewport, not the page: the card at the foot was left under the keyboard
+    const saved = [window.innerWidth, window.innerHeight];
+    Object.assign(window, { innerWidth: 390, innerHeight: 844 });
+    act(() => { window.dispatchEvent(new Event("resize")); });
+    const vv = Object.assign(new EventTarget(), { height: 844, offsetTop: 0, scale: 1 });
+    Object.defineProperty(window, "visualViewport", { value: vv, configurable: true });
+    try {
+      // "day" with its date not drawn: the card sits at the foot, over the tab bar (64)
+      render(<Harness store={memory("guide-at:day")} reg={useRegistry()} log={[]} out={{}} start={REGS} />);
+      const top = () => parseFloat(screen.getByTestId("guide-step-day").style.top);
+      await waitFor(() => expect(top()).toBe(844 - 64 - SPACE.s3), { timeout: WAIT });
+      act(() => { Object.assign(vv, { height: 500 }); vv.dispatchEvent(new Event("resize")); });
+      expect(top()).toBe(500 - SPACE.s3);                                   // above the keyboard's top edge, at once
+      act(() => { Object.assign(vv, { height: 844 }); vv.dispatchEvent(new Event("resize")); });
+      expect(top()).toBe(844 - 64 - SPACE.s3);
+    } finally {
+      delete (window as unknown as { visualViewport?: unknown }).visualViewport;
+      Object.assign(window, { innerWidth: saved[0], innerHeight: saved[1] });
+      act(() => { window.dispatchEvent(new Event("resize")); });
+    }
   });
 
   it("is a non-modal dialog whose step is said as it comes up", () => {
@@ -360,26 +353,20 @@ describe("the guided walkthrough (T293, T456)", { timeout: 30_000 }, () => {
 /**
  * (T456) GUARDRAILS: every way off a step's own screen has ONE result. The step's own control (‹ Map on "Back to the map")
  * moves the walk on; any other — the page's ‹ or the system back (the water closes, the map in front), a tab (another tab
- * in front), a sheet closed — pauses the walk behind "Resume walkthrough", and the chip puts the app back on that step.
+ * in front) — pauses the walk behind "Resume walkthrough", and the chip puts the app back on that step.
  */
 describe("(T456) every exit from a step's screen", { timeout: 60_000 }, () => {
   /** where each step is shown */
   const startOf = (k: string): Pretend => {
     const s = stepOf(k);
-    if (k === "pick" || k === "map") return { ...BROWSE, searching: true, query: "ved", selected: k === "map" ? WATER.item : null };
+    if (k === "pick") return { ...BROWSE, searching: true, query: "ved" };
     if (s.phase === "rules" || k === "conditions") return REGS;
     if (s.phase === "conditions") return COND;
-    if (s.phase === "layers" && k !== "layers") return { ...BROWSE, layersOpen: true, layersWas: { ground: "ground.map", obstacles: false } };
-    // (T466) the closed example: the walk's water's Conditions, its Map, then the example's part (Map, then Regulations)
-    if (k === "partsmap") return COND;
-    if (k === "upstream") return { ...BROWSE, open: { item: WATER.item, view: "map", part: 0 } };
-    if (k === "closedregs") return { ...BROWSE, open: { item: CLOSED.item, view: "map", part: CLOSED.part } };
-    if (k === "closed") return { ...BROWSE, open: { item: CLOSED.item, view: "regs", part: CLOSED.part } };
     return BROWSE;
   };
   const EXITS: Record<string, (x: Pretend) => Pretend> = {
-    "the page's ‹ / the system back": (x) => ({ ...x, open: null, searching: false, layersOpen: false }),
-    "a tab": (x) => ({ ...x, away: true, open: null, searching: false, layersOpen: false }),
+    "the page's ‹ / the system back": (x) => ({ ...x, open: null, searching: false }),
+    "a tab": (x) => ({ ...x, away: true, open: null, searching: false }),
   };
   const withScreen = GUIDE_STEPS.filter((s) => !["welcome", "done"].includes(s.key));
   for (const s of withScreen) for (const [exit, leave] of Object.entries(EXITS)) {
@@ -392,12 +379,12 @@ describe("(T456) every exit from a step's screen", { timeout: 60_000 }, () => {
       act(() => out.set!(leave));
       if (s.key === "leave") {
         // its own control (the water closes): on, never paused
-        await waitFor(() => expect(keyAt()).toBe("layers"), { timeout: WAIT });
+        await waitFor(() => expect(keyAt()).toBe("modes"), { timeout: WAIT });
         return;
       }
-      if (exit !== "a tab" && ["search", "map", "layers"].includes(s.key)) {
+      if (exit !== "a tab" && ["search", "pick", "modes"].includes(s.key)) {
         // the map IS these steps' screen: the card stays up
-        await act(() => new Promise((d) => setTimeout(d, PAUSE_AFTER_MS + 200)));
+        await sleep(PAUSE_AFTER_MS + 200);
         expect([screen.queryByTestId("guide-paused"), keyAt()]).toEqual([null, s.key]);
         return;
       }
@@ -406,18 +393,10 @@ describe("(T456) every exit from a step's screen", { timeout: 60_000 }, () => {
       act(() => { fireEvent.click(screen.getByTestId("guide-resume")); });
       expect(keyAt()).toBe(s.key);                                        // the same step, the app put back for it
       expect(log.length, `${s.key} resume set nothing up`).toBeGreaterThan(0);
-      await act(() => new Promise((d) => setTimeout(d, PAUSE_AFTER_MS + 200)));
+      await sleep(PAUSE_AFTER_MS + 200);
       expect(screen.queryByTestId("guide-paused")).toBeNull();            // and it stays up: its screen is back
     });
   }
-  it("a sheet closed under a Layers step pauses; Resume opens it again", async () => {
-    const log: string[] = [], out: { set?: (f: (x: Pretend) => Pretend) => void } = {};
-    render(<Harness store={memory("guide-at:obstacles")} reg={useRegistry(EVERY)} log={log} out={out} start={startOf("obstacles")} />);
-    act(() => out.set!((x) => ({ ...x, layersOpen: false })));
-    await waitFor(() => expect(screen.getByTestId("guide-paused")).toBeTruthy(), { timeout: WAIT });
-    act(() => { fireEvent.click(screen.getByTestId("guide-resume")); });
-    expect([keyAt(), log]).toEqual(["obstacles", ["layers"]]);
-  });
   it("the chip's Skip ends the walk (seen)", async () => {
     const store = memory("guide-at:answer"), out: { set?: (f: (x: Pretend) => Pretend) => void } = {};
     render(<Harness store={store} reg={useRegistry(EVERY)} log={[]} out={out} start={REGS} />);
@@ -436,6 +415,8 @@ describe("(T456) the card never covers what it is about", () => {
   const meets = (a: Rect, b: Rect) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
   const SIZES = [{ name: "phone", win: { w: 390, h: 844 }, room: { top: 8, bottom: 64 } },
                  { name: "phone, water page", win: { w: 390, h: 844 }, room: { top: 8, bottom: 0 } },
+                 // (T824) the keyboard up: what it covers is kept at the foot
+                 { name: "phone, keyboard up", win: { w: 390, h: 844 }, room: { top: 8, bottom: footRoom(64, 508, { y: 0, h: 844 }) } },
                  { name: "desktop", win: { w: 1280, h: 800 }, room: { top: 68, bottom: 0 } }];
   for (const { name, win, room } of SIZES) it(`${name}: every ring, every card height`, () => {
     let n = 0;
@@ -505,7 +486,7 @@ describe("(T456) the Vedder River's Regulations draw every rules step's control"
  * (T456, "+1d to +10d" named chips no longer drawn) A STEP NAMES ONLY WHAT IS IN ITS RING: each step's named labels are
  * inside the view its target registers — its words, or its spoken name — drawn by the real component.
  */
-describe("(T456) the words name only controls drawn inside the ring", { timeout: 60_000 }, () => {
+describe("(T456) the words name only controls drawn inside the highlight", { timeout: 60_000 }, () => {
   function Coached({ reg, children }: { reg: CoachRegistry; children: ReactNode }) {
     return <CoachContext.Provider value={reg}>{children}</CoachContext.Provider>;
   }
@@ -519,42 +500,23 @@ describe("(T456) the words name only controls drawn inside the ring", { timeout:
   const fold = (key: string, name: string): { key: string; row: GlanceRowVM; body: () => ReactNode } =>
     ({ key, row: { thumb: "CT", name, value: null, tone: "plain", fold: true } as unknown as GlanceRowVM, body: () => null });
   const DRAWN: [string, () => ReactNode][] = [
-    ["view:regs", () => <ViewTabs palette={LIGHT} views={["regs", "conditions", "map"]} on="regs" onView={() => {}} />],
+    ["view:conditions", () => <ViewTabs palette={LIGHT} views={["regs", "conditions", "map"]} on="regs" onView={() => {}} />],
     ["water:back", () => <FaceBar palette={LIGHT} face="regulations" onFace={() => {}} onBack={() => {}} backLabel="Map" />],
-    ["regs:trout", () => <OtherFish rows={[]} keys={[]} palette={LIGHT} actions={{} as never}
-                                    folds={[fold("salmon", "Salmon"), fold("group:0", "Trout and char")]} />],
-    ["cond:horizons", () => <HorizonPicker palette={LIGHT} chips={horizonChips(0, "discharge")} onPick={() => {}} testID="h" coach="cond:horizons" />],
-    ["cond:quantity", () => <ChartControls palette={LIGHT} value="discharge" label="Quantity" testID="q" coach="cond:quantity" onPick={() => {}}
-                                           options={[["discharge", "Flow"], ["level", "Level"]]} />],
-    ["cond:span", () => <ChartControls palette={LIGHT} value="72h" label="Span" testID="s" coach="cond:span" onPick={() => {}}
-                                       options={[["72h", "72 h"], ["year", "Year"]]} />],
-    ["layers", () => <MapRail palette={LIGHT} onLayers={() => {}} />],
-    ["layers:ground", () => <LayersSheet open onClose={() => {}} palette={LIGHT} onChoose={() => {}}
-                                         vm={layersVM("map", LAYER_DEFAULTS, { carries: { stocked: false, surveyed: false }, online: true })} />],
+    ["modes", () => <RegsLayerToggle palette={LIGHT} col={{ regsLayer: "standard", setRegsLayer: () => {} }} />],
     ["tab:more", () => <TabBar active="map" onChange={() => {}} palette={LIGHT} />],
   ];
-  it("each named label is inside its step's ringed control", async () => {
+  it("each named label is inside its step's highlighted control", () => {
     const reg = renderHook(() => useCoachRegistry()).result.current;
-    const item = await vedder();
-    render(<Coached reg={reg}>{DRAWN.map(([k, el]) => <div key={k}>{el()}</div>)}
-      <WaterScreen source={source} loader={lined} item={item} section={null} part={null} day={DAY} palette={LIGHT} />
-    </Coached>);
-    await waitFor(() => expect(reg.get("regs:rule")).not.toBeNull(), { timeout: 30_000 });
+    render(<Coached reg={reg}>{DRAWN.map(([k, el]) => <div key={k}>{el()}</div>)}</Coached>);
     const checked: string[] = [];
-    // (T466) the water map's ▲ and "Show regulations" are checked on the water map itself (guideClosed.test.tsx)
-    const onWaterMap = (s: (typeof GUIDE_STEPS)[number]) => s.targets[0] === "map:up" || s.targets[0] === "map:regs";
     for (const s of GUIDE_STEPS) {
-      if (!s.names?.length || onWaterMap(s)) continue;
+      if (!s.names?.length) continue;
       const inside = s.targets.map((t) => said(reg, t)).filter((x): x is string => x !== null).join(" | ");
       expect(inside, `${s.key}: ${s.targets.join(", ")} not drawn`).not.toBe("");
       for (const n of s.names) expect(inside, `${s.key} names "${n}"`).toContain(n.toLowerCase());
       checked.push(s.key);
     }
-    // the rule's ring is the head and the first rule's own line, never the whole tier under it (the phone's ring was 2145 px)
-    expect(said(reg, "regs:ruleline")).not.toContain("of your 2 trout and char");
-    // salmon's Details is the same fold row as trout's (its own key)
-    expect(said(reg, "regs:salmon")).toContain(GLANCE_WORDS.show.toLowerCase());
-    expect(checked).toEqual(GUIDE_STEPS.filter((s) => s.names?.length && !onWaterMap(s)).map((s) => s.key));
+    expect(checked).toEqual(["conditions", "leave", "modes", "done"]);
   });
   it("the walk sees a screen's own control, and Show me sets it the reader's way", () => {
     const host = renderHook(() => useGuideControlHost());
@@ -633,3 +595,13 @@ function hexToRgb(hex: string): string {
   return `rgb(${parseInt(m[1]!, 16)}, ${parseInt(m[2]!, 16)}, ${parseInt(m[3]!, 16)})`;
 }
 
+
+describe("(T824) the room the keyboard takes", () => {
+  it("keeps what the keyboard covers of the layer, or the tab bar's room, whichever is more", () => {
+    expect(footRoom(64, null, { y: 0, h: 844 })).toBe(64);                  // no keyboard
+    expect(footRoom(64, 508, { y: 0, h: 844 })).toBe(336);                  // iOS: the window does not shrink for it
+    expect(footRoom(64, 820, { y: 0, h: 844 })).toBe(64);                   // a keyboard lower than the tab bar's top
+    expect(footRoom(0, 600, { y: 0, h: 600 })).toBe(0);                     // Android's resize: the layer ends at the keyboard
+    expect(footRoom(0, 508, { y: 47, h: 797 })).toBe(336);                  // a layer under the status bar, in window points
+  });
+});

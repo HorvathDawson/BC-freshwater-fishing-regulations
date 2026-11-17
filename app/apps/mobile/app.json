@@ -30,7 +30,8 @@
       ["expo-notifications", { "icon": "./assets/icon/adaptive-monochrome.png" }],
       "expo-background-task",
       "./plugins/with-upload-signing",
-      "./plugins/with-no-minify"
+      "./plugins/with-no-minify",
+      "./plugins/with-backup-rules"
     ],
     "ios": {
       "bundleIdentifier": "ca.canifishthis.app",

@@ -6,7 +6,7 @@
  * Measures and draws only: the view follows the finger, and on release `drag.release` decides (past 80 px or a
  * flick) and calls the one back. Everything else springs home.
  */
-import { useMemo, useRef } from "react";
+import { useLayoutEffect, useMemo, useRef } from "react";
 import { Animated } from "react-native";
 import { GestureDetector, usePanGesture, type PanGestureConfig } from "react-native-gesture-handler";
 import type { EdgeBackDrag } from "@app/ui";
@@ -21,6 +21,14 @@ export function EdgeBack({ drag, children }: { drag: EdgeBackDrag; children: Rea
 
 function EdgePan({ drag, children }: { drag: EdgeBackDrag; children: React.ReactNode }) {
   const x = useRef(new Animated.Value(0)).current;
+  // (T821) a swipe that went back leaves the screen where the finger let go until the screen it went back to is
+  // committed, and only then comes home (this layout effect: after that render, before it is painted). Putting it home
+  // when the back was decided stood the screen just swiped away whole again for as long as the back's render took, the
+  // owner's "it flashes the menu back for a second before it goes back" (iPhone build 36).
+  const backed = useRef(false);
+  useLayoutEffect(() => {
+    if (backed.current) { backed.current = false; x.setValue(0); }
+  });
   // (T250) RNGH 3's hook API: one config object (memoised: a new object reconfigures the native handler), callbacks on JS
   const config = useMemo((): PanGestureConfig => {
     let live = false;
@@ -34,7 +42,7 @@ function EdgePan({ drag, children }: { drag: EdgeBackDrag; children: React.React
       onUpdate: (e) => { if (live) x.setValue(drag.offset(e.translationX)); },
       // `canceled` when the system cancelled the swipe after it went active: that is not a release
       onDeactivate: (e) => {
-        if (live && !e.canceled && drag.release(e.translationX, e.velocityX)) x.setValue(0);
+        if (live && !e.canceled && drag.release(e.translationX, e.velocityX)) backed.current = true;
         else home();
         live = false;
       },

@@ -7,7 +7,7 @@ import { Text } from "../Text";
 import { DAY_PANEL_WORDS, savedGauges, spotReadingFigure, visitDay, type Spot } from "@app/data/spots";
 import { SPOT_RECORD_WORDS, weatherFigure } from "@app/core";
 import { DonorPanel } from "../DonorPanel";
-import { TYPE } from "../type";
+import { TYPE, typeAt } from "../type";
 import type { Palette } from "../theme";
 import { Block, Meta } from "./parts";
 import { Window } from "./WeatherWindow";
@@ -59,7 +59,7 @@ export function WaterRecord({ spot, palette }: { spot: Spot; palette: Palette })
         <>
           <View style={{ flexDirection: "row", alignItems: "baseline", gap: 8,
                          flexWrap: "wrap" }}>
-            <Text selectable style={{ ...TYPE.figureBig, fontSize: 32, color: palette.live }}>
+            <Text selectable style={{ ...typeAt("figureBig", 32), color: palette.live }}>
               {fig.figure}
             </Text>
             <Text selectable style={{ ...TYPE.figure, color: palette.sub }}>{fig.unit}</Text>
@@ -89,7 +89,7 @@ export function WeatherRecord({ spot, palette }: { spot: Spot; palette: Palette 
         <>
           <View style={{ flexDirection: "row", alignItems: "baseline", gap: 12,
                          flexWrap: "wrap" }}>
-            <Text selectable style={{ ...TYPE.figureBig, fontSize: 32, color: palette.ink }}>
+            <Text selectable style={{ ...typeAt("figureBig", 32), color: palette.ink }}>
               {weatherFigure("temp", w.tempC)}
             </Text>
             {w.windKph != null && (
