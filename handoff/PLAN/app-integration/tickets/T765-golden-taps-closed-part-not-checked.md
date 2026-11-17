@@ -1,6 +1,6 @@
 # T765 — Golden taps: a closed part is not checked, so a moved index lands on the wrong part and nothing objects
 
-Status: IN PROGRESS (built on branch app-fix/t765-t768; not merged) (filed 2026-11-16 by the app chat; found by the main chat on release r-46e4355a7277).
+Status: DONE 2cdce6538 (landed 2026-11-17, CI green, 6/6 Android benches; was: IN PROGRESS (built on branch app-fix/t765-t768; not merged) (filed 2026-11-16 by the app chat; found by the main chat on release r-46e4355a7277).)
 
 Source: the main chat, 2026-11-16 03:08. Area: the app chat (`app/tools/regs-recut/`).
 

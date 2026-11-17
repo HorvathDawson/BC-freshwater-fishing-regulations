@@ -1,6 +1,6 @@
 # T767 — Four small app faults from the 2026-11-16 audit (fetch lane, Flow / Level pick, a swallowed failure, salmon text)
 
-Status: IN PROGRESS (built on branch `app-fix/t766-t767`, 2026-11-17; all four fixed with a test that fails before; Android benches owed before merge).
+Status: DONE 2cdce6538 (landed 2026-11-17, CI green, 6/6 Android benches; was: IN PROGRESS (built on branch `app-fix/t766-t767`, 2026-11-17; all four fixed with a test that fails before; Android benches owed before merge).)
 
 Source: `handoff/PLAN/audit-2026-11-16/code.md` and `guards.md` (the main chat's audit). Area: the app.
 

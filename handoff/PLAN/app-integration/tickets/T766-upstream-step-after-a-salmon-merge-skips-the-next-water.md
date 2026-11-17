@@ -1,6 +1,6 @@
 # T766 — Upstream after a salmon merge can land on the side channel, and the step into the next water is lost
 
-Status: IN PROGRESS (built on branch `app-fix/t766-t767`, 2026-11-17; reproduced in a core test; Android step bench owed before merge).
+Status: DONE 2cdce6538 (landed 2026-11-17, CI green, 6/6 Android benches; was: IN PROGRESS (built on branch `app-fix/t766-t767`, 2026-11-17; reproduced in a core test; Android step bench owed before merge).)
 
 Source: `handoff/PLAN/audit-2026-11-16/code.md` (the main chat's audit, 2026-11-16). Area: app core (T750's code).
 
