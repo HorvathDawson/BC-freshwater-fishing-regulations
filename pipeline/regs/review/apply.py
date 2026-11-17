@@ -406,6 +406,13 @@ def run(domains: Optional[list[str]] = None, *, marks: Optional[Path] = None,
 NOT_LANDED_OK: dict[str, dict] = {
     "tidal|tidal:354151091|": {"date": "2026-11-09", "why": "T359: does a confirmed DEM point become a cut? (owner)"},
     "tidal|tidal:360848786|": {"date": "2026-11-09", "why": "T359: does a confirmed DEM point become a cut? (owner)"},
+    # T812 (owner 2026-11-16: "split babine lake on the line like our other split lakes"): the lake is two parts
+    # (added_lakes.geojson ids 24 / 25) and both Babine Lake places now name the parts; the marks name the whole lake
+    # (wbk:329026676, now a split parent). Re-mark each place on its parts once the atlas with the parts is built.
+    "dfo|6:babine-lake:including-tributaries|": {
+        "date": "2026-11-16", "why": "T812: the place names Babine Lake's parts (wbk:-24, wbk:-25); re-mark after the atlas rebuild"},
+    "dfo|6:babine-lake:babine-lake-excluding-tributaries~3|": {
+        "date": "2026-11-16", "why": "T812: the place names Babine Lake's parts (wbk:-24, wbk:-25); re-mark after the atlas rebuild"},
 }
 
 
