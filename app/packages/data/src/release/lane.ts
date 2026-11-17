@@ -151,6 +151,8 @@ export function createAheadLane(o: LaneOptions = {}): AheadLane {
       if (at >= 0) {
         waiting.splice(at, 1);
         start(it);
+        // (T767) a reader download like any other: the file ahead on the network gives way after `joinMs`
+        yieldSoon();
         return "started";
       }
       // aborted already, its end not yet in: it starts again then, as the reader's (`start` counts it)

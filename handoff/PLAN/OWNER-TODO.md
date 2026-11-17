@@ -2396,3 +2396,23 @@ More questions (recommended answer first):
 - 2026-11-17 13:15, owner, on T834's cards as built (Jewel, Kootenay, Peace, Lardeau): box head "Lead with 5
   (Recommended)" (box reads "Keep 5, brook trout up to 20 / brook trout count toward the 5; past 5, brook trout only",
   not "Keep 20 in all"); the other three cards "Yes, they read right".
+- 2026-11-17 ~13:49, owner (verbatim): "we shouldnt do another release until everything goes into it". Asked what
+  "everything" covers, picked T804 + T807, T825 side-channel gauges, T813 Schoolhouse Creek North, the trout table
+  switch (T810), and wrote: "everything that has been being worked on from salmon rules and table rework to trout table
+  rework to all bug fixes etc". Then: "maybe should bump to 0.8.0 too?". So NO data build or staging release until
+  all of that lands; the release goes out with the app as 0.8.0 (app chat's call on the bump mechanics).
+- 2026-11-17 ~13:52, owner: push notifications (T822 + T739) "After 0.8.0 (Recommended)". Everything else in flight
+  goes into 0.8.0.
+- 2026-11-17 14:55, owner (app chat, two Android screenshots of the 0.7.12 walkthrough, verbatim): "On the last release the
+  walk through is still a bit glitchy. First image is a screen shot I caught when scrolling and the box has a weird delay
+  tracking the box. It just feels unprofessional. The other one is how the keyboard covers vedder in the walk through.
+  The interactive walk through just isn't perfect. The Qp steps are good otherwise. But could reduce steps even more.
+  This is a user first look so we need to make sure it is clean and not buggy" -> T842 (both glitches fixed). 15:00
+  dialog: "6 steps (Recommended)" (search, open, open/closed, pick a day, how is the river, all set). Answered.
+  15:02: "Use industry standard ideas" / "Should be in 0.8" -> the standard coach-mark pattern (spotlight, anchored
+  card that flips, Skip always shown); in 0.8.0.
+- 2026-11-17 ~15:04, owner (15:00 batch, verbatim picks): T825 side-channel gauges "Yes, use the rule (Recommended)"
+  (nearest flow gauge on its own main river with a similar drainage, else none; 244 sections, lower Sumas none; the two
+  Creston channels read Corra Linn). T752 desktop split "Keep it (Recommended)". T789 G9 "one fly" (36 rules / 35
+  waters) and T801 item 4 confluence wording "Yes, ship both (Recommended)". T772 Kitsumkalum Lake side channels "Yes,
+  show me the list (Recommended)" (the 16 as was/now before anything lands).

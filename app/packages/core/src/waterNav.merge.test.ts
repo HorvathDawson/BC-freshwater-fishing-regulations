@@ -115,6 +115,18 @@ describe("the salmon key is the regulations' content (T228 follow-up)", () => {
     const f = salmonFacts([OPEN2, OPEN2, loud], chainOf, [CLOSED, OPEN2, OPEN4H, loud]);
     expect(pieces(f)).toEqual([[1, 2, 3, 4], [5, 6]]);
   });
+  // (T767 item 4) the feed's short text can leave the condition to the tree ("2 per day (Nov 7–30)", "hatchery-marked
+  // only" in `tree.says` alone): words alike, trees apart are different regulations. MUTATION: drop the tree's words from
+  // `salmonTimelineKey`'s verdict -> the three pieces join as one.
+  it("(T767) words alike, trees apart (hatchery-marked only in the tree alone) splits; trees alike join", () => {
+    const tree = (says: string) => ({ node: "tier", id: says, tier: "count", n: 2, says, by: 0, children: [] });
+    const any = { s: "open", t: "2 per day (Nov 7–30)", tree: tree("2 a day") };
+    const marked = { s: "open", t: "2 per day (Nov 7–30)", tree: tree("2 a day, hatchery-marked only") };
+    const v = [CLOSED, any, marked];
+    expect(pieces(salmonFacts([any, marked, any], chainOf, v))).toEqual([[1, 2], [3], [4], [5, 6]]);
+    const again = { ...any, tree: { ...tree("2 a day"), id: "another node, the same words" } };
+    expect(pieces(salmonFacts([any, again, any], chainOf, [CLOSED, any, again]))).toEqual([[1, 2, 3, 4], [5, 6]]);
+  });
   it("a feed change re-groups: the middle piece goes hatchery-only, then back", () => {
     expect(pieces(salmonFacts([OPEN2, OPEN4H, OPEN2], chainOf))).toEqual([[1, 2], [3], [4], [5, 6]]);
     expect(pieces(salmonFacts([OPEN2, OPEN2, OPEN2], chainOf))).toEqual([[1, 2, 3, 4], [5, 6]]);

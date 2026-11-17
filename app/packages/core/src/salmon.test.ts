@@ -553,6 +553,29 @@ describe("(T320, T332) the salmon bucket and each species' numbers — the game-
     expect([u.quota, u.quotaUnread]).toEqual([null, true]);
   });
 
+  // (T767 item 4) the feed's short text can drop the condition ("2 per day (Nov 7–30)" for Fraser coho, the "hatchery-
+  // marked only" in the tree's `says` alone). A page on two chains whose verdicts read alike but whose trees differ draws
+  // no quota line (no one reading), so DFO's words were the only line: the condition was said nowhere.
+  // MUTATION: drop `treeWords` from `notesOf` -> the says line is "4 per day (Jul 15–Aug 23)" alone.
+  it("(T767) verdicts alike in words, trees apart: each says its tree, so a condition only the tree carries is said", () => {
+    const P = PAYLOAD as never as { verdicts: object[]; chains: object[] };
+    const t = "4 per day (Jul 15–Aug 23)";
+    const verdicts = P.verdicts.map((v, i) => (i === 2 ? { ...v, t, tree: count(4, "4 a day") } : v));
+    verdicts.push({ s: "open", t, tree: count(4, "4 a day, hatchery-marked only",
+                                              [kind("hatchery-marked coho", 4, "4 a day, hatchery-marked only", true)]) });   // 7
+    const marked = { ...(P.chains[1] as object), sp: [[0, 1], [0, 3, 196, 7, 236, 3], [0, 4], [0, 4], [0, 5]] };
+    const f = decodeSalmon(encode({ ...PAYLOAD, verdicts, chains: [...P.chains, marked] }), HANDLES,
+                           [shard("6", [[100, 5, 1], [105, 2, 3]]), SHARDS[1]!]);
+    const table = salmonTable(salmonCard(f, { sids: [101, 105], item: null }, JUL20));
+    expect(table.species.find((r) => r.code === "CO")!.quota ?? null).toBeNull();          // two readings: no one line
+    expect(table.says.flatMap((s) => s.lines).filter((l) => l.startsWith(t)).map((l) => l.replace(/ /g, " ")))
+      .toEqual([`${t} · 4 a day`, `${t} · 4 a day, hatchery-marked only`]);
+    // one chain (one reading): the quota line says the tree, DFO's words are not repeated under it — as before
+    const one = salmonTable(salmonCard(f, { sids: [105], item: null }, JUL20));
+    expect([one.species.find((r) => r.code === "CO")!.quota, one.says.flatMap((s) => s.lines).filter((l) => l.startsWith(t))])
+      .toEqual(["4 a day, hatchery-marked only", []]);
+  });
+
   it("a wild allowance and a monthly quota are said; 'N of N unmarked' is marked or unmarked", () => {
     expect(co({ tree: count(2, "2 a day", [kind("coho", 2, "2 a day", true), kind("unmarked (wild) coho", 1, "up to 1 unmarked (wild), the rest hatchery-marked", false)]) }).quota)
       .toBe("2 a day · up to 1 unmarked (wild), the rest hatchery-marked");

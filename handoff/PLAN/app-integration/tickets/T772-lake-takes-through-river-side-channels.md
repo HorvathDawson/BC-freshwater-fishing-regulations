@@ -14,3 +14,5 @@ from the lake's tributary walk; the river's own side channels still come in as i
   left out together with its main line.
 - List every lake place this changes (binding diff, before and after) and attribute each; not only the Kitsumkalum.
 - A test on built data (anchors rule): a lake with a through-river that has side channels.
+
+2026-11-17 ~15:04, owner: see OWNER-TODO 15:04 (answer recorded verbatim there).

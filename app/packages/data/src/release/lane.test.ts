@@ -80,6 +80,17 @@ describe("(T737) the ahead lane", () => {
     expect(lane.promote("nope")).toBeNull();
   });
 
+  it("(T767) a file promoted out of the lane is a reader download: the file ahead on the network gives way", async () => {
+    const w = works();
+    const lane = createAheadLane({ graceMs: 1000, joinMs: 10 });
+    void lane.ahead("core", w.work("core"));
+    void lane.ahead("lines", w.work("lines"));
+    expect(lane.promote("lines")).toBe("started");
+    await wait(50);
+    expect(w.log).toEqual(["core", "lines!", "core✗"]);
+    expect(lane.state()).toMatchObject({ running: null, waiting: ["core"], readers: 1, aborted: 1 });
+  });
+
   it("nothing ahead starts while the reader downloads, nor in the grace after", async () => {
     const w = works();
     const lane = createAheadLane({ graceMs: 20, joinMs: 0 });

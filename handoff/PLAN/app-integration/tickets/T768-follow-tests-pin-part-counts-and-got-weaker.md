@@ -1,6 +1,6 @@
 # T768 — App follow tests pin part counts and names by hand, and three got weaker on 2026-11-16
 
-Status: OPEN (filed 2026-11-16 by the app chat from the general audit; the app chat's own commit 39918037e).
+Status: IN PROGRESS (built on branch app-fix/t765-t768; not merged; the made-up-part-end proof is NOT met, see below) (filed 2026-11-16 by the app chat from the general audit; the app chat's own commit 39918037e).
 
 Source: `handoff/PLAN/audit-2026-11-16/guards.md` and `code.md`. Area: app tests.
 
@@ -52,3 +52,22 @@ fail when their subject is wrong (a mutation each).
   `core/src/waterNav.test.ts`.
 - The proof asked for under "Done when": a made-up extra part end on a fixture water fails exactly one file.
 - Fix item 3 (the tests that never run where they should).
+
+## Built (branch app-fix/t765-t768)
+- The older typed counts ("of 5" Chilliwack, "of 2" Vedder, "of 3" Coquitlam / Kootenay Lake) are gone from
+  `ui/src/waterMap.test.ts`, `ui-native` `WaterMapView.test.tsx`, `StepInPlace.shell.test.tsx`, `WaterMode.test.tsx`,
+  `apps/mobile/src/back.test.tsx` and `core/src/waterNav.test.ts`: counts, "Part k of N" and part names come from the
+  water's group (`loadWaterGroup`, `partWhere`, `partName`, `partRowAria`). Left typed on purpose: `waterMap.start.test.ts`
+  and the `waterNav.test.ts` row tables (made-up rivers / local copies, self-consistent), tool tests quoting strings.
+- Proof attempt (a made-up end spliced into the Chilliwack's rows, temporary, reverted): it failed MANY files, not one
+  (the fixture pin, `waterMap.test.ts` (marks and per-part lists still typed), `WaterMapView`, `WaterMode`,
+  `WaterMapSplit`, `WaterMapFraming`, `TapCue`, `NavRail`, `MapDay`, `Spots`, `surfaces`, `water-frame-*`,
+  `stretch-names`; the mutation also broke the ends table, so some are artefacts). So the "exactly one file" acceptance
+  is NOT met: the remaining typed marks / part lists in those files are still to do (a follow-up).
+- Item 3 (measured on r-46e4355a7277): `tools/stretch-names.test.ts` + `conformance/src/regs/salmonLazy.release.test.ts`
+  together 7 s; they read only the release dir (plus the committed `fixtures/dfo-feed-2026-11-13.json`), no curated or
+  bundle. Both ALREADY follow the release: `pipeline/release_follows.py` finds them by rule (`liveReleaseAt` /
+  `liveRelease`) and `python -m pipeline.release_follows` lists them; they cannot run on the CI host (no release there),
+  by design. No change needed. `release-perf.test.ts` reads the BUNDLE (a data/generated read), so it stays out of the
+  guaranteed run; it now says `NOT RUN: RELEASE_DIR is set but BUNDLE is not` in its test name and on the console
+  instead of silently skipping 14 tests.

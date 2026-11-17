@@ -153,6 +153,11 @@ CASES: Tuple[Case, ...] = (
     _s("bruer-jul15", "Bruer Creek", "gnis:10061", 356570610, 0, (7, 15), "a loose row inside the table (t670 K4/K5)"),
     _s("mat-jul15", "Mat Creek", "gnis:14254", 356559564, 0, (7, 15), "a loose row inside the table"),
     _s("burnt-jan15", "Burnt River", "gnis:10657", 359004052, 0, (1, 15), "a mixed trout and kokanee row split"),
+    _s("nahwitti-jul15", "Nahwitti River", "gnis:29435", 354154451, 0, (7, 15),
+       "Region 1 base only: z1 trout_quota.r7 'Release all char' is a row with no pool (EB/DV/LT, no group, no "
+       "parent) beside the trout keep pool (r1: trout and char except char, 4); the char land in the Release box "
+       "with covers (0,1), drawn exactly once, never alone under other fish (owner, staging r-46e4355a7277 key 106; "
+       "the shape is 513 keys on 289 waters)"),
     _l("nitinat-jul15", "Nitinat Lake", "wbk:329504244", (7, 15), "tidal: no table (null)"),
 )
 

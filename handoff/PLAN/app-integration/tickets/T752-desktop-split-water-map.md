@@ -1,6 +1,6 @@
 # T752 — Desktop: the water's Map tab as a split (map on one side, the part's text on the other)
 
-Status: IN PROGRESS (proposal: pictures to the owner)
+Status: DONE d3c7376a0 (owner 2026-11-17 15:04 after the desktop shots: "Keep it (Recommended)"; was: IN PROGRESS (proposal: pictures to the owner))
 
 Source: owner 2026-11-15, staging website, desktop, a water's page, Map tab (Fraser River, part 4 of 19), verbatim:
 "on desktop the section navigator should maybe be map on one side and text on other (split column?) thoughts?"
@@ -49,3 +49,5 @@ map on the right). Reason: it is the common pattern for a detail panel beside a 
 map and listing sites do), and reading starts at the left with the part's name and steps. Defaults also chosen by the
 main chat, his to change: starts at the existing 900 px breakpoint on every platform, so app tablets get it too; phone
 unchanged. Build lane started in a worktree; lands after Play build 33 is uploaded (app/ pushes are held until then).
+
+2026-11-17 ~15:04, owner: see OWNER-TODO 15:04 (answer recorded verbatim there).
