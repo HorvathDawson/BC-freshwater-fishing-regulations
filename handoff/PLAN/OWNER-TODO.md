@@ -2337,3 +2337,6 @@ More questions (recommended answer first):
   to each regional office for how to tinterpret in future". Done: GOTCHAS "The exact words, by regional office": per
   office (1, 3, 4, 5/6, 6, 7A) the region's rule and each water's row as printed, printed page numbers, what the app
   does and the other reading; closures (A) and quotas (B). Thompson/T834 page cites corrected to printed pages.
+- 2026-11-17 ~11:15, in the APP chat: "the photo viewer could also use a little improvement to make it industry
+  standard". Picked all four at 11:17: swipe down to close, tap to hide the buttons, counter + smooth motion, opens from
+  its thumbnail. Filed T836; built after T819 lands, with pictures and clips.
