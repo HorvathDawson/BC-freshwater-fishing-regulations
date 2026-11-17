@@ -2171,3 +2171,8 @@ More questions (recommended answer first):
 - Before 21:41 (the app chat said ~21:45), typed in the APP chat (relayed verbatim): "in the tutorial it says on first slide each step rings what to
   tap (should say something like highlight instead? the tutorial is really glitchy too with keyboard and the
   highlighting following the items with a delay etc etc". The app chat files it (its next reserved number).
+- Shortly before 21:48, typed in the APP chat (relayed verbatim): "also the condition panel is very glitchy on apple. it
+  doesnt show the info the same as android the mao doesnt have gauge markers the current conditions view doesnt show
+  the bar and when i click on chehalis it doesnt show conditions for it? also the highlights dont let go when you go
+  back the highlight of where you clicked stays and doesnt disspear". Filed by the app chat (its own number). If the
+  Chehalis showing no conditions is data (no gauge match), it sends me the section ids.
