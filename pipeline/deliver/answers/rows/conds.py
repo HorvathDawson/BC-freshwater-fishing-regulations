@@ -6,6 +6,7 @@ import json
 from typing import Dict, List, Optional, Sequence, Tuple
 from pipeline.deliver.answers.common import AnswersError
 from pipeline.deliver.bundle import read
+from pipeline.common import entry_id as EID
 from pipeline.deliver.answers.rows.rule import INF, R, _bands, _covers, _ge, _js, _keep_range, _keepish
 from pipeline.deliver.answers.rows.evaluate import main_res
 
@@ -116,6 +117,47 @@ def raises(P: "Part") -> List[Raised]:
                 continue
             found.setdefault((c.key, L.key), [c, L, M, []])[3].append(("ST", o))
     return [raised(c, L, lifted, M) for c, L, M, lifted in found.values()]
+
+
+def pools(P: "Part") -> List[Raised]:
+    """T834 (owner 2026-11-17 11:06 "Strict everywhere", RULINGS T17; `bundle.rules.lifts.OWN_QUOTA_ABOVE_A_CAP_RAISES_IT`):
+    A WATER'S OWN DAILY QUOTA ABOVE A REGION CAP RAISES THAT CAP. A region cap C — its trout/char total, or its "from
+    streams" share (a count, no size band) — that the reader says a water's own daily quota N LIFTED for that quota's
+    fish here is raised, as F17 raises a size clause, to N over every fish C holds (the lifted ones included); two such
+    quotas of one water: the larger. C itself stays for the fish no lift took out. Lardeau River (rainbow 5 above "2
+    from streams"): 5 from the river in all, bull trout and the other trout 2 at most; Kootenay Lake main body (rainbow
+    10 above "Trout/char: 5"): 10 in all, the other kinds 5 at most. The tally's key is that quota's (its number is the
+    tally's); one per (cap, lifting water). A lift by a number no larger than C (none in the corpus since T834) raises
+    C to C: the fish counts inside C again. None where the flag is off."""
+    from pipeline.deliver.bundle.rules.lifts import OWN_QUOTA_ABOVE_A_CAP_RAISES_IT
+    if not OWN_QUOTA_ABOVE_A_CAP_RAISES_IT:
+        return []
+    out: List[Raised] = []
+    for c in P.cands:
+        if c.k not in ("pool", "subcap") or c.type != "retention_limit" or not EID.is_zone(c.entry_id) \
+                or c.x.get("lengths") or not isinstance(c.f.get("take"), (int, float)) or c.f["take"] <= 0:
+            continue
+        by_entry: Dict[str, Dict[str, list]] = {}
+        for S, byo in sorted(P.ladder.items()):
+            for o, v in sorted((byo or {}).items()):
+                got = (v or {}).get(c.key)
+                if not got or got[0] != "lifted" or len(got) < 4 or got[3] not in P.by_key:
+                    continue
+                L = P.by_key[got[3]]
+                if not EID.is_water_row(L.entry_id) or L.k != "pool" or L.type != "retention_limit":
+                    continue
+                by_entry.setdefault(L.entry_id, {}).setdefault(L.key, []).append((S, o))
+        for _eid, lifters in sorted(by_entry.items()):
+            # only while the lifting quota is in force here for a fish it lifted (the Duncan's rainbow 5 on Jan 15 is
+            # under the winter release: it raises nothing)
+            Ls = [P.by_key[k] for k in sorted(lifters)
+                  if any(((P.ladder.get(S) or {}).get(o) or {}).get(k, [None])[0] == "speaks" for S, o in lifters[k])]
+            if not Ls:
+                continue
+            L = max(Ls, key=lambda r: (INF if r.f.get("unlimited") else (r.f.get("take") or 0), r.key))
+            n = None if L.f.get("unlimited") else max(c.f["take"], L.f.get("take") or 0)
+            out.append(raised(c, L, [so for r in Ls for so in lifters[r.key]], n))
+    return out
 
 
 def _raise_of(P: "Part", c: R) -> List[Raised]:

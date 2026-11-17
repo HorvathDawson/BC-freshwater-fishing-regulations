@@ -1,6 +1,6 @@
 # T825 — 251 side-channel sections are led by a gauge far upstream (lower Fraser side channels read Red Pass)
 
-Status: IN REVIEW (list built 2026-11-17 on lane/t813-t825; owner: OWNER-TODO "T825 side-channel gauges"; no gauge data changed).
+Status: IN PROGRESS (owner 15:04 picked the rule; being built on lane/t813-t825).
 
 Source: the T823 worker's distribution over the live bundle: 251 led sections are 10× or more BIGGER than their lead
 gauge, almost all side channels. Main case: lower Fraser side channels led by 08KA007 (Fraser at Red Pass), 750 to
@@ -26,3 +26,5 @@ representativeness is policy).
 - Owner page: scratchpad t813-t825/T825-side-channel-gauges.html; data t825_final.json beside it (scripts t825*.py).
 - Next, after his answer: implement in the shed (a side channel sized by its main channel, not its line magnitude),
   rebuild the bundle, diff `section_gauge` against this list, promote nothing in `gauges/matches.json` (not touched).
+
+2026-11-17 ~15:04, owner: see OWNER-TODO 15:04 (answer recorded verbatim there).
