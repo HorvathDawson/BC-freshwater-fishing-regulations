@@ -467,3 +467,91 @@ describe("T517: one part per connected run, a salmon-cut run joined on the map",
       "Mouth → Tanswanket Creek confluence", "Tanswanket Creek confluence → Anahim Lake", "Anahim Lake → Source"]);
   });
 });
+
+/*
+ * (T766) ▲ / ▼ OVER A LIVE-JOINED LINE. The live salmon reads parts 1, 3 and 4 of a water alike and they join, while the
+ * side channel (part 2) between them does not: the entries were [0], [1+3+4], [2]. The joined entry holds the top part,
+ * so it holds the step into the water above (`water_continue`) — and it stood in the middle of the line, where ▲ stepped
+ * on to the side channel and the cross was never offered. The line's ends stay its ends: the entry holding the top part
+ * goes last (`mergeNav`), and ▲ past the last entry / ▼ past the first is the cross (`crossUp` / `crossDown`).
+ * MUTATION: drop the move of the top part's entry in `mergeNav` -> the made-up case's ▲ ends on the side channel, which
+ * crosses from the wrong entry (`[g.prev.at]` 1, not 2), and the property's "top part's entry is last" fails.
+ * MUTATION: make `crossUp` need `prev.at === at` again -> a mouth entry that also holds the top part (the whole main stem
+ * joined, a side channel apart) never crosses up: the property fails.
+ */
+describe("(T766) ▲ / ▼ after a live salmon join: every entry once each way, the crossings at the ends", () => {
+  const ENDS: EndsTable = { mouth: ["Mouth"], a: ["A"], b: ["B"], c: ["C"], source: ["Source"] };
+  const piece = (n: number, lo: string | null, hi: string | null, more: object = {}) =>
+    ({ partIx: n, label: `part ${n}`, lo, hi, grp: 0, run: 0, ...more });
+  const BELOW = { ord: 9001, part: 0, otherPart: 2, item: "gnis:below", name: "Below River" };
+  const ABOVE = { ord: 9002, part: 4, otherPart: 0, item: "gnis:above", name: "Above River" };
+  const SIDE: ItemNavRows = {
+    ord: 9000, item: "gnis:side", name: "Side River", kind: "stream", tidal: [],
+    parts: [piece(0, "mouth", "a"), piece(1, "a", "b"), piece(2, null, null, { side: true }), piece(3, "b", "c"),
+            piece(4, "c", "source")],
+    geo: [0, 1, 2, 3, 4].map((k) => ({ partIx: k, box: [k, 0, k + 1, 1] as const, mid: [k + 0.5, 0.5] as const })),
+    marks: [mark(1e6, 5e5, "a", 0, [1]), mark(2e6, 5e5, "b", 1, [2, 3]), mark(2e6, 5e5, "b", 2, [3]),
+            mark(4e6, 5e5, "c", 3, [4])],
+    sections: secs({ 0: [1], 1: [2], 2: [3], 3: [4], 4: [5] }),
+    exit: null, continuesAs: BELOW, continuesFrom: ABOVE,
+  };
+  /** ▲ from the lowest entry to the end, and what the end offers; ▼ from there back, and what the bottom offers. */
+  const walk = (g: ReturnType<typeof waterGroup>) => {
+    const up: number[] = [0];
+    for (let at = stepUp(g, 0); at !== null; at = stepUp(g, at)) up.push(at);
+    const down: number[] = [up[up.length - 1]!];
+    for (let at = stepDown(g, down[0]!); at !== null; at = stepDown(g, at)) down.push(at);
+    return { up, down, top: crossUp(g, up[up.length - 1]!)?.item ?? "Highest part",
+             bottom: crossDown(g, down[down.length - 1]!)?.item ?? "Lowest part",
+             // no entry but the line's two ends crosses
+             inner: g.parts.some((_, i) => (i > 0 && crossDown(g, i) !== null) || (i < g.parts.length - 1 && crossUp(g, i) !== null)) };
+  };
+
+  it("parts 1, 3 and 4 joined, the side channel not: ▲ walks [0], the side channel, [1+3+4], then crosses up", () => {
+    const g = mergeNav(waterGroup([SIDE], ENDS), (sid) => (sid === 1 ? "mouth" : sid === 3 ? "side" : "main"));
+    expect(g.parts.map((p) => p.pieces)).toEqual([[0], [2], [1, 3, 4]]);
+    expect(walk(g)).toEqual({ up: [0, 1, 2], down: [2, 1, 0], top: "gnis:above", bottom: "gnis:below", inner: false });
+    expect([g.next?.at, g.prev?.at]).toEqual([0, 2]);                 // each junction on the entry that holds it
+  });
+
+  /** Every way to cut `n` parts into keys, each set partition once (restricted growth strings). */
+  function* patterns(n: number, at: readonly number[] = []): Generator<readonly number[]> {
+    if (at.length === n) { yield at; return; }
+    const next = at.length ? Math.max(...at) + 1 : 0;
+    for (let k = 0; k <= next; k += 1) yield* patterns(n, [...at, k]);
+  }
+  /** One run of one rule set, so the live salmon alone decides what joins; going on as / from another water as asked. */
+  const oneRun = (r: ItemNavRows, below: boolean, above: boolean): ItemNavRows => {
+    const ixs = r.parts.map((p) => p.partIx);
+    return { ...r, parts: r.parts.map((p) => ({ ...p, grp: 0, run: 0 })),
+             continuesAs: below ? { ...BELOW, part: Math.min(...ixs) } : null,
+             continuesFrom: above ? { ...ABOVE, part: Math.max(...ixs) } : null };
+  };
+  const WATERS: readonly (readonly [string, readonly ItemNavRows[]])[] = [
+    ["Side", [SIDE]], ["Chilliwack", [CHILLIWACK]], ["Vedder", [VEDDER]], ["Cowichan", [COWICHAN]], ["Zymoetz", [ZYMOETZ]],
+    ["Fraser up", [FRASER_UP]], ["Fraser Lillooet", [FRASER_LILLOOET]], ["Kootenay Lake", [KL_MAIN, KL_UPPER, KL_LOWER]]];
+
+  it("every fixture water, every join pattern, going on as / from another water or not: ▲ walks every entry once to the cross or 'Highest part', ▼ walks it back", () => {
+    let seen = 0;
+    for (const [name, rows] of WATERS) {
+      const one = rows.length === 1;
+      for (const below of one ? [false, true] : [false]) for (const above of one ? [false, true] : [false]) {
+        const base = waterGroup(one ? [oneRun(rows[0]!, below, above)] : rows, ENDS);
+        for (const p of patterns(base.parts.length)) {
+          const keyOf = new Map(base.parts.flatMap((q, i) => q.sids.map((s) => [s, `k${p[i]}`] as const)));
+          const g = mergeNav(base, (sid) => keyOf.get(sid)!);
+          const w = walk(g), m = g.parts.length, label = `${name} ${below ? "↓" : ""}${above ? "↑" : ""} [${p.join("")}]`;
+          expect({ up: [...w.up].sort((a, b) => a - b), down: w.down, top: w.top, bottom: w.bottom, inner: w.inner }, label)
+            .toEqual({ up: Array.from({ length: m }, (_, i) => i), down: [...w.up].reverse(),
+                       top: above ? "gnis:above" : "Highest part", bottom: below ? "gnis:below" : "Lowest part", inner: false });
+          // the top part's entry is the last wherever the line allows (it is not the mouth's too): the cross stands on
+          // the entry that holds the junction
+          const last = base.parts[base.parts.length - 1]!, topAt = partAt(g, last.item, last.partIx);
+          expect(topAt === m - 1 || topAt === 0, `${label}: the top part's entry ${topAt} of ${m}`).toBe(true);
+          seen += 1;
+        }
+      }
+    }
+    expect(seen).toBeGreaterThan(1000);
+  });
+});

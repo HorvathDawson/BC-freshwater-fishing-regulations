@@ -20,7 +20,7 @@ import { createBackgroundPrefetch, othersAhead, prefetchPlan, readerDownloading,
 import type { ItemId, NetActivity } from "@app/data";
 import { waterRegionsOf } from "./regs";
 import type { ReleaseLoader } from "@app/data/release";
-import type { UpdateEvent } from "@app/core";
+import { reportFailure, type UpdateEvent } from "@app/core";
 
 interface Connection {
   saveData?: boolean; effectiveType?: string; type?: string;
@@ -207,7 +207,8 @@ export function useBackgroundPrefetch(loader: ReleaseLoader | null,
  * (T737, 2026-11-15) THE OPEN WATER'S OTHER REGIONS FIRST IN THE BACKGROUND TIER (`BackgroundPrefetch.want`): a Fraser
  * part in Region 2 opens a page whose other parts are in 3, 5 and 7A (`waterRegionsOf`); their regs files come next,
  * behind what the reader is downloading — the page reads only its own part's. No water open (or none known): none.
- * A failed read is the page's too (the same store reads, which say it); here only the order is lost.
+ * A failed read is the page's too (the same store reads, which say it); here only the order is lost, and (T767, no silent
+ * fallbacks) the failure is reported (`reportFailure`: an offline line is the environment's, never reported).
  */
 export function useWaterRegionsAhead(scheduler: Pick<BackgroundPrefetch, "want"> | null,
                                      loader: Parameters<typeof waterRegionsOf>[0] | null, item: ItemId | null,
@@ -217,7 +218,7 @@ export function useWaterRegionsAhead(scheduler: Pick<BackgroundPrefetch, "want">
     if (!scheduler) return;
     if (!item || !loader) { scheduler.want([]); return; }
     let live = true;
-    void regionsOf(loader, item).then((rs) => { if (live) scheduler.want(rs); }, () => { /* the page's reads say it */ });
+    void regionsOf(loader, item).then((rs) => { if (live) scheduler.want(rs); }, (e: unknown) => reportFailure(e));
     return () => { live = false; };
   }, [scheduler, loader, item, regionsOf]);
 }
