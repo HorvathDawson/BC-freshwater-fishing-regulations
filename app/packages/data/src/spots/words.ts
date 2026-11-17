@@ -434,14 +434,18 @@ function conditionWord(spot: Spot): string {
   if (isBackdated(spot) && !readingIsTheDays(spot)) {
     const df = spot.dayFlow;
     if (df?.state === "filled")
-      return df.percentile === null ? `${figure(df.discharge)} ${UNIT.discharge}` : bandWord(standing(df.percentile));
+      return rankedWord(df.percentile, `${figure(df.discharge)} ${UNIT.discharge}`);
     if (df?.state === "none") return ROW_WORDS.noFlowThatDay;
     return spot.reading?.station || df ? ROW_WORDS.notReadYet : ROW_WORDS.noGauge;
   }
   const g = spot.reading, f = spotReadingFigure(g);
   if (!g || !f) return ROW_WORDS.noGauge;
-  return g.percentile != null ? bandWord(standing(g.percentile)) : `${f.figure} ${f.unit}`;
+  return rankedWord(g.percentile, `${f.figure} ${f.unit}`);
 }
+
+/** A spot's own reading said in one word: its band where it was ranked, else its figure (a record, not a donor's state). */
+const rankedWord = (rank: number | null | undefined, bare: string): string =>
+  rank == null ? bare : bandWord(standing(rank));
 
 /** The list row's words for a spot with no ranked flow (T819 item 11). */
 const ROW_WORDS = { noGauge: "No gauge", noFlowThatDay: "No flow that day", notReadYet: "Flow that day not read yet" } as const;
