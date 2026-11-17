@@ -71,3 +71,5 @@ Data note sent to the main chat: the Nicomekl / Serpentine rule reaches 27 side 
 `merge/t797-powered-boats` with merge 3 landed in (cfe83b679): crash-bed PASS (1/1, 21:58Z run) and bg-install PASS
 (1/1, 22:01Z run) on the same `t797` APK (`--allow-stale`: only bench files and the dev mini-release changed since it
 was built). With the 12:28 runs, all six benches pass. Ready to land after the main chat's clear.
+
+2026-11-17 ~15:52, owner on item 2: "Show it (Recommended)": the dead-fin-fish-for-sturgeon allowance shows on sturgeon waters (the app reverses D18 a; the pipeline already computes also_allowed). OWNER-TODO 15:52.

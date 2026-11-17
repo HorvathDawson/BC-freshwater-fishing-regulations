@@ -2464,3 +2464,6 @@ More questions (recommended answer first):
 - 2026-11-17 ~15:50, owner, T810 G2 Q9 follow-up (Dodd/Windsor/Horseshoe/Nanton/Ireland, mockup q9b): "1: Badges + 'only 2
   wild in all' (Recommended)" (hatchery rows first, then the four wild rows under one white box "only 2 wild in all";
   filled HATCHERY / outlined WILD badges; no new data).
+- 2026-11-17 ~15:52, owner: the 0.8.0 new-words page (Skeena non-resident line in both boxes, Skeena River 2 stamp sentence
+  trimmed, Salmon Arm pier exemption on the Shuswap closure and bait ban; book p.53, p.32) "Yes, ship them
+  (Recommended)". T797 item 2 sturgeon dead-fin-fish bait line "Show it (Recommended)" (reverses the app's D18 a).
