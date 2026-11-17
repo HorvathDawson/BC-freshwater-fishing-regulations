@@ -2160,6 +2160,6 @@ More questions (recommended answer first):
   photo viewer ✕ under the status bar), T816 (clipped text: the "When were you there?" hour, the weather icons), T817
   (Harrison Lake: a water with only level data opens on Level with a line saying so; the gauge rule "Flow leads"
   refined, not broken). iPhone build 36 test (a–f) done; push test under way with the app chat.
-- About 21:33, typed in the APP chat (relayed verbatim): "the spots view also needs a lot of work to be cleaned up maybe
+- About 21:32, typed in the APP chat (relayed verbatim): "the spots view also needs a lot of work to be cleaned up maybe
   put a fresh agent on it?". The app chat's T819: a fresh Opus worker reviews the spots area and brings him pictures
   and a cleanup list to pick from before anything is built.
