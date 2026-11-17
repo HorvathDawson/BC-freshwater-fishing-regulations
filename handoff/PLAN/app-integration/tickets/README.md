@@ -303,6 +303,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T810 | Trout and char block as the new table, built from the Python pipeline to the screen (umbrella; spec written; steps 3 to 7 wait for the owner's go) | OPEN | — | owner 2026-11-16 15:18; `handoff/PLAN/design/trout-table-build-spec-2026-11-16.md` |
 | T811 | The owner's Squamish "downstream of the powerline crossing" tick reads "binding moved" (a side channel added to the shared water record; owner re-tick) | DONE | d647a301e | live orphan test; commit 7102afb9b |
 | T812 | Babine Lake: split on the Gullwing Creek line; creek-mouth closures drawn as circles, not lake sections | OPEN | — | owner 2026-11-16 |
+| T813 | An added stream that continues an FWA line past its mouth is minted at the top measure (Port Moody's Schoolhouse Creek North) | OPEN | — | cut-fixes lane 2026-11-16 |
 
 ## Next after closed testing
 
