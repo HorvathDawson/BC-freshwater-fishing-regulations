@@ -62,7 +62,7 @@ mine (heavy.sh default), 3 lent to the app chat for the twins' benches (second e
 optional; app version 0.7.12 by the app chat), the Babine saves (marks 2825-2836), Squamish re-tick (2837), Dean (2838),
 the plan files, all owner notes to now.
 
-**2. SALMON LANDING (owner 22:52 "Land it (Recommended)"; Kennedy note "Keep").** Ready: branch `land/salmon-1116` @
+**2. SALMON LANDING (owner 22:52 "Land it (Recommended)"; Kennedy note "Keep").** **00:45 11-17: app chat said go at 00:40; merged locally as ef5dfd6a1 (mini release re-cut, locations + feed run); full tier running (log scratchpad/tier-salmon.log). NEXT: if green, push, then SendMessage the app chat "pushed <hash>" (bc-freshwater-fishing-regulations-9c) so it merges app/salmon-twins-1116 + T759 on top. If red, fix or report; do not push red.** Ready: branch `land/salmon-1116` @
 c0fd201d6 (worktree `/private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/b8ddfca9-44eb-400e-a9bf-bd89b4b0f359/scratchpad/salmon-land-wt`): both salmon lanes merged on the dev head, rulings folded (lane D7 -> D8; lane
 D8/D9 -> dev's L26/L25; lane O7/O8 -> O9/O10), pack regenerated, tier 6,800 + 13 known worktree-env. WAITING for the
 app chat's "go" (twins' Android benches on lane 3, ~60-75 min from 23:05). Then: merge land/salmon-1116 into the main
