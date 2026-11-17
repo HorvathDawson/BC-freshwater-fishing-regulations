@@ -26,10 +26,11 @@ NOTE = "Mostly outside {area}: its closure ({pages}) does not apply here."
 
 def outside_listed(area_defs: Iterable[dict]) -> List[tuple]:
     """[(def id, area key `area:<kind>:<slug>`, slug, water ids)] of every `outside_items` list, in file order."""
+    from pipeline.common.registry_kinds import area_key
     out = []
     for ad in area_defs:
         for slug, items in (ad.get("outside_items") or {}).items():
-            out.append((ad["id"], f"area:{ad['id']}:{slug}", slug, list(items)))
+            out.append((ad["id"], area_key(f"{ad['id']}:{slug}"), slug, list(items)))
     return out
 
 
@@ -40,7 +41,7 @@ def tile_names(area_defs: Iterable[dict], layers: Path, wanted: Iterable[str]) -
     want = set(wanted)
     out: Dict[str, str] = {}
     for ad in area_defs:
-        if not any(k.startswith(f"area:{ad['id']}:") for k in want) or not ad.get("tile_layer"):
+        if not any(k.split(":")[1] == ad["id"] for k in want) or not ad.get("tile_layer"):
             continue
         with open(Path(layers) / f"{ad['tile_layer']}.geojsonl", encoding="utf-8") as fh:
             for line in fh:
