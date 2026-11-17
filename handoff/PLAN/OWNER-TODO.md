@@ -11,6 +11,13 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
+- **NEW 2026-11-17 (T825 side-channel gauges, part of 0.8.0): read the list, then yes / no to one rule.** Page:
+  scratchpad t813-t825/T825-side-channel-gauges.html (245 sections on 9 rivers, grouped by river, each with the gauge
+  it reads now and the one it would read). PROPOSED RULE: a side channel, slough or wide pool reads the nearest gauge
+  on its own main river that measures flow and drains about as much country (a tenth to ten times); if the river has
+  none, it reads none. 244 get a nearer gauge, 1 gets none (lower Sumas). Worth a look: 2 Kootenay channels near
+  Creston would read Corra Linn across Kootenay Lake. No gauge data changed yet.
+
 - **ANSWERED 2026-11-14 (production move changed).** Owner, verbatim: "Production will use the latest version" and "It
   will also get new dfo places I will label tonight". So production is NOT deployed from the 9048fbc20 copy below: it
   waits for tonight's DFO labels, then a new data release with them, then the website built from the latest checked

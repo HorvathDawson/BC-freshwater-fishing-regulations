@@ -303,7 +303,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T810 | Trout and char block as the new table, built from the Python pipeline to the screen (umbrella; spec written; steps 3 to 7 wait for the owner's go) | OPEN | — | owner 2026-11-16 15:18; `handoff/PLAN/design/trout-table-build-spec-2026-11-16.md` |
 | T811 | The owner's Squamish "downstream of the powerline crossing" tick reads "binding moved" (a side channel added to the shared water record; owner re-tick) | DONE | d647a301e | live orphan test; commit 7102afb9b |
 | T812 | Babine Lake: split on the Gullwing Creek line; creek-mouth closures drawn as circles, not lake sections | OPEN | — | owner 2026-11-16 |
-| T813 | An added stream that continues an FWA line past its mouth is minted at the top measure (Port Moody's Schoolhouse Creek North) | OPEN | — | cut-fixes lane 2026-11-16 |
+| T813 | An added stream that continues an FWA line past its mouth is minted at the top measure (Port Moody's Schoolhouse Creek North) | IN PROGRESS (lane/t813-t825; left (Claude): main chat merges) | 0435b445e | cut-fixes lane 2026-11-16 |
 | T814 | iOS: after closing and reopening mid-download, the fish spinner stops moving | DONE | 94773621a | owner iPhone build 36, 2026-11-16 |
 | T815 | iOS: the spots photo viewer's close ✕ sits under the status bar | DONE | f7b41c208 | owner iPhone build 36, 2026-11-16 |
 | T816 | iOS: text cut off (the hour on "When were you there?", the weather icons) | DONE | f7b41c208 | owner iPhone build 36, 2026-11-16 |
@@ -315,7 +315,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T824 | The walkthrough: "rings what to tap" wording; glitches with the keyboard and a lagging highlight | DONE | f7b41c208 | owner iPhone build 36, 2026-11-16 |
 | T826 | iOS: the Conditions panel and map differ from Android (no gauge markers, no bar, Chehalis empty); the tap highlight stays after going back | DONE | f7b41c208 | owner iPhone build 36, 2026-11-16 |
 | T823 | "Small next to its gauge": Python decides when a section's lead gauge reading needs a warning; the release ships it | IN PROGRESS (app half landed 2026-11-17 in land/app-1117; the pipeline half and the release that ships it are the main chat's) | f7b41c208 | owner 2026-11-16 (spots) |
-| T825 | 251 side-channel sections are led by a gauge far upstream (lower Fraser side channels read Red Pass) | OPEN | — | T823 measurement 2026-11-16 |
+| T825 | 251 side-channel sections are led by a gauge far upstream (lower Fraser side channels read Red Pass) | IN REVIEW (owner: OWNER-TODO "T825 side-channel gauges") | — | T823 measurement 2026-11-16 |
 | T827 | A fresh agent tries to break every salmon rule against DFO's own pages | OPEN | — | owner 2026-11-16 (future) |
 | T828 | Salmon card: DFO's rows as printed fold into "Source (DFO)" | OPEN | — | owner 2026-11-16 (app) |
 | T829 | Salmon species rows in the same look as the other fish table and the new trout table (formatting only) | OPEN | — | owner 2026-11-16 (app) |
