@@ -77,6 +77,13 @@ its `_reindex`), dfo_vectors --check with both in.
   landing; Babine line re-save (`PYTHONPATH=$PWD .venv/bin/python -I /private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/b8ddfca9-44eb-400e-a9bf-bd89b4b0f359/scratchpad/babine/save/save_line.py` then
   `apply closed_areas --no-commit`), re-mark the two DFO Babine places on the parts; then T807 / T804 lists; staging
   release (`--staging --dry-run --rehearse-follows` first; BEFORE/AFTER to the app chat).
+  **02:34 11-17: BACK.** land/rebuild-1116 @ bc542e4aa, release r-499c74d578b1 in scratch (card check 0, gates pass). Fixed
+  on the way: Babine east part named as a creek (renamed "East of the Gullwing Creek line"), Rainbow Alley cut ids,
+  answers_diff `--handles-a/-b`. Diffs: scratchpad/rebuild/answers-diff/{vs-live-r-46e4355a7277,vs-salmon-r-1603e71cc92c}.
+  Owner sees (OWNER-TODO 11-17 rebuild entry): Hazelwood's 4 ponds become creek (close Jan 1-Jun 15); Babine east part
+  closed all year (book p.50). Follow-up worker a86de8e705336ff07 on the same branch: Sheldens one item (stopgap
+  e8ffdf96d binds both), Gitnadoix powerline place back to the whole river (991 -> 1,000; creek 360742973 coho), then
+  ONE more rebuild + diffs. Merge to main only after that and after the owner has seen the list.
 - trout J back 00:05 11-17, merged locally as 02e51cfdc (mini release re-cut on merge); tier running, then push.
   01:53 11-17: worker done; lane/trout-vpy merged locally as 5d6ac8283 (6 keys fixed, proof 5,950/5,950, 0 problems; V-py:
   trout_vectors 53 cases, trout-hand 14, own trout fixture app/fixtures/trout/, scripts/trout-refresh.sh). Tier b806pz7n9

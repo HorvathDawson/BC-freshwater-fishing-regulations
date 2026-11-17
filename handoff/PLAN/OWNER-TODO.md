@@ -2261,3 +2261,15 @@ More questions (recommended answer first):
   says "Not part of the 2 from streams" there, which disagrees with the engine. Pick: **A** read Kaslo and Keen like
   the Lardeau (Dolly Varden on top of the 2; a small corpus edit plus a rebuild, and the table follows), or **B** keep
   them as written (2 in total; the old card's line is then the wrong one, and it goes when the trout table replaces it).
+- 2026-11-17 overnight, the main chat (pre-staging map rebuild; nothing from it has shipped): **yours (morning batch),
+  what changes on the map:**
+  1. **Babine Lake east of the Gullwing Creek line** is now its own part, closed all year to all fishing (book p.50
+     "No Fishing east of a line from Gullwing Creek"), including the Aug 1-27 sockeye opening. The main body is unchanged
+     apart from the Pinkut radius note. OK?
+  2. **Hazelwood Creek's 4 ponds** (named by your T796 save) now count as widenings of the creek, not lakes. They lose
+     the lake rules and take the creek's: they close Jan 1 to Jun 15 under the Skeena winter closure. OK, or keep them as
+     lakes? (A worker is checking how the FWA and the book treat them.)
+  3. Being fixed overnight before you see it: Sheldens Creek showed as two waters in search, and the Gitnadoix
+     "upstream of the powerline" place had lost 4 side channels and one creek (that creek's coho went closed); the place
+     is meant to be the whole river.
+  Full list of changed answers: shown to you in the morning, after the fix rebuild.
