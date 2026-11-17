@@ -1,6 +1,6 @@
 # T839 — Web on a desktop: the Map / Conditions / Spots / More bar moves to a left navigation rail
 
-Status: IN PROGRESS (built on branch app-fix/t839-desktop-rail; owner picked "Land it" 12:30)
+Status: DONE 6046669c2 (landed 2026-11-17, CI green 13:4x; owner picked "Land it" 12:30)
 
 Source: owner 2026-11-17 ~11:48, app chat (verbatim): "also desktop mode on webapp should maybe move the bottom
 map.conditions. spots, more bar somewhere more standard for desktop. maybe on side or top please choose the most

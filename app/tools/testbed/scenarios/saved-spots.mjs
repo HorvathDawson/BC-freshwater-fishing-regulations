@@ -140,7 +140,7 @@ export const savedSpots = {
     let editor = false;
     await ctx.step(`${ALERT_Q} → Conditions → the gauge card's "Alert me" → the editor`, async () => {
       await openWater(ctx, { q: ALERT_Q, row: ALERT_ROW, view: 'conditions' });
-      await ctx.until(() => ctx.hasId('conditions-day-label'), { ms: 30_000, what: 'the Conditions view (conditions-day-label)' });
+      await ctx.until(() => ctx.hasId('gauge-card'), { ms: 30_000, what: 'the Conditions view (gauge-card)' });
       const open = await scrollTo(d, 'resource-id="alert-me-open"', { ...PANE_BAND, bottom: 1500 });
       tap(d, open);
       await ctx.until(() => ctx.hasId('alert-form'), { ms: 8000, what: 'the alert editor (alert-form)' });
