@@ -2141,3 +2141,9 @@ More questions (recommended answer first):
   the main lake reads Region 6's rules; map rebuild; changed answers to him first). Eulachon (T770), picked: "As a
   closure line (Recommended)" (its own line that eulachon is closed all year in Region 6, apart from the gear and bait
   lines).
+- 20:01, two pictures (cut-fixes lane `lane/cuts-1116` a5990dd7b). Sheldens Creek (the SPUR 14 road bridge by the camp
+  site crosses the estuary channel ~260 m BELOW our FWA line's end at the top of the salt marsh; proposed: mouth =
+  tidal boundary, low confidence, whole creek above), picked: "Extend to the bridge" (draw the creek on down to the
+  road bridge and put the low-confidence tidal boundary there; needs an added stream piece). Morice, Gosnell Creek to
+  Lamprey Creek (mark 2739; END on the main channel at Lamprey's mouth; the earlier picture was a drawing-tool fault),
+  picked: "Right (Recommended)".
