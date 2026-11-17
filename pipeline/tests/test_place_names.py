@@ -23,7 +23,9 @@ REG = {
         _b("cnr1", "CNR bridge"), _b("cnr2", "CNR bridge"),
         _b("comox_lake", "Comox Lake", "lake"),
         _b("m_u100", "Morrison Creek → Puntledge River (100 m upstream)", "confluence"),
-        _b("m_d100", "Morrison Creek → Puntledge River (100 m downstream)", "confluence"))),
+        _b("m_d100", "Morrison Creek → Puntledge River (100 m downstream)", "confluence"),
+        _b("z_u1500", "Zymoetz River → Skeena River (1500 m upstream)", "confluence"),
+        _b("h_d5000", "Halfway River → Peace River (5000 m downstream)", "confluence"))),
     "wbk:-20": RegistryItem(id="wbk:-20", name="Kootenay Lake — Main Body", kind="lake",
                             section_ids=("k",)),
     "area:park:tweedsmuir": RegistryItem(id="area:park:tweedsmuir", name="TWEEDSMUIR PARK",
@@ -74,7 +76,19 @@ def test_a_confluence_keeps_its_offset():
     assert N([{"op": "between", "splits": ["m_u100", "m_d100"]}], ("gnis:1",)) == (
         "from 100 m upstream to 100 m downstream of the Morrison Creek confluence")
     assert N([{"op": "upstream_of", "splits": ["m_d100"]}], ("gnis:1",)) == (
-        "upstream of the Morrison Creek confluence (100 m downstream)")
+        "upstream of 100 m downstream of the Morrison Creek confluence")
+
+
+def test_a_confluence_offset_is_said_as_the_book_prints_it():
+    """T801 item 4 (the Skeena's weekend zone (b)): the book prints "1.5 km upstream of Zymoetz River confluence"; the
+    cut's label said "the Zymoetz River confluence (1500 m upstream)". From 1,000 m in km; between two other places
+    the offset reads whole."""
+    assert N([{"op": "downstream_of", "splits": ["z_u1500"]}], ("gnis:1",)) == (
+        "downstream of 1.5 km upstream of the Zymoetz River confluence")
+    assert N([{"op": "between", "splits": ["cnr1", "z_u1500"]}], ("gnis:1",)) == (
+        "between CNR bridge and 1.5 km upstream of the Zymoetz River confluence")
+    assert N([{"op": "upstream_of", "splits": ["h_d5000"]}], ("gnis:1",)) == (
+        "upstream of 5 km downstream of the Halfway River confluence")
 
 
 SHORT = {"gnis:2": RegistryItem(id="gnis:2", name="Some River", kind="stream", section_ids=("b",),

@@ -451,6 +451,12 @@ def head_keep(n) -> str:
     return f"Keep {_n(n)} in all"
 
 
+def head_keep_except(n, fish: str, most) -> str:
+    """T834 (owner 13:15, "lead with 5"): a box whose region cap a water's own quota raised leads with the region's
+    number and names the exception: "Keep 5, brook trout up to 20" — never "Keep 20 in all"."""
+    return f"Keep {_n(n)}, {fish} up to {_n(most)}"
+
+
 def tag_of(whose: str) -> str:
     """A water's own rule's tier ("This lake’s rule") -> the box's tag ("Lake’s rule")."""
     m = re.fullmatch(r"This (\w+)’s rule", whose or "")
@@ -738,7 +744,18 @@ def parse_head(text: str) -> Tuple[str, Optional[float]]:
     m = re.fullmatch(rf"Keep {_NUM} in all", text)
     if m:
         return "keep", _num(m[1])
+    got = parse_head_except(text)
+    if got is not None:
+        return "keep", got[2]
     raise WordsError(f"trout words: cannot read the box head {text!r}")
+
+
+def parse_head_except(text: str) -> Optional[Tuple[float, Tuple[str, ...], float]]:
+    """"Keep 5, brook trout up to 20" -> (5, the excepted fish, 20); None for any other head."""
+    m = re.fullmatch(rf"Keep {_NUM}, (.+) up to {_NUM}", text or "")
+    if not m:
+        return None
+    return _num(m[1]), parse_fish(m[2]), _num(m[3])
 
 
 def parse_strip_size(text: str) -> Tuple[float, float, Optional[float]]:

@@ -260,7 +260,12 @@ export function mergeNav(g: WaterGroup, salmonKey: ((sid: number) => string) | n
     const r = find(i);
     if (r === i) { newIx.set(i, groups.length); groups.push([i]); } else groups[newIx.get(r)!]!.push(i);
   }
-  for (let i = 0; i < n; i += 1) newIx.set(i, newIx.get(find(i))!);
+  // (T766) THE LINE'S ENDS STAY ITS ENDS: entries go by their lowest piece (the mouth's first), but the entry holding the
+  // top part goes last — a join around a piece that does not join (parts 1, 3, 4 alike, side channel 2 not) put it in
+  // the middle, where ▲ stepped on past it and the step into the water above (`prev`) was never offered
+  const top = groups.findIndex((gr) => gr.includes(n - 1));
+  if (top > 0) groups.push(...groups.splice(top, 1));
+  groups.forEach((gr, k) => { for (const i of gr) newIx.set(i, k); });
   const parts: NavPart[] = groups.map((gr) => {
     const p = g.parts[gr[0]!]!;
     if (gr.length === 1) return p;
@@ -344,9 +349,15 @@ export function soloWater(g: WaterGroup): boolean {
   return g.parts.length === 1 && g.next === null && g.prev === null;
 }
 
-/** ▲ off the top of this water into the one it goes on from: only on the part that meets it, with nothing above. */
+/**
+ * ▲ off the top of this water into the one it goes on from: on the last entry of the line, with nothing above. That is
+ * the entry holding the part that meets it (`waterGroup` puts that part last; `mergeNav` keeps its entry last), except
+ * where the live salmon joins the top part with the mouth's and a piece that does not join stands apart (the whole main
+ * stem one entry, a side channel another): the joined entry is the mouth's, first, and (T766) ▲ past the last entry is
+ * still the cross — never a step into the next water that no ▲ reaches.
+ */
 export function crossUp(g: WaterGroup, at: number): NavCross | null {
-  return g.prev && g.prev.at === at && stepUp(g, at) === null ? g.prev : null;
+  return g.prev && at === g.parts.length - 1 ? g.prev : null;
 }
 
 /** Whether more than one part of `item` is in the group (then a part is named by its short name). */

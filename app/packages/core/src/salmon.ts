@@ -834,9 +834,19 @@ export function salmonBlock(f: SalmonFacts, chains: readonly number[], day: numb
     return g >= 0 ? P.gears[g] ?? [] : [];
   }))];
   const closures = closuresOf(P, chains, day);
-  const notesOf = (ixs: readonly number[]) => [...new Set(ixs.map((ix) => {
+  // (T767 item 4) the feed's short text may leave the condition to the tree ("2 per day (Nov 7–30)", "hatchery-marked
+  // only" in `tree.says` alone): where the row draws no quota line (`treeWords`: its verdicts' trees differ), each open
+  // verdict says its tree's words beside DFO's, so no condition is said nowhere
+  const treeWordsOf = (v: Verdict): string | null => {
+    const runs = v.s === "open" ? quotaLine(v) : null;
+    const w = runs ? lineText(runs) : "";
+    return w && !v.t.toLowerCase().includes(w.toLowerCase()) ? w : null;
+  };
+  const notesOf = (ixs: readonly number[], treeWords = false) => [...new Set(ixs.map((ix) => {
     const v = verdictOf(ix);
-    return v.n && !v.t.includes(v.n) ? `${v.t} · ${v.n}` : v.t;
+    const w = treeWords ? treeWordsOf(v) : null;
+    const t = w ? `${v.t} · ${w}` : v.t;
+    return v.n && !v.t.includes(v.n) ? `${t} · ${v.n}` : t;
   }))];
   // (T502) the notes the rows already say: a closed row's "not opened by DFO" (`d`, the pipeline's NOT_LISTED) and an
   // open row's verdict words whose numbers its quota line reads (`read`: every species' quota a tree, nothing unread),
@@ -875,7 +885,7 @@ export function salmonBlock(f: SalmonFacts, chains: readonly number[], day: numb
     const quota = Object.fromEntries(g.sp.map((sp) => [sp, quotaOf(SALMON_SPECIES.indexOf(sp))]));
     return { key, species: g.sp, label: cap(g.sp.map((s) => SPECIES_NAME[s]).join(" · ")), status: st,
              statusLabel: SALMON_WORDS.status[st],
-             notes: st === "varies" ? [SALMON_WORDS.varies] : notesOf(g.ixs), quota,
+             notes: st === "varies" ? [SALMON_WORDS.varies] : notesOf(g.ixs, g.sp.some((sp) => quota[sp] === null)), quota,
              ...(st === "varies" ? {} : repeatsOf(g.ixs, g.sp.every((sp) => !!quota[sp]?.tree && !quota[sp]?.u))) };
   });
   return { allClosed: false, gear, closures, rows };
@@ -1287,7 +1297,8 @@ const normRule = (t: string) => t.toLowerCase().replace(/\s+/g, " ").trim();
  * (T227 / T228, the map's section merging) A section's SALMON KEY: equal for two sections exactly when DFO's REGULATIONS
  * read the same on both, every day of the year — per species the verdict AND its rule content (the limit, sizes,
  * hatchery-marked or wild, the gear and method conditions and the windows: the rule lines `t` and notices `n` DFO
- * prints, normalised for case and spacing), the gear lines, the map status (partial coverage included). Resolved to
+ * prints, normalised for case and spacing, and (T767) the quota tree's words, which can carry a condition `t` leaves out),
+ * the gear lines, the map status (partial coverage included). Resolved to
  * CONTENT, never to the file's indexes, so "coho 2 a day" and "coho 4 a day, hatchery-marked only" differ though both
  * are open, and a live feed laid over the release (`withLiveSalmon`) compares the same way. Compare it beside the
  * provincial key; never show it.
@@ -1299,7 +1310,11 @@ export function salmonTimelineKey(f: SalmonFacts, sid: number): string {
   const runs = <T>(r: readonly number[], of: (i: number) => T) => r.map((x, k) => (k % 2 ? of(x) : x));
   const verdict = (i: number) => {
     const v = P.verdicts[i];
-    return v ? [v.s, normRule(v.t), v.n ? normRule(v.n) : null] : null;
+    if (!v) return null;
+    // (T767 item 4) and the tree's words: the feed's short text can leave the condition to the tree ("hatchery-marked
+    // only" in `tree.says` alone), so words alike with trees apart are different regulations (the words, never node ids)
+    const tree = quotaLine(v);
+    return [v.s, normRule(v.t), v.n ? normRule(v.n) : null, tree ? normRule(lineText(tree)) : null];
   };
   const gear = (i: number) => (i < 0 ? null : (P.gears[i] ?? []).map(normRule));
   return JSON.stringify([c.sp.map((r) => runs(r, verdict)), runs(c.g, gear), c.m]);

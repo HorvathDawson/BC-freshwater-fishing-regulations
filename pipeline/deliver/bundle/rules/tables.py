@@ -9,7 +9,7 @@ import sqlite3
 from pathlib import Path
 from pipeline.common import entry_id as EID
 from pipeline.deliver.bundle.rules.row import _mus_of, _rule_row
-from pipeline.deliver.bundle.rules.lifts import blanket_closures, zone_closures
+from pipeline.deliver.bundle.rules.lifts import blanket_closures, region_caps, row_caps, row_on_a_stream, zone_closures
 from pipeline.deliver.bundle.rules.see import _see_column, entry_name, see_pointer_rows
 from pipeline.deliver.bundle.rules.regions import (
     _own_rows, co_bound_regions, equivalent_regions, own_entry_regions, regions_of_waters
@@ -157,6 +157,8 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
     entries_by_id = {ce.entry_id: ce for _, ce in docs}
     closures = zone_closures([ce for _, ce in docs])
     blankets = blanket_closures([ce for _, ce in docs])
+    # T834: the region caps (trout/char totals, stream shares) a row's own daily quota may be above (`row_caps`)
+    caps = region_caps([ce for _, ce in docs])
     # THE ONE REGION MEMBERSHIP (T140): the home map the zone rules and the reach run read
     if home is None:
         from pipeline.atlas.registry.regions import home_view_from
@@ -203,6 +205,7 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
         # that rule is in words — so each label is built with its siblings to hand.
         siblings = {r.rule_id: r for r in ce.rules}
         place_of = namer.for_entry(ce.matched)
+        row_caps_ = row_caps(ce, caps, row_on_a_stream(ce, registry))
         for r in e.get("rules") or []:
             k = (e["entry_id"], r.get("rule_id"))
             rule_rows.append(_rule_row(e["entry_id"], r, k in unresolved, siblings, zones,
@@ -211,7 +214,8 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
                                        closures=closures,
                                        regions=equivalent_regions(
                                            ce, r.get("rule_id"), water_regions, co_bound, own),
-                                       blankets=blankets))
+                                       blankets=blankets,
+                                       caps=row_caps_))
 
     # NAMED, not positional. A `pages` column was added to the schema while this line kept
     # seven placeholders, and nothing caught it until 90 seconds into a province-wide rebuild

@@ -21,7 +21,7 @@ const OS = Platform.OS;
 afterEach(() => { cleanup(); (Platform as { OS: string }).OS = OS; });
 
 describe("the photo viewer clears the bars", () => {
-  it("iOS: the close ✕ and the photo row sit inside the window's insets", () => {
+  it("iOS: the close ✕ and the arrows sit inside the window's insets", () => {
     (Platform as { OS: string }).OS = "ios";
     render(<PhotoViewer uris={["a.jpg", "b.jpg"]} index={0} onIndex={() => {}} onClose={() => {}} palette={LIGHT} />);
     const close = screen.getByLabelText(PHOTO_WORDS.close);
@@ -29,6 +29,7 @@ describe("the photo viewer clears the bars", () => {
     while (padded && padded.style.paddingTop !== "62px") padded = padded.parentElement;
     expect(padded, "no ancestor of the ✕ is padded by the top inset").not.toBeNull();
     expect(padded!.style.paddingBottom).toBe("34px");
-    expect(padded!.contains(screen.getByTestId("photo-zoom-area"))).toBe(true);
+    // (T836) the photo itself is full screen under the bars; the arrows over it stay inside the insets
+    expect(padded!.contains(screen.getByLabelText(PHOTO_WORDS.next))).toBe(true);
   });
 });

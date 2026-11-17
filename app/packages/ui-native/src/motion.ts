@@ -36,11 +36,19 @@ export const SHEET_MOTION = {
  * (T48) THE OS "REDUCE MOTION" SETTING, live: what slides or scales cross-fades instead while it is on. False until the
  * platform answers, and false where it cannot (a test, an old browser) — motion is the default, never assumed off.
  */
+/**
+ * (T836) The same setting asked once, now — for a motion about to start that cannot wait for the hook's first answer (the
+ * photo viewer's opening: grow from the thumbnail, or fade). False where the platform cannot answer.
+ */
+export function reduceMotionNow(): Promise<boolean> {
+  return (AccessibilityInfo.isReduceMotionEnabled?.() ?? Promise.resolve(false)).then((v) => v, () => false);
+}
+
 export function useReducedMotion(): boolean {
   const [on, setOn] = useState(false);
   useEffect(() => {
     let live = true;
-    AccessibilityInfo.isReduceMotionEnabled?.().then((v) => { if (live) setOn(v); }, () => {});
+    void reduceMotionNow().then((v) => { if (live) setOn(v); });
     const sub = AccessibilityInfo.addEventListener?.("reduceMotionChanged", (v: boolean) => { if (live) setOn(v); });
     return () => { live = false; sub?.remove?.(); };
   }, []);

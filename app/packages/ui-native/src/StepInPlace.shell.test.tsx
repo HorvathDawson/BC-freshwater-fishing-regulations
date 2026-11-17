@@ -96,18 +96,22 @@ async function stepsDraw(init: Route, steps: readonly ("up" | "down")[]) {
 
 describe("(T731) a step on a water's map changes the bar in place", () => {
   it("▼ from the Chilliwack into the Vedder, then ▲ back: the bar, the map and the page stay; the loading line is never drawn", async () => {
+    const store = await openRegsStore(openRegsFixtureWithLines());
+    const [chw, vedder] = [await loadWaterGroup(store, "gnis:8634"), await loadWaterGroup(store, "gnis:3062")];
     const out = await stepsDraw(reduce(HOME, openWater({ item: "gnis:8634" as ItemId, part: 0, view: "map" })), ["down", "up"]);
     expect(out).toEqual({
-      wheres: ["Part 2 of 2 · Vedder River", "Part 1 of 5 · Chilliwack River"],
+      // (T768) the places come from each water's own group: the Vedder's top part, the Chilliwack's first
+      wheres: [partWhere(vedder, vedder.parts.length - 1), partWhere(chw, 0)],
       names: out.names, lost: [], loadingDrawn: false, dialogs: 0, sameNodes: [], remounted: { mounts: 0, unmounts: 0 }, unlit: 0,
       insets: [out.insets[0]],
     });
   });
 
   it("▲ then ▼ inside one water (the Coquitlam): the same", async () => {
+    const coq = await loadWaterGroup(await openRegsStore(openRegsFixtureWithLines()), "gnis:19986");
     const out = await stepsDraw(reduce(HOME, openWater({ item: "gnis:19986" as ItemId, part: 1, view: "map" })), ["up", "down"]);
     expect(out).toEqual({
-      wheres: ["Part 2 of 3 · Coquitlam River", "Part 1 of 3 · Coquitlam River"],
+      wheres: [partWhere(coq, 1), partWhere(coq, 0)],
       names: out.names, lost: [], loadingDrawn: false, dialogs: 0, sameNodes: [], remounted: { mounts: 0, unmounts: 0 }, unlit: 0,
       insets: [out.insets[0]],
     });

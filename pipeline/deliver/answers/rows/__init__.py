@@ -47,7 +47,7 @@ from pipeline.deliver.answers.rows.card_model import (
     FACT_ORDER, species_at, build_model,
 )
 from pipeline.deliver.answers.rows.conds import (
-    _who_n, _steel_carve, _not_counted, Raised, raised, raises, _raise_of, _limit_take, row_conds, _short,
+    _who_n, _steel_carve, _not_counted, Raised, raised, raises, pools, _raise_of, _limit_take, row_conds, _short,
     _COVER, keep_range, fish_bands, _against, species_items, origin_lines, _shared_caps,
     eff_cap, _under, _shared_counts,
 )

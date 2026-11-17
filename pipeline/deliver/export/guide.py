@@ -694,6 +694,9 @@ def guide_exempts(d: dict) -> dict:
             "derived — the water prints (any size)": pick(
                 lambda x: any(e.get("basis") == "any_size" for e in F(x, "exempts") or []),
                 "exempts", n=1),
+            "derived — the water's own quota above a region cap": pick(
+                lambda x: any(e.get("basis") == "own_quota" for e in F(x, "exempts") or []),
+                "exempts", n=1),
         },
         "rules": sum(bool(F(x, "exempts")) for x in rules.values()),
         "derived_lifts": sum(1 for x in rules.values() for e in F(x, "exempts") or []
