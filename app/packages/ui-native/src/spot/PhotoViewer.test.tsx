@@ -7,7 +7,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, render, screen } from "@testing-library/react";
 import { fireGestureHandler, getByGestureTestId } from "react-native-gesture-handler/jest-utils";
 import { PhotoViewer } from "./PhotoViewer";
-import { LIGHT } from "../theme";
+import { LIGHT, THEMES } from "../theme";
 
 afterEach(cleanup);
 // jsdom has no layout: react-native-web measures a view from its offset size when a ResizeObserver reports it, so give
@@ -73,5 +73,24 @@ describe("PhotoViewer zoom", () => {
     expect(scaleOf().scale).toBe(2.5);
     rerender(1);
     expect(scaleOf().scale).toBe(1);
+  });
+});
+
+/*
+ * (T819 item 4) THE VIEWER IS BLACK IN EVERY THEME: it drew on `palette.ink`, which in the dark theme is light grey, so
+ * a photograph opened in dark mode sat on a pale ground. Mutation: back to `palette.ink` fails the dark theme.
+ */
+describe("PhotoViewer ground (T819)", () => {
+  const lum = (hex: string) => {
+    const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255)
+      .map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4)) as [number, number, number];
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  };
+  const rgb = (hex: string) => `rgb(${[1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(", ")})`;
+  it.each(Object.entries(THEMES))("%s: a near-black ground, light words on it", async (_name, palette) => {
+    expect(lum(palette.photo.ground)).toBeLessThan(0.02);
+    expect(lum(palette.photo.ink)).toBeGreaterThan(0.8);
+    render(<PhotoViewer uris={["a.jpg"]} index={0} onIndex={() => {}} onClose={() => {}} palette={palette} />);
+    expect((screen.getByTestId("photo-viewer") as HTMLElement).style.backgroundColor).toBe(rgb(palette.photo.ground));
   });
 });

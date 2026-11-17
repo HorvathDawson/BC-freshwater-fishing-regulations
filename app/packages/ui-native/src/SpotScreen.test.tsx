@@ -182,8 +182,8 @@ describe("<SpotScreen> editing and deleting", () => {
     const { getByLabelText, getByText } = render(
       <SpotScreen spot={spot()} palette={LIGHT} onBack={() => {}} onDelete={() => {}} />);
     fireEvent.click(getByLabelText("Delete spot"));
-    expect(getByText("The gauge reading, the weather and the rules that were in force are recorded nowhere " +
-                     "else. This cannot be undone.")).toBeTruthy();
+    expect(getByText("The gauge reading and the weather recorded with it are kept nowhere else. This cannot be "
+                     + "undone.")).toBeTruthy();
   });
 
   it("lets the confirm be backed out of", () => {
@@ -565,5 +565,19 @@ describe("(T310) <SpotScreen> parking", () => {
     expect(go).toHaveBeenCalled();
     rerender(<SpotScreen spot={spot()} palette={LIGHT} onBack={() => {}} parking={null} />);
     expect(queryByTestId("spot-parking")).toBeNull();
+  });
+});
+
+/*
+ * (T819 item 3) A trace that names no station knows nothing, so the page draws no five-row table of "not known" under
+ * the record. Mutation: drawing `GaugeTrace` for any trace fails the first case.
+ */
+describe("<SpotScreen> the reach to the gauge (T819)", () => {
+  const none = { station: null, stationName: null, trust: null, reaches: 0, metres: null, reachMagnitude: null,
+                 gaugeMagnitude: null, lon: null, lat: null } as const;
+  it("says nothing of a reach to a gauge when no station was traced", () => {
+    const { queryByText } = render(<SpotScreen spot={spot({ trace: none })} palette={LIGHT} onBack={() => {}} />);
+    expect(queryByText("not known")).toBeNull();
+    expect(queryByText(/No station drains enough of this water/)).toBeNull();
   });
 });

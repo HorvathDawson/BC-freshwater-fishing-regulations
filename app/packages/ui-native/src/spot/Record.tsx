@@ -46,6 +46,8 @@ export function WaterRecord({ spot, palette }: { spot: Spot; palette: Palette })
         <>
           <DonorPanel palette={palette} value={spot.panel}
                       day={new Date(spot.visitedAt)} />
+          {/* TODO(T823): the release's "small next to its gauge" sentence for this lead, frozen by `captureSpot`, goes
+              here: Python decides it and words it (T819 item 3) */}
           {gauges === "day" ? (
             <Text selectable testID="spot-gauges-day" style={{ ...TYPE.small, color: palette.sub }}>
               {DAY_PANEL_WORDS.ofTheDay(visitDay(spot))}

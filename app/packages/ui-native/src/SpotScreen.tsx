@@ -161,7 +161,8 @@ export function SpotScreen(p: SpotScreenProps) {
       <DayFlowBlock df={df} onAsk={p.dayFlow?.onAsk} palette={palette} />
     )}
 
-    {spot.trace && <GaugeTrace trace={spot.trace} palette={palette} />}
+    {/* (T819 item 3) a trace that names no station knows nothing: no table of "not known" under an estimate */}
+    {spot.trace && spot.trace.station !== null && <GaugeTrace trace={spot.trace} palette={palette} />}
 
     <WeatherRecord spot={spot} palette={palette} />
 

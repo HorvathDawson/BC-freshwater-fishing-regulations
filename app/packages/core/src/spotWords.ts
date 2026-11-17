@@ -50,6 +50,10 @@ export const SPOT_CAPTURE_WORDS = {
   /** `water`: the picked water's name, or null when it has none */
   tapPoint: (water: string | null) => `Tap the point on ${water ?? "this reach"}.`,
   when: "When were you there?",
+  /** (T819 item 2) under the question: what is recorded for the moment picked. A spot keeps no rules, so it says none. */
+  whenDetail: (water: string | null) =>
+    `The weather and the flow are recorded for this moment${water ? ` on ${water}` : ""}, so it is worth getting right.`,
+  day: "Day", hour: "Hour",
   earlierDay: "Earlier day", laterDay: "Later day", earlierHour: "Earlier hour", laterHour: "Later hour",
   back: "Back", cancel: "Cancel", next: "Next",
 } as const;
@@ -59,8 +63,8 @@ export const SPOT_CONFIRM_WORDS = {
   delete: {
     label: "Confirm delete",
     title: "Delete this spot?",
-    detail: "The gauge reading, the weather and the rules that were in force are recorded nowhere else. This cannot be "
-      + "undone.",
+    /** (T819 item 2) a spot keeps no rules: only its reading and its weather are lost with it */
+    detail: "The gauge reading and the weather recorded with it are kept nowhere else. This cannot be undone.",
     keep: "Keep it",
     go: "Delete",
   },

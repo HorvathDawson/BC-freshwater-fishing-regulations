@@ -133,6 +133,10 @@ export async function captureSpot(raw: CaptureInput): Promise<Spot> {
   // (T586, T580 F9) ONE LEAD per water and day, chosen in FLOW as the sheet chooses it (`leadOver`): what the angler was looking
   // at (Flow or Level) never picks it, so the frozen flow estimate and the lead agree; the level ranking only where no gauge answers in flow.
   const lead = leadOver(speaker, { discharge: panel?.rows ?? [], level: levelRows ?? [] }, null).lead;
+  // (T819 item 3, owner 2026-11-16) THE SPOT'S GAUGE IS THE NETWORK THE MAP COLOURS WITH: this speaker's lead, as the
+  // sheet's, so a spot never says what the map and the sheet do not. TODO(T823): where the release marks this lead
+  // "small next to its gauge" (a `section_gauge` field with Python's warning sentence), freeze that sentence here with the
+  // panel, and `spot/Record.tsx` `WaterRecord` shows it under the estimate. No ratio or threshold is computed in TS.
   const [reading, trace, weather, leadUp] = await Promise.all([
     // an earlier trip day holds no live reading: its flow is that day's record (`dayFlow`, below)
     earlier ? Promise.resolve(lead ? { station: lead, discharge: null, level: null, percentile: null, at: null } : null)

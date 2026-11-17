@@ -253,15 +253,12 @@ export function WhenScreen({ palette, steps, onShiftDay, onDay, onHour, water, o
 
       <View style={{ gap: 6 }}>
         <Text style={{ ...TYPE.title, color: palette.ink }}>{title ?? CW.when}</Text>
-        <Text style={{ ...TYPE.small, color: palette.sub }}>
-          The weather, the flow and the rules are all recorded for this moment
-          {water ? ` on ${water}` : ""} — so it is worth getting right.
-        </Text>
+        <Text style={{ ...TYPE.small, color: palette.sub }}>{CW.whenDetail(water)}</Text>
       </View>
 
       <View style={{ gap: 10 }}>
         <Text style={{ ...TYPE.section, fontSize: 10.5, letterSpacing: 1.5,
-                       color: palette.faint }}>DAY</Text>
+                       color: palette.faint }}>{CW.day.toUpperCase()}</Text>
         <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
           {VISIT_QUICK_DAYS.map(([label, off]) => (
             <Chip key={label} palette={palette} look="day" role="button" label={label} on={dayOffset === off} onPress={() => onDay(off)} />
@@ -279,7 +276,7 @@ export function WhenScreen({ palette, steps, onShiftDay, onDay, onHour, water, o
 
       <View style={{ gap: 10 }}>
         <Text style={{ ...TYPE.section, fontSize: 10.5, letterSpacing: 1.5,
-                       color: palette.faint }}>HOUR</Text>
+                       color: palette.faint }}>{CW.hour.toUpperCase()}</Text>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 14 }}>
           <Step palette={palette} label={CW.earlierHour} icon="back"
                 onPress={() => onHour(hour - 1)} disabled={!steps.earlierHour} />
