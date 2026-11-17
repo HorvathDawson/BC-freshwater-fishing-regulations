@@ -263,8 +263,9 @@ const PLATFORMS = {
  * value a feature holds is not sent twice: `onceSink`).
  */
 const unset = (sl: string, id: number, key: string) => (platform === "native"
-  // (T345) a phone unsets a key by writing it null (`adapters/native.ts` `raw.remove`: MapLibre Native's removals)
-  ? `set atlas/${sl} number:${id} {"${key}":null}` : `remove atlas/${sl} number:${id} ${key}`);
+  // (T345) a phone unsets a key by writing it (`adapters/native.ts` `raw.remove`: MapLibre Native's removals); (T826) a
+  // highlight key is written false, never null: iOS's bridge drops a null-valued key (`unsetValue`)
+  ? `set atlas/${sl} number:${id} {"${key}":false}` : `remove atlas/${sl} number:${id} ${key}`);
 let platform = "";
 const selected = (id: number, on: boolean) => ["wetland", "lake", "stream"]
   .map((sl) => (on ? `set atlas/${sl} number:${id} {"selected":true}` : unset(sl, id, "selected")));

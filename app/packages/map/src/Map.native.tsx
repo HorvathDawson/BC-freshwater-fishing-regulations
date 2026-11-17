@@ -54,7 +54,7 @@ import { nativeMapGestures } from "./gestures";
 import { areaLayer, nativeStyle } from "./native-style";
 import { NativeLookTracker } from "./look-drawn";
 import { liftFor, type Lift, type LiftAnswer } from "./tapLift";
-import { isTapTarget, litKey, spreadSections, TAP_GROUPS, tapBox, VISIBLE_LAYERS, visibleSections } from "./sections";
+import { isTapTarget, litKey, spreadSections, TAP_GROUPS, tapBox, unsetValue, VISIBLE_LAYERS, visibleSections } from "./sections";
 import { withoutEngineKeys } from "./colouring";
 import { nativeImages } from "./images";
 import { useNativeColouring, type AtlasSource } from "./native/useColouring";
@@ -171,10 +171,11 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     const toCopy: CopyTarget = {
       set: (id, s) => { void copyRef.current?.setFeatureState({ id }, s as never).catch(report); },
       // (T345) a key is unset by a null write, as on the atlas (`adapters/native.ts` `raw.remove`): MapLibre Native drops
-      // all but a frame's first per-feature removal in a source and applies removals after sets
+      // all but a frame's first per-feature removal in a source and applies removals after sets; (T826) a highlight key
+      // is written `false` (`unsetValue`: iOS's bridge drops a null-valued key)
       remove: (id, key) => {
         const src = copyRef.current;
-        if (src) void (key === undefined ? src.removeFeatureState({ id }) : src.setFeatureState({ id }, { [key]: null } as never)).catch(report);
+        if (src) void (key === undefined ? src.removeFeatureState({ id }) : src.setFeatureState({ id }, { [key]: unsetValue(key) } as never)).catch(report);
       },
     };
     return nativeRenderer({
@@ -202,7 +203,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     copy: () => copy.current,
     toCopy: { set: (id, s) => { void copyRef.current?.setFeatureState({ id }, s as never).catch(report); },
               remove: (id, key) => { void (key === undefined ? copyRef.current?.removeFeatureState({ id })
-                : copyRef.current?.setFeatureState({ id }, { [key]: null } as never))?.catch(report); } },
+                : copyRef.current?.setFeatureState({ id }, { [key]: unsetValue(key) } as never))?.catch(report); } },
     // what a clear took that was not the engine's (the highlight, pushed data) is sent again by the effects below
     restore: () => { renderer.forget(); setGen((g) => g + 1); },
     ready: styled && drawn, theme, atlasUrl: at.atlas, report, status, standing, lakes, salmon, method, runs,
