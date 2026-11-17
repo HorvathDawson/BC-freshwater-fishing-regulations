@@ -49,3 +49,31 @@ picture and nothing else: the water "updating" carry (`Shell.tsx` ~629), the wat
 bar beside it; the first download shows the pun, "Downloading the map and regulations for offline use", and once the
 sizes are known the bar + "X of Y MB downloaded" (setup: its own bar + "… · N %"). Nothing added there (owner: a still icon
 is fine); for the owner's still icon to decide.
+
+## 2026-11-17 ~01:50 MST, the coho loader built (branch app-fix/t814-loader, 78d049d40)
+Owner 2026-11-17 ~00:10–00:14 (app chat): the still-icon slot goes; his linocut coho loader replaces the circling fish
+on the splash / first-download / curtain screens only; both loaders ignore Reduce Motion; the restart fix stays.
+- **Generator**: `app/tools/fish-loader/fish_loader.py`, his script as sent (defaults reproduce his output byte for
+  byte); app options added (`--format webp`, `--name`, `--sheet-only`). `pnpm coho:build` (`app/tools/build-coho.mjs`)
+  bakes 80 frames at 288×120 px (drawn 192×80 dp, 1.5 px/dp), 8×10, lossless WebP (887 KB), one sheet per
+  `color.ui.coho.ink` + `.red` pair (new tokens; `color.ui.coho.ground` drawn behind) → `packages/ui-native/src/coho/`,
+  `coho.generated.ts`. `pnpm coho` (in `pnpm check`) reads the committed sheets back (`sheet_facts.py`: size + the two
+  colours) against the tokens; it never re-draws (Mac vs Linux byte-equality unproven).
+- **Component**: `CohoLoader` (native: one platform-driven value, `translateX`/`translateY` staircases on the sheet
+  behind a clip, `spriteGridStaircase`; web: two CSS `steps()` keyframes), via `LoadingState coho`, used only by the
+  boot screen (`App.tsx` `BootScreen`: first launch, manifest check, Wi-Fi wait, first download, setup, start-time
+  apply) and `ApplyCurtain` (T746); `tools/one-spinner.test.ts` holds that. Words unchanged.
+- **Restarts**: `usePlatformLoops` (the cdbdfed16 restarts: app-active, first layout, a dropped loop), both loaders.
+- **Reduce Motion** stops neither loader; `stillIcon.ts` and its tests removed.
+- **OS launch image** (`assets/splash/*`, `tools/build-splash.mjs`) untouched: a launch image cannot animate, so the
+  hand-off from the native splash (the circling fish's frame 0) to the coho now changes picture.
+- **Memory**: decoded sheet 11.1 MB (his default 480 px sheet: 30.7 MB; the circling fish strip 2.2 MB). Emulator A/B,
+  same session, base cdbdfed16 vs coho: first-download peak PSS 170 → 152 MB (Java 36 → 33, native 41 → 40); boot
+  screen (dark, 5 s in) PSS 187 → 175, native 40 → 46; `memory` cold start → map PSS 269.7 → 274.2, native
+  125.5 → 134.6 (the sheet kept in Fresco's cache). Later `memory` steps: coho PSS +20–40 MB, all in "System" (native
+  equal or lower); not attributed to the loader, a re-run would tell.
+- **Checks**: `CANIFISHTHIS_R8=1 pnpm check` green (664 files, 6963 tests); CohoLoader native + web tests; restart
+  path mutation-checked. Seen moving on the Android emulator, the iOS simulator and the web export.
+- **OPEN, owner's pick: the dark theme.** His ink #1f2e3b disappears on the dark card; dark currently wears the light
+  look (pending). Options pictured: A paper-coloured ink on the dark card, B his colours on a paper tile. Either is a
+  token change in `themes/dark.json` + `pnpm coho:build`.
