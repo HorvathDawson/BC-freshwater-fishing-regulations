@@ -39,7 +39,7 @@
       {
        "mark": "✕",
        "name": "Fish or fish parts",
-       "note": null,
+       "note": "Dead fin fish may be used, when fishing for white sturgeon — upstream of the CPR Bridge at Mission · Dead fin fish may be used, when fishing for white sturgeon — Fraser River; Pitt River, between CPR Bridge and Pitt Lake; Harrison River, downstream of Harrison Lake — lifts “No fin fish other than roe”",
        "terms": []
       }
      ]
@@ -47,19 +47,40 @@
    ],
    "notes": [],
    "src": {
-    "aria": "Sources: Province",
+    "aria": "Sources: Province, This water’s",
     "keys": [
      "zp:bait::bait.r4",
-     "zp:bait::bait.r1"
+     "zp:bait::bait.r1",
+     "r2:fraser_river_upstream_of_the_cpr_bridge_at_mission@2-4::fraser_river_upstream_of_mission.r1",
+     "zp:bait::bait.r3"
     ],
     "open": "srcs:bait",
     "pages": [
      {
       "pdf": 10,
       "printed": 8
+     },
+     {
+      "box": [
+       {
+        "box": [
+         35.75,
+         294.24,
+         539.75,
+         385.44
+        ],
+        "pdf": 25,
+        "size": [
+         576,
+         756
+        ]
+       }
+      ],
+      "pdf": 25,
+      "printed": 23
      }
     ],
-    "who": "Province ›"
+    "who": "Province · This water’s ›"
    }
   },
   "closed": null,
@@ -5607,6 +5628,53 @@
      "level": "B.C.",
      "open": "rule:zp:bait::bait.r1",
      "title": "No fin fish other than roe"
+    },
+    {
+     "applies": [
+      "This water’s own row in the 2025–2027 BC Freshwater Fishing Regulations Synopsis: Fraser River."
+     ],
+     "book": [
+      {
+       "box": [
+        {
+         "box": [
+          35.75,
+          294.24,
+          539.75,
+          385.44
+         ],
+         "pdf": 25,
+         "size": [
+          576,
+          756
+         ]
+        }
+       ],
+       "pdf": 25,
+       "printed": 23,
+       "t": "book"
+      }
+     ],
+     "k": "rule",
+     "level": "This water’s",
+     "open": "rule:r2:fraser_river_upstream_of_the_cpr_bridge_at_mission@2-4::fraser_river_upstream_of_mission.r1",
+     "title": "Dead fin fish may be used, when fishing for white sturgeon — upstream of the CPR Bridge at Mission"
+    },
+    {
+     "applies": [
+      "A B.C. rule for Fraser River, Pitt River and Harrison River. It lifts “No fin fish other than roe” (everywhere in B.C) here."
+     ],
+     "book": [
+      {
+       "pdf": 10,
+       "printed": 8,
+       "t": "book"
+      }
+     ],
+     "k": "rule",
+     "level": "This water’s",
+     "open": "rule:zp:bait::bait.r3",
+     "title": "Dead fin fish may be used, when fishing for white sturgeon — Fraser River; Pitt River, between CPR Bridge and Pitt Lake; Harrison River, downstream of Harrison Lake — lifts “No fin fish other than roe”"
     }
    ],
    "key": "srcs:bait",

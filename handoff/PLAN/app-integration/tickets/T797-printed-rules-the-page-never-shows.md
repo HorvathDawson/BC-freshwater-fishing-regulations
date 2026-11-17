@@ -71,3 +71,17 @@ Data note sent to the main chat: the Nicomekl / Serpentine rule reaches 27 side 
 `merge/t797-powered-boats` with merge 3 landed in (cfe83b679): crash-bed PASS (1/1, 21:58Z run) and bg-install PASS
 (1/1, 22:01Z run) on the same `t797` APK (`--allow-stale`: only bench files and the dev mini-release changed since it
 was built). With the 12:28 runs, all six benches pass. Ready to land after the main chat's clear.
+
+## Built (app), items 2 and 4 (branch `app-fix/t801-t797`, 2026-11-17; not merged)
+- **Item 2** (owner "Show it", reversing D18 a; `decisions.md` D18 updated): `core/src/regs/bait.ts` says each bait
+  element's stored `also_allowed` under the item, in its rule's label (`allowanceRules`, `noteWithAllowances`), each
+  label once, and the bait source line cites those rules. On r-46e4355a7277 the Fraser (Region 2) and lower Harrison ✕
+  "Fish or fish parts" say "Dead fin fish may be used, when fishing for white sturgeon — …". Two side effects to look
+  at: (a) a Fraser part holding both the Fraser row's rule and the province's `bait.r3` says two near-identical labels
+  (one `says` per allowance from the pipeline would make it one line); (b) the same field carries the set-lining
+  allowance, so Region 6 / Zone 7A lakes now say "Dead fin fish may be used, while set lining, in lakes — …" (golden
+  `x35p_1010`). Tests: `bait.test.ts`; `conformance/src/regs/t797.release.test.ts` (Fraser and Harrison say it, the
+  Vedder does not); goldens `edge_x15p2_1010`, `x35p_1010` re-cut. Mutation (labels dropped) fails 2.
+- **Item 4**: `core/src/regs/caveats.ts` `inPartItem` says the rule's stored `parts.conditions` after its `what`, joined
+  as its label joins them: the Pitt Lake head reads "Trout and char — release all, wild only" (pitt_lake.r3 is the only
+  undrawn-part rule with conditions in the release). Tests: `caveats.test.ts` (Pitt Lake); mutation fails 1.

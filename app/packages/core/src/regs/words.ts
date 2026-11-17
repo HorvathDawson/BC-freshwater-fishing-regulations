@@ -110,6 +110,8 @@ export const WORDS = Object.freeze({
   ROW_STREAM: "Stream", ROW_LAKE: "Lake", ROW_WETLAND: "Wetland",
   CALM_LATER: "Not in force today. The map can’t draw these places yet, so check where you are.",
   WHERE: (p: string) => "Where: " + p,
+  // (T797 item 4) an undrawn-part rule's words then its stored conditions, joined as its label joins them ("…, wild only")
+  COND_SEP: ", ",
   // (T623 F4, owner 2026-11-11) a closure of a part of the water the map does not draw: a warning on every day, at the top
   PART_CLOSED_NOW: (noun: string, when: string) => `Part of this ${noun} is closed ${when}`,
   PART_CLOSED_LATER: (noun: string) => `Part of this ${noun} closes at times`,

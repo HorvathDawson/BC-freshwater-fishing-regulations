@@ -39,7 +39,7 @@
       {
        "mark": "✕",
        "name": "Fish or fish parts",
-       "note": null,
+       "note": "Dead fin fish may be used, while set lining, in lakes — lakes of Region 6 and Zone A of Region 7 — lifts “No fin fish other than roe”",
        "terms": []
       }
      ]
@@ -50,7 +50,8 @@
     "aria": "Sources: Province",
     "keys": [
      "zp:bait::bait.r5",
-     "zp:bait::bait.r1"
+     "zp:bait::bait.r1",
+     "zp:bait::bait.r2"
     ],
     "open": "srcs:bait",
     "pages": [
@@ -5065,6 +5066,22 @@
      "level": "B.C.",
      "open": "rule:zp:bait::bait.r1",
      "title": "No fin fish other than roe"
+    },
+    {
+     "applies": [
+      "A B.C.-wide rule — everywhere in B.C. It lifts “No fin fish other than roe” (everywhere in B.C) here."
+     ],
+     "book": [
+      {
+       "pdf": 10,
+       "printed": 8,
+       "t": "book"
+      }
+     ],
+     "k": "rule",
+     "level": "B.C.",
+     "open": "rule:zp:bait::bait.r2",
+     "title": "Dead fin fish may be used, while set lining, in lakes — lakes of Region 6 and Zone A of Region 7 — lifts “No fin fish other than roe”"
     }
    ],
    "key": "srcs:bait",

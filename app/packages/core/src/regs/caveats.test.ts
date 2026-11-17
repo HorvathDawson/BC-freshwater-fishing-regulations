@@ -96,6 +96,24 @@ describe("(T623 F4) partClosedOf: a closure of a part of the water the map can't
   });
 });
 
+describe("(T797 item 4) the Pitt Lake head: the in-part caveat says which fish (wild), from the rule's stored conditions", () => {
+  // pitt_lake.r3 as the release holds it (r-46e4355a7277): the book's "Wild trout/char catch and release … north of fishing
+  // boundary signs (east and west shores) near the head of the lake" (p.25)
+  const PART = "north of fishing boundary signs (east and west shores) near the head of the lake";
+  const pitt = (p: Record<string, string>) => view(21, 3351, {
+    label: `Trout and char — release all, wild only — in part: ${PART}`, parts: { ...p, in_part: PART } },
+    { undrawn_part: PART, origin: "wild", species: ["TROUT_CHAR"] }, { book: [] });
+  const items = (r: RuleView) => inPartOf(settled({ inpart: [{ rule: r, now: true }] }), { item: { kind: "lake" } } as unknown as RegsInputs, KEEP_FAMS)!
+    .items.map((i) => `${plain(i.what)} | ${i.where}`);
+  it("its words then its conditions: 'Trout and char — release all, wild only'", () => {
+    expect(items(pitt({ what: "Trout and char — release all", conditions: "wild only" })))
+      .toEqual([`Trout and char — release all, wild only | Where: North of fishing boundary signs (east and west shores) near the head of the lake`]);
+  });
+  it("a rule with no conditions says its words alone", () => {
+    expect(items(pitt({ what: "Trout and char — release all" })).map((l) => l.split(" | ")[0])).toEqual(["Trout and char — release all"]);
+  });
+});
+
 describe("inPartOf: rules of parts the map can't draw", () => {
   const spot = view(1, 3351, { label: "No fishing — in part: a bay", parts: { what: "No fishing — in part: a bay" } }, { undrawn_part: "various spots" }, { book: [[32, 34]] });
   const dated = view(2, 3351, { label: "Rainbow trout — release all" }, { undrawn_part: "the bay (map B)", when: { dates: [{ from_month: 5, from_day: 15, to_month: 3, to_day: 14 }] } }, { book: [] });

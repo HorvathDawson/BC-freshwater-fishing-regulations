@@ -281,3 +281,28 @@ describe("T670 (owner 2026-11-12, 'Show the fee only'): the basic licence shows 
     expect(() => basicOf(WHO.adult!, lics)).toThrow(/licensing record 14/);
   });
 });
+
+describe("T801 item 2: the class box says the book's separate-licence line for non-residents, after the stamp words", () => {
+  const SAYS = "Non-residents and non-resident aliens require separate licences describing which section they are fishing.";
+  const WAIVER = "Steelhead Stamp not required upstream of the Kitsumkalum";
+  const des = (over: Record<string, unknown> = {}) => ({ entry_id: "r6:skeena_river", record_id: "skeena_river_section_4", kind: "designation",
+    label: "Class II", placement: "on_designation", fields: { classified: "II", unit_name: "Skeena River Section 4" }, prov: {}, ...over });
+  const box = (d: Record<string, unknown>) => {
+    const f = frame(); const lics = new Map(LICS); lics.set(20, d);
+    const licence = { ...f, holds: { ...f.holds, designations: [20] } } as LicenceValue;
+    const vm = buildLicence(INP({ licence, lics, paper: [] }), WHO.adult!, { closed: false, glossary: GLOSS })!;
+    return lines(vm).find((l) => l[0] === "classbox")!.slice(1).join(" ");
+  };
+  it("with the note: one plain sentence after the unit", () => {
+    expect(box(des({ non_resident_note: { says: SAYS } }))).toBe(`Class II Classified Water ⓘ Licence unit: Skeena River Section 4. ${SAYS}`);
+  });
+  it("the note follows the stamp text", () => {
+    expect(box(des({ stamp_waiver: { says: WAIVER + "." }, non_resident_note: { says: SAYS } })))
+      .toBe(`Class II Classified Water ⓘ Licence unit: Skeena River Section 4. ${WAIVER}. ${SAYS}`);
+  });
+  it("absent or null: no line", () => {
+    const plain = "Class II Classified Water ⓘ Licence unit: Skeena River Section 4.";
+    expect(box(des())).toBe(plain);
+    expect(box(des({ non_resident_note: null }))).toBe(plain);
+  });
+});
