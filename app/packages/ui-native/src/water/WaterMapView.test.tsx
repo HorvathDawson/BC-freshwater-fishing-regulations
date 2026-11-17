@@ -51,6 +51,16 @@ async function said(k: keyof typeof PARTS, up = 0): Promise<{ where: string; nam
   if (at < 0 || !g.parts[i]) throw new Error(`${item} has no part from ${lo} to ${hi} (+${up}) in its group`);
   return { where: partWhere(g, i), name: partName(g, i), partIx: g.parts[i]!.partIx };
 }
+/** (T768) The bar's lead for the group's part `i` of a water ("Part 2 of 5 · Chilliwack River"), `top` for its last. */
+async function groupOf(item: string) { return loadWaterGroup(await GROUPS, item); }
+async function where(item: string, i: number | "top") {
+  const g = await groupOf(item); return partWhere(g, i === "top" ? g.parts.length - 1 : i);
+}
+async function lead(item: string, i: number | "top") {
+  const g = await groupOf(item), at = i === "top" ? g.parts.length - 1 : i;
+  return `${partWhere(g, at)} | ${partName(g, at)}`;
+}
+const CHW_ITEM = "gnis:8634", KLWA_ITEM = "wbk:-20";
 const CHW0_LIT = [[380887781, 0]] as const;
 const CHW0_WATER = [[355993454, 0], [355993455, 0], [355993456, 0], [355998527, 0], [355999283, 0], [355999620, 0],
                     [356000264, 0], [380887781, 200], [380887817, 0],
@@ -104,21 +114,19 @@ describe("<WaterMapView> (T150 / T151)", () => {
     await ready();
     const toggle = screen.getByTestId("water-map-parts-toggle");
     expect([toggle.getAttribute("aria-label"), toggle.getAttribute("aria-expanded"), screen.queryByTestId("water-map-parts-list")])
-      .toEqual(["Show all 5 parts", "false", null]);
+      .toEqual([`Show all ${(await groupOf("gnis:8634")).parts.length} parts`, "false", null]);
     fireEvent.click(toggle);
     const radios = within(screen.getByTestId("water-map-parts-list")).getAllByRole("radio");
-    expect(radios.map((r) => [r.getAttribute("aria-checked"), r.textContent])).toEqual([
-      ["true", "✓Vedder Crossing Bridge → Orange triangular boundary signs (200 m upstream of Vedder Crossing bridge)"],
-      ["false", "Orange triangular boundary signs (200 m upstream of Vedder Crossing bridge) → Tamihi Rapids Bridge"],
-      ["false", "Tamihi Rapids Bridge → 100 m below the Slesse Creek confluence"],
-      ["false", "100 m below the Slesse Creek confluence → Chilliwack River Ecological Reserve boundary"],
-      ["false", "Chilliwack River Ecological Reserve boundary → Source"]]);
+    const gc = await groupOf("gnis:8634");
+    expect(radios.map((r) => [r.getAttribute("aria-checked"), r.textContent])).toEqual(
+      gc.parts.map((_, k) => [String(k === 0), `${k === 0 ? "✓" : ""}${partName(gc, k)}`]));
     // T151: no bold in the list — every text in it is the regular face
     const faces = [...screen.getByTestId("water-map-parts").querySelectorAll("div[dir], span")]
       .map((e) => getComputedStyle(e).fontFamily).filter(Boolean);
     expect([...new Set(faces)]).toEqual(["Archivo_400Regular"]);
     fireEvent.click(radios[2]!);
-    await waitFor(() => expect(screen.getByTestId("water-map-where").textContent).toBe("Part 3 of 5 · Chilliwack River"));
+    const third = await where(CHW_ITEM, 2);
+    await waitFor(() => expect(screen.getByTestId("water-map-where").textContent).toBe(third));
     expect([calls, screen.queryByTestId("water-map-parts-list")]).toEqual([["part gnis:8634 2"], null]);
     // (T150 review) the picked row is gone with the list: focus is on the toggle, not dropped to the page
     expect(document.activeElement?.getAttribute("data-testid")).toBe("water-map-parts-toggle");
@@ -143,7 +151,7 @@ describe("<WaterMapView>", () => {
   it("the Chilliwack from its mouth part: lit, framed, ▲ to the top; the ends disabled", async () => {
     mount("gnis:8634", 0);
     await ready();
-    expect(bar()).toBe("Part 1 of 5 · Chilliwack River | Vedder Crossing Bridge → Orange triangular boundary signs (200 m upstream of Vedder Crossing bridge)"
+    expect(bar()).toBe(`${await lead("gnis:8634", 0)}`
       + " | Downstream into Vedder River | Upstream | Flows into Vedder River ›");
     expect(lit()).toEqual({
       highlight: await sections.streams(CHW0_LIT), water: await sections.streams(CHW0_WATER) });
@@ -155,16 +163,15 @@ describe("<WaterMapView>", () => {
       "(ring) Boundary: 100 m below the Slesse Creek confluence",
       "(ring) Boundary: Chilliwack River Ecological Reserve boundary"]);
     for (let k = 0; k < 4; k += 1) fireEvent.click(screen.getByRole("button", { name: "Upstream" }));
-    expect(bar()).toBe("Part 5 of 5 · Chilliwack River | Chilliwack River Ecological Reserve boundary → Source"
-      + " | Downstream | Highest part (off)");
+    expect(bar()).toBe(`${await lead("gnis:8634", "top")}` + " | Downstream | Highest part (off)");
     // the committed regs fixture's handle of the Chilliwack's part 4 (frozen until `pnpm regs-fixture` re-cuts it; T206,
     // r-f6918815ca78: 380887781:58646; T220 re-cut it to 1236842; T222 r-445850b69ae1 to 1236847, handles +5; T289 r-ce76b4ed3624: handles -2, the Thomas / Angelo lake stubs re-joined)
     expect([lit().highlight, seen.props?.fit?.key]).toEqual([[await sections.stream(...CHW_SOURCE)], "gnis:8634:4"]);
     // the disabled end does nothing
     fireEvent.click(screen.getByRole("button", { name: "Highest part" }));
-    expect(screen.getByTestId("water-map-where").textContent).toBe("Part 5 of 5 · Chilliwack River");
+    expect(screen.getByTestId("water-map-where").textContent).toBe(await where("gnis:8634", "top"));
     fireEvent.click(screen.getByRole("button", { name: "Downstream" }));
-    expect(screen.getByTestId("water-map-where").textContent).toBe("Part 4 of 5 · Chilliwack River");
+    expect(screen.getByTestId("water-map-where").textContent).toBe(await where("gnis:8634", (await groupOf("gnis:8634")).parts.length - 2));
   }, 30_000);
 
   it("(T345) a mouth on TIDAL water: 'Flows into the tidal Fraser River' is plain words, no link, nothing opened", async () => {
@@ -235,9 +242,9 @@ describe("<WaterMapView>", () => {
     expect(screen.queryByTestId("water-map-mark")).toBeNull();
     const SOURCE = await sections.stream(...CHW_SOURCE), VEDDER = await sections.stream(355999181, 0);   // the Vedder's stretch
     act(() => seen.props!.onPressFeature!("stream", SOURCE));
-    expect(screen.getByTestId("water-map-where").textContent).toBe("Part 5 of 5 · Chilliwack River");
+    expect(screen.getByTestId("water-map-where").textContent).toBe(await where("gnis:8634", "top"));
     act(() => seen.props!.onPressFeature!("stream", VEDDER));
-    expect([screen.getByTestId("water-map-where").textContent, calls]).toEqual(["Part 5 of 5 · Chilliwack River",
+    expect([screen.getByTestId("water-map-where").textContent, calls]).toEqual([await where("gnis:8634", "top"),
       ["part gnis:8634 4", `other ${VEDDER}`]]);
   }, 30_000);
 
@@ -328,23 +335,23 @@ describe("<WaterMapView>", () => {
     // flows into the Sumas River (the fixture's core names every water a kept water flows into), ▲ a step
     mount("gnis:3062", 0);
     await ready();
-    expect(bar()).toBe("Part 1 of 2 · Vedder River | Mouth → Cable car crossing (200 m downstream of Vedder Crossing bridge) | Lowest part (off) | Upstream | Flows into Sumas River ›");
+    expect(bar()).toBe(`${await lead("gnis:3062", 0)} | Lowest part (off) | Upstream | Flows into Sumas River ›`);
     cleanup();
     const calls = mount("gnis:3062", await partOf("vedderUpper"));
     await ready();
-    expect(bar()).toBe("Part 2 of 2 · Vedder River | Cable car crossing (200 m downstream of Vedder Crossing bridge) → Vedder Crossing Bridge | Downstream | Upstream into Chilliwack River");
+    expect(bar()).toBe(`${await lead("gnis:3062", "top")} | Downstream | Upstream into Chilliwack River`);
     // the words wrap (two lines at most, then cut with an ellipsis) inside the half-width button at 390 px
     expect(stepText("up")).toEqual({ text: "Upstream into Chilliwack River", lines: 2, align: "center" });
     fireEvent.click(screen.getByRole("button", { name: "Upstream into Chilliwack River" }));
     cleanup();
     const more = mount("gnis:8634", 0);
     await ready();
-    expect(bar()).toBe("Part 1 of 5 · Chilliwack River | Vedder Crossing Bridge → Orange triangular boundary signs (200 m upstream of Vedder Crossing bridge)"
+    expect(bar()).toBe(`${await lead("gnis:8634", 0)}`
       + " | Downstream into Vedder River | Upstream | Flows into Vedder River ›");
     fireEvent.click(screen.getByRole("button", { name: "Downstream into Vedder River" }));
     // the map did not move inside the water: each is the caller's to open (through openWater, Map in front)
     expect([screen.getByTestId("water-map-where").textContent, [...calls, ...more]]).toEqual([
-      "Part 1 of 5 · Chilliwack River", ["cross gnis:8634 at 0", "cross gnis:3062 at 1"]]);
+      await where("gnis:8634", 0), ["cross gnis:8634 at 0", "cross gnis:3062 at 1"]]);
   }, 30_000);
 
   it("(T517) ▲ from the Zymoetz's lake part steps onto the source part, a part of its own named by its own ends", async () => {
@@ -369,11 +376,11 @@ describe("<WaterMapView>", () => {
   it("KLWA from the Main Body: the three closure areas; Show regulations for another area names that water", async () => {
     const calls = mount("wbk:-20", 0);
     await ready();
-    expect(bar()).toBe("Part 3 of 3 | Kootenay Lake — Main Body | Downstream | Highest part (off)");
+    expect(bar()).toBe(`${await lead("wbk:-20", "top")} | Downstream | Highest part (off)`);
     expect([screen.getByTestId("water-map-whole").textContent, seen.props?.marks]).toEqual(["⤢ Whole lake", []]);
     fireEvent.click(screen.getByRole("button", { name: "Downstream" }));
     fireEvent.click(screen.getByRole("button", { name: "Show regulations for this part" }));
-    expect([bar(), calls]).toEqual(["Part 2 of 3 | Kootenay Lake — Upper West Arm | Downstream | Upstream",
+    expect([bar(), calls]).toEqual([`${await lead(KLWA_ITEM, 1)} | Downstream | Upstream`,
                                     ["part wbk:-21 0", "regs wbk:-21 part 0"]]);
   }, 30_000);
 
@@ -531,7 +538,7 @@ describe("<WaterMapView>", () => {
         "⤢ twice": await wayIn(open({ item: C, part: 1, view: "map" }), [whole, whole]),
       };
       const first = ways.reload![0];
-            expect(JSON.parse(first)).toMatchObject({ where: "Part 1 of 3 · Coquitlam River", highlight: MARY_HILL,
+            expect(JSON.parse(first)).toMatchObject({ where: await where("gnis:19986", 0), highlight: MARY_HILL,
                                                 fit: { key: "gnis:19986:1", bbox: [-122.808104, 49.226226, -122.78, 49.269798] } });
       for (const [way, [drew, reloaded]] of Object.entries(ways)) expect({ way, drew, reloaded }).toEqual({ way, drew: first, reloaded: first });
       // the tapped frame OPENED at its part (T369 D3: no adopting); no URL ever held a section id

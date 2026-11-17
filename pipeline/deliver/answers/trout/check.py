@@ -221,7 +221,8 @@ class Table:
                     raise _Fail(f"box {bi}: band {x['text']!r} spans rows {x['from']}..{x['to']}")
                 for r in rows[x["from"]:x["to"] + 1]:
                     r.band = (kind_, k, m, x["from"], x["to"])
-            self.boxes.append({"kind": b["kind"], "n": n, "strip": strip, "rows": rows, "raw": b})
+            self.boxes.append({"kind": b["kind"], "n": n, "strip": strip, "rows": rows, "raw": b,
+                               "except": W.parse_head_except(b["head"])})
             self.rows += rows
         for r in self.rows:
             for t, x in r.lines:
@@ -288,6 +289,12 @@ class Table:
                 continue
             rows = b["rows"]
             out.append((f"box {bi} total {b['n']}", of_rows(rows), b["n"]))
+            if b.get("except") is not None:
+                # T834 (owner 13:15): "Keep 5, brook trout up to 20" — the first number is what the OTHER fish come to
+                # here (the exception's number is the box's day most, above)
+                first, exc, _most = b["except"]
+                out.append((f"box {bi} head {first} besides {list(exc)}",
+                            of_rows([r for r in rows if r.fish not in set(exc)]), first))
             seen_bands = set()
             for r in rows:
                 if r.band is None:

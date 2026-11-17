@@ -164,3 +164,38 @@ describe("Flow -> Level -> Flow keeps the gauge and the switch (T817)", () => {
     expect(card()).toEqual(["Lake Near Town", "no switch", "10.30"]);
   });
 });
+
+/*
+ * (T767 / T728, T369 one load path) THE CARD'S PICK IS THE REACH'S: the shell renders one `WaterConditions` for whatever
+ * the frame shows (no remount between reaches), so a pick kept as bare state carried Level into the next reach. The same
+ * reach opens the same whatever was open before. MUTATION: make `own` a bare `useState` again -> the next reach, and the
+ * first again, open on "Flow Level*".
+ */
+describe("a Flow / Level pick stays on its reach (T767)", () => {
+  it("Level picked on one reach: the next reach, and the first again, open on Flow", async () => {
+    const sections = (await base.water(WATER))!.sections as readonly SectionId[];
+    const [A, B] = [sections[0]!, sections[1]!];
+    const panel: Panel = { areaKm2: 50, members: [{ station: "G1" as never, role: "up", areaKm2: 60,
+      years: { discharge: 40, level: 40 }, regulated: false, sameRiver: true }] };
+    const source = {
+      ...speaking("panel", ["discharge", "level"], BOTH_NOW),
+      panelsFor: async (asked: readonly SectionId[]) => new Map(asked.map((s) => [s, panel])),
+      panelRoutes: async (s: SectionId) => [{ station: "G1", name: "Gauge Creek near Town", ...AT, role: "up", path: [s] }],
+    } as unknown as WaterSource;
+    const view = (sid: SectionId) => (
+      <WaterConditions source={source} item={WATER} tapSid={sid} palette={LIGHT} opening="discharge" from={AT} />);
+    const settle = () => act(async () => { await new Promise((r) => setTimeout(r, 50)); });
+    const { rerender } = render(view(A));
+    await waitFor(() => expect(card()[1]).toBe("Flow* Level"));
+    await pickQuantity("Level");
+    await waitFor(() => expect(card()[1]).toBe("Flow Level*"));
+    rerender(view(B));
+    await settle();
+    await waitFor(() => expect(screen.queryByTestId("chart-quantity")).not.toBeNull());
+    const next = card()[1];
+    rerender(view(A));
+    await settle();
+    await waitFor(() => expect(screen.queryByTestId("chart-quantity")).not.toBeNull());
+    expect([next, card()[1]]).toEqual(["Flow* Level", "Flow* Level"]);   // each reach opens as it opens
+  });
+});

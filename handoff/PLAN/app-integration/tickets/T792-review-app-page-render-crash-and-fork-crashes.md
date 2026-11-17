@@ -1,6 +1,6 @@
 # T792 — Two crashes: the review app's page renderer frees PDF objects outside its lock; child processes die after fork where a test process has used the map-projection library
 
-Status: OPEN (review app backend; test runner).
+Status: PARTIAL (A fixed e0c84c800, lane/bugs-080 2026-11-17: `synopsis_pages.render` closes bitmap, page and document by name inside the lock; left (Claude): B, a test file that starts a child process gets its own process in `scripts/pytest-chunked.sh`)
 
 Source: general audit 2026-11-16, guards checker section 5 (`handoff/PLAN/audit-2026-11-16/guards.md`); T777 described only the second, and its proposed fix would not help.
 

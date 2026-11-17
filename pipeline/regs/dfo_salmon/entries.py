@@ -970,6 +970,9 @@ def to_reach_input(loc: EntryLocation, rules: List[dict],
         # T679 D5 (owner 2026-11-12): at a confluence cut the joining water stays out unless DFO's words add it
         # (`reach.build.DFO_JOINING_WATER_STAYS_OUT`): every caller (reach run, review app) shapes it here
         _JOINERS_STAY_OUT: True,
+        # T784: DFO's words for the place, where the builder reads "unless the words name it" (a joining water at a
+        # confluence cut, D5; a lake place's through-river, T743): without them that exception could never apply
+        "extent_text": _place_words(loc),
     } for i, _ in enumerate(rules)]
     # A "rest" (owner 2026-11-02: "Except in those areas and times listed below") is the water minus
     # the places it names — other LOCATIONS on the water. The builder resolves a rest against the
@@ -1007,7 +1010,8 @@ def to_reach_input(loc: EntryLocation, rules: List[dict],
                 # explicit, never inherited: a sibling rides in ANOTHER place's entry, whose own flag is not its own
                 "includes_tributaries": se.tributaries,
                 "tributaries_only": se.only,
-                "tributary_excludes": [e.model_dump(mode="json") for e in sib.binding.tributary_excludes]}
+                "tributary_excludes": [e.model_dump(mode="json") for e in sib.binding.tributary_excludes],
+                "extent_text": _place_words(sib)}
 
     def rest_ex(of, e: dict) -> dict:
         """T761: the rest extent as the builder reads it — its LIVE, DRAWN listed places as `siblings`, and the ones it
@@ -1042,6 +1046,11 @@ def to_reach_input(loc: EntryLocation, rules: List[dict],
             rules.append(r)
         entry["rules"] = out + rules + [rule_of(x) for x in {x.location_id: x for x in extra}.values()]
     return entry, out
+
+
+def _place_words(loc: EntryLocation) -> str:
+    """DFO's own words for where a place is (`specific_area`), as the builder's `extent_text` (T784)."""
+    return str((loc.source_text or {}).get("specific_area") or "").strip()
 
 
 #: T761: the key on a DFO rest extent (as `to_reach_input` hands it to the builder) that marks it a DFO place's rest:

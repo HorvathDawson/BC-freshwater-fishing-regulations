@@ -10,3 +10,5 @@ line's magnitude, not the river's. Effect: a spot or card there reads a gauge on
 To do: lead a side channel by its main channel's panel / the river it belongs to (the panel area T823 already uses),
 never by its own line magnitude; list the sections whose lead changes for the owner before it ships (gauge
 representativeness is policy).
+
+2026-11-17 ~15:04, owner: see OWNER-TODO 15:04 (answer recorded verbatim there).

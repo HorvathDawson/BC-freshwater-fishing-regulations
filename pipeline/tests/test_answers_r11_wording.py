@@ -166,6 +166,21 @@ def test_a2_cowichan_fly_only_part():
     assert s["cites"] == [COWICHAN_FLY, PROVINCE, Z1_HOOK, ATTACH]
 
 
+def test_a2_artificial_fly_only_says_one_fly_never_one_hook_or_fly():
+    """T789 G9 (Pennask Lake, p.31): an artificial-fly-only water read "one hook or fly". p.80: an artificial fly IS a
+    dressed hook, so the one attachment is a fly. MUTATION: the filter for `fly_fishing_only` alone says "one hook or
+    fly" here."""
+    rules = [G.Rule(PROVINCE, 4, {**TACKLE, "gear": [{"max": 1.0, "slot": "lines_per_angler"}]}),
+             G.Rule(ATTACH, 4, {**TACKLE, "gear": [{"max": 1.0, "slot": "terminal_attachments_per_line",
+                                                    "members": ["hook", "artificial_lure", "artificial_fly"]}]}),
+             G.Rule("r3:pennask_lake::pennask_lake.r1", 0, {**TACKLE, "gear": [{"slot": "lure",
+                                                                               "only": ["artificial_fly"]}]})]
+    a = G.resolve(rules, "lake", ["angling"])
+    assert a["fly"] == "artificial_fly_only"
+    assert a["summary"]["says"] == "Artificial fly only: 1 line with one fly."
+    assert [p["says"] for p in a["summary"]["parts"] if p["part"] == "attach"] == ["one fly"]
+
+
 def test_a2_dated_changes_name_the_other_days():
     """The Vedder: fly fishing only May 1-31 (its r4), the rest of the year the plain sentence."""
     plain, may = _rules("stream", hook=Z2_HOOK), _rules("stream", hook=Z2_HOOK, fly=VEDDER_FLY)

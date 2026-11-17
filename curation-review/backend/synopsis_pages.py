@@ -25,7 +25,7 @@ PDF_PATH = _pages.default_pdf()
 #: PDFIUM IS NOT THREAD-SAFE. FastAPI runs these sync routes in a thread pool, and the review screen
 #: asks for a crop and a page at once (and `j` held down asks for many): two renders in flight
 #: failed "Failed to load page." (8 threads x 6 renders: every thread failed; under this lock none
-#: did). Every pdfium call in the backend holds it — `page_png` here and `evidence._render`.
+#: did). Every pdfium call in the backend holds it: `render` here, which `page_png` and `evidence._render` call.
 PDFIUM_LOCK = threading.Lock()
 
 
@@ -38,19 +38,36 @@ def pdf_page(printed: int) -> int | None:
     return _pages.pdf_page(printed, PDF_PATH)
 
 
+def render(pdf_page_no: int, scale: float):
+    """PDF page `pdf_page_no` (1-based) as a PIL image that owns its pixels. EVERY pdfium object it makes is closed
+    by name INSIDE the lock — bitmap, page, document — and the pixels are copied out first: a pypdfium2 object refers
+    to itself, so a temporary left to the cyclic garbage collector is freed in whatever thread it runs, without the
+    lock (T792: a crash in `CPDF_Page::~CPDF_Page` from `gc_collect_main` while another thread was in
+    `FPDF_LoadDocument`)."""
+    import pypdfium2 as pdfium
+    with PDFIUM_LOCK:
+        doc = pdfium.PdfDocument(str(PDF_PATH))
+        try:
+            page = doc[pdf_page_no - 1]
+            try:
+                bitmap = page.render(scale=scale)
+                try:
+                    return bitmap.to_pil().copy()
+                finally:
+                    bitmap.close()
+            finally:
+                page.close()
+        finally:
+            doc.close()
+
+
 @lru_cache(maxsize=32)
 def page_png(printed: int, scale: float = 1.6) -> bytes | None:
     """A PNG of the printed page, rendered from the repo copy; None for a page it does not have."""
     n = pdf_page(printed)
     if n is None:
         return None
-    import pypdfium2 as pdfium
-    with PDFIUM_LOCK:
-        doc = pdfium.PdfDocument(str(PDF_PATH))
-        try:
-            img = doc[n - 1].render(scale=scale).to_pil()
-        finally:
-            doc.close()
+    img = render(n, scale)
     buf = io.BytesIO()
     img.save(buf, format="PNG", optimize=True)
     return buf.getvalue()

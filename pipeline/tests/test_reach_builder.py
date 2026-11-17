@@ -521,7 +521,7 @@ def test_an_unbound_dfo_location_stays_unbound():
     from pipeline.regs.dfo_salmon.entries import Binding, to_reach_input
 
     # The shape `to_reach_input` reads — Sheldens Creek's, the one real case (2026-09-23).
-    loc = SimpleNamespace(location_id="6:sheldens-creek:upstream", binding=Binding())
+    loc = SimpleNamespace(location_id="6:sheldens-creek:upstream", binding=Binding(), source_text={})
     entry, rules = to_reach_input(loc, [{"species": None}], None)
     assert entry["matched"] == []
     b, _ = build_reach(entry, rules[0], {"gnis:1": object()}, graph=None)

@@ -208,3 +208,31 @@ def test_kitsumkalum_lake_takes_no_piece_of_the_kitsumkalum_river(request):
         lake = next(set(r["sections"]) for r in map(json.loads, f)
                     if r["location_id"] == "6:kitsumkalum-lake:including-tributaries")
     assert lake and not lake & river, sorted(lake & river)
+
+
+# ---------------------------------------------------------------- T784: the words come from the place, not a hand-built rule
+
+def _dfo_place(area: str):
+    """Redsand Lake's shape as the reach run and the review app hand it in: `entries.to_reach_input`, never a rule dict
+    typed here (the old test above passes `verbatim=`, which production never builds)."""
+    from pipeline.regs.dfo_salmon import entries as E
+    loc = E.EntryLocation.from_dict({
+        "location_id": "6:redsand-lake:x", "region": "6", "region_number": 6, "kind": "water", "precedence": 3,
+        "water": "Redsand Lake", "water_id": "6:redsand-lake", "source_text": {"specific_area": area},
+        "binding": {"extents": [{"op": "whole", "item_id": "wbk:L"}], "tributaries": True}})
+    water = E.WaterBinding(water_id="6:redsand-lake", region="6", region_number=6, name="Redsand Lake",
+                           item_ids=["wbk:L"])
+    return E.to_reach_input(loc, [{}], water)
+
+
+def test_a_dfo_place_whose_own_words_name_the_through_river_takes_it(powell):
+    """T784: "unless DFO's words name it" fires on the place's `specific_area`, handed in as `extent_text`.
+    MUTATION: `to_reach_input` without `extent_text` (as before T784) keeps the Powell out here."""
+    g, reg = powell
+    entry, rules = _dfo_place("including the Powell River above the lake")
+    assert rules[0]["extent_text"] == "including the Powell River above the lake"
+    b, _ = build_reach(entry, rules[0], reg, g)
+    assert {"R:up", "RT"} <= set(b.sections)
+    entry, rules = _dfo_place("including tributaries")                    # words that do not name it: stays out
+    b, _ = build_reach(entry, rules[0], reg, g)
+    assert set(b.sections) == {"lake:L", "C"}

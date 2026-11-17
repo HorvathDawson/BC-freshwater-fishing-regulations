@@ -178,8 +178,11 @@ def check_group(P, g: dict) -> List[str]:
         ok, got = proved(head["n"], no_lift.fish(kinds), no_lift)
         if not ok:
             probs.append(f"{where}: headline says {head['n']}, with no lift {got} may be kept here")
-    if EID.is_table(E.T.entry_id):
+    from pipeline.deliver.answers.rows import pools
+    raised = any(x.clause.key == g["pool"] for x in pools(P))
+    if EID.is_table(E.T.entry_id) and not raised:
         # the zone's (or B.C.'s) total holds on every water of the region: here and elsewhere together
+        # (T834: a total a water's own quota RAISED is that water's number: proved as one, below)
         ok, got = proved(g["total"], E.fish(kinds, PLACES))
         if not ok:
             probs.append(f"{where}: the total says {g['total']}, {got} may be kept here and elsewhere")
@@ -190,7 +193,7 @@ def check_group(P, g: dict) -> List[str]:
         ok, got = proved(g["total"], E.fish(kinds))
         if not ok:
             probs.append(f"{where}: the total says {g['total']}, {got} may be kept here")
-        c = _claim(g["total"])
+        c = _claim(g["total"]) if not raised else None
         # a fish kept elsewhere that the total counts, in a band of it that has a number
         away = next((f for f in E.fish(kinds, ("lake", "stream"))
                      if E.counts(E.T, f, f[:3] + ("here",))

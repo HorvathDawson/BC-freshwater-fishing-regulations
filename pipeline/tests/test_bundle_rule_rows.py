@@ -420,10 +420,10 @@ def test_every_exemption_in_the_corpus_lifts_a_real_rule_or_says_why():
         ("r4:duck_lake_permit_required_see_note_on_page_34@4-6", "duck_lake.r3",
          "species_quotas.r1"),
         ("r4:duncan_river@4-19", "duncan_river.r2", "trout_char_winter_release.r1"),
+        # (T834, owner 2026-11-17 11:06, RULINGS T17/T3a: the Duncan's and Lardeau's bull trout 2 is not above the
+        # share's 2 — their r5 lifts were dropped from the corpus; the rainbow 5 still lifts, and raises, the share)
         ("r4:duncan_river@4-19", "duncan_river.r4", "trout_char_quota.r3"),
-        ("r4:duncan_river@4-19", "duncan_river.r5", "trout_char_quota.r3"),
         ("r4:lardeau_river@4-29+4-30", "lardeau_river.r4", "trout_char_quota.r3"),
-        ("r4:lardeau_river@4-29+4-30", "lardeau_river.r5", "trout_char_quota.r3"),
         ("r4:lavington_creek@4-26", "lavington_creek.r1", "trout_char_quota.r3"),
         ("r4:perry_creek@4-20", "perry_creek.r3", "trout_char_quota.r3"),
         ("r4:whiteswan_lake_s_inlet_outlet_streams@4-24",

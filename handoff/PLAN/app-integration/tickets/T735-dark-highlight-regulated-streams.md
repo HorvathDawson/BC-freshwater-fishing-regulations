@@ -1,6 +1,6 @@
 # T735 — The part you are on is hard to pick out in dark mode on a regulated stream
 
-Status: IN PROGRESS (before closed testing; OWNER PICKED LOOK C 2026-11-16 11:51, "C: dark edge + soft glow (Recommended)"; BUILT on branch `app/t735-dark-look-c` @ dfa9047d3 by a Sonnet lane, not reviewed by the app chat, no pictures yet, not merged)
+Status: DONE 465eea07d (2026-11-17 0.8.0 stock-take: owner picked look C 2026-11-16 11:51; benches pass; was: IN PROGRESS (before closed testing; OWNER PICKED LOOK C 2026-11-16 11:51, "C: dark edge + soft glow (Recommended)"; BUILT on branch `app/t735-dark-look-c` @ dfa9047d3 by a Sonnet lane, not reviewed by the app chat, no pictures yet, not merged))
 
 Source: owner 2026-11-14, phone, dark palette, build 31/32, verbatim: "The highlighting isn't very good in dark mode on regulated streams."
 His shot: the Fraser River's Map tab, "Part 3 of 19".
