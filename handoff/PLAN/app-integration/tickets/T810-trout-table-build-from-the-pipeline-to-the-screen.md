@@ -75,3 +75,17 @@ the new trout format? so maybe we can just work on the transisiton to the new tr
 to steps 3 to 7. First: the spec takes in his answers of 15:36, 15:42, 15:47, 15:48 (trout only, the folded entry with
 the expand arrow, no "reopens" unless closed today, "rule changes <date>" for a loosening, hatchery only), and the app
 chat's read-only check of the app half (tickets M to S against the real app code; its worker started ~16:30).
+
+## Owner, 2026-11-16 16:50: robust, end to end, no fighting
+"we want to make sure the plan is robust so that we change the data all the way in python and the front end and it all
+just works withotu fighting it and makign sure everythign is streamlined etc". Plan rule: Python decides every word,
+number and date; the app draws only (no rule logic in TS, payload types generated from `contract.py`); one trout path
+after the switch. Gate before build code: a fresh Opus review of the whole spec (after the app half is merged) for
+every place the two sides could fight; findings fixed in the spec first.
+
+## Owner, about 16:55 (app chat's batch, labels picked verbatim)
+Fold row: "All rows get arrow" (every folded row, other fish too, gets words plus the expand arrow). Pinned trout top
+line: "Drop it (Recommended)". Lone other fish beside trout: "Stays as today (Recommended)". Year bar's "Trout: release
+until …" line: "Drop it (Recommended)". The app chat's sizing file section 12 lists every place today's trout card
+decides in TypeScript (49 in core, 10 hand-written payload types, 12 facts with two sources, 11 old/new paths): input
+for the robustness review (owner 16:50).

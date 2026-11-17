@@ -476,21 +476,50 @@ the build on their own tickets and do not block it.
 
 ## 6. App work (app chat)
 
-> **Slot for the app chat's check (16:40).** A worker in the app chat started ~16:30 to check M to S against the real
-> app code. Its revised app ticket list **replaces this table** when it hands back. Until then, the table below changes
-> only where the owner's answers require it: trout only (Q dropped), the table opens under the existing folded Trout and
-> char entry, the HATCHERY ONLY label, and S keeps GroupCard and the group path for the other fish. File paths and line
-> numbers here are the 15:40 read and are not re-checked.
+Written by the app chat, 2026-11-16 16:57, from its worker's check of the app code (file:line in the full report;
+the report is kept beside this spec as `trout-table-app-check-2026-11-16.md`: sections 2–6 the app today, 9 risks and
+spec errors, 10 the draft screen half of the contract (now in `trout-table-contract.md`), 11 the main chat's three
+questions, 12 every place today's trout card decides in TypeScript). It replaces the 15:40 table.
 
-| Ticket | Goal | Files | Tests | Depends on |
-|---|---|---|---|---|
-| **M. Read the section** | `trout: 1` in `KNOWN_VERSIONS` (still unused by the page); `cell.trout` read; `trout_table/dates/frame` blobs through the existing codec and zdict; generated types | `core/src/regs/versions.ts`, `data/src/regs/reads.ts`, `inputs.ts`, `store.ts` | `store.test.ts` on the committed fixture release (re-cut with the flag) | I |
-| **N. View model** | `troutOf(inputs)` → `TroutVM`: a pure map from section to VM, styles from `now/next/quiet`, a11y labels joined in order; no comparisons or sums (a lint-style test: the module imports no `rows`/`group` types) | new `core/src/regs/trout.ts`, `model.ts` | whole-string tests per mock water from the fixture release; the VM's strings equal the section's strings (none added or changed) | M |
-| **O. The table** | `TroutCard`, drawn as the body of the **existing** Trout and char entry: the entry keeps its place, its folded short line ("Up to 2", from `fold`) and its expand arrow (owner 15:47); no kicker of its own. Inside: hatchery link, notes, top line, card line, keep box (strip with the optional filled HATCHERY ONLY label, rows with the label beside the name, right band with white boxes and "up to the N" cells), release/closed group, All together, year line, links; look A tokens; two text sizes; round 11 spacing; the filled label stands out on a single row (owner 15:56); dark; 200% fold (bands → bold lines with a rail); shapes-only (the label is a word, not a colour) | new `ui-native/src/regs/TroutCard.tsx` (+ parts), `KeepTab.tsx` behind a dev-only switch | render tests on fixtures; no sideways scroll at 360/390 px, 100/200%; every target ≥ 44 px; ARIA props; the label reads as "hatchery only" to a screen reader | N |
-| **P. The fish sheet** | Header, Here today, How to tell it (`FISH_TIPS`, both DV pictures, clipped-fin drawing, "Hatchery or wild?" link), Sources (this fish first); swipe down over 90 px, ✕, tap outside, Escape; no sideways moves; reuse `SheetHost`, `FishImage`, `SourcesView` | `core/src/regs/sheets/trout.ts`, `ui-native/src/regs/sheet/TroutSheet.tsx` | open every fish of every fixture water; gestures on web and native (file pairs per AGENTS 34a) | N |
-| ~~**Q. Other fish on the same table**~~ | **DROPPED** (owner 15:47: trout only; the other fish entries are untouched and keep the old card) | n/a | n/a | n/a |
-| **R. Picture pack and the test bed** | The 43 mock waters plus Fraser p11 (Region 3) and the Fraser at Mission (Region 2) at 390/360 px, folded and opened, light/dark, 100/200%, from a side release on the staging test channel, for the owner; a Maestro walk that opens the card and a sheet on a fresh install | `tools/store-shots.mjs`, `tools/testbed` | the walk on a fresh install (AGENTS W46 test bed) | O, P |
-| **S. Cutover and deletion, app half (trout path only)** | The trout entry reads only `trout`; `rows: 34`; delete the **trout** path: the group branch of `keep.ts:122-133`, the trout use of `glance.ts` `groupGlance`, `plainrow.ts`, `grouphead.ts`, `tree.ts`, `tail.ts`. **Keep** whatever the Other fish sheet (`SheetBody.tsx:71`) still calls, including `GroupCard.tsx` (owner 15:47); the app chat's check says which files go whole and which stay. Delete their trout tests and fixtures; re-cut `taps.json`, page oracle and VM fixtures (`node app/tools/regs-recut/sync.mjs`); update `keep.props.parity.test.ts`; knip clean; `app/MAP.md` | as listed | `pnpm check`; conformance; the full tier once | L ready, owner sign-off |
+**Owner, 2026-11-16 ~16:55 (app chat dialog, verbatim labels):** fold row "All rows get arrow" (every folded row,
+other fish too, shows its words and an expand arrow: O changes `KeepBlocks` fold rows for all fish, not only trout);
+pinned top line "Drop it (Recommended)" (S removes the trout pin line); a lone other fish beside trout "Stays as today
+(Recommended)"; the year bar's "Trout: release until …" line "Drop it (Recommended)" (S removes `troutLine`).
+
+**The rule for every ticket below (owner 16:50, via the main chat):** Python decides every word, number, date and
+which rows exist; the app draws only; payload types are generated, never hand-written; one fixture; one trout path
+after the switch. The one app-side phrase is the day words ("today" / "on Aug 15"), because the page shows any day.
+
+Letters kept where they fit. Q is dropped (owner 15:47). Sizes are worker sessions. Proof column: U = unit, G = golden
+/ fixture, B = Android bench / test bed, P = picture pack.
+
+| Ticket | Scope | Files | Needs (pipeline) | Size | Proof |
+|---|---|---|---|---|---|
+| **M0. Optional section gate** (new, first) | An `OPTIONAL_SECTIONS = {trout: 1}`: absent = fine, present at another version = refused; manifest check the same. `cell` read adds `trout` to the SELECT only when the layout lists the section (else the column does not exist) | `core/src/regs/versions.ts`, `data/src/regs/store.ts:116-122`, `reads.ts` keyCells | none | 0.25 | U: store.test (absent ok, wrong version refused, present ok) on a hand-made sqlite |
+| **M. Read the section** | `trout_table` / `trout_dates` / `trout_frame` families; today's cell only into `RegsInputs.trout`; generated types | `reads.ts`, `inputs.ts`, `core/src/regs/inputs.ts`, `answers.generated.ts` (emitted) | I (format, codec, pydantic models, fixture release with the flag) | 0.75 | U: reads.test on the fixture release; G: `inputs.release.test` |
+| **V. Shared vectors, app half** (new) | App tests read the committed vectors file (section 10.6); a loader + `--check` wiring in fast-fail | `app/fixtures/trout/` reader, `scripts/fast-fail.sh` line | V-py: `python -m pipeline.tools.emit.trout_vectors` | 0.25 | the vectors themselves |
+| **N. View model** | `troutOf(inputs, day)` → `TroutVM`: shape checks (bands partition, refs resolve, date keys valid) refusing with `reportFailure`; day words; styles; a11y labels; fold row VM; `KeepVM.trout` + a `"trout"` block in `keepOrder` | new `core/src/regs/trout.ts`, `model.ts`, `keep.ts`, `glance.ts` | vectors | 1 | U: whole strings per vector; mutation: a broken partition / dangling ref is refused; no rule logic (imports no `rows`/`group` types) |
+| **O. The table** | `TroutCard`: kicker + hatchery link, notes, top line, card line, keep boxes (band groups: each band = its rows beside one cell, so a shared white box spans its rows without a grid), filled HATCHERY ONLY label (row and box), release / closed group, all-together line, year line, links; two text sizes; tokens light/dark/cvd; large-text fold; 44 px targets; one fold row in `KeepTab` replacing group folds and trout plain rows; dev-only switch | new `ui-native/src/regs/TroutCard.tsx` (+ 2–3 parts), `KeepTab.tsx`, `KeepBlocks.tsx` (fold value/arrow), `theme.ts` + token source, `type.ts` | vectors | 2 to 2.5 | U: render each vector; a11y.test (labels, ARIA, 2× fold, no sideways at 360/390); palette/cvd/contrast tests; P (web export on the vectors) |
+| **P. Fish sheet** | New sheet key (e.g. `tf:<row key>`, parse + golden bridge), core builds it from existing blocks (header answer, Here today, How to tell it from `FISH_TIPS` + both DV pictures + hatch link, Sources: this fish's rules first, then all); opened from a row press | `core/src/regs/sheetKey.ts`, new `sheets/trout.ts`, `sheets.ts`, small `SheetBody` addition if a header block is needed | vectors (sheet texts) | 1 | U: every fish of every vector opens; SheetHost test; gesture tests already exist |
+| **T. Website text** (new) | `seo/model.ts` sections from the trout VM; `verify.ts`; check that the server render with the fold closed still carries the words | `tools/seo/model.ts`, `site.test.ts`, `t670.web.release.test.ts` | real section in a release (I + a side release) | 0.5 | U + G: site tests on the fixture release |
+| **R. Picture pack and test bed** | ~45 waters (the mock's + Fraser R2/R3) at 390/360, light/dark/cvd, 100/200%, from a side release; Maestro: open the fold and a sheet on a fresh install; re-shoot `18-regs-trout` | `tools/store-shots*`, testbed scenarios, `regs-walk.mjs`, `regs-web/rows.mjs` | a side release with the section (I…J) | 1 to 1.5 (+ heavy lanes) | B + P |
+| **S. Switch, app half** | Page reads only the table for trout; `rows: 34`, `trout: 1` required; remove the trout branch of `keepOf`, trout `looseRows`, trout row sheets, `troutLine` (Q4), group pin lines (Q2), the dev switch; re-cut fixtures (`sync.mjs`); retire/re-pin tests (section 3); t670 K3–K5; keep.props trout part; `app/MAP.md` | as listed in section 3 | L, J green; owner sign-off on R | 1.5 to 2 | `pnpm check`, conformance, full tier once; B (APK on the bench) |
+| **S2. Dead-branch cleanup** (optional) | Coverage over every other-fish row; delete composer branches only trout reached | `grouphead.ts`, `tree.ts`, `tail.ts` | S | 0.5 | U |
+
+**Total: about 8 to 11 sessions** (M0 0.25, M 0.75, V 0.25, N 1, O 2–2.5, P 1, T 0.5, R 1–1.5, S 1.5–2, S2 0–0.5).
+Confidence medium: the layout (O) and the switch (S) carry the spread. Not counted: design changes after the vectors
+are frozen.
+
+Dependency picture: M0 → (V → N → O, P) can run now on vectors; M, T, R need the pipeline's section (I) and a side
+release; S needs L and J.
+
+**Corrections to the 15:40 app half** (details in the check, section 9): M as written would make the app refuse every
+release without the section (hence M0 first); "Up to 5 today" cannot be written by Python (day words are core's);
+S deletes about 300 lines, not about 1,700 (the group composers stay for the other fish); the website text (T), the pin
+bar, the browser tools and store-shot checks were missing; search and Methods/Gear need no change; the sheet already
+closes on a flick or past a third of its height, not "over 90 px"; one fold replaces today's group folds AND the trout
+plain rows (about half of today's water-days show release-only or closed trout as full lines; the owner should see the
+Elk in winter in R).
 
 The dev-only switch in O exists only between O and S. It is removed in S, so no second trout path is left behind. The
 old card that stays for the other fish is the owner's choice and is not a second trout path.
