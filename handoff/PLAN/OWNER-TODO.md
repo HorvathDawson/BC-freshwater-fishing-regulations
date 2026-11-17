@@ -2241,3 +2241,35 @@ More questions (recommended answer first):
   fixes, T819, T826, T822, one by one after salmon and T759, each with the main chat's clear), picked "Yes, land what
   passes (Recommended)"; then a 0.7.12 upload to TestFlight and Play internal overnight, picked "Yes, upload overnight
   (Recommended)" (the coho loader goes in only once he has seen and picked its look). Anything that fails waits for him.
+- 2026-11-17 about 00:50, in the APP chat (verbatim): "also for gauges should look into why capilano river at canyon
+  gauge doesnt have level but i can find level for it online like here
+  https://metrovancouver.org/services/water/seymour-and-capilano-river-levels with 2023 - 2026 Flow & Level Continuous
+  Recorder here https://wateroffice.ec.gc.ca/report/real_time_e.html?stn=08GA031" and "other gauges might have same
+  issue as that". Filed T830: EC reports Capilano's level live, but HYDAT has only 2 years of its level (3 needed for a
+  band), so no Level is offered, and with the map on Level the row wrongly says "flow only". 16 stations are like it
+  (Nazko 985 sections, Beatton 327, Witches Brook 131, Capilano 72 …). **Yours (morning batch):** with no band, show
+  the raw level in metres unranked (recommended), or keep it hidden? The wrong "flow only" wording gets fixed either way.
+- 2026-11-17 overnight, the app chat (T814): **yours (morning batch):** your coho loader is built (branch
+  app-fix/t814-loader, not merged) on the splash / first-download / applying-data screens, your colours exactly in light
+  mode. In dark mode your dark ink nearly disappears. Pick **A** (paper-coloured ink #f2e8d5 on the dark screen, red
+  kept) or **B** (your colours on a paper tile behind the fish). Pictures sent in the app chat. It joins a build after
+  the pick; the overnight 0.7.12 goes without it.
+- 2026-11-17 overnight, the main chat (T810 trout table): **yours (morning batch):** Kaslo River and Keen Creek (Region 4) print
+  "Bull trout daily quota = 2 (any size)", the same words as the Lardeau and the Duncan, but only the Lardeau and Duncan
+  rows say the Dolly Varden don't count toward Region 4's "2 from streams". So today the rules engine lets you keep
+  2 fish in total on Kaslo and Keen, and the new trout table now says the same ("Up to 2"). The card that ships today
+  says "Not part of the 2 from streams" there, which disagrees with the engine. Pick: **A** read Kaslo and Keen like
+  the Lardeau (Dolly Varden on top of the 2; a small corpus edit plus a rebuild, and the table follows), or **B** keep
+  them as written (2 in total; the old card's line is then the wrong one, and it goes when the trout table replaces it).
+- 2026-11-17 overnight, the main chat (pre-staging map rebuild; nothing from it has shipped): **yours (morning batch),
+  what changes on the map:**
+  1. **Babine Lake east of the Gullwing Creek line** is now its own part, closed all year to all fishing (book p.50
+     "No Fishing east of a line from Gullwing Creek"), including the Aug 1-27 sockeye opening. The main body is unchanged
+     apart from the Pinkut radius note. OK?
+  2. **Hazelwood Creek's 4 ponds** (named by your T796 save) now count as widenings of the creek, not lakes. They lose
+     the lake rules and take the creek's: they close Jan 1 to Jun 15 under the Skeena winter closure. OK, or keep them as
+     lakes? (A worker is checking how the FWA and the book treat them.)
+  3. Being fixed overnight before you see it: Sheldens Creek showed as two waters in search, and the Gitnadoix
+     "upstream of the powerline" place had lost 4 side channels and one creek (that creek's coho went closed); the place
+     is meant to be the whole river.
+  Full list of changed answers: shown to you in the morning, after the fix rebuild.

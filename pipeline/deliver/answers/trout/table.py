@@ -99,6 +99,17 @@ A_WILD_QUOTA_FROM_EVERY_ROW = True
 #: boxes counted apart: the top line says each box's most here (its card's headline: a share inside the total), never
 #: the region's total the box head says ("Up to 8 brook trout and 2 other trout and char", not "… 5 other …")
 A_APART_SAYS_THE_BOX_MOST = True
+#: a stream share holds every fish its rule holds that no water's rule lifts out of it (the group's `subcaps[].of`), a
+#: fish under its water's own number beside the share included: Kaslo River and Keen Creek's "Bull trout daily quota = 2"
+#: lifts nothing (Lardeau's and the Duncan's same words do: their rows print the lift), so Dolly Varden count toward the
+#: 2 from streams — one band "only 2 of these 6" and the top line "Up to 2 {day}". False = the fish gets its own band
+#: beside the share and the top line adds ", plus 2 Dolly Varden/bull trout" (the engine keeps 2 in all)
+A_SHARE_HOLDS_ITS_UNLIFTED_FISH = True
+#: a one-origin quota that is a count the box's other fish share (its rule is one of the group's `subcaps`, same number:
+#: Region 6's "1 trout from streams Jul 1-Oct 31", which Kitimat's hatchery rainbow quota lifts for hatchery fish only)
+#: joins that count's band: "only 1 of these 3" over brown, cutthroat and the wild rainbow row, the twin rows kept side
+#: by side. False = the wild row's own "only 1 wild" beside "only 1 of these 2" (the engine holds the three to 1)
+A_WILD_QUOTA_JOINS_ITS_COUNT = True
 
 
 class TableError(AnswersError):
@@ -450,6 +461,15 @@ class Body:
                 if t["tier"] in ("count", "own", "share") and t["n"] is not None and t["n"] < box_n:
                     groups.setdefault(("tier", t["id"]), {"n": t["n"], "rows": [], "by": t["by"], "depth": 0,
                                                           "say": None})["rows"].append(r)
+        if A_SHARE_HOLDS_ITS_UNLIFTED_FISH:
+            for r in rows:
+                for t in r.chain:
+                    if t["tier"] != "share" or ("tier", t["id"]) not in groups:
+                        continue
+                    gd = groups[("tier", t["id"])]
+                    for x in rows:
+                        if x.fish in _share_of(g, t) and x not in gd["rows"]:
+                            gd["rows"].append(x)
         tier_by = {gd["by"]: gk for gk, gd in groups.items()}
         across = self._across(home, species)
         across_rules = {a["r"] for a in across}
@@ -477,6 +497,29 @@ class Body:
             n = ks[0].kind_n
             if len({r.fish for r in ks}) > 1 and n is not None and n < box_n:
                 groups.setdefault(("kind", kix), {"n": n, "rows": ks, "by": None, "depth": 2, "say": None})
+        joined_wild: Dict[tuple, tuple] = {}   # a one-origin quota -> the count's group holding it (drawn: not said again)
+        if A_WILD_QUOTA_JOINS_ITS_COUNT:
+            subs = {s["r"]: s for s in g.get("subcaps") or ()}
+            for x in self._wild_holders(row, rows):
+                for c in x.get("conds") or []:
+                    s = subs.get(c.get("r")) if c.get("c") == "origin2" and c.get("daily") else None
+                    if s is None or s.get("take") != c["daily"] or s.get("over_cm") is not None \
+                            or s.get("under_cm") is not None or c["daily"] >= box_n:
+                        continue
+                    who = set(c.get("who") or x.get("members") or ())
+                    mine = [r for r in rows if r.origin == c["o"] and r.fish in who]
+                    held = [r for r in rows if r.fish in set(s.get("of") or ()) and r.fish not in who]
+                    if not mine or not held:
+                        continue
+                    ids = {id(r) for r in held}
+                    gk = next((k for k, gd in groups.items() if gd["n"] == c["daily"]
+                               and {id(r) for r in gd["rows"]} == ids), None)
+                    if gk is None:
+                        gk = ("sub", c["r"])
+                        groups.setdefault(gk, {"n": c["daily"], "rows": list(held), "by": c["r"], "depth": 0,
+                                               "say": None})
+                    groups[gk]["rows"] += [r for r in mine if r not in groups[gk]["rows"]]
+                    joined_wild[(c["r"], c["o"], c["daily"])] = gk
         for gk in [gk for gk, gd in groups.items() if A_SUMMED_TIER_NEVER_DRAWN and gd["n"] >= self._most(gd["rows"])
                    and not (A_KIND_NUMBER_IS_SHARED and gk[0] == "kind")]:
             del groups[gk]                     # a count its fish cannot reach (a summed tier by the numbers): no limit
@@ -494,7 +537,13 @@ class Body:
             if r in order:
                 continue
             gk = next((k for k in drawn if r in groups[k]["rows"]), None)
-            order += [x for x in rows if x in groups[gk]["rows"] and x not in order] if gk else [r]
+            piece = [x for x in rows if x in groups[gk]["rows"] and x not in order] if gk else [r]
+            order += piece
+            if gk is not None and gk in joined_wild.values():
+                # a wild row a count's band joined (A_WILD_QUOTA_JOINS_ITS_COUNT): its twin follows the band
+                order += [x for x in rows if x not in order and x.origin is not None
+                          and not any(x in groups[k]["rows"] for k in drawn)
+                          and any(y.fish == x.fish and y.origin is not None for y in piece)]
         rows = order
         for gk in drawn:
             gd = groups[gk]
@@ -539,12 +588,11 @@ class Body:
                     others = [x.fish for x in under if x.fish != r.fish]
                     lines_of.setdefault(r.key, []).append(W.size_count_line(t["n"], cm, others))
         # -- the wild quota of the box's own; the one across boxes is `together` --------------------------
-        box_fish = {r.fish for r in rows}
-        holders = [x for x in self.rows_out if x.get("kind") in common.KEEPS
-                   and set(x.get("members") or ()) & box_fish] if A_WILD_QUOTA_FROM_EVERY_ROW else [row]
+        holders = self._wild_holders(row, rows)
         seen_c: set = set()
         for x, c in [(x, c) for x in holders for c in x.get("conds") or []]:
-            if c.get("c") != "origin2" or not c.get("daily") or c["r"] in across_rules:
+            if c.get("c") != "origin2" or not c.get("daily") or c["r"] in across_rules \
+                    or joined_wild.get((c["r"], c["o"], c["daily"])) in drawn:
                 continue
             if (c["r"], c["o"], c["daily"]) in seen_c:
                 continue
@@ -680,6 +728,14 @@ class Body:
         self.boxes.append({"kind": "keep", "head": W.head_keep(box_n), "label": label, "strip": W.strip(strip),
                            "tag": tag, "rows": rows, "bands": bands, "n": box_n, "home": home, "group": g,
                            "parts": parts, "passes": self._passes})
+
+    def _wild_holders(self, home: dict, rows: Sequence[_Row]) -> List[dict]:
+        """The keep rows of the frame whose conditions may hold a wild quota of the box's fish (A_WILD_QUOTA_FROM_EVERY_ROW:
+        every keep row holding one of them, a fish's own row included: Kitimat's rainbow), else the box's home row."""
+        if not A_WILD_QUOTA_FROM_EVERY_ROW:
+            return [home]
+        box_fish = {r.fish for r in rows}
+        return [x for x in self.rows_out if x.get("kind") in common.KEEPS and set(x.get("members") or ()) & box_fish]
 
     def _licence_duties(self, r: _Row) -> List[str]:
         """The row's yearly limit and record duties (`card.licence_duty`), from the decided answer the row says (its
@@ -851,12 +907,14 @@ class Body:
                 # the headline is a share (Region 4's "2 from streams"): a water's own rule BESIDE it (not inside it)
                 # adds its fish to the top line — "or 5 if they’re rainbow trout" (the stored `also`), then each fish
                 # under its own number "and no more than 2 Dolly Varden/bull trout", or with no `also` ", plus 2 …"
+                share = next(t for t in g["tree"][0]["children"] if t["node"] == "tier" and t["tier"] == "share")
                 for t in g["tree"][0]["children"]:
                     if t["node"] != "tier" or t["tier"] != "own" or t["n"] is None:
                         continue
                     for node, _c in _walk(t["children"]):
                         k = t["n"] if node["n"] is None else min(node["n"], t["n"])
-                        fish = [S for S in node["species"] if self.states.get(S) == "keep"]
+                        fish = [S for S in node["species"] if self.states.get(S) == "keep"
+                                and S not in _share_of(g, share)]
                         if fish and k not in also_ns:
                             rest.append((k, W.fish_words(fish)))
             rest = list(dict.fromkeys(rest))
@@ -905,6 +963,15 @@ class Body:
         return {"top": {"lead": lead, "second": together["text"] if together else None}, "fold": fold,
                 "hatch_link": marked, "boxes": tuple(boxes), "together": together, "year": None,
                 "elsewhere": tuple(dict.fromkeys(elsewhere)), "src": tuple(dict.fromkeys(src))}
+
+
+def _share_of(g: dict, t: dict) -> frozenset:
+    """The fish a share tier's rule holds, every lift taken out (the group's `subcaps[].of` for the tier's rule); none
+    where the flag is off or the group names no such sub-cap."""
+    if not A_SHARE_HOLDS_ITS_UNLIFTED_FISH:
+        return frozenset()
+    s = next((s for s in g.get("subcaps") or () if s["r"] == t["by"]), None)
+    return frozenset(s.get("of") or ()) if s is not None else frozenset()
 
 
 def _headline_n(b: dict):

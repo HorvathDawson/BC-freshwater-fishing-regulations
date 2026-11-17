@@ -467,6 +467,20 @@ test asserts the model refuses each one. The app's test asserts
 section `drafts` and are marked as drafts. They are never the source of a word. When the builder exists, `--check`
 replaces them with built cases, and any word that changed appears in G's catalogue diff for the owner.
 
+**As built (V-py, 2026-11-17).** One change to the above, forced by "only at the switch" (owner 17:40): until the app
+reads the section (M0), the app's committed regs fixture and its goldens must stay the normal release's (`taps.json`
+cut from a side release names `trout` in its store versions, which `store.release.test.ts` holds to `KNOWN_VERSIONS`),
+and every normal release re-cuts them (`regs-recut/sync.mjs`). So the vectors decode from a
+**trout fixture of their own**: `app/fixtures/trout/regs-release/` + `section-lines.json`, the same `regs_fixture`
+cut (`--trout-cases`: exactly the waters of `trout_vectors.CASES`, no golden waters) from a side release.
+`scripts/trout-refresh.sh` runs the chain (side release → `regs_fixture --trout-cases` → `trout_vectors` → golden
+sync → every `--check` and the cut again byte for byte); its golden-sync step runs `sync.mjs` only once
+`versions.ts` lists `trout` (M0), and says so when it does not. At the cutover (L) the normal release carries the
+section and the two fixtures can be one. The staging `side <dir>` scenario: the app reads every release file's url
+relative to `<origin>/release/` on the test channel too, so the scenario names its files `../test/release/<id>/…`
+(the staging data worker resolves the dot segment itself; `deploy/staging/test-updates.test.mjs`); not yet walked on
+a device.
+
 ### 2.9 Bytes, and how tickets A0 and A1 measure them
 
 **Two tickets, not one** (review should-fix 3). **A0 (now, before E and F):** a prototype estimate of the section on

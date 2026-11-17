@@ -62,7 +62,7 @@ mine (heavy.sh default), 3 lent to the app chat for the twins' benches (second e
 optional; app version 0.7.12 by the app chat), the Babine saves (marks 2825-2836), Squamish re-tick (2837), Dean (2838),
 the plan files, all owner notes to now.
 
-**2. SALMON LANDING (owner 22:52 "Land it (Recommended)"; Kennedy note "Keep").** **00:45 11-17: app chat said go at 00:40; merged locally as ef5dfd6a1 (mini release re-cut, locations + feed run); full tier running (log scratchpad/tier-salmon.log). NEXT: if green, push, then SendMessage the app chat "pushed <hash>" (bc-freshwater-fishing-regulations-9c) so it merges app/salmon-twins-1116 + T759 on top. If red, fix or report; do not push red.** Ready: branch `land/salmon-1116` @
+**2. SALMON LANDING (owner 22:52 "Land it (Recommended)"; Kennedy note "Keep").** **00:45 11-17: app chat said go at 00:40; merged locally as ef5dfd6a1 (mini release re-cut, locations + feed run); full tier running (log scratchpad/tier-salmon.log). 00:49: tier green (7106 passed), PUSHED 2eb7a04b2, app chat told "pushed 2eb7a04b2" to merge app/salmon-twins-1116 + T759 on top. NEXT: hold my next push until the app chat says "pushed <hash>" and its CI settles.** Ready: branch `land/salmon-1116` @
 c0fd201d6 (worktree `/private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/b8ddfca9-44eb-400e-a9bf-bd89b4b0f359/scratchpad/salmon-land-wt`): both salmon lanes merged on the dev head, rulings folded (lane D7 -> D8; lane
 D8/D9 -> dev's L26/L25; lane O7/O8 -> O9/O10), pack regenerated, tier 6,800 + 13 known worktree-env. WAITING for the
 app chat's "go" (twins' Android benches on lane 3, ~60-75 min from 23:05). Then: merge land/salmon-1116 into the main
@@ -77,12 +77,20 @@ its `_reindex`), dfo_vectors --check with both in.
   landing; Babine line re-save (`PYTHONPATH=$PWD .venv/bin/python -I /private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/b8ddfca9-44eb-400e-a9bf-bd89b4b0f359/scratchpad/babine/save/save_line.py` then
   `apply closed_areas --no-commit`), re-mark the two DFO Babine places on the parts; then T807 / T804 lists; staging
   release (`--staging --dry-run --rehearse-follows` first; BEFORE/AFTER to the app chat).
+  **02:34 11-17: BACK.** land/rebuild-1116 @ bc542e4aa, release r-499c74d578b1 in scratch (card check 0, gates pass). Fixed
+  on the way: Babine east part named as a creek (renamed "East of the Gullwing Creek line"), Rainbow Alley cut ids,
+  answers_diff `--handles-a/-b`. Diffs: scratchpad/rebuild/answers-diff/{vs-live-r-46e4355a7277,vs-salmon-r-1603e71cc92c}.
+  Owner sees (OWNER-TODO 11-17 rebuild entry): Hazelwood's 4 ponds become creek (close Jan 1-Jun 15); Babine east part
+  closed all year (book p.50). Follow-up worker a86de8e705336ff07 on the same branch: Sheldens one item (stopgap
+  e8ffdf96d binds both), Gitnadoix powerline place back to the whole river (991 -> 1,000; creek 360742973 coho), then
+  ONE more rebuild + diffs. Merge to main only after that and after the owner has seen the list.
 - trout J back 00:05 11-17, merged locally as 02e51cfdc (mini release re-cut on merge); tier running, then push.
-  Worker a4085d0519fdf0daf (lane/trout-vpy, worktree scratchpad/trout-vpy-wt): fix the 5 keys J still fails (Kaslo/Keen DV inside the band; Kitimat/Humphrys/Iron Mine/Tetlock
-  wild-rainbow joined with brown+cutthroat), then V-py.
+  01:53 11-17: worker done; lane/trout-vpy merged locally as 5d6ac8283 (6 keys fixed, proof 5,950/5,950, 0 problems; V-py:
+  trout_vectors 53 cases, trout-hand 14, own trout fixture app/fixtures/trout/, scripts/trout-refresh.sh). Tier b806pz7n9
+  running (scratchpad/tier-trout.log). Push after the app chat's T759 "pushed <hash>" is merged on top. Kaslo/Keen
+  question filed in OWNER-TODO (morning).
 
-**4. Trout (T810).** Done: I0, A0, F0, E, G, F, H, I, J (5 keys left). Next: the 5-key fix + V-py (side release + fixture + refresh
-script), G2 (his sentence list; F's 10 questions are in T810's 21:02 note), A1, then the app's M0+M, the picture pack,
+**4. Trout (T810).** Done: I0, A0, F0, E, G, F, H, I, J, J's keys, V-py. Next: G2 (his sentence list; F's 10 questions are in T810's 21:02 note), A1, then the app's M0+M, the picture pack,
 the cutover (ship only at the switch). The app chat's T824 drops the walkthrough's trout "Tap Details" step.
 
 **5. Queued data tickets.** T825 (251 side channels led by a far-upstream gauge, list to him first), T813 (Schoolhouse
