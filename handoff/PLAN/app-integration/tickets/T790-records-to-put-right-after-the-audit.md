@@ -24,3 +24,8 @@ Source: general audit 2026-11-16, decisions checker (`handoff/PLAN/audit-2026-11
 8. T778: the "test on built data" was not written (unit tests on hand-made graphs only).
 9. 5 of the owner's 17 reviewed continuation links are stale and stopped shipping; 4 new ones wait with no owner row
    (`data/generated/bundle/continuations_held.json`).
+
+## Lane result (lane/bugs-080, 2026-11-17)
+Item 4, the ledger half: the 47 DONE / DROPPED rows still in README.md moved to DONE.md (`check-tickets` passes).
+Not done here: the stale rows' statuses (T690 … T738), the missing ticket numbers, items 1-3 and 5-9 (OWNER-TODO and
+RULINGS are the main chat's files today).
