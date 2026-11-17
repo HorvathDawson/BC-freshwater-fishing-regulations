@@ -44,6 +44,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Tuple
 
+from pipeline.common.calendar_spec import MONTHS, WEEKDAYS as CALENDAR_WEEKDAYS
 from pipeline.common.curated import REPO_ROOT
 
 FORMAT = "trout-vectors/1"
@@ -57,9 +58,8 @@ FIXTURE = HERE / "regs-release"
 LINES = HERE / "section-lines.json"
 
 _BY = "python -m pipeline.tools.emit.trout_vectors"
-MONTHS = ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
-WEEKDAYS = {"mon": "Monday", "tue": "Tuesday", "wed": "Wednesday", "thu": "Thursday", "fri": "Friday",
-            "sat": "Saturday", "sun": "Sunday"}
+#: the calendar spec's own tables (gate 4: spelled once); a case names its weekday by its first three letters
+WEEKDAYS = {w[:3].lower(): w for w in CALENDAR_WEEKDAYS}
 
 
 @dataclass(frozen=True)
