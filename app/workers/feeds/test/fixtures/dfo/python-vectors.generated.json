@@ -20674,7 +20674,7 @@
       "No natural bait allowed (Aug 1–Dec 31)"
      ],
      [
-      "Single, barbless hook in tidal and non (Apr 1–Mar 31)"
+      "Single, barbless hook in tidal and non-tidal portions of all streams. (Apr 1–Mar 31)"
      ],
      [
       "No natural bait allowed (Jun 1–14)"
@@ -44178,7 +44178,7 @@
       "No natural bait allowed (Aug 1–Dec 31)"
      ],
      [
-      "Single, barbless hook in tidal and non (Apr 1–Mar 31)"
+      "Single, barbless hook in tidal and non-tidal portions of all streams. (Apr 1–Mar 31)"
      ],
      [
       "No natural bait allowed (Jun 1–14)"
@@ -75834,7 +75834,7 @@
     "No natural bait allowed (Aug 1–Dec 31)"
    ],
    [
-    "Single, barbless hook in tidal and non (Apr 1–Mar 31)"
+    "Single, barbless hook in tidal and non-tidal portions of all streams. (Apr 1–Mar 31)"
    ],
    [
     "No natural bait allowed (Jun 1–14)"
@@ -112361,7 +112361,7 @@
       ],
       "gears": [
        [
-        "Single, barbless hook in tidal and non (Apr 1–Mar 31)"
+        "Single, barbless hook in tidal and non-tidal portions of all streams. (Apr 1–Mar 31)"
        ]
       ],
       "sp": [
@@ -112510,7 +112510,7 @@
        ],
        "rule_id": "1b043061.r2_hook",
        "type": "tackle_restriction",
-       "verbatim": "Single, barbless hook in tidal and non",
+       "verbatim": "Single, barbless hook in tidal and non-tidal portions of all streams.",
        "when": {
         "dates": [
          {
