@@ -124,7 +124,8 @@ def test_a_found_name_curation_gives_is_not_written_twice(monkeypatch):
 
 @pytest.mark.needs_atlas
 def test_search_finds_one_sheldens_creek(request):
-    """On the built registry: one item answers to "Sheldens Creek", and it holds the FWA line and the channel."""
+    """On the built registry: one item answers to "Sheldens Creek", and it holds the FWA line and the channel (and, as
+    a named stream, its unnamed widening pond lake:329381266, 3.5 ha, by the widening fold: T679 #5)."""
     from pipeline.tests import under_test
     from pipeline.tests.conftest import ATLAS_HINT, need
     from pipeline.common.names import key
@@ -134,7 +135,7 @@ def test_search_finds_one_sheldens_creek(request):
     hits = [it for it in items if it.get("kind") != "area"
             and key("Sheldens Creek") in {key(x) for x in (it.get("name"), *(it.get("variants") or ())) if x}]
     assert [it["id"] for it in hits] == [SHELDENS]
-    assert {s.split(":")[0] for s in hits[0]["section_ids"]} == {"360846083", "-2400000001"}
+    assert {s.split(":")[0] for s in hits[0]["section_ids"] if not s.startswith("lake:")} == {"360846083", "-2400000001"}
 
 
 # --------------------------------------------------------------------------------------------- Mara Bridge
