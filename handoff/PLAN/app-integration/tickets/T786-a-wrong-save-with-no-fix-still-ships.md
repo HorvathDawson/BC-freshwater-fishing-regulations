@@ -1,6 +1,6 @@
 # T786 — A place whose last save is "wrong" with no fix still ships its older drawing (the owner: "I want you to for it to be redrawn… Just be safe")
 
-Status: OPEN (owner 2026-11-17 15:21: a release gate; see the last section).
+Status: OPEN (owner 2026-11-17 15:19: a release gate; see the last section).
 
 Source: owner 2026-11-15 evening, round 1; general audit 2026-11-16, decisions checker item 1 (`handoff/PLAN/audit-2026-11-16/decisions.md`).
 
@@ -23,5 +23,5 @@ Question 18, typed: "can we sort this out now i want to review it and make it co
 ## 2026-11-17 ~15:18: closed (owner, OWNER-TODO 15:18)
 All 34 re-check places answered from pictures 2026-11-16 and re-saved (marks 2795-2839). Owner: "I feel like we have done these like 3 times already so it should be good???". No safety net built. Owed later: pictures for 2739 (Morice Gosnell-Lamprey, after its fix) and 2783 (Sheldens, after the map rebuild).
 
-## 2026-11-17 ~15:21: REOPENED as a release gate (owner)
+## 2026-11-17 ~15:19: REOPENED as a release gate (owner)
 "The safety net should be a build warning I think then we fix it and do not ship \"wrong\" places..". Build: the release preflight (and fast-fail) lists every place whose latest save is "wrong" with no extent fix, live or dormant, and REFUSES to ship while any is listed (a dated, reasoned allowance like NOT_LANDED_OK is the only way past). We fix and re-save, then ship. Pinned with a test and a mutation. Today the list should be empty (all re-saved 11-16).
