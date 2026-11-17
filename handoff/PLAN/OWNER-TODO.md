@@ -2123,3 +2123,7 @@ More questions (recommended answer first):
   (T812): Babine Lake is split on the due-south Gullwing Creek line the way other lakes are split (east part = its
   own piece, closed as DFO says); the 400 m creek-mouth circles are NOT cut out of the lake: they are drawn as circles
   on the map (an overlay) with the card's note, no extra lake sections.
+- 18:57, the Babine circles' look (T812; the app chat's three questions, one dialog). Which map, picked: "Salmon map only
+  (Recommended)". Follow the picked day, picked: "Follow the day (Recommended)" (closed colour on DFO's closure days,
+  outlined or hidden otherwise). Tap, picked: "Opens the lake's card (Recommended)" (Babine Lake's salmon card, whose
+  note says which creek mouths close and when).

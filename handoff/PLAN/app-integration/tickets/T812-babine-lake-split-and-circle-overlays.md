@@ -19,3 +19,8 @@ source?"), the Gullwing line "Due south" (worker branch `lane/babine-mouths`, 6b
 ## App (app chat)
 - Draw a closure circle as a circle overlay on the map (style per the palette), from data the pipeline ships; no
   geometry computed in the app.
+
+## Owner, the circles' look
+"Salmon map only (Recommended)"; "Follow the day (Recommended)"; tap: "Opens the lake's card (Recommended)". So the
+data ships each circle's closure days (from its DFO piece) with the centre, radius and piece id; the app draws closed
+on those days only, Salmon map only, and a tap opens Babine Lake's card.
