@@ -688,6 +688,11 @@ export const PACK_FILES: Record<string, PackFile> = {
     "kind": "bin",
     "tables": {}
   },
+  "flow-small": {
+    "format": "flow-small/1",
+    "kind": "bin",
+    "tables": {}
+  },
   "geo": {
     "format": "geo/2",
     "kind": "sqlite",
@@ -2480,7 +2485,7 @@ export const PACK_FILES: Record<string, PackFile> = {
 };
 
 /** (T403) The files a release may omit (contract OPTIONAL); every other file is in every published release. */
-export const PACK_OPTIONAL: readonly string[] = ["lakes"];
+export const PACK_OPTIONAL: readonly string[] = ["flow-small", "lakes"];
 
 /**
  * (T810 ticket I, trout table contract 2.1) THE OPTIONAL ANSWERS SECTIONS: per section, the `cell` columns and the tables
@@ -2611,6 +2616,7 @@ export const PACK_UNITS: Record<string, string> = {
   "access": "access/1: 'BCAX', u8 1, 8 bytes section_handles, then an access half (pipeline/deliver/release/paint.py)",
   "climate.gauge_clim.bands": "clim/2: [u8 pentad, 5 x float16 LE] records",
   "flow-area": "flow-area/1: 'BCFA', u8 1, one LEB128 varint per paint section (sid order) = round(km2 x 1000)",
+  "flow-small": "flow-small/1: 'BCFS', u8 1, one LEB128 varint per paint section (sid order) = bitmask over its panel's members by ord: bit i set where member i drains at least the conditions meta's small_water_ratio times the section's target area (show small_water_text beside that member's reading)",
   "geo.part_geo.e": "microdegrees",
   "geo.part_geo.mid_lat": "microdegrees",
   "geo.part_geo.mid_lon": "microdegrees",

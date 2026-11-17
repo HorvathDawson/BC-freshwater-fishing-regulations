@@ -50,12 +50,18 @@ def region_tables(sections=()) -> dict:
 
 #: the files a release may omit. `lakes` is the lake modes' slot, prepared and not fed (owner 2026-10-21): no producer
 #: makes one, `deliver all` ships none, and the app greys Stocked / Depth until a release carries it.
-OPTIONAL = frozenset({"lakes"})
+#: (T823) `flow-small` is BUILT into every release from now, and optional only so an app built from this contract still
+#: reads a release cut before it (staging, 2026-11-16): the app reads its absence as "no warning bits", by the file's
+#: presence in the manifest, never by catching an error. Required once a release carrying it is live and the app reads it.
+OPTIONAL = frozenset({"lakes", "flow-small"})
 
 #: {file: {"format", "kind": "sqlite" | "bin", "tables": {table: [columns]}}}
 FILES = {
     "paint": {"format": PAINT.FORMAT, "kind": "bin", "tables": {}},
     "flow-area": {"format": PAINT.AREA_FORMAT, "kind": "bin", "tables": {}},
+    # (T823) per paint section, which of its panel's members drain so much more than it that their reading carries the
+    # small-water warning (the conditions meta's `small_water_text`): pipeline/gauges/consume/small_water.py
+    "flow-small": {"format": PAINT.SMALL_FORMAT, "kind": "bin", "tables": {}},
     # (T54) the gentler access tiers (permit / reserve / private) a Regulations page notes; paint carries the no-access rows
     "access": {"format": PAINT.ACCESS_FORMAT, "kind": "bin", "tables": {}},
     "lakes": {"format": LF.FORMAT, "kind": "bin", "tables": {}},
@@ -225,6 +231,9 @@ UNITS = {
     "water.part_mark.lon": "microdegrees", "water.part_mark.lat": "microdegrees",
     "climate.gauge_clim.bands": "clim/2: [u8 pentad, 5 x float16 LE] records",
     "flow-area": "flow-area/1: 'BCFA', u8 1, one LEB128 varint per paint section (sid order) = round(km2 x 1000)",
+    "flow-small": "flow-small/1: 'BCFS', u8 1, one LEB128 varint per paint section (sid order) = bitmask over its panel's "
+                  "members by ord: bit i set where member i drains at least the conditions meta's small_water_ratio times "
+                  "the section's target area (show small_water_text beside that member's reading)",
     "paint": "paint/5: see pipeline/deliver/release/paint.py",
     "access": "access/1: 'BCAX', u8 1, 8 bytes section_handles, then an access half (pipeline/deliver/release/paint.py)",
     "lakes": "lakes/1: 'BCLK', u8 1, 8 bytes section_handles, LEB128 asof+1, LEB128 count, then per section "
@@ -317,5 +326,7 @@ WEB_BUDGET = {
                           "gate": 6_200_000},
     # the Conditions tab: gauges and the lake road (conditions' `lake_section`, so no core), the panels' areas; the
     # climatology (climate) waits for a chart (4,151,534 → 997,511)
+    # (T823) `flow-small` (21,396 B gz on the 2026-11-16 bundle, ~1,095,000 with it) joins this list WITH the app's reader
+    # and the walk's re-cut pin (`app/tools/release-budget.test.ts` holds the pin to this list), not before
     "conditions_open": {"files": ["flow-area", "conditions"], "gate": 1_150_000},
 }
