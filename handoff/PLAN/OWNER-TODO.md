@@ -2360,5 +2360,7 @@ More questions (recommended answer first):
     desktop. maybe on side or top please choose the most standard spot" -> T839: Claude chose a left navigation rail at
     desktop width (Material's rule for wide screens; Google Maps / AllTrails / onX); top stays search + day. Shots
     before it lands.
-  - Nahwitti River: char sit on their own under the other-fish table instead of in the trout tab; checking whether the new
-    trout table (T810) repeats it. Answer owed.
+  - Nahwitti River: char sit on their own under the other-fish table instead of in the trout tab. Checked 11:51: today
+    Region 1's "Release all char" (trout_quota.r7) is a row with no pool, drawn after the table (289 waters have the shape).
+    The new trout table (T810) puts DV/lake trout/brook trout in its Release box (0 of 513 such keys left out); Nahwitti
+    added to the trout hard cases (main chat) and the app's drawn-once gate. Answered in chat.
