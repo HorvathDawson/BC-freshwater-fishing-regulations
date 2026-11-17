@@ -36,6 +36,18 @@ _SHORTHAND = re.compile(r"~|=|↔|\bu/s\b|\bd/s\b|\b(Lk|Ck|confl)\b|\bup of\b|\b
                         r"|\b(th|about)\s*\(|,\s*\(|^\s*\(|\bth$|^within\b")
 #: "<place> (<n> m upstream)": a cut-point placed at an offset from a named place.
 _OFFSET = re.compile(r"^(?P<base>.*?)\s*\((?P<off>\d[\d,.]*\s*m\s+(?:upstream|downstream)[^()]*)\)\s*$")
+#: the same offset as the book prints it (T801 item 4): "<n> m|km upstream of <place>" — a confluence's offset is said so
+_OFFSET_OF = re.compile(r"^(?P<off>\d[\d,.]*\s*k?m\s+(?:upstream|downstream))\s+of\s+(?P<base>.+)$", re.I)
+#: a confluence's BARE offset in its label's tail: "(1500 m upstream)" — no "of …" description after it
+_BARE_OFFSET = re.compile(r"^\((?P<n>\d[\d,]*)\s*m\s+(?P<dir>upstream|downstream)\)$")
+
+
+def _distance(metres: int) -> str:
+    """A distance as the book prints it: "100 m", "1.5 km", "5 km" (from 1,000 m, in km)."""
+    if metres >= 1000:
+        km = metres / 1000
+        return f"{km:g} km"
+    return f"{metres} m"
 
 #: `area_kind` — a FAMILY of areas — in words. A region is no place in a label: the rule's region
 #: is the page it is on, so "in Region 4" on every zone rule says nothing.
@@ -315,7 +327,7 @@ def _between(a: str, b: str) -> str:
     """Two cut-points: "between A and B" — or, when both are offsets from ONE place, the place said
     once ("from Dickson Falls to 30 m downstream", not "between Dickson Falls and Dickson Falls
     (30 m downstream)")."""
-    ma, mb = _OFFSET.match(a), _OFFSET.match(b)
+    ma, mb = _OFFSET.match(a) or _OFFSET_OF.match(a), _OFFSET.match(b) or _OFFSET_OF.match(b)
     base_a, off_a = (ma["base"], ma["off"]) if ma else (a, None)
     base_b, off_b = (mb["base"], mb["off"]) if mb else (b, None)
     if _bare(base_a) == _bare(base_b) and (off_a or off_b):
@@ -378,10 +390,14 @@ class PlaceNamer:
             return None, iid
         kind = str(getattr(b, "kind", "") or "")
         if kind == "confluence" or "→" in name:
-            # "Morrison Creek → Puntledge River (100 m downstream)" keeps its offset.
+            # "Morrison Creek → Puntledge River (100 m downstream)" keeps its offset, said as the book prints it
+            # (T801 item 4, the Skeena's weekend zone (b): "1.5 km upstream of Zymoetz River confluence", not "the
+            # Zymoetz River confluence (1500 m upstream)"); any other tail stays a tail
             tail = re.search(r"\s*(\([^()]*\))\s*$", name)
-            name = f"the {name.split('→')[0].strip()} confluence" + (f" {tail.group(1)}"
-                                                                    if tail else "")
+            conf = f"the {name.split('→')[0].strip()} confluence"
+            bare = _BARE_OFFSET.match(tail.group(1)) if tail else None
+            name = (f"{_distance(int(bare['n'].replace(',', '')))} {bare['dir']} of {conf}" if bare
+                    else conf + (f" {tail.group(1)}" if tail else ""))
         return _title(name), iid
 
     # ------------------------------------------------------------------ one extent

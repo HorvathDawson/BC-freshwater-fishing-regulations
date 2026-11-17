@@ -30,3 +30,13 @@ Item 1 done: the Section 4 designation's `review_reason` now records the owner's
 ("Skeena River upstream of 1.5 km upstream of Zymoetz River (Skeena River 4)"). Binding unchanged (already right).
 Designation records forbid extra fields, so the note lives in `review_reason` (as Skeena River 2's provenance does);
 the review app's tiers still count a designation with any review_reason as flagged. Items 2-5 not in this lane.
+
+## Lane result, items 2-4 (lane/bugs-080, 2026-11-17)
+- Item 4 FIXED d0df51fd0: a confluence offset reads "1.5 km upstream of the Zymoetz River confluence" (`place_names.point`;
+  the 9 confluence-offset cuts: Zymoetz/Skeena, Morrison/Puntledge x2, Thorne and Kemess/Attichika x4, Halfway/Peace x2).
+- Item 3 NOT changed: the sentence quotes the designation's row ON PURPOSE for the place (the Chilko's "upstream of
+  Brittany Creek" is pinned by `test_the_export_says_where_and_when_the_stamp_is_not_required`); quoting the stamp line
+  instead drops every waiver's place. For the Skeena River 2 the row is the whole two-waters sentence. Needs a choice:
+  quote the stamp line beside the place, or trim the Skeena row to its (a) part.
+- Item 2 needs the app: the class box body is composed in `app/packages/core/src/regs/licence.ts` from the record's
+  fields; a "separate licence per section" line needs a field the box reads (the app chat).

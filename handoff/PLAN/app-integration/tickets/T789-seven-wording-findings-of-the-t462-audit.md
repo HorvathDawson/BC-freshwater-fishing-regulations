@@ -8,7 +8,15 @@ Source: general audit 2026-11-16, decisions checker item 7 (`handoff/PLAN/audit-
 - K7: "Open, except some parts" when nothing is closed (`core/src/regs/strip.ts` line 148).
 - K8: the Shuswap pier exemption is dropped.
 - G8: non-resident-alien weekend closures are not on the Licence tab.
-- G9: fly-only waters say "One hook or fly".
+- G9: fly-only waters say "One hook or fly". **FIXED ee9fb62ff** (lane/bugs-080, 2026-11-17): `gear.summary_parts` keeps the fly
+  alone in both fly modes (p.80: an artificial fly is a dressed hook); every artificial-fly-only reading now says "one fly"
+  (36 rules, 35 waters: Pennask, Lois, Big O.K., Campbell, Gordon, Nanaimo, Thompson below Kamloops Lake, West Road
+  and its tributaries, ...), and the dated "changes" line of a water with such a period. Ships with the next data build.
 - G10: the under-16 non-resident price line.
-- D6: a Region 6 gear line is cut mid-word.
+- D6: a Region 6 gear line is cut mid-word. **Traced, not landed** (lane/bugs-080, 2026-11-17): not the comma (the flag reads
+  it); the quoted span `single,?\s+barbless\s+hook[\w\s,.]*` stops at the hyphen of "non-tidal". Fix:
+  `(?:[\w\s,.]|-(?=\w))*` in BOTH twins, `pipeline/regs/dfo_salmon/typed.py` and `app/workers/feeds/src/dfo/typed.ts`
+  `RE_HOOK_SPAN` (T556 parity), then `python -m pipeline.tools.emit.dfo_vectors` (the vectors go stale with the Python
+  half alone) and the worker's `dfo.vectors.test.ts`; then `python -m pipeline.regs.dfo_salmon.feed` (no model) before
+  the data build. Needs the app chat (app/workers). No re-parse.
 Each changes words an angler reads. Fix or get the owner's OK to leave, one by one.

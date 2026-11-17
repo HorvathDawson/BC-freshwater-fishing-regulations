@@ -317,6 +317,10 @@ class StepCache:
             return f"the recorder could not key {trace.unkeyable[0]}"
         if trace.conflicts:
             return f"{trace.conflicts[0]} changed while the step ran"
+        if not trace.modules:
+            # every step is pipeline code: a trace with no repo module is a recorder that saw nothing (T835: a
+            # checkout under /tmp), and a record keyed on nothing would be reused whatever the code says
+            return "the recorder saw no module of this repo (is the checkout under a skipped root?)"
         me = {(sys.version.replace("\n", " "), os.path.realpath(sys.executable))}
         if trace.interpreters != me:
             return f"it ran under another interpreter ({sorted(trace.interpreters)})"
