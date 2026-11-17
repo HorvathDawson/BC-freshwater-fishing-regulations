@@ -2359,7 +2359,8 @@ More questions (recommended answer first):
   - "desktop mode on webapp should maybe move the bottom map.conditions. spots, more bar somewhere more standard for
     desktop. maybe on side or top please choose the most standard spot" -> T839: Claude chose a left navigation rail at
     desktop width (Material's rule for wide screens; Google Maps / AllTrails / onX); top stays search + day. Shots
-    before it lands.
+    before it lands. 12:30 dialog after the shots (Map light, Conditions dark, phone): "Land it (Recommended)"; the
+    walkthrough card is kept off the rail before landing.
   - Nahwitti River: char sit on their own under the other-fish table instead of in the trout tab. Checked 11:51: today
     Region 1's "Release all char" (trout_quota.r7) is a row with no pool, drawn after the table (289 waters have the shape).
     The new trout table (T810) puts DV/lake trout/brook trout in its Release box (0 of 513 such keys left out); Nahwitti
@@ -2376,3 +2377,22 @@ More questions (recommended answer first):
   and "please update the regional office questions". Done: Frog, Redfern and Squirrel questions now say which lakes of
   that name exist and where, and what the row's words match (Frog = Hidden/Secret's words; Squirrel = the MU 6-1 lakes
   printed in both tables). Questions file re-sent.
+- 2026-11-17 12:29, owner, on T834's "was X, now Y" page (brook trout 20 lakes 25->20, R7 brook trout 10 lakes 15->10,
+  Tranquille 13->8, Khartoum/Lois 10->6, Peace 5->3, Lavington 22->20, Perry 21->20, Beaver 10->8): "Yes, ship all
+  (Recommended)". On the card (two boxes "20 brook trout" + "5 trout/char" read as 25; proposed one box "Up to 20 a
+  day: brook trout up to 20, other trout up to 5"), verbatim: "This is weird because the total is still the regional
+  number so we should only use that but then the exemption overrides it only for that species but will still fill up
+  the trout total quota. Please look at it more closely. Basically I mean the total is 5 not 20 or 25. Just 20 trout is
+  a single exemption but changing the total to accommodate that is confusing. So it should say something like 5 with
+  exception to 20 brook trout which also uses up your 5 quota." So the card leads with the region's 5, not the 20.
+  Confirming the catch (does 15 brook + 5 cutthroat stay allowed?) before the card is built.
+- 2026-11-17 12:32, owner (verbatim), on "15 brook trout + 5 cutthroat at a brook trout 20 lake: legal?": "For now say
+  legal ( need to ask about this with co tho)". Built as legal (others at most 5, all at most 20; brook trout count
+  toward the 5). Card: "5 trout a day / Exception: brook trout up to 20 (count toward the 5; past 5, brook trout
+  only)". Question added to GOTCHAS (T834 entry + Region 4 office Q1).
+- 2026-11-17 12:43, for the owner: re-tick Sheldens Creek (DFO Region 6, "upstream of white triangular fishing boundary
+  signs … Spur 19 Bridge site") in the review app. The 11-15 night mark (saved by Claude, unsure, whole creek) was
+  overtaken by your 11-16 20:01 "Extend to the bridge"; it now waits on NOT_LANDED_OK until you mark the place again.
+- 2026-11-17 13:15, owner, on T834's cards as built (Jewel, Kootenay, Peace, Lardeau): box head "Lead with 5
+  (Recommended)" (box reads "Keep 5, brook trout up to 20 / brook trout count toward the 5; past 5, brook trout only",
+  not "Keep 20 in all"); the other three cards "Yes, they read right".

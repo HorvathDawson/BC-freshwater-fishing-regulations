@@ -13,7 +13,7 @@ import { Pressable, Text, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { makeFixtureSource } from "@app/data/fixture";
 import type { Spot } from "@app/data/spots";
-import { clearPanelCache, HOME, type Route } from "@app/ui";
+import { clearPanelCache, HOME, LayoutWidthContext, type Route } from "@app/ui";
 import type { Panel, SectionId, WaterSource } from "@app/data";
 import { LIGHT } from "./theme";
 import { labelAudit, shellPressAudit } from "./regs/testing/a11yAudit";
@@ -33,11 +33,12 @@ const TAMIHI: Spot = {
 function mount(start: Route, width: number, extra: Record<string, unknown> = {}) {
   Object.defineProperty(document.documentElement, "clientWidth", { configurable: true, value: width });
   Object.defineProperty(document.documentElement, "clientHeight", { configurable: true, value: width > 700 ? 900 : 844 });
-  render(<GestureHandlerRootView>
+  // (T839) the window's width is told to the app as App.tsx tells it: at 1280 the tabs are the left rail
+  render(<LayoutWidthContext.Provider value={width}><GestureHandlerRootView>
     <Shell source={makeFixtureSource()} palette={LIGHT} theme="light" themeName="light" onTheme={() => {}}
            tiles={{ atlas: "a", basemap: "b" } as never} initialRoute={start} spots={[TAMIHI]} onSaveSpot={() => {}}
            locate={null} {...extra} />
-  </GestureHandlerRootView>);
+  </GestureHandlerRootView></LayoutWidthContext.Provider>);
 }
 /** a closed sheet slides out on react-native-web and is gone at the end of its animation, which jsdom never plays */
 const slidOut = () => act(() => {
@@ -238,6 +239,24 @@ describe.each([["phone", 390], ["desktop", 1280]] as const)("(T243) %s: every pr
       if (go) await go();
       expect(findings()).toEqual([]);
     });
+});
+
+describe("(T839) the desktop rail is in the 44 × 44 gate", () => {
+  it("1280: the tabs are rail presses, named, each box reaching 44 × 44; 390: they are the bottom bar's", async () => {
+    for (const [width, rail] of [[1280, true], [390, false]] as const) {
+      mount(HOME, width);
+      await settle();
+      expect(!!screen.queryByTestId("nav-rail")).toBe(rail);
+      const tabs = screen.getAllByRole("tab");
+      expect(tabs.map((t) => t.getAttribute("aria-label"))).toEqual(["Map", "Conditions", "Runs", "Spots", "More"]);
+      for (const t of tabs) {
+        const [w, h, top, right, bottom, left] = (t.getAttribute("data-hitslop") ?? "").split(" ").map(Number) as [number, number, number, number, number, number];
+        expect([w + left + right >= 44, h + top + bottom >= 44]).toEqual([true, true]);
+      }
+      expect(findings()).toEqual([]);
+      cleanup();
+    }
+  });
 });
 
 describe("(T243) the audit catches what it is for", () => {

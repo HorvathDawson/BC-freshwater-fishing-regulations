@@ -28,7 +28,7 @@ import { GUIDE_WATER, WATER_SCREEN_WORDS, bellLabel, releaseNoticeVM, dayRange, 
 import { openProbe, type ItemId, type SectionId } from "@app/data";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Platform, View } from "react-native";
-import { bottomBarShown, spotPins, useDayFlow, useLikeVisit, useMapRail, useStationNames, useMyLocation, useOpenAtMe, opensAtMe, useShare, useGaugePageCheck, useMenu, useDataFacts, useSync, useAppUpdate,
+import { bottomBarShown, tabsAsRail, useLayoutClass, spotPins, useDayFlow, useLikeVisit, useMapRail, useStationNames, useMyLocation, useOpenAtMe, opensAtMe, useShare, useGaugePageCheck, useMenu, useDataFacts, useSync, useAppUpdate,
          BackLayerContext, InSeasonContext, InSeasonInboxContext, useIdleOnce, useInSeason, loadRegsStore, useInSeasonInbox, useDfoNotice, useDfoCheckedAt, useReleasePrefetch, useBackgroundPrefetch, useWaterRegionsAhead, useNet, useNetQuiet, useRegsPrefetch, holdsMapStatus, pressCueStore, tapAhead, useTapAwaiting, useHeldLookStore, type HeldLookStore, type RegsStart } from "@app/ui";
 import type { Camera, MapSpots } from "@app/map";
 import { visitSpot } from "@app/data/spots";
@@ -39,6 +39,7 @@ import { SpotPickBanner } from "./SpotPickBanner";
 import { SynopsisLoading } from "./regs/SynopsisLoading";
 import { PdfViewer } from "./regs/PdfViewer";
 import { TabBar } from "./TabBar";
+import { NavRail, NAV_RAIL } from "./NavRail";
 import { EdgeBack } from "./EdgeBack";
 import { LayersSheet } from "./LayersSheet";
 import { InSeasonNotice } from "./InSeasonNotice";
@@ -183,7 +184,10 @@ export function Shell(p: ShellProps) {
   // (T275) the foot block's height, for the credits and scale above it
   const [footH, setFootH] = useState(0);
   /** (T508) the tab bar's height, last measured: the row a held pane will grow into once shown (`heldStyle`) */
-  const [tabsH, setTabsH] = useState(0);
+  const [tabsRowH, setTabsH] = useState(0);
+  /** (T839) at the desktop breakpoint the four tabs are a left rail (`NavRail`), not a bottom bar: no row under the body */
+  const tabsRail = tabsAsRail(useLayoutClass());
+  const tabsH = tabsRail ? 0 : tabsRowH;
   const [runsAt, setRunsAt] = useState<number | null>(null);
   /** (T369 D15) where on that section the Runs tap landed: the water it opens is that tap's */
   const [runsPoint, setRunsPoint] = useState<{ lat: number; lon: number } | null>(null);
@@ -440,7 +444,8 @@ export function Shell(p: ShellProps) {
   const guideCard = (
     <GuideCard guide={guide} facts={guideFacts} acts={guideActs} palette={palette} registry={coach}
                top={(route.mode === "browse" && !adding && !openSpot ? topBarBottom() : 0) + 8}
-               bottom={bottomBarShown(route) ? TAB_BAR_ROOM : 0} />
+               bottom={bottomBarShown(route) && !tabsRail ? TAB_BAR_ROOM : 0}
+               left={tabsRail && bottomBarShown(route) ? NAV_RAIL.width : 0} />
   );
   /** (T293, T456) what the walk reads from the screens: the controls' places, their own state, and which water is its */
   const coached = (n: React.ReactNode) => (
@@ -637,7 +642,10 @@ export function Shell(p: ShellProps) {
           </>}</HeldKey>
       </>
     ),
-    tabs: bottomBarShown(route) ? <TabBar active={tab} palette={palette} onChange={nav.toTab} /> : null,
+    tabs: bottomBarShown(route)
+      ? (tabsRail ? <NavRail active={tab} palette={palette} onChange={nav.toTab} />
+                  : <TabBar active={tab} palette={palette} onChange={nav.toTab} />)
+      : null,
   };
   if (frame === null) lastBrowse.current = { map: browseLive, ...chromeLive };
   const held = pane.holding ? lastBrowse.current : null;
@@ -664,7 +672,10 @@ export function Shell(p: ShellProps) {
     {/* a regulations tab's "Report a problem with this page" reads the menu from here (menu/ReportLink) */}
     <MenuContext.Provider value={menu}>
     <SharePortContext.Provider value={sharePorts}>
-    <View style={{ flex: 1, backgroundColor: palette.card }}>
+    <View style={{ flex: 1, backgroundColor: palette.card, flexDirection: tabsRail ? "row" : "column" }}>
+      {/* (T839) the desktop's left rail: the map and its bars start to its right; held with the rest while a pane is held */}
+      {tabsRail && <View collapsable={false} pointerEvents={held ? "none" : "auto"} style={{ flexDirection: "row" }}>{chrome.tabs}</View>}
+      <View style={{ flex: 1 }}>
       <PairBanner col={col} palette={palette} />
       {/* (T254) a slow or missing line, said once over everything: "Slow connection — showing what we have" */}
       <NetBanner palette={palette} onPress={() => nav.toTab("more")} />
@@ -702,8 +713,9 @@ export function Shell(p: ShellProps) {
           {chrome.foot}
         </View>
       </View>
+      </View>
       {/* A tab change is a change of subject: the remembered reach goes with it. Hidden in water mode (P13/P14). */}
-      {chrome.tabs && <View collapsable={false} pointerEvents={held ? "none" : "auto"}
+      {chrome.tabs && !tabsRail && <View collapsable={false} pointerEvents={held ? "none" : "auto"}
                             onLayout={(e) => setTabsH(Math.round(e.nativeEvent.layout.height))}>{chrome.tabs}</View>}
       {/* (T215) the synopsis PDF is loading / failed: progress, Cancel, Retry */}
       <SynopsisLoading palette={palette} floating />

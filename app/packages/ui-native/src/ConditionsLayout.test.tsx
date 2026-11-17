@@ -158,7 +158,7 @@ const SAYS: Readonly<Record<"estimate" | "none", readonly string[]>> = {
     "No gauge sits exactly here, so the reading is carried from the nearest ones. A gauge counts for more when it drains a piece of country the same size as this one, when it sits upstream, and when it has a long record. The percentage beside each is how much of the answer above came from it.",
     "12.5",
     "m³/s",
-    "· 1.2 m stage",
+    "· 1.20 m stage",
     "Below normal · lower than 9 days in 10 for the date",
     `This gauge's own reading · observed ${localStamp(Date.parse("2026-09-04T06:00:00Z"))} · checked 5 min ago`,
     "Flow",

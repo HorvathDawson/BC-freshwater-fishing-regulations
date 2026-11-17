@@ -308,7 +308,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T815 | iOS: the spots photo viewer's close ✕ sits under the status bar | DONE | f7b41c208 | owner iPhone build 36, 2026-11-16 |
 | T816 | iOS: text cut off (the hour on "When were you there?", the weather icons) | DONE | f7b41c208 | owner iPhone build 36, 2026-11-16 |
 | T817 | A water with only level data (Harrison Lake) opens its Conditions on Level, and says so; Level never takes Flow away (the Chehalis) | DONE | f7b41c208 | owner 2026-11-16 (refines T728) |
-| T819 | Spots view cleanup: review and proposals for the owner | OPEN | — | owner 2026-11-16 |
+| T819 | Spots view cleanup: review and proposals for the owner | DONE | 6c18bc2b0 | owner 2026-11-16 |
 | T820 | The salmon year bar is empty on a closed day instead of the full red closed stripe | DONE | 50e432ba3 | owner iPhone build 36, 2026-11-16 |
 | T821 | iOS: the back swipe flashes the previous menu for a moment | DONE | f7b41c208 | owner iPhone build 36, 2026-11-16 |
 | T822 | iPhone push: the phone never registers with the staging worker | OPEN | — | owner iPhone build 36, 2026-11-16 |
@@ -319,15 +319,16 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T827 | A fresh agent tries to break every salmon rule against DFO's own pages | OPEN | — | owner 2026-11-16 (future) |
 | T828 | Salmon card: DFO's rows as printed fold into "Source (DFO)" | OPEN | — | owner 2026-11-16 (app) |
 | T829 | Salmon species rows in the same look as the other fish table and the new trout table (formatting only) | OPEN | — | owner 2026-11-16 (app) |
-| T830 | A gauge that reports a live level but has no level history shows no Level (Capilano at Canyon, 15 more) | OPEN | — | owner 2026-11-17 (gauges) |
+| T830 | A gauge that reports a live level but has no level history shows no Level (Capilano at Canyon, 15 more) | DONE | 3eb8a4e28 | owner 2026-11-17 (gauges) |
 | T831 | The route map inside a water's Conditions view draws no gauge dots and no "you are here" pin on the phones | OPEN | — | T826 agent 2026-11-17 |
 | T832 | iOS: a river can keep an old colour after a horizon change or a feed refresh (null feature-state writes dropped) | OPEN | — | T826 agent 2026-11-17 |
 | T833 | A cut on a line's end drops every line touching that node, not just the lines meeting at the cut (Gitnadoix powerline) | OPEN | — | rebuild follow-up 2026-11-17 |
 | T834 | A water row's own printed quota takes that fish out of the region's stream share automatically (Kaslo, Keen like the Lardeau) | OPEN | — | owner 2026-11-17 |
 | T835 | The step cache reuses stale outputs in a worktree under /tmp (`_trace.install` skips /tmp) | OPEN | — | T834 worker 2026-11-17 |
 | T836 | The spot photo viewer behaves like the standard phone photo viewers (swipe down to close, tap to hide, counter, opens from its thumbnail) | OPEN | — | owner 2026-11-17 (app) |
+| T837 | The sun line writes "sunset" in lower case after the dot ("Sunrise 08:50 PT · Sunset 17:43 PT") | DONE | 745d59ae8 | owner 2026-11-17 (app) |
 | T838 | Drop the loose "Conditions: today" line above the estimate card (the switch names the day) | IN PROGRESS | — | owner 2026-11-17 (app) |
-| T839 | Web on a desktop: the Map / Conditions / Spots / More bar becomes a left navigation rail | OPEN | — | owner 2026-11-17 (app) |
+| T839 | Web on a desktop: the Map / Conditions / Spots / More bar becomes a left navigation rail | IN PROGRESS (built on branch; owner look owed) | — | owner 2026-11-17 (app) |
 
 ## Next after closed testing
 

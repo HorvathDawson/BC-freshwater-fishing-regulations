@@ -317,12 +317,14 @@ const near = (a: Rect | null, b: Rect | null) => a === b || (!!a && !!b && Math.
  * The card stays hidden until its step's first look, so it never shows at the foot and then jumps beside its highlight. (T824, "glitchy with keyboard") With
  * the keyboard up the card keeps above it (`useKeyboardTop`, `footRoom`), whatever the step.
  */
-export function GuideCard({ guide, facts, acts, palette, registry, top, bottom }: {
+export function GuideCard({ guide, facts, acts, palette, registry, top, bottom, left = 0 }: {
   guide: Guide; facts: GuideFacts; acts: GuideActs; palette: Palette; registry: CoachRegistry;
   /** where a card docked at the top sits (under the search field) */
   top: number;
   /** room kept at the foot (the tab bar, when it is shown) */
   bottom: number;
+  /** (T839) room kept at the left edge: the desktop's navigation rail, which the card and its ring start to the right of */
+  left?: number;
 }) {
   const W = WALKTHROUGH_WORDS;
   const step = STEPS[guide.at]!;
@@ -447,7 +449,7 @@ export function GuideCard({ guide, facts, acts, palette, registry, top, bottom }
 
   if (guide.paused) return (
     // (T456) THE PAUSED WALK: a chip at the foot, out of the way; it puts the app back where the step was
-    <View pointerEvents="box-none" testID="guide" style={{ position: "absolute", left: 0, top: 0, right: 0, bottom: 0, zIndex: 20 }}>
+    <View pointerEvents="box-none" testID="guide" style={{ position: "absolute", left, top: 0, right: 0, bottom: 0, zIndex: 20 }}>
       <View testID="guide-paused" style={{ position: "absolute", bottom: bottom + SPACE.s3, alignSelf: "center",
                                            flexDirection: "row", alignItems: "center", gap: SPACE.s2,
                                            backgroundColor: palette.card, borderWidth: 1.5, borderColor: palette.ink,
@@ -472,7 +474,7 @@ export function GuideCard({ guide, facts, acts, palette, registry, top, bottom }
   return (
     <View ref={(v) => { origin.current = v as unknown as Measurable; }} collapsable={false} pointerEvents="box-none"
           onLayout={(e: LayoutChangeEvent) => setLaid({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })}
-          testID="guide" style={{ position: "absolute", left: 0, top: 0, right: 0, bottom: 0, zIndex: 20 }}>
+          testID="guide" style={{ position: "absolute", left, top: 0, right: 0, bottom: 0, zIndex: 20 }}>
       {ring && (
         <View testID="guide-ring" pointerEvents="none"
               style={{ position: "absolute", left: ring.x - RING, top: ring.y - RING, width: ring.w + 2 * RING,

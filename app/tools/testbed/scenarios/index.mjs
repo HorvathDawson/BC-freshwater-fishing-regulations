@@ -20,6 +20,7 @@ import { locate } from './locate.mjs';
 import { gestures } from './gestures.mjs';
 import { walkthrough } from './walkthrough.mjs';
 import { gaugeOffline } from './gauge-offline.mjs';
+import { gaugeLevel } from './gauge-level.mjs';
 import { memory } from './memory.mjs';
 import { waterNav } from './water-nav.mjs';
 import { heapprof } from './heapprof.mjs';
@@ -42,4 +43,4 @@ import { tapStalls } from './stalls.mjs';
 import { backFlash } from './back-flash.mjs';
 import { openRace } from './open-race.mjs';
 
-export const SCENARIOS = [install, feeds, bigUpdate, offline, spots, savedSpots, twoDays, routeScroll, report, crash, crashBed, nearCold, satellite, pan, perf, regsOpen, updateFreeze, bgInstall, locate, gestures, walkthrough, gaugeOffline, memory, waterNav, heapprof, edge, feel, partSteps, tabSwitch, glide, photoZoom, stepShots, paneOpen, mapIdle, switchPan, regsSwitch, retireSwap, zoomFlick, tapStalls, backFlash, openRace];
+export const SCENARIOS = [install, feeds, bigUpdate, offline, spots, savedSpots, twoDays, routeScroll, report, crash, crashBed, nearCold, satellite, pan, perf, regsOpen, updateFreeze, bgInstall, locate, gestures, walkthrough, gaugeOffline, gaugeLevel, memory, waterNav, heapprof, edge, feel, partSteps, tabSwitch, glide, photoZoom, stepShots, paneOpen, mapIdle, switchPan, regsSwitch, retireSwap, zoomFlick, tapStalls, backFlash, openRace];

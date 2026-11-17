@@ -32,6 +32,8 @@ export interface ReadingVM {
   stage: string | null;
   /** (T567) Every quantity the station reported, so the card can show the one the chart is about. */
   figures: Readonly<Partial<Record<Parameter, number>>>;
+  /** (T830) The quantities the publisher says it reports live, ranked or not; null on a feed from before it. */
+  reports: readonly Parameter[] | null;
   /** (T567) On a forecast day, whose this figure is: "Today's reading" (the day asked has its own line, `forecast`); else null. */
   scope: string | null;
   /** (T567) On a forecast day, the lead gauge's forecast for the day asked, finished; null on Now / Change or without a row. */
@@ -75,6 +77,8 @@ export interface ConditionsVM {
   loading: boolean;
   /** The day everything is for — the caller's, or today when it chose none. */
   day: Date;
+  /** (T830) The instant it is asked at: a picked day's B.C. midnight, today the clock (the gauge switch's and the rows'). */
+  ref: number;
   /** The donor answer with its routes, for `DonorPanel`. */
   panel: PanelAnswer;
   /** The reaches between here and every donor. */
@@ -251,6 +255,7 @@ export function useConditionsView(
       quantity: shown,
       stage: shown === "discharge" && c.level != null ? stageLine(c.level) : null,
       figures: { ...(c.discharge != null ? { discharge: c.discharge } : {}), ...(c.level != null ? { level: c.level } : {}) },
+      reports: c.reports ?? null,
       scope: dayName ? FORECAST_DAY_WORDS.today : null,
       forecast: dayName && leadRow
         ? (quantity === "level" && donorState(leadRow, ask).kind === "flow-only" ? leadGapLine(dayName)
@@ -278,7 +283,7 @@ export function useConditionsView(
       && (lead === null || got.state !== "loading"),
     // A LAKE IS READ AT ITS OWN GAUGE: the donor panel says so, not "no gauge on this water" (answerFrom's "no-station"
     // for a section with no panel), which the lake's own reading under it would contradict (T105 review).
-    day: today, panel: speaker?.kind === "lake" ? { ...panel, answer: { ok: false, why: "own-gauge" } } : panel,
+    day: today, ref, panel: speaker?.kind === "lake" ? { ...panel, answer: { ok: false, why: "own-gauge" } } : panel,
     chain, route, lead, select, reading, quiet,
     // THE REFUSAL ONLY WHERE NOTHING SPEAKS (`speakerFor` null): a panel offline or a lake gone quiet has a gauge that
     // speaks for it, and "No gauge is entitled to speak for this water" over it would be false (T105 review).

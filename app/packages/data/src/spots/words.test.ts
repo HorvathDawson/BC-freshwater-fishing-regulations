@@ -130,6 +130,6 @@ describe("spotRowLines — the list row (T819 item 11): the water and the visit'
     const both = { station: "08ME030", discharge: 5.46, level: 4.162, percentile: null, at: null };
     expect([row({ reading: { ...both, parameter: "level" } })[1], row({ reading: both })[1],
             row({ reading: { ...both, discharge: null, parameter: "discharge" } })[1]])
-      .toEqual(["4.162 m", "5.46 m³/s", "No gauge"]);
+      .toEqual(["4.16 m", "5.46 m³/s", "No gauge"]);
   });
 });

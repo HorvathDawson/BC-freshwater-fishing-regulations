@@ -37,3 +37,13 @@ Lane 916965dc7 is NOT merged.
 water's own quota N for X: N <= C, X sits inside C (no change); N > C, that cap becomes N for X only (other kinds stay
 <= C, all inside N). Lardeau/Duncan 5 (bull + others <= 2: the T3a bull-trout lifts go), Kootenay Lake main body 10,
 Kaslo/Keen 2, Adams 4, Buckley 1. GOTCHAS entry (Questions for BC Fish and Wildlife) carries every case.
+
+2026-11-17 12:29, owner: the changed-waters page OK'd ("Yes, ship all"). Card, verbatim: "the total is still the
+regional number so we should only use that but then the exemption overrides it only for that species but will still
+fill up the trout total quota ... the total is 5 not 20 or 25 ... it should say something like 5 with exception to 20
+brook trout which also uses up your 5 quota." Card leads with the region's cap; the own number shows as an exception
+for that fish that counts toward the cap. Catch confirmation pending (see OWNER-TODO 12:29).
+
+2026-11-17 12:32, owner: "For now say legal ( need to ask about this with co tho)" (15 brook + 5 cutthroat). Engine unchanged; card leads with the region cap and shows the own number as an exception counting toward it.
+
+2026-11-17 13:15, owner: box head "Lead with 5 (Recommended)" ("Keep 5, brook trout up to 20 ..." not "Keep 20 in all"); Kootenay, Peace and Lardeau cards "Yes, they read right". Then merge with the Nahwitti vector.

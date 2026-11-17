@@ -176,6 +176,13 @@ export type DonorVM =
 export interface DonorViewOptions {
   /** The CHOSEN day: today on a live sheet, the visit on a saved spot. Never the clock. */
   day: Date;
+  /**
+   * (T830) The INSTANT the answer is asked at, where it is not the day's start: a live sheet today asks at the clock
+   * (`ConditionsVM.ref`, the one the gauge switch reads). Read against the day's midnight, every reading made after
+   * 06:00 that cannot be ranked (Capilano's level, which has no band) was past the age line and named "Not reporting",
+   * while the switch beside it said reporting. Absent (a saved spot): the day.
+   */
+  ref?: number;
   horizon: Horizon;
   /** Where the reader is, for "you are here". */
   from: { lat: number; lon: number } | null;
@@ -216,7 +223,7 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
    * not a pin; `silentLine` names it under the table with its last data time. Core decides which are silent (the same
    * rule `donorReads` words), against the CHOSEN day.
    */
-  const ref = o.day.getTime();
+  const ref = o.ref ?? o.day.getTime();
   const silent = silentLine(rows, { ref, horizon: o.horizon, ...(o.zone ? { zone: o.zone } : {}) });
   /*
    * A ROW'S TONE IS ITS INDEX IN THE PANEL'S WEIGHT ORDER, not its place among the rows shown. The gauge switch lists
@@ -342,7 +349,7 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
       station: r.station, row: toneOf(r), name: r.route?.name ?? null, quiet: !donorCounted(r), on,
       bar: `${Math.max(1, Math.round(r.weight * 100))}%`,
       weightLine: donorWeightLine(r),
-      reads: donorReads(r, { ref: o.day.getTime(), horizon: o.horizon }),
+      reads: donorReads(r, { ref, horizon: o.horizon }),
       lastReport: !donorCounted(r) ? donorLastReport(r.observedAt, o.zone) : null,
       facts: donorFacts(r),
       relation: !sides || !isDonorSide(sideOf(r)) ? null : donorRelation({
@@ -464,7 +471,7 @@ export function useGaugeSides(source: WaterSource, section: SectionId | null,
 
 /** `donorView`, memoised for a component. */
 export function useDonorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
-  const { day, horizon, from, size, selected, pickable, quantity, sides, place, own } = o;
+  const { day, ref, horizon, from, size, selected, pickable, quantity, sides, place, own } = o;
   const t = day.getTime();
   const lat = from?.lat;
   const lon = from?.lon;
@@ -472,11 +479,11 @@ export function useDonorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
   const placeKey = place ? place.join(",") : "";
   const ownKey = own ? [own.lat, own.lon, own.name, own.label, own.key, own.live].join("|") : "";
   return useMemo(
-    () => donorView(value, { day: new Date(t), horizon,
+    () => donorView(value, { day: new Date(t), ...(ref !== undefined ? { ref } : {}), horizon,
                              from: lat != null && lon != null ? { lat, lon } : null,
                              size: { width, height }, selected, pickable,
                              ...(quantity ? { quantity } : {}), sides: sides ?? null,
                              place: placeKey ? place ?? null : null, own: ownKey ? own ?? null : null }),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- the box and the lake's own gauge by value
-    [value, t, horizon, lat, lon, width, height, selected, pickable, quantity, sides, placeKey, ownKey]);
+    [value, t, ref, horizon, lat, lon, width, height, selected, pickable, quantity, sides, placeKey, ownKey]);
 }
