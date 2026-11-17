@@ -2181,3 +2181,10 @@ More questions (recommended answer first):
   Chehalis sections (matches.json unchanged; 08MG023 below Statlu Creek auxiliary). So the iPhone showing no Chehalis
   conditions is app-side (with the missing gauge markers and bar on Apple); sent to the app chat for its conditions
   ticket.
+- Shortly before 21:54, the spots cleanup (the app chat's T819; relayed verbatim): picked all four bundles, "B: readable
+  spot page (Recommended)", "A: fix wrong bits (Recommended)", "C: list + adding", "D: fit & finish". On a small creek
+  (1.4 km²) shown "Below normal" from a gauge 676× bigger, typed: "Could we just use our gauge network that colors stuff
+  wtc to determine if it is significant enough? It would drop that in theory. Then ofr small ones still give a warning
+  if used." So: a spot takes its gauge from the same section → lead-gauge network the Conditions map colours with
+  (drainage gate applied); no lead = no estimate; a lead on a small water = the estimate with a plain warning. The
+  "small next to its gauge" decision is Python's (T823), the app reads it.
