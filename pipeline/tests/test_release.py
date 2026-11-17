@@ -279,7 +279,7 @@ def test_a_built_release_is_exactly_the_contract(rel, tmp_path):
     d = rel[0]
     m = json.loads((d / "manifest.json").read_text())
     # every file but the optional ones; `lakes` is prepared, not fed (owner 2026-10-21), so this release has none
-    assert set(m["files"]) == set(FILES) - OPTIONAL
+    assert set(m["files"]) == set(FILES) - {"lakes"}     # (T823) `flow-small` is optional to READ, always built
     for name, spec in ((n, s) for n, s in FILES.items() if n in m["files"]):
         assert m["files"][name]["format"] == spec["format"], name
         if spec["kind"] == "sqlite":

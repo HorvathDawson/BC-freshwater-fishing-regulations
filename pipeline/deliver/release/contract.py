@@ -24,7 +24,10 @@ _REGION_TABLES = {
 
 #: the files a release may omit. `lakes` is the lake modes' slot, prepared and not fed (owner 2026-10-21): no producer
 #: makes one, `deliver all` ships none, and the app greys Stocked / Depth until a release carries it.
-OPTIONAL = frozenset({"lakes"})
+#: (T823) `flow-small` is BUILT into every release from now, and optional only so an app built from this contract still
+#: reads a release cut before it (staging, 2026-11-16): the app reads its absence as "no warning bits", by the file's
+#: presence in the manifest, never by catching an error. Required once a release carrying it is live and the app reads it.
+OPTIONAL = frozenset({"lakes", "flow-small"})
 
 #: {file: {"format", "kind": "sqlite" | "bin", "tables": {table: [columns]}}}
 FILES = {

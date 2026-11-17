@@ -122,5 +122,5 @@ def test_a_section_naming_a_panel_with_no_members_is_refused():
 
 def test_the_contract_ships_flow_small():
     assert C.FILES["flow-small"] == {"format": "flow-small/1", "kind": "bin", "tables": {}}
-    assert "flow-small" not in C.OPTIONAL
+    assert "flow-small" in C.OPTIONAL      # until a release carrying it is live and the app reads it (coordinator 11-16)
     assert C.FILES["conditions"]["tables"]["section_gauge"] == ["sid", "station", "trust", "mag", "rel", "dist_b"]
