@@ -92,12 +92,12 @@ describe("the words", () => {
   it("says the visit the day is most like, then why, never fish", () => {
     const p = predictDay(DAY, [rated("a", 5, OCT12, { tempC: 18 }), rated("b", 2, AUG20, { flow: 0.8 })]);
     expect(predictReasons(p, NOW)).toEqual([
-      "Most like your 5★ visit on 12 Oct (97% alike)",
+      "Most like your 5★ visit on Mon 12 Oct (97% alike)",
       "Flow: the same", "Rain in the 3 days before: the same", "Cloud: the same", "Pressure: the same",
       "Air temperature: 4° cooler", "Wind: the same"]);
-    expect(predictLabel(p, NOW)).toBe("Today, 22 Oct: about 3.9 of 5, good, from 2 rated visits.");
-    expect(predictLabel(predictDay(DAY, []), NOW)).toBe("Today, 22 Oct: None of your rated visits can be compared with this day.");
-    expect(visitDateText(AUG20, NOW)).toBe("20 Aug 2025");
+    expect(predictLabel(p, NOW)).toBe("Today, Thu 22 Oct: about 3.9 of 5, good, from 2 rated visits.");
+    expect(predictLabel(predictDay(DAY, []), NOW)).toBe("Today, Thu 22 Oct: None of your rated visits can be compared with this day.");
+    expect(visitDateText(AUG20, NOW)).toBe("Wed 20 Aug 2025");
     expect(PREDICT_WORDS.restsOn(1)).toBe("From 1 rated visit");
     expect(PREDICT_WORDS.unratedLeftOut(2)).toBe("2 visits are not rated and are left out.");
     // it is how your ratings compare — the words never promise or count fish

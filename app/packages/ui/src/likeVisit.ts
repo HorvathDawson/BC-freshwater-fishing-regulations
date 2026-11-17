@@ -7,7 +7,7 @@
  * chooses which, in order.
  */
 import { useEffect, useMemo, useState } from "react";
-import { isRating, LIKE_WORDS, likeAgeLine, likeDay, likeDayHead, likeDayLabel, likeDays, likeNothingThen, likeScoreText,
+import { isRating, LIKE_WORDS, likeAgeLine, likeBiggest, likeDay, localDate, likeDayHead, likeDayLabel, likeDays, likeNothingThen, likeScoreText,
          likeVisitHead, PREDICT_WORDS, predictDay, predictLabel, predictReasons, predictText, ratingWord, starsText,
          visitDateText } from "@app/core";
 import { comingConditions, fetchLike, latestVisitId, NOTHING_FETCHED, readLike, spotVisits, visitConditions, visitHour,
@@ -30,6 +30,8 @@ export interface LikeDayVM {
   best: boolean;
   /** (T284) One short plain reason per factor that was scored: "Air temperature: 4° cooler". */
   reasons: string[];
+  /** (T819 item 9) the row's one line: the single biggest difference from the visit (core `likeBiggest`); null: none scored */
+  lead: string | null;
   /** The day said whole (a screen reader, a test). */
   label: string;
   /** What a tap shows: why flow is out (if it is), then each factor's line. */
@@ -78,7 +80,7 @@ export function likeVisitView(spot: Spot, f: LikeFetched, offline: boolean, now:
 /** (T294) The coming days predicted from the rated visits, each scored with T284's `likeDay` at its own hour. */
 function predictView(rated: VisitSpot[], unrated: number, f: LikeFetched, offline: boolean, now: number): LikeVisitView {
   const list = rated.map((v) => `${starsText(v.rating!)} ${visitDateText(v.visitedAt, now)}`).join(" · ");
-  const scored = likeDays(now).map((date) => predictDay(date, rated.map((v) => {
+  const scored = comingDays(now, rated.map((v) => v.visitedAt)).map((date) => predictDay(date, rated.map((v) => {
     const hour = visitHour(v);
     const that = comingConditions(f, [date], hour)[0]!;
     return { id: v.visitId, visitedAt: v.visitedAt, rating: v.rating!,
@@ -94,6 +96,7 @@ function predictView(rated: VisitSpot[], unrated: number, f: LikeFetched, offlin
              basis: p.far ? `${rests}. ${PREDICT_WORDS.far}` : rests,
              best: p.date === bestDate,
              reasons: predictReasons(p, now),
+             lead: p.top ? likeBiggest(p.top.day.factors) : null,
              label: predictLabel(p, now),
              why: p.top ? [...(p.top.day.note ? [p.top.day.note] : []), ...p.top.day.factors.map((x) => x.line),
                            ...(p.top.day.caveat ? [p.top.day.caveat] : [])] : [] };
@@ -102,6 +105,15 @@ function predictView(rated: VisitSpot[], unrated: number, f: LikeFetched, offlin
            hint: unrated ? PREDICT_WORDS.unratedLeftOut(unrated) : null,
            visit: { top: PREDICT_WORDS.top, sub: list, label: `${PREDICT_WORDS.top}: ${list}.` },
            days, note: null, age: likeAgeLine(oldest(f), now, offline) };
+}
+
+/**
+ * (T819 item 9) THE COMING DAYS, without today when a visit compared was today: a visit made today compared with today
+ * read "100%, everything the same" — itself, not a coming day.
+ */
+function comingDays(now: number, visits: readonly number[]): string[] {
+  const on = new Set(visits.map((t) => localDate(t)));
+  return likeDays(now).filter((d, i) => i > 0 || !on.has(d));
 }
 
 /** One visit against the coming days (T51 / T284). */
@@ -113,7 +125,7 @@ function likeOne(spot: Spot, f: LikeFetched, offline: boolean, now: number): Lik
                  hint: null, visit, age: likeAgeLine(oldest(f), now, offline) };
   if (likeNothingThen(then)) return { ...base, days: null, note: LIKE_WORDS.nothingThen };
   const hour = visitHour(spot);
-  const days = likeDays(now);
+  const days = comingDays(now, [spot.visitedAt]);
   // "now" only for the day the gauge's reading is for — never a forecast for today read off yesterday's feed
   const scored = comingConditions(f, days, hour).map((c) => likeDay(then, c, { today: !!f.flowNow && c.date === f.flowNow, hour }));
   const top = scored.reduce<number | null>((m, d) => (d.score !== null && (m === null || d.score > m) ? d.score : m), null);
@@ -126,6 +138,7 @@ function likeOne(spot: Spot, f: LikeFetched, offline: boolean, now: number): Lik
              basis: d.basis === "weather" ? d.note ?? LIKE_WORDS.weatherOnly : d.caveat === LIKE_WORDS.carried ? LIKE_WORDS.carried : d.caveat ? LIKE_WORDS.lowWater : null,
              best: d.date === bestDate,
              reasons: d.factors.flatMap((x) => (x.plain === null ? [] : [x.plain])),
+             lead: likeBiggest(d.factors),
              label: likeDayLabel(d, now),
              why: [...(d.note ? [d.note] : []), ...d.factors.map((x) => x.line), ...(d.caveat ? [d.caveat] : [])] };
   });

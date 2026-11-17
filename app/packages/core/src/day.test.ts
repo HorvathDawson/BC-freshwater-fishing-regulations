@@ -6,8 +6,8 @@
  * not the 31st in UTC.
  */
 import { describe, expect, it } from "vitest";
-import { dayLabel, localDate, localDateTime, localStamp, setVisitHour, shiftDay, shiftVisitDay, visitSteps,
-         VISIT_QUICK_DAYS } from "./day";
+import { dayLabel, localDate, localDateTime, localStamp, setVisitHour, shiftDay, shiftVisitDay, spotDay, spotHour,
+         spotIsoDay, spotStamp, visitSteps, VISIT_QUICK_DAYS } from "./day";
 
 const at = (d: number, h = 9, m = 0) => new Date(2026, 7, d, h, m).getTime();   // August 2026, local
 
@@ -71,18 +71,39 @@ describe("the visit's day and hour, never ahead of now", () => {
   it("says what may be stepped, today at 14:20", () => {
     expect(visitSteps(at(30, 14), now)).toEqual({
       dayOffset: 0, laterDay: false, earlierHour: true, laterHour: false, hour: 14,
-      hourLabel: "14:00", dayText: new Date(at(30, 14)).toDateString(),
+      hourLabel: "2 pm", dayText: "Sun 30 Aug",
     });
   });
 
   it("says what may be stepped, two days ago at midnight", () => {
     expect(visitSteps(at(28, 0), now)).toEqual({
       dayOffset: -2, laterDay: true, earlierHour: false, laterHour: true, hour: 0,
-      hourLabel: "00:00", dayText: new Date(at(28, 0)).toDateString(),
+      hourLabel: "12 am", dayText: "Fri 28 Aug",
     });
   });
 
   it("offers today, yesterday and the day before as one tap each", () => {
     expect(VISIT_QUICK_DAYS).toEqual([["Today", 0], ["Yesterday", -1], ["2 days ago", -2]]);
+  });
+});
+
+/*
+ * (T819 item 10) THE SPOTS' ONE DATE STYLE, "Sun 15 Nov, 5 pm", on the B.C. clock (UTC−7 from 8 Mar 2026): pinned as
+ * whole strings from instants, so the suite's own zone moves nothing.
+ */
+describe("the spots' date style (T819)", () => {
+  const t = Date.parse("2026-11-16T00:00:00Z");                       // 5 pm on Sun 15 Nov in B.C.
+  it("a visit: day, date, month and the hour", () => {
+    expect([spotStamp(t, t), spotDay(t, t), spotHour(t)]).toEqual(["Sun 15 Nov, 5 pm", "Sun 15 Nov", "5 pm"]);
+  });
+  it("minutes only when there are any; midnight and noon said as a clock says them", () => {
+    expect([spotHour(t + 37 * 60_000 + 4 * 3_600_000), spotHour(t + 7 * 3_600_000), spotHour(t - 5 * 3_600_000)])
+      .toEqual(["9:37 pm", "12 am", "12 pm"]);
+  });
+  it("the year only when it is not this year's", () => {
+    expect(spotStamp(t, Date.parse("2027-02-01T00:00:00Z"))).toBe("Sun 15 Nov 2026, 5 pm");
+  });
+  it("a calendar day reads as that day in any zone", () => {
+    expect(spotIsoDay("2026-11-15", t)).toBe("Sun 15 Nov");
   });
 });

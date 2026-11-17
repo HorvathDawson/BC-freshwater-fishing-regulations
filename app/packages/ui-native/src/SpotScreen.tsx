@@ -22,16 +22,16 @@
  */
 import { ErrorState } from "./ErrorState";
 import { useState } from "react";
-import { ScrollView, TextInput, View, useWindowDimensions } from "react-native";
+import { KeyboardAvoidingView, Platform, ScrollView, TextInput, View, useWindowDimensions } from "react-native";
 import { Selectable, Text } from "./Text";
 import { Pressable } from "./Pressable";
-import { isUntitled, needsRefresh, refreshReason, spotHeadline, spotLabel, type PhotoStore, type Spot } from "@app/data/spots";
+import { isUntitled, needsRefresh, refreshReason, spotHeadline, spotLabel, spotPlaceLine, spotRecordSummary, spotTraceLine,
+         spotWaterLine, type PhotoStore, type Spot } from "@app/data/spots";
 import { SPOT_WORDS as W } from "@app/core";
 import { leadUpView, useBackLayer, usePhotoUris, type DayFlowView, type LikeVisitView, type PhotoEdit,
          type VisitsView } from "@app/ui";
 import { LeadUpStrip } from "./LeadUpStrip";
 import { LikeVisitStrip } from "./LikeVisitStrip";
-import { GaugeTrace } from "./GaugeTrace";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
 import { Button } from "./Button";
@@ -114,12 +114,14 @@ export interface SpotScreenProps {
   onDirections?: () => void;
   /** a line when "Use my location" found nothing */
   parkingNotice?: string | null;
+  /** (T819 item 7) the release's station names (`useStationNames`), so a gauge is named, its code after it */
+  names?: ReadonlyMap<string, string>;
 }
 
 /**
- * THREE HEADED BLOCKS (T284, owner 2026-10-29): That day (the record: water, weather, the week before), What you added
- * (notes, photographs), The next few days (how alike each looks to that day, and why). A phone reads them in that order
- * in ONE column; from `WIDE_PANEL` up the first two stack in the left column and the third sits beside them, so the
+ * THREE HEADED BLOCKS (T284, owner 2026-10-29; reordered T819 item 5): What you added (notes, photographs — then the
+ * parking and the visits), That day (the record: water, weather, the week before), The next few days (how alike each
+ * looks to that day, and why). A phone reads them in that order in ONE column; from `WIDE_PANEL` up the first two stack in the left column and the third sits beside them, so the
  * comparison is on screen with the day it compares to. The page keeps a reading measure and centres, its header over
  * the same width. The donor panel measures its own column and stays one column inside it.
  */
@@ -134,7 +136,12 @@ export function SpotScreen(p: SpotScreenProps) {
   const [confirm, setConfirm] = useState<"delete" | "discard" | "visit" | null>(null);
 
   // S1: the week before the visit, decided in @app/ui; and the photos — the edit's while editing, else the spot's
-  const lead = leadUpView(spot.leadUp, spot.reading);
+  const lead = leadUpView(spot.leadUp, spot.reading, p.names);
+  // (T819 items 3, 6) how the spot reaches its gauge, one plain sentence; nothing when no station was traced
+  const traceLine = spotTraceLine(spot.trace, p.names);
+  const waterLine = spotWaterLine(spot, spotLabel(spot));
+  // (T819 item 5) the draft's record starts folded to one card
+  const [recordOpen, setRecordOpen] = useState(false);
   const pe = editable ? p.photoEdit : undefined;
   const photos = pe ? pe.refs : spot.photos;
   const uris = usePhotoUris(p.photoStore, photos);
@@ -154,14 +161,13 @@ export function SpotScreen(p: SpotScreenProps) {
 
   const thatDay = (
     <Section palette={palette} title={W.thatDay} testID="spot-that-day">
-    <WaterRecord spot={spot} palette={palette} />
+    <WaterRecord spot={spot} palette={palette} names={p.names} />
+    {traceLine && <Text selectable testID="spot-trace" style={{ ...TYPE.small, color: palette.sub }}>{traceLine}</Text>}
 
     {/* the trip day's own flow; in the draft too, where a spot added for an earlier day shows what it read */}
     {df && (mode !== "draft" || df.line || df.status) && (
       <DayFlowBlock df={df} onAsk={p.dayFlow?.onAsk} palette={palette} />
     )}
-
-    {spot.trace && <GaugeTrace trace={spot.trace} palette={palette} />}
 
     <WeatherRecord spot={spot} palette={palette} />
 
@@ -195,6 +201,44 @@ export function SpotScreen(p: SpotScreenProps) {
     )}
     </Section>
   );
+  /*
+   * (T819 item 5) WHAT THE PERSON ADDED COMES FIRST: their notes and photos, the spot's parking, its visits and the
+   * shown visit's rating; then the record of the day. The draft folds the record into one card that opens to it all,
+   * so a new spot's notes are not three to five screens of numbers down.
+   */
+  const mine = (
+    <>
+      {added}
+      {/* (T310) where to park: the spot's own, not a visit's */}
+      {mode !== "draft" && (p.parking || (editable && p.onParkingPick)) && (
+        <ParkingBlock palette={palette} parking={p.parking ?? null} editable={editable} notice={p.parkingNotice ?? null}
+                      onHere={p.onParkingHere} onPick={p.onParkingPick} onRemove={p.onParkingRemove}
+                      onDirections={p.onDirections} />
+      )}
+      {/* (T294) the spot's visits: pick one (the page shows it), add another, remove the one shown */}
+      {mode === "view" && p.visits && (
+        <VisitsBlock view={p.visits} palette={palette} onPick={p.onPickVisit} onAdd={p.onAddVisit}
+                     onRemove={p.onRemoveVisit && (() => setConfirm("visit"))} />
+      )}
+      {/* the shown visit's rating, under the visit it rates: one press saves it */}
+      {mode === "view" && p.visits && <RateBlock view={p.visits.rate} palette={palette} onRate={p.onRate} />}
+    </>
+  );
+  const record = mode !== "draft" ? thatDay : (
+    <View testID="spot-record-fold" style={{ gap: 18 }}>
+      <Pressable {...hitProps({ w: 300, h: 44 })} onPress={() => setRecordOpen(!recordOpen)} accessibilityRole="button"
+                 aria-expanded={recordOpen} accessibilityLabel={recordOpen ? W.hideRecord : W.showRecord}
+                 style={{ gap: 4, padding: 14, borderRadius: palette.r.box, borderWidth: 1, borderColor: palette.line2 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+          <Text style={{ ...TYPE.bodyStrong, flex: 1, color: palette.ink }}>{W.thatDay}</Text>
+          <Icon name={recordOpen ? "collapse" : "expand"} colour={palette.accent} size={18} />
+        </View>
+        <Text testID="spot-record-summary" style={{ ...TYPE.small, color: palette.ink }}>{spotRecordSummary(spot)}</Text>
+        <Text style={{ ...TYPE.caption, color: palette.faint }}>{W.recordDetail}</Text>
+      </Pressable>
+      {recordOpen && thatDay}
+    </View>
+  );
   const nextDays = mode !== "draft" && p.likeVisit && (
       <Section palette={palette} title={W.nextDays} testID="spot-next-days">
         <LikeVisitStrip view={p.likeVisit} palette={palette} />
@@ -204,7 +248,12 @@ export function SpotScreen(p: SpotScreenProps) {
   // (T342) the spot screen is a pane: its reading text copies with the phone's own long-press
   return (
     <Selectable>
-    <View style={{ flex: 1, backgroundColor: palette.card }}>
+    {/* (T819, the owner's Android spots) ANDROID 15 IS EDGE-TO-EDGE: the window no longer shrinks for the keyboard, so
+        the Save row at the foot sat under it while the notes were typed (the test bed's "is Save changes above it?").
+        The page is padded by the keyboard's overlap on Android; iOS keeps its own (the scroll view's keyboard insets,
+        T723) and the web has no soft keyboard to avoid: one value, so `Platform.select`. */}
+    <KeyboardAvoidingView behavior={Platform.select({ android: "padding" as const, default: undefined })}
+                          style={{ flex: 1, backgroundColor: palette.card }}>
       <View style={{ flexDirection: "row", alignItems: "center",
                      justifyContent: "space-between",
                      paddingHorizontal: 18, paddingTop: 14, paddingBottom: 6, ...MEASURE_NOW }}>
@@ -274,12 +323,8 @@ export function SpotScreen(p: SpotScreenProps) {
           <Text testID="spot-when" style={{ ...TYPE.small, color: palette.sub }}>
             {spotHeadline(spot)}
           </Text>
-          {spot.waterName && (
-            <Text style={{ ...TYPE.small, color: palette.faint }}>
-              {/* The name it had when it was pinned, even if the registry has renamed it. */}
-              on {spot.waterName}
-            </Text>
-          )}
+          {/* The name it had when it was pinned, even if the registry has renamed it; never the title said twice (T819) */}
+          {waterLine && <Text testID="spot-water" style={{ ...TYPE.small, color: palette.faint }}>{waterLine}</Text>}
         </View>
 
         {p.onRefresh && needsRefresh(spot) && (
@@ -300,35 +345,22 @@ export function SpotScreen(p: SpotScreenProps) {
                      style={{ flexDirection: "row", alignItems: "center", gap: 10,
                               paddingVertical: 12, paddingHorizontal: 14, borderRadius: palette.r.box,
                               borderWidth: 1, borderColor: palette.line2 }}>
-            <Text style={{ ...TYPE.bodyStrong, flex: 1, color: palette.ink }}>
-              {W.showOnMap}
-            </Text>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text style={{ ...TYPE.bodyStrong, color: palette.ink }}>{W.showOnMap}</Text>
+              {/* (T819 item 10) the coordinates are said here, once, not in the header or the list */}
+              <Text selectable testID="spot-place" style={{ ...TYPE.caption, color: palette.faint }}>{spotPlaceLine(spot)}</Text>
+            </View>
             <Icon name="next" colour={palette.accent} size={18} />
           </Pressable>
           </CoachSpot>
         )}
 
-        {/* (T310) where to park: the spot's own, not a visit's */}
-        {mode !== "draft" && (p.parking || (editable && p.onParkingPick)) && (
-          <ParkingBlock palette={palette} parking={p.parking ?? null} editable={editable} notice={p.parkingNotice ?? null}
-                        onHere={p.onParkingHere} onPick={p.onParkingPick} onRemove={p.onParkingRemove}
-                        onDirections={p.onDirections} />
-        )}
-
-        {/* (T294) the spot's visits: pick one (the page shows it), add another, remove the one shown */}
-        {mode === "view" && p.visits && (
-          <VisitsBlock view={p.visits} palette={palette} onPick={p.onPickVisit} onAdd={p.onAddVisit}
-                       onRemove={p.onRemoveVisit && (() => setConfirm("visit"))} />
-        )}
-        {/* the shown visit's rating, under the visit it rates: one press saves it */}
-        {mode === "view" && p.visits && <RateBlock view={p.visits.rate} palette={palette} onRate={p.onRate} />}
-
         {wide ? (
           <View style={{ flexDirection: "row", gap: 36, alignItems: "flex-start" }}>
-            <View style={{ flex: 1, minWidth: 0, gap: 28 }}>{thatDay}{added}</View>
+            <View style={{ flex: 1, minWidth: 0, gap: 28 }}>{mine}{record}</View>
             <View style={{ flex: 1, minWidth: 0 }}>{nextDays}</View>
           </View>
-        ) : (<>{thatDay}{added}{nextDays}</>)}
+        ) : (<>{mine}{record}{nextDays}</>)}
       </ScrollView>
 
       {editable && p.onSave && (
@@ -343,7 +375,7 @@ export function SpotScreen(p: SpotScreenProps) {
           </CoachSpot>
         </View>
       )}
-    </View>
+    </KeyboardAvoidingView>
     </Selectable>
   );
 }

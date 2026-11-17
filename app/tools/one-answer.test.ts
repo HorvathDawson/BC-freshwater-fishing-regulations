@@ -8,7 +8,7 @@
  */
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { DAY_LABELS, decodeStatusIndex, localStamp, pentadLabel, pentadOf, statusOfCode, waterStatusOn } from "@app/core";
+import { bcFields, DAY_LABELS, decodeStatusIndex, localStamp, pentadLabel, pentadOf, spotHour, spotStamp, statusOfCode, waterStatusOn } from "@app/core";
 import { statusFeed, rowStatus } from "@app/ui";
 import { observedLine } from "@app/data/spots";
 import { FIXTURE } from "../packages/core/src/statusIndex.fixture";
@@ -35,9 +35,16 @@ describe("one water, one day, one status on every surface", () => {
     expect(new Set(DAYS.map((iso) => waterStatusOn(INDEX, "gnis:1", day(iso)))).size).toBeGreaterThan(1);
   });
 
-  it("a saved spot's observed time is the Conditions card's time (one B.C. clock, named)", () => {
-    for (const iso of ["2026-08-30T16:00:00Z", "2026-11-09T02:15:00Z"])
-      expect(observedLine(iso)).toBe(`observed ${localStamp(Date.parse(iso))}`);
+  it("a saved spot's observed time is on the Conditions card's clock (one B.C. clock), in the spots' one style (T819)", () => {
+    // (T819 item 10, owner-picked) a spot says every date "Sun 15 Nov, 5 pm" (`spotStamp`); the clock under it is the
+    // card's: the same B.C. day and hour as `localStamp` says for the same instant
+    for (const iso of ["2026-08-30T16:00:00Z", "2026-11-09T02:15:00Z"]) {
+      const ms = Date.parse(iso);
+      expect(observedLine(iso)).toBe(`observed ${spotStamp(ms)}`);
+      const f = bcFields(ms);
+      expect(localStamp(ms).startsWith(`${f.year}-${String(f.month).padStart(2, "0")}-${String(f.day).padStart(2, "0")} at ${String(f.hour).padStart(2, "0")}`)).toBe(true);
+      expect(spotHour(ms)).toBe(`${f.hour % 12 || 12}${f.minute ? `:${String(f.minute).padStart(2, "0")}` : ""} ${f.hour < 12 ? "am" : "pm"}`);
+    }
   });
 
   it("the wires: the Shell hands the search sheet the map's day, and a row's status has no day of its own", () => {

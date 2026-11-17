@@ -187,7 +187,6 @@ export const FINE: Record<string, { n: number; why: string }> = {
   "packages/map/src/native/useColouring.ts": { n: 2, why: "the native tag before mount: not mounted yet" },
   "packages/map/src/web/tileIds.ts": { n: 1, why: "the next tile event asks again" },
   "packages/ui-native/src/FirstRunNotice.tsx": { n: 2, why: PREF },
-  "packages/ui-native/src/LeadUpStrip.tsx": { n: 1, why: "not laid out yet" },
   "packages/ui-native/src/Walkthrough.tsx": { n: 3, why: PREF },
   "packages/ui-native/src/coachScroll.ts": { n: 1, why: "not laid out yet (T466: the coach's measure moved here from CoachMarks)" },
   "packages/ui-native/src/chartInput.web.ts": { n: 1, why: CAP },

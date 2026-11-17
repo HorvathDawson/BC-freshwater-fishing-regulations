@@ -42,7 +42,8 @@ export function SpotPhotos({ photos, uris, pe, palette }: {
                                textAlign: "center" }}>{PHOTO_WORDS.missing}</Text>
               ) : null}
               {pe && (
-                <Pressable onPress={() => { void pe.remove(ref); }} accessibilityRole="button"
+                // (T819) the ✕ is drawn 28 px; its press reaches 44 × 44 like every other one
+                <Pressable {...hitProps({ w: 28, h: 28 })} onPress={() => { void pe.remove(ref); }} accessibilityRole="button"
                            accessibilityLabel={removePhotoLabel(i + 1)}
                            style={{ position: "absolute", top: 4, right: 4, width: 28, height: 28,
                                     borderRadius: round(28), alignItems: "center", justifyContent: "center",

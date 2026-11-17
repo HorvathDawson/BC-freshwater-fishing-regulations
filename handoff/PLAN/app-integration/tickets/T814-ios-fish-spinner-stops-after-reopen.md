@@ -1,6 +1,6 @@
 # T814 — iOS: after the app is closed and reopened mid-download, the fish spinner stops moving
 
-Status: OPEN (app, iOS; app chat)
+Status: DONE (94773621a; restart fix landed in f7b41c208; the coho loader (owner's dark look A) landed 2026-11-17 11:26; owner re-tests on the 0.7.12 build).
 
 Source: owner 2026-11-16 ~21:22, testing iPhone TestFlight build 36 (app chat; pictures in the chat). Verbatim: "a-d worked good except after closing app and opening again the fish icon stopped moving....".
 The first-install checks (a) lock, (b) switch apps, (c) swipe away and reopen, (d) a steady bar all passed; only the

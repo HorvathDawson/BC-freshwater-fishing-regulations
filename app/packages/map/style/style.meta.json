@@ -3078,6 +3078,8 @@
       "color.ui.warning": "#D08404",
       "color.ui.spot": "#15181C",
       "color.ui.spot-ground": "#FFFFFF",
+      "color.ui.photo.ground": "#15181C",
+      "color.ui.photo.ink": "#FFFFFF",
       "color.ui.me": "#1A73E8",
       "color.ui.me-ring": "#FFFFFF",
       "color.ui.place-band": "#FBF0E6",
@@ -3275,6 +3277,8 @@
       "color.ui.warning": "#FFD307",
       "color.ui.spot": "#F0F2F0",
       "color.ui.spot-ground": "#15181B",
+      "color.ui.photo.ground": "#000000",
+      "color.ui.photo.ink": "#F0F2F0",
       "color.ui.me": "#1A73E8",
       "color.ui.me-ring": "#FFFFFF",
       "color.ui.place-band": "#231A12",
@@ -3472,6 +3476,8 @@
       "color.ui.warning": "#D08404",
       "color.ui.spot": "#15181C",
       "color.ui.spot-ground": "#FFFFFF",
+      "color.ui.photo.ground": "#15181C",
+      "color.ui.photo.ink": "#FFFFFF",
       "color.ui.me": "#1A73E8",
       "color.ui.me-ring": "#FFFFFF",
       "color.ui.place-band": "#FBF0E6",
@@ -4122,6 +4128,16 @@
       "type": "color",
       "themeable": true,
       "$comment": "T131 the ground of a saved spot's pin and of its name: the card, so a pin reads as the app's own object on the map (the selected pin swaps mark and ground)."
+    },
+    "color.ui.photo.ground": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T819 item 4) A SPOT'S PHOTOGRAPH, FULL SCREEN: the ground the picture sits on. Black or near it in every theme, as a photo viewer is: the light theme's ink, the dark theme's shadow (the viewer drew on `ink`, which in the dark theme is light grey). References, never a second hex."
+    },
+    "color.ui.photo.ink": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T819 item 4) the viewer's words and controls on `color.ui.photo.ground`: white or near it in every theme (the light theme's card, the dark theme's ink)"
     },
     "color.ui.me": {
       "type": "color",

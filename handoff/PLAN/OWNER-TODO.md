@@ -2299,6 +2299,8 @@ More questions (recommended answer first):
     automatic, not a per-water edit.
 - 2026-11-17 ~09:57, in the APP chat, T830 after the Capilano pictures: the unranked line picked "Plainer" ("Too new to
   say if this is high or low."); levels to 2 decimals: "Depends how much space this adds. But yes". Built with pictures.
+  11:41, after the before/after pictures (Capilano 1 m -> 1.00 m, Harrison 10.30 m; the tap read-out was already cut at
+  phone width): "Keep 2 decimals". DONE; lands next.
 - 2026-11-17 ~10:38, main chat dialog on the T834 side build (verbatim):
   - The 3 changed waters (Kaslo/Keen +2 bull trout outside the share; Buckley rainbow its own 1): "I think this is right
     but you didn't explain well".
@@ -2349,3 +2351,28 @@ More questions (recommended answer first):
   Cowichan). Missed before, now added: Campbell River MU 1-6/1-10 summer closure (T796 W1) and the Duncan's exemptions
   reaching Trout Lake's creeks (RULINGS T15). Left out: Lower Shuswap "one km" (his word: nothing goes to DFO).
   Correction: the page numbers in the 11:15 version were wrong (the corpus already stores printed pages); fixed.
+- 2026-11-17 ~11:45-11:48, app chat:
+  - "sun set is not capitalised (Sunrise 08:50 PT · sunset 17:43 PT) too" -> T837, fixed ("· Sunset"), lands with T830.
+  - "having random conditions today text here is weird too" (web spot estimate card). Dialog 11:48: "Drop it
+    (Recommended)" -> T838: the loose "Conditions: today" line goes; the regulations-day link line stays when that day is
+    not today.
+  - "desktop mode on webapp should maybe move the bottom map.conditions. spots, more bar somewhere more standard for
+    desktop. maybe on side or top please choose the most standard spot" -> T839: Claude chose a left navigation rail at
+    desktop width (Material's rule for wide screens; Google Maps / AllTrails / onX); top stays search + day. Shots
+    before it lands.
+  - Nahwitti River: char sit on their own under the other-fish table instead of in the trout tab. Checked 11:51: today
+    Region 1's "Release all char" (trout_quota.r7) is a row with no pool, drawn after the table (289 waters have the shape).
+    The new trout table (T810) puts DV/lake trout/brook trout in its Release box (0 of 513 such keys left out); Nahwitti
+    added to the trout hard cases (main chat) and the app's drawn-once gate. Answered in chat.
+- 2026-11-17 11:51, owner (verbatim): "i thought we already found some of these??" (the Region 5 lakes). Right: Hidden,
+  Secret and Square bind now; Chipmunk (and Toms, Basalt, Gatcho, Naglico, Pettry) is printed in both the Region 5 and
+  Region 6 tables with the same words and the Region 6 row binds it. Still not found: Frog Lake (5-6), Redfern Lake
+  (5-15), Squirrel Lake (6-1). Questions and the GOTCHAS errata note narrowed to those three.
+- 2026-11-17 11:55, owner (verbatim) on the Region 6 steelhead closure question (Kitimat, Dala, Ksi Hlginx, Triumph): "i can
+  answer thhis one that the no steelhead is different then a full closure so the no steelhead definitely holds here".
+  So the steelhead closure holds on those rows (as built; no change). The West Road mainstem (same shape) taken as
+  answered the same way. Both removed from the office questions; recorded as answered in GOTCHAS.
+- 2026-11-17 11:57, owner (verbatim): "for the missing lakes we should say a little about what we have found on them too"
+  and "please update the regional office questions". Done: Frog, Redfern and Squirrel questions now say which lakes of
+  that name exist and where, and what the row's words match (Frog = Hidden/Secret's words; Squirrel = the MU 6-1 lakes
+  printed in both tables). Questions file re-sent.
