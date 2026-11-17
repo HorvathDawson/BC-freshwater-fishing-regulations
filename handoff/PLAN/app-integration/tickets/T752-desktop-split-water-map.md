@@ -1,6 +1,6 @@
 # T752 — Desktop: the water's Map tab as a split (map on one side, the part's text on the other)
 
-Status: IN PROGRESS (proposal: pictures to the owner)
+Status: DONE d3c7376a0 (owner 2026-11-17 15:04 after the desktop shots: "Keep it (Recommended)"; was: IN PROGRESS (proposal: pictures to the owner))
 
 Source: owner 2026-11-15, staging website, desktop, a water's page, Map tab (Fraser River, part 4 of 19), verbatim:
 "on desktop the section navigator should maybe be map on one side and text on other (split column?) thoughts?"
