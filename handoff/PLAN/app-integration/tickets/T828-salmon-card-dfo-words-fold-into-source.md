@@ -24,4 +24,5 @@ fold. No data change.
 - Tests: `SalmonCard.t828.test.tsx` (fold closed by default with the rows inside; the warning outside it and not repeated);
   `SalmonCard.test.tsx` opens the fold where it reads those rows. Mutation-checked: Says drawn outside the fold, the fold
   open by default, the warning dropped, the region rules dropped — each fails a test.
+- Follow-up (branch `app-fix/t828-unplaced-once`): an unplaced feed row that is also a shown `unmatched` issue (same fingerprint) said DFO's words twice, in the rules line and the banner; the banner keeps them (the attention element), `salmon.ts` drops the rules line; `salmonUnplacedOnce.test.ts` (mutation-checked).
 - Left: the owner's Android bench (Kitsumkalum Jul 15, Skeena below Terrace Aug 15: the fold closed, then opened).

@@ -901,6 +901,8 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
   const offs = page.item === null ? [] : Object.entries(P.off ?? {}).filter(([, o]) => o.items.includes(page.item!));
   // (T521) the feed's DFO places on this water that no curated location knows: in the in-part caveat, never painted
   const unplaced = page.item === null ? [] : (P.feedUnplaced ?? []).filter((u) => u.items.includes(page.item!));
+  // (T759) the feed's issues on this water: every stretch of it (its item), never its chains
+  const banners = salmonIssueBanners(P, page.item, undrawnNamed);
   const def = P.default;
   // (T227, owner 2026-10-28) A REGION-WIDE CLOSURE: the region's header says "There is no fishing for salmon in Region 4
   // … until further notice" — the header's closure is the answer, every day: one closed row in its words, no partial
@@ -1057,7 +1059,8 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
     // (T521, owner 2026-11-09) with the water's other DFO rules: the feed's rules at a place on this water no curated
     // location knows, marked "location not yet on the map"
     waterRules: [...hn.water.filter((n) => !placed.has(n.id) && asWords(n, sizesShown)).map((n) => n.t),
-                 ...unplacedLines(unplaced),
+                 // (T828) a row the banner below already quotes (same fingerprint, an `unmatched` issue shown) is said once, there
+                 ...unplacedLines(unplaced.filter((u) => !banners.some((b) => b.key === `unmatched:${u.fingerprint}`))),
                  // (T549) places the release does not show; feed places it neither shows nor states; held rows
                  ...offs.map(([lid, o]) => SALMON_WORDS.offPlace(o.k, o.w, P.offFeed?.[lid] ? offToday(f, lid, o, P.offFeed[lid]!, day) : null)),
                  ...regionsUsed.filter((r) => P.feedOnly?.[r]).map((r) => SALMON_WORDS.feedOnly(P.feedOnly![r]!, r)),
@@ -1083,7 +1086,7 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
     finfish: finfishToday(f, chains, day),
     // (T759) the feed's issues on this water: every stretch of it (its item), never its chains; a place its chains
     // already list as not drawn is the in-part caveat's
-    issues: salmonIssueBanners(P, page.item, undrawnNamed),
+    issues: banners,
     // one closed-all-year statement: the region's closure, or every place of the page closed every day, nothing undrawn
     closedOnly: regionClosed || (!undrawn.some((c) => speaks(f, c))
       && chains.every((c) => runsOf((i) => salmonDayStatus(f, c, i)).every((r) => r.status === "closed"))),
