@@ -38,7 +38,7 @@ export const routeScroll = {
       await closeWaters(ctx);
       await toMap(ctx);
       await openWater(ctx, { q: Q, row: ROW, view: 'conditions' });
-      await ctx.until(() => ctx.hasId('conditions-day-label'), { ms: 30_000, what: 'the Conditions view (conditions-day-label)' });
+      await ctx.until(() => ctx.hasId('gauge-card'), { ms: 30_000, what: 'the Conditions view (gauge-card)' });
       const map = await ctx.until(() => routeMap(d, H), { ms: 30_000, what: 'the route map on the Conditions view' });
       await ctx.settle({ ms: 8000, frame: true });
       home = (await routeMap(d, H)).box;

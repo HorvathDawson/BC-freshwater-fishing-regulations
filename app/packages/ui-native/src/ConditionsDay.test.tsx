@@ -1,13 +1,13 @@
 /**
- * (T582, F2) A WATER'S CONDITIONS VIEW NAMES ITS OWN DAY AND LINKS TO THE REGULATIONS DAY, never moving it.
- * Whole strings only: the expected lines are core's finished sentences (`DAY_LABELS`, `DAY_LINK_WORDS`).
+ * (T582, F2) A WATER'S CONDITIONS VIEW LINKS TO THE REGULATIONS DAY, never moving it. (T838) Its own day is named by the
+ * Now / Forecast / Change switch, not by a loose line. Whole strings only: the expected lines are core's finished sentences (`DAY_LINK_WORDS`).
  *
- * MUTATION PINS: a Conditions view that follows the regulations day (the old "one day"), or one that says nothing of it,
- * fails the first test; a day past the window drawn as a mark (or with no line) fails the second.
+ * MUTATION PINS: a Conditions view that follows the regulations day (the old "one day"), one that says nothing of it, or one
+ * that brings back the loose day line (T838) fails the first test; a day past the window drawn as a mark (or with no line) fails the second.
  */
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
-import { bcNow, DAY_LABELS, DAY_LINK_WORDS, dayWords, FORECAST_WINDOW } from "@app/core";
+import { bcNow, DAY_LINK_WORDS, dayWords, FORECAST_WINDOW } from "@app/core";
 import type { Panel, WaterSource, SectionId } from "@app/data";
 import { clearPanelCache } from "@app/ui";
 import { ConditionsPanel } from "./ConditionsPanel";
@@ -32,17 +32,17 @@ const ahead = (n: number) => { const t = bcNow(); return new Date(t.getFullYear(
 const mount = (regsDay: Date | null | undefined, horizon: 0 | 3 = 0) =>
   render(<ConditionsPanel source={source} section={SEC} palette={LIGHT} feed={feed} scroll={false} horizon={horizon} regsDay={regsDay} />);
 
-describe("(T582) Conditions names its own day and links to the regulations day", () => {
+describe("(T582) Conditions links to the regulations day", () => {
   it("says it is on today whatever the regulations day, and marks a day inside the window", async () => {
     mount(ahead(2));
-    await waitFor(() => expect(screen.getByTestId("conditions-day-label")).toBeTruthy());
-    expect(screen.getByTestId("conditions-day-label").textContent).toBe(DAY_LABELS.conditions(0, bcNow()));
+    await waitFor(() => expect(screen.getByTestId("conditions-day-link")).toBeTruthy());
+    expect(screen.queryByTestId("conditions-day-label")).toBeNull();
     expect(screen.getByTestId("conditions-day-link").textContent).toBe(DAY_LINK_WORDS.inside(dayWords(ahead(2))));
   });
   it("its own horizon is its own: +3 is named, the regulations day stays what it was", async () => {
     mount(ahead(10), 3);
-    await waitFor(() => expect(screen.getByTestId("conditions-day-label")).toBeTruthy());
-    expect(screen.getByTestId("conditions-day-label").textContent).toBe(DAY_LABELS.conditions(3, bcNow()));
+    await waitFor(() => expect(screen.getByTestId("conditions-day-link")).toBeTruthy());
+    expect(screen.queryByTestId("conditions-day-label")).toBeNull();
     expect(screen.getByTestId("conditions-day-link").textContent).toBe(DAY_LINK_WORDS.inside(dayWords(ahead(10))));
   });
   it("a day past the window gets the one line", async () => {
@@ -50,13 +50,13 @@ describe("(T582) Conditions names its own day and links to the regulations day",
     await waitFor(() => expect(screen.getByTestId("conditions-day-link")).toBeTruthy());
     expect(screen.getByTestId("conditions-day-link").textContent).toBe(`${dayWords(ahead(FORECAST_WINDOW + 4))} is past the forecast.`);
   });
-  it("today (or no regulations day) says nothing of a link; a sheet with no regulations day has no day line", async () => {
+  it("today (or no regulations day) says nothing of a link; a sheet with no regulations day has no link", async () => {
     mount(null);
-    await waitFor(() => expect(screen.getByTestId("conditions-day-label")).toBeTruthy());
+    await waitFor(() => expect(screen.getByTestId("gauge-card")).toBeTruthy());
     expect(screen.queryByTestId("conditions-day-link")).toBeNull();
     cleanup(); clearPanelCache();
     mount(undefined);
     await waitFor(() => expect(screen.getByTestId("gauge-card")).toBeTruthy());
-    expect(screen.queryByTestId("conditions-day")).toBeNull();
+    expect(screen.queryByTestId("conditions-day-link")).toBeNull();
   });
 });

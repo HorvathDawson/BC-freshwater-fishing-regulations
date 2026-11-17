@@ -16,7 +16,7 @@ import { ScrollView, View, type LayoutChangeEvent } from "react-native";
 import { Text } from "./Text";
 import { Pressable } from "./Pressable";
 import { CHANGE_LEGEND, CHANGE_LOW_WATER, chartLabel, figure as figureText, CONDITIONS_WORDS, forecastChartLabel, forecastModelOption,
-         forecastRunLine, noChartSentence, OTHER_QUANTITY_WORDS, readingRanked, standingRankedIn, waterReportWhere, dayLabel, regsDayLink, DAY_LABELS, bcNow, type ChartSpan } from "@app/core";
+         forecastRunLine, noChartSentence, OTHER_QUANTITY_WORDS, readingRanked, standingRankedIn, waterReportWhere, dayLabel, regsDayLink, bcNow, type ChartSpan } from "@app/core";
 import type { Parameter, WaterSource, SectionId, StationId } from "@app/data";
 import type { TileEndpoints } from "@app/map";
 import { cardQuantity, changeChartModel, changeView, chartParameter, currentFigure, forecastDash, forecastDrawn, pickModel, realtimeOnly,
@@ -405,13 +405,8 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
   const body = (
     <>
       {note && <Text testID="conditions-note" style={{ ...TYPE.bodyStrong, color: palette.ink }}>{note}</Text>}
-      {regsDay !== undefined && (
-        <View testID="conditions-day" style={{ gap: SPACE.s1 }}>
-          <Text testID="conditions-day-label" style={{ ...TYPE.metaBold, color: palette.ink }}>{DAY_LABELS.conditions(horizon, bcNow())}</Text>
-          {link && link.kind !== "today" && (
-            <Text testID="conditions-day-link" style={{ ...TYPE.meta, color: palette.sub }}>{link.line}</Text>
-          )}
-        </View>
+      {link && link.kind !== "today" && (
+        <Text testID="conditions-day-link" style={{ ...TYPE.meta, color: palette.sub }}>{link.line}</Text>
       )}
       <DonorPanel palette={palette} value={vm.panel} day={vm.day} at={tiles} theme={theme}
                   from={from} selected={station} onSelect={vm.select} horizon={horizon}
