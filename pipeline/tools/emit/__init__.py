@@ -14,6 +14,8 @@ source, never typed twice.
                    pages — the feeds worker's test reproduces it, T556)
     closure_oracle app/workers/feeds/test/fixtures/dfo/closure-oracle.generated.json  (the live feed's closed-area pieces
                    on sample rows — the worker's T757 port reproduces it, T573)
+    trout_vectors  app/fixtures/trout/trout-vectors.generated.json  (the trout table cells of the case waters, decoded from
+                   the committed trout fixture release — the app's trout reader reproduces them, T810 V-py)
 
 Each still runs alone: `python -m pipeline.tools.emit.<name> [--check]`.
 """

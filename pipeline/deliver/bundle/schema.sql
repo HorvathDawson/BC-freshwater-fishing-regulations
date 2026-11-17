@@ -202,6 +202,12 @@ CREATE TABLE see_pointer (entry_id TEXT NOT NULL, name TEXT NOT NULL, ix INTEGER
                           target_entry TEXT NOT NULL, target_name TEXT NOT NULL, item_id TEXT,
                           PRIMARY KEY (entry_id, ix)) WITHOUT ROWID;
 
+-- (T796, owner 2026-11-16: "take out the lakes but add a note"; RULINGS Z10) a section's NOTE, one sentence said once,
+-- written by `bundle.outside_note`: a lake taken out by name (`area_closures.json` `outside_items`) of a reserve or park
+-- its polygon only reaches into says the closure there does not apply ("Mostly outside Gladys Lake Ecological Reserve:
+-- its closure (rule book p.9) does not apply here."). The release ships it in `core`; the app shows it on the page.
+CREATE TABLE section_note (sid INTEGER PRIMARY KEY, note TEXT NOT NULL) WITHOUT ROWID;
+
 -- rule_id is unique only WITHIN an entry — 49 collide corpus-wide (AGENTS rule 8), so
 -- every table keys on (entry_id, rule_id) and never on rule_id alone.
 -- `scope` is WHERE THE RULE WAS WRITTEN, and it drives precedence: a rule written for this

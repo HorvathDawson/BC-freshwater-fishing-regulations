@@ -36,11 +36,11 @@
  * patched binding's per-tile event (`native/useColouring.ts`, deps.md). Only how a channel's style-borne values reach
  * the style differs: a paint call on the web, a style swap on the phone (`nativeStyle`'s `values`).
  */
-import { readingDayOf, dayProfiles, isolateDay, methodDayProfiles, methodLabel, profileLabel, salmonDayIndex, salmonDayProfiles,
+import { readingDayOf, dayProfiles, finfishDayLabels, isolateDay, methodDayProfiles, methodLabel, profileLabel, salmonDayIndex, salmonDayProfiles,
          salmonLabel, stockRecency, type LakeFacts, type SalmonMapStatus, type WaterStatus, type MethodFacts, type RunTimingFacts, type SalmonFacts,
          type StatusIndex } from "@app/core";
 import type { ChannelValues, MapAdapter, MapHandle } from "./adapters/contract";
-import type { StandingValues, Tokens } from "./style";
+import { SALMON_LABEL_KEY, type StandingValues, type StatusDay, type Tokens } from "./style";
 import { perSectionLayers, spreadSections, type PerSectionLayer } from "./sections";
 
 /** The day's status as the map is told it — given ONLY on a proven pair, with an index that passed its digest checks. */
@@ -72,7 +72,7 @@ export interface LakeFeed {
 }
 
 /** The colourings that label sections: one per question a release's data answers on the map. */
-export type Channel = "status" | "standing" | "stocked" | "survey" | "salmon" | "method" | "runs";
+export type Channel = "status" | "standing" | "stocked" | "survey" | "salmon" | "method" | "runs" | "issue";
 
 /**
  * (T211) THE SALMON COLOURING as the map is told it — ONLY on a proven pair: the release's DFO salmon (each section's
@@ -90,7 +90,7 @@ export interface SalmonFeed {
 export function salmonInput(s: SalmonFeed): ChannelInput {
   const f = s.facts;
   return {
-    labels: { key: "sp", of: f, label: (id) => salmonLabel(f, id) },
+    labels: { key: SALMON_LABEL_KEY, of: f, label: (id) => salmonLabel(f, id) },
     valuesKey: `${salmonDayIndex(s.day)}:${s.only ?? ""}`,
     values: () => isolateDay(salmonDayProfiles(f, s.day), s.only ?? null),
   };
@@ -113,6 +113,24 @@ export function methodInput(s: MethodFeed): ChannelInput {
     labels: { key: "gm", of: f, label: (id) => methodLabel(f, id) },
     valuesKey: readingDayOf(s.day),
     values: () => methodDayProfiles(f, s.day),
+  };
+}
+
+/**
+ * (T759) THE ISSUE STRIPE as the map is told it: the sections of every water with a shown DFO issue (a rule the feed could
+ * not place; the river page's banner). Labels only (feature-state `gi`, "1"); the style (`paint.ts` `issuePaint`) draws it
+ * in the Salmon view alone and reads no values.
+ */
+export interface IssueFeed {
+  readonly sections: ReadonlySet<number>;
+}
+
+/** The issue channel: "1" in feature-state `gi` on every section of an issue water; nothing elsewhere. */
+export function issueInput(s: IssueFeed): ChannelInput {
+  return {
+    labels: { key: "gi", of: s.sections, label: (id) => (s.sections.has(id) ? "1" : undefined) },
+    valuesKey: "issue",
+    values: () => null,
   };
 }
 
@@ -170,13 +188,24 @@ export interface ChannelInput {
   values(): ChannelValues[Channel];
 }
 
-/** The status channel from what the Map tab is told: profile labels, the day in the style. */
-export function statusInput(s: ProfileStatus): ChannelInput {
-  const index = s.index;
+/**
+ * The status channel from what the Map tab is told: profile labels, the day in the style. (T796 A6) With the salmon the
+ * Map tab hands over (`salmon`, whatever the Standard / Salmon toggle says), the day's DFO finfish closures go over it
+ * (`StatusDay`): the chains closed to all fishing that day paint closed, by the `sp` label the salmon channel puts on
+ * every tile — or, under a legend isolate other than Closed, the neutral grey a closed section takes. None that day (or
+ * no salmon): the values and the paint are exactly the status day's.
+ */
+export function statusInput(s: ProfileStatus, salmon?: SalmonFeed | null): ChannelInput {
+  const index = s.index, only = s.only ?? null;
+  const fin = salmon ? finfishDayLabels(salmon.facts, s.day) : [];
+  const shown = only === null || only === "closed";
   return {
     labels: { key: "p", of: index, label: (id) => profileLabel(index, id) },
-    valuesKey: `${readingDayOf(s.day)}:${s.only ?? ""}`,
-    values: () => isolateDay(dayProfiles(index, s.day), s.only ?? null),
+    valuesKey: `${readingDayOf(s.day)}:${only ?? ""}${fin.length ? `:${fin.join(",")}` : ""}`,
+    values: (): StatusDay => {
+      const day = isolateDay(dayProfiles(index, s.day), only);
+      return fin.length ? { ...day, ...(shown ? { finfish: fin } : { finfishNone: fin }) } : day;
+    },
   };
 }
 
@@ -398,7 +427,7 @@ export class Colouring {
  * Pushed through `data` they would be a second pathway beside the engine (owner 2026-10-21: "it should be a single
  * pathway"): both maps refuse them, and report it (tools/one-colouring-engine.test.ts).
  */
-export const ENGINE_KEYS: readonly string[] = ["p", "standing", "status", "stocked", "survey", "sp", "salmon", "gm", "rt"];
+export const ENGINE_KEYS: readonly string[] = ["p", "standing", "status", "stocked", "survey", "sp", "salmon", "gm", "rt", "gi"];
 
 type Pushed = Record<string, Record<string, Record<string, unknown>>>;
 

@@ -105,6 +105,8 @@ export interface DonorMapVM {
   /** Every mark's extent [w, s, e, n] — what "fit" returns to. */
   bbox: readonly [number, number, number, number];
   words: { fit: string; fitLabel: string; larger: string; smaller: string };
+  /** (T817) The tone row of a gauged lake's own station that has a reading: drawn live, not as a quiet member; else null. */
+  liveRow: number | null;
 }
 
 export type DonorVM =
@@ -198,6 +200,12 @@ export interface DonorViewOptions {
    * it. Ignored when `from` is given: the tap is the place then.
    */
   place?: readonly [number, number, number, number] | null;
+  /**
+   * (T817) A GAUGED LAKE'S OWN STATION (`ConditionsVM.own`): a lake has no donors, so its map held "you are here" alone,
+   * framed on a point in open water (Harrison Lake, owner 2026-11-16: "the map looks super weird and not visible"). Its
+   * pin and key line are drawn, and the camera frames it with the place.
+   */
+  own?: { lat: number; lon: number; name: string; label: string; key: string; live: boolean } | null;
 }
 
 /** The donor panel's view model, from an answer. Pure: a saved spot builds it from frozen data. */
@@ -242,7 +250,9 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
    * (and remounted) the map. The pins below are the members that speak (or, on a refusal, every located member, each
    * saying why it does not count), but the frame is the same.
    */
-  const camera = panelCamera([...framed.map((r) => ({ lat: r.route!.lat!, lon: r.route!.lon! })), ...corners],
+  const own = o.own ?? null;
+  const ownAt = own ? [{ lat: own.lat, lon: own.lon }] : [];
+  const camera = panelCamera([...framed.map((r) => ({ lat: r.route!.lat!, lon: r.route!.lon! })), ...ownAt, ...corners],
                              o.from, o.size);
   // On a refusal no member speaks, yet the map stays: its pins are the members, each with its state.
   const pinned = answer.ok ? shown : framed;
@@ -261,7 +271,7 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
    * (owner 2026-10-21: different icons), so both show: the dot at the pin's point. The
    * absorbing words stay on the gauge's own title — it IS the gauge you are standing at.
    */
-  const pts = [...framed.map((r) => ({ lat: r.route!.lat!, lon: r.route!.lon! })),
+  const pts = [...framed.map((r) => ({ lat: r.route!.lat!, lon: r.route!.lon! })), ...ownAt,
                ...(from ? [from] : corners)];
   const drawn = placed.filter((r) => (r.route?.path.length ?? 0) > 0);
   // (T168) on this water first: the key reads own gauges first, and their labels win a crowded map (`rank`)
@@ -283,12 +293,15 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
         return { lat: r.route!.lat!, lon: r.route!.lon!, row, kind: "gauge",
                  title: donorPinTitle(r, r === atSpot), label: donorMapLabel(r, ask), rank: sides ? rankOf.get(r) ?? row : row };
       }),
+      // (T817) a gauged lake's own station, in the first gauge tone (a lake has no donors to share the tones with)
+      ...(own ? [{ lat: own.lat, lon: own.lon, row: 0, kind: "gauge" as const, title: own.name, label: own.label, rank: 0 }] : []),
       // LAST, so it draws over a gauge at the same place.
       ...(from ? [{ lat: from.lat, lon: from.lon, row: null, title: here, kind: "here" as const,
                     label: hereMapLabel(), rank: -1 }] : []),
     ],
     keys: [
       ...(from ? [{ row: null, label: here }] : []),
+      ...(own ? [{ row: 0, label: own.key }] : []),
       ...keyOrder.map(keyOf),
     ],
     keyGroups: placedGroups?.map((g) => ({ ...g, shown: g.shown.map(keyOf), folded: g.folded.map(keyOf) })) ?? null,
@@ -312,6 +325,7 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
            Math.max(...pts.map((p) => p.lon)), Math.max(...pts.map((p) => p.lat))],
     words: { fit: ROUTE_MAP_WORDS.fit, fitLabel: ROUTE_MAP_WORDS.fitLabel,
              larger: ROUTE_MAP_WORDS.larger, smaller: ROUTE_MAP_WORDS.smaller },
+    liveRow: own?.live ? 0 : null,
   } : null;
 
   if (!answer.ok)
@@ -450,18 +464,19 @@ export function useGaugeSides(source: WaterSource, section: SectionId | null,
 
 /** `donorView`, memoised for a component. */
 export function useDonorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
-  const { day, horizon, from, size, selected, pickable, quantity, sides, place } = o;
+  const { day, horizon, from, size, selected, pickable, quantity, sides, place, own } = o;
   const t = day.getTime();
   const lat = from?.lat;
   const lon = from?.lon;
   const { width, height } = size;
   const placeKey = place ? place.join(",") : "";
+  const ownKey = own ? [own.lat, own.lon, own.name, own.label, own.key, own.live].join("|") : "";
   return useMemo(
     () => donorView(value, { day: new Date(t), horizon,
                              from: lat != null && lon != null ? { lat, lon } : null,
                              size: { width, height }, selected, pickable,
                              ...(quantity ? { quantity } : {}), sides: sides ?? null,
-                             place: placeKey ? place ?? null : null }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- the box by value
-    [value, t, horizon, lat, lon, width, height, selected, pickable, quantity, sides, placeKey]);
+                             place: placeKey ? place ?? null : null, own: ownKey ? own ?? null : null }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the box and the lake's own gauge by value
+    [value, t, horizon, lat, lon, width, height, selected, pickable, quantity, sides, placeKey, ownKey]);
 }

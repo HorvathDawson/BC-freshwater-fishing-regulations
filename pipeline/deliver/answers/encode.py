@@ -709,6 +709,27 @@ SPEC = {
                       "`unresolved_licensing` [licensing ref]. `km` null: no run carries a measure; `place` null: "
                       "no entry heading",
         },
+        # T810 ticket I (contract 2.1-2.6): the trout and char table, OPTIONAL — present only in a release built with
+        # `--trout-table` (then every cell has a value, NULL where no table is drawn); this text ships only with it
+        "trout": {
+            "what": "The trout and char table (trout table plan, contract 2.3), OPTIONAL: present only in a release built "
+                    "with --trout-table. Per part key and segment, the table the page draws under its Trout and char entry "
+                    "(every word, structure and rule ref decided in Python; the app draws it and composes only the top "
+                    "line's {day} slot), or null where none is drawn: the display frame at the same key and segment says "
+                    "closed or tidal, or the rows frame asks about no trout or char fish (Q-D3). Decoded: "
+                    "`TroutFrame` {table, dates, covers} (schema `trout`); on the wire `trout.wire`.",
+            "version": "1",
+            "at": "[[frame index per segment, or null (no table)] per key]",
+            "frames": "[[table, dates | null, covers]] (`TroutFrameWire`) — `table` an index into `tables`, `dates` into "
+                      "`dates` (null: no fish of the table changes later in the year), `covers` the rows frame's rows "
+                      "(at the same key and segment, after Python split each row mixing trout or char with other fish) "
+                      "the table replaces",
+            "tables": "[TroutTableWire] — every NOW word of a table (no date words), each row's `sheet` an index into "
+                      "`sheets`; one body serves every key, segment and water that reads the same",
+            "dates": "[DateSet] — every NEXT text of one cell: under the top line, the card line, the fold's, per box "
+                     "(\"b\"), band (\"b:k\") and row (\"b:r\"), and each fish sheet's coming change",
+            "sheets": "[FishSheet] — one fish sheet (head, Here lines, Sources at most 4), shared by every row that says it",
+        },
     },
     "reserved": {k: f"not yet present: {v}" for k, v in RESERVED.items()},
 }
@@ -881,12 +902,46 @@ class LicenceCodec:
         return out
 
 
+class TroutCodec:
+    """T810 ticket I (contract 2.1, Q-D10): the trout section. A cell's value is a `TroutFrame` or None (no table, Q-D3);
+    its parts are interned apart so a body, a date set or a sheet that reads the same is stored once: `sheets`
+    (FishSheet), `tables` (the body, each row's sheet as a `sheets` index), `dates` (DateSet) and `frames` ([table,
+    dates | null, covers]). A null cell is a null ref."""
+    name = "trout"
+    static_keys: Tuple[str, ...] = ()
+
+    def encode(self, values, rix, fix):
+        sheets, tables, dates, frames = Table(), Table(), Table(), Table()
+        refs = []
+        for v in values:
+            if v is None:
+                refs.append(None)
+                continue
+            t = v["table"]
+            body = {**t, "boxes": [{**b, "rows": [{**r, "sheet": sheets.add(r["sheet"])} for r in b["rows"]]}
+                                   for b in t["boxes"]]}
+            d = None if v["dates"] is None else dates.add(v["dates"])
+            refs.append(frames.add([tables.add(body), d, list(v["covers"])]))
+        return {"frames": frames.rows, "tables": tables.rows, "dates": dates.rows, "sheets": sheets.rows}, refs
+
+    def decode_frame(self, sec, ref, rules, fish):
+        if ref is None:
+            return None
+        t, d, covers = sec["frames"][ref]
+        body = sec["tables"][t]
+        sheets = sec["sheets"]
+        table = {**body, "boxes": [{**b, "rows": [{**r, "sheet": sheets[r["sheet"]]} for r in b["rows"]]}
+                                   for b in body["boxes"]]}
+        return {"table": table, "dates": None if d is None else sec["dates"][d], "covers": covers}
+
+
 #: One codec per section the file may hold — the encoder and the decoder iterate this.
 CODECS = {c.name: c for c in (LadderCodec(), RowsCodec(),
                               FrameCodec("gear", ("province_methods", "parent", "methods",
                                                   "moments", "conduct_means", "count_nouns")),
                               LicenceCodec(), FrameCodec("display", ("rules", "waters", "strip",
-                                                                     "reasons", "licensing", "ends")))}
+                                                                     "reasons", "licensing", "ends")),
+                              TroutCodec())}
 
 
 # --------------------------------------------------------------------------------------------
@@ -962,8 +1017,8 @@ def encode(model: Model, data: dict) -> dict:
                              "unnamed_parts": len(unnamed["parts"]),
                              "places": len(model.places),
                              "fish": len(fish)}},
-        "spec": SPEC,
-        "schemas": _schemas(),
+        "spec": spec_for(sections),
+        "schemas": _schemas(sections),
         "fish": fish,
         "keys": keys,
         "segments": segs.rows,
@@ -981,9 +1036,19 @@ def encode(model: Model, data: dict) -> dict:
     return wire
 
 
-def _schemas() -> dict:
+def _schemas(present) -> dict:
     from pipeline.deliver.answers.model import json_schemas
-    return json_schemas()
+    return json_schemas(present)
+
+
+def spec_for(present) -> dict:
+    """`SPEC` as a file holding the sections `present` ships it: an OPTIONAL section it lacks (`model.OPTIONAL_FRAMES`:
+    trout) has no text there, so a file built without it is the bytes it was before the section existed."""
+    from pipeline.deliver.answers.model import OPTIONAL_FRAMES
+    drop = set(OPTIONAL_FRAMES) - set(present)
+    if not drop:
+        return SPEC
+    return {**SPEC, "sections": {n: v for n, v in SPEC["sections"].items() if n not in drop}}
 
 
 def check_pair(wire: dict, data: dict, guide: dict) -> None:

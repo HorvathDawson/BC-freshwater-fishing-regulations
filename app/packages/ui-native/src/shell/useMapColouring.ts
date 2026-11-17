@@ -5,11 +5,11 @@
 import { chooseLayer, chooseShow, layersVM, withImageryCredit, type Horizon, type SalmonMapStatus, type SectionKey,
          type WaterStatus } from "@app/core";
 import { useCallback, useMemo, useState } from "react";
-import type { GaugeFeed, RunTimingSource, WaterSource, SectionId } from "@app/data";
+import type { GaugeFeed, RunTimingSource, SalmonFeedSource, WaterSource, SectionId } from "@app/data";
 import { useBcToday, useMapModes, useLayerChoice, type BrowseTab, type FlowParam, type LayerStore } from "@app/ui";
 import { viewBasinAsk, useBasinDays, useViewBasin, useConditionsColour, useGaugeGeoJSON, useLakeColour, lakeModesReady, lakeValuesCarried, usePairing,
          useStatusIndex, statusFeed, useHorizon, useHorizonPick, flowHorizon, horizonChips, useImageryReach,
-         useMethodColour, useRegsLayer, useRunTiming, useSalmonColour, type PairingInput, type RegsLayer, type RunSpeciesStore,
+         useFinfishCue, useIssueColour, useMethodColour, useRegsLayer, useRunTiming, useSalmonColour, type PairingInput, type RegsLayer, type RunSpeciesStore,
          type StatusSource } from "@app/ui";
 import type { Camera, TileEndpoints } from "@app/map";
 import { FIELD_HANDOVER_Z, imageryTiles } from "@app/map/colours";
@@ -31,8 +31,8 @@ export const HOME: Camera = { lon: -121.85, lat: 49.15, zoom: 10 };
 export const HANDOVER_Z = FIELD_HANDOVER_Z;
 
 export function useMapColouring({ source, feed, status, pairing, tiles, layerStore, attribution, mapTab, mapDay,
-                                  epoch, settled = true, gearSettled = settled, salmonOnDemand = false, runTiming = null,
-                                  runSpeciesStore = null, initialHorizon = 0 }: {
+                                  epoch, settled = true, gearSettled = settled, salmonOnDemand = false, dfoFeed = null,
+                                  runTiming = null, runSpeciesStore = null, initialHorizon = 0 }: {
   /** (T369 D10) the Conditions horizon it opens on (the address's, a recreated activity's); Now when absent. */
   initialHorizon?: Horizon;
   source: WaterSource; feed?: GaugeFeed; status: StatusSource | null; pairing: PairingInput | null;
@@ -49,6 +49,9 @@ export function useMapColouring({ source, feed, status, pairing, tiles, layerSto
   gearSettled?: boolean;
   /** (T182, owner 2026-10-28) The web: the salmon file is read on the first press of Salmon, not up front (a phone: false). */
   salmonOnDemand?: boolean;
+  /** (T796 A6) The live DFO feed (`httpSalmonFeed`, the one the bell reads): with `salmonOnDemand`, a day it closes some
+   *  place to all fishing on reads the salmon file for the Standard map too (`useFinfishCue`). */
+  dfoFeed?: SalmonFeedSource | null;
   /** (T199) The run-timing feed (its own stream, not the release): read the first time the Runs tab is opened. */
   runTiming?: RunTimingSource | null;
   /** (T261) Where the Runs tab's species are kept between visits (`openRunSpeciesStore`). */
@@ -164,8 +167,16 @@ export function useMapColouring({ source, feed, status, pairing, tiles, layerSto
    * change and nothing else — no fetch, no relabel. Offered only under the Regulations colouring, once the file is in.
    */
   const [regsLayer, setRegsLayer] = useRegsLayer();
+  /*
+   * (T796 A6) A DFO "FINFISH CLOSURE" CLOSES THE STANDARD MAP TOO (all fishing, trout included): the map paints those
+   * stretches closed by their salmon chains, so the web — which reads the salmon file on the first Salmon press — reads it
+   * for Standard as well, but ONLY on a day the live DFO feed it already holds closes some place so (`useFinfishCue`). A
+   * phone hands the salmon over whatever the toggle says; it needs no cue.
+   */
+  const finfishCue = useFinfishCue({ feed: dfoFeed, day: mapDay,
+                                     enabled: salmonOnDemand && mapTab === "map" && layers.effective.water === "regulations" });
   const salmon = useSalmonColour({ source, paired, statusOk, mapTab: mapTab === "map", day: mapDay, settled,
-                                   onDemand: salmonOnDemand, wanted: regsLayer === "salmon" });
+                                   onDemand: salmonOnDemand, wanted: regsLayer === "salmon" || finfishCue });
   const salmonOffered = salmon.offered && layers.effective.water === "regulations";
   // (T182) on the web the first Salmon press reads the file: the map stays Standard (the toggle says Loading) until it is in
   /*
@@ -242,9 +253,11 @@ export function useMapColouring({ source, feed, status, pairing, tiles, layerSto
   const salmonFeed = useMemo(() => (mapTab === "map" && salmon.feed ? { ...salmon.feed, only: salmonOnly } : null),
                                 [mapTab, salmon.feed, salmonOnly]);
   const methodFeed = mapTab === "map" ? method.feed : null;
+  // (T759) the stripe's labels ride the salmon facts already held; the map draws them in the Salmon view only
+  const issueFeed = useIssueColour({ source, facts: salmon.facts, mapTab: mapTab === "map" });
   return { pickedHorizon: hz.horizon, noteVisible, setZoomedOut, zoomedOut, vintage, mixedPair, unproven, statusIndex, statusOk, lakeFeed, imagery, layers,
            flowParam, horizon, horizonChipsShown, setFlowParam, pickDay, onChooseLayer, mm, credits, cond, gauges,
-           mapStatus, salmonFeed, salmonOffered, salmonLoading, methodFeed, gearMarked,
+           mapStatus, salmonFeed, salmonOffered, salmonLoading, methodFeed, issueFeed, gearMarked,
            regsLayer: salmonLoading ? "salmon" as RegsLayer : regsShown,
            setRegsLayer, salmonFacts: salmon.facts,
            // (T377) the regulations class the key shows alone (null: all), and the key's tap

@@ -16,6 +16,10 @@
    "outside_items": {
     "pacific_rim_national_park_reserve_of_canada": [
      "wbk:329083511"
+    ],
+    "gwaii_haanas_national_park_reserve_and_haida_heritage_site": [
+     "lake:328981611",
+     "lake:329381384"
     ]
    },
    "outside_items_note": "Waters the book's geography puts OUTSIDE a park whose polygon touches them (a lake is never cut, so one reaching 1,000 m2 into the park is flagged inside). Applied to the registry's area item by pipeline.atlas.registry.outside_area_items, the one source every reader asks. Kennedy Lake (wbk:329083511, 65 km2, MU 1-8) is outside Pacific Rim National Park Reserve — user ruling 2026-10-03, handled as Kootenay Lake is outside the Creston Valley WMA."
@@ -30,7 +34,24 @@
    "rejoin_m": 1000,
    "rejoin_note": "REJOIN DISTANCE (user ruling 2026-10-06, R chosen by the orchestrator for the user to confirm before promotion): a straddle is INSIDE — the line's inside stretches are joined across every continuous outside run of at most rejoin_m; it EXITS only after a longer outside run, and re-entry is a new entry cut; cuts sit at the straddle's outer crossings; an isolated dip under 5 m (positional error) is ignored. Measured 2026-10-06 over 15,010 line x area pairs (national parks, ecological reserves, Chilkoot): the longest continuous outside runs between inside stretches are Beaverfoot River/Yoho 968 m, Kicking Horse River/Yoho 135 m, Vladimir J. Krajina ER creek 80 m, Ice River 162 m, Maunder Creek 157 m, Morice River ER 262 m, Ningunsaw River 603 m, San Juan River 668 m. Closure km removed vs the previous overlap test: R=0 173.5, 100 128.5, 300 110.3, 500 104.5, 1000 95.3, 2000 84.1 (84 km at any R = pieces outside every crossing the overlap test widened onto). At 1000 m only Canyon, Carmanah, Cormier and Hoodas creeks exit and re-enter.",
    "tile_layer": "eco_reserve",
-   "tile_visible_px": 1.0
+   "tile_visible_px": 1.0,
+   "outside_items": {
+    "blue_dease_rivers_ecological_reserve": [
+     "lake:329638447"
+    ],
+    "drizzle_lake_ecological_reserve": [
+     "lake:329167101"
+    ],
+    "gladys_lake_ecological_reserve": [
+     "wbk:329529449",
+     "lake:329531505"
+    ],
+    "tow_hill_ecological_reserve": [
+     "lake:329165788",
+     "lake:329167166"
+    ]
+   },
+   "outside_items_note": "(T796, owner 2026-11-16: \"take out the lakes but add a note\"; RULINGS Z10) lakes and ponds lying MOSTLY OUTSIDE a reserve the polygon only reaches into, measured on the tiles' polygons 2026-11-16 (share of the lake's area inside). A lake with no item of its own is named by its section handle (`lake:<waterbody id>`). Each carries the note 'Mostly outside <area>' (`deliver.bundle.outside_note`)."
   },
   {
    "id": "chilkoot_trail",
@@ -43,7 +64,13 @@
    "rejoin_note": "See ecological_reserves.rejoin_note (measured over all three closure kinds together).",
    "tile_layer": "park",
    "tile_kind": "historic",
-   "tile_visible_px": 1.0
+   "tile_visible_px": 1.0,
+   "outside_items": {
+    "chilkoot_trail_national_historic_site": [
+     "lake:329261118"
+    ]
+   },
+   "outside_items_note": "(T796, owner 2026-11-16: \"take out the lakes but add a note\"; RULINGS Z10) lakes and ponds lying MOSTLY OUTSIDE a reserve the polygon only reaches into, measured on the tiles' polygons 2026-11-16 (share of the lake's area inside). A lake with no item of its own is named by its section handle (`lake:<waterbody id>`). Each carries the note 'Mostly outside <area>' (`deliver.bundle.outside_note`)."
   },
   {
    "id": "restricted_land_access",

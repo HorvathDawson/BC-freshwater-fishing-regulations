@@ -404,6 +404,7 @@ def test_policy_version_is_bumped_when_classify_changes():
         "dfo_rest_skips_a_listed_place_that_does_not_bind": reach_build.DFO_REST_SKIPS_A_LISTED_PLACE_THAT_DOES_NOT_BIND,
         "a_piece_into_the_cut_lake_is_just_above_its_cut": extent.A_PIECE_INTO_THE_CUT_LAKE_IS_JUST_ABOVE_ITS_CUT,
         "a_walked_past_exception_is_no_stop": licensing.A_WALKED_PAST_EXCEPTION_IS_NO_STOP,
+        "a_cut_on_a_line_end_is_across_only_at_its_point": extent.A_CUT_ON_A_LINE_END_IS_ACROSS_ONLY_AT_ITS_POINT,
     })
     expected.update({"confluence_cut_excludes_the_joining_water": True,
                      "confluence_water_without_a_row_goes_with_the_cut": True,
@@ -435,8 +436,9 @@ def test_policy_version_is_bumped_when_classify_changes():
                      "dfo_rest_has_its_own_bounds": True,
                      "dfo_rest_skips_a_listed_place_that_does_not_bind": True,
                      "a_piece_into_the_cut_lake_is_just_above_its_cut": True,
-                     "a_walked_past_exception_is_no_stop": True})
-    assert cache.POLICY_VERSION == "45", "update this pin with the version it was taken at"
+                     "a_walked_past_exception_is_no_stop": True,
+                     "a_cut_on_a_line_end_is_across_only_at_its_point": True})
+    assert cache.POLICY_VERSION == "46", "update this pin with the version it was taken at"
     assert policy == expected, (
         f"classify.py policy changed to {policy} — bump cache.POLICY_VERSION "
         f"(currently {cache.POLICY_VERSION!r}) and update this test together")

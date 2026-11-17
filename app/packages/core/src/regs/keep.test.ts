@@ -5,11 +5,12 @@
  * conformance/src/regs/keep.parity.test.ts (retired, T439).
  */
 import { describe, expect, it } from "vitest";
-import { keepOf, keepOrder, plainRowSeams, type KeepEnv } from "./keep";
+import { keepOf, keepOrder, plainRowSeams, sectionNotesOf, type KeepEnv } from "./keep";
+import { closeForFinfish } from "./finfish";
 import { otherFishKeyOf } from "./others";
 import { runOf } from "./strip";
 import { FISH } from "./fish.generated";
-import type { OtherFishRowVM } from "./model";
+import type { CaveatVM, KeepVM, OtherFishRowVM, RegsPage } from "./model";
 import type { RegsInputs } from "./inputs";
 
 const none = { strip: false, inherited: false, banner: false, caveats: [], rows: [], otherFish: false, possession: false, whereNot: false };
@@ -41,6 +42,14 @@ describe("keepOrder: page v36 renderCard + prototype buildKeep draw order", () =
       .toEqual([{ caveat: 0 }, "strip", "banner", { caveat: 1 }, { group: 0 }]);
   });
 
+  it("(T796) a section's notes lead the tab, before the part-closed warning, above the strip — on a closed day too", () => {
+    expect(keepOrder({ ...none, strip: true, banner: true, rows: [{ group: 0 }],
+      caveats: [{ kind: "note" }, { kind: "partclosed" }, { kind: "inpart" }, { kind: "note" }] }))
+      .toEqual([{ caveat: 0 }, { caveat: 3 }, { caveat: 1 }, "strip", "banner", { caveat: 2 }, { group: 0 }]);
+    expect(keepOrder({ ...none, strip: true, banner: true, caveats: [{ kind: "note" }] }))
+      .toEqual([{ caveat: 0 }, "strip", "banner"]);
+  });
+
   it("nothing at all draws nothing", () => {
     expect(keepOrder(none)).toEqual([]);
   });
@@ -51,6 +60,30 @@ describe("keepOf: the days with no card", () => {
     const k = keepOf({ key: null } as unknown as RegsInputs, {} as KeepEnv);
     expect(k).toEqual({ order: ["outside"], outside: "This part of the water is outside B.C.: no B.C. rules apply.", strip: null,
       inherited: null, banner: null, groups: [], plainRows: [], otherFish: null, otherFishKey: [], caveats: [], possession: null, whereNot: null });
+  });
+});
+
+const GLADYS = "Mostly outside Gladys Lake Ecological Reserve: its closure (rule book p.9) does not apply here.";
+const TOW = "Mostly outside Tow Hill Ecological Reserve: its closure (rule book p.9) does not apply here.";
+
+describe("(T796) sectionNotesOf: the section's notes as caveats, Python's words as they are", () => {
+  it("one `note` caveat per note, in order, the sentence its title, nothing to open", () => {
+    expect(sectionNotesOf({ notes: [GLADYS, TOW] } as unknown as RegsInputs)).toEqual([
+      { kind: "note", hot: false, title: GLADYS, calm: null, items: [], later: null },
+      { kind: "note", hot: false, title: TOW, calm: null, items: [], later: null }]);
+    expect(sectionNotesOf({ notes: [] } as unknown as RegsInputs)).toEqual([]);
+  });
+
+  it("a DFO finfish closure closes the page and keeps the note (it is about the place, not the day)", () => {
+    const note = sectionNotesOf({ notes: [GLADYS] } as unknown as RegsInputs)[0]!;
+    const side: CaveatVM = { kind: "side", hot: false, title: "On one side", calm: null, items: [], later: null };
+    const keep = { order: [{ caveat: 0 }, "strip", { caveat: 1 }], strip: { status: "open", line: [], runs: [], todayAt: 0, months: [], legend: [] },
+      inherited: null, banner: null, groups: [], plainRows: [], otherFish: null, otherFishKey: [], caveats: [note, side],
+      possession: null, whereNot: null, outside: null } as unknown as KeepVM;
+    const page = { status: "open", header: { dot: "open" }, keep, licence: {} } as unknown as RegsPage;
+    const shut = closeForFinfish(page, ["Finfish closure"]);
+    expect(shut.keep.caveats).toEqual([note]);
+    expect(shut.keep.order).toEqual([{ caveat: 0 }, "strip", "banner"]);
   });
 });
 

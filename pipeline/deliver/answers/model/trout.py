@@ -1,9 +1,13 @@
-"""THE TROUT AND CHAR TABLE (trout table plan, contract 2.3; ticket F): the DECODED value of one cell, `TroutFrame`.
+"""THE TROUT AND CHAR TABLE (trout table plan, contract 2.3; tickets F and I): the DECODED value of one cell, `TroutFrame`,
+and the WIRE shapes the release stores it in.
 
-These models are THE source of the shape (contract guarantee 1). Ticket I registers `TroutFrame` in `FRAMES["trout"]`
-and emits the TypeScript and the wire models (`TroutFrameWire`, `TroutTableWire`, `BoxWire`, `TRowWire`: a row's
-`sheet` as a `trout_sheet` id) beside it; until then nothing imports this module but the builder
-(`answers/trout/table.py`) and its tests, so no release, schema or generated file changes.
+These models are THE source of the shape (contract guarantee 1). `TroutFrame` is `FRAMES["trout"]` (`model/frames.py`);
+the wire models are emitted beside it (`frames.TROUT_WIRE`, contract 2.3 "wire against decoded"): `TroutFrameWire`
+(a `trout_frame` row: [table id, dates id | null, covers]), `TroutTableWire` / `BoxWire` / `TRowWire` (a `trout_table`
+row: the body, each row's `sheet` a `trout_sheet` id), `DateSet` (a `trout_dates` row) and `FishSheet` (a `trout_sheet`
+row), the same on both sides. The decoded and the wire table share their fields and validators (`_TRowFields`,
+`_BoxFields`, `_TableFields`); only a row's `sheet` differs. ANY CHANGE of a field, a validator or the wire layout bumps
+the `trout` section's version (`answers.SECTIONS`; contract 2.1), and the I0 pin then fails until the app moves too.
 
 Every field is required; a nullable one has no default and is paired, in a validator, with the condition that
 empties it (`model/__init__.py`). No number the app could count with: words, structure and rule indexes only (the one
@@ -12,9 +16,10 @@ unchanged (`Txt`): no leading or trailing space, no "{" or "}" except the one `{
 """
 from __future__ import annotations
 
-from typing import Annotated, Dict, Literal, Optional, Tuple
+from typing import Annotated, Any, Dict, Literal, Optional, Tuple
 
 from pydantic import AfterValidator, Field, StrictBool, StrictInt, StrictStr, model_validator
+from typing_extensions import TypeAliasType
 
 from pipeline.deliver.answers.model.base import FishLit, Model, OriginLit, RuleIx
 from pipeline.deliver.answers.model.rows import YearRun
@@ -91,7 +96,8 @@ class FishSheet(Model):
     src: Src = Field(max_length=4)
 
 
-class TRow(Model):
+class _TRowFields(Model):
+    """A table row's fields, decoded or on the wire (only `sheet` differs: `TRow`, `TRowWire`)."""
     key: RowKey
     fish: FishLit
     name: Txt
@@ -101,7 +107,7 @@ class TRow(Model):
     lines: Tuple[Txt, ...]              # NOW, bold: size, "uses the 1 over …", possession, stop duty, weekday words
     quiet: Tuple[Txt, ...]              # NOW, regular weight
     src: Src
-    sheet: FishSheet                    # DECODED; on the wire a `trout_sheet` id (ticket I)
+    sheet: Any                          # `TRow`: the FishSheet; `TRowWire`: its `trout_sheet` id
 
     @model_validator(mode="after")
     def _key(self):
@@ -115,13 +121,22 @@ class TRow(Model):
         return self
 
 
-class Box(Model):
+class TRow(_TRowFields):
+    sheet: FishSheet                    # DECODED
+
+
+class TRowWire(_TRowFields):
+    sheet: Annotated[StrictInt, Field(ge=0)]      # WIRE: the `trout_sheet` id
+
+
+class _BoxFields(Model):
+    """A box's fields, decoded or on the wire (`Box`, `BoxWire`: their rows differ)."""
     kind: Literal["keep", "release", "closed"]
     head: Txt
     label: Optional[Txt]                # keep only: "Hatchery only" when it covers every row of the box
     strip: Optional[Txt]                # keep only
     tag: Optional[Txt]                  # keep only: "Lake’s rule"
-    rows: Tuple[TRow, ...] = Field(min_length=1)
+    rows: Tuple[Any, ...] = Field(min_length=1)
     bands: Tuple[Band, ...]
 
     @model_validator(mode="after")
@@ -142,6 +157,14 @@ class Box(Model):
         return self
 
 
+class Box(_BoxFields):
+    rows: Tuple[TRow, ...] = Field(min_length=1)
+
+
+class BoxWire(_BoxFields):
+    rows: Tuple[TRowWire, ...] = Field(min_length=1)
+
+
 class YearBar(Model):
     title: Txt
     runs: Tuple[YearRun, ...] = Field(min_length=1)
@@ -152,11 +175,12 @@ class Together(Model):
     src: Src = Field(min_length=1)
 
 
-class TroutTable(Model):
+class _TableFields(Model):
+    """The table body's fields, decoded or on the wire (`TroutTable`, `TroutTableWire`: their boxes differ)."""
     top: TopLine
     fold: Fold
     hatch_link: StrictBool
-    boxes: Tuple[Box, ...] = Field(min_length=1)
+    boxes: Tuple[Any, ...] = Field(min_length=1)
     together: Optional[Together]
     year: Optional[YearBar]             # only when every fish shares one state today (all release or all closed)
     elsewhere: Tuple[Txt, ...]
@@ -187,7 +211,7 @@ class TroutTable(Model):
         cited = set(self.src)
         for b in self.boxes:
             for r in b.rows:
-                if not set(r.src) <= cited or not set(r.sheet.src) <= cited:
+                if not set(r.src) <= cited or not set(getattr(r.sheet, "src", ())) <= cited:
                     raise ValueError(f"row {r.key} cites a rule the table's src leaves out")
         if self.together is not None and not set(self.together.src) <= cited:
             raise ValueError("together cites a rule the table's src leaves out")
@@ -204,6 +228,14 @@ class TroutTable(Model):
         if kinds == {"release"}:
             return "release"
         return None
+
+
+class TroutTable(_TableFields):
+    boxes: Tuple[Box, ...] = Field(min_length=1)
+
+
+class TroutTableWire(_TableFields):
+    boxes: Tuple[BoxWire, ...] = Field(min_length=1)
 
 
 class DateSet(Model):
@@ -285,3 +317,10 @@ class TroutFrame(Model):
             if t.startswith(REOPENS) and boxes[int(k)].kind != "closed":
                 raise ValueError(f"a reopening date in a {boxes[int(k)].kind} box: only a fish closed today reopens")
         return self
+
+
+#: A `trout_frame` row on the wire (contract 2.1): [the `trout_table` id, the `trout_dates` id or null (no date set),
+#: covers]. `TroutCodec` (`answers/encode.py`) writes and reads it.
+TroutFrameWire = TypeAliasType("TroutFrameWire", Tuple[Annotated[StrictInt, Field(ge=0)],
+                                                       Optional[Annotated[StrictInt, Field(ge=0)]],
+                                                       Tuple[Annotated[StrictInt, Field(ge=0)], ...]])

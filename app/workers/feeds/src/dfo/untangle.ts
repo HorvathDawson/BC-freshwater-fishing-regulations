@@ -61,6 +61,8 @@ export interface Rule {
   fishery_notices: { text: string; href: string }[];
   source: string;
   row_index: number;
+  /** (T787) the row sits in a table DFO commented out: provenance only, it answers nothing */
+  hidden: boolean;
 }
 const ruleFromRow = (r: RegRow): Rule => ({
   species: r.species || "All",
@@ -69,6 +71,7 @@ const ruleFromRow = (r: RegRow): Rule => ({
   fishery_notices: r.fishery_notices,
   source: r.source,
   row_index: r.row_index,
+  hidden: r.hidden,
 });
 
 export interface Reach {

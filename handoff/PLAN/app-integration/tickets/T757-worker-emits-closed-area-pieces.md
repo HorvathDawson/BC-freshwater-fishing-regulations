@@ -165,3 +165,7 @@ locally, where app/node_modules exists, so it could not see this. Fix: the six r
 Second red (cefa78170): `test_no_silent_skips.py` refuses a skip outside its allowlist. The esbuild skip is an optional
 tool, the same kind as `test_dfo_suggest.py`, so it is now listed there (count 1). The guard plus the deploy tests: 50 pass
 with esbuild; with it moved aside, 44 pass and 6 skip. The rest of that CI run passed (6521).
+
+## Items 5 and 6 merged, 2026-11-16 20:55 (with T759, branch `merge/t759`, not landed)
+Item 5 (the shape in index.json, `dfo.pieces`) came with T759's feeds half (5a4f5e245); item 6 (the app's minimum feed
+shape, fa0c7a1c5) with T759's app half (7875490fe). Both land when `merge/t759` lands.

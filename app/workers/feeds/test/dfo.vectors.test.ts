@@ -18,19 +18,19 @@ import { readDates } from "../src/dfo/dates";
 import { byFingerprint, loadEntryFile, reconcile } from "../src/dfo/entries";
 import { digest, parseHeader, resolve } from "../src/dfo/header";
 import { build } from "../src/dfo/feed";
-import { ROW_HELD_VERDICT, typePage } from "../src/dfo/live";
+import { QUEUE_ACTION, ROW_HELD_VERDICT, typePage } from "../src/dfo/live";
 import { fingerprint, landmarks, normalize } from "../src/dfo/locations";
 import { key } from "../src/dfo/names";
 import { dumps } from "../src/dfo/pyjson";
 import { headerAnswers, headerClosure } from "../src/dfo/quota";
 import { Interner, locationCalendar, SPECIES } from "../src/dfo/salmon";
-import { toRules, type TypedRule } from "../src/dfo/typed";
+import { typedRules, type TypedRule } from "../src/dfo/typed";
 import { REG } from "./wording.fixture";
 import { runDfo } from "../src/dfo";
 import { MemStore, privStore } from "./dfo.scenario";
 
 const FIX = join(__dirname, "fixtures/dfo");
-interface Calendar { sp: number[][]; g: number[]; verdicts: { s: string; t: string }[]; gears: unknown[] }
+interface Calendar { sp: number[][]; g: number[]; o?: number[]; verdicts: { s: string; t: string }[]; gears: unknown[] }
 interface PyLocator { fingerprint: string; rows: string[]; rules: Record<string, unknown>[]; words?: unknown; calendar: Calendar }
 interface Vectors {
   format: string;
@@ -202,7 +202,12 @@ describe("(T676) the open-ended rows are in the vectors, read the same on both s
     expect(hit).toEqual(["1:7eab1584", "2:d367a8ea", "4:1d1c79cf", "8:afc9f631", "8:833f8748", "8:b70729bd"]);
     const typed = Object.values(V.pages).flatMap((p) => p.locators.filter(openEnded));
     expect(typed.every((l) => l.rules.some((r) => (r.when as { open_ended?: boolean } | undefined)?.open_ended))).toBe(true);
-    expect(typed.every((l) => l.calendar.verdicts.some((v) => / until further notice\)/.test(v.t)))).toBe(true);
+    // (T787) region 4's sits in the table DFO commented out: typed (provenance), every rule hidden, it answers nothing
+    const hidden = (l: PyLocator) => l.rules.every((r) => r.hidden === true);
+    expect(Object.entries(V.pages).flatMap(([slug, p]) => p.locators.filter((l) => openEnded(l) && hidden(l)).map((l) => `${slug}:${l.fingerprint.slice(0, 8)}`)))
+      .toEqual(["4:1d1c79cf"]);
+    expect(typed.filter(hidden).every((l) => l.calendar.verdicts.length === 0)).toBe(true);
+    expect(typed.filter((l) => !hidden(l)).every((l) => l.calendar.verdicts.some((v) => / until further notice\)/.test(v.t)))).toBe(true);
   });
 });
 
@@ -218,59 +223,124 @@ describe("the shared hand rows (dfo-rows.json): typed rules and calendar == Pyth
         expect([V.rows[name]!.calendar.verdicts.map((v) => v.s), ROW_HELD_VERDICT.s]).toEqual([["check"], "check"]);
         return;
       }
-      const rules = c.rows.flatMap(([species, dates, limits_gear], i) => toRules({ species, dates, limits_gear }, "rows", i, REG));
+      const rules = c.rows.flatMap(([species, dates, limits_gear], i) => typedRules({ species, dates, limits_gear }, "rows", i, REG));
       expect(plain(rules)).toEqual(V.rows[name]!.rules);
       expect(calendarOf(rules)).toEqual(V.rows[name]!.calendar);
     });
 });
 
-// (T757, T758) THE LIVE FEED, WHOLE: the worker's runDfo over the saved pages and the fixture entry files == the Python's
-// `live.run` over the same (vectors `live`): every location — places, the page-default places (T758: the page's own
-// sentence, cascade.ts), the closed-area pieces — in its region, each species' year and the gear lines compared by the
-// verdict / gear itself (each feed numbers its tables its own way), and the rows shown in DFO's words. No exception list.
+// (T757, T758, T759) THE LIVE FEED, WHOLE: the worker's runDfo (production mode) over the saved pages and the fixture
+// entry files == the Python's `live.run` over the same (vectors `live`), and on every edited case (`live.cases`, run as
+// the feed runs: the saved page first, then the edited one): every location in its region — places, page defaults,
+// closed-area pieces — each species' year and the gear lines compared by the verdict / gear itself (each feed numbers its
+// tables its own way), the rows in DFO's words; the issues (T759), the feed shape `dfo`, each region's `gone`, and the
+// notices of the kinds the Python's case pins (key and text, word for word). No exception list.
 describe("the live feed: the worker's runDfo == the Python's live.run", () => {
-  type Feed = { locs: Record<string, { r: string; sp: number[][]; g: number[]; x?: unknown }>; verdicts: unknown[]; gears: unknown[]; unplaced: number };
-  const named = (f: Feed) => Object.fromEntries(Object.entries(f.locs).map(([lid, c]) => [lid, {
+  type Feed = { locs: Record<string, { r: string; sp: number[][]; g: number[]; o?: number[]; x?: unknown }>; verdicts: unknown[]; gears: unknown[]; unplaced: number;
+                issues: unknown; dfo: unknown; gone: Record<string, unknown[]>; notices: [string, string][] };
+  type Case = Feed & { name: string; slug: string; edits: [string, string][]; page?: string; fail?: boolean; first?: string[]; entries?: Record<string, unknown>[] };
+  const L = V.live as Feed & { cases: Record<string, Case> };
+  const KINDS = ["dfo-new:", "dfo-drift:", "dfo-new_water:", "dfo-issue:", "dfo-gone:", "dfo-held:", "dfo-fetch:"];
+  const lines = (f: Pick<Feed, "gears">, runs: number[]) => runs.map((x, k) => (k % 2 ? (x >= 0 ? f.gears[x] : null) : x));
+  // (T770) `o`, another fish's closure lines, by the lines themselves too (absent where none, on both sides)
+  const named = (f: Pick<Feed, "locs" | "verdicts" | "gears">) => Object.fromEntries(Object.entries(f.locs).map(([lid, c]) => [lid, {
     r: c.r, sp: c.sp.map((runs) => runs.map((x, k) => (k % 2 ? (x >= 0 ? f.verdicts[x] : null) : x))),
-    g: c.g.map((x, k) => (k % 2 ? (x >= 0 ? f.gears[x] : null) : x)), ...(c.x ? { x: c.x } : {}) }]));
-  const run = async (pages: Record<string, string>): Promise<Feed> => {
-    const feed = new MemStore();
-    await runDfo({ fetch: async () => new Response(""), feed, priv: privStore(), now: "2026-10-28T12:00:00Z", regions: Object.keys(pages),
-                   entries: async (s) => readFileSync(join(FIX, `entries/region-${s}.json`), "utf-8"), fetcher: async (s) => [pages[s]!, null] });
-    return JSON.parse(feed.m.get("index.json")!);
+    g: lines(f, c.g), ...(c.o ? { o: lines(f, c.o) } : {}), ...(c.x ? { x: c.x } : {}) }]));
+  /** the case's entry-file edits (the emitter's `_edit_entries`, the same ops) */
+  const editEntries = (doc: { locations: Record<string, any>[] }, ops: Record<string, any>[]) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+    for (const op of ops) {
+      if (op.op === "add_place") {
+        const src = doc.locations.find((l) => l.location_id === op.from)!;
+        const add: Record<string, unknown> = { ...JSON.parse(JSON.stringify(src)), location_id: op.location_id, fingerprints: [op.fingerprint], status: "active",
+                                               source_text: { ...src.source_text, specific_area: op.area } };
+        if ("duplicate_of" in op) Object.assign(add, { duplicate_of: op.duplicate_of, duplicate_confirmed: op.duplicate_confirmed });
+        if (op.no_extents) add.binding = { ...src.binding, extents: [] };
+        doc.locations.push(add);
+      } else if (op.op === "add_fingerprint") doc.locations.find((l) => l.location_id === op.to)!.fingerprints.push(op.fingerprint);
+      else throw new Error(`unknown entry edit ${op.op}`);
+    }
+    return doc;
   };
-  const L = V.live as Feed & { cases: Record<string, Feed & { slug: string; edit: [string, string] }> };
-  const all = () => Object.fromEntries(Object.keys(V.pages).map((s) => [s, page(s)]));
-  const DEFAULTS = ["1:default:region", "2:default:areas-13-15-16", "2:default:areas-28-29", "3:default:region", "5a:default:region", "7:default:region", "8:default:region"];
-
-  it("the saved pages: 274 places, every one answered as the Python's", async () => {
-    const got = await run(all());
-    expect(Object.keys(L.locs).length).toBe(274);
-    expect(named(got)).toEqual(named(L));
-    expect([got.unplaced, L.unplaced]).toEqual([0, 0]);
+  const entriesOf = (c?: Case) => async (s: string) => {
+    const text = readFileSync(join(FIX, `entries/region-${s}.json`), "utf-8");
+    return c?.entries && s === c.slug ? JSON.stringify(editEntries(JSON.parse(text), c.entries)) : text;
+  };
+  const view = (ix: any, notices: { key: string; text: string }[]) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
+    locs: named(ix), unplaced: ix.unplaced, issues: ix.issues, dfo: ix.dfo,
+    gone: Object.fromEntries(Object.entries<any>(ix.regions).map(([s, r]) => [s, r.gone ?? []])), // eslint-disable-line @typescript-eslint/no-explicit-any
+    notices: notices.filter((n) => KINDS.some((k) => n.key.startsWith(k))).map((n) => [n.key, n.text] as [string, string]).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)),
   });
-  it("the 7 page defaults are there, each closed every day in its page's own sentence; Region 2's two each its own", async () => {
-    const got = named(await run(all()));
-    expect(Object.keys(got).filter((l) => l.includes(":default:")).sort()).toEqual(DEFAULTS);
+  // ONE NAMED DIFFERENCE in the words (T549 item 9, on purpose): the worker's action first reads DFO's page on the Mac
+  // (`live run … && live queue …`, `QUEUE_ACTION`), since `live queue` reads the Mac's unplaced.json, never the worker's
+  const action = (t: string) => t.replace(/after: python -m pipeline\.regs\.dfo_salmon\.live queue --regions (\w+)$/, (_m, s: string) => `after: ${QUEUE_ACTION(s)}`);
+  const want = (f: Feed) => ({ locs: named(f), unplaced: f.unplaced, issues: f.issues, dfo: f.dfo, gone: f.gone,
+                               notices: f.notices.map(([k, t]) => [k, action(t)] as [string, string]) });
+
+  it("the saved pages: 274 places, the issues, the shape — every one as the Python's", async () => {
+    const feed = new MemStore();
+    const got = await runDfo({ fetch: async () => new Response(""), feed, priv: privStore(), now: "2026-10-28T12:00:00Z", regions: Object.keys(V.pages),
+                               entries: entriesOf(), fetcher: async (s) => [page(s), null] });
+    expect(Object.keys(L.locs).length).toBe(274);
+    const ix = JSON.parse(feed.m.get("index.json")!);
+    expect(view(ix, got.notices)).toEqual(want(L));
+    expect(L.unplaced).toBe(0);
+    // the order the ticket names (toEqual ignores key order): waters by id in the published bytes, each list by key
+    const ids = Object.keys(ix.issues.waters);
+    expect(ids.length).toBeGreaterThan(1);
+    expect(ids).toEqual([...ids].sort());
+    for (const w of Object.values<{ list: { key: string }[] }>(ix.issues.waters)) expect(w.list.map((i) => i.key)).toEqual(w.list.map((i) => i.key).sort());
+  });
+  it("the cases the vectors hold: every kind of issue, a removal, the regions not read", () => {
+    expect(Object.keys(L.cases).sort()).toEqual(["closed_area_unbound", "drift_close_match", "drift_confirmed", "drift_proposed_variant", "exact_rewording", "gone",
+      "new_water", "no_default_sentence", "sentence_without_a_place", "unmatched_near_place_taken", "unmatched_new", "unmatched_new_far_reword", "unmatched_undrawn",
+      "unread_held", "unread_not_asked", "unread_stale"]);
+  });
+  it.each(Object.keys(L.cases))("%s: the worker's run == the Python's (locs, issues, dfo, gone, notices)", async (name) => {
+    const c = L.cases[name]!;
+    let html = c.page ?? page(c.slug);
+    for (const [a, b] of c.edits) {
+      expect(html.split(a).length - 1).toBe(1);
+      html = html.replace(a, b);
+    }
+    const feed = new MemStore(), priv = privStore();
+    const base = { fetch: async () => new Response(""), feed, priv, entries: entriesOf(c) };
+    await runDfo({ ...base, now: "2026-10-28T12:00:00Z", regions: c.first ?? [c.slug], fetcher: async (s) => [page(s), null] });
+    const got = await runDfo({ ...base, now: "2026-10-28T18:00:00Z", regions: [c.slug],
+                               fetcher: async (s) => { if (c.fail && s === c.slug) throw new Error("down"); return [s === c.slug ? html : page(s), null]; } });
+    expect(view(JSON.parse(feed.m.get("index.json")!), got.notices)).toEqual(want(c));
+  });
+  it("what the cases say (the Python's words, read back)", () => {
+    const kinds = (c: Case) => Object.values((c.issues as any).waters as Record<string, { list: { kind: string; why?: string }[] }>) // eslint-disable-line @typescript-eslint/no-explicit-any
+      .flatMap((w) => w.list.map((i) => `${i.kind}${i.why ? `/${i.why}` : ""}`)).filter((k) => !k.endsWith("/undrawn") || false);
+    const C = L.cases;
+    expect(kinds(C.unmatched_new!)).toEqual(["unmatched/new"]);
+    expect(kinds(C.unmatched_new_far_reword!)).toEqual(["unmatched/new"]);
+    expect(kinds(C.unmatched_near_place_taken!)).toEqual(["unmatched/near_place_taken"]);
+    expect(kinds(C.drift_close_match!)).toEqual(["drift"]);
+    expect(kinds(C.drift_proposed_variant!)).toEqual(["drift"]);
+    expect(kinds(C.drift_confirmed!)).toEqual([]);
+    expect(kinds(C.exact_rewording!)).toEqual([]);
+    expect(kinds(C.gone!)).toEqual([]);
+    expect(C.gone!.gone["1"]!.length).toBe(1);
+    expect(kinds(C.closed_area_unbound!)).toEqual(["closed_area_unbound"]);
+    expect(((C.new_water!.issues as any).no_water as { why: string }[]).map((i) => i.why)).toEqual(["new_water"]); // eslint-disable-line @typescript-eslint/no-explicit-any
+    const und = Object.values((C.unmatched_undrawn!.issues as any).waters["1:quatse-river"].list as { why: string }[]); // eslint-disable-line @typescript-eslint/no-explicit-any
+    expect(und.map((i) => i.why)).toEqual(["undrawn"]);
+    expect([C.unread_held, C.unread_stale, C.unread_not_asked].map((c) => (c!.issues as any).unread)).toEqual([{ "1": "held" }, { "1": "stale" }, { "8": "not asked" }]); // eslint-disable-line @typescript-eslint/no-explicit-any
+    expect(L.dfo).toEqual({ pieces: 1 });
+  });
+  it("the 7 page defaults are there, each closed every day in its page's own sentence; Region 2's two each its own", () => {
+    const got = named(L);
+    expect(Object.keys(got).filter((l) => l.includes(":default:")).sort()).toEqual(["1:default:region", "2:default:areas-13-15-16", "2:default:areas-28-29",
+      "3:default:region", "5a:default:region", "7:default:region", "8:default:region"]);
     const words = (lid: string) => [...new Set((got[lid]!.sp.flatMap((runs) => runs.filter((_, k) => k % 2)) as { s: string; t: string }[]).map((v) => `${v.s}: ${v.t}`))];
     expect(words("2:default:areas-28-29")).toEqual(["closed: There is no fishing for salmon in waters of Region 2 flowing into Areas 28 and 29 except for the opportunities listed in the table below."]);
     expect(words("2:default:areas-13-15-16")).toEqual(["closed: Unless otherwise stated in the table below, the daily limit for waters in Region 2 flowing into Areas 13, 15, and 16 is zero (0)."]);
-    expect(words("3:default:region")).toEqual(["closed: There is no fishing for salmon in Region 3 except for the opportunities listed in the table below."]);
-    expect(words("8:default:region")).toEqual(["closed: There is no fishing for salmon in Region 8 except for the opportunities listed in the table below."]);
-  });
-  it.each(Object.keys(L.cases))("an edited page (%s) reads as the Python's", async (name) => {
-    const c = L.cases[name]!;
-    const html = page(c.slug);
-    expect(html.split(c.edit[0]).length - 1).toBe(1);
-    const got = await run({ [c.slug]: html.replace(c.edit[0], c.edit[1]) });
-    expect(named(got)).toEqual(named(c));
-    expect([got.unplaced, c.unplaced]).toEqual([0, 0]);
   });
   it("sentence_without_a_place: the page's sentence for a scope no place carries is typed, then skipped — never unplaced", () => {
     const c = L.cases.sentence_without_a_place!;
-    const [typed] = typePage(page(c.slug).replace(c.edit[0], c.edit[1]), c.slug, true, REG);
+    const [typed] = typePage(page(c.slug).replace(c.edits[0]![0], c.edits[0]![1]), c.slug, true, REG);
     expect(typed.locators.filter((l) => l.fingerprint.startsWith("page:")).map((l) => l.fingerprint)).toEqual(["page:3:region", "page:3:areas-30-31"]);
-    expect(Object.keys(c.locs).sort()).toEqual(Object.keys(L.locs).filter((l) => L.locs[l]!.r === "3").sort());
     expect(c.unplaced).toBe(0);
   });
   it("statementLocators on hand texts (the Python's answers: `cascade.statement_locators`, values pasted from .venv/bin/python)", () => {
@@ -284,7 +354,7 @@ describe("the live feed: the worker's runDfo == the Python's live.run", () => {
     expect(statementLocators("2", [r2])).toEqual([rule("page:2:areas-14-17", r2)]);
     expect(statementLocators("3", [])).toEqual([]);
   });
-  it("no_default_sentence: the region 3 page without its sentence publishes no default place, the rest of the region as before", () => {
+  it("no_default_sentence: the region 3 page without its sentence publishes no default place", () => {
     const c = L.cases.no_default_sentence!;
     expect(Object.keys(c.locs).filter((l) => l.includes(":default:"))).toEqual([]);
     expect(Object.keys(c.locs).sort()).toEqual(Object.keys(L.locs).filter((l) => L.locs[l]!.r === "3" && l !== "3:default:region").sort());

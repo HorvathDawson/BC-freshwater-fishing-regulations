@@ -29,7 +29,7 @@ import { openProbe, type ItemId, type SectionId } from "@app/data";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Platform, View } from "react-native";
 import { bottomBarShown, spotPins, useDayFlow, useLikeVisit, useMapRail, useMyLocation, useOpenAtMe, opensAtMe, useShare, useGaugePageCheck, useMenu, useDataFacts, useSync, useAppUpdate,
-         BackLayerContext, InSeasonContext, InSeasonInboxContext, useIdleOnce, useInSeason, loadRegsStore, useInSeasonInbox, useDfoNotice, useDfoCheckedAt, useReleasePrefetch, useBackgroundPrefetch, useWaterRegionsAhead, useNet, useNetQuiet, useRegsPrefetch, holdsMapStatus, openWater, pressCueStore, tapAhead, useTapAwaiting, useHeldLookStore, type HeldLookStore, type RegsStart } from "@app/ui";
+         BackLayerContext, InSeasonContext, InSeasonInboxContext, useIdleOnce, useInSeason, loadRegsStore, useInSeasonInbox, useDfoNotice, useDfoCheckedAt, useReleasePrefetch, useBackgroundPrefetch, useWaterRegionsAhead, useNet, useNetQuiet, useRegsPrefetch, holdsMapStatus, pressCueStore, tapAhead, useTapAwaiting, useHeldLookStore, type HeldLookStore, type RegsStart } from "@app/ui";
 import type { Camera, MapSpots } from "@app/map";
 import { visitSpot } from "@app/data/spots";
 import { connectivity } from "./connectivity";
@@ -63,10 +63,9 @@ import { useResumed } from "./shell/useResumed";
 import { useEscapeBack } from "./escapeBack";
 import { useShellSearch } from "./shell/useShellSearch";
 import { FirstRunNotice, useFirstRun } from "./FirstRunNotice";
-import { GUIDE_STEPS, GuideCard, useGuide, type GuideActs, type GuideFacts } from "./Walkthrough";
+import { GuideCard, useGuide, type GuideActs, type GuideFacts } from "./Walkthrough";
 import { CoachContext, CoachItemContext, useCoachRegistry } from "./CoachMarks";
 import { GuideControlContext, useGuideControlHost } from "./guideControls";
-import { useGuideClosed } from "./guideClosed";
 import { part, preloadParts } from "./part";
 import { LoadingState } from "./LoadingState";
 
@@ -96,8 +95,6 @@ const heldStyle = (tabsH: number) => ({ ...BEHIND, bottom: -tabsH, transform: [{
  */
 const keptStyle = (tabsH: number) => ({ ...BEHIND, bottom: tabsH }) as const;
 
-/** (T293) The fish obstacles' switch in the Layers sheet (`@app/core` layers). */
-const OBSTACLES = "overlay.obstacles";
 
 /** (T293) The room the bottom tab bar takes, kept clear by the walkthrough's card docked at the foot. */
 const TAB_BAR_ROOM = 64;
@@ -250,7 +247,7 @@ export function Shell(p: ShellProps) {
   const col = useMapColouring({ source, feed, status: statusHeld ? null : p.status ?? null, pairing: p.pairing ?? null, tiles,
                                 layerStore: p.layerStore, attribution: p.attribution, mapTab: nav.mapTab, mapDay,
                                 epoch: syncState.epoch, settled, gearSettled: settled && quietLine,
-                                salmonOnDemand: !!(p.prefetch && loader),
+                                salmonOnDemand: !!(p.prefetch && loader), dfoFeed: p.salmonFeed ?? null,
                                 runTiming: p.runTiming ?? null, runSpeciesStore: p.runSpeciesStore ?? null,
                                 initialHorizon: p.initialHorizon ?? 0 });
   /*
@@ -376,50 +373,23 @@ export function Shell(p: ShellProps) {
   /*
    * (T293) THE GUIDED WALKTHROUGH comes SECOND: held while the notice is up, and the in-season notice waits for it. It
    * starts on the Map tab (where its first step, search, is) and, once started, follows the reader wherever its steps
-   * take them — a water, its Conditions, the spot capture, a spot. It reads what is on screen (`guideFacts`) and does a
-   * step on request ("Show me", `guideActs`) through the route, search and the opener: nothing of its own. More → Help
-   * replays it from the Map tab.
+   * take them — a water, its Conditions, back to the map. It reads what is on screen (`guideFacts`) and does a step on
+   * request ("Show me", `guideActs`) through the route, search and the opener: nothing of its own. More → Help replays it
+   * from the Map tab. (T824) Ten steps: the closed stretch, Layers and the spot-making steps were cut, with their acts.
    */
   const coach = useCoachRegistry();
   const onMapTab = route.mode === "browse" && tab === "map" && !rail.picking;
   const [guideWanted, setGuideWanted] = useState(false);
   const guideWater = useGuideWater(source, guideWanted);
-  // (T466) the part closed all year the walk walks up to (none in this release: the walk says so), and the walk's pin
-  const guideClosed = useGuideClosed(source, loader, guideWanted);
-  const [guidePin, setGuidePin] = useState<{ lat: number; lon: number; sid?: number } | null>(null);
-  useEffect(() => {
-    if (!guideWater || !source.waterPoint) return;
-    let live = true;
-    void source.waterPoint(guideWater.item as ItemId).then((at) => { if (live) setGuidePin(at); }).catch(reportFailure);
-    return () => { live = false; };
-  }, [source, guideWater]);
-  // (T466) the example spot the walk made (its id), and what became of it at the end: removed, or kept (it could not be)
-  const [example, setExample] = useState<{ id: string; state: "removed" | "kept" | null } | null>(null);
   const picked = searchMemory.pick.selected;
-  // the layers as the reader had them when the walk reached its Layers steps: put back at the last of them (or a skip)
-  const groundNow = col.layers.ground.tiles.find((t) => t.chosen)?.id ?? "";
-  const obstaclesNow = !!col.layers.overlays.rows.find((r) => r.id === OBSTACLES)?.chosen;
-  const [layersWas, setLayersWas] = useState<{ ground: string; obstacles: boolean } | null>(null);
   // (T456) the controls a screen keeps to itself (a fold's Details, the chart's toggles, the panel's forecast day)
   const guideCtl = useGuideControlHost();
   const guideFacts: GuideFacts = {
     water: guideWater, searching, query: searchMemory.q,
     selected: picked?.kind === "water" ? picked.item : null,
     open: frame ? { item: frame.item, view: frame.view, part: frame.part } : null,
-    adding: adding !== null, viewing: openSpot, spots: spots.length,
-    closed: guideClosed, example: example?.state ?? null,
-    spotsTab: route.mode === "browse" && tab === "spots" && adding === null && openSpot === null && !searching,
-    picking: rail.picking, dropped: route.mode === "browse" && rail.drop !== null,
-    layersOpen, ground: groundNow, obstacles: obstaclesNow, layersWas,
     onMap: tab === "map" && frame === null && !searching && adding === null && openSpot === null && !rail.picking,
-    dayPicked: mapDay !== null, controls: guideCtl.values,
-  };
-  const restoreLayers = () => {
-    if (layersWas) {
-      if (groundNow !== layersWas.ground) col.onChooseLayer(layersWas.ground);
-      if (obstaclesNow !== layersWas.obstacles) col.onChooseLayer(OBSTACLES);
-    }
-    setLayersWas(null); setLayersOpen(false);
+    dayPicked: mapDay !== null, controls: guideCtl.values, regsLayer: col.regsLayer,
   };
   // (T234) A NOTIFICATION'S TAP: a gauge alert opens its water's Conditions (an unnamed reach's: the Conditions map)
   const openReq = p.openRequest ?? null;
@@ -450,51 +420,6 @@ export function Shell(p: ShellProps) {
       nav.opener.item(guideWater.item as ItemId, v);
     },
     view: (v) => go({ type: "view", view: v }),
-    addSpot: () => {
-      go({ type: "close" });
-      // the pin ON the water: its own line's point nearest the middle of it (`waterPoint`); none known, no pin
-      go({ type: "addSpot", at: guidePin ? { lat: guidePin.lat, lon: guidePin.lon } : null });
-    },
-    cancelAdd: () => { if (adding) go({ type: "back" }); },
-    toSpots: () => go({ type: "tab", tab: "spots" }),
-    openSpot: () => {
-      const newest = [...spots].sort((a, b) => b.createdAt - a.createdAt)[0];
-      if (newest) go({ type: "openSpot", id: newest.id as never });
-    },
-    openClosed: (v) => {
-      if (!guideClosed) return;
-      if (searching) { go({ type: "search", open: false }); search.searchType(""); }
-      go(openWater({ item: guideClosed.item as ItemId, part: guideClosed.part, view: v }));   // the one builder (one water screen)
-    },
-    // (T466) adding a spot, the reader's way: the Spots tab's Pick on the map, the pin on the walk's water, Continue
-    pickOnMap: () => rail.pick(),
-    dropPin: () => { if (guidePin) rail.pressLong(guidePin.lat, guidePin.lon); },
-    continueDrop: () => rail.continueDrop(),
-    capturePick: () => { if (guidePin?.sid !== undefined) guideCtl.set("capture", { pick: guidePin.sid }); },
-    showSpot: () => {
-      const s = spots.find((x) => x.id === openSpot);
-      if (!s) return;
-      camera.current = { lon: s.lon, lat: s.lat, zoom: 14 };
-      rail.show(s);
-    },
-    removeExample: () => {
-      const ex = example;
-      if (!ex || ex.state !== null || !p.onDeleteSpot) return;
-      if (openSpot === ex.id) go({ type: "back" });
-      void Promise.resolve(p.onDeleteSpot(ex.id)).then(() => setExample({ ...ex, state: "removed" }),
-        (e: unknown) => { reportFailure(e); setExample({ ...ex, state: "kept" }); });
-    },
-    openLayers: () => {
-      go({ type: "close" }); if (tab !== "map") nav.toTab("map");
-      if (!layersWas) setLayersWas({ ground: groundNow, obstacles: obstaclesNow });
-      setLayersOpen(true);
-    },
-    otherGround: () => {
-      const other = col.layers.ground.tiles.find((t) => !t.chosen && t.enabled);
-      if (other) col.onChooseLayer(other.id);
-    },
-    obstaclesOn: () => { if (!obstaclesNow) col.onChooseLayer(OBSTACLES); },
-    restoreLayers,
     toMap: () => { setLayersOpen(false); go({ type: "close" }); if (searching) { go({ type: "search", open: false }); search.searchType(""); }
                    if (tab !== "map") nav.toTab("map"); },
     leaveWater: () => { if (frame) back(); },
@@ -502,20 +427,14 @@ export function Shell(p: ShellProps) {
       const d = stepDay(mapDay, 1, bcNow(), dayRange(bcNow(), loader?.manifest?.regulations?.valid_until ?? null));
       if (d !== undefined) setMapDay(d);
     },
+    regsLayer: (k) => col.setRegsLayer(k),
     control: guideCtl.set,
   };
   const guide = useGuide(p.walkthrough ?? null, firstRun.open || !onMapTab, guideFacts, guideActs);
   useEffect(() => { if (guide.open || guide.pending) setGuideWanted(true); }, [guide.open, guide.pending]);
-  // the Layers sheet opened by the reader at the walk's Layers step: what they had is kept from that moment
-  const atKey = guide.open ? GUIDE_STEPS[guide.at]?.key : undefined;
-  useEffect(() => {
-    if (atKey === "layers" && layersOpen && !layersWas) setLayersWas({ ground: groundNow, obstacles: obstaclesNow });
-  }, [atKey, layersOpen]);   // eslint-disable-line react-hooks/exhaustive-deps -- at the moment it opens
-  // the walk left (skipped, or Back out of it) mid-Layers: the layers go back as they were
-  useEffect(() => { if (!guide.open && layersWas) restoreLayers(); }, [guide.open]);   // eslint-disable-line react-hooks/exhaustive-deps
   // from the start, on the Map tab, with no water open and nothing typed in search
-  const replayTour = () => { go({ type: "close" }); nav.toTab("map"); search.searchType(""); setExample(null); guide.reopen(); };
-  /** (T466) the drop sheet (a pin down, Continue to come) is up: the card goes in its window */
+  const replayTour = () => { go({ type: "close" }); nav.toTab("map"); search.searchType(""); guide.reopen(); };
+  /** (T466) the drop sheet (a pin down, Continue to come) is its own window: the card (its Resume chip) goes in it */
   const dropUp = route.mode === "browse" && rail.drop !== null;
   /** the walkthrough's card, over whatever is on screen (a spot and the capture included) */
   const guideCard = (
@@ -617,8 +536,6 @@ export function Shell(p: ShellProps) {
                    // saved: the spot itself, over the map it was added from (back returns to that map)
                    onSaved={async (s) => {
                      await onSaveSpot(s);
-                     // (T466) made on the walk's spot steps: the example spot, removed as the walk ends (and said)
-                     if (guide.open && GUIDE_STEPS[guide.at]?.phase === "spot") setExample({ id: s.id, state: null });
                      go({ type: "openSpot", id: s.id });
                    }} />
     ));

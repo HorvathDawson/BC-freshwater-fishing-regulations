@@ -50,6 +50,22 @@ bar beside it; the first download shows the pun, "Downloading the map and regula
 sizes are known the bar + "X of Y MB downloaded" (setup: its own bar + "… · N %"). Nothing added there (owner: a still icon
 is fine); for the owner's still icon to decide.
 
+## Owner, 2026-11-17 about 00:10 to 00:14 (app chat), verbatim
+"it had reduce motion on." — so the second iPhone's still fish was the Reduce Motion design, not a bug in the loop.
+"we dont want a full still item for reduce motion on.. i am making a new loader icon that will replace the loading
+circle on the splash page or curtain (it will still be used for all other loading." Then he sent the loader: a Python
+generator (`fish_loader.py`, Pillow; a linocut spawning coho, 80 frames, 480×200, 8×10 sprite sheet, 20 fps, 4 s loop,
+ink #1f2e3b + coho red #cf5a3c, same linocut style as the app icon). Then: "we will ignore reduced motion for this".
+
+So:
+- The still-icon slot (`stillIcon.ts`, cdbdfed16) goes; no still image anywhere.
+- The new coho loader replaces the circling fish on the splash / first-download / curtain screens only; the circling
+  fish stays for every other loading place.
+- Both loaders ignore Reduce Motion: they always move. (The generator's still frame and its reduced-motion CSS are not
+  used.)
+- The restart fix (loops start again on app-active, first layout, a dropped loop) stays.
+- The generator is committed under `app/tools/` and run to make the sheet, like `pnpm spinner`.
+
 ## 2026-11-17 ~01:50 MST, the coho loader built (branch app-fix/t814-loader, 78d049d40)
 Owner 2026-11-17 ~00:10–00:14 (app chat): the still-icon slot goes; his linocut coho loader replaces the circling fish
 on the splash / first-download / curtain screens only; both loaders ignore Reduce Motion; the restart fix stays.
@@ -77,3 +93,8 @@ on the splash / first-download / curtain screens only; both loaders ignore Reduc
 - **OPEN, owner's pick: the dark theme.** His ink #1f2e3b disappears on the dark card; dark currently wears the light
   look (pending). Options pictured: A paper-coloured ink on the dark card, B his colours on a paper tile. Either is a
   token change in `themes/dark.json` + `pnpm coho:build`.
+
+## Owner, 2026-11-17 ~08:45 (app chat), the dark-mode look, verbatim pick
+Shown: light as built, dark as it was (ink lost on the dark screen), A (paper-coloured ink #f2e8d5 on the dark screen,
+red kept) and B (his colours on a paper tile). Picked "A: paper-coloured ink". So dark.json `color.ui.coho.ink`
+#F2E8D5, ground `@color.ui.card`; light unchanged.

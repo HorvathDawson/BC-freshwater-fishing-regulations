@@ -127,9 +127,10 @@ describe("map parity: one op script, both renderers, the same commands", () => {
     const w = await script(webRenderer(glRecorder(wlog), 14), wlog);
     const nlog: string[] = [];
     const n = await script(nativeRenderer(bindingRecorder(nlog), (e) => { throw e; }), nlog);
-    // (T345) the one difference: a phone unsets a key by writing it null (MapLibre Native's removals are applied after a
-    // frame's sets and all but the first per source-layer dropped: `adapters/native.ts` `raw.remove`)
-    expect(n.log).toEqual(w.log.map((l) => l.replace(/^remove (\S+) (\S+) (\w+)$/, (_, t, id, k) => `set ${t} ${id} {"${k}":null}`)));
+    // (T345) the one difference: a phone unsets a key by WRITING it (MapLibre Native's removals are applied after a
+    // frame's sets and all but the first per source-layer dropped: `adapters/native.ts` `raw.remove`); (T826) a highlight
+    // key is written false, never null (iOS's bridge drops a null-valued key: `unsetValue`)
+    expect(n.log).toEqual(w.log.map((l) => l.replace(/^remove (\S+) (\S+) (\w+)$/, (_, t, id, k) => `set ${t} ${id} {"${k}":false}`)));
     expect(n.out).toEqual(w.out);
     // and the log is the one the contract describes, not merely the same on both: each feature addressed ONCE per
     // source-layer (lake_flowing draws the lake features, wetland_flowing the wetland ones: `onceSink`), the selection

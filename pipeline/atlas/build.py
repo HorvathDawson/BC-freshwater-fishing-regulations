@@ -336,6 +336,11 @@ def _added_name_variant_entries(variants: list[dict]) -> list[dict]:
             # T222: a stream taken from OpenStreetMap (data/source/municipal/osm_streams.geojson), never official
             nm = {"name": v["name"], "source": "osm", "note": f"added:{v.get('kind', '')}",
                   "source_label": "OpenStreetMap", "source_ref": "data/source/municipal/osm_streams.geojson"}
+        elif city == "manual":
+            # T806: a channel drawn by hand (data/source/municipal/manual_streams.geojson) carries the name of the water
+            # it continues; today Sheldens Creek, whose only source is DFO's salmon regulations (never official)
+            nm = {"name": v["name"], "source": "dfo", "note": f"added:{v.get('kind', '')}",
+                  "source_label": "DFO salmon regulations", "source_ref": "data/source/municipal/manual_streams.geojson"}
         else:
             # T224: a city's name (its own minted stream, or an FWA line it maps): the city layer, never official
             nm = {"name": v["name"], "source": "municipal", "note": f"added:{v.get('kind', '')}",

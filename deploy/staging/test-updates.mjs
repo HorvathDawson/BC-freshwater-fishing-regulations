@@ -22,6 +22,11 @@
 //   node deploy/staging/test-updates.mjs app-version <semver> [build] [notes…]   (T234 v1.1) the new-app-version notice:
 //                                                              test/app/android/latest.json and play.json name that version
 //                                                              (a build on the test channel reads them in its background check)
+//   node deploy/staging/test-updates.mjs side <release dir>    (T810 V-py, trout contract 2.8 / Q-D11) a SIDE release (one
+//                                                              built with --trout-table, e.g. by scripts/trout-refresh.sh):
+//                                                              its data files go to test/release/<id>/ and the test
+//                                                              manifest names them (see `sideManifest` for the one way a
+//                                                              test manifest can reach them, and its limit)
 //   node deploy/staging/test-updates.mjs status                what test/ holds now
 //   node deploy/staging/test-updates.mjs clean                 remove test/
 //
@@ -118,6 +123,63 @@ export const minApp = (v) => {
   return synthetic(`needs-${v}`, (m) => ({ ...m, minAppVersion: v }));
 };
 
+// (T810 V-py, Q-D11) A SIDE RELEASE ON THE TEST CHANNEL. CHECKED FIRST: can a test/ manifest point at
+// test/release/<id>/? The app reads every release file's url RELATIVE TO `${origin}/release/` on BOTH channels
+// (apps/mobile/src/env.ts `endpointsFor`: only the manifest and the feed indexes move under test/; install.ts fetches
+// `${release}${url}` and stores the file under its last segment). So a plain "<id>/<file>" url names release/<id>/, which
+// this harness never writes. The one url that reaches test/release/<id>/ is "../test/release/<id>/<file>": a client that
+// normalises it (browsers, the web build; OkHttp on Android) asks for test/release/…, and one that sends it as written
+// still gets that key, because the staging data worker resolves the path with its own URL parse (data-worker.js).
+// Proved in test-updates.test.mjs; not yet walked on a device. The cleaner fix is
+// the app's: on the test channel, resolve file urls against the manifest's own folder (`${origin}/test/release/`). Tiles,
+// basemap, map assets and the synopsis keep their urls: a side release built from the live inputs names the live ones,
+// which staging already holds under release/ (read only here).
+export const SIDE_PREFIX = 'test/release/';
+/** The test manifest for side release `m`: its data files' urls reach test/release/<id>/ from `${origin}/release/`. */
+export function sideManifest(m) {
+  if (!(m.regulations?.versions ?? {}).trout)
+    throw new Error(`${m.data_release}: no trout section — a side release is built with --trout-table`);
+  const id = m.data_release;
+  const files = {};
+  for (const [name, f] of Object.entries(m.files)) {
+    if (!f.url.startsWith(`${id}/`)) throw new Error(`${name}: ${f.url} is not in the release folder ${id}/`);
+    files[name] = { ...f, url: `../${SIDE_PREFIX}${f.url}` };
+  }
+  return { ...structuredClone(m), files };
+}
+/** Where each data file goes: [local path under the release root, bucket key] — test/ keys only. */
+export function sideUploads(m) {
+  return Object.values(m.files).map((f) => [f.url, `${SIDE_PREFIX}${f.url}`]);
+}
+/** The bucket key a manifest url names, as a normalising client resolves it against `${origin}/release/`. */
+export function keyOf(url) {
+  return new URL(url, `${ORIGIN}/release/`).pathname.slice(1);
+}
+
+export async function side(dir) {
+  if (!dir) throw new Error('side <release dir>: a side release folder (r-…/ holding manifest.json)');
+  const fs = await import('node:fs'), path = await import('node:path');
+  const m = JSON.parse(fs.readFileSync(path.join(dir, 'manifest.json'), 'utf8'));
+  const root = path.dirname(path.resolve(dir));
+  const t = sideManifest(m);
+  for (const [name, f] of Object.entries(t.files)) {
+    const key = keyOf(f.url);
+    if (key !== `${SIDE_PREFIX}${m.files[name].url}`) throw new Error(`${name}: ${f.url} resolves to ${key}`);
+  }
+  const ups = sideUploads(m);
+  for (const [local] of ups) if (!fs.existsSync(path.join(root, local))) throw new Error(`missing ${local} under ${root}`);
+  for (const [local, key] of ups) {
+    if (!key.startsWith('test/')) throw new Error(`refusing to write ${key}: the harness writes test/ only`);
+    // as upload.sh ships a release's data files: stored gzip, served with Content-Encoding (data-worker passes it through)
+    rclone(['copyto', path.join(root, local), `${D}/${key}`, '--header-upload', 'Cache-Control: no-cache',
+            ...(local.endsWith('.gz') ? ['--header-upload', 'Content-Encoding: gzip', '--header-upload',
+                                         'Content-Type: application/octet-stream'] : [])]);
+  }
+  putManifest(t);
+  return { data_release: t.data_release, files: ups.length, folder: `${SIDE_PREFIX}${m.data_release}/`,
+           note: 'file urls are "../test/release/<id>/…" from the app\'s release base; clean removes the folder with test/' };
+}
+
 /** (T234) A gauge's newest reading, as the background check will read it: `[now, level, discharge]` on the test channel. */
 export async function gauge(station, quantity, value) {
   const v = Number(value);
@@ -159,7 +221,7 @@ export async function clean() {
   return { cleaned: 'test/' };
 }
 
-const CMDS = { reset, gauge, 'app-version': appVersion, 'feed-bump': feedBump, 'feed-404': feed404, release, big, tiles, corrupt, missing, 'min-app': minApp, status, clean };
+const CMDS = { reset, gauge, 'app-version': appVersion, 'feed-bump': feedBump, 'feed-404': feed404, release, big, tiles, corrupt, missing, 'min-app': minApp, side, status, clean };
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const [cmd, ...args] = process.argv.slice(2);

@@ -19,6 +19,8 @@ export interface SpotPhotos {
   store: PhotoStore;
   pick(from: PhotoSource): Promise<PickedPhoto | null>;
   sources: readonly PhotoSource[];
+  /** (T732) What the phone's backup holds of the spots and photos (core `backupLine`); null: nothing to say here. */
+  backupLine?: string | null;
 }
 
 export interface PhotoEdit {

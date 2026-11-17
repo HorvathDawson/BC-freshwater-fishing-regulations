@@ -82,7 +82,7 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
   tap: TapAhead;
 }) {
   const { route, go, browse, tab, back } = nav;
-  const { flowParam, mm, layers, imagery, cond, gauges, lakeFeed, salmonFeed, methodFeed, mapStatus, noteVisible, setZoomedOut,
+  const { flowParam, mm, layers, imagery, cond, gauges, lakeFeed, salmonFeed, methodFeed, issueFeed, mapStatus, noteVisible, setZoomedOut,
           horizonChipsShown, pickDay, vintage } = col;
   const { searching, session, arrive, wideSearch, closeSearch } = search;
   /**
@@ -173,7 +173,7 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
                    // is, or the Map tab in pick mode until a tap places the pin (the drop sheet then asks)
                    onAdd={(k) => (k === "mine" ? void rail.addMine() : rail.pick())}
                    onRefresh={onRefreshSpots} refreshing={refreshing} error={rail.error}
-                   photoStore={photos?.store} />
+                   photoStore={photos?.store} backupLine={photos?.backupLine ?? null} />
     : tab === "more"
       // (T48) THE MORE TAB: the data's freshness, the display options, the pages (each opens over it: MenuHost, a back
       // layer) and Contact; its ‹ returns to the tab it was opened from (the route's `prev`) — the one back
@@ -221,6 +221,7 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
                      lakes={lakeFeed}
                      salmon={salmonFeed}
                      method={methodFeed}
+                     issue={issueFeed}
                      runs={col.runsFeed}
                      status={mapStatus}
                      // The dots belong to the Conditions tab — AND to the temperature
