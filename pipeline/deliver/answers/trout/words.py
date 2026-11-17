@@ -345,10 +345,12 @@ def parse_sheet_sentence(text: str) -> Parsed:
 #   char {day}", "Release every one {day}", "Closed for trout and char {day}", "Nothing to keep {day}".
 # THE FOLD (the "Trout and char" entry's short line): "Up to 5", "Up to 2 or 5", "Up to 6 rainbow, 4 others",
 #   "Release", "Closed", "None to keep".
-# THE BOX: head "Keep 5 in all" / "Release" / "Closed"; label "Hatchery only"; strip parts joined by "; " ("only 1
-#   over 50 cm (20 in)", "only 1 over 50 cm (20 in), 2 if one is a hatchery steelhead", "only 2 wild, each 40 cm
-#   (16 in) or less", "In your possession: no more than 1 trout and char in all"); tag "Lake’s rule".
-# THE BANDS: "up to the 5" (upto), "only 3" (own), "only 1 of these 4" (shared), "only 2 in your possession".
+# THE BOX: head "Keep 5 in all" / "Release" / "Closed"; label "Hatchery only"; strip parts joined by "; " ("any size",
+#   "only 1 over 50 cm (20 in)", "only 1 over 50 cm (20 in), 2 if one is a hatchery steelhead", "only 1 over 50 cm
+#   (20 in), not counting lake trout", "only 2 wild, each 40 cm (16 in) or less"); possession on its own line
+#   ("In your possession: no more than 1 trout and char in all"); tag "Lake’s rule".
+# THE BANDS: "any of the 5" (upto), "only 3" (own), "only 1 of these 4" / "only 3 between them" / "only 4 among them" /
+#   "only 2 wild in all" (shared), "only 2 in your possession".
 # A ROW'S LINES: its size ("30 cm (12 in) or longer", the kind's own words), "uses the 1 over 50 cm (20 in)", "only 1"
 #   (its own limit inside a shared band), "only 1, counting any lake trout you keep", the possession line ("in your
 #   possession: 1 day’s limit, not 2"), the stop duty "after keeping 1, stop fishing this river today" (the one text
@@ -366,6 +368,9 @@ FOLD_RELEASE, FOLD_CLOSED, FOLD_NONE = "Release", "Closed", "None to keep"
 TOP_RELEASE = f"Release every one {DAY_SLOT}"
 TOP_CLOSED = f"Closed for trout and char {DAY_SLOT}"
 TOP_NONE = f"Nothing to keep {DAY_SLOT}"
+#: T810 G2 Q8 (owner 15:41 "Once; steelhead says 'closed all year'"): a closed table's one fish that never reopens this
+#: year, on its own row while the others' reopening day stands once under the top line
+CLOSED_ALL_YEAR = "closed all year"
 #: the steelhead lines (page v36 STEEL_LINE, today the app's `words.ts` STEEL_*; contract fight #6: Python's now)
 STEEL_QUIET = {
     "possible_with_rules": "Steelhead rules apply here; steelhead may not be present in this water.",
@@ -474,6 +479,17 @@ def strip_size(n, over_cm, extra_n=None) -> str:
     return s
 
 
+def strip_size_except(n, over_cm, fish: str) -> str:
+    """T810 G2 Q3b (owner 15:34 "once in top yes"): a size cap every fish of the box holds but a few, said ONCE in the
+    strip with the fish it leaves out: "only 1 over 50 cm (20 in), not counting lake trout" (Tagish Lake), never the
+    long "counting any …" line on each of its rows."""
+    return f"only {_n(n)} over {common.cm_in(over_cm)}, not counting {fish}"
+
+
+#: T810 G2 Q6 (owner 15:41 "Once in the top line"): every fish of the box at any size: the strip says it once
+STRIP_ANY_SIZE = "any size"
+
+
 def strip_wild(n, size: Optional[str]) -> str:
     """A wild quota of the box's own: "only 2 wild, each 40 cm (16 in) or less"."""
     return f"only {_n(n)} wild" + (f", each {size}" if size and size != "any size" else "")
@@ -489,10 +505,18 @@ def strip(parts) -> Optional[str]:
     return "; ".join(parts) if parts else None
 
 
+def box_possession(line: str) -> str:
+    """T810 G2 Q4 (owner 15:41 "Own line, 'In your possession'"): the possession every row of a box shares, on its own
+    line under the strip (`Box.possession`), with a capital: "In your possession: no more than 2 trout and char in all"."""
+    return common.cap(possession_row(line))
+
+
 # -- the bands ---------------------------------------------------------------------------------
 
 def band_upto(n) -> str:
-    return f"up to the {_n(n)}"
+    """A row with no limit of its own: "any of the 5", the box's shared day total (owner 15:46: "the up to the x per day
+    text is a little misleading", picked "'any of the 5' (Recommended)")."""
+    return f"any of the {_n(n)}"
 
 
 def band_own(k) -> str:
@@ -501,8 +525,23 @@ def band_own(k) -> str:
 
 def band_shared(k, m: int) -> str:
     """"only 1 of these 4"; a number at least the rows it spans (each row holds more than one fish: Tagish's lake trout
-    and Dolly Varden "3 in the aggregate") reads "only 3 from these 2 together"."""
-    return f"only {_n(k)} of these {m}" if k < m else f"only {_n(k)} from these {m} together"
+    and Dolly Varden "3 in the aggregate") reads "only 3 between them" over two rows, "only 4 among them" over more
+    (T810 G2 Q2, owner 15:34)."""
+    if k < m:
+        return f"only {_n(k)} of these {m}"
+    return f"only {_n(k)} between them" if m == 2 else f"only {_n(k)} among them"
+
+
+def band_wild(n) -> str:
+    """T810 G2 Q9 (owner, option 1): a wild quota over the box's wild twin rows, grouped under one white box: "only 2
+    wild in all" (Dodd, Windsor, Horseshoe, Nanton and Ireland Lakes)."""
+    return f"only {_n(n)} wild in all"
+
+
+def band_wild_n(text: str) -> Optional[float]:
+    """"only 2 wild in all" -> 2; None for any other band."""
+    m = re.fullmatch(rf"only {_NUM} wild in all", text)
+    return _num(m[1]) if m else None
 
 
 def band_possession(k) -> str:
@@ -559,19 +598,42 @@ def possession_sheet(line: str) -> str:
     return common.cap(line) + "."
 
 
-def possession_quiet(daily, count, names: str) -> str:
-    """Possession below the day's number (Cunningham): "3 a day, but never more than 2 lake trout with you"."""
-    return f"{_n(daily)} a day, but never more than {_n(count)} {names} with you"
+def possession_quiet(daily, count, names: str, clause: Optional[str] = None) -> str:
+    """Possession below the day's number (Cunningham): "3 a day, but never more than 2 lake trout with you"; with the
+    possession's own size clause (T810 G2 Q10, owner "Box + one quiet line"): "…, and only 1 of them over 50 cm
+    (20 in)" (the row says it once, here; the white box says "only 2 in your possession")."""
+    s = f"{_n(daily)} a day, but never more than {_n(count)} {names} with you"
+    if clause:
+        m = re.fullmatch(rf"only {_NUM} (over .+)", clause)
+        if not m:
+            raise WordsError(f"trout words: not a possession size clause: {clause!r}")
+        s += f", and only {m[1]} of them {m[2]}"
+    return s
+
+
+def possession_clause(line: str) -> Optional[str]:
+    """A row's possession line (`possession_row`: the home exception off) -> its size clause ("only 1 over 50 cm
+    (20 in)"), None without one."""
+    m = re.fullmatch(r"in your possession: no more than [^,]+, (only \d+ over .+)", line)
+    return m[1] if m else None
+
+
+def size_release(a_cm, b_cm) -> str:
+    """T810 G2 (owner 15:41, Tagish lake trout "Say what to release"): a keep range with a slot in it ("60 cm (24 in) or
+    less, or 90 cm (35 in) or longer") said as what goes back, the book's exact bounds kept (60 and 90 cm may be kept):
+    "release over 60 cm (24 in) and under 90 cm (35 in)"."""
+    return f"release over {common.cm_in(a_cm)} and under {common.cm_in(b_cm)}"
 
 
 _STOP = re.compile(r"stop fishing this (\w+) after (\d+) a day")
 
 
-def stop_duty(duty: str) -> Optional[str]:
+def stop_duty(duty: str, noun: Optional[str] = None) -> Optional[str]:
     """`card._duties`' stop duty ("stop fishing this river after 1 a day") as the table says it: "after keeping 1, stop
-    fishing this river today" (the noun is the stored duty's, never "here"); None for another duty."""
+    fishing this creek today" — the noun is `noun` (T810 G2 Q7: the kind the water's own name says, else "water"), or
+    the stored duty's where none is given; never "here". None for another duty."""
     m = _STOP.fullmatch(duty)
-    return f"after keeping {m[2]}, stop fishing this {m[1]} today" if m else None
+    return f"after keeping {m[2]}, stop fishing this {noun or m[1]} today" if m else None
 
 
 def parse_duty_stop(duty: str) -> Optional[Tuple[str, int]]:
@@ -622,8 +684,9 @@ def elsewhere_line(q: str, a: str) -> str:
 
 def sheet_keep(band_text: str, box_n) -> str:
     """The fish sheet's head on a keep row (spec 3.4): "Keep · only 1 of these 4 · counts toward the 5"; a row whose band
-    is the box's own number ("up to the 5") says it once: "Keep · counts toward the 5"."""
-    if parse_band(band_text)[0] == "upto":
+    is the box's own number ("any of the 5") says it once: "Keep · counts toward the 5"."""
+    kind, k, _m = parse_band(band_text)
+    if kind == "upto" and k == box_n:
         return f"Keep · counts toward the {_n(box_n)}"
     return f"Keep · {band_text} · counts toward the {_n(box_n)}"
 
@@ -726,12 +789,17 @@ def _num(s: str):
 
 def parse_band(text: str) -> Tuple[str, float, Optional[int]]:
     """A band text -> (kind, n, m): "up to the 5" ("upto", 5, None), "only 1 of these 4" ("shared", 1, 4)."""
-    for kind, pat in (("upto", rf"up to the {_NUM}"), ("possession", rf"only {_NUM} in your possession"),
-                      ("shared", rf"only {_NUM} of these (\d+)"), ("shared", rf"only {_NUM} from these (\d+) together"),
+    for kind, pat in (("upto", rf"any of the {_NUM}"), ("possession", rf"only {_NUM} in your possession"),
+                      ("shared", rf"only {_NUM} of these (\d+)"), ("shared", rf"only {_NUM} (between) them"),
+                      ("shared", rf"only {_NUM} (among) them"), ("shared", rf"only {_NUM} wild in all"),
                       ("own", rf"only {_NUM}")):
         m = re.fullmatch(pat, text)
         if m:
-            return kind, _num(m[1]), (int(m[2]) if kind == "shared" else None)
+            if kind != "shared":
+                return kind, _num(m[1]), None
+            g = m[2] if m.lastindex and m.lastindex >= 2 else None
+            # "between them": two rows; "among them" and "wild in all": the band's own span (J checks it holds 2+)
+            return kind, _num(m[1]), (2 if g == "between" else None if g in ("among", None) else int(g))
     raise WordsError(f"trout words: cannot read the band {text!r}")
 
 
@@ -872,6 +940,9 @@ def parse_size(text: str) -> Tuple[Tuple[float, float], ...]:
     "any length, 50 cm (20 in) or less" (a lifted floor) -> ((0, 50),); "catch and release" -> () (keeps none)."""
     if text == "catch and release":
         return ()
+    m = re.fullmatch(rf"release over {_CM} and under {_CM}", text)
+    if m:
+        return ((0, _cm(m[1], m[2])), (_cm(m[3], m[4]), INF))
     m = re.fullmatch(rf"any length, ({_CM} or less)", text)
     if m:
         return (_range_one(m[1]),)
@@ -998,6 +1069,8 @@ def parse_row_line(text: str) -> tuple:
         except WordsError:
             continue
         return (kind, *got) if kind == "stop" else ("possession", got)
+    if text == CLOSED_ALL_YEAR:
+        return ("closed_year",)
     u = parse_uses(text)
     if u is not None:
         return ("uses", *u)
@@ -1030,9 +1103,16 @@ def parse_row_line(text: str) -> tuple:
 
 def parse_strip(text: str) -> Tuple[tuple, ...]:
     """A box's strip (its parts joined by "; ") -> each part: ("size", n, cm, n with a hatchery steelhead | None),
-    ("wild", n, ranges | None), ("possession", …)."""
+    ("size_except", n, cm, the fish it leaves out), ("any",) "any size", ("wild", n, ranges | None), ("possession", …)."""
     out = []
     for p in text.split("; "):
+        if p == STRIP_ANY_SIZE:
+            out.append(("any",))
+            continue
+        m = re.fullmatch(rf"only {_NUM} over {_CM}, not counting (.+)", p)
+        if m:
+            out.append(("size_except", _num(m[1]), _cm(m[2], m[3]), parse_fish(m[4])))
+            continue
         if p.startswith("in your possession: "):
             out.append(("possession", parse_possession(p)))
             continue
@@ -1056,13 +1136,16 @@ def parse_together(text: str) -> tuple:
 
 
 def parse_quiet(text: str) -> tuple:
-    """A row's quiet line: ("steel", kind) or ("possession", the day's number, the possession count, fish)."""
+    """A row's quiet line: ("steel", kind) or ("possession", the day's number, the possession count, fish, clauses
+    [(k, ranges)]: "…, and only 1 of them over 50 cm (20 in)")."""
     for k, v in STEEL_QUIET.items():
         if text == v:
             return ("steel", k)
-    m = re.fullmatch(rf"{_NUM} a day, but never more than {_NUM} (.+) with you", text)
+    m = re.fullmatch(rf"{_NUM} a day, but never more than {_NUM} (.+?) with you(?:, and only {_NUM} of them over {_CM})?",
+                     text)
     if m:
-        return ("possession", _num(m[1]), _num(m[2]), parse_fish(m[3]))
+        clause = ((_num(m[4]), ((_cm(m[5], m[6]), INF),)),) if m[4] else ()
+        return ("possession", _num(m[1]), _num(m[2]), parse_fish(m[3]), clause)
     raise WordsError(f"trout words: cannot read the quiet line {text!r}")
 
 

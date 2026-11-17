@@ -190,6 +190,10 @@ def here(box: dict, ri: int, r, *, stamps: Sequence[str], duties: Sequence[str],
                 add(W.sentence(text))
                 if uses is not None and uses[1] == cm:
                     add(W.sheet_uses(cm))
+            elif kind == "size_except" and r.fish not in W.parse_strip(text)[0][3]:
+                add(W.sentence(text))
+                if uses is not None and uses[1] == cm:
+                    add(W.sheet_uses(cm))
             elif kind == "wild" and r.origin != "hatchery" and not (r.label or box.get("label")):
                 add(W.sentence(text))
         # the limit across two boxes or two lakes (`together`), on the rows it holds: every row of the table for the
