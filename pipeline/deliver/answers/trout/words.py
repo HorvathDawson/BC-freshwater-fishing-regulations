@@ -627,7 +627,7 @@ def sheet_keep(band_text: str, box_n) -> str:
 # label "Hatchery only: wild ones go back." · box "Counts toward the 5 in all, together with brook trout and lake trout." ·
 # own "This fish: only 3." · shared "Only 1 of these 4: this fish and brown trout, cutthroat trout and rainbow trout." ·
 # uses "A kept one is always over 50 cm (20 in), so it is that one." · possession "In your possession: 1 day’s limit, not 2
-# (fish at home don’t count)." · stop duty (bold) "Once you have kept 1 steelhead here, stop fishing this stream for the
+# (+ the home exception, `POSSESSION_HOME`)." · stop duty (bold) "Once you have kept 1 steelhead here, stop fishing this stream for the
 # rest of the day: the whole stream, not only this stretch." · licence "Licence: 10 a year · record each on your licence
 # right away · Steelhead Conservation Surcharge Stamp, only if you fish for steelhead, even to release them." · any other
 # row or strip line as a sentence: "Only 1, counting any lake trout you keep."
