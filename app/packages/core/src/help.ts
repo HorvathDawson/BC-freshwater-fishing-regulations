@@ -31,9 +31,10 @@ import { NOT_FISHING_WORDS } from "./notFishing";
 /**
  * Stored on a device that has seen, or skipped, the walkthrough. Bump to show it again after a rewrite (T257: the tour;
  * T293: the one guided walkthrough on a real water, which every device sees once; T824: cut from 41 steps to 10, so a
- * device that saw the long walk sees the short one once).
+ * device that saw the long walk sees the short one once; T842: cut to the owner's 6, so a device that finished the 10-step
+ * walk is not asked again only if it saw this one — it is, once).
  */
-export const WALKTHROUGH_VERSION = "walkthrough-6";
+export const WALKTHROUGH_VERSION = "walkthrough-7";
 
 /** Has this device seen the current walkthrough? (the stored text is the version it saw) */
 export const walkthroughSeen = (stored: string | null | undefined): boolean => seenIn(stored, WALKTHROUGH_VERSION);
@@ -50,14 +51,19 @@ const lines = (stored: string | null | undefined) => (stored ?? "").split("\n").
 export const withSeen = (stored: string | null | undefined, line: string): string =>
   seenIn(stored, line) ? (stored ?? "") : [...lines(stored), line].join("\n");
 
-/** (T293) The line that keeps where an unfinished walkthrough was left, so the next start resumes there. */
+/**
+ * (T293) The line that keeps where an unfinished walkthrough was left, so the next start resumes there. (T842) It names
+ * the walk's version (`guide-at:walkthrough-7/pick`): a step kept from an older walk (the same key may mean another step
+ * there) is not resumed, so a phone that stopped part-way through the 10-step walk starts the 6-step one at step 1.
+ */
 const GUIDE_AT = "guide-at:";
-/** Where the walkthrough was left (a step key), or null: not started, or finished. */
+const AT_THIS = `${GUIDE_AT}${WALKTHROUGH_VERSION}/`;
+/** Where the walkthrough was left (a step key of this version's walk), or null: not started, finished, or an older walk's. */
 export const guideResumeAt = (stored: string | null | undefined): string | null =>
-  lines(stored).find((l) => l.startsWith(GUIDE_AT))?.slice(GUIDE_AT.length) ?? null;
-/** The stored text with the resume step set (`key`), or cleared (null); every other line kept. */
+  lines(stored).find((l) => l.startsWith(AT_THIS))?.slice(AT_THIS.length) ?? null;
+/** The stored text with the resume step set (`key`), or cleared (null); every other line kept (an older walk's step dropped). */
 export const withGuideAt = (stored: string | null | undefined, key: string | null): string =>
-  [...lines(stored).filter((l) => !l.startsWith(GUIDE_AT)), ...(key ? [GUIDE_AT + key] : [])].join("\n");
+  [...lines(stored).filter((l) => !l.startsWith(GUIDE_AT)), ...(key ? [AT_THIS + key] : [])].join("\n");
 
 /**
  * What a step points at: the surface registers each control under its key (`useCoachTarget`); a control that is not on
@@ -92,20 +98,27 @@ export interface WalkthroughCard {
  * itself once done, and "Show me" does it for them).
  *
  * (T824, owner 2026-11-16: "the tutorial should be much much small 41 is way to many cut it down to like 8 or 10 items
- * and make it super clean") TEN STEPS, one short card each: find a water, open it, read today's answer, pick a day, its
- * conditions, back to the map, trout or salmon colouring, and where Spots and Help are. The longer walk (rules folds, the
- * forecast and chart toggles, the closed stretch, Layers, adding a spot a tap at a time) was cut; `git show ed61d5de4`
- * has its words.
+ * and make it super clean") ten steps; the longer walk's words are in `git show ed61d5de4`.
+ *
+ * (T842, owner 2026-11-17: "could reduce steps even more. This is a user first look so we need to make sure it is clean
+ * and not buggy"; his pick, "6 steps") SIX STEPS: search for it (the welcome folded in), open its page, open or closed,
+ * another day, how the river is (its dot folded in), and a last card that SAYS where the map, Trout / Salmon, Spots and
+ * Help are (no taps). The 10-step words are in `git show 5dbd45396`.
  *
  * `{water}` in a title or body is the chosen water's name, `{letters}` the first letters to type (`guideText`).
  */
-export type GuidePhase = "find" | "rules" | "conditions" | "map" | "end";
+export type GuidePhase = "find" | "rules" | "conditions" | "end";
 export interface GuideStepWords extends Omit<WalkthroughCard, "targets"> {
   readonly phase: GuidePhase;
   readonly kind: "show" | "do";
   readonly targets: readonly WalkthroughTarget[];
   /** where the card sits when nothing is highlighted: over the top of the screen, or (default) at its foot */
   readonly dock?: "top";
+  /**
+   * (T842, owner: "the keyboard covers vedder in the walk through") the keyboard is closed as the step comes up, so a list
+   * row it is about is not under it
+   */
+  readonly keyboard?: "closed";
   /**
    * (T456) The controls the step's words name, as their own labels say them (`WATER_VIEW_LABEL` …): each is inside the
    * highlighted control (its words or its spoken name), so the words never name a control that is not on screen and
@@ -124,7 +137,7 @@ export interface GuideStepWords extends Omit<WalkthroughCard, "targets"> {
 export const GUIDE_WATER = { name: "Vedder River", kind: "stream", letters: "ved" } as const;
 
 const step = (key: string, phase: GuidePhase, kind: "show" | "do", targets: readonly WalkthroughTarget[], title: string,
-              body: string, more: Pick<GuideStepWords, "dock" | "names" | "optional"> = {}): GuideStepWords =>
+              body: string, more: Pick<GuideStepWords, "dock" | "names" | "optional" | "keyboard"> = {}): GuideStepWords =>
   ({ key, phase, kind, targets, title, body, ...more });
 
 const V = WATER_VIEW_LABEL, RAIL = SALMON_WORDS.toggle.rail;
@@ -133,34 +146,31 @@ const V = WATER_VIEW_LABEL, RAIL = SALMON_WORDS.toggle.rail;
  * (T456) EVERY STEP ABOUT A CONTROL ASKS THE READER TO USE IT (a DO step: it moves on when they do); a SHOW step reads a
  * real line on the screen. (T824) One short sentence a card; the first card says how the walk works.
  */
+/** (T842) the last card's first sentence: the 10-step walk's "Back to the map" and "Trout or salmon", said, not tapped */
+const MAP_BACK = `${V.map} at the top left returns to the map; ${RAIL.standard} / ${RAIL.salmon} there colours it by trout or salmon openings.`;
+
 const GUIDE_STEPS: readonly GuideStepWords[] = [
-  step("welcome", "find", "show", [], "Let's find a water",
-    "We'll look up the {water} together. Each step highlights what to tap: tap it, or tap Show me.", { dock: "top" }),
+  // (T842) the welcome folded into the first step: it still says how the walk works
   step("search", "find", "do", ["search"], "Search for it",
-    "Tap the search bar and type “{letters}”."),
+    "Let's find the {water}: tap the search bar and type “{letters}”. Each step highlights what to tap: tap it, or tap Show me."),
   step("pick", "find", "do", ["search:hit", "search:go"], "Open its page",
-    "Tap {water} in the list, then the arrow beside it."),
+    "Tap {water} in the list, then the arrow beside it.", { keyboard: "closed" }),
   step("answer", "rules", "show", ["regs:answer"], "Open or closed",
     "The big word is the answer for the day shown; the bar under it is the whole year."),
   step("day", "rules", "do", ["regs:date"], "Pick another day",
     "Tap the date and pick a day you plan to go."),
+  // (T842) the old "Higher or lower than usual" folded in: the dot is named here
   step("conditions", "conditions", "do", ["view:conditions"], "How is the river?",
-    `Tap ${V.conditions} to see how high it runs.`, { names: [V.conditions] }),
-  step("reading", "conditions", "show", ["cond:headline"], "Higher or lower than usual",
-    "The dot says if the river is low, normal or high for this date.", { optional: true }),
-  step("leave", "conditions", "do", ["water:back"], "Back to the map",
-    `Tap ${V.map} at the top left.`, { names: [V.map] }),
-  step("modes", "map", "do", ["modes"], "Trout or salmon",
-    `Tap ${RAIL.salmon} to colour the map by salmon openings; ${RAIL.standard} switches back.`,
-    { names: [RAIL.salmon, RAIL.standard] }),
-  step("done", "end", "show", ["tab:spots", "tab:more"], "You're all set",
-    "Spots keeps the places you fish, and Help, under More, can replay this tour.",
-    { names: ["Spots", "More"] }),
+    `Tap ${V.conditions} to see how high it runs; its dot says low, normal or high for this date.`,
+    { names: [V.conditions] }),
+  // (T842) said in words, no taps: what the 10-step walk's last three steps had the reader do
+  step("done", "end", "show", [], "You're all set",
+    `${MAP_BACK} Spots keeps the places you fish, and Help, under More, can replay this tour.`),
 ];
 
 /** The web's last step: a browser keeps no spots (they live in the phone app), so it names Help alone. */
-const WEB_DONE = step("done", "end", "show", ["tab:more"], "You're all set",
-  "Help, under More, explains the map and can replay this tour.", { names: ["More"] });
+const WEB_DONE = step("done", "end", "show", [], "You're all set",
+  `${MAP_BACK} Help, under More, explains the map and can replay this tour.`);
 
 export const WALKTHROUGH_WORDS = {
   /** the walkthrough's name aloud */
@@ -179,7 +189,7 @@ export const WALKTHROUGH_WORDS = {
   doneStep: "Done",
   step: (i: number, n: number) => `${i} of ${n}`,
   /** each phase's name, over its steps */
-  phases: { find: "Find a water", rules: "Read the rules", conditions: "Conditions", map: "The map",
+  phases: { find: "Find a water", rules: "Read the rules", conditions: "Conditions",
             end: "That's it" } satisfies Record<GuidePhase, string>,
   /** the Help page's button that starts the walkthrough again */
   again: "Replay the walkthrough",

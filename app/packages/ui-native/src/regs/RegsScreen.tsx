@@ -17,7 +17,7 @@
  * ONE MAP ENTRY (T71, owner call 3, 2026-10-22): the regs header has no Map button; the water's Map view is offered once,
  * by the view strip the frame draws.
  */
-import { useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { openProbe } from "@app/data";
 import { AccessibilityInfo, Animated, Platform, ScrollView, View, type ScrollViewInstance, type ViewInstance } from "react-native";
 import { Text } from "../Text";
@@ -283,9 +283,13 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate,
   // (T45) the page in the reading column (a phone: as it is); on a desktop, beside the side column
   const read = <ReadingColumn layout={layout} testID="regs-reading">{body}</ReadingColumn>;
   const coachScroll = useCoachScroller();
+  // (T842) one ref for the page's life: the walkthrough's highlight is tied to this scroll view's native scroll event
+  const pageRef = useCallback((n: ScrollViewInstance | null) => {
+    (scroll as { current: ScrollViewInstance | null }).current = n; coachScroll.ref(n);
+  }, [scroll, coachScroll]);
   const pageScroll = (
     <View style={{ flex: 1 }}>
-      <ScrollView ref={(n) => { (scroll as { current: ScrollViewInstance | null }).current = n; coachScroll.ref(n); }} testID="regs-scroll" scrollEventThrottle={16} onScrollBeginDrag={() => { restoring.current = false; }} contentContainerStyle={{ flexGrow: 1, paddingBottom: 32 }}
+      <ScrollView ref={pageRef} testID="regs-scroll" scrollEventThrottle={16} onScrollBeginDrag={() => { restoring.current = false; }} contentContainerStyle={{ flexGrow: 1, paddingBottom: 32 }}
                   onScroll={(e) => { const y = e.nativeEvent.contentOffset.y; scrollY.setValue(y); store.setScroll(y); coachScroll.track(y);
                                      if (scrollKey && !restoring.current) rememberRegsScroll(scrollKey, y); }}
                   onLayout={(e) => { viewH.current = e.nativeEvent.layout.height; store.setViewport(e.nativeEvent.layout.height); }}
