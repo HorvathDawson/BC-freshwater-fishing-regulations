@@ -2319,3 +2319,7 @@ More questions (recommended answer first):
   applies there (stream share on streams) and the SUM of its own quotas; each fish stays under its own quota, fish with no
   own quota stay under the region's cap, and all of them count inside the pool, which replaces the region's total there.
   Lardeau/Duncan 7, Kaslo/Keen 2, Adams 4 (2 rainbow of the 4). T834 reworked to this; the changed waters go to him first.
+- 2026-11-17 ~11:00, owner: "can we add all these examples to gotcha as a thing to ask about". Done:
+  pipeline/docs/GOTCHAS.md, "Questions the owner will put to BC Fish and Wildlife" (beside the Thompson): Kaslo/Keen,
+  Lardeau/Duncan, Kootenay Lake main body, Adams, Buckley, and the 12 rows that carried a hand-written lift, each with
+  the reading built and the other reading. TO ASK Fish and Wildlife (owner).

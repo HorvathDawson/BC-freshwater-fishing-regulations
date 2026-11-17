@@ -15,6 +15,29 @@ code now handles belong in the code's comments, not here.
   closed by the region (kept; rulings L1, L20) or the row's own dates replacing it (June open: 26 trout sections;
   22 salmon sections chinook and sockeye "check"). Owner 2026-11-16: "keep closed but add to gotchas as one i need to
   ask fish and wildlife about".
+- **A stream's own daily quota against the region's "from streams" share and the region's total** (T834; Region 4
+  p.33-38, the same shape in every region with a stream share). Region 4 prints "Trout/char: 5 … 2 from streams, 1 bull
+  trout"; the book (p.3) says to follow the provincial, regional AND water-specific rules, and never says how a water's
+  own quota sits against the share or the total. **Unlike the Thompson, the owner chose the looser reading here**
+  (2026-11-17, T834, OWNER-TODO ~10:38-10:50): a water's own quotas add up to a day pool = the larger of the region's
+  cap there and the sum of the water's own quotas; that pool replaces the region's total. Ask about each case:
+  - **Kaslo River, Keen Creek** ("Bull trout daily quota = 2"): 2 fish from the stream in all, both may be bull trout
+    (the bull trout count inside the 2 from streams). Other reading: 2 bull trout PLUS 2 other trout = 4.
+  - **Lardeau River, Duncan River** ("Rainbow trout daily quota = 5, bull trout daily quota = 2"): 7 a day, e.g. 5
+    rainbow + 2 bull, or 2 cutthroat + 3 rainbow + 2 bull, or 2 cutthroat + 4 rainbow + 1 bull. Other reading: the
+    region's 5 still caps the day (e.g. 3 rainbow + 2 bull, or 2 cutthroat + 2 bull + 1 rainbow), which the app said
+    before T834. Owner: "i would say 7 because we have other ones like one of the kootenay lakes having a 10 a day quota
+    for rainbows".
+  - **Kootenay Lake main body** ("Bull trout daily quota = 1; rainbow trout daily quota = 10"): 11 a day (10 rainbow + 1
+    bull) by the same reading. Other reading: 10 at most, or the region's 5 for every other kind combined.
+  - **Adams River** (Region 3, "Rainbow trout daily quota = 2" under "4 from streams"): 4 from the stream in all, at
+    most 2 of them rainbow. Other reading: 2 rainbow lifted out of the share, plus 4 others = 6 (capped at the region's
+    total). Owner: "it is just 2 of the 4".
+  - **Buckley Creek** (Region 6, "rainbow 1" under "1 trout from streams"): 1 trout from the stream in all. Other
+    reading: 1 rainbow plus 1 other trout = 2.
+  - **The 12 rows that already carried a hand-written lift out of the share** (Lardeau, Duncan, Beaver, Lavington,
+    Perry, Whiteswan, Chilliwack, Kitimat ×2, Peace in 7B): which of them the book means as a lift, and which as a
+    number inside the share.
 
 ---
 
