@@ -152,7 +152,9 @@ FILES = {
                  "pieces"],
         "item_area": ["ord", "regions", "mus"], "item_near": ["ord", "place_id", "ckm"],
         "item_section": ["sid", "ord"], "meta": ["k", "v"], "name_source": ["item_id", "name", "src", "label"],
-        "place": ["place_id", "osm", "name", "kind", "pop", "lat", "lon"]}} for r in SH.REGIONS},
+        "place": ["place_id", "osm", "name", "kind", "pop", "lat", "lon"],
+        # (T796) ADDITIVE, still core-slice/1: the whole core's `section_note`, in every slice (slices.py)
+        "section_note": ["sid", "note"]}} for r in SH.REGIONS},
     # (T370) a water slice holds only its region's own rows; the tables every region reads whole are `water-shared`
     **{f"water-{r}": {"format": "water-slice/4", "kind": "sqlite", "tables": {
         "item": ["item_ord", "item_id", "shown", "picker", "unresolved", "name", "kind", "sections", "outside_bc",

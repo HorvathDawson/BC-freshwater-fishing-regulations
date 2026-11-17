@@ -153,6 +153,10 @@ export const PACK_FILES: Record<string, PackFile> = {
         "lat",
         "lon"
       ],
+      "section_note": [
+        "sid",
+        "note"
+      ],
       "see_pointer": [
         "entry_id",
         "name",
@@ -216,6 +220,10 @@ export const PACK_FILES: Record<string, PackFile> = {
         "pop",
         "lat",
         "lon"
+      ],
+      "section_note": [
+        "sid",
+        "note"
       ]
     }
   },
@@ -272,6 +280,10 @@ export const PACK_FILES: Record<string, PackFile> = {
         "pop",
         "lat",
         "lon"
+      ],
+      "section_note": [
+        "sid",
+        "note"
       ]
     }
   },
@@ -328,6 +340,10 @@ export const PACK_FILES: Record<string, PackFile> = {
         "pop",
         "lat",
         "lon"
+      ],
+      "section_note": [
+        "sid",
+        "note"
       ]
     }
   },
@@ -384,6 +400,10 @@ export const PACK_FILES: Record<string, PackFile> = {
         "pop",
         "lat",
         "lon"
+      ],
+      "section_note": [
+        "sid",
+        "note"
       ]
     }
   },
@@ -440,6 +460,10 @@ export const PACK_FILES: Record<string, PackFile> = {
         "pop",
         "lat",
         "lon"
+      ],
+      "section_note": [
+        "sid",
+        "note"
       ]
     }
   },
@@ -496,6 +520,10 @@ export const PACK_FILES: Record<string, PackFile> = {
         "pop",
         "lat",
         "lon"
+      ],
+      "section_note": [
+        "sid",
+        "note"
       ]
     }
   },
@@ -552,6 +580,10 @@ export const PACK_FILES: Record<string, PackFile> = {
         "pop",
         "lat",
         "lon"
+      ],
+      "section_note": [
+        "sid",
+        "note"
       ]
     }
   },
@@ -608,6 +640,10 @@ export const PACK_FILES: Record<string, PackFile> = {
         "pop",
         "lat",
         "lon"
+      ],
+      "section_note": [
+        "sid",
+        "note"
       ]
     }
   },
@@ -664,6 +700,10 @@ export const PACK_FILES: Record<string, PackFile> = {
         "pop",
         "lat",
         "lon"
+      ],
+      "section_note": [
+        "sid",
+        "note"
       ]
     }
   },
