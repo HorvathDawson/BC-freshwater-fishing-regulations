@@ -39,7 +39,7 @@ import { SpotPickBanner } from "./SpotPickBanner";
 import { SynopsisLoading } from "./regs/SynopsisLoading";
 import { PdfViewer } from "./regs/PdfViewer";
 import { TabBar } from "./TabBar";
-import { NavRail } from "./NavRail";
+import { NavRail, NAV_RAIL } from "./NavRail";
 import { EdgeBack } from "./EdgeBack";
 import { LayersSheet } from "./LayersSheet";
 import { InSeasonNotice } from "./InSeasonNotice";
@@ -444,7 +444,8 @@ export function Shell(p: ShellProps) {
   const guideCard = (
     <GuideCard guide={guide} facts={guideFacts} acts={guideActs} palette={palette} registry={coach}
                top={(route.mode === "browse" && !adding && !openSpot ? topBarBottom() : 0) + 8}
-               bottom={bottomBarShown(route) && !tabsRail ? TAB_BAR_ROOM : 0} />
+               bottom={bottomBarShown(route) && !tabsRail ? TAB_BAR_ROOM : 0}
+               left={tabsRail && bottomBarShown(route) ? NAV_RAIL.width : 0} />
   );
   /** (T293, T456) what the walk reads from the screens: the controls' places, their own state, and which water is its */
   const coached = (n: React.ReactNode) => (

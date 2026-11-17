@@ -11,6 +11,7 @@ import type { ItemId } from "@app/data";
 import { makeFixtureSource } from "@app/data/fixture";
 import { HOME, LayoutWidthContext, openWater, reduce, tabsAsRail, type Route } from "@app/ui";
 import { LIGHT } from "./theme";
+import { NAV_RAIL } from "./NavRail";
 
 vi.mock("./MapScreen", () => ({ MapScreen: () => <View testID="map-stub"><Text>map</Text></View> }));
 vi.mock("./FishSpinner", () => ({ FishSpinner: () => null }));
@@ -65,5 +66,42 @@ describe("(T839) where the tabs are drawn", () => {
     expect(screen.queryByTestId("nav-rail")).toBeNull();
     expect(names()).not.toContain("Spots");   // the water's own view tabs are not the app's
     expect(names()).not.toContain("More");
+  });
+});
+
+describe("(T839) the walkthrough card keeps clear of the rail", () => {
+  const noop = () => {};
+  async function card(left?: number, paused = false) {
+    const { GuideCard } = await import("./Walkthrough");
+    const { useCoachRegistry } = await import("./CoachMarks");
+    const { renderHook } = await import("@testing-library/react");
+    const reg = renderHook(() => useCoachRegistry()).result.current;
+    render(<GuideCard guide={{ open: true, pending: true, at: 1, paused, reopen: noop, finish: noop, next: noop, back: noop, resume: noop, pass: noop }}
+      facts={{ water: null, searching: false, query: "", selected: null, open: null }}
+      acts={{ search: noop, select: noop, openWater: noop, view: noop }}
+      palette={LIGHT} registry={reg} top={60} bottom={0} {...(left === undefined ? {} : { left })} />);
+    return getComputedStyle(screen.getByTestId("guide")).left;
+  }
+  it("starts right of the rail when told the rail's width, and at 0 by default (phone, tablet)", async () => {
+    expect(await card(NAV_RAIL.width)).toBe(`${NAV_RAIL.width}px`);
+    cleanup();
+    expect(await card(NAV_RAIL.width, true)).toBe(`${NAV_RAIL.width}px`);   // the paused chip's layer too
+    cleanup();
+    expect(await card()).toBe("0px");
+  });
+
+  it.each([[1280, true], [390, false]] as const)("%i: the shell's card layer is right of the rail: %s", async (w, rail) => {
+    const store = { read: () => null, write: () => {} };
+    render(
+      <LayoutWidthContext.Provider value={w}><GestureHandlerRootView>
+        <Shell source={makeFixtureSource()} loader={openRegsFixtureWithLines()} palette={LIGHT} theme="light" themeName="light" onTheme={() => {}}
+               tiles={{ atlas: "a", basemap: "b" } as never} initialRoute={HOME} walkthrough={store}
+               systemBack={() => ({ sync: () => {}, dispose: () => {} })}
+               feed={{ index: async () => ({ fetchedAt: new Date().toISOString(), stations: {} }) } as never}
+               spots={[]} onSaveSpot={async () => {}} />
+      </GestureHandlerRootView></LayoutWidthContext.Provider>);
+    await act(async () => { await new Promise((r) => setTimeout(r, 600)); });
+    const g = await screen.findByTestId("guide", {}, { timeout: 4000 });
+    expect(getComputedStyle(g).left).toBe(rail ? `${NAV_RAIL.width}px` : "0px");
   });
 });
