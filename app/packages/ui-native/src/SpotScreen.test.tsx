@@ -8,7 +8,8 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render } from "@testing-library/react";
-import type { PhotoEdit } from "@app/ui";
+import type { PhotoEdit, VisitsView } from "@app/ui";
+import { VisitsBlock } from "./spot/Visits";
 import { SpotScreen } from "./SpotScreen";
 import type { Spot } from "@app/data/spots";
 import { LIGHT } from "./theme";
@@ -644,5 +645,41 @@ describe("<SpotScreen> a readable page (T819 B)", () => {
     const same = render(<SpotScreen spot={{ ...rich, title: "" }} palette={LIGHT} onBack={() => {}} />);
     expect(same.queryByTestId("spot-water")).toBeNull();
     expect(same.queryByTestId("spot-place")).toBeNull();
+  });
+});
+
+/* (T819 bundle D) fit and finish */
+describe("<SpotScreen> fit and finish (T819 D)", () => {
+  it("item 14: Edit and Delete are real 44 px targets, drawn at least 44 wide (not a 25 px word behind a 60 px guess)", () => {
+    const { getByLabelText } = render(<SpotScreen spot={spot()} palette={LIGHT} onBack={() => {}} onEdit={() => {}}
+                                                  onDelete={() => {}} />);
+    for (const l of ["Edit spot", "Delete spot", "Back"]) {
+      const b = getByLabelText(l);
+      expect([b.getAttribute("data-hitslop"), b.style.minWidth, b.style.minHeight]).toEqual(["44 44 0 0 0 0", "44px", "44px"]);
+    }
+  });
+
+  it("item 14: parking reads 'Parking saved · Directions', its coordinates small under it", () => {
+    const { getByTestId, getByLabelText } = render(
+      <SpotScreen spot={spot()} palette={LIGHT} onBack={() => {}} parking={{ lat: 49.1, lon: -121.95 }}
+                  onDirections={() => {}} />);
+    expect(getByTestId("spot-parking").textContent).toBe("Parking saved·Directions49.1000, -121.9500");
+    expect(getByLabelText("Directions to the parking, in your maps app")).toBeTruthy();
+  });
+
+  it("item 14: one button style in a row — parking's edit actions, and Add / Remove a visit", () => {
+    const edit = render(<SpotScreen spot={spot()} palette={LIGHT} mode="edit" title="t" notes="" onTitle={() => {}}
+                                    onNotes={() => {}} onSave={() => {}} onDiscard={() => {}}
+                                    parking={{ lat: 49.1, lon: -121.95 }} onParkingHere={() => {}} onParkingPick={() => {}}
+                                    onParkingRemove={() => {}} />);
+    const style = (l: string) => { const b = edit.getByLabelText(l); return [b.style.borderTopWidth, b.style.paddingTop]; };
+    expect([style("Use my location"), style("Pick on the map"), style("Remove parking")])
+      .toEqual([["1.5px", "14px"], ["1.5px", "14px"], ["1.5px", "14px"]]);
+    cleanup();
+    const view = { heading: "Your visits", canRemove: true, chips: [],
+                   rate: { heading: "", stars: [], value: null, word: "", detail: "" } } as unknown as VisitsView;
+    const v = render(<VisitsBlock view={view} palette={LIGHT} onAdd={() => {}} onRemove={() => {}} />);
+    const look = (l: string) => { const b = v.getByLabelText(l); return [b.style.borderTopWidth, b.style.paddingTop]; };
+    expect([look("Add a visit"), look("Remove this visit")]).toEqual([["1.5px", "14px"], ["1.5px", "14px"]]);
   });
 });

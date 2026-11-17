@@ -37,6 +37,8 @@ export const SPOT_WORDS = {
   nothingAdded: "No notes or photos yet.",
   /** (T310) where to park: a fact of the spot (every visit's), shown on the page and as a P on the map */
   parking: "Parking", noParking: "No parking added.",
+  /** (T819 item 14) a spot's parking, said plainly (its coordinates small under it) */
+  parkingSaved: "Parking saved",
   parkingHere: "Use my location", parkingPick: "Pick on the map", parkingRemove: "Remove parking",
   directions: "Directions", directionsLabel: "Directions to the parking, in your maps app",
   parkingNoFix: "Could not find your location.",

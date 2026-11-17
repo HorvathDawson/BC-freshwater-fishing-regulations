@@ -55,7 +55,10 @@ export function Link({ palette, label, text, onPress, tone, icon }: {
 }) {
   const style = { ...TYPE.micro, fontSize: 13, color: tone ?? palette.accent };
   return (
-    <Pressable {...hitProps({ w: 60, h: 44 })} onPress={onPress} accessibilityRole="button" accessibilityLabel={label} style={{ minHeight: 44, justifyContent: "center" }}>
+    // (T819 item 14) a real 44 × 44: the drawn box is at least that wide, so a short word ("Edit", 25 px) is not a
+    // 25 px target behind a slop that assumed 60
+    <Pressable {...hitProps({ w: 44, h: 44 })} onPress={onPress} accessibilityRole="button" accessibilityLabel={label}
+               style={{ minHeight: 44, minWidth: 44, justifyContent: "center", alignItems: "center" }}>
       {icon ? <IconText name={icon} text={text} style={style} /> : <Text style={style}>{text}</Text>}
     </Pressable>
   );

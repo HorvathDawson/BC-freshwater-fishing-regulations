@@ -53,9 +53,10 @@ describe("<SpotsScreen>", () => {
   it("none yet: what a spot is, how to drop one, and the two ways to add", () => {
     mount([], { permission: "prompt" });
     expect(screen.getByText("No spots yet")).toBeTruthy();
-    expect(screen.getByText("Pin an exact point on a stream and the app records the gauge, its standing against the " +
-                            "record and the weather that day. Notes and photographs go on top. Press and hold the map " +
-                            "to drop one.")).toBeTruthy();
+    // (T819 item 15) two plain lines, and where spots are kept
+    expect(screen.getByText("Save the places you fish: the water, the day, how the river and the weather were, and your "
+                            + "notes and photos.\nAdd one below, or press and hold the map.\nSaved on this phone and in "
+                            + "its backup. Not on the website yet.", { normalizer: (t) => t })).toBeTruthy();
     expect(buttons()).toEqual(["At my location", "Pick on the map"]);
     expect([screen.getByText("Asks for your location first").textContent,
             screen.getByText("Go to the map and tap the place").textContent])

@@ -64,8 +64,8 @@ describe("spotsMenu", () => {
                                   permission: null }),
             spotsMenu([spot()], { canAdd: false, canRefresh: false, permission: "granted" }).adds]).toEqual([
       { title: "No spots yet",
-        body: "Pin an exact point on a stream and the app records the gauge, its standing against the record and the " +
-              "weather that day. Notes and photographs go on top. Press and hold the map to drop one." },
+        body: "Save the places you fish: the water, the day, how the river and the weather were, and your notes and photos."
+          + "\nAdd one below, or press and hold the map.\nSaved on this phone and in its backup. Not on the website yet." },
       { title: "Spots", error: "The saved spots could not be read.", empty: null, rows: [], stale: null,
         adds: [{ k: "pick", label: "Pick on the map", detail: "Go to the map and tap the place" }], note: null },
       [],
