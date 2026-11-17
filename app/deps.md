@@ -232,7 +232,8 @@ off as before; shrinking is a decision of its own (keep rules + a device walk), 
   the camera and library permission strings. Photos are the user's own data: never in a release, never uploaded.
 - `expo-image-manipulator` — pinned 58.0.15 (the SDK 58 line; `bundledNativeModules` names `~58.0.15`; also in the root
   `overrides`: @app/data takes it as a peer). (T732, owner 2026-11-14: "Only need to backup photos and spots") Makes the
-  phone backup's photo copies: each photo resized to 1600 px on its long edge, JPEG 70 (~0.37 MB for a 12 MP photo), so
+  phone backup's photo copies: each photo resized to 1280 px on its long edge, WebP 75 (owner 2026-11-16: "D: WebP 75";
+  ~81 KB for the 12 MP stand-in; WebP encode: Android `Bitmap.CompressFormat.WEBP`, iOS `SDWebImageWebPCoder`), so
   the newest photos fit Android's 25 MB cloud backup beside the spots. Used ONLY by
   `packages/data/src/spots/backupSet.native.ts`; originals are never re-encoded. The web has no phone backup and needs
   nothing.

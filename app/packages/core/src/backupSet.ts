@@ -16,10 +16,12 @@ const MB = 1024 * 1024;
 export const BACKUP_QUOTA_BYTES = 25 * MB;
 /** Kept free under the quota: the archive's own overhead and the spots growing between two daily backups. */
 export const BACKUP_HEADROOM_BYTES = 5 * MB;
-/** A backup copy's longest edge, in pixels (T732 §4: ~0.37 MB for a 12 MP photo). */
-export const BACKUP_PHOTO_EDGE = 1600;
-/** A backup copy's JPEG quality, 0–1. */
-export const BACKUP_PHOTO_QUALITY = 0.7;
+/** A backup copy's longest edge, in pixels (owner 2026-11-16 11:57: "1280 is probably enough"). */
+export const BACKUP_PHOTO_EDGE = 1280;
+/** A backup copy's encoding (owner 2026-11-16 ~16:55: "D: WebP 75"; ~81 KB at 1280 px against JPEG 70's ~246 KB). */
+export const BACKUP_PHOTO_FORMAT = "webp";
+/** A backup copy's quality, 0–1 (WebP 75). */
+export const BACKUP_PHOTO_QUALITY = 0.75;
 
 export interface BackupPhoto {
   /** The spot's photo reference, "photos/<spot id>-<n>.<ext>". */
