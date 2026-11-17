@@ -313,6 +313,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T821 | iOS: the back swipe flashes the previous menu for a moment | OPEN | — | owner iPhone build 36, 2026-11-16 |
 | T822 | iPhone push: the phone never registers with the staging worker | OPEN | — | owner iPhone build 36, 2026-11-16 |
 | T824 | The walkthrough: "rings what to tap" wording; glitches with the keyboard and a lagging highlight | OPEN | — | owner iPhone build 36, 2026-11-16 |
+| T826 | iOS: the Conditions panel and map differ from Android (no gauge markers, no bar, Chehalis empty); the tap highlight stays after going back | OPEN | — | owner iPhone build 36, 2026-11-16 |
 
 ## Next after closed testing
 
