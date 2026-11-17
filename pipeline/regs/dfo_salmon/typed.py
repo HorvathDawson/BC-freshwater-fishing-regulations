@@ -174,6 +174,9 @@ _RE_BAIT_BAN = re.compile(r"\bbait\s+ban\b|\bno\s+natural\s+bait\b|\bnatural\s+b
 _RE_BAIT_ALLOWED = re.compile(r"\bnatural\s+bait\s+allowed\b", re.I)
 #: "Single, barbless hook in tidal and non-tidal portions of all streams" — the comma cost the flag.
 _RE_BARBLESS = re.compile(r"\bsingle,?\s+barbless\s+hook\b", re.I)
+#: the hook rule's quoted span: the sentence through a hyphenated word ("non-tidal"), never cut at the hyphen (T789 D6:
+#: Region 6's line read "Single, barbless hook in tidal and non" on 25,787 sections); a free-standing dash still ends it
+_RE_HOOK_SPAN = re.compile(r"single,?\s+barbless\s+hook(?:[\w\s,.]|-(?=\w))*", re.I)
 
 
 def decode(limits: str) -> dict:
@@ -517,7 +520,7 @@ def to_rules(rec: dict, rule_base: str, order: int) -> List[CatalogueRule]:
 
     if says["single_barbless_hook"]:
         gap = _RE_GAP.search(gear)
-        quoted = _span(gear, re.compile(r"single,?\s+barbless\s+hook[\w\s,.]*", re.I))
+        quoted = _span(gear, _RE_HOOK_SPAN)
         out.append(CatalogueRule(
             rule_id=f"{rid}_hook", type=RuleType.tackle_restriction,
             gear=[{"slot": "barb", "only": ["barbless"]}, {"slot": "points_per_hook", "max": 1}]
