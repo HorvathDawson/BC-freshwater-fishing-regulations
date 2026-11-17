@@ -5,7 +5,7 @@
 #
 #   scripts/heavy.sh test-full 40 -- ./scripts/test-full.sh
 #
-#   1. REGS_STORE_REQUIRED=1 pnpm -C app check              every app gate + vitest, the parity strict (≈ 17 s)
+#   1. REGS_STORE_REQUIRED=1 pnpm -C app check              every app gate + vitest, the parity strict (3 to 4 min, audit 2026-11-16)
 #   2. pytest (the fast suite, `-m "not slow"`)             in chunks, one process each (scripts/pytest-chunked.sh, T638:
 #                                                           one process grows to ~111 GB and the kernel kills it)
 #   3. pytest -m slow                                       the same, chunked: determinism and full-build guards (AGENTS 18)

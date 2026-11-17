@@ -764,15 +764,38 @@ def test_fast_fail_reads_the_candidate_once_the_fixtures_are_cut_for_it(world):
     """Between the re-cut and the promote the goldens pair with the CANDIDATE: a rerun's fast-fail is told so
     (RELEASE_DIR), and not before the re-cut (they still pair with LATEST then)."""
     world["rc"] = {"inseason": 3}
-    assert _staging() == 1 and world["fast_fail_env"] == {}                  # no candidate yet
+    assert _staging() == 1 and world["fast_fail_env"] == NEXT                  # no candidate yet
     world["tree"] = "t2"
-    assert _staging() == 1 and world["fast_fail_env"] == {}                  # a candidate, fixtures not re-cut on it
+    assert _staging() == 1 and world["fast_fail_env"] == NEXT                  # a candidate, fixtures not re-cut on it
     world["rc"], world["recut_changed"], world["tree"] = {}, ["app/fixtures/golden/taps.json"], "t3"
     assert _staging() == 1                                                   # re-cut + committed: the push gate
     world["pushed"], world["unpushed"] = True, []
     assert _staging() == 0
-    assert world["fast_fail_env"] == {"RELEASE_DIR": str(world["root"] / NEW)}
+    assert world["fast_fail_env"] == {"RELEASE_DIR": str(world["root"] / NEW), **NEXT}
     assert json.loads(R.LEDGER.read_text())["fast_fail"]["release_dir"] == str(world["root"] / NEW)
+
+
+#: (T791) the fresh copy runs next in the same preflight: fast-fail leaves it the whole tier
+NEXT = {R.FRESH_COPY_NEXT: "1"}
+
+
+def test_fast_fail_leaves_the_whole_tier_to_the_fresh_copy_that_follows(world):
+    """T791 item 3 (owner 2026-11-16 "Yes, as proposed"): the same 6,490 tests ran in place inside fast-fail, then on the
+    clean clone minutes later. Fast-fail is told the fresh copy follows; with --no-fresh-copy it is not (it runs them)."""
+    assert _staging() == 0 and world["fast_fail_env"] == NEXT and world["fresh_copies"] == 1
+    world["tree"] = "t2"
+    assert _staging(no_fresh_copy="the clone is down") == 0 and world["fast_fail_env"] == {}
+
+
+def test_fast_fail_sh_skips_the_in_place_tier_and_its_subsets_when_told():
+    """The script's side: the three steps that run the whole no-data tier or a subset of it check the variable first."""
+    from pipeline.common.curated import REPO_ROOT
+    sh = (REPO_ROOT / "scripts" / "fast-fail.sh").read_text(encoding="utf-8")
+    assert f'${{{R.FRESH_COPY_NEXT}:-}} == 1' in sh
+    for fn in ("as_ci", "source_scanners", "review_tests"):
+        body = sh[sh.index(f"{fn}() {{"):]
+        body = body[:body.index("\n}\n")]
+        assert "fresh_copy_next && return 0" in body, fn
 
 
 def test_the_command_remembers_its_flags_and_a_rerun_needs_none(world, tmp_path, capsys):
