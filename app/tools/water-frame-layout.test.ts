@@ -88,7 +88,7 @@ async function shoot(): Promise<Record<(typeof VIEWS)[number], string>> {
   } as never) as ReactNode));
   const out = {} as Record<(typeof VIEWS)[number], string>;
   // what says each view has drawn its body (Conditions: the panel's first words, then a moment for the rest)
-  const ready = { Regulations: () => screen.queryByTestId("keep-tab"), Conditions: () => screen.queryByRole("radiogroup"),
+  const ready = { Regulations: () => screen.queryByTestId("keep-tab"), Conditions: () => screen.queryByTestId("chart-span"),
                   Map: () => screen.queryByTestId("water-map-where") };
   for (const v of VIEWS) {
     if (v !== "Regulations") act(() => { fireEvent.click(screen.getByRole("tab", { name: v })); });
