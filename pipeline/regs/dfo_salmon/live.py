@@ -23,8 +23,17 @@ chain_calendar` does (`compose` here is the reference, pinned against it), so th
 
     index.json    {format: "dfo-feed/3", at, regions: {slug: {name, url, asof, sha256, changed, checked, stale, held,
                    failures, notes, header, unresolved, bucket?, shared, sizes}}, verdicts, gears, locs: {location_id: {r, sp: [5 runs], g: runs, x?}},
-                   unplaced: n}      notes: the region header's typed notes (`header.py`); header: their digest
+                   unplaced: n, issues, dfo}  notes: the region header's typed notes (`header.py`); header: their digest
                    x (T321): the rows the location's card shows in DFO's words ({k: new|unread|note, sp, d, t})
+                   gone (T549): the places DFO dropped, the wider rule answering [{location_id, water, place, page}]
+                   issues (T759, owner 2026-11-15): the rules on today's pages we cannot (yet) stand behind, by WATER —
+                     {waters: {water_id: {r, name, items, list: [issue]}}, no_water: [issue], unread: {slug: why}}
+                     issue = {kind: unmatched | drift | closed_area_unbound, key, fingerprint, water, area, rows,
+                     why?, place?, location_id?, piece?} (`issues_of`). They change NO answer: the app paints what still
+                     applies, gives the water's line an "issue" look and puts a banner quoting `area` + `rows` on every
+                     section of `items`. Only regions read this run; `unread` names the others and why (none carried)
+                   dfo (T759): the feed's shape, {pieces: 1} — it emits closed-area piece locations (`#closed:`); the
+                     worker's /status.json serves the same. A release that binds a piece needs pieces >= 1
     unplaced.json the places the page lists that no curated location knows (part 4) — their rules HELD, never dropped
     <out>.notified.json   BESIDE the feed dir, never synced: the notices already sent (`gauges.feed.notify`)
 
@@ -78,6 +87,18 @@ FAIL_NOTIFY = 2
 QUEUE_ACTION = "python -m pipeline.regs.dfo_salmon.live queue --regions {slug}"
 #: (T321) an in-season notice number in a cell, as printed
 Q_FN = re.compile(r"\bFN\s*\d{3,4}\b", re.I)
+
+
+#: (T759) the feed's shape, served at top level (the worker: /status.json `dfo`): `pieces` >= 1 — it emits the closed
+#: areas of a place as their own locations (`<water_id>#closed:<key>`, T573). A release binding a piece needs it.
+SHAPE = {"pieces": 1}
+
+#: (T759, owner 2026-11-15) THE ISSUE KINDS — a rule on today's page we cannot stand behind yet. None changes an answer.
+ISSUE_KINDS = ("unmatched", "drift", "closed_area_unbound")
+#: why an `unmatched` row is one: no curated place has its wording (`new`, or `new_water`: its water is unknown too);
+#: its close match is a place another row of today's page already holds (`near_place_taken`); or its wording joins a
+#: curated place that is not drawn (`undrawn`: no extent, not tidal, not a confirmed variant — what `live queue` seeds)
+UNMATCHED_WHY = ("new", "new_water", "near_place_taken", "undrawn")
 
 
 def _now() -> str:
@@ -208,21 +229,46 @@ def _items_of(ef, water: str) -> List[str]:
     return sorted({i for w in ef.waters if key(w.name) == k or k in {key(a) for a in w.aliases} for i in w.item_ids})
 
 
-def join(slug: str, ef, typed: dict, locations: Sequence, report) -> Tuple[Dict[str, List[dict]], List[dict]]:
-    """(rules by location_id, unplaced). A fingerprint the entry file knows joins its location; any other is UNPLACED:
-    drift (a near location on the same water), new, or new_water — its rules kept with it."""
+def close_matches(ef, report) -> Dict[str, object]:
+    """(T759, owner 2026-11-15: "close match needs confirming") fingerprint -> the curated place a `drift` row is read
+    as: its TOP candidate (`entries._candidates`, same water, score >= 0.5), when no row of today's page joins that place
+    exactly and no earlier drift row (page order) took it. Its rule APPLIES there — and the row stays an issue (`drift`)
+    until the owner confirms the wording in DFO review. A drift row whose top candidate is taken stays unplaced (its
+    rules held) and is an `unmatched` issue (`near_place_taken`)."""
+    by_id = {l.location_id: l for l in ef.locations}
+    taken = {o.location_id for o in report.outcomes if o.status in ("ok", "revived", "section_moved") and o.location_id}
+    out: Dict[str, object] = {}
+    for o in report.outcomes:
+        if o.status != "drift" or not o.candidates:
+            continue
+        lid = o.candidates[0]["location_id"]
+        if lid in taken or lid not in by_id:
+            continue
+        taken.add(lid)
+        out[o.fingerprint] = by_id[lid]
+    return out
+
+
+def join(slug: str, ef, typed: dict, locations: Sequence, report, close: Optional[Mapping[str, object]] = None,
+         ) -> Tuple[Dict[str, List[dict]], List[dict]]:
+    """(rules by location_id, unplaced). A fingerprint the entry file knows joins its location; (T759) a `drift` row in
+    `close` (`close_matches`) joins its close match too; any other is UNPLACED: drift (a near location on the same water,
+    taken), new, or new_water — its rules kept with it. A close-matched row is ALSO listed unplaced (kind drift), so
+    `live queue` still seeds it for review."""
     index = ef.by_fingerprint()
+    close = close or {}
     by_fp = {l.fingerprint: l for l in locations}
     outcome = {o.fingerprint: o for o in report.outcomes}
     rules: Dict[str, List[dict]] = {}
     unplaced: List[dict] = []
     for loc in typed.get("locators") or []:
         fp = loc["fingerprint"]
-        hit = index.get(fp)
+        hit = index.get(fp) or close.get(fp)
         if hit is not None:
             from pipeline.regs.dfo_salmon.quota import mark_shared, pool_of
             rules.setdefault(hit.location_id, []).extend(mark_shared(loc["rules"], pool_of(hit)))
-            continue
+            if fp not in close:
+                continue
         if fp.startswith("page:"):
             continue                # T349: a page default's sentence with no default location here is not a new place
         src = by_fp.get(fp)
@@ -236,10 +282,10 @@ def join(slug: str, ef, typed: dict, locations: Sequence, report) -> Tuple[Dict[
     return rules, unplaced
 
 
-def words_by_location(ef, typed: dict) -> Dict[str, List[dict]]:
+def words_by_location(ef, typed: dict, close: Optional[Mapping[str, object]] = None) -> Dict[str, List[dict]]:
     """(T321) location id -> the rows its card shows in DFO's words (`wording.row_words`: new wording, an unread number,
-    a note) as `{k, sp, d, t}` — the feed's `locs[lid].x`."""
-    index = ef.by_fingerprint()
+    a note) as `{k, sp, d, t}` — the feed's `locs[lid].x`; (T759) a close-matched row's on its close match."""
+    index = {**(close or {}), **ef.by_fingerprint()}
     out: Dict[str, List[dict]] = {}
     for loc in typed.get("locators") or []:
         hit = index.get(loc["fingerprint"])
@@ -284,19 +330,34 @@ def notice_text(n: dict) -> str:
     return n["text"]
 
 
-def unplaced_notice(u: dict) -> dict:
+#: (T759) what every issue notice says the app does
+BANNER = "every stretch of {water} shows a banner quoting it, and its line the issue look, until {until}"
+
+
+def unplaced_notice(u: dict, applied: Optional[str] = None) -> dict:
+    """The one notice of an unplaced row — (T759) also its issue's (`issues_of`): `applied`, the close match whose rule
+    it now gives (`close_matches`)."""
     slug, n = u["region"], len(u["rules"])
     held = f"{n} rule{'s' if n != 1 else ''} held unplaced"
     act = QUEUE_ACTION.format(slug=slug)
+    banner = BANNER.format(water=u["water"] or "the water", until="it is matched to a place in DFO review")
+    if applied:
+        c = u["candidates"][0]
+        return {"key": f"dfo-drift:{slug}:{u['fingerprint']}", "urgent": True,
+                "text": f"DFO Region {slug}: new wording on {u['water']}: {u['scope']!r} — read as {applied} "
+                        f"({c['score']:.2f}), whose answer it now gives; "
+                        + BANNER.format(water=u["water"], until="you confirm it in DFO review")
+                        + f". Confirm (or refute) it in DFO review after: {act}"}
     if u["kind"] == "drift" and u["candidates"]:
         c = u["candidates"][0]
         text = (f"DFO Region {slug}: new wording on {u['water']}, likely {c['location_id']} ({c['score']:.2f}) — "
-                f"{held}. Confirm in DFO review after: {act}")
+                f"{held} ({c['location_id']} is held by another row today); {banner}. Confirm in DFO review after: "
+                f"{act}")
     elif u["kind"] == "new_water":
-        text = (f"DFO Region {slug}: a water no entry knows, {u['water']!r}: {u['scope']!r} — {held}. "
-                f"Bind it in DFO review after: {act}")
+        text = (f"DFO Region {slug}: a water no entry knows, {u['water']!r}: {u['scope']!r} — {held}; no section "
+                f"can show it until the water is bound. Bind it in DFO review after: {act}")
     else:
-        text = (f"DFO Region {slug}: new location on {u['water']}: {u['scope']!r} — {held}. "
+        text = (f"DFO Region {slug}: new location on {u['water']}: {u['scope']!r} — {held}; {banner}. "
                 f"Place it in DFO review after: {act}")
     # T366: a row whose place matches no curated DFO place is URGENT (and a place question: `live queue`)
     return {"key": f"dfo-{u['kind']}:{slug}:{u['fingerprint']}", "urgent": True, "text": text}
@@ -323,17 +384,162 @@ def _write(p: Path, obj) -> None:
     os.replace(tmp, p)
 
 
+def _reindex(c: dict, prev: dict, verdicts: S._Interner, gears: S._Interner) -> dict:
+    """One calendar `{sp, g}` of the last feed, its verdict / gear indices moved into this run's tables."""
+    pv, pg = prev.get("verdicts") or [], prev.get("gears") or []
+    sp = [[x if k % 2 == 0 or x < 0 else verdicts(pv[x]) for k, x in enumerate(runs)] for runs in c["sp"]]
+    g = [x if k % 2 == 0 or x < 0 else gears(pg[x]) for k, x in enumerate(c["g"])]
+    return {"sp": sp, "g": g}
+
+
 def _carry(prev: dict, slug: str, verdicts: S._Interner, gears: S._Interner, only: Optional[set] = None) -> dict:
     """The last feed's answers for a region (or for some of its locations), re-indexed into this run's tables."""
-    pv, pg = prev.get("verdicts") or [], prev.get("gears") or []
     out = {}
     for lid, c in (prev.get("locs") or {}).items():
         if c.get("r") != slug or (only is not None and lid not in only):
             continue
-        sp = [[x if k % 2 == 0 or x < 0 else verdicts(pv[x]) for k, x in enumerate(runs)] for runs in c["sp"]]
-        g = [x if k % 2 == 0 or x < 0 else gears(pg[x]) for k, x in enumerate(c["g"])]
-        out[lid] = {"r": slug, "sp": sp, "g": g, **({"x": c["x"]} if c.get("x") else {})}
+        out[lid] = {"r": slug, **_reindex(c, prev, verdicts, gears), **({"x": c["x"]} if c.get("x") else {})}
     return out
+
+
+# ── (T549 item 4) a curated place the page no longer shows ───────────────────────────────────────────────────────────
+
+def gone_places(slug: str, rep, prev: dict, locs: Mapping[str, dict], page: str) -> Tuple[List[dict], List[dict]]:
+    """(T549 item 4, the worker's `gone`) every ACTIVE curated place `reconcile` found absent from today's page
+    (`dormant`) and not answering today: it leaves `locs` and the wider place of its chain answers — no status change,
+    nothing shown (owner 2026-11-15: "section rule is removed we should have no status change because that is fine").
+    Listed in the region's `gone` and told once, only when the last feed published it (or already listed it). (T759) a
+    place DFO REWORDED is not this: its new row is a `drift` or `unmatched` issue on the water (`issues_of`).
+    Returns (gone, notices)."""
+    was = (prev.get("regions") or {}).get(slug) or {}
+    was_gone = {g["location_id"]: g for g in was.get("gone") or ()}
+    prev_locs = prev.get("locs") or {}
+    gone: List[dict] = []
+    notices: List[dict] = []
+    for o in rep.outcomes:
+        if o.status != "dormant" or not o.location_id or o.location_id in locs:
+            continue
+        lid = o.location_id
+        g = was_gone.get(lid) or ({"location_id": lid, "water": o.water, "place": o.specific_area, "page": page}
+                                  if lid in prev_locs and prev_locs[lid].get("r") == slug else None)
+        if g is None:
+            continue
+        gone.append(g)
+        notices.append({"key": f"dfo-gone:{slug}:{lid}:{g['page']}", "urgent": True,
+                        "text": f"DFO Region {slug}: {lid} ({g['water']}: {g['place']!r}) is no longer on DFO's page: "
+                                "its rule left the feed and the wider rule of its water answers. Read DFO's page: if "
+                                "the row is still printed, the page was misread"})
+    return sorted(gone, key=lambda g: g["location_id"]), notices
+
+
+# ── (T759) the issues: rules on today's page we cannot stand behind yet ─────────────────────────────────────────────
+
+def _water_of(ef, water: str):
+    """the curated water a DFO water name (or an alias) names, or None"""
+    from pipeline.common.names import key
+    k = key(water or "")
+    return next((w for w in ef.waters if k and (key(w.name) == k or k in {key(a) for a in w.aliases})), None)
+
+
+def confirmed(loc) -> bool:
+    """(T759) a curated place whose wording the owner stands behind: not a variant, or a variant he CONFIRMED in DFO
+    review (`duplicate_confirmed` True: the `variant_of` mark's write-through, `review.proposals`). A variant only
+    PROPOSED (`entries group`, `duplicate_confirmed` None — what `live queue` leaves) is not."""
+    return not loc.duplicate_of or loc.duplicate_confirmed is True
+
+
+def drawn(loc) -> bool:
+    """(T759) a curated place that says where it is: an extent, tidal water, or a cascade default (not a water's reach)
+    — or a confirmed variant (it rides the place it rewords)"""
+    return bool(loc.binding.extents) or loc.tidal_water or loc.kind != "water" or bool(loc.duplicate_of)
+
+
+def curated_pieces(ef) -> set:
+    """(T759) every closed-area piece id the curated places' OWN stored wording names (`closures.derive` over every
+    place, active or dormant) — the pieces the release can bind. A piece of today's row outside it is a closed area DFO
+    reworded inside its place (`closed_area_unbound`)."""
+    from pipeline.regs.dfo_salmon.closures import derive, piece_id
+    return {piece_id(e["water_id"], a["key"]) for e in derive([l.to_dict() for l in ef.locations]).values()
+            if e.get("water_id") for a in e["areas"]}
+
+
+def issues_of(slug: str, ef, typed: dict, found: Sequence, unplaced: Sequence[dict], close: Mapping[str, object],
+              pieces: Mapping[str, List[dict]]) -> Tuple[Dict[str, dict], List[dict], List[dict]]:
+    """(T759, owner 2026-11-15) THE ISSUES OF ONE REGION READ TODAY, by curated water. An issue changes no answer
+    (whatever still applies gives the colour); the app gives the water's line the issue look and shows a banner quoting
+    the row on every section of the water's `items`, until the issue clears:
+
+      unmatched  a row we cannot match to a drawn place: no curated wording (`new`), its close match is held by
+                 another row (`near_place_taken`), or its wording joins a place that is not drawn (`undrawn`, e.g.
+                 just seeded by `live queue`) — rules held (or on an undrawn place). Clears when the owner places it.
+      drift      a row read as a close match (`close_matches`: its rule applies there, `place`), or one joining a
+                 PROPOSED variant (`confirmed` false: `place` = the place it rewords) — clears when the owner confirms
+                 the wording in DFO review (the variant's `duplicate_confirmed` true) and the next run reads it.
+      closed_area_unbound  a closed area today's row names that no curated wording names (`curated_pieces`): DFO
+                 reworded a closed area inside a place — the old piece id left the feed, the new one binds nothing.
+
+    A `new_water` row (no curated water) goes to `no_water`: no section can show it. Returns (waters: {water_id: {r,
+    name, items, list}}, no_water, notices) — the notices only for the issues the unplaced notice does not tell (an
+    `unmatched` row's IS its unplaced notice; an `undrawn` place was told as an unplaced row and is in DFO review)."""
+    index = ef.by_fingerprint()
+    rows_of = {l["fingerprint"]: l["rows"] for l in typed.get("locators") or []}
+    held = {u["fingerprint"]: u for u in unplaced}
+    waters: Dict[str, dict] = {}
+    no_water: List[dict] = []
+    notices: List[dict] = []
+
+    def add(w, issue: dict) -> None:
+        if w is None:
+            no_water.append(issue)
+            return
+        got = waters.setdefault(w.water_id, {"r": slug, "name": w.name, "items": sorted(w.item_ids), "list": []})
+        if all(i["key"] != issue["key"] for i in got["list"]):
+            got["list"].append(issue)
+
+    def tell(w, issue: dict, what: str, until: str) -> None:
+        notices.append({"key": f"dfo-issue:{slug}:{issue['key']}", "urgent": True,
+                        "text": f"DFO Region {slug}: {what} on {issue['water']}: {issue['area']!r} — "
+                                f"{'; '.join(issue['rows']) or 'no rows'}. The answers stand; "
+                                + BANNER.format(water=w.name if w else issue["water"], until=until)})
+
+    for f in found:
+        fp = f.fingerprint
+        base = {"fingerprint": fp, "water": f.water, "area": f.specific_area, "rows": list(rows_of.get(fp) or [])}
+        hit = index.get(fp)
+        if fp in close:
+            add(ef.water(close[fp].water_id) or _water_of(ef, f.water),
+                {"kind": "drift", "key": f"drift:{fp}", **base, "place": close[fp].location_id})
+        elif fp in held:
+            u = held[fp]
+            why = "new_water" if u["kind"] == "new_water" else ("near_place_taken" if u["kind"] == "drift" else "new")
+            add(None if why == "new_water" else _water_of(ef, f.water),
+                {"kind": "unmatched", "key": f"unmatched:{fp}", **base, "why": why,
+                 **({"place": u["candidates"][0]["location_id"]} if why == "near_place_taken" else {})})
+        elif hit is not None and not confirmed(hit):
+            w = ef.water(hit.water_id)
+            issue = {"kind": "drift", "key": f"drift:{fp}", **base, "place": hit.duplicate_of,
+                     "location_id": hit.location_id}
+            add(w, issue)
+            tell(w, issue, f"a reworded wording read as {hit.duplicate_of}, not yet confirmed",
+                 "you confirm it in DFO review")
+        elif hit is not None and not drawn(hit):
+            w = ef.water(hit.water_id)
+            issue = {"kind": "unmatched", "key": f"unmatched:{fp}", **base, "why": "undrawn",
+                     "location_id": hit.location_id}
+            add(w, issue)          # not told again: the row was told when it was unplaced, the place is in review
+    known = curated_pieces(ef)
+    for lid in sorted(set(pieces) - known):
+        rule, row, area = pieces[lid]
+        w = ef.water(lid.split("#", 1)[0])
+        issue = {"kind": "closed_area_unbound", "key": f"closed_area_unbound:{lid}", "fingerprint": row.fingerprint,
+                 "water": row.water, "area": area.get("item") or area.get("words") or "", "rows": [rule["verbatim"]],
+                 "piece": lid}
+        add(w, issue)
+        tell(w, issue, "a closed area no curated wording names (DFO reworded it inside its place)",
+             "you place the closed area in DFO review")
+    for got in waters.values():
+        got["list"].sort(key=lambda i: i["key"])
+    return waters, sorted(no_water, key=lambda i: i["key"]), notices
 
 
 Fetcher = Callable[[str], Tuple[str, Optional[str]]]
@@ -417,6 +623,9 @@ def run(out: Path, *, fetcher: Fetcher, regions: Optional[Sequence[str]] = None,
     """One feed run. `fetcher(slug)` → (html, fetched_at) or raises. Writes `<out>/index.json` + `unplaced.json`,
     sends the due notices; returns `{index, unplaced, notices, sent, previews}`.
 
+    T759: `index.issues` — per water, the rules of the regions READ this run that we cannot stand behind yet
+    (`issues_of`); a region not read (not asked, held, fetch failed) carries none and is named in `issues.unread`.
+
     T366: `typed_dir` — the typed feed the review app and the release read: each region read is compared with it
     (`refresh.preview`: places, rows changed, marks that would move, urgent rows) and its row changes go to ONE digest
     notice per page (`urgent: False`); `scrape_dir` — when set, a region read and not held is RE-EMITTED there
@@ -438,10 +647,14 @@ def run(out: Path, *, fetcher: Fetcher, regions: Optional[Sequence[str]] = None,
     unplaced: List[dict] = []
     notices: List[dict] = []
     previews: Dict[str, dict] = {}
+    issues: Dict[str, dict] = {}                               # (T759) water_id -> {r, name, items, list}
+    no_water: List[dict] = []
+    unread: Dict[str, str] = {}                                # (T759) slug -> why no issues were read for it
     for slug in F.ALL_SLUGS:                                   # regions not asked this run keep their last answers
         if slug not in todo and slug in (prev.get("regions") or {}):
             locs.update(_carry(prev, slug, verdicts, gears))
             region_out[slug] = prev["regions"][slug]
+            unread[slug] = "not asked"
             unplaced += [u for (r, _), u in prev_unplaced.items() if r == slug]
     for slug in todo:
         page = F.PAGES[slug]
@@ -453,12 +666,16 @@ def run(out: Path, *, fetcher: Fetcher, regions: Optional[Sequence[str]] = None,
                # read's kept through a failed fetch or a held page like the answers
                "notes": was.get("notes") or [], "header": was.get("header"), "unresolved": was.get("unresolved") or [],
                # (T320) the page's general text, kept to tell the owner what changed (`_read_texts`)
-               "texts": was.get("texts") or []}
+               "texts": was.get("texts") or [],
+               # (T549 item 4) the places DFO dropped: kept with the answers when the page is not read today; a page
+               # read today replaces them (`gone_places`)
+               "gone": list(was.get("gone") or ())}
         _set_bucket(reg)
         region_out[slug] = reg
 
         def hold(why: str, key: str) -> None:
             reg["held"] = why
+            unread[slug] = "held"
             locs.update(_carry(prev, slug, verdicts, gears))
             unplaced.extend(u for (r, _), u in prev_unplaced.items() if r == slug)
             notices.append({"key": f"dfo-held:{slug}:{key}", "urgent": True,
@@ -468,6 +685,7 @@ def run(out: Path, *, fetcher: Fetcher, regions: Optional[Sequence[str]] = None,
             html, fetched = fetcher(slug)
         except Exception as exc:                               # noqa: BLE001 — a page that failed keeps its last answers
             reg["stale"], reg["failures"] = True, int(was.get("failures") or 0) + 1
+            unread[slug] = "stale"
             locs.update(_carry(prev, slug, verdicts, gears))
             unplaced.extend(u for (r, _), u in prev_unplaced.items() if r == slug)
             logger.warning("region %s: fetch failed (%s); the last feed stands", slug, exc)
@@ -495,15 +713,17 @@ def run(out: Path, *, fetcher: Fetcher, regions: Optional[Sequence[str]] = None,
             continue
         _read_header(slug, html, reg, was, entries_dir, notices)    # a held page keeps its last header
         _read_texts(slug, html, reg, was, notices)
-        rules, held = join(slug, ef, typed, found, rep)
-        # T573: every closed area TODAY'S rows still name, its own rule (`closures.live_piece_rules`); one DFO dropped
+        close = close_matches(ef, rep)                          # (T759) a close match applies its rule
+        rules, held = join(slug, ef, typed, found, rep, close)
+        # T573: every closed area TODAY'S rows still name, its own rule (`closures.live_pieces`); one DFO dropped
         # is not in the feed, so its place answers there (never free-standing)
-        from pipeline.regs.dfo_salmon.closures import live_piece_rules
-        rules.update(live_piece_rules(ef, found))
+        from pipeline.regs.dfo_salmon.closures import live_pieces
+        pieces = live_pieces(ef, found, close)
+        rules.update({lid: [rule] for lid, (rule, _f, _a) in pieces.items()})
         moved ={o.location_id for o in rep.outcomes if o.status == "section_moved" and o.location_id}
         from pipeline.regs.dfo_salmon.quota import header_closure
         closure = header_closure(reg.get("notes") or [], slug)     # T320: the header's closure wins
-        words = {} if closure else words_by_location(ef, typed)    # T321: a closed page's rows are not in force
+        words = {} if closure else words_by_location(ef, typed, close)    # T321: a closed page's rows are not in force
         notices.extend(wording_notices(slug, ef, typed))
         for lid, rs in sorted(rules.items()):
             if lid not in moved:
@@ -519,7 +739,15 @@ def run(out: Path, *, fetcher: Fetcher, regions: Optional[Sequence[str]] = None,
         for u in held:
             u["first_seen"] = (prev_unplaced.get((slug, u["fingerprint"])) or {}).get("first_seen") or at
             unplaced.append(u)
-            notices.append(unplaced_notice(u))
+            c = close.get(u["fingerprint"])
+            notices.append(unplaced_notice(u, c.location_id if c is not None else None))
+        reg["gone"], told = gone_places(slug, rep, prev, locs, sha[:12])
+        notices.extend(told)
+        # (T759) the rules of this page we cannot stand behind yet, by water — they change no answer
+        got, nw, told = issues_of(slug, ef, typed, found, held, close, pieces)
+        issues.update(got)
+        no_water.extend(nw)
+        notices.extend(told)
         # T366: what this page changes against the typed rows in use — places, rows (the digest), marks, urgent rows
         old = _read_typed(typed_dir, slug) if typed_dir is not None else None
         pv = R.preview(slug, ef, rep, typed, old, held, typed_dir=typed_dir, entries_dir=entries_dir,
@@ -542,7 +770,9 @@ def run(out: Path, *, fetcher: Fetcher, regions: Optional[Sequence[str]] = None,
 
     index = {"format": FORMAT, "at": at, "regions": {s: region_out[s] for s in F.ALL_SLUGS if s in region_out},
              "verdicts": verdicts.items, "gears": gears.items, "locs": dict(sorted(locs.items())),
-             "unplaced": len(unplaced)}
+             "unplaced": len(unplaced), "dfo": dict(SHAPE),
+             "issues": {"waters": dict(sorted(issues.items())), "no_water": no_water,
+                        "unread": {s: unread[s] for s in F.ALL_SLUGS if s in unread}}}
     if dry_run:
         return {"index": index, "unplaced": unplaced, "notices": notices, "sent": None, "previews": previews}
     _write(out / "index.json", index)

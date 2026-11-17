@@ -270,7 +270,7 @@ describe("an unplaced row names its water's app items (T521)", () => {
 });
 
 // T549 item 4: a curated place no row of the page matches any more left `locs` in silence, so the WIDER rule of its chain
-// answered on the map and nobody was told. Reworded (a drift row names it as its likely place): it reads `check`.
+// answered on the map and nobody was told. Reworded: (T759) its close match answers with the new row and it is an issue.
 // Gone (no row explains it): listed in the region's `gone`, the owner told once per page it left on.
 describe("a curated place that leaves DFO's page (T549 item 4)", () => {
   const MABEL = "8:mabel-lake:northerly-of-a-line-drawn-from-a-w";
@@ -289,27 +289,31 @@ describe("a curated place that leaves DFO's page (T549 item 4)", () => {
     expect(dropped.length).toBeLessThan(page("8").length - 200);
   });
 
-  it("reworded: the place stays in the feed as `check` (never the wider rule), is in `holds`, and its row is held unplaced", async () => {
+  // (T759, owner 2026-11-15: superseded the "check" reading) a close reword: its free top candidate APPLIES the row's
+  // rule (the same answers as before), and the water carries a `drift` issue until the owner confirms it; nothing held
+  it("reworded: the close match answers with the new row's rule (no `check`, no `holds`), a `drift` issue on the water, the row still unplaced for review", async () => {
     const feed = new MemStore();
     const priv = privStore();
     const first = await run(feed, priv, "2026-10-28T12:00:00Z", page("8"));
-    expect(verdictsOf(first.index, MABEL).some((v: any) => v.s === "check")).toBe(false);
     const got = await run(feed, priv, "2026-10-28T18:00:00Z", reworded);
     const ix = got.index as any;
     expect(ix.regions["8"].held).toBeNull();
-    expect(verdictsOf(ix, MABEL)).toEqual([{ s: "check", t: "DFO reworded this place and the new wording is not confirmed yet — check DFO" }]);
-    expect(ix.regions["8"].holds).toEqual([expect.objectContaining({ location_id: MABEL, kept: "check", why: "DFO reworded this place; the new wording is held unplaced until it is confirmed" })]);
+    expect(verdictsOf(ix, MABEL)).toEqual(verdictsOf(first.index, MABEL));
+    expect(verdictsOf(ix, MABEL).some((v: any) => v.s === "check")).toBe(false);
+    expect(ix.regions["8"].holds).toEqual([]);
     expect(ix.regions["8"].gone).toEqual([]);
+    expect(ix.issues.waters["8:mabel-lake"].list).toEqual([expect.objectContaining({ kind: "drift", place: MABEL, water: "Mabel Lake" })]);
     expect(got.unplaced).toEqual([expect.objectContaining({ kind: "drift", water: "Mabel Lake", candidates: [expect.objectContaining({ location_id: MABEL })] })]);
-    expect(got.notices.filter((n) => n.key.startsWith("dfo-drift:"))).toHaveLength(1);
+    const told = got.notices.filter((n) => n.key.startsWith("dfo-drift:"));
+    expect(told).toHaveLength(1);
+    expect(told[0]!.text).toContain(`— read as ${MABEL} (`);
     expect(got.notices.filter((n) => n.key.startsWith("dfo-gone:"))).toEqual([]);
-    // the same page next run (typing skipped): the place still reads check and is still listed
+    // the same page next run (typing skipped): the same answers, the same issue (carried), the same notice re-offered
     const again = await run(feed, priv, "2026-10-29T00:00:00Z", reworded);
     expect(again.skipped).toEqual(["8"]);
-    expect(verdictsOf(again.index, MABEL).every((v: any) => v.s === "check")).toBe(true);
-    expect((again.index as any).regions["8"].holds).toHaveLength(1);
-    // the published feed is what the app's parser accepts as holds (location_id + kept)
-    expect(JSON.parse(feed.m.get("index.json")!).regions["8"].holds[0]).toMatchObject({ location_id: MABEL, kept: "check" });
+    expect(verdictsOf(again.index, MABEL)).toEqual(verdictsOf(first.index, MABEL));
+    expect((again.index as any).issues).toEqual(ix.issues);
+    expect(again.notices.filter((n) => n.key.startsWith("dfo-drift:")).map((n) => [n.key, n.text])).toEqual(told.map((n) => [n.key, n.text]));
   });
 
   it("gone: the place leaves `locs`, is listed in the region's `gone`, and the owner is told once (re-offered while it lasts)", async () => {
@@ -365,7 +369,7 @@ describe("(T668) the feed answers per place and carries the Python's straddler p
   it("index.json is places and their own answers: no chains, no region groups; no pairs.json, no pairs (said in the log)", async () => {
     const logs: string[] = [];
     const ix = await run(privStore(), logs);
-    expect(Object.keys(ix).sort()).toEqual(["at", "format", "gears", "locs", "regions", "unplaced", "verdicts"]);
+    expect(Object.keys(ix).sort()).toEqual(["at", "dfo", "format", "gears", "issues", "locs", "regions", "unplaced", "verdicts"]);   // T759: + the shape, the issues
     expect(logs.some((l) => l.startsWith("dfo: no pairs.json"))).toBe(true);
     const locKeys = new Set(Object.values<Record<string, unknown>>(ix.locs).flatMap((l) => Object.keys(l)));
     expect([...locKeys].sort().filter((k) => !["g", "r", "sp", "x"].includes(k))).toEqual([]);
