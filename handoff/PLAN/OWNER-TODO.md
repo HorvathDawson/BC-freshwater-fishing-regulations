@@ -2200,3 +2200,7 @@ More questions (recommended answer first):
   say plainly the gauge drains a far bigger area once it is small enough to matter; Python picks the cut-off). So
   T823's flag and sentence hang on the SPEAKER's gauge (the panel the map colours from), the same on the map, the
   spot and the sheet; 50× and the wording stand (owner, just before).
+- Shortly before 22:49, in the APP chat (relayed verbatim), on the 0.7.12 draft "What's new": "you can do what changed."
+  So: the app chat writes and keeps the release notes current and clears the draft when the next build goes out. His
+  next question there, "so what is next?", is being answered by the app chat (both chats' plan: salmon landing first,
+  then the one map rebuild + staging release, the trout build in parallel).
