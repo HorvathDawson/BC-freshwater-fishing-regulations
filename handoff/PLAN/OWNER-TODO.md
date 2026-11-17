@@ -2254,3 +2254,10 @@ More questions (recommended answer first):
   mode. In dark mode your dark ink nearly disappears. Pick **A** (paper-coloured ink #f2e8d5 on the dark screen, red
   kept) or **B** (your colours on a paper tile behind the fish). Pictures sent in the app chat. It joins a build after
   the pick; the overnight 0.7.12 goes without it.
+- 2026-11-17 overnight, the main chat (T810 trout table): **yours (morning batch):** Kaslo River and Keen Creek (Region 4) print
+  "Bull trout daily quota = 2 (any size)", the same words as the Lardeau and the Duncan, but only the Lardeau and Duncan
+  rows say the Dolly Varden don't count toward Region 4's "2 from streams". So today the rules engine lets you keep
+  2 fish in total on Kaslo and Keen, and the new trout table now says the same ("Up to 2"). The card that ships today
+  says "Not part of the 2 from streams" there, which disagrees with the engine. Pick: **A** read Kaslo and Keen like
+  the Lardeau (Dolly Varden on top of the 2; a small corpus edit plus a rebuild, and the table follows), or **B** keep
+  them as written (2 in total; the old card's line is then the wrong one, and it goes when the trout table replaces it).
