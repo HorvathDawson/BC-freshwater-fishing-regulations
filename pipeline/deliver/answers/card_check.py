@@ -47,6 +47,7 @@ tests hold the two equal on the fixture and on random cap systems).
 from __future__ import annotations
 
 import math
+import re
 import time
 from typing import Dict, List, Optional, Sequence, Tuple
 
@@ -250,6 +251,85 @@ def _numbers(text: str, strip: Sequence[str] = ()) -> List[float]:
     return [float(x) for x in re.findall(r"\d+(?:\.\d+)?", text)]
 
 
+_NUM = re.compile(r"(?<![\d.])(\d+(?:\.\d+)?)(?![\d.])")
+
+
+#: `possession_problems`' default `lead`: the card's own reading of the page's line (the multipliers written for every game
+#: fish), as the tree gate asks it
+OLD_PAGE = object()
+
+
+def possession_problems(P, x: dict, where: str, lead=OLD_PAGE) -> List[str]:
+    """T805 part B — a kept trout or char kind's possession line (`card.possession_duty`, one of its `duties`) against the
+    reader: the possession rules that SPEAK for each of its fish here (its verdicts, either origin), the page's own line
+    (the multiplier written for every game fish) set aside. Where a water's possession COUNT speaks, the line says that
+    count first and every number band of its clauses ("only 1 over 50 cm (20 in)": the number and the size); where only a
+    multiplier of another number speaks, "<k> day’s limit"; else no possession line. Every fish of the kind alike.
+
+    T810 ticket J (fight #9, re-aimed at the trout table): `lead` the page's lead as F0 chose it (`card.page_possession`,
+    None: no multiplier leads). The page's line is then that rule (and every game fish's multiplier, as the card says
+    it); a fish's own multiplier equal to the lead's and covered by it is the page's; otherwise the line says the fish's
+    number and, where the lead's differs, the lead's ("1 day’s limit, not 2")."""
+    from pipeline.deliver.answers.card import POSSESSION_FISH, lead_covers
+    from pipeline.deliver.answers.rows import _bands
+    from pipeline.deliver.answers import common
+    lines = [d for d in x.get("duties") or [] if d.startswith("in your possession:")]
+    fish = [S for S in x["species"] if S in POSSESSION_FISH]
+    if not fish or x["n"] == 0:
+        return [f"{where}: kind {x['species']} keeps none here but says {lines!r}"] if lines else []
+    if len(lines) > 1:
+        return [f"{where}: kind {x['species']} says possession {len(lines)} times: {lines!r}"]
+    speaks = {}
+    page = []
+    for r in P.cands:
+        if r.k not in ("possession", "possession_cap"):
+            continue
+        st = {S: any((P.verdict(S, o).get(r.key) or [None])[0] == "speaks" for o in ("hatchery", "wild"))
+              for S in fish}
+        if r.k == "possession" and ("ALL_GAME_FISH" in (r.f.get("species") or []) or
+                                    (lead is not OLD_PAGE and r is lead)):
+            page.append(r)
+            continue
+        if any(st.values()):
+            # a count holds every fish of the kind; a multiplier each its own (Zone 7A's lake trout and bull trout lines
+            # say the same "1 day's limit" from two rules), checked fish by fish below
+            if r.k == "possession_cap" and not all(st.values()):
+                return [f"{where}: kind {x['species']}: {r.key} holds only some of its fish"]
+            speaks[r.key] = (r, {S for S, v in st.items() if v})
+    caps = [r for r, _f in speaks.values() if r.k == "possession_cap"]
+    tops = [r for r in caps if not r.f.get("within")]
+    page_k = {float(r.f["per_daily"]) for r in page}
+    if lead is not OLD_PAGE:
+        page_k = {float(lead.f["per_daily"])} if lead is not None and all(lead_covers(lead, S) for S in fish) \
+            else set()
+    per_k = {S: {float(r.f["per_daily"]) for r, fs in speaks.values() if r.k == "possession" and S in fs} for S in fish}
+    if not tops and len({frozenset(v) for v in per_k.values()}) > 1:
+        return [f"{where}: kind {x['species']}: its fish have different possession multipliers {per_k}"]
+    per = [r for r, _f in speaks.values() if r.k == "possession"]
+    want: Optional[List[float]] = None
+    if tops:
+        want = [float(tops[0].f["take"])]
+        for c in caps:
+            if c.f.get("within") == tops[0].rule_id:
+                for a, b, t in _bands(c):
+                    t = c.f.get("take") if t is None else t
+                    if t and a:
+                        want += [float(t), float(a), float(common.inches(a))]
+    elif per and {float(r.f["per_daily"]) for r in per} != page_k:
+        want = [float(per[0].f["per_daily"])] + sorted(page_k)
+        if lead is not OLD_PAGE:
+            k = float(per[0].f["per_daily"])
+            want = [k] + ([float(lead.f["per_daily"])] if lead is not None and float(lead.f["per_daily"]) != k else [])
+    if want is None:
+        return [f"{where}: kind {x['species']} says {lines[0]!r}, but its possession is the page's"] if lines else []
+    if not lines:
+        return [f"{where}: kind {x['species']}: its own possession ({', '.join(sorted(speaks))}) is on no line"]
+    got = [float(v) for v in _NUM.findall(lines[0])]
+    if got != want:
+        return [f"{where}: kind {x['species']} says {lines[0]!r} (numbers {got}), the rules {sorted(speaks)} say {want}"]
+    return []
+
+
 def check_tree(P, g: dict) -> List[str]:
     """ROUND18 1 — the card's TREE (`group.tree`, `tree.py`) against the engine, never against the buckets it was
     read from:
@@ -451,9 +531,21 @@ def check_tree(P, g: dict) -> List[str]:
                         probs.append(f"{where}: kind {x['species']} says none over {cm} cm after one of "
                                      f"{others} over it, which the rules do not hold")
                 else:
-                    if most(E.fish(mine + others), ac["n"]) > ac["n"]:
+                    # T805: a count of ONE origin (its rule's own `origin`: Lois Lake's "Wild trout/char daily quota =
+                    # 2") is proved over that origin's fish, and, naming another row's fish, it must BIND after them
+                    byr = P.by_key.get(ac["by"]) if ac.get("by") is not None else None
+                    ors = (byr.f["origin"],) if byr is not None and byr.f.get("origin") else ("hatchery", "wild")
+                    if most(E.fish(mine + others, origins=ors), ac["n"]) > ac["n"]:
                         probs.append(f"{where}: kind {x['species']} also counts toward {ac['n']} with {others}, "
                                      f"but more may be kept together")
+                    if len(ors) == 1 and others and ac["n"]:
+                        base = []
+                        for f in E.fish(others, origins=ors):
+                            while len(base) < ac["n"] and E.can_keep(base, f):
+                                base.append(f)
+                        if len(base) < ac["n"] or E.most(E.fish(mine, origins=ors), base, cap=1) > 0:
+                            probs.append(f"{where}: kind {x['species']} says no more than {ac['n']} {ors[0]} counting "
+                                         f"{others}, which the rules do not hold")
             # T793: a kind keeping both origins says, from the group's table, where one origin keeps less — every such
             # clause on its line, each proved here: the most of that origin's fish in the band, together and each
             # alone, is its number, and the other origin keeps more there
@@ -475,6 +567,7 @@ def check_tree(P, g: dict) -> List[str]:
                     probs.append(f"{where}: kind {x['species']} says {oc['says']!r}, but {other} fish are held to no "
                                  f"more there")
                 allowed |= {float(oc["n"])} | size_words([v for v in (oc["from"], oc["to"]) if v])
+            probs += possession_problems(P, x, where)                       # T805 part B
             # T128: a kind's line names the total it is part of ("Of your 2 trout and char a day in streams, …") — a
             # number of a total, share or own tier the kind sits in (each proved below); an own tier's name may print one
             allowed |= {float(t["n"]) for t in above(x) if t["tier"] in ("total", "share", "own") and t["n"] is not None}
@@ -845,6 +938,11 @@ def check_shipped(bundle: str, export_dir, answers=None, dates=DATES, keys=None,
     E.check_pair(wire, data, guide)
     model = E.decode(wire, data)
     got = check_model(model, bundle, data, dates=dates, keys=keys, log=log)
+    # T810 ticket J: THE TROUT TABLE PROOF, whenever the answers hold the trout section (a side release, the cutover):
+    # every table against today's answers and the engine, every key and segment (`trout/check.py`)
+    if "trout" in model.sections:
+        from pipeline.deliver.answers.trout import check as J
+        got["trout"] = J.check_model(model, bundle, data, keys=keys, log=log)
     got["keys_checked"] = len(model.keys) if keys is None else len(set(keys))
     got["parts_checked"] = sum(len(v) for v in model.parts.values()) if keys is None else None
     got["answers_sha256"] = hashlib.sha256(raw).hexdigest()
@@ -917,12 +1015,28 @@ def code_sha() -> str:
 
 
 def stamp_of(got: dict, dates=DATES) -> dict:
-    """The stamp for a whole-file `check_shipped` result (no `keys`)."""
-    return {"card_check": {"problems": len(got["problems"]), "parts_checked": got["parts_checked"],
-                           "keys_checked": got["keys_checked"], "cards_checked": got["checked"],
-                           "groups_checked": got["groups"], "dates": [list(d) for d in dates],
-                           "code_sha": code_sha(), "answers_sha256": got["answers_sha256"]},
-            "problems": got["problems"]}
+    """The stamp for a whole-file `check_shipped` result (no `keys`). Answers holding the trout section add `trout_check`
+    (ticket J): the tables proved, the non-NULL trout cells, the problems — the floor `stamp_problems` holds."""
+    st = {"card_check": {"problems": len(got["problems"]), "parts_checked": got["parts_checked"],
+                         "keys_checked": got["keys_checked"], "cards_checked": got["checked"],
+                         "groups_checked": got["groups"], "dates": [list(d) for d in dates],
+                         "code_sha": code_sha(), "answers_sha256": got["answers_sha256"]},
+          "problems": got["problems"]}
+    if "trout" in got:
+        t = got["trout"]
+        st["card_check"]["trout_check"] = {"tables_checked": t["tables"], "cells": t["cells"],
+                                           "problems": len(t["problems"])}
+        st["trout_problems"] = t["problems"]
+    return st
+
+
+def trout_cells(wire: dict) -> Optional[int]:
+    """The non-NULL trout cells of an answers wire (None: the file holds no trout section) — the floor J's stamp must
+    reach (contract 2.10: a proof that silently checks nothing fails)."""
+    t = (wire.get("sections") or {}).get("trout")
+    if t is None:
+        return None
+    return sum(1 for cells in t["at"] for x in cells if x is not None)
 
 
 def stamp_problems(answers, raw: bytes) -> List[str]:
@@ -941,6 +1055,21 @@ def stamp_problems(answers, raw: bytes) -> List[str]:
     out = []
     if st.get("problems") != 0:
         out.append(f"{p}: the card gate found {st.get('problems')} problems")
+    # T810 ticket J: answers holding the trout section are packaged only behind a trout proof that checked at least
+    # every non-NULL trout cell of these bytes, with no problem
+    want = trout_cells(json.loads(raw))
+    tc = st.get("trout_check")
+    if want is not None:
+        if tc is None:
+            out.append(f"{p}: the answers hold the trout section and the stamp has no trout proof (ticket J)")
+        else:
+            if tc.get("problems") != 0:
+                out.append(f"{p}: the trout proof found {tc.get('problems')} problems")
+            if not isinstance(tc.get("tables_checked"), int) or tc["tables_checked"] < want:
+                out.append(f"{p}: the trout proof checked {tc.get('tables_checked')} tables; the answers hold {want} "
+                           "non-NULL trout cells (the floor)")
+    elif tc is not None:
+        out.append(f"{p}: a trout proof in the stamp, and the answers hold no trout section")
     if st.get("answers_sha256") != hashlib.sha256(raw).hexdigest():
         out.append(f"{p} proves other answers bytes (sha {str(st.get('answers_sha256'))[:12]}…), not {Path(answers).name}")
     if not st.get("parts_checked"):
@@ -983,7 +1112,10 @@ def main(argv=None) -> int:
         got = check_built(a.bundle, a.export_dir, a.items.split(",") if a.items else None)
     for p in got["problems"][:200]:
         print(p)
-    return 1 if got["problems"] else 0
+    trout = (got.get("trout") or {}).get("problems") or []
+    for p in trout[:200]:
+        print(f"trout: {p}")
+    return 1 if got["problems"] or trout else 0
 
 
 if __name__ == "__main__":

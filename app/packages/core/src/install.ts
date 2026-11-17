@@ -2,6 +2,8 @@
  * START-UP AND FIRST-RUN WORDS (P11): what the app says while it reads the manifest, installs a release (native, first
  * run) and decodes paint. Composed here so a test pins the finished string (AGENTS 33) and no screen types its own.
  */
+import { isEnvironment } from "./failure";
+import { NET_WORDS } from "./net";
 
 export const INSTALL_WORDS = {
   failed: "The map data could not be loaded.",
@@ -12,7 +14,55 @@ export const INSTALL_WORDS = {
   retry: "Try again",
   /** (T180) under a failed start, for a developer: the local tile server serves the release */
   serve: "Run `pnpm tiles` to serve the release.",
+  /** (T760) the first install's download has not moved for a minute, a network up (under the bar, gone when bytes move) */
+  still: "The download has not moved for a minute. It carries on by itself; if it stays stuck the app starts that file again.",
+  /**
+   * (T760) a big file the system's downloader would not move, queued again and again: the first start fails with this
+   * (the error's message, so the failed screen says it with its Retry)
+   */
+  stuck: "A file would not download after several tries. Check your connection, then tap Try again.",
 } as const;
+
+/**
+ * (T760) The line under the first install's bar once nothing has moved for a minute: offline, the waiting words a page
+ * says when the line is gone (`NET_WORDS.waiting.offline`); otherwise that the download carries on by itself.
+ */
+export function stillLine(offline: boolean): string {
+  return offline ? NET_WORDS.waiting.offline : INSTALL_WORDS.still;
+}
+
+/**
+ * (T262 / T760) What a failed first start says above its Retry: the stuck download's own sentence, the first-run-offline
+ * words, or "check the connection". (An app too old for the release is the caller's: it shows its own prompt, no Retry.)
+ */
+export function failedStartLine(message: string, firstRunOffline: boolean): string {
+  if (message === INSTALL_WORDS.stuck) return INSTALL_WORDS.stuck;
+  return firstRunOffline ? INSTALL_WORDS.firstRunOffline : INSTALL_WORDS.again;
+}
+
+/**
+ * (T760) Does a failed first start begin again by itself (the app does so twice before it shows the failure)? Not the
+ * stuck download: the download layer already queued that file again, and every automatic restart would begin its
+ * ten-minute waits over, so the reader's words would take an hour and a half to show instead of half an hour.
+ */
+export function restartsByItself(message: string): boolean {
+  return message !== INSTALL_WORDS.stuck;
+}
+
+/**
+ * (T760, owner 2026-11-15 "keep trying by itself") Once a failed first start is ON SCREEN (its words and Try again), does
+ * the app also try again by itself, about once a minute, so the install finishes without a tap when the line is back?
+ * Only for a failure that is the CONNECTION's: the manifest could not be read on a first run (`firstRunOffline`), or the
+ * error is the environment's (core `isEnvironment`: offline, a dropped or timed-out line, as `@app/data`'s NetError marks
+ * every kind but an HTTP answer). Never the stuck download (`INSTALL_WORDS.stuck`: the download layer already queued that
+ * file again; the reader is asked to check and tap), never an app too old for the release, never a file that failed its
+ * check (a sha or size mismatch, a set that would not open), never an HTTP refusal, never an unknown error: those would
+ * fail the same way every minute.
+ */
+export function keepsTryingByItself(error: unknown, firstRunOffline: boolean): boolean {
+  if (error instanceof Error && error.message === INSTALL_WORDS.stuck) return false;
+  return firstRunOffline || isEnvironment(error);
+}
 
 const STAGES: Readonly<Record<string, string>> = {
   manifest: "Checking for the latest regulations…",
@@ -21,6 +71,42 @@ const STAGES: Readonly<Record<string, string>> = {
   paint: "Opening the map…",
   fonts: "Loading type…",
 };
+
+/**
+ * (T746) WHILE A DOWNLOADED DATA RELEASE IS PUT IN USE (owner 2026-11-14: "a loading icon with text like splash so it
+ * doesnt looking like it is frozen"; 2026-11-15: "can we do more fish puns here that are directed at this ?"): the line
+ * under the loading fish, on the curtain over the app and on the boot screen of a start that applies one. A fish pun
+ * that still says plainly what is happening; ONE per release, picked by `applyLine`. `failed`: an apply that did not go
+ * through (plain; the app keeps the data it had).
+ */
+export const APPLY_WORDS = {
+  lines: [
+    "Reeling in the new regulations…",
+    "Netting the latest regulations…",
+    "Landing the new regulations…",
+    "Tying on the new regulations…",
+    "Casting the new regulations into place…",
+  ],
+  failed: "The new regulations could not be put in place. The app is still using the data it had.",
+  ok: "OK",
+} as const;
+
+/**
+ * (T746) The line for applying the release `release` (its `data_release` id): the id hashed (FNV-1a, 32-bit) to one of
+ * `APPLY_WORDS.lines`. Picked by the release, never at random, so one apply says one line from start to end, the cold
+ * start's boot screen and the in-session curtain say the same for the same release, and a test is deterministic. No id
+ * (not known): the first line.
+ */
+export function applyLine(release: string | null | undefined): string {
+  const lines = APPLY_WORDS.lines;
+  if (!release) return lines[0];
+  let h = 0x811c9dc5;
+  for (let i = 0; i < release.length; i += 1) {
+    h ^= release.charCodeAt(i);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return lines[h % lines.length]!;
+}
 
 /** The line for a start-up stage; an unknown stage says nothing rather than something made up. */
 export function startStage(stage: string): string {

@@ -12,6 +12,14 @@
  *   ABORTS    each asker's `signal` cuts only that asker. The request itself is cut when every asker has gone, so one
  *             caller's timeout (T254) never fails the others'.
  *   SCOPE     "in the air" = until the response HEADERS arrive. Nothing is cached after: the next ask is a fresh fetch.
+ *   THE BODY  (T760) is each asker's own from the headers on: the request runs under this wrapper's signal, so an
+ *             asker's `signal` no longer reaches it, and the asker cuts a body by cancelling its reader (`fetchResilient`
+ *             does, on a stall). For that cancel to reach the network, THE LAST ASKER IS HANDED THE RESPONSE ITSELF and
+ *             only the others a `clone()`: a lone asker (nearly every request) reads the real body, and with several the
+ *             request ends when every one of them has read or cancelled its copy. Before, every asker read a clone and
+ *             the original was held unread here: a cancel stopped at the copy, and a stalled download on a client with
+ *             no read timeout (React Native's OkHttp) stayed open for ever — and the unread original buffered the whole
+ *             file a second time.
  */
 type Entry = { p: Promise<Response>; ctl: AbortController; askers: number };
 
@@ -55,7 +63,7 @@ export function shareFetch(inner: typeof fetch): typeof fetch {
       const cut = () => { if (left()) { if (--entry.askers === 0) entry.ctl.abort(); fail(abortError()); } };
       signal?.addEventListener("abort", cut, { once: true });
       entry.p.then(
-        (res) => { if (left()) { entry.askers--; ok(res.clone()); } },
+        (res) => { if (left()) ok(--entry.askers === 0 ? res : res.clone()); },
         (err) => { if (left()) { entry.askers--; fail(err); } });
     });
   }) as typeof fetch;

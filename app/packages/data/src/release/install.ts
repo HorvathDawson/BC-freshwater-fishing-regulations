@@ -22,7 +22,8 @@ import { utf8 } from "../regs/blob";
 import { Sha256, sha256Hex, sha256HexAsync } from "../sha256";
 import { VerifyError } from "../fetchVerified";
 import { assetsDir, installAssets, type RawFetch } from "./assets";
-import { now as clockNow } from "@app/core";
+import { now as clockNow, reportOnce } from "@app/core";
+import { downloadTally, lookHad, type Look } from "./tally";
 
 export interface ReleaseFs {
   exists(path: string): Promise<boolean>;
@@ -207,12 +208,52 @@ export function rangedDownload(fs: PartFs, fetchImpl: typeof fetch = fetch, chun
 export interface SetupProgress { step: "verify" | "assets" | "open"; done: number; of: number }
 
 /**
- * `done`/`total` count files; `bytes`/`of` count what is fetched (copies from the held set cost nothing). `setup`: set
- * once everything is downloaded and what is left is setting it up on the device (T272).
+ * `done`/`total` count files; `bytes`/`of` count what is fetched (copies from the held set cost nothing): (T738) the bytes
+ * had of EVERY file being downloaded, the big files' too before their turn (`tally.ts`), never above `of` and never back
+ * within one install. `setup`: set once everything is downloaded and what is left is setting it up on the device (T272).
  */
-export interface Progress { done: number; total: number; file: string; bytes: number; of: number; setup?: SetupProgress }
+export interface Progress { done: number; total: number; file: string; bytes: number; of: number; setup?: SetupProgress;
+  /** (T738 with T760) the bytes had as they are now: `bytes` is held up for the bar, this is not, so it goes back when a
+   *  stuck file is queued again from zero (T760). What the "not moving" line watches (`useDownloadStill`): a re-download
+   *  catching up moves this while the bar's figure holds. Absent: `bytes` is the same thing. */
+  had?: number }
 
 export const POINTER = "release/current";
+
+/**
+ * (T738) What the device holds of each big file right now (`Look`: the finished file, its `.part`, its system download),
+ * one per `files` entry, in order. The phone's is `install.native.ts`; without one a big file counts from its turn.
+ */
+export type LookBytes = (files: readonly { url: string; path: string; bytes: number }[]) => Promise<Look[]>;
+
+/** (T738) How often the big files are looked at while the data files download (the system downloader's own poll). */
+const LOOK_MS = 500;
+
+/**
+ * (T738) Look at the big files now and every LOOK_MS until stopped; `seen` gets each answer. A look that fails is
+ * reported (once per run: the condition holds) and the next one tried; the figure then holds where it was. Stopping
+ * waits for a look in flight, and nothing it finds after that is passed on.
+ */
+function lookAt(look: LookBytes | undefined, files: { url: string; path: string; bytes: number }[],
+                seen: (ls: Look[]) => void): () => Promise<void> {
+  if (!look || !files.length) return async () => {};
+  let on = true, timer: ReturnType<typeof setTimeout> | null = null, inFlight: Promise<void> = Promise.resolve();
+  const once = () => {
+    timer = null;
+    inFlight = look(files).then((ls) => {
+      if (!on) return;
+      if (ls.length !== files.length) throw new Error(`[download] a look answered ${ls.length} files for ${files.length}`);
+      seen(ls);
+    }).catch((e: unknown) => { reportOnce("install-look", e); })
+      .then(() => { if (on) timer = setTimeout(once, LOOK_MS); });
+  };
+  once();
+  return async () => {
+    on = false;
+    if (timer) clearTimeout(timer);
+    await inFlight;
+  };
+}
 
 export async function heldFrom(fs: ReleaseFs): Promise<Held | null> {
   return readHeld(fs, POINTER);
@@ -304,8 +345,8 @@ export function installBytes(m: Manifest, held: Held | null): number {
  */
 export function install(m: Manifest, fs: ReleaseFs, dl: Download, base: string, held: Held | null = null,
                         onProgress: (p: Progress) => void = () => {}, toDisk?: DownloadTo,
-                        beforeSwap?: () => Promise<void>, raw?: RawFetch): Promise<Held> {
-  return exclusively(() => installNow(m, fs, dl, base, held, onProgress, toDisk, beforeSwap, raw));
+                        beforeSwap?: () => Promise<void>, raw?: RawFetch, look?: LookBytes): Promise<Held> {
+  return exclusively(() => installNow(m, fs, dl, base, held, onProgress, toDisk, beforeSwap, raw, look));
 }
 
 /**
@@ -326,7 +367,8 @@ async function exclusively<T>(work: () => Promise<T>): Promise<T> {
 
 async function installNow(m: Manifest, fs: ReleaseFs, dl: Download, base: string, held: Held | null,
                           onProgress: (p: Progress) => void, toDisk: DownloadTo | undefined,
-                          beforeSwap: (() => Promise<void>) | undefined, raw: RawFetch | undefined): Promise<Held> {
+                          beforeSwap: (() => Promise<void>) | undefined, raw: RawFetch | undefined,
+                          look: LookBytes | undefined): Promise<Held> {
   m = withoutSlices(m);                          // (T256) the answer slices are the web's: a phone holds the whole files
   const d = held ? diff(held, m) : { files: Object.keys(m.files).sort(), tiles: true, basemap: true, assets: true,
                                      synopsis: true };
@@ -334,31 +376,45 @@ async function installNow(m: Manifest, fs: ReleaseFs, dl: Download, base: string
   const dir = dirOf(m.data_release);
   const big = bigFiles(m, held);
   const of = d.files.reduce((n, k) => n + (m.files[k]?.bytes ?? 0), 0) + big.reduce((n, b) => n + b.e.bytes, 0);
-  let done = 0, bytes = 0;
+  let done = 0;
   const total = names.length + big.length;
-  for (const name of names) {
-    const e = m.files[name]!, path = `${dir}/${e.url.split("/").pop()!.replace(/\.gz$/, "")}`;
-    const from = !d.files.includes(name) && held?.release ? `${dirOf(held.release)}/${path.split("/").pop()}` : null;
-    // unchanged: copied from the held set, never downloaded — unless the held copy is no longer the manifest's bytes
-    // (T287) every hash here a slice at a time (`sha256HexAsync`): ~40 MB hashed in one go per file froze the app for
-    // ~0.5 s a file as an update finished
-    let copied = from !== null && await fs.exists(path) && await sha256HexAsync(await fs.read(path)) === e.sha256;
-    if (!copied && from !== null && await fs.exists(from)) {
-      const b = await fs.read(from);
-      if (await sha256HexAsync(b) === e.sha256) { await place(fs, path, b); copied = true; }
+  // (T738) THE FIGURE: every file's bytes had. The big files are already downloading (the system downloader holds them
+  // from before the install began, T298) while the data files are fetched one by one below, and after a relaunch they
+  // hold what was down before it: so they are LOOKED AT from the first moment (`look`, every LOOK_MS) until their own
+  // transfers report — never counted only from their turn, which read low by all of them (T722's proof).
+  const tally = downloadTally(of);
+  const bigKey = (i: number) => `big:${i}`;
+  const stopLooking = lookAt(look, big.map((b) => ({ url: `${base}${b.url}`, path: b.path, bytes: b.e.bytes })), (ls) => {
+    ls.forEach((l, i) => tally.set(bigKey(i), lookHad(l, big[i]!.e.bytes), big[i]!.e.bytes));
+    onProgress({ done, total, file: "download", bytes: tally.shown(), of, had: tally.real() });
+  });
+  const dataFiles = async () => {
+    for (const name of names) {
+      const e = m.files[name]!, path = `${dir}/${e.url.split("/").pop()!.replace(/\.gz$/, "")}`;
+      const from = !d.files.includes(name) && held?.release ? `${dirOf(held.release)}/${path.split("/").pop()}` : null;
+      // unchanged: copied from the held set, never downloaded — unless the held copy is no longer the manifest's bytes
+      // (T287) every hash here a slice at a time (`sha256HexAsync`): ~40 MB hashed in one go per file froze the app for
+      // ~0.5 s a file as an update finished
+      let copied = from !== null && await fs.exists(path) && await sha256HexAsync(await fs.read(path)) === e.sha256;
+      if (!copied && from !== null && await fs.exists(from)) {
+        const b = await fs.read(from);
+        if (await sha256HexAsync(b) === e.sha256) { await place(fs, path, b); copied = true; }
+      }
+      if (!copied) { await fetchInto(fs, dl, `${base}${e.url}`, path, e); tally.set(`data:${name}`, e.bytes, e.bytes); }
+      onProgress({ done: ++done, total, file: name, bytes: tally.shown(), of, had: tally.real() });
     }
-    if (!copied) { await fetchInto(fs, dl, `${base}${e.url}`, path, e); bytes += e.bytes; }
-    onProgress({ done: ++done, total, file: name, bytes, of });
-  }
-  // every file of the new set, re-verified on disk before anything points at it
-  for (const name of names) {
-    const e = m.files[name]!, path = `${dir}/${e.url.split("/").pop()!.replace(/\.gz$/, "")}`;
-    const b = await fs.read(path);
-    // (T446) the report says HOW it differs, in words the crash scrubber keeps (it drops 5+ digit runs): a short file
-    // is a cut write, the same size with other bytes a second writer or another release's file
-    if (await sha256HexAsync(b) !== e.sha256) throw new Error(`release: ${path} does not match the manifest (${
-      b.length === e.bytes ? "the same size, other bytes" : `${Math.round((100 * b.length) / Math.max(1, e.bytes))} % of its size`})`);
-  }
+    // every file of the new set, re-verified on disk before anything points at it
+    for (const name of names) {
+      const e = m.files[name]!, path = `${dir}/${e.url.split("/").pop()!.replace(/\.gz$/, "")}`;
+      const b = await fs.read(path);
+      // (T446) the report says HOW it differs, in words the crash scrubber keeps (it drops 5+ digit runs): a short file
+      // is a cut write, the same size with other bytes a second writer or another release's file
+      if (await sha256HexAsync(b) !== e.sha256) throw new Error(`release: ${path} does not match the manifest (${
+        b.length === e.bytes ? "the same size, other bytes" : `${Math.round((100 * b.length) / Math.max(1, e.bytes))} % of its size`})`);
+    }
+  };
+  // (T738) from the big phase on, each big file's own transfer counts it (what the last look found stays until it reports)
+  try { await dataFiles(); } finally { await stopLooking(); }
   // THE MAP ASSETS (glyphs + sprites): always made whole — their folder lives under the tile version, so new tiles move
   // it even when its id does not. Files already there are kept, the held folder's are copied; the rest fetched.
   // (T272) Started NOW, beside the big downloads: ~780 small requests are paced by the data host's rate limit, not by
@@ -368,7 +424,7 @@ async function installNow(m: Manifest, fs: ReleaseFs, dl: Download, base: string
   if (a && !raw) throw new VerifyError(`assets ${a.id ?? a.url}: no way to fetch them`);
   let bigDone = false, assetsFailed: unknown = null;
   const assetsAt: { n: number; all: number } = { n: 0, all: 0 };
-  const assetsStep = () => assetsAt.all > 0 && onProgress({ done, total, file: "assets", bytes, of,
+  const assetsStep = () => assetsAt.all > 0 && onProgress({ done, total, file: "assets", bytes: tally.shown(), of, had: tally.real(),
                                                     setup: { step: "assets", done: assetsAt.n, of: assetsAt.all } });
   const assetsRun = a && raw ? (async () => {
     const heldA = held ? (await heldManifest(fs, held).catch(() => null))?.tiles.assets ?? null : null;
@@ -383,26 +439,26 @@ async function installNow(m: Manifest, fs: ReleaseFs, dl: Download, base: string
   const verifyOf = big.reduce((n, b) => n + b.e.bytes, 0);
   // (T298) THE BIG FILES DOWNLOAD SIDE BY SIDE: on a phone the system's download manager already holds every one of them
   // (queued before the install began, so they go on with the app closed); the bar counts the bytes of all of them
-  const downs = big.map(() => 0), hashed = big.map(() => 0);
+  const hashed = big.map(() => 0);
   const sum = (a: number[]) => a.reduce((n, x) => n + x, 0);
   const report = (file: string) => {
-    const down = bytes + sum(downs);
     // (T272) the last byte down: the second stage (the hashes' catch-up) stays on screen, never back to the download line
-    onProgress(down >= of && toDisk
+    // (T738) decided on the sum as it is (`real`), never on the held-up figure the bar shows
+    onProgress(tally.real() >= of && toDisk
       ? { done, total, file, bytes: of, of, setup: { step: "verify", done: sum(hashed), of: verifyOf } }
-      : { done, total, file, bytes: down, of });
+      : { done, total, file, bytes: tally.shown(), of, had: tally.real() });
   };
   const runs = await Promise.allSettled(big.map(async (b, i) => {
-    if (toDisk) await toDisk(`${base}${b.url}`, b.path, b.e, (n) => { downs[i] = n; report(b.file); },
+    if (toDisk) await toDisk(`${base}${b.url}`, b.path, b.e, (n) => { tally.set(bigKey(i), n, b.e.bytes); report(b.file); },
                              (n) => { hashed[i] = n; report(b.file); });
     else await fetchInto(fs, dl, `${base}${b.url}`, b.path, b.e);
-    downs[i] = hashed[i] = b.e.bytes;
+    tally.set(bigKey(i), b.e.bytes, b.e.bytes);
+    hashed[i] = b.e.bytes;
     done++;
     report(b.file);
   }));
   const failed = runs.find((r): r is PromiseRejectedResult => r.status === "rejected");
   if (failed) throw failed.reason;
-  bytes += sum(big.map((b) => b.e.bytes));
   bigDone = true;
   if (assetsRun) {
     assetsStep();

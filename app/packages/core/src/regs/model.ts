@@ -43,7 +43,8 @@ export interface RegsPage {
 
 /** The whole page for one tap: `buildRegsPage` in page.ts (T21). */
 
-/** `in_boat` (T670 G1): a gear or method rule that holds for an angler in a boat ("No angling (from a boat)") */
+/** `in_boat` (T670 G1): a gear or method rule that holds for an angler in a boat ("No angling (from a boat)"), or
+ *  (T797) in a powered boat ("No angling (from a powered boat)") */
 export type BoatKind = "none" | "unpowered" | "electric_only" | "power_capped" | "speed" | "towing" | "in_boat";
 /** (T209) one chip of the boats line; `rule` is the first rule of the kind (its sheet opens from the chip). */
 export interface BoatChipVM { readonly kind: BoatKind; readonly text: string; readonly rule: RuleKey }

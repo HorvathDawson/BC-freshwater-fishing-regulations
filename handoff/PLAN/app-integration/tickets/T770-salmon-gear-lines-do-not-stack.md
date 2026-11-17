@@ -57,6 +57,16 @@ Question 13: "Show both (Recommended)". Build it; the diff of every card's gear 
   (one place) must take `heldOn` of the gear rows and of the other-fish rows apart (`place_gear`). The saved pages'
   vectors do not move (`dfo_vectors --check` clean).
 
+## 2026-11-16 16:23: owner asked "Eulachon is a bait or a limit?"
+Answered (old main chat): neither, it is a closure carried in the gear / bait lines slot. Open for the end batch: show
+and classify it as a closure (card and `answers_diff` grouping) instead of a gear line. The candidate's gear lines
+differ on 3,745 sections (`answers_diff`); the read-only worker on the candidate's extra differences reconciles that
+with "13 chains".
+
+## Owner, 2026-11-16 19:09: eulachon as a closure
+"As a closure line (Recommended)": eulachon shows as its own closure line (closed all year in Region 6), apart from
+the gear and bait lines; data writes it as a closure, the app draws it.
+
 ## Owner, 2026-11-16 19:09 (verbatim in OWNER-TODO): eulachon "As a closure line (Recommended)"
 Built (lane/salmon-hardcases-1116): a DFO row CLOSING another fish ("All | No fishing for eulachon", Region 6 B(ii))
 is no gear line; it is the chain's closure line, Python's words "Eulachon closed all year: No fishing for eulachon"

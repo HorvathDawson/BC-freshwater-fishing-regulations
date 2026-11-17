@@ -96,16 +96,29 @@ export function boatChips(ga: GearAnswer, inp: Pick<RegsInputs, "rules">): reado
 }
 
 /**
+ * The circumstances that are "the angler is in a boat": any boat, or (T797) a powered one. The catalogue's other
+ * `while` tokens are not this line's: `alone_in_boat`, `ice_fishing` and `set_lining` are counts and methods the Methods
+ * lines word. A token this list lacks is dropped from the boats line WITHOUT A WORD (the powered-boat rules of seven
+ * rivers were, T797), so `t670.release.test.ts` walks the release for tokens no list knows.
+ */
+export const BOAT_WHILE: readonly string[] = ["in_boat", "in_powered_boat"];
+/** The `while` tokens another part of the page words (never the boats line). */
+export const OTHER_WHILE: readonly string[] = ["alone_in_boat", "ice_fishing", "set_lining"];
+
+/**
  * (T670 G1) THE RULES THAT HOLD FOR AN ANGLER IN A BOAT: the gear frame's `circumstantial` clauses the pipeline holds
  * "while in_boat" — the Kispiox's "No angling from boats" (p.51), the Thompson's (p.32), Kootenay Lake's rods from a
- * boat. The frame carried them and no screen read them. Each rule once, in the stored order; its words are its stored
- * label ("No angling (from a boat), Aug 15-Dec 31"), the same words its rule sheet shows. Selects; decides nothing.
+ * boat — or (T797) "while in_powered_boat": the Horsefly's "No angling from powered boats" below Woodjam Bridge (p.45),
+ * the Atnarko and Bella Coola (p.43), the Nicomekl and Serpentine above the dyke gates. The frame carried them and no
+ * screen read them. Each rule once, in the stored order; its words are its stored label ("No angling (from a boat),
+ * Aug 15-Dec 31"; "No angling (from a powered boat) — downstream of Woodjam Bridge"), the same words its rule sheet
+ * shows. Selects; decides nothing.
  */
 export function inBoatRules(ga: GearAnswer, inp: Pick<RegsInputs, "rules">): readonly RuleView[] {
   const seen = new Set<number>(), out: RuleView[] = [];
   for (const c of ga.circumstantial) {
     const ix = c.clause[0];
-    if (!(c.while ?? []).includes("in_boat") || seen.has(ix)) continue;
+    if (!(c.while ?? []).some((w) => BOAT_WHILE.includes(w)) || seen.has(ix)) continue;
     seen.add(ix); out.push(inp.rules.get(ix));
   }
   return out;

@@ -241,7 +241,22 @@ describe("a place is SHOWN by its tap; a water is framed by its tap and opened b
             screen.queryAllByRole("button", { name: /^View / }).length]).toEqual([
       `search open · half · "chilliwack" · tab Map`,
       `fit place:${/fit place:(\S+)/.exec(state)![1]} · lit N · pins ${LIGHT.place} · inset 60`, true, 0]);
+    // (T730, owner 2026-11-16: "we should fix anything that doesnt seem desirable") Back from a picked PLACE closes search
+    // too, as after a water (it used to step to the results with the text kept, and a second Back closed); the on-screen
+    // "All results" row still steps to the results
     expect(back()).toBe(true);
+    await settle();
+    expect([where(), screen.queryByLabelText("Back to all results")]).toEqual([`search closed · no sheet · "" · tab Map`, null]);
+  });
+
+  it("the on-screen ← All results row still steps back to the results with the text kept", async () => {
+    mount();
+    act(() => { fireEvent.focus(field()); });
+    await typeIn("chilliwack");
+    fireEvent.click(screen.getByRole("button", { name: /^Show Chilliwack on the map/ }));
+    await waitFor(() => expect(screen.queryByLabelText("Back to all results")).not.toBeNull());
+    fireEvent.click(screen.getByLabelText("Back to all results"));
+    await settle();
     expect([where(), screen.queryByLabelText("Back to all results")]).toEqual([`search open · full · "chilliwack" · tab Map`, null]);
   });
 

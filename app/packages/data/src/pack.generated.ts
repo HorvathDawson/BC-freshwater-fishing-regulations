@@ -728,6 +728,11 @@ export const PACK_FILES: Record<string, PackFile> = {
     "kind": "bin",
     "tables": {}
   },
+  "flow-small": {
+    "format": "flow-small/1",
+    "kind": "bin",
+    "tables": {}
+  },
   "geo": {
     "format": "geo/2",
     "kind": "sqlite",
@@ -2520,7 +2525,39 @@ export const PACK_FILES: Record<string, PackFile> = {
 };
 
 /** (T403) The files a release may omit (contract OPTIONAL); every other file is in every published release. */
-export const PACK_OPTIONAL: readonly string[] = ["lakes"];
+export const PACK_OPTIONAL: readonly string[] = ["flow-small", "lakes"];
+
+/**
+ * (T810 ticket I, trout table contract 2.1) THE OPTIONAL ANSWERS SECTIONS: per section, the `cell` columns and the tables
+ * every regs-<region> file carries when the release carries the section (its version in the manifest's
+ * `regulations.versions`), and none of them when it does not — all or nothing. The app's reader takes the names from
+ * here; the version it was written for stays hand-typed (`OPTIONAL_VERSIONS`, core/src/regs/versions.ts).
+ */
+export const PACK_OPTIONAL_SECTION_TABLES: Record<string, { cell: readonly string[]; tables: Record<string, readonly string[]> }> = {
+  "trout": {
+    "cell": [
+      "trout"
+    ],
+    "tables": {
+      "trout_dates": [
+        "id",
+        "j"
+      ],
+      "trout_frame": [
+        "id",
+        "j"
+      ],
+      "trout_sheet": [
+        "id",
+        "j"
+      ],
+      "trout_table": [
+        "id",
+        "j"
+      ]
+    }
+  }
+};
 
 /** (T403) The files only the web fetches (the answer slices and contract WEB_ONLY): a phone never installs or holds one. */
 export const PACK_WEB_ONLY: readonly string[] = ["core-1", "core-2", "core-3", "core-4", "core-5", "core-6", "core-7a", "core-7b", "core-8", "water-1", "water-2", "water-3", "water-4", "water-5", "water-6", "water-7a", "water-7b", "water-8", "water-shared"];
@@ -2619,6 +2656,7 @@ export const PACK_UNITS: Record<string, string> = {
   "access": "access/1: 'BCAX', u8 1, 8 bytes section_handles, then an access half (pipeline/deliver/release/paint.py)",
   "climate.gauge_clim.bands": "clim/2: [u8 pentad, 5 x float16 LE] records",
   "flow-area": "flow-area/1: 'BCFA', u8 1, one LEB128 varint per paint section (sid order) = round(km2 x 1000)",
+  "flow-small": "flow-small/1: 'BCFS', u8 1, one LEB128 varint per paint section (sid order) = bitmask over its panel's members by ord: bit i set where member i drains at least the conditions meta's small_water_ratio times the section's target area (show small_water_text beside that member's reading)",
   "geo.part_geo.e": "microdegrees",
   "geo.part_geo.mid_lat": "microdegrees",
   "geo.part_geo.mid_lon": "microdegrees",

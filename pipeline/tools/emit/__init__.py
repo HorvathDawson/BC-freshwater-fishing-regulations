@@ -7,6 +7,7 @@ source, never typed twice.
     gauge_policy   app/packages/core/src/gauge-policy.generated.{ts,json}   (the gauge consume/feed policy)
     calendar       app/packages/core/src/calendar.generated.{ts,json} + the reference page's JS (`calendar_spec`)
     pack           app/packages/data/src/pack.generated.ts                  (the release contract)
+                   + app/packages/core/src/regsCell.generated.ts            (its `cell` columns, `CellIds`, for core)
     answers model  the answers schema + TypeScript (`pipeline.deliver.answers.model`, which owns its own emit)
     feed_formats   app/packages/core/src/feedFormats.generated.ts           (every live feed's format string, T556)
     dfo_vectors    app/workers/feeds/test/fixtures/dfo/python-vectors.generated.json  (what the Python reads on the saved DFO

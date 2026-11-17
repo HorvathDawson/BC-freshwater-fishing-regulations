@@ -1,6 +1,6 @@
 # T731 — A step on a water's map closes the bar, resizes the map, then draws it all again
 
-Status: IN REVIEW (in build 32 = 0.7.10, Play internal 2026-11-14; emulator looks passed; owner: OWNER-TODO "Phone check, build 32 = 0.7.10")
+Status: IN PROGRESS (in build 32 as first built; one behaviour changed after the owner's 2026-11-16 answer "we should fix anything that doesnt seem desirable": branch `app-fix/small-looks-1116` 8e1791c7e, not merged; left: the emulator look and the merge)
 
 Source: owner 2026-11-14, phone, verbatim: "When you are in the navigate section view and you click upstream or downstream it
 is like menus briefly close at bottom and cause a flash of a resize then rerender that is a bit abraisive"
@@ -49,3 +49,16 @@ every way in; only the in-between frame changed.
   Chilliwack's Map view at its mouth part, ▼ into the Vedder, ▲ back, ▲ / ▼ inside the Chilliwack; record frames
   (`pane-frames.py`) and FAIL on any frame where the bar under the map is missing or shorter, or the map's size changes;
   then a look at the same on the phone.
+
+## Changed after the owner's answer, 2026-11-16 (app chat)
+Owner (question dialog in the main chat, 2026-11-16 12:08, on the list of small behaviours left as built): "we should fix anything that doesnt seem desirable". This one was left as built with an alternative on offer; the app chat judged it undesirable.
+Now, on branch `app-fix/small-looks-1116` (8e1791c7e, not merged): the bottom bar keeps its height when a step leads into another water (it was 122 px shorter stepping into a one-part water); a water opened fresh carries no empty row. Each fix has a test that failed first;
+`check:fast` passes. Left: the emulator look, then the merge with its benches.
+
+## Benches for the small-fixes merge (T731, T730, T728, T800), 2026-11-16 16:48 (app chat)
+Branch `app-fix/small-looks-1116`, merged with the head after T797. `pnpm check` rc 0. Benches, `small` APK:
+install, memory, bg-install, crash-bed PASS; tap-stalls PASS; regs-open FAILED twice on the FIRST tap's cue
+(160 ms, then 154 ms; limit 150), each time in the first run after a fresh `--build`. A/B to settle it: the head APK
+(t797) twice, first taps 33–112 ms, both pass; the small APK twice more without a rebuild, first taps 40–86 ms,
+both pass. Read: the slow first taps were the first run after an install, not these changes (none is on the path
+before the cue). The regs-and-back tests after the T797 merge: 1124 pass.

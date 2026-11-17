@@ -31,6 +31,9 @@ ALLOWLIST: dict[str, tuple[int, str]] = {
         1, "opt-in: ATLAS_BUILD_TWIN names a second build to compare for determinism"),
     "pipeline/tests/test_dfo_suggest.py": (
         1, "optional tool: node + the frontend's typescript (source pins still run without them)"),
+    "pipeline/tests/test_worker_deploy_pieces_gate.py": (
+        1, "optional tool: the app's esbuild (app/node_modules; pipeline CI installs no app packages) for the "
+           "worker-shape reader; the deploy itself refuses without it (T757)"),
 }
 
 _SKIP_CALLS = {"skip", "importorskip", "xfail", "skipTest"}

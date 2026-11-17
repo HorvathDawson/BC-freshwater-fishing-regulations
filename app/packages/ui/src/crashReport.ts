@@ -219,8 +219,18 @@ export interface CrashReporter {
   /** Send a fatal error kept from the last run (at start). Resolves true when the last run's fatal error was told: now, or
    *  (T242) already, before the app died. */
   flush(): Promise<boolean>;
-  /** (Android, T362 iOS) Send why the last run ended, as read from the system (iOS: the app's own record). Resolves true when sent; false = not sent (off, offline, repeat, refused). */
-  sendExit(r: ExitRecord): Promise<boolean>;
+  /** (Android, T362 iOS) Send why the last run ended, as read from the system (iOS: the app's own record). `sent` false =
+   *  not sent (off, offline, no answer, refused); `status` is the server's HTTP answer (null: none came). A refusal is
+   *  reported (`reportFailure`), never only dropped. */
+  sendExit(r: ExitRecord): Promise<SendAnswer>;
+}
+
+/** What one send came to: the worker's HTTP status (null when no answer came) and, on a refusal, its `error` words. */
+export interface SendAnswer { sent: boolean; status: number | null; error: string | null }
+
+/** An answer in words, for the `[crash-reports]` line and a refusal's report: "HTTP 429 (too many reports today)". */
+export function answerWords(a: SendAnswer): string {
+  return `${a.status === null ? "no answer" : `HTTP ${a.status}`}${a.error ? ` (${a.error})` : ""}`;
 }
 
 /** (T242) the fatal slot's word for "the last run's fatal error was sent before the app died" */
@@ -246,13 +256,27 @@ export function createCrashReporter(o: {
   const max = o.maxPerRun ?? 5;
   const clearKept = () => { try { o.store?.write(""); } catch { /* nothing kept */ } };
 
-  async function post(p0: { format: string }): Promise<boolean> {
+  async function post(p0: { format: string }): Promise<SendAnswer> {
     const p = o.test ? { ...p0, test: true } : p0;
+    let status: number | null = null;
     try {
       const r = await f(o.url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(p), keepalive: true });
-      return r.ok;
-    } catch { return false; }
+      status = r.status;
+      if (r.ok) return { sent: true, status, error: null };
+      // a refusal says why: the worker answers {"ok":false,"error":"…"} (a 429's limit, a 400's field)
+      const m = /"error"\s*:\s*"([^"\\]{1,120})"/.exec(await r.text());
+      return { sent: false, status, error: m ? m[1]! : null };
+    } catch (e) { return { sent: false, status, error: e instanceof Error ? e.message : String(e) }; }
   }
+  /** (W46) a send the server REFUSED (an HTTP answer that is not ok) is reported, non-fatal, through this same reporter: a
+   *  400 is a payload the worker does not take, and this is how the owner hears of it. No answer at all (offline, a lost
+   *  line) is the environment: said in the log line, not reported. */
+  const refused = (what: string, a: SendAnswer) => {
+    if (a.sent || a.status === null) return;
+    const e = new Error(`${what} was refused by the crash server: ${answerWords(a)}`);
+    e.name = "CrashReportRefused";
+    reportFailure(e);
+  };
 
   return {
     report(error, opt) {
@@ -267,19 +291,17 @@ export function createCrashReporter(o: {
         if (!o.online()) return;                        // offline: dropped (a kept fatal one goes at the next start)
         // (T242 test bed) sent before the app died: the slot now says so, so the next start knows the system's record of
         // this death (a plain CRASH) is the same event and does not send it again
-        void post(p).then((ok) => { if (ok && opt.fatal) { try { o.store?.write(FATAL_SENT); } catch { /* it may go twice */ } } });
+        void post(p).then((a) => { if (a.sent && opt.fatal) { try { o.store?.write(FATAL_SENT); } catch { /* it may go twice */ } } });
       } catch { /* reporting never breaks the app */ }
     },
     async sendExit(r) {
       try {
-        if (!o.setting.get() || !o.online()) return false;
-        const e = new Error(`${r.reason} while ${r.importance.toLowerCase()}${r.rssKb > 0 ? `, ${Math.round(r.rssKb / 1024)} MB in use` : ""}${r.status ? `, status ${r.status}` : ""}${r.description ? `: ${r.description}` : ""}`);
-        e.name = "NativeExit"; e.stack = "";
-        // (T352) the screen at the time is not known (this is the next run); a background kill is sent non-fatal, marked
-        const bg = backgroundKill(r);
-        return await post(crashPayload({ error: e, kind: "native", fatal: !bg, background: bg, ctx: { ...o.context(), ...NO_WHERE },
-                                         now: new Date(r.timestamp) }));
-      } catch { return false; }
+        if (!o.setting.get()) return { sent: false, status: null, error: "switched off" };
+        if (!o.online()) return { sent: false, status: null, error: "offline" };
+        const a = await post(exitPayload(r, o.context()));
+        refused("an exit record", a);
+        return a;
+      } catch (e) { return { sent: false, status: null, error: e instanceof Error ? e.message : String(e) }; }
     },
     async flush() {
       try {
@@ -292,9 +314,10 @@ export function createCrashReporter(o: {
         try { p = JSON.parse(text) as { format: string }; } catch { clearKept(); return false; }
         // a crash/1 kept by the version before this one is sent as it was (the worker takes both)
         if (!CRASH_FORMATS.includes(p?.format)) { clearKept(); return false; }
-        const ok = await post(p);
-        if (ok) clearKept();
-        return ok;
+        const a = await post(p);
+        refused("a kept fatal error", a);
+        if (a.sent) clearKept();
+        return a.sent;
       } catch { return false; }
     },
   };
@@ -398,6 +421,15 @@ export function backgroundKill(r: Pick<ExitRecord, "reason" | "importance">): bo
   return (r.reason === "LOW_MEMORY" || r.reason === "SIGNALED") && r.importance !== "FOREGROUND" && r.importance !== "VISIBLE";
 }
 
+/** (T242, T362) THE PAYLOAD OF AN EXIT RECORD, Android's ApplicationExitInfo and iOS's own record alike: kind native, no
+ *  stack, the screen not known (this is the next run, so no water is named), a background kill non-fatal and marked. */
+export function exitPayload(r: ExitRecord, ctx: CrashContext): CrashPayload {
+  const e = new Error(`${r.reason} while ${r.importance.toLowerCase()}${r.rssKb > 0 ? `, ${Math.round(r.rssKb / 1024)} MB in use` : ""}${r.status ? `, status ${r.status}` : ""}${r.description ? `: ${r.description}` : ""}`);
+  e.name = "NativeExit"; e.stack = "";
+  const bg = backgroundKill(r);
+  return crashPayload({ error: e, kind: "native", fatal: !bg, background: bg, ctx: { ...ctx, ...NO_WHERE }, now: new Date(r.timestamp) });
+}
+
 /** exits that end the app badly; EXIT_SELF, USER_REQUESTED, USER_STOPPED, PERMISSION_CHANGE and the like are not errors */
 const BAD_EXITS: readonly string[] = ["CRASH", "CRASH_NATIVE", "ANR", "LOW_MEMORY", "EXCESSIVE_RESOURCE_USAGE", "INITIALIZATION_FAILURE", "SIGNALED", "DEPENDENCY_DIED"];
 
@@ -416,9 +448,12 @@ export async function reportPastExits(o: { reporter: CrashReporter; source: Exit
     const list = (await o.source.recent(since)).filter((r) => r.timestamp > since && BAD_EXITS.includes(r.reason))
       .sort((a, b) => b.timestamp - a.timestamp);
     let sent = 0, failedAt = Infinity;
+    const answers: string[] = [];
     for (const r of list.slice(0, o.max ?? 3)) {
       if (r.reason === "CRASH" && o.jsFatalSent) continue;
-      if (await o.reporter.sendExit(r)) sent++;
+      const a = await o.reporter.sendExit(r);
+      answers.push(answerWords(a));
+      if (a.sent) sent++;
       else failedAt = Math.min(failedAt, r.timestamp);
     }
     const all = await o.source.recent(since);
@@ -426,7 +461,7 @@ export async function reportPastExits(o: { reporter: CrashReporter; source: Exit
     // mark stops just before the oldest one that failed
     const newest = Math.min(all.reduce((m, r) => Math.max(m, r.timestamp), since), failedAt - 1);
     try { o.seen?.write(String(newest)); } catch { /* looked at again next start */ }
-    console.info(`[crash-reports] sent ${sent} exit record(s); ${all.length} new in the system's record (${all.map((r) => r.reason).join(",")}), ${list.length} bad`);   // the test bed reads this line (logcat)
+    console.info(`[crash-reports] sent ${sent} exit record(s); ${all.length} new in the system's record (${all.map((r) => r.reason).join(",")}), ${list.length} bad${answers.length ? `; answers: ${answers.join(", ")}` : ""}`);   // the test bed reads this line (logcat, app-os.log)
     return sent;
   } catch { return 0; }
 }

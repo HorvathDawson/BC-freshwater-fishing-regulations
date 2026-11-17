@@ -46,6 +46,7 @@ from pipeline.deliver.calendar import (DAYS, day_of, month_day, per_day,  # noqa
                                        rule_vectors, segments, segments_of)
 from pipeline.deliver import types as T
 from pipeline.deliver.bundle import read
+from pipeline.deliver.answers.model.rows import ROWS_VERSION
 
 #: The origins every question is asked for: "none" is the reader's default (origin not known,
 #: `origin=None`); "hatchery" / "wild" are `read.ASKABLE_ORIGINS`.
@@ -112,7 +113,14 @@ class Section:
     `compose_from`, `compose` a value finished from OTHER sections' values at the same part key and
                             segment (`compose(value, {section: value})` -> value; answers 2.6: the
                             display frame's strip code reads the rows and gear frames there). The
-                            sections it reads are built with it."""
+                            sections it reads are built with it;
+    `compose_key`           (T810 ticket I, contract 2.2) a WHOLE-KEY compose: one key's values of the `compose_from`
+                            sections over ALL its segments, after every post-pass and every `compose`
+                            (`compose_key({section: [value per segment]}, starts, moments, ctx)` -> [value per segment]);
+                            it adds no day cut (its value is a function of those values, so any change in them already
+                            starts a segment);
+    `optional`              built only when the build names it (`build(optional=…)`, the CLI's `--trout-table`): a file
+                            without it is the file as it was before the section existed (contract 2.1)."""
     name: str
     version: int
     scope: Callable
@@ -122,6 +130,8 @@ class Section:
     static: Optional[Callable] = None
     compose_from: Tuple[str, ...] = ()
     compose: Optional[Callable] = None
+    compose_key: Optional[Callable] = None
+    optional: bool = False
 
 
 class Context:
@@ -215,6 +225,39 @@ def _ladder_prepare(scope: RuleKey, ctx: Context):
     return slots(st, k), values
 
 
+def _no_scope(key: tuple, B) -> None:
+    """A whole-key compose reads no part of the key itself (its inputs are the other sections' values)."""
+    return None
+
+
+#: T810 ticket I: False = the build check that a whole-key compose adds no day cut is off (the mutation pin)
+A_TROUT_ADDS_NO_DAY_CUT = True
+
+
+def _trout_compose_key(values: Dict[str, list], starts: List[int], moments, ctx: "Context") -> list:
+    """THE TROUT SECTION'S WHOLE-KEY COMPOSE (contract 2.2): `trout.table.compose_key` over one key's post-pass rows,
+    display and licence values, each frame as the file holds it (JSON values). The build stops (`AnswersError`) on a
+    table the builder refuses, and where two neighbouring segments with equal inputs get different tables (the
+    section would add a day cut)."""
+    import json
+    from pipeline.deliver.answers.trout import table as TT
+    rules = ctx.cache.get("trout_rules")
+    if rules is None:
+        data = ctx.cache["export"]
+        rules = ctx.cache["trout_rules"] = TT.Rules.from_export(data, ctx.doc)
+    rows, disp, lic = values["rows"], values["display"], values["licence"]
+    got = TT.compose_key(rows, disp, starts, moments, rules, licences=lic)
+    out = [None if f is None else json.loads(json.dumps(f, ensure_ascii=False)) for f in got]
+    for j in range(1, len(out)):
+        same_in = rows[j] == rows[j - 1] and disp[j] == disp[j - 1] and lic[j] == lic[j - 1]
+        a, b = out[j - 1], out[j]
+        if A_TROUT_ADDS_NO_DAY_CUT and same_in and (
+                (a is None) != (b is None) or (a is not None and (a["table"], a["covers"]) != (b["table"], b["covers"]))):
+            raise AnswersError(f"answers: the trout table differs between segments {j - 1} and {j} (from day "
+                               f"{starts[j]}) whose rows, display and licence values are equal: it would add a day cut")
+    return out
+
+
 def _sections() -> Tuple[Section, ...]:
     from pipeline.deliver.answers import display, gear, licence, rows
     return (
@@ -300,7 +343,9 @@ def _sections() -> Tuple[Section, ...]:
         # rows 32 (owner rule 2026-10-21): every row's `stamps` — the licence documents the row's fish need by the row's
         # answer (the prototype's round UR7 stampsFor on an Other fish row and a page-v36 keep-line row, `stamps.row_stamps`)
         # rows 33 (T161, decision Q66): every fish carries its leading origin, `FishAnswer.lead` (`common.lead_name`)
-        Section("rows", 33, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
+        # rows 34 (the trout cutover, ticket L; F0): every frame's `page_possession` (`card.page_line`) — the version is
+        # `model.rows.ROWS_VERSION`, the one number
+        Section("rows", ROWS_VERSION, rows.section_scope, derive_from="ladder", derive=rows.section_derive),
         # answers 2.6: gear 5 (static `count_nouns`: "1 line (rod)")
         # ROUND10 W4: gear 6 (`counts[slot].cites`, the Lines row's `says`)
         # ROUND11 A2: gear 7 (`summary` {says, parts, terms, cites, changes}; a stream's Lines row
@@ -353,6 +398,13 @@ def _sections() -> Tuple[Section, ...]:
         Section("display", 20, display.section_scope, prepare=display.section_prepare,
                 static=display.section_static, compose_from=("rows", "gear"),
                 compose=display.compose),
+        # T810 ticket I (trout table plan, contract 2.1-2.7): trout 1 — the trout and char table per key and segment
+        # (`answers/trout/table.compose_key`), composed from the POST-PASS rows, the display frame (Q-D3's NULL) and the
+        # licence answer (the fish sheets' stamps). OPTIONAL until the cutover (owner 17:40: only at the switch): built
+        # only with `--trout-table`. Listed here whether built or not, so the version pin (I0, `AWAITING_ONE_SIDE`)
+        # holds it. ANY change of its shape bumps this number (contract 2.1).
+        Section("trout", 1, _no_scope, compose_from=("rows", "display", "licence"), compose_key=_trout_compose_key,
+                optional=True),
     )
 
 
@@ -451,15 +503,21 @@ class Model:
 def build(bundle: str, export_dir: Path, *, workers: int = 0, items: Optional[Iterable[str]] = None,
           sections: Optional[Sequence[str]] = None, log=print,
           export: Optional[Tuple[dict, dict]] = None, verdicts: Optional[str] = None,
-          unnamed: Optional[Iterable[int]] = None, book: Optional[Tuple] = None) -> Model:
+          unnamed: Optional[Iterable[int]] = None, book: Optional[Tuple] = None,
+          optional: Iterable[str] = ()) -> Model:
     """Every answer for every part of every named water in the export (or only `items`) AND every
     part of the unnamed water (answers 2.4, S1: the bundle's `unnamed_part`, keyed after the named
     parts — all of them, or only `unnamed` (part ids); none when `items` is given without
     `unnamed`), for every section (or only `sections`, with the sections they derive from).
     `export` is the pair already read (`load_export`), so a caller holding it does not read it
-    twice (M9)."""
+    twice (M9). `optional`: the OPTIONAL sections to build too (`Section.optional`; the CLI's `--trout-table` names
+    "trout"); every other optional section is left out, whatever `sections` says."""
     import time
     from pipeline.deliver.export.codec import expand
+    opt = set(optional)
+    unknown_opt = sorted(opt - {s.name for s in SECTIONS if s.optional})
+    if unknown_opt:
+        raise AnswersError(f"answers: {unknown_opt} are not optional sections")
     t0 = time.time()
     verdicts = str(verdicts or Path(bundle).with_name("verdicts.sqlite"))
     data, guide = export if export is not None else load_export(export_dir)
@@ -481,7 +539,8 @@ def build(bundle: str, export_dir: Path, *, workers: int = 0, items: Optional[It
     first = len(keys)
     keys, part_key, region_places = common.unnamed_keys(
         B, keys, unnamed if unnamed is not None else (None if items is None else []))
-    chosen = with_needs([s for s in SECTIONS if sections is None or s.name in sections])
+    chosen = with_needs([s for s in SECTIONS if (sections is None or s.name in sections or s.name in opt)
+                         and (not s.optional or s.name in opt)])
     for s in list(chosen):
         if s.derive_from and all(c.name != s.derive_from for c in chosen):
             chosen.insert(0, next(c for c in SECTIONS if c.name == s.derive_from))
@@ -545,6 +604,8 @@ def build(bundle: str, export_dir: Path, *, workers: int = 0, items: Optional[It
         segs.append(starts)
         seg_moments.append(at)
         for s in chosen:
+            if s.compose_key is not None:
+                continue                                # whole-key: after every pass below
             if s.prepare is not None:
                 pd, vals = per_root[s.name]
             else:
@@ -588,17 +649,18 @@ def build(bundle: str, export_dir: Path, *, workers: int = 0, items: Optional[It
     # T793 (audit A1/A2, 2026-11-16): A ROW WITH AN ORIGIN CONDITION SAYS ITS ORIGIN ON THE CARD — "No wild rainbow trout
     # over 50 cm" on Comox Lake was in the row's conditions and caps but not in the tree the card draws
     if "rows" in out:
-        from pipeline.deliver.answers.tree import origin_unsaid
+        from pipeline.deliver.answers.tree import across_unsaid, origin_unsaid
         unsaid = []
         for ki in range(len(keys)):
             for j, frame in enumerate(out["rows"][ki]):
-                for p in origin_unsaid(frame):
+                # T805: and a one-origin limit two rows share is said on both cards (Lois Lake's wild 2, never 2 + 2)
+                for p in origin_unsaid(frame) + across_unsaid(frame):
                     named = sorted(i for i, ks in parts.items() if ki in ks)
                     unsaid.append(f"key {ki} {dict(zip(PART_KEY_FIELDS, keys[ki]))} (waters {named[:3]}"
                                   f"{' …' if len(named) > 3 else ''}), segment {j} from day {segs[ki][j]}: {p}")
         if unsaid:
             raise AnswersError(f"answers: {len(unsaid)} card(s) leave out the origin a row's condition names "
-                               f"(T793):\n  " + "\n  ".join(unsaid[:20]))
+                               f"(T793) or a one-origin limit another row shares (T805):\n  " + "\n  ".join(unsaid[:20]))
     # licence 7: THE STEELHEAD STAMP WHERE STEELHEAD ARE CLOSED — the licence answer at a key and segment whose card says
     # steelhead are closed there leaves the stamp out of its documents (`stamps.drop_closed_steelhead_stamp`, the
     # prototype's round 20i O3 render-time drop). After the stamps above: the card's fish documents are the full answer's.
@@ -613,6 +675,20 @@ def build(bundle: str, export_dir: Path, *, workers: int = 0, items: Optional[It
         for ki in range(len(keys)):
             out[s.name][ki] = [s.compose(v, {n: out[n][ki][j] for n in s.compose_from})
                                for j, v in enumerate(out[s.name][ki])]
+    # T810 ticket I (contract 2.2): a WHOLE-KEY compose, after every post-pass and every compose above — it reads their
+    # final values (the weekday words, the stamps, the steelhead stamp's drop, the display frame's status)
+    ctx.cache["export"] = data
+    for s in chosen:
+        if s.compose_key is None:
+            continue
+        for ki in range(len(keys)):
+            try:
+                out[s.name].append(s.compose_key({n: out[n][ki] for n in s.compose_from}, segs[ki], seg_moments[ki],
+                                                 ctx))
+            except AnswersError as e:
+                named = sorted(i for i, ks in parts.items() if ki in ks)
+                raise AnswersError(f"answers: section {s.name}, key {ki} (waters {named[:3]}"
+                                   f"{' …' if len(named) > 3 else ''}): {e}") from e
     # a static table may read the sections' values as built (display G3 reads the rows' frames)
     ctx.cache["sections_out"] = out
     statics = {s.name: s.static(ctx, data, guide, keys, parts) for s in chosen

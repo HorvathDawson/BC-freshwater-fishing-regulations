@@ -1717,3 +1717,527 @@ More questions (recommended answer first):
 - ALL THE QUESTION BATCHES ARE DONE (13 batches, 10:27 to 12:09). Still open with him: the map pictures of the 34 live
   saves to re-check (being drawn; in chat, most urgent first); trout round 7 and its re-attack; the build 33 phone
   walk and iPhone build 36; the Skeena Section 4 pictures are answered.
+
+### Re-check of saves, in chat with pictures (T806), 2026-11-16
+- Pictures 1 to 4, 12:20. Sproat (mark 2468; the END is now 349 m below the Hwy 4 bridge): "Right". Stamp Falls
+  (2469; DFO gives the lower end two ways that disagree on our line: 500 m below the fishway = our END at 498 m; 225 m
+  below Deer Creek = our END at 164 m): "Keep 500 m below the fishway". This REPLACES his earlier "Move it 60 m down
+  (Recommended)" of batch 9 (asked before the fishway measure was known); the Deer Creek mismatch goes into the
+  gotchas; no cut moves. Stave (2672), typed: "it looks right but just to confirm those are the items with the names
+  in name variants right?" Checked: yes, `data/curated/waters/name_variants.json` holds "Ruskin Spawning Channel"
+  (the unnamed side channels on the east bank below Ruskin Dam) and "Northrop Spawning Channel" (the added stream
+  OpenStreetMap calls Northrop Channel); those are the cyan pieces. Cowichan, Sandy Pool sign to the tidal boundary
+  (2774; the yellow runs about 2 km into the water the app tints as tidal), typed: "we want to use our tidal
+  boundaries defined with the mouth definition. these should already all be in so use existing tidasl boundary item
+  dont trim it to dfo polygon". So: the place ends at OUR tidal boundary cut (the mouth definition), as drawn; the
+  tinted polygon is not what trims a place. Right as drawn.
+- Pictures 5 to 8, 12:27. Cowichan, 66 Mile Trestle to the Sandy Pool sign (2775): "Right". Nanaimo, Cedar Road
+  Bridge to the Highway 1 overpass (2776): "Right". Tatshenshini, the Blanchard (2779), typed: "wrong iut should
+  have the tatshenshini river too it is just saying that plus the blanchard". So DFO's "upstream of the BC/ Yukon
+  border – along the Haines Hwy.; Blanchard River." = the Tatshenshini River above the BC / Yukon border AND the
+  Blanchard; my save 2779 (the Blanchard alone) is wrong and is redone, with a new picture for him. Bella Coola
+  whole water, Atnarko out (2731): "Right".
+- Pictures 9 to 12, 12:31. Skeena "mainstem waters only", pink (2782): "Right". Stamp "Except in those areas and
+  times listed below" (2788), with the listed "Ash River confluence to Great Central Lake" place taking the Robertson
+  Creek system's side streams and lakes: "Right, all of it". Little Qualicum "all waters unless indicated below"
+  (2789), typed: "all looks good jsut make sure all waters unless indicated takes onyl the part not CURRENTLY
+  regulated on that day (if it is active)". So: right (the listed stretch starting at the park's downstream boundary
+  included); and the rest-of rule must cover, on any day, only the water where no listed stretch has a rule IN FORCE
+  that day: to be shown to him on the Little Qualicum for a day inside and a day outside a listed stretch's dates.
+  Nitinat "downstream of Parker Creek, except…" (2792; the last 4 km inside the tinted tidal polygon): "Right: our
+  tidal boundary stands".
+- Picture 13 and trout round 7, 12:42. Somass "Except in those areas and times listed below" (2787; the listed
+  "Paper Mill Dam upstream approximately 0.5 km to Collins Farm" stretch is drawn about 1.3 km long), typed: "right
+  all of it but add to gotchas please". ALL 13 URGENT PICTURES ARE ANSWERED: right = Sproat, Stave, Cowichan x2,
+  Nanaimo, Bella Coola, Skeena pink, Stamp, Little Qualicum, Nitinat, Somass; Stamp Falls kept at 500 m below the
+  fishway; WRONG = the Tatshenshini / Blanchard place (it must include the Tatshenshini above the border too).
+  Trout round 7 (published 12:33, same page, mockups only). Three-number top line on Madden Creek ("Up to 2 today,
+  or 5 if they're rainbow trout and no more than 2 Dolly Varden/bull trout"): "Yes, that wording (Recommended)".
+  Moving sideways between fish in the sheet: "No sideways at all". The year bar, typed: "i like it on the elk where
+  it says trout and char through the year when they are all release (or all closed etc) if some are open it seems
+  silly maybe. but in general dropping it seems fine.  .. i dont know why it needs year tho when it has dates.." So:
+  no sideways moves in the sheet; the year bar is dropped except the "through the year" line on a water where every
+  fish shares one state (the Elk); dates in words do the rest.
+- 12:42, the reviewer's SECOND attack (round 7) is back: still "not yet". Fixed: stop-fishing on the row, the summed
+  "only 3", the angler-only note. Partly: possession, the wild limit across boxes, the top line, the year bar, the
+  wild limit in one box. New faults: possession smaller than the day's number (Cunningham and four lakes: "only 3"
+  with "only 2 in your possession" reads keep 3); possession with a size (Tagish: one over 90 cm a day reads fine,
+  the book allows one in possession); "a wild fish must be 50 cm or less" forbids the bull trout over 60 cm the same
+  printed line allows (six Region 2 lakes); Lois Lake's top line promises 10 against a wild limit of 2; "stop fishing
+  here" can be read as this stretch. Report appended to `handoff/PLAN/design/trout-adversarial-review-2026-11-16.md`.
+- 12:43, the rest of the re-check pictures are drawn (places 14 to 30 and the four closed areas, as JPGs). The
+  drawer's findings: Morice Gosnell-to-Lamprey END dot sits on a side channel 2 km off the Morice; Thompson Deadman
+  START is 495 m below the Hwy 1 bridge where DFO says about 1 km; Babine: 7 circles match by name (Morrison, Pierre,
+  Twain, Tachek, Five Mile, Four Mile, Big Loon), Tsezakwa's circle sits on Nilkitkwa Lake, Pendleton has no match,
+  Six Mile / Hazelwood / Sockeye and the Gullwing line are not drawn, Pinkut has a circle but is not in DFO's list.
+- 12:44, trout round 7, he sent a screenshot of the Skeena card (Sedan Creek to Mill Creek, Jul 15), typed: "it is
+  hard to tell 1 of 5 is over 50cm here applies to all instead of just brook trout also the brook trou limit feels
+  like the full limit makes it seem like the 5 doesnt apply to all?" What the picture shows: the grey "Keep 5 in all"
+  cell runs only beside the top strip and the brook trout row, so it reads as brook trout's own limit and the white
+  cells below as separate limits; the "Of the 5, only 1 over 50 cm (20 in)." strip is tied to nothing. Round 8
+  started 12:45 with the original designer: the whole-box number must visibly hold every row of its box and the
+  box-wide size sentence must be tied to it; plus his round 7 answers (no sideways, the bar dropped, dates in words)
+  and the second attack's faults. Mockups only. The reviewer attacks round 8 after.
+- Pictures 14 to 17, 12:53. Exchamsiks above the Hwy 16 bridge (2728): "Right". Bella Coola "All tributaries"
+  (2730), typed: "purple is right " (the purple / pink lines are the side streams in the place; the main river and
+  the Atnarko are out): right. Bulkley "all tributaries … other than the Suskwa River" (2732), typed: "right but add
+  to gotchas. it should only drop the blue suskwa river. rest are good. ": right (Suskwa out, Morice and Two Mile
+  Creek in); gotcha entry. Bulkley "… other than Morice River and tributaries, Suskwa River and tributaries, and Two
+  Mile Creek" (2733), typed: "right only keep part that is purple. rest get dropped here. ": right.
+- 12:53, typed in chat: "also we need to make sure the salmon closed because the river is clsoed in synopsis appllies
+  to the map too. so the colors show it as well." So for T796 A5: the Salmon view's line colour (and the year bars
+  and alerts) must show a book-closed stretch as closed, not only the card. That is what the agreed two-half fix does
+  (the book's closure becomes the first member of the stretch's salmon chains); it is now a pass condition on the
+  ticket, with a picture of the map before and after for him.
+- Pictures 18 to 22, 12:58. Illiance and Wilauks Creek (2734, 2735; the whole water from its mouth, side streams
+  in): "Right, both". Gitnadoix (2736; whole river from the mouth, no powerline to be seen): "Right". Morice, the
+  Forks to the Bymac Bridge (2738; side streams on), typed: "i think side streams are off but it depends on the name
+  and if it says includes tributaries?" Checked: DFO's heading for the water is "Morice, including tributaries", so
+  by his rule ("The heading counts") the side streams stay ON; right as drawn. Morice, Gosnell Creek to Lamprey
+  Creek (2739; the END dot sits on a side-channel line about 2 km off the main channel), typed: "i thought we already
+  fixed the lamprey creek confluence issue. yes the confluence should be on the main channel... fix it". So: the
+  Lamprey Creek confluence cut goes onto the Morice's main channel; picture to him after (T803).
+- Pictures 23 to 26, 13:05. Nanaimo, 500 m below Bore Hole to Boulder Creek (2777; side streams off), typed: "right
+  assuming that the name didnt say to include tributaries. (i think all the items like this we need to set to no call
+  then the name will say include tributaries? im not sure tho because if they are linked to a name tat says includes
+  tributraries then it couldnt link to a different name without that? the locations should be matched only to their
+  exact naming then". Checked on DFO's page: the headings are "Nanaimo River" and "Cowichan River" (no tributaries),
+  so side streams off is right there. His rule, sharpened: a place takes its side streams from the EXACT heading it
+  sits under on DFO's page; a saved on / off is only for an exception. DFO has TWO Morice headings, "Morice River
+  (including tributaries)" and "Morice River": which one each Morice stretch sits under must be read from the page
+  (my answer to him on picture 21, "the heading is Morice, including tributaries", is not yet proven for the Forks to
+  Bymac row). An audit of every DFO place's side-stream setting against its exact heading is started; the list of
+  disagreements goes to him. Tatshenshini, Kwatini / Stanley / Goat creeks (2780), typed: "wait this is right and
+  blanchard was also suppsoed to be only blanchard i was confused on formatting. made more sense when i looked at
+  page". So: 2780 is right, AND 2779 (the Blanchard alone, picture 7) is RIGHT: his "wrong" of 12:27 is withdrawn;
+  nothing is redone. Morice, lake outlet to Gosnell Creek (2781): "Right". Sheldens Creek (2783), typed: "add as
+  gotcha but i think you can see the road in satellite that crosses neaar the mouth that should be the bridge i
+  think (near a camp site etc) have it be low confidence and set it top tidal too ". So: a low-confidence cut where
+  the road crosses near the mouth (the Spur 19 bridge site, by a camp site), the place is the creek above it, the cut
+  is also the tidal boundary; gotcha entry; picture to him (needs the next map rebuild).
+- 13:04, from the app chat (it is closing; a new app chat takes over from the top section of
+  `handoff/PLAN/ios/START-HERE-ios.md`), for his backup question (T732): "Backup photo copies at 1280 px, measured
+  2026-11-16 12:57, picture sent in the app chat 12:59: B JPEG 70 = 0.25 MB (about 81 fit), C JPEG 60 = 0.18 MB (about
+  110), D WebP 75 = 0.08 MB (about 245). Pick B, C or D; recommended D if a restore on the emulator shows WebP copies,
+  else C. Not answered."
+- 13:06, two fix lanes are back (branches in worktrees, not merged): `lane/salmon-rules-1116` (T783, T770 with the
+  eulachon line, T787 hidden rows, T796 A6 and A5 Python halves) and `lane/book-rule-fixes-1116` (T795 six lakes,
+  T794 Williston / Peace / Bella Coola, T798 Coal Creek and the Puntledge, T801.1, rulings). For him: (1) the
+  Puntledge "fly fishing only upstream of the diversion dam, including tributaries" now reaches 1,069 pieces (every
+  stream feeding Comox, Willemar and Forbush lakes) where it was 10; (2) T796 A5 changes 70 stretches (71,046 pieces),
+  the largest the Skeena / Nass winter closure on coho Jan 1 to Jun 15; (3) T770 adds a gear line on 13 chains; the
+  three T796 examples he asked for are in the lane's report. Trout round 8 is built (the box frame redrawn).
+- Pictures 27 and 30, and two results of the fix lanes, 13:28. Babine Lake's closed areas (7 circles match by name;
+  Tsezakwa's sits on Nilkitkwa Lake; Pendleton, Six Mile, Hazelwood, Sockeye and the Gullwing line are not found;
+  Pinkut has a circle but is not in DFO's list), typed: "confirm 7 lake open with note and please add as a thing for
+  me to do later". So: the 7 are confirmed, the lake reads open in August with "closed in part" and DFO's words for
+  the areas not drawn, and finding the missing five and the line is a LATER item on his list. Dean, Crag Creek to the
+  tidal boundary (2793), typed: "yes and that except should not include the canyon": right; the canyon stays out of
+  it as its own stretch. Puntledge "Fly fishing only upstream of the BC Hydro diversion dam …, including
+  tributaries" reaching every stream above the dam (10 pieces to 1,069): "Yes, as printed (Recommended)". T796 A5,
+  a book-closed stretch closes salmon too (three examples shown; 70 stretches change): "Go, and send me the full
+  list" (the list of all 70 with dates and a map picture before and after go to him before it ships).
+- 13:29, the heading audit is back (`handoff/PLAN/curation-review/dfo-side-streams-against-exact-headings-2026-11-16.md`):
+  239 live named-water places checked against the exact heading each row sits under: 225 agree, 14 disagree. The
+  Forks-to-Bymac stretch DOES sit under "Morice River (including tributaries)" (side streams on is right). The 14 go
+  to him as questions (Tatshenshini whole-river row; the three creeks and the Blanchard: do named side creeks take
+  their own side streams?; five Region 6 rivers whose blank row under a plain heading puts a bait ban on side
+  streams; the Kitimat outfall strip under "Kitimat River (including tributaries)"; five with no effect today).
+- 13:29, the reviewer's THIRD attack (trout round 8) is back: closer, still "not yet". The frame is better but the
+  grey still hooks onto the first row; "no limit of its own" can read as "unlimited"; the date words are right on 49
+  of 50 lines but say nothing when a fish goes to zero, when wild / hatchery changes, or when the water closes; wild
+  char at Dodd and Lois now look keepable on their rows. Appended to the design review file.
+- Pictures 28, 29, 31, 32 (answered about 13:38). Kitimat "on west bank between signs at Kitimat hatchery outfall"
+  (2786; drawn river only), asked whether DFO's heading "Kitimat River (including tributaries)" makes the strip take
+  the side streams that join there: "Heading counts here too". So my save 2786 (side streams off) is reversed: the
+  strip takes its side streams (about 12 pieces), both banks still closed until one-bank places exist. Skeena
+  sockeye leftover place, CNR bridge to above the Babine (2790): "Right". Thompson closed area Deadman (2748; START
+  measures 495 m below the Hwy 1 bridge where DFO says about 1 km): "Find out why, then show me". Thompson closed
+  area Ashcroft (2749; starts at the Bonaparte mouth itself): "Right".
+- Pictures 33 and 34, the heading rule, the size limit (answered about 13:42). Thompson closed area Juniper (2785):
+  "Keep 4 km (errs closed)". Shuswap closed stretch (2770): "Right: keep the printed points". ALL 34 PICTURES ARE
+  ANSWERED. The ten places that take side streams only through the old water-wide switch (the Tatshenshini
+  whole-river row, Kitseguecla, Sustut, Cranberry, Kiteen, Meziadin, three Nanaimo places, Little Campbell, the
+  Morice Forks): "Yes, river only for all ten (Recommended)" (changed answers shown to him before it ships; the
+  water-wide switch is retired; the setting is derived from the exact heading and the place's words). The salmon
+  head file's size limit, 60 kB, so that a book-closed stretch closes salmon everywhere (about 92 kB): "Raise to
+  100 kB (Recommended)".
+- Named side creeks and trout round 8 (answered about 13:48). A DFO row that names a creek without the word
+  "tributaries" (Tatshenshini: "Kwatini Creek, Stanley Creek and Goat Creek"; "Blanchard River"): "A named creek
+  keeps its side streams". So: naming a creek means its whole small system; saves 2779 and 2780 stand; this is a
+  stated exception to the heading rule (a ruling). Trout round 8, the grey band beside a fish with no tighter limit:
+  ""up to the 5" (Recommended)". A possession limit smaller than the day's limit (Cunningham Lake), typed: "it is
+  only possession of one type of trout fo rcunningham. use best judgement here". So: the possession line belongs to
+  the lake trout row only and must say so; the wording is left to my judgement (the possession number leads on that
+  row, the day's 3 as a quiet line). What next for the trout work, typed: "round 3 then attack again but use opus".
+  My reading: one more round (round 9) and one more attack, both done by Opus agents, not Fable. Mockups only.
+- 13:49, typed in chat: "Can we reduce how much fable we use for our workers a little bit too? Just want to save fable
+  for the things we need it for". So: from now no worker runs on Fable by default (reviews, audits and design
+  included); Opus for data, pipeline, review and design work, Sonnet for interface and mechanical work; a worker gets
+  Fable only after I name the task and the reason to him and he says yes. Nothing on Fable is running now (the
+  trout designer and its attacker moved to Opus at his word earlier this hour).
+- 13:55, pushed: the book-rule fixes are on the shared branch (T795 six lakes, T794, T798, T801.1; full tier 6,499
+  pass). A reach-only rerun is going on lane 1 to show them on built data.
+- 13:56, T796 A5, the full list he asked for was sent to him in chat (file `book-closures-list.md`, 70 stretches,
+  71,046 sections, 25 rows flagged for a second look; the Nass side streams' coho Jan 1 to Jun 15 first). The map
+  follows: the three examples paint closed on their days in the rebuilt salmon data. NEW, for his decision: with the
+  book closure carried everywhere (his "Raise to 100 kB"), three OTHER size limits go over on today's numbers: the
+  Region 6 salmon file (about 432,600 against 420,000), the website's first-tap budget (about 4,312,000 against
+  4,200,000; it had 1,243 bytes of room before) and its low-data first-tap budget (about 3,472,600 against
+  3,400,000). The release would stop at its size check until he raises them or the data is shrunk first (T686).
+- About 14:55, his answer to the size-limit question, after reading the list of book closures (typed, verbatim): "for this
+  Sections: 7 The book closes it (p.9, National Parks and Ecological Reserves): "Fishing is prohibited in Ecological
+  Reserves in B.C." DFO's place there: Skeena River — mainstem waters downstream of CNR Railway Bridge at Terrace. it
+  should only close the part in the eco reserve how the entire place?? / but yes you can do the raise we just need
+  to make sure the closures only apply in the area actually closed e.i. above. / also we should look at the real
+  consequence of this (Nass watershed side streams (DFO section C): coho Jan 1 to Jun 15 ) / also previewing all the
+  closures. (again we assume we will close them but i want to be able to review them after) could we make the way it
+  is viewed an artifact with them all formatted in a way it is easier to read. (with mapos etc) use a smaller model
+  for this... / also why is this doubt (The salmon card said on those days (DFO's rows): open — "4 per day, only 1
+  over 50 cm (Apr 1–Mar 31)"; open — "4 per day, only 1 over 50 cm (Apr 1–Oct 31)") to (It now says: closed — "Closed
+  to all fishing by the rule book (p.19): No Fishing from Yakoun Lake downstream approximately 13 km to fishing
+  boundary signs, Oct 1-Apr 30 (Oct 1–Apr 30)") / the dates are opposite of each other the closed should only be
+  there on the days it is actually closed then the other days the salmon rules would still apply which isnt a
+  conflict?"
+  So: (1) YES to raising the three limits (Region 6 salmon file, first tap, low-data first tap). (2) A closure must
+  cover only the water the book actually closes: on the Skeena it is the 7 pieces inside the reserve, not DFO's whole
+  place (that is what was built; "DFO's place there" on the list only names which DFO row answered before): to be
+  proven for all 70 and said plainly on the page. (3) The Nass side streams' coho closure Jan 1 to Jun 15: look at
+  its real consequence before it ships. (4) He wants all the closures on ONE page (artifact) that is easy to read,
+  with maps, to review after; built by a smaller model (Sonnet). (5) The Yakoun row: the book closes Oct 1 to Apr 30
+  only; on the other days DFO's rows answer as before: that is how it works; the warning on that row was about the
+  side creeks along the 13 km, not the dates.
+- 15:01, on trout round 9 (typed, verbatim): "for the trout view i liked the old look more but with the words of
+  round 9 buyt the frame look is a lot cleaner". My reading (mine, to be confirmed by picture): round 8's look (the
+  tinted box and the white boxes), round 9's words everywhere ("up to the 5", the dated lines, the strip on one
+  line), and round 9's cleaner outline around the box. Round 10 is built as that blend, with the Skeena card shown
+  both ways (with and without round 9's outline) so he can pick. Mockups only.
+- 15:08, typed in chat (verbatim): "this chat will have to change to opus soon. out of fable credits could you make
+  sure we are ready for when that happens?" Done 15:12: the state page (`handoff/PLAN/INFLIGHT-chat14.md`) opens with
+  a section "READ THIS FIRST: handover at 15:10" that holds the rules, the four running workers and what to do when
+  each hands back, the landing steps for the salmon lane, the queue to the next staging release, and what is still
+  his. The session notes point at it. Nothing of his is needed for the change.
+- 15:16, one dialog with the round 10 trout picture (Skeena card three ways) and the salmon lane's Nass finding.
+  Trout look (A old look no outline / B old look + outline / round 9), typed, verbatim: "old look no outline because it
+  looks like the groups are subgrouped inside the over keep 5 card then... one thing is the words "only 1 of these 4
+  until oct 31, then release" should be changed to be "onlly 1 of these 4" being bigger it is the actual rule right
+  now then a smaller text for the change underneath. all current rules will have the bigger text. " So: A (the round 8
+  look, no outline); and in every white box and row the rule in force today is the bigger text, the coming change
+  ("until Oct 31, then release") smaller underneath. Trout row spacing (round 8's roomy rows, 23 of 42 cards fit one
+  screen / round 9's tighter rows, 34 fit), typed: "inbetween the 2". Nass side streams, coho Jan 1 to Jun 15 (closed
+  as the book says / leave coho open / hold this row), typed: "how are both items worded let me double check but im
+  pretty sure closed dis the right option". So: NOT yet decided; he gets the book's line and DFO's row word for word,
+  then answers. The row does not ship before that.
+- 15:18, typed in chat (verbatim): "have another opus agent spec out what would be involved in transitioning the trout
+  portion of the app to the new table format. want it implemented clean from pythion up to front end. etc etc. use
+  opus agent". So: an Opus worker writes a spec (no code): what it takes to move the app's trout and char block to
+  the new table, built cleanly from the Python pipeline up to the app's screen. The spec comes back to him before
+  any build starts.
+- 15:19, typed in chat after reading the book's line and DFO's row for the Nass side streams (verbatim): "and yes the
+  closure wins here." and "we need to make sure it says where the closure is from though". So: the Nass row ships
+  with the other 70 (coho closed Jan 1 to Jun 15 on the side streams above the Kitsault Bridge); and a pass
+  condition for all 71: the salmon card says where the closure comes from (the rule book, its page, its line).
+  Checked on the lane's data 15:19: all 71 rows' card words open "Closed to all fishing by the rule book (p.NN):"
+  followed by the book's line and dates. Still to prove on the app's screen (the app chat's before / after pictures).
+- 15:22, the closures review page he asked for is published (built by a Sonnet worker, 71 cards, a map each):
+  https://claude.ai/artifact/2eGEuMG9cLe3SS69j63aTd ("Book Closures Review"). Also a row on the Owner To-Do page
+  (`rv-book-closures-page-1116`, group Review). Each card: row number, map (closed pieces in red), the book's line,
+  page and dates, what the salmon card said before, fish and days now closed, how much of DFO's place changes. Known
+  limits, told to him: no "rest of DFO's place" layer on the maps; rows 5, 6, 17, 19 miss 25 to 35 pieces on the
+  picture (said on the card); the book's "[Includes Tributaries]" tag is not yet shown under the line (second
+  version being built: Dean River row 12 is the example, the book does print it there). FOR HIM: review when he
+  likes; any row he calls wrong by number is held back.
+- 15:36, trout round 11, one dialog with two pictures (Skeena before / after; a Fraser card where only trout and char
+  close). Is this the card to build, typed, verbatim: "it looks good but it is missing the general 30cm or bigger for
+  trout/char in region 2 fraser? ". Closure words ("until Sep 30, then closed to trout and char, reopens Nov 1"),
+  typed: "yes but drop reopen unless it is currently closed then reopen date matters then ". A limit that only gets
+  looser on a coming date (skip it and show the next stricter date?), typed: "could just mention a rule change
+  happens on that date not specifics". Adams River Dolly Varden / bull trout: "Yes, 80 cm on the row (Recommended)".
+  So: the look is accepted ("it looks good"); to check: why the Fraser card's brook, brown and cutthroat rows carry
+  no "30 cm or longer" line (is a general size rule missing from the data or the mock, or does it not apply on that
+  stretch); a coming closure says what closes without the reopening date, and the reopening date is shown only
+  while the water (or the fish) is closed today; a coming change that only loosens a rule is said as a plain "rule
+  changes <date>" with no details; Adams as recommended.
+- 15:42, the trout build spec (`handoff/PLAN/design/trout-table-build-spec-2026-11-16.md`), its one-page summary given
+  in chat, four questions in one dialog. How to start: "Start steps 1 and 2" (step 1 = fill the data holes:
+  possession limits, the wild-fish limit at Lois and Khartoum, the odd lines; step 2 = a tool that lists every
+  answer that changed between two releases). Other fish in the same new table look, typed, verbatim: "what? we want
+  to migrate the new trout style into the current app not the other way around. " (my question was badly put; it is
+  NOT answered: the plan IS the new trout table inside the current app; whether kokanee, whitefish and the rest
+  also take the new look is asked again, plainly). Possession: "Keep the page line (Recommended)". Size, if the
+  switch does not fit the first-tap limit: "Raise the limit, shrink later (Recommended)".
+- 15:42, typed in chat (verbatim): "also the last fraser example you sent doesnt have hatchery bs wild along with the no
+  30cm minimum". Checked against the book text (`data/curated/regulations/reference/region-3.md`, Region 3 daily
+  quotas): that card is the Fraser in REGION 3 (Thompson confluence to about 4 km below Lillooet), whose regional
+  rules are "Trout/char: 5, but not more than 4 from streams, 1 over 50 cm, 1 bull trout (Dolly Varden) or lake
+  trout, none under 60 cm; release ALL STEELHEAD, bull trout from streams Aug 1-Oct 31, lake trout Oct 15-Jan 31":
+  no wild / hatchery split and no 30 cm minimum. Both belong to REGION 2 ("you must release wild trout/char from
+  streams … hatchery trout/char under 30 cm from streams"). Round 12 adds a Region 2 Fraser card beside it; if our
+  data does not show hatchery / wild and 30 cm there, that is a fault to report to him.
+- 15:47, trout round 12 published (same trout page; two pictures sent: the Fraser in Region 3 beside the Fraser in
+  Region 2 at Mission, which shows hatchery and wild rows and "30 cm or longer" from the data: no fault; and the
+  Region 3 stretch on a closed day with "reopens Nov 1"). The other-fish question asked again (leave them / redraw
+  them / decide later), typed, verbatim: "we should just have the trout table under the trout entry like it
+  currently is with the better text like 2 or 4 with expand arrow etc. " My reading: the page keeps its present
+  shape; the Trout and char entry stays where it is, folded to its short line ("Up to 2", "Up to 4") with the expand
+  arrow, and the new table is what opens under it; the other fish entries are not touched. So spec question 1 =
+  trout only; the old card code stays for the other fish.
+- 15:47, the 17 closure rows with side streams and "no tributary words" (closures review page): an Opus audit found
+  ALL RIGHT by ruling T2. On 12 of them the book prints the ✱ mark beside the water's name ("includes tributaries"
+  for every rule of that row); the page builder had only looked for the words. The other 5 close nothing but the
+  named creek itself. Dean River row 12 (control): the walk stops at both ends of the stretch. Nothing is placed too
+  wide; trout answers are unaffected. The page (version 3) now shows the ✱ note on 20 rows.
+- 15:48, typed in chat on round 12's Region 2 Fraser card (six hatchery rows in the keep box, six wild rows under
+  Release), verbatim: "i dont like the new wild and hatchewry option you sent we should jsut say hatchery only unless
+  specifically wild has a seperate quota to wild like 1 wild and 2 hatchery or something.... otherwise it is
+  hatrchery only or unspecified (the same for both no mentiuon needed)". So, three cases and no others: (1) wild and
+  hatchery have the same rule: no mention at all; (2) only hatchery fish may be kept: ONE row per fish that says
+  "hatchery only", and no separate wild rows under Release; (3) wild fish have a quota of their own (for example 1
+  wild and 2 hatchery): only then are wild and hatchery shown apart. Round 13 (mockup) is being built on that.
+- 15:49, typed in chat (verbatim): "we will run out of credits soon... we should m,ake sure handoff is good for opusa to
+  take over at anytime." Done 15:49: section C of the handover on the state page rewritten as ONE current block
+  (what is running, what to do when each worker hands back, what is waiting to be pushed, what is his).
+- 15:56, trout round 13 (hatchery only), one dialog with two pictures. Is this the handling, typed, verbatim: "yes this
+  is good on fraser but the hatchery on steelhead on skeena doesnt stand out very well. should slightly improve that
+  oitherwise it is getting better." Lois and Khartoum steelhead row: "Hatchery only (Recommended)". So: the rule is
+  accepted; on a single fish's row (Skeena steelhead) "hatchery only" must stand out more (round 14, small); Lois and
+  Khartoum steelhead read "hatchery only" like everywhere else.
+- 15:56, typed in chat (verbatim): "you can continue just make sure handoff stays up to date, also what is prompt to
+  continue after if fabl;e runs out of tokens". The prompt given to him: "Continue as the main chat. Read
+  handoff/PLAN/INFLIGHT-chat14.md: the top section READ THIS FIRST, block C first. Carry on from its list 'Owed to
+  him, in this order'. Do not re-ask anything already answered at the end of handoff/PLAN/OWNER-TODO.md."
+- 16:00, trout round 14 (the Skeena steelhead row two ways: A a filled "HATCHERY ONLY" label beside the name, B the
+  words in the name), typed, verbatim: "A filled label then if it applies to all fish in category use same fill for
+  where that is located." So: A; and where "hatchery only" applies to every fish of a keep box, the box's top line
+  carries the SAME filled label in place of the plain words. Round 15 (tiny) applies it; then the design is settled.
+- 16:03, trout round 15 published (same trout page) and two pictures sent: the filled HATCHERY ONLY label in a keep
+  box's top line when it covers every fish (Fraser Region 2: "Keep 2 in all [HATCHERY ONLY] only 1 over 50 cm (20
+  in)") and beside the name for one fish (Skeena steelhead). The design is settled unless he says otherwise; the
+  accepted design is one list at the end of T810. No question pending on trout.
+- 16:04, typed in chat (verbatim): "can we move over to opus agent now?" Answered: yes; he switches the model himself
+  (the /model command, pick Opus) and pastes the continue prompt; the state page's block C says what to do first.
+- 16:07, typed in chat (verbatim): "okay i created a new chat please coordinate with it for any new info etc as we ramp
+  this chat down". The new main chat is session `bc-freshwater-fishing-regulations-8c`. This chat (session
+  `bc-freshwater-fishing-regulations-17`) keeps only one job while it ramps down: its three workers hand their
+  reports back HERE, so each also writes its report to a file under the scratch folder `handbacks/`, and this chat
+  relays each to the new chat when it arrives.
+- 16:09, T805 part C (one dialog; the list `changed-answers-C.md`: Lois and Khartoum cards add "No more than 2 wild
+  trout and char in all"; Lois and Windsor wild Dolly Varden / lake trout go back, hatchery only like the other five
+  wild-2 lakes; 3 waters, Region 2, all stricter). Answer, picked: "Go (Recommended)". So: part C (commit 0f6fe2868 on
+  `lane/t805-trout-data-gaps`) lands with the full tier and ships in the next staging release. Parts B and D still to
+  come to him as their own lists.
+- 16:18, Thompson closed area Deadman (mark 2748; he had said "Find out why, then show
+  me"). Why: the APP'S DATA WAS RIGHT; the drawing tool behind picture 31 started the yellow at the bridge's own measure
+  (117,608) and snapped it to the nearest section edge, the river gauge 08LF033 (117,094), so it drew 4.6 km and read
+  "495 m". The built cut is at 116,608: 999 m below the Hwy 1 bridge; closed area 3.6 km to the CN rail bridge. The
+  redrawn picture was sent. Answer, picked: "Right (Recommended)". So: mark 2748 stands; nothing changes.
+- About 16:20, typed in the OLD main chat (session -17) after its summary of the changed-answers tool's report
+  (verbatim, relayed): "Eulachon is a bait or a limit?" Answered there: neither; it is a closure. DFO's Region 6 line
+  "Reminder: There is no fishing for eulachon in Region 6" means no fishing for eulachon at all. The app carries it in
+  the salmon card's gear / bait lines, which is why the tool grouped it under "Gear and bait". The change is his T770
+  fix (a bait line no longer pushes it out). Open, NOT asked yet (for the end batch): should the eulachon line show as
+  a closure rather than among the gear and bait lines, on the card and in the tool's grouping? His earlier words
+  (batch 6): "general rule is (Reminder: There is no fishing for eulachon in Region 6. ) why would bait remove eulachon
+  rule?"
+- 16:37, T805 parts B and D plus two of the worker's questions, one dialog (lists `changed-answers-B.md`,
+  `changed-answers-D.md`). Part B (possession on the fish row: Region 7 lake trout / bull trout "1 day's limit, not 2"
+  on ~3,100 waters, ~20 lakes' own possession numbers, Bowron Park's 1 every day; words only), picked: "Go
+  (Recommended)". Part D (Shamrock and Kilgard creeks: no 20-30 cm steelhead; Echoes Lakes "from both lakes
+  together"), picked: "Go (Recommended)". Bowron Lake Park lake trout (park's 1 in all / keep today's), picked: "Keep
+  today's" (lake trout follow Region 7's "1 day's limit" on their own row, apart from the park's 1 for the other
+  trout; this is what part B builds). Nation Lakes ("Up to 3 lake trout" a day, possession 2: both as printed /
+  lower the day to 2), typed, verbatim: "i feel like this possession stuff is just kind of broken but fixed in the new
+  trout format? so maybe we can just work on the transisiton to the new trout redisgn?" So: Nation Lakes stay as part
+  B builds them (both lines as printed); no further possession patching outside the redesign; he asks to work on the
+  trout redesign transition (T810 steps 3 to 7). My reading: that is his go to start the transition; first the spec
+  takes in his answers of 15:36 to 15:48 and the app chat's check of the app half. François Lake outlet (part D
+  question) NOT asked yet.
+- Before 16:42 (the app chat said ~16:45; my clock read 16:42), typed to the APP chat (relayed verbatim): "make sure you and the other chat collaborate on the prepping
+  for trout dredsign going in". So: the two chats prepare the trout table build together: one plan (the spec; the app
+  chat's app-half check merged into it), the payload contract agreed by both before either builds, one shared fixture
+  of hard waters the app builds against, one hard-cases list both re-run, the switch landed together like the salmon
+  twins (T810).
+- 16:50, typed in chat (verbatim): "we want to make sure the plan is robust so that we change the data all the way in
+  python and the front end and it all just works withotu fighting it and makign sure everythign is streamlined etc".
+  So (T810): the contract rule is Python decides every word, number and date; the app only draws, with no rule logic
+  and no hand-written payload types (generated from the contract); no old and new trout paths left side by side. After
+  the app chat's app-half check is merged into the spec, a fresh Opus reviewer attacks the whole plan for every place
+  the two sides could fight (two sources of a word, logic in both, duplicated helpers, a hand-kept type), and the plan
+  is fixed before any build code starts.
+- About 16:55, six answers in the APP chat's dialog batch (relayed, labels picked verbatim): (1) T759 stripe: "Wider is
+  right (Recommended)". (2) T732 backup photo copies: "D: WebP 75" (not the recommended B; T732 answered). (3) T810
+  fold row: "All rows get arrow": every folded row, the other fish included, becomes words plus an expand arrow, not
+  only trout (widens the app scope a little; the app chat folds it into spec section 6). (4) T810 pinned trout top
+  line: "Drop it (Recommended)". (5) T810 a lone other fish beside trout: "Stays as today (Recommended)". (6) T810 the
+  year bar's "Trout: release until …" line: "Drop it (Recommended)".
+- About 17:15, clarification of the 16:55 fold-row answer (APP chat re-asked; relayed, label picked verbatim): "Salmon +
+  trout folds" (the option read: "Both folded entries (salmon and trout) show their words + an arrow instead of
+  'Details'. The Other fish list stays as it is."). So "All rows get arrow" means the salmon and trout folds only.
+- 17:40, the trout table build summary given in chat (five steps: safety pins and size count; Python builds the table
+  on the side; the permanent same-law check; the app draws it behind a hidden switch, picture pack and sentence list
+  for him; one switch). Two questions, one dialog. Ship the trout table in normal releases before the switch (yes if
+  ≤100 kB / only at the switch), picked: "No, only at the switch". Angler-only notes (page's notes block / inside the
+  table), picked: "Page's notes block (Recommended)". So (T810): the trout section appears only in the switch
+  release; previews before it use side releases (ticket V-py's side scenario); the cutover = flag on + rows 34 +
+  format bump + deletions. Q-D7 decided: angler-only notes stay in the page's caveat block; the table carries none.
+- 17:44, salmon book closures, the data side of the break-it review (T796 hard cases; worker branch
+  `lane/salmon-hardcases-1116`), one dialog of four. Campbell River summer closure (MU 1-1 to 1-6 vs the book's MU
+  1-10), picked: "Keep it closed". Thompson below Kamloops Lake in June (spring closure vs its own row, no printed
+  exemption), typed, verbatim: "keep closed but add to gotchas as one i need to ask fish and wildlife about". Waters
+  partly inside a reserve or park, typed, verbatim: "take out the lakes but add a note. also for streams i thought we
+  cut on all eco reserves so should everypiece be in the eco resevre or is it anti cross over we added for areas? in
+  that case we decided on a cut which defines in versus out. so in that case if it rides the boudnary (straddling) it
+  should get the part intended to be in to have thge closure versus the part out. ask more questions if needed".
+  National parks wording, picked: "Closed, book's wording (Recommended)". So: Campbell unchanged; Thompson June stays
+  closed AND goes on his list of questions for BC Fish and Wildlife; the 9 lakes and ponds mostly outside a reserve
+  or park come out by name, each with a note on the card; for STREAMS he wants the closure on the part inside the
+  reserve only (a straddling section split at the boundary, inside part closed, outside part open): to be checked
+  against how area boundaries work today (cuts vs the straddle rule E8) and put back to him if it needs a decision;
+  national parks read "Closed by the rule book unless opened under the National Parks Fishing Regulations (p.9)" with
+  the permit sentence.
+- 17:46, follow-up on his streams question (told: streams ARE cut at every reserve/park edge, ruling E8: first entry
+  and last exit; a straddling piece or a wander outside under 1 km stays inside; the 4 pieces 10-50% inside sit
+  between the cuts). Keep E8 / cut exactly at the line, picked: "Keep E8 as is (Recommended)". So: streams unchanged;
+  only the 9 lakes and ponds mostly outside come out by name (ruling Z10), each with a note on the card.
+- 18:37, typed in chat (verbatim): "We also want to start another agent that works on finding the missing river
+  confluences on the babine lake dfo place closures. We want to find the other rivers and have an agent dedicated to
+  it". So: a dedicated Opus worker finds the creek mouths DFO names in its Babine Lake closures that we have not
+  placed yet (from the 11-16 re-check: Pendleton has no match; Six Mile, Hazelwood, Sockeye and the Gullwing line are
+  not drawn; Tsezakwa's circle sits on Nilkitkwa Lake; Pinkut has a circle but is not in DFO's list), and proposes
+  each for his review (everything added is a proposal).
+- 18:38, typed in chat (verbatim): "this is fine (Tsezakwa: its circle sits on Nilkitkwa Lake instead of Babine. )".
+  So: Tsezakwa's circle on Nilkitkwa Lake stays as it is; the Babine worker leaves it alone.
+- 18:54, Babine Lake (five pictures sent; worker branch `lane/babine-mouths` 6b1aa369d, proposals only). The four
+  missing circles ('Six Mile Creek' = Gullwing Creek; 'Pendleton Creek' = Cross Creek at Pendleton Bay; Hazelwood and
+  Sockeye = the unnamed creeks at DFO's own census sites), typed, verbatim: "That sounds good can we add name variants?
+  With source?" The Gullwing Creek line, picked: "Due south" (straight south from Gullwing Creek's mouth, 3,356 m, not
+  the shortest crossing). So: the four circles are accepted; each creek gets a NAME VARIANT with its source (Gullwing
+  Creek also "Six Mile Creek"; Cross Creek also "Pendleton Creek"; the two unnamed creeks "Hazelwood Creek" and
+  "Sockeye Creek"; source = DFO NuSEDS census sites + SkeenaWild 2011, cited on each), as name variants are recorded
+  today; the line is the due-south reading. Also found: his 7 circle confirmations of 13:28 were never saved (no
+  Babine closed-area marks; `closed_areas.json` holds only Thompson and Shuswap): they are saved with these 4 and the
+  line through the review app's save path. Effect today: none on the map (a circle binds only sections wholly inside
+  it; the lake is one section; the line across a lake is deferred): notes on the card until a lake-split ticket.
+- 18:56, typed in chat (verbatim): "We want to split babine lake on the line like our other split lakes. Then we want
+  the circles to just be circles on the map not separate sections of the lake. Otherwise it will be overboard." So
+  (T812): Babine Lake is split on the due-south Gullwing Creek line the way other lakes are split (east part = its
+  own piece, closed as DFO says); the 400 m creek-mouth circles are NOT cut out of the lake: they are drawn as circles
+  on the map (an overlay) with the card's note, no extra lake sections.
+- 18:57, the Babine circles' look (T812; the app chat's three questions, one dialog). Which map, picked: "Salmon map only
+  (Recommended)". Follow the picked day, picked: "Follow the day (Recommended)" (closed colour on DFO's closure days,
+  outlined or hidden otherwise). Tap, picked: "Opens the lake's card (Recommended)" (Babine Lake's salmon card, whose
+  note says which creek mouths close and when).
+- 19:01, typed in chat (verbatim): "We could skip some tests to get multiple items done then merge after and test
+  together? Or is that too risky?" Answered: batch the merges (each lane already ran its own tests), then ONE full
+  tier and ONE push for the batch; never push without the full tier (the 11-15 red landings). Adopted from now.
+- 19:09, he asked whether he still has saves to do and to take the two end-batch questions now ("make sure i didnt
+  already answer these things"). Checked: the "leftover saves" in my 19:0x summary were MY fixes, all already answered
+  by him (Morice 2738 by the heading rule; Morice 2739 "fix it" = the Lamprey cut onto the main channel; Sheldens 2783
+  = low-confidence road cut + tidal; Babine 2784 = done 19:07, marks 2825-2836; Dean 2793 = the except without the
+  canyon; Thompson 2521 = the three closed areas; Morice 2596 retired; Atnarko 2584 "The heading counts"). Told him so.
+  One dialog of three. Squamish "downstream of the powerline crossing" re-tick (T811, mark 2511), picked: "Re-tick as
+  right (Recommended)". François Lake outlet lines (T805 D question 3; book p.51 "for the area at the outlet of
+  François Lake described on map 1"), picked: "Outlet area only (Recommended)" (all seven lines on the outlet area;
+  the main lake reads Region 6's rules; map rebuild; changed answers to him first). Eulachon (T770), picked: "As a
+  closure line (Recommended)" (its own line that eulachon is closed all year in Region 6, apart from the gear and bait
+  lines).
+- 20:01, two pictures (cut-fixes lane `lane/cuts-1116` a5990dd7b). Sheldens Creek (the SPUR 14 road bridge by the camp
+  site crosses the estuary channel ~260 m BELOW our FWA line's end at the top of the salt marsh; proposed: mouth =
+  tidal boundary, low confidence, whole creek above), picked: "Extend to the bridge" (draw the creek on down to the
+  road bridge and put the low-confidence tidal boundary there; needs an added stream piece). Morice, Gosnell Creek to
+  Lamprey Creek (mark 2739; END on the main channel at Lamprey's mouth; the earlier picture was a drawing-tool fault),
+  picked: "Right (Recommended)".
+- 20:25, Sheldens Creek extended (picture `sheldens-extended.jpg`; `lane/cuts-1116` 998b4e6ab: a hand-traced marsh
+  channel from the FWA line's end to the SPUR 14 road bridge, low-confidence tidal boundary at the bridge), picked:
+  "Right (Recommended)". Goes into the next atlas rebuild; redrawn from the built map after.
+- About 21:22, typed in the APP chat after "Install build 36 and try a–f" (relayed verbatim): "a-d worked good except
+  after closing app and opening again the fish icon stopped moving.... yes to (E) and (f) .. the picture viewer for
+  spots has the x under the notification bar. text is cut off weird. also opening harrison lake then going to
+  conditions should default to level only because there is no other data (the map looks super weird and not visible
+  because of it) then when you switch to level the empty flow option disappers so if only level data exists it
+  should show level data. just mention at top it is level data maybe... have an agent look at this... how do i test
+  the push stuff now?" Filed by the app chat: T814 (iOS fish spinner stops after reopening mid-download), T815 (spots
+  photo viewer ✕ under the status bar), T816 (clipped text: the "When were you there?" hour, the weather icons), T817
+  (Harrison Lake: a water with only level data opens on Level with a line saying so; the gauge rule "Flow leads"
+  refined, not broken). iPhone build 36 test (a–f) done; push test under way with the app chat.
+- About 21:32, typed in the APP chat (relayed verbatim): "the spots view also needs a lot of work to be cleaned up maybe
+  put a fresh agent on it?". The app chat's T819: a fresh Opus worker reviews the spots area and brings him pictures
+  and a cleanup list to pick from before anything is built.
+- About 21:37 to 21:40, typed in the APP chat (relayed verbatim): "also the calendar bar doesnt have a full red line for
+  salmon when closed but instead it is empty with no color on the calendar bar.." (T820: the salmon year bar on a
+  closed day draws empty, not the closed stripe); "when i swiper to close on apple it flashes the menu back for a
+  second before it goes back." (T821: iOS back-swipe flash); "allowed notifications in app and settings restarted app
+  and it still doesnt show up" (T822 if a bug: push registration; the staging worker holds 0 iOS tokens).
+- Before 21:41 (the app chat said ~21:45), typed in the APP chat (relayed verbatim): "in the tutorial it says on first slide each step rings what to
+  tap (should say something like highlight instead? the tutorial is really glitchy too with keyboard and the
+  highlighting following the items with a delay etc etc". The app chat files it (its next reserved number).
+- Shortly before 21:48, typed in the APP chat (relayed verbatim): "also the condition panel is very glitchy on apple. it
+  doesnt show the info the same as android the mao doesnt have gauge markers the current conditions view doesnt show
+  the bar and when i click on chehalis it doesnt show conditions for it? also the highlights dont let go when you go
+  back the highlight of where you clicked stays and doesnt disspear". Filed by the app chat (its own number). If the
+  Chehalis showing no conditions is data (no gauge match), it sends me the section ids.
+- 21:50, typed in chat (verbatim): "it used to match the chehalis gauge though?????". Checked: it still does. The shipped
+  release r-46e4355a7277 (conditions-18da9a4cead9) has gauge 08MG001 Chehalis River near Harrison Mills leading 634
+  Chehalis sections (matches.json unchanged; 08MG023 below Statlu Creek auxiliary). So the iPhone showing no Chehalis
+  conditions is app-side (with the missing gauge markers and bar on Apple); sent to the app chat for its conditions
+  ticket.
+- Shortly before 21:54, the spots cleanup (the app chat's T819; relayed verbatim): picked all four bundles, "B: readable
+  spot page (Recommended)", "A: fix wrong bits (Recommended)", "C: list + adding", "D: fit & finish". On a small creek
+  (1.4 km²) shown "Below normal" from a gauge 676× bigger, typed: "Could we just use our gauge network that colors stuff
+  wtc to determine if it is significant enough? It would drop that in theory. Then ofr small ones still give a warning
+  if used." So: a spot takes its gauge from the same section → lead-gauge network the Conditions map colours with
+  (drainage gate applied); no lead = no estimate; a lead on a small water = the estimate with a plain warning. The
+  "small next to its gauge" decision is Python's (T823), the app reads it.
+- 22:18, T823 small water next to its lead gauge (table sent: examples, counts at 50/100/200×). Cut-off, picked: "50×
+  (Recommended)". Wording, picked: "Much smaller stream (Recommended)" ("This stream is much smaller than the river its
+  gauge measures: the reading may not match it."). Built on `lane/t823-small-water` (edc097013), default already 50×;
+  reaches a release with the next bundle rebuild. Found with it: T825 (251 side channels led by a gauge far upstream,
+  e.g. lower Fraser side channels reading Red Pass).
+- Shortly before 22:19, in the APP chat (relayed; label picked verbatim), after its correction that the Conditions MAP
+  colours from the paint PANELS (249k sections; your 1.4 km² creek is coloured "Below normal" by 08MH001, 676× bigger),
+  not from section_gauge (114k): "Should a gauge that much bigger be allowed to speak for a small water at all, on the
+  map AND in spots (they always match)?", picked: "Allow, with a warning (Recommended)" (keep colouring and estimating;
+  say plainly the gauge drains a far bigger area once it is small enough to matter; Python picks the cut-off). So
+  T823's flag and sentence hang on the SPEAKER's gauge (the panel the map colours from), the same on the map, the
+  spot and the sheet; 50× and the wording stand (owner, just before).
+- Shortly before 22:49, in the APP chat (relayed verbatim), on the 0.7.12 draft "What's new": "you can do what changed."
+  So: the app chat writes and keeps the release notes current and clears the draft when the next build goes out. His
+  next question there, "so what is next?", is being answered by the app chat (both chats' plan: salmon landing first,
+  then the one map rebuild + staging release, the trout build in parallel).
+- 22:52, the salmon landing look (T796): five before/after sheets (Skeena reserve, Yakoun, Bell-Irving, Kitsumkalum
+  eulachon line, Cold Fish Lake note; from r-1603e71cc92c) and the changed-answers list since his 71-row review. Land
+  it, picked: "Land it (Recommended)". Kennedy Lake's note (already ruled outside Pacific Rim, Z11), picked: "Keep the
+  note (Recommended)". So: lane/salmon-rules-1116 + lane/salmon-hardcases-1116 + the app's twins land together
+  (section D), then ship with the next staging release.
+- 22:55, on the Yakoun before/after sheet, typed (verbatim): "The calendar shows open always but it closes after coho
+  closes?" Answered: DFO's coho row "Apr 1–Mar 31" is the whole year (DFO's year runs Apr 1 to Mar 31), so before the
+  change salmon was open every day; after it the book's "No Fishing from Yakoun Lake downstream approximately 13 km …,
+  Oct 1-Apr 30" closes the stretch Oct 1 to Apr 30 and coho shows through May to Sep.
+- 22:55, on the Skeena before sheet (circling the DFO-words block under the species table), typed (verbatim): "We want to
+  create a future ticket to do a similar check of all salmon regulations to the webpages with a fresh agent that tries
+  to break it and look for issues in the regulations also why do we have this section in salmon". Filed T827 (the
+  break-it audit of every salmon rule against DFO's pages, later). Answered why (T321, Oct 31: DFO's rows as printed so
+  the reading can be checked). The block (fold into Source / keep only extras / keep), picked: "Fold into Source
+  (Recommended)" (T828: under the 'Source (DFO)' expander, closed by default; unread new wording stays visible).
+- 22:56, typed in chat (verbatim): "Can we also clean up the format for the salmon rows to make it look more consistent
+  with the other table and the new trout table just a formatting thing same data tho". Filed T829 (app side; same
+  data): mockups first in the settled trout table look (the trout page's round-15 design), his pick, then the build
+  after the salmon landing and T828.
+- Shortly before 23:17, in the APP chat (relayed; label picked verbatim), T829 salmon rows after three mockups on real
+  data (Kitsumkalum Jul 15 with its eulachon line, Skeena below Terrace Aug 15 mixed), each above its trout table:
+  "B: trout keep box (Recommended)" (open species in the trout tint box, each species' limit in the white box at the
+  right with its dates small under it; closed species, the eulachon line and rule-book closures in the trout
+  "✕ Closed" group; badge, year bar and bait-ban line stay; the T828 fold as mocked). Built after the salmon landing and
+  T828, as ONE box component the trout table (ticket O) reuses.
+- 2026-11-17 about 00:10 to 00:14, in the APP chat (verbatim), T814: "it had reduce motion on." (the second iPhone, so
+  the still fish was by design); "we dont want a full still item for reduce motion on.. i am making a new loader icon
+  that will replace the loading circle on the splash page or curtain (it will still be used for all other loading."
+  He sent the loader as a Python generator (`fish_loader.py`: a linocut coho, 80-frame sprite sheet, 4 s loop). Then:
+  "we will ignore reduced motion for this". So: no still icon; the coho loader on the splash / first-download /
+  curtain screens, the circling fish everywhere else; both always move, Reduce Motion or not. The app chat builds it
+  (T814) and brings him pictures in both themes.
+- 2026-11-17 about 00:35, in the APP chat, before sleeping ("questions should wait unless there are urgent ones now
+  bertween 2 chats"), two picks: overnight landing of the app fixes that pass their benches (T817, T823, T824, the iOS
+  fixes, T819, T826, T822, one by one after salmon and T759, each with the main chat's clear), picked "Yes, land what
+  passes (Recommended)"; then a 0.7.12 upload to TestFlight and Play internal overnight, picked "Yes, upload overnight
+  (Recommended)" (the coho loader goes in only once he has seen and picked its look). Anything that fails waits for him.

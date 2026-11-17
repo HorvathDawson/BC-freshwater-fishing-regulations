@@ -241,6 +241,25 @@ def test_the_centre_is_where_the_creeks_own_channel_meets_the_shore_never_the_in
     assert hint["confidence"] == "low" and hint["stream"] == 3, "the unnamed stream at the hint, never another named creek"
 
 
+def test_a_creek_dfo_names_differently_is_placed_only_by_a_hint_naming_the_stream_or_its_watershed_code():
+    """T796 (2026-11-16): DFO's Six Mile Creek is the network's Gullwing Creek (`as`); its Sockeye Creek is an unnamed
+    stream found by DFO's census site's FWA code (`fwa_code`) — the stream itself, never one of its tributaries"""
+    from shapely.geometry import LineString, Polygon
+    from pipeline.regs.dfo_salmon import closure_mouths as CM
+    lake = Polygon([(0, 0), (1000, 0), (1000, 1000), (0, 1000)])
+    segs = [({"GNIS_NAME": "Gullwing Creek", "WATERBODY_KEY": None, "BLUE_LINE_KEY": 5, "STREAM_ORDER": 4,
+              "FWA_WATERSHED_CODE": "400-1-2-000000"}, LineString([(-500, 200), (0, 200)])),
+            ({"GNIS_NAME": None, "WATERBODY_KEY": None, "BLUE_LINE_KEY": 6, "STREAM_ORDER": 5,
+              "FWA_WATERSHED_CODE": "400-1-3-000000-000000"}, LineString([(1500, 700), (1000, 700)])),
+            ({"GNIS_NAME": None, "WATERBODY_KEY": None, "BLUE_LINE_KEY": 7, "STREAM_ORDER": 2,      # its tributary
+              "FWA_WATERSHED_CODE": "400-1-3-123456-000000"}, LineString([(1500, 300), (1000, 300)]))]
+    six = CM.shore_mouth(lake, 9, segs, "Six Mile Creek", hint={"as": "Gullwing Creek", "confidence": "medium", "why": "w"})
+    assert six["confidence"] == "medium" and six["stream"] == 5 and round(six["centre"].y) == 200
+    sock = CM.shore_mouth(lake, 9, segs, "Sockeye Creek", hint={"fwa_code": "400-1-3", "confidence": "high", "why": "w"})
+    assert sock["stream"] == 6 and round(sock["centre"].y) == 700, "the coded stream itself, never its tributary"
+    assert "looked" in CM.shore_mouth(lake, 9, segs, "Nowhere Creek", hint={"fwa_code": "400-9-9", "why": "w"})
+
+
 # --------------------------------------------------------------------------- T743: an inline "except closed from A to B"
 
 def test_the_middle_shuswaps_inline_closed_stretch_is_entry_b_with_dfos_points_as_printed():

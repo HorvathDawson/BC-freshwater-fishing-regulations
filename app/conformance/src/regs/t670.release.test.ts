@@ -15,7 +15,7 @@
  *   G7  the classified-water licence terms        Wigwam River (Kootenay booking), Dean River (the draw), p.7 (Li13)
  */
 import { beforeAll, describe, expect, it } from "vitest";
-import { buildRegsPage, plain, type RegsInputs, type RegsPage } from "@app/core";
+import { BOAT_WHILE, boatsLine, buildRegsPage, gearAnswer, OTHER_WHILE, plain, type RegsInputs, type RegsPage } from "@app/core";
 import { loadRegsInputs, openRegsStore, type RegsStore } from "@app/data/regs";
 import { sectionNames, type SectionNames } from "@app/data/release/node";
 import { liveReleaseAt, openReleaseDir } from "../fixtureRelease";
@@ -81,6 +81,48 @@ describe.skipIf(!at.dir)(`T670: what the release holds is on the screen (${at.di
     expect(p.boats!.map((b) => [b.kind, b.text])).toEqual([["in_boat", "No angling (from a boat)"], ["unpowered", "No powered boats"]]);
     expect(p.methods!.boats!.items).toEqual(["No angling (from a boat)", "No powered boats"]);
   });
+
+  it("(T797) 'No angling from powered boats' is on the boats line: the Horsefly below Woodjam Bridge (p.45), not above it; the Chilko above Henry's Crossing on its dates only", async () => {
+    const boats = async (item: string, lo: string, hi: string, month: number, day: number) =>
+      (await page(item, await names.part(item, lo, hi), month, day, "Wednesday")).boats!.map((b) => [b.kind, b.text]);
+    expect(await boats("gnis:24531", "mouth", "horsefly_river__woodjam_bridge", 7, 15))
+      .toEqual([["in_boat", "No angling (from a powered boat) — downstream of Woodjam Bridge"]]);
+    expect(await boats("gnis:24531", "horsefly_river__woodjam_bridge", "horsefly_river__horsefly_river_falls", 7, 15)).toEqual([]);
+    const chilko = ["gnis:13741", "chilko_river__henry_crossing_bridge", "lake_outlet:wbk:329079684"] as const;
+    expect((await boats(...chilko, 9, 20)).filter(([k]) => k === "in_boat"))
+      .toEqual([["in_boat", "No angling (from a powered boat), Sep 11-Sep 30 — upstream of Henry Crossing bridge"]]);
+    expect((await boats(...chilko, 7, 15)).filter(([k]) => k === "in_boat")).toEqual([]);
+  });
+
+  // The boats line reads the gear frame's circumstances by token; a token it does not list is dropped without a word
+  // (T797: `in_powered_boat`, 47 parts of 35 waters, for as long as the line existed). Province-wide, five days of the year.
+  it("(T797) province-wide: every rule held for an angler in a boat, powered or not, is on its page's boats line; no circumstance is one the app does not know", async () => {
+    const ords = (await (await st.water()).all("SELECT item_ord FROM item WHERE shown = 1")).map((r) => Number(r.item_ord));
+    const days = [[1, 15], [4, 15], [7, 15], [9, 20], [11, 15]] as const;
+    const unknown = new Set<string>(), missing: string[] = [], held = { in_boat: 0, in_powered_boat: 0 } as Record<string, number>;
+    for (const ord of ords) {
+      const [it2, parts] = await Promise.all([st.item(ord), st.parts(ord)]);
+      for (let partIx = 0; partIx < parts.length; partIx += 1) {
+        if (!parts[partIx]!.facts || parts[partIx]!.tidal) continue;
+        for (const [month, day] of days) {
+          const inp = await loadRegsInputs(st, { kind: "part", item: it2.id, partIx }, { month, day }, "Wednesday", 2026);
+          const ga = gearAnswer(inp);
+          if (!ga) continue;
+          const shown = new Set(boatsLine(inp).filter((c) => c.kind === "in_boat").map((c) => c.rule));
+          for (const c of ga.circumstantial) for (const w of c.while ?? []) {
+            if (!BOAT_WHILE.includes(w)) { if (!OTHER_WHILE.includes(w)) unknown.add(w); continue; }
+            held[w] = (held[w] ?? 0) + 1;
+            const key = inp.rules.get(c.clause[0]).key;
+            if (!shown.has(key)) missing.push(`${it2.name} part ${partIx} ${month}-${day}: ${key}`);
+          }
+        }
+      }
+    }
+    expect([...unknown]).toEqual([]);
+    expect(missing).toEqual([]);
+    // both kinds are really in the release (a walk that met none would prove nothing)
+    expect([held.in_boat! > 0, held.in_powered_boat! > 0]).toEqual([true, true]);
+  }, 300_000);
 
   it("G3 Mahood Lake, Jul 15: the bait ban and single barbless hook inside the signs (p.32) are in the in-part block", async () => {
     const c = (await page("wbk:329354708", 0, 7, 15, "Wednesday")).keep.caveats.find((x) => x.kind === "inpart")!;

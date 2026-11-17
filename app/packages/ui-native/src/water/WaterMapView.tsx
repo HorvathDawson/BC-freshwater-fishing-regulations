@@ -31,6 +31,7 @@ import { TYPE } from "../type";
 import { SPACE, type Palette } from "../theme";
 import { useCoachTarget } from "../CoachMarks";
 import { useGuideControl } from "../guideControls";
+import { useBarFloor } from "./useBarFloor";
 import { PANE_HOLD_MS, usePaneMap, usePaneReady } from "../shell/paneReveal";
 
 /** The map's own props: everything the water map does not decide. */
@@ -128,6 +129,8 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
   const kept = shown.kept;
   const d = shown.value;
   const dv = d.vm, dt = d.tidal;
+  // (T731) a step into another water keeps the bar's height (a one-part water has no parts row)
+  const floor = useBarFloor(dv ? dv.regs.item : dt ? dt.regs.item : null);
 
   const mapPane = (
       <View style={split ? { flex: 1, minWidth: 0, minHeight: 0 } : { flex: 1 }}>
@@ -171,7 +174,8 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
           the frame's column, at the gutter every view's content starts at */}
       <View style={split ? { paddingTop: 14, paddingBottom: 14, backgroundColor: palette.card, flexShrink: 1, minHeight: 0 }
                          : { paddingTop: 10, paddingBottom: 14, borderTopWidth: 1.5, borderTopColor: palette.ink,
-                             backgroundColor: palette.card }} testID="water-map-bar"
+                             backgroundColor: palette.card, minHeight: floor.minHeight }} testID="water-map-bar"
+            onLayout={split ? undefined : floor.onLayout}
             // (T731) kept through a step's read: drawn as it was, taking no press, busy to a screen reader
             pointerEvents={kept ? "none" : "auto"} aria-busy={kept}>
         <BarInset split={split}>

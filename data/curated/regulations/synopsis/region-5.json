@@ -827,17 +827,14 @@
      "level": "unpowered",
      "extents": [
       {
-       "op": "between",
+       "op": "downstream_of",
        "splits": [
-        "atnarko_bella_coola_rivers_includes_tributaries_exce__goat_creek_into_atnarko_river",
-        "atnarko_bella_coola_rivers_includes_tributaries_exce__talchako_river_into_bella_coola_river"
+        "atnarko_bella_coola_rivers_includes_tributaries_exce__goat_creek_into_atnarko_river"
        ],
-       "item_ids": [
-        "gnis:17209",
-        "gnis:11611"
-       ]
+       "item_id": "gnis:17209"
       }
      ],
+     "review_reason": "T794 item 3 (owner 2026-11-16, go-ahead card \"Go on all (Recommended)\"): \"on Atnarko River, from Goat Creek to the confluence with Talchako River\" is the Atnarko from Goat Creek to its mouth (the Atnarko ends where the Talchako joins, km 62.62 of the Bella Coola, the top of the Bella Coola's line). Bound as downstream of Goat Creek on the Atnarko alone; the former `between` scoped to the Atnarko AND the Bella Coola also took Bella Coola part 0 (seven side-channel pieces joining at km 55 to 59.1, below the Talchako).",
      "tributary_excludes": [
       {
        "op": "upstream_of",

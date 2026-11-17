@@ -69,7 +69,7 @@ encodes the salmon files), because the stored verdicts are made after the bundle
   closes every game fish, and its days), `book_inputs` (the release's listed sections, tidal / outside B.C. left out,
   each rule's words and pages from the bundle), `with_book_closures` (the book places first; `p[id]` with `static: 1`
   and `book: {rule, pages}`; payload `static[id]` = `{sp, g}`), called in `release.build` before the salmon files are
-  encoded. RULINGS D9.
+  encoded. RULINGS L25.
 - ONE CHANGE TO THE PROPOSAL, for size: `BOOK_ONLY_WHERE_DFO_LETS_FISH`. Carried on every DFO-listed section the book
   closes (620,930 sections, 543 rules) the salmon head is 92 kB gzipped against its 60 kB gate (736 new chains, 547
   places). Carried only on chains where DFO lets some salmon be fished on some day: 50 kB (139 new chains, 106 places,
@@ -113,7 +113,7 @@ encodes the salmon files), because the stored verdicts are made after the bundle
 ## Follow-up (lane/salmon-rules-1116, 2026-11-16, owner: "Raise to 100 kB (Recommended)")
 - `BOOK_ONLY_WHERE_DFO_LETS_FISH` False: the book place joins every DFO-listed chain it closes (620,930 sections,
   547 places, 1,084 chains). The ANSWERS are the same 70 stretches / 71,046 sections; everywhere else only the words
-  change (DFO's closure -> the book's). `SIZE_GATES["salmon"]` 60,000 -> 100,000 (head 91,788 B gz). RULINGS O7.
+  change (DFO's closure -> the book's). `SIZE_GATES["salmon"]` 60,000 -> 100,000 (head 91,788 B gz). RULINGS O9.
 - STILL OVER on the live release's numbers (deltas measured on the rebuilt salmon step, added to r-46e4355a7277's
   manifest): `salmon-6` 379,396 -> ~432,600 (gate 420,000); web `first_tap` 4,198,757 -> ~4,311,950 (gate 4,200,000,
   1,243 B of headroom today); `first_tap_low` 3,359,382 -> ~3,472,575 (gate 3,400,000). `first_tap_unnamed` holds
@@ -121,6 +121,23 @@ encodes the salmon files), because the stored verdicts are made after the bundle
 - The Salmon map paints from the chain's `m` (core `salmonChainStatus` / `salmonDayStatus`, label `s<chain>` per
   section from the shard): on the three examples it reads closed on their days; province-wide 11,113,487 section-days
   change colour (open/check/release -> closed), and on 0 section-days does `m` disagree with the chain's verdicts.
+
+## Owner, 2026-11-16 12:53 (typed in chat)
+"also we need to make sure the salmon closed because the river is clsoed in synopsis appllies to the map too. so the
+colors show it as well." PASS CONDITION for A5: on a book-closed stretch the Salmon view's line colour, the year bars
+and the alerts read closed (offline and under a live feed), not only the card. A map picture before and after goes
+to him with the three examples.
+
+## Owner, 2026-11-16 15:19 (typed in chat, after the Nass wordings)
+"and yes the closure wins here." and "we need to make sure it says where the closure is from though".
+- The Nass side streams row (book p.49, coho Jan 1 to Jun 15, about 25,900 sections) ships with the rest: the book's
+  closure wins over DFO's section C coho opening.
+- PASS CONDITION for A5, every row: the salmon card names the closure's source: the rule book, the page, the book's
+  own line and its dates. On the lane's data all 71 rows read "Closed to all fishing by the rule book (p.NN): <line>
+  (<dates>)" [ran, `book-closures-raw.json` `after_words`]. The app's card, the Salmon map's tap and the sources
+  sheet must show that same source (the app chat's twins; a before / after picture of the Nass, the Skeena reserve
+  and the Yakoun goes to him).
+- Not checked yet: that the "Kitsault Bridge" cut (113.0 km up the Nass, -128.924, 55.498) is the bridge itself.
 
 ## Hard cases, the data side (lane/salmon-hardcases-1116, 2026-11-16)
 The break-it review (`handoff/PLAN/curation-review/t796-book-closures-hard-cases/HARD-CASES.md`, dev ba07edad7). Measured
@@ -172,6 +189,13 @@ on r-685b700b2802's own inputs (bundle + stored verdicts), the salmon step alone
     Fishing Permit." — words only. (2) keep as now. (3) not on the salmon card: DFO's words return (0 answers today; an
     in-season DFO opening in a park would read open beside a closed page).
 
+## Owner, 2026-11-16 17:44 and 17:46: the hard cases, data side
+Campbell summer closure: "Keep it closed". Thompson in June: "keep closed but add to gotchas as one i need to ask fish
+and wildlife about" (done: pipeline/docs/GOTCHAS.md). Partly inside a reserve or park: "take out the lakes but add a
+note" (the 9 lakes and ponds mostly outside, Z10 by name, a note on each card); streams: "Keep E8 as is
+(Recommended)". National parks: "Closed, book's wording (Recommended)" (words only, the permit sentence added). The
+wording fixes on `lane/salmon-hardcases-1116` (7e390039b) change no answer. X1 (closed-region card shape) is the app's.
+
 ## Owner answers built (lane/salmon-hardcases-1116, 2026-11-16 evening)
 Owner (OWNER-TODO 17:44, 17:46): W1 Campbell "Keep it closed" (no change); S1 Thompson June kept closed (GOTCHAS, no
 change); S3 "take out the lakes but add a note", streams "Keep E8 as is (Recommended)"; X2 "Closed, book's wording
@@ -203,3 +227,18 @@ change); S3 "take out the lakes but add a note", streams "Keep E8 as is (Recomme
   Cormier pond shares a 62-section part with its creek (a part of its own broke T517's paint sync, so it was
   reverted). Final scratch release with T770's eulachon line too: r-1603e71cc92c; its diff against r-685b700b2802:
   95 groups (the 93 above + eulachon leaving the gear lines on 15,664 sections and the new `o`).
+
+## Owner, 2026-11-16 22:52: land it
+Pictures (t796-final sheets 1-5) and the changed-answers list shown. "Land it (Recommended)"; Kennedy Lake's note:
+"Keep the note (Recommended)".
+
+## Ruling ids renumbered at landing (land/salmon-1116, 2026-11-16)
+The lanes' commit messages keep the lanes' ids; `pipeline/docs/RULINGS.md` and every comment, test and ticket now use:
+- lane D7 (hidden DFO tables, T787) -> D8: the dev branch's D8 is the same ruling (batch 9); the lane's copy dropped,
+  its enforcement and tests carried onto D8.
+- lane D8 (finfish closure, T796 A6) -> L26: the dev branch's L26 is the same ruling (question 30); the lane's copy
+  dropped, its enforcement carried onto L26.
+- lane D9 (book p.77 closures carry onto salmon, T796 A5) -> L25: the dev branch's L25 is the same ruling (question
+  29); the lane's copy dropped, its enforcement carried onto L25.
+- lane O7 (salmon head gate 100 kB) -> O9; lane O8 (salmon-6 and first-tap raises) -> O10 (the dev branch's O7 is
+  T673, O8 is T694).

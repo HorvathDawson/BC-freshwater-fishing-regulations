@@ -83,7 +83,7 @@ def test_the_salmon_head_gate_is_the_owners_100_kb():
 
 
 def test_the_owners_raises_for_the_book_closures():
-    """(owner 2026-11-16 ~14:55, RULINGS O8) salmon-6 and the web's first taps raised; the unnamed tap unchanged."""
+    """(owner 2026-11-16 ~14:55, RULINGS O10) salmon-6 and the web's first taps raised; the unnamed tap unchanged."""
     from pipeline.deliver.release.build import SIZE_GATES
     from pipeline.deliver.release.contract import WEB_BUDGET
     assert SIZE_GATES["salmon-6"] == 460_000

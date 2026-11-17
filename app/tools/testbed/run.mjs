@@ -94,10 +94,12 @@ function makeCtx(sc) {
     /** A UI flow; throws its Maestro words when it fails (the step then fails). */
     flow(name, env) {
       ctx.calls.push({ name, env });   // (T542) what a failed step names in its report
+      device.keepLog?.();              // (T760) Maestro clears the device's log as a flow starts: the app's lines kept first
       let r = flow(name, env, { logDir: path.join(dir, 'maestro', sc.id) });
       // one more try after a beat: a sheet still settling or a toast over a tab is not the app's failure
       if (!r.ok && !/^(updates-log-action|spot-name-save|report-send|spot-add-photo)$/.test(name)) {
         execFileSync('sleep', ['2']);
+        device.keepLog?.();
         r = flow(name, env, { logDir: path.join(dir, 'maestro', sc.id) });
       }
       ctx.lastSaid = r.said;
@@ -163,6 +165,12 @@ for (const sc of SCENARIOS.filter((s) => want.includes(s.id))) {
   finally {
     try { await device.net('wifi'); device.link('full', 'none'); } catch { /* best effort */ }
     try { await ctx.sync.teardown?.(); } catch { /* best effort */ }
+    // (T760) the app's and the downloader's log for the scenario, across its flows (a `logcat -d` after the run holds only
+    // what came after its last flow): beside the report, for whoever reads a run after the emulator is gone
+    if (device.logcatTag) {
+      try { fs.writeFileSync(path.join(dir, `app-log-${sc.id}.txt`), ['ReactNativeJS', 'DownloadManager'].flatMap((t) => device.logcatTag(t)).join('\n') + '\n'); }
+      catch (e) { console.log(`[testbed] app log of ${sc.id} not written: ${e.message}`); }
+    }
   }
   ctx.rec.ms = Date.now() - t0;
   writeReport(dir, run);

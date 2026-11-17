@@ -402,6 +402,8 @@ describe("the style adapter (platform-free: one implementation, tested for what 
       const tk = resolveTheme(theme);
       const s = runtimeStyle({ atlas: "a.pmtiles", basemap: "b.pmtiles" } as never, theme, {});
       const casing = s.layers.find((l: { id: string }) => l.id === SELECTION_CASING) as unknown as { paint: Record<string, unknown> };
+      // (T735) dark wears look C (src/selection-look.test.ts pins it whole); light and cvd are today's
+      if (theme === "dark") continue;
       expect([theme, casing.paint["line-color"], casing.paint["line-opacity"]])
         .toEqual([theme, ["case", inseason, tk["color.ui.attention"], tk["color.highlight"]], shown]);
     }
@@ -417,8 +419,8 @@ describe("the style adapter (platform-free: one implementation, tested for what 
 
   it("a theme or mode change repaints the outline with the stream (one paint path)", () => {
     const r = recorder();
-    a.setLayerMode(r.h, "stream", "plain", "dark");
-    const t = resolveTheme("dark");
+    a.setLayerMode(r.h, "stream", "plain", "light");     // (T735) dark's casing is look C's, pinned in selection-look.test.ts
+    const t = resolveTheme("light");
     expect(r.calls.filter((c) => c.startsWith(`paint ${SELECTION_CASING} line-color`)
                                  || c.startsWith(`paint ${SELECTION_RINGS.lake} line-color`)))
       .toEqual([`paint ${SELECTION_CASING} line-color case,boolean,feature-state,inseason,false,${t["color.ui.attention"]},${t["color.highlight"]}`,

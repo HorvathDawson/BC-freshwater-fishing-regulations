@@ -1,6 +1,6 @@
 # T728 — A Flow / Level pick in the Conditions card does not change the Conditions map's layer
 
-Status: IN REVIEW (in build 32 = 0.7.10, Play internal 2026-11-14; emulator looks passed; owner: OWNER-TODO "Phone check, build 32 = 0.7.10")
+Status: IN PROGRESS (in build 32 as first built; one behaviour changed after the owner's 2026-11-16 answer "we should fix anything that doesnt seem desirable": branch `app-fix/small-looks-1116` 81a28e7c2, not merged; left: the emulator look and the merge)
 
 Source: owner 2026-11-14, verbatim: "when you chang elvel/condition in the card it should not change cindition map layers too"
 
@@ -30,3 +30,8 @@ layer when another water is opened.
 - `ConditionsLayers.shell.test.tsx` "THE CARD'S PICK IS THE CARD'S": map on Level, the card opens on Level; Flow in the
   card charts Flow; back on the map, Show is still Level and the map still asks level. Fails before the fix.
 - Left (Claude): the emulator look on the next APK (the emulator was another lane's on 2026-11-14).
+
+## Changed after the owner's answer, 2026-11-16 (app chat)
+Owner (question dialog in the main chat, 2026-11-16 12:08, on the list of small behaviours left as built): "we should fix anything that doesnt seem desirable". This one was left as built with an alternative on offer; the app chat judged it undesirable.
+Now, on branch `app-fix/small-looks-1116` (81a28e7c2, not merged): a water's Conditions card always opens on Flow (his 2026-11-10 ruling: Flow leads, Level auxiliary); a pick made in the card lasts while that water is open, as before; a water with no flow reading says so and offers Level, as before. Each fix has a test that failed first;
+`check:fast` passes. Left: the emulator look, then the merge with its benches.

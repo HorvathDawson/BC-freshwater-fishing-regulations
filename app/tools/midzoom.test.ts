@@ -11,6 +11,11 @@
  * (T470 WCAG, 2026-11-09) Two palette moves were carried into it by hand, hex for hex and nothing else: the dark base
  * (~0368EB -> ~4C70FC) and the colour-blind selection (~F55C00 -> ~C04400), each to reach 3:1 on the ground
  * (tools/map-contrast.test.ts).
+ * (T735 look C, 2026-11-16) The dark `selection-casing` only, its colour and width from `midzoomPaint("dark")` and nothing
+ * else: the colour is the case `midzoomPaint` gives (the part/selected stream edged in the ground, `color.selection.edge`;
+ * the in-season colour elsewhere), and the width's casing addend is +3 at every stop, down from +5 (`width.selection.casing`
+ * 1.5 each side). The frozen pre-T470 curve and the line-opacity stay as they were: a full regeneration of the entry would
+ * also have brought T470's mid-zoom shape and an older in-season opacity clause, neither of them T735's.
  */
 import { describe, expect, it } from "vitest";
 import { createPropertyExpression, latest } from "@maplibre/maplibre-gl-style-spec";
