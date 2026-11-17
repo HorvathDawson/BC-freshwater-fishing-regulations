@@ -26,6 +26,11 @@ describe("a11yOf: payload texts in payload order, joined by \". \", nothing else
     expect(a11yOf(["Steelhead", null, "Hatchery only", undefined, "only 3", "until Oct 31, then release"]))
       .toBe("Steelhead. Hatchery only. only 3. until Oct 31, then release");
   });
+  it("adds no second stop after a text that already ends a sentence (the steelhead quiet line never reads \"..\")", () => {
+    const got = a11yOf(["Steelhead", "Steelhead are known to be in this water.", "only 1 of these 4", "Ask first!", "Closed?", "x"]);
+    expect(got).toBe("Steelhead. Steelhead are known to be in this water. only 1 of these 4. Ask first! Closed? x");
+    expect(got).not.toContain("..");
+  });
 });
 
 describe("the dev switch's split by covers (others.ts)", () => {

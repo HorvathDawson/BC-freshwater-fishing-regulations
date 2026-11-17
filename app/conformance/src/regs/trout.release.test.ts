@@ -188,6 +188,10 @@ describe("T810 N: the screen-reader golden over every vector row", () => {
     if (process.env.UPDATE_TROUT_A11Y === "1") writeFileSync(A11Y, JSON.stringify(got, null, 1) + "\n");
     expect(existsSync(A11Y), "the golden is written by UPDATE_TROUT_A11Y=1 (regs-recut/sync.mjs)").toBe(true);
     expect(got).toEqual(JSON.parse(readFileSync(A11Y, "utf8")));
+    // (contract 2.8, amended 11-17) no second stop after a text that ends a sentence: the steelhead quiet line is one
+    const said = Object.values(got).flatMap((r) => Object.values(r));
+    expect(said.filter((l) => l.includes(".."))).toEqual([]);
+    expect(said.some((l) => l.includes("Steelhead are known to be in this water. "))).toBe(true);
   });
 });
 

@@ -4,7 +4,7 @@
   "LT": "Lake trout. 30 cm (12 in) or longer. only 3. until Sep 14, then release",
   "GB": "Brown trout. 30 cm (12 in) or longer. only 1 of these 4. until Oct 31, then release",
   "CT": "Cutthroat trout. 30 cm (12 in) or longer. only 1 of these 4. until Oct 31, then release",
-  "ST": "Steelhead. Hatchery only. a rainbow over 50 cm (20 in). uses the 1 over 50 cm (20 in). after keeping 1, stop fishing this stream today. Steelhead are known to be in this water.. only 1 of these 4. until Oct 31, then release",
+  "ST": "Steelhead. Hatchery only. a rainbow over 50 cm (20 in). uses the 1 over 50 cm (20 in). after keeping 1, stop fishing this stream today. Steelhead are known to be in this water. only 1 of these 4. until Oct 31, then release",
   "RB": "Rainbow trout. 30–50 cm (12–20 in). only 1 of these 4. until Oct 31, then release",
   "DV": "Dolly Varden/bull trout. until Dec 31, then closed to all fishing"
  },
@@ -12,7 +12,7 @@
   "EB": "Brook trout. 30 cm (12 in) or longer. up to the 5. until Dec 31, then closed to all fishing",
   "GB": "Brown trout. 30 cm (12 in) or longer. only 1 of these 4. until Oct 31, then release",
   "CT": "Cutthroat trout. 30 cm (12 in) or longer. only 1 of these 4. until Oct 31, then release",
-  "ST": "Steelhead. Hatchery only. a rainbow over 50 cm (20 in). uses the 1 over 50 cm (20 in). after keeping 1, stop fishing this stream today. Steelhead are known to be in this water.. only 1 of these 4. until Oct 31, then release",
+  "ST": "Steelhead. Hatchery only. a rainbow over 50 cm (20 in). uses the 1 over 50 cm (20 in). after keeping 1, stop fishing this stream today. Steelhead are known to be in this water. only 1 of these 4. until Oct 31, then release",
   "RB": "Rainbow trout. 30–50 cm (12–20 in). only 1 of these 4. until Oct 31, then release",
   "DV": "Dolly Varden/bull trout. until Dec 31, then closed to all fishing",
   "LT": "Lake trout. until Nov 30"
@@ -20,7 +20,7 @@
  "skeena-sedan-mill-nov15": {
   "EB": "Brook trout. 30 cm (12 in) or longer. up to 1 over 50 cm (20 in). up to the 5",
   "RB": "Rainbow trout. until Dec 31, then closed to all fishing",
-  "ST": "Steelhead. Steelhead are known to be in this water.. until Dec 31, then closed to all fishing",
+  "ST": "Steelhead. Steelhead are known to be in this water. until Dec 31, then closed to all fishing",
   "CT": "Cutthroat trout. until Dec 31, then closed to all fishing",
   "GB": "Brown trout. until Dec 31, then closed to all fishing",
   "DV": "Dolly Varden/bull trout. until Dec 31, then closed to all fishing",
@@ -37,7 +37,7 @@
   "LT": "Lake trout. Hatchery only. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1 of these 2",
   "RB/hatchery": "Rainbow trout. hatchery. any size. up to the 6",
   "RB/wild": "Rainbow trout. wild. under 40 cm (16 in). up to the 6",
-  "ST": "Steelhead. Hatchery only. any size. Steelhead are known to be in this water.. up to the 6"
+  "ST": "Steelhead. Hatchery only. any size. Steelhead are known to be in this water. up to the 6"
  },
  "khartoum-jul15": {
   "EB/hatchery": "Brook trout. hatchery. up to the 4",
@@ -50,7 +50,7 @@
   "LT": "Lake trout. Hatchery only. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1 of these 2",
   "RB/hatchery": "Rainbow trout. hatchery. any size. up to the 6",
   "RB/wild": "Rainbow trout. wild. under 40 cm (16 in). up to the 6",
-  "ST": "Steelhead. Hatchery only. any size. Steelhead are known to be in this water.. up to the 6"
+  "ST": "Steelhead. Hatchery only. any size. Steelhead are known to be in this water. up to the 6"
  },
  "windsor-jul15": {
   "EB/hatchery": "Brook trout. hatchery. up to the 4",
@@ -200,7 +200,7 @@
   "CT": "Cutthroat trout. 30 cm (12 in) or longer. only 2 of these 7",
   "DV": "Dolly Varden/bull trout. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1, counting any lake trout you keep. only 2 of these 7",
   "LT": "Lake trout. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1, counting any Dolly Varden/bull trout you keep. only 2 of these 7",
-  "ST": "Steelhead. a rainbow over 50 cm (20 in). after keeping 2, stop fishing this river today. Steelhead are known to be in this water.. only 2 of these 7. until Aug 14, then closed for steelhead",
+  "ST": "Steelhead. a rainbow over 50 cm (20 in). after keeping 2, stop fishing this river today. Steelhead are known to be in this water. only 2 of these 7. until Aug 14, then closed for steelhead",
   "RB": "Rainbow trout. 30–50 cm (12–20 in). only 2 of these 7"
  },
  "fraser-r3-sep15": {
@@ -246,7 +246,7 @@
   "GB": "Brown trout. only 4 of these 6. until Dec 31, then closed to all fishing",
   "CT": "Cutthroat trout. only 4 of these 6. until Dec 31, then closed to all fishing",
   "LT": "Lake trout. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1, counting any Dolly Varden/bull trout you keep. only 4 of these 6. until Oct 14, then release",
-  "ST": "Steelhead. Steelhead rules apply here; steelhead may not be present in this water.. until Dec 31, then closed to all fishing"
+  "ST": "Steelhead. Steelhead rules apply here; steelhead may not be present in this water. until Dec 31, then closed to all fishing"
  },
  "adams-jul31": {
   "RB": "Rainbow trout. 30 cm (12 in) or longer. only 2. only 4 of these 6. until Dec 31, then closed to all fishing",
@@ -255,7 +255,7 @@
   "CT": "Cutthroat trout. only 4 of these 6. until Dec 31, then closed to all fishing",
   "DV": "Dolly Varden/bull trout. 80 cm (31 in) or longer. uses the 1 over 50 cm (20 in). only 1, counting any lake trout you keep. only 4 of these 6. until Jul 31, then release",
   "LT": "Lake trout. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1, counting any Dolly Varden/bull trout you keep. only 4 of these 6. until Oct 14, then release",
-  "ST": "Steelhead. Steelhead rules apply here; steelhead may not be present in this water.. until Dec 31, then closed to all fishing"
+  "ST": "Steelhead. Steelhead rules apply here; steelhead may not be present in this water. until Dec 31, then closed to all fishing"
  },
  "kamloops-lake-jan15": {
   "DV": "Dolly Varden/bull trout. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1",
@@ -335,7 +335,7 @@
   "CT": "Cutthroat trout. 30 cm (12 in) or longer. only 2 of these 6. until Apr 30, then release",
   "DV": "Dolly Varden/bull trout. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1, counting any lake trout you keep. only 2 of these 6. until May 31, then closed to all fishing",
   "LT": "Lake trout. 60 cm (24 in) or longer. uses the 1 over 50 cm (20 in). only 1, counting any Dolly Varden/bull trout you keep. only 2 of these 6. until May 31, then closed to all fishing",
-  "ST": "Steelhead. a rainbow over 50 cm (20 in). after keeping 2, stop fishing this river today. Steelhead are known to be in this water.. only 2 of these 6. until May 31, then closed to all fishing",
+  "ST": "Steelhead. a rainbow over 50 cm (20 in). after keeping 2, stop fishing this river today. Steelhead are known to be in this water. only 2 of these 6. until May 31, then closed to all fishing",
   "RB": "Rainbow trout. any length, 50 cm (20 in) or less. up to the 4. until Apr 30, then release"
  },
  "ross-lake-jul15": {
@@ -347,7 +347,7 @@
   "DV": "Dolly Varden/bull trout"
  },
  "kitimat-jul15": {
-  "ST": "Steelhead. Hatchery only. a rainbow over 50 cm (20 in). after keeping 2, stop fishing this river today. Steelhead are known to be in this water.. only 2. until Oct 31, then release",
+  "ST": "Steelhead. Hatchery only. a rainbow over 50 cm (20 in). after keeping 2, stop fishing this river today. Steelhead are known to be in this water. only 2. until Oct 31, then release",
   "EB": "Brook trout. 30 cm (12 in) or longer. up to the 5",
   "GB": "Brown trout. 30 cm (12 in) or longer. only 1 of these 3. until Oct 31, then release",
   "CT": "Cutthroat trout. 30 cm (12 in) or longer. only 1 of these 3. until Oct 31, then release",
@@ -360,13 +360,13 @@
   "EB": "Brook trout. 30 cm (12 in) or longer. up to the 5",
   "LT": "Lake trout. 30 cm (12 in) or longer. only 3",
   "RB": "Rainbow trout. Hatchery only. any length, 50 cm (20 in) or less. up to the 5. rule changes Jul 1",
-  "ST": "Steelhead. Steelhead are known to be in this water.. until May 14, then closed for steelhead",
+  "ST": "Steelhead. Steelhead are known to be in this water. until May 14, then closed for steelhead",
   "CT": "Cutthroat trout. until Jun 30",
   "GB": "Brown trout. until Jun 30",
   "DV": "Dolly Varden/bull trout"
  },
  "humphrys-jul15": {
-  "ST": "Steelhead. Hatchery only. a rainbow over 50 cm (20 in). after keeping 2, stop fishing this stream today. Steelhead are known to be in this water.. only 2. until Oct 31, then release",
+  "ST": "Steelhead. Hatchery only. a rainbow over 50 cm (20 in). after keeping 2, stop fishing this stream today. Steelhead are known to be in this water. only 2. until Oct 31, then release",
   "EB": "Brook trout. 30 cm (12 in) or longer. up to the 5. until Mar 15, then closed to all fishing",
   "GB": "Brown trout. 30 cm (12 in) or longer. only 1 of these 3. until Oct 31, then release",
   "CT": "Cutthroat trout. 30 cm (12 in) or longer. only 1 of these 3. until Oct 31, then release",
@@ -419,7 +419,7 @@
   "GB": "Brown trout. 30 cm (12 in) or longer. only 1 of these 4. until Oct 31, then release",
   "CT": "Cutthroat trout. 30 cm (12 in) or longer. only 1 of these 4. until Oct 31, then release",
   "RB": "Rainbow trout. 30 cm (12 in) or longer. only 1 of these 4. until Oct 31, then release",
-  "ST": "Steelhead. Hatchery only. 30 cm (12 in) or longer. after keeping 1, stop fishing this stream today. Steelhead rules apply here; steelhead may not be present in this water.. only 1 of these 4. until Oct 31, then release",
+  "ST": "Steelhead. Hatchery only. 30 cm (12 in) or longer. after keeping 1, stop fishing this stream today. Steelhead rules apply here; steelhead may not be present in this water. only 1 of these 4. until Oct 31, then release",
   "DV": "Dolly Varden/bull trout. until Dec 31, then closed to all fishing"
  },
  "denetiah-jun30": {

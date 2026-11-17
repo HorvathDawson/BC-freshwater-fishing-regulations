@@ -184,9 +184,12 @@ export function checkTrout(f: TroutValue, at: TroutBounds): void {
   if (past !== undefined) bad(`covers names row ${past} of a rows frame of ${at.rows}`);
 }
 
-/** A row's screen-reader label (contract 2.8): its payload texts in payload order, joined by ". ", nothing else. */
+/** A text that already ends a sentence: the join adds no second stop after it (contract 2.8, amended 2026-11-17). */
+const ENDS = /[.!?]$/;
+/** A row's screen-reader label (contract 2.8): its payload texts in payload order, joined by ". ", nothing else; after a
+ *  text that already ends in ".", "!" or "?" the join is a plain space, so the steelhead quiet line never reads "..". */
 export function a11yOf(texts: readonly (string | null | undefined)[]): string {
-  return texts.filter((x): x is string => !!x).join(". ");
+  return texts.filter((x): x is string => !!x).reduce((out, t) => (out ? out + (ENDS.test(out) ? " " : ". ") : "") + t, "");
 }
 
 /**
