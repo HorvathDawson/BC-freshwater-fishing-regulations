@@ -346,7 +346,7 @@ function ArrowFold({ f, open, setOpen, ring, tone, palette, images }: {
   useWindowDimensions();
   const stack = (PixelRatio.getFontScale() || 1) >= FOLD_STACK_AT;
   const value = (f.row.value || f.row.date) ? (
-    <View testID="glance-value" style={stack ? { marginTop: 2 } : { alignItems: "flex-end", flexShrink: 1, maxWidth: "50%" }}>
+    <View testID="glance-value" style={stack ? { marginTop: 2 } : { flex: 1, minWidth: 0, alignItems: "flex-end" }}>
       {f.row.value && <Text testID={`st:${f.row.tone}`} style={[TYPE.regsBodyBold, { color: tone, ...(stack ? {} : { textAlign: "right" }) }]}>{f.row.value}</Text>}
       {f.row.date && <Text testID="glance-date" style={[TYPE.meta, { color: palette.sub, ...(stack ? {} : { textAlign: "right" }) }]}>{f.row.date}</Text>}
     </View>
@@ -362,12 +362,13 @@ function ArrowFold({ f, open, setOpen, ring, tone, palette, images }: {
                               borderTopColor: palette.line, backgroundColor: lit ? palette.tint : "transparent" };
                    }}>
           <Thumb code={f.row.thumb} images={images} palette={palette} />
-          <View style={{ flex: 1, minWidth: 0 }}>
+          {/* the name keeps its own width (up to half the row); a long value or date wraps under itself, not the name */}
+          <View style={stack ? { flex: 1, minWidth: 0 } : { flexShrink: 0, maxWidth: "50%" }}>
             <Text style={[TYPE.regsBodySemi, { color: palette.ink }]}>{f.row.name}</Text>
             {stack && value}
           </View>
           {f.row.issue && <IssueMark palette={palette} />}
-          {!stack && value}
+          {!stack && (value ?? <View style={{ flex: 1 }} />)}
           <View testID="glance-arrow"><Icon name={open ? "collapse" : "expand"} colour={palette.ink} size={18} /></View>
         </RegsPress>
       </View>
