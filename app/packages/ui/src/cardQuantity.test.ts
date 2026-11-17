@@ -52,6 +52,21 @@ describe("the card's quantity: lead kind x asked quantity (x day: the card does 
     expect(cardQuantity("discharge", [], false, null)).toMatchObject({ shown: "discharge", silent: false });
     expect(cardQuantity(null, ["level"], true, null).shown).toBe("level");   // nothing asked: the station's own
   });
+
+  it("(T817) with the water's choices, the switch is the same before and after a pick: Level never takes Flow away", () => {
+    // the Chehalis on a day its own gauge is quiet: the lead (chosen on level) is a level-only gauge; the water measures both
+    const water = ["discharge", "level"] as const;
+    const flow = cardQuantity("discharge", ["level"], true, "level", water);
+    const level = cardQuantity("level", ["level"], true, "level", water);
+    expect([flow, level]).toEqual([
+      { shown: "discharge", silent: true, options: ["discharge", "level"] },
+      { shown: "level", silent: false, options: ["discharge", "level"] },
+    ]);
+    // before T817, without them: Flow vanished once Level was picked
+    expect(cardQuantity("level", ["level"], true, "level").options).toEqual(["level"]);
+    // a level-only water (Harrison Lake): Level alone, so no switch is drawn
+    expect(cardQuantity("level", ["level"], true, "level", ["level"])).toEqual({ shown: "level", silent: false, options: ["level"] });
+  });
 });
 
 describe("the alert editor's value and 'now' are the card's figure", () => {

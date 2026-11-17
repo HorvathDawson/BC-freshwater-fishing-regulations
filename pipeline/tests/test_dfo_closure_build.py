@@ -199,7 +199,53 @@ def test_a_lake_line_is_reported_deferred_never_dropped(monkeypatch):
                 "item": "east of a line from Gullwing Creek to south shore of Babine Lake", "on_item": "wbk:9",
                 "line": [[-126.0, 55.0], [-126.1, 55.1]]}
     (again,) = [r for r in _reach(monkeypatch, ef, [line_geo]) if r.get("closure", {}).get("kind") == "line"]
-    assert "deferred" in again["reason"] and again["carried"] and not again["mapped"]
+    assert "split" in again["reason"] and again["carried"] and not again["mapped"]
+
+
+def test_a_line_on_a_lake_split_on_it_closes_the_part_on_its_closed_side_and_only_that(monkeypatch):
+    """T812 (owner 2026-11-16: "split babine lake on the line like our other split lakes"): the line names the lake
+    part east of it (`closes_item`) and binds it whole; it answers first there (narrower than the place), the rest of
+    the lake keeps the place's answer. Mutation: drop `closes_item` — the line is carried and the part reads open."""
+    text = "Babine Lake. Also closed east of a line from Gullwing Creek to south shore of Babine Lake."
+    ef = _ef(_place(excludes=(), text=text + " Excluding waters within a 400 m radius of: X", water_id="6:babine-lake"),
+             water_id="6:babine-lake", items=("gnis:1", "wbk:9"))
+    ef.locations[0].source_text["excludes"] = ["X"]
+    key = K.piece_key("east of a line from Gullwing Creek to south shore of Babine Lake")
+    line_geo = {"key": key, "water_id": "6:babine-lake", "name": "Gullwing", "kind": "line",
+                "item": "east of a line from Gullwing Creek to south shore of Babine Lake", "on_item": "wbk:9",
+                "line": [[-126.0, 55.0], [-126.1, 55.1]], "closes_item": "wbk:9"}
+    rows = _reach(monkeypatch, ef, [line_geo])
+    (line,) = [r for r in rows if r.get("closure", {}).get("kind") == "line"]
+    assert (line["mapped"], line["sections"], line.get("carried")) == (True, ["lake:9"], None)
+    payload, sections = _bundle(ef, [line_geo], rows)
+    c, v = _chinook_jul20(payload, sections, 20)
+    assert c["l"][0] == line["location_id"] and v == "closed"
+    assert _chinook_jul20(payload, sections, 10)[1] == "open", "the place's own water outside the part"
+    bare = {k: v for k, v in line_geo.items() if k != "closes_item"}
+    (carried,) = [r for r in _reach(monkeypatch, ef, [bare]) if r.get("closure", {}).get("kind") == "line"]
+    assert carried["carried"] and not carried["mapped"]
+    with pytest.raises(ValueError, match="only a line"):
+        K.PieceGeometry.model_validate({**_stretch(), "closes_item": "wbk:9"})
+
+
+def test_a_circle_on_a_split_lake_is_measured_against_its_parts(monkeypatch):
+    """T812: Babine Lake split into parts owns no section; its circles (on_item the whole lake) mark the part they lie
+    on. Mutation: read only the item's own sections — the circle touches nothing and loses its marked part."""
+    from dataclasses import replace
+    rows, ef, conf = _lake(monkeypatch, outline=5000)
+    g, reg = _river()
+    reg["wbk:77"] = _item("wbk:77", "Pond", "lake", ["lake:77"])
+    reg["wbk:-24"] = replace(_item("wbk:-24", "Babine Lake — Main Body", "lake", ["lake:9"]), part_of="wbk:900")
+    reg["wbk:900"] = _item("wbk:900", "Babine Lake", "lake", [])
+    from pyproj import Transformer
+    from shapely.geometry import LineString, Point
+    x, y = Transformer.from_crs("EPSG:4326", "EPSG:3005", always_xy=True).transform(-126.285975, 55.152191)
+    g._position_geoms = ({"lake:9": Point(x, y).buffer(5000), "lake:77": Point(x + 50, y).buffer(30)},
+                         {s: LineString([(x + 5000, y), (x + 6000, y)]) for s in ("r0", "r1", "r2", "r3")})
+    on_parent = [{**conf[0], "on_item": "wbk:900"}]
+    (row,) = [r for r in _reach(monkeypatch, ef, on_parent, graph=g, registry=reg) if r.get("closure")
+              and r["closure"]["key"] == conf[0]["key"]]
+    assert row["marked"] == ["lake:9"] and row["carried"] and not row["mapped"]
 
 
 def test_pieces_are_never_written_into_a_places_file():

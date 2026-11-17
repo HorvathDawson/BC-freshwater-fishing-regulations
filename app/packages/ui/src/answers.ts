@@ -118,9 +118,13 @@ export interface CardQuantity {
 }
 
 export function cardQuantity(asked: Parameter | null | undefined, available: readonly Parameter[], known: boolean,
-                             readingQuantity: Parameter | null | undefined): CardQuantity {
+                             readingQuantity: Parameter | null | undefined,
+                             offered: readonly Parameter[] | null = null): CardQuantity {
   if (asked) {
     const silent = known && !available.includes(asked);
+    // (T817) THE WATER'S CHOICES, when the caller knows them (core `conditionsOpening` `offer`): the same before and after
+    // a pick, so Level never takes Flow away (the Chehalis, owner 2026-11-16); the asked quantity is always among them
+    if (offered) return { shown: asked, silent, options: (["discharge", "level"] as const).filter((q) => q === asked || offered.includes(q)) };
     return { shown: asked, silent,
              options: silent ? (["discharge", "level"] as const).filter((q) => q === asked || available.includes(q)) : available };
   }

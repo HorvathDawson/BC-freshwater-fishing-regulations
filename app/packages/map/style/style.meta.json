@@ -3071,6 +3071,9 @@
       "color.ui.accent": "#5F26E0",
       "color.ui.on-accent": "#FFFFFF",
       "color.ui.live": "#027486",
+      "color.ui.coho.ink": "#1F2E3B",
+      "color.ui.coho.red": "#CF5A3C",
+      "color.ui.coho.ground": "#FFFFFF",
       "color.ui.attention": "#15181C",
       "color.ui.warning": "#D08404",
       "color.ui.spot": "#15181C",
@@ -3265,6 +3268,9 @@
       "color.ui.accent": "#A97CFF",
       "color.ui.on-accent": "#100A22",
       "color.ui.live": "#37D6EA",
+      "color.ui.coho.ink": "#F2E8D5",
+      "color.ui.coho.red": "#CF5A3C",
+      "color.ui.coho.ground": "#15181B",
       "color.ui.attention": "#F0F2F0",
       "color.ui.warning": "#FFD307",
       "color.ui.spot": "#F0F2F0",
@@ -3459,6 +3465,9 @@
       "color.ui.accent": "#5F26E0",
       "color.ui.on-accent": "#FFFFFF",
       "color.ui.live": "#027486",
+      "color.ui.coho.ink": "#1F2E3B",
+      "color.ui.coho.red": "#CF5A3C",
+      "color.ui.coho.ground": "#FFFFFF",
       "color.ui.attention": "#15181C",
       "color.ui.warning": "#D08404",
       "color.ui.spot": "#15181C",
@@ -4078,6 +4087,21 @@
       "type": "color",
       "themeable": true,
       "$comment": "a live feed — the gauge, the fish spinner. Distinct from `accent`, which means 'you chose this'"
+    },
+    "color.ui.coho.ink": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T814, owner 2026-11-17) THE COHO LOADER's ink block: the owner's two-block linocut spawning coho (app/tools/fish-loader/fish_loader.py) on the start, download and setup screen and the applying curtain. Baked into its sprite sheet by `pnpm coho:build` (one sheet per distinct ink + red pair), never tinted at run time; `pnpm coho` fails when a sheet no longer wears these values."
+    },
+    "color.ui.coho.red": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T814) the coho loader's second block, the spawning coho's red side and belly; baked like `color.ui.coho.ink`"
+    },
+    "color.ui.coho.ground": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T814) the ground drawn behind the coho loader, a little past its frame; the card where the loader needs no ground of its own"
     },
     "color.ui.attention": {
       "type": "color",

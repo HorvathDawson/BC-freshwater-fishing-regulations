@@ -90,16 +90,15 @@ describe("<FishSpinner>", () => {
     expect(parseFloat(ring(container).style.width)).toBeLessThan(100);
   });
 
-  it("holds still when the viewer has asked for reduced motion", () => {
-    setReduceMotion(true);
-    const { container } = render(<FishSpinner palette={LIGHT} />);
-    expect(strip(container).style.animationPlayState).toBe("paused");
-    expect(strip(container).parentElement!.style.animationPlayState).toBe("paused");
-  });
-
-  it("animates when it has not", () => {
-    const { container } = render(<FishSpinner palette={LIGHT} />);
-    expect(strip(container).style.animationPlayState).toBe("running");
+  it("swims under reduced motion too (T814, owner 2026-11-17: \"we will ignore reduced motion for this\")", () => {
+    // a still fish read as a hung app on an iPhone with Reduce Motion on
+    for (const on of [true, false]) {
+      setReduceMotion(on);
+      const { container } = render(<FishSpinner palette={LIGHT} />);
+      expect([on, strip(container).style.animation.includes("steps"), strip(container).style.animationPlayState,
+              strip(container).parentElement!.style.animation.includes("fish-orbit")]).toEqual([on, true, "", true]);
+      cleanup();
+    }
   });
 
   it("unmounts cleanly even where the browser has no matchMedia", () => {

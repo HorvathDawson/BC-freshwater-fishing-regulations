@@ -12,7 +12,7 @@
  * there is none. The frames, the timings and the ring geometry all come from the one
  * generated file, so the two renderers cannot disagree about what is drawn.
  */
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { FISH_SPRITE } from "./fish-sprite.generated";
 import { SPINNER_WORDS } from "@app/core";
 import type { Palette } from "./theme";
@@ -32,27 +32,14 @@ function useKeyframes() {
   }, []);
 }
 
+/** (Owner 2026-11-17, T814: "we will ignore reduced motion for this") the fish always swims, reduced motion or not. */
 export function FishSpinner({ palette, size = 96, label = SPINNER_WORDS.loading, colour }:
   { palette: Palette; size?: number; label?: string; colour?: string }) {
   useKeyframes();
-  const [still, setStill] = useState(false);
-
-  useEffect(() => {
-    // A spinner is the one thing on screen that always moves, so it is the one thing
-    // "reduce motion" is most likely to have been turned on for.
-    const q = window.matchMedia?.("(prefers-reduced-motion: reduce)");
-    if (!q) return;
-    setStill(q.matches);
-    const on = (e: MediaQueryListEvent) => setStill(e.matches);
-    q.addEventListener("change", on);
-    return () => q.removeEventListener("change", on);
-  }, []);
-
   const ring = size * FISH_SPRITE.ring.radius * 2;
-  const play = still ? "paused" : "running";
 
   return (
-    <div role="progressbar" aria-label={label} aria-busy={!still}
+    <div role="progressbar" aria-label={label} aria-busy
          style={{ position: "relative", width: size, height: size }}>
       {/* the orbit, in its own colour — a circle looks the same at every angle, so it is
           not rotated */}
@@ -61,8 +48,7 @@ export function FishSpinner({ palette, size = 96, label = SPINNER_WORDS.loading,
                     marginLeft: -ring / 2, marginTop: -ring / 2, borderRadius: "50%",
                     border: `${Math.max(size * FISH_SPRITE.ring.width, 1)}px solid ${palette.line}` }} />
       <div style={{ position: "absolute", inset: 0, overflow: "hidden",
-                    animation: `fish-orbit ${FISH_SPRITE.orbitMs}ms linear infinite`,
-                    animationPlayState: play }}>
+                    animation: `fish-orbit ${FISH_SPRITE.orbitMs}ms linear infinite` }}>
         <div data-testid="fish-sprite" style={{
           width: size * FISH_SPRITE.frames, height: size,
           backgroundColor: colour ?? palette.live,
@@ -74,7 +60,6 @@ export function FishSpinner({ palette, size = 96, label = SPINNER_WORDS.loading,
           // than its box does not step by one frame.
           ["--fish-strip" as string]: `-${size * FISH_SPRITE.frames}px`,
           animation: `fish-page ${FISH_SPRITE.cycleMs}ms steps(${FISH_SPRITE.frames}) infinite`,
-          animationPlayState: play,
         }} />
       </div>
     </div>

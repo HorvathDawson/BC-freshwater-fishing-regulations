@@ -3,13 +3,15 @@
  * its routes, the route map's colouring, the lead gauge's reading or its quiet head, and the gauge switcher.
  */
 import { useCallback, useMemo, useRef, useState } from "react";
-import { speaks, leadOver, throughLakeStations, type DonorRow, type Horizon, type PanelAnswer, type Parameter, type Quantity,
+import { speaks, leadOver, smallWaterText, throughLakeStations, type DonorRow, type Horizon, type PanelAnswer, type Parameter, type Quantity,
          type WaterSource, type SectionId, type StationId } from "@app/data";
 import { aheadDays, CONDITIONS_WORDS, donorLastReport, FORECAST_DAY_WORDS, forecastDayMark, forecastDayName,
          forecastFigureLine, donorReads, donorSilent, donorState, leadGapLine, LEVEL_ONLY_LEAD, freshness, gaugeCountLine, noGaugeSentence,
-         readingAgeLine, readingHeading, readingIn, readingStanding, shownParameter, stageLine, stateAt,
+         ownGaugeMap, readingAgeLine, readingHeading, readingIn, readingStanding, shownParameter, stageLine, stateAt,
          type GaugeTrace, type SectionKey, type Standing, bcMidnight, shiftDay, wallIso, now } from "@app/core";
 import { useGaugeTrace, useStationReading } from "../hooks";
+import { askOnce } from "../answers";
+import { useAsync, type Async } from "../async";
 import { useBcToday } from "../today";
 import { routeLabels, routeValues, type RouteColourVM } from "../routeColour";
 import { useLastReports, type PanelFeed } from "./feed";
@@ -116,10 +118,40 @@ export interface ConditionsVM {
   ahead: { at: number; label: string } | null;
   /** (owner 2026-11-10) No gauge of this water answers in flow that day: the lead was chosen on level; the card says so. */
   leadNote: string | null;
+  /**
+   * (T823, owner 2026-11-16: "Allow, with a warning") The gauge shown (the lead or the reader's pick) is one the release
+   * flags as much bigger than this water: its sentence, word for word (`smallWaterText`); null otherwise.
+   */
+  smallWater: string | null;
   /** (T168) Each station's side, for the donor panel; null until read. */
   sides: GaugeSides;
   /** (T168) "2 gauges on this water · 5 estimating from other waters · 6 not reporting" (core `gaugeCountLine`). */
   count: string | null;
+  /**
+   * (T817) A gauged lake's own station, for its route map: where it stands and what its dot says (core `ownGaugeMap`).
+   * A lake has no donors, so its map held "you are here" alone, framed on a point in open water. Null for a panel.
+   */
+  own: { station: StationId; name: string; lat: number; lon: number; label: string; key: string; live: boolean } | null;
+}
+
+/**
+ * (T817) WHAT EACH GAUGE THAT SPEAKS FOR THIS SECTION MEASURES — its quantities as the bundle records them
+ * (`gaugeParameters`, through the same answer the card's toggle reads, `useGaugeParameters`) — for core's
+ * `conditionsOpening`. Ready with [] where nothing speaks.
+ */
+export function useSpeakerMeasures(source: WaterSource, section: SectionId | null):
+  Async<readonly (readonly Parameter[])[]> {
+  const spoken = useSpeaker(source, section);
+  const speaker = spoken.state === "ready" ? spoken.value.speaker : null;
+  const stations = speaker === null ? "" : speaker.kind === "lake" ? speaker.station
+    : speaker.panel.members.map((m) => m.station).join(",");
+  const got = useAsync(
+    () => Promise.all((stations ? stations.split(",") as StationId[] : []).map((st) =>
+      askOnce(source, `params:${st}`, () => source.gaugeParameters(st)))),
+    `measures:${section ?? ""}:${stations}`,
+    spoken.state === "ready",
+  );
+  return spoken.state === "failed" ? spoken : got;
 }
 
 /**
@@ -266,5 +298,10 @@ export function useConditionsView(
     gauges: gaugeChoices(panel.rows, lead, { ref, horizon }),
     gaugeGroups: gaugeChoiceGroups(panel.rows, lead, ask, sides),
     ahead, sides, count, leadNote: levelOnly ? LEVEL_ONLY_LEAD : null,
+    own: speaker?.kind === "lake" && spoken.state === "ready" && spoken.value.at
+      ? { station: speaker.station, name, ...spoken.value.at, live: reading !== null,
+          ...ownGaugeMap(speaker.station, { percentile: c?.percentile ?? null, observedAt: c?.observedAt ?? null }, ask) }
+      : null,
+    smallWater: smallWaterText(speaker, lead),
   };
 }

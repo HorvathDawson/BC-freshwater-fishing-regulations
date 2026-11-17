@@ -11,23 +11,35 @@ import { GUIDE_WATER, HELP_WORDS, SYNC_KINDS, WALKTHROUGH_VERSION, guideResumeAt
          walkthroughSeen, withGuideAt, withSeen, WALKTHROUGH_WORDS, type GuideStepWords } from "./help";
 
 describe("the walkthrough (T293)", () => {
-  it("one walk in the owner's order, every step with words; DO steps are the reader's taps", () => {
+  it("(T824) ten steps in the owner's order, every step with words; DO steps are the reader's taps", () => {
+    // (T824, owner 2026-11-16: "41 is way to many cut it down to like 8 or 10 items") was 41 on the phone, 29 on the web
     const app = guideSteps("app");
-    expect(app.filter((s) => s.kind === "do").map((s) => s.key))
-      .toEqual(["search", "pick", "map", "regs", "day", "trout", "salmon", "conditions", "forecast", "quantity", "span",
-                "partsmap", "upstream", "closedregs", "leave", "layers", "ground", "obstacles",
-                // (T466) the real creation of a spot, a tap at a time, then the spot on the map and in Spots
-                "spot", "add", "pin", "drop", "water", "when", "name", "save", "show", "open"]);
+    expect(app.map((s) => s.key)).toEqual(["welcome", "search", "pick", "answer", "day", "conditions", "reading", "leave",
+                                           "modes", "done"]);
+    expect(app.filter((s) => s.kind === "do").map((s) => s.key)).toEqual(["search", "pick", "day", "conditions", "leave", "modes"]);
     for (const s of app) { expect(s.title.length, s.key).toBeGreaterThan(3); expect(s.body.length, s.key).toBeGreaterThan(20); }
     expect(new Set(app.map((s) => s.key)).size).toBe(app.length);
   });
-  it("the web's walk has no spot steps (T302: spots are the phone app's) and its last step says no works-offline", () => {
+  it("(T824) the first card says each step HIGHLIGHTS what to tap; no card says ring", () => {
+    expect(guideText(guideSteps("app")[0]!.body, { name: GUIDE_WATER.name, letters: GUIDE_WATER.letters }))
+      .toBe("We'll look up the Vedder River together. Each step highlights what to tap: tap it, or tap Show me.");
+    const all = [...guideSteps("app"), ...guideSteps("web")].flatMap((s) => [s.title, s.body]);
+    for (const t of [...all, ...(Object.values(WALKTHROUGH_WORDS) as unknown[]).filter((v): v is string => typeof v === "string")])
+      expect(t, t).not.toMatch(/\bring(s|ed)?\b/i);
+  });
+  it("(T824) one short sentence a card (the first says how the walk works)", () => {
+    for (const s of [...guideSteps("app"), ...guideSteps("web")]) {
+      const sentences = s.body.split(/(?<=[.!?])\s+/);
+      expect(sentences.length, s.key).toBeLessThanOrEqual(s.key === "welcome" ? 2 : 1);
+      expect(s.body.split(/\s+/).length, s.body).toBeLessThanOrEqual(20);
+    }
+  });
+  it("the web's walk is the same walk (T302: spots are the phone app's): its last card names Help alone", () => {
     const web = guideSteps("web"), app = guideSteps("app");
-    const spotKeys = ["spot", "add", "pin", "drop", "water", "when", "name", "save", "show", "open", "days", "reasons"];
-    expect(web.map((s) => s.key)).toEqual(app.map((s) => s.key).filter((k) => !spotKeys.includes(k)));
+    expect(web.map((s) => s.key)).toEqual(app.map((s) => s.key));
     expect(web.filter((s) => s !== app.find((a) => a.key === s.key)).map((s) => s.key)).toEqual(["done"]);
-    expect(web.at(-1)!.body).not.toMatch(/offline|no signal|on this phone/);
-    expect(app.at(-1)!.body).toMatch(/no signal/);
+    expect(web.at(-1)!.body).not.toMatch(/Spots/);
+    expect(app.at(-1)!.body).toMatch(/Spots/);
   });
   it("names the chosen water, or any water when the release has none by that name", () => {
     const welcome = guideSteps("app")[0]!.body, search = guideSteps("app")[1]!.body;
@@ -35,16 +47,6 @@ describe("the walkthrough (T293)", () => {
     expect(guideText(search, { name: GUIDE_WATER.name, letters: GUIDE_WATER.letters })).toContain("“ved”");
     expect(guideText(welcome, null)).toContain("a water near you");
     expect(guideText(welcome, null)).not.toMatch(/\{|\}/);
-  });
-  it("(T466) the closed example's stretch is named, or said generally while the release is read; none: the step says so", () => {
-    const up = guideSteps("app").find((s) => s.key === "upstream")!.body;
-    expect(guideText(up, null, { part: "Slesse Creek → Reserve" })).toContain("until you reach “Slesse Creek → Reserve”.");
-    expect(guideText(up, null)).toContain(`until you reach “${WALKTHROUGH_WORDS.closedPartAny}”.`);
-    expect(guideText(WALKTHROUGH_WORDS.closedNone.body, { name: GUIDE_WATER.name, letters: GUIDE_WATER.letters }))
-      .toBe("This copy of the rules has no stretch near the Vedder River that is closed all year, so this bit of the tour is skipped.");
-    // the closed phase is every step about the example, and none of them depends on a season
-    expect(guideSteps("web").filter((s) => s.closed).map((s) => s.key)).toEqual(["partsmap", "upstream", "closedregs", "closed"]);
-    expect(guideSteps("web").find((s) => s.key === "salmon")!.title).not.toMatch(/closed/i);
   });
   it("(owner 2026-10-30) everyday words: no app-internal terms, short sentences", () => {
     // (T466) a control named by its own label ("Show regulations for this part") is the app's word, not the walk's
@@ -54,10 +56,6 @@ describe("the walkthrough (T293)", () => {
       expect(t, t).not.toMatch(/\b(paint|section|part|parts|verdict|feed|donor|release|synopsis|percentile|horizon|basin)\b/i);
       for (const sentence of t.split(/(?<=[.:!?])\s+/)) expect(sentence.split(/\s+/).length, sentence).toBeLessThanOrEqual(26);
     }
-  });
-  it("(T294-proof) the spot steps say a day you fished, not one visit", () => {
-    const days = guideSteps("app").find((s) => s.key === "days")!.body;
-    expect(days).toContain("a day you fished here");
   });
   it("seen only when the stored text is the current version", () => {
     expect([walkthroughSeen(null), walkthroughSeen(""), walkthroughSeen("walkthrough-2"), walkthroughSeen(WALKTHROUGH_VERSION),

@@ -37,6 +37,7 @@ export { SheetHost, type SheetHostProps } from "./regs/SheetHost";
 export { StripWidthHint } from "./regs/YearStrip";
 export { Credits } from "./Credits";
 export { LoadingState, useDelayedShow, SPINNER_TIMING } from "./LoadingState";
+export { COHO_WIDTH, cohoHeight } from "./coho";
 export { StageBar } from "./StageBar";
 export { ErrorState } from "./ErrorState";
 // (T746) the curtain over the app while a downloaded data release is put in use

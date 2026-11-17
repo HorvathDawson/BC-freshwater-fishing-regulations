@@ -7,6 +7,7 @@
  * the close. What it does NOT: the recognisers' own activation (`activeOffsetX`, `failOffsetY`, `hitSlop`) —
  * `fireGestureHandler` skips them — nor how any of it feels under a finger. That is the owner's, on a device.
  */
+import { useState } from "react";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { Text, View } from "react-native";
@@ -83,6 +84,23 @@ describe("<EdgeBack> (iOS only)", () => {
       return [os, has, text];
     });
     expect(found).toEqual([["android", false, "the water"], ["web", false, "the water"]]);
+  });
+
+  it("(T821) a swipe that went back holds the screen where it was let go until the screen it went back to is drawn", () => {
+    // build 36 put it home the moment the back was decided: the screen just swiped away stood whole again until the
+    // back's render landed ("it flashes the menu back for a second before it goes back")
+    const shift = () => (screen.getByText("the water").parentElement as HTMLElement).style.transform;
+    let redraw: () => void = () => {};
+    function Host() {
+      const [, setN] = useState(0);
+      redraw = () => setN((n) => n + 1);
+      return <Edge back={() => true} />;
+    }
+    render(<Host />);
+    fire("edge-back", pan(5, 120));
+    const held = shift();
+    act(() => redraw());
+    expect([held, shift()]).toEqual(["translateX(120px)", "translateX(0px)"]);
   });
 });
 

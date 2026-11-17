@@ -23,6 +23,7 @@
   },
   "peerDependencies": {
     "expo-file-system": "*",
+    "expo-image-manipulator": "*",
     "expo-sqlite": "*",
     "sql.js": "*"
   },

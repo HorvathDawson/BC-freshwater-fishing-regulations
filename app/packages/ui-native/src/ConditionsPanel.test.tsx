@@ -175,6 +175,53 @@ describe("the conditions panel", () => {
       .toEqual(["Today's reading", "12.5", "Mon 7 Sep, forecast: Reads normal · lower than 6 days in 10."]);
   });
 
+  /*
+   * (T823, owner 2026-11-16: "Allow, with a warning") THE SMALL-WATER SENTENCE rides on the panel the release hands over
+   * (`Panel.small`: Python's flags and the conditions meta's words); the card shows it, word for word, only while the
+   * gauge it shows is a flagged one — the lead, or the reader's pick. Mutations: showing it for any flagged member (not
+   * the shown one) fails "an unflagged lead"; dropping it from the card fails "a flagged lead"; reading `leadOver`'s lead
+   * instead of the pick's fails "a picked flagged gauge".
+   */
+  describe("(T823) the small-water warning beside the gauge shown", () => {
+    const WORDS = "the release's own sentence, as Python wrote it";
+    const NOW = { discharge: 12.5, level: 1.2, percentile: 0.15, standing: "below", at: "2026-09-04T06:00:00Z" };
+    const show = async (panel: Panel) => {
+      render(<ConditionsPanel source={sourceWith(NOW, panel)} section={SEC} palette={LIGHT} feed={feed}
+                              scroll={false} day={new Date(2026, 8, 4, 12)} />);
+      await waitFor(() => expect(screen.getByTestId("reading-figure")).toBeTruthy());
+    };
+    it("a flagged lead: the sentence, whole", async () => {
+      await show({ ...PANEL, small: { stations: ["LEAD" as never], text: WORDS } });
+      expect(screen.getByTestId("small-water").textContent).toBe(WORDS);
+    });
+    it("an unflagged lead (another member flagged), or no flags at all: no sentence", async () => {
+      await show({ ...PANEL, small: { stations: ["OTHER" as never], text: WORDS } });
+      expect(screen.queryByTestId("small-water")).toBeNull();
+      cleanup(); clearPanelCache();
+      await show(PANEL);
+      expect(screen.queryByTestId("small-water")).toBeNull();
+    });
+    it("a picked flagged gauge: the sentence comes with the pick", async () => {
+      const big = { ...PANEL.members[0]!, station: "BIG" as never, areaKm2: 9000 };
+      const panel: Panel = { ...PANEL, members: [...PANEL.members, big], small: { stations: ["BIG" as never], text: WORDS } };
+      const source = { ...sourceWith(NOW, panel) as object,
+        panelRoutes: async () => [{ station: "LEAD", name: "Lead Creek near Town", lat: 49, lon: -122, role: "up", path: [SEC] },
+                                  { station: "BIG", name: "Big River at Town", lat: 49.1, lon: -122, role: "down", path: [SEC] }],
+      } as unknown as WaterSource;
+      const both = { index: async () => ({ stations: {
+        LEAD: { percentile: 0.15, parameter: "discharge" as const, discharge: 0.15 },
+        BIG: { percentile: 0.5, parameter: "discharge" as const, discharge: 0.5 } } }) };
+      render(<ConditionsPanel source={source} section={SEC} palette={LIGHT} feed={both} scroll={false}
+                              day={new Date(2026, 8, 4, 12)} />);
+      await waitFor(() => expect(screen.getByTestId("gauge-title").textContent).toBe("Lead Creek near Town"));
+      expect(screen.queryByTestId("small-water")).toBeNull();
+      fireEvent.click(screen.getByTestId("gauge-pick"));
+      fireEvent.click(screen.getByRole("radio", { name: /Big River at Town/ }));
+      await waitFor(() => expect(screen.getByTestId("gauge-title").textContent).toBe("Big River at Town"));
+      expect(screen.getByTestId("small-water").textContent).toBe(WORDS);
+    });
+  });
+
   it("refuses in words where no gauge may speak", async () => {
     render(<ConditionsPanel source={sourceWith(null, null)} section={SEC} palette={LIGHT}
                             feed={feed} scroll={false} />);

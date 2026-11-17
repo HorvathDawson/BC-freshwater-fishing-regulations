@@ -44,7 +44,7 @@ import { Text } from "./Text";
 import { Pressable } from "./Pressable";
 import type { MapProps, TileEndpoints } from "@app/map";
 import type { StationId } from "@app/data";
-import { useDonorView, useHeldHeight, type DonorRowVM, type GaugeSides, type Horizon, type HorizonChipVM, type PanelAnswer,
+import { useDonorView, useHeldHeight, type DonorRowVM, type DonorViewOptions, type GaugeSides, type Horizon, type HorizonChipVM, type PanelAnswer,
          type Quantity } from "@app/ui";
 import { DonorMap, routeMapHeight } from "./DonorMap";
 import { useGuideControl } from "./guideControls";
@@ -85,7 +85,7 @@ const placeMid = (b: readonly [number, number, number, number] | null | undefine
 
 export function DonorPanel({ palette, value, day, askedAt, at, theme, from, selected, onSelect,
                              horizon = 0, onHorizon, chain: chainProp, standing,
-                             detail, chart, foot, after, quantity, sides, count, waterLine, place, holdKey }: {
+                             detail, chart, foot, after, quantity, sides, count, waterLine, place, holdKey, own }: {
   palette: Palette; value: PanelAnswer;
   /**
    * The quantity the answer is in, when the caller knows it (the conditions sheet: the one the map paints). Only the
@@ -143,6 +143,8 @@ export function DonorPanel({ palette, value, day, askedAt, at, theme, from, sele
   holdKey?: string;
   /** (T175) The water's box, framed with the gauges when no tap says where the reader is (`DonorViewOptions.place`). */
   place?: readonly [number, number, number, number] | null;
+  /** (T817) A gauged lake's own station, pinned on its route map (`DonorViewOptions.own`). */
+  own?: DonorViewOptions["own"];
 }) {
   /*
    * MEASURED, NOT ASSUMED. The panel is rendered at every width from a phone to a desktop
@@ -172,7 +174,8 @@ export function DonorPanel({ palette, value, day, askedAt, at, theme, from, sele
   const vm = useDonorView(value, { day, ...(askedAt !== undefined ? { ref: askedAt } : {}), horizon, from: from ?? null,
                                    size: { width: mapWidth, height: mapH },
                                    selected: selected ?? null, pickable: !!onSelect,
-                                   ...(quantity ? { quantity } : {}), sides: sides ?? null, place: place ?? null });
+                                   ...(quantity ? { quantity } : {}), sides: sides ?? null, place: place ?? null,
+                                   own: own ?? null });
 
   /**
    * A donor's colour — GREY WHEN IT IS QUIET. A station that is not reporting contributes nothing, and a live tone would
@@ -182,7 +185,9 @@ export function DonorPanel({ palette, value, day, askedAt, at, theme, from, sele
    */
   const quietAt = new Map(vm.ok ? [...vm.rows, ...(vm.groups ?? []).flatMap((g) => [...g.shown, ...g.folded])]
     .map((r) => [r.row, r.quiet]) : []);
-  const toneOf = (i: number | null) => donorTone(palette, i, vm.ok ? i !== null && !!quietAt.get(i) : i !== null);
+  // (T817) on a refusal every member is quiet-toned, but a gauged lake's own station with a reading is drawn live
+  const toneOf = (i: number | null) => donorTone(palette, i, vm.ok ? i !== null && !!quietAt.get(i)
+    : i !== null && i !== vm.map?.liveRow);
   const map = vm.map;
   /*
    * (T568) THE ROUTE MAP HAS ONE PLACE IN THE SHEET: under the estimate tile (or the refusal), over the chart, whatever

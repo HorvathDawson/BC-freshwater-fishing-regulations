@@ -20,6 +20,7 @@ import { hitProps } from "../regs/hit";
 import { withWebProps } from "../gestureWeb";
 import { usePhotoWheel } from "../photoInput";
 import { ModalBack } from "../ModalBack";
+import { WindowInsets } from "../WindowInset";
 
 const SWIPE = 50;
 /** the browser keeps no touch scrolling over the photo: every touch is the viewer's */
@@ -109,6 +110,9 @@ export function PhotoViewer({ uris, index, onIndex, onClose, palette }: {
       {/* (T723 F7) iOS: the left-edge swipe is the back here, as Android's back is */}
       <ModalBack onBack={requestClose}>
       <GestureHandlerRootView testID="photo-viewer" style={{ flex: 1, backgroundColor: palette.ink }}>
+        {/* (T815) its own window, drawn under the bars: the close and the arrows kept clear of the status bar / notch
+            (iPhone build 36 had the ✕ under the clock) and the home indicator, as a menu page is (T50) */}
+        <WindowInsets style={{ flex: 1 }}>
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 12 }}>
           <Text style={{ ...TYPE.small, color: palette.card }}>{photoLabel(index + 1, n)}</Text>
           <Pressable {...hitProps({ w: 48, h: 48 })} onPress={onClose} accessibilityRole="button"
@@ -123,6 +127,7 @@ export function PhotoViewer({ uris, index, onIndex, onClose, palette }: {
                      missing={PHOTO_WORDS.missing} />
           {arrow(1, PHOTO_WORDS.next, "next")}
         </View>
+        </WindowInsets>
       </GestureHandlerRootView>
       </ModalBack>
     </Modal>

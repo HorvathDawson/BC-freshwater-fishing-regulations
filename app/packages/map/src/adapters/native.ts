@@ -20,7 +20,7 @@ import { unionBbox, bboxOfGeometry, type Bbox } from "@app/core";
 import { baseAdapter, type MapAdapter, type MapRenderer } from "./contract";
 import {
   NOT_FISHING_LAYERS, OBSTACLE_LAYERS, SECTION_SOURCE_LAYERS, VISIBLE_LAYERS, WATER_SOURCE_LAYERS, firstNotFishing, firstObstacle, pickSection,
-  onceSink, sectionIdOf, stateHandle,
+  onceSink, sectionIdOf, stateHandle, unsetValue,
   tapBox, visibleSections,
 } from "../sections";
 import { mirrorSink, type LitFeature } from "../water-copy";
@@ -69,9 +69,10 @@ export function nativeRenderer(refs: NativeRefs, report: (e: unknown) => void, m
     // and `water` from the old ids, set them on the new) left 316504 at `water` and unlit, and 316505 lit AND
     // `water` (the Coquitlam's "sliver", measured on the emulator by `getFeatureState`). A null write is a set: it
     // goes in order with the others, and every paint reads a null state as unset (`["boolean", …, false]`).
+    // (T826) a highlight key is written `false`, not null: iOS's bridge drops a null-valued key (`unsetValue`)
     remove: (t: { source: string; sourceLayer: string }, id: string | number, key: string) => {
       const src = refs.atlas();
-      if (src && ours(t)) void src.setFeatureState({ id, sourceLayer: t.sourceLayer }, { [key]: null }).catch(fail);
+      if (src && ours(t)) void src.setFeatureState({ id, sourceLayer: t.sourceLayer }, { [key]: unsetValue(key) }).catch(fail);
     },
   };
   // (T175) every state for one of the water copy's sections goes to the copy as well — the one pathway, twice written

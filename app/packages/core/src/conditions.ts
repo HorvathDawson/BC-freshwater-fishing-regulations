@@ -152,6 +152,39 @@ export function leadGapLine(dayName: string): string {
 /** (T567) The water reports level only today, so its lead gauge was chosen on level. */
 export const LEVEL_ONLY_LEAD = "No gauge here reports flow today, so the gauge shown is chosen on water level.";
 
+/** (T817) The line at the top of a level-only water's Conditions view. */
+export const LEVEL_ONLY_WATER = "Level only: no flow is measured here.";
+
+/** (T817) Where a water's Conditions view opens, the line it opens with (null: none), and what its switch offers. */
+export interface ConditionsOpening {
+  quantity: "discharge" | "level";
+  note: string | null;
+  /**
+   * The Flow / Level switch's choices: every quantity a gauge that speaks for the water measures, Flow first — the same
+   * whichever is shown, so a pick never takes a choice away (owner 2026-11-16 on the Chehalis: "when you click level …
+   * you can never go back to flow"). Null where nothing is known (the card offers what its gauge has, as before).
+   */
+  offer: readonly ("discharge" | "level")[] | null;
+}
+
+/**
+ * (T817, owner 2026-11-16 on Harrison Lake: "if only level data exists it should show level data. just mention at top it
+ * is level data") WHERE A WATER'S CONDITIONS VIEW OPENS, AND WHAT IT OFFERS — the one decision. `measured` is what each
+ * gauge that speaks for the water has a record of (the bundle's `gauge_clim`, per station: the quantities the card can
+ * chart); null while it is being read. Flow leads wherever any of those gauges measures flow (owner 2026-11-10: the view
+ * opens on `opening`, Flow); only where none does and one measures level does it open on Level, saying so. A water no
+ * gauge measures in either opens as asked: the card's own refusal speaks for it. The lead gauge is never chosen here
+ * (`leadOver`, in Flow): a quantity is a view of the same gauge.
+ */
+export function conditionsOpening(measured: readonly (readonly string[])[] | null,
+                                  opening: "discharge" | "level" = "discharge"): ConditionsOpening {
+  const any = (q: string) => measured?.some((m) => m.includes(q)) ?? false;
+  const offered = (["discharge", "level"] as const).filter(any);
+  const offer = offered.length ? offered : null;
+  return !any("discharge") && any("level") ? { quantity: "level", note: LEVEL_ONLY_WATER, offer }
+    : { quantity: opening, note: null, offer };
+}
+
 /** The chart's mark for the day asked: "Wed 12 Nov" (T604: as the text line above the chart says it). */
 export function forecastDayMark(dayName: string): string {
   return dayName;

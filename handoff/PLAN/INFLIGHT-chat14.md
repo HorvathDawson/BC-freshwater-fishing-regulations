@@ -102,6 +102,19 @@ its `_reindex`), dfo_vectors --check with both in.
   pass. Diffs: scratchpad/rebuild3b/answers-diff/{vs-live (966), vs-salmon (168), vs-rebuild2 (0)}. Marks NOT edited:
   the moved-binding marks go on the owner's re-tick list (OWNER-TODO). NEXT when he OKs the list: merge
   land/rebuild-1116 into main (full tier), then Babine line re-save, DFO Babine re-mark, T807/T804, staging release.
+  **09:02 11-17: owner answered** (OWNER-TODO 08:37-08:58): Babine east closed all year (split done like Williston /
+  Kootenay / Shannon); Hazelwood ponds part of the creek; T830 raw level; Kaslo/Keen read like the Lardeau AND
+  automatic -> T834 (worker aefa9ff1e764c0ea2, lane/t834-share-lift, inventory + one Python rule + answers diff).
+  Re-tick: none; marks carried (02f0fedca, data/curated/review/owner_carries.json for Cowichan whole + Gitnadoix).
+  land/rebuild-1116 MERGED as a5638c5e7; Babine line re-saved + closed_areas applied (aa69b89d6); full tier b9650jdf6
+  running (scratchpad/tier-rebuild.log), then push. NEXT: T834 lands -> ONE rebuild (deliver; atlas only if needed)
+  -> staging release (`--staging --dry-run --rehearse-follows` first). DFO Babine re-mark: not needed (marks carried).
+  **10:55 11-17: T834 REWORK.** Side build 916965dc7 (lift model) REJECTED by the owner (OWNER-TODO ~10:38-10:50):
+  Kaslo/Keen stay 2 in all; Lardeau 7 (5 rainbow + 2 bull). New model = day pool max(region cap, sum of own quotas),
+  replacing the region total there. Worker aefa9ff1e764c0ea2 resumed on the same lane/worktree; owner page with
+  "was X, now Y" per water comes back first. 3f440729a pushed; app chat pushed f7b41c208 on top (CI running, hold push
+  until its "CI green"). Local unpushed: 42d8212d7 (answers + T835 step-cache /tmp ticket). Plan unchanged: T834 ->
+  ONE data build (also carries Babine closes_item) -> staging release.
 - trout J back 00:05 11-17, merged locally as 02e51cfdc (mini release re-cut on merge); tier running, then push.
   01:53 11-17: worker done; lane/trout-vpy merged locally as 5d6ac8283 (6 keys fixed, proof 5,950/5,950, 0 problems; V-py:
   trout_vectors 53 cases, trout-hand 14, own trout fixture app/fixtures/trout/, scripts/trout-refresh.sh). Tier b806pz7n9

@@ -8,7 +8,7 @@
  *   - It is DRAWN only once the wait has lasted `SPINNER_TIMING.showAfterMs` (300 ms) and then stays at least `holdMs`
  *     (400 ms): an apply quicker than that never flashes; a longer one never looks frozen (the fish turns on the native
  *     driver / in CSS, so a JS-thread commit does not stop it).
- *   - Drawn, it is the boot screen's look: the card colour, the loading fish at the centre, one line beneath.
+ *   - Drawn, it is the boot screen's look: the card colour, the coho loader at the centre (T814), one line beneath.
  *   - A failed apply says so here, at once, until the reader closes it (the failure itself is reported where it was
  *     caught, `@app/ui` `useReleaseBoot`); the app keeps the data it had.
  */
@@ -18,11 +18,10 @@ import { useBackLayer } from "@app/ui";
 import { Text } from "./Text";
 import { ErrorState } from "./ErrorState";
 import { LoadingState, useDelayedShow } from "./LoadingState";
+import { COHO_WIDTH } from "./coho";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
 
-/** The fish's size: the boot screen's (`BOOT_FISH`, apps/mobile App.tsx), so the two read as the same screen. */
-const FISH = 110;
 const NOTHING = () => {};
 
 export function ApplyCurtain({ palette, applying, failed, onClose, line }: {
@@ -57,7 +56,8 @@ export function ApplyCurtain({ palette, applying, failed, onClose, line }: {
           ) : (
             <>
               {/* the screen reader hears the line that is drawn */}
-              <LoadingState palette={palette} size={FISH} label={line} shown />
+              {/* (T814) the coho loader, at the boot screen's size, so the two read as the same screen */}
+              <LoadingState palette={palette} size={COHO_WIDTH} label={line} shown coho />
               <Text testID="apply-line" style={{ ...TYPE.body, fontSize: 15, color: palette.ink, textAlign: "center" }}>
                 {line}
               </Text>
