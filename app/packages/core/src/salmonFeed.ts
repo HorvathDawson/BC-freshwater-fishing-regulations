@@ -22,7 +22,7 @@ import { MONTHS } from "./calendar.generated";
 import { BC_TIME_LABEL } from "./clock";
 import { bcFields } from "./day";
 import { FEED_FORMATS } from "./feedFormats.generated";
-import { dfoRow, salmonCard, salmonDayIndex, type SalmonUnplacedPlace, type SalmonCardVM, type SalmonFacts, type SalmonGearInput, type SalmonMapStatus, type SalmonNote, type SalmonBucket, type SalmonHours, type SalmonShared, type SalmonSizes, type SalmonWords } from "./salmon";
+import { closedByHeader, dfoRow, salmonCard, salmonDayIndex, type SalmonUnplacedPlace, type SalmonCardVM, type SalmonFacts, type SalmonGearInput, type SalmonMapStatus, type SalmonNote, type SalmonBucket, type SalmonHours, type SalmonShared, type SalmonSizes, type SalmonWords } from "./salmon";
 
 type Payload = SalmonFacts["payload"];
 type Chain = Payload["chains"][number];
@@ -309,17 +309,6 @@ function composeChainOn(daysOf: (runs: Iterable<readonly number[]>) => number[],
   const n = speaks ? runsOf(sp[0]!.map((_, day) => (sp.some((x) => !V[x[day]!]!.d) ? 1 : 0))) : null;
   const a = who ? answeringPlaces(spr, lids.map((l) => feed.locs[l]), groups, daysOf) : null;
   return { sp: spr, g: runsOf(g), m: runsOf(m), ...(c.length ? { c } : {}), ...(n ? { n } : {}), ...(a ? { a } : {}) };
-}
-
-/** (T356) the pipeline's `deliver.salmon.closed_by_header`: the header notes answering every species every day, else [] */
-function closedByHeader(sp: readonly (readonly number[])[], V: readonly Verdict[]): string[] {
-  const ids = new Set<string>();
-  for (const runs of sp) for (let k = 1; k < runs.length; k += 2) {
-    const c = runs[k]! >= 0 ? V[runs[k]!]!.c : undefined;
-    if (!c) return [];
-    ids.add(c);
-  }
-  return [...ids].sort();
 }
 
 function wordsWithFeed(release: Readonly<Record<string, readonly SalmonWords[]>>, feed: SalmonFeed): Record<string, readonly SalmonWords[]> {

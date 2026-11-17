@@ -374,6 +374,28 @@ function at(runs: readonly number[], day: number): number {
   return v;
 }
 
+/**
+ * (T356) THE HEADER'S CLOSURE EVERY DAY, the pipeline's `deliver.salmon.closed_by_header`: the region header notes whose
+ * verdicts answer every species on every day, else []. The live feed's `c` (`composeChain`) and the card both ask it.
+ * (T796 X1) `book`: per species, runs of the answering place (a chain's `a`) and which places are the rule book's — the
+ * days a book place answers are left out (they are the book's, not DFO's); no day left is no header closure.
+ */
+export function closedByHeader(sp: readonly (readonly number[])[], V: readonly Verdict[],
+                               book?: { readonly a: readonly (readonly number[])[]; readonly is: (place: number) => boolean }): string[] {
+  const ids = new Set<string>();
+  const starts = (runs: readonly number[]) => runs.filter((_, k) => k % 2 === 0);
+  for (let k = 0; k < sp.length; k++) {
+    const who = book?.a[k];
+    for (const day of new Set([...starts(sp[k]!), ...(who ? starts(who) : [])])) {
+      if (who && book!.is(at(who, day))) continue;
+      const v = at(sp[k]!, day), c = v >= 0 ? V[v]!.c : undefined;
+      if (!c) return [];
+      ids.add(c);
+    }
+  }
+  return [...ids].sort();
+}
+
 /** What the Salmon colouring paints a chain on a day. */
 export function salmonChainStatus(f: SalmonFacts, chain: number, day: number): SalmonMapStatus | null {
   const c = f.payload.chains[chain];
@@ -855,14 +877,23 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
   // (T227, owner 2026-10-28) A REGION-WIDE CLOSURE: the region's header says "There is no fishing for salmon in Region 4
   // … until further notice" — the header's closure is the answer, every day: one closed row in its words, no bar, no
   // partial line. (T356) The pipeline says which chains it closes (`c`, `quota.header_closure`): looked up, not inferred.
-  const shut = (c: number) => !!P.chains[c]!.c?.length;
+  // (T796 X1) where the rule book's closure stands first on such a chain, the header's closure on every other day
+  // (`headerClosure`): still the region's one statement, the book's closure a note on it
+  const shut = (c: number) => headerClosure(P, c).length > 0;
   const regionClosed = unmapped.every((u) => u.d || shut(u.chain)) && chains.some((c) => c !== def)
     && chains.every((c) => c === def || shut(c));
-  const closedWords = regionClosed
-    ? [...new Set(chains.flatMap((c) => (c === def ? [] : P.chains[c]!.c!.map((id) => closureNote(P, P.chains[c]!, id)!))))] : [];
+  const closedWords = regionClosed ? [...new Set(chains.flatMap((c) => (c === def ? [] : headerClosure(P, c).map((id) => {
+    const n = closureNote(P, P.chains[c]!, id);
+    if (!n) throw new SalmonError(`salmon: chain ${c}: closure ${id} is no note of its regions`);
+    return n;
+  }))))] : [];
+  // (T796, owner 2026-11-16 15:19: "we need to make sure it says where the closure is from") the rule book's closures
+  // answering today, named; a row's note that is one of them says its dates ("all year" where its words carry none)
+  const book = bookToday(f, chains, day);
   const block: SalmonBlockVM = regionClosed
     ? { allClosed: true, gear: [], rows: [{ key: "all", species: SALMON_SPECIES, label: SALMON_WORDS.all, status: "closed",
-                                             statusLabel: SALMON_WORDS.status.closed, notes: closedWords.map((n) => n.t) }] }
+                                             statusLabel: SALMON_WORDS.status.closed,
+                                             notes: [...closedWords.map((n) => n.t), ...book.map((b) => b.words)] }] }
     : salmonBlock(f, chains, day);
   // (T372, owner 2026-11-03: the trout way) PARTIAL COVERAGE: the rows keep the drawn answer; the DFO places on the
   // water not drawn yet — the water's own (`unmapped`) and those its chains name (`u`) — are the "in part" caveat
@@ -916,11 +947,9 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
     }
     return parts.size ? [...parts].join(SALMON_WORDS.fromSep) : null;
   };
-  // (T796, owner 2026-11-16 15:19: "we need to make sure it says where the closure is from") the rule book's closures
-  // answering today, named; a row's note that is one of them says its dates ("all year" where its words carry none)
-  const book = regionClosed ? [] : bookToday(f, chains, day);
   const bookWords = new Map(book.map((b) => [b.t, b.words]));
-  const todayBy = regionClosed ? "dfo" : sourceBy(P, chains, (a) => [at(a, day)]);
+  // (T796 X1) a region closed by its page: DFO's, and the book's too on a day its closure answers
+  const todayBy = regionClosed ? (book.length ? "both" : "dfo") : sourceBy(P, chains, (a) => [at(a, day)]);
   const rows = block.rows.map((row0) => {
     const row = bookWords.size ? { ...row0, notes: row0.notes.map((n) => bookWords.get(n) ?? n) } : row0;
     const from = regionClosed ? null : fromOf(row.species);
@@ -1041,6 +1070,22 @@ function finfishToday(f: SalmonFacts, chains: readonly number[], day: number): s
 
 /** (T796) a chain's `a` value names a rule-book place (not DFO's, nobody, or both regions' words together) */
 const isBookAt = (P: Payload, ch: Chain, v: number): boolean => v >= 0 && isBook(P.p![ch.l[v]!]!);
+
+/**
+ * (T227, T356) THE REGION HEADER NOTES THAT CLOSE A CHAIN, for the card's region-closed shape: the chain's `c` (the
+ * pipeline's, or the live feed's `composeChain`), looked up. (T796 X1) `c` means "every day is the header's", so where the
+ * rule book's closure stands first on a chain both drop it (`deliver.salmon._book_chain`, `composeChain` over the static
+ * places): the header still closes it every day the book does not — `closedByHeader` over the days DFO's places answer
+ * (`a`) — and, as `c` asks, every undrawn place the chain names is closed by the header too. Offline and under a feed
+ * alike: both carry the book days in `a`. A chain the book answers every day has no header day: the book's own card.
+ */
+function headerClosure(P: Payload, c: number): readonly string[] {
+  const ch = P.chains[c]!;
+  if (ch.c?.length || !ch.a || !ch.l.some((l) => { const p = P.p?.[l]; return !!p && isBook(p); })) return ch.c ?? [];
+  const ids = closedByHeader(ch.sp, P.verdicts, { a: ch.a, is: (v) => isBookAt(P, ch, v) });
+  const undrawnShut = P.unmapped.every((u) => u.d || !P.chains[u.chain]!.l.some((l) => ch.u?.includes(l)) || !!P.chains[u.chain]!.c?.length);
+  return undrawnShut ? ids : [];
+}
 
 /**
  * (T796, owner 2026-11-16 15:19) whose answers these chains' salmon are on the days asked (`who`: the `a` values of a

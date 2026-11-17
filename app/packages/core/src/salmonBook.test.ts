@@ -361,3 +361,94 @@ describe("(T796 W2) two book closures on one stretch: each one's words carry its
     });
   }
 });
+
+// ── (T796 X1) A REGION ITS DFO PAGE CLOSES KEEPS THE REGION-CLOSED CARD WHERE THE BOOK CLOSES IT TOO ───────────────────────
+// The adversarial review's X1 (320,369 sections of Regions 4, 5 and 7): Region 4's page says "There is no fishing for
+// salmon in Region 4 … until further notice" (the header's closure, `c`), and the book's spring closure (p.34) now stands
+// first on the same chains. `c` means "every day is the header's", so the pipeline (`_book_chain`) and the live feed
+// (`composeChain`) both drop it there, and the card lost T227's one closed statement for a year bar and per-day rows.
+// Chain 1 is the release before the book (r-46e4355a7277 chain 139); chain 2 the candidate's chain 696 as shipped (the
+// spring closure Apr 1–Jun 14, `c` dropped); chain 3 a book closure every day (no header day left): the book's own card.
+const R4_NOTE = "4:closed:21698e56", R4_WORDS = "There is no fishing for salmon in Region 4 - Kootenays until further notice.";
+const SPRING = "book:z4:spring_stream_closure::spring_stream_closure.r1", R4_REGION = "4:region:section";
+const SPRING_WORDS = `${BOOK_HEAD} (p.34): No Fishing: in any stream in Region 4 from Apr 1-June 14 (see tables for additional closed `
+  + "times or exceptions). (Apr 1–Jun 14)";
+const PARKS = "book:zp:superior_closures::superior_closures.r1", PARKS_WORDS = `${BOOK_HEAD} (p.9): Freshwater fishing is prohibited in National Parks`;
+const R4_HEADER = { s: "closed", t: R4_WORDS, c: R4_NOTE } as const;
+const REGION_4 = {
+  format: "salmon/4", credit: PAYLOAD.credit, default: 0, scopes: {}, unmapped: [], gears: [],
+  regions: { "4": { name: "Kootenays", asof: "2026-08-01", url: "https://www.pac.dfo-mpo.gc.ca/",
+                    notes: [{ id: R4_NOTE, k: "closed", t: R4_WORDS, fold: "closure" }], shared: [], sizes: [] } },
+  verdicts: [NOT_OPENED, R4_HEADER, { s: "closed", t: SPRING_WORDS }, { s: "closed", t: PARKS_WORDS }],
+  chains: [
+    { r: [], w: "", l: [], sp: five([0, 0]), g: [0, -1], m: [0, 3] },
+    { r: ["4"], w: "All Region 4 waters", l: [R4_REGION], sp: five([0, 1]), g: [0, -1], m: [0, 3], a: five([0, 0]), c: [R4_NOTE] },
+    { r: ["4"], w: "All Region 4 waters", l: [SPRING, R4_REGION], sp: five([0, 1, 91, 2, 166, 1]), g: [0, -1], m: [0, 3],
+      a: five([0, 1, 91, 0, 166, 1]) },
+    { r: ["4"], w: "All Region 4 waters", l: [PARKS, R4_REGION], sp: five([0, 3]), g: [0, -1], m: [0, 3], a: five([0, 0]) },
+  ],
+  p: { [R4_REGION]: { r: "4", sec: "region" },
+       [SPRING]: { r: "4", water: "Every stream in Region 4", static: 1, book: { rule: "z4:spring_stream_closure::spring_stream_closure.r1", pages: [34] } },
+       [PARKS]: { water: "National Parks", static: 1, book: { rule: "zp:superior_closures::superior_closures.r1", pages: [9] } } },
+  static: { [SPRING]: { sp: five([0, -1, 91, 2, 166, -1]), g: [0, -1] }, [PARKS]: { sp: five([0, 3]), g: [0, -1] } },
+};
+const r4Facts = (): SalmonFacts => ({ ...facts(REGION_4), chains: 4, chainOf: (sid) => (sid >= 1 && sid <= 3 ? sid : 0) });
+/** Region 4's page today: the header's closure every day, its own verdict table (other indices) */
+const r4Feed = () => FEED({ regions: { "4": { name: "Kootenays", url: "", asof: "2026-10-01", checked: null, stale: false, held: null } },
+                            verdicts: [NOT_OPENED, { s: "open", t: "padding" }, R4_HEADER] as never,
+                            locs: { [R4_REGION]: { r: "4", sp: five([0, 2]), g: [0, -1] } } });
+
+describe("(T796 X1) a region closed by its DFO page keeps its one closed statement where the book closes it too", () => {
+  for (const [how, f] of [["offline (the release)", r4Facts], ["under a live feed", () => withSalmonFeed(r4Facts(), r4Feed())]] as const) {
+    it(`${how}: Jul 1 (no book day) the card is the region closure's, whole; May 1 the same with the book's line as a note`, () => {
+      const F = f();
+      const card = (sid: number, day: Date) => salmonCard(F, { sids: [sid], item: null }, day);
+      // a non-book day: exactly the card of the region before the book — one closed row in the header's words, no bar
+      const jul = card(2, on(7, 1));
+      expect(jul).toEqual(card(1, on(7, 1)));
+      expect([jul.badge, jul.rows.map((r) => [r.label, r.statusLabel, r.notes, r.from ?? null]), jul.closedOnly, jul.year.bars,
+              salmonStripOf(jul, null), salmonGlance(jul)]).toEqual(["DFO", [["Salmon", "Closed", [R4_WORDS], null]], true, [], null,
+        { source: "dfo", thumb: "CO", name: "Salmon", value: "closed", tone: "closed", fold: false }]);
+      // a book day: still the region's one statement (no bar, no per-species rows), and the book names its closure —
+      // source, page, line, dates — on the row, in the source fold, on the plain Keep row and in the badge
+      const book = { from: "Rule book p.34 · Every stream in Region 4", words: SPRING_WORDS };
+      const before = card(1, on(5, 1)), may = card(2, on(5, 1));
+      expect(may).toEqual({ ...before, badge: "Rule book · DFO", rows: [{ ...before.rows[0]!, notes: [R4_WORDS, SPRING_WORDS] }], book: [book],
+                            sourceTitle: "Sources (rule book and DFO)", note: FOLD_BOOK.note });
+      expect([may.closedOnly, may.year.bars, salmonStripOf(may, null), salmonGlance(may)]).toEqual([true, [], null,
+        { source: "dfo", thumb: "CO", name: "Salmon", value: "closed", tone: "closed", fold: false, book: [book] }]);
+      expect([salmonChainStatus(F, 2, salmonDayIndex(on(5, 1))), salmonChainStatus(F, 2, salmonDayIndex(on(7, 1)))]).toEqual(["closed", "closed"]);
+    });
+
+    it(`${how}: a book closure on every day leaves no day the header's — the book's own card, its bar named by the book`, () => {
+      const park = salmonCard(f(), { sids: [3], item: null }, on(7, 1));
+      const words = `${PARKS_WORDS} (all year)`;
+      expect([park.badge, park.rows.map((r) => [r.notes, r.from]), park.closedOnly, salmonStripOf(park, null)?.title])
+        .toEqual(["Rule book", [[[words], "Rule book p.9 · National Parks"]], true, "Salmon (rule book)"]);
+    });
+  }
+
+  // as `c` asks: a DFO place on the water not drawn yet (`u`) must be closed by the header too, or the card keeps its caveat
+  const OTHER = "4:kootenay-river:whole";
+  const withUndrawn = (v: number, closed: boolean) => ({
+    ...REGION_4, verdicts: [...REGION_4.verdicts, { s: "open", t: "2 per day (Jan 1–Dec 31)" }],
+    p: { ...REGION_4.p, [OTHER]: { r: "4", water: "Kootenay River" } },
+    unmapped: [{ items: ["gnis:1"], r: "4", w: "Kootenay River", chain: 4 }],
+    chains: [...REGION_4.chains.slice(0, 2), { ...REGION_4.chains[2]!, u: [OTHER] }, REGION_4.chains[3]!,
+             { r: ["4"], w: "Kootenay River", l: [OTHER], sp: five([0, v]), g: [0, -1], m: [0, v === 1 ? 3 : 1], a: five([0, 0]), n: [0, 1],
+               ...(closed ? { c: [R4_NOTE] } : {}) }],
+  });
+  const undrawnFeed = (open: boolean) => FEED({ ...r4Feed(), verdicts: [NOT_OPENED, { s: "open", t: "2 per day (Jan 1–Dec 31)" }, R4_HEADER] as never,
+    locs: { [R4_REGION]: { r: "4", sp: five([0, 2]), g: [0, -1] }, [OTHER]: { r: "4", sp: five([0, open ? 1 : 2]), g: [0, -1] } } });
+  for (const live of [false, true]) {
+    it(`${live ? "under a live feed" : "offline (the release)"}: an undrawn place open keeps the in-part card; closed by the header, the region's`, () => {
+      const card = (open: boolean) => {
+        const r = { ...facts(withUndrawn(open ? 4 : 1, !open)), chains: 5, chainOf: (sid: number) => (sid >= 1 && sid <= 4 ? sid : 0) };
+        return salmonCard(live ? withSalmonFeed(r, undrawnFeed(open)) : r, { sids: [2], item: null }, on(7, 1));
+      };
+      const [open, shut] = [card(true), card(false)];
+      expect([open.closedOnly, open.headline, open.rows[0]!.notes]).toEqual([false, "Closed today · open in part", [R4_WORDS]]);
+      expect([shut.closedOnly, shut.year.bars, shut.rows.map((r) => [r.notes, r.from ?? null])]).toEqual([true, [], [[[R4_WORDS], null]]]);
+    });
+  }
+});
