@@ -102,7 +102,7 @@ screen and the gauge card is below the fold (`android-gauge-offline-step1.png`).
 - Fix `gauge-offline`'s first-screen check (scroll to the card first).
 - The README row stays OPEN until the worker is deployed.
 
-## Owner, 2026-11-17 ~10:20 (app chat), after the Android/web pictures, picks verbatim
+## Owner, 2026-11-17 ~09:57 (app chat), after the Android/web pictures, picks verbatim
 - The line under an unranked level: picked "Plainer" = "Too new to say if this is high or low." (instead of "Not ranked:
   no long record of its level to compare with.").
 - Level readings to 2 decimals ("1.00 m", "0.85 m") instead of whole metres: "Depends how much space this adds. But yes".
