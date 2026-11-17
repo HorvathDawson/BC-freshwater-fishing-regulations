@@ -132,6 +132,8 @@ class Sources:
     #: `applied_keys` refuses that
     _has_reg: Optional[bool] = field(default=None, repr=False)
     _asked_without_registry: bool = field(default=False, repr=False)
+    #: `carried`'s indexes over the registry (built once)
+    _carry: Optional[dict] = field(default=None, repr=False)
 
     @classmethod
     def live(cls, build: Optional[Path] = None) -> "Sources":
@@ -175,6 +177,30 @@ class Sources:
 
     def registry_path(self) -> Path:
         return Path(self.build or "") / "registry.json"
+
+    def carried(self, iid: str) -> Optional[list[str]]:
+        """`carried_item` over this build's registry (indexed once per Sources). Only a line (`blk:`) or a lake
+        (`wbk:`) id can have been merged or cut into parts; any other is never looked up."""
+        if not iid.startswith(("blk:", "wbk:")):
+            return None
+        self.item(iid)                                   # loads the registry (and remembers a missing one, T421)
+        if self._carry is None:
+            line_items: dict[str, set] = {}
+            parts: dict[str, list] = {}
+            for it in self._reg.values():
+                if it.get("kind") == "area":                 # an area holds the sections inside it, not a water
+                    continue
+                for s in it.get("section_ids") or ():
+                    if not s.startswith("lake:"):
+                        line_items.setdefault(s.rsplit(":", 1)[0], set()).add(it["id"])
+                if it.get("part_of"):
+                    parts.setdefault(it["part_of"], []).append(it["id"])
+            self._carry = {"line_items": line_items, "parts": {k: sorted(v) for k, v in parts.items()},
+                           "listed_by": {}}
+            for it in self._reg.values():
+                for r in it.get("ref_ids") or ():
+                    self._carry["listed_by"].setdefault(r, []).append(it["id"])
+        return carried_item(iid, self._reg, **self._carry)
 
 
 def _region_files(d: Path) -> list[Path]:
@@ -510,6 +536,62 @@ def extent_of(fix, split_of, rest_at_build: bool = False) -> tuple[Optional[dict
         else:
             problems.append(f"within names an area by id (area:…), not {area!r}")
     return ex, problems
+
+
+def carried_item(iid: str, reg: Mapping[str, dict], *, line_items: Mapping[str, set],
+                 parts: Mapping[str, list], listed_by: Mapping[str, list]) -> Optional[list[str]]:
+    """WHAT AN ITEM ID A MARK NAMED IS IN THIS BUILD, when the registry RECORDS that its identity changed (owner
+    2026-11-17, on six DFO marks that read "binding moved" after T806 / T812: "they should all be good") — the ids
+    that now stand for it, or None (no recorded change: the id stands as it is, or nothing says where it went).
+
+      merged  `blk:N` is no item any more, exactly one item lists it in its `ref_ids`, and that item holds EVERY
+              section on blue line N — the old id's line is wholly inside it (T806: Sheldens Creek's FWA line and its
+              hand-drawn channel are one item, wsc:950-016367) -> [that item]
+      parted  a lake the curation cut into parts: the item stays, owns no section, and its parts tile it
+              (`registry.add_lake_parts`, RU-11; T812 Babine 433.92 + 33.07 km² = the FWA polygon's 467.00) ->
+              EVERY part (a place naming only some of them is a different extent)
+
+    A line held by two items, an old id two items list, a gone id no item lists: None, so a mark on it stays stale."""
+    if iid.startswith("blk:") and iid not in reg:
+        by = listed_by.get(iid) or []
+        if len(by) == 1 and line_items.get(iid[4:]) == {by[0]}:
+            return [by[0]]
+        return None
+    it = reg.get(iid)
+    if it is not None and not it.get("section_ids") and parts.get(iid):
+        return list(parts[iid])
+    return None
+
+
+def _ids_of(e: Mapping) -> list[str]:
+    return [e["item_id"]] if e.get("item_id") else list(e.get("item_ids") or [])
+
+
+def carried_extents(fix_extents: list, src: "Sources") -> Optional[list]:
+    """A mark's fix as it reads after the registry's recorded identity changes (`carried_item`), in the shape a place
+    writes it (one item: `item_id`; several: `item_ids`, sorted) — or None when no id it names was carried."""
+    out, moved = [], False
+    for e in fix_extents:
+        ids = _ids_of(e)
+        now: list[str] = []
+        for i in ids:
+            got = src.carried(i)
+            moved |= got is not None
+            now += [x for x in (got or [i]) if x not in now]
+        e = {k: v for k, v in e.items() if k not in ("item_id", "item_ids")}
+        if len(now) == 1:
+            e["item_id"] = now[0]
+        elif now:
+            e["item_ids"] = sorted(now)
+        out.append(e)
+    return out if moved else None
+
+
+def _same_extents(a: list, b: list) -> bool:
+    """Two extent lists alike but for the ORDER of an extent's `item_ids`."""
+    def norm(xs):
+        return [{**x, "item_ids": sorted(x["item_ids"])} if x.get("item_ids") else x for x in xs or []]
+    return norm(a) == norm(b)
 
 
 def excludes_of(items) -> list[dict]:
@@ -1258,6 +1340,12 @@ def build(decided, src: Sources, *, applied: Optional[set] = None) -> list[dict]
                         problems += [f"entry: {x}" for x in unexpressed(b.get("extents") or [])]
                     for fld, val in fields.items():
                         before = b.get(fld, _MISSING)
+                        if fld == "extents" and before != val:
+                            # the fix named an id the registry has since recorded as merged / cut into parts: the
+                            # file saying the carried ids IS the fix (`carried_item`); writing the old id back is wrong
+                            got = carried_extents(val, src)
+                            if got is not None and _same_extents(before, got):
+                                continue
                         if before != val:
                             edits.append({"file": _rel(path), "kind": "dfo",
                                           "location_id": m.target, "scope": "entry",
@@ -1347,10 +1435,25 @@ def applied_keys(marks: Iterable, src: Sources) -> set:
     mark instead of calling it stale, so applying the owner's work never undoes it. Cheap: only the
     scopes that propose extents are built, without the tidal decisions."""
     import dataclasses
+    from pipeline.regs.review import dfo as D
+    from pipeline.regs.review import marks as M
+    marks = list(marks)
     keep = [m for m in marks if m.scope in ("entry", "rule", "dfo")]
     out: set = set()
     cheap = dataclasses.replace(src, tidal_decisions=None)
     build(keep, cheap, applied=out)
+    # a DFO place whose geography moved only where it does not read (`dfo.same_place_bindings`: the water's tributary
+    # flag under a place with its own) holds as a landing does; a fix that named a merged / parted id lands in `build`
+    places = D.locations(src.dfo_dir)
+    for m in M.latest(m for m in marks if m.scope == "dfo").values():
+        got = places.get(m.target)
+        if m.key in out or got is None:
+            continue
+        same = D.same_place_bindings(got[1], got[2])
+        now = D._h(D.geography(got[1], got[2]))
+        bs = {r.binding for r in m.prints.records}
+        if bs and bs <= same and bs != {now}:            # moved, but only where the place does not read
+            out.add(m.key)
     # (T421) a new point's anchor comes from the registry; without one it falls back to the stamped point, which never
     # equals the split that landed — every such mark would read "binding moved". Name the missing build instead.
     if cheap._asked_without_registry:
