@@ -461,5 +461,14 @@
   "DV": "Dolly Varden/bull trout",
   "LT": "Lake trout",
   "EB": "Brook trout"
+ },
+ "nahwitti-jul15": {
+  "GB": "Brown trout. only 2 of these 4",
+  "CT": "Cutthroat trout. only 2 of these 4",
+  "ST": "Steelhead. a rainbow over 50 cm (20 in). Steelhead are known to be in this water. only 2 of these 4",
+  "RB": "Rainbow trout. 50 cm (20 in) or less. only 2 of these 4",
+  "DV": "Dolly Varden/bull trout",
+  "LT": "Lake trout",
+  "EB": "Brook trout"
  }
 }
