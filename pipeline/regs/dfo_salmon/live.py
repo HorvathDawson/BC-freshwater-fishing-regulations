@@ -92,13 +92,18 @@ def location_calendar(rules: Sequence[dict], verdicts: S._Interner, gears: S._In
     chain = [S.in_force(rules)]
     per_sp: List[List[int]] = [[] for _ in S.SPECIES]
     gear: List[int] = []
+    shut: List[int] = []
     for md in S.DAYS:
         for k, sp in enumerate(S.SPECIES):
             v = S.verdict_on(chain, sp, md)
             per_sp[k].append(verdicts(v) if v else -1)
         g = S.gear_on(chain, md)
         gear.append(gears(list(g)) if g else -1)
-    return {"sp": [S.runs_of(x) for x in per_sp], "g": S.runs_of(gear)}
+        o = S.closures_on(chain, md)
+        shut.append(gears(list(o)) if o else -1)
+    # (T770) `o`: another fish's closure lines (`deliver.salmon.closures_on`), absent where none
+    return {"sp": [S.runs_of(x) for x in per_sp], "g": S.runs_of(gear),
+            **({"o": S.runs_of(shut)} if any(x >= 0 for x in shut) else {})}
 
 
 def _at(runs: Sequence[int], day: int) -> int:
@@ -128,6 +133,7 @@ def compose(lids: Sequence[str], locs: Mapping[str, dict], verdicts: Sequence[di
         [[locs[l] for l in lids if l in locs]]
     per_sp: List[List[int]] = [[] for _ in S.SPECIES]
     gear: List[int] = []
+    fish: List[int] = []
     mapc: List[int] = []
     first = lambda xs, none=0: next((v for v in xs if v >= 0), none)            # noqa: E731
 
@@ -164,13 +170,16 @@ def compose(lids: Sequence[str], locs: Mapping[str, dict], verdicts: Sequence[di
             per_sp[k].append(ix)
             vs.append(verdicts[ix])
         gear.append(gear_of([gear_of([_at(c["g"], day) for c in cals]) for cals in subs]))
+        fish.append(gear_of([gear_of([_at(c["o"], day) if c.get("o") else -1 for c in cals]) for cals in subs]))
         mapc.append(S.MAP_CODES.index(S.map_status(vs)))
     sp = [S.runs_of(x) for x in per_sp]
     # T356: closed by the region header every day — and so is every undrawn place the feed lists — `c`
     shut = all(S.closed_by_header(locs[l]["sp"], verdicts) for l in undrawn if l in locs)
     c = S.closed_by_header(sp, verdicts) if shut else []
     n = S.speaks_runs(per_sp, verdicts) if speaks else None
-    return {"sp": sp, "g": S.runs_of(gear), "m": S.runs_of(mapc), **({"c": c} if c else {}), **({"n": n} if n else {})}
+    return {"sp": sp, "g": S.runs_of(gear), "m": S.runs_of(mapc),
+            **({"o": S.runs_of(fish)} if any(x >= 0 for x in fish) else {}),
+            **({"c": c} if c else {}), **({"n": n} if n else {})}
 
 
 # ── one region ───────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -336,7 +345,9 @@ def _carry(prev: dict, slug: str, verdicts: S._Interner, gears: S._Interner, onl
             continue
         sp = [[x if k % 2 == 0 or x < 0 else verdicts(pv[x]) for k, x in enumerate(runs)] for runs in c["sp"]]
         g = [x if k % 2 == 0 or x < 0 else gears(pg[x]) for k, x in enumerate(c["g"])]
-        out[lid] = {"r": slug, "sp": sp, "g": g, **({"x": c["x"]} if c.get("x") else {})}
+        # (T770) another fish's closure lines are carried as the gear lines are (an index into `gears`)
+        o = [x if k % 2 == 0 or x < 0 else gears(pg[x]) for k, x in enumerate(c["o"])] if c.get("o") else None
+        out[lid] = {"r": slug, "sp": sp, "g": g, **({"o": o} if o else {}), **({"x": c["x"]} if c.get("x") else {})}
     return out
 
 

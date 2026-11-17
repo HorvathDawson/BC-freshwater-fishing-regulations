@@ -66,3 +66,16 @@ with "13 chains".
 ## Owner, 2026-11-16 19:09: eulachon as a closure
 "As a closure line (Recommended)": eulachon shows as its own closure line (closed all year in Region 6), apart from
 the gear and bait lines; data writes it as a closure, the app draws it.
+
+## Owner, 2026-11-16 19:09 (verbatim in OWNER-TODO): eulachon "As a closure line (Recommended)"
+Built (lane/salmon-hardcases-1116): a DFO row CLOSING another fish ("All | No fishing for eulachon", Region 6 B(ii))
+is no gear line; it is the chain's closure line, Python's words "Eulachon closed all year: No fishing for eulachon"
+(its dates when not all year). FIELD: chain `o` = runs of an index into payload `gears` (-1 none), absent on a chain
+with none; `live.location_calendar` / `live.compose` carry it the same way (every place's line, narrowest first, the
+same words once: never displaced). The Region 6 header reminder note is unchanged. Tests: `test_t770_gear_lines_stack.py`
+(closure line whole, never displaced, `o` apart from `g` and the live composition), `test_t229_cascade_order.py`.
+Vectors regenerated (the eulachon locator's line moves from `g` to `o`). FOR THE APP CHAT: draw `o` as the card's
+closure line(s) apart from the gear and bait lines; the worker's `dfo/salmon.ts` takes another fish's closure out of
+`gearOn` into an `o` year (twin of `place_closures`), and `composeChain` merges `o` like `g`.
+Salmon step rebuilt on the scratch bundle (r-4179ef17d31a): 30 chains carry `o`, 15,664 sections (131 waters, the
+Skeena / Kitsumkalum side) lose "No fishing for eulachon (Apr 1–Mar 31)" from the gear lines and gain the closure line.

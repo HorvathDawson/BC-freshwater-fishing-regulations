@@ -139,12 +139,94 @@ to him with the three examples.
   and the Yakoun goes to him).
 - Not checked yet: that the "Kitsault Bridge" cut (113.0 km up the Nass, -128.924, 55.498) is the bridge itself.
 
+## Hard cases, the data side (lane/salmon-hardcases-1116, 2026-11-16)
+The break-it review (`handoff/PLAN/curation-review/t796-book-closures-hard-cases/HARD-CASES.md`, dev ba07edad7). Measured
+on r-685b700b2802's own inputs (bundle + stored verdicts), the salmon step alone.
+- FIXED (words only; 0 status changes, map and `c` unchanged, head 91,788 -> 91,927 B gz): the card quotes THE BOOK'S
+  LINE (`deliver.salmon.book_line`, read back from the row's own text): S2 the dates past the ✱ (Iskut ", Apr 1-Apr 30",
+  Deena ", Feb 1-May 31", Stamp, Englishman), S4 the PDF line breaks joined (Quinsam r1/r2, Tahltan r1 and 17 more), X3
+  a fragment from the start of its line (Buttle "Fly fishing only; except Thelwood Creek is closed all year"; the
+  Iskut/Fraser zone row's "and in the Fraser River watershed …"), also r7's "No Fishing"-only rules (Chowade, Halfway,
+  six lakes) given their printed place and dates. S1's brackets: a closure closing fewer days than it prints names its
+  lift after the line (`book_lifts`): Thompson below Kamloops Lake "…; lifted May 1–31 by Thompson River (p.32):
+  Additional opening …" (and Fulton, Nicola); a gap nothing lifts stops the build. 43 of 543 lines, 40 word groups.
+  `pipeline/tests/test_t796_book_lines.py` (6).
+- NOT FAULTS: S3's "0% inside" Cormier Creek 1912509 is a POND (lake:329638447, 2,757 m², a widening folded into the
+  creek): 28% of its area lies in the Blue/Dease Rivers ER (the review measured the 65 m route line). Skeena 765427 (a
+  672 m side channel, 10%) and Ningunsaw 765104 (26%) are E8 (a straddle is inside, 1 km rejoin). S1's June closure is
+  L1 (strict lift; L20 names the Thompson). X2 is Z12 (national parks closed by default). X1 is the app's composition
+  (below).
+- X1, verdict APP: `c` means every day of the chain is the header's closure (`closed_by_header`, T356); the book place
+  answers some days, so `c` goes — and the app's live composition recomputes it the same way (`salmonFeed.ts`
+  `composeChain` -> `closedByHeader` over the composed runs, statics included), so a data-side `c` would not survive
+  the feed. All 320,369 sections stay closed every day. The region-wide shape (T227) is the card's call: e.g. treat a
+  chain closed every day whose non-book days are the header's as region-closed, the book line as a note.
+- OWNER QUESTIONS (none changes an answer until answered; counts = salmon status changes on r-685b700b2802's inputs):
+  - W1 Campbell River (R1). p.13 "Summer closure: No Fishing in any stream in Management Units 1-1 to 1-6 from July
+    15-Aug 31 (see water specific regulations table for exceptions)."; p.14 lists "CAMPBELL RIVER 1-10". The 1-6/1-10
+    line runs down the lower river, so its 10 lower sections are in both MUs (`mu_set` "1-10,1-6"). (1, rec.) follow the
+    row's MU: the summer closure does not reach the Campbell — salmon 3 sections (pink closed->open 113 species-days,
+    chinook closed->check 96, Jul 15-Aug 31), 5 words only; trout 10 sections lose Jul 15-Aug 31. The only water this
+    moves (every MU-group zone rule checked). Regs rebuild (reach + bundle). (2) keep: nothing moves.
+  - S1 Thompson below Kamloops Lake, June. p.28 "Spring closure: No Fishing in any stream in Region 3 from Jan 1-June 30
+    (see tables for exceptions)."; p.32 "No Fishing Oct 1-May 31 … Additional opening from the CNR Bridge downstream of
+    Deadman River to CNR Bridge upstream of Bonaparte River, May 1-31" (no "Exempt from spring closure"; the upstream row
+    prints one). (1, rec.) keep, L1/L20: closed in June. (2) the row's dates replace the spring closure there: salmon 22
+    sections chinook/sockeye closed->check Jun 1-30 (1,290 species-days), 4 words only; trout 26 sections open in June.
+  - S3 partly inside a reserve or park. p.9 "Fishing is prohibited in Ecological Reserves in B.C."; Z10 "A lake that lies
+    mostly outside the area is taken out by name". Of the 5,750 sections whose salmon answer an area closure decides:
+    5,566 >=90% inside, 22 at 50-90%, 13 under 50% (tiles' polygons). (1, rec.) Z10 as written: take out by name the 9
+    waterbodies mostly outside — Cold Fish Lake (0.1% inside Gladys Lake ER, 827 ha), Tow Hill ER ponds 19%/34%, Gwaii
+    Haanas 22%/38%, Chilkoot 27%, Drizzle Lake ER 45%, Gladys ER pond 47%, Cormier Creek pond 28%: salmon 9 sections
+    (coho 3,111 + chinook 1,098 species-days closed->open; Cold Fish 671), trout open there too; streams keep E8.
+    `outside_items` + atlas rebuild. (2) keep: nothing moves. (3) also 50% for stream sections (overrides E8): +4
+    sections (Ningunsaw 26%, Skeena side channel 10%, Gwaii Haanas 38%, Gladys 50%), 1,561 species-days.
+  - X2 national parks. p.9 "Freshwater fishing is prohibited in National Parks unless opened under the National Parks
+    Fishing Regulations. Where open, anglers require a National Park Fishing Permit." (Z12: closed by default.) Today
+    "Closed to all fishing by the rule book (p.9): Freshwater fishing is prohibited … Regulations. (all year)" on up to
+    6,934 sections; 0 salmon answers depend on it. (1, rec.) keep closed, word it as the book: "Closed by the rule book
+    unless opened under the National Parks Fishing Regulations (p.9): …  Where open, anglers require a National Park
+    Fishing Permit." — words only. (2) keep as now. (3) not on the salmon card: DFO's words return (0 answers today; an
+    in-season DFO opening in a park would read open beside a closed page).
+
 ## Owner, 2026-11-16 17:44 and 17:46: the hard cases, data side
 Campbell summer closure: "Keep it closed". Thompson in June: "keep closed but add to gotchas as one i need to ask fish
 and wildlife about" (done: pipeline/docs/GOTCHAS.md). Partly inside a reserve or park: "take out the lakes but add a
 note" (the 9 lakes and ponds mostly outside, Z10 by name, a note on each card); streams: "Keep E8 as is
 (Recommended)". National parks: "Closed, book's wording (Recommended)" (words only, the permit sentence added). The
 wording fixes on `lane/salmon-hardcases-1116` (7e390039b) change no answer. X1 (closed-region card shape) is the app's.
+
+## Owner answers built (lane/salmon-hardcases-1116, 2026-11-16 evening)
+Owner (OWNER-TODO 17:44, 17:46): W1 Campbell "Keep it closed" (no change); S1 Thompson June kept closed (GOTCHAS, no
+change); S3 "take out the lakes but add a note", streams "Keep E8 as is (Recommended)"; X2 "Closed, book's wording
+(Recommended)".
+- S3: `area_closures.json` `outside_items` names the nine (Cold Fish Lake `wbk:329529449`; the eight with no item of
+  their own by section handle `lake:<wbk>`, which `registry.outside_area_items` now takes — never a creek's item).
+  `bundle.outside_note` writes `section_note` (one sentence per section, said once, Python's words: "Mostly outside
+  Gladys Lake Ecological Reserve: its closure (rule book p.9) does not apply here."); the release ships it in `core`
+  (additive, core/1). Kennedy Lake (Pacific Rim, Z11) carries the note too. FOR THE APP CHAT: show `core.section_note`
+  on the section's page (both cards); regenerate `pack.generated.ts` (`python -m pipeline.tools.emit.pack`).
+- Rebuild: no atlas rebuild — the live atlas with only registry.json rewritten by `outside_area_items` (the full
+  sidecars step on the lane also refolded 40 ponds into 21 unnamed `blk:` items, unrelated, so it was not used), then
+  reach (5 of 3,402 rules changed: the 9 lakes leave superior_closures r1/r1b/r3, national_park_reserves r1, Chilkoot
+  r1), then `pipeline.deliver all` into scratch (DFO typed feed retyped at format 4, equal to the candidate's).
+- X2: a closure "unless opened under …" heads "Closed by the rule book unless opened under the National Parks Fishing
+  Regulations (p.9)" and keeps "Where open, anglers require a National Park Fishing Permit."
+- Tests: `test_t796_outside_lakes.py` (4), `test_t796_book_lines.py::test_a_conditional_closure_says_its_proviso`.
+- Built in scratch (not promoted): r-5f164411716e, candidate-2 against r-685b700b2802 (`pipeline.tools.audit.answers_diff`):
+  93 groups. OPENS (33 groups, 69 section-changes): the 9 lakes and ponds open for trout (whole-water closure lifted,
+  zone quotas apply) and for salmon where DFO opens (coho/chinook on Cold Fish Lake, the Cormier and Will Creek ponds,
+  the Gwaii Haanas, Tow Hill, Drizzle and Chilkoot ponds); 3 size and 2 licence groups follow from the same lakes (the
+  Gwaii Haanas ponds need a provincial licence, no national park permit). WORDING ONLY (47 groups): the book lines
+  (S2/S4/X3/S1 lifts, as listed earlier) and X2 on 6,934 sections, plus one group NOT from this lane's changes: 4,762
+  Kitimat-area sections' quota-tree sentences (T793's words; the candidate's regs files were the live build's, this
+  release's are the lane code's). Notes: 10 sections in `core.section_note` (the 9 + Kennedy Lake).
+- Later the same evening: `section_note` is whole in every `core-<r>` slice (the pipeline half of the app chat's
+  9330d9eb3); the two ponds folded into creeks (Will Creek, Cormier Creek) are named in their note ("The pond on
+  Cormier Creek here lies mostly outside …: its closure (rule book p.9) does not apply to the pond.") because the
+  Cormier pond shares a 62-section part with its creek (a part of its own broke T517's paint sync, so it was
+  reverted). Final scratch release with T770's eulachon line too: r-1603e71cc92c; its diff against r-685b700b2802:
+  95 groups (the 93 above + eulachon leaving the gear lines on 15,664 sections and the new `o`).
 
 ## Owner, 2026-11-16 22:52: land it
 Pictures (t796-final sheets 1-5) and the changed-answers list shown. "Land it (Recommended)"; Kennedy Lake's note:
