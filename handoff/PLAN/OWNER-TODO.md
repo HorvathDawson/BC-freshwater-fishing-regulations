@@ -2390,3 +2390,6 @@ More questions (recommended answer first):
   legal ( need to ask about this with co tho)". Built as legal (others at most 5, all at most 20; brook trout count
   toward the 5). Card: "5 trout a day / Exception: brook trout up to 20 (count toward the 5; past 5, brook trout
   only)". Question added to GOTCHAS (T834 entry + Region 4 office Q1).
+- 2026-11-17 12:43, for the owner: re-tick Sheldens Creek (DFO Region 6, "upstream of white triangular fishing boundary
+  signs … Spur 19 Bridge site") in the review app. The 11-15 night mark (saved by Claude, unsure, whole creek) was
+  overtaken by your 11-16 20:01 "Extend to the bridge"; it now waits on NOT_LANDED_OK until you mark the place again.
