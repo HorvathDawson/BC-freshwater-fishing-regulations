@@ -2127,3 +2127,6 @@ More questions (recommended answer first):
   (Recommended)". Follow the picked day, picked: "Follow the day (Recommended)" (closed colour on DFO's closure days,
   outlined or hidden otherwise). Tap, picked: "Opens the lake's card (Recommended)" (Babine Lake's salmon card, whose
   note says which creek mouths close and when).
+- 19:01, typed in chat (verbatim): "We could skip some tests to get multiple items done then merge after and test
+  together? Or is that too risky?" Answered: batch the merges (each lane already ran its own tests), then ONE full
+  tier and ONE push for the batch; never push without the full tier (the 11-15 red landings). Adopted from now.
