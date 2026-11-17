@@ -1,8 +1,9 @@
 """T803 / T805 / T806 — the owner's placement answers of 2026-11-16, pinned on the curated files the next map rebuild
 reads (each read through the loader the build uses, not as raw JSON where a loader exists).
 
-  Gitnadoix   "the powerline is. the mouth essentially": the coho place is the whole river (`whole`, as before T803;
-              the mouth-alias cut read as `upstream_of` dropped side channels, so it is gone, 2026-11-17)
+  Gitnadoix   "the powerline is. the mouth essentially": the powerline cut lands ON the river's own mouth (an alias on
+              the mouth boundary, `at_edge`), never a new cut; the coho place is upstream of it (= the whole river,
+              which it binds since T833 kept a cut on a line's end from dropping the end piece's side channels)
   Sheldens    "Extend to the bridge": the creek runs on down a hand-drawn estuary channel to the road bridge, the
               low-confidence tidal cut (`test_sheldens_estuary_channel.py`); the place stays the creek, ONE item
   Mara Bridge "at the bridge but make sure the cut name has the fact signs are nearby"
@@ -36,24 +37,38 @@ def _dump(extents) -> list:
 
 
 # --------------------------------------------------------------------------------------------- Gitnadoix
-#: the powerline cut T803 put on the Gitnadoix's own mouth (an `at_edge` alias at m 0), REMOVED 2026-11-17
 GITNADOIX_CUT = "gitnadoix_river__powerline_crossing_near_the_mouth"
+#: the Gitnadoix's own FWA mouth (blk 360887399, downstream route measure 0), lon/lat
+GITNADOIX_MOUTH = (-129.207645, 54.317405)
 GITNADOIX_PLACE = "6:gitnadoix-river:upstream-of-powerline-crossing-nea"
 
 
-def test_gitnadoix_coho_place_is_the_whole_river_and_names_no_cut():
-    """The owner's intent is the whole river ("the powerline is. the mouth essentially"). Read as `upstream_of` the
-    mouth alias, the place lost 9 of 1,000 sections (rebuild of 2026-11-17): a cut ON a line's end seeds every other
-    blue line touching that end's NODE as across the junction (`reach.extent._across_the_junction`), and the
-    Gitnadoix's lowest node runs 0 to 23.6 km, so its six dead-end side channels, the distributary at the mouth (and
-    the creek 360742973 into it) went outside. So the place is `whole` again, as before T803, and the cut, which only
-    this place named, is gone (an unnamed curated cut is a HIGH review finding)."""
+def test_gitnadoix_powerline_is_the_rivers_own_mouth_not_a_new_cut():
+    from shapely.geometry import LineString
+    from pipeline.atlas.splits import anchors as A
+    from pipeline.atlas.splits import sectionizer as SZ
     from pipeline.atlas.splits.splits import load_split_defs
+    from pipeline.common.models import BlkChain
+    from pipeline.common import tolerances as tol
+
+    sd = next(d for d in load_split_defs(curated().waters.cuts) if d.id == GITNADOIX_CUT)
+    assert sd.gnis_id == "3508" and sd.at_edge and sd.anchor.type.value == "point"
+    # a Gitnadoix line drawn from its mouth upstream: the cut projects onto the line's own lower end
+    x, y = A._pt(GITNADOIX_MOUTH, True).coords[0]
+    g = LineString([(x, y), (x, y - 2000.0)])
+    chain = BlkChain(blk="360887399", fwa_watershed_code="400-1", fids=(), geometry=g, mouth_measure=0.0,
+                     length_m=g.length, name_tuples=(), gnis_id="3508")
+    pts = A.resolve_split_defs([sd], [chain])
+    assert [(p.blk, p.split_id) for p in pts] == [("360887399", GITNADOIX_CUT)]
+    # on the end (within one spot), so the sectionizer takes the natural end: an alias, no sliver, no new cut
+    assert pts[0].route_measure <= tol.SAME_PLACE_M < SZ.AT_EDGE_M
+
+
+def test_gitnadoix_coho_place_is_upstream_of_the_mouth_alias():
     loc = _place(_places("6"), GITNADOIX_PLACE)
     assert loc.status == "active"
-    assert _dump(loc.binding.extents) == [{"op": "whole"}]
-    assert loc.binding.tributaries is True          # the whole river with its side streams
-    assert not [d for d in load_split_defs(curated().waters.cuts) if d.id == GITNADOIX_CUT or d.gnis_id == "3508"]
+    assert _dump(loc.binding.extents) == [{"op": "upstream_of", "splits": [GITNADOIX_CUT], "item_id": "gnis:3508"}]
+    assert loc.binding.tributaries is True          # unchanged: the whole river with its side streams
 
 
 def _salmon_sections(request, *location_ids: str) -> dict[str, set[str]]:
@@ -73,9 +88,10 @@ def _salmon_sections(request, *location_ids: str) -> dict[str, set[str]]:
 
 @pytest.mark.needs_reach_run
 def test_gitnadoix_coho_place_binds_what_the_whole_river_place_binds(request):
-    """On the built run: the coho place and the Gitnadoix's `whole` place bind the same sections (1,000 on the
-    2026-11-17 rebuild; the `upstream_of` reading bound 991, without 360215450:0, 360215474:0, the six dead-end side
-    channels and 360742973:0)."""
+    """On the built run: the coho place, `upstream_of` the mouth alias, binds what the Gitnadoix's `whole` place binds
+    (1,000 sections on the 2026-11-17 rebuild). Before T833 it bound 991: a cut on a line's end seeded every line
+    touching the 0-23.6 km end piece as across the junction, so 360215450:0, 360215474:0, the six dead-end side
+    channels and 360742973:0 went outside (`reach.extent.A_CUT_ON_A_LINE_END_IS_ACROSS_ONLY_AT_ITS_POINT`)."""
     got = _salmon_sections(request, GITNADOIX_PLACE, "6:gitnadoix-river:whole")
     assert set(got) == {GITNADOIX_PLACE, "6:gitnadoix-river:whole"}
     assert got[GITNADOIX_PLACE] and got[GITNADOIX_PLACE] == got["6:gitnadoix-river:whole"]
