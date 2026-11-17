@@ -23,13 +23,6 @@ with the default Claude uses until you answer). Newest first inside each section
   waits for tonight's DFO labels, then a new data release with them, then the website built from the latest checked
   code and that release. Claude: staging site redeployed from the latest code now; after the labels, a new staging
   release, then fresh production folders and fresh commands here. The commands in the next item are OUT OF DATE.
-- **Production move (2026-11-14): SUPERSEDED by the answer above; was: READY, yours to run** (owner: "tonight we will probably do that"). Follow
-  `handoff/PLAN/release/PRODUCTION.md`, first-transition steps 3-8. Data, from the main folder:
-  `CONFIRM_PROD=r-f749475d0962 .venv/bin/python -m pipeline release --prod r-f749475d0962`. Website, from the clean copy
-  `~/bcfish-clean-staging` (must be at 9048fbc20, `git status --porcelain -- app` empty): `deploy/prod/site.sh --dry-run`,
-  then `CONFIRM_PROD=canifishthis.ca deploy/prod/site.sh`, then `node app/tools/smoke-staging.mjs --production`. Then look
-  at `https://canifishthis.ca/privacy`. Production has no Play config file (`play.json`) yet. Page row
-  `hold-prod-move-staging-dirty-1114` has the same steps.
 - **To-Do page and this file compared 2026-11-14.** Added to the page: T686 pick, the 12 iOS-day defaults (one row),
   Apple account after approval, Play closed-testing steps. Closed on the page: T688 wording (answered 11-12). Build 29
   phone check marked replaced by the 0.7.8 / 0.7.9 rows. Not on the page (old, to prune or re-ask): Run timing T199 runs,
@@ -406,8 +399,9 @@ with the default Claude uses until you answer). Newest first inside each section
   Two small calls, defaults in use: (1) ✗ also flags "tributaries walked but the words don't say" and "a carve-out the
   words never state" — default: keep ✗ (look at it), say "make those ?" otherwise; (2) a check saves on the place only, not
   on its older rewordings (they are dormant) — default: yes.
-- **Production release: later, after your DFO extent labelling (owner 2026-11-08).** The command when ready:
-  `CONFIRM_PROD=r-a178299f6005 python -m pipeline release --prod r-a178299f6005` (or the newer release by then).
+- **Production release: after 0.8.0's data release (owner 2026-11-17: everything lands first).** Fresh commands come
+  here with that release id (`handoff/PLAN/release/PRODUCTION.md`, "Every later release"; the feeds worker first when it
+  carries closed areas). The two older command blocks (r-f749475d0962, r-a178299f6005) were removed (T790 item 7).
 - **Phone check (current build): last done 2026-11-09 on build 24** (answers on the owner checks page,
   https://claude.ai/artifact/5LRBFFgvYeTRnygSBWvZbM). 20 tickets closed on "fine". Follow-ups filed: T563 (percentile
   alert follows each day), T564 (gauge page: forecast + readable chart), T565 (in-season notice at the top), T566 (map
@@ -797,7 +791,8 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   uses against that stream's own tidal boundary; report to come in handoff/PLAN/curation-review/ (mouth-tidal-ends-audit, dated 2026-11-15).
 - OPEN, pick (T753, Sproat and 10 other waters): river pieces that loop out of a lake and back; take them out of the
   river and give them to the lake (recommended), take out only, or leave. Rides on the next map rebuild.
-- OPEN, six questions (T754, one-bank places: Kitimat west bank, Nakina). On the To-Do page.
+- ANSWERED 2026-11-15, round 4 (T754, one-bank places: Kitimat west bank, Nakina): "Build it this way
+  (Recommended)". To build (T790 item 1).
 - ANSWERED 2026-11-15 (T753, river pieces that loop out of a lake and back; Sproat): "yes do both steps but make sure it
   is done in a clean way". Both steps = take the pieces out of the river, then give them to the lake. Code lane started;
   it lands with the next map rebuild.

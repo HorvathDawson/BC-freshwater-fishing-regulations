@@ -825,6 +825,11 @@ def fast_fail_base(ctx: Ctx) -> str | None:
     return None
 
 
+#: (T791) the variable fast-fail reads: the fresh-copy run follows in the same preflight (`scripts/fast-fail.sh`
+#: `fresh_copy_next`), so its in-place whole tier and the two subsets of it are left to that run
+FRESH_COPY_NEXT = "FAST_FAIL_FRESH_COPY_NEXT"
+
+
 def check_fast_fail(ctx: Ctx) -> Finding:
     """(T535) fast-fail, after the instant checks. (T666 item 5) keyed on the tree's content: a rerun on the same
     content skips it whatever HEAD is; the build's heavy.sh is told it ran (FAST_FAIL_DONE) or why not."""
@@ -842,6 +847,10 @@ def check_fast_fail(ctx: Ctx) -> Finding:
     if under:
         print(f"    fast-fail reads the release under test: {RF.RELEASE_ENV}={rel(under)} (the fixtures were re-cut "
               "on the candidate)", flush=True)
+    if ctx.no_fresh_copy is None:
+        # (T791 item 3, owner 2026-11-16 "Yes, as proposed"): the fresh copy runs the whole no-data tier next in this
+        # preflight, so fast-fail does not run it in place too, nor its two subset steps (source scanners, review tests)
+        env = {**env, FRESH_COPY_NEXT: "1"}
     rc, failed = run_fast_fail(fast_fail_base(ctx), env)
     if rc:
         ctx.heavy_env = {}

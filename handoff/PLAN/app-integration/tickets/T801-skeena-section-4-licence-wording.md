@@ -42,3 +42,10 @@ the review app's tiers still count a designation with any review_reason as flagg
   fields; a "separate licence per section" line needs a field the box reads (the app chat).
 
 2026-11-17 ~15:11, owner: see OWNER-TODO 15:11 (verbatim there).
+- Item 2, pipeline half DONE 6d5651c2f (lane/bugs-080b): each Skeena classified designation (skeena_river_2,
+  skeena_river_section_4) carries `non_resident_note: {says}` = "Non-residents and non-resident aliens require separate
+  licences describing which section they are fishing." (book p.53), in the licensing words the app reads (`LicWords`,
+  through the store's `LIC_KEEP`; no generated TS file changes). Left (app chat): the class box shows it.
+- Item 3 DONE 8e3d5f051 (owner 2026-11-17 15:11, "Trim to this water's part (Recommended)"): the curated Skeena River 2
+  designation quotes only its (a) part; its stamp sentence follows. Diff-proved: 9 waivers, only skeena_river_2's moved.
+  Ships with the 0.8.0 reach + deliver build (the corpus digest moves).

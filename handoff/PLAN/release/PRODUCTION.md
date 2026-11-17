@@ -94,8 +94,10 @@ Before: the release is on staging and the owner has checked it there (phone + we
 1. **Claude:** `python -m pipeline release --staging` (build → checks → promote LATEST → staging upload + smoke); staging
    feeds worker / site / APK when they changed.
 2. **Owner:** check staging (phone + web).
-3. **Owner — data:** `CONFIRM_PROD=<r-id> .venv/bin/python -m pipeline release --prod <r-id>`.
-4. **Owner — feeds worker, only if it changed** (with the app, never ahead): `CONFIRM_PROD=bc-fishing-feeds deploy/prod/feeds.sh`.
+3. **Owner — feeds worker FIRST when the release carries closed areas** (T790 item 7: the worker types the closed-area
+   pieces live, so it goes BEFORE or WITH the data, never after): `CONFIRM_PROD=bc-fishing-feeds deploy/prod/feeds.sh`.
+   Otherwise only if it changed, with the app, never ahead.
+4. **Owner — data:** `CONFIRM_PROD=<r-id> .venv/bin/python -m pipeline release --prod <r-id>`.
 5. **Owner — site, if pages or the web app changed:** step 6 above (Claude builds, owner deploys).
    **Store pictures (T704), after the staging site carries the final web build, before the Play listing is updated:**
    `node app/tools/store-shots/run.mjs` (no arguments; a few minutes, headless Chrome, no credits). It re-shoots the 8 Play
