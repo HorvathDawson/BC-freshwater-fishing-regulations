@@ -1,6 +1,6 @@
 # T796 — A stretch the book closes still shows an open salmon card; a DFO "Finfish closure" closes only the salmon card
 
-Status: OPEN (owner: OWNER-TODO "2026-11-16 morning list" questions 29 and 30; app core salmon card + pipeline).
+Status: DONE (50e432ba3; salmon twins landed 2026-11-17, with the main chat's pipeline half).
 
 Source: general audit 2026-11-16, answers checker A5 and A6 (`handoff/PLAN/audit-2026-11-16/answers.md`).
 
