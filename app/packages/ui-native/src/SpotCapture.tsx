@@ -37,7 +37,7 @@ import { LoadingState } from "./LoadingState";
 import { MapScreen } from "./MapScreen";
 import { SpotScreen } from "./SpotScreen";
 import { Confirm } from "./spot/Confirm";
-import { TYPE } from "./type";
+import { TYPE, typeAt } from "./type";
 import type { Palette } from "./theme";
 import { Button } from "./Button";
 import { Icon, IconText, type IconName } from "./icons";
@@ -283,7 +283,7 @@ export function WhenScreen({ palette, steps, onShiftDay, onDay, onHour, water, o
         <View style={{ flexDirection: "row", alignItems: "center", gap: 14 }}>
           <Step palette={palette} label={CW.earlierHour} icon="back"
                 onPress={() => onHour(hour - 1)} disabled={!steps.earlierHour} />
-          <Text style={{ ...TYPE.figureBig, fontSize: 30, flex: 1, textAlign: "center",
+          <Text style={{ ...typeAt("figureBig", 30), flex: 1, textAlign: "center",
                          color: palette.ink }}>
             {steps.hourLabel}
           </Text>

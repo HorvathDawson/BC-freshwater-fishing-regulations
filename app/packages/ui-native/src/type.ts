@@ -115,6 +115,40 @@ export const TYPE = {
 } as const satisfies Record<string, TextStyle>;
 
 /**
+ * (T816) Each face's vertical metrics per em, from its font file (hhea ascent / descent, OS/2 cap height; `type.lineBox.test.ts`
+ * reads the files, so these cannot drift from them). iOS sets a line whose `lineHeight` is shorter than the face's
+ * ascent + descent with the descent on the box's bottom edge and draws nothing above the box's top: what the box lacks is
+ * cut off the top of the glyphs. The figure face at 30 or 32 px in `figureBig`'s 23 px box lost the top third of "18:00"
+ * and most of "8°C" on an iPhone (Android and the web draw the overflow, so they showed it whole).
+ */
+export const FACE_METRICS = {
+  BricolageGrotesque: { ascent: 0.93, descent: 0.27, cap: 0.66 },
+  Archivo:            { ascent: 0.878, descent: 0.21, cap: 0.686 },
+  JetBrainsMono:      { ascent: 1.02, descent: 0.3, cap: 0.73 },
+} as const;
+
+/**
+ * (T816) The shortest line box that keeps a capital or a figure whole on iOS: its cap height plus the descent below it (the
+ * ascent's empty headroom above the capitals may be cut; the letters may not). Every TYPE entry, and every size a screen
+ * gives one, stays at or above it (`type.lineBox.test.ts`, over every Text style in the source).
+ */
+export function lineBoxFloor(fontFamily: string, fontSize: number): number {
+  const m = FACE_METRICS[fontFamily.split("_")[0] as keyof typeof FACE_METRICS];
+  if (!m) throw new Error(`no metrics for the face "${fontFamily}" (FACE_METRICS, type.ts)`);
+  return fontSize * (m.cap + m.descent);
+}
+
+/**
+ * (T816) A TYPE entry at another size, its line box scaled with it (the entry's own ratio), so a bigger size never sits in
+ * the smaller size's box: `typeAt("figureBig", 30)`, not figureBig spread with a fontSize of 30 (which kept its 23 px box).
+ */
+export function typeAt<K extends keyof typeof TYPE>(key: K, fontSize: number): TextStyle {
+  const t: TextStyle = TYPE[key];
+  return t.lineHeight === undefined ? { ...t, fontSize }
+    : { ...t, fontSize, lineHeight: Math.round(t.lineHeight * fontSize / t.fontSize * 100) / 100 };
+}
+
+/**
  * (T40) How far a capped Text follows the OS text size (`maxFontSizeMultiplier`): 2×. Capped are the Regulations page's
  * numbers (a 26 px numeral at 3× would outgrow its line) and the water's header (the name, the date pill, Map, the place
  * label, the tabs: the fixed rows above the one scroll). Every other Text follows the reader's setting all the way.
