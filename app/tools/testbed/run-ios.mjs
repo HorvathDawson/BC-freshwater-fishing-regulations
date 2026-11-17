@@ -25,6 +25,7 @@ import { keyboardIos } from './scenarios-ios/keyboard.mjs';
 import { modalBackIos } from './scenarios-ios/modal-back.mjs';
 import { auditFixes } from './scenarios-ios/audit-fixes.mjs';
 import { build36Ios, t814BgIos } from './scenarios-ios/build36.mjs';
+import { conditionsIos } from './scenarios-ios/conditions.mjs';
 
 process.env.TESTBED_PLATFORM = 'ios';
 const HERE = path.dirname(new URL(import.meta.url).pathname);
@@ -627,6 +628,8 @@ const SCENARIOS = [
   // (T814 T815 T816 T821) the owner's iPhone build 36 findings, by name only, on a fresh install
   build36Ios,
   t814BgIos,
+  // (T826) the Conditions tab on iOS: gauge markers, the flow bar, the Chehalis, the highlight after back
+  conditionsIos,
 ];
 
 // ---------- the runner (as run.mjs, without the Android-only crash buffer and test channel) ----------

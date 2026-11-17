@@ -82,3 +82,45 @@ describe("(T345) a phone's highlight moved between parts ends as sent", () => {
     expect(ALL.filter((s) => atlas.current("stream", s).water === true)).toEqual([...P1, ...P3]);
   });
 });
+
+/**
+ * (T826, owner on iPhone build 36: "the highlight of where you clicked stays and doesnt disspear") IOS'S BRIDGE DROPS A
+ * NULL. React Native's iOS TurboModule bridge hands MapLibre an NSDictionary without the keys whose value is null
+ * (`convertJSIObjectToNSDictionary`, `enableModuleArgumentNSNullConversionIOS` off in RN 0.88): `{ selected: null }`
+ * arrives as `{}`. Android's bridge keeps the null. The fake atlas below is the iOS one (null-valued keys dropped before
+ * the queue); a tap's outline, and a water's lit part, must still go when the highlight is cleared (back to the map).
+ */
+function iosPhone() {
+  const atlas = mbglAtlas();
+  const set = atlas.ref.setFeatureState;
+  const bridged = { ...atlas.ref, setFeatureState: (f: { id: string | number; sourceLayer: string }, s: State) =>
+    set(f, Object.fromEntries(Object.entries(s).filter(([, v]) => v !== null && v !== undefined))) };
+  const refs: NativeRefs = { map: () => null, atlas: () => bridged as never, camera: () => null };
+  const r = nativeRenderer(refs, (e) => { throw e; });
+  const a = nativeAdapter();
+  let was: number[] = [];
+  const highlight = (sel: number[], water: number[], cue: "outline" | "dim") => {
+    a.highlight(r.states(() => was), sel, water, cue);
+    was = [...sel, ...water];
+  };
+  const lit = () => ALL.filter((s) => Object.values(atlas.current("stream", s)).some((v) => v === true));
+  return { atlas, highlight, lit };
+}
+
+describe("(T826) on iOS the highlight lets go when it is cleared", () => {
+  it("a tap's outline (selected) is gone after back clears the highlight", () => {
+    const { atlas, highlight, lit } = iosPhone();
+    highlight([316506], [], "outline"); atlas.frame();
+    expect(lit()).toEqual([316506]);
+    highlight([], [], "outline"); atlas.frame();
+    expect(lit()).toEqual([]);
+  });
+
+  it("a water's Map view (part + water) leaves nothing lit after back", () => {
+    const { atlas, highlight, lit } = iosPhone();
+    highlight(P1, [...P2, ...P3], "dim"); atlas.frame();
+    expect(lit()).toEqual(ALL);
+    highlight([], [], "outline"); atlas.frame();
+    expect(lit()).toEqual([]);
+  });
+});
