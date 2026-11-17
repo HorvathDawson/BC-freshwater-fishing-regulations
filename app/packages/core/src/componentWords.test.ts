@@ -52,7 +52,11 @@ describe("(T180) words moved from components to core, composed whole", () => {
   it("the spot screens' composed lines", () => {
     expect([SPOT_CAPTURE_WORDS.tapPoint("Chilliwack River"), SPOT_CAPTURE_WORDS.tapPoint(null)])
       .toEqual(["Tap the point on Chilliwack River.", "Tap the point on this reach."]);
+    // (T819 item 2) a spot keeps no rules, so neither sentence says it does
     expect(SPOT_CONFIRM_WORDS.delete.detail).toBe(
-      "The gauge reading, the weather and the rules that were in force are recorded nowhere else. This cannot be undone.");
+      "The gauge reading and the weather recorded with it are kept nowhere else. This cannot be undone.");
+    expect([SPOT_CAPTURE_WORDS.whenDetail("Chilliwack River"), SPOT_CAPTURE_WORDS.whenDetail(null)]).toEqual([
+      "The weather and the flow are recorded for this moment on Chilliwack River, so it is worth getting right.",
+      "The weather and the flow are recorded for this moment, so it is worth getting right."]);
   });
 });

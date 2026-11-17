@@ -33,9 +33,7 @@ export const CHANGELOG: readonly ChangelogEntry[] = [
       "Salmon: a stretch the book closes shows closed; a DFO rule we cannot place stays on its river with a note",
       "Level-only waters open Conditions on Level; a small stream on a big river's gauge is flagged",
       "Dark mode: the part of a river you are on stands out",
-      "iPhone: fixes to the photo viewer, cut-off text and the back swipe",
     ],
-    only: { "iPhone: fixes to the photo viewer, cut-off text and the back swipe": "ios" },
   },
   {
     version: "0.7.11", date: "2026-11-15", draft: true, notes: [

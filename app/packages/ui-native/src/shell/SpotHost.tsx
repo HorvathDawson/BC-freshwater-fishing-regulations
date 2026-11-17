@@ -26,7 +26,7 @@ import { openDirections } from "../openLink";
 type DayFlowBlock = ReturnType<typeof useDayFlow>;
 
 export function SpotHost({ viewing, spotEdit, nav, palette, camera, like, dayFlow, photos, onSaveSpot, onDeleteSpot,
-                           onRefreshSpots, refreshing, show, visitSources, tiles, theme, locate }: {
+                           onRefreshSpots, refreshing, show, visitSources, tiles, theme, locate, names }: {
   viewing: Spot; spotEdit: ReturnType<typeof useSpotEdit>; nav: ShellNav; palette: Palette;
   camera: MutableRefObject<Camera>;
   like: ReturnType<typeof useLikeVisit>; dayFlow: DayFlowBlock;
@@ -41,6 +41,8 @@ export function SpotHost({ viewing, spotEdit, nav, palette, camera, like, dayFlo
   visitSources?: AddVisitOptions | null;
   /** (T310) the parking picker's map, and the phone's location for "Use my location" */
   tiles?: TileEndpoints; theme?: string; locate?: Locate | null;
+  /** (T819 item 7) the release's station names, so the page names its gauges */
+  names?: ReadonlyMap<string, string>;
 }) {
   const { edit, setEdit, photoEdit, spotError, setSpotError, pendingTab, setPendingTab, shownVisit, setShownVisit,
           addingVisit, setAddingVisit } = spotEdit;
@@ -91,7 +93,7 @@ export function SpotHost({ viewing, spotEdit, nav, palette, camera, like, dayFlo
   return (
     <View style={{ flex: 1, backgroundColor: palette.card }}>
       <View style={{ flex: 1 }}>
-        <SpotScreen spot={shown} palette={palette}
+        <SpotScreen spot={shown} palette={palette} names={names}
                     visits={visits}
                     onPickVisit={(id) => { if (!edit) setShownVisit(id); }}
                     onRate={onSaveSpot && ((n) => void saveOr(rateVisit(viewing, shown.visitId, nextRating(visits.rate.value, n))))}

@@ -12,7 +12,7 @@ import type { Palette } from "../theme";
 import { Button } from "../Button";
 import { Chip } from "../Chip";
 import { hitProps } from "../regs/hit";
-import { Block, Link } from "./parts";
+import { Block } from "./parts";
 
 export function VisitsBlock({ view, palette, onPick, onAdd, onRemove }: {
   view: VisitsView; palette: Palette;
@@ -31,9 +31,10 @@ export function VisitsBlock({ view, palette, onPick, onAdd, onRemove }: {
         <View style={{ flexDirection: "row", alignItems: "center", gap: 18, flexWrap: "wrap" }}>
           {onAdd && <Button palette={palette} kind="ghost" grow={false} label={VISIT_WORDS.add} onPress={onAdd}
                             testID="visit-add" />}
+          {/* (T819 item 14) one button style in the row: Remove beside Add as its equal, asked before it acts */}
           {onRemove && view.canRemove && (
-            <Link palette={palette} label={VISIT_WORDS.removeLabel} text={VISIT_WORDS.remove} tone={palette.closed}
-                  onPress={onRemove} />
+            <Button palette={palette} kind="ghost" grow={false} label={VISIT_WORDS.remove} a11yLabel={VISIT_WORDS.removeLabel}
+                    onPress={onRemove} testID="visit-remove" />
           )}
         </View>
       </Block>

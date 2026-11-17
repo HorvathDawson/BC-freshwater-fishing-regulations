@@ -228,3 +228,21 @@ describe("captureSpot's lead is the sheet's one lead (T586)", () => {
     expect(s.reading?.station).toBe("LEVELSMALL");
   });
 });
+
+/*
+ * (T819 item 3, owner 2026-11-16: "use our gauge network that colors stuff") A SPOT'S GAUGE IS THE MAP'S: the speaker's
+ * lead (`speakerFor` → `leadOver`), never `section_gauge`'s match. A small creek whose panel holds one far bigger gauge
+ * and no section_gauge row keeps that gauge, as the map colours it; the warning for it is T823's (Python's).
+ * Mutation: taking the lead from `gaugeForSection` fails it (no row: no reading).
+ */
+describe("a spot's gauge is the one the map colours with (T819)", () => {
+  it("a creek with a panel and no section_gauge row: the panel's lead, its reading and its estimate", async () => {
+    const s = await captureSpot({ ...base, source: source({ gaugeNow: NOW_READS, gaugeForSection: async () => null,
+      panelsFor: async () => new Map([[1 as SectionId, { areaKm2: 1.4, members: [{ station: "08MH001" as never, role: "down" as const,
+        areaKm2: 960, years: { discharge: 97, level: 97 }, regulated: false, sameRiver: false }] }]]) }),
+      feed: { index: async () => ({ listed: ["08MH001"], stations: {
+        "08MH001": { percentile: 0.15, parameter: "discharge", discharge: 0.15, observedAt: "2026-08-30T08:00:00Z" } } }) as never } });
+    expect([s.reading?.station, s.leadUp?.station, s.panel?.rows.map((r) => r.station), s.trace?.station])
+      .toEqual(["08MH001", "08MH001", ["08MH001"], null]);
+  });
+});

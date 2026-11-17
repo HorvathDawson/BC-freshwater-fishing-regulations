@@ -1,6 +1,6 @@
 # T826 — iOS: the Conditions panel and map differ from Android; the tap highlight stays after going back
 
-Status: OPEN (app, iOS; app chat)
+Status: DONE (f7b41c208; landed 2026-11-17 in land/app-1117: bar listener + highlight unset; Chehalis is data (08MG001 silent); owner re-tests on the 0.7.12 build).
 
 Source: owner 2026-11-16 ~21:50, in the app chat, on iPhone TestFlight build 36, verbatim: "also the condition panel is
 very glitchy on apple. it doesnt show the info the same as android the mao doesnt have gauge markers the current

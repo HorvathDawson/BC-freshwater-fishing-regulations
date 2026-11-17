@@ -10,6 +10,7 @@ describe("the map rail's words", () => {
       MAP_RAIL: { label: "Map tools", layers: "Layers", layersLabel: "Choose layers" },
       menu: {
         title: "Spots",
+        add: "Add", addLabel: "Add a spot", addClose: "Close the ways to add",
         addMine: "At my location", addMineAsk: "Asks for your location first",
         mineOff: "Location access is turned off for this app, so At my location is not offered.",
         mineNone: "Your location is not available here, so At my location is not offered.",
@@ -17,8 +18,8 @@ describe("the map rail's words", () => {
         noLocation: "Your location could not be read, so no spot was started.",
         show: "Show",
         emptyTitle: "No spots yet",
-        emptyBody: "Pin an exact point on a stream and the app records the gauge, its standing against the record " +
-                   "and the weather that day. Notes and photographs go on top. Press and hold the map to drop one.",
+        emptyBody: "Save the places you fish: the water, the day, how the river and the weather were, and your notes and "
+          + "photos.\nAdd one below, or press and hold the map.\nSaved on this phone and in its backup. Not on the website yet.",
         refresh: "Refresh", refreshing: "Refreshing…", refreshLabel: "Refresh spots",
       },
       drop: { title: "New spot", detail: "Next you pick the water it is on, then when you were there.",

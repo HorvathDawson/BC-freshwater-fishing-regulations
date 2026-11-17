@@ -12,13 +12,14 @@
 import { ErrorState } from "./ErrorState";
 import { Button } from "./Button";
 import { EmptyState } from "./EmptyState";
+import { useState } from "react";
 import { Image, ScrollView, View } from "react-native";
 import { Text } from "./Text";
 import { Pressable } from "./Pressable";
 import { WebSpotsNotice, webSpotsNotice } from "./WebSpotsNotice";
 import { SPOTS_LIST_WORDS, SPOTS_MENU } from "@app/core";
 import type { PhotoStore } from "@app/data/spots";
-import { usePhotoUris, type SpotsMenuAddKind, type SpotsMenuRow, type SpotsMenuVM } from "@app/ui";
+import { useBackLayer, usePhotoUris, type SpotsMenuAddKind, type SpotsMenuRow, type SpotsMenuVM } from "@app/ui";
 import { Icon } from "./icons";
 import { TYPE } from "./type";
 import { GUTTER, type Palette } from "./theme";
@@ -42,41 +43,42 @@ export function SpotsScreen({ palette, vm, onOpen, onShow, onAdd, onRefresh, ref
   backupLine?: string | null;
 }) {
   // (T302) the web keeps no spots: they live in the phone app, said in the list's place (spots saved here earlier stay, unshown)
+  const [addOpen, setAddOpen] = useState(false);
+  const showAdds = addOpen || vm.rows.length === 0;
+  // back (Android, the browser, the iOS edge) closes the ways to add first, as the header's Add does
+  useBackLayer(addOpen && vm.rows.length > 0, () => setAddOpen(false));
   if (webSpotsNotice()) return <WebSpotsNotice palette={palette} />;
   return (
     <View testID="spots-screen" style={{ flex: 1, backgroundColor: palette.card }}>
-      <View style={{ paddingHorizontal: GUTTER, paddingTop: 16, paddingBottom: 12,
-                     borderBottomWidth: 1.5, borderBottomColor: palette.ink }}>
-        <Text accessibilityRole="header" style={{ ...TYPE.screen, color: palette.ink }}>{vm.title}</Text>
+      <View style={{ paddingHorizontal: GUTTER, paddingTop: 16, paddingBottom: 12, flexDirection: "row", alignItems: "center",
+                     gap: 12, borderBottomWidth: 1.5, borderBottomColor: palette.ink }}>
+        <Text accessibilityRole="header" style={{ ...TYPE.screen, color: palette.ink, flex: 1 }}>{vm.title}</Text>
+        {/* (T819 item 11) ADD, ALWAYS IN SIGHT: a square in the header (it sank to the end of a long list); it opens the
+            ways to add at the top of the list, and back closes them */}
+        {vm.adds.length > 0 && vm.rows.length > 0 && (
+          <Pressable {...hitProps({ w: 44, h: 44 })} onPress={() => setAddOpen(!addOpen)} accessibilityRole="button"
+                     accessibilityLabel={addOpen ? SPOTS_MENU.addClose : SPOTS_MENU.addLabel} aria-expanded={addOpen}
+                     testID="spots-add"
+                     style={({ pressed }) => ({ minWidth: 44, height: 44, paddingHorizontal: 12, flexDirection: "row",
+                                                alignItems: "center", justifyContent: "center", gap: 6,
+                                                borderWidth: 1.5, borderColor: palette.ink, borderRadius: palette.r.box,
+                                                backgroundColor: addOpen || pressed ? palette.wash : palette.card })}>
+            <Icon name={addOpen ? "close" : "spots"} colour={palette.accent} size={16} />
+            <Text style={{ ...TYPE.bodyStrong, color: palette.accent }}>{SPOTS_MENU.add}</Text>
+          </Pressable>
+        )}
       </View>
       <ScrollView>
         {vm.error !== null && (
           <ErrorState palette={palette} size="body" message={vm.error} style={{ padding: 20 }} />
         )}
         {vm.empty && <EmptyState palette={palette} title={vm.empty.title} body={vm.empty.body} />}
-        {vm.stale !== null && onRefresh && (
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 16,
-                         backgroundColor: palette.tint }}>
-            <Text testID="spots-stale" style={{ ...TYPE.small, flex: 1, color: palette.sub }}>{vm.stale}</Text>
-            <Button palette={palette} kind="small" label={SPOTS_MENU.refresh} a11yLabel={SPOTS_MENU.refreshLabel} onPress={onRefresh} busy={refreshing} />
-          </View>
-        )}
-        {vm.rows.map((r) => (
-          <SpotRow key={r.id} row={r} palette={palette} photoStore={photoStore}
-                   onOpen={() => onOpen(r.id)} onShow={() => onShow(r.id)} />
-        ))}
-        {backupLine && vm.rows.length > 0 ? (
-          <Text testID="spots-backup" style={{ ...TYPE.small, fontSize: 12, color: palette.sub, paddingHorizontal: 20,
-                                               paddingTop: 10, paddingBottom: 6 }}>{backupLine}</Text>
-        ) : null}
-        {error ? (
-          <ErrorState palette={palette} message={error} style={{ paddingHorizontal: 20, paddingTop: 12 }} />
-        ) : null}
-        <OpenSettings palette={palette} line={error} />
+        {/* the ways to add: open from the header's Add, and always with no spots yet (the empty page's whole point) */}
+        {showAdds && (<View testID="spots-adds">
         {vm.adds.map((a, i) => (
           // (T466) the walkthrough's "Add one" rings Pick on the map
           <CoachSpot key={a.k} k={a.k === "pick" ? "spots:pick" : `spots:${a.k}`}>
-          <Pressable {...hitProps({ w: 300, h: 46 })} onPress={() => onAdd(a.k)} accessibilityRole="button" accessibilityLabel={a.label}
+          <Pressable {...hitProps({ w: 300, h: 46 })} onPress={() => { setAddOpen(false); onAdd(a.k); }} accessibilityRole="button" accessibilityLabel={a.label}
                      style={({ pressed }) => ({
                        flexDirection: "row", alignItems: "center", gap: 13, paddingVertical: 13,
                        paddingHorizontal: 20, backgroundColor: pressed ? palette.wash : palette.card,
@@ -97,6 +99,26 @@ export function SpotsScreen({ palette, vm, onOpen, onShow, onAdd, onRefresh, ref
                                              paddingTop: 10, paddingBottom: 16 }}>{vm.note}</Text>
         )}
         <OpenSettings palette={palette} line={vm.note} />
+        </View>)}
+        {vm.stale !== null && onRefresh && (
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 16,
+                         backgroundColor: palette.tint }}>
+            <Text testID="spots-stale" style={{ ...TYPE.small, flex: 1, color: palette.sub }}>{vm.stale}</Text>
+            <Button palette={palette} kind="small" label={SPOTS_MENU.refresh} a11yLabel={SPOTS_MENU.refreshLabel} onPress={onRefresh} busy={refreshing} />
+          </View>
+        )}
+        {vm.rows.map((r) => (
+          <SpotRow key={r.id} row={r} palette={palette} photoStore={photoStore}
+                   onOpen={() => onOpen(r.id)} onShow={() => onShow(r.id)} />
+        ))}
+        {backupLine && vm.rows.length > 0 ? (
+          <Text testID="spots-backup" style={{ ...TYPE.small, fontSize: 12, color: palette.sub, paddingHorizontal: 20,
+                                               paddingTop: 10, paddingBottom: 6 }}>{backupLine}</Text>
+        ) : null}
+        {error ? (
+          <ErrorState palette={palette} message={error} style={{ paddingHorizontal: 20, paddingTop: 12 }} />
+        ) : null}
+        <OpenSettings palette={palette} line={error} />
       </ScrollView>
     </View>
   );

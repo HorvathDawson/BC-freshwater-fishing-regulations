@@ -13,8 +13,8 @@ export interface LeadUpView {
   heading: string;
   /** Seven columns, oldest first; each `label` is the day said whole (a screen reader, a test). */
   weather: {
-    days: { label: string; day: string; sky: string; temps: string; rain: string; wind: string;
-            icon: SkyIcon | null; band: 0 | 1 | 2 | 3 }[];
+    days: { label: string; day: string; weekday: string; date: string; sky: string; high: string; low: string;
+            rain: string; wind: string; icon: SkyIcon | null; band: 0 | 1 | 2 | 3 }[];
     rain: string | null;
     source: string;
     /** How many days the service had not sent yet, and that a refresh fills them; null when none. */
@@ -37,7 +37,9 @@ export interface LeadUpView {
  * (saved offline, its days filled in by a refresh), the quantity frozen beside the days (`LeadUp.parameter`).
  */
 export function leadUpView(lu: LeadUp | null | undefined,
-                           declared?: SpotReading | null): LeadUpView | null {
+                           declared?: SpotReading | null,
+                           /** (T819 item 7) the release's station names, so the gauge row names its station */
+                           names?: ReadonlyMap<string, string>): LeadUpView | null {
   if (!lu) return null;
   const pending = leadUpPendingDays(lu);
   // "filled in afterwards" under the row a refresh filled; a week filled before `filledIn` existed: both, as it said
@@ -54,7 +56,7 @@ export function leadUpView(lu: LeadUp | null | undefined,
     days: lu.gauge.map((d) => ({ label: leadUpGaugeSentence(d, q), day: leadUpDayLabel(d.date),
                                  ...leadUpGaugeCells(d, q) })),
     trend: leadUpGaugeTrend(lu.gauge, q),
-    meta: leadUpGaugeMeta(lu.station, filled("gauge")),
+    meta: leadUpGaugeMeta(lu.station, filled("gauge"), names),
     pending: pending.gauge ? leadUpGaugePending(pending.gauge) : null,
   } : null;
   return {

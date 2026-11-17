@@ -30,10 +30,15 @@ export const SPOT_WORDS = {
   save: "Save spot", saveChanges: "Save changes",
   /** (T284) the page's three headed blocks: the day as it was, what the person added, how the next days compare */
   thatDay: "That day", added: "What you added", nextDays: "The next few days",
+  /** (T819 item 5) the draft's record, folded to one card: its open and close, and what the card says it holds */
+  showRecord: "Show the record", hideRecord: "Hide the record",
+  recordDetail: "The flow, the weather and the week before, as recorded for this moment.",
   /** where a spot has nothing added yet */
   nothingAdded: "No notes or photos yet.",
   /** (T310) where to park: a fact of the spot (every visit's), shown on the page and as a P on the map */
   parking: "Parking", noParking: "No parking added.",
+  /** (T819 item 14) a spot's parking, said plainly (its coordinates small under it) */
+  parkingSaved: "Parking saved",
   parkingHere: "Use my location", parkingPick: "Pick on the map", parkingRemove: "Remove parking",
   directions: "Directions", directionsLabel: "Directions to the parking, in your maps app",
   parkingNoFix: "Could not find your location.",
@@ -50,6 +55,10 @@ export const SPOT_CAPTURE_WORDS = {
   /** `water`: the picked water's name, or null when it has none */
   tapPoint: (water: string | null) => `Tap the point on ${water ?? "this reach"}.`,
   when: "When were you there?",
+  /** (T819 item 2) under the question: what is recorded for the moment picked. A spot keeps no rules, so it says none. */
+  whenDetail: (water: string | null) =>
+    `The weather and the flow are recorded for this moment${water ? ` on ${water}` : ""}, so it is worth getting right.`,
+  day: "Day", hour: "Hour",
   earlierDay: "Earlier day", laterDay: "Later day", earlierHour: "Earlier hour", laterHour: "Later hour",
   back: "Back", cancel: "Cancel", next: "Next",
 } as const;
@@ -59,8 +68,8 @@ export const SPOT_CONFIRM_WORDS = {
   delete: {
     label: "Confirm delete",
     title: "Delete this spot?",
-    detail: "The gauge reading, the weather and the rules that were in force are recorded nowhere else. This cannot be "
-      + "undone.",
+    /** (T819 item 2) a spot keeps no rules: only its reading and its weather are lost with it */
+    detail: "The gauge reading and the weather recorded with it are kept nowhere else. This cannot be undone.",
     keep: "Keep it",
     go: "Delete",
   },

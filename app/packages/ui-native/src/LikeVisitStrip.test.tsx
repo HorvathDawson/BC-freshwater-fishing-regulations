@@ -1,9 +1,9 @@
 /**
- * T51, T284: "The next few days" on a saved spot, mounted in light and dark: one card per day with its score and its
- * plain reasons always shown, the closest day marked, under its own heading; absent from a draft.
+ * T51, T284, T819 item 9: "The next few days" on a saved spot, mounted in light and dark: one compact row per day — the
+ * day, its single biggest difference and its score — the reasons behind a tap, the closest day marked; absent from a draft.
  */
 import { afterEach, describe, expect, it } from "vitest";
-import { cleanup, render } from "@testing-library/react";
+import { cleanup, fireEvent, render } from "@testing-library/react";
 import type { LikeVisitView } from "@app/ui";
 import type { Spot } from "@app/data/spots";
 import { SpotScreen } from "./SpotScreen";
@@ -20,14 +20,16 @@ const VIEW: LikeVisitView = {
   mode: "like", best: "Closest to your visit", hint: null,
   heading: "Like your visit?",
   intro: "How alike each of the next five days looks to the day you were here.",
-  visit: { top: "Your visit", sub: "30 Aug", label: "Your visit, 30 Aug: the day the others are compared with." },
+  visit: { top: "Your visit", sub: "Sun 30 Aug", label: "Your visit, Sun 30 Aug: the day the others are compared with." },
   age: "Forecast checked 2h ago.",
   note: null,
   days: [
-    { date: "2026-10-22", top: "Today", sub: "22 Oct", score: "100%", read: "Very similar", basis: null, best: true, reasons: ["Flow: the same"],
+    { date: "2026-10-22", top: "Today", sub: "Thu 22 Oct", score: "100%", read: "Very similar", basis: null, best: true,
+      reasons: ["Flow: the same"], lead: "Much the same as your visit",
       label: "Today, 22 Oct: 100%, very similar to your visit.",
       why: ["Flow: 6 in 10 days higher then, 6 in 10 days higher now. The same: 100% alike, 45% of the score."] },
-    { date: "2026-10-24", top: "Sat", sub: "24 Oct", score: "61%", read: "Different", basis: "weather only", best: false, reasons: ["Air temperature: 6° cooler"],
+    { date: "2026-10-24", top: "Sat 24 Oct", sub: "", score: "61%", read: "Different", basis: "weather only", best: false,
+      reasons: ["Air temperature: 6° cooler", "Wind: the same"], lead: "Air temperature: 6° cooler",
       label: "Sat, 24 Oct: 61%, different from your visit, on the weather only.",
       why: ["No flow forecast for this day: scored on the weather only.", "Flow: no flow forecast for this day. Not scored."] },
   ],
@@ -39,20 +41,31 @@ const rgb = (hex: string) => {
 };
 
 describe.each([["light", LIGHT], ["dark", DARK]] as [string, Palette][])("<LikeVisitStrip> (%s)", (_, palette) => {
-  it("draws the visit and a card per day, the reasons shown and the closest day marked, in the theme's ink", () => {
-    const { getByTestId } = render(
+  it("draws the visit and a row per day — the day, its biggest difference, its score — the closest marked", () => {
+    const { getByTestId, queryByTestId } = render(
       <SpotScreen spot={spot} palette={palette} onBack={() => {}} likeVisit={VIEW} />);
     expect(getByTestId("like-visit").textContent).toBe(
       "How alike each of the next five days looks to the day you were here."
-      + "Your visit30 Aug"
-      + "Today22 Oct100%Very similar" + "CLOSEST TO YOUR VISIT"
-      + "Flow: the same"
-      + "Sat24 Oct61%Different" + "weather only"
-      + "Air temperature: 6° cooler"
+      + "Your visitSun 30 Aug"
+      + "TodayThu 22 Oct" + "CLOSEST TO YOUR VISIT" + "Much the same as your visit" + "100%Very similar"
+      + "Sat 24 Oct" + "Air temperature: 6° cooler" + "61%Different"
       + "Forecast checked 2h ago.");
     expect(getByTestId("spot-next-days").textContent).toContain("The next few days");
-    expect(getByTestId("like-day-2026-10-22").style.borderTopColor).toBe(rgb(palette.ink));
-    expect(getByTestId("like-day-2026-10-24").style.borderTopColor).not.toBe(rgb(palette.ink));
+    expect(getByTestId("like-day-2026-10-22").style.borderLeftColor).toBe(rgb(palette.ink));
+    expect(getByTestId("like-day-2026-10-24").style.borderLeftWidth).toBe("0px");
+    expect(queryByTestId("like-why-2026-10-24")).toBeNull();
+  });
+
+  it("a tap on a row opens its reasons, and why flow is out; a second tap closes them", () => {
+    const { getByLabelText, getByTestId, queryByTestId } = render(
+      <SpotScreen spot={spot} palette={palette} onBack={() => {}} likeVisit={VIEW} />);
+    const row = getByLabelText("Sat, 24 Oct: 61%, different from your visit, on the weather only.");
+    expect(row.getAttribute("aria-expanded")).toBe("false");
+    fireEvent.click(row);
+    expect(getByTestId("like-why-2026-10-24").textContent).toBe("weather only" + "Air temperature: 6° cooler" + "Wind: the same");
+    expect(row.getAttribute("aria-expanded")).toBe("true");
+    fireEvent.click(row);
+    expect(queryByTestId("like-why-2026-10-24")).toBeNull();
   });
 });
 

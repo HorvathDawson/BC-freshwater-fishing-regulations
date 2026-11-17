@@ -75,8 +75,20 @@ code now handles belong in the code's comments, not here.
   - **The 12 rows that carried a hand-written lift out of the share** (Lardeau, Duncan, Beaver, Lavington, Perry,
     Whiteswan, Chilliwack, Kitimat ×2, Peace in 7B): under the strict reading a number equal to the share no longer
     lifts (the Lardeau and Duncan bull trout 2, revising RULINGS T3a for those rows).
+  - **Lakes with their own brook trout quota above the region's 5** (Region 4 p.35-40: Big Fish, Botts, Box, North
+    Star, Premier, Twin, Whitetail "Brook trout daily quota = 20"; Region 8 p.70 Jewel; Region 7 p.59-61 Bow,
+    Butterfly, Camp, Kathie, Kinglet, Redstart "= 10"): the region's 5 stands, brook trout may go to 20, and they count
+    toward the 5. Owner 2026-11-17 12:29: "the total is 5 not 20 or 25 ... 5 with exception to 20 brook trout which
+    also uses up your 5 quota". Built: 15 brook trout + 5 cutthroat is legal (the cutthroat fill the 5, the extra slots
+    are brook trout only), 6 cutthroat is not. Owner 12:32: "For now say legal (need to ask about this with co tho)".
+    Stricter: brook trout fill the 5 first, so 5 brook trout + 1 cutthroat is not legal.
 
 ### Questions for each office (the book's words, printed pages of the 2025-2027 synopsis)
+
+**Answered by the owner (not to ask):** Region 6's steelhead closure (p.49, "No fishing: in all rivers and streams for
+steelhead, May 15 – June 15") holds on every stream whose own row prints other "No Fishing" dates: the Kitimat (p.51),
+Dala (p.50), Ksi Hlginx (p.52), Triumph (p.54), and the West Road mainstem (Region 5, p.47) by the same reading. Owner
+2026-11-17: "the no steelhead is different then a full closure so the no steelhead definitely holds here".
 
 **BC Fish and Wildlife, Region 1 (Vancouver Island)**
 1. Summer closure (p.13): "No Fishing in any stream in Management Units 1-1 to 1-6 from July 15-Aug 31 (see water
@@ -122,6 +134,10 @@ code now handles belong in the code's comments, not here.
      = 2 (any size)". 5 fish in all, or 7? Do the bull trout count toward the 2 from streams?
    - Kootenay Lake main body (p.37): "Bull trout daily quota = 1; rainbow trout daily quota = 10 (any size)". 10 fish
      in all, or 11? Are other trout still limited to 5?
+   - Big Fish, Botts, Box, North Star, Premier, Twin and Whitetail lakes (p.35-40): "Brook trout daily quota = 20".
+     Do brook trout count toward the 5? Is 15 brook trout + 5 cutthroat legal, or only 5 other trout less the brook
+     trout kept? (The same question for Region 7's "Brook trout daily quota = 10" lakes, p.59-61, and Region 8's
+     Jewel Lake, p.70.)
 2. Spring closure (p.34): "No Fishing: in any stream in Region 4 from Apr 1-June 14". Duck Lake (p.36): "bass catch
    and release, May 15-June 15". Are its streams open for bass catch and release from May 15, or closed to June 14?
 3. Glenn Creek flows by Wilkie Creek into Trout Lake, which drains down the Lardeau to the Duncan. The Duncan
@@ -131,30 +147,31 @@ code now handles belong in the code's comments, not here.
 4. Mackenzie Creek (p.38, "No Fishing") is listed under MU 4-21. The only Mackenzie Creek is in MU 4-31. Is it a typo?
 
 **BC Fish and Wildlife, Region 5 (Cariboo)**
-1. West Road (Blackwater) River (p.47): "No Fishing in mainstem (only) Nov 1-June 14". Region 6 (p.49): "No fishing:
-   in all rivers and streams for steelhead, May 15 – June 15". Is the mainstem closed for steelhead on June 15?
-2. These lakes cannot be found on the map in the MU printed: Frog Lake and Hidden Lake (MU 5-6, p.45), Secret Lake (MU
-   5-6, p.46), Redfern Lake (MU 5-15, p.46), Square Lake (MU 5-6, p.47), and Chipmunk Lake (MU 6-1, in the Region 5
-   table, p.44). Where are they?
+1. Frog Lake (MU 5-6, p.45): "No Ice Fishing; trout daily quota = 1; bait ban, single barbless hook". No lake on the
+   provincial map (Freshwater Atlas) is named Frog Lake in MU 5-6; the Frog Lakes we found are in MUs 1-10, 3-29 and
+   7-30, far from it. Its row's words are exactly those of Hidden Lake (24 ha) and Secret Lake (18 ha), the next rows in
+   the same MU, both found; so it is probably a small lake near them, unnamed on the map or known locally by another
+   name. Which lake is it?
+2. Redfern Lake (MU 5-15, p.46): "Trout daily quota = 2; bait ban, single barbless hook". No lake named Redfern is in
+   MU 5-15; the only Redfern Lake on the map is in Region 7 (MU 7-42, about 500 ha). Is the MU a typo (7-42), or is
+   it another lake in 5-15?
 
 **BC Fish and Wildlife, Region 6 (Skeena)**
-1. Steelhead closure (p.49): "No fishing: in all rivers and streams for steelhead, May 15 – June 15". These rows print
-   their own "No Fishing" dates and no exemption. Does the steelhead closure still apply outside them?
-   - Kitimat River (p.51): "No Fishing in tributaries and upstream of Hwy 37 bridge, Mar 16-May 31". Closed for
-     steelhead June 1-15?
-   - Dala River (p.50): "No Fishing June 15-Aug 1". Closed for steelhead May 15-June 14?
-   - Ksi Hlginx River (p.52): "No Fishing June 15-Sept 1". Closed for steelhead May 15-June 14?
-   - Triumph River (p.54): "No Fishing Nov 1-May 31". Closed for steelhead June 1-15?
-2. Fraser watershed closure (p.49): "in the Fraser River watershed in Region 6, Apr 1-June 30", and Region 7A's spring
+1. Fraser watershed closure (p.49): "in the Fraser River watershed in Region 6, Apr 1-June 30", and Region 7A's spring
    closure (p.58), "in any stream of Zone A, Apr 1-June 30". Stellako River (p.53 and p.61): "No Fishing Nov 15-May
    14". Closed May 15-June 30?
-3. Daily quota (p.49): "1 trout from streams July 1-Oct 31". Buckley Creek (p.50): "rainbow trout daily quota = 1".
+2. Daily quota (p.49): "1 trout from streams July 1-Oct 31". Buckley Creek (p.50): "rainbow trout daily quota = 1".
    1 trout in all, or 1 rainbow plus 1 other trout?
+3. Squirrel Lake (MU 6-1, p.53; also printed in the Region 5 table, p.47): "Trout daily quota = 2; bait ban, single
+   barbless hook". No lake named Squirrel is in MU 6-1; the only Squirrel Lake on the map is in Region 5 (MU 5-1,
+   about 43 ha). The other MU 6-1 lakes printed in both tables with these words (Chipmunk, Toms, Basalt, Gatcho,
+   Naglico, Pettry) are all found, near the Region 5 border. Is it the MU 5-1 lake (an MU typo), or another lake near
+   that border?
 4. Kitimat River (p.51): "Hatchery steelhead (adipose clipped, >50 cm) daily quota = 2", with no dates. Region 6
    (p.49): "you must release: … Trout of any size from streams, Nov 1-June 30". May hatchery steelhead be kept on the
    Kitimat from Nov 1 to June 30?
 
-**BC Fish and Wildlife, Region 7A (Omineca)**: Stellako River, see Region 6 question 2.
+**BC Fish and Wildlife, Region 7A (Omineca)**: Stellako River, see Region 6 question 1.
 
 **DFO (salmon)**
 1. Tatshenshini below the border: "All | Jul 24 to Aug 14 | No fishing for salmon" beside "Coho | Apr 1 to Mar 31 | 2
@@ -235,9 +252,10 @@ The fix is an ordinary override keyed on the row AS PRINTED (`name_verbatim` + t
 naming the right item; the entry id keeps the printed MU (`@4-21`) because it is minted from the row,
 not the item. Do not "correct" the id or the MU in the corpus.
 
-Known book errata (add new ones here): **Mackenzie Creek MU 4-21 → 4-31.** The Region 5 placeholders
-(Redfern, Secret, Frog, Hidden, Square, Chipmunk lakes) are `not_found` overrides whose notes say "may
-be a typo" — unconfirmed, not errata.
+Known book errata (add new ones here): **Mackenzie Creek MU 4-21 → 4-31.** Still not found (2026-11-17), `not_found` overrides,
+unconfirmed, not errata: Frog Lake (MU 5-6), Redfern Lake (MU 5-15), Squirrel Lake (MU 6-1). Hidden, Secret and
+Square lakes (MU 5-6) were found since and bind; Chipmunk, Toms, Basalt, Gatcho, Naglico and Pettry (MU 6-1) are
+printed in both the Region 5 and Region 6 tables with the same words, and the Region 6 row binds them.
 
 ---
 

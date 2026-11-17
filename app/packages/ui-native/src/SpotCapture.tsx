@@ -31,7 +31,7 @@ import { Pressable } from "./Pressable";
 import { WebSpotsNotice, webSpotsNotice } from "./WebSpotsNotice";
 import type { WaterSource, SectionId } from "@app/data";
 import type { HydatDaily, Spot, WeatherSource } from "@app/data/spots";
-import { dayFlowView, useBackLayer, useCaptureSpot, type CaptureWater, type SpotPhotos } from "@app/ui";
+import { dayFlowView, useBackLayer, useCaptureSpot, useStationNames, type CaptureWater, type SpotPhotos } from "@app/ui";
 import type { Camera, TileEndpoints } from "@app/map";
 import { LoadingState } from "./LoadingState";
 import { MapScreen } from "./MapScreen";
@@ -98,6 +98,7 @@ function SpotCaptureFlow(props: SpotCaptureProps) {
   const preset = props.at != null;
   // The visit's day and hour, the capture and the save: `useCaptureSpot` (P12b).
   const cap = useCaptureSpot({ source, weather: props.weather, feed, photos: props.photos, history: props.history });
+  const names = useStationNames(source);                     // (T819 item 7) gauges named, codes after
   // Leaving without saving deletes the photos the draft added (S1): nothing else would ever hold them.
   const cancel = () => { void cap.cancel(); props.onCancel(); };
   const draft = cap.draft;
@@ -170,7 +171,7 @@ function SpotCaptureFlow(props: SpotCaptureProps) {
     // exactly what you get afterwards — which was not true when this screen had its own
     // renderer and quietly showed less.
     return (
-      <SpotScreen spot={draft} palette={palette} mode="draft"
+      <SpotScreen spot={draft} palette={palette} mode="draft" names={names}
                   // an earlier trip day: the day's flow as read from its record, said before it is saved (Q161)
                   dayFlow={{ view: dayFlowView(draft, "idle"), onAsk: null }}
                   photoStore={props.photos?.store} photoEdit={cap.photos}
@@ -253,15 +254,12 @@ export function WhenScreen({ palette, steps, onShiftDay, onDay, onHour, water, o
 
       <View style={{ gap: 6 }}>
         <Text style={{ ...TYPE.title, color: palette.ink }}>{title ?? CW.when}</Text>
-        <Text style={{ ...TYPE.small, color: palette.sub }}>
-          The weather, the flow and the rules are all recorded for this moment
-          {water ? ` on ${water}` : ""} — so it is worth getting right.
-        </Text>
+        <Text style={{ ...TYPE.small, color: palette.sub }}>{CW.whenDetail(water)}</Text>
       </View>
 
       <View style={{ gap: 10 }}>
         <Text style={{ ...TYPE.section, fontSize: 10.5, letterSpacing: 1.5,
-                       color: palette.faint }}>DAY</Text>
+                       color: palette.faint }}>{CW.day.toUpperCase()}</Text>
         <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
           {VISIT_QUICK_DAYS.map(([label, off]) => (
             <Chip key={label} palette={palette} look="day" role="button" label={label} on={dayOffset === off} onPress={() => onDay(off)} />
@@ -279,7 +277,7 @@ export function WhenScreen({ palette, steps, onShiftDay, onDay, onHour, water, o
 
       <View style={{ gap: 10 }}>
         <Text style={{ ...TYPE.section, fontSize: 10.5, letterSpacing: 1.5,
-                       color: palette.faint }}>HOUR</Text>
+                       color: palette.faint }}>{CW.hour.toUpperCase()}</Text>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 14 }}>
           <Step palette={palette} label={CW.earlierHour} icon="back"
                 onPress={() => onHour(hour - 1)} disabled={!steps.earlierHour} />

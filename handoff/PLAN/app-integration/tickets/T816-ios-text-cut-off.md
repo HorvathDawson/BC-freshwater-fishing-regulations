@@ -1,6 +1,6 @@
 # T816 — iOS: text cut off (the hour on "When were you there?", the weather icons on the spot card)
 
-Status: OPEN (app, iOS; app chat)
+Status: DONE (f7b41c208; landed 2026-11-17 in land/app-1117, proven on the simulator; owner re-tests on the 0.7.12 build).
 
 Source: owner 2026-11-16 ~21:22, testing iPhone TestFlight build 36 (app chat; pictures in the chat). Verbatim: "text is cut off weird". His pictures: on "When were you there?" (saving a spot, Lynn Creek) the hour
 "18:00" shows with its top cut off; on the spot card's WEATHER line the two weather icons before "wind 9 km/h" are cut

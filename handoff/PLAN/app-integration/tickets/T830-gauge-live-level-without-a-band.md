@@ -127,3 +127,9 @@ screen and the gauge card is below the fold (`android-gauge-offline-step1.png`).
 - Pictures (`t830-shots/`): `web-2dp-{before,after}-{capilano,harrison}-level-{light,dark}.png`,
   `android-2dp-{before,after}-{capilano,harrison}-level.png` (Android after: build 15c9a3c34, scenario `gauge-level` with
   `GAUGE_LEVEL_DP=2`, both PASS; Capilano "1.00 m · Too new to say…", Harrison Lake 08MG012 "10.30 m").
+
+2026-11-17 11:41, owner (app chat dialog, after the before/after pictures of the space cost): "Keep 2 decimals". Built on
+`app-fix/t830-level-no-band` (15c9a3c34); lands after its Android benches.
+
+2026-11-17 12:36: Android benches 7/7 (install, memory, tap-stalls, regs-open, walkthrough, gauge-level, crash-bed).
+Merged onto head with T819's spot words (the list row's new ranked line takes the 2-decimal level too).
