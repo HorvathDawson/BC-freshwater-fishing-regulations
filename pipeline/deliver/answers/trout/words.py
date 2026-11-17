@@ -51,8 +51,6 @@ class WordsError(AnswersError):
 # Days
 # --------------------------------------------------------------------------------------------
 
-_WEEKDAY = re.compile(r"\b(?:" + "|".join(sorted({w for d in SPEC.WEEKDAYS for w in (d, d[:3])}, key=len,
-                                                  reverse=True)) + r")\b", re.I)
 _TODAY = re.compile(r"\btoday\b", re.I)
 _DAY = r"(" + "|".join(SPEC.MONTHS) + r") (\d{1,2})"
 
@@ -74,7 +72,7 @@ def _day_of(mon: str, d: str) -> int:
 
 
 def _checked(text: str) -> str:
-    if _WEEKDAY.search(text):
+    if common.names_a_weekday(text):
         raise WordsError(f"trout words: a date line names a weekday: {text!r}")
     if _TODAY.search(text):
         raise WordsError(f"trout words: a date line says today: {text!r}")
