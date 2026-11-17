@@ -24,6 +24,7 @@ import { sharedFixesIos } from './scenarios-ios/shared-fixes.mjs';
 import { keyboardIos } from './scenarios-ios/keyboard.mjs';
 import { modalBackIos } from './scenarios-ios/modal-back.mjs';
 import { auditFixes } from './scenarios-ios/audit-fixes.mjs';
+import { conditionsIos } from './scenarios-ios/conditions.mjs';
 
 process.env.TESTBED_PLATFORM = 'ios';
 const HERE = path.dirname(new URL(import.meta.url).pathname);
@@ -623,6 +624,8 @@ const SCENARIOS = [
   modalBackIos,
   // (T723) the iOS audit fixes' proof, by name only
   auditFixes,
+  // (T826) the Conditions tab on iOS: gauge markers, the flow bar, the Chehalis, the highlight after back
+  conditionsIos,
 ];
 
 // ---------- the runner (as run.mjs, without the Android-only crash buffer and test channel) ----------
