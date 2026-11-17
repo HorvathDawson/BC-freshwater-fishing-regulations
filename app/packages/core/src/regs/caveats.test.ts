@@ -206,10 +206,11 @@ describe("timedOf: the day reads differently by moment", () => {
     expect(lines(timedOf(inputs(), settled({ s: 0 }), at([L([]), L([])])))).toEqual(["⚠ At certain times",
       ["Kokanee: release Mon–Fri; 5 a day Sat–Sun", "today (Mon–Fri): release", null, "KO", ""]]);
   });
-  it("(c) an angler closure speaking at another moment, not the card's: its describe() and the days", () => {
+  it("(c) an angler closure speaking at another moment, not the card's: its own sentence (T800: as the 'some anglers' note says it) and the days", () => {
     const same = rows("release", 11, null);
+    // (T800) the stored label, whole, brackets and all: the printed text cut at its first bracket named nobody
     expect(lines(timedOf(inputs({ rows: [same, same] }), settled({ s: 0 }), at([L([]), L([12])])))).toEqual(["⚠ At certain times",
-      ["Within 23 m downstream of the lower entrance to any fishway, canal, obstacle or leap.", "Sat–Sun", angler.key, null, "Rule book p.9 ↗"]]);
+      ["Angling closed (weekends)", "Sat–Sun", angler.key, null, "Rule book p.9 ↗"]]);
     expect(timedOf(inputs({ rows: [same, same] }), settled({ s: 1 }), at([L([]), L([12])]))).toBeNull();   // speaks on the card's own moment
   });
   it("(a) a closed moment while the card's is open: its stored closure, unless the card's moment has it too", () => {

@@ -1,6 +1,6 @@
 # T760 — First install waits for ever, without a word, on a system download that is paused and never moves; and the bench does not clear the downloader
 
-Status: OPEN (iOS chat found it; first install on Android is the Android chat's area, so the fix needs its word; the bench half can start at once).
+Status: IN PROGRESS (bench settled 2026-11-16: three fully passing bg-install sessions; merge 3 `merge/t756-t760` is landing)
 
 Source: 2026-11-15, the R8 bench (T749). Traced on the emulator, not inferred.
 
@@ -184,3 +184,26 @@ On `fix/t760-stuck-download` (worktree only, not pushed, not merged, NOT run on 
   step could be missed by the runner's crash check.
 - Left: three clean `bg-install` runs and one `install` on the emulator (lane 2, after tonight's Play build), the
   crash-buffer finding, then T756 + T760 merge together with the benches and a message to the main chat.
+
+## Merge 3 state, 2026-11-16 13:05 (the app chat, at its handover)
+`merge/t756-t760` @ a74ea4aa0 (T756 + T760 merged on the shared head, plus two bench commits): `pnpm check` passed;
+five of the six benches passed; `bg-install` passes every step except the two about the download notification with
+the app closed (6 sessions before the bench rework, 1 after it). Cause as read from the runs: today's line brings the
+479 MB in 35 to 60 s, so the system downloader's row is gone seconds after the app is closed and there is nothing
+left to tap; "reopened mid-download: no running download is thrown away" passes every time. With the rework
+(a74ea4aa0) the "closed" step passes and only the tap fails. Not merged: three fully passing `bg-install` sessions
+are owed first. Details and the command: `handoff/PLAN/ios/START-HERE-ios.md`, top section, "BENCH FIX RESULT".
+
+## Bench settled, 2026-11-16 13:20–14:00 (new app chat, session -9c)
+The bench was at fault, not the app: on the Mac's full line the 479 MB were down 35 to 60 s after they started, so the
+tap came after the system's notification had gone. The emulator's speed shaping does not reach its Wi-Fi. Now
+`scenarios/bg-install.mjs` points the phone's global HTTP proxy at `lib/throttle-proxy.mjs` (a proxy on the Mac, one
+shared budget of 3 MB/s, CONNECT tunnels relayed unread; its own test) from the clean install until the tap, then lifts
+it; it is always unset at the end, and `session.sh` unsets one a cut-off run left (b4c1a72d9).
+Three sessions on that (APK tag `m3`, R8, `--no-r2`, lane 2): `m3d-bg1` 8/8, `m3d-bg2` 8/8, `m3d-bg3` 8/8. Each: the
+app closed at under 3 MB of 479, the shade showing "3 files downloading", the tap on the group's first notification
+opened the app, nothing queued again from zero, the map opened. With `pnpm check` and the other five benches from before,
+merge 3 is ready to land.
+Left for later (bench time only, no result depends on it): unsetting the proxy at the reopen step seems to make the
+system downloader drop and retry its connections, so the rest took about 4 min; lifting the rate without unsetting
+until the end would shorten a session.

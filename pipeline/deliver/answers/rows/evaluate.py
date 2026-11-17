@@ -393,9 +393,24 @@ def fish_range(P: "Part", S: str) -> Tuple[float, float]:
     water (p.80; F5c), so there the rainbow's range ends at 50 cm and the steelhead's starts there."""
     if P.steelhead_water and S == "RB":
         return 0, 50
-    if P.steelhead_water and S == "ST":
+    if S == "ST" and (P.steelhead_water or A_STEELHEAD_IS_OVER_50_EVERYWHERE):
         return 50, INF
     return 0, INF
+
+
+#: T805 part D (adversarial review, Shamrock Creek blk:356196726): p.80 "steelhead: a rainbow trout longer than 50 cm in
+#: waters where anadromous rainbow trout are found" — a steelhead is over 50 cm WHEREVER one is answered, not only where a
+#: big rainbow is known to be one. Shamrock Creek (steelhead possible, Lonzo Creek's "Trout/char 20-30 cm in length Jun
+#: 16-Jan 31", p.24, by the walk) read "Up to 2 hatchery steelhead, 20–30 cm"; the 20-30 cm band now releases every
+#: steelhead there (decision F16), as on Lonzo Creek itself. False = the mutation pin (the impossible steelhead again).
+A_STEELHEAD_IS_OVER_50_EVERYWHERE = True
+
+
+#: T805 (RULINGS C5, owner 2026-11-16 q.38): a take-0 size clause of a quota (`within`) releases its band in decision F16
+#: exactly as the same words printed as a rule of their own do, so the seven Region 2 lakes printing "Wild trout/char
+#: daily quota = 2 (no wild trout over 40 cm)" store their char one way (hatchery only). False = the mutation pin: Lois
+#: and Windsor lakes' wild char read "no wild … 60 cm or longer" again (an empty wild range said as a keepable one).
+A_SIZE_CLAUSE_RELEASES_AS_A_RULE = True
 
 
 def _range_released(P: "Part", S: str, A: List[R]) -> Optional[R]:
@@ -404,9 +419,14 @@ def _range_released(P: "Part", S: str, A: List[R]) -> Optional[R]:
     "Trout/char 20-30 cm" beside Region 2's "Dolly Varden … none under 60 cm" (p.24, p.21): no char
     may be kept there, not "1"; the Coquitlam's "Hatchery trout 2 (20-30 cm only)" on a steelhead
     water: no steelhead (rainbow over 50 cm) may be kept. The winner is the lowest-ranked (the
-    water's own first) rule whose band releases part of the range. None where some length is kept."""
+    water's own first) rule whose band releases part of the range. None where some length is kept.
+    T805 (RULINGS C5): a size clause written INSIDE a quota (`within`, a `sizecap`) releases its band as a
+    stand-alone one does — Lois and Windsor lakes print "(no wild trout 40 cm or more)" as a clause of their
+    wild quota, Dodd and five more as a rule of its own; beside Region 2's "none under 60 cm" either way no
+    wild char may be kept (`A_SIZE_CLAUSE_RELEASES_AS_A_RULE`)."""
     lo, hi = fish_range(P, S)
-    rel = sorted(((a, b, r) for r in A if r.k in ("size", "pool")
+    kinds = ("size", "pool", "sizecap") if A_SIZE_CLAUSE_RELEASES_AS_A_RULE else ("size", "pool")
+    rel = sorted(((a, b, r) for r in A if r.k in kinds
                   for a, b, t in _bands(r) if t == 0), key=lambda x: (x[0], x[1], x[2].key))
     if not rel:
         return None

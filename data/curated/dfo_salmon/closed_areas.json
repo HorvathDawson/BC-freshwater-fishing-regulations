@@ -73,7 +73,7 @@
      "quote": "Juniper - from the fishing boundary signs approximately 1.5 km downstream from Juniper Beach Park downstream approximately 4 km to the fishing boundary signs located at 50°46.893' N and 121°08.110' W.",
      "note": "placed 4,000 m up the river from DFO's own coordinate for the lower signs (owner 2026-11-15 night: \"if the book says 4km then we put it 4km\"); the other reading (1.5 km below Juniper Beach Park) is not used",
      "blk": "356364690",
-     "measure": 93015.9
+     "measure": 93016.0
     },
     {
      "ref": "thompson_juniper_lower_signs",
@@ -88,13 +88,13 @@
      "quote": "the fishing boundary signs located at 50°46.893' N and 121°08.110' W",
      "note": "DFO's own coordinate (50.78155, -121.13517), 111 m from the river's line",
      "blk": "356364690",
-     "measure": 93015.9
+     "measure": 93016.0
     }
    ],
    "confidence": "low",
    "note": "upper signs 4 km above DFO's printed lower signs: owner 2026-11-15 night, \"if the book says 4km then we put it 4km unless i had another split it already matched??\"; no cut exists at or near that spot (Thompson blk 356364690: lower signs m 93,016, upper m 97,016; nearest curated cuts m 81,551 and m 112,992; the atlas length break 'Battle Creek' at m 94,206 is a section break, not a sign), so a new cut",
    "confirmed_by": "Claude (for Dawson)",
-   "confirmed_on": "2026-11-15"
+   "confirmed_on": "2026-11-16"
   },
   {
    "key": "c76883c57564",
@@ -143,13 +143,13 @@
      "quote": "to Hwy 97C bridge in Ashcroft",
      "note": "BC MoTI road structure 'ASHCROFT' (Hwy 97C) over the Thompson, 50.72701,-121.28188",
      "blk": "356364690",
-     "measure": 78341.6
+     "measure": 78341.5
     }
    ],
    "confidence": "medium",
    "note": "",
    "confirmed_by": "Claude (for Dawson)",
-   "confirmed_on": "2026-11-15"
+   "confirmed_on": "2026-11-16"
   },
   {
    "key": "200d03a74aaf",
@@ -182,13 +182,13 @@
      "quote": "the water survey station ( located at 50°19.105' N and 118°48.857' W) approximately 200 m down stream of Shuswap Falls Hatchery",
      "note": "DFO's coordinate as printed (50.3184167, -118.8142833), 13 m from the river line, km 133.08. It is 2 km BELOW the real WSC station 08LC003 (km 135.13): see the piece's note",
      "blk": "356363194",
-     "measure": 133080.2
+     "measure": 133080.1
     }
    ],
    "confidence": "low",
    "note": "CHECK: DFO's printed points look SWAPPED against its words. The river flows north here (Shuswap Falls km 136.5 → Mabel Lake), so 'downstream' is north. The point printed for the water survey station (50°19.105' N) is the NORTH (downstream) one, at km 133.08; the point printed for the WTFB signs (50°18.181' N) is 27 m from WSC gauge 08LC003 'Shuswap River near Lumby' at km 135.13 — that is the water survey station. Between them is 2.05 km of river, not 'one km'. Stored as printed; the alternative end reads it as station → 1 km below.",
    "confirmed_by": "Claude (for Dawson)",
-   "confirmed_on": "2026-11-15"
+   "confirmed_on": "2026-11-16"
   }
  ]
 }

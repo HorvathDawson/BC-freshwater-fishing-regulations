@@ -19,3 +19,23 @@ Source: `handoff/PLAN/design/trout-adversarial-review-2026-11-16.md`, finding 3 
    Creek): "Trout/char 20-30 cm in length Jun 16-Jan 31".
 6. **Echoes Lakes** (p.36) "in the aggregate from both lakes" lives only in the "fished elsewhere" sentence.
 7. Not traced: whether François Lake's outlet-area char rule is bound to the whole lake.
+
+## Owner, 2026-11-16 15:42: start (step 1 of the trout table build, T810)
+"Start steps 1 and 2". This ticket is step 1; the spec's tickets B (possession on the fish row), C (one wild limit
+across rows; the char stored one way at Dodd, Lois, Khartoum, Horseshoe, Nanton, Windsor, Ireland) and D (the small
+lines: Shamrock Creek, the cross-border quota, Echoes Lakes, Ross Lake's headline, the 8 rule sets with no headline,
+François Lake) are its parts: `handoff/PLAN/design/trout-table-build-spec-2026-11-16.md` section 5. Possession stays
+the page's own line ("Keep the page line"): the fish row carries possession only where a trout's differs. Every
+changed answer goes to him as a list (T809's tool) before it ships. Also from the fourth attack: the Bowron park
+possession limit that shows only on days lake trout cannot be kept (Istsi, Wolverine part 1, Sootheran part 1).
+
+## Owner, 2026-11-16 16:09: part C go
+Shown the part C changed-answers list (3 waters in Region 2, all toward closed: Lois and Khartoum one wild limit of 2
+across both cards; Lois and Windsor wild char hatchery only). Picked: "Go (Recommended)". Commit 0f6fe2868 lands with
+the full tier. Parts B and D: their own lists, their own go.
+
+## Owner, 2026-11-16 16:37: parts B and D go; Bowron keep today's; Nation Lakes as printed
+Part B "Go (Recommended)"; part D "Go (Recommended)"; Bowron lake trout "Keep today's"; Nation Lakes, typed: "i feel
+like this possession stuff is just kind of broken but fixed in the new trout format? so maybe we can just work on the
+transisiton to the new trout redisgn?" (both lines stay as printed; no more possession patching here). François Lake
+outlet (part D question 3): not asked yet; it needs a placement rebuild and its own list.

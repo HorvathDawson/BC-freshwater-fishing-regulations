@@ -37,3 +37,9 @@ batches 2 to 9). His words are quoted there; the work, one item each:
     (the app chat's note, 11:32): check the book's words; the two rivers only, or their side streams.
 16. **Eulachon**: "general rule is (Reminder: There is no fishing for eulachon in Region 6. ) why would bait remove
     eulachon rule?": the line shows on every Region 6 water; a bait rule never takes its place (with T770).
+
+## Lane result, item 15 (2026-11-16, branch `lane/book-rule-fixes-1116`): no change
+Book p.25 (row images page_027_row_002 / _031): NICOMEKL RIVER and SERPENTINE RIVER each carry the global ✱
+(includes tributaries) beside the NAME; their last line reads "No angling from powered boats upstream of dyke gates".
+RULINGS T2: a row whose name carries the global ✱ includes tributaries for EVERY rule. So the 27 side streams are bound
+by the book's words; the binding stays. Item 3's rule ("The heading counts") is RULINGS T16 (865cbac37).
