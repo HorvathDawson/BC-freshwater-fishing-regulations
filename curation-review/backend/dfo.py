@@ -538,6 +538,8 @@ def _row(slug: str, loc: dict, water: dict | None, m, live_waters: set | None = 
             "text": st.get("specific_area") or "", "op": st.get("op"),
             "anchors": list(st.get("anchor_types") or []),
             "n_rows": len(rows), "n_rules": len(rules), "need": need, "state": state,
+            # (T787) its rules from a table DFO commented out: shown for provenance, they answer nothing
+            "n_hidden": sum(1 for r in rules if r.get("hidden")),
             "duplicate_of": loc.get("duplicate_of"),
             "verify": v["status"], "reasons": v["reasons"],
             "suggested": _suggested(loc["location_id"]),
@@ -849,16 +851,21 @@ def detail(location_id: str) -> dict | None:
     labels = []
     try:
         from pipeline.regs.parsing.catalogue import CatalogueRule, label
+        from pipeline.regs.dfo_salmon.typed import as_catalogue
         for r in rules:
+            # (T787) a row from a table DFO commented out: shown, marked hidden (it answers nothing)
+            hid = {"hidden": True} if r.get("hidden") else {}
             try:
-                labels.append({"rule_id": r.get("rule_id"), "label": label(CatalogueRule(**r)),
-                               "verbatim": r.get("verbatim") or ""})
+                labels.append({"rule_id": r.get("rule_id"),
+                               "label": label(CatalogueRule(**as_catalogue(r))),
+                               "verbatim": r.get("verbatim") or "", **hid})
             except Exception:  # noqa: BLE001 — a rule the catalogue model refuses still shows
                 labels.append({"rule_id": r.get("rule_id"), "label": r.get("verbatim") or "",
-                               "verbatim": r.get("verbatim") or ""})
+                               "verbatim": r.get("verbatim") or "", **hid})
     except Exception:  # noqa: BLE001
         labels = [{"rule_id": r.get("rule_id"), "label": r.get("verbatim") or "",
-                   "verbatim": r.get("verbatim") or ""} for r in rules]
+                   "verbatim": r.get("verbatim") or "", **({"hidden": True} if r.get("hidden") else {})}
+                  for r in rules]
     m = _states().get(location_id)
     v = _verify(m, loc, water)
     # the other locations on this water: the notice's other reaches, to read the river as a whole
