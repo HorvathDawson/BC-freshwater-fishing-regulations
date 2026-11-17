@@ -212,13 +212,19 @@ UNITS = {
              "(0 never); days since 1900-01-01 (pipeline/deliver/lake_facts.py)",
     "salmon": "salmon/4: 'BCSA', u8 4, 8 bytes section_handles, u32le JSON length + UTF-8 JSON (credit, default, "
               "regions (+ the header notes, the bucket's quota tree, T356 shared + sizes), verdicts (+ T332 an open day's "
-              "quota tree, T356 c a header closure; u 1: both regions' words, no number), gears, chains (r, w, l the "
-              "places narrowest first, sp, g, m, + T356 c; u the places on its water not drawn yet; T668 s on a section "
+              "quota tree, T356 c a header closure; u 1: both regions' words, no number; T796 f 1 on a closed verdict from "
+              "DFO's Finfish closure: all fishing closed, trout included), gears, chains (r, w, l the "
+              "places narrowest first, sp, g, m, + T356 c; T770 o another fish's closure lines (\"Eulachon closed all "
+              "year: No fishing for eulachon\"), day runs of an index into gears (-1 none), apart from the gear lines g, "
+              "absent where none; u the places on its water not drawn yet; T668 s on a section "
               "in two DFO regions: each region's places as indices into l, the most strict answer per fish speaks, and "
               "h the region slugs whose fishing-hours line shows; a per species day runs of the index into l of the "
               "place that answers), unmapped, scopes, x, shards; T549 off: every curated place no chain names, id -> "
               "{why, k, r, w, items}, shown as a text row on its water's page; p: each chain place's {r, water, sec}, "
-              "what a row is named by) (pipeline/deliver/salmon.py, salmon_who.py)",
+              "what a row is named by; T796 a rule book closure is a place book:<entry_id>::<rule_id>[~n], first in "
+              "the chains it closes, its p {r?, water?, static 1, book {rule, pages}}; static: each such place's year "
+              "{sp: 5 runs of verdict indexes (-1 nothing), g}, kept by the app under a live feed) "
+              "(pipeline/deliver/salmon.py, salmon_who.py)",
     **{SALMON.shard_name(r): "salmon-shard/1: 'BCSR', u8 1, 8 bytes section_handles, u8 region length + region, LEB128 "
                              "run count, then per run LEB128 sid gap, count, chain (pipeline/deliver/salmon.py)"
        for r in (*SH.REGIONS, SALMON.NO_REGION)},
