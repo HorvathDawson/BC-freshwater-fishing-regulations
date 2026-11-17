@@ -26,7 +26,7 @@ Size: M. Owner look: shots before landing.
 ## Built
 - `ui/src/layout.ts` `tabsAsRail(layout)`: true at the existing `desktop` class (1280), so tablet and phone keep the bottom bar.
 - `ui-native/src/NavRail.tsx`: the left rail from the same `TABS` list and handler as `TabBar` (icon over label, current tab
-  filled ink with card-colour glyph and label, square corners, ink hairline, each tab 72 x 64 through `hitProps`, same coach refs).
+  filled ink with card-colour glyph and label, square corners, ink hairline, each tab 92 x 64 through `hitProps`, same coach refs).
 - `Shell.tsx` and `shell/SpotHost.tsx`: at desktop the rail replaces the bar (root turns to a row, the screen to its right,
   no bottom-bar row, so `tabsH` is 0). It is drawn only where `bottomBarShown` says: a water's page (regs mode) and the
   add-a-spot flow have none, as the bar. The phone path keeps its tree (one extra full-size wrapper View).

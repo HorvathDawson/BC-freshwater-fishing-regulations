@@ -17,8 +17,8 @@ import { hitProps } from "./regs/hit";
 import { useCoachRefs } from "./CoachMarks";
 import { TABS, TAB_BAR, type TabKey } from "./TabBar";
 
-/** the rail's width and each tab's box: 72 wide holds "CONDITIONS" at the tab type; 64 tall is well over 44 */
-export const NAV_RAIL = { width: 72, tabH: 64 } as const;
+/** the rail's width and each tab's box: 92 wide holds "CONDITIONS" at the tab type; 64 tall is well over 44 */
+export const NAV_RAIL = { width: 92, tabH: 64 } as const;
 
 export function NavRail({ active, onChange, palette }:
   { active: TabKey; onChange: (k: TabKey) => void; palette: Palette }) {

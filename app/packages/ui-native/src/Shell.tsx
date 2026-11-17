@@ -671,7 +671,7 @@ export function Shell(p: ShellProps) {
     <SharePortContext.Provider value={sharePorts}>
     <View style={{ flex: 1, backgroundColor: palette.card, flexDirection: tabsRail ? "row" : "column" }}>
       {/* (T839) the desktop's left rail: the map and its bars start to its right; held with the rest while a pane is held */}
-      {tabsRail && <View collapsable={false} pointerEvents={held ? "none" : "auto"}>{chrome.tabs}</View>}
+      {tabsRail && <View collapsable={false} pointerEvents={held ? "none" : "auto"} style={{ flexDirection: "row" }}>{chrome.tabs}</View>}
       <View style={{ flex: 1 }}>
       <PairBanner col={col} palette={palette} />
       {/* (T254) a slow or missing line, said once over everything: "Slow connection — showing what we have" */}
