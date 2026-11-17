@@ -268,7 +268,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T813 | An added stream that continues an FWA line past its mouth is minted at the top measure (Port Moody's Schoolhouse Creek North) | IN PROGRESS (lane/t813-t825; left (Claude): main chat merges) | 0435b445e | cut-fixes lane 2026-11-16 |
 | T822 | iPhone push: the phone never registers with the staging worker | OPEN | — | owner iPhone build 36, 2026-11-16 |
 | T823 | "Small next to its gauge": Python decides when a section's lead gauge reading needs a warning; the release ships it | IN PROGRESS (app half landed 2026-11-17 in land/app-1117; the pipeline half and the release that ships it are the main chat's) | f7b41c208 | owner 2026-11-16 (spots) |
-| T825 | 251 side-channel sections are led by a gauge far upstream (lower Fraser side channels read Red Pass) | IN PROGRESS (owner 15:04 picked the rule; lane/t813-t825) | — | T823 measurement 2026-11-16 |
+| T825 | 251 side-channel sections are led by a gauge far upstream (lower Fraser side channels read Red Pass) | IN PROGRESS (lane/t813-t825; left (Claude): main chat merges) | 4ab80fac5 | T823 measurement 2026-11-16 |
 | T827 | A fresh agent tries to break every salmon rule against DFO's own pages | OPEN | — | owner 2026-11-16 (future) |
 | T828 | Salmon card: DFO's rows as printed fold into "Source (DFO)" | OPEN | — | owner 2026-11-16 (app) |
 | T829 | Salmon species rows in the same look as the other fish table and the new trout table (formatting only) | OPEN | — | owner 2026-11-16 (app) |

@@ -1,6 +1,6 @@
 # T825 — 251 side-channel sections are led by a gauge far upstream (lower Fraser side channels read Red Pass)
 
-Status: IN PROGRESS (owner 15:04 picked the rule; being built on lane/t813-t825).
+Status: IN PROGRESS (built on lane/t813-t825, 4ab80fac5; left (Claude): the main chat merges and marks it DONE; ships with the next data build).
 
 Source: the T823 worker's distribution over the live bundle: 251 led sections are 10× or more BIGGER than their lead
 gauge, almost all side channels. Main case: lower Fraser side channels led by 08KA007 (Fraser at Red Pass), 750 to
@@ -28,3 +28,12 @@ representativeness is policy).
   rebuild the bundle, diff `section_gauge` against this list, promote nothing in `gauges/matches.json` (not touched).
 
 2026-11-17 ~15:04, owner: see OWNER-TODO 15:04 (answer recorded verbatim there).
+
+## Built (lane/t813-t825, 4ab80fac5)
+- `pipeline/gauges/consume/main_river.py`, applied in `bundle_tables.write` after the panels: where the walk's gauge
+  drains under a tenth of the section's water, the section reads the nearest flow gauge on its own main river of a
+  tenth to ten times its size, or none. Mutation pin `MAIN_RIVER_GAUGE`; tests `test_main_river_gauge.py`.
+- Replayed on the live atlas + bundle: fires on exactly the 245 listed sections, 0 differences from the owner's page
+  (244 re-chosen, the lower Sumas dropped); no other `section_gauge` row moves; `section_down` seeds unchanged.
+- `data/curated/gauges/matches.json` untouched (0 diff lines): every gauge the rule picks is already matched; the
+  choice is made at bundle time. Reaches users with the next data build (0.8.0).
