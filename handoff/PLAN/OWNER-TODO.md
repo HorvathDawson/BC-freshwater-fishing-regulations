@@ -2403,3 +2403,9 @@ More questions (recommended answer first):
   all of that lands; the release goes out with the app as 0.8.0 (app chat's call on the bump mechanics).
 - 2026-11-17 ~13:52, owner: push notifications (T822 + T739) "After 0.8.0 (Recommended)". Everything else in flight
   goes into 0.8.0.
+- 2026-11-17 14:55, owner (app chat, two Android screenshots of the 0.7.12 walkthrough, verbatim): "On the last release the
+  walk through is still a bit glitchy. First image is a screen shot I caught when scrolling and the box has a weird delay
+  tracking the box. It just feels unprofessional. The other one is how the keyboard covers vedder in the walk through.
+  The interactive walk through just isn't perfect. The Qp steps are good otherwise. But could reduce steps even more.
+  This is a user first look so we need to make sure it is clean and not buggy" -> T842 (both glitches fixed). 15:00
+  dialog: "6 steps (Recommended)" (search, open, open/closed, pick a day, how is the river, all set). Answered.
