@@ -40,3 +40,5 @@ the review app's tiers still count a designation with any review_reason as flagg
   quote the stamp line beside the place, or trim the Skeena row to its (a) part.
 - Item 2 needs the app: the class box body is composed in `app/packages/core/src/regs/licence.ts` from the record's
   fields; a "separate licence per section" line needs a field the box reads (the app chat).
+
+2026-11-17 ~15:12, owner: see OWNER-TODO 15:12 (verbatim there).

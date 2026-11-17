@@ -20,3 +20,5 @@ Source: general audit 2026-11-16, decisions checker item 7 (`handoff/PLAN/audit-
   half alone) and the worker's `dfo.vectors.test.ts`; then `python -m pipeline.regs.dfo_salmon.feed` (no model) before
   the data build. Needs the app chat (app/workers). No re-parse.
 Each changes words an angler reads. Fix or get the owner's OK to leave, one by one.
+
+2026-11-17 ~15:12, owner: see OWNER-TODO 15:12 (verbatim there).
