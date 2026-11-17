@@ -300,6 +300,11 @@ export function photoLabel(n: number, of: number): string {
   return `Photo ${n} of ${of}`;
 }
 
+/** (T836) The viewer's counter at the top, as the phone photo viewers write it: "2 of 5". */
+export function photoCounter(n: number, of: number): string {
+  return `${n} of ${of}`;
+}
+
 /** A photo that could not be added, said whole. The spot and its other photos are untouched. */
 export function photoFailed(e: unknown): string {
   const why = e instanceof Error ? e.message : String(e);
