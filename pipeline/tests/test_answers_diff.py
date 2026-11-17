@@ -482,3 +482,25 @@ def test_days_words_join_the_new_year_and_say_all_year():
     assert AD.days_words(AD.mask_of(1, 91) | AD.mask_of(306, 366)) == "Nov 1 to Mar 31"
     assert AD.days_words(AD.mask_of(1, 167)) == "Jan 1 to Jun 15"          # leap calendar: Feb 29 is 60
     assert AD.days_words(AD.mask_of(32, 32) | AD.mask_of(245, 250)) == "Feb 1, Sep 1 to Sep 6"
+
+
+def test_across_atlases_the_handle_tables_match_every_section_by_its_id():
+    """(2026-11-17) Two atlases number their sections differently. Without the handle tables an unnamed lake is in no
+    water and no line, so it was listed as removed and new (~700,000 sections on the first real cross-atlas pair);
+    with them every section is matched by its id, a section new to B falls back to the A section holding its midpoint,
+    and only a really new lake is new."""
+    from types import SimpleNamespace as NS
+    from pipeline.tools.audit import answers_diff as D
+    FF = 0xFFFFFFFF
+    # A: 1 lake:7 (unnamed), 2 100:0, 3 lake:9 (Babine, one part)
+    A = NS(handles="a", ids=["lake:7", "100:0", "lake:9"], akey={1: 1, 2: 1, 3: 1}, chain_of={},
+           water={3: ("wbk:9", 0)}, lines=lambda: {2: (100, 0, FF)})
+    # B: a new section inserted before them shifts every handle; 100 is cut at 50; lake:9 split into lake:-1, lake:-2
+    B = NS(handles="b", ids=["lake:-1", "lake:-2", "lake:7", "100:0", "100:50"],
+           akey={i: 1 for i in range(1, 6)}, chain_of={}, water={1: ("wbk:-1", 0), 2: ("wbk:-2", 0)},
+           lines=lambda: {4: (100, 0, 50), 5: (100, 50, FF)})
+    for x in (A, B):
+        x.universe = (lambda r: lambda: set(r.akey))(x)
+    pairs, how = D.match_sections(A, B)
+    assert how.startswith("matched by section id")
+    assert sorted(pairs, key=str) == sorted([(1, 3), (2, 4), (2, 5), (None, 1), (None, 2), (3, None)], key=str)
