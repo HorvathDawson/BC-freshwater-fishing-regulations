@@ -2070,3 +2070,6 @@ More questions (recommended answer first):
   only trout (widens the app scope a little; the app chat folds it into spec section 6). (4) T810 pinned trout top
   line: "Drop it (Recommended)". (5) T810 a lone other fish beside trout: "Stays as today (Recommended)". (6) T810 the
   year bar's "Trout: release until …" line: "Drop it (Recommended)".
+- About 17:15, clarification of the 16:55 fold-row answer (APP chat re-asked; relayed, label picked verbatim): "Salmon +
+  trout folds" (the option read: "Both folded entries (salmon and trout) show their words + an arrow instead of
+  'Details'. The Other fish list stays as it is."). So "All rows get arrow" means the salmon and trout folds only.

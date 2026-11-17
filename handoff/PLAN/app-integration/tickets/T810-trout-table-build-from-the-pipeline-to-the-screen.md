@@ -89,3 +89,5 @@ line: "Drop it (Recommended)". Lone other fish beside trout: "Stays as today (Re
 until …" line: "Drop it (Recommended)". The app chat's sizing file section 12 lists every place today's trout card
 decides in TypeScript (49 in core, 10 hand-written payload types, 12 facts with two sources, 11 old/new paths): input
 for the robustness review (owner 16:50).
+Clarified about 17:15 (app chat re-asked): "Salmon + trout folds": the arrow replaces "Details" on the salmon and trout
+folded entries; the Other fish list stays as it is.
