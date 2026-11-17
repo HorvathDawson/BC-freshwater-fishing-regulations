@@ -453,7 +453,7 @@ describe("(T318) the salmon table keeps every DFO word", () => {
     ["a water with no undrawn place", JUL20, [101], null], ["the Cowichan", SEP15, [200], null], ["an unlisted water", JUL20, [7], null]];
   for (const [what, day, sids, item] of cases) it(`${what}: every row word, size, species note and place word is in the table`, () => {
     const c = salmonCard(withNotes(), { sids, item }, day), t = salmonTable(c);
-    const have = new Set(salmonTableTexts(t, c.gear));
+    const have = new Set(salmonTableTexts(t, [...c.closures, ...c.gear]));
     // (T502) a row's words its species rows already say are not repeated under the table: closed words on rows all
     // Closed, a read verdict's words on rows whose quota line says its numbers (its dates on the line's `window`)
     const said = (s: string) => c.rows.some((r) => r.repeats?.includes(s) && r.species.every((sp) => {

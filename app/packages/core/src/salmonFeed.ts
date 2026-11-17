@@ -52,6 +52,8 @@ export interface SalmonFeedRegion {
 }
 export interface SalmonFeedLocation {
   readonly r: string; readonly sp: readonly (readonly number[])[]; readonly g: readonly number[];
+  /** (T770) the place's closure lines of another fish (`live.location_calendar` `o`), runs into `gears`; absent: none */
+  readonly o?: readonly number[];
   /** (T321) the location's rows in DFO's words (new wording, an unread number, a note) */
   readonly x?: readonly SalmonWords[];
 }
@@ -113,10 +115,11 @@ export function parseSalmonFeed(x: unknown): SalmonFeed | null {
         || !p.pairs.every((x) => Array.isArray(x) && x.length === 3 && x.every(verdict) && x[0]!.s === "open" && x[1]!.s === "open")) return null;
   }
   for (const l of Object.values(f.locs)) {
-    if (!l || !Array.isArray(l.sp) || l.sp.length !== 5 || !Array.isArray(l.g)) return null;
-    for (const runs of [...l.sp, l.g]) for (let k = 1; k < runs.length; k += 2) {
+    if (!l || !Array.isArray(l.sp) || l.sp.length !== 5 || !Array.isArray(l.g) || (l.o !== undefined && !Array.isArray(l.o))) return null;
+    const lines = l.o ? [l.g, l.o] : [l.g];
+    for (const runs of [...l.sp, ...lines]) for (let k = 1; k < runs.length; k += 2) {
       const v = runs[k]!;
-      if (!Number.isInteger(v) || v >= (runs === l.g ? f.gears.length : f.verdicts.length)) return null;
+      if (!Number.isInteger(v) || v >= (lines.includes(runs) ? f.gears.length : f.verdicts.length)) return null;
     }
   }
   return f as SalmonFeed;
@@ -265,7 +268,7 @@ function byChangeDay(days: readonly number[], f: (day: number) => number): numbe
  *  `who`: also `a`, the answering place per species and day (a release with fix 4). */
 export function composeChain(lids: readonly string[], feed: SalmonFeed, undrawn: readonly string[] = [], speaks = false,
                              groups?: readonly (readonly number[])[], tables?: SalmonFeedTables,
-                             who = false): Pick<Chain, "sp" | "g" | "m" | "c" | "n" | "a"> {
+                             who = false): Pick<Chain, "sp" | "g" | "o" | "m" | "c" | "n" | "a"> {
   return composeChainOn(changeDays, lids, feed, undrawn, speaks, groups, tables, who);
 }
 
@@ -279,14 +282,14 @@ const EVERY_DAY = Array.from({ length: DAYS }, (_, d) => d);
 function composeChainOn(daysOf: (runs: Iterable<readonly number[]>) => number[],
                         lids: readonly string[], feed: SalmonFeed, undrawn: readonly string[] = [], speaks = false,
                         groups?: readonly (readonly number[])[], tables?: SalmonFeedTables,
-                        who = false): Pick<Chain, "sp" | "g" | "m" | "c" | "n" | "a"> {
+                        who = false): Pick<Chain, "sp" | "g" | "o" | "m" | "c" | "n" | "a"> {
   const V = tables?.verdicts ?? feed.verdicts, G = tables?.gears ?? feed.gears;
   const subs = (groups ?? [lids.map((_, i) => i)]).map((g) => g.map((i) => feed.locs[lids[i]!]).filter((c): c is SalmonFeedLocation => !!c));
   const first = (xs: Iterable<number>, none: number) => { for (const v of xs) if (v >= 0) return v; return none; };
   const sp: number[][] = [[], [], [], [], []].map(() => new Array<number>(DAYS)), g = new Array<number>(DAYS),
-        m = new Array<number>(DAYS);
+        o = new Array<number>(DAYS), m = new Array<number>(DAYS);
   // (T716) asked on the days the places' calendars can change on, held to the next: the same arrays as day by day
-  const days = daysOf(subs.flatMap((cals) => cals.flatMap((c) => [...c.sp, c.g])));
+  const days = daysOf(subs.flatMap((cals) => cals.flatMap((c) => [...c.sp, c.g, ...(c.o ? [c.o] : [])])));
   for (const [day, to] of spans(days)) {
     const ss: string[] = [];
     for (let k = 0; k < 5; k++) {
@@ -298,6 +301,9 @@ function composeChainOn(daysOf: (runs: Iterable<readonly number[]>) => number[],
     // (T770) every place's gear lines that day, narrowest first, a line once — then two regions' groups the same way
     const gs = subs.map((cals) => gearOf(cals.map((c) => at(c.g, day)), tables, G));
     g.fill(gs.length === 1 ? gs[0]! : gearOf(gs, tables, G), day, to);
+    // (T770, `live.compose` `o`) another fish's closure lines: every place's, then every group's, exactly as the gear
+    const os = subs.map((cals) => gearOf(cals.map((c) => (c.o ? at(c.o, day) : -1)), tables, G));
+    o.fill(os.length === 1 ? os[0]! : gearOf(os, tables, G), day, to);
     m.fill(MAP_CODES.indexOf(mapStatus(ss)), day, to);
   }
   const spr = sp.map(runsOf);
@@ -308,7 +314,8 @@ function composeChainOn(daysOf: (runs: Iterable<readonly number[]>) => number[],
   // pipeline's `speaks_runs`, a day some species has DFO's own verdict
   const n = speaks ? runsOf(sp[0]!.map((_, day) => (sp.some((x) => !V[x[day]!]!.d) ? 1 : 0))) : null;
   const a = who ? answeringPlaces(spr, lids.map((l) => feed.locs[l]), groups, daysOf) : null;
-  return { sp: spr, g: runsOf(g), m: runsOf(m), ...(c.length ? { c } : {}), ...(n ? { n } : {}), ...(a ? { a } : {}) };
+  return { sp: spr, g: runsOf(g), ...(o.some((x) => x >= 0) ? { o: runsOf(o) } : {}), m: runsOf(m),
+           ...(c.length ? { c } : {}), ...(n ? { n } : {}), ...(a ? { a } : {}) };
 }
 
 function wordsWithFeed(release: Readonly<Record<string, readonly SalmonWords[]>>, feed: SalmonFeed): Record<string, readonly SalmonWords[]> {
@@ -396,7 +403,8 @@ function composeFeedPayload(P: Payload, feed: SalmonFeed): { payload: Payload; s
   // (T716, owner 2026-11-13: "Maybe a card builds its item when it needs it?") EACH CHAIN WHEN FIRST READ: a page reads
   // its own water's chains, the Salmon map the chains of the sections it draws; none is built for nobody
   const chains = lazyList(P.chains.length, (i) => {
-    const { c: _c, n, a, ...c } = P.chains[i]!;
+    // (T770) the release's `o` too: the feed's composition says whether another fish's closure stands (absent: none)
+    const { c: _c, o: _o, n, a, ...c } = P.chains[i]!;
     return { ...c, ...composeChain(c.l, withStatics, c.u ?? [], n !== undefined, c.s, tables, a !== undefined) };
   });
   // (T549) the release's location set: what it shows (chains) and what it states it does not (`off`)

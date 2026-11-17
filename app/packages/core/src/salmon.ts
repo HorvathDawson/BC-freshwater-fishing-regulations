@@ -92,6 +92,11 @@ interface Chain {
   /** per species (SALMON_SPECIES order) runs [start, verdict index, …] */
   readonly sp: readonly (readonly number[])[];
   readonly g: readonly number[]; readonly m: readonly number[];
+  /** (T770, owner 2026-11-16 19:09: "As a closure line (Recommended)") ANOTHER FISH'S CLOSURE: runs [start, index into
+   *  `gears`, …] (-1 none) of the lines closing another fish that day, in Python's words ("Eulachon closed all year: No
+   *  fishing for eulachon", `deliver.salmon.closures_on`) — the card's closure line, never a gear line. Absent on a chain
+   *  with none. Built like `g`: under a live feed composed like it (`composeChain`) */
+  readonly o?: readonly number[];
   /** PARTIAL COVERAGE: DFO places on this section's water not drawn yet (their location ids). (T372, the trout way) the
    *  map and the card keep the drawn answer; the card lists these places in its "in part" caveat. */
   readonly u?: readonly string[];
@@ -236,6 +241,7 @@ function checkPayload(P: Payload): Payload {
     if (c.sp?.length !== 5) bad(`chain ${i}: ${c.sp?.length} species`);
     c.sp.forEach((r, k) => runs(r, P.verdicts.length, `chain ${i} species ${k}`, false));
     runs(c.g, P.gears.length, `chain ${i} gear`, true);
+    if (c.o !== undefined) runs(c.o, P.gears.length, `chain ${i} closure lines`, true);
     runs(c.m, MAP_CODES.length, `chain ${i} map`, false);
     for (const id of c.c ?? []) if (!closureNote(P, c, id)) bad(`chain ${i}: closure ${id} is no note of its regions`);
     if (c.n !== undefined) runs(c.n, 2, `chain ${i} speaks`, false);
@@ -692,6 +698,9 @@ export interface SalmonBlockVM {
   /** Every species closed: the block is the one "Salmon — closed" row (owner 2026-10-27). */
   readonly allClosed: boolean;
   readonly gear: readonly string[];
+  /** (T770, owner 2026-11-16 19:09) another fish's closure on the chains that day (their `o`), Python's words: "Eulachon
+   *  closed all year: No fishing for eulachon" — a closure line beside the species rows, never in `gear`; [] none */
+  readonly closures: readonly string[];
 }
 
 export interface SalmonCardVM extends SalmonBlockVM {
@@ -793,6 +802,13 @@ function wordsOf(P: Payload, lids: readonly string[]): SalmonWordsVM | null {
     ? { changed, changedHead: SALMON_WORDS.wordingChanged, notes, notesHead: SALMON_WORDS.wordingNotes } : null;
 }
 
+/** (T770) another fish's closure lines on the chains that day (their `o`), each said once, the chains' order */
+const closuresOf = (P: Payload, chains: readonly number[], day: number): string[] => [...new Set(chains.flatMap((c) => {
+  const o = P.chains[c]!.o;
+  const x = o ? at(o, day) : -1;
+  return x >= 0 ? P.gears[x] ?? [] : [];
+}))];
+
 /** The species rows for a set of chains on a day: species alike grouped, every-species-closed collapsed. */
 export function salmonBlock(f: SalmonFacts, chains: readonly number[], day: number): SalmonBlockVM {
   const P = f.payload;
@@ -806,6 +822,7 @@ export function salmonBlock(f: SalmonFacts, chains: readonly number[], day: numb
     const g = at(P.chains[c]!.g, day);
     return g >= 0 ? P.gears[g] ?? [] : [];
   }))];
+  const closures = closuresOf(P, chains, day);
   const notesOf = (ixs: readonly number[]) => [...new Set(ixs.map((ix) => {
     const v = verdictOf(ix);
     return v.n && !v.t.includes(v.n) ? `${v.t} · ${v.n}` : v.t;
@@ -822,7 +839,7 @@ export function salmonBlock(f: SalmonFacts, chains: readonly number[], day: numb
   };
   if (per.every((ixs) => statusOf(ixs) === "closed")) {
     const all = [...new Set(per.flat())];
-    return { allClosed: true, gear,
+    return { allClosed: true, gear, closures,
              rows: [{ key: "all", species: SALMON_SPECIES, label: SALMON_WORDS.all, status: "closed", statusLabel: SALMON_WORDS.status.closed,
                       notes: notesOf(all), ...repeatsOf(all, false) }] };
   }
@@ -850,7 +867,7 @@ export function salmonBlock(f: SalmonFacts, chains: readonly number[], day: numb
              notes: st === "varies" ? [SALMON_WORDS.varies] : notesOf(g.ixs), quota,
              ...(st === "varies" ? {} : repeatsOf(g.ixs, g.sp.every((sp) => !!quota[sp]?.tree && !quota[sp]?.u))) };
   });
-  return { allClosed: false, gear, rows };
+  return { allClosed: false, gear, closures, rows };
 }
 
 /**
@@ -891,7 +908,8 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
   // answering today, named; a row's note that is one of them says its dates ("all year" where its words carry none)
   const book = bookToday(f, chains, day);
   const block: SalmonBlockVM = regionClosed
-    ? { allClosed: true, gear: [], rows: [{ key: "all", species: SALMON_SPECIES, label: SALMON_WORDS.all, status: "closed",
+    // (T770) another fish's closure stands under the region's salmon closure too: a different fish, its own line
+    ? { allClosed: true, gear: [], closures: closuresOf(P, chains, day), rows: [{ key: "all", species: SALMON_SPECIES, label: SALMON_WORDS.all, status: "closed",
                                              statusLabel: SALMON_WORDS.status.closed,
                                              notes: [...closedWords.map((n) => n.t), ...book.map((b) => b.words)] }] }
     : salmonBlock(f, chains, day);
@@ -1211,7 +1229,8 @@ function undrawnEntries(f: SalmonFacts, undrawn: readonly number[], unmapped: re
     const b = salmonBlock(f, [c], day);
     const what = blockWhat(b);
     const detail = [...tableRows(b.rows).flatMap((r) => [...(r.quota ? [`${r.name}: ${r.quota}`] : []), ...(r.limit ? [r.limit] : [])]),
-                    ...tableSays(b.rows, b.allClosed).flatMap((x) => x.lines.map((l) => (x.label ? `${x.label}: ${l}` : l))), ...b.gear];
+                    ...tableSays(b.rows, b.allClosed).flatMap((x) => x.lines.map((l) => (x.label ? `${x.label}: ${l}` : l))),
+                    ...b.closures, ...b.gear];
     const item: CaveatItemVM = { what: [text(what)], where: WORDS.WHERE(label), rule: null, fish: null, book: [],
                                  ...(detail.length ? { detail } : {}) };
     return [{ item, now: at(ch.n, day) === 1 }];
@@ -1490,11 +1509,11 @@ export function salmonTable(card: SalmonCardVM): SalmonTableVM {
   };
 }
 
-/** Every DFO string a card holds on a water's rows (rows' words, sizes, species notes) and its gear; the undrawn
- *  places' are the caveat's (`caveat.items[].detail`). */
+/** Every DFO string a card holds on a water's rows (rows' words, sizes, species notes), (T770) another fish's closure
+ *  lines and its gear; the undrawn places' are the caveat's (`caveat.items[].detail`). */
 export function salmonRowTexts(card: SalmonCardVM): string[] {
   const of = (rows: readonly SalmonRowVM[]) => rows.flatMap((r) => [...r.notes, ...(r.sizes ? [r.sizes] : []), ...(r.speciesNotes ?? [])]);
-  return [...of(card.rows), ...card.gear];
+  return [...of(card.rows), ...card.closures, ...card.gear];
 }
 
 /** Every string the table can show (its rows' limits, the words under it). */
