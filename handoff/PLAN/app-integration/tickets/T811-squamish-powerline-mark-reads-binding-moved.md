@@ -1,6 +1,6 @@
 # T811 — The owner's Squamish "downstream of the powerline crossing" tick reads "binding moved"
 
-Status: OPEN, waiting on the owner's re-tick in the review app (no code change).
+Status: DONE (d647a301e) 2026-11-16 19:10: owner "Re-tick as right"; saved as marks line 2837; the live orphan test passes.
 
 Found by: `pipeline/tests/test_marks_never_orphaned.py::test_no_owner_mark_is_orphaned_or_dropped_live` (needs_atlas,
 not in the CI tier), failing on marks line 2511 (scope dfo, target
