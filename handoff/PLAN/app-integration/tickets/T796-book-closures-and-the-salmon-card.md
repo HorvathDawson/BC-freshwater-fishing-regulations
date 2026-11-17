@@ -37,7 +37,7 @@ to him with the three examples.
   and the Yakoun goes to him).
 - Not checked yet: that the "Kitsault Bridge" cut (113.0 km up the Nass, -128.924, 55.498) is the bridge itself.
 
-## Owner, 2026-11-16 17:44 and 17:47: the hard cases, data side
+## Owner, 2026-11-16 17:44 and 17:46: the hard cases, data side
 Campbell summer closure: "Keep it closed". Thompson in June: "keep closed but add to gotchas as one i need to ask fish
 and wildlife about" (done: pipeline/docs/GOTCHAS.md). Partly inside a reserve or park: "take out the lakes but add a
 note" (the 9 lakes and ponds mostly outside, Z10 by name, a note on each card); streams: "Keep E8 as is

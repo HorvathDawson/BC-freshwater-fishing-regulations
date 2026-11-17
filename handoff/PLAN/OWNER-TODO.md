@@ -2095,7 +2095,7 @@ More questions (recommended answer first):
   against how area boundaries work today (cuts vs the straddle rule E8) and put back to him if it needs a decision;
   national parks read "Closed by the rule book unless opened under the National Parks Fishing Regulations (p.9)" with
   the permit sentence.
-- 17:47, follow-up on his streams question (told: streams ARE cut at every reserve/park edge, ruling E8: first entry
+- 17:46, follow-up on his streams question (told: streams ARE cut at every reserve/park edge, ruling E8: first entry
   and last exit; a straddling piece or a wander outside under 1 km stays inside; the 4 pieces 10-50% inside sit
   between the cuts). Keep E8 / cut exactly at the line, picked: "Keep E8 as is (Recommended)". So: streams unchanged;
   only the 9 lakes and ponds mostly outside come out by name (ruling Z10), each with a note on the card.
