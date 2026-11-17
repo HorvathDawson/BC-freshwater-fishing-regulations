@@ -326,6 +326,8 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T834 | A water row's own printed quota takes that fish out of the region's stream share automatically (Kaslo, Keen like the Lardeau) | OPEN | — | owner 2026-11-17 |
 | T835 | The step cache reuses stale outputs in a worktree under /tmp (`_trace.install` skips /tmp) | OPEN | — | T834 worker 2026-11-17 |
 | T836 | The spot photo viewer behaves like the standard phone photo viewers (swipe down to close, tap to hide, counter, opens from its thumbnail) | OPEN | — | owner 2026-11-17 (app) |
+| T838 | Drop the loose "Conditions: today" line above the estimate card (the switch names the day) | OPEN | — | owner 2026-11-17 (app) |
+| T839 | Web on a desktop: the Map / Conditions / Spots / More bar becomes a left navigation rail | OPEN | — | owner 2026-11-17 (app) |
 
 ## Next after closed testing
 
