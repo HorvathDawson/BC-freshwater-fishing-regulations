@@ -2376,3 +2376,12 @@ More questions (recommended answer first):
   and "please update the regional office questions". Done: Frog, Redfern and Squirrel questions now say which lakes of
   that name exist and where, and what the row's words match (Frog = Hidden/Secret's words; Squirrel = the MU 6-1 lakes
   printed in both tables). Questions file re-sent.
+- 2026-11-17 12:29, owner, on T834's "was X, now Y" page (brook trout 20 lakes 25->20, R7 brook trout 10 lakes 15->10,
+  Tranquille 13->8, Khartoum/Lois 10->6, Peace 5->3, Lavington 22->20, Perry 21->20, Beaver 10->8): "Yes, ship all
+  (Recommended)". On the card (two boxes "20 brook trout" + "5 trout/char" read as 25; proposed one box "Up to 20 a
+  day: brook trout up to 20, other trout up to 5"), verbatim: "This is weird because the total is still the regional
+  number so we should only use that but then the exemption overrides it only for that species but will still fill up
+  the trout total quota. Please look at it more closely. Basically I mean the total is 5 not 20 or 25. Just 20 trout is
+  a single exemption but changing the total to accommodate that is confusing. So it should say something like 5 with
+  exception to 20 brook trout which also uses up your 5 quota." So the card leads with the region's 5, not the 20.
+  Confirming the catch (does 15 brook + 5 cutthroat stay allowed?) before the card is built.
