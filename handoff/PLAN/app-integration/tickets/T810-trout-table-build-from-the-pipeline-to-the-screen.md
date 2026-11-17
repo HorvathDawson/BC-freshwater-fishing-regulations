@@ -188,3 +188,6 @@ fails the proof).
 not count towards the regions 2? That seems wrong". Kaslo and Keen: B (count toward the 2 from streams; the table as
 built is right; the shipped card's "Not part of the 2 from streams" line there is wrong and goes at the cutover).
 Follow-up asked: does T3a (Lardeau, Duncan lift) stand.
+
+## 2026-11-17 ~15:41: G2 answered by the owner (OWNER-TODO 15:34 and 15:41, verbatim there)
+Q1 what you keep here; Q2 "between/among them" (box number: "up to the N"); Q3a "only 1 over 50 cm"; Q3b once in the top line + Tagish lake trout "release 60-90 cm" form (exact book bounds); Q4 own line "In your possession"; Q5 gone (T834); Q6 "any size" once in the top line; Q7 the water's own kind, else "this water"; Q8 reopens once, steelhead "closed all year"; Q9 group the wild rows with clearer words than "only 2 of these 4", wild vs hatchery more obvious (FOLLOW-UP MOCKUP OWED), Dodd lake into the hard cases; Q10 box + one quiet line. Bugs to fix: Echoes double "both lakes together"; Fraser R3 closed table year bar. Pictures: scratchpad t810-g2/.

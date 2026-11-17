@@ -2443,3 +2443,18 @@ More questions (recommended answer first):
   before. This should already be how it works?". So: T786 gate FAILS the build on a "wrong" save (as being built);
   a new DFO feed entry with no drawn place yet ships DFO's words in the water's DFO rule section, the stream in the
   "check rule" style. Verify that second part already works (he believes it does).
+- 2026-11-17 ~15:34, owner, T810 G2 trout wording (pictures g2.html): Q1 "What you keep here (Recommended)" (Echoes
+  "Keep 1 in all", each fish "up to the 1"; region's 5 under "Fished elsewhere today?"). Q2 "'only 3 between them'
+  (Recommended)" ("among them" for 3+; "up to the 5" where it is the box's own number). Q3a "'only 1 over 50 cm'
+  (Recommended)". Q3b verbatim: "once in top yes. but the lake trout in that example still has crazy size text that is
+  complex" (Tagish lake trout row to simplify; follow-up).
+- 2026-11-17 ~15:41, owner, T810 G2 continued: Tagish lake trout row "Say what to release (Recommended)" (row
+  "release 60-90 cm (24-35 in)" + "only 1 over 90 cm", box "only 2", possession line dropped as it equals the day's 2;
+  builder must keep the book's exact bounds: 60 cm or less and 90 cm or longer may be kept). Q4 "Own line, 'In your
+  possession' (Recommended)". Q6 "Once in the top line (Recommended)". Q7 verbatim: "waters own kind default to thisa
+  water when not known" (the kind in the water's name; "this water" when the name has none). Q8 "Once; steelhead says
+  'closed all year' (Recommended)". Q9 verbatim: "if it is 2 wild trout total then it should group wild i think except
+  "only 2 of these4" is worded not great... we should make the wild vs hatchery more obvious too. add this lake to hard
+  examples too" (follow-up mockup owed; Dodd/Windsor/Horseshoe/Nanton/Ireland into the hard vector cases). Q10 "Box +
+  one quiet line (Recommended)". Q5 gone (T834). Also fix without asking: Echoes says "only 1 from both lakes
+  together" twice; Fraser R3's closed table shows the year bar.
