@@ -2461,3 +2461,6 @@ More questions (recommended answer first):
 - 2026-11-17 ~15:46, owner (verbatim): "the up to the x per day text is a little misleading whaty is the 5 we should word it
   a little better i think." Picked "'any of the 5' (Recommended)": a row with no limit of its own says "any of the 5"
   (the box's shared day total), replacing "up to the 5" everywhere (including G2 Q2's box-number case).
+- 2026-11-17 ~15:50, owner, T810 G2 Q9 follow-up (Dodd/Windsor/Horseshoe/Nanton/Ireland, mockup q9b): "1: Badges + 'only 2
+  wild in all' (Recommended)" (hatchery rows first, then the four wild rows under one white box "only 2 wild in all";
+  filled HATCHERY / outlined WILD badges; no new data).
