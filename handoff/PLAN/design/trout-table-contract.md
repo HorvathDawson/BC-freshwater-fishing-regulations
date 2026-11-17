@@ -453,6 +453,7 @@ and the app check:
 | Andi Creek (`gnis:10031`) | Jul 15 | the strip date is never given when a row's change is later (4th attack, fault 2) |
 | Denetiah Creek | the day before its 15-day gap | a short gap still dated |
 | Shuswap Lake (`wbk:329518145`), Bruer Creek, Mat Creek | Jul 15 | simple case; t670 K3 to K5 loose rows now inside the table |
+| Nahwitti River (`gnis:29435`, Region 1 base only) | Jul 15 | Region 1's "Release all char" (`trout_quota.r7`) is a row with no pool beside the trout keep pool: char in the Release box, covers (0,1), drawn exactly once (owner, 11-17: on r-46e4355a7277 the char showed alone under other fish) |
 | One of the 8 rule sets with no stored headline | Jul 15 | the top line built for them (D, then F) |
 | A tidal key; an unnamed Region 6 stream | Jul 15 | NULL for tidal; the unnamed water covered |
 
