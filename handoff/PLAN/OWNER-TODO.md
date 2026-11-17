@@ -2396,3 +2396,8 @@ More questions (recommended answer first):
 - 2026-11-17 13:15, owner, on T834's cards as built (Jewel, Kootenay, Peace, Lardeau): box head "Lead with 5
   (Recommended)" (box reads "Keep 5, brook trout up to 20 / brook trout count toward the 5; past 5, brook trout only",
   not "Keep 20 in all"); the other three cards "Yes, they read right".
+- 2026-11-17 ~13:55, owner (verbatim): "we shouldnt do another release until everything goes into it". Asked what
+  "everything" covers, picked T804 + T807, T825 side-channel gauges, T813 Schoolhouse Creek North, the trout table
+  switch (T810), and wrote: "everything that has been being worked on from salmon rules and table rework to trout table
+  rework to all bug fixes etc". Then: "maybe should bump to 0.8.0 too?". So NO data build or staging release until
+  all of that lands; the release goes out with the app as 0.8.0 (app chat's call on the bump mechanics).
