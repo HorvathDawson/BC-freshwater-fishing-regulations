@@ -57,11 +57,39 @@ NOT_APPLIED = ("accepted, but NOT written: the atlas applies a found name to blu
                "(`registry.mined.add_mined_names`) — it would never show")
 
 
+#: T806 (2026-11-17): A FOUND NAME CURATION ALREADY GIVES IS NOT WRITTEN. When `name_variants.json` gives the same name
+#: (`names.key`) to every blue line a found name targets, that record is the name's one source: it is a GRAPH name, so it
+#: groups the line with the rest of its water (a found name never does, `registry.mined`). Sheldens Creek moved there so
+#: the FWA line and its hand-drawn estuary channel are one item; the owner's accept call stays as it was. False is the
+#: mutation pin (the found name is written beside the curated one again).
+CURATED_NAME_IS_THE_ONE_SOURCE = True
+
+
+def _curated_line_names(name_variants: list[dict]) -> set[tuple[str, str]]:
+    """{(blk, name key)} for every blue line `name_variants.json` names by `blks` / `blk`."""
+    out: set[tuple[str, str]] = set()
+    for e in name_variants or ():
+        t = (e or {}).get("target") or {}
+        blks = [str(b) for b in t.get("blks") or ()] + ([str(t["blk"])] if t.get("blk") else [])
+        for n in (e or {}).get("names") or ():
+            if isinstance(n, dict) and n.get("name"):
+                out |= {(b, N.key(n["name"])) for b in blks}
+    return out
+
+
+def not_curated(blks, recs: list[dict], curated: set[tuple[str, str]]) -> list[dict]:
+    """`recs` without every name `name_variants.json` already gives on ALL of `blks` (`CURATED_NAME_IS_THE_ONE_SOURCE`)."""
+    if not CURATED_NAME_IS_THE_ONE_SOURCE:
+        return list(recs)
+    return [r for r in recs if not all((str(b), N.key(r["name"])) in curated for b in blks)]
+
+
 def build(decided, skipped: list | None = None) -> list[dict]:
     """The entries to write. `skipped` collects every accepted name that is not written, as {target, why} (`stale`)."""
     doc = N.load()
     marked = decisions(decided, skipped)
     owner = N.owner_calls()
+    curated = _curated_line_names(json.loads(CURATED.waters.name_variants.read_text(encoding="utf-8")))
     entries = []
     for i in sorted(doc["by_id"]):
         c = doc["by_id"][i]
@@ -86,7 +114,10 @@ def build(decided, skipped: list | None = None) -> list[dict]:
                 skipped.append({"target": i, "why": NOT_APPLIED.format(
                     what="a lake polygon" if "wbks" in tgt else "a registry item")})
             continue
-        entries.append({"target": tgt, "names": N.name_records(i, c, call_by=by)})
+        recs = not_curated(tgt["blks"], N.name_records(i, c, call_by=by), curated)
+        if not recs:
+            continue                                      # T806: name_variants.json gives it (the one source)
+        entries.append({"target": tgt, "names": recs})
     return entries
 
 

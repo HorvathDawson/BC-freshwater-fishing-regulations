@@ -11729,34 +11729,6 @@
      ]
     }
    ]
-  },
-  {
-   "name": "GITNADOIX RIVER",
-   "applies_to": {
-    "gnis_id": "3508"
-   },
-   "splits": [
-    {
-     "id": "gitnadoix_river__powerline_crossing_near_the_mouth",
-     "label": "powerline crossing near the river mouth (taken as the mouth)",
-     "kind": "point",
-     "proximity_m": 30.0,
-     "at_edge": true,
-     "anchor": {
-      "type": "point",
-      "coord": [
-       -129.207645,
-       54.317405
-      ],
-      "is_lonlat": true
-     },
-     "note": "DFO r6 coho: 'upstream of powerline crossing near river mouth'. The owner (2026-11-16, T803 item 11, question 10): \"the powerline is. the mouth essentially so maybe you could add the cut for powerline to the mouth then it is all good?\" — so this is NOT a new cut: the point is the Gitnadoix's own FWA mouth (blk 360887399, m 0) and `at_edge` makes it an alias on the mouth boundary; the place reads the whole river.",
-     "_coord": [
-      -129.207645,
-      54.317405
-     ]
-    }
-   ]
   }
  ]
 }

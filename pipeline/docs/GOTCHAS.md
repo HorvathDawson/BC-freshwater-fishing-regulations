@@ -198,8 +198,11 @@ accepted it on 2026-10-29 knowing it is **low confidence and an assumption** —
 this line. The DFO salmon rule and its cut (Spur 19 road crossing, 53.12968,-131.78224) bind to it through that name.
 
 If a source ever names a different stream "Sheldens Creek" (BC Geographical Names, a DFO map, a local), or DFO's
-wording points elsewhere, this is the first thing to recheck: drop its `found_name_calls.json` row (and rerun `pipeline.tools.mined_names`) and the rule unbinds on the next
-build. Don't treat it as a confirmed name in audits or when matching other sources.
+wording points elsewhere, this is the first thing to recheck. Since 2026-11-17 (T806) the name is a `name_variants.json`
+record on blue line 360846083 (a graph name, so the line and the hand-drawn estuary channel are ONE item,
+`wsc:950-016367`), not a found name: drop that record (the `found_name_calls.json` accept stays, and
+`pipeline.tools.mined_names` writes it back as a found name) and re-point the DFO place on the next build. Don't treat
+it as a confirmed name in audits or when matching other sources.
 
 ## The Kasiks "Upper Pool" is a place we inferred
 

@@ -19,7 +19,7 @@ from pipeline.atlas.graph.tributaries import subtree
 from pipeline.atlas.waters.added_streams import fwa_match
 from pipeline.atlas.waters.added_streams.build_dataset import to_graph_inputs
 from pipeline.atlas.waters.added_streams.ingest import attach_connectors
-from pipeline.common.curated import CURATED
+from pipeline.tests.under_test import curated
 from pipeline.tests.conftest import need, GPKG_HINT
 
 SHELDENS, ESTUARY = "360846083", "-2400000001"
@@ -27,7 +27,7 @@ BRIDGE = (-131.76003, 53.14746)
 
 
 def _estuary() -> dict:
-    data = json.loads(CURATED.waters.added_streams.read_text(encoding="utf-8"))
+    data = json.loads(curated().waters.added_streams.read_text(encoding="utf-8"))
     (s,) = [s for s in data["streams"] if str(s["blk"]) == ESTUARY]
     return s
 

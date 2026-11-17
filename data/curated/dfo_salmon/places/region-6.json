@@ -495,7 +495,6 @@
         "D"
       ],
       "item_ids": [
-        "blk:360846083",
         "wsc:950-016367"
       ],
       "tributaries": null,
@@ -3504,10 +3503,7 @@
         "extents": [
           {
             "op": "whole",
-            "item_ids": [
-              "blk:360846083",
-              "wsc:950-016367"
-            ]
+            "item_id": "wsc:950-016367"
           }
         ],
         "tributaries": null,
@@ -8549,11 +8545,7 @@
       "binding": {
         "extents": [
           {
-            "op": "upstream_of",
-            "splits": [
-              "gitnadoix_river__powerline_crossing_near_the_mouth"
-            ],
-            "item_id": "gnis:3508"
+            "op": "whole"
           }
         ],
         "tributaries": true,
