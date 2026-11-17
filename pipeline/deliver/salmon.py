@@ -1256,15 +1256,17 @@ def book_closures(store, keyed: Mapping[int, int]) -> Dict[int, Dict[str, frozen
 
 
 def book_inputs(bundle: Path, sections: Sequence[Tuple[int, int]], verdicts: Optional[Path] = None) \
-        -> Tuple[Dict[int, Dict[str, frozenset]], Dict[str, dict]]:
+        -> Tuple[Dict[int, Dict[str, frozenset]], Dict[str, dict], Dict[int, Dict[str, str]]]:
     """The book closures of the sections DFO lists (`sections`: (sid, chain), chain 0 left out), tidal and outside
-    B.C. left out, and each closing rule's words: {rule: {verbatim, pages, name, region}}. `verdicts`: the stored
-    verdicts (default beside the bundle, as the status index reads them); a missing or foreign file raises
-    (`VerdictStore.open`)."""
+    B.C. left out, each closing rule's words: {rule: {verbatim, pages, name, region}} — `verbatim` is THE BOOK'S LINE
+    (`book_line`: the rule's words where the book printed them, whole), and each section's LIFTS: {sid: {rule: words}}
+    where a rule closes fewer days than it prints (`book_lifts`). `verdicts`: the stored verdicts (default beside the
+    bundle, as the status index reads them); a missing or foreign file raises (`VerdictStore.open`)."""
     import sqlite3
 
     from pipeline.deliver.status_index import special_sections
     from pipeline.deliver.verdicts.store import VerdictStore
+    from pipeline.common import entry_id as EID
     store = VerdictStore.open(verdicts or Path(bundle).with_name("verdicts.sqlite"), bundle)
     db = sqlite3.connect(f"file:{bundle}?mode=ro", uri=True)
     try:
@@ -1276,17 +1278,166 @@ def book_inputs(bundle: Path, sections: Sequence[Tuple[int, int]], verdicts: Opt
         words: Dict[str, dict] = {}
         for rule in rules:
             entry_id, rule_id = rule.split("::", 1)
-            row = db.execute("SELECT r.verbatim, e.pages, e.name FROM rule r JOIN entry e USING (entry_id) "
-                             "WHERE r.entry_id = ? AND r.rule_id = ?", (entry_id, rule_id)).fetchone()
-            if row is None:
+            w = _entry_line(db, entry_id, rule_id)
+            if w is None:
                 raise SalmonError(f"salmon: the verdicts name book rule {rule}, which the bundle does not hold")
-            from pipeline.common import entry_id as EID
             region = EID.region_of(entry_id)              # a water row's or a zone table's; none for `zp:`
-            words[rule] = {"verbatim": row[0], "pages": json.loads(row[1] or "[]"), "name": row[2] or "",
-                           **({"region": region} if region else {})}
+            words[rule] = {**w, **({"region": region} if region else {})}
+        lifts = book_lifts(db, closures)
     finally:
         db.close()
-    return closures, words
+    return closures, words, lifts
+
+
+def _entry_line(db, entry_id: str, rule_id: str) -> Optional[dict]:
+    """{verbatim: the book's line (`book_line`), pages, name} of one rule of the bundle; None: no such rule."""
+    row = db.execute("SELECT r.verbatim, e.verbatim, e.pages, e.name FROM rule r JOIN entry e USING (entry_id) "
+                     "WHERE r.entry_id = ? AND r.rule_id = ?", (entry_id, rule_id)).fetchone()
+    if row is None:
+        return None
+    sibs = [v for (v,) in db.execute("SELECT verbatim FROM rule WHERE entry_id = ? AND rule_id != ?",
+                                     (entry_id, rule_id)) if v]
+    return {"verbatim": book_line(row[0] or "", row[1] or "", sibs), "pages": json.loads(row[2] or "[]"),
+            "name": row[3] or ""}
+
+
+# (T796 hard cases S2, S4, X3, 2026-11-16) THE BOOK'S LINE, as the card quotes it. A rule's `verbatim` is the
+# parser's cut of its row's text, and three cuts are not the book's line: the ✱ tributary mark (the bundle's
+# "[Includes Tributaries]") ended the rule before its dates ("No Fishing downstream of Forest Kerr Canyon✱, Apr 1-Apr
+# 30" quoted as "… Forest Kerr Canyon"); the PDF's line break stays inside the words ("… power line crossing⏎
+# (approximately …"); a rule after a ";" is a fragment ("except Thelwood Creek is closed all year" of "Fly fishing
+# only; except Thelwood Creek is closed all year"). The line is read back from the row's own text (`entry.verbatim`):
+# the rule's words found there, then the rest of ITS clause (to the next ";", line, sentence or the next rule of the
+# row), a fragment from the start of its line; the bold marks and the tributary mark dropped, line breaks joined.
+_BOOK_MARK = re.compile(r"\[[^\]\n]*\]")
+_FRAGMENT = re.compile(r"^(?:except|and|or|but|including|unless)\b")
+
+
+def _book_norm(text: str) -> str:
+    """`text` without bold marks (`**`) and tributary marks (`[…]`), each run of white space one character: a line
+    break where the run breaks the line and the next starts a new line of the row (a capital or a figure, outside
+    brackets), else a space (the PDF's wrap)."""
+    out: List[str] = []
+    i, n = 0, len(text)
+    depth = 0
+    while i < n:
+        if text.startswith("**", i):
+            i += 2
+            continue
+        m = _BOOK_MARK.match(text, i)
+        if m:
+            i = m.end()
+            continue
+        c = text[i]
+        if c.isspace():
+            j = i
+            while j < n and (text[j].isspace() or text.startswith("**", j)):
+                j += 2 if text.startswith("**", j) else 1
+            brk = "\n" in text[i:j] and depth <= 0 and j < n and (text[j].isupper() or text[j].isdigit())
+            if out and j < n:
+                out.append("\n" if brk else " ")
+            i = j
+            continue
+        depth += (c == "(") - (c == ")")
+        out.append(c)
+        i += 1
+    return "".join(out)
+
+
+def book_line(rule_verbatim: str, entry_verbatim: str, siblings: Sequence[str] = ()) -> str:
+    """THE BOOK'S LINE for one rule (see above): `rule_verbatim` found in its row's `entry_verbatim` and taken to the
+    end of its clause — never into a sibling rule of the row (`siblings`, their verbatims) — and from the start of
+    its line when it is a fragment ("except …", "and …"). Not found once (exactly), or no row text: the rule's own
+    words with line breaks joined."""
+    rule = " ".join((rule_verbatim or "").replace("**", "").split())
+    rule = " ".join(_BOOK_MARK.sub("", rule).split())
+    norm = _book_norm(entry_verbatim or "")
+    flat = norm.replace("\n", " ")
+    if not rule or flat.count(rule) != 1:
+        return rule
+    i = flat.index(rule)
+    j = i + len(rule)
+    if _FRAGMENT.match(rule):
+        i = norm.rfind("\n", 0, i) + 1
+    tail = norm[j:]
+    if rule.endswith(".") and re.match(r"\s+[A-Z]", tail):
+        tail = ""
+    cut = len(tail)
+    for m in (re.search(r"[;\n]", tail), re.search(r"(?<=\.)\s+(?=[A-Z])", tail)):
+        if m:
+            cut = min(cut, m.start())
+    tail = tail[:cut]
+    low = tail.lower()
+    for sib in siblings:
+        s = " ".join(_BOOK_MARK.sub("", sib.replace("**", "")).split()).lower()
+        k = low.find(s[:24]) if len(s) >= 6 else -1
+        if k >= 0:
+            tail, low = tail[:k], low[:k]
+    tail = tail.rstrip(" ,;")
+    return (norm[i:j] + tail).replace("\n", " ")
+
+
+def book_lifts(db, closures: Mapping[int, Mapping[str, frozenset]]) -> Dict[int, Dict[str, str]]:
+    """(T796 hard case S1, 2026-11-16) sid -> {rule: the words of what lifts it}, for a book closure that closes the
+    section on FEWER days than its own printed dates (`book_closures` reads the days after every lift): the card's
+    dates would contradict the line it quotes ("No Fishing Oct 1-May 31 (Oct 1–Apr 30)"). The lifting rules are the
+    section's rules whose `exempts` name the closure on a missing day; their words: "lifted <days> by <water> (p.N):
+    <its line>". A closure missing days that no rule of its section lifts STOPS the build (never a silent gap)."""
+    from pipeline.deliver.answers.common import when_words
+    own_memo: Dict[str, Optional[frozenset]] = {}
+    lifter_memo: Dict[int, List[Tuple[str, str, dict, Optional[str]]]] = {}
+    line_memo: Dict[Tuple[str, str], Optional[dict]] = {}
+
+    def own(rule: str) -> Optional[frozenset]:
+        if rule not in own_memo:
+            e, r = rule.split("::", 1)
+            row = db.execute("SELECT when_ FROM rule WHERE entry_id = ? AND rule_id = ?", (e, r)).fetchone()
+            w = json.loads(row[0]) if row and row[0] else {}
+            hs = [holds_on({"when": w}, md) for md in DAYS]
+            own_memo[rule] = None if None in hs else frozenset(d for d, h in enumerate(hs) if h)
+        return own_memo[rule]
+
+    def lifters(set_id: int):
+        if set_id not in lifter_memo:
+            lifter_memo[set_id] = [
+                (e, r, x, w) for e, r, ex, w in db.execute(
+                    "SELECT r.entry_id, r.rule_id, r.exempts, r.when_ FROM ruleset s JOIN rule r USING (entry_id, rule_id) "
+                    "WHERE s.set_id = ? AND r.exempts IS NOT NULL ORDER BY r.entry_id, r.rule_id", (set_id,))
+                for x in json.loads(ex)]
+        return lifter_memo[set_id]
+
+    feb29 = DAYS.index(229)
+    out: Dict[int, Dict[str, str]] = {}
+    for sid, v in sorted(closures.items()):
+        for rule, days in sorted(v.items()):
+            mine = own(rule)
+            if mine is None:
+                continue
+            missing = mine - days
+            if not missing - {feb29}:          # "to Feb 28" closes Feb 29 too, as the verdicts read it
+                continue
+            got = db.execute("SELECT set_id FROM section_ruleset WHERE sid = ?", (sid,)).fetchone()
+            e0, r0 = rule.split("::", 1)
+            said = []
+            for e, r, x, w in lifters(got[0] if got else -1):
+                if x.get("entry_id") != e0 or x.get("rule_id") != r0:
+                    continue
+                when = x.get("when") or (json.loads(w) if w else {})
+                lifted = frozenset(d for d, md in enumerate(DAYS) if holds_on({"when": when}, md))
+                if not lifted & missing:
+                    continue
+                if (e, r) not in line_memo:
+                    line_memo[(e, r)] = _entry_line(db, e, r)
+                ln = line_memo[(e, r)]
+                pages = ", ".join(str(p) for p in ln["pages"])
+                said.append(f"{ln['name']} (p.{pages}): {ln['verbatim']}" if pages else f"{ln['name']}: {ln['verbatim']}")
+            if not said:
+                raise SalmonError(f"salmon: book closure {rule} closes section {sid} on fewer days than it prints "
+                                  f"({when_words({'dates': _day_ranges(missing)}, 'plain')} missing) and no rule "
+                                  f"of the section lifts it there — its card would contradict its line")
+            out.setdefault(sid, {})[rule] = \
+                f"lifted {when_words({'dates': _day_ranges(missing)}, 'plain')} by {'; '.join(dict.fromkeys(said))}"
+    return out
 
 
 def _day_ranges(days: Iterable[int]) -> List[dict]:
@@ -1307,25 +1458,33 @@ def _day_ranges(days: Iterable[int]) -> List[dict]:
     return out
 
 
-def book_rule(lid: str, rule: str, days: Iterable[int], words: Mapping[str, dict]) -> dict:
-    """The static place's one rule, as a DFO row reads: every salmon closed on the book's days, in the book's words."""
+def book_rule(lid: str, rule: str, days: Iterable[int], words: Mapping[str, dict], lift: str = "") -> dict:
+    """The static place's one rule, as a DFO row reads: every salmon closed on the book's days, in the book's words;
+    `lift` (`book_lifts`): what lifts it on the printed days it does not close, said after the line."""
     w = words[rule]
     pages = ", ".join(str(p) for p in w.get("pages") or ())
     head = f"{BOOK_WORDS} (p.{pages})" if pages else BOOK_WORDS
+    line = w["verbatim"]
+    if lift:
+        line = f"{line} {lift[0].upper()}{lift[1:]}" if line.endswith(".") else f"{line}; {lift}"
     return {"rule_id": lid, "type": "retention_limit", "species": [ALL_SALMON], "take": 0, "may_target": False,
-            "verbatim": f"{head}: {w['verbatim']}",
+            "verbatim": f"{head}: {line}",
             **({"when": {"dates": _day_ranges(days)}} if len(set(days)) < len(DAYS) else {})}
 
 
 def with_book_closures(payload: dict, sections: Sequence[Tuple[int, int]], closures: Mapping[int, Mapping[str, frozenset]],
-                       words: Mapping[str, dict]) -> Tuple[dict, List[Tuple[int, int]]]:
+                       words: Mapping[str, dict], lifts: Optional[Mapping[int, Mapping[str, str]]] = None) \
+        -> Tuple[dict, List[Tuple[int, int]]]:
     """(T796 A5) The release's salmon with each book closure FIRST in the chains of the sections it closes. A new chain
     per (old chain, its book places): per species and day the first book place that closes it answers, else the old
     chain's answer — DFO's places keep their order and answers behind it; gear lines as before (a book place has none);
     the map status from the five; `a` names the book place on its days (the old indices shifted); a two-region chain's
     groups each gain the book places first. Payload `p[id]` marks it (`static: 1`, `book: {rule, pages}`) and payload
-    `static[id]` holds its own year (the live feed's place shape) for the app to compose under a live feed."""
+    `static[id]` holds its own year (the live feed's place shape) for the app to compose under a live feed.
+    `lifts` (`book_lifts`): per section, what lifts a closure on printed days it does not close — said in its words, so
+    a place is one (rule, days, lift)."""
     from pipeline.regs.dfo_salmon import live as _live
+    lifts = lifts or {}
     if BOOK_ONLY_WHERE_DFO_LETS_FISH:
         chain_of = dict(sections)
         lets = {c: dfo_lets_fish(payload["chains"][c], payload["verdicts"]) for c in set(chain_of.values())}
@@ -1341,17 +1500,17 @@ def with_book_closures(payload: dict, sections: Sequence[Tuple[int, int]], closu
         gears(g)
     if len(verdicts.items) != len(payload["verdicts"]) or len(gears.items) != len(payload["gears"]):
         raise SalmonError("salmon: the payload's verdicts / gears are not unique — not a built payload")
-    # one static place per (rule, days): the rule's commonest day set takes the plain id, the others `~2`, `~3` ...
-    seen: Dict[str, Dict[frozenset, int]] = defaultdict(lambda: defaultdict(int))
-    for v in closures.values():
+    # one static place per (rule, days, lift): the rule's commonest day set takes the plain id, the others `~2` ...
+    seen: Dict[str, Dict[Tuple[frozenset, str], int]] = defaultdict(lambda: defaultdict(int))
+    for sid, v in closures.items():
         for rule, days in v.items():
-            seen[rule][days] += 1
-    lid_of: Dict[Tuple[str, frozenset], str] = {}
+            seen[rule][(days, (lifts.get(sid) or {}).get(rule, ""))] += 1
+    lid_of: Dict[Tuple[str, frozenset, str], str] = {}
     for rule in sorted(seen):
-        for i, days in enumerate(sorted(seen[rule], key=lambda ds: (-seen[rule][ds], sorted(ds)))):
+        for i, (days, lift) in enumerate(sorted(seen[rule], key=lambda k: (-seen[rule][k], sorted(k[0]), k[1]))):
             lid = f"{BOOK_PREFIX}{rule}" + (f"~{i + 1}" if i else "")
-            lid_of[(rule, days)] = lid
-            cal = _live.location_calendar([book_rule(lid, rule, days, words)], verdicts, gears)
+            lid_of[(rule, days, lift)] = lid
+            cal = _live.location_calendar([book_rule(lid, rule, days, words, lift)], verdicts, gears)
             out["static"][lid] = cal
             w = words[rule]
             out["p"][lid] = {**({"r": w["region"]} if w.get("region") else {}),
@@ -1364,7 +1523,7 @@ def with_book_closures(payload: dict, sections: Sequence[Tuple[int, int]], closu
         if not cl or c == UNLISTED_CHAIN:
             new_sections.append((sid, c))
             continue
-        statics = tuple(sorted(lid_of[(r, d)] for r, d in cl.items()))
+        statics = tuple(sorted(lid_of[(r, d, (lifts.get(sid) or {}).get(r, ""))] for r, d in cl.items()))
         if (c, statics) not in memo:
             memo[(c, statics)] = len(out["chains"])
             out["chains"].append(_book_chain(payload["chains"][c], statics, out["static"], verdicts))
