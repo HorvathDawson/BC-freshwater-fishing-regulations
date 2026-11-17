@@ -44,6 +44,14 @@ the wire: `frames` rows [holds, documents, under_16?, alien_weekend?] (the 4th o
 `alien_weekend` table; the store's `licence_alien`, in every regs shard. ADDITIVE: a reader that does not know it reads
 the first three indexes as before, so `licence` stays 7 until the app reads it (bump both sides together then).
 
+## A BAIT ALLOWANCE SAID ONCE (2026-11-17, T797 item 2) — gear `bait[].allowances`, additive (gear stays 12)
+
+`BaitPick.allowances` [{says, by [clause]}] (`gear.allowances`): each distinct allowance of an allowed-by-circumstance
+bait element once per part, deduped across rules by its words ("Dead fin fish may be used when fishing for white
+sturgeon.", "Dead fin fish may be used while set lining."), `by` every clause allowing it, merged in order so the
+Sources cite each. A Fraser part holding the Fraser row's own sturgeon line and the province's bait.r3 says it once,
+citing both. Present exactly where `also_allowed` is (which keeps one circumstance per clause, unchanged).
+
 ## THE TROUT SECTION (2026-11-16, T810 ticket I) — `trout` 1, OPTIONAL, behind `--trout-table`
 
 The trout and char table (handoff/PLAN/design/trout-table-contract.md): per part key and segment a `TroutFrame`

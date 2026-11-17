@@ -35,7 +35,7 @@ from pipeline.deliver.answers.model.rows import (
     RowsFrame34, rows_frame_model,
 )
 from pipeline.deliver.answers.model.gear import (
-    Circumstance, CountPick, ElementPick, ExceptedFrom, BaitPick, Device, Way, Vessel, Overruled,
+    Circumstance, CountPick, ElementPick, ExceptedFrom, Allowance, BaitPick, Device, Way, Vessel, Overruled,
     SummaryPart, SummaryChange, GearSummary, GearAnswer, TidalState, GearFrame,
 )
 from pipeline.deliver.answers.model.licence import (

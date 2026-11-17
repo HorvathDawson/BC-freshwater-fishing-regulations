@@ -535,7 +535,7 @@ SPEC = {
                       "alone in a boat\"), specs {slot: [clause]}, "
                       "elements {slot:member: {verdict, by, over}}, main [clause], circumstantial "
                       "[{clause, while?, targeting?, note?}], hook, fly, bait [{element, ok, by, "
-                      "why?, carry_kg?, also_allowed?, excepted_from? {element, by} — version 11 (ROUND20h): the ban an allowed "
+                      "why?, carry_kg?, also_allowed?, allowances? [{says, by [clause]}] (T797 item 2, additive: each distinct allowance once, every clause allowing it), excepted_from? {element, by} — version 11 (ROUND20h): the ban an allowed "
                       "element is an exception to, the province's fin-fish ban's roe, on the days it is in force}], bait_ban, "
                       "(version 12, ROUND20i: `summary.changes[].when` leaves out the days the water is closed; the hook "
                       "\"a single barbless hook, no trebles\"; fly fishing only \"no float or strike indicator, no sinker or "

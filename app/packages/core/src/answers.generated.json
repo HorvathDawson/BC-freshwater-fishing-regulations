@@ -920,9 +920,62 @@
   },
   "gear": {
    "$defs": {
+    "Allowance": {
+     "additionalProperties": false,
+     "description": "T797 item 2: one distinct bait allowance of a part, said once (`gear.allowances`): its words and every clause\nallowing it (merged across rules, so the Sources cite each).",
+     "properties": {
+      "by": {
+       "items": {
+        "maxItems": 2,
+        "minItems": 2,
+        "prefixItems": [
+         {
+          "minimum": 0,
+          "type": "integer"
+         },
+         {
+          "minimum": 0,
+          "type": "integer"
+         }
+        ],
+        "type": "array"
+       },
+       "minItems": 1,
+       "title": "By",
+       "type": "array"
+      },
+      "says": {
+       "minLength": 1,
+       "title": "Says",
+       "type": "string"
+      }
+     },
+     "required": [
+      "says",
+      "by"
+     ],
+     "title": "Allowance",
+     "type": "object"
+    },
     "BaitPick": {
      "additionalProperties": false,
      "properties": {
+      "allowances": {
+       "anyOf": [
+        {
+         "items": {
+          "$ref": "#/$defs/Allowance"
+         },
+         "minItems": 1,
+         "type": "array"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Allowances"
+      },
       "also_allowed": {
        "anyOf": [
         {
