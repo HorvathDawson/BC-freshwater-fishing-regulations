@@ -204,7 +204,8 @@
     50
    ],
    "matched": [
-    "wbk:329026676"
+    "wbk:-24",
+    "wbk:-25"
    ],
    "extents": [
     {
@@ -223,11 +224,10 @@
      "may_target": false,
      "extents": [
       {
-       "op": "whole"
+       "op": "whole",
+       "item_id": "wbk:-25"
       }
-     ],
-     "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): line-boundary closure has no cut-point — item has no bindable boundaries besides op:whole",
-     "undrawn_part": "east of a line from Gullwing Creek to the south shore of Babine Lake"
+     ]
     },
     {
      "rule_id": "babine_lake.r2",
@@ -250,7 +250,8 @@
      "may_target": false,
      "extents": [
       {
-       "op": "whole"
+       "op": "whole",
+       "item_id": "wbk:-24"
       }
      ],
      "review_reason": "Held on the whole water as an undrawn part (a note, never coloured by it): radius closure has no cut-point — item has no bindable boundaries besides op:whole",

@@ -201,7 +201,7 @@ def resolve_closures(slug: str, ef, registry, graph, *, outside=None, tidal=None
                  tidal limit); a confirmed circle, the sections of its water WHOLLY inside it
         carried  `carried: true` + `reason` (why), and `marked` (the sections a circle only touches): the bundle puts
                  the piece on its water as an undrawn part ("parts not mapped") — never widened to a whole section,
-                 never dropped. Unconfirmed, reworded, a lake line (deferred), a cut not in this atlas, a circle
+                 never dropped. Unconfirmed, reworded, a line on a lake not split on it, a cut not in this atlas, a circle
                  partly over a section: all carried.
 
     An item no live row names makes no row (`closures.attach`)."""
@@ -218,7 +218,7 @@ def resolve_closures(slug: str, ef, registry, graph, *, outside=None, tidal=None
                "reason": None, "sections": [],
                "closure": {"of": p.derived_from, "key": p.piece_key, "kind": p.piece_kind, "state": p.state}}
         why, marked = p.why, []
-        if not why and p.piece_kind == "stretch":
+        if not why and p.piece_kind in ("stretch", "line"):      # T812: a line binds the lake part it closes
             water = ef.water(p.water_id) if p.water_id else None
             entry, rules = E.to_reach_input(p, [{}], water, siblings={})
             b, diags = build_reach(entry, rules[0], registry, graph, outside=outside, regional=False, tidal=lim)
@@ -229,7 +229,7 @@ def resolve_closures(slug: str, ef, registry, graph, *, outside=None, tidal=None
                 row.update(mapped=True, outcome="bound", sections=sorted(b.sections))
             else:
                 new = p.unlanded
-                why = (f"its stretch did not bind ({b.reason.value if b.reason else b.outcome.value})"
+                why = (f"its {p.piece_kind} did not bind ({b.reason.value if b.reason else b.outcome.value})"
                        + (f"; its new cut(s) {new} have not landed: accept the cut proposal(s) and rebuild the atlas"
                           if new else "")
                        + ("; it lies wholly in tidal water" if b.reason is Reason.tidal else "")
@@ -259,7 +259,11 @@ def _circle(g: dict, registry, graph, lim) -> tuple:
         return [], [], "no section geometry in this run (no atlas build attached): carried on its water"
     outlines, lines = geoms
     shapes = {}
-    for s in item.section_ids:
+    # T812: a lake SPLIT into parts owns no section of its own (`added_lakes` `part_of`): the circle is measured
+    # against its parts' sections (Babine Lake's circles lie on its Main Body, Six Mile's on the line between the two)
+    sids = list(item.section_ids) or [x for it in (registry.values() if hasattr(registry, "values") else ())
+                                      if getattr(it, "part_of", "") == g["on_item"] for x in it.section_ids]
+    for s in sids:
         shp = outlines.get(s) if s.startswith("lake:") else None
         shapes[s] = shp if shp is not None else lines.get(s)
     inside, touched = K.circle_sections(g["centre"], g["radius_m"], shapes)
