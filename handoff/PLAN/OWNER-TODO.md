@@ -2209,3 +2209,13 @@ More questions (recommended answer first):
   it, picked: "Land it (Recommended)". Kennedy Lake's note (already ruled outside Pacific Rim, Z11), picked: "Keep the
   note (Recommended)". So: lane/salmon-rules-1116 + lane/salmon-hardcases-1116 + the app's twins land together
   (section D), then ship with the next staging release.
+- 22:55, on the Yakoun before/after sheet, typed (verbatim): "The calendar shows open always but it closes after coho
+  closes?" Answered: DFO's coho row "Apr 1–Mar 31" is the whole year (DFO's year runs Apr 1 to Mar 31), so before the
+  change salmon was open every day; after it the book's "No Fishing from Yakoun Lake downstream approximately 13 km …,
+  Oct 1-Apr 30" closes the stretch Oct 1 to Apr 30 and coho shows through May to Sep.
+- 22:55, on the Skeena before sheet (circling the DFO-words block under the species table), typed (verbatim): "We want to
+  create a future ticket to do a similar check of all salmon regulations to the webpages with a fresh agent that tries
+  to break it and look for issues in the regulations also why do we have this section in salmon". Filed T827 (the
+  break-it audit of every salmon rule against DFO's pages, later). Answered why (T321, Oct 31: DFO's rows as printed so
+  the reading can be checked). The block (fold into Source / keep only extras / keep), picked: "Fold into Source
+  (Recommended)" (T828: under the 'Source (DFO)' expander, closed by default; unread new wording stays visible).
