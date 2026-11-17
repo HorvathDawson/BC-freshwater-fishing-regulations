@@ -1,6 +1,6 @@
 # T825 — 251 side-channel sections are led by a gauge far upstream (lower Fraser side channels read Red Pass)
 
-Status: IN PROGRESS (built on lane/t813-t825, 4ab80fac5; left (Claude): the main chat merges and marks it DONE; ships with the next data build).
+Status: DONE (4ab80fac5; merged into redesign/stream-sections 2026-11-17).
 
 Source: the T823 worker's distribution over the live bundle: 251 led sections are 10× or more BIGGER than their lead
 gauge, almost all side channels. Main case: lower Fraser side channels led by 08KA007 (Fraser at Red Pass), 750 to

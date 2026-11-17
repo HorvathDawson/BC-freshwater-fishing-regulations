@@ -265,10 +265,10 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T809 | A tool that lists every answer that changed between two releases, in plain words, as one page for the owner | OPEN (tool landed 11-16; cross-atlas run owed) | — | trout table build spec ticket K; owner 2026-11-16 15:42 "Start steps 1 and 2" |
 | T810 | Trout and char block as the new table, built from the Python pipeline to the screen (umbrella; spec written; steps 3 to 7 wait for the owner's go) | OPEN | — | owner 2026-11-16 15:18; `handoff/PLAN/design/trout-table-build-spec-2026-11-16.md` |
 | T812 | Babine Lake: split on the Gullwing Creek line; creek-mouth closures drawn as circles, not lake sections | OPEN | — | owner 2026-11-16 |
-| T813 | An added stream that continues an FWA line past its mouth is minted at the top measure (Port Moody's Schoolhouse Creek North) | IN PROGRESS (lane/t813-t825; left (Claude): main chat merges) | 0435b445e | cut-fixes lane 2026-11-16 |
+| T813 | An added stream that continues an FWA line past its mouth is minted at the top measure (Port Moody's Schoolhouse Creek North) | DONE | 0435b445e | cut-fixes lane 2026-11-16 |
 | T822 | iPhone push: the phone never registers with the staging worker | OPEN | — | owner iPhone build 36, 2026-11-16 |
 | T823 | "Small next to its gauge": Python decides when a section's lead gauge reading needs a warning; the release ships it | IN PROGRESS (app half landed 2026-11-17 in land/app-1117; the pipeline half and the release that ships it are the main chat's) | f7b41c208 | owner 2026-11-16 (spots) |
-| T825 | 251 side-channel sections are led by a gauge far upstream (lower Fraser side channels read Red Pass) | IN PROGRESS (lane/t813-t825; left (Claude): main chat merges) | 4ab80fac5 | T823 measurement 2026-11-16 |
+| T825 | 251 side-channel sections are led by a gauge far upstream (lower Fraser side channels read Red Pass) | DONE | 4ab80fac5 | T823 measurement 2026-11-16 |
 | T827 | A fresh agent tries to break every salmon rule against DFO's own pages | OPEN | — | owner 2026-11-16 (future) |
 | T828 | Salmon card: DFO's rows as printed fold into "Source (DFO)" | OPEN | — | owner 2026-11-16 (app) |
 | T829 | Salmon species rows in the same look as the other fish table and the new trout table (formatting only) | OPEN | — | owner 2026-11-16 (app) |
