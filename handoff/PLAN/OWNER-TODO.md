@@ -2107,3 +2107,14 @@ More questions (recommended answer first):
   each for his review (everything added is a proposal).
 - 18:38, typed in chat (verbatim): "this is fine (Tsezakwa: its circle sits on Nilkitkwa Lake instead of Babine. )".
   So: Tsezakwa's circle on Nilkitkwa Lake stays as it is; the Babine worker leaves it alone.
+- 18:54, Babine Lake (five pictures sent; worker branch `lane/babine-mouths` 6b1aa369d, proposals only). The four
+  missing circles ('Six Mile Creek' = Gullwing Creek; 'Pendleton Creek' = Cross Creek at Pendleton Bay; Hazelwood and
+  Sockeye = the unnamed creeks at DFO's own census sites), typed, verbatim: "That sounds good can we add name variants?
+  With source?" The Gullwing Creek line, picked: "Due south" (straight south from Gullwing Creek's mouth, 3,356 m, not
+  the shortest crossing). So: the four circles are accepted; each creek gets a NAME VARIANT with its source (Gullwing
+  Creek also "Six Mile Creek"; Cross Creek also "Pendleton Creek"; the two unnamed creeks "Hazelwood Creek" and
+  "Sockeye Creek"; source = DFO NuSEDS census sites + SkeenaWild 2011, cited on each), as name variants are recorded
+  today; the line is the due-south reading. Also found: his 7 circle confirmations of 13:28 were never saved (no
+  Babine closed-area marks; `closed_areas.json` holds only Thompson and Shuswap): they are saved with these 4 and the
+  line through the review app's save path. Effect today: none on the map (a circle binds only sections wholly inside
+  it; the lake is one section; the line across a lake is deferred): notes on the card until a lake-split ticket.
