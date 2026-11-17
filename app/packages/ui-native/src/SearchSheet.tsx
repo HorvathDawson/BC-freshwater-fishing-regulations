@@ -142,8 +142,10 @@ export function SearchSheet({ open, top, palette, session, pick, onAct, onOpenWa
     run.start();
     return () => run.stop();
   }, [half, still, lowered]);
-  // back, everywhere (app/HANDOFF-ui.md): a town's list is a step inside search — back is its "← All results"
-  useBackLayer(open && pick.town !== null, () => onAct({ t: "back" }));
+  // (T730, owner 2026-11-16) back from a picked place closes search, as after a water (it used to step to the results
+  // with the text kept, and a second back closed): one back returns to the map. The on-screen "← All results" row still
+  // steps to the results (`act({ t: "back" })`, SheetRow)
+  useBackLayer(open && pick.town !== null, onClose);
   /*
    * ESCAPE CLOSES SEARCH ON A WIDE SCREEN, wherever the focus is (owner 2026-10-22 late): after a pick the field has
    * given up the focus, so the field's own Escape would no longer hear it. Typed or not, a town's list or not, it is

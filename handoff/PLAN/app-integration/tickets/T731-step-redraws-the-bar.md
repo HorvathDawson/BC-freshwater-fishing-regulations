@@ -54,3 +54,11 @@ every way in; only the in-between frame changed.
 Owner (question dialog in the main chat, 2026-11-16 12:08, on the list of small behaviours left as built): "we should fix anything that doesnt seem desirable". This one was left as built with an alternative on offer; the app chat judged it undesirable.
 Now, on branch `app-fix/small-looks-1116` (8e1791c7e, not merged): the bottom bar keeps its height when a step leads into another water (it was 122 px shorter stepping into a one-part water); a water opened fresh carries no empty row. Each fix has a test that failed first;
 `check:fast` passes. Left: the emulator look, then the merge with its benches.
+
+## Benches for the small-fixes merge (T731, T730, T728, T800), 2026-11-16 16:48 (app chat)
+Branch `app-fix/small-looks-1116`, merged with the head after T797. `pnpm check` rc 0. Benches, `small` APK:
+install, memory, bg-install, crash-bed PASS; tap-stalls PASS; regs-open FAILED twice on the FIRST tap's cue
+(160 ms, then 154 ms; limit 150), each time in the first run after a fresh `--build`. A/B to settle it: the head APK
+(t797) twice, first taps 33–112 ms, both pass; the small APK twice more without a rebuild, first taps 40–86 ms,
+both pass. Read: the slow first taps were the first run after an install, not these changes (none is on the path
+before the cue). The regs-and-back tests after the T797 merge: 1124 pass.

@@ -253,7 +253,10 @@ export function timedOf(inp: RegsInputs, s: Settled, settledAtSeg: (seg: number)
     const on = sets.filter(([, x]) => x.has(ix)).map(([j]) => j);
     if (on.length === ss.length || on.includes(cur)) continue;
     const r = R.get(ix);
-    items.push(item([text(describeShort(r, inp))], r.tcond || daysTxt([...new Set(on.flatMap((j) => M[j]!.weekdays))]), r));
+    // (T800) the rule's own sentence, as the "some anglers" note says it on the days it speaks (`anglerOf`). `describe()`
+    // falls back to the printed text for an angler closure and the short form cut it at the first bracket: the Skeena's
+    // weekend zones read "…, July 1 - Dec 31, · Sat, Sun" with nobody named, or named no zone
+    items.push(item([text(r.export.label)], r.tcond || daysTxt([...new Set(on.flatMap((j) => M[j]!.weekdays))]), r));
   }
   return items.length ? { kind: "timed", hot: false, title: WORDS.TIMED_TITLE, calm: null, items, later: null } : null;
 }

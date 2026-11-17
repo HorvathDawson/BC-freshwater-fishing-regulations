@@ -25,3 +25,21 @@ Question 29, typed: "yes we want to do this but can you bring the example change
 colors show it as well." PASS CONDITION for A5: on a book-closed stretch the Salmon view's line colour, the year bars
 and the alerts read closed (offline and under a live feed), not only the card. A map picture before and after goes
 to him with the three examples.
+
+## Owner, 2026-11-16 15:19 (typed in chat, after the Nass wordings)
+"and yes the closure wins here." and "we need to make sure it says where the closure is from though".
+- The Nass side streams row (book p.49, coho Jan 1 to Jun 15, about 25,900 sections) ships with the rest: the book's
+  closure wins over DFO's section C coho opening.
+- PASS CONDITION for A5, every row: the salmon card names the closure's source: the rule book, the page, the book's
+  own line and its dates. On the lane's data all 71 rows read "Closed to all fishing by the rule book (p.NN): <line>
+  (<dates>)" [ran, `book-closures-raw.json` `after_words`]. The app's card, the Salmon map's tap and the sources
+  sheet must show that same source (the app chat's twins; a before / after picture of the Nass, the Skeena reserve
+  and the Yakoun goes to him).
+- Not checked yet: that the "Kitsault Bridge" cut (113.0 km up the Nass, -128.924, 55.498) is the bridge itself.
+
+## Owner, 2026-11-16 17:44 and 17:46: the hard cases, data side
+Campbell summer closure: "Keep it closed". Thompson in June: "keep closed but add to gotchas as one i need to ask fish
+and wildlife about" (done: pipeline/docs/GOTCHAS.md). Partly inside a reserve or park: "take out the lakes but add a
+note" (the 9 lakes and ponds mostly outside, Z10 by name, a note on each card); streams: "Keep E8 as is
+(Recommended)". National parks: "Closed, book's wording (Recommended)" (words only, the permit sentence added). The
+wording fixes on `lane/salmon-hardcases-1116` (7e390039b) change no answer. X1 (closed-region card shape) is the app's.

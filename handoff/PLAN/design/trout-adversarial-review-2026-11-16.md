@@ -288,3 +288,67 @@ identical). Stop line: FIXED (use the stored noun: "this creek", "this slough", 
    on its possession rule; Dodd, Khartoum and Lois store the char three ways against one ruling; "trout" covers char
    at Dodd but not at Cultus in the same table; the T805 list.
 
+
+---
+
+# Fourth attack: round 9, by an Opus reviewer (2026-11-16, back at 15:16)
+
+Saved by the main chat from the reviewer's hand-back. Its files: session scratch folder `trout-adversarial-4/`
+(`alldays.json` every day of every answer key, `auto.py` + `check.py` the simulated date words and their check,
+`an6.py` the changes with no keep / release flip, `fraser.txt` the Fraser pages from the app).
+
+**Verdict: yes, with conditions.** No new structural fault. What remains is in the date rules and their wording, not
+in the table; round 9 could go to a builder with the list below as conditions, once the T805 data gaps are fixed.
+
+## What held [ran unless marked]
+- The automatic date rule was simulated on all 2,105 answer keys for every day of 2026 (1.9 million fish-days): it
+  never printed a wrong "until X, then release" or "until X"; no change comes back within 10 days (shortest closure
+  after open days: 15 days, Denetiah Creek; no other under 27).
+- A1 "up to the N": fixed (every row without a tighter limit has its own cell). Mild risk at Dodd: "up to the 4"
+  beside brook trout while the strip says "only 2 wild" (true for hatchery fish).
+- A2 Cunningham: fixed; rows match the stored year. Possession is still not on the stored row (T805).
+- B1 Dodd, Lois, Khartoum: fixed as design, NOT backed by the live data (release r-46e4355a7277 stores no wild rule
+  on any trout row there; the lines come from the T793 ruling).
+- B3 frame, B4 heights (34 of 42 fit one 640 px screen), B5 Lois: as claimed. Leftover: Lois's "All together" bar
+  sits outside both frames and can look like the header of an empty third box.
+
+## Faults, most serious first
+1. **"Until X, then closed to all fishing" is false where only trout and char close.** Fraser River gnis:39325,
+   parts 5, 9, 11, 16, 18, 19 (6 answer keys): the rule that wins is "No fishing for trout and char, Oct 1–31"
+   (`fraser_river.r1`); whitefish (15 a day) and burbot (5) stay open and trout reopen Nov 1. The sheet's "the water
+   is closed: no fishing at all" is also false at Bish Creek (gnis:3480, from May 15: only steelhead close). Fix:
+   read the closure's scope ("then closed to trout and char", "closed for steelhead") and give the reopening date
+   when it is inside the season.
+2. **The box strip's date can contradict a row.** Andi Creek, Jul 15: strip "Keep 5 in all … · until Oct 31, then
+   release"; brook trout row "until Dec 31, then closed" (stored: brook trout keep 5 a day through Dec 31). Fix: when
+   any row of the box carries a later date, "the others: until Oct 31…" or an undated strip. How often it happens
+   across the release is not measured.
+3. **Hand-written date changes do not scale.** Only 11 answer keys (39 waters) change a number, size, wild rule or
+   possession with no keep / release flip; round 9 hand-wrote 4 (Bella Coola part 0, Coquitlam part 1, Kitimat part
+   0, Adams part 3). Not written: Humphrys Creek gnis:2046 (23 waters, Kitimat's shape), Kitimat parts 1 and 3, Bella
+   Coola part 1, and nine Bowron park streams (Istsi Creek 6, Wolverine River part 1 2, Sootheran Creek part 1 1:
+   the park's possession limit, p.43, appears on the stored row only on days lake trout cannot be kept: a data
+   artifact). The automatic rule stops at the first change, so a first change that is only looser, or a number /
+   size change, hides a later release. Fix: a build rule: skip looser-only changes, date the first tighter or state
+   change, store the "why" sentence per rule instead of by hand.
+4. **Data, unchanged (T805):** possession on no stored fish row; the Dodd / Lois / Khartoum wild limit absent from
+   the live release; the Fraser stretch on the card has no part in the new numbering (no dates); the Bowron park
+   possession limit comes and goes with lake trout.
+5. Eight cards taller than one screen (Vedder 723, Lois and Khartoum 742, Kitimat and its Oct 31 card 699, Skeena
+   summer 673, Shuswap 665, Ross 645).
+
+## On the designer's three questions (which choice misleads fewer anglers)
+1. One line above the table when every fish closes the same day: keep, only when the closure covers the whole
+   water; otherwise "closed to trout and char" with the reopening date.
+2. A change that only gets looser stays undated: yes, but skip past it to the next tighter change.
+3. Adams: the stricter 80 cm on the row, the one-day 60 cm rule in the sheet: yes.
+
+## Not checked
+A real phone; the page inside claude.ai; printed lines against page images (extracted page text and the app's stored
+quotes were used); the T793 branch; how often fault 2 happens; angler-only and weekday rules; 2027 dates.
+
+## After it (owner, 15:16, on round 10's picture)
+"old look no outline because it looks like the groups are subgrouped inside the over keep 5 card then... one thing is
+the words "only 1 of these 4 until oct 31, then release" should be changed to be "onlly 1 of these 4" being bigger it
+is the actual rule right now then a smaller text for the change underneath. all current rules will have the bigger
+text."; row spacing: "inbetween the 2". Round 11 = that, plus faults 1 and 2 above.
