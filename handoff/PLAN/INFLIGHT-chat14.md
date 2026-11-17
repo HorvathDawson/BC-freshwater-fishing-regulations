@@ -78,11 +78,12 @@ its `_reindex`), dfo_vectors --check with both in.
   `apply closed_areas --no-commit`), re-mark the two DFO Babine places on the parts; then T807 / T804 lists; staging
   release (`--staging --dry-run --rehearse-follows` first; BEFORE/AFTER to the app chat).
 - trout J back 00:05 11-17, merged locally as 02e51cfdc (mini release re-cut on merge); tier running, then push.
-  Worker a4085d0519fdf0daf (lane/trout-vpy, worktree scratchpad/trout-vpy-wt): fix the 5 keys J still fails (Kaslo/Keen DV inside the band; Kitimat/Humphrys/Iron Mine/Tetlock
-  wild-rainbow joined with brown+cutthroat), then V-py.
+  01:53 11-17: worker done; lane/trout-vpy merged locally as 5d6ac8283 (6 keys fixed, proof 5,950/5,950, 0 problems; V-py:
+  trout_vectors 53 cases, trout-hand 14, own trout fixture app/fixtures/trout/, scripts/trout-refresh.sh). Tier b806pz7n9
+  running (scratchpad/tier-trout.log). Push after the app chat's T759 "pushed <hash>" is merged on top. Kaslo/Keen
+  question filed in OWNER-TODO (morning).
 
-**4. Trout (T810).** Done: I0, A0, F0, E, G, F, H, I, J (5 keys left). Next: the 5-key fix + V-py (side release + fixture + refresh
-script), G2 (his sentence list; F's 10 questions are in T810's 21:02 note), A1, then the app's M0+M, the picture pack,
+**4. Trout (T810).** Done: I0, A0, F0, E, G, F, H, I, J, J's keys, V-py. Next: G2 (his sentence list; F's 10 questions are in T810's 21:02 note), A1, then the app's M0+M, the picture pack,
 the cutover (ship only at the switch). The app chat's T824 drops the walkthrough's trout "Tap Details" step.
 
 **5. Queued data tickets.** T825 (251 side channels led by a far-upstream gauge, list to him first), T813 (Schoolhouse
