@@ -31,6 +31,8 @@ from pipeline.deliver.answers.model.rows import (
     TableBand, WhyLit, TableCell, CardTable, CapKind, CapPlaces, Cap, TreeThen, TreeExtra, TreeSizes,
     AlsoCounts, TreeKind, TreeTier, GroupPossession, Header, GroupTotal, _trout_char, Elsewhere, Week,
     WeekPart, Restated, YearStatus, YearRun, BOOK_YEAR_DAYS, Row, FishAnswer, RowsFrame,
+    ROWS_VERSION, PAGE_POSSESSION_SINCE, page_possession_written, PossessionLead, PossessionAlso, PagePossession,
+    RowsFrame34, rows_frame_model,
 )
 from pipeline.deliver.answers.model.gear import (
     Circumstance, CountPick, ElementPick, ExceptedFrom, BaitPick, Device, Way, Vessel, Overruled,

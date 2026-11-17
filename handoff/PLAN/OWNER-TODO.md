@@ -2099,3 +2099,31 @@ More questions (recommended answer first):
   and last exit; a straddling piece or a wander outside under 1 km stays inside; the 4 pieces 10-50% inside sit
   between the cuts). Keep E8 / cut exactly at the line, picked: "Keep E8 as is (Recommended)". So: streams unchanged;
   only the 9 lakes and ponds mostly outside come out by name (ruling Z10), each with a note on the card.
+- 18:37, typed in chat (verbatim): "We also want to start another agent that works on finding the missing river
+  confluences on the babine lake dfo place closures. We want to find the other rivers and have an agent dedicated to
+  it". So: a dedicated Opus worker finds the creek mouths DFO names in its Babine Lake closures that we have not
+  placed yet (from the 11-16 re-check: Pendleton has no match; Six Mile, Hazelwood, Sockeye and the Gullwing line are
+  not drawn; Tsezakwa's circle sits on Nilkitkwa Lake; Pinkut has a circle but is not in DFO's list), and proposes
+  each for his review (everything added is a proposal).
+- 18:38, typed in chat (verbatim): "this is fine (Tsezakwa: its circle sits on Nilkitkwa Lake instead of Babine. )".
+  So: Tsezakwa's circle on Nilkitkwa Lake stays as it is; the Babine worker leaves it alone.
+- 18:54, Babine Lake (five pictures sent; worker branch `lane/babine-mouths` 6b1aa369d, proposals only). The four
+  missing circles ('Six Mile Creek' = Gullwing Creek; 'Pendleton Creek' = Cross Creek at Pendleton Bay; Hazelwood and
+  Sockeye = the unnamed creeks at DFO's own census sites), typed, verbatim: "That sounds good can we add name variants?
+  With source?" The Gullwing Creek line, picked: "Due south" (straight south from Gullwing Creek's mouth, 3,356 m, not
+  the shortest crossing). So: the four circles are accepted; each creek gets a NAME VARIANT with its source (Gullwing
+  Creek also "Six Mile Creek"; Cross Creek also "Pendleton Creek"; the two unnamed creeks "Hazelwood Creek" and
+  "Sockeye Creek"; source = DFO NuSEDS census sites + SkeenaWild 2011, cited on each), as name variants are recorded
+  today; the line is the due-south reading. Also found: his 7 circle confirmations of 13:28 were never saved (no
+  Babine closed-area marks; `closed_areas.json` holds only Thompson and Shuswap): they are saved with these 4 and the
+  line through the review app's save path. Effect today: none on the map (a circle binds only sections wholly inside
+  it; the lake is one section; the line across a lake is deferred): notes on the card until a lake-split ticket.
+- 18:56, typed in chat (verbatim): "We want to split babine lake on the line like our other split lakes. Then we want
+  the circles to just be circles on the map not separate sections of the lake. Otherwise it will be overboard." So
+  (T812): Babine Lake is split on the due-south Gullwing Creek line the way other lakes are split (east part = its
+  own piece, closed as DFO says); the 400 m creek-mouth circles are NOT cut out of the lake: they are drawn as circles
+  on the map (an overlay) with the card's note, no extra lake sections.
+- 18:57, the Babine circles' look (T812; the app chat's three questions, one dialog). Which map, picked: "Salmon map only
+  (Recommended)". Follow the picked day, picked: "Follow the day (Recommended)" (closed colour on DFO's closure days,
+  outlined or hidden otherwise). Tap, picked: "Opens the lake's card (Recommended)" (Babine Lake's salmon card, whose
+  note says which creek mouths close and when).

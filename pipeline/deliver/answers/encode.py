@@ -22,6 +22,7 @@ from pipeline.deliver.answers.answers import (ORIGINS, PART_KEY_FIELDS, RESERVED
                                               Model)
 from pipeline.deliver.calendar import DAYS, day_of, reading_day_of
 from pipeline.deliver.answers.common import Interner
+from pipeline.deliver.answers.model.rows import ROWS_VERSION, page_possession_written
 from pipeline.deliver.bundle import read
 
 FORMAT = "answers/2"
@@ -184,7 +185,7 @@ SPEC = {
                     "about, per fish and origin the number after the winner's clauses with every "
                     "line and role, the rows (one per shared limit), their conditions, each kind's "
                     "keep range and band numbers, and the real daily limit",
-            "version": "33",
+            "version": str(ROWS_VERSION),
             "at": "[[frame index per segment] per key]",
             "frames": "[[spp, {fish code: [decided h, decided w, lead]}, [row], steelhead_line, [strip]]] — "
                       "`spp` the fish the card asks about (5.1, the page's order); per fish the "
@@ -195,7 +196,12 @@ SPEC = {
                       "never re-decided; the rows in card order (indexes into `rows`); `steelhead_line` "
                       "possible_with_rules | known_with_rules | known_no_rules | null (5.6); "
                       "version 30: per row, in the same order, its year strip (an index into `strips`) — "
-                      "the decoded row is the `rows` entry with `year` = that strip, last",
+                      "the decoded row is the `rows` entry with `year` = that strip, last"
+                      + ("; version 34 (trout plan F0): a SIXTH slot, `page_possession` — null, or {lead: null | "
+                         "{says, value, src}, also: [{says, src}]}: the page's possession row chosen once in Python "
+                         "(`card.page_line`): the lead's whole sentence, the value words the row shows and its rule; "
+                         "the lines kept under it (no trout- or char-only rule: the table's rows say those)"
+                         if page_possession_written() else ""),
             "strips": "[[[status, days]]] — version 30: every DISTINCT year strip, once (run-length over the 365 "
                       "book days, status keep | release | closed | none, the days summing to 365; see `rows[].year`). "
                       "A row is stored without its strip and the frame names the strip, so rows that differ only by "
@@ -818,11 +824,21 @@ class RowsCodec:
                     raise AnswersError("answers: a rows row has no year strip (year.stamp_years runs before encoding)")
                 rs.append(rows.add({k: x for k, x in r.items() if k != "year"}))
                 ys.append(strips.add(r["year"]))
-            refs.append(frames.add([v["spp"], fish, rs, v["steelhead_line"], ys]))
+            # F0 (rows 34): the page's possession row, the frame's sixth slot — on every frame from that version, on
+            # none before it (`model.rows.page_possession_written`)
+            if ("page_possession" in v) != page_possession_written():
+                raise AnswersError(f"answers: a rows {ROWS_VERSION} frame {'holds' if 'page_possession' in v else 'lacks'} "
+                                   "`page_possession` (written from rows 34 on, F0)")
+            fr = [v["spp"], fish, rs, v["steelhead_line"], ys]
+            refs.append(frames.add(fr + [v["page_possession"]] if "page_possession" in v else fr))
         return {"decided": decided.rows, "rows": rows.rows, "strips": strips.rows, "frames": frames.rows}, refs
 
     def decode_frame(self, sec, ref, rules, fish):
-        spp, fs, rs, line, ys = sec["frames"][ref]
+        fr = sec["frames"][ref]
+        # (the section's version is this code's: `decode` refuses another before any frame is read)
+        if len(fr) != (6 if page_possession_written() else 5):
+            raise AnswersError(f"answers: rows {ROWS_VERSION} frame {ref} has {len(fr)} slots")
+        spp, fs, rs, line, ys = fr[:5]
         if len(ys) != len(rs):
             raise AnswersError(f"answers: rows frame {ref} has {len(rs)} rows and {len(ys)} strips")
         strips = sec["strips"]
@@ -838,7 +854,8 @@ class RowsCodec:
                 "fish": {S: {"hatchery": None if h is None else sec["decided"][h],
                              "wild": None if w is None else sec["decided"][w], "lead": lead}
                          for S, (h, w, lead) in fs.items()},
-                "rows": [{**sec["rows"][i], "year": strips[y]} for i, y in zip(rs, ys)], "steelhead_line": line}
+                "rows": [{**sec["rows"][i], "year": strips[y]} for i, y in zip(rs, ys)], "steelhead_line": line,
+                **({"page_possession": fr[5]} if len(fr) == 6 else {})}
 
 
 class LicenceCodec:
