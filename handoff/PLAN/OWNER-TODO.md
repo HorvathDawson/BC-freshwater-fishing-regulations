@@ -2401,3 +2401,5 @@ More questions (recommended answer first):
   switch (T810), and wrote: "everything that has been being worked on from salmon rules and table rework to trout table
   rework to all bug fixes etc". Then: "maybe should bump to 0.8.0 too?". So NO data build or staging release until
   all of that lands; the release goes out with the app as 0.8.0 (app chat's call on the bump mechanics).
+- 2026-11-17 ~13:55, owner: push notifications (T822 + T739) "After 0.8.0 (Recommended)". Everything else in flight
+  goes into 0.8.0.
