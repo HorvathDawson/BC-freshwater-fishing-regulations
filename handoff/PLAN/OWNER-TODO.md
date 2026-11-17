@@ -2427,3 +2427,6 @@ More questions (recommended answer first):
   down" marked superseded). Then: "I feel like we have done these like 3 times already so it should be good???" So no
   safety net (T786 dropped) and T806 done; owed later only: pictures for Morice Gosnell-Lamprey (2739, after its fix)
   and Sheldens (2783, after the map rebuild). Don't ask him about these saves again.
+- 2026-11-17 ~15:21, owner (verbatim): "The safety net should be a build warning I think then we fix it and do not ship
+  "wrong" places..". So T786 is REOPENED as a release gate: the build lists every place whose latest save is "wrong"
+  (no fix drawn) and the release refuses to ship until each is fixed and re-saved. Not "ship undrawn".
