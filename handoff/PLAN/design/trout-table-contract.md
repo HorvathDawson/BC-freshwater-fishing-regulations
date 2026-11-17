@@ -523,6 +523,42 @@ switch are the non-trout fish only (the trout ones are on the table's rows; figh
 the shipped lead), over every frame of the mini release and the fixture. J uses the same function. S makes
 `standing.ts` read the field and delete `possessionRules`' pick (section 6).
 
+### 2.12 The screen half (the app side; tickets in the spec's section 6)
+
+Written by the app chat's Opus worker, 2026-11-16 17:30, against the app at `19bc7b7dd`. This is what the app does
+with the payload above, and nothing more. Each line names the spec 6 ticket that builds it.
+
+- **Gate (M0, then S).** The app lists `trout` in `OPTIONAL_VERSIONS` (`core/src/regs/versions.ts`, one line, the
+  shape I0 parses). Absent = fine; present at another version = refused, by the store (`store.ts:116-123`) and, at
+  install, by `readsRelease` (`manifest.ts:79-92`) over `manifest.regulations.versions`. At S, `trout` moves into
+  `SECTION_NAMES` / `KNOWN_VERSIONS` and the region format is `regs-region/2`, read from `pack.generated.ts` and, in
+  the store, from `REGS_FORMATS` (`versions.ts:10`), which a vitest then holds equal to `PACK_FILES`.
+- **Read (M).** One cell per (key, segment): the app picks the segment with `segmentIndex` as today, and reads one
+  `TroutFrame` for the shown day, never the whole year. Types are the emitted ones (wire and decoded); `CellIds` is
+  emitted into **core**, because core cannot import `@app/data`. No section ⇒ `trout` absent; a NULL cell ⇒ `null`.
+- **Check (N).** Before drawing, the app refuses exactly the cases in `trout-hand.json` (the same list the pydantic
+  model refuses), through `reportFailure`, and draws no table. A refused table is a reported failure, never a
+  fallback to the old card.
+- **Compose: two things only (N).** (1) The `{day}` slot: one token replaced by `dayPhrase(day, today)` ("today" / "on
+  Jul 15"), the helper the strip uses; the crawler page (T) calls it with its build day, so it reads "today" like the
+  rest of that page. (2) The screen-reader label: a row's payload texts in payload order (2.8) joined by ". ". Both
+  are pinned: the first by the vectors' `composed`, the second by an app golden over every vector row.
+- **Draw (O, P).** Every `Txt` drawn unchanged. Layout only: boxes in order, bands beside their rows, the label as a
+  filled tag, the date at the one level the frame names, the year bar from `table.year` (drawn only when set; `runs`
+  used only as lengths, with the page strip's own fills). The folded entry shows `fold.value` and its arrow; the
+  arrow replaces "Details" on the salmon and trout folds only (owner about 17:15). The fish sheet draws `FishSheet`
+  and `DateSet.sheet`; its Sources are `src` as given.
+- **Split (N behind the dev switch, then S).** Other fish = the rows-frame rows **not in `covers`**. Each row is drawn
+  exactly once (a test over every vector and fixture cell). Fewer than two others: drawn in full as today (owner
+  "Stays as today"). Caveat (b) skips covered fish (a test: no fish spoken twice).
+- **Never in the app:** a trout word that states a rule, a count, a comparison of numbers, a sort / union / cut of
+  rule refs, a choice of which date to show, a choice of whether the year bar shows, or a hand-typed payload type.
+  After S, `TROUTISH`, `TROUT_LINE_FISH`, `troutLine`, `STEEL_LINE`, `quietOf` and `possessionRules`' pick are gone.
+- **The page's game-fish strip is not the table's year bar.** The strip's trout pill ("Trout release only until Mar
+  31", `strip.ts:122-135`) is deleted at S (owner about 16:55, "Drop it"); the table's "Trout and char through the
+  year" bar is Python's `year`, shown only when every trout and char fish shares one state on an open water (owner
+  12:42). Two elements, two answers, both kept (spec 6).
+
 ---
 
 ## 3. For the owner
@@ -645,37 +681,76 @@ Entries 15 to 18 were added by the fresh review (2026-11-16).
 The app changes that follow from the review's D findings. Section 6 of the spec (M0 to S2) is the app chat's; these
 are for it to fold in, or contest.
 
-1. **S reads `regs-region/2`** (2.7). Nothing to hand-type: the format comes from `pack.generated.ts`. Check that
-   the held-set path (T403, `boot.ts:353`) installs a `/2` set over a held `/1` set before the map, in a test.
+**Status 2026-11-16 17:30 (app chat's Opus worker): all 16 are folded into the spec's section 6, each with its files,
+tests and dependencies; the screen half is summed up in 2.12.** Two need the main chat (marked **ASK**), and two
+corrections to the review come from the code (items 1 and 4).
+
+1. **S reads `regs-region/2`** (2.7). Check that the held-set path (T403, `boot.ts:353`) installs a `/2` set over a
+   held `/1` set before the map, in a test. **DONE → spec 6, S.** Correction: the format is not only generated. The
+   store checks a hand-typed `REGS_FORMATS.region = "regs-region/1"` (`core/src/regs/versions.ts:10`, read at
+   `data/src/regs/store.ts:193`). S moves it to `/2` and adds a vitest holding `REGS_FORMATS` equal to `PACK_FILES`.
+   The held-set test goes in `tools/release-boot.test.ts` beside T403's case (`:688`).
 2. **M0 (optional, recommended):** `readsRelease` (`manifest.ts:79-92`) also checks
    `manifest.regulations.versions` against `KNOWN_VERSIONS` + the optional list, so a version mismatch is caught at
-   install time, not as a final `RegsStoreError` on every page (`WaterScreen.tsx:123`).
+   install time, not as a final `RegsStoreError` on every page (`WaterScreen.tsx:123`). **DONE → spec 6, M0** (taken,
+   not optional; a manifest with no versions passes; tests in `manifest.readable.test.ts`).
 3. **Rename** the app's hand-typed optional list to `OPTIONAL_VERSIONS` (it holds versions; the table and column
    names come generated as `PACK_OPTIONAL_SECTION_TABLES`). I0 parses it, so its line shape is agreed before M0
-   lands: `export const OPTIONAL_VERSIONS = Object.freeze({ trout: 1 })`.
+   lands: `export const OPTIONAL_VERSIONS = Object.freeze({ trout: 1 } as const);`. **DONE → spec 6, M0.** For I0:
+   the line matches `KNOWN_VERSIONS`' regex (`test_answers_tidal.py:116`); at S it becomes `Object.freeze({} as
+   const)`, which I0 must read as "no optional sections"; and `KNOWN_VERSIONS` also holds `glossary: 5`, which is not
+   an `A.SECTIONS` name.
 4. **Fix the stale test pins:** `store.test.ts:17` hand-types `rows: 33`; `versions.ts:4` cites a test file that does
-   not exist. Point both at I0's test.
+   not exist. Point both at I0's test. **DONE → spec 6, M0** (`store.test.ts:17` built from `KNOWN_VERSIONS`; `:110`
+   dropped; `:136` uses `KNOWN_VERSIONS.rows + 1`). Correction: `versions.ts:4`'s reference is live, the file is
+   `app/conformance/src/regs/store.release.test.ts` (it holds `KNOWN_VERSIONS` to the golden's layout); the comment
+   adds I0's pytest beside it.
 5. **Generated types:** use `CellIds` from `pack.generated.ts` (I0) instead of `inputs.ts:24`, and the emitted
-   `TroutFrameWire` / `TroutTableWire` / `BoxWire` / `TRowWire` in `reads.ts` (I).
+   `TroutFrameWire` / `TroutTableWire` / `BoxWire` / `TRowWire` in `reads.ts` (I). **DONE → spec 6, M. ASK (I0):**
+   `CellIds` cannot come from `pack.generated.ts`: that file is in `@app/data`, and core, where `CellIds` lives and
+   is read (`inputs.ts:24,34,54`), imports nothing. Emit it into core (`answers.generated.ts` through
+   `model/emit.py`, or a new core `*.generated.ts`). `keyCells`' SELECT (`reads.ts:298`) and `cellOf` (`:647`) are
+   built from the same generated column list.
 6. **S, the Other fish split:** other fish = rows not in `covers`; delete `TROUTISH` and `TROUT_LINE_FISH`;
    `splitRows`, `looseRows`, `otherFishOf` (`others.ts:24-53`) stop reading them. Tests: each rows-frame row drawn
-   exactly once over every fixture cell; "lone other fish stays".
-7. **S, deletions:** add `STEEL_LINE` and `quietOf` (`tail.ts:83-91`) (Python writes both as `quiet` lines).
+   exactly once over every fixture cell; "lone other fish stays". **DONE → spec 6, N** (the `covers` split and both
+   tests, behind the dev switch) **and S** (the deletions).
+7. **S, deletions:** `STEEL_LINE` and `quietOf` (`tail.ts:83-91`) (Python writes both as `quiet` lines). **DONE →
+   spec 6, S** (with the call at `keep.ts:66`, `GroupVM.quiet`, and their tests; `quietOf` reads only rows holding
+   RB, which are all covered after S; S2 confirms).
 8. **S, possession:** `standing.ts` reads `RowsFrame.page_possession` (F0) for the lead and the kept also-lines,
-   and loses `possessionRules`' pick; a vitest that it holds no pick logic.
+   and loses `possessionRules`' pick; a vitest that it holds no pick logic. **DONE → spec 6, S. ASK (F0):** also
+   ship the lead's value words ("2 days' quota"); today they are cut from the sentence by the `possessionValue`
+   regex (`standing.ts:117-120`), which returns a silent null when the sentence does not match.
 9. **S, timed caveat (b)** (`caveats.ts:225-243`): skip covered fish; a vectors test that no fish is spoken twice.
    The caveats skip and the `covers` split can land **behind the dev switch before the cutover** (additive).
+   **DONE → spec 6, N** (behind the dev switch, with the test) **and S** (unconditional).
 10. **N/O, screen-reader label:** join in payload order (2.8); pin it with an app golden over every vector row. The
-    vectors no longer carry `composed.a11y`.
+    vectors no longer carry `composed.a11y`. **DONE → spec 6, N** (O draws N's labels; the golden moves only
+    through V-py's refresh script).
 11. **O, the fold row:** the expand arrow replaces "Details" on the **salmon and trout** folded entries
     (`KeepTab.tsx:43-48`, `FoldRow` `KeepBlocks.tsx:250-292`); the Other fish list stays as it is (owner, about
-    17:15, "Salmon + trout folds"). Section 6's "every folded row, other fish too" should read that way.
+    17:15, "Salmon + trout folds"). **DONE → spec 6, O**; the spec's 16:55 wording is corrected there, with the
+    17:15 answer recorded. Found with it: the walkthrough says "Tap Details" (`help.ts:171-179`), so O rewords it
+    and bumps `WALKTHROUGH_VERSION`.
 12. **O / F, angler notes:** conditional on Q-D7 (PENDING OWNER). With the recommended answer the table has no
-    `notes`, and O draws none; the caveat block keeps them.
-13. **O, year bar:** only when every trout/char fish shares one state today (all release, or all closed) on an open water (owner 12:42: "i like it on the elk where it says trout and char through the year when they are all release (or all closed etc) if some are open it seems silly").
+    `notes`, and O draws none; the caveat block keeps them. **DONE → spec 6, O** (both branches written; the
+    table branch adds about 0.25).
+13. **O, year bar:** only when every trout/char fish shares one state today (all release, or all closed) on an open
+    water (owner 12:42: "i like it on the elk where it says trout and char through the year when they are all
+    release (or all closed etc) if some are open it seems silly"). **DONE → spec 6, O and S.** Checked in the code:
+    this bar and the 16:55 "Drop it" line are **two different elements**. The dropped one is the trout pill on the
+    page's game-fish strip ("Trout release only until Mar 31", `strip.ts:122-135`, drawn `YearStrip.tsx:93-96`): S
+    deletes it. The kept one is the table's `year` ("Trout and char through the year"), which Python sets: O draws
+    it. Both answers hold.
 14. **T, the crawler page's `{day}` slot:** the server render has no "today"; T needs a rule (for example the
-    page's stated date, or a day-free form), and the vectors can carry it once T names it.
+    page's stated date, or a day-free form), and the vectors can carry it once T names it. **DONE → spec 6, T.**
+    Rule: the crawler page is the app's page on its build day (`seo/model.ts:281`), and it already says "today"
+    against that day (`:165-170`). T fills the slot with N's `dayPhrase(day = today = build day)`: "Up to 5 today".
+    The vectors' existing `lead_today` pins it; nothing new for V-py.
 15. **V reads V-py's files;** the refresh script (side release → fixture → vectors → golden sync) is V-py's, and
-    the app's goldens move only through it.
+    the app's goldens move only through it. **DONE → spec 6, V** (loader, fast-fail step beside the DFO vectors
+    step at `scripts/fast-fail.sh:284`) **and R** (the picture pack's waters are the vectors' case list).
 16. **Version bumps:** any change of the `trout` shape bumps its version; APKs from M0 on refuse a side release at
-    another version, as designed. Bump `OPTIONAL_VERSIONS` in the same change, or I0 fails.
+    another version, as designed. Bump `OPTIONAL_VERSIONS` in the same change, or I0 fails. **DONE → spec 6, M0**
+    (stated as M0's rule).
