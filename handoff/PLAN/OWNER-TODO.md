@@ -2073,3 +2073,10 @@ More questions (recommended answer first):
 - About 17:15, clarification of the 16:55 fold-row answer (APP chat re-asked; relayed, label picked verbatim): "Salmon +
   trout folds" (the option read: "Both folded entries (salmon and trout) show their words + an arrow instead of
   'Details'. The Other fish list stays as it is."). So "All rows get arrow" means the salmon and trout folds only.
+- 17:40, the trout table build summary given in chat (five steps: safety pins and size count; Python builds the table
+  on the side; the permanent same-law check; the app draws it behind a hidden switch, picture pack and sentence list
+  for him; one switch). Two questions, one dialog. Ship the trout table in normal releases before the switch (yes if
+  ≤100 kB / only at the switch), picked: "No, only at the switch". Angler-only notes (page's notes block / inside the
+  table), picked: "Page's notes block (Recommended)". So (T810): the trout section appears only in the switch
+  release; previews before it use side releases (ticket V-py's side scenario); the cutover = flag on + rows 34 +
+  format bump + deletions. Q-D7 decided: angler-only notes stay in the page's caveat block; the table carries none.
