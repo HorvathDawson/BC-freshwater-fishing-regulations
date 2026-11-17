@@ -40,3 +40,7 @@ the review app's tiers still count a designation with any review_reason as flagg
   quote the stamp line beside the place, or trim the Skeena row to its (a) part.
 - Item 2 needs the app: the class box body is composed in `app/packages/core/src/regs/licence.ts` from the record's
   fields; a "separate licence per section" line needs a field the box reads (the app chat).
+- Item 2, pipeline half DONE 6d5651c2f (lane/bugs-080b): each Skeena classified designation (skeena_river_2,
+  skeena_river_section_4) carries `non_resident_note: {says}` = "Non-residents and non-resident aliens require separate
+  licences describing which section they are fishing." (book p.53), in the licensing words the app reads (`LicWords`,
+  through the store's `LIC_KEEP`; no generated TS file changes). Left (app chat): the class box shows it.
