@@ -155,6 +155,29 @@ export function openDataModeStore(): { read(): string | null; write(text: string
 }
 
 /**
+ * (T741) The background check's last copy of a file it reads (`obs.json`, the release manifest, the version file) and its ETag (`fetchObs`'s `held`, `conditionalJson`): in the CACHE directory,
+ * not with the spots — a copy the origin can always send again, so not backed up, and the OS emptying it costs one whole
+ * read. Atomic like `fileStore`; a failed read is reported and answers null (a whole read follows).
+ */
+export function openHeldCopyStore(what: "obs" | "manifest" | "version"): { read(): string | null; write(text: string): void } {
+  const name = `${what}-held.json`;
+  const file = () => new File(Paths.cache, name);
+  return {
+    read: () => {
+      try { const f = file(); return f.exists ? f.textSync() : null; }
+      catch (e) { reportFailure(new Error(`${name} could not be read: ${e instanceof Error ? e.message : String(e)}`)); return null; }
+    },
+    write: (t) => {
+      const part = new File(Paths.cache, `${name}.part`);
+      part.writeSync(t);
+      const to = file();
+      if (to.exists) to.delete();
+      part.moveSync(to);
+    },
+  };
+}
+
+/**
  * A small file of its own. (T554 item 2) THE WRITE IS ATOMIC: the text goes to `<name>.part`, which is then moved over
  * the file (as the spots file's save, core.ts), so a write cut short leaves the old file whole, never a torn one. A read
  * that fails is REPORTED (it once was swallowed into "nothing stored") and answers null.

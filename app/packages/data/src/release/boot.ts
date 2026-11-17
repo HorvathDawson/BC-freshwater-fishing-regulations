@@ -21,7 +21,8 @@
  *            with no manifest the start fails and says so. No set this app cannot read is installed, opened or rolled
  *            back to.
  */
-import { PaintError, releaseAllowed, reportFailure, spaceLine, StatusIndexError, UPDATE_WORDS, type AppVersion, type Paint, now as clockNow } from "@app/core";
+import { LAUNCH_SLICE_MS, PaintError, releaseAllowed, reportFailure, SLICE_MS, spaceLine, StatusIndexError, UPDATE_WORDS, type AppVersion, type Paint,
+         now as clockNow } from "@app/core";
 import { VerifyError } from "../fetchVerified";
 import { fetchResilient, NetError, type Net } from "../net";
 import { compatible, loadManifest, ManifestError, parseManifest, readsRelease, type Held, type Manifest, type StageOutcome } from "../manifest";
@@ -292,6 +293,14 @@ export async function provenDefect(e: unknown, fs: ReleaseFs, h: Held): Promise<
   }
 }
 
+/**
+ * (T741) The slice a held set's paint is decoded in: a LAUNCH (nothing but the boot screen up) takes the long one; an
+ * update applied in the session (`keepReplaced`: the replaced set's map is on screen, a finger may be on it) the short.
+ */
+export function paintSliceFor(o: Pick<BootOptions, "keepReplaced">): { sliceMs: number } {
+  return { sliceMs: o.keepReplaced ? SLICE_MS : LAUNCH_SLICE_MS };
+}
+
 export async function bootRelease(o: BootOptions): Promise<Booted> {
   const f = o.fetch ?? fetch;
   const dev = o.platform.device(f, o.background ?? null);
@@ -440,7 +449,9 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
         },
       }));
     if (firstOpen(h)) o.onStage?.("apply", h.release ?? null); else o.onStage?.("paint");
-    const paint = await loader.paint();
+    // (T741) a launch decodes paint in long slices (the boot screen is all there is); an update applied in the session
+    // (`keepReplaced`: the map is on screen) keeps the short ones
+    const paint = await loader.paint(paintSliceFor(o));
     openStep(2);
     const tPaint = clockNow();
     await loader.db("core");                      // opened in place on a phone: the first file any question needs
