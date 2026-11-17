@@ -6,10 +6,12 @@
  * decoder's (`encode.segment_index` over the store the goldens were cut from). The store-free cases are
  * packages/data/src/regs/inputs.test.ts.
  */
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
-import { partNameOf, type DisplayFrame, type RegsInputs } from "@app/core";
-import { sectionNames } from "@app/data/release/node";
-import { loadRegsInputs, RegsInputsError, targetFor, type RegsStore } from "@app/data/regs";
+import { partNameOf, type DisplayFrame, type RegsInputs, type TroutValue } from "@app/core";
+import { openTroutFixture, sectionNames, TROUT_FIXTURE_ROOT } from "@app/data/release/node";
+import { loadRegsInputs, openRegsStore, RegsInputsError, targetFor, type RegsStore } from "@app/data/regs";
 import { openReleaseDir } from "../fixtureRelease";
 import { absentHandle, baseUnnamedStream, inputsOf, paritySkip, regsStore, releasePairing, requestOf, taps } from "./golden";
 
@@ -172,5 +174,53 @@ describe.skipIf(pairing.skip)(`T09 loadRegsInputs on the live release (${at.path
       await loadRegsInputs(st, r.target, r.day, r.weekday, 2026);
     }
     expect(performance.now() - t0).toBeLessThan(3000);
+  });
+});
+
+/**
+ * (T810 M, the G proof) THE TROUT SECTION THROUGH `loadRegsInputs`, on the trout fixture release (always run: committed):
+ * for every case of the shared vectors (`app/fixtures/trout/trout-vectors.generated.json`, Python's decoder over the same
+ * files), the tap's segment is the vector's and `inputs.trout` is the vector's frame, value for value: a table decoded
+ * whole, or null where the cell has none (Q-D3). A case names its water and a section by its line and start metre (or a
+ * lake's one part), never a part number.
+ */
+describe("T810 M: inputs.trout on the trout fixture release equals every vector's frame", () => {
+  interface Vector { readonly name: string; readonly item: string; readonly day: string; readonly weekday: string; readonly s: number;
+                     readonly anchor: { readonly stream: number; readonly m: number } | { readonly lake: string };
+                     readonly frame: TroutValue | null }
+  const read = (f: string) => JSON.parse(readFileSync(join(TROUT_FIXTURE_ROOT, f), "utf8"));
+  const V = read("trout-vectors.generated.json") as { readonly cases: readonly Vector[] };
+  const LINES = read("section-lines.json").lines as readonly (readonly [number, number, number, number])[];
+  const WEEKDAY = { mon: "Monday", tue: "Tuesday", wed: "Wednesday", thu: "Thursday", fri: "Friday", sat: "Saturday", sun: "Sunday" } as const;
+  let st: RegsStore;
+  beforeAll(async () => { st = await openRegsStore(openTroutFixture()); });
+
+  /** The case's section, inside its own water (as the vectors' `Fixture.section` finds it). */
+  const sectionOf = async (c: Vector): Promise<number> => {
+    const ord = (await st.itemOrd(c.item))!;
+    const parts = await st.parts(ord);
+    const mine = new Set<number>();
+    for (const p of parts) for (const sid of (await st.partLengths(ord, p.partIx)).keys()) mine.add(sid);
+    if ("lake" in c.anchor) {
+      expect(parts.length, `${c.name}: a lake of one part`).toBe(1);
+      return Math.min(...mine);
+    }
+    const { stream, m } = c.anchor;
+    const hit = LINES.filter(([h, b, lo]) => b === stream && lo === m && mine.has(h)).map(([h]) => h);
+    expect(hit, `${c.name}: one section of ${c.item} starts at ${m} m on line ${stream}`).toHaveLength(1);
+    return hit[0]!;
+  };
+
+  it("the vectors hold tables and null cells both", () => {
+    expect(V.cases.filter((c) => c.frame !== null).length).toBeGreaterThan(40);
+    expect(V.cases.filter((c) => c.frame === null).length).toBeGreaterThan(0);
+  });
+
+  it.each(V.cases.map((c) => [c.name, c] as const))("%s", async (_name, c) => {
+    const [mm, dd] = c.day.split("-").map(Number);
+    const target = await targetFor(st, c.item, await sectionOf(c));
+    const inp = await loadRegsInputs(st, target, { month: mm!, day: dd! }, WEEKDAY[c.weekday as keyof typeof WEEKDAY], 2026);
+    expect(inp.s).toBe(c.s);
+    expect(inp.trout).toEqual(c.frame);
   });
 });

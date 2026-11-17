@@ -20,7 +20,7 @@ export { needsRefresh, refreshReason, refreshSpot } from "./refresh";
 export { observedLine, spotHeadline, spotRecordSummary, spotPlaceLine, spotTraceLine, spotWaterLine, spotReadingFigure, spotRowLines, weatherTrend, LEAD_UP_WORDS, leadUpDayLabel,
          leadUpGaugeCells, leadUpGaugeMeta, leadUpGaugeSentence, leadUpGaugeTrend, leadUpGaugePending, leadUpQuantity,
          leadUpUnit, leadUpRainLine, leadUpWeatherCells, leadUpWeatherPending, leadUpWeatherSentence, PHOTO_WORDS,
-         photoFailed, photoLabel, removePhotoLabel, staleSpotsLine } from "./words";
+         photoCounter, photoFailed, photoLabel, removePhotoLabel, staleSpotsLine } from "./words";
 export { DRAFT_WORDS } from "./words";
 // S1: the week before a visit, and a spot's photographs (the platform pair behind `./photoStore`)
 export { leadUpPendingDays } from "./leadup";

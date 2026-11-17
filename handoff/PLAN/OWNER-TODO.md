@@ -2409,3 +2409,10 @@ More questions (recommended answer first):
   The interactive walk through just isn't perfect. The Qp steps are good otherwise. But could reduce steps even more.
   This is a user first look so we need to make sure it is clean and not buggy" -> T842 (both glitches fixed). 15:00
   dialog: "6 steps (Recommended)" (search, open, open/closed, pick a day, how is the river, all set). Answered.
+  15:02: "Use industry standard ideas" / "Should be in 0.8" -> the standard coach-mark pattern (spotlight, anchored
+  card that flips, Skip always shown); in 0.8.0.
+- 2026-11-17 ~15:04, owner (15:00 batch, verbatim picks): T825 side-channel gauges "Yes, use the rule (Recommended)"
+  (nearest flow gauge on its own main river with a similar drainage, else none; 244 sections, lower Sumas none; the two
+  Creston channels read Corra Linn). T752 desktop split "Keep it (Recommended)". T789 G9 "one fly" (36 rules / 35
+  waters) and T801 item 4 confluence wording "Yes, ship both (Recommended)". T772 Kitsumkalum Lake side channels "Yes,
+  show me the list (Recommended)" (the 16 as was/now before anything lands).

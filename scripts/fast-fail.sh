@@ -184,9 +184,11 @@ step "watershed codes read only in wsc.py (a pipeline Python file changed)" wsc_
 # caught 2026-11-14 (T667 slice 8): the tile export drew the configured gpkg's areas and the bundle read HYDAT, the
 # gpkg, clim.json and the DFO feed from the live tree whatever it was given — found only by running the chain on the
 # invented world. A changed atlas / deliver / gauges module or mini fixture runs the mini chain twice (~10 s, no data)
+# caught 2026-11-15 (CI red; T788 item 3): a pipeline/regs change (the DFO typing, the catalogue) moved the mini release
+# and nothing here ran it — regs is in the trigger
 mini_chain() {
-  grep -qE '^pipeline/(atlas|deliver|gauges|tools/mini_release)[/.]|^pipeline/tests/fixtures/mini/|^app/packages/data/dev/mini-release/' <<<"$CHANGED" \
-    || { echo "   (no atlas / deliver / gauges / mini file changed)"; return 0; }
+  grep -qE '^pipeline/(atlas|deliver|gauges|regs|tools/mini_release)[/.]|^pipeline/tests/fixtures/mini/|^app/packages/data/dev/mini-release/' <<<"$CHANGED" \
+    || { echo "   (no atlas / deliver / gauges / regs / mini file changed)"; return 0; }
   "$PY" -m pytest -q -p no:cacheprovider pipeline/tests/test_mini_release.py pipeline/tests/test_mini_deliver_inputs.py \
     pipeline/tests/test_export_claims.py
   # (T667 slice 8) and the committed copy the app's tests read still matches a rebuild (~8 s, by content)

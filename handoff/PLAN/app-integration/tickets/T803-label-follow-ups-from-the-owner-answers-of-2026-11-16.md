@@ -43,3 +43,12 @@ Book p.25 (row images page_027_row_002 / _031): NICOMEKL RIVER and SERPENTINE RI
 (includes tributaries) beside the NAME; their last line reads "No angling from powered boats upstream of dyke gates".
 RULINGS T2: a row whose name carries the global ✱ includes tributaries for EVERY rule. So the 27 side streams are bound
 by the book's words; the binding stays. Item 3's rule ("The heading counts") is RULINGS T16 (865cbac37).
+
+## Where the items stand (lane/bugs-080 check, 2026-11-17)
+Done elsewhere: 1, 2, 9, 11 (a5990dd7b, 5debac3ef; carries 02f0fedca), 3 (RULINGS T16, 865cbac37), 5 and 6 (GOTCHAS,
+4bd6e5333), 15 (no change), 16 (with T770), 14 (no change). Left:
+- 4, 8, the Sproat re-save, 10: saves through the review app (marks), not a file edit; 4's label lookup is T776.
+- 7 (Chemainus DFO sentence in `waters/tidal_split_authority.json`) and 13 (Stamp Falls cut 60 m down, `cuts.json`): both
+  files are ATLAS INPUTS (`pipeline/atlas/inputs.py`); an edit makes the live atlas stale and the release preflight
+  stops. They go with the next atlas rebuild, not the 0.8.0 reach-only build (13 also wants a picture to the owner).
+- 12 (Skeena side channel name): not traced here.

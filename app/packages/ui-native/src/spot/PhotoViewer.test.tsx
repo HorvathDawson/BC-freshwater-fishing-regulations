@@ -1,12 +1,14 @@
 /**
  * (T454) The photo viewer, mounted: a pinch / double-tap zooms the picture, a drag pans it while zoomed, and a swipe
- * changes photo at the fit but not while zoomed. Driven through RNGH's `fireGestureHandler` (which skips the recognisers'
+ * changes photo at the fit but not while zoomed. (T836) One pan recogniser now carries the pan, the strip and the drag
+ * down (`photoDragKind`); the motions run on react-native-web's test Animated, which ends each animation at once. Driven through RNGH's `fireGestureHandler` (which skips the recognisers'
  * activation thresholds); the maths themselves are pinned in core's photoZoom.test.ts. The feel is the owner's.
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { act, cleanup, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { fireGestureHandler, getByGestureTestId } from "react-native-gesture-handler/jest-utils";
 import { PhotoViewer } from "./PhotoViewer";
+import { PHOTO_WORDS, photoCounter } from "@app/data/spots";
 import { LIGHT, THEMES } from "../theme";
 
 afterEach(cleanup);
@@ -36,6 +38,15 @@ const scaleOf = () => {
 };
 const doubleTap = (x: number, y: number) =>
   fire("photo-double-tap", [{ x, y }, { x, y }]);
+const styleOf = (id: string) => (screen.getByTestId(id) as HTMLElement).style.transform;
+/** one finger: a sideways drag of dx (the strip at the fit) */
+const swipe = (dx: number) => drag(dx, 0);
+// an update with no movement first, as a browser's recogniser sends one (it must not decide the drag's kind)
+const drag = (dx: number, dy: number) =>
+  fire("photo-pan", [{ translationX: 0, translationY: 0 }, { translationX: 0, translationY: 0 },
+                     { translationX: dx, translationY: dy }, { translationX: dx, translationY: dy }]);
+/** the close measures (nothing here) and runs its animation (react-native-web's test Animated ends at once) */
+const settle = () => act(async () => { await new Promise((res) => setTimeout(res, 200)); });
 
 describe("PhotoViewer zoom", () => {
   it("a double-tap zooms in and another returns to the fit", async () => {
@@ -46,12 +57,12 @@ describe("PhotoViewer zoom", () => {
     doubleTap(10, 10);
     expect(scaleOf().scale).toBe(1);
   });
-  it("a pinch zooms about the fingers, capped at 5x", async () => {
+  it("a pinch zooms about the fingers, and settles back to 5x past it when let go", async () => {
     await mount();
     fire("photo-pinch", [{ scale: 1, focalX: 200, focalY: 300 }, { scale: 2, focalX: 200, focalY: 300 }, { scale: 20, focalX: 200, focalY: 300 }]);
     expect(scaleOf().scale).toBe(5);
   });
-  it("a drag pans while zoomed and stops at the photo's edge", async () => {
+  it("a drag pans while zoomed and settles at the photo's edge", async () => {
     await mount();
     doubleTap(200, 300);
     fire("photo-pan", [{ translationX: 0, translationY: 0 }, { translationX: 100, translationY: 0 }, { translationX: 5000, translationY: 0 }, { translationX: 5000, translationY: 0 }]);
@@ -59,12 +70,11 @@ describe("PhotoViewer zoom", () => {
   });
   it("a swipe changes photo at the fit but not while zoomed", async () => {
     const { onIndex } = await mount(1);
-    fire("photo-swipe", [{ translationX: 0 }, { translationX: -90 }]);
+    swipe(-200);
     expect(onIndex).toHaveBeenCalledWith(2);
     onIndex.mockClear();
     doubleTap(200, 300);
-    expect(() => getByGestureTestId("photo-swipe")).not.toThrow();
-    fire("photo-swipe", [{ translationX: 0 }, { translationX: -90 }]);
+    swipe(-200);
     expect(onIndex).not.toHaveBeenCalled();
   });
   it("the zoom resets on a photo change", async () => {
@@ -73,6 +83,75 @@ describe("PhotoViewer zoom", () => {
     expect(scaleOf().scale).toBe(2.5);
     rerender(1);
     expect(scaleOf().scale).toBe(1);
+  });
+});
+
+/*
+ * (T836) THE STANDARD PHONE PHOTO VIEWER, mounted. The thresholds are pinned in core's photoViewer.test.ts; these pin the
+ * wiring: each fails when its gesture's line in PhotoViewer.tsx is removed (mutation-checked 2026-11-17).
+ */
+describe("PhotoViewer as the phone photo viewers behave (T836)", () => {
+  const chromeShown = () => screen.getByTestId("photo-chrome").getAttribute("aria-hidden") !== "true";
+  it("a drag down at the fit closes it", async () => {
+    const { onClose } = await mount(1);
+    drag(0, 300);
+    await settle();
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+  it("a short drag down springs back and stays open", async () => {
+    const { onClose } = await mount(1);
+    drag(0, 30);
+    await settle();
+    expect(onClose).not.toHaveBeenCalled();
+    expect(styleOf("photo-open-drag")).toContain("translateY(0px)");
+  });
+  it("a drag down while zoomed pans the photo, never closes", async () => {
+    const { onClose } = await mount(1);
+    doubleTap(200, 300);
+    drag(0, 300);
+    await settle();
+    expect(onClose).not.toHaveBeenCalled();
+    expect(scaleOf().scale).toBe(2.5);
+  });
+  it("the strip follows a sideways drag and settles back when short", async () => {
+    const { onIndex } = await mount(1);
+    swipe(-40);
+    expect(onIndex).not.toHaveBeenCalled();
+    // at rest on photo 2 of 3: the strip is one photo and one gap to the left
+    expect(styleOf("photo-strip")).toContain("translateX(-416px)");
+  });
+  it("one tap hides the buttons and the counter, another brings them back; a double tap leaves them", async () => {
+    await mount(1);
+    expect(screen.getByTestId("photo-counter").textContent).toBe(photoCounter(2, 3));
+    expect(chromeShown()).toBe(true);
+    fire("photo-tap", [{ x: 10, y: 10 }]);
+    expect(chromeShown()).toBe(false);
+    fire("photo-tap", [{ x: 10, y: 10 }]);
+    expect(chromeShown()).toBe(true);
+    doubleTap(200, 300);
+    expect(chromeShown()).toBe(true);
+  });
+  it("the buttons' full-window layers pass a touch through to the photo (only the buttons take one)", async () => {
+    await mount(1);
+    // every layer between a button and the chrome's root spans the window: each must let a tap or a drag fall through
+    // (on the web an inline `pointerEvents` style is dropped, and the insets' layer took every touch)
+    const root = screen.getByTestId("photo-chrome");
+    let el: HTMLElement | null = screen.getByLabelText(PHOTO_WORDS.next).parentElement;
+    const layers: string[] = [];
+    while (el && el !== root.parentElement) { layers.push(getComputedStyle(el).pointerEvents); el = el.parentElement; }
+    expect(layers.length).toBeGreaterThan(2);
+    expect(layers.filter((p) => p !== "none")).toEqual([]);
+  });
+  it("the counter reads \"2 of 3\"; one photo has none", async () => {
+    expect(photoCounter(2, 3)).toBe("2 of 3");
+    render(<PhotoViewer uris={["a.jpg"]} index={0} onIndex={() => {}} onClose={() => {}} palette={LIGHT} />);
+    expect(screen.queryByTestId("photo-counter")).toBeNull();
+  });
+  it("the ✕ closes it after its fade (no thumbnail handed)", async () => {
+    const { onClose } = await mount(1);
+    act(() => { fireEvent.click(screen.getByLabelText(PHOTO_WORDS.close)); });
+    await settle();
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -91,6 +170,7 @@ describe("PhotoViewer ground (T819)", () => {
     expect(lum(palette.photo.ground)).toBeLessThan(0.02);
     expect(lum(palette.photo.ink)).toBeGreaterThan(0.8);
     render(<PhotoViewer uris={["a.jpg"]} index={0} onIndex={() => {}} onClose={() => {}} palette={palette} />);
-    expect((screen.getByTestId("photo-viewer") as HTMLElement).style.backgroundColor).toBe(rgb(palette.photo.ground));
+    // (T836) the ground is its own layer, so it can fade with the opening and the drag down
+    expect((screen.getByTestId("photo-ground") as HTMLElement).style.backgroundColor).toBe(rgb(palette.photo.ground));
   });
 });

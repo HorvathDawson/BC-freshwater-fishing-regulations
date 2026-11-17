@@ -188,3 +188,25 @@ fails the proof).
 not count towards the regions 2? That seems wrong". Kaslo and Keen: B (count toward the 2 from streams; the table as
 built is right; the shipped card's "Not part of the 2 from streams" line there is wrong and goes at the cutover).
 Follow-up asked: does T3a (Lardeau, Duncan lift) stand.
+
+## 2026-11-17 14:10: M0 + M built (app chat, branch app/t810-m0-m)
+- M0: `OPTIONAL_VERSIONS = Object.freeze({ trout: 1 } as const)` in `core/src/regs/versions.ts`, in I0's line shape,
+  with the bump rule beside it. `openRegsStore` walks it. An absent section is fine. A section at another version is
+  refused, and so is a manifest that disagrees with the water file. `meta.optional` records what the store holds. A
+  region file missing a held section's `cell` column is refused as `damaged`, because the release must be all or
+  nothing. `readsRelease` holds `regulations.versions` to `KNOWN_VERSIONS` and `OPTIONAL_VERSIONS` at install. A
+  manifest with no versions passes, and so does a section the app does not know. `store.test.ts` no longer hand-types
+  versions.
+- M: core's `CellIds` is the emitted one. I0's `regsCell.generated.ts` already emits it, so the emitter is unchanged.
+  `keyCells` and `cellOf` use `CELL_COLUMNS`, plus `trout` only when the store holds the section. `reads.trout(akey,
+  id)` reads the four families through the generic `familyOf` / `blob`, typed with the emitted wire types. It returns
+  `TroutValue`, which is the emitted name for Python's `TroutFrame`. `RegsInputs.trout` is today's cell: null for a
+  NULL cell, absent when the release has no section or the tap has no cell. Nothing draws it yet.
+- Pipeline file touched: `pipeline/tests/test_answers_versions.py`. M0 was the second side to list `trout`, so it
+  emptied `AWAITING_ONE_SIDE`, as that file asks. The allowance's mutation pins now pass an explicit `_TROUT_WAITING`.
+- Tests: `store.test.ts` and `manifest.readable.test.ts`. New `reads.trout.test.ts` checks the trout fixture (every
+  cell decodes, NULL stays null, the SELECT is `CELL_COLUMNS` plus `trout`) and the normal regs fixture (no `trout`
+  anywhere). `cellIds.test.ts` checks the keys. `inputs.release.test.ts` checks the G proof: on all 53 vectors,
+  `inp.s` and `inp.trout` equal Python's. 10 mutations of the new guards each fail a test.
+- Next for the main chat: `scripts/trout-refresh.sh` step 4 (the golden sync) now RUNS, because `versions.ts` lists
+  `trout`. The conformance checks of the golden versions now accept an optional section at `OPTIONAL_VERSIONS`.

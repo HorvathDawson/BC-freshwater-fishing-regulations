@@ -343,6 +343,40 @@ def test_pages_render_from_many_threads_at_once(backend_mods):
     assert _render_in_threads(lambda n: pages.page_png.__wrapped__(n + 2, 1.0)) == []
 
 
+def test_every_pdfium_object_a_render_makes_is_closed_by_name_inside_the_lock(backend_mods, monkeypatch):
+    """T792 A: a pypdfium2 object refers to itself, so one left to the cyclic garbage collector is freed in whatever
+    thread it runs, without the lock (a crash in `CPDF_Page::~CPDF_Page` from `gc_collect_main`). Every object a
+    render makes is closed EXPLICITLY (not by its parent's close, not by a finalizer) while the lock is held, and the
+    image owns its pixels. MUTATION: the old `doc[n - 1].render(...).to_pil()` closes the page only through
+    `doc.close()` (BYPARENT) and fails here."""
+    import gc
+    import pypdfium2 as pdfium
+    import pypdfium2.internal.bases as bases
+    evidence, pages = backend_mods
+    closes = []
+    real = bases._close_template
+
+    def spy(info, owner):
+        closes.append((getattr(owner.type, "__name__", str(owner.type)), info.state.name, pages.PDFIUM_LOCK.locked()))
+        return real(info, owner)
+    monkeypatch.setattr(bases, "_close_template", spy)
+    gc.collect()
+    gc.disable()
+    try:
+        made_before = {id(o) for o in gc.get_objects() if isinstance(o, (pdfium.PdfPage, pdfium.PdfDocument))}
+        img = pages.render(9, 1.0)
+        left = [o for o in gc.get_objects() if isinstance(o, (pdfium.PdfPage, pdfium.PdfBitmap, pdfium.PdfDocument))
+                and id(o) not in made_before and o.raw is not None]
+    finally:
+        gc.enable()
+    assert not left, left                                        # nothing open for the collector to free
+    assert {c[0] for c in closes} >= {"PdfPage", "PdfDocument"}, closes
+    assert all(state == "EXPLICIT" and locked for _, state, locked in closes), closes
+    img.load()
+    assert img.size[0] > 0 and img.getpixel((0, 0)) is not None  # the pixels are the image's own, after every close
+    assert evidence._render.__wrapped__(9, 1.0).mode == "RGB"     # the crop path goes through the same render
+
+
 #: The mutation, run in a CHILD process: unlocked concurrent renders corrupt pdfium's process-global state, and every
 #: later `PdfDocument` in the same process then fails with "PDFium: Data format error" (T63: this test, run in-process,
 #: was the leak behind test_synopsis_pages' 4 order-dependent errors in the full suite).

@@ -5,7 +5,8 @@
  * store.release.test.ts`.
  */
 import { describe, expect, it } from "vitest";
-import { KNOWN_VERSIONS } from "@app/core";
+import { KNOWN_VERSIONS, OPTIONAL_VERSIONS, SECTION_NAMES } from "@app/core";
+import { PACK_OPTIONAL_SECTION_TABLES } from "../pack.generated";
 import { openInMemory } from "../sql/drivers/node";
 import type { Db } from "../sql/db";
 import type { Manifest } from "../manifest";
@@ -14,7 +15,10 @@ import { asBytes, openRegsStore, RegsStoreError, type RegsLoader } from "./store
 
 const hex = (s: string) => `X'${Buffer.from(s).toString("hex")}'`;
 const META = "CREATE TABLE meta (k TEXT PRIMARY KEY, v TEXT NOT NULL);";
-const VERSIONS = { ladder: 1, rows: 33, gear: 12, licence: 7, display: 20 };
+/** The section versions this app reads (T810 M0: from `KNOWN_VERSIONS`, never retyped; the writer's side is held to the
+ *  same line by pipeline/tests/test_answers_versions.py, the golden's store by conformance store.release.test.ts). */
+const VERSIONS: Record<string, number> = Object.fromEntries(SECTION_NAMES.map((n) => [n, KNOWN_VERSIONS[n]]));
+const K = KNOWN_VERSIONS, TROUT = OPTIONAL_VERSIONS.trout;
 const H = "aaaaaaaaaaaaaaaa", R = "bbbbbbbbbbbbbbbb", I = "cccccccccccccccc";
 
 interface Opts {
@@ -24,6 +28,8 @@ interface Opts {
   manifestVersions?: Record<string, number> | null;
   tiles?: string | null;
   region2?: Record<string, string>;
+  /** (T810 M0) each region file's `cell` table (none when absent) */
+  cellSql?: string;
   sid?: Record<string, string>;
   noWater?: boolean;
 }
@@ -44,7 +50,7 @@ function release(o: Opts = {}): { loader: RegsLoader; opened: string[] } {
     "CREATE TABLE akey_region (akey INTEGER, region TEXT);" +
     "INSERT INTO akey_region VALUES (7, '1'), (9, '2'), (11, '2'), (11, '1');");
   const region = (r: string, extra: Record<string, string> = {}) => openInMemory("", metaSql({
-    format: "regs-region/1", region: r, section_handles: H, reach_digest: R, rule_ids_sha256: I, ...extra }));
+    format: "regs-region/1", region: r, section_handles: H, reach_digest: R, rule_ids_sha256: I, ...extra }) + (o.cellSql ?? ""));
   const dbs: Record<string, Db> = {
     water, "regs-1": region("1"), "regs-2": region("2", o.region2),
     "regs-sid": openInMemory("", metaSql({ format: "regs-sid/1", section_handles: H, reach_digest: R, rule_ids_sha256: I, ...o.sid })),
@@ -81,7 +87,7 @@ describe("openRegsStore: what it accepts", () => {
     expect(opened).toEqual(["water"]);
     expect(st.meta).toEqual({
       release: "r-test", format: "water/3", blobCodec: "json", sectionHandles: H, reachDigest: R, ruleIdsSha256: I,
-      answersSha256: "f", versions: VERSIONS, glossaryVersion: 5, layout: { top: ["about"], sections: { rows: ["version"] } },
+      answersSha256: "f", versions: VERSIONS, optional: {}, glossaryVersion: 5, layout: { top: ["about"], sections: { rows: ["version"] } },
     });
     expect(new TextDecoder().decode(st.dict("rule")!)).toBe("dictionary");
     expect(st.dict("ladder_frame")).toBeNull();
@@ -105,10 +111,6 @@ describe("openRegsStore: what it accepts", () => {
     expect(await refusal(openRegsStore(release().loader, { tiles: "dddddddddddddddd.000000000000" }))).toEqual({
       why: "digest", message: `regs store: built for atlas ${H}, the map is dddddddddddddddd.000000000000 — refused` });
   });
-
-  it("KNOWN_VERSIONS is what the in-memory release (and the live one) carries", () => {
-    expect({ ...KNOWN_VERSIONS }).toEqual({ ...VERSIONS, glossary: 5 });
-  });
 });
 
 describe("openRegsStore: what it refuses at open (each a RegsStoreError naming why)", () => {
@@ -126,41 +128,41 @@ describe("openRegsStore: what it refuses at open (each a RegsStoreError naming w
   });
   it("display 19 — a store whose parts carry composed names (`run_name`, words in `lo` / `hi`), before the end tokens — is refused", async () => {
     expect(await refusal(openRegsStore(release({ versions: { ...VERSIONS, display: 19 }, manifestVersions: { ...VERSIONS, display: 19 } })
-      .loader))).toEqual({ why: "version", message: "regs store: display section version 19, this app reads 20 — refused" });
+      .loader))).toEqual({ why: "version", message: `regs store: display section version 19, this app reads ${K.display} — refused` });
   });
   it("a blob codec this layer cannot decode", async () => {
     expect(await refusal(openRegsStore(release({ water: { blob_codec: "brotli" } }).loader)))
       .toEqual({ why: "codec", message: "regs store: blob codec brotli, this app reads json / deflate / zdict — refused" });
   });
   it("a section version the presenters were not ported against (every one named)", async () => {
-    expect(await refusal(openRegsStore(release({ versions: { ...VERSIONS, rows: 34, display: 16 } }).loader))).toEqual({
+    expect(await refusal(openRegsStore(release({ versions: { ...VERSIONS, rows: K.rows + 1, display: 16 } }).loader))).toEqual({
       why: "version",
-      message: "regs store: rows section version 34, this app reads 33, display section version 16, this app reads 20 — refused" });
+      message: `regs store: rows section version ${K.rows + 1}, this app reads ${K.rows}, display section version 16, this app reads ${K.display} — refused` });
   });
   it("rows 29 — a store from before the year strip (rows[].year) — is refused: this app draws no strip it would derive", async () => {
     expect(await refusal(openRegsStore(release({ versions: { ...VERSIONS, rows: 29 }, manifestVersions: { ...VERSIONS, rows: 29 } })
-      .loader))).toEqual({ why: "version", message: "regs store: rows section version 29, this app reads 33 — refused" });
+      .loader))).toEqual({ why: "version", message: `regs store: rows section version 29, this app reads ${K.rows} — refused` });
   });
   it("rows 30 / display 17 — a store from before the Keep tab's last choices moved to the pipeline (stamps, parent, narrow_all, " +
      "the record duty; closers) — is refused: this app re-derives none of them", async () => {
     expect(await refusal(openRegsStore(release({ versions: { ...VERSIONS, rows: 30, display: 17 }, manifestVersions: { ...VERSIONS, rows: 30, display: 17 } })
       .loader))).toEqual({ why: "version",
-      message: "regs store: rows section version 30, this app reads 33, display section version 17, this app reads 20 — refused" });
+      message: `regs store: rows section version 30, this app reads ${K.rows}, display section version 17, this app reads ${K.display} — refused` });
   });
   it("rows 31 / licence 6 — a store from before the four pipeline answers (Other fish rows' stamps; the steelhead stamp left " +
      "out where steelhead are closed; an under-16 document's alternatives) — is refused: this app derives none of them", async () => {
     expect(await refusal(openRegsStore(release({ versions: { ...VERSIONS, rows: 31, licence: 6 }, manifestVersions: { ...VERSIONS, rows: 31, licence: 6 } })
       .loader))).toEqual({ why: "version",
-      message: "regs store: rows section version 31, this app reads 33, licence section version 6, this app reads 7 — refused" });
+      message: `regs store: rows section version 31, this app reads ${K.rows}, licence section version 6, this app reads ${K.licence} — refused` });
   });
   it("rows 32 — a store from before the leading origin was shipped (T161: `fish[S].lead`) — is refused: this app picks no " +
      "leading origin of its own", async () => {
     expect(await refusal(openRegsStore(release({ versions: { ...VERSIONS, rows: 32 }, manifestVersions: { ...VERSIONS, rows: 32 } })
-      .loader))).toEqual({ why: "version", message: "regs store: rows section version 32, this app reads 33 — refused" });
+      .loader))).toEqual({ why: "version", message: `regs store: rows section version 32, this app reads ${K.rows} — refused` });
   });
   it("a manifest that says other versions than its water file", async () => {
-    expect(await refusal(openRegsStore(release({ manifestVersions: { ...VERSIONS, gear: 13 } }).loader))).toEqual({
-      why: "version", message: "regs store: the manifest says gear 13, the water file 12 — refused" });
+    expect(await refusal(openRegsStore(release({ manifestVersions: { ...VERSIONS, gear: K.gear + 1 } }).loader))).toEqual({
+      why: "version", message: `regs store: the manifest says gear ${K.gear + 1}, the water file ${K.gear} — refused` });
   });
   it("another glossary version", async () => {
     expect(await refusal(openRegsStore(release({ glossary: '{"version":4,"terms":[]}' }).loader)))
@@ -169,6 +171,57 @@ describe("openRegsStore: what it refuses at open (each a RegsStoreError naming w
   it("water cut for another atlas than the manifest's tiles", async () => {
     expect(await refusal(openRegsStore(release({ tiles: "eeeeeeeeeeeeeeee.123456789abc" }).loader))).toEqual({
       why: "digest", message: `regs store: built for atlas ${H}, the map is eeeeeeeeeeeeeeee.123456789abc — refused` });
+  });
+});
+
+/**
+ * (T810 M0) THE OPTIONAL SECTIONS (core `OPTIONAL_VERSIONS`; trout table contract 2.1, all or nothing per release): a
+ * release may leave one out; present, it is at the version this app reads, the manifest says the same, every region file
+ * carries its `cell` column, and the store records it held, so the reads name its columns only then.
+ */
+describe("openRegsStore: the optional sections (T810 M0)", () => {
+  const CELL = (cols: string) =>
+    `CREATE TABLE cell (akey INTEGER, s INTEGER, ladder INTEGER, rows INTEGER, gear INTEGER, licence INTEGER, display INTEGER${cols});`;
+  const withTrout = (v: number = TROUT, m: number | null = v) => release({
+    versions: { ...VERSIONS, trout: v }, manifestVersions: m === null ? VERSIONS : { ...VERSIONS, trout: m }, cellSql: CELL(", trout INTEGER") });
+
+  it("every optional section this app reads has its columns and tables in the release contract (generated)", () => {
+    expect(Object.keys(OPTIONAL_VERSIONS).filter((n) => !PACK_OPTIONAL_SECTION_TABLES[n])).toEqual([]);
+  });
+
+  it("absent is fine: the store holds none, and a region file needs no column of it", async () => {
+    const st = await openRegsStore(release({ cellSql: CELL("") }).loader);
+    expect(st.meta.optional).toEqual({});
+    await expect(st.region(9)).resolves.toBeDefined();
+  });
+
+  it("present at the version this app reads: held (meta.optional), and its region files open", async () => {
+    const st = await openRegsStore(withTrout().loader);
+    expect(st.meta.optional).toEqual({ trout: TROUT });
+    expect(st.meta.versions).toEqual(VERSIONS);                    // the required ones, unchanged
+    await expect(st.region(9)).resolves.toBeDefined();
+  });
+
+  it("present at another version: refused", async () => {
+    expect(await refusal(openRegsStore(withTrout(TROUT + 1).loader))).toEqual({
+      why: "version", message: `regs store: trout section version ${TROUT + 1}, this app reads ${TROUT} — refused` });
+  });
+
+  it("the manifest disagreeing with the water file: refused, either way round", async () => {
+    expect(await refusal(openRegsStore(withTrout(TROUT, null).loader))).toEqual({
+      why: "version", message: `regs store: the manifest says trout absent, the water file ${TROUT} — refused` });
+    expect(await refusal(openRegsStore(release({ manifestVersions: { ...VERSIONS, trout: TROUT } }).loader))).toEqual({
+      why: "version", message: `regs store: the manifest says trout ${TROUT}, the water file absent — refused` });
+  });
+
+  it("a region file without a held section's column is another build's: refused, and the store poisoned", async () => {
+    const st = await openRegsStore(withTrout().loader);
+    const bad = await openRegsStore(release({ versions: { ...VERSIONS, trout: TROUT }, manifestVersions: { ...VERSIONS, trout: TROUT },
+                                              cellSql: CELL("") }).loader);
+    await expect(st.region(9)).resolves.toBeDefined();
+    const want = { why: "damaged", message: "regs store: a region file has no cell.trout, which water's sections hold — refused" };
+    expect(await refusal(bad.region(9))).toEqual(want);
+    expect(bad.refused()?.message).toBe(want.message);
   });
 });
 
