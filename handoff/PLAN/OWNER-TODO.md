@@ -2176,3 +2176,8 @@ More questions (recommended answer first):
   the bar and when i click on chehalis it doesnt show conditions for it? also the highlights dont let go when you go
   back the highlight of where you clicked stays and doesnt disspear". Filed by the app chat (its own number). If the
   Chehalis showing no conditions is data (no gauge match), it sends me the section ids.
+- 21:50, typed in chat (verbatim): "it used to match the chehalis gauge though?????". Checked: it still does. The shipped
+  release r-46e4355a7277 (conditions-18da9a4cead9) has gauge 08MG001 Chehalis River near Harrison Mills leading 634
+  Chehalis sections (matches.json unchanged; 08MG023 below Statlu Creek auxiliary). So the iPhone showing no Chehalis
+  conditions is app-side (with the missing gauge markers and bar on Apple); sent to the app chat for its conditions
+  ticket.
