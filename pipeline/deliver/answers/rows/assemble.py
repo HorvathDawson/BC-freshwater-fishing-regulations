@@ -134,4 +134,11 @@ def produce(P: Part) -> dict:
     # 15) there is no steelhead section to read, and no presence line is needed
     if not all(o["kind"] == "closed" for o in rows if o["all_members"]):
         place_presence(rows, line, P.steelhead_water)
-    return {"spp": model["spp"], "fish": fish, "rows": rows, "steelhead_line": line}
+    out = {"spp": model["spp"], "fish": fish, "rows": rows, "steelhead_line": line}
+    # trout plan F0 (contract 2.11): the page's possession row, chosen once here — written from rows 34 (the cutover's
+    # bump) only, so no release before the switch changes (`model.rows.page_possession_written`)
+    from pipeline.deliver.answers.model import rows as RM
+    if RM.page_possession_written():
+        from pipeline.deliver.answers.card import page_line
+        out["page_possession"] = page_line(P, model)
+    return out

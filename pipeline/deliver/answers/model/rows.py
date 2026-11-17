@@ -1164,6 +1164,57 @@ class FishAnswer(Model):
         return self
 
 
+#: THE `rows` SECTION'S VERSION — the one number (`answers.SECTIONS` and `encode.SPEC` read it). The trout cutover
+#: (ticket L) bumps it to 34, and with it `RowsFrame.page_possession` is written (`PAGE_POSSESSION_SINCE`).
+ROWS_VERSION = 33
+
+#: Trout plan F0 (contract 2.11): the rows version from which every frame carries `page_possession` — the cutover's bump,
+#: so no release before the switch changes. Tied to the version itself, not a second switch: the bump cannot ship
+#: without the field, nor the field without the bump (`page_possession_written`).
+PAGE_POSSESSION_SINCE = 34
+
+
+def page_possession_written(version: Optional[int] = None) -> bool:
+    """Whether rows frames of `version` (default: this code's `ROWS_VERSION`) carry `page_possession`."""
+    return (ROWS_VERSION if version is None else version) >= PAGE_POSSESSION_SINCE
+
+
+class PossessionLead(Model):
+    """F0: the page's possession lead (`card.page_line`): the rule `card.possession_lead` picks, its whole sentence (the
+    display section's `plain` of it) and the value words the page row shows (`display.rule.possession_value`)."""
+    says: StrictStr
+    value: StrictStr
+    src: RuleIx
+
+    @model_validator(mode="after")
+    def _value_is_said(self):
+        if not self.value or self.value not in self.says:
+            raise ValueError(f"the lead's value words {self.value!r} are not in its sentence {self.says!r}")
+        return self
+
+
+class PossessionAlso(Model):
+    """F0: one line the page's possession row keeps under the lead (a non-trout fish's own possession)."""
+    says: StrictStr
+    src: RuleIx
+
+
+class PagePossession(Model):
+    """F0 (rows 34): the page's possession row, chosen once in Python — the lead (null: no multiplier speaks, the
+    lines say it) and the lines kept under it; never empty."""
+    lead: Optional[PossessionLead]
+    also: Tuple[PossessionAlso, ...]
+
+    @model_validator(mode="after")
+    def _says_something(self):
+        if self.lead is None and not self.also:
+            raise ValueError("`page_possession` says nothing: null it instead")
+        srcs = [a.src for a in self.also] + ([] if self.lead is None else [self.lead.src])
+        if len(set(srcs)) != len(srcs):
+            raise ValueError(f"`page_possession` names a rule twice ({srcs})")
+        return self
+
+
 class RowsFrame(Model):
     spp: Tuple[Fish, ...]
     fish: Dict[Fish, FishAnswer]
@@ -1197,3 +1248,33 @@ class RowsFrame(Model):
                 raise ValueError(f"row {i}'s one-kind group (pool {g.pool}) sits on a row held by another pool "
                                  f"(row {r.parent}): a one-kind trout/char group is a drawn row's own total")
         return self
+
+
+class RowsFrame34(RowsFrame):
+    """The rows frame from version 34 (`PAGE_POSSESSION_SINCE`, the trout cutover): `page_possession` on every frame
+    (null where no possession rule speaks), each of its rules one the frame's answers give that role."""
+    page_possession: Optional[PagePossession]
+
+    @model_validator(mode="after")
+    def _page_possession_is_the_frames(self):
+        p = self.page_possession
+        if p is None:
+            return self
+        roles: Dict[int, set] = {}
+        for a in self.fish.values():
+            for d in (a.hatchery, a.wild):
+                for ro in (d.roles if d is not None else ()):
+                    roles.setdefault(ro[0], set()).add(ro[1])
+        if p.lead is not None and "possession" not in roles.get(p.lead.src, ()):
+            raise ValueError(f"`page_possession.lead` names rule {p.lead.src}, which no answer here gives the role "
+                             "`possession`")
+        for a in p.also:
+            if not roles.get(a.src, set()) & {"possession", "possession_cap"}:
+                raise ValueError(f"`page_possession.also` names rule {a.src}, which no answer here gives a possession "
+                                 "role")
+        return self
+
+
+def rows_frame_model(version: Optional[int] = None):
+    """The frame model of rows `version` (default `ROWS_VERSION`): `RowsFrame34` from `PAGE_POSSESSION_SINCE`."""
+    return RowsFrame34 if page_possession_written(version) else RowsFrame
