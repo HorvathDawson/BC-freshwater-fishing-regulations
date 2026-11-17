@@ -316,6 +316,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T826 | iOS: the Conditions panel and map differ from Android (no gauge markers, no bar, Chehalis empty); the tap highlight stays after going back | OPEN | — | owner iPhone build 36, 2026-11-16 |
 | T823 | "Small next to its gauge": Python decides when a section's lead gauge reading needs a warning; the release ships it | OPEN | — | owner 2026-11-16 (spots) |
 | T825 | 251 side-channel sections are led by a gauge far upstream (lower Fraser side channels read Red Pass) | OPEN | — | T823 measurement 2026-11-16 |
+| T833 | A cut on a line's end drops every line touching that node, not just the lines meeting at the cut (Gitnadoix powerline) | OPEN | — | rebuild follow-up 2026-11-17 |
 
 ## Next after closed testing
 
