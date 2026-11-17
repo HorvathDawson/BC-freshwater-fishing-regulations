@@ -2229,3 +2229,10 @@ More questions (recommended answer first):
   right with its dates small under it; closed species, the eulachon line and rule-book closures in the trout
   "✕ Closed" group; badge, year bar and bait-ban line stay; the T828 fold as mocked). Built after the salmon landing and
   T828, as ONE box component the trout table (ticket O) reuses.
+- 2026-11-17 about 00:10 to 00:14, in the APP chat (verbatim), T814: "it had reduce motion on." (the second iPhone, so
+  the still fish was by design); "we dont want a full still item for reduce motion on.. i am making a new loader icon
+  that will replace the loading circle on the splash page or curtain (it will still be used for all other loading."
+  He sent the loader as a Python generator (`fish_loader.py`: a linocut coho, 80-frame sprite sheet, 4 s loop). Then:
+  "we will ignore reduced motion for this". So: no still icon; the coho loader on the splash / first-download /
+  curtain screens, the circling fish everywhere else; both always move, Reduce Motion or not. The app chat builds it
+  (T814) and brings him pictures in both themes.

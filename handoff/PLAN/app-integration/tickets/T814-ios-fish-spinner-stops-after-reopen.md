@@ -23,3 +23,19 @@ hung. Asked the owner whether Reduce Motion or Low Power Mode is on on that phon
 So a still loading icon is fine; the owner designs a second, still icon and sends it in the app chat. The app keeps one slot
 for it (used where the fish cannot move, e.g. Reduce Motion); today's still fish frame stands in until it arrives. The
 restart of the animation on app-active and first layout goes ahead.
+
+## Owner, 2026-11-17 about 00:10 to 00:14 (app chat), verbatim
+"it had reduce motion on." — so the second iPhone's still fish was the Reduce Motion design, not a bug in the loop.
+"we dont want a full still item for reduce motion on.. i am making a new loader icon that will replace the loading
+circle on the splash page or curtain (it will still be used for all other loading." Then he sent the loader: a Python
+generator (`fish_loader.py`, Pillow; a linocut spawning coho, 80 frames, 480×200, 8×10 sprite sheet, 20 fps, 4 s loop,
+ink #1f2e3b + coho red #cf5a3c, same linocut style as the app icon). Then: "we will ignore reduced motion for this".
+
+So:
+- The still-icon slot (`stillIcon.ts`, cdbdfed16) goes; no still image anywhere.
+- The new coho loader replaces the circling fish on the splash / first-download / curtain screens only; the circling
+  fish stays for every other loading place.
+- Both loaders ignore Reduce Motion: they always move. (The generator's still frame and its reduced-motion CSS are not
+  used.)
+- The restart fix (loops start again on app-active, first layout, a dropped loop) stays.
+- The generator is committed under `app/tools/` and run to make the sheet, like `pnpm spinner`.
