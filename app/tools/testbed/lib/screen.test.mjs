@@ -1,7 +1,7 @@
 // (T603) node --test app/tools/testbed/lib/screen.test.mjs
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { all, bcDay, blankShare, BLANK_AT, chipProblem, find, idOf, inside, labelProblem, parse, shown, squeezed, within } from './screen.mjs';
+import { all, bcDay, blankShare, BLANK_AT, chipProblem, find, idOf, inside, labelProblem, parse, shown, squeezed, wayTo, within } from './screen.mjs';
 
 const node = (id, cls, text, desc, b) => `<node index="0" text="${text}" resource-id="${id}" class="android.widget.${cls}" content-desc="${desc}" bounds="[${b[0]},${b[1]}][${b[2]},${b[3]}]" />`;
 const XML = `<hierarchy>${[
@@ -100,4 +100,16 @@ test('ends: an id the app builds from a variable is named by its fixed part and 
   assert.equal(find(ns, 'resource-id="alert-form-"', { ends: 'p25' }).desc, '8 in 10 days higher');
   assert.equal(find(ns, 'resource-id="alert-form-"', { ends: 'p99' }), null);
   assert.equal(all(ns, 'resource-id="visit"', { ends: '-add' }).length, 1);
+});
+
+test('wayTo: a node outside its scroll view comes back inside out; below it is down the page, above it is up (T819)', () => {
+  const band = { top: 300, bottom: 2170 };
+  const at = (y0, y1) => ({ box: { x0: 47, y0, x1: 1033, y1 } });
+  // seen on the emulator: the spot page's scroll view is y 304–2193, the tab bar under it
+  assert.equal(wayTo(at(2285, 2193), band), 1, 'under the view: its own top, the view\'s bottom');
+  assert.equal(wayTo(at(304, 250), band), -1, 'over the view: the view\'s top, its own bottom');
+  assert.equal(wayTo(at(699, 294), { top: 720, bottom: 2150 }), -1, 'scrolled under a pane\'s header');
+  assert.equal(wayTo(at(2100, 2190), band), 1, 'cut by the foot');
+  assert.equal(wayTo(at(250, 320), band), -1, 'cut by the head');
+  assert.equal(wayTo(null, band), null, 'not in the tree: the caller keeps its way');
 });
