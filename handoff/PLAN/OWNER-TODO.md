@@ -2118,3 +2118,8 @@ More questions (recommended answer first):
   Babine closed-area marks; `closed_areas.json` holds only Thompson and Shuswap): they are saved with these 4 and the
   line through the review app's save path. Effect today: none on the map (a circle binds only sections wholly inside
   it; the lake is one section; the line across a lake is deferred): notes on the card until a lake-split ticket.
+- 18:56, typed in chat (verbatim): "We want to split babine lake on the line like our other split lakes. Then we want
+  the circles to just be circles on the map not separate sections of the lake. Otherwise it will be overboard." So
+  (T812): Babine Lake is split on the due-south Gullwing Creek line the way other lakes are split (east part = its
+  own piece, closed as DFO says); the 400 m creek-mouth circles are NOT cut out of the lake: they are drawn as circles
+  on the map (an overlay) with the card's note, no extra lake sections.
