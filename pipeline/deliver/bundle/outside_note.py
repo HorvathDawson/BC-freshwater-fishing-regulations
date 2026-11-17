@@ -19,7 +19,7 @@ from __future__ import annotations
 import json
 import sqlite3
 from pathlib import Path
-from typing import Dict, Iterable, List, Mapping, Sequence
+from typing import Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 
 NOTE = "Mostly outside {area}: its closure ({pages}) does not apply here."
 
@@ -54,14 +54,19 @@ def tile_names(area_defs: Iterable[dict], layers: Path, wanted: Iterable[str]) -
     return out
 
 
-def closing_pages(db: sqlite3.Connection, def_id: str, key: str) -> List[int]:
-    """The printed pages of the book's rows that close this area: a full closure (`rule.closure_grade`) whose own
-    extents (`rule.conditions`) or its row's (`entry.extents`) are `within` the area (`area_id`) or its family
-    (`area_kind`) — the Chilkoot row's closure carries its extent on the rule, the zone tables' on the row."""
+def closing_pages(db: sqlite3.Connection, def_id: str, key: str,
+                  grades: Optional[Mapping[Tuple[str, str], Optional[str]]] = None) -> List[int]:
+    """The printed pages of the book's rows that close this area: a full closure (`rules.closure_grade`; `grades`
+    {(entry, rule): grade} when the bundle has not stored it yet, else `rule.closure_grade`) whose own extents
+    (`rule.conditions`) or its row's (`entry.extents`) are `within` the area (`area_id`) or its family (`area_kind`) —
+    the Chilkoot row's closure carries its extent on the rule, the zone tables' on the row."""
     from pipeline.common.registry_kinds import area_key
     pages: set = set()
-    for cond, ex, pg in db.execute("SELECT r.conditions, e.extents, e.pages FROM rule r JOIN entry e USING (entry_id) "
-                                   "WHERE r.closure_grade = 'full'"):
+    rows = db.execute("SELECT r.entry_id, r.rule_id, r.closure_grade, r.conditions, e.extents, e.pages FROM rule r "
+                      "JOIN entry e USING (entry_id)").fetchall()
+    for e_id, r_id, stored, cond, ex, pg in rows:
+        if (grades.get((e_id, r_id)) if grades is not None else stored) != "full":
+            continue
         extents = [*json.loads(ex or "[]"), *(json.loads(cond or "{}").get("extents") or [])]
         for x in extents:
             if x.get("op") != "within":
@@ -96,9 +101,11 @@ def notes(listed: Sequence[tuple], names: Mapping[str, str], pages: Mapping[str,
 
 
 def write(db: sqlite3.Connection, area_defs: Sequence[dict], layers: Path, handle_by_id: Mapping[str, int],
-          cov=None) -> Dict[int, str]:
+          cov=None, grades: Optional[Mapping[Tuple[str, str], Optional[str]]] = None) -> Dict[int, str]:
     """Writes `section_note` from the area defs' `outside_items` (see the module doc). `handle_by_id`: the build's
-    section handles (a `lake:` id's section)."""
+    section handles (a `lake:` id's section). Written BEFORE the parts (`derived.part_rows`): a noted section is a part
+    of its own, so a note shown on a part never speaks for more water than the lake (the Cormier Creek pond sat in a
+    62-section run of its creek); `grades` the closure grades, which `derived.write` stores only after."""
     listed = outside_listed(area_defs)
     sids_of: Dict[str, List[int]] = {}
     for *_x, items in listed:
@@ -110,7 +117,7 @@ def write(db: sqlite3.Connection, area_defs: Sequence[dict], layers: Path, handl
                     "SELECT x.sid FROM item_section x JOIN item i USING (ord) WHERE i.item_id = ? ORDER BY x.sid",
                     (item,))]
     names = tile_names(area_defs, layers, [k for _d, k, *_r in listed])
-    pages = {k: closing_pages(db, d, k) for d, k, *_r in listed}
+    pages = {k: closing_pages(db, d, k, grades) for d, k, *_r in listed}
     got = notes(listed, names, pages, sids_of)
     db.executemany("INSERT INTO section_note VALUES (?, ?)", sorted(got.items()))
     if cov is not None:

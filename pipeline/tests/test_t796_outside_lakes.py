@@ -108,3 +108,15 @@ def test_the_curated_lakes_are_the_owners_nine():
     assert nine <= listed
     assert listed - nine == {"wbk:329083511"}, "only Kennedy Lake (Pacific Rim, RULINGS Z11) besides the nine"
     assert not any(i.startswith("gnis:") for i in listed)
+
+
+def test_the_pages_read_the_grades_given_before_the_bundle_stores_them(tmp_path):
+    """The note is written BEFORE the parts (a noted section is a part of its own), when `rule.closure_grade` is not
+    stored yet: the grades are handed in. MUTATION: read the empty column and the note loses its page."""
+    db, _ = _bundle(tmp_path)
+    db.execute("UPDATE rule SET closure_grade = NULL")
+    key = "area:ecological_reserves:gladys_lake_ecological_reserve"
+    grades = {("zp:superior_closures", "superior_closures.r3"): "full", ("r6:somewhere", "somewhere.r1"): None,
+              ("r6:dease", "dease.r1"): "full"}
+    assert N.closing_pages(db, "ecological_reserves", key, grades) == [9]
+    assert N.closing_pages(db, "ecological_reserves", key) == []

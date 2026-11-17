@@ -252,3 +252,18 @@ def test_a_side_channel_that_braids_round_another_rule_set_joins_the_two_runs_it
     finish(db)
     rows = db.execute("SELECT part_ix, set_id, grp, run, sections FROM part WHERE ord = 1 ORDER BY part_ix").fetchall()
     assert rows == [(0, 8, 1, 0, 1), (1, 7, 0, 0, 3)]       # river order: by the top of each part
+
+
+def test_a_section_with_a_note_is_a_part_of_its_own():
+    """T796 (owner 2026-11-16, "take out the lakes but add a note"): the Cormier Creek pond, taken out of the Blue/Dease
+    Rivers reserve by name, sat in a 62-section run of its creek with the same rules, so its note ("Mostly outside …")
+    spoke for the whole run. A noted section (`section_note`) is a part of its own, in its own grp: the note never
+    claims more water than the pond. MUTATION: drop the note from the part key and sections 1-4 are one part again."""
+    db = _stream()
+    section_sets(db, {1: 7, 2: 7, 3: 7, 4: 7})
+    db.execute("INSERT INTO section_note (sid, note) VALUES (2, 'Mostly outside A Reserve: its closure (rule book p.9) "
+               "does not apply here.')")
+    finish(db)
+    rows = db.execute("SELECT part_ix, grp, sections, rep_sid FROM part WHERE ord = 1 ORDER BY part_ix").fetchall()
+    assert [(n, s) for _, _, n, s in rows] == [(1, 1), (1, 2), (2, 3)]
+    assert rows[0][1] == rows[2][1] != rows[1][1], "the pond's own grp; the creek around it one grp"
