@@ -31,6 +31,8 @@ export interface GlanceRowVM {
   readonly tone: "keep" | "release" | "closed" | "nolimit";
   /** (T227) false: nothing more to see — a plain row, no "Details" (a water whose salmon are one closed-all-year line) */
   readonly fold?: boolean;
+  /** (T759, owner 2026-11-15: "mark the folded row") the card carries a DFO issue banner: the folded row wears a small mark, so a banner inside is not missed. Absent: none. */
+  readonly issue?: boolean;
 }
 
 /** The first picture a group's tree shows — a rainbow trout where the group has one (the picture anglers know it by). */
@@ -56,13 +58,16 @@ export function groupGlance(g: GroupVM): GlanceRowVM {
  * card has that status; else none. (T372, the trout way) an undrawn DFO place is the card's caveat, not its answer.
  */
 export function salmonGlance(card: SalmonCardVM): GlanceRowVM {
-  if (card.closedOnly) return { source: "dfo", thumb: "CO", name: card.title, value: SALMON_WORDS.status.closed.toLowerCase(), tone: "closed", fold: false };
+  // (T759) a DFO issue banner lives inside the card: the row is marked, and a closed-all-year row still opens to it
+  const issue = card.issues.length > 0;
+  const mark = issue ? { issue: true as const } : {};
+  if (card.closedOnly) return { source: "dfo", thumb: "CO", name: card.title, value: SALMON_WORDS.status.closed.toLowerCase(), tone: "closed", fold: issue, ...mark };
   const all = card.rows.map((r) => r.status);
   const s = all.length && all.every((x) => x === all[0]) ? all[0]! : null;
-  if (s === null || s === "varies") return { source: "dfo", thumb: "CO", name: card.title, value: null, tone: "keep" };
+  if (s === null || s === "varies") return { source: "dfo", thumb: "CO", name: card.title, value: null, tone: "keep", ...mark };
   const word = SALMON_WORDS.status[s];
   return { source: "dfo", thumb: "CO", name: card.title, value: s === "check" ? word.replace(/^Check/, "check") : word.toLowerCase(),
-           tone: s === "closed" ? "closed" : s === "release" ? "release" : "keep" };
+           tone: s === "closed" ? "closed" : s === "release" ? "release" : "keep", ...mark };
 }
 
 /**

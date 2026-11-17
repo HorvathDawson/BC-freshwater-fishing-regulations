@@ -189,3 +189,7 @@ stripe and legend test files pass (36), `check:fast` passes. The before / after 
 the owner in the app chat at 12:27. Note for readers of the pictures: the lower Campbell is a wide river drawn as a
 tinted area, pale in light and dark green in dark theme, before and after; that is not the stripe.
 Left: his word on the picture, the Android emulator look, then the merge (app half + `feeds/t759-issues`).
+
+## Owner, 2026-11-16 ~16:55 (app chat dialog, verbatim label)
+The wider stripe (picture `stripe-before-after.jpg`, sent 12:27, again 16:55): "Wider is right (Recommended)". The
+wider stripe ships as built on this branch.

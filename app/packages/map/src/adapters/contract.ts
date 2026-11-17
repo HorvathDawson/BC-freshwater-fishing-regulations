@@ -16,7 +16,7 @@ import {
   MAP_STYLE, NO_VALUES, STYLE_META, followerMode, followersOf, isRuntimeLayer, profileChannel,
   resolveTheme, type ChannelValues, type Tokens,
 } from "../style";
-import { CLOSED_CUE_LAYER, closedCuePaint, casingPaint, glowPaint, focusTheOthers, hideTheOthers, copyFillPaint, copyLinePaint, GEAR_LAYERS, gearPaint, NOACCESS_LAYER, noaccessPaint, NOBASELINE_LAYER, nobaselineOpacity, RUNS_PASS_LAYER, runsPassPaint,
+import { ISSUE_LAYERS, issuePaint, CLOSED_CUE_LAYER, closedCuePaint, casingPaint, glowPaint, focusTheOthers, hideTheOthers, copyFillPaint, copyLinePaint, GEAR_LAYERS, gearPaint, NOACCESS_LAYER, noaccessPaint, NOBASELINE_LAYER, nobaselineOpacity, RUNS_PASS_LAYER, runsPassPaint,
          paintFor, ringPaint, SELECTION_CASING, SELECTION_GLOW, SELECTION_RINGS, type SelectionCue } from "../paint";
 import { openedPaint, waterOnImagery } from "../on-imagery";
 
@@ -243,6 +243,11 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
       const cue = quiet(closedCuePaint(mode, tokens, values, w));
       for (const [prop, value] of Object.entries(onGround(cue, w, tokens, true, w)))
         h.setPaint(CLOSED_CUE_LAYER, prop, value);
+      // (T759) the issue stripe: the stream's mode (Salmon only) and width — over imagery, like closed's stripe, it breaks the
+      // edges themselves (drawn at the stream's own width, opened)
+      for (const part of ["casing", "stripe"] as const)
+        for (const [prop, value] of Object.entries(onGround(quiet(issuePaint(part, mode, tokens, w)), w, tokens, true, w)))
+          h.setPaint(ISSUE_LAYERS[part], prop, value);
       // the selection's outline goes with the stream: its width is the stream's, its colour the theme's (full strength)
       for (const [prop, value] of Object.entries(onGround(casingPaint(w, tokens), w, tokens, false)))
         h.setPaint(SELECTION_CASING, prop, value);

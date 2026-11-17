@@ -18,6 +18,8 @@ import { MONTHS } from "./calendar.generated";
 import { BC_TIME_LABEL } from "./clock";
 import { bcFields } from "./day";
 import { FEED_FORMATS } from "./feedFormats.generated";
+import { reportFailure, reportOnce } from "./failure";
+import { isSalmonIssues, unknownIssueKinds, type SalmonIssues } from "./salmonIssues";
 import { dfoRow, salmonCard, type SalmonUnplacedPlace, type SalmonCardVM, type SalmonFacts, type SalmonGearInput, type SalmonMapStatus, type SalmonNote, type SalmonBucket, type SalmonHours, type SalmonShared, type SalmonSizes, type SalmonWords } from "./salmon";
 
 type Payload = SalmonFacts["payload"];
@@ -51,8 +53,17 @@ export interface SalmonFeedLocation {
   /** (T321) the location's rows in DFO's words (new wording, an unread number, a note) */
   readonly x?: readonly SalmonWords[];
 }
+/** (T757 item 6) WHAT A FEED STATES IT CARRIES (`index.json` `dfo`, the worker's `/status.json` value): `pieces` >= 1 —
+ *  it emits T573's closed-area pieces as locations. Absent on an older feed. The next shape field is one more key here. */
+export interface SalmonFeedShape { readonly pieces?: number }
+
 export interface SalmonFeed {
   readonly format: typeof SALMON_FEED_FORMAT;
+  /** (T757) the feed's shape; absent: an older feed, which states nothing */
+  readonly dfo?: SalmonFeedShape;
+  /** (T759) the rows DFO prints that the app has not placed or confirmed, by water (`salmonIssues.ts`); absent: an older
+   *  feed, no issues */
+  readonly issues?: SalmonIssues;
   /** when the feed was published (UTC ISO) — the capture's as-of */
   readonly at: string;
   readonly regions: Readonly<Record<string, SalmonFeedRegion>>;
@@ -95,6 +106,11 @@ export function parseSalmonFeed(x: unknown): SalmonFeed | null {
   if (!f || typeof f !== "object" || f.format !== SALMON_FEED_FORMAT || typeof f.at !== "string") return null;
   if (!Array.isArray(f.verdicts) || !f.verdicts.length || !Array.isArray(f.gears)) return null;
   if (!f.locs || typeof f.locs !== "object" || !f.regions || typeof f.regions !== "object") return null;
+  // (T757) the shape, when it carries one, is whole: an object of numbers
+  if (f.dfo !== undefined && (!f.dfo || typeof f.dfo !== "object" || Array.isArray(f.dfo)
+      || Object.values(f.dfo).some((v) => typeof v !== "number" || !Number.isFinite(v)))) return null;
+  // (T759) the issues, when it carries them, are whole
+  if (f.issues !== undefined && !isSalmonIssues(f.issues)) return null;
   // (T356) a region's notes come with what they resolve to: never notes without their sizes and shared limits
   for (const r of Object.values(f.regions)) if (r.notes && (!Array.isArray(r.shared) || !Array.isArray(r.sizes))) return null;
   // (T549 item 5) a region's holds, when it carries them, are whole: every one a place id and how it was kept
@@ -424,7 +440,12 @@ function composeFeedPayload(P: Payload, feed: SalmonFeed): { payload: Payload; s
       .map(({ d: _d, ...u }) => u),
     // (T521) the feed's places no curated location knows, shown on their water's page
     ...(feed.unplacedRows?.length ? { feedUnplaced: feed.unplacedRows } : {}),
+    // (T759) the feed's issues, shown as banners on their waters' stretches (`salmonIssueBanners`)
+    ...(feed.issues ? { feedIssues: feed.issues } : {}),
   };
+  // (T759, W46) a kind this app has no words for is shown with the generic words, and reported (once a run, per kind)
+  for (const k of feed.issues ? unknownIssueKinds(feed.issues) : [])
+    reportOnce(`salmon-issue-kind:${k}`, new Error(`salmon feed: issue kind "${k}" has no words in this app; shown with the generic words`));
   const stale = Object.entries(feed.regions).filter(([, r]) => r.stale || r.held).map(([s]) => s).sort();
   // (T521) the index counts places its unplaced.json was not read for: said on the card's feed line, never hidden
   const unread = feed.unplacedRows ? 0 : feed.unplaced ?? 0;
@@ -447,13 +468,46 @@ export function salmonCheckedLine(f: SalmonFacts | null): string | null {
 export const salmonFeedOf = (f: SalmonFacts | null): SalmonFeedFacts | null => (f as WithFeed | null)?.[FEED] ?? null;
 
 /**
+ * (T757 item 6) THE MINIMUM FEED SHAPE A RELEASE REQUIRES: `pieces: 1` when some chain names a closed-area piece that
+ * covers a section (`p[l].piece` and `bound`, T573) — a feed that does not emit pieces would let each one fall through
+ * to the place around it, open. Null: the release requires nothing of the feed.
+ */
+export function requiredFeedShape(P: Payload): Required<SalmonFeedShape> | null {
+  const pieces = P.chains.some((c) => c.l.some((l) => P.p?.[l]?.piece === 1 && P.p[l]!.bound === 1));
+  return pieces ? { pieces: 1 } : null;
+}
+
+/** (T757) Does the feed state at least the shape required (`requiredFeedShape`)? Nothing required: yes. */
+export function feedMeets(feed: SalmonFeed, need: SalmonFeedShape | null): boolean {
+  return !need || (Object.entries(need) as [keyof SalmonFeedShape, number][]).every(([k, v]) => (feed.dfo?.[k] ?? 0) >= v);
+}
+
+/** (T757) a feed too old for its release: reported once per head and feed read, never per render */
+const SHORT_REPORTED = new WeakMap<Payload, WeakSet<SalmonFeed>>();
+const SHORT = Symbol("salmonFeedShort");
+
+/**
  * THE ONE CHOICE: the captured feed, unless there is none or the release was cut from pages newer than the capture
- * (its newest page date after the capture's day) — then the release's own file.
+ * (its newest page date after the capture's day) — then the release's own file. (T757 item 6) So too when the feed
+ * does not carry the shape the release requires (`requiredFeedShape`): the release's own file for EVERY chain, said on
+ * the card's feed line (`salmonFeedLine`) and reported.
  */
 export function pickSalmon(release: SalmonFacts, feed: SalmonFeed | null): SalmonFacts {
   const newest = Object.values(release.payload.regions).map((r) => r.asof).filter((x): x is string => !!x).sort().pop();
-  if (feed && !(newest && newest > feed.at.slice(0, 10))) return withSalmonFeed(release, feed);
-  return releaseOnly(release);
+  if (!feed || (newest && newest > feed.at.slice(0, 10))) return releaseOnly(release);
+  const need = requiredFeedShape(release.payload);
+  if (feedMeets(feed, need)) return withSalmonFeed(release, feed);
+  let seen = SHORT_REPORTED.get(release.payload);
+  if (!seen) { seen = new WeakSet(); SHORT_REPORTED.set(release.payload, seen); }
+  if (!seen.has(feed)) {
+    seen.add(feed);
+    reportFailure(new Error(`salmon feed: the release requires feed shape ${JSON.stringify(need)}, the feed of ${feed.at} `
+                            + `states ${JSON.stringify(feed.dfo ?? {})}; the release's own salmon file is shown`));
+  }
+  const own = releaseOnly(release);
+  const out: SalmonFacts & { readonly [SHORT]?: true } = { handles: own.handles, chains: own.chains, chainOf: (sid) => own.chainOf(sid),
+                                                           payload: own.payload, loaded: own.loaded, [SHORT]: true };
+  return out;
 }
 
 /** The release's own file, its places that were dormant at build (`d: 1`) left off the card. */
@@ -464,8 +518,13 @@ function releaseOnly(f: SalmonFacts): SalmonFacts {
   return { handles: f.handles, chains: f.chains, chainOf: (sid) => f.chainOf(sid), payload: { ...P, unmapped }, loaded: f.loaded };
 }
 
+/** (T757) the card's feed line when the latest feed could not be used with this release (`pickSalmon`) */
+const SHORT_FEED_LINE = "The latest DFO check could not be used with this app’s data, so the DFO rules this data was built with are shown. Check DFO’s page before you fish.";
+
 /** The card's line for the feed: "Checked with DFO Oct 27, 2026, 11:04 am" (B.C. clock, labelled), the stale regions said. */
 export function salmonFeedLine(f: SalmonFacts | null): string | null {
+  // (T757) a feed the release could not use (`pickSalmon`): said where the feed's line goes, as its stale regions are
+  if ((f as { readonly [SHORT]?: true } | null)?.[SHORT]) return SHORT_FEED_LINE;
   const live = salmonFeedOf(f);
   if (!live) return null;
   const t = new Date(live.at);
