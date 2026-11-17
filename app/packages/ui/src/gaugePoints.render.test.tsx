@@ -24,6 +24,9 @@ describe("gaugeLabel", () => {
     // about the whole river made from one cross-section.
     expect(gaugeLabel({ discharge: null, level: 1.48, parameter: "level" }, 0.5))
       .toBe("1.48 m · 5 in 10 days higher");
+    // (T830) a level to two decimals; a flow keeps its three figures
+    expect(gaugeLabel({ discharge: null, level: 1, parameter: "level" }, 0.5)).toBe("1.00 m · 5 in 10 days higher");
+    expect(gaugeLabel({ discharge: 12, level: 1, parameter: "discharge" }, 0.5)).toBe("12 m³/s · 5 in 10 days higher");
   });
 
   it("writes the percentile the way a person reads one", () => {

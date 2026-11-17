@@ -11,7 +11,7 @@
  * map keeps the most recently used `CAP` of them. A failure is never kept — the next asker tries again.
  */
 import { FEED_TTL_MS, type Parameter, type StationId } from "@app/data";
-import { NO_RECORD_WORDS, now as clockNow } from "@app/core";
+import { NO_RECORD_LINE, now as clockNow } from "@app/core";
 
 /** How long an answer is reused: the feed's own file reuse (`TTL_MS` in data/src/feed/http.ts). */
 export const ANSWER_TTL_MS = FEED_TTL_MS;
@@ -93,13 +93,13 @@ export function cardParameters(banded: readonly Parameter[],
 
 /**
  * (T830) THE CARD'S LINE IN PLACE OF A STANDING, when the quantity shown is one the station reads live with no band to
- * rank it against (`cardParameters` offered it from `reports` alone): Python's words (`NO_RECORD_WORDS`), no dot, never
+ * rank it against (`cardParameters` offered it from `reports` alone): Python's line (`NO_RECORD_LINE`), no dot, never
  * a high / low / normal word, and never the other quantity's standing. Null otherwise — the card's own standing stands.
  * Nothing is said while the bundle's quantities are still being read (`known` false).
  */
 export function noRecordLine(shown: Parameter, banded: readonly Parameter[], known: boolean,
                              reports: readonly Parameter[] | null | undefined): string | null {
-  return known && !banded.includes(shown) && !!reports?.includes(shown) ? NO_RECORD_WORDS[shown] : null;
+  return known && !banded.includes(shown) && !!reports?.includes(shown) ? NO_RECORD_LINE : null;
 }
 
 /**

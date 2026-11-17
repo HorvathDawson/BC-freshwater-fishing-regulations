@@ -108,10 +108,10 @@ describe("spotRowLines — the list row, by the LOCAL day of the visit", () => {
             spotRowLines(spot({ reading: { ...both, discharge: null, parameter: "level" } }))[0],
             // declared discharge with no discharge: no number under the wrong unit
             spotRowLines(spot({ reading: { ...both, discharge: null, parameter: "discharge" } }))[0]])
-      .toEqual(["2026-08-30 · 4.162 m · lower than 6 days in 10 · no weather",
+      .toEqual(["2026-08-30 · 4.16 m · lower than 6 days in 10 · no weather",
                 "2026-08-30 · 5.46 m³/s · lower than 6 days in 10 · no weather",
                 "2026-08-30 · 5.46 m³/s · lower than 6 days in 10 · no weather",
-                "2026-08-30 · 4.162 m · lower than 6 days in 10 · no weather",
+                "2026-08-30 · 4.16 m · lower than 6 days in 10 · no weather",
                 "2026-08-30 · no gauge · no weather"]);
   });
 });

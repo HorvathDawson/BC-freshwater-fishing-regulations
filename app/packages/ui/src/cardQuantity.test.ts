@@ -5,7 +5,7 @@
  * figure under this chart.
  */
 import { describe, expect, it } from "vitest";
-import { NO_RECORD_WORDS, OTHER_QUANTITY_WORDS } from "@app/core";
+import { NO_RECORD_LINE, OTHER_QUANTITY_WORDS } from "@app/core";
 import type { Parameter } from "@app/data";
 import { cardParameters, cardQuantity, noRecordLine } from "./answers";
 import { currentFigure, type ReadingVM } from "./panel/conditions";
@@ -91,8 +91,8 @@ describe("(T830) the card's quantities and its no-record line", () => {
     expect([c.shown, c.silent, c.options]).toEqual(["level", false, ["discharge", "level"]]);
   });
   it("says Python's words for a quantity offered from `reports` alone, and nothing for a banded one", () => {
-    expect(noRecordLine("level", ["discharge"], true, ["discharge", "level"])).toBe(NO_RECORD_WORDS.level);
-    expect(NO_RECORD_WORDS.level).toBe("Not ranked: no long record of its level to compare with.");
+    expect(noRecordLine("level", ["discharge"], true, ["discharge", "level"])).toBe(NO_RECORD_LINE);
+    expect(NO_RECORD_LINE).toBe("Too new to say if this is high or low.");          // owner 2026-11-17 09:57, "Plainer"
     expect(noRecordLine("discharge", ["discharge"], true, ["discharge", "level"])).toBeNull();
     expect(noRecordLine("level", ["discharge", "level"], true, ["discharge", "level"])).toBeNull();
     expect(noRecordLine("level", ["discharge"], false, ["discharge", "level"])).toBeNull();   // quantities not known yet

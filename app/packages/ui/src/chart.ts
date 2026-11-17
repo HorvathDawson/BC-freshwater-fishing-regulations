@@ -257,7 +257,7 @@ export function useChartView(source: WaterSource, station: StationId | null, spa
     const p = shape.probe;
     const readout = p ? {
       x: p.x, y: p.y, kind: p.kind,
-      line: chartReadoutLine({ t: p.t, value: p.value, unit: CONDITIONS_WORDS.unit[s.parameter], kind: p.kind,
+      line: chartReadoutLine({ t: p.t, value: p.value, unit: CONDITIONS_WORDS.unit[s.parameter], quantity: s.parameter, kind: p.kind,
                                daily: span === "year", median: p.median }),
     } : null;
     return { state: "ready", error: null,

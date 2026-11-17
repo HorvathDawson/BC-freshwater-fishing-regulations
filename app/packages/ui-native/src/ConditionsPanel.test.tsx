@@ -8,7 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { fireGestureHandler, getByGestureTestId } from "react-native-gesture-handler/jest-utils";
-import { CHANGE_LOW_WATER, changeSourceLine, CONDITIONS_WORDS, NO_RECORD_WORDS, noGaugeSentence, readingHeading, standingLong,
+import { CHANGE_LOW_WATER, changeSourceLine, CONDITIONS_WORDS, NO_RECORD_LINE, noGaugeSentence, readingHeading, standingLong,
          stageLine, TIDAL_NOTE, BACKWATER_NOTE } from "@app/core";
 import type { Panel, WaterSource, SectionId } from "@app/data";
 import { clearPanelCache, DataProvenanceContext } from "@app/ui";
@@ -135,9 +135,9 @@ describe("the conditions panel", () => {
   });
 
   it("(T830) offers Level for a station that reads a level live with no band, and shows it unranked in Python's words", async () => {
-    // Capilano at Canyon (08GA031): a flow band only in the bundle; the index says it reports flow AND level
+    // Capilano at Canyon (08GA031): a flow band only in the bundle; the index says it reports flow AND level (0.998 m)
     const capilano = (reports: readonly string[] | undefined) => ({
-      ...sourceWith({ discharge: 25.7, level: 1.187, percentile: 0.54, standing: "normal", at: "2026-09-04T06:00:00Z",
+      ...sourceWith({ discharge: 25.7, level: 0.998, percentile: 0.54, standing: "normal", at: "2026-09-04T06:00:00Z",
                       parameter: "discharge", ...(reports ? { reports } : {}) }, PANEL),
       gaugeParameters: async () => ["discharge"],
     }) as unknown as WaterSource;
@@ -148,7 +148,7 @@ describe("the conditions panel", () => {
     fireEvent.click(screen.getByRole("radio", { name: "Level" }));
     await waitFor(() => expect(screen.getByTestId("reading-no-record")).toBeTruthy());
     expect([screen.getByTestId("reading-figure").textContent, screen.getByTestId("reading-no-record").textContent])
-      .toEqual(["1.19", NO_RECORD_WORDS.level]);
+      .toEqual(["1.00", NO_RECORD_LINE]);                     // (T830) a level to two decimals: never "1"
     expect(screen.queryByTestId("reading-dot")).toBeNull();                 // no rank, no standing dot
     expect(screen.queryByText(`${standingLong(0.54, "normal")} (ranked on flow)`)).toBeNull();
     expect(screen.queryByTestId("reading-other-quantity")).toBeNull();

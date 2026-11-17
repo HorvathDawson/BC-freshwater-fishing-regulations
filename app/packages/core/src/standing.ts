@@ -30,6 +30,7 @@
  * NOTHING HERE IS A SECOND OPINION: each takes the percentile the arithmetic produced (or the band `standing()` chose
  * from it) and only chooses words for it.
  */
+import { LEVEL_DECIMALS } from "./gauge-policy.generated";
 import { standing, type Standing } from "./flow";
 
 /** The six bands, once. `band` is the sentence-case word; `headline` is what the water is doing, in a screen's first line. */
@@ -144,4 +145,16 @@ export function figure(v: number): string {
   if (a >= 100) return String(Math.round(v));
   if (a >= 10) return String(Math.round(v * 10) / 10);
   return String(Math.round(v * 100) / 100);
+}
+
+/**
+ * (T830) A VALUE IN ITS QUANTITY, the one way any reading is written: a water LEVEL in metres to `LEVEL_DECIMALS` places,
+ * always ("1.00", "0.85", "340.21"; Python's `record.LEVEL_DECIMALS`, owner 2026-11-17 09:57), and anything else (a flow)
+ * as `figure`. A chart's axis ticks are round values and stay `figure` ("1.5", not "1.50").
+ */
+export function figureIn(v: number, quantity: string): string {
+  if (quantity !== "level") return figure(v);
+  const k = 10 ** LEVEL_DECIMALS;
+  const s = (Math.round(v * k) / k).toFixed(LEVEL_DECIMALS);      // half up, as `figure` rounds (0.335 -> "0.34")
+  return /^-0\.0*$/.test(s) ? s.slice(1) : s;
 }

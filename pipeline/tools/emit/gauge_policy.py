@@ -67,7 +67,7 @@ from pipeline.gauges.feed import change as _change
 from pipeline.gauges.feed import skill as _skill
 from pipeline.gauges.feed.climatology import PCTILES
 from pipeline.gauges.feed.publish import HORIZONS, READING_MAX_AGE_HOURS, _TEMP_BANDS
-from pipeline.gauges.feed.record import MIN_RECORD_YEARS, NO_RECORD_WORDS, QUANTITIES
+from pipeline.gauges.feed.record import LEVEL_DECIMALS, MIN_RECORD_YEARS, NO_RECORD_LINE, QUANTITIES
 from pipeline.common.curated import REPO_ROOT
 
 ROOT = REPO_ROOT
@@ -120,7 +120,6 @@ def render() -> str:
     change_rows = "\n".join(f"  {k}: {v}," for k, v in cp.items() if k != "order")
     quantities = ", ".join(f'"{q}"' for q in QUANTITIES)
     knots = ", ".join(str(k) for k in _knots())
-    no_record = "\n".join(f"  {q}: {json.dumps(NO_RECORD_WORDS[q])}," for q in QUANTITIES)
     days = ", ".join(str(d) for d in HORIZONS)
     holidays = ",\n".join("  " + ", ".join(f'"{d.isoformat()}"' for d in sorted(_change.bc_holidays(y)))
                           for y in _change.HOLIDAY_YEARS)
@@ -186,10 +185,11 @@ export const RECORD_QUANTITIES: readonly RecordQuantity[] = [{quantities}];
 /** The shortest record, in years, that may rank a reading: the climatology's floor and the donor panel's gate. */
 export const MIN_RECORD_YEARS = {MIN_RECORD_YEARS};
 
-/** (T830) The gauge card's line under a quantity the station reads live with no band to rank it (record.NO_RECORD_WORDS). */
-export const NO_RECORD_WORDS: Readonly<Record<RecordQuantity, string>> = {{
-{no_record}
-}};
+/** (T830) The gauge card's line under a quantity the station reads live with no band to rank it (record.NO_RECORD_LINE). */
+export const NO_RECORD_LINE = {json.dumps(NO_RECORD_LINE)};
+
+/** (T830) Decimals a water level is shown to, in metres, wherever one is shown (record.LEVEL_DECIMALS). */
+export const LEVEL_DECIMALS = {LEVEL_DECIMALS};
 
 // The envelope and the panel (T125 item 6). PCTILES in pipeline/gauges/feed/climatology.py, as fractions: every envelope
 // is built at these knots, a reading is ranked between them (`percentileInBand`), the standing words break at them

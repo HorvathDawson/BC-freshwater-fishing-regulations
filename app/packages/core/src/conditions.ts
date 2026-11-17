@@ -11,7 +11,7 @@
  */
 import { catchmentLabel, confidenceWord, 
          seasonPhrase, standing } from "./flow";
-import { figure, inTen, daysNear, daysRange, standingHeadline, standingLong, standingReads } from "./standing";
+import { figureIn, inTen, daysNear, daysRange, standingHeadline, standingLong, standingReads } from "./standing";
 import { interval, type Estimate, type NoEstimate } from "./trust";
 import { isIsoDay, localStamp, shortDay, shortStamp } from "./day";
 import { monthAbbr, weekdayAbbr, type Standing } from "./flow";
@@ -468,7 +468,7 @@ export function readingRanked(r: { percentile?: number | null }): boolean {
 }
 
 /** (T830) The gauge card's line under a quantity the station reads live with no band to rank it: Python's words. */
-export { NO_RECORD_WORDS } from "./gauge-policy.generated";
+export { NO_RECORD_LINE } from "./gauge-policy.generated";
 
 /** (T567) A member that reports the other quantity only, said three ways: its row, its dot, a screen reader. */
 export const OTHER_QUANTITY_WORDS = {
@@ -849,7 +849,7 @@ export function readingHeading(name: string): string {
 
 /** The stage, beside a discharge. */
 export function stageLine(level: number): string {
-  return `${figure(level)} ${CONDITIONS_WORDS.unit.level} stage`;
+  return `${figureIn(level, "level")} ${CONDITIONS_WORDS.unit.level} stage`;
 }
 
 /** The refusal where no gauge may speak for the water. */
@@ -900,6 +900,8 @@ export interface ReadoutFacts {
   t: number;
   value: number;
   unit: string;
+  /** (T830) Which quantity the value is: a level is written to `LEVEL_DECIMALS` places (`figureIn`). */
+  quantity: "discharge" | "level";
   /** A measurement, or a model's forecast — never said the same way. */
   kind: "reading" | "forecast";
   /** A daily series names the day only; an hourly one the minute. */
@@ -916,8 +918,8 @@ export function chartReadoutLine(f: ReadoutFacts, zone?: string): string {
   // A DAILY SAMPLE NAMES A CALENDAR DAY, stamped "YYYY-MM-DD" (UTC midnight): it is said as that day, never pushed
   // into the evening before by a time zone.
   const when = f.daily ? new Date(f.t).toISOString().slice(0, 10) : localStamp(f.t, zone);
-  const what = `${figure(f.value)} ${f.unit}${f.kind === "forecast" ? " forecast" : ""}`;
-  const norm = f.median != null && Number.isFinite(f.median) ? ` · median ${figure(f.median)}` : "";
+  const what = `${figureIn(f.value, f.quantity)} ${f.unit}${f.kind === "forecast" ? " forecast" : ""}`;
+  const norm = f.median != null && Number.isFinite(f.median) ? ` · median ${figureIn(f.median, f.quantity)}` : "";
   return `${when} · ${what}${norm}`;
 }
 

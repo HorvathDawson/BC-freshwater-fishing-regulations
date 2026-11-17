@@ -125,9 +125,9 @@ describe("leadUpView", () => {
             say(leadUpView({ ...lu, parameter: "discharge" }, { ...offline, parameter: "level" })),
             // nothing declared anywhere (saved before T106): discharge, core's default — and a level-only week has none
             say(leadUpView(lu, offline))]).toEqual([
-      ["m", "Level rose over the week: 1 → 1.6 m", null],
-      ["m", "Level rose over the week: 1 → 1.6 m", null],
-      ["m", "Level rose over the week: 1 → 1.6 m", null],
+      ["m", "Level rose over the week: 1.00 → 1.60 m", null],
+      ["m", "Level rose over the week: 1.00 → 1.60 m", null],
+      ["m", "Level rose over the week: 1.00 → 1.60 m", null],
       [null, null, "The station has no daily means for that week."]]);
   });
 

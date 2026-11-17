@@ -76,3 +76,14 @@ def test_an_old_reading_keeps_what_it_reported(tmp_path, monkeypatch):
     entry = {"percentile": 0.4, "parameter": "discharge", "reports": ["discharge", "level"], "discharge": 0.4,
              "observedAt": "2026-11-14T07:55:00-08:00"}
     assert pub.age_gate(entry, NOW)["reports"] == ["discharge", "level"]
+
+
+def test_the_owners_picks_are_the_policy_the_app_reads():
+    # owner 2026-11-17 09:57: the plainer line, and every level to two decimals; the app's copy is generated from these
+    from pipeline.gauges.feed.record import LEVEL_DECIMALS, NO_RECORD_LINE
+    from pipeline.tools.emit import gauge_policy
+    assert NO_RECORD_LINE == "Too new to say if this is high or low."
+    assert LEVEL_DECIMALS == 2
+    ts = gauge_policy.render()
+    assert 'export const NO_RECORD_LINE = "Too new to say if this is high or low.";' in ts
+    assert "export const LEVEL_DECIMALS = 2;" in ts
