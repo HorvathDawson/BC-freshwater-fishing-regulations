@@ -156,7 +156,7 @@ export const notifications: NotifyControls | null = {
       if (active && !has) await BackgroundTask.registerTaskAsync(TASK, { minimumInterval: EVERY_MIN });
       if (!active && has) await BackgroundTask.unregisterTaskAsync(TASK);
     },
-    ...(registrar ? { push: (active: boolean) => registrar.sync(active) } : {}),
+    ...(registrar ? { push: (active: boolean) => registrar.sync(active), pushStatus: registrar } : {}),
   },
 };
 

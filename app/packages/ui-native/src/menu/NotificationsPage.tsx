@@ -14,7 +14,7 @@
  */
 import { useState } from "react";
 import { Platform, TextInput, View } from "react-native";
-import { alertListLine, NOTIFY_WORDS, runLine, type AlertQuantity, type GaugeAlertRule } from "@app/core";
+import { alertListLine, localStamp, NOTIFY_WORDS, runLine, type AlertQuantity, type GaugeAlertRule } from "@app/core";
 import type { StationId, WaterSource } from "@app/data";
 import { useAlertGauges, useGaugeParameters, type AlertGauge, type NotificationsVM } from "@app/ui";
 import { Text } from "../Text";
@@ -148,6 +148,24 @@ function AlertRow({ n, r, palette, first }: { n: NotificationsVM; r: GaugeAlertR
   );
 }
 
+/** (T822) whether our server can wake this phone, and why not: a failed registration is said here, never silent */
+function PushLine({ n, palette }: { n: NotificationsVM; palette: Palette }) {
+  const st = n.pushStatus;
+  if (!st) return null;
+  const words = st.state === "registered" ? W.push.registered(localStamp(st.at))
+    : st.state === "failed" ? W.push.failed(st.why, st.environment)
+    : st.state === "sending" ? W.push.sending : st.state === "withdrawn" ? W.push.withdrawn : W.push.idle;
+  return (
+    <>
+      <Text testID="notify-push-status" accessibilityLiveRegion="polite"
+            style={{ ...TYPE.small, color: st.state === "failed" ? palette.closed : palette.sub }}>{words}</Text>
+      {st.state === "failed" && (
+        <Button palette={palette} kind="link" size="meta" label={W.push.retry} testID="notify-push-retry" onPress={n.retryPush} />
+      )}
+    </>
+  );
+}
+
 export function NotificationsPage({ n, palette, source = null }: {
   n: NotificationsVM; palette: Palette;
   /** the gauges: "Add an alert" and its editor; null: adding is not offered here */
@@ -176,6 +194,7 @@ export function NotificationsPage({ n, palette, source = null }: {
         <Text testID="notify-intro" style={{ ...TYPE.small, color: palette.sub }}>
           {n.push ? Platform.select({ ios: W.introPushIos, default: W.introPushAndroid })
                   : Platform.select({ ios: W.introIos, default: W.intro })}</Text>
+        {n.pushStatus && <PushLine n={n} palette={palette} />}
       </Card>
 
       <View style={{ gap: SPACE.s2 }}>

@@ -13,7 +13,7 @@ import { findGauges, hasRecord, now as coreNow, normalRangeOf, refreshAlertLines
          type GaugeAlertRule } from "@app/core";
 import {
   dismissRefused, notifyActive, putRule as put, removeRule as drop, setAppVersionNotice, setNotifyOn, setRuleOn as ruleOn,
-  setRuleLines, setUpdateReady as setReady, type NotifySettings, type NotifyState, type StationId, type WaterSource,
+  setRuleLines, setUpdateReady as setReady, type NotifySettings, type NotifyState, type PushStatus, type StationId, type WaterSource,
 } from "@app/data";
 import { useSeries } from "./hooks/gauge";
 import { useAsync, type Async } from "./async";
@@ -34,6 +34,8 @@ export interface NotifyPlatform {
    * check at once; absent: this build has no push (the web; Android until its Firebase file is in the build)
    */
   push?(active: boolean): Promise<void>;
+  /** (T822) what the push registration last did (`@app/data` `PushRegistrar`): said on More → Notifications, never silent */
+  pushStatus?: { status(): PushStatus; subscribe(on: () => void): () => void };
 }
 
 export interface NotifyControls {
@@ -78,6 +80,10 @@ export interface NotificationsVM {
   readonly canAppVersion: boolean;
   /** (T739) this build's checks are also woken by push (the intro says so) */
   readonly push: boolean;
+  /** (T822) the push registration's last outcome (null: this build has no push) */
+  readonly pushStatus: PushStatus | null;
+  /** (T822) send the token again now (notifications on); a failure is said in `pushStatus` and reported unless offline */
+  retryPush(): void;
   setOn(on: boolean): Promise<void>;
   setUpdateReady(on: boolean): Promise<void>;
   /** (v1.1) the new-app-version notice */
@@ -102,6 +108,13 @@ export function useNotifications(): NotificationsVM | null {
     if (!c) return;
     setState(c.settings.read());
     return c.settings.subscribe(() => setState(c.settings.read()));
+  }, [c]);
+  const [pushStatus, setPushStatus] = useState<PushStatus | null>(() => c?.platform.pushStatus?.status() ?? null);
+  useEffect(() => {
+    const src = c?.platform.pushStatus;
+    if (!src) { setPushStatus(null); return; }
+    setPushStatus(src.status());
+    return src.subscribe(() => setPushStatus(src.status()));
   }, [c]);
   useEffect(() => {
     if (!c) return;
@@ -128,7 +141,8 @@ export function useNotifications(): NotificationsVM | null {
 
   if (!c || !state) return null;
   return {
-    state, permission, asking, error, canAppVersion: c.appVersion === true, push: hasPush(c),
+    state, permission, asking, error, canAppVersion: c.appVersion === true, push: hasPush(c), pushStatus,
+    retryPush: () => { if (notifyActive(state)) c.platform.push?.(true).catch(reportFailure); },
     setOn: async (on) => { write(setNotifyOn(on)); if (on) await allow(); },
     setUpdateReady: async (on) => { write((s) => (on ? setNotifyOn(true)(setReady(true)(s)) : setReady(false)(s))); if (on) await allow(); },
     setAppVersion: async (on) => { write((s) => (on ? setNotifyOn(true)(setAppVersionNotice(true)(s)) : setAppVersionNotice(false)(s))); if (on) await allow(); },

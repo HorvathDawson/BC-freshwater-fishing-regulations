@@ -321,3 +321,57 @@ it, above). Then APNs end to end (the worker → Apple → phone; the simulator 
 fetch speaking HTTP/2 to APNs is proved only by the first real send — `/status` will show it), iOS's throttling of silent
 pushes (Apple: "two or three per hour"), Low Power Mode holding them, a swiped-away app not being woken, the wake-to-
 notice time against the acceptance's 2 minutes, a token turning over, and the production host with a TestFlight build.
+
+### Follow-up 3 (2026-11-16): iPhone build 36 never registered: the failure is now said and reported (ledger row T822)
+**What happened.** The owner, on TestFlight build 36 (`ios/next` d658f88ac, staging, `EXPO_PUBLIC_APNS_ENV=production`),
+turned on More → Notifications → "New regulations data", allowed notifications, restarted the app; two `POST /run/push`
+on the staging worker (21:34, 21:37) found `ios.tokens: 0`, and a `wrangler tail` from ~21:40 saw no request from the phone.
+
+**What was ruled out (evidence).**
+- Address: build 36 is a staging build, so `PUSH_URL` = `https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/push`
+  (`env.ts` `pushUrlFor(reportUrlFor("staging"))`), the worker that answers. A run-time switch to production (About;
+  `EXPO_PUBLIC_ENV_SWITCH=1`) is not it: `feeds.canifishthis.ca` is NXDOMAIN and `data.canifishthis.ca` has no manifest
+  (404), so the app would not have worked at all.
+- Entitlement: build 36's own log (the TestFlight worktree's `app/dist/ios/build.log`) signs `aps-environment` into the
+  archive and `** EXPORT SUCCEEDED **` with App Store signing (which makes it production); token call cannot fail for a
+  missing entitlement without the export failing first.
+- Wiring: `notify.native.ts` makes the registrar (`pushSeam && PUSH_URL`); `NotifyRoot` calls `push(notifyActive)` at
+  every start and on every change; "New regulations data" sets `on` + `updateReady`, so `notifyActive` is true.
+- A refusal from the worker (400/404/503): it throws a plain Error, which `reportFailure` sends to `/crash`. The staging
+  worker's `/crashes` (since 11-01, all classes, `test=1`, `background=1`) holds NO report from a real iPhone at all
+  (the only iOS kinds are the simulator's test runs), so no such error was raised on the phone.
+
+**What is left: two paths that said nothing (the cause is one of them).**
+1. The token call had no deadline. expo-notifications 58.1.6 `PushTokenModule.getDevicePushTokenAsync` calls
+   `registerForRemoteNotifications()` and settles only from iOS's `didRegister…` / `didFailToRegister…` callback; when iOS
+   answers neither, the promise never settles: no request, no error, and the registrar's queue is held for the whole
+   run, so turning the switch off and on again queues behind it and sends nothing either.
+2. Offline and the worker's 429 were marked "the environment's": thrown, never reported, never shown. The worker's
+   per-address gap is 2 s (`PUSH_GAP_MS`), so a quick off → on (unregister, then register) lost the register to a 429
+   and nothing was kept; only the next cold start tried again.
+The tail at ~21:40 does not separate them: the registrar sends once per app START (a cold start, or a background
+launch), not while the app is in use, and the restarts came before the tail began. The worker has Workers Logs on
+(`[observability]` in wrangler.toml): the dashboard's logs for `bc-fishing-feeds-staging`, 2026-11-16 21:00–21:40 local (04:00–04:40 UTC 11-17),
+filtered on `/push`, would say whether a register (and its status) arrived before the tail.
+
+**The fix (branch `app-fix/t822-push-register`, from `ios/t739-push`).**
+- `packages/data/src/notify/push.ts`: the token has a deadline (`PUSH_TOKEN_WAIT_MS`, 30 s), then a REPORTED error
+  ("push register: the system gave no push token in 30 s (ios: the request for one was never answered)") and the queue
+  goes on; a token iOS hands over later still registers through `onToken`. A 429 is waited out once (`PUSH_RETRY_MS`,
+  3 s) and a second one is a reported defect ("push register: HTTP 429 twice (the worker's per-address limit)").
+  Offline stays unreported (failure.ts) but is shown. Every sync's outcome is `status()` (idle / sending / registered /
+  withdrawn / failed with why) with `subscribe`.
+- `packages/ui/src/notify.ts` (`NotifyPlatform.pushStatus`, `NotificationsVM.pushStatus` / `retryPush`),
+  `packages/ui-native/src/menu/NotificationsPage.tsx`: a line under the intro on More → Notifications, words in
+  `NOTIFY_WORDS.push` (pinned whole in `alerts.test.ts`): "Server wake-ups: this phone is registered (2026-11-16 at 21:52
+  PDT)." / "Server wake-ups: this phone is not registered: <why>. It tries again when the app next starts." with
+  "Try again" (sends the token again now).
+- `apps/mobile/src/notify.native.ts`: hands the registrar over as `pushStatus`.
+- Tests: `push.test.ts` (429 waited out, 429 twice reported, a token that never comes fails at the deadline, frees the
+  queue and a late token still registers, offline shown), `Notifications.test.tsx` (the line, "Try again", no line
+  without push), `alerts.test.ts` (the words whole). `tools/failures.test.ts` FINE count unchanged.
+
+**To test again (owner / app chat).** Needs a NEW TestFlight build from a branch carrying this (the iOS line, e.g.
+`ios/next` + this branch); no worker or DNS change. On the phone: More → Notifications → the "Server wake-ups" line.
+"registered (time)" → `POST /run/push` should count `ios.tokens: 1`. "not registered: …" → the words say which path
+(no token from iOS; HTTP n; no connection), and a defect also lands in the staging `/crashes`.

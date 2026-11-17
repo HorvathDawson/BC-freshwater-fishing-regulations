@@ -7,8 +7,8 @@
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { MENU_WORDS, NOTIFY_WORDS, setFailureSink, type Band, type DataInput, type GaugeAlertRule } from "@app/core";
-import { createNotifySettings, NOTIFY_DEFAULT, type NotifyState, type WaterSource } from "@app/data";
+import { localStamp, MENU_WORDS, NOTIFY_WORDS, setFailureSink, type Band, type DataInput, type GaugeAlertRule } from "@app/core";
+import { createNotifySettings, NOTIFY_DEFAULT, type NotifyState, type PushStatus, type WaterSource } from "@app/data";
 import { LayoutWidthContext, NotifyRoot, useNotifications, type NotifyControls, type NotifyPermission } from "@app/ui";
 import { LIGHT } from "../theme";
 import { MoreScreen } from "./MoreScreen";
@@ -424,5 +424,38 @@ describe("Alert me on a gauge's card, and the editor (T527)", () => {
     await act(async () => { fireEvent.click(screen.getByTestId("alert-form-save")); });
     await flush();
     expect(screen.getByTestId("alert-me-denied").textContent).toBe(NOTIFY_WORDS.permission.denied);
+  });
+});
+
+describe("(T822) the push registration is said on More → Notifications, never silent", () => {
+  function withPush(st: PushStatus) {
+    const { c, platform } = controls({ on: true, updateReady: true }, "granted", "granted");
+    let status = st;
+    const subs = new Set<() => void>();
+    const push = vi.fn(async (_on: boolean) => {});
+    const pushStatus = { status: () => status, subscribe: (f: () => void) => { subs.add(f); return () => { subs.delete(f); }; } };
+    const set = (next: PushStatus) => { status = next; for (const f of [...subs]) f(); };
+    return { c: { ...c, platform: { ...platform, push, pushStatus } } satisfies NotifyControls, push, set };
+  }
+
+  it("a failed registration is shown with why and \"Try again\", which sends the token again", async () => {
+    const why = "push register: the system gave no push token in 30 s (ios: the request for one was never answered)";
+    const { c, push, set } = withPush({ state: "failed", at: NOW, why, environment: false });
+    render(<NotifyRoot controls={c}><Page /></NotifyRoot>);
+    await flush();
+    expect(screen.getByTestId("notify-push-status").textContent).toBe(NOTIFY_WORDS.push.failed(why, false));
+    push.mockClear();
+    fireEvent.click(screen.getByTestId("notify-push-retry"));
+    expect(push).toHaveBeenCalledWith(true);
+    act(() => set({ state: "registered", at: NOW }));
+    expect(screen.getByTestId("notify-push-status").textContent).toBe(NOTIFY_WORDS.push.registered(localStamp(NOW)));
+    expect(screen.queryByTestId("notify-push-retry")).toBeNull();
+  });
+
+  it("a build without push draws no line", async () => {
+    const { c } = controls({ on: true, updateReady: true }, "granted", "granted");
+    render(<NotifyRoot controls={c}><Page /></NotifyRoot>);
+    await flush();
+    expect(screen.queryByTestId("notify-push-status")).toBeNull();
   });
 });

@@ -11,11 +11,20 @@
  *   off   the token last sent is unregistered and forgotten.
  *   WHAT IS SENT: {platform, token, env} — never an alert, a water, a location or the install id.
  *
- * A failed send THROWS (the caller reports it; offline, and the worker's per-address limit (429), are the
- * environment's and never reported) and the store keeps what was really sent, so the next sync (the next start, or the
- * next switch) tries again.
+ * A failed send THROWS (the caller reports it; offline is the environment's and never reported) and the store keeps
+ * what was really sent, so the next sync (the next start, the next switch, or "Try again") tries again.
+ *
+ * (T822) NEVER SILENT. On iPhone build 36 the owner turned notifications on and the staging worker never heard from the
+ * phone, with nothing in the crash inbox: two paths here said nothing. (1) The system's token call had no deadline:
+ * expo-notifications' `getDevicePushTokenAsync` waits for iOS's `didRegisterForRemoteNotifications…` callback and never
+ * settles when iOS does not answer, which held the sync queue for the whole run (every later switch queued behind it).
+ * Now the token has `tokenWaitMs` (30 s) and then a REPORTED error; a token that comes later still arrives through
+ * `onToken`. (2) Offline and the worker's 429 were "the environment's": thrown, never reported, and never shown. Now a 429
+ * is waited out once (`retryMs`, past the worker's 2 s gap: a quick off → on hit it and lost the token) and a second
+ * one is a reported defect; offline stays unreported (failure.ts) but is SHOWN. Every outcome is the registrar's
+ * `status()` (More → Notifications says it, with "Try again").
  */
-import { environmentError, reportFailure } from "@app/core";
+import { environmentError, isEnvironment, reportFailure } from "@app/core";
 
 export type PushPlatformName = "ios" | "android";
 export type PushEnvName = "sandbox" | "production";
@@ -35,10 +44,30 @@ export interface PushSent { readonly platform: PushPlatformName; readonly token:
 
 export interface PushStoreText { read(): string | null; write(text: string): void }
 
+/**
+ * (T822) What the registrar last did, for More → Notifications: never sent (notifications off this run), a send in
+ * flight, registered with our server, withdrawn, or failed (with why; `environment`: offline, not reported but shown).
+ */
+export type PushStatus =
+  | { readonly state: "idle" }
+  | { readonly state: "sending"; readonly since: number }
+  | { readonly state: "registered"; readonly at: number }
+  | { readonly state: "withdrawn"; readonly at: number }
+  | { readonly state: "failed"; readonly at: number; readonly why: string; readonly environment: boolean };
+
 export interface PushRegistrar {
   /** register (true) or unregister (false); resolves once our server has answered */
   sync(active: boolean): Promise<void>;
+  /** (T822) the last outcome, said on the page */
+  status(): PushStatus;
+  /** (T822) told of every status change; returns the undo */
+  subscribe(on: () => void): () => void;
 }
+
+/** (T822) how long the system may take to hand over the device token before the sync fails, said and reported */
+export const PUSH_TOKEN_WAIT_MS = 30_000;
+/** (T822) a 429 is waited out once this long (the worker's per-address gap is 2 s, `PUSH_GAP_MS`) */
+export const PUSH_RETRY_MS = 3_000;
 
 type Fetch = (u: string, i?: RequestInit) => Promise<Response>;
 
@@ -51,16 +80,49 @@ function readSent(store: PushStoreText): PushSent | null {
   } catch (e) { reportFailure(e); return null; }   // our own small file, unreadable: reported, and the next sync registers again
 }
 
-export function createPushRegistrar(o: { seam: PushSeam; url: string; fetch: Fetch; store: PushStoreText }): PushRegistrar {
+const sleep = (ms: number) => new Promise<void>((ok) => setTimeout(ok, ms));
+
+export function createPushRegistrar(o: {
+  seam: PushSeam; url: string; fetch: Fetch; store: PushStoreText;
+  /** (T822) tests: the token deadline, the 429 wait, the clock */
+  tokenWaitMs?: number; retryMs?: number; now?: () => number; wait?: (ms: number) => Promise<void>;
+}): PushRegistrar {
   const base = o.url.replace(/\/+$/, "");
-  const post = async (what: "register" | "unregister", s: Omit<PushSent, "url">) => {
-    let res: Response;
+  const tokenWaitMs = o.tokenWaitMs ?? PUSH_TOKEN_WAIT_MS;
+  const now = o.now ?? Date.now;
+  const wait = o.wait ?? sleep;
+  let status: PushStatus = { state: "idle" };
+  const subs = new Set<() => void>();
+  const set = (st: PushStatus) => { status = st; for (const f of [...subs]) f(); };
+  const once = async (what: "register" | "unregister", s: Omit<PushSent, "url">): Promise<Response> => {
     try {
-      res = await o.fetch(`${base}/${what}`, { method: "POST", headers: { "Content-Type": "application/json" },
-                                               body: JSON.stringify({ platform: s.platform, token: s.token, env: s.env }) });
-    } catch (e) { throw e instanceof Error ? environmentError(e) : e; }   // no line: the environment's, tried again later
-    if (res.status === 429) throw environmentError(new Error(`push ${what}: HTTP 429 (the worker's per-address limit; tried again at the next start)`));
+      return await o.fetch(`${base}/${what}`, { method: "POST", headers: { "Content-Type": "application/json" },
+                                                body: JSON.stringify({ platform: s.platform, token: s.token, env: s.env }) });
+    } catch (e) { throw e instanceof Error ? environmentError(e) : e; }   // no line: the environment's (shown, not reported)
+  };
+  const post = async (what: "register" | "unregister", s: Omit<PushSent, "url">) => {
+    let res = await once(what, s);
+    // (T822) the worker's per-address gap (2 s): waited out once; a second refusal is the day's cap, a defect of our limits
+    if (res.status === 429) { await wait(o.retryMs ?? PUSH_RETRY_MS); res = await once(what, s); }
+    if (res.status === 429) throw new Error(`push ${what}: HTTP 429 twice (the worker's per-address limit)`);
     if (!res.ok) throw new Error(`push ${what}: HTTP ${res.status}`);
+  };
+  /** (T822) the system's token, or a REPORTED error once `tokenWaitMs` has passed without one */
+  const token = async (): Promise<string> => {
+    let t: ReturnType<typeof setTimeout> | undefined;
+    const late = new Promise<never>((_, fail) => {
+      t = setTimeout(() => fail(new Error(`push register: the system gave no push token in ${Math.round(tokenWaitMs / 1000)} s `
+        + `(${o.seam.platform}: the request for one was never answered)`)), tokenWaitMs);
+    });
+    try { return await Promise.race([o.seam.token(), late]); } finally { clearTimeout(t); }
+  };
+  /** (T822) every sync's outcome is the status; the error goes on to the caller (reported unless the environment's) */
+  const said = async (f: () => Promise<void>, done: () => PushStatus) => {
+    set({ state: "sending", since: now() });
+    try { await f(); set(done()); } catch (e) {
+      set({ state: "failed", at: now(), why: e instanceof Error ? e.message : String(e), environment: isEnvironment(e) });
+      throw e;
+    }
   };
   let active = false;
   let undo: (() => void) | null = null;
@@ -87,12 +149,18 @@ export function createPushRegistrar(o: { seam: PushSeam; url: string; fetch: Fet
     confirmed = false;
   };
   const run = (f: () => Promise<void>) => (chain = chain.then(f, f));
+  const registered = (): PushStatus => ({ state: "registered", at: now() });
   return {
     sync(on) {
       active = on;
-      if (on && !undo) undo = o.seam.onToken((t) => { if (active) run(() => register(t)).catch(reportFailure); });
+      if (on && !undo) {
+        undo = o.seam.onToken((t) => { if (active) run(() => said(() => register(t), registered)).catch(reportFailure); });
+      }
       if (!on && undo) { undo(); undo = null; }
-      return run(async () => { if (on) await register(await o.seam.token()); else await unregister(); });
+      return run(() => (on ? said(async () => register(await token()), registered)
+                           : said(unregister, () => ({ state: "withdrawn", at: now() }))));
     },
+    status: () => status,
+    subscribe(f) { subs.add(f); return () => { subs.delete(f); }; },
   };
 }

@@ -421,4 +421,16 @@ describe("(T722 F3) the notifications intro per platform", () => {
     expect(`${UPDATE_DOWNLOAD_NOTE.title}. ${UPDATE_DOWNLOAD_NOTE.body}`).toBe("New regulations data is ready to download. Open the app to download it.");
     expect(`${UPDATE_READY_NOTE.title}. ${UPDATE_READY_NOTE.body}`).toBe("New regulations data is ready. Open the app to update.");
   });
+  it("(T822) the push registration's line, whole: registered, refused, offline, never silent", () => {
+    const P = NOTIFY_WORDS.push;
+    expect(P.idle).toBe("Server wake-ups: not registered yet. This phone registers when a notification is on.");
+    expect(P.sending).toBe("Server wake-ups: registering this phone…");
+    expect(P.registered("2026-11-16 at 21:52 PDT")).toBe("Server wake-ups: this phone is registered (2026-11-16 at 21:52 PDT).");
+    expect(P.withdrawn).toBe("Server wake-ups: off (no notification is on); our server keeps no push token for this phone.");
+    expect(P.failed("push register: HTTP 503", false)).toBe("Server wake-ups: this phone is not registered: push register: "
+      + "HTTP 503. It tries again when the app next starts.");
+    expect(P.failed("Network request failed", true)).toBe("Server wake-ups: this phone is not registered (no connection): "
+      + "Network request failed. It tries again when the app next starts.");
+    expect(P.retry).toBe("Try again");
+  });
 });

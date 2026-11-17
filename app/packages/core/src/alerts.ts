@@ -353,6 +353,19 @@ export const NOTIFY_WORDS = {
     + "regulations data is out, our server sends this phone a silent signal to check now; the app then checks the gauges "
     + "and the data itself, and still checks about every 15 minutes at best on its own. The server keeps only a push token "
     + "for this phone, never your alerts, your waters or where you are.",
+  /**
+   * (T822) THE PUSH REGISTRATION, said under the intro (a build with push): whether our server can wake this phone, and
+   * why not when it cannot. Never silent: before T822 a phone that never registered looked exactly like one that had.
+   */
+  push: {
+    idle: "Server wake-ups: not registered yet. This phone registers when a notification is on.",
+    sending: "Server wake-ups: registering this phone…",
+    registered: (at: string) => `Server wake-ups: this phone is registered (${at}).`,
+    withdrawn: "Server wake-ups: off (no notification is on); our server keeps no push token for this phone.",
+    failed: (why: string, offline: boolean) => `Server wake-ups: this phone is not registered${offline ? " (no connection)" : ""}: ${why}. `
+      + "It tries again when the app next starts.",
+    retry: "Try again",
+  },
   master: { label: "Notifications", on: "On", off: "Off", hint: "Turn every notification from this app on or off." },
   updateReady: { label: "New regulations data", hint: "Tell me when a newer regulations release is ready to download." },
   appVersion: { label: "New app version", hint: "Tell me when a newer version of the app is out." },

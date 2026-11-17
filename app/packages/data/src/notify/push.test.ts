@@ -1,7 +1,7 @@
-import { describe, expect, it } from "vitest";
-import { UPDATE_DOWNLOAD_NOTE } from "@app/core";
+import { describe, expect, it, vi } from "vitest";
+import { isEnvironment, UPDATE_DOWNLOAD_NOTE } from "@app/core";
 import type { Manifest } from "../manifest";
-import { createPushRegistrar, type PushSeam } from "./push";
+import { createPushRegistrar, PUSH_RETRY_MS, PUSH_TOKEN_WAIT_MS, type PushSeam } from "./push";
 import { runWake } from "./wake";
 import { createNotifySettings, NOTIFY_DEFAULT, type NotifyState } from "./settings";
 import type { Notice } from "./check";
@@ -59,9 +59,68 @@ describe("the push token follows the reader's notifications (T739)", () => {
     expect(srv.calls[1]!.body).toEqual({ platform: "ios", token: IOS, env: "sandbox" });
   });
 
-  it("the worker's per-address limit (429) is the environment's: thrown (tried again next start), never reported as a defect", async () => {
-    const r = createPushRegistrar({ seam: seam(), url: URL_, fetch: server(429).fetch, store: memory() });
-    await expect(r.sync(true)).rejects.toMatchObject({ environment: true, message: "push register: HTTP 429 (the worker's per-address limit; tried again at the next start)" });
+  it("(T822) the worker's per-address gap (429) is waited out once; a second 429 is a reported defect, said in the status", async () => {
+    const waits: number[] = [];
+    const wait = async (ms: number) => { waits.push(ms); };
+    // the first answer 429 (a quick off → on inside the worker's 2 s gap), the retry 201: registered
+    let n = 0;
+    const calls: string[] = [];
+    const gap = async (u: string) => { calls.push(u); return new Response("{}", { status: n++ === 0 ? 429 : 201 }); };
+    const store = memory();
+    const r = createPushRegistrar({ seam: seam(), url: URL_, fetch: gap, store, wait, now: () => 7 });
+    await r.sync(true);
+    expect(waits).toEqual([PUSH_RETRY_MS]);
+    expect(calls).toEqual(["https://w.example/push/register", "https://w.example/push/register"]);
+    expect(r.status()).toEqual({ state: "registered", at: 7 });
+    expect(JSON.parse(store.read()!).token).toBe(IOS);
+    // 429 twice: thrown as a defect (not the environment's), nothing kept, the status says why
+    const capped = createPushRegistrar({ seam: seam(), url: URL_, fetch: server(429).fetch, store: memory(), wait, now: () => 8 });
+    const e = await capped.sync(true).catch((x: unknown) => x);
+    expect(e).toBeInstanceOf(Error);
+    expect(isEnvironment(e)).toBe(false);
+    expect((e as Error).message).toBe("push register: HTTP 429 twice (the worker's per-address limit)");
+    expect(capped.status()).toEqual({ state: "failed", at: 8, why: "push register: HTTP 429 twice (the worker's per-address limit)", environment: false });
+  });
+
+  it("(T822) a token the system never hands over fails the sync after the deadline, REPORTED, and frees the queue", async () => {
+    vi.useFakeTimers();
+    try {
+      const srv = server();
+      let on: ((t: string) => void) | null = null;
+      // iOS never calls didRegisterForRemoteNotifications…: expo-notifications' promise never settles
+      const hung: PushSeam = { platform: "ios", env: "production", token: () => new Promise<string>(() => {}),
+                               onToken: (f) => { on = f; return () => { on = null; }; } };
+      const r = createPushRegistrar({ seam: hung, url: URL_, fetch: srv.fetch, store: memory(), now: () => 9 });
+      const seen: string[] = [];
+      r.subscribe(() => seen.push(r.status().state));
+      const first = r.sync(true).catch((x: unknown) => x);
+      await vi.advanceTimersByTimeAsync(0);   // the queue starts the sync
+      expect(r.status()).toEqual({ state: "sending", since: 9 });
+      await vi.advanceTimersByTimeAsync(PUSH_TOKEN_WAIT_MS);
+      const e = await first;
+      expect((e as Error).message).toBe("push register: the system gave no push token in 30 s (ios: the request for one was never answered)");
+      expect(isEnvironment(e)).toBe(false);   // reported: NotifyRoot hands it to reportFailure
+      expect(r.status()).toMatchObject({ state: "failed", environment: false });
+      expect(srv.calls).toEqual([]);
+      // the queue is free: turning off now runs (nothing was sent, so nothing to withdraw)
+      await r.sync(false);
+      expect(r.status()).toEqual({ state: "withdrawn", at: 9 });
+      // a token iOS hands over late still registers while notifications are on
+      const again = r.sync(true).catch(() => undefined);
+      on!(IOS);
+      await vi.advanceTimersByTimeAsync(PUSH_TOKEN_WAIT_MS);
+      await again;
+      expect(srv.calls.map((c) => c.url)).toContain("https://w.example/push/register");
+      expect(seen.slice(0, 3)).toEqual(["sending", "failed", "sending"]);
+    } finally { vi.useRealTimers(); }
+  });
+
+  it("(T822) offline is the environment's: not reported, but SHOWN in the status", async () => {
+    const r = createPushRegistrar({ seam: seam(), url: URL_, fetch: async () => { throw new TypeError("Network request failed"); },
+                                    store: memory(), now: () => 5 });
+    expect(r.status()).toEqual({ state: "idle" });
+    await expect(r.sync(true)).rejects.toMatchObject({ environment: true });
+    expect(r.status()).toEqual({ state: "failed", at: 5, why: "Network request failed", environment: true });
   });
 
   it("off: unregisters the token last sent, forgets it, and stops listening; off again sends nothing", async () => {
