@@ -12,10 +12,10 @@ import { readdirSync, readFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { FACE, FACE_METRICS, lineBoxFloor, TYPE, typeAt, type TextStyle } from "./type";
+import { FACE, FACE_METRICS, lineBoxFloor, TYPE, typeAt, type TextStyle } from "../packages/ui-native/src/type";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const APP = join(HERE, "..", "..", "..");
+const APP = join(HERE, "..");   // app/ (this test lives in app/tools: it reads the source and the font files)
 /** a sub-pixel cut of the headroom (the month initials: 10 px in 10, 0.3 px short) is not a cut letter */
 const SLACK = 0.5;
 
