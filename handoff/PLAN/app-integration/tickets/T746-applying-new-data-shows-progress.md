@@ -158,3 +158,12 @@ even when its boot was already superseded (it was dropped unreported before). Th
 (`data/release/boot.ts`, the opened record read before the set opens) merged cleanly beside T756's background install.
 Nothing of the branch was superseded by the head.
 
+
+## Held group 1 merge (T746, T738, crash-send, T741), benches 2026-11-16 20:01 (app chat)
+`merge/held-group1`: the four branches merged in the owner's order onto the head (conflicts on boot.ts / App.tsx /
+install.test.ts resolved onto merge 3's install model; T738's never-down bar now leaves T760's "not moving" line on the
+actual bytes, `Progress.had`, with a test; crash-send's worker half was already on the head). `CANIFISHTHIS_R8=1 pnpm
+check` rc 0. Android benches on the `g1` APK, all PASS: install, memory, tap-stalls, regs-open (twice), perf,
+bg-install, crash-bed, update-freeze and big-update (staging test channel, reset after), crash. The `crash` scenario had
+never started its stub (a bench gap, also failing on the head APK; fixed in 2d615838f, cherry-picked here); `crash` then
+`crash-bed` in one session counts the first's leftover cached-process exit record, so they run in separate sessions.
