@@ -2147,3 +2147,6 @@ More questions (recommended answer first):
   road bridge and put the low-confidence tidal boundary there; needs an added stream piece). Morice, Gosnell Creek to
   Lamprey Creek (mark 2739; END on the main channel at Lamprey's mouth; the earlier picture was a drawing-tool fault),
   picked: "Right (Recommended)".
+- 20:25, Sheldens Creek extended (picture `sheldens-extended.jpg`; `lane/cuts-1116` 998b4e6ab: a hand-traced marsh
+  channel from the FWA line's end to the SPUR 14 road bridge, low-confidence tidal boundary at the bridge), picked:
+  "Right (Recommended)". Goes into the next atlas rebuild; redrawn from the built map after.
