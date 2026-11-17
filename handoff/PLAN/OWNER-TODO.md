@@ -2360,5 +2360,19 @@ More questions (recommended answer first):
     desktop. maybe on side or top please choose the most standard spot" -> T839: Claude chose a left navigation rail at
     desktop width (Material's rule for wide screens; Google Maps / AllTrails / onX); top stays search + day. Shots
     before it lands.
-  - Nahwitti River: char sit on their own under the other-fish table instead of in the trout tab; checking whether the new
-    trout table (T810) repeats it. Answer owed.
+  - Nahwitti River: char sit on their own under the other-fish table instead of in the trout tab. Checked 11:51: today
+    Region 1's "Release all char" (trout_quota.r7) is a row with no pool, drawn after the table (289 waters have the shape).
+    The new trout table (T810) puts DV/lake trout/brook trout in its Release box (0 of 513 such keys left out); Nahwitti
+    added to the trout hard cases (main chat) and the app's drawn-once gate. Answered in chat.
+- 2026-11-17 11:51, owner (verbatim): "i thought we already found some of these??" (the Region 5 lakes). Right: Hidden,
+  Secret and Square bind now; Chipmunk (and Toms, Basalt, Gatcho, Naglico, Pettry) is printed in both the Region 5 and
+  Region 6 tables with the same words and the Region 6 row binds it. Still not found: Frog Lake (5-6), Redfern Lake
+  (5-15), Squirrel Lake (6-1). Questions and the GOTCHAS errata note narrowed to those three.
+- 2026-11-17 11:55, owner (verbatim) on the Region 6 steelhead closure question (Kitimat, Dala, Ksi Hlginx, Triumph): "i can
+  answer thhis one that the no steelhead is different then a full closure so the no steelhead definitely holds here".
+  So the steelhead closure holds on those rows (as built; no change). The West Road mainstem (same shape) taken as
+  answered the same way. Both removed from the office questions; recorded as answered in GOTCHAS.
+- 2026-11-17 11:57, owner (verbatim): "for the missing lakes we should say a little about what we have found on them too"
+  and "please update the regional office questions". Done: Frog, Redfern and Squirrel questions now say which lakes of
+  that name exist and where, and what the row's words match (Frog = Hidden/Secret's words; Squirrel = the MU 6-1 lakes
+  printed in both tables). Questions file re-sent.
