@@ -70,9 +70,15 @@ def test_gitnadoix_coho_place_is_upstream_of_the_mouth_alias():
 # --------------------------------------------------------------------------------------------- Sheldens
 def test_sheldens_place_is_the_creek_above_the_bridge():
     """The tidal boundary is a cut at the bridge on the hand-drawn estuary channel (`test_sheldens_estuary_channel`);
-    the place stays the creek, and the tidal subtraction leaves only the water above the bridge in it."""
+    the place stays the creek, and the tidal subtraction leaves only the water above the bridge in it.
+
+    The creek is TWO registry items: the FWA line is named only by a mined name (`found_names.json`), which is a label
+    and never a grouping key (`registry.mined`), so it is `blk:360846083`, while the hand-drawn channel carries its own
+    name and is `wsc:950-016367` (rebuild of 2026-11-17). The place binds both, so the channel above the bridge is in
+    it; one item is a later structural fix."""
     loc = _place(_places("6"), "6:sheldens-creek:upstream-of-white-triangular-fishi")
-    assert _dump(loc.binding.extents) == [{"op": "whole", "item_id": "blk:360846083"}]
+    assert _dump(loc.binding.extents) == [{"op": "whole", "item_ids": ["blk:360846083", "wsc:950-016367"]}]
+    assert _places("6").water("6:sheldens-creek").item_ids == ["blk:360846083", "wsc:950-016367"]
 
 
 # --------------------------------------------------------------------------------------------- Mara Bridge
