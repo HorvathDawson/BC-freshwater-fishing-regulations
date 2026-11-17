@@ -2249,3 +2249,8 @@ More questions (recommended answer first):
   band), so no Level is offered, and with the map on Level the row wrongly says "flow only". 16 stations are like it
   (Nazko 985 sections, Beatton 327, Witches Brook 131, Capilano 72 …). **Yours (morning batch):** with no band, show
   the raw level in metres unranked (recommended), or keep it hidden? The wrong "flow only" wording gets fixed either way.
+- 2026-11-17 overnight, the app chat (T814): **yours (morning batch):** your coho loader is built (branch
+  app-fix/t814-loader, not merged) on the splash / first-download / applying-data screens, your colours exactly in light
+  mode. In dark mode your dark ink nearly disappears. Pick **A** (paper-coloured ink #f2e8d5 on the dark screen, red
+  kept) or **B** (your colours on a paper tile behind the fish). Pictures sent in the app chat. It joins a build after
+  the pick; the overnight 0.7.12 goes without it.
