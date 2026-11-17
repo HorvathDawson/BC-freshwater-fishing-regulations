@@ -3,7 +3,7 @@
  * pin a long press drops (Cancel leaves nothing; Continue is the ONE capture, at the pin), the ways to add a spot, and
  * where "Show" sends the map. Every add ends as the route's own `addSpot` at a point.
  */
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, render } from "@testing-library/react";
 import { environmentError, setFailureSink } from "@app/core";
 import type { Spot } from "@app/data/spots";
@@ -11,6 +11,9 @@ import { mapPointTap, spotsMenu, useMapRail, type Locate, type LocatePermission,
 import { HOME, reduce, type Route, type RouteAction } from "./route";
 
 afterEach(cleanup);
+// (T819) a list row's day names its year only when it is not this one: the clock's DATE is held in 2026
+beforeEach(() => { vi.useFakeTimers({ now: Date.parse("2026-11-16T12:00:00Z"), toFake: ["Date"] }); });
+afterEach(() => { vi.useRealTimers(); });
 const settle = () => act(async () => { for (let i = 0; i < 4; i++) await Promise.resolve(); });
 
 const VISIT = new Date(2026, 7, 30, 23, 30).getTime();
@@ -28,9 +31,9 @@ describe("spotsMenu", () => {
     expect(vm).toEqual({
       title: "Spots", error: null, empty: null,
       rows: [
-        { id: "s1", title: "Tamihi run", lines: "2026-08-30 · no gauge · no weather\n49.0974, -121.9675",
+        { id: "s1", title: "Tamihi run", lines: "Sun 30 Aug\nNo gauge",
           photo: "photos/s1-1.jpg", showLabel: "Show Tamihi run on the map" },
-        { id: "s2", title: "Vedder River", lines: "2026-08-30 · no gauge · no weather\n49.0974, -121.9675",
+        { id: "s2", title: "Vedder River", lines: "Sun 30 Aug\nNo gauge",
           photo: null, showLabel: "Show Vedder River on the map" },
       ],
       stale: "2 spots are missing the weather or the flow from the day they were pinned, or the week before it.",

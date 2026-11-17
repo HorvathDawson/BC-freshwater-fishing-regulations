@@ -616,12 +616,12 @@ export function Shell(p: ShellProps) {
                    theme={theme} camera={camera.current}
                    onCancel={back}
                    // awaited: a rejection reaches SpotCapture, which shows it and stays open (P01)
-                   // saved: the spot itself, over the map it was added from (back returns to that map)
+                   // saved: the spot itself, on the Spots tab (T819 item 12: back is the list it is in, not the map)
                    onSaved={async (s) => {
                      await onSaveSpot(s);
                      // (T466) made on the walk's spot steps: the example spot, removed as the walk ends (and said)
                      if (guide.open && GUIDE_STEPS[guide.at]?.phase === "spot") setExample({ id: s.id, state: null });
-                     go({ type: "openSpot", id: s.id });
+                     go({ type: "savedSpot", id: s.id });
                    }} />
     ));
 

@@ -4,9 +4,9 @@
  * They were composed inside `SpotScreen` and `SpotsScreen`, where a test could only match a fragment it had itself
  * supplied (AGENTS 33). Here each one is a whole string a test pins, and the screens draw it.
  */
-import { bcMidnight, CONDITIONS_WORDS, traceSentence, type FrozenTrace, localDate, latLon, weatherFigure, figure, daysInTen, placeChip, placeSaid,
+import { bandWord, bcMidnight, CONDITIONS_WORDS, spotDay, standing, traceSentence, type FrozenTrace, latLon, weatherFigure, figure, daysInTen, placeChip, placeSaid,
          readingIn, shownParameter, spotIsoDay, spotStamp, type DeclaresQuantity, type ShownQuantity } from "@app/core";
-import type { DailyGauge, DailyWeather, DayPlace, Spot, SpotReading, WeatherWindow } from "./model";
+import { spotLabel, type DailyGauge, type DailyWeather, type DayPlace, type Spot, type SpotReading, type WeatherWindow } from "./model";
 import { OPEN_METEO_ATTRIBUTION } from "./weather";
 import { isBackdated, readingIsTheDays } from "./dayFlow";
 
@@ -417,15 +417,34 @@ function weatherPart(spot: Spot): string {
 }
 
 /**
- * The two lines under a spot's name in the list: the LOCAL day of the visit with what was recorded, then where.
- *
- * The visit, not the record: spots are typed up on the drive home or the week after, and the list used to date
- * them by `createdAt` in UTC — a Sunday evening's fishing read as Monday's.
+ * (T819 item 11) A SPOT'S ROW IN THE LIST, under its name: the water and the day of the visit, then ONE condition word —
+ * where the flow stood that day ("Below normal"), the bare figure where nothing ranked it, or why there is none. The day
+ * is the visit's, in the spots' one style (P12b: never the UTC day it was typed up). No coordinates, no weather: the
+ * spot's page has them.
  */
-export function spotRowLines(spot: Spot): [string, string] {
-  return [`${localDate(spot.visitedAt ?? spot.createdAt)} · ${gaugePart(spot)} · ${weatherPart(spot)}`,
-          `${latLon(spot)}`];
+export function spotRowLines(spot: Spot, ref?: number): [string, string] {
+  const day = spotDay(spot.visitedAt ?? spot.createdAt, ref);
+  const water = spot.waterName?.trim();
+  const where = water && water.toLowerCase() !== spotLabel(spot).toLowerCase() ? `${water} · ${day}` : day;
+  return [where, conditionWord(spot)];
 }
+
+/** The row's one condition word (T819 item 11), from the same record `gaugePart` reads. */
+function conditionWord(spot: Spot): string {
+  if (isBackdated(spot) && !readingIsTheDays(spot)) {
+    const df = spot.dayFlow;
+    if (df?.state === "filled")
+      return df.percentile === null ? `${figure(df.discharge)} ${UNIT.discharge}` : bandWord(standing(df.percentile));
+    if (df?.state === "none") return ROW_WORDS.noFlowThatDay;
+    return spot.reading?.station || df ? ROW_WORDS.notReadYet : ROW_WORDS.noGauge;
+  }
+  const g = spot.reading, f = spotReadingFigure(g);
+  if (!g || !f) return ROW_WORDS.noGauge;
+  return g.percentile != null ? bandWord(standing(g.percentile)) : `${f.figure} ${f.unit}`;
+}
+
+/** The list row's words for a spot with no ranked flow (T819 item 11). */
+const ROW_WORDS = { noGauge: "No gauge", noFlowThatDay: "No flow that day", notReadYet: "Flow that day not read yet" } as const;
 
 /**
  * (T819 item 5) THE DRAFT'S RECORD IN ONE LINE, on the folded card that opens to the whole record: what the water and

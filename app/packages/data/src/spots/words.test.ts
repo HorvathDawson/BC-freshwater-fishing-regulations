@@ -89,60 +89,47 @@ describe("the trace in one sentence (T819 items 6, 7)", () => {
   });
 });
 
-describe("spotRowLines — the list row, by the LOCAL day of the visit", () => {
+describe("spotRowLines — the list row (T819 item 11): the water and the visit's LOCAL day, then one condition word", () => {
   const spot = (over: Partial<Spot> = {}): Spot => ({
     // saved minutes later the same local evening (already the next day in UTC)
     id: "s1", createdAt: new Date(2026, 7, 30, 23, 50).getTime(), visitedAt: new Date(2026, 7, 30, 23, 30).getTime(),
     updatedAt: 0, lat: 49.0974, lon: -121.9675, item: null, waterName: null, title: "t", notes: "", photos: [],
     reading: null, weather: null, trace: null, panel: null, ...over,
   });
+  const NOW = new Date(2026, 10, 16).getTime();
+  const row = (over: Partial<Spot> = {}) => spotRowLines(spot(over), NOW);
 
-  it("dates the row by the local day at the water, not the UTC day it was typed up", () => {
-    expect(spotRowLines(spot())).toEqual(["2026-08-30 · no gauge · no weather", "49.0974, -121.9675"]);
+  it("dates the row by the local day at the water, not the UTC day it was typed up; no coordinates", () => {
+    expect(row()).toEqual(["Sun 30 Aug", "No gauge"]);
   });
 
-  it("shows the reading and the weather that were recorded", () => {
-    expect(spotRowLines(spot({
-      reading: { station: "08MH001", discharge: 15.7, level: null, percentile: 0.038, at: null },
-      weather: { window: null, tempC: 14, windKph: null, windDir: null, rain3h: null, pressureHpa: null, code: null,
-                 at: null, backfilled: true },
-    }))[0]).toBe("2026-08-30 · 15.7 m³/s · lower than almost every day on record · 14°C (filled in)");
+  it("names the water, unless it is the spot's own name", () => {
+    expect([row({ waterName: "Chilliwack River" })[0], row({ waterName: "Chilliwack River", title: "" })[0]])
+      .toEqual(["Chilliwack River · Sun 30 Aug", "Sun 30 Aug"]);
   });
 
-  it("leaves out a percentile that was never known", () => {
-    expect(spotRowLines(spot({
-      reading: { station: "08MH001", discharge: 15.7, level: null, percentile: null, at: null },
-    }))[0]).toBe("2026-08-30 · 15.7 m³/s · no weather");
+  it("one condition word: where the recorded flow stood, or the bare figure where nothing ranked it", () => {
+    expect([row({ reading: { station: "08MH001", discharge: 15.7, level: null, percentile: 0.038, at: null } })[1],
+            row({ reading: { station: "08MH001", discharge: 15.7, level: null, percentile: 0.5, at: null } })[1],
+            row({ reading: { station: "08MH001", discharge: 15.7, level: null, percentile: null, at: null } })[1]])
+      .toEqual(["Much below normal", "Normal", "15.7 m³/s"]);
   });
 
   it("a trip on an earlier day than the save: that day's flow, never the save day's reading (Q161)", () => {
     const later = { createdAt: new Date(2026, 8, 1, 20).getTime(),
                     reading: { station: "08MH001", discharge: 11.2, level: null, percentile: 0.05, at: null } };
-    expect([spotRowLines(spot(later))[0],
-            spotRowLines(spot({ ...later, dayFlow: { state: "filled", station: "08MH001", date: "2026-08-30",
-                                                     discharge: 15.7, percentile: 0.038, place: 0.038, source: "feed",
-                                                     filledAt: 0 } }))[0],
-            spotRowLines(spot({ ...later, dayFlow: { state: "none", station: "08MH001", date: "2026-08-30",
-                                                     why: "no-discharge", askedAt: 0 } }))[0]])
-      .toEqual(["2026-08-30 · flow that day not read yet · no weather",
-                "2026-08-30 · 15.7 m³/s · lower than almost every day on record · no weather",
-                "2026-08-30 · no flow that day · no weather"]);
+    expect([row(later)[1],
+            row({ ...later, dayFlow: { state: "filled", station: "08MH001", date: "2026-08-30", discharge: 15.7,
+                                       percentile: 0.038, place: 0.038, source: "feed", filledAt: 0 } })[1],
+            row({ ...later, dayFlow: { state: "none", station: "08MH001", date: "2026-08-30", why: "no-discharge",
+                                       askedAt: 0 } })[1]])
+      .toEqual(["Flow that day not read yet", "Much below normal", "No flow that day"]);
   });
 
-  it("shows the quantity the reading declares: 08ME030's level beside its level percentile (T106)", () => {
-    const both = { station: "08ME030", discharge: 5.46, level: 4.162, percentile: 0.432, at: null };
-    expect([spotRowLines(spot({ reading: { ...both, parameter: "level" } }))[0],
-            spotRowLines(spot({ reading: { ...both, parameter: "discharge" } }))[0],
-            // saved before T106, declaring nothing: discharge, as such a spot always showed
-            spotRowLines(spot({ reading: both }))[0],
-            // declared level, a level only: shown (it used to read "no gauge")
-            spotRowLines(spot({ reading: { ...both, discharge: null, parameter: "level" } }))[0],
-            // declared discharge with no discharge: no number under the wrong unit
-            spotRowLines(spot({ reading: { ...both, discharge: null, parameter: "discharge" } }))[0]])
-      .toEqual(["2026-08-30 · 4.162 m · lower than 6 days in 10 · no weather",
-                "2026-08-30 · 5.46 m³/s · lower than 6 days in 10 · no weather",
-                "2026-08-30 · 5.46 m³/s · lower than 6 days in 10 · no weather",
-                "2026-08-30 · 4.162 m · lower than 6 days in 10 · no weather",
-                "2026-08-30 · no gauge · no weather"]);
+  it("ranks the quantity the reading declares (T106); no number under the wrong unit", () => {
+    const both = { station: "08ME030", discharge: 5.46, level: 4.162, percentile: null, at: null };
+    expect([row({ reading: { ...both, parameter: "level" } })[1], row({ reading: both })[1],
+            row({ reading: { ...both, discharge: null, parameter: "discharge" } })[1]])
+      .toEqual(["4.162 m", "5.46 m³/s", "No gauge"]);
   });
 });

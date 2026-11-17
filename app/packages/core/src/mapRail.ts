@@ -33,6 +33,8 @@ export const MY_LOCATION = {
 /** The Spots tab (T48; the rail's Spots menu before it): your saved spots, and the ways to add one. */
 export const SPOTS_MENU = {
   title: "Spots",
+  /** (T819 item 11) the header's square Add, always in sight: it opens the ways to add, at the top of the list */
+  add: "Add", addLabel: "Add a spot", addClose: "Close the ways to add",
   /**
    * THE TWO WAYS TO ADD ONE (owner 2026-10-22: "where you are or select on map"; the map's-middle "Add a spot here" is
    * gone — you had to centre the map first). First where the phone is — offered only when the reader has let the app

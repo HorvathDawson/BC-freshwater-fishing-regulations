@@ -10,6 +10,7 @@ describe("the map rail's words", () => {
       MAP_RAIL: { label: "Map tools", layers: "Layers", layersLabel: "Choose layers" },
       menu: {
         title: "Spots",
+        add: "Add", addLabel: "Add a spot", addClose: "Close the ways to add",
         addMine: "At my location", addMineAsk: "Asks for your location first",
         mineOff: "Location access is turned off for this app, so At my location is not offered.",
         mineNone: "Your location is not available here, so At my location is not offered.",

@@ -85,6 +85,16 @@ describe("route (P13): one value, one back rule", () => {
     expect(reduce(HOME, { type: "back" })).toBe(HOME);
   });
 
+  it("(T819 item 12) a spot just saved opens on the Spots tab, wherever it was picked: back is the list, then the Map", () => {
+    // started in Spots, picked on the Map tab (the add flow over it), saved
+    const adding = run(HOME, { type: "tab", tab: "spots" }, { type: "tab", tab: "map" }, { type: "addSpot", at: { lat: 49, lon: -122 } });
+    const saved = reduce(adding, { type: "savedSpot", id: "s9" });
+    expect(saved).toEqual({ mode: "browse", tab: "spots", spot: "s9", adding: null, search: false });
+    const list = reduce(saved, { type: "back" });
+    expect(list).toEqual({ mode: "browse", tab: "spots", spot: null, adding: null, search: false });
+    expect(reduce(list, { type: "back" })).toEqual(HOME);
+  });
+
   it("back on another tab's root goes to the Map tab (the start tab); back on the Map tab stays (Android leaves)", () => {
     const tabs = ["map", "conditions", "spots", "more"] as const;
     const after = tabs.map((t) => {
