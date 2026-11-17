@@ -2340,3 +2340,12 @@ More questions (recommended answer first):
 - 2026-11-17 ~11:15, in the APP chat: "the photo viewer could also use a little improvement to make it industry
   standard". Picked all four at 11:17: swipe down to close, tap to hide the buttons, counter + smooth motion, opens from
   its thumbnail. Filed T836; built after T819 lands, with pictures and clips.
+- 2026-11-17 11:18, owner (verbatim): "the regional office questions should include oither questions form gotchas too",
+  "also if there are any gotchas we missed?", "dont mention the app just have the question as super concise questiuons
+  on how to interpret and what the problem is". Done: GOTCHAS "Questions for each office": BC Fish and Wildlife
+  Regions 1, 3, 4, 5, 6, 7A and DFO (salmon), each a short question with the book's words and printed page. Added from
+  the gotchas: Region 1 dated bait bans, Kitimat hatchery steelhead, Mackenzie Creek MU, Region 5 lakes not found, and
+  the DFO place wordings (Kispiox, Kasiks, Kanaka, Stamp, Somass, Juniper Beach, Bulkley, Sheldens, Tatshenshini,
+  Cowichan). Missed before, now added: Campbell River MU 1-6/1-10 summer closure (T796 W1) and the Duncan's exemptions
+  reaching Trout Lake's creeks (RULINGS T15). Left out: Lower Shuswap "one km" (his word: nothing goes to DFO).
+  Correction: the page numbers in the 11:15 version were wrong (the corpus already stores printed pages); fixed.
