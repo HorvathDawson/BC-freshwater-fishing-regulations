@@ -2193,3 +2193,10 @@ More questions (recommended answer first):
   gauge measures: the reading may not match it."). Built on `lane/t823-small-water` (edc097013), default already 50×;
   reaches a release with the next bundle rebuild. Found with it: T825 (251 side channels led by a gauge far upstream,
   e.g. lower Fraser side channels reading Red Pass).
+- Shortly before 22:19, in the APP chat (relayed; label picked verbatim), after its correction that the Conditions MAP
+  colours from the paint PANELS (249k sections; your 1.4 km² creek is coloured "Below normal" by 08MH001, 676× bigger),
+  not from section_gauge (114k): "Should a gauge that much bigger be allowed to speak for a small water at all, on the
+  map AND in spots (they always match)?", picked: "Allow, with a warning (Recommended)" (keep colouring and estimating;
+  say plainly the gauge drains a far bigger area once it is small enough to matter; Python picks the cut-off). So
+  T823's flag and sentence hang on the SPEAKER's gauge (the panel the map colours from), the same on the map, the
+  spot and the sheet; 50× and the wording stand (owner, just before).

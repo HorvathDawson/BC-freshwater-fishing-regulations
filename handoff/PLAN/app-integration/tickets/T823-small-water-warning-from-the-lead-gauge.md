@@ -19,3 +19,8 @@ enough? It would drop that in theory. Then ofr small ones still give a warning i
 ## Owner, 2026-11-16 22:18
 Cut-off "50× (Recommended)"; wording "Much smaller stream (Recommended)". The pending-owner marks on the branch are
 now decided.
+
+## Rework (22:19): the speaker, not section_gauge
+The map colours from the paint panels (standing.ts speakerFor / buildStandingClasses; 249k sections), not section_gauge
+(114k). Owner: "Allow, with a warning (Recommended)": the warning hangs on the gauge that SPEAKS for the section
+(the panel), on the map and spots alike. edc097013's flag on section_gauge is replaced.
