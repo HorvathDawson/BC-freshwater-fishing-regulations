@@ -12,3 +12,7 @@ keyboard and the highlighting following the items with a delay etc etc".
    closes), and the highlight sits on its target at once, not trailing it with a delay as the screen moves.
 Note: the trout redesign's ticket O also rewords a walkthrough step ("Tap Details") and bumps WALKTHROUGH_VERSION; keep
 the two in step.
+
+## Owner addition, 2026-11-16 ~21:47 (app chat), verbatim
+"also the tutorial should be much much small 41 is way to many cut it down to like 8 or 10 items and make it super clean".
+So: 8 to 10 steps, one short sentence each; the kept and dropped steps go to the owner to adjust.
