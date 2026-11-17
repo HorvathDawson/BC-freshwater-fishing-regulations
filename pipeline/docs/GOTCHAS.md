@@ -18,26 +18,27 @@ code now handles belong in the code's comments, not here.
 - **A stream's own daily quota against the region's "from streams" share and the region's total** (T834; Region 4
   p.33-38, the same shape in every region with a stream share). Region 4 prints "Trout/char: 5 … 2 from streams, 1 bull
   trout"; the book (p.3) says to follow the provincial, regional AND water-specific rules, and never says how a water's
-  own quota sits against the share or the total. **Unlike the Thompson, the owner chose the looser reading here**
-  (2026-11-17, T834, OWNER-TODO ~10:38-10:50): a water's own quotas add up to a day pool = the larger of the region's
-  cap there and the sum of the water's own quotas; that pool replaces the region's total. Ask about each case:
-  - **Kaslo River, Keen Creek** ("Bull trout daily quota = 2"): 2 fish from the stream in all, both may be bull trout
-    (the bull trout count inside the 2 from streams). Other reading: 2 bull trout PLUS 2 other trout = 4.
-  - **Lardeau River, Duncan River** ("Rainbow trout daily quota = 5, bull trout daily quota = 2"): 7 a day, e.g. 5
-    rainbow + 2 bull, or 2 cutthroat + 3 rainbow + 2 bull, or 2 cutthroat + 4 rainbow + 1 bull. Other reading: the
-    region's 5 still caps the day (e.g. 3 rainbow + 2 bull, or 2 cutthroat + 2 bull + 1 rainbow), which the app said
-    before T834. Owner: "i would say 7 because we have other ones like one of the kootenay lakes having a 10 a day quota
-    for rainbows".
-  - **Kootenay Lake main body** ("Bull trout daily quota = 1; rainbow trout daily quota = 10"): 11 a day (10 rainbow + 1
-    bull) by the same reading. Other reading: 10 at most, or the region's 5 for every other kind combined.
+  own quota sits against the share or the total. Owner 2026-11-17: ONE reading for every water, the strict one (as for
+  the Thompson above): the region's cap stands unless the water's row says otherwise or cannot work under it. A water's
+  own number for a fish that is AT OR BELOW a regional cap sits inside it; one ABOVE it raises that cap to its own number
+  for that fish only (the other kinds stay at the region's number, all of them inside the raised cap). The book prints
+  "EXEMPT from …" where it means a lift (the Lardeau's spring closure; Upper Arrow's kokanee "none from streams").
+  Ask about each case (built reading first, the looser one after):
+  - **Kaslo River, Keen Creek** ("Bull trout daily quota = 2"): 2 fish from the stream in all, both may be bull trout.
+    Looser: 2 bull trout PLUS 2 other trout = 4.
+  - **Lardeau River, Duncan River** ("Rainbow trout daily quota = 5, bull trout daily quota = 2"): 5 a day in all; bull
+    trout and the other trout (not rainbow) only 2 of them; e.g. 3 rainbow + 2 bull, or 5 rainbow, or 2 cutthroat + 3
+    rainbow. Looser: 7 (5 rainbow + 2 bull). The owner first said 7 ("because we have other ones like one of the
+    kootenay lakes having a 10 a day quota for rainbows"), then chose the strict reading for every water.
+  - **Kootenay Lake main body** ("Bull trout daily quota = 1; rainbow trout daily quota = 10"): 10 a day in all (the
+    rainbow's 10 cannot fit inside the region's 5, so it raises it), other kinds 5 at most, bull trout 1. Looser: 11.
   - **Adams River** (Region 3, "Rainbow trout daily quota = 2" under "4 from streams"): 4 from the stream in all, at
-    most 2 of them rainbow. Other reading: 2 rainbow lifted out of the share, plus 4 others = 6 (capped at the region's
-    total). Owner: "it is just 2 of the 4".
-  - **Buckley Creek** (Region 6, "rainbow 1" under "1 trout from streams"): 1 trout from the stream in all. Other
-    reading: 1 rainbow plus 1 other trout = 2.
-  - **The 12 rows that already carried a hand-written lift out of the share** (Lardeau, Duncan, Beaver, Lavington,
-    Perry, Whiteswan, Chilliwack, Kitimat ×2, Peace in 7B): which of them the book means as a lift, and which as a
-    number inside the share.
+    most 2 of them rainbow. Looser: 2 rainbow plus 4 others. Owner: "it is just 2 of the 4".
+  - **Buckley Creek** (Region 6, "rainbow trout daily quota = 1" under "1 trout from streams July 1-Oct 31"): 1 trout
+    from the stream in all, a rainbow or a cutthroat. Looser: 1 rainbow plus 1 other trout = 2.
+  - **The 12 rows that carried a hand-written lift out of the share** (Lardeau, Duncan, Beaver, Lavington, Perry,
+    Whiteswan, Chilliwack, Kitimat ×2, Peace in 7B): under the strict reading a number equal to the share no longer
+    lifts (the Lardeau and Duncan bull trout 2, revising RULINGS T3a for those rows).
 
 ---
 

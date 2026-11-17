@@ -2323,3 +2323,8 @@ More questions (recommended answer first):
   pipeline/docs/GOTCHAS.md, "Questions the owner will put to BC Fish and Wildlife" (beside the Thompson): Kaslo/Keen,
   Lardeau/Duncan, Kootenay Lake main body, Adams, Buckley, and the 12 rows that carried a hand-written lift, each with
   the reading built and the other reading. TO ASK Fish and Wildlife (owner).
+- 2026-11-17 ~11:10, owner on "unlike the Thompson": "unlike the thompson? everything should use same reading...". Then,
+  by dialog, ONE reading for every water: "Strict everywhere (Recommended)". The region's rule stands unless the water's
+  row says otherwise or cannot work under it: Lardeau/Duncan 5 in all (bull + other trout 2 of them), Kootenay Lake main
+  body 10, Thompson below Kamloops Lake stays closed in June, Kaslo/Keen 2, Adams 4, Buckley 1. Replaces the ~10:50
+  "7" reading. GOTCHAS entry rewritten to match.

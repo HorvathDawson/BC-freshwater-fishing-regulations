@@ -31,3 +31,9 @@ other ones like one of the kootenay lakes having a 10 a day quota for rainbows".
 Day pool = max(the region's cap that applies there, the sum of the water's own daily quotas); own-quota fish under their
 own number, other fish under the region's cap, all inside the pool, which replaces the region's total on that water.
 Lane 916965dc7 is NOT merged.
+
+2026-11-17 ~11:10, owner: "everything should use same reading..." then "Strict everywhere (Recommended)". FINAL MODEL
+(replaces the ~10:50 day-pool reading): for each regional cap C that counts fish X (stream share, region total) and the
+water's own quota N for X: N <= C, X sits inside C (no change); N > C, that cap becomes N for X only (other kinds stay
+<= C, all inside N). Lardeau/Duncan 5 (bull + others <= 2: the T3a bull-trout lifts go), Kootenay Lake main body 10,
+Kaslo/Keen 2, Adams 4, Buckley 1. GOTCHAS entry (Questions for BC Fish and Wildlife) carries every case.
