@@ -377,9 +377,12 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
       if (seen.length && key !== lastSeen.current) { lastSeen.current = key; cb.current.onVisible?.(seen); }
     } catch (e) { report(e); }
   }, [report, renderer]);
-  // asked again as soon as someone (new) listens: a settled map does not draw again by itself (a tab switch)
+  // asked again as soon as someone (new) listens: a settled map does not draw again by itself (a tab switch). (T826) BY
+  // WHO LISTENS, not only whether anyone does: the Map tab zoomed in listens too (its read-ahead), so a switch to the
+  // Conditions tab handed the legend's listener a map whose set it had "already said" — the bar under the Conditions map
+  // had no marks and no count until a pan (iPhone, owner 2026-11-16). Both listeners are stable callbacks.
   useEffect(() => { lastSeen.current = ""; stale.current = true; void reportVisible(); },
-            [onVisible !== undefined, reportVisible]);
+            [onVisible, reportVisible]);
   /**
    * (T348, problem report 98935871: "the number of reaches coloured doesn't change when zoom or scroll changes") A
    * settle over tiles the map already holds need not render "fully" again, so nothing asked and the legend's count and
