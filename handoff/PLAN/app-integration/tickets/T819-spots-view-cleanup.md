@@ -15,3 +15,9 @@ give a warning if used." Read: a spot takes its gauge from the SAME lead-gauge n
 (the release's section → lead gauge, the drainage gate already applied); where that network gives the water no lead, the
 spot shows no estimate; where a lead exists but the water is small next to the gauge, the estimate shows with a plain
 warning.
+
+## Item 3 corrected, owner 2026-11-16 ~22:00 (app chat dialog)
+The map colours the 1.4 km² creek "Below normal" from its only paint panel (08MH001), so "the network that colours the
+map" keeps the estimate. Asked whether a gauge that much bigger may speak for a small water at all, on the map and in
+spots, he picked (verbatim label) "Allow, with a warning (Recommended)". So a spot keeps the sheet and map lead
+(leadOver), and the warning comes from Python (T823, cut-off shown to him with examples).
