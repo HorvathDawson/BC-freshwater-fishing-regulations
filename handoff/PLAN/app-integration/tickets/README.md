@@ -322,6 +322,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T830 | A gauge that reports a live level but has no level history shows no Level (Capilano at Canyon, 15 more) | OPEN | — | owner 2026-11-17 (gauges) |
 | T831 | The route map inside a water's Conditions view draws no gauge dots and no "you are here" pin on the phones | OPEN | — | T826 agent 2026-11-17 |
 | T832 | iOS: a river can keep an old colour after a horizon change or a feed refresh (null feature-state writes dropped) | OPEN | — | T826 agent 2026-11-17 |
+| T833 | A cut on a line's end drops every line touching that node, not just the lines meeting at the cut (Gitnadoix powerline) | OPEN | — | rebuild follow-up 2026-11-17 |
 
 ## Next after closed testing
 
