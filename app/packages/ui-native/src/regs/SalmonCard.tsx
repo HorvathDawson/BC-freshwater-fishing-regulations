@@ -10,7 +10,9 @@
  * (DFO's words: what an "adult chinook" is …), which the region block then leaves out. (T482, owner 2026-11-07) Sizes sit on
  * each species' row (closed rows too), the daylight rule is one `hours` line, and DFO's source block is a fold, closed by
  * default. (T796) Where the rule book closes the page's salmon today the head's badge, the fold's title and its first
- * lines name the book (page, row, its words and dates). No logic and no words of its own: everything is core `salmonCard`'s.
+ * lines name the book (page, row, its words and dates). (T828, owner 2026-11-16) DFO's rows as printed — the species' row
+ * words, DFO's words for this water, the region rules — sit in that fold under the book's lines; the "DFO changed the
+ * wording" warning stays above the table. No logic and no words of its own: everything is core `salmonCard`'s.
  */
 import { useState } from "react";
 import { Image, View } from "react-native";
@@ -154,7 +156,9 @@ function Table({ card, palette, actions, images }: { card: SalmonCardVM; palette
       ))}
       {/* (T343, T482) the page's salmon hours, one line (the daylight note folds into it) */}
       {card.hours && <Text selectable testID="salmon-hours" style={{ ...TYPE.metaSemi, color: palette.ink, paddingTop: 8 }}>{card.hours}</Text>}
-      <Says says={t.says} palette={palette} />
+      {/* (T828) DFO's rows as printed sit in the source fold; where every species is closed they ARE the card's one
+          statement (the region's closure, the rule book's, "not opened"), so they stay here, said once */}
+      {card.allClosed && <Says says={t.says} palette={palette} />}
       {card.gear.map((g) => (
         <Text key={g} testID="salmon-card-block-gear" style={{ ...TYPE.meta, color: palette.sub, paddingTop: 6 }}>{g}</Text>
       ))}
@@ -170,6 +174,7 @@ function Table({ card, palette, actions, images }: { card: SalmonCardVM; palette
  */
 function SourceFold({ card, shown, palette }: {
   card: SalmonCardVM & { readonly checked?: string | null }; shown: readonly string[]; palette: Palette }) {
+  const says = card.allClosed ? [] : salmonTable(card).says;
   const [open, setOpen] = useState(false);
   return (
     <View testID="salmon-source-fold" style={{ marginTop: 12, borderTopWidth: 1, borderTopColor: palette.line }}>
@@ -189,7 +194,17 @@ function SourceFold({ card, shown, palette }: {
               <Text selectable testID="salmon-book-words" style={{ ...TYPE.meta, color: palette.ink }}>{b.words}</Text>
             </View>
           ))}
-          <Text testID="salmon-source" style={{ ...TYPE.metaBold, color: palette.accent }}>{card.source}</Text>
+          {/* (T828, owner 2026-11-16: "Fold into Source") DFO's rows as printed — each species' row words, in-season
+              notice numbers, DFO's words for this water, the region's rules — closed by default; the wording DFO
+              changed stays above the fold */}
+          <Says says={says} palette={palette} />
+          {card.dfoWords && card.dfoWords.notes.length > 0 && (
+            <Words testID="salmon-wording-notes" head={card.dfoWords.notesHead} rows={card.dfoWords.notes} palette={palette} />
+          )}
+          {card.regionRules.map((g) => <RegionRules key={g.label} group={g} palette={palette} />)}
+          <Text testID="salmon-source" style={{ ...TYPE.metaBold, color: palette.accent,
+                                               ...(says.length || card.dfoWords?.notes.length || card.regionRules.length
+                                                 ? { marginTop: SPACE.s3, paddingTop: SPACE.s2, borderTopWidth: 1, borderTopColor: palette.line } : {}) }}>{card.source}</Text>
           <Text testID="salmon-asof" style={{ ...TYPE.meta, color: palette.sub }}>{card.asOf}</Text>
           {card.checked && <Text testID="salmon-checked" style={{ ...TYPE.meta, color: palette.sub }}>{card.checked}</Text>}
           <Text testID="salmon-credit" style={{ ...TYPE.meta, color: palette.sub }}>{card.credit}</Text>
@@ -246,9 +261,6 @@ export function SalmonCard({ card, palette, actions, images }: {
           <Words testID="salmon-wording-changed" head={card.dfoWords.changedHead} rows={card.dfoWords.changed} palette={palette} strong />
         )}
         <Table card={card} palette={palette} actions={actions} images={images} />
-        {card.dfoWords && card.dfoWords.notes.length > 0 && (
-          <Words testID="salmon-wording-notes" head={card.dfoWords.notesHead} rows={card.dfoWords.notes} palette={palette} />
-        )}
         {card.gearProvincial && (
           <Text testID="salmon-gear-provincial" style={{ ...TYPE.metaSemi, color: palette.ink, paddingTop: 8 }}>{card.gearProvincial}</Text>
         )}
@@ -261,7 +273,6 @@ export function SalmonCard({ card, palette, actions, images }: {
         {card.notListed && (
           <Text testID="salmon-not-listed" style={{ ...TYPE.meta, color: palette.ink, paddingTop: 8 }}>{card.notListed}</Text>
         )}
-        {card.regionRules.map((g) => <RegionRules key={g.label} group={g} palette={palette} />)}
         <SourceFold card={card} shown={shown} palette={palette} />
       </View>
     </WaterInset>
