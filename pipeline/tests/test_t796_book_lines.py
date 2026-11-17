@@ -149,3 +149,26 @@ def _one_chain():
     placed = [{"location_id": loc.location_id, "mapped": True, "sections": ["s7", "s8"]}]
     ef = SimpleNamespace(region_name="R3", locations=[loc], water=lambda wid: None)
     return S.build({"3": ef}, {"3": feed}, placed, {"s7": 7, "s8": 8}, section_regions=None)
+
+
+SUPERIOR = ("Freshwater fishing is prohibited in National Parks unless opened under the National Parks Fishing "
+            "Regulations. Where open, anglers require a National Park Fishing Permit. Fishing is prohibited in "
+            "Ecological Reserves in B.C.")
+
+
+def test_a_conditional_closure_says_its_proviso():
+    """X2 (owner 2026-11-16: "Closed, book's wording (Recommended)"), p.9: the national parks row stays closed (RULINGS
+    Z12) but is never "closed to all fishing" outright: its head says "unless opened under the National Parks Fishing
+    Regulations" and its line keeps the permit sentence. The reserves' row beside it keeps the plain head.
+    MUTATION: the plain head and the card says closed to all fishing in Yoho."""
+    r1 = "Freshwater fishing is prohibited in National Parks unless opened under the National Parks Fishing Regulations."
+    sibs = ["Where open, anglers require a National Park Fishing Permit", "Fishing is prohibited in Ecological Reserves"]
+    line = S.book_line(r1, SUPERIOR, sibs)
+    assert line == f"{r1} Where open, anglers require a National Park Fishing Permit."
+    t = S.book_rule("book:x", "zp::r1", range(len(S.DAYS)), {"zp::r1": {"verbatim": line, "pages": [9]}})["verbatim"]
+    assert t == ("Closed by the rule book unless opened under the National Parks Fishing Regulations (p.9): "
+                 f"{line}")
+    reserve = S.book_line("Fishing is prohibited in Ecological Reserves in B.C.", SUPERIOR, sibs)
+    t3 = S.book_rule("book:y", "zp::r3", range(len(S.DAYS)), {"zp::r3": {"verbatim": reserve, "pages": [9]}})
+    assert t3["verbatim"] == "Closed to all fishing by the rule book (p.9): Fishing is prohibited in Ecological " \
+                             "Reserves in B.C."

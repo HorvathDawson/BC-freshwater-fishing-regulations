@@ -66,7 +66,11 @@ FILES = {
         # (T247) the regions a water lies in and the management units it touches (build.core_area), comma-joined: search
         # by "2-8" / "Region 2" and the "Region 2 · MU 2-8" that tells two waters of one name apart. ADDITIVE, so still
         # core/1: a core without it searches by name and town only (the app asks `HAS_ITEM_AREA` first)
-        "item_area": ["ord", "regions", "mus"]}},
+        "item_area": ["ord", "regions", "mus"],
+        # (T796, owner 2026-11-16) a section's note, one sentence said once on its page ("Mostly outside Gladys Lake
+        # Ecological Reserve: its closure (rule book p.9) does not apply here.", `bundle.outside_note`). ADDITIVE, so
+        # still core/1: a core without it has no notes
+        "section_note": ["sid", "note"]}},
     "near": {"format": "near/1", "kind": "sqlite", "tables": {
         "meta": ["k", "v"], "place_water": ["place_id", "ckm", "ord"]}},
     # (T182) the tables T129 measured riding in a file a moment did not otherwise need moved into files of their own:

@@ -111,7 +111,8 @@ SIZE_GATES = {"paint": 1_000_000, "access": 300_000, "core": 1_650_000, "lakes":
 #: History: 14 → 15 MB, owner 2026-10-22 (Q55).
 OFFLINE_GATE = 20_000_000
 
-CORE_TABLES = ("item", "alias", "item_alias", "item_section", "place", "see_pointer", "name_source")
+#: (T796) `section_note` (`bundle.outside_note`): a water's note said once on its page, e.g. "Mostly outside <reserve>"
+CORE_TABLES = ("item", "alias", "item_alias", "item_section", "place", "see_pointer", "name_source", "section_note")
 NEAR_TABLES = ("place_water",)
 COND_TABLES = ("gauge", "section_gauge", "lake_gauge", "basin", "basin_frame", "basin_grid")
 DOWN_TABLES = ("section_down",)
@@ -223,6 +224,7 @@ def _core_flags(con: sqlite3.Connection) -> None:
     core_area(con)
 
 
+SECTION_NOTE_DDL = "CREATE TABLE section_note (sid INTEGER PRIMARY KEY, note TEXT NOT NULL) WITHOUT ROWID"
 NAME_SOURCE_DDL = ("CREATE TABLE name_source (item_id TEXT NOT NULL, name TEXT NOT NULL, src TEXT NOT NULL, "
                    "label TEXT NOT NULL, PRIMARY KEY (item_id, name)) WITHOUT ROWID")
 
@@ -613,10 +615,18 @@ def bundle_files(work: Path, bundle: Path, b: sqlite3.Connection, base: Dict[str
     # (T224) `name_source` is additive: a bundle built before it gives an empty table (no name shows a source)
     with sqlite3.connect(f"file:{bundle}?mode=ro", uri=True) as _b:
         _has_ns = _b.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='name_source'").fetchone()
+        # (T796) `section_note` is additive too: a bundle built before it ships an empty table (no page has a note)
+        _has_sn = _b.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='section_note'").fetchone()
+    _flags = _core_flags if _has_ns else _core_flags_empty_name_source
+
+    def _core_extra(con: sqlite3.Connection) -> None:
+        _flags(con)
+        if not _has_sn:
+            con.execute(SECTION_NOTE_DDL)
     files["core"] = copy_file(work / "core.sqlite", {"b": bundle},
-                              [("b", t, None) for t in CORE_TABLES if t != "name_source" or _has_ns],
-                              {**base, "format": FORMATS["core"]},
-                              extra=_core_flags if _has_ns else _core_flags_empty_name_source)
+                              [("b", t, None) for t in CORE_TABLES
+                               if (t != "name_source" or _has_ns) and (t != "section_note" or _has_sn)],
+                              {**base, "format": FORMATS["core"]}, extra=_core_extra)
     files["near"] = copy_file(work / "near.sqlite", {"b": bundle}, [("b", t, None) for t in NEAR_TABLES],
                               {**base, "format": FORMATS["near"]})
     files["conditions"] = copy_file(work / "conditions.sqlite", {"b": bundle},

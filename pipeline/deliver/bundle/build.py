@@ -756,6 +756,12 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
         _spans.lines_at_lake_edges(db, _lake_edges, {s: p[1] for s, p in places.items()})
         del _lake_edges
         _derived.write(db, cov, places=places)
+        # (T796, owner 2026-11-16) a lake taken out of a reserve or park by name says so once (`outside_note`): after
+        # the rules, whose pages name the closure it is out of
+        from pipeline.atlas.splits.area_splits import load_area_split_defs as _area_defs
+        from pipeline.deliver.bundle import outside_note as _outside_note
+        _outside_note.write(db, _area_defs(), (Path(tiles) if tiles else GENERATED.tiles) / "layers",
+                            _read_handles(build_dir)[1], cov)
         _continuation.write(db, _continues, cov, built_with=_settled)
         _topology.write(db, named_geo, cov, mouths=_mouths, codes=_codes,
                         dfo_places=(_place_words, _chain_places) if _reaches is not None else None)

@@ -1204,6 +1204,8 @@ def load_current_headers(slugs: Iterable[str], cache_dir: Optional[Path] = None)
 
 BOOK_PREFIX = "book:"
 BOOK_WORDS = "Closed to all fishing by the rule book"
+#: (T796 X2) the head of a closure the book makes conditional: "Closed by the rule book unless opened under …"
+BOOK_UNLESS_WORDS = "Closed by the rule book unless"
 #: POLICY (size, measured on r-46e4355a7277 2026-11-16): a book place joins only a chain where DFO lets some salmon be
 #: fished on some day (a verdict open, release or check). On a chain DFO closes every day the answer is closed either
 #: way (only the words would change), and carrying the book there too made the salmon head 92 kB gzipped against its
@@ -1311,6 +1313,10 @@ def _entry_line(db, entry_id: str, rule_id: str) -> Optional[dict]:
 # row), a fragment from the start of its line; the bold marks and the tributary mark dropped, line breaks joined.
 _BOOK_MARK = re.compile(r"\[[^\]\n]*\]")
 _FRAGMENT = re.compile(r"^(?:except|and|or|but|including|unless)\b")
+#: (T796 X2, owner 2026-11-16: "Closed, book's wording (Recommended)") a closure the book makes CONDITIONAL — "Freshwater
+#: fishing is prohibited in National Parks unless opened under the National Parks Fishing Regulations" (p.9, RULINGS
+#: Z12: closed by default) — is never "closed to all fishing" outright: its head says the proviso (`book_rule`).
+_UNLESS = re.compile(r"\bunless (opened under [^.;]+?)\s*(?:[.;]|$)")
 
 
 def _book_norm(text: str) -> str:
@@ -1374,6 +1380,12 @@ def book_line(rule_verbatim: str, entry_verbatim: str, siblings: Sequence[str] =
         if k >= 0:
             tail, low = tail[:k], low[:k]
     tail = tail.rstrip(" ,;")
+    if not tail and _UNLESS.search(rule):
+        # (T796 X2) a closure "unless opened under …" keeps the book's next sentence when it says what holds where
+        # open ("Where open, anglers require a National Park Fishing Permit.")
+        m = re.match(r"\s+(Where open\b[^.;\n]*\.)", norm[j:])
+        if m:
+            tail = " " + m.group(1)
     return (norm[i:j] + tail).replace("\n", " ")
 
 
@@ -1463,8 +1475,10 @@ def book_rule(lid: str, rule: str, days: Iterable[int], words: Mapping[str, dict
     `lift` (`book_lifts`): what lifts it on the printed days it does not close, said after the line."""
     w = words[rule]
     pages = ", ".join(str(p) for p in w.get("pages") or ())
-    head = f"{BOOK_WORDS} (p.{pages})" if pages else BOOK_WORDS
     line = w["verbatim"]
+    unless = _UNLESS.search(line)
+    words = f"{BOOK_UNLESS_WORDS} {unless.group(1)}" if unless else BOOK_WORDS
+    head = f"{words} (p.{pages})" if pages else words
     if lift:
         line = f"{line} {lift[0].upper()}{lift[1:]}" if line.endswith(".") else f"{line}; {lift}"
     return {"rule_id": lid, "type": "retention_limit", "species": [ALL_SALMON], "take": 0, "may_target": False,
