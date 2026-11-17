@@ -197,3 +197,9 @@ change); S3 "take out the lakes but add a note", streams "Keep E8 as is (Recomme
   (S2/S4/X3/S1 lifts, as listed earlier) and X2 on 6,934 sections, plus one group NOT from this lane's changes: 4,762
   Kitimat-area sections' quota-tree sentences (T793's words; the candidate's regs files were the live build's, this
   release's are the lane code's). Notes: 10 sections in `core.section_note` (the 9 + Kennedy Lake).
+- Later the same evening: `section_note` is whole in every `core-<r>` slice (the pipeline half of the app chat's
+  9330d9eb3); the two ponds folded into creeks (Will Creek, Cormier Creek) are named in their note ("The pond on
+  Cormier Creek here lies mostly outside …: its closure (rule book p.9) does not apply to the pond.") because the
+  Cormier pond shares a 62-section part with its creek (a part of its own broke T517's paint sync, so it was
+  reverted). Final scratch release with T770's eulachon line too: r-1603e71cc92c; its diff against r-685b700b2802:
+  95 groups (the 93 above + eulachon leaving the gear lines on 15,664 sections and the new `o`).
