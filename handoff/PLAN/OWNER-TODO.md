@@ -2070,3 +2070,32 @@ More questions (recommended answer first):
   only trout (widens the app scope a little; the app chat folds it into spec section 6). (4) T810 pinned trout top
   line: "Drop it (Recommended)". (5) T810 a lone other fish beside trout: "Stays as today (Recommended)". (6) T810 the
   year bar's "Trout: release until …" line: "Drop it (Recommended)".
+- About 17:15, clarification of the 16:55 fold-row answer (APP chat re-asked; relayed, label picked verbatim): "Salmon +
+  trout folds" (the option read: "Both folded entries (salmon and trout) show their words + an arrow instead of
+  'Details'. The Other fish list stays as it is."). So "All rows get arrow" means the salmon and trout folds only.
+- 17:40, the trout table build summary given in chat (five steps: safety pins and size count; Python builds the table
+  on the side; the permanent same-law check; the app draws it behind a hidden switch, picture pack and sentence list
+  for him; one switch). Two questions, one dialog. Ship the trout table in normal releases before the switch (yes if
+  ≤100 kB / only at the switch), picked: "No, only at the switch". Angler-only notes (page's notes block / inside the
+  table), picked: "Page's notes block (Recommended)". So (T810): the trout section appears only in the switch
+  release; previews before it use side releases (ticket V-py's side scenario); the cutover = flag on + rows 34 +
+  format bump + deletions. Q-D7 decided: angler-only notes stay in the page's caveat block; the table carries none.
+- 17:44, salmon book closures, the data side of the break-it review (T796 hard cases; worker branch
+  `lane/salmon-hardcases-1116`), one dialog of four. Campbell River summer closure (MU 1-1 to 1-6 vs the book's MU
+  1-10), picked: "Keep it closed". Thompson below Kamloops Lake in June (spring closure vs its own row, no printed
+  exemption), typed, verbatim: "keep closed but add to gotchas as one i need to ask fish and wildlife about". Waters
+  partly inside a reserve or park, typed, verbatim: "take out the lakes but add a note. also for streams i thought we
+  cut on all eco reserves so should everypiece be in the eco resevre or is it anti cross over we added for areas? in
+  that case we decided on a cut which defines in versus out. so in that case if it rides the boudnary (straddling) it
+  should get the part intended to be in to have thge closure versus the part out. ask more questions if needed".
+  National parks wording, picked: "Closed, book's wording (Recommended)". So: Campbell unchanged; Thompson June stays
+  closed AND goes on his list of questions for BC Fish and Wildlife; the 9 lakes and ponds mostly outside a reserve
+  or park come out by name, each with a note on the card; for STREAMS he wants the closure on the part inside the
+  reserve only (a straddling section split at the boundary, inside part closed, outside part open): to be checked
+  against how area boundaries work today (cuts vs the straddle rule E8) and put back to him if it needs a decision;
+  national parks read "Closed by the rule book unless opened under the National Parks Fishing Regulations (p.9)" with
+  the permit sentence.
+- 17:46, follow-up on his streams question (told: streams ARE cut at every reserve/park edge, ruling E8: first entry
+  and last exit; a straddling piece or a wander outside under 1 km stays inside; the 4 pieces 10-50% inside sit
+  between the cuts). Keep E8 / cut exactly at the line, picked: "Keep E8 as is (Recommended)". So: streams unchanged;
+  only the 9 lakes and ponds mostly outside come out by name (ruling Z10), each with a note on the card.
