@@ -7,6 +7,7 @@
  * pair, printed in those colours (never tinted); `sheets` names each theme's.
  */
 import cohoLight from "./coho/coho-light.webp";
+import cohoDark from "./coho/coho-dark.webp";
 
 export const COHO = {
   /** Frames in a loop. */
@@ -21,7 +22,7 @@ export const COHO = {
   /** Each theme's sheet. */
   sheets: {
     cvd: cohoLight,
-    dark: cohoLight,
+    dark: cohoDark,
     light: cohoLight,
   },
 } as const;
