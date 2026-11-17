@@ -1,6 +1,6 @@
 # T759 — A DFO rule we cannot match is an ISSUE on its river: the colour stays, the line and a banner say so
 
-Status: IN PROGRESS (owner decided 2026-11-15 evening; the feeds half (worker + Python, `feeds/t759-issues`, which holds `data/t759-missing-place-check`) merged 2026-11-16 on `merge/t759`, see "Merge" at the end; left (Claude): the app half (`app/t759-stripe`) merge, the Android benches, then the staging worker deploy)
+Status: IN PROGRESS (owner decided 2026-11-15 evening; both halves merged 2026-11-16 on `merge/t759` (feeds 5a4f5e245, app 7875490fe), see "Merged" at the end; left (Claude): land it on `redesign/stream-sections`, the Android benches, then the STAGING worker deploy (the app chat); production worker = the owner)
 not merged; left: worker + app halves (the other chat), vectors lines, merge)
 
 Source: main chat 2026-11-15, after T758. Trace with real data: `handoff/PLAN/curation-review/feed-missing-location-2026-11-15.md`.
@@ -193,3 +193,17 @@ Left: his word on the picture, the Android emulator look, then the merge (app ha
 ## Owner, 2026-11-16 ~16:55 (app chat dialog, verbatim label)
 The wider stripe (picture `stripe-before-after.jpg`, sent 12:27, again 16:55): "Wider is right (Recommended)". The
 wider stripe ships as built on this branch.
+
+## Merged, 2026-11-16 20:55 (merge lane for the app chat; branch `merge/t759`, not pushed, not landed)
+- Feeds half: 5a4f5e245 merges `feeds/t759-issues` 8bd68cce2 (worker + the Python half from
+  `data/t759-missing-place-check`). Conflicts in tickets only (README, T757, T759); both texts kept.
+- App half: 7875490fe merges `app/t759-stripe` ef45ca1f9 (banners, "!" mark, the WIDER stripe the owner picked at
+  ~16:55; with T757 item 6, the minimum feed shape). Conflicts: paint imports (T735's dark glow kept beside the stripe's
+  layers), style.sha256 rebuilt by `pnpm style:build`; two counts the stripe moves (profile-style, engine key `gi`).
+- Checks: worker suite 31 files / 506 tests + worker typecheck; `dfo_vectors --check` rc 0; DFO pipeline tests pass;
+  map/core/ui/tools vitest pass. Nothing drawn on a device: the Android benches are the app chat's.
+- Worker deploy needs: this merge landed on `redesign/stream-sections` (and pushed: `deploy/staging/feeds.sh` refuses
+  commits not on GitHub), then `deploy/staging/feeds.sh` by the app chat (worker tests gate it; `REPORT_SALT` set;
+  `RELEASES_DIR` naming the live release folder when run outside the main checkout). The new worker serves `issues` and
+  `dfo.pieces` in index.json and `dfoIssues` in /status.json; an app without this half ignores `issues` (no refusal),
+  so the app half goes first only for the banners and stripe to show from the first issue. Production: the owner's `deploy/prod/feeds.sh`.
