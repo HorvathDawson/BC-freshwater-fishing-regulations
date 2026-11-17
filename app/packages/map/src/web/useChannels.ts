@@ -52,8 +52,9 @@ export function useChannels(refs: WebMapRefs, { wasLit, wasWater, wasCue, wasNea
     });
   };
   const statusDay = status ? readingDayOf(status.day) : 0;
-  useEffect(() => toChannel("status", status ? statusInput(status) : null, `status:${statusDay}`),
-            [status?.index, statusDay, status?.only, at.atlas]);
+  // (T796 A6) with the salmon handed over, the day's DFO finfish closures paint closed on Standard (`statusInput`)
+  useEffect(() => toChannel("status", status ? statusInput(status, salmon) : null, `status:${statusDay}`),
+            [status?.index, statusDay, status?.only, salmon?.facts, at.atlas]);
   useEffect(() => toChannel("standing", standing ? standingInput(standing) : null, "standing"),
             [standing?.labels, standing?.values, at.atlas]);
   // the lake modes (Depth, Stocked): the release's lake facts — a new release relabels both, a new day the stocked bands

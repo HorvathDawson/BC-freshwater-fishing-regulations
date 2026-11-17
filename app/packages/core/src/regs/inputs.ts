@@ -60,6 +60,10 @@ export interface RegsInputs {
   readonly lics: ReadonlyMap<number, unknown>;              // export licensing words by lix
   readonly statics: Statics;
   readonly mergedParts: readonly MergedPart[] | null;
+  /** (T796) the tapped section's or part's notes, each Python's own sentence from core `section_note` ("Mostly outside
+   *  Gladys Lake Ecological Reserve: its closure (rule book p.9) does not apply here."), said once, in section order;
+   *  [] none. Drawn as they are (`keep.ts` `sectionNotesOf`). */
+  readonly notes: readonly string[];
 }
 
 export interface AkeyRow { akey: number; ruleset: number; licensingSet: number | null; steelheadWater: boolean; steelhead: 1 | 2 | null; steelheadRules: boolean; kind: string; tidal: boolean; seg: number; mom: number | null; nseg: number }

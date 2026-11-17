@@ -8,7 +8,7 @@
  * further notice") is a plain "closed" row with no Details: there is nothing more to see.
  */
 import type { GroupVM, TreeNodeVM } from "./regs/model";
-import { SALMON_WORDS, type SalmonCardVM } from "./salmon";
+import { SALMON_WORDS, type SalmonBookVM, type SalmonCardVM } from "./salmon";
 
 export const GLANCE_WORDS = {
   /** the table's head once it holds more than the other fish */
@@ -33,6 +33,10 @@ export interface GlanceRowVM {
   readonly fold?: boolean;
   /** (T759, owner 2026-11-15: "mark the folded row") the card carries a DFO issue banner: the folded row wears a small mark, so a banner inside is not missed. Absent: none. */
   readonly issue?: boolean;
+  /** (T796, owner 2026-11-16 15:19: "we need to make sure it says where the closure is from") on a plain closed row
+   *  (`fold` false) that is the rule book's closure: each closure's words (page, line, dates) and where it is from,
+   *  said under the row — the card behind it is never drawn there */
+  readonly book?: readonly SalmonBookVM[];
 }
 
 /** The first picture a group's tree shows — a rainbow trout where the group has one (the picture anglers know it by). */
@@ -61,7 +65,8 @@ export function salmonGlance(card: SalmonCardVM): GlanceRowVM {
   // (T759) a DFO issue banner lives inside the card: the row is marked, and a closed-all-year row still opens to it
   const issue = card.issues.length > 0;
   const mark = issue ? { issue: true as const } : {};
-  if (card.closedOnly) return { source: "dfo", thumb: "CO", name: card.title, value: SALMON_WORDS.status.closed.toLowerCase(), tone: "closed", fold: issue, ...mark };
+  if (card.closedOnly) return { source: "dfo", thumb: "CO", name: card.title, value: SALMON_WORDS.status.closed.toLowerCase(), tone: "closed", fold: issue, ...mark,
+                                 ...(card.book.length ? { book: card.book } : {}) };
   const all = card.rows.map((r) => r.status);
   const s = all.length && all.every((x) => x === all[0]) ? all[0]! : null;
   if (s === null || s === "varies") return { source: "dfo", thumb: "CO", name: card.title, value: null, tone: "keep", ...mark };

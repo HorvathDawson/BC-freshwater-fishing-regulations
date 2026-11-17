@@ -152,9 +152,15 @@ class RuleRecord:
     fishery_notices: List[Dict[str, str]]
     source: str
     order: int
+    #: (T787) from a table DFO commented out (`parse.table_hidden`): kept for the reviewer, answers nothing. Written
+    #: only when true, so a page with no hidden table scrapes as before
+    hidden: bool = False
 
     def to_dict(self) -> dict:
-        return asdict(self)
+        d = asdict(self)
+        if not d["hidden"]:
+            d.pop("hidden")
+        return d
 
 
 #: Region-level shape. A change here is structural — see `entries.reconcile`.
@@ -224,7 +230,7 @@ def extract(u: Untangled) -> tuple[List[Location], List[RuleRecord], dict]:
             rules.append(RuleRecord(
                 fingerprint=loc.fingerprint,
                 species=r.species or "All", dates=r.dates, limits_gear=r.limits_gear,
-                fishery_notices=r.fishery_notices, source=r.source, order=order,
+                fishery_notices=r.fishery_notices, source=r.source, order=order, hidden=r.hidden,
             ))
             order += 1
 
@@ -270,6 +276,12 @@ def emit(slug: str, out_dir: Path, cache_dir: Path = DEFAULT_CACHE) -> tuple[int
     return emit_html(slug, load_cached(slug, cache_dir), out_dir)
 
 
+#: HOW A PAGE IS SCRAPED into `rules/region-<slug>.json`, stamped on the file; `feed.emit` refuses a rules file of
+#: another number, so a typed feed is never made from rows scraped by older code. 2 (T787): a row from a table DFO
+#: commented out carries `hidden` — a file scraped before it has those rows unmarked, and they would answer.
+SCRAPE_FORMAT = 2
+
+
 def emit_html(slug: str, html: str, out_dir: Path) -> tuple[int, int]:
     """Write `locations/region-<slug>.json` and `rules/region-<slug>.json` from one page. The rules file carries the
     page's stamp (`fetch.page_stamp`) and its header notes (`header.parse_header`) — ONE VINTAGE (T366): the typed feed
@@ -291,7 +303,7 @@ def emit_html(slug: str, html: str, out_dir: Path) -> tuple[int, int]:
     }, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
     (out_dir / "rules" / f"region-{slug}.json").write_text(json.dumps({
-        "region": slug, "date_modified": parsed.date_modified,
+        "region": slug, "date_modified": parsed.date_modified, "scrape_format": SCRAPE_FORMAT,
         "page": page_stamp(html), "notes": parse_header(html, slug), "header_format": HEADER_FORMAT,   # T482
         "preamble": parsed.preamble,
         "rules": [r.to_dict() for r in rules],

@@ -159,6 +159,8 @@ class Rule:
     fishery_notices: List[Dict[str, str]] = field(default_factory=list)
     source: str = "table"
     row_index: int = -1
+    #: (T787) the row sits in a table DFO commented out: provenance only, it answers nothing
+    hidden: bool = False
 
     @classmethod
     def from_row(cls, r: RegRow) -> "Rule":
@@ -169,6 +171,7 @@ class Rule:
             fishery_notices=r.fishery_notices,
             source=r.source,
             row_index=r.row_index,
+            hidden=r.hidden,
         )
 
 

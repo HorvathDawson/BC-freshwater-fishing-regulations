@@ -174,7 +174,8 @@ const SPECIES: Record<string, string[]> = {
   eulachon: ["EU"],
 };
 /** T229: the salmon codes; a row about any other fish ("All | No fishing for eulachon", Region 6 B(ii)) is never a
- * salmon rule — typed as an advisory whose review_reason starts OTHER_FISH, shown as its own line (salmon.ts gearOn). */
+ * salmon rule — typed as an advisory whose review_reason starts OTHER_FISH: one that closes it ("No fishing for eulachon") is
+ * the chain's closure line `o` (salmon.ts `closuresOn`, T770), never a gear line. */
 const SALMON_CODES = new Set(["SA", "CH", "CO", "SK", "PK", "CM"]);
 export const OTHER_FISH = "another fish, not salmon: ";
 /** (T671 D2, typed.py) the advisory `review_reason` prefixes salmon.ts reads: a row DFO has not set, a gear permission */
@@ -461,6 +462,10 @@ export interface TypedRule {
   when_targeting?: string[];
   /** (T676) why this rule cannot be read on a day — "dates unparsed — check DFO" (salmon.ts: a `check` verdict) */
   check?: string;
+  /** (T787) the row sits in a table DFO commented out: provenance only, it answers nothing (`salmon.ts` `inForce`) */
+  hidden?: true;
+  /** (T796 A6) the closure of a "Finfish closure" row: ALL fishing is closed, trout included (its verdict carries `f`) */
+  finfish?: true;
 }
 
 /** The DFO date cell's unparsed state, as the rule and the verdict carry it. */
@@ -653,6 +658,24 @@ function stripDefaults<T extends object>(o: T): Partial<T> {
     out[k] = v;
   }
   return out as Partial<T>;
+}
+
+// ── the marks a typed DFO rule carries beside the catalogue's fields ────────────────────────────────────────────────
+
+/** (T796 A6, owner 2026-11-16: "Closes the whole page (Recommended)") "Finfish closure" closes ALL FISHING on its stretch
+ *  on its dates, not only salmon. Its salmon reading is the closure it always was; the closing rule carries
+ *  `finfish: true` and the verdict it gives carries `f: 1` (`salmon.ts` `verdictOn`). A finfish closure printed for
+ *  PART of the water inside a limits cell is that part's (`RE_PART_CLOSURE`). typed.py `_RE_FINFISH`. */
+const RE_FINFISH = pyRe("\\bfinfish\\s+closure\\b", "i");
+
+/** typed.typed_rules: ONE scraped row -> its typed rules as the feed stores them: `toRules` with the DFO marks —
+ *  `finfish` on the closure a "Finfish closure" row states (T796 A6) and `hidden` on every rule of a row from a table
+ *  DFO commented out (T787). The one way a row is typed (`feed.ts` `build`, the vectors' hand rows). */
+export function typedRules(rec: ScrapedRule & { hidden?: boolean }, ruleBase: string, order: number, reg: Registry): TypedRule[] {
+  let rules = toRules(rec, ruleBase, order, reg);
+  if (search(RE_FINFISH, sub(RE_PART_CLOSURE, " ", rec.limits_gear || "")))
+    rules = rules.map((r) => (r.type === "retention_limit" && r.may_target === false && !r.within ? { ...r, finfish: true as const } : r));
+  return rec.hidden ? rules.map((r) => ({ ...r, hidden: true as const })) : rules;
 }
 
 /** typed.row_text */

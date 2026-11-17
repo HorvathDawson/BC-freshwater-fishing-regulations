@@ -187,6 +187,15 @@ def test_paint_reproduces_the_status_index_and_the_flow_tables(rel):
     sp = b.execute("SELECT sid, panel_id, area_km2 FROM section_panel ORDER BY sid").fetchall()
     area = P.decode_area(gzip.decompress((d.parent / m["files"]["flow-area"]["url"]).read_bytes()), len(sp))
     assert [(s, p, a) for (s, p), a in zip(paint["section_panel"], area)] == sp
+    # (T823) flow-small, re-derived from what the app holds (paint's members, flow-area's targets): bit i where member
+    # ord i drains at least the threshold times the section
+    from pipeline.gauges.consume import small_water as SW
+    small = P.decode_small(gzip.decompress((d.parent / m["files"]["flow-small"]["url"]).read_bytes()), len(sp))
+    held: dict = {}
+    for r in paint["panel_member"]:
+        held.setdefault(r[0], []).append(r[4])
+    assert small == [sum(1 << i for i, x in enumerate(held[p]) if x >= SW.ratio_for() * a)
+                     for (_s, p), a in zip(paint["section_panel"], area)]
     # (T54) paint's access half is exactly the bundle's no-access rows; the access file exactly the gentler tiers
     def rows_of(tiers, got):
         names = [(t, n) for t, n in got["areas"]]
@@ -266,18 +275,43 @@ def test_two_builds_write_the_same_bytes_and_the_sizes_hold(rel):
 
 @pytest.mark.needs_bundle
 def test_a_built_release_is_exactly_the_contract(rel, tmp_path):
-    from pipeline.deliver.release.contract import FILES, OPTIONAL
-    d = rel[0]
+    assert contract_problems(rel[0], tmp_path) == []
+    # (T823) the small-water sentence and its threshold ride in the conditions meta, word for word
+    from pipeline.gauges.consume import small_water as SW
+    meta = dict(_open(rel[0], "conditions", tmp_path).execute("SELECT k, v FROM meta"))
+    assert (meta[SW.META_TEXT_KEY], meta[SW.META_RATIO_KEY]) == (SW.SMALL_WATER_TEXT, f"{SW.ratio_for():g}")
+
+
+def contract_problems(d: Path, tmp: Path, every_file: bool = True) -> list:
+    """Every way the release at `d` differs from the contract: its files (all but the optional ones; `lakes` is
+    prepared, not fed, owner 2026-10-21), each file's format and tables, and (T810 ticket I, contract 2.1) each OPTIONAL
+    answers section ALL OR NOTHING — its version in the manifest's `regulations.versions` and the water file's layout,
+    its `cell` column and tables in every regs file (`contract.region_tables`), or none of them. `every_file` False: a
+    file the release lacks is not counted (the mini release has no `salmon-x`: no section of it lies in no region)."""
+    from pipeline.deliver.release.contract import FILES, OPTIONAL, OPTIONAL_SECTION_TABLES, region_tables
     m = json.loads((d / "manifest.json").read_text())
-    # every file but the optional ones; `lakes` is prepared, not fed (owner 2026-10-21), so this release has none
-    assert set(m["files"]) == set(FILES) - OPTIONAL
+    out = []
+    built = (set(FILES) - OPTIONAL) | {"flow-small"}     # (T823) `flow-small`: optional to READ, always built
+    if (set(m["files"]) != built) if every_file else not set(m["files"]) <= set(FILES):
+        out.append(f"files {sorted(set(m['files']) ^ built)} differ from the contract's")
+    versions = (m.get("regulations") or {}).get("versions") or {}
+    sections = [n for n in OPTIONAL_SECTION_TABLES if n in versions]
     for name, spec in ((n, s) for n, s in FILES.items() if n in m["files"]):
-        assert m["files"][name]["format"] == spec["format"], name
+        if m["files"][name]["format"] != spec["format"]:
+            out.append(f"{name}: format {m['files'][name]['format']}")
         if spec["kind"] == "sqlite":
-            con = _open(d, name, tmp_path)
+            con = _open(d, name, tmp)
             got = {t: [r[1] for r in con.execute(f"PRAGMA table_info({t})")]
                    for (t,) in con.execute("SELECT name FROM sqlite_master WHERE type='table'")}
-            assert got == spec["tables"], name
+            want = region_tables(sections) if name.startswith("regs-") and name != "regs-sid" else spec["tables"]
+            if got != want:
+                out.append(f"{name}: tables {sorted(set(got) ^ set(want)) or 'columns'} differ")
+            if name == "water":
+                layout = json.loads(dict(con.execute("SELECT k, v FROM meta"))["layout"])
+                if {n: v for n, v in layout["versions"].items() if n in OPTIONAL_SECTION_TABLES} != \
+                        {n: versions[n] for n in sections}:
+                    out.append(f"water: the layout's optional sections {layout['versions']} are not the manifest's")
+    return out
 
 
 @pytest.mark.needs_bundle

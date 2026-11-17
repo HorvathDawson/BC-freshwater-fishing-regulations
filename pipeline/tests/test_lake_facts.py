@@ -98,8 +98,8 @@ def test_a_file_from_another_atlas_is_refused_by_the_release():
 def test_the_contract_names_the_file_and_its_format():
     from pipeline.deliver.release import build as B
     from pipeline.deliver.release import contract as C
-    assert (B.FORMATS["lakes"], C.FILES["lakes"], C.OPTIONAL) == \
-        ("lakes/1", {"format": "lakes/1", "kind": "bin", "tables": {}}, frozenset({"lakes"}))
+    assert (B.FORMATS["lakes"], C.FILES["lakes"], "lakes" in C.OPTIONAL) == \
+        ("lakes/1", {"format": "lakes/1", "kind": "bin", "tables": {}}, True)
     assert C.UNITS["lakes"].startswith("lakes/1: 'BCLK'")
 
 

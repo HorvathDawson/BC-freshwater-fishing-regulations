@@ -108,17 +108,23 @@ def _now() -> str:
 # ── the calendar of one location, and the chain composed from them ───────────────────────────────────────────────────
 
 def location_calendar(rules: Sequence[dict], verdicts: S._Interner, gears: S._Interner) -> dict:
-    """One location's year: per species runs of a verdict index (-1: says nothing that day), gear runs (-1: none)."""
-    chain = [list(rules)]
+    """One location's year: per species runs of a verdict index (-1: says nothing that day), gear runs (-1: none).
+    (T787) Only the rows in force: a row from a table DFO commented out says nothing (`deliver.salmon.in_force`)."""
+    chain = [S.in_force(rules)]
     per_sp: List[List[int]] = [[] for _ in S.SPECIES]
     gear: List[int] = []
+    shut: List[int] = []
     for md in S.DAYS:
         for k, sp in enumerate(S.SPECIES):
             v = S.verdict_on(chain, sp, md)
             per_sp[k].append(verdicts(v) if v else -1)
         g = S.gear_on(chain, md)
         gear.append(gears(list(g)) if g else -1)
-    return {"sp": [S.runs_of(x) for x in per_sp], "g": S.runs_of(gear)}
+        o = S.closures_on(chain, md)
+        shut.append(gears(list(o)) if o else -1)
+    # (T770) `o`: another fish's closure lines (`deliver.salmon.closures_on`), absent where none
+    return {"sp": [S.runs_of(x) for x in per_sp], "g": S.runs_of(gear),
+            **({"o": S.runs_of(shut)} if any(x >= 0 for x in shut) else {})}
 
 
 def _at(runs: Sequence[int], day: int) -> int:
@@ -135,7 +141,7 @@ def compose(lids: Sequence[str], locs: Mapping[str, dict], verdicts: Sequence[di
             intern: Optional[Callable[[dict], int]] = None, gears: Optional[Sequence[Sequence[str]]] = None,
             gear_intern: Optional[Callable[[list], int]] = None) -> dict:
     """A release chain's year from the feed: per species and day the FIRST location (narrowest first, the chain's own
-    order) with an answer, else `NOT_LISTED` (index 0); gear the first with any; the map status from the five. The
+    order) with an answer, else `NOT_LISTED` (index 0); gear every location's, narrowest first, a line once (T770); the map status from the five. The
     reference the app's `withSalmonFeed` is held to — equal to `deliver.salmon.chain_calendar` over the same rules.
     `undrawn`: the chain's `u` (DFO places on its water not drawn yet) — never the map's (T372, the trout way), only
     whether the header closure `c` holds for them too. `speaks`: an undrawn place's own chain carries `n`, the days DFO
@@ -148,6 +154,7 @@ def compose(lids: Sequence[str], locs: Mapping[str, dict], verdicts: Sequence[di
         [[locs[l] for l in lids if l in locs]]
     per_sp: List[List[int]] = [[] for _ in S.SPECIES]
     gear: List[int] = []
+    fish: List[int] = []
     mapc: List[int] = []
     first = lambda xs, none=0: next((v for v in xs if v >= 0), none)            # noqa: E731
 
@@ -166,11 +173,13 @@ def compose(lids: Sequence[str], locs: Mapping[str, dict], verdicts: Sequence[di
         return ix
 
     def gear_of(gs: List[int]) -> int:
+        """(T770) every place's gear lines that day, narrowest first, the same words once (`deliver.salmon.gear_on`);
+        two regions' groups the same way (`both_gear`): one list either way, added through `gear_intern` when new"""
         have = [g for g in gs if g >= 0]
         if len(have) <= 1:
             return have[0] if have else -1
         if gears is None or gear_intern is None:
-            raise S.SalmonError("live.compose: two regions' gear lines need `gears` and `gear_intern`")
+            raise S.SalmonError("live.compose: gear lines of two places need `gears` and `gear_intern`")
         merged = list(S.both_gear([gears[g] for g in have]))
         same = next((g for g in have if list(gears[g]) == merged), None)
         return same if same is not None else gear_intern(merged)
@@ -181,14 +190,17 @@ def compose(lids: Sequence[str], locs: Mapping[str, dict], verdicts: Sequence[di
             ix = one([first(_at(c["sp"][k], day) for c in cals) for cals in subs])
             per_sp[k].append(ix)
             vs.append(verdicts[ix])
-        gear.append(gear_of([first((_at(c["g"], day) for c in cals), -1) for cals in subs]))
+        gear.append(gear_of([gear_of([_at(c["g"], day) for c in cals]) for cals in subs]))
+        fish.append(gear_of([gear_of([_at(c["o"], day) if c.get("o") else -1 for c in cals]) for cals in subs]))
         mapc.append(S.MAP_CODES.index(S.map_status(vs)))
     sp = [S.runs_of(x) for x in per_sp]
     # T356: closed by the region header every day — and so is every undrawn place the feed lists — `c`
     shut = all(S.closed_by_header(locs[l]["sp"], verdicts) for l in undrawn if l in locs)
     c = S.closed_by_header(sp, verdicts) if shut else []
     n = S.speaks_runs(per_sp, verdicts) if speaks else None
-    return {"sp": sp, "g": S.runs_of(gear), "m": S.runs_of(mapc), **({"c": c} if c else {}), **({"n": n} if n else {})}
+    return {"sp": sp, "g": S.runs_of(gear), "m": S.runs_of(mapc),
+            **({"o": S.runs_of(fish)} if any(x >= 0 for x in fish) else {}),
+            **({"c": c} if c else {}), **({"n": n} if n else {})}
 
 
 # ── one region ───────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -266,7 +278,8 @@ def join(slug: str, ef, typed: dict, locations: Sequence, report, close: Optiona
         hit = index.get(fp) or close.get(fp)
         if hit is not None:
             from pipeline.regs.dfo_salmon.quota import mark_shared, pool_of
-            rules.setdefault(hit.location_id, []).extend(mark_shared(loc["rules"], pool_of(hit)))
+            # (T787) only the rows in force: a hidden row (a commented-out table) answers nothing
+            rules.setdefault(hit.location_id, []).extend(mark_shared(S.in_force(loc["rules"]), pool_of(hit)))
             if fp not in close:
                 continue
         if fp.startswith("page:"):
@@ -385,11 +398,13 @@ def _write(p: Path, obj) -> None:
 
 
 def _reindex(c: dict, prev: dict, verdicts: S._Interner, gears: S._Interner) -> dict:
-    """One calendar `{sp, g}` of the last feed, its verdict / gear indices moved into this run's tables."""
+    """One calendar `{sp, g, o?}` of the last feed, its verdict / gear indices moved into this run's tables."""
     pv, pg = prev.get("verdicts") or [], prev.get("gears") or []
     sp = [[x if k % 2 == 0 or x < 0 else verdicts(pv[x]) for k, x in enumerate(runs)] for runs in c["sp"]]
     g = [x if k % 2 == 0 or x < 0 else gears(pg[x]) for k, x in enumerate(c["g"])]
-    return {"sp": sp, "g": g}
+    # (T770) another fish's closure lines are carried as the gear lines are (an index into `gears`)
+    o = [x if k % 2 == 0 or x < 0 else gears(pg[x]) for k, x in enumerate(c["o"])] if c.get("o") else None
+    return {"sp": sp, "g": g, **({"o": o} if o else {})}
 
 
 def _carry(prev: dict, slug: str, verdicts: S._Interner, gears: S._Interner, only: Optional[set] = None) -> dict:

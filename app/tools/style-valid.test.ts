@@ -25,6 +25,9 @@ import { fileURLToPath } from "node:url";
 import { join } from "node:path";
 import { STYLE_META, runtimeStyle } from "@app/map";
 import { nativeStyle } from "../packages/map/src/native-style";
+import { statusInput } from "../packages/map/src/colouring";
+import { NO_VALUES, type ChannelValues } from "../packages/map/src/style";
+import type { SalmonFacts, StatusIndex } from "@app/core";
 
 const ROOT = fileURLToPath(new URL("../..", import.meta.url));
 const MAP_STYLE = JSON.parse(readFileSync(
@@ -89,4 +92,34 @@ describe("MapLibre Native will accept what we hand it", () => {
       expect(problems, problems.slice(0, 6).join("\n")).toEqual([]);
     });
   }
+});
+
+/*
+ * (T796 A6) THE STANDARD MAP UNDER A DFO FINFISH CLOSURE: every status layer's colour (and its outline, closed stripe,
+ * gear marks, no-access dots and order fade) reads the salmon chain label `sp` ahead of the day's profile — a `case` the
+ * plain matrix above never builds (it is handed no day). Shown, and isolated away by a legend tap; both grounds.
+ */
+describe("MapLibre accepts the finfish closure paint", () => {
+  it("every Standard layer with a chain closed to all fishing, on the map and on satellite, shown and isolated away", () => {
+    const facts = { handles: "0".repeat(16), chains: 2, chainOf: () => 1, payload: {
+      format: "salmon/4", credit: "DFO", default: 0, regions: {}, gears: [], unmapped: [],
+      verdicts: [{ s: "closed", t: "Not opened by DFO", d: 1 }, { s: "closed", t: "Finfish closure", f: 1 }],
+      chains: [{ r: [], w: "", l: [], sp: [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0]], g: [0, -1], m: [0, 3] },
+               { r: [], w: "", l: [], sp: [[0, 1], [0, 0], [0, 0], [0, 0], [0, 0]], g: [0, -1], m: [0, 3] }] } } as SalmonFacts;
+    const index = { handles: "0".repeat(16), reachDigest: "0".repeat(16), sections: 0, waters: 0, profiles: 1, profileOf: () => 0,
+                    profileCodeOn: () => "own", codeOn: () => "own", waterCodeOn: () => "own" } as StatusIndex;
+    const day = new Date(2026, 6, 20);
+    const method = { fly: ["m1"], bait: ["m2"] } as unknown as ChannelValues["method"];
+    const modes = Object.fromEntries(Object.entries(STYLE_META.colorModes)
+      .filter(([, m]) => (m as Record<string, unknown>)["profile"] !== undefined).map(([id]) => [id, "profile"]));
+    const problems: string[] = [];
+    for (const only of [null, "own"] as const) for (const basemap of ["map", "satellite"] as const) {
+      const status = statusInput({ index, day, only }, { facts, day }).values() as ChannelValues["status"];
+      const { style } = nativeStyle({ at: AT, theme: "light", view: "plain", modes, basemap, gauges: AT.gauges,
+                                      values: { ...NO_VALUES, status, method } });
+      expect(JSON.stringify(style)).toContain('["feature-state","sp"]');
+      for (const e of validateStyleMin(style as never)) problems.push(`${only} ${basemap}: ${e.message}`);
+    }
+    expect(problems, problems.slice(0, 6).join("\n")).toEqual([]);
+  });
 });

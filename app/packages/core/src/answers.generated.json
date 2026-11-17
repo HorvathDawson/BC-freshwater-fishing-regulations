@@ -8864,6 +8864,1273 @@
    ],
    "title": "Unnamed",
    "type": "object"
+  },
+  "trout": {
+   "$defs": {
+    "Band": {
+     "additionalProperties": false,
+     "properties": {
+      "from": {
+       "minimum": 0,
+       "title": "From",
+       "type": "integer"
+      },
+      "kind": {
+       "enum": [
+        "upto",
+        "own",
+        "shared",
+        "possession"
+       ],
+       "title": "Kind",
+       "type": "string"
+      },
+      "text": {
+       "minLength": 1,
+       "title": "Text",
+       "type": "string"
+      },
+      "to": {
+       "minimum": 0,
+       "title": "To",
+       "type": "integer"
+      }
+     },
+     "required": [
+      "from",
+      "to",
+      "text",
+      "kind"
+     ],
+     "title": "Band",
+     "type": "object"
+    },
+    "Box": {
+     "additionalProperties": false,
+     "properties": {
+      "bands": {
+       "items": {
+        "$ref": "#/$defs/Band"
+       },
+       "title": "Bands",
+       "type": "array"
+      },
+      "head": {
+       "minLength": 1,
+       "title": "Head",
+       "type": "string"
+      },
+      "kind": {
+       "enum": [
+        "keep",
+        "release",
+        "closed"
+       ],
+       "title": "Kind",
+       "type": "string"
+      },
+      "label": {
+       "anyOf": [
+        {
+         "minLength": 1,
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Label"
+      },
+      "rows": {
+       "items": {
+        "$ref": "#/$defs/TRow"
+       },
+       "minItems": 1,
+       "title": "Rows",
+       "type": "array"
+      },
+      "strip": {
+       "anyOf": [
+        {
+         "minLength": 1,
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Strip"
+      },
+      "tag": {
+       "anyOf": [
+        {
+         "minLength": 1,
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Tag"
+      }
+     },
+     "required": [
+      "kind",
+      "head",
+      "label",
+      "strip",
+      "tag",
+      "rows",
+      "bands"
+     ],
+     "title": "Box",
+     "type": "object"
+    },
+    "DateSet": {
+     "additionalProperties": false,
+     "properties": {
+      "band": {
+       "additionalProperties": {
+        "minLength": 1,
+        "type": "string"
+       },
+       "title": "Band",
+       "type": "object"
+      },
+      "box": {
+       "additionalProperties": {
+        "minLength": 1,
+        "type": "string"
+       },
+       "title": "Box",
+       "type": "object"
+      },
+      "card": {
+       "anyOf": [
+        {
+         "minLength": 1,
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Card"
+      },
+      "fold": {
+       "anyOf": [
+        {
+         "minLength": 1,
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Fold"
+      },
+      "row": {
+       "additionalProperties": {
+        "minLength": 1,
+        "type": "string"
+       },
+       "title": "Row",
+       "type": "object"
+      },
+      "sheet": {
+       "patternProperties": {
+        "^(CT|DV|EB|GB|LT|RB|ST)(/(wild|hatchery))?$": {
+         "items": {
+          "minLength": 1,
+          "type": "string"
+         },
+         "type": "array"
+        }
+       },
+       "title": "Sheet",
+       "type": "object"
+      },
+      "top": {
+       "anyOf": [
+        {
+         "minLength": 1,
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Top"
+      }
+     },
+     "required": [
+      "top",
+      "card",
+      "fold",
+      "box",
+      "band",
+      "row",
+      "sheet"
+     ],
+     "title": "DateSet",
+     "type": "object"
+    },
+    "FishSheet": {
+     "additionalProperties": false,
+     "properties": {
+      "head": {
+       "minLength": 1,
+       "title": "Head",
+       "type": "string"
+      },
+      "here": {
+       "items": {
+        "$ref": "#/$defs/SheetLine"
+       },
+       "title": "Here",
+       "type": "array"
+      },
+      "src": {
+       "items": {
+        "minimum": 0,
+        "type": "integer"
+       },
+       "maxItems": 4,
+       "title": "Src",
+       "type": "array"
+      }
+     },
+     "required": [
+      "head",
+      "here",
+      "src"
+     ],
+     "title": "FishSheet",
+     "type": "object"
+    },
+    "Fold": {
+     "additionalProperties": false,
+     "properties": {
+      "tone": {
+       "enum": [
+        "keep",
+        "release",
+        "closed",
+        "none"
+       ],
+       "title": "Tone",
+       "type": "string"
+      },
+      "value": {
+       "minLength": 1,
+       "title": "Value",
+       "type": "string"
+      }
+     },
+     "required": [
+      "value",
+      "tone"
+     ],
+     "title": "Fold",
+     "type": "object"
+    },
+    "SheetLine": {
+     "additionalProperties": false,
+     "properties": {
+      "bold": {
+       "title": "Bold",
+       "type": "boolean"
+      },
+      "t": {
+       "minLength": 1,
+       "title": "T",
+       "type": "string"
+      }
+     },
+     "required": [
+      "t",
+      "bold"
+     ],
+     "title": "SheetLine",
+     "type": "object"
+    },
+    "TRow": {
+     "additionalProperties": false,
+     "properties": {
+      "fish": {
+       "enum": [
+        "RB",
+        "ST",
+        "CT",
+        "GB",
+        "DV",
+        "LT",
+        "EB",
+        "LW",
+        "MW",
+        "LMB",
+        "SMB",
+        "KO",
+        "GR",
+        "BB",
+        "WSG",
+        "BCB",
+        "NP",
+        "YP",
+        "WP",
+        "GE",
+        "IN",
+        "CRA",
+        "CH",
+        "CULTUS_LAKE_SCULPIN",
+        "ENOS_LAKE_STICKLEBACK",
+        "MISTY_LAKE_STICKLEBACK",
+        "NOOKSACK_DACE",
+        "PAXTON_LAKE_STICKLEBACK",
+        "ROCKY_MOUNTAIN_SCULPIN",
+        "SHORTHEAD_SCULPIN",
+        "SALISH_SUCKER",
+        "VANANDA_CREEK_STICKLEBACK",
+        "VANCOUVER_LAMPREY",
+        "WESTERN_BROOK_LAMPREY_MORRISON_CREEK",
+        "WHITE_STURGEON_PROTECTED_POPULATIONS",
+        "GREEN_STURGEON"
+       ],
+       "title": "Fish",
+       "type": "string"
+      },
+      "key": {
+       "pattern": "^(CT|DV|EB|GB|LT|RB|ST)(/(wild|hatchery))?$",
+       "title": "Key",
+       "type": "string"
+      },
+      "label": {
+       "anyOf": [
+        {
+         "minLength": 1,
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Label"
+      },
+      "lines": {
+       "items": {
+        "minLength": 1,
+        "type": "string"
+       },
+       "title": "Lines",
+       "type": "array"
+      },
+      "name": {
+       "minLength": 1,
+       "title": "Name",
+       "type": "string"
+      },
+      "origin": {
+       "anyOf": [
+        {
+         "enum": [
+          "hatchery",
+          "wild"
+         ],
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Origin"
+      },
+      "quiet": {
+       "items": {
+        "minLength": 1,
+        "type": "string"
+       },
+       "title": "Quiet",
+       "type": "array"
+      },
+      "sheet": {
+       "$ref": "#/$defs/FishSheet"
+      },
+      "src": {
+       "items": {
+        "minimum": 0,
+        "type": "integer"
+       },
+       "title": "Src",
+       "type": "array"
+      },
+      "sub": {
+       "anyOf": [
+        {
+         "minLength": 1,
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Sub"
+      }
+     },
+     "required": [
+      "key",
+      "fish",
+      "name",
+      "origin",
+      "label",
+      "sub",
+      "lines",
+      "quiet",
+      "src",
+      "sheet"
+     ],
+     "title": "TRow",
+     "type": "object"
+    },
+    "Together": {
+     "additionalProperties": false,
+     "properties": {
+      "src": {
+       "items": {
+        "minimum": 0,
+        "type": "integer"
+       },
+       "minItems": 1,
+       "title": "Src",
+       "type": "array"
+      },
+      "text": {
+       "minLength": 1,
+       "title": "Text",
+       "type": "string"
+      }
+     },
+     "required": [
+      "text",
+      "src"
+     ],
+     "title": "Together",
+     "type": "object"
+    },
+    "TopLine": {
+     "additionalProperties": false,
+     "properties": {
+      "lead": {
+       "minLength": 1,
+       "title": "Lead",
+       "type": "string"
+      },
+      "second": {
+       "anyOf": [
+        {
+         "minLength": 1,
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Second"
+      }
+     },
+     "required": [
+      "lead",
+      "second"
+     ],
+     "title": "TopLine",
+     "type": "object"
+    },
+    "TroutTable": {
+     "additionalProperties": false,
+     "properties": {
+      "boxes": {
+       "items": {
+        "$ref": "#/$defs/Box"
+       },
+       "minItems": 1,
+       "title": "Boxes",
+       "type": "array"
+      },
+      "elsewhere": {
+       "items": {
+        "minLength": 1,
+        "type": "string"
+       },
+       "title": "Elsewhere",
+       "type": "array"
+      },
+      "fold": {
+       "$ref": "#/$defs/Fold"
+      },
+      "hatch_link": {
+       "title": "Hatch Link",
+       "type": "boolean"
+      },
+      "src": {
+       "items": {
+        "minimum": 0,
+        "type": "integer"
+       },
+       "title": "Src",
+       "type": "array"
+      },
+      "together": {
+       "anyOf": [
+        {
+         "$ref": "#/$defs/Together"
+        },
+        {
+         "type": "null"
+        }
+       ]
+      },
+      "top": {
+       "$ref": "#/$defs/TopLine"
+      },
+      "year": {
+       "anyOf": [
+        {
+         "$ref": "#/$defs/YearBar"
+        },
+        {
+         "type": "null"
+        }
+       ]
+      }
+     },
+     "required": [
+      "top",
+      "fold",
+      "hatch_link",
+      "boxes",
+      "together",
+      "year",
+      "elsewhere",
+      "src"
+     ],
+     "title": "TroutTable",
+     "type": "object"
+    },
+    "YearBar": {
+     "additionalProperties": false,
+     "properties": {
+      "runs": {
+       "items": {
+        "maxItems": 2,
+        "minItems": 2,
+        "prefixItems": [
+         {
+          "enum": [
+           "keep",
+           "release",
+           "closed",
+           "none"
+          ],
+          "type": "string"
+         },
+         {
+          "exclusiveMinimum": 0,
+          "type": "integer"
+         }
+        ],
+        "type": "array"
+       },
+       "minItems": 1,
+       "title": "Runs",
+       "type": "array"
+      },
+      "title": {
+       "minLength": 1,
+       "title": "Title",
+       "type": "string"
+      }
+     },
+     "required": [
+      "title",
+      "runs"
+     ],
+     "title": "YearBar",
+     "type": "object"
+    }
+   },
+   "additionalProperties": false,
+   "description": "FRAMES[\"trout\"] (ticket I): one cell's decoded value.",
+   "properties": {
+    "covers": {
+     "items": {
+      "minimum": 0,
+      "type": "integer"
+     },
+     "minItems": 1,
+     "title": "Covers",
+     "type": "array"
+    },
+    "dates": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/DateSet"
+      },
+      {
+       "type": "null"
+      }
+     ]
+    },
+    "table": {
+     "$ref": "#/$defs/TroutTable"
+    }
+   },
+   "required": [
+    "table",
+    "dates",
+    "covers"
+   ],
+   "title": "TroutFrame",
+   "type": "object"
+  },
+  "trout.wire": {
+   "$defs": {
+    "Band": {
+     "additionalProperties": false,
+     "properties": {
+      "from": {
+       "minimum": 0,
+       "title": "From",
+       "type": "integer"
+      },
+      "kind": {
+       "enum": [
+        "upto",
+        "own",
+        "shared",
+        "possession"
+       ],
+       "title": "Kind",
+       "type": "string"
+      },
+      "text": {
+       "minLength": 1,
+       "title": "Text",
+       "type": "string"
+      },
+      "to": {
+       "minimum": 0,
+       "title": "To",
+       "type": "integer"
+      }
+     },
+     "required": [
+      "from",
+      "to",
+      "text",
+      "kind"
+     ],
+     "title": "Band",
+     "type": "object"
+    },
+    "BoxWire": {
+     "additionalProperties": false,
+     "properties": {
+      "bands": {
+       "items": {
+        "$ref": "#/$defs/Band"
+       },
+       "title": "Bands",
+       "type": "array"
+      },
+      "head": {
+       "minLength": 1,
+       "title": "Head",
+       "type": "string"
+      },
+      "kind": {
+       "enum": [
+        "keep",
+        "release",
+        "closed"
+       ],
+       "title": "Kind",
+       "type": "string"
+      },
+      "label": {
+       "anyOf": [
+        {
+         "minLength": 1,
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Label"
+      },
+      "rows": {
+       "items": {
+        "$ref": "#/$defs/TRowWire"
+       },
+       "minItems": 1,
+       "title": "Rows",
+       "type": "array"
+      },
+      "strip": {
+       "anyOf": [
+        {
+         "minLength": 1,
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Strip"
+      },
+      "tag": {
+       "anyOf": [
+        {
+         "minLength": 1,
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Tag"
+      }
+     },
+     "required": [
+      "kind",
+      "head",
+      "label",
+      "strip",
+      "tag",
+      "rows",
+      "bands"
+     ],
+     "title": "BoxWire",
+     "type": "object"
+    },
+    "DateSet": {
+     "additionalProperties": false,
+     "properties": {
+      "band": {
+       "additionalProperties": {
+        "minLength": 1,
+        "type": "string"
+       },
+       "title": "Band",
+       "type": "object"
+      },
+      "box": {
+       "additionalProperties": {
+        "minLength": 1,
+        "type": "string"
+       },
+       "title": "Box",
+       "type": "object"
+      },
+      "card": {
+       "anyOf": [
+        {
+         "minLength": 1,
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Card"
+      },
+      "fold": {
+       "anyOf": [
+        {
+         "minLength": 1,
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Fold"
+      },
+      "row": {
+       "additionalProperties": {
+        "minLength": 1,
+        "type": "string"
+       },
+       "title": "Row",
+       "type": "object"
+      },
+      "sheet": {
+       "patternProperties": {
+        "^(CT|DV|EB|GB|LT|RB|ST)(/(wild|hatchery))?$": {
+         "items": {
+          "minLength": 1,
+          "type": "string"
+         },
+         "type": "array"
+        }
+       },
+       "title": "Sheet",
+       "type": "object"
+      },
+      "top": {
+       "anyOf": [
+        {
+         "minLength": 1,
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Top"
+      }
+     },
+     "required": [
+      "top",
+      "card",
+      "fold",
+      "box",
+      "band",
+      "row",
+      "sheet"
+     ],
+     "title": "DateSet",
+     "type": "object"
+    },
+    "FishSheet": {
+     "additionalProperties": false,
+     "properties": {
+      "head": {
+       "minLength": 1,
+       "title": "Head",
+       "type": "string"
+      },
+      "here": {
+       "items": {
+        "$ref": "#/$defs/SheetLine"
+       },
+       "title": "Here",
+       "type": "array"
+      },
+      "src": {
+       "items": {
+        "minimum": 0,
+        "type": "integer"
+       },
+       "maxItems": 4,
+       "title": "Src",
+       "type": "array"
+      }
+     },
+     "required": [
+      "head",
+      "here",
+      "src"
+     ],
+     "title": "FishSheet",
+     "type": "object"
+    },
+    "Fold": {
+     "additionalProperties": false,
+     "properties": {
+      "tone": {
+       "enum": [
+        "keep",
+        "release",
+        "closed",
+        "none"
+       ],
+       "title": "Tone",
+       "type": "string"
+      },
+      "value": {
+       "minLength": 1,
+       "title": "Value",
+       "type": "string"
+      }
+     },
+     "required": [
+      "value",
+      "tone"
+     ],
+     "title": "Fold",
+     "type": "object"
+    },
+    "SheetLine": {
+     "additionalProperties": false,
+     "properties": {
+      "bold": {
+       "title": "Bold",
+       "type": "boolean"
+      },
+      "t": {
+       "minLength": 1,
+       "title": "T",
+       "type": "string"
+      }
+     },
+     "required": [
+      "t",
+      "bold"
+     ],
+     "title": "SheetLine",
+     "type": "object"
+    },
+    "TRowWire": {
+     "additionalProperties": false,
+     "properties": {
+      "fish": {
+       "enum": [
+        "RB",
+        "ST",
+        "CT",
+        "GB",
+        "DV",
+        "LT",
+        "EB",
+        "LW",
+        "MW",
+        "LMB",
+        "SMB",
+        "KO",
+        "GR",
+        "BB",
+        "WSG",
+        "BCB",
+        "NP",
+        "YP",
+        "WP",
+        "GE",
+        "IN",
+        "CRA",
+        "CH",
+        "CULTUS_LAKE_SCULPIN",
+        "ENOS_LAKE_STICKLEBACK",
+        "MISTY_LAKE_STICKLEBACK",
+        "NOOKSACK_DACE",
+        "PAXTON_LAKE_STICKLEBACK",
+        "ROCKY_MOUNTAIN_SCULPIN",
+        "SHORTHEAD_SCULPIN",
+        "SALISH_SUCKER",
+        "VANANDA_CREEK_STICKLEBACK",
+        "VANCOUVER_LAMPREY",
+        "WESTERN_BROOK_LAMPREY_MORRISON_CREEK",
+        "WHITE_STURGEON_PROTECTED_POPULATIONS",
+        "GREEN_STURGEON"
+       ],
+       "title": "Fish",
+       "type": "string"
+      },
+      "key": {
+       "pattern": "^(CT|DV|EB|GB|LT|RB|ST)(/(wild|hatchery))?$",
+       "title": "Key",
+       "type": "string"
+      },
+      "label": {
+       "anyOf": [
+        {
+         "minLength": 1,
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Label"
+      },
+      "lines": {
+       "items": {
+        "minLength": 1,
+        "type": "string"
+       },
+       "title": "Lines",
+       "type": "array"
+      },
+      "name": {
+       "minLength": 1,
+       "title": "Name",
+       "type": "string"
+      },
+      "origin": {
+       "anyOf": [
+        {
+         "enum": [
+          "hatchery",
+          "wild"
+         ],
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Origin"
+      },
+      "quiet": {
+       "items": {
+        "minLength": 1,
+        "type": "string"
+       },
+       "title": "Quiet",
+       "type": "array"
+      },
+      "sheet": {
+       "minimum": 0,
+       "title": "Sheet",
+       "type": "integer"
+      },
+      "src": {
+       "items": {
+        "minimum": 0,
+        "type": "integer"
+       },
+       "title": "Src",
+       "type": "array"
+      },
+      "sub": {
+       "anyOf": [
+        {
+         "minLength": 1,
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Sub"
+      }
+     },
+     "required": [
+      "key",
+      "fish",
+      "name",
+      "origin",
+      "label",
+      "sub",
+      "lines",
+      "quiet",
+      "src",
+      "sheet"
+     ],
+     "title": "TRowWire",
+     "type": "object"
+    },
+    "Together": {
+     "additionalProperties": false,
+     "properties": {
+      "src": {
+       "items": {
+        "minimum": 0,
+        "type": "integer"
+       },
+       "minItems": 1,
+       "title": "Src",
+       "type": "array"
+      },
+      "text": {
+       "minLength": 1,
+       "title": "Text",
+       "type": "string"
+      }
+     },
+     "required": [
+      "text",
+      "src"
+     ],
+     "title": "Together",
+     "type": "object"
+    },
+    "TopLine": {
+     "additionalProperties": false,
+     "properties": {
+      "lead": {
+       "minLength": 1,
+       "title": "Lead",
+       "type": "string"
+      },
+      "second": {
+       "anyOf": [
+        {
+         "minLength": 1,
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Second"
+      }
+     },
+     "required": [
+      "lead",
+      "second"
+     ],
+     "title": "TopLine",
+     "type": "object"
+    },
+    "TroutFrameWire": {
+     "maxItems": 3,
+     "minItems": 3,
+     "prefixItems": [
+      {
+       "minimum": 0,
+       "type": "integer"
+      },
+      {
+       "anyOf": [
+        {
+         "minimum": 0,
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ]
+      },
+      {
+       "items": {
+        "minimum": 0,
+        "type": "integer"
+       },
+       "type": "array"
+      }
+     ],
+     "type": "array"
+    },
+    "TroutTableWire": {
+     "additionalProperties": false,
+     "properties": {
+      "boxes": {
+       "items": {
+        "$ref": "#/$defs/BoxWire"
+       },
+       "minItems": 1,
+       "title": "Boxes",
+       "type": "array"
+      },
+      "elsewhere": {
+       "items": {
+        "minLength": 1,
+        "type": "string"
+       },
+       "title": "Elsewhere",
+       "type": "array"
+      },
+      "fold": {
+       "$ref": "#/$defs/Fold"
+      },
+      "hatch_link": {
+       "title": "Hatch Link",
+       "type": "boolean"
+      },
+      "src": {
+       "items": {
+        "minimum": 0,
+        "type": "integer"
+       },
+       "title": "Src",
+       "type": "array"
+      },
+      "together": {
+       "anyOf": [
+        {
+         "$ref": "#/$defs/Together"
+        },
+        {
+         "type": "null"
+        }
+       ]
+      },
+      "top": {
+       "$ref": "#/$defs/TopLine"
+      },
+      "year": {
+       "anyOf": [
+        {
+         "$ref": "#/$defs/YearBar"
+        },
+        {
+         "type": "null"
+        }
+       ]
+      }
+     },
+     "required": [
+      "top",
+      "fold",
+      "hatch_link",
+      "boxes",
+      "together",
+      "year",
+      "elsewhere",
+      "src"
+     ],
+     "title": "TroutTableWire",
+     "type": "object"
+    },
+    "YearBar": {
+     "additionalProperties": false,
+     "properties": {
+      "runs": {
+       "items": {
+        "maxItems": 2,
+        "minItems": 2,
+        "prefixItems": [
+         {
+          "enum": [
+           "keep",
+           "release",
+           "closed",
+           "none"
+          ],
+          "type": "string"
+         },
+         {
+          "exclusiveMinimum": 0,
+          "type": "integer"
+         }
+        ],
+        "type": "array"
+       },
+       "minItems": 1,
+       "title": "Runs",
+       "type": "array"
+      },
+      "title": {
+       "minLength": 1,
+       "title": "Title",
+       "type": "string"
+      }
+     },
+     "required": [
+      "title",
+      "runs"
+     ],
+     "title": "YearBar",
+     "type": "object"
+    }
+   },
+   "maxItems": 4,
+   "minItems": 4,
+   "prefixItems": [
+    {
+     "$ref": "#/$defs/TroutFrameWire"
+    },
+    {
+     "$ref": "#/$defs/TroutTableWire"
+    },
+    {
+     "$ref": "#/$defs/DateSet"
+    },
+    {
+     "$ref": "#/$defs/FishSheet"
+    }
+   ],
+   "type": "array"
   }
  }
 }

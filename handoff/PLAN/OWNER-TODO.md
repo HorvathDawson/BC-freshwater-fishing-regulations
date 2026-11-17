@@ -2147,3 +2147,97 @@ More questions (recommended answer first):
   road bridge and put the low-confidence tidal boundary there; needs an added stream piece). Morice, Gosnell Creek to
   Lamprey Creek (mark 2739; END on the main channel at Lamprey's mouth; the earlier picture was a drawing-tool fault),
   picked: "Right (Recommended)".
+- 20:25, Sheldens Creek extended (picture `sheldens-extended.jpg`; `lane/cuts-1116` 998b4e6ab: a hand-traced marsh
+  channel from the FWA line's end to the SPUR 14 road bridge, low-confidence tidal boundary at the bridge), picked:
+  "Right (Recommended)". Goes into the next atlas rebuild; redrawn from the built map after.
+- About 21:22, typed in the APP chat after "Install build 36 and try a–f" (relayed verbatim): "a-d worked good except
+  after closing app and opening again the fish icon stopped moving.... yes to (E) and (f) .. the picture viewer for
+  spots has the x under the notification bar. text is cut off weird. also opening harrison lake then going to
+  conditions should default to level only because there is no other data (the map looks super weird and not visible
+  because of it) then when you switch to level the empty flow option disappers so if only level data exists it
+  should show level data. just mention at top it is level data maybe... have an agent look at this... how do i test
+  the push stuff now?" Filed by the app chat: T814 (iOS fish spinner stops after reopening mid-download), T815 (spots
+  photo viewer ✕ under the status bar), T816 (clipped text: the "When were you there?" hour, the weather icons), T817
+  (Harrison Lake: a water with only level data opens on Level with a line saying so; the gauge rule "Flow leads"
+  refined, not broken). iPhone build 36 test (a–f) done; push test under way with the app chat.
+- About 21:32, typed in the APP chat (relayed verbatim): "the spots view also needs a lot of work to be cleaned up maybe
+  put a fresh agent on it?". The app chat's T819: a fresh Opus worker reviews the spots area and brings him pictures
+  and a cleanup list to pick from before anything is built.
+- About 21:37 to 21:40, typed in the APP chat (relayed verbatim): "also the calendar bar doesnt have a full red line for
+  salmon when closed but instead it is empty with no color on the calendar bar.." (T820: the salmon year bar on a
+  closed day draws empty, not the closed stripe); "when i swiper to close on apple it flashes the menu back for a
+  second before it goes back." (T821: iOS back-swipe flash); "allowed notifications in app and settings restarted app
+  and it still doesnt show up" (T822 if a bug: push registration; the staging worker holds 0 iOS tokens).
+- Before 21:41 (the app chat said ~21:45), typed in the APP chat (relayed verbatim): "in the tutorial it says on first slide each step rings what to
+  tap (should say something like highlight instead? the tutorial is really glitchy too with keyboard and the
+  highlighting following the items with a delay etc etc". The app chat files it (its next reserved number).
+- Shortly before 21:48, typed in the APP chat (relayed verbatim): "also the condition panel is very glitchy on apple. it
+  doesnt show the info the same as android the mao doesnt have gauge markers the current conditions view doesnt show
+  the bar and when i click on chehalis it doesnt show conditions for it? also the highlights dont let go when you go
+  back the highlight of where you clicked stays and doesnt disspear". Filed by the app chat (its own number). If the
+  Chehalis showing no conditions is data (no gauge match), it sends me the section ids.
+- 21:50, typed in chat (verbatim): "it used to match the chehalis gauge though?????". Checked: it still does. The shipped
+  release r-46e4355a7277 (conditions-18da9a4cead9) has gauge 08MG001 Chehalis River near Harrison Mills leading 634
+  Chehalis sections (matches.json unchanged; 08MG023 below Statlu Creek auxiliary). So the iPhone showing no Chehalis
+  conditions is app-side (with the missing gauge markers and bar on Apple); sent to the app chat for its conditions
+  ticket.
+- Shortly before 21:54, the spots cleanup (the app chat's T819; relayed verbatim): picked all four bundles, "B: readable
+  spot page (Recommended)", "A: fix wrong bits (Recommended)", "C: list + adding", "D: fit & finish". On a small creek
+  (1.4 km²) shown "Below normal" from a gauge 676× bigger, typed: "Could we just use our gauge network that colors stuff
+  wtc to determine if it is significant enough? It would drop that in theory. Then ofr small ones still give a warning
+  if used." So: a spot takes its gauge from the same section → lead-gauge network the Conditions map colours with
+  (drainage gate applied); no lead = no estimate; a lead on a small water = the estimate with a plain warning. The
+  "small next to its gauge" decision is Python's (T823), the app reads it.
+- 22:18, T823 small water next to its lead gauge (table sent: examples, counts at 50/100/200×). Cut-off, picked: "50×
+  (Recommended)". Wording, picked: "Much smaller stream (Recommended)" ("This stream is much smaller than the river its
+  gauge measures: the reading may not match it."). Built on `lane/t823-small-water` (edc097013), default already 50×;
+  reaches a release with the next bundle rebuild. Found with it: T825 (251 side channels led by a gauge far upstream,
+  e.g. lower Fraser side channels reading Red Pass).
+- Shortly before 22:19, in the APP chat (relayed; label picked verbatim), after its correction that the Conditions MAP
+  colours from the paint PANELS (249k sections; your 1.4 km² creek is coloured "Below normal" by 08MH001, 676× bigger),
+  not from section_gauge (114k): "Should a gauge that much bigger be allowed to speak for a small water at all, on the
+  map AND in spots (they always match)?", picked: "Allow, with a warning (Recommended)" (keep colouring and estimating;
+  say plainly the gauge drains a far bigger area once it is small enough to matter; Python picks the cut-off). So
+  T823's flag and sentence hang on the SPEAKER's gauge (the panel the map colours from), the same on the map, the
+  spot and the sheet; 50× and the wording stand (owner, just before).
+- Shortly before 22:49, in the APP chat (relayed verbatim), on the 0.7.12 draft "What's new": "you can do what changed."
+  So: the app chat writes and keeps the release notes current and clears the draft when the next build goes out. His
+  next question there, "so what is next?", is being answered by the app chat (both chats' plan: salmon landing first,
+  then the one map rebuild + staging release, the trout build in parallel).
+- 22:52, the salmon landing look (T796): five before/after sheets (Skeena reserve, Yakoun, Bell-Irving, Kitsumkalum
+  eulachon line, Cold Fish Lake note; from r-1603e71cc92c) and the changed-answers list since his 71-row review. Land
+  it, picked: "Land it (Recommended)". Kennedy Lake's note (already ruled outside Pacific Rim, Z11), picked: "Keep the
+  note (Recommended)". So: lane/salmon-rules-1116 + lane/salmon-hardcases-1116 + the app's twins land together
+  (section D), then ship with the next staging release.
+- 22:55, on the Yakoun before/after sheet, typed (verbatim): "The calendar shows open always but it closes after coho
+  closes?" Answered: DFO's coho row "Apr 1–Mar 31" is the whole year (DFO's year runs Apr 1 to Mar 31), so before the
+  change salmon was open every day; after it the book's "No Fishing from Yakoun Lake downstream approximately 13 km …,
+  Oct 1-Apr 30" closes the stretch Oct 1 to Apr 30 and coho shows through May to Sep.
+- 22:55, on the Skeena before sheet (circling the DFO-words block under the species table), typed (verbatim): "We want to
+  create a future ticket to do a similar check of all salmon regulations to the webpages with a fresh agent that tries
+  to break it and look for issues in the regulations also why do we have this section in salmon". Filed T827 (the
+  break-it audit of every salmon rule against DFO's pages, later). Answered why (T321, Oct 31: DFO's rows as printed so
+  the reading can be checked). The block (fold into Source / keep only extras / keep), picked: "Fold into Source
+  (Recommended)" (T828: under the 'Source (DFO)' expander, closed by default; unread new wording stays visible).
+- 22:56, typed in chat (verbatim): "Can we also clean up the format for the salmon rows to make it look more consistent
+  with the other table and the new trout table just a formatting thing same data tho". Filed T829 (app side; same
+  data): mockups first in the settled trout table look (the trout page's round-15 design), his pick, then the build
+  after the salmon landing and T828.
+- Shortly before 23:17, in the APP chat (relayed; label picked verbatim), T829 salmon rows after three mockups on real
+  data (Kitsumkalum Jul 15 with its eulachon line, Skeena below Terrace Aug 15 mixed), each above its trout table:
+  "B: trout keep box (Recommended)" (open species in the trout tint box, each species' limit in the white box at the
+  right with its dates small under it; closed species, the eulachon line and rule-book closures in the trout
+  "✕ Closed" group; badge, year bar and bait-ban line stay; the T828 fold as mocked). Built after the salmon landing and
+  T828, as ONE box component the trout table (ticket O) reuses.
+- 2026-11-17 about 00:10 to 00:14, in the APP chat (verbatim), T814: "it had reduce motion on." (the second iPhone, so
+  the still fish was by design); "we dont want a full still item for reduce motion on.. i am making a new loader icon
+  that will replace the loading circle on the splash page or curtain (it will still be used for all other loading."
+  He sent the loader as a Python generator (`fish_loader.py`: a linocut coho, 80-frame sprite sheet, 4 s loop). Then:
+  "we will ignore reduced motion for this". So: no still icon; the coho loader on the splash / first-download /
+  curtain screens, the circling fish everywhere else; both always move, Reduce Motion or not. The app chat builds it
+  (T814) and brings him pictures in both themes.
+- 2026-11-17 about 00:35, in the APP chat, before sleeping ("questions should wait unless there are urgent ones now
+  bertween 2 chats"), two picks: overnight landing of the app fixes that pass their benches (T817, T823, T824, the iOS
+  fixes, T819, T826, T822, one by one after salmon and T759, each with the main chat's clear), picked "Yes, land what
+  passes (Recommended)"; then a 0.7.12 upload to TestFlight and Play internal overnight, picked "Yes, upload overnight
+  (Recommended)" (the coho loader goes in only once he has seen and picked its look). Anything that fails waits for him.

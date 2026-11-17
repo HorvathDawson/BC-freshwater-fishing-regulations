@@ -25,7 +25,7 @@ describe("(T221) the at-a-glance rows say no count", () => {
   });
   it("(T759) a card with an issue banner marks its row, and a closed-all-year one still folds open to it", () => {
     const issue = [{ key: "k" }];
-    const card = (over: object) => ({ title: SALMON_WORDS.title, rows: [{ status: "closed" }], caveat: null, issues: issue, ...over }) as unknown as SalmonCardVM;
+    const card = (over: object) => ({ title: SALMON_WORDS.title, rows: [{ status: "closed" }], caveat: null, issues: issue, book: [], ...over }) as unknown as SalmonCardVM;
     expect(salmonGlance(card({})).issue).toBe(true);
     expect(salmonGlance(card({ closedOnly: true }))).toMatchObject({ issue: true, fold: true });
     expect("issue" in salmonGlance(card({ issues: [], closedOnly: true }))).toBe(false);
@@ -46,7 +46,7 @@ describe("(T531) a species sits only under its own source's calendar", () => {
   });
   it("the real constructors tag their rows: a group is B.C., the salmon card is DFO", () => {
     const g = group({});
-    const card = { title: SALMON_WORDS.title, rows: [], caveat: null, issues: [], closedOnly: true } as unknown as SalmonCardVM;
+    const card = { title: SALMON_WORDS.title, rows: [], caveat: null, issues: [], closedOnly: true, book: [] } as unknown as SalmonCardVM;
     expect([groupGlance(g).source, salmonGlance(card).source]).toEqual(["bc", "dfo"]);
   });
 });

@@ -11,10 +11,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { useState } from "react";
-import { wallIso, type SalmonFacts } from "@app/core";
-import type { WaterSource } from "@app/data";
+import { wallIso, type SalmonFacts, type SalmonFeed } from "@app/core";
+import type { SalmonFeedSource, WaterSource } from "@app/data";
 import { mapModes, type MapModeInput } from "./mapModes";
-import { useMethodColour, useSalmonColour, type RegsLayer } from "./salmonColour";
+import { useFinfishCue, useMethodColour, useSalmonColour, type RegsLayer } from "./salmonColour";
 
 const FACTS = { handles: "0".repeat(16), chains: 1, chainOf: () => 0,
                 payload: { chains: [{ m: [0, 3] }] } } as unknown as SalmonFacts;
@@ -110,6 +110,49 @@ describe("useSalmonColour: fetched once, before the toggle, and the same feed wh
     rerender({ mapTab: false });
     rerender({ mapTab: true });
     expect(asked).toEqual(["salmonFacts"]);
+  });
+});
+
+describe("(T796 A6) the web reads the salmon file for Standard only on a day the live DFO feed closes a place to all fishing", () => {
+  /** a DFO feed source: one place, a "Finfish closure" on Jul 20 only (day 201) when `fin`; how often it was asked */
+  const dfo = (fin: boolean, latest: string[]): SalmonFeedSource => ({
+    latest: async () => {
+      latest.push("latest");
+      return { format: "dfo-feed/3", at: "2026-07-20T00:00:00Z", regions: {}, gears: [],
+               verdicts: [{ s: "closed", t: "Not opened by DFO", d: 1 }, { s: "closed", t: "Finfish closure", ...(fin ? { f: 1 } : {}) }],
+               locs: { "1:x": { r: "1", sp: [[0, -1, 201, 1, 202, -1], [0, -1], [0, -1], [0, -1], [0, -1]], g: [0, -1] } } } as unknown as SalmonFeed;
+    },
+  });
+  const run = (fin: boolean, day: Date) => {
+    const asked: string[] = [], latest: string[] = [];
+    const src = source(asked), feed = dfo(fin, latest);
+    const hook = renderHook(() => {
+      const cue = useFinfishCue({ feed, day, enabled: true });
+      return { cue, s: useSalmonColour({ source: src, paired: true, statusOk: true, mapTab: true, day, onDemand: true, wanted: cue }) };
+    });
+    return { ...hook, asked, latest };
+  };
+
+  it("a day with none: the feed already held is asked, the salmon file is not", async () => {
+    for (const [fin, day] of [[false, DAY], [true, new Date(2026, 6, 21, 12)]] as const) {
+      const r = run(fin, day);
+      await waitFor(() => expect(r.latest).toEqual(["latest"]));
+      await new Promise((res) => setTimeout(res, 0));
+      expect([r.result.current.cue, r.asked, r.result.current.s.feed]).toEqual([false, [], null]);
+    }
+  });
+
+  it("a day the feed closes a place to all fishing: the salmon file is read, and the map handed it", async () => {
+    const r = run(true, DAY);
+    await waitFor(() => expect(r.result.current.s.feed?.facts).toBe(FACTS));
+    expect([r.result.current.cue, r.asked]).toEqual([true, ["salmonFacts"]]);
+  });
+
+  it("not enabled (a phone, another colouring): the feed is not even asked", async () => {
+    const latest: string[] = [];
+    const { result } = renderHook(() => useFinfishCue({ feed: dfo(true, latest), day: DAY, enabled: false }));
+    await new Promise((res) => setTimeout(res, 0));
+    expect([result.current, latest]).toEqual([false, []]);
   });
 });
 

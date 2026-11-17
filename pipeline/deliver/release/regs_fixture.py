@@ -243,7 +243,8 @@ def build(release: Path, items: Sequence[str], handles: Sequence[int], out_root:
             if name not in con:
                 raise FixtureError(f"regs fixture: release {src_id} has no {name} file")
             ids = _shard_ids(con[name], zd, regions[r])
-            plan = [("s", t, f"WHERE {'akey' if t == 'cell' else 'id'} IN ({_ids(ids[t])})") for t in SH.SHARD_TABLES]
+            plan = [("s", t, f"WHERE {'akey' if t == 'cell' else 'id'} IN ({_ids(ids[t])})")
+                    for t in SH.shard_tables(con[name])]
             files[name] = B.copy_file(work / f"{name}.sqlite", {"s": src[name]}, plan, {**meta[name], **fix})
 
         def sid_extra(c: sqlite3.Connection) -> None:
@@ -290,21 +291,7 @@ def build(release: Path, items: Sequence[str], handles: Sequence[int], out_root:
 
 def _shard_ids(con: sqlite3.Connection, zd: Dict[str, bytes], akeys: Set[int]) -> Dict[str, Set[int]]:
     """{table: the ids a shard of `akeys` holds}: `shards.shard_rows`' rule, read from a region file."""
-    val = lambda t, b: json.loads(unpack(b, zd.get(t)))  # noqa: E731
-    out: Dict[str, Set[int]] = {t: set() for t in SH.SHARD_TABLES}
-    out["cell"] = set(akeys)
-    tops: Dict[str, Set[int]] = {}
-    for row in con.execute(f"SELECT {', '.join(SH.TOP)} FROM cell WHERE akey IN ({_ids(akeys)})"):
-        for col, i in zip(SH.TOP, row):
-            tops.setdefault(SH.TOP[col], set()).add(i)
-    for tbl, ids in tops.items():
-        out[tbl] |= ids
-        for _i, blob in con.execute(f"SELECT id, j FROM {tbl} WHERE id IN ({_ids(ids)})"):
-            for sub, refs in SH.frame_refs(tbl, val(tbl, blob)).items():
-                out[sub].update(refs)
-    for _i, blob in con.execute(f"SELECT id, j FROM licence_doc WHERE id IN ({_ids(out['licence_doc'])})"):
-        out["licence_answer"].update(val("licence_doc", blob))
-    return out
+    return SH.reach_rows(con, akeys, lambda t, b: json.loads(unpack(b, zd.get(t))))
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:

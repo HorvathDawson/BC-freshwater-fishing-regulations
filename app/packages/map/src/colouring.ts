@@ -36,11 +36,11 @@
  * patched binding's per-tile event (`native/useColouring.ts`, deps.md). Only how a channel's style-borne values reach
  * the style differs: a paint call on the web, a style swap on the phone (`nativeStyle`'s `values`).
  */
-import { readingDayOf, dayProfiles, isolateDay, methodDayProfiles, methodLabel, profileLabel, salmonDayIndex, salmonDayProfiles,
+import { readingDayOf, dayProfiles, finfishDayLabels, isolateDay, methodDayProfiles, methodLabel, profileLabel, salmonDayIndex, salmonDayProfiles,
          salmonLabel, stockRecency, type LakeFacts, type SalmonMapStatus, type WaterStatus, type MethodFacts, type RunTimingFacts, type SalmonFacts,
          type StatusIndex } from "@app/core";
 import type { ChannelValues, MapAdapter, MapHandle } from "./adapters/contract";
-import type { StandingValues, Tokens } from "./style";
+import { SALMON_LABEL_KEY, type StandingValues, type StatusDay, type Tokens } from "./style";
 import { perSectionLayers, spreadSections, type PerSectionLayer } from "./sections";
 
 /** The day's status as the map is told it — given ONLY on a proven pair, with an index that passed its digest checks. */
@@ -90,7 +90,7 @@ export interface SalmonFeed {
 export function salmonInput(s: SalmonFeed): ChannelInput {
   const f = s.facts;
   return {
-    labels: { key: "sp", of: f, label: (id) => salmonLabel(f, id) },
+    labels: { key: SALMON_LABEL_KEY, of: f, label: (id) => salmonLabel(f, id) },
     valuesKey: `${salmonDayIndex(s.day)}:${s.only ?? ""}`,
     values: () => isolateDay(salmonDayProfiles(f, s.day), s.only ?? null),
   };
@@ -188,13 +188,24 @@ export interface ChannelInput {
   values(): ChannelValues[Channel];
 }
 
-/** The status channel from what the Map tab is told: profile labels, the day in the style. */
-export function statusInput(s: ProfileStatus): ChannelInput {
-  const index = s.index;
+/**
+ * The status channel from what the Map tab is told: profile labels, the day in the style. (T796 A6) With the salmon the
+ * Map tab hands over (`salmon`, whatever the Standard / Salmon toggle says), the day's DFO finfish closures go over it
+ * (`StatusDay`): the chains closed to all fishing that day paint closed, by the `sp` label the salmon channel puts on
+ * every tile — or, under a legend isolate other than Closed, the neutral grey a closed section takes. None that day (or
+ * no salmon): the values and the paint are exactly the status day's.
+ */
+export function statusInput(s: ProfileStatus, salmon?: SalmonFeed | null): ChannelInput {
+  const index = s.index, only = s.only ?? null;
+  const fin = salmon ? finfishDayLabels(salmon.facts, s.day) : [];
+  const shown = only === null || only === "closed";
   return {
     labels: { key: "p", of: index, label: (id) => profileLabel(index, id) },
-    valuesKey: `${readingDayOf(s.day)}:${s.only ?? ""}`,
-    values: () => isolateDay(dayProfiles(index, s.day), s.only ?? null),
+    valuesKey: `${readingDayOf(s.day)}:${only ?? ""}${fin.length ? `:${fin.join(",")}` : ""}`,
+    values: (): StatusDay => {
+      const day = isolateDay(dayProfiles(index, s.day), only);
+      return fin.length ? { ...day, ...(shown ? { finfish: fin } : { finfishNone: fin }) } : day;
+    },
   };
 }
 

@@ -6,12 +6,14 @@
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
-import { FISH, salmonCard, salmonRowTexts, type RegsPage, type SalmonFacts } from "@app/core";
+import { FISH, salmonCard, salmonGlance, salmonRowTexts, type RegsPage, type SalmonFacts } from "@app/core";
 import { LIGHT } from "../theme";
 import { SPINNER_TIMING } from "../LoadingState";
 import { hitArea } from "./hit";
 import { RegsScreen } from "./RegsScreen";
 import { SalmonCard } from "./SalmonCard";
+import { SpeciesRows } from "./KeepBlocks";
+import { NO_ACTIONS } from "./LineText";
 import { RegsLayerToggle } from "../shell/RegsLayerToggle";
 import type { MapColouring } from "../shell/useMapColouring";
 import vedder1010 from "./fixtures/vedder_1010.json";
@@ -324,5 +326,48 @@ describe("(T321) DFO's words on the card", () => {
     cleanup();
     render(<SalmonCard card={salmonCard(FACTS, { sids: [101], item: null }, JUL20)} palette={LIGHT} />);
     expect(screen.queryByTestId("salmon-wording-changed")).toBeNull();
+  });
+});
+
+describe("(T796, owner 2026-11-16 15:19) a book closure on the card says where it is from: the rule book, its page, line, dates", () => {
+  // the Skeena below the CNR bridge at Terrace, in an ecological reserve: the book's closure first in the chain, all year
+  // (`with_book_closures`), DFO's 4 a day behind it; core pins the words whole (`salmonBook.test.ts`), this where they land
+  const B = "book:zp:superior_closures::superior_closures.r3";
+  const BOOK = "Closed to all fishing by the rule book (p.9): Fishing is prohibited in Ecological Reserves in B.C.";
+  const facts: SalmonFacts = { handles: "0".repeat(16), chains: 2, chainOf: () => 1, payload: {
+    ...FACTS.payload, gears: [], unmapped: [],
+    verdicts: [FACTS.payload.verdicts[0]!, { s: "open", t: "4 per day (Jul 29–Aug 16)" }, { s: "closed", t: BOOK }],
+    chains: [FACTS.payload.chains[0]!, { r: ["6"], w: "Skeena River", l: [B, "6:skeena:cnr"], sp: all(2), g: [0, -1], m: [0, 3], a: all(0) }],
+    p: { "6:skeena:cnr": { r: "6", water: "Skeena River" },
+         [B]: { water: "National Parks and Ecological Reserves", static: 1, book: { rule: "zp:superior_closures::superior_closures.r3", pages: [9] } } },
+    static: { [B]: { sp: all(2), g: [0, -1] } },
+  } as unknown as SalmonFacts["payload"] };
+
+  it("the head names the rule book, the row its words and dates, the fold the book first — never DFO's alone", () => {
+    render(<SalmonCard card={salmonCard(facts, { sids: [1], item: null }, new Date(2026, 7, 15))} palette={LIGHT} />);
+    const el = screen.getByTestId("salmon-card");
+    expect(el.getAttribute("aria-label")).toBe("Salmon, Rule book: Closed today");
+    expect(screen.getAllByTestId("salmon-says-line").map((e) => e.textContent)).toEqual([`${BOOK} (all year)`]);
+    expect([...new Set(screen.getAllByTestId("salmon-from").map((e) => e.textContent))]).toEqual(["Rule book p.9 · National Parks and Ecological Reserves"]);
+    const summary = screen.getByTestId("salmon-source-summary");
+    expect(summary.textContent).toBe("Sources (rule book and DFO)");
+    fireEvent.click(summary);
+    expect([screen.getByTestId("salmon-book-from").textContent, screen.getByTestId("salmon-book-words").textContent,
+            screen.getByTestId("salmon-source").textContent, screen.getByTestId("salmon-note").textContent]).toEqual([
+      "Rule book p.9 · National Parks and Ecological Reserves", `${BOOK} (all year)`, "Fisheries and Oceans Canada · Region 6 Skeena",
+      "Where the rule book closes a water to all fishing, salmon are closed there too (rule book p.77). "
+        + "Elsewhere salmon are set by DFO, not the provincial regulations above. Both apply."]);
+    // the book's lines come before DFO's source in the fold
+    expect(screen.getByTestId("salmon-book-source").compareDocumentPosition(screen.getByTestId("salmon-source")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("(follow-up) closed all year, the Keep tab's plain Salmon row (no Details, no card) says the book's words and place", () => {
+    const card = salmonCard(facts, { sids: [1], item: null }, new Date(2026, 7, 15));
+    render(<SpeciesRows rows={[]} keys={[]} palette={LIGHT} actions={NO_ACTIONS}
+                        folds={[{ key: "salmon", row: salmonGlance(card), body: () => <SalmonCard card={card} palette={LIGHT} /> }]} />);
+    const row = screen.getByTestId("glance:salmon");
+    expect([within(row).queryByTestId("glance-toggle"), screen.queryByTestId("salmon-card")]).toEqual([null, null]);
+    expect([within(row).getByTestId("glance-book-words").textContent, within(row).getByTestId("glance-book-from").textContent])
+      .toEqual([`${BOOK} (all year)`, "Rule book p.9 · National Parks and Ecological Reserves"]);
   });
 });

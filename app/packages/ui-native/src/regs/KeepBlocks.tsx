@@ -123,6 +123,13 @@ export function CaveatBlock({ caveat, palette, actions, inset = true }: { caveat
     );
   };
   const head = (caveat.kind === "inpart" ? WORDS.INPART_IC : "") + caveat.title;
+  // (T796) a section's note: Python's sentence, said as it is — body text under a quiet rule, no label, nothing to open
+  if (caveat.kind === "note") return (
+    <View testID="keep-caveat" style={{ marginTop: 8, marginHorizontal: gutter, paddingTop: 6, paddingBottom: 6, paddingLeft: 10,
+                                        borderLeftWidth: 3, borderLeftColor: palette.line2 }}>
+      <Text selectable testID="kicker:note" style={[TYPE.meta, { color: palette.ink }]}>{caveat.title}</Text>
+    </View>
+  );
   const body = (
     <>
       {caveat.calm && <Text style={[TYPE.meta, { color: palette.sub, marginBottom: 4 }]}>{caveat.calm}</Text>}
@@ -277,6 +284,13 @@ function FoldRow({ f, palette, images, coach }: { f: GlanceFold; palette: Palett
         <Text style={[TYPE.regsBodySemi, { color: palette.ink, flex: 1 }]}>{f.row.name}</Text>
         {f.row.value && <Text testID={`st:${f.row.tone}`} style={[TYPE.regsBodyBold, { color: tone }]}>{f.row.value}</Text>}
       </View>
+      {/* (T796) a rule-book closure says where it is from under the row: its words (page, line, dates), then its place */}
+      {f.row.book?.map((b) => (
+        <View key={b.words} testID="glance-book" style={{ paddingBottom: 9 }}>
+          <Text selectable testID="glance-book-words" style={[TYPE.meta, { color: palette.ink }]}>{b.words}</Text>
+          <Text selectable testID="glance-book-from" style={[TYPE.meta, { color: palette.sub, marginTop: 2 }]}>{b.from}</Text>
+        </View>
+      ))}
     </View>
   );
   return (

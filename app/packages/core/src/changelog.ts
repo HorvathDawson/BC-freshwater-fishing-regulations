@@ -27,6 +27,15 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: "0.7.12", date: "2026-11-16", draft: true, notes: [
+      "The first download keeps going in the background and picks up where it stopped",
+      "Applying new data shows its progress, and the download bar never goes backwards",
+      "\"No angling from a powered boat\" now shows on a water's boats line",
+      "Dark mode: the part of a river you are on stands out with a dark edge and a soft glow",
+      "One Back from a place picked in search returns to the map, and a water's Conditions open on Flow",
+    ],
+  },
+  {
     version: "0.7.11", date: "2026-11-15", draft: true, notes: [
       "Android: code shrinker (R8) on for this build; also carries T737, T747, T750 from the shared branch.",
       "A water's map opened from search now frames the part you picked, not the whole water",

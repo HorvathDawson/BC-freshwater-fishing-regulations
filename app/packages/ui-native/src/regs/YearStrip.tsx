@@ -166,7 +166,9 @@ export function SalmonYearStrip({ strip, todayAt, months, dateLabel, palette }: 
             borderColor: strip.soon.kind === "soonOpen" ? palette.open : palette.closed }]}>{strip.soon.text}</Text>
         )}
       </View>
-      <View testID="salmon-strip-bar" style={{ marginTop: 22, height: H }} onLayout={(e) => bar.setW(e.nativeEvent.layout.width)}
+      {/* (T820, owner 2026-11-16 21:37: "empty with no color on the calendar bar") a bar is its days: no runs, no track —
+          an empty track is never drawn (core gives every card its year, a closed one the full closed bar) */}
+      {strip.runs.length > 0 && <View testID="salmon-strip-bar" style={{ marginTop: 22, height: H }} onLayout={(e) => bar.setW(e.nativeEvent.layout.width)}
             accessible accessibilityRole="image" accessibilityLabel={`${strip.title}: ${strip.word}${strip.when ? ` ${strip.when}` : ""}`}>
         {w > 0 && (
           <Svg {...bar.svg}>
@@ -179,7 +181,7 @@ export function SalmonYearStrip({ strip, todayAt, months, dateLabel, palette }: 
             <Text style={[TYPE.metaSemi, { position: "absolute", bottom: 24, left: -40, width: 82, textAlign: "center", lineHeight: 12.48, color: palette.ink }]}>{dateLabel}</Text>
           </View>
         )}
-      </View>
+      </View>}
       <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 5 }}>
         {months.map((m, i) => <Text key={i} style={[TYPE.month, { color: palette.sub }]}>{m}</Text>)}
       </View>

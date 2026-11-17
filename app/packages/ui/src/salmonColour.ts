@@ -11,8 +11,8 @@
  * The answer per chain and day was decided at deliver time (`pipeline/deliver/salmon.py`); nothing here reads a rule.
  */
 import { useMemo, useState } from "react";
-import { salmonIssueItems, type MethodFacts, type SalmonFacts } from "@app/core";
-import type { WaterSource } from "@app/data";
+import { feedFinfishOn, salmonIssueItems, type MethodFacts, type SalmonFacts } from "@app/core";
+import type { SalmonFeedSource, WaterSource } from "@app/data";
 import { useAsync } from "./async";
 import { useFeedVersion } from "./feedVersion";
 import { sameFacts, sourceKey } from "./conditionsColour";
@@ -64,6 +64,24 @@ export function useSalmonColour(i: { source: WaterSource; paired: boolean; statu
   const offered = i.onDemand ? i.paired && facts.state !== "failed" && !(facts.state === "ready" && f === null)
     : feed !== null;
   return { feed, facts: f, loading, offered };
+}
+
+/**
+ * (T796 A6, owner 2026-11-16: "Closes the whole page") THE WEB'S CUE TO READ THE SALMON FILES FOR THE STANDARD MAP. A DFO
+ * "Finfish closure" closes all fishing, so the Standard map paints its stretch closed (map `statusInput`) — which needs
+ * the salmon chains on the tiles, and the web reads the salmon files only on the first press of Salmon (`onDemand`). They
+ * are read for Standard too (`useSalmonColour`'s `wanted`) only when this is true: the live DFO feed the app already
+ * holds (`SalmonFeedSource.latest()`, the same capture the bell and the More tab's Data line read — no request of its
+ * own) closes some place to all fishing on the map's day (@app/core `feedFinfishOn`). A day with none reads nothing
+ * more. `latest()` never rejects (a failed fetch is reported there and the last capture answers); no feed ever read is
+ * no cue — the release's own build day is the status index's to answer.
+ */
+export function useFinfishCue(i: { feed: SalmonFeedSource | null | undefined; day: Date | null; enabled: boolean }): boolean {
+  const dfo = useFeedVersion("dfo");   // a feed the update service took is asked again
+  const on = i.enabled && !!i.feed;
+  const a = useAsync(() => i.feed!.latest(), `finfish-cue:${dfo}:${i.feed?.version?.() ?? 0}`, on);
+  const today = useBcToday();
+  return on && a.state === "ready" && a.value !== null && feedFinfishOn(a.value, i.day ?? today);
 }
 
 /** (T213) What the map is handed (`MapProps.method`): the release's bait ban / fly only profiles and the day — the
