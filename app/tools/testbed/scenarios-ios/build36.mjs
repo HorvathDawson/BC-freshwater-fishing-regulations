@@ -154,7 +154,8 @@ export const build36Ios = {
  * (T814) THE COLD START THAT HAPPENS IN THE BACKGROUND: the app terminated mid-download (as iOS does to a suspended app it
  * needs the memory of), the system downloader finishing without it, iOS launching the app in the background to hand it
  * the finished files, and the reader opening it afterwards. The fish is mounted and started while the app is in the
- * background. Shots and a share of the fish's box changed in 600 ms, as `build36`.
+ * background. Shots and a share of the fish's box changed in 600 ms, as `build36`. First (T814's restart on "active"), the
+ * first download sent to the home screen for 10 s and brought back: the fish must move after.
  */
 export const t814BgIos = {
   id: 't814-bg',
@@ -172,11 +173,21 @@ export const t814BgIos = {
       const share = changed(a, b, r);
       return `${name}: ${(share * 100).toFixed(1)} % changed → ${share > 0.01 ? 'MOVING' : 'STILL'}`;
     };
-    await ctx.step('first download: terminated as soon as it shows', async () => {
+    await ctx.step('first download: the fish, then sent home for 10 s and brought back: the fish (the T814 restart)', async () => {
       d.geo(-121.987, 49.0535);   // Cultus Lake (keyboard.mjs LAKE): the capture picks a water
       d.launch();
       for (let i = 0; i < 60 && !installing(d.screenText()); i++) await d.sleep(1000);
       if (!installing(d.screenText())) ctx.skip('no download screen');
+      const notes = [await fish('bg-first')];
+      d.background();
+      await d.sleep(10_000);
+      d.launch();
+      await d.sleep(1500);
+      notes.push(await fish('bg-home-10s'));
+      return notes.join('; ');
+    });
+    await ctx.step('first download: terminated', async () => {
+      if (!d.pidOf() || !installing(d.screenText())) ctx.skip('not on the download screen any more');
       d.stop();
       shot('T814-bg-terminated');
       return 'terminated on the download screen';

@@ -39,12 +39,73 @@
  * monochrome fish-and-ring is most of why the first version read worse than the canvas
  * loader it replaced — that one was a steel-blue fish on a pale grey orbit.
  */
-import { useEffect, useRef, useState } from "react";
-import { AccessibilityInfo, Animated, Easing, View } from "react-native";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { AccessibilityInfo, Animated, AppState, Easing, Image, View } from "react-native";
 import { spriteStaircase } from "@app/ui";
 import { FISH_SPRITE } from "./fish-sprite.generated";
+import { STILL_ICON } from "./stillIcon";
 import { reportFailure, SPINNER_WORDS } from "@app/core";
 import { round, type Palette } from "./theme";
+
+/** (T814) A loop that ended though nothing here stopped it is started again after this long: never a tight retry. */
+const RESTART_MS = 1000;
+
+/**
+ * (T814, iPhone build 36: the fish stood still after a reopen mid-download, and on a second phone never moved on the first
+ * download) KEEP BOTH LOOPS RUNNING, still with no per-frame JS. A platform-driven loop can be dropped on iOS — the app
+ * going inactive or to the background, a view mounted before it is attached (a launch iOS makes in the background, the
+ * first launch) — and nothing starts it again. So, without guessing which:
+ *   - the loops are started again whenever the app comes to the front (`AppState` "active") and on the view's first
+ *     layout (the returned `onLayout`);
+ *   - each loop is ONE `Animated.timing` with `iterations: -1`: the very native animation `Animated.loop` sends for a
+ *     native-driven loop (`_startNativeLoop`), but with the end callback `Animated.loop` drops on that path. An infinite
+ *     loop never ends by itself, so an end this hook did not ask for is a dropped loop: it is started again
+ *     (`RESTART_MS` later, in front; else at the next "active"). The callback runs once per drop, never per frame.
+ * Each start resets the values to 0 (the fish jumps to its first frame once, on a restart).
+ */
+function useSwim(phase: Animated.Value, orbit: Animated.Value, still: boolean): () => void {
+  const start = useRef<() => void>(() => {});
+  const laidOut = useRef(false);
+  useEffect(() => {
+    if (still) return;
+    let live = true;
+    let gen = 0;
+    let retry: ReturnType<typeof setTimeout> | null = null;
+    let loops: Animated.CompositeAnimation[] = [];
+    const stop = () => {
+      gen += 1;                       // first, so the ends the stops cause are known as ours
+      for (const l of loops) l.stop();
+      loops = [];
+      if (retry !== null) { clearTimeout(retry); retry = null; }
+    };
+    const go = () => {
+      stop();
+      const mine = gen;
+      const loop = (value: Animated.Value, duration: number) => {
+        value.setValue(0);
+        const l = Animated.timing(value, {
+          toValue: 1, duration, easing: Easing.linear, iterations: -1, useNativeDriver: true,
+        });
+        l.start(() => {
+          // stopped here (a restart, the unmount), or one restart already waits for both loops
+          if (!live || gen !== mine || retry !== null) return;
+          if (AppState.currentState === "active") retry = setTimeout(go, RESTART_MS);
+        });
+        return l;
+      };
+      loops = [loop(phase, FISH_SPRITE.cycleMs), loop(orbit, FISH_SPRITE.orbitMs)];
+    };
+    start.current = go;
+    go();
+    const sub = AppState.addEventListener("change", (s) => { if (s === "active") go(); });
+    return () => { live = false; start.current = () => {}; sub.remove(); stop(); };
+  }, [phase, orbit, still]);
+  return useCallback(() => {
+    if (laidOut.current) return;
+    laidOut.current = true;
+    start.current();
+  }, []);
+}
 
 export function FishSpinner({ palette, size = 96, label = SPINNER_WORDS.loading, colour }:
   { palette: Palette; size?: number; label?: string; colour?: string }) {
@@ -63,43 +124,40 @@ export function FishSpinner({ palette, size = 96, label = SPINNER_WORDS.loading,
     return () => { live = false; sub?.remove(); };
   }, []);
 
-  useEffect(() => {
-    if (still) return;
-    const loop = (value: Animated.Value, duration: number) =>
-      Animated.loop(Animated.timing(value, {
-        toValue: 1, duration, easing: Easing.linear, useNativeDriver: true,
-      }));
-    const a = loop(phase, FISH_SPRITE.cycleMs);
-    const b = loop(orbit, FISH_SPRITE.orbitMs);
-    a.start();
-    b.start();
-    return () => { a.stop(); b.stop(); };
-  }, [phase, orbit, still]);
+  const onLayout = useSwim(phase, orbit, still);
 
   const rotate = orbit.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "360deg"] });
   const translateX = phase.interpolate(spriteStaircase(FISH_SPRITE.frames, size));
 
   const ring = size * FISH_SPRITE.ring.radius * 2;
+  const tint = colour ?? palette.live;
 
   return (
-    <View accessibilityRole="progressbar" accessibilityLabel={label}
+    <View accessibilityRole="progressbar" accessibilityLabel={label} onLayout={onLayout}
           style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }}>
       {/* Behind, and not rotated — a circle looks identical at every angle, so spinning it
           would be pure cost. */}
       <View style={{ position: "absolute", width: ring, height: ring, borderRadius: round(ring),
                      borderWidth: Math.max(size * FISH_SPRITE.ring.width, 1),
                      borderColor: palette.line }} />
-      <Animated.View style={{ position: "absolute", width: size, height: size,
-                              overflow: "hidden", transform: still ? [] : [{ rotate }] }}>
-        <Animated.Image
-          testID="fish-sprite"
-          source={{ uri: FISH_SPRITE.uri }}
-          tintColor={colour ?? palette.live}
-          resizeMode="stretch"
-          style={{ width: size * FISH_SPRITE.frames, height: size,
-                   transform: still ? [] : [{ translateX }] }}
-        />
-      </Animated.View>
+      {/* (T814) still, the owner's still icon in the fish's place once it exists (`./stillIcon`); until then the fish's
+          first frame */}
+      {still && STILL_ICON !== null ? (
+        <Image testID="fish-still" source={{ uri: STILL_ICON }} tintColor={tint} resizeMode="contain"
+               style={{ position: "absolute", width: size, height: size }} />
+      ) : (
+        <Animated.View style={{ position: "absolute", width: size, height: size,
+                                overflow: "hidden", transform: still ? [] : [{ rotate }] }}>
+          <Animated.Image
+            testID="fish-sprite"
+            source={{ uri: FISH_SPRITE.uri }}
+            tintColor={tint}
+            resizeMode="stretch"
+            style={{ width: size * FISH_SPRITE.frames, height: size,
+                     transform: still ? [] : [{ translateX }] }}
+          />
+        </Animated.View>
+      )}
     </View>
   );
 }
