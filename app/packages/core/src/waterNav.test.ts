@@ -209,14 +209,17 @@ describe("the group's parts, mouth first (the release's `part_ix`)", () => {
       "3: Chilliwack River Ecological Reserve boundary → Source",
     ]);
     expect(g.parts.map((p) => [p.partIx, p.pieces])).toEqual([[0, [0]], [1, [1]], [2, [2]], [3, [3]]]);
-    expect([partWhere(g, 0), partWhere(g, 3)]).toEqual(["Part 1 of 4 · Chilliwack River", "Part 4 of 4 · Chilliwack River"]);
+    // (T768) the count is the group's own (the local rows above pin the parts); the test holds the words around it
+    const n = g.parts.length;
+    expect([partWhere(g, 0), partWhere(g, n - 1)]).toEqual([`Part 1 of ${n} · Chilliwack River`, `Part ${n} of ${n} · Chilliwack River`]);
   });
 
   it("(T150 review) a parts-list row as a screen reader says it, whole; the list's title is the one PARTS_TITLE", () => {
     const g = waterGroup([CHILLIWACK], NO_ENDS);
-    expect([partRowAria(g, 0), partRowAria(g, 3), partRowAria(waterGroup([VEDDER], NO_ENDS), 0)]).toEqual([
-      "Vedder Crossing Bridge → Tamihi Rapids Bridge, part 1 of 4 · Chilliwack River",
-      "Chilliwack River Ecological Reserve boundary → Source, part 4 of 4 · Chilliwack River",
+    const n = g.parts.length;   // (T768) the group's own count, not a typed one
+    expect([partRowAria(g, 0), partRowAria(g, n - 1), partRowAria(waterGroup([VEDDER], NO_ENDS), 0)]).toEqual([
+      `Vedder Crossing Bridge → Tamihi Rapids Bridge, part 1 of ${n} · Chilliwack River`,
+      `Chilliwack River Ecological Reserve boundary → Source, part ${n} of ${n} · Chilliwack River`,
       "Vedder River, part 1 of 1"]);
     // one copy of "Parts of this water" (that it is SPELLED once, in regs/words.ts, is a source scan:
     // tools/one-parts-list.test.ts — core may not read files; the Parts sheet that also read it is removed, T698)
@@ -236,7 +239,7 @@ describe("the group's parts, mouth first (the release's `part_ix`)", () => {
 
   it("a one-part water is named by its water, with no note", () => {
     const g = waterGroup([VEDDER], NO_ENDS);
-    expect([partName(g, 0), itemNote(g, 0), partWhere(g, 0)]).toEqual(["Vedder River", "", "Part 1 of 1"]);
+    expect([partName(g, 0), itemNote(g, 0), partWhere(g, 0)]).toEqual(["Vedder River", "", `Part 1 of ${g.parts.length}`]);
   });
 
   it("KLWA: a split lake's three items are one water, ordered by their exits (as the prototype's klwa)", () => {

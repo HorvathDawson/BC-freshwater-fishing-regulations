@@ -4,7 +4,7 @@
  * release r-1bb06fa28daf wrote them (`part_geo`, `part_mark`, `part_section`, `water_exit`).
  */
 import { beforeAll, describe, expect, it } from "vitest";
-import { markLabel, partName, type WaterGroup } from "@app/core";
+import { markLabel, partName, partRowAria, partWhere, type WaterGroup } from "@app/core";
 import { loadWaterGroup, openRegsStore, type RegsStore } from "@app/data/regs";
 import { openRegsFixtureWithLines, sectionNames, type SectionNames } from "@app/data/release/node";
 import type { ItemId } from "@app/data";
@@ -50,6 +50,9 @@ const bar = (g: WaterGroup, s: WaterMapState) => {
   return `${v.where} | ${v.current.name} | ${v.down.label}${v.down.disabled ? " (off)" : ""} | ${v.up.label}`
     + `${v.up.disabled ? " (off)" : ""}${v.exit ? ` | ${v.exit.label}` : ""}`;
 };
+/** (T768) A bar's lead as the group says it ("Part k of N · Water | name"): counts and names come from the water's group
+ *  (the one content pin is conformance waterGroup.fixture.test.ts), never typed here. */
+const lead = (g: WaterGroup, i: number) => `${partWhere(g, i)} | ${partName(g, i)}`;
 const sids = async (ord: number, partIx: number) =>
   (await (await st.water()).all("SELECT sid FROM part_section WHERE ord = ? AND part_ix = ? ORDER BY sid", ord, partIx))
     .map((r) => Number(r.sid));
@@ -61,20 +64,21 @@ describe("the Chilliwack: ▼ / ▲ through its five parts, the ends disabled, t
     const g = await loadWaterGroup(st, "gnis:8634");
     let s = waterMapStart(waterMapStartIx(g, "gnis:8634", 0));     // part_ix 0 is the mouth part (river order)
     expect(s.at).toBe(0);
-    expect(bar(g, s)).toBe("Part 1 of 5 · Chilliwack River | Vedder Crossing Bridge → Orange triangular boundary signs (200 m upstream of Vedder Crossing bridge)"
+    expect(bar(g, s)).toBe(lead(g, 0)
       // ▼ at the mouth part goes on into the Vedder (`water_continue`); "Flows into" stays
       + " | Downstream into Vedder River | Upstream | Flows into Vedder River ›");
     // (T517) the mouth meets the Vedder's upper part (the Vedder is two parts of one run too)
     expect(view(g, s).exit).toEqual({ label: "Flows into Vedder River ›", item: "gnis:3062", part: 1 });
     const seen = [bar(g, s)];
     for (let k = 0; k < 5; k += 1) { s = run(g, s, { type: "up" }); seen.push(bar(g, s)); }
+    const top = g.parts.length - 1;
     expect(seen.slice(1)).toEqual([
-      "Part 2 of 5 · Chilliwack River | Orange triangular boundary signs (200 m upstream of Vedder Crossing bridge) → Tamihi Rapids Bridge | Downstream | Upstream",
-      "Part 3 of 5 · Chilliwack River | Tamihi Rapids Bridge → 100 m below the Slesse Creek confluence | Downstream | Upstream",
-      "Part 4 of 5 · Chilliwack River | 100 m below the Slesse Creek confluence → Chilliwack River Ecological Reserve boundary | Downstream | Upstream",
-      "Part 5 of 5 · Chilliwack River | Chilliwack River Ecological Reserve boundary → Source | Downstream | Highest part (off)",
+      `${lead(g, 1)} | Downstream | Upstream`,
+      `${lead(g, 2)} | Downstream | Upstream`,
+      `${lead(g, 3)} | Downstream | Upstream`,
+      `${lead(g, top)} | Downstream | Highest part (off)`,
       // ▲ at the top changes nothing
-      "Part 5 of 5 · Chilliwack River | Chilliwack River Ecological Reserve boundary → Source | Downstream | Highest part (off)",
+      `${lead(g, top)} | Downstream | Highest part (off)`,
     ]);
     s = run(g, s, { type: "down" }, { type: "down" }, { type: "down" }, { type: "down" }, { type: "down" });
     expect(s).toEqual(waterMapStart(0));
@@ -154,23 +158,18 @@ describe("the Chilliwack: ▼ / ▲ through its five parts, the ends disabled, t
 describe("(T150) the parts of this water, listed under the map — the header's Parts sheet moved here", () => {
   it("the Chilliwack: closed, the toggle says how many; open, every part by name and place, the part shown marked", async () => {
     const g = await loadWaterGroup(st, "gnis:8634");
-    expect(view(g, waterMapStart(1)).list).toEqual({ title: "Parts of this water", toggle: "Show all 5 parts", open: false,
+    expect(view(g, waterMapStart(1)).list).toEqual({ title: "Parts of this water", toggle: `Show all ${g.parts.length} parts`, open: false,
       rows: [
         { ix: 0, item: "gnis:8634", partIx: 0, note: "", here: false,
-          name: "Vedder Crossing Bridge → Orange triangular boundary signs (200 m upstream of Vedder Crossing bridge)",
-          aria: "Vedder Crossing Bridge → Orange triangular boundary signs (200 m upstream of Vedder Crossing bridge), part 1 of 5 · Chilliwack River" },
+          name: partName(g, 0), aria: partRowAria(g, 0) },
         { ix: 1, item: "gnis:8634", partIx: CH[1], note: "", here: true,
-          name: "Orange triangular boundary signs (200 m upstream of Vedder Crossing bridge) → Tamihi Rapids Bridge",
-          aria: "Orange triangular boundary signs (200 m upstream of Vedder Crossing bridge) → Tamihi Rapids Bridge, part 2 of 5 · Chilliwack River" },
+          name: partName(g, 1), aria: partRowAria(g, 1) },
         { ix: 2, item: "gnis:8634", partIx: CH[2], note: "", here: false,
-          name: "Tamihi Rapids Bridge → 100 m below the Slesse Creek confluence",
-          aria: "Tamihi Rapids Bridge → 100 m below the Slesse Creek confluence, part 3 of 5 · Chilliwack River" },
+          name: partName(g, 2), aria: partRowAria(g, 2) },
         { ix: 3, item: "gnis:8634", partIx: CH[3], note: "", here: false,
-          name: "100 m below the Slesse Creek confluence → Chilliwack River Ecological Reserve boundary",
-          aria: "100 m below the Slesse Creek confluence → Chilliwack River Ecological Reserve boundary, part 4 of 5 · Chilliwack River" },
+          name: partName(g, 3), aria: partRowAria(g, 3) },
         { ix: 4, item: "gnis:8634", partIx: CH[4], note: "", here: false,
-          name: "Chilliwack River Ecological Reserve boundary → Source",
-          aria: "Chilliwack River Ecological Reserve boundary → Source, part 5 of 5 · Chilliwack River" }] });
+          name: partName(g, 4), aria: partRowAria(g, 4) }] });
     const open = run(g, waterMapStart(1), { type: "list" });
     expect([open, view(g, open).list!.toggle, view(g, open).list!.open]).toEqual([
       { ...waterMapStart(1), list: true }, "Hide the list of parts", true]);
@@ -359,17 +358,17 @@ describe("Cowichan, Vedder and the Kootenay Lake West Arm", () => {
     const g = await loadWaterGroup(st, "gnis:3062");
     // (T517) the fixture's core names every water a kept water flows into, so the Vedder's mouth links the Sumas
     expect(g.parts.map((_, i) => bar(g, waterMapStart(i)))).toEqual([
-      "Part 1 of 2 · Vedder River | Mouth → Cable car crossing (200 m downstream of Vedder Crossing bridge) | Lowest part (off) | Upstream | Flows into Sumas River ›",
-      "Part 2 of 2 · Vedder River | Cable car crossing (200 m downstream of Vedder Crossing bridge) → Vedder Crossing Bridge | Downstream | Upstream into Chilliwack River"]);
+      `${lead(g, 0)} | Lowest part (off) | Upstream | Flows into Sumas River ›`,
+      `${lead(g, 1)} | Downstream | Upstream into Chilliwack River`]);
   });
 
   it("KLWA: the lake's three closure areas in the prototype's order, stepped by their exits, out into the Kootenay River; no placed marks", async () => {
     const g = await loadWaterGroup(st, "wbk:-20");
     expect(waterMapStartIx(g, "wbk:-20", 0)).toBe(2);
     expect(g.parts.map((_, i) => bar(g, waterMapStart(i)))).toEqual([
-      "Part 1 of 3 | Kootenay Lake — Lower West Arm | Lowest part (off) | Upstream | Flows into Kootenay River ›",
-      "Part 2 of 3 | Kootenay Lake — Upper West Arm | Downstream | Upstream",
-      "Part 3 of 3 | Kootenay Lake — Main Body | Downstream | Highest part (off)"]);
+      `${lead(g, 0)} | Lowest part (off) | Upstream | Flows into Kootenay River ›`,
+      `${lead(g, 1)} | Downstream | Upstream`,
+      `${lead(g, 2)} | Downstream | Highest part (off)`]);
     expect([view(g, waterMapStart(2)).marks, view(g, waterMapStart(2)).whole.label]).toEqual([[], "⤢ Whole lake"]);
     // Show regulations for a closure area names THAT item
     expect(view(g, waterMapStart(0)).regs).toEqual({ label: "Show regulations for this part", item: "wbk:-22", partIx: 0 });
