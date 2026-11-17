@@ -33,7 +33,7 @@ import { bootSaid, type MobileDataGate, type ReleaseLoader } from "@app/data/rel
 import * as platform from "@app/data/release/platform";
 import { fillDayFlow, onVisit, visitIdOf, storedHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openGaugeHistoryStore, openInSeasonStore, openInSeasonSeenStore, openInSeasonInboxStore, openFirstRunStore, openDataModeStore, openWalkthroughStore, openLocationAskStore, openAppUpdateStore, openRecentSearchStore, openRunSpeciesStore, openUpdateStore, openUpdateLogStore, openReportOutboxStore, openCrashSettingStore, openCrashPendingStore, openCrashExitStore, openInstallIdStore, openMeteo, openPhotos, openSpots, needsRefresh, refreshSpot, syncBackupSet,
          type DayFlowAnswer, type Spot } from "@app/data/spots";
-import { Button, connectivity, ErrorState, LoadingState, SayingLine, setSynopsisNet, setSynopsisSource, Shell, StageBar, THEMES, UpdateToast, setLinkFailedSink, type ThemeName,
+import { Button, COHO_WIDTH, cohoHeight, connectivity, ErrorState, LoadingState, SayingLine, setSynopsisNet, setSynopsisSource, Shell, StageBar, THEMES, UpdateToast, setLinkFailedSink, type ThemeName,
          platformLine, type ShellProps, type UpdatesLogControls } from "@app/ui-native";
 import { LayoutWidthContext, liveFetch, NetRoot, useNet, useNetActivity, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, createCrashReporter, createCrashSetting, CrashSettingRoot, NotifyRoot, AlertLinesRefresh, installCrashHandlers, installId, reportPastExits, crashWhere, useRefreshOnReconnect, useApplyCurtain, useDownloadStill, useReleaseBoot, useBootTries, useRetryByItself, retriesByItselfNow, useSpots, type MapTiles,
          DataProvenanceContext, loadRegsStore, reportFailure, startNeedsRelease, startNoticeLine,
@@ -176,30 +176,32 @@ function BootStillLine({ bytes, colour }: { bytes: number | null; colour: string
   );
 }
 
+/** The loader's height (its width is `COHO_WIDTH`): what the words hang below. */
+const BOOT_LOADER_H = cohoHeight(COHO_WIDTH);
 /**
- * (T244) THE LOADING SCREEN: the loading fish at the centre of the WINDOW, its pun beneath, then the step and the
- * progress. The fish is drawn at once (`immediate`: no 300 ms hold) at the size and centre of the native splash picture
- * (`pnpm splash`, 110 dp), so the native splash can hand off to it with nothing to jump: the centre is the window's, not
- * the safe area's (the native splash is centred in the window), so the insets' difference is taken back out. Everything
- * else hangs below the fish, so what arrives late (the step, a download bar) never moves it. The native splash is let go
- * once the fish is laid out.
+ * (T244) THE LOADING SCREEN: the loader at the centre of the WINDOW, its pun beneath, then the step and the progress.
+ * (T814, owner 2026-11-17) the loader is the owner's linocut coho (`LoadingState coho`, `COHO_WIDTH` wide), no longer the
+ * circling fish; the native splash picture (`pnpm splash`) is still the circling fish's first frame — a launch image
+ * cannot move — so the hand-off now changes picture. The loader is drawn at once (`immediate`: no 300 ms hold) at the
+ * centre of the window, not of the safe area (the native splash is centred in the window), so the insets' difference is
+ * taken back out. Everything else hangs below it, so what arrives late (the step, a download bar) never moves it. The
+ * native splash is let go once the loader is laid out.
  */
-const BOOT_FISH = 110;
 function BootScreen({ palette, line, words, saying = false, children }: {
   palette: (typeof THEMES)[ThemeName]; line: string; words: string; saying?: boolean; children?: React.ReactNode;
 }) {
   const insets = useSafeAreaInsets();
   const onLayout = useCallback(() => {
-    // two frames: the fish's strip is drawn on the first one after layout
+    // two frames: the loader's sheet is drawn on the first one after layout
     requestAnimationFrame(() => requestAnimationFrame(releaseSplash));
   }, []);
   return (
     <View testID="boot-screen" style={{ flex: 1, transform: [{ translateY: (insets.bottom - insets.top) / 2 }] }}>
-      <View style={{ position: "absolute", top: "50%", marginTop: -BOOT_FISH / 2, left: 0, right: 0, alignItems: "center" }}
+      <View style={{ position: "absolute", top: "50%", marginTop: -BOOT_LOADER_H / 2, left: 0, right: 0, alignItems: "center" }}
             onLayout={onLayout}>
-        <LoadingState palette={palette} size={BOOT_FISH} label={words} immediate />
+        <LoadingState palette={palette} size={COHO_WIDTH} label={words} immediate coho />
       </View>
-      <View style={{ position: "absolute", top: "50%", marginTop: BOOT_FISH / 2 + 8, left: 0, right: 0, alignItems: "center", gap: 10 }}>
+      <View style={{ position: "absolute", top: "50%", marginTop: BOOT_LOADER_H / 2 + 8, left: 0, right: 0, alignItems: "center", gap: 10 }}>
         {saying
           ? <SayingLine style={{ color: palette.ink, fontSize: 15, textAlign: "center", paddingHorizontal: 24 }} />
           : <Text testID="boot-line" style={{ color: palette.ink, fontSize: 15, textAlign: "center", paddingHorizontal: 24 }}>{line}</Text>}

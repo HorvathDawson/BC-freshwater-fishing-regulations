@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { spriteStaircase } from "./sprite";
+import { spriteGridStaircase, spriteStaircase } from "./sprite";
 
 describe("spriteStaircase", () => {
   it("holds each frame rather than sliding between them", () => {
@@ -32,5 +32,31 @@ describe("spriteStaircase", () => {
 
   it("refuses an empty strip rather than producing a degenerate range", () => {
     expect(() => spriteStaircase(0, 96)).toThrow(/at least one frame/);
+  });
+});
+
+describe("spriteGridStaircase (T814)", () => {
+  it("visits every frame of the sheet once, row-major, from one value", () => {
+    const { x, y } = spriteGridStaircase(80, 8, 192, 80);
+    const seen = x.outputRange.slice(0, -1).filter((_, i) => i % 2 === 0)
+      .map((ox, i) => [-ox / 192 + 0, -y.outputRange[i * 2]! / 80 + 0]);
+    expect(seen.length).toBe(80);
+    expect(seen.slice(0, 10)).toEqual([[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [0, 1], [1, 1]]);
+    expect(seen.at(-1)).toEqual([7, 9]);
+    expect(new Set(seen.map((p) => p.join())).size).toBe(80);
+  });
+
+  it("holds each frame, keeps the input strictly increasing, and wraps to frame 0 with no seam", () => {
+    const { x, y } = spriteGridStaircase(80, 8, 192, 80);
+    expect(x.inputRange).toEqual(y.inputRange);
+    for (let i = 1; i < x.inputRange.length; i++) expect(x.inputRange[i]!).toBeGreaterThan(x.inputRange[i - 1]!);
+    expect([x.outputRange[18], y.outputRange[18]]).toEqual([x.outputRange[19], y.outputRange[19]]);
+    expect([x.inputRange.at(-1), x.outputRange.at(-1), y.outputRange.at(-1), x.outputRange[0], y.outputRange[0]])
+      .toEqual([1, 0, 0, 0, 0]);
+  });
+
+  it("refuses an empty sheet or no columns", () => {
+    expect(() => spriteGridStaircase(0, 8, 1, 1)).toThrow(/at least one frame/);
+    expect(() => spriteGridStaircase(8, 0, 1, 1)).toThrow(/at least one column/);
   });
 });

@@ -1,6 +1,6 @@
 # T817 — A water with only level data (Harrison Lake) opens its Conditions on Level, and says so
 
-Status: IN PROGRESS (fixed on branch `app-fix/t817-level-only`, not merged; left (Claude): the phone look on the next build, then the merge; app chat; refines T728 and the owner's 2026-11-10 "Flow leads, Level auxiliary")
+Status: DONE (f7b41c208; landed 2026-11-17 in land/app-1117; owner re-tests on the 0.7.12 build).
 
 Source: owner 2026-11-16 ~21:22, testing iPhone TestFlight build 36 (app chat; pictures in the chat). Verbatim: "also opening harrison lake then going to conditions should default to level only because there is no
 other data (the map looks super weird and not visible because of it) then when you switch to level the empty flow

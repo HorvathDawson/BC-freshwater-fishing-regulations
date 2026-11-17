@@ -2297,3 +2297,68 @@ More questions (recommended answer first):
     the same. Also lardeau and duncan should also do that for rainbow right? I'm confused why it is like this seems like
     it would auto be handled". So Kaslo and Keen read LIKE the Lardeau (A), reversing the 08:50 reading; he wants it
     automatic, not a per-water edit.
+- 2026-11-17 ~09:57, in the APP chat, T830 after the Capilano pictures: the unranked line picked "Plainer" ("Too new to
+  say if this is high or low."); levels to 2 decimals: "Depends how much space this adds. But yes". Built with pictures.
+  11:41, after the before/after pictures (Capilano 1 m -> 1.00 m, Harrison 10.30 m; the tap read-out was already cut at
+  phone width): "Keep 2 decimals". DONE; lands next.
+- 2026-11-17 ~10:38, main chat dialog on the T834 side build (verbatim):
+  - The 3 changed waters (Kaslo/Keen +2 bull trout outside the share; Buckley rainbow its own 1): "I think this is right
+    but you didn't explain well".
+  - Rows smaller than the share (Adams rainbow 2 under Region 3's 4 from streams): "How the fuck would it read that it is
+    just 2 of the 4 and nothing should be different then that unless it lists a value bigger then regional quota in which
+    case it will fill it up then add a couple additional slots after being filled up regional".
+  Reading: a row's own number counts INSIDE the stream share; only a number BIGGER than the share adds slots on top
+  (fill the share, then extra slots for that fish). Equal numbers change nothing. That is NOT what the T834 build does
+  for Kaslo/Keen (it gives 2 bull trout + 2 others = 4); follow-up asked with numbers before anything merges.
+- 2026-11-17 ~10:50, main chat follow-ups on T834 (verbatim):
+  - Kaslo: "Yes: 2 in all (Recommended)" (Kaslo/Keen stay 2 fish from the stream in all; both may be bull trout).
+  - Lardeau: "the lardeau would allow 5 rainbows and 2 bull in a day buit then you have used up trout quota so no other
+    types may be caught. or you could catch 2 other trout like cuttroat then you could have the 5+2 with any 2 removed. so
+    like 3 rainbow 2 bulls for example or 4 rainbows 1 bull. make sense?"
+  - Lardeau day total, region's 5 or 7: "i would say 7 because we have other ones like one of the kootenay lakes having a
+    10 a day quota for rainbows ".
+  Reading (main chat): a water that prints its own daily quotas gets a day pool = the larger of the region's cap that
+  applies there (stream share on streams) and the SUM of its own quotas; each fish stays under its own quota, fish with no
+  own quota stay under the region's cap, and all of them count inside the pool, which replaces the region's total there.
+  Lardeau/Duncan 7, Kaslo/Keen 2, Adams 4 (2 rainbow of the 4). T834 reworked to this; the changed waters go to him first.
+- 2026-11-17 ~11:00, owner: "can we add all these examples to gotcha as a thing to ask about". Done:
+  pipeline/docs/GOTCHAS.md, "Questions the owner will put to BC Fish and Wildlife" (beside the Thompson): Kaslo/Keen,
+  Lardeau/Duncan, Kootenay Lake main body, Adams, Buckley, and the 12 rows that carried a hand-written lift, each with
+  the reading built and the other reading. TO ASK Fish and Wildlife (owner).
+- 2026-11-17 ~11:10, owner on "unlike the Thompson": "unlike the thompson? everything should use same reading...". Then,
+  by dialog, ONE reading for every water: "Strict everywhere (Recommended)". The region's rule stands unless the water's
+  row says otherwise or cannot work under it: Lardeau/Duncan 5 in all (bull + other trout 2 of them), Kootenay Lake main
+  body 10, Thompson below Kamloops Lake stays closed in June, Kaslo/Keen 2, Adams 4, Buckley 1. Replaces the ~10:50
+  "7" reading. GOTCHAS entry rewritten to match.
+- 2026-11-17 ~11:08, owner (verbatim): "what are all the streams that would be effected by the change? i want the list in
+  gotchas" and "but make sure they dont have exempt from whatever closure in the item becasuse then that makes it
+  unambiguous". Done: GOTCHAS, under the Thompson question, a table of the 17 waters whose own "No Fishing" dates sit
+  against a regional closure with no printed exemption (plus Duck Lake's dated bass rows), with the days the loose
+  reading would open. Fraser (exemption covers only above the Thompson), Shuswap (pier) and West Road checked.
+- 2026-11-17 11:15, owner (verbatim): "did you add the text to the gotchas for each too? want to be able to draft a message
+  to each regional office for how to tinterpret in future". Done: GOTCHAS "The exact words, by regional office": per
+  office (1, 3, 4, 5/6, 6, 7A) the region's rule and each water's row as printed, printed page numbers, what the app
+  does and the other reading; closures (A) and quotas (B). Thompson/T834 page cites corrected to printed pages.
+- 2026-11-17 ~11:15, in the APP chat: "the photo viewer could also use a little improvement to make it industry
+  standard". Picked all four at 11:17: swipe down to close, tap to hide the buttons, counter + smooth motion, opens from
+  its thumbnail. Filed T836; built after T819 lands, with pictures and clips.
+- 2026-11-17 11:18, owner (verbatim): "the regional office questions should include oither questions form gotchas too",
+  "also if there are any gotchas we missed?", "dont mention the app just have the question as super concise questiuons
+  on how to interpret and what the problem is". Done: GOTCHAS "Questions for each office": BC Fish and Wildlife
+  Regions 1, 3, 4, 5, 6, 7A and DFO (salmon), each a short question with the book's words and printed page. Added from
+  the gotchas: Region 1 dated bait bans, Kitimat hatchery steelhead, Mackenzie Creek MU, Region 5 lakes not found, and
+  the DFO place wordings (Kispiox, Kasiks, Kanaka, Stamp, Somass, Juniper Beach, Bulkley, Sheldens, Tatshenshini,
+  Cowichan). Missed before, now added: Campbell River MU 1-6/1-10 summer closure (T796 W1) and the Duncan's exemptions
+  reaching Trout Lake's creeks (RULINGS T15). Left out: Lower Shuswap "one km" (his word: nothing goes to DFO).
+  Correction: the page numbers in the 11:15 version were wrong (the corpus already stores printed pages); fixed.
+- 2026-11-17 ~11:45-11:48, app chat:
+  - "sun set is not capitalised (Sunrise 08:50 PT · sunset 17:43 PT) too" -> T837, fixed ("· Sunset"), lands with T830.
+  - "having random conditions today text here is weird too" (web spot estimate card). Dialog 11:48: "Drop it
+    (Recommended)" -> T838: the loose "Conditions: today" line goes; the regulations-day link line stays when that day is
+    not today.
+  - "desktop mode on webapp should maybe move the bottom map.conditions. spots, more bar somewhere more standard for
+    desktop. maybe on side or top please choose the most standard spot" -> T839: Claude chose a left navigation rail at
+    desktop width (Material's rule for wide screens; Google Maps / AllTrails / onX); top stays search + day. Shots
+    before it lands.
+  - Nahwitti River: char sit on their own under the other-fish table instead of in the trout tab; checking whether the new
+    trout table (T810) repeats it. Answer owed.

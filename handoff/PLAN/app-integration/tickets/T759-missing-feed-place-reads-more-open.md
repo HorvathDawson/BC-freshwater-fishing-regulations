@@ -1,6 +1,6 @@
 # T759 — A DFO rule we cannot match is an ISSUE on its river: the colour stays, the line and a banner say so
 
-Status: IN PROGRESS (owner decided 2026-11-15 evening; both halves merged 2026-11-16 on `merge/t759` (feeds 5a4f5e245, app 7875490fe), see "Merged" at the end; left (Claude): land it on `redesign/stream-sections`, the Android benches, then the STAGING worker deploy (the app chat); production worker = the owner)
+Status: DONE (be4b662b5; landed 2026-11-17 with dee772e67 + 731447000; staging feeds worker deployed 2026-11-17).
 not merged; left: worker + app halves (the other chat), vectors lines, merge)
 
 Source: main chat 2026-11-15, after T758. Trace with real data: `handoff/PLAN/curation-review/feed-missing-location-2026-11-15.md`.

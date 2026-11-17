@@ -1,6 +1,6 @@
 # T815 — iOS: the spots photo viewer's close ✕ sits under the status bar
 
-Status: OPEN (app, iOS; app chat)
+Status: DONE (f7b41c208; landed 2026-11-17 in land/app-1117, proven on the simulator; owner re-tests on the 0.7.12 build).
 
 Source: owner 2026-11-16 ~21:22, testing iPhone TestFlight build 36 (app chat; pictures in the chat). Verbatim: "the picture viewer for spots has the x under the notification bar".
 
