@@ -51,47 +51,47 @@ the file: "Answers by batch", "Re-check of saves", and the dated lines after the
     globs and `====` in zsh. Use absolute paths (a `cd` sticks). RULINGS is `pipeline/docs/RULINGS.md`.
 13. His name, email and the project name never go into requests to outside services. No reading `.env`.
 
-### C. Where everything stands at 17:47 on 2026-11-16 (ONE block; rewritten whole each time, trust only this)
-The main chat is session `bc-freshwater-fishing-regulations-8c` (Opus). The old main chat (-17) only relays the owner's
-words typed there. The app chat is `bc-freshwater-fishing-regulations-9c`. This session's scratch: `/private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/b8ddfca9-44eb-400e-a9bf-bd89b4b0f359/scratchpad/`.
+### C. Where everything stands at 19:28 on 2026-11-16 (ONE block; rewritten whole each time, trust only this)
+Main chat = session `bc-freshwater-fishing-regulations-8c` (Opus); app chat = `bc-freshwater-fishing-regulations-9c`;
+the old main chat (-17) only relays owner words typed there. Scratch: `/private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/b8ddfca9-44eb-400e-a9bf-bd89b4b0f359/scratchpad/`. WORKING RULE (owner 19:01): batch lane
+merges, ONE full pipeline tier + ONE push per batch; never push without the tier; hold a push while a CI run on the
+last push is in flight.
 
-**1. Pushed / local.** On origin: T805 (C, B, D), T809, the trout plan files, the hard-cases list. Local docs commits
-wait for the next push (owner answers 17:40-17:46, gotcha, plan decisions); push when no CI run is in flight.
+**1. On origin.** T805, T809, trout I0/A0, F0, E/G (modules only), the trout plan files (spec, contract, app check,
+review), the Babine creek mouths + 12 owner saves (marks 2825-2836) + name variants, Squamish re-tick (2837, T811
+DONE), salmon hard-case review list. Owner answers to 19:09 in OWNER-TODO.
 
-**2. Workers out (this session; SendMessage by id).**
-- `a02b998f0e7b431a7` (Opus) salmon hard cases, branch `lane/salmon-hardcases-1116` (worktree `/private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/b8ddfca9-44eb-400e-a9bf-bd89b4b0f359/scratchpad/salmon-hc-wt`, from
-  91cf5e8fc). Done: 7e390039b wording fixes (S2, S4, X3, the lifted-days brackets; no answer changes), 9b4984714 T796
-  notes. NOW building the owner's answers: the 9 lakes/ponds mostly outside a reserve or park out by name (Z10) with a
-  Python note; national parks "Closed by the rule book unless opened under the National Parks Fishing Regulations
-  (p.9)" + permit sentence. It must say first whether that needs an atlas rebuild or only reach + bundle, and run any
-  heavy step only via heavy.sh after telling me. Its tier showed 15 failures that also fail on the lane head (worktree
-  env + the lane's un-regenerated pack.generated.ts): recheck in the main checkout at landing.
-- `a74fb3dc56eda24a7` (Opus) trout step 1: I0 (version pins over every section + optional trout, mutation-proved;
-  CellIds emitted into @app/core) and A0 (size estimate + three counts), branch `lane/trout-i0-a0`
-  (worktree `/private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/b8ddfca9-44eb-400e-a9bf-bd89b4b0f359/scratchpad/trout-i0-wt`). WHEN BACK: tier in the main checkout, merge, push, tell the app chat the generated path.
+**2. Workers out (SendMessage by id).**
+- `a02b998f0e7b431a7` salmon hard cases, `lane/salmon-hardcases-1116` (worktree `/private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/b8ddfca9-44eb-400e-a9bf-bd89b4b0f359/scratchpad/salmon-hc-wt`): built the owner's
+  answers (9 lakes out by name + Python note in new core table `section_note`, national-parks wording; Kennedy Lake also
+  got a note = 10: ASK HIM at landing), test release r-5f164411716e in `/private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/b8ddfca9-44eb-400e-a9bf-bd89b4b0f359/scratchpad/hc/deliver`, diff `/private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/b8ddfca9-44eb-400e-a9bf-bd89b4b0f359/scratchpad/hc/answers-diff/`.
+  NOW: eulachon as its own closure line (owner 19:09). Then the twins follow its head (app chat), pictures, landing.
+- `a2787533334244716` cut fixes + François Lake outlet (owner-decided items, section E item 2), `lane/cuts-1116`.
+- `aed1e335b4a261972` trout F (table builder), `lane/trout-f`.
+- `lane/babine-mouths` also holds T812 (Babine split into wbk:-24 / wbk:-25 in added_lakes.geojson, a9475700d +
+  697379bcb), NOT merged: lands with the cut fixes under ONE atlas rebuild; after merge run
+  `PYTHONPATH=$PWD .venv/bin/python -I /private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/b8ddfca9-44eb-400e-a9bf-bd89b4b0f359/scratchpad/babine/save/save_line.py` (re-saves the line with closes_item) then
+  `python -m pipeline.regs.review.apply closed_areas --no-commit`; re-mark the two DFO Babine places on the parts after
+  the atlas. Circle overlay for the app: proposed tile layer `closure_circle` (worker report); owner: Salmon map only,
+  follows the day, tap opens the lake's card.
 
-**3. Salmon landing (T796).** Waiting on: worker above (then the changed-answers list to the owner if any answer moves:
-the 9 lakes open for salmon and trout), the app chat's X1 card fix (region-closed shape; its verdict: app) and its W2
-fix (done, 91a48f713 on the twins), the twins following the hard-cases head, the 1 km Skeena retake, then pictures +
-the changed-answers summary to him, then section D (merge BOTH lanes: salmon-rules then salmon-hardcases; RULINGS clash
-to renumber: lane D7 = dev D8, lane D8/D9, lane O7/O8 vs T673/T694). Owner answers 17:44/17:46: Campbell keep closed;
-Thompson June closed + on his Fish and Wildlife list (GOTCHAS top section); streams keep E8; parks book wording.
-Yakoun side creeks are RIGHT (row carries "Incl. Tribs", ruling T2).
+**3. Salmon landing (T796).** After eulachon: twins merge the lane head, app shows `core.section_note` (optional table,
+core/1), pictures retaken, owner sees pictures + changed answers (71 closures, 9 lakes open, wording; Kennedy note
+question), then section D (merge salmon-rules, then salmon-hardcases; regenerate pack.generated.ts in the main
+checkout; RULINGS clash renumber; twins land in the same push window).
 
-**4. Trout table (T810).** Plan complete and reviewed: spec + contract + app check + review, all in
-`handoff/PLAN/design/trout-table-*`. Owner 17:40: ship only at the switch (step 9 dropped); angler notes stay in the
-page block. Arrow: salmon + trout folds only. Year bar: when every fish shares one state (owner 12:42); the 16:55 "drop"
-was the trout pill on today's year strip (a different element). Order of work: spec section 7 (step 1 = I0, A0, the
-app's M0). The main chat owns A–L; contract questions come here.
+**4. Trout (T810).** Done: I0, A0, F0, E, G. Running: F. Next: H, I (flag off), V-py, J, G2 (owner reads the sentence
+list), A1; app: M0+M before the first side release; picture pack; then the cutover (ship only at the switch, owner
+17:40). Order: spec section 7.
 
-**5. Saves left for him (T806/T811).** Morice 2738 (his plain "right"), Morice 2739, Sheldens 2783, Babine 2784, Dean
-2793, Thompson 2521, Morice 2596, Atnarko 2584, Squamish powerline 2511 re-tick (T811).
+**5. Before the ONE staging release.** Merge cuts lane + T812 → atlas rebuild (heavy.sh) → reach → bundle/tiles →
+changed answers to him (cut fixes, François, Babine split) → T807 (changed answers first) → T804 (rule + list first)
+→ small code lane → release (`--staging --dry-run --rehearse-follows` first; BEFORE/AFTER to the app chat).
 
-**6. Owed to him, in order.** (a) The salmon pictures + changed-answers summary at landing. (b) The trout picture pack and
-sentence list when the app draws the table (step 4 of the summary he got at 17:40). (c) End batch: François Lake
-outlet lines (T805 D, needs a placement rebuild); eulachon shown as a closure (T770). (d) T807's changed answers. (e)
-T804's rule + list. (f) The saves in 5. Then section E's queue to ONE staging release. T732 is ANSWERED ("D: WebP 75").
-My next free ticket number is T812.
+**6. Owed to him.** Salmon pictures + list at landing; the trout picture pack and sentence list later. NO saves are his
+(checked 19:09). 20 stale book (entry) ticks in the review app ("binding moved" since late Oct: Iskut, Sproat, Secret,
+Hidden …): find why each moved, bring him only the real ones. His other items: build 33 phone walk, iPhone push
+test, T786, T802, production. Next free ticket: T813.
 
 ### D. Landing the salmon lane (the next real step; vectors move, so it lands WITH the app chat's twins)
 1. Agree the moment with the app chat ("the salmon lane lands now; your twins follow in the same push window").
