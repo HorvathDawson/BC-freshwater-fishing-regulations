@@ -236,6 +236,8 @@ UP_ADJ_READERS = {
     # (T230, 7322da366) in-season pick-points: the named tributaries meeting a water's own stem, one level
     ("pipeline/regs/inseason/points.py", "points"): "a stem's named confluences, one level (in-season pick-points)",
     ("pipeline/atlas/reach/extent.py", "_across_the_junction"): "pieces meeting a line end, one level",
+    ("pipeline/atlas/reach/extent.py", "_points_at"):
+        "T833: the coordinates where a line stands at its end cut, from the edges joining there, one level",
     ("pipeline/atlas/reach/extent.py", "_by_measure._nbrs"): "braid neighbours inside the universe",
     ("pipeline/atlas/reach/extent.py", "_flow_reach"): "a detached piece's flow path to its own water",
     ("pipeline/atlas/reach/extent.py", "_line_length"): "a line's confluence measures",
