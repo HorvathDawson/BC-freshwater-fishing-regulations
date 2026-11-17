@@ -130,6 +130,14 @@ def across_rows(rows: Sequence[dict], home: int, kinds: Sequence[str]) -> Tuple[
         others = [S for i, fs in sorted(by_row.items()) for S in fs if S not in kinds]
         if mine and others and len(by_row) > 1:
             out.append({"r": r, "o": o, "n": n, "mine": mine, "others": list(dict.fromkeys(others))})
+        elif mine and len(by_row) > 1:
+            # T834: ONE card holds the fish of several rows the limit holds (a raised total joined them: Lois Lake's
+            # rainbow 6 beside its other trout) — still across rows: each row's fish, naming the other rows' fish
+            for i, fs in sorted(by_row.items()):
+                here = [S for S in kinds if S in fs]
+                there = [S for j, gs in sorted(by_row.items()) if j != i for S in gs if S not in fs]
+                if here and there:
+                    out.append({"r": r, "o": o, "n": n, "mine": here, "others": list(dict.fromkeys(there))})
     return tuple(out)
 
 

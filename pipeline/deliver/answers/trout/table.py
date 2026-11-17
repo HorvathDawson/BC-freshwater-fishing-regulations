@@ -525,10 +525,14 @@ class Body:
         tier_by = {gd["by"]: gk for gk, gd in groups.items()}
         across = self._across(home, species)
         across_rules = {a["r"] for a in across}
+        # T834: a one-origin limit across rows ALL in this box (Lois Lake's wild 2 over its rainbow row and its other
+        # trout, one box since its raised total) is the box's wild strip — never a count over every origin
+        from pipeline.deliver.answers.tree import across_rows
+        box_across = {a["r"] for a in across_rows(self.rows_out, home, species) if set(a["others"]) <= set(species)}
         consumed_also: set = set()
         for r in rows:
             for a in r.also:
-                if a["by"] in across_rules or a.get("over_cm"):
+                if a["by"] in across_rules or a["by"] in box_across or a.get("over_cm"):
                     continue
                 gk = tier_by.get(a["by"])
                 if gk is not None and groups[gk]["n"] == a["n"]:
@@ -687,7 +691,8 @@ class Body:
             for r in rows:
                 for a in r.also:
                     sp = set(a.get("species") or ())
-                    if not a.get("over_cm") or a["by"] in across_rules or (id(r), a["says"]) in consumed_also \
+                    if not a.get("over_cm") or a["by"] in across_rules or a["by"] in box_across \
+                            or (id(r), a["says"]) in consumed_also \
                             or r.fish not in sp:
                         continue
                     held = [x for x in rows if x.fish in sp]
@@ -730,7 +735,8 @@ class Body:
             for x in lines_of.get(r.key, []):
                 r.add(x)
             for a in r.also:
-                if a["by"] in across_rules or (id(r), a["says"]) in consumed_also or (id(r), a["says"]) in said_also:
+                if a["by"] in across_rules or a["by"] in box_across or (id(r), a["says"]) in consumed_also \
+                        or (id(r), a["says"]) in said_also:
                     continue
                 if a.get("species") and r.fish not in a["species"] and set(a["species"]) & {x.fish for x in rows if x.kind_ix == r.kind_ix}:
                     continue
@@ -838,7 +844,9 @@ class Body:
         from pipeline.deliver.answers.tree import A_WILD_LIMIT_ACROSS_ROWS_SAID, across_rows
         if not A_WILD_LIMIT_ACROSS_ROWS_SAID:
             return ()
-        return [a for a in across_rows(self.rows_out, home, kinds) if set(a["others"]) & TC]
+        # (T834: a limit across rows of ONE box is the box's own — its wild strip says it — never a line across boxes)
+        return [a for a in across_rows(self.rows_out, home, kinds) if set(a["others"]) & TC
+                and not set(a["others"]) <= set(kinds)]
 
     def _law(self, r: _Row):
         fa = self.fish[r.fish]
