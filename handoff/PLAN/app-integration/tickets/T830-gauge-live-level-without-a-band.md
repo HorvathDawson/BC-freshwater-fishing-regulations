@@ -36,3 +36,68 @@ Full list: app chat scratch `gauge-level/stations_no_level.csv` (copy into this 
 
 2026-11-17 08:37, owner (main chat, verbatim): "Yes still show gauge data." So pick 2 = the recommended: the raw live
 level in metres, unranked, Level offered when the station reports level live, the 30-day line without a band.
+
+## Built — 2026-11-17 (app chat lane, branch `app-fix/t830-level-no-band`; not merged, not deployed)
+
+**Cause (verified).** As the 01:00 note says: the index's per-quantity entries are RANKS, so a station with a live level
+and no level band (Capilano at Canyon: HYDAT level 2024-2025 only, under `MIN_RECORD_YEARS` = 3) had no level anywhere
+in the index; `otherOnly` read "no level rank" as "no level" and the app said "flow only". On the 2026-11-17 staging
+feed 17 stations report a level live with no level rank (the sweep's 16 + one more), list in `T830-files/`. A second
+fault showed once Level was offered: the donor panel read its rows against the day's MIDNIGHT, so every reading that
+cannot be ranked made after 06:00 was past the 6 h age line and was named "Not reporting" (the gauge switch beside it,
+asked at the clock, said reporting).
+
+**Fix.**
+1. Publisher, both twins: the index entry carries `reports`, the quantities the reading carries, ranked or not
+   (`publish.live_quantities` / `liveQuantities`). A level off the record's rating (T550, the 5 other-datum stations)
+   is left out on purpose, so those keep exactly today's behaviour. Written after `parameter` in both; the worker's
+   change-aware cache keeps it (whole-entry compare in `gauges.robust`).
+2. App: `otherOnly` answers nothing for a quantity in `reports` (no "flow only" row, pin ring, or panel refusal; under
+   Level Capilano's panel says the existing "None of the gauges … can be ranked against its record"). The card's
+   quantities are the bundle's banded ones plus `reports` (`cardParameters`); under a quantity offered from `reports`
+   alone the card shows the raw figure in metres, NO dot, NO standing word, and Python's line instead
+   (`record.NO_RECORD_WORDS`, emitted by `gauge_policy`): **"Not ranked: no long record of its level to compare
+   with."** — a proposal for the owner's eye. The 72 h chart draws the line with no band (its key already says "no
+   normal range (short record)"); Year says the existing "This station has no envelope in this quantity…". The map
+   under Level leaves Capilano's dot off (no rank), where it drew a grey "reports flow only" ring. A feed from before
+   `reports` behaves exactly as before.
+3. The donor panel is asked at `ConditionsVM.ref` (today: the clock; a picked day: its B.C. midnight; a saved spot:
+   its day, unchanged).
+
+**Files.** `pipeline/gauges/feed/{publish,record}.py`, `pipeline/tools/emit/gauge_policy.py` (+ generated
+`core/gauge-policy.generated.ts`), `app/workers/feeds/src/gauges/publish.ts`, `app/tools/gauge-feed-contract.ts`,
+`core/conditions.ts`, `data/{feed/http,panel,types}.ts`, `ui/{answers,chart,hooks/gauge,panel/conditions,panel/donor}.ts`,
+`ui-native/{ConditionsPanel,DonorPanel}.tsx`, test-bed scenario `gauge-level`.
+
+**Tests (each mutation-checked: the guarded line removed, the test fails).** Python `test_feed_reports.py` (6);
+worker `gauges.reports.test.ts` (vectors through the repo's Python + a recording run with 07FB002's level band taken
+away), gauge parity/contract/robust/age green; data `livePanel` (Capilano under Level: no-record, not flow-only; an old
+feed and an other-datum level still flow-only), `feed/format` (now() carries `reports`); ui `cardQuantity`
+(`cardParameters`, `noRecordLine`), `panel.silent` (asked at the clock); ui-native `ConditionsPanel` (Level offered,
+1.19 m, Python's line, no dot, no flow standing; old feed: no Level). Runs: pytest on the 26 gauge/publish/policy files
+(298 passed), `python -m pipeline.tools.emit --check` 0, `pnpm -C app run check:fast` 0, vitest ui/data/core +
+Conditions/Donor/water ui-native + feed-contract/one-* tools (3489 passed after two whole-value expectations took the
+new `reports` field), worker gauge tests 49 passed, `typecheck:worker` 0.
+
+**Pictures** (app chat scratch `t830-shots/`): web, 390 px, light + dark, staging data, Capilano River → Conditions.
+Before = the branch base; after = this branch with the live staging index given `reports` in the browser (computed from
+each station file's `now`, the 5 other-datum levels left out: what the publisher will write), since the deployed worker
+does not write it yet. `web-before-flow-*` / `web-after-flow-*` (Flow: unchanged, the Flow/Level choice now shows),
+`web-after-level-*` (Level: "1 m", the no-record line, the 72 h line without a band), `web-before-maplevel-*` /
+`web-after-maplevel-*` (Conditions map on Level: the grey "flow only" ring at the gauge is gone).
+Android (test bed, emulator, build d29767238 clean, patched MapLibre; heavy lane 2, 10 min): new scenario
+`gauge-level` on the staging TEST channel. Before = the test index as it stood (no `reports`): Flow ranked as before, no
+Level choice (`android-before-flow.png`). After = the test channel's `test/feeds/live/index.json` replaced for the run
+by the live index + `reports` (computed as above), then put back byte-for-byte (backup taken first): Flow unchanged
+(`android-after-flow.png`), Level shows "1 m", "Not ranked: no long record of its level to compare with.", the 72 h line
+with no band (`android-after-level.png`); 1/1 PASS. `install` PASS. `gauge-offline` FAILED both steps, I believe
+not from this change: the Conditions view drew (estimate, route map), but the scenario looks for "m³/s" on the first
+screen and the gauge card is below the fold (`android-gauge-offline-step1.png`). Its check needs a scroll; not fixed here.
+
+**Left.**
+- Deploy the feeds worker (and the Python publisher's next run) so the live index carries `reports`; until then the
+  app behaves as before. Ship with an app build containing this branch.
+- Owner's eye: the line's words; whether Year should draw this year's levels with no band instead of the "no envelope"
+  sentence; the figure is rounded to 2 decimals (0.998 m shows as "1 m"; existing `figure`).
+- Fix `gauge-offline`'s first-screen check (scroll to the card first).
+- The README row stays OPEN until the worker is deployed.
