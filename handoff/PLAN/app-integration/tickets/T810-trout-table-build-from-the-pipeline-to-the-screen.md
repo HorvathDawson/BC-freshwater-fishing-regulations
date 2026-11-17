@@ -158,3 +158,28 @@ fails the proof).
   rainbow quota lifts hatchery fish only). Words: one band "only 1 of these 3" over brown, cutthroat and the wild
   rainbow row; the wild row's "only 1 wild" is no longer said; the twin rainbow rows stay side by side (wild, then
   hatchery).
+
+## 2026-11-17 01:51: V-py built (lane/trout-vpy): the shared fixture, Python half
+- `python -m pipeline.tools.emit.trout_vectors` (registered in `pipeline.tools.emit --check` and fast-fail) writes
+  `app/fixtures/trout/trout-vectors.generated.json`: 53 cases (the contract 2.8 list: Skeena x3, Lois, Khartoum,
+  Windsor, Dodd, Horseshoe, Nanton, Ireland, Shamrock, Kilgard, Echoes, Bowron, Istsi, Nation Lakes, Cunningham, Tagish,
+  Takla, Buckinghorse, Fraser R2 Mission, Fraser R3 Sep/Oct/Nov 15, Bish, Adams Jul 15/31, Kamloops Lake Jan/Jul, Elk
+  Nov/Apr/Jul, Kootenay main, Glenn, Madden, Kaslo, Keen, Vedder, Ross, Kitimat Jul 15/Nov 1, Humphrys Jul 15/Nov 1,
+  Ruby, Cultus, Bella Coola, Andi, Denetiah, Shuswap, Bruer, Mat, Burnt, Nitinat tidal), each anchored by stream key +
+  start metre or by its lake, with `s`, the decoded frame (null only for Elk Apr 15 and tidal Nitinat) and `composed`.
+  `drafts` is empty (the builder exists).
+- The vectors decode from a TROUT FIXTURE of their own, `app/fixtures/trout/regs-release/` + `section-lines.json`
+  (1.7 MB), cut by `regs_fixture --trout-cases` from side release r-6a81c322c649 (the live bundle, `--trout-table`):
+  until the app's M0 the app's own regs fixture and goldens must stay the normal release's (contract 2.8 amended, "As
+  built").
+- `app/fixtures/trout/trout-hand.json`: 14 hand cases on one valid base frame; the model refuses 13 for their own
+  reason, the dangling rule index is refused by the rule table (`rule_count`).
+- `scripts/trout-refresh.sh` (via heavy.sh): side release -> fixture -> vectors -> golden sync (skipped and said until
+  `versions.ts` lists `trout`) -> every `--check` + the cut again byte for byte. Run twice on r-6a81c322c649: no change.
+  The side release is over the web first-tap size gate (4,273,307 > 4,200,000 B; low 3,433,932 > 3,400,000): the script
+  passes those two gates only, said, for a side release.
+- `deploy/staging/test-updates.mjs side <release dir>`: the app reads every release file relative to `<origin>/release/`
+  on the test channel too, so the scenario names its files `../test/release/<id>/…`; the staging data worker resolves
+  the dot segment itself (`deploy/staging/test-updates.test.mjs`). Nothing uploaded; not walked on a device.
+- Not in the case list yet: an unnamed Region 6 stream and one of the 8 rule sets with no stored headline (both need a
+  handle or a find step the cut does not have).
