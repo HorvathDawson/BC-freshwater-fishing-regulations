@@ -14,6 +14,10 @@ waterbody key; they are dropped before anything is measured). Read from the sour
                  on the Babine's outlet): the point on that lake's outline, said so
         low      no stream of the name, but a hand-recorded hint (`HINTS`: a gazetteer feature of the same name) and
                  one stream meeting the shore near it: the largest such stream, said so
+        hinted   DFO's name is not the network's (T796, 2026-11-16): a hand-recorded hint names the stream the network
+                 carries it under, by its FWA name (`as`: Six Mile Creek is Gullwing Creek) or, for a stream the
+                 network leaves unnamed, by DFO's own census site's FWA watershed code (`fwa_code`: Sockeye Creek is
+                 400-536025-743170); the hint's own confidence and evidence, said so
     main()                          rewrites the CIRCLE proposals of `<generated>/review/dfo_closed_area_geometry.json`
                                     (every stored wording's items, so an older-only item is placed too); stretches and
                                     everything else in the file are kept as they are
@@ -35,20 +39,36 @@ TOUCH_M = 2.0
 HINT_M = 1500.0
 #: WHAT WAS LOOKED UP BY HAND, per water and creek (2026-11-10; BC Geographic Names web service, apps.gov.bc.ca/pub/
 #: bcgnws, and the FWA network within 6 km of the lake): `near` = a gazetteer feature of the same name [lon, lat];
-#: `looked` = what was tried, said on a creek that stays unplaced.
+#: `looked` = what was tried, said on a creek that stays unplaced. T796 (2026-11-16, the owner: "find the other
+#: rivers"): `as` = the FWA name DFO's creek is carried under, `fwa_code` = the FWA watershed code (first three
+#: levels) of the unnamed stream DFO's own census site sits on; each with its `confidence` and evidence (`why`).
+#: DFO's census sites: NuSEDS "Conservation Unit Census Sites" (open.canada.ca dataset c48669a3, file of 2025-05-28:
+#: GFE_ID, name, Y_LAT / X_LONGT, FWA_WATERSHED_CDE). The local names: SkeenaWild Conservation Trust, "Status of
+#: Wild Sockeye Stocks of the Babine Watershed" (M. Price, Nov 2011, from DFO's escapement database), which lists
+#: "Pendleton Creek (Cross Creek)" and "Six Mile Creek (Gullwing Creek)".
 HINTS: dict[str, dict[str, dict]] = {
     "6:babine-lake": {
-        "Pendleton Creek": {"near": [-125.708611, 54.519444],
-                            "why": "BC Geographic Names has Pendleton Bay on Babine Lake (name id 6951) and a Pendleton "
-                                   "Creek with no point at the lake; the network has no stream of that name"},
-        "Six Mile Creek": {"looked": "no stream named Six Mile / Sixmile Creek in the FWA network within 6 km of the "
-                                     "lake, and no BC Geographic Names creek of that name at the lake. By local "
-                                     "accounts it is near Four Mile Creek at the lake's east end: three unnamed streams "
-                                     "meet the shore within 2 km of Four Mile's mouth, none provably it"},
-        "Hazelwood Creek": {"looked": "no stream named Hazelwood (or Heazlewood) Creek in the FWA network within 6 km "
-                                      "of the lake; BC Geographic Names' only Heazlewood Creek is not at Babine Lake"},
-        "Sockeye Creek": {"looked": "no stream named Sockeye Creek in the FWA network within 6 km of the lake; BC "
-                                    "Geographic Names' Sockeye Creeks are not at Babine Lake"},
+        "Pendleton Creek": {"as": "Cross Creek", "confidence": "medium",
+                            "why": "Pendleton Creek is DFO's older name for Cross Creek: SkeenaWild's 2011 status "
+                                   "report on Babine sockeye (from DFO's escapement database) lists the stock as "
+                                   "'Pendleton Creek (Cross Creek)', DFO's census site 612 is CROSS CREEK, and Cross "
+                                   "Creek enters Pendleton Bay (BC Geographic Names 6951, 1.0 km from the mouth); no "
+                                   "stream of the network is named Pendleton Creek"},
+        "Six Mile Creek": {"as": "Gullwing Creek", "confidence": "medium",
+                           "why": "Six Mile Creek is DFO's older name for Gullwing Creek: SkeenaWild's 2011 status "
+                                  "report on Babine sockeye (from DFO's escapement database) lists the stock as 'Six "
+                                  "Mile Creek (Gullwing Creek)', DFO's census site 615 is GULLWING CREEK, and it is "
+                                  "the next named creek west of Four Mile Creek (local accounts fish '4 and 6 Mile "
+                                  "creeks' together); no stream of the network or BC Geographic Names creek at the "
+                                  "lake is named Six Mile"},
+        "Hazelwood Creek": {"fwa_code": "400-536025-597418", "confidence": "high",
+                            "why": "the network leaves Hazelwood Creek unnamed: DFO's census site 604 HAZELWOOD CREEK "
+                                   "(Babine sockeye) is at 55.12344, -126.26801 with FWA code 400-536025-597418, the "
+                                   "mouth of this stream (3.4 km south of Morrison Creek's)"},
+        "Sockeye Creek": {"fwa_code": "400-536025-743170", "confidence": "high",
+                          "why": "the network leaves Sockeye Creek unnamed: DFO's census site 608 SOCKEYE CREEK "
+                                 "(Babine sockeye) is at 54.73625, -126.01323 with FWA code 400-536025-743170, the "
+                                 "mouth of this stream (south shore, opposite Topley Landing)"},
     },
 }
 
@@ -67,6 +87,21 @@ def shore_mouth(lake, lake_key: int, segs: Iterable[tuple[Mapping, object]], nam
     shore = lake.boundary
     own = [(q, g) for q, g in segs if q.get("WATERBODY_KEY") != lake_key]      # never the in-lake connector
     mine = [(q, g) for q, g in own if _norm(q.get("GNIS_NAME")) == _norm(name)]
+    if not mine and hint and (hint.get("as") or hint.get("fwa_code")):
+        if hint.get("as"):
+            under = [(q, g) for q, g in own if _norm(q.get("GNIS_NAME")) == _norm(hint["as"])]
+        else:       # the stream itself, never its own tributaries (their codes go on past its three levels)
+            want = str(hint["fwa_code"]).rstrip("-") + "-000000"
+            under = [(q, g) for q, g in own if str(q.get("FWA_WATERSHED_CODE") or "").startswith(want)]
+        touch = [(q, g) for q, g in under if g.distance(shore) <= TOUCH_M]
+        if touch:
+            q, g = max(touch, key=lambda t: t[0].get("STREAM_ORDER") or 0)
+            return {"centre": nearest_points(g, shore)[1], "confidence": hint.get("confidence") or "low",
+                    "stream": q.get("BLUE_LINE_KEY"),
+                    "why": f"{hint.get('why')}. The centre: where its own channel (FWA blue line "
+                           f"{q.get('BLUE_LINE_KEY')}) meets the lake's outline; the in-lake connector line is not "
+                           "counted"}
+        return {"looked": f"{hint.get('why')}; but that stream does not meet this lake's outline in the network"}
     if mine:
         q, g = min(mine, key=lambda t: t[1].distance(shore))
         d = g.distance(shore)
@@ -86,7 +121,7 @@ def shore_mouth(lake, lake_key: int, segs: Iterable[tuple[Mapping, object]], nam
                           "outline, on no lake near it"}
     if hint and hint.get("near") and to_albers is not None:
         at = Point(*to_albers(*hint["near"]))
-        # an UNNAMED stream only: one the network names is another creek (Cross Creek is not Pendleton Creek)
+        # an UNNAMED stream only: one the network names is another creek, unless a hint says it is this one (`as`)
         cands = [(q, g) for q, g in own if not q.get("GNIS_NAME") and g.distance(shore) <= TOUCH_M
                  and g.distance(at) <= HINT_M]
         if cands:
