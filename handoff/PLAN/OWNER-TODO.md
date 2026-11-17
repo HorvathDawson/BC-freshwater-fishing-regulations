@@ -2272,4 +2272,6 @@ More questions (recommended answer first):
   3. Being fixed overnight before you see it: Sheldens Creek showed as two waters in search, and the Gitnadoix
      "upstream of the powerline" place had lost 4 side channels and one creek (that creek's coho went closed); the place
      is meant to be the whole river.
+  4. **Sheldens Creek** is now one water. Its small unnamed 3.47 ha pond on the creek now counts as part of the creek
+     (same rule as the Hazelwood ponds), so kokanee there goes from "keep 10 a day" to release.
   Full list of changed answers: shown to you in the morning, after the fix rebuild.

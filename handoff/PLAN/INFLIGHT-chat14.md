@@ -84,6 +84,14 @@ its `_reindex`), dfo_vectors --check with both in.
   closed all year (book p.50). Follow-up worker a86de8e705336ff07 on the same branch: Sheldens one item (stopgap
   e8ffdf96d binds both), Gitnadoix powerline place back to the whole river (991 -> 1,000; creek 360742973 coho), then
   ONE more rebuild + diffs. Merge to main only after that and after the owner has seen the list.
+  **04:15 11-17: follow-up back** (df08a776a, 2194158a5; release r-101acd988438 in scratchpad/rebuild2/): Sheldens is ONE item
+  wsc:950-016367 (name moved to name_variants.json; new writer rule CURATED_NAME_IS_THE_ONE_SOURCE); its 3.47 ha pond
+  lake:329381266 now folds in as stream (kokanee 10/day -> release) and trib 360394715:41 appears. Gitnadoix: cause is a
+  REACH CODE defect (`_across_the_junction` drops the whole end node) -> T833 filed (b8b2dcbad, pushed); the worker's
+  stopgap removed the owner's powerline cut. **04:28: T833 worker a14407ad140033abd**: fix the code + POLICY_VERSION,
+  restore the cut, rebuild 3 (scratchpad/rebuild3/), province-wide binding diff vs rebuild2 (stop if anything else moves),
+  diffs, and triage the 37 worktree lane-test failures against land/salmon-1116. Marks on old Sheldens id blk:360846083
+  (marks.jsonl lines 2470, 2516, 2517, 2783) need a surgical id rename at merge (marks rule: diff-proven renames only).
 - trout J back 00:05 11-17, merged locally as 02e51cfdc (mini release re-cut on merge); tier running, then push.
   01:53 11-17: worker done; lane/trout-vpy merged locally as 5d6ac8283 (6 keys fixed, proof 5,950/5,950, 0 problems; V-py:
   trout_vectors 53 cases, trout-hand 14, own trout fixture app/fixtures/trout/, scripts/trout-refresh.sh). Tier b806pz7n9
