@@ -2372,3 +2372,7 @@ More questions (recommended answer first):
   answer thhis one that the no steelhead is different then a full closure so the no steelhead definitely holds here".
   So the steelhead closure holds on those rows (as built; no change). The West Road mainstem (same shape) taken as
   answered the same way. Both removed from the office questions; recorded as answered in GOTCHAS.
+- 2026-11-17 11:57, owner (verbatim): "for the missing lakes we should say a little about what we have found on them too"
+  and "please update the regional office questions". Done: Frog, Redfern and Squirrel questions now say which lakes of
+  that name exist and where, and what the row's words match (Frog = Hidden/Secret's words; Squirrel = the MU 6-1 lakes
+  printed in both tables). Questions file re-sent.
