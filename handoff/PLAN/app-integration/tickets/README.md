@@ -308,7 +308,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T815 | iOS: the spots photo viewer's close ✕ sits under the status bar | DONE | f7b41c208 | owner iPhone build 36, 2026-11-16 |
 | T816 | iOS: text cut off (the hour on "When were you there?", the weather icons) | DONE | f7b41c208 | owner iPhone build 36, 2026-11-16 |
 | T817 | A water with only level data (Harrison Lake) opens its Conditions on Level, and says so; Level never takes Flow away (the Chehalis) | DONE | f7b41c208 | owner 2026-11-16 (refines T728) |
-| T819 | Spots view cleanup: review and proposals for the owner | OPEN | — | owner 2026-11-16 |
+| T819 | Spots view cleanup: review and proposals for the owner | DONE | 6c18bc2b0 | owner 2026-11-16 |
 | T820 | The salmon year bar is empty on a closed day instead of the full red closed stripe | DONE | 50e432ba3 | owner iPhone build 36, 2026-11-16 |
 | T821 | iOS: the back swipe flashes the previous menu for a moment | DONE | f7b41c208 | owner iPhone build 36, 2026-11-16 |
 | T822 | iPhone push: the phone never registers with the staging worker | OPEN | — | owner iPhone build 36, 2026-11-16 |
