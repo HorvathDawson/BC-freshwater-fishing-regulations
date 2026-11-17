@@ -867,12 +867,8 @@ CREATE TABLE gauge (station TEXT PRIMARY KEY, name TEXT NOT NULL,
 -- The app says it ("the gauge is about 11 km downstream"). Which relationships may speak is the build's POLICY
 -- (`pipeline/gauges/consume/shed.py` POLICIES / GAUGE_POLICY, default 'drainage_continued', Q31); every candidate,
 -- admitted or not, is in `gauge_relation` below. ADDED LAST, nullable: still conditions/1, an older release has none.
--- `small` (T823, owner 2026-11-16): 1 where the lead drains at least the policy's ratio times this section's own area
--- (`pipeline/gauges/consume/small_water.py`, PENDING the owner's threshold): the app shows the conditions meta
--- `small_water_text` beside the reading. Added LAST with a default: still conditions/1, an older release has none.
 CREATE TABLE section_gauge (sid INTEGER PRIMARY KEY, station TEXT NOT NULL,
-                            trust TEXT NOT NULL, mag INTEGER, rel INTEGER, dist_b INTEGER,
-                            small INTEGER NOT NULL DEFAULT 0);
+                            trust TEXT NOT NULL, mag INTEGER, rel INTEGER, dist_b INTEGER);
 
 -- EVERY (section, gauge) CANDIDATE the shed walk reached (T93), with the facts a policy chooses over: `rel` as TEXT
 -- (the GAUGE_RELS words, including 'up_branch' — the gauge is on a TRIBUTARY of this water, Slesse Creek's gauge seen
