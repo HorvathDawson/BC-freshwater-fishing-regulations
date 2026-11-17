@@ -610,6 +610,16 @@ def _clock_words(c: dict) -> str:
     return f"{unit} {'before' if off < 0 else 'after'} {c['solar']}"
 
 
+#: a weekday named in a text, whole or in short ("Monday", "Mon"): the trout table's date lines may name none
+#: (`answers/trout/words.py`, contract 2.5); the weekday words stay here, the one module that spells them
+_NAMES_A_WEEKDAY = re.compile(r"\b(?:" + "|".join(sorted({w for d in WEEKDAYS for w in (d, d[:3])}, key=len,
+                                                          reverse=True)) + r")\b", re.I)
+
+
+def names_a_weekday(text: str) -> bool:
+    return bool(_NAMES_A_WEEKDAY.search(text))
+
+
 def _weekday_words(days: Sequence[str], style: str) -> str:
     """A set of weekdays (calendar names) in one style. A RUN is consecutive days Monday first."""
     if style == "label":                       # the catalogue's label: the stored order, each in the plural
