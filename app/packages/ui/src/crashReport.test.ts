@@ -1,7 +1,8 @@
 // T242: the crash payload is pinned whole (every field), nothing identifying survives the scrub, the switch off sends
 // nothing, offline drops, a repeat is sent once, a fatal error is kept and sent at the next start, handlers chain.
 import { describe, expect, it, vi } from "vitest";
-import { backgroundKill, createCrashReporter, createCrashSetting, crashPayload, crashWhere, installCrashHandlers, installId, NO_WHERE, reportFailure, routeKind,
+import { setFailureSink } from "@app/core";
+import { answerWords, backgroundKill, createCrashReporter, createCrashSetting, crashPayload, crashWhere, exitPayload, installCrashHandlers, installId, NO_WHERE, reportFailure, reportPastExits, routeKind,
          scrubMessage, scrubStack, type CrashWhere } from "./crashReport";
 import { HOME, type Route } from "./route";
 
@@ -202,11 +203,11 @@ describe("the catchers (T242)", () => {
     const prev = vi.fn();
     let handler: ((e: unknown, f?: boolean) => void) | undefined;
     const g: Record<string, unknown> = { ErrorUtils: { getGlobalHandler: () => prev, setGlobalHandler: (h: typeof handler) => { handler = h; } } };
-    const undo = installCrashHandlers({ report: (e, o) => calls.push(`${(e as Error).message}:${o.kind}:${o.fatal}`), flush: async () => false, sendExit: async () => false }, g);
+    const undo = installCrashHandlers({ report: (e, o) => calls.push(`${(e as Error).message}:${o.kind}:${o.fatal}`), flush: async () => false, sendExit: async () => ({ sent: false, status: null, error: null }) }, g);
     handler!(new Error("x"), true);
     expect(calls).toEqual(["x:js:true"]);
     expect(prev).toHaveBeenCalledOnce();
-    installCrashHandlers({ report: () => calls.push("twice"), flush: async () => false, sendExit: async () => false }, g);   // second install: nothing
+    installCrashHandlers({ report: () => calls.push("twice"), flush: async () => false, sendExit: async () => ({ sent: false, status: null, error: null }) }, g);   // second install: nothing
     handler!(new Error("y"), false);
     expect(calls).toEqual(["x:js:true", "y:js:false"]);
     undo();
@@ -216,7 +217,7 @@ describe("the catchers (T242)", () => {
     const l: Record<string, (ev: never) => void> = {};
     const g = { addEventListener: (k: string, f: (ev: never) => void) => { l[k] = f; }, removeEventListener: () => {} };
     const calls: string[] = [];
-    installCrashHandlers({ report: (e, o) => calls.push(`${(e as Error).message}:${o.kind}`), flush: async () => false, sendExit: async () => false }, g as never);
+    installCrashHandlers({ report: (e, o) => calls.push(`${(e as Error).message}:${o.kind}`), flush: async () => false, sendExit: async () => ({ sent: false, status: null, error: null }) }, g as never);
     l.error!({ error: new Error("e1") } as never);
     l.unhandledrejection!({ reason: new Error("r1") } as never);
     expect(calls).toEqual(["e1:js", "r1:promise"]);
@@ -226,7 +227,7 @@ describe("the catchers (T242)", () => {
     const g = { HermesInternal: { enablePromiseRejectionTracker: (o: typeof opts) => { opts = o; } } };
     const calls: string[] = [];
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    const undo = installCrashHandlers({ report: (e, o) => calls.push(`${(e as Error).message}:${o.kind}:${o.fatal}`), flush: async () => false, sendExit: async () => false }, g as never);
+    const undo = installCrashHandlers({ report: (e, o) => calls.push(`${(e as Error).message}:${o.kind}:${o.fatal}`), flush: async () => false, sendExit: async () => ({ sent: false, status: null, error: null }) }, g as never);
     expect(opts!.allRejections).toBe(true);
     opts!.onUnhandled(1, new Error("p1"));
     opts!.onUnhandled(2, Object.assign(new Error("offline"), { environment: true }));
@@ -236,7 +237,7 @@ describe("the catchers (T242)", () => {
   });
   it("(T368) reportFailure reaches the installed reporter (non-fatal), never the environment's, nothing after undo", () => {
     const calls: string[] = [];
-    const undo = installCrashHandlers({ report: (e, o) => calls.push(`${(e as Error).message}:${o.kind}:${o.fatal}`), flush: async () => false, sendExit: async () => false }, {} as never);
+    const undo = installCrashHandlers({ report: (e, o) => calls.push(`${(e as Error).message}:${o.kind}:${o.fatal}`), flush: async () => false, sendExit: async () => ({ sent: false, status: null, error: null }) }, {} as never);
     reportFailure(new Error("caught"));
     reportFailure(Object.assign(new TypeError("Network request failed")));
     undo();
@@ -299,5 +300,51 @@ describe("why the last run ended (Android exit records, T242)", () => {
     const t = await setup([rec("CRASH_NATIVE", 3000, { status: 11 }), rec("ANR", 2000), rec("ANR", 1000, { status: 3 })], { fail: (p) => /ANR/.test(p.message) && !/status/.test(p.message) });
     expect(t.n).toBe(2);
     expect(t.mem.v).toBe("1999");
+  });
+});
+
+describe("(iOS crash lane) an iOS exit record, its payload and the server's answer", () => {
+  /** what modules/exit-info's Swift `readRecords` hands JS for a SIGSEGV in front (numbers are doubles over the bridge) */
+  const IOS = { timestamp: 1794687396123, reason: "CRASH_NATIVE", importance: "FOREGROUND", status: 11, rssKb: 280576, description: "SIGSEGV" };
+  const IOS_CTX = { app: "0.7.9 (31)", env: "staging", platform: "ios 26.5", release: "r-f749475d0962", install: "0123456789abcdef", ...WATER };
+  it("is pinned whole: kind native, fatal, no stack, no water (the screen is the next run's)", () => {
+    expect(exitPayload(IOS, IOS_CTX)).toEqual({
+      format: "crash/2", created: "2026-11-14T20:16:36.123Z", kind: "native", fatal: true, background: false,
+      route: "other", water: null, view: null, part: null, whole: false, sheet: null, install: "0123456789abcdef",
+      app: "0.7.9 (31)", env: "staging", platform: "ios 26.5", release: "r-f749475d0962",
+      name: "NativeExit", message: "CRASH_NATIVE while foreground, 274 MB in use, status 11: SIGSEGV", stack: "",
+    });
+  });
+  it("a refusal (the worker's per-address day limit): not sent, its status and words in the log line, reported, looked at again", async () => {
+    const failures: unknown[] = [];
+    const unsink = setFailureSink((e) => { failures.push(e); });
+    const info = vi.spyOn(console, "info").mockImplementation(() => {});
+    const fetch = vi.fn(async () => new Response(JSON.stringify({ ok: false, error: "too many reports today" }), { status: 429 }));
+    const setting = createCrashSetting(null);
+    const reporter = createCrashReporter({ url: "u", setting, online: () => true, context: () => IOS_CTX, fetch: fetch as never, now: () => NOW });
+    const mem = { v: null as string | null };
+    const n = await reportPastExits({ reporter, source: { recent: async () => [IOS] }, seen: { read: () => mem.v, write: (t) => { mem.v = t; } },
+                                      setting, online: () => true, jsFatalSent: false });
+    const line = info.mock.calls.map((c) => String(c[0])).find((l) => l.startsWith("[crash-reports] sent"));
+    info.mockRestore(); unsink();
+    expect(n).toBe(0);
+    expect(line).toBe("[crash-reports] sent 0 exit record(s); 1 new in the system's record (CRASH_NATIVE), 1 bad; answers: HTTP 429 (too many reports today)");
+    expect(failures.map((e) => `${(e as Error).name}: ${(e as Error).message}`)).toEqual(
+      ["CrashReportRefused: an exit record was refused by the crash server: HTTP 429 (too many reports today)"]);
+    expect(mem.v).toBe(String(IOS.timestamp - 1));   // the next start sends it again
+  });
+  it("accepted: sent, the line says HTTP 201; no answer at all (offline line) is said, not reported", async () => {
+    const failures: unknown[] = [];
+    const unsink = setFailureSink((e) => { failures.push(e); });
+    const setting = createCrashSetting(null);
+    const ok = createCrashReporter({ url: "u", setting, online: () => true, context: () => IOS_CTX, now: () => NOW,
+                                     fetch: (async () => new Response('{"ok":true}', { status: 201 })) as never });
+    expect(await ok.sendExit(IOS)).toEqual({ sent: true, status: 201, error: null });
+    const lost = createCrashReporter({ url: "u", setting, online: () => true, context: () => IOS_CTX, now: () => NOW,
+                                       fetch: (async () => { throw new TypeError("Network request failed"); }) as never });
+    const a = await lost.sendExit(IOS);
+    unsink();
+    expect(answerWords(a)).toBe("no answer (Network request failed)");
+    expect(failures).toEqual([]);
   });
 });

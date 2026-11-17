@@ -15,14 +15,17 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AppState, Platform, Share, StatusBar, Text, View, useColorScheme, useWindowDimensions } from "react-native";
 import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useFonts } from "expo-font";
-import {
-  BricolageGrotesque_700Bold, BricolageGrotesque_800ExtraBold,
-} from "@expo-google-fonts/bricolage-grotesque";
-import {
-  Archivo_400Regular, Archivo_500Medium, Archivo_600SemiBold, Archivo_700Bold, Archivo_800ExtraBold,
-} from "@expo-google-fonts/archivo";
-import { JetBrainsMono_500Medium } from "@expo-google-fonts/jetbrains-mono";
-import { DOWNLOAD_NOTE_WORDS, downloadFraction, failedStartLine, restartsByItself, INSTALL_WORDS, stillLine, MAP_CREDITS, MOBILE_DATA_WORDS, mobileDataDecision, installLine, SETUP_WORDS, setupFraction, setupLine, netBanner, progressWords, rolledBackLine, splashLineFor, startStage, updatedToast, UPDATE_LOG_WORDS, UPDATE_WORDS, versionHeaders,
+// (T741) each face from its own weight's folder: a family's index `require`s every face it has, and Metro ships every
+// one required (41 faces, 3.9 MB, where these 8 are drawn). `tools/font-imports.test.ts` holds it.
+import { BricolageGrotesque_700Bold } from "@expo-google-fonts/bricolage-grotesque/700Bold";
+import { BricolageGrotesque_800ExtraBold } from "@expo-google-fonts/bricolage-grotesque/800ExtraBold";
+import { Archivo_400Regular } from "@expo-google-fonts/archivo/400Regular";
+import { Archivo_500Medium } from "@expo-google-fonts/archivo/500Medium";
+import { Archivo_600SemiBold } from "@expo-google-fonts/archivo/600SemiBold";
+import { Archivo_700Bold } from "@expo-google-fonts/archivo/700Bold";
+import { Archivo_800ExtraBold } from "@expo-google-fonts/archivo/800ExtraBold";
+import { JetBrainsMono_500Medium } from "@expo-google-fonts/jetbrains-mono/500Medium";
+import { applyLine, DOWNLOAD_NOTE_WORDS, downloadFraction, failedStartLine, restartsByItself, INSTALL_WORDS, stillLine, MAP_CREDITS, MOBILE_DATA_WORDS, mobileDataDecision, installLine, SETUP_WORDS, setupFraction, setupLine, netBanner, progressWords, rolledBackLine, splashLineFor, startStage, updatedToast, UPDATE_LOG_WORDS, UPDATE_WORDS, versionHeaders,
          versionLine, dataProvenanceLine, now as clockNow } from "@app/core";
 import { createNet, shareFetch, createReportOutbox, createUpdateLog, createUpdateService, phoneNetwork, versionedFetch, httpFeed, gaugeHistory, httpInSeason, httpRunTiming, httpSalmonFeed, manifestDate, noteHeld, followSavedItems, openRunTimingStore,
          type Held, type UpdateService, type WaterSource } from "@app/data";
@@ -32,7 +35,7 @@ import { fillDayFlow, onVisit, visitIdOf, storedHydat, openLayerStore, openLikeS
          type DayFlowAnswer, type Spot } from "@app/data/spots";
 import { Button, connectivity, ErrorState, LoadingState, SayingLine, setSynopsisNet, setSynopsisSource, Shell, StageBar, THEMES, UpdateToast, setLinkFailedSink, type ThemeName,
          platformLine, type ShellProps, type UpdatesLogControls } from "@app/ui-native";
-import { LayoutWidthContext, liveFetch, NetRoot, useNet, useNetActivity, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, createCrashReporter, createCrashSetting, CrashSettingRoot, NotifyRoot, AlertLinesRefresh, installCrashHandlers, installId, reportPastExits, crashWhere, useRefreshOnReconnect, useDownloadStill, useReleaseBoot, useBootTries, useRetryByItself, retriesByItselfNow, useSpots, type MapTiles,
+import { LayoutWidthContext, liveFetch, NetRoot, useNet, useNetActivity, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, createCrashReporter, createCrashSetting, CrashSettingRoot, NotifyRoot, AlertLinesRefresh, installCrashHandlers, installId, reportPastExits, crashWhere, useRefreshOnReconnect, useApplyCurtain, useDownloadStill, useReleaseBoot, useBootTries, useRetryByItself, retriesByItselfNow, useSpots, type MapTiles,
          DataProvenanceContext, loadRegsStore, reportFailure, startNeedsRelease, startNoticeLine,
          type AddressState, type PairingInput, type Route, type SpotPhotos, type StartLink, type StatusSource,
          useAppUpdate } from "@app/ui";
@@ -158,7 +161,8 @@ function BootNetLine({ colour }: { colour: string }) {
 
 /**
  * (T760) Under the first install's bar: said once the byte count has not moved for a minute (`useDownloadStill`), gone
- * when it moves. `bytes` null: not downloading (no line).
+ * when it moves. `bytes` null: not downloading (no line). (T738) The count is the bytes had as they are (`Progress.had`),
+ * not the bar's held-up figure: a file queued again from zero is moving while the bar holds.
  */
 function BootStillLine({ bytes, colour }: { bytes: number | null; colour: string }) {
   const { mode } = useNet();
@@ -399,9 +403,12 @@ export default function App() {
   useEffect(() => () => updates.stop(), [updates]);
   /** Apply a staged update: boot onto it, the set in use on screen until the new one is ready. */
   const applying = useRef<{ before: Held | null; at: number } | null>(null);
+  const [applyTarget, setApplyTarget] = useState<string | null>(null);
   const apply = useCallback(() => {
     if (updates.snapshot().release?.phase !== "ready") return;
     applying.current = { before: bootedRef.current?.held ?? null, at: clockNow() };
+    // (T746) the release being put in use: its curtain line is picked by it (the cold start's boot screen picks the same)
+    setApplyTarget(updates.snapshot().release?.target ?? null);
     if ((globalThis as { __openProbe?: boolean }).__openProbe) console.log("[swap] apply");
     setGeneration((g) => g + 1);
   }, [updates]);
@@ -436,6 +443,13 @@ export default function App() {
   const clearToast = useCallback(() => setToast(null), []);
   // (T723 G9) a link the phone would not open is said on the same toast (and was reported by `openLink`)
   useEffect(() => setLinkFailedSink(setToast), []);
+  // (T746) the apply in flight, and the failed one until the reader closes it (it was reported where it was caught)
+  const curtain = useApplyCurtain(boot, applyTarget);
+  const applyingNow = curtain.applying;
+  useEffect(() => {
+    // (T287) the test bed's stall log reads the curtain off these lines
+    if ((globalThis as { __openProbe?: boolean }).__openProbe) console.log(`[swap] curtain ${applyingNow ? "up" : "down"}`);
+  }, [applyingNow]);
   // (T585 F12, F13) a development or staging build says which data release it answers from on the Conditions card (and
   // the data source / channel when they are not this build's own); null in a production build
   const provenance = useMemo(() => dataProvenanceLine({
@@ -624,7 +638,7 @@ export default function App() {
   const ready = fontsIn || !!fontError || fontWaitOver;
   // (T244) the native splash is let go when the boot screen's fish is up (BootScreen); a start that skips that screen lets it go here
   useEffect(() => { if (failed || (ready && data)) releaseSplash(); }, [failed, ready, data]);
-  const bootWords = setup ? SETUP_WORDS.title : startStage(!ready && data ? "fonts" : stage);
+  const bootWords = setup ? SETUP_WORDS.title : (stage === "apply" ? applyLine(boot.state === "loading" ? boot.release : null) : startStage(!ready && data ? "fonts" : stage));
 
   // (T45) THE WINDOW'S WIDTH, read here and nowhere else in the app: every screen takes its layout class from it
   // (@app/ui `useLayoutClass`), so a component arranges itself for a phone, a tablet or a desktop without reading the window
@@ -682,6 +696,9 @@ export default function App() {
         <Shell source={data.source} palette={palette} loader={data.loader} menuInfo={menuInfo}
                // (T231) the sync icon reads the update service; a ready update is applied at the Shell's safe moment
                updates={updates} onSafeToApply={apply}
+               // (T746) while it is put in use: the curtain (loading fish + one line) over the app, taking every tap and
+               // the back; a failed apply said on it until closed
+               applyCurtain={curtain}
                // T129: the boot's manifest read seeds the service's first release check (`seedRelease`): no second request
                // (T186, Q164) the web fetches ahead after first paint; a phone holds the release installed
                prefetch={Platform.OS === "web"}
@@ -779,7 +796,7 @@ export default function App() {
             </>
           )}
           {/* (T760) the download not moving for a minute: said (a start that never reported counts from 0 bytes) */}
-          <BootStillLine bytes={stage === "install" && !setup ? progress?.bytes ?? 0 : null} colour={palette.sub} />
+          <BootStillLine bytes={stage === "install" && !setup ? progress?.had ?? progress?.bytes ?? 0 : null} colour={palette.sub} />
           {setup && (
             <>
               <StageBar palette={palette} value={setupFraction(setup)} testID="boot-setup-bar" />

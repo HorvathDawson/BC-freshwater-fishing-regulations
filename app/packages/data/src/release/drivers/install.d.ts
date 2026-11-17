@@ -7,7 +7,7 @@
  *   install.web.ts      null: the web installs nothing. It reads lazily over the network into Cache Storage, and a
  *                       browser cannot reliably hold 1.45 GB of map (MINIMAL-PACKAGING §5).
  */
-import type { Download, DownloadTo, ReleaseFs } from "../install";
+import type { Download, DownloadTo, LookBytes, ReleaseFs } from "../install";
 import type { BackgroundNative, BgItem } from "../bgDownload";
 import type { DeviceSpace } from "../boot";
 
@@ -26,6 +26,11 @@ export interface Device {
    * so they download with the app closed. `metered` false: they wait for an unmetered network.
    */
   background?: { queue(items: BgItem[], metered: boolean): Promise<void> };
+  /**
+   * (T738) What the device holds of each big file now (the finished file, its `.part`, its system download): the install
+   * counts the big files' bytes from the first moment with it, not from each one's turn (`tally.ts`).
+   */
+  look?: LookBytes;
   /** (T722 F9) free bytes and what a file holds: the space check before a release download */
   space?: DeviceSpace;
 }
