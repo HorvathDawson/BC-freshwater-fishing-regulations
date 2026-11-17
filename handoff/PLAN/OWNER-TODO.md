@@ -2223,3 +2223,9 @@ More questions (recommended answer first):
   with the other table and the new trout table just a formatting thing same data tho". Filed T829 (app side; same
   data): mockups first in the settled trout table look (the trout page's round-15 design), his pick, then the build
   after the salmon landing and T828.
+- Shortly before 23:17, in the APP chat (relayed; label picked verbatim), T829 salmon rows after three mockups on real
+  data (Kitsumkalum Jul 15 with its eulachon line, Skeena below Terrace Aug 15 mixed), each above its trout table:
+  "B: trout keep box (Recommended)" (open species in the trout tint box, each species' limit in the white box at the
+  right with its dates small under it; closed species, the eulachon line and rule-book closures in the trout
+  "✕ Closed" group; badge, year bar and bait-ban line stay; the T828 fold as mocked). Built after the salmon landing and
+  T828, as ONE box component the trout table (ticket O) reuses.
