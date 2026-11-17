@@ -777,7 +777,7 @@ export interface SalmonBarVM {
   readonly runs: readonly { readonly status: SalmonBarStatus; readonly days: number }[];
 }
 export interface SalmonYearVM {
-  /** ONE bar for the viewed part / section (none where DFO has no salmon rules here) */
+  /** ONE bar for the viewed part / section, always (T820: a page closed every day draws the full closed bar) */
   readonly bars: readonly SalmonBarVM[];
   /** (T796) whose answers the bar's days are: DFO's, the rule book's closure, or both over the year */
   readonly by: SalmonSourceBy;
@@ -892,8 +892,8 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
   const unplaced = page.item === null ? [] : (P.feedUnplaced ?? []).filter((u) => u.items.includes(page.item!));
   const def = P.default;
   // (T227, owner 2026-10-28) A REGION-WIDE CLOSURE: the region's header says "There is no fishing for salmon in Region 4
-  // … until further notice" — the header's closure is the answer, every day: one closed row in its words, no bar, no
-  // partial line. (T356) The pipeline says which chains it closes (`c`, `quota.header_closure`): looked up, not inferred.
+  // … until further notice" — the header's closure is the answer, every day: one closed row in its words, no partial
+  // line; (T820, owner 2026-11-16) and the full closed year bar. (T356) The pipeline says which chains it closes (`c`, `quota.header_closure`): looked up, not inferred.
   // (T796 X1) where the rule book's closure stands first on such a chain, the header's closure on every other day
   // (`headerClosure`): still the region's one statement, the book's closure a note on it
   const shut = (c: number) => headerClosure(P, c).length > 0;
@@ -1065,7 +1065,10 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
     asOf: SALMON_WORDS.asOf(dates[dates.length - 1] ?? null),
     credit: SALMON_WORDS.credit(P.credit),
     note: book.length ? SALMON_WORDS.noteBook : SALMON_WORDS.noteTwoAuthorities,
-    year: regionClosed ? { bars: [], by: "dfo" } : salmonYear(f, chains, day),
+    // (T820, owner 2026-11-16 21:37: "the calendar bar doesnt have a full red line for salmon when closed but instead it
+    // is empty with no color on the calendar bar") the region-wide closure keeps its one statement AND draws its year:
+    // every day closed, the full closed bar (T227's and X1's "no bar" overruled)
+    year: salmonYear(f, chains, day),
     finfish: finfishToday(f, chains, day),
     // one closed-all-year statement: the region's closure, or every place of the page closed every day, nothing undrawn
     closedOnly: regionClosed || (!undrawn.some((c) => speaks(f, c))
@@ -1187,13 +1190,14 @@ function runsOf(statusOn: (fileDayIx: number) => SalmonBarStatus): SalmonBarVM["
  * (T227) THE PAGE'S SALMON YEAR: ONE bar for the viewed part / section. A day no DFO rule speaks for is CLOSED (the
  * pipeline's `NOT_LISTED`: "closed unless DFO opens it"; the region headers set limits and sizes, never an opening). Per
  * day: the status the page's sections share, `varies` where they differ. (T372, the trout way) a DFO place on the water
- * not drawn yet never changes the bar — it is the card's caveat. Nothing DFO speaks for here (the unlisted water, "not
- * opened"): no bar.
+ * not drawn yet never changes the bar — it is the card's caveat. (T820, owner 2026-11-16 21:37: "the calendar bar doesnt
+ * have a full red line for salmon when closed but instead it is empty with no color on the calendar bar") ALWAYS one bar:
+ * nothing DFO speaks for here (the unlisted water, "not opened") and the region-wide closure are closed every day, so
+ * the full closed bar — never no bar.
  */
 function salmonYear(f: SalmonFacts, chains: readonly number[], day: number): SalmonYearVM {
   // (T796) whose days the bar draws: the rule book's closure on some (or all) of them names the bar so
   const by = sourceBy(f.payload, chains, (a) => a.filter((_, j) => j % 2 === 1));
-  if (!chains.some((c) => speaks(f, c))) return { bars: [], by };
   // the page's own places: one status a day, `varies` where its sections differ
   const own = (i: number): SalmonBarStatus => {
     const ss = new Set(chains.map((c) => salmonDayStatus(f, c, i)));
@@ -1316,9 +1320,9 @@ const SOON_DAYS = 21;
 const bookDayWords = (i: number) => fmtDay(BOOK_DAYS[i]!);   // book day i (no Feb 29) → "Nov 16"
 
 /**
- * (T227, owner 2026-10-28: "exactly like the game-fish bar") The salmon bar beside the provincial year bar, or null: none
- * where DFO has no salmon rules for the page (never an all-closed bar for a water without salmon — `salmonYear` gives
- * it no bar, nor the region-wide closure). (owner 2026-11-13, Capilano River: "when salmon are closed like that is should
+ * (T227, owner 2026-10-28: "exactly like the game-fish bar") The salmon bar beside the provincial year bar, or null where
+ * the card has none. (T820, owner 2026-11-16 21:37) every card has one now: the unlisted water and the region-wide
+ * closure draw the full closed bar, never the bare word. (owner 2026-11-13, Capilano River: "when salmon are closed like that is should
  * say the calendar widget like game fish instead maybe?") A water DFO speaks for whose salmon are closed all year draws
  * its bar too — closed, today marked, the legend — even beside a provincial bar closed all year (it was dropped there
  * as "the two say the same", which left a bare "Closed"). `general`: the provincial year bar (null where the page draws

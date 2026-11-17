@@ -392,6 +392,10 @@ const REGION_4 = {
        [PARKS]: { water: "National Parks", static: 1, book: { rule: "zp:superior_closures::superior_closures.r1", pages: [9] } } },
   static: { [SPRING]: { sp: five([0, -1, 91, 2, 166, -1]), g: [0, -1] }, [PARKS]: { sp: five([0, 3]), g: [0, -1] } },
 };
+/** (T820) a page closed every day: one bar, every day closed; its strip (no provincial bar: no when, no marker) */
+const ALL_CLOSED_BAR = { label: null, unmapped: false, today: "closed", todayWord: "closed", runs: [{ status: "closed", days: 365 }] };
+const STRIP_ALL_CLOSED = (title: string) => ({ title, status: "closed", mark: "✕", word: "Closed", when: null, soon: null,
+  runs: [{ drawn: "closed", days: 365 }], generalTitle: "Game fish (B.C. rules)", legend: [{ drawn: "closed", label: "✕ Closed" }] });
 const r4Facts = (): SalmonFacts => ({ ...facts(REGION_4), chains: 4, chainOf: (sid) => (sid >= 1 && sid <= 3 ? sid : 0) });
 /** Region 4's page today: the header's closure every day, its own verdict table (other indices) */
 const r4Feed = () => FEED({ regions: { "4": { name: "Kootenays", url: "", asof: "2026-10-01", checked: null, stale: false, held: null } },
@@ -403,20 +407,24 @@ describe("(T796 X1) a region closed by its DFO page keeps its one closed stateme
     it(`${how}: Jul 1 (no book day) the card is the region closure's, whole; May 1 the same with the book's line as a note`, () => {
       const F = f();
       const card = (sid: number, day: Date) => salmonCard(F, { sids: [sid], item: null }, day);
-      // a non-book day: exactly the card of the region before the book — one closed row in the header's words, no bar
-      const jul = card(2, on(7, 1));
-      expect(jul).toEqual(card(1, on(7, 1)));
-      expect([jul.badge, jul.rows.map((r) => [r.label, r.statusLabel, r.notes, r.from ?? null]), jul.closedOnly, jul.year.bars,
-              salmonStripOf(jul, null), salmonGlance(jul)]).toEqual(["DFO", [["Salmon", "Closed", [R4_WORDS], null]], true, [], null,
-        { source: "dfo", thumb: "CO", name: "Salmon", value: "closed", tone: "closed", fold: false }]);
-      // a book day: still the region's one statement (no bar, no per-species rows), and the book names its closure —
-      // source, page, line, dates — on the row, in the source fold, on the plain Keep row and in the badge
+      // a non-book day: the card of the region before the book — one closed row in the header's words — and (T820, owner
+      // 2026-11-16 21:37: "the calendar bar doesnt have a full red line for salmon when closed but instead it is empty with
+      // no color on the calendar bar..") X1's "no bar" overruled: the full closed bar, named by both (the book closes
+      // Apr 1–Jun 14 of its year, the header the rest)
+      const jul = card(2, on(7, 1)), julBefore = card(1, on(7, 1));
+      expect({ ...jul, year: null }).toEqual({ ...julBefore, year: null });
+      expect([julBefore.year, jul.year]).toEqual([{ bars: [ALL_CLOSED_BAR], by: "dfo" }, { bars: [ALL_CLOSED_BAR], by: "both" }]);
+      expect([jul.badge, jul.rows.map((r) => [r.label, r.statusLabel, r.notes, r.from ?? null]), jul.closedOnly,
+              salmonStripOf(jul, null), salmonGlance(jul)]).toEqual(["DFO", [["Salmon", "Closed", [R4_WORDS], null]], true,
+        STRIP_ALL_CLOSED("Salmon (DFO and rule book)"), { source: "dfo", thumb: "CO", name: "Salmon", value: "closed", tone: "closed", fold: false }]);
+      // a book day: still the region's one statement (no per-species rows), and the book names its closure — source,
+      // page, line, dates — on the row, in the source fold, on the plain Keep row and in the badge; the same full bar
       const book = { from: "Rule book p.34 · Every stream in Region 4", words: SPRING_WORDS };
       const before = card(1, on(5, 1)), may = card(2, on(5, 1));
       expect(may).toEqual({ ...before, badge: "Rule book · DFO", rows: [{ ...before.rows[0]!, notes: [R4_WORDS, SPRING_WORDS] }], book: [book],
-                            sourceTitle: "Sources (rule book and DFO)", note: FOLD_BOOK.note });
-      expect([may.closedOnly, may.year.bars, salmonStripOf(may, null), salmonGlance(may)]).toEqual([true, [], null,
-        { source: "dfo", thumb: "CO", name: "Salmon", value: "closed", tone: "closed", fold: false, book: [book] }]);
+                            sourceTitle: "Sources (rule book and DFO)", note: FOLD_BOOK.note, year: { bars: [ALL_CLOSED_BAR], by: "both" } });
+      expect([may.closedOnly, may.year.bars, salmonStripOf(may, null), salmonGlance(may)]).toEqual([true, [ALL_CLOSED_BAR],
+        STRIP_ALL_CLOSED("Salmon (DFO and rule book)"), { source: "dfo", thumb: "CO", name: "Salmon", value: "closed", tone: "closed", fold: false, book: [book] }]);
       expect([salmonChainStatus(F, 2, salmonDayIndex(on(5, 1))), salmonChainStatus(F, 2, salmonDayIndex(on(7, 1)))]).toEqual(["closed", "closed"]);
     });
 
@@ -448,7 +456,8 @@ describe("(T796 X1) a region closed by its DFO page keeps its one closed stateme
       };
       const [open, shut] = [card(true), card(false)];
       expect([open.closedOnly, open.headline, open.rows[0]!.notes]).toEqual([false, "Closed today · open in part", [R4_WORDS]]);
-      expect([shut.closedOnly, shut.year.bars, shut.rows.map((r) => [r.notes, r.from ?? null])]).toEqual([true, [], [[[R4_WORDS], null]]]);
+      // (T820, owner 2026-11-16 21:37) the region's statement draws the full closed bar, never none
+      expect([shut.closedOnly, shut.year.bars, shut.rows.map((r) => [r.notes, r.from ?? null])]).toEqual([true, [ALL_CLOSED_BAR], [[[R4_WORDS], null]]]);
     });
   }
 });

@@ -64,6 +64,8 @@ function shard(region: string, runs: [number, number, number][], handles = HANDL
 const FILE = encode(PAYLOAD);
 const SHARDS = [shard("6", [[100, 5, 1]]), shard("1", [[200, 2, 2]])];
 const facts = () => decodeSalmon(FILE, HANDLES, SHARDS);
+/** (T820) a page closed every day: one bar, every day of the book's year closed */
+const ALL_CLOSED_BAR = { label: null, unmapped: false, today: "closed", todayWord: "closed", runs: [{ status: "closed", days: 365 }] };
 
 describe("salmon/4", () => {
   it("decodes the runs: a placed section reads its chain; a section in no run reads the UNLISTED chain (closed)", () => {
@@ -301,9 +303,14 @@ describe("(T227) the salmon year at the top of the Keep tab", () => {
     expect(s.status).toBe("closed");
   });
 
-  it("no salmon here (DFO lists nothing): no bar — never an all-closed salmon bar; the glance row is a plain 'closed'", () => {
+  // (T820, owner 2026-11-16 21:37: "the calendar bar doesnt have a full red line for salmon when closed but instead it is
+  // empty with no color on the calendar bar..") T227's "no bar" here is overruled: the full closed bar
+  it("no salmon here (DFO lists nothing): closed every day — the FULL closed bar (T820); the glance row is a plain 'closed'", () => {
     const c = salmonCard(facts(), { sids: [7], item: "gnis:1" }, JUL20);
-    expect([c.year.bars, salmonStripOf(c, null), c.closedOnly]).toEqual([[], null, true]);
+    expect([c.year, c.closedOnly]).toEqual([{ bars: [ALL_CLOSED_BAR], by: "dfo" }, true]);
+    const s = salmonStripOf(c, { runs: [{ bits: 0 }], line: [{ kind: "when", text: "today" }], todayAt: 200 / 365 })!;
+    expect([s.status, s.mark + s.word, s.soon, s.runs, s.legend.map((l) => l.label), s.title])
+      .toEqual(["closed", "✕Closed", null, [{ drawn: "closed", days: 365 }], ["✕ Closed"], "Salmon (DFO)"]);
     expect(salmonGlance(c)).toEqual({ source: "dfo", thumb: "CO", name: SALMON_WORDS.title, value: "closed", tone: "closed", fold: false });
     expect(salmonCard(facts(), { sids: [101], item: null }, JUL20).closedOnly).toBe(false);
   });
@@ -427,10 +434,14 @@ describe("(T227, owner 2026-10-28) a region-wide closure is the answer", () => {
       { r: ["4"], w: "Kootenay River", l: ["4:kootenay-river:whole", "4:region:section"], sp: [[0, 7], [0, 7], [0, 7], [0, 7], [0, 7]], g: [0, -1], m: [0, 3],
         c: ["4:closed:a"] }] };
   const f4 = () => decodeSalmon(encode(P4), HANDLES, [...SHARDS, shard("4", [[300, 2, 3]])]);
-  it("a chain the header closes (any tier — a water's own row too): one closed row in the header's words, no bar, no Details", () => {
+  // (T820, owner 2026-11-16 21:37: "the calendar bar doesnt have a full red line for salmon when closed but instead it is
+  // empty with no color on the calendar bar..") T227's "no bar" overruled: the one statement keeps its words AND draws
+  // the full closed bar
+  it("a chain the header closes (any tier — a water's own row too): one closed row in the header's words, the full closed bar, no Details", () => {
     const c = salmonCard(f4(), { sids: [300], item: "gnis:14097" }, JUL20);
-    expect([c.allClosed, c.headlineStatus, c.caveat, c.closedOnly, c.year.bars, c.regionRules])
-      .toEqual([true, "closed", null, true, [], []]);
+    expect([c.allClosed, c.headlineStatus, c.caveat, c.closedOnly, c.year, c.regionRules])
+      .toEqual([true, "closed", null, true, { bars: [ALL_CLOSED_BAR], by: "dfo" }, []]);
+    expect(salmonStripOf(c, null)).toMatchObject({ status: "closed", runs: [{ drawn: "closed", days: 365 }] });
     expect(c.rows.map((r) => [r.label, r.status, r.notes])).toEqual([
       ["Salmon", "closed", ["There is no fishing for salmon in Region 4 - Kootenays until further notice."]]]);
     expect(salmonGlance(c).fold).toBe(false);
