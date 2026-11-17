@@ -2283,3 +2283,5 @@ More questions (recommended answer first):
   where there is no band.) And on the re-tick list: "Why would we have to do this (Re-tick in the review app: 6 of your
   saved places whose area moved with this rebuild: Cowichan ×3, Sheldens ×1, Babine ×2.) they should all be good?"
   So: no re-tick from him; the marks are carried by the main chat (fix, not a review item).
+- 2026-11-17 ~08:45, in the APP chat, T814 coho loader dark mode: picked "A: paper-coloured ink" (ink #f2e8d5 on the
+  dark screen, red kept; light mode is his colours as drawn). The app chat finishes it and it joins the next build.
