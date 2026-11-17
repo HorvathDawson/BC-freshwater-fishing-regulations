@@ -271,11 +271,7 @@ def write(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_item
                               registry=kinds, policy=GAUGE_POLICY, candidates=candidates,
                               water_of=owner, continues=continues, diversions=diverted,
                               at_top=frozenset(_reads_below))
-    db.executemany("INSERT INTO section_gauge (sid, station, trust, mag, rel, dist_b) VALUES (?,?,?,?,?,?)",
-                   [(sid[l.section_id], l.station, l.trust,
-                     graph.nodes[l.section_id].stream_magnitude, rel_code(_shown_rel(l)), dist_bucket(l.dist_m))
-                    for l in links])
-    cov.filled("section_gauge", len(links))
+    # `section_gauge` is written below, after the panels: T825's rule reads their areas (`main_river`).
     db.executemany("INSERT INTO gauge_relation (sid, station, rel, dist_m, hops, ratio, trust, joined) "
                    "VALUES (?,?,?,?,?,?,?,?)",
                    [(sid[c.section_id], c.station, c.rel, c.dist_m, c.hops, c.ratio, c.trust, int(c.joined))
@@ -428,6 +424,30 @@ def write(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_item
               f"({len(panels.by_section)/max(len(panels.members),1):.0f}x), "
               f"from {len(donors):,} eligible stations")
 
+        # A WATER READS A GAUGE ABOUT ITS OWN SIZE, ON ITS OWN MAIN RIVER (T825, owner 2026-11-17 15:04): where the walk's
+        # gauge drains under a tenth of the section's water (the panels' area: a side channel is sized by its river), the
+        # section reads the nearest flow gauge on its main river of about its size, or none (`main_river`). The shed
+        # links above stay the seeds of `section_down`, so the routes are unchanged.
+        from pipeline.gauges.consume import main_river
+        from pipeline.gauges.consume.panels import mainstem_candidates
+        area_of = lambda n: model.area_km2(getattr(n, "stream_magnitude", None), getattr(n, "wsc", ""))  # noqa: E731
+        led, why = main_river.apply(
+            links, graph, geoms,
+            target_area={s: a for s, (_p, a) in panels.by_section.items() if a},
+            donor_area={m.station: m.area_km2 for ms in panels.members.values() for m in ms},
+            flows={st for st in active if "discharge" in measures.get(st, ())},
+            station_xy={s["station"]: (s["lon"], s["lat"]) for s in stations
+                        if s.get("lon") is not None and s.get("lat") is not None},
+            station_section=dict(at_river), water_of=owner,
+            adopt=lambda: mainstem_candidates(graph, area_of))
+        print(f"     main-river gauges (T825): {len(why['rechosen']):,} sections re-chosen, "
+              f"{len(why['none']):,} left with none")
+    db.executemany("INSERT INTO section_gauge (sid, station, trust, mag, rel, dist_b) VALUES (?,?,?,?,?,?)",
+                   [(sid[l.section_id], l.station, l.trust,
+                     graph.nodes[l.section_id].stream_magnitude, rel_code(_shown_rel(l)), dist_bucket(l.dist_m))
+                    for l in led])
+    cov.filled("section_gauge", len(led))
+
 
     # ---- the zoomed-out field: which station speaks for each catchment ---------------
     #
@@ -479,7 +499,7 @@ def write(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_item
     cov.filled("section_down", len(down))
 
     bands: dict[str, int] = {}
-    for l in links:
+    for l in led:
         bands[l.trust] = bands.get(l.trust, 0) + 1
     live = {s["station"] for s in stations if speaks_now(s)}
     _report("could not be placed on this graph", place_lost, live)
