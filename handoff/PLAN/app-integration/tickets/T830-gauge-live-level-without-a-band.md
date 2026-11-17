@@ -107,3 +107,23 @@ screen and the gauge card is below the fold (`android-gauge-offline-step1.png`).
   no long record of its level to compare with.").
 - Level readings to 2 decimals ("1.00 m", "0.85 m") instead of whole metres: "Depends how much space this adds. But yes".
   So 2 decimals, shown with pictures of the space it takes (reading, chart axis, tap read-out).
+
+## Built — the 09:57 picks (2026-11-17 ~11:35, commit 15c9a3c34)
+
+- The line is `record.NO_RECORD_LINE` = "Too new to say if this is high or low." (one line for either quantity).
+- Levels to two decimals: `record.LEVEL_DECIMALS = 2` (emitted by `gauge_policy`); core `figureIn(v, quantity)` (half up,
+  as `figure`) wherever a level is written: the card's figure and the stage beside a flow, the chart read-out and its
+  median, a gauge pin's label, the alert editor (prefill, context line, summary, notification), a spot's row and lead-up
+  strip and trend, the public gauge card. Flow unchanged. Chart axis ticks stay `figure` (round values: "1.5", "10").
+- Space: the big figure grows 1-3 characters ("1" → "1.00", "10.3" → "10.30"); fits at 390 px, light and dark, web and
+  Android. The read-out line was ALREADY cut by its one-line ellipsis at 390 px before this (measured 269 px of text in a
+  202 px slot; the median goes first), now 276 px: the value itself still shows for levels under 100 m. Map dots carry
+  no figures (T636), so nothing there moves.
+- Tests (mutation-checked): core `standing` (`figureIn`), `conditions` (stage, read-out), ui `gaugePoints`, `chart.render`
+  (a level series' read-out), data spot words, ui-native `ConditionsPanel` (0.998 m → "1.00"), `Notifications` (alert
+  prefill "3.20"), worker `cards` ("1.00 m"), Python `test_feed_reports` (the picks are the policy the app reads). Six
+  existing expectations moved to the new form. Full app vitest 6145 passed; worker 520; pytest 299; emit --check 0;
+  check:fast 0.
+- Pictures (`t830-shots/`): `web-2dp-{before,after}-{capilano,harrison}-level-{light,dark}.png`,
+  `android-2dp-{before,after}-{capilano,harrison}-level.png` (Android after: build 15c9a3c34, scenario `gauge-level` with
+  `GAUGE_LEVEL_DP=2`, both PASS; Capilano "1.00 m · Too new to say…", Harrison Lake 08MG012 "10.30 m").
