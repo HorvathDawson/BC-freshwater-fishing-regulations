@@ -149,14 +149,22 @@ def _map_osm(p: dict) -> dict:
             "fish": "", "species": "", "trib_parent": _trib_parent(name)}
 
 
+def _map_manual(p: dict) -> dict:
+    """T806 (owner 2026-11-16): a channel drawn BY HAND (`manual_streams.geojson`) for a recorded owner decision, each
+    feature one named line, its vertex order the flow (head first)."""
+    name = _title(p.get("name"))
+    return {"src_id": p.get("id"), "name": name, "connect_to_hint": "", "ftype": "stream",
+            "fish": "", "species": "", "trib_parent": _trib_parent(name)}
+
+
 _SOURCES: dict[str, Callable[[dict], dict]] = {
     "port_moody": _map_port_moody, "burnaby": _map_burnaby,
-    "squamish": _map_squamish, "abbotsford": _map_abbotsford, "osm": _map_osm,
+    "squamish": _map_squamish, "abbotsford": _map_abbotsford, "osm": _map_osm, "manual": _map_manual,
 }
 # raw file basename per source
 _FILES = {"port_moody": "port_moody_esa_streams", "burnaby": "burnaby_waterways",
           "squamish": "squamish_watercourses", "abbotsford": "abbotsford_streams",
-          "osm": "osm_streams"}
+          "osm": "osm_streams", "manual": "manual_streams"}
 
 # Municipal features to DROP per source, by exact (case-insensitive) name — bad/duplicated data that
 # should never be minted (e.g. a neighbouring municipality's creek that leaked into this layer).

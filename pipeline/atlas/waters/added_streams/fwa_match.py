@@ -76,7 +76,15 @@ class _FwaIndex:
         return [int(i) for i in self.tree.query(line.buffer(tol))]
 
 
-def _tail_past_end(line: LineString, fwa_geom: LineString, tol: float) -> Optional[LineString]:
+#: POLICY (T806): for a source whose line direction is trusted (`build_dataset.RELIABLE_SOURCES`, today the hand-drawn
+#: `manual` lines), a tail past the FWA line's MOUTH is not an extension (see `_tail_past_end`). False = it is minted as
+#: an upstream extension at the line's top measure, as before (the mutation pin). Scoped to trusted sources so no city
+#: stream changes: Port Moody's Schoolhouse Creek North (src 3) is such a tail today, minted at the top (listed, T806).
+DOWNSTREAM_TAIL_IS_NOVEL = True
+
+
+def _tail_past_end(line: LineString, fwa_geom: LineString, tol: float,
+                   downstream_tail_novel: bool = False) -> Optional[LineString]:
     """The single contiguous uncovered tail of ``line`` if it runs past ``fwa_geom`` — else None."""
     rem = line.difference(fwa_geom.buffer(tol))
     pieces = [rem] if rem.geom_type == "LineString" else \
@@ -99,6 +107,12 @@ def _tail_past_end(line: LineString, fwa_geom: LineString, tol: float) -> Option
     near_is_divergence = (near.distance(fwa_geom) <= tol * 1.6
                           and min(near.distance(e) for e in fwa_ends) <= tol * 3.0)
     if not (touches_muni_end and near_is_divergence and far.distance(fwa_geom) > tol * 1.6):
+        return None
+    # T806 (2026-11-16): an extension continues the FWA line past its SOURCE (the line is mouth first, so its last
+    # vertex): the tail is minted on the FWA blk from the line's top measure up. A tail past the MOUTH (the Sheldens
+    # Creek estuary channel, drawn on from the head of the salt marsh down to the road bridge) is no upstream tail:
+    # read as one it was minted at the top measure with its geometry at the bottom. It is a stream of its own (novel).
+    if downstream_tail_novel and DOWNSTREAM_TAIL_IS_NOVEL and near.distance(fwa_ends[0]) < near.distance(fwa_ends[1]):
         return None
     return tail
 
@@ -136,7 +150,8 @@ def _dup_match(m: Match, index: _FwaIndex, i: int) -> Match:
 
 
 def classify(line3005: LineString, index: _FwaIndex, tol: float = _TOL_M, wide: float = _WIDE_M,
-             dup: float = _DUP, ext: float = _EXT, muni_name: str = "") -> Match:
+             dup: float = _DUP, ext: float = _EXT, muni_name: str = "",
+             downstream_tail_novel: bool = False) -> Match:
     """Classify one municipal line (already EPSG:3005) against the FWA index."""
     best_i, best_covb, best_covw = -1, 0.0, 0.0
     L = line3005.length
@@ -164,7 +179,7 @@ def classify(line3005: LineString, index: _FwaIndex, tol: float = _TOL_M, wide: 
                                     # it IS that named stream (a name variant) -> duplicate, favour FWA.
     # a real novel tail past the FWA end => extension (keep the tail) EVEN if mostly covered, so a
     # stream that is 85% on FWA but continues past it doesn't lose its connecting/upstream piece.
-    tail = _tail_past_end(line3005, index.geoms[best_i], tol)
+    tail = _tail_past_end(line3005, index.geoms[best_i], tol, downstream_tail_novel)
     if tail is not None:
         m.klass = "extension"
         m.fwa_blk, m.fwa_wsc, m.fwa_name = index.blk[best_i], index.wsc[best_i], index.name[best_i]
