@@ -319,6 +319,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T827 | A fresh agent tries to break every salmon rule against DFO's own pages | OPEN | — | owner 2026-11-16 (future) |
 | T828 | Salmon card: DFO's rows as printed fold into "Source (DFO)" | OPEN | — | owner 2026-11-16 (app) |
 | T829 | Salmon species rows in the same look as the other fish table and the new trout table (formatting only) | OPEN | — | owner 2026-11-16 (app) |
+| T830 | A gauge that reports a live level but has no level history shows no Level (Capilano at Canyon, 15 more) | OPEN | — | owner 2026-11-17 (gauges) |
 
 ## Next after closed testing
 
