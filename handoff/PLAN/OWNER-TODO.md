@@ -2099,3 +2099,9 @@ More questions (recommended answer first):
   and last exit; a straddling piece or a wander outside under 1 km stays inside; the 4 pieces 10-50% inside sit
   between the cuts). Keep E8 / cut exactly at the line, picked: "Keep E8 as is (Recommended)". So: streams unchanged;
   only the 9 lakes and ponds mostly outside come out by name (ruling Z10), each with a note on the card.
+- 18:37, typed in chat (verbatim): "We also want to start another agent that works on finding the missing river
+  confluences on the babine lake dfo place closures. We want to find the other rivers and have an agent dedicated to
+  it". So: a dedicated Opus worker finds the creek mouths DFO names in its Babine Lake closures that we have not
+  placed yet (from the 11-16 re-check: Pendleton has no match; Six Mile, Hazelwood, Sockeye and the Gullwing line are
+  not drawn; Tsezakwa's circle sits on Nilkitkwa Lake; Pinkut has a circle but is not in DFO's list), and proposes
+  each for his review (everything added is a proposal).
