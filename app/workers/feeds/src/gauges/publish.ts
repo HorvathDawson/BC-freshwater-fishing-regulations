@@ -70,6 +70,18 @@ export function levelOnRating(rating: unknown, discharge: Num, level: Num, pad: 
 }
 
 /**
+ * publish.live_quantities (T830): which quantities the reading carries that the feed stands behind — the index's
+ * `reports`. A level with no band (Capilano at Canyon, 08GA031: two years of HYDAT level) is still a level; a level off
+ * the record's rating (T550, `levelOnRating`: another datum) is left out on purpose.
+ */
+export function liveQuantities(discharge: Num, level: Num, levelOffDatum: boolean): string[] {
+  const out: string[] = [];
+  if (discharge !== null) out.push("discharge");
+  if (level !== null && !levelOffDatum) out.push("level");
+  return out;
+}
+
+/**
  * publish.age_gate (T550): an entry whose reading is older than core's `READING_MAX_AGE_MS` when the feed is written is
  * not today's — no rank (`percentile` null, no per-quantity `discharge`/`level`), so no reader counts, weighs or colours
  * it; its `observedAt` stays for the "last reported" line. Every entry the index writes passes here: fresh, unchanged
@@ -1003,7 +1015,8 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
     }
     let have: Record<string, any> = envelope[st] || {};
     // (T550 item 2) a live level off the record's rating is on another datum: no level ranked this run (publish.py)
-    if ("level" in have && !levelOnRating((clim || {}).ratings?.[st], r.discharge, r.level, (clim || {}).ratingPadM)) {
+    const offDatum = "level" in have && !levelOnRating((clim || {}).ratings?.[st], r.discharge, r.level, (clim || {}).ratingPadM);
+    if (offDatum) {
       const { level: _lv, ...rest } = have;
       have = rest;
     }
@@ -1050,6 +1063,8 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
     index[st] = {
       percentile: percentileOf(observed, band),
       parameter: param,
+      // (T830) what the reading carries, ranked or not (publish.live_quantities)
+      reports: liveQuantities(r.discharge, r.level, offDatum),
       ...per,
       observedAt: r.at,
       ...(tC !== null ? { temperatureC: tC, temperatureAt: tAt } : {}),
