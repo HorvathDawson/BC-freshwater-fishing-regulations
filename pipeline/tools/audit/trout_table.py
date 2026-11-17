@@ -5,7 +5,7 @@ walk later). Reads one built release; changes nothing.
 
 Every answer key of the release, decoded through the release's own reference decoders (`answers_diff.Release`), goes
 through `answers/trout/table.compose_key` exactly as ticket I will call it (the post-pass rows frames, the display
-frames, the key's segment starts and moments, the release's rule table). The report counts the tables built, the NULL
+frames, the licence frames, the key's segment starts and moments, the release's rule table). The report counts the tables built, the NULL
 cells by reason (Q-D3: closed, tidal, no trout or char fish), the mixed rows split (the A0 amendment), the year bars and
 date sets, and every key the builder refused, grouped by its message (the build stops on each: AGENTS W46), with
 example waters. Exit 0, or 2 when the release cannot be read.
@@ -50,7 +50,7 @@ def run(d, limit: Optional[int] = None, examples: int = 5, log=print) -> dict:
     finally:
         st.close()
     rules = T.Rules({i: T.rule_of(sub["rules"][rid]) for i, rid in enumerate(R.rule_ids)})
-    rows, disp = R.sections["rows"], R.sections["display"]
+    rows, disp, lic = R.sections["rows"], R.sections["display"], R.sections["licence"]
     frames: dict = {}
 
     def frame(ref):
@@ -71,8 +71,9 @@ def run(d, limit: Optional[int] = None, examples: int = 5, log=print) -> dict:
         n["keys"] += 1
         fs = [frame(ref) for ref in rows["at"][k]]
         ds = [disp["frames"][i] for i in disp["at"][k]]
+        ls = [R.codecs["licence"].decode_frame(lic, ref, R.rule_ids, R.fish) for ref in lic["at"][k]]
         try:
-            got = T.compose_key(fs, ds, starts, moms, rules)
+            got = T.compose_key(fs, ds, starts, moms, rules, licences=ls)
         except Exception as e:                                   # noqa: BLE001 — each refusal is counted, by message
             msg = re.sub(r"\d+", "N", str(e).split("\n")[0])[:160]
             errors[f"{type(e).__name__}: {msg}"].append(name(k))
