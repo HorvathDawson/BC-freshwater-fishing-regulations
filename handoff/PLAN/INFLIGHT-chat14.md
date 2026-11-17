@@ -115,6 +115,16 @@ its `_reindex`), dfo_vectors --check with both in.
   "was X, now Y" per water comes back first. 3f440729a pushed; app chat pushed f7b41c208 on top (CI running, hold push
   until its "CI green"). Local unpushed: 42d8212d7 (answers + T835 step-cache /tmp ticket). Plan unchanged: T834 ->
   ONE data build (also carries Babine closes_item) -> staging release.
+  **11:58 11-17: FOCUS = RELEASE (owner: gotchas/regional questions are "a later thing").** T834 FINAL MODEL = STRICT
+  (owner 11:06): own quota N vs regional cap C: N<=C inside; N>C raises that cap to N for that fish only. Lardeau/Duncan
+  5 (T3a bull lifts go), Kootenay Lake main 10, Kaslo/Keen 2, Adams 4, Buckley 1. Worker aefa9ff1e764c0ea2 reworking on
+  lane/t834-share-lift (scratchpad/t834-wt); its "was X, now Y" page goes to the owner BEFORE merge. Worker
+  a724bcd2acf554144: Nahwitti trout vector case (app chat ask; lane/trout-nahwitti in .claude/worktrees/agent-a724…);
+  land it with T834, send app chat "pushed <hash>". GOTCHAS "Questions for each office" done (09228c678..4888783b3).
+  Pushed through 7eafa4daa+09228c678; LOCAL UNPUSHED docs 787821750, 34caa8635, 4888783b3 + this page: push after the
+  app chat's "CI green" on 193550bec. App chat ticket numbers T837-T839 are theirs; mine next = T840+. NEXT: T834
+  report -> owner page -> merge T834 + Nahwitti -> full tier -> push -> ONE data build (deliver; Babine closes_item)
+  -> staging release (`--staging --dry-run --rehearse-follows` first) -> BEFORE/AFTER to the app chat.
 - trout J back 00:05 11-17, merged locally as 02e51cfdc (mini release re-cut on merge); tier running, then push.
   01:53 11-17: worker done; lane/trout-vpy merged locally as 5d6ac8283 (6 keys fixed, proof 5,950/5,950, 0 problems; V-py:
   trout_vectors 53 cases, trout-hand 14, own trout fixture app/fixtures/trout/, scripts/trout-refresh.sh). Tier b806pz7n9
