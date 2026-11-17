@@ -43,3 +43,7 @@ and wildlife about" (done: pipeline/docs/GOTCHAS.md). Partly inside a reserve or
 note" (the 9 lakes and ponds mostly outside, Z10 by name, a note on each card); streams: "Keep E8 as is
 (Recommended)". National parks: "Closed, book's wording (Recommended)" (words only, the permit sentence added). The
 wording fixes on `lane/salmon-hardcases-1116` (7e390039b) change no answer. X1 (closed-region card shape) is the app's.
+
+## Owner, 2026-11-16 22:52: land it
+Pictures (t796-final sheets 1-5) and the changed-answers list shown. "Land it (Recommended)"; Kennedy Lake's note:
+"Keep the note (Recommended)".

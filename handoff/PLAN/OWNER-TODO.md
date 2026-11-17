@@ -2204,3 +2204,8 @@ More questions (recommended answer first):
   So: the app chat writes and keeps the release notes current and clears the draft when the next build goes out. His
   next question there, "so what is next?", is being answered by the app chat (both chats' plan: salmon landing first,
   then the one map rebuild + staging release, the trout build in parallel).
+- 22:52, the salmon landing look (T796): five before/after sheets (Skeena reserve, Yakoun, Bell-Irving, Kitsumkalum
+  eulachon line, Cold Fish Lake note; from r-1603e71cc92c) and the changed-answers list since his 71-row review. Land
+  it, picked: "Land it (Recommended)". Kennedy Lake's note (already ruled outside Pacific Rim, Z11), picked: "Keep the
+  note (Recommended)". So: lane/salmon-rules-1116 + lane/salmon-hardcases-1116 + the app's twins land together
+  (section D), then ship with the next staging release.
