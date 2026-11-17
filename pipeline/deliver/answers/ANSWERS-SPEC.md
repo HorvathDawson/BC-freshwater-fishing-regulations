@@ -31,6 +31,18 @@ verified 1-to-1 against the consumer page (COMPARISON.md).
   written out: `no_rule`, `by_origin`, a `null` part key for a part outside B.C., a `null` decided
   answer (no rule in scope speaks).
 
+## THE TROUT SECTION (2026-11-16, T810 ticket I) — `trout` 1, OPTIONAL, behind `--trout-table`
+
+The trout and char table (handoff/PLAN/design/trout-table-contract.md): per part key and segment a `TroutFrame`
+{table, dates, covers} or null (Q-D3: the display frame says closed or tidal, or the rows frame asks about no trout or
+char fish), composed once per key over all its segments (`Section.compose_key`) from the POST-PASS `rows`, the
+`display` frame and the `licence` answer. Built only with `--trout-table` (`answers.cli build`, `pipeline.deliver
+answers` / `all`, `mini_release --build`): without it the file holds no `trout` section, spec text or schema, so it is
+the file it was before. On the wire (`encode.TroutCodec`): `frames` [[table, dates | null, covers]], `tables` (bodies,
+each row's `sheet` a `sheets` index), `dates`, `sheets`; the store adds `cell.trout` (last, nullable) and the four
+tables `trout_frame`, `trout_table`, `trout_dates`, `trout_sheet`, carried by every regs shard, their zdicts in
+`water-shared`. Any shape change bumps `trout`.
+
 ## answers/2 (DATAFLOW P7, 2026-10-08) — what changed from answers/1
 
 Nobody had consumed answers/1, so there is no migration note (user decision U3). The changes:

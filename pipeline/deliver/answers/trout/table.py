@@ -55,6 +55,7 @@ from typing import Callable, Dict, Iterable, List, Mapping, Optional, Sequence, 
 
 from pipeline.deliver.answers import common
 from pipeline.deliver.answers.common import AnswersError
+from pipeline.deliver.answers.trout import sheets as S
 from pipeline.deliver.answers.trout import timeline as TL
 from pipeline.deliver.answers.trout import words as W
 
@@ -257,7 +258,7 @@ def law_size(dec: dict, rules: Rules) -> str:
 class _Row:
     """A table row while the body is built."""
     __slots__ = ("key", "fish", "origin", "label", "sub", "lines", "quiet", "src", "kind_n", "kind_ix", "chain",
-                 "detail", "duties", "also", "band", "state", "poss", "sizes")
+                 "detail", "duties", "also", "band", "state", "poss", "sizes", "size_text", "size")
 
     def __init__(self, key, fish, origin=None):
         self.key, self.fish, self.origin = key, fish, origin
@@ -275,6 +276,8 @@ class _Row:
         self.state = "keep"
         self.poss = None               # (line, count) from possession_duty / possession_rules
         self.sizes = None              # the kind's keep ranges as the card states them (`tree` kind `sizes.cm`)
+        self.size_text = None          # the size line the row says first (the sheet's "Size: …")
+        self.size = None               # the row's size, said or not ("any size" under a box's size strip)
 
     def add(self, text: Optional[str], where: str = "lines"):
         lst = getattr(self, where)
@@ -316,8 +319,11 @@ def _row_src(fa: dict, key: str, extra: Iterable = ()) -> List[int]:
 class Body:
     """One segment's table body, built from the post-pass rows frame (`split_mixed` already applied)."""
 
-    def __init__(self, frame: dict, rules: Rules):
+    def __init__(self, frame: dict, rules: Rules, licence: Optional[dict] = None):
         self.frame, self.rules = frame, rules
+        #: the licence answer at the same key and segment, post-pass (`drop_closed_steelhead_stamp` ran): the sheet's
+        #: stamps are read from it (ticket H, contract 2.2)
+        self.docs = S.documents(licence)
         self.fish = frame.get("fish") or {}
         self.states = fish_states(frame)
         self.P, self.model = reading(frame, rules)
@@ -419,6 +425,7 @@ class Body:
         for r in rows:
             self.placed[r.fish] = bi
         strip: List[str] = []
+        parts: List[tuple] = []                # the strip's parts as the sheet reads them: (kind, text, cm)
         lines_of: Dict[str, List[str]] = {}
         # -- bands: groups of rows sharing a count tighter than the box's ---------------------------------
         groups: "OrderedDict[tuple, dict]" = OrderedDict()
@@ -502,6 +509,7 @@ class Body:
             passing = {r.fish for r in rows if self._passes(r, cm)}
             if passing <= holds:
                 strip.append(W.strip_size(t["n"], cm, extra.get("n")))
+                parts.append(("size", strip[-1], cm))
                 has_size_strip = True
                 for r in rows:
                     if r.fish in (t.get("species") or ()) and (self._min_keep(r) >= cm or
@@ -523,6 +531,7 @@ class Body:
             every = [r for r in rows if r.origin == c["o"]]
             if len(mine) == len(every) and c["o"] == "wild":
                 strip.append(W.strip_wild(c["daily"], self._origin_size([r.fish for r in mine], c["o"])))
+                parts.append(("wild", strip[-1], None))
             else:
                 for r in mine:
                     lines_of.setdefault(r.key, []).append(W.strip_wild(c["daily"], None))
@@ -530,13 +539,13 @@ class Body:
             if self.together is not None and self.together["src"] != [a["r"]]:
                 raise TableError("trout table: two limits across boxes; `together` holds one")
             size = self._origin_size(list(a["mine"]) + list(a["others"]), a["o"])
-            self.together = {"text": W.together_origin(a["n"], a["o"], size), "src": [a["r"]]}
+            self.together = {"text": W.together_origin(a["n"], a["o"], size), "src": [a["r"]], "origin": a["o"]}
         from pipeline.deliver.answers.tree import A_BOTH_LAKES_SAID
         for t in OrderedDict((t["id"], t) for r in rows for t in r.chain).values():
             if A_BOTH_LAKES_SAID and t["tier"] == "own" and "from both lakes together" in t["says"]:
                 if self.together is not None and self.together["src"] != [t["by"]]:
                     raise TableError("trout table: two limits across waters; `together` holds one")
-                self.together = {"text": W.together_lakes(t["n"]), "src": [t["by"]]}
+                self.together = {"text": W.together_lakes(t["n"]), "src": [t["by"]], "origin": None}
         # -- each row's words --------------------------------------------------------------------------------
         for r in rows:
             fa = self.fish[r.fish]
@@ -544,11 +553,13 @@ class Body:
                 size = law_size(fa[r.origin], self.rules)
             else:
                 size = r.detail
+            r.size = size
             sub = W.steelhead_sub(size) if r.fish == "ST" else None
             if sub is not None:
                 r.sub = sub
             elif not (size == "any size" and has_size_strip):
-                r.add(W.size_line(size))
+                r.size_text = W.size_line(size)
+                r.add(r.size_text)
             for x in lines_of.get(r.key, []):
                 r.add(x)
             for a in r.also:
@@ -607,7 +618,17 @@ class Body:
         for r in rows:
             r.src = list(dict.fromkeys(_row_src(self.fish[r.fish], r.key, [t["by"] for t in r.chain]) + r.src))
         self.boxes.append({"kind": "keep", "head": W.head_keep(box_n), "label": label, "strip": W.strip(strip),
-                           "tag": tag, "rows": rows, "bands": bands, "n": box_n, "home": home, "group": g})
+                           "tag": tag, "rows": rows, "bands": bands, "n": box_n, "home": home, "group": g,
+                           "parts": parts, "passes": self._passes})
+
+    def _licence_duties(self, r: _Row) -> List[str]:
+        """The row's yearly limit and record duties (`card.licence_duty`), from the decided answer the row says (its
+        origin's on a twin row, else the leading one's), banded over the lengths it keeps."""
+        fa = self.fish[r.fish]
+        dec = self.model["R"][r.fish]["H" if (r.origin or common.lead_name(fa.get("hatchery"), fa.get("wild")))
+                                      == "hatchery" else "W"]
+        a, b = _keep_range(self._law(r))
+        return S.licence_duties(dec, a, b)
 
     def _most(self, rows: Sequence[_Row]) -> float:
         """The most the rows can hold together: each kind's own number once (the 2nd attack's arithmetic)."""
@@ -693,10 +714,13 @@ class Body:
                 fa = self.fish[r.fish]
                 if r.origin is not None:
                     r.detail = law_size(fa[r.origin], self.rules)
+                r.size = r.detail
                 if r.detail != "any size":
-                    r.add(W.size_line(r.detail))
+                    r.size_text = W.size_line(r.detail)
+                    r.add(r.size_text)
                 got = self.possession(r.fish)
                 if got is not None:
+                    r.poss = (got[0], got[1])
                     r.add(W.possession_row(got[0]))
                 self._week_and_steel(r)
                 r.src = _row_src(fa, r.key, [row["pool"]] if row.get("pool") is not None else [])
@@ -709,7 +733,8 @@ class Body:
                       "text": W.band_upto(n) if r.band[0] == "upto" else W.band_own(r.band[1])}
                      for k, r in enumerate(rows)]
             self.boxes.append({"kind": "keep", "head": W.head_keep(n), "label": label, "strip": None, "tag": None,
-                               "rows": rows, "bands": bands, "n": n, "home": i, "group": None})
+                               "rows": rows, "bands": bands, "n": n, "home": i, "group": None, "parts": [],
+                               "passes": self._passes})
 
     def _out_boxes(self) -> None:
         for kind, head in (("release", W.HEAD_RELEASE), ("closed", W.HEAD_CLOSED)):
@@ -732,7 +757,7 @@ class Body:
             for r in rows:
                 self.placed.setdefault(r.fish, bi)
             self.boxes.append({"kind": kind, "head": head, "label": None, "strip": None, "tag": None, "rows": rows,
-                               "bands": [], "n": None, "home": None, "group": None})
+                               "bands": [], "n": None, "home": None, "group": None, "parts": [], "passes": None})
 
     # -- the whole table ------------------------------------------------------------------------------
     def _top(self) -> Tuple[str, dict]:
@@ -783,23 +808,23 @@ class Body:
 
     def _table(self) -> dict:
         lead, fold = self._top()
-        # `elsewhere` ("Fished elsewhere today? ›", from `group.worked`) is ticket H's move (spec H): empty here, the link
-        # hidden, until H words its lines (their "today" is the angler's day, like the stop duty: G2 lists the pair)
-        elsewhere: List[str] = []
+        # `elsewhere` (ticket H): the card's kept-elsewhere lines (`group.worked`, `rows/groups.py elsewhere_of`) of every
+        # keep box's group, in box order, under the app's "Fished elsewhere today? ›" (empty: no link). A line about
+        # keeping HERE ("If you keep 4 hatchery rainbow trout here", `at` "here": a lifted kind past the stream share) is
+        # not a kept-elsewhere line and is not under that link (G2 lists it for the owner)
+        elsewhere: List[str] = [W.elsewhere_line(w["q"], w["a"]) for b in self.boxes if b["group"] is not None
+                                for w in b["group"].get("worked") or () if w["at"] != "here"]
         boxes = []
         src: List[int] = []
         for b in self.boxes:
             rows = []
             for ri, r in enumerate(b["rows"]):
-                if b["kind"] == "keep":
-                    band = next(x for x in b["bands"] if x["from"] <= ri <= x["to"])
-                    head = W.sheet_keep(band["text"], b["n"])
-                else:
-                    head = W.SHEET_RELEASE if b["kind"] == "release" else W.SHEET_CLOSED
-                here = [{"t": t, "bold": t.startswith("after keeping ")} for t in r.lines + r.quiet]
+                sheet = S.fish_sheet(b, ri, r, stamps=S.stamps_for(self.frame, r.fish, self.docs),
+                                     duties=self._licence_duties(r) if b["kind"] == "keep" else (),
+                                     together=self.together)
                 rows.append({"key": r.key, "fish": r.fish, "name": W.fish_name(r.fish), "origin": r.origin,
                              "label": r.label, "sub": r.sub, "lines": tuple(r.lines), "quiet": tuple(r.quiet),
-                             "src": tuple(r.src), "sheet": {"head": head, "here": tuple(here), "src": tuple(r.src[:4])}})
+                             "src": tuple(r.src), "sheet": sheet})
                 src += r.src
             boxes.append({"kind": b["kind"], "head": b["head"], "label": b["label"], "strip": b["strip"],
                           "tag": b["tag"], "rows": tuple(rows), "bands": tuple(b["bands"])})
@@ -862,14 +887,17 @@ def _hours_guard(frames, displays, starts, moments) -> None:
 
 
 def compose_key(rows: Sequence[dict], displays: Sequence[dict], starts: Sequence[int],
-                moments: Optional[Sequence[dict]], rules: Rules, *, validate: bool = True) -> List[Optional[dict]]:
-    """THE WHOLE-KEY COMPOSE (contract 2.2): one answer key's post-pass rows frames and display frames (one per
+                moments: Optional[Sequence[dict]], rules: Rules, *, licences: Sequence[dict],
+                validate: bool = True) -> List[Optional[dict]]:
+    """THE WHOLE-KEY COMPOSE (contract 2.2): one answer key's post-pass rows, display and licence frames (one per
     segment), its segment starts and moments -> per segment the `TroutFrame` (as a dict, validated by
-    `model.trout.TroutFrame`) or None (Q-D3). Adds no day cut: its value is a function of the rows and display values."""
+    `model.trout.TroutFrame`) or None (Q-D3). Adds no day cut: its value is a function of the rows, display and licence
+    values (the licence answer's only for the fish sheets' stamps, ticket H)."""
     from pipeline.deliver.answers.model.trout import TroutFrame
     n = len(starts)
-    if not (len(rows) == len(displays) == n):
-        raise TableError(f"trout table: {len(rows)} rows and {len(displays)} display frames for {n} segments")
+    if not (len(rows) == len(displays) == len(licences) == n):
+        raise TableError(f"trout table: {len(rows)} rows, {len(displays)} display and {len(licences)} licence frames "
+                         f"for {n} segments")
     _hours_guard(rows, displays, starts, moments)
     split = [split_mixed(f) for f in rows]
     bodies: List[Optional[Body]] = []
@@ -879,7 +907,7 @@ def compose_key(rows: Sequence[dict], displays: Sequence[dict], starts: Sequence
             bodies.append(None)
             tables.append(None)
             continue
-        b = Body(split[j][0], rules)
+        b = Body(split[j][0], rules, licences[j])
         tables.append(b.build())
         bodies.append(b)
     year = TL.KeyYear(starts, rows, moments, water_closed=[d.get("status") == "closed" for d in displays],

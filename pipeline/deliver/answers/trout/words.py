@@ -568,6 +568,12 @@ def stop_duty(duty: str) -> Optional[str]:
     return f"after keeping {m[2]}, stop fishing this {m[1]} today" if m else None
 
 
+def parse_duty_stop(duty: str) -> Optional[Tuple[str, int]]:
+    """`card._duties`' stop duty ("stop fishing this river after 1 a day") -> (noun, n); None for another duty."""
+    m = _STOP.fullmatch(duty)
+    return (m[1], int(m[2])) if m else None
+
+
 def week_line(says: str) -> str:
     """The rows post-pass's weekday words (`rows.say_weekdays`), whole: a NOW line (a date line never names a weekday;
     this is today's rule by weekday)."""
@@ -591,12 +597,115 @@ def together_lakes(n) -> str:
     return f"only {_n(n)} from both lakes together"
 
 
+_ELSEWHERE_Q = re.compile(r"Kept [^?]+\?")
+_TODAY_Q = " elsewhere today?"
+
+
 def elsewhere_line(q: str, a: str) -> str:
+    """One worked line of the card's kept-elsewhere list (`group.worked`, `rows/groups.py elsewhere_of`) as the table's
+    `elsewhere` says it, under the app's "Fished elsewhere today? ›": "Kept 2 elsewhere? Keep 3 more here." The stored
+    question's " elsewhere today?" loses its "today" (the link word says the day; no data text says "today", contract
+    Q-D2); a question in any other form, or an answer that says "today", is refused."""
+    if not _ELSEWHERE_Q.fullmatch(q):
+        raise WordsError(f"trout words: not a kept-elsewhere question: {q!r}")
+    if q.endswith(_TODAY_Q):
+        q = q[:-len(_TODAY_Q)] + " elsewhere?"
+    a = a if a.endswith((".", "?", "!")) else a + "."
     return _now(f"{q} {a}")
 
 
 def sheet_keep(band_text: str, box_n) -> str:
+    """The fish sheet's head on a keep row (spec 3.4): "Keep · only 1 of these 4 · counts toward the 5"; a row whose band
+    is the box's own number ("up to the 5") says it once: "Keep · counts toward the 5"."""
+    if parse_band(band_text)[0] == "upto":
+        return f"Keep · counts toward the {_n(box_n)}"
     return f"Keep · {band_text} · counts toward the {_n(box_n)}"
+
+
+# -- THE FISH SHEET'S "HERE" LINES (ticket H, spec 3.4): whole sentences, never "today" ----------------------------------
+# size "Size: 30 cm (12 in) or longer." / "Any size." · steelhead "Here a steelhead is a rainbow over 50 cm (20 in)." ·
+# label "Hatchery only: wild ones go back." · box "Counts toward the 5 in all, together with brook trout and lake trout." ·
+# own "This fish: only 3." · shared "Only 1 of these 4: this fish and brown trout, cutthroat trout and rainbow trout." ·
+# uses "A kept one is always over 50 cm (20 in), so it is that one." · possession "In your possession: 1 day’s limit, not 2
+# (+ the home exception, `POSSESSION_HOME`)." · stop duty (bold) "Once you have kept 1 steelhead here, stop fishing this stream for the
+# rest of the day: the whole stream, not only this stretch." · licence "Licence: 10 a year · record each on your licence
+# right away · Steelhead Conservation Surcharge Stamp, only if you fish for steelhead, even to release them." · any other
+# row or strip line as a sentence: "Only 1, counting any lake trout you keep."
+
+SHEET_HATCHERY_ONLY = "Hatchery only: wild ones go back."
+
+
+def _sheet(text: str) -> str:
+    """A sheet sentence: whole, never "today" (the sheet's "Here, today" heading is the app's), ending as a sentence."""
+    if not text.endswith((".", "?", "!")):
+        raise WordsError(f"trout words: a sheet line is a sentence: {text!r}")
+    return _now(text)
+
+
+def sentence(text: str) -> str:
+    """A table phrase as a sheet sentence: "only 1, counting any lake trout you keep" -> "Only 1, counting any lake trout
+    you keep."."""
+    t = common.cap(text)
+    return _sheet(t if t.endswith((".", "?", "!")) else t + ".")
+
+
+def sheet_size(detail: str) -> str:
+    return _sheet("Any size." if detail in ("any size", "any length") else f"Size: {detail}.")
+
+
+def sheet_sub(sub: str) -> str:
+    """The steelhead row's sub ("a rainbow over 50 cm (20 in)") as the sheet says it."""
+    if not sub.startswith("a rainbow "):
+        raise WordsError(f"trout words: not a steelhead sub: {sub!r}")
+    return _sheet(f"Here a steelhead is {sub}.")
+
+
+def sheet_box(n, others: str) -> str:
+    """The box's number the row counts toward, with the box's other fish ("" alone)."""
+    return _sheet(f"Counts toward the {_n(n)} in all" + (f", together with {others}." if others else "."))
+
+
+def sheet_own(k) -> str:
+    return _sheet(f"This fish: only {_n(k)}.")
+
+
+def sheet_shared(band_text: str, others: str) -> str:
+    """A shared band ("only 1 of these 4", "only 3 from these 2 together") with the fish it holds besides this one."""
+    kind, _k, _m = parse_band(band_text)
+    if kind != "shared":
+        raise WordsError(f"trout words: not a shared band: {band_text!r}")
+    return _sheet(f"{common.cap(band_text)}: this fish and {others}.")
+
+
+def sheet_uses(over_cm) -> str:
+    return _sheet(f"A kept one is always over {common.cm_in(over_cm)}, so it is that one.")
+
+
+def sheet_stop(n, noun: str, fish: str) -> str:
+    """The stop duty (bold), from `card._duties`' "stop fishing this river after 1 a day"."""
+    return _sheet(f"Once you have kept {_n(n)} {fish} here, stop fishing this {noun} for the rest of the day: the whole "
+                  f"{noun}, not only this stretch.")
+
+
+def licence_stamp(name: str, when: str) -> str:
+    """A stamp the fish needs (`stamps.stamp_out`'s name and the licence tab's sentence): "Steelhead Conservation
+    Surcharge Stamp, only if you fish for steelhead, even to release them"."""
+    if not when.startswith("Only if "):
+        raise WordsError(f"trout words: not a licence tab's sentence: {when!r}")
+    return _now(f"{name}, {when[:1].lower()}{when[1:]}")
+
+
+def sheet_licence(parts) -> str:
+    """The licence line: the yearly limit and record duties (`card._duties`' words) and the stamps, in that order."""
+    if not parts:
+        raise WordsError("trout words: a licence line says something")
+    return _sheet("Licence: " + " · ".join(_now(p) for p in parts) + ".")
+
+
+def parse_uses(text: str) -> Optional[Tuple[float, float]]:
+    """"uses the 1 over 50 cm (20 in)" -> (1, 50); None for any other line."""
+    m = re.fullmatch(rf"uses the {_NUM} over {_CM}", text)
+    return (_num(m[1]), _cm(m[2], m[3])) if m else None
 
 
 # -- the grammar of the NOW words (J reads them back) ------------------------------------------

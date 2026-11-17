@@ -70,6 +70,10 @@ def province_store(release: Optional[Path] = None, *, verify: bool = True) -> St
     from pipeline.deliver.store.build import SCHEMA
     con = sqlite3.connect(":memory:")
     con.executescript(SCHEMA.read_text())
+    # (T810 ticket I) a release built with an OPTIONAL section (the trout table) names it among its regulations'
+    # versions (the store's layout): the reassembled store gains its column and tables as the built one had them
+    from pipeline.deliver.store.build import OPTIONAL_SECTIONS, optional_schema
+    optional_schema(con, [n for n in OPTIONAL_SECTIONS if n in ((manifest.get("regulations") or {}).get("versions") or {})])
     tables = [t for (t,) in con.execute("SELECT name FROM sqlite_master WHERE type = 'table' AND name <> 'meta'")]
     water_meta: dict = {}
     held: set = set()

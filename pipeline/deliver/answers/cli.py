@@ -1,6 +1,6 @@
 """The answers layer's command line.
 
-  python -m pipeline.deliver.answers.cli build --bundle FILE --export-dir DIR --out FILE [--workers N]
+  python -m pipeline.deliver.answers.cli build --bundle FILE --export-dir DIR --out FILE [--workers N] [--trout-table]
       build `ui-rules-answers.json` for the export pair in DIR, check that it decodes back to
       what was built, print its sizes (raw and gzipped; no `.gz` file is written)
   python -m pipeline.deliver.answers.cli tap --answers FILE --export-dir DIR ITEM PART MM-DD FISH ORIGIN
@@ -46,7 +46,7 @@ def cmd_build(a) -> int:
         decided.use_book(*book)
     model = build(a.bundle, a.export_dir, workers=a.workers,
                   items=a.items.split(",") if a.items else None, export=(data, guide),
-                  verdicts=a.verdicts, book=book)
+                  verdicts=a.verdicts, book=book, optional=("trout",) if a.trout_table else ())
     wire = E.encode(model, data)
     E.check_pair(wire, data, guide)
     per = {}
@@ -89,6 +89,7 @@ def main(argv=None) -> int:
     b.add_argument("--claims", type=Path, default=None,
                    help="the export claims (pipeline.deliver.export.claims): the synopsis + row boxes the highlights "
                         "are read from (default: the book's)")
+    b.add_argument("--trout-table", action="store_true", help='(T810, trout table plan) also build the OPTIONAL trout section (the trout and char table, contract 2.1); default off: without it the file is byte for byte what it was before the section existed')
     t = sub.add_parser("tap")
     t.add_argument("--answers", required=True, type=Path)
     t.add_argument("--export-dir", required=True, type=Path)
