@@ -92,6 +92,11 @@ its `_reindex`), dfo_vectors --check with both in.
   restore the cut, rebuild 3 (scratchpad/rebuild3/), province-wide binding diff vs rebuild2 (stop if anything else moves),
   diffs, and triage the 37 worktree lane-test failures against land/salmon-1116. Marks on old Sheldens id blk:360846083
   (marks.jsonl lines 2470, 2516, 2517, 2783) need a surgical id rename at merge (marks rule: diff-proven renames only).
+  **05:48: T833 rebuild3 (r-ffb9d7191e4f) STOPPED on its diff:** Gitnadoix back to 1,000 with the powerline label, but
+  the 1 m rule broke Chilliwack-Vedder r3-r9 (the Chilliwack joins 25.4 m below the Vedder Crossing cut). Told the worker
+  to use tolerances.STUB_M (100 m, bundle.continuation's allowance), reach-only rerun, diff again (same stop rule), then
+  the answers diffs. Lane-test triage: 35/37 also fail at land/salmon-1116 (worktree setup); the T812 one fixed
+  (5a4585f7e); marks_never_orphaned is mine at merge (Cowichan x3, Sheldens, Babine x2 bindings moved).
 - trout J back 00:05 11-17, merged locally as 02e51cfdc (mini release re-cut on merge); tier running, then push.
   01:53 11-17: worker done; lane/trout-vpy merged locally as 5d6ac8283 (6 keys fixed, proof 5,950/5,950, 0 problems; V-py:
   trout_vectors 53 cases, trout-hand 14, own trout fixture app/fixtures/trout/, scripts/trout-refresh.sh). Tier b806pz7n9
