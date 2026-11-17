@@ -1063,6 +1063,9 @@ function sourceBy(P: Payload, chains: readonly number[], who: (a: readonly numbe
  * answering these chains' salmon on a day: each named by the book (`placeFromBook`: its printed pages, its row) and in
  * its words (`t`, the verdict's: "Closed to all fishing by the rule book (p.N): <the book's line> (<dates>)"). A closure
  * in force every day has no dates in its words: `words` says "all year".
+ * (T796 W2) "every day" is the CLOSURE'S OWN year (`payload.static`, the release's: kept as it is under a live feed),
+ * never the days it answers the chain: a dated closure sorted first on the same chain takes some days from an all-year
+ * one, which then lost its dates there (Statlu Creek, p.26, beside the Chehalis's May closure, p.22).
  */
 function bookToday(f: SalmonFacts, chains: readonly number[], day: number): (SalmonBookVM & { readonly t: string })[] {
   const P = f.payload, out = new Map<string, SalmonBookVM & { readonly t: string }>();
@@ -1071,9 +1074,11 @@ function bookToday(f: SalmonFacts, chains: readonly number[], day: number): (Sal
     SALMON_SPECIES.forEach((_, k) => {
       const i = ch.a ? at(ch.a[k]!, day) : -1;
       if (!isBookAt(P, ch, i)) return;
-      const p = P.p![ch.l[i]!]! as SalmonBookPlace;
+      const lid = ch.l[i]!, p = P.p![lid]! as SalmonBookPlace;
+      const year = P.static?.[lid]?.sp[k];
+      if (!year) throw new SalmonError(`salmon: book place ${lid} has no year in static`);
       const t = P.verdicts[at(ch.sp[k]!, day)]!.t;
-      const words = ch.a![k]!.every((x, j) => j % 2 === 0 || x === i) ? SALMON_WORDS.bookAllYear(t) : t;
+      const words = year.every((x, j) => j % 2 === 0 || x >= 0) ? SALMON_WORDS.bookAllYear(t) : t;
       out.set(words, { t, from: SALMON_WORDS.placeFromBook(p.book.pages, p.water), words });
     });
   }

@@ -314,3 +314,50 @@ describe("(T796, owner 15:19) a book closure names the rule book — page, line,
       .toEqual(["DFO", "DFO", "Source (DFO)", [], "Salmon (DFO)"]);
   });
 });
+
+// ── (T796 W2) EACH BOOK CLOSURE CARRIES ITS OWN DATES ──────────────────────────────────────────────────────────────────
+// The adversarial review's W2 (row-22, chain 568 of r-685b700b2802, values pasted): Statlu Creek's closure is all year
+// (p.26, "No Fishing"), but the Chehalis's May closure (p.22) sits first on the same chain and answers May 1–31. The card
+// said "(all year)" only when the place answered EVERY day of the chain, so on the days Statlu answers its words had no
+// dates at all. "All year" is the closure's own year (`payload.static`), never which place answers the chain.
+const CHEHALIS = "book:r2:chehalis_river@2-19::chehalis_river.r2", STATLU = "book:r2:statlu_creek@2-19::statlu_creek.r1";
+const CHEHALIS_DFO = "2:chehalis-river:downstream-of-the-logging-bridge-2";
+const CHEHALIS_WORDS = `${BOOK_HEAD} (p.22): No Fishing downstream of the main logging road bridge situated approximately 2.4 km `
+  + "downstream of Chehalis Lake, May 1-31 (May 1–31)";
+const STATLU_WORDS = `${BOOK_HEAD} (p.26): No Fishing`;
+const CHEHALIS_OPEN = { s: "open", t: "2 per day (Sep 1–Dec 31)" } as const;
+const isMay = (i: number) => i >= 121 && i < 152, isFall = (i: number) => i >= 244;
+const TWO_BOOKS = {
+  format: "salmon/4", credit: PAYLOAD.credit, default: 0, scopes: {}, unmapped: [], gears: [],
+  regions: { "2": { name: "Lower Mainland", asof: "2026-08-28", url: "https://www.pac.dfo-mpo.gc.ca/", notes: [], shared: [], sizes: [] } },
+  verdicts: [NOT_OPENED, CHEHALIS_OPEN, { s: "closed", t: CHEHALIS_WORDS }, { s: "closed", t: STATLU_WORDS }],
+  chains: [
+    { r: [], w: "", l: [], sp: five([0, 0]), g: [0, -1], m: [0, 3] },
+    { r: ["2"], w: "w", l: [CHEHALIS_DFO], sp: five(runsBy((i) => (isFall(i) ? 1 : 0))), g: [0, -1],
+      m: runsBy((i) => (isFall(i) ? 1 : 3)), a: five(runsBy((i) => (isFall(i) ? 0 : -1))) },
+    // chain 568 as the release ships it: the Chehalis's May closure first, Statlu's all-year one, then DFO's place
+    { r: ["2"], w: "w", l: [CHEHALIS, STATLU, CHEHALIS_DFO], sp: five([0, 3, 121, 2, 152, 3]), g: [0, -1], m: [0, 3],
+      a: five([0, 1, 121, 0, 152, 1]) },
+  ],
+  p: { [CHEHALIS_DFO]: { r: "2", water: "Chehalis River" },
+       [CHEHALIS]: { r: "2", water: "Chehalis River", static: 1, book: { rule: "r2:chehalis_river@2-19::chehalis_river.r2", pages: [22] } },
+       [STATLU]: { r: "2", water: "Statlu Creek", static: 1, book: { rule: "r2:statlu_creek@2-19::statlu_creek.r1", pages: [26] } } },
+  static: { [CHEHALIS]: { sp: five(runsBy((i) => (isMay(i) ? 2 : -1))), g: [0, -1] }, [STATLU]: { sp: five([0, 3]), g: [0, -1] } },
+};
+const twoBooksFeed = () => FEED({ regions: { "2": { name: "Lower Mainland", url: "", asof: "2026-10-01", checked: null, stale: false, held: null } },
+                                  verdicts: [NOT_OPENED, { s: "release", t: "padding" }, CHEHALIS_OPEN] as never,
+                                  locs: { [CHEHALIS_DFO]: { r: "2", sp: five(runsBy((i) => (isFall(i) ? 2 : 0))), g: [0, -1] } } });
+
+describe("(T796 W2) two book closures on one stretch: each one's words carry its own dates", () => {
+  for (const [how, f] of [["offline (the release)", () => facts(TWO_BOOKS)], ["under a live feed", () => withSalmonFeed(facts(TWO_BOOKS), twoBooksFeed())]] as const) {
+    it(`${how}: Statlu Creek (p.26) says "(all year)" on Feb 15 and Oct 10; May 15 the Chehalis's own May 1–31`, () => {
+      const statlu = { from: "Rule book p.26 · Statlu Creek", words: `${STATLU_WORDS} (all year)` };
+      const chehalis = { from: "Rule book p.22 · Chehalis River", words: CHEHALIS_WORDS };
+      for (const [day, b] of [[on(2, 15), statlu], [OCT_10, statlu], [on(5, 15), chehalis]] as const) {
+        const s = surfaces(f(), day);
+        expect([s.rows, s.table.says, s.fold.book, s.glanceRow, s.map]).toEqual([
+          [["Salmon", "Closed", [b.words], b.from]], [b.words], [b], { fold: false, book: [b] }, "closed"]);
+      }
+    });
+  }
+});
