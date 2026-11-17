@@ -11,7 +11,7 @@
  * The answer per chain and day was decided at deliver time (`pipeline/deliver/salmon.py`); nothing here reads a rule.
  */
 import { useMemo, useState } from "react";
-import { feedFinfishOn, type MethodFacts, type SalmonFacts } from "@app/core";
+import { feedFinfishOn, salmonIssueItems, type MethodFacts, type SalmonFacts } from "@app/core";
 import type { SalmonFeedSource, WaterSource } from "@app/data";
 import { useAsync } from "./async";
 import { useFeedVersion } from "./feedVersion";
@@ -112,6 +112,24 @@ export function useMethodColour(i: { source: WaterSource; paired: boolean; statu
   const day = useMemo(() => i.day ?? today, [dayKey]);
   const feed = useMemo(() => (f && i.paired ? { facts: f, day } : null), [f, day, i.paired]);
   return { feed };
+}
+
+/**
+ * (T759) THE ISSUE STRIPE's feed: the sections of every water the salmon feed carries a shown issue for
+ * (`salmonIssueItems`: the rows behind the river page's banner), from the salmon facts the map already holds, so no
+ * file is read for it. Handed to the map whatever the toggle says (the toggle is a mode change and nothing else); the
+ * map's style draws the stripe in the Salmon view alone (`paint.ts` `issuePaint`). Null: no issue water, or no facts.
+ */
+export interface IssueFeedVM { readonly sections: ReadonlySet<number> }
+export function useIssueColour(i: { source: WaterSource; facts: SalmonFacts | null; mapTab: boolean }): IssueFeedVM | null {
+  const items = useMemo(() => (i.facts ? [...salmonIssueItems(i.facts.payload)] : []), [i.facts]);
+  const key = `issuesections:${sourceKey(i.source)}:${items.join(",")}`;
+  const read = useAsync(async () => {
+    const waters = await Promise.all(items.map((it) => i.source.water(it as never)));
+    return new Set(waters.flatMap((w) => (w ? w.sections.map((s) => Number(s)) : [])));
+  }, key, i.mapTab && items.length > 0);
+  const sections = read.state === "ready" ? read.value : null;
+  return useMemo(() => (i.mapTab && sections && sections.size ? { sections } : null), [i.mapTab, sections]);
 }
 
 /** The toggle's choice, kept for the session (Standard by default). */

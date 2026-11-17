@@ -20,7 +20,7 @@ import { describe, expect, it } from "vitest";
 import { readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { STYLE_META } from "../packages/map/src/style";
-import { ENGINE_KEYS, methodInput, runsInput, salmonInput, standingInput, statusInput, stockedInput, surveyInput, withoutEngineKeys,
+import { ENGINE_KEYS, issueInput, methodInput, runsInput, salmonInput, standingInput, statusInput, stockedInput, surveyInput, withoutEngineKeys,
          type Channel } from "../packages/map/src/colouring";
 import { statusFeed } from "../packages/ui/src/mapModes";
 
@@ -41,6 +41,8 @@ const KEYS: Record<Channel, string> = {
   method: methodInput({ facts: { profileOf: () => null, profiles: 0 } as never, day: new Date(2026, 0, 1) }).labels.key,
   // (T199/T261) the run timing: each section's state for the species slots and pentad
   runs: runsInput({ facts: { state: () => undefined, has: () => false } as never, slots: [6], pentad: 0 }).labels.key,
+  // (T759) the issue stripe: a section of a water with a DFO rule the feed could not place
+  issue: issueInput({ sections: new Set() }).labels.key,
 };
 
 describe("one colouring engine", () => {
@@ -56,7 +58,7 @@ describe("one colouring engine", () => {
       [`profile:${KEYS.status}`, `runs:${KEYS.runs}`, `salmon:${KEYS.salmon}`, `standing:${KEYS.standing}`,
        `stocked:${KEYS.stocked}`, `surveyed:${KEYS.survey}`]);
     expect(KEYS).toEqual({ status: "p", standing: "standing", stocked: "stocked", survey: "survey", salmon: "sp", method: "gm",
-                         runs: "rt" });
+                         runs: "rt", issue: "gi" });
   });
 
   it("the web map makes ONE engine and hands every channel to it through ONE function", () => {
@@ -65,7 +67,7 @@ describe("one colouring engine", () => {
     expect(src.match(/\bc\.set\(/g)?.length).toBe(1);
     expect(src.match(/toChannel\("(\w+)"/g)).toEqual(
       ['toChannel("status"', 'toChannel("standing"', 'toChannel("survey"', 'toChannel("stocked"', 'toChannel("salmon"',
-       'toChannel("method"', 'toChannel("runs"']);
+       'toChannel("method"', 'toChannel("issue"', 'toChannel("runs"']);
     expect(src).toContain('toChannel("runs", runs ? runsInput(runs) : null');
     expect(src).toContain('toChannel("method", method ? methodInput(method) : null');
     expect(src).toContain('toChannel("salmon", salmon ? salmonInput(salmon) : null');
@@ -82,7 +84,7 @@ describe("one colouring engine", () => {
     // the refused keys are the channels' own, plus the removed pushed path's `status` — never restated
     // — the lake facts' `stocked` / `survey` included: a pushed lake value would be a second path to the same labels
     // (T211) and the salmon's: its chain label, and the removed pushed `salmon`
-    expect(ENGINE_KEYS).toEqual([KEYS.status, KEYS.standing, "status", KEYS.stocked, KEYS.survey, KEYS.salmon, "salmon", KEYS.method, KEYS.runs]);
+    expect(ENGINE_KEYS).toEqual([KEYS.status, KEYS.standing, "status", KEYS.stocked, KEYS.survey, KEYS.salmon, "salmon", KEYS.method, KEYS.runs, KEYS.issue]);
     const why: string[] = [];
     expect(withoutEngineKeys({ stream: { 1: { p: "p0", standing: 3, status: "open", other: 2 }, 2: { standing: 4 } },
                                basin: { CHWK: { standing: 5 } },

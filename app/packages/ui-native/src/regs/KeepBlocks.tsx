@@ -7,7 +7,7 @@ import { useState, type ReactNode } from "react";
 import { Image, View } from "react-native";
 import { Text } from "../Text";
 import Svg, { Circle, Path } from "react-native-svg";
-import { GLANCE_WORDS, WORDS, daylightOffsets, timedLineText, type BannerVM, type GlanceRowVM, type CaveatVM, type InheritedVM, type OtherFishKeyVM, type OtherFishRowVM, type PossessionVM, type WhereNotVM } from "@app/core";
+import { GLANCE_WORDS, SALMON_ISSUE_WORDS, WORDS, daylightOffsets, timedLineText, type BannerVM, type GlanceRowVM, type CaveatVM, type InheritedVM, type OtherFishKeyVM, type OtherFishRowVM, type PossessionVM, type WhereNotVM } from "@app/core";
 import { Icon } from "../icons";
 import { TYPE } from "../type";
 import { GUTTER, type Palette } from "../theme";
@@ -250,6 +250,20 @@ function Thumb({ code, images, palette }: { code: string | null; images: FishIma
 export interface GlanceFold { readonly key: string; readonly row: GlanceRowVM; readonly body: () => ReactNode }
 
 /**
+ * (T759, owner 2026-11-15: "mark the folded row") THE FOLDED SALMON ROW'S MARK when its card holds a DFO issue banner: a small
+ * square badge in the banner's own attention colour (the bar down the banner's edge) with a "!", named by the banner's title, so the banner
+ * is not missed while the card is folded. Square corners, no new words.
+ */
+function IssueMark({ palette }: { palette: Palette }) {
+  return (
+    <View testID="glance-issue" accessible accessibilityRole="image" accessibilityLabel={SALMON_ISSUE_WORDS.title}
+          style={{ width: 18, height: 18, alignItems: "center", justifyContent: "center", backgroundColor: palette.attention }}>
+      <Text importantForAccessibility="no" style={[TYPE.metaBold, { color: palette.card, lineHeight: 16 }]}>!</Text>
+    </View>
+  );
+}
+
+/**
  * (T221, owner 2026-10-28) A FOLDED ROW: drawn as an Other fish row — picture, name, a status word only where the whole
  * card has it (no count) — but its end is a "Details" button with the set's expand mark (not the sheet's ›), and a press opens its full
  * card in place under it (pressed again, "Hide", folds it). (T227) The whole row is the press, the button its visible mark.
@@ -295,6 +309,7 @@ function FoldRow({ f, palette, images, coach }: { f: GlanceFold; palette: Palett
                    }}>
           <Thumb code={f.row.thumb} images={images} palette={palette} />
           <Text style={[TYPE.regsBodySemi, { color: palette.ink, flex: 1 }]}>{f.row.name}</Text>
+          {f.row.issue && <IssueMark palette={palette} />}
           {f.row.value && <Text testID={`st:${f.row.tone}`} style={[TYPE.regsBodyBold, { color: tone }]}>{f.row.value}</Text>}
           <View testID="glance-toggle" style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", minWidth: 84, gap: 4, paddingVertical: 4, paddingHorizontal: 8,
                                                  borderWidth: 1, borderColor: palette.ink, borderRadius: palette.r.box }}>

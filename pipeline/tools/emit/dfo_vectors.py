@@ -21,8 +21,8 @@ for the hand rows of `dfo-rows.json` (the shared rows of T671's two tests). (T67
 `digest`, `resolve`, `deliver.salmon.header_answers`, `quota.header_closure`); `joins` holds hand cases of the join (a
 page default, never dormant); (T757) per page `pieces`: the closed-area pieces its rows name
 (`closures.live_piece_rules`: piece id -> rules + calendar), and `live`: every location `live.run` publishes over
-the saved pages with these entry files (-> its region and its year in words; T758: `cases`, the same on an edited
-page); the page locators include (T758) the default sentences' (`page:<slug>:<scope>`); `dates` is the robust date reader (`dates.read_dates`) on every recorded cell, the named
+the saved pages with these entry files (-> its region and its year; T759: the `issues`, the shape `dfo`, each region's
+`gone` and the notices of `NOTICE_KINDS`; `cases`, the same on edited inputs, one per issue kind, `_live_cases`); the page locators include (T758) the default sentences' (`page:<slug>:<scope>`); `dates` is the robust date reader (`dates.read_dates`) on every recorded cell, the named
 shapes and a seeded fuzz.
 
 WHO READS IT. `app/workers/feeds/test/dfo.vectors.test.ts` (the worker must reproduce every value in its
@@ -190,32 +190,163 @@ def _calendar(rules: list) -> dict:
     return {**cal, "verdicts": verdicts.items, "gears": gears.items}
 
 
-#: (T758) the live run on an edited page: (name, region, the page's text, what replaces it)
-LIVE_CASES = [
-    # the page no longer prints its default sentence: no locator, the curated default place answers nothing (and is never
-    # called dormant: `entries.reconcile`), the water falls to NOT_LISTED
-    ("no_default_sentence", "3",
-     "<p>There is no fishing for salmon in Region 3 except for the opportunities listed in the table below.</p>", "<p></p>"),
-    # a default sentence for a scope no curated place carries (`page:3:areas-30-31`): not a new place, never unplaced
-    # (`live.join`: a `page:` fingerprint with no location is skipped)
-    ("sentence_without_a_place", "3",
-     "<p>There is no fishing for salmon in Region 3 except for the opportunities listed in the table below.</p>",
-     "<p>There is no fishing for salmon in Region 3 except for the opportunities listed in the table below.</p>"
-     "<p>There is no fishing for salmon in waters of Region 3 flowing into Areas 30 and 31 except for the opportunities "
-     "listed in the table below.</p>"),
-]
+#: (T758, T759) THE LIVE RUN ON EDITED INPUTS — each case a page edit (and an entry-file edit), run as the feed runs:
+#: first on the saved page (the last feed), then on the edited one. Built by `_live_cases` from the saved pages (the
+#: edits the Python's `test_dfo_live.py` `test_t759_*` make on its own fixture pages, applied to the worker's).
+#:   edits    [[old, new], …]  one replacement each, in order (`old` printed exactly once)
+#:   page     the second run's page of `slug` whole (one that does not parse)
+#:   fail     the second run's fetch of `slug` fails (the region is not read: `stale`)
+#:   first    the regions of the first run (default: `slug`): a region only the first run asks is `not asked` after
+#:   entries  edits of `slug`'s entry file (`_edit_entries`): add_place {from, location_id, fingerprint, area,
+#:            duplicate_of?, duplicate_confirmed?, no_extents?} · add_fingerprint {to, fingerprint}
+QUATSE_WEIR = "100m upstream and downstream of the Quatse River Hatchery weir"
+QUATSE = "1:quatse-river:100m-upstream-and-downstream-of-th"
+MAPLE = ("from a fishing boundary sign at the end of Maple Street downstream to the fishing boundary sign at the cement "
+         "block.")
+R3_SENTENCE = "<p>There is no fishing for salmon in Region 3 except for the opportunities listed in the table below.</p>"
+#: (T759) the notices a case pins, by key prefix: the rows we cannot stand behind, the places DFO dropped, the holds
+NOTICE_KINDS = ("dfo-new:", "dfo-drift:", "dfo-new_water:", "dfo-issue:", "dfo-gone:", "dfo-held:", "dfo-fetch:")
 
 
-def _live(pages_html: dict) -> dict:
-    """`live.run` (dry run) over `pages_html` (slug -> page) with the fixture entry files: the index's `locs` (each
-    {r, sp, g, x?}), `verdicts` and `gears` they index, and `unplaced` (a reader compares runs by the verdict / gear
-    itself: the worker numbers its tables its own way)."""
+def _unique_at(html: str, i: int) -> str:
+    """the shortest text starting at `i` printed only once on the page (an insertion point as a replacement)"""
+    n = 40
+    while html.count(html[i:i + n]) != 1:
+        n += 40
+    return html[i:i + n]
+
+
+def _row_fp(html: str, slug: str, area: str) -> str:
+    (f,) = [f for f in L.type_page(html, slug)[1] if f.specific_area.startswith(area[:40])]
+    return f.fingerprint
+
+
+def _live_cases(pages: dict) -> list:
+    r1, r6 = pages["1"], pages["6"]
+    # a NEW row on the Quatse (test_t759_an_unmatched_new_row_…): inserted two rows above the weir row
+    row = ('<tr><td>Quatse River</td><td>within signed boundaries at the hatchery fence</td><td>Coho</td>'
+           '<td>Sep 1 to Oct 31</td><td>No fishing</td></tr>\n')
+    at = _unique_at(r1, r1.rindex("<tr>", 0, r1.rindex("<tr>", 0, r1.index(QUATSE_WEIR))))
+    new_row = [[at, row + at]]
+    reword = "100 m upstream and downstream of the Quatse River hatchery weir"
+    reworded = r1.replace(QUATSE_WEIR, reword, 1)
+    fp_reword = _row_fp(reworded, "1", reword)
+    fp_new = _row_fp(r1.replace(at, row + at, 1), "1", "within signed boundaries at the hatchery fence")
+    variant = {"op": "add_place", "from": QUATSE, "location_id": QUATSE + "~9", "fingerprint": fp_reword, "area": reword,
+               "duplicate_of": QUATSE}
+    # the Cayeghle row dropped (test_t759_a_plainly_removed_place_…)
+    i = r1.index("including Colonial River.")
+    a, b = r1.rindex("<tr", 0, i), r1.index("</tr>", i) + len("</tr>")
+    # a water no entry knows (test_dfo_live `_unseen`): a row before section C of region 6
+    j = r6.rindex("<tr>", 0, r6.index('<th id="c"'))
+    unseen = ("<tr><td>Invented Creek</td><td>all waters</td><td>Coho</td><td>Sep 1 to Oct 31</td>"
+              "<td>2 per day</td></tr>\n")
+    at6 = _unique_at(r6, j)
+    return [
+        # (T758) the page no longer prints its default sentence: the default place answers nothing, never dormant
+        {"name": "no_default_sentence", "slug": "3", "edits": [[R3_SENTENCE, "<p></p>"]]},
+        # (T758) a default sentence for a scope no curated place carries: skipped by the join, never unplaced
+        {"name": "sentence_without_a_place", "slug": "3", "edits": [[R3_SENTENCE, R3_SENTENCE + (
+            "<p>There is no fishing for salmon in waters of Region 3 flowing into Areas 30 and 31 except for the "
+            "opportunities listed in the table below.</p>")]]},
+        # (T759) unmatched, why new: a wording no curated place has, rules held
+        {"name": "unmatched_new", "slug": "1", "edits": new_row},
+        # unmatched, why new: the Maple Street closure reworded past any close match
+        {"name": "unmatched_new_far_reword", "slug": "1", "edits": [[MAPLE, "within signed boundaries at the Tyee Spit"]]},
+        # unmatched, why near_place_taken: reworded toward its sibling, which today's page still prints
+        {"name": "unmatched_near_place_taken", "slug": "1",
+         "edits": [[MAPLE, "from the end of Maple Street downstream to the confluence with the Quinsam River."]]},
+        # unmatched, why undrawn: the new row's wording seeded as a place with no extent (what `live queue` leaves)
+        {"name": "unmatched_undrawn", "slug": "1", "edits": new_row,
+         "entries": [{"op": "add_place", "from": QUATSE, "location_id": "1:quatse-river:within-signed-boundaries",
+                      "fingerprint": fp_new, "area": "within signed boundaries at the hatchery fence",
+                      "no_extents": True}]},
+        # drift: a close reword, its free top candidate applies its rule
+        {"name": "drift_close_match", "slug": "1", "edits": [[QUATSE_WEIR, reword]]},
+        # drift: the reworded row joins a variant only PROPOSED (duplicate_confirmed None)
+        {"name": "drift_proposed_variant", "slug": "1", "edits": [[QUATSE_WEIR, reword]],
+         "entries": [{**variant, "duplicate_confirmed": None}]},
+        # no issue: the variant CONFIRMED by the owner
+        {"name": "drift_confirmed", "slug": "1", "edits": [[QUATSE_WEIR, reword]],
+         "entries": [{**variant, "duplicate_confirmed": True}]},
+        # no issue: the new wording is on the place itself (an exact match)
+        {"name": "exact_rewording", "slug": "1", "edits": [[QUATSE_WEIR, reword]],
+         "entries": [{"op": "add_fingerprint", "to": QUATSE, "fingerprint": fp_reword}]},
+        # closed_area_unbound: a closed area reworded inside its place (Babine Lake's "Pierre Creek")
+        {"name": "closed_area_unbound", "slug": "6", "edits": [["<li>Pierre Creek</li>", "<li>Pierre Ck.</li>"]]},
+        # no_water (unmatched, why new_water): a water no entry knows
+        {"name": "new_water", "slug": "6", "edits": [[at6, unseen + at6]]},
+        # gone (no issue): DFO drops the Cayeghle row — told once, the wider rule answers
+        {"name": "gone", "slug": "1", "edits": [[r1[a:b], ""]]},
+        # unread: the region's page does not parse (held), its fetch fails (stale), a region not asked
+        {"name": "unread_held", "slug": "1", "edits": [], "page": "<html>nothing</html>"},
+        {"name": "unread_stale", "slug": "1", "edits": [], "fail": True},
+        {"name": "unread_not_asked", "slug": "1", "edits": [], "first": ["1", "8"]},
+    ]
+
+
+def _edit_entries(doc: dict, ops: list) -> dict:
+    """`doc` (an entry file) with the case's edits applied (the worker's test applies the same, `editEntries`)"""
+    locs = doc["locations"]
+    for op in ops:
+        if op["op"] == "add_place":
+            src = next(l for l in locs if l["location_id"] == op["from"])
+            new = {**json.loads(json.dumps(src)), "location_id": op["location_id"], "fingerprints": [op["fingerprint"]],
+                   "status": "active", "source_text": {**src["source_text"], "specific_area": op["area"]}}
+            if "duplicate_of" in op:
+                new["duplicate_of"], new["duplicate_confirmed"] = op["duplicate_of"], op["duplicate_confirmed"]
+            if op.get("no_extents"):
+                new["binding"] = {**src["binding"], "extents": []}
+            locs.append(new)
+        elif op["op"] == "add_fingerprint":
+            next(l for l in locs if l["location_id"] == op["to"])["fingerprints"].append(op["fingerprint"])
+        else:
+            raise SystemExit(f"{_BY}: unknown entry edit {op['op']!r}")
+    return doc
+
+
+def _live(pages: dict, case: "dict | None" = None) -> dict:
+    """`live.run` as the feed runs it, with the fixture entry files (a case's edits applied): over `pages` (slug -> page)
+    — or, for a case, first over the saved page (the last feed), then over the edited one. The index's `locs` (each {r,
+    sp, g, x?}), `verdicts` and `gears` they index (a reader compares runs by the verdict / gear itself: the worker
+    numbers its tables its own way), `unplaced`, (T759) `issues`, `dfo`, each region's `gone`, and the run's notices of
+    `NOTICE_KINDS` ([key, text], by key)."""
+    import shutil
     import tempfile
     with tempfile.TemporaryDirectory() as tmp:
-        ix = L.run(Path(tmp), fetcher=lambda s: (pages_html[s], None), regions=list(pages_html), entries_dir=ENTRIES,
-                   now="2026-10-28T12:00:00Z", dry_run=True, with_marks=False)["index"]
-    return {"locs": dict(sorted(ix["locs"].items())), "verdicts": ix["verdicts"], "gears": ix["gears"],
-            "unplaced": ix["unplaced"]}
+        ents = Path(tmp) / "entries"
+        shutil.copytree(ENTRIES, ents)
+        if case is None:
+            ix = L.run(Path(tmp) / "feed", fetcher=lambda s: (pages[s], None), regions=list(pages), entries_dir=ents,
+                       now="2026-10-28T12:00:00Z", dry_run=True, with_marks=False)
+        else:
+            slug = case["slug"]
+            if case.get("entries"):
+                p = ents / f"region-{slug}.json"
+                p.write_text(json.dumps(_edit_entries(json.loads(p.read_text(encoding="utf-8")), case["entries"])),
+                             encoding="utf-8")
+            html = case.get("page", pages[slug])
+            for old, new in case["edits"]:
+                if html.count(old) != 1:
+                    raise SystemExit(f"{_BY}: live case {case['name']}: {old[:60]!r} is not on the page exactly once")
+                html = html.replace(old, new)
+
+            def fetch(day):
+                def get(s):
+                    if day == 2 and s == slug and case.get("fail"):
+                        raise OSError("down")
+                    return (html if day == 2 and s == slug else pages[s]), None
+                return get
+            out = Path(tmp) / "feed"
+            L.run(out, fetcher=fetch(1), regions=case.get("first") or [slug], entries_dir=ents,
+                  now="2026-10-28T12:00:00Z", with_marks=False)
+            ix = L.run(out, fetcher=fetch(2), regions=[slug], entries_dir=ents, now="2026-10-28T18:00:00Z",
+                       with_marks=False)
+    i = ix["index"]
+    return {"locs": dict(sorted(i["locs"].items())), "verdicts": i["verdicts"], "gears": i["gears"],
+            "unplaced": i["unplaced"], "issues": i["issues"], "dfo": i["dfo"],
+            "gone": {s: r.get("gone", []) for s, r in i["regions"].items()},
+            "notices": sorted([n["key"], n["text"]] for n in ix["notices"] if n["key"].startswith(NOTICE_KINDS))}
 
 
 #: (T770) A CARRIED PLACE (a row the feed could not read this run, kept from the last feed, `live._carry`): the hand
@@ -300,17 +431,13 @@ def build() -> dict:
                  for r in T.typed_rules({"species": species, "dates": dates, "limits_gear": limits}, "rows", i)]
         rows[case["name"]] = {"rules": rules, "calendar": _calendar(rules)}
     names_in = sorted({*NAME_CASES, *(w for w in waters if w)})
-    # (T757, T758) THE PYTHON LIVE FEED over the saved pages and the fixture entry files (`live.run`, dry run: nothing
-    # written, nothing sent): every location it publishes, with its region and its year in WORDS (each run's verdict and
-    # gear list itself, not an index), so the worker's run over the same inputs is pinned whole — places, page defaults,
-    # closed-area pieces, their calendars and verdict texts — not by a count typed into a test. `cases`: the same run on
-    # an edited page (`edit`: [old, new], one replacement), e.g. a page that no longer prints its default sentence.
+    # (T757, T758, T759) THE PYTHON LIVE FEED over the saved pages and the fixture entry files (`live.run`, dry run:
+    # nothing written, nothing sent): every location it publishes with its year, the issues, the shape, the places gone
+    # and the notices of `NOTICE_KINDS`, so the worker's run over the same inputs is pinned whole — not by a count typed
+    # into a test. `cases` (`_live_cases`): the same on edited inputs, run twice as the feed runs (saved, then edited).
     pages_html = {_slug(p): p.read_text(encoding="utf-8") for p in files}
-    live = {**_live(pages_html), "cases": {}, "carry": _carry_case()}
-    for name, slug, old, new in LIVE_CASES:
-        if pages_html[slug].count(old) != 1:
-            raise SystemExit(f"{_BY}: live case {name}: {old!r} is not on the region {slug} page exactly once")
-        live["cases"][name] = {"slug": slug, "edit": [old, new], **_live({slug: pages_html[slug].replace(old, new)})}
+    live = {**_live(pages_html), "cases": {c["name"]: {**c, **_live(pages_html, c)} for c in _live_cases(pages_html)},
+            "carry": _carry_case()}
     return {
         "format": FORMAT,
         "_about": f"GENERATED by `{_BY}` from the saved DFO pages beside this file and dfo-rows.json: what the PYTHON "

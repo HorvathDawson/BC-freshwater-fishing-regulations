@@ -39,6 +39,7 @@ import { kindWords, tierWords } from "./regs/tree";
 import { text, type Line } from "./regs/line";
 import type { TreeKind, TreeTier } from "./answers.generated";
 import { runNow, runSliced, YIELD_EVERY, type Steps } from "./sliced";
+import { salmonIssueBanners, type SalmonIssues, type SalmonIssueVM } from "./salmonIssues";
 
 export const SALMON_SPECIES = ["CH", "CO", "SK", "PK", "CM"] as const;
 export type SalmonSpecies = typeof SALMON_SPECIES[number];
@@ -118,7 +119,12 @@ interface Chain {
 /** (T668 fix 4, owner 2026-11-11) a DFO place a row can come from, as the scrape holds it: its region slug, its water's
  *  name (absent on a region / section / area default) and its DFO section as the page prints it ("B(ii)"; absent where
  *  the page has no lettered sections) */
-export interface SalmonPlace { readonly r: string; readonly water?: string; readonly sec?: string }
+export interface SalmonPlace {
+  readonly r: string; readonly water?: string; readonly sec?: string;
+  /** (T573/T757) a closed area inside a DFO place, its own location (`deliver.salmon.build`); `bound`: it covers a section.
+   *  The app knows a piece by this marker only, never by its id. Absent on an ordinary place and in an older release. */
+  readonly piece?: 1; readonly bound?: 1;
+}
 /** (T796 A5, owner 2026-11-16) THE RULE BOOK'S FULL CLOSURE AS A PLACE (`book:<entry_id>::<rule_id>`, `~2` … when one rule
  *  closes different days on different sections): first in the chains of the stretches the book closes to all fishing,
  *  so salmon read closed there too (book p.77). A release-side place (`static`): DFO's feed never carries it, so under a
@@ -171,6 +177,9 @@ interface Payload {
   /** (T521) the live feed's places no curated location knows (`feeds/dfo/unplaced.json`), each with the app items of
    *  the water it names: shown on that water's page, never painted. Absent in a release's own file. */
   readonly feedUnplaced?: readonly SalmonUnplacedPlace[];
+  /** (T759) the live feed's issues (`feeds/dfo/index.json` `issues`): banners on their waters' stretches, never a status.
+   *  Absent in a release's own file. */
+  readonly feedIssues?: SalmonIssues;
   /** (T668 fix 4) every place of a chain, by location id: what a row is named by. Absent before fix 4. */
   readonly p?: Readonly<Record<string, SalmonPlace | SalmonBookPlace>>;
   /** (T796 A5) each static place's own year (`SalmonBookPlace`), by location id: composed into its chains under a live
@@ -746,6 +755,8 @@ export interface SalmonCardVM extends SalmonBlockVM {
    *  before, or a number not read): no number is shown for them, read DFO's text; `notes` — rows whose words matter as
    *  printed ("in the aggregate", "see exception below"). Null when there are none. */
   readonly dfoWords?: SalmonWordsVM | null;
+  /** (T759) the live feed's issues on this water, one banner each quoting DFO's row; [] when none. Never a status. */
+  readonly issues: readonly SalmonIssueVM[];
   /** (T796 A6) DFO's words of a "Finfish closure" answering on the page's drawn chains that day (a verdict's `f`): ALL
    *  fishing is closed, trout included (`closeForFinfish` closes the page); [] none */
   readonly finfish: readonly string[];
@@ -1070,6 +1081,9 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
     // every day closed, the full closed bar (T227's and X1's "no bar" overruled)
     year: salmonYear(f, chains, day),
     finfish: finfishToday(f, chains, day),
+    // (T759) the feed's issues on this water: every stretch of it (its item), never its chains; a place its chains
+    // already list as not drawn is the in-part caveat's
+    issues: salmonIssueBanners(P, page.item, undrawnNamed),
     // one closed-all-year statement: the region's closure, or every place of the page closed every day, nothing undrawn
     closedOnly: regionClosed || (!undrawn.some((c) => speaks(f, c))
       && chains.every((c) => runsOf((i) => salmonDayStatus(f, c, i)).every((r) => r.status === "closed"))),

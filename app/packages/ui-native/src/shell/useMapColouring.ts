@@ -9,7 +9,7 @@ import type { GaugeFeed, RunTimingSource, SalmonFeedSource, WaterSource, Section
 import { useBcToday, useMapModes, useLayerChoice, type BrowseTab, type FlowParam, type LayerStore } from "@app/ui";
 import { viewBasinAsk, useBasinDays, useViewBasin, useConditionsColour, useGaugeGeoJSON, useLakeColour, lakeModesReady, lakeValuesCarried, usePairing,
          useStatusIndex, statusFeed, useHorizon, useHorizonPick, flowHorizon, horizonChips, useImageryReach,
-         useFinfishCue, useMethodColour, useRegsLayer, useRunTiming, useSalmonColour, type PairingInput, type RegsLayer, type RunSpeciesStore,
+         useFinfishCue, useIssueColour, useMethodColour, useRegsLayer, useRunTiming, useSalmonColour, type PairingInput, type RegsLayer, type RunSpeciesStore,
          type StatusSource } from "@app/ui";
 import type { Camera, TileEndpoints } from "@app/map";
 import { FIELD_HANDOVER_Z, imageryTiles } from "@app/map/colours";
@@ -253,9 +253,11 @@ export function useMapColouring({ source, feed, status, pairing, tiles, layerSto
   const salmonFeed = useMemo(() => (mapTab === "map" && salmon.feed ? { ...salmon.feed, only: salmonOnly } : null),
                                 [mapTab, salmon.feed, salmonOnly]);
   const methodFeed = mapTab === "map" ? method.feed : null;
+  // (T759) the stripe's labels ride the salmon facts already held; the map draws them in the Salmon view only
+  const issueFeed = useIssueColour({ source, facts: salmon.facts, mapTab: mapTab === "map" });
   return { pickedHorizon: hz.horizon, noteVisible, setZoomedOut, zoomedOut, vintage, mixedPair, unproven, statusIndex, statusOk, lakeFeed, imagery, layers,
            flowParam, horizon, horizonChipsShown, setFlowParam, pickDay, onChooseLayer, mm, credits, cond, gauges,
-           mapStatus, salmonFeed, salmonOffered, salmonLoading, methodFeed, gearMarked,
+           mapStatus, salmonFeed, salmonOffered, salmonLoading, methodFeed, issueFeed, gearMarked,
            regsLayer: salmonLoading ? "salmon" as RegsLayer : regsShown,
            setRegsLayer, salmonFacts: salmon.facts,
            // (T377) the regulations class the key shows alone (null: all), and the key's tap

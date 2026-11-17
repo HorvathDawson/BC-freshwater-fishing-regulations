@@ -118,9 +118,11 @@ export interface ChannelValues {
   /** (T199) the run timing's section values are its labels (`rt`: the state for the species and pentad); (T261) what
    *  is here is the zoomed-out field's — each watershed group's state by its `basin_id` — and the key painted. */
   runs: { readonly key: string; readonly basins: Readonly<Record<string, "spawn" | "pass" | "off">> } | null;
+  /** (T759) the issue stripe is in the labels (`gi`), nothing for the style: always null. */
+  issue: null;
 }
 export const NO_VALUES: ChannelValues =
-  { status: null, standing: null, stocked: null, survey: null, salmon: null, method: null, runs: null };
+  { status: null, standing: null, stocked: null, survey: null, salmon: null, method: null, runs: null, issue: null };
 
 /** A token is a colour, a number, or a dash pattern (an array of line-width multiples). */
 export type Tokens = Record<string, string | number | number[]>;
@@ -371,6 +373,14 @@ export function closedCueColour(theme: string): string {
   const hex = resolveTheme(theme)["color.cue.closed"];
   if (typeof hex !== "string") throw new Error(`theme "${theme}" has no closed cue`);
   return hex;
+}
+
+/** (T759) The issue stripe's ink and the paper under it in one theme — the legend's swatch draws them on a line. */
+export function issueStripeColours(theme: string): { stripe: string; casing: string } {
+  const t = resolveTheme(theme);
+  const stripe = t["color.issue.stripe"], casing = t["color.issue.casing"];
+  if (typeof stripe !== "string" || typeof casing !== "string") throw new Error(`theme "${theme}" has no issue stripe`);
+  return { stripe, casing };
 }
 
 /** (T636) A gauge dot that reports only the other quantity, in one theme: its grey fill and its ring — the legend's swatch. */

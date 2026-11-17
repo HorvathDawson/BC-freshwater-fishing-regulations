@@ -10,7 +10,7 @@ import { CHANGE_LEGEND, changeMarkWords, FLOW_LEGEND, OTHER_QUANTITY_WORDS, TEMP
          WATER_STATUS_LINE, WATER_STATUSES, waterLegend, salmonLegend, GEAR_LEGEND,
          RUN_WORDS, salmonCheckedLine, slotsFor, MAP_KEY, closedKey, waterKeyWords, OBSTACLE_ICON_KINDS }
   from "@app/core";
-import { closedCueColour, gaugeOnlyColours, gearEdgeColour, notFishingColours, runStateColour, salmonStatusColour } from "@app/map/colours";
+import { closedCueColour, gaugeOnlyColours, issueStripeColours, gearEdgeColour, notFishingColours, runStateColour, salmonStatusColour } from "@app/map/colours";
 import { Icon, ObstacleIcon } from "../icons";
 import { hitProps } from "../regs/hit";
 import { useMemo, useState } from "react";
@@ -51,6 +51,10 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
     <LegendCount key={m} palette={palette} colour={gearEdgeColour(theme)} edge={m === "fly" ? "solid" : "dashed"} tight
                  label={MAP_KEY.gear[m]} />
   )) : [];
+  // (T759) THE ISSUE STRIPE'S ENTRY: only while the Salmon key is up and the feed has a water the stripe can mark
+  const issueRow = col.issueFeed ? [
+    <LegendCount key="issue" palette={palette} colour={palette.sub} line tight issue={issueStripeColours(theme)} label={MAP_KEY.issue} />,
+  ] : [];
   // (T377) A CLASS IS TAPPABLE while the map draws it: a tap shows it alone, again (or the one shown) shows all
   const tap = (cls: string) => (col.statusOk
     ? { onPress: () => col.isolate(cls), alone: col.isolated === cls, faded: col.isolated != null && col.isolated !== cls }
@@ -121,7 +125,7 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
         // (T211) DFO's salmon: the salmon key in the salmon colours, and whose rules they are. The switch is under the
         // Layers button and the day in the map's corner (T213)
         // (T396) two rows, as Trout & more's: three statuses, then Check DFO with the gear marks
-        <LegendRows rows={[salmonRows.slice(0, 3), [...salmonRows.slice(3), ...gearRows]]} />
+        <LegendRows rows={[salmonRows.slice(0, 3), [...salmonRows.slice(3), ...gearRows, ...issueRow]]} />
       ) : (
         // The three statuses, in the words and colours every surface uses (@app/core
         // WATER_STATUS through the map's theme) — for the day shown. (T213) Then the gear marks drawn ON them: an ink

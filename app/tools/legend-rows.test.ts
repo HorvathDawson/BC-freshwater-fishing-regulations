@@ -59,8 +59,8 @@ function advanceWidths(path: string): (text: string, size: number) => number {
 // (vitest runs from app/; under jsdom `import.meta.url` is not a file URL)
 const measure = advanceWidths(resolve(process.cwd(), "node_modules/@expo-google-fonts/archivo/400Regular/Archivo_400Regular.ttf"));
 
-const col = (regsLayer: "standard" | "salmon") => ({
-  flowParam: "discharge", horizon: 0, mm: { onConditions: false }, cond: { marks: [] }, gearMarked: true, regsLayer,
+const col = (regsLayer: "standard" | "salmon", issueFeed: unknown = null) => ({
+  flowParam: "discharge", horizon: 0, mm: { onConditions: false }, cond: { marks: [] }, gearMarked: true, regsLayer, issueFeed,
   salmonOffered: true, statusOk: true, salmonFacts: null, setRegsLayer: () => {},
   layers: { water: { drawn: "regulations" }, effective: { groups: { obstacles: false } } },
 }) as never;
@@ -96,5 +96,14 @@ describe("(T396) the regulations key: two rows in both modes, Trout & more fitti
       for (const w of rowWidths()) expect(w, `${mode} ${day ? "dated" : ""}`).toBeLessThanOrEqual(ROOM);
       cleanup();
     }
+  });
+});
+
+describe("(T759) the Salmon key with the issue stripe's entry added", () => {
+  it("still two rows, every row fits 390 dp in Archivo at the legend size, the new entry in the second", () => {
+    render(h(MapLegend, { col: col("salmon", { sections: new Set([1]) }), conditions: false, palette: LIGHT, theme: "light", mapDay: null }));
+    expect(screen.getAllByTestId("legend-row").length).toBe(2);
+    expect(screen.getAllByTestId("legend-entry").length).toBe(7);
+    for (const w of rowWidths()) expect(w).toBeLessThanOrEqual(ROOM);
   });
 });

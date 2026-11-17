@@ -16,6 +16,8 @@ import { formatG } from "../src/dfo/py";
 import { dumps } from "../src/dfo/pyjson";
 import { Interner, locationCalendar, NOT_LISTED } from "../src/dfo/salmon";
 import worker from "../src/index";
+import { SHAPE } from "../src/dfo/live";
+import { dfoIssueCounts, record, type RunRecord, type Status } from "../src/status";
 import { MemStore, privStore } from "./dfo.scenario";
 
 const FIX = join(__dirname, "fixtures/dfo");
@@ -172,5 +174,34 @@ describe("/status.json says the feed shape (pieces_gate.py PIECES_SHAPE)", () =>
     const bad = await worker.fetch(new Request("https://w/status.json"), { BUCKET: bucket(JSON.stringify({ format: "other" })), RUN_TOKEN: "t" } as never);
     expect(bad.status).toBe(503);
     expect((await bad.json()).dfo).toEqual({ pieces: 1 });
+  });
+  it("(T759) the shape is ONE value: what /status.json serves is what every index.json carries (live.SHAPE, the Python's)", async () => {
+    const ok = await worker.fetch(new Request("https://w/status.json"), { BUCKET: bucket(JSON.stringify({ format: "feeds-status/1", updated: "", feeds: {} })), RUN_TOKEN: "t" } as never);
+    const V = JSON.parse(readFileSync(join(FIX, "python-vectors.generated.json"), "utf-8"));
+    expect((await ok.json()).dfo).toEqual(SHAPE);
+    expect(SHAPE).toEqual(V.live.dfo);
+  });
+
+  // (T759, the Android chat's ruling) `no_water` issues are shown nowhere in the app: /status.json counts the last
+  // published DFO index's issues — null before a run with issues support, never a made-up zero
+  const served = async (st: Status) => (await (await worker.fetch(new Request("https://w/status.json"), { BUCKET: bucket(JSON.stringify(st)), RUN_TOKEN: "t" } as never)).json()).dfoIssues;
+  const runRec = (at: string, ok: boolean, dfoIssues?: ReturnType<typeof dfoIssueCounts>): RunRecord =>
+    ({ at, ok, wallMs: 1, cpuMs: null, counts: {}, held: [], error: ok ? null : "boom", meter: null, ...(dfoIssues !== undefined ? { dfoIssues } : {}) });
+  it("dfoIssues: no run yet -> null; a run with issues -> its counts; a run with none -> zeros; a failed run keeps the last", async () => {
+    const st: Status = { format: "feeds-status/1", updated: "", feeds: {} };
+    expect(await served(st)).toBeNull();
+    // the saved pages' Python index (vectors `live`): 9 issues on 7 waters, all undrawn
+    const V = JSON.parse(readFileSync(join(FIX, "python-vectors.generated.json"), "utf-8"));
+    record(st, "dfo", runRec("2026-11-15T10:00:00Z", true, dfoIssueCounts(V.live)), new Date("2026-11-15T10:00:00Z"));
+    expect(await served(st)).toEqual({ waters: 7, issues: 9, no_water: 0, unread: 0 });
+    record(st, "dfo", runRec("2026-11-15T16:00:00Z", false), new Date("2026-11-15T16:00:00Z"));
+    expect(await served(st)).toEqual({ waters: 7, issues: 9, no_water: 0, unread: 0 });       // nothing published: the last stands
+    const nw = V.live.cases.new_water;
+    record(st, "dfo", runRec("2026-11-15T22:00:00Z", true, dfoIssueCounts({ issues: { waters: {}, no_water: nw.issues.no_water, unread: { "3": "held" } } })), new Date("2026-11-15T22:00:00Z"));
+    expect(await served(st)).toEqual({ waters: 0, issues: 0, no_water: 1, unread: 1 });
+    record(st, "dfo", runRec("2026-11-16T04:00:00Z", true, dfoIssueCounts({ issues: { waters: {}, no_water: [], unread: {} } })), new Date("2026-11-16T04:00:00Z"));
+    expect(await served(st)).toEqual({ waters: 0, issues: 0, no_water: 0, unread: 0 });
+    expect(dfoIssueCounts({} as never)).toBeNull();                                            // an index from before T759
+    expect(dfoIssueCounts(null)).toBeNull();
   });
 });

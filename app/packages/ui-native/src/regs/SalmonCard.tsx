@@ -15,9 +15,9 @@
 import { useState } from "react";
 import { Image, View } from "react-native";
 import { Text } from "../Text";
-import { FISH, SALMON_WORDS, WORDS, salmonTable, type SalmonCardVM, type SalmonRowVM, type SalmonSaysVM, type SalmonSpecies, type SalmonTableRowVM, type SalmonWordsRowVM } from "@app/core";
+import { FISH, SALMON_WORDS, WORDS, salmonTable, type SalmonCardVM, type SalmonIssueVM, type SalmonRowVM, type SalmonSaysVM, type SalmonSpecies, type SalmonTableRowVM, type SalmonWordsRowVM } from "@app/core";
 import { TYPE } from "../type";
-import { SPACE, type Palette } from "../theme";
+import { RADIUS, SPACE, type Palette } from "../theme";
 import { WaterInset } from "../WaterFrame";
 import { RegsPress } from "./RegsPress";
 import { RegionRules } from "./RegionRules";
@@ -201,6 +201,30 @@ function SourceFold({ card, shown, palette }: {
   );
 }
 
+/** (T759) ONE BANNER PER ISSUE the live feed lists on this water: the in-season banner's card (tint, the attention bar —
+ *  not a water-status colour), its lead-in, then DFO's area and rows verbatim, then the closing line. Never folded and
+ *  never a status: the rows and the chip above are what they are without it. Words are core's (`SALMON_ISSUE_WORDS`). */
+function IssueBanners({ issues, palette }: { issues: readonly SalmonIssueVM[]; palette: Palette }) {
+  if (!issues.length) return null;
+  return (
+    <View testID="salmon-issues">
+      {issues.map((b) => (
+        <View key={b.key} testID="salmon-issue"
+              style={{ marginTop: 10, borderRadius: RADIUS.box, backgroundColor: palette.tint, borderLeftWidth: 6,
+                       borderLeftColor: palette.attention, paddingVertical: 10, paddingLeft: 12, paddingRight: 14 }}>
+          <Text accessibilityRole="header" style={[TYPE.kicker, { color: palette.sub }]}>{b.title}</Text>
+          <Text testID="salmon-issue-lead" style={[TYPE.regsBodySemi, { color: palette.ink, marginTop: 2 }]}>{b.lead}</Text>
+          <Text selectable testID="salmon-issue-area" style={[TYPE.regsBody, { color: palette.ink, marginTop: 4 }]}>{b.area}</Text>
+          {b.rows.map((r, i) => (
+            <Text selectable key={i} testID="salmon-issue-row" style={[TYPE.regsBody, { color: palette.ink, marginTop: 2 }]}>{r}</Text>
+          ))}
+          <Text testID="salmon-issue-close" style={[TYPE.meta, { color: palette.sub, marginTop: 4 }]}>{b.close}</Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
 export function SalmonCard({ card, palette, actions, images }: {
   card: SalmonCardVM & { readonly checked?: string | null }; palette: Palette; actions?: KeepActions; images?: FishImages }) {
   // every outside picture is credited where shown (T43): the looks drawn here, once each
@@ -216,6 +240,7 @@ export function SalmonCard({ card, palette, actions, images }: {
             <Chip status={card.headlineStatus} label={card.headline} palette={palette} />
           </View>
         </View>
+        <IssueBanners issues={card.issues ?? []} palette={palette} />
         {card.caveat && <CaveatBlock caveat={card.caveat} palette={palette} actions={actions ?? NO_ACTIONS} inset={false} />}
         {card.dfoWords && card.dfoWords.changed.length > 0 && (
           <Words testID="salmon-wording-changed" head={card.dfoWords.changedHead} rows={card.dfoWords.changed} palette={palette} strong />
