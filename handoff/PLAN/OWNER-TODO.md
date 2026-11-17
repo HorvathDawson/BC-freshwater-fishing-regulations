@@ -2297,5 +2297,5 @@ More questions (recommended answer first):
     the same. Also lardeau and duncan should also do that for rainbow right? I'm confused why it is like this seems like
     it would auto be handled". So Kaslo and Keen read LIKE the Lardeau (A), reversing the 08:50 reading; he wants it
     automatic, not a per-water edit.
-- 2026-11-17 ~10:20, in the APP chat, T830 after the Capilano pictures: the unranked line picked "Plainer" ("Too new to
+- 2026-11-17 ~09:57, in the APP chat, T830 after the Capilano pictures: the unranked line picked "Plainer" ("Too new to
   say if this is high or low."); levels to 2 decimals: "Depends how much space this adds. But yes". Built with pictures.
