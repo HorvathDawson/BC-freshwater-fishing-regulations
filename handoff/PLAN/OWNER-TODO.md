@@ -2291,3 +2291,9 @@ More questions (recommended answer first):
   - Kaslo / Keen Dolly Varden: "Dollys and bulls always have same quota per the book.  Why would they not count towards
     the regions 2? That seems wrong". Read as B for Kaslo and Keen (they count toward the 2 from streams); follow-up
     asked on whether his 2026-10-10 ruling T3a (Lardeau and Duncan rows lift bull trout out of the 2) still stands.
+- 2026-11-17 ~08:58, main chat follow-up (verbatim):
+  - Babine east part: "Closed all year then. Also just double checking this was done the same way as other split lakes right?"
+  - Lardeau / Duncan (T3a): "It would just make the same limit tho. That is fine I guess but the kasko and keen should be
+    the same. Also lardeau and duncan should also do that for rainbow right? I'm confused why it is like this seems like
+    it would auto be handled". So Kaslo and Keen read LIKE the Lardeau (A), reversing the 08:50 reading; he wants it
+    automatic, not a per-water edit.
