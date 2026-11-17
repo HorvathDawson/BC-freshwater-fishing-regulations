@@ -2219,3 +2219,7 @@ More questions (recommended answer first):
   break-it audit of every salmon rule against DFO's pages, later). Answered why (T321, Oct 31: DFO's rows as printed so
   the reading can be checked). The block (fold into Source / keep only extras / keep), picked: "Fold into Source
   (Recommended)" (T828: under the 'Source (DFO)' expander, closed by default; unread new wording stays visible).
+- 22:56, typed in chat (verbatim): "Can we also clean up the format for the salmon rows to make it look more consistent
+  with the other table and the new trout table just a formatting thing same data tho". Filed T829 (app side; same
+  data): mockups first in the settled trout table look (the trout page's round-15 design), his pick, then the build
+  after the salmon landing and T828.
