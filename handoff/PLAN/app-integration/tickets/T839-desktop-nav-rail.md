@@ -1,6 +1,6 @@
 # T839 — Web on a desktop: the Map / Conditions / Spots / More bar moves to a left navigation rail
 
-Status: OPEN (app, web; app chat)
+Status: IN PROGRESS (built on branch app-fix/t839-desktop-rail; owner look owed)
 
 Source: owner 2026-11-17 ~11:48, app chat (verbatim): "also desktop mode on webapp should maybe move the bottom
 map.conditions. spots, more bar somewhere more standard for desktop. maybe on side or top please choose the most
@@ -22,3 +22,15 @@ The phone layout is unchanged.
 - Tests: the rail at desktop width, the bar at phone width, every press named and 44 × 44 (the T243 gate).
 
 Size: M. Owner look: shots before landing.
+
+## Built
+- `ui/src/layout.ts` `tabsAsRail(layout)`: true at the existing `desktop` class (1280), so tablet and phone keep the bottom bar.
+- `ui-native/src/NavRail.tsx`: the left rail from the same `TABS` list and handler as `TabBar` (icon over label, current tab
+  filled ink with card-colour glyph and label, square corners, ink hairline, each tab 72 x 64 through `hitProps`, same coach refs).
+- `Shell.tsx` and `shell/SpotHost.tsx`: at desktop the rail replaces the bar (root turns to a row, the screen to its right,
+  no bottom-bar row, so `tabsH` is 0). It is drawn only where `bottomBarShown` says: a water's page (regs mode) and the
+  add-a-spot flow have none, as the bar. The phone path keeps its tree (one extra full-size wrapper View).
+- Note: the app has FIVE tabs (Runs between Conditions and Spots), not four; the rail draws all of them.
+- Tests: `NavRail.shell.test.tsx` (rail at 1280; bar at 390 / 899 / 1279; none in regs mode); `a11y.shell.test.tsx` now tells
+  the app its width, so the T243 desktop rows draw the rail, plus a rail-in-the-gate case.
+- Shots: web 1440 x 900 light and dark, each tab, plus phone 390.

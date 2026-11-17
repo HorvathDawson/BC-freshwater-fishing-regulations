@@ -19,6 +19,7 @@ export { MapRail } from "./MapRail";
 export { FaceBar, ViewTabs, type Face } from "./Faces";
 export { WaterFrame, WaterInset, WaterTitle } from "./WaterFrame";
 export { TabBar, TABS, TAB_BAR, type TabKey } from "./TabBar";
+export { NavRail, NAV_RAIL } from "./NavRail";
 export { LegendStrip, LegendCount, LegendRamp } from "./Chrome";
 export { Sheet, Choice } from "./Sheet";
 export { EdgeBack } from "./EdgeBack";
