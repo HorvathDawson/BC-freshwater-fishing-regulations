@@ -11,7 +11,7 @@
  * map keeps the most recently used `CAP` of them. A failure is never kept — the next asker tries again.
  */
 import { FEED_TTL_MS, type Parameter, type StationId } from "@app/data";
-import { now as clockNow } from "@app/core";
+import { NO_RECORD_WORDS, now as clockNow } from "@app/core";
 
 /** How long an answer is reused: the feed's own file reuse (`TTL_MS` in data/src/feed/http.ts). */
 export const ANSWER_TTL_MS = FEED_TTL_MS;
@@ -77,6 +77,29 @@ export function seriesKey(station: StationId | null, span: "72h" | "year", param
 export function chartParameter(picked: Parameter | null | undefined,
                                available: readonly Parameter[]): Parameter | undefined {
   return picked && available.includes(picked) ? picked : undefined;
+}
+
+/**
+ * (T830) THE QUANTITIES A STATION'S CARD MAY SHOW: those the bundle has a band for (`gaugeParameters`), and any the
+ * publisher says it reports live today (the index's `reports`). Capilano at Canyon reads a level on every row and has
+ * two years of level record, no band: its Level is offered, the reading drawn unranked and the chart without a band.
+ * In the one order, flow first. `reports` null or absent (a feed from before it): the bundle's alone, as before.
+ */
+export function cardParameters(banded: readonly Parameter[],
+                               reports: readonly Parameter[] | null | undefined): readonly Parameter[] {
+  if (!reports?.some((q) => !banded.includes(q))) return banded;
+  return (["discharge", "level"] as const).filter((q) => banded.includes(q) || reports.includes(q));
+}
+
+/**
+ * (T830) THE CARD'S LINE IN PLACE OF A STANDING, when the quantity shown is one the station reads live with no band to
+ * rank it against (`cardParameters` offered it from `reports` alone): Python's words (`NO_RECORD_WORDS`), no dot, never
+ * a high / low / normal word, and never the other quantity's standing. Null otherwise — the card's own standing stands.
+ * Nothing is said while the bundle's quantities are still being read (`known` false).
+ */
+export function noRecordLine(shown: Parameter, banded: readonly Parameter[], known: boolean,
+                             reports: readonly Parameter[] | null | undefined): string | null {
+  return known && !banded.includes(shown) && !!reports?.includes(shown) ? NO_RECORD_WORDS[shown] : null;
 }
 
 /**

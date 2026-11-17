@@ -5,9 +5,9 @@
  * figure under this chart.
  */
 import { describe, expect, it } from "vitest";
-import { OTHER_QUANTITY_WORDS } from "@app/core";
+import { NO_RECORD_WORDS, OTHER_QUANTITY_WORDS } from "@app/core";
 import type { Parameter } from "@app/data";
-import { cardQuantity } from "./answers";
+import { cardParameters, cardQuantity, noRecordLine } from "./answers";
 import { currentFigure, type ReadingVM } from "./panel/conditions";
 import { alertNowValue } from "./notify";
 
@@ -71,5 +71,32 @@ describe("the alert editor's value and 'now' are the card's figure", () => {
     expect(alertNowValue("level", { quantity: "level", current: 2.18 }, 2.17)).toBe(2.18);
     // another quantity picked in the editor: the series speaks for it
     expect(alertNowValue("discharge", { quantity: "level", current: 2.18 }, 197)).toBe(197);
+  });
+});
+
+// (T830) A STATION THAT READS A QUANTITY LIVE WITH NO BAND (Capilano at Canyon: a level on every row, two years of level
+// record): the card offers it, from the publisher's `reports`, and says Python's line in place of a standing.
+describe("(T830) the card's quantities and its no-record line", () => {
+  it("adds a quantity the station reports live to the bundle's banded ones, flow first", () => {
+    expect(cardParameters(["discharge"], ["discharge", "level"])).toEqual(["discharge", "level"]);
+    expect(cardParameters([], ["level"])).toEqual(["level"]);                       // Beatton: no band at all
+    expect(cardParameters(["level"], ["discharge", "level"])).toEqual(["discharge", "level"]);
+    const banded = ["discharge", "level"] as const;
+    expect(cardParameters(banded, ["discharge"])).toBe(banded);                     // nothing new: the same list
+    expect(cardParameters(["discharge"], undefined)).toEqual(["discharge"]);        // a feed from before `reports`
+    expect(cardParameters(["discharge"], null)).toEqual(["discharge"]);
+  });
+  it("offers Level for Capilano and the card is then about its level", () => {
+    const c = cardQuantity("level", cardParameters(["discharge"], ["discharge", "level"]), true, "discharge");
+    expect([c.shown, c.silent, c.options]).toEqual(["level", false, ["discharge", "level"]]);
+  });
+  it("says Python's words for a quantity offered from `reports` alone, and nothing for a banded one", () => {
+    expect(noRecordLine("level", ["discharge"], true, ["discharge", "level"])).toBe(NO_RECORD_WORDS.level);
+    expect(NO_RECORD_WORDS.level).toBe("Not ranked: no long record of its level to compare with.");
+    expect(noRecordLine("discharge", ["discharge"], true, ["discharge", "level"])).toBeNull();
+    expect(noRecordLine("level", ["discharge", "level"], true, ["discharge", "level"])).toBeNull();
+    expect(noRecordLine("level", ["discharge"], false, ["discharge", "level"])).toBeNull();   // quantities not known yet
+    expect(noRecordLine("level", ["discharge"], true, ["discharge"])).toBeNull();           // another datum: not offered
+    expect(noRecordLine("level", ["discharge"], true, undefined)).toBeNull();
   });
 });

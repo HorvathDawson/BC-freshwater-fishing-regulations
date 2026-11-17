@@ -83,7 +83,7 @@ export function donorTone(palette: Palette, row: number | null, quiet: boolean):
 const placeMid = (b: readonly [number, number, number, number] | null | undefined) =>
   (b ? { lon: (b[0] + b[2]) / 2, lat: (b[1] + b[3]) / 2 } : null);
 
-export function DonorPanel({ palette, value, day, at, theme, from, selected, onSelect,
+export function DonorPanel({ palette, value, day, askedAt, at, theme, from, selected, onSelect,
                              horizon = 0, onHorizon, chain: chainProp, standing,
                              detail, chart, foot, after, quantity, sides, count, waterLine, place, holdKey }: {
   palette: Palette; value: PanelAnswer;
@@ -98,6 +98,8 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
    * the panel happens to be drawn.
    */
   day: Date;
+  /** (T830) The instant the answer is asked at (`DonorViewOptions.ref`): a live sheet's clock today; absent, the day. */
+  askedAt?: number;
   /** The tiles, when the caller has them — then the donors are DRAWN as well as listed. */
   at?: TileEndpoints; theme?: string;
   /** Where the person actually is, so the map can mark it. */
@@ -167,7 +169,7 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
   const top = useHeldHeight(holdKey ?? "");
   const topProps = { style: { gap: SPACE.s4, minHeight: top.min },
                      onLayout: (e: LayoutChangeEvent) => top.hold(e.nativeEvent.layout.height) } as const;
-  const vm = useDonorView(value, { day, horizon, from: from ?? null,
+  const vm = useDonorView(value, { day, ...(askedAt !== undefined ? { ref: askedAt } : {}), horizon, from: from ?? null,
                                    size: { width: mapWidth, height: mapH },
                                    selected: selected ?? null, pickable: !!onSelect,
                                    ...(quantity ? { quantity } : {}), sides: sides ?? null, place: place ?? null });

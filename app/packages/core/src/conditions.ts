@@ -467,6 +467,9 @@ export function readingRanked(r: { percentile?: number | null }): boolean {
   return donorState({ percentile: r.percentile ?? null }).kind === "reads";
 }
 
+/** (T830) The gauge card's line under a quantity the station reads live with no band to rank it: Python's words. */
+export { NO_RECORD_WORDS } from "./gauge-policy.generated";
+
 /** (T567) A member that reports the other quantity only, said three ways: its row, its dot, a screen reader. */
 export const OTHER_QUANTITY_WORDS = {
   level: { reads: "Reports water level only today, not flow. Show Level to see it.", map: "level only",

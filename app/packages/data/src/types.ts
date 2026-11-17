@@ -99,6 +99,11 @@ export interface Reading {
    * and the map show belongs to that other reading — and the card says both times.
    */
   rankedAt?: string | null;
+  /**
+   * (T830) The quantities the station reports live, ranked or not, as the publisher listed them (the index's `reports`).
+   * A level with no band is in it, so the card offers Level for it unranked. Absent: a feed from before it, or no index.
+   */
+  reports?: readonly Parameter[];
 }
 
 export interface GaugeLink {

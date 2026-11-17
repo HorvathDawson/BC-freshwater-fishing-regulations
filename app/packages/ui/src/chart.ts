@@ -14,7 +14,7 @@ import { bcHour, localDate, reportFailure, CHART_ZOOM, CONDITIONS_WORDS, chartRe
          zoomChanges, zoomDomain, type ChartSpan, type Domain } from "@app/core";
 import { draftSeriesOf, type GaugeFeed, type Parameter, type WaterSource, type Series, type StationId } from "@app/data";
 import { useAsync, type Async } from "./async";
-import { askOnce, chartParameter, peekAnswer, seriesKey } from "./answers";
+import { askOnce, cardParameters, chartParameter, peekAnswer, seriesKey } from "./answers";
 import { useFeedVersion } from "./feedVersion";
 import { READING_REUSE_MS, stationReading } from "./hooks";
 import { buildHydrograph, DEFAULT_BOX, type Box, type Hydrograph } from "./hydrograph";
@@ -289,10 +289,11 @@ export function usePrefetchGauges(source: WaterSource, stations: readonly Statio
     if (!list) return;
     let alive = true;
     const ids = list.split("\n") as StationId[];
+    // (T830) the card's quantities are the bundle's and the reading's `reports` (`cardParameters`): asked the same way here
     const chart = (st: StationId, sp: ChartSpan) =>
-      askOnce(source, `params:${st}`, () => source.gaugeParameters(st))
-        .then((available) => {
-          const p = chartParameter(picked ?? null, available);
+      Promise.all([askOnce(source, `params:${st}`, () => source.gaugeParameters(st)), reading(st)])
+        .then(([available, r]) => {
+          const p = chartParameter(picked ?? null, cardParameters(available, r?.reports));
           return askOnce(source, seriesKey(st, sp, p, model), () => source.gaugeSeries(st, sp, p, model));
         })
         .catch(() => null);

@@ -19,9 +19,9 @@ import { CHANGE_LEGEND, CHANGE_LOW_WATER, chartLabel, figure as figureText, COND
          forecastRunLine, noChartSentence, OTHER_QUANTITY_WORDS, readingRanked, standingRankedIn, waterReportWhere, dayLabel, regsDayLink, DAY_LABELS, bcNow, type ChartSpan } from "@app/core";
 import type { Parameter, WaterSource, SectionId, StationId } from "@app/data";
 import type { TileEndpoints } from "@app/map";
-import { cardQuantity, changeChartModel, changeView, chartParameter, currentFigure, forecastDash, forecastDrawn, pickModel, realtimeOnly,
+import { cardParameters, cardQuantity, changeChartModel, changeView, chartParameter, currentFigure, forecastDash, forecastDrawn, pickModel, realtimeOnly,
          useChartPrefs, useChartView, useConditionsView, useForecastAttribution, useGaugeParameters,
-         useGaugeShare, usePrefetchGauges, useSeries, type ChangeVM, type ShareControl, type GaugeChoiceVM, type GaugeGroupVM, type Horizon,
+         noRecordLine, useGaugeShare, usePrefetchGauges, useSeries, type ChangeVM, type ShareControl, type GaugeChoiceVM, type GaugeGroupVM, type Horizon,
          type PanelFeed, DataProvenanceContext } from "@app/ui";
 import { GaugeGroups } from "./GaugeGroups";
 import { WaterReportLink } from "./menu/ReportLink";
@@ -123,8 +123,10 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
 
   // WHICH QUANTITIES THIS STATION CAN ANSWER IN, asked of the bundle rather than assumed:
   // 237 BC stations measure stage and never discharge.
+  // (T830) and any the publisher says it reports live with no band (Capilano's level): offered, drawn unranked
   const params = useGaugeParameters(source, station);
-  const available = params.state === "ready" ? params.value : [];
+  const banded = params.state === "ready" ? params.value : [];
+  const available = cardParameters(banded, vm.reading?.reports);
   const [own, setOwn] = useState<Parameter | null>(null);
   // (T584) the reader's span and model pick are kept for the session, so every way into a water reads them alike
   const { span, setSpan, pick: pickState, setPick } = useChartPrefs();
@@ -209,6 +211,8 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
     );
 
   const reading = vm.reading;
+  // (T830) a quantity the station reads live with no band: Python's line in place of a standing, and no dot
+  const noRecord = noRecordLine(shown, banded, known, reading?.reports);
 
   /*
    * THE HEADLINE'S DETAIL ROWS (P16): the lead gauge's own reading — or, where no gauge
@@ -249,12 +253,12 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
             )}
           </View>
           <View style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s2 }}>
-            {reading.percentile != null && theme ? (
+            {reading.percentile != null && theme && !noRecord ? (
               <View testID="reading-dot" style={{ width: 10, height: 10, borderRadius: round(10),
                                                   backgroundColor: rampAt(flowRampStops(theme), reading.percentile) }} />
             ) : null}
-            <Text style={{ ...TYPE.bodyStrong, color: palette.ink, flexShrink: 1 }}>
-              {reading.quantity === shown || !readingRanked(reading) ? reading.standing : standingRankedIn(reading.standing, reading.quantity)}
+            <Text testID={noRecord ? "reading-no-record" : undefined} style={{ ...TYPE.bodyStrong, color: palette.ink, flexShrink: 1 }}>
+              {noRecord ?? (reading.quantity === shown || !readingRanked(reading) ? reading.standing : standingRankedIn(reading.standing, reading.quantity))}
             </Text>
           </View>
           {reading.forecast && <Text testID="reading-forecast" style={{ ...TYPE.bodyStrong, color: palette.ink }}>{reading.forecast}</Text>}
@@ -397,7 +401,7 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
           )}
         </View>
       )}
-      <DonorPanel palette={palette} value={vm.panel} day={vm.day} at={tiles} theme={theme}
+      <DonorPanel palette={palette} value={vm.panel} day={vm.day} askedAt={vm.ref} at={tiles} theme={theme}
                   from={from} selected={station} onSelect={vm.select} horizon={horizon}
                   chain={vm.chain} standing={vm.route.standing}
                   onHorizon={onHorizon} quantity={parameter ?? "discharge"}

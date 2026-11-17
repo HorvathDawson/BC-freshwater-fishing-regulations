@@ -73,6 +73,12 @@ export const RECORD_QUANTITIES: readonly RecordQuantity[] = ["discharge", "level
 /** The shortest record, in years, that may rank a reading: the climatology's floor and the donor panel's gate. */
 export const MIN_RECORD_YEARS = 3;
 
+/** (T830) The gauge card's line under a quantity the station reads live with no band to rank it (record.NO_RECORD_WORDS). */
+export const NO_RECORD_WORDS: Readonly<Record<RecordQuantity, string>> = {
+  discharge: "Not ranked: no long record of its flow to compare with.",
+  level: "Not ranked: no long record of its level to compare with.",
+};
+
 // The envelope and the panel (T125 item 6). PCTILES in pipeline/gauges/feed/climatology.py, as fractions: every envelope
 // is built at these knots, a reading is ranked between them (`percentileInBand`), the standing words break at them
 // (`standing`) and the map's percentile ramp stops at them. MIN_TOTAL_WEIGHT in pipeline/gauges/consume/panel.py: below it
