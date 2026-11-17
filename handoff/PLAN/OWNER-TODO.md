@@ -2299,3 +2299,23 @@ More questions (recommended answer first):
     automatic, not a per-water edit.
 - 2026-11-17 ~09:57, in the APP chat, T830 after the Capilano pictures: the unranked line picked "Plainer" ("Too new to
   say if this is high or low."); levels to 2 decimals: "Depends how much space this adds. But yes". Built with pictures.
+- 2026-11-17 ~10:38, main chat dialog on the T834 side build (verbatim):
+  - The 3 changed waters (Kaslo/Keen +2 bull trout outside the share; Buckley rainbow its own 1): "I think this is right
+    but you didn't explain well".
+  - Rows smaller than the share (Adams rainbow 2 under Region 3's 4 from streams): "How the fuck would it read that it is
+    just 2 of the 4 and nothing should be different then that unless it lists a value bigger then regional quota in which
+    case it will fill it up then add a couple additional slots after being filled up regional".
+  Reading: a row's own number counts INSIDE the stream share; only a number BIGGER than the share adds slots on top
+  (fill the share, then extra slots for that fish). Equal numbers change nothing. That is NOT what the T834 build does
+  for Kaslo/Keen (it gives 2 bull trout + 2 others = 4); follow-up asked with numbers before anything merges.
+- 2026-11-17 ~10:50, main chat follow-ups on T834 (verbatim):
+  - Kaslo: "Yes: 2 in all (Recommended)" (Kaslo/Keen stay 2 fish from the stream in all; both may be bull trout).
+  - Lardeau: "the lardeau would allow 5 rainbows and 2 bull in a day buit then you have used up trout quota so no other
+    types may be caught. or you could catch 2 other trout like cuttroat then you could have the 5+2 with any 2 removed. so
+    like 3 rainbow 2 bulls for example or 4 rainbows 1 bull. make sense?"
+  - Lardeau day total, region's 5 or 7: "i would say 7 because we have other ones like one of the kootenay lakes having a
+    10 a day quota for rainbows ".
+  Reading (main chat): a water that prints its own daily quotas gets a day pool = the larger of the region's cap that
+  applies there (stream share on streams) and the SUM of its own quotas; each fish stays under its own quota, fish with no
+  own quota stay under the region's cap, and all of them count inside the pool, which replaces the region's total there.
+  Lardeau/Duncan 7, Kaslo/Keen 2, Adams 4 (2 rainbow of the 4). T834 reworked to this; the changed waters go to him first.
