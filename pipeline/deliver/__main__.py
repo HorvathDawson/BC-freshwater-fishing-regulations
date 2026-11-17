@@ -239,7 +239,8 @@ def _all(a) -> int:
         _step(["verdicts", "--bundle", str(bundle), "--out", str(d / "verdicts.sqlite")], steps)
         _step(["status_index", "--bundle", str(bundle), "--out", str(d / "status_index.bin")], steps)
         _step(["export", "--bundle", str(bundle), "--out", str(d / "ui-rules-export.json")], steps)
-        _step(["answers", "--bundle", str(bundle), "--export-dir", str(d)], steps)
+        _step(["answers", "--bundle", str(bundle), "--export-dir", str(d),
+               *(["--trout-table"] if getattr(a, "trout_table", False) else [])], steps)
         # THE CARD GATE (P05): every number on every card of the answers just written, proved
         # against the bundle's rules; a problem stops the chain here, before anything is packaged
         _step(["card_check", "--bundle", str(bundle), "--export-dir", str(d)], steps)
@@ -357,6 +358,7 @@ def main(argv=None) -> int:
     an.add_argument("--workers", type=int, default=4)
     an.add_argument("--claims", type=Path, default=None,
                     help="(T667 slice 8) the export claims the highlights are read from (default: the book's)")
+    an.add_argument("--trout-table", action="store_true", help='(T810, trout table plan) also build the OPTIONAL trout section (the trout and char table, contract 2.1); default off: without it the file is byte for byte what it was before the section existed')
     cc = sub.add_parser("card_check", help="the card gate on the shipped answers; writes card-check.json")
     cc.add_argument("--bundle", type=Path, default=GENERATED.bundle / "bundle.sqlite")
     cc.add_argument("--export-dir", type=Path, default=None,
@@ -393,6 +395,7 @@ def main(argv=None) -> int:
     al.add_argument("--no-step-cache", action="store_true",
                     help="(T522) run every step and keep none (default: a step whose inputs are unchanged is reused "
                          "from <out-dir parent or data/generated>/deliver-cache)")
+    al.add_argument("--trout-table", action="store_true", help='(T810, trout table plan) also build the OPTIONAL trout section (the trout and char table, contract 2.1); default off: without it the file is byte for byte what it was before the section existed' + " (a side release; never promote one)")
     al.add_argument("--hold-latest", action="store_true",
                     help="(T408) name the new release in CANDIDATE, not LATEST: `pipeline release` moves LATEST "
                          "only after its checks pass")
@@ -404,6 +407,7 @@ def main(argv=None) -> int:
             a.debug_json = False
             a.hold_latest = False
             a.no_step_cache = False
+            a.trout_table = False
         return _all(a)
     if a.step == "runtiming":
         from pipeline.runtiming.feed.release import stage_base
@@ -425,7 +429,8 @@ def main(argv=None) -> int:
         out = a.out or exp / "ui-rules-answers.json"
         rc = answers_main(["build", "--bundle", str(a.bundle), "--export-dir", str(exp),
                            "--out", str(out), "--workers", str(a.workers),
-                           *(["--claims", str(a.claims)] if a.claims is not None else [])])
+                           *(["--claims", str(a.claims)] if a.claims is not None else []),
+                           *(["--trout-table"] if a.trout_table else [])])
         if rc:
             raise SystemExit(f"pipeline.deliver: the answers were refused — {out} was not written")
     elif a.step == "card_check":

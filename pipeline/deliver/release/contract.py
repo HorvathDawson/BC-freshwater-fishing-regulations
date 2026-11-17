@@ -22,6 +22,32 @@ _REGION_TABLES = {
     "meta": ["k", "v"],
 }
 
+#: (T810 ticket I, trout table contract 2.1) THE OPTIONAL ANSWERS SECTIONS' TABLES: a section a release may carry or not,
+#: ALL OR NOTHING — its version in the water file's layout (`meta.layout.versions`) and the manifest's
+#: `regulations.versions`, its `cell` column (LAST, nullable: no value at that key and segment) and its tables in EVERY
+#: `regs-<region>` file; or none of the three. A release without it is exactly the release before it existed (an
+#: all-NULL column is never shipped: "absent" and "nothing here" must not look the same). Emitted for the app as
+#: `PACK_OPTIONAL_SECTION_TABLES` (pack.py), held by `test_release.py`; the store's and the shards' lists
+#: (`store.build.OPTIONAL_SECTIONS` / `FAMILIES`, `shards.OPTIONAL_TOP` / `OPTIONAL_SHARD_TABLES`) are held equal to it by
+#: `test_trout_section.py`. At the cutover (ticket L) `trout` moves into `_REGION_TABLES` and this is empty again.
+#: Kept apart from `OPTIONAL` below (optional FILES).
+OPTIONAL_SECTION_TABLES = {
+    "trout": {"cell": ["trout"],
+              "tables": {t: _FRAME for t in ("trout_dates", "trout_frame", "trout_sheet", "trout_table")}},
+}
+
+
+def region_tables(sections=()) -> dict:
+    """A `regs-<region>` file's tables and columns with the optional sections `sections` (`OPTIONAL_SECTION_TABLES`):
+    `_REGION_TABLES`, each section's `cell` columns appended and its tables added."""
+    out = {t: list(cols) for t, cols in _REGION_TABLES.items()}
+    for n in sections:
+        spec = OPTIONAL_SECTION_TABLES[n]
+        out["cell"] += spec["cell"]
+        out.update({t: list(cols) for t, cols in spec["tables"].items()})
+    return out
+
+
 #: the files a release may omit. `lakes` is the lake modes' slot, prepared and not fed (owner 2026-10-21): no producer
 #: makes one, `deliver all` ships none, and the app greys Stocked / Depth until a release carries it.
 #: (T823) `flow-small` is BUILT into every release from now, and optional only so an app built from this contract still

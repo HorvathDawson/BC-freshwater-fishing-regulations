@@ -502,8 +502,9 @@ def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, ou
                                                lambda sid: _sid_regions.get(sid, ())).items():
             (work / f"{name}.bin").write_bytes(blob)
             files[name] = work / f"{name}.bin"
+        shard_tables = SH.shard_tables(st)              # (T810 ticket I) + an optional section's, where the store holds it
         common = [t for (t,) in st.execute("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
-                  if t not in SH.SHARD_TABLES and t not in SH.SID_TABLES and t != "meta"]
+                  if t not in shard_tables and t not in SH.SID_TABLES and t != "meta"]
 
         def water_extra(con):
             # camera hints as integer microdegrees (~0.1 m): a REAL is 8 bytes, these are ~4 (part_geo: the geo file)
@@ -548,7 +549,7 @@ def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, ou
             mine = [a for a, rs in regions.items() if r in rs]
             ids = SH.shard_rows(store, mine)
             plan = []
-            for t in SH.SHARD_TABLES:
+            for t in shard_tables:
                 keep = sorted(ids[t])
                 col = "akey" if t == "cell" else "id"
                 plan.append(("s", t, f"WHERE {col} IN ({','.join(map(str, keep)) or 'NULL'})"))

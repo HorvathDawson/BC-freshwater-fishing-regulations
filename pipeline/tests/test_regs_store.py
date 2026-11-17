@@ -603,6 +603,8 @@ def test_the_live_store_schema_invariants(live):
         assert con.execute("SELECT count(*) FROM place").fetchone()[0] == len(A["places"])
         # every family holds exactly the answers' interned table, ids 0..n-1
         for (name, key), tbl in FAMILIES.items():
+            if name not in A["sections"]:
+                continue                                # an optional section this answers file lacks (T810: trout)
             n, lo, hi = con.execute(f"SELECT count(*), min(id), max(id) FROM {tbl}").fetchone()
             assert (n, lo, hi) == (len(A["sections"][name][key]), 0, len(A["sections"][name][key]) - 1)
         for name in SECTIONS:

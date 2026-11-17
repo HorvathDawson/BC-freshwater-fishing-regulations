@@ -364,6 +364,22 @@ def _duty_band(r, lo: float, hi: float) -> str:
     return common.band_words(a, b, *edges(sides, a, b))
 
 
+def licence_duty(l: dict, lo: float, hi: float) -> Optional[str]:
+    """A decided line's yearly limit or record duty in the card's words ("10 a year", "record each on your licence right
+    away", a banded one naming its band); None for any other line. `_duties` and the trout table's fish sheet (T810 H)
+    both say them from here."""
+    r = l["r"]
+    if l["t"] == "annual" and isinstance(r.f.get("take"), (int, float)):
+        band = _duty_band(r, lo, hi)
+        return f"{_js(r.f['take'])} {band} a year" if band else f"{_js(r.f['take'])} a year"
+    if l["t"] == "record" or (l["t"] == "duty" and r.f.get("record_retention")):
+        band = _duty_band(r, lo, hi)
+        # UR1 G; ROUND20g 2 (owner: fewer words); T763: a banded duty names its band
+        return (f"record each one {band} on your licence right away" if band
+                else "record each on your licence right away")
+    return None
+
+
 def _duties(P, model: dict, S: str, n, lo: float, hi: float) -> List[str]:
     from pipeline.deliver.answers.rows import main_res
     R_ = model["R"].get(S) or {}
@@ -371,14 +387,9 @@ def _duties(P, model: dict, S: str, n, lo: float, hi: float) -> List[str]:
     out: List[str] = []
     for l in (m or {}).get("lines") or []:
         r = l["r"]
-        if l["t"] == "annual" and isinstance(r.f.get("take"), (int, float)):
-            band = _duty_band(r, lo, hi)
-            w = f"{_js(r.f['take'])} {band} a year" if band else f"{_js(r.f['take'])} a year"
-        elif l["t"] == "record" or (l["t"] == "duty" and r.f.get("record_retention")):
-            band = _duty_band(r, lo, hi)
-            # UR1 G; ROUND20g 2 (owner: fewer words); T763: a banded duty names its band
-            w = (f"record each one {band} on your licence right away" if band
-                 else "record each on your licence right away")
+        lic = licence_duty(l, lo, hi)
+        if lic is not None:
+            w = lic
         elif l["t"] == "duty" and r.type == "stop_fishing_after_quota":
             # UR2 5; ROUND20g 2 (owner: fewer words); ROUND20i 5 (UR4: "here" read as the whole Vedder?): the book's "stop
             # fishing that water", named by its noun ("this river")
