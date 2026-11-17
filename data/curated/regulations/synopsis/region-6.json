@@ -366,7 +366,7 @@
       {
        "op": "between",
        "splits": [
-        "babine_river__babine_lake",
+        "babine_river__babine_lake_main_body",
         "babine_river__nilkitkwa_lake"
        ]
       }
@@ -6804,7 +6804,7 @@
      "op": "between",
      "item_id": "gnis:17687",
      "splits": [
-      "babine_river__babine_lake",
+      "babine_river__babine_lake_main_body",
       "babine_river__nilkitkwa_lake"
      ]
     }
@@ -6881,7 +6881,7 @@
        "op": "between",
        "item_id": "gnis:17687",
        "splits": [
-        "babine_river__babine_lake",
+        "babine_river__babine_lake_main_body",
         "babine_river__nilkitkwa_lake"
        ]
       }

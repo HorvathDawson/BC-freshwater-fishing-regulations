@@ -142,11 +142,11 @@ def test_nanaimo_fly_only_is_upstream_of_the_second_nanaimo_lake():
 def test_rainbow_alley_binds_the_babine_between_the_two_lakes_as_the_babine_row_does():
     babine = _rule("6", "r6:babine_river@6-8", "babine_river.r3")
     assert babine["extents"] == [{"op": "between",
-                                  "splits": ["babine_river__babine_lake",
+                                  "splits": ["babine_river__babine_lake_main_body",
                                              "babine_river__nilkitkwa_lake"]}]
     assert _place(_rule("6", "r6:nilkitkwa_lake@6-8", "nilkitkwa_lake.r4")) == {
         "extents": [{"op": "between", "item_id": "gnis:17687",
-                     "splits": ["babine_river__babine_lake", "babine_river__nilkitkwa_lake"]}],
+                     "splits": ["babine_river__babine_lake_main_body", "babine_river__nilkitkwa_lake"]}],
     }
 
 
@@ -205,7 +205,7 @@ def test_rainbow_alley_is_in_the_nilkitkwa_rows_scope():
     assert e["extents"] == [
         {"op": "whole", "item_id": "wbk:329026685"},
         {"op": "between", "item_id": "gnis:17687",
-         "splits": ["babine_river__babine_lake", "babine_river__nilkitkwa_lake"]}]
+         "splits": ["babine_river__babine_lake_main_body", "babine_river__nilkitkwa_lake"]}]
     assert scope_misses({**e, "extents": [{"op": "whole"}]}) == [
         "r6:nilkitkwa_lake@6-8::nilkitkwa_lake.r4 binds gnis:17687, outside its row's scope"]
 
@@ -270,7 +270,7 @@ def test_the_second_nanaimo_lake_is_the_western_one(registry, points):
 @pytest.mark.needs_atlas
 def test_rainbow_alleys_cuts_are_on_the_babine(registry):
     ids = {b["id"] for b in registry["gnis:17687"]["boundaries"]}
-    assert {"babine_river__babine_lake", "babine_river__nilkitkwa_lake"} <= ids
+    assert {"babine_river__babine_lake_main_body", "babine_river__nilkitkwa_lake"} <= ids
     assert "Rainbow Alley" in registry["gnis:17687"]["variants"]
 
 
