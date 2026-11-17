@@ -1,6 +1,6 @@
 # T830 — A gauge that reports a live level but has no level history shows no Level (Capilano at Canyon, 15 more)
 
-Status: OPEN (app chat; worker + data layer + app; one owner pick in part 2).
+Status: DONE 3eb8a4e28 (CI green 2026-11-17; staging feeds worker e6622d00 deployed, index carries `reports`; was: app chat; worker + data layer + app; one owner pick in part 2).
 
 Source: owner 2026-11-17 ~00:50, in the app chat (verbatim): "also for gauges should look into why capilano river at
 canyon gauge doesnt have level but i can find level for it online like here
@@ -133,3 +133,7 @@ screen and the gauge card is below the fold (`android-gauge-offline-step1.png`).
 
 2026-11-17 12:36: Android benches 7/7 (install, memory, tap-stalls, regs-open, walkthrough, gauge-level, crash-bed).
 Merged onto head with T819's spot words (the list row's new ranked line takes the 2-decimal level too).
+
+2026-11-17 13:15: landed 3eb8a4e28 (CI green, app + pipeline); staging feeds worker deployed (version e6622d00, all jobs ok).
+The staging R2 index now carries `reports` (426 stations; 08GA031 Capilano: discharge + level). In Play internal 0.7.12
+(versionCode 34); not in TestFlight build 37.

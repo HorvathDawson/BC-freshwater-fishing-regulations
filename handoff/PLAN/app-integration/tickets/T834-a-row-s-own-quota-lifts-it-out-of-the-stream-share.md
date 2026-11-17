@@ -45,3 +45,5 @@ brook trout which also uses up your 5 quota." Card leads with the region's cap; 
 for that fish that counts toward the cap. Catch confirmation pending (see OWNER-TODO 12:29).
 
 2026-11-17 12:32, owner: "For now say legal ( need to ask about this with co tho)" (15 brook + 5 cutthroat). Engine unchanged; card leads with the region cap and shows the own number as an exception counting toward it.
+
+2026-11-17 13:15, owner: box head "Lead with 5 (Recommended)" ("Keep 5, brook trout up to 20 ..." not "Keep 20 in all"); Kootenay, Peace and Lardeau cards "Yes, they read right". Then merge with the Nahwitti vector.

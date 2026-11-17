@@ -2393,3 +2393,6 @@ More questions (recommended answer first):
 - 2026-11-17 12:43, for the owner: re-tick Sheldens Creek (DFO Region 6, "upstream of white triangular fishing boundary
   signs … Spur 19 Bridge site") in the review app. The 11-15 night mark (saved by Claude, unsure, whole creek) was
   overtaken by your 11-16 20:01 "Extend to the bridge"; it now waits on NOT_LANDED_OK until you mark the place again.
+- 2026-11-17 13:15, owner, on T834's cards as built (Jewel, Kootenay, Peace, Lardeau): box head "Lead with 5
+  (Recommended)" (box reads "Keep 5, brook trout up to 20 / brook trout count toward the 5; past 5, brook trout only",
+  not "Keep 20 in all"); the other three cards "Yes, they read right".
