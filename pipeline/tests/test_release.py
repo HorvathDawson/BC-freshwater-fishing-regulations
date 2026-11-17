@@ -312,6 +312,26 @@ def test_every_cores_effective_key_is_the_search_key(rel, tmp_path):
 def test_the_apps_pack_contract_is_current():
     from pipeline.tools.emit import pack as emit_pack
     assert emit_pack.OUT.read_text() == emit_pack.render(), "run: python -m pipeline.tools.emit.pack"
+    assert emit_pack.CELL_OUT.read_text() == emit_pack.render_cell(), "run: python -m pipeline.tools.emit.pack"
+
+
+def test_the_cell_columns_reach_core_by_generation(monkeypatch):
+    """(trout plan I0) `CellIds` is emitted into @app/core from the contract's `cell`; while core's reader still types its
+    own (core/src/regs/inputs.ts, until the app chat's ticket M imports the generated one), the two name the same
+    sections. Mutation: a column added to `cell` changes the generated file, so `--check` fails until it is re-emitted."""
+    import re
+    from pipeline.deliver.release import contract as C
+    from pipeline.tools.emit import pack as emit_pack
+    text = emit_pack.render_cell()
+    secs = C._REGION_TABLES["cell"][len(emit_pack.CELL_KEYS):]
+    assert re.findall(r"readonly (\w+): number", text) == secs
+    hand = (emit_pack.REPO_ROOT / "app/packages/core/src/regs/inputs.ts").read_text(encoding="utf-8")
+    m = re.search(r"export interface CellIds \{([^}]*)\}", hand)
+    if m:                                                       # still hand-typed: it must not drift meanwhile
+        assert re.findall(r"readonly (\w+): number", m.group(1)) == secs, "inputs.ts CellIds != contract `cell`"
+    monkeypatch.setitem(C._REGION_TABLES, "cell", C._REGION_TABLES["cell"] + ["trout"])
+    grown = emit_pack.render_cell()
+    assert grown != emit_pack.CELL_OUT.read_text() and "readonly trout: number" in grown
 
 
 def test_the_web_budget_prices_each_moment_and_fails_a_crossed_gate(tmp_path):
